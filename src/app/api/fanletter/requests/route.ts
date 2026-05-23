@@ -155,6 +155,10 @@ export async function POST(request: Request) {
       }
     }
 
+    if (body?.memberOnly && !requesterEmail) {
+      return jsonError("Member session is required.", 403);
+    }
+
     const fanRequest = await createFanletterFanRequest({
       body: body?.body,
       characterName: body?.characterName,

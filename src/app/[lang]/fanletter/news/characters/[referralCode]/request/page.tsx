@@ -13,7 +13,10 @@ import {
 import { getFanletterNewsCharacterVlogsHref } from "@/lib/fanletter-news-vlog-routing";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
-import { buildPathWithReferral } from "@/lib/landing-branding";
+import {
+  buildPathWithReferral,
+  setPathSearchParams,
+} from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
@@ -174,6 +177,14 @@ export default async function LocalizedFanletterNewsCharacterRequestPage({
     locale,
     referralCode: effectiveReferralCode,
   });
+  const requestHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/characters/${data.profile.referralCode}/request`,
+    effectiveReferralCode,
+  );
+  const connectHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/connect`, effectiveReferralCode),
+    { returnTo: requestHref },
+  );
   const latestReport = newsData.reports[0]
     ? {
         coverImageUrl: newsData.reports[0].coverImageUrl,
@@ -194,8 +205,10 @@ export default async function LocalizedFanletterNewsCharacterRequestPage({
       characterName={characterName}
       characterSummary={characterSummary}
       charactersHref={charactersHref}
+      connectHref={connectHref}
       creatorReferralCode={data.profile.referralCode}
       fanOnlyContentCount={data.fanOnlyContentCount}
+      isMemberConnected={Boolean(memberSession)}
       latestReport={latestReport}
       locale={locale}
       newsHomeHref={newsHomeHref}

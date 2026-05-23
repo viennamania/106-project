@@ -717,6 +717,7 @@ export type FanletterFanRequestCreateRequest = {
   body?: string | null;
   characterName?: string | null;
   creatorReferralCode?: string | null;
+  memberOnly?: boolean;
   requestType?: string | null;
   requesterDisplayName?: string | null;
   sourceContentId?: string | null;

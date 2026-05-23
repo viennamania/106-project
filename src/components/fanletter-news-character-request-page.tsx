@@ -6,16 +6,23 @@ import { useMemo, useState, type FormEvent } from "react";
 import {
   ArrowLeft,
   ArrowRight,
+  Camera,
   CheckCircle2,
   Clapperboard,
   FileText,
   Loader2,
+  MapPin,
   MessageCircleHeart,
   Newspaper,
   Radio,
   Send,
+  ShieldCheck,
+  Shirt,
   Sparkles,
   UserRound,
+  WalletCards,
+  WandSparkles,
+  type LucideIcon,
 } from "lucide-react";
 
 import type {
@@ -47,14 +54,39 @@ type FanletterNewsLatestReport = {
   title: string;
 };
 
+type SceneFieldKey =
+  | "action"
+  | "camera"
+  | "location"
+  | "mood"
+  | "outfit"
+  | "safety"
+  | "visibility";
+
+type SceneFieldOption = {
+  label: string;
+  value: string;
+};
+
+type SceneField = {
+  icon: LucideIcon;
+  key: SceneFieldKey;
+  label: string;
+  options: SceneFieldOption[];
+};
+
+type SceneSelections = Record<SceneFieldKey, string>;
+
 type FanletterNewsCharacterRequestPageProps = {
   avatarImageUrl: string | null;
   channelHref: string;
   characterName: string;
   characterSummary: string;
   charactersHref: string;
+  connectHref: string;
   creatorReferralCode: string;
   fanOnlyContentCount: number;
+  isMemberConnected: boolean;
   latestReport: FanletterNewsLatestReport | null;
   locale: Locale;
   newsHomeHref: string;
@@ -69,9 +101,9 @@ function getCopy(locale: Locale) {
     ? {
         backToChannel: "캐릭터 채널",
         backToCharacters: "AI 캐릭터 목록",
-        bodyLabel: "뉴스에서 보고 싶은 장면",
+        bodyLabel: "뉴스에서 보고 싶은 장면 만들기",
         bodyPlaceholder:
-          "예: 다음 뉴스 리포트에서는 팬 질문에 답하면서 새 의상을 소개하는 브이로그를 보고 싶어요.",
+          "예: 퇴근 후 팬을 위로하는 말투가 들어가면 좋겠어요.",
         editorialLoop: {
           body:
             "팬 요청은 크리에이터 스튜디오 요청함에 저장되고, 강한 요청은 브이로그 제작과 뉴스 리포트 소재로 이어집니다.",
@@ -102,27 +134,58 @@ function getCopy(locale: Locale) {
           empty: "아직 연결된 최신 뉴스가 없습니다.",
           title: "최근 뉴스 흐름",
         },
+        memberGate: {
+          body:
+            "장면 요청은 로그인한 회원만 남길 수 있습니다. 요청은 브이로그 제작 스크립트 후보로 저장되기 때문에 회원 활동과 연결합니다.",
+          cta: "뉴스 지갑 연결 후 요청하기",
+          eyebrow: "회원 전용 장면 요청",
+          title: "회원만 보고 싶은 장면을 요청할 수 있습니다.",
+        },
         nameLabel: "팬 이름",
         namePlaceholder: "선택 입력",
         newRequest: "새 요청 작성",
         prompts: [
           {
-            body: "다음 브이로그에서 팬 질문에 답하면서 오늘의 기분을 말해줘.",
-            title: "팬 질문 답변",
-            type: "vlog_request" as const,
+            note: "퇴근 후 위로받는 느낌이면 좋겠어요.",
+            selections: {
+              action: "팬 하루 질문",
+              camera: "셀카형 브이로그",
+              location: "카페",
+              mood: "위로",
+              outfit: "캐주얼",
+              safety: "성인 제외",
+              visibility: "공개 가능",
+            },
+            title: "퇴근 후 위로",
           },
           {
-            body: "새 의상이나 헤어스타일을 뉴스 리포트처럼 소개해줘.",
-            title: "스타일 업데이트",
-            type: "vlog_request" as const,
+            note: "새로운 스타일을 팬에게 먼저 보여주는 느낌이면 좋겠어요.",
+            selections: {
+              action: "새 스타일 소개",
+              camera: "전신 컷",
+              location: "스튜디오",
+              mood: "설렘",
+              outfit: "원피스",
+              safety: "성인 제외",
+              visibility: "공개 가능",
+            },
+            title: "스타일 공개",
           },
           {
-            body: "오늘 뉴스 보고 응원하게 됐어요. 다음 활동도 기대할게요.",
-            title: "응원 메시지",
-            type: "message" as const,
+            note: "팬에게 짧게 인사하고 다음 브이로그를 예고해 주세요.",
+            selections: {
+              action: "다음 장면 예고",
+              camera: "근접샷",
+              location: "방",
+              mood: "응원",
+              outfit: "편한 옷",
+              safety: "성인 제외",
+              visibility: "팬 전용",
+            },
+            title: "다음 편 예고",
           },
         ],
-        promptTitle: "뉴스룸 추천 요청",
+        promptTitle: "20초 빠른 요청",
         recent: {
           empty: "최근 팬 요청이 아직 없습니다.",
           message: "응원",
@@ -131,15 +194,56 @@ function getCopy(locale: Locale) {
           vlog: "장면 요청",
         },
         requestReady: "요청을 저장할 준비가 됐습니다.",
-        requestTypes: {
-          message: {
-            body: "짧은 응원이나 팬 메시지를 남깁니다.",
-            label: "응원 메시지",
+        sceneBuilder: {
+          briefTitle: "제작 브리프 미리보기",
+          fields: {
+            action: {
+              label: "팬에게 하는 행동",
+              options: [
+                "팬 하루 질문",
+                "응원",
+                "새 스타일 소개",
+                "질문 답변",
+                "다음 장면 예고",
+                "선물 소개",
+              ],
+            },
+            camera: {
+              label: "카메라 느낌",
+              options: [
+                "셀카형 브이로그",
+                "근접샷",
+                "전신 컷",
+                "걷는 장면",
+                "대화형",
+                "핸드헬드",
+              ],
+            },
+            location: {
+              label: "장소",
+              options: ["카페", "방", "거리", "스튜디오", "차 안", "해변"],
+            },
+            mood: {
+              label: "장면 분위기",
+              options: ["일상", "위로", "설렘", "응원", "비하인드", "데이트"],
+            },
+            outfit: {
+              label: "의상",
+              options: ["캐주얼", "원피스", "정장", "운동복", "편한 옷", "팬 요청 의상"],
+            },
+            safety: {
+              label: "안전 기준",
+              options: ["성인 제외", "선정성 낮게", "공개 안전", "팬 전용 안전"],
+            },
+            visibility: {
+              label: "공개 범위",
+              options: ["공개 가능", "팬 전용", "뉴스 리포트용"],
+            },
           },
-          vlog_request: {
-            body: "다음 브이로그에서 보고 싶은 장면을 제안합니다.",
-            label: "장면 요청",
-          },
+          helper:
+            "선택값은 스튜디오에서 바로 브이로그 제작 후보로 읽을 수 있는 형식으로 저장됩니다.",
+          noteLabel: "꼭 넣고 싶은 한 문장",
+          notePlaceholder: "예: 마지막에 팬에게 오늘도 고생했다고 말해 주세요.",
         },
         siteName: "FanLetter News",
         stats: {
@@ -161,9 +265,9 @@ function getCopy(locale: Locale) {
     : {
         backToChannel: "Character channel",
         backToCharacters: "AI characters",
-        bodyLabel: "Scene to see in the news",
+        bodyLabel: "Build a scene request",
         bodyPlaceholder:
-          "Example: For the next news report, answer fan questions while showing a new outfit.",
+          "Example: Add a line that comforts fans after work.",
         editorialLoop: {
           body:
             "Fan requests are saved to the creator studio inbox. Strong requests can become vlogs and future FanLetter News report angles.",
@@ -194,27 +298,58 @@ function getCopy(locale: Locale) {
           empty: "No connected latest news yet.",
           title: "Latest news flow",
         },
+        memberGate: {
+          body:
+            "Scene requests are available to signed-in members only because they are saved as production-script candidates for future vlogs.",
+          cta: "Connect news wallet to request",
+          eyebrow: "Members-only scene request",
+          title: "Only members can request scenes to watch.",
+        },
         nameLabel: "Fan name",
         namePlaceholder: "Optional",
         newRequest: "Write another",
         prompts: [
           {
-            body: "In the next vlog, answer fan questions and talk about today's mood.",
-            title: "Fan Q&A",
-            type: "vlog_request" as const,
+            note: "Make it feel comforting after work.",
+            selections: {
+              action: "Ask about the fan's day",
+              camera: "Selfie vlog",
+              location: "Cafe",
+              mood: "Comfort",
+              outfit: "Casual",
+              safety: "No adult tone",
+              visibility: "Public-safe",
+            },
+            title: "After-work comfort",
           },
           {
-            body: "Introduce a new outfit or hairstyle like a news report.",
-            title: "Style update",
-            type: "vlog_request" as const,
+            note: "Show fans the new style first.",
+            selections: {
+              action: "Introduce a new style",
+              camera: "Full-body shot",
+              location: "Studio",
+              mood: "Excited",
+              outfit: "One-piece",
+              safety: "No adult tone",
+              visibility: "Public-safe",
+            },
+            title: "Style reveal",
           },
           {
-            body: "This news made me cheer for you. I am looking forward to the next update.",
-            title: "Support note",
-            type: "message" as const,
+            note: "Say hello to fans and tease the next vlog.",
+            selections: {
+              action: "Tease the next scene",
+              camera: "Close-up",
+              location: "Room",
+              mood: "Supportive",
+              outfit: "Comfy outfit",
+              safety: "No adult tone",
+              visibility: "Fan-only",
+            },
+            title: "Next episode tease",
           },
         ],
-        promptTitle: "Newsroom request prompts",
+        promptTitle: "20-second quick requests",
         recent: {
           empty: "No recent fan requests yet.",
           message: "Support",
@@ -223,15 +358,75 @@ function getCopy(locale: Locale) {
           vlog: "Scene request",
         },
         requestReady: "The request is ready to save.",
-        requestTypes: {
-          message: {
-            body: "Leave a short support note or fan message.",
-            label: "Support message",
+        sceneBuilder: {
+          briefTitle: "Production brief preview",
+          fields: {
+            action: {
+              label: "Action toward fans",
+              options: [
+                "Ask about the fan's day",
+                "Cheer fans on",
+                "Introduce a new style",
+                "Answer questions",
+                "Tease the next scene",
+                "Introduce a gift",
+              ],
+            },
+            camera: {
+              label: "Camera style",
+              options: [
+                "Selfie vlog",
+                "Close-up",
+                "Full-body shot",
+                "Walking scene",
+                "Conversation",
+                "Handheld",
+              ],
+            },
+            location: {
+              label: "Location",
+              options: ["Cafe", "Room", "Street", "Studio", "Car", "Beach"],
+            },
+            mood: {
+              label: "Scene mood",
+              options: [
+                "Daily",
+                "Comfort",
+                "Excited",
+                "Supportive",
+                "Behind the scenes",
+                "Date mood",
+              ],
+            },
+            outfit: {
+              label: "Outfit",
+              options: [
+                "Casual",
+                "One-piece",
+                "Suit",
+                "Workout",
+                "Comfy outfit",
+                "Fan-requested outfit",
+              ],
+            },
+            safety: {
+              label: "Safety",
+              options: [
+                "No adult tone",
+                "Low sensuality",
+                "Public-safe",
+                "Fan-only safe",
+              ],
+            },
+            visibility: {
+              label: "Visibility",
+              options: ["Public-safe", "Fan-only", "News report angle"],
+            },
           },
-          vlog_request: {
-            body: "Suggest a scene for the next vlog.",
-            label: "Scene request",
-          },
+          helper:
+            "Selections are saved in a format Studio can read as a vlog production candidate.",
+          noteLabel: "One must-have line",
+          notePlaceholder: "Example: End by telling fans they did well today.",
         },
         siteName: "FanLetter News",
         stats: {
@@ -262,6 +457,109 @@ function formatDate(value: string, locale: Locale) {
   }).format(new Date(value));
 }
 
+function createSceneFields(copy: ReturnType<typeof getCopy>): SceneField[] {
+  const fields = copy.sceneBuilder.fields;
+
+  return [
+    {
+      icon: Sparkles,
+      key: "mood",
+      label: fields.mood.label,
+      options: fields.mood.options.map((value) => ({ label: value, value })),
+    },
+    {
+      icon: MapPin,
+      key: "location",
+      label: fields.location.label,
+      options: fields.location.options.map((value) => ({ label: value, value })),
+    },
+    {
+      icon: Shirt,
+      key: "outfit",
+      label: fields.outfit.label,
+      options: fields.outfit.options.map((value) => ({ label: value, value })),
+    },
+    {
+      icon: Camera,
+      key: "camera",
+      label: fields.camera.label,
+      options: fields.camera.options.map((value) => ({ label: value, value })),
+    },
+    {
+      icon: WandSparkles,
+      key: "action",
+      label: fields.action.label,
+      options: fields.action.options.map((value) => ({ label: value, value })),
+    },
+    {
+      icon: Radio,
+      key: "visibility",
+      label: fields.visibility.label,
+      options: fields.visibility.options.map((value) => ({ label: value, value })),
+    },
+    {
+      icon: ShieldCheck,
+      key: "safety",
+      label: fields.safety.label,
+      options: fields.safety.options.map((value) => ({ label: value, value })),
+    },
+  ];
+}
+
+function getDefaultSceneSelections(sceneFields: SceneField[]): SceneSelections {
+  return sceneFields.reduce(
+    (selections, field) => ({
+      ...selections,
+      [field.key]: field.options[0]?.value ?? "",
+    }),
+    {} as SceneSelections,
+  );
+}
+
+function buildSceneRequestBody({
+  characterName,
+  fanNote,
+  locale,
+  selections,
+}: {
+  characterName: string;
+  fanNote: string;
+  locale: Locale;
+  selections: SceneSelections;
+}) {
+  const trimmedFanNote = fanNote.trim();
+
+  if (locale === "ko") {
+    return [
+      "[FanLetter News 장면 요청]",
+      `AI 캐릭터: ${characterName}`,
+      `장면 분위기: ${selections.mood}`,
+      `장소: ${selections.location}`,
+      `의상: ${selections.outfit}`,
+      `카메라 느낌: ${selections.camera}`,
+      `팬에게 하는 행동: ${selections.action}`,
+      `공개 범위: ${selections.visibility}`,
+      `안전 기준: ${selections.safety}`,
+      trimmedFanNote ? `팬 메모: ${trimmedFanNote}` : "팬 메모: 없음",
+      `제작 브리프: ${selections.location}에서 ${selections.outfit} 스타일의 ${characterName}가 ${selections.camera}로 ${selections.action} 장면을 보여줍니다. 분위기는 ${selections.mood}, 공개 기준은 ${selections.visibility}, 안전 기준은 ${selections.safety}입니다.`,
+    ].join("\n");
+  }
+
+  return [
+    "[FanLetter News scene request]",
+    `AI character: ${characterName}`,
+    `Mood: ${selections.mood}`,
+    `Location: ${selections.location}`,
+    `Outfit: ${selections.outfit}`,
+    `Camera style: ${selections.camera}`,
+    `Action toward fans: ${selections.action}`,
+    `Visibility: ${selections.visibility}`,
+    `Safety: ${selections.safety}`,
+    trimmedFanNote ? `Fan note: ${trimmedFanNote}` : "Fan note: none",
+    `Production brief: In ${selections.location}, ${characterName} appears in ${selections.outfit} styling and uses a ${selections.camera} format to ${selections.action}. The mood is ${selections.mood}; visibility is ${selections.visibility}; safety guidance is ${selections.safety}.`,
+  ].join("\n");
+}
+
 function getErrorMessage(value: unknown, fallback: string, locale: Locale) {
   const message = value instanceof Error ? value.message : null;
 
@@ -277,6 +575,7 @@ function getErrorMessage(value: unknown, fallback: string, locale: Locale) {
     "Duplicate fan request.": "이미 같은 요청을 남겼습니다.",
     "Fan request contains blocked content.":
       "요청에 링크나 광고성 문구가 포함되어 저장하지 못했습니다.",
+    "Member session is required.": "회원 연결 후 장면 요청을 남길 수 있습니다.",
     "Too many fan requests. Please try again later.":
       "짧은 시간에 요청이 많습니다. 잠시 후 다시 시도해 주세요.",
   };
@@ -306,8 +605,10 @@ export function FanletterNewsCharacterRequestPage({
   characterName,
   characterSummary,
   charactersHref,
+  connectHref,
   creatorReferralCode,
   fanOnlyContentCount,
+  isMemberConnected,
   latestReport,
   locale,
   newsHomeHref,
@@ -317,19 +618,50 @@ export function FanletterNewsCharacterRequestPage({
   recentRequests,
 }: FanletterNewsCharacterRequestPageProps) {
   const copy = useMemo(() => getCopy(locale), [locale]);
-  const [body, setBody] = useState("");
+  const sceneFields = useMemo(() => createSceneFields(copy), [copy]);
+  const [fanNote, setFanNote] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [requesterDisplayName, setRequesterDisplayName] = useState("");
-  const [requestType, setRequestType] =
-    useState<FanletterFanRequestType>("vlog_request");
+  const [sceneSelections, setSceneSelections] = useState<SceneSelections>(() =>
+    getDefaultSceneSelections(sceneFields),
+  );
   const [status, setStatus] = useState<SubmitStatus>("idle");
-  const hasDraft = body.trim().length > 0;
-  const isSubmitDisabled = status === "loading" || !hasDraft;
+  const productionBrief = useMemo(
+    () =>
+      buildSceneRequestBody({
+        characterName,
+        fanNote,
+        locale,
+        selections: sceneSelections,
+      }),
+    [characterName, fanNote, locale, sceneSelections],
+  );
+  const hasDraft = productionBrief.trim().length > 0;
+  const isSubmitDisabled =
+    status === "loading" || !hasDraft || !isMemberConnected;
+
+  function updateSceneSelection(key: SceneFieldKey, value: string) {
+    setSceneSelections((current) => ({
+      ...current,
+      [key]: value,
+    }));
+    setError(null);
+
+    if (status !== "loading") {
+      setStatus("idle");
+    }
+  }
 
   async function submitRequest(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!body.trim()) {
+    if (!isMemberConnected) {
+      setError(copy.memberGate.title);
+      setStatus("error");
+      return;
+    }
+
+    if (!productionBrief.trim()) {
       setError(copy.emptyBody);
       setStatus("error");
       return;
@@ -346,10 +678,11 @@ export function FanletterNewsCharacterRequestPage({
       const data = await readApiJson<FanletterFanRequestCreateResponse>(
         await fetch("/api/fanletter/requests", {
           body: JSON.stringify({
-            body,
+            body: productionBrief,
             characterName,
             creatorReferralCode,
-            requestType,
+            memberOnly: true,
+            requestType: "vlog_request",
             requesterDisplayName,
             sourceContentId: null,
             sourcePath,
@@ -376,7 +709,7 @@ export function FanletterNewsCharacterRequestPage({
           },
         ),
       );
-      setBody("");
+      setFanNote("");
       setRequesterDisplayName("");
       setStatus("success");
     } catch (submitError) {
@@ -384,21 +717,6 @@ export function FanletterNewsCharacterRequestPage({
       setStatus("error");
     }
   }
-
-  const requestTypeOptions = [
-    {
-      Icon: Clapperboard,
-      body: copy.requestTypes.vlog_request.body,
-      label: copy.requestTypes.vlog_request.label,
-      value: "vlog_request" as const,
-    },
-    {
-      Icon: MessageCircleHeart,
-      body: copy.requestTypes.message.body,
-      label: copy.requestTypes.message.label,
-      value: "message" as const,
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-[#eef1ec] pb-24 text-[#111510] sm:pb-12">
@@ -522,135 +840,174 @@ export function FanletterNewsCharacterRequestPage({
               <Radio className="size-5 text-[#16702e]" />
             </div>
 
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              {requestTypeOptions.map(({ Icon, body: optionBody, label, value }) => {
-                const active = requestType === value;
-
-                return (
-                  <button
-                    aria-pressed={active}
-                    className={`min-h-[5.25rem] border px-3 py-3 text-left transition ${
-                      active
-                        ? "border-[#111510] bg-[#44f26e] text-black"
-                        : "border-black/12 bg-[#f7f8f5] text-black/64 hover:border-[#16702e] hover:bg-[#ecfff0]"
-                    }`}
-                    key={value}
-                    onClick={() => {
-                      setRequestType(value);
-                      setError(null);
-                      if (status !== "loading") {
-                        setStatus("idle");
-                      }
-                    }}
-                    type="button"
-                  >
-                    <span className="flex items-center gap-2 text-sm font-black text-[#111510]">
-                      <Icon className="size-4" />
-                      {label}
-                    </span>
-                    <span className="mt-1.5 block text-xs font-semibold leading-5 text-black/58">
-                      {optionBody}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            <label className="mt-4 block">
-              <span className="flex items-center justify-between gap-3">
-                <span className="text-xs font-black uppercase tracking-[0.14em] text-black/46">
-                  {copy.bodyLabel}
-                </span>
-                <span className="text-xs font-bold text-black/38">
-                  {body.length}/600
-                </span>
-              </span>
-              <textarea
-                className="mt-2 min-h-36 w-full resize-y border border-black/14 bg-[#fbfcf9] px-3 py-3 text-sm font-semibold leading-6 text-[#111510] outline-none transition placeholder:text-black/32 focus:border-[#16702e] focus:bg-white"
-                maxLength={600}
-                onChange={(event) => {
-                  setBody(event.target.value);
-                  setError(null);
-                  if (status !== "loading") {
-                    setStatus("idle");
-                  }
-                }}
-                placeholder={copy.bodyPlaceholder}
-                value={body}
-              />
-            </label>
-
-            <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,0.72fr)_minmax(0,0.28fr)]">
-              <label className="block">
-                <span className="text-xs font-black uppercase tracking-[0.14em] text-black/46">
-                  {copy.nameLabel}
-                </span>
-                <input
-                  className="mt-2 h-11 w-full border border-black/14 bg-[#fbfcf9] px-3 text-sm font-semibold text-[#111510] outline-none transition placeholder:text-black/32 focus:border-[#16702e] focus:bg-white"
-                  maxLength={40}
-                  onChange={(event) => {
-                    setRequesterDisplayName(event.target.value);
-                    if (status !== "loading") {
-                      setStatus("idle");
-                    }
-                  }}
-                  placeholder={copy.namePlaceholder}
-                  value={requesterDisplayName}
-                />
-              </label>
-              <button
-                className={`mt-0 inline-flex min-h-11 items-center justify-center gap-2 self-end px-4 text-sm font-black transition disabled:cursor-not-allowed sm:mt-7 ${
-                  isSubmitDisabled
-                    ? "bg-black/8 text-black/34"
-                    : "bg-[#111510] text-white hover:bg-black"
-                }`}
-                disabled={isSubmitDisabled}
-                type="submit"
-              >
-                {status === "loading" ? (
-                  <Loader2 className="size-4 animate-spin text-[#44f26e]" />
-                ) : status === "success" ? (
-                  <CheckCircle2 className="size-4 text-[#44f26e]" />
-                ) : (
-                  <Send className="size-4 text-[#44f26e]" />
-                )}
-                {status === "loading" ? copy.submitting : copy.submit}
-              </button>
-            </div>
-
-            <p className="mt-3 text-xs font-semibold leading-5 text-black/48">
-              {hasDraft ? copy.requestReady : copy.editorialLoop.body}
-            </p>
-
-            <div className="mt-4 border border-[#16702e]/18 bg-[#ecfff0] p-3">
-              <p className="text-xs font-black uppercase tracking-[0.14em] text-[#16702e]">
-                {copy.promptTitle}
-              </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                {copy.prompts.map((prompt) => (
-                  <button
-                    className="min-h-24 border border-[#16702e]/20 bg-white p-3 text-left transition hover:border-[#16702e] hover:bg-[#f7fff7]"
-                    key={prompt.title}
-                    onClick={() => {
-                      setBody(prompt.body);
-                      setRequestType(prompt.type);
-                      setError(null);
-                      if (status !== "loading") {
-                        setStatus("idle");
-                      }
-                    }}
-                    type="button"
-                  >
-                    <span className="block text-sm font-black text-[#111510]">
-                      {prompt.title}
-                    </span>
-                    <span className="mt-2 line-clamp-3 block text-xs font-semibold leading-5 text-black/58">
-                      {prompt.body}
-                    </span>
-                  </button>
-                ))}
+            {!isMemberConnected ? (
+              <div className="mt-4 border border-[#16702e]/20 bg-[#ecfff0] p-4">
+                <p className="inline-flex items-center gap-2 text-[0.66rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+                  <WalletCards className="size-4" />
+                  {copy.memberGate.eyebrow}
+                </p>
+                <h3 className="mt-3 text-2xl font-black tracking-normal [word-break:keep-all]">
+                  {copy.memberGate.title}
+                </h3>
+                <p className="mt-2 text-sm font-semibold leading-6 text-black/60">
+                  {copy.memberGate.body}
+                </p>
+                <Link
+                  className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-black sm:w-auto"
+                  href={connectHref}
+                >
+                  {copy.memberGate.cta}
+                  <ArrowRight className="size-4 text-[#44f26e]" />
+                </Link>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="mt-4 border border-[#16702e]/18 bg-[#ecfff0] p-3">
+                  <p className="text-xs font-black uppercase tracking-[0.14em] text-[#16702e]">
+                    {copy.promptTitle}
+                  </p>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                    {copy.prompts.map((prompt) => (
+                      <button
+                        className="min-h-24 border border-[#16702e]/20 bg-white p-3 text-left transition hover:border-[#16702e] hover:bg-[#f7fff7]"
+                        key={prompt.title}
+                        onClick={() => {
+                          setSceneSelections(prompt.selections as SceneSelections);
+                          setFanNote(prompt.note);
+                          setError(null);
+                          if (status !== "loading") {
+                            setStatus("idle");
+                          }
+                        }}
+                        type="button"
+                      >
+                        <span className="block text-sm font-black text-[#111510]">
+                          {prompt.title}
+                        </span>
+                        <span className="mt-2 line-clamp-3 block text-xs font-semibold leading-5 text-black/58">
+                          {prompt.note}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-4 grid gap-4">
+                  {sceneFields.map(({ icon: Icon, key, label, options }) => (
+                    <fieldset
+                      className="border border-black/10 bg-[#f7f8f5] p-3"
+                      key={key}
+                    >
+                      <legend className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-black/48">
+                        <Icon className="size-4 text-[#16702e]" />
+                        {label}
+                      </legend>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {options.map((option) => {
+                          const active = sceneSelections[key] === option.value;
+
+                          return (
+                            <button
+                              aria-pressed={active}
+                              className={`min-h-9 rounded-full border px-3 text-xs font-black transition ${
+                                active
+                                  ? "border-[#111510] bg-[#111510] text-white"
+                                  : "border-black/12 bg-white text-black/58 hover:border-[#16702e] hover:bg-[#ecfff0]"
+                              }`}
+                              key={option.value}
+                              onClick={() => {
+                                updateSceneSelection(key, option.value);
+                              }}
+                              type="button"
+                            >
+                              {option.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </fieldset>
+                  ))}
+                </div>
+
+                <label className="mt-4 block">
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="text-xs font-black uppercase tracking-[0.14em] text-black/46">
+                      {copy.sceneBuilder.noteLabel}
+                    </span>
+                    <span className="text-xs font-bold text-black/38">
+                      {fanNote.length}/140
+                    </span>
+                  </span>
+                  <textarea
+                    className="mt-2 min-h-24 w-full resize-y border border-black/14 bg-[#fbfcf9] px-3 py-3 text-sm font-semibold leading-6 text-[#111510] outline-none transition placeholder:text-black/32 focus:border-[#16702e] focus:bg-white"
+                    maxLength={140}
+                    onChange={(event) => {
+                      setFanNote(event.target.value);
+                      setError(null);
+                      if (status !== "loading") {
+                        setStatus("idle");
+                      }
+                    }}
+                    placeholder={copy.sceneBuilder.notePlaceholder}
+                    value={fanNote}
+                  />
+                </label>
+
+                <div className="mt-4 border border-black/12 bg-[#111510] p-3 text-white">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-black uppercase tracking-[0.14em] text-[#44f26e]">
+                      {copy.sceneBuilder.briefTitle}
+                    </p>
+                    <WandSparkles className="size-4 text-[#44f26e]" />
+                  </div>
+                  <pre className="mt-3 whitespace-pre-wrap break-words text-xs font-semibold leading-6 text-white/72 [word-break:keep-all]">
+                    {productionBrief}
+                  </pre>
+                </div>
+
+                <div className="mt-3 grid gap-3 sm:grid-cols-[minmax(0,0.72fr)_minmax(0,0.28fr)]">
+                  <label className="block">
+                    <span className="text-xs font-black uppercase tracking-[0.14em] text-black/46">
+                      {copy.nameLabel}
+                    </span>
+                    <input
+                      className="mt-2 h-11 w-full border border-black/14 bg-[#fbfcf9] px-3 text-sm font-semibold text-[#111510] outline-none transition placeholder:text-black/32 focus:border-[#16702e] focus:bg-white"
+                      maxLength={40}
+                      onChange={(event) => {
+                        setRequesterDisplayName(event.target.value);
+                        if (status !== "loading") {
+                          setStatus("idle");
+                        }
+                      }}
+                      placeholder={copy.namePlaceholder}
+                      value={requesterDisplayName}
+                    />
+                  </label>
+                  <button
+                    className={`mt-0 inline-flex min-h-11 items-center justify-center gap-2 self-end px-4 text-sm font-black transition disabled:cursor-not-allowed sm:mt-7 ${
+                      isSubmitDisabled
+                        ? "bg-black/8 text-black/34"
+                        : "bg-[#111510] text-white hover:bg-black"
+                    }`}
+                    disabled={isSubmitDisabled}
+                    type="submit"
+                  >
+                    {status === "loading" ? (
+                      <Loader2 className="size-4 animate-spin text-[#44f26e]" />
+                    ) : status === "success" ? (
+                      <CheckCircle2 className="size-4 text-[#44f26e]" />
+                    ) : (
+                      <Send className="size-4 text-[#44f26e]" />
+                    )}
+                    {status === "loading" ? copy.submitting : copy.submit}
+                  </button>
+                </div>
+
+                <p className="mt-3 text-xs font-semibold leading-5 text-black/48">
+                  {hasDraft ? copy.requestReady : copy.sceneBuilder.helper}
+                </p>
+              </>
+            )}
 
             {status === "success" ? (
               <div
