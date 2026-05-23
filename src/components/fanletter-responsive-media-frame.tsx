@@ -15,8 +15,10 @@ import {
   FanletterAutoplayVideo,
   type FanletterVideoMetadata,
 } from "@/components/fanletter-autoplay-video";
+import { FanletterNsfwVideoPinGate } from "@/components/fanletter-nsfw-video-pin-gate";
 import type { FanletterPublicContentItem } from "@/lib/fanletter-content-service";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
+import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type FanletterResponsiveMediaFrameProps = {
@@ -27,6 +29,12 @@ type FanletterResponsiveMediaFrameProps = {
   eager?: boolean;
   imageUrl: string | null;
   mediaType: FanletterPublicContentItem["mediaType"];
+  nsfwPinGate?: {
+    connectHref?: string | null;
+    enabled: boolean;
+    locale: Locale;
+    managePinHref: string;
+  };
   title: string;
   videoUrl: string | null;
 };
@@ -65,9 +73,12 @@ export function FanletterResponsiveMediaFrame({
   eager = false,
   imageUrl,
   mediaType,
+  nsfwPinGate,
   title,
   videoUrl,
 }: FanletterResponsiveMediaFrameProps) {
+  const [nsfwPinUnlockedVideoUrl, setNsfwPinUnlockedVideoUrl] =
+    useState<string | null>(null);
   const [videoMetadataState, setVideoMetadataState] = useState<{
     metadata: FanletterVideoMetadata;
     src: string;
@@ -77,13 +88,18 @@ export function FanletterResponsiveMediaFrame({
     src: string;
   } | null>(null);
 
+  const requiresNsfwPin = Boolean(videoUrl && nsfwPinGate?.enabled);
+  const isNsfwPinUnlocked =
+    !requiresNsfwPin || nsfwPinUnlockedVideoUrl === videoUrl;
+  const playableVideoUrl = isNsfwPinUnlocked ? videoUrl : null;
+
   const handleMetadata = useCallback((metadata: FanletterVideoMetadata) => {
-    if (!videoUrl) {
+    if (!playableVideoUrl) {
       return;
     }
 
-    setVideoMetadataState({ metadata, src: videoUrl });
-  }, [videoUrl]);
+    setVideoMetadataState({ metadata, src: playableVideoUrl });
+  }, [playableVideoUrl]);
   const handleImageLoad = useCallback(
     (event: SyntheticEvent<HTMLImageElement>) => {
       if (!imageUrl) {
@@ -109,11 +125,13 @@ export function FanletterResponsiveMediaFrame({
   );
 
   const videoMetadata =
-    videoMetadataState?.src === videoUrl ? videoMetadataState.metadata : null;
+    videoMetadataState?.src === playableVideoUrl
+      ? videoMetadataState.metadata
+      : null;
   const imageMetadata =
     imageMetadataState?.src === imageUrl ? imageMetadataState.metadata : null;
-  const shouldUseImageMetadata = !videoUrl && Boolean(imageUrl);
-  const activeMetadata = videoUrl
+  const shouldUseImageMetadata = !playableVideoUrl && Boolean(imageUrl);
+  const activeMetadata = playableVideoUrl
     ? videoMetadata
     : shouldUseImageMetadata
       ? imageMetadata
@@ -140,7 +158,7 @@ export function FanletterResponsiveMediaFrame({
     return nextStyle;
   }, [activeMetadata, aspectRatio, orientation]);
 
-  if (videoUrl) {
+  if (playableVideoUrl) {
     return (
       <div
         className={cn(
@@ -164,7 +182,7 @@ export function FanletterResponsiveMediaFrame({
           controls
           onMetadata={handleMetadata}
           poster={imageUrl ?? undefined}
-          src={videoUrl}
+          src={playableVideoUrl}
           title={title}
         />
         {blurred ? (
@@ -218,7 +236,19 @@ export function FanletterResponsiveMediaFrame({
           </span>
         </div>
       )}
-      {children}
+      {requiresNsfwPin && !isNsfwPinUnlocked && nsfwPinGate ? (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/58 p-3 backdrop-blur-[2px] sm:p-5">
+          <FanletterNsfwVideoPinGate
+            connectHref={nsfwPinGate.connectHref}
+            locale={nsfwPinGate.locale}
+            managePinHref={nsfwPinGate.managePinHref}
+            onUnlocked={() => setNsfwPinUnlockedVideoUrl(videoUrl)}
+            title={title}
+          />
+        </div>
+      ) : (
+        children
+      )}
     </div>
   );
 }

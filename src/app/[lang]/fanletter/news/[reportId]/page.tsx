@@ -81,6 +81,7 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { readMemberServerSession } from "@/lib/member-server-session";
+import { buildWalletUnlockHref } from "@/lib/wallet-unlock";
 
 type FanletterNewsReportSearchParams = {
   ref?: string | string[];
@@ -1526,7 +1527,9 @@ function SourceVlogEmbed({
   copy,
   isPaidContent,
   locale,
+  newsConnectHref,
   paidUnlockHref,
+  pinUnlockHref,
   reportCoverImageSource,
   priceUsdt,
   reportCoverImageUrl,
@@ -1539,7 +1542,9 @@ function SourceVlogEmbed({
   copy: ReturnType<typeof getCopy>;
   isPaidContent: boolean;
   locale: Locale;
+  newsConnectHref: string;
   paidUnlockHref: string | null;
+  pinUnlockHref: string;
   reportCoverImageSource?: FanletterNewsReportDocument["coverImageSource"];
   priceUsdt: string | null;
   reportCoverImageUrl: string | null;
@@ -1554,7 +1559,7 @@ function SourceVlogEmbed({
     (sourceRevealLocked || sourceContent.canViewerAccess !== true);
   const sourceMediaBlurred = mediaBlurred || lockedNsfwSourceTeaserBlurred;
   const sourceVideoUrl =
-    !sourceRevealLocked && sourceContent?.canViewerAccess
+    !sourceRevealLocked && sourceContent?.canViewerAccess && !sourceMediaBlurred
       ? sourceContent.contentVideoUrls[0] ?? null
       : null;
   const shouldUseReportCoverImage =
@@ -1581,6 +1586,7 @@ function SourceVlogEmbed({
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
   const paidUnlockLabel = `${paidUnlockAmount} USDT`;
   const isSourceNsfw = sourceMaturityRating === "nsfw";
+  const shouldRequireNsfwVideoPin = isSourceNsfw && hasEmbeddedVideo;
   const viewerCanAccessSource = sourceContent
     ? sourceContent.canViewerAccess === true
     : !isPaidContent;
@@ -1757,6 +1763,16 @@ function SourceVlogEmbed({
             eager
             imageUrl={sourceImageUrl}
             mediaType={sourceContent?.mediaType ?? "video"}
+            nsfwPinGate={
+              shouldRequireNsfwVideoPin
+                ? {
+                    connectHref: newsConnectHref,
+                    enabled: true,
+                    locale,
+                    managePinHref: pinUnlockHref,
+                  }
+                : undefined
+            }
             title={sourceContent?.title ?? copy.embeddedTitle}
             videoUrl={sourceVideoUrl}
           >
@@ -2053,6 +2069,11 @@ export default async function LocalizedFanletterNewsReportPage({
     buildPathWithReferral(`/${locale}/fanletter/news/wallet`, referralCode),
     { returnTo: articleHref },
   );
+  const pinUnlockHref = buildWalletUnlockHref({
+    locale,
+    referralCode,
+    returnTo: articleHref,
+  });
   const purchasesHref = buildPathWithReferral(
     `/${locale}/fanletter/news/purchases`,
     referralCode,
@@ -2332,7 +2353,9 @@ export default async function LocalizedFanletterNewsReportPage({
                 copy={copy}
                 isPaidContent={isPaidSourceContent}
                 locale={locale}
+                newsConnectHref={newsConnectHref}
                 paidUnlockHref={paidUnlockHref}
+                pinUnlockHref={pinUnlockHref}
                 priceUsdt={paidUnlockAmount}
                 reportCoverImageSource={report.coverImageSource}
                 reportCoverImageUrl={report.coverImageUrl}
