@@ -722,10 +722,12 @@ function ContentCard({
 function ReporterCoverageCard({
   copy,
   locale,
+  referralCode,
   reporter,
 }: {
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
+  referralCode: string | null;
   reporter: FanletterNewsCharacterReporterStat;
 }) {
   const initial =
@@ -733,9 +735,18 @@ function ReporterCoverageCard({
     reporter.reporterReferralCode.trim().charAt(0).toUpperCase() ||
     "F";
   const latestReportAt = formatDate(reporter.latestReportAt, locale);
+  const reporterHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/reporters/${encodeURIComponent(
+      reporter.reporterReferralCode,
+    )}`,
+    referralCode,
+  );
 
   return (
-    <div className="flex min-w-0 items-center gap-3 border border-black/10 bg-white p-3">
+    <Link
+      className="flex min-w-0 items-center gap-3 border border-black/10 bg-white p-3 !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+      href={reporterHref}
+    >
       <span className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-sm font-black text-[#44f26e]">
         {reporter.reporterAvatarImageUrl ? (
           <Image
@@ -771,7 +782,7 @@ function ReporterCoverageCard({
           </p>
         ) : null}
       </div>
-    </div>
+    </Link>
   );
 }
 
@@ -1574,6 +1585,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                   copy={copy}
                   key={reporter.reporterReferralCode}
                   locale={locale}
+                  referralCode={referralCode}
                   reporter={reporter}
                 />
               ))}

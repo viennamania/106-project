@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import {
   AlertTriangle,
@@ -296,7 +296,7 @@ function getReporterNewsHref(
   referralCode: string | null,
 ) {
   return buildPathWithReferral(
-    `/${locale}/fanletter/news?reporter=${encodeURIComponent(
+    `/${locale}/fanletter/news/reporters/${encodeURIComponent(
       reporterReferralCode,
     )}`,
     referralCode,
@@ -2093,6 +2093,11 @@ export default async function LocalizedFanletterNewsHomePage({
     `/${locale}/fanletter/news`,
     referralCode,
   );
+
+  if (activeReporterReferralCode) {
+    redirect(getReporterNewsHref(locale, activeReporterReferralCode, referralCode));
+  }
+
   const currentNewsHref = activeReporterReferralCode
     ? getReporterNewsHref(locale, activeReporterReferralCode, referralCode)
     : newsHomeHref;

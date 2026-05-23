@@ -2151,7 +2151,7 @@ export default async function LocalizedFanletterNewsReportPage({
     referralCode,
   );
   const reporterNewsHref = buildPathWithReferral(
-    `/${locale}/fanletter/news?reporter=${encodeURIComponent(
+    `/${locale}/fanletter/news/reporters/${encodeURIComponent(
       report.reporterReferralCode,
     )}`,
     referralCode,

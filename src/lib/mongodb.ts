@@ -1209,6 +1209,13 @@ export async function getFanletterNewsReportsCollection() {
           createdAt: -1,
         }),
         collection.createIndex({
+          reporterReferralCode: 1,
+          locale: 1,
+          status: 1,
+          sourcePublishedAt: -1,
+          createdAt: -1,
+        }),
+        collection.createIndex({
           locale: 1,
           status: 1,
           sourcePublishedAt: -1,

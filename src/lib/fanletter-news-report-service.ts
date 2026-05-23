@@ -142,6 +142,24 @@ export type FanletterNewsCharacterChannelReportsResult = {
   reports: FanletterNewsReportDocument[];
 };
 
+export type FanletterNewsReporterChannelCharacterStat = {
+  coverImageUrl: string | null;
+  creatorName: string;
+  creatorReferralCode: string | null;
+  latestReportAt: Date | null;
+  reportCount: number;
+};
+
+export type FanletterNewsReporterChannelReportsResult = {
+  characters: FanletterNewsReporterChannelCharacterStat[];
+  fanOnlyCount: number;
+  latestReportAt: Date | null;
+  nsfwCount: number;
+  publicCount: number;
+  reportCount: number;
+  reports: FanletterNewsReportDocument[];
+};
+
 export type FanletterNewsReporterBackfillInput = {
   limit?: number;
   locale?: string | null;
@@ -2230,6 +2248,133 @@ export const getLatestFanletterNewsReports = cache(
       .toArray();
 
     return hydrateFanletterNewsReportCoverImageUrls(reports);
+  },
+);
+
+export const getFanletterNewsReportsForReporterChannel = cache(
+  async ({
+    limit = 36,
+    locale,
+    reporterReferralCode,
+  }: {
+    limit?: number;
+    locale: Locale;
+    reporterReferralCode?: string | null;
+  }): Promise<FanletterNewsReporterChannelReportsResult> => {
+    const normalizedReporterReferralCode =
+      normalizeReferralCode(reporterReferralCode);
+
+    if (!normalizedReporterReferralCode) {
+      return {
+        characters: [],
+        fanOnlyCount: 0,
+        latestReportAt: null,
+        nsfwCount: 0,
+        publicCount: 0,
+        reportCount: 0,
+        reports: [],
+      };
+    }
+
+    const normalizedLimit = Number.isFinite(limit)
+      ? Math.max(1, Math.min(Math.floor(limit), 48))
+      : 36;
+    const reportsCollection = await getFanletterNewsReportsCollection();
+    const query = {
+      locale,
+      reporterReferralCode: normalizedReporterReferralCode,
+      status: "published" as const,
+    };
+    const publicQuery = {
+      ...query,
+      contentMaturityRating: "general" as const,
+    };
+    const [reports, summaryRows, characterRows] = await Promise.all([
+      reportsCollection
+        .find(query)
+        .sort({ sourcePublishedAt: -1, createdAt: -1 })
+        .limit(normalizedLimit)
+        .toArray(),
+      reportsCollection
+        .aggregate<{
+          _id: null;
+          fanOnlyCount: number;
+          latestReportAt: Date | null;
+          nsfwCount: number;
+          publicCount: number;
+          reportCount: number;
+        }>([
+          { $match: query },
+          {
+            $group: {
+              _id: null,
+              fanOnlyCount: {
+                $sum: { $cond: [{ $eq: ["$priceType", "paid"] }, 1, 0] },
+              },
+              latestReportAt: {
+                $max: { $ifNull: ["$sourcePublishedAt", "$createdAt"] },
+              },
+              nsfwCount: {
+                $sum: {
+                  $cond: [
+                    { $eq: ["$contentMaturityRating", "nsfw"] },
+                    1,
+                    0,
+                  ],
+                },
+              },
+              publicCount: {
+                $sum: { $cond: [{ $eq: ["$priceType", "free"] }, 1, 0] },
+              },
+              reportCount: { $sum: 1 },
+            },
+          },
+        ])
+        .toArray(),
+      reportsCollection
+        .aggregate<FanletterNewsReporterChannelCharacterStat>([
+          { $match: publicQuery },
+          { $sort: { sourcePublishedAt: -1, createdAt: -1 } },
+          {
+            $group: {
+              _id: {
+                $ifNull: ["$creatorReferralCode", "$creatorName"],
+              },
+              coverImageUrl: { $first: "$coverImageUrl" },
+              creatorName: { $first: "$creatorName" },
+              creatorReferralCode: { $first: "$creatorReferralCode" },
+              latestReportAt: {
+                $max: { $ifNull: ["$sourcePublishedAt", "$createdAt"] },
+              },
+              reportCount: { $sum: 1 },
+            },
+          },
+          { $sort: { reportCount: -1, latestReportAt: -1 } },
+          { $limit: 8 },
+          {
+            $project: {
+              _id: 0,
+              coverImageUrl: { $ifNull: ["$coverImageUrl", null] },
+              creatorName: 1,
+              creatorReferralCode: { $ifNull: ["$creatorReferralCode", null] },
+              latestReportAt: 1,
+              reportCount: 1,
+            },
+          },
+        ])
+        .toArray(),
+    ]);
+    const summary = summaryRows[0];
+
+    return {
+      characters: characterRows,
+      fanOnlyCount: summary?.fanOnlyCount ?? 0,
+      latestReportAt: summary?.latestReportAt ?? null,
+      nsfwCount: summary?.nsfwCount ?? 0,
+      publicCount: summary?.publicCount ?? 0,
+      reportCount: summary?.reportCount ?? 0,
+      reports: await hydrateFanletterNewsReportCoverImageUrls(reports),
+    };
   },
 );
 
