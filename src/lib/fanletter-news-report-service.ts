@@ -25,6 +25,7 @@ import {
 } from "@/lib/member";
 import {
   getContentPostsCollection,
+  getContentSocialActionsCollection,
   getCreatorProfilesCollection,
   getFanletterNewsReportsCollection,
   getMembersCollection,
@@ -200,6 +201,11 @@ type FanletterNewsReporterIdentity = {
   reporterAvatarImageUrl: string | null;
   reporterCharacterName: string | null;
   reporterName: string;
+};
+
+type FanletterRelatedNewsReportDocument = FanletterNewsReportDocument & {
+  relatedSourceRevealCount: number;
+  relatedSourceVlogAvailable: boolean;
 };
 
 export type FanletterNewsReportCoverOption = {
@@ -2621,6 +2627,74 @@ export const getFanletterNewsReporterProfile = cache(
   },
 );
 
+async function hydrateRelatedFanletterNewsReportSourceVlogStatuses(
+  reports: FanletterNewsReportDocument[],
+): Promise<FanletterRelatedNewsReportDocument[]> {
+  const contentIds = [...new Set(reports.map((report) => report.contentId))];
+
+  if (contentIds.length === 0) {
+    return reports.map((report) => ({
+      ...report,
+      relatedSourceRevealCount: 0,
+      relatedSourceVlogAvailable: false,
+    }));
+  }
+
+  const [postsCollection, socialActionsCollection] = await Promise.all([
+    getContentPostsCollection(),
+    getContentSocialActionsCollection(),
+  ]);
+  const [posts, sourceRevealCounts] = await Promise.all([
+    postsCollection
+      .find(
+        {
+          contentId: { $in: contentIds },
+          status: "published",
+        },
+        {
+          projection: {
+            contentId: 1,
+            contentVideoUrls: 1,
+          },
+        },
+      )
+      .toArray(),
+    socialActionsCollection
+      .aggregate<{ _id: string; count: number }>([
+        {
+          $match: {
+            contentId: { $in: contentIds },
+            sourceRevealRequested: true,
+          },
+        },
+        {
+          $group: {
+            _id: "$contentId",
+            count: { $sum: 1 },
+          },
+        },
+      ])
+      .toArray(),
+  ]);
+  const hasSourceVlogByContentId = new Map(
+    posts.map((post) => [
+      post.contentId,
+      (post.contentVideoUrls?.length ?? 0) > 0,
+    ]),
+  );
+  const sourceRevealCountByContentId = new Map(
+    sourceRevealCounts.map((row) => [row._id, row.count]),
+  );
+
+  return reports.map((report) => ({
+    ...report,
+    relatedSourceRevealCount:
+      sourceRevealCountByContentId.get(report.contentId) ?? 0,
+    relatedSourceVlogAvailable:
+      hasSourceVlogByContentId.get(report.contentId) ?? false,
+  }));
+}
+
 export const getRelatedFanletterNewsReports = cache(
   async ({
     creatorReferralCode,
@@ -2667,7 +2741,10 @@ export const getRelatedFanletterNewsReports = cache(
       .skip(normalizedOffset)
       .limit(normalizedLimit)
       .toArray();
+    const hydratedReports = await hydrateFanletterNewsReportCoverImageUrls(
+      reports,
+    );
 
-    return hydrateFanletterNewsReportCoverImageUrls(reports);
+    return hydrateRelatedFanletterNewsReportSourceVlogStatuses(hydratedReports);
   },
 );

@@ -1,7 +1,21 @@
 import type { FanletterNewsReportDocument } from "@/lib/content";
+import { FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD } from "@/lib/fanletter-news-source-reveal";
 import { getFanletterNsfwCopy } from "@/lib/fanletter-nsfw";
 import type { Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
+
+type FanletterRelatedNewsReport = FanletterNewsReportDocument & {
+  relatedSourceRevealCount?: number;
+  relatedSourceVlogAvailable?: boolean;
+};
+
+export type FanletterRelatedNewsSourceReveal = {
+  count: number;
+  progressLabel: string;
+  statusLabel: string;
+  threshold: number;
+  unlocked: boolean;
+};
 
 export type FanletterRelatedNewsItem = {
   coverImageUrl: string | null;
@@ -13,6 +27,7 @@ export type FanletterRelatedNewsItem = {
   reporterName: string;
   reportId: string;
   shouldBlur: boolean;
+  sourceReveal: FanletterRelatedNewsSourceReveal | null;
   title: string;
 };
 
@@ -57,6 +72,44 @@ function formatRelatedNewsDate(value: Date | null, locale: Locale) {
   }).format(value);
 }
 
+function formatRelatedNewsNumber(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale).format(value);
+}
+
+function createRelatedNewsSourceRevealStatus(
+  report: FanletterRelatedNewsReport,
+): FanletterRelatedNewsSourceReveal | null {
+  if (!report.relatedSourceVlogAvailable) {
+    return null;
+  }
+
+  const count = Math.max(
+    0,
+    Math.floor(Number(report.relatedSourceRevealCount ?? 0)),
+  );
+  const threshold = FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD;
+  const unlocked = count >= threshold;
+  const displayCount = Math.min(count, threshold);
+  const progressLabel = `${formatRelatedNewsNumber(
+    displayCount,
+    report.locale,
+  )}/${formatRelatedNewsNumber(threshold, report.locale)}`;
+
+  return {
+    count,
+    progressLabel,
+    statusLabel: unlocked
+      ? report.locale === "ko"
+        ? "원본 오픈 완료"
+        : "Source open"
+      : report.locale === "ko"
+        ? "원본 오픈 대기"
+        : "Source locked",
+    threshold,
+    unlocked,
+  };
+}
+
 export function serializeFanletterRelatedNewsItem({
   nsfwOptInEnabled,
   referralCode,
@@ -64,7 +117,7 @@ export function serializeFanletterRelatedNewsItem({
 }: {
   nsfwOptInEnabled: boolean;
   referralCode: string | null;
-  report: FanletterNewsReportDocument;
+  report: FanletterRelatedNewsReport;
 }): FanletterRelatedNewsItem {
   const isNsfw = isFanletterNewsReportNsfw(report);
 
@@ -81,6 +134,7 @@ export function serializeFanletterRelatedNewsItem({
     reporterName: getFanletterNewsReporterDisplayName(report),
     reportId: report.reportId,
     shouldBlur: shouldBlurFanletterNewsReport(report, nsfwOptInEnabled),
+    sourceReveal: createRelatedNewsSourceRevealStatus(report),
     title: getFanletterNewsArticleDisplayTitle(report.title),
   };
 }

@@ -2,7 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { BadgeCheck, Loader2, Newspaper } from "lucide-react";
+import {
+  BadgeCheck,
+  CheckCircle2,
+  Loader2,
+  LockKeyhole,
+  Newspaper,
+} from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
@@ -91,6 +97,75 @@ function isRelatedListResponse(
   return Array.isArray(response.items) && typeof response.hasMore === "boolean";
 }
 
+function SourceRevealIcon({
+  className,
+  unlocked,
+}: {
+  className?: string;
+  unlocked: boolean;
+}) {
+  const Icon = unlocked ? CheckCircle2 : LockKeyhole;
+
+  return <Icon aria-hidden="true" className={cn("shrink-0", className)} />;
+}
+
+function SourceRevealThumbnailBadge({
+  item,
+}: {
+  item: FanletterRelatedNewsItem;
+}) {
+  if (!item.sourceReveal) {
+    return null;
+  }
+
+  return (
+    <div
+      className={cn(
+        "absolute bottom-1.5 left-1.5 z-20 inline-flex max-w-[calc(100%-0.75rem)] items-center gap-1 rounded-full border px-1.5 py-1 text-[0.58rem] font-black leading-none shadow-[0_10px_22px_rgba(0,0,0,0.24)]",
+        item.sourceReveal.unlocked
+          ? "border-[#44f26e]/50 bg-[#eaffef] text-[#0b6f29]"
+          : "border-white/20 bg-black/72 text-white",
+      )}
+    >
+      <SourceRevealIcon
+        className="size-3"
+        unlocked={item.sourceReveal.unlocked}
+      />
+      <span className="truncate">{item.sourceReveal.progressLabel}</span>
+    </div>
+  );
+}
+
+function SourceRevealStatusPill({
+  item,
+}: {
+  item: FanletterRelatedNewsItem;
+}) {
+  if (!item.sourceReveal) {
+    return null;
+  }
+
+  return (
+    <div
+      className={cn(
+        "mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full border px-2 py-1 text-[0.66rem] font-black leading-none",
+        item.sourceReveal.unlocked
+          ? "border-[#44f26e]/38 bg-[#eaffef] text-[#11732d]"
+          : "border-black/12 bg-[#f5f7f1] text-[#111510]",
+      )}
+    >
+      <SourceRevealIcon
+        className="size-3.5"
+        unlocked={item.sourceReveal.unlocked}
+      />
+      <span className="truncate">{item.sourceReveal.statusLabel}</span>
+      <span className="shrink-0 text-black/42">
+        {item.sourceReveal.progressLabel}
+      </span>
+    </div>
+  );
+}
+
 function RelatedNewsCard({
   href,
   item,
@@ -139,6 +214,7 @@ function RelatedNewsCard({
             </span>
           </div>
         ) : null}
+        <SourceRevealThumbnailBadge item={item} />
       </div>
       <div className="min-w-0">
         <p
@@ -157,6 +233,7 @@ function RelatedNewsCard({
         >
           {item.dek}
         </p>
+        <SourceRevealStatusPill item={item} />
         <div className="mt-2 flex flex-wrap gap-2 text-[0.66rem] font-bold uppercase tracking-[0.1em] text-black/44">
           {item.publishedAt ? <span>{item.publishedAt}</span> : null}
           <span>{item.reporterName}</span>
