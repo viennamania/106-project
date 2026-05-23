@@ -150,11 +150,13 @@ export function WalletPage({
   locale,
   referralCode = null,
   returnTo = null,
+  service = "default",
 }: {
   dictionary: Dictionary;
   locale: Locale;
   referralCode?: string | null;
   returnTo?: string | null;
+  service?: "default" | "news";
 }) {
   const account = useActiveAccount();
   const chain = useActiveWalletChain() ?? smartWalletChain;
@@ -208,10 +210,19 @@ export function WalletPage({
     ? `${BSC_EXPLORER}/address/${accountAddress}`
     : BSC_EXPLORER;
   const currentEmail = dashboard.member?.email ?? dashboard.email;
-  const homeHref = buildReferralLandingPath(locale, referralCode);
+  const isNewsService = service === "news";
+  const homeHref = isNewsService
+    ? buildPathWithReferral(`/${locale}/fanletter/news`, referralCode)
+    : buildReferralLandingPath(locale, referralCode);
   const backHref = returnTo ?? homeHref;
+  const walletPath = isNewsService
+    ? `/${locale}/fanletter/news/wallet/manage`
+    : `/${locale}/wallet`;
+  const bnbWalletPath = isNewsService
+    ? `/${locale}/fanletter/news/wallet/bnb`
+    : `/${locale}/wallet/bnb`;
   const currentWalletHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/wallet`, referralCode),
+    buildPathWithReferral(walletPath, referralCode),
     { returnTo },
   );
   const walletUnlock = useWalletUnlockGate({
@@ -222,7 +233,7 @@ export function WalletPage({
     walletAddress: accountAddress,
   });
   const bnbWalletHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/wallet/bnb`, referralCode),
+    buildPathWithReferral(bnbWalletPath, referralCode),
     { returnTo: currentWalletHref },
   );
   const sendProgress =

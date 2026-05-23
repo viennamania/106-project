@@ -513,10 +513,13 @@ export function FanletterWalletPage({
     ? `${formatTokenDisplay(balance.displayValue, locale)} USDT`
     : "0 USDT";
   const isNewsService = service === "news";
-  const walletPageHref = buildPathWithReferral(
+  const walletBaseHref = buildPathWithReferral(
     `/${locale}/fanletter${isNewsService ? "/news" : ""}/wallet`,
     referralCode,
   );
+  const walletPageHref = returnToHref
+    ? setPathSearchParams(walletBaseHref, { returnTo: returnToHref })
+    : walletBaseHref;
   const homeHref = buildPathWithReferral(
     `/${locale}/fanletter${isNewsService ? "/news" : ""}`,
     referralCode,
@@ -550,7 +553,12 @@ export function FanletterWalletPage({
       )
     : buildPathWithReferral(`/${locale}/fanletter/studio`, referralCode);
   const advancedWalletHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/wallet`, referralCode),
+    buildPathWithReferral(
+      isNewsService
+        ? `/${locale}/fanletter/news/wallet/manage`
+        : `/${locale}/wallet`,
+      referralCode,
+    ),
     { returnTo: walletPageHref },
   );
   const backHref = returnToHref ?? homeHref;
