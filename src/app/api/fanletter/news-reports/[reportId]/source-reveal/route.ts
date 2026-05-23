@@ -7,11 +7,15 @@ import {
   type FanletterNewsSourceRevealState,
 } from "@/lib/fanletter-news-source-reveal";
 import { getFanletterNewsReportById } from "@/lib/fanletter-news-report-service";
-import { awardFanletterNewsSourceRevealReporterIncentives } from "@/lib/fanletter-news-reporter-incentives";
+import {
+  awardFanletterNewsSourceRevealReporterIncentives,
+  type FanletterNewsSourceRevealReporterIncentiveAward,
+} from "@/lib/fanletter-news-reporter-incentives";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
 type SourceRevealResponse = {
+  reporterReward?: FanletterNewsSourceRevealReporterIncentiveAward | null;
   sourceReveal: FanletterNewsSourceRevealState;
 };
 
@@ -90,8 +94,11 @@ export async function POST(
         reporterReferralCode: report.reporterReferralCode,
       },
     });
+    let reporterReward: FanletterNewsSourceRevealReporterIncentiveAward | null =
+      null;
+
     try {
-      await awardFanletterNewsSourceRevealReporterIncentives({
+      reporterReward = await awardFanletterNewsSourceRevealReporterIncentives({
         report,
         response,
         viewerEmail: authorization.normalizedEmail,
@@ -103,6 +110,7 @@ export async function POST(
       );
     }
     const sourceRevealResponse: SourceRevealResponse = {
+      reporterReward,
       sourceReveal: createFanletterNewsSourceRevealState(response.social),
     };
 

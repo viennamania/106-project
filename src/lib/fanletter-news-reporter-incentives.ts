@@ -26,6 +26,15 @@ export type FanletterNewsReporterIncentiveStats = {
   reports: Map<string, FanletterNewsReporterIncentiveReportStats>;
 };
 
+export type FanletterNewsSourceRevealReporterIncentiveAward = {
+  reporterAvatarImageUrl: string | null;
+  reporterName: string;
+  reporterReferralCode: string;
+  totalRewardPoints: number;
+  unlockRewardPoints: number;
+  voteRewardPoints: number;
+};
+
 function emptyStats(): FanletterNewsReporterIncentiveReportStats {
   return {
     rewardPoints: 0,
@@ -268,29 +277,30 @@ export async function awardFanletterNewsSourceRevealReporterIncentives({
   report: FanletterNewsReportDocument;
   response: ContentSocialResponse;
   viewerEmail: string;
-}) {
+}): Promise<FanletterNewsSourceRevealReporterIncentiveAward | null> {
   if (!response.sourceRevealNewlyRequested) {
-    return;
+    return null;
   }
 
   const normalizedViewerEmail = normalizeEmail(viewerEmail);
 
   if (!normalizedViewerEmail) {
-    return;
+    return null;
   }
 
   const previousCount = Math.max(0, response.sourceRevealPreviousCount ?? 0);
 
   if (previousCount >= FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD) {
-    return;
+    return null;
   }
 
   const reporterMember = await getCompletedReporterMemberByReferralCode(
     report.reporterReferralCode,
   );
+  let voteRewardPoints = 0;
 
   if (reporterMember) {
-    await awardReporterVoteReward({
+    voteRewardPoints = await awardReporterVoteReward({
       actionMemberEmail: normalizedViewerEmail,
       report,
       reporterEmail: reporterMember.email,
@@ -309,6 +319,25 @@ export async function awardFanletterNewsSourceRevealReporterIncentives({
       viewerEmail: normalizedViewerEmail,
     });
   }
+
+  const unlockRewardPoints =
+    unlockedByThisRequest && voteRewardPoints > 0
+      ? FANLETTER_NEWS_REPORT_SOURCE_REVEAL_UNLOCK_REWARD_POINTS
+      : 0;
+  const totalRewardPoints = voteRewardPoints + unlockRewardPoints;
+
+  if (totalRewardPoints <= 0) {
+    return null;
+  }
+
+  return {
+    reporterAvatarImageUrl: report.reporterAvatarImageUrl ?? null,
+    reporterName: report.reporterName,
+    reporterReferralCode: report.reporterReferralCode,
+    totalRewardPoints,
+    unlockRewardPoints,
+    voteRewardPoints,
+  };
 }
 
 export async function getFanletterNewsReporterIncentiveStats({

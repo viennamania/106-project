@@ -1,14 +1,17 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
+  Coins,
   HeartHandshake,
   Loader2,
   LockKeyhole,
   RotateCcw,
   Sparkles,
+  Trophy,
   Users,
 } from "lucide-react";
 import {
@@ -23,11 +26,22 @@ import {
 } from "react";
 
 import { useMemberSession } from "@/components/member-session-provider";
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import type { FanletterNewsSourceRevealState } from "@/lib/fanletter-news-source-reveal";
 import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
+type SourceRevealReporterReward = {
+  reporterAvatarImageUrl: string | null;
+  reporterName: string;
+  reporterReferralCode: string;
+  totalRewardPoints: number;
+  unlockRewardPoints: number;
+  voteRewardPoints: number;
+};
+
 type SourceRevealResponse = {
+  reporterReward?: SourceRevealReporterReward | null;
   sourceReveal: FanletterNewsSourceRevealState;
 };
 
@@ -50,6 +64,8 @@ type FanletterNewsSourceRevealVoteProps = {
 
 const UNLOCK_CELEBRATION_HIDE_MS = 2300;
 const UNLOCK_CELEBRATION_REFRESH_MS = 1700;
+const REPORTER_REWARD_CELEBRATION_HIDE_MS = 3600;
+const REPORTER_REWARD_CELEBRATION_REFRESH_MS = 2300;
 
 const celebrationSparks = [
   { color: "#44f26e", x: "-9.25rem", y: "-6.5rem" },
@@ -77,6 +93,17 @@ function getCopy(locale: Locale) {
           progress: (threshold: string) => `${threshold}/${threshold} 달성`,
           title: "원본 브이로그 오픈 완료!",
         },
+        reporterReward: {
+          body:
+            "누구나 팬 기자가 되어 AI 캐릭터 브이로그를 알리고 보상을 받을 수 있어요.",
+          dismiss: "확인",
+          eyebrow: "FAN REPORTER JACKPOT",
+          reward: (points: string) => `+${points}P`,
+          subtitle: (name: string) => `${name} 팬 기자에게 보상 지급`,
+          title: "보고싶어요가 리포터 보상으로 연결됐어요",
+          unlockBonus: (points: string) => `언락 보너스 +${points}P 포함`,
+          voteReward: (points: string) => `보고싶어요 보상 +${points}P`,
+        },
         cta: "보고싶어요",
         done: "참여 완료",
         eyebrow: "팬 오픈 투표",
@@ -102,6 +129,17 @@ function getCopy(locale: Locale) {
           eyebrow: "JACKPOT UNLOCK",
           progress: (threshold: string) => `${threshold}/${threshold} reached`,
           title: "Source vlog unlocked!",
+        },
+        reporterReward: {
+          body:
+            "Anyone can become a fan reporter, promote AI character vlogs, and earn rewards.",
+          dismiss: "Got it",
+          eyebrow: "FAN REPORTER JACKPOT",
+          reward: (points: string) => `+${points}P`,
+          subtitle: (name: string) => `${name} earned a fan reporter reward`,
+          title: "Your vote powered a reporter reward",
+          unlockBonus: (points: string) => `Includes unlock bonus +${points}P`,
+          voteReward: (points: string) => `Want-to-watch reward +${points}P`,
         },
         cta: "Want to watch",
         done: "Joined",
@@ -210,6 +248,137 @@ function UnlockCelebrationOverlay({
   );
 }
 
+function ReporterRewardCelebrationOverlay({
+  copy,
+  locale,
+  onDismiss,
+  prefersReducedMotion,
+  reward,
+}: {
+  copy: ReturnType<typeof getCopy>["reporterReward"];
+  locale: Locale;
+  onDismiss: () => void;
+  prefersReducedMotion: boolean;
+  reward: SourceRevealReporterReward;
+}) {
+  const reporterInitial =
+    reward.reporterName.trim().charAt(0).toUpperCase() ||
+    reward.reporterReferralCode.trim().charAt(0).toUpperCase() ||
+    "F";
+  const totalRewardLabel = formatCount(reward.totalRewardPoints, locale);
+  const voteRewardLabel = formatCount(reward.voteRewardPoints, locale);
+  const unlockRewardLabel = formatCount(reward.unlockRewardPoints, locale);
+
+  return (
+    <div
+      aria-live="polite"
+      className="fixed inset-0 z-[170] flex items-center justify-center overflow-hidden bg-black/38 px-4 py-8 text-white backdrop-blur-[4px]"
+      role="status"
+    >
+      <button
+        aria-label={copy.dismiss}
+        className="absolute inset-0 cursor-default"
+        onClick={onDismiss}
+        type="button"
+      />
+      {prefersReducedMotion ? null : (
+        <div className="pointer-events-none absolute left-1/2 top-1/2">
+          <div className="celebration-burst">
+            {celebrationSparks.map((spark, index) => (
+              <span
+                className="celebration-spark"
+                key={`${spark.x}-${spark.y}-${index}`}
+                style={
+                  {
+                    "--celebration-color":
+                      index % 3 === 0 ? "#facc15" : spark.color,
+                    "--spark-x": spark.x,
+                    "--spark-y": spark.y,
+                    animationDelay: `${index * 28}ms`,
+                  } as CSSProperties
+                }
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="relative w-full max-w-sm overflow-hidden rounded-[1.35rem] border border-white/22 bg-[#07100b]/90 p-5 text-center shadow-[0_34px_110px_rgba(0,0,0,0.5)]">
+        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(250,204,21,0.9),rgba(68,242,110,0.75),transparent)]" />
+        <div className="mx-auto flex w-max items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 py-2">
+          <span className="relative flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#44f26e] text-base font-black text-black ring-1 ring-white/16">
+            {reward.reporterAvatarImageUrl ? (
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="object-cover"
+                fill
+                sizes="2.75rem"
+                src={reward.reporterAvatarImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(
+                  reward.reporterAvatarImageUrl,
+                )}
+              />
+            ) : (
+              reporterInitial
+            )}
+          </span>
+          <span className="min-w-0 text-left">
+            <span className="block max-w-[12rem] truncate text-sm font-black">
+              {reward.reporterName}
+            </span>
+            <span className="block truncate text-[0.66rem] font-bold text-white/48">
+              @{reward.reporterReferralCode}
+            </span>
+          </span>
+        </div>
+        <p className="mt-5 text-[0.68rem] font-black uppercase tracking-[0.22em] text-[#facc15]">
+          {copy.eyebrow}
+        </p>
+        <div className="mx-auto mt-3 flex size-20 items-center justify-center rounded-full bg-[radial-gradient(circle_at_35%_30%,#fff7a8,#facc15_45%,#44f26e_100%)] text-black shadow-[0_0_46px_rgba(250,204,21,0.44)] motion-safe:animate-pulse motion-reduce:animate-none">
+          <Trophy className="size-10" />
+        </div>
+        <p className="mt-3 text-4xl font-black leading-none text-[#f8fafc]">
+          {copy.reward(totalRewardLabel)}
+        </p>
+        <p className="mt-2 text-xs font-black uppercase tracking-[0.12em] text-[#9bffad]">
+          {copy.subtitle(reward.reporterName)}
+        </p>
+        <h2 className="mt-4 text-2xl font-black leading-tight [word-break:keep-all]">
+          {copy.title}
+        </h2>
+        <p className="mt-3 text-sm font-semibold leading-6 text-white/68 [word-break:keep-all]">
+          {copy.body}
+        </p>
+        <div className="mt-4 grid gap-2 text-left">
+          <div className="flex items-center justify-between rounded-full border border-white/10 bg-white/8 px-3 py-2 text-xs font-black text-white/78">
+            <span className="inline-flex items-center gap-2">
+              <HeartHandshake className="size-4 text-[#44f26e]" />
+              {copy.voteReward(voteRewardLabel)}
+            </span>
+            <Coins className="size-4 text-[#facc15]" />
+          </div>
+          {reward.unlockRewardPoints > 0 ? (
+            <div className="flex items-center justify-between rounded-full border border-[#facc15]/24 bg-[#facc15]/12 px-3 py-2 text-xs font-black text-[#fff2a8]">
+              <span className="inline-flex items-center gap-2">
+                <Sparkles className="size-4" />
+                {copy.unlockBonus(unlockRewardLabel)}
+              </span>
+              <Coins className="size-4" />
+            </div>
+          ) : null}
+        </div>
+        <button
+          className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-black text-black transition hover:bg-[#69ff8c]"
+          onClick={onDismiss}
+          type="button"
+        >
+          {copy.dismiss}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function FanletterNewsSourceRevealVote({
   className,
   connectHref,
@@ -228,6 +397,8 @@ export function FanletterNewsSourceRevealVote({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showUnlockCelebration, setShowUnlockCelebration] = useState(false);
+  const [reporterRewardCelebration, setReporterRewardCelebration] =
+    useState<SourceRevealReporterReward | null>(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const voteEndpoint =
     sourceRevealEndpoint ??
@@ -241,7 +412,14 @@ export function FanletterNewsSourceRevealVote({
   const refreshCelebrationTimeoutRef = useRef<
     ReturnType<typeof setTimeout> | null
   >(null);
+  const hideReporterRewardTimeoutRef = useRef<
+    ReturnType<typeof setTimeout> | null
+  >(null);
+  const refreshReporterRewardTimeoutRef = useRef<
+    ReturnType<typeof setTimeout> | null
+  >(null);
   const shouldRefreshAfterCelebrationRef = useRef(false);
+  const shouldRefreshAfterReporterRewardRef = useRef(false);
   const hasCelebratedUnlockRef = useRef(initialState.unlocked);
 
   const clearCelebrationTimers = useCallback(() => {
@@ -253,6 +431,18 @@ export function FanletterNewsSourceRevealVote({
     if (refreshCelebrationTimeoutRef.current) {
       clearTimeout(refreshCelebrationTimeoutRef.current);
       refreshCelebrationTimeoutRef.current = null;
+    }
+  }, []);
+
+  const clearReporterRewardTimers = useCallback(() => {
+    if (hideReporterRewardTimeoutRef.current) {
+      clearTimeout(hideReporterRewardTimeoutRef.current);
+      hideReporterRewardTimeoutRef.current = null;
+    }
+
+    if (refreshReporterRewardTimeoutRef.current) {
+      clearTimeout(refreshReporterRewardTimeoutRef.current);
+      refreshReporterRewardTimeoutRef.current = null;
     }
   }, []);
 
@@ -268,6 +458,18 @@ export function FanletterNewsSourceRevealVote({
     }
   }, [clearCelebrationTimers, router]);
 
+  const dismissReporterRewardCelebration = useCallback(() => {
+    const shouldRefresh = shouldRefreshAfterReporterRewardRef.current;
+
+    clearReporterRewardTimers();
+    shouldRefreshAfterReporterRewardRef.current = false;
+    setReporterRewardCelebration(null);
+
+    if (shouldRefresh) {
+      router.refresh();
+    }
+  }, [clearReporterRewardTimers, router]);
+
   const triggerUnlockCelebration = useCallback(() => {
     clearCelebrationTimers();
     shouldRefreshAfterCelebrationRef.current = true;
@@ -281,6 +483,32 @@ export function FanletterNewsSourceRevealVote({
       setShowUnlockCelebration(false);
     }, prefersReducedMotion ? 1600 : UNLOCK_CELEBRATION_HIDE_MS);
   }, [clearCelebrationTimers, prefersReducedMotion, router]);
+
+  const triggerReporterRewardCelebration = useCallback(
+    ({
+      refreshAfterDismiss,
+      reward,
+    }: {
+      refreshAfterDismiss: boolean;
+      reward: SourceRevealReporterReward;
+    }) => {
+      clearReporterRewardTimers();
+      shouldRefreshAfterReporterRewardRef.current = refreshAfterDismiss;
+      setReporterRewardCelebration(reward);
+
+      if (refreshAfterDismiss) {
+        refreshReporterRewardTimeoutRef.current = setTimeout(() => {
+          shouldRefreshAfterReporterRewardRef.current = false;
+          router.refresh();
+        }, prefersReducedMotion ? 1100 : REPORTER_REWARD_CELEBRATION_REFRESH_MS);
+      }
+
+      hideReporterRewardTimeoutRef.current = setTimeout(() => {
+        setReporterRewardCelebration(null);
+      }, prefersReducedMotion ? 2100 : REPORTER_REWARD_CELEBRATION_HIDE_MS);
+    },
+    [clearReporterRewardTimers, prefersReducedMotion, router],
+  );
 
   const applySourceRevealState = useCallback(
     (
@@ -330,8 +558,9 @@ export function FanletterNewsSourceRevealVote({
   useEffect(() => {
     return () => {
       clearCelebrationTimers();
+      clearReporterRewardTimers();
     };
-  }, [clearCelebrationTimers]);
+  }, [clearCelebrationTimers, clearReporterRewardTimers]);
 
   const refreshSourceRevealState = useCallback(
     async (
@@ -455,10 +684,21 @@ export function FanletterNewsSourceRevealVote({
         );
       }
 
+      const reporterReward = data.reporterReward ?? null;
+      const unlockedByThisVote =
+        !stateRef.current.unlocked && data.sourceReveal.unlocked;
+
       applySourceRevealState(data.sourceReveal, {
-        celebrateOnUnlock: true,
-        refreshOnUnlock: true,
+        celebrateOnUnlock: !reporterReward,
+        refreshOnUnlock: !reporterReward,
       });
+
+      if (reporterReward) {
+        triggerReporterRewardCelebration({
+          refreshAfterDismiss: unlockedByThisVote,
+          reward: reporterReward,
+        });
+      }
     } catch (voteError) {
       setError(voteError instanceof Error ? voteError.message : copy.error);
     } finally {
@@ -474,6 +714,15 @@ export function FanletterNewsSourceRevealVote({
           onDismiss={dismissUnlockCelebration}
           prefersReducedMotion={prefersReducedMotion}
           thresholdLabel={thresholdLabel}
+        />
+      ) : null}
+      {reporterRewardCelebration ? (
+        <ReporterRewardCelebrationOverlay
+          copy={copy.reporterReward}
+          locale={locale}
+          onDismiss={dismissReporterRewardCelebration}
+          prefersReducedMotion={prefersReducedMotion}
+          reward={reporterRewardCelebration}
         />
       ) : null}
       <div
