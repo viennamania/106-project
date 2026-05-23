@@ -1852,6 +1852,7 @@ async function getContentSocialSummaries(
           _id: string;
           likeCount: number;
           saveCount: number;
+          sourceRevealCount: number;
         }>([
           {
             $match: {
@@ -1869,6 +1870,11 @@ async function getContentSocialSummaries(
               saveCount: {
                 $sum: {
                   $cond: ["$saved", 1, 0],
+                },
+              },
+              sourceRevealCount: {
+                $sum: {
+                  $cond: ["$sourceRevealRequested", 1, 0],
                 },
               },
             },
@@ -1928,6 +1934,7 @@ async function getContentSocialSummaries(
       ...current,
       likeCount: count.likeCount,
       saveCount: count.saveCount,
+      sourceRevealCount: count.sourceRevealCount,
     });
   }
 
@@ -1963,6 +1970,7 @@ async function getContentSocialSummaries(
       hiddenByViewer: action.hidden,
       likedByViewer: action.liked,
       savedByViewer: action.saved,
+      sourceRevealRequestedByViewer: Boolean(action.sourceRevealRequested),
     });
   }
 
@@ -2068,6 +2076,8 @@ export async function updateContentSocialActionForMember({
     setOnInsert.hidden = false;
   }
 
+  setOnInsert.sourceRevealRequested = false;
+
   const socialActionsCollection = await getContentSocialActionsCollection();
   await socialActionsCollection.updateOne(
     {
@@ -2080,6 +2090,48 @@ export async function updateContentSocialActionForMember({
         updatedAt: now,
       },
       $setOnInsert: setOnInsert,
+    },
+    {
+      upsert: true,
+    },
+  );
+
+  return {
+    social: await getContentSocialSummaryForViewer(contentId, member.email),
+  };
+}
+
+export async function requestContentSourceRevealForMember({
+  contentId,
+  email,
+}: {
+  contentId: string;
+  email: string;
+}): Promise<ContentSocialResponse> {
+  await ensurePublishedContentExists(contentId);
+
+  const member = await getCompletedMemberOrThrow(email);
+  const now = new Date();
+  const socialActionsCollection = await getContentSocialActionsCollection();
+
+  await socialActionsCollection.updateOne(
+    {
+      contentId,
+      memberEmail: member.email,
+    },
+    {
+      $set: {
+        sourceRevealRequested: true,
+        updatedAt: now,
+      },
+      $setOnInsert: {
+        contentId,
+        createdAt: now,
+        hidden: false,
+        liked: false,
+        memberEmail: member.email,
+        saved: false,
+      },
     },
     {
       upsert: true,

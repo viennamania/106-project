@@ -19,6 +19,7 @@ import {
 
 import { FanletterNewsCharacterImageSelector } from "@/components/fanletter-news-character-image-selector";
 import { FanletterNewsRelatedList } from "@/components/fanletter-news-related-list";
+import { FanletterNewsSourceRevealVote } from "@/components/fanletter-news-source-reveal-vote";
 import { FanletterNewsWalletConnect } from "@/components/fanletter-news-wallet-connect";
 import { FanletterNewsWalletSidebarCard } from "@/components/fanletter-news-wallet-sidebar-card";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
@@ -44,6 +45,10 @@ import {
   getRelatedFanletterNewsReports,
   type FanletterNewsReporterProfile,
 } from "@/lib/fanletter-news-report-service";
+import {
+  createFanletterNewsSourceRevealState,
+  type FanletterNewsSourceRevealState,
+} from "@/lib/fanletter-news-source-reveal";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
@@ -72,6 +77,11 @@ import { readMemberServerSession } from "@/lib/member-server-session";
 type FanletterNewsReportSearchParams = {
   ref?: string | string[];
   relatedLimit?: string | string[];
+};
+
+type SourceVlogRevealGateState = FanletterNewsSourceRevealState & {
+  connectHref: string;
+  reportId: string;
 };
 
 const RELATED_NEWS_PAGE_SIZE = 4;
@@ -1097,24 +1107,32 @@ function SourceVlogEmbed({
   blurred,
   copy,
   isPaidContent,
+  locale,
   paidUnlockHref,
   reportCoverImageSource,
   priceUsdt,
   reportCoverImageUrl,
+  sourceReveal,
   sourceContent,
 }: {
   accessLabel: string;
   blurred: boolean;
   copy: ReturnType<typeof getCopy>;
   isPaidContent: boolean;
+  locale: Locale;
   paidUnlockHref: string | null;
   reportCoverImageSource?: FanletterNewsReportDocument["coverImageSource"];
   priceUsdt: string | null;
   reportCoverImageUrl: string | null;
+  sourceReveal: SourceVlogRevealGateState | null;
   sourceContent: FanletterPublicContentDetail | null;
 }) {
+  const sourceRevealLocked = Boolean(sourceReveal && !sourceReveal.unlocked);
+  const mediaBlurred = blurred || sourceRevealLocked;
   const sourceVideoUrl =
-    sourceContent?.canViewerAccess ? sourceContent.contentVideoUrls[0] ?? null : null;
+    !sourceRevealLocked && sourceContent?.canViewerAccess
+      ? sourceContent.contentVideoUrls[0] ?? null
+      : null;
   const shouldUseReportCoverImage =
     reportCoverImageSource === "reporter_selected" ||
     reportCoverImageSource === "reporter_cropped";
@@ -1131,9 +1149,15 @@ function SourceVlogEmbed({
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
   const paidUnlockLabel = `${paidUnlockAmount} USDT`;
   const shouldShowPaidUnlockPrompt =
-    isPaidContent && !sourceContent?.canViewerAccess && Boolean(paidUnlockHref);
+    !sourceRevealLocked &&
+    isPaidContent &&
+    !sourceContent?.canViewerAccess &&
+    Boolean(paidUnlockHref);
   const shouldShowPaidUnlockCta =
-    isPaidContent && !sourceContent?.canViewerAccess && !blurred;
+    !sourceRevealLocked &&
+    isPaidContent &&
+    !sourceContent?.canViewerAccess &&
+    !blurred;
   const noticeMessage = blurred
     ? copy.nsfwBlurNotice
     : shouldShowPaidUnlockCta
@@ -1155,40 +1179,60 @@ function SourceVlogEmbed({
       <div className="overflow-hidden border border-black/10 bg-black shadow-[0_20px_46px_rgba(17,21,16,0.1)]">
         <FanletterResponsiveMediaFrame
           alt={sourceContent?.title ?? copy.embeddedTitle}
-          blurred={blurred}
+          blurred={mediaBlurred}
           eager
           imageUrl={sourceImageUrl}
           mediaType={sourceContent?.mediaType ?? "video"}
           title={sourceContent?.title ?? copy.embeddedTitle}
           videoUrl={sourceVideoUrl}
         >
-          {blurred || !hasEmbeddedVideo ? (
+          {mediaBlurred || !hasEmbeddedVideo ? (
             <div className="absolute inset-0 flex items-center justify-center bg-black/34 p-5 text-center backdrop-blur-[1px]">
-              <div className="max-w-sm rounded-lg border border-white/14 bg-black/68 p-4">
-                {blurred ? (
-                  <AlertTriangle className="mx-auto size-7 text-rose-300" />
-                ) : (
-                  <LockKeyhole className="mx-auto size-7 text-[#44f26e]" />
-                )}
-                <p className="mt-3 text-sm font-semibold leading-6 text-white/82">
-                  {noticeMessage}
-                </p>
-                {shouldShowPaidUnlockCta && paidUnlockHref ? (
-                  <FanletterPaidUnlockTrigger
-                    className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
-                    href={paidUnlockHref}
-                  >
-                    <Coins className="size-4" />
-                    <span>
-                      {paidUnlockLabel} {copy.embeddedUnlockCta}
-                    </span>
-                  </FanletterPaidUnlockTrigger>
-                ) : null}
-              </div>
+              {sourceRevealLocked && sourceReveal ? (
+                <FanletterNewsSourceRevealVote
+                  className="w-full max-w-sm"
+                  connectHref={sourceReveal.connectHref}
+                  initialState={sourceReveal}
+                  locale={locale}
+                  reportId={sourceReveal.reportId}
+                />
+              ) : (
+                <div className="max-w-sm rounded-lg border border-white/14 bg-black/68 p-4">
+                  {blurred ? (
+                    <AlertTriangle className="mx-auto size-7 text-rose-300" />
+                  ) : (
+                    <LockKeyhole className="mx-auto size-7 text-[#44f26e]" />
+                  )}
+                  <p className="mt-3 text-sm font-semibold leading-6 text-white/82">
+                    {noticeMessage}
+                  </p>
+                  {shouldShowPaidUnlockCta && paidUnlockHref ? (
+                    <FanletterPaidUnlockTrigger
+                      className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
+                      href={paidUnlockHref}
+                    >
+                      <Coins className="size-4" />
+                      <span>
+                        {paidUnlockLabel} {copy.embeddedUnlockCta}
+                      </span>
+                    </FanletterPaidUnlockTrigger>
+                  ) : null}
+                </div>
+              )}
             </div>
           ) : null}
         </FanletterResponsiveMediaFrame>
       </div>
+      {sourceReveal?.unlocked ? (
+        <FanletterNewsSourceRevealVote
+          className="mt-3"
+          connectHref={sourceReveal.connectHref}
+          initialState={sourceReveal}
+          locale={locale}
+          reportId={sourceReveal.reportId}
+          tone="light"
+        />
+      ) : null}
       {shouldShowPaidUnlockPrompt && paidUnlockHref ? (
         <div className="mt-3 grid gap-3 rounded-lg border border-[#1eb84a]/22 bg-[#f2fff5] p-3 shadow-[0_12px_30px_rgba(22,112,46,0.08)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div className="flex min-w-0 gap-3">
@@ -1486,6 +1530,16 @@ export default async function LocalizedFanletterNewsReportPage({
   const paidUnlockHref = shouldShowPaidUnlockPanel
     ? `${articleHref}#${paidUnlockSectionId}`
     : null;
+  const shouldUseSourceRevealGate = Boolean(
+    sourceContent && sourceContent.contentVideoCount > 0,
+  );
+  const sourceReveal = sourceContent && shouldUseSourceRevealGate
+    ? {
+        ...createFanletterNewsSourceRevealState(sourceContent.social),
+        connectHref: newsConnectHref,
+        reportId: report.reportId,
+      }
+    : null;
   const navLinks = [
     {
       href: creatorHref,
@@ -1663,10 +1717,12 @@ export default async function LocalizedFanletterNewsReportPage({
                 blurred={shouldBlurCurrentReport}
                 copy={copy}
                 isPaidContent={isPaidSourceContent}
+                locale={locale}
                 paidUnlockHref={paidUnlockHref}
                 priceUsdt={paidUnlockAmount}
                 reportCoverImageSource={report.coverImageSource}
                 reportCoverImageUrl={report.coverImageUrl}
+                sourceReveal={sourceReveal}
                 sourceContent={sourceContent}
               />
             </div>

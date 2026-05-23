@@ -592,6 +592,7 @@ export type ContentSocialActionDocument = {
   liked: boolean;
   memberEmail: string;
   saved: boolean;
+  sourceRevealRequested?: boolean;
   updatedAt: Date;
 };
 
@@ -662,6 +663,8 @@ export type ContentSocialSummaryRecord = {
   paidTotalUsdt: string;
   saveCount: number;
   savedByViewer: boolean;
+  sourceRevealCount: number;
+  sourceRevealRequestedByViewer: boolean;
 };
 
 export type CreatorStudioPostRecord = ContentPostRecord & {
@@ -1288,6 +1291,8 @@ export function createEmptyContentSocialSummary(
     paidTotalUsdt: "0",
     saveCount: 0,
     savedByViewer: false,
+    sourceRevealCount: 0,
+    sourceRevealRequestedByViewer: false,
     ...overrides,
   };
 }
