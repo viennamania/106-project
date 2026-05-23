@@ -123,13 +123,13 @@ function getCopy(locale: Locale) {
         },
         continueReading: {
           body:
-            "이 AI 캐릭터의 팬 리포트 흐름을 이어서 봅니다.",
+            "현재 기사와 같은 AI 캐릭터의 뉴스 흐름을 이어서 봅니다.",
           characterCta: "캐릭터 홈",
-          eyebrow: "추천 이어보기",
-          listEyebrow: "같은 캐릭터",
-          listTitle: "다른 뉴스 선택",
-          nextCta: "추천 뉴스 보기",
-          title: "이 캐릭터 추천 뉴스",
+          eyebrow: "캐릭터 뉴스 이어보기",
+          listEyebrow: "같은 AI 캐릭터",
+          listTitle: "다른 기사 선택",
+          nextCta: "다음 캐릭터 뉴스 읽기",
+          title: "이 캐릭터의 다른 뉴스",
         },
         contentBadge: {
           nsfw: "성인 팬 전용 표시",
@@ -181,10 +181,13 @@ function getCopy(locale: Locale) {
           hiddenCountText: (count: string) =>
             `블러 처리된 NSFW 뉴스 ${count}개`,
         },
-        relatedNews: "같은 캐릭터의 다른 뉴스",
+        relatedNews: "이 캐릭터의 다른 뉴스",
+        relatedNewsDescription:
+          "현재 기사와 같은 AI 캐릭터로 작성된 뉴스만 모았습니다.",
+        relatedNewsEyebrow: "같은 AI 캐릭터",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
         relatedNewsError: "다른 뉴스를 불러오지 못했습니다. 다시 시도해 주세요.",
-        relatedNewsLoadMore: "더 보기",
+        relatedNewsLoadMore: "이 캐릭터 뉴스 더 보기",
         relatedNewsLoading: "불러오는 중",
         reporterNewsCta: "기자 뉴스",
         sourceContext: "기사 배경",
@@ -238,13 +241,13 @@ function getCopy(locale: Locale) {
         },
         continueReading: {
           body:
-            "Keep reading fan reports from this AI character.",
+            "Keep reading stories from the same AI character as this article.",
           characterCta: "Character home",
-          eyebrow: "Recommended next",
-          listEyebrow: "Same character",
+          eyebrow: "Continue character news",
+          listEyebrow: "Same AI character",
           listTitle: "Choose another story",
-          nextCta: "Read recommended story",
-          title: "Recommended character news",
+          nextCta: "Read next character story",
+          title: "More from this character",
         },
         contentBadge: {
           nsfw: "Adult fan-only marker",
@@ -295,10 +298,13 @@ function getCopy(locale: Locale) {
           enabledTitle: "NSFW news visible",
           hiddenCountText: (count: string) => `${count} NSFW stories blurred`,
         },
-        relatedNews: "More news from this character",
+        relatedNews: "More from this character",
+        relatedNewsDescription:
+          "Only news written from the same AI character as this article is shown here.",
+        relatedNewsEyebrow: "Same AI character",
         relatedNewsEmpty: "No other news from this character yet.",
         relatedNewsError: "Could not load more news. Please try again.",
-        relatedNewsLoadMore: "Load more",
+        relatedNewsLoadMore: "Load more character news",
         relatedNewsLoading: "Loading",
         reporterNewsCta: "Reporter news",
         sourceContext: "Story context",
@@ -1322,6 +1328,11 @@ export default async function LocalizedFanletterNewsReportPage({
     sourceContent?.authorCharacter?.avatarImageSet[0]?.url ??
     sourceContent?.authorAvatarImageUrl ??
     null;
+  const relatedNewsTitle = characterName
+    ? locale === "ko"
+      ? `${characterName}의 다른 뉴스`
+      : `More ${characterName} news`
+    : copy.relatedNews;
   const relatedNewsApiHref = setPathSearchParams(
     "/api/fanletter/news-reports/related",
     {
@@ -1571,12 +1582,15 @@ export default async function LocalizedFanletterNewsReportPage({
 
           <aside className="space-y-4 xl:sticky xl:top-5">
             <FanletterNewsRelatedList
+              characterName={characterName}
               copy={{
+                description: copy.relatedNewsDescription,
                 empty: copy.relatedNewsEmpty,
+                eyebrow: copy.relatedNewsEyebrow,
                 error: copy.relatedNewsError,
                 loadMore: copy.relatedNewsLoadMore,
                 loading: copy.relatedNewsLoading,
-                title: copy.relatedNews,
+                title: relatedNewsTitle,
               }}
               initialHasMore={relatedNewsHasMore}
               initialItems={relatedNewsItems}

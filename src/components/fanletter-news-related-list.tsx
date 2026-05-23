@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Loader2, Newspaper } from "lucide-react";
+import { BadgeCheck, Loader2, Newspaper } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
@@ -10,7 +10,9 @@ import type { FanletterRelatedNewsItem } from "@/lib/fanletter-news-related";
 import { cn } from "@/lib/utils";
 
 type FanletterNewsRelatedListCopy = {
+  description: string;
   empty: string;
+  eyebrow: string;
   error: string;
   loadMore: string;
   loading: string;
@@ -165,6 +167,7 @@ function RelatedNewsCard({
 }
 
 export function FanletterNewsRelatedList({
+  characterName,
   copy,
   initialHasMore,
   initialItems,
@@ -172,6 +175,7 @@ export function FanletterNewsRelatedList({
   relatedApiHref,
   relatedStateParamName,
 }: {
+  characterName: string | null;
   copy: FanletterNewsRelatedListCopy;
   initialHasMore: boolean;
   initialItems: FanletterRelatedNewsItem[];
@@ -237,54 +241,74 @@ export function FanletterNewsRelatedList({
   ]);
 
   return (
-    <section className="border border-black/12 bg-white p-4 text-[#111510] shadow-[0_14px_40px_rgba(17,21,16,0.06)]">
-      <div className="border-b border-black/12 pb-3">
-        <div>
-          <p className="text-xs font-bold text-[#16702e]">FanLetter News</p>
-          <h2 className="mt-1 text-lg font-black tracking-normal">
-            {copy.title}
-          </h2>
+    <section className="overflow-hidden border border-black/12 bg-white text-[#111510] shadow-[0_14px_40px_rgba(17,21,16,0.06)]">
+      <div className="border-b border-black/12 bg-[#f5f7f1] p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.13em] text-[#16702e]">
+              <BadgeCheck className="size-3.5" />
+              {copy.eyebrow}
+            </p>
+            <h2 className="mt-2 break-words text-lg font-black leading-tight tracking-normal [word-break:keep-all]">
+              {copy.title}
+            </h2>
+          </div>
+          <span className="inline-flex shrink-0 items-center rounded-full border border-[#16702e]/20 bg-white px-2.5 py-1 text-[0.64rem] font-black uppercase tracking-[0.08em] text-[#16702e]">
+            FanLetter
+          </span>
         </div>
+        {characterName ? (
+          <p className="mt-2 line-clamp-1 text-sm font-black text-black/64">
+            {characterName}
+          </p>
+        ) : null}
+        <p className="mt-2 text-sm font-semibold leading-6 text-black/54">
+          {copy.description}
+        </p>
       </div>
 
-      {items.length > 0 ? (
-        <div className="mt-4 grid gap-4">
-          {items.map((item) => {
-            const href = buildRelatedStateHref({
-              baseHref: item.href,
-              itemCount: items.length,
-              pageSize,
-              stateParamName: relatedStateParamName,
-            });
+      <div className="p-4">
+        {items.length > 0 ? (
+          <div className="grid gap-4">
+            {items.map((item) => {
+              const href = buildRelatedStateHref({
+                baseHref: item.href,
+                itemCount: items.length,
+                pageSize,
+                stateParamName: relatedStateParamName,
+              });
 
-            return <RelatedNewsCard href={href} item={item} key={item.reportId} />;
-          })}
-        </div>
-      ) : (
-        <p className="mt-4 border border-black/10 bg-[#f5f6f2] px-4 py-4 text-sm font-semibold leading-6 text-black/52">
-          {copy.empty}
-        </p>
-      )}
+              return (
+                <RelatedNewsCard href={href} item={item} key={item.reportId} />
+              );
+            })}
+          </div>
+        ) : (
+          <p className="border border-black/10 bg-[#f5f6f2] px-4 py-4 text-sm font-semibold leading-6 text-black/52">
+            {copy.empty}
+          </p>
+        )}
 
-      {error ? (
-        <p className="mt-3 border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold leading-5 text-rose-700">
-          {error}
-        </p>
-      ) : null}
+        {error ? (
+          <p className="mt-3 border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold leading-5 text-rose-700">
+            {error}
+          </p>
+        ) : null}
 
-      {hasMore ? (
-        <button
-          className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f5f7f1] px-4 text-sm font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] disabled:cursor-wait disabled:opacity-60"
-          disabled={isLoading}
-          onClick={handleLoadMore}
-          type="button"
-        >
-          {isLoading ? (
-            <Loader2 className="size-4 animate-spin text-[#16702e]" />
-          ) : null}
-          {isLoading ? copy.loading : copy.loadMore}
-        </button>
-      ) : null}
+        {hasMore ? (
+          <button
+            className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f5f7f1] px-4 py-2 text-center text-sm font-black leading-5 text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] disabled:cursor-wait disabled:opacity-60"
+            disabled={isLoading}
+            onClick={handleLoadMore}
+            type="button"
+          >
+            {isLoading ? (
+              <Loader2 className="size-4 shrink-0 animate-spin text-[#16702e]" />
+            ) : null}
+            {isLoading ? copy.loading : copy.loadMore}
+          </button>
+        ) : null}
+      </div>
     </section>
   );
 }
