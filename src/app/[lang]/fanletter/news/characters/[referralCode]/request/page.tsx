@@ -10,6 +10,7 @@ import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   isFanletterNsfwOptedIn,
 } from "@/lib/fanletter-nsfw";
+import { getFanletterNewsCharacterVlogsHref } from "@/lib/fanletter-news-vlog-routing";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
@@ -168,10 +169,11 @@ export default async function LocalizedFanletterNewsCharacterRequestPage({
     `/${locale}/fanletter/news/characters/${data.profile.referralCode}`,
     effectiveReferralCode,
   );
-  const publicVlogsHref = buildPathWithReferral(
-    `/${locale}/fanletter/creator/${data.profile.referralCode}/vlogs`,
-    effectiveReferralCode,
-  );
+  const publicVlogsHref = getFanletterNewsCharacterVlogsHref({
+    creatorReferralCode: data.profile.referralCode,
+    locale,
+    referralCode: effectiveReferralCode,
+  });
   const latestReport = newsData.reports[0]
     ? {
         coverImageUrl: newsData.reports[0].coverImageUrl,
