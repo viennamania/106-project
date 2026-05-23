@@ -8,9 +8,11 @@ import {
   Loader2,
   LockKeyhole,
   RotateCcw,
+  Sparkles,
   Users,
 } from "lucide-react";
 import {
+  type CSSProperties,
   type Dispatch,
   type SetStateAction,
   useCallback,
@@ -29,6 +31,12 @@ type SourceRevealResponse = {
   sourceReveal: FanletterNewsSourceRevealState;
 };
 
+type CelebrationSpark = {
+  color: string;
+  x: string;
+  y: string;
+};
+
 type FanletterNewsSourceRevealVoteProps = {
   className?: string;
   connectHref: string;
@@ -40,11 +48,35 @@ type FanletterNewsSourceRevealVoteProps = {
   tone?: "dark" | "light";
 };
 
+const UNLOCK_CELEBRATION_HIDE_MS = 2300;
+const UNLOCK_CELEBRATION_REFRESH_MS = 1700;
+
+const celebrationSparks = [
+  { color: "#44f26e", x: "-9.25rem", y: "-6.5rem" },
+  { color: "#f8fafc", x: "-6rem", y: "-9rem" },
+  { color: "#86efac", x: "-1.5rem", y: "-10rem" },
+  { color: "#facc15", x: "4.75rem", y: "-8.25rem" },
+  { color: "#67e8f9", x: "9rem", y: "-5.25rem" },
+  { color: "#44f26e", x: "10.25rem", y: "1.25rem" },
+  { color: "#ffffff", x: "6.5rem", y: "7rem" },
+  { color: "#bbf7d0", x: "1.25rem", y: "9rem" },
+  { color: "#facc15", x: "-4.5rem", y: "8.25rem" },
+  { color: "#67e8f9", x: "-9.5rem", y: "3.5rem" },
+] satisfies CelebrationSpark[];
+
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         body: (count: string, threshold: string, remaining: string) =>
           `현재 ${count}/${threshold}명 참여 중입니다. ${remaining}명이 더 보고싶어요를 누르면 원본 브이로그가 열립니다.`,
+        celebration: {
+          body:
+            "팬들의 보고싶어요가 모여 잠겨 있던 영상이 열렸습니다. 곧 원본 브이로그로 이동합니다.",
+          dismiss: "바로 보기",
+          eyebrow: "JACKPOT UNLOCK",
+          progress: (threshold: string) => `${threshold}/${threshold} 달성`,
+          title: "원본 브이로그 오픈 완료!",
+        },
         cta: "보고싶어요",
         done: "참여 완료",
         eyebrow: "팬 오픈 투표",
@@ -63,6 +95,14 @@ function getCopy(locale: Locale) {
     : {
         body: (count: string, threshold: string, remaining: string) =>
           `${count}/${threshold} fans have joined. The source vlog opens when ${remaining} more fan${remaining === "1" ? "" : "s"} tap want to watch.`,
+        celebration: {
+          body:
+            "Fans gathered enough want-to-watch votes to open the locked source video. The vlog is opening now.",
+          dismiss: "Watch now",
+          eyebrow: "JACKPOT UNLOCK",
+          progress: (threshold: string) => `${threshold}/${threshold} reached`,
+          title: "Source vlog unlocked!",
+        },
         cta: "Want to watch",
         done: "Joined",
         eyebrow: "Fan open vote",
@@ -93,6 +133,83 @@ function isSourceRevealResponse(data: unknown): data is SourceRevealResponse {
   );
 }
 
+function UnlockCelebrationOverlay({
+  copy,
+  onDismiss,
+  prefersReducedMotion,
+  thresholdLabel,
+}: {
+  copy: ReturnType<typeof getCopy>["celebration"];
+  onDismiss: () => void;
+  prefersReducedMotion: boolean;
+  thresholdLabel: string;
+}) {
+  return (
+    <div
+      aria-live="polite"
+      className="fixed inset-0 z-[160] flex items-center justify-center overflow-hidden bg-black/46 px-4 py-8 text-white backdrop-blur-[3px]"
+      role="status"
+    >
+      <button
+        aria-label={copy.dismiss}
+        className="absolute inset-0 cursor-default"
+        onClick={onDismiss}
+        type="button"
+      />
+      {prefersReducedMotion ? null : (
+        <div className="pointer-events-none absolute left-1/2 top-1/2">
+          <div className="celebration-burst">
+            {celebrationSparks.map((spark, index) => (
+              <span
+                className="celebration-spark"
+                key={`${spark.x}-${spark.y}-${index}`}
+                style={
+                  {
+                    "--celebration-color": spark.color,
+                    "--spark-x": spark.x,
+                    "--spark-y": spark.y,
+                    animationDelay: `${index * 34}ms`,
+                  } as CSSProperties
+                }
+              />
+            ))}
+          </div>
+        </div>
+      )}
+      <div className="relative w-full max-w-sm overflow-hidden rounded-[1.35rem] border border-white/20 bg-[#07100b]/92 p-5 text-center shadow-[0_34px_110px_rgba(0,0,0,0.48)]">
+        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(68,242,110,0.8),transparent)]" />
+        <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-[#44f26e] text-black shadow-[0_0_38px_rgba(68,242,110,0.5)] motion-safe:animate-pulse motion-reduce:animate-none">
+          <Sparkles className="size-7" />
+        </div>
+        <p className="mt-4 text-[0.68rem] font-black uppercase tracking-[0.24em] text-[#9bffad]">
+          {copy.eyebrow}
+        </p>
+        <div className="mx-auto mt-3 inline-grid grid-cols-[auto_auto_auto] items-center gap-2 rounded-full border border-[#44f26e]/35 bg-[#44f26e]/12 px-4 py-2 font-black text-[#44f26e] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]">
+          <span className="text-2xl leading-none">{thresholdLabel}</span>
+          <span className="text-white/46">/</span>
+          <span className="text-2xl leading-none">{thresholdLabel}</span>
+        </div>
+        <p className="mt-2 text-xs font-black uppercase tracking-[0.16em] text-white/52">
+          {copy.progress(thresholdLabel)}
+        </p>
+        <h2 className="mt-4 text-2xl font-black leading-tight [word-break:keep-all]">
+          {copy.title}
+        </h2>
+        <p className="mt-3 text-sm font-semibold leading-6 text-white/68 [word-break:keep-all]">
+          {copy.body}
+        </p>
+        <button
+          className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-black text-black transition hover:bg-[#69ff8c]"
+          onClick={onDismiss}
+          type="button"
+        >
+          {copy.dismiss}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function FanletterNewsSourceRevealVote({
   className,
   connectHref,
@@ -110,32 +227,111 @@ export function FanletterNewsSourceRevealVote({
   const [isSaving, setIsSaving] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showUnlockCelebration, setShowUnlockCelebration] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const voteEndpoint =
     sourceRevealEndpoint ??
     (reportId
       ? `/api/fanletter/news-reports/${encodeURIComponent(reportId)}/source-reveal`
       : null);
   const stateRef = useRef(initialState);
+  const hideCelebrationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const refreshCelebrationTimeoutRef = useRef<
+    ReturnType<typeof setTimeout> | null
+  >(null);
+  const shouldRefreshAfterCelebrationRef = useRef(false);
+  const hasCelebratedUnlockRef = useRef(initialState.unlocked);
+
+  const clearCelebrationTimers = useCallback(() => {
+    if (hideCelebrationTimeoutRef.current) {
+      clearTimeout(hideCelebrationTimeoutRef.current);
+      hideCelebrationTimeoutRef.current = null;
+    }
+
+    if (refreshCelebrationTimeoutRef.current) {
+      clearTimeout(refreshCelebrationTimeoutRef.current);
+      refreshCelebrationTimeoutRef.current = null;
+    }
+  }, []);
+
+  const dismissUnlockCelebration = useCallback(() => {
+    const shouldRefresh = shouldRefreshAfterCelebrationRef.current;
+
+    clearCelebrationTimers();
+    shouldRefreshAfterCelebrationRef.current = false;
+    setShowUnlockCelebration(false);
+
+    if (shouldRefresh) {
+      router.refresh();
+    }
+  }, [clearCelebrationTimers, router]);
+
+  const triggerUnlockCelebration = useCallback(() => {
+    clearCelebrationTimers();
+    shouldRefreshAfterCelebrationRef.current = true;
+    setShowUnlockCelebration(true);
+
+    refreshCelebrationTimeoutRef.current = setTimeout(() => {
+      shouldRefreshAfterCelebrationRef.current = false;
+      router.refresh();
+    }, prefersReducedMotion ? 900 : UNLOCK_CELEBRATION_REFRESH_MS);
+    hideCelebrationTimeoutRef.current = setTimeout(() => {
+      setShowUnlockCelebration(false);
+    }, prefersReducedMotion ? 1600 : UNLOCK_CELEBRATION_HIDE_MS);
+  }, [clearCelebrationTimers, prefersReducedMotion, router]);
 
   const applySourceRevealState = useCallback(
     (
       nextState: FanletterNewsSourceRevealState,
-      options?: { refreshOnUnlock?: boolean },
+      options?: { celebrateOnUnlock?: boolean; refreshOnUnlock?: boolean },
     ) => {
+      const unlockedByThisUpdate = !stateRef.current.unlocked && nextState.unlocked;
       const shouldRefresh =
         options?.refreshOnUnlock === true &&
-        !stateRef.current.unlocked &&
+        unlockedByThisUpdate &&
         nextState.unlocked;
+      const shouldCelebrate =
+        options?.celebrateOnUnlock === true &&
+        unlockedByThisUpdate &&
+        !hasCelebratedUnlockRef.current;
 
       stateRef.current = nextState;
       setState(nextState);
+
+      if (shouldCelebrate) {
+        hasCelebratedUnlockRef.current = true;
+        triggerUnlockCelebration();
+        return;
+      }
 
       if (shouldRefresh) {
         router.refresh();
       }
     },
-    [router],
+    [router, triggerUnlockCelebration],
   );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => {
+      setPrefersReducedMotion(mediaQuery.matches);
+    };
+
+    updatePreference();
+    mediaQuery.addEventListener("change", updatePreference);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updatePreference);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearCelebrationTimers();
+    };
+  }, [clearCelebrationTimers]);
 
   const refreshSourceRevealState = useCallback(
     async (
@@ -260,6 +456,7 @@ export function FanletterNewsSourceRevealVote({
       }
 
       applySourceRevealState(data.sourceReveal, {
+        celebrateOnUnlock: true,
         refreshOnUnlock: true,
       });
     } catch (voteError) {
@@ -270,16 +467,25 @@ export function FanletterNewsSourceRevealVote({
   };
 
   return (
-    <div
-      className={cn(
-        "rounded-lg border p-3 text-left shadow-[0_16px_34px_rgba(0,0,0,0.12)]",
-        isDark
-          ? "border-white/14 bg-black/72 text-white"
-          : "border-black/10 bg-white text-[#111510]",
-        isCompact && "p-2.5 shadow-[0_12px_24px_rgba(0,0,0,0.14)] sm:p-3",
-        className,
-      )}
-    >
+    <>
+      {showUnlockCelebration ? (
+        <UnlockCelebrationOverlay
+          copy={copy.celebration}
+          onDismiss={dismissUnlockCelebration}
+          prefersReducedMotion={prefersReducedMotion}
+          thresholdLabel={thresholdLabel}
+        />
+      ) : null}
+      <div
+        className={cn(
+          "rounded-lg border p-3 text-left shadow-[0_16px_34px_rgba(0,0,0,0.12)]",
+          isDark
+            ? "border-white/14 bg-black/72 text-white"
+            : "border-black/10 bg-white text-[#111510]",
+          isCompact && "p-2.5 shadow-[0_12px_24px_rgba(0,0,0,0.14)] sm:p-3",
+          className,
+        )}
+      >
       <div className={cn("flex items-start gap-3", isCompact && "gap-2.5")}>
         <span
           className={cn(
@@ -440,6 +646,7 @@ export function FanletterNewsSourceRevealVote({
           {error}
         </p>
       ) : null}
-    </div>
+      </div>
+    </>
   );
 }
