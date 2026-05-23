@@ -667,12 +667,36 @@ const contentPostUpdateContentFields = [
   "title",
 ] as const;
 
-function isContentMaturityOnlyUpdate(input: ContentPostUpdateRequest) {
-  return contentPostUpdateContentFields.every((field) => {
+function isContentUpdateLimitedToFields(
+  input: ContentPostUpdateRequest,
+  allowedFields: readonly (typeof contentPostUpdateContentFields)[number][],
+) {
+  const allowedFieldSet = new Set<string>(allowedFields);
+  let hasAllowedField = false;
+  const hasOnlyAllowedFields = contentPostUpdateContentFields.every((field) => {
     const hasField = Object.prototype.hasOwnProperty.call(input, field);
 
-    return field === "contentMaturityRating" ? hasField : !hasField;
+    if (!hasField) {
+      return true;
+    }
+
+    if (allowedFieldSet.has(field)) {
+      hasAllowedField = true;
+      return true;
+    }
+
+    return false;
   });
+
+  return hasAllowedField && hasOnlyAllowedFields;
+}
+
+function isContentFanRequestNeutralUpdate(input: ContentPostUpdateRequest) {
+  return isContentUpdateLimitedToFields(input, [
+    "contentMaturityRating",
+    "coverImageCandidates",
+    "coverImageUrl",
+  ]);
 }
 
 function resolveContentPriceUsdt(priceType: ContentPriceType) {
@@ -2822,7 +2846,7 @@ export async function updateContentPostForMember(
     input.coverImageCandidates !== undefined
       ? normalizeCoverImageCandidates(input.coverImageCandidates)
       : normalizeCoverImageCandidates(post.coverImageCandidates);
-  const isMaturityOnlyUpdate = isContentMaturityOnlyUpdate(input);
+  const isFanRequestNeutralUpdate = isContentFanRequestNeutralUpdate(input);
 
   if (
     nextStatus === "published" &&
@@ -2848,7 +2872,7 @@ export async function updateContentPostForMember(
   if (
     nextPriceType === "paid" &&
     nextStatus !== "archived" &&
-    !isMaturityOnlyUpdate
+    !isFanRequestNeutralUpdate
   ) {
     await resolveFanRequestForPaidContent({
       contentId: post.contentId,
@@ -2932,7 +2956,7 @@ export async function updateContentPostForMember(
     throw new Error("Content not found.");
   }
 
-  if (!isMaturityOnlyUpdate) {
+  if (!isFanRequestNeutralUpdate) {
     await syncPaidContentFanRequestStatus({ member, post: nextPost });
   }
 
