@@ -197,6 +197,25 @@ function getCopy(locale: Locale) {
         embeddedUnlockCta: "결제하고 원본 보기",
         embeddedUnlockMeta: "전체 영상 · 본문 · 추가 미디어",
         embeddedUnlockTitle: "팬 전용 브이로그 잠금 해제",
+        embeddedVlogStatus: {
+          accessible: "열람 가능",
+          free: "무료 공개",
+          general: "일반",
+          nsfw: "NSFW",
+          ownerAccess: "작성자 열람",
+          paid: (amount: string) => `${amount} 유료`,
+          paidLockedBody:
+            "팬 전용 유료 원본입니다. 결제 전에는 티저와 기사 작성 가능한 정보만 표시됩니다.",
+          paidOwnerBody:
+            "작성자 권한으로 열람 가능한 팬 전용 원본입니다. 뉴스 화면에서 원본 상태를 함께 표시합니다.",
+          paidPurchasedBody:
+            "로그인한 회원이 결제한 팬 전용 원본이라 이 뉴스 화면에서 바로 볼 수 있습니다.",
+          publicBody:
+            "무료 공개 원본입니다. 뉴스 화면에서 바로 볼 수 있습니다.",
+          purchased: "결제 완료",
+          title: "원본 브이로그 상태",
+          unpaid: "결제 필요",
+        },
         generated: "AI 생성",
         publishedLabel: "기사입력",
         navItems: ["AI 캐릭터", "팬 리포트", "브이로그 뉴스", "구매함"],
@@ -341,6 +360,25 @@ function getCopy(locale: Locale) {
         embeddedUnlockCta: "Pay and watch source",
         embeddedUnlockMeta: "Full video · story · extra media",
         embeddedUnlockTitle: "Unlock fan-only vlog",
+        embeddedVlogStatus: {
+          accessible: "Viewable",
+          free: "Free public",
+          general: "General",
+          nsfw: "NSFW",
+          ownerAccess: "Creator access",
+          paid: (amount: string) => `${amount} paid`,
+          paidLockedBody:
+            "This is a fan-only paid source. Before payment, only teaser and reportable context are shown.",
+          paidOwnerBody:
+            "This fan-only source is viewable with creator access, with the source status shown on the news page.",
+          paidPurchasedBody:
+            "This fan-only source has been purchased by the signed-in member and can be watched on this news page.",
+          publicBody:
+            "This is a free public source and can be watched directly on the news page.",
+          purchased: "Purchased",
+          title: "Source vlog status",
+          unpaid: "Payment needed",
+        },
         generated: "AI generated",
         publishedLabel: "Published",
         navItems: ["AI characters", "Fan reports", "Vlog news", "Purchases"],
@@ -1492,6 +1530,7 @@ function SourceVlogEmbed({
   reportCoverImageSource,
   priceUsdt,
   reportCoverImageUrl,
+  sourceMaturityRating,
   sourceReveal,
   sourceContent,
 }: {
@@ -1504,6 +1543,7 @@ function SourceVlogEmbed({
   reportCoverImageSource?: FanletterNewsReportDocument["coverImageSource"];
   priceUsdt: string | null;
   reportCoverImageUrl: string | null;
+  sourceMaturityRating: FanletterNewsReportDocument["contentMaturityRating"];
   sourceReveal: SourceVlogRevealGateState | null;
   sourceContent: FanletterPublicContentDetail | null;
 }) {
@@ -1540,6 +1580,55 @@ function SourceVlogEmbed({
   const hasEmbeddedVideo = Boolean(sourceVideoUrl);
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
   const paidUnlockLabel = `${paidUnlockAmount} USDT`;
+  const isSourceNsfw = sourceMaturityRating === "nsfw";
+  const viewerCanAccessSource = sourceContent
+    ? sourceContent.canViewerAccess === true
+    : !isPaidContent;
+  const isViewerSourceOwner = sourceContent?.viewerRelation === "owner";
+  const isPurchasedPaidContent =
+    isPaidContent && viewerCanAccessSource && !isViewerSourceOwner;
+  const statusBadges = [
+    {
+      className: isPaidContent
+        ? "border-[#1eb84a]/22 bg-[#ecfff0] text-[#126c2c]"
+        : "border-black/10 bg-white text-black/56",
+      icon: isPaidContent ? Coins : PlayCircle,
+      label: isPaidContent
+        ? copy.embeddedVlogStatus.paid(paidUnlockLabel)
+        : copy.embeddedVlogStatus.free,
+    },
+    {
+      className: isPurchasedPaidContent
+        ? "border-[#1eb84a]/22 bg-[#ecfff0] text-[#126c2c]"
+        : viewerCanAccessSource
+          ? "border-black/10 bg-white text-black/56"
+          : "border-rose-500/18 bg-rose-50 text-rose-700",
+      icon: viewerCanAccessSource ? CheckCircle2 : LockKeyhole,
+      label: isPurchasedPaidContent
+        ? copy.embeddedVlogStatus.purchased
+        : isViewerSourceOwner
+          ? copy.embeddedVlogStatus.ownerAccess
+          : viewerCanAccessSource
+            ? copy.embeddedVlogStatus.accessible
+            : copy.embeddedVlogStatus.unpaid,
+    },
+    {
+      className: isSourceNsfw
+        ? "border-rose-500/18 bg-rose-50 text-rose-700"
+        : "border-black/10 bg-white text-black/56",
+      icon: isSourceNsfw ? AlertTriangle : CheckCircle2,
+      label: isSourceNsfw
+        ? copy.embeddedVlogStatus.nsfw
+        : copy.embeddedVlogStatus.general,
+    },
+  ];
+  const sourceStatusBody = isPaidContent
+    ? viewerCanAccessSource
+      ? isViewerSourceOwner
+        ? copy.embeddedVlogStatus.paidOwnerBody
+        : copy.embeddedVlogStatus.paidPurchasedBody
+      : copy.embeddedVlogStatus.paidLockedBody
+    : copy.embeddedVlogStatus.publicBody;
   const shouldShowPaidTeaser =
     !sourceRevealLocked &&
     isPaidContent &&
@@ -1569,10 +1658,25 @@ function SourceVlogEmbed({
           <Clapperboard className="size-4 text-[#16702e]" />
           {copy.embeddedTitle}
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#f5f6f2] px-3 py-1 text-[0.68rem] font-bold text-black/64">
-          <PlayCircle className="size-3.5" />
-          {accessLabel}
-        </span>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#f5f6f2] px-3 py-1 text-[0.68rem] font-bold text-black/64">
+            <PlayCircle className="size-3.5" />
+            {accessLabel}
+          </span>
+          {statusBadges.map((badge) => {
+            const Icon = badge.icon;
+
+            return (
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[0.68rem] font-black ${badge.className}`}
+                key={badge.label}
+              >
+                <Icon className="size-3.5" />
+                {badge.label}
+              </span>
+            );
+          })}
+        </div>
       </div>
       <div className="overflow-hidden border border-black/10 bg-black shadow-[0_20px_46px_rgba(17,21,16,0.1)]">
         {sourceRevealLocked && sourceReveal ? (
@@ -1694,6 +1798,32 @@ function SourceVlogEmbed({
           tone="light"
         />
       ) : null}
+      <div className="mt-3 rounded-lg border border-black/10 bg-[#f7f9f4] p-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+            <BadgeCheck className="size-3.5" />
+            {copy.embeddedVlogStatus.title}
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {statusBadges.map((badge) => {
+              const Icon = badge.icon;
+
+              return (
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.66rem] font-black ${badge.className}`}
+                  key={`status-${badge.label}`}
+                >
+                  <Icon className="size-3.5" />
+                  {badge.label}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+        <p className="mt-2 text-sm font-medium leading-6 text-black/58">
+          {sourceStatusBody}
+        </p>
+      </div>
       {shouldShowPaidUnlockPrompt && paidUnlockHref ? (
         <div className="mt-3 grid gap-3 rounded-lg border border-[#1eb84a]/22 bg-[#f2fff5] p-3 shadow-[0_12px_30px_rgba(22,112,46,0.08)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div className="flex min-w-0 gap-3">
@@ -2206,6 +2336,10 @@ export default async function LocalizedFanletterNewsReportPage({
                 priceUsdt={paidUnlockAmount}
                 reportCoverImageSource={report.coverImageSource}
                 reportCoverImageUrl={report.coverImageUrl}
+                sourceMaturityRating={
+                  sourceContent?.contentMaturityRating ??
+                  report.contentMaturityRating
+                }
                 sourceReveal={sourceReveal}
                 sourceContent={sourceContent}
               />
