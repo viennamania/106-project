@@ -19,6 +19,7 @@
     "fanletter:video-cover-candidates:backfill": "node scripts/backfill-video-cover-candidates.mjs",
     "fanletter:paid-covers:backfill": "node scripts/backfill-paid-video-covers.mjs",
     "fanletter:paid-covers:backfill:remote": "node scripts/trigger-backfill-paid-video-covers.mjs",
+    "fanletter:reporter-incentives:backfill": "node scripts/backfill-fanletter-news-reporter-incentives.mjs",
     "reconcile:pending": "node scripts/trigger-reconcile-signups.mjs",
     "reconcile:worker": "node scripts/run-reconcile-worker.mjs",
     "rewards:nft:backfill-legacy": "node scripts/backfill-legacy-reward-nft.mjs",
