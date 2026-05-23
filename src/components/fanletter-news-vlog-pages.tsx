@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { FanletterChannelShareButton } from "@/components/fanletter-channel-share-button";
+import { FanletterNewsSourceRevealVote } from "@/components/fanletter-news-source-reveal-vote";
 import { FanletterNewsWalletConnect } from "@/components/fanletter-news-wallet-connect";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterPaidUnlockPanel } from "@/components/fanletter-paid-unlock-panel";
@@ -33,7 +34,11 @@ import {
 } from "@/lib/fanletter-content-service";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getFanletterNewsArticleDisplayTitle } from "@/lib/fanletter-news-related";
-import { FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD } from "@/lib/fanletter-news-source-reveal";
+import {
+  createFanletterNewsSourceRevealState,
+  FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD,
+  type FanletterNewsSourceRevealState,
+} from "@/lib/fanletter-news-source-reveal";
 import {
   getFanletterNewsCharacterVlogsHref,
   getFanletterNewsVlogHref,
@@ -106,8 +111,14 @@ function getCopy(locale: Locale) {
           bodyLocked: (remaining: string) => `${remaining}명 더 누르면 원본 오픈`,
           bodyReady: "팬들이 열어낸 원본",
           complete: "오픈 완료",
+          detailBody:
+            "여러 티저 컷으로 분위기를 먼저 확인하고, 보고싶어요를 눌러 원본 브이로그 오픈에 참여하세요.",
+          detailEyebrow: "FanLetter 팬 오픈",
+          detailMeta: "티저 컷 먼저 공개",
+          detailTitle: "팬들이 보고 싶어할수록 원본 브이로그가 열립니다",
           eyebrow: "팬 오픈 진행",
           label: "원본 오픈",
+          sceneLabel: "티저",
           remaining: (count: string) => `${count}명 남음`,
           requested: "참여 완료",
         },
@@ -175,8 +186,14 @@ function getCopy(locale: Locale) {
             `${remaining} more fan${remaining === "1" ? "" : "s"} to open`,
           bodyReady: "Source opened by fans",
           complete: "Opened",
+          detailBody:
+            "Preview the mood through several teaser cuts, then tap want to watch to help open the source vlog.",
+          detailEyebrow: "FanLetter fan open",
+          detailMeta: "Teaser cuts first",
+          detailTitle: "The source vlog opens as fans want to watch it",
           eyebrow: "Fan open progress",
           label: "Source open",
+          sceneLabel: "Teaser",
           remaining: (count: string) =>
             `${count} fan${count === "1" ? "" : "s"} left`,
           requested: "Joined",
@@ -354,6 +371,163 @@ function SourceRevealProgressBar({
         )}
         style={{ width: `${percent}%` }}
       />
+    </div>
+  );
+}
+
+function getUniqueImageUrls(urls: Array<string | null | undefined>) {
+  return urls.filter(
+    (url, index, array): url is string =>
+      typeof url === "string" && url.length > 0 && array.indexOf(url) === index,
+  );
+}
+
+function NewsVlogSourceRevealTeaser({
+  blurred,
+  connectHref,
+  content,
+  locale,
+  sourceReveal,
+}: {
+  blurred: boolean;
+  connectHref: string;
+  content: FanletterPublicContentDetail;
+  locale: Locale;
+  sourceReveal: FanletterNewsSourceRevealState;
+}) {
+  const copy = getCopy(locale);
+  const countLabel = formatNumber(
+    Math.min(sourceReveal.count, sourceReveal.threshold),
+    locale,
+  );
+  const thresholdLabel = formatNumber(sourceReveal.threshold, locale);
+  const remainingLabel = formatNumber(
+    Math.max(0, sourceReveal.threshold - sourceReveal.count),
+    locale,
+  );
+  const progressPercent =
+    sourceReveal.threshold > 0
+      ? Math.min(
+          100,
+          Math.max(0, (sourceReveal.count / sourceReveal.threshold) * 100),
+        )
+      : 100;
+  const teaserImages = getUniqueImageUrls([
+    content.coverImageUrl,
+    ...content.coverImageCandidates.map((candidate) => candidate.url),
+    ...content.contentImageUrls,
+  ]).slice(0, 4);
+
+  return (
+    <div className="relative overflow-hidden bg-[#07100b] text-white">
+      {content.coverImageUrl ? (
+        <Image
+          alt=""
+          aria-hidden="true"
+          className={cn(
+            "object-cover opacity-44",
+            blurred && "scale-[1.04] blur-lg brightness-[0.72] saturate-[0.88]",
+          )}
+          fill
+          loading="eager"
+          sizes="(max-width: 768px) 100vw, 70vw"
+          src={content.coverImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(content.coverImageUrl)}
+        />
+      ) : null}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,16,11,0.72),rgba(7,16,11,0.88)_42%,rgba(0,0,0,0.96))]" />
+
+      <div className="relative grid gap-4 p-3 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-center lg:p-6">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1.5 text-[0.64rem] font-black uppercase tracking-[0.14em] text-black">
+              {copy.sourceReveal.detailEyebrow}
+            </span>
+            <span className="inline-flex rounded-full border border-white/18 bg-white/10 px-3 py-1.5 text-[0.64rem] font-black uppercase tracking-[0.14em] text-white/72">
+              {copy.sourceReveal.detailMeta}
+            </span>
+          </div>
+          <h2 className="mt-4 max-w-2xl break-words text-2xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-4xl">
+            {copy.sourceReveal.detailTitle}
+          </h2>
+          <p className="mt-3 max-w-xl text-sm font-semibold leading-6 text-white/68 sm:text-base sm:leading-7">
+            {copy.sourceReveal.detailBody}
+          </p>
+
+          <div className="mt-5 grid grid-cols-4 gap-1.5 sm:gap-2">
+            {(teaserImages.length > 0 ? teaserImages : [content.coverImageUrl]).map(
+              (imageUrl, index) => (
+                <div
+                  className={cn(
+                    "relative aspect-[4/5] overflow-hidden rounded-lg border bg-black shadow-[0_14px_34px_rgba(0,0,0,0.28)]",
+                    index === 0
+                      ? "border-[#44f26e]/70"
+                      : "border-white/14",
+                  )}
+                  key={`${imageUrl ?? "fallback"}-${index}`}
+                >
+                  {imageUrl ? (
+                    <Image
+                      alt=""
+                      aria-hidden="true"
+                      className={cn(
+                        "object-cover",
+                        blurred &&
+                          "scale-[1.04] blur-md brightness-[0.72] saturate-[0.88]",
+                      )}
+                      fill
+                      loading={index === 0 ? "eager" : undefined}
+                      sizes="(max-width: 640px) 42vw, 12rem"
+                      src={imageUrl}
+                      unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-[#44f26e]">
+                      <Clapperboard className="size-8" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/62 via-transparent to-black/8" />
+                  <span className="absolute bottom-2 left-2 rounded-full bg-black/68 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/82">
+                    {copy.sourceReveal.sceneLabel}{" "}
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-white/14 bg-black/56 p-3 shadow-[0_18px_44px_rgba(0,0,0,0.3)] backdrop-blur sm:p-4">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#9bffad]">
+                {copy.sourceReveal.eyebrow}
+              </p>
+              <p className="mt-1 text-sm font-black text-white/72">
+                {copy.sourceReveal.bodyLocked(remainingLabel)}
+              </p>
+            </div>
+            <p className="text-3xl font-black leading-none text-white">
+              {countLabel}/{thresholdLabel}
+            </p>
+          </div>
+          <SourceRevealProgressBar
+            className="mt-4 bg-white/16"
+            percent={progressPercent}
+            unlocked={sourceReveal.unlocked}
+          />
+          <FanletterNewsSourceRevealVote
+            className="mt-4"
+            connectHref={connectHref}
+            density="compact"
+            initialState={sourceReveal}
+            locale={locale}
+            sourceRevealEndpoint={`/api/fanletter/news-vlogs/${encodeURIComponent(
+              content.contentId,
+            )}/source-reveal`}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -1060,6 +1234,12 @@ export function FanletterNewsVlogDetailPage({
   const shouldBlurMedia = requiresNsfwOptIn;
   const primaryVideoUrl = content.contentVideoUrls[0] ?? content.primaryVideoUrl;
   const primaryImageUrl = content.coverImageUrl ?? content.contentImageUrls[0] ?? null;
+  const sourceReveal = createFanletterNewsSourceRevealState(content.social);
+  const sourceRevealLocked =
+    content.mediaType === "video" &&
+    content.priceType === "free" &&
+    !sourceReveal.unlocked &&
+    !isOwnContent;
   const publishedAt = formatDate(content.publishedAt, locale);
   const accessLabel = getAccessLabel(content, copy);
   const nsfwCopy = getFanletterNsfwCopy(locale);
@@ -1142,27 +1322,37 @@ export function FanletterNewsVlogDetailPage({
             </header>
 
             <section className="mt-5 overflow-hidden border border-black/12 bg-[#111510] text-white shadow-[0_18px_54px_rgba(17,21,16,0.12)]">
-              <FanletterResponsiveMediaFrame
-                alt={content.title}
-                blurred={shouldBlurMedia}
-                eager
-                imageUrl={primaryImageUrl}
-                mediaType={content.mediaType}
-                title={content.title}
-                videoUrl={canViewerAccess ? primaryVideoUrl : null}
-              >
-                <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
-                  <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-black">
-                    {accessLabel}
-                  </span>
-                  {content.contentMaturityRating === "nsfw" ? (
-                    <span className="inline-flex rounded-full bg-rose-500 px-3 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-white">
-                      {nsfwCopy.badge}
+              {sourceRevealLocked ? (
+                <NewsVlogSourceRevealTeaser
+                  blurred={shouldBlurMedia}
+                  connectHref={connectHref}
+                  content={content}
+                  locale={locale}
+                  sourceReveal={sourceReveal}
+                />
+              ) : (
+                <FanletterResponsiveMediaFrame
+                  alt={content.title}
+                  blurred={shouldBlurMedia}
+                  eager
+                  imageUrl={primaryImageUrl}
+                  mediaType={content.mediaType}
+                  title={content.title}
+                  videoUrl={canViewerAccess ? primaryVideoUrl : null}
+                >
+                  <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
+                    <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-black">
+                      {accessLabel}
                     </span>
-                  ) : null}
-                </div>
-              </FanletterResponsiveMediaFrame>
-              <div className="grid gap-2 border-t border-white/10 p-3 sm:grid-cols-4">
+                    {content.contentMaturityRating === "nsfw" ? (
+                      <span className="inline-flex rounded-full bg-rose-500 px-3 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-white">
+                        {nsfwCopy.badge}
+                      </span>
+                    ) : null}
+                  </div>
+                </FanletterResponsiveMediaFrame>
+              )}
+              <div className="grid gap-2 border-t border-white/10 p-3 sm:grid-cols-5">
                 <MetricPill
                   icon={<Heart className="size-3.5" />}
                   label={copy.stats.likes}
@@ -1182,6 +1372,14 @@ export function FanletterNewsVlogDetailPage({
                   icon={<Newspaper className="size-3.5" />}
                   label={copy.stats.reports}
                   value={formatNumber(newsReportCount, locale)}
+                />
+                <MetricPill
+                  icon={<Users className="size-3.5" />}
+                  label={copy.sourceReveal.label}
+                  value={`${formatNumber(
+                    Math.min(sourceReveal.count, sourceReveal.threshold),
+                    locale,
+                  )}/${formatNumber(sourceReveal.threshold, locale)}`}
                 />
               </div>
             </section>
@@ -1235,7 +1433,7 @@ export function FanletterNewsVlogDetailPage({
               </section>
             ) : null}
 
-            {canViewerAccess ? (
+            {canViewerAccess && !sourceRevealLocked ? (
               <section className="mt-5 border border-black/12 bg-white p-4 shadow-[0_14px_40px_rgba(17,21,16,0.06)] sm:p-6">
                 <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
                   {copy.bodyTitle}

@@ -26,7 +26,8 @@ type FanletterNewsSourceRevealVoteProps = {
   density?: "regular" | "compact";
   initialState: FanletterNewsSourceRevealState;
   locale: Locale;
-  reportId: string;
+  reportId?: string;
+  sourceRevealEndpoint?: string;
   tone?: "dark" | "light";
 };
 
@@ -77,6 +78,7 @@ export function FanletterNewsSourceRevealVote({
   initialState,
   locale,
   reportId,
+  sourceRevealEndpoint,
   tone = "dark",
 }: FanletterNewsSourceRevealVoteProps) {
   const copy = getCopy(locale);
@@ -105,9 +107,14 @@ export function FanletterNewsSourceRevealVote({
   const isLoggedIn = Boolean(memberSession.email);
   const isDark = tone === "dark";
   const isCompact = density === "compact";
+  const voteEndpoint =
+    sourceRevealEndpoint ??
+    (reportId
+      ? `/api/fanletter/news-reports/${encodeURIComponent(reportId)}/source-reveal`
+      : null);
 
   const handleVote = async () => {
-    if (isSaving || state.requestedByViewer || state.unlocked) {
+    if (isSaving || state.requestedByViewer || state.unlocked || !voteEndpoint) {
       return;
     }
 
@@ -115,12 +122,9 @@ export function FanletterNewsSourceRevealVote({
     setError(null);
 
     try {
-      const response = await fetch(
-        `/api/fanletter/news-reports/${encodeURIComponent(reportId)}/source-reveal`,
-        {
-          method: "POST",
-        },
-      );
+      const response = await fetch(voteEndpoint, {
+        method: "POST",
+      });
       const data = (await response.json().catch(() => null)) as
         | SourceRevealResponse
         | { error?: string }
