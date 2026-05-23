@@ -6,6 +6,8 @@ import { notFound } from "next/navigation";
 import {
   AlertTriangle,
   ArrowRight,
+  CheckCircle2,
+  Clapperboard,
   Clock3,
   FileText,
   MessageCircleHeart,
@@ -70,6 +72,7 @@ function getCopy(locale: Locale) {
         },
         openNews: "최신 뉴스 보기",
         publicNews: "공개 뉴스",
+        sourceOpened: "원본 오픈",
         siteName: "FanLetter News",
         stats: {
           characters: "등장 캐릭터",
@@ -79,6 +82,7 @@ function getCopy(locale: Locale) {
         },
         title: "뉴스 AI 캐릭터 목록",
         topDesk: "오늘의 캐릭터 데스크",
+        videos: "공개 브이로그",
       }
     : {
         access: {
@@ -116,6 +120,7 @@ function getCopy(locale: Locale) {
         },
         openNews: "Read latest story",
         publicNews: "Public news",
+        sourceOpened: "Source open",
         siteName: "FanLetter News",
         stats: {
           characters: "Characters",
@@ -125,6 +130,7 @@ function getCopy(locale: Locale) {
         },
         title: "News AI Character Directory",
         topDesk: "Today's Character Desk",
+        videos: "Public vlogs",
       };
 }
 
@@ -420,6 +426,35 @@ function CharacterLead({
               </div>
             ))}
           </div>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            {[
+              {
+                icon: <Clapperboard className="size-4" />,
+                label: copy.videos,
+                value: character.publicVideoCount,
+              },
+              {
+                icon: <CheckCircle2 className="size-4" />,
+                label: copy.sourceOpened,
+                value: character.sourceRevealUnlockedCount,
+              },
+            ].map((stat) => (
+              <div
+                className="flex min-w-0 items-center justify-between gap-3 border border-white/12 bg-white/[0.08] p-3"
+                key={stat.label}
+              >
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="shrink-0 text-[#44f26e]">{stat.icon}</span>
+                  <p className="truncate text-[0.64rem] font-black uppercase tracking-[0.08em] text-white/52">
+                    {stat.label}
+                  </p>
+                </div>
+                <p className="shrink-0 text-xl font-black">
+                  {formatNumber(stat.value, locale)}
+                </p>
+              </div>
+            ))}
+          </div>
           <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-white/58">
             <span>{getAccessLabel(report, copy)}</span>
             {latestReportAt ? <span>{latestReportAt}</span> : null}
@@ -523,6 +558,33 @@ function CharacterCard({
               <p className="mt-1 truncate text-[0.54rem] font-black uppercase tracking-[0.08em] text-black/42">
                 {stat.label}
               </p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          {[
+            {
+              icon: <Clapperboard className="size-4" />,
+              label: copy.videos,
+              value: character.publicVideoCount,
+            },
+            {
+              icon: <CheckCircle2 className="size-4" />,
+              label: copy.sourceOpened,
+              value: character.sourceRevealUnlockedCount,
+            },
+          ].map((stat) => (
+            <div
+              className="flex min-w-0 items-center justify-between gap-2 border border-black/10 bg-white px-2.5 py-2"
+              key={stat.label}
+            >
+              <span className="shrink-0 text-[#16702e]">{stat.icon}</span>
+              <span className="min-w-0 flex-1 truncate text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/45">
+                {stat.label}
+              </span>
+              <span className="shrink-0 text-base font-black leading-none">
+                {formatNumber(stat.value, locale)}
+              </span>
             </div>
           ))}
         </div>

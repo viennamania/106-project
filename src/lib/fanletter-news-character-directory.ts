@@ -1,5 +1,19 @@
-import type { FanletterNewsReportDocument } from "@/lib/content";
-import { getCreatorProfilesCollection } from "@/lib/mongodb";
+import type { Filter } from "mongodb";
+
+import {
+  normalizeContentLocale,
+  type ContentPostDocument,
+  type FanletterNewsReportDocument,
+} from "@/lib/content";
+import { FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD } from "@/lib/fanletter-news-source-reveal";
+import { defaultLocale, type Locale } from "@/lib/i18n";
+import {
+  getContentPostsCollection,
+  getContentSocialActionsCollection,
+  getCreatorProfilesCollection,
+} from "@/lib/mongodb";
+
+const LEGACY_NSFW_VIDEO_URL_PATTERN = /(?:^|[\W_])nsfw\d*(?:[\W_]|$)/i;
 
 export type FanletterNewsCharacterStat = {
   avatarImageUrl: string | null;
@@ -9,8 +23,25 @@ export type FanletterNewsCharacterStat = {
   newsCount: number;
   nsfwCount: number;
   publicCount: number;
+  publicVideoCount: number;
   referralCode: string;
   representativeReport: FanletterNewsReportDocument;
+  sourceRevealUnlockedCount: number;
+};
+
+type FanletterNewsCharacterVideoMetrics = {
+  publicVideoCount: number;
+  sourceRevealUnlockedCount: number;
+};
+
+type FanletterNewsCharacterVideoPost = Pick<
+  ContentPostDocument,
+  "authorReferralCode" | "contentId"
+>;
+
+type FanletterNewsCharacterSourceRevealRow = {
+  _id: string;
+  count: number;
 };
 
 export function getFanletterNewsCharacterStats(
@@ -38,8 +69,10 @@ export function getFanletterNewsCharacterStats(
         newsCount: 1,
         nsfwCount: report.contentMaturityRating === "nsfw" ? 1 : 0,
         publicCount: report.priceType === "free" ? 1 : 0,
+        publicVideoCount: 0,
         referralCode,
         representativeReport: report,
+        sourceRevealUnlockedCount: 0,
       });
       continue;
     }
@@ -64,10 +97,12 @@ export function getFanletterNewsCharacterStats(
         existing.nsfwCount + (report.contentMaturityRating === "nsfw" ? 1 : 0),
       publicCount:
         existing.publicCount + (report.priceType === "free" ? 1 : 0),
+      publicVideoCount: existing.publicVideoCount,
       referralCode,
       representativeReport: shouldUseAsRepresentative
         ? report
         : existing.representativeReport,
+      sourceRevealUnlockedCount: existing.sourceRevealUnlockedCount,
     });
   }
 
@@ -81,6 +116,144 @@ export function getFanletterNewsCharacterStats(
     .slice(0, Math.max(1, limit));
 }
 
+function getPublishedContentLocaleFilter(
+  locale: Locale,
+): Filter<ContentPostDocument> {
+  const contentLocale = normalizeContentLocale(locale);
+
+  return contentLocale === defaultLocale
+    ? {
+        $or: [
+          { locale: contentLocale },
+          { locale: { $exists: false } },
+          { locale: null },
+        ],
+      }
+    : { locale: contentLocale };
+}
+
+function getLegacyNsfwVideoSignalFilter(): Filter<ContentPostDocument> {
+  return {
+    $and: [
+      { priceType: "paid" },
+      { "contentVideoUrls.0": { $exists: true } },
+      { contentVideoUrls: LEGACY_NSFW_VIDEO_URL_PATTERN },
+      {
+        $or: [
+          { contentMaturityRating: { $exists: false } },
+          { contentMaturityRating: null },
+        ],
+      },
+    ],
+  };
+}
+
+async function getFanletterNewsCharacterVideoMetrics(
+  characters: FanletterNewsCharacterStat[],
+) {
+  const referralCodes = Array.from(
+    new Set(characters.map((character) => character.referralCode)),
+  );
+  const locale = characters[0]?.representativeReport.locale;
+  const metricsByReferralCode = new Map<
+    string,
+    FanletterNewsCharacterVideoMetrics
+  >();
+
+  for (const referralCode of referralCodes) {
+    metricsByReferralCode.set(referralCode, {
+      publicVideoCount: 0,
+      sourceRevealUnlockedCount: 0,
+    });
+  }
+
+  if (!locale || referralCodes.length === 0) {
+    return metricsByReferralCode;
+  }
+
+  const postsCollection = await getContentPostsCollection();
+  const publicVideoPosts = await postsCollection
+    .find<FanletterNewsCharacterVideoPost>(
+      {
+        ...getPublishedContentLocaleFilter(locale),
+        "contentVideoUrls.0": { $exists: true },
+        authorReferralCode: { $in: referralCodes },
+        priceType: "free",
+        status: "published",
+        $nor: [
+          { contentMaturityRating: "nsfw" },
+          getLegacyNsfwVideoSignalFilter(),
+        ],
+      },
+      {
+        projection: {
+          authorReferralCode: 1,
+          contentId: 1,
+        },
+      },
+    )
+    .toArray();
+  const referralCodeByContentId = new Map<string, string>();
+
+  for (const post of publicVideoPosts) {
+    const metrics = metricsByReferralCode.get(post.authorReferralCode);
+
+    if (!metrics) {
+      continue;
+    }
+
+    metrics.publicVideoCount += 1;
+    referralCodeByContentId.set(post.contentId, post.authorReferralCode);
+  }
+
+  const contentIds = Array.from(referralCodeByContentId.keys());
+
+  if (contentIds.length === 0) {
+    return metricsByReferralCode;
+  }
+
+  const socialActionsCollection = await getContentSocialActionsCollection();
+  const sourceRevealRows = await socialActionsCollection
+    .aggregate<FanletterNewsCharacterSourceRevealRow>([
+      {
+        $match: {
+          contentId: { $in: contentIds },
+          sourceRevealRequested: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$contentId",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $match: {
+          count: { $gte: FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD },
+        },
+      },
+    ])
+    .toArray();
+
+  for (const row of sourceRevealRows) {
+    const referralCode = referralCodeByContentId.get(row._id);
+
+    if (!referralCode) {
+      continue;
+    }
+
+    const metrics = metricsByReferralCode.get(referralCode);
+
+    if (!metrics) {
+      continue;
+    }
+
+    metrics.sourceRevealUnlockedCount += 1;
+  }
+
+  return metricsByReferralCode;
+}
+
 export async function hydrateFanletterNewsCharacterStats(
   characters: FanletterNewsCharacterStat[],
 ) {
@@ -92,20 +265,23 @@ export async function hydrateFanletterNewsCharacterStats(
     new Set(characters.map((character) => character.referralCode)),
   );
   const profilesCollection = await getCreatorProfilesCollection();
-  const profiles = await profilesCollection
-    .find(
-      { referralCode: { $in: referralCodes } },
-      {
-        projection: {
-          avatarImageSet: 1,
-          avatarImageUrl: 1,
-          characterPersona: 1,
-          displayName: 1,
-          referralCode: 1,
+  const [profiles, videoMetricsByReferralCode] = await Promise.all([
+    profilesCollection
+      .find(
+        { referralCode: { $in: referralCodes } },
+        {
+          projection: {
+            avatarImageSet: 1,
+            avatarImageUrl: 1,
+            characterPersona: 1,
+            displayName: 1,
+            referralCode: 1,
+          },
         },
-      },
-    )
-    .toArray();
+      )
+      .toArray(),
+    getFanletterNewsCharacterVideoMetrics(characters),
+  ]);
   const profilesByReferralCode = new Map(
     profiles.map((profile) => [profile.referralCode, profile]),
   );
@@ -116,11 +292,15 @@ export async function hydrateFanletterNewsCharacterStats(
       profile?.avatarImageSet?.[0]?.url ?? profile?.avatarImageUrl ?? null;
     const profileName =
       profile?.characterPersona?.name?.trim() || profile?.displayName?.trim();
+    const videoMetrics = videoMetricsByReferralCode.get(character.referralCode);
 
     return {
       ...character,
       avatarImageUrl,
       name: profileName || character.name,
+      publicVideoCount: videoMetrics?.publicVideoCount ?? 0,
+      sourceRevealUnlockedCount:
+        videoMetrics?.sourceRevealUnlockedCount ?? 0,
     };
   });
 }
