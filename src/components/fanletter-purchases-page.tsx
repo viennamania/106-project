@@ -9,6 +9,7 @@ import {
   BookOpenCheck,
   Clapperboard,
   Coins,
+  ImageIcon,
   Loader2,
   PlayCircle,
   RefreshCw,
@@ -32,6 +33,7 @@ import {
   buildPathWithReferral,
   setPathSearchParams,
 } from "@/lib/landing-branding";
+import { getFanletterNewsVlogHref } from "@/lib/fanletter-news-vlog-routing";
 import type { MemberRecord } from "@/lib/member";
 import { thirdwebClient } from "@/lib/thirdweb";
 import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
@@ -59,6 +61,9 @@ function getCopy(
         backToFeed: "브이로그 둘러보기",
         channel: "채널 보기",
         connect: "계정 연결",
+        cover: "커버 이미지",
+        coverCta: "커버 확인",
+        coverFallback: "커버 준비 중",
         emptyBody:
           "팬 전용 브이로그를 결제하면 이곳에 모이고, 언제든 다시 볼 수 있습니다.",
         emptyTitle: "아직 구매한 팬 전용 브이로그가 없습니다.",
@@ -100,6 +105,9 @@ function getCopy(
         backToFeed: "Browse vlogs",
         channel: "View channel",
         connect: "Connect account",
+        cover: "Cover image",
+        coverCta: "View cover",
+        coverFallback: "Cover pending",
         emptyBody:
           "Fan-only vlogs you unlock will appear here so you can replay them anytime.",
         emptyTitle: "No fan-only purchases yet.",
@@ -146,7 +154,10 @@ function getCopy(
         accountRequiredTitle: "뉴스 계정 연결 후 구매한 콘텐츠를 확인하세요.",
         allFeed: "뉴스 홈",
         backToFeed: "뉴스룸으로 돌아가기",
+        channel: "캐릭터 채널 보기",
         connect: "뉴스 계정 연결",
+        cover: "뉴스 커버",
+        coverCta: "뉴스에서 보기",
         emptyBody:
           "FanLetter News 기사에서 팬 전용 브이로그를 결제하면 이곳에 모이고, 다시 해당 캐릭터 콘텐츠로 이어갈 수 있습니다.",
         emptyTitle: "아직 뉴스에서 구매한 콘텐츠가 없습니다.",
@@ -159,6 +170,7 @@ function getCopy(
         purchased: "구매함",
         start: "가입 상태 확인",
         studio: "AI 캐릭터",
+        view: "뉴스에서 바로 보기",
         wallet: "뉴스 지갑",
       }
     : {
@@ -168,7 +180,10 @@ function getCopy(
         accountRequiredTitle: "Connect your news account to see purchases.",
         allFeed: "News home",
         backToFeed: "Back to newsroom",
+        channel: "View character",
         connect: "Connect news account",
+        cover: "News cover",
+        coverCta: "Open in News",
         emptyBody:
           "Fan-only vlogs purchased from FanLetter News stories will appear here so you can return to the character content.",
         emptyTitle: "No content purchased from News yet.",
@@ -181,6 +196,7 @@ function getCopy(
         purchased: "Purchases",
         start: "Check signup",
         studio: "AI Characters",
+        view: "Watch in News",
         wallet: "News wallet",
       };
 }
@@ -355,27 +371,38 @@ function PurchaseCard({
       }`}
     >
       <Link
-        className="group relative block aspect-[4/5] overflow-hidden bg-[#07100b] md:aspect-auto"
+        aria-label={`${copy.view}: ${item.title}`}
+        className="group relative block aspect-[16/10] overflow-hidden bg-[#07100b] md:aspect-auto"
         href={contentHref}
       >
         {imageUrl ? (
           <Image
-            alt=""
-            aria-hidden="true"
+            alt={`${item.title} ${copy.cover}`}
             className="object-cover transition duration-500 group-hover:scale-[1.025]"
             fill
             sizes="(min-width: 1024px) 22rem, (min-width: 768px) 42vw, 100vw"
             src={imageUrl}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-white/58">
-            <PlayCircle className="size-12 text-[#44f26e]" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-white/58">
+            <ImageIcon className="size-12 text-[#44f26e]" />
+            <span className="text-sm font-bold">{copy.coverFallback}</span>
           </div>
         )}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/82 to-transparent p-4 text-white">
-          <div className="inline-flex items-center gap-2 rounded-full bg-[#44f26e] px-3 py-1 text-xs font-bold text-black">
-            <ShieldCheck className="size-3.5" />
-            {copy.unlockNote}
+        <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-black/68 px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-white backdrop-blur">
+          <ImageIcon className="size-3.5 text-[#44f26e]" />
+          {copy.cover}
+        </div>
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/86 via-black/44 to-transparent p-4 text-white">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full bg-[#44f26e] px-3 py-1 text-xs font-bold text-black">
+              <ShieldCheck className="size-3.5" />
+              {copy.unlockNote}
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/92 px-3 py-1 text-xs font-bold text-black transition group-hover:bg-white">
+              {copy.coverCta}
+              <ArrowRight className="size-3.5" />
+            </span>
           </div>
         </div>
         {isNsfw ? (
@@ -389,6 +416,10 @@ function PurchaseCard({
       <div className="flex min-w-0 flex-col p-5 sm:p-6">
         <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#1f7c38]">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8fff0] px-3 py-1">
+            <ShieldCheck className="size-3.5" />
+            {copy.unlockNote}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/[0.04] px-3 py-1 text-black/58">
             <BadgeCheck className="size-3.5" />
             {copy.paid}
           </span>
@@ -450,6 +481,7 @@ function PurchaseCard({
             className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold !text-white transition hover:bg-black/82"
             href={contentHref}
           >
+            <PlayCircle className="size-4" />
             {copy.view}
             <ArrowRight className="size-4" />
           </Link>
@@ -977,13 +1009,20 @@ export function FanletterPurchasesPage({
                     {visibleItems.map((item) => {
                       const itemReferralCode =
                         item.authorReferralCode || referralCode;
-                      const contentHref = setPathSearchParams(
-                        buildPathWithReferral(
-                          `/${locale}/fanletter/content/${item.contentId}`,
-                          itemReferralCode,
-                        ),
-                        { returnTo: purchasesHref },
-                      );
+                      const contentHref = isNewsService
+                        ? getFanletterNewsVlogHref({
+                            contentId: item.contentId,
+                            locale,
+                            referralCode: itemReferralCode,
+                            returnToHref: purchasesHref,
+                          })
+                        : setPathSearchParams(
+                            buildPathWithReferral(
+                              `/${locale}/fanletter/content/${item.contentId}`,
+                              itemReferralCode,
+                            ),
+                            { returnTo: purchasesHref },
+                          );
                       const profileHref = item.authorReferralCode
                         ? buildPathWithReferral(
                             isNewsService
