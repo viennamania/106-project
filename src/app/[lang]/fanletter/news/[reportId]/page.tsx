@@ -1186,7 +1186,7 @@ function SourceVlogRevealTeaserOverlay({
                       aria-hidden="true"
                       className={
                         blurred
-                          ? "scale-[1.06] object-cover blur-md brightness-[0.7] saturate-[0.88]"
+                          ? "scale-[1.04] object-cover blur-sm brightness-[0.74] saturate-[0.9]"
                           : "object-cover"
                       }
                       fill
@@ -1217,6 +1217,140 @@ function SourceVlogRevealTeaserOverlay({
           locale={locale}
           reportId={reportId}
         />
+      </div>
+    </div>
+  );
+}
+
+function SourceVlogPaidTeaserOverlay({
+  blurred,
+  copy,
+  imageUrls,
+  locale,
+  paidUnlockHref,
+  paidUnlockLabel,
+  showPaidUnlockCta,
+}: {
+  blurred: boolean;
+  copy: ReturnType<typeof getCopy>;
+  imageUrls: string[];
+  locale: Locale;
+  paidUnlockHref: string;
+  paidUnlockLabel: string;
+  showPaidUnlockCta: boolean;
+}) {
+  const paidTeaserCopy =
+    locale === "ko"
+      ? {
+          eyebrow: "원본 티저 컷",
+          meta: "팬 전용 티저",
+          title: "결제 전, 분위기를 먼저 확인하세요",
+        }
+      : {
+          eyebrow: "Source teaser cuts",
+          meta: "Fan-only teaser",
+          title: "Preview the mood before unlocking",
+        };
+  const teaserImages = imageUrls.slice(0, 3);
+  const teaserGridClass =
+    teaserImages.length >= 3
+      ? "grid-cols-3"
+      : teaserImages.length === 2
+        ? "grid-cols-2"
+        : "grid-cols-1";
+
+  return (
+    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.9)_100%)] p-3 text-white sm:p-5">
+      <div className="mx-auto grid h-full min-h-0 w-full max-w-4xl gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center">
+        {teaserImages.length > 0 ? (
+          <div className="flex min-h-0 flex-1 flex-col gap-2 sm:h-full sm:justify-center sm:gap-3">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
+                  {paidTeaserCopy.eyebrow}
+                </p>
+                <h3 className="mt-1 text-lg font-black leading-tight [word-break:keep-all] sm:text-2xl">
+                  {paidTeaserCopy.title}
+                </h3>
+              </div>
+              <span className="hidden shrink-0 rounded-full border border-white/16 bg-white/12 px-2.5 py-1 text-[0.62rem] font-black text-white/78 sm:inline-flex">
+                {paidTeaserCopy.meta}
+              </span>
+            </div>
+            <div
+              className={`grid min-h-0 flex-1 ${teaserGridClass} gap-1.5 sm:gap-2`}
+            >
+              {teaserImages.map((imageUrl, index) => {
+                const isPrimary = index === 0;
+
+                return (
+                  <div
+                    className={
+                      isPrimary
+                        ? "relative h-full min-h-[7rem] overflow-hidden rounded-lg border border-[#44f26e]/60 bg-black shadow-[0_18px_45px_rgba(68,242,110,0.22)]"
+                        : "relative h-full min-h-[7rem] overflow-hidden rounded-lg border border-white/16 bg-black shadow-[0_12px_28px_rgba(0,0,0,0.22)]"
+                    }
+                    key={`${imageUrl}-${index}`}
+                  >
+                    <Image
+                      alt=""
+                      aria-hidden="true"
+                      className={
+                        blurred
+                          ? "scale-[1.04] object-cover blur-sm brightness-[0.74] saturate-[0.9]"
+                          : "object-cover"
+                      }
+                      fill
+                      sizes={
+                        isPrimary
+                          ? "(max-width: 640px) 54vw, 28rem"
+                          : "(max-width: 640px) 38vw, 14rem"
+                      }
+                      src={imageUrl}
+                      unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/58 via-transparent to-black/10" />
+                    <span className="absolute bottom-2 left-2 rounded-full bg-black/62 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/82">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="rounded-xl border border-white/14 bg-black/62 p-3 shadow-[0_18px_44px_rgba(0,0,0,0.3)] backdrop-blur sm:p-4">
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-black">
+              {paidUnlockLabel}
+            </span>
+            <span className="inline-flex rounded-full border border-white/18 bg-white/10 px-3 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-white/72">
+              {copy.embeddedUnlockMeta}
+            </span>
+          </div>
+          <h3 className="mt-4 text-2xl font-black leading-tight">
+            {copy.embeddedUnlockTitle}
+          </h3>
+          <p className="mt-3 text-sm font-semibold leading-6 text-white/68">
+            {copy.embeddedUnlockBody}
+          </p>
+          {showPaidUnlockCta ? (
+            <FanletterPaidUnlockTrigger
+              className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
+              href={paidUnlockHref}
+            >
+              <Coins className="size-4" />
+              <span>
+                {paidUnlockLabel} {copy.embeddedUnlockCta}
+              </span>
+            </FanletterPaidUnlockTrigger>
+          ) : (
+            <p className="mt-4 rounded-lg border border-white/14 bg-white/10 px-3 py-2 text-sm font-semibold leading-6 text-white/72">
+              {copy.nsfwBlurNotice}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -1280,7 +1414,13 @@ function SourceVlogEmbed({
   const hasEmbeddedVideo = Boolean(sourceVideoUrl);
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
   const paidUnlockLabel = `${paidUnlockAmount} USDT`;
+  const shouldShowPaidTeaser =
+    !sourceRevealLocked &&
+    isPaidContent &&
+    !sourceContent?.canViewerAccess &&
+    Boolean(paidUnlockHref);
   const shouldShowPaidUnlockPrompt =
+    !shouldShowPaidTeaser &&
     !sourceRevealLocked &&
     isPaidContent &&
     !sourceContent?.canViewerAccess &&
@@ -1316,7 +1456,7 @@ function SourceVlogEmbed({
                 alt={sourceContent?.title ?? copy.embeddedTitle}
                 className={
                   sourceMediaBlurred
-                    ? "scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.88]"
+                    ? "scale-[1.04] object-cover blur-sm brightness-[0.74] saturate-[0.9]"
                     : "object-cover"
                 }
                 fill
@@ -1342,6 +1482,42 @@ function SourceVlogEmbed({
               locale={locale}
               reportId={sourceReveal.reportId}
               sourceReveal={sourceReveal}
+            />
+          </div>
+        ) : shouldShowPaidTeaser && paidUnlockHref ? (
+          <div className="relative mx-auto aspect-[3/4] w-full overflow-hidden bg-black sm:aspect-video">
+            {sourceImageUrl ? (
+              <Image
+                alt={sourceContent?.title ?? copy.embeddedTitle}
+                className={
+                  sourceMediaBlurred
+                    ? "scale-[1.04] object-cover blur-sm brightness-[0.74] saturate-[0.9]"
+                    : "object-cover"
+                }
+                fill
+                loading="eager"
+                sizes="(max-width: 768px) 100vw, 50vw"
+                src={sourceImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(
+                  sourceImageUrl,
+                )}
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(145deg,#07100b,#101820_54%,#1b2b20)] text-white/74">
+                <Clapperboard className="size-14 text-[#44f26e]" />
+              </div>
+            )}
+            {sourceMediaBlurred ? (
+              <div className="pointer-events-none absolute inset-0 bg-black/8" />
+            ) : null}
+            <SourceVlogPaidTeaserOverlay
+              blurred={sourceMediaBlurred}
+              copy={copy}
+              imageUrls={sourceTeaserImageUrls}
+              locale={locale}
+              paidUnlockHref={paidUnlockHref}
+              paidUnlockLabel={paidUnlockLabel}
+              showPaidUnlockCta={shouldShowPaidUnlockCta}
             />
           </div>
         ) : (

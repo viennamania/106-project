@@ -6,6 +6,7 @@ import {
   BookOpenCheck,
   CheckCircle2,
   Clapperboard,
+  Coins,
   ExternalLink,
   Heart,
   LockKeyhole,
@@ -20,7 +21,10 @@ import { FanletterChannelShareButton } from "@/components/fanletter-channel-shar
 import { FanletterNewsSourceRevealVote } from "@/components/fanletter-news-source-reveal-vote";
 import { FanletterNewsWalletConnect } from "@/components/fanletter-news-wallet-connect";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
-import { FanletterPaidUnlockPanel } from "@/components/fanletter-paid-unlock-panel";
+import {
+  FanletterPaidUnlockPanel,
+  FanletterPaidUnlockTrigger,
+} from "@/components/fanletter-paid-unlock-panel";
 import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive-media-frame";
 import {
   CONTENT_PAID_USDT_AMOUNT,
@@ -82,8 +86,12 @@ function getCopy(locale: Locale) {
           eyebrow: "FanLetter News Vlog",
           lockedBody:
             "팬 전용 원본 브이로그는 결제 후 뉴스 서비스 안에서 바로 열람할 수 있습니다.",
+          lockedMeta: "전체 영상 · 본문 · 추가 미디어",
           lockedTitle: "팬 전용 브이로그 잠금 해제",
           meta: "뉴스 서비스 안에서 원본 브이로그를 이어봅니다.",
+          paidUnlockCta: "결제하고 원본 보기",
+          paidUnlockTeaserEyebrow: "팬 전용 티저 컷",
+          paidUnlockTeaserTitle: "결제 전, 분위기를 먼저 확인하세요",
           titleSuffix: "브이로그 뉴스",
         },
         empty: "아직 공개 브이로그가 없습니다.",
@@ -156,8 +164,12 @@ function getCopy(locale: Locale) {
           eyebrow: "FanLetter News Vlog",
           lockedBody:
             "Unlock the fan-only source vlog and continue watching inside FanLetter News.",
+          lockedMeta: "Full video · body · extra media",
           lockedTitle: "Unlock fan-only vlog",
           meta: "Continue the source vlog inside the News service.",
+          paidUnlockCta: "Pay and watch source",
+          paidUnlockTeaserEyebrow: "Fan-only teaser cuts",
+          paidUnlockTeaserTitle: "Preview the mood before unlocking",
           titleSuffix: "vlog news",
         },
         empty: "No public vlogs have been published yet.",
@@ -426,7 +438,7 @@ function NewsVlogSourceRevealTeaser({
           aria-hidden="true"
           className={cn(
             "object-cover opacity-44",
-            blurred && "scale-[1.04] blur-lg brightness-[0.72] saturate-[0.88]",
+            blurred && "scale-[1.04] blur-sm brightness-[0.74] saturate-[0.9]",
           )}
           fill
           loading="eager"
@@ -473,7 +485,7 @@ function NewsVlogSourceRevealTeaser({
                       className={cn(
                         "object-cover",
                         blurred &&
-                          "scale-[1.04] blur-md brightness-[0.72] saturate-[0.88]",
+                          "scale-[1.04] blur-sm brightness-[0.74] saturate-[0.9]",
                       )}
                       fill
                       loading={index === 0 ? "eager" : undefined}
@@ -526,6 +538,147 @@ function NewsVlogSourceRevealTeaser({
               content.contentId,
             )}/source-reveal`}
           />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NewsVlogPaidUnlockTeaser({
+  blurred,
+  content,
+  locale,
+  paidUnlockAmount,
+  paidUnlockHref,
+  showPaidUnlockCta,
+}: {
+  blurred: boolean;
+  content: FanletterPublicContentDetail;
+  locale: Locale;
+  paidUnlockAmount: string;
+  paidUnlockHref: string;
+  showPaidUnlockCta: boolean;
+}) {
+  const copy = getCopy(locale);
+  const nsfwCopy = getFanletterNsfwCopy(locale);
+  const teaserImages = getUniqueImageUrls([
+    content.coverImageUrl,
+    ...content.coverImageCandidates.map((candidate) => candidate.url),
+    ...content.contentImageUrls,
+  ]).slice(0, 4);
+
+  return (
+    <div className="relative overflow-hidden bg-[#07100b] text-white">
+      {content.coverImageUrl ? (
+        <Image
+          alt=""
+          aria-hidden="true"
+          className={cn(
+            "object-cover opacity-44",
+            blurred && "scale-[1.04] blur-sm brightness-[0.74] saturate-[0.9]",
+          )}
+          fill
+          loading="eager"
+          sizes="(max-width: 768px) 100vw, 70vw"
+          src={content.coverImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(content.coverImageUrl)}
+        />
+      ) : null}
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,16,11,0.68),rgba(7,16,11,0.84)_42%,rgba(0,0,0,0.94))]" />
+
+      <div className="relative grid gap-4 p-3 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)] lg:items-center lg:p-6">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1.5 text-[0.64rem] font-black uppercase tracking-[0.14em] text-black">
+              {copy.detail.paidUnlockTeaserEyebrow}
+            </span>
+            <span className="inline-flex rounded-full border border-white/18 bg-white/10 px-3 py-1.5 text-[0.64rem] font-black uppercase tracking-[0.14em] text-white/72">
+              {paidUnlockAmount} USDT
+            </span>
+            {content.contentMaturityRating === "nsfw" ? (
+              <span className="inline-flex rounded-full bg-rose-500 px-3 py-1.5 text-[0.64rem] font-black uppercase tracking-[0.14em] text-white">
+                {nsfwCopy.badge}
+              </span>
+            ) : null}
+          </div>
+          <h2 className="mt-4 max-w-2xl break-words text-2xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-4xl">
+            {copy.detail.paidUnlockTeaserTitle}
+          </h2>
+          <p className="mt-3 max-w-xl text-sm font-semibold leading-6 text-white/68 sm:text-base sm:leading-7">
+            {content.summary || copy.detail.lockedBody}
+          </p>
+
+          <div className="mt-5 grid grid-cols-4 gap-1.5 sm:gap-2">
+            {(teaserImages.length > 0 ? teaserImages : [content.coverImageUrl]).map(
+              (imageUrl, index) => (
+                <div
+                  className={cn(
+                    "relative aspect-[4/5] overflow-hidden rounded-lg border bg-black shadow-[0_14px_34px_rgba(0,0,0,0.28)]",
+                    index === 0
+                      ? "border-[#44f26e]/70"
+                      : "border-white/14",
+                  )}
+                  key={`${imageUrl ?? "fallback"}-${index}`}
+                >
+                  {imageUrl ? (
+                    <Image
+                      alt=""
+                      aria-hidden="true"
+                      className={cn(
+                        "object-cover",
+                        blurred &&
+                          "scale-[1.04] blur-sm brightness-[0.74] saturate-[0.9]",
+                      )}
+                      fill
+                      loading={index === 0 ? "eager" : undefined}
+                      sizes="(max-width: 640px) 42vw, 12rem"
+                      src={imageUrl}
+                      unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-[#44f26e]">
+                      <Clapperboard className="size-8" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/62 via-transparent to-black/8" />
+                  <span className="absolute bottom-2 left-2 rounded-full bg-black/68 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/82">
+                    {copy.sourceReveal.sceneLabel}{" "}
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-white/14 bg-black/56 p-3 shadow-[0_18px_44px_rgba(0,0,0,0.3)] backdrop-blur sm:p-4">
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-black">
+              {paidUnlockAmount} USDT
+            </span>
+            <span className="inline-flex rounded-full border border-white/18 bg-white/10 px-3 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-white/72">
+              {copy.detail.lockedMeta}
+            </span>
+          </div>
+          <h3 className="mt-4 text-2xl font-black leading-tight">
+            {copy.detail.lockedTitle}
+          </h3>
+          <p className="mt-3 text-sm font-semibold leading-6 text-white/68">
+            {copy.detail.lockedBody}
+          </p>
+          {showPaidUnlockCta ? (
+            <FanletterPaidUnlockTrigger
+              className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
+              href={paidUnlockHref}
+            >
+              <Coins className="size-4" />
+              <span>{copy.detail.paidUnlockCta}</span>
+            </FanletterPaidUnlockTrigger>
+          ) : (
+            <p className="mt-4 rounded-lg border border-white/14 bg-white/10 px-3 py-2 text-sm font-semibold leading-6 text-white/72">
+              {nsfwCopy.disabledBody}
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -1295,6 +1448,8 @@ export function FanletterNewsVlogDetailPage({
   const accessLabel = getAccessLabel(content, copy);
   const nsfwCopy = getFanletterNsfwCopy(locale);
   const paidUnlockAmount = content.priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
+  const paidUnlockSectionId = "fanletter-news-vlog-paid-unlock";
+  const paidUnlockHref = `${currentHref}#${paidUnlockSectionId}`;
   const detailBackHref = returnToHref ?? archiveHref;
   const relatedVlogs = content.authorRecentContent.filter(
     (item) => item.contentId !== content.contentId && item.priceType === "free",
@@ -1381,6 +1536,15 @@ export function FanletterNewsVlogDetailPage({
                   locale={locale}
                   sourceReveal={sourceReveal}
                 />
+              ) : paidContentLocked ? (
+                <NewsVlogPaidUnlockTeaser
+                  blurred={sourceRevealTeaserBlurred}
+                  content={content}
+                  locale={locale}
+                  paidUnlockAmount={paidUnlockAmount}
+                  paidUnlockHref={paidUnlockHref}
+                  showPaidUnlockCta={!requiresNsfwOptIn}
+                />
               ) : (
                 <FanletterResponsiveMediaFrame
                   alt={content.title}
@@ -1445,7 +1609,10 @@ export function FanletterNewsVlogDetailPage({
             ) : null}
 
             {paidContentLocked && !requiresNsfwOptIn ? (
-              <section className="mt-5 border border-black/12 bg-white p-4 shadow-[0_14px_40px_rgba(17,21,16,0.06)] sm:p-6">
+              <section
+                className="mt-5 scroll-mt-5 border border-black/12 bg-white p-4 shadow-[0_14px_40px_rgba(17,21,16,0.06)] sm:p-6"
+                id={paidUnlockSectionId}
+              >
                 <div className="mb-4 flex items-start gap-3">
                   <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-black">
                     <LockKeyhole className="size-5" />
@@ -1463,6 +1630,7 @@ export function FanletterNewsVlogDetailPage({
                   </div>
                 </div>
                 <FanletterPaidUnlockPanel
+                  autoOpenHash={`#${paidUnlockSectionId}`}
                   connectHref={connectHref}
                   contentId={content.contentId}
                   contentImageCount={content.contentImageCount}
