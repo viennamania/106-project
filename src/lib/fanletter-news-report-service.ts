@@ -2031,6 +2031,7 @@ export async function getFanletterNewsReportDraftSourcesForMember({
     .find(
       {
         "contentVideoUrls.0": { $exists: true },
+        contentMaturityRating: { $ne: "nsfw" },
         locale: normalizedLocale,
         status: "published",
       },
