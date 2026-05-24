@@ -210,6 +210,8 @@ type FanletterPublicFanRequestMetrics = {
 export type FanletterCreatorCommunityStats = {
   fanClubMemberCount: number;
   paidContentUnlockCount: number;
+  paidContentRevenueUsdt: string;
+  recentPaidContentUnlockCount: number;
 };
 
 export type FanletterPublicCharacter = {
@@ -870,13 +872,19 @@ async function getCreatorCommunityStats({
 }): Promise<FanletterCreatorCommunityStats> {
   const followsCollection = await getFanletterCharacterFollowsCollection();
   const ordersCollection = await getContentOrdersCollection();
+  const recentPaidUnlockSince = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
   const [fanClubMemberCount, paidOrderSummary] = await Promise.all([
     followsCollection.countDocuments({
       creatorReferralCode: referralCode,
     }),
     creatorEmail
       ? ordersCollection
-          .aggregate<{ _id: null; paidContentUnlockCount: number }>([
+          .aggregate<{
+            _id: null;
+            paidContentRevenueUsdt?: { toString(): string } | null;
+            paidContentUnlockCount: number;
+            recentPaidContentUnlockCount: number;
+          }>([
             {
               $match: {
                 sellerEmail: creatorEmail,
@@ -887,6 +895,14 @@ async function getCreatorCommunityStats({
               $group: {
                 _id: null,
                 paidContentUnlockCount: { $sum: 1 },
+                paidContentRevenueUsdt: {
+                  $sum: { $toDecimal: "$amountUsdt" },
+                },
+                recentPaidContentUnlockCount: {
+                  $sum: {
+                    $cond: [{ $gte: ["$createdAt", recentPaidUnlockSince] }, 1, 0],
+                  },
+                },
               },
             },
           ])
@@ -897,6 +913,10 @@ async function getCreatorCommunityStats({
   return {
     fanClubMemberCount,
     paidContentUnlockCount: paidOrderSummary[0]?.paidContentUnlockCount ?? 0,
+    paidContentRevenueUsdt:
+      paidOrderSummary[0]?.paidContentRevenueUsdt?.toString() ?? "0",
+    recentPaidContentUnlockCount:
+      paidOrderSummary[0]?.recentPaidContentUnlockCount ?? 0,
   };
 }
 

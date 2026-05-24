@@ -148,6 +148,20 @@ function getCopy(locale: Locale) {
           title: "리포터 커버리지",
           reports: (count: string) => `${count}개 리포트`,
         },
+        revenue: {
+          body:
+            "팬들이 실제로 결제한 유료 브이로그 성과입니다. 뉴스 소비자에게 이 캐릭터가 돈을 벌고 있다는 신호를 전면에 보여줍니다.",
+          cta: "팬 전용 브이로그 보기",
+          emptyBody:
+            "첫 유료 판매가 발생하면 누적 매출, 유료 판매 수, 최근 7일 판매 흐름이 이 영역에 크게 표시됩니다.",
+          emptyTitle: "수익 신호 대기 중",
+          eyebrow: "Paid Heat",
+          recent: "최근 7일 판매",
+          revenue: "누적 매출",
+          sales: "유료 판매",
+          title: "돈 잘 버는 AI 캐릭터",
+          walletOpened: "팬들이 지갑 연 캐릭터",
+        },
         requests: {
           body:
             "팬이 남긴 장면 요청은 다음 공개 브이로그나 팬 전용 답장 브이로그의 소재가 됩니다.",
@@ -293,6 +307,20 @@ function getCopy(locale: Locale) {
           title: "Reporter coverage",
           reports: (count: string) => `${count} reports`,
         },
+        revenue: {
+          body:
+            "Confirmed paid vlog sales. This makes the character's earning signal visible to news readers.",
+          cta: "View fan-only vlogs",
+          emptyBody:
+            "Once the first paid sale lands, total revenue, paid sales, and recent 7-day sales will be featured here.",
+          emptyTitle: "Revenue signal pending",
+          eyebrow: "Paid Heat",
+          recent: "7-day sales",
+          revenue: "Revenue",
+          sales: "Paid sales",
+          title: "Revenue-making AI character",
+          walletOpened: "Fans opened their wallets",
+        },
         requests: {
           body:
             "Fan scene requests can become the next public vlog or a fan-only reply vlog.",
@@ -374,6 +402,16 @@ function formatDate(value: Date | string | null, locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function formatUsdtAmount(value: string | number | null | undefined, locale: Locale) {
+  const numericValue = Number(value ?? 0);
+  const safeValue = Number.isFinite(numericValue) ? numericValue : 0;
+
+  return `${new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: safeValue > 0 && safeValue < 1 ? 2 : 0,
+  }).format(safeValue)} USDT`;
 }
 
 function toTimestamp(value: Date | string | null | undefined) {
@@ -1175,6 +1213,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
     locale,
     referralCode: effectiveReferralCode,
   });
+  const fanOnlyVlogsAnchorHref = `${channelHref}#fanletter-news-fan-only-vlogs`;
   const requestHref = buildPathWithReferral(
     `/${locale}/fanletter/news/characters/${data.profile.referralCode}/request`,
     effectiveReferralCode,
@@ -1210,6 +1249,16 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
         item.social.saveCount,
       0,
     );
+  const paidContentUnlockCount = data.communityStats.paidContentUnlockCount;
+  const recentPaidContentUnlockCount =
+    data.communityStats.recentPaidContentUnlockCount;
+  const paidContentRevenueLabel = formatUsdtAmount(
+    data.communityStats.paidContentRevenueUsdt,
+    locale,
+  );
+  const hasPaidRevenueSignal =
+    paidContentUnlockCount > 0 ||
+    Number(data.communityStats.paidContentRevenueUsdt) > 0;
   const growthStats = [
     {
       icon: <Newspaper className="size-4" />,
@@ -1239,7 +1288,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
     {
       icon: <Trophy className="size-4" />,
       label: copy.growth.unlocks,
-      value: formatNumber(data.communityStats.paidContentUnlockCount, locale),
+      value: formatNumber(paidContentUnlockCount, locale),
     },
   ];
   const newsStats = [
@@ -1391,6 +1440,67 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                       {heroMoment?.body ?? copy.today.emptyBody}
                     </p>
                   </div>
+                </div>
+              </div>
+
+              <div className="mt-4 border border-[#44f26e]/34 bg-[#44f26e]/10 p-3.5 sm:p-4">
+                <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-flex items-center gap-1.5 bg-[#44f26e] px-2.5 py-1 text-[0.62rem] font-black uppercase tracking-[0.12em] text-black">
+                        <Flame className="size-3.5" />
+                        {copy.revenue.eyebrow}
+                      </span>
+                      <span className="border border-[#44f26e]/26 bg-black/24 px-2.5 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#9bffad]">
+                        {copy.revenue.walletOpened}
+                      </span>
+                    </div>
+                    <h2 className="mt-3 break-words text-2xl font-black leading-[1.05] [word-break:keep-all] sm:text-[2rem]">
+                      {hasPaidRevenueSignal
+                        ? copy.revenue.title
+                        : copy.revenue.emptyTitle}
+                    </h2>
+                    <p className="mt-2 max-w-xl text-sm font-semibold leading-6 text-white/62">
+                      {hasPaidRevenueSignal
+                        ? copy.revenue.body
+                        : copy.revenue.emptyBody}
+                    </p>
+                  </div>
+                  <Link
+                    className="inline-flex min-h-10 items-center justify-center gap-2 border border-[#44f26e]/36 bg-black/28 px-3 py-2 text-xs font-black !text-[#b9ffc8] transition hover:bg-[#44f26e] hover:!text-black"
+                    href={fanOnlyVlogsAnchorHref}
+                  >
+                    {copy.revenue.cta}
+                    <ArrowRight className="size-4" />
+                  </Link>
+                </div>
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  {[
+                    {
+                      label: copy.revenue.revenue,
+                      value: paidContentRevenueLabel,
+                    },
+                    {
+                      label: copy.revenue.sales,
+                      value: formatNumber(paidContentUnlockCount, locale),
+                    },
+                    {
+                      label: copy.revenue.recent,
+                      value: formatNumber(recentPaidContentUnlockCount, locale),
+                    },
+                  ].map((stat) => (
+                    <div
+                      className="min-w-0 border border-[#44f26e]/18 bg-black/24 p-2.5"
+                      key={stat.label}
+                    >
+                      <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.08em] text-white/40">
+                        {stat.label}
+                      </p>
+                      <p className="mt-2 truncate text-lg font-black leading-none text-white sm:text-xl">
+                        {stat.value}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -1694,7 +1804,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           </div>
 
           <div className="space-y-5">
-            <section>
+            <section id="fanletter-news-fan-only-vlogs">
               <div className="mb-4 flex items-center justify-between border-b-2 border-[#111510] pb-3">
                 <div>
                   <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
