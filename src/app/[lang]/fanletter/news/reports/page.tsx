@@ -74,6 +74,10 @@ function getCopy(locale: Locale) {
         filteredEmptyTitle: (filter: string) => `${filter} 리포트가 없습니다.`,
         incentive: "성과",
         incentiveReward: "리포터 보상",
+        newReportBody:
+          "브이로그 후보를 고르고 티저 이미지를 16:9로 크롭해 뉴스 리포트를 발행합니다.",
+        newReportCta: "새 리포트 작성",
+        newReportTitle: "티저 기반 리포트 작성실",
         partnerModel: {
           attributedRevenue: "수익 공유 기준 매출",
           body:
@@ -171,6 +175,10 @@ function getCopy(locale: Locale) {
         filteredEmptyTitle: (filter: string) => `No ${filter} reports.`,
         incentive: "Performance",
         incentiveReward: "Reporter rewards",
+        newReportBody:
+          "Choose a vlog candidate, crop a teaser image to 16:9, and publish a news report.",
+        newReportCta: "Create new report",
+        newReportTitle: "Teaser-based report desk",
         partnerModel: {
           attributedRevenue: "Revenue-share basis",
           body:
@@ -427,6 +435,10 @@ export default async function LocalizedFanletterNewsReportsPage({
   const walletHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, effectiveReferralCode),
     { returnTo: newsHomeHref },
+  );
+  const effectiveNewReportHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/reports/new`,
+    effectiveReferralCode,
   );
   const topNavItems = [
     {
@@ -819,6 +831,13 @@ export default async function LocalizedFanletterNewsReportsPage({
                     </div>
                   ))}
                 </div>
+                <Link
+                  className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-[#111510] transition hover:bg-[#65ff86]"
+                  href={effectiveNewReportHref}
+                >
+                  {copy.newReportCta}
+                  <ArrowRight className="size-4" />
+                </Link>
               </>
             ) : (
               <p className="mt-5 inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-[#111510]">
@@ -856,6 +875,20 @@ export default async function LocalizedFanletterNewsReportsPage({
                   </div>
                 ))}
               </div>
+              <Link
+                className="mt-4 flex items-center justify-between gap-4 border border-[#19b84b]/20 bg-[#ecfff0] px-4 py-3 !text-[#111510] transition hover:border-[#19b84b]/45 hover:bg-white"
+                href={effectiveNewReportHref}
+              >
+                <span className="min-w-0">
+                  <span className="block text-sm font-black">
+                    {copy.newReportTitle}
+                  </span>
+                  <span className="mt-1 block text-xs font-semibold leading-5 text-black/56">
+                    {copy.newReportBody}
+                  </span>
+                </span>
+                <ArrowRight className="size-5 shrink-0 text-[#16702e]" />
+              </Link>
             </div>
             <aside className="border border-[#16702e]/18 bg-[#111510] p-4 text-white shadow-[0_14px_34px_rgba(17,21,16,0.14)] sm:p-5">
               <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
@@ -933,9 +966,9 @@ export default async function LocalizedFanletterNewsReportsPage({
             </p>
             <Link
               className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black"
-              href={charactersHref}
+              href={effectiveNewReportHref}
             >
-              {copy.emptyCta}
+              {copy.newReportCta}
               <ArrowRight className="size-4 text-[#44f26e]" />
             </Link>
           </section>

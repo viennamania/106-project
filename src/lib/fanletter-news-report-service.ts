@@ -263,6 +263,36 @@ export type FanletterNewsReportsForMemberResult = {
   reports: FanletterNewsReportDocument[];
 };
 
+export type FanletterNewsReportDraftSource = {
+  contentId: string;
+  contentMaturityRating: ContentMaturityRating;
+  coverImageUrl: string | null;
+  coverOptions: FanletterNewsReportCoverOption[];
+  creatorName: string;
+  creatorReferralCode: string | null;
+  existingReport: {
+    editHref: string;
+    href: string;
+    reportId: string;
+  } | null;
+  exclusiveNews: {
+    active: boolean;
+    reporterName: string | null;
+    reporterReferralCode: string | null;
+    until: string | null;
+  };
+  priceType: ContentPriceType;
+  publishedAt: string | null;
+  reportCount: number;
+  summary: string;
+  title: string;
+};
+
+export type FanletterNewsReportDraftSourcesResult = {
+  items: FanletterNewsReportDraftSource[];
+  member: FanletterNewsReporterMember | null;
+};
+
 export type FanletterNewsReportForMemberResult = {
   member: FanletterNewsReporterMember | null;
   report: FanletterNewsReportDocument | null;
@@ -1963,6 +1993,182 @@ export async function getFanletterNewsReportsForMember({
     },
     reportCount,
     reports: await hydrateFanletterNewsReportCoverImageUrls(reports),
+  };
+}
+
+export async function getFanletterNewsReportDraftSourcesForMember({
+  email,
+  limit = 36,
+  locale,
+}: {
+  email?: string | null;
+  limit?: number;
+  locale?: Locale | null;
+}): Promise<FanletterNewsReportDraftSourcesResult> {
+  const normalizedLocale = locale ?? defaultLocale;
+  const member = await getFanletterNewsReporterMemberByEmail(
+    email,
+    normalizedLocale,
+  );
+
+  if (!member) {
+    return {
+      items: [],
+      member: null,
+    };
+  }
+
+  const normalizedLimit = Number.isFinite(limit)
+    ? Math.max(1, Math.min(Math.floor(limit), 60))
+    : 36;
+  const [postsCollection, profilesCollection, reportsCollection] =
+    await Promise.all([
+      getContentPostsCollection(),
+      getCreatorProfilesCollection(),
+      getFanletterNewsReportsCollection(),
+    ]);
+  const posts = await postsCollection
+    .find(
+      {
+        "contentVideoUrls.0": { $exists: true },
+        locale: normalizedLocale,
+        status: "published",
+      },
+      {
+        projection: {
+          authorEmail: 1,
+          authorReferralCode: 1,
+          contentId: 1,
+          contentMaturityRating: 1,
+          coverImageCandidates: 1,
+          coverImageUrl: 1,
+          createdAt: 1,
+          exclusiveNewsReporterName: 1,
+          exclusiveNewsReporterReferralCode: 1,
+          exclusiveNewsUntil: 1,
+          locale: 1,
+          previewText: 1,
+          priceType: 1,
+          publishedAt: 1,
+          status: 1,
+          summary: 1,
+          title: 1,
+          updatedAt: 1,
+        },
+      },
+    )
+    .sort({ publishedAt: -1, createdAt: -1 })
+    .limit(normalizedLimit)
+    .toArray();
+  const contentIds = posts.map((post) => post.contentId);
+
+  if (contentIds.length === 0) {
+    return {
+      items: [],
+      member,
+    };
+  }
+
+  const authorEmails = [...new Set(posts.map((post) => post.authorEmail))];
+  const [profiles, reports] = await Promise.all([
+    profilesCollection
+      .find(
+        { email: { $in: authorEmails } },
+        {
+          projection: {
+            characterPersona: 1,
+            displayName: 1,
+            email: 1,
+            referralCode: 1,
+          },
+        },
+      )
+      .toArray(),
+    reportsCollection
+      .find(
+        {
+          contentId: { $in: contentIds },
+          locale: normalizedLocale,
+          status: "published",
+        },
+        {
+          projection: {
+            contentId: 1,
+            locale: 1,
+            reporterReferralCode: 1,
+            reportId: 1,
+          },
+        },
+      )
+      .toArray(),
+  ]);
+  const profileByEmail = new Map(profiles.map((profile) => [profile.email, profile]));
+  const reportCountByContentId = new Map<string, number>();
+  const existingReportByContentId = new Map<string, FanletterNewsReportDocument>();
+
+  for (const report of reports) {
+    reportCountByContentId.set(
+      report.contentId,
+      (reportCountByContentId.get(report.contentId) ?? 0) + 1,
+    );
+
+    if (report.reporterReferralCode === member.referralCode) {
+      existingReportByContentId.set(report.contentId, report);
+    }
+  }
+
+  return {
+    items: posts.map((post) => {
+      const profile = profileByEmail.get(post.authorEmail);
+      const creatorName =
+        profile?.characterPersona?.name?.trim() ||
+        profile?.displayName?.trim() ||
+        post.authorReferralCode;
+      const activeExclusiveReporterReferralCode =
+        getActiveExclusiveNewsReporterReferralCode(post);
+      const autoCoverImageUrl = getCoverImageUrl(post);
+      const existingReport = existingReportByContentId.get(post.contentId) ?? null;
+
+      return {
+        contentId: post.contentId,
+        contentMaturityRating:
+          post.contentMaturityRating === "nsfw" ? "nsfw" : "general",
+        coverImageUrl: autoCoverImageUrl,
+        coverOptions: getFanletterNewsReportCoverOptionsFromPost({
+          post,
+          report: {
+            coverImageSource: "auto",
+            coverImageUrl: autoCoverImageUrl,
+          },
+        }),
+        creatorName,
+        creatorReferralCode: normalizeReferralCode(
+          profile?.referralCode ?? post.authorReferralCode,
+        ),
+        existingReport: existingReport
+          ? {
+              editHref: buildPathWithReferral(
+                `/${normalizedLocale}/fanletter/reports/${existingReport.reportId}`,
+                member.referralCode,
+              ),
+              href: createFanletterNewsReportShareHref(existingReport),
+              reportId: existingReport.reportId,
+            }
+          : null,
+        exclusiveNews: {
+          active: Boolean(activeExclusiveReporterReferralCode),
+          reporterName: post.exclusiveNewsReporterName?.trim() || null,
+          reporterReferralCode: activeExclusiveReporterReferralCode,
+          until: post.exclusiveNewsUntil?.toISOString() ?? null,
+        },
+        priceType: post.priceType,
+        publishedAt: post.publishedAt?.toISOString() ?? null,
+        reportCount: reportCountByContentId.get(post.contentId) ?? 0,
+        summary: trimToLength(post.summary || post.previewText, 220),
+        title: trimToLength(post.title, 140),
+      };
+    }),
+    member,
   };
 }
 
