@@ -270,6 +270,13 @@ export type FanletterNewsReportDraftSource = {
   coverImageUrl: string | null;
   coverOptions: FanletterNewsReportCoverOption[];
   creatorName: string;
+  creatorProfile: {
+    avatarImageUrl: string | null;
+    displayName: string;
+    name: string;
+    referralCode: string | null;
+    summary: string;
+  };
   creatorReferralCode: string | null;
   existingReport: {
     editHref: string;
@@ -285,6 +292,17 @@ export type FanletterNewsReportDraftSource = {
   priceType: ContentPriceType;
   publishedAt: string | null;
   reportCount: number;
+  reports: Array<{
+    coverImageUrl: string | null;
+    createdAt: string;
+    dek: string;
+    href: string;
+    reporterAvatarImageUrl: string | null;
+    reporterName: string;
+    reporterReferralCode: string;
+    reportId: string;
+    title: string;
+  }>;
   summary: string;
   title: string;
 };
@@ -2152,9 +2170,11 @@ export async function getFanletterNewsReportDraftSourcesForMember({
         { email: { $in: authorEmails } },
         {
           projection: {
+            avatarImageUrl: 1,
             characterPersona: 1,
             displayName: 1,
             email: 1,
+            intro: 1,
             referralCode: 1,
           },
         },
@@ -2170,23 +2190,35 @@ export async function getFanletterNewsReportDraftSourcesForMember({
         {
           projection: {
             contentId: 1,
+            coverImageUrl: 1,
+            createdAt: 1,
+            dek: 1,
             locale: 1,
+            reporterAvatarImageUrl: 1,
+            reporterName: 1,
             reporterReferralCode: 1,
             reportId: 1,
+            title: 1,
           },
         },
       )
+      .sort({ createdAt: -1 })
       .toArray(),
   ]);
   const profileByEmail = new Map(profiles.map((profile) => [profile.email, profile]));
   const reportCountByContentId = new Map<string, number>();
   const existingReportByContentId = new Map<string, FanletterNewsReportDocument>();
+  const reportsByContentId = new Map<string, FanletterNewsReportDocument[]>();
 
   for (const report of reports) {
     reportCountByContentId.set(
       report.contentId,
       (reportCountByContentId.get(report.contentId) ?? 0) + 1,
     );
+    reportsByContentId.set(report.contentId, [
+      ...(reportsByContentId.get(report.contentId) ?? []),
+      report,
+    ]);
 
     if (report.reporterReferralCode === member.referralCode) {
       existingReportByContentId.set(report.contentId, report);
@@ -2200,10 +2232,14 @@ export async function getFanletterNewsReportDraftSourcesForMember({
         profile?.characterPersona?.name?.trim() ||
         profile?.displayName?.trim() ||
         post.authorReferralCode;
+      const creatorReferralCode = normalizeReferralCode(
+        profile?.referralCode ?? post.authorReferralCode,
+      );
       const activeExclusiveReporterReferralCode =
         getActiveExclusiveNewsReporterReferralCode(post);
       const autoCoverImageUrl = getCoverImageUrl(post);
       const existingReport = existingReportByContentId.get(post.contentId) ?? null;
+      const contentReports = reportsByContentId.get(post.contentId) ?? [];
 
       return {
         contentId: post.contentId,
@@ -2218,9 +2254,17 @@ export async function getFanletterNewsReportDraftSourcesForMember({
           },
         }),
         creatorName,
-        creatorReferralCode: normalizeReferralCode(
-          profile?.referralCode ?? post.authorReferralCode,
-        ),
+        creatorProfile: {
+          avatarImageUrl: profile?.avatarImageUrl?.trim() || null,
+          displayName: trimToLength(profile?.displayName, 80),
+          name: trimToLength(creatorName, 80),
+          referralCode: creatorReferralCode,
+          summary: trimToLength(
+            profile?.characterPersona?.summary || profile?.intro,
+            180,
+          ),
+        },
+        creatorReferralCode,
         existingReport: existingReport
           ? {
               editHref: buildPathWithReferral(
@@ -2240,6 +2284,17 @@ export async function getFanletterNewsReportDraftSourcesForMember({
         priceType: post.priceType,
         publishedAt: post.publishedAt?.toISOString() ?? null,
         reportCount: reportCountByContentId.get(post.contentId) ?? 0,
+        reports: contentReports.slice(0, 8).map((report) => ({
+          coverImageUrl: report.coverImageUrl ?? null,
+          createdAt: report.createdAt.toISOString(),
+          dek: trimToLength(report.dek, 120),
+          href: createFanletterNewsReportShareHref(report),
+          reporterAvatarImageUrl: report.reporterAvatarImageUrl ?? null,
+          reporterName: trimToLength(report.reporterName, 80),
+          reporterReferralCode: report.reporterReferralCode,
+          reportId: report.reportId,
+          title: trimToLength(report.title, 120),
+        })),
         summary: trimToLength(post.summary || post.previewText, 220),
         title: trimToLength(post.title, 140),
       };

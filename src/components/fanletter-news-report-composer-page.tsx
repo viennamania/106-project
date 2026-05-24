@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Clapperboard,
   Crop,
+  FileText,
   ImageIcon,
   Loader2,
   Newspaper,
@@ -16,6 +17,7 @@ import {
   Search,
   ShieldAlert,
   Sparkles,
+  UserRound,
   X,
 } from "lucide-react";
 import {
@@ -50,6 +52,13 @@ export type FanletterNewsReportComposerSource = {
   coverImageUrl: string | null;
   coverOptions: CoverOption[];
   creatorName: string;
+  creatorProfile: {
+    avatarImageUrl: string | null;
+    displayName: string;
+    name: string;
+    referralCode: string | null;
+    summary: string;
+  };
   creatorReferralCode: string | null;
   existingReport: {
     editHref: string;
@@ -65,6 +74,17 @@ export type FanletterNewsReportComposerSource = {
   priceType: ContentPriceType;
   publishedAt: string | null;
   reportCount: number;
+  reports: Array<{
+    coverImageUrl: string | null;
+    createdAt: string;
+    dek: string;
+    href: string;
+    reporterAvatarImageUrl: string | null;
+    reporterName: string;
+    reporterReferralCode: string;
+    reportId: string;
+    title: string;
+  }>;
   summary: string;
   title: string;
 };
@@ -144,6 +164,9 @@ function getCopy(locale: Locale) {
         emptyBody:
           "아직 리포트로 만들 수 있는 공개 브이로그 후보가 없습니다.",
         emptyTitle: "작성 가능한 브이로그가 없습니다.",
+        existingReportsBody:
+          "이미 발행된 리포트의 제목, 관점, 대표 이미지를 비교해서 새 리포트의 차별점을 잡으세요.",
+        existingReportsTitle: "이미 발행된 리포트",
         existing: "이미 작성함",
         existingBody:
           "이미 이 브이로그로 작성한 리포트가 있습니다. 새 리포트 대신 기존 리포트를 수정하거나 확인하세요.",
@@ -163,7 +186,9 @@ function getCopy(locale: Locale) {
           paid: "1 USDT 유료",
         },
         publishedAt: "게시일",
+        readReport: "리포트 보기",
         reportCount: "기존 리포트",
+        reporter: "팬 기자",
         reset: "초기화",
         searchActive: "전체 브이로그 검색 결과",
         searchCta: "검색",
@@ -191,6 +216,9 @@ function getCopy(locale: Locale) {
         toReports: "리포트 관리로 돌아가기",
         unavailable: "작성 불가",
         zoom: "확대",
+        characterProfile: "AI 캐릭터 프로필",
+        noExistingReports:
+          "아직 이 브이로그로 발행된 리포트가 없습니다. 첫 리포트 관점을 선점할 수 있습니다.",
       }
     : {
         angleLabel: "Reporter angle",
@@ -216,6 +244,9 @@ function getCopy(locale: Locale) {
         cropTitle: "16:9 news image crop",
         emptyBody: "There are no public vlog candidates available for reports yet.",
         emptyTitle: "No vlogs available.",
+        existingReportsBody:
+          "Compare published report titles, angles, and lead images before choosing a distinct angle.",
+        existingReportsTitle: "Published reports",
         existing: "Already reported",
         existingBody:
           "You already created a report for this vlog. Edit or view the existing report instead.",
@@ -234,7 +265,9 @@ function getCopy(locale: Locale) {
           paid: "1 USDT paid",
         },
         publishedAt: "Published",
+        readReport: "View report",
         reportCount: "Existing reports",
+        reporter: "Reporter",
         reset: "Reset",
         searchActive: "Full vlog search results",
         searchCta: "Search",
@@ -262,6 +295,9 @@ function getCopy(locale: Locale) {
         toReports: "Back to reports",
         unavailable: "Unavailable",
         zoom: "Zoom",
+        characterProfile: "AI character profile",
+        noExistingReports:
+          "No reports have been published for this vlog yet. You can claim the first angle.",
       };
 }
 
@@ -928,6 +964,110 @@ export function FanletterNewsReportComposerPage({
                           {formatNumber(selectedSource.reportCount, locale)}
                         </p>
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 grid gap-4 border-t border-black/10 pt-5 xl:grid-cols-[18rem_minmax(0,1fr)]">
+                    <div className="min-w-0">
+                      <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                        <UserRound className="size-3.5" />
+                        {copy.characterProfile}
+                      </p>
+                      <div className="mt-3 flex gap-3">
+                        <span
+                          className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] bg-cover bg-center text-white"
+                          style={
+                            selectedSource.creatorProfile.avatarImageUrl
+                              ? {
+                                  backgroundImage: `url(${selectedSource.creatorProfile.avatarImageUrl})`,
+                                }
+                              : undefined
+                          }
+                        >
+                          {selectedSource.creatorProfile.avatarImageUrl ? null : (
+                            <UserRound className="size-7 text-[#44f26e]" />
+                          )}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-lg font-black">
+                            {selectedSource.creatorProfile.name}
+                          </span>
+                          <span className="mt-1 block text-xs font-black text-black/40">
+                            {selectedSource.creatorProfile.referralCode
+                              ? `@${selectedSource.creatorProfile.referralCode}`
+                              : selectedSource.creatorProfile.displayName}
+                          </span>
+                          {selectedSource.creatorProfile.summary ? (
+                            <span className="mt-2 line-clamp-3 block text-sm font-semibold leading-6 text-black/56 [word-break:keep-all]">
+                              {selectedSource.creatorProfile.summary}
+                            </span>
+                          ) : null}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="min-w-0 border-t border-black/10 pt-4 xl:border-l xl:border-t-0 xl:pl-4 xl:pt-0">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                            <FileText className="size-3.5" />
+                            {copy.existingReportsTitle}
+                          </p>
+                          <p className="mt-1 max-w-2xl text-xs font-semibold leading-5 text-black/45">
+                            {copy.existingReportsBody}
+                          </p>
+                        </div>
+                        <span className="w-fit rounded-full bg-[#111510] px-2.5 py-1 text-xs font-black text-white">
+                          {formatNumber(selectedSource.reportCount, locale)}
+                        </span>
+                      </div>
+                      {selectedSource.reports.length > 0 ? (
+                        <div className="mt-3 grid gap-2">
+                          {selectedSource.reports.map((report) => (
+                            <Link
+                              className="group grid grid-cols-[4.5rem_minmax(0,1fr)] gap-3 border border-black/10 bg-[#f6f8f4] p-2 !text-[#111510] transition hover:border-[#19b84b]/45 hover:bg-white"
+                              href={report.href}
+                              key={report.reportId}
+                            >
+                              <span
+                                className="block aspect-[4/5] overflow-hidden rounded-md bg-[#111510] bg-cover bg-center"
+                                style={
+                                  report.coverImageUrl
+                                    ? {
+                                        backgroundImage: `url(${report.coverImageUrl})`,
+                                      }
+                                    : undefined
+                                }
+                              />
+                              <span className="min-w-0 py-0.5">
+                                <span className="flex flex-wrap items-center gap-1.5 text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/36">
+                                  <span>{copy.reporter}</span>
+                                  <span>{report.reporterName}</span>
+                                  <span>
+                                    {formatDate(report.createdAt, locale)}
+                                  </span>
+                                </span>
+                                <span className="mt-1 line-clamp-2 text-sm font-black leading-5 [word-break:keep-all]">
+                                  {report.title}
+                                </span>
+                                {report.dek ? (
+                                  <span className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-black/48 [word-break:keep-all]">
+                                    {report.dek}
+                                  </span>
+                                ) : null}
+                                <span className="mt-2 inline-flex items-center gap-1 text-xs font-black text-[#16702e]">
+                                  {copy.readReport}
+                                  <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
+                                </span>
+                              </span>
+                            </Link>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-3 border border-dashed border-black/14 bg-[#f6f8f4] px-4 py-5 text-sm font-semibold leading-6 text-black/54">
+                          {copy.noExistingReports}
+                        </p>
+                      )}
                     </div>
                   </div>
 
