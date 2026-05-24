@@ -220,6 +220,13 @@ function getCopy(locale: Locale) {
           title: "원본 브이로그 상태",
           unpaid: "결제 필요",
         },
+        sourceTeaserGallery: {
+          body:
+            "저장된 커버 후보와 티저 컷을 함께 모아, 열린 원본 브이로그의 장면 분위기를 빠르게 훑어볼 수 있습니다.",
+          eyebrow: "장면 티저 컷",
+          itemLabel: (index: string) => `티저 ${index}`,
+          title: "언락된 원본의 장면을 먼저 훑어보기",
+        },
         generated: "AI 생성",
         publishedLabel: "작성일",
         navItems: ["AI 캐릭터", "팬 리포트", "브이로그 뉴스", "구매함"],
@@ -393,6 +400,13 @@ function getCopy(locale: Locale) {
           purchased: "Purchased",
           title: "Source vlog status",
           unpaid: "Payment needed",
+        },
+        sourceTeaserGallery: {
+          body:
+            "Saved cover candidates and teaser cuts stay available so readers can scan the opened source vlog before replaying it.",
+          eyebrow: "Scene teaser cuts",
+          itemLabel: (index: string) => `Teaser ${index}`,
+          title: "Scan scenes from the unlocked source",
         },
         generated: "AI generated",
         publishedLabel: "Published",
@@ -1672,6 +1686,72 @@ function SourceVlogPaidTeaserOverlay({
   );
 }
 
+function SourceVlogUnlockedTeaserGallery({
+  blurred,
+  copy,
+  imageUrls,
+  locale,
+}: {
+  blurred: boolean;
+  copy: ReturnType<typeof getCopy>;
+  imageUrls: string[];
+  locale: Locale;
+}) {
+  if (imageUrls.length < 2) {
+    return null;
+  }
+
+  return (
+    <section className="mt-3 border border-black/10 bg-[#f7f9f4] p-3 sm:p-4">
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[0.66rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+            {copy.sourceTeaserGallery.eyebrow}
+          </p>
+          <h3 className="mt-1 text-lg font-black leading-tight [word-break:keep-all]">
+            {copy.sourceTeaserGallery.title}
+          </h3>
+        </div>
+        <p className="max-w-lg text-xs font-semibold leading-5 text-black/48 sm:text-right">
+          {copy.sourceTeaserGallery.body}
+        </p>
+      </div>
+      <div className="-mx-3 mt-3 flex snap-x gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 sm:pb-0">
+        {imageUrls.map((imageUrl, index) => {
+          const itemNumber = formatNumber(index + 1, locale);
+
+          return (
+            <figure
+              className="min-w-[9.5rem] snap-start overflow-hidden border border-black/10 bg-white sm:min-w-0"
+              key={`${imageUrl}-${index}`}
+            >
+              <div className="relative aspect-[4/5] bg-black">
+                <Image
+                  alt=""
+                  aria-hidden="true"
+                  className={
+                    blurred
+                      ? "scale-[1.04] object-cover blur-sm brightness-[0.76] saturate-[0.92]"
+                      : "object-cover"
+                  }
+                  fill
+                  sizes="(max-width: 640px) 38vw, 12rem"
+                  src={imageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/42 via-transparent to-black/8" />
+                <span className="absolute bottom-2 left-2 rounded-full bg-black/64 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/86">
+                  {copy.sourceTeaserGallery.itemLabel(itemNumber)}
+                </span>
+              </div>
+            </figure>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function SourceVlogEmbed({
   accessLabel,
   blurred,
@@ -1802,6 +1882,10 @@ function SourceVlogEmbed({
     isPaidContent &&
     !sourceContent?.canViewerAccess &&
     !blurred;
+  const shouldShowSourceTeaserGallery =
+    !sourceRevealLocked &&
+    sourceTeaserImageUrls.length > 1 &&
+    (sourceReveal?.unlocked || viewerCanAccessSource);
   const noticeMessage = blurred
     ? copy.nsfwBlurNotice
     : shouldShowPaidUnlockCta
@@ -1955,6 +2039,14 @@ function SourceVlogEmbed({
           </FanletterResponsiveMediaFrame>
         )}
       </div>
+      {shouldShowSourceTeaserGallery ? (
+        <SourceVlogUnlockedTeaserGallery
+          blurred={sourceMediaBlurred}
+          copy={copy}
+          imageUrls={sourceTeaserImageUrls}
+          locale={locale}
+        />
+      ) : null}
       {sourceReveal?.unlocked ? (
         <FanletterNewsSourceRevealVote
           className="mt-3"
