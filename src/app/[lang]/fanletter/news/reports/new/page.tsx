@@ -14,8 +14,17 @@ import {
 import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsReportNewSearchParams = {
+  q?: string | string[];
   ref?: string | string[];
 };
+
+function readStringSearchParam(value?: string | string[]) {
+  return Array.isArray(value) ? value[0] ?? "" : value ?? "";
+}
+
+function normalizeReportSearchQuery(value?: string | string[]) {
+  return readStringSearchParam(value).replace(/\s+/g, " ").trim().slice(0, 80);
+}
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -68,14 +77,18 @@ export default async function LocalizedFanletterNewsReportNewPage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
+  const searchQuery = normalizeReportSearchQuery(query.q);
   const reportsHref = buildPathWithReferral(
     `/${locale}/fanletter/news/reports`,
     referralCode,
   );
-  const reportNewHref = buildPathWithReferral(
+  const reportNewBaseHref = buildPathWithReferral(
     `/${locale}/fanletter/news/reports/new`,
     referralCode,
   );
+  const reportNewHref = setPathSearchParams(reportNewBaseHref, {
+    q: searchQuery,
+  });
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
     { returnTo: reportNewHref },
@@ -84,7 +97,9 @@ export default async function LocalizedFanletterNewsReportNewPage({
   const data = session
     ? await getFanletterNewsReportDraftSourcesForMember({
         email: session.email,
+        limit: searchQuery ? 80 : undefined,
         locale,
+        searchQuery,
       })
     : {
         items: [],
@@ -128,8 +143,10 @@ export default async function LocalizedFanletterNewsReportNewPage({
   return (
     <FanletterNewsReportComposerPage
       locale={locale}
+      reportNewHref={reportNewBaseHref}
       reporterReferralCode={data.member.referralCode}
       reportsHref={reportsHref}
+      searchQuery={searchQuery}
       sources={data.items}
     />
   );

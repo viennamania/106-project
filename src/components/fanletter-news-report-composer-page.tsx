@@ -13,8 +13,10 @@ import {
   Loader2,
   Newspaper,
   RefreshCw,
+  Search,
   ShieldAlert,
   Sparkles,
+  X,
 } from "lucide-react";
 import {
   useCallback,
@@ -22,6 +24,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type FormEvent,
   type PointerEvent,
 } from "react";
 
@@ -124,7 +127,7 @@ function getCopy(locale: Locale) {
           "유료 브이로그 추천",
           "캐릭터 일상 포착",
           "언락 유도",
-          "NSFW 주의",
+          "티저 중심",
         ],
         blocked:
           "현재 다른 팬 리포터에게 단독 보도권이 열려 있어 아직 작성할 수 없습니다.",
@@ -162,6 +165,16 @@ function getCopy(locale: Locale) {
         publishedAt: "게시일",
         reportCount: "기존 리포트",
         reset: "초기화",
+        searchActive: "전체 브이로그 검색 결과",
+        searchCta: "검색",
+        searchEmptyBody:
+          "검색어와 일치하는 공개 브이로그가 없습니다. 다른 AI 캐릭터 이름, 제목, 추천코드로 다시 검색하세요.",
+        searchEmptyTitle: "검색 결과가 없습니다.",
+        searchHelper:
+          "NSFW 콘텐츠를 제외한 전체 공개 브이로그에서 제목, 요약, AI 캐릭터 이름, 추천코드를 검색합니다.",
+        searchLabel: "전체 브이로그 검색",
+        searchPlaceholder: "제목, AI 캐릭터 이름, 추천코드 검색",
+        searchReset: "초기화",
         select: "선택",
         selected: "선택됨",
         sourceMeta: {
@@ -187,7 +200,7 @@ function getCopy(locale: Locale) {
           "Paid vlog recommendation",
           "Character daily-life moment",
           "Unlock motivation",
-          "NSFW caution",
+          "Teaser-led angle",
         ],
         blocked:
           "Another fan reporter currently has exclusive reporting access for this vlog.",
@@ -223,6 +236,16 @@ function getCopy(locale: Locale) {
         publishedAt: "Published",
         reportCount: "Existing reports",
         reset: "Reset",
+        searchActive: "Full vlog search results",
+        searchCta: "Search",
+        searchEmptyBody:
+          "No public vlogs match this query. Try another character name, title, or referral code.",
+        searchEmptyTitle: "No search results.",
+        searchHelper:
+          "Search all public vlogs excluding NSFW content by title, summary, AI character name, or referral code.",
+        searchLabel: "Search all vlogs",
+        searchPlaceholder: "Title, AI character name, referral code",
+        searchReset: "Clear",
         select: "Select",
         selected: "Selected",
         sourceMeta: {
@@ -400,17 +423,22 @@ async function createCroppedReportCoverBlob({
 
 export function FanletterNewsReportComposerPage({
   locale,
+  reportNewHref,
   reporterReferralCode,
   reportsHref,
+  searchQuery,
   sources,
 }: {
   locale: Locale;
+  reportNewHref: string;
   reporterReferralCode: string;
   reportsHref: string;
+  searchQuery: string;
   sources: FanletterNewsReportComposerSource[];
 }) {
   const copy = getCopy(locale);
   const router = useRouter();
+  const [searchInput, setSearchInput] = useState(searchQuery);
   const firstAvailableSource =
     sources.find(
       (source) =>
@@ -472,6 +500,10 @@ export function FanletterNewsReportComposerPage({
       !isExclusiveBlocked &&
       status !== "submitting",
   );
+
+  useEffect(() => {
+    setSearchInput(searchQuery);
+  }, [searchQuery]);
 
   useEffect(() => {
     const nextCoverUrl = selectedSource?.coverOptions[0]?.imageUrl ?? null;
@@ -654,17 +686,88 @@ export function FanletterNewsReportComposerPage({
     uploadCroppedCover,
   ]);
 
+  const submitSearch = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      const normalizedQuery = searchInput.replace(/\s+/g, " ").trim();
+      const url = new URL(reportNewHref, window.location.origin);
+
+      if (normalizedQuery) {
+        url.searchParams.set("q", normalizedQuery);
+      } else {
+        url.searchParams.delete("q");
+      }
+
+      router.push(`${url.pathname}${url.search}`);
+    },
+    [reportNewHref, router, searchInput],
+  );
+
+  const searchControls = (
+    <form
+      className="mb-3 border border-black/10 bg-[#f6f8f4] p-3"
+      onSubmit={submitSearch}
+      role="search"
+    >
+      <label
+        className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]"
+        htmlFor="fanletter-news-report-vlog-search"
+      >
+        {copy.searchLabel}
+      </label>
+      <div className="mt-2 flex flex-col gap-2 sm:flex-row lg:flex-col">
+        <div className="flex min-w-0 flex-1 items-center gap-2 border border-black/10 bg-white px-3">
+          <Search className="size-4 shrink-0 text-[#16702e]" />
+          <input
+            className="h-11 min-w-0 flex-1 bg-transparent text-sm font-bold outline-none placeholder:text-black/30"
+            id="fanletter-news-report-vlog-search"
+            maxLength={80}
+            onChange={(event) => {
+              setSearchInput(event.target.value);
+            }}
+            placeholder={copy.searchPlaceholder}
+            type="search"
+            value={searchInput}
+          />
+        </div>
+        <button
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black text-white transition hover:bg-black"
+          type="submit"
+        >
+          <Search className="size-4 text-[#44f26e]" />
+          {copy.searchCta}
+        </button>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-black/45">
+        <p>
+          {searchQuery ? `${copy.searchActive}: ${searchQuery}` : copy.searchHelper}
+        </p>
+        {searchQuery ? (
+          <Link
+            className="inline-flex items-center gap-1 font-black !text-[#16702e]"
+            href={reportNewHref}
+          >
+            <X className="size-3.5" />
+            {copy.searchReset}
+          </Link>
+        ) : null}
+      </div>
+    </form>
+  );
+
   if (sources.length === 0) {
     return (
       <main className="min-h-screen bg-[#f2f4ef] px-4 py-6 text-[#111510] sm:px-6 lg:px-8">
         <section className="mx-auto max-w-3xl border border-dashed border-black/16 bg-white p-8 text-center shadow-[0_18px_46px_rgba(17,21,16,0.06)]">
           <Newspaper className="mx-auto size-10 text-[#16702e]" />
           <h1 className="mt-4 text-3xl font-black tracking-normal">
-            {copy.emptyTitle}
+            {searchQuery ? copy.searchEmptyTitle : copy.emptyTitle}
           </h1>
           <p className="mx-auto mt-2 max-w-xl text-sm font-semibold leading-6 text-black/58">
-            {copy.emptyBody}
+            {searchQuery ? copy.searchEmptyBody : copy.emptyBody}
           </p>
+          <div className="mx-auto mt-6 max-w-xl text-left">{searchControls}</div>
           <Link
             className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white"
             href={reportsHref}
@@ -717,6 +820,7 @@ export function FanletterNewsReportComposerPage({
 
         <section className="mt-4 grid gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
           <div className="border border-black/12 bg-white p-3 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-4">
+            {searchControls}
             <div className="flex items-center justify-between gap-3 px-1 pb-3">
               <div>
                 <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">

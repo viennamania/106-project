@@ -42,6 +42,7 @@ const REPORTER_COMMENT_LIMIT = 220;
 const TEXT_LIMIT = 20_000;
 const FIRST_NEWS_REPORT_PROMOTION_MS = 3 * 24 * 60 * 60 * 1000;
 const RELATED_NEWS_FIRST_REPORT_LOOKAHEAD_LIMIT = 144;
+const REPORT_DRAFT_SOURCE_SEARCH_LIMIT = 80;
 export const FANLETTER_NEWS_EXCLUSIVE_REPORTER_ACTIVE_ERROR =
   "Exclusive reporter assignment is active for this vlog.";
 
@@ -318,6 +319,14 @@ const MAX_REPORTER_BACKFILL_LIMIT = 500;
 
 function trimToLength(value: string | null | undefined, limit: number) {
   return value?.replace(/\s+/g, " ").trim().slice(0, limit) ?? "";
+}
+
+function normalizeSearchQuery(value: string | null | undefined) {
+  return trimToLength(value, 80);
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function trimMultilineToLength(value: string | null | undefined, limit: number) {
@@ -2000,12 +2009,15 @@ export async function getFanletterNewsReportDraftSourcesForMember({
   email,
   limit = 36,
   locale,
+  searchQuery,
 }: {
   email?: string | null;
   limit?: number;
   locale?: Locale | null;
+  searchQuery?: string | null;
 }): Promise<FanletterNewsReportDraftSourcesResult> {
   const normalizedLocale = locale ?? defaultLocale;
+  const normalizedSearchQuery = normalizeSearchQuery(searchQuery);
   const member = await getFanletterNewsReporterMemberByEmail(
     email,
     normalizedLocale,
@@ -2027,14 +2039,77 @@ export async function getFanletterNewsReportDraftSourcesForMember({
       getCreatorProfilesCollection(),
       getFanletterNewsReportsCollection(),
     ]);
+  const searchRegex = normalizedSearchQuery
+    ? new RegExp(escapeRegExp(normalizedSearchQuery), "i")
+    : null;
+  const basePostFilter: Filter<ContentPostDocument> = {
+    "contentVideoUrls.0": { $exists: true },
+    contentMaturityRating: { $ne: "nsfw" },
+    locale: normalizedLocale,
+    status: "published",
+  };
+  let postFilter: Filter<ContentPostDocument> = basePostFilter;
+
+  if (searchRegex) {
+    const matchedProfiles = await profilesCollection
+      .find(
+        {
+          $or: [
+            { displayName: searchRegex },
+            { email: searchRegex },
+            { referralCode: searchRegex },
+            { "characterPersona.name": searchRegex },
+            { "characterPersona.summary": searchRegex },
+          ],
+        },
+        {
+          projection: {
+            email: 1,
+            referralCode: 1,
+          },
+        },
+      )
+      .limit(REPORT_DRAFT_SOURCE_SEARCH_LIMIT)
+      .toArray();
+    const searchClauses: Filter<ContentPostDocument>[] = [
+      { authorEmail: searchRegex },
+      { authorReferralCode: searchRegex },
+      { contentId: searchRegex },
+      { previewText: searchRegex },
+      { summary: searchRegex },
+      { tags: searchRegex },
+      { title: searchRegex },
+    ];
+    const matchedProfileEmails = matchedProfiles
+      .map((profile) => profile.email)
+      .filter(Boolean);
+    const matchedProfileReferralCodes = matchedProfiles
+      .map((profile) => normalizeReferralCode(profile.referralCode))
+      .filter((value): value is string => Boolean(value));
+
+    if (matchedProfileEmails.length > 0) {
+      searchClauses.push({ authorEmail: { $in: matchedProfileEmails } });
+    }
+
+    if (matchedProfileReferralCodes.length > 0) {
+      searchClauses.push({
+        authorReferralCode: { $in: matchedProfileReferralCodes },
+      });
+    }
+
+    postFilter = {
+      $and: [
+        basePostFilter,
+        {
+          $or: searchClauses,
+        },
+      ],
+    };
+  }
+
   const posts = await postsCollection
     .find(
-      {
-        "contentVideoUrls.0": { $exists: true },
-        contentMaturityRating: { $ne: "nsfw" },
-        locale: normalizedLocale,
-        status: "published",
-      },
+      postFilter,
       {
         projection: {
           authorEmail: 1,
