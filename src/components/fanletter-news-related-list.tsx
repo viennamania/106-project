@@ -198,10 +198,10 @@ function RelatedNewsCard({
 }) {
   return (
     <Link
-      className="group grid min-w-0 grid-cols-[5rem_minmax(0,1fr)] gap-3 border-b border-black/10 pb-4 transition last:border-b-0 last:pb-0 hover:border-[#19b84b]"
+      className="group grid min-w-0 grid-cols-[7.25rem_minmax(0,1fr)] gap-3 border-b border-black/10 pb-4 transition last:border-b-0 last:pb-0 hover:border-[#19b84b] sm:grid-cols-[8.25rem_minmax(0,1fr)]"
       href={href}
     >
-      <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-[#111510]">
+      <div className="relative aspect-[16/10] overflow-hidden rounded-lg bg-[#111510]">
         {item.coverImageUrl ? (
           <Image
             alt=""
@@ -212,7 +212,7 @@ function RelatedNewsCard({
                 : "object-cover transition duration-300 group-hover:scale-[1.04]"
             }
             fill
-            sizes="6rem"
+            sizes="(max-width: 640px) 7.25rem, 8.25rem"
             src={item.coverImageUrl}
             unoptimized={shouldBypassFanletterImageOptimization(
               item.coverImageUrl,
