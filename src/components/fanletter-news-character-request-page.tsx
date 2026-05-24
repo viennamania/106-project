@@ -77,6 +77,13 @@ type SceneField = {
 
 type SceneSelections = Record<SceneFieldKey, string>;
 
+type FanletterNewsSceneRequestPreset = {
+  action: string | null;
+  location: string | null;
+  mood: string | null;
+  note: string | null;
+};
+
 type FanletterNewsCharacterRequestPageProps = {
   avatarImageUrl: string | null;
   channelHref: string;
@@ -86,6 +93,7 @@ type FanletterNewsCharacterRequestPageProps = {
   connectHref: string;
   creatorReferralCode: string;
   fanOnlyContentCount: number;
+  initialPreset: FanletterNewsSceneRequestPreset | null;
   isMemberConnected: boolean;
   latestReport: FanletterNewsLatestReport | null;
   locale: Locale;
@@ -516,6 +524,32 @@ function getDefaultSceneSelections(sceneFields: SceneField[]): SceneSelections {
   );
 }
 
+function getInitialSceneSelections(
+  sceneFields: SceneField[],
+  preset: FanletterNewsSceneRequestPreset | null,
+) {
+  const selections = getDefaultSceneSelections(sceneFields);
+
+  if (!preset) {
+    return selections;
+  }
+
+  (["action", "location", "mood"] as const).forEach((key) => {
+    const value = preset[key]?.trim();
+    const field = sceneFields.find((sceneField) => sceneField.key === key);
+
+    if (value && field?.options.some((option) => option.value === value)) {
+      selections[key] = value;
+    }
+  });
+
+  return selections;
+}
+
+function getInitialFanNote(preset: FanletterNewsSceneRequestPreset | null) {
+  return (preset?.note ?? "").trim().slice(0, 140);
+}
+
 function buildSceneRequestBody({
   characterName,
   fanNote,
@@ -608,6 +642,7 @@ export function FanletterNewsCharacterRequestPage({
   connectHref,
   creatorReferralCode,
   fanOnlyContentCount,
+  initialPreset,
   isMemberConnected,
   latestReport,
   locale,
@@ -619,13 +654,22 @@ export function FanletterNewsCharacterRequestPage({
 }: FanletterNewsCharacterRequestPageProps) {
   const copy = useMemo(() => getCopy(locale), [locale]);
   const sceneFields = useMemo(() => createSceneFields(copy), [copy]);
-  const [fanNote, setFanNote] = useState("");
+  const initialSceneSelections = useMemo(
+    () => getInitialSceneSelections(sceneFields, initialPreset),
+    [initialPreset, sceneFields],
+  );
+  const initialFanNote = useMemo(
+    () => getInitialFanNote(initialPreset),
+    [initialPreset],
+  );
+  const [fanNote, setFanNote] = useState(initialFanNote);
   const [error, setError] = useState<string | null>(null);
   const [requesterDisplayName, setRequesterDisplayName] = useState("");
   const [sceneSelections, setSceneSelections] = useState<SceneSelections>(() =>
-    getDefaultSceneSelections(sceneFields),
+    initialSceneSelections,
   );
   const [status, setStatus] = useState<SubmitStatus>("idle");
+
   const productionBrief = useMemo(
     () =>
       buildSceneRequestBody({

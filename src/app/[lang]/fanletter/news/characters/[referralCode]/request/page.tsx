@@ -21,8 +21,25 @@ import { normalizeReferralCode } from "@/lib/member";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsCharacterRequestSearchParams = {
+  action?: string | string[];
+  location?: string | string[];
+  mood?: string | string[];
+  note?: string | string[];
   ref?: string | string[];
 };
+
+function readOptionalPresetParam(value?: string | string[]) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  const normalizedValue = rawValue?.trim() ?? "";
+
+  return normalizedValue || null;
+}
+
+function hasPresetValue(
+  preset: Record<"action" | "location" | "mood" | "note", string | null>,
+) {
+  return Object.values(preset).some(Boolean);
+}
 
 function getArticleDisplayTitle(title: string) {
   return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
@@ -147,6 +164,13 @@ export default async function LocalizedFanletterNewsCharacterRequestPage({
 
   const effectiveReferralCode =
     referralCodeFromQuery ?? data.profile.referralCode;
+  const initialPreset = {
+    action: readOptionalPresetParam(query.action),
+    location: readOptionalPresetParam(query.location),
+    mood: readOptionalPresetParam(query.mood),
+    note: readOptionalPresetParam(query.note),
+  };
+  const hasInitialPreset = hasPresetValue(initialPreset);
   const character = data.profile.character;
   const characterName = character?.name ?? data.profile.displayName;
   const characterSummary =
@@ -181,9 +205,12 @@ export default async function LocalizedFanletterNewsCharacterRequestPage({
     `/${locale}/fanletter/news/characters/${data.profile.referralCode}/request`,
     effectiveReferralCode,
   );
+  const requestHrefWithPreset = hasInitialPreset
+    ? setPathSearchParams(requestHref, initialPreset)
+    : requestHref;
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, effectiveReferralCode),
-    { returnTo: requestHref },
+    { returnTo: requestHrefWithPreset },
   );
   const latestReport = newsData.reports[0]
     ? {
@@ -208,7 +235,9 @@ export default async function LocalizedFanletterNewsCharacterRequestPage({
       connectHref={connectHref}
       creatorReferralCode={data.profile.referralCode}
       fanOnlyContentCount={data.fanOnlyContentCount}
+      initialPreset={hasInitialPreset ? initialPreset : null}
       isMemberConnected={Boolean(memberSession)}
+      key={requestHrefWithPreset}
       latestReport={latestReport}
       locale={locale}
       newsHomeHref={newsHomeHref}

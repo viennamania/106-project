@@ -54,7 +54,10 @@ import {
 } from "@/lib/fanletter-nsfw";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
-import { buildPathWithReferral } from "@/lib/landing-branding";
+import {
+  buildPathWithReferral,
+  setPathSearchParams,
+} from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
@@ -150,10 +153,34 @@ function getCopy(locale: Locale) {
             "팬이 남긴 장면 요청은 다음 공개 브이로그나 팬 전용 답장 브이로그의 소재가 됩니다.",
           empty: "최근 팬 요청이 아직 없습니다.",
           quickIdeas: [
-            "카페에서 Q&A 답장",
-            "오늘의 음악과 음식",
-            "출근 준비 루틴",
-            "팬에게 짧은 답장",
+            {
+              action: "질문 답변",
+              label: "카페에서 Q&A 답장",
+              location: "카페",
+              mood: "일상",
+              note: "카페에서 요즘 좋아하는 음악, 음식, 장소를 짧게 답해 주세요.",
+            },
+            {
+              action: "팬 하루 질문",
+              label: "오늘의 음악과 음식",
+              location: "방",
+              mood: "일상",
+              note: "오늘 들은 음악과 먹고 싶은 음식을 팬에게 말해 주세요.",
+            },
+            {
+              action: "다음 장면 예고",
+              label: "출근 준비 루틴",
+              location: "방",
+              mood: "응원",
+              note: "출근 준비 루틴을 보여주고 팬에게 오늘도 힘내라고 말해 주세요.",
+            },
+            {
+              action: "응원",
+              label: "팬에게 짧은 답장",
+              location: "스튜디오",
+              mood: "위로",
+              note: "팬 댓글 하나에 짧게 답장하고 고맙다고 말해 주세요.",
+            },
           ],
           quickTitle: "빠른 장면 요청",
           title: "팬 참여 루프",
@@ -271,10 +298,34 @@ function getCopy(locale: Locale) {
             "Fan scene requests can become the next public vlog or a fan-only reply vlog.",
           empty: "No recent fan requests yet.",
           quickIdeas: [
-            "Cafe Q&A reply",
-            "Today's music and food",
-            "Getting-ready routine",
-            "Short fan reply",
+            {
+              action: "Answer questions",
+              label: "Cafe Q&A reply",
+              location: "Cafe",
+              mood: "Daily",
+              note: "Answer what music, food, and places you like lately from a cafe.",
+            },
+            {
+              action: "Ask about the fan's day",
+              label: "Today's music and food",
+              location: "Room",
+              mood: "Daily",
+              note: "Tell fans what music you listened to and what food you want today.",
+            },
+            {
+              action: "Tease the next scene",
+              label: "Getting-ready routine",
+              location: "Room",
+              mood: "Supportive",
+              note: "Show a getting-ready routine and tell fans to have a strong day.",
+            },
+            {
+              action: "Cheer fans on",
+              label: "Short fan reply",
+              location: "Studio",
+              mood: "Comfort",
+              note: "Reply briefly to one fan comment and say thank you.",
+            },
           ],
           quickTitle: "Quick scene ideas",
           title: "Fan participation loop",
@@ -1701,15 +1752,24 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                   {copy.requests.quickTitle}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
-                  {copy.requests.quickIdeas.map((idea) => (
-                    <Link
-                      className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 bg-[#f5f6f2] px-3 py-1.5 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
-                      href={requestHref}
-                      key={idea}
-                    >
-                      {idea}
-                    </Link>
-                  ))}
+                  {copy.requests.quickIdeas.map((idea) => {
+                    const quickRequestHref = setPathSearchParams(requestHref, {
+                      action: idea.action,
+                      location: idea.location,
+                      mood: idea.mood,
+                      note: idea.note,
+                    });
+
+                    return (
+                      <Link
+                        className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 bg-[#f5f6f2] px-3 py-1.5 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                        href={quickRequestHref}
+                        key={idea.label}
+                      >
+                        {idea.label}
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
               <div className="space-y-3">
