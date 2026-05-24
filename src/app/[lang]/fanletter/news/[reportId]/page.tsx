@@ -156,13 +156,13 @@ function getCopy(locale: Locale) {
         },
         continueReading: {
           body:
-            "본문을 읽은 뒤 같은 AI 캐릭터의 최신 관련 뉴스를 이어서 확인하세요.",
+            "본문을 읽은 뒤 같은 AI 캐릭터의 최초 팬 리포트와 최신 관련 뉴스를 이어서 확인하세요.",
           characterCta: "캐릭터 뉴스 홈",
           eyebrow: "같은 캐릭터 뉴스",
           leadCta: (name: string | null) =>
             name ? `${name} 관련 뉴스 보기` : "관련 뉴스 보기",
           listEyebrow: "같은 AI 캐릭터",
-          listTitle: "최신 관련 뉴스",
+          listTitle: "최초 우선 관련 뉴스",
           title: "같은 캐릭터의 다른 뉴스",
         },
         contentBadge: {
@@ -236,7 +236,7 @@ function getCopy(locale: Locale) {
         },
         relatedNews: "이 캐릭터의 다른 뉴스",
         relatedNewsDescription:
-          "현재 뉴스와 같은 AI 캐릭터로 작성된 뉴스만 모았습니다.",
+          "현재 뉴스와 같은 AI 캐릭터로 작성된 뉴스만 모았습니다. 최초 팬 리포트는 최신순 안에서 우선 노출됩니다.",
         relatedNewsEyebrow: "같은 AI 캐릭터",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
         relatedNewsError: "다른 뉴스를 불러오지 못했습니다. 다시 시도해 주세요.",
@@ -329,13 +329,13 @@ function getCopy(locale: Locale) {
         },
         continueReading: {
           body:
-            "After this news, keep exploring the latest related news from the same AI character.",
+            "After this news, keep exploring first fan reports and the latest related news from the same AI character.",
           characterCta: "Character news home",
           eyebrow: "Same character news",
           leadCta: (name: string | null) =>
             name ? `Read related ${name} news` : "Read related news",
           listEyebrow: "Same AI character",
-          listTitle: "Latest related news",
+          listTitle: "First reports first",
           title: "More from this character",
         },
         contentBadge: {
@@ -408,7 +408,7 @@ function getCopy(locale: Locale) {
         },
         relatedNews: "More from this character",
         relatedNewsDescription:
-          "Only news written from the same AI character as this news is shown here.",
+          "Only news written from the same AI character as this news is shown here. First fan reports are promoted within the latest feed.",
         relatedNewsEyebrow: "Same AI character",
         relatedNewsEmpty: "No other news from this character yet.",
         relatedNewsError: "Could not load more news. Please try again.",
@@ -702,6 +702,10 @@ function CharacterContinueReadingPanel({
   const shouldBypassImageOptimization = imageUrl
     ? shouldBypassFanletterImageOptimization(imageUrl)
     : false;
+  const leadFirstReportBadge =
+    leadItem?.isFirstReport && leadItem.firstReportBadge
+      ? leadItem.firstReportBadge
+      : null;
 
   return (
     <section className="mt-8 overflow-hidden border border-black/12 bg-white text-[#111510] shadow-[0_12px_34px_rgba(17,21,16,0.045)] sm:mt-10 sm:shadow-[0_16px_44px_rgba(17,21,16,0.06)]">
@@ -752,19 +756,31 @@ function CharacterContinueReadingPanel({
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/48 via-transparent to-black/12" />
+              {leadFirstReportBadge ? (
+                <span className="absolute left-2 top-2 z-20 inline-flex max-w-[calc(100%-1rem)] rounded-full bg-[#44f26e] px-2 py-1 text-[0.58rem] font-black uppercase leading-none tracking-[0.08em] text-black shadow-[0_10px_24px_rgba(0,0,0,0.24)]">
+                  <span className="truncate">{leadFirstReportBadge}</span>
+                </span>
+              ) : null}
               {leadItem.isNsfw ? (
-                <span className="absolute right-2 top-2 rounded-full bg-rose-500 px-2 py-0.5 text-[0.58rem] font-black uppercase tracking-[0.1em] text-white">
+                <span className="absolute bottom-2 right-2 rounded-full bg-rose-500 px-2 py-0.5 text-[0.58rem] font-black uppercase tracking-[0.1em] text-white">
                   {leadItem.nsfwBadge}
                 </span>
               ) : null}
             </div>
             <div className="flex min-w-0 flex-col justify-between p-3 sm:p-4">
               <div className="min-w-0">
-                {characterName ? (
-                  <p className="line-clamp-1 text-xs font-black text-[#44f26e]">
-                    {characterName}
-                  </p>
-                ) : null}
+                <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                  {leadFirstReportBadge ? (
+                    <span className="inline-flex max-w-full rounded-full border border-[#44f26e]/28 bg-[#44f26e]/14 px-2 py-0.5 text-[0.62rem] font-black uppercase leading-none tracking-[0.08em] text-[#44f26e]">
+                      <span className="truncate">{leadFirstReportBadge}</span>
+                    </span>
+                  ) : null}
+                  {characterName ? (
+                    <span className="line-clamp-1 min-w-0 text-xs font-black text-[#44f26e]">
+                      {characterName}
+                    </span>
+                  ) : null}
+                </div>
                 <h3
                   className={`mt-1 line-clamp-3 break-words text-base font-black leading-6 [word-break:keep-all] sm:text-xl sm:leading-7 ${
                     shouldBlur ? "select-none blur-[2px]" : ""
@@ -834,6 +850,11 @@ function CharacterContinueReadingPanel({
                     )}
                   </div>
                   <div className="min-w-0">
+                    {item.isFirstReport && item.firstReportBadge ? (
+                      <span className="mb-1 inline-flex max-w-full rounded-full border border-[#1eb84a]/20 bg-[#eaffef] px-2 py-0.5 text-[0.58rem] font-black uppercase leading-none tracking-[0.08em] text-[#11732d]">
+                        <span className="truncate">{item.firstReportBadge}</span>
+                      </span>
+                    ) : null}
                     <p
                       className={`line-clamp-2 break-words text-sm font-black leading-5 [word-break:keep-all] ${
                         item.shouldBlur ? "select-none blur-[2px]" : ""

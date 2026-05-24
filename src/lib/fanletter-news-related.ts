@@ -21,7 +21,9 @@ export type FanletterRelatedNewsSourceReveal = {
 export type FanletterRelatedNewsItem = {
   coverImageUrl: string | null;
   dek: string;
+  firstReportBadge: string | null;
   href: string;
+  isFirstReport: boolean;
   isNsfw: boolean;
   nsfwBadge: string;
   publishedAt: string | null;
@@ -136,15 +138,20 @@ export function serializeFanletterRelatedNewsItem({
   referralCode: string | null;
   report: FanletterRelatedNewsReport;
 }): FanletterRelatedNewsItem {
+  const isFirstReport = isFanletterNewsFirstReportForContent(report);
   const isNsfw = isFanletterNewsReportNsfw(report);
 
   return {
     coverImageUrl: report.coverImageUrl,
     dek: report.dek,
+    firstReportBadge: isFirstReport
+      ? getFanletterNewsFirstReportBadgeLabel(report.locale)
+      : null,
     href: buildPathWithReferral(
       `/${report.locale}/fanletter/news/${report.reportId}`,
       referralCode,
     ),
+    isFirstReport,
     isNsfw,
     nsfwBadge: getFanletterNsfwCopy(report.locale).badge,
     publishedAt: formatRelatedNewsDate(report.sourcePublishedAt, report.locale),

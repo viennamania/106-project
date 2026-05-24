@@ -41,6 +41,7 @@ const REPORT_TITLE_LIMIT = 180;
 const REPORTER_COMMENT_LIMIT = 220;
 const TEXT_LIMIT = 20_000;
 const FIRST_NEWS_REPORT_PROMOTION_MS = 3 * 24 * 60 * 60 * 1000;
+const RELATED_NEWS_FIRST_REPORT_LOOKAHEAD_LIMIT = 144;
 
 type OpenAiResponsesApiResponse = {
   error?: {
@@ -2879,6 +2880,10 @@ export const getRelatedFanletterNewsReports = cache(
     const normalizedOffset = Number.isFinite(offset)
       ? Math.max(0, Math.floor(offset))
       : 0;
+    const promotedQueryLimit = Math.max(
+      normalizedOffset + normalizedLimit,
+      RELATED_NEWS_FIRST_REPORT_LOOKAHEAD_LIMIT,
+    );
 
     if (!normalizedCreatorReferralCode || !normalizedReportId) {
       return [];
@@ -2898,13 +2903,15 @@ export const getRelatedFanletterNewsReports = cache(
     const reports = await reportsCollection
       .find(query)
       .sort({ sourcePublishedAt: -1, createdAt: -1 })
-      .skip(normalizedOffset)
-      .limit(normalizedLimit)
+      .limit(promotedQueryLimit)
       .toArray();
     const hydratedReports = await hydrateFanletterNewsReportDisplayMetadata(
       reports,
     );
+    const promotedReports = [...hydratedReports]
+      .sort(compareFirstReportPromotedNewsReports)
+      .slice(normalizedOffset, normalizedOffset + normalizedLimit);
 
-    return hydrateRelatedFanletterNewsReportSourceVlogStatuses(hydratedReports);
+    return hydrateRelatedFanletterNewsReportSourceVlogStatuses(promotedReports);
   },
 );

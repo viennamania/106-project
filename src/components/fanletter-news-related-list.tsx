@@ -136,6 +136,29 @@ function SourceRevealThumbnailBadge({
   );
 }
 
+function FirstReportBadge({
+  className,
+  item,
+}: {
+  className?: string;
+  item: FanletterRelatedNewsItem;
+}) {
+  if (!item.isFirstReport || !item.firstReportBadge) {
+    return null;
+  }
+
+  return (
+    <span
+      className={cn(
+        "inline-flex max-w-full items-center rounded-full bg-[#44f26e] px-2 py-1 text-[0.56rem] font-black uppercase leading-none tracking-[0.08em] text-black shadow-[0_10px_24px_rgba(0,0,0,0.2)]",
+        className,
+      )}
+    >
+      <span className="truncate">{item.firstReportBadge}</span>
+    </span>
+  );
+}
+
 function SourceRevealStatusPill({
   item,
 }: {
@@ -214,6 +237,10 @@ function RelatedNewsCard({
             </span>
           </div>
         ) : null}
+        <FirstReportBadge
+          className="absolute left-1.5 top-1.5 z-30 max-w-[calc(100%-0.75rem)]"
+          item={item}
+        />
         <SourceRevealThumbnailBadge item={item} />
       </div>
       <div className="min-w-0">
@@ -235,6 +262,10 @@ function RelatedNewsCard({
         </p>
         <SourceRevealStatusPill item={item} />
         <div className="mt-2 flex flex-wrap gap-2 text-[0.66rem] font-bold uppercase tracking-[0.1em] text-black/44">
+          <FirstReportBadge
+            className="border border-[#1eb84a]/20 bg-[#eaffef] px-2 py-0.5 text-[#11732d] shadow-none"
+            item={item}
+          />
           {item.publishedAt ? <span>{item.publishedAt}</span> : null}
           <span>{item.reporterName}</span>
         </div>
