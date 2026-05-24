@@ -156,6 +156,9 @@ function getCopy(locale: Locale) {
             "첫 유료 판매가 발생하면 누적 매출, 유료 판매 수, 최근 7일 판매 흐름이 이 영역에 크게 표시됩니다.",
           emptyTitle: "수익 신호 대기 중",
           eyebrow: "Paid Heat",
+          cardRevenue: "매출",
+          cardSales: "판매",
+          hotBadge: "잘 팔림",
           recent: "최근 7일 판매",
           revenue: "누적 매출",
           sales: "유료 판매",
@@ -315,6 +318,9 @@ function getCopy(locale: Locale) {
             "Once the first paid sale lands, total revenue, paid sales, and recent 7-day sales will be featured here.",
           emptyTitle: "Revenue signal pending",
           eyebrow: "Paid Heat",
+          cardRevenue: "Revenue",
+          cardSales: "Sales",
+          hotBadge: "Selling",
           recent: "7-day sales",
           revenue: "Revenue",
           sales: "Paid sales",
@@ -412,6 +418,11 @@ function formatUsdtAmount(value: string | number | null | undefined, locale: Loc
     maximumFractionDigits: 2,
     minimumFractionDigits: safeValue > 0 && safeValue < 1 ? 2 : 0,
   }).format(safeValue)} USDT`;
+}
+
+function getPaidRevenueValue(value: string | number | null | undefined) {
+  const numericValue = Number(value ?? 0);
+  return Number.isFinite(numericValue) ? numericValue : 0;
 }
 
 function toTimestamp(value: Date | string | null | undefined) {
@@ -758,6 +769,10 @@ function ContentCard({
     : sourceReveal.requestedByViewer
       ? copy.sourceReveal.requested
       : copy.sourceReveal.remaining(remainingLabel);
+  const shouldShowPaidPerformance = item.priceType === "paid";
+  const hasPaidSales = item.social.paidBuyerCount > 0;
+  const paidSalesLabel = formatNumber(item.social.paidBuyerCount, locale);
+  const paidRevenueLabel = formatUsdtAmount(item.social.paidTotalUsdt, locale);
 
   return (
     <article className="grid min-w-0 overflow-hidden border border-black/12 bg-white">
@@ -805,6 +820,20 @@ function ContentCard({
             />
           </div>
         ) : null}
+        {shouldShowPaidPerformance ? (
+          <div className="absolute left-3 top-3 flex max-w-[calc(100%-1.5rem)] flex-wrap gap-1.5">
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.62rem] font-black uppercase tracking-[0.08em] shadow-[0_12px_28px_rgba(0,0,0,0.2)] ${
+                hasPaidSales
+                  ? "bg-[#44f26e] text-black"
+                  : "bg-black/72 text-[#b9ffc8]"
+              }`}
+            >
+              <Flame className="size-3.5" />
+              {hasPaidSales ? copy.revenue.hotBadge : getAccessLabel(item, copy)}
+            </span>
+          </div>
+        ) : null}
       </Link>
       <div className="p-4">
         <div className="flex flex-wrap gap-2 text-[0.66rem] font-black uppercase tracking-[0.1em]">
@@ -843,6 +872,32 @@ function ContentCard({
             {formatNumber(item.social.commentCount, locale)}
           </span>
         </div>
+        {shouldShowPaidPerformance ? (
+          <div
+            className={`mt-4 grid grid-cols-2 gap-2 border p-2.5 ${
+              hasPaidSales
+                ? "border-[#19b84b]/28 bg-[#edfff2]"
+                : "border-black/10 bg-[#f7f9f4]"
+            }`}
+          >
+            <div className="min-w-0">
+              <p className="text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                {copy.revenue.cardSales}
+              </p>
+              <p className="mt-1 truncate text-base font-black text-[#111510]">
+                {paidSalesLabel}
+              </p>
+            </div>
+            <div className="min-w-0 text-right">
+              <p className="text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                {copy.revenue.cardRevenue}
+              </p>
+              <p className="mt-1 truncate text-base font-black text-[#111510]">
+                {paidRevenueLabel}
+              </p>
+            </div>
+          </div>
+        ) : null}
         {showSourceReveal ? (
           <div
             className={`mt-4 rounded-lg border p-3 ${
@@ -1233,7 +1288,26 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
   const displayableFanOnlyItems = data.fanOnlyItems.filter(
     (item) => !isNsfwMaturity(item.contentMaturityRating),
   );
-  const fanOnlyVlogs = displayableFanOnlyItems.slice(0, 3);
+  const fanOnlyVlogs = [...displayableFanOnlyItems]
+    .sort((left, right) => {
+      const paidBuyerDiff =
+        right.social.paidBuyerCount - left.social.paidBuyerCount;
+
+      if (paidBuyerDiff !== 0) {
+        return paidBuyerDiff;
+      }
+
+      const paidRevenueDiff =
+        getPaidRevenueValue(right.social.paidTotalUsdt) -
+        getPaidRevenueValue(left.social.paidTotalUsdt);
+
+      if (paidRevenueDiff !== 0) {
+        return paidRevenueDiff;
+      }
+
+      return toTimestamp(right.publishedAt) - toTimestamp(left.publishedAt);
+    })
+    .slice(0, 3);
   const nsfwBlurredCount =
     newsData.nsfwCount +
     data.items.filter((item) => isNsfwMaturity(item.contentMaturityRating))
