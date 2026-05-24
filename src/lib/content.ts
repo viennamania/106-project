@@ -21,6 +21,8 @@ export const CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR =
   "Paid FanLetter content requires an unused fan vlog request.";
 export const CONTENT_NSFW_REQUIRES_PAID_UPLOAD_ERROR =
   "NSFW content requires a paid directly uploaded video.";
+export const CONTENT_EXCLUSIVE_NEWS_REPORTER_NOT_FOUND_ERROR =
+  "Exclusive news reporter not found.";
 export const CONTENT_IMAGE_VISUAL_BRIEF_LIMIT = 6000;
 export const CONTENT_VIDEO_LIMIT = 1;
 export const CONTENT_VIDEO_MAX_BYTES = 200 * 1024 * 1024;
@@ -476,6 +478,9 @@ export type FanletterNewsReportDocument = {
   creatorName: string;
   creatorReferralCode: string | null;
   dek: string;
+  exclusiveNewsReport?: boolean;
+  exclusiveNewsReporterReferralCode?: string | null;
+  exclusiveNewsUntil?: Date | null;
   generatedBy: "fallback" | "openai";
   how: string;
   locale: Locale;
@@ -547,6 +552,10 @@ export type ContentPostDocument = {
   coverImageCandidates?: ContentCoverImageCandidate[];
   coverImageUrl: string | null;
   createdAt: Date;
+  exclusiveNewsAssignedAt?: Date | null;
+  exclusiveNewsReporterName?: string | null;
+  exclusiveNewsReporterReferralCode?: string | null;
+  exclusiveNewsUntil?: Date | null;
   fanRequestId?: string | null;
   locale?: Locale | null;
   previewAssetIds: string[];
@@ -640,6 +649,14 @@ export type ContentAssetRecord = {
   thumbnailUrl: string | null;
 };
 
+export type ContentExclusiveNewsAssignmentRecord = {
+  active: boolean;
+  assignedAt: string | null;
+  reporterName: string | null;
+  reporterReferralCode: string | null;
+  until: string | null;
+};
+
 export type ContentPostRecord = {
   authorEmail: string;
   authorReferralCode: string;
@@ -652,6 +669,7 @@ export type ContentPostRecord = {
   coverImageCandidates: ContentCoverImageCandidate[];
   coverImageUrl: string | null;
   createdAt: string;
+  exclusiveNews: ContentExclusiveNewsAssignmentRecord;
   fanRequestId: string | null;
   locale: Locale;
   previewText: string | null;
@@ -1106,6 +1124,8 @@ export type ContentPostCreateRequest = {
   coverImageCandidates?: ContentCoverImageCandidate[];
   coverImageUrl?: string | null;
   email: string;
+  exclusiveNewsDurationHours?: number | null;
+  exclusiveNewsReporterReferralCode?: string | null;
   locale?: Locale | null;
   fanRequestId?: string | null;
   previewAssetIds?: string[];
@@ -1205,6 +1225,27 @@ function serializeDateValue(value: Date | string | null | undefined) {
   return new Date(0).toISOString();
 }
 
+function serializeOptionalDateValue(value: Date | string | null | undefined) {
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value.toISOString();
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = new Date(value);
+
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+  }
+
+  return null;
+}
+
+function normalizeSerializedReferralCode(value?: string | null) {
+  const normalized = value?.trim().toUpperCase() ?? "";
+  return normalized || null;
+}
+
 function serializeCreatorCharacterMemory(
   entry: CreatorCharacterMemoryDocument,
 ): CreatorCharacterMemoryEntry {
@@ -1272,6 +1313,16 @@ export function serializeContentAsset(
 export function serializeContentPost(
   content: ContentPostDocument,
 ): ContentPostRecord {
+  const exclusiveNewsUntil = serializeOptionalDateValue(
+    content.exclusiveNewsUntil,
+  );
+  const exclusiveNewsReporterReferralCode = normalizeSerializedReferralCode(
+    content.exclusiveNewsReporterReferralCode,
+  );
+  const exclusiveNewsUntilTime = exclusiveNewsUntil
+    ? new Date(exclusiveNewsUntil).getTime()
+    : NaN;
+
   return {
     authorEmail: content.authorEmail,
     authorReferralCode: content.authorReferralCode,
@@ -1285,6 +1336,16 @@ export function serializeContentPost(
     coverImageCandidates: content.coverImageCandidates ?? [],
     coverImageUrl: content.coverImageUrl ?? null,
     createdAt: content.createdAt.toISOString(),
+    exclusiveNews: {
+      active:
+        Boolean(exclusiveNewsReporterReferralCode) &&
+        Number.isFinite(exclusiveNewsUntilTime) &&
+        exclusiveNewsUntilTime > Date.now(),
+      assignedAt: serializeOptionalDateValue(content.exclusiveNewsAssignedAt),
+      reporterName: content.exclusiveNewsReporterName?.trim() || null,
+      reporterReferralCode: exclusiveNewsReporterReferralCode,
+      until: exclusiveNewsUntil,
+    },
     fanRequestId: content.fanRequestId ?? null,
     locale: normalizeContentLocale(content.locale),
     previewText: content.previewText ?? null,

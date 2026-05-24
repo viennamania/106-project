@@ -140,6 +140,7 @@ export default async function LocalizedFanletterContentDetailPage({
       }))}
       referralCode={readFanletterReferralCode(query.ref)}
       returnToHref={normalizeFanletterReturnToPath(query.returnTo, locale)}
+      viewerReporterReferralCode={viewerReporterReferralCode}
     />
   );
 }

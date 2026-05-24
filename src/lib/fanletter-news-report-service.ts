@@ -42,6 +42,8 @@ const REPORTER_COMMENT_LIMIT = 220;
 const TEXT_LIMIT = 20_000;
 const FIRST_NEWS_REPORT_PROMOTION_MS = 3 * 24 * 60 * 60 * 1000;
 const RELATED_NEWS_FIRST_REPORT_LOOKAHEAD_LIMIT = 144;
+export const FANLETTER_NEWS_EXCLUSIVE_REPORTER_ACTIVE_ERROR =
+  "Exclusive reporter assignment is active for this vlog.";
 
 type OpenAiResponsesApiResponse = {
   error?: {
@@ -1492,6 +1494,49 @@ export function createFanletterNewsReportShareHref(
   );
 }
 
+function getActiveExclusiveNewsReporterReferralCode(
+  post: Pick<
+    ContentPostDocument,
+    "exclusiveNewsReporterReferralCode" | "exclusiveNewsUntil"
+  >,
+  now = new Date(),
+) {
+  const exclusiveReporterReferralCode = normalizeReferralCode(
+    post.exclusiveNewsReporterReferralCode,
+  );
+
+  if (!exclusiveReporterReferralCode || !post.exclusiveNewsUntil) {
+    return null;
+  }
+
+  if (post.exclusiveNewsUntil.getTime() <= now.getTime()) {
+    return null;
+  }
+
+  return exclusiveReporterReferralCode;
+}
+
+function assertCanCreateReportForExclusiveAssignment({
+  post,
+  reporterReferralCode,
+}: {
+  post: Pick<
+    ContentPostDocument,
+    "exclusiveNewsReporterReferralCode" | "exclusiveNewsUntil"
+  >;
+  reporterReferralCode: string;
+}) {
+  const activeExclusiveReporterReferralCode =
+    getActiveExclusiveNewsReporterReferralCode(post);
+
+  if (
+    activeExclusiveReporterReferralCode &&
+    activeExclusiveReporterReferralCode !== reporterReferralCode
+  ) {
+    throw new Error(FANLETTER_NEWS_EXCLUSIVE_REPORTER_ACTIVE_ERROR);
+  }
+}
+
 export async function getOrCreateFanletterNewsReport({
   contentId,
   croppedCoverCrop,
@@ -1564,6 +1609,11 @@ export async function getOrCreateFanletterNewsReport({
     throw new Error("Content not found.");
   }
 
+  assertCanCreateReportForExclusiveAssignment({
+    post,
+    reporterReferralCode: normalizedReporterReferralCode,
+  });
+
   const profilesCollection = await getCreatorProfilesCollection();
   const profile = await profilesCollection.findOne({ email: post.authorEmail });
   const contentMaturityRating = getContentMaturityRating(post);
@@ -1609,6 +1659,12 @@ export async function getOrCreateFanletterNewsReport({
       profile?.referralCode ?? post.authorReferralCode,
     ),
     dek: payload.dek,
+    exclusiveNewsReport:
+      getActiveExclusiveNewsReporterReferralCode(post, now) ===
+      normalizedReporterReferralCode,
+    exclusiveNewsReporterReferralCode:
+      normalizeReferralCode(post.exclusiveNewsReporterReferralCode),
+    exclusiveNewsUntil: post.exclusiveNewsUntil ?? null,
     generatedBy,
     how: payload.how,
     locale: normalizedLocale,

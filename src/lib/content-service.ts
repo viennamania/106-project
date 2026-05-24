@@ -15,6 +15,7 @@ import {
   CONTENT_VIDEO_LIMIT,
   CONTENT_VIDEO_SOURCE_MIXED_ERROR,
   CONTENT_VIDEO_SOURCE_REQUIRED_ERROR,
+  CONTENT_EXCLUSIVE_NEWS_REPORTER_NOT_FOUND_ERROR,
   CONTENT_NSFW_REQUIRES_PAID_UPLOAD_ERROR,
   contentCoverImagePlacements,
   creatorAvatarExpressions,
@@ -168,6 +169,8 @@ const CONTENT_ORDER_PAYMENT_WINDOW_MS = 1000 * 60 * 30;
 const CONTENT_SALES_DEFAULT_PAGE_SIZE = 10;
 const CONTENT_SALES_MAX_PAGE_SIZE = 60;
 const CONTENT_SELLER_WITHDRAW_TIMEOUT_SECONDS = 20;
+const CONTENT_EXCLUSIVE_NEWS_DEFAULT_DURATION_HOURS = 12;
+const CONTENT_EXCLUSIVE_NEWS_DURATION_OPTIONS = [6, 12, 24] as const;
 const contentUsdtContract = getContract({
   address: BSC_USDT_ADDRESS,
   chain: smartWalletChain,
@@ -655,6 +658,8 @@ const contentPostUpdateContentFields = [
   "contentVideoUrls",
   "coverImageCandidates",
   "coverImageUrl",
+  "exclusiveNewsDurationHours",
+  "exclusiveNewsReporterReferralCode",
   "fanRequestId",
   "locale",
   "previewAssetIds",
@@ -707,6 +712,93 @@ function normalizeContentFanRequestId(value?: string | null) {
   const normalized = value?.trim() ?? "";
 
   return normalized ? normalized.slice(0, 120) : null;
+}
+
+function normalizeExclusiveNewsDurationHours(value: unknown) {
+  const numericValue =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value)
+        : NaN;
+
+  if (!Number.isFinite(numericValue)) {
+    return CONTENT_EXCLUSIVE_NEWS_DEFAULT_DURATION_HOURS;
+  }
+
+  const normalizedValue = Math.floor(numericValue);
+
+  return CONTENT_EXCLUSIVE_NEWS_DURATION_OPTIONS.includes(
+    normalizedValue as (typeof CONTENT_EXCLUSIVE_NEWS_DURATION_OPTIONS)[number],
+  )
+    ? normalizedValue
+    : CONTENT_EXCLUSIVE_NEWS_DEFAULT_DURATION_HOURS;
+}
+
+function createEmptyExclusiveNewsAssignment() {
+  return {
+    exclusiveNewsAssignedAt: null,
+    exclusiveNewsReporterName: null,
+    exclusiveNewsReporterReferralCode: null,
+    exclusiveNewsUntil: null,
+  } satisfies Pick<
+    ContentPostDocument,
+    | "exclusiveNewsAssignedAt"
+    | "exclusiveNewsReporterName"
+    | "exclusiveNewsReporterReferralCode"
+    | "exclusiveNewsUntil"
+  >;
+}
+
+async function resolveExclusiveNewsAssignmentForContent({
+  durationHours,
+  now,
+  priceType,
+  reporterReferralCode,
+  status,
+}: {
+  durationHours?: number | null;
+  now: Date;
+  priceType: ContentPriceType;
+  reporterReferralCode?: string | null;
+  status: ContentPostDocument["status"];
+}) {
+  const normalizedReferralCode = normalizeReferralCode(reporterReferralCode);
+
+  if (!normalizedReferralCode || priceType !== "free" || status !== "published") {
+    return createEmptyExclusiveNewsAssignment();
+  }
+
+  const membersCollection = await getMembersCollection();
+  const reporter = await membersCollection.findOne({
+    referralCode: normalizedReferralCode,
+    status: "completed",
+  });
+
+  if (!reporter) {
+    throw new Error(CONTENT_EXCLUSIVE_NEWS_REPORTER_NOT_FOUND_ERROR);
+  }
+
+  const normalizedDurationHours =
+    normalizeExclusiveNewsDurationHours(durationHours);
+  const reporterName =
+    trimToLength(reporter.publicProfile?.displayName, PROFILE_DISPLAY_NAME_LIMIT) ||
+    inferDisplayName(reporter);
+
+  return {
+    exclusiveNewsAssignedAt: now,
+    exclusiveNewsReporterName: reporterName,
+    exclusiveNewsReporterReferralCode: normalizedReferralCode,
+    exclusiveNewsUntil: new Date(
+      now.getTime() + normalizedDurationHours * 60 * 60 * 1000,
+    ),
+  } satisfies Pick<
+    ContentPostDocument,
+    | "exclusiveNewsAssignedAt"
+    | "exclusiveNewsReporterName"
+    | "exclusiveNewsReporterReferralCode"
+    | "exclusiveNewsUntil"
+  >;
 }
 
 function isDuplicateKeyError(error: unknown) {
@@ -2896,6 +2988,13 @@ export async function createContentPostForMember(
   }
 
   const now = new Date();
+  const exclusiveNewsAssignment = await resolveExclusiveNewsAssignmentForContent({
+    durationHours: input.exclusiveNewsDurationHours,
+    now,
+    priceType,
+    reporterReferralCode: input.exclusiveNewsReporterReferralCode,
+    status,
+  });
   const post: ContentPostDocument = {
     authorEmail: member.email,
     authorReferralCode: member.referralCode,
@@ -2907,6 +3006,7 @@ export async function createContentPostForMember(
     coverImageCandidates,
     coverImageUrl,
     createdAt: now,
+    ...exclusiveNewsAssignment,
     fanRequestId: fanRequest?.requestId ?? null,
     locale: normalizeContentLocale(input.locale),
     previewAssetIds: (input.previewAssetIds ?? []).slice(0, 4),
@@ -3042,6 +3142,32 @@ export async function updateContentPostForMember(
   const now = new Date();
   const nextPublishedAt =
     nextStatus === "published" ? post.publishedAt ?? now : post.publishedAt ?? null;
+  const shouldUpdateExclusiveNewsAssignment =
+    Object.prototype.hasOwnProperty.call(
+      input,
+      "exclusiveNewsReporterReferralCode",
+    ) ||
+    Object.prototype.hasOwnProperty.call(input, "exclusiveNewsDurationHours");
+  const nextExclusiveNewsAssignment = shouldUpdateExclusiveNewsAssignment
+    ? await resolveExclusiveNewsAssignmentForContent({
+        durationHours: input.exclusiveNewsDurationHours,
+        now,
+        priceType: nextPriceType,
+        reporterReferralCode:
+          input.exclusiveNewsReporterReferralCode ??
+          post.exclusiveNewsReporterReferralCode ??
+          null,
+        status: nextStatus,
+      })
+    : nextPriceType === "free" && nextStatus === "published"
+      ? {
+          exclusiveNewsAssignedAt: post.exclusiveNewsAssignedAt ?? null,
+          exclusiveNewsReporterName: post.exclusiveNewsReporterName ?? null,
+          exclusiveNewsReporterReferralCode:
+            normalizeReferralCode(post.exclusiveNewsReporterReferralCode),
+          exclusiveNewsUntil: post.exclusiveNewsUntil ?? null,
+        }
+      : createEmptyExclusiveNewsAssignment();
   const nextBody =
     input.body !== undefined
       ? trimToLength(input.body, CONTENT_BODY_LIMIT)
@@ -3075,6 +3201,13 @@ export async function updateContentPostForMember(
           contentVideoUrls: nextContentVideoUrls,
           coverImageCandidates: nextCoverImageCandidates,
           coverImageUrl: nextCoverImageUrl,
+          exclusiveNewsAssignedAt:
+            nextExclusiveNewsAssignment.exclusiveNewsAssignedAt,
+          exclusiveNewsReporterName:
+            nextExclusiveNewsAssignment.exclusiveNewsReporterName,
+          exclusiveNewsReporterReferralCode:
+            nextExclusiveNewsAssignment.exclusiveNewsReporterReferralCode,
+          exclusiveNewsUntil: nextExclusiveNewsAssignment.exclusiveNewsUntil,
           fanRequestId: nextFanRequestId,
           locale:
             input.locale !== undefined

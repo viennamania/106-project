@@ -31,6 +31,7 @@ import type {
   ContentCommentRecord,
   ContentCommentsResponse,
   ContentCoverImageCandidate,
+  ContentExclusiveNewsAssignmentRecord,
   ContentSocialResponse,
   ContentSocialSummaryRecord,
 } from "@/lib/content";
@@ -57,6 +58,7 @@ type FanletterSocialActionsProps = {
   className?: string;
   commentsHref?: string;
   contentId: string;
+  exclusiveNews?: ContentExclusiveNewsAssignmentRecord | null;
   hasViewerNewsReport?: boolean;
   initialSocial: ContentSocialSummaryRecord;
   initialNewsReports?: FanletterContentNewsReportItem[];
@@ -67,6 +69,7 @@ type FanletterSocialActionsProps = {
   reportCoverImageUrl?: string | null;
   shareHref: string;
   variant?: FanletterSocialActionsVariant;
+  viewerReporterReferralCode?: string | null;
 };
 
 type FanletterNewsReportStatus = "checking" | "idle" | "missing" | "ready";
@@ -208,6 +211,15 @@ function getCopy(locale: Locale) {
         reportReady: "AI 팬 리포트가 준비되었습니다.",
         reportExistingHelper:
           "이미 이 브이로그로 만든 AI 리포트가 있습니다. 목록에서 내 리포트 표시로 확인할 수 있습니다.",
+        reportExclusiveBadge: "단독 보도권",
+        reportExclusiveLocked: (reporter: string, until: string | null) =>
+          until
+            ? `${until}까지 ${reporter} 리포터가 먼저 뉴스 리포트를 발행할 수 있습니다. 기한 후 전체 리포터에게 열립니다.`
+            : `${reporter} 리포터에게 단독 보도권이 적용되어 있습니다. 기한 후 전체 리포터에게 열립니다.`,
+        reportExclusiveOwner: (until: string | null) =>
+          until
+            ? `${until}까지 내 단독 보도권이 열려 있습니다. 지금 리포트를 발행해 브이로그를 먼저 홍보하세요.`
+            : "내 단독 보도권이 열려 있습니다. 지금 리포트를 발행해 브이로그를 먼저 홍보하세요.",
         reportOnceHelper:
           "아직 만든 리포트가 없다면 지금 생성할 수 있습니다. 회원당 브이로그마다 한 번만 생성됩니다.",
         reportModalBody:
@@ -283,6 +295,15 @@ function getCopy(locale: Locale) {
         reportReady: "AI fan report is ready.",
         reportExistingHelper:
           "You already created an AI report for this vlog. Find it in the list by the My report badge.",
+        reportExclusiveBadge: "Exclusive report",
+        reportExclusiveLocked: (reporter: string, until: string | null) =>
+          until
+            ? `${reporter} can publish the first news report until ${until}. It opens to every reporter after that.`
+            : `${reporter} has the exclusive first-report window. It opens to every reporter after that.`,
+        reportExclusiveOwner: (until: string | null) =>
+          until
+            ? `Your exclusive report window is open until ${until}. Publish now to promote this vlog first.`
+            : "Your exclusive report window is open. Publish now to promote this vlog first.",
         reportOnceHelper:
           "Create one if you do not have a report yet. Each connected member can create one report per vlog.",
         reportModalBody:
@@ -322,6 +343,23 @@ function formatCommentDate(value: string, locale: Locale) {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function formatExclusiveNewsUntil(value: string | null | undefined, locale: Locale) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(date);
 }
 
 function formatReportDate(value: string | null, locale: Locale) {
@@ -682,6 +720,7 @@ export function FanletterSocialActions({
   className,
   commentsHref,
   contentId,
+  exclusiveNews = null,
   hasViewerNewsReport = false,
   initialNewsReports = EMPTY_NEWS_REPORTS,
   initialSocial,
@@ -692,6 +731,7 @@ export function FanletterSocialActions({
   reportCoverImageUrl = null,
   shareHref,
   variant = "panel",
+  viewerReporterReferralCode = null,
 }: FanletterSocialActionsProps) {
   const copy = getCopy(locale);
   const account = useActiveAccount();
@@ -781,6 +821,27 @@ export function FanletterSocialActions({
       : null;
   const shouldShowReportCoverCropEditor =
     hasReportCoverPreview && Boolean(selectedReportCoverUrl);
+  const exclusiveReporterReferralCode =
+    exclusiveNews?.active && exclusiveNews.reporterReferralCode
+      ? exclusiveNews.reporterReferralCode.trim().toUpperCase()
+      : null;
+  const normalizedViewerReporterReferralCode =
+    viewerReporterReferralCode?.trim().toUpperCase() || null;
+  const isExclusiveNewsOwner =
+    Boolean(exclusiveReporterReferralCode) &&
+    normalizedViewerReporterReferralCode === exclusiveReporterReferralCode;
+  const isExclusiveNewsBlocked =
+    Boolean(exclusiveReporterReferralCode) && !isExclusiveNewsOwner;
+  const exclusiveReporterLabel =
+    exclusiveNews?.reporterName?.trim() ||
+    exclusiveReporterReferralCode ||
+    (locale === "ko" ? "지정 팬 기자" : "Selected reporter");
+  const exclusiveUntilLabel = formatExclusiveNewsUntil(exclusiveNews?.until, locale);
+  const exclusiveReportMessage = exclusiveReporterReferralCode
+    ? isExclusiveNewsOwner
+      ? copy.reportExclusiveOwner(exclusiveUntilLabel)
+      : copy.reportExclusiveLocked(exclusiveReporterLabel, exclusiveUntilLabel)
+    : null;
 
   useEffect(() => {
     setSocial(initialSocial);
@@ -1264,6 +1325,11 @@ export function FanletterSocialActions({
     setBusyAction("report");
 
     try {
+      if (isExclusiveNewsBlocked && exclusiveReportMessage) {
+        setToast(exclusiveReportMessage);
+        return;
+      }
+
       if (!connection.isConnected || !accountAddress) {
         setToast(connection.isResolving ? copy.loading : copy.signInRequired);
         return;
@@ -1377,6 +1443,8 @@ export function FanletterSocialActions({
     copy.reportFailed,
     copy.reportReady,
     copy.signInRequired,
+    exclusiveReportMessage,
+    isExclusiveNewsBlocked,
     locale,
     newsReports,
     refreshNewsReports,
@@ -1387,6 +1455,11 @@ export function FanletterSocialActions({
     setToastScope("report");
     setToast(null);
     setReportCoverCropError(null);
+
+    if (isExclusiveNewsBlocked && exclusiveReportMessage) {
+      setToast(exclusiveReportMessage);
+      return;
+    }
 
     if (!connection.isConnected || !accountAddress) {
       setToast(connection.isResolving ? copy.loading : copy.signInRequired);
@@ -1402,6 +1475,8 @@ export function FanletterSocialActions({
     connection.isResolving,
     copy.loading,
     copy.signInRequired,
+    exclusiveReportMessage,
+    isExclusiveNewsBlocked,
     reportCoverOptions,
   ]);
 
@@ -1616,7 +1691,9 @@ export function FanletterSocialActions({
     hasViewerNewsReport || hasViewerReportInList || Boolean(newsReport);
   const reportHelper = hasCurrentViewerNewsReport
     ? copy.reportExistingHelper
-    : copy.reportOnceHelper;
+    : exclusiveReportMessage
+      ? exclusiveReportMessage
+      : copy.reportOnceHelper;
   const displayedNewsReportCount = hasCurrentViewerNewsReport
     ? Math.max(newsReportsTotalCount, 1)
     : newsReportsTotalCount;
@@ -2000,7 +2077,11 @@ export function FanletterSocialActions({
         {!hasCurrentViewerNewsReport ? (
           <button
             className="inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/[0.055] px-4 text-sm font-semibold text-white/72 transition hover:border-[#44f26e]/46 hover:bg-white/[0.08] hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={busyAction === "report" || newsReportStatus === "checking"}
+            disabled={
+              busyAction === "report" ||
+              newsReportStatus === "checking" ||
+              isExclusiveNewsBlocked
+            }
             onClick={() => {
               openReportComposer();
             }}
@@ -2015,6 +2096,23 @@ export function FanletterSocialActions({
           </button>
         ) : null}
       </div>
+
+      {exclusiveReportMessage ? (
+        <div className="mt-3 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-3 text-sm font-medium leading-6 text-[#d8ffe0]">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-black">
+              <Newspaper className="size-3.5" />
+              {copy.reportExclusiveBadge}
+            </span>
+            {exclusiveReporterReferralCode ? (
+              <span className="rounded-full border border-[#44f26e]/28 bg-black/22 px-2.5 py-1 text-[0.68rem] font-semibold text-[#b9ffc8]">
+                {exclusiveReporterReferralCode}
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-2">{exclusiveReportMessage}</p>
+        </div>
+      ) : null}
 
       {toast && toastScope === "report" ? (
         <div

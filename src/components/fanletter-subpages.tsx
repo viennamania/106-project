@@ -9430,6 +9430,7 @@ export function FanletterContentDetailPage({
   newsReportCount = newsReports.length,
   referralCode,
   returnToHref,
+  viewerReporterReferralCode = null,
 }: {
   content: FanletterPublicContentDetail;
   locale: Locale;
@@ -9437,6 +9438,7 @@ export function FanletterContentDetailPage({
   newsReports?: FanletterContentNewsReportItem[];
   referralCode: string | null;
   returnToHref: string | null;
+  viewerReporterReferralCode?: string | null;
 }) {
   const copy = getCopy(locale);
   const effectiveReferralCode = referralCode ?? content.authorReferralCode;
@@ -9997,6 +9999,7 @@ export function FanletterContentDetailPage({
 
               <FanletterSocialActions
                 contentId={content.contentId}
+                exclusiveNews={content.exclusiveNews}
                 initialNewsReports={newsReports}
                 initialSocial={content.social}
                 hasViewerNewsReport={hasViewerNewsReport}
@@ -10006,6 +10009,7 @@ export function FanletterContentDetailPage({
                 reportCoverImageCandidates={content.coverImageCandidates}
                 reportCoverImageUrl={content.coverImageUrl}
                 shareHref={currentHref}
+                viewerReporterReferralCode={viewerReporterReferralCode}
               />
 
               {content.fanRequestSource ? (

@@ -9,7 +9,9 @@ import {
   CircleAlert,
   Clapperboard,
   Loader2,
+  Newspaper,
   Play,
+  Timer,
   Upload,
   UserRound,
 } from "lucide-react";
@@ -98,6 +100,7 @@ const FANLETTER_CREATE_LOCAL_DRAFT_VERSION = 1;
 const FANLETTER_CREATE_LOCAL_DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const COVER_IMAGE_CANDIDATE_LIMIT = 8;
 const VIDEO_FRAME_COVER_CANDIDATE_COUNT = 6;
+const EXCLUSIVE_NEWS_DURATION_OPTIONS = [6, 12, 24] as const;
 
 type FanletterCreateLocalDraft = {
   form: CreateForm;
@@ -208,6 +211,16 @@ function getCopy(locale: Locale) {
         free: "무료 공개",
         freeOnlyPolicy:
           "AI 생성 영상과 직접 업로드 영상은 이 화면에서 무료 공개 브이로그로 등록됩니다. 유료 직접 업로드는 팬 요청함의 브이로그 요청에서 시작하세요.",
+        exclusiveNews: {
+          body:
+            "공개 직후 지정한 팬 기자가 먼저 AI 뉴스 리포트를 발행할 수 있습니다. 기한이 지나면 모든 리포터에게 열립니다.",
+          codeLabel: "팬 기자 리포터 ID",
+          codePlaceholder: "예: FXBSQ976",
+          durationLabel: "단독 시간",
+          helper:
+            "공개 브이로그를 특정 리포터에게 먼저 홍보하게 만들 때 사용하세요. 비워두면 전체 리포터에게 바로 열립니다.",
+          title: "단독 보도 리포터 지정",
+        },
         paidUpload: "팬 요청 유료 업로드",
         generate: "AI 브이로그 동영상 생성",
         generated: "생성 완료",
@@ -378,6 +391,16 @@ function getCopy(locale: Locale) {
         free: "Free public",
         freeOnlyPolicy:
           "AI-generated and directly uploaded videos are saved here as free public vlogs. Start paid direct upload from a fan vlog request in the request inbox.",
+        exclusiveNews: {
+          body:
+            "After publishing, the selected fan reporter gets first access to publish the AI news report. When the window ends, every reporter can publish.",
+          codeLabel: "Fan reporter ID",
+          codePlaceholder: "e.g. FXBSQ976",
+          durationLabel: "Exclusive window",
+          helper:
+            "Use this when one reporter should promote a public vlog first. Leave it empty to open it to every reporter immediately.",
+          title: "Assign exclusive reporter",
+        },
         paidUpload: "Paid upload from request",
         generate: "Generate AI vlog video",
         generated: "Generated",
@@ -970,6 +993,10 @@ export function FanletterCreatePage({
   const [form, setForm] = useState<CreateForm>(() =>
     getInitialCreateForm(initialPlan),
   );
+  const [exclusiveNewsDurationHours, setExclusiveNewsDurationHours] =
+    useState<(typeof EXCLUSIVE_NEWS_DURATION_OPTIONS)[number]>(12);
+  const [exclusiveNewsReporterCode, setExclusiveNewsReporterCode] =
+    useState("");
   const [generatedMedia, setGeneratedMedia] = useState<GeneratedMedia | null>(
     null,
   );
@@ -1727,6 +1754,8 @@ export function FanletterCreatePage({
         }
       }
 
+      const exclusiveNewsReporterReferralCode =
+        exclusiveNewsReporterCode.trim().toUpperCase() || null;
       const response = await fetch("/api/content/posts", {
         body: JSON.stringify({
           body,
@@ -1735,6 +1764,10 @@ export function FanletterCreatePage({
           coverImageCandidates: coverImageCandidatesToSave,
           coverImageUrl: coverImageUrlToSave,
           email: resolvedEmail,
+          exclusiveNewsDurationHours: exclusiveNewsReporterReferralCode
+            ? exclusiveNewsDurationHours
+            : null,
+          exclusiveNewsReporterReferralCode,
           locale,
           priceType: "free",
           priceUsdt: null,
@@ -2488,6 +2521,74 @@ export function FanletterCreatePage({
                     {copy.paidUpload}
                     <ArrowRight className="size-4" />
                   </Link>
+                </div>
+                <div className="mt-4 rounded-2xl border border-white/12 bg-black/20 p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#44f26e]/14 text-[#44f26e]">
+                      <Newspaper className="size-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-white">
+                        {copy.exclusiveNews.title}
+                      </p>
+                      <p className="mt-1 text-xs font-medium leading-5 text-white/52">
+                        {copy.exclusiveNews.body}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                    <label className="block">
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                        {copy.exclusiveNews.codeLabel}
+                      </span>
+                      <input
+                        className="mt-2 h-11 w-full rounded-full border border-white/12 bg-white/[0.06] px-4 text-sm font-semibold uppercase tracking-[0.08em] text-white outline-none transition placeholder:normal-case placeholder:tracking-normal placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
+                        maxLength={12}
+                        onChange={(event) => {
+                          setExclusiveNewsReporterCode(
+                            event.target.value
+                              .replace(/[^a-zA-Z0-9]/g, "")
+                              .slice(0, 12)
+                              .toUpperCase(),
+                          );
+                        }}
+                        placeholder={copy.exclusiveNews.codePlaceholder}
+                        value={exclusiveNewsReporterCode}
+                      />
+                    </label>
+                    <div>
+                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                        {copy.exclusiveNews.durationLabel}
+                      </span>
+                      <div className="mt-2 grid grid-cols-3 gap-1.5">
+                        {EXCLUSIVE_NEWS_DURATION_OPTIONS.map((durationHours) => {
+                          const isSelected =
+                            exclusiveNewsDurationHours === durationHours;
+
+                          return (
+                            <button
+                              className={`inline-flex h-11 min-w-16 items-center justify-center gap-1.5 rounded-full border px-3 text-sm font-semibold transition ${
+                                isSelected
+                                  ? "border-[#44f26e] bg-[#44f26e] text-black"
+                                  : "border-white/12 bg-white/[0.055] text-white/68 hover:border-[#44f26e]/42 hover:text-white"
+                              }`}
+                              key={durationHours}
+                              onClick={() => {
+                                setExclusiveNewsDurationHours(durationHours);
+                              }}
+                              type="button"
+                            >
+                              <Timer className="size-3.5" />
+                              {durationHours}h
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs font-medium leading-5 text-white/42">
+                    {copy.exclusiveNews.helper}
+                  </p>
                 </div>
                 {fanOnlyIntent ? (
                   <p className="mt-3 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-2 text-xs font-semibold leading-5 text-[#d8ffe0]">

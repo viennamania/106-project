@@ -2,6 +2,7 @@ import {
   isContentFanRequestPolicyErrorMessage,
   isContentMaturityPolicyErrorMessage,
   isContentVideoPolicyErrorMessage,
+  CONTENT_EXCLUSIVE_NEWS_REPORTER_NOT_FOUND_ERROR,
   type ContentPostCreateRequest,
   type ContentPostMutationResponse,
   type CreatorStudioPostsResponse,
@@ -146,6 +147,7 @@ export async function POST(request: Request) {
               isContentFanRequestPolicyErrorMessage(message) ||
               isContentMaturityPolicyErrorMessage(message) ||
               isContentVideoPolicyErrorMessage(message) ||
+              message === CONTENT_EXCLUSIVE_NEWS_REPORTER_NOT_FOUND_ERROR ||
               message ===
                 "THIRDWEB_SECRET_KEY is required to create seller wallets." ||
               message === "Failed to create seller wallet."

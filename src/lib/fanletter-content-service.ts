@@ -5,6 +5,7 @@ import type { Filter } from "mongodb";
 
 import {
   type ContentCoverImageCandidate,
+  type ContentExclusiveNewsAssignmentRecord,
   type ContentMaturityRating,
   type CreatorCharacterPersona,
   type ContentPostDocument,
@@ -101,6 +102,7 @@ export type FanletterPublicContentItem = {
   contentMaturityRating: ContentMaturityRating;
   contentVideoCount: number;
   coverImageUrl: string | null;
+  exclusiveNews: ContentExclusiveNewsAssignmentRecord;
   mediaType: "image" | "text" | "video";
   previewText: string | null;
   priceType: ContentPriceType;
@@ -929,6 +931,7 @@ function toPublicContentItem({
     coverImageUrl: getCoverImageUrl(post, coverPlacement, {
       preferCoverImageUrl,
     }),
+    exclusiveNews: toPublicExclusiveNewsAssignment(post),
     mediaType: getMediaType(post),
     previewText: post.previewText?.trim()
       ? compactText(post.previewText, SUMMARY_LIMIT)
@@ -942,6 +945,27 @@ function toPublicContentItem({
     social: social ?? createEmptyContentSocialSummary(),
     summary: compactText(post.summary || post.previewText || post.body, SUMMARY_LIMIT),
     title: compactText(post.title, TITLE_LIMIT),
+  };
+}
+
+function toPublicExclusiveNewsAssignment(
+  post: ContentPostDocument,
+): ContentExclusiveNewsAssignmentRecord {
+  const reporterReferralCode = normalizeReferralCode(
+    post.exclusiveNewsReporterReferralCode,
+  );
+  const until = post.exclusiveNewsUntil ?? null;
+  const untilTime = until?.getTime() ?? NaN;
+
+  return {
+    active:
+      Boolean(reporterReferralCode) &&
+      Number.isFinite(untilTime) &&
+      untilTime > Date.now(),
+    assignedAt: post.exclusiveNewsAssignedAt?.toISOString() ?? null,
+    reporterName: post.exclusiveNewsReporterName?.trim() || null,
+    reporterReferralCode,
+    until: until?.toISOString() ?? null,
   };
 }
 
