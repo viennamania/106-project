@@ -40,6 +40,7 @@ const REPORT_SIX_W_LIMIT = 500;
 const REPORT_TITLE_LIMIT = 180;
 const REPORTER_COMMENT_LIMIT = 220;
 const TEXT_LIMIT = 20_000;
+const FIRST_NEWS_REPORT_PROMOTION_MS = 3 * 24 * 60 * 60 * 1000;
 
 type OpenAiResponsesApiResponse = {
   error?: {
@@ -755,6 +756,41 @@ function getFanletterNewsFirstReportDisplayTitle(
   const prefix = report.locale === "ko" ? "[최초]" : "[First]";
 
   return `${prefix} ${getFanletterNewsBareDisplayTitle(report.title)}`;
+}
+
+function getFanletterNewsReportSortTime(report: FanletterNewsReportDocument) {
+  return (
+    report.sourcePublishedAt?.getTime() ??
+    report.createdAt?.getTime() ??
+    report.updatedAt?.getTime() ??
+    0
+  );
+}
+
+function compareFirstReportPromotedNewsReports(
+  left: FanletterNewsReportDisplayDocument,
+  right: FanletterNewsReportDisplayDocument,
+) {
+  const leftScore =
+    getFanletterNewsReportSortTime(left) +
+    (left.firstNewsReportForContent ? FIRST_NEWS_REPORT_PROMOTION_MS : 0);
+  const rightScore =
+    getFanletterNewsReportSortTime(right) +
+    (right.firstNewsReportForContent ? FIRST_NEWS_REPORT_PROMOTION_MS : 0);
+
+  if (rightScore !== leftScore) {
+    return rightScore - leftScore;
+  }
+
+  const firstReportDelta =
+    Number(right.firstNewsReportForContent) -
+    Number(left.firstNewsReportForContent);
+
+  if (firstReportDelta !== 0) {
+    return firstReportDelta;
+  }
+
+  return right.reportId.localeCompare(left.reportId);
 }
 
 async function hydrateFanletterNewsReportDisplayMetadata<
@@ -2336,11 +2372,13 @@ export const getLatestFanletterNewsReports = cache(
   async ({
     limit = 24,
     locale,
+    promoteFirstReports = false,
     priceType,
     reporterReferralCode,
   }: {
     limit?: number;
     locale: Locale;
+    promoteFirstReports?: boolean;
     priceType?: ContentPriceType | null;
     reporterReferralCode?: string | null;
   }) => {
@@ -2349,6 +2387,10 @@ export const getLatestFanletterNewsReports = cache(
       normalizeReferralCode(reporterReferralCode);
     const normalizedPriceType =
       priceType === "free" || priceType === "paid" ? priceType : null;
+    const normalizedLimit = Math.max(1, Math.min(limit, 48));
+    const queryLimit = promoteFirstReports
+      ? Math.min(normalizedLimit * 3, 144)
+      : normalizedLimit;
 
     const reports = await reportsCollection
       .find({
@@ -2360,10 +2402,18 @@ export const getLatestFanletterNewsReports = cache(
         status: "published",
       })
       .sort({ sourcePublishedAt: -1, createdAt: -1 })
-      .limit(Math.max(1, Math.min(limit, 48)))
+      .limit(queryLimit)
       .toArray();
 
-    return hydrateFanletterNewsReportDisplayMetadata(reports);
+    const hydratedReports = await hydrateFanletterNewsReportDisplayMetadata(reports);
+
+    if (!promoteFirstReports) {
+      return hydratedReports.slice(0, normalizedLimit);
+    }
+
+    return [...hydratedReports]
+      .sort(compareFirstReportPromotedNewsReports)
+      .slice(0, normalizedLimit);
   },
 );
 
