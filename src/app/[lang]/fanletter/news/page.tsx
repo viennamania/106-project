@@ -16,6 +16,7 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { FanletterServiceBridge } from "@/components/fanletter-service-bridge";
 import type { FanletterNewsReportDocument } from "@/lib/content";
 import {
   getFanletterNewsReporterProfile,
@@ -2293,6 +2294,10 @@ export default async function LocalizedFanletterNewsHomePage({
     `/${locale}/fanletter/news/reports`,
     referralCode,
   );
+  const studioHref = buildPathWithReferral(
+    `/${locale}/fanletter/studio`,
+    referralCode,
+  );
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]">
@@ -2338,6 +2343,14 @@ export default async function LocalizedFanletterNewsHomePage({
               selectedReporterReferralCode={activeReporterReferralCode}
               topStories={topStories}
               visualReportCount={visualReportCount}
+            />
+
+            <FanletterServiceBridge
+              locale={locale}
+              newsHref={newsHomeHref}
+              studioHref={studioHref}
+              variant="news"
+              vlogHref={charactersHref}
             />
 
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start">

@@ -23,13 +23,21 @@ import {
   UserRound,
   WalletCards,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import {
   useActiveAccount,
   useActiveWalletChain,
   useActiveWalletConnectionStatus,
 } from "thirdweb/react";
 
+import { FanletterServiceBridge } from "@/components/fanletter-service-bridge";
 import { FanletterTabTopBar } from "@/components/fanletter-tab-top-bar";
 import { useMemberSession } from "@/components/member-session-provider";
 import type {
@@ -798,6 +806,7 @@ function StatusPanel({
   referralCode,
   secondaryCta,
   secondaryHref,
+  serviceBridge,
   title,
 }: {
   body: string;
@@ -809,6 +818,7 @@ function StatusPanel({
   referralCode: string | null;
   secondaryCta?: string;
   secondaryHref?: string;
+  serviceBridge?: ReactNode;
   title: string;
 }) {
   return (
@@ -816,8 +826,8 @@ function StatusPanel({
       <div className="mx-auto max-w-7xl">
         <FanletterTabTopBar locale={locale} referralCode={referralCode} />
       </div>
-      <div className="mx-auto flex min-h-[calc(100svh-13rem)] max-w-3xl items-center py-6 sm:min-h-[calc(100svh-8rem)]">
-        <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)] backdrop-blur-md sm:p-8">
+      <div className="mx-auto flex min-h-[calc(100svh-13rem)] max-w-5xl flex-col justify-center gap-4 py-6 sm:min-h-[calc(100svh-8rem)]">
+        <section className="w-full max-w-3xl rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)] backdrop-blur-md sm:p-8">
           <span className="flex size-12 items-center justify-center rounded-lg bg-[#44f26e] text-black">
             {loading ? (
               <Loader2 className="size-6 animate-spin" />
@@ -858,6 +868,7 @@ function StatusPanel({
             </Link>
           ) : null}
         </section>
+        {serviceBridge ? <div className="w-full">{serviceBridge}</div> : null}
       </div>
     </main>
   );
@@ -1892,6 +1903,10 @@ export function FanletterStudioPage({
     `/${locale}/fanletter/feed`,
     referralCode,
   );
+  const newsHref = buildPathWithReferral(
+    `/${locale}/fanletter/news`,
+    referralCode,
+  );
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [plannerState, setPlannerState] = useState<PlannerState>({
@@ -2361,6 +2376,15 @@ export function FanletterStudioPage({
         referralCode={referralCode}
         secondaryCta={copy.actions.feed}
         secondaryHref={feedHref}
+        serviceBridge={
+          <FanletterServiceBridge
+            locale={locale}
+            newsHref={newsHref}
+            studioHref={studioHref}
+            variant="studio"
+            vlogHref={feedHref}
+          />
+        }
         title={copy.connectTitle}
       />
     );
@@ -2592,6 +2616,14 @@ export function FanletterStudioPage({
               }
             />
           </div>
+
+          <FanletterServiceBridge
+            locale={locale}
+            newsHref={newsHref}
+            studioHref={studioHref}
+            variant="studio"
+            vlogHref={feedHref}
+          />
         </div>
       </section>
 
