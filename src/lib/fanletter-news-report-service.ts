@@ -203,7 +203,11 @@ type FanletterNewsReporterIdentity = {
   reporterName: string;
 };
 
-type FanletterRelatedNewsReportDocument = FanletterNewsReportDocument & {
+export type FanletterNewsReportDisplayDocument = FanletterNewsReportDocument & {
+  firstNewsReportForContent: boolean;
+};
+
+type FanletterRelatedNewsReportDocument = FanletterNewsReportDisplayDocument & {
   relatedSourceRevealCount: number;
   relatedSourceVlogAvailable: boolean;
 };
@@ -736,6 +740,110 @@ async function hydrateFanletterNewsReportCoverImageUrls<
       ...report,
       coverImageUrl,
     } as T;
+  });
+}
+
+function getFanletterNewsBareDisplayTitle(title: string) {
+  return title
+    .replace(/^\[(최초|First)\]\s*/i, "")
+    .replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
+}
+
+function getFanletterNewsFirstReportDisplayTitle(
+  report: Pick<FanletterNewsReportDocument, "locale" | "title">,
+) {
+  const prefix = report.locale === "ko" ? "[최초]" : "[First]";
+
+  return `${prefix} ${getFanletterNewsBareDisplayTitle(report.title)}`;
+}
+
+async function hydrateFanletterNewsReportDisplayMetadata<
+  T extends FanletterNewsReportDocument,
+>(reports: T[]): Promise<Array<T & FanletterNewsReportDisplayDocument>> {
+  const hydratedReports = await hydrateFanletterNewsReportCoverImageUrls(reports);
+  const contentIds = [
+    ...new Set(hydratedReports.map((report) => report.contentId).filter(Boolean)),
+  ];
+
+  if (contentIds.length === 0) {
+    return hydratedReports.map(
+      (report) =>
+        ({
+          ...report,
+          firstNewsReportForContent: false,
+        }) as T & FanletterNewsReportDisplayDocument,
+    );
+  }
+
+  const [postsCollection, reportsCollection] = await Promise.all([
+    getContentPostsCollection(),
+    getFanletterNewsReportsCollection(),
+  ]);
+  const videoPosts = await postsCollection
+    .find(
+      {
+        "contentVideoUrls.0": { $exists: true },
+        contentId: { $in: contentIds },
+        status: "published",
+      },
+      {
+        projection: {
+          contentId: 1,
+        },
+      },
+    )
+    .toArray();
+  const videoContentIds = videoPosts.map((post) => post.contentId);
+
+  if (videoContentIds.length === 0) {
+    return hydratedReports.map(
+      (report) =>
+        ({
+          ...report,
+          firstNewsReportForContent: false,
+        }) as T & FanletterNewsReportDisplayDocument,
+    );
+  }
+
+  const firstReports = await reportsCollection
+    .aggregate<{ _id: string; reportId: string }>([
+      {
+        $match: {
+          contentId: { $in: videoContentIds },
+          status: "published",
+        },
+      },
+      {
+        $sort: {
+          contentId: 1,
+          createdAt: 1,
+          sourcePublishedAt: 1,
+          reportId: 1,
+        },
+      },
+      {
+        $group: {
+          _id: "$contentId",
+          reportId: { $first: "$reportId" },
+        },
+      },
+    ])
+    .toArray();
+  const firstReportIdByContentId = new Map(
+    firstReports.map((row) => [row._id, row.reportId]),
+  );
+
+  return hydratedReports.map((report) => {
+    const firstNewsReportForContent =
+      firstReportIdByContentId.get(report.contentId) === report.reportId;
+
+    return {
+      ...report,
+      firstNewsReportForContent,
+      title: firstNewsReportForContent
+        ? getFanletterNewsFirstReportDisplayTitle(report)
+        : report.title,
+    } as T & FanletterNewsReportDisplayDocument;
   });
 }
 
@@ -1560,7 +1668,7 @@ export const getFanletterNewsReportById = cache(async (reportId: string) => {
   });
 
   return report
-    ? (await hydrateFanletterNewsReportCoverImageUrls([report]))[0] ?? null
+    ? (await hydrateFanletterNewsReportDisplayMetadata([report]))[0] ?? null
     : null;
 });
 
@@ -1618,7 +1726,9 @@ export const getFanletterNewsReportsForContent = cache(
 
     return {
       reportCount,
-      reports: await hydrateFanletterNewsReportCoverImageUrls(prioritizedReports),
+      reports: await hydrateFanletterNewsReportDisplayMetadata(
+        prioritizedReports,
+      ),
     };
   },
 );
@@ -2253,7 +2363,7 @@ export const getLatestFanletterNewsReports = cache(
       .limit(Math.max(1, Math.min(limit, 48)))
       .toArray();
 
-    return hydrateFanletterNewsReportCoverImageUrls(reports);
+    return hydrateFanletterNewsReportDisplayMetadata(reports);
   },
 );
 
@@ -2379,7 +2489,7 @@ export const getFanletterNewsReportsForReporterChannel = cache(
       nsfwCount: summary?.nsfwCount ?? 0,
       publicCount: summary?.publicCount ?? 0,
       reportCount: summary?.reportCount ?? 0,
-      reports: await hydrateFanletterNewsReportCoverImageUrls(reports),
+      reports: await hydrateFanletterNewsReportDisplayMetadata(reports),
     };
   },
 );
@@ -2395,7 +2505,7 @@ export const getFanletterNewsReportsForCharacterDirectory = cache(
       .sort({ sourcePublishedAt: -1, createdAt: -1 })
       .toArray();
 
-    return hydrateFanletterNewsReportCoverImageUrls(reports);
+    return hydrateFanletterNewsReportDisplayMetadata(reports);
   },
 );
 
@@ -2512,7 +2622,7 @@ export const getFanletterNewsReportsForCharacterChannel = cache(
         locale,
         reporters: reporterRows,
       }),
-      hydrateFanletterNewsReportCoverImageUrls(reports),
+      hydrateFanletterNewsReportDisplayMetadata(reports),
     ]);
 
     return {
@@ -2628,7 +2738,7 @@ export const getFanletterNewsReporterProfile = cache(
 );
 
 async function hydrateRelatedFanletterNewsReportSourceVlogStatuses(
-  reports: FanletterNewsReportDocument[],
+  reports: FanletterNewsReportDisplayDocument[],
 ): Promise<FanletterRelatedNewsReportDocument[]> {
   const contentIds = [...new Set(reports.map((report) => report.contentId))];
 
@@ -2741,7 +2851,7 @@ export const getRelatedFanletterNewsReports = cache(
       .skip(normalizedOffset)
       .limit(normalizedLimit)
       .toArray();
-    const hydratedReports = await hydrateFanletterNewsReportCoverImageUrls(
+    const hydratedReports = await hydrateFanletterNewsReportDisplayMetadata(
       reports,
     );
 

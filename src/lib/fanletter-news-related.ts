@@ -5,6 +5,7 @@ import type { Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 
 type FanletterRelatedNewsReport = FanletterNewsReportDocument & {
+  firstNewsReportForContent?: boolean;
   relatedSourceRevealCount?: number;
   relatedSourceVlogAvailable?: boolean;
 };
@@ -32,7 +33,23 @@ export type FanletterRelatedNewsItem = {
 };
 
 export function getFanletterNewsArticleDisplayTitle(title: string) {
-  return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
+  const firstPrefix = title.match(/^\[(최초|First)\]\s*/i)?.[0] ?? "";
+  const titleWithoutFirstPrefix = title.slice(firstPrefix.length);
+
+  return `${firstPrefix}${titleWithoutFirstPrefix.replace(
+    /^\[(AI 팬 리포트|AI fan report)\]\s*/i,
+    "",
+  )}`;
+}
+
+export function isFanletterNewsFirstReportForContent(
+  report: { firstNewsReportForContent?: boolean } | null | undefined,
+) {
+  return report?.firstNewsReportForContent === true;
+}
+
+export function getFanletterNewsFirstReportBadgeLabel(locale: Locale) {
+  return locale === "ko" ? "최초 팬 리포트" : "First fan report";
 }
 
 export function getFanletterNewsReporterDisplayName(

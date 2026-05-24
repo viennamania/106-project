@@ -64,7 +64,9 @@ import {
 } from "@/lib/fanletter-nsfw";
 import {
   getFanletterNewsArticleDisplayTitle as getArticleDisplayTitle,
+  getFanletterNewsFirstReportBadgeLabel,
   getFanletterNewsReporterDisplayName as getReporterDisplayName,
+  isFanletterNewsFirstReportForContent,
   isFanletterNewsReportNsfw as isNsfwReport,
   serializeFanletterRelatedNewsItem,
   shouldBlurFanletterNewsReport as shouldBlurReport,
@@ -2144,6 +2146,7 @@ export default async function LocalizedFanletterNewsReportPage({
   ]);
   const copy = getCopy(locale);
   const articleTitle = getArticleDisplayTitle(report.title);
+  const isFirstNewsReport = isFanletterNewsFirstReportForContent(report);
   const referralCode =
     readFanletterReferralCode(query.ref) ?? report.reporterReferralCode;
   const newsHomeHref = buildPathWithReferral(
@@ -2328,6 +2331,17 @@ export default async function LocalizedFanletterNewsReportPage({
                   <span>{accessLabel}</span>
                   <span className="h-3 w-px bg-white/18" aria-hidden="true" />
                   <span>{copy.aiReport}</span>
+                  {isFirstNewsReport ? (
+                    <>
+                      <span
+                        className="h-3 w-px bg-white/18"
+                        aria-hidden="true"
+                      />
+                      <span className="text-[#44f26e]">
+                        {getFanletterNewsFirstReportBadgeLabel(report.locale)}
+                      </span>
+                    </>
+                  ) : null}
                 </div>
               </div>
               <div className="p-3.5 sm:p-6 lg:p-7">
