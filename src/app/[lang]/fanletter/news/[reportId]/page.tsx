@@ -8,6 +8,7 @@ import {
   ArrowUpRight,
   BadgeCheck,
   CheckCircle2,
+  ChevronDown,
   Clapperboard,
   Coins,
   FileText,
@@ -250,6 +251,7 @@ function getCopy(locale: Locale) {
           next: (level: string, points: string) =>
             `${level}까지 ${points}점`,
           score: (score: string) => `${score}점`,
+          summaryCta: "팬 기자 성과 보기",
           stats: {
             paidPurchases: "구매",
             reports: "리포트",
@@ -423,6 +425,7 @@ function getCopy(locale: Locale) {
           next: (level: string, points: string) =>
             `${points} points to ${level}`,
           score: (score: string) => `${score} pts`,
+          summaryCta: "View reporter performance",
           stats: {
             paidPurchases: "Purchases",
             reports: "Reports",
@@ -635,16 +638,19 @@ function ArticleActionLinks({
       href: newsHomeHref,
       icon: <Newspaper className="size-4 text-[#16702e]" />,
       label: copy.articleActions.newsHome,
+      secondaryOnMobile: true,
     },
     {
       href: sourceVlogHref,
       icon: <Clapperboard className="size-4 text-[#16702e]" />,
       label: copy.articleActions.sourceVlog,
+      secondaryOnMobile: false,
     },
     {
       href: creatorHref,
       icon: <MessageCircleHeart className="size-4 text-[#16702e]" />,
       label: copy.articleActions.character,
+      secondaryOnMobile: true,
     },
   ];
 
@@ -655,7 +661,9 @@ function ArticleActionLinks({
     >
       {actions.map((action) => (
         <Link
-          className="inline-flex min-h-11 items-center justify-center gap-2 border border-black/12 bg-[#f5f7f1] px-2.5 py-2 text-[0.82rem] font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:justify-between sm:px-3 sm:text-sm"
+          className={`min-h-11 items-center justify-center gap-2 border border-black/12 bg-[#f5f7f1] px-2.5 py-2 text-[0.82rem] font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:inline-flex sm:justify-between sm:px-3 sm:text-sm ${
+            action.secondaryOnMobile ? "hidden" : "inline-flex"
+          }`}
           href={action.href}
           key={action.label}
         >
@@ -1194,10 +1202,10 @@ function ReporterByline({
   ];
 
   return (
-    <section className="mt-4 border-y border-black/12 py-3 sm:mt-5">
-      <div className="sm:flex sm:min-w-0 sm:items-center sm:justify-between sm:gap-3">
+    <section className="mt-4 border-y border-black/10 py-3 sm:mt-5">
+      <div className="flex min-w-0 items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-sm font-black text-[#44f26e] sm:size-11">
+          <span className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-xs font-black text-[#44f26e] sm:size-10 sm:text-sm">
             {reporterAvatarImageUrl ? (
               <Image
                 alt=""
@@ -1215,15 +1223,18 @@ function ReporterByline({
             )}
           </span>
           <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 items-baseline gap-2">
-              <p className="shrink-0 text-[0.7rem] font-bold text-black/46">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <p className="shrink-0 text-[0.68rem] font-bold text-black/42">
                 {copy.byline}
               </p>
               <p className="truncate text-sm font-black text-[#111510]">
                 {reporterDisplayName}
               </p>
+              <span className="hidden text-[0.68rem] font-bold text-[#16702e] sm:inline">
+                {trustLevelLabel}
+              </span>
             </div>
-            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.72rem] font-semibold text-black/48">
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.7rem] font-semibold text-black/46">
               {publishedAt ? (
                 <span>
                   {copy.publishedLabel} {publishedAt}
@@ -1233,90 +1244,109 @@ function ReporterByline({
                 ·
               </span>
               <span>{copy.generated}</span>
+              <span aria-hidden="true" className="text-black/22">
+                ·
+              </span>
+              <span>
+                {copy.reporterTrust.label}{" "}
+                {copy.reporterTrust.score(
+                  formatNumber(reporterTrust.score, report.locale),
+                )}
+              </span>
             </div>
           </div>
         </div>
         <Link
-          className="mt-3 inline-flex h-9 w-full items-center justify-center border border-black/14 bg-[#f7f9f4] px-3 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:mt-0 sm:w-auto sm:shrink-0 sm:bg-white"
+          className="hidden h-9 shrink-0 items-center justify-center border border-black/14 bg-white px-3 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:inline-flex"
           href={reporterNewsHref}
         >
           {copy.reporterNewsCta}
         </Link>
       </div>
 
-      <div className="mt-3 grid gap-2 rounded-lg border border-[#16702e]/16 bg-[#f6f8f4] p-3 sm:grid-cols-[minmax(0,1fr)_minmax(16rem,0.74fr)] sm:items-center">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#111510] px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-white">
-              <ShieldCheck className="size-3.5 text-[#44f26e]" />
-              {trustLevelLabel}
-            </span>
-            <span className="inline-flex items-center gap-1.5 text-xs font-black text-[#16702e]">
-              <TrendingUp className="size-3.5" />
-              {copy.reporterTrust.label}{" "}
-              {copy.reporterTrust.score(
-                formatNumber(reporterTrust.score, report.locale),
-              )}
-            </span>
-          </div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/8">
-            <div
-              className="h-full rounded-full bg-[#19b84b]"
-              style={{ width: `${reporterTrust.progressPercent}%` }}
-            />
-          </div>
-          <p className="mt-1.5 text-[0.72rem] font-semibold leading-5 text-black/48">
-            {copy.reporterTrust.basis} · {nextTrustLabel}
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
-          {trustStats.map((stat) => (
-            <div
-              className="rounded-md border border-black/8 bg-white px-2 py-1.5"
-              key={stat.label}
-            >
-              <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.06em] text-black/36">
-                {stat.label}
-              </p>
-              <p className="mt-0.5 text-sm font-black text-[#111510]">
-                {formatNumber(stat.value, report.locale)}
-              </p>
-            </div>
-          ))}
-        </div>
-      </div>
+      <details className="group mt-2">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-md border border-black/10 bg-[#f7f9f4] px-3 py-2 text-xs font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] [&::-webkit-details-marker]:hidden">
+          <span className="inline-flex min-w-0 items-center gap-2">
+            <ShieldCheck className="size-3.5 shrink-0 text-[#16702e]" />
+            <span className="truncate">{copy.reporterTrust.summaryCta}</span>
+          </span>
+          <ChevronDown className="size-4 shrink-0 text-black/42 transition group-open:rotate-180" />
+        </summary>
 
-      <div className="mt-2 grid gap-2 rounded-lg border border-[#44f26e]/18 bg-[#111510] p-3 text-white sm:grid-cols-[minmax(0,1fr)_minmax(17rem,0.82fr)] sm:items-center">
-        <div className="min-w-0">
-          <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
-            <Coins className="size-3.5" />
-            {copy.reporterPartner.eyebrow}
-          </p>
-          <h3 className="mt-1.5 text-base font-black leading-tight [word-break:keep-all]">
-            {copy.reporterPartner.title}
-          </h3>
-          <p className="mt-1.5 text-xs font-semibold leading-5 text-white/58">
-            {copy.reporterPartner.body}
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-1.5">
-          {partnerStats.map((stat, index) => (
-            <div
-              className={`rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-2 ${
-                index === partnerStats.length - 1 ? "col-span-2" : ""
-              }`}
-              key={stat.label}
-            >
-              <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.06em] text-white/38">
-                {stat.label}
-              </p>
-              <p className="mt-0.5 truncate text-sm font-black text-white">
-                {stat.value}
-              </p>
+        <div className="mt-2 grid gap-2 rounded-lg border border-[#16702e]/16 bg-[#f6f8f4] p-3 sm:grid-cols-[minmax(0,1fr)_minmax(16rem,0.74fr)] sm:items-center">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#111510] px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.1em] text-white">
+                <ShieldCheck className="size-3.5 text-[#44f26e]" />
+                {trustLevelLabel}
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-xs font-black text-[#16702e]">
+                <TrendingUp className="size-3.5" />
+                {copy.reporterTrust.label}{" "}
+                {copy.reporterTrust.score(
+                  formatNumber(reporterTrust.score, report.locale),
+                )}
+              </span>
             </div>
-          ))}
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-black/8">
+              <div
+                className="h-full rounded-full bg-[#19b84b]"
+                style={{ width: `${reporterTrust.progressPercent}%` }}
+              />
+            </div>
+            <p className="mt-1.5 text-[0.72rem] font-semibold leading-5 text-black/48">
+              {copy.reporterTrust.basis} · {nextTrustLabel}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+            {trustStats.map((stat) => (
+              <div
+                className="rounded-md border border-black/8 bg-white px-2 py-1.5"
+                key={stat.label}
+              >
+                <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.06em] text-black/36">
+                  {stat.label}
+                </p>
+                <p className="mt-0.5 text-sm font-black text-[#111510]">
+                  {formatNumber(stat.value, report.locale)}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+
+        <div className="mt-2 grid gap-2 rounded-lg border border-[#44f26e]/18 bg-[#111510] p-3 text-white sm:grid-cols-[minmax(0,1fr)_minmax(17rem,0.82fr)] sm:items-center">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
+              <Coins className="size-3.5" />
+              {copy.reporterPartner.eyebrow}
+            </p>
+            <h3 className="mt-1.5 text-base font-black leading-tight [word-break:keep-all]">
+              {copy.reporterPartner.title}
+            </h3>
+            <p className="mt-1.5 text-xs font-semibold leading-5 text-white/58">
+              {copy.reporterPartner.body}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            {partnerStats.map((stat, index) => (
+              <div
+                className={`rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-2 ${
+                  index === partnerStats.length - 1 ? "col-span-2" : ""
+                }`}
+                key={stat.label}
+              >
+                <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.06em] text-white/38">
+                  {stat.label}
+                </p>
+                <p className="mt-0.5 truncate text-sm font-black text-white">
+                  {stat.value}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </details>
     </section>
   );
 }
