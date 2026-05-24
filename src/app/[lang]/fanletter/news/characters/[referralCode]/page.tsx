@@ -75,11 +75,10 @@ function getCopy(locale: Locale) {
         },
         activity: {
           body:
-            "팬 요청, 일상 브이로그, 뉴스 리포트를 시간순으로 묶어 이 AI 캐릭터의 하루가 어떻게 이어지는지 보여줍니다.",
+            "공개 브이로그, 팬 전용 브이로그, 팬 요청을 시간순으로 묶어 이 AI 캐릭터의 하루가 어떻게 이어지는지 보여줍니다.",
           empty: "아직 표시할 활동 기록이 없습니다.",
           eyebrow: "AI 캐릭터 활동",
           fanOnlyVlog: "팬 전용 브이로그",
-          news: "뉴스 리포트",
           publicVlog: "공개 브이로그",
           request: "팬 요청",
           title: "최근 일상 기록",
@@ -238,11 +237,10 @@ function getCopy(locale: Locale) {
         },
         activity: {
           body:
-            "Fan requests, daily vlogs, and news reports are grouped by recency so the AI character's day is easy to follow.",
+            "Public vlogs, fan-only vlogs, and fan requests are grouped by recency so the AI character's day is easy to follow.",
           empty: "No activity records yet.",
           eyebrow: "AI character activity",
           fanOnlyVlog: "Fan-only vlog",
-          news: "News report",
           publicVlog: "Public vlog",
           request: "Fan request",
           title: "Recent daily log",
@@ -1372,19 +1370,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
     { label: copy.news.reporters, value: newsData.reporters.length },
   ];
   const activityRecords: CharacterActivityRecord[] = [
-    ...newsData.reports.slice(0, 8).map((report) => ({
-      body: report.dek,
-      date: getReportDate(report),
-      href: buildPathWithReferral(
-        `/${locale}/fanletter/news/${report.reportId}`,
-        effectiveReferralCode,
-      ),
-      id: `news-${report.reportId}`,
-      icon: <Newspaper className="size-4" />,
-      label: copy.activity.news,
-      title: getArticleDisplayTitle(report.title),
-    })),
-    ...data.items.slice(0, 6).map((item) => ({
+    ...data.items.slice(0, 8).map((item) => ({
       body: item.summary,
       date: item.publishedAt,
       href: getFanletterNewsVlogHref({
@@ -1398,7 +1384,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
       label: copy.activity.publicVlog,
       title: item.title,
     })),
-    ...displayableFanOnlyItems.slice(0, 4).map((item) => ({
+    ...displayableFanOnlyItems.slice(0, 6).map((item) => ({
       body: item.summary,
       date: item.publishedAt,
       href: getFanletterNewsVlogHref({
@@ -1412,7 +1398,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
       label: copy.activity.fanOnlyVlog,
       title: item.title,
     })),
-    ...data.fanRequestPreviews.slice(0, 4).map((request) => ({
+    ...data.fanRequestPreviews.slice(0, 6).map((request) => ({
       body: request.requesterDisplayName
         ? `${request.requestType} · ${request.requesterDisplayName}`
         : request.requestType,
