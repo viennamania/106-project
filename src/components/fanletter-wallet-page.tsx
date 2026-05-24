@@ -194,7 +194,7 @@ function getCopy(locale: Locale, service: FanletterWalletService) {
         eyebrow: "FanLetter News Wallet",
         history: "뉴스 지갑 USDT 내역",
         historyBody:
-          "뉴스 기사와 팬 전용 브이로그에서 발생한 결제와 입금 흐름을 같은 지갑 기준으로 확인합니다.",
+          "뉴스와 팬 전용 브이로그에서 발생한 결제와 입금 흐름을 같은 지갑 기준으로 확인합니다.",
         loginTitle: "FanLetter News 지갑 연결",
         quickLinks: {
           purchases: "최신 AI 팬 리포트로 돌아가기",
@@ -226,7 +226,7 @@ function getCopy(locale: Locale, service: FanletterWalletService) {
         eyebrow: "FanLetter News Wallet",
         history: "News wallet USDT activity",
         historyBody:
-          "Review payments and deposits from news stories and fan-only vlogs on the same wallet basis.",
+          "Review payments and deposits from news and fan-only vlogs on the same wallet basis.",
         loginTitle: "Connect FanLetter News wallet",
         quickLinks: {
           purchases: "Return to the latest AI fan reports",

@@ -50,7 +50,7 @@ function getCopy(locale: Locale) {
         allNews: "뉴스 홈",
         characterCta: "캐릭터 채널",
         dek:
-          "FanLetter News에 실제로 등장한 AI 캐릭터를 뉴스룸 기준으로 모았습니다. 캐릭터별 기사 수, 팬 전용 리포트, 최신 브이로그 뉴스를 한 화면에서 확인하세요.",
+          "FanLetter News에 실제로 등장한 AI 캐릭터를 뉴스룸 기준으로 모았습니다. 캐릭터별 뉴스 수, 팬 전용 리포트, 최신 브이로그 뉴스를 한 화면에서 확인하세요.",
         emptyBody:
           "콘텐츠 상세 페이지에서 AI 리포트를 생성하면 뉴스에 등장한 캐릭터 목록이 이곳에 모입니다.",
         emptyTitle: "아직 뉴스에 등장한 AI 캐릭터가 없습니다.",
@@ -62,10 +62,10 @@ function getCopy(locale: Locale) {
         nsfw: "NSFW",
         nsfwControl: {
           disabledBody:
-            "NSFW 뉴스 캐릭터는 목록에 유지하되 대표 커버와 기사 미리보기를 블러 처리합니다. 켜면 선명하게 표시됩니다.",
+            "NSFW 뉴스 캐릭터는 목록에 유지하되 대표 커버와 뉴스 미리보기를 블러 처리합니다. 켜면 선명하게 표시됩니다.",
           disabledTitle: "NSFW 캐릭터 뉴스 블러",
           enabledBody:
-            "NSFW 캐릭터 뉴스가 선명하게 표시됩니다. 끄면 다시 커버와 기사 미리보기가 블러 처리됩니다.",
+            "NSFW 캐릭터 뉴스가 선명하게 표시됩니다. 끄면 다시 커버와 뉴스 미리보기가 블러 처리됩니다.",
           enabledTitle: "NSFW 캐릭터 뉴스 표시 중",
           hiddenCountText: (count: string) =>
             `블러 처리된 NSFW 뉴스 ${count}개`,
@@ -93,13 +93,13 @@ function getCopy(locale: Locale) {
         allNews: "News Home",
         characterCta: "Character channel",
         dek:
-          "A FanLetter News-only directory of AI characters appearing in published reports, with story counts, fan-only coverage, and latest vlog news.",
+          "A FanLetter News-only directory of AI characters appearing in published reports, with news counts, fan-only coverage, and latest vlog news.",
         emptyBody:
           "Create AI reports from content detail pages and the characters appearing in FanLetter News will collect here.",
         emptyTitle: "No AI characters have appeared in the news yet.",
         fanOnly: "Fan-only news",
         heroEyebrow: "FanLetter News Character Desk",
-        latest: "Latest story",
+        latest: "Latest news",
         navItems: [
           "News home",
           "AI characters",
@@ -111,21 +111,21 @@ function getCopy(locale: Locale) {
         nsfw: "NSFW",
         nsfwControl: {
           disabledBody:
-            "NSFW news characters remain listed, with lead covers and story previews blurred until opt-in.",
+            "NSFW news characters remain listed, with lead covers and news previews blurred until opt-in.",
           disabledTitle: "NSFW character news blurred",
           enabledBody:
-            "NSFW character news is visible. Turn this off to blur covers and story previews again.",
+            "NSFW character news is visible. Turn this off to blur covers and news previews again.",
           enabledTitle: "NSFW character news visible",
-          hiddenCountText: (count: string) => `${count} NSFW stories blurred`,
+          hiddenCountText: (count: string) => `${count} NSFW news items blurred`,
         },
-        openNews: "Read latest story",
+        openNews: "Read latest news",
         publicNews: "Public news",
         sourceOpened: "Source open",
         siteName: "FanLetter News",
         stats: {
           characters: "Characters",
           fanOnly: "Fan-only",
-          news: "Stories",
+          news: "News",
           nsfw: "NSFW",
         },
         title: "News AI Character Directory",

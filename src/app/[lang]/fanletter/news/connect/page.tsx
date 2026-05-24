@@ -26,12 +26,12 @@ function getMetadataCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "FanLetter News 기사에서 팬 기자 활동, AI 리포트 공유, 팬 전용 브이로그 결제와 열람을 이어가기 위해 지갑을 연결하세요.",
+          "FanLetter News에서 팬 기자 활동, AI 리포트 공유, 팬 전용 브이로그 결제와 열람을 이어가기 위해 지갑을 연결하세요.",
         title: "FanLetter News 지갑 연결",
       }
     : {
         description:
-          "Connect your wallet from a FanLetter News story to continue fan reporter actions, AI report sharing, fan-only vlog payments, and access.",
+          "Connect your wallet from a FanLetter News page to continue fan reporter actions, AI report sharing, fan-only vlog payments, and access.",
         title: "FanLetter News Wallet Connect",
       };
 }

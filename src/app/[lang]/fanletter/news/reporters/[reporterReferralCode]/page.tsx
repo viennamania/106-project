@@ -148,7 +148,7 @@ function getCopy(locale: Locale) {
           titleSuffix: "fan reporter channel",
         },
         latestReports: {
-          cta: "Read story",
+          cta: "Read news",
           emptyNsfw:
             "This fan reporter has reports, but NSFW reports are excluded from the public channel.",
           title: "Latest public news",

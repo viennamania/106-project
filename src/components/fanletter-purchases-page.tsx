@@ -150,7 +150,7 @@ function getCopy(
     ? {
         ...copy,
         accountRequiredBody:
-          "뉴스 기사에서 결제한 콘텐츠는 연결된 FanLetter News 계정 기준으로 확인합니다.",
+          "뉴스에서 결제한 콘텐츠는 연결된 FanLetter News 계정 기준으로 확인합니다.",
         accountRequiredTitle: "뉴스 계정 연결 후 구매한 콘텐츠를 확인하세요.",
         allFeed: "뉴스 홈",
         backToFeed: "뉴스룸으로 돌아가기",
@@ -159,7 +159,7 @@ function getCopy(
         cover: "뉴스 커버",
         coverCta: "뉴스에서 보기",
         emptyBody:
-          "FanLetter News 기사에서 팬 전용 브이로그를 결제하면 이곳에 모이고, 다시 해당 캐릭터 콘텐츠로 이어갈 수 있습니다.",
+          "FanLetter News에서 팬 전용 브이로그를 결제하면 이곳에 모이고, 다시 해당 캐릭터 콘텐츠로 이어갈 수 있습니다.",
         emptyTitle: "아직 뉴스에서 구매한 콘텐츠가 없습니다.",
         eyebrow: "FanLetter News Library",
         fanHome: "AI 캐릭터",
@@ -185,7 +185,7 @@ function getCopy(
         cover: "News cover",
         coverCta: "Open in News",
         emptyBody:
-          "Fan-only vlogs purchased from FanLetter News stories will appear here so you can return to the character content.",
+          "Fan-only vlogs purchased from FanLetter News will appear here so you can return to the character content.",
         emptyTitle: "No content purchased from News yet.",
         eyebrow: "FanLetter News Library",
         fanHome: "AI Characters",

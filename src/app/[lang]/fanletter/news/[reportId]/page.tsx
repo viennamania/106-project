@@ -122,7 +122,7 @@ function getCopy(locale: Locale) {
     ? {
         articleActions: {
           character: "캐릭터 채널",
-          label: "기사 이동",
+          label: "뉴스 이동",
           newsHome: "뉴스 홈",
           sourceVlog: "원본 브이로그",
           wallet: "지갑",
@@ -130,7 +130,7 @@ function getCopy(locale: Locale) {
         aiReport: "AI 팬 리포트",
         articleEyebrow: "AI Character News",
         articleNotice:
-          "이 글은 원본 브이로그의 공개 정보와 티저를 바탕으로 생성된 FanLetter AI 팬 리포트입니다. 실제 언론사의 독립 취재 기사로 표시하지 않습니다.",
+          "이 글은 원본 브이로그의 공개 정보와 티저를 바탕으로 생성된 FanLetter AI 팬 리포트입니다. 실제 언론사의 독립 취재 뉴스로 표시하지 않습니다.",
         articleSection: "연예",
         byline: "팬 기자",
         titleCharacter: {
@@ -158,9 +158,9 @@ function getCopy(locale: Locale) {
           characterCta: "캐릭터 뉴스 홈",
           eyebrow: "같은 캐릭터 뉴스",
           leadCta: (name: string | null) =>
-            name ? `${name} 관련 기사 보기` : "관련 기사 보기",
+            name ? `${name} 관련 뉴스 보기` : "관련 뉴스 보기",
           listEyebrow: "같은 AI 캐릭터",
-          listTitle: "최신 관련 기사",
+          listTitle: "최신 관련 뉴스",
           title: "같은 캐릭터의 다른 뉴스",
         },
         contentBadge: {
@@ -189,7 +189,7 @@ function getCopy(locale: Locale) {
         },
         edition: "AI 캐릭터와 팬 참여를 다루는 FanLetter 온라인 뉴스",
         embeddedLocked:
-          "잠금 콘텐츠는 공개 티저와 기사 작성 가능한 정보만 뉴스 화면에 표시됩니다.",
+          "잠금 콘텐츠는 공개 티저와 뉴스로 공개 가능한 정보만 이 화면에 표시됩니다.",
         embeddedLockedPaid: (amount: string) =>
           `전체 원본 브이로그는 팬 전용 유료 콘텐츠입니다. ${amount} 결제 후 이 뉴스 화면에서 바로 열립니다.`,
         embeddedTitle: "빌트인 원본 브이로그",
@@ -206,7 +206,7 @@ function getCopy(locale: Locale) {
           ownerAccess: "작성자 열람",
           paid: (amount: string) => `${amount} 유료`,
           paidLockedBody:
-            "팬 전용 유료 원본입니다. 결제 전에는 티저와 기사 작성 가능한 정보만 표시됩니다.",
+            "팬 전용 유료 원본입니다. 결제 전에는 티저와 뉴스로 공개 가능한 정보만 표시됩니다.",
           paidOwnerBody:
             "작성자 권한으로 열람 가능한 팬 전용 원본입니다. 뉴스 화면에서 원본 상태를 함께 표시합니다.",
           paidPurchasedBody:
@@ -218,13 +218,13 @@ function getCopy(locale: Locale) {
           unpaid: "결제 필요",
         },
         generated: "AI 생성",
-        publishedLabel: "기사입력",
+        publishedLabel: "작성일",
         navItems: ["AI 캐릭터", "팬 리포트", "브이로그 뉴스", "구매함"],
         nsfwBlurNotice:
-          "NSFW 보기 동의 전에는 원본 브이로그와 기사 본문 일부가 블러 처리됩니다.",
+          "NSFW 보기 동의 전에는 원본 브이로그와 뉴스 본문 일부가 블러 처리됩니다.",
         nsfwControl: {
           disabledBody:
-            "이 뉴스와 관련 NSFW 뉴스는 유지하되 원본 브이로그, 커버, 기사 본문을 블러 처리합니다. 켜면 선명하게 표시됩니다.",
+            "이 뉴스와 관련 NSFW 뉴스는 유지하되 원본 브이로그, 커버, 뉴스 본문을 블러 처리합니다. 켜면 선명하게 표시됩니다.",
           disabledTitle: "NSFW 뉴스 블러 처리",
           enabledBody:
             "NSFW 뉴스가 선명하게 표시됩니다. 끄면 이 뉴스와 관련 NSFW 뉴스가 다시 블러 처리됩니다.",
@@ -234,13 +234,13 @@ function getCopy(locale: Locale) {
         },
         relatedNews: "이 캐릭터의 다른 뉴스",
         relatedNewsDescription:
-          "현재 기사와 같은 AI 캐릭터로 작성된 뉴스만 모았습니다.",
+          "현재 뉴스와 같은 AI 캐릭터로 작성된 뉴스만 모았습니다.",
         relatedNewsEyebrow: "같은 AI 캐릭터",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
         relatedNewsError: "다른 뉴스를 불러오지 못했습니다. 다시 시도해 주세요.",
         relatedNewsLoadMore: "이 캐릭터 뉴스 더 보기",
         relatedNewsLoading: "불러오는 중",
-        reporterNewsCta: "기자 뉴스",
+        reporterNewsCta: "팬 기자 뉴스",
         reporterTrust: {
           basis: "작성·반응·언락·유료 구매 기여 기준",
           label: "활동 신뢰도",
@@ -270,12 +270,12 @@ function getCopy(locale: Locale) {
           rewardPoints: "보상 포인트",
           title: "팬 기자가 AI 캐릭터의 팬 파트너가 됩니다",
         },
-        sourceContext: "기사 배경",
+        sourceContext: "뉴스 배경",
         sourceTitle: "원본 브이로그",
-        summaryTitle: "기사 요약",
+        summaryTitle: "뉴스 요약",
         visualCaption:
           "FanLetter News 대표 이미지. 원본 브이로그와 AI 캐릭터 리포트의 공개 정보를 바탕으로 표시됩니다.",
-        visualLead: "기사 대표 이미지",
+        visualLead: "뉴스 대표 이미지",
         walletConnect: {
           body:
             "팬 기자 활동이나 팬 전용 결제가 필요할 때만 이어갑니다.",
@@ -295,7 +295,7 @@ function getCopy(locale: Locale) {
     : {
         articleActions: {
           character: "Character channel",
-          label: "Story navigation",
+          label: "News navigation",
           newsHome: "News home",
           sourceVlog: "Source vlog",
           wallet: "Wallet",
@@ -327,13 +327,13 @@ function getCopy(locale: Locale) {
         },
         continueReading: {
           body:
-            "After this article, keep exploring the latest related stories from the same AI character.",
+            "After this news, keep exploring the latest related news from the same AI character.",
           characterCta: "Character news home",
           eyebrow: "Same character news",
           leadCta: (name: string | null) =>
-            name ? `Read related ${name} story` : "Read related story",
+            name ? `Read related ${name} news` : "Read related news",
           listEyebrow: "Same AI character",
-          listTitle: "Latest related stories",
+          listTitle: "Latest related news",
           title: "More from this character",
         },
         contentBadge: {
@@ -367,9 +367,9 @@ function getCopy(locale: Locale) {
           `The full source vlog is fan-only paid content. Pay ${amount} to open it from this news page.`,
         embeddedTitle: "Built-in source vlog",
         embeddedUnlockBody:
-          "Unlock the full source video, story body, and extra media directly on this news page.",
+          "Unlock the full source video, news body, and extra media directly on this news page.",
         embeddedUnlockCta: "Pay and watch source",
-        embeddedUnlockMeta: "Full video · story · extra media",
+        embeddedUnlockMeta: "Full video · news body · extra media",
         embeddedUnlockTitle: "Unlock fan-only vlog",
         embeddedVlogStatus: {
           accessible: "Viewable",
@@ -394,25 +394,25 @@ function getCopy(locale: Locale) {
         publishedLabel: "Published",
         navItems: ["AI characters", "Fan reports", "Vlog news", "Purchases"],
         nsfwBlurNotice:
-          "The source vlog and parts of the article stay blurred before NSFW opt-in.",
+          "The source vlog and parts of the news body stay blurred before NSFW opt-in.",
         nsfwControl: {
           disabledBody:
-            "This story and related NSFW stories remain available, with the source vlog, covers, and article body blurred until opt-in.",
+            "This news and related NSFW news remain available, with the source vlog, covers, and news body blurred until opt-in.",
           disabledTitle: "NSFW news blurred",
           enabledBody:
-            "NSFW news is visible. Turn this off to blur this story and related NSFW stories again.",
+            "NSFW news is visible. Turn this off to blur this news and related NSFW news again.",
           enabledTitle: "NSFW news visible",
-          hiddenCountText: (count: string) => `${count} NSFW stories blurred`,
+          hiddenCountText: (count: string) => `${count} NSFW news items blurred`,
         },
         relatedNews: "More from this character",
         relatedNewsDescription:
-          "Only news written from the same AI character as this article is shown here.",
+          "Only news written from the same AI character as this news is shown here.",
         relatedNewsEyebrow: "Same AI character",
         relatedNewsEmpty: "No other news from this character yet.",
         relatedNewsError: "Could not load more news. Please try again.",
         relatedNewsLoadMore: "Load more character news",
         relatedNewsLoading: "Loading",
-        reporterNewsCta: "Reporter news",
+        reporterNewsCta: "Fan reporter news",
         reporterTrust: {
           basis:
             "Based on reports, reactions, unlocks, and paid purchase contribution",

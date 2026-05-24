@@ -210,7 +210,7 @@ function getCopy(locale: Locale) {
         list: {
           allCount: (count: string) => `${count} public vlogs`,
           description: (name: string) =>
-            `Watch ${name}'s public vlogs inside FanLetter News, then continue into related stories and character activity.`,
+            `Watch ${name}'s public vlogs inside FanLetter News, then continue into related news and character activity.`,
           eyebrow: "AI character public vlog news",
           title: (name: string) => `${name} public vlogs`,
         },

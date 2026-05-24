@@ -67,7 +67,7 @@ function getCopy(locale: Locale) {
           cta: "뉴스 AI 캐릭터 전체 보기",
           eyebrow: "AI 캐릭터 프로필",
           fanOnly: "팬 전용",
-          latest: "최근 기사",
+          latest: "최근 뉴스",
           news: "뉴스",
           open: "캐릭터 채널 보기",
           profile: "프로필",
@@ -122,15 +122,15 @@ function getCopy(locale: Locale) {
         },
         nsfwControl: {
           disabledBody:
-            "NSFW 뉴스는 목록에 유지하되 성인 팬 전용 커버와 기사 미리보기를 블러 처리합니다. 켜면 선명하게 표시됩니다.",
+            "NSFW 뉴스는 목록에 유지하되 성인 팬 전용 커버와 뉴스 미리보기를 블러 처리합니다. 켜면 선명하게 표시됩니다.",
           disabledTitle: "NSFW 뉴스 미리보기 블러",
           enabledBody:
-            "NSFW 뉴스 미리보기가 선명하게 표시됩니다. 끄면 다시 커버와 기사 미리보기가 블러 처리됩니다.",
+            "NSFW 뉴스 미리보기가 선명하게 표시됩니다. 끄면 다시 커버와 뉴스 미리보기가 블러 처리됩니다.",
           enabledTitle: "NSFW 뉴스 표시 중",
           hiddenCountText: (count: string) =>
             `블러 처리된 NSFW 뉴스 ${count}개`,
         },
-        read: "기사 보기",
+        read: "뉴스 보기",
         reporterFilter: {
           allNews: "전체 뉴스 보기",
           body: (count: string) =>
@@ -139,7 +139,7 @@ function getCopy(locale: Locale) {
           title: (name: string) => `${name}의 FanLetter News`,
         },
         reporterDesk: "팬 기자 데스크",
-        reporterNewsCta: "이 기자 뉴스 보기",
+        reporterNewsCta: "이 팬 기자 뉴스 보기",
         reporterReportUnit: "뉴스",
         reporterRank: "활동 기자",
         siteName: "FanLetter News",
@@ -159,7 +159,7 @@ function getCopy(locale: Locale) {
           cta: "All news AI characters",
           eyebrow: "AI Character Profiles",
           fanOnly: "Fan-only",
-          latest: "Latest story",
+          latest: "Latest news",
           news: "News",
           open: "View character channel",
           profile: "Profile",
@@ -176,7 +176,7 @@ function getCopy(locale: Locale) {
           "FanLetter News collects AI character vlog reports from fan reporters in an entertainment-news format.",
         edition: "AI character and fan-report news",
         emptyBody:
-          "Create an AI report from a content detail page and the latest stories will appear here.",
+          "Create an AI report from a content detail page and the latest news will appear here.",
         emptyReporterBody: (name: string) =>
           `${name} has not published fan-reporter news yet. Browse the full newsroom for other fan reports.`,
         emptyReporterTitle: (name: string) =>
@@ -189,17 +189,17 @@ function getCopy(locale: Locale) {
             "Track reporter activity, AI character issues, and public news flow in one place.",
           headlines: "Major Headlines",
           leadDeck:
-            "A FanLetter news edition for scanning the lead story and major headlines quickly.",
+            "A FanLetter news edition for scanning the lead news and major headlines quickly.",
           reporters: "Reporter Edition",
           title: "FanLetter News Edition",
         },
         heroEyebrow: "FanLetter Entertainment News",
         issueLabel: "Today's FanLetter entertainment briefing",
         latest: "Latest Reports",
-        lead: "Lead Story",
+        lead: "Lead News",
         leadKicker: "FanLetter exclusive",
         navItems: [
-          "Top stories",
+          "Top news",
           "Fan reporters",
           "AI characters",
           "Vlogs",
@@ -208,7 +208,7 @@ function getCopy(locale: Locale) {
         ],
         photoDesk: "Photo Desk",
         photoDeskBody:
-          "A polished editorial curation of non-NSFW character stories with strong cover moments.",
+          "A polished editorial curation of non-NSFW character news with strong cover moments.",
         newsroomStats: "Newsroom Status",
         newsroomStatLabels: {
           news: "News",
@@ -217,24 +217,24 @@ function getCopy(locale: Locale) {
         },
         nsfwControl: {
           disabledBody:
-            "NSFW stories remain listed, with adult fan-only covers and story previews blurred until opt-in.",
+            "NSFW news remains listed, with adult fan-only covers and news previews blurred until opt-in.",
           disabledTitle: "NSFW news previews blurred",
           enabledBody:
-            "NSFW news previews are visible. Turn this off to blur covers and story previews again.",
+            "NSFW news previews are visible. Turn this off to blur covers and news previews again.",
           enabledTitle: "NSFW news visible",
-          hiddenCountText: (count: string) => `${count} NSFW stories blurred`,
+          hiddenCountText: (count: string) => `${count} NSFW news items blurred`,
         },
-        read: "Read story",
+        read: "Read news",
         reporterFilter: {
           allNews: "All news",
           body: (count: string) =>
-            `${count} AI character reports published. View only the stories from this fan reporter.`,
+            `${count} AI character reports published. View only the news from this fan reporter.`,
           eyebrow: "Fan reporter channel",
           title: (name: string) => `${name}'s FanLetter News`,
         },
         reporterDesk: "Fan Reporter Desk",
         reporterNewsCta: "View reporter news",
-        reporterReportUnit: "Stories",
+        reporterReportUnit: "News",
         reporterRank: "Active reporters",
         siteName: "FanLetter News",
         ticker: "News Briefing",

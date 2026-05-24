@@ -77,16 +77,16 @@ function getCopy(locale: Locale) {
     ? {
         account: "뉴스 계정",
         accountBody:
-          "뉴스 기사에서 팬 기자 활동, AI 리포트 공유, 팬 전용 브이로그 결제와 열람을 이어가려면 같은 이메일 지갑으로 연결해야 합니다.",
+          "뉴스에서 팬 기자 활동, AI 리포트 공유, 팬 전용 브이로그 결제와 열람을 이어가려면 같은 이메일 지갑으로 연결해야 합니다.",
         accountReady: "뉴스 계정 연결 완료",
         activate: "가입 완료하기",
-        articleReturn: "보던 기사로 돌아가기",
+        articleReturn: "보던 뉴스로 돌아가기",
         checking: "연결 상태 확인 중",
         connect: "뉴스 지갑 연결",
         connectBody:
           "이메일로 연결하면 FanLetter News에서 생성한 리포트, 공유자 정보, 구매 내역이 같은 회원 기준으로 이어집니다.",
         connectedBody:
-          "연결이 확인되었습니다. 보던 뉴스 기사로 돌아가거나 FanLetter 지갑에서 결제 내역을 확인할 수 있습니다.",
+          "연결이 확인되었습니다. 보던 뉴스로 돌아가거나 FanLetter 지갑에서 결제 내역을 확인할 수 있습니다.",
         disconnected: "뉴스 지갑이 아직 연결되지 않았습니다.",
         edition: "FanLetter Entertainment News",
         email: "이메일",
@@ -116,16 +116,16 @@ function getCopy(locale: Locale) {
     : {
         account: "News account",
         accountBody:
-          "Connect with the same email wallet to continue fan reporter actions, AI report sharing, fan-only vlog payments, and access from the news story.",
+          "Connect with the same email wallet to continue fan reporter actions, AI report sharing, fan-only vlog payments, and access from the news page.",
         accountReady: "News account connected",
         activate: "Verify signup",
-        articleReturn: "Back to the story",
+        articleReturn: "Back to the news",
         checking: "Checking connection",
         connect: "Connect news wallet",
         connectBody:
           "Connect with email so FanLetter News reports, sharer identity, and purchases stay attached to the same member account.",
         connectedBody:
-          "Connection is ready. Return to the story or review payment activity from your FanLetter wallet.",
+          "Connection is ready. Return to the news page or review payment activity from your FanLetter wallet.",
         disconnected: "No news wallet is connected yet.",
         edition: "FanLetter Entertainment News",
         email: "Email",

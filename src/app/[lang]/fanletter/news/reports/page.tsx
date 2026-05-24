@@ -60,7 +60,7 @@ function getCopy(locale: Locale) {
         coverDeskValue: "편집 가능",
         coverImage: "커버",
         deskBody:
-          "뉴스 소비자가 보는 기사, 원본 브이로그 이동, 커버 변경, 인센티브 성과를 모바일에서도 바로 확인할 수 있습니다.",
+          "뉴스 소비자에게 노출되는 뉴스, 원본 브이로그 이동, 커버 변경, 인센티브 성과를 모바일에서도 바로 확인할 수 있습니다.",
         deskEyebrow: "Reporter Desk",
         deskTitle: "뉴스 리포터 운영 현황",
         editReport: "내용 수정",
@@ -103,7 +103,7 @@ function getCopy(locale: Locale) {
           purchases: "구매함",
         },
         nsfwGuideBody:
-          "NSFW 리포트는 목록에서 명확히 표시됩니다. 커버 이미지와 기사 제목을 확인한 뒤 성인 팬 전용 콘텐츠로 운영할지 빠르게 점검하세요.",
+          "NSFW 리포트는 목록에서 명확히 표시됩니다. 커버 이미지와 뉴스 제목을 확인한 뒤 성인 팬 전용 콘텐츠로 운영할지 빠르게 점검하세요.",
         nsfwGuideTitle: "성인 콘텐츠 표시",
         openReport: "뉴스 보기",
         pagination: {
@@ -157,7 +157,7 @@ function getCopy(locale: Locale) {
         coverDeskValue: "Editable",
         coverImage: "Cover",
         deskBody:
-          "Review the article shown to readers, source-vlog flow, cover editing, and incentive performance from desktop or mobile.",
+          "Review the news shown to readers, source-vlog flow, cover editing, and incentive performance from desktop or mobile.",
         deskEyebrow: "Reporter Desk",
         deskTitle: "News reporter operations",
         editReport: "Edit report",

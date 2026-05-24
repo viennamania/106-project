@@ -186,13 +186,13 @@ function getCopy(locale: Locale) {
         post: "게시",
         reportCancel: "취소",
         reportCommentHelper:
-          "선택 입력입니다. 공개 가능한 팬 기자 관점만 기사 생성에 반영됩니다.",
+          "선택 입력입니다. 공개 가능한 팬 기자 관점만 뉴스 생성에 반영됩니다.",
         reportCommentLabel: "팬 기자 코멘트",
         reportCommentPlaceholder:
           "예: 이 장면에서 팬들이 주목하면 좋을 포인트를 적어주세요.",
         reportCopied: "AI 팬 리포트 링크를 복사했습니다.",
         reportCoverDefault: "기본 커버",
-        reportCoverLabel: "기사 대표 이미지",
+        reportCoverLabel: "뉴스 대표 이미지",
         reportCoverMeta: (index: number) => `커버 ${index.toLocaleString("ko")}`,
         reportCoverSelected: "선택됨",
         reportCropFailed:
