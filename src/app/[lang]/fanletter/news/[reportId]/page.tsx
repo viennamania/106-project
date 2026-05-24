@@ -195,7 +195,7 @@ function getCopy(locale: Locale) {
           "잠금 콘텐츠는 공개 티저와 뉴스로 공개 가능한 정보만 이 화면에 표시됩니다.",
         embeddedLockedPaid: (amount: string) =>
           `전체 원본 브이로그는 팬 전용 유료 콘텐츠입니다. ${amount} 결제 후 이 뉴스 화면에서 바로 열립니다.`,
-        embeddedTitle: "빌트인 원본 브이로그",
+        embeddedTitle: "뉴스 속 원본 브이로그",
         embeddedUnlockBody:
           "결제 후 전체 원본 영상, 본문, 추가 미디어를 이 뉴스 화면에서 바로 이어봅니다.",
         embeddedUnlockCta: "결제하고 원본 보기",
@@ -369,7 +369,7 @@ function getCopy(locale: Locale) {
           "Locked content is represented with public teaser details available for the news page.",
         embeddedLockedPaid: (amount: string) =>
           `The full source vlog is fan-only paid content. Pay ${amount} to open it from this news page.`,
-        embeddedTitle: "Built-in source vlog",
+        embeddedTitle: "Source vlog in this news",
         embeddedUnlockBody:
           "Unlock the full source video, news body, and extra media directly on this news page.",
         embeddedUnlockCta: "Pay and watch source",

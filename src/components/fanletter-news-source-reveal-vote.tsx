@@ -116,7 +116,7 @@ function getCopy(locale: Locale) {
         saving: "반영 중",
         title: "팬 6명이 보고싶어요를 누르면 원본 브이로그가 열립니다",
         unlockedBody: (count: string) =>
-          `${count}명의 팬 참여로 빌트인 원본 브이로그가 열렸습니다.`,
+          `${count}명의 팬 참여로 뉴스 속 원본 브이로그가 열렸습니다.`,
         unlockedTitle: "팬들이 열어낸 원본 브이로그",
       }
     : {
@@ -153,7 +153,7 @@ function getCopy(locale: Locale) {
         saving: "Saving",
         title: "The source vlog opens when 6 fans want to watch",
         unlockedBody: (count: string) =>
-          `${count} fans opened this built-in source vlog together.`,
+          `${count} fans opened the source vlog in this news together.`,
         unlockedTitle: "Source vlog opened by fans",
       };
 }
