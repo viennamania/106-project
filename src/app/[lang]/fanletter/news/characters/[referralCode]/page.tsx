@@ -146,7 +146,16 @@ function getCopy(locale: Locale) {
           reports: (count: string) => `${count}개 리포트`,
         },
         requests: {
+          body:
+            "팬이 남긴 장면 요청은 다음 공개 브이로그나 팬 전용 답장 브이로그의 소재가 됩니다.",
           empty: "최근 팬 요청이 아직 없습니다.",
+          quickIdeas: [
+            "카페에서 Q&A 답장",
+            "오늘의 음악과 음식",
+            "출근 준비 루틴",
+            "팬에게 짧은 답장",
+          ],
+          quickTitle: "빠른 장면 요청",
           title: "팬 참여 루프",
         },
         siteName: "FanLetter News",
@@ -168,7 +177,10 @@ function getCopy(locale: Locale) {
           eyebrow: "오늘의 일상",
         },
         vlog: {
+          body:
+            "팬이 캐릭터의 일상을 가장 먼저 확인하는 공간입니다. 원본 오픈 진행률과 리포트 수를 함께 보며 다음에 볼 장면을 고를 수 있습니다.",
           emptyFanOnly: "표시 가능한 팬 전용 브이로그가 아직 없습니다.",
+          eyebrow: "Daily Vlog Archive",
           fanOnlyTitle: "팬 전용 브이로그",
           publicTitle: "공개 브이로그",
           reports: "리포트",
@@ -255,7 +267,16 @@ function getCopy(locale: Locale) {
           reports: (count: string) => `${count} reports`,
         },
         requests: {
+          body:
+            "Fan scene requests can become the next public vlog or a fan-only reply vlog.",
           empty: "No recent fan requests yet.",
+          quickIdeas: [
+            "Cafe Q&A reply",
+            "Today's music and food",
+            "Getting-ready routine",
+            "Short fan reply",
+          ],
+          quickTitle: "Quick scene ideas",
           title: "Fan participation loop",
         },
         siteName: "FanLetter News",
@@ -279,7 +300,10 @@ function getCopy(locale: Locale) {
           eyebrow: "Today's daily life",
         },
         vlog: {
+          body:
+            "This is where fans can follow the character's daily life first, with source-open progress and report counts beside each vlog.",
           emptyFanOnly: "No displayable fan-only vlogs yet.",
+          eyebrow: "Daily Vlog Archive",
           fanOnlyTitle: "Fan-only vlogs",
           publicTitle: "Public vlogs",
           reports: "reports",
@@ -1401,7 +1425,8 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           records={activityRecords}
         />
 
-        <section className="mt-6 grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)]">
+        <div className="flex flex-col">
+        <section className="order-3 mt-7 grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)]">
           <div className="border border-black/12 bg-white p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3 border-b-2 border-[#111510] pb-3">
               <div>
@@ -1516,7 +1541,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           </div>
         </section>
 
-        <section className="mt-7 border-t-2 border-[#111510] pt-5">
+        <section className="order-2 mt-7 border-t-2 border-[#111510] pt-5">
           <div className="mb-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
             <div className="min-w-0">
               <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
@@ -1572,19 +1597,24 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           )}
         </section>
 
-        <section className="mt-7 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.62fr)]">
+        <section className="order-1 mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.62fr)]">
           <div>
-            <div className="mb-4 flex items-center justify-between border-b-2 border-[#111510] pb-3">
-              <div>
+            <div className="mb-4 grid gap-3 border-b-2 border-[#111510] pb-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+              <div className="min-w-0">
                 <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
-                  Vlog Archive
+                  {copy.vlog.eyebrow}
                 </p>
-                <h2 className="mt-1 text-2xl font-black">
-                  {copy.vlog.publicTitle}
+                <h2 className="mt-1 break-words text-2xl font-black leading-tight [word-break:keep-all] sm:text-3xl">
+                  {locale === "ko"
+                    ? `${characterName}의 일상 브이로그`
+                    : `${characterName} daily vlogs`}
                 </h2>
+                <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-black/58">
+                  {copy.vlog.body}
+                </p>
               </div>
               <Link
-                className="inline-flex h-10 items-center justify-center gap-2 border border-black/14 px-3 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                className="inline-flex min-h-10 items-center justify-center gap-2 border border-black/14 px-3 py-2 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
                 href={publicVlogsHref}
               >
                 {copy.cta.publicVlogs}
@@ -1663,6 +1693,25 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 </div>
                 <MessageCircleHeart className="size-5 text-[#16702e]" />
               </div>
+              <p className="mb-3 text-sm font-semibold leading-6 text-black/58">
+                {copy.requests.body}
+              </p>
+              <div className="mb-3 rounded-lg border border-black/10 bg-white p-3">
+                <p className="text-[0.62rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                  {copy.requests.quickTitle}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {copy.requests.quickIdeas.map((idea) => (
+                    <Link
+                      className="inline-flex min-h-9 items-center justify-center rounded-full border border-black/10 bg-[#f5f6f2] px-3 py-1.5 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                      href={requestHref}
+                      key={idea}
+                    >
+                      {idea}
+                    </Link>
+                  ))}
+                </div>
+              </div>
               <div className="space-y-3">
                 {data.fanRequestPreviews.length > 0 ? (
                   data.fanRequestPreviews.slice(0, 3).map((request) => (
@@ -1690,7 +1739,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
         </section>
 
         {newsData.reporters.length > 0 ? (
-          <section className="mt-7 border-t-2 border-[#111510] pt-5">
+          <section className="order-4 mt-7 border-t-2 border-[#111510] pt-5">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
@@ -1717,13 +1766,14 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
         ) : null}
 
         {nsfwBlurredCount > 0 && !nsfwOptInEnabled ? (
-          <p className="mt-5 text-xs font-semibold text-black/42">
+          <p className="order-5 mt-5 text-xs font-semibold text-black/42">
             {nsfwCopy.badge}:{" "}
             {copy.nsfwControl.hiddenCountText(
               formatNumber(nsfwBlurredCount, locale),
             )}
           </p>
         ) : null}
+        </div>
       </section>
     </main>
   );
