@@ -981,8 +981,9 @@ export function FanletterCreatePage({
       : fanRequestsHref;
   const [createdContent, setCreatedContent] =
     useState<ContentPostRecord | null>(null);
-  const [createSourceMode, setCreateSourceMode] =
-    useState<CreateSourceMode>("ai");
+  const [createSourceMode, setCreateSourceMode] = useState<CreateSourceMode>(
+    initialPlan?.sourceMode === "upload" ? "upload" : "ai",
+  );
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [error, setError] = useState<string | null>(null);
   const [fanRequestSyncError, setFanRequestSyncError] = useState<string | null>(

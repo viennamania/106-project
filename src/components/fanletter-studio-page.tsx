@@ -131,6 +131,7 @@ function getCopy(locale: Locale) {
           connect: "계정 연결하기",
           channels: "채널 배포 관리",
           create: "오늘의 브이로그 만들기",
+          directUpload: "직접 촬영 업로드",
           feed: "브이로그 피드 보기",
           fanRequests: "팬 요청함",
           managePosts: "브이로그 전체 관리",
@@ -153,6 +154,7 @@ function getCopy(locale: Locale) {
           allPosts: "전체 브이로그",
           availableBalance: "출금 가능",
           completedMember: "시작 준비 완료",
+          contentHub: "운영 허브",
           draftPosts: "임시저장",
           fanRequests: "팬 요청",
           memberStatus: "시작 상태",
@@ -184,6 +186,35 @@ function getCopy(locale: Locale) {
           "아직 NSFW로 표시된 영상은 없습니다. 팬 요청 유료 업로드 후 전체 관리에서 NSFW 표시를 켤 수 있습니다.",
         paidUploadBody:
           "팬이 남긴 브이로그 요청 카드에서만 직접 업로드 유료 등록을 시작합니다.",
+        contentHub: {
+          body:
+            "AI 캐릭터 페르소나와 이미지로 무료 공개 브이로그를 만들고, 직접 촬영한 공개 브이로그를 업로드하고, 팬 요청 답장은 1 USDT 유료 영상으로 전환합니다.",
+          cards: [
+            {
+              body:
+                "캐릭터 페르소나, 아바타 이미지, 최근 활동을 기준으로 AI 브이로그를 생성합니다.",
+              cta: "AI 브이로그 만들기",
+              eyebrow: "무료 공개",
+              title: "AI 캐릭터 브이로그 생성",
+            },
+            {
+              body:
+                "직접 촬영한 MP4, MOV, WEBM 브이로그를 무료 공개 콘텐츠로 업로드합니다.",
+              cta: "촬영 영상 업로드",
+              eyebrow: "무료 공개",
+              title: "직접 촬영 브이로그 업로드",
+            },
+            {
+              body:
+                "팬이 남긴 브이로그 요청에 답하는 직접 업로드 영상은 자동 1 USDT 유료 콘텐츠가 됩니다.",
+              cta: "팬 요청에서 선택",
+              eyebrow: "팬 요청 전용 · 1 USDT",
+              title: "팬 요청 답장 유료 업로드",
+            },
+          ],
+          eyebrow: "Vlogger Content Hub",
+          title: "브이로거 콘텐츠 운영 허브",
+        },
         paymentRequired:
           "FanLetter 시작 준비 확인이 끝나면 AI 캐릭터 브이로그 스튜디오를 사용할 수 있습니다.",
         paymentTitle: "시작 준비 확인이 필요합니다.",
@@ -231,8 +262,10 @@ function getCopy(locale: Locale) {
           openCount: "제작 대기",
           paidIntentBadge: "팬 전용 의도",
           paidUploadCta: "1 USDT 업로드 등록",
+          paidUploadChoiceHint:
+            "AI로 답장하면 무료 공개 브이로그, 직접 촬영 영상을 올리면 1 USDT 팬 전용 브이로그로 등록됩니다.",
           paidUploadHint:
-            "팬이 남긴 브이로그 요청에 답장할 때만 직접 업로드 유료 등록이 열립니다.",
+            "직접 촬영/편집한 영상으로 팬 요청에 답장하면 1 USDT 유료 콘텐츠로 등록됩니다.",
           requester: "보낸 사람",
           source: "요청 위치 보기",
           sourceVlog: "브이로그 기반",
@@ -314,6 +347,7 @@ function getCopy(locale: Locale) {
           connect: "Connect account",
           channels: "Manage channels",
           create: "Create today's vlog",
+          directUpload: "Upload filmed vlog",
           feed: "View vlog feed",
           fanRequests: "Fan requests",
           managePosts: "Manage all vlogs",
@@ -336,6 +370,7 @@ function getCopy(locale: Locale) {
           allPosts: "All vlogs",
           availableBalance: "Available",
           completedMember: "Ready",
+          contentHub: "Operations hub",
           draftPosts: "Drafts",
           fanRequests: "Fan requests",
           memberStatus: "Readiness",
@@ -367,6 +402,35 @@ function getCopy(locale: Locale) {
           "No videos are marked NSFW yet. After a fan-request paid upload, turn on NSFW marking from full management.",
         paidUploadBody:
           "Start direct paid upload only from a fan vlog request card.",
+        contentHub: {
+          body:
+            "Create free public vlogs from the AI character persona and images, upload filmed public vlogs, and turn fan-request replies into 1 USDT paid videos.",
+          cards: [
+            {
+              body:
+                "Generate an AI vlog from the character persona, avatar image, and recent activity.",
+              cta: "Create AI vlog",
+              eyebrow: "Free public",
+              title: "Generate AI character vlog",
+            },
+            {
+              body:
+                "Upload a filmed MP4, MOV, or WEBM vlog as free public content.",
+              cta: "Upload filmed video",
+              eyebrow: "Free public",
+              title: "Upload filmed public vlog",
+            },
+            {
+              body:
+                "A direct video upload answering a fan vlog request is saved automatically as 1 USDT paid content.",
+              cta: "Choose fan request",
+              eyebrow: "Fan request only · 1 USDT",
+              title: "Paid fan-request reply",
+            },
+          ],
+          eyebrow: "Vlogger Content Hub",
+          title: "Vlogger content operations hub",
+        },
         paymentRequired:
           "Confirm FanLetter readiness to use the AI character vlog studio.",
         paymentTitle: "Readiness confirmation is required.",
@@ -418,8 +482,10 @@ function getCopy(locale: Locale) {
           openCount: "Ready to create",
           paidIntentBadge: "Fan-only intent",
           paidUploadCta: "Upload as 1 USDT",
+          paidUploadChoiceHint:
+            "AI replies become free public vlogs. Filmed uploads answering a fan request become 1 USDT fan-only vlogs.",
           paidUploadHint:
-            "Paid direct upload opens only when replying to a fan vlog request.",
+            "Upload a filmed or edited video as a 1 USDT paid reply to this fan request.",
           requester: "From",
           source: "View source",
           sourceVlog: "Source vlog",
@@ -968,6 +1034,77 @@ function ActionCard({
   );
 }
 
+function ContentHubSection({
+  copy,
+  createHref,
+  directUploadHref,
+  fanRequestsHref,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  createHref: string;
+  directUploadHref: string;
+  fanRequestsHref: string;
+}) {
+  const hrefs = [createHref, directUploadHref, fanRequestsHref];
+  const icons = [Sparkles, Upload, BadgeDollarSign];
+
+  return (
+    <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#16702e]">
+            {copy.contentHub.eyebrow}
+          </p>
+          <h2 className="mt-2 text-3xl font-semibold tracking-normal [word-break:keep-all]">
+            {copy.contentHub.title}
+          </h2>
+        </div>
+        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#44f26e]/32 bg-[#44f26e]/12 px-3 py-1.5 text-xs font-semibold text-[#16702e]">
+          <Clapperboard className="size-3.5" />
+          {copy.labels.contentHub}
+        </span>
+      </div>
+      <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-black/56 [word-break:keep-all]">
+        {copy.contentHub.body}
+      </p>
+
+      <div className="mt-5 grid gap-3 lg:grid-cols-3">
+        {copy.contentHub.cards.map((card, index) => {
+          const Icon = icons[index] ?? FileText;
+          const href = hrefs[index] ?? createHref;
+
+          return (
+            <Link
+              className="group flex min-h-48 flex-col rounded-lg border border-black/10 bg-[#f6f8f4] p-4 text-black transition hover:-translate-y-0.5 hover:border-[#44f26e]/45 hover:bg-white hover:shadow-[0_18px_42px_rgba(8,18,12,0.08)]"
+              href={href}
+              key={card.title}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                  <Icon className="size-5" />
+                </span>
+                <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-black/54">
+                  {card.eyebrow}
+                </span>
+              </div>
+              <h3 className="mt-5 text-xl font-semibold leading-tight [word-break:keep-all]">
+                {card.title}
+              </h3>
+              <p className="mt-3 text-sm font-medium leading-6 text-black/56 [word-break:keep-all]">
+                {card.body}
+              </p>
+              <span className="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-semibold text-[#16702e]">
+                {card.cta}
+                <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function FanRequestsSection({
   copy,
   createHref,
@@ -1253,6 +1390,9 @@ function FanRequestsSection({
                         <p className="text-xs font-medium leading-5 text-white/42">
                           {copy.fanRequests.paidUploadHint}
                         </p>
+                        <p className="text-xs font-medium leading-5 text-white/50">
+                          {copy.fanRequests.paidUploadChoiceHint}
+                        </p>
                       </>
                     ) : null}
                     <div className="grid grid-cols-2 gap-2">
@@ -1499,6 +1639,11 @@ function FanRequestsSection({
                       ) : null}
                     </>
                   )}
+                  {!createdContentHref && paidUploadFromRequestHref ? (
+                    <p className="basis-full text-xs font-medium leading-5 text-black/48">
+                      {copy.fanRequests.paidUploadChoiceHint}
+                    </p>
+                  ) : null}
                   {sourceHref ? (
                     <Link
                       className="inline-flex h-10 flex-1 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-xs font-semibold !text-black/58 transition hover:!text-black sm:flex-none"
@@ -1878,6 +2023,9 @@ export function FanletterStudioPage({
     buildPathWithReferral(`/${locale}/fanletter/create`, referralCode),
     { returnTo: studioHref },
   );
+  const directUploadHref = setPathSearchParams(createHref, {
+    planSource: "upload",
+  });
   const channelsHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/channels`, referralCode),
     { returnTo: studioHref },
@@ -2630,6 +2778,13 @@ export function FanletterStudioPage({
       <section className="bg-[#f6f8f4] px-4 py-8 text-black sm:px-6 sm:py-12 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-start">
           <div className="min-w-0 space-y-6">
+            <ContentHubSection
+              copy={copy}
+              createHref={createHref}
+              directUploadHref={directUploadHref}
+              fanRequestsHref={fanRequestsHref}
+            />
+
             <FanRequestsSection
               copy={copy}
               createHref={createHref}

@@ -19,6 +19,7 @@ export type FanletterCreateInitialPlan = {
   planId?: string;
   priceType?: ContentPriceType;
   prompt?: string;
+  sourceMode?: "upload";
   summary?: string;
   title?: string;
 };
@@ -36,6 +37,7 @@ export type FanletterCreateSearchParams = {
   planMode?: string | string[];
   planPriceType?: string | string[];
   planPrompt?: string | string[];
+  planSource?: string | string[];
   planSummary?: string | string[];
   planTitle?: string | string[];
   ref?: string | string[];
@@ -64,6 +66,7 @@ export function getFanletterCreateInitialPlanSearchParams(
     planMode: readPlanText(query.planMode, 32) ?? null,
     planPriceType: readPlanText(query.planPriceType, 32) ?? null,
     planPrompt: readPlanText(query.planPrompt, 1_200) ?? null,
+    planSource: readPlanText(query.planSource, 32) ?? null,
     planSummary: readPlanText(query.planSummary, 180) ?? null,
     planTitle: readPlanText(query.planTitle, 88) ?? null,
   };
@@ -102,6 +105,8 @@ export function readFanletterCreateInitialPlan(
       ? rawAvatarReferenceMode
       : undefined;
   const planId = readPlanText(query.planId, 120);
+  const rawSourceMode = readPlanText(query.planSource, 32);
+  const sourceMode = rawSourceMode === "upload" ? rawSourceMode : undefined;
 
   if (
     !title &&
@@ -114,6 +119,7 @@ export function readFanletterCreateInitialPlan(
     !fanRequestId &&
     !fanRequestType &&
     !priceType &&
+    !sourceMode &&
     !fanOnlyIntent &&
     !avatarReferenceExpression &&
     !avatarReferenceMode
@@ -134,6 +140,7 @@ export function readFanletterCreateInitialPlan(
     planId,
     priceType,
     prompt,
+    sourceMode,
     summary,
     title,
   };
