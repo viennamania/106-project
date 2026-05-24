@@ -38,6 +38,10 @@ import {
   getFanletterNewsReportsForCharacterChannel,
   type FanletterNewsCharacterReporterStat,
 } from "@/lib/fanletter-news-report-service";
+import {
+  getFanletterNewsFirstReportBadgeLabel,
+  isFanletterNewsFirstReportForContent,
+} from "@/lib/fanletter-news-related";
 import { FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD } from "@/lib/fanletter-news-source-reveal";
 import {
   getFanletterNewsCharacterVlogsHref,
@@ -68,14 +72,14 @@ function getCopy(locale: Locale) {
         },
         activity: {
           body:
-            "뉴스, 브이로그, 팬 요청을 최신순으로 묶어 이 AI 캐릭터가 어떻게 움직이는지 보여줍니다.",
+            "팬 요청, 일상 브이로그, 뉴스 리포트를 시간순으로 묶어 이 AI 캐릭터의 하루가 어떻게 이어지는지 보여줍니다.",
           empty: "아직 표시할 활동 기록이 없습니다.",
           eyebrow: "AI 캐릭터 활동",
           fanOnlyVlog: "팬 전용 브이로그",
           news: "뉴스 리포트",
           publicVlog: "공개 브이로그",
           request: "팬 요청",
-          title: "시간순 활동 타임라인",
+          title: "최근 일상 기록",
         },
         backToCharacters: "AI 캐릭터 목록",
         bible: {
@@ -87,6 +91,7 @@ function getCopy(locale: Locale) {
           traits: "페르소나 키워드",
         },
         cta: {
+          dailyVlogs: "일상 브이로그 보기",
           latestNews: "최신 뉴스 읽기",
           publicVlogs: "공개 브이로그 보기",
           request: "팬 요청 남기기",
@@ -115,8 +120,13 @@ function getCopy(locale: Locale) {
         },
         latest: "최신",
         news: {
+          body:
+            "팬 기자들이 같은 AI 캐릭터의 일상을 각자의 관점으로 빠르게 리포트합니다. 최초 리포트와 팬 요청 기반 뉴스가 캐릭터 IP의 확장 포인트입니다.",
           fanOnly: "팬 전용 뉴스",
+          fanRequestBased: "팬 요청 기반",
+          firstReport: "최초 팬 리포트",
           public: "공개 뉴스",
+          readCta: "뉴스 읽기",
           reporters: "참여 기자",
           title: "뉴스 프랜차이즈",
         },
@@ -149,6 +159,14 @@ function getCopy(locale: Locale) {
           remaining: (count: string) => `${count}명 남음`,
           requested: "참여 완료",
         },
+        today: {
+          body:
+            "최근 팬 반응과 브이로그 기록을 따라가며 캐릭터의 일상을 이어서 확인하세요.",
+          emptyBody:
+            "공개 브이로그나 팬 요청이 올라오면 이곳에서 바로 일상 기록으로 이어집니다.",
+          emptyTitle: "아직 오늘의 기록이 준비 중입니다.",
+          eyebrow: "오늘의 일상",
+        },
         vlog: {
           emptyFanOnly: "표시 가능한 팬 전용 브이로그가 아직 없습니다.",
           fanOnlyTitle: "팬 전용 브이로그",
@@ -164,14 +182,14 @@ function getCopy(locale: Locale) {
         },
         activity: {
           body:
-            "News, vlogs, and fan requests are grouped by recency so the AI character's movement is easy to scan.",
+            "Fan requests, daily vlogs, and news reports are grouped by recency so the AI character's day is easy to follow.",
           empty: "No activity records yet.",
           eyebrow: "AI character activity",
           fanOnlyVlog: "Fan-only vlog",
           news: "News report",
           publicVlog: "Public vlog",
           request: "Fan request",
-          title: "Chronological activity timeline",
+          title: "Recent daily log",
         },
         backToCharacters: "AI characters",
         bible: {
@@ -183,6 +201,7 @@ function getCopy(locale: Locale) {
           traits: "Persona keywords",
         },
         cta: {
+          dailyVlogs: "Daily vlogs",
           latestNews: "Read latest news",
           publicVlogs: "Public vlogs",
           request: "Leave a fan request",
@@ -211,8 +230,13 @@ function getCopy(locale: Locale) {
         },
         latest: "Latest",
         news: {
+          body:
+            "Fan reporters expand the same AI character's day from different angles. First reports and fan-request-based stories become the growth points for the character IP.",
           fanOnly: "Fan-only news",
+          fanRequestBased: "Fan request",
+          firstReport: "First fan report",
           public: "Public news",
+          readCta: "Read news",
           reporters: "Reporters",
           title: "News franchise",
         },
@@ -245,6 +269,14 @@ function getCopy(locale: Locale) {
           remaining: (count: string) =>
             `${count} fan${count === "1" ? "" : "s"} left`,
           requested: "Joined",
+        },
+        today: {
+          body:
+            "Follow the latest fan reactions and vlog records to keep exploring this character's day.",
+          emptyBody:
+            "New public vlogs and fan requests will appear here as the character's daily log.",
+          emptyTitle: "Today's log is not ready yet.",
+          eyebrow: "Today's daily life",
         },
         vlog: {
           emptyFanOnly: "No displayable fan-only vlogs yet.",
@@ -282,6 +314,12 @@ function toTimestamp(value: Date | string | null | undefined) {
 
 function getArticleDisplayTitle(title: string) {
   return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
+}
+
+function isFanRequestBasedReport(report: FanletterNewsReportDocument) {
+  return /팬 요청|fan request|request/i.test(
+    [report.title, report.sourceTitle, report.dek].join(" "),
+  );
 }
 
 function getReportDate(report: FanletterNewsReportDocument) {
@@ -504,22 +542,45 @@ function NewsReportCard({
     referralCode,
   );
   const publishedAt = formatDate(getReportDate(report), locale);
+  const firstReport = isFanletterNewsFirstReportForContent(
+    report as FanletterNewsReportDocument & {
+      firstNewsReportForContent?: boolean;
+    },
+  );
+  const fanRequestBased = isFanRequestBasedReport(report);
 
   return (
     <article className="grid min-w-0 overflow-hidden border border-black/12 bg-white">
-      <Link href={href}>
+      <Link className="relative block" href={href}>
         <CoverImage
           alt=""
           blurred={blurred}
           imageUrl={report.coverImageUrl}
           sizes="(max-width: 768px) 100vw, 24rem"
         />
+        {firstReport ? (
+          <span className="absolute left-3 top-3 inline-flex max-w-[calc(100%-1.5rem)] rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.62rem] font-black uppercase leading-none tracking-[0.08em] text-black shadow-[0_12px_28px_rgba(0,0,0,0.24)]">
+            <span className="truncate">
+              {getFanletterNewsFirstReportBadgeLabel(locale)}
+            </span>
+          </span>
+        ) : null}
       </Link>
       <div className="flex min-w-0 flex-col p-4">
         <div className="flex flex-wrap items-center gap-2 text-[0.66rem] font-black uppercase tracking-[0.1em]">
           <span className="bg-[#44f26e] px-2 py-1 text-black">
             {getAccessLabel(report, copy)}
           </span>
+          {firstReport ? (
+            <span className="border border-[#1eb84a]/20 bg-[#eaffef] px-2 py-1 text-[#11732d]">
+              {copy.news.firstReport}
+            </span>
+          ) : null}
+          {fanRequestBased ? (
+            <span className="border border-black/10 bg-[#f5f6f2] px-2 py-1 text-black/58">
+              {copy.news.fanRequestBased}
+            </span>
+          ) : null}
           {publishedAt ? <span className="text-black/38">{publishedAt}</span> : null}
         </div>
         <Link
@@ -542,7 +603,7 @@ function NewsReportCard({
             {report.reporterName}
           </span>
           <span className="shrink-0 text-xs font-black text-[#16702e]">
-            {copy.cta.latestNews}
+            {copy.news.readCta}
           </span>
         </div>
       </div>
@@ -826,10 +887,12 @@ type CharacterActivityRecord = {
 };
 
 function CharacterActivityTimeline({
+  characterName,
   copy,
   records,
   locale,
 }: {
+  characterName: string;
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
   records: CharacterActivityRecord[];
@@ -842,7 +905,9 @@ function CharacterActivityTimeline({
             {copy.activity.eyebrow}
           </p>
           <h2 className="mt-1 break-words text-xl font-black leading-tight [word-break:keep-all] sm:text-2xl">
-            {copy.activity.title}
+            {locale === "ko"
+              ? `${characterName}의 ${copy.activity.title}`
+              : `${characterName} ${copy.activity.title}`}
           </h2>
           <p className="mt-2 max-w-2xl text-xs font-semibold leading-5 text-black/58 sm:text-sm sm:leading-6">
             {copy.activity.body}
@@ -1168,6 +1233,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
   ]
     .sort((left, right) => toTimestamp(right.date) - toTimestamp(left.date))
     .slice(0, 6);
+  const heroMoment = activityRecords[0] ?? null;
   const nsfwCopy = getFanletterNsfwCopy(locale);
 
   return (
@@ -1218,6 +1284,41 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 {characterSummary}
               </p>
 
+              <div className="mt-4 border border-white/14 bg-white/[0.06] p-3.5 shadow-[0_18px_42px_rgba(0,0,0,0.18)] sm:p-4">
+                <div className="flex min-w-0 gap-3">
+                  <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-black">
+                    {heroMoment?.icon ?? <Sparkles className="size-5" />}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <p className="text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                        {copy.today.eyebrow}
+                      </p>
+                      {heroMoment?.date ? (
+                        <span className="text-[0.66rem] font-bold text-white/38">
+                          {formatDate(heroMoment.date, locale)}
+                        </span>
+                      ) : null}
+                    </div>
+                    {heroMoment?.href ? (
+                      <Link
+                        className="mt-1 line-clamp-2 break-words text-base font-black leading-6 !text-white [word-break:keep-all] hover:!text-[#44f26e]"
+                        href={heroMoment.href}
+                      >
+                        {heroMoment.title}
+                      </Link>
+                    ) : (
+                      <p className="mt-1 line-clamp-2 break-words text-base font-black leading-6 text-white [word-break:keep-all]">
+                        {heroMoment?.title ?? copy.today.emptyTitle}
+                      </p>
+                    )}
+                    <p className="mt-1.5 line-clamp-2 text-sm font-semibold leading-6 text-white/58">
+                      {heroMoment?.body ?? copy.today.emptyBody}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="mt-5 grid grid-cols-3 gap-2">
                 {growthStats.slice(0, 3).map((stat) => (
                   <div
@@ -1237,13 +1338,27 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 ))}
               </div>
 
-              <div className="mt-auto grid gap-2 pt-5 sm:grid-cols-[1fr_auto]">
+              <div className="mt-auto grid grid-cols-2 gap-2 pt-5 sm:grid-cols-[1fr_1fr_1fr_auto]">
                 <Link
                   className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#44f26e] px-4 py-2.5 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
                   href={latestNewsHref}
                 >
                   {copy.cta.latestNews}
                   <ArrowRight className="size-4" />
+                </Link>
+                <Link
+                  className="inline-flex min-h-11 items-center justify-center gap-2 border border-white/18 bg-white/[0.06] px-4 py-2.5 text-center text-sm font-black !text-white transition hover:border-[#44f26e] hover:bg-[#44f26e]/10"
+                  href={publicVlogsHref}
+                >
+                  <Clapperboard className="size-4 text-[#44f26e]" />
+                  {copy.cta.dailyVlogs}
+                </Link>
+                <Link
+                  className="inline-flex min-h-11 items-center justify-center gap-2 border border-white/18 bg-white/[0.06] px-4 py-2.5 text-center text-sm font-black !text-white transition hover:border-[#44f26e] hover:bg-[#44f26e]/10"
+                  href={requestHref}
+                >
+                  <MessageCircleHeart className="size-4 text-[#44f26e]" />
+                  {copy.cta.request}
                 </Link>
                 <FanletterChannelShareButton
                   className="h-auto min-h-11 rounded-none border-white/18 px-4 py-2.5 font-black"
@@ -1280,6 +1395,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
         ) : null}
 
         <CharacterActivityTimeline
+          characterName={characterName}
           copy={copy}
           locale={locale}
           records={activityRecords}
@@ -1401,17 +1517,24 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
         </section>
 
         <section className="mt-7 border-t-2 border-[#111510] pt-5">
-          <div className="mb-4 flex items-end justify-between gap-3">
-            <div>
+          <div className="mb-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+            <div className="min-w-0">
               <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
                 {copy.news.title}
               </p>
-              <h2 className="mt-1 text-2xl font-black">{characterName}</h2>
+              <h2 className="mt-1 break-words text-2xl font-black leading-tight [word-break:keep-all] sm:text-3xl">
+                {locale === "ko"
+                  ? `${characterName} 뉴스 프랜차이즈`
+                  : `${characterName} news franchise`}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-black/58">
+                {copy.news.body}
+              </p>
             </div>
-            <div className="hidden grid-cols-4 gap-2 sm:grid">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {newsStats.map((stat) => (
                 <div
-                  className="min-w-[6rem] border border-black/10 bg-white px-3 py-2 text-right"
+                  className="min-w-0 border border-black/10 bg-white px-3 py-2 text-right"
                   key={stat.label}
                 >
                   <p className="text-xl font-black">
