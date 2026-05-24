@@ -879,16 +879,16 @@ export function FanletterReportsCoverManager({
   return (
     <>
       <section className="mt-6">
-        <div className="hidden overflow-x-auto border border-black/12 bg-white shadow-[0_18px_44px_rgba(17,21,16,0.07)] md:block">
-          <table className="w-full min-w-[76rem] border-collapse text-left">
+        <div className="hidden overflow-hidden border border-black/12 bg-white shadow-[0_18px_44px_rgba(17,21,16,0.07)] xl:block">
+          <table className="w-full table-fixed border-collapse text-left">
             <thead className="border-b border-black/12 bg-[#f6f8f4] text-[0.68rem] font-black uppercase tracking-[0.12em] text-black/46">
               <tr>
                 <th className="w-28 px-4 py-3">{listCopy.coverImage}</th>
                 <th className="px-4 py-3">{listCopy.reportTitle}</th>
-                <th className="w-56 px-4 py-3">{listCopy.source}</th>
-                <th className="w-64 px-4 py-3">{listCopy.incentive}</th>
-                <th className="w-36 px-4 py-3">{listCopy.updatedAt}</th>
-                <th className="w-56 px-4 py-3 text-right">{copy.modalEyebrow}</th>
+                <th className="w-48 px-3 py-3">{listCopy.source}</th>
+                <th className="w-60 px-3 py-3">{listCopy.incentive}</th>
+                <th className="w-32 px-3 py-3">{listCopy.updatedAt}</th>
+                <th className="w-44 px-3 py-3 text-right">{copy.modalEyebrow}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-black/10">
@@ -959,9 +959,9 @@ export function FanletterReportsCoverManager({
                         {report.dek}
                       </p>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-4">
                       <Link
-                        className="inline-flex min-w-0 max-w-[13rem] items-start gap-2 text-sm font-bold leading-5 !text-black/58 transition hover:!text-[#16702e]"
+                        className="inline-flex min-w-0 items-start gap-2 text-sm font-bold leading-5 !text-black/58 transition hover:!text-[#16702e]"
                         href={report.sourceHref}
                       >
                         <Clapperboard className="mt-0.5 size-4 shrink-0 text-[#16702e]" />
@@ -971,7 +971,7 @@ export function FanletterReportsCoverManager({
                         {report.creatorName}
                       </p>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-4">
                       <div className="grid grid-cols-2 gap-1.5">
                         <div className="rounded-lg border border-black/8 bg-[#f6f8f4] px-2 py-2">
                           <p className="text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/36">
@@ -1018,14 +1018,14 @@ export function FanletterReportsCoverManager({
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-sm font-black text-black/58">
+                    <td className="px-3 py-4 text-sm font-black text-black/58">
                       <span className="inline-flex items-center gap-1.5">
                         <CalendarDays className="size-4 text-[#16702e]" />
                         {updatedAt}
                       </span>
                     </td>
-                    <td className="px-4 py-4">
-                      <div className="flex justify-end gap-2">
+                    <td className="px-3 py-4">
+                      <div className="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-1.5">
                         <Link
                           className="inline-flex size-10 items-center justify-center rounded-full border border-black/12 bg-white text-black/58 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#111510]"
                           href={report.reportHref}
@@ -1034,19 +1034,19 @@ export function FanletterReportsCoverManager({
                           <ExternalLink className="size-4" />
                         </Link>
                         <Link
-                          className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-black"
+                          className="inline-flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-full bg-[#111510] px-3 text-sm font-black !text-white transition hover:bg-black"
                           href={report.editHref}
                         >
                           <Edit3 className="size-4 text-[#44f26e]" />
-                          {listCopy.editReport}
+                          <span className="truncate">{listCopy.editReport}</span>
                         </Link>
                         <button
-                          className="inline-flex h-10 items-center justify-center gap-1.5 rounded-full border border-black/12 bg-[#f5f7f1] px-4 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                          className="col-span-2 inline-flex h-10 min-w-0 items-center justify-center gap-1.5 rounded-full border border-black/12 bg-[#f5f7f1] px-3 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
                           onClick={() => openCoverModal(report)}
                           type="button"
                         >
                           <ImageIcon className="size-4 text-[#16702e]" />
-                          {listCopy.updateCover}
+                          <span className="truncate">{listCopy.updateCover}</span>
                         </button>
                       </div>
                     </td>
@@ -1057,7 +1057,7 @@ export function FanletterReportsCoverManager({
           </table>
         </div>
 
-        <div className="grid gap-3 md:hidden">
+        <div className="grid gap-3 xl:hidden">
           {reports.map((report, index) => {
             const updatedAt = formatDate(report.updatedAt, locale);
             const shouldBypassCoverImageOptimization =
