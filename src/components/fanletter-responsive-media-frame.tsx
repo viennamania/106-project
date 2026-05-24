@@ -111,6 +111,7 @@ export function FanletterResponsiveMediaFrame({
   const shouldShowLockedPinGate = requiresNsfwPin && !isNsfwPinUnlocked;
   const shouldBlurLockedPinTeaser =
     shouldShowLockedPinGate && nsfwPinGate?.teaserBlurred;
+  const shouldUseVideoPosterTreatment = mediaType === "video" && Boolean(imageUrl);
   const nsfwPinRelockCopy = nsfwPinGate
     ? getNsfwPinRelockCopy(nsfwPinGate.locale)
     : null;
@@ -256,10 +257,31 @@ export function FanletterResponsiveMediaFrame({
     >
       {imageUrl ? (
         <>
+          {shouldUseVideoPosterTreatment ? (
+            <Image
+              alt=""
+              aria-hidden="true"
+              className={cn(
+                "scale-[1.12] object-cover opacity-70 blur-2xl brightness-[0.64] saturate-[1.06]",
+                blurred
+                  ? "brightness-[0.54] saturate-[0.82]"
+                  : shouldBlurLockedPinTeaser
+                    ? "brightness-[0.58] saturate-[0.86]"
+                    : null,
+              )}
+              fill
+              loading={eager ? "eager" : undefined}
+              sizes="(max-width: 768px) 100vw, 50vw"
+              src={imageUrl}
+              unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+            />
+          ) : null}
           <Image
             alt={alt}
             className={cn(
-              "object-cover",
+              shouldUseVideoPosterTreatment
+                ? "object-contain p-1.5 sm:p-2"
+                : "object-cover",
               blurred
                 ? "scale-[1.06] blur-lg brightness-[0.72] saturate-[0.88]"
                 : shouldBlurLockedPinTeaser
@@ -273,6 +295,9 @@ export function FanletterResponsiveMediaFrame({
             src={imageUrl}
             unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
           />
+          {shouldUseVideoPosterTreatment ? (
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_26%,transparent,rgba(0,0,0,0.3)_58%,rgba(0,0,0,0.58))]" />
+          ) : null}
           {blurred || shouldBlurLockedPinTeaser ? (
             <div className="pointer-events-none absolute inset-0 bg-black/10" />
           ) : null}

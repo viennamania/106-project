@@ -2296,6 +2296,7 @@ export const getFanletterPublicContentDetail = cache(
         coverPlacement: "detail",
         newsReportCount: authorNewsReportCountByContentId.get(post.contentId) ?? 0,
         post,
+        preferCoverImageUrl: true,
         profile,
         social,
       }),
@@ -2314,6 +2315,7 @@ export const getFanletterPublicContentDetail = cache(
           newsReportCount:
             authorNewsReportCountByContentId.get(authorPost.contentId) ?? 0,
           post: authorPost,
+          preferCoverImageUrl: true,
           profile,
           social: authorSocialByContentId.get(authorPost.contentId),
         }),

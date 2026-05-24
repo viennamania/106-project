@@ -76,6 +76,7 @@ import type {
   FanletterPublicFanRequestPreview,
 } from "@/lib/fanletter-content-service";
 import type { FanletterPromoSponsor } from "@/lib/fanletter-promo-sponsor";
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import type { Locale } from "@/lib/i18n";
 import { getFanletterRealismDisclosureCopy } from "@/lib/fanletter-realism-policy";
 import { getFanletterNsfwCopy } from "@/lib/fanletter-nsfw";
@@ -4572,6 +4573,9 @@ function FanletterRelatedVlogCard({
   const displayTitle = getDisplayContentTitle(item, locale);
   const isNsfw = item.contentMaturityRating === "nsfw";
   const nsfwCopy = getFanletterNsfwCopy(locale);
+  const shouldBypassCoverOptimization = shouldBypassFanletterImageOptimization(
+    item.coverImageUrl,
+  );
   const accessBadge =
     item.priceType === "paid"
       ? locale === "ko"
@@ -4595,18 +4599,34 @@ function FanletterRelatedVlogCard({
     >
       <div className="relative aspect-[9/14] overflow-hidden rounded-lg bg-[#07100b]">
         {item.coverImageUrl ? (
-          <Image
-            alt=""
-            aria-hidden="true"
-            className={
-              shouldBlurCover
-                ? "scale-[1.06] object-cover blur-lg brightness-[0.74] saturate-[0.9] transition duration-500 group-hover:scale-[1.09]"
-                : "object-cover transition duration-500 group-hover:scale-[1.025]"
-            }
-            fill
-            sizes="6rem"
-            src={item.coverImageUrl}
-          />
+          <>
+            <Image
+              alt=""
+              aria-hidden="true"
+              className={cn(
+                "scale-[1.14] object-cover opacity-[0.68] blur-xl brightness-[0.58] saturate-[1.05] transition duration-500 group-hover:scale-[1.18]",
+                shouldBlurCover && "brightness-[0.5] saturate-[0.86]",
+              )}
+              fill
+              sizes="6rem"
+              src={item.coverImageUrl}
+              unoptimized={shouldBypassCoverOptimization}
+            />
+            <Image
+              alt=""
+              aria-hidden="true"
+              className={cn(
+                "object-contain p-1.5 transition duration-500 group-hover:scale-[1.025]",
+                shouldBlurCover &&
+                  "scale-[1.04] blur-md brightness-[0.76] saturate-[0.88] group-hover:scale-[1.07]",
+              )}
+              fill
+              sizes="6rem"
+              src={item.coverImageUrl}
+              unoptimized={shouldBypassCoverOptimization}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.1),rgba(0,0,0,0.36))]" />
+          </>
         ) : fallbackThumbUrl ? (
           <div
             aria-hidden="true"
