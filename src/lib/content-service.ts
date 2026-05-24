@@ -3148,15 +3148,19 @@ export async function updateContentPostForMember(
       "exclusiveNewsReporterReferralCode",
     ) ||
     Object.prototype.hasOwnProperty.call(input, "exclusiveNewsDurationHours");
+  const shouldUpdateExclusiveNewsReporter = Object.prototype.hasOwnProperty.call(
+    input,
+    "exclusiveNewsReporterReferralCode",
+  );
   const nextExclusiveNewsAssignment = shouldUpdateExclusiveNewsAssignment
     ? await resolveExclusiveNewsAssignmentForContent({
         durationHours: input.exclusiveNewsDurationHours,
         now,
         priceType: nextPriceType,
         reporterReferralCode:
-          input.exclusiveNewsReporterReferralCode ??
-          post.exclusiveNewsReporterReferralCode ??
-          null,
+          shouldUpdateExclusiveNewsReporter
+            ? input.exclusiveNewsReporterReferralCode
+            : post.exclusiveNewsReporterReferralCode ?? null,
         status: nextStatus,
       })
     : nextPriceType === "free" && nextStatus === "published"

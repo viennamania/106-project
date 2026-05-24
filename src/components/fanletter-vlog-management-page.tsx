@@ -131,6 +131,7 @@ type VlogCoverUploadResponse = {
 
 const FANLETTER_VLOG_DISCONNECTED_GRACE_MS = 4500;
 const VLOGS_PAGE_SIZE = 18;
+const EXCLUSIVE_NEWS_DURATION_OPTIONS = [6, 12, 24] as const;
 const VLOG_COVER_CROP_ASPECT_RATIO = 16 / 9;
 const VLOG_COVER_CROP_MAX_ZOOM = 3;
 const VLOG_COVER_CROP_OUTPUT_HEIGHT = 675;
@@ -165,6 +166,7 @@ function getCopy(locale: Locale) {
     ? {
         actions: {
           archive: "보관",
+          assignExclusive: "단독 지정",
           back: "스튜디오",
           changeCover: "커버 변경",
           channels: "채널 배포",
@@ -182,6 +184,7 @@ function getCopy(locale: Locale) {
           search: "검색",
           sales: "판매 내역",
           unmarkNsfw: "NSFW 해제",
+          clearExclusive: "단독 해제",
           viewAllMaturity: "전체 수위 보기",
           viewNsfw: "NSFW만 보기",
         },
@@ -227,6 +230,22 @@ function getCopy(locale: Locale) {
           "유료 팬 전용 브이로그는 팬이 남긴 브이로그 요청에 답장할 때 등록합니다. 팬 요청함에서 답장할 요청을 먼저 선택하세요.",
         emptyPaidTitle: "답장할 팬 요청을 먼저 선택하세요.",
         eyebrow: "FanLetter Vlog Manager",
+        exclusiveNews: {
+          active: "단독 보도 진행 중",
+          body:
+            "무료 공개 브이로그에 리포터를 지정하면 해당 시간 동안 지정 리포터만 뉴스 리포트를 발행할 수 있습니다.",
+          clearedNotice: "단독 보도권을 해제했습니다.",
+          codeLabel: "리포터 ID",
+          codePlaceholder: "예: P2PZVJA5",
+          durationLabel: "보장 시간",
+          helper: "완료 가입된 리포터 ID만 지정할 수 있습니다.",
+          inactive: "단독 보도권 없음",
+          savedNotice: "단독 보도 리포터를 지정했습니다.",
+          title: "단독 보도 리포터",
+          unavailable:
+            "단독 보도권은 공개 상태의 무료 브이로그에서만 지정할 수 있습니다.",
+          until: "만료",
+        },
         labels: {
           all: "전체",
           archived: "보관",
@@ -272,6 +291,7 @@ function getCopy(locale: Locale) {
     : {
         actions: {
           archive: "Archive",
+          assignExclusive: "Assign exclusive",
           back: "Studio",
           changeCover: "Change cover",
           channels: "Channel distribution",
@@ -289,6 +309,7 @@ function getCopy(locale: Locale) {
           search: "Search",
           sales: "Sales",
           unmarkNsfw: "Clear NSFW",
+          clearExclusive: "Clear exclusive",
           viewAllMaturity: "View all maturity",
           viewNsfw: "View NSFW only",
         },
@@ -334,6 +355,22 @@ function getCopy(locale: Locale) {
           "Paid fan-only vlogs are registered when you answer a fan's vlog request. Choose the request from the fan request inbox first.",
         emptyPaidTitle: "Choose a fan request first.",
         eyebrow: "FanLetter Vlog Manager",
+        exclusiveNews: {
+          active: "Exclusive report window active",
+          body:
+            "Assign a reporter to a free public vlog so only that reporter can publish the news report during the selected window.",
+          clearedNotice: "The exclusive report window has been cleared.",
+          codeLabel: "Reporter ID",
+          codePlaceholder: "e.g. P2PZVJA5",
+          durationLabel: "Window",
+          helper: "Only completed reporter IDs can be assigned.",
+          inactive: "No exclusive reporter",
+          savedNotice: "The exclusive reporter has been assigned.",
+          title: "Exclusive reporter",
+          unavailable:
+            "Exclusive reporting can only be assigned to published free vlogs.",
+          until: "Until",
+        },
         labels: {
           all: "All",
           archived: "Archived",
@@ -655,6 +692,22 @@ function getPostPriceLabel(
   }
 
   return copy.labels.free;
+}
+
+function normalizeReporterCodeInput(value: string) {
+  return value.replace(/[^a-zA-Z0-9]/g, "").slice(0, 12).toUpperCase();
+}
+
+function getExclusiveNewsReporterLabel(post: CreatorStudioPostRecord) {
+  return (
+    post.exclusiveNews.reporterName?.trim() ||
+    post.exclusiveNews.reporterReferralCode?.trim() ||
+    null
+  );
+}
+
+function canAssignExclusiveNews(post: CreatorStudioPostRecord) {
+  return post.priceType === "free" && post.status === "published";
 }
 
 function getPriceFilterLabel(
@@ -1170,6 +1223,69 @@ export function FanletterVlogManagementPage({
           nextContentMaturityRating === "nsfw"
             ? copy.nsfwNoticeOn
             : copy.nsfwNoticeOff,
+      }));
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error: error instanceof Error ? error.message : copy.loading,
+        notice: null,
+      }));
+    } finally {
+      setUpdatingPostId(null);
+    }
+  }
+
+  async function updatePostExclusiveNews({
+    durationHours,
+    post,
+    reporterReferralCode,
+  }: {
+    durationHours: number | null;
+    post: CreatorStudioPostRecord;
+    reporterReferralCode: string | null;
+  }) {
+    if (!accountAddress) {
+      return;
+    }
+
+    setUpdatingPostId(post.contentId);
+
+    try {
+      const resolvedEmail = await resolveMemberEmail();
+      const normalizedReporterCode = reporterReferralCode
+        ? normalizeReporterCodeInput(reporterReferralCode)
+        : null;
+      const response = await fetch(`/api/content/posts/${post.contentId}`, {
+        body: JSON.stringify({
+          email: resolvedEmail,
+          exclusiveNewsDurationHours: normalizedReporterCode ? durationHours : null,
+          exclusiveNewsReporterReferralCode: normalizedReporterCode,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "PATCH",
+      });
+      const data = await readApiJson<ContentPostMutationResponse>(
+        response,
+        copy.loading,
+      );
+
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice: normalizedReporterCode
+          ? copy.exclusiveNews.savedNotice
+          : copy.exclusiveNews.clearedNotice,
+        posts: current.posts.map((currentPost) =>
+          currentPost.contentId === data.content.contentId
+            ? {
+                ...currentPost,
+                ...data.content,
+              }
+            : currentPost,
+        ),
       }));
     } catch (error) {
       setState((current) => ({
@@ -1997,6 +2113,20 @@ export function FanletterVlogManagementPage({
                       void updatePostStatus(post, "archived");
                     }}
                     onChangeCover={() => openCoverModal(post)}
+                    onClearExclusive={() => {
+                      void updatePostExclusiveNews({
+                        durationHours: null,
+                        post,
+                        reporterReferralCode: null,
+                      });
+                    }}
+                    onSaveExclusive={(reporterReferralCode, durationHours) => {
+                      void updatePostExclusiveNews({
+                        durationHours,
+                        post,
+                        reporterReferralCode,
+                      });
+                    }}
                     onToggleMaturity={(nextContentMaturityRating) => {
                       void updatePostMaturity(post, nextContentMaturityRating);
                     }}
@@ -2414,7 +2544,9 @@ function VlogManagerCard({
   locale,
   onArchive,
   onChangeCover,
+  onClearExclusive,
   onPublish,
+  onSaveExclusive,
   onToggleMaturity,
   post,
   referralCode,
@@ -2425,7 +2557,9 @@ function VlogManagerCard({
   locale: Locale;
   onArchive: () => void;
   onChangeCover: () => void;
+  onClearExclusive: () => void;
   onPublish: () => void;
+  onSaveExclusive: (reporterReferralCode: string, durationHours: number) => void;
   onToggleMaturity: (nextContentMaturityRating: ContentMaturityRating) => void;
   post: CreatorStudioPostRecord;
   referralCode: string | null;
@@ -2439,6 +2573,17 @@ function VlogManagerCard({
     post.priceType === "paid" &&
     getContentVideoAssetSource(videoUrl) === "uploaded";
   const nextMaturity = isNsfw ? "general" : "nsfw";
+  const exclusiveReporterLabel = getExclusiveNewsReporterLabel(post);
+  const hasExclusiveNewsAssignment = Boolean(
+    post.exclusiveNews.reporterReferralCode && post.exclusiveNews.until,
+  );
+  const canEditExclusiveNews = canAssignExclusiveNews(post);
+  const [exclusiveReporterCodeInput, setExclusiveReporterCodeInput] = useState(
+    post.exclusiveNews.reporterReferralCode ?? "",
+  );
+  const [exclusiveDurationHours, setExclusiveDurationHours] = useState<
+    (typeof EXCLUSIVE_NEWS_DURATION_OPTIONS)[number]
+  >(12);
   const detailHref = setPathSearchParams(
     buildPathWithReferral(
       `/${locale}/fanletter/content/${post.contentId}`,
@@ -2526,6 +2671,14 @@ function VlogManagerCard({
           <StatusPill status={isNsfw ? "nsfw" : "general"}>
             {isNsfw ? copy.labels.nsfw : copy.labels.generalContent}
           </StatusPill>
+          {hasExclusiveNewsAssignment ? (
+            <StatusPill status="exclusive">
+              <LockKeyhole className="mr-1 size-3.5" />
+              {post.exclusiveNews.active
+                ? copy.exclusiveNews.active
+                : copy.exclusiveNews.inactive}
+            </StatusPill>
+          ) : null}
         </div>
         <h3 className="mt-3 break-words text-xl font-semibold tracking-normal text-black [overflow-wrap:anywhere]">
           {post.title}
@@ -2567,6 +2720,138 @@ function VlogManagerCard({
               </div>
             ))}
           </div>
+        </div>
+        <div className="mt-3 rounded-lg border border-[#16702e]/16 bg-[#f6f8f4] p-3">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div className="min-w-0">
+              <p className="inline-flex items-center gap-2 text-sm font-semibold text-black">
+                <LockKeyhole className="size-4 text-[#16702e]" />
+                {copy.exclusiveNews.title}
+              </p>
+              <p className="mt-1 text-xs font-medium leading-5 text-black/52">
+                {copy.exclusiveNews.body}
+              </p>
+              {hasExclusiveNewsAssignment ? (
+                <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
+                  <span className="rounded-full border border-[#16702e]/18 bg-white px-3 py-1 text-[#0c5f24]">
+                    {exclusiveReporterLabel}
+                    {post.exclusiveNews.reporterReferralCode
+                      ? ` · ${post.exclusiveNews.reporterReferralCode}`
+                      : ""}
+                  </span>
+                  <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-black/54">
+                    {copy.exclusiveNews.until} ·{" "}
+                    {formatDateLabel(locale, post.exclusiveNews.until)}
+                  </span>
+                </div>
+              ) : (
+                <p className="mt-3 text-xs font-semibold text-black/42">
+                  {copy.exclusiveNews.inactive}
+                </p>
+              )}
+            </div>
+            {hasExclusiveNewsAssignment ? (
+              <button
+                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-white disabled:opacity-50"
+                disabled={isUpdating}
+                onClick={() => {
+                  setExclusiveReporterCodeInput("");
+                  onClearExclusive();
+                }}
+                type="button"
+              >
+                {isUpdating ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <X className="size-4" />
+                )}
+                {copy.actions.clearExclusive}
+              </button>
+            ) : null}
+          </div>
+          {canEditExclusiveNews ? (
+            <form
+              className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const reporterCode = normalizeReporterCodeInput(
+                  exclusiveReporterCodeInput,
+                );
+
+                if (!reporterCode) {
+                  return;
+                }
+
+                onSaveExclusive(reporterCode, exclusiveDurationHours);
+              }}
+            >
+              <label className="block">
+                <span className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-black/38">
+                  {copy.exclusiveNews.codeLabel}
+                </span>
+                <input
+                  className="mt-2 h-11 w-full rounded-full border border-black/10 bg-white px-4 text-sm font-semibold uppercase tracking-[0.08em] text-black outline-none transition placeholder:normal-case placeholder:tracking-normal placeholder:text-black/28 focus:border-[#16702e]"
+                  maxLength={12}
+                  onChange={(event) => {
+                    setExclusiveReporterCodeInput(
+                      normalizeReporterCodeInput(event.target.value),
+                    );
+                  }}
+                  placeholder={copy.exclusiveNews.codePlaceholder}
+                  value={exclusiveReporterCodeInput}
+                />
+              </label>
+              <div>
+                <span className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-black/38">
+                  {copy.exclusiveNews.durationLabel}
+                </span>
+                <div className="mt-2 grid grid-cols-3 gap-1.5">
+                  {EXCLUSIVE_NEWS_DURATION_OPTIONS.map((durationHours) => {
+                    const isSelected = exclusiveDurationHours === durationHours;
+
+                    return (
+                      <button
+                        className={`inline-flex h-11 min-w-16 items-center justify-center rounded-full border px-3 text-sm font-semibold transition ${
+                          isSelected
+                            ? "border-black bg-black text-white"
+                            : "border-black/10 bg-white text-black/58 hover:border-black/20"
+                        }`}
+                        key={durationHours}
+                        onClick={() => {
+                          setExclusiveDurationHours(durationHours);
+                        }}
+                        type="button"
+                      >
+                        {durationHours}h
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <button
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={
+                  isUpdating ||
+                  normalizeReporterCodeInput(exclusiveReporterCodeInput).length === 0
+                }
+                type="submit"
+              >
+                {isUpdating ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Newspaper className="size-4" />
+                )}
+                {copy.actions.assignExclusive}
+              </button>
+            </form>
+          ) : (
+            <p className="mt-3 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-semibold leading-5 text-black/48">
+              {copy.exclusiveNews.unavailable}
+            </p>
+          )}
+          <p className="mt-3 text-xs font-medium leading-5 text-black/42">
+            {copy.exclusiveNews.helper}
+          </p>
         </div>
         {!canManageNsfw && post.priceType === "paid" && post.status !== "archived" ? (
           <p className="mt-3 rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-2 text-xs font-semibold leading-5 text-black/50">
@@ -2657,6 +2942,8 @@ function StatusPill({
   const className =
     status === "published"
       ? "border-[#44f26e]/40 bg-[#44f26e]/12 text-[#0c5f24]"
+      : status === "exclusive"
+        ? "border-[#16702e]/24 bg-[#e9f8ec] text-[#0c5f24]"
       : status === "draft"
         ? "border-amber-200 bg-amber-50 text-amber-800"
         : status === "archived"

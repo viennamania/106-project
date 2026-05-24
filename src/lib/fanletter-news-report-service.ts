@@ -1564,6 +1564,21 @@ export async function getOrCreateFanletterNewsReport({
     reporterReferralCode: normalizedReporterReferralCode,
   });
 
+  const postsCollection = await getContentPostsCollection();
+  const post = await postsCollection.findOne({
+    contentId: normalizedContentId,
+    status: "published",
+  });
+
+  if (!post) {
+    throw new Error("Content not found.");
+  }
+
+  assertCanCreateReportForExclusiveAssignment({
+    post,
+    reporterReferralCode: normalizedReporterReferralCode,
+  });
+
   const reportsCollection = await getFanletterNewsReportsCollection();
   const existing = await reportsCollection.findOne({
     contentId: normalizedContentId,
@@ -1598,21 +1613,6 @@ export async function getOrCreateFanletterNewsReport({
       updatedAt,
     };
   }
-
-  const postsCollection = await getContentPostsCollection();
-  const post = await postsCollection.findOne({
-    contentId: normalizedContentId,
-    status: "published",
-  });
-
-  if (!post) {
-    throw new Error("Content not found.");
-  }
-
-  assertCanCreateReportForExclusiveAssignment({
-    post,
-    reporterReferralCode: normalizedReporterReferralCode,
-  });
 
   const profilesCollection = await getCreatorProfilesCollection();
   const profile = await profilesCollection.findOne({ email: post.authorEmail });
