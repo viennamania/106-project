@@ -10,6 +10,18 @@ type FanletterRelatedNewsReport = FanletterNewsReportDocument & {
   relatedSourceVlogAvailable?: boolean;
 };
 
+export const FANLETTER_RELATED_NEWS_SORTS = [
+  "first",
+  "latest",
+  "unlock",
+] as const;
+
+export type FanletterRelatedNewsSort =
+  (typeof FANLETTER_RELATED_NEWS_SORTS)[number];
+
+export const DEFAULT_FANLETTER_RELATED_NEWS_SORT =
+  "first" satisfies FanletterRelatedNewsSort;
+
 export type FanletterRelatedNewsSourceReveal = {
   count: number;
   progressLabel: string;
@@ -42,6 +54,25 @@ export function getFanletterNewsArticleDisplayTitle(title: string) {
     /^\[(AI 팬 리포트|AI fan report)\]\s*/i,
     "",
   )}`;
+}
+
+function getFanletterRelatedNewsCardTitle(title: string) {
+  return getFanletterNewsArticleDisplayTitle(title).replace(
+    /^\[(최초|First)\]\s*/i,
+    "",
+  );
+}
+
+export function readFanletterRelatedNewsSort(
+  value?: string | string[] | null,
+): FanletterRelatedNewsSort {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+
+  return FANLETTER_RELATED_NEWS_SORTS.includes(
+    rawValue as FanletterRelatedNewsSort,
+  )
+    ? (rawValue as FanletterRelatedNewsSort)
+    : DEFAULT_FANLETTER_RELATED_NEWS_SORT;
 }
 
 export function isFanletterNewsFirstReportForContent(
@@ -159,6 +190,6 @@ export function serializeFanletterRelatedNewsItem({
     reportId: report.reportId,
     shouldBlur: shouldBlurFanletterNewsReport(report, nsfwOptInEnabled),
     sourceReveal: createRelatedNewsSourceRevealStatus(report),
-    title: getFanletterNewsArticleDisplayTitle(report.title),
+    title: getFanletterRelatedNewsCardTitle(report.title),
   };
 }

@@ -16,6 +16,10 @@ import type {
 import { resolveContentCoverImageUrl } from "@/lib/content-cover-selection";
 import { normalizeContentLocale } from "@/lib/content";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
+import {
+  DEFAULT_FANLETTER_RELATED_NEWS_SORT,
+  type FanletterRelatedNewsSort,
+} from "@/lib/fanletter-news-related";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 import {
   normalizeEmail,
@@ -860,6 +864,46 @@ function compareFirstReportPromotedNewsReports(
   }
 
   return right.reportId.localeCompare(left.reportId);
+}
+
+function compareLatestFanletterNewsReports(
+  left: FanletterNewsReportDisplayDocument,
+  right: FanletterNewsReportDisplayDocument,
+) {
+  const timeDelta =
+    getFanletterNewsReportSortTime(right) - getFanletterNewsReportSortTime(left);
+
+  if (timeDelta !== 0) {
+    return timeDelta;
+  }
+
+  return right.reportId.localeCompare(left.reportId);
+}
+
+function compareSourceRevealProgressNewsReports(
+  left: FanletterRelatedNewsReportDocument,
+  right: FanletterRelatedNewsReportDocument,
+) {
+  const leftCount = left.relatedSourceVlogAvailable
+    ? left.relatedSourceRevealCount
+    : -1;
+  const rightCount = right.relatedSourceVlogAvailable
+    ? right.relatedSourceRevealCount
+    : -1;
+
+  if (rightCount !== leftCount) {
+    return rightCount - leftCount;
+  }
+
+  const firstReportDelta =
+    Number(right.firstNewsReportForContent) -
+    Number(left.firstNewsReportForContent);
+
+  if (firstReportDelta !== 0) {
+    return firstReportDelta;
+  }
+
+  return compareLatestFanletterNewsReports(left, right);
 }
 
 async function hydrateFanletterNewsReportDisplayMetadata<
@@ -3348,6 +3392,7 @@ export const getRelatedFanletterNewsReports = cache(
     limit = 4,
     locale,
     offset = 0,
+    sort = DEFAULT_FANLETTER_RELATED_NEWS_SORT,
   }: {
     creatorReferralCode?: string | null;
     excludeContentId?: string | null;
@@ -3355,6 +3400,7 @@ export const getRelatedFanletterNewsReports = cache(
     limit?: number;
     locale: Locale;
     offset?: number;
+    sort?: FanletterRelatedNewsSort;
   }) => {
     const normalizedCreatorReferralCode =
       normalizeReferralCode(creatorReferralCode);
@@ -3392,8 +3438,22 @@ export const getRelatedFanletterNewsReports = cache(
     const hydratedReports = await hydrateFanletterNewsReportDisplayMetadata(
       reports,
     );
+
+    if (sort === "unlock") {
+      const reportsWithSourceReveal =
+        await hydrateRelatedFanletterNewsReportSourceVlogStatuses(hydratedReports);
+
+      return [...reportsWithSourceReveal]
+        .sort(compareSourceRevealProgressNewsReports)
+        .slice(normalizedOffset, normalizedOffset + normalizedLimit);
+    }
+
+    const relatedSort =
+      sort === "latest"
+        ? compareLatestFanletterNewsReports
+        : compareFirstReportPromotedNewsReports;
     const promotedReports = [...hydratedReports]
-      .sort(compareFirstReportPromotedNewsReports)
+      .sort(relatedSort)
       .slice(normalizedOffset, normalizedOffset + normalizedLimit);
 
     return hydrateRelatedFanletterNewsReportSourceVlogStatuses(promotedReports);

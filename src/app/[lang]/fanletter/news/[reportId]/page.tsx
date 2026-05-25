@@ -65,12 +65,16 @@ import {
   isFanletterNsfwOptedIn,
 } from "@/lib/fanletter-nsfw";
 import {
+  DEFAULT_FANLETTER_RELATED_NEWS_SORT,
+  FANLETTER_RELATED_NEWS_SORTS,
   getFanletterNewsArticleDisplayTitle as getArticleDisplayTitle,
   getFanletterNewsFirstReportBadgeLabel,
   getFanletterNewsReporterDisplayName as getReporterDisplayName,
   isFanletterNewsFirstReportForContent,
   isFanletterNewsReportNsfw as isNsfwReport,
+  readFanletterRelatedNewsSort,
   serializeFanletterRelatedNewsItem,
+  type FanletterRelatedNewsSort,
   shouldBlurFanletterNewsReport as shouldBlurReport,
   type FanletterRelatedNewsItem,
 } from "@/lib/fanletter-news-related";
@@ -90,6 +94,7 @@ import { buildWalletUnlockHref } from "@/lib/wallet-unlock";
 type FanletterNewsReportSearchParams = {
   ref?: string | string[];
   relatedLimit?: string | string[];
+  relatedSort?: string | string[];
 };
 
 type SourceVlogRevealGateState = FanletterNewsSourceRevealState & {
@@ -106,6 +111,7 @@ type SourceVlogRevealTeaserCopy = {
 const RELATED_NEWS_PAGE_SIZE = 4;
 const RELATED_NEWS_LIMIT_PARAM = "relatedLimit";
 const RELATED_NEWS_MAX_VISIBLE_COUNT = 24;
+const RELATED_NEWS_SORT_PARAM = "relatedSort";
 
 function readRelatedNewsVisibleCount(value?: string | string[]) {
   const rawValue = Array.isArray(value) ? value[0] : value;
@@ -244,12 +250,18 @@ function getCopy(locale: Locale) {
         },
         relatedNews: "이 캐릭터의 다른 뉴스",
         relatedNewsDescription:
-          "현재 뉴스와 같은 AI 캐릭터로 작성된 뉴스만 모았습니다. 최초 팬 리포트는 최신순 안에서 우선 노출됩니다.",
+          "현재 뉴스와 같은 AI 캐릭터로 작성된 뉴스만 모았습니다. 최신 발행, 최초 리포트, 원본 오픈 진행순으로 바꿔 볼 수 있습니다.",
         relatedNewsEyebrow: "같은 AI 캐릭터",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
         relatedNewsError: "다른 뉴스를 불러오지 못했습니다. 다시 시도해 주세요.",
         relatedNewsLoadMore: "이 캐릭터 뉴스 더 보기",
         relatedNewsLoading: "불러오는 중",
+        relatedNewsSortLabel: "정렬",
+        relatedNewsSortOptions: {
+          first: "최초 우선",
+          latest: "최신순",
+          unlock: "오픈 진행순",
+        },
         reporterNewsCta: "팬 기자 뉴스",
         reporterTrust: {
           basis: "작성·반응·언락·유료 구매 기여 기준",
@@ -423,12 +435,18 @@ function getCopy(locale: Locale) {
         },
         relatedNews: "More from this character",
         relatedNewsDescription:
-          "Only news written from the same AI character as this news is shown here. First fan reports are promoted within the latest feed.",
+          "Only news written from the same AI character is shown here. Switch between latest, first reports, and source-open progress.",
         relatedNewsEyebrow: "Same AI character",
         relatedNewsEmpty: "No other news from this character yet.",
         relatedNewsError: "Could not load more news. Please try again.",
         relatedNewsLoadMore: "Load more character news",
         relatedNewsLoading: "Loading",
+        relatedNewsSortLabel: "Sort",
+        relatedNewsSortOptions: {
+          first: "First reports",
+          latest: "Latest",
+          unlock: "Open progress",
+        },
         reporterNewsCta: "Fan reporter news",
         reporterTrust: {
           basis:
@@ -2238,6 +2256,7 @@ export default async function LocalizedFanletterNewsReportPage({
   const relatedNewsVisibleCount = readRelatedNewsVisibleCount(
     query.relatedLimit,
   );
+  const relatedNewsSort = readFanletterRelatedNewsSort(query.relatedSort);
   const memberServerSession = await readMemberServerSession();
   const [
     sourceContent,
@@ -2260,6 +2279,7 @@ export default async function LocalizedFanletterNewsReportPage({
       excludeReportId: report.reportId,
       limit: relatedNewsVisibleCount + 1,
       locale,
+      sort: relatedNewsSort,
     }),
     getFanletterNewsReporterIncentiveStats({
       reporterReferralCode: report.reporterReferralCode,
@@ -2353,7 +2373,20 @@ export default async function LocalizedFanletterNewsReportPage({
       locale,
       ref: referralCode,
       reportId: report.reportId,
+      sort: relatedNewsSort,
     },
+  );
+  const relatedNewsSortOptions = FANLETTER_RELATED_NEWS_SORTS.map(
+    (sortValue: FanletterRelatedNewsSort) => ({
+      active: sortValue === relatedNewsSort,
+      href: setPathSearchParams(articleHref, {
+        [RELATED_NEWS_LIMIT_PARAM]: null,
+        [RELATED_NEWS_SORT_PARAM]:
+          sortValue === DEFAULT_FANLETTER_RELATED_NEWS_SORT ? null : sortValue,
+      }),
+      label: copy.relatedNewsSortOptions[sortValue],
+      value: sortValue,
+    }),
   );
   const relatedNewsHasMore = relatedReports.length > relatedNewsVisibleCount;
   const publishedAt = formatDate(report.sourcePublishedAt, locale);
@@ -2686,6 +2719,10 @@ export default async function LocalizedFanletterNewsReportPage({
               pageSize={RELATED_NEWS_PAGE_SIZE}
               relatedApiHref={relatedNewsApiHref}
               relatedStateParamName={RELATED_NEWS_LIMIT_PARAM}
+              relatedSortParamName={RELATED_NEWS_SORT_PARAM}
+              sortLabel={copy.relatedNewsSortLabel}
+              sortOptions={relatedNewsSortOptions}
+              sortValue={relatedNewsSort}
             />
 
             <SourceContextCard

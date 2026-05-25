@@ -25,6 +25,13 @@ type FanletterNewsRelatedListCopy = {
   title: string;
 };
 
+type FanletterNewsRelatedSortOption = {
+  active: boolean;
+  href: string;
+  label: string;
+  value: string;
+};
+
 type FanletterNewsRelatedListResponse = {
   hasMore: boolean;
   items: FanletterRelatedNewsItem[];
@@ -44,13 +51,19 @@ function buildRelatedStateHref({
   itemCount,
   pageSize,
   stateParamName,
+  sortParamName,
+  sortValue,
 }: {
   baseHref: string;
   itemCount: number;
   pageSize: number;
   stateParamName: string;
+  sortParamName: string;
+  sortValue: string;
 }) {
   const url = new URL(baseHref, "https://fanletter.local");
+
+  url.searchParams.set(sortParamName, sortValue);
 
   if (itemCount > pageSize) {
     url.searchParams.set(stateParamName, String(itemCount));
@@ -107,33 +120,6 @@ function SourceRevealIcon({
   const Icon = unlocked ? CheckCircle2 : LockKeyhole;
 
   return <Icon aria-hidden="true" className={cn("shrink-0", className)} />;
-}
-
-function SourceRevealThumbnailBadge({
-  item,
-}: {
-  item: FanletterRelatedNewsItem;
-}) {
-  if (!item.sourceReveal) {
-    return null;
-  }
-
-  return (
-    <div
-      className={cn(
-        "absolute bottom-1.5 left-1.5 z-20 inline-flex max-w-[calc(100%-0.75rem)] items-center gap-1 rounded-full border px-1.5 py-1 text-[0.58rem] font-black leading-none shadow-[0_10px_22px_rgba(0,0,0,0.24)]",
-        item.sourceReveal.unlocked
-          ? "border-[#44f26e]/50 bg-[#eaffef] text-[#0b6f29]"
-          : "border-white/20 bg-black/72 text-white",
-      )}
-    >
-      <SourceRevealIcon
-        className="size-3"
-        unlocked={item.sourceReveal.unlocked}
-      />
-      <span className="truncate">{item.sourceReveal.progressLabel}</span>
-    </div>
-  );
 }
 
 function FirstReportBadge({
@@ -237,11 +223,6 @@ function RelatedNewsCard({
             </span>
           </div>
         ) : null}
-        <FirstReportBadge
-          className="absolute left-1.5 top-1.5 z-30 max-w-[calc(100%-0.75rem)]"
-          item={item}
-        />
-        <SourceRevealThumbnailBadge item={item} />
       </div>
       <div className="min-w-0">
         <p
@@ -282,6 +263,10 @@ export function FanletterNewsRelatedList({
   pageSize,
   relatedApiHref,
   relatedStateParamName,
+  relatedSortParamName,
+  sortLabel,
+  sortOptions,
+  sortValue,
 }: {
   characterName: string | null;
   copy: FanletterNewsRelatedListCopy;
@@ -290,6 +275,10 @@ export function FanletterNewsRelatedList({
   pageSize: number;
   relatedApiHref: string;
   relatedStateParamName: string;
+  relatedSortParamName: string;
+  sortLabel: string;
+  sortOptions: FanletterNewsRelatedSortOption[];
+  sortValue: string;
 }) {
   const [items, setItems] = useState(initialItems);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -373,6 +362,31 @@ export function FanletterNewsRelatedList({
         <p className="mt-2 text-sm font-semibold leading-6 text-black/54">
           {copy.description}
         </p>
+        {sortOptions.length > 0 ? (
+          <div
+            aria-label={sortLabel}
+            className="mt-3 flex flex-wrap items-center gap-1.5"
+          >
+            <span className="mr-1 text-[0.66rem] font-black uppercase tracking-[0.1em] text-black/42">
+              {sortLabel}
+            </span>
+            {sortOptions.map((option) => (
+              <Link
+                aria-current={option.active ? "page" : undefined}
+                className={cn(
+                  "inline-flex min-h-8 items-center rounded-full border px-3 py-1 text-[0.72rem] font-black transition",
+                  option.active
+                    ? "border-[#111510] bg-[#111510] !text-white"
+                    : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]",
+                )}
+                href={option.href}
+                key={option.value}
+              >
+                {option.label}
+              </Link>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="p-4">
@@ -384,6 +398,8 @@ export function FanletterNewsRelatedList({
                 itemCount: items.length,
                 pageSize,
                 stateParamName: relatedStateParamName,
+                sortParamName: relatedSortParamName,
+                sortValue,
               });
 
               return (

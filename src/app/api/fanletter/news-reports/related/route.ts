@@ -8,7 +8,10 @@ import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   isFanletterNsfwOptedIn,
 } from "@/lib/fanletter-nsfw";
-import { serializeFanletterRelatedNewsItem } from "@/lib/fanletter-news-related";
+import {
+  readFanletterRelatedNewsSort,
+  serializeFanletterRelatedNewsItem,
+} from "@/lib/fanletter-news-related";
 import { hasLocale, type Locale } from "@/lib/i18n";
 
 const DEFAULT_RELATED_NEWS_PAGE_SIZE = 4;
@@ -63,6 +66,7 @@ export async function GET(request: Request) {
     const locale = localeParam as Locale;
     const pageSize = readRelatedNewsPageSize(searchParams.get("limit"));
     const offset = readNonNegativeInteger(searchParams.get("offset"));
+    const sort = readFanletterRelatedNewsSort(searchParams.get("sort"));
     const cookieStore = await cookies();
     const nsfwOptInEnabled = isFanletterNsfwOptedIn(
       cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
@@ -74,6 +78,7 @@ export async function GET(request: Request) {
       limit: pageSize + 1,
       locale,
       offset,
+      sort,
     });
     const items = reports
       .slice(0, pageSize)
