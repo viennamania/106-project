@@ -14,6 +14,7 @@ import {
 import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsReportNewSearchParams = {
+  contentId?: string | string[];
   nsfw?: string | string[];
   q?: string | string[];
   ref?: string | string[];
@@ -25,6 +26,10 @@ function readStringSearchParam(value?: string | string[]) {
 
 function normalizeReportSearchQuery(value?: string | string[]) {
   return readStringSearchParam(value).replace(/\s+/g, " ").trim().slice(0, 80);
+}
+
+function normalizeSelectedContentId(value?: string | string[]) {
+  return readStringSearchParam(value).trim().slice(0, 120);
 }
 
 function readIncludeNsfwSearchParam(value?: string | string[]) {
@@ -86,6 +91,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
   const referralCode = readFanletterReferralCode(query.ref);
   const includeNsfw = readIncludeNsfwSearchParam(query.nsfw);
   const searchQuery = normalizeReportSearchQuery(query.q);
+  const selectedContentId = normalizeSelectedContentId(query.contentId);
   const reportsHref = buildPathWithReferral(
     `/${locale}/fanletter/news/reports`,
     referralCode,
@@ -98,6 +104,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
     nsfw: includeNsfw ? null : "off",
   });
   const reportNewHref = setPathSearchParams(filteredReportNewHref, {
+    contentId: selectedContentId,
     q: searchQuery,
   });
   const connectHref = setPathSearchParams(
@@ -161,6 +168,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
       includeNsfw={includeNsfw}
       connectHref={connectHref}
       currentHref={reportNewHref}
+      initialSelectedContentId={selectedContentId}
       locale={locale}
       onboardingHref={onboardingHref}
       reportNewHref={filteredReportNewHref}

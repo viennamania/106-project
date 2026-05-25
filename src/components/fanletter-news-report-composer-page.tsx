@@ -560,6 +560,7 @@ export function FanletterNewsReportComposerPage({
   connectHref,
   currentHref,
   includeNsfw,
+  initialSelectedContentId,
   locale,
   onboardingHref,
   reportNewHref,
@@ -571,6 +572,7 @@ export function FanletterNewsReportComposerPage({
   connectHref: string;
   currentHref: string;
   includeNsfw: boolean;
+  initialSelectedContentId: string;
   locale: Locale;
   onboardingHref: string;
   reportNewHref: string;
@@ -595,15 +597,18 @@ export function FanletterNewsReportComposerPage({
     ) ??
     sources[0] ??
     null;
+  const initialSelectedSource =
+    sources.find((source) => source.contentId === initialSelectedContentId) ??
+    firstAvailableSource;
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
-    firstAvailableSource?.contentId ?? null,
+    initialSelectedSource?.contentId ?? null,
   );
   const selectedSource = useMemo(
     () => sources.find((source) => source.contentId === selectedContentId) ?? null,
     [selectedContentId, sources],
   );
   const [selectedCoverUrl, setSelectedCoverUrl] = useState<string | null>(
-    firstAvailableSource?.coverOptions[0]?.imageUrl ?? null,
+    initialSelectedSource?.coverOptions[0]?.imageUrl ?? null,
   );
   const [angle, setAngle] = useState(copy.angles[0] ?? "");
   const [reporterComment, setReporterComment] = useState("");
@@ -657,7 +662,22 @@ export function FanletterNewsReportComposerPage({
   const paidUnlockSectionId = selectedSource
     ? `fanletter-report-composer-paid-unlock-${selectedSource.contentId}`
     : "fanletter-report-composer-paid-unlock";
-  const paidUnlockHref = `${currentHref}#${paidUnlockSectionId}`;
+  const selectedCurrentHref = useMemo(
+    () =>
+      setRelativeSearchParams(currentHref, {
+        contentId: selectedSource?.contentId ?? selectedContentId ?? null,
+      }),
+    [currentHref, selectedContentId, selectedSource?.contentId],
+  );
+  const selectedConnectHref = useMemo(
+    () => setRelativeSearchParams(connectHref, { returnTo: selectedCurrentHref }),
+    [connectHref, selectedCurrentHref],
+  );
+  const selectedOnboardingHref = useMemo(
+    () => setRelativeSearchParams(onboardingHref, { returnTo: selectedCurrentHref }),
+    [onboardingHref, selectedCurrentHref],
+  );
+  const paidUnlockHref = `${selectedCurrentHref}#${paidUnlockSectionId}`;
   const selectedCreatorHref = selectedSource?.creatorReferralCode
     ? setRelativeSearchParams(
         `/${locale}/fanletter/news/characters/${selectedSource.creatorReferralCode}`,
@@ -665,9 +685,34 @@ export function FanletterNewsReportComposerPage({
       )
     : reportsHref;
 
+  const selectSource = useCallback(
+    (contentId: string) => {
+      setSelectedContentId(contentId);
+
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      window.history.replaceState(
+        window.history.state,
+        "",
+        setRelativeSearchParams(currentHref, { contentId }),
+      );
+    },
+    [currentHref],
+  );
+
   useEffect(() => {
     setSearchInput(searchQuery);
   }, [searchQuery]);
+
+  useEffect(() => {
+    if (selectedSource || !firstAvailableSource?.contentId) {
+      return;
+    }
+
+    setSelectedContentId(firstAvailableSource.contentId);
+  }, [firstAvailableSource?.contentId, selectedSource]);
 
   useEffect(() => {
     const nextCoverUrl = selectedSource?.coverOptions[0]?.imageUrl ?? null;
@@ -1058,7 +1103,7 @@ export function FanletterNewsReportComposerPage({
                     )}
                     key={source.contentId}
                     onClick={() => {
-                      setSelectedContentId(source.contentId);
+                      selectSource(source.contentId);
                     }}
                     type="button"
                   >
@@ -1434,20 +1479,20 @@ export function FanletterNewsReportComposerPage({
                 {isSelectedPaidLocked ? (
                   <FanletterPaidUnlockPanel
                     autoOpenHash={`#${paidUnlockSectionId}`}
-                    connectHref={connectHref}
+                    connectHref={selectedConnectHref}
                     contentId={selectedSource.contentId}
                     contentImageCount={selectedSource.coverOptions.length}
                     contentMaturityRating={selectedSource.contentMaturityRating}
                     contentVideoCount={1}
                     creatorHref={selectedCreatorHref}
-                    currentHref={currentHref}
+                    currentHref={selectedCurrentHref}
                     hideInlinePanel
                     initialBody={selectedSource.summary}
                     initialCoverImageUrl={selectedSource.coverImageUrl}
                     initialSummary={selectedSource.summary}
                     initialTitle={selectedSource.title}
                     locale={locale}
-                    onboardingHref={onboardingHref}
+                    onboardingHref={selectedOnboardingHref}
                     priceUsdt={CONTENT_PAID_USDT_AMOUNT}
                     referralCode={reporterReferralCode}
                     showTeaserPreview={false}
