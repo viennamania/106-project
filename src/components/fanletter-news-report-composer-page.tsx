@@ -11,11 +11,14 @@ import {
   Crop,
   FileText,
   ImageIcon,
+  LockKeyhole,
   Loader2,
   Newspaper,
+  PlayCircle,
   RefreshCw,
   Search,
   ShieldAlert,
+  ShoppingBag,
   Sparkles,
   UserRound,
   X,
@@ -71,6 +74,12 @@ export type FanletterNewsReportComposerSource = {
     reporterReferralCode: string | null;
     until: string | null;
   };
+  mediaAccess: {
+    canView: boolean;
+    isPurchased: boolean;
+    purchaseHref: string | null;
+    requiresPurchase: boolean;
+  };
   priceType: ContentPriceType;
   publishedAt: string | null;
   reportCount: number;
@@ -87,6 +96,7 @@ export type FanletterNewsReportComposerSource = {
   }>;
   summary: string;
   title: string;
+  videoUrl: string | null;
 };
 
 type ReportCoverCropState = {
@@ -162,7 +172,7 @@ function getCopy(locale: Locale) {
           "선택한 티저 이미지를 뉴스 홈과 상세 화면에 쓰일 16:9 대표 이미지로 저장합니다.",
         cropTitle: "16:9 뉴스 이미지 크롭",
         emptyBody:
-          "아직 리포트로 만들 수 있는 공개 브이로그 후보가 없습니다.",
+          "아직 리포트로 만들 수 있는 브이로그 후보가 없습니다.",
         emptyTitle: "작성 가능한 브이로그가 없습니다.",
         existingReportsBody:
           "이미 발행된 리포트의 제목, 관점, 대표 이미지를 비교해서 새 리포트의 차별점을 잡으세요.",
@@ -175,10 +185,24 @@ function getCopy(locale: Locale) {
         failed: "리포트를 만들지 못했습니다.",
         firstStep: "1. 브이로그 후보 선택",
         imageOnly:
-          "이 화면에서는 동영상 전체를 재생하지 않고 저장된 티저 이미지만 사용합니다.",
+          "공개 또는 구매 완료 브이로그만 동영상과 티저 이미지를 확인할 수 있습니다.",
         lead:
-          "브이로그 전체를 재생하지 않고 티저 이미지와 공개 메타만으로 뉴스 리포트를 작성합니다.",
+          "공개 브이로그와 구매한 유료 브이로그를 선택해 동영상, 티저 이미지, 공개 메타를 기준으로 뉴스 리포트를 작성합니다.",
         locked: "단독 보도권",
+        mediaAccess: {
+          lockedBody:
+            "이 유료 브이로그는 아직 구매하지 않았습니다. 구매한 리포터만 원본 동영상과 티저 이미지를 확인하고 리포트를 발행할 수 있습니다.",
+          lockedTitle: "구매 후 리포트 작성 가능",
+          openPurchase: "구매 페이지 보기",
+          purchased: "구매함",
+          ready: "작성 가능",
+          teaserLocked: "티저 이미지 잠금",
+          unpaid: "미구매",
+          videoBody:
+            "원본 브이로그를 확인한 뒤 팬 리포터 관점과 대표 티저 이미지를 선택하세요.",
+          videoMissing: "확인할 수 있는 원본 동영상 URL이 없습니다.",
+          videoTitle: "원본 동영상 확인",
+        },
         noCover:
           "이 브이로그에는 아직 리포트에 사용할 티저 이미지가 없습니다.",
         price: {
@@ -193,10 +217,10 @@ function getCopy(locale: Locale) {
         searchActive: "전체 브이로그 검색 결과",
         searchCta: "검색",
         searchEmptyBody:
-          "검색어와 일치하는 공개 브이로그가 없습니다. 다른 AI 캐릭터 이름, 제목, 추천코드로 다시 검색하세요.",
+          "검색어와 일치하는 브이로그가 없습니다. 다른 AI 캐릭터 이름, 제목, 추천코드로 다시 검색하세요.",
         searchEmptyTitle: "검색 결과가 없습니다.",
         searchHelper:
-          "NSFW 콘텐츠를 제외한 전체 공개 브이로그에서 제목, 요약, AI 캐릭터 이름, 추천코드를 검색합니다.",
+          "NSFW 콘텐츠를 제외한 전체 공개/유료 브이로그에서 제목, 요약, AI 캐릭터 이름, 추천코드를 검색합니다.",
         searchLabel: "전체 브이로그 검색",
         searchPlaceholder: "제목, AI 캐릭터 이름, 추천코드 검색",
         searchReset: "초기화",
@@ -242,7 +266,7 @@ function getCopy(locale: Locale) {
         cropHelper:
           "Save the selected teaser image as a 16:9 lead image for news home and detail pages.",
         cropTitle: "16:9 news image crop",
-        emptyBody: "There are no public vlog candidates available for reports yet.",
+        emptyBody: "There are no vlog candidates available for reports yet.",
         emptyTitle: "No vlogs available.",
         existingReportsBody:
           "Compare published report titles, angles, and lead images before choosing a distinct angle.",
@@ -255,10 +279,24 @@ function getCopy(locale: Locale) {
         failed: "Could not create the report.",
         firstStep: "1. Choose a vlog candidate",
         imageOnly:
-          "This desk does not play the full video. It only uses saved teaser images.",
+          "Only public or purchased vlogs can expose the video and teaser images.",
         lead:
-          "Create a news report from teaser images and public metadata without playing the full vlog.",
+          "Choose a public vlog or a paid vlog you purchased, then create a report from the video, teaser images, and public metadata.",
         locked: "Exclusive access",
+        mediaAccess: {
+          lockedBody:
+            "This paid vlog has not been purchased yet. Only reporters who purchased it can view the source video, inspect teaser images, and publish a report.",
+          lockedTitle: "Purchase required to report",
+          openPurchase: "Open purchase page",
+          purchased: "Purchased",
+          ready: "Ready to report",
+          teaserLocked: "Teaser images locked",
+          unpaid: "Not purchased",
+          videoBody:
+            "Review the source vlog, then choose the fan reporter angle and lead teaser image.",
+          videoMissing: "No source video URL is available for review.",
+          videoTitle: "Review source video",
+        },
         noCover: "This vlog does not have teaser images for reporting yet.",
         price: {
           free: "Public",
@@ -272,10 +310,10 @@ function getCopy(locale: Locale) {
         searchActive: "Full vlog search results",
         searchCta: "Search",
         searchEmptyBody:
-          "No public vlogs match this query. Try another character name, title, or referral code.",
+          "No vlogs match this query. Try another character name, title, or referral code.",
         searchEmptyTitle: "No search results.",
         searchHelper:
-          "Search all public vlogs excluding NSFW content by title, summary, AI character name, or referral code.",
+          "Search all public and paid vlogs excluding NSFW content by title, summary, AI character name, or referral code.",
         searchLabel: "Search all vlogs",
         searchPlaceholder: "Title, AI character name, referral code",
         searchReset: "Clear",
@@ -479,6 +517,7 @@ export function FanletterNewsReportComposerPage({
     sources.find(
       (source) =>
         !source.existingReport &&
+        source.mediaAccess.canView &&
         source.coverOptions.length > 0 &&
         !(
           source.exclusiveNews.active &&
@@ -526,11 +565,13 @@ export function FanletterNewsReportComposerPage({
     selectedSource?.exclusiveNews.active &&
       selectedSource.exclusiveNews.reporterReferralCode !== reporterReferralCode,
   );
+  const isSelectedPaidLocked = Boolean(selectedSource?.mediaAccess.requiresPurchase);
   const selectedCoverOption = selectedSource?.coverOptions.find(
     (option) => option.imageUrl === selectedCoverUrl,
   );
   const canSubmit = Boolean(
     selectedSource &&
+      selectedSource.mediaAccess.canView &&
       selectedCoverUrl &&
       !selectedSource.existingReport &&
       !isExclusiveBlocked &&
@@ -875,6 +916,7 @@ export function FanletterNewsReportComposerPage({
                   source.exclusiveNews.active &&
                     source.exclusiveNews.reporterReferralCode !== reporterReferralCode,
                 );
+                const isPaidLocked = source.mediaAccess.requiresPurchase;
 
                 return (
                   <button
@@ -898,6 +940,11 @@ export function FanletterNewsReportComposerPage({
                           : undefined
                       }
                     >
+                      {isPaidLocked ? (
+                        <span className="absolute inset-0 flex items-center justify-center bg-black/48 backdrop-blur-[2px]">
+                          <LockKeyhole className="size-5 text-white" />
+                        </span>
+                      ) : null}
                       {source.contentMaturityRating === "nsfw" ? (
                         <span className="absolute left-1 top-1 inline-flex items-center gap-1 rounded-full bg-black/72 px-1.5 py-0.5 text-[0.55rem] font-black text-white">
                           <ShieldAlert className="size-2.5 text-[#ff6b7d]" />
@@ -908,6 +955,19 @@ export function FanletterNewsReportComposerPage({
                     <span className="min-w-0 py-1">
                       <span className="flex flex-wrap gap-1.5 text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/40">
                         <span>{copy.price[source.priceType]}</span>
+                        {source.priceType === "paid" ? (
+                          <span
+                            className={
+                              source.mediaAccess.isPurchased
+                                ? "text-[#16702e]"
+                                : "text-rose-700"
+                            }
+                          >
+                            {source.mediaAccess.isPurchased
+                              ? copy.mediaAccess.purchased
+                              : copy.mediaAccess.unpaid}
+                          </span>
+                        ) : null}
                         <span>{source.creatorName}</span>
                       </span>
                       <span className="mt-1 line-clamp-2 text-sm font-black leading-5 [word-break:keep-all]">
@@ -922,6 +982,11 @@ export function FanletterNewsReportComposerPage({
                         ) : null}
                         {isBlocked ? (
                           <span className="text-amber-700">{copy.locked}</span>
+                        ) : null}
+                        {isPaidLocked ? (
+                          <span className="text-rose-700">
+                            {copy.mediaAccess.teaserLocked}
+                          </span>
                         ) : null}
                       </span>
                     </span>
@@ -946,6 +1011,37 @@ export function FanletterNewsReportComposerPage({
                       <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-black/58">
                         {selectedSource.summary}
                       </p>
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-[#f6f8f4] px-2.5 py-1 text-xs font-black text-black/56">
+                          <Clapperboard className="size-3.5 text-[#16702e]" />
+                          {copy.price[selectedSource.priceType]}
+                        </span>
+                        {selectedSource.priceType === "paid" ? (
+                          <span
+                            className={cn(
+                              "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-black",
+                              selectedSource.mediaAccess.isPurchased
+                                ? "border-[#19b84b]/24 bg-[#ecfff0] text-[#16702e]"
+                                : "border-rose-500/18 bg-rose-50 text-rose-700",
+                            )}
+                          >
+                            {selectedSource.mediaAccess.isPurchased ? (
+                              <CheckCircle2 className="size-3.5" />
+                            ) : (
+                              <LockKeyhole className="size-3.5" />
+                            )}
+                            {selectedSource.mediaAccess.isPurchased
+                              ? copy.mediaAccess.purchased
+                              : copy.mediaAccess.unpaid}
+                          </span>
+                        ) : null}
+                        {selectedSource.mediaAccess.canView ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#19b84b]/24 bg-[#ecfff0] px-2.5 py-1 text-xs font-black text-[#16702e]">
+                            <CheckCircle2 className="size-3.5" />
+                            {copy.mediaAccess.ready}
+                          </span>
+                        ) : null}
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2 sm:w-64">
                       <div className="border border-black/10 bg-[#f6f8f4] px-3 py-2">
@@ -1111,11 +1207,84 @@ export function FanletterNewsReportComposerPage({
                   ) : null}
                 </section>
 
+                <section
+                  className={cn(
+                    "border p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5",
+                    isSelectedPaidLocked
+                      ? "border-rose-500/18 bg-rose-50"
+                      : "border-black/12 bg-white",
+                  )}
+                >
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                    <div>
+                      <p
+                        className={cn(
+                          "inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em]",
+                          isSelectedPaidLocked ? "text-rose-700" : "text-[#16702e]",
+                        )}
+                      >
+                        {isSelectedPaidLocked ? (
+                          <LockKeyhole className="size-3.5" />
+                        ) : (
+                          <PlayCircle className="size-3.5" />
+                        )}
+                        2. Source
+                      </p>
+                      <h2 className="mt-1 text-2xl font-black">
+                        {isSelectedPaidLocked
+                          ? copy.mediaAccess.lockedTitle
+                          : copy.mediaAccess.videoTitle}
+                      </h2>
+                    </div>
+                    {selectedSource.mediaAccess.isPurchased ? (
+                      <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-white">
+                        <ShoppingBag className="size-3.5 text-[#44f26e]" />
+                        {copy.mediaAccess.purchased}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  {isSelectedPaidLocked ? (
+                    <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                      <p className="text-sm font-semibold leading-6 text-rose-900/72">
+                        {copy.mediaAccess.lockedBody}
+                      </p>
+                      {selectedSource.mediaAccess.purchaseHref ? (
+                        <Link
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white"
+                          href={selectedSource.mediaAccess.purchaseHref}
+                        >
+                          {copy.mediaAccess.openPurchase}
+                          <ArrowRight className="size-4 text-[#44f26e]" />
+                        </Link>
+                      ) : null}
+                    </div>
+                  ) : selectedSource.videoUrl ? (
+                    <div className="mt-4 overflow-hidden border border-black/10 bg-black">
+                      <video
+                        className="aspect-video w-full bg-black object-contain"
+                        controls
+                        playsInline
+                        poster={selectedSource.coverImageUrl ?? undefined}
+                        preload="metadata"
+                        src={selectedSource.videoUrl}
+                      />
+                      <p className="border-t border-white/10 bg-[#111510] px-4 py-3 text-sm font-semibold leading-6 text-white/64">
+                        {copy.mediaAccess.videoBody}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="mt-4 border border-dashed border-black/14 bg-[#f6f8f4] px-4 py-5 text-sm font-semibold text-black/54">
+                      {copy.mediaAccess.videoMissing}
+                    </p>
+                  )}
+                </section>
+
                 <section className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                       <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
-                        2. Teaser
+                        3. Teaser
                       </p>
                       <h2 className="mt-1 text-2xl font-black">
                         {copy.chooseCover}
@@ -1127,7 +1296,26 @@ export function FanletterNewsReportComposerPage({
                     </span>
                   </div>
 
-                  {selectedSource.coverOptions.length > 0 ? (
+                  {isSelectedPaidLocked ? (
+                    <div className="mt-4 border border-rose-500/18 bg-rose-50 p-4 text-rose-900">
+                      <p className="inline-flex items-center gap-1.5 text-sm font-black">
+                        <LockKeyhole className="size-4" />
+                        {copy.mediaAccess.teaserLocked}
+                      </p>
+                      <p className="mt-2 text-sm font-semibold leading-6 text-rose-900/70">
+                        {copy.mediaAccess.lockedBody}
+                      </p>
+                      {selectedSource.mediaAccess.purchaseHref ? (
+                        <Link
+                          className="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white"
+                          href={selectedSource.mediaAccess.purchaseHref}
+                        >
+                          {copy.mediaAccess.openPurchase}
+                          <ArrowRight className="size-4 text-[#44f26e]" />
+                        </Link>
+                      ) : null}
+                    </div>
+                  ) : selectedSource.coverOptions.length > 0 ? (
                     <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
                       {selectedSource.coverOptions.map((option, index) => {
                         const isSelected = option.imageUrl === selectedCoverUrl;
@@ -1179,7 +1367,7 @@ export function FanletterNewsReportComposerPage({
                       <div>
                         <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
                           <Crop className="size-3.5" />
-                          3. Crop
+                          4. Crop
                         </p>
                         <h2 className="mt-2 text-2xl font-black">
                           {copy.cropTitle}
@@ -1277,7 +1465,7 @@ export function FanletterNewsReportComposerPage({
 
                 <section className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
                   <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
-                    4. Reporter note
+                    5. Reporter note
                   </p>
                   <h2 className="mt-1 text-2xl font-black">
                     {copy.angleLabel}

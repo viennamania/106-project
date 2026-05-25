@@ -24,6 +24,7 @@ import {
   type MemberStatus,
 } from "@/lib/member";
 import {
+  getContentEntitlementsCollection,
   getContentPostsCollection,
   getContentSocialActionsCollection,
   getCreatorProfilesCollection,
@@ -45,6 +46,8 @@ const RELATED_NEWS_FIRST_REPORT_LOOKAHEAD_LIMIT = 144;
 const REPORT_DRAFT_SOURCE_SEARCH_LIMIT = 80;
 export const FANLETTER_NEWS_EXCLUSIVE_REPORTER_ACTIVE_ERROR =
   "Exclusive reporter assignment is active for this vlog.";
+export const FANLETTER_NEWS_PAID_SOURCE_ACCESS_REQUIRED_ERROR =
+  "Paid source vlog requires a confirmed purchase by this reporter.";
 
 type OpenAiResponsesApiResponse = {
   error?: {
@@ -289,6 +292,12 @@ export type FanletterNewsReportDraftSource = {
     reporterReferralCode: string | null;
     until: string | null;
   };
+  mediaAccess: {
+    canView: boolean;
+    isPurchased: boolean;
+    purchaseHref: string | null;
+    requiresPurchase: boolean;
+  };
   priceType: ContentPriceType;
   publishedAt: string | null;
   reportCount: number;
@@ -305,6 +314,7 @@ export type FanletterNewsReportDraftSource = {
   }>;
   summary: string;
   title: string;
+  videoUrl: string | null;
 };
 
 export type FanletterNewsReportDraftSourcesResult = {
@@ -1594,6 +1604,58 @@ function assertCanCreateReportForExclusiveAssignment({
   }
 }
 
+async function getPurchasedContentIdsForMember({
+  contentIds,
+  email,
+}: {
+  contentIds: string[];
+  email?: string | null;
+}) {
+  const normalizedEmail = email ? normalizeEmail(email) : "";
+
+  if (!normalizedEmail || contentIds.length === 0) {
+    return new Set<string>();
+  }
+
+  const entitlementsCollection = await getContentEntitlementsCollection();
+  const entitlements = await entitlementsCollection
+    .find(
+      {
+        contentId: { $in: contentIds },
+        memberEmail: normalizedEmail,
+      },
+      {
+        projection: {
+          contentId: 1,
+        },
+      },
+    )
+    .toArray();
+
+  return new Set(entitlements.map((entitlement) => entitlement.contentId));
+}
+
+async function assertCanCreateReportForPaidSource({
+  post,
+  reporterEmail,
+}: {
+  post: Pick<ContentPostDocument, "contentId" | "priceType">;
+  reporterEmail?: string | null;
+}) {
+  if (post.priceType !== "paid") {
+    return;
+  }
+
+  const purchasedContentIds = await getPurchasedContentIdsForMember({
+    contentIds: [post.contentId],
+    email: reporterEmail,
+  });
+
+  if (!purchasedContentIds.has(post.contentId)) {
+    throw new Error(FANLETTER_NEWS_PAID_SOURCE_ACCESS_REQUIRED_ERROR);
+  }
+}
+
 export async function getOrCreateFanletterNewsReport({
   contentId,
   croppedCoverCrop,
@@ -1634,6 +1696,10 @@ export async function getOrCreateFanletterNewsReport({
   assertCanCreateReportForExclusiveAssignment({
     post,
     reporterReferralCode: normalizedReporterReferralCode,
+  });
+  await assertCanCreateReportForPaidSource({
+    post,
+    reporterEmail,
   });
 
   const reportsCollection = await getFanletterNewsReportsCollection();
@@ -2134,6 +2200,7 @@ export async function getFanletterNewsReportDraftSourcesForMember({
           authorReferralCode: 1,
           contentId: 1,
           contentMaturityRating: 1,
+          contentVideoUrls: 1,
           coverImageCandidates: 1,
           coverImageUrl: 1,
           createdAt: 1,
@@ -2164,7 +2231,10 @@ export async function getFanletterNewsReportDraftSourcesForMember({
   }
 
   const authorEmails = [...new Set(posts.map((post) => post.authorEmail))];
-  const [profiles, reports] = await Promise.all([
+  const paidContentIds = posts
+    .filter((post) => post.priceType === "paid")
+    .map((post) => post.contentId);
+  const [profiles, reports, purchasedContentIds] = await Promise.all([
     profilesCollection
       .find(
         { email: { $in: authorEmails } },
@@ -2204,6 +2274,10 @@ export async function getFanletterNewsReportDraftSourcesForMember({
       )
       .sort({ createdAt: -1 })
       .toArray(),
+    getPurchasedContentIdsForMember({
+      contentIds: paidContentIds,
+      email: member.email,
+    }),
   ]);
   const profileByEmail = new Map(profiles.map((profile) => [profile.email, profile]));
   const reportCountByContentId = new Map<string, number>();
@@ -2240,19 +2314,30 @@ export async function getFanletterNewsReportDraftSourcesForMember({
       const autoCoverImageUrl = getCoverImageUrl(post);
       const existingReport = existingReportByContentId.get(post.contentId) ?? null;
       const contentReports = reportsByContentId.get(post.contentId) ?? [];
+      const isPurchased = purchasedContentIds.has(post.contentId);
+      const canViewMedia = post.priceType === "free" || isPurchased;
+      const purchaseHref =
+        post.priceType === "paid" && !isPurchased
+          ? buildPathWithReferral(
+              `/${normalizedLocale}/fanletter/news/vlogs/${post.contentId}`,
+              member.referralCode,
+            )
+          : null;
 
       return {
         contentId: post.contentId,
         contentMaturityRating:
           post.contentMaturityRating === "nsfw" ? "nsfw" : "general",
         coverImageUrl: autoCoverImageUrl,
-        coverOptions: getFanletterNewsReportCoverOptionsFromPost({
-          post,
-          report: {
-            coverImageSource: "auto",
-            coverImageUrl: autoCoverImageUrl,
-          },
-        }),
+        coverOptions: canViewMedia
+          ? getFanletterNewsReportCoverOptionsFromPost({
+              post,
+              report: {
+                coverImageSource: "auto",
+                coverImageUrl: autoCoverImageUrl,
+              },
+            })
+          : [],
         creatorName,
         creatorProfile: {
           avatarImageUrl: profile?.avatarImageUrl?.trim() || null,
@@ -2281,6 +2366,12 @@ export async function getFanletterNewsReportDraftSourcesForMember({
           reporterReferralCode: activeExclusiveReporterReferralCode,
           until: post.exclusiveNewsUntil?.toISOString() ?? null,
         },
+        mediaAccess: {
+          canView: canViewMedia,
+          isPurchased,
+          purchaseHref,
+          requiresPurchase: post.priceType === "paid" && !isPurchased,
+        },
         priceType: post.priceType,
         publishedAt: post.publishedAt?.toISOString() ?? null,
         reportCount: reportCountByContentId.get(post.contentId) ?? 0,
@@ -2297,6 +2388,7 @@ export async function getFanletterNewsReportDraftSourcesForMember({
         })),
         summary: trimToLength(post.summary || post.previewText, 220),
         title: trimToLength(post.title, 140),
+        videoUrl: canViewMedia ? post.contentVideoUrls?.[0]?.trim() || null : null,
       };
     }),
     member,

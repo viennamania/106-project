@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import {
   createFanletterNewsReportShareHref,
   FANLETTER_NEWS_EXCLUSIVE_REPORTER_ACTIVE_ERROR,
+  FANLETTER_NEWS_PAID_SOURCE_ACCESS_REQUIRED_ERROR,
   getFanletterNewsReportForReporter,
   getFanletterNewsReportCoverOptions,
   getFanletterNewsReportsForContent,
@@ -75,6 +76,10 @@ function getErrorStatus(message: string) {
   }
 
   if (message === FANLETTER_NEWS_EXCLUSIVE_REPORTER_ACTIVE_ERROR) {
+    return 403;
+  }
+
+  if (message === FANLETTER_NEWS_PAID_SOURCE_ACCESS_REQUIRED_ERROR) {
     return 403;
   }
 

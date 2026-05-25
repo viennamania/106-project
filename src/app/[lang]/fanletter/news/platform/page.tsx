@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterHeroBackgroundCarousel } from "@/components/fanletter-mobile-hero-carousel";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getFanletterLandingData } from "@/lib/fanletter-landing-service";
@@ -428,22 +429,35 @@ export default async function FanletterNewsPlatformPage({
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,17,8,0.56)_0%,rgba(7,17,8,0.18)_54%,rgba(7,17,8,0.04)_100%)] lg:hidden" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,rgba(7,17,8,0)_0%,#071108_100%)]" />
         <div className="relative mx-auto flex min-h-[100svh] max-w-[92rem] flex-col px-4 py-4 sm:min-h-[92svh] sm:px-6 sm:py-7 lg:px-8">
-          <header className="flex items-center justify-between gap-4 border-b border-white/14 pb-3 sm:pb-4">
+          <header className="flex items-center justify-between gap-3 border-b border-white/14 pb-3 sm:gap-4 sm:pb-4">
             <Link
-              className="inline-flex items-center gap-2 text-lg font-black !text-white"
+              className="inline-flex min-w-0 items-center gap-2 text-lg font-black !text-white"
               href={newsHref}
             >
               <span className="inline-flex size-9 items-center justify-center rounded-full bg-[#44f26e] text-[#071108]">
                 <Newspaper className="size-5" />
               </span>
-              {copy.brand} News
+              <span className="truncate">{copy.brand} News</span>
             </Link>
-            <Link
-              className="hidden min-h-10 items-center justify-center rounded-full border border-white/18 px-4 text-xs font-black uppercase tracking-[0.12em] !text-white/82 transition hover:border-[#44f26e] hover:text-white sm:inline-flex"
-              href={charactersHref}
-            >
-              {copy.ctaCharacters}
-            </Link>
+            <div className="flex shrink-0 items-center gap-2">
+              <FanletterGlobalLanguageSwitcher
+                className="hidden sm:inline-flex"
+                compact
+                locale={locale}
+              />
+              <FanletterGlobalLanguageSwitcher
+                className="inline-flex sm:hidden"
+                compact
+                locale={locale}
+                tight
+              />
+              <Link
+                className="hidden min-h-10 items-center justify-center rounded-full border border-white/18 px-4 text-xs font-black uppercase tracking-[0.12em] !text-white/82 transition hover:border-[#44f26e] hover:text-white sm:inline-flex"
+                href={charactersHref}
+              >
+                {copy.ctaCharacters}
+              </Link>
+            </div>
           </header>
 
           <div className="grid flex-1 items-center gap-5 py-5 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_28rem] lg:py-12">
