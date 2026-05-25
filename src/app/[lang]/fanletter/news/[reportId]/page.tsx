@@ -203,7 +203,7 @@ function getCopy(locale: Locale) {
         embeddedUnlockTitle: "팬 전용 브이로그 잠금 해제",
         embeddedVlogStatus: {
           accessible: "열람 가능",
-          free: "무료 공개",
+          free: "공개",
           general: "일반",
           nsfw: "NSFW",
           ownerAccess: "작성자 열람",
@@ -214,10 +214,9 @@ function getCopy(locale: Locale) {
             "작성자 권한으로 열람 가능한 팬 전용 원본입니다. 뉴스 화면에서 원본 상태를 함께 표시합니다.",
           paidPurchasedBody:
             "로그인한 회원이 결제한 팬 전용 원본이라 이 뉴스 화면에서 바로 볼 수 있습니다.",
-          publicBody:
-            "무료 공개 원본입니다. 뉴스 화면에서 바로 볼 수 있습니다.",
+          publicBody: "이 뉴스 화면에서 바로 재생할 수 있습니다.",
           purchased: "결제 완료",
-          title: "원본 브이로그 상태",
+          title: "열람 안내",
           unpaid: "결제 필요",
         },
         sourceTeaserGallery: {
@@ -384,7 +383,7 @@ function getCopy(locale: Locale) {
         embeddedUnlockTitle: "Unlock fan-only vlog",
         embeddedVlogStatus: {
           accessible: "Viewable",
-          free: "Free public",
+          free: "Public",
           general: "General",
           nsfw: "NSFW",
           ownerAccess: "Creator access",
@@ -395,10 +394,9 @@ function getCopy(locale: Locale) {
             "This fan-only source is viewable with creator access, with the source status shown on the news page.",
           paidPurchasedBody:
             "This fan-only source has been purchased by the signed-in member and can be watched on this news page.",
-          publicBody:
-            "This is a free public source and can be watched directly on the news page.",
+          publicBody: "You can watch it directly on this news page.",
           purchased: "Purchased",
-          title: "Source vlog status",
+          title: "Viewing note",
           unpaid: "Payment needed",
         },
         sourceTeaserGallery: {
@@ -1824,40 +1822,39 @@ function SourceVlogEmbed({
   const isViewerSourceOwner = sourceContent?.viewerRelation === "owner";
   const isPurchasedPaidContent =
     isPaidContent && viewerCanAccessSource && !isViewerSourceOwner;
-  const statusBadges = [
-    {
-      className: isPaidContent
-        ? "border-[#1eb84a]/22 bg-[#ecfff0] text-[#126c2c]"
-        : "border-black/10 bg-white text-black/56",
-      icon: isPaidContent ? Coins : PlayCircle,
-      label: isPaidContent
-        ? copy.embeddedVlogStatus.paid(paidUnlockLabel)
-        : copy.embeddedVlogStatus.free,
-    },
-    {
-      className: isPurchasedPaidContent
-        ? "border-[#1eb84a]/22 bg-[#ecfff0] text-[#126c2c]"
+  const sourceTypeBadge = {
+    className: isPaidContent
+      ? "border-[#1eb84a]/22 bg-[#ecfff0] text-[#126c2c]"
+      : "border-black/10 bg-white text-black/56",
+    icon: isPaidContent ? Coins : PlayCircle,
+    label: isPaidContent
+      ? copy.embeddedVlogStatus.paid(paidUnlockLabel)
+      : copy.embeddedVlogStatus.free,
+  };
+  const sourceAccessBadge = {
+    className: isPurchasedPaidContent
+      ? "border-[#1eb84a]/22 bg-[#ecfff0] text-[#126c2c]"
+      : viewerCanAccessSource
+        ? "border-black/10 bg-white text-black/56"
+        : "border-rose-500/18 bg-rose-50 text-rose-700",
+    icon: viewerCanAccessSource ? CheckCircle2 : LockKeyhole,
+    label: isPurchasedPaidContent
+      ? copy.embeddedVlogStatus.purchased
+      : isViewerSourceOwner
+        ? copy.embeddedVlogStatus.ownerAccess
         : viewerCanAccessSource
-          ? "border-black/10 bg-white text-black/56"
-          : "border-rose-500/18 bg-rose-50 text-rose-700",
-      icon: viewerCanAccessSource ? CheckCircle2 : LockKeyhole,
-      label: isPurchasedPaidContent
-        ? copy.embeddedVlogStatus.purchased
-        : isViewerSourceOwner
-          ? copy.embeddedVlogStatus.ownerAccess
-          : viewerCanAccessSource
-            ? copy.embeddedVlogStatus.accessible
-            : copy.embeddedVlogStatus.unpaid,
-    },
-    {
-      className: isSourceNsfw
-        ? "border-rose-500/18 bg-rose-50 text-rose-700"
-        : "border-black/10 bg-white text-black/56",
-      icon: isSourceNsfw ? AlertTriangle : CheckCircle2,
-      label: isSourceNsfw
-        ? copy.embeddedVlogStatus.nsfw
-        : copy.embeddedVlogStatus.general,
-    },
+          ? copy.embeddedVlogStatus.accessible
+          : copy.embeddedVlogStatus.unpaid,
+  };
+  const sourceMaturityBadge = {
+    className: "border-rose-500/18 bg-rose-50 text-rose-700",
+    icon: AlertTriangle,
+    label: copy.embeddedVlogStatus.nsfw,
+  };
+  const headerBadges = [
+    sourceTypeBadge,
+    ...(isPaidContent ? [sourceAccessBadge] : []),
+    ...(isSourceNsfw ? [sourceMaturityBadge] : []),
   ];
   const sourceStatusBody = isPaidContent
     ? viewerCanAccessSource
@@ -1894,17 +1891,18 @@ function SourceVlogEmbed({
 
   return (
     <section className="mt-7 border border-black/12 bg-white p-4 shadow-[0_14px_42px_rgba(17,21,16,0.06)]">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <span className="inline-flex items-center gap-2 text-sm font-bold text-[#111510]">
-          <Clapperboard className="size-4 text-[#16702e]" />
-          {copy.embeddedTitle}
-        </span>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-black/12 bg-[#f5f6f2] px-3 py-1 text-[0.68rem] font-bold text-black/64">
-            <PlayCircle className="size-3.5" />
-            {accessLabel}
+      <div className="mb-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
+        <div className="min-w-0">
+          <span className="inline-flex items-center gap-2 text-sm font-bold text-[#111510]">
+            <Clapperboard className="size-4 text-[#16702e]" />
+            {copy.embeddedTitle}
           </span>
-          {statusBadges.map((badge) => {
+          <p className="mt-1 line-clamp-1 text-xs font-semibold text-black/42">
+            {sourceContent?.title ?? accessLabel}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
+          {headerBadges.map((badge) => {
             const Icon = badge.icon;
 
             return (
@@ -2051,6 +2049,7 @@ function SourceVlogEmbed({
         <FanletterNewsSourceRevealVote
           className="mt-3"
           connectHref={sourceReveal.connectHref}
+          density="compact"
           initialState={sourceReveal}
           locale={locale}
           reportId={sourceReveal.reportId}
@@ -2058,26 +2057,11 @@ function SourceVlogEmbed({
         />
       ) : null}
       <div className="mt-3 rounded-lg border border-black/10 bg-[#f7f9f4] p-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-start gap-2">
           <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
             <BadgeCheck className="size-3.5" />
             {copy.embeddedVlogStatus.title}
           </p>
-          <div className="flex flex-wrap gap-1.5">
-            {statusBadges.map((badge) => {
-              const Icon = badge.icon;
-
-              return (
-                <span
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.66rem] font-black ${badge.className}`}
-                  key={`status-${badge.label}`}
-                >
-                  <Icon className="size-3.5" />
-                  {badge.label}
-                </span>
-              );
-            })}
-          </div>
         </div>
         <p className="mt-2 text-sm font-medium leading-6 text-black/58">
           {sourceStatusBody}
@@ -2117,9 +2101,6 @@ function SourceVlogEmbed({
           </FanletterPaidUnlockTrigger>
         </div>
       ) : null}
-      <p className="mt-2 text-xs font-medium leading-5 text-black/46">
-        {sourceContent?.title ?? copy.sourceTitle}
-      </p>
     </section>
   );
 }
