@@ -21,6 +21,7 @@ import {
   FanletterReportsCoverManager,
   type FanletterReportsPageReport,
 } from "@/components/fanletter-reports-cover-manager";
+import { FanletterNewsReportsSessionBridge } from "@/components/fanletter-news-reports-session-bridge";
 import type { ContentMaturityRating } from "@/lib/content";
 import { getFanletterNewsReportsForMember } from "@/lib/fanletter-news-report-service";
 import { getFanletterNewsReporterIncentiveStats } from "@/lib/fanletter-news-reporter-incentives";
@@ -382,13 +383,15 @@ export default async function LocalizedFanletterNewsReportsPage({
   const currentPage = readPageNumber(query.page);
   const reportOffset = (currentPage - 1) * NEWS_REPORTS_PAGE_SIZE;
   const session = await readMemberServerSession();
-  const reportsBaseHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/reports`,
+  const requestedReportsHref = getNewsReportsPageHref({
+    locale,
+    maturityFilter,
+    page: currentPage,
     referralCode,
-  );
+  });
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
-    { returnTo: reportsBaseHref },
+    { returnTo: requestedReportsHref },
   );
   const data = session
     ? await getFanletterNewsReportsForMember({
@@ -432,9 +435,15 @@ export default async function LocalizedFanletterNewsReportsPage({
     `/${locale}/fanletter/news/purchases`,
     effectiveReferralCode,
   );
+  const currentReportsHref = getNewsReportsPageHref({
+    locale,
+    maturityFilter,
+    page: currentPage,
+    referralCode: effectiveReferralCode,
+  });
   const walletHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, effectiveReferralCode),
-    { returnTo: newsHomeHref },
+    { returnTo: currentReportsHref },
   );
   const effectiveNewReportHref = buildPathWithReferral(
     `/${locale}/fanletter/news/reports/new`,
@@ -573,12 +582,6 @@ export default async function LocalizedFanletterNewsReportsPage({
     currentPage,
     totalPages,
   });
-  const currentReportsHref = getNewsReportsPageHref({
-    locale,
-    maturityFilter,
-    page: currentPage,
-    referralCode: effectiveReferralCode,
-  });
   const maturityFilterItems = [
     {
       count: data.maturityCounts.all,
@@ -682,6 +685,12 @@ export default async function LocalizedFanletterNewsReportsPage({
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-4 text-[#111510] sm:px-6 sm:pb-12 lg:px-8">
+      <FanletterNewsReportsSessionBridge
+        hasServerSession={Boolean(session)}
+        locale={locale}
+        serverSessionEmail={session?.email ?? null}
+        serverSessionWalletAddress={session?.walletAddress ?? null}
+      />
       <section className="mx-auto max-w-6xl">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/12 pb-3">
           <Link
