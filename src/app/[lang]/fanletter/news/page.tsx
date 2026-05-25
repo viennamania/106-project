@@ -110,6 +110,7 @@ function getCopy(locale: Locale) {
         leadKicker: "FanLetter exclusive",
         navItems: [
           "톱뉴스",
+          "플랫폼 모델",
           "팬 기자",
           "AI 캐릭터",
           "브이로그",
@@ -207,6 +208,7 @@ function getCopy(locale: Locale) {
         leadKicker: "FanLetter exclusive",
         navItems: [
           "Top news",
+          "Platform",
           "Fan reporters",
           "AI characters",
           "Vlogs",
@@ -658,6 +660,7 @@ function NewsMasthead({
   locale,
   navigationBaseHref,
   newsHomeHref,
+  platformHref,
   purchasesHref,
   reportsHref,
 }: {
@@ -666,6 +669,7 @@ function NewsMasthead({
   locale: Locale;
   navigationBaseHref: string;
   newsHomeHref: string;
+  platformHref: string;
   purchasesHref: string;
   reportsHref: string;
 }) {
@@ -674,6 +678,7 @@ function NewsMasthead({
   }).format(new Date());
   const navHrefs = [
     `${navigationBaseHref}#top-stories`,
+    platformHref,
     `${navigationBaseHref}#fan-reporters`,
     charactersHref,
     `${navigationBaseHref}#latest-news`,
@@ -2290,6 +2295,10 @@ export default async function LocalizedFanletterNewsHomePage({
     `/${locale}/fanletter/news/purchases`,
     referralCode,
   );
+  const platformHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/platform`,
+    referralCode,
+  );
   const reportsHref = buildPathWithReferral(
     `/${locale}/fanletter/news/reports`,
     referralCode,
@@ -2307,6 +2316,7 @@ export default async function LocalizedFanletterNewsHomePage({
         locale={locale}
         navigationBaseHref={currentNewsHref}
         newsHomeHref={newsHomeHref}
+        platformHref={platformHref}
         purchasesHref={purchasesHref}
         reportsHref={reportsHref}
       />
