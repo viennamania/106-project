@@ -14,6 +14,7 @@ import {
 import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsReportNewSearchParams = {
+  nsfw?: string | string[];
   q?: string | string[];
   ref?: string | string[];
 };
@@ -24,6 +25,12 @@ function readStringSearchParam(value?: string | string[]) {
 
 function normalizeReportSearchQuery(value?: string | string[]) {
   return readStringSearchParam(value).replace(/\s+/g, " ").trim().slice(0, 80);
+}
+
+function readIncludeNsfwSearchParam(value?: string | string[]) {
+  const normalized = readStringSearchParam(value).trim().toLowerCase();
+
+  return !["0", "false", "hide", "off"].includes(normalized);
 }
 
 function getCopy(locale: Locale) {
@@ -77,6 +84,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
+  const includeNsfw = readIncludeNsfwSearchParam(query.nsfw);
   const searchQuery = normalizeReportSearchQuery(query.q);
   const reportsHref = buildPathWithReferral(
     `/${locale}/fanletter/news/reports`,
@@ -86,7 +94,10 @@ export default async function LocalizedFanletterNewsReportNewPage({
     `/${locale}/fanletter/news/reports/new`,
     referralCode,
   );
-  const reportNewHref = setPathSearchParams(reportNewBaseHref, {
+  const filteredReportNewHref = setPathSearchParams(reportNewBaseHref, {
+    nsfw: includeNsfw ? null : "off",
+  });
+  const reportNewHref = setPathSearchParams(filteredReportNewHref, {
     q: searchQuery,
   });
   const connectHref = setPathSearchParams(
@@ -97,6 +108,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
   const data = session
     ? await getFanletterNewsReportDraftSourcesForMember({
         email: session.email,
+        includeNsfw,
         limit: searchQuery ? 80 : undefined,
         locale,
         searchQuery,
@@ -142,8 +154,9 @@ export default async function LocalizedFanletterNewsReportNewPage({
 
   return (
     <FanletterNewsReportComposerPage
+      includeNsfw={includeNsfw}
       locale={locale}
-      reportNewHref={reportNewBaseHref}
+      reportNewHref={filteredReportNewHref}
       reporterReferralCode={data.member.referralCode}
       reportsHref={reportsHref}
       searchQuery={searchQuery}

@@ -2090,11 +2090,13 @@ export async function getFanletterNewsReportsForMember({
 
 export async function getFanletterNewsReportDraftSourcesForMember({
   email,
+  includeNsfw = true,
   limit = 36,
   locale,
   searchQuery,
 }: {
   email?: string | null;
+  includeNsfw?: boolean;
   limit?: number;
   locale?: Locale | null;
   searchQuery?: string | null;
@@ -2127,7 +2129,7 @@ export async function getFanletterNewsReportDraftSourcesForMember({
     : null;
   const basePostFilter: Filter<ContentPostDocument> = {
     "contentVideoUrls.0": { $exists: true },
-    contentMaturityRating: { $ne: "nsfw" },
+    ...(includeNsfw ? {} : { contentMaturityRating: { $ne: "nsfw" } }),
     locale: normalizedLocale,
     status: "published",
   };

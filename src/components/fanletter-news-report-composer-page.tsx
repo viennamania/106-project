@@ -145,6 +145,32 @@ const DEFAULT_REPORT_COVER_CROP: ReportCoverCropState = {
   zoom: 1,
 };
 
+function setRelativeSearchParams(
+  path: string,
+  params: Record<string, string | null | undefined>,
+) {
+  const [pathWithSearch, hashFragment = ""] = path.split("#", 2);
+  const [pathname, search = ""] = pathWithSearch.split("?", 2);
+  const searchParams = new URLSearchParams(search);
+
+  Object.entries(params).forEach(([key, value]) => {
+    const normalized = value?.trim();
+
+    if (normalized) {
+      searchParams.set(key, normalized);
+      return;
+    }
+
+    searchParams.delete(key);
+  });
+
+  const nextSearch = searchParams.toString();
+
+  return `${pathname}${nextSearch ? `?${nextSearch}` : ""}${
+    hashFragment ? `#${hashFragment}` : ""
+  }`;
+}
+
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
@@ -222,10 +248,19 @@ function getCopy(locale: Locale) {
           "검색어와 일치하는 브이로그가 없습니다. 다른 AI 캐릭터 이름, 제목, 추천코드로 다시 검색하세요.",
         searchEmptyTitle: "검색 결과가 없습니다.",
         searchHelper:
-          "NSFW 콘텐츠를 제외한 전체 공개/유료 브이로그에서 제목, 요약, AI 캐릭터 이름, 추천코드를 검색합니다.",
+          "전체 공개/유료 브이로그에서 제목, 요약, AI 캐릭터 이름, 추천코드를 검색합니다.",
         searchLabel: "전체 브이로그 검색",
         searchPlaceholder: "제목, AI 캐릭터 이름, 추천코드 검색",
         searchReset: "초기화",
+        nsfwFilterLabel: "NSFW 콘텐츠",
+        nsfwIncluded: "NSFW 포함",
+        nsfwExcluded: "NSFW 제외",
+        nsfwIncludedBody:
+          "성인 브이로그 후보도 목록에 표시합니다. 작성 시에는 티저와 공개 메타 기준으로만 리포트가 생성됩니다.",
+        nsfwExcludedBody:
+          "일반 브이로그 후보만 표시합니다. 필요하면 NSFW를 켜서 성인 후보까지 확인할 수 있습니다.",
+        nsfwTurnOff: "NSFW 끄기",
+        nsfwTurnOn: "NSFW 켜기",
         select: "선택",
         selected: "선택됨",
         sourceMeta: {
@@ -319,10 +354,19 @@ function getCopy(locale: Locale) {
           "No vlogs match this query. Try another character name, title, or referral code.",
         searchEmptyTitle: "No search results.",
         searchHelper:
-          "Search all public and paid vlogs excluding NSFW content by title, summary, AI character name, or referral code.",
+          "Search all public and paid vlogs by title, summary, AI character name, or referral code.",
         searchLabel: "Search all vlogs",
         searchPlaceholder: "Title, AI character name, referral code",
         searchReset: "Clear",
+        nsfwFilterLabel: "NSFW content",
+        nsfwIncluded: "NSFW included",
+        nsfwExcluded: "NSFW excluded",
+        nsfwIncludedBody:
+          "Adult vlog candidates are visible in the list. Reports are still generated only from teasers and public metadata.",
+        nsfwExcludedBody:
+          "Only general vlog candidates are visible. Turn NSFW on to review adult candidates too.",
+        nsfwTurnOff: "Turn NSFW off",
+        nsfwTurnOn: "Turn NSFW on",
         select: "Select",
         selected: "Selected",
         sourceMeta: {
@@ -502,6 +546,7 @@ async function createCroppedReportCoverBlob({
 }
 
 export function FanletterNewsReportComposerPage({
+  includeNsfw,
   locale,
   reportNewHref,
   reporterReferralCode,
@@ -509,6 +554,7 @@ export function FanletterNewsReportComposerPage({
   searchQuery,
   sources,
 }: {
+  includeNsfw: boolean;
   locale: Locale;
   reportNewHref: string;
   reporterReferralCode: string;
@@ -582,6 +628,14 @@ export function FanletterNewsReportComposerPage({
       !selectedSource.existingReport &&
       !isExclusiveBlocked &&
       status !== "submitting",
+  );
+  const nsfwToggleHref = useMemo(
+    () =>
+      setRelativeSearchParams(reportNewHref, {
+        nsfw: includeNsfw ? "off" : null,
+        q: searchQuery || null,
+      }),
+    [includeNsfw, reportNewHref, searchQuery],
   );
 
   useEffect(() => {
@@ -782,9 +836,15 @@ export function FanletterNewsReportComposerPage({
         url.searchParams.delete("q");
       }
 
+      if (includeNsfw) {
+        url.searchParams.delete("nsfw");
+      } else {
+        url.searchParams.set("nsfw", "off");
+      }
+
       router.push(`${url.pathname}${url.search}`);
     },
-    [reportNewHref, router, searchInput],
+    [includeNsfw, reportNewHref, router, searchInput],
   );
 
   const searchControls = (
@@ -835,6 +895,43 @@ export function FanletterNewsReportComposerPage({
             {copy.searchReset}
           </Link>
         ) : null}
+      </div>
+      <div className="mt-3 flex flex-col gap-3 rounded-xl border border-black/10 bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#111510]">
+            <ShieldAlert
+              className={cn(
+                "size-4",
+                includeNsfw ? "text-rose-600" : "text-black/35",
+              )}
+            />
+            {copy.nsfwFilterLabel}
+            <span
+              className={cn(
+                "rounded-full px-2 py-0.5 text-[0.62rem]",
+                includeNsfw
+                  ? "bg-rose-50 text-rose-700"
+                  : "bg-[#f1f3ef] text-black/50",
+              )}
+            >
+              {includeNsfw ? copy.nsfwIncluded : copy.nsfwExcluded}
+            </span>
+          </p>
+          <p className="mt-1 text-[0.72rem] font-semibold leading-5 text-black/48">
+            {includeNsfw ? copy.nsfwIncludedBody : copy.nsfwExcludedBody}
+          </p>
+        </div>
+        <Link
+          className={cn(
+            "inline-flex h-9 shrink-0 items-center justify-center rounded-full border px-3 text-xs font-black transition",
+            includeNsfw
+              ? "border-rose-500/24 bg-rose-50 !text-rose-700 hover:bg-rose-100"
+              : "border-black/12 bg-[#f6f8f4] !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]",
+          )}
+          href={nsfwToggleHref}
+        >
+          {includeNsfw ? copy.nsfwTurnOff : copy.nsfwTurnOn}
+        </Link>
       </div>
     </form>
   );
