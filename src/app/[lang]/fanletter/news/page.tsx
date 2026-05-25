@@ -16,6 +16,7 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterServiceBridge } from "@/components/fanletter-service-bridge";
 import type { FanletterNewsReportDocument } from "@/lib/content";
 import {
@@ -697,10 +698,11 @@ function NewsMasthead({
       <div className="mx-auto max-w-[92rem] px-4 pt-3 sm:px-6 sm:pt-4 lg:px-8">
         <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-2.5 sm:pb-3">
           <Link
-            className="inline-flex items-center text-[1.82rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[4.5rem]"
+            className="inline-flex min-w-0 items-center gap-2 text-[1.82rem] font-black leading-none tracking-normal !text-[#111510] sm:gap-4 sm:text-[4.5rem]"
             href={newsHomeHref}
           >
-            {copy.siteName}
+            <FanletterBrandMark className="size-9 sm:size-16" />
+            <span className="truncate">{copy.siteName}</span>
           </Link>
           <span className="hidden shrink-0 border border-black/16 px-3 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e] sm:inline-flex">
             {copy.heroEyebrow}

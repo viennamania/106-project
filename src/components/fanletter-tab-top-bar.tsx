@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, MessageCircleHeart, Newspaper } from "lucide-react";
+import { ArrowLeft, Newspaper } from "lucide-react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
+import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import type { Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
@@ -65,9 +66,7 @@ export function FanletterTabTopBar({
           className="flex min-h-11 min-w-0 items-center gap-2"
           href={resolvedHomeHref}
         >
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black sm:size-9">
-            <MessageCircleHeart className="size-5" />
-          </span>
+          <FanletterBrandMark className="size-11 sm:size-9" />
           <span className="hidden truncate text-xl font-semibold tracking-normal sm:inline">
             FanLetter
           </span>

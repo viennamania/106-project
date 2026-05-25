@@ -22,6 +22,7 @@ import {
   FanletterHeroBackgroundCarousel,
 } from "@/components/fanletter-mobile-hero-carousel";
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
+import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
@@ -1677,9 +1678,7 @@ export function FanletterHomePage({
 
           <header className="mt-4 flex items-center justify-between gap-4">
             <Link className="flex items-center gap-2" href={homeHref}>
-              <span className="flex size-9 items-center justify-center rounded-lg bg-[#44f26e] text-black">
-                <MessageCircleHeart className="size-5" />
-              </span>
+              <FanletterBrandMark className="size-9" />
               <span className="text-xl font-semibold tracking-tight">FanLetter</span>
             </Link>
 

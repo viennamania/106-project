@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterHeroBackgroundCarousel } from "@/components/fanletter-mobile-hero-carousel";
 import { LandingReveal } from "@/components/landing/landing-reveal";
@@ -436,9 +437,7 @@ export default async function FanletterNewsPlatformPage({
               className="inline-flex min-w-0 items-center gap-2 text-lg font-black !text-white"
               href={newsHref}
             >
-              <span className="inline-flex size-9 items-center justify-center rounded-full bg-[#44f26e] text-[#071108]">
-                <Newspaper className="size-5" />
-              </span>
+              <FanletterBrandMark className="size-9" />
               <span className="truncate">{copy.brand} News</span>
             </Link>
             <div className="flex shrink-0 items-center gap-2">
