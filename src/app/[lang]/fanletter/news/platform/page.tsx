@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { FanletterHeroBackgroundCarousel } from "@/components/fanletter-mobile-hero-carousel";
+import { getFanletterLandingData } from "@/lib/fanletter-landing-service";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
@@ -44,9 +46,9 @@ function getCopy(locale: Locale) {
         heroTitle:
           "팬이 키운 AI 캐릭터 IP의 수익을 USDT로 투명하게 나눕니다",
         heroBody:
-          "FanLetter는 AI 캐릭터의 One Scene 모바일 브이로그를 포토 뉴스로 확산하고, 요청·보고싶어요·리포트·구매 전환 같은 팬 참여를 기여도로 기록해 수익 공유 구조로 연결합니다.",
+          "브이로거가 AI 캐릭터의 One Scene 모바일 브이로그를 올리면, 팬 리포터가 포토 뉴스로 확산하고 팬 참여와 구매 전환이 USDT 수익 공유 구조로 연결됩니다.",
         primaryCta: "뉴스 홈 보기",
-        secondaryCta: "리포터 시작",
+        secondaryCta: "브이로그 스튜디오",
         proofBadges: ["One Scene Vlog", "Photo News", "USDT Settlement"],
         heroStats: [
           { label: "원본 콘텐츠", value: "Vlog", hint: "모바일 숏폼 장면" },
@@ -55,9 +57,13 @@ function getCopy(locale: Locale) {
         ],
         newsroomPreview: {
           label: "PHOTO NEWS",
-          title: "대표 티저 이미지가 뉴스의 첫 훅이 됩니다",
+          title: "브이로그가 뉴스로 확산되는 첫 화면",
           body:
             "브이로그의 티저 컷과 대표 이미지를 편집해 소비자가 원본 장면을 보고 싶게 만드는 뉴스 포맷으로 노출합니다.",
+        },
+        vloggerSignal: {
+          eyebrow: "Vlogger Growth Loop",
+          title: "올린 영상이 뉴스, 언락, USDT 정산으로 이어집니다",
         },
         modelTitle: "하나의 브이로그가 IP 수익 구조가 되는 방식",
         modelBody:
@@ -147,9 +153,9 @@ function getCopy(locale: Locale) {
         heroTitle:
           "Fans grow AI character IP, and revenue is shared transparently in USDT",
         heroBody:
-          "FanLetter turns One Scene mobile AI character vlogs into photo news, records fan participation such as requests, votes, reports, and purchase conversion, then connects that contribution trail to profit sharing.",
+          "When vloggers publish One Scene mobile AI character vlogs, fan reporters turn them into photo news, and fan participation plus purchase conversion feed a USDT profit-sharing loop.",
         primaryCta: "Open news home",
-        secondaryCta: "Start reporting",
+        secondaryCta: "Vlog studio",
         proofBadges: ["One Scene Vlog", "Photo News", "USDT Settlement"],
         heroStats: [
           { label: "Source content", value: "Vlog", hint: "Mobile shortform scene" },
@@ -158,9 +164,13 @@ function getCopy(locale: Locale) {
         ],
         newsroomPreview: {
           label: "PHOTO NEWS",
-          title: "The lead teaser image becomes the first hook",
+          title: "The first screen where vlogs become news",
           body:
             "Vlog teaser frames and a selected cover are edited into a photo-news format that makes readers want the original scene.",
+        },
+        vloggerSignal: {
+          eyebrow: "Vlogger Growth Loop",
+          title: "Uploaded videos become news, unlocks, and USDT settlement",
         },
         modelTitle: "How one vlog becomes an IP revenue loop",
         modelBody:
@@ -349,6 +359,20 @@ export default async function FanletterNewsPlatformPage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
+  const landingData = await getFanletterLandingData(locale, false);
+  const heroSlides = [
+    ...landingData.featuredVideos,
+    ...landingData.featuredPaidVideos,
+  ]
+    .filter((video) => video.videoUrl.trim())
+    .slice(0, 5)
+    .map((video) => ({
+      authorName: video.authorName,
+      coverImageUrl: video.coverImageUrl,
+      title: video.title,
+      videoUrl: video.videoUrl,
+    }));
+  const hasHeroVideoSlides = heroSlides.length > 0;
   const newsHref = buildPathWithReferral(
     `/${locale}/fanletter/news`,
     referralCode,
@@ -361,21 +385,35 @@ export default async function FanletterNewsPlatformPage({
     `/${locale}/fanletter/news/characters`,
     referralCode,
   );
+  const studioHref = buildPathWithReferral(
+    `/${locale}/fanletter/studio`,
+    referralCode,
+  );
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]">
-      <section className="relative min-h-[82svh] overflow-hidden bg-[#071108] text-white sm:min-h-[76svh]">
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="object-cover object-center opacity-70"
-          fill
-          priority
-          sizes="100vw"
-          src={HERO_IMAGE}
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,17,8,0.94)_0%,rgba(7,17,8,0.76)_44%,rgba(7,17,8,0.34)_100%)]" />
-        <div className="relative mx-auto flex min-h-[82svh] max-w-[92rem] flex-col px-4 py-5 sm:min-h-[76svh] sm:px-6 sm:py-7 lg:px-8">
+      <section className="relative min-h-[100svh] overflow-hidden bg-[#071108] text-white sm:min-h-[92svh]">
+        {hasHeroVideoSlides ? (
+          <FanletterHeroBackgroundCarousel
+            randomizeOnMount
+            showMobilePreviews
+            slides={heroSlides}
+          />
+        ) : (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="object-cover object-center opacity-70"
+            fill
+            priority
+            sizes="100vw"
+            src={HERO_IMAGE}
+          />
+        )}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0.18)_0%,rgba(7,17,8,0.34)_32%,rgba(7,17,8,0.78)_62%,rgba(7,17,8,0.96)_100%)] lg:bg-[linear-gradient(90deg,rgba(7,17,8,0.96)_0%,rgba(7,17,8,0.82)_38%,rgba(7,17,8,0.28)_72%,rgba(7,17,8,0.56)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,17,8,0.56)_0%,rgba(7,17,8,0.18)_54%,rgba(7,17,8,0.04)_100%)] lg:hidden" />
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,rgba(7,17,8,0)_0%,#071108_100%)]" />
+        <div className="relative mx-auto flex min-h-[100svh] max-w-[92rem] flex-col px-4 py-5 sm:min-h-[92svh] sm:px-6 sm:py-7 lg:px-8">
           <header className="flex items-center justify-between gap-4 border-b border-white/14 pb-4">
             <Link
               className="inline-flex items-center gap-2 text-lg font-black !text-white"
@@ -415,13 +453,22 @@ export default async function FanletterNewsPlatformPage({
 
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <CtaLink href={newsHref}>{copy.primaryCta}</CtaLink>
-                <CtaLink href={reportsHref} variant="secondary">
+                <CtaLink href={studioHref} variant="secondary">
                   {copy.secondaryCta}
                 </CtaLink>
               </div>
             </div>
 
             <aside className="grid gap-3">
+              <div className="border border-white/16 bg-black/48 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.28)] backdrop-blur">
+                <p className="inline-flex items-center gap-2 text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#7cff98]">
+                  <Clapperboard className="size-3.5" />
+                  {copy.vloggerSignal.eyebrow}
+                </p>
+                <h2 className="mt-2 text-2xl font-black leading-tight [word-break:keep-all]">
+                  {copy.vloggerSignal.title}
+                </h2>
+              </div>
               <div className="overflow-hidden rounded-lg border border-white/12 bg-white text-[#111510] shadow-[0_26px_80px_rgba(0,0,0,0.28)]">
                 <div className="aspect-[9/13] bg-[#101510] p-4 text-white">
                   <div className="flex items-center justify-between text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
