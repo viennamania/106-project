@@ -52,6 +52,12 @@ import {
   getFanletterNsfwCopy,
   isFanletterNsfwOptedIn,
 } from "@/lib/fanletter-nsfw";
+import {
+  FANLETTER_OG_IMAGE_SIZE,
+  buildFanletterOgImagePath,
+  buildFanletterOgVersionToken,
+  getFanletterOgAlt,
+} from "@/lib/fanletter-og";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import {
@@ -1170,6 +1176,33 @@ export async function generateMetadata({
     data?.profile.character?.avatarImageSet[0]?.url ??
     data?.profile.avatarImageUrl ??
     null;
+  const avatarVersionSeed =
+    data?.profile.character?.avatarImageSet
+      ?.map((avatar) => avatar.url)
+      .join("|") ??
+    data?.profile.avatarImageUrl ??
+    null;
+  const ogImagePath = buildFanletterOgImagePath({
+    description,
+    locale,
+    referralCode: normalizedReferralCode,
+    title,
+    variant: "creator",
+    version: buildFanletterOgVersionToken(
+      "fanletter-news-character-channel-og-v1",
+      normalizedReferralCode,
+      title,
+      description,
+      image,
+      avatarVersionSeed,
+    ),
+  });
+  const ogImage = {
+    alt: getFanletterOgAlt(locale, "creator"),
+    height: FANLETTER_OG_IMAGE_SIZE.height,
+    url: ogImagePath,
+    width: FANLETTER_OG_IMAGE_SIZE.width,
+  };
 
   return {
     title,
@@ -1179,7 +1212,7 @@ export async function generateMetadata({
     },
     openGraph: {
       description,
-      images: image ? [{ url: image }] : undefined,
+      images: [ogImage],
       siteName: copy.siteName,
       title,
       type: "profile",
@@ -1188,7 +1221,7 @@ export async function generateMetadata({
     twitter: {
       card: "summary_large_image",
       description,
-      images: image ? [image] : undefined,
+      images: [ogImage],
       title,
     },
   };
