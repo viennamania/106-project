@@ -115,7 +115,7 @@ export function FanletterHeroBackgroundCarousel({
   showMobilePreviews = false,
   slides,
 }: {
-  mobileLayout?: "full" | "lower-panel";
+  mobileLayout?: "full" | "immersive" | "lower-panel";
   randomizeOnMount?: boolean;
   showMobilePreviews?: boolean;
   slides: FanletterHeroSlide[];
@@ -132,6 +132,8 @@ export function FanletterHeroBackgroundCarousel({
   const videoClassName =
     mobileLayout === "lower-panel"
       ? "absolute inset-x-0 bottom-0 h-[54%] w-full object-cover object-center opacity-[0.86] brightness-[0.9] contrast-[1.06] saturate-[1.14] [mask-image:linear-gradient(180deg,transparent_0%,black_22%,black_100%)] sm:inset-0 sm:h-full sm:scale-[1.04] sm:object-cover sm:opacity-[0.94] sm:brightness-[0.96] sm:contrast-[1.06] sm:saturate-[1.16] sm:[mask-image:none] lg:opacity-[0.62] lg:brightness-[0.88]"
+      : mobileLayout === "immersive"
+        ? "absolute inset-0 h-full w-full object-cover object-[50%_26%] opacity-[0.9] brightness-[0.92] contrast-[1.08] saturate-[1.14] sm:scale-[1.04] sm:object-cover sm:object-center sm:opacity-[0.94] sm:brightness-[0.96] sm:contrast-[1.06] sm:saturate-[1.16] lg:opacity-[0.62] lg:brightness-[0.88]"
       : "absolute inset-0 h-full w-full object-contain object-center opacity-[0.92] brightness-[0.98] contrast-[1.04] saturate-[1.12] sm:scale-[1.04] sm:object-cover sm:opacity-[0.94] sm:brightness-[0.96] sm:contrast-[1.06] sm:saturate-[1.16] lg:opacity-[0.62] lg:brightness-[0.88]";
 
   return (
