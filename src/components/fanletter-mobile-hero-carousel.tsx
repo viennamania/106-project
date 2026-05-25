@@ -110,10 +110,12 @@ function useHeroSlides(
 }
 
 export function FanletterHeroBackgroundCarousel({
+  mobileLayout = "full",
   randomizeOnMount = false,
   showMobilePreviews = false,
   slides,
 }: {
+  mobileLayout?: "full" | "lower-panel";
   randomizeOnMount?: boolean;
   showMobilePreviews?: boolean;
   slides: FanletterHeroSlide[];
@@ -127,12 +129,17 @@ export function FanletterHeroBackgroundCarousel({
     return null;
   }
 
+  const videoClassName =
+    mobileLayout === "lower-panel"
+      ? "absolute inset-x-0 bottom-0 h-[54%] w-full object-cover object-center opacity-[0.86] brightness-[0.9] contrast-[1.06] saturate-[1.14] [mask-image:linear-gradient(180deg,transparent_0%,black_22%,black_100%)] sm:inset-0 sm:h-full sm:scale-[1.04] sm:object-cover sm:opacity-[0.94] sm:brightness-[0.96] sm:contrast-[1.06] sm:saturate-[1.16] sm:[mask-image:none] lg:opacity-[0.62] lg:brightness-[0.88]"
+      : "absolute inset-0 h-full w-full object-contain object-center opacity-[0.92] brightness-[0.98] contrast-[1.04] saturate-[1.12] sm:scale-[1.04] sm:object-cover sm:opacity-[0.94] sm:brightness-[0.96] sm:contrast-[1.06] sm:saturate-[1.16] lg:opacity-[0.62] lg:brightness-[0.88]";
+
   return (
     <div className="absolute inset-0 overflow-hidden">
       <video
         aria-hidden="true"
         autoPlay
-        className="absolute inset-0 h-full w-full object-contain object-center opacity-[0.92] brightness-[0.98] contrast-[1.04] saturate-[1.12] sm:scale-[1.04] sm:object-cover sm:opacity-[0.94] sm:brightness-[0.96] sm:contrast-[1.06] sm:saturate-[1.16] lg:opacity-[0.62] lg:brightness-[0.88]"
+        className={videoClassName}
         key={activeSlide.videoUrl}
         loop
         muted

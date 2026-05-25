@@ -411,6 +411,7 @@ export default async function FanletterNewsPlatformPage({
       <section className="relative min-h-[100svh] overflow-hidden bg-[#071108] text-white sm:min-h-[92svh]">
         {hasHeroVideoSlides ? (
           <FanletterHeroBackgroundCarousel
+            mobileLayout="lower-panel"
             randomizeOnMount
             slides={heroSlides}
           />
@@ -425,9 +426,10 @@ export default async function FanletterNewsPlatformPage({
             src={HERO_IMAGE}
           />
         )}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0.68)_0%,rgba(7,17,8,0.68)_30%,rgba(7,17,8,0.88)_64%,#071108_100%)] sm:bg-[linear-gradient(180deg,rgba(7,17,8,0.28)_0%,rgba(7,17,8,0.42)_34%,rgba(7,17,8,0.82)_66%,#071108_100%)] lg:bg-[linear-gradient(90deg,rgba(7,17,8,0.96)_0%,rgba(7,17,8,0.82)_38%,rgba(7,17,8,0.28)_72%,rgba(7,17,8,0.56)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,17,8,0.84)_0%,rgba(7,17,8,0.62)_58%,rgba(7,17,8,0.36)_100%)] sm:bg-[linear-gradient(90deg,rgba(7,17,8,0.72)_0%,rgba(7,17,8,0.28)_54%,rgba(7,17,8,0.08)_100%)] lg:hidden" />
-        <div className="absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,rgba(7,17,8,0)_0%,#071108_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,#071108_0%,#071108_36%,rgba(7,17,8,0.8)_58%,#071108_100%)] sm:bg-[linear-gradient(180deg,rgba(7,17,8,0.28)_0%,rgba(7,17,8,0.42)_34%,rgba(7,17,8,0.82)_66%,#071108_100%)] lg:bg-[linear-gradient(90deg,rgba(7,17,8,0.96)_0%,rgba(7,17,8,0.82)_38%,rgba(7,17,8,0.28)_72%,rgba(7,17,8,0.56)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,17,8,0.92)_0%,rgba(7,17,8,0.78)_58%,rgba(7,17,8,0.54)_100%)] sm:bg-[linear-gradient(90deg,rgba(7,17,8,0.72)_0%,rgba(7,17,8,0.28)_54%,rgba(7,17,8,0.08)_100%)] lg:hidden" />
+        <div className="absolute inset-x-0 top-0 h-[48%] bg-[#071108] sm:hidden" />
+        <div className="absolute inset-x-0 bottom-0 h-56 bg-[linear-gradient(180deg,rgba(7,17,8,0)_0%,#071108_100%)]" />
         <div className="relative mx-auto flex min-h-[100svh] max-w-[92rem] flex-col px-4 py-4 sm:min-h-[92svh] sm:px-6 sm:py-7 lg:px-8">
           <header className="flex items-center justify-between gap-3 border-b border-white/14 pb-3 sm:gap-4 sm:pb-4">
             <Link
