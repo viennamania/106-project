@@ -314,7 +314,6 @@ export type FanletterNewsReportDraftSource = {
   }>;
   summary: string;
   title: string;
-  videoUrl: string | null;
 };
 
 export type FanletterNewsReportDraftSourcesResult = {
@@ -2200,7 +2199,6 @@ export async function getFanletterNewsReportDraftSourcesForMember({
           authorReferralCode: 1,
           contentId: 1,
           contentMaturityRating: 1,
-          contentVideoUrls: 1,
           coverImageCandidates: 1,
           coverImageUrl: 1,
           createdAt: 1,
@@ -2388,7 +2386,6 @@ export async function getFanletterNewsReportDraftSourcesForMember({
         })),
         summary: trimToLength(post.summary || post.previewText, 220),
         title: trimToLength(post.title, 140),
-        videoUrl: canViewMedia ? post.contentVideoUrls?.[0]?.trim() || null : null,
       };
     }),
     member,

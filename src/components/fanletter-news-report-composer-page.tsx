@@ -14,7 +14,6 @@ import {
   LockKeyhole,
   Loader2,
   Newspaper,
-  PlayCircle,
   RefreshCw,
   Search,
   ShieldAlert,
@@ -96,7 +95,6 @@ export type FanletterNewsReportComposerSource = {
   }>;
   summary: string;
   title: string;
-  videoUrl: string | null;
 };
 
 type ReportCoverCropState = {
@@ -185,23 +183,27 @@ function getCopy(locale: Locale) {
         failed: "리포트를 만들지 못했습니다.",
         firstStep: "1. 브이로그 후보 선택",
         imageOnly:
-          "공개 또는 구매 완료 브이로그만 동영상과 티저 이미지를 확인할 수 있습니다.",
+          "작성실은 원본 동영상 없이 티저 이미지와 공개 메타만 사용합니다.",
         lead:
-          "공개 브이로그와 구매한 유료 브이로그를 선택해 동영상, 티저 이미지, 공개 메타를 기준으로 뉴스 리포트를 작성합니다.",
+          "공개 브이로그와 구매한 유료 브이로그를 선택해 티저 이미지, AI 캐릭터 정보, 기존 리포트, 공개 메타를 기준으로 뉴스 리포트를 작성합니다.",
         locked: "단독 보도권",
         mediaAccess: {
+          deskBody:
+            "작성실에서는 원본 브이로그를 재생하지 않습니다. 공개 메타, AI 캐릭터 정보, 기존 리포트, 티저 이미지만 기준으로 작성하세요.",
+          deskTitle: "티저 기반 작성",
           lockedBody:
-            "이 유료 브이로그는 아직 구매하지 않았습니다. 구매한 리포터만 원본 동영상과 티저 이미지를 확인하고 리포트를 발행할 수 있습니다.",
+            "이 유료 브이로그는 아직 구매하지 않았습니다. 구매한 리포터만 티저 이미지와 공개 메타를 확인하고 리포트를 발행할 수 있습니다.",
           lockedTitle: "구매 후 리포트 작성 가능",
+          noVideo: "원본 동영상 비공개",
+          noVideoBody:
+            "브이로그 원본은 작성실에서 열람하지 않습니다. 유료 콘텐츠는 구매 후에도 티저 기반 작성만 허용됩니다.",
           openPurchase: "구매 페이지 보기",
           purchased: "구매함",
           ready: "작성 가능",
+          sourceStep: "2. 작성 권한",
           teaserLocked: "티저 이미지 잠금",
+          teaserReady: "티저 이미지 사용 가능",
           unpaid: "미구매",
-          videoBody:
-            "원본 브이로그를 확인한 뒤 팬 리포터 관점과 대표 티저 이미지를 선택하세요.",
-          videoMissing: "확인할 수 있는 원본 동영상 URL이 없습니다.",
-          videoTitle: "원본 동영상 확인",
         },
         noCover:
           "이 브이로그에는 아직 리포트에 사용할 티저 이미지가 없습니다.",
@@ -279,23 +281,27 @@ function getCopy(locale: Locale) {
         failed: "Could not create the report.",
         firstStep: "1. Choose a vlog candidate",
         imageOnly:
-          "Only public or purchased vlogs can expose the video and teaser images.",
+          "The reporter desk uses teaser images and public metadata without source video playback.",
         lead:
-          "Choose a public vlog or a paid vlog you purchased, then create a report from the video, teaser images, and public metadata.",
+          "Choose a public vlog or a paid vlog you purchased, then create a report from teaser images, AI character info, published reports, and public metadata.",
         locked: "Exclusive access",
         mediaAccess: {
+          deskBody:
+            "Source video playback is not available in this desk. Write from public metadata, the AI character profile, existing reports, and teaser images.",
+          deskTitle: "Teaser-based reporting",
           lockedBody:
-            "This paid vlog has not been purchased yet. Only reporters who purchased it can view the source video, inspect teaser images, and publish a report.",
+            "This paid vlog has not been purchased yet. Only reporters who purchased it can inspect teaser images, review public metadata, and publish a report.",
           lockedTitle: "Purchase required to report",
+          noVideo: "Source video hidden",
+          noVideoBody:
+            "The original vlog stays off the reporting desk. Paid content still requires purchase before teaser-based reporting.",
           openPurchase: "Open purchase page",
           purchased: "Purchased",
           ready: "Ready to report",
+          sourceStep: "2. Reporting access",
           teaserLocked: "Teaser images locked",
+          teaserReady: "Teaser images available",
           unpaid: "Not purchased",
-          videoBody:
-            "Review the source vlog, then choose the fan reporter angle and lead teaser image.",
-          videoMissing: "No source video URL is available for review.",
-          videoTitle: "Review source video",
         },
         noCover: "This vlog does not have teaser images for reporting yet.",
         price: {
@@ -884,7 +890,7 @@ export function FanletterNewsReportComposerPage({
           <aside className="border border-[#16702e]/18 bg-[#111510] p-5 text-white shadow-[0_18px_46px_rgba(17,21,16,0.16)]">
             <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
               <ImageIcon className="size-3.5" />
-              Teaser only
+              {copy.mediaAccess.teaserReady}
             </p>
             <h2 className="mt-3 text-2xl font-black leading-tight">
               {copy.imageOnly}
@@ -1226,14 +1232,14 @@ export function FanletterNewsReportComposerPage({
                         {isSelectedPaidLocked ? (
                           <LockKeyhole className="size-3.5" />
                         ) : (
-                          <PlayCircle className="size-3.5" />
+                          <FileText className="size-3.5" />
                         )}
-                        2. Source
+                        {copy.mediaAccess.sourceStep}
                       </p>
                       <h2 className="mt-1 text-2xl font-black">
                         {isSelectedPaidLocked
                           ? copy.mediaAccess.lockedTitle
-                          : copy.mediaAccess.videoTitle}
+                          : copy.mediaAccess.deskTitle}
                       </h2>
                     </div>
                     {selectedSource.mediaAccess.isPurchased ? (
@@ -1259,24 +1265,36 @@ export function FanletterNewsReportComposerPage({
                         </Link>
                       ) : null}
                     </div>
-                  ) : selectedSource.videoUrl ? (
-                    <div className="mt-4 overflow-hidden border border-black/10 bg-black">
-                      <video
-                        className="aspect-video w-full bg-black object-contain"
-                        controls
-                        playsInline
-                        poster={selectedSource.coverImageUrl ?? undefined}
-                        preload="metadata"
-                        src={selectedSource.videoUrl}
-                      />
-                      <p className="border-t border-white/10 bg-[#111510] px-4 py-3 text-sm font-semibold leading-6 text-white/64">
-                        {copy.mediaAccess.videoBody}
-                      </p>
-                    </div>
                   ) : (
-                    <p className="mt-4 border border-dashed border-black/14 bg-[#f6f8f4] px-4 py-5 text-sm font-semibold text-black/54">
-                      {copy.mediaAccess.videoMissing}
-                    </p>
+                    <div className="mt-4 grid gap-3 md:grid-cols-3">
+                      <div className="border border-[#19b84b]/18 bg-[#ecfff0] p-4">
+                        <FileText className="size-5 text-[#16702e]" />
+                        <p className="mt-3 text-sm font-black text-[#111510]">
+                          {copy.mediaAccess.ready}
+                        </p>
+                        <p className="mt-2 text-xs font-semibold leading-5 text-black/56">
+                          {copy.mediaAccess.deskBody}
+                        </p>
+                      </div>
+                      <div className="border border-black/10 bg-[#f6f8f4] p-4">
+                        <ImageIcon className="size-5 text-[#16702e]" />
+                        <p className="mt-3 text-sm font-black text-[#111510]">
+                          {copy.mediaAccess.teaserReady}
+                        </p>
+                        <p className="mt-2 text-xs font-semibold leading-5 text-black/56">
+                          {copy.cropHelper}
+                        </p>
+                      </div>
+                      <div className="border border-black/10 bg-[#111510] p-4 text-white">
+                        <LockKeyhole className="size-5 text-[#44f26e]" />
+                        <p className="mt-3 text-sm font-black">
+                          {copy.mediaAccess.noVideo}
+                        </p>
+                        <p className="mt-2 text-xs font-semibold leading-5 text-white/60">
+                          {copy.mediaAccess.noVideoBody}
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </section>
 
