@@ -30,6 +30,17 @@ type FanletterNewsMobileNavItem = {
 
 const fanletterNewsMobileNavHeightClass =
   "h-[calc(5rem+env(safe-area-inset-bottom))]";
+const fanletterNewsTopLevelServiceSegments = new Set([
+  "activate",
+  "characters",
+  "connect",
+  "platform",
+  "purchases",
+  "reporters",
+  "reports",
+  "vlogs",
+  "wallet",
+]);
 
 function trimTrailingSlash(pathname: string) {
   if (pathname.length <= 1) {
@@ -48,6 +59,19 @@ function buildCurrentReturnTo(pathname: string, searchParams: URLSearchParams) {
   return `${pathname}${search ? `?${search}` : ""}`;
 }
 
+function isNewsReportDetailPath(pathname: string, basePath: string) {
+  if (!pathname.startsWith(`${basePath}/`)) {
+    return false;
+  }
+
+  const segments = pathname.slice(basePath.length + 1).split("/").filter(Boolean);
+
+  return (
+    segments.length === 1 &&
+    !fanletterNewsTopLevelServiceSegments.has(segments[0] ?? "")
+  );
+}
+
 export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const pathname = trimTrailingSlash(usePathname());
   const searchParams = useSearchParams();
@@ -59,7 +83,11 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const reportsPath = `${basePath}/reports`;
   const walletPath = `${basePath}/wallet`;
 
-  if (pathname === basePath || pathname === `${basePath}/platform`) {
+  if (
+    pathname === basePath ||
+    pathname === `${basePath}/platform` ||
+    isNewsReportDetailPath(pathname, basePath)
+  ) {
     return null;
   }
 
