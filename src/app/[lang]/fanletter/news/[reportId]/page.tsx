@@ -20,6 +20,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 
+import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterNewsCharacterImageSelector } from "@/components/fanletter-news-character-image-selector";
 import { FanletterNewsRelatedList } from "@/components/fanletter-news-related-list";
 import { FanletterNewsSourceRevealVote } from "@/components/fanletter-news-source-reveal-vote";
@@ -579,30 +580,33 @@ function NewsSiteHeader({
 
   return (
     <header className="border-b border-black/14 bg-white text-[#111510] shadow-[0_8px_28px_rgba(17,21,16,0.05)]">
-      <div className="border-b border-black/10 bg-[#eef1ec]">
+      <div className="hidden border-b border-black/10 bg-[#eef1ec] sm:block">
         <div className="mx-auto flex max-w-[92rem] items-center justify-between gap-4 px-4 py-1.5 text-[0.68rem] font-bold text-black/52 sm:px-6 sm:py-2 lg:px-8">
           <span>{today}</span>
           <span className="hidden sm:inline">{copy.edition}</span>
         </div>
       </div>
-      <div className="mx-auto flex max-w-[92rem] flex-col px-4 pt-3 sm:px-6 sm:pt-4 lg:px-8">
-        <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-2.5 sm:pb-3">
+      <div className="mx-auto flex max-w-[92rem] flex-col px-3 pt-2.5 sm:px-6 sm:pt-4 lg:px-8">
+        <div className="flex items-center justify-between gap-3 border-b-2 border-[#111510] pb-2.5 sm:items-end sm:gap-4 sm:pb-3">
           <Link
-            className="inline-flex min-w-0 items-center gap-3 break-words text-2xl font-black leading-none tracking-normal !text-[#111510] sm:text-[4rem]"
+            className="inline-flex min-w-0 items-center gap-2.5 break-words text-[1.35rem] font-black leading-none tracking-normal !text-[#111510] sm:gap-3 sm:text-[4rem]"
             href={homeHref}
           >
-            {copy.siteName}
+            <FanletterBrandMark className="size-9 sm:size-14" />
+            <span className="truncate">{copy.siteName}</span>
           </Link>
           <div className="flex shrink-0 flex-col items-end gap-2">
             <span className="hidden border border-black/14 px-3 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e] sm:inline-flex">
               {copy.articleEyebrow}
             </span>
-            <FanletterNewsWalletConnect
-              className="max-w-[7.75rem] sm:max-w-[12rem]"
-              locale={locale}
-              referralCode={referralCode}
-              walletHref={walletHref}
-            />
+            <div className="hidden sm:block">
+              <FanletterNewsWalletConnect
+                className="sm:max-w-[12rem]"
+                locale={locale}
+                referralCode={referralCode}
+                walletHref={walletHref}
+              />
+            </div>
           </div>
         </div>
         <nav
