@@ -1274,15 +1274,15 @@ function CompactStory({
 
   return (
     <Link
-      className="group grid min-w-0 grid-cols-[5.4rem_minmax(0,1fr)] gap-3 border-b border-black/10 pb-4 last:border-b-0 last:pb-0"
+      className="group grid min-w-0 grid-cols-[7.25rem_minmax(0,1fr)] gap-3 border-b border-black/10 pb-4 last:border-b-0 last:pb-0 sm:grid-cols-[8.25rem_minmax(0,1fr)]"
       href={getReportHref(report, referralCode)}
     >
       <NewsImage
         blurred={shouldBlur}
-        className="aspect-[4/5] border border-black/10"
+        className="aspect-[16/10] border border-black/10"
         nsfwLabel={nsfwCopy.badge}
         report={report}
-        sizes="5.5rem"
+        sizes="(max-width: 640px) 7.25rem, 8.25rem"
       />
       <div className="min-w-0">
         <div className="flex flex-wrap gap-2 text-[0.68rem] font-black text-[#16702e]">
