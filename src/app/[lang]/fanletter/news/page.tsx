@@ -98,12 +98,11 @@ function getCopy(locale: Locale) {
           deskBody: "리포터 활동, AI 캐릭터 이슈, 공개 뉴스 흐름을 한곳에서 확인합니다.",
           headlines: "주요 헤드라인",
           leadDeck:
-            "최초 리포트가 홈 편집 우선권을 얻습니다. 리드와 주요 헤드라인을 빠르게 훑는 FanLetter 뉴스 편집판입니다.",
+            "빠르게 발행된 팬 리포트를 리드와 주요 헤드라인으로 큐레이션하는 FanLetter 뉴스 편집판입니다.",
           reporters: "리포터 편집판",
           title: "FanLetter 뉴스 편집판",
         },
         firstReport: "최초 리포트",
-        firstReportShort: "최초",
         heroEyebrow: "FanLetter Entertainment News",
         issueLabel: "오늘의 FanLetter 엔터테인먼트 브리핑",
         latest: "최신 리포트",
@@ -146,6 +145,7 @@ function getCopy(locale: Locale) {
           title: (name: string) => `${name}의 FanLetter News`,
         },
         reporterDesk: "팬 기자 데스크",
+        reporterFirstMetric: "선점",
         reporterNewsCta: "이 팬 기자 뉴스 보기",
         reporterReportUnit: "뉴스",
         reporterRank: "활동 기자",
@@ -196,12 +196,11 @@ function getCopy(locale: Locale) {
             "Track reporter activity, AI character issues, and public news flow in one place.",
           headlines: "Major Headlines",
           leadDeck:
-            "First reports receive front-page priority. A FanLetter news edition for scanning the lead news and major headlines quickly.",
+            "A FanLetter news edition that curates fast-moving fan reports into lead news and major headlines.",
           reporters: "Reporter Edition",
           title: "FanLetter News Edition",
         },
         firstReport: "First report",
-        firstReportShort: "First",
         heroEyebrow: "FanLetter Entertainment News",
         issueLabel: "Today's FanLetter entertainment briefing",
         latest: "Latest Reports",
@@ -243,6 +242,7 @@ function getCopy(locale: Locale) {
           title: (name: string) => `${name}'s FanLetter News`,
         },
         reporterDesk: "Fan Reporter Desk",
+        reporterFirstMetric: "Scoops",
         reporterNewsCta: "View reporter news",
         reporterReportUnit: "News",
         reporterRank: "Active reporters",
@@ -267,7 +267,9 @@ function formatNumber(value: number, locale: Locale) {
 }
 
 function getArticleDisplayTitle(title: string) {
-  return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
+  return title
+    .replace(/^\[(최초|First)\]\s*/i, "")
+    .replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
 }
 
 function getReporterDisplayName(report: FanletterNewsReportDocument) {
@@ -920,9 +922,6 @@ function HeroSideStory({
       <div className="hidden sm:absolute sm:inset-0 sm:block sm:bg-gradient-to-t sm:from-black/86 sm:via-black/26 sm:to-transparent" />
       <div className="min-w-0 p-3 sm:absolute sm:inset-x-0 sm:bottom-0 sm:p-4">
         <div className="mb-2 flex flex-wrap gap-2 text-[0.62rem] font-black uppercase tracking-[0.08em] sm:text-[0.64rem] sm:tracking-[0.1em]">
-          {isFirstNewsReport(report) ? (
-            <FirstReportBadge copy={copy} tone="dark" />
-          ) : null}
           <span className="bg-[#44f26e] px-2 py-1 text-black">
             {getAccessLabel(report, copy)}
           </span>
@@ -986,9 +985,6 @@ function PortalHeadlineList({
               </span>
               <span className="min-w-0">
                 <span className="flex flex-wrap gap-2 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black/42">
-                  {isFirstNewsReport(report) ? (
-                    <span className="text-[#16702e]">{copy.firstReportShort}</span>
-                  ) : null}
                   <span className="text-[#16702e]">
                     {getAccessLabel(report, copy)}
                   </span>
@@ -1288,7 +1284,6 @@ function CompactStory({
       />
       <div className="min-w-0">
         <div className="flex flex-wrap gap-2 text-[0.68rem] font-black text-[#16702e]">
-          {isFirstNewsReport(report) ? <span>{copy.firstReportShort}</span> : null}
           <span>{getAccessLabel(report, copy)}</span>
         </div>
         <h2
@@ -1345,9 +1340,6 @@ function FeatureCard({
       <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/38 to-black/6" />
       <div className="absolute inset-x-0 bottom-0 p-4">
         <div className="flex flex-wrap gap-2 text-[0.68rem] font-black">
-          {isFirstNewsReport(report) ? (
-            <FirstReportBadge copy={copy} tone="dark" />
-          ) : null}
           <span className="bg-[#44f26e] px-2 py-1 text-black">
             {report.creatorName}
           </span>
@@ -1529,9 +1521,6 @@ function WireLeadStory({
       <div className="absolute inset-0 bg-gradient-to-t from-black/94 via-black/36 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
         <div className="flex flex-wrap gap-2 text-[0.68rem] font-black">
-          {isFirstNewsReport(report) ? (
-            <FirstReportBadge copy={copy} tone="dark" />
-          ) : null}
           <span className="bg-[#44f26e] px-2 py-1 text-black">
             {report.creatorName}
           </span>
@@ -1595,9 +1584,6 @@ function WireBriefStory({
       />
       <div className="min-w-0">
         <div className="flex flex-wrap gap-2 text-[0.62rem] font-black uppercase tracking-[0.1em]">
-          {isFirstNewsReport(report) ? (
-            <span className="text-[#44f26e]">{copy.firstReportShort}</span>
-          ) : null}
           <span className="text-[#44f26e]">{report.creatorName}</span>
           <span className="text-white/52">{getAccessLabel(report, copy)}</span>
           {publishedAt ? <span className="text-white/34">{publishedAt}</span> : null}
@@ -1726,9 +1712,6 @@ function PhotoDeskStory({
       <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/18 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
         <div className="flex flex-wrap gap-2 text-[0.62rem] font-black uppercase tracking-[0.18em]">
-          {isFirstNewsReport(report) ? (
-            <FirstReportBadge copy={copy} tone="dark" />
-          ) : null}
           <span className="bg-white px-2.5 py-1 text-[#111510]">
             {getAccessLabel(report, copy)}
           </span>
@@ -2082,7 +2065,7 @@ function ReporterRank({
                   </span>
                   {reporter.firstReportCount > 0 ? (
                     <span className="font-black text-[#16702e]">
-                      {copy.firstReportShort}{" "}
+                      {copy.reporterFirstMetric}{" "}
                       {formatNumber(reporter.firstReportCount, locale)}
                     </span>
                   ) : null}
@@ -2268,10 +2251,17 @@ export default async function LocalizedFanletterNewsHomePage({
     reportsAfterPhotoDesk,
     CHARACTER_WIRE_REPORT_LIMIT,
   );
-  const latestSectionReports = getFirstNewsPromotedReports(
-    latestNewsReports.filter(isEditorialSafeReport),
-  )
-    .slice(0, LATEST_SECTION_REPORT_LIMIT);
+  const primaryDisplayedReports = [
+    ...(leadReport ? [leadReport] : []),
+    ...heroSideReports,
+    ...topStories,
+    ...photoDeskReports,
+    ...featureReports,
+  ];
+  const latestSectionReports = excludeReports(
+    allReports.filter(isEditorialSafeReport),
+    primaryDisplayedReports,
+  ).slice(0, LATEST_SECTION_REPORT_LIMIT);
   const [reporterStats, characterNewsStats] = await Promise.all([
     hydrateReporterStats(getReporterStats(editorialAllReports)),
     hydrateFanletterNewsCharacterStats(
