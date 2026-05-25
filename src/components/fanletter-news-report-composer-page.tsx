@@ -32,7 +32,15 @@ import {
   type PointerEvent,
 } from "react";
 
-import type { ContentMaturityRating, ContentPriceType } from "@/lib/content";
+import {
+  FanletterPaidUnlockPanel,
+  FanletterPaidUnlockTrigger,
+} from "@/components/fanletter-paid-unlock-panel";
+import {
+  CONTENT_PAID_USDT_AMOUNT,
+  type ContentMaturityRating,
+  type ContentPriceType,
+} from "@/lib/content";
 import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -225,7 +233,7 @@ function getCopy(locale: Locale) {
           noVideo: "원본 동영상 비공개",
           noVideoBody:
             "브이로그 원본은 작성실에서 열람하지 않습니다. 유료 콘텐츠는 구매 후에도 티저 기반 작성만 허용됩니다.",
-          openPurchase: "구매 페이지 보기",
+          openPurchase: "1 USDT 결제하기",
           purchased: "구매함",
           ready: "작성 가능",
           sourceStep: "2. 작성 권한",
@@ -333,7 +341,7 @@ function getCopy(locale: Locale) {
           noVideo: "Source video hidden",
           noVideoBody:
             "The original vlog stays off the reporting desk. Paid content still requires purchase before teaser-based reporting.",
-          openPurchase: "Open purchase page",
+          openPurchase: "Pay 1 USDT",
           purchased: "Purchased",
           ready: "Ready to report",
           sourceStep: "2. Reporting access",
@@ -549,16 +557,22 @@ async function createCroppedReportCoverBlob({
 }
 
 export function FanletterNewsReportComposerPage({
+  connectHref,
+  currentHref,
   includeNsfw,
   locale,
+  onboardingHref,
   reportNewHref,
   reporterReferralCode,
   reportsHref,
   searchQuery,
   sources,
 }: {
+  connectHref: string;
+  currentHref: string;
   includeNsfw: boolean;
   locale: Locale;
+  onboardingHref: string;
   reportNewHref: string;
   reporterReferralCode: string;
   reportsHref: string;
@@ -640,6 +654,16 @@ export function FanletterNewsReportComposerPage({
       }),
     [includeNsfw, reportNewHref, searchQuery],
   );
+  const paidUnlockSectionId = selectedSource
+    ? `fanletter-report-composer-paid-unlock-${selectedSource.contentId}`
+    : "fanletter-report-composer-paid-unlock";
+  const paidUnlockHref = `${currentHref}#${paidUnlockSectionId}`;
+  const selectedCreatorHref = selectedSource?.creatorReferralCode
+    ? setRelativeSearchParams(
+        `/${locale}/fanletter/news/characters/${selectedSource.creatorReferralCode}`,
+        { ref: reporterReferralCode },
+      )
+    : reportsHref;
 
   useEffect(() => {
     setSearchInput(searchQuery);
@@ -1324,6 +1348,7 @@ export function FanletterNewsReportComposerPage({
                 </section>
 
                 <section
+                  id={isSelectedPaidLocked ? paidUnlockSectionId : undefined}
                   className={cn(
                     "border p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5",
                     isSelectedPaidLocked
@@ -1365,15 +1390,13 @@ export function FanletterNewsReportComposerPage({
                       <p className="text-sm font-semibold leading-6 text-rose-900/72">
                         {copy.mediaAccess.lockedBody}
                       </p>
-                      {selectedSource.mediaAccess.purchaseHref ? (
-                        <Link
-                          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white"
-                          href={selectedSource.mediaAccess.purchaseHref}
-                        >
-                          {copy.mediaAccess.openPurchase}
-                          <ArrowRight className="size-4 text-[#44f26e]" />
-                        </Link>
-                      ) : null}
+                      <FanletterPaidUnlockTrigger
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white"
+                        href={paidUnlockHref}
+                      >
+                        {copy.mediaAccess.openPurchase}
+                        <ArrowRight className="size-4 text-[#44f26e]" />
+                      </FanletterPaidUnlockTrigger>
                     </div>
                   ) : (
                     <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -1408,6 +1431,30 @@ export function FanletterNewsReportComposerPage({
                   )}
                 </section>
 
+                {isSelectedPaidLocked ? (
+                  <FanletterPaidUnlockPanel
+                    autoOpenHash={`#${paidUnlockSectionId}`}
+                    connectHref={connectHref}
+                    contentId={selectedSource.contentId}
+                    contentImageCount={selectedSource.coverOptions.length}
+                    contentMaturityRating={selectedSource.contentMaturityRating}
+                    contentVideoCount={1}
+                    creatorHref={selectedCreatorHref}
+                    currentHref={currentHref}
+                    hideInlinePanel
+                    initialBody={selectedSource.summary}
+                    initialCoverImageUrl={selectedSource.coverImageUrl}
+                    initialSummary={selectedSource.summary}
+                    initialTitle={selectedSource.title}
+                    locale={locale}
+                    onboardingHref={onboardingHref}
+                    priceUsdt={CONTENT_PAID_USDT_AMOUNT}
+                    referralCode={reporterReferralCode}
+                    showTeaserPreview={false}
+                    trackingSource="fanletter-news-report-composer"
+                  />
+                ) : null}
+
                 <section className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
@@ -1433,15 +1480,13 @@ export function FanletterNewsReportComposerPage({
                       <p className="mt-2 text-sm font-semibold leading-6 text-rose-900/70">
                         {copy.mediaAccess.lockedBody}
                       </p>
-                      {selectedSource.mediaAccess.purchaseHref ? (
-                        <Link
-                          className="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white"
-                          href={selectedSource.mediaAccess.purchaseHref}
-                        >
-                          {copy.mediaAccess.openPurchase}
-                          <ArrowRight className="size-4 text-[#44f26e]" />
-                        </Link>
-                      ) : null}
+                      <FanletterPaidUnlockTrigger
+                        className="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white"
+                        href={paidUnlockHref}
+                      >
+                        {copy.mediaAccess.openPurchase}
+                        <ArrowRight className="size-4 text-[#44f26e]" />
+                      </FanletterPaidUnlockTrigger>
                     </div>
                   ) : selectedSource.coverOptions.length > 0 ? (
                     <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">

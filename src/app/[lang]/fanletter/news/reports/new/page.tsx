@@ -104,6 +104,10 @@ export default async function LocalizedFanletterNewsReportNewPage({
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
     { returnTo: reportNewHref },
   );
+  const onboardingHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/onboarding`, referralCode),
+    { returnTo: reportNewHref },
+  );
   const session = await readMemberServerSession();
   const data = session
     ? await getFanletterNewsReportDraftSourcesForMember({
@@ -155,7 +159,10 @@ export default async function LocalizedFanletterNewsReportNewPage({
   return (
     <FanletterNewsReportComposerPage
       includeNsfw={includeNsfw}
+      connectHref={connectHref}
+      currentHref={reportNewHref}
       locale={locale}
+      onboardingHref={onboardingHref}
       reportNewHref={filteredReportNewHref}
       reporterReferralCode={data.member.referralCode}
       reportsHref={reportsHref}
