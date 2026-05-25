@@ -58,6 +58,11 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const purchasesPath = `${basePath}/purchases`;
   const reportsPath = `${basePath}/reports`;
   const walletPath = `${basePath}/wallet`;
+
+  if (pathname === `${basePath}/platform`) {
+    return null;
+  }
+
   const referralCode = normalizeReferralCode(searchParams.get("ref"));
   const buildHref = (path: string) => buildPathWithReferral(path, referralCode);
   const isWalletServicePath =

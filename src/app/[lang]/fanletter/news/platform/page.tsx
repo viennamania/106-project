@@ -25,6 +25,7 @@ import type { ReactNode } from "react";
 
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterHeroBackgroundCarousel } from "@/components/fanletter-mobile-hero-carousel";
+import { LandingReveal } from "@/components/landing/landing-reveal";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getFanletterLandingData } from "@/lib/fanletter-landing-service";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
@@ -411,7 +412,6 @@ export default async function FanletterNewsPlatformPage({
         {hasHeroVideoSlides ? (
           <FanletterHeroBackgroundCarousel
             randomizeOnMount
-            showMobilePreviews
             slides={heroSlides}
           />
         ) : (
@@ -425,9 +425,9 @@ export default async function FanletterNewsPlatformPage({
             src={HERO_IMAGE}
           />
         )}
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0.18)_0%,rgba(7,17,8,0.34)_32%,rgba(7,17,8,0.78)_62%,rgba(7,17,8,0.96)_100%)] lg:bg-[linear-gradient(90deg,rgba(7,17,8,0.96)_0%,rgba(7,17,8,0.82)_38%,rgba(7,17,8,0.28)_72%,rgba(7,17,8,0.56)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,17,8,0.56)_0%,rgba(7,17,8,0.18)_54%,rgba(7,17,8,0.04)_100%)] lg:hidden" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,rgba(7,17,8,0)_0%,#071108_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0.68)_0%,rgba(7,17,8,0.68)_30%,rgba(7,17,8,0.88)_64%,#071108_100%)] sm:bg-[linear-gradient(180deg,rgba(7,17,8,0.28)_0%,rgba(7,17,8,0.42)_34%,rgba(7,17,8,0.82)_66%,#071108_100%)] lg:bg-[linear-gradient(90deg,rgba(7,17,8,0.96)_0%,rgba(7,17,8,0.82)_38%,rgba(7,17,8,0.28)_72%,rgba(7,17,8,0.56)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,17,8,0.84)_0%,rgba(7,17,8,0.62)_58%,rgba(7,17,8,0.36)_100%)] sm:bg-[linear-gradient(90deg,rgba(7,17,8,0.72)_0%,rgba(7,17,8,0.28)_54%,rgba(7,17,8,0.08)_100%)] lg:hidden" />
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,rgba(7,17,8,0)_0%,#071108_100%)]" />
         <div className="relative mx-auto flex min-h-[100svh] max-w-[92rem] flex-col px-4 py-4 sm:min-h-[92svh] sm:px-6 sm:py-7 lg:px-8">
           <header className="flex items-center justify-between gap-3 border-b border-white/14 pb-3 sm:gap-4 sm:pb-4">
             <Link
@@ -460,16 +460,16 @@ export default async function FanletterNewsPlatformPage({
             </div>
           </header>
 
-          <div className="grid flex-1 items-center gap-5 py-5 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_28rem] lg:py-12">
-            <div className="max-w-4xl">
-              <p className="inline-flex items-center gap-2 text-[0.72rem] font-black uppercase tracking-[0.2em] text-[#7cff98]">
+          <div className="grid flex-1 content-start gap-5 py-7 sm:gap-8 sm:py-8 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-center lg:py-12">
+            <LandingReveal className="max-w-3xl" variant="hero">
+              <p className="inline-flex items-center gap-2 text-[0.7rem] font-black uppercase tracking-[0.16em] text-[#7cff98] drop-shadow-[0_2px_16px_rgba(0,0,0,0.42)] sm:text-[0.72rem]">
                 <Blocks className="size-4" />
                 {copy.eyebrow}
               </p>
-              <h1 className="mt-3 max-w-4xl text-[2.32rem] font-black leading-[1.02] tracking-normal text-white [word-break:keep-all] sm:mt-5 sm:text-6xl lg:text-7xl">
+              <h1 className="mt-3 max-w-3xl text-[2.05rem] font-black leading-[1.05] tracking-normal text-white drop-shadow-[0_6px_28px_rgba(0,0,0,0.55)] [word-break:keep-all] sm:mt-5 sm:text-6xl lg:text-7xl">
                 {copy.heroTitle}
               </h1>
-              <p className="mt-4 max-w-2xl text-sm font-bold leading-6 text-white/72 [word-break:keep-all] sm:mt-5 sm:text-lg sm:leading-8">
+              <p className="mt-4 max-w-2xl text-sm font-bold leading-6 text-white/82 drop-shadow-[0_3px_18px_rgba(0,0,0,0.58)] [word-break:keep-all] sm:mt-5 sm:text-lg sm:leading-8">
                 {copy.heroBody}
               </p>
 
@@ -485,9 +485,9 @@ export default async function FanletterNewsPlatformPage({
                   {copy.secondaryCta}
                 </CtaLink>
               </div>
-            </div>
+            </LandingReveal>
 
-            <aside className="grid gap-3">
+            <LandingReveal className="grid gap-3" delay={120} variant="soft">
               <div className="relative overflow-hidden rounded-lg border border-white/18 bg-[#071108]/72 shadow-[0_28px_90px_rgba(0,0,0,0.32)] backdrop-blur">
                 <Image
                   alt=""
@@ -571,14 +571,14 @@ export default async function FanletterNewsPlatformPage({
                   </div>
                 </div>
               </div>
-            </aside>
+            </LandingReveal>
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-[92rem] px-4 py-9 sm:px-6 sm:py-12 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
-          <div className="lg:sticky lg:top-8">
+          <LandingReveal className="lg:sticky lg:top-8" variant="soft">
             <SectionLabel>Platform Loop</SectionLabel>
             <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
               {copy.modelTitle}
@@ -586,7 +586,7 @@ export default async function FanletterNewsPlatformPage({
             <p className="mt-4 text-base font-bold leading-7 text-black/60 [word-break:keep-all]">
               {copy.modelBody}
             </p>
-          </div>
+          </LandingReveal>
 
           <div className="grid gap-3">
             {copy.modelSteps.map((step, index) => {
@@ -600,9 +600,11 @@ export default async function FanletterNewsPlatformPage({
               const Icon = icons[index] ?? CheckCircle2;
 
               return (
-                <article
+                <LandingReveal
                   className="grid gap-3 border border-black/10 bg-white p-4 shadow-[0_16px_45px_rgba(17,21,16,0.05)] sm:grid-cols-[auto_minmax(0,1fr)] sm:p-5"
+                  delay={index * 55}
                   key={step.title}
+                  variant="soft"
                 >
                   <div className="flex size-12 items-center justify-center rounded-full bg-[#071108] text-[#44f26e]">
                     <Icon className="size-5" />
@@ -618,7 +620,7 @@ export default async function FanletterNewsPlatformPage({
                       {step.body}
                     </p>
                   </div>
-                </article>
+                </LandingReveal>
               );
             })}
           </div>
@@ -627,7 +629,7 @@ export default async function FanletterNewsPlatformPage({
 
       <section className="border-y border-black/10 bg-white">
         <div className="mx-auto grid max-w-[92rem] gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.82fr)] lg:px-8">
-          <div>
+          <LandingReveal variant="soft">
             <SectionLabel>Fan Participation</SectionLabel>
             <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
               {copy.participationTitle}
@@ -635,7 +637,7 @@ export default async function FanletterNewsPlatformPage({
             <p className="mt-4 max-w-3xl text-base font-bold leading-7 text-black/60 [word-break:keep-all]">
               {copy.participationBody}
             </p>
-          </div>
+          </LandingReveal>
 
           <div className="grid gap-3">
             {copy.participationItems.map((item, index) => {
@@ -643,9 +645,11 @@ export default async function FanletterNewsPlatformPage({
               const Icon = icons[index] ?? UsersRound;
 
               return (
-                <article
+                <LandingReveal
                   className="rounded-lg border border-black/10 bg-[#f7f8f4] p-4"
+                  delay={index * 60}
                   key={item.title}
+                  variant="soft"
                 >
                   <div className="flex items-start gap-3">
                     <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#ecfff0] text-[#16702e]">
@@ -661,7 +665,7 @@ export default async function FanletterNewsPlatformPage({
                       </p>
                     </div>
                   </div>
-                </article>
+                </LandingReveal>
               );
             })}
           </div>
@@ -670,7 +674,7 @@ export default async function FanletterNewsPlatformPage({
 
       <section className="mx-auto max-w-[92rem] px-4 py-9 sm:px-6 sm:py-14 lg:px-8">
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-stretch">
-          <div className="bg-[#071108] p-5 text-white shadow-[0_28px_80px_rgba(7,17,8,0.2)] sm:p-8">
+          <LandingReveal className="bg-[#071108] p-5 text-white shadow-[0_28px_80px_rgba(7,17,8,0.2)] sm:p-8">
             <p className="inline-flex items-center gap-2 text-[0.7rem] font-black uppercase tracking-[0.18em] text-[#7cff98]">
               <ShieldCheck className="size-4" />
               {copy.settlementEyebrow}
@@ -695,9 +699,12 @@ export default async function FanletterNewsPlatformPage({
                 </div>
               ))}
             </div>
-          </div>
+          </LandingReveal>
 
-          <aside className="grid content-between gap-4 border border-black/10 bg-white p-5 sm:p-6">
+          <LandingReveal
+            className="grid content-between gap-4 border border-black/10 bg-white p-5 sm:p-6"
+            delay={120}
+          >
             <div>
               <div className="flex size-14 items-center justify-center rounded-full bg-[#44f26e] text-[#071108]">
                 <Coins className="size-7" />
@@ -727,13 +734,13 @@ export default async function FanletterNewsPlatformPage({
                 <LockKeyhole className="size-5 text-[#16702e]" />
               </div>
             </div>
-          </aside>
+          </LandingReveal>
         </div>
       </section>
 
       <section className="border-t border-black/10 bg-[#111510] text-white">
         <div className="mx-auto grid max-w-[92rem] gap-6 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:px-8">
-          <div>
+          <LandingReveal variant="soft">
             <p className="text-[0.72rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
               {copy.loopTitle}
             </p>
@@ -746,8 +753,8 @@ export default async function FanletterNewsPlatformPage({
             <p className="mt-4 max-w-2xl text-sm font-bold leading-6 text-white/48 [word-break:keep-all]">
               {copy.loopBody}
             </p>
-          </div>
-          <div className="grid gap-3 sm:min-w-[17rem]">
+          </LandingReveal>
+          <LandingReveal className="grid gap-3 sm:min-w-[17rem]" delay={120}>
             <CtaLink href={newsHref}>{copy.ctaNews}</CtaLink>
             <CtaLink href={charactersHref} variant="secondary">
               {copy.ctaCharacters}
@@ -755,7 +762,7 @@ export default async function FanletterNewsPlatformPage({
             <CtaLink href={reportsHref} variant="secondary">
               {copy.ctaReports}
             </CtaLink>
-          </div>
+          </LandingReveal>
         </div>
       </section>
     </main>
