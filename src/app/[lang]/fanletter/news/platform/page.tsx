@@ -24,6 +24,7 @@ import {
 import type { ReactNode } from "react";
 
 import { FanletterHeroBackgroundCarousel } from "@/components/fanletter-mobile-hero-carousel";
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getFanletterLandingData } from "@/lib/fanletter-landing-service";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
@@ -43,10 +44,9 @@ function getCopy(locale: Locale) {
           "팬이 AI 캐릭터 IP를 함께 키우고, 브이로그 수익을 USDT 기반 정산으로 투명하게 나누는 FanLetter News 랜딩 페이지입니다.",
         brand: "FanLetter",
         eyebrow: "AI Character IP Profit Sharing",
-        heroTitle:
-          "팬이 키운 AI 캐릭터 IP의 수익을 USDT로 투명하게 나눕니다",
+        heroTitle: "AI 캐릭터 브이로그 수익 공유 플랫폼",
         heroBody:
-          "브이로거가 AI 캐릭터의 One Scene 모바일 브이로그를 올리면, 팬 리포터가 포토 뉴스로 확산하고 팬 참여와 구매 전환이 USDT 수익 공유 구조로 연결됩니다.",
+          "브이로거가 AI 캐릭터의 One Scene 모바일 브이로그를 올리면, 팬 리포터가 포토 뉴스로 확산하고 팬 참여와 구매 전환이 USDT 정산 흐름으로 연결됩니다.",
         primaryCta: "뉴스 홈 보기",
         secondaryCta: "브이로그 스튜디오",
         proofBadges: ["One Scene Vlog", "Photo News", "USDT Settlement"],
@@ -56,10 +56,16 @@ function getCopy(locale: Locale) {
           { label: "정산 기준", value: "USDT", hint: "블록체인 지급 기록" },
         ],
         newsroomPreview: {
-          label: "PHOTO NEWS",
-          title: "브이로그가 뉴스로 확산되는 첫 화면",
+          label: "VLOG LAUNCH",
+          title: "업로드한 브이로그가 바로 뉴스 유입면이 됩니다",
           body:
-            "브이로그의 티저 컷과 대표 이미지를 편집해 소비자가 원본 장면을 보고 싶게 만드는 뉴스 포맷으로 노출합니다.",
+            "대표 티저, 팬 오픈 투표, 1 USDT 구매 신호를 한 화면에 묶어 소비자가 원본 장면을 보고 싶게 만듭니다.",
+          flow: ["업로드", "포토 뉴스", "팬 오픈", "USDT 정산"],
+          metrics: [
+            { label: "원본", value: "One Scene" },
+            { label: "팬 오픈", value: "6명" },
+            { label: "판매", value: "1 USDT" },
+          ],
         },
         vloggerSignal: {
           eyebrow: "Vlogger Growth Loop",
@@ -150,10 +156,9 @@ function getCopy(locale: Locale) {
           "A FanLetter News landing page for fan-powered AI character IP growth and transparent USDT-based profit sharing.",
         brand: "FanLetter",
         eyebrow: "AI Character IP Profit Sharing",
-        heroTitle:
-          "Fans grow AI character IP, and revenue is shared transparently in USDT",
+        heroTitle: "AI character vlog profit-sharing platform",
         heroBody:
-          "When vloggers publish One Scene mobile AI character vlogs, fan reporters turn them into photo news, and fan participation plus purchase conversion feed a USDT profit-sharing loop.",
+          "When vloggers publish One Scene mobile AI character vlogs, fan reporters turn them into photo news, and fan participation plus purchase conversion flow into USDT settlement.",
         primaryCta: "Open news home",
         secondaryCta: "Vlog studio",
         proofBadges: ["One Scene Vlog", "Photo News", "USDT Settlement"],
@@ -163,10 +168,16 @@ function getCopy(locale: Locale) {
           { label: "Settlement unit", value: "USDT", hint: "Blockchain payout record" },
         ],
         newsroomPreview: {
-          label: "PHOTO NEWS",
-          title: "The first screen where vlogs become news",
+          label: "VLOG LAUNCH",
+          title: "Uploaded vlogs become the news entry screen",
           body:
-            "Vlog teaser frames and a selected cover are edited into a photo-news format that makes readers want the original scene.",
+            "Lead teasers, fan-open votes, and 1 USDT purchase signals are packaged into one screen that makes readers want the source scene.",
+          flow: ["Upload", "Photo news", "Fan open", "USDT settle"],
+          metrics: [
+            { label: "Source", value: "One Scene" },
+            { label: "Fan open", value: "6 fans" },
+            { label: "Sale", value: "1 USDT" },
+          ],
         },
         vloggerSignal: {
           eyebrow: "Vlogger Growth Loop",
@@ -373,6 +384,9 @@ export default async function FanletterNewsPlatformPage({
       videoUrl: video.videoUrl,
     }));
   const hasHeroVideoSlides = heroSlides.length > 0;
+  const previewCoverImageUrl =
+    heroSlides.find((slide) => slide.coverImageUrl?.trim())?.coverImageUrl ??
+    HERO_IMAGE;
   const newsHref = buildPathWithReferral(
     `/${locale}/fanletter/news`,
     referralCode,
@@ -413,8 +427,8 @@ export default async function FanletterNewsPlatformPage({
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0.18)_0%,rgba(7,17,8,0.34)_32%,rgba(7,17,8,0.78)_62%,rgba(7,17,8,0.96)_100%)] lg:bg-[linear-gradient(90deg,rgba(7,17,8,0.96)_0%,rgba(7,17,8,0.82)_38%,rgba(7,17,8,0.28)_72%,rgba(7,17,8,0.56)_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,17,8,0.56)_0%,rgba(7,17,8,0.18)_54%,rgba(7,17,8,0.04)_100%)] lg:hidden" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,rgba(7,17,8,0)_0%,#071108_100%)]" />
-        <div className="relative mx-auto flex min-h-[100svh] max-w-[92rem] flex-col px-4 py-5 sm:min-h-[92svh] sm:px-6 sm:py-7 lg:px-8">
-          <header className="flex items-center justify-between gap-4 border-b border-white/14 pb-4">
+        <div className="relative mx-auto flex min-h-[100svh] max-w-[92rem] flex-col px-4 py-4 sm:min-h-[92svh] sm:px-6 sm:py-7 lg:px-8">
+          <header className="flex items-center justify-between gap-4 border-b border-white/14 pb-3 sm:pb-4">
             <Link
               className="inline-flex items-center gap-2 text-lg font-black !text-white"
               href={newsHref}
@@ -432,26 +446,26 @@ export default async function FanletterNewsPlatformPage({
             </Link>
           </header>
 
-          <div className="grid flex-1 items-center gap-8 py-8 lg:grid-cols-[minmax(0,1fr)_26rem] lg:py-12">
+          <div className="grid flex-1 items-center gap-5 py-5 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_28rem] lg:py-12">
             <div className="max-w-4xl">
               <p className="inline-flex items-center gap-2 text-[0.72rem] font-black uppercase tracking-[0.2em] text-[#7cff98]">
                 <Blocks className="size-4" />
                 {copy.eyebrow}
               </p>
-              <h1 className="mt-4 max-w-4xl text-4xl font-black leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:mt-5 sm:text-6xl lg:text-7xl">
+              <h1 className="mt-3 max-w-4xl text-[2.32rem] font-black leading-[1.02] tracking-normal text-white [word-break:keep-all] sm:mt-5 sm:text-6xl lg:text-7xl">
                 {copy.heroTitle}
               </h1>
-              <p className="mt-5 max-w-2xl text-base font-bold leading-7 text-white/72 [word-break:keep-all] sm:text-lg sm:leading-8">
+              <p className="mt-4 max-w-2xl text-sm font-bold leading-6 text-white/72 [word-break:keep-all] sm:mt-5 sm:text-lg sm:leading-8">
                 {copy.heroBody}
               </p>
 
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div className="mt-6 hidden flex-wrap gap-2 sm:flex">
                 {copy.proofBadges.map((badge) => (
                   <FeaturePill key={badge}>{badge}</FeaturePill>
                 ))}
               </div>
 
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-7 sm:flex sm:flex-row sm:gap-3">
                 <CtaLink href={newsHref}>{copy.primaryCta}</CtaLink>
                 <CtaLink href={studioHref} variant="secondary">
                   {copy.secondaryCta}
@@ -460,63 +474,88 @@ export default async function FanletterNewsPlatformPage({
             </div>
 
             <aside className="grid gap-3">
-              <div className="border border-white/16 bg-black/48 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.28)] backdrop-blur">
-                <p className="inline-flex items-center gap-2 text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#7cff98]">
-                  <Clapperboard className="size-3.5" />
-                  {copy.vloggerSignal.eyebrow}
-                </p>
-                <h2 className="mt-2 text-2xl font-black leading-tight [word-break:keep-all]">
-                  {copy.vloggerSignal.title}
-                </h2>
-              </div>
-              <div className="overflow-hidden rounded-lg border border-white/12 bg-white text-[#111510] shadow-[0_26px_80px_rgba(0,0,0,0.28)]">
-                <div className="aspect-[9/13] bg-[#101510] p-4 text-white">
-                  <div className="flex items-center justify-between text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
-                    <span>{copy.newsroomPreview.label}</span>
-                    <Camera className="size-4" />
+              <div className="relative overflow-hidden rounded-lg border border-white/18 bg-[#071108]/72 shadow-[0_28px_90px_rgba(0,0,0,0.32)] backdrop-blur">
+                <Image
+                  alt=""
+                  aria-hidden="true"
+                  className="object-cover opacity-62 saturate-[1.08]"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 28rem"
+                  src={previewCoverImageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(
+                    previewCoverImageUrl,
+                  )}
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0.08)_0%,rgba(7,17,8,0.76)_46%,rgba(7,17,8,0.96)_100%)]" />
+                <div className="relative flex min-h-[15.5rem] flex-col justify-between p-3 sm:min-h-[28rem] sm:p-4 lg:min-h-[35rem]">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="inline-flex items-center gap-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#7cff98]">
+                      <Clapperboard className="size-3.5" />
+                      {copy.newsroomPreview.label}
+                    </p>
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/18 bg-white/10 px-2.5 py-1 text-[0.62rem] font-black uppercase tracking-[0.12em] text-white/78">
+                      <Camera className="size-3.5 text-[#ffd76b]" />
+                      Live
+                    </span>
                   </div>
-                  <div className="mt-4 grid grid-cols-[1fr_0.72fr] gap-2">
-                    <div className="aspect-[3/4] rounded-lg bg-[url('/landing/global-network-map.png?v=20260415')] bg-cover bg-center shadow-inner" />
-                    <div className="grid gap-2">
-                      <div className="rounded-lg bg-[#44f26e] p-3 text-[#071108]">
-                        <p className="text-[0.62rem] font-black uppercase tracking-[0.14em]">
-                          USDT
-                        </p>
-                        <p className="mt-2 text-2xl font-black">1.00</p>
-                      </div>
-                      <div className="rounded-lg border border-white/14 bg-white/8 p-3">
-                        <p className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-white/52">
-                          Vote
-                        </p>
-                        <p className="mt-2 text-2xl font-black">6/6</p>
-                      </div>
+
+                  <div>
+                    <p className="inline-flex items-center gap-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#ffd76b]">
+                      <Sparkles className="size-3.5" />
+                      {copy.vloggerSignal.eyebrow}
+                    </p>
+                    <h2 className="mt-2 max-w-sm text-xl font-black leading-tight text-white [word-break:keep-all] sm:text-3xl">
+                      {copy.newsroomPreview.title}
+                    </h2>
+                    <p className="mt-2 line-clamp-2 max-w-sm text-xs font-bold leading-5 text-white/72 [word-break:keep-all] sm:line-clamp-none sm:text-sm sm:leading-6">
+                      {copy.newsroomPreview.body}
+                    </p>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                      {copy.newsroomPreview.metrics.map((metric, index) => (
+                        <div
+                          className={
+                            index === 2
+                              ? "min-w-0 rounded-lg bg-[#44f26e] p-2 text-[#071108] sm:p-3"
+                              : "min-w-0 rounded-lg border border-white/14 bg-white/10 p-2 text-white sm:p-3"
+                          }
+                          key={metric.label}
+                        >
+                          <p
+                            className={
+                              index === 2
+                                ? "truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#071108]/62"
+                                : "truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/50"
+                            }
+                          >
+                            {metric.label}
+                          </p>
+                          <p className="mt-1 truncate text-sm font-black sm:text-lg">
+                            {metric.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {copy.newsroomPreview.flow.map((step, index) => (
+                        <div
+                          className="min-w-0 rounded-lg border border-white/12 bg-black/28 px-2 py-2 text-center"
+                          key={step}
+                        >
+                          <p className="font-mono text-[0.56rem] font-black text-[#7cff98]">
+                            0{index + 1}
+                          </p>
+                          <p className="mt-0.5 truncate text-[0.58rem] font-black text-white/72 sm:text-[0.64rem]">
+                            {step}
+                          </p>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                  <p className="mt-5 text-[0.7rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
-                    {copy.newsroomPreview.title}
-                  </p>
-                  <p className="mt-2 text-sm font-bold leading-6 text-white/70">
-                    {copy.newsroomPreview.body}
-                  </p>
                 </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {copy.heroStats.map((stat) => (
-                  <div
-                    className="min-w-0 rounded-lg border border-white/12 bg-white/10 p-3"
-                    key={stat.label}
-                  >
-                    <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.12em] text-white/46">
-                      {stat.label}
-                    </p>
-                    <p className="mt-1 text-lg font-black text-white">
-                      {stat.value}
-                    </p>
-                    <p className="mt-1 line-clamp-2 text-[0.66rem] font-bold leading-4 text-white/56">
-                      {stat.hint}
-                    </p>
-                  </div>
-                ))}
               </div>
             </aside>
           </div>
