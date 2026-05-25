@@ -59,7 +59,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const reportsPath = `${basePath}/reports`;
   const walletPath = `${basePath}/wallet`;
 
-  if (pathname === `${basePath}/platform`) {
+  if (pathname === basePath || pathname === `${basePath}/platform`) {
     return null;
   }
 
