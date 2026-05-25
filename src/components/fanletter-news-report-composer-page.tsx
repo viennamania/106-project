@@ -87,6 +87,7 @@ export type FanletterNewsReportComposerSource = {
     createdAt: string;
     dek: string;
     href: string;
+    isViewerReport: boolean;
     reporterAvatarImageUrl: string | null;
     reporterName: string;
     reporterReferralCode: string;
@@ -201,6 +202,7 @@ function getCopy(locale: Locale) {
         existingReportsBody:
           "이미 발행된 리포트의 제목, 관점, 대표 이미지를 비교해서 새 리포트의 차별점을 잡으세요.",
         existingReportsTitle: "이미 발행된 리포트",
+        myReport: "내 리포트",
         existing: "이미 작성함",
         existingBody:
           "이미 이 브이로그로 작성한 리포트가 있습니다. 새 리포트 대신 기존 리포트를 수정하거나 확인하세요.",
@@ -308,6 +310,7 @@ function getCopy(locale: Locale) {
         existingReportsBody:
           "Compare published report titles, angles, and lead images before choosing a distinct angle.",
         existingReportsTitle: "Published reports",
+        myReport: "My report",
         existing: "Already reported",
         existingBody:
           "You already created a report for this vlog. Edit or view the existing report instead.",
@@ -1224,12 +1227,17 @@ export function FanletterNewsReportComposerPage({
                         <div className="mt-3 grid gap-2">
                           {selectedSource.reports.map((report) => (
                             <Link
-                              className="group grid grid-cols-[4.5rem_minmax(0,1fr)] gap-3 border border-black/10 bg-[#f6f8f4] p-2 !text-[#111510] transition hover:border-[#19b84b]/45 hover:bg-white"
+                              className={cn(
+                                "group grid grid-cols-[8rem_minmax(0,1fr)] gap-3 border p-2 !text-[#111510] transition hover:border-[#19b84b]/45 hover:bg-white sm:grid-cols-[10.5rem_minmax(0,1fr)]",
+                                report.isViewerReport
+                                  ? "border-[#19b84b]/45 bg-[#ecfff0]"
+                                  : "border-black/10 bg-[#f6f8f4]",
+                              )}
                               href={report.href}
                               key={report.reportId}
                             >
                               <span
-                                className="block aspect-[4/5] overflow-hidden rounded-md bg-[#111510] bg-cover bg-center"
+                                className="block aspect-[16/9] overflow-hidden rounded-md bg-[#111510] bg-cover bg-center"
                                 style={
                                   report.coverImageUrl
                                     ? {
@@ -1240,6 +1248,11 @@ export function FanletterNewsReportComposerPage({
                               />
                               <span className="min-w-0 py-0.5">
                                 <span className="flex flex-wrap items-center gap-1.5 text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/36">
+                                  {report.isViewerReport ? (
+                                    <span className="rounded-full bg-[#111510] px-2 py-0.5 text-[#44f26e]">
+                                      {copy.myReport}
+                                    </span>
+                                  ) : null}
                                   <span>{copy.reporter}</span>
                                   <span>{report.reporterName}</span>
                                   <span>

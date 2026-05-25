@@ -310,6 +310,7 @@ export type FanletterNewsReportDraftSource = {
     createdAt: string;
     dek: string;
     href: string;
+    isViewerReport: boolean;
     reporterAvatarImageUrl: string | null;
     reporterName: string;
     reporterReferralCode: string;
@@ -2424,6 +2425,7 @@ export async function getFanletterNewsReportDraftSourcesForMember({
           createdAt: report.createdAt.toISOString(),
           dek: trimToLength(report.dek, 120),
           href: createFanletterNewsReportShareHref(report),
+          isViewerReport: report.reporterReferralCode === member.referralCode,
           reporterAvatarImageUrl: report.reporterAvatarImageUrl ?? null,
           reporterName: trimToLength(report.reporterName, 80),
           reporterReferralCode: report.reporterReferralCode,
