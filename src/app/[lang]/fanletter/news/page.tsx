@@ -105,7 +105,7 @@ function getCopy(locale: Locale) {
         firstReport: "최초 리포트",
         heroEyebrow: "FanLetter Entertainment News",
         issueLabel: "오늘의 FanLetter 엔터테인먼트 브리핑",
-        latest: "최신 리포트",
+        latest: "최근 발행 리포트",
         lead: "오늘의 리드",
         leadKicker: "FanLetter exclusive",
         navItems: [
@@ -152,6 +152,7 @@ function getCopy(locale: Locale) {
         siteName: "FanLetter News",
         ticker: "뉴스 브리핑",
         topStories: "주요 뉴스",
+        wireLatest: "캐릭터별 최신",
       }
     : {
         access: {
@@ -203,7 +204,7 @@ function getCopy(locale: Locale) {
         firstReport: "First report",
         heroEyebrow: "FanLetter Entertainment News",
         issueLabel: "Today's FanLetter entertainment briefing",
-        latest: "Latest Reports",
+        latest: "Recently Published Reports",
         lead: "Lead News",
         leadKicker: "FanLetter exclusive",
         navItems: [
@@ -249,6 +250,7 @@ function getCopy(locale: Locale) {
         siteName: "FanLetter News",
         ticker: "News Briefing",
         topStories: "Top Stories",
+        wireLatest: "Latest By Character",
       };
 }
 
@@ -1439,7 +1441,7 @@ function CharacterWireSection({
           <div className="mb-3 flex items-center justify-between gap-3 border-b border-white/12 pb-3">
             <p className="inline-flex items-center gap-2 text-[0.68rem] font-black uppercase tracking-[0.16em] text-white/46">
               <List className="size-3.5 text-[#44f26e]" />
-              {copy.latest}
+              {copy.wireLatest}
             </p>
             <span className="text-[0.66rem] font-black text-[#44f26e]">
               {formatNumber(secondaryReports.length, locale)}
