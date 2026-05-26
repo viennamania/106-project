@@ -27,6 +27,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   Sparkles,
+  Trash2,
   type LucideIcon,
   Video,
   WalletCards,
@@ -51,9 +52,11 @@ import { FanletterAccountStatusLink } from "@/components/fanletter-account-statu
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { useMemberSession } from "@/components/member-session-provider";
 import {
+  CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
   getContentVideoAssetSource,
   type ContentCoverImageCandidate,
   type ContentMaturityRating,
+  type ContentPostGenerateCoverResponse,
   type ContentPostMutationResponse,
   type ContentPostStatus,
   type CreatorProfileRecord,
@@ -136,6 +139,7 @@ const VLOG_COVER_CROP_ASPECT_RATIO = 16 / 9;
 const VLOG_COVER_CROP_MAX_ZOOM = 3;
 const VLOG_COVER_CROP_OUTPUT_HEIGHT = 675;
 const VLOG_COVER_CROP_OUTPUT_WIDTH = 1200;
+const VLOG_TEASER_IMAGE_LIMIT = 10;
 const DEFAULT_VLOG_COVER_CROP: VlogCoverCropState = {
   centerX: 0.5,
   centerY: 0.5,
@@ -175,6 +179,7 @@ function getCopy(locale: Locale) {
           detail: "상세 보기",
           fanRequests: "팬 요청 선택",
           feed: "피드 보기",
+          manageTeasers: "티저 관리",
           markNsfw: "NSFW 표시",
           next: "다음",
           paidUpload: "팬 요청 답장 업로드",
@@ -219,6 +224,31 @@ function getCopy(locale: Locale) {
             manual: "직접 업로드",
           },
           unavailable: "커버 이미지 없음",
+        },
+        teasers: {
+          addFailed: "티저 이미지를 생성하지 못했습니다.",
+          addNotice: "AI 티저 이미지를 추가했습니다.",
+          count: (count: string) => `${count}개 티저`,
+          delete: "삭제",
+          deleteFailed: "티저 이미지를 삭제하지 못했습니다.",
+          deletedNotice: "티저 이미지를 삭제했습니다.",
+          empty:
+            "아직 저장된 장면 티저 이미지가 없습니다. AI로 생성해 뉴스와 구매 화면의 이미지 DB를 채워보세요.",
+          generate: "AI 티저 추가 생성",
+          generating: "생성 중",
+          helper:
+            "뉴스 리포트, 유료 잠금 화면, 구매 전 미리보기에서 활용할 장면 티저 이미지 DB를 관리합니다.",
+          limit: (count: string) => `최대 ${count}장까지 저장됩니다.`,
+          modalBody:
+            "동영상 전체를 노출하지 않고도 소비자의 호기심을 만들 수 있는 티저 컷을 선별합니다.",
+          modalClose: "닫기",
+          modalEyebrow: "Teaser Image DB",
+          modalTitle: "브이로그 티저 이미지 관리",
+          promptLabel: "생성 방향",
+          promptPlaceholder:
+            "예: 캐릭터가 카메라를 바라보는 원테이크 모바일 브이로그 티저, 장면의 핵심 분위기만 노출",
+          promptRequired: "AI 티저 이미지를 만들 생성 방향을 입력하세요.",
+          sectionTitle: "티저 이미지",
         },
         emptyBody:
           "아직 관리할 브이로그가 없습니다. 오늘의 AI 캐릭터 브이로그를 만든 뒤 공개 상태를 관리해보세요.",
@@ -300,6 +330,7 @@ function getCopy(locale: Locale) {
           detail: "View detail",
           fanRequests: "Choose fan request",
           feed: "View feed",
+          manageTeasers: "Manage teasers",
           markNsfw: "Mark NSFW",
           next: "Next",
           paidUpload: "Fan request reply upload",
@@ -344,6 +375,31 @@ function getCopy(locale: Locale) {
             manual: "Manual upload",
           },
           unavailable: "No cover image",
+        },
+        teasers: {
+          addFailed: "Could not generate a teaser image.",
+          addNotice: "Generated a new AI teaser image.",
+          count: (count: string) => `${count} teasers`,
+          delete: "Delete",
+          deleteFailed: "Could not delete the teaser image.",
+          deletedNotice: "The teaser image has been deleted.",
+          empty:
+            "No scene teaser images are saved yet. Generate AI teasers to build the image database for news and purchase surfaces.",
+          generate: "Generate AI teaser",
+          generating: "Generating",
+          helper:
+            "Manage the scene teaser image database used by news reports, paid locks, and pre-purchase previews.",
+          limit: (count: string) => `Up to ${count} images can be saved.`,
+          modalBody:
+            "Select teaser cuts that create curiosity without exposing the full video.",
+          modalClose: "Close",
+          modalEyebrow: "Teaser Image DB",
+          modalTitle: "Manage vlog teaser images",
+          promptLabel: "Generation direction",
+          promptPlaceholder:
+            "Example: one-take mobile vlog teaser with the character facing camera, only the scene mood revealed",
+          promptRequired: "Enter a generation direction for the AI teaser image.",
+          sectionTitle: "Teaser images",
         },
         emptyBody:
           "There are no vlogs to manage yet. Create today's AI character vlog, then manage its publishing state here.",
@@ -477,6 +533,48 @@ function formatCoverOptionTimestamp(timestampSec: number | null, locale: Locale)
 
 function getPostVideoUrl(post: Pick<CreatorStudioPostRecord, "contentVideoUrls">) {
   return post.contentVideoUrls[0] ?? null;
+}
+
+function getUniqueImageUrls(imageUrls: string[]) {
+  return Array.from(
+    new Set(
+      imageUrls
+        .map((imageUrl) => imageUrl.trim())
+        .filter((imageUrl) => Boolean(imageUrl)),
+    ),
+  );
+}
+
+function buildVlogTeaserVisualBrief({
+  locale,
+  post,
+}: {
+  locale: Locale;
+  post: CreatorStudioPostRecord;
+}) {
+  const maturityDirection =
+    post.contentMaturityRating === "nsfw"
+      ? locale === "ko"
+        ? "NSFW 유료 콘텐츠이므로 노출이나 explicit 장면 없이 PIN 보호 전에도 사용할 수 있는 안전한 분위기 티저"
+        : "safe mood teaser for NSFW paid content, no nudity or explicit scene, suitable before PIN confirmation"
+      : locale === "ko"
+        ? "모바일 숏폼 브이로그의 분위기를 보여주는 공개 티저"
+        : "public teaser that shows the mood of a mobile short-form vlog";
+
+  return [
+    locale === "ko"
+      ? "FanLetter AI 캐릭터 브이로그 티저 이미지"
+      : "FanLetter AI character vlog teaser image",
+    maturityDirection,
+    locale === "ko"
+      ? "One take 느낌, 캐릭터가 카메라를 바라보는 장면, 원본 전체 내용을 스포일러하지 않는 프리미엄 포토 뉴스 컷"
+      : "one-take feeling, character facing camera, premium photo-news cut without spoiling the full source",
+    `Title: ${post.title}`,
+    post.summary ? `Summary: ${post.summary}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n")
+    .slice(0, CONTENT_IMAGE_VISUAL_BRIEF_LIMIT);
 }
 
 function buildVlogCoverOptions(post: CreatorStudioPostRecord): VlogCoverOption[] {
@@ -820,9 +918,18 @@ export function FanletterVlogManagementPage({
   const [searchInput, setSearchInput] = useState(appliedQuery);
   const [updatingPostId, setUpdatingPostId] = useState<string | null>(null);
   const [activeCoverPostId, setActiveCoverPostId] = useState<string | null>(null);
+  const [activeTeaserPostId, setActiveTeaserPostId] = useState<string | null>(
+    null,
+  );
   const [selectedCoverOptionKey, setSelectedCoverOptionKey] =
     useState<string | null>(null);
   const [savingCoverKey, setSavingCoverKey] = useState<string | null>(null);
+  const [teaserImagePrompt, setTeaserImagePrompt] = useState("");
+  const [teaserImageError, setTeaserImageError] = useState<string | null>(null);
+  const [generatingTeaserPostId, setGeneratingTeaserPostId] =
+    useState<string | null>(null);
+  const [deletingTeaserImageKey, setDeletingTeaserImageKey] =
+    useState<string | null>(null);
   const [coverCrop, setCoverCrop] = useState<VlogCoverCropState>(
     DEFAULT_VLOG_COVER_CROP,
   );
@@ -852,6 +959,8 @@ export function FanletterVlogManagementPage({
     copy.title;
   const activeCoverPost =
     state.posts.find((post) => post.contentId === activeCoverPostId) ?? null;
+  const activeTeaserPost =
+    state.posts.find((post) => post.contentId === activeTeaserPostId) ?? null;
   const coverOptions = useMemo(
     () => (activeCoverPost ? buildVlogCoverOptions(activeCoverPost) : []),
     [activeCoverPost],
@@ -889,7 +998,7 @@ export function FanletterVlogManagementPage({
   }, [appliedQuery]);
 
   useEffect(() => {
-    if (!activeCoverPostId) {
+    if (!activeCoverPostId && !activeTeaserPostId) {
       return;
     }
 
@@ -899,16 +1008,17 @@ export function FanletterVlogManagementPage({
     return () => {
       document.body.style.overflow = originalOverflow;
     };
-  }, [activeCoverPostId]);
+  }, [activeCoverPostId, activeTeaserPostId]);
 
   useEffect(() => {
-    if (!activeCoverPostId) {
+    if (!activeCoverPostId && !activeTeaserPostId) {
       return;
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setActiveCoverPostId(null);
+        setActiveTeaserPostId(null);
       }
     };
 
@@ -916,7 +1026,7 @@ export function FanletterVlogManagementPage({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [activeCoverPostId]);
+  }, [activeCoverPostId, activeTeaserPostId]);
 
   useEffect(() => {
     setCoverCrop(DEFAULT_VLOG_COVER_CROP);
@@ -1481,6 +1591,187 @@ export function FanletterVlogManagementPage({
     uploadCroppedCover,
   ]);
 
+  const openTeaserModal = useCallback(
+    (post: CreatorStudioPostRecord) => {
+      setActiveTeaserPostId(post.contentId);
+      setTeaserImagePrompt(buildVlogTeaserVisualBrief({ locale, post }));
+      setTeaserImageError(null);
+      setDeletingTeaserImageKey(null);
+      setGeneratingTeaserPostId(null);
+    },
+    [locale],
+  );
+
+  const savePostTeaserImages = useCallback(
+    async ({
+      failureMessage,
+      nextContentImageUrls,
+      notice,
+      post,
+    }: {
+      failureMessage: string;
+      nextContentImageUrls: string[];
+      notice: string;
+      post: CreatorStudioPostRecord;
+    }) => {
+      if (!accountAddress) {
+        throw new Error(copy.connectRequired);
+      }
+
+      const resolvedEmail = await resolveMemberEmail();
+      const response = await fetch(`/api/content/posts/${post.contentId}`, {
+        body: JSON.stringify({
+          contentImageUrls: getUniqueImageUrls(nextContentImageUrls).slice(
+            0,
+            VLOG_TEASER_IMAGE_LIMIT,
+          ),
+          email: resolvedEmail,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "PATCH",
+      });
+      const data = await readApiJson<ContentPostMutationResponse>(
+        response,
+        failureMessage,
+      );
+
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice,
+        posts: current.posts.map((currentPost) =>
+          currentPost.contentId === data.content.contentId
+            ? {
+                ...currentPost,
+                contentImageCount: data.content.contentImageCount,
+                contentImageUrls: data.content.contentImageUrls,
+                updatedAt: data.content.updatedAt,
+              }
+            : currentPost,
+        ),
+      }));
+    },
+    [accountAddress, copy.connectRequired, resolveMemberEmail],
+  );
+
+  const deleteTeaserImage = useCallback(
+    async (imageUrl: string) => {
+      if (!activeTeaserPost) {
+        return;
+      }
+
+      const deletingKey = `${activeTeaserPost.contentId}:${imageUrl}`;
+      setDeletingTeaserImageKey(deletingKey);
+      setTeaserImageError(null);
+
+      try {
+        await savePostTeaserImages({
+          failureMessage: copy.teasers.deleteFailed,
+          nextContentImageUrls: activeTeaserPost.contentImageUrls.filter(
+            (currentUrl) => currentUrl !== imageUrl,
+          ),
+          notice: copy.teasers.deletedNotice,
+          post: activeTeaserPost,
+        });
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : copy.teasers.deleteFailed;
+
+        setTeaserImageError(message);
+        setState((current) => ({
+          ...current,
+          error: message,
+          notice: null,
+        }));
+      } finally {
+        setDeletingTeaserImageKey(null);
+      }
+    },
+    [
+      activeTeaserPost,
+      copy.teasers.deleteFailed,
+      copy.teasers.deletedNotice,
+      savePostTeaserImages,
+    ],
+  );
+
+  const generateTeaserImage = useCallback(async () => {
+    if (!activeTeaserPost || !accountAddress) {
+      return;
+    }
+
+    try {
+      if (activeTeaserPost.contentImageUrls.length >= VLOG_TEASER_IMAGE_LIMIT) {
+        throw new Error(
+          copy.teasers.limit(formatNumber(VLOG_TEASER_IMAGE_LIMIT, locale)),
+        );
+      }
+
+      const visualBrief = teaserImagePrompt.trim();
+
+      if (!visualBrief) {
+        throw new Error(copy.teasers.promptRequired);
+      }
+
+      setGeneratingTeaserPostId(activeTeaserPost.contentId);
+      setTeaserImageError(null);
+
+      const resolvedEmail = await resolveMemberEmail();
+      const response = await fetch("/api/content/posts/generate-content-image", {
+        body: JSON.stringify({
+          email: resolvedEmail,
+          locale,
+          summary: activeTeaserPost.summary,
+          title: activeTeaserPost.title,
+          visualBrief: visualBrief.slice(0, CONTENT_IMAGE_VISUAL_BRIEF_LIMIT),
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "POST",
+      });
+      const generatedImage =
+        await readApiJson<ContentPostGenerateCoverResponse>(
+          response,
+          copy.teasers.addFailed,
+        );
+
+      await savePostTeaserImages({
+        failureMessage: copy.teasers.addFailed,
+        nextContentImageUrls: [
+          generatedImage.url,
+          ...activeTeaserPost.contentImageUrls,
+        ],
+        notice: copy.teasers.addNotice,
+        post: activeTeaserPost,
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : copy.teasers.addFailed;
+
+      setTeaserImageError(message);
+      setState((current) => ({
+        ...current,
+        error: message,
+        notice: null,
+      }));
+    } finally {
+      setGeneratingTeaserPostId(null);
+    }
+  }, [
+    accountAddress,
+    activeTeaserPost,
+    copy.teasers,
+    locale,
+    resolveMemberEmail,
+    savePostTeaserImages,
+    teaserImagePrompt,
+  ]);
+
   const handleCoverCropPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       if (!coverCropRect || !coverNaturalSize) {
@@ -1674,6 +1965,12 @@ export function FanletterVlogManagementPage({
     appliedMaturity === "nsfw"
       ? copy.nsfwShortcutActiveBody
       : copy.nsfwShortcutBody;
+  const activeTeaserImageUrls = activeTeaserPost?.contentImageUrls ?? [];
+  const canGenerateTeaserImage = Boolean(
+    activeTeaserPost &&
+      activeTeaserImageUrls.length < VLOG_TEASER_IMAGE_LIMIT &&
+      !generatingTeaserPostId,
+  );
 
   function renderBlockedState() {
     if (connection.isResolving) {
@@ -2113,6 +2410,7 @@ export function FanletterVlogManagementPage({
                       void updatePostStatus(post, "archived");
                     }}
                     onChangeCover={() => openCoverModal(post)}
+                    onManageTeasers={() => openTeaserModal(post)}
                     onClearExclusive={() => {
                       void updatePostExclusiveNews({
                         durationHours: null,
@@ -2480,6 +2778,188 @@ export function FanletterVlogManagementPage({
           </div>
         </div>
       ) : null}
+      {activeTeaserPost ? (
+        <div className="fixed inset-0 z-[80] flex items-stretch justify-center bg-black/66 p-0 backdrop-blur-sm sm:items-center sm:px-6 sm:py-4">
+          <div
+            aria-labelledby="fanletter-vlog-teaser-modal-title"
+            aria-modal="true"
+            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden rounded-none border border-white/12 bg-[#f5f6f1] text-[#111510] shadow-[0_24px_80px_rgba(0,0,0,0.34)] sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-5xl sm:rounded-lg"
+            role="dialog"
+          >
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-black/10 bg-white px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
+              <div className="min-w-0">
+                <p className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-[#16702e]">
+                  <Sparkles className="size-4" />
+                  {copy.teasers.modalEyebrow}
+                </p>
+                <h2
+                  className="mt-1.5 break-words text-xl font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-2 sm:text-2xl"
+                  id="fanletter-vlog-teaser-modal-title"
+                >
+                  {copy.teasers.modalTitle}
+                </h2>
+                <p className="mt-1.5 line-clamp-1 max-w-2xl text-sm font-medium leading-5 text-black/58 sm:mt-2 sm:line-clamp-2 sm:leading-6">
+                  {activeTeaserPost.title}
+                </p>
+                <p className="mt-1 hidden max-w-2xl text-sm font-medium leading-6 text-black/54 sm:block">
+                  {copy.teasers.modalBody}
+                </p>
+              </div>
+              <button
+                aria-label={copy.teasers.modalClose}
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-black/12 bg-[#f5f6f1] text-black/56 transition hover:border-black/24 hover:bg-white hover:text-black sm:size-10"
+                onClick={() => setActiveTeaserPostId(null)}
+                type="button"
+              >
+                <X className="size-[1.125rem] sm:size-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-3 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:px-5 sm:py-4 sm:pb-4">
+              <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+                <section className="rounded-lg border border-black/10 bg-white p-3 sm:p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-sm font-black text-[#111510]">
+                        {copy.teasers.sectionTitle}
+                      </p>
+                      <p className="mt-1 text-xs font-bold leading-5 text-black/48">
+                        {copy.teasers.helper}
+                      </p>
+                    </div>
+                    <span className="inline-flex h-8 shrink-0 items-center rounded-full border border-[#16702e]/18 bg-[#ecfff0] px-3 text-xs font-black text-[#0c5f24]">
+                      {copy.teasers.count(
+                        formatNumber(activeTeaserImageUrls.length, locale),
+                      )}
+                    </span>
+                  </div>
+
+                  {activeTeaserImageUrls.length > 0 ? (
+                    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
+                      {activeTeaserImageUrls.map((imageUrl, index) => {
+                        const deletingKey = `${activeTeaserPost.contentId}:${imageUrl}`;
+                        const isDeleting =
+                          deletingTeaserImageKey === deletingKey;
+
+                        return (
+                          <div
+                            className="overflow-hidden rounded-lg border border-black/10 bg-[#f6f8f4]"
+                            key={`${activeTeaserPost.contentId}:${imageUrl}:${index}`}
+                          >
+                            <div className="relative aspect-video bg-black">
+                              <Image
+                                alt=""
+                                aria-hidden="true"
+                                className="object-cover"
+                                fill
+                                loading={index === 0 ? "eager" : "lazy"}
+                                sizes="(max-width: 640px) 45vw, 16rem"
+                                src={imageUrl}
+                                unoptimized={shouldBypassFanletterImageOptimization(
+                                  imageUrl,
+                                )}
+                              />
+                              <span className="absolute left-2 top-2 rounded-full bg-black/62 px-2 py-1 text-[0.62rem] font-black text-white/82 backdrop-blur">
+                                {String(index + 1).padStart(2, "0")}
+                              </span>
+                            </div>
+                            <div className="p-2">
+                              <button
+                                className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-white px-3 text-xs font-black text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                disabled={
+                                  Boolean(deletingTeaserImageKey) ||
+                                  Boolean(generatingTeaserPostId)
+                                }
+                                onClick={() => {
+                                  void deleteTeaserImage(imageUrl);
+                                }}
+                                type="button"
+                              >
+                                {isDeleting ? (
+                                  <Loader2 className="size-3.5 animate-spin" />
+                                ) : (
+                                  <Trash2 className="size-3.5" />
+                                )}
+                                {copy.teasers.delete}
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="mt-3 rounded-lg border border-dashed border-black/14 bg-[#f6f8f4] px-4 py-10 text-center">
+                      <ImageIcon className="mx-auto size-9 text-[#16702e]" />
+                      <p className="mx-auto mt-3 max-w-md text-sm font-bold leading-6 text-black/48">
+                        {copy.teasers.empty}
+                      </p>
+                    </div>
+                  )}
+                </section>
+
+                <section className="rounded-lg border border-black/10 bg-white p-3 sm:p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#111510] text-[#44f26e]">
+                      <Sparkles className="size-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-black text-[#111510]">
+                        {copy.teasers.generate}
+                      </p>
+                      <p className="mt-1 text-xs font-bold leading-5 text-black/48">
+                        {copy.teasers.limit(
+                          formatNumber(VLOG_TEASER_IMAGE_LIMIT, locale),
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <label className="mt-4 block">
+                    <span className="text-xs font-black text-black/54">
+                      {copy.teasers.promptLabel}
+                    </span>
+                    <textarea
+                      className="mt-2 min-h-40 w-full resize-none rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-3 text-sm font-medium leading-6 text-black outline-none transition placeholder:text-black/34 focus:border-[#16702e] focus:bg-white"
+                      maxLength={CONTENT_IMAGE_VISUAL_BRIEF_LIMIT}
+                      onChange={(event) => {
+                        setTeaserImagePrompt(event.target.value);
+                      }}
+                      placeholder={copy.teasers.promptPlaceholder}
+                      value={teaserImagePrompt}
+                    />
+                  </label>
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <span className="text-xs font-bold text-black/38">
+                      {teaserImagePrompt.length}/{CONTENT_IMAGE_VISUAL_BRIEF_LIMIT}
+                    </span>
+                    <button
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={!canGenerateTeaserImage}
+                      onClick={() => {
+                        void generateTeaserImage();
+                      }}
+                      type="button"
+                    >
+                      {generatingTeaserPostId === activeTeaserPost.contentId ? (
+                        <Loader2 className="size-4 animate-spin text-[#44f26e]" />
+                      ) : (
+                        <Sparkles className="size-4 text-[#44f26e]" />
+                      )}
+                      {generatingTeaserPostId === activeTeaserPost.contentId
+                        ? copy.teasers.generating
+                        : copy.teasers.generate}
+                    </button>
+                  </div>
+                  {teaserImageError ? (
+                    <p className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold leading-5 text-rose-700">
+                      {teaserImageError}
+                    </p>
+                  ) : null}
+                </section>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
@@ -2545,6 +3025,7 @@ function VlogManagerCard({
   onArchive,
   onChangeCover,
   onClearExclusive,
+  onManageTeasers,
   onPublish,
   onSaveExclusive,
   onToggleMaturity,
@@ -2558,6 +3039,7 @@ function VlogManagerCard({
   onArchive: () => void;
   onChangeCover: () => void;
   onClearExclusive: () => void;
+  onManageTeasers: () => void;
   onPublish: () => void;
   onSaveExclusive: (reporterReferralCode: string, durationHours: number) => void;
   onToggleMaturity: (nextContentMaturityRating: ContentMaturityRating) => void;
@@ -2567,6 +3049,7 @@ function VlogManagerCard({
   const videoUrl = getPostVideoUrl(post);
   const shouldBypassCoverImageOptimization =
     shouldBypassFanletterImageOptimization(post.coverImageUrl);
+  const teaserImageUrls = post.contentImageUrls.slice(0, 5);
   const isNsfw = post.contentMaturityRating === "nsfw";
   const canManageNsfw =
     post.status !== "archived" &&
@@ -2722,6 +3205,55 @@ function VlogManagerCard({
           </div>
         </div>
         <div className="mt-3 rounded-lg border border-[#16702e]/16 bg-[#f6f8f4] p-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="inline-flex items-center gap-2 text-sm font-semibold text-black">
+                <ImageIcon className="size-4 text-[#16702e]" />
+                {copy.teasers.sectionTitle}
+              </p>
+              <p className="mt-1 text-xs font-medium leading-5 text-black/52">
+                {copy.teasers.count(
+                  formatNumber(post.contentImageUrls.length, locale),
+                )}{" "}
+                · {copy.teasers.limit(formatNumber(VLOG_TEASER_IMAGE_LIMIT, locale))}
+              </p>
+            </div>
+            <button
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-white disabled:opacity-50"
+              disabled={isUpdating}
+              onClick={onManageTeasers}
+              type="button"
+            >
+              <Sparkles className="size-4 text-[#16702e]" />
+              {copy.actions.manageTeasers}
+            </button>
+          </div>
+          {teaserImageUrls.length > 0 ? (
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {teaserImageUrls.map((imageUrl, index) => (
+                <span
+                  className="relative block aspect-video w-28 shrink-0 overflow-hidden rounded-lg border border-black/10 bg-black sm:w-32"
+                  key={`${post.contentId}:teaser:${imageUrl}:${index}`}
+                >
+                  <Image
+                    alt=""
+                    aria-hidden="true"
+                    className="object-cover"
+                    fill
+                    sizes="8rem"
+                    src={imageUrl}
+                    unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+                  />
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-3 rounded-lg border border-dashed border-black/12 bg-white px-3 py-3 text-xs font-semibold leading-5 text-black/42">
+              {copy.teasers.empty}
+            </p>
+          )}
+        </div>
+        <div className="mt-3 rounded-lg border border-[#16702e]/16 bg-[#f6f8f4] p-3">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
               <p className="inline-flex items-center gap-2 text-sm font-semibold text-black">
@@ -2874,6 +3406,15 @@ function VlogManagerCard({
           >
             <ImageIcon className="size-4 text-[#16702e]" />
             {copy.actions.changeCover}
+          </button>
+          <button
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4] disabled:opacity-50"
+            disabled={isUpdating}
+            onClick={onManageTeasers}
+            type="button"
+          >
+            <Sparkles className="size-4 text-[#16702e]" />
+            {copy.actions.manageTeasers}
           </button>
           {post.status !== "published" ? (
             <button
