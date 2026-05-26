@@ -3222,15 +3222,15 @@ function VlogManagerCard({
   ];
 
   return (
-    <article className="grid overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)] md:grid-cols-[12rem_minmax(0,1fr)]">
-      <div className="relative min-h-[16rem] bg-black md:min-h-full">
+    <article className="grid overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)] lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start">
+      <div className="relative aspect-[4/5] min-h-[15rem] bg-black sm:aspect-video lg:aspect-[4/5] lg:min-h-0 lg:self-start">
         {post.coverImageUrl ? (
           <Image
             alt=""
             aria-hidden="true"
             className="object-cover"
             fill
-            sizes="(max-width: 768px) 100vw, 12rem"
+            sizes="(max-width: 1024px) 100vw, 16rem"
             src={post.coverImageUrl}
             unoptimized={shouldBypassCoverImageOptimization}
           />
@@ -3268,251 +3268,265 @@ function VlogManagerCard({
       </div>
 
       <div className="min-w-0 p-4 sm:p-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusPill status={post.status}>
-            {getStatusLabel(copy, post.status)}
-          </StatusPill>
-          <StatusPill status={post.priceType}>{getPostPriceLabel(copy, post)}</StatusPill>
-          <StatusPill status={isNsfw ? "nsfw" : "general"}>
-            {isNsfw ? copy.labels.nsfw : copy.labels.generalContent}
-          </StatusPill>
-          {hasExclusiveNewsAssignment ? (
-            <StatusPill status="exclusive">
-              <LockKeyhole className="mr-1 size-3.5" />
-              {post.exclusiveNews.active
-                ? copy.exclusiveNews.active
-                : copy.exclusiveNews.inactive}
-            </StatusPill>
-          ) : null}
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(14rem,18rem)] xl:items-start">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusPill status={post.status}>
+                {getStatusLabel(copy, post.status)}
+              </StatusPill>
+              <StatusPill status={post.priceType}>{getPostPriceLabel(copy, post)}</StatusPill>
+              <StatusPill status={isNsfw ? "nsfw" : "general"}>
+                {isNsfw ? copy.labels.nsfw : copy.labels.generalContent}
+              </StatusPill>
+              {hasExclusiveNewsAssignment ? (
+                <StatusPill status="exclusive">
+                  <LockKeyhole className="mr-1 size-3.5" />
+                  {post.exclusiveNews.active
+                    ? copy.exclusiveNews.active
+                    : copy.exclusiveNews.inactive}
+                </StatusPill>
+              ) : null}
+            </div>
+            <h3 className="mt-3 line-clamp-2 break-words text-lg font-semibold leading-snug tracking-normal text-black [overflow-wrap:anywhere] sm:text-xl">
+              {post.title}
+            </h3>
+            <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-black/58">
+              {post.summary}
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-xs font-semibold text-black/42 xl:grid-cols-1">
+            <span className="rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-2">
+              <span className="block text-[0.66rem] uppercase tracking-[0.12em]">
+                {copy.labels.updated}
+              </span>
+              <span className="mt-1 block truncate text-sm font-bold normal-case tracking-normal text-black/62">
+                {formatDateLabel(locale, post.updatedAt || post.createdAt)}
+              </span>
+            </span>
+            <span className="rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-2">
+              <span className="block text-[0.66rem] uppercase tracking-[0.12em]">
+                {post.publishedAt ? copy.labels.published : copy.labels.status}
+              </span>
+              <span className="mt-1 block truncate text-sm font-bold normal-case tracking-normal text-black/62">
+                {post.publishedAt
+                  ? formatDateLabel(locale, post.publishedAt)
+                  : getStatusLabel(copy, post.status)}
+              </span>
+            </span>
+          </div>
         </div>
-        <h3 className="mt-3 break-words text-xl font-semibold tracking-normal text-black [overflow-wrap:anywhere]">
-          {post.title}
-        </h3>
-        <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-black/58">
-          {post.summary}
-        </p>
-        <div className="mt-4 grid gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-black/38 sm:grid-cols-2">
-          <span>
-            {copy.labels.updated} ·{" "}
-            {formatDateLabel(locale, post.updatedAt || post.createdAt)}
-          </span>
-          <span>
-            {post.publishedAt
-              ? `${copy.labels.published} · ${formatDateLabel(locale, post.publishedAt)}`
-              : getStatusLabel(copy, post.status)}
-          </span>
-        </div>
-        <div className="mt-4 rounded-lg border border-black/10 bg-[#f6f8f4] p-3">
-          <p className="text-xs font-semibold text-black/46">
-            {copy.labels.signals}
-          </p>
-          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {signalMetrics.map(({ Icon, label, value }) => (
-              <div
-                aria-label={`${label} ${formatNumber(value, locale)}`}
-                className="flex min-h-16 min-w-0 flex-col justify-between rounded-lg border border-black/10 bg-white px-3 py-2"
-                key={label}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <Icon className="size-4 shrink-0 text-[#16702e]" />
-                  <span className="truncate text-lg font-semibold leading-none text-black">
-                    {formatNumber(value, locale)}
-                  </span>
-                </div>
-                <span className="mt-2 truncate text-[0.72rem] font-semibold text-black/48">
+
+        <div className="mt-4 grid grid-cols-2 gap-2 rounded-lg border border-black/10 bg-[#f6f8f4] p-2 sm:grid-cols-4">
+          {signalMetrics.map(({ Icon, label, value }) => (
+            <div
+              aria-label={`${label} ${formatNumber(value, locale)}`}
+              className="flex min-h-12 min-w-0 items-center justify-between gap-2 rounded-lg border border-black/10 bg-white px-3 py-2"
+              key={label}
+            >
+              <span className="flex min-w-0 items-center gap-2">
+                <Icon className="size-4 shrink-0 text-[#16702e]" />
+                <span className="truncate text-[0.72rem] font-semibold text-black/48">
                   {label}
                 </span>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="mt-3 rounded-lg border border-[#16702e]/16 bg-[#f6f8f4] p-3">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <p className="inline-flex items-center gap-2 text-sm font-semibold text-black">
-                <ImageIcon className="size-4 text-[#16702e]" />
-                {copy.teasers.sectionTitle}
-              </p>
-              <p className="mt-1 text-xs font-medium leading-5 text-black/52">
-                {copy.teasers.count(
-                  formatNumber(post.contentImageUrls.length, locale),
-                )}{" "}
-                · {copy.teasers.limit(formatNumber(VLOG_TEASER_IMAGE_LIMIT, locale))}
-              </p>
+              </span>
+              <span className="shrink-0 text-lg font-semibold leading-none text-black">
+                {formatNumber(value, locale)}
+              </span>
             </div>
-            <button
-              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-white disabled:opacity-50"
-              disabled={isUpdating}
-              onClick={onManageTeasers}
-              type="button"
-            >
-              <Sparkles className="size-4 text-[#16702e]" />
-              {copy.actions.manageTeasers}
-            </button>
-          </div>
-          {teaserImageUrls.length > 0 ? (
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {teaserImageUrls.map((imageUrl, index) => (
-                <span
-                  className="relative block aspect-video w-28 shrink-0 overflow-hidden rounded-lg border border-black/10 bg-black sm:w-32"
-                  key={`${post.contentId}:teaser:${imageUrl}:${index}`}
-                >
-                  <Image
-                    alt=""
-                    aria-hidden="true"
-                    className="object-cover"
-                    fill
-                    sizes="8rem"
-                    src={imageUrl}
-                    unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
-                  />
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-3 rounded-lg border border-dashed border-black/12 bg-white px-3 py-3 text-xs font-semibold leading-5 text-black/42">
-              {copy.teasers.empty}
-            </p>
-          )}
+          ))}
         </div>
-        <div className="mt-3 rounded-lg border border-[#16702e]/16 bg-[#f6f8f4] p-3">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-            <div className="min-w-0">
-              <p className="inline-flex items-center gap-2 text-sm font-semibold text-black">
-                <LockKeyhole className="size-4 text-[#16702e]" />
-                {copy.exclusiveNews.title}
-              </p>
-              <p className="mt-1 text-xs font-medium leading-5 text-black/52">
-                {copy.exclusiveNews.body}
-              </p>
-              {hasExclusiveNewsAssignment ? (
-                <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-                  <span className="rounded-full border border-[#16702e]/18 bg-white px-3 py-1 text-[#0c5f24]">
-                    {exclusiveReporterLabel}
-                    {post.exclusiveNews.reporterReferralCode
-                      ? ` · ${post.exclusiveNews.reporterReferralCode}`
-                      : ""}
-                  </span>
-                  <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-black/54">
-                    {copy.exclusiveNews.until} ·{" "}
-                    {formatDateLabel(locale, post.exclusiveNews.until)}
-                  </span>
-                </div>
-              ) : (
-                <p className="mt-3 text-xs font-semibold text-black/42">
-                  {copy.exclusiveNews.inactive}
+
+        <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <section className="rounded-lg border border-[#16702e]/16 bg-[#f6f8f4] p-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="inline-flex items-center gap-2 text-sm font-semibold text-black">
+                  <ImageIcon className="size-4 text-[#16702e]" />
+                  {copy.teasers.sectionTitle}
                 </p>
-              )}
-            </div>
-            {hasExclusiveNewsAssignment ? (
+                <p className="mt-1 text-xs font-medium leading-5 text-black/52">
+                  {copy.teasers.count(
+                    formatNumber(post.contentImageUrls.length, locale),
+                  )}{" "}
+                  · {copy.teasers.limit(formatNumber(VLOG_TEASER_IMAGE_LIMIT, locale))}
+                </p>
+              </div>
               <button
                 className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-white disabled:opacity-50"
                 disabled={isUpdating}
-                onClick={() => {
-                  setExclusiveReporterCodeInput("");
-                  onClearExclusive();
-                }}
+                onClick={onManageTeasers}
                 type="button"
               >
-                {isUpdating ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <X className="size-4" />
-                )}
-                {copy.actions.clearExclusive}
+                <Sparkles className="size-4 text-[#16702e]" />
+                {copy.actions.manageTeasers}
               </button>
-            ) : null}
-          </div>
-          {canEditExclusiveNews ? (
-            <form
-              className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end"
-              onSubmit={(event) => {
-                event.preventDefault();
-                const reporterCode = normalizeReporterCodeInput(
-                  exclusiveReporterCodeInput,
-                );
-
-                if (!reporterCode) {
-                  return;
-                }
-
-                onSaveExclusive(reporterCode, exclusiveDurationHours);
-              }}
-            >
-              <label className="block">
-                <span className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-black/38">
-                  {copy.exclusiveNews.codeLabel}
-                </span>
-                <input
-                  className="mt-2 h-11 w-full rounded-full border border-black/10 bg-white px-4 text-sm font-semibold uppercase tracking-[0.08em] text-black outline-none transition placeholder:normal-case placeholder:tracking-normal placeholder:text-black/28 focus:border-[#16702e]"
-                  maxLength={12}
-                  onChange={(event) => {
-                    setExclusiveReporterCodeInput(
-                      normalizeReporterCodeInput(event.target.value),
-                    );
-                  }}
-                  placeholder={copy.exclusiveNews.codePlaceholder}
-                  value={exclusiveReporterCodeInput}
-                />
-              </label>
-              <div>
-                <span className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-black/38">
-                  {copy.exclusiveNews.durationLabel}
-                </span>
-                <div className="mt-2 grid grid-cols-3 gap-1.5">
-                  {EXCLUSIVE_NEWS_DURATION_OPTIONS.map((durationHours) => {
-                    const isSelected = exclusiveDurationHours === durationHours;
-
-                    return (
-                      <button
-                        className={`inline-flex h-11 min-w-16 items-center justify-center rounded-full border px-3 text-sm font-semibold transition ${
-                          isSelected
-                            ? "border-black bg-black text-white"
-                            : "border-black/10 bg-white text-black/58 hover:border-black/20"
-                        }`}
-                        key={durationHours}
-                        onClick={() => {
-                          setExclusiveDurationHours(durationHours);
-                        }}
-                        type="button"
-                      >
-                        {durationHours}h
-                      </button>
-                    );
-                  })}
-                </div>
+            </div>
+            {teaserImageUrls.length > 0 ? (
+              <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {teaserImageUrls.map((imageUrl, index) => (
+                  <span
+                    className="relative block aspect-video w-28 shrink-0 overflow-hidden rounded-lg border border-black/10 bg-black sm:w-32"
+                    key={`${post.contentId}:teaser:${imageUrl}:${index}`}
+                  >
+                    <Image
+                      alt=""
+                      aria-hidden="true"
+                      className="object-cover"
+                      fill
+                      sizes="8rem"
+                      src={imageUrl}
+                      unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+                    />
+                  </span>
+                ))}
               </div>
-              <button
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-50"
-                disabled={
-                  isUpdating ||
-                  normalizeReporterCodeInput(exclusiveReporterCodeInput).length === 0
-                }
-                type="submit"
-              >
-                {isUpdating ? (
-                  <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <p className="mt-3 line-clamp-2 rounded-lg border border-dashed border-black/12 bg-white px-3 py-3 text-xs font-semibold leading-5 text-black/42">
+                {copy.teasers.empty}
+              </p>
+            )}
+          </section>
+          <section className="rounded-lg border border-[#16702e]/16 bg-[#f6f8f4] p-3">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+              <div className="min-w-0">
+                <p className="inline-flex items-center gap-2 text-sm font-semibold text-black">
+                  <LockKeyhole className="size-4 text-[#16702e]" />
+                  {copy.exclusiveNews.title}
+                </p>
+                <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-black/52">
+                  {copy.exclusiveNews.body}
+                </p>
+                {hasExclusiveNewsAssignment ? (
+                  <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
+                    <span className="rounded-full border border-[#16702e]/18 bg-white px-3 py-1 text-[#0c5f24]">
+                      {exclusiveReporterLabel}
+                      {post.exclusiveNews.reporterReferralCode
+                        ? ` · ${post.exclusiveNews.reporterReferralCode}`
+                        : ""}
+                    </span>
+                    <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-black/54">
+                      {copy.exclusiveNews.until} ·{" "}
+                      {formatDateLabel(locale, post.exclusiveNews.until)}
+                    </span>
+                  </div>
                 ) : (
-                  <Newspaper className="size-4" />
+                  <p className="mt-3 text-xs font-semibold text-black/42">
+                    {copy.exclusiveNews.inactive}
+                  </p>
                 )}
-                {copy.actions.assignExclusive}
-              </button>
-            </form>
-          ) : (
-            <p className="mt-3 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-semibold leading-5 text-black/48">
-              {copy.exclusiveNews.unavailable}
+              </div>
+              {hasExclusiveNewsAssignment ? (
+                <button
+                  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-white disabled:opacity-50"
+                  disabled={isUpdating}
+                  onClick={() => {
+                    setExclusiveReporterCodeInput("");
+                    onClearExclusive();
+                  }}
+                  type="button"
+                >
+                  {isUpdating ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <X className="size-4" />
+                  )}
+                  {copy.actions.clearExclusive}
+                </button>
+              ) : null}
+            </div>
+            {canEditExclusiveNews ? (
+              <form
+                className="mt-4 grid gap-3"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const reporterCode = normalizeReporterCodeInput(
+                    exclusiveReporterCodeInput,
+                  );
+
+                  if (!reporterCode) {
+                    return;
+                  }
+
+                  onSaveExclusive(reporterCode, exclusiveDurationHours);
+                }}
+              >
+                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
+                  <label className="block">
+                    <span className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-black/38">
+                      {copy.exclusiveNews.codeLabel}
+                    </span>
+                    <input
+                      className="mt-2 h-11 w-full rounded-full border border-black/10 bg-white px-4 text-sm font-semibold uppercase tracking-[0.08em] text-black outline-none transition placeholder:normal-case placeholder:tracking-normal placeholder:text-black/28 focus:border-[#16702e]"
+                      maxLength={12}
+                      onChange={(event) => {
+                        setExclusiveReporterCodeInput(
+                          normalizeReporterCodeInput(event.target.value),
+                        );
+                      }}
+                      placeholder={copy.exclusiveNews.codePlaceholder}
+                      value={exclusiveReporterCodeInput}
+                    />
+                  </label>
+                  <div>
+                    <span className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-black/38">
+                      {copy.exclusiveNews.durationLabel}
+                    </span>
+                    <div className="mt-2 grid grid-cols-3 gap-1.5">
+                      {EXCLUSIVE_NEWS_DURATION_OPTIONS.map((durationHours) => {
+                        const isSelected = exclusiveDurationHours === durationHours;
+
+                        return (
+                          <button
+                            className={`inline-flex h-11 min-w-16 items-center justify-center rounded-full border px-3 text-sm font-semibold transition ${
+                              isSelected
+                                ? "border-black bg-black text-white"
+                                : "border-black/10 bg-white text-black/58 hover:border-black/20"
+                            }`}
+                            key={durationHours}
+                            onClick={() => {
+                              setExclusiveDurationHours(durationHours);
+                            }}
+                            type="button"
+                          >
+                            {durationHours}h
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={
+                    isUpdating ||
+                    normalizeReporterCodeInput(exclusiveReporterCodeInput).length === 0
+                  }
+                  type="submit"
+                >
+                  {isUpdating ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Newspaper className="size-4" />
+                  )}
+                  {copy.actions.assignExclusive}
+                </button>
+              </form>
+            ) : (
+              <p className="mt-3 rounded-lg border border-black/10 bg-white px-3 py-2 text-xs font-semibold leading-5 text-black/48">
+                {copy.exclusiveNews.unavailable}
+              </p>
+            )}
+            <p className="mt-3 text-xs font-medium leading-5 text-black/42">
+              {copy.exclusiveNews.helper}
             </p>
-          )}
-          <p className="mt-3 text-xs font-medium leading-5 text-black/42">
-            {copy.exclusiveNews.helper}
-          </p>
+          </section>
         </div>
         {!canManageNsfw && post.priceType === "paid" && post.status !== "archived" ? (
           <p className="mt-3 rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-2 text-xs font-semibold leading-5 text-black/50">
             {copy.nsfwUnavailable}
           </p>
         ) : null}
-        <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
           <Link
             className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4]"
             href={detailHref}
@@ -3640,21 +3654,38 @@ function VlogsLoadingSkeleton({
       <MessagePanel>{copy.loading}</MessagePanel>
       {Array.from({ length: 3 }, (_, index) => (
         <div
-          className="grid overflow-hidden rounded-lg border border-black/10 bg-white md:grid-cols-[12rem_minmax(0,1fr)]"
+          className="grid overflow-hidden rounded-lg border border-black/10 bg-white lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start"
           key={index}
         >
-          <div className="min-h-[16rem] bg-black/10 motion-safe:animate-pulse" />
-          <div className="space-y-4 p-5">
-            <div className="flex gap-2">
-              <div className="h-8 w-24 rounded-full bg-black/10 motion-safe:animate-pulse" />
-              <div className="h-8 w-20 rounded-full bg-black/10 motion-safe:animate-pulse" />
+          <div className="aspect-[4/5] min-h-[15rem] bg-black/10 motion-safe:animate-pulse sm:aspect-video lg:aspect-[4/5] lg:min-h-0" />
+          <div className="space-y-3 p-4 sm:p-5">
+            <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(14rem,18rem)]">
+              <div className="space-y-3">
+                <div className="flex gap-2">
+                  <div className="h-8 w-24 rounded-full bg-black/10 motion-safe:animate-pulse" />
+                  <div className="h-8 w-20 rounded-full bg-black/10 motion-safe:animate-pulse" />
+                  <div className="h-8 w-16 rounded-full bg-black/10 motion-safe:animate-pulse" />
+                </div>
+                <div className="h-7 w-4/5 rounded-full bg-black/10 motion-safe:animate-pulse" />
+                <div className="h-4 w-2/3 rounded-full bg-black/10 motion-safe:animate-pulse" />
+              </div>
+              <div className="grid grid-cols-2 gap-2 xl:grid-cols-1">
+                <div className="h-14 rounded-lg bg-black/10 motion-safe:animate-pulse" />
+                <div className="h-14 rounded-lg bg-black/10 motion-safe:animate-pulse" />
+              </div>
             </div>
-            <div className="h-7 w-4/5 rounded-full bg-black/10 motion-safe:animate-pulse" />
-            <div className="space-y-2">
-              <div className="h-4 rounded-full bg-black/10 motion-safe:animate-pulse" />
-              <div className="h-4 w-2/3 rounded-full bg-black/10 motion-safe:animate-pulse" />
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <div className="h-12 rounded-lg bg-black/10 motion-safe:animate-pulse" />
+              <div className="h-12 rounded-lg bg-black/10 motion-safe:animate-pulse" />
+              <div className="h-12 rounded-lg bg-black/10 motion-safe:animate-pulse" />
+              <div className="h-12 rounded-lg bg-black/10 motion-safe:animate-pulse" />
             </div>
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="grid gap-3 xl:grid-cols-2">
+              <div className="h-24 rounded-lg bg-black/10 motion-safe:animate-pulse" />
+              <div className="h-24 rounded-lg bg-black/10 motion-safe:animate-pulse" />
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
+              <div className="h-10 rounded-full bg-black/10 motion-safe:animate-pulse" />
               <div className="h-10 rounded-full bg-black/10 motion-safe:animate-pulse" />
               <div className="h-10 rounded-full bg-black/10 motion-safe:animate-pulse" />
               <div className="h-10 rounded-full bg-black/10 motion-safe:animate-pulse" />
