@@ -3094,6 +3094,8 @@ export function FanletterVlogManagementPage({
                         const timestampLabel = formatFrameTimestamp(
                           frameOption.timestampSec,
                         );
+                        const shouldBypassFrameImageOptimization =
+                          shouldBypassFanletterImageOptimization(imageUrl);
 
                         return (
                           <div
@@ -3104,14 +3106,22 @@ export function FanletterVlogManagementPage({
                               <Image
                                 alt=""
                                 aria-hidden="true"
-                                className="object-cover"
+                                className="scale-110 object-cover blur-lg brightness-50 saturate-75"
                                 fill
                                 loading={index === 0 ? "eager" : "lazy"}
                                 sizes="(max-width: 640px) 45vw, 16rem"
                                 src={imageUrl}
-                                unoptimized={shouldBypassFanletterImageOptimization(
-                                  imageUrl,
-                                )}
+                                unoptimized={shouldBypassFrameImageOptimization}
+                              />
+                              <Image
+                                alt=""
+                                aria-hidden="true"
+                                className="object-contain"
+                                fill
+                                loading={index === 0 ? "eager" : "lazy"}
+                                sizes="(max-width: 640px) 45vw, 16rem"
+                                src={imageUrl}
+                                unoptimized={shouldBypassFrameImageOptimization}
                               />
                               <span className="absolute left-2 top-2 rounded-full bg-black/62 px-2 py-1 text-[0.62rem] font-black text-white/82 backdrop-blur">
                                 {String(index + 1).padStart(2, "0")}
