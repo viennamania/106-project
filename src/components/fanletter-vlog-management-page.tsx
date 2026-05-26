@@ -206,6 +206,9 @@ function getCopy(locale: Locale) {
           cropSaving: "저장 중",
           cropUnavailable: "이 이미지는 크롭할 수 없습니다.",
           cropZoom: "확대",
+          deleteCandidate: "후보 삭제",
+          deleteFailed: "커버 후보를 삭제하지 못했습니다.",
+          deletedNotice: "커버 후보를 삭제했습니다.",
           modalBody:
             "동영상 콘텐츠의 목록, 상세, 공유 화면에 보일 대표 이미지를 선택하고 16:9 비율로 편집합니다.",
           modalClose: "닫기",
@@ -357,6 +360,9 @@ function getCopy(locale: Locale) {
           cropSaving: "Saving",
           cropUnavailable: "This image cannot be cropped.",
           cropZoom: "Zoom",
+          deleteCandidate: "Delete candidate",
+          deleteFailed: "Could not delete the cover candidate.",
+          deletedNotice: "The cover candidate has been deleted.",
           modalBody:
             "Choose and edit the lead image shown for this video content in lists, detail pages, and shares.",
           modalClose: "Close",
@@ -577,7 +583,9 @@ function buildVlogTeaserVisualBrief({
     .slice(0, CONTENT_IMAGE_VISUAL_BRIEF_LIMIT);
 }
 
-function buildVlogCoverOptions(post: CreatorStudioPostRecord): VlogCoverOption[] {
+function buildVlogCoverOptions(
+  post: Pick<CreatorStudioPostRecord, "coverImageCandidates" | "coverImageUrl">,
+): VlogCoverOption[] {
   const currentCoverUrl = post.coverImageUrl?.trim() ?? "";
   const seenUrls = new Set<string>();
   const options: VlogCoverOption[] = (post.coverImageCandidates ?? []).flatMap(
@@ -1509,6 +1517,99 @@ export function FanletterVlogManagementPage({
       savingKey: selectedCoverOption.key,
     });
   }, [activeCoverPost, savePostCoverImage, selectedCoverOption]);
+
+  const deleteSelectedCoverCandidate = useCallback(async () => {
+    if (
+      !activeCoverPost ||
+      !selectedCoverOption ||
+      selectedCoverOption.source === "current" ||
+      !accountAddress
+    ) {
+      return;
+    }
+
+    const savingKey = `delete:${selectedCoverOption.key}`;
+    const remainingCandidates = activeCoverPost.coverImageCandidates.filter(
+      (candidate) => candidate.url !== selectedCoverOption.inputValue,
+    );
+    const deletedCurrentCover =
+      activeCoverPost.coverImageUrl === selectedCoverOption.inputValue;
+    const nextCoverImageUrl = deletedCurrentCover
+      ? remainingCandidates[0]?.url ?? null
+      : activeCoverPost.coverImageUrl;
+
+    setSavingCoverKey(savingKey);
+    setUpdatingPostId(activeCoverPost.contentId);
+    setCoverCropError(null);
+
+    try {
+      const emailForRequest = await resolveMemberEmail();
+      const response = await fetch(
+        `/api/content/posts/${activeCoverPost.contentId}`,
+        {
+          body: JSON.stringify({
+            coverImageCandidates: remainingCandidates,
+            coverImageUrl: nextCoverImageUrl,
+            email: emailForRequest,
+            walletAddress: accountAddress,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "PATCH",
+        },
+      );
+      const data = await readApiJson<ContentPostMutationResponse>(
+        response,
+        copy.cover.deleteFailed,
+      );
+      const nextOptions = buildVlogCoverOptions({
+        coverImageCandidates: data.content.coverImageCandidates,
+        coverImageUrl: data.content.coverImageUrl,
+      });
+
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice: copy.cover.deletedNotice,
+        posts: current.posts.map((currentPost) =>
+          currentPost.contentId === data.content.contentId
+            ? {
+                ...currentPost,
+                coverImageCandidates: data.content.coverImageCandidates,
+                coverImageUrl: data.content.coverImageUrl,
+                updatedAt: data.content.updatedAt,
+              }
+            : currentPost,
+        ),
+      }));
+      setSelectedCoverOptionKey(
+        nextOptions.find((option) => option.isSelected)?.key ??
+          nextOptions[0]?.key ??
+          null,
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : copy.cover.deleteFailed;
+
+      setCoverCropError(message);
+      setState((current) => ({
+        ...current,
+        error: message,
+        notice: null,
+      }));
+    } finally {
+      setSavingCoverKey(null);
+      setUpdatingPostId(null);
+    }
+  }, [
+    accountAddress,
+    activeCoverPost,
+    copy.cover.deleteFailed,
+    copy.cover.deletedNotice,
+    resolveMemberEmail,
+    selectedCoverOption,
+  ]);
 
   const uploadCroppedCover = useCallback(
     async ({
@@ -2683,6 +2784,27 @@ export function FanletterVlogManagementPage({
                               ? copy.cover.cropSaving
                               : copy.cover.cropSave}
                           </button>
+                          {selectedCoverOption.source !== "current" ? (
+                            <button
+                              className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-white px-2 py-2 text-center text-xs font-black leading-4 text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:gap-2 sm:px-3 sm:py-0"
+                              disabled={Boolean(savingCoverKey)}
+                              onClick={() => {
+                                void deleteSelectedCoverCandidate();
+                              }}
+                              type="button"
+                            >
+                              {savingCoverKey ===
+                              `delete:${selectedCoverOption.key}` ? (
+                                <Loader2 className="size-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="size-4" />
+                              )}
+                              {savingCoverKey ===
+                              `delete:${selectedCoverOption.key}`
+                                ? copy.cover.cropSaving
+                                : copy.cover.deleteCandidate}
+                            </button>
+                          ) : null}
                         </div>
                       </div>
 
