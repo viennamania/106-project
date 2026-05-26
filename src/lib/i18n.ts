@@ -824,7 +824,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       title:
         "이메일로 로그인하고, 10 USDT 입금이 확인되면 회원가입이 완료되는 온체인 앱.",
       description:
-        "`thirdweb` 이메일 로그인 기반 BSC Smart Wallet 흐름 위에 가입 조건을 올렸습니다. 연결된 지갑에서 PROJECT_WALLET로 정확히 10 USDT를 전송하면 webhook가 결제를 확인하고, 그때 회원가입과 레퍼럴 코드 발급을 완료합니다.",
+        "`thirdweb` 이메일 로그인 기반 BSC Smart Wallet 흐름 위에 가입 조건을 올렸습니다. 연결된 지갑에서 PROJECT_WALLET로 정확히 10 USDT를 전송하면 webhook가 결제를 확인하고, 그때 회원가입과 회원 코드 발급을 완료합니다.",
       badges: ["이메일 로그인", "10 USDT 가입 조건", "웹훅 완료 처리"],
     },
     metrics: [
@@ -868,7 +868,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         {
           title: "입금 확인 후 자동 완료",
           description:
-            "입금이 확인되면 회원가입 완료, 추천인 저장, 레퍼럴 코드 발급이 한 번에 반영되며 지연 시 자동으로 재확인합니다.",
+            "입금이 확인되면 회원가입 완료, 추천인 저장, 회원 코드 발급이 한 번에 반영되며 지연 시 자동으로 재확인합니다.",
         },
       ],
     },
@@ -889,7 +889,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         {
           title: "입금 확인 후 자동 완료",
           description:
-            "결제 기록이 확인되면 회원가입과 레퍼럴 코드 활성화가 자동 반영되며, 지연 시 시스템이 다시 확인합니다.",
+            "결제 기록이 확인되면 회원가입 완료와 회원 코드 발급이 자동 반영되며, 지연 시 시스템이 다시 확인합니다.",
         },
       ],
     },
@@ -921,7 +921,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         {
           title: "결제 대기와 가입 완료를 분리",
           description:
-            "결제 전에는 가입 조건을 강조하고, 완료 후에는 레퍼럴과 완료 정보를 중심으로 보여줍니다.",
+            "결제 전에는 가입 조건을 강조하고, 완료 후에는 가입 상태와 서비스 준비 정보를 중심으로 보여줍니다.",
         },
         {
           title: "검증 기반 자동 완료",
@@ -939,13 +939,13 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         "회원가입 상태를 확인하는 중입니다. 결제 기록이 반영되면 자동으로 완료 처리됩니다.",
       pending:
         "아직 회원가입이 완료되지 않았습니다. 연결된 지갑에서 정확히 10 USDT를 보내면 입금 확인 후 자동으로 완료되며, 반영이 지연되면 시스템이 다시 확인합니다.",
-      synced: "10 USDT 입금이 확인되어 회원가입이 완료되었고 레퍼럴 코드가 발급되었습니다.",
+      synced: "10 USDT 입금이 확인되어 회원가입이 완료되었고 회원 코드가 발급되었습니다.",
       newMember: "회원가입이 완료되었습니다.",
       pendingValue: "결제 대기",
       completedValue: "가입 완료",
       celebrationTitle: "회원가입 완료",
       celebrationDescription:
-        "10 USDT 입금이 확인되어 레퍼럴 코드가 활성화되었습니다.",
+        "10 USDT 입금이 확인되어 회원 코드가 활성화되었습니다.",
       incomingReferralTitle: "추천인 코드가 감지되었습니다.",
       incomingReferralDescription:
         "이메일 로그인 뒤 가입을 완료하면 추천인 코드 {code} 가 회원 정보에 저장됩니다.",

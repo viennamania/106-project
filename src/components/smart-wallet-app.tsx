@@ -164,6 +164,80 @@ function getServiceSuspensionCopy(locale: Locale) {
   };
 }
 
+function getActivationSeparationCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      activationDescription:
+        "이 화면은 로그인한 회원의 지갑, 가입 결제, 서비스 이용 준비 상태를 확인하는 회원 활성화 허브입니다. 추천 가입과 포인트 보상은 아래 성장 리워드 프로그램으로 분리했습니다.",
+      activationEyebrow: "member activation",
+      activationTitle: "회원 활성화가 완료되었습니다",
+      coreBadge: "서비스 준비 완료",
+      coreStatusDescription:
+        "10 USDT 가입 확인으로 계정이 활성화되었습니다. 브이로거, 팬 리포터, 뉴스 소비 활동은 각 서비스 허브에서 이어집니다.",
+      coreStatusTitle: "기본 활성화",
+      growthDescription:
+        "추천 가입과 포인트는 브이로거 자격 조건이 아니라 채널 성장 활동을 기록하는 선택형 보상 영역입니다.",
+      growthDirectLabel: "성장 참여",
+      growthEyebrow: "growth rewards",
+      growthLinkCodeLabel: "성장 코드",
+      growthLinkDescription:
+        "이 링크는 가입 흐름에 추천 코드를 붙이는 성장 활동용입니다. 브이로거 자격이나 콘텐츠 권한과는 분리됩니다.",
+      growthLinkLabel: "성장 리워드 링크",
+      growthLinkTitle: "성장 리워드 링크",
+      growthMembersTitle: "성장 참여 회원",
+      growthNetworkLabel: "성장 네트워크",
+      growthTitle: "성장 리워드 프로그램",
+      memberPanelDescription:
+        "회원 정보에는 가입과 지갑 활성화 상태만 표시합니다. 배치, 하위 회원, 포인트 보상은 성장 리워드 영역에서 따로 확인합니다.",
+      memberPanelTitle: "회원 활성화 상태",
+      separationDescription:
+        "브이로거 자격은 콘텐츠 제작 준비 기준으로 보고, 모집 중심 보상은 별도 성장 프로그램으로 운영합니다.",
+      separationLabel: "운영 원칙",
+      separationPoints: [
+        "가입/지갑 활성화",
+        "콘텐츠 제작 자격",
+        "추천 성장 리워드",
+      ],
+      separationTitle: "자격과 보상을 분리합니다",
+    };
+  }
+
+  return {
+    activationDescription:
+      "This screen is the member activation hub for wallet status, signup payment, and service readiness. Referral signups and points are separated into the Growth Rewards program below.",
+    activationEyebrow: "member activation",
+    activationTitle: "Member activation is complete",
+    coreBadge: "Service ready",
+    coreStatusDescription:
+      "The account is active after the 10 USDT signup confirmation. Vlogger, fan reporter, and news consumption flows continue in their own service hubs.",
+    coreStatusTitle: "Core activation",
+    growthDescription:
+      "Referral signups and points are optional growth rewards, not the qualification rule for becoming a vlogger.",
+    growthDirectLabel: "Growth signups",
+    growthEyebrow: "growth rewards",
+    growthLinkCodeLabel: "Growth code",
+    growthLinkDescription:
+      "This link attaches your referral code to the signup flow for growth activity. It is separated from vlogger eligibility and content permissions.",
+    growthLinkLabel: "Growth reward link",
+    growthLinkTitle: "Growth reward link",
+    growthMembersTitle: "Growth members",
+    growthNetworkLabel: "Growth network",
+    growthTitle: "Growth Rewards Program",
+    memberPanelDescription:
+      "Member information shows signup and wallet activation only. Placement, downline members, and point rewards are handled in the growth area.",
+    memberPanelTitle: "Member activation status",
+    separationDescription:
+      "Vlogger eligibility is based on content readiness, while recruitment-style rewards are managed as a separate growth program.",
+    separationLabel: "Operating rule",
+    separationPoints: [
+      "Signup and wallet activation",
+      "Content creator qualification",
+      "Referral growth rewards",
+    ],
+    separationTitle: "Separate qualification from rewards",
+  };
+}
+
 const GENERIC_MEMBER_SYNC_ERRORS = new Set([
   "error",
   "Failed to read member.",
@@ -288,6 +362,7 @@ export function SmartWalletApp({
     `/${locale}/notifications`,
     preferredReferralCode,
   );
+  const activationSeparationCopy = getActivationSeparationCopy(locale);
   const activatePageHref = buildPathWithReferral(
     `/${locale}/activate`,
     preferredReferralCode,
@@ -1807,6 +1882,11 @@ export function SmartWalletApp({
                     />
                   ) : null}
 
+                  <ActivationSeparationCard
+                    copy={activationSeparationCopy}
+                    variant="compact"
+                  />
+
                   {!hasThirdwebClientId ? (
                     <div className="rounded-[22px] border border-amber-200 bg-amber-50/90 px-4 py-4 text-sm leading-6 text-amber-950 shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
                       {dictionary.common.clientIdRequired}
@@ -2033,18 +2113,9 @@ export function SmartWalletApp({
                           {dictionary.member.newMember}
                         </p>
                       ) : null}
-                      {isTopLevelPlacementMember(memberSync.member) ? (
-                        <p className="mt-1.5 text-[0.92rem] font-medium leading-5 text-amber-700 sm:mt-2 sm:text-sm sm:leading-6">
-                          {dictionary.member.topLevelPlacementDescription}
-                        </p>
-                      ) : getDisplayedPlacementReferralCode(memberSync.member) ? (
-                        <p className="mt-1.5 text-[0.92rem] font-medium leading-5 text-sky-700 sm:mt-2 sm:text-sm sm:leading-6">
-                          {getAutoPlacementDescription(
-                            dictionary,
-                            memberSync.member,
-                          )}
-                        </p>
-                      ) : null}
+                      <p className="mt-1.5 text-[0.92rem] font-medium leading-5 text-emerald-700 sm:mt-2 sm:text-sm sm:leading-6">
+                        {activationSeparationCopy.memberPanelDescription}
+                      </p>
                     </div>
 
                     {!isSignupCompleted ? (
@@ -2070,26 +2141,6 @@ export function SmartWalletApp({
                           memberSync.member.status === "completed"
                             ? dictionary.member.completedValue
                             : dictionary.member.pendingValue
-                        }
-                      />
-                      <InfoRow
-                        compactMobile
-                        label={dictionary.member.labels.placementReferralCode}
-                        value={
-                          getDisplayedPlacementReferralCode(memberSync.member) ??
-                          (isTopLevelPlacementMember(memberSync.member)
-                            ? dictionary.member.topLevelPlacementValue
-                            : dictionary.common.notAvailable)
-                        }
-                      />
-                      <InfoRow
-                        compactMobile
-                        label={dictionary.member.labels.placementSlotIndex}
-                        value={
-                          getDisplayedPlacementSlotIndex(memberSync.member) ??
-                          (isTopLevelPlacementMember(memberSync.member)
-                            ? dictionary.member.topLevelPlacementValue
-                            : dictionary.common.notAvailable)
                         }
                       />
                     </div>
@@ -2452,6 +2503,59 @@ function IncomingReferralHighlightCard({
   );
 }
 
+function ActivationSeparationCard({
+  copy,
+  variant = "default",
+}: {
+  copy: ReturnType<typeof getActivationSeparationCopy>;
+  variant?: "compact" | "default";
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-[24px] border border-emerald-200/80 bg-[linear-gradient(135deg,#f0fdf4_0%,#ffffff_74%)] shadow-[0_20px_50px_rgba(15,23,42,0.06)]",
+        variant === "compact" ? "p-3.5 sm:p-4" : "p-4 sm:p-5",
+      )}
+    >
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-white/85 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-emerald-900">
+            <ShieldCheck className="size-3.5" />
+            {copy.separationLabel}
+          </div>
+          <p className="mt-3 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+            {copy.separationTitle}
+          </p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+            {copy.separationDescription}
+          </p>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-3 lg:w-[430px] lg:shrink-0">
+          {copy.separationPoints.map((point, index) => {
+            const Icon =
+              index === 0 ? WalletMinimal : index === 1 ? Sparkles : Users;
+
+            return (
+              <div
+                className="rounded-[18px] border border-white/80 bg-white/90 px-3 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.05)]"
+                key={point}
+              >
+                <div className="flex items-center gap-2 text-slate-950">
+                  <Icon className="size-4 text-emerald-700" />
+                  <span className="text-[0.8rem] font-semibold leading-5">
+                    {point}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CompletedHomeDashboard({
   activateNetworkHref,
   announcementsPageHref,
@@ -2487,6 +2591,7 @@ function CompletedHomeDashboard({
 }) {
   const directReferralCount = referralDashboard.referrals.length;
   const totalReferralCount = referralDashboard.totalReferrals;
+  const activationCopy = getActivationSeparationCopy(locale);
   const brandingCopy = getLandingBrandingCopy(locale);
   const contentCopy = getContentCopy(locale);
   const assetCopy = getAssetManagementCopy(locale);
@@ -2586,33 +2691,25 @@ function CompletedHomeDashboard({
             <Badge icon={<Check className="size-3.5" />}>
               {dictionary.member.completedValue}
             </Badge>
-            <Badge icon={<Users className="size-3.5" />}>
-              {dictionary.referralsPage.title}
+            <Badge icon={<ShieldCheck className="size-3.5" />}>
+              {activationCopy.coreBadge}
             </Badge>
           </div>
 
           <div className="space-y-3">
-            <p className="eyebrow">{dictionary.referralsPage.eyebrow}</p>
+            <p className="eyebrow">{activationCopy.activationEyebrow}</p>
             <h2 className="max-w-2xl text-[1.95rem] font-semibold leading-[1] tracking-tight text-slate-950 sm:text-[2.85rem] sm:leading-[1.04]">
-              {dictionary.referralsPage.title}
+              {activationCopy.activationTitle}
             </h2>
             <p className="max-w-2xl text-[0.98rem] leading-7 text-slate-600 sm:text-lg">
-              {dictionary.member.synced}
+              {activationCopy.activationDescription}
             </p>
           </div>
 
+          <ActivationSeparationCard copy={activationCopy} />
+
           {isSelfIncomingReferral ? (
             <MessageCard>{dictionary.member.selfReferralNotice}</MessageCard>
-          ) : null}
-
-          {isTopLevelPlacementMember(member) ? (
-            <div className="rounded-[24px] border border-amber-200 bg-amber-50/90 p-4 text-sm leading-6 text-amber-950">
-              {dictionary.member.topLevelPlacementDescription}
-            </div>
-          ) : getDisplayedPlacementReferralCode(member) ? (
-            <div className="rounded-[24px] border border-emerald-200 bg-emerald-50/90 p-4 text-sm leading-6 text-emerald-950">
-              {getAutoPlacementDescription(dictionary, member)}
-            </div>
           ) : null}
 
           <div className="grid gap-4 lg:grid-cols-[1.16fr_0.84fr]">
@@ -2624,10 +2721,10 @@ function CompletedHomeDashboard({
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/55">
-                      {dictionary.referralsPage.shareTitle}
+                      {activationCopy.growthLinkTitle}
                     </p>
                     <p className="mt-2 max-w-md text-sm leading-6 text-white/72">
-                      {dictionary.member.shareHint}
+                      {activationCopy.growthLinkDescription}
                     </p>
                   </div>
                   <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/82 backdrop-blur">
@@ -2638,7 +2735,7 @@ function CompletedHomeDashboard({
 
                 <div className="rounded-[24px] border border-white/10 bg-white/8 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur sm:p-5">
                   <p className="text-[0.64rem] font-semibold uppercase tracking-[0.2em] text-white/45">
-                    {dictionary.referralsPage.labels.referralCode}
+                    {activationCopy.growthLinkCodeLabel}
                   </p>
                   <p className="mt-3 break-all font-mono text-[2rem] font-semibold leading-[0.92] tracking-[-0.05em] text-white sm:text-[2.45rem]">
                     {member.referralCode ?? dictionary.common.notAvailable}
@@ -2655,7 +2752,7 @@ function CompletedHomeDashboard({
                     >
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-white/45">
-                          {dictionary.referralsPage.labels.referralLink}
+                          {activationCopy.growthLinkLabel}
                         </p>
                         <ArrowUpRight className="size-4 shrink-0 text-white/45 transition group-hover:text-white/72" />
                       </div>
@@ -2766,7 +2863,7 @@ function CompletedHomeDashboard({
                 <MetricCard
                   animateValue
                   hint={firstLevelLimitHint}
-                  label={dictionary.referralsPage.labels.directReferrals}
+                  label={activationCopy.growthDirectLabel}
                   locale={locale}
                   value={`${directReferralCount} / ${REFERRAL_SIGNUP_LIMIT}`}
                 />
@@ -2776,7 +2873,7 @@ function CompletedHomeDashboard({
                     "{depth}",
                     "6",
                   )}
-                  label={dictionary.referralsPage.labels.totalNetwork}
+                  label={activationCopy.growthNetworkLabel}
                   locale={locale}
                   value={String(totalReferralCount)}
                 />
@@ -2791,12 +2888,13 @@ function CompletedHomeDashboard({
         compactMobileHeader
         contentClassName="gap-4"
         eyebrow={dictionary.member.eyebrow}
+        description={activationCopy.memberPanelDescription}
         revealDelay={120}
-        title={dictionary.member.title}
+        title={activationCopy.memberPanelTitle}
       >
         <div className="rounded-[18px] border border-white/80 bg-white/90 px-3 py-3 shadow-[0_18px_45px_rgba(15,23,42,0.06)] sm:rounded-[24px] sm:p-4">
           <p className="text-[0.92rem] leading-5 text-slate-600 sm:text-sm sm:leading-6">
-            {dictionary.referralsPage.memberReady}
+            {activationCopy.coreStatusDescription}
           </p>
         </div>
 
@@ -2842,28 +2940,6 @@ function CompletedHomeDashboard({
           <InfoRow
             alignValueRight
             compactMobile
-            label={dictionary.member.labels.placementReferralCode}
-            value={
-              getDisplayedPlacementReferralCode(member) ??
-              (isTopLevelPlacementMember(member)
-                ? dictionary.member.topLevelPlacementValue
-                : dictionary.common.notAvailable)
-            }
-          />
-          <InfoRow
-            alignValueRight
-            compactMobile
-            label={dictionary.member.labels.placementSlotIndex}
-            value={
-              getDisplayedPlacementSlotIndex(member) ??
-              (isTopLevelPlacementMember(member)
-                ? dictionary.member.topLevelPlacementValue
-                : dictionary.common.notAvailable)
-            }
-          />
-          <InfoRow
-            alignValueRight
-            compactMobile
             label={dictionary.member.labels.requiredDeposit}
             valueContent={
               <AnimatedNumberText
@@ -2882,7 +2958,7 @@ function CompletedHomeDashboard({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <p className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                {dictionary.member.labels.updatedAt}
+                {activationCopy.growthEyebrow}
               </p>
               <p className="mt-1 text-sm font-medium text-slate-700">
                 {referralDashboard.lastUpdatedAt
@@ -2907,10 +2983,10 @@ function CompletedHomeDashboard({
       <Panel
         className="lg:col-span-2"
         contentClassName="gap-4"
-        description={dictionary.referralsPage.rewards.description}
-        eyebrow={dictionary.referralsPage.eyebrow}
+        description={activationCopy.growthDescription}
+        eyebrow={activationCopy.growthEyebrow}
         revealDelay={180}
-        title={dictionary.referralsPage.rewards.title}
+        title={activationCopy.growthTitle}
       >
         <div className="rounded-[22px] border border-[#e7d6b7] bg-[linear-gradient(135deg,#fff9ec_0%,#ffffff_72%)] p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -2930,7 +3006,7 @@ function CompletedHomeDashboard({
                 </div>
               </div>
               <p className="max-w-2xl text-sm leading-6 text-slate-600">
-                {dictionary.rewardsPage.previewNote}
+                {activationCopy.growthDescription}
               </p>
             </div>
             <Link
@@ -2942,6 +3018,7 @@ function CompletedHomeDashboard({
             </Link>
           </div>
         </div>
+        <MessageCard>{dictionary.referralsPage.rewards.description}</MessageCard>
         <ReferralRewardsPanel
           dictionary={dictionary}
           locale={locale}
@@ -2953,9 +3030,9 @@ function CompletedHomeDashboard({
       <Panel
         className="lg:col-span-2"
         contentClassName="gap-4"
-        eyebrow={dictionary.referralsPage.eyebrow}
+        eyebrow={activationCopy.growthEyebrow}
         revealDelay={220}
-        title={dictionary.referralsPage.listTitle}
+        title={activationCopy.growthMembersTitle}
       >
         <div className="flex justify-end">
           <div className="flex flex-wrap justify-end gap-2">
@@ -3197,54 +3274,6 @@ function InfoRow({
       </div>
     </div>
   );
-}
-
-function getDisplayedPlacementReferralCode(
-  member: Pick<
-    MemberRecord,
-    "placementReferralCode" | "referredByCode" | "placementSlotIndex"
-  >,
-) {
-  return member.placementReferralCode ?? member.referredByCode ?? null;
-}
-
-function getDisplayedPlacementSlotIndex(
-  member: Pick<MemberRecord, "placementSlotIndex">,
-) {
-  return typeof member.placementSlotIndex === "number"
-    ? String(member.placementSlotIndex)
-    : null;
-}
-
-function isTopLevelPlacementMember(
-  member: Pick<MemberRecord, "status" | "placementReferralCode">,
-) {
-  return member.status === "completed" && !member.placementReferralCode;
-}
-
-function getAutoPlacementDescription(
-  dictionary: Dictionary,
-  member: Pick<
-    MemberRecord,
-    "placementReferralCode" | "referredByCode" | "placementSlotIndex"
-  >,
-) {
-  const code = getDisplayedPlacementReferralCode(member);
-
-  if (!code) {
-    return null;
-  }
-
-  const slot = getDisplayedPlacementSlotIndex(member);
-
-  if (slot) {
-    return formatTemplate(dictionary.member.autoPlacementDescriptionWithSlot, {
-      code,
-      slot,
-    });
-  }
-
-  return formatTemplate(dictionary.member.autoPlacementDescription, { code });
 }
 
 function getPrioritySponsorReferralCode(member: MemberRecord | null) {
