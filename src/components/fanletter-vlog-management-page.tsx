@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Bookmark,
   Check,
+  Clock3,
   Clapperboard,
   Coins,
   Crop,
@@ -131,9 +132,16 @@ type VlogCoverUploadResponse = {
   url: string;
 };
 
+type VlogTeaserFrameOption = {
+  imageUrl: string;
+  originalIndex: number;
+  timestampSec: number | null;
+};
+
 const FANLETTER_VLOG_DISCONNECTED_GRACE_MS = 4500;
 const VLOGS_PAGE_SIZE = 18;
 const EXCLUSIVE_NEWS_DURATION_OPTIONS = [6, 12, 24] as const;
+const VLOG_COVER_IMAGE_CANDIDATE_LIMIT = 8;
 const VLOG_COVER_CROP_ASPECT_RATIO = 16 / 9;
 const VLOG_COVER_CROP_MAX_ZOOM = 3;
 const VLOG_COVER_CROP_OUTPUT_HEIGHT = 675;
@@ -247,7 +255,10 @@ function getCopy(locale: Locale) {
           modalEyebrow: "Video Frame DB",
           modalTitle: "브이로그 영상 프레임 관리",
           noVideo: "프레임을 추출할 원본 영상이 없습니다.",
+          orderedByTime: "프레임 시간순",
           sectionTitle: "영상 프레임",
+          timeLabel: "프레임 시간",
+          timeUnknown: "시간 정보 없음",
         },
         emptyBody:
           "아직 관리할 브이로그가 없습니다. 오늘의 AI 캐릭터 브이로그를 만든 뒤 공개 상태를 관리해보세요.",
@@ -398,7 +409,10 @@ function getCopy(locale: Locale) {
           modalEyebrow: "Video Frame DB",
           modalTitle: "Manage vlog video frames",
           noVideo: "No source video is available for frame extraction.",
+          orderedByTime: "Sorted by frame time",
           sectionTitle: "Video frames",
+          timeLabel: "Frame time",
+          timeUnknown: "No time data",
         },
         emptyBody:
           "There are no vlogs to manage yet. Create today's AI character vlog, then manage its publishing state here.",
@@ -729,6 +743,112 @@ async function readApiJson<T>(response: Response, fallback: string): Promise<T> 
   }
 
   return payload as T;
+}
+
+function createVlogCoverCandidateId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `cover-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function createVlogFrameImageCandidate({
+  frame,
+  upload,
+}: {
+  frame: { height: number; timestampSec: number; width: number };
+  upload: VlogCoverUploadResponse;
+}): ContentCoverImageCandidate {
+  return {
+    candidateId: createVlogCoverCandidateId(),
+    contentType: upload.contentType,
+    createdAt: new Date().toISOString(),
+    height: frame.height,
+    pathname: upload.pathname,
+    placements: [],
+    source: "frame",
+    timestampSec: frame.timestampSec,
+    url: upload.url,
+    width: frame.width,
+  };
+}
+
+function mergeVlogCoverImageCandidates(
+  current: ContentCoverImageCandidate[],
+  additions: ContentCoverImageCandidate[],
+) {
+  const seenUrls = new Set<string>();
+  const merged: ContentCoverImageCandidate[] = [];
+
+  for (const candidate of [...additions, ...current]) {
+    if (!candidate.url || seenUrls.has(candidate.url)) {
+      continue;
+    }
+
+    seenUrls.add(candidate.url);
+    merged.push(candidate);
+  }
+
+  return merged.slice(0, VLOG_COVER_IMAGE_CANDIDATE_LIMIT);
+}
+
+function isFrameTimestamp(value: number | null | undefined): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function formatFrameTimestamp(timestampSec: number | null) {
+  if (!isFrameTimestamp(timestampSec)) {
+    return null;
+  }
+
+  const roundedTenths = Math.max(0, Math.round(timestampSec * 10));
+  const minutes = Math.floor(roundedTenths / 600);
+  const seconds = Math.floor((roundedTenths % 600) / 10);
+  const tenths = roundedTenths % 10;
+
+  return `${minutes}:${String(seconds).padStart(2, "0")}.${tenths}`;
+}
+
+function buildVlogTeaserFrameOptions(
+  post: Pick<CreatorStudioPostRecord, "contentImageUrls" | "coverImageCandidates">,
+): VlogTeaserFrameOption[] {
+  const frameCandidateByUrl = new Map<string, ContentCoverImageCandidate>();
+
+  for (const candidate of post.coverImageCandidates) {
+    if (candidate.source !== "frame" || !candidate.url) {
+      continue;
+    }
+
+    frameCandidateByUrl.set(candidate.url, candidate);
+  }
+
+  return post.contentImageUrls
+    .map((imageUrl, originalIndex) => ({
+      imageUrl,
+      originalIndex,
+      timestampSec: frameCandidateByUrl.get(imageUrl)?.timestampSec ?? null,
+    }))
+    .sort((left, right) => {
+      const leftTimestamp = left.timestampSec;
+      const rightTimestamp = right.timestampSec;
+      const leftHasTime = isFrameTimestamp(leftTimestamp);
+      const rightHasTime = isFrameTimestamp(rightTimestamp);
+
+      if (leftHasTime && rightHasTime) {
+        return leftTimestamp - rightTimestamp;
+      }
+
+      if (leftHasTime) {
+        return -1;
+      }
+
+      if (rightHasTime) {
+        return 1;
+      }
+
+      return left.originalIndex - right.originalIndex;
+    });
 }
 
 function getStatusLabel(
@@ -1665,11 +1785,13 @@ export function FanletterVlogManagementPage({
   const savePostTeaserImages = useCallback(
     async ({
       failureMessage,
+      nextCoverImageCandidates,
       nextContentImageUrls,
       notice,
       post,
     }: {
       failureMessage: string;
+      nextCoverImageCandidates?: ContentCoverImageCandidate[];
       nextContentImageUrls: string[];
       notice: string;
       post: CreatorStudioPostRecord;
@@ -1681,6 +1803,9 @@ export function FanletterVlogManagementPage({
       const resolvedEmail = await resolveMemberEmail();
       const response = await fetch(`/api/content/posts/${post.contentId}`, {
         body: JSON.stringify({
+          ...(nextCoverImageCandidates
+            ? { coverImageCandidates: nextCoverImageCandidates }
+            : {}),
           contentImageUrls: getUniqueImageUrls(nextContentImageUrls).slice(
             0,
             VLOG_TEASER_IMAGE_LIMIT,
@@ -1708,6 +1833,7 @@ export function FanletterVlogManagementPage({
                 ...currentPost,
                 contentImageCount: data.content.contentImageCount,
                 contentImageUrls: data.content.contentImageUrls,
+                coverImageCandidates: data.content.coverImageCandidates,
                 updatedAt: data.content.updatedAt,
               }
             : currentPost,
@@ -1730,6 +1856,9 @@ export function FanletterVlogManagementPage({
       try {
         await savePostTeaserImages({
           failureMessage: copy.teasers.deleteFailed,
+          nextCoverImageCandidates: activeTeaserPost.coverImageCandidates.filter(
+            (candidate) => candidate.url !== imageUrl,
+          ),
           nextContentImageUrls: activeTeaserPost.contentImageUrls.filter(
             (currentUrl) => currentUrl !== imageUrl,
           ),
@@ -1794,6 +1923,7 @@ export function FanletterVlogManagementPage({
       }
 
       const resolvedEmail = await resolveMemberEmail();
+      const uploadedFrameCandidates: ContentCoverImageCandidate[] = [];
       const uploadedFrameUrls: string[] = [];
 
       for (const frame of frames.slice(0, remainingSlots)) {
@@ -1813,6 +1943,12 @@ export function FanletterVlogManagementPage({
         );
 
         uploadedFrameUrls.push(uploadedFrame.url);
+        uploadedFrameCandidates.push(
+          createVlogFrameImageCandidate({
+            frame,
+            upload: uploadedFrame,
+          }),
+        );
       }
 
       if (uploadedFrameUrls.length === 0) {
@@ -1821,6 +1957,10 @@ export function FanletterVlogManagementPage({
 
       await savePostTeaserImages({
         failureMessage: copy.teasers.addFailed,
+        nextCoverImageCandidates: mergeVlogCoverImageCandidates(
+          activeTeaserPost.coverImageCandidates,
+          uploadedFrameCandidates,
+        ),
         nextContentImageUrls: [
           ...uploadedFrameUrls,
           ...activeTeaserPost.contentImageUrls,
@@ -2044,6 +2184,10 @@ export function FanletterVlogManagementPage({
       ? copy.nsfwShortcutActiveBody
       : copy.nsfwShortcutBody;
   const activeTeaserImageUrls = activeTeaserPost?.contentImageUrls ?? [];
+  const activeTeaserFrameOptions = useMemo(
+    () => (activeTeaserPost ? buildVlogTeaserFrameOptions(activeTeaserPost) : []),
+    [activeTeaserPost],
+  );
   const canAddVideoFrames = Boolean(
     activeTeaserPost &&
       activeTeaserImageUrls.length < VLOG_TEASER_IMAGE_LIMIT &&
@@ -2927,19 +3071,29 @@ export function FanletterVlogManagementPage({
                         {copy.teasers.helper}
                       </p>
                     </div>
-                    <span className="inline-flex h-8 shrink-0 items-center rounded-full border border-[#16702e]/18 bg-[#ecfff0] px-3 text-xs font-black text-[#0c5f24]">
-                      {copy.teasers.count(
-                        formatNumber(activeTeaserImageUrls.length, locale),
-                      )}
-                    </span>
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      <span className="inline-flex h-8 items-center rounded-full border border-[#16702e]/18 bg-[#ecfff0] px-3 text-xs font-black text-[#0c5f24]">
+                        {copy.teasers.count(
+                          formatNumber(activeTeaserImageUrls.length, locale),
+                        )}
+                      </span>
+                      <span className="inline-flex h-8 items-center gap-1.5 rounded-full border border-black/10 bg-[#f6f8f4] px-3 text-xs font-black text-black/58">
+                        <Clock3 className="size-3.5 text-[#16702e]" />
+                        {copy.teasers.orderedByTime}
+                      </span>
+                    </div>
                   </div>
 
-                  {activeTeaserImageUrls.length > 0 ? (
+                  {activeTeaserFrameOptions.length > 0 ? (
                     <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
-                      {activeTeaserImageUrls.map((imageUrl, index) => {
+                      {activeTeaserFrameOptions.map((frameOption, index) => {
+                        const imageUrl = frameOption.imageUrl;
                         const deletingKey = `${activeTeaserPost.contentId}:${imageUrl}`;
                         const isDeleting =
                           deletingTeaserImageKey === deletingKey;
+                        const timestampLabel = formatFrameTimestamp(
+                          frameOption.timestampSec,
+                        );
 
                         return (
                           <div
@@ -2962,8 +3116,18 @@ export function FanletterVlogManagementPage({
                               <span className="absolute left-2 top-2 rounded-full bg-black/62 px-2 py-1 text-[0.62rem] font-black text-white/82 backdrop-blur">
                                 {String(index + 1).padStart(2, "0")}
                               </span>
+                              <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[0.62rem] font-black text-black/76 shadow-sm backdrop-blur">
+                                <Clock3 className="size-3" />
+                                {timestampLabel ?? copy.teasers.timeUnknown}
+                              </span>
                             </div>
-                            <div className="p-2">
+                            <div className="space-y-2 p-2">
+                              <p className="truncate text-[0.68rem] font-black uppercase tracking-[0.12em] text-black/42">
+                                {copy.teasers.timeLabel}:{" "}
+                                <span className="normal-case tracking-normal text-black/70">
+                                  {timestampLabel ?? copy.teasers.timeUnknown}
+                                </span>
+                              </p>
                               <button
                                 className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-white px-3 text-xs font-black text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
                                 disabled={
@@ -3156,7 +3320,7 @@ function VlogManagerCard({
   const videoUrl = getPostVideoUrl(post);
   const shouldBypassCoverImageOptimization =
     shouldBypassFanletterImageOptimization(post.coverImageUrl);
-  const teaserImageUrls = post.contentImageUrls.slice(0, 5);
+  const teaserImageOptions = buildVlogTeaserFrameOptions(post).slice(0, 5);
   const isNsfw = post.contentMaturityRating === "nsfw";
   const canManageNsfw =
     post.status !== "archived" &&
@@ -3346,24 +3510,38 @@ function VlogManagerCard({
                 {copy.actions.manageTeasers}
               </button>
             </div>
-            {teaserImageUrls.length > 0 ? (
+            {teaserImageOptions.length > 0 ? (
               <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {teaserImageUrls.map((imageUrl, index) => (
-                  <span
-                    className="relative block aspect-video w-28 shrink-0 overflow-hidden rounded-lg border border-black/10 bg-black sm:w-32"
-                    key={`${post.contentId}:teaser:${imageUrl}:${index}`}
-                  >
-                    <Image
-                      alt=""
-                      aria-hidden="true"
-                      className="object-cover"
-                      fill
-                      sizes="8rem"
-                      src={imageUrl}
-                      unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
-                    />
-                  </span>
-                ))}
+                {teaserImageOptions.map((frameOption, index) => {
+                  const timestampLabel = formatFrameTimestamp(
+                    frameOption.timestampSec,
+                  );
+
+                  return (
+                    <span
+                      className="relative block aspect-video w-28 shrink-0 overflow-hidden rounded-lg border border-black/10 bg-black sm:w-32"
+                      key={`${post.contentId}:teaser:${frameOption.imageUrl}:${index}`}
+                    >
+                      <Image
+                        alt=""
+                        aria-hidden="true"
+                        className="object-cover"
+                        fill
+                        sizes="8rem"
+                        src={frameOption.imageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          frameOption.imageUrl,
+                        )}
+                      />
+                      {timestampLabel ? (
+                        <span className="absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded-full bg-black/68 px-1.5 py-0.5 text-[0.58rem] font-black text-white/86 backdrop-blur">
+                          <Clock3 className="size-2.5" />
+                          {timestampLabel}
+                        </span>
+                      ) : null}
+                    </span>
+                  );
+                })}
               </div>
             ) : (
               <p className="mt-3 line-clamp-2 rounded-lg border border-dashed border-black/12 bg-white px-3 py-3 text-xs font-semibold leading-5 text-black/42">
