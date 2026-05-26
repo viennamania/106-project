@@ -3061,7 +3061,7 @@ export function FanletterVlogManagementPage({
 
             <div className="flex-1 overflow-y-auto px-3 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:px-5 sm:py-4 sm:pb-4">
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
-                <section className="rounded-lg border border-black/10 bg-white p-3 sm:p-4">
+                <section className="order-2 rounded-lg border border-black/10 bg-white p-3 sm:p-4 lg:order-1">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
                       <p className="text-sm font-black text-[#111510]">
@@ -3171,7 +3171,7 @@ export function FanletterVlogManagementPage({
                   )}
                 </section>
 
-                <section className="rounded-lg border border-black/10 bg-white p-3 sm:p-4">
+                <section className="order-1 rounded-lg border border-black/10 bg-white p-3 sm:p-4 lg:sticky lg:top-0 lg:order-2">
                   <div className="flex items-start gap-3">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#111510] text-[#44f26e]">
                       <Video className="size-5" />
@@ -3192,10 +3192,10 @@ export function FanletterVlogManagementPage({
                       {locale === "ko" ? "원본 영상" : "Source video"}
                     </p>
                     {getPostVideoUrl(activeTeaserPost) ? (
-                      <div className="mt-2 overflow-hidden rounded-lg bg-black">
+                      <div className="mt-2 flex justify-center overflow-hidden rounded-lg bg-black">
                         <video
-                          className="aspect-video w-full object-cover"
-                          controls={false}
+                          className="max-h-[58dvh] w-full bg-black object-contain sm:max-h-[30rem] lg:max-h-[34rem]"
+                          controls
                           muted
                           playsInline
                           preload="metadata"
