@@ -1534,7 +1534,7 @@ export function FanletterNewsReportComposerPage({
                       </FanletterPaidUnlockTrigger>
                     </div>
                   ) : selectedSource.coverOptions.length > 0 ? (
-                    <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    <div className="mt-4 grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-3">
                       {selectedSource.coverOptions.map((option, index) => {
                         const isSelected = option.imageUrl === selectedCoverUrl;
 
@@ -1555,7 +1555,7 @@ export function FanletterNewsReportComposerPage({
                             type="button"
                           >
                             <span
-                              className="block aspect-[4/5] rounded-md bg-[#111510] bg-cover bg-center"
+                              className="block aspect-[16/10] rounded-md bg-[#111510] bg-contain bg-center bg-no-repeat"
                               style={{ backgroundImage: `url(${option.imageUrl})` }}
                             />
                             <span className="mt-2 flex items-center justify-between gap-2 px-1 pb-1">

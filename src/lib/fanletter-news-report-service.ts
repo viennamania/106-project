@@ -2245,6 +2245,7 @@ export async function getFanletterNewsReportDraftSourcesForMember({
           authorEmail: 1,
           authorReferralCode: 1,
           contentId: 1,
+          contentImageUrls: 1,
           contentMaturityRating: 1,
           coverImageCandidates: 1,
           coverImageUrl: 1,
