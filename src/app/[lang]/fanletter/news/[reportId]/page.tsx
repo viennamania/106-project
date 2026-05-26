@@ -229,9 +229,9 @@ function getCopy(locale: Locale) {
         },
         sourceTeaserGallery: {
           body:
-            "저장된 커버 후보와 티저 컷을 함께 모아, 열린 원본 브이로그의 장면 분위기를 빠르게 훑어볼 수 있습니다.",
+            "원본 브이로그에서 저장한 장면 프레임만 모아, 실제 영상 흐름을 빠르게 훑어볼 수 있습니다.",
           close: "장면 보기 닫기",
-          eyebrow: "장면 티저 컷",
+          eyebrow: "원본 장면 컷",
           itemLabel: (index: string) => `티저 ${index}`,
           next: "다음 장면",
           openViewer: "전체 화면으로 보기",
@@ -239,7 +239,7 @@ function getCopy(locale: Locale) {
             "NSFW 원본의 장면 티저 컷도 로그인한 회원의 지갑 PIN 확인 후 선명하게 볼 수 있습니다.",
           pinProtectedTitle: "장면 티저 컷 PIN 보호",
           previous: "이전 장면",
-          title: "언락된 원본의 장면을 먼저 훑어보기",
+          title: "원본 브이로그 장면 컷",
         },
         generated: "AI 생성",
         publishedLabel: "작성일",
@@ -422,9 +422,9 @@ function getCopy(locale: Locale) {
         },
         sourceTeaserGallery: {
           body:
-            "Saved cover candidates and teaser cuts stay available so readers can scan the opened source vlog before replaying it.",
+            "Only saved scene frames from the source vlog are shown, so readers can scan the actual video flow before replaying it.",
           close: "Close scene viewer",
-          eyebrow: "Scene teaser cuts",
+          eyebrow: "Source scene cuts",
           itemLabel: (index: string) => `Teaser ${index}`,
           next: "Next scene",
           openViewer: "Open fullscreen",
@@ -432,7 +432,7 @@ function getCopy(locale: Locale) {
             "Scene teaser cuts from an adult source open clearly after the signed-in member's wallet PIN is confirmed.",
           pinProtectedTitle: "Scene cuts protected by PIN",
           previous: "Previous scene",
-          title: "Scan scenes from the unlocked source",
+          title: "Source vlog scene cuts",
         },
         generated: "AI generated",
         publishedLabel: "Published",
@@ -1826,14 +1826,9 @@ function SourceVlogEmbed({
       : sourceContent?.coverImageUrl ??
         sourceContent?.contentImageUrls[0] ??
         reportCoverImageUrl;
-  const sourceTeaserImageUrls = getUniqueImageUrls([
-    sourceImageUrl,
-    ...(sourceContent?.coverImageCandidates ?? []).map(
-      (candidate) => candidate.url,
-    ),
-    ...(sourceContent?.contentImageUrls ?? []),
-    reportCoverImageUrl,
-  ]).slice(0, 4);
+  const sourceTeaserImageUrls = getUniqueImageUrls(
+    sourceContent?.contentImageUrls ?? [],
+  ).slice(0, 4);
   const hasEmbeddedVideo = Boolean(sourceVideoUrl);
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
   const paidUnlockLabel = `${paidUnlockAmount} USDT`;
