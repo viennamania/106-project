@@ -36,7 +36,7 @@ const dismissedStorageKey = "fanletter:pwa-install-dismissed:v1";
 const installPromptSnoozeMs = 7 * 24 * 60 * 60 * 1000;
 const installAcceptedSnoozeMs = 90 * 24 * 60 * 60 * 1000;
 const publicSurfacePattern =
-  /^\/(?:ko|en|ja|zh|vi|id)\/fanletter(?:\/?$|\/(?:feed|start|onboarding|content|creator|requests)(?:\/|$))/;
+  /^\/(?:ko|en|ja|zh|vi|id)\/fanletter(?:\/?$|\/(?:feed|start|onboarding|content|creator|requests|news)(?:\/|$))/;
 
 function isStandaloneDisplayMode() {
   if (typeof window === "undefined") {
@@ -163,14 +163,14 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
     if (locale === "ko") {
       return environment.platform === "ios"
         ? {
-            body: "Safari 공유 버튼에서 홈 화면에 추가하면 캐릭터 피드와 브이로그를 앱처럼 열 수 있습니다.",
+            body: "Safari 공유 버튼에서 홈 화면에 추가하면 FanLetter News와 AI 캐릭터 브이로그를 앱처럼 열 수 있습니다.",
             dismiss: "닫기",
             install: "방법 확인",
             installing: "안내 확인 중",
             title: "FanLetter를 홈 화면에 추가",
           }
         : {
-            body: "설치하면 FanLetter 캐릭터 피드와 브이로그를 더 빠르게 이어볼 수 있습니다.",
+            body: "설치하면 FanLetter News, AI 캐릭터, 브이로그 구매 흐름을 더 빠르게 이어볼 수 있습니다.",
             dismiss: "나중에",
             install: "앱 설치",
             installing: "설치 화면 여는 중",
@@ -180,14 +180,14 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
 
     return environment.platform === "ios"
       ? {
-          body: "Use Safari Share, then Add to Home Screen to open FanLetter like an app.",
+          body: "Use Safari Share, then Add to Home Screen to open FanLetter News and AI character vlogs like an app.",
           dismiss: "Close",
           install: "Got it",
           installing: "Checking guide",
           title: "Add FanLetter to Home Screen",
         }
       : {
-          body: "Install FanLetter to continue character feeds and vlogs faster.",
+          body: "Install FanLetter to continue News, AI characters, and purchased vlogs faster.",
           dismiss: "Maybe later",
           install: "Install app",
           installing: "Opening install prompt",

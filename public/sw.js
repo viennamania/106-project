@@ -1,16 +1,39 @@
-const PAGE_CACHE = "mobile-pwa-pages-v5";
-const ASSET_CACHE = "mobile-pwa-assets-v5";
+const PAGE_CACHE = "fanletter-pwa-pages-v6";
+const ASSET_CACHE = "fanletter-pwa-assets-v6";
 const LOCALES = ["ko", "en", "ja", "zh", "vi", "id"];
 const ROOT_PUBLIC_NAVIGATION_URLS = LOCALES.map((locale) => `/${locale}`);
-const FANLETTER_PUBLIC_NAVIGATION_URLS = LOCALES.flatMap((locale) => [
+const FANLETTER_CORE_PUBLIC_NAVIGATION_URLS = LOCALES.flatMap((locale) => [
   `/${locale}/fanletter`,
   `/${locale}/fanletter/feed`,
   `/${locale}/fanletter/onboarding`,
   `/${locale}/fanletter/start`,
 ]);
+const FANLETTER_NEWS_PUBLIC_NAVIGATION_URLS = LOCALES.flatMap((locale) => [
+  `/${locale}/fanletter/news`,
+  `/${locale}/fanletter/news/characters`,
+  `/${locale}/fanletter/news/platform`,
+]);
+const FANLETTER_PUBLIC_NAVIGATION_URLS = [
+  ...FANLETTER_CORE_PUBLIC_NAVIGATION_URLS,
+  ...FANLETTER_NEWS_PUBLIC_NAVIGATION_URLS,
+];
 const FANLETTER_MANIFEST_URLS = LOCALES.map(
   (locale) => `/${locale}/fanletter/manifest.webmanifest`,
 );
+const FANLETTER_NEWS_PRIVATE_SEGMENTS = new Set([
+  "activate",
+  "connect",
+  "purchases",
+  "reports",
+  "wallet",
+]);
+const FANLETTER_NEWS_TOP_LEVEL_SERVICE_SEGMENTS = new Set([
+  ...FANLETTER_NEWS_PRIVATE_SEGMENTS,
+  "characters",
+  "platform",
+  "reporters",
+  "vlogs",
+]);
 const PRECACHE_URLS = [
   "/offline",
   "/manifest.webmanifest",
@@ -169,14 +192,22 @@ async function handleNavigation(request) {
 
   try {
     const response = await fetch(request);
+    const hasPersonalizedSignal = hasPersonalizedNavigationSignal(request, url);
 
     if (
       cacheKey &&
       shouldCacheResponse(response, {
-        allowPrivate: isFanletterPublicCachePath(cacheKey),
+        allowPrivate:
+          isFanletterPublicCachePath(cacheKey) && !hasPersonalizedSignal,
       })
     ) {
       await cache.put(cacheKey, response.clone());
+    } else if (
+      cacheKey &&
+      hasPersonalizedSignal &&
+      isFanletterPublicCachePath(cacheKey)
+    ) {
+      void refreshPublicNavigationShell(cache, cacheKey);
     }
 
     return response;
@@ -225,11 +256,31 @@ async function refreshAsset(cache, request) {
   } catch {}
 }
 
+async function refreshPublicNavigationShell(cache, cacheKey) {
+  try {
+    const response = await fetch(cacheKey, {
+      cache: "reload",
+      credentials: "omit",
+    });
+
+    if (
+      shouldCacheResponse(response, {
+        allowPrivate: true,
+      })
+    ) {
+      await cache.put(cacheKey, response);
+    }
+  } catch {}
+}
+
 async function precacheUrls(cache, urls) {
   await Promise.all(
     urls.map(async (url) => {
       try {
-        const response = await fetch(url, { cache: "reload" });
+        const response = await fetch(url, {
+          cache: "reload",
+          credentials: "omit",
+        });
         const pathname = normalizePathname(
           new URL(url, self.location.origin).pathname,
         );
@@ -261,6 +312,10 @@ function getPublicNavigationCacheKey(url) {
     return pathname;
   }
 
+  if (isFanletterNewsPrivatePath(pathname)) {
+    return null;
+  }
+
   return isFanletterPublicDetailPath(pathname) ? pathname : null;
 }
 
@@ -271,21 +326,81 @@ function isFanletterPublicCachePath(pathname) {
   );
 }
 
+function hasPersonalizedNavigationSignal(request, url) {
+  return request.headers.has("cookie") || url.search.length > 0;
+}
+
 function isFanletterPublicDetailPath(pathname) {
-  const [, locale, section, resource, id, extraSegment] = pathname.split("/");
+  const [locale, section, resource, ...restSegments] = pathname
+    .split("/")
+    .filter(Boolean);
+
+  if (!LOCALES.includes(locale) || section !== "fanletter") {
+    return false;
+  }
+
+  if (resource === "content" || resource === "creator") {
+    return restSegments.length === 1 && Boolean(restSegments[0]);
+  }
+
+  if (resource !== "news") {
+    return false;
+  }
+
+  const [firstSegment, secondSegment, thirdSegment] = restSegments;
+
+  if (!firstSegment || FANLETTER_NEWS_PRIVATE_SEGMENTS.has(firstSegment)) {
+    return false;
+  }
+
+  if (
+    restSegments.length === 1 &&
+    !FANLETTER_NEWS_TOP_LEVEL_SERVICE_SEGMENTS.has(firstSegment)
+  ) {
+    return true;
+  }
+
+  if (firstSegment === "characters") {
+    return (
+      (restSegments.length === 2 && Boolean(secondSegment)) ||
+      (restSegments.length === 3 &&
+        Boolean(secondSegment) &&
+        thirdSegment === "vlogs")
+    );
+  }
+
+  if (firstSegment === "reporters" || firstSegment === "vlogs") {
+    return restSegments.length === 2 && Boolean(secondSegment);
+  }
+
+  return false;
+}
+
+function isFanletterNewsPrivatePath(pathname) {
+  const [locale, section, resource, firstSegment, , thirdSegment] = pathname
+    .split("/")
+    .filter(Boolean);
+
+  if (!LOCALES.includes(locale) || section !== "fanletter" || resource !== "news") {
+    return false;
+  }
 
   return (
-    LOCALES.includes(locale) &&
-    section === "fanletter" &&
-    (resource === "content" || resource === "creator") &&
-    Boolean(id) &&
-    !extraSegment
+    FANLETTER_NEWS_PRIVATE_SEGMENTS.has(firstSegment) ||
+    (firstSegment === "characters" && thirdSegment === "request")
   );
 }
 
 async function getNavigationFallback(cache, url) {
   const pathname = normalizePathname(url.pathname);
-  const [, locale, section] = pathname.split("/");
+  const [, locale, section, resource] = pathname.split("/");
+
+  if (LOCALES.includes(locale) && section === "fanletter" && resource === "news") {
+    return (
+      (await cache.match(`/${locale}/fanletter/news`)) ||
+      (await cache.match(`/${locale}/fanletter`))
+    );
+  }
 
   if (LOCALES.includes(locale) && section === "fanletter") {
     return cache.match(`/${locale}/fanletter`);

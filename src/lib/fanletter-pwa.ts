@@ -6,7 +6,7 @@ export const FANLETTER_PWA_THEME_COLOR = "#030504";
 export const FANLETTER_PWA_BACKGROUND_COLOR = "#030504";
 export const FANLETTER_PWA_NAME = "FanLetter";
 export const FANLETTER_PWA_DESCRIPTION =
-  "Create AI character vlog channels, watch public vlogs, and continue fan content workflows from a mobile-first app experience.";
+  "FanLetter News turns AI character one-take vlogs into photo news, fan participation, and transparent USDT profit sharing.";
 export const FANLETTER_PWA_ICON_192 = "/fanletter-icon-192.png";
 export const FANLETTER_PWA_ICON_512 = "/fanletter-icon-512.png";
 export const FANLETTER_PWA_APPLE_ICON = "/fanletter-apple-icon.png";
@@ -19,7 +19,7 @@ export const fanletterViewport: Viewport = {
 };
 
 export function getFanletterPwaStartUrl(locale: Locale) {
-  return `/${locale}/fanletter?pwa=1`;
+  return `/${locale}/fanletter/news?pwa=1`;
 }
 
 export function getFanletterPwaScope(locale: Locale) {
@@ -30,11 +30,12 @@ export function createFanletterPwaManifest(
   locale: Locale,
 ): MetadataRoute.Manifest {
   const scope = getFanletterPwaScope(locale);
+  const copy = getFanletterPwaCopy(locale);
 
   return {
     background_color: FANLETTER_PWA_BACKGROUND_COLOR,
-    categories: ["entertainment", "photo", "productivity", "social", "video"],
-    description: FANLETTER_PWA_DESCRIPTION,
+    categories: ["entertainment", "news", "photo", "social", "video"],
+    description: copy.description,
     display: "standalone",
     display_override: ["standalone", "minimal-ui", "browser"],
     icons: [
@@ -66,43 +67,58 @@ export function createFanletterPwaManifest(
     launch_handler: {
       client_mode: "navigate-existing",
     },
-    name: FANLETTER_PWA_NAME,
+    name: copy.name,
     orientation: "portrait",
     scope,
     shortcuts: [
       {
-        description: "Watch public AI character vlogs",
-        name: "Vlog Feed",
-        short_name: "Feed",
-        url: `${scope}/feed`,
+        description: copy.shortcuts.news.description,
+        name: copy.shortcuts.news.name,
+        short_name: copy.shortcuts.news.shortName,
+        url: `${scope}/news`,
       },
       {
-        description: "Create a character and first vlog",
-        name: "Create Character",
-        short_name: "Create",
-        url: `${scope}/onboarding`,
+        description: copy.shortcuts.characters.description,
+        name: copy.shortcuts.characters.name,
+        short_name: copy.shortcuts.characters.shortName,
+        url: `${scope}/news/characters`,
       },
       {
-        description: "Open the creator studio",
-        name: "Studio",
-        short_name: "Studio",
-        url: `${scope}/studio`,
+        description: copy.shortcuts.purchases.description,
+        name: copy.shortcuts.purchases.name,
+        short_name: copy.shortcuts.purchases.shortName,
+        url: `${scope}/news/purchases`,
+      },
+      {
+        description: copy.shortcuts.reports.description,
+        name: copy.shortcuts.reports.name,
+        short_name: copy.shortcuts.reports.shortName,
+        url: `${scope}/news/reports`,
+      },
+      {
+        description: copy.shortcuts.studio.description,
+        name: copy.shortcuts.studio.name,
+        short_name: copy.shortcuts.studio.shortName,
+        url: `${scope}/studio/vlogs`,
       },
     ],
-    short_name: FANLETTER_PWA_NAME,
+    short_name: copy.shortName,
     start_url: getFanletterPwaStartUrl(locale),
     theme_color: FANLETTER_PWA_THEME_COLOR,
   };
 }
 
 export function createFanletterPwaMetadata(locale: Locale): Metadata {
+  const copy = getFanletterPwaCopy(locale);
+
   return {
-    applicationName: FANLETTER_PWA_NAME,
+    applicationName: copy.shortName,
     appleWebApp: {
       capable: true,
       statusBarStyle: "black-translucent",
-      title: FANLETTER_PWA_NAME,
+      title: copy.shortName,
     },
+    description: copy.description,
     icons: {
       apple: [
         {
@@ -127,6 +143,78 @@ export function createFanletterPwaMetadata(locale: Locale): Metadata {
     manifest: `/${locale}/fanletter/manifest.webmanifest`,
     other: {
       "mobile-web-app-capable": "yes",
+    },
+    title: copy.name,
+  };
+}
+
+function getFanletterPwaCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      description:
+        "FanLetter News는 AI 캐릭터 One Take 브이로그를 포토 뉴스, 팬 참여, 투명한 USDT 수익 공유로 연결합니다.",
+      name: "FanLetter News",
+      shortName: "FanLetter",
+      shortcuts: {
+        characters: {
+          description: "AI 캐릭터 채널과 최신 일상을 탐색합니다.",
+          name: "AI 캐릭터",
+          shortName: "캐릭터",
+        },
+        news: {
+          description: "AI 캐릭터 포토 뉴스 홈을 엽니다.",
+          name: "뉴스 홈",
+          shortName: "뉴스",
+        },
+        purchases: {
+          description: "구매한 팬 전용 콘텐츠를 이어봅니다.",
+          name: "구매함",
+          shortName: "구매",
+        },
+        reports: {
+          description: "팬 리포터 리포트를 작성하고 관리합니다.",
+          name: "리포트 관리",
+          shortName: "리포트",
+        },
+        studio: {
+          description: "브이로그 콘텐츠 허브를 엽니다.",
+          name: "브이로그 스튜디오",
+          shortName: "스튜디오",
+        },
+      },
+    };
+  }
+
+  return {
+    description: FANLETTER_PWA_DESCRIPTION,
+    name: "FanLetter News",
+    shortName: FANLETTER_PWA_NAME,
+    shortcuts: {
+      characters: {
+        description: "Explore AI character channels and daily updates.",
+        name: "AI Characters",
+        shortName: "Characters",
+      },
+      news: {
+        description: "Open the AI character photo news home.",
+        name: "News Home",
+        shortName: "News",
+      },
+      purchases: {
+        description: "Continue purchased fan-only content.",
+        name: "Purchases",
+        shortName: "Purchases",
+      },
+      reports: {
+        description: "Write and manage fan reporter news reports.",
+        name: "Reporter Desk",
+        shortName: "Reports",
+      },
+      studio: {
+        description: "Open the vlog content management hub.",
+        name: "Vlog Studio",
+        shortName: "Studio",
+      },
     },
   };
 }
