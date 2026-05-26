@@ -235,6 +235,9 @@ function getCopy(locale: Locale) {
           itemLabel: (index: string) => `티저 ${index}`,
           next: "다음 장면",
           openViewer: "전체 화면으로 보기",
+          pinProtectedBody:
+            "NSFW 원본의 장면 티저 컷도 로그인한 회원의 지갑 PIN 확인 후 선명하게 볼 수 있습니다.",
+          pinProtectedTitle: "장면 티저 컷 PIN 보호",
           previous: "이전 장면",
           title: "언락된 원본의 장면을 먼저 훑어보기",
         },
@@ -425,6 +428,9 @@ function getCopy(locale: Locale) {
           itemLabel: (index: string) => `Teaser ${index}`,
           next: "Next scene",
           openViewer: "Open fullscreen",
+          pinProtectedBody:
+            "Scene teaser cuts from an adult source open clearly after the signed-in member's wallet PIN is confirmed.",
+          pinProtectedTitle: "Scene cuts protected by PIN",
           previous: "Previous scene",
           title: "Scan scenes from the unlocked source",
         },
@@ -1720,11 +1726,18 @@ function SourceVlogUnlockedTeaserGallery({
   copy,
   imageUrls,
   locale,
+  nsfwPinGate,
 }: {
   blurred: boolean;
   copy: ReturnType<typeof getCopy>;
   imageUrls: string[];
   locale: Locale;
+  nsfwPinGate?: {
+    connectHref?: string | null;
+    enabled: boolean;
+    managePinHref: string;
+    title: string;
+  };
 }) {
   if (imageUrls.length < 2) {
     return null;
@@ -1748,11 +1761,14 @@ function SourceVlogUnlockedTeaserGallery({
         eyebrow: copy.sourceTeaserGallery.eyebrow,
         next: copy.sourceTeaserGallery.next,
         openViewer: copy.sourceTeaserGallery.openViewer,
+        pinProtectedBody: copy.sourceTeaserGallery.pinProtectedBody,
+        pinProtectedTitle: copy.sourceTeaserGallery.pinProtectedTitle,
         previous: copy.sourceTeaserGallery.previous,
         title: copy.sourceTeaserGallery.title,
       }}
       items={items}
       locale={locale}
+      nsfwPinGate={nsfwPinGate}
     />
   );
 }
@@ -1890,6 +1906,8 @@ function SourceVlogEmbed({
     !sourceRevealLocked &&
     sourceTeaserImageUrls.length > 1 &&
     (sourceReveal?.unlocked || viewerCanAccessSource);
+  const shouldRequireNsfwScenePin =
+    isSourceNsfw && shouldShowSourceTeaserGallery;
   const noticeMessage = blurred
     ? copy.nsfwBlurNotice
     : shouldShowPaidUnlockCta
@@ -2050,6 +2068,16 @@ function SourceVlogEmbed({
           copy={copy}
           imageUrls={sourceTeaserImageUrls}
           locale={locale}
+          nsfwPinGate={
+            shouldRequireNsfwScenePin
+              ? {
+                  connectHref: newsConnectHref,
+                  enabled: true,
+                  managePinHref: pinUnlockHref,
+                  title: sourceContent?.title ?? copy.embeddedTitle,
+                }
+              : undefined
+          }
         />
       ) : null}
       {sourceReveal?.unlocked ? (

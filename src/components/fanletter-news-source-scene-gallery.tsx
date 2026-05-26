@@ -15,8 +15,15 @@ import {
   type PointerEvent,
 } from "react";
 
+import { FanletterNsfwVideoPinGate } from "@/components/fanletter-nsfw-video-pin-gate";
+import { useMemberSession } from "@/components/member-session-provider";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import type { Locale } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+import {
+  WALLET_UNLOCK_SESSION_CHANGE_EVENT,
+  isWalletUnlockedForSession,
+} from "@/lib/wallet-unlock-session";
 
 type FanletterNewsSourceSceneGalleryItem = {
   imageUrl: string;
@@ -29,7 +36,16 @@ type FanletterNewsSourceSceneGalleryCopy = {
   eyebrow: string;
   next: string;
   openViewer: string;
+  pinProtectedBody: string;
+  pinProtectedTitle: string;
   previous: string;
+  title: string;
+};
+
+type FanletterNewsSourceSceneGalleryNsfwPinGate = {
+  connectHref?: string | null;
+  enabled: boolean;
+  managePinHref: string;
   title: string;
 };
 
@@ -42,26 +58,54 @@ export function FanletterNewsSourceSceneGallery({
   copy,
   items,
   locale,
+  nsfwPinGate,
 }: {
   blurred: boolean;
   copy: FanletterNewsSourceSceneGalleryCopy;
   items: FanletterNewsSourceSceneGalleryItem[];
   locale: Locale;
+  nsfwPinGate?: FanletterNewsSourceSceneGalleryNsfwPinGate;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const [walletUnlockState, setWalletUnlockState] = useState({
+    scope: "",
+    unlocked: false,
+  });
   const dragStartXRef = useRef<number | null>(null);
+  const { accountAddress, email } = useMemberSession();
   const activeItem = items[activeIndex] ?? items[0] ?? null;
   const canNavigate = items.length > 1;
+  const requiresNsfwPin = Boolean(nsfwPinGate?.enabled);
+  const walletUnlockScope =
+    email && accountAddress ? `${email}:${accountAddress}` : "";
+  const isNsfwPinUnlocked =
+    requiresNsfwPin &&
+    walletUnlockState.scope === walletUnlockScope &&
+    walletUnlockState.unlocked;
+  const canOpenSceneViewer = !requiresNsfwPin || isNsfwPinUnlocked;
+  const effectiveBlurred =
+    blurred || (requiresNsfwPin && !isNsfwPinUnlocked);
 
   const openViewer = useCallback((index: number) => {
+    if (!canOpenSceneViewer) {
+      return;
+    }
+
     setActiveIndex(index);
     setIsOpen(true);
-  }, []);
+  }, [canOpenSceneViewer]);
 
   const closeViewer = useCallback(() => {
     setIsOpen(false);
   }, []);
+
+  const handleNsfwPinUnlocked = useCallback(() => {
+    setWalletUnlockState({
+      scope: walletUnlockScope,
+      unlocked: true,
+    });
+  }, [walletUnlockScope]);
 
   const showPrevious = useCallback(() => {
     setActiveIndex((current) =>
@@ -74,6 +118,45 @@ export function FanletterNewsSourceSceneGallery({
       current >= items.length - 1 ? 0 : current + 1,
     );
   }, [items.length]);
+
+  useEffect(() => {
+    if (!requiresNsfwPin) {
+      return;
+    }
+
+    const syncWalletUnlockSession = () => {
+      const unlocked = isWalletUnlockedForSession({
+        email,
+        walletAddress: accountAddress,
+      });
+
+      setWalletUnlockState({
+        scope: walletUnlockScope,
+        unlocked,
+      });
+
+      if (!unlocked) {
+        setIsOpen(false);
+      }
+    };
+
+    const syncTimeoutId = window.setTimeout(syncWalletUnlockSession, 0);
+
+    window.addEventListener(
+      WALLET_UNLOCK_SESSION_CHANGE_EVENT,
+      syncWalletUnlockSession,
+    );
+    window.addEventListener("storage", syncWalletUnlockSession);
+
+    return () => {
+      window.removeEventListener(
+        WALLET_UNLOCK_SESSION_CHANGE_EVENT,
+        syncWalletUnlockSession,
+      );
+      window.removeEventListener("storage", syncWalletUnlockSession);
+      window.clearTimeout(syncTimeoutId);
+    };
+  }, [accountAddress, email, requiresNsfwPin, walletUnlockScope]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -167,7 +250,13 @@ export function FanletterNewsSourceSceneGallery({
         {items.map((item, index) => (
           <button
             aria-label={`${item.label} ${copy.openViewer}`}
-            className="group min-w-[9.5rem] snap-start overflow-hidden border border-black/10 bg-white text-left transition hover:border-[#19b84b] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b] sm:min-w-0"
+            className={cn(
+              "group min-w-[9.5rem] snap-start overflow-hidden border border-black/10 bg-white text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b] sm:min-w-0",
+              canOpenSceneViewer
+                ? "hover:border-[#19b84b]"
+                : "cursor-not-allowed",
+            )}
+            disabled={!canOpenSceneViewer}
             key={`${item.imageUrl}-${index}`}
             onClick={() => {
               openViewer(index);
@@ -179,7 +268,7 @@ export function FanletterNewsSourceSceneGallery({
                 alt=""
                 aria-hidden="true"
                 className={
-                  blurred
+                  effectiveBlurred
                     ? "scale-[1.04] object-cover blur-sm brightness-[0.76] saturate-[0.92]"
                     : "object-cover transition duration-300 group-hover:scale-[1.035]"
                 }
@@ -199,6 +288,26 @@ export function FanletterNewsSourceSceneGallery({
           </button>
         ))}
       </div>
+
+      {requiresNsfwPin && !isNsfwPinUnlocked && nsfwPinGate ? (
+        <div className="mt-3 border border-[#44f26e]/18 bg-[#07100b] p-3 text-white shadow-[0_18px_44px_rgba(0,0,0,0.18)] sm:p-4">
+          <p className="text-[0.66rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
+            {copy.pinProtectedTitle}
+          </p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-white/64">
+            {copy.pinProtectedBody}
+          </p>
+          <div className="mt-3 flex justify-center">
+            <FanletterNsfwVideoPinGate
+              connectHref={nsfwPinGate.connectHref}
+              locale={locale}
+              managePinHref={nsfwPinGate.managePinHref}
+              onUnlocked={handleNsfwPinUnlocked}
+              title={nsfwPinGate.title}
+            />
+          </div>
+        </div>
+      ) : null}
 
       {isOpen && activeItem ? (
         <div
@@ -249,7 +358,7 @@ export function FanletterNewsSourceSceneGallery({
                   <Image
                     alt={item.label}
                     className={
-                      blurred
+                      effectiveBlurred
                         ? "scale-[1.02] object-contain blur-sm brightness-[0.78] saturate-[0.92]"
                         : "object-contain"
                     }

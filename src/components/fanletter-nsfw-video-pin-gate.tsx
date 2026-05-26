@@ -24,6 +24,7 @@ import {
   isValidWalletPin,
 } from "@/lib/wallet-unlock";
 import {
+  WALLET_UNLOCK_SESSION_CHANGE_EVENT,
   isWalletUnlockedForSession,
   markWalletUnlockedForSession,
 } from "@/lib/wallet-unlock-session";
@@ -110,14 +111,31 @@ export function FanletterNsfwVideoPinGate({
   const pinReady = isValidWalletPin(pin);
 
   useEffect(() => {
-    if (
-      isWalletUnlockedForSession({
-        email,
-        walletAddress: accountAddress,
-      })
-    ) {
-      onUnlocked();
-    }
+    const syncWalletUnlockSession = () => {
+      if (
+        isWalletUnlockedForSession({
+          email,
+          walletAddress: accountAddress,
+        })
+      ) {
+        onUnlocked();
+      }
+    };
+
+    syncWalletUnlockSession();
+    window.addEventListener(
+      WALLET_UNLOCK_SESSION_CHANGE_EVENT,
+      syncWalletUnlockSession,
+    );
+    window.addEventListener("storage", syncWalletUnlockSession);
+
+    return () => {
+      window.removeEventListener(
+        WALLET_UNLOCK_SESSION_CHANGE_EVENT,
+        syncWalletUnlockSession,
+      );
+      window.removeEventListener("storage", syncWalletUnlockSession);
+    };
   }, [accountAddress, email, onUnlocked]);
 
   const submitPin = useCallback(async () => {

@@ -5,8 +5,34 @@ type WalletUnlockSessionRecord = {
   expiresAt: number;
 };
 
+export const WALLET_UNLOCK_SESSION_CHANGE_EVENT =
+  "wallet-unlock-session-change";
+
 function getWalletUnlockSessionKey(email: string, walletAddress: string) {
   return `wallet-unlock:${normalizeEmail(email)}:${walletAddress.trim().toLowerCase()}`;
+}
+
+function dispatchWalletUnlockSessionChange({
+  email,
+  unlocked,
+  walletAddress,
+}: {
+  email: string | null | undefined;
+  unlocked: boolean;
+  walletAddress: string | null | undefined;
+}) {
+  if (!email || !walletAddress || typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(
+    new CustomEvent(WALLET_UNLOCK_SESSION_CHANGE_EVENT, {
+      detail: {
+        key: getWalletUnlockSessionKey(email, walletAddress),
+        unlocked,
+      },
+    }),
+  );
 }
 
 export function isWalletUnlockedForSession({
@@ -58,6 +84,11 @@ export function markWalletUnlockedForSession({
       expiresAt: Date.now() + WALLET_UNLOCK_SESSION_MS,
     } satisfies WalletUnlockSessionRecord),
   );
+  dispatchWalletUnlockSessionChange({
+    email,
+    unlocked: true,
+    walletAddress,
+  });
 }
 
 export function clearWalletUnlockedForSession({
@@ -74,4 +105,9 @@ export function clearWalletUnlockedForSession({
   window.sessionStorage.removeItem(
     getWalletUnlockSessionKey(email, walletAddress),
   );
+  dispatchWalletUnlockSessionChange({
+    email,
+    unlocked: false,
+    walletAddress,
+  });
 }
