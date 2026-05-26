@@ -310,6 +310,7 @@ const EMPTY_POST_FORM = {
 };
 
 const COVER_IMAGE_CANDIDATE_LIMIT = 8;
+const CONTENT_IMAGE_URL_LIMIT = 10;
 const VIDEO_FRAME_COVER_CANDIDATE_COUNT = 6;
 
 function createCoverImageCandidateId() {
@@ -361,6 +362,30 @@ function appendCoverImageCandidate(
     candidate,
     ...candidates.filter((item) => item.url !== candidate.url),
   ].slice(0, COVER_IMAGE_CANDIDATE_LIMIT);
+}
+
+function mergeContentImageUrls(current: string[], additions: string[]) {
+  const seenUrls = new Set<string>();
+  const merged: string[] = [];
+
+  for (const url of [...additions, ...current]) {
+    const normalizedUrl = url.trim();
+
+    if (!normalizedUrl || seenUrls.has(normalizedUrl)) {
+      continue;
+    }
+
+    seenUrls.add(normalizedUrl);
+    merged.push(normalizedUrl);
+  }
+
+  return merged.slice(0, CONTENT_IMAGE_URL_LIMIT);
+}
+
+function getFrameCandidateImageUrls(candidates: ContentCoverImageCandidate[]) {
+  return candidates
+    .filter((candidate) => candidate.source === "frame")
+    .map((candidate) => candidate.url);
 }
 
 function getCoverImageCandidateLabel(
@@ -3641,6 +3666,10 @@ export function CreatorContentStudioPage({
           : "general";
       let coverImageUrlToSave = postForm.coverImageUrl || null;
       let coverImageCandidatesToSave = postForm.coverImageCandidates;
+      let contentImageUrlsToSave = mergeContentImageUrls(
+        postForm.contentImageUrls,
+        getFrameCandidateImageUrls(coverImageCandidatesToSave),
+      );
 
       if (priceTypeToSave === "paid" && !state.profile.payoutWalletAddress) {
         await createSellerWallet(email);
@@ -3698,6 +3727,10 @@ export function CreatorContentStudioPage({
                 candidate,
               );
             }
+            contentImageUrlsToSave = mergeContentImageUrls(
+              contentImageUrlsToSave,
+              getFrameCandidateImageUrls(frameCoverResult?.candidates ?? []),
+            );
           } catch {
             setIsCoverGenerationDialogOpen(true);
             setState((current) => ({
@@ -3775,6 +3808,10 @@ export function CreatorContentStudioPage({
               candidate,
             );
           }
+          contentImageUrlsToSave = mergeContentImageUrls(
+            contentImageUrlsToSave,
+            getFrameCandidateImageUrls(frameCoverResult.candidates),
+          );
         } catch {
           coverImageUrlToSave = null;
         }
@@ -3783,7 +3820,7 @@ export function CreatorContentStudioPage({
       const response = await fetch("/api/content/posts", {
         body: JSON.stringify({
           body: normalizedBody,
-          contentImageUrls: postForm.contentImageUrls,
+          contentImageUrls: contentImageUrlsToSave,
           contentMaturityRating: contentMaturityRatingToSave,
           contentVideoUrls: postForm.contentVideoUrls,
           coverImageCandidates: coverImageCandidatesToSave,
@@ -3993,6 +4030,10 @@ export function CreatorContentStudioPage({
 
       setPostForm((current) => ({
         ...current,
+        contentImageUrls:
+          options.candidateSource === "frame"
+            ? mergeContentImageUrls(current.contentImageUrls, [candidate.url])
+            : current.contentImageUrls,
         coverImageCandidates: appendCoverImageCandidate(
           current.coverImageCandidates,
           candidate,

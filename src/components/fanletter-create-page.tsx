@@ -99,6 +99,7 @@ const FANLETTER_CREATE_DISCONNECTED_GRACE_MS = 4500;
 const FANLETTER_CREATE_LOCAL_DRAFT_VERSION = 1;
 const FANLETTER_CREATE_LOCAL_DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const COVER_IMAGE_CANDIDATE_LIMIT = 8;
+const CONTENT_IMAGE_URL_LIMIT = 10;
 const VIDEO_FRAME_COVER_CANDIDATE_COUNT = 6;
 const EXCLUSIVE_NEWS_DURATION_OPTIONS = [6, 12, 24] as const;
 
@@ -611,6 +612,30 @@ function mergeCoverImageCandidates(
   }
 
   return merged.slice(0, COVER_IMAGE_CANDIDATE_LIMIT);
+}
+
+function mergeContentImageUrls(current: string[], additions: string[]) {
+  const seenUrls = new Set<string>();
+  const merged: string[] = [];
+
+  for (const url of [...additions, ...current]) {
+    const normalizedUrl = url.trim();
+
+    if (!normalizedUrl || seenUrls.has(normalizedUrl)) {
+      continue;
+    }
+
+    seenUrls.add(normalizedUrl);
+    merged.push(normalizedUrl);
+  }
+
+  return merged.slice(0, CONTENT_IMAGE_URL_LIMIT);
+}
+
+function getFrameCandidateImageUrls(candidates: ContentCoverImageCandidate[]) {
+  return candidates
+    .filter((candidate) => candidate.source === "frame")
+    .map((candidate) => candidate.url);
 }
 
 function getInitialCreateForm(
@@ -1299,6 +1324,7 @@ export function FanletterCreatePage({
           0,
           COVER_IMAGE_CANDIDATE_LIMIT,
         ),
+        contentImageUrls: getFrameCandidateImageUrls(coverImageCandidates),
         coverImageUrl,
       };
     },
@@ -1718,6 +1744,9 @@ export function FanletterCreatePage({
       let coverImageUrlToSave = generatedMedia?.coverImageUrl ?? null;
       let coverImageCandidatesToSave =
         generatedMedia?.coverImageCandidates ?? [];
+      let contentImageUrlsToSave = getFrameCandidateImageUrls(
+        coverImageCandidatesToSave,
+      );
 
       if (
         generatedVideoUrl &&
@@ -1739,6 +1768,10 @@ export function FanletterCreatePage({
             coverImageCandidatesToSave,
             teaserCovers.coverImageCandidates,
           );
+          contentImageUrlsToSave = mergeContentImageUrls(
+            contentImageUrlsToSave,
+            teaserCovers.contentImageUrls,
+          );
           setGeneratedMedia((current) =>
             current?.url === generatedVideoUrl
               ? {
@@ -1752,6 +1785,9 @@ export function FanletterCreatePage({
           coverImageUrlToSave = generatedMedia?.coverImageUrl ?? null;
           coverImageCandidatesToSave =
             generatedMedia?.coverImageCandidates ?? [];
+          contentImageUrlsToSave = getFrameCandidateImageUrls(
+            coverImageCandidatesToSave,
+          );
         }
       }
 
@@ -1760,7 +1796,7 @@ export function FanletterCreatePage({
       const response = await fetch("/api/content/posts", {
         body: JSON.stringify({
           body,
-          contentImageUrls: [],
+          contentImageUrls: contentImageUrlsToSave,
           contentVideoUrls: generatedVideoUrl ? [generatedVideoUrl] : [],
           coverImageCandidates: coverImageCandidatesToSave,
           coverImageUrl: coverImageUrlToSave,
