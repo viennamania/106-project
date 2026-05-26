@@ -28,6 +28,7 @@ import {
 type FanletterNewsSourceSceneGalleryItem = {
   imageUrl: string;
   label: string;
+  timeLabel: string | null;
 };
 
 type FanletterNewsSourceSceneGalleryCopy = {
@@ -86,6 +87,11 @@ export function FanletterNewsSourceSceneGallery({
   const canOpenSceneViewer = !requiresNsfwPin || isNsfwPinUnlocked;
   const effectiveBlurred =
     blurred || (requiresNsfwPin && !isNsfwPinUnlocked);
+  const activeItemLabel = activeItem
+    ? activeItem.timeLabel
+      ? `${activeItem.label} · ${activeItem.timeLabel}`
+      : activeItem.label
+    : "";
 
   const openViewer = useCallback((index: number) => {
     if (!canOpenSceneViewer) {
@@ -279,7 +285,7 @@ export function FanletterNewsSourceSceneGallery({
               />
               <span className="absolute inset-0 bg-gradient-to-t from-black/46 via-transparent to-black/8" />
               <span className="absolute bottom-2 left-2 rounded-full bg-black/64 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/86">
-                {item.label}
+                {item.timeLabel ? `${item.label} · ${item.timeLabel}` : item.label}
               </span>
               <span className="absolute right-2 top-2 inline-flex size-8 items-center justify-center rounded-full border border-white/18 bg-black/56 text-white opacity-90 backdrop-blur">
                 <Expand className="size-3.5" />
@@ -322,7 +328,7 @@ export function FanletterNewsSourceSceneGallery({
                 {copy.eyebrow}
               </p>
               <p className="mt-1 truncate text-sm font-black text-white/84">
-                {activeItem.label} · {formatNumber(activeIndex + 1, locale)} /{" "}
+                {activeItemLabel} · {formatNumber(activeIndex + 1, locale)} /{" "}
                 {formatNumber(items.length, locale)}
               </p>
             </div>

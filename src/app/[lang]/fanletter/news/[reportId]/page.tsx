@@ -109,6 +109,11 @@ type SourceVlogRevealTeaserCopy = {
   title: string;
 };
 
+type SourceVlogSceneFrame = {
+  imageUrl: string;
+  timestampSec: number | null;
+};
+
 const RELATED_NEWS_PAGE_SIZE = 4;
 const RELATED_NEWS_LIMIT_PARAM = "relatedLimit";
 const RELATED_NEWS_MAX_VISIBLE_COUNT = 24;
@@ -232,12 +237,12 @@ function getCopy(locale: Locale) {
             "원본 브이로그에서 저장한 장면 프레임만 모아, 실제 영상 흐름을 빠르게 훑어볼 수 있습니다.",
           close: "장면 보기 닫기",
           eyebrow: "원본 장면 컷",
-          itemLabel: (index: string) => `티저 ${index}`,
+          itemLabel: (index: string) => `컷 ${index}`,
           next: "다음 장면",
           openViewer: "전체 화면으로 보기",
           pinProtectedBody:
-            "NSFW 원본의 장면 티저 컷도 로그인한 회원의 지갑 PIN 확인 후 선명하게 볼 수 있습니다.",
-          pinProtectedTitle: "장면 티저 컷 PIN 보호",
+            "NSFW 원본의 장면 컷도 로그인한 회원의 지갑 PIN 확인 후 선명하게 볼 수 있습니다.",
+          pinProtectedTitle: "장면 컷 PIN 보호",
           previous: "이전 장면",
           title: "원본 브이로그 장면 컷",
         },
@@ -425,11 +430,11 @@ function getCopy(locale: Locale) {
             "Only saved scene frames from the source vlog are shown, so readers can scan the actual video flow before replaying it.",
           close: "Close scene viewer",
           eyebrow: "Source scene cuts",
-          itemLabel: (index: string) => `Teaser ${index}`,
+          itemLabel: (index: string) => `Cut ${index}`,
           next: "Next scene",
           openViewer: "Open fullscreen",
           pinProtectedBody:
-            "Scene teaser cuts from an adult source open clearly after the signed-in member's wallet PIN is confirmed.",
+            "Scene cuts from an adult source open clearly after the signed-in member's wallet PIN is confirmed.",
           pinProtectedTitle: "Scene cuts protected by PIN",
           previous: "Previous scene",
           title: "Source vlog scene cuts",
@@ -574,6 +579,122 @@ function getUniqueImageUrls(urls: Array<string | null | undefined>) {
         .filter((url): url is string => Boolean(url)),
     ),
   );
+}
+
+function isFrameTimestamp(value: number | null | undefined): value is number {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
+function formatSourceVlogFrameTime(
+  timestampSec: number | null,
+  locale: Locale,
+) {
+  if (!isFrameTimestamp(timestampSec)) {
+    return null;
+  }
+
+  const totalSeconds = Math.max(0, Math.round(timestampSec));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  if (locale === "ko") {
+    return minutes > 0 ? `${minutes}분 ${seconds}초` : `${seconds}초`;
+  }
+
+  return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+}
+
+function buildSourceVlogSceneFrames(
+  sourceContent: FanletterPublicContentDetail | null,
+): SourceVlogSceneFrame[] {
+  if (!sourceContent) {
+    return [];
+  }
+
+  const frameCandidateByUrl = new Map<string, number>();
+
+  for (const candidate of sourceContent.coverImageCandidates ?? []) {
+    const imageUrl = candidate.url?.trim();
+
+    if (
+      candidate.source !== "frame" ||
+      !imageUrl ||
+      frameCandidateByUrl.has(imageUrl) ||
+      !isFrameTimestamp(candidate.timestampSec)
+    ) {
+      continue;
+    }
+
+    frameCandidateByUrl.set(imageUrl, candidate.timestampSec);
+  }
+
+  const seenUrls = new Set<string>();
+  const frames = (sourceContent.contentImageUrls ?? []).flatMap(
+    (rawImageUrl, originalIndex) => {
+      const imageUrl = rawImageUrl.trim();
+
+      if (!imageUrl || seenUrls.has(imageUrl)) {
+        return [];
+      }
+
+      seenUrls.add(imageUrl);
+
+      return [
+        {
+          imageUrl,
+          originalIndex,
+          timestampSec: frameCandidateByUrl.get(imageUrl) ?? null,
+        },
+      ];
+    },
+  );
+
+  return frames
+    .sort((left, right) => {
+      const leftTimestamp = left.timestampSec;
+      const rightTimestamp = right.timestampSec;
+      const leftHasTime = isFrameTimestamp(leftTimestamp);
+      const rightHasTime = isFrameTimestamp(rightTimestamp);
+
+      if (leftHasTime && rightHasTime) {
+        return leftTimestamp - rightTimestamp;
+      }
+
+      if (leftHasTime) {
+        return -1;
+      }
+
+      if (rightHasTime) {
+        return 1;
+      }
+
+      return left.originalIndex - right.originalIndex;
+    })
+    .map(({ imageUrl, timestampSec }) => ({
+      imageUrl,
+      timestampSec,
+    }));
+}
+
+function pickTimelinePreviewFrames(
+  frames: SourceVlogSceneFrame[],
+  limit = 3,
+): SourceVlogSceneFrame[] {
+  if (frames.length <= limit) {
+    return frames;
+  }
+
+  const maxIndex = frames.length - 1;
+  const selectedIndexes = new Set<number>();
+
+  for (let index = 0; index < limit; index += 1) {
+    selectedIndexes.add(Math.round((maxIndex * index) / (limit - 1)));
+  }
+
+  return Array.from(selectedIndexes)
+    .sort((left, right) => left - right)
+    .map((index) => frames[index])
+    .filter((frame): frame is SourceVlogSceneFrame => Boolean(frame));
 }
 
 function getSourceVlogRevealTeaserCopy(
@@ -1492,31 +1613,31 @@ function ArticleVisualLead({
 function SourceVlogRevealTeaserOverlay({
   blurred,
   connectHref,
-  imageUrls,
+  frames,
   locale,
   reportId,
   sourceReveal,
 }: {
   blurred: boolean;
   connectHref: string;
-  imageUrls: string[];
+  frames: SourceVlogSceneFrame[];
   locale: Locale;
   reportId: string;
   sourceReveal: FanletterNewsSourceRevealState;
 }) {
   const copy = getSourceVlogRevealTeaserCopy(locale);
-  const teaserImages = imageUrls.slice(0, 3);
+  const teaserFrames = frames.slice(0, 3);
   const teaserGridClass =
-    teaserImages.length >= 3
+    teaserFrames.length >= 3
       ? "grid-cols-3"
-      : teaserImages.length === 2
+      : teaserFrames.length === 2
         ? "grid-cols-2"
         : "grid-cols-1";
 
   return (
     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.88)_100%)] p-3 text-white sm:p-5">
       <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center">
-        {teaserImages.length > 0 ? (
+        {teaserFrames.length > 0 ? (
           <div className="flex min-h-0 flex-1 flex-col gap-2 sm:h-full sm:justify-center sm:gap-3">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="min-w-0">
@@ -1534,8 +1655,13 @@ function SourceVlogRevealTeaserOverlay({
             <div
               className={`grid min-h-0 flex-1 ${teaserGridClass} gap-1.5 sm:gap-2`}
             >
-              {teaserImages.map((imageUrl, index) => {
+              {teaserFrames.map((frame, index) => {
+                const imageUrl = frame.imageUrl;
                 const isPrimary = index === 0;
+                const timeLabel = formatSourceVlogFrameTime(
+                  frame.timestampSec,
+                  locale,
+                );
 
                 return (
                   <div
@@ -1565,7 +1691,9 @@ function SourceVlogRevealTeaserOverlay({
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/58 via-transparent to-black/10" />
                     <span className="absolute bottom-2 left-2 rounded-full bg-black/62 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/82">
-                      {String(index + 1).padStart(2, "0")}
+                      {timeLabel
+                        ? `${String(index + 1).padStart(2, "0")} · ${timeLabel}`
+                        : String(index + 1).padStart(2, "0")}
                     </span>
                   </div>
                 );
@@ -1590,7 +1718,7 @@ function SourceVlogRevealTeaserOverlay({
 function SourceVlogPaidTeaserOverlay({
   blurred,
   copy,
-  imageUrls,
+  frames,
   locale,
   paidUnlockHref,
   paidUnlockLabel,
@@ -1598,7 +1726,7 @@ function SourceVlogPaidTeaserOverlay({
 }: {
   blurred: boolean;
   copy: ReturnType<typeof getCopy>;
-  imageUrls: string[];
+  frames: SourceVlogSceneFrame[];
   locale: Locale;
   paidUnlockHref: string;
   paidUnlockLabel: string;
@@ -1616,18 +1744,18 @@ function SourceVlogPaidTeaserOverlay({
           meta: "Fan-only teaser",
           title: "Preview the mood before unlocking",
         };
-  const teaserImages = imageUrls.slice(0, 3);
+  const teaserFrames = frames.slice(0, 3);
   const teaserGridClass =
-    teaserImages.length >= 3
+    teaserFrames.length >= 3
       ? "grid-cols-3"
-      : teaserImages.length === 2
+      : teaserFrames.length === 2
         ? "grid-cols-2"
         : "grid-cols-1";
 
   return (
     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.9)_100%)] p-3 text-white sm:p-5">
       <div className="mx-auto grid h-full min-h-0 w-full max-w-4xl gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center">
-        {teaserImages.length > 0 ? (
+        {teaserFrames.length > 0 ? (
           <div className="flex min-h-0 flex-1 flex-col gap-2 sm:h-full sm:justify-center sm:gap-3">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="min-w-0">
@@ -1645,8 +1773,13 @@ function SourceVlogPaidTeaserOverlay({
             <div
               className={`grid min-h-0 flex-1 ${teaserGridClass} gap-1.5 sm:gap-2`}
             >
-              {teaserImages.map((imageUrl, index) => {
+              {teaserFrames.map((frame, index) => {
+                const imageUrl = frame.imageUrl;
                 const isPrimary = index === 0;
+                const timeLabel = formatSourceVlogFrameTime(
+                  frame.timestampSec,
+                  locale,
+                );
 
                 return (
                   <div
@@ -1676,7 +1809,9 @@ function SourceVlogPaidTeaserOverlay({
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/58 via-transparent to-black/10" />
                     <span className="absolute bottom-2 left-2 rounded-full bg-black/62 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/82">
-                      {String(index + 1).padStart(2, "0")}
+                      {timeLabel
+                        ? `${String(index + 1).padStart(2, "0")} · ${timeLabel}`
+                        : String(index + 1).padStart(2, "0")}
                     </span>
                   </div>
                 );
@@ -1724,13 +1859,13 @@ function SourceVlogPaidTeaserOverlay({
 function SourceVlogUnlockedTeaserGallery({
   blurred,
   copy,
-  imageUrls,
+  frames,
   locale,
   nsfwPinGate,
 }: {
   blurred: boolean;
   copy: ReturnType<typeof getCopy>;
-  imageUrls: string[];
+  frames: SourceVlogSceneFrame[];
   locale: Locale;
   nsfwPinGate?: {
     connectHref?: string | null;
@@ -1739,16 +1874,17 @@ function SourceVlogUnlockedTeaserGallery({
     title: string;
   };
 }) {
-  if (imageUrls.length < 2) {
+  if (frames.length < 2) {
     return null;
   }
 
-  const items = imageUrls.map((imageUrl, index) => {
+  const items = frames.map((frame, index) => {
     const itemNumber = formatNumber(index + 1, locale);
 
     return {
-      imageUrl,
+      imageUrl: frame.imageUrl,
       label: copy.sourceTeaserGallery.itemLabel(itemNumber),
+      timeLabel: formatSourceVlogFrameTime(frame.timestampSec, locale),
     };
   });
 
@@ -1826,9 +1962,8 @@ function SourceVlogEmbed({
       : sourceContent?.coverImageUrl ??
         sourceContent?.contentImageUrls[0] ??
         reportCoverImageUrl;
-  const sourceTeaserImageUrls = getUniqueImageUrls(
-    sourceContent?.contentImageUrls ?? [],
-  ).slice(0, 4);
+  const sourceSceneFrames = buildSourceVlogSceneFrames(sourceContent);
+  const sourceOverlaySceneFrames = pickTimelinePreviewFrames(sourceSceneFrames);
   const hasEmbeddedVideo = Boolean(sourceVideoUrl);
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
   const paidUnlockLabel = `${paidUnlockAmount} USDT`;
@@ -1899,7 +2034,7 @@ function SourceVlogEmbed({
     !blurred;
   const shouldShowSourceTeaserGallery =
     !sourceRevealLocked &&
-    sourceTeaserImageUrls.length > 1 &&
+    sourceSceneFrames.length > 1 &&
     (sourceReveal?.unlocked || viewerCanAccessSource);
   const shouldRequireNsfwScenePin =
     isSourceNsfw && shouldShowSourceTeaserGallery;
@@ -1967,7 +2102,7 @@ function SourceVlogEmbed({
             <SourceVlogRevealTeaserOverlay
               blurred={sourceMediaBlurred}
               connectHref={sourceReveal.connectHref}
-              imageUrls={sourceTeaserImageUrls}
+              frames={sourceOverlaySceneFrames}
               locale={locale}
               reportId={sourceReveal.reportId}
               sourceReveal={sourceReveal}
@@ -2002,7 +2137,7 @@ function SourceVlogEmbed({
             <SourceVlogPaidTeaserOverlay
               blurred={sourceMediaBlurred}
               copy={copy}
-              imageUrls={sourceTeaserImageUrls}
+              frames={sourceOverlaySceneFrames}
               locale={locale}
               paidUnlockHref={paidUnlockHref}
               paidUnlockLabel={paidUnlockLabel}
@@ -2061,7 +2196,7 @@ function SourceVlogEmbed({
         <SourceVlogUnlockedTeaserGallery
           blurred={sourceMediaBlurred}
           copy={copy}
-          imageUrls={sourceTeaserImageUrls}
+          frames={sourceSceneFrames}
           locale={locale}
           nsfwPinGate={
             shouldRequireNsfwScenePin
