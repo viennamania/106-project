@@ -698,45 +698,30 @@ function getFanletterNewsReportCoverOptionsFromPost({
       timestampSec,
     });
   };
-  const autoCoverImageUrl = getCoverImageUrl(post);
+  const frameCandidateByUrl = new Map<string, ContentCoverImageCandidate>();
 
-  if (autoCoverImageUrl) {
-    appendOption({
-      candidateId: "auto",
-      imageUrl: autoCoverImageUrl,
-      inputValue: "",
-      isAuto: true,
-      source: "auto",
-    });
-  }
+  for (const candidate of post.coverImageCandidates ?? []) {
+    const normalizedCandidateUrl = candidate.url?.trim() ?? "";
 
-  if (post.coverImageUrl) {
-    appendOption({
-      candidateId: "primary",
-      imageUrl: post.coverImageUrl,
-      inputValue: post.coverImageUrl,
-      source: "primary",
-    });
-  }
+    if (!normalizedCandidateUrl || frameCandidateByUrl.has(normalizedCandidateUrl)) {
+      continue;
+    }
 
-  for (const [index, candidate] of (post.coverImageCandidates ?? []).entries()) {
-    appendOption({
-      candidateId: candidate.candidateId || `candidate-${index}`,
-      contentType: candidate.contentType,
-      imageUrl: candidate.url,
-      inputValue: candidate.url,
-      placements: candidate.placements ?? [],
-      source: candidate.source,
-      timestampSec: candidate.timestampSec,
-    });
+    frameCandidateByUrl.set(normalizedCandidateUrl, candidate);
   }
 
   for (const [index, imageUrl] of (post.contentImageUrls ?? []).entries()) {
+    const normalizedImageUrl = imageUrl.trim();
+    const frameCandidate = frameCandidateByUrl.get(normalizedImageUrl);
+
     appendOption({
-      candidateId: `content-image-${index}`,
-      imageUrl,
+      candidateId: frameCandidate?.candidateId || `content-image-${index}`,
+      contentType: frameCandidate?.contentType ?? null,
+      imageUrl: normalizedImageUrl,
       inputValue: imageUrl,
-      source: "content_image",
+      placements: frameCandidate?.placements ?? [],
+      source: frameCandidate?.source ?? "content_image",
+      timestampSec: frameCandidate?.timestampSec ?? null,
     });
   }
 
