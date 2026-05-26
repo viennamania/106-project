@@ -52,11 +52,9 @@ import { FanletterAccountStatusLink } from "@/components/fanletter-account-statu
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { useMemberSession } from "@/components/member-session-provider";
 import {
-  CONTENT_IMAGE_VISUAL_BRIEF_LIMIT,
   getContentVideoAssetSource,
   type ContentCoverImageCandidate,
   type ContentMaturityRating,
-  type ContentPostGenerateCoverResponse,
   type ContentPostMutationResponse,
   type ContentPostStatus,
   type CreatorProfileRecord,
@@ -76,6 +74,7 @@ import {
   getThirdwebUserEmail,
   useThirdwebConnectionState,
 } from "@/lib/thirdweb-client";
+import { captureVideoCoverFramesFromUrl } from "@/lib/video-frame-cover-client";
 
 type VlogStatusFilter = "all" | "archived" | "draft" | "published";
 type VlogPriceFilter = "all" | "free" | "paid";
@@ -179,7 +178,7 @@ function getCopy(locale: Locale) {
           detail: "상세 보기",
           fanRequests: "팬 요청 선택",
           feed: "피드 보기",
-          manageTeasers: "티저 관리",
+          manageTeasers: "프레임 관리",
           markNsfw: "NSFW 표시",
           next: "다음",
           paidUpload: "팬 요청 답장 업로드",
@@ -229,29 +228,26 @@ function getCopy(locale: Locale) {
           unavailable: "커버 이미지 없음",
         },
         teasers: {
-          addFailed: "티저 이미지를 생성하지 못했습니다.",
-          addNotice: "AI 티저 이미지를 추가했습니다.",
-          count: (count: string) => `${count}개 티저`,
+          addFailed: "영상 프레임을 추가하지 못했습니다.",
+          addNotice: "원본 영상 프레임을 추가했습니다.",
+          count: (count: string) => `${count}개 프레임`,
           delete: "삭제",
-          deleteFailed: "티저 이미지를 삭제하지 못했습니다.",
-          deletedNotice: "티저 이미지를 삭제했습니다.",
+          deleteFailed: "영상 프레임을 삭제하지 못했습니다.",
+          deletedNotice: "영상 프레임을 삭제했습니다.",
           empty:
-            "아직 저장된 장면 티저 이미지가 없습니다. AI로 생성해 뉴스와 구매 화면의 이미지 DB를 채워보세요.",
-          generate: "AI 티저 추가 생성",
-          generating: "생성 중",
+            "아직 저장된 영상 프레임이 없습니다. 원본 영상에서 프레임을 추가해 뉴스와 구매 화면의 이미지 DB를 채워보세요.",
+          generate: "원본 영상에서 프레임 추가",
+          generating: "프레임 추출 중",
           helper:
-            "뉴스 리포트, 유료 잠금 화면, 구매 전 미리보기에서 활용할 장면 티저 이미지 DB를 관리합니다.",
+            "뉴스 리포트, 유료 잠금 화면, 구매 전 미리보기에서 활용할 원본 영상 프레임을 관리합니다.",
           limit: (count: string) => `최대 ${count}장까지 저장됩니다.`,
           modalBody:
-            "동영상 전체를 노출하지 않고도 소비자의 호기심을 만들 수 있는 티저 컷을 선별합니다.",
+            "원본 영상에서 장면 프레임을 추출하고, 소비자가 뉴스와 구매 화면에서 먼저 볼 수 있는 컷을 선별합니다.",
           modalClose: "닫기",
-          modalEyebrow: "Teaser Image DB",
-          modalTitle: "브이로그 티저 이미지 관리",
-          promptLabel: "생성 방향",
-          promptPlaceholder:
-            "예: 캐릭터가 카메라를 바라보는 원테이크 모바일 브이로그 티저, 장면의 핵심 분위기만 노출",
-          promptRequired: "AI 티저 이미지를 만들 생성 방향을 입력하세요.",
-          sectionTitle: "티저 이미지",
+          modalEyebrow: "Video Frame DB",
+          modalTitle: "브이로그 영상 프레임 관리",
+          noVideo: "프레임을 추출할 원본 영상이 없습니다.",
+          sectionTitle: "영상 프레임",
         },
         emptyBody:
           "아직 관리할 브이로그가 없습니다. 오늘의 AI 캐릭터 브이로그를 만든 뒤 공개 상태를 관리해보세요.",
@@ -333,7 +329,7 @@ function getCopy(locale: Locale) {
           detail: "View detail",
           fanRequests: "Choose fan request",
           feed: "View feed",
-          manageTeasers: "Manage teasers",
+          manageTeasers: "Manage frames",
           markNsfw: "Mark NSFW",
           next: "Next",
           paidUpload: "Fan request reply upload",
@@ -383,29 +379,26 @@ function getCopy(locale: Locale) {
           unavailable: "No cover image",
         },
         teasers: {
-          addFailed: "Could not generate a teaser image.",
-          addNotice: "Generated a new AI teaser image.",
-          count: (count: string) => `${count} teasers`,
+          addFailed: "Could not add video frames.",
+          addNotice: "Added source video frames.",
+          count: (count: string) => `${count} frames`,
           delete: "Delete",
-          deleteFailed: "Could not delete the teaser image.",
-          deletedNotice: "The teaser image has been deleted.",
+          deleteFailed: "Could not delete the video frame.",
+          deletedNotice: "The video frame has been deleted.",
           empty:
-            "No scene teaser images are saved yet. Generate AI teasers to build the image database for news and purchase surfaces.",
-          generate: "Generate AI teaser",
-          generating: "Generating",
+            "No video frames are saved yet. Add frames from the source video to build the image database for news and purchase surfaces.",
+          generate: "Add frames from source video",
+          generating: "Extracting frames",
           helper:
-            "Manage the scene teaser image database used by news reports, paid locks, and pre-purchase previews.",
+            "Manage source video frames used by news reports, paid locks, and pre-purchase previews.",
           limit: (count: string) => `Up to ${count} images can be saved.`,
           modalBody:
-            "Select teaser cuts that create curiosity without exposing the full video.",
+            "Extract frames from the source video and select cuts viewers can see first in news and purchase screens.",
           modalClose: "Close",
-          modalEyebrow: "Teaser Image DB",
-          modalTitle: "Manage vlog teaser images",
-          promptLabel: "Generation direction",
-          promptPlaceholder:
-            "Example: one-take mobile vlog teaser with the character facing camera, only the scene mood revealed",
-          promptRequired: "Enter a generation direction for the AI teaser image.",
-          sectionTitle: "Teaser images",
+          modalEyebrow: "Video Frame DB",
+          modalTitle: "Manage vlog video frames",
+          noVideo: "No source video is available for frame extraction.",
+          sectionTitle: "Video frames",
         },
         emptyBody:
           "There are no vlogs to manage yet. Create today's AI character vlog, then manage its publishing state here.",
@@ -549,38 +542,6 @@ function getUniqueImageUrls(imageUrls: string[]) {
         .filter((imageUrl) => Boolean(imageUrl)),
     ),
   );
-}
-
-function buildVlogTeaserVisualBrief({
-  locale,
-  post,
-}: {
-  locale: Locale;
-  post: CreatorStudioPostRecord;
-}) {
-  const maturityDirection =
-    post.contentMaturityRating === "nsfw"
-      ? locale === "ko"
-        ? "NSFW 유료 콘텐츠이므로 노출이나 explicit 장면 없이 PIN 보호 전에도 사용할 수 있는 안전한 분위기 티저"
-        : "safe mood teaser for NSFW paid content, no nudity or explicit scene, suitable before PIN confirmation"
-      : locale === "ko"
-        ? "모바일 숏폼 브이로그의 분위기를 보여주는 공개 티저"
-        : "public teaser that shows the mood of a mobile short-form vlog";
-
-  return [
-    locale === "ko"
-      ? "FanLetter AI 캐릭터 브이로그 티저 이미지"
-      : "FanLetter AI character vlog teaser image",
-    maturityDirection,
-    locale === "ko"
-      ? "One take 느낌, 캐릭터가 카메라를 바라보는 장면, 원본 전체 내용을 스포일러하지 않는 프리미엄 포토 뉴스 컷"
-      : "one-take feeling, character facing camera, premium photo-news cut without spoiling the full source",
-    `Title: ${post.title}`,
-    post.summary ? `Summary: ${post.summary}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n")
-    .slice(0, CONTENT_IMAGE_VISUAL_BRIEF_LIMIT);
 }
 
 function buildVlogCoverOptions(
@@ -932,7 +893,6 @@ export function FanletterVlogManagementPage({
   const [selectedCoverOptionKey, setSelectedCoverOptionKey] =
     useState<string | null>(null);
   const [savingCoverKey, setSavingCoverKey] = useState<string | null>(null);
-  const [teaserImagePrompt, setTeaserImagePrompt] = useState("");
   const [teaserImageError, setTeaserImageError] = useState<string | null>(null);
   const [generatingTeaserPostId, setGeneratingTeaserPostId] =
     useState<string | null>(null);
@@ -1695,12 +1655,11 @@ export function FanletterVlogManagementPage({
   const openTeaserModal = useCallback(
     (post: CreatorStudioPostRecord) => {
       setActiveTeaserPostId(post.contentId);
-      setTeaserImagePrompt(buildVlogTeaserVisualBrief({ locale, post }));
       setTeaserImageError(null);
       setDeletingTeaserImageKey(null);
       setGeneratingTeaserPostId(null);
     },
-    [locale],
+    [],
   );
 
   const savePostTeaserImages = useCallback(
@@ -1799,52 +1758,71 @@ export function FanletterVlogManagementPage({
     ],
   );
 
-  const generateTeaserImage = useCallback(async () => {
+  const addVideoFrames = useCallback(async () => {
     if (!activeTeaserPost || !accountAddress) {
       return;
     }
 
     try {
-      if (activeTeaserPost.contentImageUrls.length >= VLOG_TEASER_IMAGE_LIMIT) {
+      const remainingSlots =
+        VLOG_TEASER_IMAGE_LIMIT - activeTeaserPost.contentImageUrls.length;
+
+      if (remainingSlots <= 0) {
         throw new Error(
           copy.teasers.limit(formatNumber(VLOG_TEASER_IMAGE_LIMIT, locale)),
         );
       }
 
-      const visualBrief = teaserImagePrompt.trim();
+      const videoUrl = getPostVideoUrl(activeTeaserPost);
 
-      if (!visualBrief) {
-        throw new Error(copy.teasers.promptRequired);
+      if (!videoUrl) {
+        throw new Error(copy.teasers.noVideo);
       }
 
       setGeneratingTeaserPostId(activeTeaserPost.contentId);
       setTeaserImageError(null);
 
+      const frameCount = Math.min(remainingSlots, 6);
+      const frames = await captureVideoCoverFramesFromUrl(
+        videoUrl,
+        activeTeaserPost.title.trim() || activeTeaserPost.contentId,
+        { count: frameCount },
+      );
+
+      if (frames.length === 0) {
+        throw new Error(copy.teasers.addFailed);
+      }
+
       const resolvedEmail = await resolveMemberEmail();
-      const response = await fetch("/api/content/posts/generate-content-image", {
-        body: JSON.stringify({
-          email: resolvedEmail,
-          locale,
-          summary: activeTeaserPost.summary,
-          title: activeTeaserPost.title,
-          visualBrief: visualBrief.slice(0, CONTENT_IMAGE_VISUAL_BRIEF_LIMIT),
-          walletAddress: accountAddress,
-        }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-        method: "POST",
-      });
-      const generatedImage =
-        await readApiJson<ContentPostGenerateCoverResponse>(
+      const uploadedFrameUrls: string[] = [];
+
+      for (const frame of frames.slice(0, remainingSlots)) {
+        const formData = new FormData();
+
+        formData.set("email", resolvedEmail);
+        formData.set("file", frame.file);
+        formData.set("walletAddress", accountAddress);
+
+        const response = await fetch("/api/content/posts/upload", {
+          body: formData,
+          method: "POST",
+        });
+        const uploadedFrame = await readApiJson<VlogCoverUploadResponse>(
           response,
           copy.teasers.addFailed,
         );
 
+        uploadedFrameUrls.push(uploadedFrame.url);
+      }
+
+      if (uploadedFrameUrls.length === 0) {
+        throw new Error(copy.teasers.addFailed);
+      }
+
       await savePostTeaserImages({
         failureMessage: copy.teasers.addFailed,
         nextContentImageUrls: [
-          generatedImage.url,
+          ...uploadedFrameUrls,
           ...activeTeaserPost.contentImageUrls,
         ],
         notice: copy.teasers.addNotice,
@@ -1870,7 +1848,6 @@ export function FanletterVlogManagementPage({
     locale,
     resolveMemberEmail,
     savePostTeaserImages,
-    teaserImagePrompt,
   ]);
 
   const handleCoverCropPointerDown = useCallback(
@@ -2067,9 +2044,10 @@ export function FanletterVlogManagementPage({
       ? copy.nsfwShortcutActiveBody
       : copy.nsfwShortcutBody;
   const activeTeaserImageUrls = activeTeaserPost?.contentImageUrls ?? [];
-  const canGenerateTeaserImage = Boolean(
+  const canAddVideoFrames = Boolean(
     activeTeaserPost &&
       activeTeaserImageUrls.length < VLOG_TEASER_IMAGE_LIMIT &&
+      getPostVideoUrl(activeTeaserPost) &&
       !generatingTeaserPostId,
   );
 
@@ -2911,7 +2889,7 @@ export function FanletterVlogManagementPage({
             <div className="flex shrink-0 items-start justify-between gap-3 border-b border-black/10 bg-white px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
               <div className="min-w-0">
                 <p className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-[#16702e]">
-                  <Sparkles className="size-4" />
+                  <Clapperboard className="size-4" />
                   {copy.teasers.modalEyebrow}
                 </p>
                 <h2
@@ -3022,7 +3000,7 @@ export function FanletterVlogManagementPage({
                 <section className="rounded-lg border border-black/10 bg-white p-3 sm:p-4">
                   <div className="flex items-start gap-3">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#111510] text-[#44f26e]">
-                      <Sparkles className="size-5" />
+                      <Video className="size-5" />
                     </span>
                     <div className="min-w-0">
                       <p className="text-sm font-black text-[#111510]">
@@ -3035,36 +3013,43 @@ export function FanletterVlogManagementPage({
                       </p>
                     </div>
                   </div>
-                  <label className="mt-4 block">
-                    <span className="text-xs font-black text-black/54">
-                      {copy.teasers.promptLabel}
-                    </span>
-                    <textarea
-                      className="mt-2 min-h-40 w-full resize-none rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-3 text-sm font-medium leading-6 text-black outline-none transition placeholder:text-black/34 focus:border-[#16702e] focus:bg-white"
-                      maxLength={CONTENT_IMAGE_VISUAL_BRIEF_LIMIT}
-                      onChange={(event) => {
-                        setTeaserImagePrompt(event.target.value);
-                      }}
-                      placeholder={copy.teasers.promptPlaceholder}
-                      value={teaserImagePrompt}
-                    />
-                  </label>
-                  <div className="mt-2 flex items-center justify-between gap-3">
-                    <span className="text-xs font-bold text-black/38">
-                      {teaserImagePrompt.length}/{CONTENT_IMAGE_VISUAL_BRIEF_LIMIT}
-                    </span>
+                  <div className="mt-4 rounded-lg border border-black/10 bg-[#f6f8f4] p-3">
+                    <p className="text-xs font-black uppercase tracking-[0.16em] text-black/38">
+                      {locale === "ko" ? "원본 영상" : "Source video"}
+                    </p>
+                    {getPostVideoUrl(activeTeaserPost) ? (
+                      <div className="mt-2 overflow-hidden rounded-lg bg-black">
+                        <video
+                          className="aspect-video w-full object-cover"
+                          controls={false}
+                          muted
+                          playsInline
+                          preload="metadata"
+                          src={getPostVideoUrl(activeTeaserPost) ?? undefined}
+                        />
+                      </div>
+                    ) : (
+                      <p className="mt-2 rounded-lg border border-dashed border-black/12 bg-white px-3 py-4 text-xs font-bold leading-5 text-black/46">
+                        {copy.teasers.noVideo}
+                      </p>
+                    )}
+                    <p className="mt-3 text-xs font-bold leading-5 text-black/48">
+                      {copy.teasers.modalBody}
+                    </p>
+                  </div>
+                  <div className="mt-4">
                     <button
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
-                      disabled={!canGenerateTeaserImage}
+                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={!canAddVideoFrames}
                       onClick={() => {
-                        void generateTeaserImage();
+                        void addVideoFrames();
                       }}
                       type="button"
                     >
                       {generatingTeaserPostId === activeTeaserPost.contentId ? (
                         <Loader2 className="size-4 animate-spin text-[#44f26e]" />
                       ) : (
-                        <Sparkles className="size-4 text-[#44f26e]" />
+                        <Clapperboard className="size-4 text-[#44f26e]" />
                       )}
                       {generatingTeaserPostId === activeTeaserPost.contentId
                         ? copy.teasers.generating
@@ -3357,7 +3342,7 @@ function VlogManagerCard({
                 onClick={onManageTeasers}
                 type="button"
               >
-                <Sparkles className="size-4 text-[#16702e]" />
+                <Clapperboard className="size-4 text-[#16702e]" />
                 {copy.actions.manageTeasers}
               </button>
             </div>
@@ -3549,7 +3534,7 @@ function VlogManagerCard({
             onClick={onManageTeasers}
             type="button"
           >
-            <Sparkles className="size-4 text-[#16702e]" />
+            <Clapperboard className="size-4 text-[#16702e]" />
             {copy.actions.manageTeasers}
           </button>
           {post.status !== "published" ? (
