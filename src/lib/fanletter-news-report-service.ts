@@ -336,6 +336,11 @@ export type FanletterNewsReportDraftSourcesResult = {
   member: FanletterNewsReporterMember | null;
 };
 
+type FanletterNewsReportDraftSourceReportStatusFilter =
+  | "all"
+  | "reported"
+  | "unreported";
+
 export type FanletterNewsReportForMemberResult = {
   member: FanletterNewsReporterMember | null;
   report: FanletterNewsReportDocument | null;
@@ -365,6 +370,12 @@ function trimToLength(value: string | null | undefined, limit: number) {
 
 function normalizeSearchQuery(value: string | null | undefined) {
   return trimToLength(value, 80);
+}
+
+function normalizeDraftSourceReportStatusFilter(
+  value?: string | null,
+): FanletterNewsReportDraftSourceReportStatusFilter {
+  return value === "reported" || value === "unreported" ? value : "all";
 }
 
 function escapeRegExp(value: string) {
@@ -2204,15 +2215,19 @@ export async function getFanletterNewsReportDraftSourcesForMember({
   includeNsfw = true,
   limit = 36,
   locale,
+  reportStatus,
   searchQuery,
 }: {
   email?: string | null;
   includeNsfw?: boolean;
   limit?: number;
   locale?: Locale | null;
+  reportStatus?: string | null;
   searchQuery?: string | null;
 }): Promise<FanletterNewsReportDraftSourcesResult> {
   const normalizedLocale = locale ?? defaultLocale;
+  const normalizedReportStatus =
+    normalizeDraftSourceReportStatusFilter(reportStatus);
   const normalizedSearchQuery = normalizeSearchQuery(searchQuery);
   const member = await getFanletterNewsReporterMemberByEmail(
     email,
@@ -2301,6 +2316,44 @@ export async function getFanletterNewsReportDraftSourcesForMember({
         },
       ],
     };
+  }
+
+  if (normalizedReportStatus !== "all") {
+    const reportedRows = await reportsCollection
+      .find(
+        {
+          locale: normalizedLocale,
+          reporterReferralCode: member.referralCode,
+          status: "published",
+        },
+        {
+          projection: {
+            contentId: 1,
+          },
+        },
+      )
+      .toArray();
+    const reportedContentIds = [
+      ...new Set(reportedRows.map((report) => report.contentId).filter(Boolean)),
+    ];
+
+    if (normalizedReportStatus === "reported" && reportedContentIds.length === 0) {
+      return {
+        items: [],
+        member,
+      };
+    }
+
+    if (reportedContentIds.length > 0) {
+      const reportStatusClause: Filter<ContentPostDocument> =
+        normalizedReportStatus === "reported"
+          ? { contentId: { $in: reportedContentIds } }
+          : { contentId: { $nin: reportedContentIds } };
+
+      postFilter = {
+        $and: [postFilter, reportStatusClause],
+      };
+    }
   }
 
   const posts = await postsCollection

@@ -18,7 +18,10 @@ type FanletterNewsReportNewSearchParams = {
   nsfw?: string | string[];
   q?: string | string[];
   ref?: string | string[];
+  reportStatus?: string | string[];
 };
+
+type ReportStatusFilter = "all" | "reported" | "unreported";
 
 function readStringSearchParam(value?: string | string[]) {
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
@@ -30,6 +33,16 @@ function normalizeReportSearchQuery(value?: string | string[]) {
 
 function normalizeSelectedContentId(value?: string | string[]) {
   return readStringSearchParam(value).trim().slice(0, 120);
+}
+
+function normalizeReportStatusFilter(
+  value?: string | string[],
+): ReportStatusFilter {
+  const normalized = readStringSearchParam(value).trim().toLowerCase();
+
+  return normalized === "reported" || normalized === "unreported"
+    ? normalized
+    : "all";
 }
 
 function readIncludeNsfwSearchParam(value?: string | string[]) {
@@ -90,6 +103,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
   const includeNsfw = readIncludeNsfwSearchParam(query.nsfw);
+  const reportStatusFilter = normalizeReportStatusFilter(query.reportStatus);
   const searchQuery = normalizeReportSearchQuery(query.q);
   const selectedContentId = normalizeSelectedContentId(query.contentId);
   const reportsHref = buildPathWithReferral(
@@ -102,6 +116,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
   );
   const filteredReportNewHref = setPathSearchParams(reportNewBaseHref, {
     nsfw: includeNsfw ? null : "off",
+    reportStatus: reportStatusFilter === "all" ? null : reportStatusFilter,
   });
   const reportNewHref = setPathSearchParams(filteredReportNewHref, {
     contentId: selectedContentId,
@@ -120,8 +135,9 @@ export default async function LocalizedFanletterNewsReportNewPage({
     ? await getFanletterNewsReportDraftSourcesForMember({
         email: session.email,
         includeNsfw,
-        limit: searchQuery ? 80 : undefined,
+        limit: searchQuery || reportStatusFilter !== "all" ? 80 : undefined,
         locale,
+        reportStatus: reportStatusFilter,
         searchQuery,
       })
     : {
@@ -172,6 +188,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
       locale={locale}
       onboardingHref={onboardingHref}
       reportNewHref={filteredReportNewHref}
+      reportStatusFilter={reportStatusFilter}
       reporterReferralCode={data.member.referralCode}
       reportsHref={reportsHref}
       searchQuery={searchQuery}

@@ -145,6 +145,11 @@ type FanletterNewsReportCreateResponse = {
   };
 };
 
+export type FanletterNewsReportComposerReportStatusFilter =
+  | "all"
+  | "reported"
+  | "unreported";
+
 const REPORT_COVER_CROP_ASPECT_RATIO = 16 / 9;
 const REPORT_COVER_CROP_MAX_ZOOM = 3;
 const REPORT_COVER_CROP_OUTPUT_HEIGHT = 675;
@@ -216,12 +221,23 @@ function getCopy(locale: Locale) {
           "이미 발행된 리포트의 제목, 관점, 대표 이미지를 비교해서 새 리포트의 차별점을 잡으세요.",
         existingReportsTitle: "이미 발행된 리포트",
         myReport: "내 리포트",
+        myReportFilterAll: "전체",
+        myReportFilterBody:
+          "로그인한 회원이 리포트를 작성했는지 기준으로 브이로그 후보를 좁힙니다.",
+        myReportFilterLabel: "내 리포트 상태",
+        myReportFilterReported: "내가 작성함",
+        myReportFilterUnreported: "미작성",
+        myReportUnwritten: "미작성",
+        myReportWritten: "내가 작성함",
         existing: "이미 작성함",
         existingBody:
           "이미 이 브이로그로 작성한 리포트가 있습니다. 새 리포트 대신 기존 리포트를 수정하거나 확인하세요.",
         existingEdit: "기존 리포트 수정",
         existingView: "기존 리포트 보기",
         failed: "리포트를 만들지 못했습니다.",
+        filterEmptyBody:
+          "검색어, NSFW 포함 여부, 내 리포트 상태 조건을 바꿔 다시 확인하세요.",
+        filterEmptyTitle: "조건에 맞는 브이로그가 없습니다.",
         firstStep: "1. 브이로그 후보 선택",
         imageOnly:
           "작성실은 원본 동영상 없이 티저 이미지와 공개 메타만 사용합니다.",
@@ -346,12 +362,23 @@ function getCopy(locale: Locale) {
           "Compare published report titles, angles, and lead images before choosing a distinct angle.",
         existingReportsTitle: "Published reports",
         myReport: "My report",
+        myReportFilterAll: "All",
+        myReportFilterBody:
+          "Filter vlog candidates by whether the signed-in member already created a report.",
+        myReportFilterLabel: "My report status",
+        myReportFilterReported: "Reported by me",
+        myReportFilterUnreported: "Not reported",
+        myReportUnwritten: "Not reported",
+        myReportWritten: "Reported by me",
         existing: "Already reported",
         existingBody:
           "You already created a report for this vlog. Edit or view the existing report instead.",
         existingEdit: "Edit existing report",
         existingView: "View existing report",
         failed: "Could not create the report.",
+        filterEmptyBody:
+          "Adjust the query, NSFW setting, or my-report status filter and try again.",
+        filterEmptyTitle: "No vlogs match these filters.",
         firstStep: "1. Choose a vlog candidate",
         imageOnly:
           "The reporter desk uses teaser images and public metadata without source video playback.",
@@ -662,6 +689,7 @@ export function FanletterNewsReportComposerPage({
   locale,
   onboardingHref,
   reportNewHref,
+  reportStatusFilter,
   reporterReferralCode,
   reportsHref,
   searchQuery,
@@ -674,6 +702,7 @@ export function FanletterNewsReportComposerPage({
   locale: Locale;
   onboardingHref: string;
   reportNewHref: string;
+  reportStatusFilter: FanletterNewsReportComposerReportStatusFilter;
   reporterReferralCode: string;
   reportsHref: string;
   searchQuery: string;
@@ -757,6 +786,30 @@ export function FanletterNewsReportComposerPage({
       setRelativeSearchParams(reportNewHref, {
         nsfw: includeNsfw ? "off" : null,
         q: searchQuery || null,
+      }),
+    [includeNsfw, reportNewHref, searchQuery],
+  );
+  const reportStatusFilterOptions = [
+    {
+      label: copy.myReportFilterAll,
+      value: "all",
+    },
+    {
+      label: copy.myReportFilterReported,
+      value: "reported",
+    },
+    {
+      label: copy.myReportFilterUnreported,
+      value: "unreported",
+    },
+  ] as const;
+  const getReportStatusFilterHref = useCallback(
+    (nextReportStatusFilter: FanletterNewsReportComposerReportStatusFilter) =>
+      setRelativeSearchParams(reportNewHref, {
+        nsfw: includeNsfw ? null : "off",
+        q: searchQuery || null,
+        reportStatus:
+          nextReportStatusFilter === "all" ? null : nextReportStatusFilter,
       }),
     [includeNsfw, reportNewHref, searchQuery],
   );
@@ -1057,6 +1110,9 @@ export function FanletterNewsReportComposerPage({
     },
     [includeNsfw, reportNewHref, router, searchInput],
   );
+  const isFilteringSources = Boolean(
+    searchQuery || reportStatusFilter !== "all",
+  );
 
   const searchControls = (
     <form
@@ -1144,6 +1200,43 @@ export function FanletterNewsReportComposerPage({
           {includeNsfw ? copy.nsfwTurnOff : copy.nsfwTurnOn}
         </Link>
       </div>
+      <div className="mt-3 rounded-xl border border-black/10 bg-white px-3 py-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#111510]">
+              <FileText className="size-4 text-[#16702e]" />
+              {copy.myReportFilterLabel}
+            </p>
+            <p className="mt-1 text-[0.72rem] font-semibold leading-5 text-black/48">
+              {copy.myReportFilterBody}
+            </p>
+          </div>
+          <div
+            aria-label={copy.myReportFilterLabel}
+            className="grid shrink-0 grid-cols-3 gap-1 rounded-full bg-[#f1f3ef] p-1"
+            role="group"
+          >
+            {reportStatusFilterOptions.map((option) => {
+              const isActive = option.value === reportStatusFilter;
+
+              return (
+                <Link
+                  className={cn(
+                    "inline-flex h-8 items-center justify-center whitespace-nowrap rounded-full px-2 text-[0.64rem] font-black transition sm:px-3",
+                    isActive
+                      ? "bg-[#111510] !text-white shadow-[0_6px_14px_rgba(17,21,16,0.12)]"
+                      : "!text-black/48 hover:bg-white hover:!text-[#111510]",
+                  )}
+                  href={getReportStatusFilterHref(option.value)}
+                  key={option.value}
+                >
+                  {option.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </form>
   );
 
@@ -1153,10 +1246,10 @@ export function FanletterNewsReportComposerPage({
         <section className="mx-auto max-w-3xl border border-dashed border-black/16 bg-white p-8 text-center shadow-[0_18px_46px_rgba(17,21,16,0.06)]">
           <Newspaper className="mx-auto size-10 text-[#16702e]" />
           <h1 className="mt-4 text-3xl font-black tracking-normal">
-            {searchQuery ? copy.searchEmptyTitle : copy.emptyTitle}
+            {isFilteringSources ? copy.filterEmptyTitle : copy.emptyTitle}
           </h1>
           <p className="mx-auto mt-2 max-w-xl text-sm font-semibold leading-6 text-black/58">
-            {searchQuery ? copy.searchEmptyBody : copy.emptyBody}
+            {isFilteringSources ? copy.filterEmptyBody : copy.emptyBody}
           </p>
           <div className="mx-auto mt-6 max-w-xl text-left">{searchControls}</div>
           <Link
@@ -1231,6 +1324,7 @@ export function FanletterNewsReportComposerPage({
                     source.exclusiveNews.reporterReferralCode !== reporterReferralCode,
                 );
                 const isPaidLocked = source.mediaAccess.requiresPurchase;
+                const hasViewerReport = Boolean(source.existingReport);
 
                 return (
                   <button
@@ -1292,9 +1386,19 @@ export function FanletterNewsReportComposerPage({
                         <span>
                           {copy.reportCount} {formatNumber(source.reportCount, locale)}
                         </span>
-                        {source.existingReport ? (
-                          <span className="text-[#16702e]">{copy.existing}</span>
-                        ) : null}
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1",
+                            hasViewerReport ? "text-[#16702e]" : "text-black/42",
+                          )}
+                        >
+                          {hasViewerReport ? (
+                            <CheckCircle2 className="size-3" />
+                          ) : null}
+                          {hasViewerReport
+                            ? copy.myReportWritten
+                            : copy.myReportUnwritten}
+                        </span>
                         {isBlocked ? (
                           <span className="text-amber-700">{copy.locked}</span>
                         ) : null}
