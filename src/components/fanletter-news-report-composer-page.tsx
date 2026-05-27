@@ -36,11 +36,13 @@ import {
   FanletterPaidUnlockPanel,
   FanletterPaidUnlockTrigger,
 } from "@/components/fanletter-paid-unlock-panel";
+import { FanletterNewsSourceRevealVote } from "@/components/fanletter-news-source-reveal-vote";
 import {
   CONTENT_PAID_USDT_AMOUNT,
   type ContentMaturityRating,
   type ContentPriceType,
 } from "@/lib/content";
+import type { FanletterNewsSourceRevealState } from "@/lib/fanletter-news-source-reveal";
 import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -104,6 +106,7 @@ export type FanletterNewsReportComposerSource = {
     reportId: string;
     title: string;
   }>;
+  sourceReveal: FanletterNewsSourceRevealState;
   summary: string;
   title: string;
 };
@@ -331,6 +334,10 @@ function getCopy(locale: Locale) {
         characterProfile: "AI 캐릭터 프로필",
         noExistingReports:
           "아직 이 브이로그로 발행된 리포트가 없습니다. 첫 리포트 관점을 선점할 수 있습니다.",
+        sourceReveal: {
+          locked: "락",
+          unlocked: "언락",
+        },
       }
     : {
         angleLabel: "Reporter angle",
@@ -471,6 +478,10 @@ function getCopy(locale: Locale) {
         characterProfile: "AI character profile",
         noExistingReports:
           "No reports have been published for this vlog yet. You can claim the first angle.",
+        sourceReveal: {
+          locked: "Locked",
+          unlocked: "Unlocked",
+        },
       };
 }
 
@@ -1331,6 +1342,10 @@ export function FanletterNewsReportComposerPage({
                 const hasViewerReport = Boolean(source.existingReport);
                 const shouldBlurSourceMedia =
                   shouldBlurNsfwMedia && source.contentMaturityRating === "nsfw";
+                const sourceRevealCount = Math.min(
+                  source.sourceReveal.count,
+                  source.sourceReveal.threshold,
+                );
 
                 return (
                   <button
@@ -1398,6 +1413,27 @@ export function FanletterNewsReportComposerPage({
                       <span className="mt-1 flex flex-wrap gap-1.5 text-[0.62rem] font-black text-black/42">
                         <span>
                           {copy.reportCount} {formatNumber(source.reportCount, locale)}
+                        </span>
+                        <span
+                          className={cn(
+                            "inline-flex items-center gap-1",
+                            source.sourceReveal.unlocked
+                              ? "text-[#16702e]"
+                              : "text-black/42",
+                          )}
+                        >
+                          {source.sourceReveal.unlocked ? (
+                            <CheckCircle2 className="size-3" />
+                          ) : (
+                            <LockKeyhole className="size-3" />
+                          )}
+                          {source.sourceReveal.unlocked
+                            ? copy.sourceReveal.unlocked
+                            : copy.sourceReveal.locked}
+                          <span>
+                            {formatNumber(sourceRevealCount, locale)}/
+                            {formatNumber(source.sourceReveal.threshold, locale)}
+                          </span>
                         </span>
                         <span
                           className={cn(
@@ -1648,6 +1684,18 @@ export function FanletterNewsReportComposerPage({
                     </div>
                   ) : null}
                 </section>
+
+                <FanletterNewsSourceRevealVote
+                  className="shadow-[0_14px_34px_rgba(17,21,16,0.055)]"
+                  connectHref={selectedConnectHref}
+                  initialState={selectedSource.sourceReveal}
+                  key={selectedSource.contentId}
+                  locale={locale}
+                  sourceRevealEndpoint={`/api/fanletter/news-vlogs/${encodeURIComponent(
+                    selectedSource.contentId,
+                  )}/source-reveal`}
+                  tone="light"
+                />
 
                 <section
                   id={isSelectedPaidLocked ? paidUnlockSectionId : undefined}

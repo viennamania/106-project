@@ -9,10 +9,12 @@ import type {
   ContentMaturityRating,
   ContentPostDocument,
   ContentPriceType,
+  ContentSocialSummaryRecord,
   CreatorProfileDocument,
   FanletterNewsReportCoverCropDocument,
   FanletterNewsReportDocument,
 } from "@/lib/content";
+import { createEmptyContentSocialSummary } from "@/lib/content";
 import { resolveContentCoverImageUrl } from "@/lib/content-cover-selection";
 import { normalizeContentLocale } from "@/lib/content";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
@@ -20,6 +22,10 @@ import {
   DEFAULT_FANLETTER_RELATED_NEWS_SORT,
   type FanletterRelatedNewsSort,
 } from "@/lib/fanletter-news-related";
+import {
+  createFanletterNewsSourceRevealState,
+  type FanletterNewsSourceRevealState,
+} from "@/lib/fanletter-news-source-reveal";
 import { buildPathWithReferral } from "@/lib/landing-branding";
 import {
   normalizeEmail,
@@ -327,6 +333,7 @@ export type FanletterNewsReportDraftSource = {
     reportId: string;
     title: string;
   }>;
+  sourceReveal: FanletterNewsSourceRevealState;
   summary: string;
   title: string;
 };
@@ -1748,6 +1755,96 @@ async function getPurchasedContentIdsForMember({
   return new Set(entitlements.map((entitlement) => entitlement.contentId));
 }
 
+async function getDraftSourceRevealStateByContentId({
+  contentIds,
+  viewerEmail,
+}: {
+  contentIds: string[];
+  viewerEmail?: string | null;
+}) {
+  const uniqueContentIds = [
+    ...new Set(contentIds.map((id) => id.trim()).filter(Boolean)),
+  ];
+  const stateByContentId = new Map<string, FanletterNewsSourceRevealState>();
+
+  if (uniqueContentIds.length === 0) {
+    return stateByContentId;
+  }
+
+  const normalizedViewerEmail = viewerEmail ? normalizeEmail(viewerEmail) : "";
+  const summaryByContentId = new Map<string, ContentSocialSummaryRecord>(
+    uniqueContentIds.map((contentId) => [
+      contentId,
+      createEmptyContentSocialSummary(),
+    ]),
+  );
+  const socialActionsCollection = await getContentSocialActionsCollection();
+  const [sourceRevealCounts, viewerActions] = await Promise.all([
+    socialActionsCollection
+      .aggregate<{ _id: string; count: number }>([
+        {
+          $match: {
+            contentId: { $in: uniqueContentIds },
+            sourceRevealRequested: true,
+          },
+        },
+        {
+          $group: {
+            _id: "$contentId",
+            count: { $sum: 1 },
+          },
+        },
+      ])
+      .toArray(),
+    normalizedViewerEmail
+      ? socialActionsCollection
+          .find(
+            {
+              contentId: { $in: uniqueContentIds },
+              memberEmail: normalizedViewerEmail,
+            },
+            {
+              projection: {
+                contentId: 1,
+                sourceRevealRequested: 1,
+              },
+            },
+          )
+          .toArray()
+      : Promise.resolve([]),
+  ]);
+
+  for (const row of sourceRevealCounts) {
+    const current =
+      summaryByContentId.get(row._id) ?? createEmptyContentSocialSummary();
+    summaryByContentId.set(row._id, {
+      ...current,
+      sourceRevealCount: row.count,
+    });
+  }
+
+  for (const action of viewerActions) {
+    const current =
+      summaryByContentId.get(action.contentId) ??
+      createEmptyContentSocialSummary();
+    summaryByContentId.set(action.contentId, {
+      ...current,
+      sourceRevealRequestedByViewer: Boolean(action.sourceRevealRequested),
+    });
+  }
+
+  for (const contentId of uniqueContentIds) {
+    stateByContentId.set(
+      contentId,
+      createFanletterNewsSourceRevealState(
+        summaryByContentId.get(contentId) ?? createEmptyContentSocialSummary(),
+      ),
+    );
+  }
+
+  return stateByContentId;
+}
+
 async function assertCanCreateReportForPaidSource({
   post,
   reporterEmail,
@@ -2397,51 +2494,56 @@ export async function getFanletterNewsReportDraftSourcesForMember({
   const paidContentIds = posts
     .filter((post) => post.priceType === "paid")
     .map((post) => post.contentId);
-  const [profiles, reports, purchasedContentIds] = await Promise.all([
-    profilesCollection
-      .find(
-        { email: { $in: authorEmails } },
-        {
-          projection: {
-            avatarImageUrl: 1,
-            characterPersona: 1,
-            displayName: 1,
-            email: 1,
-            intro: 1,
-            referralCode: 1,
+  const [profiles, reports, purchasedContentIds, sourceRevealByContentId] =
+    await Promise.all([
+      profilesCollection
+        .find(
+          { email: { $in: authorEmails } },
+          {
+            projection: {
+              avatarImageUrl: 1,
+              characterPersona: 1,
+              displayName: 1,
+              email: 1,
+              intro: 1,
+              referralCode: 1,
+            },
           },
-        },
-      )
-      .toArray(),
-    reportsCollection
-      .find(
-        {
-          contentId: { $in: contentIds },
-          locale: normalizedLocale,
-          status: "published",
-        },
-        {
-          projection: {
-            contentId: 1,
-            coverImageUrl: 1,
-            createdAt: 1,
-            dek: 1,
-            locale: 1,
-            reporterAvatarImageUrl: 1,
-            reporterName: 1,
-            reporterReferralCode: 1,
-            reportId: 1,
-            title: 1,
+        )
+        .toArray(),
+      reportsCollection
+        .find(
+          {
+            contentId: { $in: contentIds },
+            locale: normalizedLocale,
+            status: "published",
           },
-        },
-      )
-      .sort({ createdAt: -1 })
-      .toArray(),
-    getPurchasedContentIdsForMember({
-      contentIds: paidContentIds,
-      email: member.email,
-    }),
-  ]);
+          {
+            projection: {
+              contentId: 1,
+              coverImageUrl: 1,
+              createdAt: 1,
+              dek: 1,
+              locale: 1,
+              reporterAvatarImageUrl: 1,
+              reporterName: 1,
+              reporterReferralCode: 1,
+              reportId: 1,
+              title: 1,
+            },
+          },
+        )
+        .sort({ createdAt: -1 })
+        .toArray(),
+      getPurchasedContentIdsForMember({
+        contentIds: paidContentIds,
+        email: member.email,
+      }),
+      getDraftSourceRevealStateByContentId({
+        contentIds,
+        viewerEmail: member.email,
+      }),
+    ]);
   const profileByEmail = new Map(profiles.map((profile) => [profile.email, profile]));
   const reportCountByContentId = new Map<string, number>();
   const existingReportByContentId = new Map<string, FanletterNewsReportDocument>();
@@ -2549,6 +2651,9 @@ export async function getFanletterNewsReportDraftSourcesForMember({
           reportId: report.reportId,
           title: trimToLength(report.title, 120),
         })),
+        sourceReveal:
+          sourceRevealByContentId.get(post.contentId) ??
+          createFanletterNewsSourceRevealState(createEmptyContentSocialSummary()),
         summary: trimToLength(post.summary || post.previewText, 220),
         title: trimToLength(post.title, 140),
       };
