@@ -1608,7 +1608,6 @@ function ReporterTeaserCutGallery({
         title: copy.reportTeaserGallery.title,
       }}
       items={teaserItems}
-      layout="grid"
       locale={locale}
     />
   );
