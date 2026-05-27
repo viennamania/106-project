@@ -336,7 +336,7 @@ function getDefaultReportTeaserImageUrls(
 ) {
   return [
     ...new Set(options.map((option) => option.imageUrl.trim()).filter(Boolean)),
-  ].slice(0, Math.min(3, REPORT_TEASER_IMAGE_LIMIT));
+  ].slice(0, REPORT_TEASER_IMAGE_LIMIT);
 }
 
 function getCroppableCoverSourceUrl(option: FanletterReportCoverOption | null) {
