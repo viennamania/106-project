@@ -1568,63 +1568,41 @@ function ReporterTeaserCutGallery({
   imageUrls: string[];
   locale: Locale;
 }) {
-  const items = [
+  const teaserItems = [
     ...new Set(imageUrls.map((url) => url.trim()).filter(Boolean)),
-  ].slice(0, 4);
+  ]
+    .slice(0, 4)
+    .map((imageUrl, index) => {
+      const itemNumber = formatNumber(index + 1, locale);
 
-  if (items.length === 0) {
+      return {
+        imageUrl,
+        label: copy.reportTeaserGallery.itemLabel(itemNumber),
+        timeLabel: null,
+      };
+    });
+
+  if (teaserItems.length < 2) {
     return null;
   }
 
   return (
-    <section className="mt-6 border border-[#19b84b]/18 bg-[#f7fbf4] p-3.5 shadow-[0_12px_34px_rgba(17,21,16,0.04)] sm:mt-8 sm:p-5">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
-            {copy.reportTeaserGallery.eyebrow}
-          </p>
-          <h2 className="mt-1 text-xl font-black text-[#111510] sm:text-2xl">
-            {copy.reportTeaserGallery.title}
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-black/58">
-            {copy.reportTeaserGallery.body}
-          </p>
-        </div>
-        <span className="inline-flex w-fit rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-white">
-          {formatNumber(items.length, locale)}
-        </span>
-      </div>
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {items.map((imageUrl, index) => {
-          const itemNumber = formatNumber(index + 1, locale);
-
-          return (
-            <figure
-              className="overflow-hidden border border-black/10 bg-white shadow-[0_10px_28px_rgba(17,21,16,0.055)]"
-              key={`${imageUrl}-${index}`}
-            >
-              <div className="relative aspect-video overflow-hidden bg-[#111510]">
-                <Image
-                  alt={copy.reportTeaserGallery.itemLabel(itemNumber)}
-                  className={
-                    blurred
-                      ? "scale-[1.04] object-cover blur-md brightness-[0.74]"
-                      : "object-cover"
-                  }
-                  fill
-                  sizes="(max-width: 640px) 100vw, 34vw"
-                  src={imageUrl}
-                  unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
-                />
-              </div>
-              <figcaption className="px-3 py-2 text-xs font-black text-black/56">
-                {copy.reportTeaserGallery.itemLabel(itemNumber)}
-              </figcaption>
-            </figure>
-          );
-        })}
-      </div>
-    </section>
+    <FanletterNewsSourceSceneGallery
+      blurred={blurred}
+      copy={{
+        body: copy.reportTeaserGallery.body,
+        close: copy.sourceTeaserGallery.close,
+        eyebrow: copy.reportTeaserGallery.eyebrow,
+        next: copy.sourceTeaserGallery.next,
+        openViewer: copy.sourceTeaserGallery.openViewer,
+        pinProtectedBody: copy.sourceTeaserGallery.pinProtectedBody,
+        pinProtectedTitle: copy.sourceTeaserGallery.pinProtectedTitle,
+        previous: copy.sourceTeaserGallery.previous,
+        title: copy.reportTeaserGallery.title,
+      }}
+      items={teaserItems}
+      locale={locale}
+    />
   );
 }
 
@@ -2291,6 +2269,7 @@ export default async function LocalizedFanletterNewsReportPage({
         reportId: report.reportId,
       }
     : null;
+  const shouldShowReporterTeaserCutGallery = sourceReveal?.unlocked !== true;
   const navLinks = [
     {
       href: creatorHref,
@@ -2489,12 +2468,14 @@ export default async function LocalizedFanletterNewsReportPage({
               {copy.articleNotice}
             </p>
 
-            <ReporterTeaserCutGallery
-              blurred={shouldBlurCurrentReport}
-              copy={copy}
-              imageUrls={report.teaserImageUrls ?? []}
-              locale={locale}
-            />
+            {shouldShowReporterTeaserCutGallery ? (
+              <ReporterTeaserCutGallery
+                blurred={shouldBlurCurrentReport}
+                copy={copy}
+                imageUrls={report.teaserImageUrls ?? []}
+                locale={locale}
+              />
+            ) : null}
 
             <div className="scroll-mt-6" id={sourceVlogSectionId}>
               <SourceVlogEmbed
