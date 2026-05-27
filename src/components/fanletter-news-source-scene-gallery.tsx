@@ -529,12 +529,12 @@ export function FanletterNewsSourceSceneGallery({
         </p>
       </div>
 
-      <div className="-mx-3 mt-3 flex snap-x gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:grid sm:grid-cols-4 sm:overflow-visible sm:px-0 sm:pb-0">
+      <div className="-mx-3 mt-3 grid snap-x auto-cols-[minmax(9.5rem,42vw)] grid-flow-col gap-2 overflow-x-auto px-3 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-4 sm:auto-cols-[11.5rem] sm:px-4 lg:auto-cols-[12.5rem] xl:auto-cols-[13.5rem] [&::-webkit-scrollbar]:hidden">
         {items.map((item, index) => (
           <button
             aria-label={`${item.label} ${copy.openViewer}`}
             className={cn(
-              "group min-w-[9.5rem] snap-start overflow-hidden border border-black/10 bg-white text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b] sm:min-w-0",
+              "group snap-start overflow-hidden border border-black/10 bg-white text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]",
               canOpenSceneViewer
                 ? "hover:border-[#19b84b]"
                 : "cursor-not-allowed",
@@ -546,17 +546,17 @@ export function FanletterNewsSourceSceneGallery({
             }}
             type="button"
           >
-            <span className="relative block aspect-[4/5] bg-black">
+            <span className="relative block aspect-[9/16] bg-[#07100b]">
               <Image
                 alt=""
                 aria-hidden="true"
                 className={
                   effectiveBlurred
-                    ? "scale-[1.04] object-cover blur-sm brightness-[0.76] saturate-[0.92]"
-                    : "object-cover transition duration-300 group-hover:scale-[1.035]"
+                    ? "object-contain blur-sm brightness-[0.76] saturate-[0.92]"
+                    : "object-contain transition duration-300 group-hover:scale-[1.02]"
                 }
                 fill
-                sizes="(max-width: 640px) 38vw, 12rem"
+                sizes="(max-width: 640px) 42vw, (max-width: 1280px) 12.5rem, 13.5rem"
                 src={item.imageUrl}
                 unoptimized={shouldBypassFanletterImageOptimization(item.imageUrl)}
               />
