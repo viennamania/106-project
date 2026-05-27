@@ -1741,10 +1741,12 @@ function SourceVlogEmbed({
     isPaidContent &&
     !sourceContent?.canViewerAccess &&
     !blurred;
+  const canShowSourceSceneGallery =
+    viewerCanAccessSource || (!isPaidContent && sourceReveal?.unlocked);
   const shouldShowSourceTeaserGallery =
     !sourceRevealLocked &&
     sourceSceneFrames.length > 1 &&
-    (sourceReveal?.unlocked || viewerCanAccessSource);
+    canShowSourceSceneGallery;
   const shouldShowDesktopSourceRevealDock = Boolean(
     sourceRevealLocked && sourceReveal && sourceOverlaySceneFrames.length === 0,
   );
@@ -2293,6 +2295,8 @@ export default async function LocalizedFanletterNewsReportPage({
     (sourceContent?.priceType ?? report.priceType) === "paid";
   const shouldShowPaidUnlockPanel =
     isPaidSourceContent && sourceContent?.canViewerAccess !== true;
+  const canViewerOpenSourceContent =
+    !isPaidSourceContent || sourceContent?.canViewerAccess === true;
   const paidUnlockSectionId = "fanletter-news-paid-unlock";
   const sourceVlogSectionId = "fanletter-news-source-vlog";
   const sourceVlogHref = `${articleHref}#${sourceVlogSectionId}`;
@@ -2312,7 +2316,8 @@ export default async function LocalizedFanletterNewsReportPage({
         reportId: report.reportId,
       }
     : null;
-  const shouldShowReporterTeaserCutGallery = sourceReveal?.unlocked !== true;
+  const shouldShowReporterTeaserCutGallery =
+    sourceReveal?.unlocked !== true || !canViewerOpenSourceContent;
   const navLinks = [
     {
       href: creatorHref,
