@@ -13,7 +13,6 @@ import {
   Coins,
   FileText,
   LockKeyhole,
-  MessageCircleHeart,
   Newspaper,
   PlayCircle,
   ShieldCheck,
@@ -21,7 +20,6 @@ import {
 } from "lucide-react";
 
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
-import { FanletterNewsCharacterImageSelector } from "@/components/fanletter-news-character-image-selector";
 import { FanletterNewsRelatedList } from "@/components/fanletter-news-related-list";
 import { FanletterNewsSourceSceneGallery } from "@/components/fanletter-news-source-scene-gallery";
 import { FanletterNewsSourceRevealVote } from "@/components/fanletter-news-source-reveal-vote";
@@ -77,7 +75,6 @@ import {
   serializeFanletterRelatedNewsItem,
   type FanletterRelatedNewsSort,
   shouldBlurFanletterNewsReport as shouldBlurReport,
-  type FanletterRelatedNewsItem,
 } from "@/lib/fanletter-news-related";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import {
@@ -261,10 +258,10 @@ function getCopy(locale: Locale) {
           hiddenCountText: (count: string) =>
             `블러 처리된 NSFW 뉴스 ${count}개`,
         },
-        relatedNews: "이 캐릭터의 다른 뉴스",
+        relatedNews: "캐릭터 이어보기",
         relatedNewsDescription:
-          "현재 뉴스와 같은 AI 캐릭터로 작성된 뉴스만 모았습니다. 최신 발행, 최초 리포트, 원본 오픈 진행순으로 바꿔 볼 수 있습니다.",
-        relatedNewsEyebrow: "같은 AI 캐릭터",
+          "현재 뉴스와 같은 캐릭터의 리포트만 모았습니다. 최신 발행, 최초 리포트, 원본 오픈 진행순으로 정렬해 이어 읽을 수 있습니다.",
+        relatedNewsEyebrow: "캐릭터 이어보기",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
         relatedNewsError: "다른 뉴스를 불러오지 못했습니다. 다시 시도해 주세요.",
         relatedNewsLoadMore: "이 캐릭터 뉴스 더 보기",
@@ -453,10 +450,10 @@ function getCopy(locale: Locale) {
           enabledTitle: "NSFW news visible",
           hiddenCountText: (count: string) => `${count} NSFW news items blurred`,
         },
-        relatedNews: "More from this character",
+        relatedNews: "Continue this character",
         relatedNewsDescription:
-          "Only news written from the same AI character is shown here. Switch between latest, first reports, and source-open progress.",
-        relatedNewsEyebrow: "Same AI character",
+          "Only reports from the same character are shown here. Switch between latest, first reports, and source-open progress.",
+        relatedNewsEyebrow: "Character follow-up",
         relatedNewsEmpty: "No other news from this character yet.",
         relatedNewsError: "Could not load more news. Please try again.",
         relatedNewsLoadMore: "Load more character news",
@@ -569,16 +566,6 @@ function getReporterTrustLevelLabel(
   level: FanletterNewsReporterTrustLevel,
 ) {
   return copy.reporterTrust.levels[level];
-}
-
-function getUniqueImageUrls(urls: Array<string | null | undefined>) {
-  return Array.from(
-    new Set(
-      urls
-        .map((url) => url?.trim() ?? "")
-        .filter((url): url is string => Boolean(url)),
-    ),
-  );
 }
 
 function isFrameTimestamp(value: number | null | undefined): value is number {
@@ -784,7 +771,6 @@ function NewsSiteHeader({
 
 function ArticleActionLinks({
   copy,
-  creatorHref,
   locale,
   newsHomeHref,
   referralCode,
@@ -794,7 +780,6 @@ function ArticleActionLinks({
   sourceVlogHref,
 }: {
   copy: ReturnType<typeof getCopy>;
-  creatorHref: string;
   locale: Locale;
   newsHomeHref: string;
   referralCode: string | null;
@@ -816,18 +801,12 @@ function ArticleActionLinks({
       label: copy.articleActions.sourceVlog,
       secondaryOnMobile: false,
     },
-    {
-      href: creatorHref,
-      icon: <MessageCircleHeart className="size-4 text-[#16702e]" />,
-      label: copy.articleActions.character,
-      secondaryOnMobile: true,
-    },
   ];
 
   return (
     <nav
       aria-label={copy.articleActions.label}
-      className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 lg:grid-cols-4"
+      className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:grid-cols-3"
     >
       {actions.map((action) => (
         <Link
@@ -855,351 +834,6 @@ function ArticleActionLinks({
         trackingSource="fanletter-news-detail"
       />
     </nav>
-  );
-}
-
-function CharacterContinueReadingPanel({
-  characterAvatarImageUrl,
-  characterName,
-  copy,
-  creatorHref,
-  items,
-}: {
-  characterAvatarImageUrl: string | null;
-  characterName: string | null;
-  copy: ReturnType<typeof getCopy>;
-  creatorHref: string;
-  items: FanletterRelatedNewsItem[];
-}) {
-  const leadItem = items[0] ?? null;
-  const secondaryItems = items.slice(1, 4);
-  const imageUrl = leadItem?.coverImageUrl ?? characterAvatarImageUrl;
-  const shouldBlur = leadItem?.shouldBlur ?? false;
-  const title = leadItem?.title ?? characterName ?? copy.continueReading.title;
-  const dek = leadItem?.dek ?? copy.continueReading.body;
-  const shouldBypassImageOptimization = imageUrl
-    ? shouldBypassFanletterImageOptimization(imageUrl)
-    : false;
-  const leadFirstReportBadge =
-    leadItem?.isFirstReport && leadItem.firstReportBadge
-      ? leadItem.firstReportBadge
-      : null;
-
-  return (
-    <section className="mt-8 overflow-hidden border border-black/12 bg-white text-[#111510] shadow-[0_12px_34px_rgba(17,21,16,0.045)] sm:mt-10 sm:shadow-[0_16px_44px_rgba(17,21,16,0.06)]">
-      <div className="flex flex-col gap-3 border-b-2 border-[#111510] bg-[#f7f9f4] px-3.5 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
-        <div className="min-w-0">
-          <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
-            <BadgeCheck className="size-3.5" />
-            {copy.continueReading.eyebrow}
-          </p>
-          <h2 className="mt-1 break-words text-xl font-black leading-tight [word-break:keep-all] sm:text-2xl">
-            {copy.continueReading.title}
-          </h2>
-          <p className="mt-1 max-w-2xl text-sm font-semibold leading-6 text-black/58">
-            {copy.continueReading.body}
-          </p>
-        </div>
-        <Link
-          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 border border-black/12 bg-white px-3.5 py-2 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
-          href={creatorHref}
-        >
-          {copy.continueReading.characterCta}
-          <ArrowUpRight className="size-4" />
-        </Link>
-      </div>
-
-      <div className="grid gap-3 p-3.5 sm:p-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(17rem,0.72fr)]">
-        {leadItem ? (
-          <Link
-            className="group grid min-w-0 grid-cols-[5.5rem_minmax(0,1fr)] overflow-hidden border border-black/10 bg-[#111510] !text-white transition hover:border-[#19b84b] sm:grid-cols-[11rem_minmax(0,1fr)]"
-            href={leadItem.href}
-          >
-            <div className="relative min-h-[7.5rem] overflow-hidden bg-[#07100b] sm:min-h-[11rem]">
-              {imageUrl ? (
-                <Image
-                  alt=""
-                  aria-hidden="true"
-                  className={`object-cover transition duration-500 group-hover:scale-[1.04] ${
-                    shouldBlur ? "blur-md brightness-[0.68] saturate-[0.86]" : ""
-                  }`}
-                  fill
-                  sizes="(max-width: 640px) 6rem, 11rem"
-                  src={imageUrl}
-                  unoptimized={shouldBypassImageOptimization}
-                />
-              ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(circle_at_35%_25%,#1f6e35,#07100b_58%)]">
-                  <Newspaper className="size-10 text-[#44f26e]" />
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/48 via-transparent to-black/12" />
-              {leadFirstReportBadge ? (
-                <span className="absolute left-2 top-2 z-20 inline-flex max-w-[calc(100%-1rem)] rounded-full bg-[#44f26e] px-2 py-1 text-[0.58rem] font-black uppercase leading-none tracking-[0.08em] text-black shadow-[0_10px_24px_rgba(0,0,0,0.24)]">
-                  <span className="truncate">{leadFirstReportBadge}</span>
-                </span>
-              ) : null}
-              {leadItem.isNsfw ? (
-                <span className="absolute bottom-2 right-2 rounded-full bg-rose-500 px-2 py-0.5 text-[0.58rem] font-black uppercase tracking-[0.1em] text-white">
-                  {leadItem.nsfwBadge}
-                </span>
-              ) : null}
-            </div>
-            <div className="flex min-w-0 flex-col justify-between p-3 sm:p-4">
-              <div className="min-w-0">
-                <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                  {leadFirstReportBadge ? (
-                    <span className="inline-flex max-w-full rounded-full border border-[#44f26e]/28 bg-[#44f26e]/14 px-2 py-0.5 text-[0.62rem] font-black uppercase leading-none tracking-[0.08em] text-[#44f26e]">
-                      <span className="truncate">{leadFirstReportBadge}</span>
-                    </span>
-                  ) : null}
-                  {characterName ? (
-                    <span className="line-clamp-1 min-w-0 text-xs font-black text-[#44f26e]">
-                      {characterName}
-                    </span>
-                  ) : null}
-                </div>
-                <h3
-                  className={`mt-1 line-clamp-3 break-words text-base font-black leading-6 [word-break:keep-all] sm:text-xl sm:leading-7 ${
-                    shouldBlur ? "select-none blur-[2px]" : ""
-                  }`}
-                >
-                  {title}
-                </h3>
-                <p
-                  className={`mt-1.5 hidden text-sm font-semibold leading-6 text-white/58 sm:line-clamp-2 ${
-                    shouldBlur ? "select-none blur-[2px]" : ""
-                  }`}
-                >
-                  {dek}
-                </p>
-              </div>
-              <span className="mt-3 inline-flex h-9 w-fit items-center justify-center gap-1.5 rounded-full bg-[#44f26e] px-3 text-xs font-black text-black transition group-hover:bg-[#69ff8c] sm:h-10 sm:px-4 sm:text-sm">
-                {copy.continueReading.leadCta(characterName)}
-                <ArrowUpRight className="size-3.5" />
-              </span>
-            </div>
-          </Link>
-        ) : (
-          <p className="border border-black/10 bg-[#f7f9f4] p-3.5 text-sm font-semibold leading-6 text-black/58">
-            {copy.relatedNewsEmpty}
-          </p>
-        )}
-
-        <div className="border border-black/10 bg-[#f7f9f4] p-3.5 sm:p-4">
-          <div className="min-w-0">
-            <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
-              {copy.continueReading.listEyebrow}
-            </p>
-            <h3 className="mt-1 text-base font-black text-[#111510]">
-              {copy.continueReading.listTitle}
-            </h3>
-          </div>
-
-          {secondaryItems.length > 0 ? (
-            <div className="mt-4 grid gap-3">
-              {secondaryItems.map((item) => (
-                <Link
-                  className="group grid min-w-0 grid-cols-[4.25rem_minmax(0,1fr)] gap-3 border border-black/10 bg-white p-2 !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
-                  href={item.href}
-                  key={item.reportId}
-                >
-                  <div className="relative aspect-square overflow-hidden bg-[#e9ede7]">
-                    {item.coverImageUrl ? (
-                      <Image
-                        alt=""
-                        aria-hidden="true"
-                        className={`object-cover transition duration-300 group-hover:scale-[1.04] ${
-                          item.shouldBlur
-                            ? "blur-md brightness-[0.68] saturate-[0.86]"
-                            : ""
-                        }`}
-                        fill
-                        sizes="4.25rem"
-                        src={item.coverImageUrl}
-                        unoptimized={shouldBypassFanletterImageOptimization(
-                          item.coverImageUrl,
-                        )}
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center">
-                        <Newspaper className="size-6 text-[#16702e]" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    {item.isFirstReport && item.firstReportBadge ? (
-                      <span className="mb-1 inline-flex max-w-full rounded-full border border-[#1eb84a]/20 bg-[#eaffef] px-2 py-0.5 text-[0.58rem] font-black uppercase leading-none tracking-[0.08em] text-[#11732d]">
-                        <span className="truncate">{item.firstReportBadge}</span>
-                      </span>
-                    ) : null}
-                    <p
-                      className={`line-clamp-2 break-words text-sm font-black leading-5 [word-break:keep-all] ${
-                        item.shouldBlur ? "select-none blur-[2px]" : ""
-                      }`}
-                    >
-                      {item.title}
-                    </p>
-                    <p className="mt-1 text-[0.66rem] font-bold uppercase tracking-[0.08em] text-black/42">
-                      {item.publishedAt ?? item.reporterName}
-                    </p>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-4 border border-black/10 bg-white p-3 text-sm font-semibold leading-6 text-black/54">
-              {copy.relatedNewsEmpty}
-            </p>
-          )}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CharacterIdentityFeature({
-  copy,
-  creatorHref,
-  locale,
-  sourceContent,
-}: {
-  copy: ReturnType<typeof getCopy>;
-  creatorHref: string;
-  locale: Locale;
-  sourceContent: FanletterPublicContentDetail | null;
-}) {
-  const character = sourceContent?.authorCharacter;
-  const characterName = character?.name ?? sourceContent?.authorName ?? null;
-
-  if (!characterName) {
-    return null;
-  }
-
-  const avatarImages = getUniqueImageUrls([
-    ...(character?.avatarImageSet ?? []).map((avatar) => avatar.url),
-    sourceContent?.authorAvatarImageUrl,
-  ]).slice(0, 4);
-  const avatarImageOptions = avatarImages.map((imageUrl) => {
-    const avatar = character?.avatarImageSet.find(
-      (candidate) => candidate.url === imageUrl,
-    );
-
-    return {
-      label: avatar?.label ?? avatar?.expression ?? null,
-      url: imageUrl,
-    };
-  });
-  const traits = (character?.traits ?? []).slice(0, 4);
-  const reactionCount =
-    (sourceContent?.social.likeCount ?? 0) +
-    (sourceContent?.social.commentCount ?? 0) +
-    (sourceContent?.social.saveCount ?? 0);
-  const stats = [
-    {
-      label: copy.characterStats.level,
-      value: character ? `Lv.${character.growth.level}` : "-",
-    },
-    {
-      label: copy.characterStats.vlogs,
-      value: sourceContent
-        ? formatNumber(sourceContent.authorPublicContentCount, locale)
-        : "-",
-    },
-    {
-      label: copy.characterStats.reactions,
-      value: sourceContent ? formatNumber(reactionCount, locale) : "-",
-    },
-  ];
-  const latestTitle = character?.latestTitle ?? sourceContent?.title ?? null;
-
-  return (
-    <section className="mt-5 overflow-hidden border border-black/12 bg-white text-[#111510] shadow-[0_12px_34px_rgba(17,21,16,0.055)] sm:mt-6">
-      <div className="grid grid-cols-[7.25rem_minmax(0,1fr)] sm:grid-cols-[10rem_minmax(0,1fr)] lg:grid-cols-[14rem_minmax(0,1fr)]">
-        <FanletterNewsCharacterImageSelector
-          avatarAlt={characterName}
-          avatarImages={avatarImageOptions}
-          compact
-          galleryLabel={copy.characterIdentity.galleryLabel}
-          generatedLabel={copy.generated}
-        />
-
-        <div className="flex min-h-full min-w-0 flex-col p-3.5 sm:p-5">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 border border-[#16702e]/20 bg-[#f5f7f1] px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
-              <BadgeCheck className="size-3.5" />
-              {copy.characterIdentity.title}
-            </span>
-            <span className="hidden border border-black/10 bg-[#111510] px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-white/78 sm:inline-flex">
-              {copy.characterIdentity.profileLabel}
-            </span>
-          </div>
-
-          <h2 className="mt-2.5 break-words text-2xl font-black leading-tight [word-break:keep-all] sm:text-[2.25rem]">
-            {characterName}
-          </h2>
-          <p className="mt-2 line-clamp-3 max-w-xl text-sm font-medium leading-6 text-black/62 sm:text-base sm:leading-7">
-            {character?.summary ?? sourceContent?.summary}
-          </p>
-
-          <div className="mt-3 grid grid-cols-3 gap-2 border-y border-black/10 py-2.5 sm:mt-4 sm:py-3">
-            {stats.map((stat) => (
-              <div
-                className="min-w-0 border-r border-black/10 px-1.5 first:pl-0 last:border-r-0 last:pr-0 sm:px-2"
-                key={stat.label}
-              >
-                <p className="truncate text-lg font-black text-[#111510] sm:text-xl">
-                  {stat.value}
-                </p>
-                <p className="mt-0.5 truncate text-[0.58rem] font-black uppercase tracking-[0.06em] text-black/42 sm:text-[0.62rem]">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          {traits.length > 0 ? (
-            <div className="mt-3 sm:mt-4">
-              <p className="text-[0.66rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
-                {copy.characterIdentity.traitLabel}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {traits.map((trait) => (
-                  <span
-                    className="border border-black/10 bg-[#f7f9f4] px-2 py-1 text-[0.68rem] font-bold leading-4 text-black/62"
-                    key={trait}
-                  >
-                    {trait}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          {latestTitle ? (
-            <div className="mt-3 border-l-[3px] border-[#44f26e] bg-[#f7f9f4] px-3 py-2 sm:mt-4">
-              <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-black/42">
-                {copy.characterIdentity.latestLabel}
-              </p>
-              <p className="mt-1 line-clamp-1 break-words text-xs font-bold leading-5 text-black/68 [word-break:keep-all] sm:text-sm">
-                {latestTitle}
-              </p>
-            </div>
-          ) : null}
-
-          <div className="mt-auto pt-3 sm:pt-4">
-            <Link
-              className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-3 py-2 text-xs font-black !text-white shadow-[0_12px_26px_rgba(17,21,16,0.14)] transition hover:bg-black sm:w-auto sm:text-sm"
-              href={creatorHref}
-            >
-              <MessageCircleHeart className="size-4 text-[#44f26e]" />
-              {copy.characterIdentity.channelCta}
-              <ArrowUpRight className="size-4 text-white/62" />
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
   );
 }
 
@@ -2685,7 +2319,6 @@ export default async function LocalizedFanletterNewsReportPage({
 
                 <ArticleActionLinks
                   copy={copy}
-                  creatorHref={creatorHref}
                   locale={locale}
                   newsHomeHref={newsHomeHref}
                   referralCode={referralCode}
@@ -2765,20 +2398,30 @@ export default async function LocalizedFanletterNewsReportPage({
               {copy.articleNotice}
             </p>
 
-            <CharacterContinueReadingPanel
-              characterAvatarImageUrl={characterAvatarImageUrl}
-              characterName={characterName}
-              copy={copy}
-              creatorHref={creatorHref}
-              items={relatedNewsItems}
-            />
-
-            <CharacterIdentityFeature
-              copy={copy}
-              creatorHref={creatorHref}
-              locale={locale}
-              sourceContent={sourceContent}
-            />
+            <div className="mt-6 sm:mt-8">
+              <FanletterNewsRelatedList
+                characterName={characterName}
+                copy={{
+                  description: copy.relatedNewsDescription,
+                  empty: copy.relatedNewsEmpty,
+                  eyebrow: copy.relatedNewsEyebrow,
+                  error: copy.relatedNewsError,
+                  loadMore: copy.relatedNewsLoadMore,
+                  loading: copy.relatedNewsLoading,
+                  title: relatedNewsTitle,
+                }}
+                initialHasMore={relatedNewsHasMore}
+                initialItems={relatedNewsItems}
+                key={relatedNewsApiHref}
+                pageSize={RELATED_NEWS_PAGE_SIZE}
+                relatedApiHref={relatedNewsApiHref}
+                relatedStateParamName={RELATED_NEWS_LIMIT_PARAM}
+                relatedSortParamName={RELATED_NEWS_SORT_PARAM}
+                sortLabel={copy.relatedNewsSortLabel}
+                sortOptions={relatedNewsSortOptions}
+                sortValue={relatedNewsSort}
+              />
+            </div>
 
             <div className="scroll-mt-6" id={sourceVlogSectionId}>
               <SourceVlogEmbed
@@ -2845,29 +2488,6 @@ export default async function LocalizedFanletterNewsReportPage({
           </div>
 
           <aside className="space-y-4 xl:sticky xl:top-5">
-            <FanletterNewsRelatedList
-              characterName={characterName}
-              copy={{
-                description: copy.relatedNewsDescription,
-                empty: copy.relatedNewsEmpty,
-                eyebrow: copy.relatedNewsEyebrow,
-                error: copy.relatedNewsError,
-                loadMore: copy.relatedNewsLoadMore,
-                loading: copy.relatedNewsLoading,
-                title: relatedNewsTitle,
-              }}
-              initialHasMore={relatedNewsHasMore}
-              initialItems={relatedNewsItems}
-              key={relatedNewsApiHref}
-              pageSize={RELATED_NEWS_PAGE_SIZE}
-              relatedApiHref={relatedNewsApiHref}
-              relatedStateParamName={RELATED_NEWS_LIMIT_PARAM}
-              relatedSortParamName={RELATED_NEWS_SORT_PARAM}
-              sortLabel={copy.relatedNewsSortLabel}
-              sortOptions={relatedNewsSortOptions}
-              sortValue={relatedNewsSort}
-            />
-
             <SourceContextCard
               accessLabel={accessLabel}
               blurred={shouldBlurCurrentReport}
