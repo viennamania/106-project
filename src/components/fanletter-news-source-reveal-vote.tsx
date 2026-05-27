@@ -64,7 +64,7 @@ type CelebrationSpark = {
 type FanletterNewsSourceRevealVoteProps = {
   className?: string;
   connectHref: string;
-  density?: "regular" | "compact";
+  density?: "regular" | "compact" | "dock";
   initialState: FanletterNewsSourceRevealState;
   locale: Locale;
   reportId?: string;
@@ -843,7 +843,8 @@ export function FanletterNewsSourceRevealVote({
   const remainingLabel = formatCount(remainingCount, locale);
   const isLoggedIn = Boolean(memberSession.email);
   const isDark = tone === "dark";
-  const isCompact = density === "compact";
+  const isDock = density === "dock";
+  const isCompact = density === "compact" || isDock;
   const participants = state.participants ?? [];
 
   const handleVote = async () => {
@@ -925,6 +926,7 @@ export function FanletterNewsSourceRevealVote({
             ? "border-white/14 bg-black/72 text-white"
             : "border-black/10 bg-white text-[#111510]",
           isCompact && "p-2.5 shadow-[0_12px_24px_rgba(0,0,0,0.14)] sm:p-3",
+          isDock && "shadow-none",
           className,
         )}
       >
@@ -973,6 +975,7 @@ export function FanletterNewsSourceRevealVote({
                 "mt-1 text-xs font-semibold leading-5",
                 isDark ? "text-white/68" : "text-black/58",
                 isCompact && "hidden sm:block",
+                isDock && "sm:hidden xl:block",
               )}
             >
               {state.unlocked
@@ -1013,14 +1016,16 @@ export function FanletterNewsSourceRevealVote({
           </div>
         </div>
 
-        <SourceRevealParticipantStack
-          copy={copy.voters}
-          isCompact={isCompact}
-          isDark={isDark}
-          locale={locale}
-          participants={participants}
-          totalCount={state.count}
-        />
+        {isDock ? null : (
+          <SourceRevealParticipantStack
+            copy={copy.voters}
+            isCompact={isCompact}
+            isDark={isDark}
+            locale={locale}
+            participants={participants}
+            totalCount={state.count}
+          />
+        )}
 
         {state.unlocked ? null : isLoggedIn ? (
           <button

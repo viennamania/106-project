@@ -1358,7 +1358,7 @@ function SourceVlogRevealTeaserOverlay({
         ) : null}
 
         <FanletterNewsSourceRevealVote
-          className={hasTeaserFrames ? "w-full" : "w-full max-w-[31rem]"}
+          className={hasTeaserFrames ? "w-full" : "w-full max-w-[31rem] lg:hidden"}
           connectHref={connectHref}
           density="compact"
           initialState={sourceReveal}
@@ -1745,6 +1745,9 @@ function SourceVlogEmbed({
     !sourceRevealLocked &&
     sourceSceneFrames.length > 1 &&
     (sourceReveal?.unlocked || viewerCanAccessSource);
+  const shouldShowDesktopSourceRevealDock = Boolean(
+    sourceRevealLocked && sourceReveal && sourceOverlaySceneFrames.length === 0,
+  );
   const shouldRequireNsfwScenePin =
     isSourceNsfw && shouldShowSourceTeaserGallery;
   const noticeMessage = blurred
@@ -1900,6 +1903,18 @@ function SourceVlogEmbed({
             ) : null}
           </FanletterResponsiveMediaFrame>
         )}
+        {shouldShowDesktopSourceRevealDock && sourceReveal ? (
+          <div className="hidden border-t border-white/10 bg-[#07100b] p-4 lg:block">
+            <FanletterNewsSourceRevealVote
+              className="mx-auto w-full max-w-3xl border-white/10 bg-white/[0.05] shadow-none"
+              connectHref={sourceReveal.connectHref}
+              density="dock"
+              initialState={sourceReveal}
+              locale={locale}
+              reportId={sourceReveal.reportId}
+            />
+          </div>
+        ) : null}
       </div>
       {shouldShowSourceTeaserGallery ? (
         <SourceVlogUnlockedTeaserGallery
