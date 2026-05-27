@@ -55,6 +55,8 @@ import {
   type ContentSocialActionDocument,
   type ContentSocialResponse,
   type ContentSocialSummaryRecord,
+  type ContentVideoMetadata,
+  type ContentVideoMetadataSource,
   type CreatorProfileDocument,
   type CreatorProfileAvatarCandidate,
   type CreatorProfileRecord,
@@ -588,6 +590,58 @@ function normalizeContentVideoUrls(urls?: string[]) {
         .filter((url): url is string => Boolean(url)),
     ),
   ).slice(0, CONTENT_VIDEO_LIMIT);
+}
+
+function normalizeContentVideoMetadataSource(
+  value: unknown,
+  url: string,
+): ContentVideoMetadataSource {
+  if (value === "generated" || value === "uploaded") {
+    return value;
+  }
+
+  return getContentVideoAssetSource(url) === "generated" ? "generated" : "uploaded";
+}
+
+function normalizeContentVideoMetadata(
+  values: ContentVideoMetadata[] | null | undefined,
+  contentVideoUrls: string[],
+): ContentVideoMetadata[] {
+  if (!Array.isArray(values) || contentVideoUrls.length === 0) {
+    return [];
+  }
+
+  const allowedUrls = new Set(contentVideoUrls);
+  const seenUrls = new Set<string>();
+
+  return values
+    .map((item) => {
+      const url = normalizeOptionalText(item?.url, 500);
+
+      if (!url || !allowedUrls.has(url) || seenUrls.has(url)) {
+        return null;
+      }
+
+      seenUrls.add(url);
+
+      return {
+        capturedAt: normalizeDateLike(item?.capturedAt).toISOString(),
+        contentType: normalizeOptionalText(item?.contentType, 80),
+        durationSec:
+          typeof item?.durationSec === "number" &&
+          Number.isFinite(item.durationSec) &&
+          item.durationSec > 0
+            ? Number(item.durationSec.toFixed(2))
+            : null,
+        height: normalizeNullablePositiveNumber(item?.height),
+        pathname: normalizeOptionalText(item?.pathname, 500),
+        source: normalizeContentVideoMetadataSource(item?.source, url),
+        url,
+        width: normalizeNullablePositiveNumber(item?.width),
+      } satisfies ContentVideoMetadata;
+    })
+    .filter((item): item is ContentVideoMetadata => item !== null)
+    .slice(0, CONTENT_VIDEO_LIMIT);
 }
 
 function normalizePriceType(priceType?: ContentPriceType | null) {
@@ -2954,6 +3008,10 @@ export async function createContentPostForMember(
   );
   const contentImageUrls = normalizeContentImageUrls(input.contentImageUrls);
   const contentVideoUrls = normalizeContentVideoUrls(input.contentVideoUrls);
+  const contentVideoMetadata = normalizeContentVideoMetadata(
+    input.contentVideoMetadata,
+    contentVideoUrls,
+  );
   const coverImageUrl = normalizeOptionalText(input.coverImageUrl, 500);
   const coverImageCandidates = normalizeCoverImageCandidates(
     input.coverImageCandidates,
@@ -3002,6 +3060,7 @@ export async function createContentPostForMember(
     contentId: randomUUID(),
     contentImageUrls,
     contentMaturityRating,
+    contentVideoMetadata,
     contentVideoUrls,
     coverImageCandidates,
     coverImageUrl,
@@ -3095,6 +3154,16 @@ export async function updateContentPostForMember(
     input.contentVideoUrls !== undefined
       ? normalizeContentVideoUrls(input.contentVideoUrls)
       : post.contentVideoUrls ?? [];
+  const nextContentVideoMetadata =
+    input.contentVideoMetadata !== undefined || input.contentVideoUrls !== undefined
+      ? normalizeContentVideoMetadata(
+          input.contentVideoMetadata ?? post.contentVideoMetadata,
+          nextContentVideoUrls,
+        )
+      : normalizeContentVideoMetadata(
+          post.contentVideoMetadata,
+          nextContentVideoUrls,
+        );
   const nextCoverImageUrl =
     input.coverImageUrl !== undefined
       ? normalizeOptionalText(input.coverImageUrl, 500)
@@ -3202,6 +3271,7 @@ export async function updateContentPostForMember(
           contentImageUrls: nextContentImageUrls,
           contentMaturityRating:
             nextStatus === "archived" ? "general" : nextContentMaturityRating,
+          contentVideoMetadata: nextContentVideoMetadata,
           contentVideoUrls: nextContentVideoUrls,
           coverImageCandidates: nextCoverImageCandidates,
           coverImageUrl: nextCoverImageUrl,

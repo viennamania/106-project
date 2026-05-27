@@ -30,6 +30,7 @@ import {
   type ContentPostMutationResponse,
   type ContentPostRecord,
   type ContentPostUploadResponse,
+  type ContentVideoMetadata,
   type CreatorProfileRecord,
   type CreatorProfileResponse,
   type FanletterFanRequestStatusUpdateResponse,
@@ -38,6 +39,11 @@ import {
   CONTENT_VIDEO_MAX_BYTES,
   contentVideoMimeTypes,
 } from "@/lib/content";
+import {
+  createContentVideoMetadata,
+  readContentVideoFileMetadata,
+  readContentVideoUrlMetadata,
+} from "@/lib/content-video-metadata-client";
 import type { FanletterCreateInitialPlan } from "@/lib/fanletter-create-plan";
 import {
   buildPathWithReferral,
@@ -68,9 +74,11 @@ type GeneratedMedia = {
   coverImageCandidates: ContentCoverImageCandidate[];
   coverImageUrl: string | null;
   fileName: string | null;
+  pathname: string | null;
   revisedPrompt: string | null;
   source: CreateSourceMode;
   url: string;
+  videoMetadata: ContentVideoMetadata | null;
 };
 
 type CreateForm = {
@@ -690,10 +698,20 @@ function normalizeGeneratedMedia(value: unknown): GeneratedMedia | null {
       typeof media.fileName === "string" && media.fileName.trim()
         ? media.fileName
         : null,
+    pathname:
+      typeof media.pathname === "string" && media.pathname.trim()
+        ? media.pathname
+        : null,
     revisedPrompt:
       typeof media.revisedPrompt === "string" ? media.revisedPrompt : null,
     source: media.source === "upload" ? "upload" : "ai",
     url: media.url,
+    videoMetadata:
+      media.videoMetadata &&
+      typeof media.videoMetadata === "object" &&
+      media.videoMetadata.url === media.url
+        ? media.videoMetadata
+        : null,
   };
 }
 
@@ -1556,14 +1574,30 @@ export function FanletterCreatePage({
         );
       }
 
+      const generatedVideoRuntimeMetadata =
+        data.durationSec && data.durationSec > 0
+          ? null
+          : await readContentVideoUrlMetadata(data.url).catch(() => null);
+      const generatedVideoMetadata = createContentVideoMetadata({
+        contentType: data.contentType,
+        durationSec:
+          data.durationSec ?? generatedVideoRuntimeMetadata?.durationSec ?? null,
+        height: data.height ?? generatedVideoRuntimeMetadata?.height ?? null,
+        pathname: data.pathname,
+        source: "generated",
+        url: data.url,
+        width: data.width ?? generatedVideoRuntimeMetadata?.width ?? null,
+      });
       const generatedVideo = {
         contentType: data.contentType,
         coverImageCandidates: [],
         coverImageUrl: null,
         fileName: null,
+        pathname: data.pathname,
         revisedPrompt: data.revisedPrompt,
         source: "ai" as const,
         url: data.url,
+        videoMetadata: generatedVideoMetadata,
       };
       let coverImageCandidates: ContentCoverImageCandidate[] = [];
       let coverImageUrl: string | null = null;
@@ -1655,14 +1689,28 @@ export function FanletterCreatePage({
           setGenerationMessage(copy.upload.progress(progress.percentage));
         },
       });
+      const uploadedFileMetadata = await readContentVideoFileMetadata(file).catch(
+        () => null,
+      );
+      const uploadedVideoMetadata = createContentVideoMetadata({
+        contentType: file.type,
+        durationSec: uploadedFileMetadata?.durationSec ?? null,
+        height: uploadedFileMetadata?.height ?? null,
+        pathname: uploaded.pathname,
+        source: "uploaded",
+        url: uploaded.url,
+        width: uploadedFileMetadata?.width ?? null,
+      });
       const uploadedVideo: GeneratedMedia = {
         contentType: file.type,
         coverImageCandidates: [],
         coverImageUrl: null,
         fileName: file.name,
+        pathname: uploaded.pathname,
         revisedPrompt: null,
         source: "upload",
         url: uploaded.url,
+        videoMetadata: uploadedVideoMetadata,
       };
       let coverImageCandidates: ContentCoverImageCandidate[] = [];
       let coverImageUrl: string | null = null;
@@ -1797,6 +1845,10 @@ export function FanletterCreatePage({
         body: JSON.stringify({
           body,
           contentImageUrls: contentImageUrlsToSave,
+          contentVideoMetadata:
+            generatedVideoUrl && generatedMedia?.videoMetadata
+              ? [generatedMedia.videoMetadata]
+              : [],
           contentVideoUrls: generatedVideoUrl ? [generatedVideoUrl] : [],
           coverImageCandidates: coverImageCandidatesToSave,
           coverImageUrl: coverImageUrlToSave,

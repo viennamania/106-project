@@ -416,9 +416,12 @@ export async function POST(request: Request) {
 
       const response: ContentPostGenerateCoverResponse = {
         contentType: generatedVideo.contentType,
+        durationSec: generatedVideo.durationSec,
+        height: null,
         pathname: generatedVideo.pathname,
         revisedPrompt: generatedVideo.revisedPrompt,
         url: generatedVideo.url,
+        width: null,
       };
 
       emit({
@@ -481,9 +484,12 @@ export async function POST(request: Request) {
 
     const response: ContentPostGenerateCoverResponse = {
       contentType: generatedVideo.contentType,
+      durationSec: generatedVideo.durationSec,
+      height: null,
       pathname: generatedVideo.pathname,
       revisedPrompt: generatedVideo.revisedPrompt,
       url: generatedVideo.url,
+      width: null,
     };
 
     return Response.json(response);

@@ -79,6 +79,7 @@ import type {
   ContentPostMutationResponse,
   ContentPostRecord,
   ContentPostUploadResponse,
+  ContentVideoMetadata,
   CreatorProfileResponse,
   CreatorStudioPostsLoadResponse,
   FanletterFanRequestStatusUpdateResponse,
@@ -103,6 +104,11 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { trackFunnelEvent } from "@/lib/funnel-client";
+import {
+  createContentVideoMetadata,
+  readContentVideoFileMetadata,
+  readContentVideoUrlMetadata,
+} from "@/lib/content-video-metadata-client";
 import type { Locale } from "@/lib/i18n";
 import type { MemberRecord } from "@/lib/member";
 import { syncServerMemberRegistration } from "@/lib/member-session-client";
@@ -297,6 +303,7 @@ const EMPTY_PROFILE = {
 const EMPTY_POST_FORM = {
   body: "",
   contentImageUrls: [] as string[],
+  contentVideoMetadata: [] as ContentVideoMetadata[],
   contentVideoUrls: [] as string[],
   coverImageCandidates: [] as ContentCoverImageCandidate[],
   coverImageUrl: "",
@@ -3822,6 +3829,7 @@ export function CreatorContentStudioPage({
           body: normalizedBody,
           contentImageUrls: contentImageUrlsToSave,
           contentMaturityRating: contentMaturityRatingToSave,
+          contentVideoMetadata: postForm.contentVideoMetadata,
           contentVideoUrls: postForm.contentVideoUrls,
           coverImageCandidates: coverImageCandidatesToSave,
           coverImageUrl: coverImageUrlToSave,
@@ -4321,9 +4329,22 @@ export function CreatorContentStudioPage({
           setPostVideoUploadProgress(progress.percentage);
         },
       });
+      const uploadedFileMetadata = await readContentVideoFileMetadata(file).catch(
+        () => null,
+      );
+      const uploadedVideoMetadata = createContentVideoMetadata({
+        contentType: file.type,
+        durationSec: uploadedFileMetadata?.durationSec ?? null,
+        height: uploadedFileMetadata?.height ?? null,
+        pathname: uploaded.pathname,
+        source: "uploaded",
+        url: uploaded.url,
+        width: uploadedFileMetadata?.width ?? null,
+      });
 
       setPostForm((current) => ({
         ...current,
+        contentVideoMetadata: uploadedVideoMetadata ? [uploadedVideoMetadata] : [],
         contentVideoUrls: [uploaded.url].slice(0, CONTENT_VIDEO_LIMIT),
         generatedContentVideoUrls: [],
         priceType: "paid",
@@ -4925,9 +4946,26 @@ export function CreatorContentStudioPage({
 
       const generatedVideo = data;
       let generatedVideoCoverReady = false;
+      const generatedVideoRuntimeMetadata =
+        generatedVideo.durationSec && generatedVideo.durationSec > 0
+          ? null
+          : await readContentVideoUrlMetadata(generatedVideo.url).catch(() => null);
+      const generatedVideoMetadata = createContentVideoMetadata({
+        contentType: generatedVideo.contentType,
+        durationSec:
+          generatedVideo.durationSec ??
+          generatedVideoRuntimeMetadata?.durationSec ??
+          null,
+        height: generatedVideo.height ?? generatedVideoRuntimeMetadata?.height ?? null,
+        pathname: generatedVideo.pathname,
+        source: "generated",
+        url: generatedVideo.url,
+        width: generatedVideo.width ?? generatedVideoRuntimeMetadata?.width ?? null,
+      });
 
       setPostForm((current) => ({
         ...current,
+        contentVideoMetadata: generatedVideoMetadata ? [generatedVideoMetadata] : [],
         contentVideoUrls: [generatedVideo.url].slice(0, CONTENT_VIDEO_LIMIT),
         contentMaturityRating: "general",
         generatedContentVideoUrls: [generatedVideo.url],
@@ -8158,6 +8196,7 @@ export function CreatorContentStudioPage({
                 setPostForm((current) => ({
                   ...current,
                   contentMaturityRating: "general",
+                  contentVideoMetadata: [],
                   contentVideoUrls: [],
                   generatedContentVideoUrls: [],
                   priceType: "paid",
@@ -8705,6 +8744,7 @@ export function CreatorContentStudioPage({
                       setPostForm((current) => ({
                         ...current,
                         contentMaturityRating: "general",
+                        contentVideoMetadata: [],
                         contentVideoUrls: [],
                         generatedContentVideoUrls: [],
                         priceType: isPaidUploadComposer ? "paid" : "free",
@@ -9518,6 +9558,7 @@ export function CreatorContentStudioPage({
                       setPostForm((current) => ({
                         ...current,
                         contentMaturityRating: "general",
+                        contentVideoMetadata: [],
                         contentVideoUrls: [],
                         generatedContentVideoUrls: [],
                         priceType: isPaidUploadComposer ? "paid" : "free",

@@ -150,6 +150,7 @@ export type GenerateContentGalleryVideoInput = {
 
 export type GeneratedContentGalleryVideo = {
   contentType: string;
+  durationSec: number | null;
   pathname: string;
   revisedPrompt: string | null;
   url: string;
@@ -529,6 +530,22 @@ function createModelInput({
   }
 
   return createVeoModelInput(prompt, [], qualityMode);
+}
+
+function getModelInputDurationSec(input: FalVideoInput) {
+  const duration = "duration" in input ? input.duration : null;
+
+  if (typeof duration === "number" && Number.isFinite(duration) && duration > 0) {
+    return duration;
+  }
+
+  if (typeof duration === "string") {
+    const parsed = Number.parseInt(duration, 10);
+
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  return null;
 }
 
 function rewritePromptForSaferVideoGeneration(prompt: string) {
@@ -1267,6 +1284,7 @@ export async function generateAndUploadContentGalleryVideo(
 
   return {
     contentType: uploaded.contentType,
+    durationSec: getModelInputDurationSec(modelInput),
     pathname: uploaded.pathname,
     revisedPrompt: falRevisedPrompt ?? revisedPrompt,
     url: uploaded.url,

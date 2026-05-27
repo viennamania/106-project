@@ -554,6 +554,19 @@ function getPostVideoUrl(post: Pick<CreatorStudioPostRecord, "contentVideoUrls">
   return post.contentVideoUrls[0] ?? null;
 }
 
+function getPostVideoMetadata(
+  post: Pick<CreatorStudioPostRecord, "contentVideoMetadata">,
+  videoUrl: string | null,
+) {
+  if (!videoUrl) {
+    return null;
+  }
+
+  return (
+    post.contentVideoMetadata.find((metadata) => metadata.url === videoUrl) ?? null
+  );
+}
+
 function getUniqueImageUrls(imageUrls: string[]) {
   return Array.from(
     new Set(
@@ -2292,10 +2305,14 @@ export function FanletterVlogManagementPage({
   const activeTeaserVideoUrl = activeTeaserPost
     ? getPostVideoUrl(activeTeaserPost)
     : null;
+  const activeTeaserStoredVideoMetadata = activeTeaserPost
+    ? getPostVideoMetadata(activeTeaserPost, activeTeaserVideoUrl)
+    : null;
   const activeTeaserVideoDuration =
-    activeTeaserPost && activeTeaserPost.contentId in videoDurationByContentId
+    activeTeaserStoredVideoMetadata?.durationSec ??
+    (activeTeaserPost && activeTeaserPost.contentId in videoDurationByContentId
       ? videoDurationByContentId[activeTeaserPost.contentId]
-      : undefined;
+      : undefined);
   const activeTeaserVideoDurationLabel =
     activeTeaserVideoDuration === undefined
       ? copy.teasers.videoDurationLoading

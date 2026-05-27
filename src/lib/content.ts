@@ -541,6 +541,19 @@ export type ContentCoverImageCandidate = {
   width: number | null;
 };
 
+export type ContentVideoMetadataSource = "generated" | "uploaded";
+
+export type ContentVideoMetadata = {
+  capturedAt: string;
+  contentType: string | null;
+  durationSec: number | null;
+  height: number | null;
+  pathname: string | null;
+  source: ContentVideoMetadataSource;
+  url: string;
+  width: number | null;
+};
+
 export type ContentPostDocument = {
   authorEmail: string;
   authorReferralCode: string;
@@ -548,6 +561,7 @@ export type ContentPostDocument = {
   contentId: string;
   contentImageUrls?: string[];
   contentMaturityRating?: ContentMaturityRating | null;
+  contentVideoMetadata?: ContentVideoMetadata[];
   contentVideoUrls?: string[];
   coverImageCandidates?: ContentCoverImageCandidate[];
   coverImageUrl: string | null;
@@ -665,6 +679,7 @@ export type ContentPostRecord = {
   contentImageUrls: string[];
   contentMaturityRating: ContentMaturityRating;
   contentVideoCount: number;
+  contentVideoMetadata: ContentVideoMetadata[];
   contentVideoUrls: string[];
   coverImageCandidates: ContentCoverImageCandidate[];
   coverImageUrl: string | null;
@@ -983,9 +998,12 @@ export type ContentPostUploadResponse = {
 
 export type ContentPostGenerateCoverResponse = {
   contentType: string;
+  durationSec?: number | null;
+  height?: number | null;
   pathname: string;
   revisedPrompt: string | null;
   url: string;
+  width?: number | null;
 };
 
 export type ContentGenerationFailureKind =
@@ -1120,6 +1138,7 @@ export type ContentPostCreateRequest = {
   body: string;
   contentImageUrls?: string[];
   contentMaturityRating?: ContentMaturityRating | null;
+  contentVideoMetadata?: ContentVideoMetadata[];
   contentVideoUrls?: string[];
   coverImageCandidates?: ContentCoverImageCandidate[];
   coverImageUrl?: string | null;
@@ -1332,6 +1351,7 @@ export function serializeContentPost(
     contentMaturityRating:
       content.contentMaturityRating === "nsfw" ? "nsfw" : "general",
     contentVideoCount: content.contentVideoUrls?.length ?? 0,
+    contentVideoMetadata: content.contentVideoMetadata ?? [],
     contentVideoUrls: content.contentVideoUrls ?? [],
     coverImageCandidates: content.coverImageCandidates ?? [],
     coverImageUrl: content.coverImageUrl ?? null,
