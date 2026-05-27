@@ -145,12 +145,14 @@ export function FanletterNewsSourceSceneGallery({
   blurred,
   copy,
   items,
+  layout = "scroll",
   locale,
   nsfwPinGate,
 }: {
   blurred: boolean;
   copy: FanletterNewsSourceSceneGalleryCopy;
   items: FanletterNewsSourceSceneGalleryItem[];
+  layout?: "grid" | "scroll";
   locale: Locale;
   nsfwPinGate?: FanletterNewsSourceSceneGalleryNsfwPinGate;
 }) {
@@ -188,6 +190,7 @@ export function FanletterNewsSourceSceneGallery({
       ? `${activeItem.label} · ${activeItem.timeLabel}`
       : activeItem.label
     : "";
+  const isGridLayout = layout === "grid";
 
   const openViewer = useCallback((index: number) => {
     if (!canOpenSceneViewer) {
@@ -529,12 +532,20 @@ export function FanletterNewsSourceSceneGallery({
         </p>
       </div>
 
-      <div className="-mx-3 mt-3 grid snap-x auto-cols-[minmax(9.5rem,42vw)] grid-flow-col gap-2 overflow-x-auto px-3 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-4 sm:auto-cols-[11.5rem] sm:px-4 lg:auto-cols-[12.5rem] xl:auto-cols-[13.5rem] [&::-webkit-scrollbar]:hidden">
+      <div
+        className={cn(
+          "mt-3 grid gap-2",
+          isGridLayout
+            ? "grid-cols-2 sm:grid-cols-4"
+            : "-mx-3 snap-x auto-cols-[minmax(9.5rem,42vw)] grid-flow-col overflow-x-auto px-3 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-4 sm:auto-cols-[11.5rem] sm:px-4 lg:auto-cols-[12.5rem] xl:auto-cols-[13.5rem] [&::-webkit-scrollbar]:hidden",
+        )}
+      >
         {items.map((item, index) => (
           <button
             aria-label={`${item.label} ${copy.openViewer}`}
             className={cn(
-              "group snap-start overflow-hidden border border-black/10 bg-white text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]",
+              "group overflow-hidden border border-black/10 bg-white text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]",
+              isGridLayout ? "" : "snap-start",
               canOpenSceneViewer
                 ? "hover:border-[#19b84b]"
                 : "cursor-not-allowed",
@@ -556,7 +567,11 @@ export function FanletterNewsSourceSceneGallery({
                     : "object-contain transition duration-300 group-hover:scale-[1.02]"
                 }
                 fill
-                sizes="(max-width: 640px) 42vw, (max-width: 1280px) 12.5rem, 13.5rem"
+                sizes={
+                  isGridLayout
+                    ? "(max-width: 640px) 50vw, 25vw"
+                    : "(max-width: 640px) 42vw, (max-width: 1280px) 12.5rem, 13.5rem"
+                }
                 src={item.imageUrl}
                 unoptimized={shouldBypassFanletterImageOptimization(item.imageUrl)}
               />
