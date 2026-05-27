@@ -13,6 +13,7 @@ import {
   useRef,
   useState,
   type PointerEvent,
+  type TouchEvent,
 } from "react";
 
 import { FanletterNsfwVideoPinGate } from "@/components/fanletter-nsfw-video-pin-gate";
@@ -50,8 +51,94 @@ type FanletterNewsSourceSceneGalleryNsfwPinGate = {
   title: string;
 };
 
+type ViewerTransform = {
+  scale: number;
+  x: number;
+  y: number;
+};
+
+type TouchGesture =
+  | {
+      mode: "pan" | "swipe";
+      startX: number;
+      startY: number;
+      transform: ViewerTransform;
+    }
+  | {
+      centerX: number;
+      centerY: number;
+      distance: number;
+      mode: "pinch";
+      transform: ViewerTransform;
+    };
+
+type TouchListLike = {
+  length: number;
+  item(index: number): { clientX: number; clientY: number } | null;
+};
+
+const INITIAL_VIEWER_TRANSFORM: ViewerTransform = {
+  scale: 1,
+  x: 0,
+  y: 0,
+};
+const MAX_VIEWER_SCALE = 4;
+
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function clampViewerTransform(transform: ViewerTransform): ViewerTransform {
+  const scale = clampNumber(transform.scale, 1, MAX_VIEWER_SCALE);
+
+  if (scale <= 1.01 || typeof window === "undefined") {
+    return INITIAL_VIEWER_TRANSFORM;
+  }
+
+  const maxX = (window.innerWidth * (scale - 1)) / 2;
+  const maxY = (window.innerHeight * (scale - 1)) / 2;
+
+  return {
+    scale,
+    x: clampNumber(transform.x, -maxX, maxX),
+    y: clampNumber(transform.y, -maxY, maxY),
+  };
+}
+
+function getTouchDistance(touches: TouchListLike) {
+  if (touches.length < 2) {
+    return 0;
+  }
+
+  const firstTouch = touches.item(0);
+  const secondTouch = touches.item(1);
+
+  if (!firstTouch || !secondTouch) {
+    return 0;
+  }
+
+  return Math.hypot(
+    secondTouch.clientX - firstTouch.clientX,
+    secondTouch.clientY - firstTouch.clientY,
+  );
+}
+
+function getTouchCenter(touches: TouchListLike) {
+  const firstTouch = touches.item(0);
+  const secondTouch = touches.item(1);
+
+  if (!firstTouch || !secondTouch) {
+    return null;
+  }
+
+  return {
+    x: (firstTouch.clientX + secondTouch.clientX) / 2,
+    y: (firstTouch.clientY + secondTouch.clientY) / 2,
+  };
 }
 
 export function FanletterNewsSourceSceneGallery({
@@ -69,11 +156,20 @@ export function FanletterNewsSourceSceneGallery({
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const [viewerTransform, setViewerTransform] = useState<ViewerTransform>(
+    INITIAL_VIEWER_TRANSFORM,
+  );
   const [walletUnlockState, setWalletUnlockState] = useState({
     scope: "",
     unlocked: false,
   });
   const dragStartXRef = useRef<number | null>(null);
+  const touchGestureRef = useRef<TouchGesture | null>(null);
+  const lastTapRef = useRef<{
+    time: number;
+    x: number;
+    y: number;
+  } | null>(null);
   const { accountAddress, email } = useMemberSession();
   const activeItem = items[activeIndex] ?? items[0] ?? null;
   const canNavigate = items.length > 1;
@@ -98,12 +194,21 @@ export function FanletterNewsSourceSceneGallery({
       return;
     }
 
+    touchGestureRef.current = null;
+    setViewerTransform(INITIAL_VIEWER_TRANSFORM);
     setActiveIndex(index);
     setIsOpen(true);
   }, [canOpenSceneViewer]);
 
   const closeViewer = useCallback(() => {
+    touchGestureRef.current = null;
+    setViewerTransform(INITIAL_VIEWER_TRANSFORM);
     setIsOpen(false);
+  }, []);
+
+  const resetViewerTransform = useCallback(() => {
+    touchGestureRef.current = null;
+    setViewerTransform(INITIAL_VIEWER_TRANSFORM);
   }, []);
 
   const handleNsfwPinUnlocked = useCallback(() => {
@@ -114,16 +219,18 @@ export function FanletterNewsSourceSceneGallery({
   }, [walletUnlockScope]);
 
   const showPrevious = useCallback(() => {
+    resetViewerTransform();
     setActiveIndex((current) =>
       current <= 0 ? Math.max(items.length - 1, 0) : current - 1,
     );
-  }, [items.length]);
+  }, [items.length, resetViewerTransform]);
 
   const showNext = useCallback(() => {
+    resetViewerTransform();
     setActiveIndex((current) =>
       current >= items.length - 1 ? 0 : current + 1,
     );
-  }, [items.length]);
+  }, [items.length, resetViewerTransform]);
 
   useEffect(() => {
     if (!requiresNsfwPin) {
@@ -211,10 +318,19 @@ export function FanletterNewsSourceSceneGallery({
   }
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "touch" || viewerTransform.scale > 1.01) {
+      return;
+    }
+
     dragStartXRef.current = event.clientX;
   };
 
   const handlePointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "touch" || viewerTransform.scale > 1.01) {
+      dragStartXRef.current = null;
+      return;
+    }
+
     const dragStartX = dragStartXRef.current;
     dragStartXRef.current = null;
 
@@ -234,6 +350,167 @@ export function FanletterNewsSourceSceneGallery({
     }
 
     showNext();
+  };
+
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    if (event.touches.length >= 2) {
+      const center = getTouchCenter(event.touches);
+      const distance = getTouchDistance(event.touches);
+
+      if (!center || distance <= 0) {
+        return;
+      }
+
+      touchGestureRef.current = {
+        centerX: center.x,
+        centerY: center.y,
+        distance,
+        mode: "pinch",
+        transform: viewerTransform,
+      };
+      return;
+    }
+
+    const touch = event.touches.item(0);
+
+    if (!touch) {
+      return;
+    }
+
+    touchGestureRef.current = {
+      mode: viewerTransform.scale > 1.01 ? "pan" : "swipe",
+      startX: touch.clientX,
+      startY: touch.clientY,
+      transform: viewerTransform,
+    };
+  };
+
+  const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
+    const gesture = touchGestureRef.current;
+
+    if (!gesture) {
+      return;
+    }
+
+    if (event.touches.length >= 2) {
+      const center = getTouchCenter(event.touches);
+      const distance = getTouchDistance(event.touches);
+
+      if (!center || distance <= 0) {
+        return;
+      }
+
+      const baseGesture =
+        gesture.mode === "pinch"
+          ? gesture
+          : {
+              centerX: center.x,
+              centerY: center.y,
+              distance,
+              mode: "pinch" as const,
+              transform: viewerTransform,
+            };
+      const nextScale =
+        baseGesture.transform.scale * (distance / baseGesture.distance);
+
+      touchGestureRef.current = baseGesture;
+      setViewerTransform(
+        clampViewerTransform({
+          scale: nextScale,
+          x: baseGesture.transform.x + (center.x - baseGesture.centerX),
+          y: baseGesture.transform.y + (center.y - baseGesture.centerY),
+        }),
+      );
+      return;
+    }
+
+    if (gesture.mode !== "pan" || event.touches.length !== 1) {
+      return;
+    }
+
+    const touch = event.touches.item(0);
+
+    if (!touch) {
+      return;
+    }
+
+    setViewerTransform(
+      clampViewerTransform({
+        scale: gesture.transform.scale,
+        x: gesture.transform.x + (touch.clientX - gesture.startX),
+        y: gesture.transform.y + (touch.clientY - gesture.startY),
+      }),
+    );
+  };
+
+  const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    const gesture = touchGestureRef.current;
+    touchGestureRef.current = null;
+
+    if (!gesture) {
+      return;
+    }
+
+    setViewerTransform((current) =>
+      current.scale <= 1.01 ? INITIAL_VIEWER_TRANSFORM : current,
+    );
+
+    if (gesture.mode === "pinch") {
+      return;
+    }
+
+    const touch = event.changedTouches.item(0);
+
+    if (!touch) {
+      return;
+    }
+
+    const deltaX = touch.clientX - gesture.startX;
+    const deltaY = touch.clientY - gesture.startY;
+    const movedDistance = Math.hypot(deltaX, deltaY);
+
+    if (movedDistance <= 14) {
+      const now = Date.now();
+      const lastTap = lastTapRef.current;
+
+      if (
+        lastTap &&
+        now - lastTap.time < 300 &&
+        Math.hypot(touch.clientX - lastTap.x, touch.clientY - lastTap.y) < 36
+      ) {
+        lastTapRef.current = null;
+        setViewerTransform((current) =>
+          current.scale > 1.01
+            ? INITIAL_VIEWER_TRANSFORM
+            : clampViewerTransform({
+                scale: 2.35,
+                x: 0,
+                y: 0,
+              }),
+        );
+        return;
+      }
+
+      lastTapRef.current = {
+        time: now,
+        x: touch.clientX,
+        y: touch.clientY,
+      };
+    }
+
+    if (gesture.mode !== "swipe") {
+      return;
+    }
+
+    if (Math.abs(deltaX) >= 44 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+      if (deltaX > 0) {
+        showPrevious();
+        return;
+      }
+
+      showNext();
+      return;
+    }
   };
 
   return (
@@ -343,12 +620,16 @@ export function FanletterNewsSourceSceneGallery({
           </div>
 
           <div
-            className="relative h-full w-full touch-pan-y overflow-hidden"
+            className="relative h-full w-full touch-none overflow-hidden select-none"
             onPointerCancel={() => {
               dragStartXRef.current = null;
             }}
             onPointerDown={handlePointerDown}
             onPointerUp={handlePointerUp}
+            onTouchCancel={resetViewerTransform}
+            onTouchEnd={handleTouchEnd}
+            onTouchMove={handleTouchMove}
+            onTouchStart={handleTouchStart}
           >
             <div
               className="flex h-full transition-transform duration-300 ease-out"
@@ -361,19 +642,31 @@ export function FanletterNewsSourceSceneGallery({
                   className="relative h-full w-full shrink-0"
                   key={`viewer-${item.imageUrl}-${index}`}
                 >
-                  <Image
-                    alt={item.label}
-                    className={
-                      effectiveBlurred
-                        ? "scale-[1.02] object-contain blur-sm brightness-[0.78] saturate-[0.92]"
-                        : "object-contain"
+                  <div
+                    className="absolute inset-0"
+                    style={
+                      index === activeIndex
+                        ? {
+                            transform: `translate3d(${viewerTransform.x}px, ${viewerTransform.y}px, 0) scale(${viewerTransform.scale})`,
+                          }
+                        : undefined
                     }
-                    fill
-                    priority={index === activeIndex}
-                    sizes="100vw"
-                    src={item.imageUrl}
-                    unoptimized={shouldBypassFanletterImageOptimization(item.imageUrl)}
-                  />
+                  >
+                    <Image
+                      alt={item.label}
+                      className={
+                        effectiveBlurred
+                          ? "scale-[1.02] object-contain blur-sm brightness-[0.78] saturate-[0.92]"
+                          : "object-contain"
+                      }
+                      draggable={false}
+                      fill
+                      priority={index === activeIndex}
+                      sizes="100vw"
+                      src={item.imageUrl}
+                      unoptimized={shouldBypassFanletterImageOptimization(item.imageUrl)}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -412,6 +705,7 @@ export function FanletterNewsSourceSceneGallery({
                   }
                   key={`dot-${item.imageUrl}-${index}`}
                   onClick={() => {
+                    resetViewerTransform();
                     setActiveIndex(index);
                   }}
                   type="button"
