@@ -141,7 +141,7 @@ type VlogTeaserFrameOption = {
 const FANLETTER_VLOG_DISCONNECTED_GRACE_MS = 4500;
 const VLOGS_PAGE_SIZE = 18;
 const EXCLUSIVE_NEWS_DURATION_OPTIONS = [6, 12, 24] as const;
-const VLOG_COVER_IMAGE_CANDIDATE_LIMIT = 8;
+const VLOG_COVER_IMAGE_CANDIDATE_LIMIT = 16;
 const VLOG_COVER_CROP_ASPECT_RATIO = 16 / 9;
 const VLOG_COVER_CROP_MAX_ZOOM = 3;
 const VLOG_COVER_CROP_OUTPUT_HEIGHT = 675;
@@ -237,20 +237,20 @@ function getCopy(locale: Locale) {
         },
         teasers: {
           addFailed: "영상 프레임을 추가하지 못했습니다.",
-          addNotice: "원본 영상 프레임을 추가했습니다.",
+          addNotice: "기존과 다른 시간대의 프레임을 추가했습니다.",
           count: (count: string) => `${count}개 프레임`,
           delete: "삭제",
           deleteFailed: "영상 프레임을 삭제하지 못했습니다.",
           deletedNotice: "영상 프레임을 삭제했습니다.",
           empty:
             "아직 저장된 영상 프레임이 없습니다. 원본 영상에서 프레임을 추가해 뉴스와 구매 화면의 이미지 DB를 채워보세요.",
-          generate: "원본 영상에서 프레임 추가",
-          generating: "프레임 추출 중",
+          generate: "새 시간대 프레임 추가",
+          generating: "새 시간대 찾는 중",
           helper:
-            "뉴스 리포트, 유료 잠금 화면, 구매 전 미리보기에서 활용할 원본 영상 프레임을 관리합니다.",
+            "뉴스 리포트, 유료 잠금 화면, 구매 전 미리보기에서 활용할 원본 영상 프레임 DB를 시간대별로 관리합니다.",
           limit: (count: string) => `최대 ${count}장까지 저장됩니다.`,
           modalBody:
-            "원본 영상에서 장면 프레임을 추출하고, 소비자가 뉴스와 구매 화면에서 먼저 볼 수 있는 컷을 선별합니다.",
+            "저장된 프레임 시간을 피해서 원본 영상의 다른 시간대를 자동 탐색하고, 소비자가 뉴스와 구매 화면에서 먼저 볼 컷을 보강합니다.",
           modalClose: "닫기",
           modalEyebrow: "Video Frame DB",
           modalTitle: "브이로그 영상 프레임 관리",
@@ -391,20 +391,20 @@ function getCopy(locale: Locale) {
         },
         teasers: {
           addFailed: "Could not add video frames.",
-          addNotice: "Added source video frames.",
+          addNotice: "Added frames from new source-video time ranges.",
           count: (count: string) => `${count} frames`,
           delete: "Delete",
           deleteFailed: "Could not delete the video frame.",
           deletedNotice: "The video frame has been deleted.",
           empty:
             "No video frames are saved yet. Add frames from the source video to build the image database for news and purchase surfaces.",
-          generate: "Add frames from source video",
-          generating: "Extracting frames",
+          generate: "Add new time-range frames",
+          generating: "Finding new time ranges",
           helper:
-            "Manage source video frames used by news reports, paid locks, and pre-purchase previews.",
+            "Manage a time-based source video frame DB used by news reports, paid locks, and pre-purchase previews.",
           limit: (count: string) => `Up to ${count} images can be saved.`,
           modalBody:
-            "Extract frames from the source video and select cuts viewers can see first in news and purchase screens.",
+            "Find source-video time ranges that are not already saved, then add stronger cuts for news and purchase screens.",
           modalClose: "Close",
           modalEyebrow: "Video Frame DB",
           modalTitle: "Manage vlog video frames",
@@ -849,6 +849,68 @@ function buildVlogTeaserFrameOptions(
 
       return left.originalIndex - right.originalIndex;
     });
+}
+
+function getVlogFrameTimestampSecs(
+  post: Pick<CreatorStudioPostRecord, "coverImageCandidates">,
+) {
+  return post.coverImageCandidates.flatMap((candidate) =>
+    candidate.source === "frame" && isFrameTimestamp(candidate.timestampSec)
+      ? [candidate.timestampSec]
+      : [],
+  );
+}
+
+function sortVlogTeaserImageUrlsByTimestamp({
+  coverImageCandidates,
+  imageUrls,
+}: {
+  coverImageCandidates: ContentCoverImageCandidate[];
+  imageUrls: string[];
+}) {
+  const originalIndexByUrl = new Map<string, number>();
+  const timestampByUrl = new Map<string, number>();
+  const uniqueImageUrls = getUniqueImageUrls(imageUrls);
+
+  uniqueImageUrls.forEach((imageUrl, index) => {
+    originalIndexByUrl.set(imageUrl, index);
+  });
+
+  for (const candidate of coverImageCandidates) {
+    if (
+      candidate.source !== "frame" ||
+      !candidate.url ||
+      !isFrameTimestamp(candidate.timestampSec)
+    ) {
+      continue;
+    }
+
+    timestampByUrl.set(candidate.url, candidate.timestampSec);
+  }
+
+  return uniqueImageUrls.sort((leftUrl, rightUrl) => {
+    const leftTimestamp = timestampByUrl.get(leftUrl);
+    const rightTimestamp = timestampByUrl.get(rightUrl);
+    const leftHasTime = isFrameTimestamp(leftTimestamp);
+    const rightHasTime = isFrameTimestamp(rightTimestamp);
+
+    if (leftHasTime && rightHasTime) {
+      return leftTimestamp - rightTimestamp;
+    }
+
+    if (leftHasTime) {
+      return -1;
+    }
+
+    if (rightHasTime) {
+      return 1;
+    }
+
+    return (
+      (originalIndexByUrl.get(leftUrl) ?? 0) -
+      (originalIndexByUrl.get(rightUrl) ?? 0)
+    );
+  });
 }
 
 function getStatusLabel(
@@ -1912,10 +1974,15 @@ export function FanletterVlogManagementPage({
       setTeaserImageError(null);
 
       const frameCount = Math.min(remainingSlots, 6);
+      const existingTimestampSecs = getVlogFrameTimestampSecs(activeTeaserPost);
       const frames = await captureVideoCoverFramesFromUrl(
         videoUrl,
         activeTeaserPost.title.trim() || activeTeaserPost.contentId,
-        { count: frameCount },
+        {
+          count: frameCount,
+          existingTimestampSecs,
+          selectionMode: "fill_gaps",
+        },
       );
 
       if (frames.length === 0) {
@@ -1955,16 +2022,22 @@ export function FanletterVlogManagementPage({
         throw new Error(copy.teasers.addFailed);
       }
 
+      const nextCoverImageCandidates = mergeVlogCoverImageCandidates(
+        activeTeaserPost.coverImageCandidates,
+        uploadedFrameCandidates,
+      );
+      const nextContentImageUrls = sortVlogTeaserImageUrlsByTimestamp({
+        coverImageCandidates: nextCoverImageCandidates,
+        imageUrls: [
+          ...activeTeaserPost.contentImageUrls,
+          ...uploadedFrameUrls,
+        ],
+      });
+
       await savePostTeaserImages({
         failureMessage: copy.teasers.addFailed,
-        nextCoverImageCandidates: mergeVlogCoverImageCandidates(
-          activeTeaserPost.coverImageCandidates,
-          uploadedFrameCandidates,
-        ),
-        nextContentImageUrls: [
-          ...uploadedFrameUrls,
-          ...activeTeaserPost.contentImageUrls,
-        ],
+        nextCoverImageCandidates,
+        nextContentImageUrls,
         notice: copy.teasers.addNotice,
         post: activeTeaserPost,
       });
