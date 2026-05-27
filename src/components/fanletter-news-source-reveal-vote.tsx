@@ -1016,16 +1016,14 @@ export function FanletterNewsSourceRevealVote({
           </div>
         </div>
 
-        {isDock ? null : (
-          <SourceRevealParticipantStack
-            copy={copy.voters}
-            isCompact={isCompact}
-            isDark={isDark}
-            locale={locale}
-            participants={participants}
-            totalCount={state.count}
-          />
-        )}
+        <SourceRevealParticipantStack
+          copy={copy.voters}
+          isCompact={isCompact}
+          isDark={isDark}
+          locale={locale}
+          participants={participants}
+          totalCount={state.count}
+        />
 
         {state.unlocked ? null : isLoggedIn ? (
           <button
