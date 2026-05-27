@@ -133,9 +133,11 @@ type VlogCoverUploadResponse = {
 };
 
 type VlogTeaserFrameOption = {
+  height: number | null;
   imageUrl: string;
   originalIndex: number;
   timestampSec: number | null;
+  width: number | null;
 };
 
 const FANLETTER_VLOG_DISCONNECTED_GRACE_MS = 4500;
@@ -690,6 +692,25 @@ function getVlogCoverAspectRatioStyle(
   };
 }
 
+function getVlogFrameAspectRatioStyle(frameOption: VlogTeaserFrameOption) {
+  if (
+    frameOption.width &&
+    frameOption.height &&
+    Number.isFinite(frameOption.width) &&
+    Number.isFinite(frameOption.height) &&
+    frameOption.width > 0 &&
+    frameOption.height > 0
+  ) {
+    return {
+      aspectRatio: `${frameOption.width} / ${frameOption.height}`,
+    };
+  }
+
+  return {
+    aspectRatio: "16 / 9",
+  };
+}
+
 function formatImageSizeLabel(
   coverMetadata: ContentCoverImageCandidate | null,
   locale: Locale,
@@ -707,6 +728,27 @@ function formatImageSizeLabel(
 
   return `${formatNumber(coverMetadata.width, locale)}x${formatNumber(
     coverMetadata.height,
+    locale,
+  )}`;
+}
+
+function formatFrameImageSizeLabel(
+  frameOption: VlogTeaserFrameOption,
+  locale: Locale,
+) {
+  if (
+    !frameOption.width ||
+    !frameOption.height ||
+    !Number.isFinite(frameOption.width) ||
+    !Number.isFinite(frameOption.height) ||
+    frameOption.width <= 0 ||
+    frameOption.height <= 0
+  ) {
+    return null;
+  }
+
+  return `${formatNumber(frameOption.width, locale)}x${formatNumber(
+    frameOption.height,
     locale,
   )}`;
 }
@@ -944,11 +986,17 @@ function buildVlogTeaserFrameOptions(
   }
 
   return post.contentImageUrls
-    .map((imageUrl, originalIndex) => ({
-      imageUrl,
-      originalIndex,
-      timestampSec: frameCandidateByUrl.get(imageUrl)?.timestampSec ?? null,
-    }))
+    .map((imageUrl, originalIndex) => {
+      const frameCandidate = frameCandidateByUrl.get(imageUrl);
+
+      return {
+        height: frameCandidate?.height ?? null,
+        imageUrl,
+        originalIndex,
+        timestampSec: frameCandidate?.timestampSec ?? null,
+        width: frameCandidate?.width ?? null,
+      };
+    })
     .sort((left, right) => {
       const leftTimestamp = left.timestampSec;
       const rightTimestamp = right.timestampSec;
@@ -3357,7 +3405,7 @@ export function FanletterVlogManagementPage({
           <div
             aria-labelledby="fanletter-vlog-teaser-modal-title"
             aria-modal="true"
-            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden rounded-none border border-white/12 bg-[#f5f6f1] text-[#111510] shadow-[0_24px_80px_rgba(0,0,0,0.34)] sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-5xl sm:rounded-lg"
+            className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden rounded-none border border-white/12 bg-[#f5f6f1] text-[#111510] shadow-[0_24px_80px_rgba(0,0,0,0.34)] sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-6xl sm:rounded-lg"
             role="dialog"
           >
             <div className="flex shrink-0 items-start justify-between gap-3 border-b border-black/10 bg-white px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
@@ -3415,7 +3463,7 @@ export function FanletterVlogManagementPage({
                   </div>
 
                   {activeTeaserFrameOptions.length > 0 ? (
-                    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
+                    <div className="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-2">
                       {activeTeaserFrameOptions.map((frameOption, index) => {
                         const imageUrl = frameOption.imageUrl;
                         const deletingKey = `${activeTeaserPost.contentId}:${imageUrl}`;
@@ -3424,42 +3472,48 @@ export function FanletterVlogManagementPage({
                         const timestampLabel = formatFrameTimestamp(
                           frameOption.timestampSec,
                         );
+                        const frameAspectRatioStyle =
+                          getVlogFrameAspectRatioStyle(frameOption);
+                        const frameSizeLabel = formatFrameImageSizeLabel(
+                          frameOption,
+                          locale,
+                        );
                         const shouldBypassFrameImageOptimization =
                           shouldBypassFanletterImageOptimization(imageUrl);
 
                         return (
                           <div
-                            className="overflow-hidden rounded-lg border border-black/10 bg-[#f6f8f4]"
+                            className="overflow-hidden rounded-lg border border-black/10 bg-white shadow-sm"
                             key={`${activeTeaserPost.contentId}:${imageUrl}:${index}`}
                           >
-                            <div className="relative aspect-video bg-black">
-                              <Image
-                                alt=""
-                                aria-hidden="true"
-                                className="scale-110 object-cover blur-lg brightness-50 saturate-75"
-                                fill
-                                loading={index === 0 ? "eager" : "lazy"}
-                                sizes="(max-width: 640px) 45vw, 16rem"
-                                src={imageUrl}
-                                unoptimized={shouldBypassFrameImageOptimization}
-                              />
+                            <div
+                              className="relative w-full bg-black"
+                              style={frameAspectRatioStyle}
+                            >
                               <Image
                                 alt=""
                                 aria-hidden="true"
                                 className="object-contain"
                                 fill
                                 loading={index === 0 ? "eager" : "lazy"}
-                                sizes="(max-width: 640px) 45vw, 16rem"
+                                sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1280px) 50vw, 28rem"
                                 src={imageUrl}
                                 unoptimized={shouldBypassFrameImageOptimization}
                               />
                               <span className="absolute left-2 top-2 rounded-full bg-black/62 px-2 py-1 text-[0.62rem] font-black text-white/82 backdrop-blur">
                                 {String(index + 1).padStart(2, "0")}
                               </span>
-                              <span className="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[0.62rem] font-black text-black/76 shadow-sm backdrop-blur">
-                                <Clock3 className="size-3" />
-                                {timestampLabel ?? copy.teasers.timeUnknown}
-                              </span>
+                              <div className="absolute inset-x-2 bottom-2 flex flex-wrap gap-1.5">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-white/90 px-2 py-1 text-[0.62rem] font-black text-black/76 shadow-sm backdrop-blur">
+                                  <Clock3 className="size-3" />
+                                  {timestampLabel ?? copy.teasers.timeUnknown}
+                                </span>
+                                {frameSizeLabel ? (
+                                  <span className="inline-flex items-center rounded-full bg-black/62 px-2 py-1 text-[0.62rem] font-black text-white/78 backdrop-blur">
+                                    {frameSizeLabel}
+                                  </span>
+                                ) : null}
+                              </div>
                             </div>
                             <div className="p-2">
                               <button
