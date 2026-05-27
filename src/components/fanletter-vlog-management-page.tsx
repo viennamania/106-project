@@ -259,6 +259,9 @@ function getCopy(locale: Locale) {
           sectionTitle: "영상 프레임",
           timeLabel: "프레임 시간",
           timeUnknown: "시간 정보 없음",
+          videoDuration: "원본 영상 길이",
+          videoDurationLoading: "확인 중",
+          videoDurationUnknown: "확인 불가",
         },
         emptyBody:
           "아직 관리할 브이로그가 없습니다. 오늘의 AI 캐릭터 브이로그를 만든 뒤 공개 상태를 관리해보세요.",
@@ -413,6 +416,9 @@ function getCopy(locale: Locale) {
           sectionTitle: "Video frames",
           timeLabel: "Frame time",
           timeUnknown: "No time data",
+          videoDuration: "Source video length",
+          videoDurationLoading: "Checking",
+          videoDurationUnknown: "Unavailable",
         },
         emptyBody:
           "There are no vlogs to manage yet. Create today's AI character vlog, then manage its publishing state here.",
@@ -809,6 +815,26 @@ function formatFrameTimestamp(timestampSec: number | null) {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
+function formatVideoDuration(durationSec: number | null | undefined) {
+  if (!isFrameTimestamp(durationSec)) {
+    return null;
+  }
+
+  const totalSeconds = Math.max(0, Math.round(durationSec));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+      2,
+      "0",
+    )}`;
+  }
+
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
 function buildVlogTeaserFrameOptions(
   post: Pick<CreatorStudioPostRecord, "contentImageUrls" | "coverImageCandidates">,
 ): VlogTeaserFrameOption[] {
@@ -1079,6 +1105,9 @@ export function FanletterVlogManagementPage({
     useState<string | null>(null);
   const [deletingTeaserImageKey, setDeletingTeaserImageKey] =
     useState<string | null>(null);
+  const [videoDurationByContentId, setVideoDurationByContentId] = useState<
+    Record<string, number | null>
+  >({});
   const [coverCrop, setCoverCrop] = useState<VlogCoverCropState>(
     DEFAULT_VLOG_COVER_CROP,
   );
@@ -2260,10 +2289,22 @@ export function FanletterVlogManagementPage({
     () => (activeTeaserPost ? buildVlogTeaserFrameOptions(activeTeaserPost) : []),
     [activeTeaserPost],
   );
+  const activeTeaserVideoUrl = activeTeaserPost
+    ? getPostVideoUrl(activeTeaserPost)
+    : null;
+  const activeTeaserVideoDuration =
+    activeTeaserPost && activeTeaserPost.contentId in videoDurationByContentId
+      ? videoDurationByContentId[activeTeaserPost.contentId]
+      : undefined;
+  const activeTeaserVideoDurationLabel =
+    activeTeaserVideoDuration === undefined
+      ? copy.teasers.videoDurationLoading
+      : formatVideoDuration(activeTeaserVideoDuration) ??
+        copy.teasers.videoDurationUnknown;
   const canAddVideoFrames = Boolean(
     activeTeaserPost &&
       activeTeaserImageUrls.length < VLOG_TEASER_IMAGE_LIMIT &&
-      getPostVideoUrl(activeTeaserPost) &&
+      activeTeaserVideoUrl &&
       !generatingTeaserPostId,
   );
 
@@ -3254,18 +3295,51 @@ export function FanletterVlogManagementPage({
                     </div>
                   </div>
                   <div className="mt-4 rounded-lg border border-black/10 bg-[#f6f8f4] p-3">
-                    <p className="text-xs font-black uppercase tracking-[0.16em] text-black/38">
-                      {locale === "ko" ? "원본 영상" : "Source video"}
-                    </p>
-                    {getPostVideoUrl(activeTeaserPost) ? (
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-black/38">
+                        {locale === "ko" ? "원본 영상" : "Source video"}
+                      </p>
+                      {activeTeaserVideoUrl ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-2.5 py-1 text-[0.68rem] font-black text-black/62">
+                          <Clock3 className="size-3.5 text-[#16702e]" />
+                          {copy.teasers.videoDuration}:{" "}
+                          <span className="text-[#111510]">
+                            {activeTeaserVideoDurationLabel}
+                          </span>
+                        </span>
+                      ) : null}
+                    </div>
+                    {activeTeaserVideoUrl ? (
                       <div className="mt-2 flex justify-center overflow-hidden rounded-lg bg-black">
                         <video
                           className="max-h-[58dvh] w-full bg-black object-contain sm:max-h-[30rem] lg:max-h-[34rem]"
                           controls
                           muted
+                          onError={() => {
+                            setVideoDurationByContentId((current) => ({
+                              ...current,
+                              [activeTeaserPost.contentId]: null,
+                            }));
+                          }}
+                          onLoadedMetadata={(event) => {
+                            const duration = event.currentTarget.duration;
+                            const nextDuration =
+                              Number.isFinite(duration) && duration > 0
+                                ? duration
+                                : null;
+
+                            setVideoDurationByContentId((current) =>
+                              current[activeTeaserPost.contentId] === nextDuration
+                                ? current
+                                : {
+                                    ...current,
+                                    [activeTeaserPost.contentId]: nextDuration,
+                                  },
+                            );
+                          }}
                           playsInline
                           preload="metadata"
-                          src={getPostVideoUrl(activeTeaserPost) ?? undefined}
+                          src={activeTeaserVideoUrl}
                         />
                       </div>
                     ) : (
