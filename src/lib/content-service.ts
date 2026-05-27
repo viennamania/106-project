@@ -709,6 +709,7 @@ const contentPostUpdateContentFields = [
   "body",
   "contentImageUrls",
   "contentMaturityRating",
+  "contentVideoMetadata",
   "contentVideoUrls",
   "coverImageCandidates",
   "coverImageUrl",
@@ -752,7 +753,9 @@ function isContentUpdateLimitedToFields(
 
 function isContentFanRequestNeutralUpdate(input: ContentPostUpdateRequest) {
   return isContentUpdateLimitedToFields(input, [
+    "contentImageUrls",
     "contentMaturityRating",
+    "contentVideoMetadata",
     "coverImageCandidates",
     "coverImageUrl",
   ]);
