@@ -2349,14 +2349,6 @@ export default async function LocalizedFanletterNewsHomePage({
               visualReportCount={visualReportCount}
             />
 
-            <FanletterServiceBridge
-              locale={locale}
-              newsHref={newsHomeHref}
-              studioHref={studioHref}
-              variant="news"
-              vlogHref={charactersHref}
-            />
-
             <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start">
               <div className="min-w-0 space-y-7 sm:space-y-9">
                 <PhotoDesk
@@ -2458,6 +2450,14 @@ export default async function LocalizedFanletterNewsHomePage({
                 </section>
               </aside>
             </div>
+
+            <FanletterServiceBridge
+              locale={locale}
+              newsHref={newsHomeHref}
+              studioHref={studioHref}
+              variant="news"
+              vlogHref={charactersHref}
+            />
           </div>
         ) : (
           <section className="mt-6 rounded-lg border border-black/10 bg-white p-8 text-center">
