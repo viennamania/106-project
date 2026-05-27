@@ -1548,6 +1548,7 @@ function SourceVlogEmbed({
   blurred,
   copy,
   isPaidContent,
+  isViewerLoggedIn,
   locale,
   newsConnectHref,
   paidUnlockHref,
@@ -1563,6 +1564,7 @@ function SourceVlogEmbed({
   blurred: boolean;
   copy: ReturnType<typeof getCopy>;
   isPaidContent: boolean;
+  isViewerLoggedIn: boolean;
   locale: Locale;
   newsConnectHref: string;
   paidUnlockHref: string | null;
@@ -1575,6 +1577,7 @@ function SourceVlogEmbed({
   sourceContent: FanletterPublicContentDetail | null;
 }) {
   const sourceRevealLocked = Boolean(sourceReveal && !sourceReveal.unlocked);
+  const canShowLockedSourceFrames = !sourceRevealLocked || isViewerLoggedIn;
   const mediaBlurred = blurred;
   const lockedNsfwSourceTeaserBlurred =
     sourceContent?.contentMaturityRating === "nsfw" &&
@@ -1591,13 +1594,15 @@ function SourceVlogEmbed({
     shouldUseReportCoverImage
       ? reportCoverImageUrl ??
         sourceContent?.coverImageUrl ??
-        sourceContent?.contentImageUrls[0] ??
+        (canShowLockedSourceFrames ? sourceContent?.contentImageUrls[0] : null) ??
         null
       : sourceContent?.coverImageUrl ??
-        sourceContent?.contentImageUrls[0] ??
+        (canShowLockedSourceFrames ? sourceContent?.contentImageUrls[0] : null) ??
         reportCoverImageUrl;
   const sourceSceneFrames = buildSourceVlogSceneFrames(sourceContent);
-  const sourceOverlaySceneFrames = pickTimelinePreviewFrames(sourceSceneFrames);
+  const sourceOverlaySceneFrames = canShowLockedSourceFrames
+    ? pickTimelinePreviewFrames(sourceSceneFrames)
+    : [];
   const hasEmbeddedVideo = Boolean(sourceVideoUrl);
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
   const paidUnlockLabel = `${paidUnlockAmount} USDT`;
@@ -2072,6 +2077,7 @@ export default async function LocalizedFanletterNewsReportPage({
   const copy = getCopy(locale);
   const articleTitle = getArticleDisplayTitle(report.title);
   const isFirstNewsReport = isFanletterNewsFirstReportForContent(report);
+  const isViewerLoggedIn = Boolean(memberServerSession?.email);
   const referralCode =
     readFanletterReferralCode(query.ref) ?? report.reporterReferralCode;
   const newsHomeHref = buildPathWithReferral(
@@ -2429,6 +2435,7 @@ export default async function LocalizedFanletterNewsReportPage({
                 blurred={shouldBlurCurrentReport}
                 copy={copy}
                 isPaidContent={isPaidSourceContent}
+                isViewerLoggedIn={isViewerLoggedIn}
                 locale={locale}
                 newsConnectHref={newsConnectHref}
                 paidUnlockHref={paidUnlockHref}
