@@ -47,6 +47,7 @@ import { cn } from "@/lib/utils";
 type CoverOption = {
   candidateId: string;
   contentType: string | null;
+  height: number | null;
   imageUrl: string;
   inputValue: string;
   isAuto: boolean;
@@ -54,6 +55,7 @@ type CoverOption = {
   placements: string[];
   source: string;
   timestampSec: number | null;
+  width: number | null;
 };
 
 export type FanletterNewsReportComposerSource = {
@@ -221,6 +223,7 @@ function getCopy(locale: Locale) {
         firstStep: "1. 브이로그 후보 선택",
         imageOnly:
           "작성실은 원본 동영상 없이 티저 이미지와 공개 메타만 사용합니다.",
+        imageSize: "이미지 크기",
         lead:
           "공개 브이로그와 구매한 유료 브이로그를 선택해 티저 이미지, AI 캐릭터 정보, 기존 리포트, 공개 메타를 기준으로 뉴스 리포트를 작성합니다.",
         locked: "단독 보도권",
@@ -330,6 +333,7 @@ function getCopy(locale: Locale) {
         firstStep: "1. Choose a vlog candidate",
         imageOnly:
           "The reporter desk uses teaser images and public metadata without source video playback.",
+        imageSize: "Image size",
         lead:
           "Choose a public vlog or a paid vlog you purchased, then create a report from teaser images, AI character info, published reports, and public metadata.",
         locked: "Exclusive access",
@@ -439,6 +443,45 @@ function getCoverLabel(option: CoverOption, index: number, locale: Locale) {
   }
 
   return `${sourceLabel} ${formatNumber(index + 1, locale)}`;
+}
+
+function formatCoverOptionImageSize(option: CoverOption, locale: Locale) {
+  if (
+    !option.width ||
+    !option.height ||
+    !Number.isFinite(option.width) ||
+    !Number.isFinite(option.height) ||
+    option.width <= 0 ||
+    option.height <= 0
+  ) {
+    return null;
+  }
+
+  return `${formatNumber(option.width, locale)}x${formatNumber(
+    option.height,
+    locale,
+  )}`;
+}
+
+function getCoverOptionPreviewStyle(option: CoverOption) {
+  if (
+    option.width &&
+    option.height &&
+    Number.isFinite(option.width) &&
+    Number.isFinite(option.height) &&
+    option.width > 0 &&
+    option.height > 0
+  ) {
+    return {
+      aspectRatio: `${option.width} / ${option.height}`,
+      backgroundImage: `url(${option.imageUrl})`,
+    };
+  }
+
+  return {
+    aspectRatio: "16 / 10",
+    backgroundImage: `url(${option.imageUrl})`,
+  };
 }
 
 function getReportCoverCropRect({
@@ -1545,6 +1588,11 @@ export function FanletterNewsReportComposerPage({
                     <div className="mt-4 grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-3">
                       {selectedSource.coverOptions.map((option, index) => {
                         const isSelected = option.imageUrl === selectedCoverUrl;
+                        const imageSizeLabel = formatCoverOptionImageSize(
+                          option,
+                          locale,
+                        );
+                        const previewStyle = getCoverOptionPreviewStyle(option);
 
                         return (
                           <button
@@ -1563,15 +1611,22 @@ export function FanletterNewsReportComposerPage({
                             type="button"
                           >
                             <span
-                              className="block aspect-[16/10] rounded-md bg-[#111510] bg-contain bg-center bg-no-repeat"
-                              style={{ backgroundImage: `url(${option.imageUrl})` }}
+                              className="block min-h-[10rem] rounded-md bg-[#111510] bg-contain bg-center bg-no-repeat"
+                              style={previewStyle}
                             />
-                            <span className="mt-2 flex items-center justify-between gap-2 px-1 pb-1">
-                              <span className="min-w-0 truncate text-xs font-black">
-                                {getCoverLabel(option, index, locale)}
+                            <span className="mt-2 flex items-start justify-between gap-2 px-1 pb-1">
+                              <span className="min-w-0">
+                                <span className="block truncate text-xs font-black">
+                                  {getCoverLabel(option, index, locale)}
+                                </span>
+                                {imageSizeLabel ? (
+                                  <span className="mt-0.5 block truncate text-[0.64rem] font-black uppercase tracking-[0.06em] text-black/42">
+                                    {copy.imageSize} · {imageSizeLabel}
+                                  </span>
+                                ) : null}
                               </span>
                               {isSelected ? (
-                                <span className="rounded-full bg-[#44f26e] px-2 py-0.5 text-[0.62rem] font-black text-[#111510]">
+                                <span className="shrink-0 rounded-full bg-[#44f26e] px-2 py-0.5 text-[0.62rem] font-black text-[#111510]">
                                   {copy.selected}
                                 </span>
                               ) : null}

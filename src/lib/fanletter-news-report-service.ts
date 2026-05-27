@@ -227,6 +227,7 @@ type FanletterRelatedNewsReportDocument = FanletterNewsReportDisplayDocument & {
 export type FanletterNewsReportCoverOption = {
   candidateId: string;
   contentType: string | null;
+  height: number | null;
   imageUrl: string;
   inputValue: string;
   isAuto: boolean;
@@ -239,16 +240,23 @@ export type FanletterNewsReportCoverOption = {
     | "primary"
     | "reporter_cropped";
   timestampSec: number | null;
+  width: number | null;
 };
 
 type FanletterNewsReportCoverOptionInput = Omit<
   FanletterNewsReportCoverOption,
-  "contentType" | "isAuto" | "isSelected" | "placements" | "timestampSec"
+  | "contentType"
+  | "height"
+  | "isAuto"
+  | "isSelected"
+  | "placements"
+  | "timestampSec"
+  | "width"
 > &
   Partial<
     Pick<
       FanletterNewsReportCoverOption,
-      "contentType" | "isAuto" | "placements" | "timestampSec"
+      "contentType" | "height" | "isAuto" | "placements" | "timestampSec" | "width"
     >
   >;
 
@@ -678,12 +686,14 @@ function getFanletterNewsReportCoverOptionsFromPost({
   const appendOption = ({
     candidateId,
     contentType = null,
+    height = null,
     imageUrl,
     inputValue,
     isAuto = false,
     placements = [],
     source,
     timestampSec = null,
+    width = null,
   }: FanletterNewsReportCoverOptionInput) => {
     const normalizedImageUrl = imageUrl.trim();
 
@@ -714,6 +724,7 @@ function getFanletterNewsReportCoverOptionsFromPost({
     options.push({
       candidateId,
       contentType,
+      height,
       imageUrl: normalizedImageUrl,
       inputValue,
       isAuto,
@@ -725,6 +736,7 @@ function getFanletterNewsReportCoverOptionsFromPost({
       placements,
       source,
       timestampSec,
+      width,
     });
   };
   const frameCandidateByUrl = new Map<string, ContentCoverImageCandidate>();
@@ -746,11 +758,13 @@ function getFanletterNewsReportCoverOptionsFromPost({
     appendOption({
       candidateId: frameCandidate?.candidateId || `content-image-${index}`,
       contentType: frameCandidate?.contentType ?? null,
+      height: frameCandidate?.height ?? null,
       imageUrl: normalizedImageUrl,
       inputValue: imageUrl,
       placements: frameCandidate?.placements ?? [],
       source: frameCandidate?.source ?? "content_image",
       timestampSec: frameCandidate?.timestampSec ?? null,
+      width: frameCandidate?.width ?? null,
     });
   }
 
