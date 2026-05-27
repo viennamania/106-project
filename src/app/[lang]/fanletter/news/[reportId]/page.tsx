@@ -44,6 +44,7 @@ import {
 import {
   createFanletterNewsReportShareHref,
   getFanletterNewsReportById,
+  getFanletterNewsReporterMemberByEmail,
   getFanletterNewsReporterProfile,
   getRelatedFanletterNewsReports,
   type FanletterNewsReporterProfile,
@@ -87,6 +88,7 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { readMemberServerSession } from "@/lib/member-server-session";
+import { normalizeReferralCode } from "@/lib/member";
 import { buildWalletUnlockHref } from "@/lib/wallet-unlock";
 
 type FanletterNewsReportSearchParams = {
@@ -109,6 +111,12 @@ type SourceVlogRevealTeaserCopy = {
 type SourceVlogSceneFrame = {
   imageUrl: string;
   timestampSec: number | null;
+};
+
+type ViewerOwnershipSignal = {
+  key: "character" | "reporter" | "video";
+  label: string;
+  owned: boolean;
 };
 
 const RELATED_NEWS_PAGE_SIZE = 4;
@@ -146,6 +154,13 @@ function getCopy(locale: Locale) {
           "이 글은 원본 브이로그의 공개 정보와 티저를 바탕으로 생성된 FanLetter AI 팬 리포트입니다. 실제 언론사의 독립 취재 뉴스로 표시하지 않습니다.",
         articleSection: "연예",
         byline: "팬 기자",
+        viewerOwnership: {
+          character: "AI 캐릭터",
+          reporter: "리포터",
+          title: "내 권한 확인",
+          verified: "소유 확인",
+          video: "동영상",
+        },
         titleCharacter: {
           cta: "캐릭터 보기",
           eyebrow: "AI 캐릭터",
@@ -346,6 +361,13 @@ function getCopy(locale: Locale) {
           "This is a FanLetter AI fan report generated from the public source vlog information and teaser. It is not presented as independently reported journalism.",
         articleSection: "Entertainment",
         byline: "Fan reporter",
+        viewerOwnership: {
+          character: "AI character",
+          reporter: "Reporter",
+          title: "My ownership",
+          verified: "Owner verified",
+          video: "Video",
+        },
         titleCharacter: {
           cta: "View character",
           eyebrow: "AI character",
@@ -1165,6 +1187,38 @@ function ReporterByline({
           </div>
         </div>
       </details>
+    </section>
+  );
+}
+
+function ViewerOwnershipStatus({
+  copy,
+  signals,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  signals: ViewerOwnershipSignal[];
+}) {
+  const ownedSignals = signals.filter((signal) => signal.owned);
+
+  if (ownedSignals.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-[#44f26e]/22 bg-[#ecfff0] px-3 py-2 text-xs font-black text-[#111510]">
+      <span className="inline-flex items-center gap-1.5 text-[#16702e]">
+        <ShieldCheck className="size-3.5" />
+        {copy.viewerOwnership.title}
+      </span>
+      {ownedSignals.map((signal) => (
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full border border-[#19b84b]/28 bg-white px-2.5 py-1 text-[0.68rem] text-[#16702e]"
+          key={signal.key}
+        >
+          <CheckCircle2 className="size-3.5" />
+          {signal.label} {copy.viewerOwnership.verified}
+        </span>
+      ))}
     </section>
   );
 }
@@ -2147,6 +2201,7 @@ export default async function LocalizedFanletterNewsReportPage({
     reporterIncentiveStats,
     reporterReportIncentiveStats,
     reporterProfile,
+    viewerReporterMember,
   ] = await Promise.all([
     getFanletterPublicContentDetail(
       report.contentId,
@@ -2174,11 +2229,56 @@ export default async function LocalizedFanletterNewsReportPage({
     getFanletterNewsReporterProfile({
       reporterReferralCode: report.reporterReferralCode,
     }),
+    getFanletterNewsReporterMemberByEmail(
+      memberServerSession?.email ?? null,
+      locale,
+    ),
   ]);
   const copy = getCopy(locale);
   const articleTitle = getArticleDisplayTitle(report.title);
   const isFirstNewsReport = isFanletterNewsFirstReportForContent(report);
   const isViewerLoggedIn = Boolean(memberServerSession?.email);
+  const viewerReferralCode = normalizeReferralCode(
+    viewerReporterMember?.referralCode,
+  );
+  const reporterReferralCode = normalizeReferralCode(report.reporterReferralCode);
+  const creatorReferralCode = normalizeReferralCode(
+    sourceContent?.authorReferralCode ?? report.creatorReferralCode,
+  );
+  const isViewerReporterOwner = Boolean(
+    isViewerLoggedIn &&
+      viewerReferralCode &&
+      reporterReferralCode &&
+      viewerReferralCode === reporterReferralCode,
+  );
+  const isViewerVideoOwner = Boolean(
+    isViewerLoggedIn && sourceContent?.viewerRelation === "owner",
+  );
+  const isViewerCharacterOwner = Boolean(
+    isViewerLoggedIn &&
+      creatorReferralCode &&
+      ((viewerReferralCode && viewerReferralCode === creatorReferralCode) ||
+        isViewerVideoOwner),
+  );
+  const viewerOwnershipSignals: ViewerOwnershipSignal[] = isViewerLoggedIn
+    ? [
+        {
+          key: "reporter",
+          label: copy.viewerOwnership.reporter,
+          owned: isViewerReporterOwner,
+        },
+        {
+          key: "character",
+          label: copy.viewerOwnership.character,
+          owned: isViewerCharacterOwner,
+        },
+        {
+          key: "video",
+          label: copy.viewerOwnership.video,
+          owned: isViewerVideoOwner,
+        },
+      ]
+    : [];
   const referralCode =
     readFanletterReferralCode(query.ref) ?? report.reporterReferralCode;
   const newsHomeHref = buildPathWithReferral(
@@ -2447,6 +2547,11 @@ export default async function LocalizedFanletterNewsReportPage({
                   reporterReportStats={reporterReportStats}
                   reporterTrust={reporterTrust}
                   reporterTrustStats={reporterTrustStats}
+                />
+
+                <ViewerOwnershipStatus
+                  copy={copy}
+                  signals={viewerOwnershipSignals}
                 />
 
                 <ArticleActionLinks
