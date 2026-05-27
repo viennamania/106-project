@@ -1275,6 +1275,7 @@ function SourceVlogRevealTeaserOverlay({
 }) {
   const copy = getSourceVlogRevealTeaserCopy(locale);
   const teaserFrames = frames.slice(0, 3);
+  const hasTeaserFrames = teaserFrames.length > 0;
   const teaserGridClass =
     teaserFrames.length >= 3
       ? "grid-cols-3"
@@ -1284,8 +1285,14 @@ function SourceVlogRevealTeaserOverlay({
 
   return (
     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.88)_100%)] p-3 text-white sm:p-5">
-      <div className="mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center">
-        {teaserFrames.length > 0 ? (
+      <div
+        className={
+          hasTeaserFrames
+            ? "mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center"
+            : "flex h-full min-h-0 w-full items-end justify-center sm:justify-end"
+        }
+      >
+        {hasTeaserFrames ? (
           <div className="flex min-h-0 flex-1 flex-col gap-2 sm:h-full sm:justify-center sm:gap-3">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="min-w-0">
@@ -1351,7 +1358,7 @@ function SourceVlogRevealTeaserOverlay({
         ) : null}
 
         <FanletterNewsSourceRevealVote
-          className="w-full"
+          className={hasTeaserFrames ? "w-full" : "w-full max-w-[31rem]"}
           connectHref={connectHref}
           density="compact"
           initialState={sourceReveal}
