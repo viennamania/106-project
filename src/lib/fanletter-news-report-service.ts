@@ -2657,9 +2657,13 @@ export async function getFanletterNewsReportCoverOptions({
   const normalizedReportId = reportId?.trim() ?? "";
   const normalizedReporterReferralCode =
     normalizeReferralCode(reporterReferralCode);
+  const emptyResult = {
+    options: [] as FanletterNewsReportCoverOption[],
+    teaserImageUrls: [] as string[],
+  };
 
   if (!normalizedReportId) {
-    return [];
+    return emptyResult;
   }
 
   const reportsCollection = await getFanletterNewsReportsCollection();
@@ -2674,14 +2678,16 @@ export async function getFanletterNewsReportCoverOptions({
     {
       projection: {
         contentId: 1,
+        coverImageOriginalUrl: 1,
         coverImageSource: 1,
         coverImageUrl: 1,
+        teaserImageUrls: 1,
       },
     },
   );
 
   if (!report) {
-    return [];
+    return emptyResult;
   }
 
   const postsCollection = await getContentPostsCollection();
@@ -2700,10 +2706,17 @@ export async function getFanletterNewsReportCoverOptions({
   );
 
   if (!post) {
-    return [];
+    return emptyResult;
   }
 
-  return getFanletterNewsReportCoverOptionsFromPost({ post, report });
+  return {
+    options: getFanletterNewsReportCoverOptionsFromPost({ post, report }),
+    teaserImageUrls: getReportTeaserImageUrls({
+      post,
+      selectedCoverImageUrl: report.coverImageOriginalUrl ?? report.coverImageUrl,
+      selectedTeaserImageUrls: report.teaserImageUrls,
+    }),
+  };
 }
 
 export async function updateFanletterNewsReportCoverImage({
@@ -2713,6 +2726,7 @@ export async function updateFanletterNewsReportCoverImage({
   reporterReferralCode,
   reportId,
   selectedCoverImageUrl,
+  selectedTeaserImageUrls,
 }: {
   croppedCoverCrop?: FanletterNewsReportCoverCropInput | null;
   croppedCoverImageUrl?: string | null;
@@ -2720,6 +2734,7 @@ export async function updateFanletterNewsReportCoverImage({
   reporterReferralCode?: string | null;
   reportId?: string | null;
   selectedCoverImageUrl?: string | null;
+  selectedTeaserImageUrls?: string[] | null;
 }) {
   const normalizedReportId = reportId?.trim() ?? "";
   const normalizedReporterReferralCode =
@@ -2757,13 +2772,34 @@ export async function updateFanletterNewsReportCoverImage({
     throw new Error("Content not found.");
   }
 
-  const coverImageSelection = getReportCoverImageSelection({
-    croppedCoverCrop,
-    croppedCoverImageUrl,
-    croppedCoverSourceImageUrl,
+  const shouldUpdateCoverImage =
+    selectedCoverImageUrl !== undefined ||
+    croppedCoverImageUrl !== undefined ||
+    croppedCoverSourceImageUrl !== undefined ||
+    croppedCoverCrop !== undefined;
+  const coverImageSelection = shouldUpdateCoverImage
+    ? getReportCoverImageSelection({
+        croppedCoverCrop,
+        croppedCoverImageUrl,
+        croppedCoverSourceImageUrl,
+        post,
+        reporterReferralCode: normalizedReporterReferralCode,
+        selectedCoverImageUrl,
+      })
+    : {
+        coverImageCrop: report.coverImageCrop ?? null,
+        coverImageOriginalUrl: report.coverImageOriginalUrl ?? null,
+        coverImageSource: report.coverImageSource ?? "auto",
+        coverImageUrl: report.coverImageUrl,
+      };
+  const teaserImageUrls = getReportTeaserImageUrls({
     post,
-    reporterReferralCode: normalizedReporterReferralCode,
-    selectedCoverImageUrl,
+    selectedCoverImageUrl:
+      coverImageSelection.coverImageOriginalUrl ??
+      coverImageSelection.coverImageUrl,
+    selectedTeaserImageUrls: Array.isArray(selectedTeaserImageUrls)
+      ? selectedTeaserImageUrls
+      : report.teaserImageUrls,
   });
   const updatedAt = new Date();
 
@@ -2775,6 +2811,7 @@ export async function updateFanletterNewsReportCoverImage({
         coverImageOriginalUrl: coverImageSelection.coverImageOriginalUrl,
         coverImageSource: coverImageSelection.coverImageSource,
         coverImageUrl: coverImageSelection.coverImageUrl,
+        teaserImageUrls,
         updatedAt,
       },
     },
@@ -2786,6 +2823,7 @@ export async function updateFanletterNewsReportCoverImage({
     coverImageOriginalUrl: coverImageSelection.coverImageOriginalUrl,
     coverImageSource: coverImageSelection.coverImageSource,
     coverImageUrl: coverImageSelection.coverImageUrl,
+    teaserImageUrls,
     updatedAt,
   };
 }

@@ -95,7 +95,7 @@ function getCopy(locale: Locale) {
         unlockContributions: "언락 기여",
         updatedAt: "최근 수정",
         title: "내 AI 팬 리포트 관리",
-        updateCover: "커버 변경",
+        updateCover: "커버/티저 변경",
       }
     : {
         badge: "Fan reporter desk",
@@ -156,7 +156,7 @@ function getCopy(locale: Locale) {
         unlockContributions: "Unlock contributions",
         updatedAt: "Updated",
         title: "My AI fan report desk",
-        updateCover: "Change cover",
+        updateCover: "Cover/teasers",
       };
 }
 
@@ -435,6 +435,7 @@ export default async function LocalizedFanletterReportsPage({
         reportIncentives.sourceRevealUnlockContributionCount,
       sourceRevealVoteCount: reportIncentives.sourceRevealVoteCount,
       sourcePublishedAt: report.sourcePublishedAt?.toISOString() ?? null,
+      teaserImageUrls: report.teaserImageUrls ?? [],
       title: report.title,
       updatedAt: report.updatedAt.toISOString(),
     };

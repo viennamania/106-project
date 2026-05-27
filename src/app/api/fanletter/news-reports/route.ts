@@ -56,6 +56,7 @@ type FanletterNewsReportCoverUpdateRequest = {
   locale?: string | null;
   reportId?: string | null;
   selectedCoverImageUrl?: string | null;
+  selectedTeaserImageUrls?: string[] | null;
   walletAddress?: string | null;
 };
 
@@ -277,13 +278,14 @@ export async function GET(request: Request) {
         return reporter.error;
       }
 
-      const options = await getFanletterNewsReportCoverOptions({
+      const coverEditor = await getFanletterNewsReportCoverOptions({
         reportId: searchParams.get("reportId"),
         reporterReferralCode: reporter.reporterReferralCode,
       });
 
       return Response.json({
-        options: options.map(serializeCoverOption),
+        options: coverEditor.options.map(serializeCoverOption),
+        teaserImageUrls: coverEditor.teaserImageUrls,
       });
     }
 
@@ -386,12 +388,14 @@ export async function PATCH(request: Request) {
       reportId: body?.reportId,
       reporterReferralCode: reporter.reporterReferralCode,
       selectedCoverImageUrl: body?.selectedCoverImageUrl,
+      selectedTeaserImageUrls: body?.selectedTeaserImageUrls,
     });
     const locale: Locale =
       body?.locale && hasLocale(body.locale) ? body.locale : report.locale;
 
     revalidatePath(`/${locale}/fanletter/news/${report.reportId}`);
     revalidatePath(`/${locale}/fanletter/news`);
+    revalidatePath(`/${locale}/fanletter/news/reports`);
     revalidatePath(`/${locale}/fanletter/reports`);
 
     return Response.json({
@@ -399,6 +403,7 @@ export async function PATCH(request: Request) {
         coverImageSource: report.coverImageSource ?? "auto",
         coverImageUrl: report.coverImageUrl,
         reportId: report.reportId,
+        teaserImageUrls: report.teaserImageUrls ?? [],
       },
     });
   } catch (error) {

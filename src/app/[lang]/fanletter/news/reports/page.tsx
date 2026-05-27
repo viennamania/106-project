@@ -147,7 +147,7 @@ function getCopy(locale: Locale) {
         statusPending: "계정 준비 중",
         title: "뉴스 리포터 리포트 관리",
         unlockContributions: "언락 기여",
-        updateCover: "커버 변경",
+        updateCover: "커버/티저 변경",
         updatedAt: "최근 수정",
       }
     : {
@@ -248,7 +248,7 @@ function getCopy(locale: Locale) {
         statusPending: "Account pending",
         title: "News reporter report desk",
         unlockContributions: "Unlocks",
-        updateCover: "Change cover",
+        updateCover: "Cover/teasers",
         updatedAt: "Updated",
       };
 }
@@ -667,6 +667,7 @@ export default async function LocalizedFanletterNewsReportsPage({
         reportIncentives.sourceRevealUnlockContributionCount,
       sourceRevealVoteCount: reportIncentives.sourceRevealVoteCount,
       sourcePublishedAt: report.sourcePublishedAt?.toISOString() ?? null,
+      teaserImageUrls: report.teaserImageUrls ?? [],
       title: report.title,
       updatedAt: report.updatedAt.toISOString(),
     };

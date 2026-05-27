@@ -49,6 +49,7 @@ export type FanletterReportsPageReport = {
   sourceRevealUnlockContributionCount: number;
   sourceRevealVoteCount: number;
   sourcePublishedAt: string | null;
+  teaserImageUrls: string[];
   sourceTitle: string;
   title: string;
   updatedAt: string;
@@ -57,6 +58,7 @@ export type FanletterReportsPageReport = {
 type FanletterReportCoverOption = {
   candidateId: string;
   contentType: string | null;
+  height: number | null;
   imageUrl: string;
   inputValue: string;
   isAuto: boolean;
@@ -71,10 +73,12 @@ type FanletterReportCoverOption = {
     | "primary"
     | "reporter_cropped";
   timestampSec: number | null;
+  width: number | null;
 };
 
 type CoverOptionsResponse = {
   options: FanletterReportCoverOption[];
+  teaserImageUrls: string[];
 };
 
 type CoverUpdateResponse = {
@@ -82,6 +86,7 @@ type CoverUpdateResponse = {
     coverImageSource: FanletterNewsReportCoverImageSource;
     coverImageUrl: string | null;
     reportId: string;
+    teaserImageUrls: string[];
   };
 };
 
@@ -127,6 +132,7 @@ const REPORT_COVER_CROP_ASPECT_RATIO = 16 / 9;
 const REPORT_COVER_CROP_MAX_ZOOM = 3;
 const REPORT_COVER_CROP_OUTPUT_HEIGHT = 675;
 const REPORT_COVER_CROP_OUTPUT_WIDTH = 1200;
+const REPORT_TEASER_IMAGE_LIMIT = 4;
 const DEFAULT_REPORT_COVER_CROP: ReportCoverCropState = {
   centerX: 0.5,
   centerY: 0.5,
@@ -156,10 +162,10 @@ function getCopy(locale: Locale) {
           "원본 브이로그에서 저장된 커버 후보 중 이 리포트에 사용할 대표 이미지를 바로 변경합니다.",
         modalClose: "닫기",
         modalEmpty: "변경 가능한 커버 후보가 아직 없습니다.",
-        modalEyebrow: "커버 변경",
+        modalEyebrow: "커버/티저 변경",
         modalLoading: "커버 후보를 불러오는 중",
         modalSaving: "저장 중",
-        modalTitle: "리포트 커버 이미지 선택",
+        modalTitle: "리포트 커버와 공개 티저 컷 선택",
         maturityRating: {
           general: "일반",
           nsfw: "NSFW",
@@ -190,6 +196,14 @@ function getCopy(locale: Locale) {
           primary: "원본 대표",
           reporter_cropped: "와이드 크롭",
         },
+        teaserBody:
+          "뉴스 상세에서 원본 브이로그가 열리기 전 독자에게 먼저 보여줄 공개 컷입니다.",
+        teaserInclude: "공개 컷에 추가",
+        teaserIncluded: "공개 컷 포함",
+        teaserLimit: (count: string) => `최대 ${count}장`,
+        teaserSave: "티저 컷 저장",
+        teaserSaving: "티저 저장 중",
+        teaserTitle: "리포트 티저 이미지",
         updateCover: "커버 변경",
       }
     : {
@@ -214,10 +228,10 @@ function getCopy(locale: Locale) {
           "Choose the lead image for this report directly from the saved source-vlog cover candidates.",
         modalClose: "Close",
         modalEmpty: "No alternate cover candidates are available yet.",
-        modalEyebrow: "Change cover",
+        modalEyebrow: "Change cover/teasers",
         modalLoading: "Loading cover candidates",
         modalSaving: "Saving",
-        modalTitle: "Select report cover image",
+        modalTitle: "Select report cover and public teaser cuts",
         maturityRating: {
           general: "General",
           nsfw: "NSFW",
@@ -248,6 +262,14 @@ function getCopy(locale: Locale) {
           primary: "Source lead",
           reporter_cropped: "Wide crop",
         },
+        teaserBody:
+          "Public cuts readers see before the source vlog opens in the news detail.",
+        teaserInclude: "Add public cut",
+        teaserIncluded: "Public cut",
+        teaserLimit: (count: string) => `Up to ${count}`,
+        teaserSave: "Save teaser cuts",
+        teaserSaving: "Saving teasers",
+        teaserTitle: "Report teaser images",
         updateCover: "Change cover",
       };
 }
@@ -289,6 +311,32 @@ function formatCoverOptionTimestamp(timestampSec: number | null, locale: Locale)
 
 function getOptionKey(option: FanletterReportCoverOption) {
   return `${option.candidateId}:${option.imageUrl}`;
+}
+
+function normalizeSelectedTeaserImageUrls({
+  imageUrls,
+  options,
+}: {
+  imageUrls: readonly string[];
+  options: readonly FanletterReportCoverOption[];
+}) {
+  const allowedImageUrls = new Set(
+    options.map((option) => option.imageUrl.trim()).filter(Boolean),
+  );
+
+  return [
+    ...new Set(imageUrls.map((url) => url.trim()).filter(Boolean)),
+  ]
+    .filter((url) => allowedImageUrls.has(url))
+    .slice(0, REPORT_TEASER_IMAGE_LIMIT);
+}
+
+function getDefaultReportTeaserImageUrls(
+  options: readonly FanletterReportCoverOption[],
+) {
+  return [
+    ...new Set(options.map((option) => option.imageUrl.trim()).filter(Boolean)),
+  ].slice(0, Math.min(3, REPORT_TEASER_IMAGE_LIMIT));
 }
 
 function getCroppableCoverSourceUrl(option: FanletterReportCoverOption | null) {
@@ -470,7 +518,9 @@ export function FanletterReportsCoverManager({
     useState<CoverOptionsStatus>("idle");
   const [coverOptionsError, setCoverOptionsError] = useState<string | null>(null);
   const [savingOptionKey, setSavingOptionKey] = useState<string | null>(null);
+  const [savingTeaserImages, setSavingTeaserImages] = useState(false);
   const [selectedOptionKey, setSelectedOptionKey] = useState<string | null>(null);
+  const [selectedTeaserUrls, setSelectedTeaserUrls] = useState<string[]>([]);
   const [coverCrop, setCoverCrop] = useState<ReportCoverCropState>(
     DEFAULT_REPORT_COVER_CROP,
   );
@@ -517,6 +567,21 @@ export function FanletterReportsCoverManager({
           naturalSize: coverNaturalSize,
         })
       : null;
+  const activeReportTeaserUrls = useMemo(
+    () =>
+      normalizeSelectedTeaserImageUrls({
+        imageUrls: activeReport?.teaserImageUrls ?? [],
+        options: coverOptions,
+      }),
+    [activeReport?.teaserImageUrls, coverOptions],
+  );
+  const selectedTeaserUrlSet = useMemo(
+    () => new Set(selectedTeaserUrls),
+    [selectedTeaserUrls],
+  );
+  const teaserSelectionChanged =
+    selectedTeaserUrls.length !== activeReportTeaserUrls.length ||
+    selectedTeaserUrls.some((url, index) => activeReportTeaserUrls[index] !== url);
 
   useEffect(() => {
     setReports(initialReports);
@@ -582,8 +647,17 @@ export function FanletterReportsCoverManager({
           data.options.find((option) => option.isSelected) ??
           data.options[0] ??
           null;
+        const nextTeaserImageUrls = normalizeSelectedTeaserImageUrls({
+          imageUrls: data.teaserImageUrls ?? [],
+          options: data.options,
+        });
 
         setCoverOptions(data.options);
+        setSelectedTeaserUrls(
+          nextTeaserImageUrls.length > 0
+            ? nextTeaserImageUrls
+            : getDefaultReportTeaserImageUrls(data.options),
+        );
         setSelectedOptionKey(
           nextSelectedOption ? getOptionKey(nextSelectedOption) : null,
         );
@@ -605,6 +679,7 @@ export function FanletterReportsCoverManager({
     (report: FanletterReportsPageReport) => {
       setActiveReportId(report.reportId);
       setSelectedOptionKey(null);
+      setSelectedTeaserUrls([]);
       setCoverCrop(DEFAULT_REPORT_COVER_CROP);
       setCoverCropError(null);
       setCoverNaturalSize(null);
@@ -649,6 +724,7 @@ export function FanletterReportsCoverManager({
             locale,
             reportId: activeReport.reportId,
             selectedCoverImageUrl,
+            selectedTeaserImageUrls: selectedTeaserUrls,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -673,6 +749,7 @@ export function FanletterReportsCoverManager({
                   ...report,
                   coverImageSource: data.report.coverImageSource,
                   coverImageUrl: data.report.coverImageUrl,
+                  teaserImageUrls: data.report.teaserImageUrls,
                 }
               : report,
           ),
@@ -686,7 +763,7 @@ export function FanletterReportsCoverManager({
         setSavingOptionKey(null);
       }
     },
-    [activeReport, copy.errorSave, loadCoverOptions, locale],
+    [activeReport, copy.errorSave, loadCoverOptions, locale, selectedTeaserUrls],
   );
 
   const updateCoverImage = useCallback(
@@ -698,6 +775,81 @@ export function FanletterReportsCoverManager({
     },
     [saveCoverImageSelection],
   );
+
+  const toggleTeaserImage = useCallback((imageUrl: string) => {
+    setSelectedTeaserUrls((current) => {
+      if (current.includes(imageUrl)) {
+        return current.filter((url) => url !== imageUrl);
+      }
+
+      if (current.length >= REPORT_TEASER_IMAGE_LIMIT) {
+        return current;
+      }
+
+      return [...current, imageUrl];
+    });
+  }, []);
+
+  const saveTeaserImageSelection = useCallback(async () => {
+    if (!activeReport || savingOptionKey || savingTeaserImages) {
+      return;
+    }
+
+    setSavingTeaserImages(true);
+    setCoverOptionsError(null);
+
+    try {
+      const response = await fetch("/api/fanletter/news-reports", {
+        body: JSON.stringify({
+          locale,
+          reportId: activeReport.reportId,
+          selectedTeaserImageUrls: selectedTeaserUrls,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "PATCH",
+      });
+      const data = (await response.json().catch(() => null)) as
+        | CoverUpdateResponse
+        | { error?: string }
+        | null;
+
+      if (!response.ok || !data || !("report" in data)) {
+        throw new Error(
+          data && "error" in data && data.error ? data.error : copy.errorSave,
+        );
+      }
+
+      setReports((current) =>
+        current.map((report) =>
+          report.reportId === data.report.reportId
+            ? {
+                ...report,
+                coverImageSource: data.report.coverImageSource,
+                coverImageUrl: data.report.coverImageUrl,
+                teaserImageUrls: data.report.teaserImageUrls,
+              }
+            : report,
+        ),
+      );
+      await loadCoverOptions(data.report.reportId);
+    } catch (error) {
+      setCoverOptionsError(
+        error instanceof Error ? error.message : copy.errorSave,
+      );
+    } finally {
+      setSavingTeaserImages(false);
+    }
+  }, [
+    activeReport,
+    copy.errorSave,
+    loadCoverOptions,
+    locale,
+    savingOptionKey,
+    savingTeaserImages,
+    selectedTeaserUrls,
+  ]);
 
   const uploadCroppedCover = useCallback(
     async ({
@@ -870,10 +1022,21 @@ export function FanletterReportsCoverManager({
     selectedOption &&
       selectedOption.source !== "reporter_cropped" &&
       !selectedOption.isSelected &&
-      !savingOptionKey,
+      !savingOptionKey &&
+      !savingTeaserImages,
   );
   const canSaveSelectedCrop = Boolean(
-    selectedOption && selectedOptionSourceImageUrl && !savingOptionKey,
+    selectedOption &&
+      selectedOptionSourceImageUrl &&
+      !savingOptionKey &&
+      !savingTeaserImages,
+  );
+  const canSaveTeaserImages = Boolean(
+    activeReport &&
+      coverOptions.length > 0 &&
+      teaserSelectionChanged &&
+      !savingOptionKey &&
+      !savingTeaserImages,
   );
 
   return (
@@ -1353,6 +1516,117 @@ export function FanletterReportsCoverManager({
                         </button>
                       );
                     })}
+                  </div>
+
+                  <div className="mt-3 rounded-lg border border-[#19b84b]/18 bg-[#ecfff0] p-3 sm:mt-4 sm:p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="inline-flex items-center gap-1.5 text-sm font-black text-[#111510]">
+                          <ImageIcon className="size-4 text-[#16702e]" />
+                          {copy.teaserTitle}
+                        </p>
+                        <p className="mt-1 text-xs font-bold leading-5 text-black/54">
+                          {copy.teaserBody}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span className="inline-flex h-9 items-center rounded-full bg-white px-3 text-xs font-black text-[#16702e] ring-1 ring-[#19b84b]/16">
+                          {formatNumber(selectedTeaserUrls.length, locale)} /{" "}
+                          {formatNumber(REPORT_TEASER_IMAGE_LIMIT, locale)}
+                        </span>
+                        <button
+                          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#111510] px-3 text-xs font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={!canSaveTeaserImages}
+                          onClick={() => {
+                            void saveTeaserImageSelection();
+                          }}
+                          type="button"
+                        >
+                          {savingTeaserImages ? (
+                            <Loader2 className="size-3.5 animate-spin text-[#44f26e]" />
+                          ) : (
+                            <CheckCircle2 className="size-3.5 text-[#44f26e]" />
+                          )}
+                          {savingTeaserImages
+                            ? copy.teaserSaving
+                            : copy.teaserSave}
+                        </button>
+                      </div>
+                    </div>
+                    <p className="mt-2 text-[0.68rem] font-black uppercase tracking-[0.08em] text-[#16702e]/72">
+                      {copy.teaserLimit(
+                        formatNumber(REPORT_TEASER_IMAGE_LIMIT, locale),
+                      )}
+                    </p>
+                    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                      {coverOptions.map((option, index) => {
+                        const optionKey = getOptionKey(option);
+                        const isTeaserSelected = selectedTeaserUrlSet.has(
+                          option.imageUrl,
+                        );
+                        const isTeaserLimitReached =
+                          !isTeaserSelected &&
+                          selectedTeaserUrls.length >= REPORT_TEASER_IMAGE_LIMIT;
+                        const timestamp = formatCoverOptionTimestamp(
+                          option.timestampSec,
+                          locale,
+                        );
+                        const shouldBypassOptionImageOptimization =
+                          shouldBypassFanletterImageOptimization(option.imageUrl);
+
+                        return (
+                          <button
+                            aria-pressed={isTeaserSelected}
+                            className={`group min-w-0 overflow-hidden rounded-lg border bg-white text-left transition ${
+                              isTeaserSelected
+                                ? "border-[#19b84b] shadow-[0_0_0_1px_rgba(25,184,75,0.22)]"
+                                : "border-black/10 hover:border-[#19b84b]/45"
+                            } disabled:cursor-not-allowed disabled:opacity-45`}
+                            disabled={
+                              savingTeaserImages ||
+                              Boolean(savingOptionKey) ||
+                              isTeaserLimitReached
+                            }
+                            key={`teaser-${optionKey}`}
+                            onClick={() => {
+                              toggleTeaserImage(option.imageUrl);
+                            }}
+                            type="button"
+                          >
+                            <span className="relative block aspect-video overflow-hidden bg-[#111510]">
+                              <Image
+                                alt=""
+                                aria-hidden="true"
+                                className="object-contain transition duration-300 group-hover:scale-[1.02]"
+                                fill
+                                loading={index === 0 ? "eager" : "lazy"}
+                                sizes="(max-width: 640px) 50vw, 220px"
+                                src={option.imageUrl}
+                                unoptimized={shouldBypassOptionImageOptimization}
+                              />
+                              {isTeaserSelected ? (
+                                <span className="absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-[#44f26e] px-2 py-1 text-[0.58rem] font-black text-[#111510]">
+                                  <CheckCircle2 className="size-3" />
+                                  {copy.teaserIncluded}
+                                </span>
+                              ) : null}
+                            </span>
+                            <span className="flex min-h-12 flex-col px-2 py-2">
+                              <span className="truncate text-xs font-black text-[#111510]">
+                                {isTeaserSelected
+                                  ? copy.teaserIncluded
+                                  : copy.teaserInclude}
+                              </span>
+                              {timestamp ? (
+                                <span className="mt-0.5 truncate text-[0.62rem] font-bold text-black/42">
+                                  {timestamp}
+                                </span>
+                              ) : null}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {selectedOption ? (
