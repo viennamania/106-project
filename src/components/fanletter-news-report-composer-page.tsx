@@ -348,16 +348,29 @@ function getCopy(locale: Locale) {
           filterBody:
             "미작성·락 상태 후보를 먼저 보여줘 팬 오픈 보상을 노릴 브이로그를 빠르게 고르게 합니다.",
           filterLabel: "팬 오픈 우선순위",
+          fanOpenMetric: "팬 오픈",
           lockedFilter: "락",
           locked: "락",
+          opportunityAlreadyReported: "이미 작성함",
+          opportunityExclusive: "단독 보도권 대기",
+          opportunityPaidLocked: "구매 후 작성",
+          opportunityReady: "작성 후보",
+          opportunitySummaryBody:
+            "티저를 소비자 관점으로 먼저 판단하고 팬 오픈 보상 가능성을 기준으로 리포트 각도를 잡으세요.",
+          opportunitySummaryLabel: "리포터 기회 요약",
+          remainingMetric: "남은 팬",
           near: "마감 임박",
           opportunity: "추천 후보",
           remaining: (count: string) => `${count}명 남음`,
+          reportableNow: "바로 작성 가능",
           rewardAvailable: "오픈 보상 가능",
           rewardClosed: "오픈 보상 종료",
           recommended: "추천",
+          teaserMissingShort: "티저 없음",
+          teaserReadyShort: "티저 있음",
           unlocked: "언락",
           unlockedFilter: "언락",
+          writeStateMetric: "작성 상태",
         },
       }
     : {
@@ -505,16 +518,29 @@ function getCopy(locale: Locale) {
           filterBody:
             "Prioritize unreported locked vlogs so reporters can find fan-open reward opportunities faster.",
           filterLabel: "Fan open priority",
+          fanOpenMetric: "Fan open",
           lockedFilter: "Locked",
           locked: "Locked",
+          opportunityAlreadyReported: "Already reported",
+          opportunityExclusive: "Exclusive pending",
+          opportunityPaidLocked: "Purchase to report",
+          opportunityReady: "Report candidate",
+          opportunitySummaryBody:
+            "Review the teaser as a consumer first, then shape the report around fan-open reward potential.",
+          opportunitySummaryLabel: "Reporter opportunity",
+          remainingMetric: "Fans left",
           near: "Near unlock",
           opportunity: "Recommended",
           remaining: (count: string) => `${count} left`,
+          reportableNow: "Ready now",
           rewardAvailable: "Open reward available",
           rewardClosed: "Open reward closed",
           recommended: "Recommended",
+          teaserMissingShort: "No teaser",
+          teaserReadyShort: "Teaser ready",
           unlocked: "Unlocked",
           unlockedFilter: "Unlocked",
+          writeStateMetric: "Report status",
         },
       };
 }
@@ -1013,6 +1039,42 @@ export function FanletterNewsReportComposerPage({
       !isExclusiveBlocked &&
       status !== "submitting",
   );
+  const selectedSourceRevealCount = selectedSource
+    ? getSourceRevealCount(selectedSource)
+    : 0;
+  const selectedSourceRevealRemaining = selectedSource
+    ? getSourceRevealRemaining(selectedSource)
+    : 0;
+  const isSelectedSourceRevealLocked = Boolean(
+    selectedSource && isSourceRevealLocked(selectedSource),
+  );
+  const isSelectedSourceRevealNear = Boolean(
+    selectedSource && isNearSourceRevealUnlock(selectedSource),
+  );
+  const isSelectedSourceRevealEarly = Boolean(
+    selectedSource && isEarlySourceRevealClaim(selectedSource),
+  );
+  const isSelectedOpportunitySource = Boolean(
+    selectedSource &&
+      isSourceRevealOpportunitySource({ reporterReferralCode, source: selectedSource }),
+  );
+  const canCreateSelectedSource = Boolean(
+    selectedSource &&
+      canReporterCreateFromSource({ reporterReferralCode, source: selectedSource }),
+  );
+  const selectedOpportunityStatusLabel = selectedSource
+    ? isSelectedOpportunitySource
+      ? copy.sourceReveal.opportunity
+      : selectedSource.existingReport
+        ? copy.sourceReveal.opportunityAlreadyReported
+        : !isSelectedSourceRevealLocked
+          ? copy.sourceReveal.unlocked
+          : isSelectedPaidLocked
+            ? copy.sourceReveal.opportunityPaidLocked
+            : isExclusiveBlocked
+              ? copy.sourceReveal.opportunityExclusive
+              : copy.sourceReveal.opportunityReady
+    : "";
   const nsfwToggleHref = useMemo(
     () =>
       setRelativeSearchParams(reportNewHref, {
@@ -1891,6 +1953,145 @@ export function FanletterNewsReportComposerPage({
                           {formatNumber(selectedSource.reportCount, locale)}
                         </p>
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 border border-[#19b84b]/18 bg-[#ecfff0] px-4 py-3">
+                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,0.7fr)] lg:items-center">
+                      <div className="min-w-0">
+                        <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                          <Sparkles className="size-3.5" />
+                          {copy.sourceReveal.opportunitySummaryLabel}
+                        </p>
+                        <p className="mt-2 text-lg font-black leading-6 tracking-normal [word-break:keep-all]">
+                          {selectedOpportunityStatusLabel}
+                        </p>
+                        <p className="mt-1 max-w-3xl text-sm font-semibold leading-6 text-black/58 [word-break:keep-all]">
+                          {copy.sourceReveal.opportunitySummaryBody}
+                        </p>
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-3">
+                        <div className="min-w-0 border border-black/10 bg-white/78 px-3 py-2">
+                          <p className="truncate text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/36">
+                            {copy.sourceReveal.fanOpenMetric}
+                          </p>
+                          <p className="mt-1 truncate text-sm font-black">
+                            {formatNumber(selectedSourceRevealCount, locale)}/
+                            {formatNumber(
+                              selectedSource.sourceReveal.threshold,
+                              locale,
+                            )}
+                          </p>
+                        </div>
+                        <div className="min-w-0 border border-black/10 bg-white/78 px-3 py-2">
+                          <p className="truncate text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/36">
+                            {copy.sourceReveal.remainingMetric}
+                          </p>
+                          <p className="mt-1 truncate text-sm font-black">
+                            {formatNumber(selectedSourceRevealRemaining, locale)}
+                          </p>
+                        </div>
+                        <div className="min-w-0 border border-black/10 bg-white/78 px-3 py-2">
+                          <p className="truncate text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/36">
+                            {copy.sourceReveal.writeStateMetric}
+                          </p>
+                          <p className="mt-1 truncate text-sm font-black">
+                            {selectedSource.existingReport
+                              ? copy.myReportWritten
+                              : copy.myReportUnwritten}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      <span
+                        className={cn(
+                          "inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-black",
+                          selectedSource.existingReport
+                            ? "border-black/10 bg-white text-black/54"
+                            : "border-[#19b84b]/24 bg-white text-[#16702e]",
+                        )}
+                      >
+                        {selectedSource.existingReport ? (
+                          <CheckCircle2 className="size-3.5" />
+                        ) : (
+                          <FileText className="size-3.5" />
+                        )}
+                        {selectedSource.existingReport
+                          ? copy.myReportWritten
+                          : copy.myReportUnwritten}
+                      </span>
+                      <span
+                        className={cn(
+                          "inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-black",
+                          isSelectedSourceRevealLocked
+                            ? "border-[#19b84b]/24 bg-white text-[#16702e]"
+                            : "border-black/10 bg-white text-black/54",
+                        )}
+                      >
+                        {isSelectedSourceRevealLocked ? (
+                          <LockKeyhole className="size-3.5" />
+                        ) : (
+                          <CheckCircle2 className="size-3.5" />
+                        )}
+                        {isSelectedSourceRevealLocked
+                          ? copy.sourceReveal.locked
+                          : copy.sourceReveal.unlocked}{" "}
+                        {formatNumber(selectedSourceRevealCount, locale)}/
+                        {formatNumber(selectedSource.sourceReveal.threshold, locale)}
+                      </span>
+                      <span className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-black/10 bg-white px-2.5 py-1 text-xs font-black text-black/54">
+                        {isSelectedSourceRevealLocked
+                          ? copy.sourceReveal.remaining(
+                              formatNumber(selectedSourceRevealRemaining, locale),
+                            )
+                          : copy.sourceReveal.rewardClosed}
+                      </span>
+                      <span
+                        className={cn(
+                          "inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-black",
+                          canCreateSelectedSource
+                            ? "border-[#19b84b]/24 bg-white text-[#16702e]"
+                            : "border-amber-300 bg-white text-amber-800",
+                        )}
+                      >
+                        {canCreateSelectedSource ? (
+                          <CheckCircle2 className="size-3.5" />
+                        ) : (
+                          <AlertTriangle className="size-3.5" />
+                        )}
+                        {canCreateSelectedSource
+                          ? copy.sourceReveal.reportableNow
+                          : isSelectedPaidLocked
+                            ? copy.sourceReveal.opportunityPaidLocked
+                            : isExclusiveBlocked
+                              ? copy.locked
+                              : copy.unavailable}
+                      </span>
+                      <span
+                        className={cn(
+                          "inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-black",
+                          selectedSource.coverOptions.length > 0
+                            ? "border-[#19b84b]/24 bg-white text-[#16702e]"
+                            : "border-rose-500/18 bg-white text-rose-700",
+                        )}
+                      >
+                        <ImageIcon className="size-3.5" />
+                        {selectedSource.coverOptions.length > 0
+                          ? copy.sourceReveal.teaserReadyShort
+                          : copy.sourceReveal.teaserMissingShort}
+                      </span>
+                      {isSelectedSourceRevealNear ? (
+                        <span className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-[#19b84b]/24 bg-white px-2.5 py-1 text-xs font-black text-[#16702e]">
+                          <Sparkles className="size-3.5" />
+                          {copy.sourceReveal.near}
+                        </span>
+                      ) : null}
+                      {isSelectedSourceRevealEarly ? (
+                        <span className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-black/10 bg-white px-2.5 py-1 text-xs font-black text-black/54">
+                          {copy.sourceReveal.early}
+                        </span>
+                      ) : null}
                     </div>
                   </div>
 
