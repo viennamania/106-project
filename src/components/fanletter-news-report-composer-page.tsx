@@ -1201,7 +1201,7 @@ export function FanletterNewsReportComposerPage({
         </Link>
       </div>
       <div className="mt-3 rounded-xl border border-black/10 bg-white px-3 py-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3">
           <div className="min-w-0">
             <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#111510]">
               <FileText className="size-4 text-[#16702e]" />
@@ -1213,7 +1213,7 @@ export function FanletterNewsReportComposerPage({
           </div>
           <div
             aria-label={copy.myReportFilterLabel}
-            className="grid shrink-0 grid-cols-3 gap-1 rounded-full bg-[#f1f3ef] p-1"
+            className="grid w-full grid-cols-3 gap-1 rounded-full bg-[#f1f3ef] p-1"
             role="group"
           >
             {reportStatusFilterOptions.map((option) => {
