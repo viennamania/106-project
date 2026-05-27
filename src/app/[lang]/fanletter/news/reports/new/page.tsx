@@ -19,9 +19,17 @@ type FanletterNewsReportNewSearchParams = {
   q?: string | string[];
   ref?: string | string[];
   reportStatus?: string | string[];
+  sourceReveal?: string | string[];
 };
 
 type ReportStatusFilter = "all" | "reported" | "unreported";
+type SourceRevealFilter =
+  | "all"
+  | "early"
+  | "locked"
+  | "near"
+  | "opportunity"
+  | "unlocked";
 
 function readStringSearchParam(value?: string | string[]) {
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
@@ -35,14 +43,37 @@ function normalizeSelectedContentId(value?: string | string[]) {
   return readStringSearchParam(value).trim().slice(0, 120);
 }
 
-function normalizeReportStatusFilter(
-  value?: string | string[],
-): ReportStatusFilter {
+function normalizeReportStatusFilter({
+  defaultValue,
+  value,
+}: {
+  defaultValue: ReportStatusFilter;
+  value?: string | string[];
+}): ReportStatusFilter {
   const normalized = readStringSearchParam(value).trim().toLowerCase();
 
   return normalized === "reported" || normalized === "unreported"
     ? normalized
-    : "all";
+    : defaultValue;
+}
+
+function normalizeSourceRevealFilter({
+  defaultValue,
+  value,
+}: {
+  defaultValue: SourceRevealFilter;
+  value?: string | string[];
+}): SourceRevealFilter {
+  const normalized = readStringSearchParam(value).trim().toLowerCase();
+
+  return normalized === "all" ||
+    normalized === "early" ||
+    normalized === "locked" ||
+    normalized === "near" ||
+    normalized === "opportunity" ||
+    normalized === "unlocked"
+    ? normalized
+    : defaultValue;
 }
 
 function readIncludeNsfwSearchParam(value?: string | string[]) {
@@ -103,9 +134,23 @@ export default async function LocalizedFanletterNewsReportNewPage({
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
   const includeNsfw = readIncludeNsfwSearchParam(query.nsfw);
-  const reportStatusFilter = normalizeReportStatusFilter(query.reportStatus);
   const searchQuery = normalizeReportSearchQuery(query.q);
   const selectedContentId = normalizeSelectedContentId(query.contentId);
+  const hasSelectedContentId = Boolean(selectedContentId);
+  const defaultReportStatusFilter: ReportStatusFilter = hasSelectedContentId
+    ? "all"
+    : "unreported";
+  const defaultSourceRevealFilter: SourceRevealFilter = hasSelectedContentId
+    ? "all"
+    : "opportunity";
+  const reportStatusFilter = normalizeReportStatusFilter({
+    defaultValue: defaultReportStatusFilter,
+    value: query.reportStatus,
+  });
+  const sourceRevealFilter = normalizeSourceRevealFilter({
+    defaultValue: defaultSourceRevealFilter,
+    value: query.sourceReveal,
+  });
   const reportsHref = buildPathWithReferral(
     `/${locale}/fanletter/news/reports`,
     referralCode,
@@ -116,7 +161,10 @@ export default async function LocalizedFanletterNewsReportNewPage({
   );
   const filteredReportNewHref = setPathSearchParams(reportNewBaseHref, {
     nsfw: includeNsfw ? null : "off",
-    reportStatus: reportStatusFilter === "all" ? null : reportStatusFilter,
+    reportStatus:
+      reportStatusFilter === defaultReportStatusFilter ? null : reportStatusFilter,
+    sourceReveal:
+      sourceRevealFilter === defaultSourceRevealFilter ? null : sourceRevealFilter,
   });
   const reportNewHref = setPathSearchParams(filteredReportNewHref, {
     contentId: selectedContentId,
@@ -135,7 +183,12 @@ export default async function LocalizedFanletterNewsReportNewPage({
     ? await getFanletterNewsReportDraftSourcesForMember({
         email: session.email,
         includeNsfw,
-        limit: searchQuery || reportStatusFilter !== "all" ? 80 : undefined,
+        limit:
+          searchQuery ||
+          reportStatusFilter !== defaultReportStatusFilter ||
+          sourceRevealFilter !== defaultSourceRevealFilter
+            ? 80
+            : undefined,
         locale,
         reportStatus: reportStatusFilter,
         searchQuery,
@@ -184,6 +237,8 @@ export default async function LocalizedFanletterNewsReportNewPage({
       includeNsfw={includeNsfw}
       connectHref={connectHref}
       currentHref={reportNewHref}
+      defaultReportStatusFilter={defaultReportStatusFilter}
+      defaultSourceRevealFilter={defaultSourceRevealFilter}
       initialSelectedContentId={selectedContentId}
       locale={locale}
       onboardingHref={onboardingHref}
@@ -192,6 +247,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
       reporterReferralCode={data.member.referralCode}
       reportsHref={reportsHref}
       searchQuery={searchQuery}
+      sourceRevealFilter={sourceRevealFilter}
       sources={data.items}
     />
   );

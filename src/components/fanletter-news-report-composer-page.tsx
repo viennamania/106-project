@@ -153,6 +153,14 @@ export type FanletterNewsReportComposerReportStatusFilter =
   | "reported"
   | "unreported";
 
+export type FanletterNewsReportComposerSourceRevealFilter =
+  | "all"
+  | "early"
+  | "locked"
+  | "near"
+  | "opportunity"
+  | "unlocked";
+
 const REPORT_COVER_CROP_ASPECT_RATIO = 16 / 9;
 const REPORT_COVER_CROP_MAX_ZOOM = 3;
 const REPORT_COVER_CROP_OUTPUT_HEIGHT = 675;
@@ -335,8 +343,21 @@ function getCopy(locale: Locale) {
         noExistingReports:
           "아직 이 브이로그로 발행된 리포트가 없습니다. 첫 리포트 관점을 선점할 수 있습니다.",
         sourceReveal: {
+          early: "선점 후보",
+          filterAll: "전체",
+          filterBody:
+            "미작성·락 상태 후보를 먼저 보여줘 팬 오픈 보상을 노릴 브이로그를 빠르게 고르게 합니다.",
+          filterLabel: "팬 오픈 우선순위",
+          lockedFilter: "락",
           locked: "락",
+          near: "마감 임박",
+          opportunity: "추천 후보",
+          remaining: (count: string) => `${count}명 남음`,
+          rewardAvailable: "오픈 보상 가능",
+          rewardClosed: "오픈 보상 종료",
+          recommended: "추천",
           unlocked: "언락",
+          unlockedFilter: "언락",
         },
       }
     : {
@@ -479,8 +500,21 @@ function getCopy(locale: Locale) {
         noExistingReports:
           "No reports have been published for this vlog yet. You can claim the first angle.",
         sourceReveal: {
+          early: "Early claim",
+          filterAll: "All",
+          filterBody:
+            "Prioritize unreported locked vlogs so reporters can find fan-open reward opportunities faster.",
+          filterLabel: "Fan open priority",
+          lockedFilter: "Locked",
           locked: "Locked",
+          near: "Near unlock",
+          opportunity: "Recommended",
+          remaining: (count: string) => `${count} left`,
+          rewardAvailable: "Open reward available",
+          rewardClosed: "Open reward closed",
+          recommended: "Recommended",
           unlocked: "Unlocked",
+          unlockedFilter: "Unlocked",
         },
       };
 }
@@ -509,6 +543,146 @@ function formatDate(value: string | null, locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en").format(value);
+}
+
+function getSourceRevealCount(source: FanletterNewsReportComposerSource) {
+  return Math.min(source.sourceReveal.count, source.sourceReveal.threshold);
+}
+
+function getSourceRevealRemaining(source: FanletterNewsReportComposerSource) {
+  return Math.max(0, source.sourceReveal.threshold - source.sourceReveal.count);
+}
+
+function isSourceRevealLocked(source: FanletterNewsReportComposerSource) {
+  return !source.sourceReveal.unlocked;
+}
+
+function isNearSourceRevealUnlock(source: FanletterNewsReportComposerSource) {
+  const remaining = getSourceRevealRemaining(source);
+
+  return isSourceRevealLocked(source) && remaining > 0 && remaining <= 2;
+}
+
+function isEarlySourceRevealClaim(source: FanletterNewsReportComposerSource) {
+  return isSourceRevealLocked(source) && getSourceRevealCount(source) <= 2;
+}
+
+function isSourceExclusiveBlockedForReporter({
+  reporterReferralCode,
+  source,
+}: {
+  reporterReferralCode: string;
+  source: FanletterNewsReportComposerSource;
+}) {
+  return Boolean(
+    source.exclusiveNews.active &&
+      source.exclusiveNews.reporterReferralCode !== reporterReferralCode,
+  );
+}
+
+function canReporterCreateFromSource({
+  reporterReferralCode,
+  source,
+}: {
+  reporterReferralCode: string;
+  source: FanletterNewsReportComposerSource;
+}) {
+  return Boolean(
+    !source.existingReport &&
+      source.mediaAccess.canView &&
+      source.coverOptions.length > 0 &&
+      !isSourceExclusiveBlockedForReporter({ reporterReferralCode, source }),
+  );
+}
+
+function isSourceRevealOpportunitySource({
+  reporterReferralCode,
+  source,
+}: {
+  reporterReferralCode: string;
+  source: FanletterNewsReportComposerSource;
+}) {
+  return (
+    canReporterCreateFromSource({ reporterReferralCode, source }) &&
+    isSourceRevealLocked(source)
+  );
+}
+
+function matchesSourceRevealFilter({
+  filter,
+  reporterReferralCode,
+  source,
+}: {
+  filter: FanletterNewsReportComposerSourceRevealFilter;
+  reporterReferralCode: string;
+  source: FanletterNewsReportComposerSource;
+}) {
+  if (filter === "all") {
+    return true;
+  }
+
+  if (filter === "opportunity") {
+    return isSourceRevealOpportunitySource({ reporterReferralCode, source });
+  }
+
+  if (filter === "locked") {
+    return isSourceRevealLocked(source);
+  }
+
+  if (filter === "near") {
+    return isNearSourceRevealUnlock(source);
+  }
+
+  if (filter === "early") {
+    return isEarlySourceRevealClaim(source);
+  }
+
+  return source.sourceReveal.unlocked;
+}
+
+function getSourceOpportunityScore({
+  reporterReferralCode,
+  source,
+}: {
+  reporterReferralCode: string;
+  source: FanletterNewsReportComposerSource;
+}) {
+  let score = 0;
+  const canCreate = canReporterCreateFromSource({ reporterReferralCode, source });
+  const count = getSourceRevealCount(source);
+
+  if (canCreate) {
+    score += 120;
+  }
+
+  if (!source.existingReport) {
+    score += 90;
+  }
+
+  if (isSourceRevealLocked(source)) {
+    score += 80;
+    score += count >= 1 && count <= 3 ? 35 : 0;
+    score += count >= 4 && count < source.sourceReveal.threshold ? 24 : 0;
+    score += count === 0 ? 16 : 0;
+  } else {
+    score -= 80;
+  }
+
+  if (source.coverOptions.length > 0) {
+    score += 20;
+  }
+
+  if (source.mediaAccess.requiresPurchase) {
+    score -= 45;
+  }
+
+  return score;
+}
+
+function getPublishedAtTime(source: FanletterNewsReportComposerSource) {
+  const timestamp = source.publishedAt ? new Date(source.publishedAt).getTime() : 0;
+
+  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 function getCoverLabel(option: CoverOption, index: number, locale: Locale) {
@@ -695,6 +869,8 @@ async function createCroppedReportCoverBlob({
 export function FanletterNewsReportComposerPage({
   connectHref,
   currentHref,
+  defaultReportStatusFilter,
+  defaultSourceRevealFilter,
   includeNsfw,
   initialSelectedContentId,
   locale,
@@ -704,10 +880,13 @@ export function FanletterNewsReportComposerPage({
   reporterReferralCode,
   reportsHref,
   searchQuery,
+  sourceRevealFilter,
   sources,
 }: {
   connectHref: string;
   currentHref: string;
+  defaultReportStatusFilter: FanletterNewsReportComposerReportStatusFilter;
+  defaultSourceRevealFilter: FanletterNewsReportComposerSourceRevealFilter;
   includeNsfw: boolean;
   initialSelectedContentId: string;
   locale: Locale;
@@ -717,25 +896,63 @@ export function FanletterNewsReportComposerPage({
   reporterReferralCode: string;
   reportsHref: string;
   searchQuery: string;
+  sourceRevealFilter: FanletterNewsReportComposerSourceRevealFilter;
   sources: FanletterNewsReportComposerSource[];
 }) {
   const copy = getCopy(locale);
   const router = useRouter();
   const [searchInput, setSearchInput] = useState(searchQuery);
+  const sourceRevealSummary = useMemo(() => {
+    const opportunity = sources.filter((source) =>
+      isSourceRevealOpportunitySource({ reporterReferralCode, source }),
+    ).length;
+
+    return {
+      early: sources.filter(isEarlySourceRevealClaim).length,
+      locked: sources.filter(isSourceRevealLocked).length,
+      near: sources.filter(isNearSourceRevealUnlock).length,
+      opportunity,
+      unlocked: sources.filter((source) => source.sourceReveal.unlocked).length,
+    };
+  }, [reporterReferralCode, sources]);
+  const displayedSources = useMemo(
+    () =>
+      sources
+        .filter((source) =>
+          matchesSourceRevealFilter({
+            filter: sourceRevealFilter,
+            reporterReferralCode,
+            source,
+          }),
+        )
+        .sort((left, right) => {
+          const rightScore = getSourceOpportunityScore({
+            reporterReferralCode,
+            source: right,
+          });
+          const leftScore = getSourceOpportunityScore({
+            reporterReferralCode,
+            source: left,
+          });
+
+          return (
+            rightScore - leftScore ||
+            getPublishedAtTime(right) - getPublishedAtTime(left)
+          );
+        }),
+    [reporterReferralCode, sourceRevealFilter, sources],
+  );
   const firstAvailableSource =
-    sources.find(
+    displayedSources.find(
       (source) =>
-        !source.existingReport &&
-        source.mediaAccess.canView &&
-        source.coverOptions.length > 0 &&
-        !(
-          source.exclusiveNews.active &&
-          source.exclusiveNews.reporterReferralCode !== reporterReferralCode
-        ),
+        canReporterCreateFromSource({ reporterReferralCode, source }),
     ) ??
-    sources[0] ??
+    displayedSources[0] ??
     null;
   const initialSelectedSource =
+    displayedSources.find(
+      (source) => source.contentId === initialSelectedContentId,
+    ) ??
     sources.find((source) => source.contentId === initialSelectedContentId) ??
     firstAvailableSource;
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
@@ -801,8 +1018,18 @@ export function FanletterNewsReportComposerPage({
       setRelativeSearchParams(reportNewHref, {
         nsfw: includeNsfw ? "off" : null,
         q: searchQuery || null,
+        sourceReveal:
+          sourceRevealFilter === defaultSourceRevealFilter
+            ? null
+            : sourceRevealFilter,
       }),
-    [includeNsfw, reportNewHref, searchQuery],
+    [
+      defaultSourceRevealFilter,
+      includeNsfw,
+      reportNewHref,
+      searchQuery,
+      sourceRevealFilter,
+    ],
   );
   const reportStatusFilterOptions = [
     {
@@ -818,15 +1045,83 @@ export function FanletterNewsReportComposerPage({
       value: "unreported",
     },
   ] as const;
+  const sourceRevealFilterOptions = [
+    {
+      count: sourceRevealSummary.opportunity,
+      label: copy.sourceReveal.opportunity,
+      value: "opportunity",
+    },
+    {
+      count: sourceRevealSummary.locked,
+      label: copy.sourceReveal.lockedFilter,
+      value: "locked",
+    },
+    {
+      count: sourceRevealSummary.near,
+      label: copy.sourceReveal.near,
+      value: "near",
+    },
+    {
+      count: sourceRevealSummary.early,
+      label: copy.sourceReveal.early,
+      value: "early",
+    },
+    {
+      count: sourceRevealSummary.unlocked,
+      label: copy.sourceReveal.unlockedFilter,
+      value: "unlocked",
+    },
+    {
+      count: sources.length,
+      label: copy.sourceReveal.filterAll,
+      value: "all",
+    },
+  ] as const;
   const getReportStatusFilterHref = useCallback(
     (nextReportStatusFilter: FanletterNewsReportComposerReportStatusFilter) =>
       setRelativeSearchParams(reportNewHref, {
         nsfw: includeNsfw ? null : "off",
         q: searchQuery || null,
         reportStatus:
-          nextReportStatusFilter === "all" ? null : nextReportStatusFilter,
+          nextReportStatusFilter === defaultReportStatusFilter
+            ? null
+            : nextReportStatusFilter,
+        sourceReveal:
+          sourceRevealFilter === defaultSourceRevealFilter
+            ? null
+            : sourceRevealFilter,
       }),
-    [includeNsfw, reportNewHref, searchQuery],
+    [
+      defaultReportStatusFilter,
+      defaultSourceRevealFilter,
+      includeNsfw,
+      reportNewHref,
+      searchQuery,
+      sourceRevealFilter,
+    ],
+  );
+  const getSourceRevealFilterHref = useCallback(
+    (nextSourceRevealFilter: FanletterNewsReportComposerSourceRevealFilter) =>
+      setRelativeSearchParams(reportNewHref, {
+        nsfw: includeNsfw ? null : "off",
+        q: searchQuery || null,
+        reportStatus:
+          reportStatusFilter === defaultReportStatusFilter
+            ? null
+            : reportStatusFilter,
+        sourceReveal:
+          nextSourceRevealFilter === defaultSourceRevealFilter
+            ? null
+            : nextSourceRevealFilter,
+      }),
+    [
+      defaultReportStatusFilter,
+      defaultSourceRevealFilter,
+      includeNsfw,
+      reportNewHref,
+      reportStatusFilter,
+      searchQuery,
+    ],
   );
   const paidUnlockSectionId = selectedSource
     ? `fanletter-report-composer-paid-unlock-${selectedSource.contentId}`
@@ -1126,7 +1421,9 @@ export function FanletterNewsReportComposerPage({
     [includeNsfw, reportNewHref, router, searchInput],
   );
   const isFilteringSources = Boolean(
-    searchQuery || reportStatusFilter !== "all",
+    searchQuery ||
+      reportStatusFilter !== defaultReportStatusFilter ||
+      sourceRevealFilter !== defaultSourceRevealFilter,
   );
 
   const searchControls = (
@@ -1252,10 +1549,55 @@ export function FanletterNewsReportComposerPage({
           </div>
         </div>
       </div>
+      <div className="mt-3 rounded-xl border border-[#19b84b]/18 bg-[#ecfff0] px-3 py-3">
+        <div className="flex flex-col gap-3">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#111510]">
+              <Sparkles className="size-4 text-[#16702e]" />
+              {copy.sourceReveal.filterLabel}
+            </p>
+            <p className="mt-1 text-[0.72rem] font-semibold leading-5 text-black/52">
+              {copy.sourceReveal.filterBody}
+            </p>
+          </div>
+          <div
+            aria-label={copy.sourceReveal.filterLabel}
+            className="grid grid-cols-2 gap-1.5 sm:grid-cols-3"
+            role="group"
+          >
+            {sourceRevealFilterOptions.map((option) => {
+              const isActive = option.value === sourceRevealFilter;
+
+              return (
+                <Link
+                  className={cn(
+                    "inline-flex min-h-9 items-center justify-between gap-2 rounded-full border px-2.5 text-[0.64rem] font-black transition",
+                    isActive
+                      ? "border-[#111510] bg-[#111510] !text-white shadow-[0_6px_14px_rgba(17,21,16,0.12)]"
+                      : "border-[#19b84b]/16 bg-white !text-black/54 hover:border-[#19b84b]/40 hover:!text-[#111510]",
+                  )}
+                  href={getSourceRevealFilterHref(option.value)}
+                  key={option.value}
+                >
+                  <span className="truncate">{option.label}</span>
+                  <span
+                    className={cn(
+                      "rounded-full px-1.5 py-0.5 text-[0.58rem]",
+                      isActive ? "bg-white/12" : "bg-[#f1f3ef] text-black/42",
+                    )}
+                  >
+                    {formatNumber(option.count, locale)}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
     </form>
   );
 
-  if (sources.length === 0) {
+  if (displayedSources.length === 0) {
     return (
       <main className="min-h-screen bg-[#f2f4ef] px-4 py-6 text-[#111510] sm:px-6 lg:px-8">
         <section className="mx-auto max-w-3xl border border-dashed border-black/16 bg-white p-8 text-center shadow-[0_18px_46px_rgba(17,21,16,0.06)]">
@@ -1328,24 +1670,26 @@ export function FanletterNewsReportComposerPage({
                 <h2 className="mt-1 text-xl font-black">{copy.chooseVlog}</h2>
               </div>
               <span className="rounded-full bg-[#111510] px-2.5 py-1 text-xs font-black text-white">
-                {formatNumber(sources.length, locale)}
+                {formatNumber(displayedSources.length, locale)}
               </span>
             </div>
             <div className="grid max-h-[42rem] gap-2 overflow-y-auto pr-1">
-              {sources.map((source) => {
+              {displayedSources.map((source) => {
                 const isSelected = source.contentId === selectedContentId;
-                const isBlocked = Boolean(
-                  source.exclusiveNews.active &&
-                    source.exclusiveNews.reporterReferralCode !== reporterReferralCode,
-                );
+                const isBlocked = isSourceExclusiveBlockedForReporter({
+                  reporterReferralCode,
+                  source,
+                });
                 const isPaidLocked = source.mediaAccess.requiresPurchase;
                 const hasViewerReport = Boolean(source.existingReport);
                 const shouldBlurSourceMedia =
                   shouldBlurNsfwMedia && source.contentMaturityRating === "nsfw";
-                const sourceRevealCount = Math.min(
-                  source.sourceReveal.count,
-                  source.sourceReveal.threshold,
-                );
+                const sourceRevealCount = getSourceRevealCount(source);
+                const sourceRevealRemaining = getSourceRevealRemaining(source);
+                const isOpportunitySource = isSourceRevealOpportunitySource({
+                  reporterReferralCode,
+                  source,
+                });
 
                 return (
                   <button
@@ -1391,6 +1735,12 @@ export function FanletterNewsReportComposerPage({
                     </span>
                     <span className="min-w-0 py-1">
                       <span className="flex flex-wrap gap-1.5 text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/40">
+                        {isOpportunitySource ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-[#16702e] px-1.5 py-0.5 text-white">
+                            <Sparkles className="size-2.5" />
+                            {copy.sourceReveal.recommended}
+                          </span>
+                        ) : null}
                         <span>{copy.price[source.priceType]}</span>
                         {source.priceType === "paid" ? (
                           <span
@@ -1434,6 +1784,19 @@ export function FanletterNewsReportComposerPage({
                             {formatNumber(sourceRevealCount, locale)}/
                             {formatNumber(source.sourceReveal.threshold, locale)}
                           </span>
+                        </span>
+                        <span
+                          className={
+                            source.sourceReveal.unlocked
+                              ? "text-black/36"
+                              : "text-[#16702e]"
+                          }
+                        >
+                          {source.sourceReveal.unlocked
+                            ? copy.sourceReveal.rewardClosed
+                            : copy.sourceReveal.remaining(
+                                formatNumber(sourceRevealRemaining, locale),
+                              )}
                         </span>
                         <span
                           className={cn(
