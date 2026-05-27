@@ -860,7 +860,7 @@ function LeadStory({
           {copy.leadKicker}
         </p>
         <h2
-          className={`mt-2 line-clamp-3 max-w-4xl break-words text-[1.55rem] font-black leading-[1.1] tracking-normal text-[#111510] [word-break:keep-all] sm:line-clamp-none sm:text-[3.35rem] sm:leading-[1.05] sm:text-white lg:text-[3.9rem] ${
+          className={`mt-2 line-clamp-3 max-w-4xl break-words text-[1.55rem] font-black leading-[1.1] tracking-normal text-[#111510] [word-break:keep-all] sm:line-clamp-none sm:text-[2.35rem] sm:leading-[1.08] sm:text-white lg:text-[2.6rem] xl:text-[2.75rem] ${
             shouldBlur ? "select-none blur-[2px]" : ""
           }`}
         >
