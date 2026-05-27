@@ -730,6 +730,30 @@ function formatFrameImageSizeLabel(
   )}`;
 }
 
+function getVlogFrameListPreviewStyle(frameOption: VlogTeaserFrameOption) {
+  if (
+    frameOption.width &&
+    frameOption.height &&
+    Number.isFinite(frameOption.width) &&
+    Number.isFinite(frameOption.height) &&
+    frameOption.width > 0 &&
+    frameOption.height > 0
+  ) {
+    const aspectRatio = frameOption.width / frameOption.height;
+    const previewWidthRem = clampNumber(aspectRatio * 6, 4.75, 11);
+
+    return {
+      aspectRatio: `${frameOption.width} / ${frameOption.height}`,
+      width: `${previewWidthRem}rem`,
+    };
+  }
+
+  return {
+    aspectRatio: "16 / 9",
+    width: "10rem",
+  };
+}
+
 function clampNumber(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
@@ -3926,29 +3950,43 @@ function VlogManagerCard({
                   const timestampLabel = formatFrameTimestamp(
                     frameOption.timestampSec,
                   );
+                  const frameSizeLabel = formatFrameImageSizeLabel(
+                    frameOption,
+                    locale,
+                  );
+                  const framePreviewStyle =
+                    getVlogFrameListPreviewStyle(frameOption);
 
                   return (
                     <span
-                      className="relative block aspect-video w-28 shrink-0 overflow-hidden rounded-lg border border-black/10 bg-black sm:w-32"
+                      className="relative block h-24 shrink-0 overflow-hidden rounded-lg border border-black/10 bg-black"
                       key={`${post.contentId}:teaser:${frameOption.imageUrl}:${index}`}
+                      style={framePreviewStyle}
                     >
                       <Image
                         alt=""
                         aria-hidden="true"
-                        className="object-cover"
+                        className="object-contain"
                         fill
-                        sizes="8rem"
+                        sizes="(max-width: 640px) 9rem, 11rem"
                         src={frameOption.imageUrl}
                         unoptimized={shouldBypassFanletterImageOptimization(
                           frameOption.imageUrl,
                         )}
                       />
-                      {timestampLabel ? (
-                        <span className="absolute bottom-1.5 left-1.5 inline-flex items-center gap-1 rounded-full bg-black/68 px-1.5 py-0.5 text-[0.58rem] font-black text-white/86 backdrop-blur">
-                          <Clock3 className="size-2.5" />
-                          {timestampLabel}
-                        </span>
-                      ) : null}
+                      <span className="absolute inset-x-1.5 bottom-1.5 flex flex-wrap gap-1">
+                        {timestampLabel ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-black/68 px-1.5 py-0.5 text-[0.58rem] font-black text-white/86 backdrop-blur">
+                            <Clock3 className="size-2.5" />
+                            {timestampLabel}
+                          </span>
+                        ) : null}
+                        {frameSizeLabel ? (
+                          <span className="inline-flex rounded-full bg-white/90 px-1.5 py-0.5 text-[0.58rem] font-black text-black/72 shadow-sm backdrop-blur">
+                            {frameSizeLabel}
+                          </span>
+                        ) : null}
+                      </span>
                     </span>
                   );
                 })}
