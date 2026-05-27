@@ -2212,7 +2212,6 @@ export async function getFanletterNewsReportsForMember({
 
 export async function getFanletterNewsReportDraftSourcesForMember({
   email,
-  includeNsfw = true,
   limit = 36,
   locale,
   reportStatus,
@@ -2255,7 +2254,6 @@ export async function getFanletterNewsReportDraftSourcesForMember({
     : null;
   const basePostFilter: Filter<ContentPostDocument> = {
     "contentVideoUrls.0": { $exists: true },
-    ...(includeNsfw ? {} : { contentMaturityRating: { $ne: "nsfw" } }),
     locale: normalizedLocale,
     status: "published",
   };

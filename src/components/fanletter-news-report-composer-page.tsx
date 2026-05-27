@@ -298,11 +298,11 @@ function getCopy(locale: Locale) {
         searchReset: "초기화",
         nsfwFilterLabel: "NSFW 콘텐츠",
         nsfwIncluded: "NSFW 포함",
-        nsfwExcluded: "NSFW 제외",
+        nsfwExcluded: "NSFW 블러",
         nsfwIncludedBody:
-          "성인 브이로그 후보도 목록에 표시합니다. 작성 시에는 티저와 공개 메타 기준으로만 리포트가 생성됩니다.",
+          "성인 브이로그 후보와 티저 이미지를 그대로 표시합니다. 작성 시에는 티저와 공개 메타 기준으로만 리포트가 생성됩니다.",
         nsfwExcludedBody:
-          "일반 브이로그 후보만 표시합니다. 필요하면 NSFW를 켜서 성인 후보까지 확인할 수 있습니다.",
+          "브이로그 후보는 그대로 유지하고 성인 티저 이미지만 흐림 처리합니다.",
         nsfwTurnOff: "NSFW 끄기",
         nsfwTurnOn: "NSFW 켜기",
         select: "선택",
@@ -438,11 +438,11 @@ function getCopy(locale: Locale) {
         searchReset: "Clear",
         nsfwFilterLabel: "NSFW content",
         nsfwIncluded: "NSFW included",
-        nsfwExcluded: "NSFW excluded",
+        nsfwExcluded: "NSFW blurred",
         nsfwIncludedBody:
-          "Adult vlog candidates are visible in the list. Reports are still generated only from teasers and public metadata.",
+          "Adult vlog candidates and teaser images are shown as-is. Reports are still generated only from teasers and public metadata.",
         nsfwExcludedBody:
-          "Only general vlog candidates are visible. Turn NSFW on to review adult candidates too.",
+          "Vlog candidates stay visible while adult teaser images are blurred.",
         nsfwTurnOff: "Turn NSFW off",
         nsfwTurnOn: "Turn NSFW on",
         select: "Select",
@@ -770,6 +770,10 @@ export function FanletterNewsReportComposerPage({
       selectedSource.exclusiveNews.reporterReferralCode !== reporterReferralCode,
   );
   const isSelectedPaidLocked = Boolean(selectedSource?.mediaAccess.requiresPurchase);
+  const shouldBlurNsfwMedia = !includeNsfw;
+  const shouldBlurSelectedNsfwMedia = Boolean(
+    shouldBlurNsfwMedia && selectedSource?.contentMaturityRating === "nsfw",
+  );
   const selectedCoverOption = selectedSource?.coverOptions.find(
     (option) => option.imageUrl === selectedCoverUrl,
   );
@@ -1325,6 +1329,8 @@ export function FanletterNewsReportComposerPage({
                 );
                 const isPaidLocked = source.mediaAccess.requiresPurchase;
                 const hasViewerReport = Boolean(source.existingReport);
+                const shouldBlurSourceMedia =
+                  shouldBlurNsfwMedia && source.contentMaturityRating === "nsfw";
 
                 return (
                   <button
@@ -1341,13 +1347,20 @@ export function FanletterNewsReportComposerPage({
                     type="button"
                   >
                     <span
-                      className="relative block aspect-[4/5] overflow-hidden rounded-md bg-[#111510] bg-cover bg-center"
-                      style={
-                        source.coverImageUrl
-                          ? { backgroundImage: `url(${source.coverImageUrl})` }
-                          : undefined
-                      }
+                      className="relative block aspect-[4/5] overflow-hidden rounded-md bg-[#111510]"
                     >
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          "absolute inset-0 bg-cover bg-center transition",
+                          shouldBlurSourceMedia && "scale-110 blur-md brightness-75",
+                        )}
+                        style={
+                          source.coverImageUrl
+                            ? { backgroundImage: `url(${source.coverImageUrl})` }
+                            : undefined
+                        }
+                      />
                       {isPaidLocked ? (
                         <span className="absolute bottom-1 left-1 inline-flex items-center gap-1 rounded-full bg-black/72 px-1.5 py-0.5 text-[0.55rem] font-black text-white">
                           <LockKeyhole className="size-2.5 text-[#44f26e]" />
@@ -1839,10 +1852,16 @@ export function FanletterNewsReportComposerPage({
                               }}
                               type="button"
                             >
-                              <span
-                                className="block min-h-[10rem] rounded-md bg-[#111510] bg-contain bg-center bg-no-repeat"
-                                style={previewStyle}
-                              />
+                              <span className="block overflow-hidden rounded-md bg-[#111510]">
+                                <span
+                                  className={cn(
+                                    "block min-h-[10rem] bg-contain bg-center bg-no-repeat transition",
+                                    shouldBlurSelectedNsfwMedia &&
+                                      "scale-[1.03] blur-md brightness-75",
+                                  )}
+                                  style={previewStyle}
+                                />
+                              </span>
                               <span className="mt-2 flex items-start justify-between gap-2 px-1 pb-1">
                                 <span className="min-w-0">
                                   <span className="block truncate text-xs font-black">
@@ -1941,7 +1960,10 @@ export function FanletterNewsReportComposerPage({
                         <img
                           alt=""
                           aria-hidden="true"
-                          className="absolute max-w-none select-none object-cover"
+                          className={cn(
+                            "absolute max-w-none select-none object-cover",
+                            shouldBlurSelectedNsfwMedia && "blur-md",
+                          )}
                           crossOrigin="anonymous"
                           draggable={false}
                           onLoad={(event) => {
