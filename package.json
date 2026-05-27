@@ -17,6 +17,8 @@
     "notifications:test-push": "node scripts/trigger-test-web-push.mjs",
     "content-automation:run": "node scripts/run-content-automation.mjs",
     "fanletter:video-cover-candidates:backfill": "node scripts/backfill-video-cover-candidates.mjs",
+    "fanletter:video-metadata:backfill": "node scripts/backfill-content-video-metadata.mjs",
+    "fanletter:video-metadata:backfill:remote": "node scripts/trigger-backfill-content-video-metadata.mjs",
     "fanletter:paid-covers:backfill": "node scripts/backfill-paid-video-covers.mjs",
     "fanletter:paid-covers:backfill:remote": "node scripts/trigger-backfill-paid-video-covers.mjs",
     "fanletter:reporter-incentives:backfill": "node scripts/backfill-fanletter-news-reporter-incentives.mjs",
