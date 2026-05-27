@@ -2257,6 +2257,27 @@ export default async function LocalizedFanletterNewsReportPage({
     }),
   );
   const relatedNewsHasMore = relatedReports.length > relatedNewsVisibleCount;
+  const relatedNewsListProps = {
+    characterName,
+    copy: {
+      description: copy.relatedNewsDescription,
+      empty: copy.relatedNewsEmpty,
+      eyebrow: copy.relatedNewsEyebrow,
+      error: copy.relatedNewsError,
+      loadMore: copy.relatedNewsLoadMore,
+      loading: copy.relatedNewsLoading,
+      title: relatedNewsTitle,
+    },
+    initialHasMore: relatedNewsHasMore,
+    initialItems: relatedNewsItems,
+    pageSize: RELATED_NEWS_PAGE_SIZE,
+    relatedApiHref: relatedNewsApiHref,
+    relatedStateParamName: RELATED_NEWS_LIMIT_PARAM,
+    relatedSortParamName: RELATED_NEWS_SORT_PARAM,
+    sortLabel: copy.relatedNewsSortLabel,
+    sortOptions: relatedNewsSortOptions,
+    sortValue: relatedNewsSort,
+  };
   const publishedAt = formatDate(report.sourcePublishedAt, locale);
   const articleParagraphs = splitArticleBody(report.body);
   const accessLabel = getContentAccessLabel(sourceContent ?? report, copy);
@@ -2563,33 +2584,22 @@ export default async function LocalizedFanletterNewsReportPage({
               </div>
             ) : null}
 
-            <div className="mt-6 sm:mt-8">
+            <div className="mt-6 sm:mt-8 xl:hidden">
               <FanletterNewsRelatedList
-                characterName={characterName}
-                copy={{
-                  description: copy.relatedNewsDescription,
-                  empty: copy.relatedNewsEmpty,
-                  eyebrow: copy.relatedNewsEyebrow,
-                  error: copy.relatedNewsError,
-                  loadMore: copy.relatedNewsLoadMore,
-                  loading: copy.relatedNewsLoading,
-                  title: relatedNewsTitle,
-                }}
-                initialHasMore={relatedNewsHasMore}
-                initialItems={relatedNewsItems}
-                key={relatedNewsApiHref}
-                pageSize={RELATED_NEWS_PAGE_SIZE}
-                relatedApiHref={relatedNewsApiHref}
-                relatedStateParamName={RELATED_NEWS_LIMIT_PARAM}
-                relatedSortParamName={RELATED_NEWS_SORT_PARAM}
-                sortLabel={copy.relatedNewsSortLabel}
-                sortOptions={relatedNewsSortOptions}
-                sortValue={relatedNewsSort}
+                key={`mobile-${relatedNewsApiHref}`}
+                {...relatedNewsListProps}
               />
             </div>
           </div>
 
           <aside className="space-y-4 xl:sticky xl:top-5">
+            <div className="hidden xl:block">
+              <FanletterNewsRelatedList
+                key={`desktop-${relatedNewsApiHref}`}
+                {...relatedNewsListProps}
+              />
+            </div>
+
             <SourceContextCard
               accessLabel={accessLabel}
               blurred={shouldBlurCurrentReport}
