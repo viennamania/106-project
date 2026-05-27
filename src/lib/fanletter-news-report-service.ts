@@ -45,6 +45,7 @@ const REPORT_SIX_W_LIMIT = 500;
 const REPORT_TITLE_LIMIT = 180;
 const REPORTER_COMMENT_LIMIT = 220;
 const TEXT_LIMIT = 20_000;
+const REPORT_TEASER_IMAGE_LIMIT = 4;
 const FIRST_NEWS_REPORT_PROMOTION_MS = 3 * 24 * 60 * 60 * 1000;
 const RELATED_NEWS_FIRST_REPORT_LOOKAHEAD_LIMIT = 144;
 const REPORT_DRAFT_SOURCE_SEARCH_LIMIT = 80;
@@ -104,6 +105,7 @@ export type CreateFanletterNewsReportInput = {
   reporterComment?: string | null;
   reporterReferralCode?: string | null;
   selectedCoverImageUrl?: string | null;
+  selectedTeaserImageUrls?: string[] | null;
 };
 
 export type FanletterNewsReportCoverCropInput = {
@@ -444,6 +446,34 @@ function getAllowedReportCoverImageUrls(
       .map((url) => url?.trim() ?? "")
       .filter(Boolean),
   );
+}
+
+function getReportTeaserImageUrls({
+  post,
+  selectedCoverImageUrl,
+  selectedTeaserImageUrls,
+}: {
+  post: Pick<
+    ContentPostDocument,
+    "contentImageUrls" | "coverImageCandidates" | "coverImageUrl"
+  >;
+  selectedCoverImageUrl?: string | null;
+  selectedTeaserImageUrls?: string[] | null;
+}) {
+  const allowedImageUrls = getAllowedReportCoverImageUrls(post);
+  const selectedUrls = Array.isArray(selectedTeaserImageUrls)
+    ? selectedTeaserImageUrls
+    : [];
+
+  return [
+    ...new Set(
+      [...selectedUrls, selectedCoverImageUrl, getCoverImageUrl(post)]
+        .map((url) => url?.trim() ?? "")
+        .filter(Boolean),
+    ),
+  ]
+    .filter((url) => allowedImageUrls.has(url))
+    .slice(0, REPORT_TEASER_IMAGE_LIMIT);
 }
 
 export function isAllowedFanletterNewsReportCoverSource({
@@ -1738,6 +1768,7 @@ export async function getOrCreateFanletterNewsReport({
   reporterComment,
   reporterReferralCode,
   selectedCoverImageUrl,
+  selectedTeaserImageUrls,
 }: CreateFanletterNewsReportInput) {
   const normalizedContentId = contentId?.trim() ?? "";
   const normalizedLocale =
@@ -1825,6 +1856,12 @@ export async function getOrCreateFanletterNewsReport({
     reporterReferralCode: normalizedReporterReferralCode,
     selectedCoverImageUrl,
   });
+  const teaserImageUrls = getReportTeaserImageUrls({
+    post,
+    selectedCoverImageUrl:
+      coverImageSelection.coverImageOriginalUrl ?? selectedCoverImageUrl,
+    selectedTeaserImageUrls,
+  });
   const { generatedBy, payload } = await generateNewsReportPayload({
     contentBodyContext,
     contentMaturityRating,
@@ -1879,6 +1916,7 @@ export async function getOrCreateFanletterNewsReport({
     sourceSummary,
     sourceTitle: trimToLength(post.title, 140),
     status: "published",
+    teaserImageUrls,
     title: payload.title,
     updatedAt: now,
     what: payload.what,

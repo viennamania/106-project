@@ -497,6 +497,7 @@ export type FanletterNewsReportDocument = {
   sourceSummary: string;
   sourceTitle: string;
   status: "published";
+  teaserImageUrls?: string[];
   title: string;
   updatedAt: Date;
   what: string;

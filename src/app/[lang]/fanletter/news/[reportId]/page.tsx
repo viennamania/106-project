@@ -243,6 +243,13 @@ function getCopy(locale: Locale) {
           previous: "이전 장면",
           title: "원본 브이로그 장면 컷",
         },
+        reportTeaserGallery: {
+          body:
+            "원본 브이로그가 열리기 전에는 팬 기자가 선택한 공개용 티저 컷만 기사 안에서 보여줍니다.",
+          eyebrow: "리포터 티저 컷",
+          itemLabel: (index: string) => `공개 컷 ${index}`,
+          title: "팬 기자가 고른 공개 장면",
+        },
         generated: "AI 생성",
         publishedLabel: "작성일",
         navItems: ["AI 캐릭터", "팬 리포트", "브이로그 뉴스", "구매함"],
@@ -435,6 +442,13 @@ function getCopy(locale: Locale) {
           pinProtectedTitle: "Scene cuts protected by PIN",
           previous: "Previous scene",
           title: "Source vlog scene cuts",
+        },
+        reportTeaserGallery: {
+          body:
+            "Before the source vlog opens, the article shows only public teaser cuts selected by the fan reporter.",
+          eyebrow: "Reporter teaser cuts",
+          itemLabel: (index: string) => `Public cut ${index}`,
+          title: "Public scenes picked by the fan reporter",
         },
         generated: "AI generated",
         publishedLabel: "Published",
@@ -1543,6 +1557,77 @@ function SourceVlogUnlockedTeaserGallery({
   );
 }
 
+function ReporterTeaserCutGallery({
+  blurred,
+  copy,
+  imageUrls,
+  locale,
+}: {
+  blurred: boolean;
+  copy: ReturnType<typeof getCopy>;
+  imageUrls: string[];
+  locale: Locale;
+}) {
+  const items = [
+    ...new Set(imageUrls.map((url) => url.trim()).filter(Boolean)),
+  ].slice(0, 4);
+
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="mt-6 border border-[#19b84b]/18 bg-[#f7fbf4] p-3.5 shadow-[0_12px_34px_rgba(17,21,16,0.04)] sm:mt-8 sm:p-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+            {copy.reportTeaserGallery.eyebrow}
+          </p>
+          <h2 className="mt-1 text-xl font-black text-[#111510] sm:text-2xl">
+            {copy.reportTeaserGallery.title}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-black/58">
+            {copy.reportTeaserGallery.body}
+          </p>
+        </div>
+        <span className="inline-flex w-fit rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-white">
+          {formatNumber(items.length, locale)}
+        </span>
+      </div>
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        {items.map((imageUrl, index) => {
+          const itemNumber = formatNumber(index + 1, locale);
+
+          return (
+            <figure
+              className="overflow-hidden border border-black/10 bg-white shadow-[0_10px_28px_rgba(17,21,16,0.055)]"
+              key={`${imageUrl}-${index}`}
+            >
+              <div className="relative aspect-video overflow-hidden bg-[#111510]">
+                <Image
+                  alt={copy.reportTeaserGallery.itemLabel(itemNumber)}
+                  className={
+                    blurred
+                      ? "scale-[1.04] object-cover blur-md brightness-[0.74]"
+                      : "object-cover"
+                  }
+                  fill
+                  sizes="(max-width: 640px) 100vw, 34vw"
+                  src={imageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+                />
+              </div>
+              <figcaption className="px-3 py-2 text-xs font-black text-black/56">
+                {copy.reportTeaserGallery.itemLabel(itemNumber)}
+              </figcaption>
+            </figure>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function SourceVlogEmbed({
   accessLabel,
   blurred,
@@ -2403,6 +2488,13 @@ export default async function LocalizedFanletterNewsReportPage({
             <p className="mt-8 border-t border-black/10 pt-4 text-xs font-medium leading-5 text-black/46">
               {copy.articleNotice}
             </p>
+
+            <ReporterTeaserCutGallery
+              blurred={shouldBlurCurrentReport}
+              copy={copy}
+              imageUrls={report.teaserImageUrls ?? []}
+              locale={locale}
+            />
 
             <div className="mt-6 sm:mt-8">
               <FanletterNewsRelatedList

@@ -35,6 +35,7 @@ type FanletterNewsReportCreateRequest = {
   locale?: string | null;
   reporterComment?: string | null;
   selectedCoverImageUrl?: string | null;
+  selectedTeaserImageUrls?: string[] | null;
   walletAddress?: string | null;
 };
 
@@ -133,9 +134,11 @@ function serializeCoverOption(option: FanletterNewsReportCoverOption) {
     inputValue: option.inputValue,
     isAuto: option.isAuto,
     isSelected: option.isSelected,
+    height: option.height,
     placements: option.placements,
     source: option.source,
     timestampSec: option.timestampSec,
+    width: option.width,
   };
 }
 
@@ -341,6 +344,7 @@ export async function POST(request: Request) {
       reporterComment: body?.reporterComment,
       reporterReferralCode: reporter.reporterReferralCode,
       selectedCoverImageUrl: body?.selectedCoverImageUrl,
+      selectedTeaserImageUrls: body?.selectedTeaserImageUrls,
     });
 
     return Response.json({

@@ -149,6 +149,7 @@ const REPORT_COVER_CROP_ASPECT_RATIO = 16 / 9;
 const REPORT_COVER_CROP_MAX_ZOOM = 3;
 const REPORT_COVER_CROP_OUTPUT_HEIGHT = 675;
 const REPORT_COVER_CROP_OUTPUT_WIDTH = 1200;
+const REPORT_TEASER_IMAGE_LIMIT = 4;
 const REPORTER_COMMENT_MAX_LENGTH = 220;
 const DEFAULT_REPORT_COVER_CROP: ReportCoverCropState = {
   centerX: 0.5,
@@ -197,6 +198,7 @@ function getCopy(locale: Locale) {
         blocked:
           "현재 다른 팬 리포터에게 단독 보도권이 열려 있어 아직 작성할 수 없습니다.",
         chooseCover: "티저 이미지 선택",
+        chooseTeasers: "공개 티저 컷 선택",
         coverOrder: "프레임 시간순",
         chooseVlog: "브이로그 선택",
         commentHelper:
@@ -282,6 +284,13 @@ function getCopy(locale: Locale) {
         nsfwTurnOn: "NSFW 켜기",
         select: "선택",
         selected: "선택됨",
+        teaserSelection: {
+          body:
+            "뉴스 독자가 회원가입 전에 볼 수 있는 공개 컷입니다. 원본 프레임 전체 대신 리포터가 고른 컷만 기사 안에 노출됩니다.",
+          include: "공개 컷에 추가",
+          included: "공개 컷 포함",
+          limit: (count: string) => `최대 ${count}장`,
+        },
         sourceMeta: {
           ai: "AI 커버",
           auto: "자동 추천",
@@ -313,6 +322,7 @@ function getCopy(locale: Locale) {
         blocked:
           "Another fan reporter currently has exclusive reporting access for this vlog.",
         chooseCover: "Choose teaser image",
+        chooseTeasers: "Choose public teaser cuts",
         coverOrder: "Frame time order",
         chooseVlog: "Choose vlog",
         commentHelper:
@@ -396,6 +406,13 @@ function getCopy(locale: Locale) {
         nsfwTurnOn: "Turn NSFW on",
         select: "Select",
         selected: "Selected",
+        teaserSelection: {
+          body:
+            "These are public cuts readers can see before signing in. The article shows only reporter-picked cuts instead of the full source frame set.",
+          include: "Add public cut",
+          included: "Public cut",
+          limit: (count: string) => `Up to ${count}`,
+        },
         sourceMeta: {
           ai: "AI cover",
           auto: "Auto pick",
@@ -492,6 +509,18 @@ function getCoverOptionPreviewStyle(option: CoverOption) {
     aspectRatio: "16 / 10",
     backgroundImage: `url(${option.imageUrl})`,
   };
+}
+
+function getDefaultReportTeaserImageUrls(
+  source: FanletterNewsReportComposerSource | null,
+) {
+  return [
+    ...new Set(
+      (source?.coverOptions ?? [])
+        .map((option) => option.imageUrl.trim())
+        .filter(Boolean),
+    ),
+  ].slice(0, Math.min(3, REPORT_TEASER_IMAGE_LIMIT));
 }
 
 function getReportCoverCropRect({
@@ -665,6 +694,9 @@ export function FanletterNewsReportComposerPage({
   const [selectedCoverUrl, setSelectedCoverUrl] = useState<string | null>(
     initialSelectedSource?.coverOptions[0]?.imageUrl ?? null,
   );
+  const [selectedTeaserUrls, setSelectedTeaserUrls] = useState<string[]>(
+    getDefaultReportTeaserImageUrls(initialSelectedSource),
+  );
   const [angle, setAngle] = useState(copy.angles[0] ?? "");
   const [reporterComment, setReporterComment] = useState("");
   const [crop, setCrop] = useState<ReportCoverCropState>(
@@ -773,10 +805,46 @@ export function FanletterNewsReportComposerPage({
     const nextCoverUrl = selectedSource?.coverOptions[0]?.imageUrl ?? null;
 
     setSelectedCoverUrl(nextCoverUrl);
+    setSelectedTeaserUrls(getDefaultReportTeaserImageUrls(selectedSource));
     setCrop(DEFAULT_REPORT_COVER_CROP);
     setNaturalSize(null);
     setError(null);
-  }, [selectedSource?.contentId, selectedSource?.coverOptions]);
+  }, [selectedSource]);
+
+  const selectCoverImage = useCallback(
+    (imageUrl: string) => {
+      setSelectedCoverUrl(imageUrl);
+      setCrop(DEFAULT_REPORT_COVER_CROP);
+      setNaturalSize(null);
+
+      if (isSelectedPaidLocked) {
+        return;
+      }
+
+      setSelectedTeaserUrls((current) => {
+        if (current.includes(imageUrl)) {
+          return current;
+        }
+
+        return [imageUrl, ...current].slice(0, REPORT_TEASER_IMAGE_LIMIT);
+      });
+    },
+    [isSelectedPaidLocked],
+  );
+
+  const toggleTeaserImage = useCallback((imageUrl: string) => {
+    setSelectedTeaserUrls((current) => {
+      if (current.includes(imageUrl)) {
+        return current.filter((url) => url !== imageUrl);
+      }
+
+      if (current.length >= REPORT_TEASER_IMAGE_LIMIT) {
+        return current;
+      }
+
+      return [...current, imageUrl];
+    });
+  }, []);
 
   const handleCropPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
@@ -916,6 +984,7 @@ export function FanletterNewsReportComposerPage({
           locale,
           reporterComment: reporterCommentPayload,
           selectedCoverImageUrl: selectedCoverUrl,
+          selectedTeaserImageUrls: selectedTeaserUrls,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -946,6 +1015,7 @@ export function FanletterNewsReportComposerPage({
     reporterComment,
     router,
     selectedCoverUrl,
+    selectedTeaserUrls,
     selectedSource,
     uploadCroppedCover,
   ]);
@@ -1580,6 +1650,27 @@ export function FanletterNewsReportComposerPage({
                     </div>
                   </div>
 
+                  {!isSelectedPaidLocked ? (
+                    <div className="mt-4 border border-[#19b84b]/18 bg-[#ecfff0] px-4 py-3">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-sm font-black text-[#111510]">
+                            {copy.chooseTeasers}
+                          </p>
+                          <p className="mt-1 text-xs font-semibold leading-5 text-black/58">
+                            {copy.teaserSelection.body}
+                          </p>
+                        </div>
+                        <span className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-black text-[#16702e] ring-1 ring-[#19b84b]/18">
+                          <ImageIcon className="size-3.5" />
+                          {copy.teaserSelection.limit(
+                            formatNumber(REPORT_TEASER_IMAGE_LIMIT, locale),
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+
                   {isSelectedPaidLocked ? (
                     <div className="mt-4 border border-rose-500/18 bg-rose-50 p-4 text-rose-900">
                       <p className="inline-flex items-center gap-1.5 text-sm font-black">
@@ -1603,6 +1694,12 @@ export function FanletterNewsReportComposerPage({
                     <div className="mt-4 grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-3">
                       {selectedSource.coverOptions.map((option, index) => {
                         const isSelected = option.imageUrl === selectedCoverUrl;
+                        const isTeaserSelected = selectedTeaserUrls.includes(
+                          option.imageUrl,
+                        );
+                        const isTeaserLimitReached =
+                          !isTeaserSelected &&
+                          selectedTeaserUrls.length >= REPORT_TEASER_IMAGE_LIMIT;
                         const imageSizeLabel = formatCoverOptionImageSize(
                           option,
                           locale,
@@ -1610,7 +1707,7 @@ export function FanletterNewsReportComposerPage({
                         const previewStyle = getCoverOptionPreviewStyle(option);
 
                         return (
-                          <button
+                          <div
                             className={cn(
                               "min-w-0 overflow-hidden border bg-[#f6f8f4] p-1 text-left transition",
                               isSelected
@@ -1618,44 +1715,72 @@ export function FanletterNewsReportComposerPage({
                                 : "border-black/10 hover:border-[#19b84b]/45 hover:bg-white",
                             )}
                             key={`${option.candidateId}-${option.imageUrl}`}
-                            onClick={() => {
-                              setSelectedCoverUrl(option.imageUrl);
-                              setCrop(DEFAULT_REPORT_COVER_CROP);
-                              setNaturalSize(null);
-                            }}
-                            type="button"
                           >
-                            <span
-                              className="block min-h-[10rem] rounded-md bg-[#111510] bg-contain bg-center bg-no-repeat"
-                              style={previewStyle}
-                            />
-                            <span className="mt-2 flex items-start justify-between gap-2 px-1 pb-1">
-                              <span className="min-w-0">
-                                <span className="block truncate text-xs font-black">
-                                  {getCoverLabel(option, index, locale)}
+                            <button
+                              className="block w-full text-left"
+                              onClick={() => {
+                                selectCoverImage(option.imageUrl);
+                              }}
+                              type="button"
+                            >
+                              <span
+                                className="block min-h-[10rem] rounded-md bg-[#111510] bg-contain bg-center bg-no-repeat"
+                                style={previewStyle}
+                              />
+                              <span className="mt-2 flex items-start justify-between gap-2 px-1 pb-1">
+                                <span className="min-w-0">
+                                  <span className="block truncate text-xs font-black">
+                                    {getCoverLabel(option, index, locale)}
+                                  </span>
+                                  {imageSizeLabel ? (
+                                    <span className="mt-0.5 block truncate text-[0.64rem] font-black uppercase tracking-[0.06em] text-black/42">
+                                      {copy.imageSize} · {imageSizeLabel}
+                                    </span>
+                                  ) : null}
                                 </span>
-                                {imageSizeLabel ? (
-                                  <span className="mt-0.5 block truncate text-[0.64rem] font-black uppercase tracking-[0.06em] text-black/42">
-                                    {copy.imageSize} · {imageSizeLabel}
+                                {isSelected ? (
+                                  <span
+                                    className={cn(
+                                      "shrink-0 rounded-full px-2 py-0.5 text-[0.62rem] font-black",
+                                      isSelectedPaidLocked
+                                        ? "bg-[#111510] text-white"
+                                        : "bg-[#44f26e] text-[#111510]",
+                                    )}
+                                  >
+                                    {isSelectedPaidLocked
+                                      ? copy.mediaAccess.previewBadge
+                                      : copy.selected}
                                   </span>
                                 ) : null}
                               </span>
-                              {isSelected ? (
-                                <span
-                                  className={cn(
-                                    "shrink-0 rounded-full px-2 py-0.5 text-[0.62rem] font-black",
-                                    isSelectedPaidLocked
-                                      ? "bg-[#111510] text-white"
-                                      : "bg-[#44f26e] text-[#111510]",
-                                  )}
-                                >
-                                  {isSelectedPaidLocked
-                                    ? copy.mediaAccess.previewBadge
-                                    : copy.selected}
-                                </span>
-                              ) : null}
-                            </span>
-                          </button>
+                            </button>
+                            {!isSelectedPaidLocked ? (
+                              <button
+                                className={cn(
+                                  "mt-1 flex h-9 w-full items-center justify-center gap-1.5 rounded-md border text-[0.7rem] font-black transition",
+                                  isTeaserSelected
+                                    ? "border-[#19b84b]/35 bg-[#111510] text-white"
+                                    : "border-black/10 bg-white text-black/56 hover:border-[#19b84b]/35 hover:text-[#111510]",
+                                  isTeaserLimitReached &&
+                                    "cursor-not-allowed opacity-45 hover:border-black/10 hover:text-black/56",
+                                )}
+                                disabled={isTeaserLimitReached}
+                                onClick={() => {
+                                  toggleTeaserImage(option.imageUrl);
+                                }}
+                                type="button"
+                              >
+                                {isTeaserSelected ? (
+                                  <CheckCircle2 className="size-3.5 text-[#44f26e]" />
+                                ) : (
+                                  <ImageIcon className="size-3.5 text-[#16702e]" />
+                                )}
+                                {isTeaserSelected
+                                  ? copy.teaserSelection.included
+                                  : copy.teaserSelection.include}
+                              </button>
+                            ) : null}
+                          </div>
                         );
                       })}
                     </div>
