@@ -488,6 +488,35 @@ function readFiniteNumber(value: number | null | undefined) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function sortFanletterNewsReportCoverOptionsByFrameTime(
+  options: FanletterNewsReportCoverOption[],
+) {
+  return options
+    .map((option, originalIndex) => ({ option, originalIndex }))
+    .sort((left, right) => {
+      const leftTimestamp = readFiniteNumber(left.option.timestampSec);
+      const rightTimestamp = readFiniteNumber(right.option.timestampSec);
+
+      if (leftTimestamp !== null && rightTimestamp !== null) {
+        return (
+          leftTimestamp - rightTimestamp ||
+          left.originalIndex - right.originalIndex
+        );
+      }
+
+      if (leftTimestamp !== null) {
+        return -1;
+      }
+
+      if (rightTimestamp !== null) {
+        return 1;
+      }
+
+      return left.originalIndex - right.originalIndex;
+    })
+    .map(({ option }) => option);
+}
+
 function normalizeReportCoverCrop({
   crop,
   sourceImageUrl,
@@ -746,7 +775,7 @@ function getFanletterNewsReportCoverOptionsFromPost({
     });
   }
 
-  return options;
+  return sortFanletterNewsReportCoverOptionsByFrameTime(options);
 }
 
 async function hydrateFanletterNewsReportCoverImageUrls<

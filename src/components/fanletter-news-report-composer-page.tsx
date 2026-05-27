@@ -195,6 +195,7 @@ function getCopy(locale: Locale) {
         blocked:
           "현재 다른 팬 리포터에게 단독 보도권이 열려 있어 아직 작성할 수 없습니다.",
         chooseCover: "티저 이미지 선택",
+        coverOrder: "프레임 시간순",
         chooseVlog: "브이로그 선택",
         commentHelper:
           "동영상 전체가 아니라 티저 이미지와 공개 메타만 보고 작성하는 팬 기자 코멘트입니다.",
@@ -304,6 +305,7 @@ function getCopy(locale: Locale) {
         blocked:
           "Another fan reporter currently has exclusive reporting access for this vlog.",
         chooseCover: "Choose teaser image",
+        coverOrder: "Frame time order",
         chooseVlog: "Choose vlog",
         commentHelper:
           "This reporter note is written from teaser images and public metadata, not full video playback.",
@@ -1510,10 +1512,16 @@ export function FanletterNewsReportComposerPage({
                         {copy.chooseCover}
                       </h2>
                     </div>
-                    <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-white">
-                      <Clapperboard className="size-3.5 text-[#44f26e]" />
-                      {copy.imageOnly}
-                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-white">
+                        <Clapperboard className="size-3.5 text-[#44f26e]" />
+                        {copy.imageOnly}
+                      </span>
+                      <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-[#19b84b]/20 bg-[#ecfff0] px-3 py-1.5 text-xs font-black text-[#16702e]">
+                        <RefreshCw className="size-3.5" />
+                        {copy.coverOrder}
+                      </span>
+                    </div>
                   </div>
 
                   {isSelectedPaidLocked ? (
