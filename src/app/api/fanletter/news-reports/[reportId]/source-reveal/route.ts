@@ -9,13 +9,16 @@ import {
 } from "@/lib/fanletter-news-source-reveal";
 import { getFanletterNewsReportById } from "@/lib/fanletter-news-report-service";
 import {
+  awardFanletterNewsSourceRevealFanUnlockRewards,
   awardFanletterNewsSourceRevealReporterIncentives,
+  type FanletterNewsSourceRevealFanRewardAward,
   type FanletterNewsSourceRevealReporterIncentiveAward,
 } from "@/lib/fanletter-news-reporter-incentives";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
 type SourceRevealResponse = {
+  fanReward?: FanletterNewsSourceRevealFanRewardAward | null;
   reporterReward?: FanletterNewsSourceRevealReporterIncentiveAward | null;
   sourceReveal: FanletterNewsSourceRevealState;
 };
@@ -97,8 +100,22 @@ export async function POST(
         reporterReferralCode: report.reporterReferralCode,
       },
     });
+    let fanReward: FanletterNewsSourceRevealFanRewardAward | null = null;
     let reporterReward: FanletterNewsSourceRevealReporterIncentiveAward | null =
       null;
+
+    try {
+      fanReward = await awardFanletterNewsSourceRevealFanUnlockRewards({
+        contentId: report.contentId,
+        response,
+        viewerEmail: authorization.normalizedEmail,
+      });
+    } catch (fanRewardError) {
+      console.error(
+        "[fanletter-news] source reveal fan unlock reward failed",
+        fanRewardError,
+      );
+    }
 
     try {
       reporterReward = await awardFanletterNewsSourceRevealReporterIncentives({
@@ -114,6 +131,7 @@ export async function POST(
     }
     const participants = await getContentSourceRevealParticipants(report.contentId);
     const sourceRevealResponse: SourceRevealResponse = {
+      fanReward,
       reporterReward,
       sourceReveal: createFanletterNewsSourceRevealState(response.social, {
         participants,

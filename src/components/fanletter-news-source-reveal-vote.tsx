@@ -27,7 +27,10 @@ import {
 
 import { useMemberSession } from "@/components/member-session-provider";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
-import type { FanletterNewsSourceRevealState } from "@/lib/fanletter-news-source-reveal";
+import {
+  FANLETTER_NEWS_SOURCE_REVEAL_FAN_UNLOCK_REWARD_POINTS,
+  type FanletterNewsSourceRevealState,
+} from "@/lib/fanletter-news-source-reveal";
 import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -40,7 +43,14 @@ type SourceRevealReporterReward = {
   voteRewardPoints: number;
 };
 
+type SourceRevealFanReward = {
+  participantCount: number;
+  rewardPoints: number;
+  threshold: number;
+};
+
 type SourceRevealResponse = {
+  fanReward?: SourceRevealFanReward | null;
   reporterReward?: SourceRevealReporterReward | null;
   sourceReveal: FanletterNewsSourceRevealState;
 };
@@ -81,16 +91,26 @@ const celebrationSparks = [
 ] satisfies CelebrationSpark[];
 
 function getCopy(locale: Locale) {
+  const fanUnlockRewardPoints = formatCount(
+    FANLETTER_NEWS_SOURCE_REVEAL_FAN_UNLOCK_REWARD_POINTS,
+    locale,
+  );
+
   return locale === "ko"
     ? {
         body: (count: string, threshold: string, remaining: string) =>
-          `현재 ${count}/${threshold}명 참여 중입니다. ${remaining}명이 더 보고싶어요를 누르면 원본 브이로그가 열립니다.`,
+          `현재 ${count}/${threshold}명 참여 중입니다. ${remaining}명이 더 보고싶어요를 누르면 원본 브이로그가 열립니다. 선착순 ${threshold}명에게 오픈 포인트 ${fanUnlockRewardPoints}P가 지급됩니다.`,
         celebration: {
           body:
             "팬들의 보고싶어요가 모여 잠겨 있던 영상이 열렸습니다. 곧 원본 브이로그로 이동합니다.",
           dismiss: "바로 보기",
           eyebrow: "JACKPOT UNLOCK",
+          fanRewardBody: (threshold: string) =>
+            `원본 브이로그를 연 선착순 ${threshold}명 팬에게 오픈 기여 포인트가 지급됐습니다.`,
+          fanRewardEyebrow: "FAN OPEN POINT",
+          fanRewardTitle: "선착순 보고싶어요 보상 지급!",
           progress: (threshold: string) => `${threshold}/${threshold} 달성`,
+          reward: (points: string) => `+${points}P`,
           title: "원본 브이로그 오픈 완료!",
         },
         reporterReward: {
@@ -114,7 +134,7 @@ function getCopy(locale: Locale) {
         refresh: "상태 다시 확인",
         refreshing: "확인 중",
         saving: "반영 중",
-        title: "팬 6명이 보고싶어요를 누르면 원본 브이로그가 열립니다",
+        title: `팬 6명이 보고싶어요를 누르면 원본 브이로그가 열리고 ${fanUnlockRewardPoints}P를 받습니다`,
         unlockedBody: (count: string) =>
           `${count}명의 팬 참여로 뉴스 속 원본 브이로그가 열렸습니다.`,
         unlockedTitle: "팬들이 열어낸 원본 브이로그",
@@ -130,13 +150,18 @@ function getCopy(locale: Locale) {
       }
     : {
         body: (count: string, threshold: string, remaining: string) =>
-          `${count}/${threshold} fans have joined. The source vlog opens when ${remaining} more fan${remaining === "1" ? "" : "s"} tap want to watch.`,
+          `${count}/${threshold} fans have joined. The source vlog opens when ${remaining} more fan${remaining === "1" ? "" : "s"} tap want to watch. The first ${threshold} fans earn ${fanUnlockRewardPoints}P open points.`,
         celebration: {
           body:
             "Fans gathered enough want-to-watch votes to open the locked source video. The vlog is opening now.",
           dismiss: "Watch now",
           eyebrow: "JACKPOT UNLOCK",
+          fanRewardBody: (threshold: string) =>
+            `The first ${threshold} fans who opened the source vlog earned fan-open contribution points.`,
+          fanRewardEyebrow: "FAN OPEN POINT",
+          fanRewardTitle: "First fan-open reward paid!",
           progress: (threshold: string) => `${threshold}/${threshold} reached`,
+          reward: (points: string) => `+${points}P`,
           title: "Source vlog unlocked!",
         },
         reporterReward: {
@@ -160,7 +185,7 @@ function getCopy(locale: Locale) {
         refresh: "Check status",
         refreshing: "Checking",
         saving: "Saving",
-        title: "The source vlog opens when 6 fans want to watch",
+        title: `The source vlog opens and pays ${fanUnlockRewardPoints}P when 6 fans want to watch`,
         unlockedBody: (count: string) =>
           `${count} fans opened the source vlog in this news together.`,
         unlockedTitle: "Source vlog opened by fans",
@@ -199,15 +224,23 @@ function isSourceRevealResponse(data: unknown): data is SourceRevealResponse {
 
 function UnlockCelebrationOverlay({
   copy,
+  fanReward,
+  locale,
   onDismiss,
   prefersReducedMotion,
   thresholdLabel,
 }: {
   copy: ReturnType<typeof getCopy>["celebration"];
+  fanReward?: SourceRevealFanReward | null;
+  locale: Locale;
   onDismiss: () => void;
   prefersReducedMotion: boolean;
   thresholdLabel: string;
 }) {
+  const rewardPointsLabel = fanReward
+    ? formatCount(fanReward.rewardPoints, locale)
+    : null;
+
   return (
     <div
       aria-live="polite"
@@ -246,7 +279,7 @@ function UnlockCelebrationOverlay({
           <Sparkles className="size-7" />
         </div>
         <p className="mt-4 text-[0.68rem] font-black uppercase tracking-[0.24em] text-[#9bffad]">
-          {copy.eyebrow}
+          {fanReward ? copy.fanRewardEyebrow : copy.eyebrow}
         </p>
         <div className="mx-auto mt-3 inline-grid grid-cols-[auto_auto_auto] items-center gap-2 rounded-full border border-[#44f26e]/35 bg-[#44f26e]/12 px-4 py-2 font-black text-[#44f26e] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]">
           <span className="text-2xl leading-none">{thresholdLabel}</span>
@@ -256,11 +289,19 @@ function UnlockCelebrationOverlay({
         <p className="mt-2 text-xs font-black uppercase tracking-[0.16em] text-white/52">
           {copy.progress(thresholdLabel)}
         </p>
+        {fanReward && rewardPointsLabel ? (
+          <div className="mx-auto mt-3 flex w-max items-center justify-center gap-2 rounded-full bg-[radial-gradient(circle_at_35%_30%,#fff7a8,#facc15_48%,#44f26e_100%)] px-5 py-2 text-black shadow-[0_0_38px_rgba(250,204,21,0.36)]">
+            <Coins className="size-5" />
+            <span className="text-2xl font-black leading-none">
+              {copy.reward(rewardPointsLabel)}
+            </span>
+          </div>
+        ) : null}
         <h2 className="mt-4 text-2xl font-black leading-tight [word-break:keep-all]">
-          {copy.title}
+          {fanReward ? copy.fanRewardTitle : copy.title}
         </h2>
         <p className="mt-3 text-sm font-semibold leading-6 text-white/68 [word-break:keep-all]">
-          {copy.body}
+          {fanReward ? copy.fanRewardBody(thresholdLabel) : copy.body}
         </p>
         <button
           className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-full bg-[#44f26e] px-4 text-sm font-black text-black transition hover:bg-[#69ff8c]"
@@ -532,6 +573,8 @@ export function FanletterNewsSourceRevealVote({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showUnlockCelebration, setShowUnlockCelebration] = useState(false);
+  const [unlockFanReward, setUnlockFanReward] =
+    useState<SourceRevealFanReward | null>(null);
   const [reporterRewardCelebration, setReporterRewardCelebration] =
     useState<SourceRevealReporterReward | null>(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -587,6 +630,7 @@ export function FanletterNewsSourceRevealVote({
     clearCelebrationTimers();
     shouldRefreshAfterCelebrationRef.current = false;
     setShowUnlockCelebration(false);
+    setUnlockFanReward(null);
 
     if (shouldRefresh) {
       router.refresh();
@@ -605,19 +649,24 @@ export function FanletterNewsSourceRevealVote({
     }
   }, [clearReporterRewardTimers, router]);
 
-  const triggerUnlockCelebration = useCallback(() => {
-    clearCelebrationTimers();
-    shouldRefreshAfterCelebrationRef.current = true;
-    setShowUnlockCelebration(true);
+  const triggerUnlockCelebration = useCallback(
+    (fanReward?: SourceRevealFanReward | null) => {
+      clearCelebrationTimers();
+      shouldRefreshAfterCelebrationRef.current = true;
+      setUnlockFanReward(fanReward ?? null);
+      setShowUnlockCelebration(true);
 
-    refreshCelebrationTimeoutRef.current = setTimeout(() => {
-      shouldRefreshAfterCelebrationRef.current = false;
-      router.refresh();
-    }, prefersReducedMotion ? 900 : UNLOCK_CELEBRATION_REFRESH_MS);
-    hideCelebrationTimeoutRef.current = setTimeout(() => {
-      setShowUnlockCelebration(false);
-    }, prefersReducedMotion ? 1600 : UNLOCK_CELEBRATION_HIDE_MS);
-  }, [clearCelebrationTimers, prefersReducedMotion, router]);
+      refreshCelebrationTimeoutRef.current = setTimeout(() => {
+        shouldRefreshAfterCelebrationRef.current = false;
+        router.refresh();
+      }, prefersReducedMotion ? 900 : UNLOCK_CELEBRATION_REFRESH_MS);
+      hideCelebrationTimeoutRef.current = setTimeout(() => {
+        setShowUnlockCelebration(false);
+        setUnlockFanReward(null);
+      }, prefersReducedMotion ? 1600 : UNLOCK_CELEBRATION_HIDE_MS);
+    },
+    [clearCelebrationTimers, prefersReducedMotion, router],
+  );
 
   const triggerReporterRewardCelebration = useCallback(
     ({
@@ -820,14 +869,20 @@ export function FanletterNewsSourceRevealVote({
         );
       }
 
+      const fanReward = data.fanReward ?? null;
       const reporterReward = data.reporterReward ?? null;
       const unlockedByThisVote =
         !stateRef.current.unlocked && data.sourceReveal.unlocked;
 
       applySourceRevealState(data.sourceReveal, {
-        celebrateOnUnlock: !reporterReward,
-        refreshOnUnlock: !reporterReward,
+        celebrateOnUnlock: !reporterReward && !fanReward,
+        refreshOnUnlock: !reporterReward && !fanReward,
       });
+
+      if (fanReward && unlockedByThisVote) {
+        triggerUnlockCelebration(fanReward);
+        return;
+      }
 
       if (reporterReward) {
         triggerReporterRewardCelebration({
@@ -847,6 +902,8 @@ export function FanletterNewsSourceRevealVote({
       {showUnlockCelebration ? (
         <UnlockCelebrationOverlay
           copy={copy.celebration}
+          fanReward={unlockFanReward}
+          locale={locale}
           onDismiss={dismissUnlockCelebration}
           prefersReducedMotion={prefersReducedMotion}
           thresholdLabel={thresholdLabel}
@@ -871,175 +928,179 @@ export function FanletterNewsSourceRevealVote({
           className,
         )}
       >
-      <div className={cn("flex items-start gap-3", isCompact && "gap-2.5")}>
-        <span
-          className={cn(
-            "mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-full",
-            isCompact && "size-8 sm:size-10",
-            state.unlocked
-              ? "bg-[#44f26e] text-black"
-              : isDark
-                ? "bg-[#44f26e]/14 text-[#44f26e]"
-                : "bg-[#e9ffef] text-[#16702e]",
-          )}
-        >
-          {state.unlocked ? (
-            <CheckCircle2 className={cn("size-5", isCompact && "size-4 sm:size-5")} />
-          ) : (
-            <LockKeyhole className={cn("size-5", isCompact && "size-4 sm:size-5")} />
-          )}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p
+        <div className={cn("flex items-start gap-3", isCompact && "gap-2.5")}>
+          <span
             className={cn(
-              "text-[0.64rem] font-black uppercase tracking-[0.16em]",
-              isDark ? "text-[#9bffad]" : "text-[#16702e]",
+              "mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-full",
+              isCompact && "size-8 sm:size-10",
+              state.unlocked
+                ? "bg-[#44f26e] text-black"
+                : isDark
+                  ? "bg-[#44f26e]/14 text-[#44f26e]"
+                  : "bg-[#e9ffef] text-[#16702e]",
             )}
           >
-            {copy.eyebrow}
-          </p>
-          <p
-            className={cn(
-              "mt-1 text-sm font-black leading-5 [word-break:keep-all]",
-              isDark ? "text-white" : "text-[#111510]",
-              isCompact && "text-[0.82rem] leading-5 sm:text-sm",
+            {state.unlocked ? (
+              <CheckCircle2
+                className={cn("size-5", isCompact && "size-4 sm:size-5")}
+              />
+            ) : (
+              <LockKeyhole
+                className={cn("size-5", isCompact && "size-4 sm:size-5")}
+              />
             )}
-          >
-            {state.unlocked ? copy.unlockedTitle : copy.title}
-          </p>
-          <p
-            className={cn(
-              "mt-1 text-xs font-semibold leading-5",
-              isDark ? "text-white/68" : "text-black/58",
-              isCompact && "hidden sm:block",
-            )}
-          >
-            {state.unlocked
-              ? copy.unlockedBody(countLabel)
-              : copy.body(countLabel, thresholdLabel, remainingLabel)}
-          </p>
+          </span>
+          <div className="min-w-0 flex-1">
+            <p
+              className={cn(
+                "text-[0.64rem] font-black uppercase tracking-[0.16em]",
+                isDark ? "text-[#9bffad]" : "text-[#16702e]",
+              )}
+            >
+              {copy.eyebrow}
+            </p>
+            <p
+              className={cn(
+                "mt-1 text-sm font-black leading-5 [word-break:keep-all]",
+                isDark ? "text-white" : "text-[#111510]",
+                isCompact && "text-[0.82rem] leading-5 sm:text-sm",
+              )}
+            >
+              {state.unlocked ? copy.unlockedTitle : copy.title}
+            </p>
+            <p
+              className={cn(
+                "mt-1 text-xs font-semibold leading-5",
+                isDark ? "text-white/68" : "text-black/58",
+                isCompact && "hidden sm:block",
+              )}
+            >
+              {state.unlocked
+                ? copy.unlockedBody(countLabel)
+                : copy.body(countLabel, thresholdLabel, remainingLabel)}
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className={cn("mt-3", isCompact && "mt-2")}>
-        <div
-          className={cn(
-            "h-2 overflow-hidden rounded-full",
-            isDark ? "bg-white/12" : "bg-black/8",
-          )}
-        >
+        <div className={cn("mt-3", isCompact && "mt-2")}>
           <div
-            className="h-full rounded-full bg-[#44f26e] transition-[width]"
-            style={{ width: `${progressPercent}%` }}
-          />
+            className={cn(
+              "h-2 overflow-hidden rounded-full",
+              isDark ? "bg-white/12" : "bg-black/8",
+            )}
+          >
+            <div
+              className="h-full rounded-full bg-[#44f26e] transition-[width]"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+          <div
+            className={cn(
+              "mt-2 flex items-center justify-between gap-3 text-[0.68rem] font-black",
+              isDark ? "text-white/58" : "text-black/50",
+              isCompact && "mt-1.5",
+            )}
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <Users className="size-3.5" />
+              {countLabel}/{thresholdLabel}
+            </span>
+            <span>
+              {remainingCount > 0
+                ? copy.progressRemaining(remainingLabel)
+                : copy.progressReady}
+            </span>
+          </div>
         </div>
-        <div
-          className={cn(
-            "mt-2 flex items-center justify-between gap-3 text-[0.68rem] font-black",
-            isDark ? "text-white/58" : "text-black/50",
-            isCompact && "mt-1.5",
-          )}
-        >
-          <span className="inline-flex items-center gap-1.5">
-            <Users className="size-3.5" />
-            {countLabel}/{thresholdLabel}
-          </span>
-          <span>
-            {remainingCount > 0
-              ? copy.progressRemaining(remainingLabel)
-              : copy.progressReady}
-          </span>
-        </div>
-      </div>
 
-      <SourceRevealParticipantStack
-        copy={copy.voters}
-        isCompact={isCompact}
-        isDark={isDark}
-        locale={locale}
-        participants={participants}
-        totalCount={state.count}
-      />
+        <SourceRevealParticipantStack
+          copy={copy.voters}
+          isCompact={isCompact}
+          isDark={isDark}
+          locale={locale}
+          participants={participants}
+          totalCount={state.count}
+        />
 
-      {state.unlocked ? null : isLoggedIn ? (
-        <button
-          className={cn(
-            "mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-72",
-            isCompact && "mt-2 h-10",
-            state.requestedByViewer
-              ? isDark
-                ? "border border-[#44f26e]/35 bg-[#44f26e]/12 text-[#b9ffc8]"
-                : "border border-[#19b84b]/30 bg-[#effff3] text-[#126c2c]"
-              : "bg-[#44f26e] text-black hover:bg-[#69ff8c]",
-          )}
-          disabled={isSaving || state.requestedByViewer}
-          onClick={() => {
-            void handleVote();
-          }}
-          type="button"
-        >
-          {isSaving ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
+        {state.unlocked ? null : isLoggedIn ? (
+          <button
+            className={cn(
+              "mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-72",
+              isCompact && "mt-2 h-10",
+              state.requestedByViewer
+                ? isDark
+                  ? "border border-[#44f26e]/35 bg-[#44f26e]/12 text-[#b9ffc8]"
+                  : "border border-[#19b84b]/30 bg-[#effff3] text-[#126c2c]"
+                : "bg-[#44f26e] text-black hover:bg-[#69ff8c]",
+            )}
+            disabled={isSaving || state.requestedByViewer}
+            onClick={() => {
+              void handleVote();
+            }}
+            type="button"
+          >
+            {isSaving ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <HeartHandshake className="size-4" />
+            )}
+            {isSaving
+              ? copy.saving
+              : state.requestedByViewer
+                ? copy.done
+                : copy.cta}
+          </button>
+        ) : (
+          <Link
+            className={cn(
+              "mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c]",
+              isCompact && "mt-2 h-10",
+            )}
+            href={connectHref}
+          >
             <HeartHandshake className="size-4" />
-          )}
-          {isSaving
-            ? copy.saving
-            : state.requestedByViewer
-              ? copy.done
-              : copy.cta}
-        </button>
-      ) : (
-        <Link
-          className={cn(
-            "mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c]",
-            isCompact && "mt-2 h-10",
-          )}
-          href={connectHref}
-        >
-          <HeartHandshake className="size-4" />
-          {copy.loginCta}
-        </Link>
-      )}
+            {copy.loginCta}
+          </Link>
+        )}
 
-      {voteEndpoint ? (
-        <button
-          className={cn(
-            "mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border px-3 py-2 text-xs font-black transition disabled:cursor-not-allowed disabled:opacity-70",
-            isDark
-              ? "border-white/14 bg-white/6 text-white/68 hover:bg-white/10"
-              : "border-black/10 bg-black/[0.03] text-black/54 hover:bg-black/[0.06]",
-          )}
-          disabled={isRefreshing || isSaving}
-          onClick={() => {
-            setError(null);
-            void refreshSourceRevealState({
-              refreshOnUnlock: true,
-              setLoading: setIsRefreshing,
-              surfaceError: true,
-            });
-          }}
-          type="button"
-        >
-          {isRefreshing ? (
-            <Loader2 className="size-3.5 animate-spin" />
-          ) : (
-            <RotateCcw className="size-3.5" />
-          )}
-          {isRefreshing ? copy.refreshing : copy.refresh}
-        </button>
-      ) : null}
+        {voteEndpoint ? (
+          <button
+            className={cn(
+              "mt-2 inline-flex w-full items-center justify-center gap-2 rounded-full border px-3 py-2 text-xs font-black transition disabled:cursor-not-allowed disabled:opacity-70",
+              isDark
+                ? "border-white/14 bg-white/6 text-white/68 hover:bg-white/10"
+                : "border-black/10 bg-black/[0.03] text-black/54 hover:bg-black/[0.06]",
+            )}
+            disabled={isRefreshing || isSaving}
+            onClick={() => {
+              setError(null);
+              void refreshSourceRevealState({
+                refreshOnUnlock: true,
+                setLoading: setIsRefreshing,
+                surfaceError: true,
+              });
+            }}
+            type="button"
+          >
+            {isRefreshing ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <RotateCcw className="size-3.5" />
+            )}
+            {isRefreshing ? copy.refreshing : copy.refresh}
+          </button>
+        ) : null}
 
-      {error ? (
-        <p
-          className={cn(
-            "mt-2 text-xs font-semibold leading-5",
-            isDark ? "text-rose-200" : "text-rose-700",
-          )}
-        >
-          {error}
-        </p>
-      ) : null}
+        {error ? (
+          <p
+            className={cn(
+              "mt-2 text-xs font-semibold leading-5",
+              isDark ? "text-rose-200" : "text-rose-700",
+            )}
+          >
+            {error}
+          </p>
+        ) : null}
       </div>
     </>
   );

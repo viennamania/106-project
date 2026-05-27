@@ -4,7 +4,10 @@ import type {
   ContentSocialResponse,
   FanletterNewsReportDocument,
 } from "@/lib/content";
-import { FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD } from "@/lib/fanletter-news-source-reveal";
+import {
+  FANLETTER_NEWS_SOURCE_REVEAL_FAN_UNLOCK_REWARD_POINTS,
+  FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD,
+} from "@/lib/fanletter-news-source-reveal";
 import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
 import {
   getContentOrdersCollection,
@@ -38,6 +41,12 @@ export type FanletterNewsSourceRevealReporterIncentiveAward = {
   voteRewardPoints: number;
 };
 
+export type FanletterNewsSourceRevealFanRewardAward = {
+  participantCount: number;
+  rewardPoints: number;
+  threshold: number;
+};
+
 function emptyStats(): FanletterNewsReporterIncentiveReportStats {
   return {
     paidUnlockPurchaseCount: 0,
@@ -66,6 +75,16 @@ function getSourceRevealUnlockRewardSourceId({
   viewerEmail: string;
 }) {
   return `fanletter-news:source-reveal-unlock:${reportId}:${viewerEmail}`;
+}
+
+function getSourceRevealFanUnlockRewardSourceId({
+  contentId,
+  viewerEmail,
+}: {
+  contentId: string;
+  viewerEmail: string;
+}) {
+  return `fanletter-news:source-reveal-fan-unlock:${contentId}:${viewerEmail}`;
 }
 
 async function getCompletedReporterMembersByReferralCodes(
@@ -342,6 +361,104 @@ export async function awardFanletterNewsSourceRevealReporterIncentives({
     totalRewardPoints,
     unlockRewardPoints,
     voteRewardPoints,
+  };
+}
+
+export async function awardFanletterNewsSourceRevealFanUnlockRewards({
+  contentId,
+  response,
+  viewerEmail,
+}: {
+  contentId: string;
+  response: ContentSocialResponse;
+  viewerEmail: string;
+}): Promise<FanletterNewsSourceRevealFanRewardAward | null> {
+  if (!response.sourceRevealNewlyRequested) {
+    return null;
+  }
+
+  const normalizedViewerEmail = normalizeEmail(viewerEmail);
+
+  if (!normalizedViewerEmail) {
+    return null;
+  }
+
+  const previousCount = Math.max(0, response.sourceRevealPreviousCount ?? 0);
+
+  if (previousCount >= FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD) {
+    return null;
+  }
+
+  const currentCount = Math.max(0, response.social.sourceRevealCount);
+  const unlockedByThisRequest =
+    previousCount < FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD &&
+    currentCount >= FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD;
+
+  if (!unlockedByThisRequest) {
+    return null;
+  }
+
+  const socialActionsCollection = await getContentSocialActionsCollection();
+  const firstParticipantActions = await socialActionsCollection
+    .find({
+      contentId,
+      sourceRevealRequested: true,
+    })
+    .sort({ sourceRevealRequestedAt: 1, createdAt: 1 })
+    .limit(FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD)
+    .toArray();
+
+  await Promise.all(
+    firstParticipantActions.map(async (action) => {
+      const participantEmail = normalizeEmail(action.memberEmail);
+
+      if (!participantEmail) {
+        return;
+      }
+
+      const sourceId = getSourceRevealFanUnlockRewardSourceId({
+        contentId,
+        viewerEmail: participantEmail,
+      });
+
+      await awardBonusPointsForMember({
+        ledgerEntryId: `${participantEmail}:${sourceId}`,
+        memberEmail: participantEmail,
+        memo: `FanLetter News fan-open source vlog · ${contentId}`,
+        points: FANLETTER_NEWS_SOURCE_REVEAL_FAN_UNLOCK_REWARD_POINTS,
+        sourceId,
+        sourceMemberEmail: participantEmail,
+      });
+
+      await socialActionsCollection.updateOne(
+        {
+          contentId: action.contentId,
+          memberEmail: action.memberEmail,
+          sourceRevealRequested: true,
+        },
+        {
+          $set: {
+            sourceRevealFanUnlockRewardedAt: new Date(),
+            sourceRevealFanUnlockRewardPoints:
+              FANLETTER_NEWS_SOURCE_REVEAL_FAN_UNLOCK_REWARD_POINTS,
+          },
+        },
+      );
+    }),
+  );
+
+  const viewerWasRewarded = firstParticipantActions.some(
+    (action) => normalizeEmail(action.memberEmail) === normalizedViewerEmail,
+  );
+
+  if (!viewerWasRewarded) {
+    return null;
+  }
+
+  return {
+    participantCount: firstParticipantActions.length,
+    rewardPoints: FANLETTER_NEWS_SOURCE_REVEAL_FAN_UNLOCK_REWARD_POINTS,
+    threshold: FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD,
   };
 }
 

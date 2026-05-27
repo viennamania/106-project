@@ -7,10 +7,15 @@ import {
   createFanletterNewsSourceRevealState,
   type FanletterNewsSourceRevealState,
 } from "@/lib/fanletter-news-source-reveal";
+import {
+  awardFanletterNewsSourceRevealFanUnlockRewards,
+  type FanletterNewsSourceRevealFanRewardAward,
+} from "@/lib/fanletter-news-reporter-incentives";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
 type SourceRevealResponse = {
+  fanReward?: FanletterNewsSourceRevealFanRewardAward | null;
   sourceReveal: FanletterNewsSourceRevealState;
 };
 
@@ -72,8 +77,23 @@ export async function POST(
       contentId,
       email: authorization.normalizedEmail,
     });
+    let fanReward: FanletterNewsSourceRevealFanRewardAward | null = null;
+
+    try {
+      fanReward = await awardFanletterNewsSourceRevealFanUnlockRewards({
+        contentId,
+        response,
+        viewerEmail: authorization.normalizedEmail,
+      });
+    } catch (fanRewardError) {
+      console.error(
+        "[fanletter-news] source reveal fan unlock reward failed",
+        fanRewardError,
+      );
+    }
     const participants = await getContentSourceRevealParticipants(contentId);
     const sourceRevealResponse: SourceRevealResponse = {
+      fanReward,
       sourceReveal: createFanletterNewsSourceRevealState(response.social, {
         participants,
       }),

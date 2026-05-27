@@ -621,6 +621,8 @@ export type ContentSocialActionDocument = {
   sourceRevealRequested?: boolean;
   sourceRevealRequestedAt?: Date | null;
   sourceRevealReportId?: string | null;
+  sourceRevealFanUnlockRewardedAt?: Date | null;
+  sourceRevealFanUnlockRewardPoints?: number;
   sourceRevealReporterEmail?: string | null;
   sourceRevealReporterReferralCode?: string | null;
   sourceRevealReporterUnlockRewardedAt?: Date | null;

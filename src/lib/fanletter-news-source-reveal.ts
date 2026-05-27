@@ -2,6 +2,7 @@ import type { ContentSocialSummaryRecord } from "@/lib/content";
 
 export const FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD = 6;
 export const FANLETTER_NEWS_SOURCE_REVEAL_PARTICIPANT_LIMIT = 6;
+export const FANLETTER_NEWS_SOURCE_REVEAL_FAN_UNLOCK_REWARD_POINTS = 100;
 
 export type FanletterNewsSourceRevealParticipant = {
   avatarImageUrl: string | null;
