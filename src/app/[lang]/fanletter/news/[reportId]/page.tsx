@@ -2496,31 +2496,6 @@ export default async function LocalizedFanletterNewsReportPage({
               locale={locale}
             />
 
-            <div className="mt-6 sm:mt-8">
-              <FanletterNewsRelatedList
-                characterName={characterName}
-                copy={{
-                  description: copy.relatedNewsDescription,
-                  empty: copy.relatedNewsEmpty,
-                  eyebrow: copy.relatedNewsEyebrow,
-                  error: copy.relatedNewsError,
-                  loadMore: copy.relatedNewsLoadMore,
-                  loading: copy.relatedNewsLoading,
-                  title: relatedNewsTitle,
-                }}
-                initialHasMore={relatedNewsHasMore}
-                initialItems={relatedNewsItems}
-                key={relatedNewsApiHref}
-                pageSize={RELATED_NEWS_PAGE_SIZE}
-                relatedApiHref={relatedNewsApiHref}
-                relatedStateParamName={RELATED_NEWS_LIMIT_PARAM}
-                relatedSortParamName={RELATED_NEWS_SORT_PARAM}
-                sortLabel={copy.relatedNewsSortLabel}
-                sortOptions={relatedNewsSortOptions}
-                sortValue={relatedNewsSort}
-              />
-            </div>
-
             <div className="scroll-mt-6" id={sourceVlogSectionId}>
               <SourceVlogEmbed
                 accessLabel={accessLabel}
@@ -2584,6 +2559,31 @@ export default async function LocalizedFanletterNewsReportPage({
                 />
               </div>
             ) : null}
+
+            <div className="mt-6 sm:mt-8">
+              <FanletterNewsRelatedList
+                characterName={characterName}
+                copy={{
+                  description: copy.relatedNewsDescription,
+                  empty: copy.relatedNewsEmpty,
+                  eyebrow: copy.relatedNewsEyebrow,
+                  error: copy.relatedNewsError,
+                  loadMore: copy.relatedNewsLoadMore,
+                  loading: copy.relatedNewsLoading,
+                  title: relatedNewsTitle,
+                }}
+                initialHasMore={relatedNewsHasMore}
+                initialItems={relatedNewsItems}
+                key={relatedNewsApiHref}
+                pageSize={RELATED_NEWS_PAGE_SIZE}
+                relatedApiHref={relatedNewsApiHref}
+                relatedStateParamName={RELATED_NEWS_LIMIT_PARAM}
+                relatedSortParamName={RELATED_NEWS_SORT_PARAM}
+                sortLabel={copy.relatedNewsSortLabel}
+                sortOptions={relatedNewsSortOptions}
+                sortValue={relatedNewsSort}
+              />
+            </div>
           </div>
 
           <aside className="space-y-4 xl:sticky xl:top-5">
