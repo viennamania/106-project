@@ -217,11 +217,10 @@ function getCopy(locale: Locale) {
         cover: {
           cropFailed: "크롭 이미지를 업로드하지 못했습니다.",
           cropHelper:
-            "드래그로 위치를 맞추고 확대값을 조정해 목록과 상세에 맞는 대표 커버를 저장합니다.",
+            "선택한 원본이나 프레임을 16:9 대표 커버로 크롭해 저장합니다. 원본 비율 이미지는 영상 프레임 DB에 유지됩니다.",
           cropLabel: "16:9 커버 크롭",
-          cropOriginal: "선택한 원본 그대로 사용",
           cropReset: "초기화",
-          cropSave: "크롭 저장",
+          cropSave: "16:9 커버 저장",
           cropSaving: "저장 중",
           cropUnavailable: "이 이미지는 크롭할 수 없습니다.",
           cropZoom: "확대",
@@ -386,11 +385,10 @@ function getCopy(locale: Locale) {
         cover: {
           cropFailed: "Could not upload the cropped image.",
           cropHelper:
-            "Drag to position and adjust zoom, then save a lead cover for lists and detail pages.",
+            "Crop the selected source or frame into a 16:9 lead cover. Original-ratio images stay in the video frame DB.",
           cropLabel: "16:9 cover crop",
-          cropOriginal: "Use selected original",
           cropReset: "Reset",
-          cropSave: "Save crop",
+          cropSave: "Save 16:9 cover",
           cropSaving: "Saving",
           cropUnavailable: "This image cannot be cropped.",
           cropZoom: "Zoom",
@@ -671,27 +669,6 @@ function getSelectedVlogCoverMetadata(
   );
 }
 
-function getVlogCoverAspectRatioStyle(
-  coverMetadata: ContentCoverImageCandidate | null,
-) {
-  if (
-    coverMetadata?.width &&
-    coverMetadata.height &&
-    Number.isFinite(coverMetadata.width) &&
-    Number.isFinite(coverMetadata.height) &&
-    coverMetadata.width > 0 &&
-    coverMetadata.height > 0
-  ) {
-    return {
-      aspectRatio: `${coverMetadata.width} / ${coverMetadata.height}`,
-    };
-  }
-
-  return {
-    aspectRatio: "16 / 9",
-  };
-}
-
 function getVlogFrameAspectRatioStyle(frameOption: VlogTeaserFrameOption) {
   if (
     frameOption.width &&
@@ -914,6 +891,23 @@ function createVlogFrameImageCandidate({
     timestampSec: frame.timestampSec,
     url: upload.url,
     width: frame.width,
+  };
+}
+
+function createCroppedVlogCoverImageCandidate(
+  upload: VlogCoverUploadResponse,
+): ContentCoverImageCandidate {
+  return {
+    candidateId: createVlogCoverCandidateId(),
+    contentType: upload.contentType,
+    createdAt: new Date().toISOString(),
+    height: VLOG_COVER_CROP_OUTPUT_HEIGHT,
+    pathname: upload.pathname,
+    placements: ["detail", "feed", "news", "share"],
+    source: "manual",
+    timestampSec: null,
+    url: upload.url,
+    width: VLOG_COVER_CROP_OUTPUT_WIDTH,
   };
 }
 
@@ -1775,11 +1769,13 @@ export function FanletterVlogManagementPage({
 
   const savePostCoverImage = useCallback(
     async ({
+      coverImageCandidates,
       coverImageUrl,
       post,
       resolvedEmail,
       savingKey,
     }: {
+      coverImageCandidates?: ContentCoverImageCandidate[];
       coverImageUrl: string;
       post: CreatorStudioPostRecord;
       resolvedEmail?: string;
@@ -1797,6 +1793,7 @@ export function FanletterVlogManagementPage({
         const emailForRequest = resolvedEmail ?? (await resolveMemberEmail());
         const response = await fetch(`/api/content/posts/${post.contentId}`, {
           body: JSON.stringify({
+            ...(coverImageCandidates ? { coverImageCandidates } : {}),
             coverImageUrl,
             email: emailForRequest,
             walletAddress: accountAddress,
@@ -1850,18 +1847,6 @@ export function FanletterVlogManagementPage({
     ],
   );
 
-  const selectOriginalCover = useCallback(async () => {
-    if (!activeCoverPost || !selectedCoverOption) {
-      return;
-    }
-
-    await savePostCoverImage({
-      coverImageUrl: selectedCoverOption.inputValue,
-      post: activeCoverPost,
-      savingKey: selectedCoverOption.key,
-    });
-  }, [activeCoverPost, savePostCoverImage, selectedCoverOption]);
-
   const deleteSelectedCoverCandidate = useCallback(async () => {
     if (
       !activeCoverPost ||
@@ -1879,7 +1864,7 @@ export function FanletterVlogManagementPage({
     const deletedCurrentCover =
       activeCoverPost.coverImageUrl === selectedCoverOption.inputValue;
     const nextCoverImageUrl = deletedCurrentCover
-      ? remainingCandidates[0]?.url ?? null
+      ? null
       : activeCoverPost.coverImageUrl;
 
     setSavingCoverKey(savingKey);
@@ -1991,7 +1976,7 @@ export function FanletterVlogManagementPage({
         copy.cover.cropFailed,
       );
 
-      return data.url;
+      return data;
     },
     [accountAddress, copy.connectRequired, copy.cover.cropFailed, coverCrop],
   );
@@ -2008,14 +1993,21 @@ export function FanletterVlogManagementPage({
 
     try {
       const resolvedEmail = await resolveMemberEmail();
-      const croppedCoverUrl = await uploadCroppedCover({
+      const croppedCoverUpload = await uploadCroppedCover({
         post: activeCoverPost,
         resolvedEmail,
         sourceImageUrl: selectedCoverOption.inputValue,
       });
+      const croppedCoverCandidate =
+        createCroppedVlogCoverImageCandidate(croppedCoverUpload);
+      const nextCoverImageCandidates = mergeVlogCoverImageCandidates(
+        activeCoverPost.coverImageCandidates,
+        [croppedCoverCandidate],
+      );
 
       await savePostCoverImage({
-        coverImageUrl: croppedCoverUrl,
+        coverImageCandidates: nextCoverImageCandidates,
+        coverImageUrl: croppedCoverUpload.url,
         post: activeCoverPost,
         resolvedEmail,
         savingKey,
@@ -3246,27 +3238,7 @@ export function FanletterVlogManagementPage({
                             {copy.cover.cropHelper}
                           </p>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row lg:shrink-0">
-                          <button
-                            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg border border-black/12 px-2 py-2 text-center text-xs font-black leading-4 text-black/62 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#111510] disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:gap-2 sm:px-3 sm:py-0"
-                            disabled={
-                              Boolean(savingCoverKey) ||
-                              selectedCoverOption.isSelected
-                            }
-                            onClick={() => {
-                              void selectOriginalCover();
-                            }}
-                            type="button"
-                          >
-                            {savingCoverKey === selectedCoverOption.key ? (
-                              <Loader2 className="size-4 animate-spin" />
-                            ) : (
-                              <RotateCcw className="size-4" />
-                            )}
-                            {savingCoverKey === selectedCoverOption.key
-                              ? copy.cover.cropSaving
-                              : copy.cover.cropOriginal}
-                          </button>
+                        <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-row lg:shrink-0">
                           <button
                             className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[#111510] px-2 py-2 text-center text-xs font-black leading-4 text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:gap-2 sm:px-3 sm:py-0"
                             disabled={Boolean(savingCoverKey)}
@@ -3745,7 +3717,6 @@ function VlogManagerCard({
   const teaserImageOptions = teaserFrameOptions.slice(0, 5);
   const teaserFrameCount = teaserFrameOptions.length;
   const coverMetadata = getSelectedVlogCoverMetadata(post);
-  const coverAspectRatioStyle = getVlogCoverAspectRatioStyle(coverMetadata);
   const coverSizeLabel = formatImageSizeLabel(coverMetadata, locale);
   const isNsfw = post.contentMaturityRating === "nsfw";
   const canManageNsfw =
@@ -3798,15 +3769,12 @@ function VlogManagerCard({
 
   return (
     <article className="grid overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)] lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
-      <div
-        className="relative min-h-[12rem] bg-black lg:min-h-0 lg:self-start"
-        style={coverAspectRatioStyle}
-      >
+      <div className="relative aspect-video min-h-[12rem] bg-black lg:min-h-0 lg:self-start">
         {post.coverImageUrl ? (
           <Image
             alt=""
             aria-hidden="true"
-            className="object-contain"
+            className="object-cover"
             fill
             sizes="(max-width: 1024px) 100vw, 18rem"
             src={post.coverImageUrl}
@@ -3814,7 +3782,7 @@ function VlogManagerCard({
           />
         ) : videoUrl ? (
           <video
-            className="absolute inset-0 h-full w-full object-contain"
+            className="absolute inset-0 h-full w-full object-cover"
             muted
             playsInline
             preload="metadata"
