@@ -226,6 +226,7 @@ function getCopy(locale: Locale) {
           deleteCandidate: "후보 삭제",
           deleteFailed: "커버 후보를 삭제하지 못했습니다.",
           deletedNotice: "커버 후보를 삭제했습니다.",
+          imageSize: "이미지 크기",
           modalBody:
             "동영상 콘텐츠의 목록, 상세, 공유 화면에 보일 대표 이미지를 선택하고 16:9 비율로 편집합니다.",
           modalClose: "닫기",
@@ -256,6 +257,7 @@ function getCopy(locale: Locale) {
             "아직 저장된 영상 프레임이 없습니다. 원본 영상에서 프레임을 추가해 뉴스와 구매 화면의 이미지 DB를 채워보세요.",
           generate: "새 시간대 프레임 추가",
           generating: "새 시간대 찾는 중",
+          frameCountShort: (count: string) => `프레임 ${count}`,
           helper:
             "뉴스 리포트, 유료 잠금 화면, 구매 전 미리보기에서 활용할 원본 영상 프레임 DB를 시간대별로 관리합니다.",
           limit: (count: string) => `최대 ${count}장까지 저장됩니다.`,
@@ -393,6 +395,7 @@ function getCopy(locale: Locale) {
           deleteCandidate: "Delete candidate",
           deleteFailed: "Could not delete the cover candidate.",
           deletedNotice: "The cover candidate has been deleted.",
+          imageSize: "Image size",
           modalBody:
             "Choose and edit the lead image shown for this video content in lists, detail pages, and shares.",
           modalClose: "Close",
@@ -423,6 +426,7 @@ function getCopy(locale: Locale) {
             "No video frames are saved yet. Add frames from the source video to build the image database for news and purchase surfaces.",
           generate: "Add new time-range frames",
           generating: "Finding new time ranges",
+          frameCountShort: (count: string) => `${count} frames`,
           helper:
             "Manage a time-based source video frame DB used by news reports, paid locks, and pre-purchase previews.",
           limit: (count: string) => `Up to ${count} images can be saved.`,
@@ -647,6 +651,64 @@ function buildVlogCoverOptions(
   }
 
   return options;
+}
+
+function getSelectedVlogCoverMetadata(
+  post: Pick<CreatorStudioPostRecord, "coverImageCandidates" | "coverImageUrl">,
+) {
+  const coverImageUrl = post.coverImageUrl?.trim();
+
+  if (!coverImageUrl) {
+    return null;
+  }
+
+  return (
+    post.coverImageCandidates.find(
+      (candidate) => candidate.url?.trim() === coverImageUrl,
+    ) ?? null
+  );
+}
+
+function getVlogCoverAspectRatioStyle(
+  coverMetadata: ContentCoverImageCandidate | null,
+) {
+  if (
+    coverMetadata?.width &&
+    coverMetadata.height &&
+    Number.isFinite(coverMetadata.width) &&
+    Number.isFinite(coverMetadata.height) &&
+    coverMetadata.width > 0 &&
+    coverMetadata.height > 0
+  ) {
+    return {
+      aspectRatio: `${coverMetadata.width} / ${coverMetadata.height}`,
+    };
+  }
+
+  return {
+    aspectRatio: "16 / 9",
+  };
+}
+
+function formatImageSizeLabel(
+  coverMetadata: ContentCoverImageCandidate | null,
+  locale: Locale,
+) {
+  if (
+    !coverMetadata?.width ||
+    !coverMetadata.height ||
+    !Number.isFinite(coverMetadata.width) ||
+    !Number.isFinite(coverMetadata.height) ||
+    coverMetadata.width <= 0 ||
+    coverMetadata.height <= 0
+  ) {
+    return null;
+  }
+
+  return `${formatNumber(coverMetadata.width, locale)}x${formatNumber(
+    coverMetadata.height,
+    locale,
+  )}`;
 }
 
 function clampNumber(value: number, min: number, max: number) {
@@ -3625,7 +3687,12 @@ function VlogManagerCard({
   const videoUrl = getPostVideoUrl(post);
   const shouldBypassCoverImageOptimization =
     shouldBypassFanletterImageOptimization(post.coverImageUrl);
-  const teaserImageOptions = buildVlogTeaserFrameOptions(post).slice(0, 5);
+  const teaserFrameOptions = buildVlogTeaserFrameOptions(post);
+  const teaserImageOptions = teaserFrameOptions.slice(0, 5);
+  const teaserFrameCount = teaserFrameOptions.length;
+  const coverMetadata = getSelectedVlogCoverMetadata(post);
+  const coverAspectRatioStyle = getVlogCoverAspectRatioStyle(coverMetadata);
+  const coverSizeLabel = formatImageSizeLabel(coverMetadata, locale);
   const isNsfw = post.contentMaturityRating === "nsfw";
   const canManageNsfw =
     post.status !== "archived" &&
@@ -3676,21 +3743,24 @@ function VlogManagerCard({
   ];
 
   return (
-    <article className="grid overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)] lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start">
-      <div className="relative aspect-[4/5] min-h-[15rem] bg-black sm:aspect-video lg:aspect-[4/5] lg:min-h-0 lg:self-start">
+    <article className="grid overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)] lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+      <div
+        className="relative min-h-[12rem] bg-black lg:min-h-0 lg:self-start"
+        style={coverAspectRatioStyle}
+      >
         {post.coverImageUrl ? (
           <Image
             alt=""
             aria-hidden="true"
-            className="object-cover"
+            className="object-contain"
             fill
-            sizes="(max-width: 1024px) 100vw, 16rem"
+            sizes="(max-width: 1024px) 100vw, 18rem"
             src={post.coverImageUrl}
             unoptimized={shouldBypassCoverImageOptimization}
           />
         ) : videoUrl ? (
           <video
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-full w-full object-contain"
             muted
             playsInline
             preload="metadata"
@@ -3705,10 +3775,23 @@ function VlogManagerCard({
           <Clapperboard className="size-3.5" />
           {copy.labels.results}
         </span>
+        <span className="absolute right-3 top-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-white/92 px-3 text-xs font-semibold text-black shadow-sm backdrop-blur">
+          <ImageIcon className="size-3.5 text-[#16702e]" />
+          {copy.teasers.frameCountShort(formatNumber(teaserFrameCount, locale))}
+        </span>
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 bg-gradient-to-t from-black/82 via-black/32 to-transparent p-3">
-          <p className="min-w-0 truncate text-xs font-semibold text-white/72">
-            {post.coverImageUrl ? copy.cover.sourceLabels.current : copy.cover.unavailable}
-          </p>
+          <div className="min-w-0">
+            <p className="truncate text-xs font-semibold text-white/74">
+              {post.coverImageUrl
+                ? copy.cover.sourceLabels.current
+                : copy.cover.unavailable}
+            </p>
+            {coverSizeLabel ? (
+              <p className="mt-0.5 truncate text-[0.68rem] font-semibold text-white/52">
+                {copy.cover.imageSize} · {coverSizeLabel}
+              </p>
+            ) : null}
+          </div>
           <button
             className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-full bg-white px-3 text-xs font-semibold text-black transition hover:bg-[#ecfff0] disabled:opacity-60"
             disabled={isUpdating}
@@ -3800,7 +3883,7 @@ function VlogManagerCard({
                 </p>
                 <p className="mt-1 text-xs font-medium leading-5 text-black/52">
                   {copy.teasers.count(
-                    formatNumber(post.contentImageUrls.length, locale),
+                    formatNumber(teaserFrameCount, locale),
                   )}{" "}
                   · {copy.teasers.limit(formatNumber(VLOG_TEASER_IMAGE_LIMIT, locale))}
                 </p>
@@ -3994,7 +4077,7 @@ function VlogManagerCard({
             {copy.nsfwUnavailable}
           </p>
         ) : null}
-        <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
+        <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           <Link
             className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4]"
             href={detailHref}
@@ -4002,24 +4085,6 @@ function VlogManagerCard({
             <Eye className="size-4" />
             {copy.actions.detail}
           </Link>
-          <button
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4] disabled:opacity-50"
-            disabled={isUpdating}
-            onClick={onChangeCover}
-            type="button"
-          >
-            <ImageIcon className="size-4 text-[#16702e]" />
-            {copy.actions.changeCover}
-          </button>
-          <button
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4] disabled:opacity-50"
-            disabled={isUpdating}
-            onClick={onManageTeasers}
-            type="button"
-          >
-            <Clapperboard className="size-4 text-[#16702e]" />
-            {copy.actions.manageTeasers}
-          </button>
           {post.status !== "published" ? (
             <button
               className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-3 text-sm font-semibold text-white transition hover:bg-black/82 disabled:opacity-50"
@@ -4122,10 +4187,10 @@ function VlogsLoadingSkeleton({
       <MessagePanel>{copy.loading}</MessagePanel>
       {Array.from({ length: 3 }, (_, index) => (
         <div
-          className="grid overflow-hidden rounded-lg border border-black/10 bg-white lg:grid-cols-[16rem_minmax(0,1fr)] lg:items-start"
+          className="grid overflow-hidden rounded-lg border border-black/10 bg-white lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start"
           key={index}
         >
-          <div className="aspect-[4/5] min-h-[15rem] bg-black/10 motion-safe:animate-pulse sm:aspect-video lg:aspect-[4/5] lg:min-h-0" />
+          <div className="aspect-video min-h-[12rem] bg-black/10 motion-safe:animate-pulse lg:min-h-0" />
           <div className="space-y-3 p-4 sm:p-5">
             <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(14rem,18rem)]">
               <div className="space-y-3">
@@ -4152,7 +4217,7 @@ function VlogsLoadingSkeleton({
               <div className="h-24 rounded-lg bg-black/10 motion-safe:animate-pulse" />
               <div className="h-24 rounded-lg bg-black/10 motion-safe:animate-pulse" />
             </div>
-            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
+            <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
               <div className="h-10 rounded-full bg-black/10 motion-safe:animate-pulse" />
               <div className="h-10 rounded-full bg-black/10 motion-safe:animate-pulse" />
               <div className="h-10 rounded-full bg-black/10 motion-safe:animate-pulse" />
