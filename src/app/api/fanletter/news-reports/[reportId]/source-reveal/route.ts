@@ -1,4 +1,5 @@
 import {
+  getContentSourceRevealParticipants,
   getContentSocialSummaryForViewer,
   requestContentSourceRevealForMember,
 } from "@/lib/content-service";
@@ -49,12 +50,14 @@ export async function GET(
   try {
     const report = await getReportOrThrow(reportId);
     const session = await readMemberServerSession();
-    const social = await getContentSocialSummaryForViewer(
-      report.contentId,
-      session?.email ?? null,
-    );
+    const [social, participants] = await Promise.all([
+      getContentSocialSummaryForViewer(report.contentId, session?.email ?? null),
+      getContentSourceRevealParticipants(report.contentId),
+    ]);
     const response: SourceRevealResponse = {
-      sourceReveal: createFanletterNewsSourceRevealState(social),
+      sourceReveal: createFanletterNewsSourceRevealState(social, {
+        participants,
+      }),
     };
 
     return Response.json(response, { headers: noStoreHeaders });
@@ -109,9 +112,12 @@ export async function POST(
         incentiveError,
       );
     }
+    const participants = await getContentSourceRevealParticipants(report.contentId);
     const sourceRevealResponse: SourceRevealResponse = {
       reporterReward,
-      sourceReveal: createFanletterNewsSourceRevealState(response.social),
+      sourceReveal: createFanletterNewsSourceRevealState(response.social, {
+        participants,
+      }),
     };
 
     return Response.json(sourceRevealResponse, { headers: noStoreHeaders });

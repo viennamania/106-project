@@ -74,6 +74,10 @@ import { resolveContentCoverImageUrl } from "@/lib/content-cover-selection";
 import {
   normalizeCreatorCharacterRealismProfile,
 } from "@/lib/fanletter-realism-policy";
+import {
+  FANLETTER_NEWS_SOURCE_REVEAL_PARTICIPANT_LIMIT,
+  type FanletterNewsSourceRevealParticipant,
+} from "@/lib/fanletter-news-source-reveal";
 import { getMemberRegistrationStatus } from "@/lib/member-service";
 import { defaultLocale, type Locale } from "@/lib/i18n";
 import {
@@ -2190,6 +2194,96 @@ export async function getContentSocialSummaryForViewer(
   const summaries = await getContentSocialSummaries([contentId], viewerEmail);
 
   return summaries.get(contentId) ?? createEmptyContentSocialSummary();
+}
+
+export async function getContentSourceRevealParticipants(
+  contentId: string,
+  options?: {
+    limit?: number;
+  },
+): Promise<FanletterNewsSourceRevealParticipant[]> {
+  const normalizedContentId = contentId.trim();
+  const requestedLimit = Math.floor(
+    options?.limit ?? FANLETTER_NEWS_SOURCE_REVEAL_PARTICIPANT_LIMIT,
+  );
+  const limit = Math.max(
+    1,
+    Math.min(
+      FANLETTER_NEWS_SOURCE_REVEAL_PARTICIPANT_LIMIT,
+      Number.isFinite(requestedLimit)
+        ? requestedLimit
+        : FANLETTER_NEWS_SOURCE_REVEAL_PARTICIPANT_LIMIT,
+    ),
+  );
+
+  if (!normalizedContentId) {
+    return [];
+  }
+
+  const socialActionsCollection = await getContentSocialActionsCollection();
+  const actions = await socialActionsCollection
+    .find(
+      {
+        contentId: normalizedContentId,
+        sourceRevealRequested: true,
+      },
+      {
+        projection: {
+          createdAt: 1,
+          memberEmail: 1,
+          sourceRevealRequestedAt: 1,
+          updatedAt: 1,
+        },
+      },
+    )
+    .sort({ sourceRevealRequestedAt: -1, updatedAt: -1, createdAt: -1 })
+    .limit(limit)
+    .toArray();
+
+  if (actions.length === 0) {
+    return [];
+  }
+
+  const memberEmails = [
+    ...new Set(
+      actions
+        .map((action) => action.memberEmail)
+        .filter((email): email is string => Boolean(email)),
+    ),
+  ];
+  const members = memberEmails.length
+    ? await (await getMembersCollection())
+        .find(
+          { email: { $in: memberEmails } },
+          {
+            projection: {
+              email: 1,
+              publicProfile: 1,
+              referralCode: 1,
+            },
+          },
+        )
+        .toArray()
+    : [];
+  const memberByEmail = new Map(members.map((member) => [member.email, member]));
+
+  return actions.map((action) => {
+    const member = memberByEmail.get(action.memberEmail);
+    const publicProfile = serializeMemberPublicProfile(member?.publicProfile);
+    const displayName =
+      trimToLength(publicProfile?.displayName, 24) ||
+      trimToLength(member?.referralCode, 12) ||
+      "FanLetter fan";
+    const requestedAt =
+      action.sourceRevealRequestedAt ?? action.updatedAt ?? action.createdAt ?? null;
+
+    return {
+      avatarImageUrl: publicProfile?.avatarImageUrl ?? null,
+      displayName,
+      referralCode: member?.referralCode ?? null,
+      requestedAt: requestedAt?.toISOString() ?? null,
+    };
+  });
 }
 
 async function getFanletterNewsReportCountsByContentId(

@@ -118,6 +118,15 @@ function getCopy(locale: Locale) {
         unlockedBody: (count: string) =>
           `${count}명의 팬 참여로 뉴스 속 원본 브이로그가 열렸습니다.`,
         unlockedTitle: "팬들이 열어낸 원본 브이로그",
+        voters: {
+          label: "함께 참여한 팬",
+          summary: (names: string, count: string, extra: string) =>
+            names
+              ? Number(extra) > 0
+                ? `${names} 외 ${extra}명이 보고싶어요 참여`
+                : `${names} 보고싶어요 참여`
+              : `${count}명이 보고싶어요 참여`,
+        },
       }
     : {
         body: (count: string, threshold: string, remaining: string) =>
@@ -155,11 +164,28 @@ function getCopy(locale: Locale) {
         unlockedBody: (count: string) =>
           `${count} fans opened the source vlog in this news together.`,
         unlockedTitle: "Source vlog opened by fans",
+        voters: {
+          label: "Fans joining in",
+          summary: (names: string, count: string, extra: string) =>
+            names
+              ? Number(extra) > 0
+                ? `${names} and ${extra} more want to watch`
+                : `${names} want to watch`
+              : `${count} fans want to watch`,
+        },
       };
 }
 
 function formatCount(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function getParticipantInitial(displayName: string, referralCode?: string | null) {
+  return (
+    displayName.trim().charAt(0) ||
+    referralCode?.trim().charAt(0) ||
+    "F"
+  ).toUpperCase();
 }
 
 function isSourceRevealResponse(data: unknown): data is SourceRevealResponse {
@@ -375,6 +401,115 @@ function ReporterRewardCelebrationOverlay({
           {copy.dismiss}
         </button>
       </div>
+    </div>
+  );
+}
+
+function SourceRevealParticipantStack({
+  copy,
+  isCompact,
+  isDark,
+  locale,
+  participants,
+  totalCount,
+}: {
+  copy: ReturnType<typeof getCopy>["voters"];
+  isCompact: boolean;
+  isDark: boolean;
+  locale: Locale;
+  participants: FanletterNewsSourceRevealState["participants"];
+  totalCount: number;
+}) {
+  if (participants.length === 0 || totalCount <= 0) {
+    return null;
+  }
+
+  const visibleParticipants = participants.slice(0, 6);
+  const extraCount = Math.max(0, totalCount - visibleParticipants.length);
+  const visibleNames = visibleParticipants
+    .slice(0, 2)
+    .map((participant) => participant.displayName.trim())
+    .filter(Boolean)
+    .join(", ");
+  const totalLabel = formatCount(totalCount, locale);
+  const extraLabel = formatCount(extraCount, locale);
+
+  return (
+    <div
+      className={cn(
+        "mt-3 flex items-center gap-3 rounded-full border px-2.5 py-2",
+        isDark
+          ? "border-white/12 bg-white/[0.055] text-white"
+          : "border-black/10 bg-black/[0.035] text-[#111510]",
+        isCompact && "mt-2",
+      )}
+    >
+      <div className="flex shrink-0 -space-x-2">
+        {visibleParticipants.map((participant) => {
+          const initial = getParticipantInitial(
+            participant.displayName,
+            participant.referralCode,
+          );
+
+          return (
+            <span
+              className={cn(
+                "relative flex size-7 items-center justify-center overflow-hidden rounded-full border text-[0.68rem] font-black",
+                isDark
+                  ? "border-black bg-[#44f26e] text-black"
+                  : "border-white bg-[#111510] text-white",
+              )}
+              key={`${participant.referralCode ?? participant.displayName}-${participant.requestedAt ?? initial}`}
+              title={participant.displayName}
+            >
+              {participant.avatarImageUrl ? (
+                <Image
+                  alt={participant.displayName}
+                  className="object-cover"
+                  fill
+                  sizes="1.75rem"
+                  src={participant.avatarImageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(
+                    participant.avatarImageUrl,
+                  )}
+                />
+              ) : (
+                initial
+              )}
+            </span>
+          );
+        })}
+        {extraCount > 0 ? (
+          <span
+            className={cn(
+              "flex size-7 items-center justify-center rounded-full border text-[0.62rem] font-black",
+              isDark
+                ? "border-black bg-white text-black"
+                : "border-white bg-[#44f26e] text-black",
+            )}
+          >
+            +{extraLabel}
+          </span>
+        ) : null}
+      </div>
+      <p className="min-w-0 text-xs font-bold leading-4">
+        <span
+          className={cn(
+            "block truncate text-[0.58rem] font-black uppercase tracking-[0.13em]",
+            isDark ? "text-[#9bffad]" : "text-[#16702e]",
+          )}
+        >
+          {copy.label}
+        </span>
+        <span
+          className={cn(
+            "block truncate",
+            isDark ? "text-white/62" : "text-black/56",
+          )}
+        >
+          {copy.summary(visibleNames, totalLabel, extraLabel)}
+        </span>
+      </p>
     </div>
   );
 }
@@ -660,6 +795,7 @@ export function FanletterNewsSourceRevealVote({
   const isLoggedIn = Boolean(memberSession.email);
   const isDark = tone === "dark";
   const isCompact = density === "compact";
+  const participants = state.participants ?? [];
 
   const handleVote = async () => {
     if (isSaving || state.requestedByViewer || state.unlocked || !voteEndpoint) {
@@ -815,6 +951,15 @@ export function FanletterNewsSourceRevealVote({
           </span>
         </div>
       </div>
+
+      <SourceRevealParticipantStack
+        copy={copy.voters}
+        isCompact={isCompact}
+        isDark={isDark}
+        locale={locale}
+        participants={participants}
+        totalCount={state.count}
+      />
 
       {state.unlocked ? null : isLoggedIn ? (
         <button
