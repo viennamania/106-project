@@ -232,16 +232,21 @@ function getCopy(locale: Locale) {
             "작성실에서는 원본 브이로그를 재생하지 않습니다. 공개 메타, AI 캐릭터 정보, 기존 리포트, 티저 이미지만 기준으로 작성하세요.",
           deskTitle: "티저 기반 작성",
           lockedBody:
-            "이 유료 브이로그는 아직 구매하지 않았습니다. 구매한 리포터만 티저 이미지와 공개 메타를 확인하고 리포트를 발행할 수 있습니다.",
+            "이 유료 브이로그는 구매해야 리포트를 발행할 수 있습니다. 구매 전에는 저장된 프레임과 공개 메타를 확인해 리포트 작성 여부를 판단하세요.",
           lockedTitle: "구매 후 리포트 작성 가능",
           noVideo: "원본 동영상 비공개",
           noVideoBody:
-            "브이로그 원본은 작성실에서 열람하지 않습니다. 유료 콘텐츠는 구매 후에도 티저 기반 작성만 허용됩니다.",
+            "브이로그 원본은 작성실에서 재생하지 않습니다. 유료 콘텐츠는 구매 후에도 티저 기반 작성만 허용됩니다.",
           openPurchase: "1 USDT 결제하기",
+          previewBadge: "미리보기",
+          previewBeforePurchase: "구매 전 프레임 미리보기",
+          previewBeforePurchaseBody:
+            "리포터가 구매할지 결정할 수 있도록 저장된 동영상 프레임은 먼저 보여줍니다. 크롭, 코멘트 작성, 리포트 발행은 결제 후 열립니다.",
           purchased: "구매함",
           ready: "작성 가능",
+          reportLocked: "구매 후 작성",
           sourceStep: "2. 작성 권한",
-          teaserLocked: "티저 이미지 잠금",
+          teaserLocked: "구매 후 작성",
           teaserReady: "티저 이미지 사용 가능",
           unpaid: "미구매",
         },
@@ -342,16 +347,21 @@ function getCopy(locale: Locale) {
             "Source video playback is not available in this desk. Write from public metadata, the AI character profile, existing reports, and teaser images.",
           deskTitle: "Teaser-based reporting",
           lockedBody:
-            "This paid vlog has not been purchased yet. Only reporters who purchased it can inspect teaser images, review public metadata, and publish a report.",
+            "This paid vlog requires purchase before publishing a report. Before buying, inspect saved frames and public metadata to decide whether it is worth reporting.",
           lockedTitle: "Purchase required to report",
           noVideo: "Source video hidden",
           noVideoBody:
             "The original vlog stays off the reporting desk. Paid content still requires purchase before teaser-based reporting.",
           openPurchase: "Pay 1 USDT",
+          previewBadge: "Preview",
+          previewBeforePurchase: "Frame preview before purchase",
+          previewBeforePurchaseBody:
+            "Saved video frames are visible first so reporters can decide whether to buy. Cropping, notes, and publishing unlock after payment.",
           purchased: "Purchased",
           ready: "Ready to report",
+          reportLocked: "Report after purchase",
           sourceStep: "2. Reporting access",
-          teaserLocked: "Teaser images locked",
+          teaserLocked: "Report after purchase",
           teaserReady: "Teaser images available",
           unpaid: "Not purchased",
         },
@@ -1161,8 +1171,9 @@ export function FanletterNewsReportComposerPage({
                       }
                     >
                       {isPaidLocked ? (
-                        <span className="absolute inset-0 flex items-center justify-center bg-black/48 backdrop-blur-[2px]">
-                          <LockKeyhole className="size-5 text-white" />
+                        <span className="absolute bottom-1 left-1 inline-flex items-center gap-1 rounded-full bg-black/72 px-1.5 py-0.5 text-[0.55rem] font-black text-white">
+                          <LockKeyhole className="size-2.5 text-[#44f26e]" />
+                          {copy.mediaAccess.reportLocked}
                         </span>
                       ) : null}
                       {source.contentMaturityRating === "nsfw" ? (
@@ -1205,7 +1216,7 @@ export function FanletterNewsReportComposerPage({
                         ) : null}
                         {isPaidLocked ? (
                           <span className="text-rose-700">
-                            {copy.mediaAccess.teaserLocked}
+                            {copy.mediaAccess.reportLocked}
                           </span>
                         ) : null}
                       </span>
@@ -1552,7 +1563,9 @@ export function FanletterNewsReportComposerPage({
                         3. Teaser
                       </p>
                       <h2 className="mt-1 text-2xl font-black">
-                        {copy.chooseCover}
+                        {isSelectedPaidLocked
+                          ? copy.mediaAccess.previewBeforePurchase
+                          : copy.chooseCover}
                       </h2>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -1571,10 +1584,10 @@ export function FanletterNewsReportComposerPage({
                     <div className="mt-4 border border-rose-500/18 bg-rose-50 p-4 text-rose-900">
                       <p className="inline-flex items-center gap-1.5 text-sm font-black">
                         <LockKeyhole className="size-4" />
-                        {copy.mediaAccess.teaserLocked}
+                        {copy.mediaAccess.reportLocked}
                       </p>
                       <p className="mt-2 text-sm font-semibold leading-6 text-rose-900/70">
-                        {copy.mediaAccess.lockedBody}
+                        {copy.mediaAccess.previewBeforePurchaseBody}
                       </p>
                       <FanletterPaidUnlockTrigger
                         className="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white"
@@ -1584,7 +1597,9 @@ export function FanletterNewsReportComposerPage({
                         <ArrowRight className="size-4 text-[#44f26e]" />
                       </FanletterPaidUnlockTrigger>
                     </div>
-                  ) : selectedSource.coverOptions.length > 0 ? (
+                  ) : null}
+
+                  {selectedSource.coverOptions.length > 0 ? (
                     <div className="mt-4 grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-3">
                       {selectedSource.coverOptions.map((option, index) => {
                         const isSelected = option.imageUrl === selectedCoverUrl;
@@ -1626,8 +1641,17 @@ export function FanletterNewsReportComposerPage({
                                 ) : null}
                               </span>
                               {isSelected ? (
-                                <span className="shrink-0 rounded-full bg-[#44f26e] px-2 py-0.5 text-[0.62rem] font-black text-[#111510]">
-                                  {copy.selected}
+                                <span
+                                  className={cn(
+                                    "shrink-0 rounded-full px-2 py-0.5 text-[0.62rem] font-black",
+                                    isSelectedPaidLocked
+                                      ? "bg-[#111510] text-white"
+                                      : "bg-[#44f26e] text-[#111510]",
+                                  )}
+                                >
+                                  {isSelectedPaidLocked
+                                    ? copy.mediaAccess.previewBadge
+                                    : copy.selected}
                                 </span>
                               ) : null}
                             </span>
@@ -1642,7 +1666,7 @@ export function FanletterNewsReportComposerPage({
                   )}
                 </section>
 
-                {selectedCoverUrl ? (
+                {!isSelectedPaidLocked && selectedCoverUrl ? (
                   <section className="border border-black/12 bg-[#111510] p-4 text-white shadow-[0_14px_34px_rgba(17,21,16,0.12)] sm:p-5">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                       <div>
@@ -1744,72 +1768,96 @@ export function FanletterNewsReportComposerPage({
                   </section>
                 ) : null}
 
-                <section className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
-                  <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
-                    5. Reporter note
-                  </p>
-                  <h2 className="mt-1 text-2xl font-black">
-                    {copy.angleLabel}
-                  </h2>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    {copy.angles.map((item) => (
-                      <button
-                        className={cn(
-                          "inline-flex h-9 items-center rounded-full border px-3 text-xs font-black transition",
-                          item === angle
-                            ? "border-[#111510] bg-[#111510] text-white"
-                            : "border-black/10 bg-[#f6f8f4] text-black/58 hover:border-[#19b84b] hover:text-[#111510]",
-                        )}
-                        key={item}
-                        onClick={() => {
-                          setAngle(item);
+                {!isSelectedPaidLocked ? (
+                  <section className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
+                    <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                      5. Reporter note
+                    </p>
+                    <h2 className="mt-1 text-2xl font-black">
+                      {copy.angleLabel}
+                    </h2>
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {copy.angles.map((item) => (
+                        <button
+                          className={cn(
+                            "inline-flex h-9 items-center rounded-full border px-3 text-xs font-black transition",
+                            item === angle
+                              ? "border-[#111510] bg-[#111510] text-white"
+                              : "border-black/10 bg-[#f6f8f4] text-black/58 hover:border-[#19b84b] hover:text-[#111510]",
+                          )}
+                          key={item}
+                          onClick={() => {
+                            setAngle(item);
+                          }}
+                          type="button"
+                        >
+                          {item}
+                        </button>
+                      ))}
+                    </div>
+                    <label className="mt-4 block">
+                      <span className="text-sm font-black">
+                        {copy.commentLabel}
+                      </span>
+                      <textarea
+                        className="mt-2 min-h-28 w-full resize-y border border-black/12 bg-[#f6f8f4] px-3 py-3 text-sm font-semibold leading-6 outline-none transition placeholder:text-black/30 focus:border-[#19b84b] focus:bg-white"
+                        maxLength={REPORTER_COMMENT_MAX_LENGTH}
+                        onChange={(event) => {
+                          setReporterComment(event.target.value);
                         }}
-                        type="button"
-                      >
-                        {item}
-                      </button>
-                    ))}
-                  </div>
-                  <label className="mt-4 block">
-                    <span className="text-sm font-black">{copy.commentLabel}</span>
-                    <textarea
-                      className="mt-2 min-h-28 w-full resize-y border border-black/12 bg-[#f6f8f4] px-3 py-3 text-sm font-semibold leading-6 outline-none transition placeholder:text-black/30 focus:border-[#19b84b] focus:bg-white"
-                      maxLength={REPORTER_COMMENT_MAX_LENGTH}
-                      onChange={(event) => {
-                        setReporterComment(event.target.value);
+                        placeholder={copy.commentPlaceholder}
+                        value={reporterComment}
+                      />
+                    </label>
+                    <div className="mt-2 flex items-center justify-between gap-3 text-xs font-semibold text-black/42">
+                      <p>{copy.commentHelper}</p>
+                      <p>
+                        {formatNumber(reporterComment.length, locale)}/
+                        {formatNumber(REPORTER_COMMENT_MAX_LENGTH, locale)}
+                      </p>
+                    </div>
+                    {error ? (
+                      <p className="mt-4 border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold leading-6 text-rose-700">
+                        {error}
+                      </p>
+                    ) : null}
+                    <button
+                      className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black text-[#111510] transition hover:bg-[#65ff86] disabled:cursor-not-allowed disabled:opacity-55 sm:w-fit"
+                      disabled={!canSubmit}
+                      onClick={() => {
+                        void submitReport();
                       }}
-                      placeholder={copy.commentPlaceholder}
-                      value={reporterComment}
-                    />
-                  </label>
-                  <div className="mt-2 flex items-center justify-between gap-3 text-xs font-semibold text-black/42">
-                    <p>{copy.commentHelper}</p>
-                    <p>
-                      {formatNumber(reporterComment.length, locale)}/
-                      {formatNumber(REPORTER_COMMENT_MAX_LENGTH, locale)}
+                      type="button"
+                    >
+                      {status === "submitting" ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="size-4" />
+                      )}
+                      {status === "submitting" ? copy.submitting : copy.submit}
+                    </button>
+                  </section>
+                ) : (
+                  <section className="border border-rose-500/18 bg-rose-50 p-4 text-rose-900 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
+                    <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-rose-700">
+                      <LockKeyhole className="size-3.5" />
+                      {copy.mediaAccess.reportLocked}
                     </p>
-                  </div>
-                  {error ? (
-                    <p className="mt-4 border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold leading-6 text-rose-700">
-                      {error}
+                    <h2 className="mt-2 text-2xl font-black">
+                      {copy.mediaAccess.lockedTitle}
+                    </h2>
+                    <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-rose-900/70">
+                      {copy.mediaAccess.lockedBody}
                     </p>
-                  ) : null}
-                  <button
-                    className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black text-[#111510] transition hover:bg-[#65ff86] disabled:cursor-not-allowed disabled:opacity-55 sm:w-fit"
-                    disabled={!canSubmit}
-                    onClick={() => {
-                      void submitReport();
-                    }}
-                    type="button"
-                  >
-                    {status === "submitting" ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="size-4" />
-                    )}
-                    {status === "submitting" ? copy.submitting : copy.submit}
-                  </button>
-                </section>
+                    <FanletterPaidUnlockTrigger
+                      className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white"
+                      href={paidUnlockHref}
+                    >
+                      {copy.mediaAccess.openPurchase}
+                      <ArrowRight className="size-4 text-[#44f26e]" />
+                    </FanletterPaidUnlockTrigger>
+                  </section>
+                )}
               </>
             ) : null}
           </div>

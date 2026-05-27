@@ -2390,6 +2390,13 @@ export async function getFanletterNewsReportDraftSourcesForMember({
       const contentReports = reportsByContentId.get(post.contentId) ?? [];
       const isPurchased = purchasedContentIds.has(post.contentId);
       const canViewMedia = post.priceType === "free" || isPurchased;
+      const coverOptions = getFanletterNewsReportCoverOptionsFromPost({
+        post,
+        report: {
+          coverImageSource: "auto",
+          coverImageUrl: autoCoverImageUrl,
+        },
+      });
       const purchaseHref =
         post.priceType === "paid" && !isPurchased
           ? buildPathWithReferral(
@@ -2403,15 +2410,7 @@ export async function getFanletterNewsReportDraftSourcesForMember({
         contentMaturityRating:
           post.contentMaturityRating === "nsfw" ? "nsfw" : "general",
         coverImageUrl: autoCoverImageUrl,
-        coverOptions: canViewMedia
-          ? getFanletterNewsReportCoverOptionsFromPost({
-              post,
-              report: {
-                coverImageSource: "auto",
-                coverImageUrl: autoCoverImageUrl,
-              },
-            })
-          : [],
+        coverOptions,
         creatorName,
         creatorProfile: {
           avatarImageUrl: profile?.avatarImageUrl?.trim() || null,
