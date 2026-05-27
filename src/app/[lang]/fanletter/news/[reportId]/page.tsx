@@ -2430,6 +2430,15 @@ export default async function LocalizedFanletterNewsReportPage({
               sourceContent={sourceContent}
             />
 
+            {shouldShowReporterTeaserCutGallery ? (
+              <ReporterTeaserCutGallery
+                blurred={shouldBlurCurrentReport}
+                copy={copy}
+                imageUrls={report.teaserImageUrls ?? []}
+                locale={locale}
+              />
+            ) : null}
+
             {shouldShowNsfwControl ? (
               <div className="mt-5">
                 <FanletterNsfwOptInControl
@@ -2489,15 +2498,6 @@ export default async function LocalizedFanletterNewsReportPage({
             <p className="mt-8 border-t border-black/10 pt-4 text-xs font-medium leading-5 text-black/46">
               {copy.articleNotice}
             </p>
-
-            {shouldShowReporterTeaserCutGallery ? (
-              <ReporterTeaserCutGallery
-                blurred={shouldBlurCurrentReport}
-                copy={copy}
-                imageUrls={report.teaserImageUrls ?? []}
-                locale={locale}
-              />
-            ) : null}
 
             <div className="scroll-mt-6" id={sourceVlogSectionId}>
               <SourceVlogEmbed
