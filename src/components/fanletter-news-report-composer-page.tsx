@@ -240,12 +240,19 @@ function getCopy(locale: Locale) {
           noVideoBody:
             "브이로그 원본은 작성실에서 재생하지 않습니다. 유료 콘텐츠는 구매 후에도 티저 기반 작성만 허용됩니다.",
           openPurchase: "1 USDT 결제하기",
+          purchaseOnceBody:
+            "결제는 이 작성 권한 영역에서 한 번만 진행합니다. 결제 후 선택한 브이로그가 유지되고 티저 선택, 크롭, 리포트 발행 도구가 열립니다.",
           previewBadge: "미리보기",
           previewBeforePurchase: "구매 전 프레임 미리보기",
           previewBeforePurchaseBody:
             "리포터가 구매할지 결정할 수 있도록 저장된 동영상 프레임은 먼저 보여줍니다. 크롭, 코멘트 작성, 리포트 발행은 결제 후 열립니다.",
+          previewOnlyBody:
+            "아래 프레임은 구매 판단용 미리보기입니다. 공개 컷 선택과 뉴스 이미지 크롭은 결제 완료 후 가능합니다.",
           purchased: "구매함",
           ready: "작성 가능",
+          reportUnlockBody:
+            "구매가 완료되면 이 자리에서 리포터 관점 입력과 뉴스 리포트 발행 버튼이 순서대로 표시됩니다.",
+          reportUnlockTitle: "결제 후 작성 도구 열림",
           reportLocked: "구매 후 작성",
           sourceStep: "2. 작성 권한",
           teaserLocked: "구매 후 작성",
@@ -363,12 +370,19 @@ function getCopy(locale: Locale) {
           noVideoBody:
             "The original vlog stays off the reporting desk. Paid content still requires purchase before teaser-based reporting.",
           openPurchase: "Pay 1 USDT",
+          purchaseOnceBody:
+            "Payment is handled once in this reporting-access block. After purchase, the selected vlog stays active and teaser selection, cropping, and publishing tools open.",
           previewBadge: "Preview",
           previewBeforePurchase: "Frame preview before purchase",
           previewBeforePurchaseBody:
             "Saved video frames are visible first so reporters can decide whether to buy. Cropping, notes, and publishing unlock after payment.",
+          previewOnlyBody:
+            "The frames below are decision previews. Public cut selection and news-image cropping unlock after payment.",
           purchased: "Purchased",
           ready: "Ready to report",
+          reportUnlockBody:
+            "After purchase, the reporter angle field and news report publish button appear here in sequence.",
+          reportUnlockTitle: "Authoring tools unlock after payment",
           reportLocked: "Report after purchase",
           sourceStep: "2. Reporting access",
           teaserLocked: "Report after purchase",
@@ -1557,12 +1571,17 @@ export function FanletterNewsReportComposerPage({
                   </div>
 
                   {isSelectedPaidLocked ? (
-                    <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                      <p className="text-sm font-semibold leading-6 text-rose-900/72">
-                        {copy.mediaAccess.lockedBody}
-                      </p>
+                    <div className="mt-4 grid gap-3 rounded-lg border border-rose-500/16 bg-white/72 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold leading-6 text-rose-900/72">
+                          {copy.mediaAccess.lockedBody}
+                        </p>
+                        <p className="mt-2 text-xs font-bold leading-5 text-rose-900/50">
+                          {copy.mediaAccess.purchaseOnceBody}
+                        </p>
+                      </div>
                       <FanletterPaidUnlockTrigger
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white"
+                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white shadow-[0_10px_24px_rgba(17,21,16,0.16)]"
                         href={paidUnlockHref}
                       >
                         {copy.mediaAccess.openPurchase}
@@ -1675,18 +1694,11 @@ export function FanletterNewsReportComposerPage({
                     <div className="mt-4 border border-rose-500/18 bg-rose-50 p-4 text-rose-900">
                       <p className="inline-flex items-center gap-1.5 text-sm font-black">
                         <LockKeyhole className="size-4" />
-                        {copy.mediaAccess.reportLocked}
+                        {copy.mediaAccess.previewBeforePurchase}
                       </p>
                       <p className="mt-2 text-sm font-semibold leading-6 text-rose-900/70">
-                        {copy.mediaAccess.previewBeforePurchaseBody}
+                        {copy.mediaAccess.previewOnlyBody}
                       </p>
-                      <FanletterPaidUnlockTrigger
-                        className="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white"
-                        href={paidUnlockHref}
-                      >
-                        {copy.mediaAccess.openPurchase}
-                        <ArrowRight className="size-4 text-[#44f26e]" />
-                      </FanletterPaidUnlockTrigger>
                     </div>
                   ) : null}
 
@@ -1969,18 +1981,11 @@ export function FanletterNewsReportComposerPage({
                       {copy.mediaAccess.reportLocked}
                     </p>
                     <h2 className="mt-2 text-2xl font-black">
-                      {copy.mediaAccess.lockedTitle}
+                      {copy.mediaAccess.reportUnlockTitle}
                     </h2>
                     <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-rose-900/70">
-                      {copy.mediaAccess.lockedBody}
+                      {copy.mediaAccess.reportUnlockBody}
                     </p>
-                    <FanletterPaidUnlockTrigger
-                      className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white"
-                      href={paidUnlockHref}
-                    >
-                      {copy.mediaAccess.openPurchase}
-                      <ArrowRight className="size-4 text-[#44f26e]" />
-                    </FanletterPaidUnlockTrigger>
                   </section>
                 )}
               </>
