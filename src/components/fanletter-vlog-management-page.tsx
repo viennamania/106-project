@@ -802,12 +802,11 @@ function formatFrameTimestamp(timestampSec: number | null) {
     return null;
   }
 
-  const roundedTenths = Math.max(0, Math.round(timestampSec * 10));
-  const minutes = Math.floor(roundedTenths / 600);
-  const seconds = Math.floor((roundedTenths % 600) / 10);
-  const tenths = roundedTenths % 10;
+  const roundedSeconds = Math.max(0, Math.round(timestampSec));
+  const minutes = Math.floor(roundedSeconds / 60);
+  const seconds = roundedSeconds % 60;
 
-  return `${minutes}:${String(seconds).padStart(2, "0")}.${tenths}`;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
 function buildVlogTeaserFrameOptions(
@@ -3204,13 +3203,7 @@ export function FanletterVlogManagementPage({
                                 {timestampLabel ?? copy.teasers.timeUnknown}
                               </span>
                             </div>
-                            <div className="space-y-2 p-2">
-                              <p className="truncate text-[0.68rem] font-black uppercase tracking-[0.12em] text-black/42">
-                                {copy.teasers.timeLabel}:{" "}
-                                <span className="normal-case tracking-normal text-black/70">
-                                  {timestampLabel ?? copy.teasers.timeUnknown}
-                                </span>
-                              </p>
+                            <div className="p-2">
                               <button
                                 className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-rose-200 bg-white px-3 text-xs font-black text-rose-700 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-50"
                                 disabled={
