@@ -197,8 +197,18 @@ function getCopy(locale: Locale) {
           sales: "판매 내역",
           unmarkNsfw: "NSFW 해제",
           clearExclusive: "단독 해제",
+          characterSettings: "캐릭터 설정",
           viewAllMaturity: "전체 수위 보기",
           viewNsfw: "NSFW만 보기",
+        },
+        character: {
+          emptySummary:
+            "AI 캐릭터 페르소나를 설정하면 브이로그 목록에서 캐릭터의 방향성과 콘텐츠 관리 기준을 함께 볼 수 있습니다.",
+          lockedTraits: "고정 특성",
+          profileUpdated: "프로필 수정",
+          statusActive: "운영 중",
+          statusRestricted: "제한됨",
+          title: "AI 캐릭터 프로필",
         },
         connectRequired:
           "FanLetter 계정을 연결하면 내 AI 캐릭터 브이로그를 관리할 수 있습니다.",
@@ -354,8 +364,18 @@ function getCopy(locale: Locale) {
           sales: "Sales",
           unmarkNsfw: "Clear NSFW",
           clearExclusive: "Clear exclusive",
+          characterSettings: "Character settings",
           viewAllMaturity: "View all maturity",
           viewNsfw: "View NSFW only",
+        },
+        character: {
+          emptySummary:
+            "Set up the AI character persona to manage vlogs with the character direction and content rules visible.",
+          lockedTraits: "Locked traits",
+          profileUpdated: "Profile updated",
+          statusActive: "Active",
+          statusRestricted: "Restricted",
+          title: "AI character profile",
         },
         connectRequired:
           "Connect your FanLetter account to manage your AI character vlogs.",
@@ -1088,6 +1108,13 @@ export function FanletterVlogManagementPage({
     buildPathWithReferral(`/${locale}/fanletter/channels`, referralCode),
     { returnTo: managerBaseHref },
   );
+  const characterSettingsHref = setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/profile/character`,
+      referralCode,
+    ),
+    { returnTo: managerBaseHref },
+  );
   const activateHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/activate`, referralCode),
     { returnTo: managerBaseHref },
@@ -1148,6 +1175,30 @@ export function FanletterVlogManagementPage({
     state.profile?.characterPersona?.name?.trim() ||
     state.profile?.displayName?.trim() ||
     copy.title;
+  const profileCharacterSummary =
+    state.profile?.characterPersona?.summary?.trim() ||
+    state.profile?.intro?.trim() ||
+    copy.character.emptySummary;
+  const profileAvatarImageUrl =
+    state.profile?.avatarImageUrl?.trim() ||
+    state.profile?.heroImageUrl?.trim() ||
+    null;
+  const profileHeroImageUrl =
+    state.profile?.heroImageUrl?.trim() ||
+    state.profile?.avatarImageUrl?.trim() ||
+    null;
+  const profileLockedTraits =
+    state.profile?.characterPersona?.lockedTraits
+      ?.map((trait) => trait.trim())
+      .filter(Boolean)
+      .slice(0, 4) ?? [];
+  const profileStatusLabel =
+    state.profile?.status === "restricted"
+      ? copy.character.statusRestricted
+      : copy.character.statusActive;
+  const profileUpdatedLabel = state.profile?.updatedAt
+    ? formatDateLabel(locale, state.profile.updatedAt)
+    : null;
   const activeCoverPost =
     state.posts.find((post) => post.contentId === activeCoverPostId) ?? null;
   const activeTeaserPost =
@@ -2486,19 +2537,106 @@ export function FanletterVlogManagementPage({
 
       <section className="bg-[#f6f8f4] px-4 py-8 text-black sm:px-6 sm:py-12 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[minmax(17rem,22rem)_minmax(0,1fr)] lg:items-start">
-          <aside className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_18px_42px_rgba(8,18,12,0.06)]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#16702e]">
-                  {copy.labels.status}
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-normal">
-                  {profileCharacterName}
-                </h2>
+          <aside className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] lg:sticky lg:top-4">
+            <div className="overflow-hidden rounded-lg border border-black/10 bg-[#0b110d]">
+              <div className="relative aspect-[16/9] bg-[#101811]">
+                {profileHeroImageUrl ? (
+                  <Image
+                    alt=""
+                    className="object-cover opacity-76"
+                    fill
+                    sizes="(min-width: 1024px) 22rem, 100vw"
+                    src={profileHeroImageUrl}
+                    unoptimized={shouldBypassFanletterImageOptimization(
+                      profileHeroImageUrl,
+                    )}
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(68,242,110,0.28),transparent_34%),linear-gradient(135deg,#0b110d,#1f2b20)]" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/78 via-black/20 to-transparent" />
+                <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between gap-3">
+                  <div className="flex min-w-0 items-end gap-3">
+                    <div className="relative size-16 shrink-0 overflow-hidden rounded-lg border border-white/40 bg-white">
+                      {profileAvatarImageUrl ? (
+                        <Image
+                          alt=""
+                          className="object-cover"
+                          fill
+                          sizes="4rem"
+                          src={profileAvatarImageUrl}
+                          unoptimized={shouldBypassFanletterImageOptimization(
+                            profileAvatarImageUrl,
+                          )}
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center bg-[#44f26e] text-black">
+                          <Sparkles className="size-7" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0 pb-0.5">
+                      <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-[#7aff97]">
+                        {copy.character.title}
+                      </p>
+                      <h2 className="truncate text-2xl font-semibold tracking-normal text-white">
+                        {profileCharacterName}
+                      </h2>
+                    </div>
+                  </div>
+                  <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/18 bg-black/50 px-2.5 py-1 text-xs font-semibold text-white">
+                    <ShieldCheck className="size-3.5 text-[#44f26e]" />
+                    {profileStatusLabel}
+                  </span>
+                </div>
               </div>
-              <span className="flex size-11 items-center justify-center rounded-lg bg-black text-white">
-                <Clapperboard className="size-5" />
-              </span>
+              <div className="p-4 text-white">
+                <p className="text-sm font-medium leading-6 text-white/70">
+                  {profileCharacterSummary}
+                </p>
+                {profileLockedTraits.length > 0 ? (
+                  <div className="mt-4">
+                    <p className="text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-white/40">
+                      {copy.character.lockedTraits}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-1.5">
+                      {profileLockedTraits.map((trait) => (
+                        <span
+                          className="rounded-full border border-white/14 bg-white/[0.08] px-2.5 py-1 text-xs font-semibold text-white/78"
+                          key={trait}
+                        >
+                          {trait}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div className="rounded-lg border border-white/10 bg-white/[0.06] p-3">
+                    <p className="text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white/38">
+                      ID
+                    </p>
+                    <p className="mt-1 truncate text-sm font-semibold text-white">
+                      {state.profile?.referralCode ?? referralCode ?? "-"}
+                    </p>
+                  </div>
+                  <div className="rounded-lg border border-white/10 bg-white/[0.06] p-3">
+                    <p className="text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-white/38">
+                      {copy.character.profileUpdated}
+                    </p>
+                    <p className="mt-1 truncate text-sm font-semibold text-white">
+                      {profileUpdatedLabel ?? "-"}
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#6cff89]"
+                  href={characterSettingsHref}
+                >
+                  <Sparkles className="size-4" />
+                  {copy.actions.characterSettings}
+                </Link>
+              </div>
             </div>
             <div className="mt-5 grid gap-3">
               <SideMetric
