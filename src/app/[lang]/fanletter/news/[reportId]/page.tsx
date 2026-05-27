@@ -1406,11 +1406,51 @@ function SourceVlogPaidTeaserOverlay({
       : teaserFrames.length === 2
         ? "grid-cols-2"
         : "grid-cols-1";
+  const hasTeaserFrames = teaserFrames.length > 0;
+  const unlockCard = (
+    <div className="rounded-xl border border-white/14 bg-black/68 p-3 shadow-[0_18px_44px_rgba(0,0,0,0.3)] backdrop-blur sm:p-4 lg:p-5">
+      <div className="flex flex-wrap gap-2">
+        <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-black">
+          {paidUnlockLabel}
+        </span>
+        <span className="inline-flex rounded-full border border-white/18 bg-white/10 px-3 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-white/72">
+          {copy.embeddedUnlockMeta}
+        </span>
+      </div>
+      <h3 className="mt-4 text-2xl font-black leading-tight lg:text-[1.85rem]">
+        {copy.embeddedUnlockTitle}
+      </h3>
+      <p className="mt-3 text-sm font-semibold leading-6 text-white/68">
+        {copy.embeddedUnlockBody}
+      </p>
+      {showPaidUnlockCta ? (
+        <FanletterPaidUnlockTrigger
+          className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
+          href={paidUnlockHref}
+        >
+          <Coins className="size-4" />
+          <span>
+            {paidUnlockLabel} {copy.embeddedUnlockCta}
+          </span>
+        </FanletterPaidUnlockTrigger>
+      ) : (
+        <p className="mt-4 rounded-lg border border-white/14 bg-white/10 px-3 py-2 text-sm font-semibold leading-6 text-white/72">
+          {copy.nsfwBlurNotice}
+        </p>
+      )}
+    </div>
+  );
 
   return (
-    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.9)_100%)] p-3 text-white sm:p-5">
-      <div className="mx-auto grid h-full min-h-0 w-full max-w-4xl gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center">
-        {teaserFrames.length > 0 ? (
+    <div
+      className={
+        hasTeaserFrames
+          ? "absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.9)_100%)] p-3 text-white sm:p-5"
+          : "absolute inset-0 flex items-end justify-center bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.2)_48%,rgba(0,0,0,0.86)_100%)] p-3 text-white sm:p-5 lg:p-8"
+      }
+    >
+      {hasTeaserFrames ? (
+        <div className="mx-auto grid h-full min-h-0 w-full max-w-4xl gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center">
           <div className="flex min-h-0 flex-1 flex-col gap-2 sm:h-full sm:justify-center sm:gap-3">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="min-w-0">
@@ -1473,40 +1513,14 @@ function SourceVlogPaidTeaserOverlay({
               })}
             </div>
           </div>
-        ) : null}
 
-        <div className="rounded-xl border border-white/14 bg-black/62 p-3 shadow-[0_18px_44px_rgba(0,0,0,0.3)] backdrop-blur sm:p-4">
-          <div className="flex flex-wrap gap-2">
-            <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-black">
-              {paidUnlockLabel}
-            </span>
-            <span className="inline-flex rounded-full border border-white/18 bg-white/10 px-3 py-1 text-[0.64rem] font-black uppercase tracking-[0.14em] text-white/72">
-              {copy.embeddedUnlockMeta}
-            </span>
-          </div>
-          <h3 className="mt-4 text-2xl font-black leading-tight">
-            {copy.embeddedUnlockTitle}
-          </h3>
-          <p className="mt-3 text-sm font-semibold leading-6 text-white/68">
-            {copy.embeddedUnlockBody}
-          </p>
-          {showPaidUnlockCta ? (
-            <FanletterPaidUnlockTrigger
-              className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
-              href={paidUnlockHref}
-            >
-              <Coins className="size-4" />
-              <span>
-                {paidUnlockLabel} {copy.embeddedUnlockCta}
-              </span>
-            </FanletterPaidUnlockTrigger>
-          ) : (
-            <p className="mt-4 rounded-lg border border-white/14 bg-white/10 px-3 py-2 text-sm font-semibold leading-6 text-white/72">
-              {copy.nsfwBlurNotice}
-            </p>
-          )}
+          {unlockCard}
         </div>
-      </div>
+      ) : (
+        <div className="mb-2 w-full max-w-[39rem] sm:mb-4 lg:mb-6">
+          {unlockCard}
+        </div>
+      )}
     </div>
   );
 }
