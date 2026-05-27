@@ -249,6 +249,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
       searchQuery={searchQuery}
       sourceRevealFilter={sourceRevealFilter}
       sources={data.items}
+      viewerAuthenticated={Boolean(session)}
     />
   );
 }

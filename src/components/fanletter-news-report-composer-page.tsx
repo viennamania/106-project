@@ -172,6 +172,7 @@ const DEFAULT_REPORT_COVER_CROP: ReportCoverCropState = {
   centerY: 0.5,
   zoom: 1,
 };
+const EMPTY_COVER_OPTIONS: CoverOption[] = [];
 
 function setRelativeSearchParams(
   path: string,
@@ -908,6 +909,7 @@ export function FanletterNewsReportComposerPage({
   searchQuery,
   sourceRevealFilter,
   sources,
+  viewerAuthenticated,
 }: {
   connectHref: string;
   currentHref: string;
@@ -924,26 +926,45 @@ export function FanletterNewsReportComposerPage({
   searchQuery: string;
   sourceRevealFilter: FanletterNewsReportComposerSourceRevealFilter;
   sources: FanletterNewsReportComposerSource[];
+  viewerAuthenticated: boolean;
 }) {
   const copy = getCopy(locale);
   const router = useRouter();
   const [searchInput, setSearchInput] = useState(searchQuery);
+  const [sourceRevealOverrides, setSourceRevealOverrides] = useState<
+    Record<string, FanletterNewsSourceRevealState>
+  >({});
+  const reportSources = useMemo(
+    () =>
+      sources.map((source) => {
+        const sourceRevealOverride = sourceRevealOverrides[source.contentId];
+
+        return sourceRevealOverride
+          ? {
+              ...source,
+              sourceReveal: sourceRevealOverride,
+            }
+          : source;
+      }),
+    [sourceRevealOverrides, sources],
+  );
   const sourceRevealSummary = useMemo(() => {
-    const opportunity = sources.filter((source) =>
+    const opportunity = reportSources.filter((source) =>
       isSourceRevealOpportunitySource({ reporterReferralCode, source }),
     ).length;
 
     return {
-      early: sources.filter(isEarlySourceRevealClaim).length,
-      locked: sources.filter(isSourceRevealLocked).length,
-      near: sources.filter(isNearSourceRevealUnlock).length,
+      early: reportSources.filter(isEarlySourceRevealClaim).length,
+      locked: reportSources.filter(isSourceRevealLocked).length,
+      near: reportSources.filter(isNearSourceRevealUnlock).length,
       opportunity,
-      unlocked: sources.filter((source) => source.sourceReveal.unlocked).length,
+      unlocked: reportSources.filter((source) => source.sourceReveal.unlocked)
+        .length,
     };
-  }, [reporterReferralCode, sources]);
+  }, [reporterReferralCode, reportSources]);
   const displayedSources = useMemo(
     () =>
-      sources
+      reportSources
         .filter((source) =>
           matchesSourceRevealFilter({
             filter: sourceRevealFilter,
@@ -966,7 +987,7 @@ export function FanletterNewsReportComposerPage({
             getPublishedAtTime(right) - getPublishedAtTime(left)
           );
         }),
-    [reporterReferralCode, sourceRevealFilter, sources],
+    [reporterReferralCode, reportSources, sourceRevealFilter],
   );
   const firstAvailableSource =
     displayedSources.find(
@@ -979,15 +1000,20 @@ export function FanletterNewsReportComposerPage({
     displayedSources.find(
       (source) => source.contentId === initialSelectedContentId,
     ) ??
-    sources.find((source) => source.contentId === initialSelectedContentId) ??
+    reportSources.find((source) => source.contentId === initialSelectedContentId) ??
     firstAvailableSource;
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
     initialSelectedSource?.contentId ?? null,
   );
   const selectedSource = useMemo(
-    () => sources.find((source) => source.contentId === selectedContentId) ?? null,
-    [selectedContentId, sources],
+    () =>
+      reportSources.find((source) => source.contentId === selectedContentId) ??
+      null,
+    [reportSources, selectedContentId],
   );
+  const selectedSourceContentId = selectedSource?.contentId ?? null;
+  const selectedSourceCoverOptions =
+    selectedSource?.coverOptions ?? EMPTY_COVER_OPTIONS;
   const [selectedCoverUrl, setSelectedCoverUrl] = useState<string | null>(
     initialSelectedSource?.coverOptions[0]?.imageUrl ?? null,
   );
@@ -1005,6 +1031,7 @@ export function FanletterNewsReportComposerPage({
   const [status, setStatus] = useState<"idle" | "submitting">("idle");
   const [error, setError] = useState<string | null>(null);
   const cropFrameRef = useRef<HTMLDivElement | null>(null);
+  const selectedDetailRef = useRef<HTMLDivElement | null>(null);
   const cropDragRef = useRef<{
     initialCrop: ReportCoverCropState;
     pointerId: number;
@@ -1028,7 +1055,7 @@ export function FanletterNewsReportComposerPage({
   const shouldBlurSelectedNsfwMedia = Boolean(
     shouldBlurNsfwMedia && selectedSource?.contentMaturityRating === "nsfw",
   );
-  const selectedCoverOption = selectedSource?.coverOptions.find(
+  const selectedCoverOption = selectedSourceCoverOptions.find(
     (option) => option.imageUrl === selectedCoverUrl,
   );
   const canSubmit = Boolean(
@@ -1134,7 +1161,7 @@ export function FanletterNewsReportComposerPage({
       value: "unlocked",
     },
     {
-      count: sources.length,
+      count: reportSources.length,
       label: copy.sourceReveal.filterAll,
       value: "all",
     },
@@ -1224,8 +1251,47 @@ export function FanletterNewsReportComposerPage({
         "",
         setRelativeSearchParams(currentHref, { contentId }),
       );
+
+      if (!window.matchMedia("(max-width: 1023px)").matches) {
+        return;
+      }
+
+      window.requestAnimationFrame(() => {
+        selectedDetailRef.current?.scrollIntoView({
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? "auto"
+            : "smooth",
+          block: "start",
+        });
+      });
     },
     [currentHref],
+  );
+
+  const updateSourceRevealState = useCallback(
+    (contentId: string, sourceReveal: FanletterNewsSourceRevealState) => {
+      setSourceRevealOverrides((current) => {
+        if (current[contentId] === sourceReveal) {
+          return current;
+        }
+
+        return {
+          ...current,
+          [contentId]: sourceReveal,
+        };
+      });
+    },
+    [],
+  );
+  const updateSelectedSourceRevealState = useCallback(
+    (sourceReveal: FanletterNewsSourceRevealState) => {
+      if (!selectedSource?.contentId) {
+        return;
+      }
+
+      updateSourceRevealState(selectedSource.contentId, sourceReveal);
+    },
+    [selectedSource?.contentId, updateSourceRevealState],
   );
 
   useEffect(() => {
@@ -1241,14 +1307,22 @@ export function FanletterNewsReportComposerPage({
   }, [firstAvailableSource?.contentId, selectedSource]);
 
   useEffect(() => {
-    const nextCoverUrl = selectedSource?.coverOptions[0]?.imageUrl ?? null;
+    const nextCoverUrl = selectedSourceCoverOptions[0]?.imageUrl ?? null;
 
     setSelectedCoverUrl(nextCoverUrl);
-    setSelectedTeaserUrls(getDefaultReportTeaserImageUrls(selectedSource));
+    setSelectedTeaserUrls(
+      [
+        ...new Set(
+          selectedSourceCoverOptions
+            .map((option) => option.imageUrl.trim())
+            .filter(Boolean),
+        ),
+      ].slice(0, REPORT_TEASER_IMAGE_LIMIT),
+    );
     setCrop(DEFAULT_REPORT_COVER_CROP);
     setNaturalSize(null);
     setError(null);
-  }, [selectedSource]);
+  }, [selectedSourceContentId, selectedSourceCoverOptions]);
 
   const selectCoverImage = useCallback(
     (imageUrl: string) => {
@@ -1889,7 +1963,7 @@ export function FanletterNewsReportComposerPage({
             </div>
           </div>
 
-          <div className="min-w-0 space-y-4">
+          <div className="min-w-0 space-y-4" ref={selectedDetailRef}>
             {selectedSource ? (
               <>
                 <section className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
@@ -2253,8 +2327,10 @@ export function FanletterNewsReportComposerPage({
                   className="shadow-[0_14px_34px_rgba(17,21,16,0.055)]"
                   connectHref={selectedConnectHref}
                   initialState={selectedSource.sourceReveal}
+                  isViewerAuthenticated={viewerAuthenticated}
                   key={selectedSource.contentId}
                   locale={locale}
+                  onStateChange={updateSelectedSourceRevealState}
                   sourceRevealEndpoint={`/api/fanletter/news-vlogs/${encodeURIComponent(
                     selectedSource.contentId,
                   )}/source-reveal`}

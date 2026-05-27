@@ -66,7 +66,9 @@ type FanletterNewsSourceRevealVoteProps = {
   connectHref: string;
   density?: "regular" | "compact" | "dock";
   initialState: FanletterNewsSourceRevealState;
+  isViewerAuthenticated?: boolean;
   locale: Locale;
+  onStateChange?: (state: FanletterNewsSourceRevealState) => void;
   reportId?: string;
   sourceRevealEndpoint?: string;
   tone?: "dark" | "light";
@@ -560,7 +562,9 @@ export function FanletterNewsSourceRevealVote({
   connectHref,
   density = "regular",
   initialState,
+  isViewerAuthenticated = false,
   locale,
+  onStateChange,
   reportId,
   sourceRevealEndpoint,
   tone = "dark",
@@ -711,6 +715,7 @@ export function FanletterNewsSourceRevealVote({
 
       stateRef.current = nextState;
       setState(nextState);
+      onStateChange?.(nextState);
 
       if (shouldCelebrate) {
         hasCelebratedUnlockRef.current = true;
@@ -722,7 +727,7 @@ export function FanletterNewsSourceRevealVote({
         router.refresh();
       }
     },
-    [router, triggerUnlockCelebration],
+    [onStateChange, router, triggerUnlockCelebration],
   );
 
   useEffect(() => {
@@ -841,7 +846,7 @@ export function FanletterNewsSourceRevealVote({
   const thresholdLabel = formatCount(state.threshold, locale);
   const remainingCount = Math.max(0, state.threshold - state.count);
   const remainingLabel = formatCount(remainingCount, locale);
-  const isLoggedIn = Boolean(memberSession.email);
+  const isLoggedIn = isViewerAuthenticated || Boolean(memberSession.email);
   const isDark = tone === "dark";
   const isDock = density === "dock";
   const isCompact = density === "compact" || isDock;
