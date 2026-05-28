@@ -764,12 +764,12 @@ function NewsSiteHeader({
         </div>
       </div>
       <div className="mx-auto flex max-w-[92rem] flex-col px-3 pt-2.5 sm:px-6 sm:pt-4 lg:px-8">
-        <div className="flex items-center justify-between gap-3 border-b-2 border-[#111510] pb-2.5 sm:items-end sm:gap-4 sm:pb-3">
+        <div className="flex items-center justify-between gap-3 border-b-2 border-[#111510] pb-2 sm:items-end sm:gap-4 sm:pb-3">
           <Link
-            className="inline-flex min-w-0 items-center gap-2.5 break-words text-[1.35rem] font-black leading-none tracking-normal !text-[#111510] sm:gap-3 sm:text-[4rem]"
+            className="inline-flex min-w-0 items-center gap-2 break-words text-[1.28rem] font-black leading-none tracking-normal !text-[#111510] sm:gap-3 sm:text-[4rem]"
             href={homeHref}
           >
-            <FanletterBrandMark className="size-9 sm:size-14" />
+            <FanletterBrandMark className="size-8 sm:size-14" />
             <span className="truncate">{copy.siteName}</span>
           </Link>
           <div className="flex shrink-0 flex-col items-end gap-2">
@@ -788,17 +788,22 @@ function NewsSiteHeader({
         </div>
         <nav
           aria-label={copy.siteName}
-          className="flex gap-2 overflow-x-auto border-b border-black/10 py-2.5 text-sm font-bold text-black/62 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="grid grid-cols-4 gap-1 border-b border-black/10 py-2 text-[0.76rem] font-bold text-black/62 sm:flex sm:gap-2 sm:overflow-x-auto sm:py-2.5 sm:text-sm sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden"
         >
-          {navLinks.map((item) => (
-            <Link
-              className="shrink-0 border border-black/10 bg-white px-3 py-1.5 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#126c2c]"
-              href={item.href}
-              key={item.label}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navLinks.map((item, index) => {
+            const displayLabel =
+              index === 2 ? (locale === "ko" ? "브이로그" : "Vlog") : item.label;
+
+            return (
+              <Link
+                className="min-w-0 border border-black/10 bg-white px-2 py-1.5 text-center transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#126c2c] sm:shrink-0 sm:px-3"
+                href={item.href}
+                key={item.label}
+              >
+                <span className="block truncate">{displayLabel}</span>
+              </Link>
+            );
+          })}
         </nav>
       </div>
     </header>
@@ -896,10 +901,10 @@ function ArticleTitleCharacterThumbnail({
 
   return (
     <Link
-      className="group grid min-w-0 grid-cols-[5.25rem_minmax(0,1fr)] gap-3 rounded-lg border border-black/10 bg-[#f7f9f4] p-2.5 !text-[#111510] shadow-[0_14px_30px_rgba(17,21,16,0.055)] transition hover:border-[#19b84b] hover:bg-[#ecfff0] lg:block lg:p-3"
+      className="group grid min-w-0 grid-cols-[3.75rem_minmax(0,1fr)] gap-2 rounded-md border border-black/10 bg-[#f7f9f4] p-2 !text-[#111510] shadow-none transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:grid-cols-[5.25rem_minmax(0,1fr)] sm:gap-3 sm:rounded-lg sm:p-2.5 sm:shadow-[0_14px_30px_rgba(17,21,16,0.055)] lg:block lg:p-3"
       href={creatorHref}
     >
-      <span className="relative block aspect-square overflow-hidden rounded-lg bg-[#111510] lg:aspect-[4/5] lg:w-full">
+      <span className="relative block aspect-square overflow-hidden rounded-md bg-[#111510] sm:rounded-lg lg:aspect-[4/5] lg:w-full">
         {imageUrl ? (
           <>
             <Image
@@ -907,7 +912,7 @@ function ArticleTitleCharacterThumbnail({
               aria-hidden="true"
               className="absolute inset-0 h-full w-full scale-110 object-cover blur-lg brightness-[0.48] saturate-[0.92]"
               fill
-              sizes="(max-width: 1024px) 5.25rem, 13rem"
+              sizes="(max-width: 640px) 3.75rem, (max-width: 1024px) 5.25rem, 13rem"
               src={imageUrl}
               unoptimized={shouldBypassImageOptimization}
             />
@@ -917,32 +922,32 @@ function ArticleTitleCharacterThumbnail({
                 blurred ? "blur-sm brightness-[0.72] saturate-[0.82]" : ""
               }`}
               fill
-              sizes="(max-width: 1024px) 5.25rem, 13rem"
+              sizes="(max-width: 640px) 3.75rem, (max-width: 1024px) 5.25rem, 13rem"
               src={imageUrl}
               unoptimized={shouldBypassImageOptimization}
             />
           </>
         ) : (
           <span className="flex h-full w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_55%,#203426)]">
-            <Newspaper className="size-8 text-[#44f26e]" />
+            <Newspaper className="size-6 text-[#44f26e] sm:size-8" />
           </span>
         )}
         <span className="absolute inset-x-0 bottom-0 z-20 h-1 bg-[#44f26e]" />
       </span>
       <span className="flex min-w-0 flex-col justify-center lg:mt-3 lg:block">
-        <span className="inline-flex w-fit items-center gap-1.5 border border-[#16702e]/20 bg-white px-2 py-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
+        <span className="inline-flex w-fit items-center gap-1.5 border border-[#16702e]/20 bg-white px-2 py-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-[#16702e] sm:text-[0.6rem] sm:tracking-[0.1em]">
           <BadgeCheck className="size-3" />
           {copy.titleCharacter.eyebrow}
         </span>
-        <span className="mt-2 block truncate text-base font-black leading-tight lg:text-lg">
+        <span className="mt-1.5 block truncate text-sm font-black leading-tight sm:mt-2 sm:text-base lg:text-lg">
           {displayName}
         </span>
         {creatorReferralCode ? (
-          <span className="mt-1 block truncate text-[0.68rem] font-bold text-black/44">
+          <span className="mt-1 hidden truncate text-[0.68rem] font-bold text-black/44 sm:block">
             @{creatorReferralCode}
           </span>
         ) : null}
-        <span className="mt-2 inline-flex items-center gap-1.5 text-[0.72rem] font-black text-[#16702e] group-hover:underline">
+        <span className="mt-1.5 inline-flex items-center gap-1.5 text-[0.68rem] font-black text-[#16702e] group-hover:underline sm:mt-2 sm:text-[0.72rem]">
           {copy.titleCharacter.cta}
           <ArrowUpRight className="size-3.5" />
         </span>
@@ -1042,10 +1047,10 @@ function ReporterByline({
   ];
 
   return (
-    <section className="mt-4 border-y border-black/10 py-3 sm:mt-5">
+    <section className="mt-3 border-y border-black/10 py-2.5 sm:mt-5 sm:py-3">
       <div className="flex min-w-0 items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-xs font-black text-[#44f26e] sm:size-10 sm:text-sm">
+          <span className="relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-xs font-black text-[#44f26e] sm:size-10 sm:text-sm">
             {reporterAvatarImageUrl ? (
               <Image
                 alt=""
@@ -1083,11 +1088,11 @@ function ReporterByline({
               <span aria-hidden="true" className="text-black/22">
                 ·
               </span>
-              <span>{copy.generated}</span>
-              <span aria-hidden="true" className="text-black/22">
+              <span className="hidden sm:inline">{copy.generated}</span>
+              <span aria-hidden="true" className="hidden text-black/22 sm:inline">
                 ·
               </span>
-              <span>
+              <span className="hidden sm:inline">
                 {copy.reporterTrust.label}{" "}
                 {copy.reporterTrust.score(
                   formatNumber(reporterTrust.score, report.locale),
@@ -1104,7 +1109,7 @@ function ReporterByline({
         </Link>
       </div>
 
-      <details className="group mt-2">
+      <details className="group mt-2 hidden sm:block">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-md border border-black/10 bg-[#f7f9f4] px-3 py-2 text-xs font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] [&::-webkit-details-marker]:hidden">
           <span className="inline-flex min-w-0 items-center gap-2">
             <ShieldCheck className="size-3.5 shrink-0 text-[#16702e]" />
@@ -2493,14 +2498,20 @@ export default async function LocalizedFanletterNewsReportPage({
       <article className="mx-auto max-w-[92rem] px-3 pb-14 pt-4 sm:px-6 sm:pb-16 sm:pt-8 lg:px-8">
         <div className="grid gap-5 sm:gap-7 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start">
           <div className="min-w-0">
-            <header className="overflow-hidden border border-black/12 bg-white shadow-[0_14px_40px_rgba(17,21,16,0.07)] sm:shadow-[0_20px_56px_rgba(17,21,16,0.08)]">
-              <div className="border-b-2 border-[#111510] bg-[#111510] px-3 py-2.5 sm:px-6 sm:py-3">
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[0.68rem] font-black uppercase tracking-[0.12em] text-white/58">
+            <header className="overflow-hidden border border-black/12 bg-white shadow-none sm:shadow-[0_20px_56px_rgba(17,21,16,0.08)]">
+              <div className="border-b-2 border-[#111510] bg-[#111510] px-3 py-2 sm:px-6 sm:py-3">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-white/58 sm:gap-y-2 sm:text-[0.68rem] sm:tracking-[0.12em]">
                   <span className="text-[#44f26e]">{copy.articleSection}</span>
-                  <span className="h-3 w-px bg-white/18" aria-hidden="true" />
-                  <span>{accessLabel}</span>
-                  <span className="h-3 w-px bg-white/18" aria-hidden="true" />
-                  <span>{copy.aiReport}</span>
+                  <span
+                    className="hidden h-3 w-px bg-white/18 sm:inline-block"
+                    aria-hidden="true"
+                  />
+                  <span className="hidden sm:inline">{accessLabel}</span>
+                  <span
+                    className="hidden h-3 w-px bg-white/18 sm:inline-block"
+                    aria-hidden="true"
+                  />
+                  <span className="hidden sm:inline">{copy.aiReport}</span>
                   {isFirstNewsReport ? (
                     <>
                       <span
@@ -2514,16 +2525,16 @@ export default async function LocalizedFanletterNewsReportPage({
                   ) : null}
                 </div>
               </div>
-              <div className="p-3.5 sm:p-6 lg:p-7">
-                <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(12rem,14rem)] lg:items-start">
+              <div className="p-3 sm:p-6 lg:p-7">
+                <div className="grid gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(12rem,14rem)] lg:items-start">
                   <div className="min-w-0">
                     <h1
-                      className={`max-w-5xl break-words text-[1.72rem] font-black leading-[1.14] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3.25rem] sm:leading-[1.06] lg:text-[3.75rem] ${nsfwTextBlurClass}`}
+                      className={`max-w-5xl break-words text-[1.44rem] font-black leading-[1.12] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3.25rem] sm:leading-[1.06] lg:text-[3.75rem] ${nsfwTextBlurClass}`}
                     >
                       {articleTitle}
                     </h1>
                     <p
-                      className={`mt-3 max-w-3xl text-[0.98rem] font-medium leading-7 text-black/62 sm:mt-4 sm:text-[1.22rem] sm:leading-9 ${nsfwTextBlurClass}`}
+                      className={`mt-2 max-w-3xl text-[0.92rem] font-medium leading-6 text-black/62 sm:mt-4 sm:text-[1.22rem] sm:leading-9 ${nsfwTextBlurClass}`}
                     >
                       {report.dek}
                     </p>

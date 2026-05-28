@@ -517,7 +517,7 @@ export function FanletterNewsSourceSceneGallery({
   };
 
   return (
-    <section className="mt-3 border border-black/10 bg-[#f7f9f4] p-3 sm:p-4">
+    <section className="mt-3 border border-black/10 bg-white p-3 sm:bg-[#f7f9f4] sm:p-4">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
           <p className="text-[0.66rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
@@ -527,64 +527,76 @@ export function FanletterNewsSourceSceneGallery({
             {copy.title}
           </h3>
         </div>
-        <p className="max-w-lg text-xs font-semibold leading-5 text-black/48 sm:text-right">
+        <p className="hidden max-w-lg text-xs font-semibold leading-5 text-black/48 sm:block sm:text-right">
           {copy.body}
         </p>
       </div>
 
       <div
         className={cn(
-          "mt-3 grid gap-2",
-          isGridLayout
-            ? "grid-cols-2 sm:grid-cols-4"
-            : "-mx-3 snap-x auto-cols-[minmax(9.5rem,42vw)] grid-flow-col overflow-x-auto px-3 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-4 sm:auto-cols-[11.5rem] sm:px-4 lg:auto-cols-[12.5rem] xl:auto-cols-[13.5rem] [&::-webkit-scrollbar]:hidden",
+          "relative",
+          !isGridLayout &&
+            "after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-8 after:bg-gradient-to-l after:from-white after:to-transparent sm:after:from-[#f7f9f4]",
         )}
       >
-        {items.map((item, index) => (
-          <button
-            aria-label={`${item.label} ${copy.openViewer}`}
-            className={cn(
-              "group overflow-hidden border border-black/10 bg-white text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]",
-              isGridLayout ? "" : "snap-start",
-              canOpenSceneViewer
-                ? "hover:border-[#19b84b]"
-                : "cursor-not-allowed",
-            )}
-            disabled={!canOpenSceneViewer}
-            key={`${item.imageUrl}-${index}`}
-            onClick={() => {
-              openViewer(index);
-            }}
-            type="button"
-          >
-            <span className="relative block aspect-[9/16] bg-[#07100b]">
-              <Image
-                alt=""
-                aria-hidden="true"
-                className={
-                  effectiveBlurred
-                    ? "object-contain blur-sm brightness-[0.76] saturate-[0.92]"
-                    : "object-contain transition duration-300 group-hover:scale-[1.02]"
-                }
-                fill
-                sizes={
-                  isGridLayout
-                    ? "(max-width: 640px) 50vw, 25vw"
-                    : "(max-width: 640px) 42vw, (max-width: 1280px) 12.5rem, 13.5rem"
-                }
-                src={item.imageUrl}
-                unoptimized={shouldBypassFanletterImageOptimization(item.imageUrl)}
-              />
-              <span className="absolute inset-0 bg-gradient-to-t from-black/46 via-transparent to-black/8" />
-              <span className="absolute bottom-2 left-2 rounded-full bg-black/64 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/86">
-                {item.timeLabel ? `${item.label} · ${item.timeLabel}` : item.label}
+        <div
+          className={cn(
+            "mt-3 grid",
+            isGridLayout
+              ? "grid-cols-2 gap-2 sm:grid-cols-4"
+              : "-mx-3 snap-x auto-cols-[minmax(7.75rem,38vw)] grid-flow-col gap-1.5 overflow-x-auto px-3 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-4 sm:auto-cols-[11.5rem] sm:gap-2 sm:px-4 sm:pb-2 lg:auto-cols-[12.5rem] xl:auto-cols-[13.5rem] [&::-webkit-scrollbar]:hidden",
+          )}
+        >
+          {items.map((item, index) => (
+            <button
+              aria-label={`${item.label} ${copy.openViewer}`}
+              className={cn(
+                "group overflow-hidden border border-black/10 bg-white text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]",
+                isGridLayout ? "" : "snap-start",
+                canOpenSceneViewer
+                  ? "hover:border-[#19b84b]"
+                  : "cursor-not-allowed",
+              )}
+              disabled={!canOpenSceneViewer}
+              key={`${item.imageUrl}-${index}`}
+              onClick={() => {
+                openViewer(index);
+              }}
+              type="button"
+            >
+              <span className="relative block aspect-[9/16] bg-[#07100b]">
+                <Image
+                  alt=""
+                  aria-hidden="true"
+                  className={
+                    effectiveBlurred
+                      ? "object-contain blur-sm brightness-[0.76] saturate-[0.92]"
+                      : "object-contain transition duration-300 group-hover:scale-[1.02]"
+                  }
+                  fill
+                  sizes={
+                    isGridLayout
+                      ? "(max-width: 640px) 50vw, 25vw"
+                      : "(max-width: 640px) 38vw, (max-width: 1280px) 12.5rem, 13.5rem"
+                  }
+                  src={item.imageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(
+                    item.imageUrl,
+                  )}
+                />
+                <span className="absolute inset-0 bg-gradient-to-t from-black/46 via-transparent to-black/8" />
+                <span className="absolute bottom-2 left-2 rounded-full bg-black/64 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/86">
+                  {item.timeLabel
+                    ? `${item.label} · ${item.timeLabel}`
+                    : item.label}
+                </span>
+                <span className="absolute right-2 top-2 inline-flex size-8 items-center justify-center rounded-full border border-white/18 bg-black/56 text-white opacity-90 backdrop-blur">
+                  <Expand className="size-3.5" />
+                </span>
               </span>
-              <span className="absolute right-2 top-2 inline-flex size-8 items-center justify-center rounded-full border border-white/18 bg-black/56 text-white opacity-90 backdrop-blur">
-                <Expand className="size-3.5" />
-              </span>
-            </span>
-          </button>
-        ))}
+            </button>
+          ))}
+        </div>
       </div>
 
       {requiresNsfwPin && !isNsfwPinUnlocked && nsfwPinGate ? (
