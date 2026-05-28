@@ -618,7 +618,7 @@ export function FanletterNewsSourceSceneGallery({
             "mt-3 grid",
             isGridLayout
               ? "grid-cols-2 gap-2 sm:grid-cols-4"
-              : "-mx-3 snap-x auto-cols-[minmax(7.75rem,38vw)] grid-flow-col gap-1.5 overflow-x-auto px-3 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-4 sm:auto-cols-[11.5rem] sm:gap-2 sm:px-4 sm:pb-2 lg:auto-cols-[12.5rem] xl:auto-cols-[13.5rem] [&::-webkit-scrollbar]:hidden",
+              : "-mx-3 snap-x touch-pan-x auto-cols-[minmax(7.75rem,38vw)] grid-flow-col gap-1.5 overflow-x-auto overscroll-x-contain px-3 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-4 sm:auto-cols-[11.5rem] sm:gap-2 sm:px-4 sm:pb-2 lg:auto-cols-[12.5rem] xl:auto-cols-[13.5rem] [&::-webkit-scrollbar]:hidden",
           )}
           onScroll={updateSceneScrollState}
           ref={sceneRailRef}
@@ -681,12 +681,18 @@ export function FanletterNewsSourceSceneGallery({
             </button>
           ))}
         </div>
+        {!isGridLayout && sceneScrollState.previous ? (
+          <div className="pointer-events-none absolute inset-y-3 left-0 w-10 bg-[linear-gradient(90deg,#ffffff_0%,rgba(255,255,255,0))] sm:w-12" />
+        ) : null}
+        {!isGridLayout && sceneScrollState.next ? (
+          <div className="pointer-events-none absolute inset-y-3 right-0 w-10 bg-[linear-gradient(270deg,#ffffff_0%,rgba(255,255,255,0))] sm:w-12" />
+        ) : null}
         {canScrollSceneRail ? (
-          <div className="pointer-events-none absolute inset-y-3 left-0 right-0 hidden items-center justify-between px-1 sm:flex">
+          <div className="pointer-events-none absolute inset-y-3 left-0 right-0 flex items-center justify-between px-0.5 sm:px-1">
             <button
               aria-label={copy.previous}
               className={cn(
-                "pointer-events-auto inline-flex size-9 items-center justify-center rounded-full border border-black/10 bg-white/92 text-[#111510] shadow-[0_10px_24px_rgba(17,21,16,0.16)] backdrop-blur transition hover:border-[#19b84b] hover:text-[#16702e]",
+                "pointer-events-auto inline-flex size-8 items-center justify-center rounded-full border border-black/10 bg-white/92 text-[#111510] shadow-[0_10px_24px_rgba(17,21,16,0.16)] backdrop-blur transition hover:border-[#19b84b] hover:text-[#16702e] sm:size-9",
                 !sceneScrollState.previous &&
                   "pointer-events-none translate-x-1 opacity-0",
               )}
@@ -698,7 +704,7 @@ export function FanletterNewsSourceSceneGallery({
             <button
               aria-label={copy.next}
               className={cn(
-                "pointer-events-auto inline-flex size-9 items-center justify-center rounded-full border border-black/10 bg-white/92 text-[#111510] shadow-[0_10px_24px_rgba(17,21,16,0.16)] backdrop-blur transition hover:border-[#19b84b] hover:text-[#16702e]",
+                "pointer-events-auto inline-flex size-8 items-center justify-center rounded-full border border-black/10 bg-white/92 text-[#111510] shadow-[0_10px_24px_rgba(17,21,16,0.16)] backdrop-blur transition hover:border-[#19b84b] hover:text-[#16702e] sm:size-9",
                 !sceneScrollState.next &&
                   "pointer-events-none -translate-x-1 opacity-0",
               )}

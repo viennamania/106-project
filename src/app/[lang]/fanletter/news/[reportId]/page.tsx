@@ -25,6 +25,7 @@ import {
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterNewsRelatedList } from "@/components/fanletter-news-related-list";
+import { FanletterNewsMobileActionDock } from "@/components/fanletter-news-mobile-action-dock";
 import { FanletterNewsSourceSceneGallery } from "@/components/fanletter-news-source-scene-gallery";
 import { FanletterNewsSourceRevealVote } from "@/components/fanletter-news-source-reveal-vote";
 import { FanletterNewsWalletConnect } from "@/components/fanletter-news-wallet-connect";
@@ -148,6 +149,18 @@ function getCopy(locale: Locale) {
         articleNotice:
           "이 글은 원본 브이로그의 공개 정보와 티저를 바탕으로 생성된 FanLetter AI 팬 리포트입니다. 실제 언론사의 독립 취재 뉴스로 표시하지 않습니다.",
         articleSection: "연예",
+        mobileArticleIntro: {
+          body: "요약과 원본 맥락을 먼저 확인한 뒤, 바로 브이로그로 이어볼 수 있습니다.",
+          eyebrow: "기사 본문",
+        },
+        mobileActionDock: {
+          eyebrow: "다음 행동",
+          pay: (amount: string) => `${amount} 원본 보기`,
+          read: "기사 요약",
+          vote: "보고싶어요",
+          wallet: "지갑 연결",
+          watch: "원본 보기",
+        },
         byline: "팬 기자",
         viewerOwnership: {
           character: "AI 캐릭터",
@@ -217,6 +230,7 @@ function getCopy(locale: Locale) {
           `전체 원본 브이로그는 팬 전용 유료 콘텐츠입니다. ${amount} 결제 후 이 뉴스 화면에서 바로 열립니다.`,
         embeddedPreviewBadge: "잠금 프리뷰",
         embeddedPreviewMeta: "가입 전 맛보기 재생",
+        embeddedPlayFullVideoCta: "전체 원본 재생",
         embeddedTitle: "뉴스 속 원본 브이로그",
         embeddedUnlockBody:
           "결제 후 전체 원본 영상, 본문, 추가 미디어를 이 뉴스 화면에서 바로 이어봅니다.",
@@ -360,6 +374,19 @@ function getCopy(locale: Locale) {
         articleNotice:
           "This is a FanLetter AI fan report generated from the public source vlog information and teaser. It is not presented as independently reported journalism.",
         articleSection: "Entertainment",
+        mobileArticleIntro: {
+          body:
+            "Check the summary and source context first, then continue straight into the vlog.",
+          eyebrow: "Article body",
+        },
+        mobileActionDock: {
+          eyebrow: "Next action",
+          pay: (amount: string) => `Watch for ${amount}`,
+          read: "Story summary",
+          vote: "Want to watch",
+          wallet: "Connect wallet",
+          watch: "Watch source",
+        },
         byline: "Fan reporter",
         viewerOwnership: {
           character: "AI character",
@@ -429,6 +456,7 @@ function getCopy(locale: Locale) {
           `The full source vlog is fan-only paid content. Pay ${amount} to open it from this news page.`,
         embeddedPreviewBadge: "Locked preview",
         embeddedPreviewMeta: "Autoplay before unlock",
+        embeddedPlayFullVideoCta: "Play full source",
         embeddedTitle: "Source vlog in this news",
         embeddedUnlockBody:
           "Unlock the full source video, news body, and extra media directly on this news page.",
@@ -576,6 +604,41 @@ function splitArticleBody(body: string) {
     .split(/\n{2,}/)
     .map((paragraph) => paragraph.trim())
     .filter(Boolean);
+}
+
+function hasHangulFinalConsonant(value: string) {
+  const lastChar = value.trim().at(-1);
+
+  if (!lastChar) {
+    return false;
+  }
+
+  const codePoint = lastChar.codePointAt(0);
+
+  if (!codePoint) {
+    return false;
+  }
+
+  const hangulStart = 0xac00;
+  const hangulEnd = 0xd7a3;
+
+  if (codePoint < hangulStart || codePoint > hangulEnd) {
+    return false;
+  }
+
+  return (codePoint - hangulStart) % 28 !== 0;
+}
+
+function normalizeKoreanGeneratedNewsText(value: string, locale: Locale) {
+  if (locale !== "ko") {
+    return value;
+  }
+
+  return value
+    .replace(/([가-힣])와 FanLetter 팬/g, (_match: string, nameEnd: string) =>
+      `${nameEnd}${hasHangulFinalConsonant(nameEnd) ? "과" : "와"} FanLetter 팬`,
+    )
+    .replace(/'([^']+)'이 FanLetter/g, "'$1'가 FanLetter");
 }
 
 function formatNumber(value: number, locale: Locale) {
@@ -2394,6 +2457,9 @@ function SourceVlogEmbed({
     ? pickTimelinePreviewFrames(sourceSceneFrames)
     : [];
   const hasEmbeddedVideo = Boolean(sourceVideoUrl);
+  const sourceStandalonePreviewVideoUrl = normalizeOptionalVideoUrl(
+    sourceContent?.sourcePreviewVideoUrl,
+  );
   const sourcePreviewVideoUrl = resolveSourceVlogPreviewVideoUrl(
     sourceContent,
     sourceVideoUrl,
@@ -2671,6 +2737,9 @@ function SourceVlogEmbed({
           <FanletterResponsiveMediaFrame
             alt={sourceContent?.title ?? copy.embeddedTitle}
             blurred={sourceMediaBlurred}
+            deferVideoUntilInteraction={Boolean(
+              sourceStandalonePreviewVideoUrl && sourceVideoUrl,
+            )}
             eager
             imageUrl={sourceImageUrl}
             mediaType={sourceContent?.mediaType ?? "video"}
@@ -2684,6 +2753,8 @@ function SourceVlogEmbed({
                   }
                 : undefined
             }
+            playButtonLabel={copy.embeddedPlayFullVideoCta}
+            previewVideoUrl={sourceStandalonePreviewVideoUrl}
             title={sourceContent?.title ?? copy.embeddedTitle}
             videoUrl={sourceVideoUrl}
           >
@@ -3155,7 +3226,10 @@ export default async function LocalizedFanletterNewsReportPage({
     sortValue: relatedNewsSort,
   };
   const publishedAt = formatDate(report.sourcePublishedAt, locale);
-  const articleParagraphs = splitArticleBody(report.body);
+  const articleDek = normalizeKoreanGeneratedNewsText(report.dek, locale);
+  const articleParagraphs = splitArticleBody(report.body).map((paragraph) =>
+    normalizeKoreanGeneratedNewsText(paragraph, locale),
+  );
   const accessLabel = getContentAccessLabel(sourceContent ?? report, copy);
   const isCurrentNsfwReport = isNsfwReport(report);
   const shouldBlurCurrentReport = shouldBlurReport(report, includeNsfw);
@@ -3204,6 +3278,45 @@ export default async function LocalizedFanletterNewsReportPage({
     characterAvatarImageUrl ??
     null;
   const paidUnlockLabel = `${paidUnlockAmount ?? CONTENT_PAID_USDT_AMOUNT} USDT`;
+  const heroCopy = getNewsLandingHeroCopy(locale);
+  const isSourceRevealLocked = sourceReveal?.unlocked === false;
+  const mobileDockPrimary = isSourceRevealLocked
+    ? {
+        href: isViewerLoggedIn ? sourceVlogHref : newsConnectHref,
+        kind: isViewerLoggedIn ? ("vote" as const) : ("wallet" as const),
+        label: isViewerLoggedIn
+          ? copy.mobileActionDock.vote
+          : copy.mobileActionDock.wallet,
+      }
+    : shouldShowPaidUnlockPanel && paidUnlockHref
+      ? {
+          href: paidUnlockHref,
+          kind: "pay" as const,
+          label: copy.mobileActionDock.pay(paidUnlockLabel),
+        }
+      : canViewerOpenSourceContent
+        ? {
+            href: sourceVlogHref,
+            kind: "watch" as const,
+            label: copy.mobileActionDock.watch,
+          }
+        : {
+            href: "#fanletter-news-story-summary",
+            kind: "read" as const,
+            label: copy.mobileActionDock.read,
+          };
+  const mobileDockStatusLabel = isSourceRevealLocked && sourceReveal
+    ? heroCopy.progress(
+        formatNumber(sourceReveal.count, locale),
+        formatNumber(sourceReveal.threshold, locale),
+        formatNumber(
+          Math.max(0, sourceReveal.threshold - sourceReveal.count),
+          locale,
+        ),
+      )
+    : shouldShowPaidUnlockPanel
+      ? heroCopy.paidReady(paidUnlockLabel)
+      : accessLabel;
   const reporterDisplayName =
     reporterProfile?.displayName ?? getReporterDisplayName(report);
   const shouldShowReporterTeaserCutGallery =
@@ -3224,7 +3337,10 @@ export default async function LocalizedFanletterNewsReportPage({
     { label: copy.sixW.what, value: report.what },
     { label: copy.sixW.why, value: report.why },
     { label: copy.sixW.how, value: report.how },
-  ];
+  ].map((fact) => ({
+    ...fact,
+    value: normalizeKoreanGeneratedNewsText(fact.value, locale),
+  }));
   const reporterTrustStats = {
     paidUnlockPurchaseCount:
       reporterIncentiveStats.overview.paidUnlockPurchaseCount,
@@ -3266,7 +3382,7 @@ export default async function LocalizedFanletterNewsReportPage({
         walletHref={walletHref}
       />
 
-      <article className="mx-auto max-w-[92rem] px-3 pb-14 pt-4 sm:px-6 sm:pb-16 sm:pt-8 lg:px-8">
+      <article className="mx-auto max-w-[92rem] px-3 pb-28 pt-4 sm:px-6 sm:pb-16 sm:pt-8 lg:px-8">
         <FanletterNewsShareLandingHero
           accessLabel={accessLabel}
           articleTitle={articleTitle}
@@ -3274,7 +3390,7 @@ export default async function LocalizedFanletterNewsReportPage({
           characterName={characterName ?? report.creatorName}
           copy={copy}
           creatorHref={creatorHref}
-          dek={report.dek}
+          dek={articleDek}
           isPaidContent={isPaidSourceContent}
           isViewerLoggedIn={isViewerLoggedIn}
           locale={locale}
@@ -3324,25 +3440,37 @@ export default async function LocalizedFanletterNewsReportPage({
               <div className="p-3 sm:p-6 lg:p-7">
                 <div className="grid gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(12rem,14rem)] lg:items-start">
                   <div className="min-w-0">
+                    <div className="sm:hidden">
+                      <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+                        {copy.mobileArticleIntro.eyebrow}
+                      </p>
+                      <p
+                        className={`mt-1.5 text-sm font-semibold leading-6 text-black/64 [word-break:keep-all] ${nsfwTextBlurClass}`}
+                      >
+                        {copy.mobileArticleIntro.body}
+                      </p>
+                    </div>
                     <h2
-                      className={`max-w-5xl break-words text-[1.44rem] font-black leading-[1.12] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3.25rem] sm:leading-[1.06] lg:text-[3.75rem] ${nsfwTextBlurClass}`}
+                      className={`hidden max-w-5xl break-words text-[1.44rem] font-black leading-[1.12] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:block sm:text-[3.25rem] sm:leading-[1.06] lg:text-[3.75rem] ${nsfwTextBlurClass}`}
                     >
                       {articleTitle}
                     </h2>
                     <p
-                      className={`mt-2 max-w-3xl text-[0.92rem] font-medium leading-6 text-black/62 sm:mt-4 sm:text-[1.22rem] sm:leading-9 ${nsfwTextBlurClass}`}
+                      className={`hidden max-w-3xl text-[0.92rem] font-medium leading-6 text-black/62 sm:mt-4 sm:block sm:text-[1.22rem] sm:leading-9 ${nsfwTextBlurClass}`}
                     >
-                      {report.dek}
+                      {articleDek}
                     </p>
                   </div>
-                  <ArticleTitleCharacterThumbnail
-                    blurred={shouldBlurCurrentReport}
-                    copy={copy}
-                    creatorHref={creatorHref}
-                    creatorReferralCode={report.creatorReferralCode}
-                    imageUrl={titleCharacterThumbnailUrl}
-                    name={characterName ?? report.creatorName}
-                  />
+                  <div className="hidden sm:block">
+                    <ArticleTitleCharacterThumbnail
+                      blurred={shouldBlurCurrentReport}
+                      copy={copy}
+                      creatorHref={creatorHref}
+                      creatorReferralCode={report.creatorReferralCode}
+                      imageUrl={titleCharacterThumbnailUrl}
+                      name={characterName ?? report.creatorName}
+                    />
+                  </div>
                 </div>
 
                 <ReporterByline
@@ -3367,7 +3495,7 @@ export default async function LocalizedFanletterNewsReportPage({
                   newsHomeHref={newsHomeHref}
                   referralCode={referralCode}
                   shareHref={articleHref}
-                  shareSummary={report.dek}
+                  shareSummary={articleDek}
                   shareTitle={articleTitle}
                   sourceVlogHref={sourceVlogHref}
                 />
@@ -3513,7 +3641,7 @@ export default async function LocalizedFanletterNewsReportPage({
                   initialBody={
                     sourceContent?.body ??
                     report.sourceSummary ??
-                    report.dek
+                    articleDek
                   }
                   initialCoverImageUrl={
                     sourceContent?.coverImageUrl ?? report.coverImageUrl
@@ -3521,7 +3649,7 @@ export default async function LocalizedFanletterNewsReportPage({
                   initialSummary={
                     sourceContent?.summary ??
                     report.sourceSummary ??
-                    report.dek
+                    articleDek
                   }
                   initialTitle={sourceContent?.title ?? report.sourceTitle}
                   hideInlinePanel
@@ -3574,6 +3702,18 @@ export default async function LocalizedFanletterNewsReportPage({
         </div>
       </article>
 
+      <FanletterNewsMobileActionDock
+        eyebrow={copy.mobileActionDock.eyebrow}
+        locale={locale}
+        primaryHref={mobileDockPrimary.href}
+        primaryKind={mobileDockPrimary.kind}
+        primaryLabel={mobileDockPrimary.label}
+        referralCode={referralCode}
+        shareHref={articleHref}
+        shareSummary={articleDek}
+        shareTitle={articleTitle}
+        statusLabel={mobileDockStatusLabel}
+      />
     </main>
   );
 }

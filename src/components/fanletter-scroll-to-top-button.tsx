@@ -118,7 +118,7 @@ export function FanletterScrollToTopButton({ locale }: { locale: Locale }) {
       aria-label={copy.label}
       className={`fixed right-3 z-50 inline-flex items-center justify-center rounded-full border border-[#44f26e]/42 bg-[#44f26e]/95 text-xs font-semibold text-black shadow-[0_14px_34px_rgba(0,0,0,0.24)] transition hover:bg-[#67ff88] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e] sm:bottom-6 sm:right-6 sm:size-11 sm:w-auto sm:gap-2 sm:px-4 ${
         isNewsReportDetail
-          ? "bottom-[calc(1rem+env(safe-area-inset-bottom))] size-10"
+          ? "bottom-[calc(5.7rem+env(safe-area-inset-bottom))] size-10"
           : "bottom-[calc(5.9rem+env(safe-area-inset-bottom))] size-11"
       }`}
       onClick={() => {

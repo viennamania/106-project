@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Clapperboard, LockKeyhole, ShieldCheck } from "lucide-react";
+import { Clapperboard, LockKeyhole, PlayCircle, ShieldCheck } from "lucide-react";
 import {
   type CSSProperties,
   type ReactNode,
@@ -28,6 +28,7 @@ type FanletterResponsiveMediaFrameProps = {
   blurred?: boolean;
   children?: ReactNode;
   className?: string;
+  deferVideoUntilInteraction?: boolean;
   eager?: boolean;
   imageUrl: string | null;
   mediaType: FanletterPublicContentItem["mediaType"];
@@ -38,6 +39,8 @@ type FanletterResponsiveMediaFrameProps = {
     managePinHref: string;
     teaserBlurred?: boolean;
   };
+  playButtonLabel?: string;
+  previewVideoUrl?: string | null;
   title: string;
   videoUrl: string | null;
 };
@@ -85,13 +88,18 @@ export function FanletterResponsiveMediaFrame({
   blurred = false,
   children,
   className,
+  deferVideoUntilInteraction = false,
   eager = false,
   imageUrl,
   mediaType,
   nsfwPinGate,
+  playButtonLabel,
+  previewVideoUrl,
   title,
   videoUrl,
 }: FanletterResponsiveMediaFrameProps) {
+  const [deferredVideoActivatedUrl, setDeferredVideoActivatedUrl] =
+    useState<string | null>(null);
   const [nsfwPinUnlockedVideoUrl, setNsfwPinUnlockedVideoUrl] =
     useState<string | null>(null);
   const [videoMetadataState, setVideoMetadataState] = useState<{
@@ -108,6 +116,10 @@ export function FanletterResponsiveMediaFrame({
   const isNsfwPinUnlocked =
     !requiresNsfwPin || nsfwPinUnlockedVideoUrl === videoUrl;
   const playableVideoUrl = isNsfwPinUnlocked ? videoUrl : null;
+  const shouldDeferVideoLoad =
+    deferVideoUntilInteraction &&
+    Boolean(playableVideoUrl) &&
+    deferredVideoActivatedUrl !== playableVideoUrl;
   const shouldShowLockedPinGate = requiresNsfwPin && !isNsfwPinUnlocked;
   const shouldBlurLockedPinTeaser =
     shouldShowLockedPinGate && nsfwPinGate?.teaserBlurred;
@@ -188,6 +200,75 @@ export function FanletterResponsiveMediaFrame({
 
     return nextStyle;
   }, [activeMetadata, aspectRatio, orientation]);
+
+  if (playableVideoUrl && shouldDeferVideoLoad) {
+    const effectivePreviewVideoUrl =
+      previewVideoUrl && previewVideoUrl !== playableVideoUrl
+        ? previewVideoUrl
+        : null;
+
+    return (
+      <div
+        className={cn(
+          "relative mx-auto w-full overflow-hidden bg-black transition-[max-width] duration-300",
+          orientation === "landscape"
+            ? "aspect-video max-w-full"
+            : orientation === "square"
+              ? "aspect-square max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,72svh,42rem))]"
+              : "aspect-[9/16] max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,40.5svh,32rem))]",
+          blurred && "bg-[#050806]",
+          className,
+        )}
+        style={frameStyle}
+      >
+        {effectivePreviewVideoUrl ? (
+          <FanletterAutoplayVideo
+            ariaHidden
+            className={
+              blurred
+                ? "absolute inset-0 h-full w-full scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.88]"
+                : "absolute inset-0 h-full w-full object-contain"
+            }
+            poster={imageUrl ?? undefined}
+            src={effectivePreviewVideoUrl}
+            title={title}
+          />
+        ) : imageUrl ? (
+          <Image
+            alt={alt}
+            className={cn(
+              "object-contain p-1.5 sm:p-2",
+              blurred
+                ? "scale-[1.06] blur-lg brightness-[0.72] saturate-[0.88]"
+                : null,
+            )}
+            fill
+            loading={eager ? "eager" : undefined}
+            onLoad={handleImageLoad}
+            sizes="(max-width: 768px) 100vw, 50vw"
+            src={imageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+          />
+        ) : (
+          <div className="flex h-full w-full flex-col items-center justify-center gap-3 bg-[linear-gradient(145deg,#07100b,#101820_54%,#1b2b20)] text-white/74">
+            <Clapperboard className="size-14 text-[#44f26e]" />
+          </div>
+        )}
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08),rgba(0,0,0,0.16)_42%,rgba(0,0,0,0.72))]" />
+        {children}
+        <div className="absolute inset-x-0 bottom-0 z-20 flex justify-center p-4 sm:p-5">
+          <button
+            className="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black text-black shadow-[0_18px_40px_rgba(0,0,0,0.28)] transition hover:bg-[#69ff8c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e]"
+            onClick={() => setDeferredVideoActivatedUrl(playableVideoUrl)}
+            type="button"
+          >
+            <PlayCircle className="size-4 shrink-0" />
+            <span className="min-w-0 truncate">{playButtonLabel ?? title}</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (playableVideoUrl) {
     return (
