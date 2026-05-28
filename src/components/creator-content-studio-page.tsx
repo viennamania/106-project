@@ -109,6 +109,7 @@ import {
   readContentVideoFileMetadata,
   readContentVideoUrlMetadata,
 } from "@/lib/content-video-metadata-client";
+import { createContentVideoPreview } from "@/lib/content-video-preview-client";
 import type { Locale } from "@/lib/i18n";
 import type { MemberRecord } from "@/lib/member";
 import { syncServerMemberRegistration } from "@/lib/member-session-client";
@@ -311,6 +312,7 @@ const EMPTY_POST_FORM = {
   generatedContentImageUrls: [] as string[],
   generatedContentVideoUrls: [] as string[],
   previewText: "",
+  previewClipVideoUrl: "",
   priceType: "free" as ContentPriceType,
   summary: "",
   title: "",
@@ -3836,6 +3838,7 @@ export function CreatorContentStudioPage({
           email,
           fanRequestId: priceTypeToSave === "paid" ? initialFanRequestId : null,
           locale,
+          previewClipVideoUrl: postForm.previewClipVideoUrl.trim() || null,
           previewText:
             priceTypeToSave === "paid"
               ? postForm.previewText.trim() ||
@@ -4341,12 +4344,35 @@ export function CreatorContentStudioPage({
         url: uploaded.url,
         width: uploadedFileMetadata?.width ?? null,
       });
+      let previewClipVideoUrl: string | null = null;
+
+      try {
+        setState((current) => ({
+          ...current,
+          error: null,
+          notice:
+            locale === "ko"
+              ? "업로드 동영상의 짧은 프리뷰를 준비하고 있습니다."
+              : "Preparing a short preview from the uploaded video.",
+        }));
+        const previewVideo = await createContentVideoPreview({
+          email,
+          sourceVideoUrl: uploaded.url,
+          title: postForm.title.trim() || file.name,
+          walletAddress: accountAddress ?? "",
+        });
+
+        previewClipVideoUrl = previewVideo.url;
+      } catch {
+        previewClipVideoUrl = null;
+      }
 
       setPostForm((current) => ({
         ...current,
         contentVideoMetadata: uploadedVideoMetadata ? [uploadedVideoMetadata] : [],
         contentVideoUrls: [uploaded.url].slice(0, CONTENT_VIDEO_LIMIT),
         generatedContentVideoUrls: [],
+        previewClipVideoUrl: previewClipVideoUrl ?? "",
         priceType: "paid",
       }));
       setState((current) => ({
@@ -4969,6 +4995,7 @@ export function CreatorContentStudioPage({
         contentVideoUrls: [generatedVideo.url].slice(0, CONTENT_VIDEO_LIMIT),
         contentMaturityRating: "general",
         generatedContentVideoUrls: [generatedVideo.url],
+        previewClipVideoUrl: generatedVideo.previewClipVideoUrl ?? "",
         priceType: "free",
       }));
 
@@ -8199,6 +8226,7 @@ export function CreatorContentStudioPage({
                   contentVideoMetadata: [],
                   contentVideoUrls: [],
                   generatedContentVideoUrls: [],
+                  previewClipVideoUrl: "",
                   priceType: "paid",
                 }));
               }}
@@ -8747,6 +8775,7 @@ export function CreatorContentStudioPage({
                         contentVideoMetadata: [],
                         contentVideoUrls: [],
                         generatedContentVideoUrls: [],
+                        previewClipVideoUrl: "",
                         priceType: isPaidUploadComposer ? "paid" : "free",
                       }));
                     }}
@@ -9561,6 +9590,7 @@ export function CreatorContentStudioPage({
                         contentVideoMetadata: [],
                         contentVideoUrls: [],
                         generatedContentVideoUrls: [],
+                        previewClipVideoUrl: "",
                         priceType: isPaidUploadComposer ? "paid" : "free",
                       }));
                     }}

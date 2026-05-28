@@ -9,6 +9,7 @@ export const CONTENT_PAID_USDT_AMOUNT_WEI = "1000000000000000000";
 export const CONTENT_POSTS_BLOB_PATH_SEGMENT = "content-posts";
 export const CONTENT_UPLOADED_VIDEO_PATH_SEGMENT = "videos";
 export const CONTENT_GENERATED_VIDEO_PATH_SEGMENT = "generated-content-videos";
+export const CONTENT_PREVIEW_VIDEO_PATH_SEGMENT = "preview-videos";
 export const CONTENT_PAID_REQUIRES_UPLOADED_VIDEO_ERROR =
   "Paid content requires a directly uploaded video.";
 export const CONTENT_AI_GENERATED_VIDEO_FREE_ONLY_ERROR =
@@ -574,6 +575,7 @@ export type ContentPostDocument = {
   fanRequestId?: string | null;
   locale?: Locale | null;
   previewAssetIds: string[];
+  previewClipVideoUrl?: string | null;
   previewText: string | null;
   priceType: ContentPriceType;
   priceUsdt: string | null;
@@ -690,6 +692,7 @@ export type ContentPostRecord = {
   exclusiveNews: ContentExclusiveNewsAssignmentRecord;
   fanRequestId: string | null;
   locale: Locale;
+  previewClipVideoUrl: string | null;
   previewText: string | null;
   priceType: ContentPriceType;
   priceUsdt: string | null;
@@ -1004,9 +1007,18 @@ export type ContentPostGenerateCoverResponse = {
   durationSec?: number | null;
   height?: number | null;
   pathname: string;
+  previewClipVideoUrl?: string | null;
   revisedPrompt: string | null;
   url: string;
   width?: number | null;
+};
+
+export type ContentPostVideoPreviewResponse = {
+  contentType: string;
+  durationSec: number | null;
+  pathname: string;
+  sourceVideoUrl: string;
+  url: string;
 };
 
 export type ContentGenerationFailureKind =
@@ -1151,6 +1163,7 @@ export type ContentPostCreateRequest = {
   locale?: Locale | null;
   fanRequestId?: string | null;
   previewAssetIds?: string[];
+  previewClipVideoUrl?: string | null;
   previewText?: string | null;
   priceType: ContentPriceType;
   priceUsdt?: string | null;
@@ -1371,6 +1384,7 @@ export function serializeContentPost(
     },
     fanRequestId: content.fanRequestId ?? null,
     locale: normalizeContentLocale(content.locale),
+    previewClipVideoUrl: content.previewClipVideoUrl?.trim() || null,
     previewText: content.previewText ?? null,
     priceType: content.priceType,
     priceUsdt: content.priceUsdt ?? null,

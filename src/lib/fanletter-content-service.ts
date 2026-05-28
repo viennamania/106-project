@@ -970,7 +970,6 @@ function toPublicContentItem({
 }
 
 type ContentPostPreviewVideoFields = {
-  previewClipVideoUrl?: string | null;
   previewVideoUrl?: string | null;
   teaserVideoUrl?: string | null;
 };
@@ -987,7 +986,7 @@ function getSourcePreviewVideoUrl(post: ContentPostDocument) {
   // This field can be sent to locked news pages, so never fall back to the
   // full source video URL here.
   return (
-    normalizeOptionalVideoUrl(previewPost.previewClipVideoUrl) ??
+    normalizeOptionalVideoUrl(post.previewClipVideoUrl) ??
     normalizeOptionalVideoUrl(previewPost.previewVideoUrl) ??
     normalizeOptionalVideoUrl(previewPost.teaserVideoUrl)
   );

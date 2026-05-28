@@ -12,6 +12,7 @@ import {
   generateAndUploadContentGalleryVideo,
   type ContentVideoQualityMode,
 } from "@/lib/content-gallery-video-service";
+import { createContentVideoPreview } from "@/lib/content-video-preview-service";
 import { getCreatorProfileSnapshotForCompletedMember } from "@/lib/content-service";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeEmail } from "@/lib/member";
@@ -413,12 +414,18 @@ export async function POST(request: Request) {
         },
         type: "progress",
       });
+      const generatedPreviewVideo = await createContentVideoPreview({
+        referralCode: member.referralCode,
+        sourceVideoUrl: generatedVideo.url,
+        title: title || summary || "ai-content-video",
+      }).catch(() => null);
 
       const response: ContentPostGenerateCoverResponse = {
         contentType: generatedVideo.contentType,
         durationSec: generatedVideo.durationSec,
         height: null,
         pathname: generatedVideo.pathname,
+        previewClipVideoUrl: generatedPreviewVideo?.url ?? null,
         revisedPrompt: generatedVideo.revisedPrompt,
         url: generatedVideo.url,
         width: null,
@@ -481,12 +488,18 @@ export async function POST(request: Request) {
       title,
       visualBrief,
     });
+    const generatedPreviewVideo = await createContentVideoPreview({
+      referralCode: member.referralCode,
+      sourceVideoUrl: generatedVideo.url,
+      title: title || summary || "ai-content-video",
+    }).catch(() => null);
 
     const response: ContentPostGenerateCoverResponse = {
       contentType: generatedVideo.contentType,
       durationSec: generatedVideo.durationSec,
       height: null,
       pathname: generatedVideo.pathname,
+      previewClipVideoUrl: generatedPreviewVideo?.url ?? null,
       revisedPrompt: generatedVideo.revisedPrompt,
       url: generatedVideo.url,
       width: null,

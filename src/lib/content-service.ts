@@ -9,6 +9,8 @@ import {
   CONTENT_AI_GENERATED_VIDEO_FREE_ONLY_ERROR,
   CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR,
   CONTENT_PAID_REQUIRES_UPLOADED_VIDEO_ERROR,
+  CONTENT_POSTS_BLOB_PATH_SEGMENT,
+  CONTENT_PREVIEW_VIDEO_PATH_SEGMENT,
   CONTENT_NETWORK_LEVEL_LIMIT,
   CONTENT_PAID_USDT_AMOUNT,
   CONTENT_PAID_USDT_AMOUNT_WEI,
@@ -596,6 +598,57 @@ function normalizeContentVideoUrls(urls?: string[]) {
   ).slice(0, CONTENT_VIDEO_LIMIT);
 }
 
+function getPathSegmentsFromUrl(value: string) {
+  const trimmedUrl = value.trim();
+  let pathname = trimmedUrl;
+
+  try {
+    pathname = new URL(trimmedUrl).pathname;
+  } catch {
+    pathname = trimmedUrl.split(/[?#]/, 1)[0] ?? trimmedUrl;
+  }
+
+  return pathname
+    .split("/")
+    .map((segment) => {
+      try {
+        return decodeURIComponent(segment.trim());
+      } catch {
+        return segment.trim();
+      }
+    })
+    .filter(Boolean);
+}
+
+function isMemberPreviewVideoUrl(value: string, referralCode: string) {
+  const segments = getPathSegmentsFromUrl(value);
+  const contentRootIndex = segments.indexOf(CONTENT_POSTS_BLOB_PATH_SEGMENT);
+
+  return (
+    contentRootIndex >= 0 &&
+    segments[contentRootIndex + 1] === referralCode &&
+    segments[contentRootIndex + 2] === CONTENT_PREVIEW_VIDEO_PATH_SEGMENT
+  );
+}
+
+function normalizeContentPreviewClipVideoUrl({
+  contentVideoUrls,
+  referralCode,
+  value,
+}: {
+  contentVideoUrls: string[];
+  referralCode: string;
+  value?: string | null;
+}) {
+  const trimmed = normalizeOptionalText(value, 500);
+
+  if (!trimmed || contentVideoUrls.length === 0) {
+    return null;
+  }
+
+  return isMemberPreviewVideoUrl(trimmed, referralCode) ? trimmed : null;
+}
+
 function normalizeContentVideoMetadataSource(
   value: unknown,
   url: string,
@@ -722,6 +775,7 @@ const contentPostUpdateContentFields = [
   "fanRequestId",
   "locale",
   "previewAssetIds",
+  "previewClipVideoUrl",
   "previewText",
   "priceType",
   "priceUsdt",
@@ -3109,6 +3163,11 @@ export async function createContentPostForMember(
     input.contentVideoMetadata,
     contentVideoUrls,
   );
+  const previewClipVideoUrl = normalizeContentPreviewClipVideoUrl({
+    contentVideoUrls,
+    referralCode: member.referralCode,
+    value: input.previewClipVideoUrl,
+  });
   const coverImageUrl = normalizeOptionalText(input.coverImageUrl, 500);
   const coverImageCandidates = normalizeCoverImageCandidates(
     input.coverImageCandidates,
@@ -3166,6 +3225,7 @@ export async function createContentPostForMember(
     fanRequestId: fanRequest?.requestId ?? null,
     locale: normalizeContentLocale(input.locale),
     previewAssetIds: (input.previewAssetIds ?? []).slice(0, 4),
+    previewClipVideoUrl,
     previewText: normalizeOptionalText(input.previewText, CONTENT_SUMMARY_LIMIT),
     priceType,
     priceUsdt: resolveContentPriceUsdt(priceType),
@@ -3261,6 +3321,18 @@ export async function updateContentPostForMember(
           post.contentVideoMetadata,
           nextContentVideoUrls,
         );
+  const nextPreviewClipVideoUrl =
+    input.previewClipVideoUrl !== undefined || input.contentVideoUrls !== undefined
+      ? normalizeContentPreviewClipVideoUrl({
+          contentVideoUrls: nextContentVideoUrls,
+          referralCode: member.referralCode ?? post.authorReferralCode,
+          value: input.previewClipVideoUrl ?? post.previewClipVideoUrl,
+        })
+      : normalizeContentPreviewClipVideoUrl({
+          contentVideoUrls: nextContentVideoUrls,
+          referralCode: member.referralCode ?? post.authorReferralCode,
+          value: post.previewClipVideoUrl,
+        });
   const nextCoverImageUrl =
     input.coverImageUrl !== undefined
       ? normalizeOptionalText(input.coverImageUrl, 500)
@@ -3388,6 +3460,7 @@ export async function updateContentPostForMember(
             input.previewAssetIds !== undefined
               ? input.previewAssetIds.slice(0, 4)
               : post.previewAssetIds,
+          previewClipVideoUrl: nextPreviewClipVideoUrl,
           previewText:
             input.previewText !== undefined
               ? normalizeOptionalText(input.previewText, CONTENT_SUMMARY_LIMIT)

@@ -44,6 +44,7 @@ import {
   readContentVideoFileMetadata,
   readContentVideoUrlMetadata,
 } from "@/lib/content-video-metadata-client";
+import { createContentVideoPreview } from "@/lib/content-video-preview-client";
 import type { FanletterCreateInitialPlan } from "@/lib/fanletter-create-plan";
 import {
   buildPathWithReferral,
@@ -75,6 +76,7 @@ type GeneratedMedia = {
   coverImageUrl: string | null;
   fileName: string | null;
   pathname: string | null;
+  previewClipVideoUrl: string | null;
   revisedPrompt: string | null;
   source: CreateSourceMode;
   url: string;
@@ -701,6 +703,11 @@ function normalizeGeneratedMedia(value: unknown): GeneratedMedia | null {
     pathname:
       typeof media.pathname === "string" && media.pathname.trim()
         ? media.pathname
+        : null,
+    previewClipVideoUrl:
+      typeof media.previewClipVideoUrl === "string" &&
+      media.previewClipVideoUrl.trim()
+        ? media.previewClipVideoUrl
         : null,
     revisedPrompt:
       typeof media.revisedPrompt === "string" ? media.revisedPrompt : null,
@@ -1594,6 +1601,7 @@ export function FanletterCreatePage({
         coverImageUrl: null,
         fileName: null,
         pathname: data.pathname,
+        previewClipVideoUrl: data.previewClipVideoUrl ?? null,
         revisedPrompt: data.revisedPrompt,
         source: "ai" as const,
         url: data.url,
@@ -1701,12 +1709,32 @@ export function FanletterCreatePage({
         url: uploaded.url,
         width: uploadedFileMetadata?.width ?? null,
       });
+      let previewClipVideoUrl: string | null = null;
+
+      try {
+        setGenerationMessage(
+          locale === "ko"
+            ? "업로드 동영상의 짧은 프리뷰를 준비하고 있습니다."
+            : "Preparing a short preview from the uploaded video.",
+        );
+        const previewVideo = await createContentVideoPreview({
+          email: resolvedEmail,
+          sourceVideoUrl: uploaded.url,
+          title: inferTitle(form, copy.upload.fallbackTitle),
+          walletAddress: accountAddress,
+        });
+
+        previewClipVideoUrl = previewVideo.url;
+      } catch {
+        previewClipVideoUrl = null;
+      }
       const uploadedVideo: GeneratedMedia = {
         contentType: file.type,
         coverImageCandidates: [],
         coverImageUrl: null,
         fileName: file.name,
         pathname: uploaded.pathname,
+        previewClipVideoUrl,
         revisedPrompt: null,
         source: "upload",
         url: uploaded.url,
@@ -1858,6 +1886,7 @@ export function FanletterCreatePage({
             : null,
           exclusiveNewsReporterReferralCode,
           locale,
+          previewClipVideoUrl: generatedMedia?.previewClipVideoUrl ?? null,
           priceType: "free",
           priceUsdt: null,
           status,
