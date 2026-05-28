@@ -149,10 +149,10 @@ function getCopy(locale: Locale) {
         eyebrow: "FanLetter AI 캐릭터 브이로그 스튜디오",
         hero: {
           body:
-            "AI 캐릭터 프로필, 브이로그 콘텐츠, 팬 요청을 오늘 할 일 중심으로 정리합니다. 복잡한 운영 지표보다 지금 바로 만들고 관리해야 할 콘텐츠를 먼저 보여줍니다.",
+            "캐릭터, 팬 요청, 업로드, 판매를 모바일에서 바로 시작하세요.",
           connected: "연결됨",
           quickLinks: "운영 바로가기",
-          title: "AI 캐릭터 블로그 운영 홈",
+          title: "브이로거 허브",
         },
         labels: {
           allPosts: "전체 브이로그",
@@ -192,32 +192,32 @@ function getCopy(locale: Locale) {
           "팬이 남긴 브이로그 요청 카드에서만 직접 업로드 유료 등록을 시작합니다.",
         contentHub: {
           body:
-            "AI 캐릭터 페르소나와 이미지로 무료 공개 브이로그를 만들고, 직접 촬영한 공개 브이로그를 업로드하고, 팬 요청 답장은 1 USDT 유료 영상으로 전환합니다.",
+            "가장 많이 쓰는 작업만 모았습니다. 처음이면 위에서부터 하나씩 선택하세요.",
           cards: [
             {
               body:
-                "캐릭터 페르소나, 아바타 이미지, 최근 활동을 기준으로 AI 브이로그를 생성합니다.",
+                "캐릭터 페르소나로 무료 공개 영상을 만듭니다.",
               cta: "AI 브이로그 만들기",
               eyebrow: "무료 공개",
               title: "AI 캐릭터 브이로그 생성",
             },
             {
               body:
-                "직접 촬영한 MP4, MOV, WEBM 브이로그를 무료 공개 콘텐츠로 업로드합니다.",
+                "직접 촬영한 MP4, MOV, WEBM을 올립니다.",
               cta: "촬영 영상 업로드",
               eyebrow: "무료 공개",
               title: "직접 촬영 브이로그 업로드",
             },
             {
               body:
-                "팬이 남긴 브이로그 요청에 답하는 직접 업로드 영상은 자동 1 USDT 유료 콘텐츠가 됩니다.",
+                "팬 요청에 답장하는 유료 영상을 등록합니다.",
               cta: "팬 요청에서 선택",
               eyebrow: "팬 요청 전용 · 1 USDT",
               title: "팬 요청 답장 유료 업로드",
             },
           ],
-          eyebrow: "Vlogger Content Hub",
-          title: "브이로거 콘텐츠 운영 허브",
+          eyebrow: "Today",
+          title: "오늘 할 일",
         },
         paymentRequired:
           "FanLetter 시작 준비 확인이 끝나면 AI 캐릭터 브이로그 스튜디오를 사용할 수 있습니다.",
@@ -372,10 +372,10 @@ function getCopy(locale: Locale) {
         eyebrow: "FanLetter AI Character Vlog Studio",
         hero: {
           body:
-            "Keep AI character profile, vlog content, and fan requests organised around the work to do today. The hub prioritises what to create and manage now over dense operational metrics.",
+            "Start character work, fan requests, uploads, and sales directly on mobile.",
           connected: "Connected",
           quickLinks: "Operations shortcuts",
-          title: "AI character blog operations home",
+          title: "Vlogger hub",
         },
         labels: {
           allPosts: "All vlogs",
@@ -415,32 +415,32 @@ function getCopy(locale: Locale) {
           "Start direct paid upload only from a fan vlog request card.",
         contentHub: {
           body:
-            "Create free public vlogs from the AI character persona and images, upload filmed public vlogs, and turn fan-request replies into 1 USDT paid videos.",
+            "The most common jobs are grouped here. If you are new, start from the top.",
           cards: [
             {
               body:
-                "Generate an AI vlog from the character persona, avatar image, and recent activity.",
+                "Create a free public video from the character persona.",
               cta: "Create AI vlog",
               eyebrow: "Free public",
               title: "Generate AI character vlog",
             },
             {
               body:
-                "Upload a filmed MP4, MOV, or WEBM vlog as free public content.",
+                "Upload a filmed MP4, MOV, or WEBM.",
               cta: "Upload filmed video",
               eyebrow: "Free public",
               title: "Upload filmed public vlog",
             },
             {
               body:
-                "A direct video upload answering a fan vlog request is saved automatically as 1 USDT paid content.",
+                "Register a paid video that answers a fan request.",
               cta: "Choose fan request",
               eyebrow: "Fan request only · 1 USDT",
               title: "Paid fan-request reply",
             },
           ],
-          eyebrow: "Vlogger Content Hub",
-          title: "Vlogger content operations hub",
+          eyebrow: "Today",
+          title: "Today's work",
         },
         paymentRequired:
           "Confirm FanLetter readiness to use the AI character vlog studio.",
@@ -964,7 +964,7 @@ function CompactToolLink({
 }) {
   return (
     <Link
-      className="group flex min-h-20 items-center justify-between gap-3 rounded-lg border border-black/10 bg-[#f6f8f4] p-3 text-black transition hover:border-[#44f26e]/45 hover:bg-white hover:shadow-[0_18px_42px_rgba(8,18,12,0.06)]"
+      className="group flex min-h-20 items-center justify-between gap-3 rounded-lg border border-black/10 bg-[#f7faf5] p-3 text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] transition hover:border-[#44f26e]/45 hover:bg-white hover:shadow-[0_18px_42px_rgba(8,18,12,0.06)]"
       href={href}
     >
       <div className="flex min-w-0 items-center gap-3">
@@ -998,8 +998,8 @@ function ContentHubSection({
   const icons = [Sparkles, Upload, BadgeDollarSign];
 
   return (
-    <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <section className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_18px_42px_rgba(8,18,12,0.06)] ring-1 ring-white/70 sm:p-5">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#16702e]">
             {copy.contentHub.eyebrow}
@@ -1008,43 +1008,45 @@ function ContentHubSection({
             {copy.contentHub.title}
           </h2>
         </div>
-        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-[#44f26e]/32 bg-[#44f26e]/12 px-3 py-1.5 text-xs font-semibold text-[#16702e]">
+        <span className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[#44f26e]/32 bg-[#44f26e]/12 px-3 py-1.5 text-xs font-semibold text-[#16702e]">
           <Clapperboard className="size-3.5" />
           {copy.labels.contentHub}
         </span>
       </div>
-      <p className="mt-3 max-w-3xl text-sm font-medium leading-6 text-black/56 [word-break:keep-all]">
+      <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-black/56 [word-break:keep-all]">
         {copy.contentHub.body}
       </p>
 
-      <div className="mt-5 grid gap-2 lg:grid-cols-3">
+      <div className="mt-4 grid gap-2 lg:grid-cols-3">
         {copy.contentHub.cards.map((card, index) => {
           const Icon = icons[index] ?? FileText;
           const href = hrefs[index] ?? createHref;
 
           return (
             <Link
-              className="group flex min-h-36 flex-col rounded-lg border border-black/10 bg-[#f6f8f4] p-3 text-black transition hover:border-[#44f26e]/45 hover:bg-white hover:shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-4"
+              className="group flex min-h-24 items-center gap-3 rounded-lg border border-black/10 bg-[#f7faf5] p-3 text-black shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] transition hover:border-[#44f26e]/45 hover:bg-white hover:shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:min-h-32 sm:items-start sm:p-4 lg:flex-col"
               href={href}
               key={card.title}
             >
-              <div className="flex items-start justify-between gap-4">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+              <div className="flex shrink-0 items-start justify-between gap-4 lg:w-full">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black sm:size-11">
                   <Icon className="size-4" />
                 </span>
-                <span className="rounded-full border border-black/10 bg-white px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-black/54">
+                <span className="hidden rounded-full border border-black/10 bg-white px-2.5 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.1em] text-black/54 sm:inline-flex">
                   {card.eyebrow}
                 </span>
               </div>
-              <h3 className="mt-4 text-lg font-semibold leading-tight [word-break:keep-all]">
-                {card.title}
-              </h3>
-              <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-black/56 [word-break:keep-all]">
-                {card.body}
-              </p>
-              <span className="mt-auto inline-flex items-center gap-2 pt-4 text-sm font-semibold text-[#16702e]">
-                {card.cta}
-                <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+              <span className="min-w-0 flex-1 lg:flex lg:flex-1 lg:flex-col">
+                <span className="block text-base font-semibold leading-tight [word-break:keep-all] sm:text-lg">
+                  {card.title}
+                </span>
+                <span className="mt-1 line-clamp-2 block text-sm font-medium leading-5 text-black/56 [word-break:keep-all] sm:mt-2 sm:leading-6">
+                  {card.body}
+                </span>
+                <span className="mt-2 inline-flex items-center gap-2 text-xs font-semibold text-[#16702e] sm:mt-auto sm:pt-4 sm:text-sm">
+                  {card.cta}
+                  <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+                </span>
               </span>
             </Link>
           );
@@ -1186,7 +1188,7 @@ function FanRequestsSection({
     MessageCircleHeart;
   return (
     <section
-      className="scroll-mt-24 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5"
+      className="scroll-mt-24 rounded-lg border border-black/10 bg-white p-3 shadow-[0_18px_42px_rgba(8,18,12,0.06)] ring-1 ring-white/70 sm:p-5"
       id="fan-requests"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -1194,7 +1196,7 @@ function FanRequestsSection({
           <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#16702e]">
             Fan Request
           </p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-normal">
+          <h2 className="mt-2 text-2xl font-semibold tracking-normal sm:text-3xl">
             {copy.fanRequests.title}
           </h2>
           <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-black/54">
@@ -1218,10 +1220,10 @@ function FanRequestsSection({
         </p>
       ) : null}
 
-      <div className="mt-4 grid gap-2 md:grid-cols-3">
+      <div className="mt-4 hidden gap-2 md:grid md:grid-cols-3">
         {copy.fanRequests.workflow.map((step, index) => (
           <div
-            className="flex items-center gap-3 rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-3"
+            className="flex items-center gap-3 rounded-lg border border-black/10 bg-[#f7faf5] px-3 py-3"
             key={step}
           >
             <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-xs font-semibold text-black">
@@ -2609,17 +2611,17 @@ export function FanletterStudioPage({
                 </Link>
                 <Link
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/[0.08] px-5 py-2 text-center text-sm font-semibold !text-white transition hover:bg-white/[0.12] sm:h-12 sm:px-6"
+                  href={fanRequestsHref}
+                >
+                  <MessageCircleHeart className="size-4" />
+                  {copy.actions.fanRequests}
+                </Link>
+                <Link
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#44f26e]/30 bg-[#44f26e]/10 px-5 py-2 text-center text-sm font-semibold !text-[#d8ffe0] transition hover:bg-[#44f26e]/16 sm:h-12 sm:px-6"
                   href={postsHref}
                 >
                   <FileText className="size-4" />
                   {copy.actions.managePosts}
-                </Link>
-                <Link
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#44f26e]/30 bg-[#44f26e]/10 px-5 py-2 text-center text-sm font-semibold !text-[#d8ffe0] transition hover:bg-[#44f26e]/16 sm:h-12 sm:px-6"
-                  href={profileHref}
-                >
-                  <PenLine className="size-4" />
-                  {profileActionLabel}
                 </Link>
               </div>
             </div>
@@ -2699,7 +2701,7 @@ export function FanletterStudioPage({
         </div>
       </section>
 
-      <section className="bg-[#f6f8f4] px-4 py-8 text-black sm:px-6 sm:py-12 lg:px-8">
+      <section className="bg-[#f6f8f4] px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-5 text-black sm:px-6 sm:py-12 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)] lg:items-start">
           <div className="min-w-0 space-y-6">
             <ContentHubSection
@@ -2708,34 +2710,6 @@ export function FanletterStudioPage({
               directUploadHref={directUploadHref}
               fanRequestsHref={fanRequestsHref}
             />
-
-            <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#16702e]">
-                    Studio Tools
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-normal">
-                    {copy.hero.quickLinks}
-                  </h2>
-                </div>
-                <span className="inline-flex w-fit items-center gap-2 rounded-full border border-black/10 bg-[#f6f8f4] px-3 py-1.5 text-xs font-semibold text-black/54">
-                  <Clapperboard className="size-3.5 text-[#16702e]" />
-                  {copy.labels.contentHub}
-                </span>
-              </div>
-              <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                {quickToolItems.map((item) => (
-                  <CompactToolLink
-                    Icon={item.Icon}
-                    href={item.href}
-                    key={item.href}
-                    meta={item.meta}
-                    title={item.title}
-                  />
-                ))}
-              </div>
-            </section>
 
             <FanRequestsSection
               copy={copy}
@@ -2751,24 +2725,8 @@ export function FanletterStudioPage({
               updatingRequestId={updatingRequestId}
             />
 
-            <PlannerSection
-              copy={copy}
-              createHref={createHref}
-              error={plannerState.error}
-              locale={locale}
-              onGenerate={() => {
-                void generatePlanner();
-              }}
-              onUpdateStatus={(planId, nextStatus) => {
-                void updatePlannerStatus(planId, nextStatus);
-              }}
-              plans={plannerState.plans}
-              status={plannerState.status}
-              updatingPlanId={updatingPlanId}
-            />
-
             <section
-              className="scroll-mt-24 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5"
+              className="scroll-mt-24 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] ring-1 ring-white/70 sm:p-5"
               id="recent-vlogs"
             >
               <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -2776,7 +2734,7 @@ export function FanletterStudioPage({
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#16702e]">
                     {locale === "ko" ? "브이로그" : "Vlogs"}
                   </p>
-                  <h2 className="mt-2 text-3xl font-semibold tracking-normal">
+                  <h2 className="mt-2 text-2xl font-semibold tracking-normal sm:text-3xl">
                     {copy.recentTitle}
                   </h2>
                 </div>
@@ -2814,7 +2772,7 @@ export function FanletterStudioPage({
                   ))}
                 </div>
               ) : (
-                <div className="mt-5 rounded-lg border border-black/10 bg-[#f6f8f4] p-5">
+                <div className="mt-5 rounded-lg border border-black/10 bg-[#f7faf5] p-5">
                   <ImageIcon className="size-8 text-black/34" />
                   <h3 className="mt-4 text-2xl font-semibold">
                     {copy.emptyTitle}
@@ -2831,6 +2789,50 @@ export function FanletterStudioPage({
                   </Link>
                 </div>
               )}
+            </section>
+
+            <PlannerSection
+              copy={copy}
+              createHref={createHref}
+              error={plannerState.error}
+              locale={locale}
+              onGenerate={() => {
+                void generatePlanner();
+              }}
+              onUpdateStatus={(planId, nextStatus) => {
+                void updatePlannerStatus(planId, nextStatus);
+              }}
+              plans={plannerState.plans}
+              status={plannerState.status}
+              updatingPlanId={updatingPlanId}
+            />
+
+            <section className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] ring-1 ring-white/70 sm:p-5">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#16702e]">
+                    Studio Tools
+                  </p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-normal">
+                    {copy.hero.quickLinks}
+                  </h2>
+                </div>
+                <span className="inline-flex w-fit items-center gap-2 rounded-full border border-black/10 bg-[#f7faf5] px-3 py-1.5 text-xs font-semibold text-black/54">
+                  <Clapperboard className="size-3.5 text-[#16702e]" />
+                  {copy.labels.contentHub}
+                </span>
+              </div>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                {quickToolItems.map((item) => (
+                  <CompactToolLink
+                    Icon={item.Icon}
+                    href={item.href}
+                    key={item.href}
+                    meta={item.meta}
+                    title={item.title}
+                  />
+                ))}
+              </div>
             </section>
           </div>
 
