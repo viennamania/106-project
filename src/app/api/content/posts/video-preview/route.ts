@@ -23,6 +23,20 @@ function trimToLength(value: string | null | undefined, limit: number) {
   return value?.trim().slice(0, limit) ?? "";
 }
 
+function formatPreviewRouteError(error: unknown) {
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    };
+  }
+
+  return {
+    message: String(error),
+  };
+}
+
 export async function POST(request: Request) {
   if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
     return jsonError("BLOB_READ_WRITE_TOKEN is not configured.", 500);
@@ -78,6 +92,13 @@ export async function POST(request: Request) {
 
     return Response.json(response);
   } catch (error) {
+    console.error("[content-preview] preview route failed", {
+      error: formatPreviewRouteError(error),
+      hasBlobToken: Boolean(process.env.BLOB_READ_WRITE_TOKEN?.trim()),
+      hasFfmpegPath: Boolean(process.env.FFMPEG_PATH?.trim()),
+      sourceVideoUrlLength: sourceVideoUrl.length,
+    });
+
     return jsonError(
       error instanceof Error
         ? error.message

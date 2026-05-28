@@ -4153,7 +4153,11 @@ function VlogManagerCard({
               </button>
             </div>
             {teaserImageOptions.length > 0 ? (
-              <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div
+                aria-label={copy.teasers.sectionTitle}
+                className="mt-3 flex max-w-full min-w-0 touch-pan-x gap-2 overflow-x-auto overscroll-x-contain pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                role="list"
+              >
                 {teaserImageOptions.map((frameOption, index) => {
                   const timestampLabel = formatFrameTimestamp(
                     frameOption.timestampSec,
@@ -4167,14 +4171,16 @@ function VlogManagerCard({
 
                   return (
                     <span
-                      className="relative block h-24 shrink-0 overflow-hidden rounded-lg border border-black/10 bg-black"
+                      className="relative block h-24 shrink-0 select-none overflow-hidden rounded-lg border border-black/10 bg-black"
                       key={`${post.contentId}:teaser:${frameOption.imageUrl}:${index}`}
+                      role="listitem"
                       style={framePreviewStyle}
                     >
                       <Image
                         alt=""
                         aria-hidden="true"
-                        className="object-contain"
+                        className="pointer-events-none object-contain"
+                        draggable={false}
                         fill
                         sizes="(max-width: 640px) 9rem, 11rem"
                         src={frameOption.imageUrl}

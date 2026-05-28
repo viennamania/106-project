@@ -79,6 +79,20 @@ function getSourceVideoPathInfo(sourceVideoUrl: string) {
   };
 }
 
+function formatPreviewError(error: unknown) {
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    };
+  }
+
+  return {
+    message: String(error),
+  };
+}
+
 export function isPreviewableContentVideoUrl({
   referralCode,
   sourceVideoUrl,
@@ -134,7 +148,9 @@ async function downloadSourceVideoOnce(
   });
 
   if (!response.ok || !response.body) {
-    throw new Error("Failed to download source video for preview.");
+    throw new Error(
+      `Failed to download source video for preview (${response.status}).`,
+    );
   }
 
   const contentLength = Number.parseInt(
@@ -196,6 +212,7 @@ async function downloadSourceVideo(sourceVideoUrl: string, destinationPath: stri
 
 async function runFfmpeg(inputPath: string, outputPath: string) {
   const ffmpegPath = resolveFfmpegPath();
+  const configuredFfmpegPath = process.env.FFMPEG_PATH?.trim();
   const args = [
     "-y",
     "-hide_banner",
@@ -223,6 +240,11 @@ async function runFfmpeg(inputPath: string, outputPath: string) {
     outputPath,
   ];
 
+  console.info("[content-preview] ffmpeg preview process starting", {
+    ffmpegPath,
+    hasConfiguredFfmpegPath: Boolean(configuredFfmpegPath),
+  });
+
   await new Promise<void>((resolve, reject) => {
     const child = spawn(ffmpegPath, args, {
       stdio: ["ignore", "ignore", "pipe"],
@@ -238,7 +260,13 @@ async function runFfmpeg(inputPath: string, outputPath: string) {
     });
     child.on("error", (error) => {
       windowlessClearTimeout(timeout);
-      reject(error);
+      reject(
+        new Error(
+          `Failed to start ffmpeg preview process (${ffmpegPath}): ${
+            error.message
+          }`,
+        ),
+      );
     });
     child.on("close", (code) => {
       windowlessClearTimeout(timeout);
@@ -286,6 +314,11 @@ export async function createContentVideoPreview({
   }
 
   const sourceInfo = getSourceVideoPathInfo(normalizedSourceVideoUrl);
+  const logContext = {
+    referralCode,
+    sourceFileName: sourceInfo?.fileName ?? "",
+    sourceSegment: sourceInfo?.sourceSegment ?? "",
+  };
   const sourceBaseName = sourceInfo?.fileName
     ? basename(sourceInfo.fileName, extname(sourceInfo.fileName))
     : "";
@@ -295,8 +328,19 @@ export async function createContentVideoPreview({
   const outputPath = join(tempDirectory, `preview-${randomUUID()}.mp4`);
 
   try {
+    console.info("[content-preview] preview generation started", logContext);
     await downloadSourceVideo(normalizedSourceVideoUrl, inputPath);
+    const inputStat = await stat(inputPath);
+    console.info("[content-preview] source video downloaded", {
+      ...logContext,
+      sourceBytes: inputStat.size,
+    });
     await runFfmpeg(inputPath, outputPath);
+    const outputStat = await stat(outputPath);
+    console.info("[content-preview] preview video generated", {
+      ...logContext,
+      previewBytes: outputStat.size,
+    });
 
     const previewBuffer = await readFile(outputPath);
     const pathname = [
@@ -316,6 +360,11 @@ export async function createContentVideoPreview({
       },
     );
 
+    console.info("[content-preview] preview video uploaded", {
+      ...logContext,
+      pathname: uploaded.pathname,
+    });
+
     return {
       contentType: uploaded.contentType ?? PREVIEW_CONTENT_TYPE,
       durationSec: PREVIEW_DURATION_SEC,
@@ -323,6 +372,12 @@ export async function createContentVideoPreview({
       sourceVideoUrl: normalizedSourceVideoUrl,
       url: uploaded.url,
     };
+  } catch (error) {
+    console.error("[content-preview] preview generation failed", {
+      ...logContext,
+      error: formatPreviewError(error),
+    });
+    throw error;
   } finally {
     await rm(tempDirectory, { force: true, recursive: true }).catch(() => null);
   }
