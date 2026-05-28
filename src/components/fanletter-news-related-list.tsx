@@ -126,14 +126,14 @@ function SourceRevealStatusPill({
   return (
     <div
       className={cn(
-        "mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full border px-2 py-1 text-[0.62rem] font-black leading-none sm:mt-2 sm:text-[0.66rem]",
+        "mt-1 inline-flex max-w-full items-center gap-1 rounded-full border px-2 py-0.5 text-[0.58rem] font-black leading-none sm:mt-1.5 sm:gap-1.5 sm:text-[0.62rem]",
         item.sourceReveal.unlocked
           ? "border-[#44f26e]/38 bg-[#eaffef] text-[#11732d]"
           : "border-black/12 bg-[#f5f7f1] text-[#111510]",
       )}
     >
       <SourceRevealIcon
-        className="size-3.5"
+        className="size-3 sm:size-3.5"
         unlocked={item.sourceReveal.unlocked}
       />
       <span className="truncate">{item.sourceReveal.statusLabel}</span>
@@ -178,14 +178,14 @@ function RelatedNewsCard({
   item: FanletterRelatedNewsItem;
 }) {
   const cardClassName = cn(
-    "group grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] gap-2.5 transition sm:grid-cols-[8.25rem_minmax(0,1fr)] sm:gap-3",
+    "group grid min-w-0 grid-cols-[5.5rem_minmax(0,1fr)] gap-2 transition sm:grid-cols-[7.25rem_minmax(0,1fr)] sm:gap-2.5",
     isCurrent
-      ? "rounded-lg border border-[#19b84b]/45 bg-[#ecfff0] p-2.5 shadow-[0_14px_32px_rgba(25,184,75,0.12)]"
-      : "border-b border-black/10 pb-3.5 last:border-b-0 last:pb-0 hover:border-[#19b84b] sm:pb-4",
+      ? "rounded-lg border border-[#19b84b]/45 bg-[#ecfff0] p-2 shadow-[0_14px_32px_rgba(25,184,75,0.12)] sm:p-2.5"
+      : "border-b border-black/10 pb-2.5 last:border-b-0 last:pb-0 hover:border-[#19b84b] sm:pb-3",
   );
   const content = (
     <>
-      <div className="relative aspect-[16/10] overflow-hidden rounded-md bg-[#111510] sm:rounded-lg">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-[#111510] sm:rounded-lg">
         {item.coverImageUrl ? (
           <Image
             alt=""
@@ -196,7 +196,7 @@ function RelatedNewsCard({
                 : "object-cover transition duration-300 group-hover:scale-[1.04]"
             }
             fill
-            sizes="(max-width: 640px) 6.5rem, 8.25rem"
+            sizes="(max-width: 640px) 5.5rem, 7.25rem"
             src={item.coverImageUrl}
             unoptimized={shouldBypassFanletterImageOptimization(
               item.coverImageUrl,
@@ -224,14 +224,14 @@ function RelatedNewsCard({
       </div>
       <div className="min-w-0">
         {isCurrent ? (
-          <span className="mb-1.5 inline-flex max-w-full items-center gap-1 rounded-full border border-[#19b84b]/28 bg-white px-2 py-1 text-[0.58rem] font-black uppercase leading-none tracking-[0.08em] text-[#11732d]">
+          <span className="mb-1 inline-flex max-w-full items-center gap-1 rounded-full border border-[#19b84b]/28 bg-white px-2 py-0.5 text-[0.56rem] font-black uppercase leading-none tracking-[0.08em] text-[#11732d] sm:mb-1.5 sm:py-1 sm:text-[0.58rem]">
             <CheckCircle2 aria-hidden="true" className="size-3 shrink-0" />
             <span className="truncate">{currentLabel}</span>
           </span>
         ) : null}
         <p
           className={cn(
-            "line-clamp-2 break-words text-[0.92rem] font-black leading-5 [word-break:keep-all] sm:text-sm",
+            "line-clamp-2 break-words text-[0.86rem] font-black leading-[1.16rem] [word-break:keep-all] sm:text-[0.92rem] sm:leading-5",
             item.shouldBlur ? "select-none blur-[2px]" : "",
           )}
         >
@@ -239,20 +239,20 @@ function RelatedNewsCard({
         </p>
         <p
           className={cn(
-            "mt-0.5 line-clamp-1 text-xs font-medium leading-5 text-black/58 sm:mt-1 sm:line-clamp-2",
+            "mt-0.5 line-clamp-1 text-[0.72rem] font-medium leading-4 text-black/58 sm:text-xs sm:leading-5",
             item.shouldBlur ? "select-none blur-[2px]" : "",
           )}
         >
           {item.dek}
         </p>
         <SourceRevealStatusPill item={item} />
-        <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1 text-[0.58rem] font-bold uppercase tracking-[0.1em] text-black/44 sm:mt-2 sm:text-[0.66rem]">
+        <div className="mt-1 flex min-w-0 items-center gap-1.5 overflow-hidden text-[0.54rem] font-bold uppercase tracking-[0.08em] text-black/44 sm:mt-1.5 sm:text-[0.62rem]">
           <FirstReportBadge
-            className="border border-[#1eb84a]/20 bg-[#eaffef] px-2 py-0.5 text-[#11732d] shadow-none"
+            className="shrink-0 border border-[#1eb84a]/20 bg-[#eaffef] px-1.5 py-0.5 text-[#11732d] shadow-none sm:px-2"
             item={item}
           />
-          {item.publishedAt ? <span>{item.publishedAt}</span> : null}
-          <span>{item.reporterName}</span>
+          {item.publishedAt ? <span className="shrink-0">{item.publishedAt}</span> : null}
+          <span className="min-w-0 truncate">{item.reporterName}</span>
         </div>
       </div>
     </>
@@ -481,7 +481,7 @@ export function FanletterNewsRelatedList({
         ) : null}
 
         {visibleRelatedItems.length > 0 ? (
-          <div className="grid gap-3 sm:gap-4">
+          <div className="grid gap-2.5 sm:gap-3">
             {visibleRelatedItems.map((item) => {
               const href = buildRelatedSortHref({
                 baseHref: item.href,
