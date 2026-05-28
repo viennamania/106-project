@@ -69,8 +69,10 @@ type FanletterNewsSourceRevealVoteProps = {
   isViewerAuthenticated?: boolean;
   locale: Locale;
   onStateChange?: (state: FanletterNewsSourceRevealState) => void;
+  paidAmountLabel?: string;
   reportId?: string;
   sourceRevealEndpoint?: string;
+  sourceAccessKind?: "free" | "paid";
   tone?: "dark" | "light";
 };
 
@@ -133,12 +135,25 @@ function getCopy(locale: Locale) {
         loginCta: "로그인하고 보고싶어요",
         progressReady: "공개 조건 달성",
         progressRemaining: (count: string) => `공개까지 ${count}명`,
+        paidBody: (
+          count: string,
+          threshold: string,
+          remaining: string,
+          amount: string,
+        ) =>
+          `현재 ${count}/${threshold}명 참여 중입니다. ${remaining}명이 더 누르면 원본 접근이 열리고, 이후 ${amount} 결제로 전체 브이로그를 볼 수 있습니다. 선착순 ${threshold}명에게 오픈 포인트 ${fanUnlockRewardPoints}P가 지급됩니다.`,
+        paidTitle: (amount: string) =>
+          `팬 6명이 보고싶어요를 누르면 ${amount} 원본 보기 단계가 열립니다`,
         refresh: "상태 다시 확인",
         refreshing: "확인 중",
         saving: "반영 중",
         title: `팬 6명이 보고싶어요를 누르면 원본 브이로그가 열리고 ${fanUnlockRewardPoints}P를 받습니다`,
         unlockedBody: (count: string) =>
           `${count}명의 팬 참여로 뉴스 속 원본 브이로그가 열렸습니다.`,
+        unlockedPaidBody: (count: string, amount: string) =>
+          `${count}명의 팬 참여로 원본 접근이 열렸습니다. 이제 ${amount} 결제 후 전체 브이로그를 볼 수 있습니다.`,
+        unlockedPaidTitle: (amount: string) =>
+          `${amount} 원본 보기 단계가 열렸습니다`,
         unlockedTitle: "팬들이 열어낸 원본 브이로그",
         voters: {
           label: "함께 참여한 팬",
@@ -184,12 +199,25 @@ function getCopy(locale: Locale) {
         loginCta: "Sign in to vote",
         progressReady: "Ready to open",
         progressRemaining: (count: string) => `${count} more to open`,
+        paidBody: (
+          count: string,
+          threshold: string,
+          remaining: string,
+          amount: string,
+        ) =>
+          `${count}/${threshold} fans have joined. When ${remaining} more fan${remaining === "1" ? "" : "s"} tap want to watch, source access opens and the full vlog becomes available for ${amount}. The first ${threshold} fans earn ${fanUnlockRewardPoints}P open points.`,
+        paidTitle: (amount: string) =>
+          `When 6 fans want to watch, the ${amount} source unlock step opens`,
         refresh: "Check status",
         refreshing: "Checking",
         saving: "Saving",
         title: `The source vlog opens and pays ${fanUnlockRewardPoints}P when 6 fans want to watch`,
         unlockedBody: (count: string) =>
           `${count} fans opened the source vlog in this news together.`,
+        unlockedPaidBody: (count: string, amount: string) =>
+          `${count} fans opened source access together. You can now unlock the full vlog for ${amount}.`,
+        unlockedPaidTitle: (amount: string) =>
+          `${amount} source unlock is open`,
         unlockedTitle: "Source vlog opened by fans",
         voters: {
           label: "Fans joining in",
@@ -565,8 +593,10 @@ export function FanletterNewsSourceRevealVote({
   isViewerAuthenticated = false,
   locale,
   onStateChange,
+  paidAmountLabel = "1 USDT",
   reportId,
   sourceRevealEndpoint,
+  sourceAccessKind = "free",
   tone = "dark",
 }: FanletterNewsSourceRevealVoteProps) {
   const copy = getCopy(locale);
@@ -851,6 +881,25 @@ export function FanletterNewsSourceRevealVote({
   const isDock = density === "dock";
   const isCompact = density === "compact" || isDock;
   const participants = state.participants ?? [];
+  const titleText = state.unlocked
+    ? sourceAccessKind === "paid"
+      ? copy.unlockedPaidTitle(paidAmountLabel)
+      : copy.unlockedTitle
+    : sourceAccessKind === "paid"
+      ? copy.paidTitle(paidAmountLabel)
+      : copy.title;
+  const bodyText = state.unlocked
+    ? sourceAccessKind === "paid"
+      ? copy.unlockedPaidBody(countLabel, paidAmountLabel)
+      : copy.unlockedBody(countLabel)
+    : sourceAccessKind === "paid"
+      ? copy.paidBody(
+          countLabel,
+          thresholdLabel,
+          remainingLabel,
+          paidAmountLabel,
+        )
+      : copy.body(countLabel, thresholdLabel, remainingLabel);
 
   const handleVote = async () => {
     if (isSaving || state.requestedByViewer || state.unlocked || !voteEndpoint) {
@@ -973,7 +1022,7 @@ export function FanletterNewsSourceRevealVote({
                 isCompact && "text-[0.82rem] leading-5 sm:text-sm",
               )}
             >
-              {state.unlocked ? copy.unlockedTitle : copy.title}
+              {titleText}
             </p>
             <p
               className={cn(
@@ -983,9 +1032,7 @@ export function FanletterNewsSourceRevealVote({
                 isDock && "sm:hidden xl:block",
               )}
             >
-              {state.unlocked
-                ? copy.unlockedBody(countLabel)
-                : copy.body(countLabel, thresholdLabel, remainingLabel)}
+              {bodyText}
             </p>
           </div>
         </div>

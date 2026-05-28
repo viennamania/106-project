@@ -13,11 +13,13 @@ import {
   Clapperboard,
   Coins,
   FileText,
+  HeartHandshake,
   LockKeyhole,
   Newspaper,
   PlayCircle,
   ShieldCheck,
   TrendingUp,
+  Users,
 } from "lucide-react";
 
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
@@ -109,6 +111,8 @@ type SourceVlogRevealTeaserCopy = {
   meta: string;
   title: string;
 };
+
+type SourceVlogAccessKind = "free" | "paid";
 
 type SourceVlogSceneFrame = {
   imageUrl: string;
@@ -1331,7 +1335,9 @@ function SourceVlogRevealTeaserOverlay({
   frames,
   layout = "overlay",
   locale,
+  paidAmountLabel,
   reportId,
+  sourceAccessKind,
   sourceReveal,
 }: {
   blurred: boolean;
@@ -1339,7 +1345,9 @@ function SourceVlogRevealTeaserOverlay({
   frames: SourceVlogSceneFrame[];
   layout?: "overlay" | "sideRail";
   locale: Locale;
+  paidAmountLabel: string;
   reportId: string;
+  sourceAccessKind: SourceVlogAccessKind;
   sourceReveal: FanletterNewsSourceRevealState;
 }) {
   const copy = getSourceVlogRevealTeaserCopy(locale);
@@ -1460,7 +1468,9 @@ function SourceVlogRevealTeaserOverlay({
           density="compact"
           initialState={sourceReveal}
           locale={locale}
+          paidAmountLabel={paidAmountLabel}
           reportId={reportId}
+          sourceAccessKind={sourceAccessKind}
         />
       </div>
     </div>
@@ -1797,6 +1807,247 @@ function SourceVlogLockedPreviewHero({
   );
 }
 
+function SourceVlogConversionGuide({
+  connectHref,
+  isPaidContent,
+  isViewerLoggedIn,
+  locale,
+  paidAmountLabel,
+  paidUnlockHref,
+  sourceReveal,
+  viewerCanAccessSource,
+}: {
+  connectHref: string;
+  isPaidContent: boolean;
+  isViewerLoggedIn: boolean;
+  locale: Locale;
+  paidAmountLabel: string;
+  paidUnlockHref: string | null;
+  sourceReveal: SourceVlogRevealGateState | null;
+  viewerCanAccessSource: boolean;
+}) {
+  const revealUnlocked = sourceReveal?.unlocked ?? true;
+  const thresholdLabel = sourceReveal
+    ? formatNumber(sourceReveal.threshold, locale)
+    : formatNumber(6, locale);
+  const remainingCount = sourceReveal
+    ? Math.max(0, sourceReveal.threshold - sourceReveal.count)
+    : 0;
+  const remainingLabel = formatNumber(remainingCount, locale);
+  const countLabel = sourceReveal
+    ? formatNumber(sourceReveal.count, locale)
+    : thresholdLabel;
+  const stage = isPaidContent
+    ? viewerCanAccessSource
+      ? "paidUnlocked"
+      : revealUnlocked
+        ? "paidReady"
+        : "paidLocked"
+    : revealUnlocked
+      ? "freeUnlocked"
+      : "freeLocked";
+  const copy =
+    locale === "ko"
+      ? {
+          ctaJoin: "가입하고 보고싶어요",
+          ctaPay: `${paidAmountLabel} 원본 보기`,
+          eyebrow: "원본 공개 단계",
+          freeLockedBody: `${remainingLabel}명이 더 보고싶어요를 누르면 이 원본 브이로그가 모두에게 무료 공개됩니다.`,
+          freeLockedTitle: `${countLabel}/${thresholdLabel}명 참여 중 · 무료 공개 대기`,
+          freeUnlockedBody:
+            "팬들이 공개 조건을 채워 이제 이 뉴스 화면에서 원본 브이로그를 바로 볼 수 있습니다.",
+          freeUnlockedTitle: "무료 원본 공개 완료",
+          memberNote:
+            "처음 온 사용자는 FanLetter 지갑 활성화 후 참여할 수 있습니다.",
+          paidLockedBody: `${remainingLabel}명이 더 보고싶어요를 누르면 원본 접근이 열립니다. 열린 뒤에는 누구나 ${paidAmountLabel} 결제로 전체 브이로그를 볼 수 있습니다.`,
+          paidLockedTitle: `${countLabel}/${thresholdLabel}명 참여 중 · 결제 전 공개 대기`,
+          paidReadyBody: `팬들이 공개 조건을 채웠습니다. 이제 ${paidAmountLabel} 결제만 하면 전체 원본 브이로그를 바로 볼 수 있습니다.`,
+          paidReadyTitle: `${paidAmountLabel} 원본 보기 단계 열림`,
+          paidUnlockedBody:
+            "결제 또는 작성자 권한이 확인되어 이 뉴스 화면에서 원본 브이로그를 바로 이어볼 수 있습니다.",
+          paidUnlockedTitle: "원본 브이로그 열람 가능",
+          steps: {
+            open: `${thresholdLabel}명 보고싶어요`,
+            pay: `${paidAmountLabel} 결제`,
+            watch: "원본 시청",
+          },
+        }
+      : {
+          ctaJoin: "Join and want to watch",
+          ctaPay: `Watch for ${paidAmountLabel}`,
+          eyebrow: "Source access path",
+          freeLockedBody: `${remainingLabel} more fan${remainingCount === 1 ? "" : "s"} need to want it. Then this source vlog opens for everyone for free.`,
+          freeLockedTitle: `${countLabel}/${thresholdLabel} joined · free open pending`,
+          freeUnlockedBody:
+            "Fans completed the open condition, so the source vlog is now available in this news page.",
+          freeUnlockedTitle: "Free source vlog is open",
+          memberNote:
+            "New visitors can join after FanLetter wallet activation.",
+          paidLockedBody: `${remainingLabel} more fan${remainingCount === 1 ? "" : "s"} need to want it. After access opens, anyone can watch the full source vlog for ${paidAmountLabel}.`,
+          paidLockedTitle: `${countLabel}/${thresholdLabel} joined · paid access pending`,
+          paidReadyBody: `Fans completed the open condition. Pay ${paidAmountLabel} to watch the full source vlog now.`,
+          paidReadyTitle: `${paidAmountLabel} source access is open`,
+          paidUnlockedBody:
+            "Your payment or owner access is confirmed, so you can continue the source vlog in this news page.",
+          paidUnlockedTitle: "Source vlog is available",
+          steps: {
+            open: `${thresholdLabel} want-to-watch`,
+            pay: `${paidAmountLabel} payment`,
+            watch: "Watch source",
+          },
+        };
+  const title =
+    stage === "paidLocked"
+      ? copy.paidLockedTitle
+      : stage === "paidReady"
+        ? copy.paidReadyTitle
+        : stage === "paidUnlocked"
+          ? copy.paidUnlockedTitle
+          : stage === "freeLocked"
+            ? copy.freeLockedTitle
+            : copy.freeUnlockedTitle;
+  const body =
+    stage === "paidLocked"
+      ? copy.paidLockedBody
+      : stage === "paidReady"
+        ? copy.paidReadyBody
+        : stage === "paidUnlocked"
+          ? copy.paidUnlockedBody
+          : stage === "freeLocked"
+            ? copy.freeLockedBody
+            : copy.freeUnlockedBody;
+  const steps = isPaidContent
+    ? [
+        {
+          icon: HeartHandshake,
+          label: copy.steps.open,
+          state:
+            stage === "paidLocked" ? "active" : "done",
+        },
+        {
+          icon: Coins,
+          label: copy.steps.pay,
+          state:
+            stage === "paidReady"
+              ? "active"
+              : stage === "paidUnlocked"
+                ? "done"
+                : "pending",
+        },
+        {
+          icon: PlayCircle,
+          label: copy.steps.watch,
+          state: stage === "paidUnlocked" ? "done" : "pending",
+        },
+      ]
+    : [
+        {
+          icon: HeartHandshake,
+          label: copy.steps.open,
+          state: stage === "freeLocked" ? "active" : "done",
+        },
+        {
+          icon: PlayCircle,
+          label: copy.steps.watch,
+          state: stage === "freeUnlocked" ? "done" : "pending",
+        },
+      ];
+  const showJoinCta = !revealUnlocked && !isViewerLoggedIn;
+  const showPayCta =
+    isPaidContent && revealUnlocked && !viewerCanAccessSource && paidUnlockHref;
+
+  return (
+    <div className="mb-3 rounded-lg border border-[#16702e]/18 bg-[#f7fff8] p-3 shadow-[0_10px_26px_rgba(22,112,46,0.08)] sm:p-4">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[#07150b] text-[#44f26e]">
+          {stage === "paidReady" ? (
+            <Coins className="size-4.5" />
+          ) : revealUnlocked ? (
+            <CheckCircle2 className="size-4.5" />
+          ) : (
+            <Users className="size-4.5" />
+          )}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+            {copy.eyebrow}
+          </p>
+          <h3 className="mt-1 text-[0.98rem] font-black leading-6 text-[#111510] [word-break:keep-all] sm:text-base">
+            {title}
+          </h3>
+          <p className="mt-1 text-sm font-semibold leading-6 text-black/62 [word-break:keep-all]">
+            {body}
+          </p>
+        </div>
+      </div>
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        {steps.map((step) => {
+          const Icon = step.icon;
+          const isDone = step.state === "done";
+          const isActive = step.state === "active";
+
+          return (
+            <div
+              className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-black ${
+                isDone
+                  ? "border-[#1eb84a]/24 bg-white text-[#126c2c]"
+                  : isActive
+                    ? "border-[#44f26e]/40 bg-[#07150b] text-white"
+                    : "border-black/8 bg-white/70 text-black/42"
+              }`}
+              key={step.label}
+            >
+              <span
+                className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full ${
+                  isDone
+                    ? "bg-[#e5ffeb] text-[#16702e]"
+                    : isActive
+                      ? "bg-[#44f26e] text-black"
+                      : "bg-black/6 text-black/34"
+                }`}
+              >
+                {isDone ? (
+                  <CheckCircle2 className="size-3.5" />
+                ) : (
+                  <Icon className="size-3.5" />
+                )}
+              </span>
+              <span className="min-w-0 truncate">{step.label}</span>
+            </div>
+          );
+        })}
+      </div>
+      {showJoinCta || showPayCta ? (
+        <div className="mt-3">
+          {showJoinCta ? (
+            <Link
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-[#243026] sm:w-auto"
+              href={connectHref}
+            >
+              <HeartHandshake className="size-4 text-[#44f26e]" />
+              {copy.ctaJoin}
+            </Link>
+          ) : null}
+          {showPayCta && paidUnlockHref ? (
+            <FanletterPaidUnlockTrigger
+              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-[#243026] sm:w-auto"
+              href={paidUnlockHref}
+            >
+              <Coins className="size-4 text-[#44f26e]" />
+              {copy.ctaPay}
+            </FanletterPaidUnlockTrigger>
+          ) : null}
+          {!isViewerLoggedIn ? (
+            <p className="mt-2 text-xs font-semibold leading-5 text-black/46">
+              {copy.memberNote}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function SourceVlogEmbed({
   accessLabel,
   blurred,
@@ -1864,6 +2115,7 @@ function SourceVlogEmbed({
   );
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
   const paidUnlockLabel = `${paidUnlockAmount} USDT`;
+  const sourceAccessKind: SourceVlogAccessKind = isPaidContent ? "paid" : "free";
   const isSourceNsfw = sourceMaturityRating === "nsfw";
   const shouldRequireNsfwVideoPin = isSourceNsfw && hasEmbeddedVideo;
   const viewerCanAccessSource = sourceContent
@@ -1982,6 +2234,18 @@ function SourceVlogEmbed({
           })}
         </div>
       </div>
+      {sourceContent ? (
+        <SourceVlogConversionGuide
+          connectHref={newsConnectHref}
+          isPaidContent={isPaidContent}
+          isViewerLoggedIn={isViewerLoggedIn}
+          locale={locale}
+          paidAmountLabel={paidUnlockLabel}
+          paidUnlockHref={paidUnlockHref}
+          sourceReveal={sourceReveal}
+          viewerCanAccessSource={viewerCanAccessSource}
+        />
+      ) : null}
       <div className="overflow-hidden border border-black/10 bg-black shadow-[0_20px_46px_rgba(17,21,16,0.1)]">
         {sourceRevealLocked && sourceReveal ? (
           shouldShowLockedPreviewHero && sourcePreviewVideoUrl ? (
@@ -1997,7 +2261,9 @@ function SourceVlogEmbed({
                   connectHref={sourceReveal.connectHref}
                   frames={sourceOverlaySceneFrames}
                   locale={locale}
+                  paidAmountLabel={paidUnlockLabel}
                   reportId={sourceReveal.reportId}
+                  sourceAccessKind={sourceAccessKind}
                   sourceReveal={sourceReveal}
                 />
               </div>
@@ -2008,7 +2274,9 @@ function SourceVlogEmbed({
                   frames={[]}
                   layout="sideRail"
                   locale={locale}
+                  paidAmountLabel={paidUnlockLabel}
                   reportId={sourceReveal.reportId}
+                  sourceAccessKind={sourceAccessKind}
                   sourceReveal={sourceReveal}
                 />
               </div>
@@ -2051,7 +2319,9 @@ function SourceVlogEmbed({
                   connectHref={sourceReveal.connectHref}
                   frames={sourceOverlaySceneFrames}
                   locale={locale}
+                  paidAmountLabel={paidUnlockLabel}
                   reportId={sourceReveal.reportId}
+                  sourceAccessKind={sourceAccessKind}
                   sourceReveal={sourceReveal}
                 />
               </div>
@@ -2167,7 +2437,9 @@ function SourceVlogEmbed({
               density="dock"
               initialState={sourceReveal}
               locale={locale}
+              paidAmountLabel={paidUnlockLabel}
               reportId={sourceReveal.reportId}
+              sourceAccessKind={sourceAccessKind}
             />
           </div>
         ) : null}
@@ -2197,7 +2469,9 @@ function SourceVlogEmbed({
           density="compact"
           initialState={sourceReveal}
           locale={locale}
+          paidAmountLabel={paidUnlockLabel}
           reportId={sourceReveal.reportId}
+          sourceAccessKind={sourceAccessKind}
           tone="light"
         />
       ) : null}
