@@ -110,6 +110,7 @@ function getCopy(locale: Locale) {
         leadKicker: "FanLetter exclusive",
         navItems: [
           "톱뉴스",
+          "티저 화보",
           "플랫폼 모델",
           "팬 기자",
           "AI 캐릭터",
@@ -209,6 +210,7 @@ function getCopy(locale: Locale) {
         leadKicker: "FanLetter exclusive",
         navItems: [
           "Top news",
+          "Teaser gallery",
           "Platform",
           "Fan reporters",
           "AI characters",
@@ -662,6 +664,7 @@ function NewsImage({
 function NewsMasthead({
   charactersHref,
   copy,
+  galleryHref,
   locale,
   navigationBaseHref,
   newsHomeHref,
@@ -671,6 +674,7 @@ function NewsMasthead({
 }: {
   charactersHref: string;
   copy: ReturnType<typeof getCopy>;
+  galleryHref: string;
   locale: Locale;
   navigationBaseHref: string;
   newsHomeHref: string;
@@ -683,6 +687,7 @@ function NewsMasthead({
   }).format(new Date());
   const navHrefs = [
     `${navigationBaseHref}#top-stories`,
+    galleryHref,
     platformHref,
     `${navigationBaseHref}#fan-reporters`,
     charactersHref,
@@ -2289,6 +2294,10 @@ export default async function LocalizedFanletterNewsHomePage({
     `/${locale}/fanletter/news/purchases`,
     referralCode,
   );
+  const galleryHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/gallery`,
+    referralCode,
+  );
   const platformHref = buildPathWithReferral(
     `/${locale}/fanletter/news/platform`,
     referralCode,
@@ -2307,6 +2316,7 @@ export default async function LocalizedFanletterNewsHomePage({
       <NewsMasthead
         charactersHref={charactersHref}
         copy={copy}
+        galleryHref={galleryHref}
         locale={locale}
         navigationBaseHref={currentNewsHref}
         newsHomeHref={newsHomeHref}

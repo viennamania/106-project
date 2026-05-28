@@ -55,6 +55,7 @@ const REPORT_TEASER_IMAGE_LIMIT = 4;
 const FIRST_NEWS_REPORT_PROMOTION_MS = 3 * 24 * 60 * 60 * 1000;
 const RELATED_NEWS_FIRST_REPORT_LOOKAHEAD_LIMIT = 144;
 const REPORT_DRAFT_SOURCE_SEARCH_LIMIT = 80;
+const NEWS_TEASER_GALLERY_LOOKAHEAD_LIMIT = 180;
 export const FANLETTER_NEWS_EXCLUSIVE_REPORTER_ACTIVE_ERROR =
   "Exclusive reporter assignment is active for this vlog.";
 export const FANLETTER_NEWS_PAID_SOURCE_ACCESS_REQUIRED_ERROR =
@@ -342,6 +343,23 @@ export type FanletterNewsReportDraftSource = {
 export type FanletterNewsReportDraftSourcesResult = {
   items: FanletterNewsReportDraftSource[];
   member: FanletterNewsReporterMember | null;
+};
+
+export type FanletterNewsTeaserGalleryItem = {
+  contentId: string;
+  coverImageUrl: string | null;
+  creatorName: string;
+  creatorReferralCode: string | null;
+  dek: string;
+  previewClipVideoUrl: string;
+  priceType: ContentPriceType;
+  publishedAt: Date | null;
+  reporterName: string;
+  reporterReferralCode: string;
+  reportId: string;
+  sourceTitle: string;
+  teaserImageUrls: string[];
+  title: string;
 };
 
 type FanletterNewsReportDraftSourceReportStatusFilter =
@@ -3208,6 +3226,126 @@ export const getLatestFanletterNewsReports = cache(
     return [...hydratedReports]
       .sort(compareFirstReportPromotedNewsReports)
       .slice(0, normalizedLimit);
+  },
+);
+
+export const getFanletterNewsTeaserGalleryItems = cache(
+  async ({
+    limit = 36,
+    locale,
+  }: {
+    limit?: number;
+    locale: Locale;
+  }): Promise<FanletterNewsTeaserGalleryItem[]> => {
+    const normalizedLimit = Number.isFinite(limit)
+      ? Math.max(1, Math.min(Math.floor(limit), 60))
+      : 36;
+    const reportsCollection = await getFanletterNewsReportsCollection();
+    const postsCollection = await getContentPostsCollection();
+    const reports = await reportsCollection
+      .find(
+        {
+          contentMaturityRating: "general",
+          locale,
+          status: "published",
+        },
+        {
+          projection: {
+            contentId: 1,
+            contentMaturityRating: 1,
+            coverImageUrl: 1,
+            createdAt: 1,
+            creatorName: 1,
+            creatorReferralCode: 1,
+            dek: 1,
+            priceType: 1,
+            reporterName: 1,
+            reporterReferralCode: 1,
+            reportId: 1,
+            sourcePublishedAt: 1,
+            sourceTitle: 1,
+            teaserImageUrls: 1,
+            title: 1,
+          },
+        },
+      )
+      .sort({ sourcePublishedAt: -1, createdAt: -1 })
+      .limit(NEWS_TEASER_GALLERY_LOOKAHEAD_LIMIT)
+      .toArray();
+    const contentIds = [
+      ...new Set(reports.map((report) => report.contentId).filter(Boolean)),
+    ];
+
+    if (contentIds.length === 0) {
+      return [];
+    }
+
+    const posts = await postsCollection
+      .find(
+        {
+          contentId: { $in: contentIds },
+          contentMaturityRating: { $ne: "nsfw" },
+          previewClipVideoUrl: { $exists: true, $ne: "" },
+          status: "published",
+        },
+        {
+          projection: {
+            contentId: 1,
+            contentImageUrls: 1,
+            contentMaturityRating: 1,
+            coverImageCandidates: 1,
+            coverImageUrl: 1,
+            previewClipVideoUrl: 1,
+          },
+        },
+      )
+      .toArray();
+    const postByContentId = new Map(
+      posts.map((post) => [post.contentId, post] as const),
+    );
+    const seenContentIds = new Set<string>();
+    const items: FanletterNewsTeaserGalleryItem[] = [];
+
+    for (const report of reports) {
+      if (seenContentIds.has(report.contentId)) {
+        continue;
+      }
+
+      const post = postByContentId.get(report.contentId);
+      const previewClipVideoUrl = post?.previewClipVideoUrl?.trim();
+
+      if (!post || !previewClipVideoUrl) {
+        continue;
+      }
+
+      seenContentIds.add(report.contentId);
+      items.push({
+        contentId: report.contentId,
+        coverImageUrl: report.coverImageUrl ?? getCoverImageUrl(post) ?? null,
+        creatorName: trimToLength(report.creatorName, 80),
+        creatorReferralCode:
+          normalizeReferralCode(report.creatorReferralCode) ?? null,
+        dek: trimToLength(report.dek || report.sourceTitle, 180),
+        previewClipVideoUrl,
+        priceType: report.priceType,
+        publishedAt: report.sourcePublishedAt ?? report.createdAt ?? null,
+        reporterName: trimToLength(report.reporterName, 80),
+        reporterReferralCode: report.reporterReferralCode,
+        reportId: report.reportId,
+        sourceTitle: trimToLength(report.sourceTitle, 120),
+        teaserImageUrls: (report.teaserImageUrls ?? [])
+          .map((url) => url.trim())
+          .filter(Boolean)
+          .slice(0, REPORT_TEASER_IMAGE_LIMIT),
+        title: trimToLength(report.title, 120),
+      });
+
+      if (items.length >= normalizedLimit) {
+        break;
+      }
+    }
+
+    return items;
   },
 );
 
