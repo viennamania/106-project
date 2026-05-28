@@ -232,6 +232,7 @@ function getCopy(locale: Locale) {
         existingReportsBody:
           "이미 발행된 리포트의 제목, 관점, 대표 이미지를 비교해서 새 리포트의 차별점을 잡으세요.",
         existingReportsTitle: "이미 발행된 리포트",
+        firstReportOpportunity: "첫 리포트",
         myReport: "내 리포트",
         myReportFilterAll: "전체",
         myReportFilterBody:
@@ -294,9 +295,21 @@ function getCopy(locale: Locale) {
           paid: "1 USDT 유료",
         },
         publishedAt: "게시일",
+        publishReadiness: {
+          access: "작성 권한",
+          angle: "리포터 관점",
+          body:
+            "뉴스 이미지, 공개 컷, 관점, 권한을 확인하고 바로 발행하세요.",
+          cover: "뉴스 이미지",
+          statusReady: "발행 가능",
+          statusWaiting: "준비 필요",
+          teasers: (count: string) => `공개 컷 ${count}장`,
+          title: "발행 준비",
+        },
         readReport: "리포트 보기",
         reportCount: "기존 리포트",
         reporter: "팬 기자",
+        recommendedAngle: "추천 관점",
         reset: "초기화",
         searchActive: "전체 브이로그 검색 결과",
         searchCta: "검색",
@@ -352,6 +365,7 @@ function getCopy(locale: Locale) {
           fanOpenMetric: "팬 오픈",
           lockedFilter: "락",
           locked: "락",
+          lowCompetition: "경쟁 낮음",
           opportunityAlreadyReported: "이미 작성함",
           opportunityExclusive: "단독 보도권 대기",
           opportunityPaidLocked: "구매 후 작성",
@@ -403,6 +417,7 @@ function getCopy(locale: Locale) {
         existingReportsBody:
           "Compare published report titles, angles, and lead images before choosing a distinct angle.",
         existingReportsTitle: "Published reports",
+        firstReportOpportunity: "First report",
         myReport: "My report",
         myReportFilterAll: "All",
         myReportFilterBody:
@@ -464,9 +479,21 @@ function getCopy(locale: Locale) {
           paid: "1 USDT paid",
         },
         publishedAt: "Published",
+        publishReadiness: {
+          access: "Report access",
+          angle: "Reporter angle",
+          body:
+            "Check the news image, public cuts, angle, and access before publishing.",
+          cover: "News image",
+          statusReady: "Ready",
+          statusWaiting: "Needs setup",
+          teasers: (count: string) => `${count} public cuts`,
+          title: "Publish readiness",
+        },
         readReport: "View report",
         reportCount: "Existing reports",
         reporter: "Reporter",
+        recommendedAngle: "Recommended angle",
         reset: "Reset",
         searchActive: "Full vlog search results",
         searchCta: "Search",
@@ -522,6 +549,7 @@ function getCopy(locale: Locale) {
           fanOpenMetric: "Fan open",
           lockedFilter: "Locked",
           locked: "Locked",
+          lowCompetition: "Low competition",
           opportunityAlreadyReported: "Already reported",
           opportunityExclusive: "Exclusive pending",
           opportunityPaidLocked: "Purchase to report",
@@ -635,6 +663,16 @@ function isSourceRevealOpportunitySource({
   );
 }
 
+function isFirstReportOpportunitySource(
+  source: FanletterNewsReportComposerSource,
+) {
+  return source.reportCount === 0;
+}
+
+function isLowCompetitionSource(source: FanletterNewsReportComposerSource) {
+  return source.reportCount <= 1;
+}
+
 function matchesSourceRevealFilter({
   filter,
   reporterReferralCode,
@@ -686,6 +724,14 @@ function getSourceOpportunityScore({
     score += 90;
   }
 
+  if (isFirstReportOpportunitySource(source)) {
+    score += 34;
+  } else if (isLowCompetitionSource(source)) {
+    score += 14;
+  } else if (source.reportCount >= 3) {
+    score -= 16;
+  }
+
   if (isSourceRevealLocked(source)) {
     score += 80;
     score += count >= 1 && count <= 3 ? 35 : 0;
@@ -704,6 +750,46 @@ function getSourceOpportunityScore({
   }
 
   return score;
+}
+
+function getRecommendedReportAngle(
+  source: FanletterNewsReportComposerSource | null,
+  copy: ReturnType<typeof getCopy>,
+) {
+  const [
+    firstReportAngle,
+    fanRequestAngle,
+    paidVlogAngle,
+    characterDailyAngle,
+    unlockAngle,
+    teaserAngle,
+  ] = copy.angles;
+
+  if (!source) {
+    return firstReportAngle ?? "";
+  }
+
+  if (source.priceType === "paid") {
+    return paidVlogAngle ?? firstReportAngle ?? "";
+  }
+
+  if (isFirstReportOpportunitySource(source)) {
+    return firstReportAngle ?? "";
+  }
+
+  if (isNearSourceRevealUnlock(source)) {
+    return fanRequestAngle ?? unlockAngle ?? firstReportAngle ?? "";
+  }
+
+  if (isSourceRevealLocked(source)) {
+    return unlockAngle ?? fanRequestAngle ?? firstReportAngle ?? "";
+  }
+
+  if (source.coverOptions.length > 0) {
+    return teaserAngle ?? firstReportAngle ?? "";
+  }
+
+  return characterDailyAngle ?? firstReportAngle ?? "";
 }
 
 function getPublishedAtTime(source: FanletterNewsReportComposerSource) {
@@ -928,7 +1014,7 @@ export function FanletterNewsReportComposerPage({
   sources: FanletterNewsReportComposerSource[];
   viewerAuthenticated: boolean;
 }) {
-  const copy = getCopy(locale);
+  const copy = useMemo(() => getCopy(locale), [locale]);
   const router = useRouter();
   const [searchInput, setSearchInput] = useState(searchQuery);
   const [sourceRevealOverrides, setSourceRevealOverrides] = useState<
@@ -1020,7 +1106,9 @@ export function FanletterNewsReportComposerPage({
   const [selectedTeaserUrls, setSelectedTeaserUrls] = useState<string[]>(
     getDefaultReportTeaserImageUrls(initialSelectedSource),
   );
-  const [angle, setAngle] = useState(copy.angles[0] ?? "");
+  const [angle, setAngle] = useState(
+    getRecommendedReportAngle(initialSelectedSource, copy),
+  );
   const [reporterComment, setReporterComment] = useState("");
   const [crop, setCrop] = useState<ReportCoverCropState>(
     DEFAULT_REPORT_COVER_CROP,
@@ -1032,6 +1120,9 @@ export function FanletterNewsReportComposerPage({
   const [error, setError] = useState<string | null>(null);
   const cropFrameRef = useRef<HTMLDivElement | null>(null);
   const selectedDetailRef = useRef<HTMLDivElement | null>(null);
+  const previousSelectedContentIdRef = useRef<string | null>(
+    initialSelectedSource?.contentId ?? null,
+  );
   const cropDragRef = useRef<{
     initialCrop: ReportCoverCropState;
     pointerId: number;
@@ -1089,6 +1180,27 @@ export function FanletterNewsReportComposerPage({
     selectedSource &&
       canReporterCreateFromSource({ reporterReferralCode, source: selectedSource }),
   );
+  const selectedRecommendedAngle = getRecommendedReportAngle(selectedSource, copy);
+  const publishReadinessItems = [
+    {
+      label: copy.publishReadiness.cover,
+      ready: Boolean(selectedCoverUrl),
+    },
+    {
+      label: copy.publishReadiness.teasers(
+        formatNumber(selectedTeaserUrls.length, locale),
+      ),
+      ready: selectedTeaserUrls.length > 0,
+    },
+    {
+      label: copy.publishReadiness.angle,
+      ready: Boolean(angle.trim()),
+    },
+    {
+      label: copy.publishReadiness.access,
+      ready: canCreateSelectedSource,
+    },
+  ] as const;
   const selectedOpportunityStatusLabel = selectedSource
     ? isSelectedOpportunitySource
       ? copy.sourceReveal.opportunity
@@ -1297,6 +1409,16 @@ export function FanletterNewsReportComposerPage({
   useEffect(() => {
     setSearchInput(searchQuery);
   }, [searchQuery]);
+
+  useEffect(() => {
+    if (previousSelectedContentIdRef.current === selectedSourceContentId) {
+      return;
+    }
+
+    previousSelectedContentIdRef.current = selectedSourceContentId;
+    setAngle(getRecommendedReportAngle(selectedSource, copy));
+    setReporterComment("");
+  }, [copy, selectedSource, selectedSourceContentId]);
 
   useEffect(() => {
     if (selectedSource || !firstAvailableSource?.contentId) {
@@ -1826,6 +1948,8 @@ export function FanletterNewsReportComposerPage({
                   reporterReferralCode,
                   source,
                 });
+                const isFirstReportSource = isFirstReportOpportunitySource(source);
+                const isLowCompetition = isLowCompetitionSource(source);
 
                 return (
                   <button
@@ -1875,6 +1999,15 @@ export function FanletterNewsReportComposerPage({
                           <span className="inline-flex items-center gap-1 rounded-full bg-[#16702e] px-1.5 py-0.5 text-white">
                             <Sparkles className="size-2.5" />
                             {copy.sourceReveal.recommended}
+                          </span>
+                        ) : null}
+                        {isFirstReportSource ? (
+                          <span className="text-[#16702e]">
+                            {copy.firstReportOpportunity}
+                          </span>
+                        ) : isLowCompetition ? (
+                          <span className="text-[#16702e]">
+                            {copy.sourceReveal.lowCompetition}
                           </span>
                         ) : null}
                         <span>{copy.price[source.priceType]}</span>
@@ -2142,6 +2275,16 @@ export function FanletterNewsReportComposerPage({
                               ? copy.locked
                               : copy.unavailable}
                       </span>
+                      {isFirstReportOpportunitySource(selectedSource) ? (
+                        <span className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-[#19b84b]/24 bg-white px-2.5 py-1 text-xs font-black text-[#16702e]">
+                          <Sparkles className="size-3.5" />
+                          {copy.firstReportOpportunity}
+                        </span>
+                      ) : isLowCompetitionSource(selectedSource) ? (
+                        <span className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-[#19b84b]/24 bg-white px-2.5 py-1 text-xs font-black text-[#16702e]">
+                          {copy.sourceReveal.lowCompetition}
+                        </span>
+                      ) : null}
                       <span
                         className={cn(
                           "inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-black",
@@ -2728,23 +2871,40 @@ export function FanletterNewsReportComposerPage({
                       {copy.angleLabel}
                     </h2>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {copy.angles.map((item) => (
-                        <button
-                          className={cn(
-                            "inline-flex h-9 items-center rounded-full border px-3 text-xs font-black transition",
-                            item === angle
-                              ? "border-[#111510] bg-[#111510] text-white"
-                              : "border-black/10 bg-[#f6f8f4] text-black/58 hover:border-[#19b84b] hover:text-[#111510]",
-                          )}
-                          key={item}
-                          onClick={() => {
-                            setAngle(item);
-                          }}
-                          type="button"
-                        >
-                          {item}
-                        </button>
-                      ))}
+                      {copy.angles.map((item) => {
+                        const isRecommendedAngle =
+                          item === selectedRecommendedAngle;
+
+                        return (
+                          <button
+                            className={cn(
+                              "inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-black transition",
+                              item === angle
+                                ? "border-[#111510] bg-[#111510] text-white"
+                                : "border-black/10 bg-[#f6f8f4] text-black/58 hover:border-[#19b84b] hover:text-[#111510]",
+                            )}
+                            key={item}
+                            onClick={() => {
+                              setAngle(item);
+                            }}
+                            type="button"
+                          >
+                            <span>{item}</span>
+                            {isRecommendedAngle ? (
+                              <span
+                                className={cn(
+                                  "rounded-full px-1.5 py-0.5 text-[0.56rem]",
+                                  item === angle
+                                    ? "bg-[#44f26e] text-[#111510]"
+                                    : "bg-white text-[#16702e] ring-1 ring-[#19b84b]/20",
+                                )}
+                              >
+                                {copy.recommendedAngle}
+                              </span>
+                            ) : null}
+                          </button>
+                        );
+                      })}
                     </div>
                     <label className="mt-4 block">
                       <span className="text-sm font-black">
@@ -2766,6 +2926,51 @@ export function FanletterNewsReportComposerPage({
                         {formatNumber(reporterComment.length, locale)}/
                         {formatNumber(REPORTER_COMMENT_MAX_LENGTH, locale)}
                       </p>
+                    </div>
+                    <div className="mt-5 border border-[#19b84b]/18 bg-[#ecfff0] px-4 py-3">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="inline-flex items-center gap-1.5 text-sm font-black text-[#16702e]">
+                            <CheckCircle2 className="size-4" />
+                            {copy.publishReadiness.title}
+                          </p>
+                          <p className="mt-1 text-xs font-semibold leading-5 text-black/58">
+                            {copy.publishReadiness.body}
+                          </p>
+                        </div>
+                        <span
+                          className={cn(
+                            "inline-flex w-fit shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-black",
+                            canSubmit
+                              ? "bg-[#111510] text-white"
+                              : "bg-white text-black/46 ring-1 ring-black/10",
+                          )}
+                        >
+                          {canSubmit
+                            ? copy.publishReadiness.statusReady
+                            : copy.publishReadiness.statusWaiting}
+                        </span>
+                      </div>
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                        {publishReadinessItems.map((item) => (
+                          <span
+                            className={cn(
+                              "inline-flex min-h-9 items-center gap-2 border px-2.5 py-2 text-xs font-black",
+                              item.ready
+                                ? "border-[#19b84b]/24 bg-white text-[#16702e]"
+                                : "border-black/10 bg-white/70 text-black/38",
+                            )}
+                            key={item.label}
+                          >
+                            {item.ready ? (
+                              <CheckCircle2 className="size-3.5 shrink-0" />
+                            ) : (
+                              <AlertTriangle className="size-3.5 shrink-0" />
+                            )}
+                            <span className="min-w-0 truncate">{item.label}</span>
+                          </span>
+                        ))}
+                      </div>
                     </div>
                     {error ? (
                       <p className="mt-4 border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold leading-6 text-rose-700">
