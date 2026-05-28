@@ -1680,7 +1680,9 @@ function ReporterTeaserCutGallery({
         previous: copy.sourceTeaserGallery.previous,
         title: copy.reportTeaserGallery.title,
       }}
+      density="compact"
       items={teaserItems}
+      layout="grid"
       locale={locale}
     />
   );

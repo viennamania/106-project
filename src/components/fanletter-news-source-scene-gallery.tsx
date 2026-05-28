@@ -144,6 +144,7 @@ function getTouchCenter(touches: TouchListLike) {
 export function FanletterNewsSourceSceneGallery({
   blurred,
   copy,
+  density = "default",
   items,
   layout = "scroll",
   locale,
@@ -151,6 +152,7 @@ export function FanletterNewsSourceSceneGallery({
 }: {
   blurred: boolean;
   copy: FanletterNewsSourceSceneGalleryCopy;
+  density?: "compact" | "default";
   items: FanletterNewsSourceSceneGalleryItem[];
   layout?: "grid" | "scroll";
   locale: Locale;
@@ -191,6 +193,7 @@ export function FanletterNewsSourceSceneGallery({
       : activeItem.label
     : "";
   const isGridLayout = layout === "grid";
+  const isCompact = density === "compact";
 
   const openViewer = useCallback((index: number) => {
     if (!canOpenSceneViewer) {
@@ -520,10 +523,15 @@ export function FanletterNewsSourceSceneGallery({
     <section className="mt-3 border border-black/10 bg-white p-3 sm:bg-[#f7f9f4] sm:p-4">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
-          <p className="text-[0.66rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+          <p className="text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#16702e] sm:text-[0.66rem]">
             {copy.eyebrow}
           </p>
-          <h3 className="mt-1 text-lg font-black leading-tight [word-break:keep-all]">
+          <h3
+            className={cn(
+              "mt-1 font-black leading-tight [word-break:keep-all]",
+              isCompact ? "text-base sm:text-lg" : "text-lg",
+            )}
+          >
             {copy.title}
           </h3>
         </div>
@@ -564,15 +572,23 @@ export function FanletterNewsSourceSceneGallery({
               }}
               type="button"
             >
-              <span className="relative block aspect-[9/16] bg-[#07100b]">
+              <span
+                className={cn(
+                  "relative block bg-[#07100b]",
+                  isCompact
+                    ? "aspect-[4/5] sm:aspect-[9/16]"
+                    : "aspect-[9/16]",
+                )}
+              >
                 <Image
                   alt=""
                   aria-hidden="true"
-                  className={
+                  className={cn(
+                    isCompact ? "object-cover sm:object-contain" : "object-contain",
                     effectiveBlurred
-                      ? "object-contain blur-sm brightness-[0.76] saturate-[0.92]"
-                      : "object-contain transition duration-300 group-hover:scale-[1.02]"
-                  }
+                      ? "blur-sm brightness-[0.76] saturate-[0.92]"
+                      : "transition duration-300 group-hover:scale-[1.02]",
+                  )}
                   fill
                   sizes={
                     isGridLayout
@@ -585,12 +601,12 @@ export function FanletterNewsSourceSceneGallery({
                   )}
                 />
                 <span className="absolute inset-0 bg-gradient-to-t from-black/46 via-transparent to-black/8" />
-                <span className="absolute bottom-2 left-2 rounded-full bg-black/64 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/86">
+                <span className="absolute bottom-2 left-2 rounded-full bg-black/64 px-2 py-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-white/86 sm:text-[0.58rem] sm:tracking-[0.12em]">
                   {item.timeLabel
                     ? `${item.label} · ${item.timeLabel}`
                     : item.label}
                 </span>
-                <span className="absolute right-2 top-2 inline-flex size-8 items-center justify-center rounded-full border border-white/18 bg-black/56 text-white opacity-90 backdrop-blur">
+                <span className="absolute right-2 top-2 inline-flex size-7 items-center justify-center rounded-full border border-white/18 bg-black/56 text-white opacity-90 backdrop-blur sm:size-8">
                   <Expand className="size-3.5" />
                 </span>
               </span>
