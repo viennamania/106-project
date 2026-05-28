@@ -16,6 +16,7 @@ import type { FanletterRelatedNewsItem } from "@/lib/fanletter-news-related";
 import { cn } from "@/lib/utils";
 
 type FanletterNewsRelatedListCopy = {
+  current: string;
   description: string;
   empty: string;
   eyebrow: string;
@@ -175,18 +176,35 @@ function SourceRevealStatusPill({
   );
 }
 
+function countLoadedRelatedItems(
+  items: FanletterRelatedNewsItem[],
+  currentReportId: string,
+) {
+  return items.reduce(
+    (count, item) => count + (item.reportId === currentReportId ? 0 : 1),
+    0,
+  );
+}
+
 function RelatedNewsCard({
+  currentLabel,
   href,
+  isCurrent,
   item,
 }: {
+  currentLabel: string;
   href: string;
+  isCurrent: boolean;
   item: FanletterRelatedNewsItem;
 }) {
-  return (
-    <Link
-      className="group grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] gap-2.5 border-b border-black/10 pb-3.5 transition last:border-b-0 last:pb-0 hover:border-[#19b84b] sm:grid-cols-[8.25rem_minmax(0,1fr)] sm:gap-3 sm:pb-4"
-      href={href}
-    >
+  const cardClassName = cn(
+    "group grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] gap-2.5 transition sm:grid-cols-[8.25rem_minmax(0,1fr)] sm:gap-3",
+    isCurrent
+      ? "rounded-lg border border-[#19b84b]/45 bg-[#ecfff0] p-2.5 shadow-[0_14px_32px_rgba(25,184,75,0.12)]"
+      : "border-b border-black/10 pb-3.5 last:border-b-0 last:pb-0 hover:border-[#19b84b] sm:pb-4",
+  );
+  const content = (
+    <>
       <div className="relative aspect-[16/10] overflow-hidden rounded-md bg-[#111510] sm:rounded-lg">
         {item.coverImageUrl ? (
           <Image
@@ -225,6 +243,12 @@ function RelatedNewsCard({
         ) : null}
       </div>
       <div className="min-w-0">
+        {isCurrent ? (
+          <span className="mb-1.5 inline-flex max-w-full items-center gap-1 rounded-full border border-[#19b84b]/28 bg-white px-2 py-1 text-[0.58rem] font-black uppercase leading-none tracking-[0.08em] text-[#11732d]">
+            <CheckCircle2 aria-hidden="true" className="size-3 shrink-0" />
+            <span className="truncate">{currentLabel}</span>
+          </span>
+        ) : null}
         <p
           className={cn(
             "line-clamp-2 break-words text-[0.92rem] font-black leading-5 [word-break:keep-all] sm:text-sm",
@@ -251,6 +275,20 @@ function RelatedNewsCard({
           <span>{item.reporterName}</span>
         </div>
       </div>
+    </>
+  );
+
+  if (isCurrent) {
+    return (
+      <div aria-current="page" className={cardClassName}>
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link className={cardClassName} href={href}>
+      {content}
     </Link>
   );
 }
@@ -258,6 +296,7 @@ function RelatedNewsCard({
 export function FanletterNewsRelatedList({
   characterName,
   copy,
+  currentReportId,
   initialHasMore,
   initialItems,
   pageSize,
@@ -270,6 +309,7 @@ export function FanletterNewsRelatedList({
 }: {
   characterName: string | null;
   copy: FanletterNewsRelatedListCopy;
+  currentReportId: string;
   initialHasMore: boolean;
   initialItems: FanletterRelatedNewsItem[];
   pageSize: number;
@@ -284,6 +324,7 @@ export function FanletterNewsRelatedList({
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const relatedItemCount = countLoadedRelatedItems(items, currentReportId);
 
   const handleLoadMore = useCallback(async () => {
     if (isLoading || !hasMore) {
@@ -295,7 +336,7 @@ export function FanletterNewsRelatedList({
 
     try {
       const response = await fetch(
-        buildPageHref(relatedApiHref, items.length, pageSize),
+        buildPageHref(relatedApiHref, relatedItemCount, pageSize),
         {
           headers: {
             Accept: "application/json",
@@ -313,7 +354,11 @@ export function FanletterNewsRelatedList({
         throw new Error("Invalid related news response.");
       }
 
-      const nextItems = [...items, ...data.items];
+      const existingReportIds = new Set(items.map((item) => item.reportId));
+      const nextItems = [
+        ...items,
+        ...data.items.filter((item) => !existingReportIds.has(item.reportId)),
+      ];
 
       setItems(nextItems);
       setHasMore(data.hasMore);
@@ -334,6 +379,7 @@ export function FanletterNewsRelatedList({
     items,
     pageSize,
     relatedApiHref,
+    relatedItemCount,
     relatedStateParamName,
   ]);
 
@@ -393,6 +439,7 @@ export function FanletterNewsRelatedList({
         {items.length > 0 ? (
           <div className="grid gap-3 sm:gap-4">
             {items.map((item) => {
+              const isCurrent = item.reportId === currentReportId;
               const href = buildRelatedStateHref({
                 baseHref: item.href,
                 itemCount: items.length,
@@ -403,7 +450,13 @@ export function FanletterNewsRelatedList({
               });
 
               return (
-                <RelatedNewsCard href={href} item={item} key={item.reportId} />
+                <RelatedNewsCard
+                  currentLabel={copy.current}
+                  href={href}
+                  isCurrent={isCurrent}
+                  item={item}
+                  key={item.reportId}
+                />
               );
             })}
           </div>
@@ -412,6 +465,12 @@ export function FanletterNewsRelatedList({
             {copy.empty}
           </p>
         )}
+
+        {items.length > 0 && relatedItemCount === 0 ? (
+          <p className="mt-3 border border-black/10 bg-[#f5f6f2] px-3 py-3 text-sm font-semibold leading-6 text-black/52 sm:px-4">
+            {copy.empty}
+          </p>
+        ) : null}
 
         {error ? (
           <p className="mt-3 border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold leading-5 text-rose-700">

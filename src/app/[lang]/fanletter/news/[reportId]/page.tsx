@@ -285,8 +285,9 @@ function getCopy(locale: Locale) {
             `블러 처리된 NSFW 뉴스 ${count}개`,
         },
         relatedNews: "캐릭터 이어보기",
+        relatedNewsCurrent: "현재 읽는 뉴스",
         relatedNewsDescription:
-          "현재 뉴스와 같은 캐릭터의 리포트만 모았습니다. 최신 발행, 최초 리포트, 원본 오픈 진행순으로 정렬해 이어 읽을 수 있습니다.",
+          "현재 뉴스부터 같은 캐릭터의 리포트를 이어 읽을 수 있습니다. 최신 발행, 최초 리포트, 원본 오픈 진행순으로 정렬합니다.",
         relatedNewsEyebrow: "캐릭터 이어보기",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
         relatedNewsError: "다른 뉴스를 불러오지 못했습니다. 다시 시도해 주세요.",
@@ -493,8 +494,9 @@ function getCopy(locale: Locale) {
           hiddenCountText: (count: string) => `${count} NSFW news items blurred`,
         },
         relatedNews: "Continue this character",
+        relatedNewsCurrent: "Now reading",
         relatedNewsDescription:
-          "Only reports from the same character are shown here. Switch between latest, first reports, and source-open progress.",
+          "Start with the news you are reading, then continue through reports from the same character by latest, first reports, or source-open progress.",
         relatedNewsEyebrow: "Character follow-up",
         relatedNewsEmpty: "No other news from this character yet.",
         relatedNewsError: "Could not load more news. Please try again.",
@@ -2378,6 +2380,7 @@ export default async function LocalizedFanletterNewsReportPage({
     query.relatedLimit,
   );
   const relatedNewsSort = readFanletterRelatedNewsSort(query.relatedSort);
+  const relatedReportVisibleCount = Math.max(0, relatedNewsVisibleCount - 1);
   const memberServerSession = await readMemberServerSession();
   const [
     sourceContent,
@@ -2400,7 +2403,7 @@ export default async function LocalizedFanletterNewsReportPage({
       creatorReferralCode: report.creatorReferralCode,
       excludeContentId: report.contentId,
       excludeReportId: report.reportId,
-      limit: relatedNewsVisibleCount + 1,
+      limit: relatedReportVisibleCount + 1,
       locale,
       sort: relatedNewsSort,
     }),
@@ -2511,14 +2514,26 @@ export default async function LocalizedFanletterNewsReportPage({
         referralCode,
       )
     : fanletterHomeHref;
-  const visibleRelatedReports = relatedReports.slice(0, relatedNewsVisibleCount);
-  const relatedNewsItems = visibleRelatedReports.map((relatedReport) =>
-    serializeFanletterRelatedNewsItem({
-      nsfwOptInEnabled: includeNsfw,
-      referralCode,
-      report: relatedReport,
-    }),
-  );
+  const visibleRelatedReports = relatedReports.slice(0, relatedReportVisibleCount);
+  const currentRelatedNewsItem = serializeFanletterRelatedNewsItem({
+    nsfwOptInEnabled: includeNsfw,
+    referralCode,
+    report: {
+      ...report,
+      relatedSourceRevealCount: sourceContent?.social.sourceRevealCount ?? 0,
+      relatedSourceVlogAvailable: (sourceContent?.contentVideoCount ?? 0) > 0,
+    },
+  });
+  const relatedNewsItems = [
+    currentRelatedNewsItem,
+    ...visibleRelatedReports.map((relatedReport) =>
+      serializeFanletterRelatedNewsItem({
+        nsfwOptInEnabled: includeNsfw,
+        referralCode,
+        report: relatedReport,
+      }),
+    ),
+  ];
   const characterName =
     sourceContent?.authorCharacter?.name ?? sourceContent?.authorName ?? null;
   const characterAvatarImageUrl =
@@ -2532,8 +2547,8 @@ export default async function LocalizedFanletterNewsReportPage({
     null;
   const relatedNewsTitle = characterName
     ? locale === "ko"
-      ? `${characterName}의 다른 뉴스`
-      : `More ${characterName} news`
+      ? `${characterName} 뉴스 이어보기`
+      : `Continue ${characterName} news`
     : copy.relatedNews;
   const relatedNewsApiHref = setPathSearchParams(
     "/api/fanletter/news-reports/related",
@@ -2557,10 +2572,11 @@ export default async function LocalizedFanletterNewsReportPage({
       value: sortValue,
     }),
   );
-  const relatedNewsHasMore = relatedReports.length > relatedNewsVisibleCount;
+  const relatedNewsHasMore = relatedReports.length > relatedReportVisibleCount;
   const relatedNewsListProps = {
     characterName,
     copy: {
+      current: copy.relatedNewsCurrent,
       description: copy.relatedNewsDescription,
       empty: copy.relatedNewsEmpty,
       eyebrow: copy.relatedNewsEyebrow,
@@ -2569,6 +2585,7 @@ export default async function LocalizedFanletterNewsReportPage({
       loading: copy.relatedNewsLoading,
       title: relatedNewsTitle,
     },
+    currentReportId: report.reportId,
     initialHasMore: relatedNewsHasMore,
     initialItems: relatedNewsItems,
     pageSize: RELATED_NEWS_PAGE_SIZE,
