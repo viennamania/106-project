@@ -25,6 +25,10 @@ import {
   getContentSocialSummaryForViewer,
   updateContentPostForMember,
 } from "@/lib/content-service";
+import { resolveMissingContentPreviewClipVideoUrl } from "@/lib/content-preview-mutation-service";
+
+export const runtime = "nodejs";
+export const maxDuration = 300;
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -325,11 +329,17 @@ export async function PATCH(
     }
 
     const response: ContentPostMutationResponse = {
-      content: await updateContentPostForMember({
-        ...body,
-        contentId,
-        email: authorization.normalizedEmail,
-      }),
+      content: await updateContentPostForMember(
+        {
+          ...body,
+          contentId,
+          email: authorization.normalizedEmail,
+        },
+        {
+          resolveMissingPreviewClipVideoUrl:
+            resolveMissingContentPreviewClipVideoUrl,
+        },
+      ),
     };
 
     return Response.json(response);

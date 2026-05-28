@@ -279,6 +279,19 @@ type CreatorStudioPostsQueryOptions = {
   status?: "all" | "archived" | "draft" | "published" | null;
 };
 
+type ContentPreviewClipResolverInput = {
+  contentVideoUrls: string[];
+  referralCode: string;
+  title?: string | null;
+  value?: string | null;
+};
+
+type ContentPostMutationOptions = {
+  resolveMissingPreviewClipVideoUrl?: (
+    input: ContentPreviewClipResolverInput,
+  ) => Promise<string | null | undefined>;
+};
+
 function trimToLength(value: string | null | undefined, limit: number) {
   return value?.trim().slice(0, limit) ?? "";
 }
@@ -647,6 +660,57 @@ function normalizeContentPreviewClipVideoUrl({
   }
 
   return isMemberPreviewVideoUrl(trimmed, referralCode) ? trimmed : null;
+}
+
+async function resolveContentPreviewClipVideoUrl({
+  contentVideoUrls,
+  referralCode,
+  resolveMissingPreviewClipVideoUrl,
+  title,
+  value,
+}: {
+  contentVideoUrls: string[];
+  referralCode: string;
+  resolveMissingPreviewClipVideoUrl?: ContentPostMutationOptions[
+    "resolveMissingPreviewClipVideoUrl"
+  ];
+  title?: string | null;
+  value?: string | null;
+}) {
+  const normalized = normalizeContentPreviewClipVideoUrl({
+    contentVideoUrls,
+    referralCode,
+    value,
+  });
+
+  if (normalized || contentVideoUrls.length === 0) {
+    return normalized;
+  }
+
+  const sourceVideoUrl = contentVideoUrls[0];
+
+  try {
+    const previewClipVideoUrl = await resolveMissingPreviewClipVideoUrl?.({
+      contentVideoUrls,
+      referralCode,
+      title,
+      value: normalized,
+    });
+
+    return normalizeContentPreviewClipVideoUrl({
+      contentVideoUrls,
+      referralCode,
+      value: previewClipVideoUrl,
+    });
+  } catch (error) {
+    console.warn("[content-preview] Failed to generate missing preview clip.", {
+      error: error instanceof Error ? error.message : String(error),
+      referralCode,
+      sourceVideoUrl,
+    });
+
+    return null;
+  }
 }
 
 function normalizeContentVideoMetadataSource(
@@ -3123,6 +3187,7 @@ export async function getCreatorStudioPostsForMember(
 
 export async function createContentPostForMember(
   input: ContentPostCreateRequest,
+  options: ContentPostMutationOptions = {},
 ): Promise<ContentPostRecord> {
   const normalizedEmail = normalizeEmail(input.email);
 
@@ -3163,7 +3228,7 @@ export async function createContentPostForMember(
     input.contentVideoMetadata,
     contentVideoUrls,
   );
-  const previewClipVideoUrl = normalizeContentPreviewClipVideoUrl({
+  let previewClipVideoUrl = normalizeContentPreviewClipVideoUrl({
     contentVideoUrls,
     referralCode: member.referralCode,
     value: input.previewClipVideoUrl,
@@ -3208,6 +3273,14 @@ export async function createContentPostForMember(
     priceType,
     reporterReferralCode: input.exclusiveNewsReporterReferralCode,
     status,
+  });
+  previewClipVideoUrl = await resolveContentPreviewClipVideoUrl({
+    contentVideoUrls,
+    referralCode: member.referralCode,
+    resolveMissingPreviewClipVideoUrl:
+      options.resolveMissingPreviewClipVideoUrl,
+    title,
+    value: previewClipVideoUrl,
   });
   const post: ContentPostDocument = {
     authorEmail: member.email,
@@ -3272,6 +3345,7 @@ export async function createContentPostForMember(
 
 export async function updateContentPostForMember(
   input: ContentPostUpdateRequest,
+  options: ContentPostMutationOptions = {},
 ): Promise<ContentPostRecord> {
   const normalizedEmail = normalizeEmail(input.email);
 
@@ -3321,7 +3395,7 @@ export async function updateContentPostForMember(
           post.contentVideoMetadata,
           nextContentVideoUrls,
         );
-  const nextPreviewClipVideoUrl =
+  let nextPreviewClipVideoUrl =
     input.previewClipVideoUrl !== undefined || input.contentVideoUrls !== undefined
       ? normalizeContentPreviewClipVideoUrl({
           contentVideoUrls: nextContentVideoUrls,
@@ -3430,6 +3504,14 @@ export async function updateContentPostForMember(
     nextPriceType === "paid" && nextStatus !== "archived"
       ? normalizeContentFanRequestId(input.fanRequestId ?? post.fanRequestId)
       : null;
+  nextPreviewClipVideoUrl = await resolveContentPreviewClipVideoUrl({
+    contentVideoUrls: nextContentVideoUrls,
+    referralCode: member.referralCode ?? post.authorReferralCode,
+    resolveMissingPreviewClipVideoUrl:
+      options.resolveMissingPreviewClipVideoUrl,
+    title: nextTitle,
+    value: nextPreviewClipVideoUrl,
+  });
 
   try {
     await postsCollection.updateOne(

@@ -25,6 +25,8 @@ const PREVIEW_DURATION_SEC = 6;
 const PREVIEW_CONTENT_TYPE = "video/mp4";
 const PREVIEW_MAX_SOURCE_BYTES = CONTENT_VIDEO_MAX_BYTES;
 const FFMPEG_TIMEOUT_MS = 150_000;
+const SOURCE_DOWNLOAD_ATTEMPT_COUNT = 3;
+const SOURCE_DOWNLOAD_RETRY_DELAY_MS = 1_500;
 const SOURCE_DOWNLOAD_TIMEOUT_MS = 90_000;
 
 function sanitizeBaseName(value: string) {
@@ -103,7 +105,23 @@ function resolveFfmpegPath() {
   return ffmpegStatic || "ffmpeg";
 }
 
-async function downloadSourceVideo(sourceVideoUrl: string, destinationPath: string) {
+function delay(ms: number) {
+  return new Promise<void>((resolve) => {
+    windowlessSetTimeout(resolve, ms);
+  });
+}
+
+function isRetriableSourceDownloadError(error: unknown) {
+  return !(
+    error instanceof Error &&
+    error.message === "Source video is larger than the preview limit."
+  );
+}
+
+async function downloadSourceVideoOnce(
+  sourceVideoUrl: string,
+  destinationPath: string,
+) {
   const controller = new AbortController();
   const timeout = windowlessSetTimeout(
     () => controller.abort(),
@@ -147,6 +165,33 @@ async function downloadSourceVideo(sourceVideoUrl: string, destinationPath: stri
   if (fileStat.size > PREVIEW_MAX_SOURCE_BYTES) {
     throw new Error("Source video is larger than the preview limit.");
   }
+}
+
+async function downloadSourceVideo(sourceVideoUrl: string, destinationPath: string) {
+  let lastError: unknown = null;
+
+  for (let attempt = 1; attempt <= SOURCE_DOWNLOAD_ATTEMPT_COUNT; attempt += 1) {
+    try {
+      await downloadSourceVideoOnce(sourceVideoUrl, destinationPath);
+      return;
+    } catch (error) {
+      lastError = error;
+
+      if (
+        attempt >= SOURCE_DOWNLOAD_ATTEMPT_COUNT ||
+        !isRetriableSourceDownloadError(error)
+      ) {
+        break;
+      }
+
+      await rm(destinationPath, { force: true }).catch(() => null);
+      await delay(SOURCE_DOWNLOAD_RETRY_DELAY_MS * attempt);
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Failed to download source video for preview.");
 }
 
 async function runFfmpeg(inputPath: string, outputPath: string) {

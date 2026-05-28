@@ -12,7 +12,11 @@ import {
   createContentPostForMember,
   getCreatorStudioPostsForMember,
 } from "@/lib/content-service";
+import { resolveMissingContentPreviewClipVideoUrl } from "@/lib/content-preview-mutation-service";
 import { hasLocale } from "@/lib/i18n";
+
+export const runtime = "nodejs";
+export const maxDuration = 300;
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -128,10 +132,16 @@ export async function POST(request: Request) {
     }
 
     const response: ContentPostMutationResponse = {
-      content: await createContentPostForMember({
-        ...body,
-        email: authorization.normalizedEmail,
-      }),
+      content: await createContentPostForMember(
+        {
+          ...body,
+          email: authorization.normalizedEmail,
+        },
+        {
+          resolveMissingPreviewClipVideoUrl:
+            resolveMissingContentPreviewClipVideoUrl,
+        },
+      ),
     };
 
     return Response.json(response, { status: 201 });
