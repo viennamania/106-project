@@ -214,6 +214,30 @@ function getCopy(locale: Locale) {
         },
         connectRequired:
           "FanLetter 계정을 연결하면 내 AI 캐릭터 브이로그를 관리할 수 있습니다.",
+        mobileGuide: {
+          body:
+            "새 공개 영상, 팬 요청 답장, 커버 프레임, 채널 배포를 모바일에서 바로 실행하세요.",
+          eyebrow: "오늘 작업",
+          steps: {
+            channels: {
+              body: "완성된 브이로그를 외부 채널로 배포합니다.",
+              title: "채널 배포",
+            },
+            create: {
+              body: "피드에 올릴 공개 브이로그를 만듭니다.",
+              title: "공개 브이로그",
+            },
+            frames: {
+              body: "목록과 뉴스에 보이는 커버와 프레임을 정리합니다.",
+              title: "커버와 프레임",
+            },
+            request: {
+              body: "유료 팬 요청을 선택하고 답장 영상을 올립니다.",
+              title: "팬 요청 답장",
+            },
+          },
+          title: "모바일에서 바로 처리하기",
+        },
         cover: {
           cropFailed: "크롭 이미지를 업로드하지 못했습니다.",
           cropHelper:
@@ -382,6 +406,30 @@ function getCopy(locale: Locale) {
         },
         connectRequired:
           "Connect your FanLetter account to manage your AI character vlogs.",
+        mobileGuide: {
+          body:
+            "Run public uploads, fan-request replies, cover frames, and channel distribution directly on mobile.",
+          eyebrow: "Today",
+          steps: {
+            channels: {
+              body: "Distribute finished vlogs to external channels.",
+              title: "Channels",
+            },
+            create: {
+              body: "Create a public vlog for the feed.",
+              title: "Public vlog",
+            },
+            frames: {
+              body: "Tune the cover and frames shown in lists and news.",
+              title: "Cover and frames",
+            },
+            request: {
+              body: "Choose a paid fan request and upload the reply video.",
+              title: "Fan reply",
+            },
+          },
+          title: "Handle it on mobile",
+        },
         cover: {
           cropFailed: "Could not upload the cropped image.",
           cropHelper:
@@ -2431,6 +2479,45 @@ export function FanletterVlogManagementPage({
         : locale === "ko"
           ? "무료 공개와 유료 팬 전용을 분리해서 운영 상태를 빠르게 전환합니다."
           : "Switch between free public and paid fan-only operations without mixing the workflows.";
+  const vlogListHref = `${currentManagerHref}#vlog-list`;
+  const beginnerSteps = [
+    {
+      Icon: Plus,
+      actionLabel: copy.actions.create,
+      body: copy.mobileGuide.steps.create.body,
+      href: createHref,
+      metricLabel: `${formatNumber(state.summary.free, locale)} ${copy.labels.freePublic}`,
+      step: "1",
+      title: copy.mobileGuide.steps.create.title,
+    },
+    {
+      Icon: MessageCircleHeart,
+      actionLabel: copy.actions.fanRequests,
+      body: copy.mobileGuide.steps.request.body,
+      href: fanRequestsHref,
+      metricLabel: `${formatNumber(state.summary.paid, locale)} ${copy.labels.paidFanOnly}`,
+      step: "2",
+      title: copy.mobileGuide.steps.request.title,
+    },
+    {
+      Icon: ImageIcon,
+      actionLabel: copy.actions.manageTeasers,
+      body: copy.mobileGuide.steps.frames.body,
+      href: vlogListHref,
+      metricLabel: `${formatNumber(state.summary.published, locale)} ${copy.labels.published}`,
+      step: "3",
+      title: copy.mobileGuide.steps.frames.title,
+    },
+    {
+      Icon: Sparkles,
+      actionLabel: copy.actions.channels,
+      body: copy.mobileGuide.steps.channels.body,
+      href: channelsHref,
+      metricLabel: `${formatNumber(state.summary.all, locale)} ${copy.labels.results}`,
+      step: "4",
+      title: copy.mobileGuide.steps.channels.title,
+    },
+  ];
   const hasResultNarrowing = Boolean(
     appliedQuery || appliedStatus !== "all" || appliedMaturity !== "all",
   );
@@ -2549,7 +2636,7 @@ export function FanletterVlogManagementPage({
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
-      <section className="px-4 pb-8 pt-3 sm:px-6 lg:px-8">
+      <section className="px-4 pb-6 pt-3 sm:px-6 sm:pb-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <header className="flex items-center justify-between gap-3">
             <Link
@@ -2599,34 +2686,34 @@ export function FanletterVlogManagementPage({
             <FanletterGlobalLanguageSwitcher compact locale={locale} />
           </div>
 
-          <div className="grid gap-8 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,26rem)] lg:items-end lg:py-14">
+          <div className="grid gap-6 py-6 sm:py-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,26rem)] lg:items-end lg:py-12">
             <div className="max-w-3xl">
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
                 {copy.eyebrow}
               </p>
-              <h1 className="mt-4 text-4xl font-semibold tracking-normal sm:text-5xl">
+              <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-normal sm:mt-4 sm:text-5xl">
                 {copy.title}
               </h1>
-              <p className="mt-4 max-w-2xl text-base font-medium leading-7 text-white/62">
+              <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-white/62 sm:mt-4 sm:text-base sm:leading-7">
                 {copy.subtitle}
               </p>
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap">
                 <Link
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#6cff89]"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#6cff89] sm:h-11 sm:w-auto"
                   href={heroPrimaryHref}
                 >
                   <HeroPrimaryIcon className="size-4" />
                   {heroPrimaryLabel}
                 </Link>
                 <Link
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.04] px-4 text-sm font-semibold !text-white transition hover:bg-white/[0.08]"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.04] px-4 text-sm font-semibold !text-white transition hover:bg-white/[0.08] sm:h-11 sm:w-auto"
                   href={heroSecondaryHref}
                 >
                   <HeroSecondaryIcon className="size-4" />
                   {heroSecondaryLabel}
                 </Link>
                 <Link
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.04] px-4 text-sm font-semibold !text-white transition hover:bg-white/[0.08]"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-white/[0.04] px-4 text-sm font-semibold !text-white transition hover:bg-white/[0.08] sm:h-11 sm:w-auto"
                   href={channelsHref}
                 >
                   <Sparkles className="size-4" />
@@ -2635,7 +2722,7 @@ export function FanletterVlogManagementPage({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <HeroMetric
                 label={copy.labels.all}
                 loading={isInitialLoading}
@@ -2658,12 +2745,59 @@ export function FanletterVlogManagementPage({
               />
             </div>
           </div>
+
+          <div className="border-t border-white/10 pb-2 pt-5 sm:pt-6">
+            <div className="grid gap-4 lg:grid-cols-[minmax(16rem,0.78fr)_minmax(0,1.22fr)] lg:items-stretch">
+              <div className="rounded-lg border border-white/12 bg-white/[0.04] p-4">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+                  {copy.mobileGuide.eyebrow}
+                </p>
+                <h2 className="mt-2 text-xl font-semibold leading-tight tracking-normal text-white">
+                  {copy.mobileGuide.title}
+                </h2>
+                <p className="mt-2 text-sm font-medium leading-6 text-white/62">
+                  {copy.mobileGuide.body}
+                </p>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {beginnerSteps.map(
+                  ({ Icon, actionLabel, body, href, metricLabel, step, title }) => (
+                    <Link
+                      className="group flex min-h-24 items-start gap-3 rounded-lg border border-white/12 bg-white/[0.04] p-3 !text-white transition hover:bg-white/[0.08]"
+                      href={href}
+                      key={step}
+                    >
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                        <Icon className="size-4" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-start justify-between gap-2">
+                          <span className="text-sm font-semibold leading-5">
+                            {step}. {title}
+                          </span>
+                          <ArrowRight className="mt-0.5 size-4 shrink-0 text-[#44f26e] transition group-hover:translate-x-0.5" />
+                        </span>
+                        <span className="mt-1 block text-xs font-medium leading-5 text-white/58">
+                          {body}
+                        </span>
+                        <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-black/22 px-2.5 py-1 text-[0.68rem] font-semibold text-white/62">
+                          {metricLabel}
+                          <span className="text-white/36">·</span>
+                          {actionLabel}
+                        </span>
+                      </span>
+                    </Link>
+                  ),
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section className="bg-[#f6f8f4] px-4 py-8 text-black sm:px-6 sm:py-12 lg:px-8">
+      <section className="bg-[#f6f8f4] px-4 py-5 text-black sm:px-6 sm:py-12 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[minmax(17rem,22rem)_minmax(0,1fr)] lg:items-start">
-          <aside className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] lg:sticky lg:top-4">
+          <aside className="order-2 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] lg:sticky lg:top-4 lg:order-none">
             <div className="overflow-hidden rounded-lg border border-black/10 bg-[#0b110d]">
               <div className="relative aspect-[16/9] bg-[#101811]">
                 {profileHeroImageUrl ? (
@@ -2786,14 +2920,14 @@ export function FanletterVlogManagementPage({
             </div>
           </aside>
 
-          <div className="min-w-0">
-            <div className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
+          <div className="order-1 min-w-0 scroll-mt-4 lg:order-none" id="vlog-list">
+            <div className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#16702e]">
                     {copy.labels.results}
                   </p>
-                  <h2 className="mt-2 text-3xl font-semibold tracking-normal">
+                  <h2 className="mt-2 text-2xl font-semibold tracking-normal sm:text-3xl">
                     {getResultsHeading(
                       copy,
                       appliedPrice,
@@ -2810,10 +2944,10 @@ export function FanletterVlogManagementPage({
                 ) : null}
               </div>
 
-              <div className="mt-5 grid gap-2 md:grid-cols-3">
+              <div className="-mx-1 mt-5 flex snap-x gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
                 {priceFilterItems.map((item) => (
                   <Link
-                    className={`group min-h-20 rounded-lg border p-4 text-left transition ${
+                    className={`group min-h-20 min-w-[12.75rem] snap-start rounded-lg border p-4 text-left transition md:min-w-0 ${
                       appliedPrice === item.key
                         ? "border-black bg-black text-white"
                         : "border-black/10 bg-[#f6f8f4] text-black hover:border-black/20 hover:bg-white"
@@ -2857,20 +2991,20 @@ export function FanletterVlogManagementPage({
                 ))}
               </div>
 
-              <div className="mt-4 flex flex-col gap-3 rounded-lg border border-black/10 bg-[#f6f8f4] p-4 md:flex-row md:items-center md:justify-between">
+              <div className="mt-4 flex flex-col gap-3 rounded-lg border border-black/10 bg-[#f6f8f4] p-3 sm:p-4 md:flex-row md:items-center md:justify-between">
                 <p className="text-sm font-medium leading-6 text-black/62">
                   {priceModeBody}
                 </p>
-                <div className="flex shrink-0 flex-wrap gap-2">
+                <div className="grid shrink-0 gap-2 sm:flex sm:flex-wrap">
                   <Link
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82 sm:h-10 sm:w-auto"
                     href={heroPrimaryHref}
                   >
                     <HeroPrimaryIcon className="size-4" />
                     {heroPrimaryLabel}
                   </Link>
                   <Link
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold !text-black transition hover:bg-black/[0.04]"
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold !text-black transition hover:bg-black/[0.04] sm:h-10 sm:w-auto"
                     href={heroSecondaryHref}
                   >
                     <HeroSecondaryIcon className="size-4" />
@@ -2906,7 +3040,7 @@ export function FanletterVlogManagementPage({
                   </div>
                 </label>
                 <button
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white transition hover:bg-black/82"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white transition hover:bg-black/82 md:w-auto"
                   type="submit"
                 >
                   <Search className="size-4" />
@@ -2942,7 +3076,7 @@ export function FanletterVlogManagementPage({
                 ))}
               </div>
 
-              <div className="mt-4 rounded-lg border border-black/10 bg-[#f6f8f4] p-4">
+              <div className="mt-4 rounded-lg border border-black/10 bg-[#f6f8f4] p-3 sm:p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div className="min-w-0">
                     <p className="inline-flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#16702e]">
@@ -2953,7 +3087,7 @@ export function FanletterVlogManagementPage({
                       {copy.nsfwModeBody}
                     </p>
                   </div>
-                  <div className="grid shrink-0 grid-cols-3 gap-2">
+                  <div className="grid w-full shrink-0 grid-cols-1 gap-2 sm:grid-cols-3 md:w-auto">
                     {maturityFilterItems.map((item) => (
                       <Link
                         className={`inline-flex min-h-10 items-center justify-between gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition ${
@@ -3662,14 +3796,14 @@ function HeroMetric({
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-white/12 bg-white/[0.04] p-4">
+    <div className="rounded-lg border border-white/12 bg-white/[0.04] p-3 sm:p-4">
       <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white/42">
         {label}
       </p>
       {loading ? (
-        <div className="mt-4 h-8 w-16 rounded-full bg-white/10 motion-safe:animate-pulse" />
+        <div className="mt-3 h-7 w-14 rounded-full bg-white/10 motion-safe:animate-pulse sm:mt-4 sm:h-8 sm:w-16" />
       ) : (
-        <p className="mt-3 text-3xl font-semibold tracking-normal text-white">
+        <p className="mt-2 text-2xl font-semibold tracking-normal text-white sm:mt-3 sm:text-3xl">
           {value}
         </p>
       )}
@@ -3793,7 +3927,7 @@ function VlogManagerCard({
 
   return (
     <article className="grid overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)] lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
-      <div className="relative aspect-video min-h-[12rem] bg-black lg:min-h-0 lg:self-start">
+      <div className="relative aspect-video min-h-[11rem] bg-black sm:min-h-[12rem] lg:min-h-0 lg:self-start">
         {post.coverImageUrl ? (
           <Image
             alt=""
@@ -3850,7 +3984,7 @@ function VlogManagerCard({
         </div>
       </div>
 
-      <div className="min-w-0 p-4 sm:p-5">
+      <div className="min-w-0 p-3 sm:p-5">
         <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(14rem,18rem)] xl:items-start">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
@@ -3899,14 +4033,14 @@ function VlogManagerCard({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2 rounded-lg border border-black/10 bg-[#f6f8f4] p-2 sm:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-2 rounded-lg border border-black/10 bg-[#f6f8f4] p-1.5 sm:grid-cols-4 sm:p-2">
           {signalMetrics.map(({ Icon, label, value }) => (
             <div
               aria-label={`${label} ${formatNumber(value, locale)}`}
-              className="flex min-h-12 min-w-0 items-center justify-between gap-2 rounded-lg border border-black/10 bg-white px-3 py-2"
+              className="flex min-h-12 min-w-0 items-center justify-between gap-2 rounded-lg border border-black/10 bg-white px-2.5 py-2 sm:px-3"
               key={label}
             >
-              <span className="flex min-w-0 items-center gap-2">
+              <span className="flex min-w-0 items-center gap-1.5 sm:gap-2">
                 <Icon className="size-4 shrink-0 text-[#16702e]" />
                 <span className="truncate text-[0.72rem] font-semibold text-black/48">
                   {label}
@@ -3935,7 +4069,7 @@ function VlogManagerCard({
                 </p>
               </div>
               <button
-                className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-white disabled:opacity-50"
+                className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-white disabled:opacity-50 sm:h-10 sm:w-auto"
                 disabled={isUpdating}
                 onClick={onManageTeasers}
                 type="button"
@@ -4028,7 +4162,7 @@ function VlogManagerCard({
               </div>
               {hasExclusiveNewsAssignment ? (
                 <button
-                  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-white disabled:opacity-50"
+                  className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-white disabled:opacity-50 lg:h-10 lg:w-auto"
                   disabled={isUpdating}
                   onClick={() => {
                     setExclusiveReporterCodeInput("");
@@ -4138,16 +4272,9 @@ function VlogManagerCard({
           </p>
         ) : null}
         <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-          <Link
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4]"
-            href={detailHref}
-          >
-            <Eye className="size-4" />
-            {copy.actions.detail}
-          </Link>
           {post.status !== "published" ? (
             <button
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-3 text-sm font-semibold text-white transition hover:bg-black/82 disabled:opacity-50"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-3 text-sm font-semibold text-white transition hover:bg-black/82 disabled:opacity-50 sm:h-10"
               disabled={isUpdating}
               onClick={onPublish}
               type="button"
@@ -4160,9 +4287,16 @@ function VlogManagerCard({
               {copy.actions.publish}
             </button>
           ) : null}
+          <Link
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4] sm:h-10"
+            href={detailHref}
+          >
+            <Eye className="size-4" />
+            {copy.actions.detail}
+          </Link>
           {post.status !== "archived" ? (
             <button
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4] disabled:opacity-50"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4] disabled:opacity-50 sm:h-10"
               disabled={isUpdating}
               onClick={onArchive}
               type="button"
@@ -4177,7 +4311,7 @@ function VlogManagerCard({
           ) : null}
           {canManageNsfw ? (
             <button
-              className={`inline-flex h-10 items-center justify-center gap-2 rounded-full px-3 text-sm font-semibold transition disabled:opacity-50 ${
+              className={`inline-flex h-11 items-center justify-center gap-2 rounded-full px-3 text-sm font-semibold transition disabled:opacity-50 sm:h-10 ${
                 isNsfw
                   ? "border border-black/10 bg-white text-black hover:border-black/20 hover:bg-[#f6f8f4]"
                   : "bg-[#111] text-white hover:bg-black/82"
