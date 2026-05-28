@@ -341,6 +341,9 @@ function getCopy(locale: Locale) {
           page: "페이지",
           paid: "유료",
           paidFanOnly: "유료 팬 전용",
+          previewVideo: "프리뷰 영상",
+          previewVideoMissing: "프리뷰 없음",
+          previewVideoReady: "프리뷰 있음",
           published: "공개",
           reports: "리포트",
           results: "브이로그",
@@ -533,6 +536,9 @@ function getCopy(locale: Locale) {
           page: "Page",
           paid: "Paid",
           paidFanOnly: "Paid fan-only",
+          previewVideo: "Preview video",
+          previewVideoMissing: "No preview",
+          previewVideoReady: "Preview ready",
           published: "Published",
           reports: "Reports",
           results: "Vlogs",
@@ -624,6 +630,12 @@ function formatCoverOptionTimestamp(timestampSec: number | null, locale: Locale)
 
 function getPostVideoUrl(post: Pick<CreatorStudioPostRecord, "contentVideoUrls">) {
   return post.contentVideoUrls[0] ?? null;
+}
+
+function getPostPreviewVideoUrl(
+  post: Pick<CreatorStudioPostRecord, "previewClipVideoUrl">,
+) {
+  return post.previewClipVideoUrl?.trim() || null;
 }
 
 function getPostVideoMetadata(
@@ -3898,6 +3910,9 @@ function VlogManagerCard({
   referralCode: string | null;
 }) {
   const videoUrl = getPostVideoUrl(post);
+  const previewVideoUrl = getPostPreviewVideoUrl(post);
+  const hasPreviewVideo = Boolean(previewVideoUrl);
+  const fallbackVideoUrl = previewVideoUrl ?? videoUrl;
   const shouldBypassCoverImageOptimization =
     shouldBypassFanletterImageOptimization(post.coverImageUrl);
   const teaserFrameOptions = buildVlogTeaserFrameOptions(post);
@@ -3967,13 +3982,13 @@ function VlogManagerCard({
             src={post.coverImageUrl}
             unoptimized={shouldBypassCoverImageOptimization}
           />
-        ) : videoUrl ? (
+        ) : fallbackVideoUrl ? (
           <video
             className="absolute inset-0 h-full w-full object-cover"
             muted
             playsInline
             preload="metadata"
-            src={videoUrl}
+            src={fallbackVideoUrl}
           />
         ) : (
           <div className="flex h-full min-h-[16rem] items-center justify-center bg-black text-white/40">
@@ -4020,9 +4035,19 @@ function VlogManagerCard({
               <StatusPill status={post.status}>
                 {getStatusLabel(copy, post.status)}
               </StatusPill>
-              <StatusPill status={post.priceType}>{getPostPriceLabel(copy, post)}</StatusPill>
+              <StatusPill status={post.priceType}>
+                {getPostPriceLabel(copy, post)}
+              </StatusPill>
               <StatusPill status={isNsfw ? "nsfw" : "general"}>
                 {isNsfw ? copy.labels.nsfw : copy.labels.generalContent}
+              </StatusPill>
+              <StatusPill
+                status={hasPreviewVideo ? "preview-ready" : "preview-missing"}
+              >
+                <Video className="mr-1 size-3.5" />
+                {hasPreviewVideo
+                  ? copy.labels.previewVideoReady
+                  : copy.labels.previewVideoMissing}
               </StatusPill>
               {hasExclusiveNewsAssignment ? (
                 <StatusPill status="exclusive">
@@ -4057,6 +4082,26 @@ function VlogManagerCard({
                 {post.publishedAt
                   ? formatDateLabel(locale, post.publishedAt)
                   : getStatusLabel(copy, post.status)}
+              </span>
+            </span>
+            <span
+              className={`rounded-lg border px-3 py-2 ${
+                hasPreviewVideo
+                  ? "border-[#16702e]/18 bg-[#ecfff0]"
+                  : "border-amber-200 bg-amber-50"
+              }`}
+            >
+              <span className="block text-[0.66rem] uppercase tracking-[0.12em]">
+                {copy.labels.previewVideo}
+              </span>
+              <span
+                className={`mt-1 block truncate text-sm font-bold normal-case tracking-normal ${
+                  hasPreviewVideo ? "text-[#0c5f24]" : "text-amber-800"
+                }`}
+              >
+                {hasPreviewVideo
+                  ? copy.labels.previewVideoReady
+                  : copy.labels.previewVideoMissing}
               </span>
             </span>
           </div>
@@ -4377,19 +4422,23 @@ function StatusPill({
       ? "border-[#44f26e]/40 bg-[#44f26e]/12 text-[#0c5f24]"
       : status === "exclusive"
         ? "border-[#16702e]/24 bg-[#e9f8ec] text-[#0c5f24]"
-      : status === "draft"
-        ? "border-amber-200 bg-amber-50 text-amber-800"
-        : status === "archived"
-          ? "border-black/10 bg-black/[0.06] text-black/54"
-          : status === "nsfw"
-            ? "border-rose-200 bg-rose-50 text-rose-800"
-            : status === "general"
-              ? "border-black/10 bg-white text-black/58"
-          : status === "paid"
-            ? "border-[#44f26e]/36 bg-black text-white"
-            : status === "free"
-              ? "border-[#16702e]/18 bg-[#e9f8ec] text-[#0c5f24]"
-              : "border-black/10 bg-white text-black/58";
+        : status === "preview-ready"
+          ? "border-[#16702e]/24 bg-[#ecfff0] text-[#0c5f24]"
+          : status === "preview-missing"
+            ? "border-amber-200 bg-amber-50 text-amber-800"
+            : status === "draft"
+              ? "border-amber-200 bg-amber-50 text-amber-800"
+              : status === "archived"
+                ? "border-black/10 bg-black/[0.06] text-black/54"
+                : status === "nsfw"
+                  ? "border-rose-200 bg-rose-50 text-rose-800"
+                  : status === "general"
+                    ? "border-black/10 bg-white text-black/58"
+                    : status === "paid"
+                      ? "border-[#44f26e]/36 bg-black text-white"
+                      : status === "free"
+                        ? "border-[#16702e]/18 bg-[#e9f8ec] text-[#0c5f24]"
+                        : "border-black/10 bg-white text-black/58";
 
   return (
     <span
