@@ -1,4 +1,4 @@
-import type { ContentPostVideoPreviewResponse } from "@/lib/content";
+import type { ContentPostVideoPreviewResponse } from "@/lib/content-video-shared";
 
 type CreateContentVideoPreviewInput = {
   email: string;

@@ -1,5 +1,3 @@
-import { after } from "next/server";
-
 import {
   isContentFanRequestPolicyErrorMessage,
   isContentMaturityPolicyErrorMessage,
@@ -27,36 +25,12 @@ import {
   getContentSocialSummaryForViewer,
   updateContentPostForMember,
 } from "@/lib/content-service";
-import {
-  ensureMissingContentPreviewClipVideoUrl,
-  resolveMissingContentPreviewClipVideoUrl,
-} from "@/lib/content-preview-mutation-service";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
-const CONTENT_PREVIEW_RETRY_DELAY_MS = 5_000;
-
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
-}
-
-function schedulePreviewClipRetry(content: ContentPostMutationResponse["content"]) {
-  if (content.previewClipVideoUrl || content.contentVideoUrls.length === 0) {
-    return;
-  }
-
-  after(async () => {
-    await ensureMissingContentPreviewClipVideoUrl({
-      contentId: content.contentId,
-      initialDelayMs: CONTENT_PREVIEW_RETRY_DELAY_MS,
-    }).catch((error) => {
-      console.warn("[content-preview] delayed preview retry failed", {
-        contentId: content.contentId,
-        error: error instanceof Error ? error.message : String(error),
-      });
-    });
-  });
 }
 
 export async function GET(
@@ -359,12 +333,7 @@ export async function PATCH(
         contentId,
         email: authorization.normalizedEmail,
       },
-      {
-        resolveMissingPreviewClipVideoUrl:
-          resolveMissingContentPreviewClipVideoUrl,
-      },
     );
-    schedulePreviewClipRetry(content);
 
     const response: ContentPostMutationResponse = {
       content,

@@ -2,15 +2,9 @@ import "server-only";
 
 import { put } from "@vercel/blob";
 import { spawn } from "node:child_process";
-import { randomUUID } from "node:crypto";
-import { createWriteStream } from "node:fs";
-import { mkdtemp, readFile, rm, stat } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { basename, extname, join } from "node:path";
-import { Readable } from "node:stream";
+import { basename, extname } from "node:path";
+import { Readable, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
-
-import ffmpegStatic from "ffmpeg-static";
 
 import {
   CONTENT_GENERATED_VIDEO_PATH_SEGMENT,
@@ -19,11 +13,14 @@ import {
   CONTENT_UPLOADED_VIDEO_PATH_SEGMENT,
   CONTENT_VIDEO_MAX_BYTES,
   type ContentPostVideoPreviewResponse,
-} from "@/lib/content";
+} from "@/lib/content-video-shared";
 
 const PREVIEW_DURATION_SEC = 6;
 const PREVIEW_CONTENT_TYPE = "video/mp4";
 const PREVIEW_MAX_SOURCE_BYTES = CONTENT_VIDEO_MAX_BYTES;
+const PREVIEW_MAX_OUTPUT_BYTES = 25 * 1024 * 1024;
+const FFMPEG_BINARY_PATH =
+  "node_modules/.pnpm/ffmpeg-static@5.3.0/node_modules/ffmpeg-static/ffmpeg";
 const FFMPEG_TIMEOUT_MS = 150_000;
 const SOURCE_DOWNLOAD_ATTEMPT_COUNT = 6;
 const SOURCE_DOWNLOAD_RETRY_DELAY_MS = 2_000;
@@ -109,16 +106,6 @@ export function isPreviewableContentVideoUrl({
   );
 }
 
-function resolveFfmpegPath() {
-  const configured = process.env.FFMPEG_PATH?.trim();
-
-  if (configured) {
-    return configured;
-  }
-
-  return ffmpegStatic || "ffmpeg";
-}
-
 function delay(ms: number) {
   return new Promise<void>((resolve) => {
     windowlessSetTimeout(resolve, ms);
@@ -132,10 +119,24 @@ function isRetriableSourceDownloadError(error: unknown) {
   );
 }
 
-async function downloadSourceVideoOnce(
-  sourceVideoUrl: string,
-  destinationPath: string,
-) {
+function createSourceByteLimitTransform() {
+  let totalBytes = 0;
+
+  return new Transform({
+    transform(chunk: Buffer, _encoding, callback) {
+      totalBytes += chunk.length;
+
+      if (totalBytes > PREVIEW_MAX_SOURCE_BYTES) {
+        callback(new Error("Source video is larger than the preview limit."));
+        return;
+      }
+
+      callback(null, chunk);
+    },
+  });
+}
+
+async function fetchSourceVideo(sourceVideoUrl: string) {
   const controller = new AbortController();
   const timeout = windowlessSetTimeout(
     () => controller.abort(),
@@ -165,61 +166,17 @@ async function downloadSourceVideoOnce(
     throw new Error("Source video is larger than the preview limit.");
   }
 
-  await pipeline(
-    Readable.fromWeb(
-      response.body as unknown as Parameters<typeof Readable.fromWeb>[0],
-    ),
-    createWriteStream(destinationPath),
-  );
-
-  const fileStat = await stat(destinationPath);
-
-  if (fileStat.size <= 0) {
-    throw new Error("Downloaded source video is empty.");
-  }
-
-  if (fileStat.size > PREVIEW_MAX_SOURCE_BYTES) {
-    throw new Error("Source video is larger than the preview limit.");
-  }
+  return response.body;
 }
 
-async function downloadSourceVideo(sourceVideoUrl: string, destinationPath: string) {
-  let lastError: unknown = null;
-
-  for (let attempt = 1; attempt <= SOURCE_DOWNLOAD_ATTEMPT_COUNT; attempt += 1) {
-    try {
-      await downloadSourceVideoOnce(sourceVideoUrl, destinationPath);
-      return;
-    } catch (error) {
-      lastError = error;
-
-      if (
-        attempt >= SOURCE_DOWNLOAD_ATTEMPT_COUNT ||
-        !isRetriableSourceDownloadError(error)
-      ) {
-        break;
-      }
-
-      await rm(destinationPath, { force: true }).catch(() => null);
-      await delay(SOURCE_DOWNLOAD_RETRY_DELAY_MS * attempt);
-    }
-  }
-
-  throw lastError instanceof Error
-    ? lastError
-    : new Error("Failed to download source video for preview.");
-}
-
-async function runFfmpeg(inputPath: string, outputPath: string) {
-  const ffmpegPath = resolveFfmpegPath();
-  const configuredFfmpegPath = process.env.FFMPEG_PATH?.trim();
+async function transcodeSourceVideo(sourceVideoUrl: string) {
   const args = [
     "-y",
     "-hide_banner",
     "-loglevel",
     "error",
     "-i",
-    inputPath,
+    "pipe:0",
     "-map",
     "0:v:0",
     "-t",
@@ -235,60 +192,127 @@ async function runFfmpeg(inputPath: string, outputPath: string) {
     "30",
     "-pix_fmt",
     "yuv420p",
+    "-f",
+    "mp4",
     "-movflags",
-    "+faststart",
-    outputPath,
+    "frag_keyframe+empty_moov+default_base_moof",
+    "pipe:1",
   ];
 
+  const sourceBody = await fetchSourceVideo(sourceVideoUrl);
+
   console.info("[content-preview] ffmpeg preview process starting", {
-    ffmpegPath,
-    hasConfiguredFfmpegPath: Boolean(configuredFfmpegPath),
+    ffmpegPath: FFMPEG_BINARY_PATH,
   });
 
-  await new Promise<void>((resolve, reject) => {
-    const child = spawn(ffmpegPath, args, {
-      stdio: ["ignore", "ignore", "pipe"],
+  return new Promise<Buffer>((resolve, reject) => {
+    const child = spawn(FFMPEG_BINARY_PATH, args, {
+      stdio: ["pipe", "pipe", "pipe"],
     });
+    const outputChunks: Buffer[] = [];
     let stderr = "";
+    let outputBytes = 0;
+    let settled = false;
     const timeout = windowlessSetTimeout(() => {
       child.kill("SIGKILL");
-      reject(new Error("Timed out while generating preview video."));
+      settle(new Error("Timed out while generating preview video."));
     }, FFMPEG_TIMEOUT_MS);
 
+    function settle(error: Error | null, buffer?: Buffer) {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      windowlessClearTimeout(timeout);
+
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(buffer ?? Buffer.alloc(0));
+    }
+
+    pipeline(
+      Readable.fromWeb(
+        sourceBody as unknown as Parameters<typeof Readable.fromWeb>[0],
+      ),
+      createSourceByteLimitTransform(),
+      child.stdin,
+    ).catch((error: unknown) => {
+      child.kill("SIGKILL");
+      settle(error instanceof Error ? error : new Error(String(error)));
+    });
+
+    child.stdout.on("data", (chunk: Buffer) => {
+      outputBytes += chunk.length;
+
+      if (outputBytes > PREVIEW_MAX_OUTPUT_BYTES) {
+        child.kill("SIGKILL");
+        settle(new Error("Generated preview video is larger than expected."));
+        return;
+      }
+
+      outputChunks.push(chunk);
+    });
     child.stderr.on("data", (chunk: Buffer) => {
       stderr = `${stderr}${chunk.toString("utf8")}`.slice(-4000);
     });
     child.on("error", (error) => {
-      windowlessClearTimeout(timeout);
-      reject(
+      settle(
         new Error(
-          `Failed to start ffmpeg preview process (${ffmpegPath}): ${
+          `Failed to start ffmpeg preview process (${FFMPEG_BINARY_PATH}): ${
             error.message
           }`,
         ),
       );
     });
     child.on("close", (code) => {
-      windowlessClearTimeout(timeout);
-
       if (code === 0) {
-        resolve();
+        const outputBuffer = Buffer.concat(outputChunks, outputBytes);
+
+        if (outputBuffer.length <= 0) {
+          settle(new Error("Generated preview video is empty."));
+          return;
+        }
+
+        settle(null, outputBuffer);
         return;
       }
 
-      reject(
+      settle(
         new Error(
           stderr.trim() || `ffmpeg exited with status ${code ?? "unknown"}.`,
         ),
       );
     });
   });
+}
 
-  const outputStat = await stat(outputPath);
+async function createPreviewBuffer(sourceVideoUrl: string) {
+  let lastError: unknown = null;
 
-  if (outputStat.size <= 0) {
-    throw new Error("Generated preview video is empty.");
+  for (let attempt = 1; attempt <= SOURCE_DOWNLOAD_ATTEMPT_COUNT; attempt += 1) {
+    try {
+      return await transcodeSourceVideo(sourceVideoUrl);
+    } catch (error) {
+      lastError = error;
+
+      if (
+        attempt >= SOURCE_DOWNLOAD_ATTEMPT_COUNT ||
+        !isRetriableSourceDownloadError(error)
+      ) {
+        break;
+      }
+
+      await delay(SOURCE_DOWNLOAD_RETRY_DELAY_MS * attempt);
+    }
   }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("Failed to generate preview video.");
 }
 
 const windowlessSetTimeout: typeof setTimeout = globalThis.setTimeout.bind(
@@ -323,26 +347,15 @@ export async function createContentVideoPreview({
     ? basename(sourceInfo.fileName, extname(sourceInfo.fileName))
     : "";
   const previewBaseName = sanitizeBaseName(title?.trim() || sourceBaseName);
-  const tempDirectory = await mkdtemp(join(tmpdir(), "fanletter-video-preview-"));
-  const inputPath = join(tempDirectory, `source-${randomUUID()}.video`);
-  const outputPath = join(tempDirectory, `preview-${randomUUID()}.mp4`);
 
   try {
     console.info("[content-preview] preview generation started", logContext);
-    await downloadSourceVideo(normalizedSourceVideoUrl, inputPath);
-    const inputStat = await stat(inputPath);
-    console.info("[content-preview] source video downloaded", {
-      ...logContext,
-      sourceBytes: inputStat.size,
-    });
-    await runFfmpeg(inputPath, outputPath);
-    const outputStat = await stat(outputPath);
+    const previewBuffer = await createPreviewBuffer(normalizedSourceVideoUrl);
     console.info("[content-preview] preview video generated", {
       ...logContext,
-      previewBytes: outputStat.size,
+      previewBytes: previewBuffer.length,
     });
 
-    const previewBuffer = await readFile(outputPath);
     const pathname = [
       CONTENT_POSTS_BLOB_PATH_SEGMENT,
       referralCode,
@@ -351,7 +364,7 @@ export async function createContentVideoPreview({
     ].join("/");
     const uploaded = await put(
       pathname,
-      new Blob([previewBuffer], { type: PREVIEW_CONTENT_TYPE }),
+      previewBuffer,
       {
         access: "public",
         addRandomSuffix: true,
@@ -378,7 +391,5 @@ export async function createContentVideoPreview({
       error: formatPreviewError(error),
     });
     throw error;
-  } finally {
-    await rm(tempDirectory, { force: true, recursive: true }).catch(() => null);
   }
 }

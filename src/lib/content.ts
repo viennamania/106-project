@@ -1,15 +1,25 @@
 import type { MemberRecord } from "@/lib/member";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
+import {
+  CONTENT_GENERATED_VIDEO_PATH_SEGMENT,
+  CONTENT_POSTS_BLOB_PATH_SEGMENT,
+  CONTENT_UPLOADED_VIDEO_PATH_SEGMENT,
+} from "@/lib/content-video-shared";
+
+export {
+  CONTENT_GENERATED_VIDEO_PATH_SEGMENT,
+  CONTENT_POSTS_BLOB_PATH_SEGMENT,
+  CONTENT_PREVIEW_VIDEO_PATH_SEGMENT,
+  CONTENT_UPLOADED_VIDEO_PATH_SEGMENT,
+  CONTENT_VIDEO_MAX_BYTES,
+} from "@/lib/content-video-shared";
+export type { ContentPostVideoPreviewResponse } from "@/lib/content-video-shared";
 
 export const CONTENT_FEED_PAGE_SIZE = 20;
 export const CONTENT_LIBRARY_PAGE_SIZE = 24;
 export const CONTENT_NETWORK_LEVEL_LIMIT = 6;
 export const CONTENT_PAID_USDT_AMOUNT = "1";
 export const CONTENT_PAID_USDT_AMOUNT_WEI = "1000000000000000000";
-export const CONTENT_POSTS_BLOB_PATH_SEGMENT = "content-posts";
-export const CONTENT_UPLOADED_VIDEO_PATH_SEGMENT = "videos";
-export const CONTENT_GENERATED_VIDEO_PATH_SEGMENT = "generated-content-videos";
-export const CONTENT_PREVIEW_VIDEO_PATH_SEGMENT = "preview-videos";
 export const CONTENT_PAID_REQUIRES_UPLOADED_VIDEO_ERROR =
   "Paid content requires a directly uploaded video.";
 export const CONTENT_AI_GENERATED_VIDEO_FREE_ONLY_ERROR =
@@ -26,7 +36,6 @@ export const CONTENT_EXCLUSIVE_NEWS_REPORTER_NOT_FOUND_ERROR =
   "Exclusive news reporter not found.";
 export const CONTENT_IMAGE_VISUAL_BRIEF_LIMIT = 6000;
 export const CONTENT_VIDEO_LIMIT = 1;
-export const CONTENT_VIDEO_MAX_BYTES = 200 * 1024 * 1024;
 export const contentVideoMimeTypes = [
   "video/mp4",
   "video/quicktime",
@@ -1011,14 +1020,6 @@ export type ContentPostGenerateCoverResponse = {
   revisedPrompt: string | null;
   url: string;
   width?: number | null;
-};
-
-export type ContentPostVideoPreviewResponse = {
-  contentType: string;
-  durationSec: number | null;
-  pathname: string;
-  sourceVideoUrl: string;
-  url: string;
 };
 
 export type ContentGenerationFailureKind =

@@ -1,6 +1,6 @@
 import {
   type ContentPostVideoPreviewResponse,
-} from "@/lib/content";
+} from "@/lib/content-video-shared";
 import { createContentVideoPreview } from "@/lib/content-video-preview-service";
 import { normalizeEmail } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
