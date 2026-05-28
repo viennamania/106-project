@@ -1327,6 +1327,7 @@ function SourceVlogRevealTeaserOverlay({
   blurred,
   connectHref,
   frames,
+  layout = "overlay",
   locale,
   reportId,
   sourceReveal,
@@ -1334,6 +1335,7 @@ function SourceVlogRevealTeaserOverlay({
   blurred: boolean;
   connectHref: string;
   frames: SourceVlogSceneFrame[];
+  layout?: "overlay" | "sideRail";
   locale: Locale;
   reportId: string;
   sourceReveal: FanletterNewsSourceRevealState;
@@ -1341,40 +1343,63 @@ function SourceVlogRevealTeaserOverlay({
   const copy = getSourceVlogRevealTeaserCopy(locale);
   const teaserFrames = frames.slice(0, 3);
   const hasTeaserFrames = teaserFrames.length > 0;
+  const isSideRail = layout === "sideRail";
   const teaserGridClass =
     teaserFrames.length >= 3
       ? "grid-cols-3"
       : teaserFrames.length === 2
         ? "grid-cols-2"
         : "grid-cols-1";
+  const rootClassName = isSideRail
+    ? "absolute inset-0 overflow-y-auto bg-[#07100b] p-3 text-white sm:p-4"
+    : "absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.88)_100%)] p-3 text-white sm:p-5";
+  const contentClassName = hasTeaserFrames
+    ? isSideRail
+      ? "mx-auto flex min-h-full w-full max-w-[24rem] flex-col justify-center gap-3"
+      : "mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center"
+    : isSideRail
+      ? "flex min-h-full w-full items-center justify-center"
+      : "flex h-full min-h-0 w-full items-center justify-center";
+  const teaserColumnClassName = isSideRail
+    ? "flex min-h-0 flex-col gap-2"
+    : "flex min-h-0 flex-1 flex-col gap-2 sm:h-full sm:justify-center sm:gap-3";
+  const teaserHeaderClassName = isSideRail
+    ? "flex flex-col gap-1"
+    : "mb-2 flex items-center justify-between gap-2";
+  const teaserTitleClassName = isSideRail
+    ? "mt-0.5 text-base font-black leading-tight [word-break:keep-all]"
+    : "mt-1 text-lg font-black leading-tight [word-break:keep-all] sm:text-2xl";
+  const teaserMetaClassName = isSideRail
+    ? "inline-flex w-fit rounded-full border border-white/16 bg-white/12 px-2.5 py-1 text-[0.58rem] font-black text-white/72"
+    : "hidden shrink-0 rounded-full border border-white/16 bg-white/12 px-2.5 py-1 text-[0.62rem] font-black text-white/78 sm:inline-flex";
+  const teaserFramesClassName = isSideRail
+    ? `grid ${teaserGridClass} gap-1.5`
+    : `grid min-h-0 flex-1 ${teaserGridClass} gap-1.5 sm:gap-2`;
+  const voteClassName = isSideRail
+    ? "w-full border-white/10 bg-white/[0.05] shadow-none"
+    : hasTeaserFrames
+      ? "w-full"
+      : "w-full max-w-[31rem]";
 
   return (
-    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.88)_100%)] p-3 text-white sm:p-5">
-      <div
-        className={
-          hasTeaserFrames
-            ? "mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center"
-            : "flex h-full min-h-0 w-full items-center justify-center"
-        }
-      >
+    <div className={rootClassName}>
+      <div className={contentClassName}>
         {hasTeaserFrames ? (
-          <div className="flex min-h-0 flex-1 flex-col gap-2 sm:h-full sm:justify-center sm:gap-3">
-            <div className="mb-2 flex items-center justify-between gap-2">
+          <div className={teaserColumnClassName}>
+            <div className={teaserHeaderClassName}>
               <div className="min-w-0">
                 <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
                   {copy.eyebrow}
                 </p>
-                <h3 className="mt-1 text-lg font-black leading-tight [word-break:keep-all] sm:text-2xl">
+                <h3 className={teaserTitleClassName}>
                   {copy.title}
                 </h3>
               </div>
-              <span className="hidden shrink-0 rounded-full border border-white/16 bg-white/12 px-2.5 py-1 text-[0.62rem] font-black text-white/78 sm:inline-flex">
+              <span className={teaserMetaClassName}>
                 {copy.meta}
               </span>
             </div>
-            <div
-              className={`grid min-h-0 flex-1 ${teaserGridClass} gap-1.5 sm:gap-2`}
-            >
+            <div className={teaserFramesClassName}>
               {teaserFrames.map((frame, index) => {
                 const imageUrl = frame.imageUrl;
                 const isPrimary = index === 0;
@@ -1382,14 +1407,17 @@ function SourceVlogRevealTeaserOverlay({
                   frame.timestampSec,
                   locale,
                 );
+                const frameClassName = isSideRail
+                  ? isPrimary
+                    ? "relative h-20 overflow-hidden rounded-md border border-[#44f26e]/60 bg-black shadow-[0_12px_24px_rgba(68,242,110,0.18)] sm:h-24"
+                    : "relative h-20 overflow-hidden rounded-md border border-white/16 bg-black shadow-[0_10px_20px_rgba(0,0,0,0.18)] sm:h-24"
+                  : isPrimary
+                    ? "relative h-full min-h-[7rem] overflow-hidden rounded-lg border border-[#44f26e]/60 bg-black shadow-[0_18px_45px_rgba(68,242,110,0.22)]"
+                    : "relative h-full min-h-[7rem] overflow-hidden rounded-lg border border-white/16 bg-black shadow-[0_12px_28px_rgba(0,0,0,0.22)]";
 
                 return (
                   <div
-                    className={
-                      isPrimary
-                        ? "relative h-full min-h-[7rem] overflow-hidden rounded-lg border border-[#44f26e]/60 bg-black shadow-[0_18px_45px_rgba(68,242,110,0.22)]"
-                        : "relative h-full min-h-[7rem] overflow-hidden rounded-lg border border-white/16 bg-black shadow-[0_12px_28px_rgba(0,0,0,0.22)]"
-                    }
+                    className={frameClassName}
                     key={`${imageUrl}-${index}`}
                   >
                     <Image
@@ -1402,7 +1430,9 @@ function SourceVlogRevealTeaserOverlay({
                       }
                       fill
                       sizes={
-                        isPrimary
+                        isSideRail
+                          ? "(max-width: 1024px) 8rem, 9rem"
+                          : isPrimary
                           ? "(max-width: 640px) 54vw, 28rem"
                           : "(max-width: 640px) 38vw, 14rem"
                       }
@@ -1423,7 +1453,7 @@ function SourceVlogRevealTeaserOverlay({
         ) : null}
 
         <FanletterNewsSourceRevealVote
-          className={hasTeaserFrames ? "w-full" : "w-full max-w-[31rem]"}
+          className={voteClassName}
           connectHref={connectHref}
           density="compact"
           initialState={sourceReveal}
@@ -1959,14 +1989,27 @@ function SourceVlogEmbed({
               previewVideoUrl={sourcePreviewVideoUrl}
               title={sourceContent?.title ?? copy.embeddedTitle}
             >
-              <SourceVlogRevealTeaserOverlay
-                blurred={sourceMediaBlurred}
-                connectHref={sourceReveal.connectHref}
-                frames={sourceOverlaySceneFrames}
-                locale={locale}
-                reportId={sourceReveal.reportId}
-                sourceReveal={sourceReveal}
-              />
+              <div className="absolute inset-0 lg:hidden">
+                <SourceVlogRevealTeaserOverlay
+                  blurred={sourceMediaBlurred}
+                  connectHref={sourceReveal.connectHref}
+                  frames={sourceOverlaySceneFrames}
+                  locale={locale}
+                  reportId={sourceReveal.reportId}
+                  sourceReveal={sourceReveal}
+                />
+              </div>
+              <div className="absolute inset-0 hidden lg:block">
+                <SourceVlogRevealTeaserOverlay
+                  blurred={sourceMediaBlurred}
+                  connectHref={sourceReveal.connectHref}
+                  frames={[]}
+                  layout="sideRail"
+                  locale={locale}
+                  reportId={sourceReveal.reportId}
+                  sourceReveal={sourceReveal}
+                />
+              </div>
             </SourceVlogLockedPreviewHero>
           ) : (
             <div className="relative mx-auto aspect-[3/4] w-full overflow-hidden bg-black sm:aspect-video">
