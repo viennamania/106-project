@@ -1354,7 +1354,7 @@ function SourceVlogRevealTeaserOverlay({
         className={
           hasTeaserFrames
             ? "mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center"
-            : "flex h-full min-h-0 w-full items-end justify-center sm:justify-end"
+            : "flex h-full min-h-0 w-full items-center justify-center"
         }
       >
         {hasTeaserFrames ? (
@@ -1423,7 +1423,7 @@ function SourceVlogRevealTeaserOverlay({
         ) : null}
 
         <FanletterNewsSourceRevealVote
-          className={hasTeaserFrames ? "w-full" : "w-full max-w-[31rem] lg:hidden"}
+          className={hasTeaserFrames ? "w-full" : "w-full max-w-[31rem]"}
           connectHref={connectHref}
           density="compact"
           initialState={sourceReveal}
@@ -1724,37 +1724,43 @@ function SourceVlogLockedPreviewHero({
   title: string;
 }) {
   return (
-    <div className="relative mx-auto aspect-[4/5] w-full overflow-hidden bg-black sm:aspect-video">
-      {posterImageUrl ? (
-        <Image
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 scale-[1.08] object-cover opacity-45 blur-2xl brightness-[0.62] saturate-[1.05]"
-          fill
-          loading="eager"
-          sizes="(max-width: 768px) 100vw, 50vw"
-          src={posterImageUrl}
-          unoptimized={shouldBypassFanletterImageOptimization(posterImageUrl)}
+    <div className="grid overflow-hidden bg-black lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]">
+      <div className="relative mx-auto aspect-[4/5] w-full overflow-hidden bg-black sm:aspect-video lg:h-full lg:min-h-[28rem] lg:aspect-auto">
+        {posterImageUrl ? (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 scale-[1.08] object-cover opacity-45 blur-2xl brightness-[0.62] saturate-[1.05]"
+            fill
+            loading="eager"
+            sizes="(max-width: 1024px) 100vw, 62vw"
+            src={posterImageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(posterImageUrl)}
+          />
+        ) : null}
+        <FanletterAutoplayVideo
+          className="absolute inset-0 h-full w-full object-contain brightness-[0.92] saturate-[1.04]"
+          controls
+          poster={posterImageUrl ?? undefined}
+          src={previewVideoUrl}
+          title={title}
         />
-      ) : null}
-      <FanletterAutoplayVideo
-        ariaHidden
-        className="absolute inset-0 h-full w-full scale-[1.03] object-cover brightness-[0.76] saturate-[1.04]"
-        poster={posterImageUrl ?? undefined}
-        src={previewVideoUrl}
-        title={title}
-      />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.38),rgba(0,0,0,0.12)_34%,rgba(0,0,0,0.78))]" />
-      <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1.5 sm:left-4 sm:top-4">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/18 bg-black/52 px-2.5 py-1 text-[0.68rem] font-black text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)] backdrop-blur">
-          <PlayCircle className="size-3.5 text-[#44f26e]" />
-          {copy.embeddedPreviewBadge}
-        </span>
-        <span className="inline-flex items-center rounded-full border border-white/14 bg-black/42 px-2.5 py-1 text-[0.68rem] font-bold text-white/78 shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur">
-          {copy.embeddedPreviewMeta}
-        </span>
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.22),rgba(0,0,0,0.04)_34%,rgba(0,0,0,0.42))]" />
+        <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1.5 sm:left-4 sm:top-4">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/18 bg-black/52 px-2.5 py-1 text-[0.68rem] font-black text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)] backdrop-blur">
+            <PlayCircle className="size-3.5 text-[#44f26e]" />
+            {copy.embeddedPreviewBadge}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-white/14 bg-black/42 px-2.5 py-1 text-[0.68rem] font-bold text-white/78 shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur">
+            {copy.embeddedPreviewMeta}
+          </span>
+        </div>
       </div>
-      {children}
+      {children ? (
+        <div className="relative min-h-[23rem] overflow-hidden border-t border-white/10 bg-[#07100b] sm:min-h-[24rem] lg:min-h-0 lg:border-l lg:border-t-0">
+          {children}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1897,15 +1903,18 @@ function SourceVlogEmbed({
     !sourceRevealLocked &&
     sourceSceneFrames.length > 1 &&
     canShowSourceSceneGallery;
-  const shouldShowDesktopSourceRevealDock = Boolean(
-    sourceRevealLocked && sourceReveal && sourceOverlaySceneFrames.length === 0,
-  );
   const shouldRequireNsfwScenePin =
     isSourceNsfw && shouldShowSourceTeaserGallery;
   const shouldShowLockedPreviewHero = Boolean(
     (sourceRevealLocked || !viewerCanAccessSource) &&
       sourcePreviewVideoUrl &&
       !sourceMediaBlurred,
+  );
+  const shouldShowDesktopSourceRevealDock = Boolean(
+    sourceRevealLocked &&
+      sourceReveal &&
+      sourceOverlaySceneFrames.length === 0 &&
+      !shouldShowLockedPreviewHero,
   );
   const noticeMessage = blurred
     ? copy.nsfwBlurNotice
