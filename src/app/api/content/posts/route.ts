@@ -1,3 +1,5 @@
+import { after } from "next/server";
+
 import {
   isContentFanRequestPolicyErrorMessage,
   isContentMaturityPolicyErrorMessage,
@@ -12,7 +14,10 @@ import {
   createContentPostForMember,
   getCreatorStudioPostsForMember,
 } from "@/lib/content-service";
-import { resolveMissingContentPreviewClipVideoUrl } from "@/lib/content-preview-mutation-service";
+import {
+  ensureMissingContentPreviewClipVideoUrl,
+  resolveMissingContentPreviewClipVideoUrl,
+} from "@/lib/content-preview-mutation-service";
 import { hasLocale } from "@/lib/i18n";
 
 export const runtime = "nodejs";
@@ -20,6 +25,24 @@ export const maxDuration = 300;
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
+}
+
+function schedulePreviewClipRetry(content: ContentPostMutationResponse["content"]) {
+  if (content.previewClipVideoUrl || content.contentVideoUrls.length === 0) {
+    return;
+  }
+
+  after(async () => {
+    await ensureMissingContentPreviewClipVideoUrl({
+      contentId: content.contentId,
+      initialDelayMs: 30_000,
+    }).catch((error) => {
+      console.warn("[content-preview] delayed preview retry failed", {
+        contentId: content.contentId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    });
+  });
 }
 
 export async function GET(request: Request) {
@@ -131,17 +154,20 @@ export async function POST(request: Request) {
       return authorization.error;
     }
 
+    const content = await createContentPostForMember(
+      {
+        ...body,
+        email: authorization.normalizedEmail,
+      },
+      {
+        resolveMissingPreviewClipVideoUrl:
+          resolveMissingContentPreviewClipVideoUrl,
+      },
+    );
+    schedulePreviewClipRetry(content);
+
     const response: ContentPostMutationResponse = {
-      content: await createContentPostForMember(
-        {
-          ...body,
-          email: authorization.normalizedEmail,
-        },
-        {
-          resolveMissingPreviewClipVideoUrl:
-            resolveMissingContentPreviewClipVideoUrl,
-        },
-      ),
+      content,
     };
 
     return Response.json(response, { status: 201 });
