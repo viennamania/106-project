@@ -2746,9 +2746,9 @@ export function FanletterVlogManagementPage({
             </div>
           </div>
 
-          <div className="border-t border-white/10 pb-2 pt-5 sm:pt-6">
-            <div className="grid gap-4 lg:grid-cols-[minmax(16rem,0.78fr)_minmax(0,1.22fr)] lg:items-stretch">
-              <div className="rounded-lg border border-white/12 bg-white/[0.04] p-4">
+          <div className="border-t border-white/10 pb-1 pt-4 sm:pt-6">
+            <div className="grid gap-3 lg:grid-cols-[minmax(16rem,0.68fr)_minmax(0,1.32fr)] lg:items-stretch">
+              <div className="rounded-lg border border-white/12 bg-white/[0.045] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-5">
                 <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
                   {copy.mobileGuide.eyebrow}
                 </p>
@@ -2759,11 +2759,40 @@ export function FanletterVlogManagementPage({
                   {copy.mobileGuide.body}
                 </p>
               </div>
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid grid-cols-2 gap-2 sm:hidden">
+                {beginnerSteps.map(
+                  ({ Icon, actionLabel, body, href, step, title }) => (
+                    <Link
+                      className="group flex min-h-[9.25rem] flex-col justify-between rounded-lg border border-white/12 bg-white/[0.045] p-3 !text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition active:scale-[0.99]"
+                      href={href}
+                      key={`mobile:${step}`}
+                    >
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                          <Icon className="size-4" />
+                        </span>
+                        <ArrowRight className="size-4 shrink-0 text-[#44f26e] transition group-hover:translate-x-0.5" />
+                      </span>
+                      <span className="mt-3 block min-w-0">
+                        <span className="block text-sm font-semibold leading-5">
+                          {step}. {title}
+                        </span>
+                        <span className="mt-1 line-clamp-2 block text-[0.72rem] font-medium leading-5 text-white/56">
+                          {body}
+                        </span>
+                      </span>
+                      <span className="mt-3 block truncate rounded-full border border-white/12 bg-black/24 px-2.5 py-1 text-center text-[0.68rem] font-semibold text-white/62">
+                        {actionLabel}
+                      </span>
+                    </Link>
+                  ),
+                )}
+              </div>
+              <div className="hidden gap-2 sm:grid sm:grid-cols-2">
                 {beginnerSteps.map(
                   ({ Icon, actionLabel, body, href, metricLabel, step, title }) => (
                     <Link
-                      className="group flex min-h-24 items-start gap-3 rounded-lg border border-white/12 bg-white/[0.04] p-3 !text-white transition hover:bg-white/[0.08]"
+                      className="group flex min-h-[6.75rem] items-start gap-3 rounded-lg border border-white/12 bg-white/[0.045] p-3 !text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-white/18 hover:bg-white/[0.075]"
                       href={href}
                       key={step}
                     >
@@ -2795,7 +2824,7 @@ export function FanletterVlogManagementPage({
         </div>
       </section>
 
-      <section className="bg-[#f6f8f4] px-4 py-5 text-black sm:px-6 sm:py-12 lg:px-8">
+      <section className="bg-[#f6f8f4] px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-5 text-black sm:px-6 sm:py-12 lg:px-8">
         <div className="mx-auto grid max-w-7xl gap-5 lg:grid-cols-[minmax(17rem,22rem)_minmax(0,1fr)] lg:items-start">
           <aside className="order-2 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_42px_rgba(8,18,12,0.06)] lg:sticky lg:top-4 lg:order-none">
             <div className="overflow-hidden rounded-lg border border-black/10 bg-[#0b110d]">
@@ -2921,7 +2950,7 @@ export function FanletterVlogManagementPage({
           </aside>
 
           <div className="order-1 min-w-0 scroll-mt-4 lg:order-none" id="vlog-list">
-            <div className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_18px_42px_rgba(8,18,12,0.06)] sm:p-5">
+            <div className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_18px_42px_rgba(8,18,12,0.06)] ring-1 ring-white/70 sm:p-5">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                 <div>
                   <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#16702e]">
@@ -2947,10 +2976,10 @@ export function FanletterVlogManagementPage({
               <div className="-mx-1 mt-5 flex snap-x gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0 md:pb-0 [&::-webkit-scrollbar]:hidden">
                 {priceFilterItems.map((item) => (
                   <Link
-                    className={`group min-h-20 min-w-[12.75rem] snap-start rounded-lg border p-4 text-left transition md:min-w-0 ${
+                    className={`group min-h-20 min-w-[12.75rem] snap-start rounded-lg border p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.62)] transition md:min-w-0 ${
                       appliedPrice === item.key
-                        ? "border-black bg-black text-white"
-                        : "border-black/10 bg-[#f6f8f4] text-black hover:border-black/20 hover:bg-white"
+                        ? "border-black bg-black text-white shadow-none"
+                        : "border-black/10 bg-[#f7faf5] text-black hover:border-black/20 hover:bg-white"
                     }`}
                     href={buildManagerHref({
                       page: 1,
@@ -2991,7 +3020,7 @@ export function FanletterVlogManagementPage({
                 ))}
               </div>
 
-              <div className="mt-4 flex flex-col gap-3 rounded-lg border border-black/10 bg-[#f6f8f4] p-3 sm:p-4 md:flex-row md:items-center md:justify-between">
+              <div className="mt-4 flex flex-col gap-3 rounded-lg border border-black/10 bg-[#f7faf5] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] sm:p-4 md:flex-row md:items-center md:justify-between">
                 <p className="text-sm font-medium leading-6 text-black/62">
                   {priceModeBody}
                 </p>
@@ -3027,7 +3056,7 @@ export function FanletterVlogManagementPage({
               >
                 <label className="min-w-0 flex-1">
                   <span className="sr-only">{copy.actions.search}</span>
-                  <div className="flex h-12 items-center gap-3 rounded-full border border-black/10 bg-[#f6f8f4] px-4">
+                  <div className="flex h-12 items-center gap-3 rounded-full border border-black/10 bg-[#f7faf5] px-4 transition focus-within:border-[#16702e] focus-within:bg-white">
                     <Search className="size-4 text-black/36" />
                     <input
                       className="w-full min-w-0 border-0 bg-transparent text-sm font-medium text-black outline-none placeholder:text-black/36"
@@ -3076,7 +3105,7 @@ export function FanletterVlogManagementPage({
                 ))}
               </div>
 
-              <div className="mt-4 rounded-lg border border-black/10 bg-[#f6f8f4] p-3 sm:p-4">
+              <div className="mt-4 rounded-lg border border-black/10 bg-[#f7faf5] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] sm:p-4">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div className="min-w-0">
                     <p className="inline-flex items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#16702e]">
@@ -3796,7 +3825,7 @@ function HeroMetric({
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-white/12 bg-white/[0.04] p-3 sm:p-4">
+    <div className="min-h-20 rounded-lg border border-white/12 bg-white/[0.045] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:p-4">
       <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white/42">
         {label}
       </p>
@@ -3926,7 +3955,7 @@ function VlogManagerCard({
   ];
 
   return (
-    <article className="grid overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)] lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+    <article className="grid overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_42px_rgba(8,18,12,0.06)] ring-1 ring-white/70 transition hover:border-black/14 hover:shadow-[0_22px_52px_rgba(8,18,12,0.08)] lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
       <div className="relative aspect-video min-h-[11rem] bg-black sm:min-h-[12rem] lg:min-h-0 lg:self-start">
         {post.coverImageUrl ? (
           <Image
@@ -4033,11 +4062,11 @@ function VlogManagerCard({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-2 rounded-lg border border-black/10 bg-[#f6f8f4] p-1.5 sm:grid-cols-4 sm:p-2">
+        <div className="mt-4 grid grid-cols-2 gap-2 rounded-lg border border-black/10 bg-[#f7faf5] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] sm:grid-cols-4 sm:p-2">
           {signalMetrics.map(({ Icon, label, value }) => (
             <div
               aria-label={`${label} ${formatNumber(value, locale)}`}
-              className="flex min-h-12 min-w-0 items-center justify-between gap-2 rounded-lg border border-black/10 bg-white px-2.5 py-2 sm:px-3"
+              className="flex min-h-12 min-w-0 items-center justify-between gap-2 rounded-lg border border-black/10 bg-white px-2.5 py-2 shadow-[0_1px_0_rgba(8,18,12,0.03)] sm:px-3"
               key={label}
             >
               <span className="flex min-w-0 items-center gap-1.5 sm:gap-2">
@@ -4054,7 +4083,7 @@ function VlogManagerCard({
         </div>
 
         <div className="mt-3 grid gap-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
-          <section className="rounded-lg border border-[#16702e]/16 bg-[#f6f8f4] p-3">
+          <section className="rounded-lg border border-[#16702e]/16 bg-[#f7faf5] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <p className="inline-flex items-center gap-2 text-sm font-semibold text-black">
@@ -4131,7 +4160,7 @@ function VlogManagerCard({
               </p>
             )}
           </section>
-          <section className="rounded-lg border border-[#16702e]/16 bg-[#f6f8f4] p-3">
+          <section className="rounded-lg border border-[#16702e]/16 bg-[#f7faf5] p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
               <div className="min-w-0">
                 <p className="inline-flex items-center gap-2 text-sm font-semibold text-black">
@@ -4267,7 +4296,7 @@ function VlogManagerCard({
           </section>
         </div>
         {!canManageNsfw && post.priceType === "paid" && post.status !== "archived" ? (
-          <p className="mt-3 rounded-lg border border-black/10 bg-[#f6f8f4] px-3 py-2 text-xs font-semibold leading-5 text-black/50">
+          <p className="mt-3 rounded-lg border border-black/10 bg-[#f7faf5] px-3 py-2 text-xs font-semibold leading-5 text-black/50">
             {copy.nsfwUnavailable}
           </p>
         ) : null}
