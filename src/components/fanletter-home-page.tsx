@@ -148,6 +148,19 @@ type FanletterCopy = {
     title: string;
     categories: string[];
   };
+  nsfwExample: {
+    body: string;
+    disabledBody: string;
+    disabledTitle: string;
+    enabledBody: string;
+    enabledTitle: string;
+    eyebrow: string;
+    gateBody: string;
+    gateTitle: string;
+    note: string;
+    title: string;
+    videoLabel: string;
+  };
   platformTrust: {
     body: string;
     eyebrow: string;
@@ -336,6 +349,23 @@ const koCopy: FanletterCopy = {
     cta: "캐릭터 만들기",
     title: "캐릭터가 있으면 채널을 만들 수 있습니다.",
     categories: ["얼굴 비공개", "AI 인플루언서", "팬 커뮤니티", "브랜드 마스코트", "IP 숏폼"],
+  },
+  nsfwExample: {
+    body:
+      "성인 팬 전용 채널은 공개 피드와 분리해 opt-in한 팬에게만 더 직접적인 AI 캐릭터 분위기와 팬 전용 샘플을 보여줍니다.",
+    disabledBody:
+      "성인 성향 샘플은 opt-in 후에만 표시됩니다. 기본 공개 피드와 일반 브이로그 영역에서는 숨김 처리됩니다.",
+    disabledTitle: "NSFW 예시 영상 숨김",
+    enabledBody:
+      "성인 성향 AI 캐릭터 샘플이 표시됩니다. 언제든 다시 숨김으로 전환할 수 있습니다.",
+    enabledTitle: "NSFW 예시 영상 표시 중",
+    eyebrow: "성인 팬 전용 예시",
+    gateBody:
+      "opt-in 전에는 영상 프레임을 로드하지 않고, 성인 팬 전용 콘텐츠 정책과 동일하게 분리합니다.",
+    gateTitle: "성인 성향 샘플 잠금",
+    note: "권리 확인된 예시 영상이며, 팬 전용/NSFW 맥락에서만 노출됩니다.",
+    title: "성인 팬 전용 AI 캐릭터는 별도 동의 뒤에만 보여줍니다.",
+    videoLabel: "성인 팬 전용 AI 캐릭터 예시 영상",
   },
   platformTrust: {
     body: "릴스·쇼츠·틱톡 게시에 필요한 캡션, 해시태그, FanLetter 링크를 정리합니다.",
@@ -535,6 +565,23 @@ const enCopy: FanletterCopy = {
     title: "If you have a character, you can build a channel.",
     categories: ["No-face", "AI Influencer", "Fan Community", "Brand Mascot", "IP Shorts"],
   },
+  nsfwExample: {
+    body:
+      "Adult fan-only channels stay separate from the public feed and show more direct AI character samples only to fans who opt in.",
+    disabledBody:
+      "The adult sample is hidden until opt-in. It stays separate from the default public feed and general vlog areas.",
+    disabledTitle: "NSFW sample hidden",
+    enabledBody:
+      "The adult AI character sample is visible. You can hide it again at any time.",
+    enabledTitle: "NSFW sample visible",
+    eyebrow: "Adult fan-only sample",
+    gateBody:
+      "Before opt-in, the video frame is not loaded and follows the same separation model as NSFW fan-only content.",
+    gateTitle: "Adult sample locked",
+    note: "Rights-cleared sample video shown only in the fan-only/NSFW context.",
+    title: "Adult fan-only AI characters appear only after separate consent.",
+    videoLabel: "Adult fan-only AI character sample video",
+  },
   platformTrust: {
     body: "Prepares captions, hashtags, and FanLetter links for Reels, Shorts, and TikTok posts.",
     eyebrow: "Short-form posting package",
@@ -599,6 +646,10 @@ const platformBrandLogos = [
     src: "/brand/platforms/tiktok.svg",
   },
 ] as const;
+const FANLETTER_NSFW_EXAMPLE_VIDEO_SRC =
+  "/fanletter/nsfw-ai-character-example.mp4";
+const FANLETTER_NSFW_EXAMPLE_POSTER_SRC =
+  "/fanletter/nsfw-ai-character-example-poster.jpg";
 const homePromptTextPattern =
   /(black eyeline|black eyeliner|blue eyes|cinematic lighting|hyper-realistic|long eyelashes|lora|messy wet hair|negative prompt|photo-realistic|photorealistic|seed|standard iphone selfie|uploaded reference|wet hair|white beauty)/i;
 
@@ -1024,6 +1075,106 @@ function FanletterPaidPreviewRail({
             );
           })}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function FanletterNsfwExampleSection({
+  copy,
+  hiddenNsfwCount,
+  locale,
+  nsfwOptInEnabled,
+}: {
+  copy: FanletterCopy;
+  hiddenNsfwCount: number;
+  locale: Locale;
+  nsfwOptInEnabled: boolean;
+}) {
+  const nsfwCopy = getFanletterNsfwCopy(locale);
+
+  return (
+    <section
+      className="border-b border-white/8 bg-[#10060b] px-4 py-14 text-white sm:px-6 sm:py-20 lg:px-8"
+      id="nsfw-example"
+    >
+      <div className="mx-auto grid max-w-[92rem] gap-8 lg:grid-cols-[minmax(0,0.82fr)_minmax(20rem,0.48fr)] lg:items-center">
+        <ScrollReveal>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-rose-400 px-3 py-1 text-[0.66rem] font-bold uppercase tracking-[0.14em] text-[#2b0310]">
+              {nsfwCopy.badge}
+            </span>
+            <span className="rounded-full border border-white/14 bg-white/8 px-3 py-1 text-[0.66rem] font-semibold uppercase tracking-[0.14em] text-white/72">
+              {copy.nsfwExample.eyebrow}
+            </span>
+          </div>
+          <h2 className="mt-4 max-w-3xl text-[2.15rem] font-semibold leading-[1] tracking-normal [word-break:keep-all] sm:text-[3.5rem]">
+            {copy.nsfwExample.title}
+          </h2>
+          <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 sm:text-lg">
+            {copy.nsfwExample.body}
+          </p>
+          <div className="mt-6 max-w-2xl">
+            <FanletterNsfwOptInControl
+              compact
+              disabledBody={copy.nsfwExample.disabledBody}
+              disabledTitle={copy.nsfwExample.disabledTitle}
+              enabled={nsfwOptInEnabled}
+              enabledBody={copy.nsfwExample.enabledBody}
+              enabledTitle={copy.nsfwExample.enabledTitle}
+              hiddenCount={hiddenNsfwCount}
+              locale={locale}
+              tone="dark"
+            />
+          </div>
+          <p className="mt-4 max-w-2xl text-xs font-medium leading-5 text-white/45">
+            {copy.nsfwExample.note}
+          </p>
+        </ScrollReveal>
+
+        <ScrollReveal className="mx-auto w-full max-w-[24rem] lg:mx-0 lg:justify-self-end">
+          <div className="relative overflow-hidden rounded-lg border border-rose-300/26 bg-black shadow-[0_28px_72px_rgba(0,0,0,0.32)]">
+            <div
+              className={joinClasses(
+                "bg-[#060206]",
+                nsfwOptInEnabled
+                  ? "aspect-[9/16]"
+                  : "min-h-[22rem] sm:aspect-[9/16]",
+              )}
+            >
+              {nsfwOptInEnabled ? (
+                <video
+                  aria-label={copy.nsfwExample.videoLabel}
+                  autoPlay
+                  className="size-full object-cover"
+                  controls
+                  loop
+                  muted
+                  playsInline
+                  poster={FANLETTER_NSFW_EXAMPLE_POSTER_SRC}
+                  preload="metadata"
+                >
+                  <source
+                    src={FANLETTER_NSFW_EXAMPLE_VIDEO_SRC}
+                    type="video/mp4"
+                  />
+                </video>
+              ) : (
+                <div className="flex min-h-[22rem] flex-col justify-center bg-[radial-gradient(circle_at_50%_18%,rgba(251,113,133,0.28),transparent_36%),linear-gradient(160deg,#190712,#070206_64%,#020102)] p-5 sm:size-full sm:min-h-0">
+                  <span className="flex size-12 items-center justify-center rounded-lg bg-rose-400 text-[#2b0310]">
+                    <LockKeyhole className="size-6" />
+                  </span>
+                  <h3 className="mt-5 text-2xl font-semibold leading-tight tracking-normal [word-break:keep-all]">
+                    {copy.nsfwExample.gateTitle}
+                  </h3>
+                  <p className="mt-3 text-sm font-medium leading-6 text-white/62">
+                    {copy.nsfwExample.gateBody}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </ScrollReveal>
       </div>
     </section>
   );
@@ -1465,7 +1616,6 @@ export function FanletterHomePage({
     },
   ];
   const nicheVideos = featuredVideos.slice(0, 3);
-  const shouldShowNsfwControl = hiddenNsfwCount > 0 || nsfwOptInEnabled;
   const footerLabels =
     locale === "ko"
       ? {
@@ -2302,19 +2452,12 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      {shouldShowNsfwControl ? (
-        <section className="border-b border-white/8 bg-[#07100b] px-4 py-4 text-white sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-[92rem]">
-            <FanletterNsfwOptInControl
-              compact
-              enabled={nsfwOptInEnabled}
-              hiddenCount={hiddenNsfwCount}
-              locale={locale}
-              tone="dark"
-            />
-          </div>
-        </section>
-      ) : null}
+      <FanletterNsfwExampleSection
+        copy={copy}
+        hiddenNsfwCount={hiddenNsfwCount}
+        locale={locale}
+        nsfwOptInEnabled={nsfwOptInEnabled}
+      />
 
       <FanletterPaidPreviewRail
         copy={copy}
