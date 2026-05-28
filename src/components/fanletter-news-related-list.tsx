@@ -5,11 +5,13 @@ import Link from "next/link";
 import {
   BadgeCheck,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Loader2,
   LockKeyhole,
   Newspaper,
 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import type { FanletterRelatedNewsItem } from "@/lib/fanletter-news-related";
@@ -21,8 +23,10 @@ type FanletterNewsRelatedListCopy = {
   empty: string;
   eyebrow: string;
   error: string;
-  loadMore: string;
   loading: string;
+  next: string;
+  page: string;
+  previous: string;
   title: string;
 };
 
@@ -47,18 +51,12 @@ function buildPageHref(baseHref: string, offset: number, limit: number) {
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
-function buildRelatedStateHref({
+function buildRelatedSortHref({
   baseHref,
-  itemCount,
-  pageSize,
-  stateParamName,
   sortParamName,
   sortValue,
 }: {
   baseHref: string;
-  itemCount: number;
-  pageSize: number;
-  stateParamName: string;
   sortParamName: string;
   sortValue: string;
 }) {
@@ -66,37 +64,7 @@ function buildRelatedStateHref({
 
   url.searchParams.set(sortParamName, sortValue);
 
-  if (itemCount > pageSize) {
-    url.searchParams.set(stateParamName, String(itemCount));
-  } else {
-    url.searchParams.delete(stateParamName);
-  }
-
   return `${url.pathname}${url.search}${url.hash}`;
-}
-
-function replaceCurrentRelatedState({
-  itemCount,
-  pageSize,
-  stateParamName,
-}: {
-  itemCount: number;
-  pageSize: number;
-  stateParamName: string;
-}) {
-  const url = new URL(window.location.href);
-
-  if (itemCount > pageSize) {
-    url.searchParams.set(stateParamName, String(itemCount));
-  } else {
-    url.searchParams.delete(stateParamName);
-  }
-
-  window.history.replaceState(
-    window.history.state,
-    "",
-    `${url.pathname}${url.search}${url.hash}`,
-  );
 }
 
 function isRelatedListResponse(
@@ -185,6 +153,18 @@ function countLoadedRelatedItems(
     0,
   );
 }
+
+function getRelatedPageItems(
+  items: FanletterRelatedNewsItem[],
+  currentReportId: string,
+) {
+  return items.filter((item) => item.reportId !== currentReportId);
+}
+
+type RelatedNewsPage = {
+  hasMore: boolean;
+  items: FanletterRelatedNewsItem[];
+};
 
 function RelatedNewsCard({
   currentLabel,
@@ -301,7 +281,6 @@ export function FanletterNewsRelatedList({
   initialItems,
   pageSize,
   relatedApiHref,
-  relatedStateParamName,
   relatedSortParamName,
   sortLabel,
   sortOptions,
@@ -314,20 +293,60 @@ export function FanletterNewsRelatedList({
   initialItems: FanletterRelatedNewsItem[];
   pageSize: number;
   relatedApiHref: string;
-  relatedStateParamName: string;
   relatedSortParamName: string;
   sortLabel: string;
   sortOptions: FanletterNewsRelatedSortOption[];
   sortValue: string;
 }) {
-  const [items, setItems] = useState(initialItems);
-  const [hasMore, setHasMore] = useState(initialHasMore);
+  const currentItem = initialItems.find((item) => item.reportId === currentReportId);
+  const relatedPageSize = Math.max(1, pageSize - (currentItem ? 1 : 0));
+  const [pages, setPages] = useState<RelatedNewsPage[]>([
+    {
+      hasMore: initialHasMore,
+      items: getRelatedPageItems(initialItems, currentReportId).slice(
+        0,
+        relatedPageSize,
+      ),
+    },
+  ]);
+  const [pageIndex, setPageIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const relatedItemCount = countLoadedRelatedItems(items, currentReportId);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const activePage = pages[pageIndex] ?? pages[0];
+  const visibleRelatedItems = activePage.items;
+  const hasAnyRelatedItems =
+    pages.some((page) => page.items.length > 0) ||
+    countLoadedRelatedItems(initialItems, currentReportId) > 0;
 
-  const handleLoadMore = useCallback(async () => {
-    if (isLoading || !hasMore) {
+  const scrollToSectionTop = useCallback(() => {
+    if (!sectionRef.current) {
+      return;
+    }
+
+    if (!window.matchMedia("(max-width: 639px)").matches) {
+      return;
+    }
+
+    sectionRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, []);
+
+  const goToPage = useCallback(async (nextPageIndex: number) => {
+    if (isLoading || nextPageIndex < 0) {
+      return;
+    }
+
+    if (pages[nextPageIndex]) {
+      setPageIndex(nextPageIndex);
+      setError(null);
+      scrollToSectionTop();
+      return;
+    }
+
+    if (!activePage.hasMore || nextPageIndex !== pageIndex + 1) {
       return;
     }
 
@@ -336,7 +355,11 @@ export function FanletterNewsRelatedList({
 
     try {
       const response = await fetch(
-        buildPageHref(relatedApiHref, relatedItemCount, pageSize),
+        buildPageHref(
+          relatedApiHref,
+          nextPageIndex * relatedPageSize,
+          relatedPageSize,
+        ),
         {
           headers: {
             Accept: "application/json",
@@ -354,37 +377,43 @@ export function FanletterNewsRelatedList({
         throw new Error("Invalid related news response.");
       }
 
-      const existingReportIds = new Set(items.map((item) => item.reportId));
-      const nextItems = [
-        ...items,
-        ...data.items.filter((item) => !existingReportIds.has(item.reportId)),
-      ];
+      const nextPage = {
+        hasMore: data.hasMore,
+        items: getRelatedPageItems(data.items, currentReportId),
+      };
 
-      setItems(nextItems);
-      setHasMore(data.hasMore);
-      replaceCurrentRelatedState({
-        itemCount: nextItems.length,
-        pageSize,
-        stateParamName: relatedStateParamName,
+      setPages((currentPages) => {
+        const updatedPages = [...currentPages];
+        updatedPages[nextPageIndex] = nextPage;
+        return updatedPages;
       });
+      setPageIndex(nextPageIndex);
+      scrollToSectionTop();
     } catch {
       setError(copy.error);
     } finally {
       setIsLoading(false);
     }
   }, [
+    activePage.hasMore,
     copy.error,
-    hasMore,
+    currentReportId,
     isLoading,
-    items,
-    pageSize,
+    pageIndex,
+    pages,
     relatedApiHref,
-    relatedItemCount,
-    relatedStateParamName,
+    relatedPageSize,
+    scrollToSectionTop,
   ]);
+  const canGoPrevious = pageIndex > 0;
+  const canGoNext = activePage.hasMore || Boolean(pages[pageIndex + 1]);
+  const pageLabel = `${copy.page} ${pageIndex + 1}`;
 
   return (
-    <section className="overflow-hidden border border-black/12 bg-white text-[#111510] shadow-none sm:shadow-[0_14px_40px_rgba(17,21,16,0.06)]">
+    <section
+      className="overflow-hidden border border-black/12 bg-white text-[#111510] shadow-none sm:shadow-[0_14px_40px_rgba(17,21,16,0.06)]"
+      ref={sectionRef}
+    >
       <div className="border-b border-black/12 bg-[#f5f7f1] p-3 sm:p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -436,15 +465,26 @@ export function FanletterNewsRelatedList({
       </div>
 
       <div className="p-3 sm:p-4">
-        {items.length > 0 ? (
+        {currentItem ? (
+          <div className="mb-3">
+            <RelatedNewsCard
+              currentLabel={copy.current}
+              href={buildRelatedSortHref({
+                baseHref: currentItem.href,
+                sortParamName: relatedSortParamName,
+                sortValue,
+              })}
+              isCurrent
+              item={currentItem}
+            />
+          </div>
+        ) : null}
+
+        {visibleRelatedItems.length > 0 ? (
           <div className="grid gap-3 sm:gap-4">
-            {items.map((item) => {
-              const isCurrent = item.reportId === currentReportId;
-              const href = buildRelatedStateHref({
+            {visibleRelatedItems.map((item) => {
+              const href = buildRelatedSortHref({
                 baseHref: item.href,
-                itemCount: items.length,
-                pageSize,
-                stateParamName: relatedStateParamName,
                 sortParamName: relatedSortParamName,
                 sortValue,
               });
@@ -453,7 +493,7 @@ export function FanletterNewsRelatedList({
                 <RelatedNewsCard
                   currentLabel={copy.current}
                   href={href}
-                  isCurrent={isCurrent}
+                  isCurrent={false}
                   item={item}
                   key={item.reportId}
                 />
@@ -466,7 +506,7 @@ export function FanletterNewsRelatedList({
           </p>
         )}
 
-        {items.length > 0 && relatedItemCount === 0 ? (
+        {currentItem && !hasAnyRelatedItems ? (
           <p className="mt-3 border border-black/10 bg-[#f5f6f2] px-3 py-3 text-sm font-semibold leading-6 text-black/52 sm:px-4">
             {copy.empty}
           </p>
@@ -478,18 +518,38 @@ export function FanletterNewsRelatedList({
           </p>
         ) : null}
 
-        {hasMore ? (
-          <button
-            className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f5f7f1] px-4 py-2 text-center text-sm font-black leading-5 text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] disabled:cursor-wait disabled:opacity-60 sm:mt-4"
-            disabled={isLoading}
-            onClick={handleLoadMore}
-            type="button"
-          >
-            {isLoading ? (
-              <Loader2 className="size-4 shrink-0 animate-spin text-[#16702e]" />
-            ) : null}
-            {isLoading ? copy.loading : copy.loadMore}
-          </button>
+        {hasAnyRelatedItems ? (
+          <div className="mt-3 flex items-center justify-between gap-2 sm:mt-4">
+            <button
+              className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-black/12 bg-[#f5f7f1] px-3 py-2 text-center text-xs font-black leading-5 text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] disabled:cursor-not-allowed disabled:opacity-45 sm:text-sm"
+              disabled={!canGoPrevious || isLoading}
+              onClick={() => {
+                void goToPage(pageIndex - 1);
+              }}
+              type="button"
+            >
+              <ChevronLeft className="size-4 shrink-0" />
+              {copy.previous}
+            </button>
+            <span className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-white px-3 text-xs font-black text-black/54">
+              {isLoading ? (
+                <Loader2 className="size-4 animate-spin text-[#16702e]" />
+              ) : (
+                pageLabel
+              )}
+            </span>
+            <button
+              className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-black/12 bg-[#111510] px-3 py-2 text-center text-xs font-black leading-5 text-white transition hover:bg-[#263027] disabled:cursor-not-allowed disabled:bg-[#f5f7f1] disabled:text-black/36 sm:text-sm"
+              disabled={!canGoNext || isLoading}
+              onClick={() => {
+                void goToPage(pageIndex + 1);
+              }}
+              type="button"
+            >
+              {isLoading ? copy.loading : copy.next}
+              <ChevronRight className="size-4 shrink-0" />
+            </button>
+          </div>
         ) : null}
       </div>
     </section>

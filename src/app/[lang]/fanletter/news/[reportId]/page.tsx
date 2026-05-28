@@ -127,21 +127,10 @@ type ViewerOwnershipSignal = {
 
 const RELATED_NEWS_PAGE_SIZE = 4;
 const RELATED_NEWS_LIMIT_PARAM = "relatedLimit";
-const RELATED_NEWS_MAX_VISIBLE_COUNT = 24;
 const RELATED_NEWS_SORT_PARAM = "relatedSort";
 
-function readRelatedNewsVisibleCount(value?: string | string[]) {
-  const rawValue = Array.isArray(value) ? value[0] : value;
-  const parsed = Number.parseInt(rawValue ?? "", 10);
-
-  if (!Number.isFinite(parsed)) {
-    return RELATED_NEWS_PAGE_SIZE;
-  }
-
-  return Math.max(
-    RELATED_NEWS_PAGE_SIZE,
-    Math.min(RELATED_NEWS_MAX_VISIBLE_COUNT, Math.floor(parsed)),
-  );
+function readRelatedNewsVisibleCount() {
+  return RELATED_NEWS_PAGE_SIZE;
 }
 
 function getCopy(locale: Locale) {
@@ -295,8 +284,10 @@ function getCopy(locale: Locale) {
         relatedNewsEyebrow: "캐릭터 이어보기",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
         relatedNewsError: "다른 뉴스를 불러오지 못했습니다. 다시 시도해 주세요.",
-        relatedNewsLoadMore: "이 캐릭터 뉴스 더 보기",
         relatedNewsLoading: "불러오는 중",
+        relatedNewsNext: "다음 뉴스",
+        relatedNewsPage: "페이지",
+        relatedNewsPrevious: "이전",
         relatedNewsSortLabel: "정렬",
         relatedNewsSortOptions: {
           first: "최초 우선",
@@ -504,8 +495,10 @@ function getCopy(locale: Locale) {
         relatedNewsEyebrow: "Character follow-up",
         relatedNewsEmpty: "No other news from this character yet.",
         relatedNewsError: "Could not load more news. Please try again.",
-        relatedNewsLoadMore: "Load more character news",
         relatedNewsLoading: "Loading",
+        relatedNewsNext: "Next news",
+        relatedNewsPage: "Page",
+        relatedNewsPrevious: "Previous",
         relatedNewsSortLabel: "Sort",
         relatedNewsSortOptions: {
           first: "First reports",
@@ -2650,9 +2643,7 @@ export default async function LocalizedFanletterNewsReportPage({
   const includeNsfw = isFanletterNsfwOptedIn(
     cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
   );
-  const relatedNewsVisibleCount = readRelatedNewsVisibleCount(
-    query.relatedLimit,
-  );
+  const relatedNewsVisibleCount = readRelatedNewsVisibleCount();
   const relatedNewsSort = readFanletterRelatedNewsSort(query.relatedSort);
   const relatedReportVisibleCount = Math.max(0, relatedNewsVisibleCount - 1);
   const memberServerSession = await readMemberServerSession();
@@ -2855,8 +2846,10 @@ export default async function LocalizedFanletterNewsReportPage({
       empty: copy.relatedNewsEmpty,
       eyebrow: copy.relatedNewsEyebrow,
       error: copy.relatedNewsError,
-      loadMore: copy.relatedNewsLoadMore,
       loading: copy.relatedNewsLoading,
+      next: copy.relatedNewsNext,
+      page: copy.relatedNewsPage,
+      previous: copy.relatedNewsPrevious,
       title: relatedNewsTitle,
     },
     currentReportId: report.reportId,
@@ -2864,7 +2857,6 @@ export default async function LocalizedFanletterNewsReportPage({
     initialItems: relatedNewsItems,
     pageSize: RELATED_NEWS_PAGE_SIZE,
     relatedApiHref: relatedNewsApiHref,
-    relatedStateParamName: RELATED_NEWS_LIMIT_PARAM,
     relatedSortParamName: RELATED_NEWS_SORT_PARAM,
     sortLabel: copy.relatedNewsSortLabel,
     sortOptions: relatedNewsSortOptions,
