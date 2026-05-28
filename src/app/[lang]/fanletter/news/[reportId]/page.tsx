@@ -815,6 +815,298 @@ function NewsSiteHeader({
   );
 }
 
+function getNewsLandingHeroCopy(locale: Locale) {
+  return locale === "ko"
+    ? {
+        accessibleBody:
+          "뉴스와 원본 브이로그를 이 화면에서 바로 이어볼 수 있습니다.",
+        articleCta: "기사 요약 보기",
+        characterCta: "캐릭터 채널",
+        freeLockedBody:
+          "팬들이 보고싶어요를 모으면 원본 브이로그가 모두에게 무료 공개됩니다.",
+        freeUnlocked: "무료 원본 공개 완료",
+        paidLockedBody:
+          "팬들이 공개 조건을 채우면 원본 접근이 열리고, 이후 1 USDT 결제로 전체 브이로그를 볼 수 있습니다.",
+        paidReady: (amount: string) => `${amount} 원본 보기 가능`,
+        paidReadyBody: (amount: string) =>
+          `공개 조건이 완료됐습니다. ${amount} 결제로 전체 원본을 바로 볼 수 있습니다.`,
+        paidUnlocked: "원본 열람 가능",
+        payCta: (amount: string) => `${amount}로 원본 보기`,
+        progress: (count: string, threshold: string, remaining: string) =>
+          `${count}/${threshold}명 참여 중 · ${remaining}명 더 필요`,
+        sourceCta: "원본 브이로그 보기",
+        voteCta: "보고싶어요 참여",
+        walletCta: "가입하고 보고싶어요",
+      }
+    : {
+        accessibleBody:
+          "Read the report and continue to the source vlog from this page.",
+        articleCta: "Read summary",
+        characterCta: "Character channel",
+        freeLockedBody:
+          "When enough fans tap want-to-watch, the source vlog opens free for everyone.",
+        freeUnlocked: "Free source opened",
+        paidLockedBody:
+          "Fans open source access first, then the full vlog is available with a 1 USDT payment.",
+        paidReady: (amount: string) => `${amount} source ready`,
+        paidReadyBody: (amount: string) =>
+          `The open condition is complete. Pay ${amount} to watch the full source now.`,
+        paidUnlocked: "Source viewable",
+        payCta: (amount: string) => `Watch source for ${amount}`,
+        progress: (count: string, threshold: string, remaining: string) =>
+          `${count}/${threshold} fans joined · ${remaining} more needed`,
+        sourceCta: "Watch source vlog",
+        voteCta: "Join want-to-watch",
+        walletCta: "Join and want-to-watch",
+      };
+}
+
+function FanletterNewsShareLandingHero({
+  accessLabel,
+  articleTitle,
+  blurred,
+  characterName,
+  copy,
+  creatorHref,
+  dek,
+  isPaidContent,
+  isViewerLoggedIn,
+  locale,
+  paidUnlockHref,
+  paidUnlockLabel,
+  previewVideoUrl,
+  referralCode,
+  reporterName,
+  shareHref,
+  sourceImageUrl,
+  sourceReveal,
+  sourceVlogHref,
+  titleCharacterImageUrl,
+  viewerCanAccessSource,
+  walletConnectHref,
+}: {
+  accessLabel: string;
+  articleTitle: string;
+  blurred: boolean;
+  characterName: string | null;
+  copy: ReturnType<typeof getCopy>;
+  creatorHref: string;
+  dek: string;
+  isPaidContent: boolean;
+  isViewerLoggedIn: boolean;
+  locale: Locale;
+  paidUnlockHref: string | null;
+  paidUnlockLabel: string;
+  previewVideoUrl: string | null;
+  referralCode: string | null;
+  reporterName: string;
+  shareHref: string;
+  sourceImageUrl: string | null;
+  sourceReveal: SourceVlogRevealGateState | null;
+  sourceVlogHref: string;
+  titleCharacterImageUrl: string | null;
+  viewerCanAccessSource: boolean;
+  walletConnectHref: string;
+}) {
+  const heroCopy = getNewsLandingHeroCopy(locale);
+  const sourceRevealLocked = Boolean(sourceReveal && !sourceReveal.unlocked);
+  const revealRemainingCount = sourceReveal
+    ? Math.max(sourceReveal.threshold - sourceReveal.count, 0)
+    : 0;
+  const sourceCanBeWatched = !sourceRevealLocked && viewerCanAccessSource;
+  const shouldShowPaidUnlockCta =
+    !sourceRevealLocked &&
+    isPaidContent &&
+    !viewerCanAccessSource &&
+    Boolean(paidUnlockHref);
+  const statusLabel = sourceReveal
+    ? sourceReveal.unlocked
+      ? isPaidContent
+        ? viewerCanAccessSource
+          ? heroCopy.paidUnlocked
+          : heroCopy.paidReady(paidUnlockLabel)
+        : heroCopy.freeUnlocked
+      : heroCopy.progress(
+          formatNumber(sourceReveal.count, locale),
+          formatNumber(sourceReveal.threshold, locale),
+          formatNumber(revealRemainingCount, locale),
+        )
+    : accessLabel;
+  const statusBody = sourceRevealLocked
+    ? isPaidContent
+      ? heroCopy.paidLockedBody
+      : heroCopy.freeLockedBody
+    : isPaidContent && !viewerCanAccessSource
+      ? heroCopy.paidReadyBody(paidUnlockLabel)
+      : heroCopy.accessibleBody;
+  const primaryCta = sourceRevealLocked
+    ? {
+        href: isViewerLoggedIn ? sourceVlogHref : walletConnectHref,
+        icon: <HeartHandshake className="size-4" />,
+        label: isViewerLoggedIn ? heroCopy.voteCta : heroCopy.walletCta,
+      }
+    : {
+        href: sourceVlogHref,
+        icon: <PlayCircle className="size-4" />,
+        label: sourceCanBeWatched ? heroCopy.sourceCta : heroCopy.articleCta,
+      };
+  const canUsePreviewVideo = Boolean(previewVideoUrl && !blurred);
+  const characterDisplayName = characterName ?? copy.titleCharacter.fallback;
+  const shouldBypassHeroImageOptimization = sourceImageUrl
+    ? shouldBypassFanletterImageOptimization(sourceImageUrl)
+    : false;
+  const shouldBypassCharacterImageOptimization = titleCharacterImageUrl
+    ? shouldBypassFanletterImageOptimization(titleCharacterImageUrl)
+    : false;
+
+  return (
+    <section className="relative isolate mb-5 overflow-hidden border border-black/12 bg-[#07100b] text-white shadow-[0_18px_50px_rgba(17,21,16,0.12)] sm:mb-7">
+      <div className="absolute inset-0">
+        {canUsePreviewVideo && previewVideoUrl ? (
+          <FanletterAutoplayVideo
+            ariaHidden
+            className="h-full w-full object-cover opacity-[0.86]"
+            poster={sourceImageUrl ?? undefined}
+            src={previewVideoUrl}
+            title={articleTitle}
+          />
+        ) : sourceImageUrl ? (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className={`object-cover opacity-[0.86] ${
+              blurred ? "scale-[1.04] blur-sm brightness-[0.74]" : ""
+            }`}
+            fill
+            loading="eager"
+            sizes="100vw"
+            src={sourceImageUrl}
+            unoptimized={shouldBypassHeroImageOptimization}
+          />
+        ) : (
+          <div className="h-full w-full bg-[linear-gradient(145deg,#07100b,#121812_54%,#203426)]" />
+        )}
+      </div>
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,6,0.14)_0%,rgba(5,8,6,0.44)_44%,rgba(5,8,6,0.93)_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 h-28 bg-[linear-gradient(180deg,rgba(238,241,236,0)_0%,rgba(238,241,236,0.12)_100%)]" />
+      <div className="relative z-10 flex min-h-[27rem] flex-col justify-end p-4 sm:min-h-[31rem] sm:p-6 lg:min-h-[34rem] lg:p-8">
+        <div className="max-w-4xl">
+          <div className="flex flex-wrap items-center gap-2 text-[0.72rem] font-black text-white/82 sm:text-xs">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#44f26e]/34 bg-[#44f26e]/14 px-3 py-1.5 text-[#9bffad]">
+              <Newspaper className="size-3.5" />
+              {copy.siteName}
+            </span>
+            <span className="inline-flex items-center rounded-full border border-white/14 bg-white/10 px-3 py-1.5">
+              {accessLabel}
+            </span>
+            <span className="inline-flex items-center rounded-full border border-white/14 bg-white/10 px-3 py-1.5">
+              {reporterName}
+            </span>
+          </div>
+
+          <h1
+            className={`mt-4 max-w-4xl break-words text-[2rem] font-black leading-[1.08] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3.35rem] lg:text-[4.15rem] ${
+              blurred ? "select-none blur-[2px]" : ""
+            }`}
+          >
+            {articleTitle}
+          </h1>
+          <p
+            className={`mt-3 max-w-2xl text-[0.98rem] font-semibold leading-7 text-white/78 sm:text-lg sm:leading-8 ${
+              blurred ? "select-none blur-[2px]" : ""
+            }`}
+          >
+            {dek}
+          </p>
+
+          <div className="mt-5 grid gap-3 rounded-lg border border-white/14 bg-black/44 p-3 backdrop-blur sm:max-w-3xl sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-4">
+            <div className="min-w-0">
+              <p className="inline-flex items-center gap-2 text-sm font-black text-[#9bffad]">
+                {sourceRevealLocked ? (
+                  <LockKeyhole className="size-4" />
+                ) : (
+                  <CheckCircle2 className="size-4" />
+                )}
+                {statusLabel}
+              </p>
+              <p className="mt-1.5 text-sm font-semibold leading-6 text-white/66">
+                {statusBody}
+              </p>
+            </div>
+            <Link
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 text-sm font-black !text-white transition hover:bg-white/16 sm:min-w-40"
+              href={creatorHref}
+            >
+              {titleCharacterImageUrl ? (
+                <span className="relative size-6 shrink-0 overflow-hidden rounded-full bg-black">
+                  <Image
+                    alt=""
+                    aria-hidden="true"
+                    className={`object-cover ${blurred ? "blur-sm" : ""}`}
+                    fill
+                    sizes="1.5rem"
+                    src={titleCharacterImageUrl}
+                    unoptimized={shouldBypassCharacterImageOptimization}
+                  />
+                </span>
+              ) : (
+                <BadgeCheck className="size-4 text-[#9bffad]" />
+              )}
+              <span className="min-w-0 truncate">{heroCopy.characterCta}</span>
+              <ArrowUpRight className="size-4 shrink-0 text-white/58" />
+            </Link>
+          </div>
+
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            {shouldShowPaidUnlockCta && paidUnlockHref ? (
+              <FanletterPaidUnlockTrigger
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-black transition hover:bg-[#69ff8c] sm:min-w-48"
+                href={paidUnlockHref}
+              >
+                <Coins className="size-4" />
+                <span>{heroCopy.payCta(paidUnlockLabel)}</span>
+              </FanletterPaidUnlockTrigger>
+            ) : (
+              <Link
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-black transition hover:bg-[#69ff8c] sm:min-w-48"
+                href={primaryCta.href}
+              >
+                {primaryCta.icon}
+                <span>{primaryCta.label}</span>
+              </Link>
+            )}
+            <Link
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-5 text-sm font-black !text-white transition hover:bg-white/16"
+              href="#fanletter-news-story-summary"
+            >
+              <FileText className="size-4 text-[#9bffad]" />
+              <span>{heroCopy.articleCta}</span>
+            </Link>
+            <FanletterChannelShareButton
+              className="!h-auto min-h-12 !rounded-full !border-white/16 !bg-white/10 px-5 text-sm font-black !text-white hover:!bg-white/16"
+              href={shareHref}
+              locale={locale}
+              referralCode={referralCode}
+              shareIdScope="newsreport"
+              summary={dek}
+              title={articleTitle}
+              trackingSource="fanletter-news-landing-hero"
+            />
+          </div>
+
+          <Link
+            className="mt-4 inline-flex max-w-full items-center gap-2 text-sm font-black !text-white/76 transition hover:!text-white"
+            href={creatorHref}
+          >
+            <span className="min-w-0 truncate">{characterDisplayName}</span>
+            <ArrowUpRight className="size-4 shrink-0" />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function ArticleActionLinks({
   copy,
   locale,
@@ -2898,6 +3190,22 @@ export default async function LocalizedFanletterNewsReportPage({
         reportId: report.reportId,
       }
     : null;
+  const landingHeroSourceVideoFallbackUrl =
+    canViewerOpenSourceContent && sourceReveal?.unlocked !== false
+      ? sourceContent?.contentVideoUrls[0] ?? null
+      : null;
+  const landingHeroPreviewVideoUrl = resolveSourceVlogPreviewVideoUrl(
+    sourceContent,
+    landingHeroSourceVideoFallbackUrl,
+  );
+  const landingHeroImageUrl =
+    report.coverImageUrl ??
+    sourceContent?.coverImageUrl ??
+    characterAvatarImageUrl ??
+    null;
+  const paidUnlockLabel = `${paidUnlockAmount ?? CONTENT_PAID_USDT_AMOUNT} USDT`;
+  const reporterDisplayName =
+    reporterProfile?.displayName ?? getReporterDisplayName(report);
   const shouldShowReporterTeaserCutGallery =
     sourceReveal?.unlocked !== true || !canViewerOpenSourceContent;
   const navLinks = [
@@ -2959,6 +3267,31 @@ export default async function LocalizedFanletterNewsReportPage({
       />
 
       <article className="mx-auto max-w-[92rem] px-3 pb-14 pt-4 sm:px-6 sm:pb-16 sm:pt-8 lg:px-8">
+        <FanletterNewsShareLandingHero
+          accessLabel={accessLabel}
+          articleTitle={articleTitle}
+          blurred={shouldBlurCurrentReport}
+          characterName={characterName ?? report.creatorName}
+          copy={copy}
+          creatorHref={creatorHref}
+          dek={report.dek}
+          isPaidContent={isPaidSourceContent}
+          isViewerLoggedIn={isViewerLoggedIn}
+          locale={locale}
+          paidUnlockHref={paidUnlockHref}
+          paidUnlockLabel={paidUnlockLabel}
+          previewVideoUrl={landingHeroPreviewVideoUrl}
+          referralCode={referralCode}
+          reporterName={reporterDisplayName}
+          shareHref={articleHref}
+          sourceImageUrl={landingHeroImageUrl}
+          sourceReveal={sourceReveal}
+          sourceVlogHref={sourceVlogHref}
+          titleCharacterImageUrl={titleCharacterThumbnailUrl}
+          viewerCanAccessSource={canViewerOpenSourceContent}
+          walletConnectHref={newsConnectHref}
+        />
+
         <div className="grid gap-5 sm:gap-7 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start">
           <div className="min-w-0">
             <header className="overflow-hidden border border-black/12 bg-white shadow-none sm:shadow-[0_20px_56px_rgba(17,21,16,0.08)]">
@@ -2991,11 +3324,11 @@ export default async function LocalizedFanletterNewsReportPage({
               <div className="p-3 sm:p-6 lg:p-7">
                 <div className="grid gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(12rem,14rem)] lg:items-start">
                   <div className="min-w-0">
-                    <h1
+                    <h2
                       className={`max-w-5xl break-words text-[1.44rem] font-black leading-[1.12] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3.25rem] sm:leading-[1.06] lg:text-[3.75rem] ${nsfwTextBlurClass}`}
                     >
                       {articleTitle}
-                    </h1>
+                    </h2>
                     <p
                       className={`mt-2 max-w-3xl text-[0.92rem] font-medium leading-6 text-black/62 sm:mt-4 sm:text-[1.22rem] sm:leading-9 ${nsfwTextBlurClass}`}
                     >
@@ -3095,7 +3428,10 @@ export default async function LocalizedFanletterNewsReportPage({
               </div>
             ) : null}
 
-            <section className="mt-5 overflow-hidden border border-black/12 bg-white shadow-[0_12px_34px_rgba(17,21,16,0.045)] sm:mt-7 sm:shadow-[0_14px_42px_rgba(17,21,16,0.05)]">
+            <section
+              className="mt-5 scroll-mt-20 overflow-hidden border border-black/12 bg-white shadow-[0_12px_34px_rgba(17,21,16,0.045)] sm:mt-7 sm:shadow-[0_14px_42px_rgba(17,21,16,0.05)]"
+              id="fanletter-news-story-summary"
+            >
               <div className="flex items-center gap-2 border-b-2 border-[#111510] bg-[#f7f9f4] px-3.5 py-2.5 text-sm font-black text-[#111510] sm:px-5 sm:py-3">
                 <FileText className="size-4 text-[#16702e]" />
                 {copy.summaryTitle}
