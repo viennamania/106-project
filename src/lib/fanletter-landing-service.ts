@@ -277,8 +277,18 @@ function looksLikePersonaDescriptorText(value: string) {
   );
 }
 
-function getVideoUrl(post: ContentPostDocument) {
+function getSourceVideoUrl(post: ContentPostDocument) {
   return post.contentVideoUrls?.find((url) => typeof url === "string" && url);
+}
+
+function getPreviewClipVideoUrl(post: ContentPostDocument) {
+  const previewClipVideoUrl = post.previewClipVideoUrl?.trim();
+
+  return previewClipVideoUrl || null;
+}
+
+function getLandingPlaybackVideoUrl(post: ContentPostDocument) {
+  return getPreviewClipVideoUrl(post) ?? getSourceVideoUrl(post);
 }
 
 function hasMissingMaturityRating(post: ContentPostDocument) {
@@ -784,7 +794,7 @@ function toFeaturedVideo({
   profile: CreatorProfileDocument | undefined;
   signals?: FanletterCandidateSignals | null;
 }): FanletterFeaturedVideo | null {
-  const videoUrl = getVideoUrl(post);
+  const videoUrl = getLandingPlaybackVideoUrl(post);
 
   if (!videoUrl) {
     return null;
@@ -983,7 +993,7 @@ export const getFanletterLandingData = unstable_cache(
       nsfwOptInEnabled: includeNsfw,
     };
   },
-  ["fanletter-landing-data-v13"],
+  ["fanletter-landing-data-v14"],
   {
     revalidate: 300,
     tags: ["fanletter-landing-data"],
