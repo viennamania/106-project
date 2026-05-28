@@ -556,7 +556,7 @@ export function FanletterWalletPage({
     buildPathWithReferral(
       isNewsService
         ? `/${locale}/fanletter/news/wallet/manage`
-        : `/${locale}/wallet`,
+        : `/${locale}/fanletter/wallet/manage`,
       referralCode,
     ),
     { returnTo: walletPageHref },

@@ -158,7 +158,7 @@ export function WalletPage({
   locale: Locale;
   referralCode?: string | null;
   returnTo?: string | null;
-  service?: "default" | "news";
+  service?: "default" | "fanletter" | "news";
 }) {
   const account = useActiveAccount();
   const chain = useActiveWalletChain() ?? smartWalletChain;
@@ -216,16 +216,23 @@ export function WalletPage({
     : BSC_EXPLORER;
   const currentEmail = dashboard.member?.email ?? dashboard.email;
   const isNewsService = service === "news";
+  const isFanletterService = service === "fanletter";
   const homeHref = isNewsService
     ? buildPathWithReferral(`/${locale}/fanletter/news`, referralCode)
-    : buildReferralLandingPath(locale, referralCode);
+    : isFanletterService
+      ? buildPathWithReferral(`/${locale}/fanletter`, referralCode)
+      : buildReferralLandingPath(locale, referralCode);
   const backHref = returnTo ?? homeHref;
   const walletPath = isNewsService
     ? `/${locale}/fanletter/news/wallet/manage`
-    : `/${locale}/wallet`;
+    : isFanletterService
+      ? `/${locale}/fanletter/wallet/manage`
+      : `/${locale}/wallet`;
   const bnbWalletPath = isNewsService
     ? `/${locale}/fanletter/news/wallet/bnb`
-    : `/${locale}/wallet/bnb`;
+    : isFanletterService
+      ? `/${locale}/fanletter/wallet/bnb`
+      : `/${locale}/wallet/bnb`;
   const currentWalletHref = setPathSearchParams(
     buildPathWithReferral(walletPath, referralCode),
     { returnTo },
