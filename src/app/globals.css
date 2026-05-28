@@ -88,6 +88,73 @@ a {
   display: none !important;
 }
 
+.fanletter-wallet-manage {
+  --surface: rgba(255, 255, 255, 0.055);
+  --surface-strong: rgba(255, 255, 255, 0.085);
+  --muted: rgba(255, 255, 255, 0.58);
+  --border: rgba(255, 255, 255, 0.12);
+  --accent: #44f26e;
+  --accent-soft: rgba(68, 242, 110, 0.12);
+}
+
+.fanletter-wallet-manage .glass-card {
+  background: rgba(255, 255, 255, 0.055);
+  border-color: rgba(255, 255, 255, 0.12);
+  border-radius: 0.5rem;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+
+.fanletter-wallet-manage .eyebrow {
+  color: #44f26e;
+}
+
+.fanletter-wallet-manage :is(.rounded-2xl, .rounded-\[20px\], .rounded-\[22px\], .rounded-\[24px\], .rounded-\[26px\], .rounded-\[28px\], .rounded-\[30px\], .rounded-\[32px\]) {
+  border-radius: 0.5rem;
+}
+
+.fanletter-wallet-manage :is(.border-slate-200, .border-slate-300) {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.fanletter-wallet-manage :is(.bg-white, .bg-white\/90, .bg-white\/96, .bg-slate-50, .bg-slate-100) {
+  background-color: rgba(255, 255, 255, 0.055) !important;
+}
+
+.fanletter-wallet-manage .bg-slate-950 {
+  background-color: #44f26e !important;
+  color: #030504 !important;
+}
+
+.fanletter-wallet-manage .bg-slate-950 :is(svg, span) {
+  color: #030504 !important;
+}
+
+.fanletter-wallet-manage :is(.text-slate-950, .text-slate-900, .text-slate-800, .text-slate-700) {
+  color: rgba(255, 255, 255, 0.94) !important;
+}
+
+.fanletter-wallet-manage :is(.text-slate-600, .text-slate-500, .text-slate-400) {
+  color: rgba(255, 255, 255, 0.58) !important;
+}
+
+.fanletter-wallet-manage :is(input, textarea) {
+  color: white;
+}
+
+.fanletter-wallet-manage :is(input, textarea)::placeholder {
+  color: rgba(255, 255, 255, 0.34);
+}
+
+.fanletter-wallet-manage .wallet-send-transaction-button {
+  background-color: #44f26e !important;
+  color: #030504 !important;
+}
+
+.fanletter-wallet-manage .wallet-send-transaction-button:disabled {
+  background-color: rgba(68, 242, 110, 0.32) !important;
+  color: rgba(3, 5, 4, 0.76) !important;
+}
+
 ::selection {
   background: rgba(37, 99, 235, 0.18);
 }

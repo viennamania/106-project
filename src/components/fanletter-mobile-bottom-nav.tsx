@@ -171,7 +171,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     <>
       <div
         aria-hidden="true"
-        className={cn("sm:hidden", fanletterMobileNavHeightClass)}
+        className={cn("bg-[#030504] sm:hidden", fanletterMobileNavHeightClass)}
       />
       <nav
         aria-label={copy.label}

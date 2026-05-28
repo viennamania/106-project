@@ -754,8 +754,15 @@ export function WalletPage({
       : false;
 
   return (
-    <div className="relative isolate overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.18),transparent_26%),radial-gradient(circle_at_88%_8%,rgba(13,148,136,0.18),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(245,158,11,0.14),transparent_28%)]" />
+    <div
+      className={cn(
+        "relative isolate overflow-hidden",
+        isFanletterService && "fanletter-wallet-manage bg-[#030504] text-white",
+      )}
+    >
+      {!isFanletterService ? (
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.18),transparent_26%),radial-gradient(circle_at_88%_8%,rgba(13,148,136,0.18),transparent_22%),radial-gradient(circle_at_50%_100%,rgba(245,158,11,0.14),transparent_28%)]" />
+      ) : null}
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
@@ -912,8 +919,19 @@ export function WalletPage({
           <>
             <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
               <LandingReveal delay={0} variant="hero">
-                <section className="relative overflow-hidden rounded-[32px] border border-slate-900/90 bg-[linear-gradient(135deg,#0f172a_0%,#13233d_46%,#0f766e_100%)] p-5 text-white shadow-[0_28px_80px_rgba(15,23,42,0.28)] sm:p-6">
-                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(56,189,248,0.16),transparent_28%)]" />
+                <section
+                  className={cn(
+                    "relative overflow-hidden p-5 text-white sm:p-6",
+                    isFanletterService
+                      ? "rounded-lg border border-white/12 bg-white/[0.055] shadow-[0_30px_90px_rgba(0,0,0,0.32)]"
+                      : "rounded-[32px] border border-slate-900/90 bg-[linear-gradient(135deg,#0f172a_0%,#13233d_46%,#0f766e_100%)] shadow-[0_28px_80px_rgba(15,23,42,0.28)]",
+                  )}
+                >
+                  {!isFanletterService ? (
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(56,189,248,0.16),transparent_28%)]" />
+                  ) : (
+                    <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[#44f26e]/45" />
+                  )}
                   <div className="relative">
                     <div className="flex flex-wrap items-center gap-2">
                       <InfoBadge className="border-white/14 bg-white/10 text-white/85">
@@ -950,15 +968,34 @@ export function WalletPage({
                         {dictionary.walletPage.actions.showQr}
                       </button>
                       <a
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/18 bg-slate-50 px-4 text-sm font-medium !text-slate-950 shadow-[0_14px_34px_rgba(15,23,42,0.12)] transition hover:bg-white"
+                        className={cn(
+                          "inline-flex h-11 items-center justify-center gap-2 rounded-full border px-4 text-sm font-medium shadow-[0_14px_34px_rgba(15,23,42,0.12)] transition",
+                          isFanletterService
+                            ? "border-[#44f26e]/30 bg-[#44f26e] !text-black hover:bg-[#67ff88]"
+                            : "border-white/18 bg-slate-50 !text-slate-950 hover:bg-white",
+                        )}
                         href={connectedAccountUrl}
                         rel="noreferrer"
                         target="_blank"
                       >
-                        <span className="whitespace-nowrap !text-slate-950">
+                        <span
+                          className={cn(
+                            "whitespace-nowrap",
+                            isFanletterService
+                              ? "!text-black"
+                              : "!text-slate-950",
+                          )}
+                        >
                           {dictionary.walletPage.actions.openExplorer}
                         </span>
-                        <ArrowUpRight className="size-4 !text-slate-950" />
+                        <ArrowUpRight
+                          className={cn(
+                            "size-4",
+                            isFanletterService
+                              ? "!text-black"
+                              : "!text-slate-950",
+                          )}
+                        />
                       </a>
                     </div>
 
@@ -1103,8 +1140,12 @@ export function WalletPage({
                               className={cn(
                                 "inline-flex min-w-0 items-center justify-center gap-2 rounded-full px-3 text-sm font-medium transition",
                                 isActive
-                                  ? "bg-white text-slate-950 shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
-                                  : "text-slate-600 hover:text-slate-950",
+                                  ? isFanletterService
+                                    ? "bg-[#44f26e] text-black shadow-none"
+                                    : "bg-white text-slate-950 shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
+                                  : isFanletterService
+                                    ? "text-white/58 hover:text-white"
+                                    : "text-slate-600 hover:text-slate-950",
                               )}
                               key={mode}
                               onClick={() => {
