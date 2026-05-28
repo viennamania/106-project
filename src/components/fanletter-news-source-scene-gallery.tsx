@@ -169,11 +169,16 @@ export function FanletterNewsSourceSceneGallery({
   });
   const dragStartXRef = useRef<number | null>(null);
   const touchGestureRef = useRef<TouchGesture | null>(null);
+  const sceneRailRef = useRef<HTMLDivElement | null>(null);
   const lastTapRef = useRef<{
     time: number;
     x: number;
     y: number;
   } | null>(null);
+  const [sceneScrollState, setSceneScrollState] = useState({
+    next: false,
+    previous: false,
+  });
   const { accountAddress, email } = useMemberSession();
   const activeItem = items[activeIndex] ?? items[0] ?? null;
   const canNavigate = items.length > 1;
@@ -194,6 +199,44 @@ export function FanletterNewsSourceSceneGallery({
     : "";
   const isGridLayout = layout === "grid";
   const isCompact = density === "compact";
+  const canScrollSceneRail =
+    !isGridLayout && (sceneScrollState.previous || sceneScrollState.next);
+
+  const updateSceneScrollState = useCallback(() => {
+    const rail = sceneRailRef.current;
+
+    if (!rail || isGridLayout) {
+      setSceneScrollState({ next: false, previous: false });
+      return;
+    }
+
+    const maxScrollLeft = rail.scrollWidth - rail.clientWidth;
+    const edgeTolerance = 24;
+    const next = rail.scrollLeft < maxScrollLeft - edgeTolerance;
+    const previous = rail.scrollLeft > edgeTolerance;
+
+    setSceneScrollState((current) =>
+      current.next === next && current.previous === previous
+        ? current
+        : { next, previous },
+    );
+  }, [isGridLayout]);
+
+  const scrollSceneRail = useCallback((direction: "next" | "previous") => {
+    const rail = sceneRailRef.current;
+
+    if (!rail) {
+      return;
+    }
+
+    rail.scrollBy({
+      behavior: "smooth",
+      left:
+        direction === "next"
+          ? rail.clientWidth * 0.82
+          : rail.clientWidth * -0.82,
+    });
+  }, []);
 
   const openViewer = useCallback((index: number) => {
     if (!canOpenSceneViewer) {
@@ -318,6 +361,35 @@ export function FanletterNewsSourceSceneGallery({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [closeViewer, isOpen, showNext, showPrevious]);
+
+  useEffect(() => {
+    const animationFrameId = window.requestAnimationFrame(
+      updateSceneScrollState,
+    );
+
+    if (isGridLayout) {
+      return () => {
+        window.cancelAnimationFrame(animationFrameId);
+      };
+    }
+
+    const rail = sceneRailRef.current;
+
+    if (!rail) {
+      return () => {
+        window.cancelAnimationFrame(animationFrameId);
+      };
+    }
+
+    rail.addEventListener("scroll", updateSceneScrollState, { passive: true });
+    window.addEventListener("resize", updateSceneScrollState);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+      rail.removeEventListener("scroll", updateSceneScrollState);
+      window.removeEventListener("resize", updateSceneScrollState);
+    };
+  }, [isGridLayout, items.length, updateSceneScrollState]);
 
   if (items.length < 2) {
     return null;
@@ -540,13 +612,7 @@ export function FanletterNewsSourceSceneGallery({
         </p>
       </div>
 
-      <div
-        className={cn(
-          "relative",
-          !isGridLayout &&
-            "after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-8 after:bg-gradient-to-l after:from-white after:to-transparent sm:after:from-[#f7f9f4]",
-        )}
-      >
+      <div className="relative">
         <div
           className={cn(
             "mt-3 grid",
@@ -554,6 +620,8 @@ export function FanletterNewsSourceSceneGallery({
               ? "grid-cols-2 gap-2 sm:grid-cols-4"
               : "-mx-3 snap-x auto-cols-[minmax(7.75rem,38vw)] grid-flow-col gap-1.5 overflow-x-auto px-3 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-4 sm:auto-cols-[11.5rem] sm:gap-2 sm:px-4 sm:pb-2 lg:auto-cols-[12.5rem] xl:auto-cols-[13.5rem] [&::-webkit-scrollbar]:hidden",
           )}
+          onScroll={updateSceneScrollState}
+          ref={sceneRailRef}
         >
           {items.map((item, index) => (
             <button
@@ -613,6 +681,34 @@ export function FanletterNewsSourceSceneGallery({
             </button>
           ))}
         </div>
+        {canScrollSceneRail ? (
+          <div className="pointer-events-none absolute inset-y-3 left-0 right-0 hidden items-center justify-between px-1 sm:flex">
+            <button
+              aria-label={copy.previous}
+              className={cn(
+                "pointer-events-auto inline-flex size-9 items-center justify-center rounded-full border border-black/10 bg-white/92 text-[#111510] shadow-[0_10px_24px_rgba(17,21,16,0.16)] backdrop-blur transition hover:border-[#19b84b] hover:text-[#16702e]",
+                !sceneScrollState.previous &&
+                  "pointer-events-none translate-x-1 opacity-0",
+              )}
+              onClick={() => scrollSceneRail("previous")}
+              type="button"
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+            <button
+              aria-label={copy.next}
+              className={cn(
+                "pointer-events-auto inline-flex size-9 items-center justify-center rounded-full border border-black/10 bg-white/92 text-[#111510] shadow-[0_10px_24px_rgba(17,21,16,0.16)] backdrop-blur transition hover:border-[#19b84b] hover:text-[#16702e]",
+                !sceneScrollState.next &&
+                  "pointer-events-none -translate-x-1 opacity-0",
+              )}
+              onClick={() => scrollSceneRail("next")}
+              type="button"
+            >
+              <ChevronRight className="size-4" />
+            </button>
+          </div>
+        ) : null}
       </div>
 
       {requiresNsfwPin && !isNsfwPinUnlocked && nsfwPinGate ? (
