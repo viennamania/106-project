@@ -3,6 +3,7 @@ import Image from "next/image";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -221,8 +222,8 @@ function getCopy(locale: Locale) {
           "잠금 콘텐츠는 공개 티저와 뉴스로 공개 가능한 정보만 이 화면에 표시됩니다.",
         embeddedLockedPaid: (amount: string) =>
           `전체 원본 브이로그는 팬 전용 유료 콘텐츠입니다. ${amount} 결제 후 이 뉴스 화면에서 바로 열립니다.`,
-        embeddedPreviewBadge: "언락 프리뷰",
-        embeddedPreviewMeta: "원본 분위기 자동 재생",
+        embeddedPreviewBadge: "잠금 프리뷰",
+        embeddedPreviewMeta: "가입 전 맛보기 재생",
         embeddedTitle: "뉴스 속 원본 브이로그",
         embeddedUnlockBody:
           "결제 후 전체 원본 영상, 본문, 추가 미디어를 이 뉴스 화면에서 바로 이어봅니다.",
@@ -430,8 +431,8 @@ function getCopy(locale: Locale) {
           "Locked content is represented with public teaser details available for the news page.",
         embeddedLockedPaid: (amount: string) =>
           `The full source vlog is fan-only paid content. Pay ${amount} to open it from this news page.`,
-        embeddedPreviewBadge: "Unlocked preview",
-        embeddedPreviewMeta: "Source vibe autoplay",
+        embeddedPreviewBadge: "Locked preview",
+        embeddedPreviewMeta: "Autoplay before unlock",
         embeddedTitle: "Source vlog in this news",
         embeddedUnlockBody:
           "Unlock the full source video, news body, and extra media directly on this news page.",
@@ -1693,12 +1694,6 @@ function ReporterTeaserCutGallery({
   );
 }
 
-type SourceVlogPreviewVideoFields = {
-  previewClipVideoUrl?: string | null;
-  previewVideoUrl?: string | null;
-  teaserVideoUrl?: string | null;
-};
-
 function normalizeOptionalVideoUrl(value: string | null | undefined) {
   const trimmed = value?.trim();
 
@@ -1709,24 +1704,20 @@ function resolveSourceVlogPreviewVideoUrl(
   sourceContent: FanletterPublicContentDetail | null,
   fallbackVideoUrl: string | null,
 ) {
-  const previewContent =
-    sourceContent as (FanletterPublicContentDetail &
-      SourceVlogPreviewVideoFields) | null;
-
   return (
-    normalizeOptionalVideoUrl(previewContent?.previewClipVideoUrl) ??
-    normalizeOptionalVideoUrl(previewContent?.previewVideoUrl) ??
-    normalizeOptionalVideoUrl(previewContent?.teaserVideoUrl) ??
+    normalizeOptionalVideoUrl(sourceContent?.sourcePreviewVideoUrl) ??
     normalizeOptionalVideoUrl(fallbackVideoUrl)
   );
 }
 
-function SourceVlogUnlockedPreviewHero({
+function SourceVlogLockedPreviewHero({
+  children,
   copy,
   posterImageUrl,
   previewVideoUrl,
   title,
 }: {
+  children?: ReactNode;
   copy: ReturnType<typeof getCopy>;
   posterImageUrl: string | null;
   previewVideoUrl: string;
@@ -1747,13 +1738,13 @@ function SourceVlogUnlockedPreviewHero({
         />
       ) : null}
       <FanletterAutoplayVideo
-        className="absolute inset-0 h-full w-full object-cover"
-        controls
+        ariaHidden
+        className="absolute inset-0 h-full w-full scale-[1.03] object-cover brightness-[0.76] saturate-[1.04]"
         poster={posterImageUrl ?? undefined}
         src={previewVideoUrl}
         title={title}
       />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.26),rgba(0,0,0,0)_34%,rgba(0,0,0,0.08))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.38),rgba(0,0,0,0.12)_34%,rgba(0,0,0,0.78))]" />
       <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1.5 sm:left-4 sm:top-4">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-white/18 bg-black/52 px-2.5 py-1 text-[0.68rem] font-black text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)] backdrop-blur">
           <PlayCircle className="size-3.5 text-[#44f26e]" />
@@ -1763,6 +1754,7 @@ function SourceVlogUnlockedPreviewHero({
           {copy.embeddedPreviewMeta}
         </span>
       </div>
+      {children}
     </div>
   );
 }
@@ -1910,12 +1902,10 @@ function SourceVlogEmbed({
   );
   const shouldRequireNsfwScenePin =
     isSourceNsfw && shouldShowSourceTeaserGallery;
-  const shouldShowUnlockedPreviewHero = Boolean(
-    sourceReveal?.unlocked &&
-      viewerCanAccessSource &&
+  const shouldShowLockedPreviewHero = Boolean(
+    (sourceRevealLocked || !viewerCanAccessSource) &&
       sourcePreviewVideoUrl &&
-      !sourceMediaBlurred &&
-      !shouldRequireNsfwVideoPin,
+      !sourceMediaBlurred,
   );
   const noticeMessage = blurred
     ? copy.nsfwBlurNotice
@@ -1953,83 +1943,113 @@ function SourceVlogEmbed({
       </div>
       <div className="overflow-hidden border border-black/10 bg-black shadow-[0_20px_46px_rgba(17,21,16,0.1)]">
         {sourceRevealLocked && sourceReveal ? (
-          <div className="relative mx-auto aspect-[3/4] w-full overflow-hidden bg-black sm:aspect-video">
-            {sourceImageUrl ? (
-              <Image
-                alt={sourceContent?.title ?? copy.embeddedTitle}
-                className={
-                  sourceMediaBlurred
-                    ? "scale-[1.04] object-cover blur-sm brightness-[0.74] saturate-[0.9]"
-                    : "object-cover"
-                }
-                fill
-                loading="eager"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                src={sourceImageUrl}
-                unoptimized={shouldBypassFanletterImageOptimization(
-                  sourceImageUrl,
-                )}
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(145deg,#07100b,#101820_54%,#1b2b20)] text-white/74">
-                <Clapperboard className="size-14 text-[#44f26e]" />
-              </div>
-            )}
-            {sourceMediaBlurred ? (
-              <div className="pointer-events-none absolute inset-0 bg-black/10" />
-            ) : null}
-            <SourceVlogRevealTeaserOverlay
-              blurred={sourceMediaBlurred}
-              connectHref={sourceReveal.connectHref}
-              frames={sourceOverlaySceneFrames}
-              locale={locale}
-              reportId={sourceReveal.reportId}
-              sourceReveal={sourceReveal}
-            />
-          </div>
-        ) : shouldShowPaidTeaser && paidUnlockHref ? (
-          <div className="relative mx-auto aspect-[3/4] w-full overflow-hidden bg-black sm:aspect-video">
-            {sourceImageUrl ? (
-              <Image
-                alt={sourceContent?.title ?? copy.embeddedTitle}
-                className={
-                  sourceMediaBlurred
-                    ? "scale-[1.04] object-cover blur-sm brightness-[0.74] saturate-[0.9]"
-                    : "object-cover"
-                }
-                fill
-                loading="eager"
-                sizes="(max-width: 768px) 100vw, 50vw"
-                src={sourceImageUrl}
-                unoptimized={shouldBypassFanletterImageOptimization(
-                  sourceImageUrl,
-                )}
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(145deg,#07100b,#101820_54%,#1b2b20)] text-white/74">
-                <Clapperboard className="size-14 text-[#44f26e]" />
-              </div>
-            )}
-            {sourceMediaBlurred ? (
-              <div className="pointer-events-none absolute inset-0 bg-black/8" />
-            ) : null}
-            <SourceVlogPaidTeaserOverlay
-              blurred={sourceMediaBlurred}
+          shouldShowLockedPreviewHero && sourcePreviewVideoUrl ? (
+            <SourceVlogLockedPreviewHero
               copy={copy}
-              frames={sourceOverlaySceneFrames}
-              locale={locale}
-              paidUnlockHref={paidUnlockHref}
-              paidUnlockLabel={paidUnlockLabel}
-              showPaidUnlockCta={shouldShowPaidUnlockCta}
-            />
-          </div>
-        ) : shouldShowUnlockedPreviewHero && sourcePreviewVideoUrl ? (
-          <SourceVlogUnlockedPreviewHero
-            copy={copy}
-            posterImageUrl={sourceImageUrl}
-            previewVideoUrl={sourcePreviewVideoUrl}
-            title={sourceContent?.title ?? copy.embeddedTitle}
-          />
+              posterImageUrl={sourceImageUrl}
+              previewVideoUrl={sourcePreviewVideoUrl}
+              title={sourceContent?.title ?? copy.embeddedTitle}
+            >
+              <SourceVlogRevealTeaserOverlay
+                blurred={sourceMediaBlurred}
+                connectHref={sourceReveal.connectHref}
+                frames={sourceOverlaySceneFrames}
+                locale={locale}
+                reportId={sourceReveal.reportId}
+                sourceReveal={sourceReveal}
+              />
+            </SourceVlogLockedPreviewHero>
+          ) : (
+            <div className="relative mx-auto aspect-[3/4] w-full overflow-hidden bg-black sm:aspect-video">
+              {sourceImageUrl ? (
+                <Image
+                  alt={sourceContent?.title ?? copy.embeddedTitle}
+                  className={
+                    sourceMediaBlurred
+                      ? "scale-[1.04] object-cover blur-sm brightness-[0.74] saturate-[0.9]"
+                      : "object-cover"
+                  }
+                  fill
+                  loading="eager"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  src={sourceImageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(
+                    sourceImageUrl,
+                  )}
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(145deg,#07100b,#101820_54%,#1b2b20)] text-white/74">
+                  <Clapperboard className="size-14 text-[#44f26e]" />
+                </div>
+              )}
+              {sourceMediaBlurred ? (
+                <div className="pointer-events-none absolute inset-0 bg-black/10" />
+              ) : null}
+              <SourceVlogRevealTeaserOverlay
+                blurred={sourceMediaBlurred}
+                connectHref={sourceReveal.connectHref}
+                frames={sourceOverlaySceneFrames}
+                locale={locale}
+                reportId={sourceReveal.reportId}
+                sourceReveal={sourceReveal}
+              />
+            </div>
+          )
+        ) : shouldShowPaidTeaser && paidUnlockHref ? (
+          shouldShowLockedPreviewHero && sourcePreviewVideoUrl ? (
+            <SourceVlogLockedPreviewHero
+              copy={copy}
+              posterImageUrl={sourceImageUrl}
+              previewVideoUrl={sourcePreviewVideoUrl}
+              title={sourceContent?.title ?? copy.embeddedTitle}
+            >
+              <SourceVlogPaidTeaserOverlay
+                blurred={sourceMediaBlurred}
+                copy={copy}
+                frames={sourceOverlaySceneFrames}
+                locale={locale}
+                paidUnlockHref={paidUnlockHref}
+                paidUnlockLabel={paidUnlockLabel}
+                showPaidUnlockCta={shouldShowPaidUnlockCta}
+              />
+            </SourceVlogLockedPreviewHero>
+          ) : (
+            <div className="relative mx-auto aspect-[3/4] w-full overflow-hidden bg-black sm:aspect-video">
+              {sourceImageUrl ? (
+                <Image
+                  alt={sourceContent?.title ?? copy.embeddedTitle}
+                  className={
+                    sourceMediaBlurred
+                      ? "scale-[1.04] object-cover blur-sm brightness-[0.74] saturate-[0.9]"
+                      : "object-cover"
+                  }
+                  fill
+                  loading="eager"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  src={sourceImageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(
+                    sourceImageUrl,
+                  )}
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(145deg,#07100b,#101820_54%,#1b2b20)] text-white/74">
+                  <Clapperboard className="size-14 text-[#44f26e]" />
+                </div>
+              )}
+              {sourceMediaBlurred ? (
+                <div className="pointer-events-none absolute inset-0 bg-black/8" />
+              ) : null}
+              <SourceVlogPaidTeaserOverlay
+                blurred={sourceMediaBlurred}
+                copy={copy}
+                frames={sourceOverlaySceneFrames}
+                locale={locale}
+                paidUnlockHref={paidUnlockHref}
+                paidUnlockLabel={paidUnlockLabel}
+                showPaidUnlockCta={shouldShowPaidUnlockCta}
+              />
+            </div>
+          )
         ) : (
           <FanletterResponsiveMediaFrame
             alt={sourceContent?.title ?? copy.embeddedTitle}
@@ -2313,6 +2333,7 @@ export default async function LocalizedFanletterNewsReportPage({
       memberServerSession?.email ?? null,
       {
         includeNsfw,
+        includeLockedPreviewVideo: true,
       },
     ).catch(() => null),
     getRelatedFanletterNewsReports({

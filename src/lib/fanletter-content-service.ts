@@ -154,6 +154,7 @@ export type FanletterPublicContentDetail = FanletterPublicContentItem & {
   fanRequestSource: FanletterPublicFanRequestSource | null;
   hiddenNsfwCount: number;
   nsfwOptInEnabled: boolean;
+  sourcePreviewVideoUrl: string | null;
   tags: string[];
   viewerHasPaidEntitlement: boolean;
   viewerRelation: "audience" | "owner";
@@ -966,6 +967,30 @@ function toPublicContentItem({
     summary: compactText(post.summary || post.previewText || post.body, SUMMARY_LIMIT),
     title: compactText(post.title, TITLE_LIMIT),
   };
+}
+
+type ContentPostPreviewVideoFields = {
+  previewClipVideoUrl?: string | null;
+  previewVideoUrl?: string | null;
+  teaserVideoUrl?: string | null;
+};
+
+function normalizeOptionalVideoUrl(value: string | null | undefined) {
+  const trimmed = value?.trim();
+
+  return trimmed ? trimmed : null;
+}
+
+function getSourcePreviewVideoUrl(post: ContentPostDocument) {
+  const previewPost = post as ContentPostDocument & ContentPostPreviewVideoFields;
+
+  // This field can be sent to locked news pages, so never fall back to the
+  // full source video URL here.
+  return (
+    normalizeOptionalVideoUrl(previewPost.previewClipVideoUrl) ??
+    normalizeOptionalVideoUrl(previewPost.previewVideoUrl) ??
+    normalizeOptionalVideoUrl(previewPost.teaserVideoUrl)
+  );
 }
 
 function toPublicExclusiveNewsAssignment(
@@ -2210,6 +2235,7 @@ export const getFanletterPublicContentDetail = cache(
     viewerEmailInput?: string | null,
     options?: {
       includeNsfw?: boolean | null;
+      includeLockedPreviewVideo?: boolean | null;
     },
   ): Promise<FanletterPublicContentDetail | null> => {
     const postsCollection = await getContentPostsCollection();
@@ -2375,6 +2401,10 @@ export const getFanletterPublicContentDetail = cache(
       fanRequestSource,
       hiddenNsfwCount,
       nsfwOptInEnabled: includeNsfw,
+      sourcePreviewVideoUrl:
+        options?.includeLockedPreviewVideo === true
+          ? getSourcePreviewVideoUrl(post)
+          : null,
       tags: post.tags,
       viewerHasPaidEntitlement,
       viewerRelation: isOwner ? "owner" : "audience",
