@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
+import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterNewsRelatedList } from "@/components/fanletter-news-related-list";
 import { FanletterNewsSourceSceneGallery } from "@/components/fanletter-news-source-scene-gallery";
 import { FanletterNewsSourceRevealVote } from "@/components/fanletter-news-source-reveal-vote";
@@ -220,6 +221,8 @@ function getCopy(locale: Locale) {
           "잠금 콘텐츠는 공개 티저와 뉴스로 공개 가능한 정보만 이 화면에 표시됩니다.",
         embeddedLockedPaid: (amount: string) =>
           `전체 원본 브이로그는 팬 전용 유료 콘텐츠입니다. ${amount} 결제 후 이 뉴스 화면에서 바로 열립니다.`,
+        embeddedPreviewBadge: "언락 프리뷰",
+        embeddedPreviewMeta: "원본 분위기 자동 재생",
         embeddedTitle: "뉴스 속 원본 브이로그",
         embeddedUnlockBody:
           "결제 후 전체 원본 영상, 본문, 추가 미디어를 이 뉴스 화면에서 바로 이어봅니다.",
@@ -427,6 +430,8 @@ function getCopy(locale: Locale) {
           "Locked content is represented with public teaser details available for the news page.",
         embeddedLockedPaid: (amount: string) =>
           `The full source vlog is fan-only paid content. Pay ${amount} to open it from this news page.`,
+        embeddedPreviewBadge: "Unlocked preview",
+        embeddedPreviewMeta: "Source vibe autoplay",
         embeddedTitle: "Source vlog in this news",
         embeddedUnlockBody:
           "Unlock the full source video, news body, and extra media directly on this news page.",
@@ -1688,6 +1693,80 @@ function ReporterTeaserCutGallery({
   );
 }
 
+type SourceVlogPreviewVideoFields = {
+  previewClipVideoUrl?: string | null;
+  previewVideoUrl?: string | null;
+  teaserVideoUrl?: string | null;
+};
+
+function normalizeOptionalVideoUrl(value: string | null | undefined) {
+  const trimmed = value?.trim();
+
+  return trimmed ? trimmed : null;
+}
+
+function resolveSourceVlogPreviewVideoUrl(
+  sourceContent: FanletterPublicContentDetail | null,
+  fallbackVideoUrl: string | null,
+) {
+  const previewContent =
+    sourceContent as (FanletterPublicContentDetail &
+      SourceVlogPreviewVideoFields) | null;
+
+  return (
+    normalizeOptionalVideoUrl(previewContent?.previewClipVideoUrl) ??
+    normalizeOptionalVideoUrl(previewContent?.previewVideoUrl) ??
+    normalizeOptionalVideoUrl(previewContent?.teaserVideoUrl) ??
+    normalizeOptionalVideoUrl(fallbackVideoUrl)
+  );
+}
+
+function SourceVlogUnlockedPreviewHero({
+  copy,
+  posterImageUrl,
+  previewVideoUrl,
+  title,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  posterImageUrl: string | null;
+  previewVideoUrl: string;
+  title: string;
+}) {
+  return (
+    <div className="relative mx-auto aspect-[4/5] w-full overflow-hidden bg-black sm:aspect-video">
+      {posterImageUrl ? (
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 scale-[1.08] object-cover opacity-45 blur-2xl brightness-[0.62] saturate-[1.05]"
+          fill
+          loading="eager"
+          sizes="(max-width: 768px) 100vw, 50vw"
+          src={posterImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(posterImageUrl)}
+        />
+      ) : null}
+      <FanletterAutoplayVideo
+        className="absolute inset-0 h-full w-full object-cover"
+        controls
+        poster={posterImageUrl ?? undefined}
+        src={previewVideoUrl}
+        title={title}
+      />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.26),rgba(0,0,0,0)_34%,rgba(0,0,0,0.08))]" />
+      <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1.5 sm:left-4 sm:top-4">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/18 bg-black/52 px-2.5 py-1 text-[0.68rem] font-black text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)] backdrop-blur">
+          <PlayCircle className="size-3.5 text-[#44f26e]" />
+          {copy.embeddedPreviewBadge}
+        </span>
+        <span className="inline-flex items-center rounded-full border border-white/14 bg-black/42 px-2.5 py-1 text-[0.68rem] font-bold text-white/78 shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur">
+          {copy.embeddedPreviewMeta}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function SourceVlogEmbed({
   accessLabel,
   blurred,
@@ -1749,6 +1828,10 @@ function SourceVlogEmbed({
     ? pickTimelinePreviewFrames(sourceSceneFrames)
     : [];
   const hasEmbeddedVideo = Boolean(sourceVideoUrl);
+  const sourcePreviewVideoUrl = resolveSourceVlogPreviewVideoUrl(
+    sourceContent,
+    sourceVideoUrl,
+  );
   const paidUnlockAmount = priceUsdt ?? CONTENT_PAID_USDT_AMOUNT;
   const paidUnlockLabel = `${paidUnlockAmount} USDT`;
   const isSourceNsfw = sourceMaturityRating === "nsfw";
@@ -1827,6 +1910,13 @@ function SourceVlogEmbed({
   );
   const shouldRequireNsfwScenePin =
     isSourceNsfw && shouldShowSourceTeaserGallery;
+  const shouldShowUnlockedPreviewHero = Boolean(
+    sourceReveal?.unlocked &&
+      viewerCanAccessSource &&
+      sourcePreviewVideoUrl &&
+      !sourceMediaBlurred &&
+      !shouldRequireNsfwVideoPin,
+  );
   const noticeMessage = blurred
     ? copy.nsfwBlurNotice
     : shouldShowPaidUnlockCta
@@ -1933,6 +2023,13 @@ function SourceVlogEmbed({
               showPaidUnlockCta={shouldShowPaidUnlockCta}
             />
           </div>
+        ) : shouldShowUnlockedPreviewHero && sourcePreviewVideoUrl ? (
+          <SourceVlogUnlockedPreviewHero
+            copy={copy}
+            posterImageUrl={sourceImageUrl}
+            previewVideoUrl={sourcePreviewVideoUrl}
+            title={sourceContent?.title ?? copy.embeddedTitle}
+          />
         ) : (
           <FanletterResponsiveMediaFrame
             alt={sourceContent?.title ?? copy.embeddedTitle}
