@@ -299,7 +299,7 @@ export function FanletterNewsRelatedList({
   sortValue: string;
 }) {
   const currentItem = initialItems.find((item) => item.reportId === currentReportId);
-  const relatedPageSize = Math.max(1, pageSize - (currentItem ? 1 : 0));
+  const relatedPageSize = Math.max(1, pageSize);
   const [pages, setPages] = useState<RelatedNewsPage[]>([
     {
       hasMore: initialHasMore,
