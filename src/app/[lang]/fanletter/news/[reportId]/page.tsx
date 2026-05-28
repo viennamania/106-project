@@ -1994,14 +1994,22 @@ function SourceVlogEmbed({
               {sourceMediaBlurred ? (
                 <div className="pointer-events-none absolute inset-0 bg-black/10" />
               ) : null}
-              <SourceVlogRevealTeaserOverlay
-                blurred={sourceMediaBlurred}
-                connectHref={sourceReveal.connectHref}
-                frames={sourceOverlaySceneFrames}
-                locale={locale}
-                reportId={sourceReveal.reportId}
-                sourceReveal={sourceReveal}
-              />
+              <div
+                className={
+                  shouldShowDesktopSourceRevealDock
+                    ? "absolute inset-0 lg:hidden"
+                    : "absolute inset-0"
+                }
+              >
+                <SourceVlogRevealTeaserOverlay
+                  blurred={sourceMediaBlurred}
+                  connectHref={sourceReveal.connectHref}
+                  frames={sourceOverlaySceneFrames}
+                  locale={locale}
+                  reportId={sourceReveal.reportId}
+                  sourceReveal={sourceReveal}
+                />
+              </div>
             </div>
           )
         ) : shouldShowPaidTeaser && paidUnlockHref ? (
