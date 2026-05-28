@@ -92,6 +92,7 @@ export type FanletterNewsReportComposerSource = {
     requiresPurchase: boolean;
   };
   priceType: ContentPriceType;
+  previewClipVideoUrl: string | null;
   publishedAt: string | null;
   reportCount: number;
   reports: Array<{
@@ -269,6 +270,15 @@ function getCopy(locale: Locale) {
           noVideoBody:
             "브이로그 원본은 작성실에서 재생하지 않습니다. 유료 콘텐츠는 구매 후에도 티저 기반 작성만 허용됩니다.",
           openPurchase: "1 USDT 결제하기",
+          previewVideo: {
+            body:
+              "저장된 짧은 프리뷰가 있는 브이로그는 리포트 작성 전에 흐름을 확인할 수 있습니다. 원본 전체 영상은 계속 보호됩니다.",
+            badge: "프리뷰",
+            hiddenBody:
+              "NSFW 블러 상태에서는 프리뷰 동영상을 불러오지 않습니다. NSFW를 켜면 저장된 프리뷰를 확인할 수 있습니다.",
+            hiddenTitle: "NSFW 프리뷰 숨김",
+            title: "블로그 동영상 프리뷰",
+          },
           purchaseOnceBody:
             "결제는 이 작성 권한 영역에서 한 번만 진행합니다. 결제 후 선택한 브이로그가 유지되고 티저 선택, 크롭, 리포트 발행 도구가 열립니다.",
           previewBadge: "미리보기",
@@ -454,6 +464,15 @@ function getCopy(locale: Locale) {
           noVideoBody:
             "The original vlog stays off the reporting desk. Paid content still requires purchase before teaser-based reporting.",
           openPurchase: "Pay 1 USDT",
+          previewVideo: {
+            body:
+              "When a saved short preview exists, reporters can review the vlog flow before writing. The full source video remains protected.",
+            badge: "Preview",
+            hiddenBody:
+              "The preview video is not loaded while NSFW blur is enabled. Turn on NSFW visibility to review the saved preview.",
+            hiddenTitle: "NSFW preview hidden",
+            title: "Blog video preview",
+          },
           purchaseOnceBody:
             "Payment is handled once in this reporting-access block. After purchase, the selected vlog stays active and teaser selection, cropping, and publishing tools open.",
           previewBadge: "Preview",
@@ -1146,6 +1165,8 @@ export function FanletterNewsReportComposerPage({
   const shouldBlurSelectedNsfwMedia = Boolean(
     shouldBlurNsfwMedia && selectedSource?.contentMaturityRating === "nsfw",
   );
+  const selectedPreviewClipVideoUrl =
+    selectedSource?.previewClipVideoUrl?.trim() || null;
   const selectedCoverOption = selectedSourceCoverOptions.find(
     (option) => option.imageUrl === selectedCoverUrl,
   );
@@ -2568,6 +2589,52 @@ export function FanletterNewsReportComposerPage({
                     </div>
                   )}
                 </section>
+
+                {selectedPreviewClipVideoUrl ? (
+                  <section className="border border-black/12 bg-[#111510] p-4 text-white shadow-[0_14px_34px_rgba(17,21,16,0.12)] sm:p-5">
+                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.54fr)] lg:items-center">
+                      <div className="min-w-0">
+                        <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
+                          <Clapperboard className="size-3.5" />
+                          {copy.mediaAccess.previewVideo.badge}
+                        </p>
+                        <h2 className="mt-2 text-2xl font-black leading-tight tracking-normal [word-break:keep-all]">
+                          {copy.mediaAccess.previewVideo.title}
+                        </h2>
+                        <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-white/62 [word-break:keep-all]">
+                          {copy.mediaAccess.previewVideo.body}
+                        </p>
+                      </div>
+                      <div className="overflow-hidden border border-white/12 bg-black">
+                        {shouldBlurSelectedNsfwMedia ? (
+                          <div className="flex aspect-video min-h-[12rem] flex-col items-center justify-center p-5 text-center">
+                            <ShieldAlert className="size-7 text-[#44f26e]" />
+                            <p className="mt-3 text-sm font-black">
+                              {copy.mediaAccess.previewVideo.hiddenTitle}
+                            </p>
+                            <p className="mt-2 max-w-sm text-xs font-semibold leading-5 text-white/58">
+                              {copy.mediaAccess.previewVideo.hiddenBody}
+                            </p>
+                          </div>
+                        ) : (
+                          <video
+                            className="aspect-video min-h-[12rem] w-full bg-black object-contain"
+                            controls
+                            muted
+                            playsInline
+                            poster={
+                              selectedSource.coverImageUrl ??
+                              selectedCoverUrl ??
+                              undefined
+                            }
+                            preload="metadata"
+                            src={selectedPreviewClipVideoUrl}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </section>
+                ) : null}
 
                 {isSelectedPaidLocked ? (
                   <FanletterPaidUnlockPanel

@@ -319,6 +319,7 @@ export type FanletterNewsReportDraftSource = {
     requiresPurchase: boolean;
   };
   priceType: ContentPriceType;
+  previewClipVideoUrl: string | null;
   publishedAt: string | null;
   reportCount: number;
   reports: Array<{
@@ -2468,6 +2469,7 @@ export async function getFanletterNewsReportDraftSourcesForMember({
           exclusiveNewsReporterReferralCode: 1,
           exclusiveNewsUntil: 1,
           locale: 1,
+          previewClipVideoUrl: 1,
           previewText: 1,
           priceType: 1,
           publishedAt: 1,
@@ -2637,6 +2639,7 @@ export async function getFanletterNewsReportDraftSourcesForMember({
           requiresPurchase: post.priceType === "paid" && !isPurchased,
         },
         priceType: post.priceType,
+        previewClipVideoUrl: post.previewClipVideoUrl?.trim() || null,
         publishedAt: post.publishedAt?.toISOString() ?? null,
         reportCount: reportCountByContentId.get(post.contentId) ?? 0,
         reports: contentReports.slice(0, 8).map((report) => ({
