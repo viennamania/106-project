@@ -407,6 +407,7 @@ export type Dictionary = {
     searchEmpty: string;
     receiveNote: string;
     sendNote: string;
+    externalRecipientNote: string;
     historyDescription: string;
     labels: {
       availableBalance: string;
@@ -421,6 +422,8 @@ export type Dictionary = {
       send: string;
       history: string;
       recipient: string;
+      memberRecipient: string;
+      externalWalletAddress: string;
       amount: string;
       inbound: string;
       outbound: string;
@@ -433,6 +436,7 @@ export type Dictionary = {
     };
     placeholders: {
       searchMember: string;
+      externalWalletAddress: string;
       amount: string;
     };
     errors: {
@@ -441,6 +445,7 @@ export type Dictionary = {
       invalidAmount: string;
       insufficientBalance: string;
       selectRecipient: string;
+      invalidRecipientAddress: string;
       selfTransfer: string;
       searchFailed: string;
     };
@@ -1240,7 +1245,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       receiveNote:
         "BSC(BEP20) USDT만 이 주소로 입금하세요. 다른 네트워크 자산은 복구되지 않을 수 있습니다.",
       sendNote:
-        "받을 회원을 검색한 뒤 BSC USDT를 바로 전송할 수 있습니다.",
+        "받을 회원을 검색하거나 외부 지갑 주소를 입력해 BSC USDT를 바로 전송할 수 있습니다.",
+      externalRecipientNote:
+        "BSC(BEP20) USDT를 받을 외부 EVM 주소를 정확히 입력하세요. 잘못된 주소로 보낸 자산은 복구되지 않을 수 있습니다.",
       historyDescription:
         "내 지갑의 BSC USDT 입출금 내역을 최신순으로 표시합니다.",
       labels: {
@@ -1255,7 +1262,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         receive: "받기",
         send: "보내기",
         history: "입출금 내역",
-        recipient: "받는 회원",
+        recipient: "받는 곳",
+        memberRecipient: "회원",
+        externalWalletAddress: "외부 지갑",
         amount: "보낼 금액",
         inbound: "입금",
         outbound: "출금",
@@ -1268,6 +1277,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       placeholders: {
         searchMember: "이메일, 레퍼럴 코드, 지갑 주소로 회원 검색",
+        externalWalletAddress: "0x로 시작하는 외부 지갑 주소",
         amount: "0.0",
       },
       errors: {
@@ -1275,7 +1285,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         missingEmail: "현재 연결에서 이메일 주소를 확인하지 못했습니다.",
         invalidAmount: "보낼 금액을 올바르게 입력하세요.",
         insufficientBalance: "USDT 잔고가 부족합니다.",
-        selectRecipient: "받을 회원을 먼저 선택하세요.",
+        selectRecipient: "받는 곳을 먼저 선택하세요.",
+        invalidRecipientAddress: "유효한 외부 지갑 주소를 입력하세요.",
         selfTransfer: "자기 지갑으로는 전송할 수 없습니다.",
         searchFailed: "회원 검색에 실패했습니다.",
       },
@@ -2111,7 +2122,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       receiveNote:
         "Only send BSC (BEP20) USDT to this address. Assets from other networks may not be recoverable.",
       sendNote:
-        "Search for a member recipient, then send BSC USDT directly from this wallet.",
+        "Search for a member or enter an external wallet address, then send BSC USDT directly from this wallet.",
+      externalRecipientNote:
+        "Enter the external EVM address that will receive BSC (BEP20) USDT. Transfers to the wrong address may not be recoverable.",
       historyDescription:
         "Recent inbound and outbound BSC USDT transfers for your wallet are shown newest first.",
       labels: {
@@ -2126,7 +2139,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         receive: "Receive",
         send: "Send",
         history: "Transfer history",
-        recipient: "Recipient member",
+        recipient: "Recipient",
+        memberRecipient: "Member",
+        externalWalletAddress: "External wallet",
         amount: "Amount",
         inbound: "Inbound",
         outbound: "Outbound",
@@ -2139,6 +2154,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       placeholders: {
         searchMember: "Search by email, referral code, or wallet address",
+        externalWalletAddress: "External wallet address starting with 0x",
         amount: "0.0",
       },
       errors: {
@@ -2147,7 +2163,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           "Unable to read the email address from the current wallet session.",
         invalidAmount: "Enter a valid amount to send.",
         insufficientBalance: "Your USDT balance is too low.",
-        selectRecipient: "Select a recipient member first.",
+        selectRecipient: "Select a recipient first.",
+        invalidRecipientAddress: "Enter a valid external wallet address.",
         selfTransfer: "You cannot send to your own wallet.",
         searchFailed: "Failed to search members.",
       },
@@ -2987,7 +3004,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       receiveNote:
         "このアドレスには BSC(BEP20) USDT のみを送ってください。他ネットワークの資産は復旧できない場合があります。",
       sendNote:
-        "送金先の会員を検索して、このウォレットから BSC USDT を送れます。",
+        "送金先の会員を検索するか外部ウォレットアドレスを入力して、このウォレットから BSC USDT を送れます。",
+      externalRecipientNote:
+        "BSC(BEP20) USDT を受け取る外部 EVM アドレスを正確に入力してください。誤ったアドレスへの送金は復旧できない場合があります。",
       historyDescription:
         "ウォレットの BSC USDT 入出金履歴を新しい順に表示します。",
       labels: {
@@ -3002,7 +3021,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         receive: "受け取る",
         send: "送る",
         history: "入出金履歴",
-        recipient: "送金先会員",
+        recipient: "送金先",
+        memberRecipient: "会員",
+        externalWalletAddress: "外部ウォレット",
         amount: "送金額",
         inbound: "入金",
         outbound: "出金",
@@ -3015,6 +3036,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       placeholders: {
         searchMember: "メール、紹介コード、ウォレットで会員検索",
+        externalWalletAddress: "0x で始まる外部ウォレットアドレス",
         amount: "0.0",
       },
       errors: {
@@ -3023,7 +3045,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
           "現在のウォレット接続からメールアドレスを取得できませんでした。",
         invalidAmount: "正しい送金額を入力してください。",
         insufficientBalance: "USDT 残高が不足しています。",
-        selectRecipient: "先に送金先会員を選択してください。",
+        selectRecipient: "先に送金先を選択してください。",
+        invalidRecipientAddress: "有効な外部ウォレットアドレスを入力してください。",
         selfTransfer: "自分のウォレットには送金できません。",
         searchFailed: "会員検索に失敗しました。",
       },
@@ -3858,7 +3881,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       receiveNote:
         "此地址仅支持接收 BSC(BEP20) USDT。其他网络资产可能无法找回。",
       sendNote:
-        "搜索收款会员后，可直接从当前钱包发送 BSC USDT。",
+        "可搜索收款会员，或输入外部钱包地址后直接从当前钱包发送 BSC USDT。",
+      externalRecipientNote:
+        "请输入用于接收 BSC(BEP20) USDT 的外部 EVM 地址。转到错误地址的资产可能无法找回。",
       historyDescription:
         "按最新顺序显示你的钱包 BSC USDT 收入与支出记录。",
       labels: {
@@ -3873,7 +3898,9 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         receive: "收款",
         send: "转账",
         history: "收支记录",
-        recipient: "收款会员",
+        recipient: "收款方",
+        memberRecipient: "会员",
+        externalWalletAddress: "外部钱包",
         amount: "金额",
         inbound: "收入",
         outbound: "支出",
@@ -3886,6 +3913,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       placeholders: {
         searchMember: "通过邮箱、推荐码或钱包地址搜索会员",
+        externalWalletAddress: "以 0x 开头的外部钱包地址",
         amount: "0.0",
       },
       errors: {
@@ -3893,7 +3921,8 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
         missingEmail: "无法从当前钱包会话读取邮箱地址。",
         invalidAmount: "请输入正确的转账金额。",
         insufficientBalance: "USDT 余额不足。",
-        selectRecipient: "请先选择收款会员。",
+        selectRecipient: "请先选择收款方。",
+        invalidRecipientAddress: "请输入有效的外部钱包地址。",
         selfTransfer: "不能转给自己的钱包。",
         searchFailed: "会员搜索失败。",
       },

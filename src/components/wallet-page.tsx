@@ -25,7 +25,7 @@ import {
   WalletMinimal,
   X,
 } from "lucide-react";
-import { getContract } from "thirdweb";
+import { getAddress, getContract, isAddress } from "thirdweb";
 import { transfer } from "thirdweb/extensions/erc20";
 import {
   TransactionButton,
@@ -100,6 +100,8 @@ type RecipientSearchState = {
   results: WalletMemberLookupRecord[];
   status: "idle" | "loading" | "ready" | "error";
 };
+
+type SendRecipientMode = "member" | "external";
 
 type SendTransactionStatus = "idle" | "approving" | "submitted" | "confirmed";
 
@@ -193,6 +195,9 @@ export function WalletPage({
   });
   const [selectedRecipient, setSelectedRecipient] =
     useState<WalletMemberLookupRecord | null>(null);
+  const [sendRecipientMode, setSendRecipientMode] =
+    useState<SendRecipientMode>("member");
+  const [externalRecipientAddress, setExternalRecipientAddress] = useState("");
   const [sendAmount, setSendAmount] = useState("");
   const [sendTransactionStatus, setSendTransactionStatus] =
     useState<SendTransactionStatus>("idle");
@@ -604,6 +609,8 @@ export function WalletPage({
         status: "idle",
       });
       setSelectedRecipient(null);
+      setSendRecipientMode("member");
+      setExternalRecipientAddress("");
       setSendAmount("");
       setSendTransactionStatus("idle");
       if (sendStatusResetTimeoutRef.current !== null) {
@@ -659,6 +666,7 @@ export function WalletPage({
       !accountAddress ||
       !currentEmail ||
       !hasThirdwebClientId ||
+      sendRecipientMode !== "member" ||
       normalizedQuery.length < 2
     ) {
       setSearchState({
@@ -699,6 +707,7 @@ export function WalletPage({
     currentEmail,
     runRecipientSearch,
     searchQuery,
+    sendRecipientMode,
     selectedRecipient,
     status,
   ]);
@@ -713,12 +722,28 @@ export function WalletPage({
     accountAddress,
     status,
   });
-  const selectedRecipientAddress = selectedRecipient?.walletAddress
-    ? normalizeAddress(selectedRecipient.walletAddress)
+  const trimmedExternalRecipientAddress = externalRecipientAddress.trim();
+  const hasValidExternalRecipientAddress = isAddress(
+    trimmedExternalRecipientAddress,
+  );
+  const normalizedExternalRecipientAddress = hasValidExternalRecipientAddress
+    ? getAddress(trimmedExternalRecipientAddress)
     : null;
+  const memberRecipientAddress = selectedRecipient?.walletAddress ?? null;
+  const activeRecipientAddress =
+    sendRecipientMode === "external"
+      ? normalizedExternalRecipientAddress
+      : memberRecipientAddress;
+  const normalizedActiveRecipientAddress = activeRecipientAddress
+    ? normalizeAddress(activeRecipientAddress)
+    : null;
+  const showExternalRecipientAddressError =
+    sendRecipientMode === "external" &&
+    trimmedExternalRecipientAddress.length > 0 &&
+    !hasValidExternalRecipientAddress;
   const isSelfTransfer =
-    accountAddress && selectedRecipientAddress
-      ? normalizeAddress(accountAddress) === selectedRecipientAddress
+    accountAddress && normalizedActiveRecipientAddress
+      ? normalizeAddress(accountAddress) === normalizedActiveRecipientAddress
       : false;
 
   return (
@@ -1054,133 +1079,247 @@ export function WalletPage({
                     </div>
                   </div>
 
-                  <label className="mt-5 block">
-                    <span className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                      {dictionary.walletPage.labels.recipient}
-                    </span>
-                    <div className="mt-2 flex items-center gap-3 rounded-[24px] border border-slate-200 bg-white px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.04)]">
-                      <Search className="size-4 shrink-0 text-slate-400" />
-                      <input
-                        className="w-full min-w-0 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400"
-                        onChange={(event) => {
-                          setSearchQuery(event.target.value);
-                          setSelectedRecipient(null);
-                        }}
-                        placeholder={dictionary.walletPage.placeholders.searchMember}
-                        type="text"
-                        value={searchQuery}
-                      />
-                    </div>
-                  </label>
-
-                  {selectedRecipient ? (
-                    <div className="mt-4 rounded-[24px] border border-slate-200 bg-slate-50/90 p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-sm font-semibold text-slate-950">
-                            {selectedRecipient.email}
-                          </p>
-                          <p className="mt-1 text-sm text-slate-600">
-                            {formatAddressLabel(selectedRecipient.walletAddress)}
-                          </p>
-                        </div>
-                        <button
-                          className="inline-flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-                          onClick={() => {
-                            setSelectedRecipient(null);
-                            setSearchQuery("");
-                          }}
-                          type="button"
-                        >
-                          <X className="size-4" />
-                        </button>
+                  <div className="mt-5 space-y-3">
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <span className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                        {dictionary.walletPage.labels.recipient}
+                      </span>
+                      <div
+                        aria-label={dictionary.walletPage.labels.recipient}
+                        className="grid h-11 grid-cols-2 rounded-full border border-slate-200 bg-slate-100 p-1"
+                      >
+                        {(["member", "external"] as const).map((mode) => {
+                          const isActive = sendRecipientMode === mode;
+                          return (
+                            <button
+                              aria-pressed={isActive}
+                              className={cn(
+                                "inline-flex min-w-0 items-center justify-center gap-2 rounded-full px-3 text-sm font-medium transition",
+                                isActive
+                                  ? "bg-white text-slate-950 shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
+                                  : "text-slate-600 hover:text-slate-950",
+                              )}
+                              key={mode}
+                              onClick={() => {
+                                setSendRecipientMode(mode);
+                                setNotice(null);
+                                if (mode === "member") {
+                                  setExternalRecipientAddress("");
+                                } else {
+                                  setSearchQuery("");
+                                  setSelectedRecipient(null);
+                                  setSearchState({
+                                    error: null,
+                                    results: [],
+                                    status: "idle",
+                                  });
+                                }
+                              }}
+                              type="button"
+                            >
+                              {mode === "member" ? (
+                                <Search className="size-4 shrink-0" />
+                              ) : (
+                                <WalletMinimal className="size-4 shrink-0" />
+                              )}
+                              <span className="truncate">
+                                {mode === "member"
+                                  ? dictionary.walletPage.labels.memberRecipient
+                                  : dictionary.walletPage.labels.externalWalletAddress}
+                              </span>
+                            </button>
+                          );
+                        })}
                       </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <InfoBadge>
-                          {selectedRecipient.status === "completed"
-                            ? dictionary.member.completedValue
-                            : dictionary.member.pendingValue}
-                        </InfoBadge>
-                        {selectedRecipient.level ? (
-                          <InfoBadge
+                    </div>
+
+                    {sendRecipientMode === "member" ? (
+                      <>
+                        <label className="block">
+                          <span className="sr-only">
+                            {dictionary.walletPage.labels.memberRecipient}
+                          </span>
+                          <div className="flex items-center gap-3 rounded-[24px] border border-slate-200 bg-white px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.04)]">
+                            <Search className="size-4 shrink-0 text-slate-400" />
+                            <input
+                              className="w-full min-w-0 bg-transparent text-sm text-slate-950 outline-none placeholder:text-slate-400"
+                              onChange={(event) => {
+                                setSearchQuery(event.target.value);
+                                setSelectedRecipient(null);
+                              }}
+                              placeholder={
+                                dictionary.walletPage.placeholders.searchMember
+                              }
+                              type="text"
+                              value={searchQuery}
+                            />
+                          </div>
+                        </label>
+
+                        {selectedRecipient ? (
+                          <div className="rounded-[24px] border border-slate-200 bg-slate-50/90 p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-semibold text-slate-950">
+                                  {selectedRecipient.email}
+                                </p>
+                                <p className="mt-1 text-sm text-slate-600">
+                                  {formatAddressLabel(
+                                    selectedRecipient.walletAddress,
+                                  )}
+                                </p>
+                              </div>
+                              <button
+                                className="inline-flex size-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                                onClick={() => {
+                                  setSelectedRecipient(null);
+                                  setSearchQuery("");
+                                }}
+                                type="button"
+                              >
+                                <X className="size-4" />
+                              </button>
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              <InfoBadge>
+                                {selectedRecipient.status === "completed"
+                                  ? dictionary.member.completedValue
+                                  : dictionary.member.pendingValue}
+                              </InfoBadge>
+                              {selectedRecipient.level ? (
+                                <InfoBadge
+                                  className={cn(
+                                    "bg-transparent",
+                                    getReferralLevelTheme(selectedRecipient.level)
+                                      .badgeClassName,
+                                  )}
+                                >
+                                  {dictionary.referralsPage.labels.level}{" "}
+                                  {selectedRecipient.level}
+                                </InfoBadge>
+                              ) : null}
+                              {selectedRecipient.referralCode ? (
+                                <InfoBadge>
+                                  {dictionary.walletPage.labels.referralCode}:{" "}
+                                  {selectedRecipient.referralCode}
+                                </InfoBadge>
+                              ) : null}
+                            </div>
+                          </div>
+                        ) : searchState.status === "loading" ? (
+                          <MessageCard>{dictionary.walletPage.loading}</MessageCard>
+                        ) : searchQuery.trim().length >= 2 ? (
+                          <div className="space-y-2">
+                            {searchState.error ? (
+                              <MessageCard tone="error">
+                                {searchState.error}
+                              </MessageCard>
+                            ) : searchState.results.length === 0 ? (
+                              <MessageCard>
+                                {dictionary.walletPage.searchEmpty}
+                              </MessageCard>
+                            ) : (
+                              searchState.results.map((result) => (
+                                <button
+                                  className="flex w-full items-start justify-between gap-3 rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
+                                  key={`${result.email}:${result.walletAddress}`}
+                                  onClick={() => {
+                                    setSelectedRecipient(result);
+                                    setSearchQuery(result.email);
+                                    setSearchState({
+                                      error: null,
+                                      results: [],
+                                      status: "idle",
+                                    });
+                                  }}
+                                  type="button"
+                                >
+                                  <div>
+                                    <p className="text-sm font-semibold text-slate-950">
+                                      {result.email}
+                                    </p>
+                                    <p className="mt-1 text-sm text-slate-600">
+                                      {formatAddressLabel(result.walletAddress)}
+                                    </p>
+                                  </div>
+                                  <div className="shrink-0">
+                                    <div className="flex flex-wrap justify-end gap-2">
+                                      <InfoBadge>
+                                        {result.status === "completed"
+                                          ? dictionary.member.completedValue
+                                          : dictionary.member.pendingValue}
+                                      </InfoBadge>
+                                      {result.level ? (
+                                        <InfoBadge
+                                          className={cn(
+                                            "bg-transparent",
+                                            getReferralLevelTheme(result.level)
+                                              .badgeClassName,
+                                          )}
+                                        >
+                                          {dictionary.referralsPage.labels.level}{" "}
+                                          {result.level}
+                                        </InfoBadge>
+                                      ) : null}
+                                    </div>
+                                  </div>
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        ) : null}
+                      </>
+                    ) : (
+                      <>
+                        <label className="block">
+                          <span className="sr-only">
+                            {dictionary.walletPage.labels.externalWalletAddress}
+                          </span>
+                          <div
                             className={cn(
-                              "bg-transparent",
-                              getReferralLevelTheme(selectedRecipient.level)
-                                .badgeClassName,
+                              "flex items-center gap-3 rounded-[24px] border bg-white px-4 py-3 shadow-[0_14px_34px_rgba(15,23,42,0.04)]",
+                              showExternalRecipientAddressError
+                                ? "border-rose-300"
+                                : "border-slate-200",
                             )}
                           >
-                            {dictionary.referralsPage.labels.level}{" "}
-                            {selectedRecipient.level}
-                          </InfoBadge>
+                            <WalletMinimal className="size-4 shrink-0 text-slate-400" />
+                            <input
+                              autoCapitalize="none"
+                              autoComplete="off"
+                              className="w-full min-w-0 bg-transparent font-mono text-sm text-slate-950 outline-none placeholder:font-sans placeholder:text-slate-400"
+                              onChange={(event) => {
+                                setExternalRecipientAddress(event.target.value);
+                              }}
+                              placeholder={
+                                dictionary.walletPage.placeholders
+                                  .externalWalletAddress
+                              }
+                              spellCheck={false}
+                              type="text"
+                              value={externalRecipientAddress}
+                            />
+                          </div>
+                        </label>
+                        <p className="text-sm leading-6 text-slate-600">
+                          {dictionary.walletPage.externalRecipientNote}
+                        </p>
+                        {showExternalRecipientAddressError ? (
+                          <MessageCard tone="error">
+                            {dictionary.walletPage.errors.invalidRecipientAddress}
+                          </MessageCard>
+                        ) : isSelfTransfer ? (
+                          <MessageCard tone="error">
+                            {dictionary.walletPage.errors.selfTransfer}
+                          </MessageCard>
+                        ) : normalizedExternalRecipientAddress ? (
+                          <div className="rounded-[22px] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
+                            {formatAddressLabel(normalizedExternalRecipientAddress)}
+                          </div>
                         ) : null}
-                        {selectedRecipient.referralCode ? (
-                          <InfoBadge>
-                            {dictionary.walletPage.labels.referralCode}:{" "}
-                            {selectedRecipient.referralCode}
-                          </InfoBadge>
-                        ) : null}
-                      </div>
-                    </div>
-                  ) : searchState.status === "loading" ? (
-                    <div className="mt-4">
-                      <MessageCard>{dictionary.walletPage.loading}</MessageCard>
-                    </div>
-                  ) : searchQuery.trim().length >= 2 ? (
-                    <div className="mt-4 space-y-2">
-                      {searchState.error ? (
-                        <MessageCard tone="error">{searchState.error}</MessageCard>
-                      ) : searchState.results.length === 0 ? (
-                        <MessageCard>{dictionary.walletPage.searchEmpty}</MessageCard>
-                      ) : (
-                        searchState.results.map((result) => (
-                          <button
-                            className="flex w-full items-start justify-between gap-3 rounded-[22px] border border-slate-200 bg-white px-4 py-3 text-left transition hover:border-slate-300 hover:bg-slate-50"
-                            key={`${result.email}:${result.walletAddress}`}
-                            onClick={() => {
-                              setSelectedRecipient(result);
-                              setSearchQuery(result.email);
-                              setSearchState({
-                                error: null,
-                                results: [],
-                                status: "idle",
-                              });
-                            }}
-                            type="button"
-                          >
-                            <div>
-                              <p className="text-sm font-semibold text-slate-950">
-                                {result.email}
-                              </p>
-                              <p className="mt-1 text-sm text-slate-600">
-                                {formatAddressLabel(result.walletAddress)}
-                              </p>
-                            </div>
-                            <div className="shrink-0">
-                              <div className="flex flex-wrap justify-end gap-2">
-                                <InfoBadge>
-                                  {result.status === "completed"
-                                    ? dictionary.member.completedValue
-                                    : dictionary.member.pendingValue}
-                                </InfoBadge>
-                                {result.level ? (
-                                  <InfoBadge
-                                    className={cn(
-                                      "bg-transparent",
-                                      getReferralLevelTheme(result.level)
-                                        .badgeClassName,
-                                    )}
-                                  >
-                                    {dictionary.referralsPage.labels.level}{" "}
-                                    {result.level}
-                                  </InfoBadge>
-                                ) : null}
-                              </div>
-                            </div>
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  ) : null}
+                      </>
+                    )}
+                  </div>
 
                   <label className="mt-5 block">
                     <span className="text-xs uppercase tracking-[0.22em] text-slate-500">
@@ -1222,7 +1361,7 @@ export function WalletPage({
                           disabled={
                             isSendTransactionBusy ||
                             !accountAddress ||
-                            !selectedRecipient ||
+                            !activeRecipientAddress ||
                             !sendAmount.trim() ||
                             isSelfTransfer
                           }
@@ -1238,7 +1377,7 @@ export function WalletPage({
                             });
                           }}
                           onTransactionConfirmed={(receipt) => {
-                            const confirmedRecipient = selectedRecipient;
+                            const confirmedRecipientAddress = activeRecipientAddress;
                             const confirmedAmount = sendAmount.trim();
 
                             setSendTransactionStatus("confirmed");
@@ -1252,7 +1391,7 @@ export function WalletPage({
 
                             if (
                               accountAddress &&
-                              confirmedRecipient &&
+                              confirmedRecipientAddress &&
                               confirmedAmount &&
                               /^\d+(\.\d+)?$/u.test(confirmedAmount)
                             ) {
@@ -1265,7 +1404,7 @@ export function WalletPage({
                                 action: "confirm_send",
                                 amountWei,
                                 fromWalletAddress: accountAddress,
-                                toWalletAddress: confirmedRecipient.walletAddress,
+                                toWalletAddress: confirmedRecipientAddress,
                                 transactionHash: receipt.transactionHash,
                               }).catch(() => {
                                 // The history row stays pending until the next refresh retry.
@@ -1283,14 +1422,14 @@ export function WalletPage({
                             }, 1800);
                           }}
                           onTransactionSent={(result) => {
-                            const sentRecipient = selectedRecipient;
+                            const sentRecipientAddress = activeRecipientAddress;
                             const sentAmount = sendAmount.trim();
 
                             setSendTransactionStatus("submitted");
 
                             if (
                               accountAddress &&
-                              sentRecipient &&
+                              sentRecipientAddress &&
                               sentAmount &&
                               /^\d+(\.\d+)?$/u.test(sentAmount)
                             ) {
@@ -1303,7 +1442,7 @@ export function WalletPage({
                                 action: "record_send",
                                 amountWei,
                                 fromWalletAddress: accountAddress,
-                                toWalletAddress: sentRecipient.walletAddress,
+                                toWalletAddress: sentRecipientAddress,
                                 transactionHash: result.transactionHash,
                               }).catch(() => {
                                 // Keep the UI moving even if the history write fails.
@@ -1320,8 +1459,15 @@ export function WalletPage({
                             }, 3200);
                           }}
                           transaction={() => {
-                            if (!selectedRecipient) {
-                              throw new Error(dictionary.walletPage.errors.selectRecipient);
+                            const recipientAddress = activeRecipientAddress;
+
+                            if (!recipientAddress) {
+                              throw new Error(
+                                sendRecipientMode === "external"
+                                  ? dictionary.walletPage.errors
+                                      .invalidRecipientAddress
+                                  : dictionary.walletPage.errors.selectRecipient,
+                              );
                             }
 
                             const normalizedAmount = sendAmount.trim();
@@ -1361,7 +1507,7 @@ export function WalletPage({
                             return transfer({
                               amount: normalizedAmount,
                               contract: usdtContract,
-                              to: selectedRecipient.walletAddress,
+                              to: recipientAddress,
                             });
                           }}
                           type="button"
