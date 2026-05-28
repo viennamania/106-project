@@ -2580,6 +2580,25 @@ export default async function LocalizedFanletterNewsReportPage({
               </div>
             </header>
 
+            {shouldShowNsfwControl ? (
+              <div className="mt-3 sm:hidden">
+                <FanletterNsfwOptInControl
+                  compact
+                  disabledBody={copy.nsfwControl.disabledBody}
+                  disabledTitle={copy.nsfwControl.disabledTitle}
+                  enabled={includeNsfw}
+                  enabledBody={copy.nsfwControl.enabledBody}
+                  enabledTitle={copy.nsfwControl.enabledTitle}
+                  hiddenCount={nsfwNewsCount}
+                  hiddenCountText={copy.nsfwControl.hiddenCountText(
+                    formatNumber(nsfwNewsCount, locale),
+                  )}
+                  locale={locale}
+                  tone={includeNsfw ? "dark" : "light"}
+                />
+              </div>
+            ) : null}
+
             <ArticleVisualLead
               accessLabel={accessLabel}
               blurred={shouldBlurCurrentReport}
@@ -2598,7 +2617,7 @@ export default async function LocalizedFanletterNewsReportPage({
             ) : null}
 
             {shouldShowNsfwControl ? (
-              <div className="mt-5">
+              <div className="mt-5 hidden sm:block">
                 <FanletterNsfwOptInControl
                   disabledBody={copy.nsfwControl.disabledBody}
                   disabledTitle={copy.nsfwControl.disabledTitle}

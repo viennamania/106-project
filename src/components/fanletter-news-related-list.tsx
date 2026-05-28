@@ -157,7 +157,7 @@ function SourceRevealStatusPill({
   return (
     <div
       className={cn(
-        "mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full border px-2 py-1 text-[0.66rem] font-black leading-none",
+        "mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full border px-2 py-1 text-[0.62rem] font-black leading-none sm:mt-2 sm:text-[0.66rem]",
         item.sourceReveal.unlocked
           ? "border-[#44f26e]/38 bg-[#eaffef] text-[#11732d]"
           : "border-black/12 bg-[#f5f7f1] text-[#111510]",
@@ -184,10 +184,10 @@ function RelatedNewsCard({
 }) {
   return (
     <Link
-      className="group grid min-w-0 grid-cols-[7.25rem_minmax(0,1fr)] gap-3 border-b border-black/10 pb-4 transition last:border-b-0 last:pb-0 hover:border-[#19b84b] sm:grid-cols-[8.25rem_minmax(0,1fr)]"
+      className="group grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] gap-2.5 border-b border-black/10 pb-3.5 transition last:border-b-0 last:pb-0 hover:border-[#19b84b] sm:grid-cols-[8.25rem_minmax(0,1fr)] sm:gap-3 sm:pb-4"
       href={href}
     >
-      <div className="relative aspect-[16/10] overflow-hidden rounded-lg bg-[#111510]">
+      <div className="relative aspect-[16/10] overflow-hidden rounded-md bg-[#111510] sm:rounded-lg">
         {item.coverImageUrl ? (
           <Image
             alt=""
@@ -198,7 +198,7 @@ function RelatedNewsCard({
                 : "object-cover transition duration-300 group-hover:scale-[1.04]"
             }
             fill
-            sizes="(max-width: 640px) 7.25rem, 8.25rem"
+            sizes="(max-width: 640px) 6.5rem, 8.25rem"
             src={item.coverImageUrl}
             unoptimized={shouldBypassFanletterImageOptimization(
               item.coverImageUrl,
@@ -227,7 +227,7 @@ function RelatedNewsCard({
       <div className="min-w-0">
         <p
           className={cn(
-            "line-clamp-2 break-words text-sm font-black leading-5 [word-break:keep-all]",
+            "line-clamp-2 break-words text-[0.92rem] font-black leading-5 [word-break:keep-all] sm:text-sm",
             item.shouldBlur ? "select-none blur-[2px]" : "",
           )}
         >
@@ -235,14 +235,14 @@ function RelatedNewsCard({
         </p>
         <p
           className={cn(
-            "mt-1 line-clamp-2 text-xs font-medium leading-5 text-black/58",
+            "mt-0.5 line-clamp-1 text-xs font-medium leading-5 text-black/58 sm:mt-1 sm:line-clamp-2",
             item.shouldBlur ? "select-none blur-[2px]" : "",
           )}
         >
           {item.dek}
         </p>
         <SourceRevealStatusPill item={item} />
-        <div className="mt-2 flex flex-wrap gap-2 text-[0.66rem] font-bold uppercase tracking-[0.1em] text-black/44">
+        <div className="mt-1.5 flex flex-wrap gap-x-2 gap-y-1 text-[0.58rem] font-bold uppercase tracking-[0.1em] text-black/44 sm:mt-2 sm:text-[0.66rem]">
           <FirstReportBadge
             className="border border-[#1eb84a]/20 bg-[#eaffef] px-2 py-0.5 text-[#11732d] shadow-none"
             item={item}
@@ -338,43 +338,43 @@ export function FanletterNewsRelatedList({
   ]);
 
   return (
-    <section className="overflow-hidden border border-black/12 bg-white text-[#111510] shadow-[0_14px_40px_rgba(17,21,16,0.06)]">
-      <div className="border-b border-black/12 bg-[#f5f7f1] p-4">
+    <section className="overflow-hidden border border-black/12 bg-white text-[#111510] shadow-none sm:shadow-[0_14px_40px_rgba(17,21,16,0.06)]">
+      <div className="border-b border-black/12 bg-[#f5f7f1] p-3 sm:p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.13em] text-[#16702e]">
+            <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#16702e] sm:text-[0.68rem]">
               <BadgeCheck className="size-3.5" />
               {copy.eyebrow}
             </p>
-            <h2 className="mt-2 break-words text-lg font-black leading-tight tracking-normal [word-break:keep-all]">
+            <h2 className="mt-1.5 break-words text-base font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-2 sm:text-lg">
               {copy.title}
             </h2>
           </div>
-          <span className="inline-flex shrink-0 items-center rounded-full border border-[#16702e]/20 bg-white px-2.5 py-1 text-[0.64rem] font-black uppercase tracking-[0.08em] text-[#16702e]">
+          <span className="hidden shrink-0 items-center rounded-full border border-[#16702e]/20 bg-white px-2.5 py-1 text-[0.64rem] font-black uppercase tracking-[0.08em] text-[#16702e] sm:inline-flex">
             FanLetter
           </span>
         </div>
         {characterName ? (
-          <p className="mt-2 line-clamp-1 text-sm font-black text-black/64">
+          <p className="mt-2 hidden line-clamp-1 text-sm font-black text-black/64 sm:block">
             {characterName}
           </p>
         ) : null}
-        <p className="mt-2 text-sm font-semibold leading-6 text-black/54">
+        <p className="mt-2 hidden text-sm font-semibold leading-6 text-black/54 sm:block">
           {copy.description}
         </p>
         {sortOptions.length > 0 ? (
           <div
             aria-label={sortLabel}
-            className="mt-3 flex flex-wrap items-center gap-1.5"
+            className="-mx-3 mt-2.5 flex items-center gap-1.5 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none] sm:mx-0 sm:mt-3 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
           >
-            <span className="mr-1 text-[0.66rem] font-black uppercase tracking-[0.1em] text-black/42">
+            <span className="mr-1 shrink-0 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black/42 sm:text-[0.66rem]">
               {sortLabel}
             </span>
             {sortOptions.map((option) => (
               <Link
                 aria-current={option.active ? "page" : undefined}
                 className={cn(
-                  "inline-flex min-h-8 items-center rounded-full border px-3 py-1 text-[0.72rem] font-black transition",
+                  "inline-flex min-h-8 shrink-0 items-center rounded-full border px-3 py-1 text-[0.72rem] font-black transition",
                   option.active
                     ? "border-[#111510] bg-[#111510] !text-white"
                     : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]",
@@ -389,9 +389,9 @@ export function FanletterNewsRelatedList({
         ) : null}
       </div>
 
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         {items.length > 0 ? (
-          <div className="grid gap-4">
+          <div className="grid gap-3 sm:gap-4">
             {items.map((item) => {
               const href = buildRelatedStateHref({
                 baseHref: item.href,
@@ -408,7 +408,7 @@ export function FanletterNewsRelatedList({
             })}
           </div>
         ) : (
-          <p className="border border-black/10 bg-[#f5f6f2] px-4 py-4 text-sm font-semibold leading-6 text-black/52">
+          <p className="border border-black/10 bg-[#f5f6f2] px-3 py-3 text-sm font-semibold leading-6 text-black/52 sm:px-4 sm:py-4">
             {copy.empty}
           </p>
         )}
@@ -421,7 +421,7 @@ export function FanletterNewsRelatedList({
 
         {hasMore ? (
           <button
-            className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f5f7f1] px-4 py-2 text-center text-sm font-black leading-5 text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] disabled:cursor-wait disabled:opacity-60"
+            className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f5f7f1] px-4 py-2 text-center text-sm font-black leading-5 text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] disabled:cursor-wait disabled:opacity-60 sm:mt-4"
             disabled={isLoading}
             onClick={handleLoadMore}
             type="button"
