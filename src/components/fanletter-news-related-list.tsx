@@ -51,12 +51,16 @@ function buildPageHref(baseHref: string, offset: number, limit: number) {
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
-function buildRelatedSortHref({
+function buildRelatedNewsHref({
   baseHref,
+  offset,
+  offsetParamName,
   sortParamName,
   sortValue,
 }: {
   baseHref: string;
+  offset: number;
+  offsetParamName: string;
   sortParamName: string;
   sortValue: string;
 }) {
@@ -64,7 +68,25 @@ function buildRelatedSortHref({
 
   url.searchParams.set(sortParamName, sortValue);
 
+  if (offset > 0) {
+    url.searchParams.set(offsetParamName, String(offset));
+  } else {
+    url.searchParams.delete(offsetParamName);
+  }
+
   return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function replaceCurrentRelatedOffset(offsetParamName: string, offset: number) {
+  const url = new URL(window.location.href);
+
+  if (offset > 0) {
+    url.searchParams.set(offsetParamName, String(offset));
+  } else {
+    url.searchParams.delete(offsetParamName);
+  }
+
+  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
 function isRelatedListResponse(
@@ -279,8 +301,10 @@ export function FanletterNewsRelatedList({
   currentReportId,
   initialHasMore,
   initialItems,
+  initialPageIndex,
   pageSize,
   relatedApiHref,
+  relatedOffsetParamName,
   relatedSortParamName,
   sortLabel,
   sortOptions,
@@ -291,33 +315,42 @@ export function FanletterNewsRelatedList({
   currentReportId: string;
   initialHasMore: boolean;
   initialItems: FanletterRelatedNewsItem[];
+  initialPageIndex: number;
   pageSize: number;
   relatedApiHref: string;
+  relatedOffsetParamName: string;
   relatedSortParamName: string;
   sortLabel: string;
   sortOptions: FanletterNewsRelatedSortOption[];
   sortValue: string;
 }) {
   const currentItem = initialItems.find((item) => item.reportId === currentReportId);
-  const relatedPageSize = Math.max(1, pageSize);
-  const [pages, setPages] = useState<RelatedNewsPage[]>([
-    {
+  const relatedItemsPerPage = Math.max(1, pageSize - (currentItem ? 1 : 0));
+  const normalizedInitialPageIndex = Math.max(0, Math.floor(initialPageIndex));
+  const [pages, setPages] = useState<Array<RelatedNewsPage | undefined>>(() => {
+    const initialPages: Array<RelatedNewsPage | undefined> = [];
+
+    initialPages[normalizedInitialPageIndex] = {
       hasMore: initialHasMore,
       items: getRelatedPageItems(initialItems, currentReportId).slice(
         0,
-        relatedPageSize,
+        relatedItemsPerPage,
       ),
-    },
-  ]);
-  const [pageIndex, setPageIndex] = useState(0);
+    };
+
+    return initialPages;
+  });
+  const [pageIndex, setPageIndex] = useState(normalizedInitialPageIndex);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
-  const activePage = pages[pageIndex] ?? pages[0];
+  const activePage = pages[pageIndex] ?? { hasMore: false, items: [] };
   const visibleRelatedItems = activePage.items;
   const hasAnyRelatedItems =
-    pages.some((page) => page.items.length > 0) ||
+    pageIndex > 0 ||
+    pages.some((page) => (page?.items.length ?? 0) > 0) ||
     countLoadedRelatedItems(initialItems, currentReportId) > 0;
+  const currentRelatedOffset = pageIndex * relatedItemsPerPage;
 
   const scrollToSectionTop = useCallback(() => {
     if (!sectionRef.current) {
@@ -334,19 +367,31 @@ export function FanletterNewsRelatedList({
     });
   }, []);
 
+  const showPage = useCallback((nextPageIndex: number) => {
+    setPageIndex(nextPageIndex);
+    setError(null);
+    replaceCurrentRelatedOffset(
+      relatedOffsetParamName,
+      nextPageIndex * relatedItemsPerPage,
+    );
+    scrollToSectionTop();
+  }, [relatedItemsPerPage, relatedOffsetParamName, scrollToSectionTop]);
+
   const goToPage = useCallback(async (nextPageIndex: number) => {
     if (isLoading || nextPageIndex < 0) {
       return;
     }
 
     if (pages[nextPageIndex]) {
-      setPageIndex(nextPageIndex);
-      setError(null);
-      scrollToSectionTop();
+      showPage(nextPageIndex);
       return;
     }
 
-    if (!activePage.hasMore || nextPageIndex !== pageIndex + 1) {
+    const canFetchMissingPage =
+      nextPageIndex < pageIndex ||
+      (activePage.hasMore && nextPageIndex === pageIndex + 1);
+
+    if (!canFetchMissingPage) {
       return;
     }
 
@@ -357,8 +402,8 @@ export function FanletterNewsRelatedList({
       const response = await fetch(
         buildPageHref(
           relatedApiHref,
-          nextPageIndex * relatedPageSize,
-          relatedPageSize,
+          nextPageIndex * relatedItemsPerPage,
+          relatedItemsPerPage,
         ),
         {
           headers: {
@@ -387,8 +432,7 @@ export function FanletterNewsRelatedList({
         updatedPages[nextPageIndex] = nextPage;
         return updatedPages;
       });
-      setPageIndex(nextPageIndex);
-      scrollToSectionTop();
+      showPage(nextPageIndex);
     } catch {
       setError(copy.error);
     } finally {
@@ -402,8 +446,8 @@ export function FanletterNewsRelatedList({
     pageIndex,
     pages,
     relatedApiHref,
-    relatedPageSize,
-    scrollToSectionTop,
+    relatedItemsPerPage,
+    showPage,
   ]);
   const canGoPrevious = pageIndex > 0;
   const canGoNext = activePage.hasMore || Boolean(pages[pageIndex + 1]);
@@ -469,8 +513,10 @@ export function FanletterNewsRelatedList({
           <div className="mb-3">
             <RelatedNewsCard
               currentLabel={copy.current}
-              href={buildRelatedSortHref({
+              href={buildRelatedNewsHref({
                 baseHref: currentItem.href,
+                offset: currentRelatedOffset,
+                offsetParamName: relatedOffsetParamName,
                 sortParamName: relatedSortParamName,
                 sortValue,
               })}
@@ -483,8 +529,10 @@ export function FanletterNewsRelatedList({
         {visibleRelatedItems.length > 0 ? (
           <div className="grid gap-2.5 sm:gap-3">
             {visibleRelatedItems.map((item) => {
-              const href = buildRelatedSortHref({
+              const href = buildRelatedNewsHref({
                 baseHref: item.href,
+                offset: currentRelatedOffset,
+                offsetParamName: relatedOffsetParamName,
                 sortParamName: relatedSortParamName,
                 sortValue,
               });

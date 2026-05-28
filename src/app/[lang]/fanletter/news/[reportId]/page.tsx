@@ -98,6 +98,7 @@ import { buildWalletUnlockHref } from "@/lib/wallet-unlock";
 
 type FanletterNewsReportSearchParams = {
   ref?: string | string[];
+  relatedOffset?: string | string[];
   relatedLimit?: string | string[];
   relatedSort?: string | string[];
 };
@@ -128,10 +129,25 @@ type ViewerOwnershipSignal = {
 
 const RELATED_NEWS_PAGE_SIZE = 4;
 const RELATED_NEWS_LIMIT_PARAM = "relatedLimit";
+const RELATED_NEWS_OFFSET_PARAM = "relatedOffset";
 const RELATED_NEWS_SORT_PARAM = "relatedSort";
 
 function readRelatedNewsVisibleCount() {
   return RELATED_NEWS_PAGE_SIZE;
+}
+
+function readRelatedNewsOffset(
+  value: string | string[] | undefined,
+  pageSize: number,
+) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  const parsed = rawValue ? Number.parseInt(rawValue, 10) : 0;
+
+  if (!Number.isFinite(parsed) || parsed < 1 || pageSize < 1) {
+    return 0;
+  }
+
+  return Math.floor(parsed / pageSize) * pageSize;
 }
 
 function getCopy(locale: Locale) {
@@ -3008,7 +3024,14 @@ export default async function LocalizedFanletterNewsReportPage({
   );
   const relatedNewsVisibleCount = readRelatedNewsVisibleCount();
   const relatedNewsSort = readFanletterRelatedNewsSort(query.relatedSort);
-  const relatedReportVisibleCount = Math.max(0, relatedNewsVisibleCount - 1);
+  const relatedReportVisibleCount = Math.max(1, relatedNewsVisibleCount - 1);
+  const relatedNewsOffset = readRelatedNewsOffset(
+    query.relatedOffset,
+    relatedReportVisibleCount,
+  );
+  const relatedNewsInitialPageIndex = Math.floor(
+    relatedNewsOffset / relatedReportVisibleCount,
+  );
   const memberServerSession = await readMemberServerSession();
   const [
     sourceContent,
@@ -3033,6 +3056,7 @@ export default async function LocalizedFanletterNewsReportPage({
       excludeReportId: report.reportId,
       limit: relatedReportVisibleCount + 1,
       locale,
+      offset: relatedNewsOffset,
       sort: relatedNewsSort,
     }),
     getFanletterNewsReporterIncentiveStats({
@@ -3181,7 +3205,7 @@ export default async function LocalizedFanletterNewsReportPage({
   const relatedNewsApiHref = setPathSearchParams(
     "/api/fanletter/news-reports/related",
     {
-      limit: String(RELATED_NEWS_PAGE_SIZE),
+      limit: String(relatedReportVisibleCount),
       locale,
       ref: referralCode,
       reportId: report.reportId,
@@ -3193,6 +3217,7 @@ export default async function LocalizedFanletterNewsReportPage({
       active: sortValue === relatedNewsSort,
       href: setPathSearchParams(articleHref, {
         [RELATED_NEWS_LIMIT_PARAM]: null,
+        [RELATED_NEWS_OFFSET_PARAM]: null,
         [RELATED_NEWS_SORT_PARAM]:
           sortValue === DEFAULT_FANLETTER_RELATED_NEWS_SORT ? null : sortValue,
       }),
@@ -3218,8 +3243,10 @@ export default async function LocalizedFanletterNewsReportPage({
     currentReportId: report.reportId,
     initialHasMore: relatedNewsHasMore,
     initialItems: relatedNewsItems,
+    initialPageIndex: relatedNewsInitialPageIndex,
     pageSize: RELATED_NEWS_PAGE_SIZE,
     relatedApiHref: relatedNewsApiHref,
+    relatedOffsetParamName: RELATED_NEWS_OFFSET_PARAM,
     relatedSortParamName: RELATED_NEWS_SORT_PARAM,
     sortLabel: copy.relatedNewsSortLabel,
     sortOptions: relatedNewsSortOptions,
@@ -3667,7 +3694,7 @@ export default async function LocalizedFanletterNewsReportPage({
 
             <div className="mt-6 sm:mt-8 xl:hidden">
               <FanletterNewsRelatedList
-                key={`mobile-${relatedNewsApiHref}`}
+                key={`mobile-${relatedNewsApiHref}-${relatedNewsOffset}`}
                 {...relatedNewsListProps}
               />
             </div>
@@ -3676,7 +3703,7 @@ export default async function LocalizedFanletterNewsReportPage({
           <aside className="space-y-4 xl:sticky xl:top-5">
             <div className="hidden xl:block">
               <FanletterNewsRelatedList
-                key={`desktop-${relatedNewsApiHref}`}
+                key={`desktop-${relatedNewsApiHref}-${relatedNewsOffset}`}
                 {...relatedNewsListProps}
               />
             </div>
