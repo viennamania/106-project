@@ -31,6 +31,10 @@ import {
   FANLETTER_NEWS_SOURCE_REVEAL_FAN_UNLOCK_REWARD_POINTS,
   type FanletterNewsSourceRevealState,
 } from "@/lib/fanletter-news-source-reveal";
+import {
+  FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
+  type FanletterNewsSourceRevealStateChangeDetail,
+} from "@/lib/fanletter-news-source-reveal-events";
 import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -746,6 +750,18 @@ export function FanletterNewsSourceRevealVote({
       stateRef.current = nextState;
       setState(nextState);
       onStateChange?.(nextState);
+      window.dispatchEvent(
+        new CustomEvent<FanletterNewsSourceRevealStateChangeDetail>(
+          FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
+          {
+            detail: {
+              endpoint: voteEndpoint,
+              reportId: reportId ?? null,
+              state: nextState,
+            },
+          },
+        ),
+      );
 
       if (shouldCelebrate) {
         hasCelebratedUnlockRef.current = true;
@@ -757,8 +773,8 @@ export function FanletterNewsSourceRevealVote({
         router.refresh();
       }
     },
-    [onStateChange, router, triggerUnlockCelebration],
-  );
+	    [onStateChange, reportId, router, triggerUnlockCelebration, voteEndpoint],
+	  );
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");

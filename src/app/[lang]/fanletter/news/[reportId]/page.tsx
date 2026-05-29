@@ -168,6 +168,7 @@ function getCopy(locale: Locale) {
         articleSection: "연예",
         mobileActionDock: {
           eyebrow: "다음 행동",
+          joined: "참여 완료",
           pay: (amount: string) => `${amount} 원본 보기`,
           read: "기사 요약",
           vote: "보고싶어요",
@@ -411,6 +412,7 @@ function getCopy(locale: Locale) {
         articleSection: "Entertainment",
         mobileActionDock: {
           eyebrow: "Next action",
+          joined: "Joined",
           pay: (amount: string) => `Watch for ${amount}`,
           read: "Story summary",
           vote: "Want to watch",
@@ -3393,6 +3395,9 @@ export default async function LocalizedFanletterNewsReportPage({
         reportId: report.reportId,
       }
     : null;
+  const sourceRevealEndpoint = sourceReveal
+    ? `/api/fanletter/news-reports/${encodeURIComponent(report.reportId)}/source-reveal`
+    : null;
   const articleDek = createFanletterNewsReaderDek({
     canViewerOpenSourceContent,
     creatorName: characterName ?? report.creatorName,
@@ -3833,6 +3838,8 @@ export default async function LocalizedFanletterNewsReportPage({
 
       <FanletterNewsMobileActionDock
         eyebrow={copy.mobileActionDock.eyebrow}
+        initialSourceRevealState={sourceReveal}
+        joinedLabel={copy.mobileActionDock.joined}
         locale={locale}
         primaryHref={mobileDockPrimary.href}
         primaryKind={mobileDockPrimary.kind}
@@ -3841,6 +3848,7 @@ export default async function LocalizedFanletterNewsReportPage({
         shareHref={articleHref}
         shareSummary={articleDek}
         shareTitle={articleTitle}
+        sourceRevealEndpoint={sourceRevealEndpoint}
         statusLabel={mobileDockStatusLabel}
       />
     </main>

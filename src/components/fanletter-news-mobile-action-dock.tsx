@@ -11,6 +11,11 @@ import {
 import { useEffect, useState } from "react";
 
 import { FanletterChannelShareButton } from "@/components/fanletter-channel-share-button";
+import type { FanletterNewsSourceRevealState } from "@/lib/fanletter-news-source-reveal";
+import {
+  FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
+  type FanletterNewsSourceRevealStateChangeDetail,
+} from "@/lib/fanletter-news-source-reveal-events";
 import type { Locale } from "@/lib/i18n";
 
 type FanletterNewsMobileActionKind =
@@ -22,6 +27,8 @@ type FanletterNewsMobileActionKind =
 
 type FanletterNewsMobileActionDockProps = {
   eyebrow: string;
+  initialSourceRevealState?: FanletterNewsSourceRevealState | null;
+  joinedLabel?: string;
   locale: Locale;
   primaryHref: string;
   primaryKind: FanletterNewsMobileActionKind;
@@ -30,6 +37,7 @@ type FanletterNewsMobileActionDockProps = {
   shareHref: string;
   shareSummary: string;
   shareTitle: string;
+  sourceRevealEndpoint?: string | null;
   statusLabel: string;
 };
 
@@ -63,8 +71,27 @@ function shouldShowDock() {
   return window.innerWidth < 640 && window.scrollY >= 520;
 }
 
+function formatCount(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale).format(value);
+}
+
+function formatSourceRevealProgress(
+  state: FanletterNewsSourceRevealState,
+  locale: Locale,
+) {
+  const count = formatCount(state.count, locale);
+  const threshold = formatCount(state.threshold, locale);
+  const remaining = formatCount(Math.max(0, state.threshold - state.count), locale);
+
+  return locale === "ko"
+    ? `${count}/${threshold}명 참여 중 · ${remaining}명 더 필요`
+    : `${count}/${threshold} fans joined · ${remaining} more needed`;
+}
+
 export function FanletterNewsMobileActionDock({
   eyebrow,
+  initialSourceRevealState = null,
+  joinedLabel,
   locale,
   primaryHref,
   primaryKind,
@@ -73,9 +100,12 @@ export function FanletterNewsMobileActionDock({
   shareHref,
   shareSummary,
   shareTitle,
+  sourceRevealEndpoint = null,
   statusLabel,
 }: FanletterNewsMobileActionDockProps) {
   const [isVisible, setIsVisible] = useState(false);
+  const [sourceRevealState, setSourceRevealState] =
+    useState<FanletterNewsSourceRevealState | null>(initialSourceRevealState);
 
   useEffect(() => {
     let frameId = 0;
@@ -98,9 +128,58 @@ export function FanletterNewsMobileActionDock({
     };
   }, []);
 
+  useEffect(() => {
+    setSourceRevealState(initialSourceRevealState);
+  }, [initialSourceRevealState]);
+
+  useEffect(() => {
+    if (!sourceRevealEndpoint) {
+      return;
+    }
+
+    const handleSourceRevealStateChange = (event: Event) => {
+      const detail = (event as CustomEvent<FanletterNewsSourceRevealStateChangeDetail>)
+        .detail;
+
+      if (!detail || detail.endpoint !== sourceRevealEndpoint) {
+        return;
+      }
+
+      setSourceRevealState(detail.state);
+    };
+
+    window.addEventListener(
+      FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
+      handleSourceRevealStateChange,
+    );
+
+    return () => {
+      window.removeEventListener(
+        FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
+        handleSourceRevealStateChange,
+      );
+    };
+  }, [sourceRevealEndpoint]);
+
   if (!isVisible) {
     return null;
   }
+
+  const sourceRevealVoteJoined = Boolean(
+    primaryKind === "vote" &&
+      sourceRevealState?.requestedByViewer &&
+      !sourceRevealState.unlocked,
+  );
+  const effectivePrimaryLabel = sourceRevealVoteJoined
+    ? joinedLabel ?? primaryLabel
+    : primaryLabel;
+  const effectiveStatusLabel =
+    primaryKind === "vote" && sourceRevealState && !sourceRevealState.unlocked
+      ? formatSourceRevealProgress(sourceRevealState, locale)
+      : statusLabel;
+  const primaryActionClassName = sourceRevealVoteJoined
+    ? "inline-flex min-h-12 min-w-0 cursor-default items-center justify-center gap-2 rounded-full border border-[#44f26e]/32 bg-[#44f26e]/14 px-4 text-sm font-black !text-[#b9ffc8]"
+    : "inline-flex min-h-12 min-w-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e]";
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/12 bg-[#07100b]/96 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 text-white shadow-[0_-18px_44px_rgba(0,0,0,0.24)] backdrop-blur sm:hidden">
@@ -110,17 +189,26 @@ export function FanletterNewsMobileActionDock({
             {eyebrow}
           </p>
           <p className="shrink-0 truncate text-[0.68rem] font-bold text-white/58">
-            {statusLabel}
+            {effectiveStatusLabel}
           </p>
         </div>
         <div className="grid grid-cols-[minmax(0,1fr)_5.75rem] gap-2">
-          <Link
-            className="inline-flex min-h-12 min-w-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e]"
-            href={primaryHref}
-          >
-            <PrimaryActionIcon className="size-4 shrink-0" kind={primaryKind} />
-            <span className="min-w-0 truncate">{primaryLabel}</span>
-          </Link>
+          {sourceRevealVoteJoined ? (
+            <button
+              aria-disabled="true"
+              className={primaryActionClassName}
+              disabled
+              type="button"
+            >
+              <PrimaryActionIcon className="size-4 shrink-0" kind={primaryKind} />
+              <span className="min-w-0 truncate">{effectivePrimaryLabel}</span>
+            </button>
+          ) : (
+            <Link className={primaryActionClassName} href={primaryHref}>
+              <PrimaryActionIcon className="size-4 shrink-0" kind={primaryKind} />
+              <span className="min-w-0 truncate">{effectivePrimaryLabel}</span>
+            </Link>
+          )}
           <FanletterChannelShareButton
             className="!h-auto min-h-12 !rounded-full !border-white/14 !bg-white/10 px-3 text-xs font-black !text-white hover:!bg-white/16"
             href={shareHref}
