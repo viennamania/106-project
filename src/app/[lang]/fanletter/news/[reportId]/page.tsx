@@ -3779,12 +3779,14 @@ export default async function LocalizedFanletterNewsReportPage({
             variant="feature"
           />
           {shouldShowOtherCharacterNews ? (
-            <FanletterNewsOtherCharacterNews
-              copy={copy}
-              locale={locale}
-              referralCode={referralCode}
-              reports={selectedOtherCharacterNewsReports}
-            />
+            <div className="hidden xl:block">
+              <FanletterNewsOtherCharacterNews
+                copy={copy}
+                locale={locale}
+                referralCode={referralCode}
+                reports={selectedOtherCharacterNewsReports}
+              />
+            </div>
           ) : null}
         </div>
 
@@ -4031,6 +4033,17 @@ export default async function LocalizedFanletterNewsReportPage({
             />
           </aside>
         </div>
+
+        {shouldShowOtherCharacterNews ? (
+          <div className="mt-5 sm:mt-7 xl:hidden">
+            <FanletterNewsOtherCharacterNews
+              copy={copy}
+              locale={locale}
+              referralCode={referralCode}
+              reports={selectedOtherCharacterNewsReports}
+            />
+          </div>
+        ) : null}
       </article>
 
       <FanletterNewsMobileActionDock
