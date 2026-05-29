@@ -27,24 +27,34 @@ function getCopy(locale: Locale) {
 export function FanletterTabTopBar({
   actionHref,
   actionLabel,
+  accountActivateHref,
+  accountConnectHref,
+  accountFallbackHref,
   backHref,
   className,
   homeHref,
   locale,
   referralCode,
+  reportsHref,
+  reportsLabel,
 }: {
   actionHref?: string;
   actionLabel?: string;
+  accountActivateHref?: string;
+  accountConnectHref?: string;
+  accountFallbackHref?: string;
   backHref?: string;
   className?: string;
   homeHref?: string;
   locale: Locale;
   referralCode: string | null;
+  reportsHref?: string;
+  reportsLabel?: string;
 }) {
   const copy = getCopy(locale);
   const resolvedHomeHref =
     homeHref ?? buildPathWithReferral(`/${locale}/fanletter`, referralCode);
-  const reportsHref = buildPathWithReferral(
+  const resolvedReportsHref = reportsHref ?? buildPathWithReferral(
     `/${locale}/fanletter/reports`,
     referralCode,
   );
@@ -76,10 +86,10 @@ export function FanletterTabTopBar({
       <div className="flex min-w-0 shrink-0 items-center gap-2">
         <Link
           className="hidden h-10 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.045] px-3 text-xs font-semibold !text-white/78 transition hover:border-[#44f26e]/36 hover:bg-white/[0.075] hover:!text-white lg:inline-flex"
-          href={reportsHref}
+          href={resolvedReportsHref}
         >
           <Newspaper className="size-4 text-[#44f26e]" />
-          {copy.reports}
+          {reportsLabel ?? copy.reports}
         </Link>
         <FanletterGlobalLanguageSwitcher
           className="inline-flex sm:hidden"
@@ -92,6 +102,9 @@ export function FanletterTabTopBar({
           locale={locale}
         />
         <FanletterAccountStatusLink
+          accountActivateHref={accountActivateHref}
+          accountConnectHref={accountConnectHref}
+          accountFallbackHref={accountFallbackHref}
           className="max-w-[7.25rem] sm:max-w-[14rem]"
           locale={locale}
           referralCode={referralCode}

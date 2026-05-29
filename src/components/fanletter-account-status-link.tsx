@@ -31,6 +31,9 @@ type AccountStatusView = {
 };
 
 type FanletterAccountStatusLinkProps = {
+  accountActivateHref?: string;
+  accountConnectHref?: string;
+  accountFallbackHref?: string;
   className?: string;
   compactOnMobile?: boolean;
   hideIdentity?: boolean;
@@ -108,12 +111,15 @@ function getToneClassName(tone: AccountStatusTone) {
 
 function FanletterAccountStatusLinkFallback({
   className,
+  accountConnectHref,
   compactOnMobile = true,
   locale,
   referralCode,
 }: FanletterAccountStatusLinkProps) {
   const copy = getCopy(locale);
-  const href = buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode);
+  const href =
+    accountConnectHref ??
+    buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode);
 
   return (
     <Link
@@ -136,6 +142,9 @@ function FanletterAccountStatusLinkFallback({
 
 function FanletterAccountStatusLinkInner({
   className,
+  accountActivateHref,
+  accountConnectHref,
+  accountFallbackHref,
   compactOnMobile = true,
   hideIdentity = false,
   locale,
@@ -149,17 +158,21 @@ function FanletterAccountStatusLinkInner({
   const searchParams = useSearchParams();
   const copy = getCopy(locale);
   const search = searchParams?.toString() ?? "";
-  const fallbackPath = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
+  const fallbackPath =
+    accountFallbackHref ??
+    buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const currentHref = useMemo(
     () => getCurrentHref({ fallbackPath, pathname, search }),
     [fallbackPath, pathname, search],
   );
   const connectHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
+    accountConnectHref ??
+      buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
     { returnTo: currentHref },
   );
   const activateHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/activate`, referralCode),
+    accountActivateHref ??
+      buildPathWithReferral(`/${locale}/activate`, referralCode),
     { returnTo: currentHref },
   );
   const identityLabel =

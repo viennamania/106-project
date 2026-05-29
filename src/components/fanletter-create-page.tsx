@@ -67,6 +67,7 @@ import {
 
 type CreateMode = "video";
 type CreateSourceMode = "ai" | "upload";
+type CreateSurface = "default" | "news";
 type FanRequestSyncStatus = "failed" | "idle" | "reviewed" | "syncing" | "used";
 type GenerationStatus = "error" | "idle" | "loading" | "ready";
 type RestorableGenerationStatus = Exclude<GenerationStatus, "loading">;
@@ -235,6 +236,17 @@ function getCopy(locale: Locale) {
           title: "단독 보도 리포터 지정",
         },
         paidUpload: "팬 요청 유료 업로드",
+        newsSurface: {
+          actionLabel: "내 브이로그 관리",
+          aiBody:
+            "FanLetter News에 노출할 무료 공개 브이로그를 AI로 생성합니다. 공개 후 뉴스 리포터가 바로 발견하고 리포트 후보로 사용할 수 있습니다.",
+          eyebrow: "FanLetter News Vlog Registration",
+          feed: "뉴스 브이로그 보기",
+          reports: "뉴스 리포트",
+          titleText: "뉴스에 노출할 새 브이로그를 등록하세요.",
+          uploadBody:
+            "이미 만든 MP4, MOV, WEBM 영상을 무료 공개 브이로그로 등록합니다. 프리뷰 영상과 프레임 후보를 함께 준비해 뉴스 소비 흐름에 바로 연결합니다.",
+        },
         generate: "AI 브이로그 동영상 생성",
         generated: "생성 완료",
         generatingVideo: "AI 동영상 생성 중...",
@@ -440,6 +452,17 @@ function getCopy(locale: Locale) {
           title: "Assign exclusive reporter",
         },
         paidUpload: "Paid upload from request",
+        newsSurface: {
+          actionLabel: "My vlog desk",
+          aiBody:
+            "Create a free public vlog for FanLetter News. After publishing, reporters can discover it and use it as a report candidate.",
+          eyebrow: "FanLetter News Vlog Registration",
+          feed: "News vlogs",
+          reports: "News reports",
+          titleText: "Register a new vlog for News exposure.",
+          uploadBody:
+            "Register an existing MP4, MOV, or WEBM video as a free public vlog. Preview video and frame candidates are prepared for the News consumption flow.",
+        },
         generate: "Generate AI vlog video",
         generated: "Generated",
         generatingVideo: "Generating AI video...",
@@ -1000,24 +1023,54 @@ function inferSummary(form: CreateForm) {
 }
 
 function StatusPanel({
+  accountActivateHref,
+  accountConnectHref,
+  accountFallbackHref,
+  actionHref,
+  actionLabel,
+  backHref,
   body,
   cta,
   href,
+  homeHref,
   locale,
   referralCode,
+  reportsHref,
+  reportsLabel,
   title,
 }: {
+  accountActivateHref?: string;
+  accountConnectHref?: string;
+  accountFallbackHref?: string;
+  actionHref?: string;
+  actionLabel?: string;
+  backHref?: string;
   body: string;
   cta: string;
   href: string;
+  homeHref?: string;
   locale: Locale;
   referralCode: string | null;
+  reportsHref?: string;
+  reportsLabel?: string;
   title: string;
 }) {
   return (
     <main className="min-h-[calc(100svh-5.1rem)] bg-[#030504] px-4 pb-4 pt-[calc(env(safe-area-inset-top)+0.85rem)] text-white sm:min-h-screen sm:px-6 sm:py-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <FanletterTabTopBar locale={locale} referralCode={referralCode} />
+        <FanletterTabTopBar
+          accountActivateHref={accountActivateHref}
+          accountConnectHref={accountConnectHref}
+          accountFallbackHref={accountFallbackHref}
+          actionHref={actionHref}
+          actionLabel={actionLabel}
+          backHref={backHref}
+          homeHref={homeHref}
+          locale={locale}
+          referralCode={referralCode}
+          reportsHref={reportsHref}
+          reportsLabel={reportsLabel}
+        />
       </div>
       <div className="mx-auto flex min-h-[calc(100svh-13rem)] max-w-xl items-center py-6 sm:min-h-[70vh]">
         <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)] sm:p-6">
@@ -1047,14 +1100,18 @@ export function FanletterCreatePage({
   locale,
   referralCode,
   returnToHref,
+  surface = "default",
 }: {
   experience?: "avatar" | "default";
   initialPlan?: FanletterCreateInitialPlan;
   locale: Locale;
   referralCode: string | null;
   returnToHref: string;
+  surface?: CreateSurface;
 }) {
   const copy = getCopy(locale);
+  const isNewsSurface = surface === "news";
+  const newsSurfaceCopy = isNewsSurface ? copy.newsSurface : null;
   const account = useActiveAccount();
   const chain = useActiveWalletChain() ?? smartWalletChain;
   const connectionStatus = useActiveWalletConnectionStatus();
@@ -1071,26 +1128,76 @@ export function FanletterCreatePage({
     `/${locale}/fanletter/onboarding`,
     referralCode,
   );
+  const fanletterHomeHref = buildPathWithReferral(
+    `/${locale}/fanletter`,
+    referralCode,
+  );
+  const newsHomeHref = buildPathWithReferral(
+    `/${locale}/fanletter/news`,
+    referralCode,
+  );
+  const newsReportsHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/reports`,
+    referralCode,
+  );
+  const newsVlogManageHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/vlogs/manage`,
+    referralCode,
+  );
+  const newsVlogsHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/vlogs`,
+    referralCode,
+  );
   const profileHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/profile`, referralCode),
     { returnTo: returnToHref || onboardingHref },
   );
-  const connectHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
-    { returnTo: returnToHref || onboardingHref },
-  );
-  const activateHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/activate`, referralCode),
-    { returnTo: returnToHref || onboardingHref },
-  );
-  const feedHref = buildPathWithReferral(
-    `/${locale}/fanletter/feed`,
+  const connectBaseHref = buildPathWithReferral(
+    isNewsSurface
+      ? `/${locale}/fanletter/news/connect`
+      : `/${locale}/fanletter/connect`,
     referralCode,
   );
+  const connectHref = setPathSearchParams(connectBaseHref, {
+    returnTo: returnToHref || onboardingHref,
+  });
+  const activateBaseHref = buildPathWithReferral(
+    isNewsSurface ? `/${locale}/fanletter/news/activate` : `/${locale}/activate`,
+    referralCode,
+  );
+  const activateHref = setPathSearchParams(
+    activateBaseHref,
+    { returnTo: returnToHref || onboardingHref },
+  );
+  const feedHref = isNewsSurface
+    ? newsVlogsHref
+    : buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
   const studioHref = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
     referralCode,
   );
+  const topBarActionHref = isNewsSurface
+    ? returnToHref || newsVlogManageHref
+    : studioHref;
+  const topBarHomeHref = isNewsSurface ? newsHomeHref : fanletterHomeHref;
+  const topBarBackHref = isNewsSurface
+    ? returnToHref || newsVlogManageHref
+    : profileHref;
+  const surfaceFeedLabel = newsSurfaceCopy?.feed ?? copy.feed;
+  const surfaceStudioLabel = newsSurfaceCopy?.actionLabel ?? copy.studio;
+  const statusPanelNavigationProps = isNewsSurface
+    ? {
+        accountActivateHref: activateBaseHref,
+        accountConnectHref: connectBaseHref,
+        accountFallbackHref: newsHomeHref,
+        actionHref: topBarActionHref,
+        actionLabel: newsSurfaceCopy?.actionLabel,
+        backHref: topBarBackHref,
+        homeHref: topBarHomeHref,
+        reportsHref: newsReportsHref,
+        reportsLabel: newsSurfaceCopy?.reports,
+      }
+    : {};
   const fanRequestsHref = `${studioHref}#fan-requests`;
   const initialFanRequestId = initialPlan?.fanRequestId?.trim() || null;
   const initialFanRequestType = initialPlan?.fanRequestType ?? null;
@@ -1233,14 +1340,20 @@ export function FanletterCreatePage({
     !hasPublishedContent &&
     !isAddingFrameCandidates &&
     !isUploadingVideo;
-  const heroEyebrow = avatarExperienceCopy?.eyebrow ?? copy.eyebrow;
-  const heroTitleText = avatarExperienceCopy?.titleText ?? copy.titleText;
+  const heroEyebrow =
+    avatarExperienceCopy?.eyebrow ?? newsSurfaceCopy?.eyebrow ?? copy.eyebrow;
+  const heroTitleText =
+    avatarExperienceCopy?.titleText ??
+    newsSurfaceCopy?.titleText ??
+    copy.titleText;
   const isUploadMode =
     createSourceMode === "upload" || generatedMedia?.source === "upload";
   const uploadMaxSizeLabel = formatFileSize(CONTENT_VIDEO_MAX_BYTES, locale);
   const selectedModeCopy = isUploadMode
-    ? copy.upload.body
-    : avatarExperienceCopy?.videoBody ?? copy.videoBody;
+    ? newsSurfaceCopy?.uploadBody ?? copy.upload.body
+    : avatarExperienceCopy?.videoBody ??
+      newsSurfaceCopy?.aiBody ??
+      copy.videoBody;
   const promptLabel = avatarExperienceCopy?.prompt ?? copy.prompt;
   const promptPlaceholder =
     avatarExperienceCopy?.promptPlaceholder ?? copy.promptPlaceholder;
@@ -1366,9 +1479,14 @@ export function FanletterCreatePage({
             ? copy.draftAutosaveSaved
             : null;
   const contentHref = createdContent
-    ? buildPathWithReferral(
-        `/${locale}/fanletter/content/${createdContent.contentId}`,
-        referralCode ?? createdContent.authorReferralCode,
+    ? setPathSearchParams(
+        buildPathWithReferral(
+          isNewsSurface
+            ? `/${locale}/fanletter/news/vlogs/${createdContent.contentId}`
+            : `/${locale}/fanletter/content/${createdContent.contentId}`,
+          referralCode ?? createdContent.authorReferralCode,
+        ),
+        isNewsSurface ? { returnTo: returnToHref || newsVlogManageHref } : {},
       )
     : null;
   const frameManagerHref = createdContent
@@ -2240,6 +2358,7 @@ export function FanletterCreatePage({
   if (connection.isResolving) {
     return (
       <StatusPanel
+        {...statusPanelNavigationProps}
         body={copy.loading}
         cta={copy.accountRequiredCta}
         href={connectHref}
@@ -2253,6 +2372,7 @@ export function FanletterCreatePage({
   if (connection.isDisconnected) {
     return (
       <StatusPanel
+        {...statusPanelNavigationProps}
         body={copy.accountRequiredBody}
         cta={copy.accountRequiredCta}
         href={connectHref}
@@ -2266,6 +2386,7 @@ export function FanletterCreatePage({
   if (member?.status === "pending_payment") {
     return (
       <StatusPanel
+        {...statusPanelNavigationProps}
         body={copy.paymentRequired}
         cta={copy.paymentRequiredCta}
         href={activateHref}
@@ -2279,6 +2400,7 @@ export function FanletterCreatePage({
   if (loadStatus === "ready" && !hasCharacterReady) {
     return (
       <StatusPanel
+        {...statusPanelNavigationProps}
         body={copy.profileRequiredBody}
         cta={copy.profileRequiredCta}
         href={profileHref}
@@ -2290,16 +2412,27 @@ export function FanletterCreatePage({
   }
 
   return (
-    <main className="min-h-screen bg-[#030504] text-white">
+    <main
+      className={`min-h-screen bg-[#030504] text-white ${
+        isNewsSurface
+          ? "pb-[calc(5.75rem+env(safe-area-inset-bottom))] sm:pb-0"
+          : ""
+      }`}
+    >
       <section className="px-4 pb-10 pt-[calc(env(safe-area-inset-top)+16px)] sm:px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <FanletterTabTopBar
-            actionHref={studioHref}
-            actionLabel={copy.studio}
-            backHref={profileHref}
-            homeHref={buildPathWithReferral(`/${locale}/fanletter`, referralCode)}
+            accountActivateHref={isNewsSurface ? activateBaseHref : undefined}
+            accountConnectHref={isNewsSurface ? connectBaseHref : undefined}
+            accountFallbackHref={isNewsSurface ? newsHomeHref : undefined}
+            actionHref={topBarActionHref}
+            actionLabel={surfaceStudioLabel}
+            backHref={topBarBackHref}
+            homeHref={topBarHomeHref}
             locale={locale}
             referralCode={referralCode}
+            reportsHref={isNewsSurface ? newsReportsHref : undefined}
+            reportsLabel={newsSurfaceCopy?.reports}
           />
 
           <div className="grid gap-8 pb-10 pt-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.78fr)] lg:items-end lg:pb-14 lg:pt-20">
@@ -3218,13 +3351,13 @@ export function FanletterCreatePage({
                       className="inline-flex h-12 items-center justify-center rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/10"
                       href={feedHref}
                     >
-                      {copy.feed}
+                      {surfaceFeedLabel}
                     </Link>
                     <Link
                       className="inline-flex h-12 items-center justify-center rounded-full border border-white/16 px-5 text-sm font-semibold !text-white transition hover:bg-white/10"
-                      href={studioHref}
+                      href={topBarActionHref}
                     >
-                      {copy.studio}
+                      {surfaceStudioLabel}
                     </Link>
                     {frameManagerHref ? (
                       <Link

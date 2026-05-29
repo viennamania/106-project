@@ -33,6 +33,7 @@ import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
   getFanletterNewsVlogHref,
   getFanletterNewsVlogManageHref,
+  getFanletterNewsVlogNewHref,
   getFanletterNewsVlogsHref,
 } from "@/lib/fanletter-news-vlog-routing";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
@@ -400,10 +401,11 @@ export default async function LocalizedFanletterNewsVlogManagePage({
     referralCode: effectiveReferralCode,
     status,
   });
-  const createHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/create`, effectiveReferralCode),
-    { returnTo: effectiveCurrentHref },
-  );
+  const createHref = getFanletterNewsVlogNewHref({
+    locale,
+    referralCode: effectiveReferralCode,
+    returnToHref: effectiveCurrentHref,
+  });
   const studioVlogsHref = setPathSearchParams(
     buildPathWithReferral(
       `/${locale}/fanletter/studio/vlogs`,
