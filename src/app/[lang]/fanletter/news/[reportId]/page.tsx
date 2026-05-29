@@ -1205,6 +1205,7 @@ function FanletterNewsShareLandingHero({
         label: sourceCanBeWatched ? heroCopy.sourceCta : heroCopy.articleCta,
       };
   const canUsePreviewVideo = Boolean(previewVideoUrl && !blurred);
+  const shouldBlurBackgroundVideo = Boolean(previewVideoUrl);
   const characterDisplayName = characterName ?? copy.titleCharacter.fallback;
   const shouldBypassHeroImageOptimization = sourceImageUrl
     ? shouldBypassFanletterImageOptimization(sourceImageUrl)
@@ -1219,7 +1220,11 @@ function FanletterNewsShareLandingHero({
         {canUsePreviewVideo && previewVideoUrl ? (
           <FanletterAutoplayVideo
             ariaHidden
-            className="h-full w-full object-cover opacity-[0.86]"
+            className={`h-full w-full object-cover opacity-[0.86] ${
+              shouldBlurBackgroundVideo
+                ? "scale-[1.04] blur-sm brightness-[0.74]"
+                : ""
+            }`}
             poster={sourceImageUrl ?? undefined}
             src={previewVideoUrl}
             title={articleTitle}
