@@ -21,7 +21,6 @@ import {
 } from "@/lib/fanletter-news-role-preference";
 import {
   buildPathWithReferral,
-  setPathSearchParams,
 } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
 import { cn } from "@/lib/utils";
@@ -114,7 +113,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const purchasesPath = `${basePath}/purchases`;
   const reportsPath = `${basePath}/reports`;
   const walletPath = `${basePath}/wallet`;
-  const fanletterBasePath = `/${locale}/fanletter`;
+  const vlogsPath = `${basePath}/vlogs`;
 
   if (
     pathname === basePath ||
@@ -132,20 +131,13 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     pathname === walletPath ||
     pathname.startsWith(`${walletPath}/`);
   const myHref = buildHref(myPath);
-  const studioVlogsHref = buildHref(`${fanletterBasePath}/studio/vlogs`);
-  const vloggerActionHref = setPathSearchParams(
-    buildHref(`${fanletterBasePath}/create`),
-    { returnTo: studioVlogsHref },
-  );
+  const vloggerActionHref = buildHref(vlogsPath);
   const reporterActionHref = buildHref(`${reportsPath}/new`);
   const actionItem =
     rolePreference === "vlogger"
       ? {
-          activePath: `${fanletterBasePath}/create`,
-          activePaths: [
-            `${fanletterBasePath}/create`,
-            `${fanletterBasePath}/studio/vlogs`,
-          ],
+          activePath: vlogsPath,
+          activePaths: [vlogsPath],
           href: vloggerActionHref,
           icon: Video,
           key: "action" as const,

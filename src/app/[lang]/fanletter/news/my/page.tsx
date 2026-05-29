@@ -21,6 +21,7 @@ import { getCreatorStudioPostsForMember } from "@/lib/content-service";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getFanletterNewsReporterIncentiveStats } from "@/lib/fanletter-news-reporter-incentives";
 import { getFanletterNewsReportsForMember } from "@/lib/fanletter-news-report-service";
+import { getFanletterNewsVlogsHref } from "@/lib/fanletter-news-vlog-routing";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import {
@@ -239,6 +240,10 @@ export default async function LocalizedFanletterNewsMyPage({
     `/${locale}/fanletter/news/characters`,
     effectiveReferralCode,
   );
+  const newsVlogsHref = getFanletterNewsVlogsHref({
+    locale,
+    referralCode: effectiveReferralCode,
+  });
   const studioVlogsHref = buildPathWithReferral(
     `/${locale}/fanletter/studio/vlogs`,
     effectiveReferralCode,
@@ -444,7 +449,7 @@ export default async function LocalizedFanletterNewsMyPage({
             locale={locale}
             reporterHref={newReportHref}
             reporterReportCount={formatNumber(reportCount, locale)}
-            vloggerHref={createVlogHref}
+            vloggerHref={newsVlogsHref}
             vloggerVideoCount={formatNumber(vlogCount, locale)}
           />
 

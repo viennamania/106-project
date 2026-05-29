@@ -79,8 +79,8 @@ function getCopy(locale: Locale) {
             label: "팬 리포터",
           },
           vlogger: {
-            body: "AI 캐릭터 브이로그 생성과 업로드를 바로 시작합니다.",
-            cta: "브이로그 생성",
+            body: "뉴스 전용 브이로그 화면에서 공개 영상과 팬 전용 티저를 이어봅니다.",
+            cta: "브이로그 뉴스 보기",
             label: "브이로거",
           },
         },
@@ -101,8 +101,8 @@ function getCopy(locale: Locale) {
             label: "Fan reporter",
           },
           vlogger: {
-            body: "Start AI character vlog generation and uploads.",
-            cta: "Create vlog",
+            body: "Continue public vlogs and fan-only teasers inside the News view.",
+            cta: "Open vlog news",
             label: "Vlogger",
           },
         },

@@ -14,6 +14,7 @@ import {
   Newspaper,
   PlayCircle,
   RotateCcw,
+  Search,
   ShieldCheck,
   Sparkles,
   Users,
@@ -34,6 +35,7 @@ import {
 } from "@/lib/content";
 import {
   type FanletterCreatorVlogsPageData,
+  type FanletterFeedPageData,
   type FanletterFeedSort,
   type FanletterPublicContentDetail,
   type FanletterPublicContentItem,
@@ -47,6 +49,7 @@ import {
 } from "@/lib/fanletter-news-source-reveal";
 import {
   getFanletterNewsCharacterVlogsHref,
+  getFanletterNewsVlogsHref,
   getFanletterNewsVlogHref,
 } from "@/lib/fanletter-news-vlog-routing";
 import {
@@ -113,6 +116,17 @@ function getCopy(locale: Locale) {
         empty: "아직 공개 브이로그가 없습니다.",
         footerCta: "뉴스 홈으로 돌아가기",
         latest: "최신순",
+        archive: {
+          allCount: (count: string) => `뉴스 브이로그 ${count}개`,
+          description:
+            "공개 브이로그와 팬 전용 티저를 FanLetter News 안에서 둘러보고, 관련 리포트와 캐릭터 채널로 바로 이어갑니다.",
+          eyebrow: "FanLetter News Vlog Archive",
+          fanOnlyTitle: "팬 전용 브이로그 티저",
+          publicTitle: "공개 브이로그 뉴스",
+          searchPlaceholder: "캐릭터, 제목, 키워드 검색",
+          searchSubmit: "검색",
+          title: "브이로그 뉴스",
+        },
         list: {
           allCount: (count: string) => `공개 브이로그 ${count}개`,
           description: (name: string) =>
@@ -207,6 +221,17 @@ function getCopy(locale: Locale) {
         empty: "No public vlogs have been published yet.",
         footerCta: "Back to news home",
         latest: "Latest",
+        archive: {
+          allCount: (count: string) => `${count} news vlogs`,
+          description:
+            "Browse public vlogs and fan-only teasers inside FanLetter News, then continue into related reports and character channels.",
+          eyebrow: "FanLetter News Vlog Archive",
+          fanOnlyTitle: "Fan-only vlog teasers",
+          publicTitle: "Public vlog news",
+          searchPlaceholder: "Search character, title, or keyword",
+          searchSubmit: "Search",
+          title: "Vlog News",
+        },
         list: {
           allCount: (count: string) => `${count} public vlogs`,
           description: (name: string) =>
@@ -987,6 +1012,317 @@ function Pagination({
         {locale === "ko" ? "다음" : "Next"}
       </Link>
     </nav>
+  );
+}
+
+export function FanletterNewsVlogsPage({
+  data,
+  locale,
+  referralCode,
+}: {
+  data: FanletterFeedPageData;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const copy = getCopy(locale);
+  const effectiveReferralCode = referralCode ?? data.referralCode;
+  const query = data.filters.query;
+  const archiveBasePath = `/${locale}/fanletter/news/vlogs`;
+  const archiveHref = getFanletterNewsVlogsHref({
+    locale,
+    query,
+    referralCode: effectiveReferralCode,
+    sort: data.filters.sort,
+  });
+  const homeHref = buildPathWithReferral(
+    `/${locale}/fanletter/news`,
+    effectiveReferralCode,
+  );
+  const charactersHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/characters`,
+    effectiveReferralCode,
+  );
+  const purchasesHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/purchases`,
+    effectiveReferralCode,
+  );
+  const walletHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/wallet`, effectiveReferralCode),
+    { returnTo: archiveHref },
+  );
+  const navLinks = [
+    { href: homeHref, label: copy.navItems[0] },
+    { href: charactersHref, label: copy.navItems[1] },
+    { href: archiveHref, label: copy.navItems[2] },
+    { href: purchasesHref, label: copy.navItems[3] },
+  ];
+  const sortOptions: Array<{ label: string; sort: FanletterFeedSort }> = [
+    { label: copy.latest, sort: "latest" },
+    { label: copy.popular, sort: "popular" },
+    { label: copy.comments, sort: "comments" },
+    { label: copy.saves, sort: "saves" },
+  ];
+  const featuredItems = [...data.items, ...data.fanOnlyPreviewItems]
+    .filter((item) => item.coverImageUrl)
+    .slice(0, 4);
+  const currentPage = data.filters.page;
+  const pageCount = data.filters.pageCount;
+  const hasPublicItems = data.items.length > 0;
+  const hasFanOnlyTeasers =
+    currentPage === 1 && !query && data.fanOnlyPreviewItems.length > 0;
+
+  return (
+    <main className="min-h-screen bg-[#eef1ec] pb-14 text-[#111510]">
+      <NewsShellHeader
+        copy={copy}
+        homeHref={homeHref}
+        locale={locale}
+        navLinks={navLinks}
+        referralCode={effectiveReferralCode}
+        walletHref={walletHref}
+      />
+
+      <section className="mx-auto max-w-[92rem] px-3 pb-10 pt-4 sm:px-6 sm:pt-8 lg:px-8">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-stretch">
+          <header className="border border-black/12 bg-white p-4 shadow-[0_18px_54px_rgba(17,21,16,0.08)] sm:p-6 lg:p-8">
+            <Link
+              className="inline-flex items-center gap-2 text-sm font-black !text-[#16702e] hover:!text-[#0f5522]"
+              href={homeHref}
+            >
+              <ArrowLeft className="size-4" />
+              {copy.cta.newsHome}
+            </Link>
+            <p className="mt-5 text-[0.7rem] font-black uppercase tracking-[0.18em] text-[#16702e]">
+              {copy.archive.eyebrow}
+            </p>
+            <h1 className="mt-3 max-w-4xl break-words text-[2rem] font-black leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
+              {copy.archive.title}
+            </h1>
+            <p className="mt-4 max-w-3xl text-base font-semibold leading-7 text-black/62 sm:text-lg sm:leading-8">
+              {copy.archive.description}
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <MetricPill
+                icon={<Clapperboard className="size-3.5" />}
+                label={copy.archive.publicTitle}
+                value={formatNumber(data.filters.totalCount, locale)}
+              />
+              <MetricPill
+                icon={<LockKeyhole className="size-3.5" />}
+                label={copy.archive.fanOnlyTitle}
+                value={formatNumber(data.fanOnlyPreviewItems.length, locale)}
+              />
+            </div>
+          </header>
+
+          <aside className="overflow-hidden border border-black/12 bg-[#111510] p-3 text-white shadow-[0_18px_54px_rgba(17,21,16,0.12)]">
+            {featuredItems.length > 0 ? (
+              <div className="grid h-full min-h-[18rem] grid-cols-2 gap-2">
+                {featuredItems.map((item, index) => (
+                  <Link
+                    className={cn(
+                      "relative min-h-[8.5rem] overflow-hidden rounded-lg bg-black",
+                      index === 0 && "col-span-2",
+                    )}
+                    href={getFanletterNewsVlogHref({
+                      contentId: item.contentId,
+                      locale,
+                      referralCode: effectiveReferralCode,
+                      returnToHref: archiveHref,
+                    })}
+                    key={item.contentId}
+                  >
+                    {item.coverImageUrl ? (
+                      <Image
+                        alt=""
+                        aria-hidden="true"
+                        className={cn(
+                          "object-cover opacity-82 transition hover:scale-[1.03]",
+                          item.contentMaturityRating === "nsfw" &&
+                            !data.nsfwOptInEnabled &&
+                            "scale-[1.04] blur-md brightness-[0.68] saturate-[0.84]",
+                        )}
+                        fill
+                        loading="eager"
+                        sizes="(max-width: 1024px) 50vw, 12rem"
+                        src={item.coverImageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          item.coverImageUrl,
+                        )}
+                      />
+                    ) : null}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/10 to-transparent" />
+                    <span className="absolute bottom-2 left-2 right-2 line-clamp-2 text-xs font-black leading-4 text-white">
+                      {item.title}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="flex h-full min-h-[18rem] flex-col items-center justify-center rounded-lg border border-white/12 bg-white/[0.04] p-6 text-center">
+                <Clapperboard className="size-10 text-[#44f26e]" />
+                <p className="mt-3 text-lg font-black">{copy.empty}</p>
+              </div>
+            )}
+          </aside>
+        </div>
+
+        <div className="mt-5 rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_32px_rgba(8,18,12,0.06)] lg:flex lg:items-center lg:justify-between lg:gap-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-black/42">
+              {copy.sort}
+            </p>
+            <p className="mt-1 text-lg font-black">
+              {copy.archive.allCount(formatNumber(data.filters.totalCount, locale))}
+            </p>
+          </div>
+          <form
+            action={archiveBasePath}
+            className="mt-3 flex min-w-0 flex-1 items-center gap-2 lg:mt-0 lg:max-w-md"
+            method="get"
+          >
+            {effectiveReferralCode ? (
+              <input name="ref" type="hidden" value={effectiveReferralCode} />
+            ) : null}
+            {data.filters.sort !== "latest" ? (
+              <input name="sort" type="hidden" value={data.filters.sort} />
+            ) : null}
+            <label className="relative min-w-0 flex-1">
+              <span className="sr-only">{copy.archive.searchPlaceholder}</span>
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-black/38" />
+              <input
+                className="h-11 w-full rounded-full border border-black/10 bg-[#f6f8f4] pl-9 pr-3 text-sm font-bold text-[#111510] outline-none transition placeholder:text-black/38 focus:border-[#19b84b] focus:bg-white"
+                defaultValue={query}
+                name="q"
+                placeholder={copy.archive.searchPlaceholder}
+                type="search"
+              />
+            </label>
+            <button
+              className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-[#16702e]"
+              type="submit"
+            >
+              {copy.archive.searchSubmit}
+            </button>
+          </form>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:flex lg:mt-0">
+            {sortOptions.map((option) => {
+              const active = option.sort === data.filters.sort;
+
+              return (
+                <Link
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "inline-flex h-10 items-center justify-center rounded-full px-4 text-sm font-black transition",
+                    active
+                      ? "bg-[#111510] !text-white"
+                      : "border border-black/10 !text-black/58 hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#111510]",
+                  )}
+                  href={getFanletterNewsVlogsHref({
+                    locale,
+                    query,
+                    referralCode: effectiveReferralCode,
+                    sort: option.sort,
+                  })}
+                  key={option.sort}
+                >
+                  {option.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        <FanletterNsfwOptInControl
+          className="mt-5"
+          enabled={data.nsfwOptInEnabled}
+          hiddenCount={data.hiddenNsfwCount}
+          locale={locale}
+        />
+
+        {hasFanOnlyTeasers ? (
+          <section className="mt-5">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <h2 className="text-lg font-black">{copy.archive.fanOnlyTitle}</h2>
+              <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-black text-black/52">
+                {formatNumber(data.fanOnlyPreviewItems.length, locale)}
+              </span>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {data.fanOnlyPreviewItems.map((item) => (
+                <NewsVlogCard
+                  copy={copy}
+                  href={getFanletterNewsVlogHref({
+                    contentId: item.contentId,
+                    locale,
+                    referralCode: effectiveReferralCode,
+                    returnToHref: archiveHref,
+                  })}
+                  item={item}
+                  key={item.contentId}
+                  locale={locale}
+                  nsfwOptInEnabled={data.nsfwOptInEnabled}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        <section className="mt-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <h2 className="text-lg font-black">{copy.archive.publicTitle}</h2>
+            <span className="rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-black text-black/52">
+              {formatNumber(data.items.length, locale)}
+            </span>
+          </div>
+          {hasPublicItems ? (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {data.items.map((item) => (
+                <NewsVlogCard
+                  copy={copy}
+                  href={getFanletterNewsVlogHref({
+                    contentId: item.contentId,
+                    locale,
+                    referralCode: effectiveReferralCode,
+                    returnToHref: archiveHref,
+                  })}
+                  item={item}
+                  key={item.contentId}
+                  locale={locale}
+                  nsfwOptInEnabled={data.nsfwOptInEnabled}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="border border-black/12 bg-white p-8 text-center shadow-[0_14px_40px_rgba(17,21,16,0.06)]">
+              <Clapperboard className="mx-auto size-10 text-[#16702e]" />
+              <p className="mt-4 text-lg font-black">{copy.empty}</p>
+              <Link
+                className="mt-5 inline-flex h-11 items-center justify-center rounded-full bg-[#111510] px-5 text-sm font-black !text-white"
+                href={homeHref}
+              >
+                {copy.cta.newsHome}
+              </Link>
+            </div>
+          )}
+        </section>
+
+        <Pagination
+          currentPage={currentPage}
+          getHref={(page) =>
+            getFanletterNewsVlogsHref({
+              locale,
+              page,
+              query,
+              referralCode: effectiveReferralCode,
+              sort: data.filters.sort,
+            })
+          }
+          locale={locale}
+          pageCount={pageCount}
+        />
+      </section>
+    </main>
   );
 }
 

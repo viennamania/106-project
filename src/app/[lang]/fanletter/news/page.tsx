@@ -33,6 +33,7 @@ import {
 import {
   getFanletterNsfwCopy,
 } from "@/lib/fanletter-nsfw";
+import { getFanletterNewsVlogsHref } from "@/lib/fanletter-news-vlog-routing";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
@@ -671,6 +672,7 @@ function NewsMasthead({
   platformHref,
   purchasesHref,
   reportsHref,
+  vlogsHref,
 }: {
   charactersHref: string;
   copy: ReturnType<typeof getCopy>;
@@ -681,6 +683,7 @@ function NewsMasthead({
   platformHref: string;
   purchasesHref: string;
   reportsHref: string;
+  vlogsHref: string;
 }) {
   const today = new Intl.DateTimeFormat(locale, {
     dateStyle: "full",
@@ -691,7 +694,7 @@ function NewsMasthead({
     platformHref,
     `${navigationBaseHref}#fan-reporters`,
     charactersHref,
-    `${navigationBaseHref}#latest-news`,
+    vlogsHref,
     purchasesHref,
     reportsHref,
   ];
@@ -2306,6 +2309,10 @@ export default async function LocalizedFanletterNewsHomePage({
     `/${locale}/fanletter/news/reports`,
     referralCode,
   );
+  const vlogsHref = getFanletterNewsVlogsHref({
+    locale,
+    referralCode,
+  });
   const studioHref = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
     referralCode,
@@ -2323,6 +2330,7 @@ export default async function LocalizedFanletterNewsHomePage({
         platformHref={platformHref}
         purchasesHref={purchasesHref}
         reportsHref={reportsHref}
+        vlogsHref={vlogsHref}
       />
       <NewsTicker
         copy={copy}

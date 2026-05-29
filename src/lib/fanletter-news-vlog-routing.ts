@@ -4,6 +4,31 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 
+export function getFanletterNewsVlogsHref({
+  locale,
+  page,
+  query,
+  referralCode,
+  sort,
+}: {
+  locale: Locale;
+  page?: number | null;
+  query?: string | null;
+  referralCode: string | null;
+  sort?: string | null;
+}) {
+  const normalizedQuery = query?.trim() ?? "";
+
+  return setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/vlogs`, referralCode),
+    {
+      page: page && page > 1 ? String(page) : null,
+      q: normalizedQuery || null,
+      sort: sort && sort !== "latest" ? sort : null,
+    },
+  );
+}
+
 export function getFanletterNewsCharacterVlogsHref({
   creatorReferralCode,
   locale,
