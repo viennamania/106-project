@@ -298,10 +298,10 @@ function getCopy(locale: Locale) {
         },
         reportTeaserGallery: {
           body:
-            "원본 브이로그가 열리기 전에는 팬 기자가 선택한 공개용 티저 컷만 기사 안에서 보여줍니다.",
+            "원본 브이로그가 열리기 전에는 팬 기자가 직접 크롭해 편집한 티저 컷만 기사 안에서 보여줍니다.",
           eyebrow: "리포터 티저 컷",
-          itemLabel: (index: string) => `공개 컷 ${index}`,
-          title: "팬 기자가 고른 공개 장면",
+          itemLabel: (index: string) => `편집 컷 ${index}`,
+          title: "팬 기자가 편집한 티저 컷",
         },
         generated: "AI 생성",
         publishedLabel: "작성일",
@@ -539,10 +539,10 @@ function getCopy(locale: Locale) {
         },
         reportTeaserGallery: {
           body:
-            "Before the source vlog opens, the article shows only public teaser cuts selected by the fan reporter.",
+            "Before the source vlog opens, the article shows only teaser cuts cropped and edited by the fan reporter.",
           eyebrow: "Reporter teaser cuts",
-          itemLabel: (index: string) => `Public cut ${index}`,
-          title: "Public scenes picked by the fan reporter",
+          itemLabel: (index: string) => `Edited cut ${index}`,
+          title: "Teaser cuts edited by the fan reporter",
         },
         generated: "AI generated",
         publishedLabel: "Published",
@@ -2233,16 +2233,26 @@ function SourceVlogUnlockedTeaserGallery({
 function ReporterTeaserCutGallery({
   blurred,
   copy,
-  imageUrls,
+  teaserImages,
   locale,
 }: {
   blurred: boolean;
   copy: ReturnType<typeof getCopy>;
-  imageUrls: string[];
+  teaserImages: NonNullable<FanletterNewsReportDocument["teaserImages"]>;
   locale: Locale;
 }) {
   const teaserItems = [
-    ...new Set(imageUrls.map((url) => url.trim()).filter(Boolean)),
+    ...new Set(
+      teaserImages
+        .filter(
+          (image) =>
+            image.source === "reporter_cropped" &&
+            image.crop &&
+            image.imageUrl.trim() &&
+            image.imageUrl.trim() !== image.sourceImageUrl.trim(),
+        )
+        .map((image) => image.imageUrl.trim()),
+    ),
   ]
     .slice(0, 4)
     .map((imageUrl, index) => {
@@ -2255,12 +2265,13 @@ function ReporterTeaserCutGallery({
       };
     });
 
-  if (teaserItems.length < 2) {
+  if (teaserItems.length === 0) {
     return null;
   }
 
   return (
     <FanletterNewsSourceSceneGallery
+      key={teaserItems.map((item) => item.imageUrl).join("|")}
       blurred={blurred}
       copy={{
         body: copy.reportTeaserGallery.body,
@@ -3737,8 +3748,8 @@ export default async function LocalizedFanletterNewsReportPage({
               <ReporterTeaserCutGallery
                 blurred={shouldBlurCurrentReport}
                 copy={copy}
-                imageUrls={report.teaserImageUrls ?? []}
                 locale={locale}
+                teaserImages={report.teaserImages ?? []}
               />
             ) : null}
 

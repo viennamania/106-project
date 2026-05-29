@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   BadgeCheck,
   CheckCircle2,
@@ -96,7 +97,7 @@ function buildRelatedNewsHref({
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
-function replaceCurrentRelatedOffset(offsetParamName: string, offset: number) {
+function buildCurrentRelatedOffsetHref(offsetParamName: string, offset: number) {
   const url = new URL(window.location.href);
 
   if (offset > 0) {
@@ -105,7 +106,7 @@ function replaceCurrentRelatedOffset(offsetParamName: string, offset: number) {
     url.searchParams.delete(offsetParamName);
   }
 
-  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  return `${url.pathname}${url.search}${url.hash}`;
 }
 
 function isRelatedListResponse(
@@ -369,6 +370,7 @@ export function FanletterNewsRelatedList({
   sortOptions: FanletterNewsRelatedSortOption[];
   sortValue: string;
 }) {
+  const router = useRouter();
   const currentItem = initialItems.find((item) => item.reportId === currentReportId);
   const relatedItemsPerPage = Math.max(1, pageSize - (currentItem ? 1 : 0));
   const normalizedInitialPageIndex = Math.max(0, Math.floor(initialPageIndex));
@@ -449,7 +451,9 @@ export function FanletterNewsRelatedList({
     setError(null);
     setPageIndex(0);
     setPages([{ hasMore: false, items: [] }]);
-    replaceCurrentRelatedOffset(relatedOffsetParamName, 0);
+    router.replace(buildCurrentRelatedOffsetHref(relatedOffsetParamName, 0), {
+      scroll: false,
+    });
 
     async function fetchSearchResults() {
       try {
@@ -509,6 +513,7 @@ export function FanletterNewsRelatedList({
     relatedApiHref,
     relatedItemsPerPage,
     relatedOffsetParamName,
+    router,
   ]);
 
   const showPage = useCallback((nextPageIndex: number) => {
@@ -516,9 +521,12 @@ export function FanletterNewsRelatedList({
     setError(null);
 
     if (!activeSearchQuery) {
-      replaceCurrentRelatedOffset(
-        relatedOffsetParamName,
-        nextPageIndex * relatedItemsPerPage,
+      router.replace(
+        buildCurrentRelatedOffsetHref(
+          relatedOffsetParamName,
+          nextPageIndex * relatedItemsPerPage,
+        ),
+        { scroll: false },
       );
     }
 
@@ -527,6 +535,7 @@ export function FanletterNewsRelatedList({
     activeSearchQuery,
     relatedItemsPerPage,
     relatedOffsetParamName,
+    router,
     scrollToSectionTop,
   ]);
 
