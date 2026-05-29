@@ -2013,14 +2013,14 @@ export function FanletterNewsReportComposerPage({
         </div>
       </div>
       <div className="mt-3 rounded-xl border border-black/10 bg-white px-3 py-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#111510]">
+        <div className="flex flex-col gap-3">
+          <p className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-black text-[#111510]">
             <RefreshCw className="size-4 text-[#16702e]" />
             {copy.sourceSort.label}
           </p>
           <div
             aria-label={copy.sourceSort.label}
-            className="grid w-full grid-cols-2 gap-1 rounded-full bg-[#f1f3ef] p-1 sm:w-auto sm:min-w-72"
+            className="grid w-full grid-cols-2 gap-1 rounded-full bg-[#f1f3ef] p-1"
             role="group"
           >
             {sourceSortOptions.map((option) => {
