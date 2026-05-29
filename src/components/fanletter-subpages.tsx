@@ -2790,7 +2790,7 @@ function FanletterCreatorFanAccessPanel({
           fanOnlyReadyTitle: "View fan-only content",
           fanOnlyTitle: "View fan-only requests",
           followBody:
-            "Connect an account and follow to keep new vlog alerts and fan requests in one place.",
+            "Connect an account and follow to keep new vlog alerts and fan requests ready.",
           followTitle: "Follow and get updates",
           freeBody: "Preview recent public vlogs and the character mood before signing up.",
           freeTitle: "Watch public vlogs first",
@@ -3226,7 +3226,7 @@ function FanletterFanOnlyPreview({
           actionTitle: "지금 할 수 있는 일",
           availableActionTitle: "팬 전용 진입",
           availableBody:
-            "이 캐릭터가 유료 또는 팬 전용으로 공개한 브이로그를 한곳에 모았습니다. 카드를 열면 FanLetter 상세 화면에서 미리보기, 권한 확인, 다음 요청까지 같은 흐름으로 이어집니다.",
+            "이 캐릭터의 유료 또는 팬 전용 브이로그를 모았습니다. 카드를 열면 미리보기, 권한 확인, 다음 요청까지 같은 흐름으로 이어집니다.",
           availableCta: "대표 티저 미리보기",
           availableEyebrow: "팬 전용 라이브러리",
           availableNote:
@@ -7874,7 +7874,7 @@ export function FanletterCreatorPromoSharePage({
       ? {
           channel: "채널 바로가기",
           creatorBadge: "SNS 공유 전용",
-          description: `${channelName}의 무료 공개 브이로그와 팬 전용 미리보기를 한 화면에서 확인하세요.`,
+          description: `${channelName}의 무료 공개 브이로그와 팬 전용 미리보기를 이어서 둘러보세요.`,
           mobileDescription: `무료 브이로그 ${formatNumber(data.publicContentCount, locale)}개와 팬 전용 미리보기 ${formatNumber(data.fanOnlyContentCount, locale)}개를 확인하세요.`,
           activityBody:
             "공개 브이로그, 팬 전용 미리보기, 팬 요청 기록을 시간순으로 모아 캐릭터 채널의 최근 흐름을 보여줍니다.",
@@ -10213,7 +10213,7 @@ export function FanletterOnboardingPage({
             "계정 연결, 캐릭터 만들기, 첫 브이로그 생성을 끝내면 피드와 스튜디오에서 바로 운영을 이어갈 수 있습니다.",
           completeTitle: "3단계 시작 체크리스트",
           description:
-            "계정 연결, 캐릭터 만들기, 첫 숏폼 브이로그 생성까지 한 화면에서 순서대로 진행하세요.",
+            "계정 연결, 캐릭터 만들기, 첫 숏폼 브이로그 생성까지 순서대로 진행하세요.",
           eyebrow: "FanLetter 온보딩",
           feedCta: "브이로그 피드 보기",
           helper: "계정 연결, 캐릭터 준비, 첫 브이로그 생성을 한 흐름으로 묶어 처음 시작하는 사용자가 길을 잃지 않게 합니다.",

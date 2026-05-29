@@ -190,7 +190,7 @@ function getCopy(locale: Locale, service: FanletterWalletService) {
         connectTitle:
           "뉴스 지갑을 연결하면 FanLetter News 활동 상태를 바로 확인할 수 있습니다.",
         description:
-          "뉴스 서비스에서 사용하는 이메일 지갑, USDT 잔액, 입금 주소, 최근 흐름과 가입 완료 진입점을 한곳에서 확인합니다.",
+          "뉴스 결제에 쓰는 이메일 지갑, USDT 잔액, 입금 주소, 최근 흐름과 가입 완료 진입점을 관리합니다.",
         eyebrow: "FanLetter News Wallet",
         history: "뉴스 지갑 USDT 내역",
         historyBody:
@@ -222,7 +222,7 @@ function getCopy(locale: Locale, service: FanletterWalletService) {
         connectTitle:
           "Connect your news wallet to see FanLetter News activity status.",
         description:
-          "Check the email wallet used for the news service, USDT balance, deposit address, recent activity, and signup verification entry points in one place.",
+          "Manage the email wallet used for the news service, USDT balance, deposit address, recent activity, and signup verification entry points.",
         eyebrow: "FanLetter News Wallet",
         history: "News wallet USDT activity",
         historyBody:

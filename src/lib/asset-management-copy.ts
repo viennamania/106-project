@@ -56,7 +56,7 @@ const copyByLocale: Record<Locale, AssetManagementCopy> = {
       metric: "원화 평가",
     },
     description:
-      "내 스마트 월렛의 USDT와 BNB 상태를 한 화면에서 확인하고 필요한 관리 화면으로 바로 이동합니다.",
+      "내 스마트 월렛의 USDT와 BNB 상태를 보고 필요한 관리 화면으로 바로 이동합니다.",
     disconnected: "이메일 로그인 후 나의 자산 현황을 확인할 수 있습니다.",
     emptyHistory: "아직 표시할 USDT 입출금 내역이 없습니다.",
     eyebrow: "asset management",
@@ -73,7 +73,7 @@ const copyByLocale: Record<Locale, AssetManagementCopy> = {
     },
     loading: "자산 데이터를 불러오는 중입니다.",
     metaDescription:
-      "스마트 월렛의 USDT, BNB 잔고와 관리 화면을 한 곳에서 확인합니다.",
+      "스마트 월렛의 USDT, BNB 잔고와 관리 화면을 확인합니다.",
     security: {
       description:
         "현재 화면은 BSC 네트워크 기준으로 표시됩니다. 전송이나 출금은 각 관리 화면에서 주소와 금액을 다시 확인한 뒤 진행하세요.",

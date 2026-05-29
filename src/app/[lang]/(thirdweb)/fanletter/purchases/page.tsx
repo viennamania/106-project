@@ -37,8 +37,8 @@ export async function generateMetadata({
       : "Purchased fan-only | FanLetter";
   const description =
     locale === "ko"
-      ? "FanLetter에서 결제 완료한 팬 전용 브이로그를 한곳에서 다시 확인하세요."
-      : "Replay your purchased fan-only vlogs on FanLetter in one place.";
+      ? "FanLetter에서 결제 완료한 팬 전용 브이로그를 다시 열어보세요."
+      : "Replay your purchased fan-only vlogs on FanLetter.";
   const url = buildPathWithReferral(
     `/${locale}/fanletter/purchases`,
     referralCode,

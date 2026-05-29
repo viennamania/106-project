@@ -27,6 +27,9 @@ import {
   getFanletterNewsReporterProfile,
   getFanletterNewsReportsForReporterChannel,
 } from "@/lib/fanletter-news-report-service";
+import {
+  getFanletterNewsArticleDisplayTitle as getArticleDisplayTitle,
+} from "@/lib/fanletter-news-related";
 import { getFanletterNewsReporterIncentiveStats } from "@/lib/fanletter-news-reporter-incentives";
 import {
   getFanletterNewsReporterTrustProfile,
@@ -216,10 +219,6 @@ function formatUsdt(value: number, locale: Locale) {
     maximumFractionDigits: 2,
     minimumFractionDigits: value > 0 && value < 1 ? 2 : 0,
   }).format(value)} USDT`;
-}
-
-function getArticleDisplayTitle(title: string) {
-  return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
 }
 
 function getTrustLevelLabel(

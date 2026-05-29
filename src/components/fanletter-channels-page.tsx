@@ -118,7 +118,7 @@ function getCopy(locale: Locale) {
         connectTitle: "계정 연결이 필요합니다.",
         distributionBody:
           "FanLetter 영상, 캡션, 해시태그, 링크를 릴스·쇼츠·틱톡 업로드에 바로 쓸 수 있는 게시 패키지로 정리합니다.",
-        distributionTitle: "외부 숏폼 채널에 올릴 준비를 한 화면에서 끝냅니다.",
+        distributionTitle: "외부 숏폼 채널에 올릴 준비를 끝냅니다.",
         emptyBody:
           "먼저 AI 캐릭터 브이로그를 만들면 외부 채널용 캡션과 링크 패키지가 자동으로 준비됩니다.",
         emptyTitle: "배포할 브이로그가 아직 없습니다.",
@@ -191,7 +191,7 @@ function getCopy(locale: Locale) {
         connectTitle: "Account connection is required.",
         distributionBody:
           "Turn each FanLetter video, caption, hashtag set, and link into a posting package for Reels, Shorts, and TikTok.",
-        distributionTitle: "Prepare external short-form publishing in one place.",
+        distributionTitle: "Prepare external short-form publishing.",
         emptyBody:
           "Create an AI character vlog first, then caption and link packages will appear here.",
         emptyTitle: "No vlogs are ready for distribution yet.",

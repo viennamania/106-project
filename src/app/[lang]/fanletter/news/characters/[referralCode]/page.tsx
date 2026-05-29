@@ -39,6 +39,7 @@ import {
   type FanletterNewsCharacterReporterStat,
 } from "@/lib/fanletter-news-report-service";
 import {
+  getFanletterNewsArticleDisplayTitle as getArticleDisplayTitle,
   getFanletterNewsFirstReportBadgeLabel,
   isFanletterNewsFirstReportForContent,
 } from "@/lib/fanletter-news-related";
@@ -444,10 +445,6 @@ function toTimestamp(value: Date | string | null | undefined) {
     value instanceof Date ? value.getTime() : new Date(value).getTime();
 
   return Number.isFinite(timestamp) ? timestamp : 0;
-}
-
-function getArticleDisplayTitle(title: string) {
-  return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
 }
 
 function isFanRequestBasedReport(report: FanletterNewsReportDocument) {

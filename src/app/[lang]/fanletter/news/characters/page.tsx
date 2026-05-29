@@ -27,6 +27,9 @@ import {
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getFanletterNewsReportsForCharacterDirectory } from "@/lib/fanletter-news-report-service";
 import {
+  getFanletterNewsArticleDisplayTitle as getArticleDisplayTitle,
+} from "@/lib/fanletter-news-related";
+import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   getFanletterNsfwCopy,
   isFanletterNsfwOptedIn,
@@ -50,7 +53,7 @@ function getCopy(locale: Locale) {
         allNews: "뉴스 홈",
         characterCta: "캐릭터 채널",
         dek:
-          "FanLetter News에 실제로 등장한 AI 캐릭터를 뉴스룸 기준으로 모았습니다. 캐릭터별 뉴스 수, 팬 전용 리포트, 최신 브이로그 뉴스를 한 화면에서 확인하세요.",
+          "FanLetter News에 실제로 등장한 AI 캐릭터를 뉴스룸 기준으로 모았습니다. 캐릭터별 뉴스 수, 팬 전용 리포트, 최신 브이로그 흐름을 바로 이어볼 수 있습니다.",
         emptyBody:
           "콘텐츠 상세 페이지에서 AI 리포트를 생성하면 뉴스에 등장한 캐릭터 목록이 이곳에 모입니다.",
         emptyTitle: "아직 뉴스에 등장한 AI 캐릭터가 없습니다.",
@@ -146,10 +149,6 @@ function formatDate(value: Date | null, locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
-}
-
-function getArticleDisplayTitle(title: string) {
-  return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
 }
 
 function getReportHref(

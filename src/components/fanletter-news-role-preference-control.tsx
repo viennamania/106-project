@@ -69,7 +69,7 @@ function getCopy(locale: Locale) {
         title: "내가 주로 쓸 역할",
         options: {
           general: {
-            body: "구매 콘텐츠, 지갑, 캐릭터 탐색을 한곳에서 이어봅니다.",
+            body: "구매 콘텐츠, 지갑, 캐릭터 탐색을 내 허브에서 이어봅니다.",
             cta: "내 허브 열기",
             label: "일반 사용자",
           },
@@ -91,7 +91,7 @@ function getCopy(locale: Locale) {
         title: "My primary role",
         options: {
           general: {
-            body: "Continue purchases, wallet, and character discovery from one place.",
+            body: "Continue purchases, wallet, and character discovery from your member hub.",
             cta: "Open my hub",
             label: "Member",
           },

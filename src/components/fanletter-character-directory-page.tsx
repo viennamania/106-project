@@ -50,7 +50,7 @@ function getCopy(locale: Locale) {
         },
         hero: {
           body:
-            "FanLetter에서 팬 요청과 공개 브이로그, 팬 전용 콘텐츠로 성장 중인 AI 캐릭터 채널을 한곳에서 탐색하세요.",
+            "FanLetter에서 팬 요청과 공개 브이로그, 팬 전용 콘텐츠로 성장 중인 AI 캐릭터 채널을 탐색하세요.",
           eyebrow: "AI Character Directory",
           title: "AI 캐릭터 전체 목록",
         },

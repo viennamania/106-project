@@ -67,7 +67,7 @@ export async function generateMetadata({
       : "Vlog News | FanLetter News";
   const description =
     locale === "ko"
-      ? "FanLetter News 전용 공개 브이로그와 팬 전용 티저를 한곳에서 확인하세요."
+      ? "FanLetter News 전용 공개 브이로그와 팬 전용 티저를 이어서 둘러보세요."
       : "Browse public vlogs and fan-only teasers inside FanLetter News.";
   const url = setPathSearchParams(`/${locale}/fanletter/news/vlogs`, {
     q: searchQuery || null,

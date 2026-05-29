@@ -35,7 +35,7 @@ export async function generateMetadata({
     locale === "ko" ? "FanLetter 지갑 관리" : "FanLetter Wallet";
   const description =
     locale === "ko"
-      ? "FanLetter 결제 지갑, USDT 잔액, 입금 주소, 최근 입출금, 정산 진입점을 한곳에서 확인하세요."
+      ? "FanLetter 결제 지갑, USDT 잔액, 입금 주소, 최근 입출금, 정산 진입점을 관리하세요."
       : "Manage your FanLetter payment wallet, USDT balance, deposit address, recent activity, and settlement links.";
   const url = buildPathWithReferral(
     `/${locale}/fanletter/wallet`,

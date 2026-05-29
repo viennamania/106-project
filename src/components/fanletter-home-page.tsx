@@ -2331,7 +2331,7 @@ export function FanletterHomePage({
               </h2>
               <p className="mt-5 max-w-xl text-sm font-medium leading-7 text-white/62 sm:text-base">
                 {locale === "ko"
-                  ? "캐릭터 설정부터 숏폼 브이로그 생성, 팬 피드, 판매 확인까지 사용자가 따라갈 순서를 한 화면에서 이해할 수 있게 연결합니다."
+                  ? "캐릭터 설정부터 숏폼 브이로그 생성, 팬 피드, 판매 확인까지 사용자가 따라갈 순서를 자연스럽게 연결합니다."
                   : "Character setup, short-form vlog generation, public feeds, and sales checks are connected as one understandable creator flow."}
               </p>
             </ScrollReveal>

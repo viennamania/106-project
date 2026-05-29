@@ -313,7 +313,7 @@ function getCopy(locale: Locale) {
         upload: {
           body:
             "이미 만든 MP4, MOV, WEBM 브이로그를 무료 공개 콘텐츠로 올립니다. 팬 전용 유료 업로드와 NSFW 설정은 팬 요청 기반 업로드에서만 사용합니다.",
-          fallbackTitle: "무료 공개 브이로그 업로드",
+          fallbackTitle: "오늘의 브이로그",
           fileHelp: (size: string) => `MP4, MOV, WEBM · 최대 ${size}MB`,
           missingReferral: "회원 추천 코드를 확인하지 못했습니다.",
           progress: (percent: number) => `업로드 ${Math.round(percent)}%`,
@@ -530,7 +530,7 @@ function getCopy(locale: Locale) {
         upload: {
           body:
             "Upload an existing MP4, MOV, or WEBM vlog as free public content. Fan-only paid upload and NSFW controls stay limited to fan-request uploads.",
-          fallbackTitle: "Free public vlog upload",
+          fallbackTitle: "Today's vlog",
           fileHelp: (size: string) => `MP4, MOV, WEBM · up to ${size}MB`,
           missingReferral: "Could not find the member referral code.",
           progress: (percent: number) => `Uploading ${Math.round(percent)}%`,

@@ -36,9 +36,9 @@ type FanletterNewsMySearchParams = {
 
 function getCopy(locale: Locale) {
   return locale === "ko"
-    ? {
+      ? {
         connectBody:
-          "FanLetter News의 구매함, 팬 리포트, 브이로그 생성 동선을 한곳에서 이어가려면 뉴스 계정 연결이 필요합니다.",
+          "FanLetter News의 구매함, 팬 리포트, 브이로그 생성 동선을 이어가려면 뉴스 계정 연결이 필요합니다.",
         connectCta: "뉴스 계정 연결",
         connectTitle: "내 뉴스 허브는 로그인 후 사용할 수 있습니다.",
         description:
@@ -46,7 +46,7 @@ function getCopy(locale: Locale) {
         email: "계정",
         fallbackName: "FanLetter 회원",
         heroBody:
-          "뉴스 소비, 팬 리포터 활동, 브이로거 작업을 한 화면에서 전환하고 모바일 푸터의 바로가기를 내 역할에 맞춥니다.",
+          "뉴스 소비, 팬 리포터 활동, 브이로거 작업을 전환하고 모바일 푸터의 바로가기를 내 역할에 맞춥니다.",
         heroEyebrow: "My FanLetter News",
         heroTitle: "내 뉴스 허브",
         memberStatus: {

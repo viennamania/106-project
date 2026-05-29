@@ -49,7 +49,7 @@ function getCopy(locale: Locale) {
         connectReturn: "리포트 수정으로 돌아가기",
         dek: "요약",
         errorSave: "리포트를 저장하지 못했습니다. 입력값을 확인해 주세요.",
-        facts: "육하원칙",
+        facts: "핵심 정보",
         meta: "리포트 정보",
         openNews: "공개 뉴스 보기",
         reporterComment: "기자 코멘트",
@@ -61,7 +61,7 @@ function getCopy(locale: Locale) {
         source: "원본 브이로그",
         sourceSummary: "원본 요약",
         subtitle:
-          "내가 작성한 AI 팬 리포트의 공개 제목, 요약, 본문, 육하원칙을 수정합니다.",
+          "내가 작성한 AI 팬 리포트의 공개 제목, 요약, 본문, 핵심 정보를 수정합니다.",
         title: "리포트 내용 수정",
         titleField: "제목",
         fields: {

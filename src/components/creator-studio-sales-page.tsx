@@ -62,7 +62,7 @@ function getSalesCopy(locale: Locale) {
       createWallet: "판매용 지갑 생성",
       creatingWallet: "지갑 생성 중",
       description:
-        "유료 콘텐츠 결제 수익, 판매용 지갑 주소, 회수 상태를 한 곳에서 관리합니다.",
+        "유료 콘텐츠 결제 수익, 판매용 지갑 주소, 회수 상태를 관리합니다.",
       emptyHistory: "아직 판매 내역이 없습니다.",
       history: "판매 내역",
       noWallet:

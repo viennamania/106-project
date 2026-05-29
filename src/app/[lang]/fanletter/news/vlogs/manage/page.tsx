@@ -88,7 +88,7 @@ function getCopy(locale: Locale) {
           published: "공개",
         },
         heroBody:
-          "내가 만든 공개 브이로그와 팬 전용 영상을 한 화면에서 확인하고, 새 영상 등록과 프레임 편집으로 바로 이어갑니다.",
+          "내가 만든 공개 브이로그와 팬 전용 영상을 관리하고, 새 영상 등록과 프레임 편집으로 바로 이어갑니다.",
         heroEyebrow: "My FanLetter News Vlogs",
         heroTitle: "내 브이로그 관리",
         labels: {

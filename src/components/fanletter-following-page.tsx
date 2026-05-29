@@ -66,7 +66,7 @@ function getCopy(locale: Locale) {
         followers: "팔로워",
         followingCount: "팔로우한 캐릭터",
         homeBody:
-          "팔로우한 캐릭터의 최신 브이로그와 다음 장면 요청을 한 화면에서 이어갑니다.",
+          "팔로우한 캐릭터의 최신 브이로그를 보고 다음 장면 요청으로 이어갑니다.",
         homeEyebrow: "Fan home",
         homeTitle: "오늘 이어볼 팬 홈",
         latest: "최신 브이로그",
@@ -120,7 +120,7 @@ function getCopy(locale: Locale) {
         start: "내 채널 만들기",
         studio: "스튜디오",
         summary:
-          "내가 팔로우한 AI 캐릭터의 최신 공개 브이로그, 팬 요청, 채널 이동을 한 화면에서 이어봅니다.",
+          "내가 팔로우한 AI 캐릭터의 최신 공개 브이로그, 팬 요청, 채널 이동을 이어봅니다.",
         title: "팬 홈",
         updated: "업데이트",
         updatedCharacters: "최근 활동",

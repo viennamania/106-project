@@ -62,7 +62,7 @@ function getCopy(locale: Locale) {
           label: "VLOG LAUNCH",
           title: "업로드한 브이로그가 바로 뉴스 유입면이 됩니다",
           body:
-            "대표 티저, 팬 오픈 투표, 1 USDT 구매 신호를 한 화면에 묶어 소비자가 원본 장면을 보고 싶게 만듭니다.",
+            "대표 티저, 팬 오픈 투표, 1 USDT 구매 신호를 연결해 소비자가 원본 장면을 보고 싶게 만듭니다.",
           flow: ["업로드", "포토 뉴스", "팬 오픈", "USDT 정산"],
           metrics: [
             { label: "원본", value: "One Scene" },

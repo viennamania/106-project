@@ -26,14 +26,14 @@ type FanletterNewsPurchasesSearchParams = {
 
 function getMetadataCopy(locale: Locale) {
   return locale === "ko"
-    ? {
+      ? {
         description:
-          "FanLetter News에서 결제한 팬 전용 브이로그와 유료 콘텐츠를 한곳에서 다시 확인하세요.",
+          "FanLetter News에서 결제한 팬 전용 브이로그와 유료 콘텐츠를 다시 열어보세요.",
         title: "내 구매 콘텐츠 | FanLetter News",
       }
     : {
         description:
-          "Review fan-only vlogs and paid content purchased from FanLetter News in one place.",
+          "Review fan-only vlogs and paid content purchased from FanLetter News.",
         title: "My purchases | FanLetter News",
       };
 }

@@ -77,6 +77,8 @@ import {
   getFanletterNewsArticleDisplayTitle as getArticleDisplayTitle,
   getFanletterNewsFirstReportBadgeLabel,
   getFanletterNewsReporterDisplayName as getReporterDisplayName,
+  getFanletterNewsSourceDisplayTitle,
+  isFanletterNewsLowSignalSourceTitle,
   isFanletterNewsFirstReportForContent,
   isFanletterNewsReportNsfw as isNsfwReport,
   readFanletterRelatedNewsSort,
@@ -304,7 +306,7 @@ function getCopy(locale: Locale) {
           fallbackTitle: "뉴스 대표 이미지",
           itemLabel: (index: string) => `편집 컷 ${index}`,
           leadBody:
-            "뉴스 대표 이미지와 팬 기자가 공개한 티저 컷을 한 곳에서 확인할 수 있습니다.",
+            "뉴스 대표 이미지와 팬 기자가 고른 티저 컷을 바로 비교할 수 있습니다.",
           selectedBody:
             "편집 컷이 없을 때는 팬 기자가 선택한 공개 프레임을 기사 안에서 먼저 보여줍니다.",
           selectedItemLabel: (index: string) => `공개 장면 ${index}`,
@@ -556,7 +558,7 @@ function getCopy(locale: Locale) {
           fallbackTitle: "News lead image",
           itemLabel: (index: string) => `Edited cut ${index}`,
           leadBody:
-            "Review the news lead image and public teaser cuts from the fan reporter in one place.",
+            "Compare the news lead image with teaser cuts selected by the fan reporter.",
           selectedBody:
             "When edited cuts are not available, public frames selected by the fan reporter are shown first.",
           selectedItemLabel: (index: string) => `Public scene ${index}`,
@@ -708,15 +710,55 @@ function isFormulaicFanletterNewsDek(value: string, locale: Locale) {
     : /fan-reporter summary.+five Ws and one H/i.test(value.trim());
 }
 
+function normalizeLowSignalSourceTitleText(value: string, locale: Locale) {
+  if (locale !== "ko") {
+    return value
+      .replace(
+        /^(.+?)'s source vlog "([^"]+)" was presented on FanLetter as a (.+?)\.$/i,
+        (matchedText: string, creatorName: string, sourceTitle: string, accessLabel: string) =>
+          isFanletterNewsLowSignalSourceTitle(sourceTitle)
+            ? `${creatorName}'s new source vlog was presented on FanLetter as a ${accessLabel}.`
+            : matchedText,
+      )
+      .replace(
+        /^"([^"]+)" was shared on FanLetter as a (.+?)\.?$/i,
+        (matchedText: string, sourceTitle: string, accessLabel: string) =>
+          isFanletterNewsLowSignalSourceTitle(sourceTitle)
+            ? `A new source vlog was shared on FanLetter as a ${accessLabel}.`
+            : matchedText,
+      );
+  }
+
+  return value
+    .replace(
+      /^(.+?)의 원본 브이로그 '([^']+)'가 FanLetter에서 (.+?)로 게시됐다\.?$/,
+      (matchedText: string, creatorName: string, sourceTitle: string, accessLabel: string) =>
+        isFanletterNewsLowSignalSourceTitle(sourceTitle)
+          ? `${creatorName}의 새 원본 브이로그가 FanLetter에서 ${accessLabel}로 게시됐다.`
+          : matchedText,
+    )
+    .replace(
+      /^원본 브이로그 '([^']+)'가 FanLetter에서 (.+?)로 공유됐습니다\.?$/,
+      (matchedText: string, sourceTitle: string, accessLabel: string) =>
+        isFanletterNewsLowSignalSourceTitle(sourceTitle)
+          ? `새 원본 브이로그가 FanLetter에서 ${accessLabel}로 공유됐습니다.`
+          : matchedText,
+    );
+}
+
 function normalizeFanletterNewsDisplayText(value: string, locale: Locale) {
-  const normalized = value
+  const normalized = normalizeLowSignalSourceTitleText(value, locale)
     .replace(
       /^A fan-reporter summary of (.+?)'s vlog using the five Ws and one H\.$/i,
-      "Follow the source vlog, fan reactions, and next action from one news page.",
+      "Follow the source vlog, fan reactions, and next action from this report.",
     )
     .replace(
       /^AI restructured the public title, summary, and teaser details into a fan report format$/i,
       "The news page connects the source vlog, public context, and fan participation flow.",
+    )
+    .replace(
+      /^Follow (.+?)'s source vlog and fan participation from one news page\.$/i,
+      "Follow the moments fans are reacting to in $1's source vlog.",
     );
 
   if (locale !== "ko") {
@@ -742,7 +784,11 @@ function normalizeFanletterNewsDisplayText(value: string, locale: Locale) {
     )
     .replace(
       /^(.+?)의 브이로그를 팬 기자 관점(?:에서|으로) 육하원칙으로 정리했습니다\.?$/,
-      "$1의 원본 브이로그와 팬 참여 흐름을 한 화면에서 확인하세요.",
+      "$1의 원본 브이로그에서 팬들이 반응한 장면을 이어봅니다.",
+    )
+    .replace(
+      /^(.+?)의 원본 브이로그와 팬 참여 흐름을 한 화면에서 확인하세요\.?$/,
+      "$1의 원본 브이로그에서 팬들이 반응할 장면을 짚었습니다.",
     )
     .replace(
       /^원본 브이로그의 공개 제목, 요약, 티저 정보를 바탕으로 AI가 팬 리포트 형식으로 재구성$/,
@@ -2763,6 +2809,10 @@ function SourceVlogEmbed({
   const sourceStandalonePreviewVideoUrl = normalizeOptionalVideoUrl(
     sourceContent?.sourcePreviewVideoUrl,
   );
+  const sourceDisplayTitle = getFanletterNewsSourceDisplayTitle(
+    sourceContent?.title ?? accessLabel,
+    locale,
+  );
   const sourcePreviewVideoUrl = resolveSourceVlogPreviewVideoUrl(
     sourceContent,
     sourceVideoUrl,
@@ -2869,7 +2919,7 @@ function SourceVlogEmbed({
             {copy.embeddedTitle}
           </span>
           <p className="mt-1 line-clamp-1 text-xs font-semibold text-black/42">
-            {sourceContent?.title ?? accessLabel}
+            {sourceDisplayTitle}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
@@ -2908,7 +2958,7 @@ function SourceVlogEmbed({
               previewBadge={copy.embeddedPreviewBadge}
               previewMeta={copy.embeddedPreviewMeta}
               previewVideoUrl={sourcePreviewVideoUrl}
-              title={sourceContent?.title ?? copy.embeddedTitle}
+              title={sourceDisplayTitle}
             >
               <div className="absolute inset-0 lg:hidden">
                 <SourceVlogRevealTeaserOverlay
@@ -2940,7 +2990,7 @@ function SourceVlogEmbed({
             <div className="relative mx-auto aspect-[3/4] w-full overflow-hidden bg-black sm:aspect-video">
               {sourceImageUrl ? (
                 <Image
-                  alt={sourceContent?.title ?? copy.embeddedTitle}
+                  alt={sourceDisplayTitle}
                   className={
                     sourceMediaBlurred
                       ? "scale-[1.04] object-cover blur-sm brightness-[0.74] saturate-[0.9]"
@@ -2989,7 +3039,7 @@ function SourceVlogEmbed({
               previewBadge={copy.embeddedPreviewBadge}
               previewMeta={copy.embeddedPreviewMeta}
               previewVideoUrl={sourcePreviewVideoUrl}
-              title={sourceContent?.title ?? copy.embeddedTitle}
+              title={sourceDisplayTitle}
             >
               <SourceVlogPaidTeaserOverlay
                 blurred={sourceMediaBlurred}
@@ -3005,7 +3055,7 @@ function SourceVlogEmbed({
             <div className="relative mx-auto aspect-[3/4] w-full overflow-hidden bg-black sm:aspect-video">
               {sourceImageUrl ? (
                 <Image
-                  alt={sourceContent?.title ?? copy.embeddedTitle}
+                  alt={sourceDisplayTitle}
                   className={
                     sourceMediaBlurred
                       ? "scale-[1.04] object-cover blur-sm brightness-[0.74] saturate-[0.9]"
@@ -3040,7 +3090,7 @@ function SourceVlogEmbed({
           )
         ) : (
           <FanletterResponsiveMediaFrame
-            alt={sourceContent?.title ?? copy.embeddedTitle}
+            alt={sourceDisplayTitle}
             blurred={sourceMediaBlurred}
             deferVideoUntilInteraction={Boolean(
               sourceStandalonePreviewVideoUrl && sourceVideoUrl,
@@ -3060,7 +3110,7 @@ function SourceVlogEmbed({
             }
             playButtonLabel={copy.embeddedPlayFullVideoCta}
             previewVideoUrl={sourceStandalonePreviewVideoUrl}
-            title={sourceContent?.title ?? copy.embeddedTitle}
+            title={sourceDisplayTitle}
             videoUrl={sourceVideoUrl}
           >
             {mediaBlurred || !hasEmbeddedVideo ? (
@@ -3117,7 +3167,7 @@ function SourceVlogEmbed({
                   connectHref: newsConnectHref,
                   enabled: true,
                   managePinHref: pinUnlockHref,
-                  title: sourceContent?.title ?? copy.embeddedTitle,
+                  title: sourceDisplayTitle,
                 }
               : undefined
           }
@@ -4005,7 +4055,10 @@ export default async function LocalizedFanletterNewsReportPage({
                     report.sourceSummary ??
                     articleDek
                   }
-                  initialTitle={sourceContent?.title ?? report.sourceTitle}
+                  initialTitle={getFanletterNewsSourceDisplayTitle(
+                    sourceContent?.title ?? report.sourceTitle,
+                    locale,
+                  )}
                   hideInlinePanel
                   locale={locale}
                   onboardingHref={paidUnlockOnboardingHref}

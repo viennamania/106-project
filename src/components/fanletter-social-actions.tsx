@@ -189,7 +189,7 @@ function getCopy(locale: Locale) {
         post: "게시",
         reportCancel: "취소",
         reportCommentHelper:
-          "선택 입력입니다. 공개 가능한 팬 기자 관점만 뉴스 생성에 반영됩니다.",
+          "선택 입력입니다. 공개 가능한 관전 포인트만 리포트에 반영됩니다.",
         reportCommentLabel: "팬 기자 코멘트",
         reportCommentPlaceholder:
           "예: 이 장면에서 팬들이 주목하면 좋을 포인트를 적어주세요.",
@@ -223,7 +223,7 @@ function getCopy(locale: Locale) {
         reportOnceHelper:
           "아직 만든 리포트가 없다면 지금 생성할 수 있습니다. 회원당 브이로그마다 한 번만 생성됩니다.",
         reportModalBody:
-          "대표 이미지와 짧은 코멘트를 정하면 AI가 팬 기자 관점의 뉴스 포맷으로 정리합니다.",
+          "대표 이미지를 고르고 짧은 코멘트를 남기면 AI가 팬 리포트 초안을 만들어줍니다.",
         reportModalTitle: "AI 리포트 만들기",
         reportSubmit: "AI 리포트 생성하기",
         reportShare: "AI 리포트",
@@ -232,7 +232,7 @@ function getCopy(locale: Locale) {
         reportListRefresh: "목록 새로고침",
         reportListRefreshing: "목록 새로고침 중",
         reportsBody:
-          "팬 기자 관점의 AI 리포트를 만들고 이 브이로그에서 생성된 리포트를 모아봅니다.",
+          "이 브이로그로 팬 리포트를 만들고 기존 리포트도 바로 열어봅니다.",
         reportsCount: "리포트",
         reportsEyebrow: "리포트",
         reportsTitle: "AI 팬 리포트",

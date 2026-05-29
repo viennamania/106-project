@@ -23,7 +23,7 @@ export function getFanletterWalletDictionary(
       walletPage: {
         ...dictionary.walletPage,
         description:
-          "FanLetter 팬 전용 콘텐츠 결제, 입금 주소, USDT 송금, 최근 입출금 내역을 한곳에서 관리합니다.",
+          "FanLetter 팬 전용 콘텐츠 결제, 입금 주소, USDT 송금, 최근 입출금 내역을 관리합니다.",
         disconnected:
           "FanLetter 지갑을 연결하면 팬 전용 콘텐츠 결제, 입금, 송금, 최근 내역을 바로 관리할 수 있습니다.",
         eyebrow: "FanLetter Wallet",
@@ -52,7 +52,7 @@ export function getFanletterWalletDictionary(
     walletPage: {
       ...dictionary.walletPage,
       description:
-        "Manage FanLetter fan-only content payments, deposit address, USDT transfers, and recent wallet activity in one place.",
+        "Manage FanLetter fan-only content payments, deposit address, USDT transfers, and recent wallet activity.",
       disconnected:
         "Connect your FanLetter wallet to manage fan-only content payments, deposits, transfers, and recent activity.",
       eyebrow: "FanLetter Wallet",

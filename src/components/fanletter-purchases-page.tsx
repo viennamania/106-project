@@ -72,7 +72,7 @@ function getCopy(
         fanHome: "팬 홈",
         fullAccess: "전체 열람 가능",
         heroBody:
-          "결제 완료한 팬 전용 브이로그를 한곳에서 다시 보고, 원래 캐릭터 채널로 이어갑니다.",
+          "결제 완료한 팬 전용 브이로그를 다시 보고, 원래 캐릭터 채널로 이어갑니다.",
         heroTitle: "구매한 팬 전용",
         latestPurchase: "최근 구매",
         likes: "좋아요",
@@ -117,7 +117,7 @@ function getCopy(
         fanHome: "Fan home",
         fullAccess: "Full access",
         heroBody:
-          "Replay paid fan-only vlogs in one place, then continue back to each character channel.",
+          "Replay paid fan-only vlogs, then continue back to each character channel.",
         heroTitle: "Purchased fan-only",
         latestPurchase: "Latest purchase",
         likes: "Likes",

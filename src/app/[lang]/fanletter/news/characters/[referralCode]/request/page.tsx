@@ -7,6 +7,9 @@ import type { FanletterNewsReportDocument } from "@/lib/content";
 import { getFanletterCreatorPageData } from "@/lib/fanletter-content-service";
 import { getFanletterNewsReportsForCharacterChannel } from "@/lib/fanletter-news-report-service";
 import {
+  getFanletterNewsArticleDisplayTitle as getArticleDisplayTitle,
+} from "@/lib/fanletter-news-related";
+import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   isFanletterNsfwOptedIn,
 } from "@/lib/fanletter-nsfw";
@@ -39,10 +42,6 @@ function hasPresetValue(
   preset: Record<"action" | "location" | "mood" | "note", string | null>,
 ) {
   return Object.values(preset).some(Boolean);
-}
-
-function getArticleDisplayTitle(title: string) {
-  return title.replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
 }
 
 function getReportDate(report: FanletterNewsReportDocument) {

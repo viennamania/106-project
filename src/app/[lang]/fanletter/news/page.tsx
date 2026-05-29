@@ -33,6 +33,9 @@ import {
 import {
   getFanletterNsfwCopy,
 } from "@/lib/fanletter-nsfw";
+import {
+  getFanletterNewsBareArticleDisplayTitle as getArticleDisplayTitle,
+} from "@/lib/fanletter-news-related";
 import { getFanletterNewsVlogsHref } from "@/lib/fanletter-news-vlog-routing";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
@@ -67,7 +70,7 @@ function getCopy(locale: Locale) {
         allNews: "AI 캐릭터 엔터테인먼트 뉴스룸",
         characterDirectory: {
           body:
-            "뉴스가 생성된 AI 캐릭터 채널을 한곳에서 확인하세요. 캐릭터별 최신 리포트와 팬 전용 브이로그 흐름을 바로 이어볼 수 있습니다.",
+            "뉴스가 나온 AI 캐릭터 채널을 모았습니다. 캐릭터별 최신 리포트와 팬 전용 브이로그 흐름을 바로 이어볼 수 있습니다.",
           cta: "뉴스 AI 캐릭터 전체 보기",
           eyebrow: "AI 캐릭터 프로필",
           fanOnly: "팬 전용",
@@ -85,7 +88,7 @@ function getCopy(locale: Locale) {
           stories: "와이어",
         },
         dek:
-          "팬 기자가 생성한 AI 캐릭터 브이로그 리포트를 엔터테인먼트 뉴스 포맷으로 모아 읽는 FanLetter News입니다.",
+          "팬 기자가 만든 AI 캐릭터 브이로그 리포트를 이어 읽는 FanLetter News입니다.",
         edition: "AI 캐릭터·팬 리포트 전문 뉴스",
         emptyBody:
           "콘텐츠 상세 페이지에서 AI 리포트를 생성하면 이곳에 최신 뉴스가 모입니다.",
@@ -96,7 +99,7 @@ function getCopy(locale: Locale) {
         frontPage: {
           characters: "캐릭터 편집판",
           desk: "뉴스룸 데스크",
-          deskBody: "리포터 활동, AI 캐릭터 이슈, 공개 뉴스 흐름을 한곳에서 확인합니다.",
+          deskBody: "리포터 활동, AI 캐릭터 이슈, 공개 뉴스 흐름을 빠르게 훑습니다.",
           headlines: "주요 헤드라인",
           leadDeck:
             "빠르게 발행된 팬 리포트를 리드와 주요 헤드라인으로 큐레이션하는 FanLetter 뉴스 편집판입니다.",
@@ -183,7 +186,7 @@ function getCopy(locale: Locale) {
           stories: "Wire",
         },
         dek:
-          "FanLetter News collects AI character vlog reports from fan reporters in an entertainment-news format.",
+          "FanLetter News collects AI character vlog reports from fan reporters.",
         edition: "AI character and fan-report news",
         emptyBody:
           "Create an AI report from a content detail page and the latest news will appear here.",
@@ -196,7 +199,7 @@ function getCopy(locale: Locale) {
           characters: "Character Edition",
           desk: "Newsroom Desk",
           deskBody:
-            "Track reporter activity, AI character issues, and public news flow in one place.",
+            "Track reporter activity, AI character issues, and public news flow.",
           headlines: "Major Headlines",
           leadDeck:
             "A FanLetter news edition that curates fast-moving fan reports into lead news and major headlines.",
@@ -269,12 +272,6 @@ function formatDate(value: Date | null, locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
-}
-
-function getArticleDisplayTitle(title: string) {
-  return title
-    .replace(/^\[(최초|First)\]\s*/i, "")
-    .replace(/^\[(AI 팬 리포트|AI fan report)\]\s*/i, "");
 }
 
 function getReporterDisplayName(report: FanletterNewsReportDocument) {
