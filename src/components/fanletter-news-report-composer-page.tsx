@@ -168,6 +168,7 @@ const REPORT_COVER_CROP_OUTPUT_HEIGHT = 675;
 const REPORT_COVER_CROP_OUTPUT_WIDTH = 1200;
 const REPORT_TEASER_IMAGE_LIMIT = 4;
 const REPORTER_COMMENT_MAX_LENGTH = 220;
+const SOURCE_RESULT_PAGE_SIZE = 6;
 const DEFAULT_REPORT_COVER_CROP: ReportCoverCropState = {
   centerX: 0.5,
   centerY: 0.5,
@@ -331,6 +332,13 @@ function getCopy(locale: Locale) {
         searchLabel: "전체 브이로그 검색",
         searchPlaceholder: "제목, AI 캐릭터 이름, 추천코드 검색",
         searchReset: "초기화",
+        pagination: {
+          label: "브이로그 후보 페이지",
+          next: "다음",
+          previous: "이전",
+          range: (start: string, end: string, total: string) =>
+            `${start}-${end} / ${total}`,
+        },
         nsfwFilterLabel: "NSFW 콘텐츠",
         nsfwIncluded: "NSFW 포함",
         nsfwExcluded: "NSFW 블러",
@@ -524,6 +532,13 @@ function getCopy(locale: Locale) {
         searchLabel: "Search all vlogs",
         searchPlaceholder: "Title, AI character name, referral code",
         searchReset: "Clear",
+        pagination: {
+          label: "Vlog candidate pages",
+          next: "Next",
+          previous: "Previous",
+          range: (start: string, end: string, total: string) =>
+            `${start}-${end} / ${total}`,
+        },
         nsfwFilterLabel: "NSFW content",
         nsfwIncluded: "NSFW included",
         nsfwExcluded: "NSFW blurred",
@@ -617,6 +632,14 @@ function formatDate(value: string | null, locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en").format(value);
+}
+
+function getPaginationPages(currentPage: number, pageCount: number) {
+  const pages = new Set([1, currentPage - 1, currentPage, currentPage + 1, pageCount]);
+
+  return Array.from(pages)
+    .filter((page) => page >= 1 && page <= pageCount)
+    .sort((left, right) => left - right);
 }
 
 function getSourceRevealCount(source: FanletterNewsReportComposerSource) {
@@ -1012,6 +1035,7 @@ export function FanletterNewsReportComposerPage({
   reporterReferralCode,
   reportsHref,
   searchQuery,
+  sourcePage,
   sourceRevealFilter,
   sources,
   viewerAuthenticated,
@@ -1029,6 +1053,7 @@ export function FanletterNewsReportComposerPage({
   reporterReferralCode: string;
   reportsHref: string;
   searchQuery: string;
+  sourcePage: number;
   sourceRevealFilter: FanletterNewsReportComposerSourceRevealFilter;
   sources: FanletterNewsReportComposerSource[];
   viewerAuthenticated: boolean;
@@ -1094,11 +1119,31 @@ export function FanletterNewsReportComposerPage({
         }),
     [reporterReferralCode, reportSources, sourceRevealFilter],
   );
+  const sourcePageCount = Math.max(
+    1,
+    Math.ceil(displayedSources.length / SOURCE_RESULT_PAGE_SIZE),
+  );
+  const currentSourcePage = clampNumber(sourcePage, 1, sourcePageCount);
+  const currentSourcePageStart =
+    displayedSources.length === 0
+      ? 0
+      : (currentSourcePage - 1) * SOURCE_RESULT_PAGE_SIZE;
+  const currentSourcePageEnd = Math.min(
+    currentSourcePageStart + SOURCE_RESULT_PAGE_SIZE,
+    displayedSources.length,
+  );
+  const paginatedSources = displayedSources.slice(
+    currentSourcePageStart,
+    currentSourcePageEnd,
+  );
+  const paginationPages = getPaginationPages(currentSourcePage, sourcePageCount);
+  const shouldShowSourcePagination = displayedSources.length > SOURCE_RESULT_PAGE_SIZE;
   const firstAvailableSource =
-    displayedSources.find(
+    paginatedSources.find(
       (source) =>
         canReporterCreateFromSource({ reporterReferralCode, source }),
     ) ??
+    paginatedSources[0] ??
     displayedSources[0] ??
     null;
   const initialSelectedSource =
@@ -1370,6 +1415,23 @@ export function FanletterNewsReportComposerPage({
         { ref: reporterReferralCode },
       )
     : reportsHref;
+  const routeSelectionKey = [
+    initialSelectedContentId,
+    reportStatusFilter,
+    searchQuery,
+    sourcePage,
+    sourceRevealFilter,
+  ].join("\u0000");
+  const previousRouteSelectionKeyRef = useRef(routeSelectionKey);
+  const getSourcePageHref = useCallback(
+    (nextSourcePage: number) =>
+      setRelativeSearchParams(reportNewHref, {
+        nsfw: includeNsfw ? null : "off",
+        q: searchQuery || null,
+        sourcePage: nextSourcePage > 1 ? String(nextSourcePage) : null,
+      }),
+    [includeNsfw, reportNewHref, searchQuery],
+  );
 
   const selectSource = useCallback(
     (contentId: string) => {
@@ -1430,6 +1492,15 @@ export function FanletterNewsReportComposerPage({
   useEffect(() => {
     setSearchInput(searchQuery);
   }, [searchQuery]);
+
+  useEffect(() => {
+    if (previousRouteSelectionKeyRef.current === routeSelectionKey) {
+      return;
+    }
+
+    previousRouteSelectionKeyRef.current = routeSelectionKey;
+    setSelectedContentId(initialSelectedSource?.contentId ?? null);
+  }, [initialSelectedSource?.contentId, routeSelectionKey]);
 
   useEffect(() => {
     if (previousSelectedContentIdRef.current === selectedSourceContentId) {
@@ -1949,11 +2020,17 @@ export function FanletterNewsReportComposerPage({
                 <h2 className="mt-1 text-xl font-black">{copy.chooseVlog}</h2>
               </div>
               <span className="rounded-full bg-[#111510] px-2.5 py-1 text-xs font-black text-white">
-                {formatNumber(displayedSources.length, locale)}
+                {shouldShowSourcePagination
+                  ? copy.pagination.range(
+                      formatNumber(currentSourcePageStart + 1, locale),
+                      formatNumber(currentSourcePageEnd, locale),
+                      formatNumber(displayedSources.length, locale),
+                    )
+                  : formatNumber(displayedSources.length, locale)}
               </span>
             </div>
             <div className="grid max-h-[42rem] gap-2 overflow-y-auto pr-1">
-              {displayedSources.map((source) => {
+              {paginatedSources.map((source) => {
                 const isSelected = source.contentId === selectedContentId;
                 const isBlocked = isSourceExclusiveBlockedForReporter({
                   reporterReferralCode,
@@ -2115,6 +2192,74 @@ export function FanletterNewsReportComposerPage({
                 );
               })}
             </div>
+            {shouldShowSourcePagination ? (
+              <nav
+                aria-label={copy.pagination.label}
+                className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-black/10 pt-3"
+              >
+                <Link
+                  aria-disabled={currentSourcePage <= 1}
+                  className={cn(
+                    "inline-flex h-10 min-w-20 items-center justify-center gap-1 rounded-full border px-3 text-xs font-black transition",
+                    currentSourcePage <= 1
+                      ? "pointer-events-none border-black/8 bg-[#f6f8f4] !text-black/24"
+                      : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]",
+                  )}
+                  href={getSourcePageHref(currentSourcePage - 1)}
+                  tabIndex={currentSourcePage <= 1 ? -1 : undefined}
+                >
+                  <ArrowLeft className="size-3.5" />
+                  {copy.pagination.previous}
+                </Link>
+                <div className="flex min-w-0 flex-1 justify-center gap-1">
+                  {paginationPages.map((pageNumber, index) => {
+                    const previousPageNumber = paginationPages[index - 1];
+                    const hasGap =
+                      previousPageNumber !== undefined &&
+                      pageNumber - previousPageNumber > 1;
+                    const isActive = pageNumber === currentSourcePage;
+
+                    return (
+                      <span className="inline-flex items-center gap-1" key={pageNumber}>
+                        {hasGap ? (
+                          <span className="px-1 text-xs font-black text-black/30">
+                            ...
+                          </span>
+                        ) : null}
+                        <Link
+                          aria-current={isActive ? "page" : undefined}
+                          className={cn(
+                            "inline-flex size-10 items-center justify-center rounded-full border text-xs font-black transition",
+                            isActive
+                              ? "border-[#19b84b] bg-[#111510] !text-white"
+                              : "border-black/10 bg-white !text-black/56 hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#126c2c]",
+                          )}
+                          href={getSourcePageHref(pageNumber)}
+                        >
+                          {formatNumber(pageNumber, locale)}
+                        </Link>
+                      </span>
+                    );
+                  })}
+                </div>
+                <Link
+                  aria-disabled={currentSourcePage >= sourcePageCount}
+                  className={cn(
+                    "inline-flex h-10 min-w-20 items-center justify-center gap-1 rounded-full border px-3 text-xs font-black transition",
+                    currentSourcePage >= sourcePageCount
+                      ? "pointer-events-none border-black/8 bg-[#f6f8f4] !text-black/24"
+                      : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]",
+                  )}
+                  href={getSourcePageHref(currentSourcePage + 1)}
+                  tabIndex={
+                    currentSourcePage >= sourcePageCount ? -1 : undefined
+                  }
+                >
+                  {copy.pagination.next}
+                  <ArrowRight className="size-3.5" />
+                </Link>
+              </nav>
+            ) : null}
           </div>
 
           <div className="min-w-0 space-y-4" ref={selectedDetailRef}>

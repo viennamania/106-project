@@ -19,6 +19,7 @@ type FanletterNewsReportNewSearchParams = {
   q?: string | string[];
   ref?: string | string[];
   reportStatus?: string | string[];
+  sourcePage?: string | string[];
   sourceReveal?: string | string[];
 };
 
@@ -41,6 +42,14 @@ function normalizeReportSearchQuery(value?: string | string[]) {
 
 function normalizeSelectedContentId(value?: string | string[]) {
   return readStringSearchParam(value).trim().slice(0, 120);
+}
+
+function normalizeSourcePage(value?: string | string[]) {
+  const parsed = Number.parseInt(readStringSearchParam(value), 10);
+
+  return Number.isFinite(parsed) && parsed > 1
+    ? Math.min(Math.floor(parsed), 999)
+    : 1;
 }
 
 function normalizeReportStatusFilter({
@@ -136,6 +145,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
   const includeNsfw = readIncludeNsfwSearchParam(query.nsfw);
   const searchQuery = normalizeReportSearchQuery(query.q);
   const selectedContentId = normalizeSelectedContentId(query.contentId);
+  const sourcePage = normalizeSourcePage(query.sourcePage);
   const hasSelectedContentId = Boolean(selectedContentId);
   const defaultReportStatusFilter: ReportStatusFilter = hasSelectedContentId
     ? "all"
@@ -169,6 +179,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
   const reportNewHref = setPathSearchParams(filteredReportNewHref, {
     contentId: selectedContentId,
     q: searchQuery,
+    sourcePage: sourcePage > 1 ? String(sourcePage) : null,
   });
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
@@ -247,6 +258,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
       reporterReferralCode={data.member.referralCode}
       reportsHref={reportsHref}
       searchQuery={searchQuery}
+      sourcePage={sourcePage}
       sourceRevealFilter={sourceRevealFilter}
       sources={data.items}
       viewerAuthenticated={Boolean(session)}

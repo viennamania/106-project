@@ -2362,7 +2362,7 @@ export async function getFanletterNewsReportDraftSourcesForMember({
   }
 
   const normalizedLimit = Number.isFinite(limit)
-    ? Math.max(1, Math.min(Math.floor(limit), 60))
+    ? Math.max(1, Math.min(Math.floor(limit), REPORT_DRAFT_SOURCE_SEARCH_LIMIT))
     : 36;
   const [postsCollection, profilesCollection, reportsCollection] =
     await Promise.all([
