@@ -619,9 +619,6 @@ export function FanletterNewsSourceSceneGallery({
             {copy.title}
           </h3>
         </div>
-        <p className="hidden max-w-lg text-xs font-semibold leading-5 text-black/48 sm:block sm:text-right">
-          {copy.body}
-        </p>
       </div>
 
       {featuredItem ? (

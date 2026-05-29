@@ -669,9 +669,6 @@ export default async function FanletterNewsReporterChannelPage({
                     {profile.characterName}
                   </p>
                 ) : null}
-                <p className="mt-4 max-w-3xl text-sm font-semibold leading-6 text-black/62 sm:text-base sm:leading-7">
-                  {copy.hero.body}
-                </p>
               </div>
             </div>
             <dl className="grid border-t border-black/10 sm:grid-cols-4">
@@ -770,9 +767,6 @@ export default async function FanletterNewsReporterChannelPage({
             <h2 className="mt-3 text-2xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-3xl">
               {copy.model.title}
             </h2>
-            <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-black/58">
-              {copy.model.body}
-            </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
             {copy.model.steps.map((step, index) => (
@@ -801,9 +795,6 @@ export default async function FanletterNewsReporterChannelPage({
               <h2 className="mt-1 text-2xl font-black">
                 {copy.characterCoverage.title}
               </h2>
-              <p className="mt-1 text-sm font-semibold leading-6 text-black/54">
-                {copy.characterCoverage.body}
-              </p>
             </div>
           </div>
           {characterStats.length > 0 ? (

@@ -373,9 +373,6 @@ export default async function LocalizedFanletterNewsMyPage({
             <h1 className="mt-4 max-w-3xl text-[2.15rem] font-black leading-[1.06] tracking-normal [word-break:keep-all] sm:text-[3rem]">
               {copy.heroTitle}
             </h1>
-            <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-black/60 sm:text-base sm:leading-7">
-              {copy.heroBody}
-            </p>
             <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {statItems.slice(0, 4).map((item) => (
                 <div

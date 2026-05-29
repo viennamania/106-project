@@ -1013,10 +1013,6 @@ function ContentHubSection({
           {copy.labels.contentHub}
         </span>
       </div>
-      <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-black/56 [word-break:keep-all]">
-        {copy.contentHub.body}
-      </p>
-
       <div className="mt-4 grid gap-2 lg:grid-cols-3">
         {copy.contentHub.cards.map((card, index) => {
           const Icon = icons[index] ?? FileText;
@@ -1199,9 +1195,6 @@ function FanRequestsSection({
           <h2 className="mt-2 text-2xl font-semibold tracking-normal sm:text-3xl">
             {copy.fanRequests.title}
           </h2>
-          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-black/54">
-            {copy.fanRequests.body}
-          </p>
         </div>
         <div className="grid grid-cols-2 gap-2 rounded-full border border-black/10 bg-[#f6f8f4] p-1 text-xs font-semibold text-black/62">
           <span className="inline-flex h-9 items-center justify-center rounded-full bg-black px-3 !text-white">
@@ -1691,9 +1684,6 @@ function PlannerSection({
           <h2 className="mt-3 text-3xl font-semibold leading-[1.02] tracking-normal [word-break:keep-all] sm:text-4xl">
             {copy.planner.title}
           </h2>
-          <p className="mt-4 text-sm font-medium leading-6 text-white/62">
-            {copy.planner.body}
-          </p>
           <button
             className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60 sm:w-fit"
             disabled={isLoading}
@@ -2598,9 +2588,6 @@ export function FanletterStudioPage({
               <h1 className="mt-4 max-w-3xl text-[1.85rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[2.8rem] lg:text-[3.05rem]">
                 {copy.hero.title}
               </h1>
-              <p className="mt-4 max-w-2xl text-sm font-medium leading-6 text-white/66 [word-break:keep-all] sm:text-base sm:leading-7">
-                {copy.hero.body}
-              </p>
               <div className="mt-6 flex flex-col gap-2 sm:flex-row">
                 <Link
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 py-2 text-center text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:h-12 sm:px-6"

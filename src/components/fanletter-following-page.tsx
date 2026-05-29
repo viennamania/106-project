@@ -747,9 +747,6 @@ function FanHomeOverview({
             <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-normal [word-break:keep-all]">
               {copy.overviewTitle}
             </h2>
-            <p className="mt-3 text-sm font-medium leading-6 text-black/58">
-              {copy.overviewBody}
-            </p>
           </div>
           <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
             <Heart className="size-5" />

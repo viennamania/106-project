@@ -1097,9 +1097,6 @@ function CharacterActivityTimeline({
               ? `${characterName}의 ${copy.activity.title}`
               : `${characterName} ${copy.activity.title}`}
           </h2>
-          <p className="mt-2 max-w-2xl text-xs font-semibold leading-5 text-black/58 sm:text-sm sm:leading-6">
-            {copy.activity.body}
-          </p>
         </div>
         <Sparkles className="mt-1 size-5 shrink-0 text-[#16702e]" />
       </div>
@@ -1842,9 +1839,6 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                   ? `${characterName} 뉴스 프랜차이즈`
                   : `${characterName} news franchise`}
               </h2>
-              <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-black/58">
-                {copy.news.body}
-              </p>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {newsStats.map((stat) => (
@@ -1899,9 +1893,6 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                     ? `${characterName}의 일상 브이로그`
                     : `${characterName} daily vlogs`}
                 </h2>
-                <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-black/58">
-                  {copy.vlog.body}
-                </p>
               </div>
               <Link
                 className="inline-flex min-h-10 items-center justify-center gap-2 border border-black/14 px-3 py-2 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
@@ -1983,9 +1974,6 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 </div>
                 <MessageCircleHeart className="size-5 text-[#16702e]" />
               </div>
-              <p className="mb-3 text-sm font-semibold leading-6 text-black/58">
-                {copy.requests.body}
-              </p>
               <div className="mb-3 rounded-lg border border-black/10 bg-white p-3">
                 <p className="text-[0.62rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
                   {copy.requests.quickTitle}

@@ -523,9 +523,6 @@ export default async function FanletterNewsPlatformPage({
                     <h2 className="mt-2 max-w-sm text-xl font-black leading-tight text-white [word-break:keep-all] sm:text-3xl">
                       {copy.newsroomPreview.title}
                     </h2>
-                    <p className="mt-2 line-clamp-2 max-w-sm text-xs font-bold leading-5 text-white/72 [word-break:keep-all] sm:line-clamp-none sm:text-sm sm:leading-6">
-                      {copy.newsroomPreview.body}
-                    </p>
                   </div>
 
                   <div className="grid gap-2">
@@ -584,9 +581,6 @@ export default async function FanletterNewsPlatformPage({
             <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
               {copy.modelTitle}
             </h2>
-            <p className="mt-4 text-base font-bold leading-7 text-black/60 [word-break:keep-all]">
-              {copy.modelBody}
-            </p>
           </LandingReveal>
 
           <div className="grid gap-3">
@@ -635,9 +629,6 @@ export default async function FanletterNewsPlatformPage({
             <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
               {copy.participationTitle}
             </h2>
-            <p className="mt-4 max-w-3xl text-base font-bold leading-7 text-black/60 [word-break:keep-all]">
-              {copy.participationBody}
-            </p>
           </LandingReveal>
 
           <div className="grid gap-3">
@@ -683,9 +674,6 @@ export default async function FanletterNewsPlatformPage({
             <h2 className="mt-3 max-w-3xl text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
               {copy.settlementTitle}
             </h2>
-            <p className="mt-4 max-w-3xl text-base font-bold leading-7 text-white/66 [word-break:keep-all]">
-              {copy.settlementBody}
-            </p>
 
             <div className="mt-7 grid gap-3">
               {copy.settlementItems.map((item) => (
@@ -748,12 +736,6 @@ export default async function FanletterNewsPlatformPage({
             <h2 className="mt-3 max-w-3xl text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
               {copy.ctaTitle}
             </h2>
-            <p className="mt-4 max-w-2xl text-base font-bold leading-7 text-white/62 [word-break:keep-all]">
-              {copy.ctaBody}
-            </p>
-            <p className="mt-4 max-w-2xl text-sm font-bold leading-6 text-white/48 [word-break:keep-all]">
-              {copy.loopBody}
-            </p>
           </LandingReveal>
           <LandingReveal className="grid gap-3 sm:min-w-[17rem]" delay={120}>
             <CtaLink href={newsHref}>{copy.ctaNews}</CtaLink>

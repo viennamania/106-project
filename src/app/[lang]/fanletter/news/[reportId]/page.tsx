@@ -1731,9 +1731,6 @@ function ReporterByline({
             <h3 className="mt-1.5 text-base font-black leading-tight [word-break:keep-all]">
               {copy.reporterPartner.title}
             </h3>
-            <p className="mt-1.5 text-xs font-semibold leading-5 text-white/58">
-              {copy.reporterPartner.body}
-            </p>
           </div>
           <div className="grid grid-cols-2 gap-1.5">
             {partnerStats.map((stat, index) => (

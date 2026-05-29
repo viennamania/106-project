@@ -1974,9 +1974,6 @@ export function FanletterHomePage({
                     </span>
                   ))}
                 </div>
-                <p className="mt-2 hidden max-w-xl text-xs font-medium leading-5 text-white/54 sm:block">
-                  {copy.platformTrust.body}
-                </p>
               </div>
             </ScrollReveal>
 
@@ -2115,9 +2112,6 @@ export function FanletterHomePage({
             <h2 className="mt-4 text-[2.1rem] font-semibold leading-[1.03] tracking-normal [word-break:keep-all] sm:text-[3.5rem]">
               {copy.growthModel.title}
             </h2>
-            <p className="mt-5 max-w-3xl text-sm font-medium leading-6 text-white/68 [word-break:keep-all] sm:text-lg sm:leading-8">
-              {copy.growthModel.body}
-            </p>
             <div className="mt-6 flex flex-col gap-2 sm:flex-row">
               <Link
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
@@ -2544,9 +2538,6 @@ export function FanletterHomePage({
             <h2 className="mt-5 max-w-4xl text-[2.45rem] font-semibold leading-[0.98] tracking-normal text-white [word-break:keep-all] sm:text-[4.2rem]">
               {copy.economy.title}
             </h2>
-            <p className="mt-6 max-w-2xl text-base font-medium leading-7 text-white/68 sm:text-lg">
-              {copy.economy.body}
-            </p>
             <Link
               className="mt-8 inline-flex h-12 w-full items-center justify-center rounded-full bg-[#44f26e] px-6 text-sm font-semibold !text-black transition hover:bg-[#63f685] sm:w-fit"
               href={creatorHref}
@@ -2608,9 +2599,6 @@ export function FanletterHomePage({
             <h2 className="max-w-4xl text-[2.7rem] font-semibold leading-[0.95] tracking-normal [word-break:keep-all] sm:text-[4.6rem]">
               {copy.niche.title}
             </h2>
-            <p className="mt-6 max-w-xl text-base font-semibold leading-7 text-white/82">
-              {copy.niche.body}
-            </p>
             <div className="mt-7 flex flex-wrap gap-2">
               {copy.niche.categories.map((category, index) => (
                 <span

@@ -1047,9 +1047,6 @@ function NewsDeskPanel({
         <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
           {copy.frontPage.desk}
         </p>
-        <p className="mt-2 text-sm font-semibold leading-6 text-black/58">
-          {copy.frontPage.deskBody}
-        </p>
       </div>
 
       {topReporters.length > 0 ? (
@@ -1198,9 +1195,6 @@ function NewsFrontPage({
           <h1 className="mt-2 max-w-4xl break-words text-[1.8rem] font-black leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[3rem]">
             {copy.frontPage.title}
           </h1>
-          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-black/58 sm:text-base sm:leading-7">
-            {copy.frontPage.leadDeck}
-          </p>
         </div>
         <div className="grid grid-cols-3 gap-px border border-black/10 bg-black/10 lg:min-w-80">
           {[
@@ -1420,9 +1414,6 @@ function CharacterWireSection({
           <h2 className="mt-2 text-3xl font-black leading-none tracking-normal sm:text-5xl">
             {copy.characterWire}
           </h2>
-          <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-white/62 sm:text-base sm:leading-7">
-            {copy.characterWireBody}
-          </p>
         </div>
         <div className="grid grid-cols-2 gap-2 sm:min-w-64">
           <WireStat
@@ -1645,9 +1636,6 @@ function PhotoDesk({
             {copy.photoDesk}
           </h2>
         </div>
-        <p className="text-sm font-semibold leading-6 text-black/58 sm:text-right">
-          {copy.photoDeskBody}
-        </p>
       </div>
 
       <div className="grid gap-px bg-[#111510] lg:grid-cols-[minmax(0,1.12fr)_minmax(18rem,0.88fr)]">
@@ -2106,7 +2094,6 @@ function ReporterFilterBanner({
   const reporterName =
     profile?.displayName ??
     getReporterFallbackDisplayName(locale, reporterReferralCode);
-  const reportCount = formatNumber(profile?.reportCount ?? 0, locale);
 
   return (
     <section className="grid gap-4 border border-black/12 bg-white p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
@@ -2135,9 +2122,6 @@ function ReporterFilterBanner({
         <h2 className="mt-1 break-words text-2xl font-black leading-tight [word-break:keep-all]">
           {copy.reporterFilter.title(reporterName)}
         </h2>
-        <p className="mt-2 text-sm font-semibold leading-6 text-black/58">
-          {copy.reporterFilter.body(reportCount)}
-        </p>
       </div>
       <Link
         className="inline-flex h-11 items-center justify-center border border-black/14 px-4 text-sm font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"

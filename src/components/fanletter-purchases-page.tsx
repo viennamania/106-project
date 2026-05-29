@@ -897,9 +897,6 @@ export function FanletterPurchasesPage({
             <h1 className="mt-4 max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
               {copy.heroTitle}
             </h1>
-            <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
-              {copy.heroBody}
-            </p>
             <div className="mt-8 flex flex-wrap gap-2">
               <Link
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"

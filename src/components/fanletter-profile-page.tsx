@@ -1712,9 +1712,6 @@ export function FanletterProfilePage({
             <h2 className="mt-3 text-2xl font-semibold">
               {copy.activityProfileTitle}
             </h2>
-            <p className="mt-2 text-sm font-medium leading-6 text-white/56">
-              {copy.activityProfileBody}
-            </p>
             <div className="mt-4 flex flex-wrap gap-2">
               {copy.activityProfileUsedFor.map((item) => (
                 <span
@@ -2340,9 +2337,6 @@ export function FanletterProfilePage({
             <h2 className="mt-2 text-2xl font-semibold leading-tight text-white [word-break:keep-all]">
               {copy.contentPlaybook.title}
             </h2>
-            <p className="mt-2 text-sm font-medium leading-6 text-white/58 [word-break:keep-all]">
-              {copy.contentPlaybook.body}
-            </p>
           </div>
           <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-[#44f26e]/30 bg-[#44f26e]/10 px-3 py-1.5 text-xs font-semibold text-[#9bffad]">
             <Sparkles className="size-3.5" />
@@ -2911,9 +2905,6 @@ export function FanletterProfilePage({
             <h2 className="mt-3 text-2xl font-semibold text-white">
               {copy.quickPanelTitle}
             </h2>
-            <p className="mt-2 text-sm font-medium leading-6 text-white/62">
-              {copy.quickBody}
-            </p>
           </div>
         </div>
 
