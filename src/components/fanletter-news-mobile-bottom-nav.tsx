@@ -4,14 +4,21 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   BookOpenCheck,
+  CircleUserRound,
   Newspaper,
   PenLine,
   Sparkles,
-  WalletCards,
+  Video,
   type LucideIcon,
 } from "lucide-react";
+import { useSyncExternalStore } from "react";
 
 import type { Locale } from "@/lib/i18n";
+import {
+  FANLETTER_NEWS_ROLE_PREFERENCE_CHANGE_EVENT,
+  FANLETTER_NEWS_ROLE_PREFERENCE_STORAGE_KEY,
+  normalizeFanletterNewsRolePreference,
+} from "@/lib/fanletter-news-role-preference";
 import {
   buildPathWithReferral,
   setPathSearchParams,
@@ -21,11 +28,13 @@ import { cn } from "@/lib/utils";
 
 type FanletterNewsMobileNavItem = {
   activePath: string;
+  activePaths?: string[];
   exact?: boolean;
   href: string;
   icon: LucideIcon;
-  key: "news" | "characters" | "reports" | "purchases" | "connect";
+  key: "news" | "characters" | "action" | "purchases" | "my";
   label: string;
+  primary?: boolean;
 };
 
 const fanletterNewsMobileNavHeightClass =
@@ -34,6 +43,7 @@ const fanletterNewsTopLevelServiceSegments = new Set([
   "activate",
   "characters",
   "connect",
+  "my",
   "platform",
   "purchases",
   "reporters",
@@ -42,21 +52,38 @@ const fanletterNewsTopLevelServiceSegments = new Set([
   "wallet",
 ]);
 
+function subscribeToRolePreference(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(
+    FANLETTER_NEWS_ROLE_PREFERENCE_CHANGE_EVENT,
+    onStoreChange,
+  );
+
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(
+      FANLETTER_NEWS_ROLE_PREFERENCE_CHANGE_EVENT,
+      onStoreChange,
+    );
+  };
+}
+
+function getRolePreferenceSnapshot() {
+  return normalizeFanletterNewsRolePreference(
+    window.localStorage.getItem(FANLETTER_NEWS_ROLE_PREFERENCE_STORAGE_KEY),
+  );
+}
+
+function getServerRolePreferenceSnapshot() {
+  return "general" as const;
+}
+
 function trimTrailingSlash(pathname: string) {
   if (pathname.length <= 1) {
     return pathname;
   }
 
   return pathname.replace(/\/+$/, "");
-}
-
-function buildCurrentReturnTo(pathname: string, searchParams: URLSearchParams) {
-  const nextSearchParams = new URLSearchParams(searchParams);
-  nextSearchParams.delete("returnTo");
-
-  const search = nextSearchParams.toString();
-
-  return `${pathname}${search ? `?${search}` : ""}`;
 }
 
 function isNewsReportDetailPath(pathname: string, basePath: string) {
@@ -75,13 +102,19 @@ function isNewsReportDetailPath(pathname: string, basePath: string) {
 export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const pathname = trimTrailingSlash(usePathname());
   const searchParams = useSearchParams();
-  const currentSearchParams = new URLSearchParams(searchParams.toString());
+  const rolePreference = useSyncExternalStore(
+    subscribeToRolePreference,
+    getRolePreferenceSnapshot,
+    getServerRolePreferenceSnapshot,
+  );
   const basePath = `/${locale}/fanletter/news`;
   const connectPath = `${basePath}/connect`;
   const activatePath = `${basePath}/activate`;
+  const myPath = `${basePath}/my`;
   const purchasesPath = `${basePath}/purchases`;
   const reportsPath = `${basePath}/reports`;
   const walletPath = `${basePath}/wallet`;
+  const fanletterBasePath = `/${locale}/fanletter`;
 
   if (
     pathname === basePath ||
@@ -96,11 +129,46 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const isWalletServicePath =
     pathname === connectPath ||
     pathname === activatePath ||
-    pathname === walletPath;
-  const currentReturnTo =
-    isWalletServicePath
-      ? buildHref(basePath)
-      : buildCurrentReturnTo(pathname, currentSearchParams);
+    pathname === walletPath ||
+    pathname.startsWith(`${walletPath}/`);
+  const myHref = buildHref(myPath);
+  const studioVlogsHref = buildHref(`${fanletterBasePath}/studio/vlogs`);
+  const vloggerActionHref = setPathSearchParams(
+    buildHref(`${fanletterBasePath}/create`),
+    { returnTo: studioVlogsHref },
+  );
+  const reporterActionHref = buildHref(`${reportsPath}/new`);
+  const actionItem =
+    rolePreference === "vlogger"
+      ? {
+          activePath: `${fanletterBasePath}/create`,
+          activePaths: [
+            `${fanletterBasePath}/create`,
+            `${fanletterBasePath}/studio/vlogs`,
+          ],
+          href: vloggerActionHref,
+          icon: Video,
+          key: "action" as const,
+          label: locale === "ko" ? "브이로그" : "Vlog",
+          primary: true,
+        }
+      : rolePreference === "reporter"
+        ? {
+            activePath: `${reportsPath}/new`,
+            href: reporterActionHref,
+            icon: PenLine,
+            key: "action" as const,
+            label: locale === "ko" ? "리포트 작성" : "Report",
+            primary: true,
+          }
+        : {
+            activePath: myPath,
+            href: myHref,
+            icon: CircleUserRound,
+            key: "action" as const,
+            label: locale === "ko" ? "내 허브" : "My Hub",
+            primary: true,
+          };
   const items: FanletterNewsMobileNavItem[] = [
     {
       activePath: basePath,
@@ -117,6 +185,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
       key: "characters",
       label: locale === "ko" ? "AI 캐릭터" : "AI Characters",
     },
+    actionItem,
     {
       activePath: purchasesPath,
       href: buildHref(purchasesPath),
@@ -125,20 +194,12 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
       label: locale === "ko" ? "구매함" : "Purchases",
     },
     {
-      activePath: reportsPath,
-      href: buildHref(reportsPath),
-      icon: PenLine,
-      key: "reports",
-      label: locale === "ko" ? "리포트" : "Reports",
-    },
-    {
-      activePath: connectPath,
-      href: setPathSearchParams(buildHref(connectPath), {
-        returnTo: currentReturnTo,
-      }),
-      icon: WalletCards,
-      key: "connect",
-      label: locale === "ko" ? "지갑연결" : "Connect",
+      activePath: myPath,
+      activePaths: [myPath, connectPath, activatePath, walletPath],
+      href: myHref,
+      icon: CircleUserRound,
+      key: "my",
+      label: locale === "ko" ? "마이" : "My",
     },
   ];
 
@@ -159,19 +220,24 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
         <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
           {items.map((item) => {
             const Icon = item.icon;
+            const activePaths = item.activePaths ?? [item.activePath];
             const active = item.exact
               ? pathname === item.activePath
-              : item.key === "connect"
-                ? isWalletServicePath
-                : pathname === item.activePath ||
-                  pathname.startsWith(`${item.activePath}/`);
+              : item.key === "my"
+                ? pathname === myPath || isWalletServicePath
+                : activePaths.some(
+                    (activePath) =>
+                      pathname === activePath ||
+                      pathname.startsWith(`${activePath}/`),
+                  );
 
             return (
               <Link
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex h-14 min-w-0 flex-col items-center justify-center gap-1 px-1 text-center text-[0.68rem] font-black leading-none !text-black/54 transition hover:!text-[#126c2c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]",
+                  "flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-center text-[0.68rem] font-black leading-none !text-black/54 transition hover:!text-[#126c2c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]",
                   active && "!text-[#111510]",
+                  item.primary && "relative -mt-3 !text-[#111510]",
                 )}
                 href={item.href}
                 key={item.key}
@@ -180,9 +246,14 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
                   className={cn(
                     "inline-flex size-8 items-center justify-center rounded-full text-[#16702e] transition",
                     active && "bg-[#ecfff0] text-[#126c2c]",
+                    item.primary &&
+                      "size-12 bg-[#44f26e] text-black shadow-[0_14px_34px_rgba(25,184,75,0.22)]",
+                    active &&
+                      item.primary &&
+                      "ring-2 ring-[#44f26e]/36 ring-offset-2 ring-offset-white",
                   )}
                 >
-                  <Icon className="size-5" />
+                  <Icon className={item.primary ? "size-6" : "size-5"} />
                 </span>
                 <span className="block max-w-full truncate">
                   {item.label}
