@@ -174,6 +174,13 @@ type ReportTeaserImagePayload = {
   sourceImageUrl: string;
 };
 
+type ExistingReportVisualSnapshot = {
+  coverImageUrl: string | null;
+  coverSourceImageUrl: string | null;
+  teaserImageUrls: string[];
+  teaserSourceImageUrls: string[];
+};
+
 type FanletterCroppedCoverUploadResponse = {
   contentType: string;
   pathname: string;
@@ -308,6 +315,12 @@ function getCopy(locale: Locale) {
           autoGenerating: "자동 티저 컷 생성 중",
           body:
             "대표 이미지는 16:9로 다시 저장하고 공개 티저 컷은 선택한 방식으로 교체합니다.",
+          currentCover: "현재 대표 이미지",
+          currentEmpty: "아직 저장된 공개 티저 컷이 없습니다.",
+          currentTeasers: "현재 공개 티저 컷",
+          currentTitle: "현재 저장된 설정",
+          currentCoverBadge: "현재 대표",
+          currentTeaserBadge: "현재 공개 컷",
           coverTitle: "대표 이미지와 티저 컷 수정",
           error: "대표 이미지와 티저 컷을 저장하지 못했습니다.",
           save: "이미지/티저 컷 저장",
@@ -549,6 +562,12 @@ function getCopy(locale: Locale) {
           autoGenerating: "Creating automatic teaser cuts",
           body:
             "Save the lead image again at 16:9 and replace the public teaser cuts with the selected mode.",
+          currentCover: "Current lead image",
+          currentEmpty: "No public teaser cuts are saved yet.",
+          currentTeasers: "Current public teaser cuts",
+          currentTitle: "Current saved setup",
+          currentCoverBadge: "Current lead",
+          currentTeaserBadge: "Current cut",
           coverTitle: "Edit lead image and teaser cuts",
           error: "Could not save the lead image and teaser cuts.",
           save: "Save image/teaser cuts",
@@ -1119,6 +1138,40 @@ function getDefaultCroppedTeaserBySourceUrl(
   return croppedTeaserBySourceUrl;
 }
 
+function getExistingReportVisualSnapshot(
+  report: FanletterNewsReportComposerSource["existingReport"],
+): ExistingReportVisualSnapshot {
+  if (!report) {
+    return {
+      coverImageUrl: null,
+      coverSourceImageUrl: null,
+      teaserImageUrls: [],
+      teaserSourceImageUrls: [],
+    };
+  }
+
+  return {
+    coverImageUrl:
+      report.coverImageUrl?.trim() ||
+      report.coverImageOriginalUrl?.trim() ||
+      null,
+    coverSourceImageUrl:
+      report.coverImageOriginalUrl?.trim() ||
+      report.coverImageUrl?.trim() ||
+      null,
+    teaserImageUrls: getUniqueImageUrls([
+      ...report.teaserImages.map((image) => image.imageUrl),
+      ...report.teaserImageUrls,
+    ]).slice(0, REPORT_TEASER_IMAGE_LIMIT),
+    teaserSourceImageUrls: getUniqueImageUrls([
+      ...report.teaserImages.map(
+        (image) => image.sourceImageUrl || image.imageUrl,
+      ),
+      ...report.teaserImageUrls,
+    ]).slice(0, REPORT_TEASER_IMAGE_LIMIT),
+  };
+}
+
 function getUniqueImageUrls(values: Array<string | null | undefined>) {
   return [
     ...new Set(values.map((value) => value?.trim() ?? "").filter(Boolean)),
@@ -1504,6 +1557,12 @@ export function FanletterNewsReportComposerPage({
     "autoTeasers" | "idle" | "saving"
   >("idle");
   const [editVisualMessage, setEditVisualMessage] = useState<string | null>(null);
+  const [existingReportVisualSnapshot, setExistingReportVisualSnapshot] =
+    useState<ExistingReportVisualSnapshot>(() =>
+      getExistingReportVisualSnapshot(
+        initialSelectedSource?.existingReport ?? null,
+      ),
+    );
   const cropFrameRef = useRef<HTMLDivElement | null>(null);
   const teaserCropFrameRef = useRef<HTMLDivElement | null>(null);
   const selectedDetailRef = useRef<HTMLDivElement | null>(null);
@@ -1576,6 +1635,9 @@ export function FanletterNewsReportComposerPage({
       status === "idle",
   );
   const selectedExistingReport = selectedSource?.existingReport ?? null;
+  const currentSavedTeaserSourceUrlSet = new Set(
+    existingReportVisualSnapshot.teaserSourceImageUrls,
+  );
   const canSaveExistingReportVisuals = Boolean(
     selectedExistingReport &&
       selectedSource &&
@@ -1901,6 +1963,9 @@ export function FanletterNewsReportComposerPage({
     previousSelectedContentIdRef.current = selectedSourceContentId;
     setAngle(getRecommendedReportAngle(selectedSource, copy));
     setReporterComment("");
+    setExistingReportVisualSnapshot(
+      getExistingReportVisualSnapshot(selectedSource?.existingReport ?? null),
+    );
     setEditVisualMessage(null);
     setEditVisualStatus("idle");
   }, [copy, selectedSource, selectedSourceContentId]);
@@ -2424,6 +2489,18 @@ export function FanletterNewsReportComposerPage({
         );
       }
 
+      setExistingReportVisualSnapshot({
+        coverImageUrl: croppedCover.url,
+        coverSourceImageUrl: selectedCoverUrl,
+        teaserImageUrls: selectedTeaserImages
+          .map((image) => image.imageUrl.trim())
+          .filter(Boolean)
+          .slice(0, REPORT_TEASER_IMAGE_LIMIT),
+        teaserSourceImageUrls: selectedTeaserImages
+          .map((image) => image.sourceImageUrl.trim() || image.imageUrl.trim())
+          .filter(Boolean)
+          .slice(0, REPORT_TEASER_IMAGE_LIMIT),
+      });
       setEditVisualMessage(copy.editVisual.saved);
     } catch (error) {
       setEditVisualMessage(
@@ -3717,6 +3794,78 @@ export function FanletterNewsReportComposerPage({
                         </div>
                       ) : null}
 
+                      {selectedExistingReport ? (
+                        <div className="mt-4 grid gap-3 border border-[#19b84b]/18 bg-[#f6fff7] p-3 md:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)]">
+                          <div className="min-w-0">
+                            <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#16702e]">
+                              <CheckCircle2 className="size-3.5" />
+                              {copy.editVisual.currentTitle}
+                            </p>
+                            <div className="mt-3 overflow-hidden rounded-lg border border-[#19b84b]/18 bg-white">
+                              <div className="aspect-video bg-[#111510]">
+                                {existingReportVisualSnapshot.coverImageUrl ? (
+                                  <span
+                                    className={cn(
+                                      "block size-full bg-contain bg-center bg-no-repeat",
+                                      shouldBlurSelectedNsfwMedia &&
+                                        "scale-[1.03] blur-md brightness-75",
+                                    )}
+                                    style={{
+                                      backgroundImage: `url(${existingReportVisualSnapshot.coverImageUrl})`,
+                                    }}
+                                  />
+                                ) : null}
+                              </div>
+                              <div className="flex items-center justify-between gap-2 px-3 py-2">
+                                <span className="text-xs font-black text-[#111510]">
+                                  {copy.editVisual.currentCover}
+                                </span>
+                                <span className="rounded-full bg-[#111510] px-2 py-0.5 text-[0.62rem] font-black text-[#44f26e]">
+                                  16:9
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="min-w-0">
+                            <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#16702e]">
+                              <ImageIcon className="size-3.5" />
+                              {copy.editVisual.currentTeasers}
+                            </p>
+                            {existingReportVisualSnapshot.teaserImageUrls
+                              .length > 0 ? (
+                              <div className="mt-3 grid grid-cols-4 gap-2">
+                                {existingReportVisualSnapshot.teaserImageUrls.map(
+                                  (imageUrl, index) => (
+                                    <span
+                                      className="relative block aspect-[9/16] overflow-hidden rounded-lg border border-black/10 bg-[#111510]"
+                                      key={`${imageUrl}-${index}`}
+                                    >
+                                      <span
+                                        className={cn(
+                                          "block size-full bg-cover bg-center",
+                                          shouldBlurSelectedNsfwMedia &&
+                                            "scale-[1.03] blur-md brightness-75",
+                                        )}
+                                        style={{
+                                          backgroundImage: `url(${imageUrl})`,
+                                        }}
+                                      />
+                                      <span className="absolute left-1 top-1 rounded-full bg-black/72 px-1.5 py-0.5 text-[0.58rem] font-black text-[#44f26e]">
+                                        {formatNumber(index + 1, locale)}
+                                      </span>
+                                    </span>
+                                  ),
+                                )}
+                              </div>
+                            ) : (
+                              <p className="mt-3 rounded-lg border border-dashed border-[#19b84b]/20 bg-white px-3 py-5 text-sm font-semibold leading-6 text-black/48">
+                                {copy.editVisual.currentEmpty}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ) : null}
+
                       {isSelectedPaidLocked ? (
                         <div className="mt-4 border border-rose-500/18 bg-rose-50 p-4 text-rose-900">
                           <p className="inline-flex items-center gap-1.5 text-sm font-black">
@@ -3736,6 +3885,17 @@ export function FanletterNewsReportComposerPage({
                               option.imageUrl === selectedCoverUrl;
                             const isTeaserSelected =
                               selectedTeaserUrls.includes(option.imageUrl);
+                            const isCurrentSavedCover =
+                              Boolean(selectedExistingReport) &&
+                              (existingReportVisualSnapshot.coverSourceImageUrl ===
+                                option.imageUrl ||
+                                existingReportVisualSnapshot.coverImageUrl ===
+                                  option.imageUrl);
+                            const isCurrentSavedTeaser =
+                              Boolean(selectedExistingReport) &&
+                              currentSavedTeaserSourceUrlSet.has(
+                                option.imageUrl,
+                              );
                             const croppedTeaser =
                               croppedTeaserBySourceUrl[option.imageUrl];
                             const isTeaserLimitReached =
@@ -3787,20 +3947,32 @@ export function FanletterNewsReportComposerPage({
                                         </span>
                                       ) : null}
                                     </span>
-                                    {isSelected ? (
-                                      <span
-                                        className={cn(
-                                          "shrink-0 rounded-full px-2 py-0.5 text-[0.62rem] font-black",
-                                          isSelectedPaidLocked
-                                            ? "bg-[#111510] text-white"
-                                            : "bg-[#44f26e] text-[#111510]",
-                                        )}
-                                      >
-                                        {isSelectedPaidLocked
-                                          ? copy.mediaAccess.previewBadge
-                                          : copy.selected}
-                                      </span>
-                                    ) : null}
+                                    <span className="flex shrink-0 flex-col items-end gap-1">
+                                      {isSelected ? (
+                                        <span
+                                          className={cn(
+                                            "rounded-full px-2 py-0.5 text-[0.62rem] font-black",
+                                            isSelectedPaidLocked
+                                              ? "bg-[#111510] text-white"
+                                              : "bg-[#44f26e] text-[#111510]",
+                                          )}
+                                        >
+                                          {isSelectedPaidLocked
+                                            ? copy.mediaAccess.previewBadge
+                                            : copy.selected}
+                                        </span>
+                                      ) : null}
+                                      {isCurrentSavedCover ? (
+                                        <span className="rounded-full bg-white px-2 py-0.5 text-[0.58rem] font-black text-[#16702e] ring-1 ring-[#19b84b]/18">
+                                          {copy.editVisual.currentCoverBadge}
+                                        </span>
+                                      ) : null}
+                                      {isCurrentSavedTeaser ? (
+                                        <span className="rounded-full bg-white px-2 py-0.5 text-[0.58rem] font-black text-[#16702e] ring-1 ring-[#19b84b]/18">
+                                          {copy.editVisual.currentTeaserBadge}
+                                        </span>
+                                      ) : null}
+                                    </span>
                                   </span>
                                 </button>
                                 {!isSelectedPaidLocked &&
