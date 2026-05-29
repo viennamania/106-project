@@ -36,7 +36,6 @@ import {
   FanletterPaidUnlockPanel,
   FanletterPaidUnlockTrigger,
 } from "@/components/fanletter-paid-unlock-panel";
-import { FanletterNewsSourceRevealVote } from "@/components/fanletter-news-source-reveal-vote";
 import {
   CONTENT_PAID_USDT_AMOUNT,
   type ContentMaturityRating,
@@ -418,7 +417,7 @@ function getCopy(locale: Locale) {
           opportunityPaidLocked: "구매 후 작성",
           opportunityReady: "작성 후보",
           opportunitySummaryBody:
-            "티저를 소비자 관점으로 먼저 판단하고 팬 오픈 보상 가능성을 기준으로 리포트 각도를 잡으세요.",
+            "작성실에서는 팬 오픈 상태만 확인합니다. 독자 참여는 발행된 뉴스에서 진행될 때 해당 리포터 보상으로 연결됩니다.",
           opportunitySummaryLabel: "리포터 기회 요약",
           remainingMetric: "남은 팬",
           near: "마감 임박",
@@ -629,7 +628,7 @@ function getCopy(locale: Locale) {
           opportunityPaidLocked: "Purchase to report",
           opportunityReady: "Report candidate",
           opportunitySummaryBody:
-            "Review the teaser as a consumer first, then shape the report around fan-open reward potential.",
+            "The composer only shows fan-open status. Reader actions are attributed to the reporter from the published news page.",
           opportunitySummaryLabel: "Reporter opportunity",
           remainingMetric: "Fans left",
           near: "Near unlock",
@@ -1086,7 +1085,6 @@ export function FanletterNewsReportComposerPage({
   sourceRevealFilter,
   sourceSort,
   sources,
-  viewerAuthenticated,
 }: {
   connectHref: string;
   currentHref: string;
@@ -1105,28 +1103,11 @@ export function FanletterNewsReportComposerPage({
   sourceRevealFilter: FanletterNewsReportComposerSourceRevealFilter;
   sourceSort: FanletterNewsReportComposerSourceSort;
   sources: FanletterNewsReportComposerSource[];
-  viewerAuthenticated: boolean;
 }) {
   const copy = useMemo(() => getCopy(locale), [locale]);
   const router = useRouter();
   const [searchInput, setSearchInput] = useState(searchQuery);
-  const [sourceRevealOverrides, setSourceRevealOverrides] = useState<
-    Record<string, FanletterNewsSourceRevealState>
-  >({});
-  const reportSources = useMemo(
-    () =>
-      sources.map((source) => {
-        const sourceRevealOverride = sourceRevealOverrides[source.contentId];
-
-        return sourceRevealOverride
-          ? {
-              ...source,
-              sourceReveal: sourceRevealOverride,
-            }
-          : source;
-      }),
-    [sourceRevealOverrides, sources],
-  );
+  const reportSources = sources;
   const sourceRevealSummary = useMemo(() => {
     const opportunity = reportSources.filter((source) =>
       isSourceRevealOpportunitySource({ reporterReferralCode, source }),
@@ -1339,11 +1320,6 @@ export function FanletterNewsReportComposerPage({
               ? copy.sourceReveal.opportunityExclusive
               : copy.sourceReveal.opportunityReady
     : "";
-  const selectedSourceRevealReportId =
-    selectedSource?.existingReport?.reportId ??
-    selectedSource?.reports.find((report) => report.isViewerReport)?.reportId ??
-    selectedSource?.reports[0]?.reportId ??
-    null;
   const nsfwToggleHref = useMemo(
     () =>
       setRelativeSearchParams(reportNewHref, {
@@ -1568,32 +1544,6 @@ export function FanletterNewsReportComposerPage({
       });
     },
     [currentHref],
-  );
-
-  const updateSourceRevealState = useCallback(
-    (contentId: string, sourceReveal: FanletterNewsSourceRevealState) => {
-      setSourceRevealOverrides((current) => {
-        if (current[contentId] === sourceReveal) {
-          return current;
-        }
-
-        return {
-          ...current,
-          [contentId]: sourceReveal,
-        };
-      });
-    },
-    [],
-  );
-  const updateSelectedSourceRevealState = useCallback(
-    (sourceReveal: FanletterNewsSourceRevealState) => {
-      if (!selectedSource?.contentId) {
-        return;
-      }
-
-      updateSourceRevealState(selectedSource.contentId, sourceReveal);
-    },
-    [selectedSource?.contentId, updateSourceRevealState],
   );
 
   useEffect(() => {
@@ -2851,25 +2801,6 @@ export function FanletterNewsReportComposerPage({
                     </div>
                   ) : null}
                 </section>
-
-                <FanletterNewsSourceRevealVote
-                  className="shadow-[0_14px_34px_rgba(17,21,16,0.055)]"
-                  connectHref={selectedConnectHref}
-                  initialState={selectedSource.sourceReveal}
-                  isViewerAuthenticated={viewerAuthenticated}
-                  key={selectedSource.contentId}
-                  locale={locale}
-                  onStateChange={updateSelectedSourceRevealState}
-                  reportId={selectedSourceRevealReportId ?? undefined}
-                  sourceRevealEndpoint={
-                    selectedSourceRevealReportId
-                      ? undefined
-                      : `/api/fanletter/news-vlogs/${encodeURIComponent(
-                          selectedSource.contentId,
-                        )}/source-reveal`
-                  }
-                  tone="light"
-                />
 
                 <section
                   id={isSelectedPaidLocked ? paidUnlockSectionId : undefined}

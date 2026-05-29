@@ -275,7 +275,6 @@ export default async function LocalizedFanletterNewsReportNewPage({
       sourceRevealFilter={sourceRevealFilter}
       sourceSort={sourceSort}
       sources={data.items}
-      viewerAuthenticated={Boolean(session)}
     />
   );
 }
