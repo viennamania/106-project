@@ -79,8 +79,8 @@ function getCopy(locale: Locale) {
             label: "팬 리포터",
           },
           vlogger: {
-            body: "뉴스 전용 브이로그 화면에서 공개 영상과 팬 전용 티저를 이어봅니다.",
-            cta: "브이로그 뉴스 보기",
+            body: "내 브이로그를 등록하고 공개 상태, 프리뷰, 뉴스 노출을 확인합니다.",
+            cta: "브이로그 관리",
             label: "브이로거",
           },
         },
@@ -101,8 +101,8 @@ function getCopy(locale: Locale) {
             label: "Fan reporter",
           },
           vlogger: {
-            body: "Continue public vlogs and fan-only teasers inside the News view.",
-            cta: "Open vlog news",
+            body: "Register vlogs and check publish state, previews, and News exposure.",
+            cta: "Manage vlogs",
             label: "Vlogger",
           },
         },

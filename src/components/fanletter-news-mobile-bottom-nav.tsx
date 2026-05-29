@@ -113,7 +113,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const purchasesPath = `${basePath}/purchases`;
   const reportsPath = `${basePath}/reports`;
   const walletPath = `${basePath}/wallet`;
-  const vlogsPath = `${basePath}/vlogs`;
+  const vlogsPath = `${basePath}/vlogs/manage`;
 
   if (
     pathname === basePath ||

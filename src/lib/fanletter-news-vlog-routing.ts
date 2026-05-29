@@ -29,6 +29,29 @@ export function getFanletterNewsVlogsHref({
   );
 }
 
+export function getFanletterNewsVlogManageHref({
+  locale,
+  page,
+  price,
+  referralCode,
+  status,
+}: {
+  locale: Locale;
+  page?: number | null;
+  price?: string | null;
+  referralCode: string | null;
+  status?: string | null;
+}) {
+  return setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/vlogs/manage`, referralCode),
+    {
+      page: page && page > 1 ? String(page) : null,
+      price: price && price !== "all" ? price : null,
+      status: status && status !== "all" ? status : null,
+    },
+  );
+}
+
 export function getFanletterNewsCharacterVlogsHref({
   creatorReferralCode,
   locale,

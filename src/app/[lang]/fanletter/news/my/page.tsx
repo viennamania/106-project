@@ -21,7 +21,7 @@ import { getCreatorStudioPostsForMember } from "@/lib/content-service";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getFanletterNewsReporterIncentiveStats } from "@/lib/fanletter-news-reporter-incentives";
 import { getFanletterNewsReportsForMember } from "@/lib/fanletter-news-report-service";
-import { getFanletterNewsVlogsHref } from "@/lib/fanletter-news-vlog-routing";
+import { getFanletterNewsVlogManageHref } from "@/lib/fanletter-news-vlog-routing";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import {
@@ -240,17 +240,13 @@ export default async function LocalizedFanletterNewsMyPage({
     `/${locale}/fanletter/news/characters`,
     effectiveReferralCode,
   );
-  const newsVlogsHref = getFanletterNewsVlogsHref({
+  const newsVlogManageHref = getFanletterNewsVlogManageHref({
     locale,
     referralCode: effectiveReferralCode,
   });
-  const studioVlogsHref = buildPathWithReferral(
-    `/${locale}/fanletter/studio/vlogs`,
-    effectiveReferralCode,
-  );
   const createVlogHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/create`, effectiveReferralCode),
-    { returnTo: studioVlogsHref },
+    { returnTo: newsVlogManageHref },
   );
   const walletManageHref = setPathSearchParams(
     buildPathWithReferral(
@@ -321,7 +317,7 @@ export default async function LocalizedFanletterNewsMyPage({
       label: copy.quickActions.reportDesk,
     },
     {
-      href: studioVlogsHref,
+      href: newsVlogManageHref,
       icon: LayoutDashboard,
       label: copy.quickActions.studio,
     },
@@ -449,7 +445,7 @@ export default async function LocalizedFanletterNewsMyPage({
             locale={locale}
             reporterHref={newReportHref}
             reporterReportCount={formatNumber(reportCount, locale)}
-            vloggerHref={newsVlogsHref}
+            vloggerHref={newsVlogManageHref}
             vloggerVideoCount={formatNumber(vlogCount, locale)}
           />
 
