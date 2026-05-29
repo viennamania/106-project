@@ -183,6 +183,9 @@ const REPORT_COVER_CROP_ASPECT_RATIO = 16 / 9;
 const REPORT_COVER_CROP_MAX_ZOOM = 3;
 const REPORT_COVER_CROP_OUTPUT_HEIGHT = 675;
 const REPORT_COVER_CROP_OUTPUT_WIDTH = 1200;
+const REPORT_TEASER_CROP_ASPECT_RATIO = 9 / 16;
+const REPORT_TEASER_CROP_OUTPUT_HEIGHT = 1280;
+const REPORT_TEASER_CROP_OUTPUT_WIDTH = 720;
 const REPORT_TEASER_IMAGE_LIMIT = 4;
 const REPORTER_COMMENT_MAX_LENGTH = 220;
 const SOURCE_RESULT_PAGE_SIZE = 6;
@@ -233,18 +236,20 @@ function getCopy(locale: Locale) {
         ],
         blocked:
           "현재 다른 팬 리포터에게 단독 보도권이 열려 있어 아직 작성할 수 없습니다.",
-        chooseCover: "티저 이미지 선택",
+        chooseCover: "대표 뉴스 이미지 선택",
         chooseTeasers: "공개 티저 컷 선택",
         coverOrder: "프레임 시간순",
         chooseVlog: "브이로그 선택",
+        teaserStep: "3. 대표 이미지와 공개 컷",
         commentHelper:
           "동영상 전체가 아니라 티저 이미지와 공개 메타만 보고 작성하는 팬 기자 코멘트입니다.",
         commentLabel: "팬 기자 코멘트",
         commentPlaceholder:
           "예: 이 티저 컷에서 팬들이 기대할 만한 장면을 짚어주세요.",
         cropHelper:
-          "선택한 프레임을 16:9로 조정합니다. 공개 티저 컷으로 저장하면 뉴스 상세 티저 목록에도 별도 이미지로 사용됩니다.",
-        cropTitle: "16:9 뉴스 이미지 크롭",
+          "대표 뉴스 이미지는 16:9로, 공개 티저 컷은 필요할 때 9:16 세로 이미지로 따로 저장합니다.",
+        cropStep: "4. 이미지 크롭",
+        cropTitle: "대표 이미지와 9:16 티저 크롭",
         emptyBody:
           "아직 리포트로 만들 수 있는 브이로그 후보가 없습니다.",
         emptyTitle: "작성 가능한 브이로그가 없습니다.",
@@ -374,16 +379,23 @@ function getCopy(locale: Locale) {
         },
         teaserSelection: {
           body:
-            "뉴스 독자가 회원가입 전에 볼 수 있는 공개 컷입니다. 원본 프레임 전체 대신 리포터가 고른 컷만 기사 안에 노출됩니다.",
+            "뉴스 독자가 회원가입 전에 볼 수 있는 공개 컷입니다. 선택만 하면 원본 비율을 유지하고, 필요한 컷은 9:16 세로 티저로 저장할 수 있습니다.",
           include: "공개 컷에 추가",
           included: "공개 컷 포함",
           limit: (count: string) => `최대 ${count}장`,
+          ratio: "선택 저장 9:16",
         },
         teaserCrop: {
-          remove: "원본 컷 사용",
-          save: "공개 티저 컷으로 저장",
-          saved: "크롭 티저 저장됨",
-          saving: "티저 컷 저장 중",
+          coverBody: "뉴스 카드와 공유 썸네일에 쓰이는 대표 이미지입니다.",
+          coverTitle: "대표 뉴스 이미지",
+          previewTitle: "9:16 저장 미리보기",
+          remove: "원본 컷으로 되돌리기",
+          save: "9:16 티저 컷으로 저장",
+          saved: "9:16 티저 저장됨",
+          saving: "9:16 티저 저장 중",
+          teaserBody:
+            "모바일 뉴스 상세에서 공개 티저 컷을 세로 화면에 맞게 보여줄 때 사용합니다.",
+          teaserTitle: "공개 티저 컷",
         },
         sourceMeta: {
           ai: "AI 커버",
@@ -446,18 +458,20 @@ function getCopy(locale: Locale) {
         ],
         blocked:
           "Another fan reporter currently has exclusive reporting access for this vlog.",
-        chooseCover: "Choose teaser image",
+        chooseCover: "Choose lead news image",
         chooseTeasers: "Choose public teaser cuts",
         coverOrder: "Frame time order",
         chooseVlog: "Choose vlog",
+        teaserStep: "3. Lead image and public cuts",
         commentHelper:
           "This reporter note is written from teaser images and public metadata, not full video playback.",
         commentLabel: "Fan reporter comment",
         commentPlaceholder:
           "Example: Point out what fans should anticipate from this teaser cut.",
         cropHelper:
-          "Adjust the selected frame to 16:9. Saving it as a public teaser cut also uses the cropped image in the news detail teaser list.",
-        cropTitle: "16:9 news image crop",
+          "Save the lead news image at 16:9, and optionally save public teaser cuts as separate 9:16 portrait images.",
+        cropStep: "4. Image crop",
+        cropTitle: "Lead image and 9:16 teaser crop",
         emptyBody: "There are no vlog candidates available for reports yet.",
         emptyTitle: "No vlogs available.",
         existingReportsBody:
@@ -585,16 +599,23 @@ function getCopy(locale: Locale) {
         },
         teaserSelection: {
           body:
-            "These are public cuts readers can see before signing in. The article shows only reporter-picked cuts instead of the full source frame set.",
+            "These are public cuts readers can see before signing in. Selected cuts keep the source ratio by default, and important cuts can be saved as 9:16 portrait teasers.",
           include: "Add public cut",
           included: "Public cut",
           limit: (count: string) => `Up to ${count}`,
+          ratio: "Optional 9:16 save",
         },
         teaserCrop: {
-          remove: "Use source cut",
-          save: "Save as public teaser cut",
-          saved: "Cropped teaser saved",
-          saving: "Saving teaser cut",
+          coverBody: "Used for news cards and share thumbnails.",
+          coverTitle: "Lead news image",
+          previewTitle: "9:16 save preview",
+          remove: "Revert to source cut",
+          save: "Save 9:16 teaser cut",
+          saved: "9:16 teaser saved",
+          saving: "Saving 9:16 teaser",
+          teaserBody:
+            "Used to present the public teaser cut in a mobile-first portrait layout.",
+          teaserTitle: "Public teaser cut",
         },
         sourceMeta: {
           ai: "AI cover",
@@ -950,10 +971,12 @@ function getDefaultReportTeaserImageUrls(
   ].slice(0, REPORT_TEASER_IMAGE_LIMIT);
 }
 
-function getReportCoverCropRect({
+function getReportImageCropRect({
+  aspectRatio,
   crop,
   naturalSize,
 }: {
+  aspectRatio: number;
   crop: ReportCoverCropState;
   naturalSize: ReportCoverNaturalSize | null;
 }): ReportCoverCropRect | null {
@@ -963,10 +986,10 @@ function getReportCoverCropRect({
 
   const sourceAspectRatio = naturalSize.width / naturalSize.height;
   const baseWidth =
-    sourceAspectRatio >= REPORT_COVER_CROP_ASPECT_RATIO
-      ? naturalSize.height * REPORT_COVER_CROP_ASPECT_RATIO
+    sourceAspectRatio >= aspectRatio
+      ? naturalSize.height * aspectRatio
       : naturalSize.width;
-  const baseHeight = baseWidth / REPORT_COVER_CROP_ASPECT_RATIO;
+  const baseHeight = baseWidth / aspectRatio;
   const zoom = clampNumber(crop.zoom, 1, REPORT_COVER_CROP_MAX_ZOOM);
   const width = baseWidth / zoom;
   const height = baseHeight / zoom;
@@ -985,7 +1008,35 @@ function getReportCoverCropRect({
   };
 }
 
-function getReportCoverPreviewImageStyle({
+function getReportCoverCropRect({
+  crop,
+  naturalSize,
+}: {
+  crop: ReportCoverCropState;
+  naturalSize: ReportCoverNaturalSize | null;
+}): ReportCoverCropRect | null {
+  return getReportImageCropRect({
+    aspectRatio: REPORT_COVER_CROP_ASPECT_RATIO,
+    crop,
+    naturalSize,
+  });
+}
+
+function getReportTeaserCropRect({
+  crop,
+  naturalSize,
+}: {
+  crop: ReportCoverCropState;
+  naturalSize: ReportCoverNaturalSize | null;
+}): ReportCoverCropRect | null {
+  return getReportImageCropRect({
+    aspectRatio: REPORT_TEASER_CROP_ASPECT_RATIO,
+    crop,
+    naturalSize,
+  });
+}
+
+function getReportCropPreviewImageStyle({
   cropRect,
   naturalSize,
 }: {
@@ -1014,11 +1065,17 @@ function loadImageForCrop(src: string) {
   });
 }
 
-async function createCroppedReportCoverBlob({
+async function createCroppedReportImageBlob({
+  aspectRatio,
   crop,
+  outputHeight,
+  outputWidth,
   sourceImageUrl,
 }: {
+  aspectRatio: number;
   crop: ReportCoverCropState;
+  outputHeight: number;
+  outputWidth: number;
   sourceImageUrl: string;
 }) {
   const image = await loadImageForCrop(sourceImageUrl);
@@ -1026,19 +1083,23 @@ async function createCroppedReportCoverBlob({
     height: image.naturalHeight,
     width: image.naturalWidth,
   };
-  const cropRect = getReportCoverCropRect({ crop, naturalSize });
+  const cropRect = getReportImageCropRect({
+    aspectRatio,
+    crop,
+    naturalSize,
+  });
 
   if (!cropRect) {
-    throw new Error("Could not read the selected cover image size.");
+    throw new Error("Could not read the selected image size.");
   }
 
   const canvas = document.createElement("canvas");
-  canvas.height = REPORT_COVER_CROP_OUTPUT_HEIGHT;
-  canvas.width = REPORT_COVER_CROP_OUTPUT_WIDTH;
+  canvas.height = outputHeight;
+  canvas.width = outputWidth;
   const context = canvas.getContext("2d");
 
   if (!context) {
-    throw new Error("Could not prepare the cover crop.");
+    throw new Error("Could not prepare the image crop.");
   }
 
   context.drawImage(
@@ -1049,8 +1110,8 @@ async function createCroppedReportCoverBlob({
     cropRect.height,
     0,
     0,
-    REPORT_COVER_CROP_OUTPUT_WIDTH,
-    REPORT_COVER_CROP_OUTPUT_HEIGHT,
+    outputWidth,
+    outputHeight,
   );
 
   const blob = await new Promise<Blob | null>((resolve) => {
@@ -1058,7 +1119,7 @@ async function createCroppedReportCoverBlob({
   });
 
   if (!blob) {
-    throw new Error("Could not encode the wide cover image.");
+    throw new Error("Could not encode the cropped image.");
   }
 
   return {
@@ -1214,6 +1275,9 @@ export function FanletterNewsReportComposerPage({
   const [crop, setCrop] = useState<ReportCoverCropState>(
     DEFAULT_REPORT_COVER_CROP,
   );
+  const [teaserCrop, setTeaserCrop] = useState<ReportCoverCropState>(
+    DEFAULT_REPORT_COVER_CROP,
+  );
   const [naturalSize, setNaturalSize] = useState<ReportCoverNaturalSize | null>(
     null,
   );
@@ -1223,23 +1287,33 @@ export function FanletterNewsReportComposerPage({
   );
   const [error, setError] = useState<string | null>(null);
   const cropFrameRef = useRef<HTMLDivElement | null>(null);
+  const teaserCropFrameRef = useRef<HTMLDivElement | null>(null);
   const selectedDetailRef = useRef<HTMLDivElement | null>(null);
   const previousSelectedContentIdRef = useRef<string | null>(
     initialSelectedSource?.contentId ?? null,
   );
   const cropDragRef = useRef<{
+    cropKind: "cover" | "teaser";
     initialCrop: ReportCoverCropState;
     pointerId: number;
     startX: number;
     startY: number;
   } | null>(null);
-  const cropRect = useMemo(
+  const coverCropRect = useMemo(
     () => getReportCoverCropRect({ crop, naturalSize }),
     [crop, naturalSize],
   );
+  const teaserCropRect = useMemo(
+    () => getReportTeaserCropRect({ crop: teaserCrop, naturalSize }),
+    [naturalSize, teaserCrop],
+  );
   const previewImageStyle =
-    cropRect && naturalSize
-      ? getReportCoverPreviewImageStyle({ cropRect, naturalSize })
+    coverCropRect && naturalSize
+      ? getReportCropPreviewImageStyle({ cropRect: coverCropRect, naturalSize })
+      : null;
+  const teaserPreviewImageStyle =
+    teaserCropRect && naturalSize
+      ? getReportCropPreviewImageStyle({ cropRect: teaserCropRect, naturalSize })
       : null;
   const isExclusiveBlocked = Boolean(
     selectedSource?.exclusiveNews.active &&
@@ -1592,6 +1666,7 @@ export function FanletterNewsReportComposerPage({
     );
     setCroppedTeaserBySourceUrl({});
     setCrop(DEFAULT_REPORT_COVER_CROP);
+    setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
     setNaturalSize(null);
     setError(null);
   }, [selectedSourceContentId, selectedSourceCoverOptions]);
@@ -1600,6 +1675,7 @@ export function FanletterNewsReportComposerPage({
     (imageUrl: string) => {
       setSelectedCoverUrl(imageUrl);
       setCrop(DEFAULT_REPORT_COVER_CROP);
+      setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
       setNaturalSize(null);
 
       if (isSelectedPaidLocked) {
@@ -1633,31 +1709,55 @@ export function FanletterNewsReportComposerPage({
 
   const handleCropPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
-      if (!cropRect || !naturalSize) {
+      if (!coverCropRect || !naturalSize) {
         return;
       }
 
       event.currentTarget.setPointerCapture(event.pointerId);
       cropDragRef.current = {
+        cropKind: "cover",
         initialCrop: crop,
         pointerId: event.pointerId,
         startX: event.clientX,
         startY: event.clientY,
       };
     },
-    [crop, cropRect, naturalSize],
+    [coverCropRect, crop, naturalSize],
+  );
+
+  const handleTeaserCropPointerDown = useCallback(
+    (event: PointerEvent<HTMLDivElement>) => {
+      if (!teaserCropRect || !naturalSize) {
+        return;
+      }
+
+      event.currentTarget.setPointerCapture(event.pointerId);
+      cropDragRef.current = {
+        cropKind: "teaser",
+        initialCrop: teaserCrop,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+      };
+    },
+    [naturalSize, teaserCrop, teaserCropRect],
   );
 
   const handleCropPointerMove = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
       const drag = cropDragRef.current;
-      const frame = cropFrameRef.current;
+      const frame =
+        drag?.cropKind === "teaser"
+          ? teaserCropFrameRef.current
+          : cropFrameRef.current;
+      const activeCropRect =
+        drag?.cropKind === "teaser" ? teaserCropRect : coverCropRect;
 
       if (
         !drag ||
         drag.pointerId !== event.pointerId ||
         !frame ||
-        !cropRect ||
+        !activeCropRect ||
         !naturalSize
       ) {
         return;
@@ -1667,18 +1767,30 @@ export function FanletterNewsReportComposerPage({
       const deltaX = event.clientX - drag.startX;
       const deltaY = event.clientY - drag.startY;
       const cropDeltaX =
-        (deltaX / Math.max(frameRect.width, 1)) * (cropRect.width / naturalSize.width);
+        (deltaX / Math.max(frameRect.width, 1)) *
+        (activeCropRect.width / naturalSize.width);
       const cropDeltaY =
         (deltaY / Math.max(frameRect.height, 1)) *
-        (cropRect.height / naturalSize.height);
+        (activeCropRect.height / naturalSize.height);
+      const nextCrop = {
+        centerX: drag.initialCrop.centerX - cropDeltaX,
+        centerY: drag.initialCrop.centerY - cropDeltaY,
+      };
+
+      if (drag.cropKind === "teaser") {
+        setTeaserCrop((current) => ({
+          ...current,
+          ...nextCrop,
+        }));
+        return;
+      }
 
       setCrop((current) => ({
         ...current,
-        centerX: drag.initialCrop.centerX - cropDeltaX,
-        centerY: drag.initialCrop.centerY - cropDeltaY,
+        ...nextCrop,
       }));
     },
-    [cropRect, naturalSize],
+    [coverCropRect, naturalSize, teaserCropRect],
   );
 
   const handleCropPointerEnd = useCallback(
@@ -1690,18 +1802,29 @@ export function FanletterNewsReportComposerPage({
     [],
   );
 
-  const uploadCroppedCover = useCallback(
+  const uploadCroppedReportImage = useCallback(
     async ({
+      aspectRatio,
       contentId,
+      cropState,
+      outputHeight,
+      outputWidth,
       purpose = "cover",
       sourceImageUrl,
     }: {
+      aspectRatio: number;
       contentId: string;
+      cropState: ReportCoverCropState;
+      outputHeight: number;
+      outputWidth: number;
       purpose?: "cover" | "teaser";
       sourceImageUrl: string;
     }) => {
-      const { blob, cropRect } = await createCroppedReportCoverBlob({
-        crop,
+      const { blob, cropRect } = await createCroppedReportImageBlob({
+        aspectRatio,
+        crop: cropState,
+        outputHeight,
+        outputWidth,
         sourceImageUrl,
       });
       const file = new File(
@@ -1735,10 +1858,10 @@ export function FanletterNewsReportComposerPage({
 
       return {
         crop: {
-          aspectRatio: REPORT_COVER_CROP_ASPECT_RATIO,
+          aspectRatio,
           height: cropRect.height,
-          outputHeight: REPORT_COVER_CROP_OUTPUT_HEIGHT,
-          outputWidth: REPORT_COVER_CROP_OUTPUT_WIDTH,
+          outputHeight,
+          outputWidth,
           sourceImageUrl,
           width: cropRect.width,
           x: cropRect.x,
@@ -1747,7 +1870,7 @@ export function FanletterNewsReportComposerPage({
         url: data.url,
       };
     },
-    [copy.failed, crop],
+    [copy.failed],
   );
 
   const saveCroppedTeaserImage = useCallback(async () => {
@@ -1759,8 +1882,12 @@ export function FanletterNewsReportComposerPage({
     setError(null);
 
     try {
-      const croppedTeaser = await uploadCroppedCover({
+      const croppedTeaser = await uploadCroppedReportImage({
+        aspectRatio: REPORT_TEASER_CROP_ASPECT_RATIO,
         contentId: selectedSource.contentId,
+        cropState: teaserCrop,
+        outputHeight: REPORT_TEASER_CROP_OUTPUT_HEIGHT,
+        outputWidth: REPORT_TEASER_CROP_OUTPUT_WIDTH,
         purpose: "teaser",
         sourceImageUrl: selectedCoverUrl,
       });
@@ -1789,8 +1916,9 @@ export function FanletterNewsReportComposerPage({
     copy.failed,
     selectedCoverUrl,
     selectedSource,
+    teaserCrop,
     teaserCropStatus,
-    uploadCroppedCover,
+    uploadCroppedReportImage,
   ]);
 
   const removeCroppedTeaserImage = useCallback((sourceImageUrl: string) => {
@@ -1815,8 +1943,12 @@ export function FanletterNewsReportComposerPage({
     setError(null);
 
     try {
-      const croppedCover = await uploadCroppedCover({
+      const croppedCover = await uploadCroppedReportImage({
+        aspectRatio: REPORT_COVER_CROP_ASPECT_RATIO,
         contentId: selectedSource.contentId,
+        cropState: crop,
+        outputHeight: REPORT_COVER_CROP_OUTPUT_HEIGHT,
+        outputWidth: REPORT_COVER_CROP_OUTPUT_WIDTH,
         sourceImageUrl: selectedCoverUrl,
       });
       const normalizedComment = reporterComment.trim();
@@ -1874,6 +2006,7 @@ export function FanletterNewsReportComposerPage({
     angle,
     canSubmit,
     copy.failed,
+    crop,
     croppedTeaserBySourceUrl,
     locale,
     reporterComment,
@@ -1881,7 +2014,7 @@ export function FanletterNewsReportComposerPage({
     selectedCoverUrl,
     selectedTeaserUrls,
     selectedSource,
-    uploadCroppedCover,
+    uploadCroppedReportImage,
   ]);
 
   const submitSearch = useCallback(
@@ -2965,7 +3098,7 @@ export function FanletterNewsReportComposerPage({
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                       <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
-                        3. Teaser
+                        {copy.teaserStep}
                       </p>
                       <h2 className="mt-1 text-2xl font-black">
                         {isSelectedPaidLocked
@@ -2996,12 +3129,18 @@ export function FanletterNewsReportComposerPage({
                             {copy.teaserSelection.body}
                           </p>
                         </div>
-                        <span className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-black text-[#16702e] ring-1 ring-[#19b84b]/18">
-                          <ImageIcon className="size-3.5" />
-                          {copy.teaserSelection.limit(
-                            formatNumber(REPORT_TEASER_IMAGE_LIMIT, locale),
-                          )}
-                        </span>
+                        <div className="flex shrink-0 flex-wrap gap-2">
+                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-black text-[#16702e] ring-1 ring-[#19b84b]/18">
+                            <ImageIcon className="size-3.5" />
+                            {copy.teaserSelection.limit(
+                              formatNumber(REPORT_TEASER_IMAGE_LIMIT, locale),
+                            )}
+                          </span>
+                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-white">
+                            <Crop className="size-3.5 text-[#44f26e]" />
+                            {copy.teaserSelection.ratio}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ) : null}
@@ -3120,7 +3259,7 @@ export function FanletterNewsReportComposerPage({
                               <div className="mt-2 rounded-md border border-[#19b84b]/22 bg-white p-2">
                                 <div className="flex items-center gap-2">
                                   <span
-                                    className="block aspect-video w-16 shrink-0 rounded bg-[#111510] bg-cover bg-center"
+                                    className="block aspect-[9/16] h-16 shrink-0 rounded bg-[#111510] bg-cover bg-center"
                                     style={{
                                       backgroundImage: `url(${croppedTeaser.imageUrl})`,
                                     }}
@@ -3159,7 +3298,7 @@ export function FanletterNewsReportComposerPage({
                       <div>
                         <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
                           <Crop className="size-3.5" />
-                          4. Crop
+                          {copy.cropStep}
                         </p>
                         <h2 className="mt-2 text-2xl font-black">
                           {copy.cropTitle}
@@ -3174,100 +3313,203 @@ export function FanletterNewsReportComposerPage({
                         </span>
                       ) : null}
                     </div>
-                    <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_16rem]">
-                      <div
-                        className="relative aspect-video min-h-[13rem] cursor-grab touch-none overflow-hidden border border-white/12 bg-black/40 active:cursor-grabbing"
-                        onPointerCancel={handleCropPointerEnd}
-                        onPointerDown={handleCropPointerDown}
-                        onPointerMove={handleCropPointerMove}
-                        onPointerUp={handleCropPointerEnd}
-                        ref={cropFrameRef}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          alt=""
-                          aria-hidden="true"
-                          className={cn(
-                            "absolute max-w-none select-none object-cover",
-                            shouldBlurSelectedNsfwMedia && "blur-md",
-                          )}
-                          crossOrigin="anonymous"
-                          draggable={false}
-                          onLoad={(event) => {
-                            const image = event.currentTarget;
-
-                            if (image.naturalWidth && image.naturalHeight) {
-                              setNaturalSize({
-                                height: image.naturalHeight,
-                                width: image.naturalWidth,
-                              });
-                            }
-                          }}
-                          src={selectedCoverUrl}
-                          style={
-                            previewImageStyle ?? {
-                              height: "100%",
-                              left: 0,
-                              top: 0,
-                              width: "100%",
-                            }
-                          }
-                        />
-                        <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/26" />
-                        <div className="pointer-events-none absolute inset-x-0 top-1/3 border-t border-white/16" />
-                        <div className="pointer-events-none absolute inset-x-0 top-2/3 border-t border-white/16" />
-                        <div className="pointer-events-none absolute inset-y-0 left-1/3 border-l border-white/16" />
-                        <div className="pointer-events-none absolute inset-y-0 left-2/3 border-l border-white/16" />
-                      </div>
-                      <div className="border border-white/10 bg-white/[0.045] p-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-xs font-black text-white/62">
-                            {copy.zoom}
-                          </span>
-                          <span className="text-xs font-black text-[#44f26e]">
-                            {crop.zoom.toFixed(2)}x
+                    <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.58fr)]">
+                      <div className="min-w-0">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <p className="text-sm font-black">
+                              {copy.teaserCrop.coverTitle}
+                            </p>
+                            <p className="mt-1 text-xs font-semibold leading-5 text-white/52">
+                              {copy.teaserCrop.coverBody}
+                            </p>
+                          </div>
+                          <span className="inline-flex w-fit items-center rounded-full border border-white/12 bg-white/[0.06] px-3 py-1.5 text-xs font-black text-[#44f26e]">
+                            16:9
                           </span>
                         </div>
-                        <input
-                          aria-label={copy.zoom}
-                          className="mt-3 w-full accent-[#44f26e]"
-                          max={REPORT_COVER_CROP_MAX_ZOOM}
-                          min={1}
-                          onChange={(event) => {
-                            setCrop((current) => ({
-                              ...current,
-                              zoom: Number(event.target.value),
-                            }));
-                          }}
-                          step={0.01}
-                          type="range"
-                          value={crop.zoom}
-                        />
-                        <button
-                          className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/12 text-xs font-black text-white/62 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
-                          onClick={() => {
-                            setCrop(DEFAULT_REPORT_COVER_CROP);
-                          }}
-                          type="button"
+                        <div
+                          className="relative mt-3 aspect-video min-h-[13rem] cursor-grab touch-none overflow-hidden border border-white/12 bg-black/40 active:cursor-grabbing"
+                          onPointerCancel={handleCropPointerEnd}
+                          onPointerDown={handleCropPointerDown}
+                          onPointerMove={handleCropPointerMove}
+                          onPointerUp={handleCropPointerEnd}
+                          ref={cropFrameRef}
                         >
-                          <RefreshCw className="size-3.5" />
-                          {copy.reset}
-                        </button>
-                        <button
-                          className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#44f26e] px-3 text-xs font-black text-black transition hover:bg-[#65ff87] disabled:cursor-not-allowed disabled:opacity-60"
-                          disabled={teaserCropStatus === "saving"}
-                          onClick={saveCroppedTeaserImage}
-                          type="button"
-                        >
-                          {teaserCropStatus === "saving" ? (
-                            <Loader2 className="size-3.5 animate-spin" />
-                          ) : (
-                            <ImageIcon className="size-3.5" />
-                          )}
-                          {teaserCropStatus === "saving"
-                            ? copy.teaserCrop.saving
-                            : copy.teaserCrop.save}
-                        </button>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            alt=""
+                            aria-hidden="true"
+                            className={cn(
+                              "absolute max-w-none select-none object-cover",
+                              shouldBlurSelectedNsfwMedia && "blur-md",
+                            )}
+                            crossOrigin="anonymous"
+                            draggable={false}
+                            onLoad={(event) => {
+                              const image = event.currentTarget;
+
+                              if (image.naturalWidth && image.naturalHeight) {
+                                setNaturalSize({
+                                  height: image.naturalHeight,
+                                  width: image.naturalWidth,
+                                });
+                              }
+                            }}
+                            src={selectedCoverUrl}
+                            style={
+                              previewImageStyle ?? {
+                                height: "100%",
+                                left: 0,
+                                top: 0,
+                                width: "100%",
+                              }
+                            }
+                          />
+                          <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/26" />
+                          <div className="pointer-events-none absolute inset-x-0 top-1/3 border-t border-white/16" />
+                          <div className="pointer-events-none absolute inset-x-0 top-2/3 border-t border-white/16" />
+                          <div className="pointer-events-none absolute inset-y-0 left-1/3 border-l border-white/16" />
+                          <div className="pointer-events-none absolute inset-y-0 left-2/3 border-l border-white/16" />
+                        </div>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+                        <div className="border border-white/10 bg-white/[0.045] p-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-xs font-black text-white/62">
+                              {copy.zoom}
+                            </span>
+                            <span className="text-xs font-black text-[#44f26e]">
+                              {crop.zoom.toFixed(2)}x
+                            </span>
+                          </div>
+                          <input
+                            aria-label={`${copy.teaserCrop.coverTitle} ${copy.zoom}`}
+                            className="mt-3 w-full accent-[#44f26e]"
+                            max={REPORT_COVER_CROP_MAX_ZOOM}
+                            min={1}
+                            onChange={(event) => {
+                              setCrop((current) => ({
+                                ...current,
+                                zoom: Number(event.target.value),
+                              }));
+                            }}
+                            step={0.01}
+                            type="range"
+                            value={crop.zoom}
+                          />
+                          <button
+                            className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/12 text-xs font-black text-white/62 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
+                            onClick={() => {
+                              setCrop(DEFAULT_REPORT_COVER_CROP);
+                            }}
+                            type="button"
+                          >
+                            <RefreshCw className="size-3.5" />
+                            {copy.reset}
+                          </button>
+                        </div>
+
+                        <div className="border border-[#44f26e]/22 bg-[#44f26e]/[0.07] p-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="text-sm font-black">
+                                {copy.teaserCrop.teaserTitle}
+                              </p>
+                              <p className="mt-1 text-xs font-semibold leading-5 text-white/58">
+                                {copy.teaserCrop.teaserBody}
+                              </p>
+                            </div>
+                            <span className="shrink-0 rounded-full bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
+                              9:16
+                            </span>
+                          </div>
+                          <div
+                            className="relative mx-auto mt-3 aspect-[9/16] w-full max-w-[12.5rem] cursor-grab touch-none overflow-hidden border border-white/12 bg-black/40 active:cursor-grabbing"
+                            onPointerCancel={handleCropPointerEnd}
+                            onPointerDown={handleTeaserCropPointerDown}
+                            onPointerMove={handleCropPointerMove}
+                            onPointerUp={handleCropPointerEnd}
+                            ref={teaserCropFrameRef}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              alt=""
+                              aria-hidden="true"
+                              className={cn(
+                                "absolute max-w-none select-none object-cover",
+                                shouldBlurSelectedNsfwMedia && "blur-md",
+                              )}
+                              crossOrigin="anonymous"
+                              draggable={false}
+                              src={selectedCoverUrl}
+                              style={
+                                teaserPreviewImageStyle ?? {
+                                  height: "100%",
+                                  left: 0,
+                                  top: 0,
+                                  width: "100%",
+                                }
+                              }
+                            />
+                            <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/26" />
+                            <div className="pointer-events-none absolute inset-x-0 top-1/3 border-t border-white/16" />
+                            <div className="pointer-events-none absolute inset-x-0 top-2/3 border-t border-white/16" />
+                            <div className="pointer-events-none absolute inset-y-0 left-1/3 border-l border-white/16" />
+                            <div className="pointer-events-none absolute inset-y-0 left-2/3 border-l border-white/16" />
+                          </div>
+                          <p className="mt-2 text-center text-[0.68rem] font-black text-[#44f26e]">
+                            {copy.teaserCrop.previewTitle}
+                          </p>
+                          <div className="mt-3 flex items-center justify-between gap-3">
+                            <span className="text-xs font-black text-white/62">
+                              {copy.zoom}
+                            </span>
+                            <span className="text-xs font-black text-[#44f26e]">
+                              {teaserCrop.zoom.toFixed(2)}x
+                            </span>
+                          </div>
+                          <input
+                            aria-label={`${copy.teaserCrop.teaserTitle} ${copy.zoom}`}
+                            className="mt-3 w-full accent-[#44f26e]"
+                            max={REPORT_COVER_CROP_MAX_ZOOM}
+                            min={1}
+                            onChange={(event) => {
+                              setTeaserCrop((current) => ({
+                                ...current,
+                                zoom: Number(event.target.value),
+                              }));
+                            }}
+                            step={0.01}
+                            type="range"
+                            value={teaserCrop.zoom}
+                          />
+                          <button
+                            className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/12 text-xs font-black text-white/62 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
+                            onClick={() => {
+                              setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
+                            }}
+                            type="button"
+                          >
+                            <RefreshCw className="size-3.5" />
+                            {copy.reset}
+                          </button>
+                          <button
+                            className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#44f26e] px-3 text-xs font-black text-black transition hover:bg-[#65ff87] disabled:cursor-not-allowed disabled:opacity-60"
+                            disabled={teaserCropStatus === "saving"}
+                            onClick={saveCroppedTeaserImage}
+                            type="button"
+                          >
+                            {teaserCropStatus === "saving" ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <ImageIcon className="size-3.5" />
+                            )}
+                            {teaserCropStatus === "saving"
+                              ? copy.teaserCrop.saving
+                              : copy.teaserCrop.save}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </section>
