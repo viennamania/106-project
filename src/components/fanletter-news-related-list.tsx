@@ -50,6 +50,8 @@ type FanletterNewsRelatedListResponse = {
   items: FanletterRelatedNewsItem[];
 };
 
+type FanletterNewsRelatedListVariant = "sidebar" | "feature";
+
 function buildPageHref(
   baseHref: string,
   offset: number,
@@ -355,6 +357,7 @@ export function FanletterNewsRelatedList({
   sortLabel,
   sortOptions,
   sortValue,
+  variant = "sidebar",
 }: {
   characterName: string | null;
   copy: FanletterNewsRelatedListCopy;
@@ -369,6 +372,7 @@ export function FanletterNewsRelatedList({
   sortLabel: string;
   sortOptions: FanletterNewsRelatedSortOption[];
   sortValue: string;
+  variant?: FanletterNewsRelatedListVariant;
 }) {
   const router = useRouter();
   const currentItem = initialItems.find((item) => item.reportId === currentReportId);
@@ -404,6 +408,7 @@ export function FanletterNewsRelatedList({
     : copy.empty;
   const showSearchLoading =
     searchActive && isLoading && visibleRelatedItems.length === 0;
+  const isFeatureVariant = variant === "feature";
 
   const scrollToSectionTop = useCallback(() => {
     if (!sectionRef.current) {
@@ -619,27 +624,61 @@ export function FanletterNewsRelatedList({
 
   return (
     <section
-      className="overflow-hidden border border-black/12 bg-white text-[#111510] shadow-none sm:shadow-[0_14px_40px_rgba(17,21,16,0.06)]"
+      className={cn(
+        "overflow-hidden border border-black/12 bg-white text-[#111510] shadow-none",
+        isFeatureVariant
+          ? "border-y-2 border-[#111510] shadow-[0_16px_44px_rgba(17,21,16,0.07)]"
+          : "sm:shadow-[0_14px_40px_rgba(17,21,16,0.06)]",
+      )}
       ref={sectionRef}
     >
-      <div className="border-b border-black/12 bg-[#f7f9f4] p-3 sm:p-4">
+      <div
+        className={cn(
+          "border-b p-3 sm:p-4",
+          isFeatureVariant
+            ? "border-[#111510] bg-white sm:p-5"
+            : "border-black/12 bg-[#f7f9f4]",
+        )}
+      >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#16702e] sm:text-[0.68rem]">
               <BadgeCheck className="size-3.5" />
               {copy.eyebrow}
             </p>
-            <h2 className="mt-1.5 break-words text-base font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-2 sm:text-lg">
+            <h2
+              className={cn(
+                "mt-1.5 break-words font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-2",
+                isFeatureVariant ? "text-xl sm:text-2xl" : "text-base sm:text-lg",
+              )}
+            >
               {copy.title}
             </h2>
           </div>
-          <span className="hidden shrink-0 items-center rounded-full border border-[#16702e]/20 bg-white px-2.5 py-1 text-[0.64rem] font-black uppercase tracking-[0.08em] text-[#16702e] sm:inline-flex">
+          <span
+            className={cn(
+              "hidden shrink-0 items-center rounded-full border border-[#16702e]/20 bg-white px-2.5 py-1 text-[0.64rem] font-black uppercase tracking-[0.08em] text-[#16702e] sm:inline-flex",
+              isFeatureVariant ? "sm:hidden" : "",
+            )}
+          >
             FanLetter
           </span>
         </div>
-        <div className="mt-2 hidden min-w-0 items-center gap-2 text-sm font-semibold leading-6 text-black/54 sm:flex">
+        <div
+          className={cn(
+            "mt-2 min-w-0 items-center gap-2 text-sm font-semibold leading-6 text-black/54",
+            isFeatureVariant ? "flex" : "hidden sm:flex",
+          )}
+        >
           {characterName ? (
-            <span className="shrink-0 font-black text-black/66">{characterName}</span>
+            <span
+              className={cn(
+                "font-black text-black/66",
+                isFeatureVariant ? "min-w-0 truncate" : "shrink-0",
+              )}
+            >
+              {characterName}
+            </span>
           ) : null}
           {characterName ? <span className="size-1 rounded-full bg-black/22" /> : null}
           <span className="min-w-0 truncate">{copy.description}</span>
@@ -708,7 +747,7 @@ export function FanletterNewsRelatedList({
         ) : null}
       </div>
 
-      <div className="p-3 sm:p-4">
+      <div className={cn("p-3 sm:p-4", isFeatureVariant ? "sm:p-5" : "")}>
         {currentItem ? (
           <div className="mb-3">
             <RelatedNewsCard
@@ -727,7 +766,12 @@ export function FanletterNewsRelatedList({
         ) : null}
 
         {visibleRelatedItems.length > 0 ? (
-          <div className="grid gap-2.5 sm:gap-3">
+          <div
+            className={cn(
+              "grid gap-2.5 sm:gap-3",
+              isFeatureVariant ? "lg:grid-cols-2" : "",
+            )}
+          >
             {visibleRelatedItems.map((item) => {
               const href = buildRelatedNewsHref({
                 baseHref: item.href,
