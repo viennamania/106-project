@@ -61,7 +61,9 @@ function normalizeReportStatusFilter({
 }): ReportStatusFilter {
   const normalized = readStringSearchParam(value).trim().toLowerCase();
 
-  return normalized === "reported" || normalized === "unreported"
+  return normalized === "all" ||
+    normalized === "reported" ||
+    normalized === "unreported"
     ? normalized
     : defaultValue;
 }
