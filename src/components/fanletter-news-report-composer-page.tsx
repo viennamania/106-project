@@ -220,6 +220,7 @@ export type FanletterNewsReportComposerSourceRevealFilter =
   | "opportunity"
   | "unlocked";
 export type FanletterNewsReportComposerSourceSort = "latest" | "recommended";
+type FanletterNewsReportTeaserMode = "auto" | "manual";
 
 const REPORT_COVER_CROP_ASPECT_RATIO = 16 / 9;
 const REPORT_COVER_CROP_MAX_ZOOM = 3;
@@ -229,6 +230,8 @@ const REPORT_TEASER_CROP_ASPECT_RATIO = 9 / 16;
 const REPORT_TEASER_CROP_OUTPUT_HEIGHT = 1280;
 const REPORT_TEASER_CROP_OUTPUT_WIDTH = 720;
 const REPORT_TEASER_IMAGE_LIMIT = 4;
+const REPORT_AUTO_TEASER_MAX_ZOOM = 1.36;
+const REPORT_AUTO_TEASER_MIN_ZOOM = 1.04;
 const REPORT_BODY_MAX_LENGTH = 12_000;
 const REPORT_DEK_MAX_LENGTH = 320;
 const REPORT_FACT_MAX_LENGTH = 500;
@@ -329,8 +332,7 @@ function getCopy(locale: Locale) {
           "대표 뉴스 이미지는 16:9로, 공개 티저 컷은 필요할 때 9:16 세로 이미지로 따로 저장합니다.",
         cropStep: "4. 이미지 크롭",
         cropTitle: "대표 이미지와 9:16 티저 크롭",
-        emptyBody:
-          "아직 리포트로 만들 수 있는 브이로그 후보가 없습니다.",
+        emptyBody: "아직 리포트로 만들 수 있는 브이로그 후보가 없습니다.",
         emptyTitle: "작성 가능한 브이로그가 없습니다.",
         existingReportsBody:
           "이미 발행된 리포트의 제목, 관점, 대표 이미지를 비교해서 새 리포트의 차별점을 잡으세요.",
@@ -358,7 +360,8 @@ function getCopy(locale: Locale) {
           error: "리포트를 저장하지 못했습니다. 입력값을 확인해 주세요.",
           facts: "육하원칙",
           reporterComment: "기자 코멘트",
-          reporterCommentHelp: "AI 생성에 참고한 개인 메모입니다. 비워둘 수 있습니다.",
+          reporterCommentHelp:
+            "AI 생성에 참고한 개인 메모입니다. 비워둘 수 있습니다.",
           openInline: "이 화면에서 수정",
           save: "변경 저장",
           saved: "변경사항을 저장했습니다.",
@@ -383,8 +386,7 @@ function getCopy(locale: Locale) {
         imageOnly:
           "작성실은 원본 동영상 없이 티저 이미지와 공개 메타만 사용합니다.",
         imageSize: "이미지 크기",
-        lead:
-          "공개 브이로그와 구매한 유료 브이로그를 선택해 티저 이미지, AI 캐릭터 정보, 기존 리포트, 공개 메타를 기준으로 뉴스 리포트를 작성합니다.",
+        lead: "공개 브이로그와 구매한 유료 브이로그를 선택해 티저 이미지, AI 캐릭터 정보, 기존 리포트, 공개 메타를 기준으로 뉴스 리포트를 작성합니다.",
         locked: "단독 보도권",
         mediaAccess: {
           deskBody:
@@ -398,8 +400,7 @@ function getCopy(locale: Locale) {
             "브이로그 원본은 작성실에서 재생하지 않습니다. 유료 콘텐츠는 구매 후에도 티저 기반 작성만 허용됩니다.",
           openPurchase: "1 USDT 결제하기",
           previewVideo: {
-            body:
-              "저장된 짧은 프리뷰가 있는 브이로그는 리포트 작성 전에 흐름을 확인할 수 있습니다. 원본 전체 영상은 계속 보호됩니다.",
+            body: "저장된 짧은 프리뷰가 있는 브이로그는 리포트 작성 전에 흐름을 확인할 수 있습니다. 원본 전체 영상은 계속 보호됩니다.",
             badge: "프리뷰",
             hiddenBody:
               "NSFW 블러 상태에서는 프리뷰 동영상을 불러오지 않습니다. NSFW를 켜면 저장된 프리뷰를 확인할 수 있습니다.",
@@ -425,8 +426,7 @@ function getCopy(locale: Locale) {
           teaserReady: "티저 이미지 사용 가능",
           unpaid: "미구매",
         },
-        noCover:
-          "이 브이로그에는 아직 리포트에 사용할 티저 이미지가 없습니다.",
+        noCover: "이 브이로그에는 아직 리포트에 사용할 티저 이미지가 없습니다.",
         price: {
           free: "공개",
           paid: "1 USDT 유료",
@@ -435,8 +435,7 @@ function getCopy(locale: Locale) {
         publishReadiness: {
           access: "작성 권한",
           angle: "리포터 관점",
-          body:
-            "뉴스 이미지, 공개 컷, 관점, 권한을 확인하고 바로 발행하세요.",
+          body: "뉴스 이미지, 공개 컷, 관점, 권한을 확인하고 바로 발행하세요.",
           cover: "뉴스 이미지",
           statusReady: "발행 가능",
           statusWaiting: "준비 필요",
@@ -482,11 +481,22 @@ function getCopy(locale: Locale) {
           recommended: "추천 우선",
         },
         teaserSelection: {
-          body:
-            "뉴스 독자가 회원가입 전에 볼 수 있는 공개 컷입니다. 선택만 하면 원본 비율을 유지하고, 필요한 컷은 9:16 세로 티저로 저장할 수 있습니다.",
+          autoCropBody:
+            "발행할 때 프레임 후보를 랜덤하게 고르고 각 이미지를 9:16 세로 티저 컷으로 자동 저장합니다.",
+          autoCropTitle: "자동 티저 컷",
+          autoGenerating: "자동 티저 컷 생성 중",
+          autoMode: "자동으로 처리하기",
+          autoModeBody:
+            "프레임 후보에서 4장을 랜덤 선택하고 각 이미지를 세로 티저 컷으로 자동 크롭합니다.",
+          autoReady: (count: string) => `${count}컷 자동 생성 준비`,
+          body: "뉴스 독자가 회원가입 전에 볼 수 있는 공개 컷입니다. 선택만 하면 원본 비율을 유지하고, 필요한 컷은 9:16 세로 티저로 저장할 수 있습니다.",
           include: "공개 컷에 추가",
           included: "공개 컷 포함",
           limit: (count: string) => `최대 ${count}장`,
+          manualMode: "직접 선택하기",
+          manualModeBody:
+            "공개 컷을 직접 고르고 필요한 이미지만 9:16 세로 티저로 저장합니다.",
+          modeLabel: "티저 컷 처리 방식",
           ratio: "선택 저장 9:16",
         },
         teaserCrop: {
@@ -630,8 +640,7 @@ function getCopy(locale: Locale) {
         imageOnly:
           "The reporter desk uses teaser images and public metadata without source video playback.",
         imageSize: "Image size",
-        lead:
-          "Choose a public vlog or a paid vlog you purchased, then create a report from teaser images, AI character info, published reports, and public metadata.",
+        lead: "Choose a public vlog or a paid vlog you purchased, then create a report from teaser images, AI character info, published reports, and public metadata.",
         locked: "Exclusive access",
         mediaAccess: {
           deskBody:
@@ -645,8 +654,7 @@ function getCopy(locale: Locale) {
             "The original vlog stays off the reporting desk. Paid content still requires purchase before teaser-based reporting.",
           openPurchase: "Pay 1 USDT",
           previewVideo: {
-            body:
-              "When a saved short preview exists, reporters can review the vlog flow before writing. The full source video remains protected.",
+            body: "When a saved short preview exists, reporters can review the vlog flow before writing. The full source video remains protected.",
             badge: "Preview",
             hiddenBody:
               "The preview video is not loaded while NSFW blur is enabled. Turn on NSFW visibility to review the saved preview.",
@@ -681,8 +689,7 @@ function getCopy(locale: Locale) {
         publishReadiness: {
           access: "Report access",
           angle: "Reporter angle",
-          body:
-            "Check the news image, public cuts, angle, and access before publishing.",
+          body: "Check the news image, public cuts, angle, and access before publishing.",
           cover: "News image",
           statusReady: "Ready",
           statusWaiting: "Needs setup",
@@ -728,11 +735,22 @@ function getCopy(locale: Locale) {
           recommended: "Recommended",
         },
         teaserSelection: {
-          body:
-            "These are public cuts readers can see before signing in. Selected cuts keep the source ratio by default, and important cuts can be saved as 9:16 portrait teasers.",
+          autoCropBody:
+            "On publish, frame candidates are randomly picked and saved as 9:16 portrait teaser cuts.",
+          autoCropTitle: "Automatic teaser cuts",
+          autoGenerating: "Creating automatic teaser cuts",
+          autoMode: "Process automatically",
+          autoModeBody:
+            "Randomly select 4 frame candidates and crop each image into a portrait teaser cut.",
+          autoReady: (count: string) => `${count} auto cuts ready`,
+          body: "These are public cuts readers can see before signing in. Selected cuts keep the source ratio by default, and important cuts can be saved as 9:16 portrait teasers.",
           include: "Add public cut",
           included: "Public cut",
           limit: (count: string) => `Up to ${count}`,
+          manualMode: "Choose manually",
+          manualModeBody:
+            "Pick public cuts yourself and save only the needed images as 9:16 portrait teasers.",
+          modeLabel: "Teaser cut mode",
           ratio: "Optional 9:16 save",
         },
         teaserCrop: {
@@ -825,7 +843,13 @@ function formatNumber(value: number, locale: Locale) {
 }
 
 function getPaginationPages(currentPage: number, pageCount: number) {
-  const pages = new Set([1, currentPage - 1, currentPage, currentPage + 1, pageCount]);
+  const pages = new Set([
+    1,
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    pageCount,
+  ]);
 
   return Array.from(pages)
     .filter((page) => page >= 1 && page <= pageCount)
@@ -945,7 +969,10 @@ function getSourceOpportunityScore({
   source: FanletterNewsReportComposerSource;
 }) {
   let score = 0;
-  const canCreate = canReporterCreateFromSource({ reporterReferralCode, source });
+  const canCreate = canReporterCreateFromSource({
+    reporterReferralCode,
+    source,
+  });
   const count = getSourceRevealCount(source);
 
   if (canCreate) {
@@ -1025,7 +1052,9 @@ function getRecommendedReportAngle(
 }
 
 function getPublishedAtTime(source: FanletterNewsReportComposerSource) {
-  const timestamp = source.publishedAt ? new Date(source.publishedAt).getTime() : 0;
+  const timestamp = source.publishedAt
+    ? new Date(source.publishedAt).getTime()
+    : 0;
 
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
@@ -1099,6 +1128,58 @@ function getDefaultReportTeaserImageUrls(
         .filter(Boolean),
     ),
   ].slice(0, REPORT_TEASER_IMAGE_LIMIT);
+}
+
+function getUniqueImageUrls(values: Array<string | null | undefined>) {
+  return [
+    ...new Set(values.map((value) => value?.trim() ?? "").filter(Boolean)),
+  ];
+}
+
+function getAutoReportTeaserImageUrls(
+  source: FanletterNewsReportComposerSource | null,
+) {
+  const coverOptions = source?.coverOptions ?? [];
+  const frameImageUrls = getUniqueImageUrls(
+    coverOptions
+      .filter((option) => option.source === "frame")
+      .map((option) => option.imageUrl),
+  );
+
+  if (frameImageUrls.length > 0) {
+    return frameImageUrls;
+  }
+
+  return getUniqueImageUrls(coverOptions.map((option) => option.imageUrl));
+}
+
+function getRandomNumber(min: number, max: number) {
+  return min + Math.random() * (max - min);
+}
+
+function getRandomAutoReportTeaserCrop(): ReportCoverCropState {
+  return {
+    centerX: getRandomNumber(0.34, 0.66),
+    centerY: getRandomNumber(0.34, 0.66),
+    zoom: getRandomNumber(
+      REPORT_AUTO_TEASER_MIN_ZOOM,
+      REPORT_AUTO_TEASER_MAX_ZOOM,
+    ),
+  };
+}
+
+function pickRandomImageUrls(imageUrls: string[], limit: number) {
+  const shuffled = [...imageUrls];
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [shuffled[index], shuffled[swapIndex]] = [
+      shuffled[swapIndex],
+      shuffled[index],
+    ];
+  }
+
+  return shuffled.slice(0, limit);
 }
 
 function getReportImageCropRect({
@@ -1338,8 +1419,7 @@ export function FanletterNewsReportComposerPage({
           });
 
           return (
-            rightScore - leftScore ||
-            compareSourcesByLatestUpload(left, right)
+            rightScore - leftScore || compareSourcesByLatestUpload(left, right)
           );
         }),
     [reporterReferralCode, reportSources, sourceRevealFilter, sourceSort],
@@ -1361,12 +1441,15 @@ export function FanletterNewsReportComposerPage({
     currentSourcePageStart,
     currentSourcePageEnd,
   );
-  const paginationPages = getPaginationPages(currentSourcePage, sourcePageCount);
-  const shouldShowSourcePagination = displayedSources.length > SOURCE_RESULT_PAGE_SIZE;
+  const paginationPages = getPaginationPages(
+    currentSourcePage,
+    sourcePageCount,
+  );
+  const shouldShowSourcePagination =
+    displayedSources.length > SOURCE_RESULT_PAGE_SIZE;
   const firstAvailableSource =
-    paginatedSources.find(
-      (source) =>
-        canReporterCreateFromSource({ reporterReferralCode, source }),
+    paginatedSources.find((source) =>
+      canReporterCreateFromSource({ reporterReferralCode, source }),
     ) ??
     paginatedSources[0] ??
     displayedSources[0] ??
@@ -1375,7 +1458,9 @@ export function FanletterNewsReportComposerPage({
     displayedSources.find(
       (source) => source.contentId === initialSelectedContentId,
     ) ??
-    reportSources.find((source) => source.contentId === initialSelectedContentId) ??
+    reportSources.find(
+      (source) => source.contentId === initialSelectedContentId,
+    ) ??
     firstAvailableSource;
   const [selectedContentId, setSelectedContentId] = useState<string | null>(
     initialSelectedSource?.contentId ?? null,
@@ -1395,6 +1480,8 @@ export function FanletterNewsReportComposerPage({
   const [selectedTeaserUrls, setSelectedTeaserUrls] = useState<string[]>(
     getDefaultReportTeaserImageUrls(initialSelectedSource),
   );
+  const [teaserMode, setTeaserMode] =
+    useState<FanletterNewsReportTeaserMode>("manual");
   const [croppedTeaserBySourceUrl, setCroppedTeaserBySourceUrl] = useState<
     Record<string, CroppedTeaserImage>
   >({});
@@ -1411,7 +1498,9 @@ export function FanletterNewsReportComposerPage({
   const [naturalSize, setNaturalSize] = useState<ReportCoverNaturalSize | null>(
     null,
   );
-  const [status, setStatus] = useState<"idle" | "submitting">("idle");
+  const [status, setStatus] = useState<"autoTeasers" | "idle" | "submitting">(
+    "idle",
+  );
   const [teaserCropStatus, setTeaserCropStatus] = useState<"idle" | "saving">(
     "idle",
   );
@@ -1422,7 +1511,9 @@ export function FanletterNewsReportComposerPage({
   const [editReportStatus, setEditReportStatus] = useState<"idle" | "saving">(
     "idle",
   );
-  const [editReportMessage, setEditReportMessage] = useState<string | null>(null);
+  const [editReportMessage, setEditReportMessage] = useState<string | null>(
+    null,
+  );
   const [editReportHref, setEditReportHref] = useState<string | null>(
     initialSelectedSource?.existingReport?.href ?? null,
   );
@@ -1454,13 +1545,19 @@ export function FanletterNewsReportComposerPage({
       : null;
   const teaserPreviewImageStyle =
     teaserCropRect && naturalSize
-      ? getReportCropPreviewImageStyle({ cropRect: teaserCropRect, naturalSize })
+      ? getReportCropPreviewImageStyle({
+          cropRect: teaserCropRect,
+          naturalSize,
+        })
       : null;
   const isExclusiveBlocked = Boolean(
     selectedSource?.exclusiveNews.active &&
-      selectedSource.exclusiveNews.reporterReferralCode !== reporterReferralCode,
+      selectedSource.exclusiveNews.reporterReferralCode !==
+        reporterReferralCode,
   );
-  const isSelectedPaidLocked = Boolean(selectedSource?.mediaAccess.requiresPurchase);
+  const isSelectedPaidLocked = Boolean(
+    selectedSource?.mediaAccess.requiresPurchase,
+  );
   const shouldBlurNsfwMedia = !includeNsfw;
   const shouldBlurSelectedNsfwMedia = Boolean(
     shouldBlurNsfwMedia && selectedSource?.contentMaturityRating === "nsfw",
@@ -1470,13 +1567,27 @@ export function FanletterNewsReportComposerPage({
   const selectedCoverOption = selectedSourceCoverOptions.find(
     (option) => option.imageUrl === selectedCoverUrl,
   );
+  const autoTeaserCandidateUrls = useMemo(
+    () => {
+      const sourceImageUrls = getAutoReportTeaserImageUrls(selectedSource);
+
+      return sourceImageUrls.length > 0
+        ? sourceImageUrls
+        : getUniqueImageUrls([selectedCoverUrl]);
+    },
+    [selectedCoverUrl, selectedSource],
+  );
+  const activeTeaserCount =
+    teaserMode === "auto"
+      ? Math.min(autoTeaserCandidateUrls.length, REPORT_TEASER_IMAGE_LIMIT)
+      : selectedTeaserUrls.length;
   const canSubmit = Boolean(
     selectedSource &&
       selectedSource.mediaAccess.canView &&
       selectedCoverUrl &&
       !selectedSource.existingReport &&
       !isExclusiveBlocked &&
-      status !== "submitting",
+      status === "idle",
   );
   const selectedExistingReport = selectedSource?.existingReport ?? null;
   const canSaveExistingReport = Boolean(
@@ -1509,13 +1620,22 @@ export function FanletterNewsReportComposerPage({
   );
   const isSelectedOpportunitySource = Boolean(
     selectedSource &&
-      isSourceRevealOpportunitySource({ reporterReferralCode, source: selectedSource }),
+      isSourceRevealOpportunitySource({
+        reporterReferralCode,
+        source: selectedSource,
+      }),
   );
   const canCreateSelectedSource = Boolean(
     selectedSource &&
-      canReporterCreateFromSource({ reporterReferralCode, source: selectedSource }),
+      canReporterCreateFromSource({
+        reporterReferralCode,
+        source: selectedSource,
+      }),
   );
-  const selectedRecommendedAngle = getRecommendedReportAngle(selectedSource, copy);
+  const selectedRecommendedAngle = getRecommendedReportAngle(
+    selectedSource,
+    copy,
+  );
   const publishReadinessItems = [
     {
       label: copy.publishReadiness.cover,
@@ -1523,9 +1643,9 @@ export function FanletterNewsReportComposerPage({
     },
     {
       label: copy.publishReadiness.teasers(
-        formatNumber(selectedTeaserUrls.length, locale),
+        formatNumber(activeTeaserCount, locale),
       ),
-      ready: selectedTeaserUrls.length > 0,
+      ready: activeTeaserCount > 0,
     },
     {
       label: copy.publishReadiness.angle,
@@ -1744,11 +1864,15 @@ export function FanletterNewsReportComposerPage({
     [currentHref, selectedContentId, selectedSource?.contentId],
   );
   const selectedConnectHref = useMemo(
-    () => setRelativeSearchParams(connectHref, { returnTo: selectedCurrentHref }),
+    () =>
+      setRelativeSearchParams(connectHref, { returnTo: selectedCurrentHref }),
     [connectHref, selectedCurrentHref],
   );
   const selectedOnboardingHref = useMemo(
-    () => setRelativeSearchParams(onboardingHref, { returnTo: selectedCurrentHref }),
+    () =>
+      setRelativeSearchParams(onboardingHref, {
+        returnTo: selectedCurrentHref,
+      }),
     [onboardingHref, selectedCurrentHref],
   );
   const paidUnlockHref = `${selectedCurrentHref}#${paidUnlockSectionId}`;
@@ -1797,7 +1921,8 @@ export function FanletterNewsReportComposerPage({
 
       window.requestAnimationFrame(() => {
         selectedDetailRef.current?.scrollIntoView({
-          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+            .matches
             ? "auto"
             : "smooth",
           block: "start",
@@ -1842,7 +1967,9 @@ export function FanletterNewsReportComposerPage({
     previousSelectedContentIdRef.current = selectedSourceContentId;
     setAngle(getRecommendedReportAngle(selectedSource, copy));
     setReporterComment("");
-    setEditReportForm(getEditableReportForm(selectedSource?.existingReport ?? null));
+    setEditReportForm(
+      getEditableReportForm(selectedSource?.existingReport ?? null),
+    );
     setEditReportHref(selectedSource?.existingReport?.href ?? null);
     setEditReportMessage(null);
     setEditReportStatus("idle");
@@ -1883,7 +2010,7 @@ export function FanletterNewsReportComposerPage({
       setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
       setNaturalSize(null);
 
-      if (isSelectedPaidLocked) {
+      if (isSelectedPaidLocked || teaserMode === "auto") {
         return;
       }
 
@@ -1895,7 +2022,7 @@ export function FanletterNewsReportComposerPage({
         return [imageUrl, ...current].slice(0, REPORT_TEASER_IMAGE_LIMIT);
       });
     },
-    [isSelectedPaidLocked],
+    [isSelectedPaidLocked, teaserMode],
   );
 
   const toggleTeaserImage = useCallback((imageUrl: string) => {
@@ -2046,10 +2173,13 @@ export function FanletterNewsReportComposerPage({
       formData.set("purpose", purpose);
       formData.set("sourceImageUrl", sourceImageUrl);
 
-      const response = await fetch("/api/fanletter/news-reports/cropped-cover", {
-        body: formData,
-        method: "POST",
-      });
+      const response = await fetch(
+        "/api/fanletter/news-reports/cropped-cover",
+        {
+          body: formData,
+          method: "POST",
+        },
+      );
       const data = (await response.json().catch(() => null)) as
         | FanletterCroppedCoverUploadResponse
         | { error?: string }
@@ -2110,7 +2240,10 @@ export function FanletterNewsReportComposerPage({
           return current;
         }
 
-        return [selectedCoverUrl, ...current].slice(0, REPORT_TEASER_IMAGE_LIMIT);
+        return [selectedCoverUrl, ...current].slice(
+          0,
+          REPORT_TEASER_IMAGE_LIMIT,
+        );
       });
     } catch (error) {
       setError(error instanceof Error ? error.message : copy.failed);
@@ -2139,15 +2272,72 @@ export function FanletterNewsReportComposerPage({
     });
   }, []);
 
+  const createAutoCroppedTeaserImages = useCallback(async () => {
+    if (!selectedSource) {
+      return [];
+    }
+
+    const pickedImageUrls = pickRandomImageUrls(
+      autoTeaserCandidateUrls,
+      REPORT_TEASER_IMAGE_LIMIT,
+    );
+    const croppedTeasers = await Promise.all(
+      pickedImageUrls.map(async (sourceImageUrl) => {
+        const croppedTeaser = await uploadCroppedReportImage({
+          aspectRatio: REPORT_TEASER_CROP_ASPECT_RATIO,
+          contentId: selectedSource.contentId,
+          cropState: getRandomAutoReportTeaserCrop(),
+          outputHeight: REPORT_TEASER_CROP_OUTPUT_HEIGHT,
+          outputWidth: REPORT_TEASER_CROP_OUTPUT_WIDTH,
+          purpose: "teaser",
+          sourceImageUrl,
+        });
+
+        return {
+          crop: croppedTeaser.crop,
+          imageUrl: croppedTeaser.url,
+          sourceImageUrl,
+        };
+      }),
+    );
+
+    return croppedTeasers;
+  }, [autoTeaserCandidateUrls, selectedSource, uploadCroppedReportImage]);
+
   const submitReport = useCallback(async () => {
     if (!selectedSource || !selectedCoverUrl || !canSubmit) {
       return;
     }
 
-    setStatus("submitting");
+    setStatus(teaserMode === "auto" ? "autoTeasers" : "submitting");
     setError(null);
 
     try {
+      const selectedTeaserImages =
+        teaserMode === "auto"
+          ? await createAutoCroppedTeaserImages()
+          : selectedTeaserUrls.map((imageUrl) => {
+              const croppedTeaser = croppedTeaserBySourceUrl[imageUrl];
+
+              return croppedTeaser
+                ? {
+                    crop: croppedTeaser.crop,
+                    imageUrl: croppedTeaser.imageUrl,
+                    sourceImageUrl: croppedTeaser.sourceImageUrl,
+                  }
+                : {
+                    crop: null,
+                    imageUrl,
+                    sourceImageUrl: imageUrl,
+                  };
+            });
+      const selectedTeaserImageUrls =
+        teaserMode === "auto"
+          ? selectedTeaserImages.map((image) => image.sourceImageUrl)
+          : selectedTeaserUrls;
+
+      setStatus("submitting");
+
       const croppedCover = await uploadCroppedReportImage({
         aspectRatio: REPORT_COVER_CROP_ASPECT_RATIO,
         contentId: selectedSource.contentId,
@@ -2169,22 +2359,8 @@ export function FanletterNewsReportComposerPage({
           locale,
           reporterComment: reporterCommentPayload,
           selectedCoverImageUrl: selectedCoverUrl,
-          selectedTeaserImages: selectedTeaserUrls.map((imageUrl) => {
-            const croppedTeaser = croppedTeaserBySourceUrl[imageUrl];
-
-            return croppedTeaser
-              ? {
-                  crop: croppedTeaser.crop,
-                  imageUrl: croppedTeaser.imageUrl,
-                  sourceImageUrl: croppedTeaser.sourceImageUrl,
-                }
-              : {
-                  crop: null,
-                  imageUrl,
-                  sourceImageUrl: imageUrl,
-                };
-          }),
-          selectedTeaserImageUrls: selectedTeaserUrls,
+          selectedTeaserImages,
+          selectedTeaserImageUrls,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -2211,6 +2387,7 @@ export function FanletterNewsReportComposerPage({
     angle,
     canSubmit,
     copy.failed,
+    createAutoCroppedTeaserImages,
     crop,
     croppedTeaserBySourceUrl,
     locale,
@@ -2219,6 +2396,7 @@ export function FanletterNewsReportComposerPage({
     selectedCoverUrl,
     selectedTeaserUrls,
     selectedSource,
+    teaserMode,
     uploadCroppedReportImage,
   ]);
 
@@ -2374,7 +2552,9 @@ export function FanletterNewsReportComposerPage({
       </div>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-black/45">
         <p>
-          {searchQuery ? `${copy.searchActive}: ${searchQuery}` : copy.searchHelper}
+          {searchQuery
+            ? `${copy.searchActive}: ${searchQuery}`
+            : copy.searchHelper}
         </p>
         {searchQuery ? (
           <Link
@@ -2551,7 +2731,9 @@ export function FanletterNewsReportComposerPage({
           <p className="mx-auto mt-2 max-w-xl text-sm font-semibold leading-6 text-black/58">
             {isFilteringSources ? copy.filterEmptyBody : copy.emptyBody}
           </p>
-          <div className="mx-auto mt-6 max-w-xl text-left">{searchControls}</div>
+          <div className="mx-auto mt-6 max-w-xl text-left">
+            {searchControls}
+          </div>
           <Link
             className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white"
             href={reportsHref}
@@ -2632,14 +2814,16 @@ export function FanletterNewsReportComposerPage({
                 const isPaidLocked = source.mediaAccess.requiresPurchase;
                 const hasViewerReport = Boolean(source.existingReport);
                 const shouldBlurSourceMedia =
-                  shouldBlurNsfwMedia && source.contentMaturityRating === "nsfw";
+                  shouldBlurNsfwMedia &&
+                  source.contentMaturityRating === "nsfw";
                 const sourceRevealCount = getSourceRevealCount(source);
                 const sourceRevealRemaining = getSourceRevealRemaining(source);
                 const isOpportunitySource = isSourceRevealOpportunitySource({
                   reporterReferralCode,
                   source,
                 });
-                const isFirstReportSource = isFirstReportOpportunitySource(source);
+                const isFirstReportSource =
+                  isFirstReportOpportunitySource(source);
                 const isLowCompetition = isLowCompetitionSource(source);
 
                 return (
@@ -2656,18 +2840,19 @@ export function FanletterNewsReportComposerPage({
                     }}
                     type="button"
                   >
-                    <span
-                      className="relative block aspect-[4/5] overflow-hidden rounded-md bg-[#111510]"
-                    >
+                    <span className="relative block aspect-[4/5] overflow-hidden rounded-md bg-[#111510]">
                       <span
                         aria-hidden="true"
                         className={cn(
                           "absolute inset-0 bg-cover bg-center transition",
-                          shouldBlurSourceMedia && "scale-110 blur-md brightness-75",
+                          shouldBlurSourceMedia &&
+                            "scale-110 blur-md brightness-75",
                         )}
                         style={
                           source.coverImageUrl
-                            ? { backgroundImage: `url(${source.coverImageUrl})` }
+                            ? {
+                                backgroundImage: `url(${source.coverImageUrl})`,
+                              }
                             : undefined
                         }
                       />
@@ -2722,7 +2907,8 @@ export function FanletterNewsReportComposerPage({
                       </span>
                       <span className="mt-1 flex flex-wrap gap-1.5 text-[0.62rem] font-black text-black/42">
                         <span>
-                          {copy.reportCount} {formatNumber(source.reportCount, locale)}
+                          {copy.reportCount}{" "}
+                          {formatNumber(source.reportCount, locale)}
                         </span>
                         <span
                           className={cn(
@@ -2742,7 +2928,10 @@ export function FanletterNewsReportComposerPage({
                             : copy.sourceReveal.locked}
                           <span>
                             {formatNumber(sourceRevealCount, locale)}/
-                            {formatNumber(source.sourceReveal.threshold, locale)}
+                            {formatNumber(
+                              source.sourceReveal.threshold,
+                              locale,
+                            )}
                           </span>
                         </span>
                         <span
@@ -2761,7 +2950,9 @@ export function FanletterNewsReportComposerPage({
                         <span
                           className={cn(
                             "inline-flex items-center gap-1",
-                            hasViewerReport ? "text-[#16702e]" : "text-black/42",
+                            hasViewerReport
+                              ? "text-[#16702e]"
+                              : "text-black/42",
                           )}
                         >
                           {hasViewerReport ? (
@@ -2813,7 +3004,10 @@ export function FanletterNewsReportComposerPage({
                     const isActive = pageNumber === currentSourcePage;
 
                     return (
-                      <span className="inline-flex items-center gap-1" key={pageNumber}>
+                      <span
+                        className="inline-flex items-center gap-1"
+                        key={pageNumber}
+                      >
                         {hasGap ? (
                           <span className="px-1 text-xs font-black text-black/30">
                             ...
@@ -2954,7 +3148,10 @@ export function FanletterNewsReportComposerPage({
                             {copy.sourceReveal.remainingMetric}
                           </p>
                           <p className="mt-1 truncate text-sm font-black">
-                            {formatNumber(selectedSourceRevealRemaining, locale)}
+                            {formatNumber(
+                              selectedSourceRevealRemaining,
+                              locale,
+                            )}
                           </p>
                         </div>
                         <div className="min-w-0 border border-black/10 bg-white/78 px-3 py-2">
@@ -3004,12 +3201,18 @@ export function FanletterNewsReportComposerPage({
                           ? copy.sourceReveal.locked
                           : copy.sourceReveal.unlocked}{" "}
                         {formatNumber(selectedSourceRevealCount, locale)}/
-                        {formatNumber(selectedSource.sourceReveal.threshold, locale)}
+                        {formatNumber(
+                          selectedSource.sourceReveal.threshold,
+                          locale,
+                        )}
                       </span>
                       <span className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-black/10 bg-white px-2.5 py-1 text-xs font-black text-black/54">
                         {isSelectedSourceRevealLocked
                           ? copy.sourceReveal.remaining(
-                              formatNumber(selectedSourceRevealRemaining, locale),
+                              formatNumber(
+                                selectedSourceRevealRemaining,
+                                locale,
+                              ),
                             )
                           : copy.sourceReveal.rewardClosed}
                       </span>
@@ -3088,7 +3291,8 @@ export function FanletterNewsReportComposerPage({
                               : undefined
                           }
                         >
-                          {selectedSource.creatorProfile.avatarImageUrl ? null : (
+                          {selectedSource.creatorProfile
+                            .avatarImageUrl ? null : (
                             <UserRound className="size-7 text-[#44f26e]" />
                           )}
                         </span>
@@ -3129,51 +3333,51 @@ export function FanletterNewsReportComposerPage({
                         <div className="mt-3 grid gap-2">
                           {selectedSource.reports.map((report) => {
                             const reportItemClassName = cn(
-                                "group grid grid-cols-[8rem_minmax(0,1fr)] gap-3 border p-2 !text-[#111510] transition hover:border-[#19b84b]/45 hover:bg-white sm:grid-cols-[10.5rem_minmax(0,1fr)]",
-                                report.isViewerReport
-                                  ? "border-[#19b84b]/45 bg-[#ecfff0]"
-                                  : "border-black/10 bg-[#f6f8f4]",
+                              "group grid grid-cols-[8rem_minmax(0,1fr)] gap-3 border p-2 !text-[#111510] transition hover:border-[#19b84b]/45 hover:bg-white sm:grid-cols-[10.5rem_minmax(0,1fr)]",
+                              report.isViewerReport
+                                ? "border-[#19b84b]/45 bg-[#ecfff0]"
+                                : "border-black/10 bg-[#f6f8f4]",
                             );
                             const reportItemContent = (
                               <>
-                              <span
-                                className="block aspect-[16/9] overflow-hidden rounded-md bg-[#111510] bg-cover bg-center"
-                                style={
-                                  report.coverImageUrl
-                                    ? {
-                                        backgroundImage: `url(${report.coverImageUrl})`,
-                                      }
-                                    : undefined
-                                }
-                              />
-                              <span className="min-w-0 py-0.5">
-                                <span className="flex flex-wrap items-center gap-1.5 text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/36">
-                                  {report.isViewerReport ? (
-                                    <span className="rounded-full bg-[#111510] px-2 py-0.5 text-[#44f26e]">
-                                      {copy.myReport}
+                                <span
+                                  className="block aspect-[16/9] overflow-hidden rounded-md bg-[#111510] bg-cover bg-center"
+                                  style={
+                                    report.coverImageUrl
+                                      ? {
+                                          backgroundImage: `url(${report.coverImageUrl})`,
+                                        }
+                                      : undefined
+                                  }
+                                />
+                                <span className="min-w-0 py-0.5">
+                                  <span className="flex flex-wrap items-center gap-1.5 text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/36">
+                                    {report.isViewerReport ? (
+                                      <span className="rounded-full bg-[#111510] px-2 py-0.5 text-[#44f26e]">
+                                        {copy.myReport}
+                                      </span>
+                                    ) : null}
+                                    <span>{copy.reporter}</span>
+                                    <span>{report.reporterName}</span>
+                                    <span>
+                                      {formatDate(report.createdAt, locale)}
+                                    </span>
+                                  </span>
+                                  <span className="mt-1 line-clamp-2 text-sm font-black leading-5 [word-break:keep-all]">
+                                    {report.title}
+                                  </span>
+                                  {report.dek ? (
+                                    <span className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-black/48 [word-break:keep-all]">
+                                      {report.dek}
                                     </span>
                                   ) : null}
-                                  <span>{copy.reporter}</span>
-                                  <span>{report.reporterName}</span>
-                                  <span>
-                                    {formatDate(report.createdAt, locale)}
+                                  <span className="mt-2 inline-flex items-center gap-1 text-xs font-black text-[#16702e]">
+                                    {report.isViewerReport
+                                      ? copy.editInline.openInline
+                                      : copy.readReport}
+                                    <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
                                   </span>
                                 </span>
-                                <span className="mt-1 line-clamp-2 text-sm font-black leading-5 [word-break:keep-all]">
-                                  {report.title}
-                                </span>
-                                {report.dek ? (
-                                  <span className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-black/48 [word-break:keep-all]">
-                                    {report.dek}
-                                  </span>
-                                ) : null}
-                                <span className="mt-2 inline-flex items-center gap-1 text-xs font-black text-[#16702e]">
-                                  {report.isViewerReport
-                                    ? copy.editInline.openInline
-                                    : copy.readReport}
-                                  <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
-                                </span>
-                              </span>
                               </>
                             );
 
@@ -3260,7 +3464,10 @@ export function FanletterNewsReportComposerPage({
                             className="mt-1 h-11 w-full border border-[#19b84b]/18 bg-white px-3 text-sm font-bold outline-none transition focus:border-[#19b84b]"
                             maxLength={REPORT_TITLE_MAX_LENGTH}
                             onChange={(event) => {
-                              updateEditReportField("title", event.target.value);
+                              updateEditReportField(
+                                "title",
+                                event.target.value,
+                              );
                             }}
                             required
                             type="text"
@@ -3397,7 +3604,9 @@ export function FanletterNewsReportComposerPage({
                 {!selectedExistingReport ? (
                   <>
                     <section
-                      id={isSelectedPaidLocked ? paidUnlockSectionId : undefined}
+                      id={
+                        isSelectedPaidLocked ? paidUnlockSectionId : undefined
+                      }
                       className={cn(
                         "border p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5",
                         isSelectedPaidLocked
@@ -3405,722 +3614,863 @@ export function FanletterNewsReportComposerPage({
                           : "border-black/12 bg-white",
                       )}
                     >
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                      <p
-                        className={cn(
-                          "inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em]",
-                          isSelectedPaidLocked ? "text-rose-700" : "text-[#16702e]",
-                        )}
-                      >
-                        {isSelectedPaidLocked ? (
-                          <LockKeyhole className="size-3.5" />
-                        ) : (
-                          <FileText className="size-3.5" />
-                        )}
-                        {copy.mediaAccess.sourceStep}
-                      </p>
-                      <h2 className="mt-1 text-2xl font-black">
-                        {isSelectedPaidLocked
-                          ? copy.mediaAccess.lockedTitle
-                          : copy.mediaAccess.deskTitle}
-                      </h2>
-                    </div>
-                    {selectedSource.mediaAccess.isPurchased ? (
-                      <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-white">
-                        <ShoppingBag className="size-3.5 text-[#44f26e]" />
-                        {copy.mediaAccess.purchased}
-                      </span>
-                    ) : null}
-                  </div>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                          <p
+                            className={cn(
+                              "inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em]",
+                              isSelectedPaidLocked
+                                ? "text-rose-700"
+                                : "text-[#16702e]",
+                            )}
+                          >
+                            {isSelectedPaidLocked ? (
+                              <LockKeyhole className="size-3.5" />
+                            ) : (
+                              <FileText className="size-3.5" />
+                            )}
+                            {copy.mediaAccess.sourceStep}
+                          </p>
+                          <h2 className="mt-1 text-2xl font-black">
+                            {isSelectedPaidLocked
+                              ? copy.mediaAccess.lockedTitle
+                              : copy.mediaAccess.deskTitle}
+                          </h2>
+                        </div>
+                        {selectedSource.mediaAccess.isPurchased ? (
+                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-white">
+                            <ShoppingBag className="size-3.5 text-[#44f26e]" />
+                            {copy.mediaAccess.purchased}
+                          </span>
+                        ) : null}
+                      </div>
 
-                  {isSelectedPaidLocked ? (
-                    <div className="mt-4 grid gap-3 rounded-lg border border-rose-500/16 bg-white/72 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold leading-6 text-rose-900/72">
-                          {copy.mediaAccess.lockedBody}
-                        </p>
-                        <p className="mt-2 text-xs font-bold leading-5 text-rose-900/50">
-                          {copy.mediaAccess.purchaseOnceBody}
-                        </p>
-                      </div>
-                      <FanletterPaidUnlockTrigger
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white shadow-[0_10px_24px_rgba(17,21,16,0.16)]"
-                        href={paidUnlockHref}
-                      >
-                        {copy.mediaAccess.openPurchase}
-                        <ArrowRight className="size-4 text-[#44f26e]" />
-                      </FanletterPaidUnlockTrigger>
-                    </div>
-                  ) : (
-                    <div className="mt-4 grid gap-3 md:grid-cols-3">
-                      <div className="border border-[#19b84b]/18 bg-[#ecfff0] p-4">
-                        <FileText className="size-5 text-[#16702e]" />
-                        <p className="mt-3 text-sm font-black text-[#111510]">
-                          {copy.mediaAccess.ready}
-                        </p>
-                        <p className="mt-2 text-xs font-semibold leading-5 text-black/56">
-                          {copy.mediaAccess.deskBody}
-                        </p>
-                      </div>
-                      <div className="border border-black/10 bg-[#f6f8f4] p-4">
-                        <ImageIcon className="size-5 text-[#16702e]" />
-                        <p className="mt-3 text-sm font-black text-[#111510]">
-                          {copy.mediaAccess.teaserReady}
-                        </p>
-                        <p className="mt-2 text-xs font-semibold leading-5 text-black/56">
-                          {copy.cropHelper}
-                        </p>
-                      </div>
-                      <div className="border border-black/10 bg-[#111510] p-4 text-white">
-                        <LockKeyhole className="size-5 text-[#44f26e]" />
-                        <p className="mt-3 text-sm font-black">
-                          {copy.mediaAccess.noVideo}
-                        </p>
-                        <p className="mt-2 text-xs font-semibold leading-5 text-white/60">
-                          {copy.mediaAccess.noVideoBody}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                    </section>
-
-                {selectedPreviewClipVideoUrl ? (
-                  <section className="border border-black/12 bg-[#111510] p-4 text-white shadow-[0_14px_34px_rgba(17,21,16,0.12)] sm:p-5">
-                    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.54fr)] lg:items-center">
-                      <div className="min-w-0">
-                        <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
-                          <Clapperboard className="size-3.5" />
-                          {copy.mediaAccess.previewVideo.badge}
-                        </p>
-                        <h2 className="mt-2 text-2xl font-black leading-tight tracking-normal [word-break:keep-all]">
-                          {copy.mediaAccess.previewVideo.title}
-                        </h2>
-                        <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-white/62 [word-break:keep-all]">
-                          {copy.mediaAccess.previewVideo.body}
-                        </p>
-                      </div>
-                      <div className="overflow-hidden border border-white/12 bg-black">
-                        {shouldBlurSelectedNsfwMedia ? (
-                          <div className="flex aspect-video min-h-[12rem] flex-col items-center justify-center p-5 text-center">
-                            <ShieldAlert className="size-7 text-[#44f26e]" />
-                            <p className="mt-3 text-sm font-black">
-                              {copy.mediaAccess.previewVideo.hiddenTitle}
+                      {isSelectedPaidLocked ? (
+                        <div className="mt-4 grid gap-3 rounded-lg border border-rose-500/16 bg-white/72 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold leading-6 text-rose-900/72">
+                              {copy.mediaAccess.lockedBody}
                             </p>
-                            <p className="mt-2 max-w-sm text-xs font-semibold leading-5 text-white/58">
-                              {copy.mediaAccess.previewVideo.hiddenBody}
+                            <p className="mt-2 text-xs font-bold leading-5 text-rose-900/50">
+                              {copy.mediaAccess.purchaseOnceBody}
                             </p>
                           </div>
-                        ) : (
-                          <video
-                            className="aspect-video min-h-[12rem] w-full bg-black object-contain"
-                            controls
-                            muted
-                            playsInline
-                            poster={
-                              selectedSource.coverImageUrl ??
-                              selectedCoverUrl ??
-                              undefined
-                            }
-                            preload="metadata"
-                            src={selectedPreviewClipVideoUrl}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </section>
-                ) : null}
-
-                {isSelectedPaidLocked ? (
-                  <FanletterPaidUnlockPanel
-                    autoOpenHash={`#${paidUnlockSectionId}`}
-                    connectHref={selectedConnectHref}
-                    contentId={selectedSource.contentId}
-                    contentImageCount={selectedSource.coverOptions.length}
-                    contentMaturityRating={selectedSource.contentMaturityRating}
-                    contentVideoCount={1}
-                    creatorHref={selectedCreatorHref}
-                    currentHref={selectedCurrentHref}
-                    hideInlinePanel
-                    initialBody={selectedSource.summary}
-                    initialCoverImageUrl={selectedSource.coverImageUrl}
-                    initialSummary={selectedSource.summary}
-                    initialTitle={selectedSource.title}
-                    locale={locale}
-                    onboardingHref={selectedOnboardingHref}
-                    priceUsdt={CONTENT_PAID_USDT_AMOUNT}
-                    referralCode={reporterReferralCode}
-                    showTeaserPreview={false}
-                    trackingSource="fanletter-news-report-composer"
-                  />
-                ) : null}
-
-                <section className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                    <div>
-                      <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
-                        {copy.teaserStep}
-                      </p>
-                      <h2 className="mt-1 text-2xl font-black">
-                        {isSelectedPaidLocked
-                          ? copy.mediaAccess.previewBeforePurchase
-                          : copy.chooseCover}
-                      </h2>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-white">
-                        <Clapperboard className="size-3.5 text-[#44f26e]" />
-                        {copy.imageOnly}
-                      </span>
-                      <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-[#19b84b]/20 bg-[#ecfff0] px-3 py-1.5 text-xs font-black text-[#16702e]">
-                        <RefreshCw className="size-3.5" />
-                        {copy.coverOrder}
-                      </span>
-                    </div>
-                  </div>
-
-                  {!isSelectedPaidLocked ? (
-                    <div className="mt-4 border border-[#19b84b]/18 bg-[#ecfff0] px-4 py-3">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                          <p className="text-sm font-black text-[#111510]">
-                            {copy.chooseTeasers}
-                          </p>
-                          <p className="mt-1 text-xs font-semibold leading-5 text-black/58">
-                            {copy.teaserSelection.body}
-                          </p>
-                        </div>
-                        <div className="flex shrink-0 flex-wrap gap-2">
-                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-black text-[#16702e] ring-1 ring-[#19b84b]/18">
-                            <ImageIcon className="size-3.5" />
-                            {copy.teaserSelection.limit(
-                              formatNumber(REPORT_TEASER_IMAGE_LIMIT, locale),
-                            )}
-                          </span>
-                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-white">
-                            <Crop className="size-3.5 text-[#44f26e]" />
-                            {copy.teaserSelection.ratio}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {isSelectedPaidLocked ? (
-                    <div className="mt-4 border border-rose-500/18 bg-rose-50 p-4 text-rose-900">
-                      <p className="inline-flex items-center gap-1.5 text-sm font-black">
-                        <LockKeyhole className="size-4" />
-                        {copy.mediaAccess.previewBeforePurchase}
-                      </p>
-                      <p className="mt-2 text-sm font-semibold leading-6 text-rose-900/70">
-                        {copy.mediaAccess.previewOnlyBody}
-                      </p>
-                    </div>
-                  ) : null}
-
-                  {selectedSource.coverOptions.length > 0 ? (
-                    <div className="mt-4 grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-3">
-                      {selectedSource.coverOptions.map((option, index) => {
-                        const isSelected = option.imageUrl === selectedCoverUrl;
-                        const isTeaserSelected = selectedTeaserUrls.includes(
-                          option.imageUrl,
-                        );
-                        const croppedTeaser =
-                          croppedTeaserBySourceUrl[option.imageUrl];
-                        const isTeaserLimitReached =
-                          !isTeaserSelected &&
-                          selectedTeaserUrls.length >= REPORT_TEASER_IMAGE_LIMIT;
-                        const imageSizeLabel = formatCoverOptionImageSize(
-                          option,
-                          locale,
-                        );
-                        const previewStyle = getCoverOptionPreviewStyle(option);
-
-                        return (
-                          <div
-                            className={cn(
-                              "min-w-0 overflow-hidden border bg-[#f6f8f4] p-1 text-left transition",
-                              isSelected
-                                ? "border-[#19b84b] bg-[#ecfff0] shadow-[0_0_0_1px_rgba(25,184,75,0.28)]"
-                                : "border-black/10 hover:border-[#19b84b]/45 hover:bg-white",
-                            )}
-                            key={`${option.candidateId}-${option.imageUrl}`}
+                          <FanletterPaidUnlockTrigger
+                            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white shadow-[0_10px_24px_rgba(17,21,16,0.16)]"
+                            href={paidUnlockHref}
                           >
-                            <button
-                              className="block w-full text-left"
-                              onClick={() => {
-                                selectCoverImage(option.imageUrl);
-                              }}
-                              type="button"
-                            >
-                              <span className="block overflow-hidden rounded-md bg-[#111510]">
-                                <span
-                                  className={cn(
-                                    "block min-h-[10rem] bg-contain bg-center bg-no-repeat transition",
-                                    shouldBlurSelectedNsfwMedia &&
-                                      "scale-[1.03] blur-md brightness-75",
-                                  )}
-                                  style={previewStyle}
-                                />
-                              </span>
-                              <span className="mt-2 flex items-start justify-between gap-2 px-1 pb-1">
-                                <span className="min-w-0">
-                                  <span className="block truncate text-xs font-black">
-                                    {getCoverLabel(option, index, locale)}
-                                  </span>
-                                  {imageSizeLabel ? (
-                                    <span className="mt-0.5 block truncate text-[0.64rem] font-black uppercase tracking-[0.06em] text-black/42">
-                                      {copy.imageSize} · {imageSizeLabel}
-                                    </span>
-                                  ) : null}
-                                </span>
-                                {isSelected ? (
-                                  <span
-                                    className={cn(
-                                      "shrink-0 rounded-full px-2 py-0.5 text-[0.62rem] font-black",
-                                      isSelectedPaidLocked
-                                        ? "bg-[#111510] text-white"
-                                        : "bg-[#44f26e] text-[#111510]",
-                                    )}
-                                  >
-                                    {isSelectedPaidLocked
-                                      ? copy.mediaAccess.previewBadge
-                                      : copy.selected}
-                                  </span>
-                                ) : null}
-                              </span>
-                            </button>
-                            {!isSelectedPaidLocked ? (
-                              <button
-                                className={cn(
-                                  "mt-1 flex h-9 w-full items-center justify-center gap-1.5 rounded-md border text-[0.7rem] font-black transition",
-                                  isTeaserSelected
-                                    ? "border-[#19b84b]/35 bg-[#111510] text-white"
-                                    : "border-black/10 bg-white text-black/56 hover:border-[#19b84b]/35 hover:text-[#111510]",
-                                  isTeaserLimitReached &&
-                                    "cursor-not-allowed opacity-45 hover:border-black/10 hover:text-black/56",
+                            {copy.mediaAccess.openPurchase}
+                            <ArrowRight className="size-4 text-[#44f26e]" />
+                          </FanletterPaidUnlockTrigger>
+                        </div>
+                      ) : (
+                        <div className="mt-4 grid gap-3 md:grid-cols-3">
+                          <div className="border border-[#19b84b]/18 bg-[#ecfff0] p-4">
+                            <FileText className="size-5 text-[#16702e]" />
+                            <p className="mt-3 text-sm font-black text-[#111510]">
+                              {copy.mediaAccess.ready}
+                            </p>
+                            <p className="mt-2 text-xs font-semibold leading-5 text-black/56">
+                              {copy.mediaAccess.deskBody}
+                            </p>
+                          </div>
+                          <div className="border border-black/10 bg-[#f6f8f4] p-4">
+                            <ImageIcon className="size-5 text-[#16702e]" />
+                            <p className="mt-3 text-sm font-black text-[#111510]">
+                              {copy.mediaAccess.teaserReady}
+                            </p>
+                            <p className="mt-2 text-xs font-semibold leading-5 text-black/56">
+                              {copy.cropHelper}
+                            </p>
+                          </div>
+                          <div className="border border-black/10 bg-[#111510] p-4 text-white">
+                            <LockKeyhole className="size-5 text-[#44f26e]" />
+                            <p className="mt-3 text-sm font-black">
+                              {copy.mediaAccess.noVideo}
+                            </p>
+                            <p className="mt-2 text-xs font-semibold leading-5 text-white/60">
+                              {copy.mediaAccess.noVideoBody}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </section>
+
+                    {selectedPreviewClipVideoUrl ? (
+                      <section className="border border-black/12 bg-[#111510] p-4 text-white shadow-[0_14px_34px_rgba(17,21,16,0.12)] sm:p-5">
+                        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(16rem,0.54fr)] lg:items-center">
+                          <div className="min-w-0">
+                            <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
+                              <Clapperboard className="size-3.5" />
+                              {copy.mediaAccess.previewVideo.badge}
+                            </p>
+                            <h2 className="mt-2 text-2xl font-black leading-tight tracking-normal [word-break:keep-all]">
+                              {copy.mediaAccess.previewVideo.title}
+                            </h2>
+                            <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-white/62 [word-break:keep-all]">
+                              {copy.mediaAccess.previewVideo.body}
+                            </p>
+                          </div>
+                          <div className="overflow-hidden border border-white/12 bg-black">
+                            {shouldBlurSelectedNsfwMedia ? (
+                              <div className="flex aspect-video min-h-[12rem] flex-col items-center justify-center p-5 text-center">
+                                <ShieldAlert className="size-7 text-[#44f26e]" />
+                                <p className="mt-3 text-sm font-black">
+                                  {copy.mediaAccess.previewVideo.hiddenTitle}
+                                </p>
+                                <p className="mt-2 max-w-sm text-xs font-semibold leading-5 text-white/58">
+                                  {copy.mediaAccess.previewVideo.hiddenBody}
+                                </p>
+                              </div>
+                            ) : (
+                              <video
+                                className="aspect-video min-h-[12rem] w-full bg-black object-contain"
+                                controls
+                                muted
+                                playsInline
+                                poster={
+                                  selectedSource.coverImageUrl ??
+                                  selectedCoverUrl ??
+                                  undefined
+                                }
+                                preload="metadata"
+                                src={selectedPreviewClipVideoUrl}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      </section>
+                    ) : null}
+
+                    {isSelectedPaidLocked ? (
+                      <FanletterPaidUnlockPanel
+                        autoOpenHash={`#${paidUnlockSectionId}`}
+                        connectHref={selectedConnectHref}
+                        contentId={selectedSource.contentId}
+                        contentImageCount={selectedSource.coverOptions.length}
+                        contentMaturityRating={
+                          selectedSource.contentMaturityRating
+                        }
+                        contentVideoCount={1}
+                        creatorHref={selectedCreatorHref}
+                        currentHref={selectedCurrentHref}
+                        hideInlinePanel
+                        initialBody={selectedSource.summary}
+                        initialCoverImageUrl={selectedSource.coverImageUrl}
+                        initialSummary={selectedSource.summary}
+                        initialTitle={selectedSource.title}
+                        locale={locale}
+                        onboardingHref={selectedOnboardingHref}
+                        priceUsdt={CONTENT_PAID_USDT_AMOUNT}
+                        referralCode={reporterReferralCode}
+                        showTeaserPreview={false}
+                        trackingSource="fanletter-news-report-composer"
+                      />
+                    ) : null}
+
+                    <section className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                          <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                            {copy.teaserStep}
+                          </p>
+                          <h2 className="mt-1 text-2xl font-black">
+                            {isSelectedPaidLocked
+                              ? copy.mediaAccess.previewBeforePurchase
+                              : copy.chooseCover}
+                          </h2>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-white">
+                            <Clapperboard className="size-3.5 text-[#44f26e]" />
+                            {copy.imageOnly}
+                          </span>
+                          <span className="inline-flex w-fit items-center gap-1.5 rounded-full border border-[#19b84b]/20 bg-[#ecfff0] px-3 py-1.5 text-xs font-black text-[#16702e]">
+                            <RefreshCw className="size-3.5" />
+                            {copy.coverOrder}
+                          </span>
+                        </div>
+                      </div>
+
+                      {!isSelectedPaidLocked ? (
+                        <div className="mt-4 border border-[#19b84b]/18 bg-[#ecfff0] px-4 py-3">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                              <p className="text-sm font-black text-[#111510]">
+                                {copy.chooseTeasers}
+                              </p>
+                              <p className="mt-1 text-xs font-semibold leading-5 text-black/58">
+                                {copy.teaserSelection.body}
+                              </p>
+                            </div>
+                            <div className="flex shrink-0 flex-wrap gap-2">
+                              <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-black text-[#16702e] ring-1 ring-[#19b84b]/18">
+                                <ImageIcon className="size-3.5" />
+                                {copy.teaserSelection.limit(
+                                  formatNumber(
+                                    REPORT_TEASER_IMAGE_LIMIT,
+                                    locale,
+                                  ),
                                 )}
-                                disabled={isTeaserLimitReached}
+                              </span>
+                              <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-white">
+                                {teaserMode === "auto" ? (
+                                  <Sparkles className="size-3.5 text-[#44f26e]" />
+                                ) : (
+                                  <Crop className="size-3.5 text-[#44f26e]" />
+                                )}
+                                {teaserMode === "auto"
+                                  ? copy.teaserSelection.autoReady(
+                                      formatNumber(activeTeaserCount, locale),
+                                    )
+                                  : copy.teaserSelection.ratio}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="mt-3">
+                            <p className="text-[0.68rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
+                              {copy.teaserSelection.modeLabel}
+                            </p>
+                            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                              {(
+                                [
+                                  {
+                                    icon: Crop,
+                                    label: copy.teaserSelection.manualMode,
+                                    value: "manual" as const,
+                                  },
+                                  {
+                                    icon: Sparkles,
+                                    label: copy.teaserSelection.autoMode,
+                                    value: "auto" as const,
+                                  },
+                                ] satisfies Array<{
+                                  icon: typeof Crop;
+                                  label: string;
+                                  value: FanletterNewsReportTeaserMode;
+                                }>
+                              ).map((item) => {
+                                const Icon = item.icon;
+                                const isActive = teaserMode === item.value;
+
+                                return (
+                                  <button
+                                    className={cn(
+                                      "flex min-h-11 items-center justify-center gap-2 rounded-full border px-4 py-2 text-sm font-black transition",
+                                      isActive
+                                        ? "border-[#111510] bg-[#111510] text-white shadow-[0_12px_28px_rgba(17,21,16,0.18)]"
+                                        : "border-[#19b84b]/18 bg-white text-black/56 hover:border-[#19b84b]/38 hover:text-[#111510]",
+                                    )}
+                                    key={item.value}
+                                    onClick={() => {
+                                      setTeaserMode(item.value);
+                                    }}
+                                    type="button"
+                                  >
+                                    <Icon
+                                      className={cn(
+                                        "size-4",
+                                        isActive
+                                          ? "text-[#44f26e]"
+                                          : "text-[#16702e]",
+                                      )}
+                                    />
+                                    <span>{item.label}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <p className="mt-2 text-xs font-semibold leading-5 text-black/58">
+                              {teaserMode === "auto"
+                                ? copy.teaserSelection.autoModeBody
+                                : copy.teaserSelection.manualModeBody}
+                            </p>
+                          </div>
+                        </div>
+                      ) : null}
+
+                      {isSelectedPaidLocked ? (
+                        <div className="mt-4 border border-rose-500/18 bg-rose-50 p-4 text-rose-900">
+                          <p className="inline-flex items-center gap-1.5 text-sm font-black">
+                            <LockKeyhole className="size-4" />
+                            {copy.mediaAccess.previewBeforePurchase}
+                          </p>
+                          <p className="mt-2 text-sm font-semibold leading-6 text-rose-900/70">
+                            {copy.mediaAccess.previewOnlyBody}
+                          </p>
+                        </div>
+                      ) : null}
+
+                      {selectedSource.coverOptions.length > 0 ? (
+                        <div className="mt-4 grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-3">
+                          {selectedSource.coverOptions.map((option, index) => {
+                            const isSelected =
+                              option.imageUrl === selectedCoverUrl;
+                            const isTeaserSelected =
+                              selectedTeaserUrls.includes(option.imageUrl);
+                            const croppedTeaser =
+                              croppedTeaserBySourceUrl[option.imageUrl];
+                            const isTeaserLimitReached =
+                              !isTeaserSelected &&
+                              selectedTeaserUrls.length >=
+                                REPORT_TEASER_IMAGE_LIMIT;
+                            const imageSizeLabel = formatCoverOptionImageSize(
+                              option,
+                              locale,
+                            );
+                            const previewStyle =
+                              getCoverOptionPreviewStyle(option);
+
+                            return (
+                              <div
+                                className={cn(
+                                  "min-w-0 overflow-hidden border bg-[#f6f8f4] p-1 text-left transition",
+                                  isSelected
+                                    ? "border-[#19b84b] bg-[#ecfff0] shadow-[0_0_0_1px_rgba(25,184,75,0.28)]"
+                                    : "border-black/10 hover:border-[#19b84b]/45 hover:bg-white",
+                                )}
+                                key={`${option.candidateId}-${option.imageUrl}`}
+                              >
+                                <button
+                                  className="block w-full text-left"
+                                  onClick={() => {
+                                    selectCoverImage(option.imageUrl);
+                                  }}
+                                  type="button"
+                                >
+                                  <span className="block overflow-hidden rounded-md bg-[#111510]">
+                                    <span
+                                      className={cn(
+                                        "block min-h-[10rem] bg-contain bg-center bg-no-repeat transition",
+                                        shouldBlurSelectedNsfwMedia &&
+                                          "scale-[1.03] blur-md brightness-75",
+                                      )}
+                                      style={previewStyle}
+                                    />
+                                  </span>
+                                  <span className="mt-2 flex items-start justify-between gap-2 px-1 pb-1">
+                                    <span className="min-w-0">
+                                      <span className="block truncate text-xs font-black">
+                                        {getCoverLabel(option, index, locale)}
+                                      </span>
+                                      {imageSizeLabel ? (
+                                        <span className="mt-0.5 block truncate text-[0.64rem] font-black uppercase tracking-[0.06em] text-black/42">
+                                          {copy.imageSize} · {imageSizeLabel}
+                                        </span>
+                                      ) : null}
+                                    </span>
+                                    {isSelected ? (
+                                      <span
+                                        className={cn(
+                                          "shrink-0 rounded-full px-2 py-0.5 text-[0.62rem] font-black",
+                                          isSelectedPaidLocked
+                                            ? "bg-[#111510] text-white"
+                                            : "bg-[#44f26e] text-[#111510]",
+                                        )}
+                                      >
+                                        {isSelectedPaidLocked
+                                          ? copy.mediaAccess.previewBadge
+                                          : copy.selected}
+                                      </span>
+                                    ) : null}
+                                  </span>
+                                </button>
+                                {!isSelectedPaidLocked &&
+                                teaserMode === "manual" ? (
+                                  <button
+                                    className={cn(
+                                      "mt-1 flex h-9 w-full items-center justify-center gap-1.5 rounded-md border text-[0.7rem] font-black transition",
+                                      isTeaserSelected
+                                        ? "border-[#19b84b]/35 bg-[#111510] text-white"
+                                        : "border-black/10 bg-white text-black/56 hover:border-[#19b84b]/35 hover:text-[#111510]",
+                                      isTeaserLimitReached &&
+                                        "cursor-not-allowed opacity-45 hover:border-black/10 hover:text-black/56",
+                                    )}
+                                    disabled={isTeaserLimitReached}
+                                    onClick={() => {
+                                      toggleTeaserImage(option.imageUrl);
+                                    }}
+                                    type="button"
+                                  >
+                                    {isTeaserSelected ? (
+                                      <CheckCircle2 className="size-3.5 text-[#44f26e]" />
+                                    ) : (
+                                      <ImageIcon className="size-3.5 text-[#16702e]" />
+                                    )}
+                                    {isTeaserSelected
+                                      ? copy.teaserSelection.included
+                                      : copy.teaserSelection.include}
+                                  </button>
+                                ) : null}
+                                {croppedTeaser &&
+                                isTeaserSelected &&
+                                teaserMode === "manual" ? (
+                                  <div className="mt-2 rounded-md border border-[#19b84b]/22 bg-white p-2">
+                                    <div className="flex items-center gap-2">
+                                      <span
+                                        className="block aspect-[9/16] h-16 shrink-0 rounded bg-[#111510] bg-cover bg-center"
+                                        style={{
+                                          backgroundImage: `url(${croppedTeaser.imageUrl})`,
+                                        }}
+                                      />
+                                      <div className="min-w-0 flex-1">
+                                        <p className="truncate text-[0.68rem] font-black text-[#16702e]">
+                                          {copy.teaserCrop.saved}
+                                        </p>
+                                        <button
+                                          className="mt-1 text-[0.66rem] font-black text-black/48 underline underline-offset-2 transition hover:text-[#111510]"
+                                          onClick={() => {
+                                            removeCroppedTeaserImage(
+                                              option.imageUrl,
+                                            );
+                                          }}
+                                          type="button"
+                                        >
+                                          {copy.teaserCrop.remove}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : null}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="mt-4 border border-dashed border-black/14 bg-[#f6f8f4] px-4 py-5 text-sm font-semibold text-black/54">
+                          {copy.noCover}
+                        </p>
+                      )}
+                    </section>
+
+                    {!isSelectedPaidLocked && selectedCoverUrl ? (
+                      <section className="border border-black/12 bg-[#111510] p-4 text-white shadow-[0_14px_34px_rgba(17,21,16,0.12)] sm:p-5">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                          <div>
+                            <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
+                              <Crop className="size-3.5" />
+                              {copy.cropStep}
+                            </p>
+                            <h2 className="mt-2 text-2xl font-black">
+                              {copy.cropTitle}
+                            </h2>
+                            <p className="mt-2 text-sm font-semibold leading-6 text-white/58">
+                              {copy.cropHelper}
+                            </p>
+                          </div>
+                          {selectedCoverOption ? (
+                            <span className="rounded-full border border-white/12 bg-white/[0.06] px-3 py-1.5 text-xs font-black text-white/62">
+                              {selectedCoverOption.source}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.58fr)]">
+                          <div className="min-w-0">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <p className="text-sm font-black">
+                                  {copy.teaserCrop.coverTitle}
+                                </p>
+                                <p className="mt-1 text-xs font-semibold leading-5 text-white/52">
+                                  {copy.teaserCrop.coverBody}
+                                </p>
+                              </div>
+                              <span className="inline-flex w-fit items-center rounded-full border border-white/12 bg-white/[0.06] px-3 py-1.5 text-xs font-black text-[#44f26e]">
+                                16:9
+                              </span>
+                            </div>
+                            <div
+                              className="relative mt-3 aspect-video min-h-[13rem] cursor-grab touch-none overflow-hidden border border-white/12 bg-black/40 active:cursor-grabbing"
+                              onPointerCancel={handleCropPointerEnd}
+                              onPointerDown={handleCropPointerDown}
+                              onPointerMove={handleCropPointerMove}
+                              onPointerUp={handleCropPointerEnd}
+                              ref={cropFrameRef}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                alt=""
+                                aria-hidden="true"
+                                className={cn(
+                                  "absolute max-w-none select-none object-cover",
+                                  shouldBlurSelectedNsfwMedia && "blur-md",
+                                )}
+                                crossOrigin="anonymous"
+                                draggable={false}
+                                onLoad={(event) => {
+                                  const image = event.currentTarget;
+
+                                  if (
+                                    image.naturalWidth &&
+                                    image.naturalHeight
+                                  ) {
+                                    setNaturalSize({
+                                      height: image.naturalHeight,
+                                      width: image.naturalWidth,
+                                    });
+                                  }
+                                }}
+                                src={selectedCoverUrl}
+                                style={
+                                  previewImageStyle ?? {
+                                    height: "100%",
+                                    left: 0,
+                                    top: 0,
+                                    width: "100%",
+                                  }
+                                }
+                              />
+                              <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/26" />
+                              <div className="pointer-events-none absolute inset-x-0 top-1/3 border-t border-white/16" />
+                              <div className="pointer-events-none absolute inset-x-0 top-2/3 border-t border-white/16" />
+                              <div className="pointer-events-none absolute inset-y-0 left-1/3 border-l border-white/16" />
+                              <div className="pointer-events-none absolute inset-y-0 left-2/3 border-l border-white/16" />
+                            </div>
+                          </div>
+                          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+                            <div className="border border-white/10 bg-white/[0.045] p-3">
+                              <div className="flex items-center justify-between gap-3">
+                                <span className="text-xs font-black text-white/62">
+                                  {copy.zoom}
+                                </span>
+                                <span className="text-xs font-black text-[#44f26e]">
+                                  {crop.zoom.toFixed(2)}x
+                                </span>
+                              </div>
+                              <input
+                                aria-label={`${copy.teaserCrop.coverTitle} ${copy.zoom}`}
+                                className="mt-3 w-full accent-[#44f26e]"
+                                max={REPORT_COVER_CROP_MAX_ZOOM}
+                                min={1}
+                                onChange={(event) => {
+                                  setCrop((current) => ({
+                                    ...current,
+                                    zoom: Number(event.target.value),
+                                  }));
+                                }}
+                                step={0.01}
+                                type="range"
+                                value={crop.zoom}
+                              />
+                              <button
+                                className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/12 text-xs font-black text-white/62 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
                                 onClick={() => {
-                                  toggleTeaserImage(option.imageUrl);
+                                  setCrop(DEFAULT_REPORT_COVER_CROP);
                                 }}
                                 type="button"
                               >
-                                {isTeaserSelected ? (
-                                  <CheckCircle2 className="size-3.5 text-[#44f26e]" />
-                                ) : (
-                                  <ImageIcon className="size-3.5 text-[#16702e]" />
-                                )}
-                                {isTeaserSelected
-                                  ? copy.teaserSelection.included
-                                  : copy.teaserSelection.include}
+                                <RefreshCw className="size-3.5" />
+                                {copy.reset}
                               </button>
-                            ) : null}
-                            {croppedTeaser && isTeaserSelected ? (
-                              <div className="mt-2 rounded-md border border-[#19b84b]/22 bg-white p-2">
-                                <div className="flex items-center gap-2">
-                                  <span
-                                    className="block aspect-[9/16] h-16 shrink-0 rounded bg-[#111510] bg-cover bg-center"
-                                    style={{
-                                      backgroundImage: `url(${croppedTeaser.imageUrl})`,
-                                    }}
-                                  />
-                                  <div className="min-w-0 flex-1">
-                                    <p className="truncate text-[0.68rem] font-black text-[#16702e]">
-                                      {copy.teaserCrop.saved}
+                            </div>
+
+                            {teaserMode === "manual" ? (
+                              <div className="border border-[#44f26e]/22 bg-[#44f26e]/[0.07] p-3">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-black">
+                                      {copy.teaserCrop.teaserTitle}
                                     </p>
-                                    <button
-                                      className="mt-1 text-[0.66rem] font-black text-black/48 underline underline-offset-2 transition hover:text-[#111510]"
-                                      onClick={() => {
-                                        removeCroppedTeaserImage(option.imageUrl);
-                                      }}
-                                      type="button"
-                                    >
-                                      {copy.teaserCrop.remove}
-                                    </button>
+                                    <p className="mt-1 text-xs font-semibold leading-5 text-white/58">
+                                      {copy.teaserCrop.teaserBody}
+                                    </p>
                                   </div>
+                                  <span className="shrink-0 rounded-full bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
+                                    9:16
+                                  </span>
                                 </div>
+                                <div
+                                  className="relative mx-auto mt-3 aspect-[9/16] w-full max-w-[12.5rem] cursor-grab touch-none overflow-hidden border border-white/12 bg-black/40 active:cursor-grabbing"
+                                  onPointerCancel={handleCropPointerEnd}
+                                  onPointerDown={handleTeaserCropPointerDown}
+                                  onPointerMove={handleCropPointerMove}
+                                  onPointerUp={handleCropPointerEnd}
+                                  ref={teaserCropFrameRef}
+                                >
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    alt=""
+                                    aria-hidden="true"
+                                    className={cn(
+                                      "absolute max-w-none select-none object-cover",
+                                      shouldBlurSelectedNsfwMedia && "blur-md",
+                                    )}
+                                    crossOrigin="anonymous"
+                                    draggable={false}
+                                    src={selectedCoverUrl}
+                                    style={
+                                      teaserPreviewImageStyle ?? {
+                                        height: "100%",
+                                        left: 0,
+                                        top: 0,
+                                        width: "100%",
+                                      }
+                                    }
+                                  />
+                                  <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/26" />
+                                  <div className="pointer-events-none absolute inset-x-0 top-1/3 border-t border-white/16" />
+                                  <div className="pointer-events-none absolute inset-x-0 top-2/3 border-t border-white/16" />
+                                  <div className="pointer-events-none absolute inset-y-0 left-1/3 border-l border-white/16" />
+                                  <div className="pointer-events-none absolute inset-y-0 left-2/3 border-l border-white/16" />
+                                </div>
+                                <p className="mt-2 text-center text-[0.68rem] font-black text-[#44f26e]">
+                                  {copy.teaserCrop.previewTitle}
+                                </p>
+                                <div className="mt-3 flex items-center justify-between gap-3">
+                                  <span className="text-xs font-black text-white/62">
+                                    {copy.zoom}
+                                  </span>
+                                  <span className="text-xs font-black text-[#44f26e]">
+                                    {teaserCrop.zoom.toFixed(2)}x
+                                  </span>
+                                </div>
+                                <input
+                                  aria-label={`${copy.teaserCrop.teaserTitle} ${copy.zoom}`}
+                                  className="mt-3 w-full accent-[#44f26e]"
+                                  max={REPORT_COVER_CROP_MAX_ZOOM}
+                                  min={1}
+                                  onChange={(event) => {
+                                    setTeaserCrop((current) => ({
+                                      ...current,
+                                      zoom: Number(event.target.value),
+                                    }));
+                                  }}
+                                  step={0.01}
+                                  type="range"
+                                  value={teaserCrop.zoom}
+                                />
+                                <button
+                                  className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/12 text-xs font-black text-white/62 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
+                                  onClick={() => {
+                                    setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
+                                  }}
+                                  type="button"
+                                >
+                                  <RefreshCw className="size-3.5" />
+                                  {copy.reset}
+                                </button>
+                                <button
+                                  className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#44f26e] px-3 text-xs font-black text-black transition hover:bg-[#65ff87] disabled:cursor-not-allowed disabled:opacity-60"
+                                  disabled={teaserCropStatus === "saving"}
+                                  onClick={saveCroppedTeaserImage}
+                                  type="button"
+                                >
+                                  {teaserCropStatus === "saving" ? (
+                                    <Loader2 className="size-3.5 animate-spin" />
+                                  ) : (
+                                    <ImageIcon className="size-3.5" />
+                                  )}
+                                  {teaserCropStatus === "saving"
+                                    ? copy.teaserCrop.saving
+                                    : copy.teaserCrop.save}
+                                </button>
                               </div>
-                            ) : null}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p className="mt-4 border border-dashed border-black/14 bg-[#f6f8f4] px-4 py-5 text-sm font-semibold text-black/54">
-                      {copy.noCover}
-                    </p>
-                  )}
-                </section>
-
-                {!isSelectedPaidLocked && selectedCoverUrl ? (
-                  <section className="border border-black/12 bg-[#111510] p-4 text-white shadow-[0_14px_34px_rgba(17,21,16,0.12)] sm:p-5">
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                      <div>
-                        <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
-                          <Crop className="size-3.5" />
-                          {copy.cropStep}
-                        </p>
-                        <h2 className="mt-2 text-2xl font-black">
-                          {copy.cropTitle}
-                        </h2>
-                        <p className="mt-2 text-sm font-semibold leading-6 text-white/58">
-                          {copy.cropHelper}
-                        </p>
-                      </div>
-                      {selectedCoverOption ? (
-                        <span className="rounded-full border border-white/12 bg-white/[0.06] px-3 py-1.5 text-xs font-black text-white/62">
-                          {selectedCoverOption.source}
-                        </span>
-                      ) : null}
-                    </div>
-                    <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(18rem,0.58fr)]">
-                      <div className="min-w-0">
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                          <div>
-                            <p className="text-sm font-black">
-                              {copy.teaserCrop.coverTitle}
-                            </p>
-                            <p className="mt-1 text-xs font-semibold leading-5 text-white/52">
-                              {copy.teaserCrop.coverBody}
-                            </p>
-                          </div>
-                          <span className="inline-flex w-fit items-center rounded-full border border-white/12 bg-white/[0.06] px-3 py-1.5 text-xs font-black text-[#44f26e]">
-                            16:9
-                          </span>
-                        </div>
-                        <div
-                          className="relative mt-3 aspect-video min-h-[13rem] cursor-grab touch-none overflow-hidden border border-white/12 bg-black/40 active:cursor-grabbing"
-                          onPointerCancel={handleCropPointerEnd}
-                          onPointerDown={handleCropPointerDown}
-                          onPointerMove={handleCropPointerMove}
-                          onPointerUp={handleCropPointerEnd}
-                          ref={cropFrameRef}
-                        >
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
-                            alt=""
-                            aria-hidden="true"
-                            className={cn(
-                              "absolute max-w-none select-none object-cover",
-                              shouldBlurSelectedNsfwMedia && "blur-md",
+                            ) : (
+                              <div className="border border-[#44f26e]/22 bg-[#44f26e]/[0.07] p-3">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <p className="inline-flex items-center gap-1.5 text-sm font-black">
+                                      <Sparkles className="size-4 text-[#44f26e]" />
+                                      {copy.teaserSelection.autoCropTitle}
+                                    </p>
+                                    <p className="mt-1 text-xs font-semibold leading-5 text-white/58">
+                                      {copy.teaserSelection.autoCropBody}
+                                    </p>
+                                  </div>
+                                  <span className="shrink-0 rounded-full bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
+                                    9:16
+                                  </span>
+                                </div>
+                                {autoTeaserCandidateUrls.length > 0 ? (
+                                  <div className="mt-4 grid grid-cols-4 gap-2">
+                                    {autoTeaserCandidateUrls
+                                      .slice(0, REPORT_TEASER_IMAGE_LIMIT)
+                                      .map((imageUrl, index) => (
+                                        <span
+                                          className="relative block aspect-[9/16] overflow-hidden rounded-md border border-white/12 bg-black/40"
+                                          key={`${imageUrl}-${index}`}
+                                        >
+                                          <span
+                                            className={cn(
+                                              "block size-full bg-cover bg-center",
+                                              shouldBlurSelectedNsfwMedia &&
+                                                "scale-[1.03] blur-sm brightness-75",
+                                            )}
+                                            style={{
+                                              backgroundImage: `url(${imageUrl})`,
+                                            }}
+                                          />
+                                          <span className="absolute left-1 top-1 rounded-full bg-black/72 px-1.5 py-0.5 text-[0.58rem] font-black text-[#44f26e]">
+                                            {formatNumber(index + 1, locale)}
+                                          </span>
+                                        </span>
+                                      ))}
+                                  </div>
+                                ) : null}
+                                <p className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs font-black text-[#44f26e]">
+                                  {copy.teaserSelection.autoReady(
+                                    formatNumber(activeTeaserCount, locale),
+                                  )}
+                                </p>
+                              </div>
                             )}
-                            crossOrigin="anonymous"
-                            draggable={false}
-                            onLoad={(event) => {
-                              const image = event.currentTarget;
-
-                              if (image.naturalWidth && image.naturalHeight) {
-                                setNaturalSize({
-                                  height: image.naturalHeight,
-                                  width: image.naturalWidth,
-                                });
-                              }
-                            }}
-                            src={selectedCoverUrl}
-                            style={
-                              previewImageStyle ?? {
-                                height: "100%",
-                                left: 0,
-                                top: 0,
-                                width: "100%",
-                              }
-                            }
-                          />
-                          <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/26" />
-                          <div className="pointer-events-none absolute inset-x-0 top-1/3 border-t border-white/16" />
-                          <div className="pointer-events-none absolute inset-x-0 top-2/3 border-t border-white/16" />
-                          <div className="pointer-events-none absolute inset-y-0 left-1/3 border-l border-white/16" />
-                          <div className="pointer-events-none absolute inset-y-0 left-2/3 border-l border-white/16" />
-                        </div>
-                      </div>
-                      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
-                        <div className="border border-white/10 bg-white/[0.045] p-3">
-                          <div className="flex items-center justify-between gap-3">
-                            <span className="text-xs font-black text-white/62">
-                              {copy.zoom}
-                            </span>
-                            <span className="text-xs font-black text-[#44f26e]">
-                              {crop.zoom.toFixed(2)}x
-                            </span>
                           </div>
-                          <input
-                            aria-label={`${copy.teaserCrop.coverTitle} ${copy.zoom}`}
-                            className="mt-3 w-full accent-[#44f26e]"
-                            max={REPORT_COVER_CROP_MAX_ZOOM}
-                            min={1}
-                            onChange={(event) => {
-                              setCrop((current) => ({
-                                ...current,
-                                zoom: Number(event.target.value),
-                              }));
-                            }}
-                            step={0.01}
-                            type="range"
-                            value={crop.zoom}
-                          />
-                          <button
-                            className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/12 text-xs font-black text-white/62 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
-                            onClick={() => {
-                              setCrop(DEFAULT_REPORT_COVER_CROP);
-                            }}
-                            type="button"
-                          >
-                            <RefreshCw className="size-3.5" />
-                            {copy.reset}
-                          </button>
                         </div>
+                      </section>
+                    ) : null}
 
-                        <div className="border border-[#44f26e]/22 bg-[#44f26e]/[0.07] p-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-sm font-black">
-                                {copy.teaserCrop.teaserTitle}
+                    {!isSelectedPaidLocked ? (
+                      <section className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
+                        <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                          5. Reporter note
+                        </p>
+                        <h2 className="mt-1 text-2xl font-black">
+                          {copy.angleLabel}
+                        </h2>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {copy.angles.map((item) => {
+                            const isRecommendedAngle =
+                              item === selectedRecommendedAngle;
+
+                            return (
+                              <button
+                                className={cn(
+                                  "inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-black transition",
+                                  item === angle
+                                    ? "border-[#111510] bg-[#111510] text-white"
+                                    : "border-black/10 bg-[#f6f8f4] text-black/58 hover:border-[#19b84b] hover:text-[#111510]",
+                                )}
+                                key={item}
+                                onClick={() => {
+                                  setAngle(item);
+                                }}
+                                type="button"
+                              >
+                                <span>{item}</span>
+                                {isRecommendedAngle ? (
+                                  <span
+                                    className={cn(
+                                      "rounded-full px-1.5 py-0.5 text-[0.56rem]",
+                                      item === angle
+                                        ? "bg-[#44f26e] text-[#111510]"
+                                        : "bg-white text-[#16702e] ring-1 ring-[#19b84b]/20",
+                                    )}
+                                  >
+                                    {copy.recommendedAngle}
+                                  </span>
+                                ) : null}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <label className="mt-4 block">
+                          <span className="text-sm font-black">
+                            {copy.commentLabel}
+                          </span>
+                          <textarea
+                            className="mt-2 min-h-28 w-full resize-y border border-black/12 bg-[#f6f8f4] px-3 py-3 text-sm font-semibold leading-6 outline-none transition placeholder:text-black/30 focus:border-[#19b84b] focus:bg-white"
+                            maxLength={REPORTER_COMMENT_MAX_LENGTH}
+                            onChange={(event) => {
+                              setReporterComment(event.target.value);
+                            }}
+                            placeholder={copy.commentPlaceholder}
+                            value={reporterComment}
+                          />
+                        </label>
+                        <div className="mt-2 flex items-center justify-between gap-3 text-xs font-semibold text-black/42">
+                          <p>{copy.commentHelper}</p>
+                          <p>
+                            {formatNumber(reporterComment.length, locale)}/
+                            {formatNumber(REPORTER_COMMENT_MAX_LENGTH, locale)}
+                          </p>
+                        </div>
+                        <div className="mt-5 border border-[#19b84b]/18 bg-[#ecfff0] px-4 py-3">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <p className="inline-flex items-center gap-1.5 text-sm font-black text-[#16702e]">
+                                <CheckCircle2 className="size-4" />
+                                {copy.publishReadiness.title}
                               </p>
-                              <p className="mt-1 text-xs font-semibold leading-5 text-white/58">
-                                {copy.teaserCrop.teaserBody}
+                              <p className="mt-1 text-xs font-semibold leading-5 text-black/58">
+                                {copy.publishReadiness.body}
                               </p>
                             </div>
-                            <span className="shrink-0 rounded-full bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
-                              9:16
-                            </span>
-                          </div>
-                          <div
-                            className="relative mx-auto mt-3 aspect-[9/16] w-full max-w-[12.5rem] cursor-grab touch-none overflow-hidden border border-white/12 bg-black/40 active:cursor-grabbing"
-                            onPointerCancel={handleCropPointerEnd}
-                            onPointerDown={handleTeaserCropPointerDown}
-                            onPointerMove={handleCropPointerMove}
-                            onPointerUp={handleCropPointerEnd}
-                            ref={teaserCropFrameRef}
-                          >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              alt=""
-                              aria-hidden="true"
+                            <span
                               className={cn(
-                                "absolute max-w-none select-none object-cover",
-                                shouldBlurSelectedNsfwMedia && "blur-md",
+                                "inline-flex w-fit shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-black",
+                                canSubmit
+                                  ? "bg-[#111510] text-white"
+                                  : "bg-white text-black/46 ring-1 ring-black/10",
                               )}
-                              crossOrigin="anonymous"
-                              draggable={false}
-                              src={selectedCoverUrl}
-                              style={
-                                teaserPreviewImageStyle ?? {
-                                  height: "100%",
-                                  left: 0,
-                                  top: 0,
-                                  width: "100%",
-                                }
-                              }
-                            />
-                            <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/26" />
-                            <div className="pointer-events-none absolute inset-x-0 top-1/3 border-t border-white/16" />
-                            <div className="pointer-events-none absolute inset-x-0 top-2/3 border-t border-white/16" />
-                            <div className="pointer-events-none absolute inset-y-0 left-1/3 border-l border-white/16" />
-                            <div className="pointer-events-none absolute inset-y-0 left-2/3 border-l border-white/16" />
-                          </div>
-                          <p className="mt-2 text-center text-[0.68rem] font-black text-[#44f26e]">
-                            {copy.teaserCrop.previewTitle}
-                          </p>
-                          <div className="mt-3 flex items-center justify-between gap-3">
-                            <span className="text-xs font-black text-white/62">
-                              {copy.zoom}
-                            </span>
-                            <span className="text-xs font-black text-[#44f26e]">
-                              {teaserCrop.zoom.toFixed(2)}x
+                            >
+                              {canSubmit
+                                ? copy.publishReadiness.statusReady
+                                : copy.publishReadiness.statusWaiting}
                             </span>
                           </div>
-                          <input
-                            aria-label={`${copy.teaserCrop.teaserTitle} ${copy.zoom}`}
-                            className="mt-3 w-full accent-[#44f26e]"
-                            max={REPORT_COVER_CROP_MAX_ZOOM}
-                            min={1}
-                            onChange={(event) => {
-                              setTeaserCrop((current) => ({
-                                ...current,
-                                zoom: Number(event.target.value),
-                              }));
-                            }}
-                            step={0.01}
-                            type="range"
-                            value={teaserCrop.zoom}
-                          />
-                          <button
-                            className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/12 text-xs font-black text-white/62 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
-                            onClick={() => {
-                              setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
-                            }}
-                            type="button"
-                          >
-                            <RefreshCw className="size-3.5" />
-                            {copy.reset}
-                          </button>
-                          <button
-                            className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#44f26e] px-3 text-xs font-black text-black transition hover:bg-[#65ff87] disabled:cursor-not-allowed disabled:opacity-60"
-                            disabled={teaserCropStatus === "saving"}
-                            onClick={saveCroppedTeaserImage}
-                            type="button"
-                          >
-                            {teaserCropStatus === "saving" ? (
-                              <Loader2 className="size-3.5 animate-spin" />
-                            ) : (
-                              <ImageIcon className="size-3.5" />
-                            )}
-                            {teaserCropStatus === "saving"
-                              ? copy.teaserCrop.saving
-                              : copy.teaserCrop.save}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-                ) : null}
-
-                {!isSelectedPaidLocked ? (
-                  <section className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
-                    <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
-                      5. Reporter note
-                    </p>
-                    <h2 className="mt-1 text-2xl font-black">
-                      {copy.angleLabel}
-                    </h2>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {copy.angles.map((item) => {
-                        const isRecommendedAngle =
-                          item === selectedRecommendedAngle;
-
-                        return (
-                          <button
-                            className={cn(
-                              "inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-black transition",
-                              item === angle
-                                ? "border-[#111510] bg-[#111510] text-white"
-                                : "border-black/10 bg-[#f6f8f4] text-black/58 hover:border-[#19b84b] hover:text-[#111510]",
-                            )}
-                            key={item}
-                            onClick={() => {
-                              setAngle(item);
-                            }}
-                            type="button"
-                          >
-                            <span>{item}</span>
-                            {isRecommendedAngle ? (
+                          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                            {publishReadinessItems.map((item) => (
                               <span
                                 className={cn(
-                                  "rounded-full px-1.5 py-0.5 text-[0.56rem]",
-                                  item === angle
-                                    ? "bg-[#44f26e] text-[#111510]"
-                                    : "bg-white text-[#16702e] ring-1 ring-[#19b84b]/20",
+                                  "inline-flex min-h-9 items-center gap-2 border px-2.5 py-2 text-xs font-black",
+                                  item.ready
+                                    ? "border-[#19b84b]/24 bg-white text-[#16702e]"
+                                    : "border-black/10 bg-white/70 text-black/38",
                                 )}
+                                key={item.label}
                               >
-                                {copy.recommendedAngle}
+                                {item.ready ? (
+                                  <CheckCircle2 className="size-3.5 shrink-0" />
+                                ) : (
+                                  <AlertTriangle className="size-3.5 shrink-0" />
+                                )}
+                                <span className="min-w-0 truncate">
+                                  {item.label}
+                                </span>
                               </span>
-                            ) : null}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <label className="mt-4 block">
-                      <span className="text-sm font-black">
-                        {copy.commentLabel}
-                      </span>
-                      <textarea
-                        className="mt-2 min-h-28 w-full resize-y border border-black/12 bg-[#f6f8f4] px-3 py-3 text-sm font-semibold leading-6 outline-none transition placeholder:text-black/30 focus:border-[#19b84b] focus:bg-white"
-                        maxLength={REPORTER_COMMENT_MAX_LENGTH}
-                        onChange={(event) => {
-                          setReporterComment(event.target.value);
-                        }}
-                        placeholder={copy.commentPlaceholder}
-                        value={reporterComment}
-                      />
-                    </label>
-                    <div className="mt-2 flex items-center justify-between gap-3 text-xs font-semibold text-black/42">
-                      <p>{copy.commentHelper}</p>
-                      <p>
-                        {formatNumber(reporterComment.length, locale)}/
-                        {formatNumber(REPORTER_COMMENT_MAX_LENGTH, locale)}
-                      </p>
-                    </div>
-                    <div className="mt-5 border border-[#19b84b]/18 bg-[#ecfff0] px-4 py-3">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                        <div>
-                          <p className="inline-flex items-center gap-1.5 text-sm font-black text-[#16702e]">
-                            <CheckCircle2 className="size-4" />
-                            {copy.publishReadiness.title}
-                          </p>
-                          <p className="mt-1 text-xs font-semibold leading-5 text-black/58">
-                            {copy.publishReadiness.body}
-                          </p>
+                            ))}
+                          </div>
                         </div>
-                        <span
-                          className={cn(
-                            "inline-flex w-fit shrink-0 items-center rounded-full px-2.5 py-1 text-xs font-black",
-                            canSubmit
-                              ? "bg-[#111510] text-white"
-                              : "bg-white text-black/46 ring-1 ring-black/10",
-                          )}
+                        {error ? (
+                          <p className="mt-4 border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold leading-6 text-rose-700">
+                            {error}
+                          </p>
+                        ) : null}
+                        <button
+                          className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black text-[#111510] transition hover:bg-[#65ff86] disabled:cursor-not-allowed disabled:opacity-55 sm:w-fit"
+                          disabled={!canSubmit}
+                          onClick={() => {
+                            void submitReport();
+                          }}
+                          type="button"
                         >
-                          {canSubmit
-                            ? copy.publishReadiness.statusReady
-                            : copy.publishReadiness.statusWaiting}
-                        </span>
-                      </div>
-                      <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                        {publishReadinessItems.map((item) => (
-                          <span
-                            className={cn(
-                              "inline-flex min-h-9 items-center gap-2 border px-2.5 py-2 text-xs font-black",
-                              item.ready
-                                ? "border-[#19b84b]/24 bg-white text-[#16702e]"
-                                : "border-black/10 bg-white/70 text-black/38",
-                            )}
-                            key={item.label}
-                          >
-                            {item.ready ? (
-                              <CheckCircle2 className="size-3.5 shrink-0" />
-                            ) : (
-                              <AlertTriangle className="size-3.5 shrink-0" />
-                            )}
-                            <span className="min-w-0 truncate">{item.label}</span>
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                    {error ? (
-                      <p className="mt-4 border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold leading-6 text-rose-700">
-                        {error}
-                      </p>
-                    ) : null}
-                    <button
-                      className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black text-[#111510] transition hover:bg-[#65ff86] disabled:cursor-not-allowed disabled:opacity-55 sm:w-fit"
-                      disabled={!canSubmit}
-                      onClick={() => {
-                        void submitReport();
-                      }}
-                      type="button"
-                    >
-                      {status === "submitting" ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <Sparkles className="size-4" />
-                      )}
-                      {status === "submitting" ? copy.submitting : copy.submit}
-                    </button>
-                  </section>
-                ) : (
-                  <section className="border border-rose-500/18 bg-rose-50 p-4 text-rose-900 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
-                    <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-rose-700">
-                      <LockKeyhole className="size-3.5" />
-                      {copy.mediaAccess.reportLocked}
-                    </p>
-                    <h2 className="mt-2 text-2xl font-black">
-                      {copy.mediaAccess.reportUnlockTitle}
-                    </h2>
-                    <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-rose-900/70">
-                      {copy.mediaAccess.reportUnlockBody}
-                    </p>
-                  </section>
-                )}
+                          {status === "submitting" ||
+                          status === "autoTeasers" ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Sparkles className="size-4" />
+                          )}
+                          {status === "autoTeasers"
+                            ? copy.teaserSelection.autoGenerating
+                            : status === "submitting"
+                              ? copy.submitting
+                              : copy.submit}
+                        </button>
+                      </section>
+                    ) : (
+                      <section className="border border-rose-500/18 bg-rose-50 p-4 text-rose-900 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
+                        <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-rose-700">
+                          <LockKeyhole className="size-3.5" />
+                          {copy.mediaAccess.reportLocked}
+                        </p>
+                        <h2 className="mt-2 text-2xl font-black">
+                          {copy.mediaAccess.reportUnlockTitle}
+                        </h2>
+                        <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-rose-900/70">
+                          {copy.mediaAccess.reportUnlockBody}
+                        </p>
+                      </section>
+                    )}
                   </>
                 ) : null}
               </>
