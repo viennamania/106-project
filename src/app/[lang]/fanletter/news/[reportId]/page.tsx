@@ -299,7 +299,7 @@ function getCopy(locale: Locale) {
         },
         reportTeaserGallery: {
           body:
-            "원본 브이로그가 열리기 전에는 팬 기자가 직접 크롭해 편집한 티저 컷만 기사 안에서 보여줍니다.",
+            "팬 기자가 직접 크롭해 편집한 티저 컷을 기사 안에서 보여줍니다.",
           eyebrow: "리포터 티저 컷",
           fallbackBody:
             "팬 기자가 따로 고른 공개 장면이 없을 때는 뉴스 대표 이미지를 먼저 보여줍니다.",
@@ -550,7 +550,7 @@ function getCopy(locale: Locale) {
         },
         reportTeaserGallery: {
           body:
-            "Before the source vlog opens, the article shows only teaser cuts cropped and edited by the fan reporter.",
+            "The article shows teaser cuts cropped and edited by the fan reporter.",
           eyebrow: "Reporter teaser cuts",
           fallbackBody:
             "When the reporter did not choose public scenes, the news lead image is shown first.",
@@ -2400,14 +2400,14 @@ function ReporterTeaserCutGallery({
   const fallbackCutImageUrls = selectedPublicImageUrls.filter(
     (imageUrl) => imageUrl !== featuredImageUrl,
   );
-  const shouldUseEditedCuts =
-    shouldShowTeaserCuts && reporterEditedImageUrls.length > 0;
-  const visibleCutImageUrls = shouldShowTeaserCuts
-    ? (shouldUseEditedCuts ? reporterEditedImageUrls : fallbackCutImageUrls).slice(
-        0,
-        4,
-      )
-    : [];
+  const shouldUseEditedCuts = reporterEditedImageUrls.length > 0;
+  const visibleCutImageUrls = (
+    shouldUseEditedCuts
+      ? reporterEditedImageUrls
+      : shouldShowTeaserCuts
+        ? fallbackCutImageUrls
+        : []
+  ).slice(0, 4);
   const hasSelectedFallback =
     shouldShowTeaserCuts &&
     !shouldUseEditedCuts &&
