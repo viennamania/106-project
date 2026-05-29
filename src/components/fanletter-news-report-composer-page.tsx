@@ -4341,6 +4341,7 @@ export function FanletterNewsReportComposerPage({
                               )}
                             </div>
                           ) : null}
+                          {manualTeaserCropEditor}
                         </div>
                       ) : null}
 
@@ -4454,8 +4455,6 @@ export function FanletterNewsReportComposerPage({
                           </div>
                         </div>
                       ) : null}
-
-                      {manualTeaserCropEditor}
 
                       {isSelectedPaidLocked ? (
                         <div className="mt-4 border border-rose-500/18 bg-rose-50 p-4 text-rose-900">
