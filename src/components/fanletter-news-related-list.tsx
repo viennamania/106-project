@@ -248,7 +248,7 @@ function RelatedNewsCard({
   item: FanletterRelatedNewsItem;
 }) {
   const cardClassName = cn(
-    "group grid min-w-0 grid-cols-[6.75rem_minmax(0,1fr)] gap-2.5 transition sm:grid-cols-[8.75rem_minmax(0,1fr)] sm:gap-3",
+    "group grid min-w-0 grid-cols-[8rem_minmax(0,1fr)] gap-2.5 transition sm:grid-cols-[8.75rem_minmax(0,1fr)] sm:gap-3",
     isCurrent
       ? "rounded-lg border border-[#19b84b]/45 bg-[#ecfff0] p-2 shadow-[0_14px_32px_rgba(25,184,75,0.12)] sm:p-2.5"
       : "border-b border-black/10 pb-2.5 last:border-b-0 last:pb-0 hover:border-[#19b84b] sm:pb-3",
@@ -266,7 +266,7 @@ function RelatedNewsCard({
                 : "object-cover transition duration-300 group-hover:scale-[1.04]"
             }
             fill
-            sizes="(max-width: 640px) 6.75rem, 8.75rem"
+            sizes="(max-width: 640px) 8rem, 8.75rem"
             src={item.coverImageUrl}
             unoptimized={shouldBypassFanletterImageOptimization(
               item.coverImageUrl,

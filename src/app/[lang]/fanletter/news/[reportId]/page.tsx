@@ -1509,7 +1509,7 @@ function FanletterNewsOtherCharacterNews({
 
           return (
             <article
-              className="group grid min-w-0 grid-cols-[6.75rem_minmax(0,1fr)] gap-3.5 p-3 transition hover:bg-[#ecfff0] sm:grid-cols-[8.75rem_minmax(0,1fr)] sm:p-4"
+              className="group grid min-w-0 grid-cols-[8rem_minmax(0,1fr)] gap-3.5 p-3 transition hover:bg-[#ecfff0] sm:grid-cols-[8.75rem_minmax(0,1fr)] sm:p-4"
               key={otherReport.reportId}
             >
               <Link
@@ -1523,7 +1523,7 @@ function FanletterNewsOtherCharacterNews({
                     aria-hidden="true"
                     className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.04]"
                     fill
-                    sizes="(max-width: 640px) 6.75rem, 8.75rem"
+                    sizes="(max-width: 640px) 8rem, 8.75rem"
                     src={otherReport.coverImageUrl}
                     unoptimized={shouldBypassCoverImageOptimization}
                   />
