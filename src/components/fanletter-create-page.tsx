@@ -11,7 +11,9 @@ import {
   Loader2,
   Newspaper,
   Play,
+  Plus,
   Timer,
+  Trash2,
   Upload,
   UserRound,
 } from "lucide-react";
@@ -261,17 +263,25 @@ function getCopy(locale: Locale) {
           "이미 공개된 브이로그입니다. 같은 동영상을 다시 공개하지 않고, 상세 페이지에서 확인하세요.",
         result: "AI 동영상 미리보기",
         resultReview: {
+          addFailed: "새 프레임을 추가하지 못했습니다.",
+          addFrames: "새 프레임 추가",
+          addedFrames: "새 프레임 후보를 추가했습니다.",
+          addingFrames: "추가 중",
           body:
             "생성/업로드 결과를 확인하고 대표 프레임을 고른 뒤 공개하세요. 공개 후에는 스튜디오에서 프레임을 더 추가할 수 있습니다.",
+          deleteFrame: "프레임 삭제",
           frameCandidates: "프레임 후보",
           frameEmpty:
             "프레임 후보를 자동 저장하지 못했습니다. 공개 전 저장 과정에서 다시 시도합니다.",
+          limitReached: "프레임 후보는 최대 8장까지 저장됩니다.",
           manageFrames: "프레임 편집",
           original: "원본 동영상",
           pending: "대기",
           preview: "프리뷰 동영상",
           previewMissing:
             "짧은 프리뷰를 아직 만들지 못했습니다. 원본 동영상으로 공개는 계속할 수 있습니다.",
+          publishConnection:
+            "공개하면 선택한 대표 프레임, 프리뷰 동영상, 남겨둔 프레임 후보가 함께 저장됩니다.",
           ready: "준비됨",
           selectCover: "대표 프레임 선택",
           selectedCover: "대표 프레임",
@@ -459,17 +469,25 @@ function getCopy(locale: Locale) {
           "This vlog has already been published. Open the detail page instead of publishing the same video again.",
         result: "AI video preview",
         resultReview: {
+          addFailed: "Could not add new frames.",
+          addFrames: "Add frames",
+          addedFrames: "Added new frame candidates.",
+          addingFrames: "Adding",
           body:
             "Review the generated or uploaded result, choose a representative frame, then publish. You can add more frames later in Studio.",
+          deleteFrame: "Delete frame",
           frameCandidates: "Frame candidates",
           frameEmpty:
             "Frame candidates could not be saved automatically. FanLetter will retry before publishing.",
+          limitReached: "Up to 8 frame candidates can be saved.",
           manageFrames: "Edit frames",
           original: "Original video",
           pending: "Pending",
           preview: "Preview video",
           previewMissing:
             "A short preview is not ready yet. You can still publish with the original video.",
+          publishConnection:
+            "Publishing saves the selected cover frame, preview video, and remaining frame candidates together.",
           ready: "Ready",
           selectCover: "Use as cover",
           selectedCover: "Cover frame",
@@ -925,6 +943,17 @@ function formatFrameSize(candidate: ContentCoverImageCandidate) {
   return `${Math.round(candidate.width)}x${Math.round(candidate.height)}`;
 }
 
+function getFrameCandidateTimestampSecs(
+  candidates: ContentCoverImageCandidate[],
+) {
+  return candidates
+    .map((candidate) => candidate.timestampSec)
+    .filter(
+      (timestamp): timestamp is number =>
+        typeof timestamp === "number" && Number.isFinite(timestamp),
+    );
+}
+
 function sanitizeUploadBaseName(name: string) {
   const baseName = name.replace(/\.[^.]+$/u, "");
   const normalized = baseName
@@ -1118,6 +1147,7 @@ export function FanletterCreatePage({
     useState<LocalDraftStatus>("idle");
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [isAddingFrameCandidates, setIsAddingFrameCandidates] = useState(false);
   const [loadStatus, setLoadStatus] =
     useState<"idle" | "loading" | "ready" | "error">("idle");
   const [member, setMember] = useState<MemberRecord | null>(
@@ -1197,7 +1227,10 @@ export function FanletterCreatePage({
   );
   const hasPublishedContent = createdContent?.status === "published";
   const canPublish =
-    Boolean(generatedMedia?.url) && !hasPublishedContent && !isUploadingVideo;
+    Boolean(generatedMedia?.url) &&
+    !hasPublishedContent &&
+    !isAddingFrameCandidates &&
+    !isUploadingVideo;
   const heroEyebrow = avatarExperienceCopy?.eyebrow ?? copy.eyebrow;
   const heroTitleText = avatarExperienceCopy?.titleText ?? copy.titleText;
   const isUploadMode =
@@ -1314,6 +1347,9 @@ export function FanletterCreatePage({
   const generatedVideoUrl = generatedMedia?.url ?? null;
   const previewClipVideoUrl = generatedMedia?.previewClipVideoUrl ?? null;
   const frameCandidates = generatedMedia?.coverImageCandidates ?? [];
+  const canEditFrameCandidates = Boolean(
+    generatedVideoUrl && !hasPublishedContent && !isAddingFrameCandidates,
+  );
   const publishTitleFallback =
     generatedMedia?.source === "upload" ? copy.upload.fallbackTitle : generateCta;
   const localDraftSavedTime = formatDraftSavedAt(localDraftSavedAt, locale);
@@ -1364,18 +1400,28 @@ export function FanletterCreatePage({
 
   const createGeneratedVideoTeaserCovers = useCallback(
     async ({
+      count,
       email: ownerEmail,
+      existingTimestampSecs,
+      selectionMode,
       title,
       videoUrl,
     }: {
+      count?: number;
       email: string;
+      existingTimestampSecs?: number[];
+      selectionMode?: "balanced" | "fill_gaps";
       title: string;
       videoUrl: string;
     }) => {
       const frameCoverFiles = await captureVideoCoverFramesFromUrl(
         videoUrl,
         title || "ai-character-vlog",
-        { count: VIDEO_FRAME_COVER_CANDIDATE_COUNT },
+        {
+          count: count ?? VIDEO_FRAME_COVER_CANDIDATE_COUNT,
+          existingTimestampSecs,
+          selectionMode,
+        },
       );
       const coverImageCandidates: ContentCoverImageCandidate[] = [];
       let coverImageUrl: string | null = null;
@@ -1638,6 +1684,105 @@ export function FanletterCreatePage({
           }
         : current,
     );
+  }
+
+  function deleteCoverFrame(candidate: ContentCoverImageCandidate) {
+    if (!canEditFrameCandidates) {
+      return;
+    }
+
+    setGeneratedMedia((current) => {
+      if (!current) {
+        return current;
+      }
+
+      const nextCandidates = current.coverImageCandidates.filter(
+        (currentCandidate) =>
+          currentCandidate.candidateId !== candidate.candidateId,
+      );
+      const currentCoverStillExists = nextCandidates.some(
+        (currentCandidate) => currentCandidate.url === current.coverImageUrl,
+      );
+      const nextCoverImageUrl =
+        current.coverImageUrl === candidate.url || !currentCoverStillExists
+          ? (nextCandidates[0]?.url ?? null)
+          : current.coverImageUrl;
+
+      return {
+        ...current,
+        coverImageCandidates: nextCandidates,
+        coverImageUrl: nextCoverImageUrl,
+      };
+    });
+  }
+
+  async function addCoverFrameCandidates() {
+    if (!accountAddress) {
+      setError(copy.accountRequiredBody);
+      return;
+    }
+
+    if (!generatedMedia?.url) {
+      setError(copy.missingMedia);
+      return;
+    }
+
+    if (hasPublishedContent) {
+      setNotice(copy.publishAlreadyCompleted);
+      return;
+    }
+
+    const remainingSlots =
+      COVER_IMAGE_CANDIDATE_LIMIT - generatedMedia.coverImageCandidates.length;
+
+    if (remainingSlots <= 0) {
+      setNotice(copy.resultReview.limitReached);
+      return;
+    }
+
+    try {
+      setError(null);
+      setIsAddingFrameCandidates(true);
+      setNotice(null);
+
+      const resolvedEmail = await resolveEmail();
+      const teaserCovers = await createGeneratedVideoTeaserCovers({
+        count: Math.min(3, remainingSlots),
+        email: resolvedEmail,
+        existingTimestampSecs: getFrameCandidateTimestampSecs(
+          generatedMedia.coverImageCandidates,
+        ),
+        selectionMode: "fill_gaps",
+        title: inferTitle(form, publishTitleFallback),
+        videoUrl: generatedMedia.url,
+      });
+
+      setGeneratedMedia((current) => {
+        if (!current || current.url !== generatedMedia.url) {
+          return current;
+        }
+
+        const coverImageCandidates = mergeCoverImageCandidates(
+          current.coverImageCandidates,
+          teaserCovers.coverImageCandidates,
+        );
+
+        return {
+          ...current,
+          coverImageCandidates,
+          coverImageUrl:
+            current.coverImageUrl ??
+            teaserCovers.coverImageUrl ??
+            coverImageCandidates[0]?.url ??
+            null,
+        };
+      });
+      setNotice(copy.resultReview.addedFrames);
+    } catch {
+      setError(copy.resultReview.addFailed);
+    } finally {
+      setIsAddingFrameCandidates(false);
+    }
   }
 
   async function generateMedia() {
@@ -2783,13 +2928,35 @@ export function FanletterCreatePage({
                     </div>
 
                     <div className="min-w-0 rounded-lg border border-white/10 bg-black/24 p-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-xs font-semibold text-white">
-                          {copy.resultReview.frameCandidates}
-                        </p>
-                        <span className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[0.62rem] font-semibold text-white/58">
-                          {frameCandidates.length}/{COVER_IMAGE_CANDIDATE_LIMIT}
-                        </span>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-xs font-semibold text-white">
+                            {copy.resultReview.frameCandidates}
+                          </p>
+                          <span className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[0.62rem] font-semibold text-white/58">
+                            {frameCandidates.length}/{COVER_IMAGE_CANDIDATE_LIMIT}
+                          </span>
+                        </div>
+                        <button
+                          className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full border border-[#44f26e]/32 bg-[#44f26e]/12 px-3 py-1.5 text-xs font-semibold text-[#b9ffc8] transition hover:bg-[#44f26e] hover:text-black disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/[0.05] disabled:text-white/34"
+                          disabled={
+                            !canEditFrameCandidates ||
+                            frameCandidates.length >= COVER_IMAGE_CANDIDATE_LIMIT
+                          }
+                          onClick={() => {
+                            void addCoverFrameCandidates();
+                          }}
+                          type="button"
+                        >
+                          {isAddingFrameCandidates ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <Plus className="size-3.5" />
+                          )}
+                          {isAddingFrameCandidates
+                            ? copy.resultReview.addingFrames
+                            : copy.resultReview.addFrames}
+                        </button>
                       </div>
                       {frameCandidates.length > 0 ? (
                         <div className="mt-3 flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -2802,42 +2969,63 @@ export function FanletterCreatePage({
                             const frameSize = formatFrameSize(candidate);
 
                             return (
-                              <button
+                              <div
                                 className={`relative block h-32 w-24 shrink-0 snap-start overflow-hidden rounded-lg border bg-black text-left transition ${
                                   selected
                                     ? "border-[#44f26e] shadow-[0_0_0_2px_rgba(68,242,110,0.24)]"
                                     : "border-white/12 hover:border-[#44f26e]/60"
                                 }`}
                                 key={candidate.candidateId}
-                                onClick={() => {
-                                  selectCoverFrame(candidate);
-                                }}
-                                type="button"
                               >
-                                <span
-                                  className="absolute inset-0 bg-cover bg-center"
-                                  style={{
-                                    backgroundImage: `url(${candidate.url})`,
+                                <button
+                                  aria-label={
+                                    selected
+                                      ? copy.resultReview.selectedCover
+                                      : copy.resultReview.selectCover
+                                  }
+                                  className="absolute inset-0 text-left disabled:cursor-default"
+                                  disabled={!canEditFrameCandidates}
+                                  onClick={() => {
+                                    selectCoverFrame(candidate);
                                   }}
-                                />
-                                <span className="absolute inset-x-1.5 bottom-1.5 flex flex-wrap gap-1">
-                                  {timestamp ? (
-                                    <span className="rounded-full bg-black/72 px-1.5 py-0.5 text-[0.58rem] font-semibold text-white">
-                                      {timestamp}
-                                    </span>
-                                  ) : null}
-                                  {frameSize ? (
-                                    <span className="rounded-full bg-white/88 px-1.5 py-0.5 text-[0.58rem] font-semibold text-black/72">
-                                      {frameSize}
-                                    </span>
-                                  ) : null}
-                                </span>
-                                <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[0.58rem] font-semibold text-black">
-                                  {selected
-                                    ? copy.resultReview.selectedCover
-                                    : copy.resultReview.selectCover}
-                                </span>
-                              </button>
+                                  type="button"
+                                >
+                                  <span
+                                    className="absolute inset-0 bg-cover bg-center"
+                                    style={{
+                                      backgroundImage: `url(${candidate.url})`,
+                                    }}
+                                  />
+                                  <span className="absolute inset-x-1.5 bottom-1.5 flex flex-wrap gap-1">
+                                    {timestamp ? (
+                                      <span className="rounded-full bg-black/72 px-1.5 py-0.5 text-[0.58rem] font-semibold text-white">
+                                        {timestamp}
+                                      </span>
+                                    ) : null}
+                                    {frameSize ? (
+                                      <span className="rounded-full bg-white/88 px-1.5 py-0.5 text-[0.58rem] font-semibold text-black/72">
+                                        {frameSize}
+                                      </span>
+                                    ) : null}
+                                  </span>
+                                  <span className="absolute left-1.5 top-1.5 max-w-[4rem] truncate rounded-full bg-white/90 px-1.5 py-0.5 text-[0.58rem] font-semibold text-black">
+                                    {selected
+                                      ? copy.resultReview.selectedCover
+                                      : copy.resultReview.selectCover}
+                                  </span>
+                                </button>
+                                <button
+                                  aria-label={copy.resultReview.deleteFrame}
+                                  className="absolute right-1.5 top-1.5 z-10 flex size-6 items-center justify-center rounded-full bg-black/72 text-white transition hover:bg-[#ff5c5c] disabled:cursor-not-allowed disabled:opacity-40"
+                                  disabled={!canEditFrameCandidates}
+                                  onClick={() => {
+                                    deleteCoverFrame(candidate);
+                                  }}
+                                  type="button"
+                                >
+                                  <Trash2 className="size-3.5" />
+                                </button>
+                              </div>
                             );
                           })}
                         </div>
@@ -2846,6 +3034,11 @@ export function FanletterCreatePage({
                           {copy.resultReview.frameEmpty}
                         </p>
                       )}
+                      {frameCandidates.length >= COVER_IMAGE_CANDIDATE_LIMIT ? (
+                        <p className="mt-2 text-xs font-semibold leading-5 text-white/42">
+                          {copy.resultReview.limitReached}
+                        </p>
+                      ) : null}
                       {frameManagerHref ? (
                         <Link
                           className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[#44f26e]/32 bg-[#44f26e]/12 px-4 py-2 text-sm font-semibold !text-[#d8ffe0] transition hover:bg-[#44f26e] hover:!text-black"
@@ -2974,11 +3167,18 @@ export function FanletterCreatePage({
                     {copy.fanRequestContext.fanOnlyHint}
                   </p>
                 ) : null}
+                {generatedVideoUrl ? (
+                  <p className="mt-3 rounded-lg border border-white/12 bg-white/[0.055] px-3 py-2 text-xs font-semibold leading-5 text-white/58">
+                    {copy.resultReview.publishConnection}
+                  </p>
+                ) : null}
 
                 <div className="mt-4 grid gap-2 sm:grid-cols-2">
                   <button
                     className="inline-flex h-12 items-center justify-center rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold text-white transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-60"
-                    disabled={isSaving || hasPublishedContent}
+                    disabled={
+                      isSaving || hasPublishedContent || isAddingFrameCandidates
+                    }
                     onClick={() => {
                       void savePost("draft");
                     }}
