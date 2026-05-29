@@ -38,7 +38,7 @@ type FanletterNewsMobileNavItem = {
 };
 
 const fanletterNewsMobileNavHeightClass =
-  "h-[calc(5rem+env(safe-area-inset-bottom))]";
+  "h-[calc(5.35rem+env(safe-area-inset-bottom))]";
 const fanletterNewsTopLevelServiceSegments = new Set([
   "activate",
   "characters",
@@ -215,9 +215,9 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
             ? "FanLetter News 모바일 메뉴"
             : "FanLetter News mobile navigation"
         }
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-black/12 bg-white/95 px-3 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 text-[#111510] shadow-[0_-14px_38px_rgba(17,21,16,0.16)] backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(0.55rem+env(safe-area-inset-bottom))] pt-2 text-[#111510] md:hidden"
       >
-        <div className="mx-auto grid max-w-md grid-cols-5 gap-1">
+        <div className="mx-auto grid max-w-md grid-cols-5 items-end gap-0.5 rounded-lg border border-black/10 bg-white/96 p-1 shadow-[0_-10px_34px_rgba(17,21,16,0.14)] backdrop-blur-xl">
           {items.map((item) => {
             const Icon = item.icon;
             const activePaths = item.activePaths ?? [item.activePath];
@@ -235,27 +235,34 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
               <Link
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-lg px-1 text-center text-[0.68rem] font-black leading-none !text-black/54 transition hover:!text-[#126c2c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]",
-                  active && "!text-[#111510]",
-                  item.primary && "relative -mt-3 !text-[#111510]",
+                  "relative flex h-[3.65rem] min-w-0 flex-col items-center justify-center gap-1 rounded-md px-1 text-center text-[0.64rem] font-black leading-none !text-black/48 transition hover:bg-[#f4f8f2] hover:!text-[#126c2c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]",
+                  active && "bg-[#f3fbf4] !text-[#111510]",
+                  item.primary &&
+                    "h-[4.05rem] -translate-y-1 bg-transparent !text-[#111510] hover:bg-transparent",
                 )}
                 href={item.href}
                 key={item.key}
               >
                 <span
                   className={cn(
-                    "inline-flex size-8 items-center justify-center rounded-full text-[#16702e] transition",
-                    active && "bg-[#ecfff0] text-[#126c2c]",
+                    "inline-flex size-7 items-center justify-center rounded-full text-[#16702e] transition",
+                    active && !item.primary && "bg-white text-[#126c2c] shadow-sm",
                     item.primary &&
-                      "size-12 bg-[#44f26e] text-black shadow-[0_14px_34px_rgba(25,184,75,0.22)]",
+                      "size-10 bg-[#44f26e] text-black shadow-[0_10px_26px_rgba(25,184,75,0.28)] ring-4 ring-white",
                     active &&
                       item.primary &&
-                      "ring-2 ring-[#44f26e]/36 ring-offset-2 ring-offset-white",
+                      "bg-[#35ef61] shadow-[0_12px_30px_rgba(25,184,75,0.34)] ring-[#ecfff0]",
                   )}
                 >
-                  <Icon className={item.primary ? "size-6" : "size-5"} />
+                  <Icon className={item.primary ? "size-5" : "size-[1.15rem]"} />
                 </span>
-                <span className="block max-w-full truncate">
+                <span
+                  className={cn(
+                    "block max-w-full truncate text-black/52",
+                    active && "text-[#111510]",
+                    item.primary && "text-[#111510]",
+                  )}
+                >
                   {item.label}
                 </span>
               </Link>
