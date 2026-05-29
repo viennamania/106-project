@@ -163,7 +163,7 @@ function getCopy(locale: Locale) {
         aiReport: "AI 팬 리포트",
         articleEyebrow: "AI Character News",
         articleNotice:
-          "이 글은 원본 브이로그의 공개 정보와 티저를 바탕으로 생성된 FanLetter AI 팬 리포트입니다. 실제 언론사의 독립 취재 뉴스로 표시하지 않습니다.",
+          "원본 브이로그의 공개 정보와 팬 기자의 관전 포인트를 바탕으로 한 FanLetter AI 팬 리포트입니다. 실제 언론사 기사가 아닙니다.",
         articleSection: "연예",
         mobileArticleIntro: {
           body: "요약과 원본 맥락을 먼저 확인한 뒤, 바로 브이로그로 이어볼 수 있습니다.",
@@ -358,7 +358,7 @@ function getCopy(locale: Locale) {
         sourceTitle: "원본 브이로그",
         summaryTitle: "뉴스 요약",
         visualCaption:
-          "FanLetter News 대표 이미지. 원본 브이로그와 AI 캐릭터 리포트의 공개 정보를 바탕으로 표시됩니다.",
+          "FanLetter News 대표 이미지입니다. 원본 브이로그와 AI 캐릭터 리포트 맥락을 함께 보여줍니다.",
         visualLead: "뉴스 대표 이미지",
         walletConnect: {
           body:
@@ -387,7 +387,7 @@ function getCopy(locale: Locale) {
         aiReport: "AI fan report",
         articleEyebrow: "AI Character News",
         articleNotice:
-          "This is a FanLetter AI fan report generated from the public source vlog information and teaser. It is not presented as independently reported journalism.",
+          "A FanLetter AI fan report based on source-vlog context and the fan reporter's angle. It is not a newsroom article.",
         articleSection: "Entertainment",
         mobileArticleIntro: {
           body:
@@ -583,7 +583,7 @@ function getCopy(locale: Locale) {
         sourceTitle: "Source vlog",
         summaryTitle: "Story summary",
         visualCaption:
-          "FanLetter News lead image, shown from the source vlog and AI character report context.",
+          "FanLetter News lead image, showing the source vlog and AI character report context together.",
         visualLead: "Lead image",
         walletConnect: {
           body:
@@ -643,16 +643,116 @@ function hasHangulFinalConsonant(value: string) {
   return (codePoint - hangulStart) % 28 !== 0;
 }
 
-function normalizeKoreanGeneratedNewsText(value: string, locale: Locale) {
+function isFormulaicFanletterNewsDek(value: string, locale: Locale) {
+  return locale === "ko"
+    ? /브이로그를\s*팬 기자 관점(?:에서|으로)\s*육하원칙으로\s*정리했습니다\.?$/.test(
+        value.trim(),
+      )
+    : /fan-reporter summary.+five Ws and one H/i.test(value.trim());
+}
+
+function normalizeFanletterNewsDisplayText(value: string, locale: Locale) {
+  const normalized = value
+    .replace(
+      /^A fan-reporter summary of (.+?)'s vlog using the five Ws and one H\.$/i,
+      "Follow the source vlog, fan reactions, and next action from one news page.",
+    )
+    .replace(
+      /^AI restructured the public title, summary, and teaser details into a fan report format$/i,
+      "The news page connects the source vlog, public context, and fan participation flow.",
+    );
+
   if (locale !== "ko") {
-    return value;
+    return normalized;
   }
 
-  return value
+  return normalized
     .replace(/([가-힣])와 FanLetter 팬/g, (_match: string, nameEnd: string) =>
       `${nameEnd}${hasHangulFinalConsonant(nameEnd) ? "과" : "와"} FanLetter 팬`,
     )
-    .replace(/'([^']+)'이 FanLetter/g, "'$1'가 FanLetter");
+    .replace(/'([^']+)'이 FanLetter/g, "'$1'가 FanLetter")
+    .replace(
+      /^(.+?)의 브이로그 '([^']+)'가 FanLetter에서 (.+?)로 소개됐다\. \2$/,
+      "$1의 원본 브이로그 '$2'가 FanLetter에서 $3로 게시됐다.",
+    )
+    .replace(
+      /^'([^']+)' 브이로그가 FanLetter에서 (.+?)로 공유됨$/,
+      "원본 브이로그 '$1'가 FanLetter에서 $2로 공유됐습니다.",
+    )
+    .replace(
+      /^원본 브이로그 '([^']+)'가 FanLetter에서 (.+?)로 공유됨$/,
+      "원본 브이로그 '$1'가 FanLetter에서 $2로 공유됐습니다.",
+    )
+    .replace(
+      /^(.+?)의 브이로그를 팬 기자 관점(?:에서|으로) 육하원칙으로 정리했습니다\.?$/,
+      "$1의 원본 브이로그와 팬 참여 흐름을 한 화면에서 확인하세요.",
+    )
+    .replace(
+      /^원본 브이로그의 공개 제목, 요약, 티저 정보를 바탕으로 AI가 팬 리포트 형식으로 재구성$/,
+      "원본 브이로그의 핵심 장면과 팬 참여 흐름을 이 뉴스 화면에서 이어볼 수 있게 연결",
+    )
+    .replace(
+      /([^.\n]+?)는 이번 장면을 팬들이 다음 반응과 후속 요청을 남길 수 있는 팬 참여형 소식으로 정리했다\./g,
+      "$1 팬 기자는 이번 장면에서 팬들이 남길 반응과 후속 요청 포인트를 전했다.",
+    )
+    .replace(
+      /팬 기자 코멘트:\s*(.+?)\s+(성인 팬 전용 표시가 적용된 콘텐츠로, 리포트는 공개 가능한 티저 정보만 다룹니다\.)/g,
+      (_match: string, comment: string, notice: string) =>
+        `팬 기자가 남긴 관전 포인트는 '${comment.trim()}'다. ${notice}`,
+    )
+    .replace(
+      /팬 기자 코멘트:\s*([^.\n]+)\.?/g,
+      (_match: string, comment: string) =>
+        `팬 기자가 남긴 관전 포인트는 '${comment.trim()}'다.`,
+    );
+}
+
+function createFanletterNewsReaderDek({
+  canViewerOpenSourceContent,
+  creatorName,
+  isPaidSourceContent,
+  locale,
+  rawDek,
+  sourceReveal,
+}: {
+  canViewerOpenSourceContent: boolean;
+  creatorName: string;
+  isPaidSourceContent: boolean;
+  locale: Locale;
+  rawDek: string;
+  sourceReveal: SourceVlogRevealGateState | null;
+}) {
+  const normalizedDek = normalizeFanletterNewsDisplayText(rawDek, locale);
+
+  if (!isFormulaicFanletterNewsDek(rawDek, locale)) {
+    return normalizedDek;
+  }
+
+  if (locale !== "ko") {
+    if (sourceReveal?.unlocked === false) {
+      return `Fans are opening ${creatorName}'s source vlog together from this report.`;
+    }
+
+    if (isPaidSourceContent && !canViewerOpenSourceContent) {
+      return `Fans opened access. Pay to watch ${creatorName}'s full source vlog.`;
+    }
+
+    return `Watch ${creatorName}'s source vlog and fan participation from this report.`;
+  }
+
+  if (sourceReveal?.unlocked === false) {
+    return `${creatorName}의 원본 브이로그를 팬들이 함께 열어가는 리포트입니다.`;
+  }
+
+  if (isPaidSourceContent && !canViewerOpenSourceContent) {
+    return `팬들이 오픈 조건을 채웠습니다. 결제 후 ${creatorName}의 전체 원본 브이로그를 볼 수 있습니다.`;
+  }
+
+  if (isPaidSourceContent) {
+    return `${creatorName}의 팬 전용 원본 브이로그와 리포트 요약을 함께 확인하세요.`;
+  }
+
+  return `팬들이 보고싶어요를 채워 ${creatorName}의 원본 브이로그를 열어낸 리포트입니다.`;
 }
 
 function formatNumber(value: number, locale: Locale) {
@@ -2911,8 +3011,8 @@ export async function generateMetadata({
   const description =
     report?.dek ??
     (locale === "ko"
-      ? "FanLetter 브이로그를 팬 기자 관점으로 정리한 AI 팬 리포트입니다."
-      : "An AI fan report summarizing a FanLetter vlog from the fan reporter perspective.");
+      ? "FanLetter 원본 브이로그와 팬 참여 흐름을 함께 보여주는 AI 팬 리포트입니다."
+      : "An AI fan report connecting a FanLetter source vlog with fan participation.");
   const url = report
     ? createFanletterNewsReportShareHref(report)
     : `/${locale}/fanletter/news/${reportId}`;
@@ -3203,9 +3303,8 @@ export default async function LocalizedFanletterNewsReportPage({
     sortValue: relatedNewsSort,
   };
   const publishedAt = formatDate(report.sourcePublishedAt, locale);
-  const articleDek = normalizeKoreanGeneratedNewsText(report.dek, locale);
   const articleParagraphs = splitArticleBody(report.body).map((paragraph) =>
-    normalizeKoreanGeneratedNewsText(paragraph, locale),
+    normalizeFanletterNewsDisplayText(paragraph, locale),
   );
   const accessLabel = getContentAccessLabel(sourceContent ?? report, copy);
   const isCurrentNsfwReport = isNsfwReport(report);
@@ -3241,6 +3340,14 @@ export default async function LocalizedFanletterNewsReportPage({
         reportId: report.reportId,
       }
     : null;
+  const articleDek = createFanletterNewsReaderDek({
+    canViewerOpenSourceContent,
+    creatorName: characterName ?? report.creatorName,
+    isPaidSourceContent,
+    locale,
+    rawDek: report.dek,
+    sourceReveal,
+  });
   const landingHeroSourceVideoFallbackUrl =
     canViewerOpenSourceContent && sourceReveal?.unlocked !== false
       ? sourceContent?.contentVideoUrls[0] ?? null
@@ -3316,7 +3423,7 @@ export default async function LocalizedFanletterNewsReportPage({
     { label: copy.sixW.how, value: report.how },
   ].map((fact) => ({
     ...fact,
-    value: normalizeKoreanGeneratedNewsText(fact.value, locale),
+    value: normalizeFanletterNewsDisplayText(fact.value, locale),
   }));
   const reporterTrustStats = {
     paidUnlockPurchaseCount:

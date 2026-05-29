@@ -63,6 +63,36 @@ function getFanletterRelatedNewsCardTitle(title: string) {
   );
 }
 
+function getFanletterRelatedNewsCardDek({
+  locale,
+  rawDek,
+  sourceReveal,
+}: {
+  locale: Locale;
+  rawDek: string;
+  sourceReveal: FanletterRelatedNewsSourceReveal | null;
+}) {
+  if (locale !== "ko") {
+    return rawDek.replace(
+      /^A fan-reporter summary of .+?'s vlog using the five Ws and one H\.$/i,
+      sourceReveal
+        ? sourceReveal.unlocked
+          ? "Fans opened the source vlog from this report."
+          : "Fans are opening the source vlog from this report."
+        : "Follow the source vlog and fan reactions from this report.",
+    );
+  }
+
+  return rawDek.replace(
+    /^.+?의 브이로그를 팬 기자 관점(?:에서|으로) 육하원칙으로 정리했습니다\.?$/,
+    sourceReveal
+      ? sourceReveal.unlocked
+        ? "팬들이 원본 브이로그를 열어낸 리포트입니다."
+        : "팬들이 함께 원본 브이로그를 열어가는 리포트입니다."
+      : "원본 브이로그와 팬 반응 포인트를 확인하세요.",
+  );
+}
+
 export function readFanletterRelatedNewsSort(
   value?: string | string[] | null,
 ): FanletterRelatedNewsSort {
@@ -171,10 +201,15 @@ export function serializeFanletterRelatedNewsItem({
 }): FanletterRelatedNewsItem {
   const isFirstReport = isFanletterNewsFirstReportForContent(report);
   const isNsfw = isFanletterNewsReportNsfw(report);
+  const sourceReveal = createRelatedNewsSourceRevealStatus(report);
 
   return {
     coverImageUrl: report.coverImageUrl,
-    dek: report.dek,
+    dek: getFanletterRelatedNewsCardDek({
+      locale: report.locale,
+      rawDek: report.dek,
+      sourceReveal,
+    }),
     firstReportBadge: isFirstReport
       ? getFanletterNewsFirstReportBadgeLabel(report.locale)
       : null,
@@ -189,7 +224,7 @@ export function serializeFanletterRelatedNewsItem({
     reporterName: getFanletterNewsReporterDisplayName(report),
     reportId: report.reportId,
     shouldBlur: shouldBlurFanletterNewsReport(report, nsfwOptInEnabled),
-    sourceReveal: createRelatedNewsSourceRevealStatus(report),
+    sourceReveal,
     title: getFanletterRelatedNewsCardTitle(report.title),
   };
 }
