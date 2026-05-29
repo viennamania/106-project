@@ -2447,7 +2447,7 @@ function ReporterTeaserCutGallery({
       blurred={blurred}
       copy={{
         body:
-          featuredImageUrl || teaserItems.length === 0
+          !shouldUseEditedCuts && (featuredImageUrl || teaserItems.length === 0)
             ? copy.reportTeaserGallery.leadBody
             : galleryBody,
         close: copy.sourceTeaserGallery.close,
@@ -2461,7 +2461,7 @@ function ReporterTeaserCutGallery({
       }}
       density="compact"
       featuredItem={
-        featuredImageUrl
+        !shouldUseEditedCuts && featuredImageUrl
           ? {
               alt: report.title,
               badges: [copy.visualLead, accessLabel],
@@ -2473,6 +2473,7 @@ function ReporterTeaserCutGallery({
       items={teaserItems}
       layout="grid"
       locale={locale}
+      presentation={shouldUseEditedCuts ? "reporterTeaser" : "default"}
     />
   );
 }

@@ -160,6 +160,7 @@ export function FanletterNewsSourceSceneGallery({
   layout = "scroll",
   locale,
   nsfwPinGate,
+  presentation = "default",
 }: {
   blurred: boolean;
   copy: FanletterNewsSourceSceneGalleryCopy;
@@ -169,6 +170,7 @@ export function FanletterNewsSourceSceneGallery({
   layout?: "grid" | "scroll";
   locale: Locale;
   nsfwPinGate?: FanletterNewsSourceSceneGalleryNsfwPinGate;
+  presentation?: "default" | "reporterTeaser";
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -211,6 +213,7 @@ export function FanletterNewsSourceSceneGallery({
     : "";
   const isGridLayout = layout === "grid";
   const isCompact = density === "compact";
+  const isReporterTeaser = presentation === "reporterTeaser";
   const canScrollSceneRail =
     !isGridLayout && (sceneScrollState.previous || sceneScrollState.next);
 
@@ -604,7 +607,14 @@ export function FanletterNewsSourceSceneGallery({
   };
 
   return (
-    <section className="mt-3 border border-black/10 bg-white p-3 sm:bg-[#f7f9f4] sm:p-4">
+    <section
+      className={cn(
+        "mt-3 border bg-white",
+        isReporterTeaser
+          ? "-mx-3 border-x-0 border-black/12 px-3 pb-4 pt-4 shadow-[0_16px_44px_rgba(17,21,16,0.08)] sm:mx-0 sm:border-x sm:px-4"
+          : "border-black/10 p-3 sm:bg-[#f7f9f4] sm:p-4",
+      )}
+    >
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
           <p className="text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#16702e] sm:text-[0.66rem]">
@@ -613,7 +623,11 @@ export function FanletterNewsSourceSceneGallery({
           <h3
             className={cn(
               "mt-1 font-black leading-tight [word-break:keep-all]",
-              isCompact ? "text-base sm:text-lg" : "text-lg",
+              isReporterTeaser
+                ? "text-[1.65rem] sm:text-2xl"
+                : isCompact
+                  ? "text-base sm:text-lg"
+                  : "text-lg",
             )}
           >
             {copy.title}
@@ -705,70 +719,101 @@ export function FanletterNewsSourceSceneGallery({
         <div
           className={cn(
             "mt-3 grid",
-            isGridLayout
+            isReporterTeaser
+              ? "grid-cols-2 gap-2 sm:grid-cols-4"
+              : isGridLayout
               ? "grid-cols-2 gap-2 sm:grid-cols-4"
               : "-mx-3 snap-x touch-pan-x auto-cols-[minmax(7.75rem,38vw)] grid-flow-col gap-1.5 overflow-x-auto overscroll-x-contain px-3 pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:-mx-4 sm:auto-cols-[11.5rem] sm:gap-2 sm:px-4 sm:pb-2 lg:auto-cols-[12.5rem] xl:auto-cols-[13.5rem] [&::-webkit-scrollbar]:hidden",
           )}
           onScroll={updateSceneScrollState}
           ref={sceneRailRef}
         >
-          {items.map((item, index) => (
-            <button
-              aria-label={`${item.label} ${copy.openViewer}`}
-              className={cn(
-                "group overflow-hidden border border-black/10 bg-white text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]",
-                isGridLayout ? "" : "snap-start",
-                canOpenSceneViewer
-                  ? "hover:border-[#19b84b]"
-                  : "cursor-not-allowed",
-              )}
-              disabled={!canOpenSceneViewer}
-              key={`${item.imageUrl}-${index}`}
-              onClick={() => {
-                openViewer(index);
-              }}
-              type="button"
-            >
-              <span
+          {items.map((item, index) => {
+            const isMobileReporterLead =
+              isReporterTeaser &&
+              (index === 0 ||
+                items.length === 2 ||
+                (items.length === 4 && index === 3));
+
+            return (
+              <button
+                aria-label={`${item.label} ${copy.openViewer}`}
                 className={cn(
-                  "relative block bg-[#07100b]",
-                  isCompact
-                    ? "aspect-[4/5] sm:aspect-[9/16]"
-                    : "aspect-[9/16]",
+                  "group overflow-hidden border border-black/10 bg-white text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]",
+                  isGridLayout ? "" : "snap-start",
+                  isMobileReporterLead && "col-span-2 sm:col-span-1",
+                  isReporterTeaser &&
+                    "shadow-[0_10px_24px_rgba(17,21,16,0.12)]",
+                  canOpenSceneViewer
+                    ? "hover:border-[#19b84b]"
+                    : "cursor-not-allowed",
                 )}
+                disabled={!canOpenSceneViewer}
+                key={`${item.imageUrl}-${index}`}
+                onClick={() => {
+                  openViewer(index);
+                }}
+                type="button"
               >
-                <Image
-                  alt=""
-                  aria-hidden="true"
+                <span
                   className={cn(
-                    isCompact ? "object-cover" : "object-contain",
-                    effectiveBlurred
-                      ? "blur-sm brightness-[0.76] saturate-[0.92]"
-                      : "transition duration-300 group-hover:scale-[1.02]",
+                    "relative block bg-[#07100b]",
+                    isReporterTeaser || isCompact
+                      ? "aspect-[4/5] sm:aspect-[9/16]"
+                      : "aspect-[9/16]",
                   )}
-                  fill
-                  sizes={
-                    isGridLayout
-                      ? "(max-width: 640px) 50vw, 25vw"
-                      : "(max-width: 640px) 38vw, (max-width: 1280px) 12.5rem, 13.5rem"
-                  }
-                  src={item.imageUrl}
-                  unoptimized={shouldBypassFanletterImageOptimization(
-                    item.imageUrl,
-                  )}
-                />
-                <span className="absolute inset-0 bg-gradient-to-t from-black/46 via-transparent to-black/8" />
-                <span className="absolute bottom-2 left-2 rounded-full bg-black/64 px-2 py-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-white/86 sm:text-[0.58rem] sm:tracking-[0.12em]">
-                  {item.timeLabel
-                    ? `${item.label} · ${item.timeLabel}`
-                    : item.label}
+                >
+                  <Image
+                    alt=""
+                    aria-hidden="true"
+                    className={cn(
+                      isReporterTeaser || isCompact
+                        ? "object-cover"
+                        : "object-contain",
+                      effectiveBlurred
+                        ? "blur-sm brightness-[0.76] saturate-[0.92]"
+                        : "transition duration-300 group-hover:scale-[1.02]",
+                    )}
+                    fill
+                    sizes={
+                      isReporterTeaser
+                        ? isMobileReporterLead
+                          ? "(max-width: 640px) 100vw, 25vw"
+                          : "(max-width: 640px) 50vw, 25vw"
+                        : isGridLayout
+                          ? "(max-width: 640px) 50vw, 25vw"
+                          : "(max-width: 640px) 38vw, (max-width: 1280px) 12.5rem, 13.5rem"
+                    }
+                    src={item.imageUrl}
+                    unoptimized={shouldBypassFanletterImageOptimization(
+                      item.imageUrl,
+                    )}
+                  />
+                  <span className="absolute inset-0 bg-gradient-to-t from-black/52 via-transparent to-black/8" />
+                  <span
+                    className={cn(
+                      "absolute rounded-full bg-black/68 font-black uppercase text-white/88",
+                      isReporterTeaser
+                        ? "bottom-3 left-3 px-3 py-1.5 text-[0.68rem] tracking-[0.08em]"
+                        : "bottom-2 left-2 px-2 py-1 text-[0.56rem] tracking-[0.08em] sm:text-[0.58rem] sm:tracking-[0.12em]",
+                    )}
+                  >
+                    {item.timeLabel
+                      ? `${item.label} · ${item.timeLabel}`
+                      : item.label}
+                  </span>
+                  <span
+                    className={cn(
+                      "absolute right-2 top-2 inline-flex items-center justify-center rounded-full border border-white/18 bg-black/56 text-white opacity-90 backdrop-blur",
+                      isReporterTeaser ? "size-9" : "size-7 sm:size-8",
+                    )}
+                  >
+                    <Expand className={isReporterTeaser ? "size-4" : "size-3.5"} />
+                  </span>
                 </span>
-                <span className="absolute right-2 top-2 inline-flex size-7 items-center justify-center rounded-full border border-white/18 bg-black/56 text-white opacity-90 backdrop-blur sm:size-8">
-                  <Expand className="size-3.5" />
-                </span>
-              </span>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
         {!isGridLayout && sceneScrollState.previous ? (
           <div className="pointer-events-none absolute inset-y-3 left-0 w-10 bg-[linear-gradient(90deg,#ffffff_0%,rgba(255,255,255,0))] sm:w-12" />
