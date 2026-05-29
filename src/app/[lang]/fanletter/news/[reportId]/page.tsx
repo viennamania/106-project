@@ -177,6 +177,17 @@ function getCopy(locale: Locale) {
           wallet: "지갑 연결",
           watch: "원본 보기",
         },
+        newsHeader: {
+          character: "캐릭터",
+          characterPrefix: "캐릭터",
+          home: "뉴스 홈",
+          intent: "팬 리포트",
+          menuLabel: "뉴스 주요 이동",
+          purchases: "구매함",
+          reporterPrefix: "팬 기자",
+          source: "원본 보기",
+          sourceContext: "원본 브이로그 참여형 뉴스",
+        },
         byline: "팬 기자",
         viewerOwnership: {
           character: "AI 캐릭터",
@@ -406,6 +417,17 @@ function getCopy(locale: Locale) {
           vote: "Want to watch",
           wallet: "Connect wallet",
           watch: "Watch source",
+        },
+        newsHeader: {
+          character: "Character",
+          characterPrefix: "Character",
+          home: "News home",
+          intent: "Fan report",
+          menuLabel: "Primary news navigation",
+          purchases: "Purchases",
+          reporterPrefix: "Reporter",
+          source: "Watch source",
+          sourceContext: "Source-vlog participation news",
         },
         byline: "Fan reporter",
         viewerOwnership: {
@@ -929,73 +951,118 @@ function getSourceVlogRevealTeaserCopy(
 }
 
 function NewsSiteHeader({
+  characterName,
   copy,
   homeHref,
   locale,
   navLinks,
   referralCode,
+  reporterName,
+  sourceAccessLabel,
   walletHref,
 }: {
+  characterName: string | null;
   copy: ReturnType<typeof getCopy>;
   homeHref: string;
   locale: Locale;
-  navLinks: Array<{ href: string; label: string }>;
+  navLinks: Array<{
+    emphasized?: boolean;
+    href: string;
+    icon: ReactNode;
+    label: string;
+  }>;
   referralCode: string | null;
+  reporterName: string;
+  sourceAccessLabel: string;
   walletHref: string;
 }) {
   const today = new Intl.DateTimeFormat(locale, {
     dateStyle: "full",
   }).format(new Date());
+  const characterDisplayName =
+    characterName?.trim() || copy.titleCharacter.fallback;
+  const reporterDisplayName = reporterName.trim() || copy.byline;
+  const contextItems = [
+    {
+      icon: <Newspaper className="size-3.5 shrink-0 text-[#16702e]" />,
+      label: copy.newsHeader.sourceContext,
+    },
+    {
+      icon: <Users className="size-3.5 shrink-0 text-[#16702e]" />,
+      label: `${copy.newsHeader.characterPrefix} ${characterDisplayName}`,
+    },
+    {
+      icon: <FileText className="size-3.5 shrink-0 text-[#16702e]" />,
+      label: `${copy.newsHeader.reporterPrefix} ${reporterDisplayName}`,
+    },
+    {
+      icon: <Clapperboard className="size-3.5 shrink-0 text-[#16702e]" />,
+      label: sourceAccessLabel,
+    },
+  ];
 
   return (
-    <header className="border-b border-black/14 bg-white text-[#111510] shadow-[0_8px_28px_rgba(17,21,16,0.05)]">
-      <div className="hidden border-b border-black/10 bg-[#eef1ec] sm:block">
-        <div className="mx-auto flex max-w-[92rem] items-center justify-between gap-4 px-4 py-1.5 text-[0.68rem] font-bold text-black/52 sm:px-6 sm:py-2 lg:px-8">
-          <span>{today}</span>
-          <span className="hidden sm:inline">{copy.edition}</span>
-        </div>
-      </div>
-      <div className="mx-auto flex max-w-[92rem] flex-col px-3 pt-2.5 sm:px-6 sm:pt-4 lg:px-8">
-        <div className="flex items-center justify-between gap-3 border-b-2 border-[#111510] pb-2 sm:items-end sm:gap-4 sm:pb-3">
+    <header className="sticky top-0 z-40 border-b border-black/12 bg-white/95 text-[#111510] shadow-[0_10px_34px_rgba(17,21,16,0.08)] backdrop-blur">
+      <div className="mx-auto flex max-w-[92rem] flex-col px-3 sm:px-6 lg:px-8">
+        <div className="flex min-h-[3.75rem] items-center justify-between gap-2 py-2 sm:min-h-[4.5rem] sm:gap-4 sm:py-3">
           <Link
-            className="inline-flex min-w-0 items-center gap-2 break-words text-[1.28rem] font-black leading-none tracking-normal !text-[#111510] sm:gap-3 sm:text-[4rem]"
+            className="inline-flex min-w-0 items-center gap-2 !text-[#111510] sm:gap-3"
             href={homeHref}
           >
-            <FanletterBrandMark className="size-8 sm:size-14" />
-            <span className="truncate">{copy.siteName}</span>
-          </Link>
-          <div className="flex shrink-0 flex-col items-end gap-2">
-            <span className="hidden border border-black/14 px-3 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e] sm:inline-flex">
-              {copy.articleEyebrow}
+            <FanletterBrandMark className="size-8 shrink-0 sm:size-10" />
+            <span className="min-w-0">
+              <span className="block truncate text-[1.02rem] font-black leading-tight sm:text-xl">
+                {copy.siteName}
+              </span>
+              <span className="block truncate text-[0.68rem] font-black leading-tight text-[#16702e] sm:text-xs">
+                {copy.newsHeader.intent} · {copy.newsHeader.sourceContext}
+              </span>
             </span>
-            <div className="hidden sm:block">
-              <FanletterNewsWalletConnect
-                className="sm:max-w-[12rem]"
-                locale={locale}
-                referralCode={referralCode}
-                walletHref={walletHref}
-              />
-            </div>
+          </Link>
+          <div className="hidden min-w-0 flex-1 items-center justify-center gap-1.5 lg:flex">
+            {contextItems.map((item) => (
+              <span
+                className="inline-flex min-w-0 max-w-[13rem] items-center gap-1.5 rounded-full border border-black/10 bg-[#f5f7f1] px-3 py-1.5 text-xs font-black text-black/64"
+                key={item.label}
+              >
+                {item.icon}
+                <span className="min-w-0 truncate">{item.label}</span>
+              </span>
+            ))}
+            <span className="hidden shrink-0 text-xs font-bold text-black/42 xl:inline">
+              {today}
+            </span>
+          </div>
+          <div className="hidden shrink-0 sm:block">
+            <FanletterNewsWalletConnect
+              className="sm:max-w-[12rem]"
+              locale={locale}
+              referralCode={referralCode}
+              walletHref={walletHref}
+            />
           </div>
         </div>
         <nav
-          aria-label={copy.siteName}
-          className="grid grid-cols-4 gap-1 border-b border-black/10 py-2 text-[0.76rem] font-bold text-black/62 sm:flex sm:gap-2 sm:overflow-x-auto sm:py-2.5 sm:text-sm sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden"
+          aria-label={copy.newsHeader.menuLabel}
+          className="grid grid-cols-4 gap-1.5 border-t border-black/8 py-2 text-[0.7rem] font-black text-black/62 sm:flex sm:gap-2 sm:overflow-x-auto sm:py-2.5 sm:text-sm sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden"
         >
-          {navLinks.map((item, index) => {
-            const displayLabel =
-              index === 2 ? (locale === "ko" ? "브이로그" : "Vlog") : item.label;
-
-            return (
-              <Link
-                className="min-w-0 border border-black/10 bg-white px-2 py-1.5 text-center transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#126c2c] sm:shrink-0 sm:px-3"
-                href={item.href}
-                key={item.label}
-              >
-                <span className="block truncate">{displayLabel}</span>
-              </Link>
-            );
-          })}
+          {navLinks.map((item) => (
+            <Link
+              className={`inline-flex min-w-0 items-center justify-center gap-1 rounded-full border px-2 py-2 text-center transition sm:min-w-32 sm:shrink-0 sm:justify-between sm:px-3 ${
+                item.emphasized
+                  ? "border-[#19b84b] bg-[#ecfff0] !text-[#126c2c] shadow-[inset_0_0_0_1px_rgba(25,184,75,0.14)]"
+                  : "border-black/10 bg-white !text-black/62 hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#126c2c]"
+              }`}
+              href={item.href}
+              key={item.label}
+            >
+              <span className="inline-flex min-w-0 items-center justify-center gap-1 sm:gap-2">
+                <span className="shrink-0">{item.icon}</span>
+                <span className="min-w-0 truncate">{item.label}</span>
+              </span>
+              <ArrowUpRight className="hidden size-3.5 shrink-0 text-current sm:block" />
+            </Link>
+          ))}
         </nav>
       </div>
     </header>
@@ -3422,12 +3489,26 @@ export default async function LocalizedFanletterNewsReportPage({
     sourceReveal?.unlocked !== true || !canViewerOpenSourceContent;
   const navLinks = [
     {
-      href: creatorHref,
-      label: copy.navItems[0] ?? copy.articleActions.character,
+      href: newsHomeHref,
+      icon: <Newspaper className="size-4" />,
+      label: copy.newsHeader.home,
     },
-    { href: reporterNewsHref, label: copy.navItems[1] ?? copy.byline },
-    { href: sourceVlogHref, label: copy.navItems[2] ?? copy.sourceTitle },
-    { href: purchasesHref, label: copy.navItems[3] ?? "Purchases" },
+    {
+      emphasized: true,
+      href: sourceVlogHref,
+      icon: <Clapperboard className="size-4" />,
+      label: copy.newsHeader.source,
+    },
+    {
+      href: creatorHref,
+      icon: <Users className="size-4" />,
+      label: copy.newsHeader.character,
+    },
+    {
+      href: purchasesHref,
+      icon: <Coins className="size-4" />,
+      label: copy.newsHeader.purchases,
+    },
   ];
   const facts = [
     { label: copy.sixW.who, value: report.who },
@@ -3473,11 +3554,14 @@ export default async function LocalizedFanletterNewsReportPage({
   return (
     <main className="min-h-screen bg-[#eef1ec] text-[#111510]">
       <NewsSiteHeader
+        characterName={characterName ?? report.creatorName}
         copy={copy}
         homeHref={newsHomeHref}
         locale={locale}
         navLinks={navLinks}
         referralCode={referralCode}
+        reporterName={reporterDisplayName}
+        sourceAccessLabel={accessLabel}
         walletHref={walletHref}
       />
 
