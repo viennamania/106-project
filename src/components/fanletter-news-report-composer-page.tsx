@@ -294,9 +294,9 @@ function getCopy(locale: Locale) {
         commentPlaceholder:
           "예: 이 티저 컷에서 팬들이 기대할 만한 장면을 짚어주세요.",
         cropHelper:
-          "대표 뉴스 이미지는 16:9로, 공개 티저 컷은 필요할 때 9:16 세로 이미지로 따로 저장합니다.",
-        cropStep: "4. 이미지 크롭",
-        cropTitle: "대표 이미지와 9:16 티저 크롭",
+          "대표 뉴스 이미지는 16:9로 저장하고, 공개 티저 컷은 선택된 공개 컷 영역에서 바로 9:16으로 편집합니다.",
+        cropStep: "4. 대표 이미지 크롭",
+        cropTitle: "대표 뉴스 이미지 크롭",
         emptyBody: "아직 리포트로 만들 수 있는 브이로그 후보가 없습니다.",
         emptyTitle: "작성 가능한 브이로그가 없습니다.",
         existingReportsBody:
@@ -466,7 +466,7 @@ function getCopy(locale: Locale) {
           ratio: "선택 저장 9:16",
           removeCut: "제외",
           selectedBody:
-            "여기 있는 컷만 뉴스 상세에 공개됩니다. 9:16 편집을 누르면 아래 편집기로 바로 이동합니다.",
+            "여기 있는 컷만 뉴스 상세에 공개됩니다. 9:16 편집은 선택 목록 바로 아래에서 조정합니다.",
           selectedCount: (count: string, limit: string) =>
             `${count}/${limit}장 선택`,
           selectedEmpty:
@@ -483,7 +483,7 @@ function getCopy(locale: Locale) {
           saved: "9:16 티저 저장됨",
           saving: "9:16 티저 저장 중",
           teaserBody:
-            "모바일 뉴스 상세에서 공개 티저 컷을 세로 화면에 맞게 보여줄 때 사용합니다.",
+            "선택한 공개 컷을 모바일 뉴스 상세에 맞게 9:16 세로 이미지로 저장합니다.",
           teaserTitle: "공개 티저 컷",
         },
         sourceMeta: {
@@ -558,9 +558,9 @@ function getCopy(locale: Locale) {
         commentPlaceholder:
           "Example: Point out what fans should anticipate from this teaser cut.",
         cropHelper:
-          "Save the lead news image at 16:9, and optionally save public teaser cuts as separate 9:16 portrait images.",
-        cropStep: "4. Image crop",
-        cropTitle: "Lead image and 9:16 teaser crop",
+          "Save the lead news image at 16:9, and edit public teaser cuts as 9:16 directly from the selected public cuts area.",
+        cropStep: "4. Lead image crop",
+        cropTitle: "Lead news image crop",
         emptyBody: "There are no vlog candidates available for reports yet.",
         emptyTitle: "No vlogs available.",
         existingReportsBody:
@@ -730,7 +730,7 @@ function getCopy(locale: Locale) {
           ratio: "Optional 9:16 save",
           removeCut: "Remove",
           selectedBody:
-            "Only these cuts appear on the news detail. Use Edit 9:16 to jump directly to the portrait editor below.",
+            "Only these cuts appear on the news detail. Adjust the 9:16 crop directly below this selected list.",
           selectedCount: (count: string, limit: string) =>
             `${count}/${limit} selected`,
           selectedEmpty:
@@ -747,7 +747,7 @@ function getCopy(locale: Locale) {
           saved: "9:16 teaser saved",
           saving: "Saving 9:16 teaser",
           teaserBody:
-            "Used to present the public teaser cut in a mobile-first portrait layout.",
+            "Save the selected public cut as a 9:16 portrait image for the mobile news detail.",
           teaserTitle: "Public teaser cut",
         },
         sourceMeta: {
@@ -2248,7 +2248,7 @@ export function FanletterNewsReportComposerPage({
 
   const handleTeaserCropPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
-      if (!teaserCropRect || !naturalSize) {
+      if (!teaserCropRect || !activeTeaserNaturalSize) {
         return;
       }
 
@@ -2261,7 +2261,7 @@ export function FanletterNewsReportComposerPage({
         startY: event.clientY,
       };
     },
-    [naturalSize, teaserCrop, teaserCropRect],
+    [activeTeaserNaturalSize, teaserCrop, teaserCropRect],
   );
 
   const handleCropPointerMove = useCallback(
@@ -2273,13 +2273,15 @@ export function FanletterNewsReportComposerPage({
           : cropFrameRef.current;
       const activeCropRect =
         drag?.cropKind === "teaser" ? teaserCropRect : coverCropRect;
+      const activeNaturalSize =
+        drag?.cropKind === "teaser" ? activeTeaserNaturalSize : naturalSize;
 
       if (
         !drag ||
         drag.pointerId !== event.pointerId ||
         !frame ||
         !activeCropRect ||
-        !naturalSize
+        !activeNaturalSize
       ) {
         return;
       }
@@ -2289,10 +2291,10 @@ export function FanletterNewsReportComposerPage({
       const deltaY = event.clientY - drag.startY;
       const cropDeltaX =
         (deltaX / Math.max(frameRect.width, 1)) *
-        (activeCropRect.width / naturalSize.width);
+        (activeCropRect.width / activeNaturalSize.width);
       const cropDeltaY =
         (deltaY / Math.max(frameRect.height, 1)) *
-        (activeCropRect.height / naturalSize.height);
+        (activeCropRect.height / activeNaturalSize.height);
       const nextCrop = {
         centerX: drag.initialCrop.centerX - cropDeltaX,
         centerY: drag.initialCrop.centerY - cropDeltaY,
@@ -2311,7 +2313,7 @@ export function FanletterNewsReportComposerPage({
         ...nextCrop,
       }));
     },
-    [coverCropRect, naturalSize, teaserCropRect],
+    [activeTeaserNaturalSize, coverCropRect, naturalSize, teaserCropRect],
   );
 
   const handleCropPointerEnd = useCallback(
@@ -2813,6 +2815,184 @@ export function FanletterNewsReportComposerPage({
       sourceRevealFilter !== defaultSourceRevealFilter ||
       sourceSort !== "recommended",
   );
+  const activeTeaserEditorSourceUrl =
+    activeTeaserCropSourceUrl ?? selectedCoverUrl;
+  const manualTeaserCropEditor =
+    !isSelectedPaidLocked &&
+    teaserMode === "manual" &&
+    activeTeaserEditorSourceUrl ? (
+      <div
+        className="mt-4 rounded-xl border border-[#16702e]/24 bg-[#111510] p-3 text-white shadow-[0_18px_36px_rgba(17,21,16,0.16)] sm:p-4"
+        id="fanletter-news-report-teaser-crop"
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-1.5 text-sm font-black text-[#44f26e]">
+              <Crop className="size-4" />
+              {copy.teaserCrop.teaserTitle}
+            </p>
+            <p className="mt-1 max-w-2xl text-xs font-semibold leading-5 text-white/58">
+              {copy.teaserCrop.teaserBody}
+            </p>
+            <span className="mt-2 inline-flex rounded-full border border-[#44f26e]/20 bg-white/[0.06] px-2.5 py-1 text-[0.62rem] font-black text-[#44f26e]">
+              {copy.teaserSelection.activeCut}
+            </span>
+          </div>
+          <span className="inline-flex w-fit shrink-0 rounded-full bg-[#44f26e] px-3 py-1.5 text-xs font-black text-black">
+            9:16
+          </span>
+        </div>
+        <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,13rem)_minmax(0,1fr)] lg:items-center">
+          <div className="min-w-0">
+            <div
+              className="relative mx-auto aspect-[9/16] w-full max-w-[13rem] cursor-grab touch-none overflow-hidden border border-white/12 bg-black/40 active:cursor-grabbing"
+              onPointerCancel={handleCropPointerEnd}
+              onPointerDown={handleTeaserCropPointerDown}
+              onPointerMove={handleCropPointerMove}
+              onPointerUp={handleCropPointerEnd}
+              ref={teaserCropFrameRef}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                alt=""
+                aria-hidden="true"
+                className={cn(
+                  "absolute max-w-none select-none object-cover",
+                  shouldBlurSelectedNsfwMedia && "blur-md",
+                )}
+                crossOrigin="anonymous"
+                draggable={false}
+                onLoad={(event) => {
+                  const image = event.currentTarget;
+
+                  if (image.naturalWidth && image.naturalHeight) {
+                    setTeaserNaturalSize({
+                      height: image.naturalHeight,
+                      width: image.naturalWidth,
+                    });
+                  }
+                }}
+                src={activeTeaserEditorSourceUrl}
+                style={
+                  teaserPreviewImageStyle ?? {
+                    height: "100%",
+                    left: 0,
+                    top: 0,
+                    width: "100%",
+                  }
+                }
+              />
+              <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/26" />
+              <div className="pointer-events-none absolute inset-x-0 top-1/3 border-t border-white/16" />
+              <div className="pointer-events-none absolute inset-x-0 top-2/3 border-t border-white/16" />
+              <div className="pointer-events-none absolute inset-y-0 left-1/3 border-l border-white/16" />
+              <div className="pointer-events-none absolute inset-y-0 left-2/3 border-l border-white/16" />
+            </div>
+            <p className="mt-2 text-center text-[0.68rem] font-black text-[#44f26e]">
+              {copy.teaserCrop.previewTitle}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs font-black text-white/62">
+                {copy.zoom}
+              </span>
+              <span className="text-xs font-black text-[#44f26e]">
+                {teaserCrop.zoom.toFixed(2)}x
+              </span>
+            </div>
+            <input
+              aria-label={`${copy.teaserCrop.teaserTitle} ${copy.zoom}`}
+              className="mt-3 w-full accent-[#44f26e]"
+              max={REPORT_COVER_CROP_MAX_ZOOM}
+              min={1}
+              onChange={(event) => {
+                setTeaserCrop((current) => ({
+                  ...current,
+                  zoom: Number(event.target.value),
+                }));
+              }}
+              step={0.01}
+              type="range"
+              value={teaserCrop.zoom}
+            />
+            <button
+              className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/12 text-xs font-black text-white/62 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
+              onClick={() => {
+                setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
+              }}
+              type="button"
+            >
+              <RefreshCw className="size-3.5" />
+              {copy.reset}
+            </button>
+            <button
+              className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#44f26e] px-3 text-xs font-black text-black transition hover:bg-[#65ff87] disabled:cursor-not-allowed disabled:opacity-60"
+              disabled={teaserCropStatus === "saving"}
+              onClick={saveCroppedTeaserImage}
+              type="button"
+            >
+              {teaserCropStatus === "saving" ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <ImageIcon className="size-3.5" />
+              )}
+              {teaserCropStatus === "saving"
+                ? copy.teaserCrop.saving
+                : copy.teaserCrop.save}
+            </button>
+          </div>
+        </div>
+      </div>
+    ) : null;
+  const autoTeaserPreview =
+    !isSelectedPaidLocked && teaserMode === "auto" ? (
+      <div className="mt-4 rounded-xl border border-[#19b84b]/20 bg-white p-3 shadow-[0_10px_24px_rgba(25,184,75,0.08)]">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-1.5 text-sm font-black text-[#111510]">
+              <Sparkles className="size-4 text-[#16702e]" />
+              {copy.teaserSelection.autoCropTitle}
+            </p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-black/54">
+              {copy.teaserSelection.autoCropBody}
+            </p>
+          </div>
+          <span className="inline-flex w-fit shrink-0 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-[#44f26e]">
+            {copy.teaserSelection.autoReady(
+              formatNumber(activeTeaserCount, locale),
+              formatNumber(autoTeaserCandidateUrls.length, locale),
+            )}
+          </span>
+        </div>
+        {autoTeaserCandidateUrls.length > 0 ? (
+          <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6 lg:grid-cols-4">
+            {autoTeaserCandidateUrls
+              .slice(0, REPORT_TEASER_IMAGE_LIMIT)
+              .map((imageUrl, index) => (
+                <span
+                  className="relative block aspect-[9/16] overflow-hidden rounded-md border border-black/10 bg-[#111510]"
+                  key={`${imageUrl}-${index}`}
+                >
+                  <span
+                    className={cn(
+                      "block size-full bg-cover bg-center",
+                      shouldBlurSelectedNsfwMedia &&
+                        "scale-[1.03] blur-sm brightness-75",
+                    )}
+                    style={{
+                      backgroundImage: `url(${imageUrl})`,
+                    }}
+                  />
+                  <span className="absolute left-1 top-1 rounded-full bg-black/72 px-1.5 py-0.5 text-[0.58rem] font-black text-[#44f26e]">
+                    {formatNumber(index + 1, locale)}
+                  </span>
+                </span>
+              ))}
+          </div>
+        ) : null}
+      </div>
+    ) : null;
 
   const searchControls = (
     <form
@@ -4164,6 +4344,8 @@ export function FanletterNewsReportComposerPage({
                         </div>
                       ) : null}
 
+                      {autoTeaserPreview}
+
                       {selectedExistingReport ? (
                         <div className="mt-4 grid gap-3 border border-[#19b84b]/18 bg-[#f6fff7] p-3 md:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)]">
                           <div className="min-w-0">
@@ -4272,6 +4454,8 @@ export function FanletterNewsReportComposerPage({
                           </div>
                         </div>
                       ) : null}
+
+                      {manualTeaserCropEditor}
 
                       {isSelectedPaidLocked ? (
                         <div className="mt-4 border border-rose-500/18 bg-rose-50 p-4 text-rose-900">
@@ -4562,7 +4746,7 @@ export function FanletterNewsReportComposerPage({
                               <div className="pointer-events-none absolute inset-y-0 left-2/3 border-l border-white/16" />
                             </div>
                           </div>
-                          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-1">
+                          <div className="min-w-0">
                             <div className="border border-white/10 bg-white/[0.045] p-3">
                               <div className="flex items-center justify-between gap-3">
                                 <span className="text-xs font-black text-white/62">
@@ -4598,182 +4782,6 @@ export function FanletterNewsReportComposerPage({
                                 {copy.reset}
                               </button>
                             </div>
-
-                            {teaserMode === "manual" ? (
-                              <div className="border border-[#44f26e]/22 bg-[#44f26e]/[0.07] p-3">
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="min-w-0">
-                                    <p className="text-sm font-black">
-                                      {copy.teaserCrop.teaserTitle}
-                                    </p>
-                                    <p className="mt-1 text-xs font-semibold leading-5 text-white/58">
-                                      {copy.teaserCrop.teaserBody}
-                                    </p>
-                                    {activeTeaserCropSourceUrl ? (
-                                      <p className="mt-2 inline-flex rounded-full border border-[#44f26e]/20 bg-black/18 px-2.5 py-1 text-[0.62rem] font-black text-[#44f26e]">
-                                        {copy.teaserSelection.activeCut}
-                                      </p>
-                                    ) : null}
-                                  </div>
-                                  <span className="shrink-0 rounded-full bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
-                                    9:16
-                                  </span>
-                                </div>
-                                <div
-                                  className="relative mx-auto mt-3 aspect-[9/16] w-full max-w-[12.5rem] cursor-grab touch-none overflow-hidden border border-white/12 bg-black/40 active:cursor-grabbing"
-                                  onPointerCancel={handleCropPointerEnd}
-                                  onPointerDown={handleTeaserCropPointerDown}
-                                  onPointerMove={handleCropPointerMove}
-                                  onPointerUp={handleCropPointerEnd}
-                                  ref={teaserCropFrameRef}
-                                >
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img
-                                    alt=""
-                                    aria-hidden="true"
-                                    className={cn(
-                                      "absolute max-w-none select-none object-cover",
-                                      shouldBlurSelectedNsfwMedia && "blur-md",
-                                    )}
-                                    crossOrigin="anonymous"
-                                    draggable={false}
-                                    onLoad={(event) => {
-                                      const image = event.currentTarget;
-
-                                      if (
-                                        image.naturalWidth &&
-                                        image.naturalHeight
-                                      ) {
-                                        setTeaserNaturalSize({
-                                          height: image.naturalHeight,
-                                          width: image.naturalWidth,
-                                        });
-                                      }
-                                    }}
-                                    src={
-                                      activeTeaserCropSourceUrl ??
-                                      selectedCoverUrl
-                                    }
-                                    style={
-                                      teaserPreviewImageStyle ?? {
-                                        height: "100%",
-                                        left: 0,
-                                        top: 0,
-                                        width: "100%",
-                                      }
-                                    }
-                                  />
-                                  <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/26" />
-                                  <div className="pointer-events-none absolute inset-x-0 top-1/3 border-t border-white/16" />
-                                  <div className="pointer-events-none absolute inset-x-0 top-2/3 border-t border-white/16" />
-                                  <div className="pointer-events-none absolute inset-y-0 left-1/3 border-l border-white/16" />
-                                  <div className="pointer-events-none absolute inset-y-0 left-2/3 border-l border-white/16" />
-                                </div>
-                                <p className="mt-2 text-center text-[0.68rem] font-black text-[#44f26e]">
-                                  {copy.teaserCrop.previewTitle}
-                                </p>
-                                <div className="mt-3 flex items-center justify-between gap-3">
-                                  <span className="text-xs font-black text-white/62">
-                                    {copy.zoom}
-                                  </span>
-                                  <span className="text-xs font-black text-[#44f26e]">
-                                    {teaserCrop.zoom.toFixed(2)}x
-                                  </span>
-                                </div>
-                                <input
-                                  aria-label={`${copy.teaserCrop.teaserTitle} ${copy.zoom}`}
-                                  className="mt-3 w-full accent-[#44f26e]"
-                                  max={REPORT_COVER_CROP_MAX_ZOOM}
-                                  min={1}
-                                  onChange={(event) => {
-                                    setTeaserCrop((current) => ({
-                                      ...current,
-                                      zoom: Number(event.target.value),
-                                    }));
-                                  }}
-                                  step={0.01}
-                                  type="range"
-                                  value={teaserCrop.zoom}
-                                />
-                                <button
-                                  className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/12 text-xs font-black text-white/62 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
-                                  onClick={() => {
-                                    setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
-                                  }}
-                                  type="button"
-                                >
-                                  <RefreshCw className="size-3.5" />
-                                  {copy.reset}
-                                </button>
-                                <button
-                                  className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#44f26e] px-3 text-xs font-black text-black transition hover:bg-[#65ff87] disabled:cursor-not-allowed disabled:opacity-60"
-                                  disabled={teaserCropStatus === "saving"}
-                                  onClick={saveCroppedTeaserImage}
-                                  type="button"
-                                >
-                                  {teaserCropStatus === "saving" ? (
-                                    <Loader2 className="size-3.5 animate-spin" />
-                                  ) : (
-                                    <ImageIcon className="size-3.5" />
-                                  )}
-                                  {teaserCropStatus === "saving"
-                                    ? copy.teaserCrop.saving
-                                    : copy.teaserCrop.save}
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="border border-[#44f26e]/22 bg-[#44f26e]/[0.07] p-3">
-                                <div className="flex items-start justify-between gap-3">
-                                  <div className="min-w-0">
-                                    <p className="inline-flex items-center gap-1.5 text-sm font-black">
-                                      <Sparkles className="size-4 text-[#44f26e]" />
-                                      {copy.teaserSelection.autoCropTitle}
-                                    </p>
-                                    <p className="mt-1 text-xs font-semibold leading-5 text-white/58">
-                                      {copy.teaserSelection.autoCropBody}
-                                    </p>
-                                  </div>
-                                  <span className="shrink-0 rounded-full bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
-                                    9:16
-                                  </span>
-                                </div>
-                                {autoTeaserCandidateUrls.length > 0 ? (
-                                  <div className="mt-4 grid grid-cols-4 gap-2">
-                                    {autoTeaserCandidateUrls
-                                      .slice(0, REPORT_TEASER_IMAGE_LIMIT)
-                                      .map((imageUrl, index) => (
-                                        <span
-                                          className="relative block aspect-[9/16] overflow-hidden rounded-md border border-white/12 bg-black/40"
-                                          key={`${imageUrl}-${index}`}
-                                        >
-                                          <span
-                                            className={cn(
-                                              "block size-full bg-cover bg-center",
-                                              shouldBlurSelectedNsfwMedia &&
-                                                "scale-[1.03] blur-sm brightness-75",
-                                            )}
-                                            style={{
-                                              backgroundImage: `url(${imageUrl})`,
-                                            }}
-                                          />
-                                          <span className="absolute left-1 top-1 rounded-full bg-black/72 px-1.5 py-0.5 text-[0.58rem] font-black text-[#44f26e]">
-                                            {formatNumber(index + 1, locale)}
-                                          </span>
-                                        </span>
-                                      ))}
-                                  </div>
-                                ) : null}
-                                <p className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs font-black text-[#44f26e]">
-                                  {copy.teaserSelection.autoReady(
-                                    formatNumber(activeTeaserCount, locale),
-                                    formatNumber(
-                                      autoTeaserCandidateUrls.length,
-                                      locale,
-                                    ),
-                                  )}
-                                </p>
-                              </div>
-                            )}
                           </div>
                         </div>
                       </section>
