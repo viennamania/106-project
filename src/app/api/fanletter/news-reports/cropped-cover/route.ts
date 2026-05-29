@@ -38,6 +38,10 @@ function resolveExtension(file: File) {
   return ".jpg";
 }
 
+function normalizeUploadPurpose(value: FormDataEntryValue | null) {
+  return String(value ?? "").trim() === "teaser" ? "teaser" : "cover";
+}
+
 export async function POST(request: Request) {
   if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
     return jsonError("BLOB_READ_WRITE_TOKEN is not configured.", 500);
@@ -54,6 +58,7 @@ export async function POST(request: Request) {
   const contentId = String(formData.get("contentId") ?? "").trim();
   const file = formData.get("file");
   const requestEmail = normalizeEmail(String(formData.get("email") ?? ""));
+  const purpose = normalizeUploadPurpose(formData.get("purpose"));
   const sourceImageUrl = String(formData.get("sourceImageUrl") ?? "").trim();
   const requestWalletAddress = String(
     formData.get("walletAddress") ?? "",
@@ -135,7 +140,7 @@ export async function POST(request: Request) {
   const pathname = [
     "fanletter-news-reports",
     reporterReferralCode,
-    "wide-covers",
+    purpose === "teaser" ? "teaser-cuts" : "wide-covers",
     `${Date.now()}-${sanitizeBaseName(contentId)}${resolveExtension(file)}`,
   ].join("/");
 

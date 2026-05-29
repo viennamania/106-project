@@ -130,6 +130,23 @@ type ReportCoverCropRect = {
   y: number;
 };
 
+type ReportCoverCropPayload = {
+  aspectRatio: number;
+  height: number;
+  outputHeight: number;
+  outputWidth: number;
+  sourceImageUrl: string;
+  width: number;
+  x: number;
+  y: number;
+};
+
+type CroppedTeaserImage = {
+  crop: ReportCoverCropPayload;
+  imageUrl: string;
+  sourceImageUrl: string;
+};
+
 type FanletterCroppedCoverUploadResponse = {
   contentType: string;
   pathname: string;
@@ -227,7 +244,7 @@ function getCopy(locale: Locale) {
         commentPlaceholder:
           "예: 이 티저 컷에서 팬들이 기대할 만한 장면을 짚어주세요.",
         cropHelper:
-          "선택한 티저 이미지를 뉴스 홈과 상세 화면에 쓰일 16:9 대표 이미지로 저장합니다.",
+          "선택한 프레임을 16:9로 조정합니다. 공개 티저 컷으로 저장하면 뉴스 상세 티저 목록에도 별도 이미지로 사용됩니다.",
         cropTitle: "16:9 뉴스 이미지 크롭",
         emptyBody:
           "아직 리포트로 만들 수 있는 브이로그 후보가 없습니다.",
@@ -363,6 +380,12 @@ function getCopy(locale: Locale) {
           included: "공개 컷 포함",
           limit: (count: string) => `최대 ${count}장`,
         },
+        teaserCrop: {
+          remove: "원본 컷 사용",
+          save: "공개 티저 컷으로 저장",
+          saved: "크롭 티저 저장됨",
+          saving: "티저 컷 저장 중",
+        },
         sourceMeta: {
           ai: "AI 커버",
           auto: "자동 추천",
@@ -434,7 +457,7 @@ function getCopy(locale: Locale) {
         commentPlaceholder:
           "Example: Point out what fans should anticipate from this teaser cut.",
         cropHelper:
-          "Save the selected teaser image as a 16:9 lead image for news home and detail pages.",
+          "Adjust the selected frame to 16:9. Saving it as a public teaser cut also uses the cropped image in the news detail teaser list.",
         cropTitle: "16:9 news image crop",
         emptyBody: "There are no vlog candidates available for reports yet.",
         emptyTitle: "No vlogs available.",
@@ -567,6 +590,12 @@ function getCopy(locale: Locale) {
           include: "Add public cut",
           included: "Public cut",
           limit: (count: string) => `Up to ${count}`,
+        },
+        teaserCrop: {
+          remove: "Use source cut",
+          save: "Save as public teaser cut",
+          saved: "Cropped teaser saved",
+          saving: "Saving teaser cut",
         },
         sourceMeta: {
           ai: "AI cover",
@@ -1194,6 +1223,9 @@ export function FanletterNewsReportComposerPage({
   const [selectedTeaserUrls, setSelectedTeaserUrls] = useState<string[]>(
     getDefaultReportTeaserImageUrls(initialSelectedSource),
   );
+  const [croppedTeaserBySourceUrl, setCroppedTeaserBySourceUrl] = useState<
+    Record<string, CroppedTeaserImage>
+  >({});
   const [angle, setAngle] = useState(
     getRecommendedReportAngle(initialSelectedSource, copy),
   );
@@ -1205,6 +1237,9 @@ export function FanletterNewsReportComposerPage({
     null,
   );
   const [status, setStatus] = useState<"idle" | "submitting">("idle");
+  const [teaserCropStatus, setTeaserCropStatus] = useState<"idle" | "saving">(
+    "idle",
+  );
   const [error, setError] = useState<string | null>(null);
   const cropFrameRef = useRef<HTMLDivElement | null>(null);
   const selectedDetailRef = useRef<HTMLDivElement | null>(null);
@@ -1605,6 +1640,7 @@ export function FanletterNewsReportComposerPage({
         ),
       ].slice(0, REPORT_TEASER_IMAGE_LIMIT),
     );
+    setCroppedTeaserBySourceUrl({});
     setCrop(DEFAULT_REPORT_COVER_CROP);
     setNaturalSize(null);
     setError(null);
@@ -1707,22 +1743,29 @@ export function FanletterNewsReportComposerPage({
   const uploadCroppedCover = useCallback(
     async ({
       contentId,
+      purpose = "cover",
       sourceImageUrl,
     }: {
       contentId: string;
+      purpose?: "cover" | "teaser";
       sourceImageUrl: string;
     }) => {
       const { blob, cropRect } = await createCroppedReportCoverBlob({
         crop,
         sourceImageUrl,
       });
-      const file = new File([blob], `fanletter-news-cover-${contentId}.jpg`, {
-        type: "image/jpeg",
-      });
+      const file = new File(
+        [blob],
+        `fanletter-news-${purpose}-${contentId}.jpg`,
+        {
+          type: "image/jpeg",
+        },
+      );
       const formData = new FormData();
 
       formData.set("contentId", contentId);
       formData.set("file", file);
+      formData.set("purpose", purpose);
       formData.set("sourceImageUrl", sourceImageUrl);
 
       const response = await fetch("/api/fanletter/news-reports/cropped-cover", {
@@ -1750,12 +1793,68 @@ export function FanletterNewsReportComposerPage({
           width: cropRect.width,
           x: cropRect.x,
           y: cropRect.y,
-        },
+        } satisfies ReportCoverCropPayload,
         url: data.url,
       };
     },
     [copy.failed, crop],
   );
+
+  const saveCroppedTeaserImage = useCallback(async () => {
+    if (!selectedSource || !selectedCoverUrl || teaserCropStatus === "saving") {
+      return;
+    }
+
+    setTeaserCropStatus("saving");
+    setError(null);
+
+    try {
+      const croppedTeaser = await uploadCroppedCover({
+        contentId: selectedSource.contentId,
+        purpose: "teaser",
+        sourceImageUrl: selectedCoverUrl,
+      });
+
+      setCroppedTeaserBySourceUrl((current) => ({
+        ...current,
+        [selectedCoverUrl]: {
+          crop: croppedTeaser.crop,
+          imageUrl: croppedTeaser.url,
+          sourceImageUrl: selectedCoverUrl,
+        },
+      }));
+      setSelectedTeaserUrls((current) => {
+        if (current.includes(selectedCoverUrl)) {
+          return current;
+        }
+
+        return [selectedCoverUrl, ...current].slice(0, REPORT_TEASER_IMAGE_LIMIT);
+      });
+    } catch (error) {
+      setError(error instanceof Error ? error.message : copy.failed);
+    } finally {
+      setTeaserCropStatus("idle");
+    }
+  }, [
+    copy.failed,
+    selectedCoverUrl,
+    selectedSource,
+    teaserCropStatus,
+    uploadCroppedCover,
+  ]);
+
+  const removeCroppedTeaserImage = useCallback((sourceImageUrl: string) => {
+    setCroppedTeaserBySourceUrl((current) => {
+      if (!current[sourceImageUrl]) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next[sourceImageUrl];
+
+      return next;
+    });
+  }, []);
 
   const submitReport = useCallback(async () => {
     if (!selectedSource || !selectedCoverUrl || !canSubmit) {
@@ -1783,6 +1882,21 @@ export function FanletterNewsReportComposerPage({
           locale,
           reporterComment: reporterCommentPayload,
           selectedCoverImageUrl: selectedCoverUrl,
+          selectedTeaserImages: selectedTeaserUrls.map((imageUrl) => {
+            const croppedTeaser = croppedTeaserBySourceUrl[imageUrl];
+
+            return croppedTeaser
+              ? {
+                  crop: croppedTeaser.crop,
+                  imageUrl: croppedTeaser.imageUrl,
+                  sourceImageUrl: croppedTeaser.sourceImageUrl,
+                }
+              : {
+                  crop: null,
+                  imageUrl,
+                  sourceImageUrl: imageUrl,
+                };
+          }),
           selectedTeaserImageUrls: selectedTeaserUrls,
         }),
         headers: {
@@ -1810,6 +1924,7 @@ export function FanletterNewsReportComposerPage({
     angle,
     canSubmit,
     copy.failed,
+    croppedTeaserBySourceUrl,
     locale,
     reporterComment,
     router,
@@ -2979,6 +3094,8 @@ export function FanletterNewsReportComposerPage({
                         const isTeaserSelected = selectedTeaserUrls.includes(
                           option.imageUrl,
                         );
+                        const croppedTeaser =
+                          croppedTeaserBySourceUrl[option.imageUrl];
                         const isTeaserLimitReached =
                           !isTeaserSelected &&
                           selectedTeaserUrls.length >= REPORT_TEASER_IMAGE_LIMIT;
@@ -3067,6 +3184,32 @@ export function FanletterNewsReportComposerPage({
                                   ? copy.teaserSelection.included
                                   : copy.teaserSelection.include}
                               </button>
+                            ) : null}
+                            {croppedTeaser && isTeaserSelected ? (
+                              <div className="mt-2 rounded-md border border-[#19b84b]/22 bg-white p-2">
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    className="block aspect-video w-16 shrink-0 rounded bg-[#111510] bg-cover bg-center"
+                                    style={{
+                                      backgroundImage: `url(${croppedTeaser.imageUrl})`,
+                                    }}
+                                  />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="truncate text-[0.68rem] font-black text-[#16702e]">
+                                      {copy.teaserCrop.saved}
+                                    </p>
+                                    <button
+                                      className="mt-1 text-[0.66rem] font-black text-black/48 underline underline-offset-2 transition hover:text-[#111510]"
+                                      onClick={() => {
+                                        removeCroppedTeaserImage(option.imageUrl);
+                                      }}
+                                      type="button"
+                                    >
+                                      {copy.teaserCrop.remove}
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
                             ) : null}
                           </div>
                         );
@@ -3178,6 +3321,21 @@ export function FanletterNewsReportComposerPage({
                         >
                           <RefreshCw className="size-3.5" />
                           {copy.reset}
+                        </button>
+                        <button
+                          className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-[#44f26e] px-3 text-xs font-black text-black transition hover:bg-[#65ff87] disabled:cursor-not-allowed disabled:opacity-60"
+                          disabled={teaserCropStatus === "saving"}
+                          onClick={saveCroppedTeaserImage}
+                          type="button"
+                        >
+                          {teaserCropStatus === "saving" ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <ImageIcon className="size-3.5" />
+                          )}
+                          {teaserCropStatus === "saving"
+                            ? copy.teaserCrop.saving
+                            : copy.teaserCrop.save}
                         </button>
                       </div>
                     </div>

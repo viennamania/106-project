@@ -13,6 +13,7 @@ import type {
   CreatorProfileDocument,
   FanletterNewsReportCoverCropDocument,
   FanletterNewsReportDocument,
+  FanletterNewsReportTeaserImageDocument,
 } from "@/lib/content";
 import { createEmptyContentSocialSummary } from "@/lib/content";
 import { resolveContentCoverImageUrl } from "@/lib/content-cover-selection";
@@ -112,6 +113,7 @@ export type CreateFanletterNewsReportInput = {
   reporterComment?: string | null;
   reporterReferralCode?: string | null;
   selectedCoverImageUrl?: string | null;
+  selectedTeaserImages?: FanletterNewsReportTeaserImageInput[] | null;
   selectedTeaserImageUrls?: string[] | null;
 };
 
@@ -124,6 +126,12 @@ export type FanletterNewsReportCoverCropInput = {
   width?: number | null;
   x?: number | null;
   y?: number | null;
+};
+
+export type FanletterNewsReportTeaserImageInput = {
+  crop?: FanletterNewsReportCoverCropInput | null;
+  imageUrl?: string | null;
+  sourceImageUrl?: string | null;
 };
 
 export type GetFanletterNewsReportForReporterInput = {
@@ -497,20 +505,98 @@ function getReportTeaserImageUrls({
   selectedCoverImageUrl?: string | null;
   selectedTeaserImageUrls?: string[] | null;
 }) {
-  const allowedImageUrls = getAllowedReportCoverImageUrls(post);
-  const selectedUrls = Array.isArray(selectedTeaserImageUrls)
-    ? selectedTeaserImageUrls
-    : [];
+  return getReportTeaserImages({
+    post,
+    selectedCoverImageUrl,
+    selectedTeaserImageUrls,
+  }).map((image) => image.imageUrl);
+}
 
-  return [
-    ...new Set(
-      [...selectedUrls, selectedCoverImageUrl, getCoverImageUrl(post)]
-        .map((url) => url?.trim() ?? "")
-        .filter(Boolean),
-    ),
-  ]
-    .filter((url) => allowedImageUrls.has(url))
-    .slice(0, REPORT_TEASER_IMAGE_LIMIT);
+function getReportTeaserImages({
+  post,
+  reporterReferralCode,
+  selectedCoverImageUrl,
+  selectedTeaserImages,
+  selectedTeaserImageUrls,
+}: {
+  post: Pick<
+    ContentPostDocument,
+    "contentImageUrls" | "coverImageCandidates" | "coverImageUrl"
+  >;
+  reporterReferralCode?: string | null;
+  selectedCoverImageUrl?: string | null;
+  selectedTeaserImages?: FanletterNewsReportTeaserImageInput[] | null;
+  selectedTeaserImageUrls?: string[] | null;
+}): FanletterNewsReportTeaserImageDocument[] {
+  const allowedImageUrls = getAllowedReportCoverImageUrls(post);
+  const imageByUrl = new Map<string, FanletterNewsReportTeaserImageDocument>();
+  const reporterCroppedSourceUrls = new Set<string>();
+  const appendSourceFrame = (imageUrl?: string | null) => {
+    const normalizedImageUrl = imageUrl?.trim() ?? "";
+
+    if (
+      !normalizedImageUrl ||
+      !allowedImageUrls.has(normalizedImageUrl) ||
+      reporterCroppedSourceUrls.has(normalizedImageUrl)
+    ) {
+      return;
+    }
+
+    imageByUrl.set(normalizedImageUrl, {
+      crop: null,
+      imageUrl: normalizedImageUrl,
+      source: "source_frame",
+      sourceImageUrl: normalizedImageUrl,
+    });
+  };
+
+  if (Array.isArray(selectedTeaserImages)) {
+    for (const teaserImage of selectedTeaserImages) {
+      const imageUrl = teaserImage?.imageUrl?.trim() ?? "";
+      const sourceImageUrl =
+        teaserImage?.sourceImageUrl?.trim() || imageUrl;
+
+      if (!imageUrl || !sourceImageUrl || !allowedImageUrls.has(sourceImageUrl)) {
+        continue;
+      }
+
+      const crop = normalizeReportCoverCrop({
+        crop: teaserImage.crop,
+        sourceImageUrl,
+      });
+
+      if (
+        imageUrl !== sourceImageUrl &&
+        crop &&
+        isAllowedReporterCroppedCoverUrl({ imageUrl, reporterReferralCode })
+      ) {
+        reporterCroppedSourceUrls.add(sourceImageUrl);
+        imageByUrl.delete(sourceImageUrl);
+        imageByUrl.set(imageUrl, {
+          crop,
+          imageUrl,
+          source: "reporter_cropped",
+          sourceImageUrl,
+        });
+        continue;
+      }
+
+      if (allowedImageUrls.has(imageUrl)) {
+        appendSourceFrame(imageUrl);
+      }
+    }
+  }
+
+  if (!Array.isArray(selectedTeaserImages) && Array.isArray(selectedTeaserImageUrls)) {
+    for (const imageUrl of selectedTeaserImageUrls) {
+      appendSourceFrame(imageUrl);
+    }
+  }
+
+  appendSourceFrame(selectedCoverImageUrl);
+  appendSourceFrame(getCoverImageUrl(post));
+
+  return [...imageByUrl.values()].slice(0, REPORT_TEASER_IMAGE_LIMIT);
 }
 
 export function isAllowedFanletterNewsReportCoverSource({
@@ -550,9 +636,12 @@ function isAllowedReporterCroppedCoverUrl({
 
     return (
       url.hostname.endsWith(".public.blob.vercel-storage.com") &&
-      url.pathname.includes(
+      (url.pathname.includes(
         `/fanletter-news-reports/${normalizedReporterReferralCode}/wide-covers/`,
-      )
+      ) ||
+        url.pathname.includes(
+          `/fanletter-news-reports/${normalizedReporterReferralCode}/teaser-cuts/`,
+        ))
     );
   } catch {
     return false;
@@ -1900,6 +1989,7 @@ export async function getOrCreateFanletterNewsReport({
   reporterComment,
   reporterReferralCode,
   selectedCoverImageUrl,
+  selectedTeaserImages,
   selectedTeaserImageUrls,
 }: CreateFanletterNewsReportInput) {
   const normalizedContentId = contentId?.trim() ?? "";
@@ -1988,12 +2078,15 @@ export async function getOrCreateFanletterNewsReport({
     reporterReferralCode: normalizedReporterReferralCode,
     selectedCoverImageUrl,
   });
-  const teaserImageUrls = getReportTeaserImageUrls({
+  const teaserImages = getReportTeaserImages({
     post,
+    reporterReferralCode: normalizedReporterReferralCode,
     selectedCoverImageUrl:
       coverImageSelection.coverImageOriginalUrl ?? selectedCoverImageUrl,
+    selectedTeaserImages,
     selectedTeaserImageUrls,
   });
+  const teaserImageUrls = teaserImages.map((image) => image.imageUrl);
   const { generatedBy, payload } = await generateNewsReportPayload({
     contentBodyContext,
     contentMaturityRating,
@@ -2048,6 +2141,7 @@ export async function getOrCreateFanletterNewsReport({
     sourceSummary,
     sourceTitle: trimToLength(post.title, 140),
     status: "published",
+    teaserImages,
     teaserImageUrls,
     title: payload.title,
     updatedAt: now,
@@ -2863,6 +2957,7 @@ export async function getFanletterNewsReportCoverOptions({
         coverImageOriginalUrl: 1,
         coverImageSource: 1,
         coverImageUrl: 1,
+        teaserImages: 1,
         teaserImageUrls: 1,
       },
     },
@@ -2893,11 +2988,16 @@ export async function getFanletterNewsReportCoverOptions({
 
   return {
     options: getFanletterNewsReportCoverOptionsFromPost({ post, report }),
-    teaserImageUrls: getReportTeaserImageUrls({
-      post,
-      selectedCoverImageUrl: report.coverImageOriginalUrl ?? report.coverImageUrl,
-      selectedTeaserImageUrls: report.teaserImageUrls,
-    }),
+    teaserImageUrls:
+      report.teaserImages
+        ?.map((image) => image.imageUrl.trim())
+        .filter(Boolean)
+        .slice(0, REPORT_TEASER_IMAGE_LIMIT) ??
+      getReportTeaserImageUrls({
+        post,
+        selectedCoverImageUrl: report.coverImageOriginalUrl ?? report.coverImageUrl,
+        selectedTeaserImageUrls: report.teaserImageUrls,
+      }),
   };
 }
 
@@ -2908,6 +3008,7 @@ export async function updateFanletterNewsReportCoverImage({
   reporterReferralCode,
   reportId,
   selectedCoverImageUrl,
+  selectedTeaserImages,
   selectedTeaserImageUrls,
 }: {
   croppedCoverCrop?: FanletterNewsReportCoverCropInput | null;
@@ -2916,6 +3017,7 @@ export async function updateFanletterNewsReportCoverImage({
   reporterReferralCode?: string | null;
   reportId?: string | null;
   selectedCoverImageUrl?: string | null;
+  selectedTeaserImages?: FanletterNewsReportTeaserImageInput[] | null;
   selectedTeaserImageUrls?: string[] | null;
 }) {
   const normalizedReportId = reportId?.trim() ?? "";
@@ -2974,15 +3076,29 @@ export async function updateFanletterNewsReportCoverImage({
         coverImageSource: report.coverImageSource ?? "auto",
         coverImageUrl: report.coverImageUrl,
       };
-  const teaserImageUrls = getReportTeaserImageUrls({
+  const fallbackTeaserImages = getReportTeaserImages({
     post,
+    reporterReferralCode: normalizedReporterReferralCode,
     selectedCoverImageUrl:
       coverImageSelection.coverImageOriginalUrl ??
       coverImageSelection.coverImageUrl,
-    selectedTeaserImageUrls: Array.isArray(selectedTeaserImageUrls)
-      ? selectedTeaserImageUrls
-      : report.teaserImageUrls,
+    selectedTeaserImageUrls: report.teaserImageUrls,
   });
+  const teaserImages =
+    selectedTeaserImages === undefined && !Array.isArray(selectedTeaserImageUrls)
+      ? report.teaserImages ?? fallbackTeaserImages
+      : getReportTeaserImages({
+          post,
+          reporterReferralCode: normalizedReporterReferralCode,
+          selectedCoverImageUrl:
+            coverImageSelection.coverImageOriginalUrl ??
+            coverImageSelection.coverImageUrl,
+          selectedTeaserImages,
+          selectedTeaserImageUrls: Array.isArray(selectedTeaserImageUrls)
+            ? selectedTeaserImageUrls
+            : report.teaserImageUrls,
+        });
+  const teaserImageUrls = teaserImages.map((image) => image.imageUrl);
   const updatedAt = new Date();
 
   await reportsCollection.updateOne(
@@ -2993,6 +3109,7 @@ export async function updateFanletterNewsReportCoverImage({
         coverImageOriginalUrl: coverImageSelection.coverImageOriginalUrl,
         coverImageSource: coverImageSelection.coverImageSource,
         coverImageUrl: coverImageSelection.coverImageUrl,
+        teaserImages,
         teaserImageUrls,
         updatedAt,
       },
@@ -3005,6 +3122,7 @@ export async function updateFanletterNewsReportCoverImage({
     coverImageOriginalUrl: coverImageSelection.coverImageOriginalUrl,
     coverImageSource: coverImageSelection.coverImageSource,
     coverImageUrl: coverImageSelection.coverImageUrl,
+    teaserImages,
     teaserImageUrls,
     updatedAt,
   };

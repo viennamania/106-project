@@ -35,6 +35,20 @@ type FanletterNewsReportCreateRequest = {
   locale?: string | null;
   reporterComment?: string | null;
   selectedCoverImageUrl?: string | null;
+  selectedTeaserImages?: Array<{
+    crop?: {
+      aspectRatio?: number | null;
+      height?: number | null;
+      outputHeight?: number | null;
+      outputWidth?: number | null;
+      sourceImageUrl?: string | null;
+      width?: number | null;
+      x?: number | null;
+      y?: number | null;
+    } | null;
+    imageUrl?: string | null;
+    sourceImageUrl?: string | null;
+  }> | null;
   selectedTeaserImageUrls?: string[] | null;
   walletAddress?: string | null;
 };
@@ -56,6 +70,20 @@ type FanletterNewsReportCoverUpdateRequest = {
   locale?: string | null;
   reportId?: string | null;
   selectedCoverImageUrl?: string | null;
+  selectedTeaserImages?: Array<{
+    crop?: {
+      aspectRatio?: number | null;
+      height?: number | null;
+      outputHeight?: number | null;
+      outputWidth?: number | null;
+      sourceImageUrl?: string | null;
+      width?: number | null;
+      x?: number | null;
+      y?: number | null;
+    } | null;
+    imageUrl?: string | null;
+    sourceImageUrl?: string | null;
+  }> | null;
   selectedTeaserImageUrls?: string[] | null;
   walletAddress?: string | null;
 };
@@ -346,6 +374,7 @@ export async function POST(request: Request) {
       reporterComment: body?.reporterComment,
       reporterReferralCode: reporter.reporterReferralCode,
       selectedCoverImageUrl: body?.selectedCoverImageUrl,
+      selectedTeaserImages: body?.selectedTeaserImages,
       selectedTeaserImageUrls: body?.selectedTeaserImageUrls,
     });
 
@@ -388,6 +417,7 @@ export async function PATCH(request: Request) {
       reportId: body?.reportId,
       reporterReferralCode: reporter.reporterReferralCode,
       selectedCoverImageUrl: body?.selectedCoverImageUrl,
+      selectedTeaserImages: body?.selectedTeaserImages,
       selectedTeaserImageUrls: body?.selectedTeaserImageUrls,
     });
     const locale: Locale =

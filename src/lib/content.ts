@@ -476,6 +476,13 @@ export type FanletterNewsReportCoverCropDocument = {
   y: number;
 };
 
+export type FanletterNewsReportTeaserImageDocument = {
+  crop?: FanletterNewsReportCoverCropDocument | null;
+  imageUrl: string;
+  source: "reporter_cropped" | "source_frame";
+  sourceImageUrl: string;
+};
+
 export type FanletterNewsReportDocument = {
   body: string;
   contentId: string;
@@ -507,6 +514,7 @@ export type FanletterNewsReportDocument = {
   sourceSummary: string;
   sourceTitle: string;
   status: "published";
+  teaserImages?: FanletterNewsReportTeaserImageDocument[];
   teaserImageUrls?: string[];
   title: string;
   updatedAt: Date;
