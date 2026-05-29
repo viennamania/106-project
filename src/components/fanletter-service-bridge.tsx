@@ -129,11 +129,11 @@ export function FanletterServiceBridge({
     <section
       className={
         dark
-          ? "rounded-lg border border-white/10 bg-white/[0.055] p-4 text-white shadow-[0_30px_90px_rgba(0,0,0,0.26)] backdrop-blur-md sm:p-5"
+          ? "rounded-lg border border-[#1d3827] bg-[#07110b] p-4 text-white shadow-[0_30px_90px_rgba(0,0,0,0.34)] sm:p-5"
           : "border border-black/12 bg-white p-4 text-[#111510] shadow-[0_16px_36px_rgba(17,21,16,0.06)] sm:p-5"
       }
     >
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:items-end">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] xl:items-end">
         <div className="min-w-0">
           <p
             className={
@@ -158,7 +158,7 @@ export function FanletterServiceBridge({
           </p>
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-3">
+        <div className="grid gap-2 [grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr))]">
           {items.map((item) => {
             const Icon = item.icon;
 
@@ -166,7 +166,7 @@ export function FanletterServiceBridge({
               <Link
                 className={
                   dark
-                    ? "group min-w-0 rounded-lg border border-white/10 bg-black/24 p-3 !text-white transition hover:border-[#44f26e]/50 hover:bg-black/34"
+                    ? "group min-w-0 rounded-lg border border-white/10 bg-[#0d1710] p-3 !text-white transition hover:border-[#44f26e]/50 hover:bg-[#122116]"
                     : "group min-w-0 rounded-lg border border-black/10 bg-[#f6f8f4] p-3 !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
                 }
                 href={item.href}
@@ -182,14 +182,14 @@ export function FanletterServiceBridge({
                   <Icon className="size-3.5" />
                   {item.label}
                 </span>
-                <span className="mt-2 block truncate text-base font-black">
+                <span className="mt-2 block text-base font-black leading-snug [word-break:keep-all]">
                   {item.title}
                 </span>
                 <span
                   className={
                     dark
-                      ? "mt-1 line-clamp-2 block text-xs font-semibold leading-5 text-white/54"
-                      : "mt-1 line-clamp-2 block text-xs font-semibold leading-5 text-black/50"
+                      ? "mt-1 line-clamp-2 block text-xs font-semibold leading-5 text-white/58 [word-break:keep-all]"
+                      : "mt-1 line-clamp-2 block text-xs font-semibold leading-5 text-black/50 [word-break:keep-all]"
                   }
                 >
                   {item.body}
