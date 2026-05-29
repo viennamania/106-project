@@ -24,6 +24,7 @@ import {
 
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
+import { FanletterNewsLockedPreviewHero } from "@/components/fanletter-news-locked-preview-hero";
 import { FanletterNewsRelatedList } from "@/components/fanletter-news-related-list";
 import { FanletterNewsMobileActionDock } from "@/components/fanletter-news-mobile-action-dock";
 import { FanletterNewsSourceSceneGallery } from "@/components/fanletter-news-source-scene-gallery";
@@ -2303,61 +2304,6 @@ function resolveSourceVlogPreviewVideoUrl(
   );
 }
 
-function SourceVlogLockedPreviewHero({
-  children,
-  copy,
-  posterImageUrl,
-  previewVideoUrl,
-  title,
-}: {
-  children?: ReactNode;
-  copy: ReturnType<typeof getCopy>;
-  posterImageUrl: string | null;
-  previewVideoUrl: string;
-  title: string;
-}) {
-  return (
-    <div className="grid w-full overflow-hidden bg-black lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]">
-      <div className="relative aspect-video w-full min-w-0 overflow-hidden bg-black lg:h-full lg:min-h-[28rem] lg:aspect-auto">
-        {posterImageUrl ? (
-          <Image
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 scale-[1.08] object-cover opacity-45 blur-2xl brightness-[0.62] saturate-[1.05]"
-            fill
-            loading="eager"
-            sizes="(max-width: 1024px) 100vw, 62vw"
-            src={posterImageUrl}
-            unoptimized={shouldBypassFanletterImageOptimization(posterImageUrl)}
-          />
-        ) : null}
-        <FanletterAutoplayVideo
-          className="absolute inset-0 h-full w-full object-cover brightness-[0.92] saturate-[1.04] lg:object-contain"
-          controls
-          poster={posterImageUrl ?? undefined}
-          src={previewVideoUrl}
-          title={title}
-        />
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.22),rgba(0,0,0,0.04)_34%,rgba(0,0,0,0.42))]" />
-        <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1.5 sm:left-4 sm:top-4">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/18 bg-black/52 px-2.5 py-1 text-[0.68rem] font-black text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)] backdrop-blur">
-            <PlayCircle className="size-3.5 text-[#44f26e]" />
-            {copy.embeddedPreviewBadge}
-          </span>
-          <span className="inline-flex items-center rounded-full border border-white/14 bg-black/42 px-2.5 py-1 text-[0.68rem] font-bold text-white/78 shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur">
-            {copy.embeddedPreviewMeta}
-          </span>
-        </div>
-      </div>
-      {children ? (
-        <div className="relative min-h-[23rem] overflow-hidden border-t border-white/10 bg-[#07100b] sm:min-h-[24rem] lg:min-h-0 lg:border-l lg:border-t-0">
-          {children}
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 function SourceVlogConversionGuide({
   connectHref,
   isPaidContent,
@@ -2803,9 +2749,10 @@ function SourceVlogEmbed({
       <div className="-mx-4 overflow-hidden border-y border-black/10 bg-black shadow-[0_20px_46px_rgba(17,21,16,0.1)] sm:mx-0 sm:border">
         {sourceRevealLocked && sourceReveal ? (
           shouldShowLockedPreviewHero && sourcePreviewVideoUrl ? (
-            <SourceVlogLockedPreviewHero
-              copy={copy}
+            <FanletterNewsLockedPreviewHero
               posterImageUrl={sourceImageUrl}
+              previewBadge={copy.embeddedPreviewBadge}
+              previewMeta={copy.embeddedPreviewMeta}
               previewVideoUrl={sourcePreviewVideoUrl}
               title={sourceContent?.title ?? copy.embeddedTitle}
             >
@@ -2834,7 +2781,7 @@ function SourceVlogEmbed({
                   sourceReveal={sourceReveal}
                 />
               </div>
-            </SourceVlogLockedPreviewHero>
+            </FanletterNewsLockedPreviewHero>
           ) : (
             <div className="relative mx-auto aspect-[3/4] w-full overflow-hidden bg-black sm:aspect-video">
               {sourceImageUrl ? (
@@ -2883,9 +2830,10 @@ function SourceVlogEmbed({
           )
         ) : shouldShowPaidTeaser && paidUnlockHref ? (
           shouldShowLockedPreviewHero && sourcePreviewVideoUrl ? (
-            <SourceVlogLockedPreviewHero
-              copy={copy}
+            <FanletterNewsLockedPreviewHero
               posterImageUrl={sourceImageUrl}
+              previewBadge={copy.embeddedPreviewBadge}
+              previewMeta={copy.embeddedPreviewMeta}
               previewVideoUrl={sourcePreviewVideoUrl}
               title={sourceContent?.title ?? copy.embeddedTitle}
             >
@@ -2898,7 +2846,7 @@ function SourceVlogEmbed({
                 paidUnlockLabel={paidUnlockLabel}
                 showPaidUnlockCta={shouldShowPaidUnlockCta}
               />
-            </SourceVlogLockedPreviewHero>
+            </FanletterNewsLockedPreviewHero>
           ) : (
             <div className="relative mx-auto aspect-[3/4] w-full overflow-hidden bg-black sm:aspect-video">
               {sourceImageUrl ? (
