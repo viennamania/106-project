@@ -454,6 +454,8 @@ function getCopy(locale: Locale) {
           autoReady: (count: string, candidateCount: string) =>
             `후보 ${candidateCount}장 · 최대 ${count}컷 생성`,
           body: "뉴스 독자가 회원가입 전에 볼 수 있는 공개 컷입니다. 선택만 하면 원본 비율을 유지하고, 필요한 컷은 9:16 세로 티저로 저장할 수 있습니다.",
+          activeCut: "편집 중",
+          editCut: "9:16 편집",
           include: "공개 컷에 추가",
           included: "공개 컷 포함",
           limit: (count: string) => `최대 ${count}장`,
@@ -462,6 +464,15 @@ function getCopy(locale: Locale) {
             "공개 컷을 직접 고르고 필요한 이미지만 9:16 세로 티저로 저장합니다.",
           modeLabel: "티저 컷 처리 방식",
           ratio: "선택 저장 9:16",
+          removeCut: "제외",
+          selectedBody:
+            "여기 있는 컷만 뉴스 상세에 공개됩니다. 9:16 편집을 누르면 아래 편집기로 바로 이동합니다.",
+          selectedCount: (count: string, limit: string) =>
+            `${count}/${limit}장 선택`,
+          selectedEmpty:
+            "공개 컷이 아직 없습니다. 후보에서 공개 컷 추가 또는 9:16 편집을 누르세요.",
+          selectedItem: (index: string) => `공개 컷 ${index}`,
+          selectedTitle: "선택된 공개 티저 컷",
         },
         teaserCrop: {
           coverBody: "뉴스 카드와 공유 썸네일에 쓰이는 대표 이미지입니다.",
@@ -707,6 +718,8 @@ function getCopy(locale: Locale) {
           autoReady: (count: string, candidateCount: string) =>
             `${candidateCount} candidates · up to ${count} cuts`,
           body: "These are public cuts readers can see before signing in. Selected cuts keep the source ratio by default, and important cuts can be saved as 9:16 portrait teasers.",
+          activeCut: "Editing",
+          editCut: "Edit 9:16",
           include: "Add public cut",
           included: "Public cut",
           limit: (count: string) => `Up to ${count}`,
@@ -715,6 +728,15 @@ function getCopy(locale: Locale) {
             "Pick public cuts yourself and save only the needed images as 9:16 portrait teasers.",
           modeLabel: "Teaser cut mode",
           ratio: "Optional 9:16 save",
+          removeCut: "Remove",
+          selectedBody:
+            "Only these cuts appear on the news detail. Use Edit 9:16 to jump directly to the portrait editor below.",
+          selectedCount: (count: string, limit: string) =>
+            `${count}/${limit} selected`,
+          selectedEmpty:
+            "No public cuts selected yet. Add a public cut or use Edit 9:16 from a candidate.",
+          selectedItem: (index: string) => `Public cut ${index}`,
+          selectedTitle: "Selected public teaser cuts",
         },
         teaserCrop: {
           coverBody: "Used for news cards and share thumbnails.",
@@ -1713,6 +1735,37 @@ export function FanletterNewsReportComposerPage({
     teaserMode === "auto"
       ? Math.min(autoTeaserCandidateUrls.length, REPORT_TEASER_IMAGE_LIMIT)
       : selectedTeaserUrls.length;
+  const selectedManualTeaserItems = useMemo(
+    () =>
+      selectedTeaserUrls.map((imageUrl, index) => {
+        const optionIndex = selectedSourceCoverOptions.findIndex(
+          (option) => option.imageUrl === imageUrl,
+        );
+        const option =
+          optionIndex >= 0 ? selectedSourceCoverOptions[optionIndex] : null;
+        const croppedTeaser = croppedTeaserBySourceUrl[imageUrl];
+
+        return {
+          croppedTeaser,
+          imageUrl,
+          isActive: activeTeaserCropSourceUrl === imageUrl,
+          label: option
+            ? getCoverLabel(option, optionIndex, locale)
+            : copy.teaserSelection.selectedItem(
+                formatNumber(index + 1, locale),
+              ),
+          previewUrl: croppedTeaser?.imageUrl ?? imageUrl,
+        };
+      }),
+    [
+      activeTeaserCropSourceUrl,
+      copy.teaserSelection,
+      croppedTeaserBySourceUrl,
+      locale,
+      selectedSourceCoverOptions,
+      selectedTeaserUrls,
+    ],
+  );
   const canSubmit = Boolean(
     selectedSource &&
       selectedSource.mediaAccess.canView &&
@@ -2139,6 +2192,41 @@ export function FanletterNewsReportComposerPage({
       return [...current, imageUrl];
     });
   }, []);
+
+  const focusTeaserCropEditor = useCallback(
+    (imageUrl: string) => {
+      if (isSelectedPaidLocked) {
+        return;
+      }
+
+      const isAlreadySelected = selectedTeaserUrls.includes(imageUrl);
+
+      if (
+        !isAlreadySelected &&
+        selectedTeaserUrls.length >= REPORT_TEASER_IMAGE_LIMIT
+      ) {
+        return;
+      }
+
+      setTeaserMode("manual");
+      setSelectedTeaserCropSourceUrl(imageUrl);
+      setSelectedTeaserUrls((current) =>
+        current.includes(imageUrl)
+          ? current
+          : [...current, imageUrl].slice(0, REPORT_TEASER_IMAGE_LIMIT),
+      );
+      setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
+      setTeaserNaturalSize(null);
+
+      window.setTimeout(() => {
+        teaserCropFrameRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }, 0);
+    },
+    [isSelectedPaidLocked, selectedTeaserUrls],
+  );
 
   const handleCropPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
@@ -3962,6 +4050,117 @@ export function FanletterNewsReportComposerPage({
                                 : copy.teaserSelection.manualModeBody}
                             </p>
                           </div>
+                          {teaserMode === "manual" ? (
+                            <div className="mt-4 rounded-xl border border-[#19b84b]/20 bg-white p-3 shadow-[0_10px_24px_rgba(25,184,75,0.08)]">
+                              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="min-w-0">
+                                  <p className="inline-flex items-center gap-1.5 text-sm font-black text-[#111510]">
+                                    <ImageIcon className="size-4 text-[#16702e]" />
+                                    {copy.teaserSelection.selectedTitle}
+                                  </p>
+                                  <p className="mt-1 text-xs font-semibold leading-5 text-black/54">
+                                    {copy.teaserSelection.selectedBody}
+                                  </p>
+                                </div>
+                                <span className="inline-flex w-fit shrink-0 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-[#44f26e]">
+                                  {copy.teaserSelection.selectedCount(
+                                    formatNumber(
+                                      selectedManualTeaserItems.length,
+                                      locale,
+                                    ),
+                                    formatNumber(
+                                      REPORT_TEASER_IMAGE_LIMIT,
+                                      locale,
+                                    ),
+                                  )}
+                                </span>
+                              </div>
+                              {selectedManualTeaserItems.length > 0 ? (
+                                <div className="mt-3 grid gap-2 min-[460px]:grid-cols-2 lg:grid-cols-4">
+                                  {selectedManualTeaserItems.map(
+                                    (item, index) => (
+                                      <div
+                                        className={cn(
+                                          "min-w-0 overflow-hidden rounded-lg border bg-[#f7f9f4] p-2",
+                                          item.isActive
+                                            ? "border-[#19b84b] shadow-[0_0_0_1px_rgba(25,184,75,0.22)]"
+                                            : "border-black/10",
+                                        )}
+                                        key={`${item.imageUrl}-${index}`}
+                                      >
+                                        <button
+                                          className="group relative block aspect-[9/16] w-full overflow-hidden rounded-md bg-[#111510]"
+                                          onClick={() => {
+                                            focusTeaserCropEditor(
+                                              item.imageUrl,
+                                            );
+                                          }}
+                                          type="button"
+                                        >
+                                          <span
+                                            className={cn(
+                                              "block size-full bg-cover bg-center transition group-hover:scale-[1.03]",
+                                              shouldBlurSelectedNsfwMedia &&
+                                                "scale-[1.03] blur-md brightness-75",
+                                            )}
+                                            style={{
+                                              backgroundImage: `url(${item.previewUrl})`,
+                                            }}
+                                          />
+                                          <span className="absolute left-1 top-1 rounded-full bg-black/72 px-1.5 py-0.5 text-[0.58rem] font-black text-[#44f26e]">
+                                            {formatNumber(index + 1, locale)}
+                                          </span>
+                                          {item.isActive ? (
+                                            <span className="absolute right-1 top-1 rounded-full bg-[#44f26e] px-1.5 py-0.5 text-[0.58rem] font-black text-black">
+                                              {copy.teaserSelection.activeCut}
+                                            </span>
+                                          ) : null}
+                                        </button>
+                                        <p className="mt-2 truncate text-[0.68rem] font-black text-[#111510]">
+                                          {item.label}
+                                        </p>
+                                        <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-1.5">
+                                          <button
+                                            className="inline-flex h-8 min-w-0 items-center justify-center gap-1 rounded-md bg-[#111510] px-2 text-[0.66rem] font-black text-white transition hover:bg-black"
+                                            onClick={() => {
+                                              focusTeaserCropEditor(
+                                                item.imageUrl,
+                                              );
+                                            }}
+                                            type="button"
+                                          >
+                                            <Crop className="size-3 text-[#44f26e]" />
+                                            <span className="truncate">
+                                              {copy.teaserSelection.editCut}
+                                            </span>
+                                          </button>
+                                          <button
+                                            aria-label={`${copy.teaserSelection.removeCut} ${item.label}`}
+                                            className="inline-flex size-8 items-center justify-center rounded-md border border-black/10 bg-white text-black/42 transition hover:border-rose-500/30 hover:text-rose-700"
+                                            onClick={() => {
+                                              toggleTeaserImage(item.imageUrl);
+                                            }}
+                                            type="button"
+                                          >
+                                            <X className="size-3.5" />
+                                          </button>
+                                        </div>
+                                        {item.croppedTeaser ? (
+                                          <p className="mt-1 text-[0.6rem] font-black uppercase tracking-[0.06em] text-[#16702e]">
+                                            {copy.teaserCrop.saved}
+                                          </p>
+                                        ) : null}
+                                      </div>
+                                    ),
+                                  )}
+                                </div>
+                              ) : (
+                                <p className="mt-3 rounded-lg border border-dashed border-[#19b84b]/22 bg-[#f6fff7] px-3 py-4 text-sm font-semibold leading-6 text-black/50">
+                                  {copy.teaserSelection.selectedEmpty}
+                                </p>
+                              )}
+                            </div>
+                          ) : null}
                         </div>
                       ) : null}
 
@@ -4185,30 +4384,58 @@ export function FanletterNewsReportComposerPage({
                                 </button>
                                 {!isSelectedPaidLocked &&
                                 teaserMode === "manual" ? (
-                                  <button
-                                    className={cn(
-                                      "mt-1 flex h-9 w-full items-center justify-center gap-1.5 rounded-md border text-[0.7rem] font-black transition",
-                                      isTeaserSelected
-                                        ? "border-[#19b84b]/35 bg-[#111510] text-white"
-                                        : "border-black/10 bg-white text-black/56 hover:border-[#19b84b]/35 hover:text-[#111510]",
-                                      isTeaserLimitReached &&
-                                        "cursor-not-allowed opacity-45 hover:border-black/10 hover:text-black/56",
-                                    )}
-                                    disabled={isTeaserLimitReached}
-                                    onClick={() => {
-                                      toggleTeaserImage(option.imageUrl);
-                                    }}
-                                    type="button"
-                                  >
-                                    {isTeaserSelected ? (
-                                      <CheckCircle2 className="size-3.5 text-[#44f26e]" />
-                                    ) : (
-                                      <ImageIcon className="size-3.5 text-[#16702e]" />
-                                    )}
-                                    {isTeaserSelected
-                                      ? copy.teaserSelection.included
-                                      : copy.teaserSelection.include}
-                                  </button>
+                                  <div className="mt-1 grid grid-cols-2 gap-1.5">
+                                    <button
+                                      className={cn(
+                                        "flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 text-[0.7rem] font-black transition",
+                                        isTeaserSelected
+                                          ? "border-[#19b84b]/35 bg-[#111510] text-white"
+                                          : "border-black/10 bg-white text-black/56 hover:border-[#19b84b]/35 hover:text-[#111510]",
+                                        isTeaserLimitReached &&
+                                          "cursor-not-allowed opacity-45 hover:border-black/10 hover:text-black/56",
+                                      )}
+                                      disabled={isTeaserLimitReached}
+                                      onClick={() => {
+                                        toggleTeaserImage(option.imageUrl);
+                                      }}
+                                      type="button"
+                                    >
+                                      {isTeaserSelected ? (
+                                        <CheckCircle2 className="size-3.5 shrink-0 text-[#44f26e]" />
+                                      ) : (
+                                        <ImageIcon className="size-3.5 shrink-0 text-[#16702e]" />
+                                      )}
+                                      <span className="truncate">
+                                        {isTeaserSelected
+                                          ? copy.teaserSelection.included
+                                          : copy.teaserSelection.include}
+                                      </span>
+                                    </button>
+                                    <button
+                                      className={cn(
+                                        "flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 text-[0.7rem] font-black transition",
+                                        isTeaserSelected
+                                          ? "border-[#19b84b]/30 bg-white text-[#16702e] hover:bg-[#ecfff0]"
+                                          : "border-black/10 bg-white text-black/56 hover:border-[#19b84b]/35 hover:text-[#111510]",
+                                        isTeaserLimitReached &&
+                                          !isTeaserSelected &&
+                                          "cursor-not-allowed opacity-45 hover:border-black/10 hover:text-black/56",
+                                      )}
+                                      disabled={
+                                        isTeaserLimitReached &&
+                                        !isTeaserSelected
+                                      }
+                                      onClick={() => {
+                                        focusTeaserCropEditor(option.imageUrl);
+                                      }}
+                                      type="button"
+                                    >
+                                      <Crop className="size-3.5 shrink-0 text-[#16702e]" />
+                                      <span className="truncate">
+                                        {copy.teaserSelection.editCut}
+                                      </span>
+                                    </button>
+                                  </div>
                                 ) : null}
                                 {croppedTeaser &&
                                 isTeaserSelected &&
@@ -4382,6 +4609,11 @@ export function FanletterNewsReportComposerPage({
                                     <p className="mt-1 text-xs font-semibold leading-5 text-white/58">
                                       {copy.teaserCrop.teaserBody}
                                     </p>
+                                    {activeTeaserCropSourceUrl ? (
+                                      <p className="mt-2 inline-flex rounded-full border border-[#44f26e]/20 bg-black/18 px-2.5 py-1 text-[0.62rem] font-black text-[#44f26e]">
+                                        {copy.teaserSelection.activeCut}
+                                      </p>
+                                    ) : null}
                                   </div>
                                   <span className="shrink-0 rounded-full bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
                                     9:16
