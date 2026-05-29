@@ -161,6 +161,7 @@ export type FanletterNewsReportComposerSourceRevealFilter =
   | "near"
   | "opportunity"
   | "unlocked";
+export type FanletterNewsReportComposerSourceSort = "latest" | "recommended";
 
 const REPORT_COVER_CROP_ASPECT_RATIO = 16 / 9;
 const REPORT_COVER_CROP_MAX_ZOOM = 3;
@@ -350,6 +351,11 @@ function getCopy(locale: Locale) {
         nsfwTurnOn: "NSFW 켜기",
         select: "선택",
         selected: "선택됨",
+        sourceSort: {
+          label: "보기 방식",
+          latest: "최신 업로드",
+          recommended: "추천 우선",
+        },
         teaserSelection: {
           body:
             "뉴스 독자가 회원가입 전에 볼 수 있는 공개 컷입니다. 원본 프레임 전체 대신 리포터가 고른 컷만 기사 안에 노출됩니다.",
@@ -550,6 +556,11 @@ function getCopy(locale: Locale) {
         nsfwTurnOn: "Turn NSFW on",
         select: "Select",
         selected: "Selected",
+        sourceSort: {
+          label: "View mode",
+          latest: "Newest uploads",
+          recommended: "Recommended",
+        },
         teaserSelection: {
           body:
             "These are public cuts readers can see before signing in. The article shows only reporter-picked cuts instead of the full source frame set.",
@@ -840,6 +851,13 @@ function getPublishedAtTime(source: FanletterNewsReportComposerSource) {
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
+function compareSourcesByLatestUpload(
+  left: FanletterNewsReportComposerSource,
+  right: FanletterNewsReportComposerSource,
+) {
+  return getPublishedAtTime(right) - getPublishedAtTime(left);
+}
+
 function getCoverLabel(option: CoverOption, index: number, locale: Locale) {
   const copy = getCopy(locale);
   const sourceLabel = copy.sourceMeta[option.source] ?? option.source;
@@ -1037,6 +1055,7 @@ export function FanletterNewsReportComposerPage({
   searchQuery,
   sourcePage,
   sourceRevealFilter,
+  sourceSort,
   sources,
   viewerAuthenticated,
 }: {
@@ -1055,6 +1074,7 @@ export function FanletterNewsReportComposerPage({
   searchQuery: string;
   sourcePage: number;
   sourceRevealFilter: FanletterNewsReportComposerSourceRevealFilter;
+  sourceSort: FanletterNewsReportComposerSourceSort;
   sources: FanletterNewsReportComposerSource[];
   viewerAuthenticated: boolean;
 }) {
@@ -1103,6 +1123,10 @@ export function FanletterNewsReportComposerPage({
           }),
         )
         .sort((left, right) => {
+          if (sourceSort === "latest") {
+            return compareSourcesByLatestUpload(left, right);
+          }
+
           const rightScore = getSourceOpportunityScore({
             reporterReferralCode,
             source: right,
@@ -1114,10 +1138,10 @@ export function FanletterNewsReportComposerPage({
 
           return (
             rightScore - leftScore ||
-            getPublishedAtTime(right) - getPublishedAtTime(left)
+            compareSourcesByLatestUpload(left, right)
           );
         }),
-    [reporterReferralCode, reportSources, sourceRevealFilter],
+    [reporterReferralCode, reportSources, sourceRevealFilter, sourceSort],
   );
   const sourcePageCount = Math.max(
     1,
@@ -1344,6 +1368,16 @@ export function FanletterNewsReportComposerPage({
       value: "all",
     },
   ] as const;
+  const sourceSortOptions = [
+    {
+      label: copy.sourceSort.recommended,
+      value: "recommended",
+    },
+    {
+      label: copy.sourceSort.latest,
+      value: "latest",
+    },
+  ] as const;
   const getReportStatusFilterHref = useCallback(
     (nextReportStatusFilter: FanletterNewsReportComposerReportStatusFilter) =>
       setRelativeSearchParams(reportNewHref, {
@@ -1357,6 +1391,8 @@ export function FanletterNewsReportComposerPage({
           sourceRevealFilter === defaultSourceRevealFilter
             ? null
             : sourceRevealFilter,
+        sourcePage: null,
+        sourceSort: sourceSort === "recommended" ? null : sourceSort,
       }),
     [
       defaultReportStatusFilter,
@@ -1365,6 +1401,7 @@ export function FanletterNewsReportComposerPage({
       reportNewHref,
       searchQuery,
       sourceRevealFilter,
+      sourceSort,
     ],
   );
   const getSourceRevealFilterHref = useCallback(
@@ -1380,6 +1417,8 @@ export function FanletterNewsReportComposerPage({
           nextSourceRevealFilter === defaultSourceRevealFilter
             ? null
             : nextSourceRevealFilter,
+        sourcePage: null,
+        sourceSort: sourceSort === "recommended" ? null : sourceSort,
       }),
     [
       defaultReportStatusFilter,
@@ -1388,6 +1427,33 @@ export function FanletterNewsReportComposerPage({
       reportNewHref,
       reportStatusFilter,
       searchQuery,
+      sourceSort,
+    ],
+  );
+  const getSourceSortHref = useCallback(
+    (nextSourceSort: FanletterNewsReportComposerSourceSort) =>
+      setRelativeSearchParams(reportNewHref, {
+        nsfw: includeNsfw ? null : "off",
+        q: searchQuery || null,
+        reportStatus:
+          reportStatusFilter === defaultReportStatusFilter
+            ? null
+            : reportStatusFilter,
+        sourcePage: null,
+        sourceReveal:
+          sourceRevealFilter === defaultSourceRevealFilter
+            ? null
+            : sourceRevealFilter,
+        sourceSort: nextSourceSort === "recommended" ? null : nextSourceSort,
+      }),
+    [
+      defaultReportStatusFilter,
+      defaultSourceRevealFilter,
+      includeNsfw,
+      reportNewHref,
+      reportStatusFilter,
+      searchQuery,
+      sourceRevealFilter,
     ],
   );
   const paidUnlockSectionId = selectedSource
@@ -1421,6 +1487,7 @@ export function FanletterNewsReportComposerPage({
     searchQuery,
     sourcePage,
     sourceRevealFilter,
+    sourceSort,
   ].join("\u0000");
   const previousRouteSelectionKeyRef = useRef(routeSelectionKey);
   const getSourcePageHref = useCallback(
@@ -1773,7 +1840,8 @@ export function FanletterNewsReportComposerPage({
   const isFilteringSources = Boolean(
     searchQuery ||
       reportStatusFilter !== defaultReportStatusFilter ||
-      sourceRevealFilter !== defaultSourceRevealFilter,
+      sourceRevealFilter !== defaultSourceRevealFilter ||
+      sourceSort !== "recommended",
   );
 
   const searchControls = (
@@ -1938,6 +2006,38 @@ export function FanletterNewsReportComposerPage({
                   >
                     {formatNumber(option.count, locale)}
                   </span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      <div className="mt-3 rounded-xl border border-black/10 bg-white px-3 py-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#111510]">
+            <RefreshCw className="size-4 text-[#16702e]" />
+            {copy.sourceSort.label}
+          </p>
+          <div
+            aria-label={copy.sourceSort.label}
+            className="grid w-full grid-cols-2 gap-1 rounded-full bg-[#f1f3ef] p-1 sm:w-auto sm:min-w-72"
+            role="group"
+          >
+            {sourceSortOptions.map((option) => {
+              const isActive = option.value === sourceSort;
+
+              return (
+                <Link
+                  className={cn(
+                    "inline-flex h-8 items-center justify-center whitespace-nowrap rounded-full px-3 text-[0.64rem] font-black transition",
+                    isActive
+                      ? "bg-[#111510] !text-white shadow-[0_6px_14px_rgba(17,21,16,0.12)]"
+                      : "!text-black/48 hover:bg-white hover:!text-[#111510]",
+                  )}
+                  href={getSourceSortHref(option.value)}
+                  key={option.value}
+                >
+                  {option.label}
                 </Link>
               );
             })}

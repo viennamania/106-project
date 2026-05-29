@@ -21,6 +21,7 @@ type FanletterNewsReportNewSearchParams = {
   reportStatus?: string | string[];
   sourcePage?: string | string[];
   sourceReveal?: string | string[];
+  sourceSort?: string | string[];
 };
 
 type ReportStatusFilter = "all" | "reported" | "unreported";
@@ -31,6 +32,7 @@ type SourceRevealFilter =
   | "near"
   | "opportunity"
   | "unlocked";
+type SourceSort = "latest" | "recommended";
 
 function readStringSearchParam(value?: string | string[]) {
   return Array.isArray(value) ? value[0] ?? "" : value ?? "";
@@ -85,6 +87,12 @@ function normalizeSourceRevealFilter({
     normalized === "unlocked"
     ? normalized
     : defaultValue;
+}
+
+function normalizeSourceSort(value?: string | string[]): SourceSort {
+  return readStringSearchParam(value).trim().toLowerCase() === "latest"
+    ? "latest"
+    : "recommended";
 }
 
 function readIncludeNsfwSearchParam(value?: string | string[]) {
@@ -155,6 +163,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
   const defaultSourceRevealFilter: SourceRevealFilter = hasSelectedContentId
     ? "all"
     : "opportunity";
+  const sourceSort = normalizeSourceSort(query.sourceSort);
   const reportStatusFilter = normalizeReportStatusFilter({
     defaultValue: defaultReportStatusFilter,
     value: query.reportStatus,
@@ -177,6 +186,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
       reportStatusFilter === defaultReportStatusFilter ? null : reportStatusFilter,
     sourceReveal:
       sourceRevealFilter === defaultSourceRevealFilter ? null : sourceRevealFilter,
+    sourceSort: sourceSort === "recommended" ? null : sourceSort,
   });
   const reportNewHref = setPathSearchParams(filteredReportNewHref, {
     contentId: selectedContentId,
@@ -199,7 +209,8 @@ export default async function LocalizedFanletterNewsReportNewPage({
         limit:
           searchQuery ||
           reportStatusFilter !== defaultReportStatusFilter ||
-          sourceRevealFilter !== defaultSourceRevealFilter
+          sourceRevealFilter !== defaultSourceRevealFilter ||
+          sourceSort !== "recommended"
             ? 80
             : undefined,
         locale,
@@ -262,6 +273,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
       searchQuery={searchQuery}
       sourcePage={sourcePage}
       sourceRevealFilter={sourceRevealFilter}
+      sourceSort={sourceSort}
       sources={data.items}
       viewerAuthenticated={Boolean(session)}
     />
