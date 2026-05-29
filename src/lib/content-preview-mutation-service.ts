@@ -1,5 +1,7 @@
 import "server-only";
 
+import { after } from "next/server";
+
 import { getContentPostsCollection } from "@/lib/mongodb";
 
 type ResolveMissingContentPreviewClipVideoUrlInput = {
@@ -12,6 +14,11 @@ type EnsureMissingContentPreviewClipVideoUrlInput = {
   contentId: string;
   initialDelayMs?: number;
 };
+
+type QueueMissingContentPreviewClipVideoUrlInput =
+  EnsureMissingContentPreviewClipVideoUrlInput & {
+    reason?: string;
+  };
 
 function delay(ms: number) {
   return new Promise<void>((resolve) => {
@@ -31,6 +38,20 @@ function normalizeStringArray(value: unknown) {
 
 function hasPreviewClipVideoUrl(value: unknown) {
   return Boolean(normalizeString(value));
+}
+
+function formatPreviewMutationError(error: unknown) {
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+    };
+  }
+
+  return {
+    message: String(error),
+  };
 }
 
 export async function resolveMissingContentPreviewClipVideoUrl({
@@ -123,4 +144,38 @@ export async function ensureMissingContentPreviewClipVideoUrl({
   );
 
   return previewClipVideoUrl;
+}
+
+export function queueMissingContentPreviewClipVideoUrl({
+  contentId,
+  initialDelayMs = 2_000,
+  reason = "content_saved",
+}: QueueMissingContentPreviewClipVideoUrlInput) {
+  const normalizedContentId = contentId.trim();
+
+  if (!normalizedContentId) {
+    return;
+  }
+
+  after(async () => {
+    try {
+      const previewClipVideoUrl = await ensureMissingContentPreviewClipVideoUrl({
+        contentId: normalizedContentId,
+        initialDelayMs,
+      });
+
+      if (previewClipVideoUrl) {
+        console.info("[content-preview] deferred preview generated", {
+          contentId: normalizedContentId,
+          reason,
+        });
+      }
+    } catch (error) {
+      console.warn("[content-preview] deferred preview generation failed", {
+        contentId: normalizedContentId,
+        error: formatPreviewMutationError(error),
+        reason,
+      });
+    }
+  });
 }

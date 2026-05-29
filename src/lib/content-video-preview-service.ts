@@ -1,6 +1,7 @@
 import "server-only";
 
 import { put } from "@vercel/blob";
+import ffmpegStatic from "ffmpeg-static";
 import { spawn } from "node:child_process";
 import { basename, extname } from "node:path";
 import { Readable, Transform } from "node:stream";
@@ -19,12 +20,14 @@ const PREVIEW_DURATION_SEC = 6;
 const PREVIEW_CONTENT_TYPE = "video/mp4";
 const PREVIEW_MAX_SOURCE_BYTES = CONTENT_VIDEO_MAX_BYTES;
 const PREVIEW_MAX_OUTPUT_BYTES = 25 * 1024 * 1024;
-const FFMPEG_BINARY_PATH =
-  "node_modules/.pnpm/ffmpeg-static@5.3.0/node_modules/ffmpeg-static/ffmpeg";
 const FFMPEG_TIMEOUT_MS = 150_000;
 const SOURCE_DOWNLOAD_ATTEMPT_COUNT = 6;
 const SOURCE_DOWNLOAD_RETRY_DELAY_MS = 2_000;
 const SOURCE_DOWNLOAD_TIMEOUT_MS = 90_000;
+
+function getFfmpegBinaryPath() {
+  return process.env.FFMPEG_PATH?.trim() || ffmpegStatic || "ffmpeg";
+}
 
 function sanitizeBaseName(value: string) {
   const sanitized = value
@@ -170,6 +173,7 @@ async function fetchSourceVideo(sourceVideoUrl: string) {
 }
 
 async function transcodeSourceVideo(sourceVideoUrl: string) {
+  const ffmpegPath = getFfmpegBinaryPath();
   const args = [
     "-y",
     "-hide_banner",
@@ -202,11 +206,11 @@ async function transcodeSourceVideo(sourceVideoUrl: string) {
   const sourceBody = await fetchSourceVideo(sourceVideoUrl);
 
   console.info("[content-preview] ffmpeg preview process starting", {
-    ffmpegPath: FFMPEG_BINARY_PATH,
+    ffmpegPath,
   });
 
   return new Promise<Buffer>((resolve, reject) => {
-    const child = spawn(FFMPEG_BINARY_PATH, args, {
+    const child = spawn(ffmpegPath, args, {
       stdio: ["pipe", "pipe", "pipe"],
     });
     const outputChunks: Buffer[] = [];
@@ -262,7 +266,7 @@ async function transcodeSourceVideo(sourceVideoUrl: string) {
     child.on("error", (error) => {
       settle(
         new Error(
-          `Failed to start ffmpeg preview process (${FFMPEG_BINARY_PATH}): ${
+          `Failed to start ffmpeg preview process (${ffmpegPath}): ${
             error.message
           }`,
         ),

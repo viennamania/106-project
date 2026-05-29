@@ -8,6 +8,7 @@ import {
   type CreatorStudioPostsResponse,
 } from "@/lib/content";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import { queueMissingContentPreviewClipVideoUrl } from "@/lib/content-preview-mutation-service";
 import {
   createContentPostForMember,
   getCreatorStudioPostsForMember,
@@ -19,6 +20,17 @@ export const maxDuration = 300;
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
+}
+
+function queuePreviewBackfillIfNeeded(content: ContentPostMutationResponse["content"]) {
+  if (content.contentVideoUrls.length === 0 || content.previewClipVideoUrl) {
+    return;
+  }
+
+  queueMissingContentPreviewClipVideoUrl({
+    contentId: content.contentId,
+    reason: "content_created",
+  });
 }
 
 export async function GET(request: Request) {
@@ -140,6 +152,8 @@ export async function POST(request: Request) {
     const response: ContentPostMutationResponse = {
       content,
     };
+
+    queuePreviewBackfillIfNeeded(content);
 
     return Response.json(response, { status: 201 });
   } catch (error) {

@@ -19,6 +19,7 @@ import {
 } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import { setMemberServerSessionCookie } from "@/lib/member-server-session";
+import { queueMissingContentPreviewClipVideoUrl } from "@/lib/content-preview-mutation-service";
 import {
   getPublicContentPreview,
   getContentDetailForMember,
@@ -31,6 +32,17 @@ export const maxDuration = 300;
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
+}
+
+function queuePreviewBackfillIfNeeded(content: ContentPostMutationResponse["content"]) {
+  if (content.contentVideoUrls.length === 0 || content.previewClipVideoUrl) {
+    return;
+  }
+
+  queueMissingContentPreviewClipVideoUrl({
+    contentId: content.contentId,
+    reason: "content_updated",
+  });
 }
 
 export async function GET(
@@ -338,6 +350,8 @@ export async function PATCH(
     const response: ContentPostMutationResponse = {
       content,
     };
+
+    queuePreviewBackfillIfNeeded(content);
 
     return Response.json(response);
   } catch (error) {
