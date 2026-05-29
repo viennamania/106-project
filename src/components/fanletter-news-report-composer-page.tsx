@@ -247,8 +247,10 @@ const REPORT_TEASER_CROP_ASPECT_RATIO = 9 / 16;
 const REPORT_TEASER_CROP_OUTPUT_HEIGHT = 1280;
 const REPORT_TEASER_CROP_OUTPUT_WIDTH = 720;
 const REPORT_TEASER_IMAGE_LIMIT = 4;
-const REPORT_AUTO_TEASER_MAX_ZOOM = 1.36;
-const REPORT_AUTO_TEASER_MIN_ZOOM = 1.04;
+const REPORT_AUTO_TEASER_CENTER_MAX = 0.84;
+const REPORT_AUTO_TEASER_CENTER_MIN = 0.16;
+const REPORT_AUTO_TEASER_MAX_ZOOM = 2.4;
+const REPORT_AUTO_TEASER_MIN_ZOOM = 1.2;
 const REPORT_BODY_MAX_LENGTH = 12_000;
 const REPORT_DEK_MAX_LENGTH = 320;
 const REPORT_FACT_MAX_LENGTH = 500;
@@ -510,13 +512,14 @@ function getCopy(locale: Locale) {
         },
         teaserSelection: {
           autoCropBody:
-            "발행할 때 프레임 후보를 랜덤하게 고르고 각 이미지를 9:16 세로 티저 컷으로 자동 저장합니다.",
-          autoCropTitle: "자동 티저 컷",
+            "아래 이미지는 자동 생성 후보 미리보기입니다. 저장/발행 시 후보 중 최대 4장을 랜덤으로 고르고, 더 넓은 위치와 줌 범위로 9:16 세로 티저 컷을 만듭니다.",
+          autoCropTitle: "자동 생성 후보",
           autoGenerating: "자동 티저 컷 생성 중",
           autoMode: "자동으로 처리하기",
           autoModeBody:
-            "프레임 후보에서 4장을 랜덤 선택하고 각 이미지를 세로 티저 컷으로 자동 크롭합니다.",
-          autoReady: (count: string) => `${count}컷 자동 생성 준비`,
+            "프레임 후보에서 최대 4장을 랜덤 선택하고 각 이미지를 세로 티저 컷으로 자동 크롭합니다.",
+          autoReady: (count: string, candidateCount: string) =>
+            `후보 ${candidateCount}장 · 최대 ${count}컷 생성`,
           body: "뉴스 독자가 회원가입 전에 볼 수 있는 공개 컷입니다. 선택만 하면 원본 비율을 유지하고, 필요한 컷은 9:16 세로 티저로 저장할 수 있습니다.",
           include: "공개 컷에 추가",
           included: "공개 컷 포함",
@@ -775,13 +778,14 @@ function getCopy(locale: Locale) {
         },
         teaserSelection: {
           autoCropBody:
-            "On publish, frame candidates are randomly picked and saved as 9:16 portrait teaser cuts.",
-          autoCropTitle: "Automatic teaser cuts",
+            "These images preview the automatic generation candidates. On save/publish, up to 4 are picked at random and cropped into 9:16 teaser cuts with a wider position and zoom range.",
+          autoCropTitle: "Automatic candidates",
           autoGenerating: "Creating automatic teaser cuts",
           autoMode: "Process automatically",
           autoModeBody:
-            "Randomly select 4 frame candidates and crop each image into a portrait teaser cut.",
-          autoReady: (count: string) => `${count} auto cuts ready`,
+            "Randomly select up to 4 frame candidates and crop each image into a portrait teaser cut.",
+          autoReady: (count: string, candidateCount: string) =>
+            `${candidateCount} candidates · up to ${count} cuts`,
           body: "These are public cuts readers can see before signing in. Selected cuts keep the source ratio by default, and important cuts can be saved as 9:16 portrait teasers.",
           include: "Add public cut",
           included: "Public cut",
@@ -1262,8 +1266,14 @@ function getRandomNumber(min: number, max: number) {
 
 function getRandomAutoReportTeaserCrop(): ReportCoverCropState {
   return {
-    centerX: getRandomNumber(0.34, 0.66),
-    centerY: getRandomNumber(0.34, 0.66),
+    centerX: getRandomNumber(
+      REPORT_AUTO_TEASER_CENTER_MIN,
+      REPORT_AUTO_TEASER_CENTER_MAX,
+    ),
+    centerY: getRandomNumber(
+      REPORT_AUTO_TEASER_CENTER_MIN,
+      REPORT_AUTO_TEASER_CENTER_MAX,
+    ),
     zoom: getRandomNumber(
       REPORT_AUTO_TEASER_MIN_ZOOM,
       REPORT_AUTO_TEASER_MAX_ZOOM,
@@ -4064,6 +4074,10 @@ export function FanletterNewsReportComposerPage({
                                 {teaserMode === "auto"
                                   ? copy.teaserSelection.autoReady(
                                       formatNumber(activeTeaserCount, locale),
+                                      formatNumber(
+                                        autoTeaserCandidateUrls.length,
+                                        locale,
+                                      ),
                                     )
                                   : copy.teaserSelection.ratio}
                               </span>
@@ -4552,6 +4566,10 @@ export function FanletterNewsReportComposerPage({
                                 <p className="mt-3 rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-xs font-black text-[#44f26e]">
                                   {copy.teaserSelection.autoReady(
                                     formatNumber(activeTeaserCount, locale),
+                                    formatNumber(
+                                      autoTeaserCandidateUrls.length,
+                                      locale,
+                                    ),
                                   )}
                                 </p>
                               </div>
