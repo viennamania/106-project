@@ -355,7 +355,6 @@ function getCopy(locale: Locale) {
           rewardPoints: "보상 포인트",
           title: "팬 기자가 AI 캐릭터의 팬 파트너가 됩니다",
         },
-        sourceContext: "뉴스 배경",
         sourceTitle: "원본 브이로그",
         summaryTitle: "뉴스 요약",
         visualCaption:
@@ -581,7 +580,6 @@ function getCopy(locale: Locale) {
           rewardPoints: "Reward points",
           title: "Fan reporters become AI character fan partners",
         },
-        sourceContext: "Story context",
         sourceTitle: "Source vlog",
         summaryTitle: "Story summary",
         visualCaption:
@@ -2896,54 +2894,6 @@ function SourceVlogEmbed({
   );
 }
 
-function SourceContextCard({
-  accessLabel,
-  blurred,
-  copy,
-  report,
-  sourceVlogHref,
-}: {
-  accessLabel: string;
-  blurred: boolean;
-  copy: ReturnType<typeof getCopy>;
-  report: FanletterNewsReportDocument;
-  sourceVlogHref: string;
-}) {
-  const textBlurClass = blurred ? "select-none blur-[2px]" : "";
-
-  return (
-    <section className="border border-black/10 bg-white/80 p-3 text-[#111510] shadow-[0_10px_28px_rgba(17,21,16,0.04)]">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
-            {copy.sourceContext}
-          </p>
-          <h2 className="mt-1 text-base font-black leading-tight">
-            {copy.sourceTitle}
-          </h2>
-          <p
-            className={`mt-1 line-clamp-1 text-xs font-semibold text-black/48 ${textBlurClass}`}
-          >
-            {report.sourceTitle}
-          </p>
-        </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 border border-black/10 bg-[#f5f7f1] px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black/52">
-          <PlayCircle className="size-3.5 text-[#16702e]" />
-          {accessLabel}
-        </span>
-      </div>
-      <Link
-        className="mt-3 inline-flex h-9 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f5f7f1] px-3 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
-        href={sourceVlogHref}
-      >
-        <Clapperboard className="size-4 text-[#16702e]" />
-        {copy.sourceTitle}
-        <ArrowUpRight className="size-4 text-black/42" />
-      </Link>
-    </section>
-  );
-}
-
 export async function generateMetadata({
   params,
 }: {
@@ -3707,14 +3657,6 @@ export default async function LocalizedFanletterNewsReportPage({
                 {...relatedNewsListProps}
               />
             </div>
-
-            <SourceContextCard
-              accessLabel={accessLabel}
-              blurred={shouldBlurCurrentReport}
-              copy={copy}
-              report={report}
-              sourceVlogHref={sourceVlogHref}
-            />
 
             <FanletterNewsWalletSidebarCard
               body={copy.walletConnect.body}
