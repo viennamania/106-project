@@ -1211,7 +1211,7 @@ function FanletterNewsShareLandingHero({
         icon: <PlayCircle className="size-4" />,
         label: sourceCanBeWatched ? heroCopy.sourceCta : heroCopy.articleCta,
       };
-  const canUsePreviewVideo = Boolean(previewVideoUrl && !blurred);
+  const canUsePreviewVideo = Boolean(previewVideoUrl && !blurred && !sourceImageUrl);
   const characterDisplayName = characterName ?? copy.titleCharacter.fallback;
   const shouldBypassHeroImageOptimization = sourceImageUrl
     ? shouldBypassFanletterImageOptimization(sourceImageUrl)
@@ -1226,7 +1226,7 @@ function FanletterNewsShareLandingHero({
         {canUsePreviewVideo && previewVideoUrl ? (
           <FanletterAutoplayVideo
             ariaHidden
-            className={`h-full w-full object-cover opacity-[0.86] ${
+            className={`h-full w-full object-cover object-[center_58%] opacity-[0.86] ${
               blurBackgroundVideo
                 ? "scale-[1.04] blur-sm brightness-[0.74]"
                 : ""
@@ -1236,25 +1236,38 @@ function FanletterNewsShareLandingHero({
             title={articleTitle}
           />
         ) : sourceImageUrl ? (
-          <Image
-            alt=""
-            aria-hidden="true"
-            className={`object-cover opacity-[0.86] ${
-              blurred ? "scale-[1.04] blur-sm brightness-[0.74]" : ""
-            }`}
-            fill
-            loading="eager"
-            sizes="100vw"
-            src={sourceImageUrl}
-            unoptimized={shouldBypassHeroImageOptimization}
-          />
+          <>
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="scale-[1.1] object-cover object-[center_44%] opacity-60 blur-2xl brightness-[0.48] saturate-[1.08]"
+              fill
+              loading="eager"
+              sizes="100vw"
+              src={sourceImageUrl}
+              unoptimized={shouldBypassHeroImageOptimization}
+            />
+            <Image
+              alt=""
+              aria-hidden="true"
+              className={`origin-bottom scale-[1.13] object-cover object-[center_44%] opacity-[0.72] sm:origin-center sm:scale-100 sm:object-contain sm:object-right sm:opacity-[0.88] ${
+                blurred ? "blur-sm brightness-[0.74]" : ""
+              }`}
+              fill
+              loading="eager"
+              sizes="100vw"
+              src={sourceImageUrl}
+              unoptimized={shouldBypassHeroImageOptimization}
+            />
+          </>
         ) : (
           <div className="h-full w-full bg-[linear-gradient(145deg,#07100b,#121812_54%,#203426)]" />
         )}
       </div>
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,6,0.14)_0%,rgba(5,8,6,0.44)_44%,rgba(5,8,6,0.93)_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,6,0.42)_0%,rgba(5,8,6,0.64)_44%,rgba(5,8,6,0.95)_100%)] sm:bg-[linear-gradient(90deg,rgba(5,8,6,0.94)_0%,rgba(5,8,6,0.76)_43%,rgba(5,8,6,0.3)_70%,rgba(5,8,6,0.74)_100%)]" />
+      <div className="absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(5,8,6,0.14)_0%,rgba(5,8,6,0.16)_48%,rgba(5,8,6,0.88)_100%)] sm:block" />
       <div className="absolute inset-x-0 bottom-0 h-28 bg-[linear-gradient(180deg,rgba(238,241,236,0)_0%,rgba(238,241,236,0.12)_100%)]" />
-      <div className="relative z-10 flex min-h-[27rem] flex-col justify-end p-4 sm:min-h-[31rem] sm:p-6 lg:min-h-[34rem] lg:p-8">
+      <div className="relative z-10 flex min-h-[25rem] flex-col justify-end p-4 sm:min-h-[29rem] sm:p-6 lg:min-h-[31rem] lg:p-8">
         <div className="max-w-4xl">
           <div className="flex flex-wrap items-center gap-2 text-[0.72rem] font-black text-white/82 sm:text-xs">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[#44f26e]/34 bg-[#44f26e]/14 px-3 py-1.5 text-[#9bffad]">
@@ -1270,14 +1283,14 @@ function FanletterNewsShareLandingHero({
           </div>
 
           <h1
-            className={`mt-4 max-w-4xl break-words text-[2rem] font-black leading-[1.08] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem] ${
+            className={`mt-4 max-w-4xl break-words text-[1.86rem] font-black leading-[1.1] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3rem] sm:leading-[1.08] lg:text-[3.25rem] ${
               blurred ? "select-none blur-[2px]" : ""
             }`}
           >
             {articleTitle}
           </h1>
           <p
-            className={`mt-3 max-w-2xl text-[0.98rem] font-semibold leading-7 text-white/78 sm:text-lg sm:leading-8 ${
+            className={`mt-2.5 max-w-2xl text-[0.92rem] font-semibold leading-6 text-white/78 sm:mt-3 sm:text-lg sm:leading-8 ${
               blurred ? "select-none blur-[2px]" : ""
             }`}
           >
@@ -1322,10 +1335,10 @@ function FanletterNewsShareLandingHero({
             </Link>
           </div>
 
-          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
             {shouldShowPaidUnlockCta && paidUnlockHref ? (
               <FanletterPaidUnlockTrigger
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-black transition hover:bg-[#69ff8c] sm:min-w-48"
+                className="col-span-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-black transition hover:bg-[#69ff8c] sm:min-w-48"
                 href={paidUnlockHref}
               >
                 <Coins className="size-4" />
@@ -1333,7 +1346,7 @@ function FanletterNewsShareLandingHero({
               </FanletterPaidUnlockTrigger>
             ) : (
               <Link
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-black transition hover:bg-[#69ff8c] sm:min-w-48"
+                className="col-span-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-black transition hover:bg-[#69ff8c] sm:min-w-48"
                 href={primaryCta.href}
               >
                 {primaryCta.icon}
@@ -1341,14 +1354,14 @@ function FanletterNewsShareLandingHero({
               </Link>
             )}
             <Link
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-5 text-sm font-black !text-white transition hover:bg-white/16"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 text-sm font-black !text-white transition hover:bg-white/16 sm:px-5"
               href="#fanletter-news-story-summary"
             >
               <FileText className="size-4 text-[#9bffad]" />
               <span>{heroCopy.articleCta}</span>
             </Link>
             <FanletterChannelShareButton
-              className="!h-auto min-h-12 !rounded-full !border-white/16 !bg-white/10 px-5 text-sm font-black !text-white hover:!bg-white/16"
+              className="!h-auto min-h-12 !rounded-full !border-white/16 !bg-white/10 px-4 text-sm font-black !text-white hover:!bg-white/16 sm:px-5"
               href={shareHref}
               locale={locale}
               referralCode={referralCode}
@@ -1609,7 +1622,7 @@ function ReporterByline({
   ];
 
   return (
-    <section className="mt-3 border-y border-black/10 py-2.5 sm:mt-4 sm:py-3 lg:mt-4 lg:py-2.5">
+    <section className="border-y border-black/10 py-2.5 sm:py-3 lg:py-2.5">
       <div className="flex min-w-0 items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-xs font-black text-[#44f26e] sm:size-10 sm:text-sm">
@@ -3451,8 +3464,15 @@ export default async function LocalizedFanletterNewsReportPage({
   const shouldBlurLandingHeroBackgroundVideo =
     Boolean(landingHeroPreviewVideoUrl) &&
     (sourceContent?.contentMaturityRating ?? report.contentMaturityRating) === "nsfw";
+  const landingHeroPublicImageUrls = getUniqueTrimmedImageUrls([
+    ...(report.teaserImages ?? [])
+      .filter((image) => image.source !== "reporter_cropped")
+      .map((image) => image.imageUrl),
+    ...(report.teaserImageUrls ?? []),
+  ]);
   const landingHeroImageUrl =
     report.coverImageUrl ??
+    landingHeroPublicImageUrls[0] ??
     sourceContent?.coverImageUrl ??
     characterAvatarImageUrl ??
     null;
@@ -3634,21 +3654,37 @@ export default async function LocalizedFanletterNewsReportPage({
                   ) : null}
                 </div>
               </div>
-              <div className="p-3 sm:p-6 lg:p-5">
-                <div className="grid gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,18rem)] lg:items-start">
-                  <div className="min-w-0">
-                    <h2
-                      className={`hidden max-w-5xl break-words text-[1.44rem] font-black leading-[1.12] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:block sm:text-[2.65rem] sm:leading-[1.06] lg:text-[3rem] xl:text-[3.2rem] ${nsfwTextBlurClass}`}
-                    >
-                      {articleTitle}
-                    </h2>
-                    <p
-                      className={`hidden max-w-3xl text-[0.92rem] font-medium leading-6 text-black/62 sm:mt-3 sm:block sm:text-lg sm:leading-7 lg:mt-3 ${nsfwTextBlurClass}`}
-                    >
-                      {articleDek}
-                    </p>
-                  </div>
-                  <div className="hidden sm:block">
+              <div className="grid gap-3 p-3 sm:p-5 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,18rem)] lg:items-start">
+                <div className="min-w-0">
+                  <ReporterByline
+                    copy={copy}
+                    publishedAt={publishedAt}
+                    report={report}
+                    reporterProfile={reporterProfile}
+                    reporterNewsHref={reporterNewsHref}
+                    reporterReportStats={reporterReportStats}
+                    reporterTrust={reporterTrust}
+                    reporterTrustStats={reporterTrustStats}
+                  />
+
+                  <ViewerOwnershipStatus
+                    copy={copy}
+                    signals={viewerOwnershipSignals}
+                  />
+
+                  <ArticleActionLinks
+                    copy={copy}
+                    locale={locale}
+                    newsHomeHref={newsHomeHref}
+                    referralCode={referralCode}
+                    shareHref={articleHref}
+                    shareSummary={articleDek}
+                    shareTitle={articleTitle}
+                    sourceVlogHref={sourceVlogHref}
+                  />
+                </div>
+                <div className="hidden lg:block">
+                  <div className={nsfwTextBlurClass}>
                     <ArticleTitleCharacterThumbnail
                       blurred={shouldBlurCurrentReport}
                       copy={copy}
@@ -3659,33 +3695,6 @@ export default async function LocalizedFanletterNewsReportPage({
                     />
                   </div>
                 </div>
-
-                <ReporterByline
-                  copy={copy}
-                  publishedAt={publishedAt}
-                  report={report}
-                  reporterProfile={reporterProfile}
-                  reporterNewsHref={reporterNewsHref}
-                  reporterReportStats={reporterReportStats}
-                  reporterTrust={reporterTrust}
-                  reporterTrustStats={reporterTrustStats}
-                />
-
-                <ViewerOwnershipStatus
-                  copy={copy}
-                  signals={viewerOwnershipSignals}
-                />
-
-                <ArticleActionLinks
-                  copy={copy}
-                  locale={locale}
-                  newsHomeHref={newsHomeHref}
-                  referralCode={referralCode}
-                  shareHref={articleHref}
-                  shareSummary={articleDek}
-                  shareTitle={articleTitle}
-                  sourceVlogHref={sourceVlogHref}
-                />
               </div>
             </header>
 

@@ -646,7 +646,8 @@ export function FanletterNewsSourceSceneGallery({
                 <Image
                   alt={featuredItem.alt}
                   className={cn(
-                    "relative z-10 object-contain",
+                    "relative z-10",
+                    isCompact ? "object-cover" : "object-contain",
                     effectiveBlurred && "blur-md brightness-[0.68] saturate-[0.86]",
                   )}
                   fill
@@ -740,7 +741,7 @@ export function FanletterNewsSourceSceneGallery({
                   alt=""
                   aria-hidden="true"
                   className={cn(
-                    isCompact ? "object-cover sm:object-contain" : "object-contain",
+                    isCompact ? "object-cover" : "object-contain",
                     effectiveBlurred
                       ? "blur-sm brightness-[0.76] saturate-[0.92]"
                       : "transition duration-300 group-hover:scale-[1.02]",
