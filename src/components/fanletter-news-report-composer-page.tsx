@@ -1304,6 +1304,11 @@ export function FanletterNewsReportComposerPage({
               ? copy.sourceReveal.opportunityExclusive
               : copy.sourceReveal.opportunityReady
     : "";
+  const selectedSourceRevealReportId =
+    selectedSource?.existingReport?.reportId ??
+    selectedSource?.reports.find((report) => report.isViewerReport)?.reportId ??
+    selectedSource?.reports[0]?.reportId ??
+    null;
   const nsfwToggleHref = useMemo(
     () =>
       setRelativeSearchParams(reportNewHref, {
@@ -2740,9 +2745,14 @@ export function FanletterNewsReportComposerPage({
                   key={selectedSource.contentId}
                   locale={locale}
                   onStateChange={updateSelectedSourceRevealState}
-                  sourceRevealEndpoint={`/api/fanletter/news-vlogs/${encodeURIComponent(
-                    selectedSource.contentId,
-                  )}/source-reveal`}
+                  reportId={selectedSourceRevealReportId ?? undefined}
+                  sourceRevealEndpoint={
+                    selectedSourceRevealReportId
+                      ? undefined
+                      : `/api/fanletter/news-vlogs/${encodeURIComponent(
+                          selectedSource.contentId,
+                        )}/source-reveal`
+                  }
                   tone="light"
                 />
 
