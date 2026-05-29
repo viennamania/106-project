@@ -351,7 +351,6 @@ function getCopy(locale: Locale) {
           unlock: "오픈 진행순",
         },
         otherCharacterNews: {
-          cta: "전체 뉴스",
           eyebrow: "캐릭터 뉴스",
           fanOnly: "팬전용",
           news: "뉴스",
@@ -602,7 +601,6 @@ function getCopy(locale: Locale) {
           unlock: "Open progress",
         },
         otherCharacterNews: {
-          cta: "All news",
           eyebrow: "Character news",
           fanOnly: "Fan-only",
           news: "News",
@@ -1474,23 +1472,14 @@ function FanletterNewsOtherCharacterNews({
   return (
     <section className="overflow-hidden border border-black/12 bg-white text-[#111510] shadow-[0_16px_44px_rgba(17,21,16,0.06)]">
       <div className="border-b border-black/12 bg-[#111510] p-3 text-white sm:p-4">
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-          <div className="min-w-0">
-            <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#9bffad] sm:text-[0.68rem]">
-              <Newspaper className="size-3.5" />
-              {copy.otherCharacterNews.eyebrow}
-            </p>
-            <h2 className="mt-1.5 break-words text-xl font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-2 sm:text-2xl">
-              {copy.otherCharacterNews.title}
-            </h2>
-          </div>
-          <Link
-            className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-white/18 bg-white/10 px-3 text-sm font-black !text-white transition hover:bg-white/16 sm:w-auto"
-            href={newsHomeHref}
-          >
-            <span>{copy.otherCharacterNews.cta}</span>
-            <ArrowUpRight className="size-4 shrink-0 text-white/62" />
-          </Link>
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#9bffad] sm:text-[0.68rem]">
+            <Newspaper className="size-3.5" />
+            {copy.otherCharacterNews.eyebrow}
+          </p>
+          <h2 className="mt-1.5 break-words text-xl font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-2 sm:text-2xl">
+            {copy.otherCharacterNews.title}
+          </h2>
         </div>
       </div>
 
@@ -1520,7 +1509,7 @@ function FanletterNewsOtherCharacterNews({
 
           return (
             <article
-              className="group grid min-w-0 grid-cols-[5.25rem_minmax(0,1fr)] gap-3 p-3 transition hover:bg-[#ecfff0] sm:grid-cols-[6.5rem_minmax(0,1fr)] sm:p-4"
+              className="group grid min-w-0 grid-cols-[6.75rem_minmax(0,1fr)] gap-3.5 p-3 transition hover:bg-[#ecfff0] sm:grid-cols-[8.75rem_minmax(0,1fr)] sm:p-4"
               key={otherReport.reportId}
             >
               <Link
@@ -1534,7 +1523,7 @@ function FanletterNewsOtherCharacterNews({
                     aria-hidden="true"
                     className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.04]"
                     fill
-                    sizes="(max-width: 640px) 5.25rem, 6.5rem"
+                    sizes="(max-width: 640px) 6.75rem, 8.75rem"
                     src={otherReport.coverImageUrl}
                     unoptimized={shouldBypassCoverImageOptimization}
                   />
