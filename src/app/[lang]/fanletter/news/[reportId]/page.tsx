@@ -165,10 +165,6 @@ function getCopy(locale: Locale) {
         articleNotice:
           "원본 브이로그의 공개 정보와 팬 기자의 관전 포인트를 바탕으로 한 FanLetter AI 팬 리포트입니다. 실제 언론사 기사가 아닙니다.",
         articleSection: "연예",
-        mobileArticleIntro: {
-          body: "요약과 원본 맥락을 먼저 확인한 뒤, 바로 브이로그로 이어볼 수 있습니다.",
-          eyebrow: "기사 본문",
-        },
         mobileActionDock: {
           eyebrow: "다음 행동",
           pay: (amount: string) => `${amount} 원본 보기`,
@@ -382,8 +378,6 @@ function getCopy(locale: Locale) {
         },
         sourceTitle: "원본 브이로그",
         summaryTitle: "뉴스 요약",
-        visualCaption:
-          "FanLetter News 대표 이미지입니다. 원본 브이로그와 AI 캐릭터 리포트 맥락을 함께 보여줍니다.",
         visualLead: "뉴스 대표 이미지",
         walletConnect: {
           body:
@@ -414,11 +408,6 @@ function getCopy(locale: Locale) {
         articleNotice:
           "A FanLetter AI fan report based on source-vlog context and the fan reporter's angle. It is not a newsroom article.",
         articleSection: "Entertainment",
-        mobileArticleIntro: {
-          body:
-            "Check the summary and source context first, then continue straight into the vlog.",
-          eyebrow: "Article body",
-        },
         mobileActionDock: {
           eyebrow: "Next action",
           pay: (amount: string) => `Watch for ${amount}`,
@@ -632,8 +621,6 @@ function getCopy(locale: Locale) {
         },
         sourceTitle: "Source vlog",
         summaryTitle: "Story summary",
-        visualCaption:
-          "FanLetter News lead image, showing the source vlog and AI character report context together.",
         visualLead: "Lead image",
         walletConnect: {
           body:
@@ -2279,7 +2266,6 @@ function ReporterTeaserCutGallery({
               alt: report.title,
               badges: [copy.visualLead, accessLabel],
               blurNotice: copy.nsfwBlurNotice,
-              caption: copy.visualCaption,
               imageUrl: featuredImageUrl,
             }
           : null
@@ -2321,8 +2307,8 @@ function SourceVlogLockedPreviewHero({
   title: string;
 }) {
   return (
-    <div className="grid overflow-hidden bg-black lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]">
-      <div className="relative mx-auto aspect-[4/5] w-full overflow-hidden bg-black sm:aspect-video lg:h-full lg:min-h-[28rem] lg:aspect-auto">
+    <div className="grid w-full overflow-hidden bg-black lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.72fr)]">
+      <div className="relative aspect-video w-full min-w-0 overflow-hidden bg-black lg:h-full lg:min-h-[28rem] lg:aspect-auto">
         {posterImageUrl ? (
           <Image
             alt=""
@@ -2336,7 +2322,7 @@ function SourceVlogLockedPreviewHero({
           />
         ) : null}
         <FanletterAutoplayVideo
-          className="absolute inset-0 h-full w-full object-contain brightness-[0.92] saturate-[1.04]"
+          className="absolute inset-0 h-full w-full object-cover brightness-[0.92] saturate-[1.04] lg:object-contain"
           controls
           poster={posterImageUrl ?? undefined}
           src={previewVideoUrl}
@@ -2804,7 +2790,7 @@ function SourceVlogEmbed({
           viewerCanAccessSource={viewerCanAccessSource}
         />
       ) : null}
-      <div className="overflow-hidden border border-black/10 bg-black shadow-[0_20px_46px_rgba(17,21,16,0.1)]">
+      <div className="-mx-4 overflow-hidden border-y border-black/10 bg-black shadow-[0_20px_46px_rgba(17,21,16,0.1)] sm:mx-0 sm:border">
         {sourceRevealLocked && sourceReveal ? (
           shouldShowLockedPreviewHero && sourcePreviewVideoUrl ? (
             <SourceVlogLockedPreviewHero
@@ -3654,16 +3640,6 @@ export default async function LocalizedFanletterNewsReportPage({
               <div className="p-3 sm:p-6 lg:p-5">
                 <div className="grid gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,18rem)] lg:items-start">
                   <div className="min-w-0">
-                    <div className="sm:hidden">
-                      <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
-                        {copy.mobileArticleIntro.eyebrow}
-                      </p>
-                      <p
-                        className={`mt-1.5 text-sm font-semibold leading-6 text-black/64 [word-break:keep-all] ${nsfwTextBlurClass}`}
-                      >
-                        {copy.mobileArticleIntro.body}
-                      </p>
-                    </div>
                     <h2
                       className={`hidden max-w-5xl break-words text-[1.44rem] font-black leading-[1.12] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:block sm:text-[2.65rem] sm:leading-[1.06] lg:text-[3rem] xl:text-[3.2rem] ${nsfwTextBlurClass}`}
                     >
