@@ -8,6 +8,7 @@ import {
   getFanletterNewsReportCoverOptions,
   getFanletterNewsReportsForContent,
   getOrCreateFanletterNewsReport,
+  updateFanletterNewsReportContent,
   updateFanletterNewsReportCoverImage,
   type FanletterNewsReportCoverOption,
 } from "@/lib/fanletter-news-report-service";
@@ -54,6 +55,7 @@ type FanletterNewsReportCreateRequest = {
 };
 
 type FanletterNewsReportCoverUpdateRequest = {
+  updateKind?: "content" | "cover" | null;
   croppedCoverCrop?: {
     aspectRatio?: number | null;
     height?: number | null;
@@ -88,12 +90,31 @@ type FanletterNewsReportCoverUpdateRequest = {
   walletAddress?: string | null;
 };
 
+type FanletterNewsReportContentUpdateRequest =
+  FanletterNewsReportCoverUpdateRequest & {
+    body?: string | null;
+    dek?: string | null;
+    how?: string | null;
+    reporterComment?: string | null;
+    title?: string | null;
+    what?: string | null;
+    when?: string | null;
+    where?: string | null;
+    who?: string | null;
+    why?: string | null;
+  };
+
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
 }
 
 function getErrorStatus(message: string) {
-  if (message === "contentId is required." || message === "reportId is required.") {
+  if (
+    message === "contentId is required." ||
+    message === "reportId is required." ||
+    message === "Report title, summary, and body are required." ||
+    message === "Report summary facts are required."
+  ) {
     return 400;
   }
 
@@ -127,6 +148,25 @@ function serializeNewsReport(report: FanletterNewsReportDocument) {
     reportId: report.reportId,
     shareHref: createFanletterNewsReportShareHref(report),
     title: report.title,
+  };
+}
+
+function serializeEditableNewsReport(report: FanletterNewsReportDocument) {
+  return {
+    body: report.body,
+    createdAt: report.createdAt.toISOString(),
+    dek: report.dek,
+    how: report.how,
+    reporterComment: report.reporterComment ?? null,
+    reportId: report.reportId,
+    shareHref: createFanletterNewsReportShareHref(report),
+    title: report.title,
+    updatedAt: report.updatedAt.toISOString(),
+    what: report.what,
+    when: report.when,
+    where: report.where,
+    who: report.who,
+    why: report.why,
   };
 }
 
@@ -392,10 +432,10 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  let body: FanletterNewsReportCoverUpdateRequest | null = null;
+  let body: FanletterNewsReportContentUpdateRequest | null = null;
 
   try {
-    body = (await request.json()) as FanletterNewsReportCoverUpdateRequest;
+    body = (await request.json()) as FanletterNewsReportContentUpdateRequest;
   } catch {
     return jsonError("Invalid JSON body.", 400);
   }
@@ -408,6 +448,36 @@ export async function PATCH(request: Request) {
 
     if (reporter.error) {
       return reporter.error;
+    }
+
+    if (body?.updateKind === "content") {
+      const report = await updateFanletterNewsReportContent({
+        body: body.body,
+        dek: body.dek,
+        how: body.how,
+        reporterComment: body.reporterComment,
+        reporterReferralCode: reporter.reporterReferralCode,
+        reportId: body.reportId,
+        title: body.title,
+        what: body.what,
+        when: body.when,
+        where: body.where,
+        who: body.who,
+        why: body.why,
+      });
+      const locale: Locale =
+        body.locale && hasLocale(body.locale) ? body.locale : report.locale;
+
+      revalidatePath(`/${locale}/fanletter/news/${report.reportId}`);
+      revalidatePath(`/${locale}/fanletter/news`);
+      revalidatePath(`/${locale}/fanletter/news/reports`);
+      revalidatePath(`/${locale}/fanletter/news/reports/new`);
+      revalidatePath(`/${locale}/fanletter/reports`);
+      revalidatePath(`/${locale}/fanletter/reports/${report.reportId}`);
+
+      return Response.json({
+        report: serializeEditableNewsReport(report),
+      });
     }
 
     const report = await updateFanletterNewsReportCoverImage({
@@ -440,7 +510,7 @@ export async function PATCH(request: Request) {
     const message =
       error instanceof Error
         ? error.message
-        : "Failed to update FanLetter news report cover.";
+        : "Failed to update FanLetter news report.";
 
     return jsonError(message, getErrorStatus(message));
   }

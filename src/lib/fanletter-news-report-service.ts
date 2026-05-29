@@ -311,9 +311,20 @@ export type FanletterNewsReportDraftSource = {
   };
   creatorReferralCode: string | null;
   existingReport: {
+    body: string;
+    dek: string;
     editHref: string;
+    how: string;
     href: string;
+    reporterComment: string | null;
     reportId: string;
+    title: string;
+    updatedAt: string;
+    what: string;
+    when: string;
+    where: string;
+    who: string;
+    why: string;
   } | null;
   exclusiveNews: {
     active: boolean;
@@ -2640,15 +2651,24 @@ export async function getFanletterNewsReportDraftSourcesForMember({
           {
             projection: {
               contentId: 1,
+              body: 1,
               coverImageUrl: 1,
               createdAt: 1,
               dek: 1,
+              how: 1,
               locale: 1,
+              reporterComment: 1,
               reporterAvatarImageUrl: 1,
               reporterName: 1,
               reporterReferralCode: 1,
               reportId: 1,
               title: 1,
+              updatedAt: 1,
+              what: 1,
+              when: 1,
+              where: 1,
+              who: 1,
+              why: 1,
             },
           },
         )
@@ -2735,12 +2755,23 @@ export async function getFanletterNewsReportDraftSourcesForMember({
         creatorReferralCode,
         existingReport: existingReport
           ? {
+              body: existingReport.body ?? "",
+              dek: existingReport.dek ?? "",
               editHref: buildPathWithReferral(
                 `/${normalizedLocale}/fanletter/reports/${existingReport.reportId}`,
                 member.referralCode,
               ),
+              how: existingReport.how ?? "",
               href: createFanletterNewsReportShareHref(existingReport),
+              reporterComment: existingReport.reporterComment ?? null,
               reportId: existingReport.reportId,
+              title: existingReport.title ?? "",
+              updatedAt: existingReport.updatedAt.toISOString(),
+              what: existingReport.what ?? "",
+              when: existingReport.when ?? "",
+              where: existingReport.where ?? "",
+              who: existingReport.who ?? "",
+              why: existingReport.why ?? "",
             }
           : null,
         exclusiveNews: {

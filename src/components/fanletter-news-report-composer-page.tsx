@@ -74,9 +74,20 @@ export type FanletterNewsReportComposerSource = {
   };
   creatorReferralCode: string | null;
   existingReport: {
+    body: string;
+    dek: string;
     editHref: string;
+    how: string;
     href: string;
+    reporterComment: string | null;
     reportId: string;
+    title: string;
+    updatedAt: string;
+    what: string;
+    when: string;
+    where: string;
+    who: string;
+    why: string;
   } | null;
   exclusiveNews: {
     active: boolean;
@@ -165,6 +176,37 @@ type FanletterNewsReportCreateResponse = {
   };
 };
 
+type FanletterNewsReportContentUpdateResponse = {
+  report: {
+    body: string;
+    dek: string;
+    how: string;
+    reporterComment: string | null;
+    reportId: string;
+    shareHref: string;
+    title: string;
+    updatedAt: string;
+    what: string;
+    when: string;
+    where: string;
+    who: string;
+    why: string;
+  };
+};
+
+type EditableNewsReportForm = {
+  body: string;
+  dek: string;
+  how: string;
+  reporterComment: string;
+  title: string;
+  what: string;
+  when: string;
+  where: string;
+  who: string;
+  why: string;
+};
+
 export type FanletterNewsReportComposerReportStatusFilter =
   | "all"
   | "reported"
@@ -187,6 +229,10 @@ const REPORT_TEASER_CROP_ASPECT_RATIO = 9 / 16;
 const REPORT_TEASER_CROP_OUTPUT_HEIGHT = 1280;
 const REPORT_TEASER_CROP_OUTPUT_WIDTH = 720;
 const REPORT_TEASER_IMAGE_LIMIT = 4;
+const REPORT_BODY_MAX_LENGTH = 12_000;
+const REPORT_DEK_MAX_LENGTH = 320;
+const REPORT_FACT_MAX_LENGTH = 500;
+const REPORT_TITLE_MAX_LENGTH = 180;
 const REPORTER_COMMENT_MAX_LENGTH = 220;
 const SOURCE_RESULT_PAGE_SIZE = 6;
 const DEFAULT_REPORT_COVER_CROP: ReportCoverCropState = {
@@ -195,6 +241,39 @@ const DEFAULT_REPORT_COVER_CROP: ReportCoverCropState = {
   zoom: 1,
 };
 const EMPTY_COVER_OPTIONS: CoverOption[] = [];
+const EMPTY_EDITABLE_REPORT_FORM: EditableNewsReportForm = {
+  body: "",
+  dek: "",
+  how: "",
+  reporterComment: "",
+  title: "",
+  what: "",
+  when: "",
+  where: "",
+  who: "",
+  why: "",
+};
+
+function getEditableReportForm(
+  report: FanletterNewsReportComposerSource["existingReport"],
+): EditableNewsReportForm {
+  if (!report) {
+    return EMPTY_EDITABLE_REPORT_FORM;
+  }
+
+  return {
+    body: report.body,
+    dek: report.dek,
+    how: report.how,
+    reporterComment: report.reporterComment ?? "",
+    title: report.title,
+    what: report.what,
+    when: report.when,
+    where: report.where,
+    who: report.who,
+    why: report.why,
+  };
+}
 
 function setRelativeSearchParams(
   path: string,
@@ -268,9 +347,34 @@ function getCopy(locale: Locale) {
         myReportWritten: "내가 작성함",
         existing: "이미 작성함",
         existingBody:
-          "이미 이 브이로그로 작성한 리포트가 있습니다. 새 리포트 대신 기존 리포트를 수정하거나 확인하세요.",
-        existingEdit: "기존 리포트 수정",
+          "이미 이 브이로그로 작성한 리포트가 있습니다. 이 화면에서 바로 수정하고 저장할 수 있습니다.",
+        existingEdit: "편집 화면 열기",
         existingView: "기존 리포트 보기",
+        editInline: {
+          body: "본문",
+          bodyHelp:
+            "공개 뉴스 본문에 반영됩니다. 원본 브이로그 맥락과 다르게 보이지 않게 유지해 주세요.",
+          dek: "요약",
+          error: "리포트를 저장하지 못했습니다. 입력값을 확인해 주세요.",
+          facts: "육하원칙",
+          reporterComment: "기자 코멘트",
+          reporterCommentHelp: "AI 생성에 참고한 개인 메모입니다. 비워둘 수 있습니다.",
+          openInline: "이 화면에서 수정",
+          save: "변경 저장",
+          saved: "변경사항을 저장했습니다.",
+          saving: "저장 중",
+          title: "내 리포트 바로 수정",
+          titleField: "제목",
+          viewUpdated: "공개 뉴스 확인",
+          fields: {
+            how: "어떻게",
+            what: "무엇을",
+            when: "언제",
+            where: "어디서",
+            who: "누가",
+            why: "왜",
+          },
+        },
         failed: "리포트를 만들지 못했습니다.",
         filterEmptyBody:
           "검색어, NSFW 포함 여부, 내 리포트 상태 조건을 바꿔 다시 확인하세요.",
@@ -489,9 +593,35 @@ function getCopy(locale: Locale) {
         myReportWritten: "Reported by me",
         existing: "Already reported",
         existingBody:
-          "You already created a report for this vlog. Edit or view the existing report instead.",
-        existingEdit: "Edit existing report",
+          "You already created a report for this vlog. You can edit and save it on this screen.",
+        existingEdit: "Open edit page",
         existingView: "View existing report",
+        editInline: {
+          body: "Body",
+          bodyHelp:
+            "This appears in the public news story. Keep it aligned with the source vlog context.",
+          dek: "Summary",
+          error: "Could not save the report. Check the fields and try again.",
+          facts: "Five Ws and one H",
+          reporterComment: "Reporter comment",
+          reporterCommentHelp:
+            "Private note used for AI generation. This can be left empty.",
+          openInline: "Edit here",
+          save: "Save changes",
+          saved: "Changes saved.",
+          saving: "Saving",
+          title: "Edit my report here",
+          titleField: "Title",
+          viewUpdated: "Open public news",
+          fields: {
+            how: "How",
+            what: "What",
+            when: "When",
+            where: "Where",
+            who: "Who",
+            why: "Why",
+          },
+        },
         failed: "Could not create the report.",
         filterEmptyBody:
           "Adjust the query, NSFW setting, or my-report status filter and try again.",
@@ -1286,9 +1416,20 @@ export function FanletterNewsReportComposerPage({
     "idle",
   );
   const [error, setError] = useState<string | null>(null);
+  const [editReportForm, setEditReportForm] = useState<EditableNewsReportForm>(
+    () => getEditableReportForm(initialSelectedSource?.existingReport ?? null),
+  );
+  const [editReportStatus, setEditReportStatus] = useState<"idle" | "saving">(
+    "idle",
+  );
+  const [editReportMessage, setEditReportMessage] = useState<string | null>(null);
+  const [editReportHref, setEditReportHref] = useState<string | null>(
+    initialSelectedSource?.existingReport?.href ?? null,
+  );
   const cropFrameRef = useRef<HTMLDivElement | null>(null);
   const teaserCropFrameRef = useRef<HTMLDivElement | null>(null);
   const selectedDetailRef = useRef<HTMLDivElement | null>(null);
+  const editReportFormRef = useRef<HTMLFormElement | null>(null);
   const previousSelectedContentIdRef = useRef<string | null>(
     initialSelectedSource?.contentId ?? null,
   );
@@ -1336,6 +1477,20 @@ export function FanletterNewsReportComposerPage({
       !selectedSource.existingReport &&
       !isExclusiveBlocked &&
       status !== "submitting",
+  );
+  const selectedExistingReport = selectedSource?.existingReport ?? null;
+  const canSaveExistingReport = Boolean(
+    selectedExistingReport &&
+      editReportStatus !== "saving" &&
+      editReportForm.title.trim() &&
+      editReportForm.dek.trim() &&
+      editReportForm.body.trim() &&
+      editReportForm.who.trim() &&
+      editReportForm.when.trim() &&
+      editReportForm.where.trim() &&
+      editReportForm.what.trim() &&
+      editReportForm.why.trim() &&
+      editReportForm.how.trim(),
   );
   const selectedSourceRevealCount = selectedSource
     ? getSourceRevealCount(selectedSource)
@@ -1468,6 +1623,38 @@ export function FanletterNewsReportComposerPage({
       value: "latest",
     },
   ] as const;
+  const editReportFactFields = [
+    {
+      field: "who",
+      label: copy.editInline.fields.who,
+    },
+    {
+      field: "when",
+      label: copy.editInline.fields.when,
+    },
+    {
+      field: "where",
+      label: copy.editInline.fields.where,
+    },
+    {
+      field: "what",
+      label: copy.editInline.fields.what,
+    },
+    {
+      field: "why",
+      label: copy.editInline.fields.why,
+    },
+    {
+      field: "how",
+      label: copy.editInline.fields.how,
+    },
+  ] as const satisfies ReadonlyArray<{
+    field: keyof Pick<
+      EditableNewsReportForm,
+      "how" | "what" | "when" | "where" | "who" | "why"
+    >;
+    label: string;
+  }>;
   const getReportStatusFilterHref = useCallback(
     (nextReportStatusFilter: FanletterNewsReportComposerReportStatusFilter) =>
       setRelativeSearchParams(reportNewHref, {
@@ -1619,6 +1806,20 @@ export function FanletterNewsReportComposerPage({
     },
     [currentHref],
   );
+  const scrollToExistingReportEditor = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      editReportFormRef.current?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+        block: "start",
+      });
+    });
+  }, []);
 
   useEffect(() => {
     setSearchInput(searchQuery);
@@ -1641,6 +1842,10 @@ export function FanletterNewsReportComposerPage({
     previousSelectedContentIdRef.current = selectedSourceContentId;
     setAngle(getRecommendedReportAngle(selectedSource, copy));
     setReporterComment("");
+    setEditReportForm(getEditableReportForm(selectedSource?.existingReport ?? null));
+    setEditReportHref(selectedSource?.existingReport?.href ?? null);
+    setEditReportMessage(null);
+    setEditReportStatus("idle");
   }, [copy, selectedSource, selectedSourceContentId]);
 
   useEffect(() => {
@@ -2015,6 +2220,91 @@ export function FanletterNewsReportComposerPage({
     selectedTeaserUrls,
     selectedSource,
     uploadCroppedReportImage,
+  ]);
+
+  const updateEditReportField = useCallback(
+    (field: keyof EditableNewsReportForm, value: string) => {
+      setEditReportForm((current) => ({
+        ...current,
+        [field]: value,
+      }));
+      setEditReportMessage(null);
+    },
+    [],
+  );
+
+  const submitExistingReportEdit = useCallback(async () => {
+    if (!selectedExistingReport || !canSaveExistingReport) {
+      return;
+    }
+
+    setEditReportStatus("saving");
+    setEditReportMessage(null);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/fanletter/news-reports", {
+        body: JSON.stringify({
+          body: editReportForm.body,
+          dek: editReportForm.dek,
+          how: editReportForm.how,
+          locale,
+          reporterComment: editReportForm.reporterComment,
+          reportId: selectedExistingReport.reportId,
+          title: editReportForm.title,
+          updateKind: "content",
+          what: editReportForm.what,
+          when: editReportForm.when,
+          where: editReportForm.where,
+          who: editReportForm.who,
+          why: editReportForm.why,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "PATCH",
+      });
+      const data = (await response.json().catch(() => null)) as
+        | FanletterNewsReportContentUpdateResponse
+        | { error?: string }
+        | null;
+
+      if (!response.ok || !data || !("report" in data)) {
+        throw new Error(
+          data && "error" in data && data.error
+            ? data.error
+            : copy.editInline.error,
+        );
+      }
+
+      setEditReportForm({
+        body: data.report.body,
+        dek: data.report.dek,
+        how: data.report.how,
+        reporterComment: data.report.reporterComment ?? "",
+        title: data.report.title,
+        what: data.report.what,
+        when: data.report.when,
+        where: data.report.where,
+        who: data.report.who,
+        why: data.report.why,
+      });
+      setEditReportHref(data.report.shareHref || selectedExistingReport.href);
+      setEditReportMessage(copy.editInline.saved);
+    } catch (error) {
+      setEditReportMessage(
+        error instanceof Error ? error.message : copy.editInline.error,
+      );
+    } finally {
+      setEditReportStatus("idle");
+    }
+  }, [
+    canSaveExistingReport,
+    copy.editInline.error,
+    copy.editInline.saved,
+    editReportForm,
+    locale,
+    selectedExistingReport,
   ]);
 
   const submitSearch = useCallback(
@@ -2837,17 +3127,15 @@ export function FanletterNewsReportComposerPage({
                       </div>
                       {selectedSource.reports.length > 0 ? (
                         <div className="mt-3 grid gap-2">
-                          {selectedSource.reports.map((report) => (
-                            <Link
-                              className={cn(
+                          {selectedSource.reports.map((report) => {
+                            const reportItemClassName = cn(
                                 "group grid grid-cols-[8rem_minmax(0,1fr)] gap-3 border p-2 !text-[#111510] transition hover:border-[#19b84b]/45 hover:bg-white sm:grid-cols-[10.5rem_minmax(0,1fr)]",
                                 report.isViewerReport
                                   ? "border-[#19b84b]/45 bg-[#ecfff0]"
                                   : "border-black/10 bg-[#f6f8f4]",
-                              )}
-                              href={report.href}
-                              key={report.reportId}
-                            >
+                            );
+                            const reportItemContent = (
+                              <>
                               <span
                                 className="block aspect-[16/9] overflow-hidden rounded-md bg-[#111510] bg-cover bg-center"
                                 style={
@@ -2880,12 +3168,41 @@ export function FanletterNewsReportComposerPage({
                                   </span>
                                 ) : null}
                                 <span className="mt-2 inline-flex items-center gap-1 text-xs font-black text-[#16702e]">
-                                  {copy.readReport}
+                                  {report.isViewerReport
+                                    ? copy.editInline.openInline
+                                    : copy.readReport}
                                   <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
                                 </span>
                               </span>
-                            </Link>
-                          ))}
+                              </>
+                            );
+
+                            if (report.isViewerReport) {
+                              return (
+                                <button
+                                  className={cn(
+                                    reportItemClassName,
+                                    "text-left",
+                                  )}
+                                  key={report.reportId}
+                                  onClick={scrollToExistingReportEditor}
+                                  type="button"
+                                >
+                                  {reportItemContent}
+                                </button>
+                              );
+                            }
+
+                            return (
+                              <Link
+                                className={reportItemClassName}
+                                href={report.href}
+                                key={report.reportId}
+                              >
+                                {reportItemContent}
+                              </Link>
+                            );
+                          })}
                         </div>
                       ) : (
                         <p className="mt-3 border border-dashed border-black/14 bg-[#f6f8f4] px-4 py-5 text-sm font-semibold leading-6 text-black/54">
@@ -2895,31 +3212,173 @@ export function FanletterNewsReportComposerPage({
                     </div>
                   </div>
 
-                  {selectedSource.existingReport ? (
-                    <div className="mt-4 border border-[#19b84b]/22 bg-[#ecfff0] p-4">
-                      <p className="inline-flex items-center gap-1.5 text-sm font-black text-[#16702e]">
-                        <CheckCircle2 className="size-4" />
-                        {copy.existing}
-                      </p>
-                      <p className="mt-2 text-sm font-semibold leading-6 text-black/58">
-                        {copy.existingBody}
-                      </p>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <Link
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white"
-                          href={selectedSource.existingReport.editHref}
-                        >
-                          {copy.existingEdit}
-                          <ArrowRight className="size-4 text-[#44f26e]" />
-                        </Link>
-                        <Link
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/12 bg-white px-4 text-sm font-black !text-[#111510]"
-                          href={selectedSource.existingReport.href}
-                        >
-                          {copy.existingView}
-                        </Link>
+                  {selectedExistingReport ? (
+                    <form
+                      className="mt-4 border border-[#19b84b]/22 bg-[#ecfff0] p-4"
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        void submitExistingReportEdit();
+                      }}
+                      ref={editReportFormRef}
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <p className="inline-flex items-center gap-1.5 text-sm font-black text-[#16702e]">
+                            <CheckCircle2 className="size-4" />
+                            {copy.existing}
+                          </p>
+                          <h2 className="mt-2 text-xl font-black tracking-normal">
+                            {copy.editInline.title}
+                          </h2>
+                          <p className="mt-2 text-sm font-semibold leading-6 text-black/58">
+                            {copy.existingBody}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 flex-wrap gap-2">
+                          <Link
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-black/12 bg-white px-4 text-sm font-black !text-[#111510]"
+                            href={editReportHref ?? selectedExistingReport.href}
+                          >
+                            {copy.editInline.viewUpdated}
+                          </Link>
+                          <Link
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[#19b84b]/20 bg-white px-4 text-sm font-black !text-[#16702e]"
+                            href={selectedExistingReport.editHref}
+                          >
+                            {copy.existingEdit}
+                            <ArrowRight className="size-4" />
+                          </Link>
+                        </div>
                       </div>
-                    </div>
+
+                      <div className="mt-4 grid gap-3">
+                        <label className="block">
+                          <span className="text-xs font-black uppercase tracking-[0.08em] text-[#16702e]">
+                            {copy.editInline.titleField}
+                          </span>
+                          <input
+                            className="mt-1 h-11 w-full border border-[#19b84b]/18 bg-white px-3 text-sm font-bold outline-none transition focus:border-[#19b84b]"
+                            maxLength={REPORT_TITLE_MAX_LENGTH}
+                            onChange={(event) => {
+                              updateEditReportField("title", event.target.value);
+                            }}
+                            required
+                            type="text"
+                            value={editReportForm.title}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-black uppercase tracking-[0.08em] text-[#16702e]">
+                            {copy.editInline.dek}
+                          </span>
+                          <textarea
+                            className="mt-1 min-h-20 w-full resize-y border border-[#19b84b]/18 bg-white px-3 py-2 text-sm font-semibold leading-6 outline-none transition focus:border-[#19b84b]"
+                            maxLength={REPORT_DEK_MAX_LENGTH}
+                            onChange={(event) => {
+                              updateEditReportField("dek", event.target.value);
+                            }}
+                            required
+                            value={editReportForm.dek}
+                          />
+                        </label>
+                        <label className="block">
+                          <span className="text-xs font-black uppercase tracking-[0.08em] text-[#16702e]">
+                            {copy.editInline.body}
+                          </span>
+                          <textarea
+                            className="mt-1 min-h-44 w-full resize-y border border-[#19b84b]/18 bg-white px-3 py-3 text-sm font-semibold leading-6 outline-none transition focus:border-[#19b84b]"
+                            maxLength={REPORT_BODY_MAX_LENGTH}
+                            onChange={(event) => {
+                              updateEditReportField("body", event.target.value);
+                            }}
+                            required
+                            value={editReportForm.body}
+                          />
+                          <span className="mt-1 block text-xs font-semibold leading-5 text-black/50">
+                            {copy.editInline.bodyHelp}
+                          </span>
+                        </label>
+                      </div>
+
+                      <section className="mt-5 border-t border-[#19b84b]/18 pt-4">
+                        <h3 className="inline-flex items-center gap-2 text-sm font-black text-[#111510]">
+                          <FileText className="size-4 text-[#16702e]" />
+                          {copy.editInline.facts}
+                        </h3>
+                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                          {editReportFactFields.map((field) => (
+                            <label className="block" key={field.field}>
+                              <span className="text-xs font-black uppercase tracking-[0.08em] text-[#16702e]">
+                                {field.label}
+                              </span>
+                              <textarea
+                                className="mt-1 min-h-20 w-full resize-y border border-[#19b84b]/18 bg-white px-3 py-2 text-sm font-semibold leading-6 outline-none transition focus:border-[#19b84b]"
+                                maxLength={REPORT_FACT_MAX_LENGTH}
+                                onChange={(event) => {
+                                  updateEditReportField(
+                                    field.field,
+                                    event.target.value,
+                                  );
+                                }}
+                                required
+                                value={editReportForm[field.field]}
+                              />
+                            </label>
+                          ))}
+                        </div>
+                      </section>
+
+                      <label className="mt-5 block border-t border-[#19b84b]/18 pt-4">
+                        <span className="text-xs font-black uppercase tracking-[0.08em] text-[#16702e]">
+                          {copy.editInline.reporterComment}
+                        </span>
+                        <textarea
+                          className="mt-1 min-h-24 w-full resize-y border border-[#19b84b]/18 bg-white px-3 py-2 text-sm font-semibold leading-6 outline-none transition focus:border-[#19b84b]"
+                          maxLength={REPORTER_COMMENT_MAX_LENGTH}
+                          onChange={(event) => {
+                            updateEditReportField(
+                              "reporterComment",
+                              event.target.value,
+                            );
+                          }}
+                          value={editReportForm.reporterComment}
+                        />
+                        <span className="mt-1 block text-xs font-semibold leading-5 text-black/50">
+                          {copy.editInline.reporterCommentHelp}
+                        </span>
+                      </label>
+
+                      <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        {editReportMessage ? (
+                          <p
+                            className={cn(
+                              "text-sm font-black leading-6",
+                              editReportMessage === copy.editInline.saved
+                                ? "text-[#16702e]"
+                                : "text-rose-700",
+                            )}
+                          >
+                            {editReportMessage}
+                          </p>
+                        ) : (
+                          <span />
+                        )}
+                        <button
+                          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-55"
+                          disabled={!canSaveExistingReport}
+                          type="submit"
+                        >
+                          {editReportStatus === "saving" ? (
+                            <Loader2 className="size-4 animate-spin text-[#44f26e]" />
+                          ) : (
+                            <CheckCircle2 className="size-4 text-[#44f26e]" />
+                          )}
+                          {editReportStatus === "saving"
+                            ? copy.editInline.saving
+                            : copy.editInline.save}
+                        </button>
+                      </div>
+                    </form>
                   ) : null}
 
                   {isExclusiveBlocked ? (
@@ -2935,15 +3394,17 @@ export function FanletterNewsReportComposerPage({
                   ) : null}
                 </section>
 
-                <section
-                  id={isSelectedPaidLocked ? paidUnlockSectionId : undefined}
-                  className={cn(
-                    "border p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5",
-                    isSelectedPaidLocked
-                      ? "border-rose-500/18 bg-rose-50"
-                      : "border-black/12 bg-white",
-                  )}
-                >
+                {!selectedExistingReport ? (
+                  <>
+                    <section
+                      id={isSelectedPaidLocked ? paidUnlockSectionId : undefined}
+                      className={cn(
+                        "border p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5",
+                        isSelectedPaidLocked
+                          ? "border-rose-500/18 bg-rose-50"
+                          : "border-black/12 bg-white",
+                      )}
+                    >
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                       <p
@@ -3022,7 +3483,7 @@ export function FanletterNewsReportComposerPage({
                       </div>
                     </div>
                   )}
-                </section>
+                    </section>
 
                 {selectedPreviewClipVideoUrl ? (
                   <section className="border border-black/12 bg-[#111510] p-4 text-white shadow-[0_14px_34px_rgba(17,21,16,0.12)] sm:p-5">
@@ -3660,6 +4121,8 @@ export function FanletterNewsReportComposerPage({
                     </p>
                   </section>
                 )}
+                  </>
+                ) : null}
               </>
             ) : null}
           </div>
