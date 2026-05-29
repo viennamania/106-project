@@ -2,9 +2,11 @@
 
 import Image from "next/image";
 import {
+  AlertTriangle,
   ChevronLeft,
   ChevronRight,
   Expand,
+  Newspaper,
   X,
 } from "lucide-react";
 import {
@@ -30,6 +32,14 @@ type FanletterNewsSourceSceneGalleryItem = {
   imageUrl: string;
   label: string;
   timeLabel: string | null;
+};
+
+type FanletterNewsSourceSceneGalleryFeaturedItem = {
+  alt: string;
+  badges?: string[];
+  blurNotice?: string;
+  caption?: string;
+  imageUrl: string | null;
 };
 
 type FanletterNewsSourceSceneGalleryCopy = {
@@ -145,6 +155,7 @@ export function FanletterNewsSourceSceneGallery({
   blurred,
   copy,
   density = "default",
+  featuredItem,
   items,
   layout = "scroll",
   locale,
@@ -153,6 +164,7 @@ export function FanletterNewsSourceSceneGallery({
   blurred: boolean;
   copy: FanletterNewsSourceSceneGalleryCopy;
   density?: "compact" | "default";
+  featuredItem?: FanletterNewsSourceSceneGalleryFeaturedItem | null;
   items: FanletterNewsSourceSceneGalleryItem[];
   layout?: "grid" | "scroll";
   locale: Locale;
@@ -391,7 +403,7 @@ export function FanletterNewsSourceSceneGallery({
     };
   }, [isGridLayout, items.length, updateSceneScrollState]);
 
-  if (items.length < 2) {
+  if (items.length === 0 && !featuredItem) {
     return null;
   }
 
@@ -612,7 +624,85 @@ export function FanletterNewsSourceSceneGallery({
         </p>
       </div>
 
-      <div className="relative">
+      {featuredItem ? (
+        <figure className="mt-3 overflow-hidden border border-black/12 bg-[#111510] text-white">
+          <div
+            className={cn(
+              "relative aspect-[16/10] overflow-hidden bg-[#111510] sm:aspect-[16/9]",
+              featuredItem.imageUrl ? "" : "min-h-[13rem]",
+            )}
+          >
+            {featuredItem.imageUrl ? (
+              <>
+                <Image
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 h-full w-full scale-[1.08] object-cover object-center blur-xl brightness-[0.42] saturate-[0.9]"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 64rem"
+                  src={featuredItem.imageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(
+                    featuredItem.imageUrl,
+                  )}
+                />
+                <Image
+                  alt={featuredItem.alt}
+                  className={cn(
+                    "relative z-10 object-contain",
+                    effectiveBlurred && "blur-md brightness-[0.68] saturate-[0.86]",
+                  )}
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 64rem"
+                  src={featuredItem.imageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(
+                    featuredItem.imageUrl,
+                  )}
+                />
+              </>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_50%,#24372a)]">
+                <Newspaper className="size-16 text-[#44f26e]" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/18" />
+            {featuredItem.badges?.length ? (
+              <div className="absolute left-4 top-4 flex flex-wrap gap-2 text-[0.66rem] font-black uppercase tracking-[0.12em] sm:left-5 sm:top-5">
+                {featuredItem.badges.map((badge, index) => (
+                  <span
+                    className={
+                      index === 0
+                        ? "bg-[#44f26e] px-2.5 py-1.5 text-black"
+                        : "border border-white/24 bg-white/12 px-2.5 py-1.5 text-white/82 backdrop-blur"
+                    }
+                    key={`${badge}-${index}`}
+                  >
+                    {badge}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            {effectiveBlurred && featuredItem.blurNotice ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/28 p-5 text-center">
+                <div className="max-w-sm border border-white/14 bg-black/66 p-4">
+                  <AlertTriangle className="mx-auto size-7 text-rose-300" />
+                  <p className="mt-3 text-sm font-semibold leading-6 text-white/82">
+                    {featuredItem.blurNotice}
+                  </p>
+                </div>
+              </div>
+            ) : null}
+          </div>
+          {featuredItem.caption ? (
+            <figcaption className="border-t border-white/12 px-4 py-3 text-xs font-semibold leading-5 text-white/54">
+              {featuredItem.caption}
+            </figcaption>
+          ) : null}
+        </figure>
+      ) : null}
+
+      {items.length > 0 ? (
+        <div className="relative">
         <div
           className={cn(
             "mt-3 grid",
@@ -715,7 +805,8 @@ export function FanletterNewsSourceSceneGallery({
             </button>
           </div>
         ) : null}
-      </div>
+        </div>
+      ) : null}
 
       {requiresNsfwPin && !isNsfwPinUnlocked && nsfwPinGate ? (
         <div className="mt-3 border border-[#44f26e]/18 bg-[#07100b] p-3 text-white shadow-[0_18px_44px_rgba(0,0,0,0.18)] sm:p-4">

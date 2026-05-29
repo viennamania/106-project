@@ -300,7 +300,16 @@ function getCopy(locale: Locale) {
           body:
             "원본 브이로그가 열리기 전에는 팬 기자가 직접 크롭해 편집한 티저 컷만 기사 안에서 보여줍니다.",
           eyebrow: "리포터 티저 컷",
+          fallbackBody:
+            "팬 기자가 따로 고른 공개 장면이 없을 때는 뉴스 대표 이미지를 먼저 보여줍니다.",
+          fallbackTitle: "뉴스 대표 이미지",
           itemLabel: (index: string) => `편집 컷 ${index}`,
+          leadBody:
+            "뉴스 대표 이미지와 팬 기자가 공개한 티저 컷을 한 곳에서 확인할 수 있습니다.",
+          selectedBody:
+            "편집 컷이 없을 때는 팬 기자가 선택한 공개 프레임을 기사 안에서 먼저 보여줍니다.",
+          selectedItemLabel: (index: string) => `공개 장면 ${index}`,
+          selectedTitle: "팬 기자가 선택한 공개 장면",
           title: "팬 기자가 편집한 티저 컷",
         },
         generated: "AI 생성",
@@ -541,7 +550,16 @@ function getCopy(locale: Locale) {
           body:
             "Before the source vlog opens, the article shows only teaser cuts cropped and edited by the fan reporter.",
           eyebrow: "Reporter teaser cuts",
+          fallbackBody:
+            "When the reporter did not choose public scenes, the news lead image is shown first.",
+          fallbackTitle: "News lead image",
           itemLabel: (index: string) => `Edited cut ${index}`,
+          leadBody:
+            "Review the news lead image and public teaser cuts from the fan reporter in one place.",
+          selectedBody:
+            "When edited cuts are not available, public frames selected by the fan reporter are shown first.",
+          selectedItemLabel: (index: string) => `Public scene ${index}`,
+          selectedTitle: "Public scenes selected by the fan reporter",
           title: "Teaser cuts edited by the fan reporter",
         },
         generated: "AI generated",
@@ -1785,95 +1803,6 @@ function ViewerOwnershipStatus({
   );
 }
 
-function ArticleVisualLead({
-  accessLabel,
-  blurred,
-  copy,
-  report,
-  sourceContent,
-}: {
-  accessLabel: string;
-  blurred: boolean;
-  copy: ReturnType<typeof getCopy>;
-  report: FanletterNewsReportDocument;
-  sourceContent: FanletterPublicContentDetail | null;
-}) {
-  const imageUrl =
-    report.coverImageUrl ??
-    sourceContent?.coverImageUrl ??
-    sourceContent?.authorAvatarImageUrl ??
-    null;
-  const shouldBypassImageOptimization = imageUrl
-    ? shouldBypassFanletterImageOptimization(imageUrl)
-    : false;
-
-  return (
-    <figure className="mt-5 overflow-hidden border border-black/12 bg-[#111510] text-white shadow-[0_24px_64px_rgba(12,18,14,0.18)] sm:mt-6">
-      <div
-        className={`relative aspect-[16/10] overflow-hidden bg-[#111510] sm:aspect-[16/9] ${
-          imageUrl ? "" : "min-h-[14rem]"
-        }`}
-      >
-        {imageUrl ? (
-          <>
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 h-full w-full scale-[1.08] object-cover object-center blur-xl brightness-[0.42] saturate-[0.9]"
-              fetchPriority="high"
-              fill
-              loading="eager"
-              sizes="(max-width: 1024px) 100vw, 64rem"
-              src={imageUrl}
-              unoptimized={shouldBypassImageOptimization}
-            />
-            <Image
-              alt={report.title}
-              className={
-                blurred
-                  ? "relative z-10 object-contain blur-md brightness-[0.68] saturate-[0.86]"
-                  : "relative z-10 object-contain"
-              }
-              fetchPriority="high"
-              fill
-              loading="eager"
-              sizes="(max-width: 1024px) 100vw, 64rem"
-              src={imageUrl}
-              unoptimized={shouldBypassImageOptimization}
-            />
-          </>
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_50%,#24372a)]">
-            <Newspaper className="size-16 text-[#44f26e]" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/18" />
-        <div className="absolute left-4 top-4 flex flex-wrap gap-2 text-[0.66rem] font-black uppercase tracking-[0.12em] sm:left-5 sm:top-5">
-          <span className="bg-[#44f26e] px-2.5 py-1.5 text-black">
-            {copy.visualLead}
-          </span>
-          <span className="border border-white/24 bg-white/12 px-2.5 py-1.5 text-white/82 backdrop-blur">
-            {accessLabel}
-          </span>
-        </div>
-        {blurred ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/28 p-5 text-center">
-            <div className="max-w-sm border border-white/14 bg-black/66 p-4">
-              <AlertTriangle className="mx-auto size-7 text-rose-300" />
-              <p className="mt-3 text-sm font-semibold leading-6 text-white/82">
-                {copy.nsfwBlurNotice}
-              </p>
-            </div>
-          </div>
-        ) : null}
-      </div>
-      <figcaption className="border-t border-white/12 px-4 py-3 text-xs font-semibold leading-5 text-white/54">
-        {copy.visualCaption}
-      </figcaption>
-    </figure>
-  );
-}
-
 function SourceVlogRevealTeaserOverlay({
   blurred,
   connectHref,
@@ -2230,51 +2159,110 @@ function SourceVlogUnlockedTeaserGallery({
   );
 }
 
+function getUniqueTrimmedImageUrls(values: Array<string | null | undefined>) {
+  return [
+    ...new Set(
+      values
+        .map((value) => value?.trim() ?? "")
+        .filter(Boolean),
+    ),
+  ];
+}
+
 function ReporterTeaserCutGallery({
+  accessLabel,
   blurred,
   copy,
-  teaserImages,
   locale,
+  report,
+  shouldShowTeaserCuts,
+  sourceContent,
 }: {
+  accessLabel: string;
   blurred: boolean;
   copy: ReturnType<typeof getCopy>;
-  teaserImages: NonNullable<FanletterNewsReportDocument["teaserImages"]>;
   locale: Locale;
+  report: FanletterNewsReportDocument;
+  shouldShowTeaserCuts: boolean;
+  sourceContent: FanletterPublicContentDetail | null;
 }) {
-  const teaserItems = [
-    ...new Set(
-      teaserImages
-        .filter(
-          (image) =>
-            image.source === "reporter_cropped" &&
-            image.crop &&
-            image.imageUrl.trim() &&
-            image.imageUrl.trim() !== image.sourceImageUrl.trim(),
-        )
-        .map((image) => image.imageUrl.trim()),
-    ),
-  ]
-    .slice(0, 4)
-    .map((imageUrl, index) => {
-      const itemNumber = formatNumber(index + 1, locale);
+  const teaserImages = report.teaserImages ?? [];
+  const reporterEditedImageUrls = getUniqueTrimmedImageUrls(
+    teaserImages
+      .filter(
+        (image) =>
+          image.source === "reporter_cropped" &&
+          image.crop &&
+          image.imageUrl.trim() &&
+          image.imageUrl.trim() !== image.sourceImageUrl.trim(),
+      )
+      .map((image) => image.imageUrl),
+  );
+  const selectedPublicImageUrls = getUniqueTrimmedImageUrls([
+    ...teaserImages
+      .filter((image) => image.source !== "reporter_cropped")
+      .map((image) => image.imageUrl),
+    ...(report.teaserImageUrls ?? []),
+  ]);
+  const featuredImageUrl =
+    report.coverImageUrl ??
+    selectedPublicImageUrls[0] ??
+    sourceContent?.coverImageUrl ??
+    sourceContent?.authorAvatarImageUrl ??
+    null;
+  const fallbackCutImageUrls = selectedPublicImageUrls.filter(
+    (imageUrl) => imageUrl !== featuredImageUrl,
+  );
+  const shouldUseEditedCuts =
+    shouldShowTeaserCuts && reporterEditedImageUrls.length > 0;
+  const visibleCutImageUrls = shouldShowTeaserCuts
+    ? (shouldUseEditedCuts ? reporterEditedImageUrls : fallbackCutImageUrls).slice(
+        0,
+        4,
+      )
+    : [];
+  const hasSelectedFallback =
+    shouldShowTeaserCuts &&
+    !shouldUseEditedCuts &&
+    selectedPublicImageUrls.length > 0;
+  const galleryTitle = shouldUseEditedCuts
+    ? copy.reportTeaserGallery.title
+    : hasSelectedFallback
+      ? copy.reportTeaserGallery.selectedTitle
+      : copy.reportTeaserGallery.fallbackTitle;
+  const galleryBody = shouldUseEditedCuts
+    ? copy.reportTeaserGallery.body
+    : hasSelectedFallback
+      ? copy.reportTeaserGallery.selectedBody
+      : copy.reportTeaserGallery.fallbackBody;
+  const itemLabel = shouldUseEditedCuts
+    ? copy.reportTeaserGallery.itemLabel
+    : copy.reportTeaserGallery.selectedItemLabel;
+  const teaserItems = visibleCutImageUrls.map((imageUrl, index) => {
+    const itemNumber = formatNumber(index + 1, locale);
 
-      return {
-        imageUrl,
-        label: copy.reportTeaserGallery.itemLabel(itemNumber),
-        timeLabel: null,
-      };
-    });
+    return {
+      imageUrl,
+      label: itemLabel(itemNumber),
+      timeLabel: null,
+    };
+  });
 
-  if (teaserItems.length === 0) {
+  if (!featuredImageUrl && teaserItems.length === 0) {
     return null;
   }
 
   return (
     <FanletterNewsSourceSceneGallery
-      key={teaserItems.map((item) => item.imageUrl).join("|")}
+      key={`${featuredImageUrl ?? "no-lead"}|${teaserItems
+        .map((item) => item.imageUrl)
+        .join("|")}`}
       blurred={blurred}
       copy={{
-        body: copy.reportTeaserGallery.body,
+        body:
+          featuredImageUrl || teaserItems.length === 0
+            ? copy.reportTeaserGallery.leadBody
+            : galleryBody,
         close: copy.sourceTeaserGallery.close,
         eyebrow: copy.reportTeaserGallery.eyebrow,
         next: copy.sourceTeaserGallery.next,
@@ -2282,9 +2270,20 @@ function ReporterTeaserCutGallery({
         pinProtectedBody: copy.sourceTeaserGallery.pinProtectedBody,
         pinProtectedTitle: copy.sourceTeaserGallery.pinProtectedTitle,
         previous: copy.sourceTeaserGallery.previous,
-        title: copy.reportTeaserGallery.title,
+        title: galleryTitle,
       }}
       density="compact"
+      featuredItem={
+        featuredImageUrl
+          ? {
+              alt: report.title,
+              badges: [copy.visualLead, accessLabel],
+              blurNotice: copy.nsfwBlurNotice,
+              caption: copy.visualCaption,
+              imageUrl: featuredImageUrl,
+            }
+          : null
+      }
       items={teaserItems}
       layout="grid"
       locale={locale}
@@ -3736,22 +3735,15 @@ export default async function LocalizedFanletterNewsReportPage({
               </div>
             ) : null}
 
-            <ArticleVisualLead
+            <ReporterTeaserCutGallery
               accessLabel={accessLabel}
               blurred={shouldBlurCurrentReport}
               copy={copy}
+              locale={locale}
               report={report}
+              shouldShowTeaserCuts={shouldShowReporterTeaserCutGallery}
               sourceContent={sourceContent}
             />
-
-            {shouldShowReporterTeaserCutGallery ? (
-              <ReporterTeaserCutGallery
-                blurred={shouldBlurCurrentReport}
-                copy={copy}
-                locale={locale}
-                teaserImages={report.teaserImages ?? []}
-              />
-            ) : null}
 
             {shouldShowNsfwControl ? (
               <div className="mt-5 hidden sm:block">
