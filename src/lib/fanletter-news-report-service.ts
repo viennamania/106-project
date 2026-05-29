@@ -12,6 +12,7 @@ import type {
   ContentSocialSummaryRecord,
   CreatorProfileDocument,
   FanletterNewsReportCoverCropDocument,
+  FanletterNewsReportCoverImageSource,
   FanletterNewsReportDocument,
   FanletterNewsReportTeaserImageDocument,
 } from "@/lib/content";
@@ -312,12 +313,17 @@ export type FanletterNewsReportDraftSource = {
   creatorReferralCode: string | null;
   existingReport: {
     body: string;
+    coverImageOriginalUrl: string | null;
+    coverImageSource: FanletterNewsReportCoverImageSource;
+    coverImageUrl: string | null;
     dek: string;
     editHref: string;
     how: string;
     href: string;
     reporterComment: string | null;
     reportId: string;
+    teaserImages: FanletterNewsReportTeaserImageDocument[];
+    teaserImageUrls: string[];
     title: string;
     updatedAt: string;
     what: string;
@@ -2756,6 +2762,9 @@ export async function getFanletterNewsReportDraftSourcesForMember({
         existingReport: existingReport
           ? {
               body: existingReport.body ?? "",
+              coverImageOriginalUrl: existingReport.coverImageOriginalUrl ?? null,
+              coverImageSource: existingReport.coverImageSource ?? "auto",
+              coverImageUrl: existingReport.coverImageUrl ?? null,
               dek: existingReport.dek ?? "",
               editHref: buildPathWithReferral(
                 `/${normalizedLocale}/fanletter/reports/${existingReport.reportId}`,
@@ -2765,6 +2774,21 @@ export async function getFanletterNewsReportDraftSourcesForMember({
               href: createFanletterNewsReportShareHref(existingReport),
               reporterComment: existingReport.reporterComment ?? null,
               reportId: existingReport.reportId,
+              teaserImages:
+                existingReport.teaserImages
+                  ?.map((image) => ({
+                    crop: image.crop ?? null,
+                    imageUrl: image.imageUrl.trim(),
+                    source: image.source,
+                    sourceImageUrl: image.sourceImageUrl.trim(),
+                  }))
+                  .filter((image) => image.imageUrl && image.sourceImageUrl)
+                  .slice(0, REPORT_TEASER_IMAGE_LIMIT) ?? [],
+              teaserImageUrls:
+                existingReport.teaserImageUrls
+                  ?.map((imageUrl) => imageUrl.trim())
+                  .filter(Boolean)
+                  .slice(0, REPORT_TEASER_IMAGE_LIMIT) ?? [],
               title: existingReport.title ?? "",
               updatedAt: existingReport.updatedAt.toISOString(),
               what: existingReport.what ?? "",
