@@ -628,7 +628,8 @@ export function FanletterNewsSourceSceneGallery({
         <figure className="mt-3 overflow-hidden border border-black/12 bg-[#111510] text-white">
           <div
             className={cn(
-              "relative aspect-[16/10] overflow-hidden bg-[#111510] sm:aspect-[16/9]",
+              "relative overflow-hidden bg-[#111510]",
+              isCompact ? "aspect-video" : "aspect-[16/10] sm:aspect-[16/9]",
               featuredItem.imageUrl ? "" : "min-h-[13rem]",
             )}
           >
