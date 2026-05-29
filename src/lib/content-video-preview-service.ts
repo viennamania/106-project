@@ -3,7 +3,16 @@ import "server-only";
 import { put } from "@vercel/blob";
 import ffmpegStatic from "ffmpeg-static";
 import { spawn } from "node:child_process";
-import { basename, extname } from "node:path";
+import { accessSync, constants } from "node:fs";
+import { createRequire } from "node:module";
+import {
+  basename,
+  dirname,
+  extname,
+  isAbsolute,
+  join,
+  resolve,
+} from "node:path";
 import { Readable, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 
@@ -24,9 +33,77 @@ const FFMPEG_TIMEOUT_MS = 150_000;
 const SOURCE_DOWNLOAD_ATTEMPT_COUNT = 6;
 const SOURCE_DOWNLOAD_RETRY_DELAY_MS = 2_000;
 const SOURCE_DOWNLOAD_TIMEOUT_MS = 90_000;
+const requireFromThisModule = createRequire(import.meta.url);
+
+function canExecuteFile(filePath: string) {
+  try {
+    accessSync(filePath, constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function addFfmpegPathCandidate(candidates: string[], value: string | null) {
+  const trimmed = value?.trim();
+
+  if (!trimmed) {
+    return;
+  }
+
+  candidates.push(trimmed);
+
+  if (!isAbsolute(trimmed)) {
+    candidates.push(resolve(process.cwd(), trimmed));
+    return;
+  }
+
+  if (!trimmed.startsWith("/ROOT/")) {
+    return;
+  }
+
+  const rootRelativePath = trimmed.slice("/ROOT/".length);
+  const taskRoot = process.env.LAMBDA_TASK_ROOT?.trim();
+
+  if (taskRoot) {
+    candidates.push(join(taskRoot, rootRelativePath));
+  }
+
+  candidates.push(join(process.cwd(), rootRelativePath));
+}
+
+function getPackagedFfmpegBinaryPath() {
+  try {
+    const packageJsonPath = requireFromThisModule.resolve(
+      "ffmpeg-static/package.json",
+    );
+    const executableName =
+      process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg";
+
+    return join(dirname(packageJsonPath), executableName);
+  } catch {
+    return null;
+  }
+}
 
 function getFfmpegBinaryPath() {
-  return process.env.FFMPEG_PATH?.trim() || ffmpegStatic || "ffmpeg";
+  const candidates: string[] = [];
+
+  addFfmpegPathCandidate(candidates, process.env.FFMPEG_PATH ?? null);
+  addFfmpegPathCandidate(candidates, ffmpegStatic);
+  addFfmpegPathCandidate(candidates, getPackagedFfmpegBinaryPath());
+
+  const executablePath = candidates.find(canExecuteFile);
+
+  if (executablePath) {
+    return executablePath;
+  }
+
+  return (
+    candidates.find((candidate) => !candidate.startsWith("/ROOT/")) ??
+    ffmpegStatic ??
+    "ffmpeg"
+  );
 }
 
 function sanitizeBaseName(value: string) {
