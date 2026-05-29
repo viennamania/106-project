@@ -66,6 +66,7 @@ export async function GET(request: Request) {
     const locale = localeParam as Locale;
     const pageSize = readRelatedNewsPageSize(searchParams.get("limit"));
     const offset = readNonNegativeInteger(searchParams.get("offset"));
+    const searchQuery = searchParams.get("q");
     const sort = readFanletterRelatedNewsSort(searchParams.get("sort"));
     const cookieStore = await cookies();
     const nsfwOptInEnabled = isFanletterNsfwOptedIn(
@@ -78,6 +79,7 @@ export async function GET(request: Request) {
       limit: pageSize + 1,
       locale,
       offset,
+      searchQuery,
       sort,
     });
     const items = reports

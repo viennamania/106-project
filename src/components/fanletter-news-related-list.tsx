@@ -10,14 +10,17 @@ import {
   Loader2,
   LockKeyhole,
   Newspaper,
+  Search,
+  X,
 } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import type { FanletterRelatedNewsItem } from "@/lib/fanletter-news-related";
 import { cn } from "@/lib/utils";
 
 type FanletterNewsRelatedListCopy = {
+  clearSearch: string;
   current: string;
   description: string;
   empty: string;
@@ -27,6 +30,10 @@ type FanletterNewsRelatedListCopy = {
   next: string;
   page: string;
   previous: string;
+  searchEmptyPrefix: string;
+  searchEmptySuffix: string;
+  searchLabel: string;
+  searchPlaceholder: string;
   title: string;
 };
 
@@ -42,11 +49,23 @@ type FanletterNewsRelatedListResponse = {
   items: FanletterRelatedNewsItem[];
 };
 
-function buildPageHref(baseHref: string, offset: number, limit: number) {
+function buildPageHref(
+  baseHref: string,
+  offset: number,
+  limit: number,
+  searchQuery?: string,
+) {
   const url = new URL(baseHref, window.location.origin);
+  const normalizedSearchQuery = searchQuery?.trim() ?? "";
 
   url.searchParams.set("offset", String(offset));
   url.searchParams.set("limit", String(limit));
+
+  if (normalizedSearchQuery) {
+    url.searchParams.set("q", normalizedSearchQuery);
+  } else {
+    url.searchParams.delete("q");
+  }
 
   return `${url.pathname}${url.search}${url.hash}`;
 }
@@ -188,6 +207,32 @@ type RelatedNewsPage = {
   items: FanletterRelatedNewsItem[];
 };
 
+function createInitialRelatedPages({
+  currentReportId,
+  initialHasMore,
+  initialItems,
+  initialPageIndex,
+  relatedItemsPerPage,
+}: {
+  currentReportId: string;
+  initialHasMore: boolean;
+  initialItems: FanletterRelatedNewsItem[];
+  initialPageIndex: number;
+  relatedItemsPerPage: number;
+}) {
+  const initialPages: Array<RelatedNewsPage | undefined> = [];
+
+  initialPages[initialPageIndex] = {
+    hasMore: initialHasMore,
+    items: getRelatedPageItems(initialItems, currentReportId).slice(
+      0,
+      relatedItemsPerPage,
+    ),
+  };
+
+  return initialPages;
+}
+
 function RelatedNewsCard({
   currentLabel,
   href,
@@ -327,30 +372,36 @@ export function FanletterNewsRelatedList({
   const currentItem = initialItems.find((item) => item.reportId === currentReportId);
   const relatedItemsPerPage = Math.max(1, pageSize - (currentItem ? 1 : 0));
   const normalizedInitialPageIndex = Math.max(0, Math.floor(initialPageIndex));
-  const [pages, setPages] = useState<Array<RelatedNewsPage | undefined>>(() => {
-    const initialPages: Array<RelatedNewsPage | undefined> = [];
-
-    initialPages[normalizedInitialPageIndex] = {
-      hasMore: initialHasMore,
-      items: getRelatedPageItems(initialItems, currentReportId).slice(
-        0,
-        relatedItemsPerPage,
-      ),
-    };
-
-    return initialPages;
-  });
+  const searchInputId = useId();
+  const [searchText, setSearchText] = useState("");
+  const [activeSearchQuery, setActiveSearchQuery] = useState("");
+  const [pages, setPages] = useState<Array<RelatedNewsPage | undefined>>(() =>
+    createInitialRelatedPages({
+      currentReportId,
+      initialHasMore,
+      initialItems,
+      initialPageIndex: normalizedInitialPageIndex,
+      relatedItemsPerPage,
+    }),
+  );
   const [pageIndex, setPageIndex] = useState(normalizedInitialPageIndex);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
   const activePage = pages[pageIndex] ?? { hasMore: false, items: [] };
   const visibleRelatedItems = activePage.items;
+  const searchActive = activeSearchQuery.length > 0;
   const hasAnyRelatedItems =
     pageIndex > 0 ||
     pages.some((page) => (page?.items.length ?? 0) > 0) ||
-    countLoadedRelatedItems(initialItems, currentReportId) > 0;
+    (!searchActive && countLoadedRelatedItems(initialItems, currentReportId) > 0);
   const currentRelatedOffset = pageIndex * relatedItemsPerPage;
+  const linkedRelatedOffset = searchActive ? 0 : currentRelatedOffset;
+  const emptyMessage = searchActive
+    ? `${copy.searchEmptyPrefix}${activeSearchQuery}${copy.searchEmptySuffix}`
+    : copy.empty;
+  const showSearchLoading =
+    searchActive && isLoading && visibleRelatedItems.length === 0;
 
   const scrollToSectionTop = useCallback(() => {
     if (!sectionRef.current) {
@@ -367,15 +418,117 @@ export function FanletterNewsRelatedList({
     });
   }, []);
 
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setActiveSearchQuery(searchText.trim());
+    }, 260);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [searchText]);
+
+  useEffect(() => {
+    if (!activeSearchQuery) {
+      setPages(
+        createInitialRelatedPages({
+          currentReportId,
+          initialHasMore,
+          initialItems,
+          initialPageIndex: normalizedInitialPageIndex,
+          relatedItemsPerPage,
+        }),
+      );
+      setPageIndex(normalizedInitialPageIndex);
+      setError(null);
+      setIsLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    setIsLoading(true);
+    setError(null);
+    setPageIndex(0);
+    setPages([{ hasMore: false, items: [] }]);
+    replaceCurrentRelatedOffset(relatedOffsetParamName, 0);
+
+    async function fetchSearchResults() {
+      try {
+        const response = await fetch(
+          buildPageHref(relatedApiHref, 0, relatedItemsPerPage, activeSearchQuery),
+          {
+            headers: {
+              Accept: "application/json",
+            },
+            signal: controller.signal,
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to search related news.");
+        }
+
+        const data: unknown = await response.json();
+
+        if (!isRelatedListResponse(data)) {
+          throw new Error("Invalid related news response.");
+        }
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setPages([
+          {
+            hasMore: data.hasMore,
+            items: getRelatedPageItems(data.items, currentReportId),
+          },
+        ]);
+      } catch {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setError(copy.error);
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void fetchSearchResults();
+
+    return () => controller.abort();
+  }, [
+    activeSearchQuery,
+    copy.error,
+    currentReportId,
+    initialHasMore,
+    initialItems,
+    normalizedInitialPageIndex,
+    relatedApiHref,
+    relatedItemsPerPage,
+    relatedOffsetParamName,
+  ]);
+
   const showPage = useCallback((nextPageIndex: number) => {
     setPageIndex(nextPageIndex);
     setError(null);
-    replaceCurrentRelatedOffset(
-      relatedOffsetParamName,
-      nextPageIndex * relatedItemsPerPage,
-    );
+
+    if (!activeSearchQuery) {
+      replaceCurrentRelatedOffset(
+        relatedOffsetParamName,
+        nextPageIndex * relatedItemsPerPage,
+      );
+    }
+
     scrollToSectionTop();
-  }, [relatedItemsPerPage, relatedOffsetParamName, scrollToSectionTop]);
+  }, [
+    activeSearchQuery,
+    relatedItemsPerPage,
+    relatedOffsetParamName,
+    scrollToSectionTop,
+  ]);
 
   const goToPage = useCallback(async (nextPageIndex: number) => {
     if (isLoading || nextPageIndex < 0) {
@@ -404,6 +557,7 @@ export function FanletterNewsRelatedList({
           relatedApiHref,
           nextPageIndex * relatedItemsPerPage,
           relatedItemsPerPage,
+          activeSearchQuery,
         ),
         {
           headers: {
@@ -440,6 +594,7 @@ export function FanletterNewsRelatedList({
     }
   }, [
     activePage.hasMore,
+    activeSearchQuery,
     copy.error,
     currentReportId,
     isLoading,
@@ -458,7 +613,7 @@ export function FanletterNewsRelatedList({
       className="overflow-hidden border border-black/12 bg-white text-[#111510] shadow-none sm:shadow-[0_14px_40px_rgba(17,21,16,0.06)]"
       ref={sectionRef}
     >
-      <div className="border-b border-black/12 bg-[#f5f7f1] p-3 sm:p-4">
+      <div className="border-b border-black/12 bg-[#f7f9f4] p-3 sm:p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#16702e] sm:text-[0.68rem]">
@@ -473,29 +628,65 @@ export function FanletterNewsRelatedList({
             FanLetter
           </span>
         </div>
-        {characterName ? (
-          <p className="mt-2 hidden line-clamp-1 text-sm font-black text-black/64 sm:block">
-            {characterName}
-          </p>
-        ) : null}
-        <p className="mt-2 hidden text-sm font-semibold leading-6 text-black/54 sm:block">
-          {copy.description}
-        </p>
+        <div className="mt-2 hidden min-w-0 items-center gap-2 text-sm font-semibold leading-6 text-black/54 sm:flex">
+          {characterName ? (
+            <span className="shrink-0 font-black text-black/66">{characterName}</span>
+          ) : null}
+          {characterName ? <span className="size-1 rounded-full bg-black/22" /> : null}
+          <span className="min-w-0 truncate">{copy.description}</span>
+        </div>
+        <form
+          className="mt-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setActiveSearchQuery(searchText.trim());
+          }}
+          role="search"
+        >
+          <label className="sr-only" htmlFor={searchInputId}>
+            {copy.searchLabel}
+          </label>
+          <div className="relative">
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-black/38"
+            />
+            <input
+              className="h-10 w-full rounded-full border border-black/12 bg-white py-2 pl-9 pr-10 text-sm font-bold text-[#111510] outline-none transition placeholder:text-black/34 focus:border-[#19b84b] focus:bg-[#fbfff8] focus:ring-2 focus:ring-[#44f26e]/22 sm:h-11"
+              enterKeyHint="search"
+              id={searchInputId}
+              onChange={(event) => setSearchText(event.target.value)}
+              placeholder={copy.searchPlaceholder}
+              type="search"
+              value={searchText}
+            />
+            {searchText ? (
+              <button
+                aria-label={copy.clearSearch}
+                className="absolute right-1.5 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-black/48 transition hover:bg-black/6 hover:text-[#111510]"
+                onClick={() => {
+                  setSearchText("");
+                  setActiveSearchQuery("");
+                }}
+                type="button"
+              >
+                <X aria-hidden="true" className="size-4" />
+              </button>
+            ) : null}
+          </div>
+        </form>
         {sortOptions.length > 0 ? (
           <div
             aria-label={sortLabel}
             className="-mx-3 mt-2.5 flex items-center gap-1.5 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none] sm:mx-0 sm:mt-3 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
           >
-            <span className="mr-1 shrink-0 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black/42 sm:text-[0.66rem]">
-              {sortLabel}
-            </span>
             {sortOptions.map((option) => (
               <Link
                 aria-current={option.active ? "page" : undefined}
                 className={cn(
-                  "inline-flex min-h-8 shrink-0 items-center rounded-full border px-3 py-1 text-[0.72rem] font-black transition",
+                  "inline-flex min-h-8 shrink-0 items-center rounded-full border px-3 py-1 text-[0.72rem] font-black transition sm:min-h-9 sm:px-3.5",
                   option.active
-                    ? "border-[#111510] bg-[#111510] !text-white"
+                    ? "border-[#111510] bg-[#111510] !text-white shadow-[0_10px_22px_rgba(17,21,16,0.16)]"
                     : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]",
                 )}
                 href={option.href}
@@ -515,7 +706,7 @@ export function FanletterNewsRelatedList({
               currentLabel={copy.current}
               href={buildRelatedNewsHref({
                 baseHref: currentItem.href,
-                offset: currentRelatedOffset,
+                offset: linkedRelatedOffset,
                 offsetParamName: relatedOffsetParamName,
                 sortParamName: relatedSortParamName,
                 sortValue,
@@ -531,7 +722,7 @@ export function FanletterNewsRelatedList({
             {visibleRelatedItems.map((item) => {
               const href = buildRelatedNewsHref({
                 baseHref: item.href,
-                offset: currentRelatedOffset,
+                offset: linkedRelatedOffset,
                 offsetParamName: relatedOffsetParamName,
                 sortParamName: relatedSortParamName,
                 sortValue,
@@ -548,17 +739,16 @@ export function FanletterNewsRelatedList({
               );
             })}
           </div>
+        ) : showSearchLoading ? (
+          <p className="flex min-h-20 items-center justify-center gap-2 border border-black/10 bg-[#f5f6f2] px-3 py-3 text-sm font-black leading-6 text-black/52 sm:px-4 sm:py-4">
+            <Loader2 className="size-4 animate-spin text-[#16702e]" />
+            {copy.loading}
+          </p>
         ) : (
           <p className="border border-black/10 bg-[#f5f6f2] px-3 py-3 text-sm font-semibold leading-6 text-black/52 sm:px-4 sm:py-4">
-            {copy.empty}
+            {emptyMessage}
           </p>
         )}
-
-        {currentItem && !hasAnyRelatedItems ? (
-          <p className="mt-3 border border-black/10 bg-[#f5f6f2] px-3 py-3 text-sm font-semibold leading-6 text-black/52 sm:px-4">
-            {copy.empty}
-          </p>
-        ) : null}
 
         {error ? (
           <p className="mt-3 border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-bold leading-5 text-rose-700">

@@ -3800,6 +3800,7 @@ export const getRelatedFanletterNewsReports = cache(
     limit = 4,
     locale,
     offset = 0,
+    searchQuery,
     sort = DEFAULT_FANLETTER_RELATED_NEWS_SORT,
   }: {
     creatorReferralCode?: string | null;
@@ -3808,6 +3809,7 @@ export const getRelatedFanletterNewsReports = cache(
     limit?: number;
     locale: Locale;
     offset?: number;
+    searchQuery?: string | null;
     sort?: FanletterRelatedNewsSort;
   }) => {
     const normalizedCreatorReferralCode =
@@ -3818,6 +3820,10 @@ export const getRelatedFanletterNewsReports = cache(
     const normalizedOffset = Number.isFinite(offset)
       ? Math.max(0, Math.floor(offset))
       : 0;
+    const normalizedSearchQuery = normalizeSearchQuery(searchQuery);
+    const searchRegex = normalizedSearchQuery
+      ? new RegExp(escapeRegExp(normalizedSearchQuery), "i")
+      : null;
     const promotedQueryLimit = Math.max(
       normalizedOffset + normalizedLimit,
       RELATED_NEWS_FIRST_REPORT_LOOKAHEAD_LIMIT,
@@ -3828,7 +3834,7 @@ export const getRelatedFanletterNewsReports = cache(
     }
 
     const reportsCollection = await getFanletterNewsReportsCollection();
-    const query = {
+    const query: Filter<FanletterNewsReportDocument> = {
       creatorReferralCode: normalizedCreatorReferralCode,
       locale,
       reportId: { $ne: normalizedReportId },
@@ -3837,6 +3843,19 @@ export const getRelatedFanletterNewsReports = cache(
         ? { contentId: { $ne: normalizedContentId } }
         : {}),
     };
+
+    if (searchRegex) {
+      query.$or = [
+        { body: searchRegex },
+        { dek: searchRegex },
+        { reporterName: searchRegex },
+        { reporterReferralCode: searchRegex },
+        { sourceSummary: searchRegex },
+        { sourceTitle: searchRegex },
+        { title: searchRegex },
+        { what: searchRegex },
+      ];
+    }
 
     const reports = await reportsCollection
       .find(query)
