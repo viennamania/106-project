@@ -3916,7 +3916,10 @@ function VlogManagerCard({
   const shouldBypassCoverImageOptimization =
     shouldBypassFanletterImageOptimization(post.coverImageUrl);
   const teaserFrameOptions = buildVlogTeaserFrameOptions(post);
-  const teaserImageOptions = teaserFrameOptions.slice(0, 5);
+  const teaserImageOptions = teaserFrameOptions.slice(
+    0,
+    VLOG_TEASER_IMAGE_LIMIT,
+  );
   const teaserFrameCount = teaserFrameOptions.length;
   const coverMetadata = getSelectedVlogCoverMetadata(post);
   const coverSizeLabel = formatImageSizeLabel(coverMetadata, locale);
@@ -4155,8 +4158,9 @@ function VlogManagerCard({
             {teaserImageOptions.length > 0 ? (
               <div
                 aria-label={copy.teasers.sectionTitle}
-                className="mt-3 flex max-w-full min-w-0 touch-pan-x gap-2 overflow-x-auto overscroll-x-contain pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                className="mt-3 flex max-w-full min-w-0 snap-x snap-mandatory touch-pan-x gap-2 overflow-x-auto overscroll-x-contain pb-2 pr-2 [-webkit-overflow-scrolling:touch] lg:flex-wrap lg:overflow-visible lg:pb-0 lg:pr-0"
                 role="list"
+                tabIndex={0}
               >
                 {teaserImageOptions.map((frameOption, index) => {
                   const timestampLabel = formatFrameTimestamp(
@@ -4171,7 +4175,7 @@ function VlogManagerCard({
 
                   return (
                     <span
-                      className="relative block h-24 shrink-0 select-none overflow-hidden rounded-lg border border-black/10 bg-black"
+                      className="relative block h-24 shrink-0 snap-start select-none overflow-hidden rounded-lg border border-black/10 bg-black"
                       key={`${post.contentId}:teaser:${frameOption.imageUrl}:${index}`}
                       role="listitem"
                       style={framePreviewStyle}
