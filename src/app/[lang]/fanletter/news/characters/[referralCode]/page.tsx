@@ -58,7 +58,10 @@ import {
   buildFanletterOgVersionToken,
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import {
+  normalizeFanletterReturnToPath,
+  readFanletterReferralCode,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
@@ -69,6 +72,7 @@ import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsCharacterChannelSearchParams = {
   ref?: string | string[];
+  returnTo?: string | string[];
 };
 
 function getCopy(locale: Locale) {
@@ -90,6 +94,7 @@ function getCopy(locale: Locale) {
           title: "최근 일상 기록",
         },
         backToCharacters: "AI 캐릭터 목록",
+        returnToNews: "읽던 뉴스로 돌아가기",
         bible: {
           emptyTraits: "캐릭터 고정 키워드가 아직 정리되지 않았습니다.",
           expression: "표정 세트",
@@ -252,6 +257,7 @@ function getCopy(locale: Locale) {
           title: "Recent daily log",
         },
         backToCharacters: "AI characters",
+        returnToNews: "Back to news",
         bible: {
           emptyTraits: "The fixed persona keywords are not set yet.",
           expression: "Expression set",
@@ -501,11 +507,13 @@ function CharacterChannelMasthead({
   copy,
   newsHomeHref,
   purchasesHref,
+  returnToNewsHref,
 }: {
   charactersHref: string;
   copy: ReturnType<typeof getCopy>;
   newsHomeHref: string;
   purchasesHref: string;
+  returnToNewsHref: string | null;
 }) {
   return (
     <header className="border-b border-black/14 bg-white text-[#111510]">
@@ -520,11 +528,19 @@ function CharacterChannelMasthead({
           <div className="hidden shrink-0 items-center gap-2 sm:flex">
             <Link
               className="inline-flex items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
-              href={charactersHref}
+              href={returnToNewsHref ?? charactersHref}
             >
               <ArrowLeft className="size-4 text-[#16702e]" />
-              {copy.backToCharacters}
+              {returnToNewsHref ? copy.returnToNews : copy.backToCharacters}
             </Link>
+            {returnToNewsHref ? (
+              <Link
+                className="inline-flex items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                href={charactersHref}
+              >
+                {copy.backToCharacters}
+              </Link>
+            ) : null}
             <Link
               className="inline-flex items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
               href={purchasesHref}
@@ -1244,6 +1260,15 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const normalizedCharacterReferralCode = normalizeReferralCode(referralCode);
+  const safeReturnToHref = normalizeFanletterReturnToPath(
+    query.returnTo,
+    locale,
+  );
+  const returnToNewsHref = safeReturnToHref?.startsWith(
+    `/${locale}/fanletter/news/`,
+  )
+    ? safeReturnToHref
+    : null;
 
   if (!normalizedCharacterReferralCode) {
     notFound();
@@ -1460,16 +1485,27 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
         copy={copy}
         newsHomeHref={newsHomeHref}
         purchasesHref={purchasesHref}
+        returnToNewsHref={returnToNewsHref}
       />
 
       <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
-        <Link
-          className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] !text-[#16702e] sm:hidden"
-          href={charactersHref}
-        >
-          <ArrowLeft className="size-4" />
-          {copy.backToCharacters}
-        </Link>
+        <div className="flex flex-wrap items-center gap-3 sm:hidden">
+          <Link
+            className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] !text-[#16702e]"
+            href={returnToNewsHref ?? charactersHref}
+          >
+            <ArrowLeft className="size-4" />
+            {returnToNewsHref ? copy.returnToNews : copy.backToCharacters}
+          </Link>
+          {returnToNewsHref ? (
+            <Link
+              className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.12em] !text-black/48"
+              href={charactersHref}
+            >
+              {copy.backToCharacters}
+            </Link>
+          ) : null}
+        </div>
 
         <section className="mt-4 overflow-hidden border border-[#111510] bg-[#111510] text-white shadow-[0_20px_54px_rgba(17,21,16,0.16)] sm:mt-0">
           <div className="grid lg:grid-cols-[minmax(16rem,0.52fr)_minmax(0,1fr)]">

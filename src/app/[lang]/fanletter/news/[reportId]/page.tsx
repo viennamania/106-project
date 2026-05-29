@@ -3272,6 +3272,14 @@ export default async function LocalizedFanletterNewsReportPage({
     `/${locale}/fanletter/news/${report.reportId}`,
     referralCode,
   );
+  const relatedNewsSortParam = Array.isArray(query.relatedSort)
+    ? query.relatedSort[0]
+    : query.relatedSort;
+  const articleReturnHref = setPathSearchParams(articleHref, {
+    [RELATED_NEWS_OFFSET_PARAM]:
+      relatedNewsOffset > 0 ? String(relatedNewsOffset) : null,
+    [RELATED_NEWS_SORT_PARAM]: relatedNewsSortParam ? relatedNewsSort : null,
+  });
   const newsConnectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
     { returnTo: articleHref },
@@ -3294,9 +3302,12 @@ export default async function LocalizedFanletterNewsReportPage({
     { returnTo: articleHref },
   );
   const creatorHref = report.creatorReferralCode
-    ? buildPathWithReferral(
-        `/${locale}/fanletter/news/characters/${report.creatorReferralCode}`,
-        referralCode,
+    ? setPathSearchParams(
+        buildPathWithReferral(
+          `/${locale}/fanletter/news/characters/${report.creatorReferralCode}`,
+          referralCode,
+        ),
+        { returnTo: articleReturnHref },
       )
     : fanletterHomeHref;
   const visibleRelatedReports = relatedReports.slice(0, relatedReportVisibleCount);
