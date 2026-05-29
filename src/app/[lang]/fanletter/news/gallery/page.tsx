@@ -475,7 +475,7 @@ export default async function LocalizedFanletterNewsGalleryPage({
                   <p className="text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#16702e]">
                     {copy.eyebrow}
                   </p>
-                  <h1 className="mt-3 break-words text-[2.35rem] font-black leading-none tracking-normal [word-break:keep-all] sm:text-[4rem]">
+                  <h1 className="mt-3 break-words text-[2rem] font-black leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                     {copy.heroTitle}
                   </h1>
                   <p className="mt-5 max-w-2xl text-sm font-semibold leading-6 text-black/58 sm:text-base sm:leading-7">

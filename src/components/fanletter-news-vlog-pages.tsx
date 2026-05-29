@@ -1067,7 +1067,7 @@ export function FanletterNewsCharacterVlogsPage({
             <p className="mt-5 text-[0.7rem] font-black uppercase tracking-[0.18em] text-[#16702e]">
               {copy.list.eyebrow}
             </p>
-            <h1 className="mt-3 max-w-4xl break-words text-[2.35rem] font-black leading-[1.04] tracking-normal [word-break:keep-all] sm:text-[4.5rem]">
+            <h1 className="mt-3 max-w-4xl break-words text-[2rem] font-black leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
               {copy.list.title(characterName)}
             </h1>
             <p className="mt-4 max-w-3xl text-base font-semibold leading-7 text-black/62 sm:text-lg sm:leading-8">
@@ -1587,7 +1587,7 @@ export function FanletterNewsVlogDetailPage({
                   <ArrowLeft className="size-4" />
                   {copy.detail.backToArchive}
                 </Link>
-                <h1 className="mt-4 max-w-5xl break-words text-[1.9rem] font-black leading-[1.1] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3.65rem] sm:leading-[1.04]">
+                <h1 className="mt-4 max-w-5xl break-words text-[1.9rem] font-black leading-[1.1] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3rem] sm:leading-[1.08] lg:text-[3.25rem]">
                   {content.title}
                 </h1>
                 <p className="mt-3 max-w-3xl text-base font-semibold leading-7 text-black/62 sm:text-lg sm:leading-8">

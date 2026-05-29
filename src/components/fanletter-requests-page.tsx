@@ -553,7 +553,7 @@ export function FanletterRequestsPage({
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
                 {copy.heroEyebrow}
               </p>
-              <h1 className="mt-4 max-w-4xl text-[2.6rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[4.25rem]">
+              <h1 className="mt-4 max-w-4xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                 {copy.heroTitle}
               </h1>
               <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">

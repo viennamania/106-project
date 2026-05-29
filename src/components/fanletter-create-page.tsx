@@ -1022,7 +1022,9 @@ function StatusPanel({
       <div className="mx-auto flex min-h-[calc(100svh-13rem)] max-w-xl items-center py-6 sm:min-h-[70vh]">
         <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)] sm:p-6">
           <CircleAlert className="size-8 text-[#44f26e]" />
-          <h1 className="mt-5 text-3xl font-semibold leading-tight">{title}</h1>
+          <h1 className="mt-5 text-2xl font-semibold leading-tight sm:text-3xl">
+            {title}
+          </h1>
           <p className="mt-3 text-sm font-medium leading-6 text-white/58">
             {body}
           </p>
@@ -2308,8 +2310,8 @@ export function FanletterCreatePage({
               <h1
                 className={`mt-4 font-semibold tracking-normal [word-break:keep-all] ${
                   isAvatarVideoExperience
-                    ? "text-[2.1rem] leading-[1.08] sm:text-[3.1rem] lg:text-[3.45rem]"
-                    : "text-[2.35rem] leading-[1.04] sm:text-[4rem] lg:text-[4.25rem]"
+                    ? "text-[1.9rem] leading-[1.1] sm:text-[2.7rem] lg:text-[3rem]"
+                    : "text-[2rem] leading-[1.08] sm:text-[3rem] lg:text-[3.25rem]"
                 }`}
               >
                 {heroTitleText}

@@ -2734,7 +2734,7 @@ export function FanletterVlogManagementPage({
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
                 {copy.eyebrow}
               </p>
-              <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-normal sm:mt-4 sm:text-5xl">
+              <h1 className="mt-3 text-2xl font-semibold leading-tight tracking-normal sm:mt-4 sm:text-4xl">
                 {copy.title}
               </h1>
               <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-white/62 sm:mt-4 sm:text-base sm:leading-7">

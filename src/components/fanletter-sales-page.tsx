@@ -740,7 +740,7 @@ export function FanletterSalesPage({
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
                 {copy.eyebrow}
               </p>
-              <h1 className="mt-4 text-4xl font-semibold tracking-normal sm:text-5xl">
+              <h1 className="mt-4 text-3xl font-semibold leading-tight tracking-normal sm:text-4xl">
                 {copy.title}
               </h1>
               <p className="mt-4 max-w-2xl text-base font-medium leading-7 text-white/62">

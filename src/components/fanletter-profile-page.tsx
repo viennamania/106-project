@@ -915,7 +915,9 @@ function StatusPanel({
               {eyebrow}
             </p>
           ) : null}
-          <h1 className="mt-5 text-3xl font-semibold leading-tight">{title}</h1>
+          <h1 className="mt-5 text-2xl font-semibold leading-tight sm:text-3xl">
+            {title}
+          </h1>
           <p className="mt-3 text-sm font-medium leading-6 text-white/58">
             {body}
           </p>
@@ -3287,13 +3289,7 @@ export function FanletterProfilePage({
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
                 {copy.eyebrow}
               </p>
-              <h1
-                className={`mt-4 font-semibold tracking-normal [word-break:keep-all] ${
-                  characterReady
-                    ? "text-[2.35rem] leading-[1.04] sm:text-[3.75rem]"
-                    : "text-[2.45rem] leading-[1.02] sm:text-[4rem] lg:text-[4.35rem]"
-                }`}
-              >
+              <h1 className="mt-4 text-[2rem] font-semibold leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                 {characterReady ? copy.readyTitle : copy.title}
               </h1>
               <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">

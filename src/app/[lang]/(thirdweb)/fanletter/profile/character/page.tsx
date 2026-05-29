@@ -197,7 +197,7 @@ export default async function LocalizedFanletterCharacterPage({
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
                 {pageCopy.eyebrow}
               </p>
-              <h1 className="mt-4 max-w-4xl text-[2.35rem] font-semibold leading-[1.04] tracking-normal [word-break:keep-all] sm:text-[3.85rem] lg:text-[4.05rem]">
+              <h1 className="mt-4 max-w-4xl text-[2rem] font-semibold leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                 {pageCopy.title}
               </h1>
               <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">

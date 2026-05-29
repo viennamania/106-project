@@ -726,7 +726,7 @@ export default async function LocalizedFanletterNewsReportsPage({
                 <BadgeCheck className="size-3.5" />
                 {copy.badge}
               </p>
-              <h1 className="mt-4 max-w-3xl text-[2.4rem] font-black leading-none tracking-normal [word-break:keep-all] sm:text-[4rem]">
+              <h1 className="mt-4 max-w-3xl text-[2rem] font-black leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                 {copy.title}
               </h1>
               <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-black/60 sm:text-base sm:leading-7">

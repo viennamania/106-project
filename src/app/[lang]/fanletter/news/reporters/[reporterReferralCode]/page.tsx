@@ -661,7 +661,7 @@ export default async function FanletterNewsReporterChannelPage({
                 <p className="text-[0.72rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
                   {copy.hero.kicker}
                 </p>
-                <h1 className="mt-2 break-words text-[2.4rem] font-black leading-none tracking-normal [word-break:keep-all] sm:text-[4.4rem]">
+                <h1 className="mt-2 break-words text-[2rem] font-black leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                   {reporterName}
                 </h1>
                 {profile?.characterName ? (

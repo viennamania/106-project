@@ -467,7 +467,7 @@ export default async function FanletterNewsPlatformPage({
                 <Blocks className="size-4" />
                 {copy.eyebrow}
               </p>
-              <h1 className="mt-3 max-w-3xl text-[2.05rem] font-black leading-[1.05] tracking-normal text-white drop-shadow-[0_6px_28px_rgba(0,0,0,0.55)] [word-break:keep-all] sm:mt-5 sm:text-6xl lg:text-7xl">
+              <h1 className="mt-3 max-w-3xl text-[2rem] font-black leading-[1.08] tracking-normal text-white drop-shadow-[0_6px_28px_rgba(0,0,0,0.55)] [word-break:keep-all] sm:mt-5 sm:text-[3.25rem] lg:text-[3.65rem]">
                 {copy.heroTitle}
               </h1>
               <p className="mt-4 max-w-2xl text-sm font-bold leading-6 text-white/82 drop-shadow-[0_3px_18px_rgba(0,0,0,0.58)] [word-break:keep-all] sm:mt-5 sm:text-lg sm:leading-8">

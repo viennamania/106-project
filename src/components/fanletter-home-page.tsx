@@ -1926,7 +1926,7 @@ export function FanletterHomePage({
               <p className="hidden text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e] sm:block">
                 {copy.hero.eyebrow}
               </p>
-              <h1 className="max-w-[21.5rem] text-[2.12rem] font-semibold leading-[1.03] tracking-normal text-white drop-shadow-[0_8px_26px_rgba(0,0,0,0.72)] [text-wrap:balance] [word-break:keep-all] sm:mt-4 sm:max-w-[58rem] sm:text-[4.4rem] lg:text-[4.65rem] xl:text-[5.2rem]">
+              <h1 className="max-w-[21.5rem] text-[2rem] font-semibold leading-[1.08] tracking-normal text-white drop-shadow-[0_8px_26px_rgba(0,0,0,0.72)] [text-wrap:balance] [word-break:keep-all] sm:mt-4 sm:max-w-[58rem] sm:text-[3.2rem] lg:text-[3.65rem] xl:text-[4rem]">
                 {copy.hero.title}
               </h1>
               <p className="mt-4 max-w-[21.5rem] text-sm font-medium leading-6 text-white/84 drop-shadow-[0_4px_18px_rgba(0,0,0,0.72)] [word-break:keep-all] sm:mt-6 sm:max-w-2xl sm:text-lg sm:leading-7 sm:text-white/80">

@@ -490,7 +490,7 @@ export default async function LocalizedFanletterReportsPage({
                 <BadgeCheck className="size-3.5" />
                 {copy.badge}
               </p>
-              <h1 className="mt-3 max-w-3xl text-[2.25rem] font-black leading-none tracking-normal [word-break:keep-all] sm:text-[3.55rem]">
+              <h1 className="mt-3 max-w-3xl text-[2rem] font-black leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[3rem]">
                 {copy.title}
               </h1>
             </div>

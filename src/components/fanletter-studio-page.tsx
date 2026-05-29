@@ -912,7 +912,7 @@ function StatusPanel({
               <MessageCircleHeart className="size-6" />
             )}
           </span>
-          <h1 className="mt-6 text-3xl font-semibold leading-tight tracking-normal sm:text-5xl">
+          <h1 className="mt-6 text-2xl font-semibold leading-tight tracking-normal sm:text-4xl">
             {title}
           </h1>
           <p className="mt-4 text-sm font-medium leading-6 text-white/62 sm:text-base">
@@ -2595,7 +2595,7 @@ export function FanletterStudioPage({
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
                 {copy.eyebrow}
               </p>
-              <h1 className="mt-4 max-w-3xl text-[2rem] font-semibold leading-[1.05] tracking-normal text-white [word-break:keep-all] sm:text-[3.35rem]">
+              <h1 className="mt-4 max-w-3xl text-[1.85rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[2.8rem] lg:text-[3.05rem]">
                 {copy.hero.title}
               </h1>
               <p className="mt-4 max-w-2xl text-sm font-medium leading-6 text-white/66 [word-break:keep-all] sm:text-base sm:leading-7">

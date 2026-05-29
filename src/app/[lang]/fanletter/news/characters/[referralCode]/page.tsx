@@ -1530,7 +1530,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
               <p className="mt-4 text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
                 {copy.hero.kicker}
               </p>
-              <h1 className="mt-2 break-words text-[2.45rem] font-black leading-none [word-break:keep-all] sm:text-[3.8rem]">
+              <h1 className="mt-2 break-words text-[2rem] font-black leading-[1.08] [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                 {characterName}
               </h1>
               <p className="mt-3 line-clamp-3 max-w-2xl text-sm font-semibold leading-6 text-white/68 sm:text-base sm:leading-7">

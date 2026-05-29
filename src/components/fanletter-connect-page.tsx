@@ -915,7 +915,7 @@ export function FanletterConnectPage({
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
                 {copy.eyebrow}
               </p>
-              <h1 className="mt-4 text-[2.35rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[3.85rem] lg:text-[4.15rem]">
+              <h1 className="mt-4 text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                 {contextCopy.title}
               </h1>
               <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">

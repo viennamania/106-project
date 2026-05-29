@@ -416,7 +416,7 @@ export default async function LocalizedFanletterReportEditPage({
             <BadgeCheck className="size-3.5" />
             {member.referralCode}
           </p>
-          <h1 className="mt-3 max-w-4xl text-[2.2rem] font-black leading-none tracking-normal [word-break:keep-all] sm:text-[3.35rem]">
+          <h1 className="mt-3 max-w-4xl text-[1.95rem] font-black leading-[1.06] tracking-normal [word-break:keep-all] sm:text-[2.8rem]">
             {copy.title}
           </h1>
           <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-black/58 sm:text-base sm:leading-7">

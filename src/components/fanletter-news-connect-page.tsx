@@ -566,7 +566,7 @@ export function FanletterNewsConnectPage({
               <p className="text-[0.72rem] font-black uppercase tracking-[0.18em] text-[#16702e]">
                 {copy.eyebrow}
               </p>
-              <h1 className="mt-3 max-w-4xl break-words text-[2.15rem] font-black leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[3.45rem] lg:text-[3.9rem]">
+              <h1 className="mt-3 max-w-4xl break-words text-[2rem] font-black leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                 {copy.title}
               </h1>
               <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-black/62 [word-break:keep-all] sm:text-base sm:leading-7">

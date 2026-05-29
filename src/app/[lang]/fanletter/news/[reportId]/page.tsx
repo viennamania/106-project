@@ -1265,7 +1265,7 @@ function FanletterNewsShareLandingHero({
           </div>
 
           <h1
-            className={`mt-4 max-w-4xl break-words text-[2rem] font-black leading-[1.08] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3.35rem] lg:text-[4.15rem] ${
+            className={`mt-4 max-w-4xl break-words text-[2rem] font-black leading-[1.08] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem] ${
               blurred ? "select-none blur-[2px]" : ""
             }`}
           >

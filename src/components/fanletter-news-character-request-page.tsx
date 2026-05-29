@@ -807,7 +807,7 @@ export function FanletterNewsCharacterRequestPage({
               <p className="inline-flex bg-[#44f26e] px-2.5 py-1 text-xs font-black uppercase tracking-[0.12em] text-black">
                 {copy.hero.kicker}
               </p>
-              <h1 className="mt-3 break-words text-[2.35rem] font-black leading-[1.05] [word-break:keep-all] sm:text-[3.35rem]">
+              <h1 className="mt-3 break-words text-[2rem] font-black leading-[1.08] [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                 {copy.hero.title(characterName)}
               </h1>
             </div>

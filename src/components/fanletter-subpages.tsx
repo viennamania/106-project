@@ -1128,7 +1128,7 @@ function FanletterShell({
               <h1
                 className={
                   titleClassName ??
-                  "mt-4 max-w-5xl text-[2.65rem] font-semibold leading-[0.98] tracking-normal text-white [word-break:keep-all] sm:text-[4.7rem]"
+                  "mt-4 max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]"
                 }
               >
                 {title}
@@ -6109,7 +6109,7 @@ export function FanletterFeedPage({
       title={locale === "ko" ? "FanLetter AI 캐릭터 브이로그 피드" : "FanLetter AI Character Vlog Feed"}
       descriptionClassName="mt-4 !text-sm !leading-6 sm:!text-lg sm:!leading-7"
       heroSpacingClassName="pt-10 sm:pt-24"
-      titleClassName="mt-4 max-w-5xl text-[2.05rem] font-semibold leading-[1.03] tracking-normal text-white [word-break:keep-all] sm:text-[4.2rem]"
+      titleClassName="mt-4 max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]"
     >
       <section className="overflow-hidden bg-[#f6f8f4] px-4 pb-[calc(6.75rem+env(safe-area-inset-bottom))] pt-8 text-black sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
@@ -6448,7 +6448,7 @@ export function FanletterCreatorVlogsPage({
       referralCode={effectiveReferralCode}
       showStartAction={false}
       title={labels.title}
-      titleClassName="mt-4 max-w-5xl text-[2.4rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[4.4rem]"
+      titleClassName="mt-4 max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]"
     >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
@@ -6776,7 +6776,7 @@ export function FanletterCreatorFanOnlyPage({
       referralCode={effectiveReferralCode}
       showStartAction={false}
       title={labels.title}
-      titleClassName="mt-4 max-w-5xl text-[2.35rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[4.35rem]"
+      titleClassName="mt-4 max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]"
     >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-14 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
@@ -7484,7 +7484,7 @@ export function FanletterCreatorPage({
         referralCode={effectiveReferralCode}
         showStartAction={false}
         title={channelName}
-        titleClassName="mt-4 max-w-5xl text-[2.35rem] font-semibold leading-[1.02] tracking-normal text-white [word-break:keep-all] sm:text-[4.6rem]"
+        titleClassName="mt-4 max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]"
       >
       <section className="bg-[#f6f8f4] px-4 pb-[calc(11.25rem+env(safe-area-inset-bottom))] pt-10 text-black sm:px-6 sm:py-14 lg:px-8">
         <FanletterChannelTabs
@@ -8348,7 +8348,7 @@ export function FanletterCreatorPromoSharePage({
                     {labels.shareCode} {shareId.slice(-8).toUpperCase()}
                   </span>
                 </div>
-                <h1 className="mt-4 max-w-[42rem] break-words text-[3.35rem] font-semibold leading-[0.94] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:mt-5 sm:text-[5.4rem] lg:text-[5.2rem] xl:text-[5.4rem] 2xl:max-w-4xl 2xl:text-[6.4rem]">
+                <h1 className="mt-4 max-w-[42rem] break-words text-[2.15rem] font-semibold leading-[1.06] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:mt-5 sm:text-[3.35rem] lg:text-[3.7rem] xl:text-[4rem] 2xl:max-w-4xl 2xl:text-[4.25rem]">
                   <span className="block sm:hidden">{channelName}</span>
                   <span className="hidden sm:block">{labels.title}</span>
                 </h1>
@@ -9909,7 +9909,7 @@ export function FanletterContentDetailPage({
                   </span>
                 </div>
 
-                <h1 className="mt-5 break-words text-[2.45rem] font-semibold leading-[1] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[4.1rem]">
+                <h1 className="mt-5 break-words text-[2rem] font-semibold leading-[1.08] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                   {content.title}
                 </h1>
                 <p className="mt-5 text-base font-medium leading-7 text-white/68 sm:text-lg">
@@ -10388,7 +10388,7 @@ export function FanletterOnboardingPage({
         locale={locale}
         referralCode={referralCode}
         title={labels.title}
-        titleClassName="mt-4 max-w-4xl text-[2.3rem] font-semibold leading-[1.06] tracking-normal text-white [word-break:keep-all] sm:text-[3.45rem] lg:text-[4rem]"
+        titleClassName="mt-4 max-w-4xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]"
       >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-16 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
@@ -10645,7 +10645,7 @@ export function FanletterStartPage({
         locale={locale}
         referralCode={referralCode}
         title={copy.start.title}
-        titleClassName="mt-4 max-w-4xl text-[2.15rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3.35rem] lg:text-[3.7rem]"
+        titleClassName="mt-4 max-w-4xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]"
       >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-16 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
