@@ -3818,8 +3818,8 @@ export default async function LocalizedFanletterNewsReportPage({
         <div
           className={
             shouldShowOtherCharacterNews
-              ? "mb-5 grid gap-5 sm:mb-7 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start"
-              : "mb-5 max-w-[68rem] sm:mb-7"
+              ? "mb-5 hidden gap-5 sm:mb-7 md:grid xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start"
+              : "mb-5 hidden max-w-[68rem] sm:mb-7 md:block"
           }
           id="fanletter-news-discovery"
         >
@@ -4025,6 +4025,14 @@ export default async function LocalizedFanletterNewsReportPage({
                 }
                 sourceReveal={sourceReveal}
                 sourceContent={sourceContent}
+              />
+            </div>
+
+            <div className="mt-5 md:hidden">
+              <FanletterNewsRelatedList
+                key={`mobile-${relatedNewsApiHref}-${relatedNewsOffset}`}
+                {...relatedNewsListProps}
+                variant="feature"
               />
             </div>
 
