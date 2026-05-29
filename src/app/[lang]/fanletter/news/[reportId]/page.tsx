@@ -1118,6 +1118,7 @@ function getNewsLandingHeroCopy(locale: Locale) {
 function FanletterNewsShareLandingHero({
   accessLabel,
   articleTitle,
+  blurBackgroundVideo,
   blurred,
   characterName,
   copy,
@@ -1141,6 +1142,7 @@ function FanletterNewsShareLandingHero({
 }: {
   accessLabel: string;
   articleTitle: string;
+  blurBackgroundVideo: boolean;
   blurred: boolean;
   characterName: string | null;
   copy: ReturnType<typeof getCopy>;
@@ -1205,7 +1207,6 @@ function FanletterNewsShareLandingHero({
         label: sourceCanBeWatched ? heroCopy.sourceCta : heroCopy.articleCta,
       };
   const canUsePreviewVideo = Boolean(previewVideoUrl && !blurred);
-  const shouldBlurBackgroundVideo = Boolean(previewVideoUrl);
   const characterDisplayName = characterName ?? copy.titleCharacter.fallback;
   const shouldBypassHeroImageOptimization = sourceImageUrl
     ? shouldBypassFanletterImageOptimization(sourceImageUrl)
@@ -1221,7 +1222,7 @@ function FanletterNewsShareLandingHero({
           <FanletterAutoplayVideo
             ariaHidden
             className={`h-full w-full object-cover opacity-[0.86] ${
-              shouldBlurBackgroundVideo
+              blurBackgroundVideo
                 ? "scale-[1.04] blur-sm brightness-[0.74]"
                 : ""
             }`}
@@ -3443,6 +3444,9 @@ export default async function LocalizedFanletterNewsReportPage({
     sourceContent,
     landingHeroSourceVideoFallbackUrl,
   );
+  const shouldBlurLandingHeroBackgroundVideo =
+    Boolean(landingHeroPreviewVideoUrl) &&
+    (sourceContent?.contentMaturityRating ?? report.contentMaturityRating) === "nsfw";
   const landingHeroImageUrl =
     report.coverImageUrl ??
     sourceContent?.coverImageUrl ??
@@ -3574,6 +3578,7 @@ export default async function LocalizedFanletterNewsReportPage({
         <FanletterNewsShareLandingHero
           accessLabel={accessLabel}
           articleTitle={articleTitle}
+          blurBackgroundVideo={shouldBlurLandingHeroBackgroundVideo}
           blurred={shouldBlurCurrentReport}
           characterName={characterName ?? report.creatorName}
           copy={copy}
