@@ -3302,6 +3302,8 @@ export default async function LocalizedFanletterNewsReportPage({
       sort: relatedNewsSort,
     }),
     getLatestFanletterNewsReports({
+      contentMaturityRating: "general",
+      excludeCreatorReferralCode: report.creatorReferralCode,
       limit: 48,
       locale,
       promoteFirstReports: true,
@@ -3767,7 +3769,7 @@ export default async function LocalizedFanletterNewsReportPage({
           className={
             shouldShowOtherCharacterNews
               ? "mb-5 grid gap-5 sm:mb-7 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start"
-              : "mb-5 sm:mb-7"
+              : "mb-5 max-w-[68rem] sm:mb-7"
           }
           id="fanletter-news-discovery"
         >

@@ -3360,12 +3360,16 @@ export async function backfillFanletterNewsReporterProfiles(
 
 export const getLatestFanletterNewsReports = cache(
   async ({
+    contentMaturityRating,
+    excludeCreatorReferralCode,
     limit = 24,
     locale,
     promoteFirstReports = false,
     priceType,
     reporterReferralCode,
   }: {
+    contentMaturityRating?: ContentMaturityRating | null;
+    excludeCreatorReferralCode?: string | null;
     limit?: number;
     locale: Locale;
     promoteFirstReports?: boolean;
@@ -3373,24 +3377,38 @@ export const getLatestFanletterNewsReports = cache(
     reporterReferralCode?: string | null;
   }) => {
     const reportsCollection = await getFanletterNewsReportsCollection();
+    const normalizedExcludeCreatorReferralCode = normalizeReferralCode(
+      excludeCreatorReferralCode,
+    );
     const normalizedReporterReferralCode =
       normalizeReferralCode(reporterReferralCode);
+    const normalizedMaturityRating =
+      contentMaturityRating === "general" || contentMaturityRating === "nsfw"
+        ? contentMaturityRating
+        : null;
     const normalizedPriceType =
       priceType === "free" || priceType === "paid" ? priceType : null;
     const normalizedLimit = Math.max(1, Math.min(limit, 48));
     const queryLimit = promoteFirstReports
       ? Math.min(normalizedLimit * 3, 144)
       : normalizedLimit;
+    const query: Filter<FanletterNewsReportDocument> = {
+      locale,
+      ...(normalizedExcludeCreatorReferralCode
+        ? { creatorReferralCode: { $ne: normalizedExcludeCreatorReferralCode } }
+        : {}),
+      ...(normalizedMaturityRating
+        ? { contentMaturityRating: normalizedMaturityRating }
+        : {}),
+      ...(normalizedPriceType ? { priceType: normalizedPriceType } : {}),
+      ...(normalizedReporterReferralCode
+        ? { reporterReferralCode: normalizedReporterReferralCode }
+        : {}),
+      status: "published",
+    };
 
     const reports = await reportsCollection
-      .find({
-        locale,
-        ...(normalizedPriceType ? { priceType: normalizedPriceType } : {}),
-        ...(normalizedReporterReferralCode
-          ? { reporterReferralCode: normalizedReporterReferralCode }
-          : {}),
-        status: "published",
-      })
+      .find(query)
       .sort({ sourcePublishedAt: -1, createdAt: -1 })
       .limit(queryLimit)
       .toArray();
