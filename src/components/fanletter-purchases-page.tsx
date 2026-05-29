@@ -87,6 +87,7 @@ function getCopy(
         purchased: "구매함",
         purchasedCount: "구매 콘텐츠",
         retry: "다시 확인",
+        returnTo: "이전 화면으로 돌아가기",
         replies: "댓글",
         start: "내 채널 만들기",
         statsCreators: "캐릭터",
@@ -131,6 +132,7 @@ function getCopy(
         purchased: "Purchases",
         purchasedCount: "Purchases",
         retry: "Retry",
+        returnTo: "Back",
         replies: "Replies",
         start: "Start my channel",
         statsCreators: "Characters",
@@ -168,6 +170,7 @@ function getCopy(
         heroTitle: "내 구매 콘텐츠",
         navLabel: "FanLetter News 구매 콘텐츠 메뉴",
         purchased: "구매함",
+        returnTo: "읽던 뉴스로 돌아가기",
         start: "가입 상태 확인",
         studio: "AI 캐릭터",
         view: "뉴스에서 바로 보기",
@@ -194,6 +197,7 @@ function getCopy(
         heroTitle: "My purchased content",
         navLabel: "FanLetter News purchased content navigation",
         purchased: "Purchases",
+        returnTo: "Back to news",
         start: "Check signup",
         studio: "AI Characters",
         view: "Watch in News",
@@ -502,11 +506,13 @@ export function FanletterPurchasesPage({
   locale,
   nsfwOptInEnabled,
   referralCode,
+  returnToHref = null,
   service = "fanletter",
 }: {
   locale: Locale;
   nsfwOptInEnabled: boolean;
   referralCode: string | null;
+  returnToHref?: string | null;
   service?: FanletterPurchasesService;
 }) {
   const isNewsService = service === "news";
@@ -530,10 +536,13 @@ export function FanletterPurchasesPage({
   });
 
   const serviceBasePath = `/${locale}/fanletter${isNewsService ? "/news" : ""}`;
-  const purchasesHref = buildPathWithReferral(
+  const purchasesBaseHref = buildPathWithReferral(
     `${serviceBasePath}/purchases`,
     referralCode,
   );
+  const purchasesHref = returnToHref
+    ? setPathSearchParams(purchasesBaseHref, { returnTo: returnToHref })
+    : purchasesBaseHref;
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`${serviceBasePath}/connect`, referralCode),
     { returnTo: purchasesHref },
@@ -894,10 +903,16 @@ export function FanletterPurchasesPage({
             <div className="mt-8 flex flex-wrap gap-2">
               <Link
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold !text-black transition hover:bg-[#64ff84]"
-                href={isNewsService ? feedHref : followingHref}
+                href={
+                  returnToHref ?? (isNewsService ? feedHref : followingHref)
+                }
               >
                 <BadgeCheck className="size-4" />
-                {isNewsService ? copy.backToFeed : copy.fanHome}
+                {returnToHref
+                  ? copy.returnTo
+                  : isNewsService
+                    ? copy.backToFeed
+                    : copy.fanHome}
               </Link>
               <Link
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:bg-white/8"
@@ -935,8 +950,8 @@ export function FanletterPurchasesPage({
               actionLabel={copy.connect}
               body={copy.accountRequiredBody}
               icon="connect"
-              secondaryActionHref={followingHref}
-              secondaryActionLabel={copy.fanHome}
+              secondaryActionHref={returnToHref ?? followingHref}
+              secondaryActionLabel={returnToHref ? copy.returnTo : copy.fanHome}
               title={copy.accountRequiredTitle}
             />
           ) : state.status === "error" ? (
@@ -947,14 +962,14 @@ export function FanletterPurchasesPage({
               onRetry={() => {
                 void loadPurchases();
               }}
-              secondaryActionHref={followingHref}
-              secondaryActionLabel={copy.fanHome}
+              secondaryActionHref={returnToHref ?? followingHref}
+              secondaryActionLabel={returnToHref ? copy.returnTo : copy.fanHome}
               title={copy.errorBody}
             />
           ) : state.items.length === 0 ? (
             <PurchaseStatePanel
-              actionHref={feedHref}
-              actionLabel={copy.backToFeed}
+              actionHref={returnToHref ?? feedHref}
+              actionLabel={returnToHref ? copy.returnTo : copy.backToFeed}
               body={copy.emptyBody}
               icon="empty"
               secondaryActionHref={followingHref}

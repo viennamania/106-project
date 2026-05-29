@@ -8,7 +8,10 @@ import {
   FANLETTER_OG_IMAGE_SIZE,
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import {
+  normalizeFanletterReturnToPath,
+  readFanletterReferralCode,
+} from "@/lib/fanletter-routing";
 import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   isFanletterNsfwOptedIn,
@@ -18,6 +21,7 @@ import { buildPathWithReferral } from "@/lib/landing-branding";
 
 type FanletterNewsPurchasesSearchParams = {
   ref?: string | string[];
+  returnTo?: string | string[];
 };
 
 function getMetadataCopy(locale: Locale) {
@@ -118,6 +122,7 @@ export default async function LocalizedFanletterNewsPurchasesPage({
       locale={locale}
       nsfwOptInEnabled={nsfwOptInEnabled}
       referralCode={readFanletterReferralCode(query.ref)}
+      returnToHref={normalizeFanletterReturnToPath(query.returnTo, locale)}
       service="news"
     />
   );

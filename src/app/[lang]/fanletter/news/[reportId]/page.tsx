@@ -3293,9 +3293,9 @@ export default async function LocalizedFanletterNewsReportPage({
     referralCode,
     returnTo: articleHref,
   });
-  const purchasesHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/purchases`,
-    referralCode,
+  const purchasesHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/purchases`, referralCode),
+    { returnTo: articleReturnHref },
   );
   const paidUnlockOnboardingHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/onboarding`, referralCode),
