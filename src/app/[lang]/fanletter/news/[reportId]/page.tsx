@@ -1331,11 +1331,11 @@ function ArticleActionLinks({
   return (
     <nav
       aria-label={copy.articleActions.label}
-      className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:grid-cols-3"
+      className="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:grid-cols-3 lg:mt-3 lg:gap-2"
     >
       {actions.map((action) => (
         <Link
-          className={`min-h-11 items-center justify-center gap-2 border border-black/12 bg-[#f5f7f1] px-2.5 py-2 text-[0.82rem] font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:inline-flex sm:justify-between sm:px-3 sm:text-sm ${
+          className={`min-h-11 items-center justify-center gap-2 border border-black/12 bg-[#f5f7f1] px-2.5 py-2 text-[0.82rem] font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:inline-flex sm:justify-between sm:px-3 sm:text-sm lg:min-h-10 lg:py-1.5 ${
             action.secondaryOnMobile ? "hidden" : "inline-flex"
           }`}
           href={action.href}
@@ -1349,7 +1349,7 @@ function ArticleActionLinks({
         </Link>
       ))}
       <FanletterChannelShareButton
-        className="!h-auto min-h-11 !rounded-none !border-black/12 !bg-[#f5f7f1] px-2.5 py-2 text-[0.82rem] font-black !text-[#111510] hover:!border-[#19b84b] hover:!bg-[#ecfff0] sm:px-3 sm:text-sm"
+        className="!h-auto min-h-11 !rounded-none !border-black/12 !bg-[#f5f7f1] px-2.5 py-2 text-[0.82rem] font-black !text-[#111510] hover:!border-[#19b84b] hover:!bg-[#ecfff0] sm:px-3 sm:text-sm lg:min-h-10 lg:py-1.5"
         href={shareHref}
         locale={locale}
         referralCode={referralCode}
@@ -1385,10 +1385,10 @@ function ArticleTitleCharacterThumbnail({
 
   return (
     <Link
-      className="group grid min-w-0 grid-cols-[3.75rem_minmax(0,1fr)] gap-2 rounded-md border border-black/10 bg-[#f7f9f4] p-2 !text-[#111510] shadow-none transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:grid-cols-[5.25rem_minmax(0,1fr)] sm:gap-3 sm:rounded-lg sm:p-2.5 sm:shadow-[0_14px_30px_rgba(17,21,16,0.055)] lg:block lg:p-3"
+      className="group grid min-w-0 grid-cols-[3.75rem_minmax(0,1fr)] gap-2 rounded-md border border-black/10 bg-[#f7f9f4] p-2 !text-[#111510] shadow-none transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:grid-cols-[5.25rem_minmax(0,1fr)] sm:gap-3 sm:rounded-lg sm:p-2.5 sm:shadow-[0_14px_30px_rgba(17,21,16,0.055)] lg:grid-cols-[5.5rem_minmax(0,1fr)] lg:gap-3 lg:p-2.5"
       href={creatorHref}
     >
-      <span className="relative block aspect-square overflow-hidden rounded-md bg-[#111510] sm:rounded-lg lg:aspect-[4/5] lg:w-full">
+      <span className="relative block aspect-square overflow-hidden rounded-md bg-[#111510] sm:rounded-lg lg:w-full">
         {imageUrl ? (
           <>
             <Image
@@ -1418,12 +1418,12 @@ function ArticleTitleCharacterThumbnail({
         )}
         <span className="absolute inset-x-0 bottom-0 z-20 h-1 bg-[#44f26e]" />
       </span>
-      <span className="flex min-w-0 flex-col justify-center lg:mt-3 lg:block">
+      <span className="flex min-w-0 flex-col justify-center">
         <span className="inline-flex w-fit items-center gap-1.5 border border-[#16702e]/20 bg-white px-2 py-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-[#16702e] sm:text-[0.6rem] sm:tracking-[0.1em]">
           <BadgeCheck className="size-3" />
           {copy.titleCharacter.eyebrow}
         </span>
-        <span className="mt-1.5 block truncate text-sm font-black leading-tight sm:mt-2 sm:text-base lg:text-lg">
+        <span className="mt-1.5 block truncate text-sm font-black leading-tight sm:mt-2 sm:text-base lg:text-base">
           {displayName}
         </span>
         {creatorReferralCode ? (
@@ -1531,7 +1531,7 @@ function ReporterByline({
   ];
 
   return (
-    <section className="mt-3 border-y border-black/10 py-2.5 sm:mt-5 sm:py-3">
+    <section className="mt-3 border-y border-black/10 py-2.5 sm:mt-4 sm:py-3 lg:mt-4 lg:py-2.5">
       <div className="flex min-w-0 items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <span className="relative flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-xs font-black text-[#44f26e] sm:size-10 sm:text-sm">
@@ -1593,8 +1593,8 @@ function ReporterByline({
         </Link>
       </div>
 
-      <details className="group mt-2 hidden sm:block">
-        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-md border border-black/10 bg-[#f7f9f4] px-3 py-2 text-xs font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] [&::-webkit-details-marker]:hidden">
+      <details className="group mt-2 hidden sm:block lg:mt-1.5">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-md border border-black/10 bg-[#f7f9f4] px-3 py-2 text-xs font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] lg:py-1.5 [&::-webkit-details-marker]:hidden">
           <span className="inline-flex min-w-0 items-center gap-2">
             <ShieldCheck className="size-3.5 shrink-0 text-[#16702e]" />
             <span className="truncate">{copy.reporterTrust.summaryCta}</span>
@@ -3510,7 +3510,7 @@ export default async function LocalizedFanletterNewsReportPage({
         <div className="grid gap-5 sm:gap-7 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start">
           <div className="min-w-0">
             <header className="overflow-hidden border border-black/12 bg-white shadow-none sm:shadow-[0_20px_56px_rgba(17,21,16,0.08)]">
-              <div className="border-b-2 border-[#111510] bg-[#111510] px-3 py-2 sm:px-6 sm:py-3">
+              <div className="border-b-2 border-[#111510] bg-[#111510] px-3 py-2 sm:px-6 sm:py-3 lg:px-5 lg:py-2.5">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-white/58 sm:gap-y-2 sm:text-[0.68rem] sm:tracking-[0.12em]">
                   <span className="text-[#44f26e]">{copy.articleSection}</span>
                   <span
@@ -3536,8 +3536,8 @@ export default async function LocalizedFanletterNewsReportPage({
                   ) : null}
                 </div>
               </div>
-              <div className="p-3 sm:p-6 lg:p-7">
-                <div className="grid gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(12rem,14rem)] lg:items-start">
+              <div className="p-3 sm:p-6 lg:p-5">
+                <div className="grid gap-3 sm:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(15rem,18rem)] lg:items-start">
                   <div className="min-w-0">
                     <div className="sm:hidden">
                       <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
@@ -3550,12 +3550,12 @@ export default async function LocalizedFanletterNewsReportPage({
                       </p>
                     </div>
                     <h2
-                      className={`hidden max-w-5xl break-words text-[1.44rem] font-black leading-[1.12] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:block sm:text-[3.25rem] sm:leading-[1.06] lg:text-[3.75rem] ${nsfwTextBlurClass}`}
+                      className={`hidden max-w-5xl break-words text-[1.44rem] font-black leading-[1.12] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:block sm:text-[2.65rem] sm:leading-[1.06] lg:text-[3rem] xl:text-[3.2rem] ${nsfwTextBlurClass}`}
                     >
                       {articleTitle}
                     </h2>
                     <p
-                      className={`hidden max-w-3xl text-[0.92rem] font-medium leading-6 text-black/62 sm:mt-4 sm:block sm:text-[1.22rem] sm:leading-9 ${nsfwTextBlurClass}`}
+                      className={`hidden max-w-3xl text-[0.92rem] font-medium leading-6 text-black/62 sm:mt-3 sm:block sm:text-lg sm:leading-7 lg:mt-3 ${nsfwTextBlurClass}`}
                     >
                       {articleDek}
                     </p>
