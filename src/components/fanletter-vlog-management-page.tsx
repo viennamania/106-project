@@ -1318,6 +1318,8 @@ export function FanletterVlogManagementPage({
     ? (searchParams.get("maturity") as VlogMaturityFilter)
     : "all";
   const appliedPage = normalizePageValue(searchParams.get("page"));
+  const deepLinkContentId = searchParams.get("contentId")?.trim() ?? "";
+  const deepLinkPanel = searchParams.get("panel")?.trim() ?? "";
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [searchInput, setSearchInput] = useState(appliedQuery);
   const [updatingPostId, setUpdatingPostId] = useState<string | null>(null);
@@ -1349,6 +1351,7 @@ export function FanletterVlogManagementPage({
     startX: number;
     startY: number;
   } | null>(null);
+  const openedFrameDeepLinkRef = useRef<string | null>(null);
   const [state, setState] = useState<VlogManagementState>({
     error: null,
     member: memberSession.member,
@@ -2121,6 +2124,34 @@ export function FanletterVlogManagementPage({
     },
     [],
   );
+
+  useEffect(() => {
+    if (
+      deepLinkPanel !== "frames" ||
+      !deepLinkContentId ||
+      openedFrameDeepLinkRef.current === deepLinkContentId ||
+      state.status !== "ready"
+    ) {
+      return;
+    }
+
+    const targetPost = state.posts.find(
+      (post) => post.contentId === deepLinkContentId,
+    );
+
+    if (!targetPost) {
+      return;
+    }
+
+    openedFrameDeepLinkRef.current = deepLinkContentId;
+    openTeaserModal(targetPost);
+  }, [
+    deepLinkContentId,
+    deepLinkPanel,
+    openTeaserModal,
+    state.posts,
+    state.status,
+  ]);
 
   const savePostTeaserImages = useCallback(
     async ({

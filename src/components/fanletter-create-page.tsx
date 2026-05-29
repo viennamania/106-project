@@ -260,6 +260,23 @@ function getCopy(locale: Locale) {
         publishAlreadyCompleted:
           "이미 공개된 브이로그입니다. 같은 동영상을 다시 공개하지 않고, 상세 페이지에서 확인하세요.",
         result: "AI 동영상 미리보기",
+        resultReview: {
+          body:
+            "생성/업로드 결과를 확인하고 대표 프레임을 고른 뒤 공개하세요. 공개 후에는 스튜디오에서 프레임을 더 추가할 수 있습니다.",
+          frameCandidates: "프레임 후보",
+          frameEmpty:
+            "프레임 후보를 자동 저장하지 못했습니다. 공개 전 저장 과정에서 다시 시도합니다.",
+          manageFrames: "프레임 편집",
+          original: "원본 동영상",
+          pending: "대기",
+          preview: "프리뷰 동영상",
+          previewMissing:
+            "짧은 프리뷰를 아직 만들지 못했습니다. 원본 동영상으로 공개는 계속할 수 있습니다.",
+          ready: "준비됨",
+          selectCover: "대표 프레임 선택",
+          selectedCover: "대표 프레임",
+          title: "결과 바로 확인",
+        },
         setupChecks: {
           character: "캐릭터 적용",
           title: "제목 입력",
@@ -441,6 +458,23 @@ function getCopy(locale: Locale) {
         publishAlreadyCompleted:
           "This vlog has already been published. Open the detail page instead of publishing the same video again.",
         result: "AI video preview",
+        resultReview: {
+          body:
+            "Review the generated or uploaded result, choose a representative frame, then publish. You can add more frames later in Studio.",
+          frameCandidates: "Frame candidates",
+          frameEmpty:
+            "Frame candidates could not be saved automatically. FanLetter will retry before publishing.",
+          manageFrames: "Edit frames",
+          original: "Original video",
+          pending: "Pending",
+          preview: "Preview video",
+          previewMissing:
+            "A short preview is not ready yet. You can still publish with the original video.",
+          ready: "Ready",
+          selectCover: "Use as cover",
+          selectedCover: "Cover frame",
+          title: "Review result",
+        },
         setupChecks: {
           character: "Character applied",
           title: "Title ready",
@@ -866,6 +900,31 @@ function formatFileSize(bytes: number, locale: Locale) {
   }).format(bytes / (1024 * 1024));
 }
 
+function formatFrameTimestamp(value: number | null | undefined) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    return null;
+  }
+
+  const totalSeconds = Math.floor(value);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = String(totalSeconds % 60).padStart(2, "0");
+
+  return `${minutes}:${seconds}`;
+}
+
+function formatFrameSize(candidate: ContentCoverImageCandidate) {
+  if (
+    !candidate.width ||
+    !candidate.height ||
+    !Number.isFinite(candidate.width) ||
+    !Number.isFinite(candidate.height)
+  ) {
+    return null;
+  }
+
+  return `${Math.round(candidate.width)}x${Math.round(candidate.height)}`;
+}
+
 function sanitizeUploadBaseName(name: string) {
   const baseName = name.replace(/\.[^.]+$/u, "");
   const normalized = baseName
@@ -1069,7 +1128,9 @@ export function FanletterCreatePage({
   const [videoUploadProgress, setVideoUploadProgress] = useState(0);
   const loadInFlightRef = useRef(false);
   const localDraftRestoredRef = useRef(false);
+  const resultSectionRef = useRef<HTMLElement | null>(null);
   const saveInFlightRef = useRef(false);
+  const scrolledResultMediaUrlRef = useRef<string | null>(null);
   const videoUploadInputRef = useRef<HTMLInputElement | null>(null);
   const hasProfileBasics = Boolean(profile?.displayName?.trim());
   const hasPersona = Boolean(profile?.characterPersona);
@@ -1251,6 +1312,8 @@ export function FanletterCreatePage({
         form.title.trim() ||
         copy.avatarExperience.referencePreviewTitle);
   const generatedVideoUrl = generatedMedia?.url ?? null;
+  const previewClipVideoUrl = generatedMedia?.previewClipVideoUrl ?? null;
+  const frameCandidates = generatedMedia?.coverImageCandidates ?? [];
   const publishTitleFallback =
     generatedMedia?.source === "upload" ? copy.upload.fallbackTitle : generateCta;
   const localDraftSavedTime = formatDraftSavedAt(localDraftSavedAt, locale);
@@ -1268,6 +1331,20 @@ export function FanletterCreatePage({
     ? buildPathWithReferral(
         `/${locale}/fanletter/content/${createdContent.contentId}`,
         referralCode ?? createdContent.authorReferralCode,
+      )
+    : null;
+  const frameManagerHref = createdContent
+    ? setPathSearchParams(
+        buildPathWithReferral(
+          `/${locale}/fanletter/studio/vlogs`,
+          referralCode ?? createdContent.authorReferralCode,
+        ),
+        {
+          contentId: createdContent.contentId,
+          panel: "frames",
+          q: createdContent.title,
+          returnTo: contentHref ?? returnToHref,
+        },
       )
     : null;
 
@@ -1525,8 +1602,42 @@ export function FanletterCreatePage({
     localDraftKey,
   ]);
 
+  useEffect(() => {
+    if (
+      !generatedVideoUrl ||
+      generationStatus !== "ready" ||
+      localDraftStatus === "restored" ||
+      scrolledResultMediaUrlRef.current === generatedVideoUrl
+    ) {
+      return;
+    }
+
+    scrolledResultMediaUrlRef.current = generatedVideoUrl;
+    const timeout = window.setTimeout(() => {
+      resultSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 120);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [generatedVideoUrl, generationStatus, localDraftStatus]);
+
   function updateForm(patch: Partial<CreateForm>) {
     setForm((current) => ({ ...current, ...patch }));
+  }
+
+  function selectCoverFrame(candidate: ContentCoverImageCandidate) {
+    setGeneratedMedia((current) =>
+      current
+        ? {
+            ...current,
+            coverImageUrl: candidate.url,
+          }
+        : current,
+    );
   }
 
   async function generateMedia() {
@@ -2561,7 +2672,10 @@ export function FanletterCreatePage({
               ) : null}
             </section>
 
-            <section className="rounded-lg border border-white/12 bg-white/[0.055] p-4 sm:p-5">
+            <section
+              className="rounded-lg border border-white/12 bg-white/[0.055] p-4 sm:p-5"
+              ref={resultSectionRef}
+            >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
                 02
               </p>
@@ -2598,6 +2712,153 @@ export function FanletterCreatePage({
                   </p>
                 ) : null}
               </div>
+              {generatedVideoUrl ? (
+                <div className="mt-4 rounded-lg border border-[#44f26e]/20 bg-[#44f26e]/10 p-4 text-[#d8ffe0]">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+                        {copy.resultReview.title}
+                      </p>
+                      <p className="mt-2 text-sm font-medium leading-6 text-white/62">
+                        {copy.resultReview.body}
+                      </p>
+                    </div>
+                    <div className="grid shrink-0 grid-cols-3 gap-1.5 text-center text-[0.62rem] font-semibold">
+                      {[
+                        {
+                          label: copy.resultReview.original,
+                          ready: Boolean(generatedVideoUrl),
+                        },
+                        {
+                          label: copy.resultReview.preview,
+                          ready: Boolean(previewClipVideoUrl),
+                        },
+                        {
+                          label: copy.resultReview.frameCandidates,
+                          ready: frameCandidates.length > 0,
+                        },
+                      ].map(({ label, ready }) => (
+                        <span
+                          className={`rounded-lg border px-2 py-2 ${
+                            ready
+                              ? "border-[#44f26e]/26 bg-black/24 text-[#b9ffc8]"
+                              : "border-white/10 bg-white/[0.055] text-white/44"
+                          }`}
+                          key={label}
+                        >
+                          <CheckCircle2 className="mx-auto mb-1 size-3.5" />
+                          <span className="block truncate">{label}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <div className="overflow-hidden rounded-lg border border-white/10 bg-black/38">
+                      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-3 py-2">
+                        <p className="text-xs font-semibold text-white">
+                          {copy.resultReview.preview}
+                        </p>
+                        <span className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#9dffb0]">
+                          {previewClipVideoUrl
+                            ? copy.resultReview.ready
+                            : copy.resultReview.pending}
+                        </span>
+                      </div>
+                      {previewClipVideoUrl ? (
+                        <video
+                          className="aspect-[9/16] max-h-[28rem] w-full bg-black object-contain"
+                          controls
+                          muted
+                          playsInline
+                          preload="metadata"
+                          src={previewClipVideoUrl}
+                        />
+                      ) : (
+                        <div className="flex min-h-44 flex-col items-center justify-center px-4 text-center text-sm font-medium leading-6 text-white/48">
+                          <Play className="mb-3 size-7 text-[#44f26e]" />
+                          {copy.resultReview.previewMissing}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 rounded-lg border border-white/10 bg-black/24 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-xs font-semibold text-white">
+                          {copy.resultReview.frameCandidates}
+                        </p>
+                        <span className="rounded-full border border-white/10 bg-white/[0.06] px-2.5 py-1 text-[0.62rem] font-semibold text-white/58">
+                          {frameCandidates.length}/{COVER_IMAGE_CANDIDATE_LIMIT}
+                        </span>
+                      </div>
+                      {frameCandidates.length > 0 ? (
+                        <div className="mt-3 flex snap-x snap-mandatory gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                          {frameCandidates.map((candidate) => {
+                            const selected =
+                              generatedMedia?.coverImageUrl === candidate.url;
+                            const timestamp = formatFrameTimestamp(
+                              candidate.timestampSec,
+                            );
+                            const frameSize = formatFrameSize(candidate);
+
+                            return (
+                              <button
+                                className={`relative block h-32 w-24 shrink-0 snap-start overflow-hidden rounded-lg border bg-black text-left transition ${
+                                  selected
+                                    ? "border-[#44f26e] shadow-[0_0_0_2px_rgba(68,242,110,0.24)]"
+                                    : "border-white/12 hover:border-[#44f26e]/60"
+                                }`}
+                                key={candidate.candidateId}
+                                onClick={() => {
+                                  selectCoverFrame(candidate);
+                                }}
+                                type="button"
+                              >
+                                <span
+                                  className="absolute inset-0 bg-cover bg-center"
+                                  style={{
+                                    backgroundImage: `url(${candidate.url})`,
+                                  }}
+                                />
+                                <span className="absolute inset-x-1.5 bottom-1.5 flex flex-wrap gap-1">
+                                  {timestamp ? (
+                                    <span className="rounded-full bg-black/72 px-1.5 py-0.5 text-[0.58rem] font-semibold text-white">
+                                      {timestamp}
+                                    </span>
+                                  ) : null}
+                                  {frameSize ? (
+                                    <span className="rounded-full bg-white/88 px-1.5 py-0.5 text-[0.58rem] font-semibold text-black/72">
+                                      {frameSize}
+                                    </span>
+                                  ) : null}
+                                </span>
+                                <span className="absolute left-1.5 top-1.5 rounded-full bg-white/90 px-1.5 py-0.5 text-[0.58rem] font-semibold text-black">
+                                  {selected
+                                    ? copy.resultReview.selectedCover
+                                    : copy.resultReview.selectCover}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="mt-3 rounded-lg border border-dashed border-white/12 bg-white/[0.04] px-3 py-4 text-sm font-medium leading-6 text-white/48">
+                          {copy.resultReview.frameEmpty}
+                        </p>
+                      )}
+                      {frameManagerHref ? (
+                        <Link
+                          className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[#44f26e]/32 bg-[#44f26e]/12 px-4 py-2 text-sm font-semibold !text-[#d8ffe0] transition hover:bg-[#44f26e] hover:!text-black"
+                          href={frameManagerHref}
+                        >
+                          {copy.resultReview.manageFrames}
+                          <ArrowRight className="size-4" />
+                        </Link>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </section>
           </div>
 
@@ -2743,7 +3004,7 @@ export function FanletterCreatePage({
                 </div>
 
                 {contentHref ? (
-                  <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                     <Link
                       className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold !text-black transition hover:bg-white/90"
                       href={contentHref}
@@ -2763,6 +3024,15 @@ export function FanletterCreatePage({
                     >
                       {copy.studio}
                     </Link>
+                    {frameManagerHref ? (
+                      <Link
+                        className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-[#44f26e]/32 bg-[#44f26e]/12 px-5 text-sm font-semibold !text-[#d8ffe0] transition hover:bg-[#44f26e] hover:!text-black"
+                        href={frameManagerHref}
+                      >
+                        {copy.resultReview.manageFrames}
+                        <ArrowRight className="size-4" />
+                      </Link>
+                    ) : null}
                   </div>
                 ) : null}
               </div>
