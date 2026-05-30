@@ -589,16 +589,24 @@ function MetricTile({
 function CoverImage({
   alt,
   blurred,
+  compactMobile = false,
   imageUrl,
   sizes,
 }: {
   alt: string;
   blurred: boolean;
+  compactMobile?: boolean;
   imageUrl: string | null;
   sizes: string;
 }) {
   return (
-    <div className="relative min-h-[13.5rem] overflow-hidden bg-[#111510] sm:min-h-[12.75rem]">
+    <div
+      className={
+        compactMobile
+          ? "relative h-full min-h-[9.25rem] overflow-hidden bg-[#111510] sm:min-h-[12.75rem]"
+          : "relative min-h-[13.5rem] overflow-hidden bg-[#111510] sm:min-h-[12.75rem]"
+      }
+    >
       {imageUrl ? (
         <Image
           alt={alt}
@@ -701,11 +709,12 @@ function NewsReportCard({
   const fanRequestBased = isFanRequestBasedReport(report);
 
   return (
-    <article className="grid min-w-0 overflow-hidden rounded-lg border border-black/12 bg-white shadow-[0_16px_34px_rgba(17,21,16,0.07)]">
-      <Link className="relative block" href={href}>
+    <article className="grid min-w-0 grid-cols-[7.25rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-black/12 bg-white shadow-[0_16px_34px_rgba(17,21,16,0.07)] sm:grid-cols-1">
+      <Link className="relative block h-full" href={href}>
         <CoverImage
           alt=""
           blurred={blurred}
+          compactMobile
           imageUrl={report.coverImageUrl}
           sizes="(max-width: 768px) 100vw, 24rem"
         />
@@ -717,7 +726,7 @@ function NewsReportCard({
           </span>
         ) : null}
       </Link>
-      <div className="flex min-w-0 flex-col p-4">
+      <div className="flex min-w-0 flex-col p-3 sm:p-4">
         <div className="flex flex-wrap items-center gap-2 text-[0.66rem] font-black uppercase tracking-[0.1em]">
           <span className="bg-[#44f26e] px-2 py-1 text-black">
             {getAccessLabel(report, copy)}
@@ -743,13 +752,13 @@ function NewsReportCard({
           {getArticleDisplayTitle(report.title)}
         </Link>
         <p
-          className={`mt-2 line-clamp-3 text-sm font-semibold leading-6 text-black/58 ${
+          className={`mt-1.5 line-clamp-2 text-xs font-semibold leading-5 text-black/58 sm:mt-2 sm:line-clamp-3 sm:text-sm sm:leading-6 ${
             blurred ? "select-none blur-[2px]" : ""
           }`}
         >
           {report.dek}
         </p>
-        <div className="mt-4 flex items-center justify-between gap-2 border-t border-black/10 pt-3">
+        <div className="mt-auto flex items-center justify-between gap-2 border-t border-black/10 pt-2.5 sm:mt-4 sm:pt-3">
           <span className="truncate text-xs font-bold text-black/42">
             {report.reporterName}
           </span>
@@ -1541,7 +1550,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           ) : null}
         </div>
 
-        <section className="mt-4 overflow-hidden rounded-lg border border-black/12 bg-[#111510] text-white shadow-[0_24px_64px_rgba(17,21,16,0.18)] sm:mt-0">
+        <section className="mt-3 overflow-hidden rounded-lg border border-black/12 bg-[#111510] text-white shadow-[0_24px_64px_rgba(17,21,16,0.18)] sm:mt-0">
           <div className="grid lg:grid-cols-[minmax(16rem,0.52fr)_minmax(0,1fr)]">
             <FanletterNewsCharacterImageSelector
               avatarAlt={characterName}
@@ -1551,7 +1560,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
               galleryLabel={copy.bible.expression}
               generatedLabel={copy.generated}
             />
-            <div className="flex min-h-full min-w-0 flex-col p-4 sm:p-6 lg:p-7">
+            <div className="flex min-h-full min-w-0 flex-col p-3.5 sm:p-6 lg:p-7">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.1em] text-black">
                   <BadgeCheck className="size-3.5" />
@@ -1561,20 +1570,20 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                   @{data.profile.referralCode}
                 </span>
               </div>
-              <p className="mt-4 text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
+              <p className="mt-3 text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e] sm:mt-4">
                 {copy.hero.kicker}
               </p>
-              <h1 className="mt-2 break-words text-[2.45rem] font-black leading-[1.02] [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
+              <h1 className="mt-1.5 break-words text-[2.15rem] font-black leading-[1.02] [word-break:keep-all] sm:mt-2 sm:text-[3rem] lg:text-[3.25rem]">
                 {characterName}
               </h1>
-              <p className="mt-3 line-clamp-3 max-w-2xl text-sm font-semibold leading-6 text-white/68 sm:text-base sm:leading-7">
+              <p className="mt-2 line-clamp-2 max-w-2xl text-sm font-semibold leading-6 text-white/68 sm:mt-3 sm:line-clamp-3 sm:text-base sm:leading-7">
                 {characterSummary}
               </p>
 
-              <div className="mt-4 grid grid-cols-3 gap-2">
+              <div className="mt-3 grid grid-cols-3 gap-1.5 sm:mt-4 sm:gap-2">
                 {heroQuickLinks.map((link) => (
                   <Link
-                    className="group min-w-0 rounded-lg border border-white/12 bg-white/[0.06] p-2.5 !text-white transition hover:border-[#44f26e]/44 hover:bg-[#44f26e]/10 sm:p-3"
+                    className="group min-w-0 rounded-lg border border-white/12 bg-white/[0.06] px-2 py-2 !text-white transition hover:border-[#44f26e]/44 hover:bg-[#44f26e]/10 sm:p-3"
                     href={link.href}
                     key={link.label}
                   >
@@ -1582,19 +1591,19 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                       <span className="text-[#44f26e]">{link.icon}</span>
                       <ArrowRight className="size-3.5 shrink-0 text-white/30 transition group-hover:text-[#44f26e]" />
                     </span>
-                    <span className="mt-3 block text-xl font-black leading-none sm:text-2xl">
+                    <span className="mt-2 block text-lg font-black leading-none sm:mt-3 sm:text-2xl">
                       {link.value}
                     </span>
-                    <span className="mt-1.5 line-clamp-2 text-[0.62rem] font-black uppercase leading-4 tracking-[0.08em] text-white/48 sm:text-[0.66rem]">
+                    <span className="mt-1 line-clamp-2 text-[0.56rem] font-black uppercase leading-3 tracking-[0.06em] text-white/48 sm:mt-1.5 sm:text-[0.66rem] sm:leading-4 sm:tracking-[0.08em]">
                       {link.label}
                     </span>
                   </Link>
                 ))}
               </div>
 
-              <div className="mt-4 rounded-lg border border-white/14 bg-white/[0.06] p-3.5 shadow-[0_18px_42px_rgba(0,0,0,0.18)] sm:p-4">
-                <div className="flex min-w-0 gap-3">
-                  <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-black">
+              <div className="mt-2.5 hidden rounded-lg border border-white/14 bg-white/[0.06] p-2.5 shadow-[0_18px_42px_rgba(0,0,0,0.18)] sm:mt-4 sm:block sm:p-4">
+                <div className="flex min-w-0 gap-2.5 sm:gap-3">
+                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-black sm:size-10">
                     {heroMoment?.icon ?? <Sparkles className="size-5" />}
                   </span>
                   <div className="min-w-0 flex-1">
@@ -1610,17 +1619,17 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                     </div>
                     {heroMoment?.href ? (
                       <Link
-                        className="mt-1 line-clamp-2 break-words text-base font-black leading-6 !text-white [word-break:keep-all] hover:!text-[#44f26e]"
+                        className="mt-1 line-clamp-1 break-words text-sm font-black leading-5 !text-white [word-break:keep-all] hover:!text-[#44f26e] sm:line-clamp-2 sm:text-base sm:leading-6"
                         href={heroMoment.href}
                       >
                         {heroMoment.title}
                       </Link>
                     ) : (
-                      <p className="mt-1 line-clamp-2 break-words text-base font-black leading-6 text-white [word-break:keep-all]">
+                      <p className="mt-1 line-clamp-1 break-words text-sm font-black leading-5 text-white [word-break:keep-all] sm:line-clamp-2 sm:text-base sm:leading-6">
                         {heroMoment?.title ?? copy.today.emptyTitle}
                       </p>
                     )}
-                    <p className="mt-1.5 line-clamp-2 text-sm font-semibold leading-6 text-white/58">
+                    <p className="mt-1.5 hidden line-clamp-2 text-sm font-semibold leading-6 text-white/58 sm:block">
                       {heroMoment?.body ?? copy.today.emptyBody}
                     </p>
                   </div>
@@ -1707,9 +1716,9 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 ))}
               </div>
 
-              <div className="mt-auto grid grid-cols-2 gap-2 pt-4 sm:grid-cols-[1fr_1fr_1fr_auto] sm:pt-5">
+              <div className="mt-auto grid grid-cols-2 gap-2 pt-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:pt-5">
                 <Link
-                  className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#44f26e] px-4 py-2.5 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
+                  className="col-span-2 inline-flex min-h-11 items-center justify-center gap-2 bg-[#44f26e] px-4 py-2.5 text-sm font-black !text-black transition hover:bg-[#69ff8c] sm:col-span-1"
                   href={latestNewsHref}
                 >
                   {copy.cta.latestNews}
@@ -1730,7 +1739,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                   {copy.cta.request}
                 </Link>
                 <FanletterChannelShareButton
-                  className="h-auto min-h-11 rounded-full border-white/18 px-4 py-2.5 font-black"
+                  className="col-span-2 hidden h-auto min-h-11 rounded-full border-white/18 px-4 py-2.5 font-black sm:col-span-1 sm:inline-flex"
                   href={channelHref}
                   locale={locale}
                   referralCode={effectiveReferralCode}

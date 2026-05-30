@@ -85,7 +85,7 @@ export function FanletterNewsCharacterImageSelector({
             aria-label={thumbnailLabel}
             aria-pressed={isSelected}
             className={`relative overflow-hidden border bg-white/10 shadow-[0_10px_28px_rgba(0,0,0,0.22)] transition ${
-              compact ? "size-12 shrink-0 sm:size-14" : "aspect-square"
+              compact ? "size-10 shrink-0 sm:size-14" : "aspect-square"
             } ${
               isSelected
                 ? "border-[#44f26e] ring-2 ring-[#44f26e]/70"
@@ -103,7 +103,7 @@ export function FanletterNewsCharacterImageSelector({
               className="object-cover object-top"
               fill
               loading={isSelected ? "eager" : "lazy"}
-              sizes={compact ? "3.5rem" : "4rem"}
+              sizes={compact ? "(max-width: 640px) 2.5rem, 3.5rem" : "4rem"}
               src={avatar.url}
               unoptimized={shouldBypassFanletterImageOptimization(avatar.url)}
             />
@@ -128,7 +128,7 @@ export function FanletterNewsCharacterImageSelector({
         <div
           className={
             channelHero
-              ? "relative min-h-[20.75rem] overflow-hidden sm:min-h-[20rem] lg:absolute lg:inset-0 lg:min-h-0"
+              ? "relative min-h-[16.25rem] overflow-hidden sm:min-h-[20rem] lg:absolute lg:inset-0 lg:min-h-0"
               : "relative min-h-[14.75rem] overflow-hidden sm:min-h-[16rem] lg:absolute lg:inset-0 lg:min-h-0"
           }
         >
