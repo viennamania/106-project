@@ -358,6 +358,7 @@ function getCopy(locale: Locale) {
         relatedNewsSortOptions: {
           first: "최초 우선",
           latest: "최신순",
+          recommended: "추천순",
           unlock: "오픈 진행순",
         },
         otherCharacterNews: {
@@ -614,6 +615,7 @@ function getCopy(locale: Locale) {
         relatedNewsSortOptions: {
           first: "First reports",
           latest: "Latest",
+          recommended: "Recommended",
           unlock: "Open progress",
         },
         otherCharacterNews: {

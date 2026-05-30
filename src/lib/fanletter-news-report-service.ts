@@ -32,6 +32,7 @@ import {
   type FanletterRelatedNewsSort,
 } from "@/lib/fanletter-news-related";
 import {
+  FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD,
   createFanletterNewsSourceRevealState,
   type FanletterNewsSourceRevealState,
 } from "@/lib/fanletter-news-source-reveal";
@@ -62,6 +63,10 @@ const REPORTER_COMMENT_LIMIT = 220;
 const TEXT_LIMIT = 20_000;
 const REPORT_TEASER_IMAGE_LIMIT = 4;
 const FIRST_NEWS_REPORT_PROMOTION_MS = 3 * 24 * 60 * 60 * 1000;
+const RECOMMENDED_NEWS_FIRST_REPORT_PROMOTION_MS = 24 * 60 * 60 * 1000;
+const RECOMMENDED_NEWS_SOURCE_REVEAL_PROMOTION_MS =
+  2 * 24 * 60 * 60 * 1000;
+const RECOMMENDED_NEWS_TEASER_PROMOTION_MS = 36 * 60 * 60 * 1000;
 const RELATED_NEWS_FIRST_REPORT_LOOKAHEAD_LIMIT = 144;
 const REPORT_DRAFT_SOURCE_SEARCH_LIMIT = 80;
 const NEWS_TEASER_GALLERY_LOOKAHEAD_LIMIT = 180;
@@ -1137,6 +1142,88 @@ function compareSourceRevealProgressNewsReports(
   }
 
   return compareLatestFanletterNewsReports(left, right);
+}
+
+function getReporterTeaserCutScore(report: FanletterNewsReportDocument) {
+  const reporterCroppedCount =
+    report.teaserImages?.filter((image) => image.source === "reporter_cropped")
+      .length ?? 0;
+
+  if (reporterCroppedCount > 0) {
+    return Math.min(1, reporterCroppedCount / REPORT_TEASER_IMAGE_LIMIT);
+  }
+
+  const selectedTeaserCount = report.teaserImageUrls?.length ?? 0;
+
+  return selectedTeaserCount > 0
+    ? Math.min(0.45, selectedTeaserCount / REPORT_TEASER_IMAGE_LIMIT / 2)
+    : 0;
+}
+
+function getSourceRevealRecommendationScore(
+  report: FanletterRelatedNewsReportDocument,
+) {
+  if (!report.relatedSourceVlogAvailable) {
+    return -0.25;
+  }
+
+  const count = Math.max(0, report.relatedSourceRevealCount ?? 0);
+  const progress = Math.min(1, count / FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD);
+  const remaining = FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD - count;
+
+  return progress + (remaining > 0 && remaining <= 2 ? 0.25 : 0);
+}
+
+function getRecommendedRelatedNewsScore(
+  report: FanletterRelatedNewsReportDocument,
+) {
+  return (
+    getFanletterNewsReportSortTime(report) +
+    getReporterTeaserCutScore(report) * RECOMMENDED_NEWS_TEASER_PROMOTION_MS +
+    getSourceRevealRecommendationScore(report) *
+      RECOMMENDED_NEWS_SOURCE_REVEAL_PROMOTION_MS +
+    (report.firstNewsReportForContent
+      ? RECOMMENDED_NEWS_FIRST_REPORT_PROMOTION_MS
+      : 0)
+  );
+}
+
+function compareRecommendedRelatedNewsReports(
+  left: FanletterRelatedNewsReportDocument,
+  right: FanletterRelatedNewsReportDocument,
+) {
+  const scoreDelta =
+    getRecommendedRelatedNewsScore(right) -
+    getRecommendedRelatedNewsScore(left);
+
+  if (scoreDelta !== 0) {
+    return scoreDelta;
+  }
+
+  return compareLatestFanletterNewsReports(left, right);
+}
+
+function orderRecommendedRelatedNewsReports(
+  reports: FanletterRelatedNewsReportDocument[],
+) {
+  const sortedReports = [...reports].sort(compareRecommendedRelatedNewsReports);
+  const firstByContentId = new Set<string>();
+  const primaryReports: FanletterRelatedNewsReportDocument[] = [];
+  const duplicateSourceReports: FanletterRelatedNewsReportDocument[] = [];
+
+  for (const report of sortedReports) {
+    const contentId = report.contentId?.trim();
+
+    if (!contentId || firstByContentId.has(contentId)) {
+      duplicateSourceReports.push(report);
+      continue;
+    }
+
+    firstByContentId.add(contentId);
+    primaryReports.push(report);
+  }
+
+  return [...primaryReports, ...duplicateSourceReports];
 }
 
 async function hydrateFanletterNewsReportDisplayMetadata<
@@ -4225,9 +4312,16 @@ export const getRelatedFanletterNewsReports = cache(
       reports,
     );
 
-    if (sort === "unlock") {
+    if (sort === "unlock" || sort === "recommended") {
       const reportsWithSourceReveal =
         await hydrateRelatedFanletterNewsReportSourceVlogStatuses(hydratedReports);
+
+      if (sort === "recommended") {
+        return orderRecommendedRelatedNewsReports(reportsWithSourceReveal).slice(
+          normalizedOffset,
+          normalizedOffset + normalizedLimit,
+        );
+      }
 
       return [...reportsWithSourceReveal]
         .sort(compareSourceRevealProgressNewsReports)

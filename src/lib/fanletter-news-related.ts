@@ -11,6 +11,7 @@ type FanletterRelatedNewsReport = FanletterNewsReportDocument & {
 };
 
 export const FANLETTER_RELATED_NEWS_SORTS = [
+  "recommended",
   "first",
   "latest",
   "unlock",
@@ -20,7 +21,7 @@ export type FanletterRelatedNewsSort =
   (typeof FANLETTER_RELATED_NEWS_SORTS)[number];
 
 export const DEFAULT_FANLETTER_RELATED_NEWS_SORT =
-  "first" satisfies FanletterRelatedNewsSort;
+  "recommended" satisfies FanletterRelatedNewsSort;
 
 export type FanletterRelatedNewsSourceReveal = {
   count: number;
