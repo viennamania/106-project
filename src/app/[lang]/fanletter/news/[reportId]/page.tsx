@@ -167,7 +167,7 @@ function getCopy(locale: Locale) {
         aiReport: "AI 팬 리포트",
         articleEyebrow: "AI Character News",
         articleNotice:
-          "원본 브이로그의 공개 정보와 팬 기자의 관전 포인트를 바탕으로 한 FanLetter AI 팬 리포트입니다. 실제 언론사 기사가 아닙니다.",
+          "이 리포트는 원본 브이로그의 공개 정보와 팬 기자의 관전 포인트를 바탕으로 작성된 FanLetter AI 팬 리포트입니다. 언론사 보도가 아닌 팬 참여형 콘텐츠입니다.",
         articleSection: "연예",
         mobileActionDock: {
           eyebrow: "다음 행동",
@@ -422,7 +422,7 @@ function getCopy(locale: Locale) {
         aiReport: "AI fan report",
         articleEyebrow: "AI Character News",
         articleNotice:
-          "A FanLetter AI fan report based on source-vlog context and the fan reporter's angle. It is not a newsroom article.",
+          "This report is a FanLetter AI fan report based on public source-vlog context and the fan reporter's angle. It is fan-participation content, not newsroom coverage.",
         articleSection: "Entertainment",
         mobileActionDock: {
           eyebrow: "Next action",
