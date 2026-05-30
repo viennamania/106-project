@@ -59,6 +59,11 @@ import {
 } from "@/lib/fanletter-news-report-service";
 import { getFanletterNewsReporterIncentiveStats } from "@/lib/fanletter-news-reporter-incentives";
 import {
+  getFanletterNewsCharacterStats,
+  hydrateFanletterNewsCharacterStats,
+  type FanletterNewsCharacterStat,
+} from "@/lib/fanletter-news-character-directory";
+import {
   getFanletterNewsReporterTrustProfile,
   type FanletterNewsReporterTrustLevel,
   type FanletterNewsReporterTrustProfile,
@@ -356,11 +361,13 @@ function getCopy(locale: Locale) {
           unlock: "오픈 진행순",
         },
         otherCharacterNews: {
-          eyebrow: "캐릭터 뉴스",
+          characterCount: (count: string) => `${count}명`,
+          eyebrow: "다른 캐릭터",
           fanOnly: "팬전용",
           news: "뉴스",
+          newsCount: (count: string) => `뉴스 ${count}개`,
           public: "공개",
-          title: "다른 캐릭터 뉴스도 궁금해?",
+          title: "다른 캐릭터 뉴스",
         },
         reporterNewsCta: "팬 기자 뉴스",
         reporterTrust: {
@@ -610,11 +617,15 @@ function getCopy(locale: Locale) {
           unlock: "Open progress",
         },
         otherCharacterNews: {
-          eyebrow: "Character news",
+          characterCount: (count: string) =>
+            `${count} character${count === "1" ? "" : "s"}`,
+          eyebrow: "Other characters",
           fanOnly: "Fan-only",
           news: "News",
+          newsCount: (count: string) =>
+            `${count} news item${count === "1" ? "" : "s"}`,
           public: "Public",
-          title: "Curious about other characters?",
+          title: "Other character news",
         },
         reporterNewsCta: "Fan reporter news",
         reporterTrust: {
@@ -1465,17 +1476,17 @@ function FanletterNewsShareLandingHero({
 }
 
 function FanletterNewsOtherCharacterNews({
+  characters,
   copy,
   locale,
   referralCode,
-  reports,
 }: {
+  characters: FanletterNewsCharacterStat[];
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
   referralCode: string | null;
-  reports: FanletterNewsReportDocument[];
 }) {
-  if (reports.length === 0) {
+  if (characters.length === 0) {
     return null;
   }
 
@@ -1483,23 +1494,32 @@ function FanletterNewsOtherCharacterNews({
     `/${locale}/fanletter/news`,
     referralCode,
   );
+  const characterCountLabel = copy.otherCharacterNews.characterCount(
+    formatNumber(characters.length, locale),
+  );
 
   return (
     <section className="overflow-hidden border border-black/12 bg-white text-[#111510] shadow-[0_16px_44px_rgba(17,21,16,0.06)]">
-      <div className="border-b border-black/12 bg-[#111510] p-3 text-white sm:p-4">
-        <div className="min-w-0">
-          <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#9bffad] sm:text-[0.68rem]">
-            <Newspaper className="size-3.5" />
-            {copy.otherCharacterNews.eyebrow}
-          </p>
-          <h2 className="mt-1.5 break-words text-xl font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-2 sm:text-2xl">
-            {copy.otherCharacterNews.title}
-          </h2>
+      <div className="border-b border-black/12 bg-white p-3 sm:p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#16702e] sm:text-[0.68rem]">
+              <Newspaper className="size-3.5" />
+              {copy.otherCharacterNews.eyebrow}
+            </p>
+            <h2 className="mt-1.5 break-words text-xl font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-2 sm:text-2xl">
+              {copy.otherCharacterNews.title}
+            </h2>
+          </div>
+          <span className="inline-flex shrink-0 items-center rounded-full border border-[#16702e]/18 bg-[#ecfff0] px-2.5 py-1 text-[0.62rem] font-black text-[#16702e] sm:px-3 sm:text-[0.68rem]">
+            {characterCountLabel}
+          </span>
         </div>
       </div>
 
-      <div className="divide-y divide-black/10 bg-[#fbfcf8]">
-        {reports.map((otherReport) => {
+      <div className="grid gap-3 bg-[#f7f9f4] p-3 sm:grid-cols-2 sm:p-4 xl:grid-cols-1 xl:p-3">
+        {characters.map((character) => {
+          const otherReport = character.representativeReport;
           const reportHref = buildPathWithReferral(
             `/${locale}/fanletter/news/${otherReport.reportId}`,
             referralCode,
@@ -1518,18 +1538,26 @@ function FanletterNewsOtherCharacterNews({
             locale,
           );
           const accessLabel = getContentAccessLabel(otherReport, copy);
+          const characterAvatarImageUrl =
+            character.avatarImageUrl ?? otherReport.coverImageUrl;
+          const characterNewsCountLabel = copy.otherCharacterNews.newsCount(
+            formatNumber(character.newsCount, locale),
+          );
           const shouldBypassCoverImageOptimization = otherReport.coverImageUrl
             ? shouldBypassFanletterImageOptimization(otherReport.coverImageUrl)
+            : false;
+          const shouldBypassAvatarImageOptimization = characterAvatarImageUrl
+            ? shouldBypassFanletterImageOptimization(characterAvatarImageUrl)
             : false;
 
           return (
             <article
-              className="group grid min-w-0 grid-cols-[8rem_minmax(0,1fr)] gap-3.5 p-3 transition hover:bg-[#ecfff0] sm:grid-cols-[8.75rem_minmax(0,1fr)] sm:p-4"
-              key={otherReport.reportId}
+              className="group overflow-hidden border border-black/10 bg-white shadow-[0_12px_30px_rgba(17,21,16,0.05)] transition hover:border-[#19b84b]/42 hover:bg-[#fbfff8]"
+              key={character.referralCode}
             >
               <Link
                 aria-label={getArticleDisplayTitle(otherReport.title)}
-                className="relative aspect-[4/3] overflow-hidden rounded-lg border border-black/10 bg-[#111510]"
+                className="relative block aspect-[16/10] overflow-hidden bg-[#111510]"
                 href={reportHref}
               >
                 {otherReport.coverImageUrl ? (
@@ -1547,21 +1575,46 @@ function FanletterNewsOtherCharacterNews({
                     <Newspaper className="size-7 text-[#44f26e]" />
                   </div>
                 )}
+                <span className="absolute left-2 top-2 inline-flex items-center rounded-full border border-white/16 bg-black/58 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.08em] text-white backdrop-blur">
+                  {accessLabel}
+                </span>
               </Link>
 
-              <div className="min-w-0">
-                <div className="flex min-w-0 items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <Link
-                      className="relative z-10 inline-flex max-w-full items-center gap-1.5 rounded-full border border-[#16702e]/16 bg-white px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.08em] !text-[#16702e] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
-                      href={characterHref}
-                    >
-                      <Users className="size-3" />
-                      <span className="truncate">{otherReport.creatorName}</span>
-                    </Link>
-                  </div>
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-[#16702e]/18 bg-white px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.08em] text-[#16702e]">
-                    {accessLabel}
+              <div className="min-w-0 p-3 sm:p-3.5">
+                <div className="flex min-w-0 items-center justify-between gap-2">
+                  <Link
+                    className="relative z-10 inline-flex min-w-0 items-center gap-2 !text-[#111510] transition hover:text-[#16702e]"
+                    href={characterHref}
+                  >
+                    <span className="relative size-10 shrink-0 overflow-hidden rounded-full border border-black/10 bg-[#111510]">
+                      {characterAvatarImageUrl ? (
+                        <Image
+                          alt=""
+                          aria-hidden="true"
+                          className="object-cover"
+                          fill
+                          sizes="2.5rem"
+                          src={characterAvatarImageUrl}
+                          unoptimized={shouldBypassAvatarImageOptimization}
+                        />
+                      ) : (
+                        <span className="flex h-full w-full items-center justify-center text-white/70">
+                          <Users className="size-5" />
+                        </span>
+                      )}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-black leading-5">
+                        {character.name}
+                      </span>
+                      <span className="mt-0.5 flex items-center gap-1 text-[0.58rem] font-black uppercase tracking-[0.08em] text-[#16702e]">
+                        {characterNewsCountLabel}
+                        <ArrowUpRight className="size-3" />
+                      </span>
+                    </span>
+                  </Link>
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-[#f5f7f1] px-2 py-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-black/54">
+                    {copy.otherCharacterNews.news}
                   </span>
                 </div>
                 <Link className="block" href={reportHref}>
@@ -1573,9 +1626,6 @@ function FanletterNewsOtherCharacterNews({
                   </p>
                 </Link>
                 <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1 text-[0.62rem] font-black uppercase tracking-[0.08em] text-black/38">
-                  <span>
-                    {copy.otherCharacterNews.news}
-                  </span>
                   <span className="text-[#16702e]">
                     {otherReport.reporterName}
                   </span>
@@ -3473,31 +3523,24 @@ export default async function LocalizedFanletterNewsReportPage({
         { returnTo: articleReturnHref },
       )
     : fanletterHomeHref;
-  const selectedOtherCharacterNewsReports: FanletterNewsReportDocument[] = [];
-  const selectedOtherCharacterReferralCodes = new Set<string>();
+  const otherCharacterCandidateReports = characterDiscoveryReports.filter(
+    (candidateReport) => {
+      const candidateCreatorReferralCode = normalizeReferralCode(
+        candidateReport.creatorReferralCode,
+      );
 
-  for (const candidateReport of characterDiscoveryReports) {
-    const candidateCreatorReferralCode = normalizeReferralCode(
-      candidateReport.creatorReferralCode,
+      return (
+        candidateReport.reportId !== report.reportId &&
+        !isNsfwReport(candidateReport) &&
+        Boolean(candidateCreatorReferralCode) &&
+        candidateCreatorReferralCode !== creatorReferralCode
+      );
+    },
+  );
+  const selectedOtherCharacterNewsCharacters =
+    await hydrateFanletterNewsCharacterStats(
+      getFanletterNewsCharacterStats(otherCharacterCandidateReports, 4),
     );
-
-    if (
-      candidateReport.reportId === report.reportId ||
-      isNsfwReport(candidateReport) ||
-      !candidateCreatorReferralCode ||
-      candidateCreatorReferralCode === creatorReferralCode ||
-      selectedOtherCharacterReferralCodes.has(candidateCreatorReferralCode)
-    ) {
-      continue;
-    }
-
-    selectedOtherCharacterNewsReports.push(candidateReport);
-    selectedOtherCharacterReferralCodes.add(candidateCreatorReferralCode);
-
-    if (selectedOtherCharacterNewsReports.length >= 4) {
-      break;
-    }
-  }
   const visibleRelatedReports = relatedReports.slice(0, relatedReportVisibleCount);
   const currentRelatedNewsItem = serializeFanletterRelatedNewsItem({
     nsfwOptInEnabled: includeNsfw,
@@ -3594,7 +3637,7 @@ export default async function LocalizedFanletterNewsReportPage({
     sortValue: relatedNewsSort,
   };
   const shouldShowOtherCharacterNews =
-    selectedOtherCharacterNewsReports.length > 0;
+    selectedOtherCharacterNewsCharacters.length > 0;
   const publishedAt = formatDate(report.sourcePublishedAt, locale);
   const articleParagraphs = splitArticleBody(report.body).map((paragraph) =>
     normalizeFanletterNewsDisplayText(paragraph, locale),
@@ -3841,10 +3884,10 @@ export default async function LocalizedFanletterNewsReportPage({
           {shouldShowOtherCharacterNews ? (
             <div className="hidden xl:block">
               <FanletterNewsOtherCharacterNews
+                characters={selectedOtherCharacterNewsCharacters}
                 copy={copy}
                 locale={locale}
                 referralCode={referralCode}
-                reports={selectedOtherCharacterNewsReports}
               />
             </div>
           ) : null}
@@ -4116,10 +4159,10 @@ export default async function LocalizedFanletterNewsReportPage({
         {shouldShowOtherCharacterNews ? (
           <div className="mt-5 sm:mt-7 xl:hidden">
             <FanletterNewsOtherCharacterNews
+              characters={selectedOtherCharacterNewsCharacters}
               copy={copy}
               locale={locale}
               referralCode={referralCode}
-              reports={selectedOtherCharacterNewsReports}
             />
           </div>
         ) : null}
