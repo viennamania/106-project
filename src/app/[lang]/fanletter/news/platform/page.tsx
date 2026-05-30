@@ -19,6 +19,7 @@ import {
   Sparkles,
   Trophy,
   UsersRound,
+  UserRound,
   WalletCards,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -27,8 +28,20 @@ import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterHeroBackgroundCarousel } from "@/components/fanletter-mobile-hero-carousel";
 import { LandingReveal } from "@/components/landing/landing-reveal";
+import type { FanletterNewsReportDocument } from "@/lib/content";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getFanletterLandingData } from "@/lib/fanletter-landing-service";
+import {
+  getFanletterNewsCharacterStats,
+  hydrateFanletterNewsCharacterStats,
+  type FanletterNewsCharacterStat,
+} from "@/lib/fanletter-news-character-directory";
+import {
+  getLatestFanletterNewsReports,
+} from "@/lib/fanletter-news-report-service";
+import {
+  getFanletterNewsBareArticleDisplayTitle as getArticleDisplayTitle,
+} from "@/lib/fanletter-news-related";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
@@ -42,37 +55,56 @@ const HERO_IMAGE = "/landing/premium-phone.png?v=20260415";
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
-        title: "FanLetter 플랫폼 모델",
+        title: "FanLetter News 홈",
         description:
-          "팬이 AI 캐릭터 IP를 함께 키우고, 브이로그 수익을 USDT 기반 정산으로 투명하게 나누는 FanLetter News 랜딩 페이지입니다.",
+          "SNS에서 본 AI 캐릭터 뉴스, 원본 브이로그, 캐릭터 채널을 한 곳에서 이어보는 FanLetter News 홈입니다.",
         brand: "FanLetter",
-        eyebrow: "AI Character IP Profit Sharing",
-        heroTitle: "AI 캐릭터 브이로그 수익 공유 플랫폼",
+        eyebrow: "AI Character News Home",
+        heroTitle: "AI 캐릭터 뉴스에서 원본 브이로그까지 이어보는 홈",
         heroBody:
-          "브이로거가 AI 캐릭터의 One Scene 모바일 브이로그를 올리면, 팬 리포터가 포토 뉴스로 확산하고 팬 참여와 구매 전환이 USDT 정산 흐름으로 연결됩니다.",
-        primaryCta: "뉴스 홈 보기",
-        secondaryCta: "브이로그 스튜디오",
-        proofBadges: ["One Scene Vlog", "Photo News", "USDT Settlement"],
+          "팬 기자가 편집한 티저 컷으로 뉴스를 먼저 보고, 마음에 드는 AI 캐릭터의 원본 브이로그와 다른 뉴스를 계속 이어볼 수 있습니다.",
+        primaryCta: "지금 뉴스 보기",
+        secondaryCta: "AI 캐릭터 보기",
+        proofBadges: ["AI 캐릭터 뉴스", "리포터 티저 컷", "원본 브이로그"],
         heroStats: [
-          { label: "원본 콘텐츠", value: "Vlog", hint: "모바일 숏폼 장면" },
-          { label: "확산 콘텐츠", value: "News", hint: "포토 뉴스 리포트" },
-          { label: "정산 기준", value: "USDT", hint: "블록체인 지급 기록" },
+          { label: "먼저 보는 콘텐츠", value: "News", hint: "팬 리포터 포토 뉴스" },
+          { label: "이어보는 콘텐츠", value: "Vlog", hint: "AI 캐릭터 원본 장면" },
+          { label: "계속 보는 공간", value: "Channel", hint: "캐릭터별 뉴스 채널" },
         ],
-        newsroomPreview: {
-          label: "VLOG LAUNCH",
-          title: "업로드한 브이로그가 바로 뉴스 유입면이 됩니다",
+        homeNews: {
           body:
-            "대표 티저, 팬 오픈 투표, 1 USDT 구매 신호를 연결해 소비자가 원본 장면을 보고 싶게 만듭니다.",
-          flow: ["업로드", "포토 뉴스", "팬 오픈", "USDT 정산"],
+            "SNS에서 들어온 사용자가 바로 이어보기 좋은 최신 리포트입니다. 티저 컷, 원본 브이로그, 캐릭터 채널로 자연스럽게 연결됩니다.",
+          cta: "뉴스 읽기",
+          empty: "아직 홈에 표시할 공개 뉴스가 없습니다.",
+          eyebrow: "지금 이어볼 뉴스",
+          title: "뉴스를 보고 캐릭터가 궁금해지는 흐름",
+        },
+        homeCharacters: {
+          body:
+            "캐릭터의 얼굴과 이름을 먼저 기억하게 하고, 같은 캐릭터의 뉴스와 브이로그를 계속 소비하도록 연결합니다.",
+          cta: "캐릭터 채널",
+          empty: "아직 홈에 표시할 AI 캐릭터가 없습니다.",
+          eyebrow: "AI 캐릭터 채널",
+          news: "뉴스",
+          source: "원본 오픈",
+          title: "계속 보게 만드는 캐릭터 IP",
+          vlogs: "브이로그",
+        },
+        newsroomPreview: {
+          label: "NEWS ENTRY",
+          title: "뉴스 한 편이 캐릭터 채널의 입구가 됩니다",
+          body:
+            "대표 티저, 리포터 편집 컷, 팬 오픈 투표를 한 화면에 묶어 원본 장면을 보고 싶게 만듭니다.",
+          flow: ["SNS 유입", "포토 뉴스", "원본 보기", "캐릭터 채널"],
           metrics: [
-            { label: "원본", value: "One Scene" },
-            { label: "팬 오픈", value: "6명" },
-            { label: "판매", value: "1 USDT" },
+            { label: "유입", value: "SNS" },
+            { label: "티저", value: "4컷" },
+            { label: "원본", value: "Vlog" },
           ],
         },
         vloggerSignal: {
-          eyebrow: "Vlogger Growth Loop",
-          title: "올린 영상이 뉴스, 언락, USDT 정산으로 이어집니다",
+          eyebrow: "Character Curiosity Loop",
+          title: "뉴스를 읽고, 원본을 보고, 캐릭터를 따라갑니다",
         },
         modelTitle: "하나의 브이로그가 IP 수익 구조가 되는 방식",
         modelBody:
@@ -146,45 +178,64 @@ function getCopy(locale: Locale) {
         loopTitle: "뉴스는 유입, 브이로그는 소비, 정산은 신뢰입니다",
         loopBody:
           "이 세 가지가 연결될 때 팬은 단순 소비자가 아니라 AI 캐릭터 IP의 성장 파트너가 됩니다.",
-        ctaTitle: "FanLetter News에서 캐릭터 IP 성장 흐름을 확인하세요",
+        ctaTitle: "FanLetter News 홈에서 캐릭터 IP 성장 흐름을 시작하세요",
         ctaBody:
           "뉴스 홈에서 포토 뉴스와 AI 캐릭터를 둘러보고, 리포터 데스크에서 직접 브이로그 기반 리포트를 작성할 수 있습니다.",
-        ctaNews: "뉴스 홈",
+        ctaNews: "뉴스룸 보기",
         ctaCharacters: "AI 캐릭터",
         ctaReports: "리포터 데스크",
       }
     : {
-        title: "FanLetter Platform Model",
+        title: "FanLetter News Home",
         description:
-          "A FanLetter News landing page for fan-powered AI character IP growth and transparent USDT-based profit sharing.",
+          "The FanLetter News home for continuing from SNS AI character news into source vlogs and character channels.",
         brand: "FanLetter",
-        eyebrow: "AI Character IP Profit Sharing",
-        heroTitle: "AI character vlog profit-sharing platform",
+        eyebrow: "AI Character News Home",
+        heroTitle: "Continue from AI character news into source vlogs",
         heroBody:
-          "When vloggers publish One Scene mobile AI character vlogs, fan reporters turn them into photo news, and fan participation plus purchase conversion flow into USDT settlement.",
-        primaryCta: "Open news home",
-        secondaryCta: "Vlog studio",
-        proofBadges: ["One Scene Vlog", "Photo News", "USDT Settlement"],
+          "Read fan-reporter teaser cuts first, then continue into the original AI character vlog and more news from the same character.",
+        primaryCta: "Read news",
+        secondaryCta: "AI characters",
+        proofBadges: ["AI character news", "Reporter teaser cuts", "Source vlogs"],
         heroStats: [
-          { label: "Source content", value: "Vlog", hint: "Mobile shortform scene" },
-          { label: "Promotion layer", value: "News", hint: "Photo news report" },
-          { label: "Settlement unit", value: "USDT", hint: "Blockchain payout record" },
+          { label: "Entry content", value: "News", hint: "Fan-reporter photo news" },
+          { label: "Next content", value: "Vlog", hint: "Original AI character scene" },
+          { label: "Repeat space", value: "Channel", hint: "Character-level news hub" },
         ],
-        newsroomPreview: {
-          label: "VLOG LAUNCH",
-          title: "Uploaded vlogs become the news entry screen",
+        homeNews: {
           body:
-            "Lead teasers, fan-open votes, and 1 USDT purchase signals are packaged into one screen that makes readers want the source scene.",
-          flow: ["Upload", "Photo news", "Fan open", "USDT settle"],
+            "Latest reports that help SNS visitors keep reading, open source vlogs, and remember the character channel.",
+          cta: "Read news",
+          empty: "No public news is ready for the home page yet.",
+          eyebrow: "Continue Reading",
+          title: "News that turns into character curiosity",
+        },
+        homeCharacters: {
+          body:
+            "Show the face and name first, then connect readers to more news and source vlogs from the same AI character.",
+          cta: "Character channel",
+          empty: "No AI characters are ready for the home page yet.",
+          eyebrow: "AI Character Channels",
+          news: "News",
+          source: "Opened sources",
+          title: "Character IP worth following",
+          vlogs: "Vlogs",
+        },
+        newsroomPreview: {
+          label: "NEWS ENTRY",
+          title: "One news page becomes the character-channel entrance",
+          body:
+            "Lead teasers, reporter-edited cuts, and fan-open votes make readers want the source scene.",
+          flow: ["SNS entry", "Photo news", "Source vlog", "Character channel"],
           metrics: [
-            { label: "Source", value: "One Scene" },
-            { label: "Fan open", value: "6 fans" },
-            { label: "Sale", value: "1 USDT" },
+            { label: "Entry", value: "SNS" },
+            { label: "Teasers", value: "4 cuts" },
+            { label: "Source", value: "Vlog" },
           ],
         },
         vloggerSignal: {
-          eyebrow: "Vlogger Growth Loop",
-          title: "Uploaded videos become news, unlocks, and USDT settlement",
+          eyebrow: "Character Curiosity Loop",
+          title: "Read the news, watch the source, follow the character",
         },
         modelTitle: "How one vlog becomes an IP revenue loop",
         modelBody:
@@ -258,10 +309,10 @@ function getCopy(locale: Locale) {
         loopTitle: "News brings traffic, vlogs drive consumption, settlement builds trust",
         loopBody:
           "When all three are connected, fans become growth partners for AI character IP instead of passive consumers.",
-        ctaTitle: "Explore the FanLetter News character IP loop",
+        ctaTitle: "Start the character IP loop from FanLetter News home",
         ctaBody:
           "Browse photo news and AI characters, then use the reporter desk to create reports from vlog source content.",
-        ctaNews: "News home",
+        ctaNews: "Newsroom",
         ctaCharacters: "AI characters",
         ctaReports: "Reporter desk",
       };
@@ -305,6 +356,179 @@ function CtaLink({
     >
       {children}
       <ArrowRight className="size-4" />
+    </Link>
+  );
+}
+
+function formatNumber(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale).format(value);
+}
+
+function formatDate(value: Date | string | null, locale: Locale) {
+  if (!value) {
+    return null;
+  }
+
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+  }).format(typeof value === "string" ? new Date(value) : value);
+}
+
+function getReportDate(report: FanletterNewsReportDocument) {
+  return report.sourcePublishedAt ?? report.createdAt ?? null;
+}
+
+function NewsHomeReportCard({
+  copy,
+  href,
+  locale,
+  report,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  href: string;
+  locale: Locale;
+  report: FanletterNewsReportDocument;
+}) {
+  const publishedAt = formatDate(getReportDate(report), locale);
+  const accessLabel =
+    locale === "ko"
+      ? report.priceType === "paid"
+        ? "팬 전용"
+        : "공개 뉴스"
+      : report.priceType === "paid"
+        ? "Fan-only"
+        : "Public news";
+
+  return (
+    <Link
+      className="group grid min-w-0 grid-cols-[7.5rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-black/10 bg-white !text-[#111510] shadow-[0_16px_42px_rgba(17,21,16,0.06)] transition hover:border-[#19b84b]/55 hover:shadow-[0_20px_52px_rgba(17,21,16,0.1)] sm:grid-cols-1"
+      href={href}
+    >
+      <div className="relative min-h-[9.5rem] overflow-hidden bg-[#071108] sm:min-h-[15rem]">
+        {report.coverImageUrl ? (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="object-cover transition duration-500 group-hover:scale-[1.03]"
+            fill
+            sizes="(max-width: 640px) 7.5rem, (max-width: 1024px) 50vw, 25rem"
+            src={report.coverImageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(
+              report.coverImageUrl,
+            )}
+          />
+        ) : (
+          <div className="flex h-full min-h-[9.5rem] items-center justify-center text-[#44f26e]">
+            <Newspaper className="size-10" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0)_38%,rgba(7,17,8,0.58)_100%)]" />
+      </div>
+      <div className="flex min-w-0 flex-col p-3 sm:p-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-[#ecfff0] px-2.5 py-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
+            {accessLabel}
+          </span>
+          {publishedAt ? (
+            <span className="text-[0.66rem] font-bold text-black/38">
+              {publishedAt}
+            </span>
+          ) : null}
+        </div>
+        <h3 className="mt-2 line-clamp-2 break-words text-base font-black leading-5 [word-break:keep-all] sm:text-xl sm:leading-7">
+          {getArticleDisplayTitle(report.title)}
+        </h3>
+        <p className="mt-1.5 line-clamp-2 text-xs font-semibold leading-5 text-black/56 sm:mt-2 sm:text-sm sm:leading-6">
+          {report.dek}
+        </p>
+        <div className="mt-auto flex items-center justify-between gap-3 pt-3">
+          <span className="truncate text-xs font-bold text-black/42">
+            {report.creatorName || report.reporterName}
+          </span>
+          <span className="inline-flex shrink-0 items-center gap-1 text-xs font-black text-[#16702e]">
+            {copy.homeNews.cta}
+            <ArrowRight className="size-3.5" />
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function HomeCharacterCard({
+  character,
+  copy,
+  href,
+  locale,
+}: {
+  character: FanletterNewsCharacterStat;
+  copy: ReturnType<typeof getCopy>;
+  href: string;
+  locale: Locale;
+}) {
+  return (
+    <Link
+      className="group grid min-w-0 grid-cols-[5.25rem_minmax(0,1fr)] gap-3 rounded-lg border border-white/12 bg-white/[0.07] p-3 !text-white transition hover:border-[#44f26e]/60 hover:bg-white/[0.1] sm:grid-cols-[6.5rem_minmax(0,1fr)] sm:p-4"
+      href={href}
+    >
+      <div className="relative aspect-square overflow-hidden rounded-lg bg-[#071108]">
+        {character.avatarImageUrl ? (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="object-cover object-top transition duration-500 group-hover:scale-[1.04]"
+            fill
+            sizes="6.5rem"
+            src={character.avatarImageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(
+              character.avatarImageUrl,
+            )}
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-[#44f26e]">
+            <UserRound className="size-8" />
+          </div>
+        )}
+      </div>
+      <div className="min-w-0">
+        <p className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#7cff98]">
+          {copy.homeCharacters.eyebrow}
+        </p>
+        <h3 className="mt-1 truncate text-xl font-black">{character.name}</h3>
+        <div className="mt-3 grid grid-cols-3 gap-1.5 text-center">
+          {[
+            {
+              label: copy.homeCharacters.news,
+              value: character.newsCount,
+            },
+            {
+              label: copy.homeCharacters.vlogs,
+              value: character.publicVideoCount,
+            },
+            {
+              label: copy.homeCharacters.source,
+              value: character.sourceRevealUnlockedCount,
+            },
+          ].map((stat) => (
+            <div
+              className="min-w-0 rounded-md border border-white/10 bg-black/22 px-1.5 py-2"
+              key={stat.label}
+            >
+              <p className="truncate text-sm font-black">
+                {formatNumber(stat.value, locale)}
+              </p>
+              <p className="mt-0.5 truncate text-[0.54rem] font-black uppercase tracking-[0.05em] text-white/42">
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 inline-flex items-center gap-1.5 text-xs font-black text-[#9bffad]">
+          {copy.homeCharacters.cta}
+          <ArrowRight className="size-3.5" />
+        </p>
+      </div>
     </Link>
   );
 }
@@ -373,7 +597,20 @@ export default async function FanletterNewsPlatformPage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
-  const landingData = await getFanletterLandingData(locale, false);
+  const [landingData, latestReports] = await Promise.all([
+    getFanletterLandingData(locale, false),
+    getLatestFanletterNewsReports({
+      contentMaturityRating: "general",
+      limit: 18,
+      locale,
+      promoteFirstReports: true,
+    }),
+  ]);
+  const featuredReports = latestReports.slice(0, 6);
+  const featuredCharacters = await hydrateFanletterNewsCharacterStats(
+    getFanletterNewsCharacterStats(latestReports, 6, { sort: "discovery" }),
+    { limit: 4, sort: "discovery" },
+  );
   const heroSlides = [
     ...landingData.featuredVideos,
     ...landingData.featuredPaidVideos,
@@ -390,6 +627,10 @@ export default async function FanletterNewsPlatformPage({
   const previewCoverImageUrl =
     heroSlides.find((slide) => slide.coverImageUrl?.trim())?.coverImageUrl ??
     HERO_IMAGE;
+  const homeHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/platform`,
+    referralCode,
+  );
   const newsHref = buildPathWithReferral(
     `/${locale}/fanletter/news`,
     referralCode,
@@ -402,11 +643,6 @@ export default async function FanletterNewsPlatformPage({
     `/${locale}/fanletter/news/characters`,
     referralCode,
   );
-  const studioHref = buildPathWithReferral(
-    `/${locale}/fanletter/studio`,
-    referralCode,
-  );
-
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]">
       <section className="relative min-h-[100svh] overflow-hidden bg-[#071108] text-white sm:min-h-[92svh]">
@@ -435,7 +671,7 @@ export default async function FanletterNewsPlatformPage({
           <header className="flex items-center justify-between gap-3 border-b border-white/14 pb-3 sm:gap-4 sm:pb-4">
             <Link
               className="inline-flex min-w-0 items-center gap-2 text-lg font-black !text-white"
-              href={newsHref}
+              href={homeHref}
             >
               <FanletterBrandMark className="size-9" />
               <span className="truncate">{copy.brand} News</span>
@@ -482,7 +718,7 @@ export default async function FanletterNewsPlatformPage({
 
               <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-7 sm:flex sm:flex-row sm:gap-3">
                 <CtaLink href={newsHref}>{copy.primaryCta}</CtaLink>
-                <CtaLink href={studioHref} variant="secondary">
+                <CtaLink href={charactersHref} variant="secondary">
                   {copy.secondaryCta}
                 </CtaLink>
               </div>
@@ -571,6 +807,93 @@ export default async function FanletterNewsPlatformPage({
               </div>
             </LandingReveal>
           </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-[92rem] px-4 py-9 sm:px-6 sm:py-12 lg:px-8">
+        <div className="mb-5 grid gap-3 sm:mb-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+          <div className="min-w-0">
+            <SectionLabel>{copy.homeNews.eyebrow}</SectionLabel>
+            <h2 className="mt-3 max-w-3xl text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
+              {copy.homeNews.title}
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-black/58 sm:text-base sm:leading-7">
+              {copy.homeNews.body}
+            </p>
+          </div>
+          <Link
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-black/12 bg-white px-4 py-2.5 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+            href={newsHref}
+          >
+            {copy.ctaNews}
+            <ArrowRight className="size-4 text-[#16702e]" />
+          </Link>
+        </div>
+
+        {featuredReports.length > 0 ? (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {featuredReports.map((report) => (
+              <NewsHomeReportCard
+                copy={copy}
+                href={buildPathWithReferral(
+                  `/${locale}/fanletter/news/${report.reportId}`,
+                  referralCode,
+                )}
+                key={report.reportId}
+                locale={locale}
+                report={report}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-lg border border-black/10 bg-white p-5 text-sm font-semibold text-black/54">
+            {copy.homeNews.empty}
+          </p>
+        )}
+      </section>
+
+      <section className="border-y border-black/10 bg-[#071108] text-white">
+        <div className="mx-auto grid max-w-[92rem] gap-6 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1fr)] lg:items-start lg:px-8">
+          <LandingReveal className="lg:sticky lg:top-8" variant="soft">
+            <p className="inline-flex items-center gap-2 text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+              <Sparkles className="size-4" />
+              {copy.homeCharacters.eyebrow}
+            </p>
+            <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
+              {copy.homeCharacters.title}
+            </h2>
+            <p className="mt-3 text-sm font-semibold leading-6 text-white/62 sm:text-base sm:leading-7">
+              {copy.homeCharacters.body}
+            </p>
+            <Link
+              className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-2.5 text-sm font-black !text-[#071108] transition hover:bg-[#69ff8c]"
+              href={charactersHref}
+            >
+              {copy.ctaCharacters}
+              <ArrowRight className="size-4" />
+            </Link>
+          </LandingReveal>
+
+          {featuredCharacters.length > 0 ? (
+            <div className="grid gap-3">
+              {featuredCharacters.map((character) => (
+                <HomeCharacterCard
+                  character={character}
+                  copy={copy}
+                  href={buildPathWithReferral(
+                    `/${locale}/fanletter/news/characters/${character.referralCode}`,
+                    referralCode,
+                  )}
+                  key={character.referralCode}
+                  locale={locale}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-lg border border-white/12 bg-white/[0.07] p-5 text-sm font-semibold text-white/58">
+              {copy.homeCharacters.empty}
+            </p>
+          )}
         </div>
       </section>
 

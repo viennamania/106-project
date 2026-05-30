@@ -107,6 +107,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     getServerRolePreferenceSnapshot,
   );
   const basePath = `/${locale}/fanletter/news`;
+  const platformPath = `${basePath}/platform`;
   const connectPath = `${basePath}/connect`;
   const activatePath = `${basePath}/activate`;
   const myPath = `${basePath}/my`;
@@ -117,7 +118,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
 
   if (
     pathname === basePath ||
-    pathname === `${basePath}/platform` ||
+    pathname === platformPath ||
     isNewsReportDetailPath(pathname, basePath)
   ) {
     return null;
@@ -163,12 +164,12 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
           };
   const items: FanletterNewsMobileNavItem[] = [
     {
-      activePath: basePath,
+      activePath: platformPath,
       exact: true,
-      href: buildHref(basePath),
+      href: buildHref(platformPath),
       icon: Newspaper,
       key: "news",
-      label: locale === "ko" ? "뉴스 홈" : "News",
+      label: locale === "ko" ? "홈" : "Home",
     },
     {
       activePath: `${basePath}/characters`,

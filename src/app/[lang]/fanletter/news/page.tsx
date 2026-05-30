@@ -115,7 +115,7 @@ function getCopy(locale: Locale) {
         navItems: [
           "톱뉴스",
           "티저 화보",
-          "플랫폼 모델",
+          "홈",
           "팬 기자",
           "AI 캐릭터",
           "브이로그",
@@ -215,7 +215,7 @@ function getCopy(locale: Locale) {
         navItems: [
           "Top news",
           "Teaser gallery",
-          "Platform",
+          "Home",
           "Fan reporters",
           "AI characters",
           "Vlogs",
@@ -665,7 +665,6 @@ function NewsMasthead({
   galleryHref,
   locale,
   navigationBaseHref,
-  newsHomeHref,
   platformHref,
   purchasesHref,
   reportsHref,
@@ -676,7 +675,6 @@ function NewsMasthead({
   galleryHref: string;
   locale: Locale;
   navigationBaseHref: string;
-  newsHomeHref: string;
   platformHref: string;
   purchasesHref: string;
   reportsHref: string;
@@ -708,7 +706,7 @@ function NewsMasthead({
         <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-2.5 sm:pb-3">
           <Link
             className="inline-flex min-w-0 items-center gap-2 text-[1.82rem] font-black leading-none tracking-normal !text-[#111510] sm:gap-4 sm:text-[4.5rem]"
-            href={newsHomeHref}
+            href={platformHref}
           >
             <FanletterBrandMark className="size-9 sm:size-16" />
             <span className="truncate">{copy.siteName}</span>
@@ -2307,7 +2305,6 @@ export default async function LocalizedFanletterNewsHomePage({
         galleryHref={galleryHref}
         locale={locale}
         navigationBaseHref={currentNewsHref}
-        newsHomeHref={newsHomeHref}
         platformHref={platformHref}
         purchasesHref={purchasesHref}
         reportsHref={reportsHref}
