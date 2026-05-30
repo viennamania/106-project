@@ -14,6 +14,11 @@ import {
 } from "@/lib/mongodb";
 
 const LEGACY_NSFW_VIDEO_URL_PATTERN = /(?:^|[\W_])nsfw\d*(?:[\W_]|$)/i;
+const CHARACTER_DISCOVERY_COVER_BONUS_MS = 2 * 24 * 60 * 60 * 1000;
+const CHARACTER_DISCOVERY_PUBLIC_VIDEO_BONUS_MS = 2 * 24 * 60 * 60 * 1000;
+const CHARACTER_DISCOVERY_SOURCE_REVEAL_BONUS_MS = 36 * 60 * 60 * 1000;
+const CHARACTER_DISCOVERY_TEASER_BONUS_MS = 3 * 24 * 60 * 60 * 1000;
+const CHARACTER_DISCOVERY_VOLUME_BONUS_MS = 10 * 60 * 60 * 1000;
 
 export type FanletterNewsCharacterStat = {
   avatarImageUrl: string | null;
@@ -44,9 +49,105 @@ type FanletterNewsCharacterSourceRevealRow = {
   count: number;
 };
 
+type FanletterNewsCharacterStatsSort = "discovery" | "volume";
+
+type FanletterNewsCharacterStatsOptions = {
+  sort?: FanletterNewsCharacterStatsSort;
+};
+
+type HydrateFanletterNewsCharacterStatsOptions =
+  FanletterNewsCharacterStatsOptions & {
+    limit?: number;
+  };
+
+function getReportSortTime(report: FanletterNewsReportDocument) {
+  return (
+    report.sourcePublishedAt?.getTime() ??
+    report.createdAt?.getTime() ??
+    report.updatedAt?.getTime() ??
+    0
+  );
+}
+
+function getReportTeaserScore(report: FanletterNewsReportDocument) {
+  const croppedTeaserCount =
+    report.teaserImages?.filter((image) => image.source === "reporter_cropped")
+      .length ?? 0;
+
+  if (croppedTeaserCount > 0) {
+    return Math.min(1, croppedTeaserCount / 4);
+  }
+
+  const selectedTeaserCount = report.teaserImageUrls?.length ?? 0;
+
+  return selectedTeaserCount > 0 ? Math.min(0.45, selectedTeaserCount / 8) : 0;
+}
+
+function getRepresentativeDiscoveryScore(report: FanletterNewsReportDocument) {
+  return (
+    getReportSortTime(report) +
+    (report.coverImageUrl ? CHARACTER_DISCOVERY_COVER_BONUS_MS : 0) +
+    getReportTeaserScore(report) * CHARACTER_DISCOVERY_TEASER_BONUS_MS
+  );
+}
+
+function compareCharacterVolume(
+  left: FanletterNewsCharacterStat,
+  right: FanletterNewsCharacterStat,
+) {
+  return (
+    right.newsCount - left.newsCount ||
+    (right.latestReportAt?.getTime() ?? 0) -
+      (left.latestReportAt?.getTime() ?? 0)
+  );
+}
+
+function getCharacterDiscoveryScore(character: FanletterNewsCharacterStat) {
+  return (
+    (character.latestReportAt?.getTime() ?? 0) +
+    (character.representativeReport.coverImageUrl
+      ? CHARACTER_DISCOVERY_COVER_BONUS_MS
+      : 0) +
+    getReportTeaserScore(character.representativeReport) *
+      CHARACTER_DISCOVERY_TEASER_BONUS_MS +
+    Math.min(character.newsCount, 6) * CHARACTER_DISCOVERY_VOLUME_BONUS_MS +
+    Math.min(character.publicVideoCount, 3) *
+      CHARACTER_DISCOVERY_PUBLIC_VIDEO_BONUS_MS +
+    Math.min(character.sourceRevealUnlockedCount, 2) *
+      CHARACTER_DISCOVERY_SOURCE_REVEAL_BONUS_MS
+  );
+}
+
+function compareCharacterDiscovery(
+  left: FanletterNewsCharacterStat,
+  right: FanletterNewsCharacterStat,
+) {
+  const scoreDelta =
+    getCharacterDiscoveryScore(right) - getCharacterDiscoveryScore(left);
+
+  if (scoreDelta !== 0) {
+    return scoreDelta;
+  }
+
+  return compareCharacterVolume(left, right);
+}
+
+function sortFanletterNewsCharacterStats(
+  characters: FanletterNewsCharacterStat[],
+  options?: FanletterNewsCharacterStatsOptions,
+) {
+  const compare =
+    options?.sort === "discovery"
+      ? compareCharacterDiscovery
+      : compareCharacterVolume;
+
+  return [...characters].sort(compare);
+}
+
 export function getFanletterNewsCharacterStats(
   reports: FanletterNewsReportDocument[],
   limit = 8,
+  options?: FanletterNewsCharacterStatsOptions,
 ) {
   const map = new Map<string, FanletterNewsCharacterStat>();
 
@@ -80,10 +181,13 @@ export function getFanletterNewsCharacterStats(
     const existingDateTime = existing.latestReportAt?.getTime() ?? 0;
     const reportDateTime = reportDate?.getTime() ?? 0;
     const shouldUseAsRepresentative =
-      (report.coverImageUrl && !existing.representativeReport.coverImageUrl) ||
-      (report.coverImageUrl &&
-        reportDateTime > existingDateTime &&
-        Boolean(existing.representativeReport.coverImageUrl));
+      options?.sort === "discovery"
+        ? getRepresentativeDiscoveryScore(report) >
+          getRepresentativeDiscoveryScore(existing.representativeReport)
+        : (report.coverImageUrl && !existing.representativeReport.coverImageUrl) ||
+          (report.coverImageUrl &&
+            reportDateTime > existingDateTime &&
+            Boolean(existing.representativeReport.coverImageUrl));
 
     map.set(referralCode, {
       avatarImageUrl: existing.avatarImageUrl,
@@ -106,14 +210,10 @@ export function getFanletterNewsCharacterStats(
     });
   }
 
-  return Array.from(map.values())
-    .sort(
-      (left, right) =>
-        right.newsCount - left.newsCount ||
-        (right.latestReportAt?.getTime() ?? 0) -
-          (left.latestReportAt?.getTime() ?? 0),
-    )
-    .slice(0, Math.max(1, limit));
+  return sortFanletterNewsCharacterStats(Array.from(map.values()), options).slice(
+    0,
+    Math.max(1, limit),
+  );
 }
 
 function getPublishedContentLocaleFilter(
@@ -256,6 +356,7 @@ async function getFanletterNewsCharacterVideoMetrics(
 
 export async function hydrateFanletterNewsCharacterStats(
   characters: FanletterNewsCharacterStat[],
+  options?: HydrateFanletterNewsCharacterStatsOptions,
 ) {
   if (characters.length === 0) {
     return characters;
@@ -286,7 +387,7 @@ export async function hydrateFanletterNewsCharacterStats(
     profiles.map((profile) => [profile.referralCode, profile]),
   );
 
-  return characters.map((character) => {
+  const hydratedCharacters = characters.map((character) => {
     const profile = profilesByReferralCode.get(character.referralCode);
     const avatarImageUrl =
       profile?.avatarImageSet?.[0]?.url ?? profile?.avatarImageUrl ?? null;
@@ -303,4 +404,12 @@ export async function hydrateFanletterNewsCharacterStats(
         videoMetrics?.sourceRevealUnlockedCount ?? 0,
     };
   });
+
+  const sortedCharacters = options?.sort
+    ? sortFanletterNewsCharacterStats(hydratedCharacters, options)
+    : hydratedCharacters;
+
+  return options?.limit
+    ? sortedCharacters.slice(0, Math.max(1, options.limit))
+    : sortedCharacters;
 }

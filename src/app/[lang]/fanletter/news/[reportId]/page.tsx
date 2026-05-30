@@ -3541,7 +3541,12 @@ export default async function LocalizedFanletterNewsReportPage({
   );
   const selectedOtherCharacterNewsCharacters =
     await hydrateFanletterNewsCharacterStats(
-      getFanletterNewsCharacterStats(otherCharacterCandidateReports, 4),
+      getFanletterNewsCharacterStats(
+        otherCharacterCandidateReports,
+        Math.max(4, otherCharacterCandidateReports.length),
+        { sort: "discovery" },
+      ),
+      { limit: 4, sort: "discovery" },
     );
   const visibleRelatedReports = relatedReports.slice(0, relatedReportVisibleCount);
   const currentRelatedNewsItem = serializeFanletterRelatedNewsItem({
