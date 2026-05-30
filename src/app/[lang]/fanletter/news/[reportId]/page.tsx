@@ -185,7 +185,7 @@ function getCopy(locale: Locale) {
           "이 리포트는 원본 브이로그의 공개 정보와 팬 기자의 관전 포인트를 바탕으로 작성된 FanLetter AI 팬 리포트입니다. 언론사 보도가 아닌 팬 참여형 콘텐츠입니다.",
         articleSection: "연예",
         mobileActionDock: {
-          eyebrow: "다음 행동",
+          eyebrow: "원본 공개",
           joined: "참여 완료",
           pay: (amount: string) => `${amount} 원본 보기`,
           read: "기사 요약",
@@ -450,7 +450,7 @@ function getCopy(locale: Locale) {
           "This report is a FanLetter AI fan report based on public source-vlog context and the fan reporter's angle. It is fan-participation content, not newsroom coverage.",
         articleSection: "Entertainment",
         mobileActionDock: {
-          eyebrow: "Next action",
+          eyebrow: "Source access",
           joined: "Joined",
           pay: (amount: string) => `Watch for ${amount}`,
           read: "Story summary",
@@ -3710,6 +3710,18 @@ export default async function LocalizedFanletterNewsReportPage({
     : shouldShowPaidUnlockPanel
       ? heroCopy.paidReady(paidUnlockLabel)
       : accessLabel;
+  const mobileDockUnlockedPrimary =
+    shouldShowPaidUnlockPanel && paidUnlockHref
+      ? {
+          href: paidUnlockHref,
+          kind: "pay" as const,
+          label: copy.mobileActionDock.pay(paidUnlockLabel),
+        }
+      : {
+          href: sourceVlogHref,
+          kind: "watch" as const,
+          label: copy.mobileActionDock.watch,
+        };
   const reporterDisplayName =
     reporterProfile?.displayName ?? getReporterDisplayName(report);
   const shouldShowReporterTeaserCutGallery =
@@ -4198,6 +4210,9 @@ export default async function LocalizedFanletterNewsReportPage({
         shareSummary={articleDek}
         shareTitle={articleTitle}
         sourceRevealEndpoint={sourceRevealEndpoint}
+        sourceUnlockedHref={mobileDockUnlockedPrimary.href}
+        sourceUnlockedKind={mobileDockUnlockedPrimary.kind}
+        sourceUnlockedLabel={mobileDockUnlockedPrimary.label}
         statusLabel={mobileDockStatusLabel}
       />
     </main>

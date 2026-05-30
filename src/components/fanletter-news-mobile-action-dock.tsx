@@ -38,6 +38,9 @@ type FanletterNewsMobileActionDockProps = {
   shareSummary: string;
   shareTitle: string;
   sourceRevealEndpoint?: string | null;
+  sourceUnlockedHref?: string | null;
+  sourceUnlockedKind?: Extract<FanletterNewsMobileActionKind, "pay" | "watch">;
+  sourceUnlockedLabel?: string | null;
   statusLabel: string;
 };
 
@@ -88,6 +91,22 @@ function formatSourceRevealProgress(
     : `${count}/${threshold} fans joined · ${remaining} more needed`;
 }
 
+function getDockCopy(locale: Locale) {
+  return locale === "ko"
+    ? {
+        openComplete: "공개 완료",
+        progressEyebrow: "원본 공개",
+        progressShort: (count: string, threshold: string, remaining: string) =>
+          `${count}/${threshold} 참여 · ${remaining}명 남음`,
+      }
+    : {
+        openComplete: "Open",
+        progressEyebrow: "Source access",
+        progressShort: (count: string, threshold: string, remaining: string) =>
+          `${count}/${threshold} joined · ${remaining} left`,
+      };
+}
+
 export function FanletterNewsMobileActionDock({
   eyebrow,
   initialSourceRevealState = null,
@@ -101,8 +120,12 @@ export function FanletterNewsMobileActionDock({
   shareSummary,
   shareTitle,
   sourceRevealEndpoint = null,
+  sourceUnlockedHref = null,
+  sourceUnlockedKind = "watch",
+  sourceUnlockedLabel = null,
   statusLabel,
 }: FanletterNewsMobileActionDockProps) {
+  const copy = getDockCopy(locale);
   const [isVisible, setIsVisible] = useState(false);
   const [sourceRevealState, setSourceRevealState] =
     useState<FanletterNewsSourceRevealState | null>(initialSourceRevealState);
@@ -165,34 +188,105 @@ export function FanletterNewsMobileActionDock({
     return null;
   }
 
+  const sourceRevealUnlocked = Boolean(sourceRevealState?.unlocked);
+  const shouldUseUnlockedSourceAction = Boolean(
+    sourceRevealUnlocked &&
+      sourceUnlockedHref &&
+      (primaryKind === "vote" || primaryKind === "wallet"),
+  );
+  const effectivePrimaryKind = shouldUseUnlockedSourceAction
+    ? sourceUnlockedKind
+    : primaryKind;
+  const effectivePrimaryHref = shouldUseUnlockedSourceAction && sourceUnlockedHref
+    ? sourceUnlockedHref
+    : primaryHref;
   const sourceRevealVoteJoined = Boolean(
-    primaryKind === "vote" &&
+    effectivePrimaryKind === "vote" &&
       sourceRevealState?.requestedByViewer &&
       !sourceRevealState.unlocked,
   );
-  const effectivePrimaryLabel = sourceRevealVoteJoined
-    ? joinedLabel ?? primaryLabel
-    : primaryLabel;
+  const effectivePrimaryLabel = shouldUseUnlockedSourceAction
+    ? sourceUnlockedLabel ?? primaryLabel
+    : sourceRevealVoteJoined
+      ? joinedLabel ?? primaryLabel
+      : primaryLabel;
+  const progressCountLabel = sourceRevealState
+    ? formatCount(sourceRevealState.count, locale)
+    : null;
+  const progressThresholdLabel = sourceRevealState
+    ? formatCount(sourceRevealState.threshold, locale)
+    : null;
+  const progressRemainingLabel = sourceRevealState
+    ? formatCount(
+        Math.max(0, sourceRevealState.threshold - sourceRevealState.count),
+        locale,
+      )
+    : null;
+  const progressPercent =
+    sourceRevealState && sourceRevealState.threshold > 0
+      ? Math.min(
+          100,
+          Math.max(
+            0,
+            (sourceRevealState.count / sourceRevealState.threshold) * 100,
+          ),
+        )
+      : 0;
   const effectiveStatusLabel =
-    primaryKind === "vote" && sourceRevealState && !sourceRevealState.unlocked
+    sourceRevealState && !sourceRevealState.unlocked
       ? formatSourceRevealProgress(sourceRevealState, locale)
+      : sourceRevealState?.unlocked
+        ? copy.openComplete
       : statusLabel;
+  const compactStatusLabel =
+    sourceRevealState &&
+    progressCountLabel &&
+    progressThresholdLabel &&
+    progressRemainingLabel
+      ? sourceRevealState.unlocked
+        ? copy.openComplete
+        : copy.progressShort(
+            progressCountLabel,
+            progressThresholdLabel,
+            progressRemainingLabel,
+          )
+      : effectiveStatusLabel;
   const primaryActionClassName = sourceRevealVoteJoined
-    ? "inline-flex min-h-12 min-w-0 cursor-default items-center justify-center gap-2 rounded-full border border-[#44f26e]/32 bg-[#44f26e]/14 px-4 text-sm font-black !text-[#b9ffc8]"
-    : "inline-flex min-h-12 min-w-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e]";
+    ? "inline-flex min-h-[3.25rem] min-w-0 cursor-default items-center justify-center gap-2 rounded-[1.15rem] border border-[#44f26e]/34 bg-[#44f26e]/14 px-3.5 text-sm font-black !text-[#b9ffc8]"
+    : "inline-flex min-h-[3.25rem] min-w-0 items-center justify-center gap-2 rounded-[1.15rem] bg-[#44f26e] px-3.5 text-sm font-black !text-black shadow-[0_10px_28px_rgba(68,242,110,0.22)] transition hover:bg-[#69ff8c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e]";
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/12 bg-[#07100b]/96 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-2 text-white shadow-[0_-18px_44px_rgba(0,0,0,0.24)] backdrop-blur sm:hidden">
+    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#07100b]/96 px-3 pb-[calc(0.65rem+env(safe-area-inset-bottom))] pt-2.5 text-white shadow-[0_-18px_44px_rgba(0,0,0,0.24)] backdrop-blur sm:hidden">
       <div className="mx-auto max-w-md">
-        <div className="mb-2 flex min-w-0 items-center justify-between gap-3">
-          <p className="min-w-0 truncate text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
-            {eyebrow}
-          </p>
-          <p className="shrink-0 truncate text-[0.68rem] font-bold text-white/58">
-            {effectiveStatusLabel}
-          </p>
+        <div className="mb-2.5">
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <p className="min-w-0 truncate text-[0.72rem] font-black text-[#9bffad]">
+              {sourceRevealState ? copy.progressEyebrow : eyebrow}
+            </p>
+            <p className="shrink-0 truncate text-[0.72rem] font-black text-white/62">
+              {compactStatusLabel}
+            </p>
+          </div>
+          {sourceRevealState ? (
+            <div
+              aria-label={effectiveStatusLabel}
+              aria-valuemax={sourceRevealState.threshold}
+              aria-valuemin={0}
+              aria-valuenow={Math.min(
+                sourceRevealState.count,
+                sourceRevealState.threshold,
+              )}
+              className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/12"
+              role="progressbar"
+            >
+              <div
+                className="h-full rounded-full bg-[#44f26e] transition-[width]"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          ) : null}
         </div>
-        <div className="grid grid-cols-[minmax(0,1fr)_5.75rem] gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_6.35rem] gap-2">
           {sourceRevealVoteJoined ? (
             <button
               aria-disabled="true"
@@ -200,17 +294,23 @@ export function FanletterNewsMobileActionDock({
               disabled
               type="button"
             >
-              <PrimaryActionIcon className="size-4 shrink-0" kind={primaryKind} />
+              <PrimaryActionIcon
+                className="size-4 shrink-0"
+                kind={effectivePrimaryKind}
+              />
               <span className="min-w-0 truncate">{effectivePrimaryLabel}</span>
             </button>
           ) : (
-            <Link className={primaryActionClassName} href={primaryHref}>
-              <PrimaryActionIcon className="size-4 shrink-0" kind={primaryKind} />
+            <Link className={primaryActionClassName} href={effectivePrimaryHref}>
+              <PrimaryActionIcon
+                className="size-4 shrink-0"
+                kind={effectivePrimaryKind}
+              />
               <span className="min-w-0 truncate">{effectivePrimaryLabel}</span>
             </Link>
           )}
           <FanletterChannelShareButton
-            className="!h-auto min-h-12 !rounded-full !border-white/14 !bg-white/10 px-3 text-xs font-black !text-white hover:!bg-white/16"
+            className="!h-auto min-h-[3.25rem] whitespace-nowrap !rounded-[1.15rem] !border-white/14 !bg-white/10 !px-2.5 !text-[0.72rem] !font-black !text-white hover:!bg-white/16"
             href={shareHref}
             locale={locale}
             referralCode={referralCode}
