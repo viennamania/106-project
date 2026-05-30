@@ -337,7 +337,7 @@ function getCopy(locale: Locale) {
         relatedNewsClearSearch: "검색 지우기",
         relatedNewsCurrent: "현재 읽는 뉴스",
         relatedNewsDescription:
-          "현재 뉴스부터 같은 캐릭터의 리포트를 빠르게 찾아 이어 읽을 수 있습니다.",
+          "같은 캐릭터의 뉴스를 빠르게 이어 읽을 수 있습니다.",
         relatedNewsEyebrow: "캐릭터 이어보기",
         relatedNewsEmpty: "아직 이 캐릭터의 다른 뉴스가 없습니다.",
         relatedNewsError: "다른 뉴스를 불러오지 못했습니다. 다시 시도해 주세요.",
@@ -591,7 +591,7 @@ function getCopy(locale: Locale) {
         relatedNewsClearSearch: "Clear search",
         relatedNewsCurrent: "Now reading",
         relatedNewsDescription:
-          "Start with the news you are reading, then quickly find more reports from the same character.",
+          "Quickly continue with more news from the same character.",
         relatedNewsEyebrow: "Character follow-up",
         relatedNewsEmpty: "No other news from this character yet.",
         relatedNewsError: "Could not load more news. Please try again.",

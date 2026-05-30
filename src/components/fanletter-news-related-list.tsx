@@ -723,22 +723,35 @@ export function FanletterNewsRelatedList({
         </div>
         <div
           className={cn(
-            "mt-2 min-w-0 items-center gap-2 text-sm font-semibold leading-6 text-black/54",
-            isFeatureVariant ? "flex" : "hidden sm:flex",
+            "mt-2 min-w-0 text-sm font-semibold leading-6 text-black/54",
+            isFeatureVariant
+              ? "block sm:flex sm:items-center sm:gap-2"
+              : "hidden sm:flex sm:items-center sm:gap-2",
           )}
         >
           {characterName ? (
             <span
               className={cn(
-                "font-black text-black/66",
-                isFeatureVariant ? "min-w-0 truncate" : "shrink-0",
+                "hidden font-black text-black/66 sm:inline",
+                isFeatureVariant ? "sm:min-w-0 sm:truncate" : "sm:shrink-0",
               )}
             >
               {characterName}
             </span>
           ) : null}
-          {characterName ? <span className="size-1 rounded-full bg-black/22" /> : null}
-          <span className="min-w-0 truncate">{copy.description}</span>
+          {characterName ? (
+            <span className="hidden size-1 shrink-0 rounded-full bg-black/22 sm:inline-flex" />
+          ) : null}
+          <span
+            className={cn(
+              "min-w-0 [word-break:keep-all]",
+              isFeatureVariant
+                ? "line-clamp-2 text-[0.78rem] leading-5 sm:block sm:truncate sm:text-sm sm:leading-6"
+                : "truncate",
+            )}
+          >
+            {copy.description}
+          </span>
         </div>
         <form
           className="mt-3"
