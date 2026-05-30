@@ -105,7 +105,7 @@ function getCopy(locale: Locale) {
           traits: "페르소나 키워드",
         },
         cta: {
-          dailyVlogs: "브이로그 보기",
+          dailyVlogs: "원본 브이로그",
           latestNews: "최신 뉴스 읽기",
           publicVlogs: "공개 브이로그 보기",
           request: "팬 요청 남기기",
@@ -268,7 +268,7 @@ function getCopy(locale: Locale) {
           traits: "Persona keywords",
         },
         cta: {
-          dailyVlogs: "Daily vlogs",
+          dailyVlogs: "Source vlogs",
           latestNews: "Read latest news",
           publicVlogs: "Public vlogs",
           request: "Leave a fan request",
