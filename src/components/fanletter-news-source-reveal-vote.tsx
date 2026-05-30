@@ -160,13 +160,13 @@ function getCopy(locale: Locale) {
           `${amount} 원본 보기 단계가 열렸습니다`,
         unlockedTitle: "팬들이 열어낸 원본 브이로그",
         voters: {
-          label: "함께 참여한 팬",
+          label: "관심 보인 팬",
           summary: (names: string, count: string, extra: string) =>
             names
               ? Number(extra) > 0
-                ? `${names} 외 ${extra}명이 보고싶어요 참여`
-                : `${names} 보고싶어요 참여`
-              : `${count}명이 보고싶어요 참여`,
+                ? `${names} 외 ${extra}명`
+                : names
+              : `${count}명`,
         },
       }
     : {
@@ -224,13 +224,13 @@ function getCopy(locale: Locale) {
           `${amount} source unlock is open`,
         unlockedTitle: "Source vlog opened by fans",
         voters: {
-          label: "Fans joining in",
+          label: "Interested fans",
           summary: (names: string, count: string, extra: string) =>
             names
               ? Number(extra) > 0
-                ? `${names} and ${extra} more want to watch`
-                : `${names} want to watch`
-              : `${count} fans want to watch`,
+                ? `${names} and ${extra} more`
+                : names
+              : `${count} fans`,
         },
       };
 }
