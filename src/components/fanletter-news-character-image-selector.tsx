@@ -34,7 +34,7 @@ export function FanletterNewsCharacterImageSelector({
   const selectedAvatar = avatarImages[resolvedSelectedIndex] ?? null;
   const foregroundImageClassName =
     compact && channelHero
-      ? "object-contain object-center sm:object-cover sm:object-top"
+      ? "object-cover object-[center_18%] sm:object-top"
       : "object-cover object-top";
 
   const imageContent = selectedAvatar ? (
@@ -128,7 +128,7 @@ export function FanletterNewsCharacterImageSelector({
         <div
           className={
             channelHero
-              ? "relative min-h-[17.75rem] overflow-hidden sm:min-h-[18rem] lg:absolute lg:inset-0 lg:min-h-0"
+              ? "relative min-h-[20.75rem] overflow-hidden sm:min-h-[20rem] lg:absolute lg:inset-0 lg:min-h-0"
               : "relative min-h-[14.75rem] overflow-hidden sm:min-h-[16rem] lg:absolute lg:inset-0 lg:min-h-0"
           }
         >
@@ -140,7 +140,13 @@ export function FanletterNewsCharacterImageSelector({
           {generatedLabel}
         </div>
         {thumbnailStrip ? (
-          <div className="relative border-t border-white/10 bg-[#0d130e] px-2 py-2 lg:absolute lg:bottom-2 lg:left-2 lg:right-2 lg:border-t-0 lg:bg-transparent lg:p-0">
+          <div
+            className={
+              channelHero
+                ? "absolute bottom-2 left-2 right-2 border-t-0 bg-transparent p-0"
+                : "relative border-t border-white/10 bg-[#0d130e] px-2 py-2 lg:absolute lg:bottom-2 lg:left-2 lg:right-2 lg:border-t-0 lg:bg-transparent lg:p-0"
+            }
+          >
             <p className="sr-only">{galleryLabel}</p>
             {thumbnailStrip}
           </div>

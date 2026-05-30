@@ -105,7 +105,7 @@ function getCopy(locale: Locale) {
           traits: "페르소나 키워드",
         },
         cta: {
-          dailyVlogs: "일상 브이로그 보기",
+          dailyVlogs: "브이로그 보기",
           latestNews: "최신 뉴스 읽기",
           publicVlogs: "공개 브이로그 보기",
           request: "팬 요청 남기기",
@@ -126,8 +126,8 @@ function getCopy(locale: Locale) {
           unlocks: "유료 열람",
         },
         hero: {
-          eyebrow: "FanLetter News Character Channel",
-          kicker: "뉴스 전용 캐릭터 IP 채널",
+          eyebrow: "AI 캐릭터 채널",
+          kicker: "뉴스 속 주인공",
           shareSummary: (name: string) =>
             `${name}의 FanLetter News 캐릭터 채널`,
           shareTitle: (name: string) => `${name} 뉴스 캐릭터 채널`,
@@ -135,14 +135,14 @@ function getCopy(locale: Locale) {
         latest: "최신",
         news: {
           body:
-            "팬 기자들이 같은 AI 캐릭터의 일상을 각자의 관점으로 빠르게 리포트합니다. 최초 리포트와 팬 요청 기반 뉴스가 캐릭터 IP의 확장 포인트입니다.",
+            "SNS에서 읽던 뉴스 다음에 이어보기 좋은 같은 캐릭터의 리포트입니다. 팬 기자가 포착한 다른 장면과 관전 포인트를 빠르게 확인하세요.",
           fanOnly: "팬 전용 뉴스",
           fanRequestBased: "팬 요청 기반",
           firstReport: "최초 팬 리포트",
           public: "공개 뉴스",
           readCta: "뉴스 읽기",
           reporters: "참여 기자",
-          title: "뉴스 프랜차이즈",
+          title: "같은 캐릭터 뉴스",
         },
         purchases: "구매함",
         nsfwControl: {
@@ -235,7 +235,7 @@ function getCopy(locale: Locale) {
           body:
             "팬이 캐릭터의 일상을 가장 먼저 확인하는 공간입니다. 원본 오픈 진행률과 리포트 수를 함께 보며 다음에 볼 장면을 고를 수 있습니다.",
           emptyFanOnly: "표시 가능한 팬 전용 브이로그가 아직 없습니다.",
-          eyebrow: "Daily Vlog Archive",
+          eyebrow: "뉴스 속 원본 브이로그",
           fanOnlyTitle: "팬 전용 브이로그",
           publicTitle: "공개 브이로그",
           reports: "리포트",
@@ -513,18 +513,28 @@ function CharacterChannelMasthead({
   returnToNewsHref: string | null;
 }) {
   return (
-    <header className="border-b border-black/14 bg-white text-[#111510]">
-      <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-3">
+    <header className="sticky top-0 z-40 border-b border-black/10 bg-white/94 text-[#111510] shadow-[0_10px_30px_rgba(17,21,16,0.06)] backdrop-blur-xl">
+      <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between gap-3">
           <Link
-            className="inline-flex items-center text-[2.1rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[4.25rem]"
+            className="inline-flex min-w-0 items-center gap-2.5 !text-[#111510]"
             href={newsHomeHref}
           >
-            {copy.siteName}
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#111510] text-[#44f26e] shadow-[0_12px_26px_rgba(17,21,16,0.18)]">
+              <Newspaper className="size-5" />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-xl font-black leading-none tracking-normal sm:text-2xl">
+                {copy.siteName}
+              </span>
+              <span className="mt-1 block truncate text-[0.66rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+                {copy.hero.eyebrow}
+              </span>
+            </span>
           </Link>
           <div className="hidden shrink-0 items-center gap-2 sm:flex">
             <Link
-              className="inline-flex items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-black/12 bg-[#f7f9f4] px-3 text-xs font-black uppercase tracking-[0.08em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
               href={returnToNewsHref ?? charactersHref}
             >
               <ArrowLeft className="size-4 text-[#16702e]" />
@@ -532,14 +542,14 @@ function CharacterChannelMasthead({
             </Link>
             {returnToNewsHref ? (
               <Link
-                className="inline-flex items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-black/12 bg-white px-3 text-xs font-black uppercase tracking-[0.08em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
                 href={charactersHref}
               >
                 {copy.backToCharacters}
               </Link>
             ) : null}
             <Link
-              className="inline-flex items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-black/12 bg-white px-3 text-xs font-black uppercase tracking-[0.08em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
               href={purchasesHref}
             >
               <BookOpen className="size-4 text-[#16702e]" />
@@ -562,7 +572,7 @@ function MetricTile({
   value: string;
 }) {
   return (
-    <div className="min-w-0 border border-black/10 bg-white p-3 shadow-[0_12px_28px_rgba(17,21,16,0.05)]">
+    <div className="min-w-0 rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_28px_rgba(17,21,16,0.05)]">
       <div className="flex items-center justify-between gap-2">
         <p className="truncate text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/42">
           {label}
@@ -588,7 +598,7 @@ function CoverImage({
   sizes: string;
 }) {
   return (
-    <div className="relative min-h-[12rem] overflow-hidden bg-[#111510]">
+    <div className="relative min-h-[13.5rem] overflow-hidden bg-[#111510] sm:min-h-[12.75rem]">
       {imageUrl ? (
         <Image
           alt={alt}
@@ -691,7 +701,7 @@ function NewsReportCard({
   const fanRequestBased = isFanRequestBasedReport(report);
 
   return (
-    <article className="grid min-w-0 overflow-hidden border border-black/12 bg-white">
+    <article className="grid min-w-0 overflow-hidden rounded-lg border border-black/12 bg-white shadow-[0_16px_34px_rgba(17,21,16,0.07)]">
       <Link className="relative block" href={href}>
         <CoverImage
           alt=""
@@ -792,7 +802,7 @@ function ContentCard({
   const paidRevenueLabel = formatUsdtAmount(item.social.paidTotalUsdt, locale);
 
   return (
-    <article className="grid min-w-0 overflow-hidden border border-black/12 bg-white">
+    <article className="grid min-w-0 overflow-hidden rounded-lg border border-black/12 bg-white shadow-[0_16px_34px_rgba(17,21,16,0.07)]">
       <Link className="relative block" href={href}>
         <CoverImage
           alt=""
@@ -1418,7 +1428,14 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
   const newsStats = [
     { label: copy.news.public, value: newsData.publicCount },
     { label: copy.news.fanOnly, value: newsData.fanOnlyCount },
-    { label: "NSFW", value: newsData.nsfwCount },
+    ...(newsData.nsfwCount > 0
+      ? [
+          {
+            label: locale === "ko" ? "성인 전용" : "NSFW",
+            value: newsData.nsfwCount,
+          },
+        ]
+      : []),
     { label: copy.news.reporters, value: newsData.reporters.length },
   ];
   const activityRecords: CharacterActivityRecord[] = [
@@ -1471,6 +1488,29 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
     .slice(0, 6);
   const heroMoment = activityRecords[0] ?? null;
   const nsfwCopy = getFanletterNsfwCopy(locale);
+  const fanRequestSignalCount =
+    character?.growth.metrics.fanRequestCount ?? data.fanRequestPreviews.length;
+  const sameCharacterNewsSectionHref = "#fanletter-news-character-reports";
+  const heroQuickLinks = [
+    {
+      href: sameCharacterNewsSectionHref,
+      icon: <Newspaper className="size-4" />,
+      label: copy.news.title,
+      value: formatNumber(newsData.reportCount, locale),
+    },
+    {
+      href: publicVlogsHref,
+      icon: <Clapperboard className="size-4" />,
+      label: copy.vlog.publicTitle,
+      value: formatNumber(data.publicContentCount, locale),
+    },
+    {
+      href: requestHref,
+      icon: <MessageCircleHeart className="size-4" />,
+      label: locale === "ko" ? "팬 요청" : "Fan requests",
+      value: formatNumber(fanRequestSignalCount, locale),
+    },
+  ];
 
   return (
     <main className="min-h-screen bg-[#f5f6f2] pb-[calc(6rem+env(safe-area-inset-bottom))] text-[#111510] md:pb-0">
@@ -1501,7 +1541,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           ) : null}
         </div>
 
-        <section className="mt-4 overflow-hidden border border-[#111510] bg-[#111510] text-white shadow-[0_20px_54px_rgba(17,21,16,0.16)] sm:mt-0">
+        <section className="mt-4 overflow-hidden rounded-lg border border-black/12 bg-[#111510] text-white shadow-[0_24px_64px_rgba(17,21,16,0.18)] sm:mt-0">
           <div className="grid lg:grid-cols-[minmax(16rem,0.52fr)_minmax(0,1fr)]">
             <FanletterNewsCharacterImageSelector
               avatarAlt={characterName}
@@ -1511,27 +1551,48 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
               galleryLabel={copy.bible.expression}
               generatedLabel={copy.generated}
             />
-            <div className="flex min-h-full min-w-0 flex-col p-4 sm:p-6">
+            <div className="flex min-h-full min-w-0 flex-col p-4 sm:p-6 lg:p-7">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 bg-[#44f26e] px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.1em] text-black">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.1em] text-black">
                   <BadgeCheck className="size-3.5" />
                   {copy.hero.eyebrow}
                 </span>
-                <span className="inline-flex border border-white/18 px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.1em] text-white/72">
+                <span className="inline-flex rounded-full border border-white/18 bg-white/[0.06] px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.1em] text-white/72">
                   @{data.profile.referralCode}
                 </span>
               </div>
               <p className="mt-4 text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
                 {copy.hero.kicker}
               </p>
-              <h1 className="mt-2 break-words text-[2rem] font-black leading-[1.08] [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
+              <h1 className="mt-2 break-words text-[2.45rem] font-black leading-[1.02] [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                 {characterName}
               </h1>
               <p className="mt-3 line-clamp-3 max-w-2xl text-sm font-semibold leading-6 text-white/68 sm:text-base sm:leading-7">
                 {characterSummary}
               </p>
 
-              <div className="mt-4 border border-white/14 bg-white/[0.06] p-3.5 shadow-[0_18px_42px_rgba(0,0,0,0.18)] sm:p-4">
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                {heroQuickLinks.map((link) => (
+                  <Link
+                    className="group min-w-0 rounded-lg border border-white/12 bg-white/[0.06] p-2.5 !text-white transition hover:border-[#44f26e]/44 hover:bg-[#44f26e]/10 sm:p-3"
+                    href={link.href}
+                    key={link.label}
+                  >
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="text-[#44f26e]">{link.icon}</span>
+                      <ArrowRight className="size-3.5 shrink-0 text-white/30 transition group-hover:text-[#44f26e]" />
+                    </span>
+                    <span className="mt-3 block text-xl font-black leading-none sm:text-2xl">
+                      {link.value}
+                    </span>
+                    <span className="mt-1.5 line-clamp-2 text-[0.62rem] font-black uppercase leading-4 tracking-[0.08em] text-white/48 sm:text-[0.66rem]">
+                      {link.label}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+
+              <div className="mt-4 rounded-lg border border-white/14 bg-white/[0.06] p-3.5 shadow-[0_18px_42px_rgba(0,0,0,0.18)] sm:p-4">
                 <div className="flex min-w-0 gap-3">
                   <span className="mt-0.5 flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-black">
                     {heroMoment?.icon ?? <Sparkles className="size-5" />}
@@ -1566,7 +1627,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 </div>
               </div>
 
-              <div className="mt-4 border border-[#44f26e]/34 bg-[#44f26e]/10 p-3.5 sm:p-4">
+              <div className="mt-4 hidden rounded-lg border border-[#44f26e]/34 bg-[#44f26e]/10 p-3.5 sm:block sm:p-4">
                 <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -1627,7 +1688,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-3 gap-2">
+              <div className="mt-5 hidden grid-cols-3 gap-2 sm:grid">
                 {growthStats.slice(0, 3).map((stat) => (
                   <div
                     className="border border-white/12 bg-white/[0.06] p-2.5 sm:p-3"
@@ -1646,7 +1707,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 ))}
               </div>
 
-              <div className="mt-auto grid grid-cols-2 gap-2 pt-5 sm:grid-cols-[1fr_1fr_1fr_auto]">
+              <div className="mt-auto grid grid-cols-2 gap-2 pt-4 sm:grid-cols-[1fr_1fr_1fr_auto] sm:pt-5">
                 <Link
                   className="inline-flex min-h-11 items-center justify-center gap-2 bg-[#44f26e] px-4 py-2.5 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
                   href={latestNewsHref}
@@ -1669,7 +1730,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                   {copy.cta.request}
                 </Link>
                 <FanletterChannelShareButton
-                  className="h-auto min-h-11 rounded-none border-white/18 px-4 py-2.5 font-black"
+                  className="h-auto min-h-11 rounded-full border-white/18 px-4 py-2.5 font-black"
                   href={channelHref}
                   locale={locale}
                   referralCode={effectiveReferralCode}
@@ -1702,15 +1763,8 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           </div>
         ) : null}
 
-        <CharacterActivityTimeline
-          characterName={characterName}
-          copy={copy}
-          locale={locale}
-          records={activityRecords}
-        />
-
         <div className="flex flex-col">
-        <section className="order-3 mt-7 grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)]">
+        <section className="order-4 mt-7 grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)]">
           <div className="border border-black/12 bg-white p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3 border-b-2 border-[#111510] pb-3">
               <div>
@@ -1825,7 +1879,10 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           </div>
         </section>
 
-        <section className="order-2 mt-7 border-t-2 border-[#111510] pt-5">
+        <section
+          className="order-1 mt-7 scroll-mt-24 border-t-2 border-[#111510] pt-5"
+          id="fanletter-news-character-reports"
+        >
           <div className="mb-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
             <div className="min-w-0">
               <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
@@ -1833,9 +1890,12 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
               </p>
               <h2 className="mt-1 break-words text-2xl font-black leading-tight [word-break:keep-all] sm:text-3xl">
                 {locale === "ko"
-                  ? `${characterName} 뉴스 프랜차이즈`
-                  : `${characterName} news franchise`}
+                  ? `${characterName}의 다른 뉴스`
+                  : `More ${characterName} news`}
               </h2>
+              <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-black/58">
+                {copy.news.body}
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {newsStats.map((stat) => (
@@ -1878,7 +1938,16 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           )}
         </section>
 
-        <section className="order-1 mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.62fr)]">
+        <div className="order-2">
+          <CharacterActivityTimeline
+            characterName={characterName}
+            copy={copy}
+            locale={locale}
+            records={activityRecords}
+          />
+        </div>
+
+        <section className="order-3 mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.62fr)]">
           <div>
             <div className="mb-4 grid gap-3 border-b-2 border-[#111510] pb-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
               <div className="min-w-0">
@@ -2023,7 +2092,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
         </section>
 
         {newsData.reporters.length > 0 ? (
-          <section className="order-4 mt-7 border-t-2 border-[#111510] pt-5">
+          <section className="order-5 mt-7 border-t-2 border-[#111510] pt-5">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
@@ -2050,7 +2119,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
         ) : null}
 
         {nsfwBlurredCount > 0 && !nsfwOptInEnabled ? (
-          <p className="order-5 mt-5 text-xs font-semibold text-black/42">
+          <p className="order-6 mt-5 text-xs font-semibold text-black/42">
             {nsfwCopy.badge}:{" "}
             {copy.nsfwControl.hiddenCountText(
               formatNumber(nsfwBlurredCount, locale),
