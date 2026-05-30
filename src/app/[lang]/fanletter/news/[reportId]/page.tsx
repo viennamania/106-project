@@ -1338,6 +1338,31 @@ function FanletterNewsShareLandingHero({
               <Newspaper className="size-3.5" />
               {copy.siteName}
             </span>
+            <Link
+              className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-white/16 bg-white/12 px-2.5 py-1.5 !text-white transition hover:border-[#44f26e]/50 hover:bg-white/18"
+              href={creatorHref}
+            >
+              {titleCharacterImageUrl ? (
+                <span className="relative size-5 shrink-0 overflow-hidden rounded-full border border-white/20 bg-black">
+                  <Image
+                    alt=""
+                    aria-hidden="true"
+                    className={`object-cover object-center ${
+                      blurred ? "blur-sm brightness-[0.78]" : ""
+                    }`}
+                    fill
+                    sizes="1.25rem"
+                    src={titleCharacterImageUrl}
+                    unoptimized={shouldBypassCharacterImageOptimization}
+                  />
+                </span>
+              ) : (
+                <BadgeCheck className="size-3.5 shrink-0 text-[#9bffad]" />
+              )}
+              <span className="min-w-0 max-w-[11rem] truncate">
+                {characterDisplayName}
+              </span>
+            </Link>
             <span className="inline-flex items-center rounded-full border border-white/14 bg-white/10 px-3 py-1.5">
               {accessLabel}
             </span>
@@ -1376,26 +1401,39 @@ function FanletterNewsShareLandingHero({
               </p>
             </div>
             <Link
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/10 px-4 text-sm font-black !text-white transition hover:bg-white/16 sm:min-w-40"
+              className="group grid min-h-16 grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-white/16 bg-white/10 px-3 py-2.5 text-left !text-white transition hover:border-[#44f26e]/44 hover:bg-white/16 sm:min-w-64"
               href={creatorHref}
             >
               {titleCharacterImageUrl ? (
-                <span className="relative size-6 shrink-0 overflow-hidden rounded-full bg-black">
+                <span className="relative size-12 shrink-0 overflow-hidden rounded-full border border-white/20 bg-black shadow-[0_10px_24px_rgba(0,0,0,0.24)]">
                   <Image
                     alt=""
                     aria-hidden="true"
-                    className={`object-cover ${blurred ? "blur-sm" : ""}`}
+                    className={`object-cover object-center transition duration-300 group-hover:scale-[1.04] ${
+                      blurred ? "blur-sm brightness-[0.78]" : ""
+                    }`}
                     fill
-                    sizes="1.5rem"
+                    sizes="3rem"
                     src={titleCharacterImageUrl}
                     unoptimized={shouldBypassCharacterImageOptimization}
                   />
                 </span>
               ) : (
-                <BadgeCheck className="size-4 text-[#9bffad]" />
+                <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-full border border-white/20 bg-black/44 text-[#9bffad]">
+                  <BadgeCheck className="size-5" />
+                </span>
               )}
-              <span className="min-w-0 truncate">{heroCopy.characterCta}</span>
-              <ArrowUpRight className="size-4 shrink-0 text-white/58" />
+              <span className="min-w-0">
+                <span className="block text-[0.64rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
+                  {heroCopy.characterCta}
+                </span>
+                <span className="mt-0.5 block truncate text-base font-black leading-tight">
+                  {characterDisplayName}
+                </span>
+              </span>
+              <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/10 text-white/68 transition group-hover:bg-[#44f26e] group-hover:text-black">
+                <ArrowUpRight className="size-4" />
+              </span>
             </Link>
           </div>
 
@@ -1437,9 +1475,24 @@ function FanletterNewsShareLandingHero({
           </div>
 
           <Link
-            className="mt-4 inline-flex max-w-full items-center gap-2 text-sm font-black !text-white/76 transition hover:!text-white"
+            className="mt-4 inline-flex max-w-full items-center gap-2 rounded-full border border-white/12 bg-white/8 px-2.5 py-2 text-sm font-black !text-white/78 transition hover:border-[#44f26e]/36 hover:bg-white/14 hover:!text-white"
             href={creatorHref}
           >
+            {titleCharacterImageUrl ? (
+              <span className="relative size-7 shrink-0 overflow-hidden rounded-full bg-black">
+                <Image
+                  alt=""
+                  aria-hidden="true"
+                  className={`object-cover object-center ${
+                    blurred ? "blur-sm brightness-[0.78]" : ""
+                  }`}
+                  fill
+                  sizes="1.75rem"
+                  src={titleCharacterImageUrl}
+                  unoptimized={shouldBypassCharacterImageOptimization}
+                />
+              </span>
+            ) : null}
             <span className="min-w-0 truncate">{characterDisplayName}</span>
             <ArrowUpRight className="size-4 shrink-0" />
           </Link>
