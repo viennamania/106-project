@@ -1346,31 +1346,6 @@ function FanletterNewsShareLandingHero({
               <Newspaper className="size-3.5" />
               {copy.siteName}
             </span>
-            <Link
-              className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full border border-white/16 bg-white/12 px-2.5 py-1.5 !text-white transition hover:border-[#44f26e]/50 hover:bg-white/18"
-              href={creatorHref}
-            >
-              {titleCharacterImageUrl ? (
-                <span className="relative size-5 shrink-0 overflow-hidden rounded-full border border-white/20 bg-black">
-                  <Image
-                    alt=""
-                    aria-hidden="true"
-                    className={`object-cover object-center ${
-                      blurred ? "blur-sm brightness-[0.78]" : ""
-                    }`}
-                    fill
-                    sizes="1.25rem"
-                    src={titleCharacterImageUrl}
-                    unoptimized={shouldBypassCharacterImageOptimization}
-                  />
-                </span>
-              ) : (
-                <BadgeCheck className="size-3.5 shrink-0 text-[#9bffad]" />
-              )}
-              <span className="min-w-0 max-w-[11rem] truncate">
-                {characterDisplayName}
-              </span>
-            </Link>
             <span className="inline-flex items-center rounded-full border border-white/14 bg-white/10 px-3 py-1.5">
               {accessLabel}
             </span>
@@ -1482,28 +1457,6 @@ function FanletterNewsShareLandingHero({
             />
           </div>
 
-          <Link
-            className="mt-4 inline-flex max-w-full items-center gap-2 rounded-full border border-white/12 bg-white/8 px-2.5 py-2 text-sm font-black !text-white/78 transition hover:border-[#44f26e]/36 hover:bg-white/14 hover:!text-white"
-            href={creatorHref}
-          >
-            {titleCharacterImageUrl ? (
-              <span className="relative size-7 shrink-0 overflow-hidden rounded-full bg-black">
-                <Image
-                  alt=""
-                  aria-hidden="true"
-                  className={`object-cover object-center ${
-                    blurred ? "blur-sm brightness-[0.78]" : ""
-                  }`}
-                  fill
-                  sizes="1.75rem"
-                  src={titleCharacterImageUrl}
-                  unoptimized={shouldBypassCharacterImageOptimization}
-                />
-              </span>
-            ) : null}
-            <span className="min-w-0 truncate">{characterDisplayName}</span>
-            <ArrowUpRight className="size-4 shrink-0" />
-          </Link>
         </div>
       </div>
     </section>
