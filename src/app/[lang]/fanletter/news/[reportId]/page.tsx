@@ -1300,6 +1300,8 @@ function FanletterNewsShareLandingHero({
   previewVideoUrl,
   referralCode,
   reporterName,
+  heroTeaserImageUrls,
+  heroTeaserUsesReporterCuts,
   shareHref,
   sourceImageUrl,
   sourceReveal,
@@ -1324,6 +1326,8 @@ function FanletterNewsShareLandingHero({
   previewVideoUrl: string | null;
   referralCode: string | null;
   reporterName: string;
+  heroTeaserImageUrls: string[];
+  heroTeaserUsesReporterCuts: boolean;
   shareHref: string;
   sourceImageUrl: string | null;
   sourceReveal: SourceVlogRevealGateState | null;
@@ -1382,6 +1386,31 @@ function FanletterNewsShareLandingHero({
   const shouldBypassCharacterImageOptimization = titleCharacterImageUrl
     ? shouldBypassFanletterImageOptimization(titleCharacterImageUrl)
     : false;
+  const visibleHeroTeaserImageUrls = getUniqueTrimmedImageUrls([
+    ...heroTeaserImageUrls,
+    sourceImageUrl,
+  ]).slice(0, 4);
+  const showHeroVideoPreview =
+    visibleHeroTeaserImageUrls.length === 0 && Boolean(previewVideoUrl);
+  const showHeroTeaserPreview =
+    visibleHeroTeaserImageUrls.length > 0 || showHeroVideoPreview;
+  const heroTeaserGridClass =
+    visibleHeroTeaserImageUrls.length === 1 ? "grid-cols-1" : "grid-cols-2";
+  const heroTeaserImageClass =
+    visibleHeroTeaserImageUrls.length === 1 ? "aspect-[16/10]" : "aspect-[4/5]";
+  const heroTeaserEyebrow = heroTeaserUsesReporterCuts
+    ? copy.reportTeaserGallery.eyebrow
+    : visibleHeroTeaserImageUrls.length > 0
+      ? copy.sourceTeaserGallery.eyebrow
+      : accessLabel;
+  const heroTeaserTitle = heroTeaserUsesReporterCuts
+    ? copy.reportTeaserGallery.title
+    : visibleHeroTeaserImageUrls.length > 0
+      ? copy.reportTeaserGallery.selectedTitle
+      : copy.embeddedTitle;
+  const heroTeaserItemLabel = heroTeaserUsesReporterCuts
+    ? copy.reportTeaserGallery.itemLabel
+    : copy.reportTeaserGallery.selectedItemLabel;
 
   return (
     <section className="relative isolate mb-5 overflow-hidden border border-black/12 bg-[#07100b] text-white shadow-[0_18px_50px_rgba(17,21,16,0.12)] sm:mb-7">
@@ -1430,7 +1459,7 @@ function FanletterNewsShareLandingHero({
       <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,6,0.42)_0%,rgba(5,8,6,0.64)_44%,rgba(5,8,6,0.95)_100%)] sm:bg-[linear-gradient(90deg,rgba(5,8,6,0.94)_0%,rgba(5,8,6,0.76)_43%,rgba(5,8,6,0.3)_70%,rgba(5,8,6,0.74)_100%)]" />
       <div className="absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(5,8,6,0.14)_0%,rgba(5,8,6,0.16)_48%,rgba(5,8,6,0.88)_100%)] sm:block" />
       <div className="absolute inset-x-0 bottom-0 h-28 bg-[linear-gradient(180deg,rgba(238,241,236,0)_0%,rgba(238,241,236,0.12)_100%)]" />
-      <div className="relative z-10 flex min-h-[25rem] flex-col justify-end p-4 sm:min-h-[29rem] sm:p-6 lg:min-h-[31rem] lg:p-8">
+      <div className="relative z-10 grid min-h-[25rem] content-end gap-6 p-4 sm:min-h-[29rem] sm:p-6 lg:min-h-[31rem] lg:p-8 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,24rem)] xl:items-end">
         <div className="max-w-4xl">
           <div className="flex flex-wrap items-center gap-2 text-[0.72rem] font-black text-white/82 sm:text-xs">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[#44f26e]/34 bg-[#44f26e]/14 px-3 py-1.5 text-[#9bffad]">
@@ -1549,6 +1578,66 @@ function FanletterNewsShareLandingHero({
           </div>
 
         </div>
+        {showHeroTeaserPreview ? (
+          <aside className="hidden overflow-hidden rounded-lg border border-white/14 bg-black/44 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.28)] backdrop-blur-xl xl:block">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#9bffad]">
+                  <Clapperboard className="size-3.5" />
+                  {heroTeaserEyebrow}
+                </p>
+                <h2 className="mt-1.5 text-xl font-black leading-tight tracking-normal [word-break:keep-all]">
+                  {heroTeaserTitle}
+                </h2>
+              </div>
+              <span className="shrink-0 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/12 px-2.5 py-1 text-[0.62rem] font-black text-[#b9ffc8]">
+                {showHeroVideoPreview
+                  ? copy.embeddedPreviewBadge
+                  : formatNumber(visibleHeroTeaserImageUrls.length, locale)}
+              </span>
+            </div>
+            {visibleHeroTeaserImageUrls.length > 0 ? (
+              <div className={`mt-3 grid ${heroTeaserGridClass} gap-2`}>
+                {visibleHeroTeaserImageUrls.map((imageUrl, index) => (
+                  <div
+                    className={`group relative overflow-hidden rounded-md border border-white/10 bg-[#111510] ${heroTeaserImageClass}`}
+                    key={`${imageUrl}-${index}`}
+                  >
+                    <Image
+                      alt=""
+                      aria-hidden="true"
+                      className={`object-cover transition duration-500 group-hover:scale-[1.04] ${
+                        blurred ? "blur-sm brightness-[0.74]" : ""
+                      }`}
+                      fill
+                      sizes="12rem"
+                      src={imageUrl}
+                      unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+                    />
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.48)_100%)]" />
+                    <span className="absolute bottom-2 left-2 rounded-full bg-black/72 px-2.5 py-1 text-[0.58rem] font-black text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)]">
+                      {heroTeaserItemLabel(formatNumber(index + 1, locale))}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : previewVideoUrl ? (
+              <div className="relative mt-3 aspect-[16/10] overflow-hidden rounded-md border border-white/10 bg-[#111510]">
+                <FanletterAutoplayVideo
+                  ariaHidden
+                  className={`h-full w-full object-cover ${
+                    blurred ? "blur-sm brightness-[0.74]" : ""
+                  }`}
+                  src={previewVideoUrl}
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.5)_100%)]" />
+                <span className="absolute bottom-2 left-2 rounded-full bg-black/72 px-2.5 py-1 text-[0.58rem] font-black text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)]">
+                  {copy.embeddedPreviewMeta}
+                </span>
+              </div>
+            ) : null}
+          </aside>
+        ) : null}
       </div>
     </section>
   );
@@ -2612,6 +2701,30 @@ function getUniqueTrimmedImageUrls(values: Array<string | null | undefined>) {
   ];
 }
 
+function getReporterEditedTeaserImageUrls(report: FanletterNewsReportDocument) {
+  return getUniqueTrimmedImageUrls(
+    (report.teaserImages ?? [])
+      .filter(
+        (image) =>
+          image.source === "reporter_cropped" &&
+          image.crop &&
+          image.imageUrl.trim() &&
+          image.imageUrl.trim() !== image.sourceImageUrl.trim(),
+      )
+      .map((image) => image.imageUrl),
+  );
+}
+
+function getPublicTeaserImageUrls(report: FanletterNewsReportDocument) {
+  return getUniqueTrimmedImageUrls([
+    ...(report.teaserImages ?? [])
+      .filter((image) => image.source !== "reporter_cropped")
+      .map((image) => image.imageUrl),
+    ...(report.teaserImageUrls ?? []),
+    report.coverImageUrl,
+  ]);
+}
+
 function ReporterTeaserCutGallery({
   accessLabel,
   blurred,
@@ -2629,24 +2742,8 @@ function ReporterTeaserCutGallery({
   shouldShowTeaserCuts: boolean;
   sourceContent: FanletterPublicContentDetail | null;
 }) {
-  const teaserImages = report.teaserImages ?? [];
-  const reporterEditedImageUrls = getUniqueTrimmedImageUrls(
-    teaserImages
-      .filter(
-        (image) =>
-          image.source === "reporter_cropped" &&
-          image.crop &&
-          image.imageUrl.trim() &&
-          image.imageUrl.trim() !== image.sourceImageUrl.trim(),
-      )
-      .map((image) => image.imageUrl),
-  );
-  const selectedPublicImageUrls = getUniqueTrimmedImageUrls([
-    ...teaserImages
-      .filter((image) => image.source !== "reporter_cropped")
-      .map((image) => image.imageUrl),
-    ...(report.teaserImageUrls ?? []),
-  ]);
+  const reporterEditedImageUrls = getReporterEditedTeaserImageUrls(report);
+  const selectedPublicImageUrls = getPublicTeaserImageUrls(report);
   const featuredImageUrl =
     report.coverImageUrl ??
     selectedPublicImageUrls[0] ??
@@ -3728,6 +3825,11 @@ export default async function LocalizedFanletterNewsReportPage({
     reporterProfile?.displayName ?? getReporterDisplayName(report);
   const shouldShowReporterTeaserCutGallery =
     sourceReveal?.unlocked !== true || !canViewerOpenSourceContent;
+  const reporterEditedTeaserImageUrls = getReporterEditedTeaserImageUrls(report);
+  const heroTeaserImageUrls =
+    reporterEditedTeaserImageUrls.length > 0
+      ? reporterEditedTeaserImageUrls
+      : getPublicTeaserImageUrls(report);
   const mobileCharacterFollowupSectionId =
     "fanletter-news-character-followup";
   const headerCharacterName = characterName ?? report.creatorName;
@@ -3871,6 +3973,8 @@ export default async function LocalizedFanletterNewsReportPage({
           previewVideoUrl={landingHeroPreviewVideoUrl}
           referralCode={referralCode}
           reporterName={reporterDisplayName}
+          heroTeaserImageUrls={heroTeaserImageUrls}
+          heroTeaserUsesReporterCuts={reporterEditedTeaserImageUrls.length > 0}
           shareHref={articleHref}
           sourceImageUrl={landingHeroImageUrl}
           sourceReveal={sourceReveal}
@@ -3880,45 +3984,29 @@ export default async function LocalizedFanletterNewsReportPage({
           walletConnectHref={newsConnectHref}
         />
 
-        <div
-          className={
-            shouldShowOtherCharacterNews
-              ? "mb-5 hidden gap-5 sm:mb-7 md:grid xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start"
-              : "mb-5 hidden max-w-[68rem] sm:mb-7 md:block"
-          }
-          id="fanletter-news-discovery"
-        >
-          <div className="min-w-0 space-y-3">
-            <FanletterNewsRelatedList
-              key={`feature-${relatedNewsApiHref}-${relatedNewsOffset}`}
-              {...relatedNewsListProps}
-              variant="feature"
-            />
-            <CharacterPersonaBridge
-              blurred={shouldBlurCurrentReport}
-              copy={copy}
-              creatorHref={creatorHref}
-              creatorReferralCode={creatorReferralCode}
-              followFallbackHref={paidUnlockOnboardingHref}
-              imageUrl={titleCharacterThumbnailUrl}
-              locale={locale}
-              name={characterName}
-            />
-          </div>
-          {shouldShowOtherCharacterNews ? (
-            <div className="hidden xl:block">
-              <FanletterNewsOtherCharacterNews
-                characters={selectedOtherCharacterNewsCharacters}
-                copy={copy}
-                locale={locale}
-                referralCode={referralCode}
-              />
-            </div>
-          ) : null}
-        </div>
-
         <div className="grid gap-5 sm:gap-7 xl:grid-cols-[minmax(0,1fr)_22.5rem] xl:items-start">
           <div className="min-w-0">
+            <div
+              className="mb-5 hidden max-w-[68rem] scroll-mt-24 space-y-3 sm:mb-7 md:block"
+              id="fanletter-news-discovery"
+            >
+              <FanletterNewsRelatedList
+                key={`feature-${relatedNewsApiHref}-${relatedNewsOffset}`}
+                {...relatedNewsListProps}
+                variant="feature"
+              />
+              <CharacterPersonaBridge
+                blurred={shouldBlurCurrentReport}
+                copy={copy}
+                creatorHref={creatorHref}
+                creatorReferralCode={creatorReferralCode}
+                followFallbackHref={paidUnlockOnboardingHref}
+                imageUrl={titleCharacterThumbnailUrl}
+                locale={locale}
+                name={characterName}
+              />
+            </div>
+
             <header className="overflow-hidden border border-black/12 bg-white shadow-none sm:shadow-[0_20px_56px_rgba(17,21,16,0.08)]">
               <div className="border-b-2 border-[#111510] bg-[#111510] px-3 py-2 sm:px-6 sm:py-3 lg:px-5 lg:py-2.5">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-white/58 sm:gap-y-2 sm:text-[0.68rem] sm:tracking-[0.12em]">
@@ -4174,7 +4262,15 @@ export default async function LocalizedFanletterNewsReportPage({
 
           </div>
 
-          <aside className="hidden space-y-4 xl:sticky xl:top-5 xl:block">
+          <aside className="hidden space-y-4 xl:block">
+            {shouldShowOtherCharacterNews ? (
+              <FanletterNewsOtherCharacterNews
+                characters={selectedOtherCharacterNewsCharacters}
+                copy={copy}
+                locale={locale}
+                referralCode={referralCode}
+              />
+            ) : null}
             <FanletterNewsWalletSidebarCard
               body={copy.walletConnect.body}
               eyebrow={copy.walletConnect.eyebrow}
