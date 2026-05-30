@@ -195,6 +195,7 @@ function getCopy(locale: Locale) {
         },
         newsHeader: {
           character: "캐릭터",
+          channel: "채널",
           characterNews: "캐릭터 뉴스",
           characterPrefix: "캐릭터",
           home: "뉴스 홈",
@@ -460,6 +461,7 @@ function getCopy(locale: Locale) {
         },
         newsHeader: {
           character: "Character",
+          channel: "Channel",
           characterNews: "Character news",
           characterPrefix: "Character",
           home: "News home",
@@ -3767,7 +3769,7 @@ export default async function LocalizedFanletterNewsReportPage({
     {
       href: creatorHref,
       icon: <Users className="size-4" />,
-      label: headerCharacterDisplayName,
+      label: copy.newsHeader.channel,
     },
   ];
   const navLinks = [
