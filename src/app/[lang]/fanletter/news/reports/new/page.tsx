@@ -227,33 +227,33 @@ export default async function LocalizedFanletterNewsReportNewPage({
 
   if (!session || !data.member) {
     return (
-      <main className="min-h-screen bg-[#f2f4ef] px-4 py-6 text-[#111510] sm:px-6 lg:px-8">
+      <main className="min-h-screen bg-[#f2f4ef] px-4 pb-28 pt-5 text-[#111510] sm:px-6 sm:py-6 lg:px-8">
         <FanletterNewsReportsSessionBridge
           hasServerSession={Boolean(session)}
           locale={locale}
           serverSessionEmail={session?.email ?? null}
           serverSessionWalletAddress={session?.walletAddress ?? null}
         />
-        <section className="mx-auto max-w-3xl border border-black/12 bg-white p-6 shadow-[0_18px_46px_rgba(17,21,16,0.08)] sm:p-8">
+        <section className="mx-auto max-w-3xl border border-black/12 bg-white p-5 shadow-[0_18px_46px_rgba(17,21,16,0.08)] sm:p-8">
           <p className="inline-flex size-11 items-center justify-center rounded-full bg-[#111510] text-[#44f26e]">
             <WalletCards className="size-5" />
           </p>
-          <h1 className="mt-4 text-3xl font-black tracking-normal [word-break:keep-all]">
+          <h1 className="mt-4 text-[2rem] font-black leading-tight tracking-normal [word-break:keep-all] sm:text-3xl">
             {copy.connectTitle}
           </h1>
           <p className="mt-2 text-sm font-semibold leading-6 text-black/58">
             {copy.connectBody}
           </p>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Link
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black sm:h-11 sm:w-auto"
               href={connectHref}
             >
               {copy.connectCta}
               <ArrowRight className="size-4 text-[#44f26e]" />
             </Link>
             <Link
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f6f8f4] px-5 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f6f8f4] px-5 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:h-11 sm:w-auto"
               href={reportsHref}
             >
               <Newspaper className="size-4 text-[#16702e]" />

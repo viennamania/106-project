@@ -318,6 +318,7 @@ function getCopy(locale: Locale) {
         myReportFilterUnreported: "미작성",
         myReportUnwritten: "미작성",
         myReportWritten: "내가 작성함",
+        mobileFilters: "필터/정렬",
         existing: "이미 작성함",
         existingBody:
           "이미 이 브이로그로 작성한 리포트가 있습니다. 본문과 구조 수정은 편집 페이지에서 진행하세요.",
@@ -590,6 +591,7 @@ function getCopy(locale: Locale) {
         myReportFilterUnreported: "Not reported",
         myReportUnwritten: "Not reported",
         myReportWritten: "Reported by me",
+        mobileFilters: "Filters/sort",
         existing: "Already reported",
         existingBody:
           "You already created a report for this vlog. Edit the story text and structure on the dedicated edit page.",
@@ -2262,7 +2264,7 @@ export function FanletterNewsReportComposerPage({
       window.setTimeout(() => {
         teaserCropFrameRef.current?.scrollIntoView({
           behavior: "smooth",
-          block: "center",
+          block: "start",
         });
       }, 0);
     },
@@ -2863,7 +2865,7 @@ export function FanletterNewsReportComposerPage({
     teaserMode === "manual" &&
     activeTeaserEditorSourceUrl ? (
       <div
-        className="mt-4 rounded-xl border border-[#16702e]/24 bg-[#111510] p-3 text-white shadow-[0_18px_36px_rgba(17,21,16,0.16)] sm:p-4"
+        className="mt-4 scroll-mt-20 rounded-xl border border-[#16702e]/24 bg-[#111510] p-3 text-white shadow-[0_18px_36px_rgba(17,21,16,0.16)] sm:p-4"
         id="fanletter-news-report-teaser-crop"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -2886,7 +2888,7 @@ export function FanletterNewsReportComposerPage({
         <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,13rem)_minmax(0,1fr)] lg:items-center">
           <div className="min-w-0">
             <div
-              className="relative mx-auto aspect-[9/16] w-full max-w-[13rem] cursor-grab touch-none overflow-hidden border border-white/12 bg-black/40 active:cursor-grabbing"
+              className="relative mx-auto aspect-[9/16] w-full max-w-[17rem] cursor-grab touch-none overflow-hidden border border-white/12 bg-black/40 active:cursor-grabbing lg:max-w-[13rem]"
               onPointerCancel={handleCropPointerEnd}
               onPointerDown={handleTeaserCropPointerDown}
               onPointerMove={handleCropPointerMove}
@@ -3037,7 +3039,7 @@ export function FanletterNewsReportComposerPage({
 
   const searchControls = (
     <form
-      className="mb-3 border border-black/10 bg-[#f6f8f4] p-3"
+      className="mb-2 border border-black/10 bg-[#f6f8f4] p-2.5 sm:mb-3 sm:p-3"
       onSubmit={submitSearch}
       role="search"
     >
@@ -3071,7 +3073,7 @@ export function FanletterNewsReportComposerPage({
         </button>
       </div>
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-black/45">
-        <p>
+        <p className={cn("min-w-0", !searchQuery && "hidden sm:block")}>
           {searchQuery
             ? `${copy.searchActive}: ${searchQuery}`
             : copy.searchHelper}
@@ -3086,7 +3088,7 @@ export function FanletterNewsReportComposerPage({
           </Link>
         ) : null}
       </div>
-      <div className="mt-3 flex flex-col gap-3 rounded-xl border border-black/10 bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-2 flex flex-col gap-2 rounded-xl border border-black/10 bg-white px-3 py-2.5 sm:mt-3 sm:flex-row sm:items-center sm:justify-between sm:py-3">
         <div className="min-w-0">
           <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#111510]">
             <ShieldAlert
@@ -3107,7 +3109,7 @@ export function FanletterNewsReportComposerPage({
               {includeNsfw ? copy.nsfwIncluded : copy.nsfwExcluded}
             </span>
           </p>
-          <p className="mt-1 text-[0.72rem] font-semibold leading-5 text-black/48">
+          <p className="mt-1 hidden text-[0.72rem] font-semibold leading-5 text-black/48 sm:block">
             {includeNsfw ? copy.nsfwIncludedBody : copy.nsfwExcludedBody}
           </p>
         </div>
@@ -3123,14 +3125,14 @@ export function FanletterNewsReportComposerPage({
           {includeNsfw ? copy.nsfwTurnOff : copy.nsfwTurnOn}
         </Link>
       </div>
-      <div className="mt-3 rounded-xl border border-black/10 bg-white px-3 py-3">
+      <div className="mt-2 rounded-xl border border-black/10 bg-white px-3 py-2.5 sm:mt-3 sm:py-3">
         <div className="flex flex-col gap-3">
           <div className="min-w-0">
             <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#111510]">
               <FileText className="size-4 text-[#16702e]" />
               {copy.myReportFilterLabel}
             </p>
-            <p className="mt-1 text-[0.72rem] font-semibold leading-5 text-black/48">
+            <p className="mt-1 hidden text-[0.72rem] font-semibold leading-5 text-black/48 sm:block">
               {copy.myReportFilterBody}
             </p>
           </div>
@@ -3160,20 +3162,20 @@ export function FanletterNewsReportComposerPage({
           </div>
         </div>
       </div>
-      <div className="mt-3 rounded-xl border border-[#19b84b]/18 bg-[#ecfff0] px-3 py-3">
+      <div className="mt-2 rounded-xl border border-[#19b84b]/18 bg-[#ecfff0] px-3 py-2.5 sm:mt-3 sm:py-3">
         <div className="flex flex-col gap-3">
           <div className="min-w-0">
             <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#111510]">
               <Sparkles className="size-4 text-[#16702e]" />
               {copy.sourceReveal.filterLabel}
             </p>
-            <p className="mt-1 text-[0.72rem] font-semibold leading-5 text-black/52">
+            <p className="mt-1 hidden text-[0.72rem] font-semibold leading-5 text-black/52 sm:block">
               {copy.sourceReveal.filterBody}
             </p>
           </div>
           <div
             aria-label={copy.sourceReveal.filterLabel}
-            className="grid grid-cols-2 gap-1.5 sm:grid-cols-3"
+            className="grid grid-cols-3 gap-1.5"
             role="group"
           >
             {sourceRevealFilterOptions.map((option) => {
@@ -3182,7 +3184,7 @@ export function FanletterNewsReportComposerPage({
               return (
                 <Link
                   className={cn(
-                    "inline-flex min-h-9 items-center justify-between gap-2 rounded-full border px-2.5 text-[0.64rem] font-black transition",
+                    "inline-flex min-h-8 items-center justify-between gap-1 rounded-full border px-2 text-[0.6rem] font-black transition sm:min-h-9 sm:gap-2 sm:px-2.5 sm:text-[0.64rem]",
                     isActive
                       ? "border-[#111510] bg-[#111510] !text-white shadow-[0_6px_14px_rgba(17,21,16,0.12)]"
                       : "border-[#19b84b]/16 bg-white !text-black/54 hover:border-[#19b84b]/40 hover:!text-[#111510]",
@@ -3205,7 +3207,7 @@ export function FanletterNewsReportComposerPage({
           </div>
         </div>
       </div>
-      <div className="mt-3 rounded-xl border border-black/10 bg-white px-3 py-3">
+      <div className="mt-2 rounded-xl border border-black/10 bg-white px-3 py-2.5 sm:mt-3 sm:py-3">
         <div className="flex flex-col gap-3">
           <p className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-black text-[#111510]">
             <RefreshCw className="size-4 text-[#16702e]" />
@@ -3277,20 +3279,20 @@ export function FanletterNewsReportComposerPage({
           {copy.toReports}
         </Link>
 
-        <section className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
-          <div className="border border-black/12 bg-white p-5 shadow-[0_18px_46px_rgba(17,21,16,0.07)] sm:p-7">
+        <section className="mt-3 grid gap-4 lg:mt-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+          <div className="border border-black/12 bg-white p-4 shadow-[0_18px_46px_rgba(17,21,16,0.07)] sm:p-7">
             <p className="inline-flex items-center gap-1.5 border border-[#16702e]/20 bg-[#f6f8f4] px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
               <Newspaper className="size-3.5" />
               FanLetter News Reporter
             </p>
-            <h1 className="mt-4 max-w-3xl text-[2rem] font-black leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
+            <h1 className="mt-3 max-w-3xl text-[1.72rem] font-black leading-[1.08] tracking-normal [word-break:keep-all] sm:mt-4 sm:text-[3rem] lg:text-[3.25rem]">
               {copy.title}
             </h1>
-            <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-black/60 sm:text-base sm:leading-7">
+            <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-black/60 sm:mt-4 sm:text-base sm:leading-7">
               {copy.lead}
             </p>
           </div>
-          <aside className="border border-[#16702e]/18 bg-[#111510] p-5 text-white shadow-[0_18px_46px_rgba(17,21,16,0.16)]">
+          <aside className="hidden border border-[#16702e]/18 bg-[#111510] p-5 text-white shadow-[0_18px_46px_rgba(17,21,16,0.16)] lg:block">
             <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
               <ImageIcon className="size-3.5" />
               {copy.mediaAccess.teaserReady}
@@ -3304,7 +3306,7 @@ export function FanletterNewsReportComposerPage({
           </aside>
         </section>
 
-        <section className="mt-4 grid gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
+        <section className="mt-3 grid gap-4 lg:mt-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
           <div className="border border-black/12 bg-white p-3 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-4">
             {searchControls}
             <div className="flex items-center justify-between gap-3 px-1 pb-3">
@@ -3324,7 +3326,7 @@ export function FanletterNewsReportComposerPage({
                   : formatNumber(displayedSources.length, locale)}
               </span>
             </div>
-            <div className="grid max-h-[42rem] gap-2 overflow-y-auto pr-1">
+            <div className="grid gap-2 lg:max-h-[42rem] lg:overflow-y-auto lg:pr-1">
               {paginatedSources.map((source) => {
                 const isSelected = source.contentId === selectedContentId;
                 const isBlocked = isSourceExclusiveBlockedForReporter({
@@ -3349,7 +3351,7 @@ export function FanletterNewsReportComposerPage({
                 return (
                   <button
                     className={cn(
-                      "group grid grid-cols-[5.25rem_minmax(0,1fr)] gap-3 border p-2 text-left transition",
+                      "group grid grid-cols-[6.25rem_minmax(0,1fr)] gap-3 border p-2 text-left transition lg:grid-cols-[5.25rem_minmax(0,1fr)]",
                       isSelected
                         ? "border-[#19b84b] bg-[#ecfff0]"
                         : "border-black/10 bg-[#f6f8f4] hover:border-[#19b84b]/45 hover:bg-white",
@@ -4340,7 +4342,7 @@ export function FanletterNewsReportComposerPage({
                                 </span>
                               </div>
                               {selectedManualTeaserItems.length > 0 ? (
-                                <div className="mt-3 grid gap-2 min-[460px]:grid-cols-2 lg:grid-cols-4">
+                                <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
                                   {selectedManualTeaserItems.map(
                                     (item, index) => (
                                       <div
@@ -4479,7 +4481,7 @@ export function FanletterNewsReportComposerPage({
                               </span>
                             </div>
                             {existingSavedTeaserItems.length > 0 ? (
-                              <div className="mt-3 grid gap-2 min-[420px]:grid-cols-2 lg:grid-cols-4">
+                              <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
                                 {existingSavedTeaserItems.map((item, index) => {
                                   const isActiveTeaser =
                                     activeTeaserCropSourceUrl ===
