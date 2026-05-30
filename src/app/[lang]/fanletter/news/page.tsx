@@ -695,33 +695,33 @@ function NewsMasthead({
   ];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-black/16 bg-white text-[#111510] shadow-[0_8px_24px_rgba(17,21,16,0.06)] sm:static sm:z-auto sm:shadow-none">
-      <div className="border-b border-black/10 bg-[#f3f4ef]">
-        <div className="mx-auto flex max-w-[92rem] items-center justify-between gap-4 px-4 py-1.5 text-[0.62rem] font-bold uppercase tracking-[0.12em] text-black/50 sm:px-6 sm:py-2 sm:text-[0.68rem] sm:tracking-[0.14em] lg:px-8">
+    <header className="sticky top-0 z-30 border-b border-black/12 bg-[#fbfcf8]/96 text-[#111510] shadow-[0_10px_28px_rgba(17,21,16,0.07)] backdrop-blur-xl sm:static sm:z-auto sm:bg-[#fbfcf8] sm:shadow-none sm:backdrop-blur-none">
+      <div className="border-b border-black/8 bg-[#eef2eb]">
+        <div className="mx-auto flex max-w-[92rem] items-center justify-between gap-4 px-4 py-1.5 text-[0.6rem] font-black uppercase tracking-[0.14em] text-black/48 sm:px-6 sm:text-[0.66rem] sm:tracking-[0.18em] lg:px-8">
           <span>{today}</span>
           <span className="hidden sm:inline">{copy.edition}</span>
         </div>
       </div>
-      <div className="mx-auto max-w-[92rem] px-4 pt-3 sm:px-6 sm:pt-4 lg:px-8">
-        <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-2.5 sm:pb-3">
+      <div className="mx-auto max-w-[92rem] px-4 pt-2.5 sm:px-6 sm:pt-5 lg:px-8">
+        <div className="flex items-end justify-between gap-4 border-b-[3px] border-[#111510] pb-2 sm:pb-3.5">
           <Link
-            className="inline-flex min-h-11 min-w-0 items-center gap-2 text-[1.82rem] font-black leading-none tracking-normal !text-[#111510] sm:gap-4 sm:text-[4.5rem]"
+            className="inline-flex min-h-10 min-w-0 items-center gap-2.5 text-[1.74rem] font-black leading-none tracking-normal !text-[#111510] sm:gap-4 sm:text-[3.85rem] lg:text-[4.55rem]"
             href={platformHref}
           >
-            <FanletterBrandMark className="size-9 sm:size-16" />
+            <FanletterBrandMark className="size-8 sm:size-[3.45rem] lg:size-[3.95rem]" />
             <span className="truncate">{copy.siteName}</span>
           </Link>
-          <span className="hidden shrink-0 border border-black/16 px-3 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e] sm:inline-flex">
+          <span className="hidden h-10 shrink-0 items-center border border-black/14 bg-white/44 px-4 text-[0.66rem] font-black uppercase tracking-[0.22em] text-[#16702e] lg:inline-flex">
             {copy.heroEyebrow}
           </span>
         </div>
         <nav
           aria-label={copy.siteName}
-          className="flex gap-2 overflow-x-auto border-b border-black/10 py-2.5 [scrollbar-width:none] sm:gap-3 sm:py-3 [&::-webkit-scrollbar]:hidden"
+          className="flex gap-2 overflow-x-auto border-b border-black/8 py-2.5 [scrollbar-width:none] sm:gap-6 sm:py-3.5 [&::-webkit-scrollbar]:hidden"
         >
           {copy.navItems.map((item, index) => (
             <Link
-              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-3 text-[0.7rem] font-black uppercase tracking-[0.08em] !text-black/62 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#16702e] sm:min-h-10 sm:text-[0.76rem] sm:tracking-[0.1em]"
+              className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-white/70 px-3 text-[0.68rem] font-black uppercase tracking-[0.08em] !text-black/60 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#16702e] sm:min-h-0 sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:pb-1 sm:text-[0.74rem] sm:tracking-[0.14em] sm:!text-black/52 sm:hover:bg-transparent"
               href={navHrefs[index] ?? navigationBaseHref}
               key={item}
             >
@@ -748,15 +748,15 @@ function NewsTicker({
   }
 
   return (
-    <section className="border-b border-black/12 bg-white text-[#111510]">
-      <div className="mx-auto grid max-w-[92rem] grid-cols-[auto_minmax(0,1fr)] items-center gap-2 px-4 py-2 sm:px-6 sm:py-3 lg:px-8">
-        <div className="inline-flex h-7 items-center bg-[#111510] px-2.5 text-[0.62rem] font-black uppercase tracking-[0.12em] text-white sm:bg-transparent sm:px-0 sm:text-[0.68rem] sm:tracking-[0.16em] sm:text-[#16702e]">
+    <section className="border-b border-black/10 bg-[#fbfcf8] text-[#111510]">
+      <div className="mx-auto grid max-w-[92rem] gap-2 px-4 py-2.5 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center sm:px-6 sm:py-3 lg:px-8">
+        <div className="inline-flex h-6 w-fit items-center border-l-4 border-[#16702e] pl-2 text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#16702e] sm:h-7 sm:pl-2.5 sm:text-[0.68rem] sm:tracking-[0.18em]">
           {copy.ticker}
         </div>
-        <div className="flex min-w-0 gap-2 overflow-x-auto text-xs font-bold text-black/68 [scrollbar-width:none] sm:text-sm [&::-webkit-scrollbar]:hidden">
+        <div className="flex min-w-0 gap-0 overflow-x-auto text-xs font-bold text-black/64 [scrollbar-width:none] sm:text-sm [&::-webkit-scrollbar]:hidden">
           {reports.map((report) => (
             <Link
-              className="inline-flex min-h-11 max-w-[18rem] shrink-0 items-center truncate rounded-full border border-black/10 bg-[#f6f8f4] px-3 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#16702e] sm:max-w-none"
+              className="inline-flex h-8 max-w-[17rem] shrink-0 items-center truncate border-l border-black/12 px-3 transition first:border-l-0 first:pl-0 hover:text-[#16702e] sm:h-9 sm:max-w-[22rem]"
               href={getReportHref(report, referralCode)}
               key={report.reportId}
             >
@@ -1179,29 +1179,29 @@ function NewsFrontPage({
 }) {
   return (
     <section
-      className="overflow-hidden border-y-2 border-[#111510] bg-white shadow-[0_18px_44px_rgba(17,21,16,0.06)]"
+      className="overflow-hidden border border-black/12 bg-white shadow-[0_22px_56px_rgba(17,21,16,0.08)]"
       id="top-stories"
     >
-      <div className="grid gap-3 border-b-2 border-[#111510] p-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+      <div className="grid gap-4 border-b border-black/12 bg-[#fbfcf8] p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
         <div>
-          <p className="text-[0.66rem] font-black uppercase tracking-[0.13em] text-[#16702e] sm:text-[0.72rem] sm:tracking-[0.16em]">
+          <p className="text-[0.64rem] font-black uppercase tracking-[0.18em] text-[#16702e] sm:text-[0.7rem] sm:tracking-[0.2em]">
             {copy.issueLabel}
           </p>
-          <h1 className="mt-2 max-w-4xl break-words text-[1.8rem] font-black leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[3rem]">
+          <h1 className="mt-2 max-w-4xl break-words text-[1.72rem] font-black leading-[1.04] tracking-normal [word-break:keep-all] sm:text-[2.75rem] lg:text-[3.15rem]">
             {copy.frontPage.title}
           </h1>
         </div>
-        <div className="grid grid-cols-3 gap-px border border-black/10 bg-black/10 lg:min-w-80">
+        <div className="grid grid-cols-3 gap-px border border-black/10 bg-black/10 shadow-[0_12px_30px_rgba(17,21,16,0.06)] lg:min-w-80">
           {[
             [copy.newsroomStatLabels.news, displayedNewsCount],
             [copy.newsroomStatLabels.reporters, displayedReporterCount],
             [copy.newsroomStatLabels.visuals, visualReportCount],
           ].map(([label, value]) => (
-            <div className="bg-[#f7faf4] p-3" key={label}>
-              <p className="text-xl font-black leading-none">
+            <div className="bg-white p-3 sm:p-3.5" key={label}>
+              <p className="text-xl font-black leading-none sm:text-2xl">
                 {formatNumber(Number(value), locale)}
               </p>
-              <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
+              <p className="mt-1.5 text-[0.56rem] font-black uppercase tracking-[0.12em] text-black/42">
                 {label}
               </p>
             </div>
@@ -1210,7 +1210,7 @@ function NewsFrontPage({
       </div>
 
       <div className="grid lg:grid-cols-[minmax(0,1.1fr)_minmax(18rem,0.74fr)] xl:grid-cols-[minmax(0,1.08fr)_minmax(20rem,0.62fr)_18.5rem]">
-        <div className="min-w-0 p-3 sm:p-4 lg:border-r lg:border-black/12">
+        <div className="min-w-0 p-3.5 sm:p-5 lg:border-r lg:border-black/10">
           <LeadStory
             copy={copy}
             nsfwOptInEnabled={nsfwOptInEnabled}
@@ -1219,7 +1219,7 @@ function NewsFrontPage({
           />
 
           {heroSideReports.length > 0 ? (
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <div className="mt-3.5 grid gap-3.5 sm:grid-cols-2">
               {heroSideReports.map((report) => (
                 <HeroSideStory
                   copy={copy}
@@ -2316,7 +2316,7 @@ export default async function LocalizedFanletterNewsHomePage({
         reports={reports.slice(0, 5)}
       />
 
-      <section className="mx-auto max-w-[92rem] px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
+      <section className="mx-auto max-w-[92rem] px-4 py-4 sm:px-6 sm:py-7 lg:px-8">
         {leadReport ? (
           <div className="space-y-7 sm:space-y-9">
             {activeReporterReferralCode ? (
