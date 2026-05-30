@@ -1879,6 +1879,24 @@ export function FanletterNewsReportComposerPage({
       ),
     },
   ] as const;
+  const mobileComposerSteps = [
+    {
+      label: copy.chooseVlog,
+      ready: Boolean(selectedSource),
+    },
+    {
+      label: copy.chooseTeasers,
+      ready: activeTeaserCount > 0,
+    },
+    {
+      label: copy.teaserCrop.coverTitle,
+      ready: Boolean(selectedCoverUrl),
+    },
+    {
+      label: selectedExistingReport ? copy.editVisual.save : copy.submit,
+      ready: selectedExistingReport ? canSaveExistingReportVisuals : canSubmit,
+    },
+  ] as const;
   const selectedOpportunityStatusLabel = selectedSource
     ? isSelectedOpportunitySource
       ? copy.sourceReveal.opportunity
@@ -3306,6 +3324,44 @@ export function FanletterNewsReportComposerPage({
           </aside>
         </section>
 
+        <section className="mt-3 border border-[#19b84b]/18 bg-[#ecfff0] p-3 shadow-[0_12px_28px_rgba(17,21,16,0.055)] lg:hidden">
+          <div className="flex items-center justify-between gap-3">
+            <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+              <CheckCircle2 className="size-3.5" />
+              {copy.publishReadiness.title}
+            </p>
+            <span className="rounded-full bg-[#111510] px-2.5 py-1 text-xs font-black text-[#44f26e]">
+              {formatNumber(
+                mobileComposerSteps.filter((step) => step.ready).length,
+                locale,
+              )}
+              /{formatNumber(mobileComposerSteps.length, locale)}
+            </span>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {mobileComposerSteps.map((step, index) => (
+              <span
+                className={cn(
+                  "inline-flex min-h-11 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-black",
+                  step.ready
+                    ? "border-[#19b84b]/24 bg-white text-[#16702e]"
+                    : "border-black/10 bg-white/70 text-black/38",
+                )}
+                key={step.label}
+              >
+                {step.ready ? (
+                  <CheckCircle2 className="size-3.5 shrink-0" />
+                ) : (
+                  <span className="inline-flex size-3.5 shrink-0 items-center justify-center rounded-full bg-black/12 text-[0.58rem] text-black/46">
+                    {formatNumber(index + 1, locale)}
+                  </span>
+                )}
+                <span className="min-w-0 truncate">{step.label}</span>
+              </span>
+            ))}
+          </div>
+        </section>
+
         <section className="mt-3 grid gap-4 lg:mt-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
           <div className="border border-black/12 bg-white p-3 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-4">
             {searchControls}
@@ -3518,7 +3574,7 @@ export function FanletterNewsReportComposerPage({
                 <Link
                   aria-disabled={currentSourcePage <= 1}
                   className={cn(
-                    "inline-flex h-10 min-w-20 items-center justify-center gap-1 rounded-full border px-3 text-xs font-black transition",
+                    "inline-flex h-11 min-w-20 items-center justify-center gap-1 rounded-full border px-3 text-xs font-black transition",
                     currentSourcePage <= 1
                       ? "pointer-events-none border-black/8 bg-[#f6f8f4] !text-black/24"
                       : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]",
@@ -3550,7 +3606,7 @@ export function FanletterNewsReportComposerPage({
                         <Link
                           aria-current={isActive ? "page" : undefined}
                           className={cn(
-                            "inline-flex size-10 items-center justify-center rounded-full border text-xs font-black transition",
+                            "inline-flex size-11 items-center justify-center rounded-full border text-xs font-black transition",
                             isActive
                               ? "border-[#19b84b] bg-[#111510] !text-white"
                               : "border-black/10 bg-white !text-black/56 hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#126c2c]",
@@ -3566,7 +3622,7 @@ export function FanletterNewsReportComposerPage({
                 <Link
                   aria-disabled={currentSourcePage >= sourcePageCount}
                   className={cn(
-                    "inline-flex h-10 min-w-20 items-center justify-center gap-1 rounded-full border px-3 text-xs font-black transition",
+                    "inline-flex h-11 min-w-20 items-center justify-center gap-1 rounded-full border px-3 text-xs font-black transition",
                     currentSourcePage >= sourcePageCount
                       ? "pointer-events-none border-black/8 bg-[#f6f8f4] !text-black/24"
                       : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]",
@@ -4387,7 +4443,7 @@ export function FanletterNewsReportComposerPage({
                                         </p>
                                         <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-1.5">
                                           <button
-                                            className="inline-flex h-8 min-w-0 items-center justify-center gap-1 rounded-md bg-[#111510] px-2 text-[0.66rem] font-black text-white transition hover:bg-black"
+                                            className="inline-flex h-11 min-w-0 items-center justify-center gap-1 rounded-md bg-[#111510] px-2 text-[0.7rem] font-black text-white transition hover:bg-black"
                                             onClick={() => {
                                               focusTeaserCropEditor(
                                                 item.imageUrl,
@@ -4402,7 +4458,7 @@ export function FanletterNewsReportComposerPage({
                                           </button>
                                           <button
                                             aria-label={`${copy.teaserSelection.removeCut} ${item.label}`}
-                                            className="inline-flex size-8 items-center justify-center rounded-md border border-black/10 bg-white text-black/42 transition hover:border-rose-500/30 hover:text-rose-700"
+                                            className="inline-flex size-11 items-center justify-center rounded-md border border-black/10 bg-white text-black/42 transition hover:border-rose-500/30 hover:text-rose-700"
                                             onClick={() => {
                                               toggleTeaserImage(item.imageUrl);
                                             }}
@@ -4656,7 +4712,7 @@ export function FanletterNewsReportComposerPage({
                                   <div className="mt-1 grid grid-cols-2 gap-1.5">
                                     <button
                                       className={cn(
-                                        "flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 text-[0.7rem] font-black transition",
+                                        "flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 text-[0.72rem] font-black transition",
                                         isTeaserSelected
                                           ? "border-[#19b84b]/35 bg-[#111510] text-white"
                                           : "border-black/10 bg-white text-black/56 hover:border-[#19b84b]/35 hover:text-[#111510]",
@@ -4682,7 +4738,7 @@ export function FanletterNewsReportComposerPage({
                                     </button>
                                     <button
                                       className={cn(
-                                        "flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 text-[0.7rem] font-black transition",
+                                        "flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 text-[0.72rem] font-black transition",
                                         isTeaserSelected
                                           ? "border-[#19b84b]/30 bg-white text-[#16702e] hover:bg-[#ecfff0]"
                                           : "border-black/10 bg-white text-black/56 hover:border-[#19b84b]/35 hover:text-[#111510]",
@@ -4857,7 +4913,7 @@ export function FanletterNewsReportComposerPage({
                                 value={crop.zoom}
                               />
                               <button
-                                className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/12 text-xs font-black text-white/62 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
+                                className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-white/12 text-xs font-black text-white/62 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
                                 onClick={() => {
                                   setCrop(DEFAULT_REPORT_COVER_CROP);
                                 }}
@@ -4949,7 +5005,7 @@ export function FanletterNewsReportComposerPage({
                             return (
                               <button
                                 className={cn(
-                                  "inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-black transition",
+                                  "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-black transition",
                                   item === angle
                                     ? "border-[#111510] bg-[#111510] text-white"
                                     : "border-black/10 bg-[#f6f8f4] text-black/58 hover:border-[#19b84b] hover:text-[#111510]",

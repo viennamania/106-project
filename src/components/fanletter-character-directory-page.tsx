@@ -300,7 +300,7 @@ function DirectoryControls({
         </button>
       </form>
 
-      <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+      <div className="mt-3 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {fanletterCharacterDirectorySortOptions.map((sort) => {
           const active = data.filters.sort === sort;
 
@@ -308,7 +308,7 @@ function DirectoryControls({
             <Link
               aria-current={active ? "page" : undefined}
               className={cn(
-                "shrink-0 rounded-full border px-3 py-2 text-xs font-semibold transition",
+                "inline-flex min-h-11 shrink-0 items-center rounded-full border px-3 py-2 text-xs font-semibold transition",
                 active
                   ? "border-black bg-black text-white"
                   : "border-black/10 bg-[#f6f8f4] text-black/60 hover:border-black/24 hover:text-black",
@@ -327,7 +327,7 @@ function DirectoryControls({
         })}
         {data.filters.query ? (
           <Link
-            className="shrink-0 rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-semibold text-black/54 transition hover:border-black/24 hover:text-black"
+            className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-semibold text-black/54 transition hover:border-black/24 hover:text-black"
             href={getCharactersHref({ locale, referralCode })}
           >
             {copy.actions.clear}

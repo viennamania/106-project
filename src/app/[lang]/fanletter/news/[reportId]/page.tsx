@@ -1126,7 +1126,7 @@ function NewsSiteHeader({
       <div className="mx-auto flex max-w-[92rem] flex-col px-3 sm:px-6 lg:px-8">
         <div className="flex min-h-[3.25rem] items-center justify-between gap-2 py-1.5 sm:min-h-[4.5rem] sm:gap-4 sm:py-3">
           <Link
-            className="inline-flex min-w-0 items-center gap-2 !text-[#111510] sm:gap-3"
+            className="inline-flex min-h-11 min-w-0 items-center gap-2 !text-[#111510] sm:gap-3"
             href={homeHref}
           >
             <FanletterBrandMark className="size-7 shrink-0 sm:size-10" />
@@ -1144,7 +1144,7 @@ function NewsSiteHeader({
             </span>
           </Link>
           <Link
-            className="inline-flex max-w-[9.5rem] shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-[#f5f7f1] px-2 py-1 !text-[#111510] sm:hidden"
+            className="inline-flex min-h-11 max-w-[9.5rem] shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-[#f5f7f1] px-2 py-1 !text-[#111510] sm:hidden"
             href={characterHref}
           >
             <span className="relative size-7 shrink-0 overflow-hidden rounded-full bg-black/8">
@@ -1197,7 +1197,7 @@ function NewsSiteHeader({
         >
           {mobileNavLinks.map((item) => (
             <Link
-              className={`inline-flex min-w-0 items-center justify-center gap-1 rounded-full border px-2 py-2 text-center transition ${
+              className={`inline-flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-full border px-2 py-2 text-center transition ${
                 item.emphasized
                   ? "border-[#19b84b] bg-[#ecfff0] !text-[#126c2c] shadow-[inset_0_0_0_1px_rgba(25,184,75,0.14)]"
                   : "border-black/10 bg-white !text-black/62 hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#126c2c]"
@@ -1216,7 +1216,7 @@ function NewsSiteHeader({
         >
           {navLinks.map((item) => (
             <Link
-              className={`inline-flex min-w-32 shrink-0 items-center justify-between gap-1 rounded-full border px-3 py-2 text-center transition ${
+              className={`inline-flex min-h-11 min-w-32 shrink-0 items-center justify-between gap-1 rounded-full border px-3 py-2 text-center transition ${
                 item.emphasized
                   ? "border-[#19b84b] bg-[#ecfff0] !text-[#126c2c] shadow-[inset_0_0_0_1px_rgba(25,184,75,0.14)]"
                   : "border-black/10 bg-white !text-black/62 hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#126c2c]"

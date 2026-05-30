@@ -517,7 +517,7 @@ function CharacterChannelMasthead({
       <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-3">
           <Link
-            className="inline-flex min-w-0 items-center gap-2.5 !text-[#111510]"
+            className="inline-flex min-h-11 min-w-0 items-center gap-2.5 !text-[#111510]"
             href={newsHomeHref}
           >
             <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#111510] text-[#44f26e] shadow-[0_12px_26px_rgba(17,21,16,0.18)]">
@@ -534,7 +534,7 @@ function CharacterChannelMasthead({
           </Link>
           <div className="hidden shrink-0 items-center gap-2 sm:flex">
             <Link
-              className="inline-flex h-10 items-center gap-2 rounded-full border border-black/12 bg-[#f7f9f4] px-3 text-xs font-black uppercase tracking-[0.08em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-black/12 bg-[#f7f9f4] px-3 text-xs font-black uppercase tracking-[0.08em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
               href={returnToNewsHref ?? charactersHref}
             >
               <ArrowLeft className="size-4 text-[#16702e]" />
@@ -542,14 +542,14 @@ function CharacterChannelMasthead({
             </Link>
             {returnToNewsHref ? (
               <Link
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-black/12 bg-white px-3 text-xs font-black uppercase tracking-[0.08em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                className="inline-flex h-11 items-center gap-2 rounded-full border border-black/12 bg-white px-3 text-xs font-black uppercase tracking-[0.08em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
                 href={charactersHref}
               >
                 {copy.backToCharacters}
               </Link>
             ) : null}
             <Link
-              className="inline-flex h-10 items-center gap-2 rounded-full border border-black/12 bg-white px-3 text-xs font-black uppercase tracking-[0.08em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+              className="inline-flex h-11 items-center gap-2 rounded-full border border-black/12 bg-white px-3 text-xs font-black uppercase tracking-[0.08em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
               href={purchasesHref}
             >
               <BookOpen className="size-4 text-[#16702e]" />
@@ -1534,7 +1534,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
       <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
         <div className="flex flex-wrap items-center gap-3 sm:hidden">
           <Link
-            className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] !text-[#16702e]"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#19b84b]/18 bg-[#ecfff0] px-3 text-xs font-black uppercase tracking-[0.1em] !text-[#16702e]"
             href={returnToNewsHref ?? charactersHref}
           >
             <ArrowLeft className="size-4" />
@@ -1542,7 +1542,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           </Link>
           {returnToNewsHref ? (
             <Link
-              className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.12em] !text-black/48"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 text-xs font-black uppercase tracking-[0.1em] !text-black/56"
               href={charactersHref}
             >
               {copy.backToCharacters}

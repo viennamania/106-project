@@ -431,7 +431,7 @@ export default async function LocalizedFanletterNewsGalleryPage({
         <div className="mx-auto max-w-[92rem] px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap items-end justify-between gap-4 border-b-2 border-[#111510] pb-3">
             <Link
-              className="inline-flex min-w-0 items-center gap-3 text-[1.65rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[3.6rem]"
+              className="inline-flex min-h-11 min-w-0 items-center gap-3 text-[1.65rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[3.6rem]"
               href={newsHomeHref}
             >
               <FanletterBrandMark className="size-9 sm:size-14" />
@@ -444,11 +444,11 @@ export default async function LocalizedFanletterNewsGalleryPage({
           </div>
           <nav
             aria-label={copy.siteName}
-            className="flex gap-4 overflow-x-auto py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-2 overflow-x-auto py-3 [scrollbar-width:none] sm:gap-3 [&::-webkit-scrollbar]:hidden"
           >
             {navItems.map((item) => (
               <Link
-                className="shrink-0 border-r border-black/10 pr-4 text-[0.7rem] font-black uppercase tracking-[0.1em] text-black/58 transition last:border-r-0 last:pr-0 hover:text-[#16702e]"
+                className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-black/10 bg-[#f6f8f4] px-3 text-[0.7rem] font-black uppercase tracking-[0.08em] !text-black/62 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#16702e] sm:min-h-10"
                 href={item.href}
                 key={item.href}
               >

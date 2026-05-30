@@ -705,7 +705,7 @@ function NewsMasthead({
       <div className="mx-auto max-w-[92rem] px-4 pt-3 sm:px-6 sm:pt-4 lg:px-8">
         <div className="flex items-end justify-between gap-4 border-b-2 border-[#111510] pb-2.5 sm:pb-3">
           <Link
-            className="inline-flex min-w-0 items-center gap-2 text-[1.82rem] font-black leading-none tracking-normal !text-[#111510] sm:gap-4 sm:text-[4.5rem]"
+            className="inline-flex min-h-11 min-w-0 items-center gap-2 text-[1.82rem] font-black leading-none tracking-normal !text-[#111510] sm:gap-4 sm:text-[4.5rem]"
             href={platformHref}
           >
             <FanletterBrandMark className="size-9 sm:size-16" />
@@ -717,11 +717,11 @@ function NewsMasthead({
         </div>
         <nav
           aria-label={copy.siteName}
-          className="flex gap-4 overflow-x-auto border-b border-black/10 py-2.5 [scrollbar-width:none] sm:gap-5 sm:py-3 [&::-webkit-scrollbar]:hidden"
+          className="flex gap-2 overflow-x-auto border-b border-black/10 py-2.5 [scrollbar-width:none] sm:gap-3 sm:py-3 [&::-webkit-scrollbar]:hidden"
         >
           {copy.navItems.map((item, index) => (
             <Link
-              className="shrink-0 border-r border-black/10 pr-4 text-[0.7rem] font-black uppercase tracking-[0.1em] text-black/58 transition last:border-r-0 last:pr-0 hover:text-[#16702e] sm:text-[0.76rem] sm:tracking-[0.12em]"
+              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-3 text-[0.7rem] font-black uppercase tracking-[0.08em] !text-black/62 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#16702e] sm:min-h-10 sm:text-[0.76rem] sm:tracking-[0.1em]"
               href={navHrefs[index] ?? navigationBaseHref}
               key={item}
             >
@@ -756,7 +756,7 @@ function NewsTicker({
         <div className="flex min-w-0 gap-2 overflow-x-auto text-xs font-bold text-black/68 [scrollbar-width:none] sm:text-sm [&::-webkit-scrollbar]:hidden">
           {reports.map((report) => (
             <Link
-              className="max-w-[18rem] shrink-0 truncate border-l border-black/12 pl-3 transition first:border-l-0 first:pl-0 hover:text-[#16702e] sm:max-w-none"
+              className="inline-flex min-h-11 max-w-[18rem] shrink-0 items-center truncate rounded-full border border-black/10 bg-[#f6f8f4] px-3 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#16702e] sm:max-w-none"
               href={getReportHref(report, referralCode)}
               key={report.reportId}
             >
