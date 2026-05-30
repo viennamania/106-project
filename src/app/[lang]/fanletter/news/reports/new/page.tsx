@@ -284,6 +284,10 @@ export default async function LocalizedFanletterNewsReportNewPage({
         onboardingHref={onboardingHref}
         reportNewHref={filteredReportNewHref}
         reportStatusFilter={reportStatusFilter}
+        reporter={{
+          ...data.member,
+          walletAddress: session.walletAddress,
+        }}
         reporterReferralCode={data.member.referralCode}
         reportsHref={reportsHref}
         searchQuery={searchQuery}

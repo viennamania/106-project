@@ -17,6 +17,7 @@ import {
   RefreshCw,
   Search,
   ShieldAlert,
+  ShieldCheck,
   ShoppingBag,
   Sparkles,
   UserRound,
@@ -227,6 +228,14 @@ export type FanletterNewsReportComposerSourceRevealFilter =
   | "unlocked";
 export type FanletterNewsReportComposerSourceSort = "latest" | "recommended";
 type FanletterNewsReportTeaserMode = "auto" | "manual";
+type FanletterNewsReportComposerReporterMember = {
+  avatarImageUrl: string | null;
+  displayName: string;
+  email: string;
+  referralCode: string;
+  status: "completed" | "pending_payment";
+  walletAddress: string | null;
+};
 
 const REPORT_COVER_CROP_ASPECT_RATIO = 16 / 9;
 const REPORT_COVER_CROP_MAX_ZOOM = 3;
@@ -423,6 +432,19 @@ function getCopy(locale: Locale) {
           used: (used: string, limit: string) => `${used}/${limit}개 발행`,
         },
         reporter: "팬 기자",
+        reporterInfo: {
+          channel: "리포터 채널",
+          email: "회원 이메일",
+          helper:
+            "이 계정으로 발행한 뉴스 리포트에는 아래 리포터 정보가 표시됩니다.",
+          profileImage: "리포터 프로필 이미지",
+          referralCode: "리포터 ID",
+          status: "활동 상태",
+          statusCompleted: "활동 중",
+          statusPending: "계정 준비 중",
+          title: "회원정보 (리포터)",
+          wallet: "연결 지갑",
+        },
         recommendedAngle: "추천 관점",
         reset: "초기화",
         searchActive: "전체 브이로그 검색 결과",
@@ -696,6 +718,19 @@ function getCopy(locale: Locale) {
           used: (used: string, limit: string) => `${used}/${limit} published`,
         },
         reporter: "Reporter",
+        reporterInfo: {
+          channel: "Reporter channel",
+          email: "Member email",
+          helper:
+            "News reports published from this account show this reporter profile.",
+          profileImage: "Reporter profile image",
+          referralCode: "Reporter ID",
+          status: "Status",
+          statusCompleted: "Active",
+          statusPending: "Account pending",
+          title: "Member info (reporter)",
+          wallet: "Connected wallet",
+        },
         recommendedAngle: "Recommended angle",
         reset: "Reset",
         searchActive: "Full vlog search results",
@@ -849,6 +884,178 @@ function formatDate(value: string | null, locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en").format(value);
+}
+
+function formatAddressLabel(address?: string | null) {
+  const trimmed = address?.trim();
+
+  if (!trimmed) {
+    return "-";
+  }
+
+  if (trimmed.length <= 12) {
+    return trimmed;
+  }
+
+  return `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}`;
+}
+
+function getReporterInitial(reporter: FanletterNewsReportComposerReporterMember) {
+  return (
+    reporter.displayName.trim().charAt(0).toUpperCase() ||
+    reporter.referralCode.trim().charAt(0).toUpperCase() ||
+    "N"
+  );
+}
+
+function getReporterStatusLabel({
+  copy,
+  reporter,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  reporter: FanletterNewsReportComposerReporterMember;
+}) {
+  return reporter.status === "completed"
+    ? copy.reporterInfo.statusCompleted
+    : copy.reporterInfo.statusPending;
+}
+
+function ReporterInfoPanel({
+  className,
+  copy,
+  reporter,
+  reporterChannelHref,
+  tone = "light",
+}: {
+  className?: string;
+  copy: ReturnType<typeof getCopy>;
+  reporter: FanletterNewsReportComposerReporterMember;
+  reporterChannelHref: string;
+  tone?: "dark" | "light";
+}) {
+  const dark = tone === "dark";
+  const statusLabel = getReporterStatusLabel({ copy, reporter });
+  const metaItems = [
+    {
+      label: copy.reporterInfo.email,
+      value: reporter.email,
+    },
+    {
+      label: copy.reporterInfo.referralCode,
+      value: `@${reporter.referralCode}`,
+    },
+    {
+      label: copy.reporterInfo.status,
+      value: statusLabel,
+    },
+    {
+      label: copy.reporterInfo.wallet,
+      value: formatAddressLabel(reporter.walletAddress),
+    },
+  ];
+
+  return (
+    <aside
+      className={cn(
+        "border p-4 shadow-[0_14px_34px_rgba(17,21,16,0.08)] sm:p-5",
+        dark
+          ? "border-[#44f26e]/18 bg-[#111510] text-white shadow-[0_18px_46px_rgba(17,21,16,0.16)]"
+          : "border-[#19b84b]/18 bg-[#ecfff0] text-[#111510]",
+        className,
+      )}
+    >
+      <p
+        className={cn(
+          "inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em]",
+          dark ? "text-[#44f26e]" : "text-[#16702e]",
+        )}
+      >
+        <ShieldCheck className="size-3.5" />
+        {copy.reporterInfo.title}
+      </p>
+      <div
+        className={cn(
+          "mt-4 flex min-w-0 items-center gap-3 border-y py-4",
+          dark ? "border-white/12" : "border-black/10",
+        )}
+      >
+        <span
+          aria-label={copy.reporterInfo.profileImage}
+          className={cn(
+            "flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-cover bg-center text-lg font-black",
+            dark ? "bg-white text-[#16702e]" : "bg-[#111510] text-[#44f26e]",
+          )}
+          role="img"
+          style={
+            reporter.avatarImageUrl
+              ? { backgroundImage: `url(${reporter.avatarImageUrl})` }
+              : undefined
+          }
+        >
+          {reporter.avatarImageUrl ? null : getReporterInitial(reporter)}
+        </span>
+        <div className="min-w-0">
+          <p
+            className={cn(
+              "text-[0.62rem] font-black uppercase tracking-[0.1em]",
+              dark ? "text-[#44f26e]" : "text-[#16702e]",
+            )}
+          >
+            {copy.reporter}
+          </p>
+          <p className="mt-1 truncate text-lg font-black leading-tight">
+            {reporter.displayName}
+          </p>
+          <p
+            className={cn(
+              "mt-1 truncate text-xs font-bold",
+              dark ? "text-white/46" : "text-black/46",
+            )}
+          >
+            @{reporter.referralCode}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 grid gap-2">
+        {metaItems.map((item) => (
+          <div
+            className="grid min-w-0 grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-3 text-sm"
+            key={item.label}
+          >
+            <span
+              className={cn(
+                "text-[0.62rem] font-black uppercase tracking-[0.1em]",
+                dark ? "text-white/38" : "text-black/42",
+              )}
+            >
+              {item.label}
+            </span>
+            <span className="min-w-0 truncate font-black">{item.value}</span>
+          </div>
+        ))}
+      </div>
+      <p
+        className={cn(
+          "mt-4 text-xs font-semibold leading-5",
+          dark ? "text-white/56" : "text-black/56",
+        )}
+      >
+        {copy.reporterInfo.helper}
+      </p>
+      <Link
+        className={cn(
+          "mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-black transition",
+          dark
+            ? "bg-[#44f26e] !text-[#111510] hover:bg-[#65ff86]"
+            : "bg-[#111510] !text-white hover:bg-black",
+        )}
+        href={reporterChannelHref}
+      >
+        {copy.reporterInfo.channel}
+        <ArrowRight className="size-4" />
+      </Link>
+    </aside>
+  );
 }
 
 function getPaginationPages(currentPage: number, pageCount: number) {
@@ -1515,6 +1722,7 @@ export function FanletterNewsReportComposerPage({
   onboardingHref,
   reportNewHref,
   reportStatusFilter,
+  reporter,
   reporterReferralCode,
   reportsHref,
   searchQuery,
@@ -1533,6 +1741,7 @@ export function FanletterNewsReportComposerPage({
   onboardingHref: string;
   reportNewHref: string;
   reportStatusFilter: FanletterNewsReportComposerReportStatusFilter;
+  reporter: FanletterNewsReportComposerReporterMember;
   reporterReferralCode: string;
   reportsHref: string;
   searchQuery: string;
@@ -2093,6 +2302,10 @@ export function FanletterNewsReportComposerPage({
         { ref: reporterReferralCode },
       )
     : reportsHref;
+  const reporterChannelHref = setRelativeSearchParams(
+    `/${locale}/fanletter/news/reporters/${reporter.referralCode}`,
+    { ref: reporterReferralCode },
+  );
   const routeSelectionKey = [
     initialSelectedContentId,
     reportStatusFilter,
@@ -3263,25 +3476,33 @@ export function FanletterNewsReportComposerPage({
   if (displayedSources.length === 0) {
     return (
       <main className="min-h-screen bg-[#f2f4ef] px-4 py-6 text-[#111510] sm:px-6 lg:px-8">
-        <section className="mx-auto max-w-3xl border border-dashed border-black/16 bg-white p-8 text-center shadow-[0_18px_46px_rgba(17,21,16,0.06)]">
-          <Newspaper className="mx-auto size-10 text-[#16702e]" />
-          <h1 className="mt-4 text-3xl font-black tracking-normal">
-            {isFilteringSources ? copy.filterEmptyTitle : copy.emptyTitle}
-          </h1>
-          <p className="mx-auto mt-2 max-w-xl text-sm font-semibold leading-6 text-black/58">
-            {isFilteringSources ? copy.filterEmptyBody : copy.emptyBody}
-          </p>
-          <div className="mx-auto mt-6 max-w-xl text-left">
-            {searchControls}
-          </div>
-          <Link
-            className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white"
-            href={reportsHref}
-          >
-            <ArrowLeft className="size-4 text-[#44f26e]" />
-            {copy.toReports}
-          </Link>
-        </section>
+        <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+          <section className="border border-dashed border-black/16 bg-white p-8 text-center shadow-[0_18px_46px_rgba(17,21,16,0.06)]">
+            <Newspaper className="mx-auto size-10 text-[#16702e]" />
+            <h1 className="mt-4 text-3xl font-black tracking-normal">
+              {isFilteringSources ? copy.filterEmptyTitle : copy.emptyTitle}
+            </h1>
+            <p className="mx-auto mt-2 max-w-xl text-sm font-semibold leading-6 text-black/58">
+              {isFilteringSources ? copy.filterEmptyBody : copy.emptyBody}
+            </p>
+            <div className="mx-auto mt-6 max-w-xl text-left">
+              {searchControls}
+            </div>
+            <Link
+              className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white"
+              href={reportsHref}
+            >
+              <ArrowLeft className="size-4 text-[#44f26e]" />
+              {copy.toReports}
+            </Link>
+          </section>
+          <ReporterInfoPanel
+            copy={copy}
+            reporter={reporter}
+            reporterChannelHref={reporterChannelHref}
+            tone="dark"
+          />
+        </div>
       </main>
     );
   }
@@ -3310,19 +3531,21 @@ export function FanletterNewsReportComposerPage({
               {copy.lead}
             </p>
           </div>
-          <aside className="hidden border border-[#16702e]/18 bg-[#111510] p-5 text-white shadow-[0_18px_46px_rgba(17,21,16,0.16)] lg:block">
-            <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
-              <ImageIcon className="size-3.5" />
-              {copy.mediaAccess.teaserReady}
-            </p>
-            <h2 className="mt-3 text-2xl font-black leading-tight">
-              {copy.imageOnly}
-            </h2>
-            <p className="mt-3 text-sm font-semibold leading-6 text-white/60">
-              {copy.cropHelper}
-            </p>
-          </aside>
+          <ReporterInfoPanel
+            className="hidden lg:block"
+            copy={copy}
+            reporter={reporter}
+            reporterChannelHref={reporterChannelHref}
+            tone="dark"
+          />
         </section>
+
+        <ReporterInfoPanel
+          className="mt-3 lg:hidden"
+          copy={copy}
+          reporter={reporter}
+          reporterChannelHref={reporterChannelHref}
+        />
 
         <section className="mt-3 border border-[#19b84b]/18 bg-[#ecfff0] p-3 shadow-[0_12px_28px_rgba(17,21,16,0.055)] lg:hidden">
           <div className="flex items-center justify-between gap-3">
