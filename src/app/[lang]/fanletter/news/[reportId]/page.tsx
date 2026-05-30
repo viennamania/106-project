@@ -2575,18 +2575,14 @@ function resolveSourceVlogPreviewVideoUrl(
 }
 
 function SourceVlogConversionGuide({
-  connectHref,
   isPaidContent,
-  isViewerLoggedIn,
   locale,
   paidAmountLabel,
   paidUnlockHref,
   sourceReveal,
   viewerCanAccessSource,
 }: {
-  connectHref: string;
   isPaidContent: boolean;
-  isViewerLoggedIn: boolean;
   locale: Locale;
   paidAmountLabel: string;
   paidUnlockHref: string | null;
@@ -2616,52 +2612,44 @@ function SourceVlogConversionGuide({
   const copy =
     locale === "ko"
       ? {
-          ctaJoin: "가입하고 보고싶어요",
           ctaPay: `${paidAmountLabel} 원본 보기`,
-          eyebrow: "원본 공개 단계",
-          freeLockedBody: `${remainingLabel}명이 더 보고싶어요를 누르면 이 원본 브이로그가 모두에게 무료 공개됩니다.`,
-          freeLockedTitle: `${countLabel}/${thresholdLabel}명 참여 중 · 무료 공개 대기`,
+          completeLabel: "조건 완료",
+          eyebrow: "원본 공개",
+          freeLockedBody: `${remainingLabel}명이 더 누르면 모두에게 무료 공개됩니다.`,
+          freeLockedTitle: `${countLabel}/${thresholdLabel}명 참여 중`,
           freeUnlockedBody:
-            "팬들이 공개 조건을 채워 이제 이 뉴스 화면에서 원본 브이로그를 바로 볼 수 있습니다.",
-          freeUnlockedTitle: "무료 원본 공개 완료",
-          memberNote:
-            "처음 온 사용자는 FanLetter 지갑 활성화 후 참여할 수 있습니다.",
-          paidLockedBody: `${remainingLabel}명이 더 보고싶어요를 누르면 원본 접근이 열립니다. 열린 뒤에는 누구나 ${paidAmountLabel} 결제로 전체 브이로그를 볼 수 있습니다.`,
-          paidLockedTitle: `${countLabel}/${thresholdLabel}명 참여 중 · 결제 전 공개 대기`,
-          paidReadyBody: `팬들이 공개 조건을 채웠습니다. 이제 ${paidAmountLabel} 결제만 하면 전체 원본 브이로그를 바로 볼 수 있습니다.`,
-          paidReadyTitle: `${paidAmountLabel} 원본 보기 단계 열림`,
+            "공개 조건이 완료되어 원본 브이로그를 바로 볼 수 있습니다.",
+          freeUnlockedTitle: "무료 공개 완료",
+          paidLockedBody: `${remainingLabel}명이 더 누르면 결제가 열립니다. 이후 ${paidAmountLabel}로 전체 원본을 볼 수 있습니다.`,
+          paidLockedTitle: `${countLabel}/${thresholdLabel}명 참여 중`,
+          paidReadyBody: `${paidAmountLabel} 결제 후 전체 원본 브이로그를 바로 볼 수 있습니다.`,
+          paidReadyTitle: `${paidAmountLabel} 원본 보기 가능`,
           paidUnlockedBody:
-            "결제 또는 작성자 권한이 확인되어 이 뉴스 화면에서 원본 브이로그를 바로 이어볼 수 있습니다.",
-          paidUnlockedTitle: "원본 브이로그 열람 가능",
-          steps: {
-            open: `${thresholdLabel}명 보고싶어요`,
-            pay: `${paidAmountLabel} 결제`,
-            watch: "원본 시청",
-          },
+            "결제 또는 작성자 권한이 확인되어 원본 브이로그를 바로 이어볼 수 있습니다.",
+          paidUnlockedTitle: "원본 열람 가능",
+          progressLabel: (count: string, threshold: string) =>
+            `${count}/${threshold}명 참여`,
+          remainingShort: (remaining: string) => `${remaining}명 남음`,
         }
       : {
-          ctaJoin: "Join and want to watch",
           ctaPay: `Watch for ${paidAmountLabel}`,
-          eyebrow: "Source access path",
+          completeLabel: "Complete",
+          eyebrow: "Source access",
           freeLockedBody: `${remainingLabel} more fan${remainingCount === 1 ? "" : "s"} need to want it. Then this source vlog opens for everyone for free.`,
-          freeLockedTitle: `${countLabel}/${thresholdLabel} joined · free open pending`,
+          freeLockedTitle: `${countLabel}/${thresholdLabel} joined`,
           freeUnlockedBody:
-            "Fans completed the open condition, so the source vlog is now available in this news page.",
-          freeUnlockedTitle: "Free source vlog is open",
-          memberNote:
-            "New visitors can join after FanLetter wallet activation.",
+            "The open condition is complete, so the source vlog is available now.",
+          freeUnlockedTitle: "Free source is open",
           paidLockedBody: `${remainingLabel} more fan${remainingCount === 1 ? "" : "s"} need to want it. After access opens, anyone can watch the full source vlog for ${paidAmountLabel}.`,
-          paidLockedTitle: `${countLabel}/${thresholdLabel} joined · paid access pending`,
-          paidReadyBody: `Fans completed the open condition. Pay ${paidAmountLabel} to watch the full source vlog now.`,
-          paidReadyTitle: `${paidAmountLabel} source access is open`,
+          paidLockedTitle: `${countLabel}/${thresholdLabel} joined`,
+          paidReadyBody: `Pay ${paidAmountLabel} to watch the full source vlog now.`,
+          paidReadyTitle: `${paidAmountLabel} source is ready`,
           paidUnlockedBody:
-            "Your payment or owner access is confirmed, so you can continue the source vlog in this news page.",
+            "Your payment or owner access is confirmed, so you can continue the source vlog now.",
           paidUnlockedTitle: "Source vlog is available",
-          steps: {
-            open: `${thresholdLabel} want-to-watch`,
-            pay: `${paidAmountLabel} payment`,
-            watch: "Watch source",
-          },
+          progressLabel: (count: string, threshold: string) =>
+            `${count}/${threshold} joined`,
+          remainingShort: (remaining: string) => `${remaining} left`,
         };
   const title =
     stage === "paidLocked"
@@ -2683,50 +2671,24 @@ function SourceVlogConversionGuide({
           : stage === "freeLocked"
             ? copy.freeLockedBody
             : copy.freeUnlockedBody;
-  const steps = isPaidContent
-    ? [
-        {
-          icon: HeartHandshake,
-          label: copy.steps.open,
-          state:
-            stage === "paidLocked" ? "active" : "done",
-        },
-        {
-          icon: Coins,
-          label: copy.steps.pay,
-          state:
-            stage === "paidReady"
-              ? "active"
-              : stage === "paidUnlocked"
-                ? "done"
-                : "pending",
-        },
-        {
-          icon: PlayCircle,
-          label: copy.steps.watch,
-          state: stage === "paidUnlocked" ? "done" : "pending",
-        },
-      ]
-    : [
-        {
-          icon: HeartHandshake,
-          label: copy.steps.open,
-          state: stage === "freeLocked" ? "active" : "done",
-        },
-        {
-          icon: PlayCircle,
-          label: copy.steps.watch,
-          state: stage === "freeUnlocked" ? "done" : "pending",
-        },
-      ];
-  const showJoinCta = !revealUnlocked && !isViewerLoggedIn;
   const showPayCta =
     isPaidContent && revealUnlocked && !viewerCanAccessSource && paidUnlockHref;
+  const progressPercent =
+    sourceReveal && sourceReveal.threshold > 0
+      ? Math.min(
+          100,
+          Math.max(0, (sourceReveal.count / sourceReveal.threshold) * 100),
+        )
+      : 100;
+  const progressTail =
+    !sourceReveal || revealUnlocked || remainingCount <= 0
+      ? copy.completeLabel
+      : copy.remainingShort(remainingLabel);
 
   return (
-    <div className="mb-3 rounded-lg border border-[#16702e]/18 bg-[#f7fff8] p-3 shadow-[0_10px_26px_rgba(22,112,46,0.08)] sm:p-4">
+    <div className="mb-4 rounded-lg border border-[#16702e]/16 bg-[#f8fff9] p-4 shadow-[0_10px_26px_rgba(22,112,46,0.06)] sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-[#07150b] text-[#44f26e]">
+        <span className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#07150b] text-[#44f26e]">
           {stage === "paidReady" ? (
             <Coins className="size-4.5" />
           ) : revealUnlocked ? (
@@ -2736,79 +2698,49 @@ function SourceVlogConversionGuide({
           )}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+          <p className="text-[0.7rem] font-black text-[#16702e]">
             {copy.eyebrow}
           </p>
-          <h3 className="mt-1 text-[0.98rem] font-black leading-6 text-[#111510] [word-break:keep-all] sm:text-base">
+          <h3 className="mt-1 text-xl font-black leading-tight text-[#111510] [word-break:keep-all] sm:text-2xl">
             {title}
           </h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-black/62 [word-break:keep-all]">
+          <p className="mt-2 text-sm font-semibold leading-6 text-black/62 [word-break:keep-all] sm:text-base">
             {body}
           </p>
         </div>
       </div>
-      <div className="mt-3 grid gap-2 sm:grid-cols-3">
-        {steps.map((step) => {
-          const Icon = step.icon;
-          const isDone = step.state === "done";
-          const isActive = step.state === "active";
-
-          return (
+      {sourceReveal ? (
+        <div className="mt-4">
+          <div
+            aria-label={copy.progressLabel(countLabel, thresholdLabel)}
+            aria-valuemax={sourceReveal.threshold}
+            aria-valuemin={0}
+            aria-valuenow={Math.min(sourceReveal.count, sourceReveal.threshold)}
+            className="h-2 overflow-hidden rounded-full bg-[#dfeee2]"
+            role="progressbar"
+          >
             <div
-              className={`flex items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-black ${
-                isDone
-                  ? "border-[#1eb84a]/24 bg-white text-[#126c2c]"
-                  : isActive
-                    ? "border-[#44f26e]/40 bg-[#07150b] text-white"
-                    : "border-black/8 bg-white/70 text-black/42"
-              }`}
-              key={step.label}
-            >
-              <span
-                className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full ${
-                  isDone
-                    ? "bg-[#e5ffeb] text-[#16702e]"
-                    : isActive
-                      ? "bg-[#44f26e] text-black"
-                      : "bg-black/6 text-black/34"
-                }`}
-              >
-                {isDone ? (
-                  <CheckCircle2 className="size-3.5" />
-                ) : (
-                  <Icon className="size-3.5" />
-                )}
-              </span>
-              <span className="min-w-0 truncate">{step.label}</span>
-            </div>
-          );
-        })}
-      </div>
-      {showJoinCta || showPayCta ? (
-        <div className="mt-3">
-          {showJoinCta ? (
-            <Link
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-[#243026] sm:w-auto"
-              href={connectHref}
-            >
-              <HeartHandshake className="size-4 text-[#44f26e]" />
-              {copy.ctaJoin}
-            </Link>
-          ) : null}
-          {showPayCta && paidUnlockHref ? (
-            <FanletterPaidUnlockTrigger
-              className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-[#243026] sm:w-auto"
-              href={paidUnlockHref}
-            >
-              <Coins className="size-4 text-[#44f26e]" />
-              {copy.ctaPay}
-            </FanletterPaidUnlockTrigger>
-          ) : null}
-          {!isViewerLoggedIn ? (
-            <p className="mt-2 text-xs font-semibold leading-5 text-black/46">
-              {copy.memberNote}
-            </p>
-          ) : null}
+              className="h-full rounded-full bg-[#44f26e]"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-3 text-xs font-black text-black/46">
+            <span>{copy.progressLabel(countLabel, thresholdLabel)}</span>
+            <span className={revealUnlocked ? "text-[#16702e]" : ""}>
+              {progressTail}
+            </span>
+          </div>
+        </div>
+      ) : null}
+      {showPayCta && paidUnlockHref ? (
+        <div className="mt-4">
+          <FanletterPaidUnlockTrigger
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-[#243026] sm:w-auto"
+            href={paidUnlockHref}
+          >
+            <Coins className="size-4 text-[#44f26e]" />
+            {copy.ctaPay}
+          </FanletterPaidUnlockTrigger>
         </div>
       ) : null}
     </div>
@@ -2883,6 +2815,10 @@ function SourceVlogEmbed({
     sourceContent?.title ?? accessLabel,
     locale,
   );
+  const shouldShowSourceDisplayTitle =
+    sourceDisplayTitle !== copy.sourceTitle &&
+    sourceDisplayTitle !== copy.embeddedTitle &&
+    !isFanletterNewsLowSignalSourceTitle(sourceDisplayTitle);
   const sourcePreviewVideoUrl = resolveSourceVlogPreviewVideoUrl(
     sourceContent,
     sourceVideoUrl,
@@ -2928,17 +2864,9 @@ function SourceVlogEmbed({
     label: copy.embeddedVlogStatus.nsfw,
   };
   const headerBadges = [
-    sourceTypeBadge,
-    ...(isPaidContent ? [sourceAccessBadge] : []),
+    ...(isPaidContent ? [sourceTypeBadge, sourceAccessBadge] : []),
     ...(isSourceNsfw ? [sourceMaturityBadge] : []),
   ];
-  const sourceStatusBody = isPaidContent
-    ? viewerCanAccessSource
-      ? isViewerSourceOwner
-        ? copy.embeddedVlogStatus.paidOwnerBody
-        : copy.embeddedVlogStatus.paidPurchasedBody
-      : copy.embeddedVlogStatus.paidLockedBody
-    : copy.embeddedVlogStatus.publicBody;
   const shouldShowPaidTeaser =
     !sourceRevealLocked &&
     isPaidContent &&
@@ -2981,40 +2909,42 @@ function SourceVlogEmbed({
       : copy.embeddedLocked;
 
   return (
-    <section className="mt-7 border border-black/12 bg-white p-4 shadow-[0_14px_42px_rgba(17,21,16,0.06)]">
+    <section className="mt-7 rounded-lg border border-black/12 bg-white p-4 shadow-[0_14px_42px_rgba(17,21,16,0.06)]">
       <div className="mb-3 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
         <div className="min-w-0">
           <span className="inline-flex items-center gap-2 text-sm font-bold text-[#111510]">
             <Clapperboard className="size-4 text-[#16702e]" />
             {copy.embeddedTitle}
           </span>
-          <p className="mt-1 line-clamp-1 text-xs font-semibold text-black/42">
-            {sourceDisplayTitle}
-          </p>
+          {shouldShowSourceDisplayTitle ? (
+            <p className="mt-1 line-clamp-1 text-xs font-semibold text-black/42">
+              {sourceDisplayTitle}
+            </p>
+          ) : null}
         </div>
-        <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
-          {headerBadges.map((badge) => {
-            const Icon = badge.icon;
+        {headerBadges.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-1.5 sm:justify-end">
+            {headerBadges.map((badge) => {
+              const Icon = badge.icon;
 
-            return (
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[0.68rem] font-black ${badge.className}`}
-                key={badge.label}
-              >
-                <Icon className="size-3.5" />
-                {badge.label}
-              </span>
-            );
-          })}
-        </div>
+              return (
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[0.68rem] font-black ${badge.className}`}
+                  key={badge.label}
+                >
+                  <Icon className="size-3.5" />
+                  {badge.label}
+                </span>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
-      {sourceContent ? (
-        <SourceVlogConversionGuide
-          connectHref={newsConnectHref}
-          isPaidContent={isPaidContent}
-          isViewerLoggedIn={isViewerLoggedIn}
-          locale={locale}
-          paidAmountLabel={paidUnlockLabel}
+	      {sourceContent ? (
+	        <SourceVlogConversionGuide
+	          isPaidContent={isPaidContent}
+	          locale={locale}
+	          paidAmountLabel={paidUnlockLabel}
           paidUnlockHref={paidUnlockHref}
           sourceReveal={sourceReveal}
           viewerCanAccessSource={viewerCanAccessSource}
@@ -3256,17 +3186,6 @@ function SourceVlogEmbed({
           tone="light"
         />
       ) : null}
-      <div className="mt-3 rounded-lg border border-black/10 bg-[#f7f9f4] p-3">
-        <div className="flex items-start gap-2">
-          <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
-            <BadgeCheck className="size-3.5" />
-            {copy.embeddedVlogStatus.title}
-          </p>
-        </div>
-        <p className="mt-2 text-sm font-medium leading-6 text-black/58">
-          {sourceStatusBody}
-        </p>
-      </div>
       {shouldShowPaidUnlockPrompt && paidUnlockHref ? (
         <div className="mt-3 grid gap-3 rounded-lg border border-[#1eb84a]/22 bg-[#f2fff5] p-3 shadow-[0_12px_30px_rgba(22,112,46,0.08)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
           <div className="flex min-w-0 gap-3">
