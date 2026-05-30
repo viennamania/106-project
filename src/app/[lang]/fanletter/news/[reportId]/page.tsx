@@ -24,6 +24,7 @@ import {
 
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
+import { FanletterFollowButton } from "@/components/fanletter-follow-button";
 import { FanletterNewsLockedPreviewHero } from "@/components/fanletter-news-locked-preview-hero";
 import { FanletterNewsRelatedList } from "@/components/fanletter-news-related-list";
 import { FanletterNewsMobileActionDock } from "@/components/fanletter-news-mobile-action-dock";
@@ -181,7 +182,7 @@ function getCopy(locale: Locale) {
           pay: (amount: string) => `${amount} 원본 보기`,
           read: "기사 요약",
           vote: "보고싶어요",
-          wallet: "지갑 연결",
+          wallet: "가입하고 보고싶어요",
           watch: "원본 보기",
         },
         newsHeader: {
@@ -340,6 +341,7 @@ function getCopy(locale: Locale) {
         },
         relatedNews: "캐릭터 이어보기",
         relatedNewsClearSearch: "검색 지우기",
+        relatedNewsControlsSummary: "검색·정렬",
         relatedNewsCurrent: "현재 읽는 뉴스",
         relatedNewsDescription:
           "같은 캐릭터의 뉴스를 빠르게 이어 읽을 수 있습니다.",
@@ -368,6 +370,9 @@ function getCopy(locale: Locale) {
           news: "뉴스",
           newsCount: (count: string) => `뉴스 ${count}개`,
           public: "공개",
+          publicVideo: "공개 원본",
+          sourceOpen: "오픈 완료",
+          teaserCuts: "티저 컷",
           title: "다른 캐릭터 뉴스",
         },
         reporterNewsCta: "팬 기자 뉴스",
@@ -439,7 +444,7 @@ function getCopy(locale: Locale) {
           pay: (amount: string) => `Watch for ${amount}`,
           read: "Story summary",
           vote: "Want to watch",
-          wallet: "Connect wallet",
+          wallet: "Join and want-to-watch",
           watch: "Watch source",
         },
         newsHeader: {
@@ -597,6 +602,7 @@ function getCopy(locale: Locale) {
         },
         relatedNews: "Continue this character",
         relatedNewsClearSearch: "Clear search",
+        relatedNewsControlsSummary: "Search and sort",
         relatedNewsCurrent: "Now reading",
         relatedNewsDescription:
           "Quickly continue with more news from the same character.",
@@ -627,6 +633,9 @@ function getCopy(locale: Locale) {
           newsCount: (count: string) =>
             `${count} news item${count === "1" ? "" : "s"}`,
           public: "Public",
+          publicVideo: "Public source",
+          sourceOpen: "Source opened",
+          teaserCuts: "Teaser cuts",
           title: "Other character news",
         },
         reporterNewsCta: "Fan reporter news",
@@ -1499,6 +1508,12 @@ function FanletterNewsOtherCharacterNews({
   const characterCountLabel = copy.otherCharacterNews.characterCount(
     formatNumber(characters.length, locale),
   );
+  const hasReportTeaserCutSignal = (report: FanletterNewsReportDocument) =>
+    (report.teaserImages ?? []).some(
+      (image) =>
+        image.imageUrl.trim() &&
+        (image.source === "reporter_cropped" || Boolean(image.crop)),
+    ) || (report.teaserImageUrls ?? []).some((imageUrl) => imageUrl.trim());
 
   return (
     <section className="overflow-hidden border border-black/12 bg-white text-[#111510] shadow-[0_16px_44px_rgba(17,21,16,0.06)]">
@@ -1545,6 +1560,17 @@ function FanletterNewsOtherCharacterNews({
           const characterNewsCountLabel = copy.otherCharacterNews.newsCount(
             formatNumber(character.newsCount, locale),
           );
+          const discoveryReasonLabels = [
+            character.publicVideoCount > 0
+              ? copy.otherCharacterNews.publicVideo
+              : null,
+            character.sourceRevealUnlockedCount > 0
+              ? copy.otherCharacterNews.sourceOpen
+              : null,
+            hasReportTeaserCutSignal(otherReport)
+              ? copy.otherCharacterNews.teaserCuts
+              : null,
+          ].filter((label): label is string => Boolean(label));
           const shouldBypassCoverImageOptimization = otherReport.coverImageUrl
             ? shouldBypassFanletterImageOptimization(otherReport.coverImageUrl)
             : false;
@@ -1615,9 +1641,6 @@ function FanletterNewsOtherCharacterNews({
                       </span>
                     </span>
                   </Link>
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-black/10 bg-[#f5f7f1] px-2 py-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-black/54">
-                    {copy.otherCharacterNews.news}
-                  </span>
                 </div>
                 <Link className="block" href={reportHref}>
                   <p className="mt-2 line-clamp-2 break-words text-[0.92rem] font-black leading-5 text-[#111510] [word-break:keep-all] group-hover:text-[#16702e] sm:text-base sm:leading-6">
@@ -1627,6 +1650,18 @@ function FanletterNewsOtherCharacterNews({
                     {normalizeFanletterNewsDisplayText(otherReport.dek, locale)}
                   </p>
                 </Link>
+                {discoveryReasonLabels.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {discoveryReasonLabels.slice(0, 3).map((label) => (
+                      <span
+                        className="inline-flex items-center rounded-full border border-[#16702e]/16 bg-[#ecfff0] px-2 py-0.5 text-[0.58rem] font-black text-[#126c2c]"
+                        key={label}
+                      >
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
                 <div className="mt-2 flex flex-wrap gap-x-2 gap-y-1 text-[0.62rem] font-black uppercase tracking-[0.08em] text-black/38">
                   <span className="text-[#16702e]">
                     {otherReport.reporterName}
@@ -1647,14 +1682,20 @@ function CharacterPersonaBridge({
   className,
   copy,
   creatorHref,
+  creatorReferralCode,
+  followFallbackHref,
   imageUrl,
+  locale,
   name,
 }: {
   blurred: boolean;
   className?: string;
   copy: ReturnType<typeof getCopy>;
   creatorHref: string;
+  creatorReferralCode: string | null;
+  followFallbackHref: string;
   imageUrl: string | null;
+  locale: Locale;
   name: string | null;
 }) {
   const displayName = name?.trim() || copy.titleCharacter.fallback;
@@ -1663,48 +1704,62 @@ function CharacterPersonaBridge({
     : false;
 
   return (
-    <Link
-      className={`group grid min-w-0 grid-cols-[4.75rem_minmax(0,1fr)_auto] items-center gap-3 border border-black/12 bg-[#111510] p-3 !text-white shadow-[0_16px_38px_rgba(17,21,16,0.13)] transition hover:border-[#19b84b] hover:bg-[#172219] sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:gap-4 sm:p-4 ${className ?? ""}`}
-      href={creatorHref}
+    <section
+      className={`border border-black/12 bg-[#111510] p-3 text-white shadow-[0_16px_38px_rgba(17,21,16,0.13)] sm:p-4 ${className ?? ""}`}
     >
-      <span className="relative block aspect-square overflow-hidden rounded-xl border border-white/12 bg-black">
-        {imageUrl ? (
-          <Image
-            alt={copy.titleCharacter.visualAlt(displayName)}
-            className={`object-cover object-center transition duration-300 group-hover:scale-[1.04] ${
-              blurred ? "blur-sm brightness-[0.78] saturate-[0.88]" : ""
-            }`}
-            fill
-            sizes="(max-width: 640px) 4.75rem, 5.5rem"
-            src={imageUrl}
-            unoptimized={shouldBypassImageOptimization}
-          />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_55%,#203426)]">
-            <BadgeCheck className="size-7 text-[#44f26e]" />
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+        <Link
+          className="group grid min-w-0 grid-cols-[4.75rem_minmax(0,1fr)_auto] items-center gap-3 !text-white sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:gap-4"
+          href={creatorHref}
+        >
+          <span className="relative block aspect-square overflow-hidden rounded-xl border border-white/12 bg-black">
+            {imageUrl ? (
+              <Image
+                alt={copy.titleCharacter.visualAlt(displayName)}
+                className={`object-cover object-center transition duration-300 group-hover:scale-[1.04] ${
+                  blurred ? "blur-sm brightness-[0.78] saturate-[0.88]" : ""
+                }`}
+                fill
+                sizes="(max-width: 640px) 4.75rem, 5.5rem"
+                src={imageUrl}
+                unoptimized={shouldBypassImageOptimization}
+              />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_55%,#203426)]">
+                <BadgeCheck className="size-7 text-[#44f26e]" />
+              </span>
+            )}
           </span>
-        )}
-      </span>
-      <span className="min-w-0">
-        <span className="block text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#44f26e]">
-          {copy.continueReading.personaEyebrow}
-        </span>
-        <span className="mt-1 block truncate text-lg font-black leading-tight">
-          {displayName}
-        </span>
-        <span className="mt-1 block text-xs font-semibold leading-5 text-white/58 [word-break:keep-all]">
-          {copy.continueReading.personaBody(displayName)}
-        </span>
-      </span>
-      <span className="flex shrink-0 flex-col items-center gap-1 text-[#44f26e]">
-        <span className="inline-flex size-10 items-center justify-center rounded-full bg-[#44f26e] text-black transition group-hover:bg-[#69ff8c]">
-          <ArrowUpRight className="size-4" />
-        </span>
-        <span className="hidden text-[0.6rem] font-black uppercase tracking-[0.08em] text-white/48 sm:block">
-          {copy.continueReading.personaCta}
-        </span>
-      </span>
-    </Link>
+          <span className="min-w-0">
+            <span className="block text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#44f26e]">
+              {copy.continueReading.personaEyebrow}
+            </span>
+            <span className="mt-1 block truncate text-lg font-black leading-tight">
+              {displayName}
+            </span>
+            <span className="mt-1 block text-xs font-semibold leading-5 text-white/58 [word-break:keep-all]">
+              {copy.continueReading.personaBody(displayName)}
+            </span>
+          </span>
+          <span className="flex shrink-0 flex-col items-center gap-1 text-[#44f26e]">
+            <span className="inline-flex size-10 items-center justify-center rounded-full bg-[#44f26e] text-black transition group-hover:bg-[#69ff8c]">
+              <ArrowUpRight className="size-4" />
+            </span>
+            <span className="hidden text-[0.6rem] font-black uppercase tracking-[0.08em] text-white/48 sm:block">
+              {copy.continueReading.personaCta}
+            </span>
+          </span>
+        </Link>
+        {creatorReferralCode ? (
+          <FanletterFollowButton
+            className="inline-flex h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full border border-[#44f26e]/34 bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c] sm:w-auto sm:min-w-48"
+            creatorReferralCode={creatorReferralCode}
+            fallbackHref={followFallbackHref}
+            locale={locale}
+          />
+        ) : null}
+      </div>
+    </section>
   );
 }
 
@@ -3614,6 +3669,7 @@ export default async function LocalizedFanletterNewsReportPage({
     characterName,
     copy: {
       clearSearch: copy.relatedNewsClearSearch,
+      controlsSummary: copy.relatedNewsControlsSummary,
       current: copy.relatedNewsCurrent,
       description: copy.relatedNewsDescription,
       empty: copy.relatedNewsEmpty,
@@ -3884,7 +3940,10 @@ export default async function LocalizedFanletterNewsReportPage({
               blurred={shouldBlurCurrentReport}
               copy={copy}
               creatorHref={creatorHref}
+              creatorReferralCode={creatorReferralCode}
+              followFallbackHref={paidUnlockOnboardingHref}
               imageUrl={titleCharacterThumbnailUrl}
+              locale={locale}
               name={characterName}
             />
           </div>
@@ -4099,7 +4158,10 @@ export default async function LocalizedFanletterNewsReportPage({
                 className="mt-3"
                 copy={copy}
                 creatorHref={creatorHref}
+                creatorReferralCode={creatorReferralCode}
+                followFallbackHref={paidUnlockOnboardingHref}
                 imageUrl={titleCharacterThumbnailUrl}
+                locale={locale}
                 name={characterName}
               />
             </div>
@@ -4150,7 +4212,7 @@ export default async function LocalizedFanletterNewsReportPage({
 
           </div>
 
-          <aside className="space-y-4 xl:sticky xl:top-5">
+          <aside className="hidden space-y-4 xl:sticky xl:top-5 xl:block">
             <FanletterNewsWalletSidebarCard
               body={copy.walletConnect.body}
               eyebrow={copy.walletConnect.eyebrow}

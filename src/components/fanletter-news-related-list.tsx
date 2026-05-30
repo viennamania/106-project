@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 
 type FanletterNewsRelatedListCopy = {
   clearSearch: string;
+  controlsSummary: string;
   current: string;
   description: string;
   empty: string;
@@ -411,6 +412,7 @@ export function FanletterNewsRelatedList({
   const currentItem = initialItems.find((item) => item.reportId === currentReportId);
   const normalizedInitialPageIndex = Math.max(0, Math.floor(initialPageIndex));
   const searchInputId = useId();
+  const mobileSearchInputId = `${searchInputId}-mobile`;
   const [searchText, setSearchText] = useState("");
   const [activeSearchQuery, setActiveSearchQuery] = useState("");
   const searchActive = activeSearchQuery.length > 0;
@@ -663,6 +665,72 @@ export function FanletterNewsRelatedList({
   const canGoPrevious = pageIndex > 0;
   const canGoNext = activePage.hasMore || Boolean(pages[pageIndex + 1]);
   const pageLabel = `${copy.page} ${pageIndex + 1}`;
+  const renderSearchAndSortControls = (inputId: string) => (
+    <>
+      <form
+        className="mt-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          setActiveSearchQuery(searchText.trim());
+        }}
+        role="search"
+      >
+        <label className="sr-only" htmlFor={inputId}>
+          {copy.searchLabel}
+        </label>
+        <div className="relative">
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-black/38"
+          />
+          <input
+            className="h-10 w-full rounded-full border border-black/12 bg-white py-2 pl-9 pr-10 text-sm font-bold text-[#111510] outline-none transition placeholder:text-black/34 focus:border-[#19b84b] focus:bg-[#fbfff8] focus:ring-2 focus:ring-[#44f26e]/22 sm:h-11"
+            enterKeyHint="search"
+            id={inputId}
+            onChange={(event) => setSearchText(event.target.value)}
+            placeholder={copy.searchPlaceholder}
+            type="search"
+            value={searchText}
+          />
+          {searchText ? (
+            <button
+              aria-label={copy.clearSearch}
+              className="absolute right-1.5 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-black/48 transition hover:bg-black/6 hover:text-[#111510]"
+              onClick={() => {
+                setSearchText("");
+                setActiveSearchQuery("");
+              }}
+              type="button"
+            >
+              <X aria-hidden="true" className="size-4" />
+            </button>
+          ) : null}
+        </div>
+      </form>
+      {sortOptions.length > 0 ? (
+        <div
+          aria-label={sortLabel}
+          className="-mx-3 mt-2.5 flex items-center gap-1.5 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none] sm:mx-0 sm:mt-3 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
+        >
+          {sortOptions.map((option) => (
+            <Link
+              aria-current={option.active ? "page" : undefined}
+              className={cn(
+                "inline-flex min-h-8 shrink-0 items-center rounded-full border px-3 py-1 text-[0.72rem] font-black transition sm:min-h-9 sm:px-3.5",
+                option.active
+                  ? "border-[#111510] bg-[#111510] !text-white shadow-[0_10px_22px_rgba(17,21,16,0.16)]"
+                  : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]",
+              )}
+              href={option.href}
+              key={option.value}
+            >
+              {option.label}
+            </Link>
+          ))}
+        </div>
+      ) : null}
+    </>
+  );
 
   return (
     <section
@@ -753,73 +821,20 @@ export function FanletterNewsRelatedList({
             {copy.description}
           </span>
         </div>
-        <form
-          className="mt-3"
-          onSubmit={(event) => {
-            event.preventDefault();
-            setActiveSearchQuery(searchText.trim());
-          }}
-          role="search"
-        >
-          <label className="sr-only" htmlFor={searchInputId}>
-            {copy.searchLabel}
-          </label>
-          <div className="relative">
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-black/38"
-            />
-            <input
-              className="h-10 w-full rounded-full border border-black/12 bg-white py-2 pl-9 pr-10 text-sm font-bold text-[#111510] outline-none transition placeholder:text-black/34 focus:border-[#19b84b] focus:bg-[#fbfff8] focus:ring-2 focus:ring-[#44f26e]/22 sm:h-11"
-              enterKeyHint="search"
-              id={searchInputId}
-              onChange={(event) => setSearchText(event.target.value)}
-              placeholder={copy.searchPlaceholder}
-              type="search"
-              value={searchText}
-            />
-            {searchText ? (
-              <button
-                aria-label={copy.clearSearch}
-                className="absolute right-1.5 top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-black/48 transition hover:bg-black/6 hover:text-[#111510]"
-                onClick={() => {
-                  setSearchText("");
-                  setActiveSearchQuery("");
-                }}
-                type="button"
-              >
-                <X aria-hidden="true" className="size-4" />
-              </button>
-            ) : null}
-          </div>
-        </form>
-        {sortOptions.length > 0 ? (
-          <div
-            aria-label={sortLabel}
-            className="-mx-3 mt-2.5 flex items-center gap-1.5 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none] sm:mx-0 sm:mt-3 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
-          >
-            {sortOptions.map((option) => (
-              <Link
-                aria-current={option.active ? "page" : undefined}
-                className={cn(
-                  "inline-flex min-h-8 shrink-0 items-center rounded-full border px-3 py-1 text-[0.72rem] font-black transition sm:min-h-9 sm:px-3.5",
-                  option.active
-                    ? "border-[#111510] bg-[#111510] !text-white shadow-[0_10px_22px_rgba(17,21,16,0.16)]"
-                    : "border-black/12 bg-white !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]",
-                )}
-                href={option.href}
-                key={option.value}
-              >
-                {option.label}
-              </Link>
-            ))}
-          </div>
-        ) : null}
+        <details className="mt-3 rounded-lg border border-black/10 bg-[#f7f9f4] px-3 py-2 sm:hidden">
+          <summary className="cursor-pointer list-none text-xs font-black text-[#111510] marker:hidden [&::-webkit-details-marker]:hidden">
+            {copy.controlsSummary}
+          </summary>
+          {renderSearchAndSortControls(mobileSearchInputId)}
+        </details>
+        <div className="hidden sm:block">
+          {renderSearchAndSortControls(searchInputId)}
+        </div>
       </div>
 
       <div className={cn("p-3 sm:p-4", isFeatureVariant ? "sm:p-5" : "")}>
         {showCurrentItem && currentItem ? (
-          <div className="mb-3">
+          <div className="mb-3 hidden sm:block">
             <RelatedNewsCard
               currentLabel={copy.current}
               href={buildRelatedNewsHref({

@@ -232,9 +232,11 @@ export function FanletterFollowButton({
   if (!connection.isConnected || !accountAddress || !email) {
     return (
       <Link className={buttonClassName} href={fallbackHref}>
-        <BellPlus className="size-4" />
-        <span>{connection.isResolving ? copy.loading : copy.connectedRequired}</span>
-        <span className="inline-flex items-center gap-1 text-current/62">
+        <BellPlus className="size-4 shrink-0" />
+        <span className="min-w-0 truncate">
+          {connection.isResolving ? copy.loading : copy.connectedRequired}
+        </span>
+        <span className="inline-flex shrink-0 items-center gap-1 text-current/62">
           <UsersRound className="size-3.5" />
           {followerLabel}
         </span>
@@ -251,9 +253,9 @@ export function FanletterFollowButton({
       }}
       type="button"
     >
-      <Icon className={`size-4 ${isBusy ? "animate-spin" : ""}`} />
-      <span>{label}</span>
-      <span className="inline-flex items-center gap-1 text-current/62">
+      <Icon className={`size-4 shrink-0 ${isBusy ? "animate-spin" : ""}`} />
+      <span className="min-w-0 truncate">{label}</span>
+      <span className="inline-flex shrink-0 items-center gap-1 text-current/62">
         <UsersRound className="size-3.5" />
         {followerLabel}
       </span>
