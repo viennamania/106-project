@@ -218,13 +218,17 @@ function getCopy(locale: Locale) {
         },
         continueReading: {
           body:
-            "본문을 읽은 뒤 같은 AI 캐릭터의 최초 팬 리포트와 최신 관련 뉴스를 이어서 확인하세요.",
+            "먼저 같은 AI 캐릭터의 다른 뉴스로 이어보고, 캐릭터 페르소나와 다른 캐릭터 뉴스까지 확장해 보세요.",
           characterCta: "캐릭터 뉴스 홈",
           eyebrow: "같은 캐릭터 뉴스",
           leadCta: (name: string | null) =>
             name ? `${name} 관련 뉴스 보기` : "관련 뉴스 보기",
           listEyebrow: "같은 AI 캐릭터",
           listTitle: "최초 우선 관련 뉴스",
+          personaBody: (name: string) =>
+            `${name}의 얼굴과 페르소나를 캐릭터 채널에서 확인하세요.`,
+          personaCta: "캐릭터 페르소나 보기",
+          personaEyebrow: "다음 호기심",
           title: "같은 캐릭터의 다른 뉴스",
         },
         contentBadge: {
@@ -355,7 +359,7 @@ function getCopy(locale: Locale) {
           fanOnly: "팬전용",
           news: "뉴스",
           public: "공개",
-          title: "다른 캐릭터 뉴스",
+          title: "다른 캐릭터 뉴스도 궁금해?",
         },
         reporterNewsCta: "팬 기자 뉴스",
         reporterTrust: {
@@ -469,13 +473,17 @@ function getCopy(locale: Locale) {
         },
         continueReading: {
           body:
-            "After this news, keep exploring first fan reports and the latest related news from the same AI character.",
+            "Continue with this AI character first, then open the character persona and discover other character news.",
           characterCta: "Character news home",
           eyebrow: "Same character news",
           leadCta: (name: string | null) =>
             name ? `Read related ${name} news` : "Read related news",
           listEyebrow: "Same AI character",
           listTitle: "First reports first",
+          personaBody: (name: string) =>
+            `Open ${name}'s face and persona in the character channel.`,
+          personaCta: "View character persona",
+          personaEyebrow: "Next curiosity",
           title: "More from this character",
         },
         contentBadge: {
@@ -605,7 +613,7 @@ function getCopy(locale: Locale) {
           fanOnly: "Fan-only",
           news: "News",
           public: "Public",
-          title: "Other character news",
+          title: "Curious about other characters?",
         },
         reporterNewsCta: "Fan reporter news",
         reporterTrust: {
@@ -1625,6 +1633,72 @@ function FanletterNewsOtherCharacterNews({
         })}
       </div>
     </section>
+  );
+}
+
+function CharacterPersonaBridge({
+  blurred,
+  className,
+  copy,
+  creatorHref,
+  imageUrl,
+  name,
+}: {
+  blurred: boolean;
+  className?: string;
+  copy: ReturnType<typeof getCopy>;
+  creatorHref: string;
+  imageUrl: string | null;
+  name: string | null;
+}) {
+  const displayName = name?.trim() || copy.titleCharacter.fallback;
+  const shouldBypassImageOptimization = imageUrl
+    ? shouldBypassFanletterImageOptimization(imageUrl)
+    : false;
+
+  return (
+    <Link
+      className={`group grid min-w-0 grid-cols-[4.75rem_minmax(0,1fr)_auto] items-center gap-3 border border-black/12 bg-[#111510] p-3 !text-white shadow-[0_16px_38px_rgba(17,21,16,0.13)] transition hover:border-[#19b84b] hover:bg-[#172219] sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:gap-4 sm:p-4 ${className ?? ""}`}
+      href={creatorHref}
+    >
+      <span className="relative block aspect-square overflow-hidden rounded-xl border border-white/12 bg-black">
+        {imageUrl ? (
+          <Image
+            alt={copy.titleCharacter.visualAlt(displayName)}
+            className={`object-cover object-center transition duration-300 group-hover:scale-[1.04] ${
+              blurred ? "blur-sm brightness-[0.78] saturate-[0.88]" : ""
+            }`}
+            fill
+            sizes="(max-width: 640px) 4.75rem, 5.5rem"
+            src={imageUrl}
+            unoptimized={shouldBypassImageOptimization}
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_55%,#203426)]">
+            <BadgeCheck className="size-7 text-[#44f26e]" />
+          </span>
+        )}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#44f26e]">
+          {copy.continueReading.personaEyebrow}
+        </span>
+        <span className="mt-1 block truncate text-lg font-black leading-tight">
+          {displayName}
+        </span>
+        <span className="mt-1 block text-xs font-semibold leading-5 text-white/58 [word-break:keep-all]">
+          {copy.continueReading.personaBody(displayName)}
+        </span>
+      </span>
+      <span className="flex shrink-0 flex-col items-center gap-1 text-[#44f26e]">
+        <span className="inline-flex size-10 items-center justify-center rounded-full bg-[#44f26e] text-black transition group-hover:bg-[#69ff8c]">
+          <ArrowUpRight className="size-4" />
+        </span>
+        <span className="hidden text-[0.6rem] font-black uppercase tracking-[0.08em] text-white/48 sm:block">
+          {copy.continueReading.personaCta}
+        </span>
+      </span>
+    </Link>
   );
 }
 
@@ -3866,11 +3940,20 @@ export default async function LocalizedFanletterNewsReportPage({
           }
           id="fanletter-news-discovery"
         >
-          <FanletterNewsRelatedList
-            key={`feature-${relatedNewsApiHref}-${relatedNewsOffset}`}
-            {...relatedNewsListProps}
-            variant="feature"
-          />
+          <div className="min-w-0 space-y-3">
+            <FanletterNewsRelatedList
+              key={`feature-${relatedNewsApiHref}-${relatedNewsOffset}`}
+              {...relatedNewsListProps}
+              variant="feature"
+            />
+            <CharacterPersonaBridge
+              blurred={shouldBlurCurrentReport}
+              copy={copy}
+              creatorHref={creatorHref}
+              imageUrl={titleCharacterThumbnailUrl}
+              name={characterName}
+            />
+          </div>
           {shouldShowOtherCharacterNews ? (
             <div className="hidden xl:block">
               <FanletterNewsOtherCharacterNews
@@ -4076,6 +4159,14 @@ export default async function LocalizedFanletterNewsReportPage({
                 key={`mobile-${relatedNewsApiHref}-${relatedNewsOffset}`}
                 {...relatedNewsListProps}
                 variant="feature"
+              />
+              <CharacterPersonaBridge
+                blurred={shouldBlurCurrentReport}
+                className="mt-3"
+                copy={copy}
+                creatorHref={creatorHref}
+                imageUrl={titleCharacterThumbnailUrl}
+                name={characterName}
               />
             </div>
 
