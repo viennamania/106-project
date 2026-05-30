@@ -18,11 +18,13 @@ import {
   CONTENT_VIDEO_SOURCE_MIXED_ERROR,
   CONTENT_VIDEO_SOURCE_REQUIRED_ERROR,
   CONTENT_EXCLUSIVE_NEWS_REPORTER_NOT_FOUND_ERROR,
+  CONTENT_FAN_REPORT_LIMIT_BELOW_PUBLISHED_ERROR,
   CONTENT_NSFW_REQUIRES_PAID_UPLOAD_ERROR,
   contentCoverImagePlacements,
   creatorAvatarExpressions,
   createEmptyContentSocialSummary,
   getContentVideoAssetSource,
+  normalizeFanletterNewsReportSlotLimit,
   normalizeContentLocale,
   serializeContentOrder,
   serializeContentSaleOrder,
@@ -3219,6 +3221,9 @@ export async function createContentPostForMember(
 
   const status = input.status === "published" ? "published" : "draft";
   const priceType = normalizePriceType(input.priceType);
+  const fanReportLimit = normalizeFanletterNewsReportSlotLimit(
+    input.fanReportLimit,
+  );
   const contentMaturityRating = normalizeContentMaturityRating(
     input.contentMaturityRating,
   );
@@ -3295,6 +3300,7 @@ export async function createContentPostForMember(
     coverImageUrl,
     createdAt: now,
     ...exclusiveNewsAssignment,
+    fanReportLimit,
     fanRequestId: fanRequest?.requestId ?? null,
     locale: normalizeContentLocale(input.locale),
     previewAssetIds: (input.previewAssetIds ?? []).slice(0, 4),
@@ -3373,6 +3379,13 @@ export async function updateContentPostForMember(
     input.priceType !== undefined
       ? normalizePriceType(input.priceType)
       : post.priceType;
+  const hasFanReportLimitInput = Object.prototype.hasOwnProperty.call(
+    input,
+    "fanReportLimit",
+  );
+  const nextFanReportLimit = hasFanReportLimitInput
+    ? normalizeFanletterNewsReportSlotLimit(input.fanReportLimit)
+    : normalizeFanletterNewsReportSlotLimit(post.fanReportLimit);
   const nextContentMaturityRating =
     input.contentMaturityRating !== undefined
       ? normalizeContentMaturityRating(input.contentMaturityRating)
@@ -3449,6 +3462,18 @@ export async function updateContentPostForMember(
       member,
     });
     await ensureCreatorPaidWalletForMember(member.email);
+  }
+
+  if (hasFanReportLimitInput) {
+    const reportCountByContentId = await getFanletterNewsReportCountsByContentId([
+      post.contentId,
+    ]);
+    const publishedReportCount =
+      reportCountByContentId.get(post.contentId) ?? 0;
+
+    if (publishedReportCount > nextFanReportLimit) {
+      throw new Error(CONTENT_FAN_REPORT_LIMIT_BELOW_PUBLISHED_ERROR);
+    }
   }
 
   const now = new Date();
@@ -3533,6 +3558,7 @@ export async function updateContentPostForMember(
           exclusiveNewsReporterReferralCode:
             nextExclusiveNewsAssignment.exclusiveNewsReporterReferralCode,
           exclusiveNewsUntil: nextExclusiveNewsAssignment.exclusiveNewsUntil,
+          fanReportLimit: nextFanReportLimit,
           fanRequestId: nextFanRequestId,
           locale:
             input.locale !== undefined

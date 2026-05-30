@@ -16,7 +16,10 @@ import type {
   FanletterNewsReportDocument,
   FanletterNewsReportTeaserImageDocument,
 } from "@/lib/content";
-import { createEmptyContentSocialSummary } from "@/lib/content";
+import {
+  createEmptyContentSocialSummary,
+  normalizeFanletterNewsReportSlotLimit,
+} from "@/lib/content";
 import { resolveContentCoverImageUrl } from "@/lib/content-cover-selection";
 import { normalizeContentLocale } from "@/lib/content";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
@@ -66,6 +69,8 @@ export const FANLETTER_NEWS_EXCLUSIVE_REPORTER_ACTIVE_ERROR =
   "Exclusive reporter assignment is active for this vlog.";
 export const FANLETTER_NEWS_PAID_SOURCE_ACCESS_REQUIRED_ERROR =
   "Paid source vlog requires a confirmed purchase by this reporter.";
+export const FANLETTER_NEWS_REPORT_SLOT_LIMIT_REACHED_ERROR =
+  "Fan report slots are full for this vlog.";
 
 type OpenAiResponsesApiResponse = {
   error?: {
@@ -360,6 +365,12 @@ export type FanletterNewsReportDraftSource = {
   previewClipVideoUrl: string | null;
   publishedAt: string | null;
   reportCount: number;
+  reportSlot: {
+    full: boolean;
+    limit: number;
+    remaining: number;
+    used: number;
+  };
   reports: Array<{
     coverImageUrl: string | null;
     createdAt: string;
@@ -2149,6 +2160,18 @@ export async function getOrCreateFanletterNewsReport({
     };
   }
 
+  const reportSlotLimit = normalizeFanletterNewsReportSlotLimit(
+    post.fanReportLimit,
+  );
+  const currentPublishedReportCount = await reportsCollection.countDocuments({
+    contentId: normalizedContentId,
+    status: "published",
+  });
+
+  if (currentPublishedReportCount >= reportSlotLimit) {
+    throw new Error(FANLETTER_NEWS_REPORT_SLOT_LIMIT_REACHED_ERROR);
+  }
+
   const profilesCollection = await getCreatorProfilesCollection();
   const profile = await profilesCollection.findOne({ email: post.authorEmail });
   const contentMaturityRating = getContentMaturityRating(post);
@@ -2672,6 +2695,7 @@ export async function getFanletterNewsReportDraftSourcesForMember({
           exclusiveNewsReporterName: 1,
           exclusiveNewsReporterReferralCode: 1,
           exclusiveNewsUntil: 1,
+          fanReportLimit: 1,
           locale: 1,
           previewClipVideoUrl: 1,
           previewText: 1,
@@ -2700,7 +2724,13 @@ export async function getFanletterNewsReportDraftSourcesForMember({
   const paidContentIds = posts
     .filter((post) => post.priceType === "paid")
     .map((post) => post.contentId);
-  const [profiles, reports, purchasedContentIds, sourceRevealByContentId] =
+  const [
+    profiles,
+    reports,
+    reportSlotCountRows,
+    purchasedContentIds,
+    sourceRevealByContentId,
+  ] =
     await Promise.all([
       profilesCollection
         .find(
@@ -2750,6 +2780,22 @@ export async function getFanletterNewsReportDraftSourcesForMember({
         )
         .sort({ createdAt: -1 })
         .toArray(),
+      reportsCollection
+        .aggregate<{ _id: string; count: number }>([
+          {
+            $match: {
+              contentId: { $in: contentIds },
+              status: "published",
+            },
+          },
+          {
+            $group: {
+              _id: "$contentId",
+              count: { $sum: 1 },
+            },
+          },
+        ])
+        .toArray(),
       getPurchasedContentIdsForMember({
         contentIds: paidContentIds,
         email: member.email,
@@ -2761,8 +2807,15 @@ export async function getFanletterNewsReportDraftSourcesForMember({
     ]);
   const profileByEmail = new Map(profiles.map((profile) => [profile.email, profile]));
   const reportCountByContentId = new Map<string, number>();
+  const reportSlotCountByContentId = new Map<string, number>(
+    contentIds.map((contentId) => [contentId, 0]),
+  );
   const existingReportByContentId = new Map<string, FanletterNewsReportDocument>();
   const reportsByContentId = new Map<string, FanletterNewsReportDocument[]>();
+
+  for (const row of reportSlotCountRows) {
+    reportSlotCountByContentId.set(row._id, row.count);
+  }
 
   for (const report of reports) {
     reportCountByContentId.set(
@@ -2794,6 +2847,10 @@ export async function getFanletterNewsReportDraftSourcesForMember({
       const autoCoverImageUrl = getCoverImageUrl(post);
       const existingReport = existingReportByContentId.get(post.contentId) ?? null;
       const contentReports = reportsByContentId.get(post.contentId) ?? [];
+      const reportSlotLimit = normalizeFanletterNewsReportSlotLimit(
+        post.fanReportLimit,
+      );
+      const reportSlotUsed = reportSlotCountByContentId.get(post.contentId) ?? 0;
       const isPurchased = purchasedContentIds.has(post.contentId);
       const canViewMedia = post.priceType === "free" || isPurchased;
       const coverOptions = getFanletterNewsReportCoverOptionsFromPost({
@@ -2884,6 +2941,12 @@ export async function getFanletterNewsReportDraftSourcesForMember({
         previewClipVideoUrl: post.previewClipVideoUrl?.trim() || null,
         publishedAt: post.publishedAt?.toISOString() ?? null,
         reportCount: reportCountByContentId.get(post.contentId) ?? 0,
+        reportSlot: {
+          full: reportSlotUsed >= reportSlotLimit,
+          limit: reportSlotLimit,
+          remaining: Math.max(0, reportSlotLimit - reportSlotUsed),
+          used: reportSlotUsed,
+        },
         reports: contentReports.slice(0, 8).map((report) => ({
           coverImageUrl: report.coverImageUrl ?? null,
           createdAt: report.createdAt.toISOString(),

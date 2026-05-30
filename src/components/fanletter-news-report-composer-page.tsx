@@ -116,6 +116,12 @@ export type FanletterNewsReportComposerSource = {
   previewClipVideoUrl: string | null;
   publishedAt: string | null;
   reportCount: number;
+  reportSlot: {
+    full: boolean;
+    limit: number;
+    remaining: number;
+    used: number;
+  };
   reports: Array<{
     coverImageUrl: string | null;
     createdAt: string;
@@ -400,6 +406,7 @@ function getCopy(locale: Locale) {
           angle: "리포터 관점",
           body: "뉴스 이미지, 공개 컷, 관점, 권한을 확인하고 바로 발행하세요.",
           cover: "뉴스 이미지",
+          slots: (used: string, limit: string) => `발행 슬롯 ${used}/${limit}`,
           statusReady: "발행 가능",
           statusWaiting: "준비 필요",
           teasers: (count: string) => `공개 컷 ${count}장`,
@@ -407,6 +414,13 @@ function getCopy(locale: Locale) {
         },
         readReport: "리포트 보기",
         reportCount: "기존 리포트",
+        reportSlots: {
+          available: (remaining: string) => `${remaining}자리 남음`,
+          full: "발행 마감",
+          lowerCompetition: "발행 여유",
+          title: "발행 슬롯",
+          used: (used: string, limit: string) => `${used}/${limit}개 발행`,
+        },
         reporter: "팬 기자",
         recommendedAngle: "추천 관점",
         reset: "초기화",
@@ -664,6 +678,7 @@ function getCopy(locale: Locale) {
           angle: "Reporter angle",
           body: "Check the news image, public cuts, angle, and access before publishing.",
           cover: "News image",
+          slots: (used: string, limit: string) => `Slots ${used}/${limit}`,
           statusReady: "Ready",
           statusWaiting: "Needs setup",
           teasers: (count: string) => `${count} public cuts`,
@@ -671,6 +686,13 @@ function getCopy(locale: Locale) {
         },
         readReport: "View report",
         reportCount: "Existing reports",
+        reportSlots: {
+          available: (remaining: string) => `${remaining} slots left`,
+          full: "Slots full",
+          lowerCompetition: "Slots open",
+          title: "Report slots",
+          used: (used: string, limit: string) => `${used}/${limit} published`,
+        },
         reporter: "Reporter",
         recommendedAngle: "Recommended angle",
         reset: "Reset",
@@ -887,6 +909,7 @@ function canReporterCreateFromSource({
     !source.existingReport &&
       source.mediaAccess.canView &&
       source.coverOptions.length > 0 &&
+      !source.reportSlot.full &&
       !isSourceExclusiveBlockedForReporter({ reporterReferralCode, source }),
   );
 }
@@ -1712,6 +1735,9 @@ export function FanletterNewsReportComposerPage({
   const isSelectedPaidLocked = Boolean(
     selectedSource?.mediaAccess.requiresPurchase,
   );
+  const isSelectedReportSlotFull = Boolean(
+    selectedSource?.reportSlot.full && !selectedSource.existingReport,
+  );
   const shouldBlurNsfwMedia = !includeNsfw;
   const shouldBlurSelectedNsfwMedia = Boolean(
     shouldBlurNsfwMedia && selectedSource?.contentMaturityRating === "nsfw",
@@ -1771,6 +1797,7 @@ export function FanletterNewsReportComposerPage({
       selectedSource.mediaAccess.canView &&
       selectedCoverUrl &&
       !selectedSource.existingReport &&
+      !selectedSource.reportSlot.full &&
       !isExclusiveBlocked &&
       status === "idle",
   );
@@ -1837,12 +1864,26 @@ export function FanletterNewsReportComposerPage({
       label: copy.publishReadiness.access,
       ready: canCreateSelectedSource,
     },
+    {
+      label: selectedSource
+        ? copy.publishReadiness.slots(
+            formatNumber(selectedSource.reportSlot.used, locale),
+            formatNumber(selectedSource.reportSlot.limit, locale),
+          )
+        : copy.reportSlots.title,
+      ready: Boolean(
+        selectedSource &&
+          (!selectedSource.reportSlot.full || selectedSource.existingReport),
+      ),
+    },
   ] as const;
   const selectedOpportunityStatusLabel = selectedSource
     ? isSelectedOpportunitySource
       ? copy.sourceReveal.opportunity
       : selectedSource.existingReport
         ? copy.sourceReveal.opportunityAlreadyReported
+        : isSelectedReportSlotFull
+          ? copy.reportSlots.full
         : !isSelectedSourceRevealLocked
           ? copy.sourceReveal.unlocked
           : isSelectedPaidLocked
@@ -3390,6 +3431,18 @@ export function FanletterNewsReportComposerPage({
                           {formatNumber(source.reportCount, locale)}
                         </span>
                         <span
+                          className={
+                            source.reportSlot.full
+                              ? "text-rose-700"
+                              : "text-[#16702e]"
+                          }
+                        >
+                          {copy.reportSlots.used(
+                            formatNumber(source.reportSlot.used, locale),
+                            formatNumber(source.reportSlot.limit, locale),
+                          )}
+                        </span>
+                        <span
                           className={cn(
                             "inline-flex items-center gap-1",
                             source.sourceReveal.unlocked
@@ -3586,10 +3639,11 @@ export function FanletterNewsReportComposerPage({
                       </div>
                       <div className="border border-black/10 bg-[#f6f8f4] px-3 py-2">
                         <p className="text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/36">
-                          {copy.reportCount}
+                          {copy.reportSlots.title}
                         </p>
                         <p className="mt-1 text-xs font-black">
-                          {formatNumber(selectedSource.reportCount, locale)}
+                          {formatNumber(selectedSource.reportSlot.used, locale)}/
+                          {formatNumber(selectedSource.reportSlot.limit, locale)}
                         </p>
                       </div>
                     </div>
@@ -3714,7 +3768,37 @@ export function FanletterNewsReportComposerPage({
                             ? copy.sourceReveal.opportunityPaidLocked
                             : isExclusiveBlocked
                               ? copy.locked
+                              : isSelectedReportSlotFull
+                                ? copy.reportSlots.full
                               : copy.unavailable}
+                      </span>
+                      <span
+                        className={cn(
+                          "inline-flex min-h-7 items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-black",
+                          selectedSource.reportSlot.full
+                            ? "border-rose-500/18 bg-white text-rose-700"
+                            : "border-[#19b84b]/24 bg-white text-[#16702e]",
+                        )}
+                      >
+                        {selectedSource.reportSlot.full ? (
+                          <AlertTriangle className="size-3.5" />
+                        ) : (
+                          <CheckCircle2 className="size-3.5" />
+                        )}
+                        {copy.reportSlots.used(
+                          formatNumber(selectedSource.reportSlot.used, locale),
+                          formatNumber(selectedSource.reportSlot.limit, locale),
+                        )}
+                        <span className="text-black/34">
+                          {selectedSource.reportSlot.full
+                            ? copy.reportSlots.full
+                            : copy.reportSlots.available(
+                                formatNumber(
+                                  selectedSource.reportSlot.remaining,
+                                  locale,
+                                ),
+                              )}
+                        </span>
                       </span>
                       {isFirstReportOpportunitySource(selectedSource) ? (
                         <span className="inline-flex min-h-7 items-center gap-1.5 rounded-full border border-[#19b84b]/24 bg-white px-2.5 py-1 text-xs font-black text-[#16702e]">
@@ -4936,7 +5020,7 @@ export function FanletterNewsReportComposerPage({
                                 : copy.publishReadiness.statusWaiting}
                             </span>
                           </div>
-                          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
                             {publishReadinessItems.map((item) => (
                               <span
                                 className={cn(

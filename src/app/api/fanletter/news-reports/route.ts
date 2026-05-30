@@ -4,6 +4,7 @@ import {
   createFanletterNewsReportShareHref,
   FANLETTER_NEWS_EXCLUSIVE_REPORTER_ACTIVE_ERROR,
   FANLETTER_NEWS_PAID_SOURCE_ACCESS_REQUIRED_ERROR,
+  FANLETTER_NEWS_REPORT_SLOT_LIMIT_REACHED_ERROR,
   getFanletterNewsReportForReporter,
   getFanletterNewsReportCoverOptions,
   getFanletterNewsReportsForContent,
@@ -132,6 +133,10 @@ function getErrorStatus(message: string) {
 
   if (message === FANLETTER_NEWS_PAID_SOURCE_ACCESS_REQUIRED_ERROR) {
     return 403;
+  }
+
+  if (message === FANLETTER_NEWS_REPORT_SLOT_LIMIT_REACHED_ERROR) {
+    return 409;
   }
 
   return 500;

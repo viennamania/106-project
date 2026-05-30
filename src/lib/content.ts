@@ -34,6 +34,10 @@ export const CONTENT_NSFW_REQUIRES_PAID_UPLOAD_ERROR =
   "NSFW content requires a paid directly uploaded video.";
 export const CONTENT_EXCLUSIVE_NEWS_REPORTER_NOT_FOUND_ERROR =
   "Exclusive news reporter not found.";
+export const FANLETTER_NEWS_REPORT_SLOT_OPTIONS = [3, 6, 10] as const;
+export const FANLETTER_NEWS_REPORT_DEFAULT_SLOT_LIMIT = 6;
+export const CONTENT_FAN_REPORT_LIMIT_BELOW_PUBLISHED_ERROR =
+  "Fan report limit cannot be lower than published reports.";
 export const CONTENT_IMAGE_VISUAL_BRIEF_LIMIT = 6000;
 export const CONTENT_VIDEO_LIMIT = 1;
 export const contentVideoMimeTypes = [
@@ -142,6 +146,8 @@ export type ContentImageGenerationProvider =
   | "replicate";
 export type ContentImageGenerationStatus = "failed" | "running" | "succeeded";
 export type ContentVideoAssetSource = "generated" | "unknown" | "uploaded";
+export type FanletterNewsReportSlotLimit =
+  (typeof FANLETTER_NEWS_REPORT_SLOT_OPTIONS)[number];
 
 const contentVideoPolicyErrorMessages = new Set([
   CONTENT_PAID_REQUIRES_UPLOADED_VIDEO_ERROR,
@@ -221,6 +227,29 @@ export function isContentFanRequestPolicyErrorMessage(message: string) {
 
 export function isContentMaturityPolicyErrorMessage(message: string) {
   return contentMaturityPolicyErrorMessages.has(message);
+}
+
+export function normalizeFanletterNewsReportSlotLimit(
+  value: unknown,
+): FanletterNewsReportSlotLimit {
+  const numericValue =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value)
+        : NaN;
+
+  if (!Number.isFinite(numericValue)) {
+    return FANLETTER_NEWS_REPORT_DEFAULT_SLOT_LIMIT;
+  }
+
+  const normalizedValue = Math.floor(numericValue);
+
+  return FANLETTER_NEWS_REPORT_SLOT_OPTIONS.includes(
+    normalizedValue as FanletterNewsReportSlotLimit,
+  )
+    ? (normalizedValue as FanletterNewsReportSlotLimit)
+    : FANLETTER_NEWS_REPORT_DEFAULT_SLOT_LIMIT;
 }
 
 export type ContentImageGenerationAttemptDocument = {
@@ -589,6 +618,7 @@ export type ContentPostDocument = {
   exclusiveNewsReporterName?: string | null;
   exclusiveNewsReporterReferralCode?: string | null;
   exclusiveNewsUntil?: Date | null;
+  fanReportLimit?: number | null;
   fanRequestId?: string | null;
   locale?: Locale | null;
   previewAssetIds: string[];
@@ -707,6 +737,7 @@ export type ContentPostRecord = {
   coverImageUrl: string | null;
   createdAt: string;
   exclusiveNews: ContentExclusiveNewsAssignmentRecord;
+  fanReportLimit: FanletterNewsReportSlotLimit;
   fanRequestId: string | null;
   locale: Locale;
   previewClipVideoUrl: string | null;
@@ -1169,6 +1200,7 @@ export type ContentPostCreateRequest = {
   email: string;
   exclusiveNewsDurationHours?: number | null;
   exclusiveNewsReporterReferralCode?: string | null;
+  fanReportLimit?: number | null;
   locale?: Locale | null;
   fanRequestId?: string | null;
   previewAssetIds?: string[];
@@ -1391,6 +1423,9 @@ export function serializeContentPost(
       reporterReferralCode: exclusiveNewsReporterReferralCode,
       until: exclusiveNewsUntil,
     },
+    fanReportLimit: normalizeFanletterNewsReportSlotLimit(
+      content.fanReportLimit,
+    ),
     fanRequestId: content.fanRequestId ?? null,
     locale: normalizeContentLocale(content.locale),
     previewClipVideoUrl: content.previewClipVideoUrl?.trim() || null,

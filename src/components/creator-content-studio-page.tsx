@@ -55,6 +55,8 @@ import {
   CONTENT_PAID_USDT_AMOUNT,
   CONTENT_VIDEO_LIMIT,
   CONTENT_VIDEO_MAX_BYTES,
+  FANLETTER_NEWS_REPORT_DEFAULT_SLOT_LIMIT,
+  FANLETTER_NEWS_REPORT_SLOT_OPTIONS,
   contentCoverImagePlacements,
   contentCoverGenerationProgressSteps,
   getContentVideoAssetSource,
@@ -78,6 +80,7 @@ import type {
   ContentPostGenerateCoverStreamEvent,
   ContentPostMutationResponse,
   ContentPostRecord,
+  CreatorStudioPostRecord,
   ContentPostUploadResponse,
   ContentVideoMetadata,
   CreatorProfileResponse,
@@ -131,7 +134,7 @@ type StudioState = {
   error: string | null;
   member: MemberRecord | null;
   notice: string | null;
-  posts: ContentPostRecord[];
+  posts: StudioPostRecord[];
   profile: {
     avatarImageSet: CreatorProfileAvatarCandidate[];
     avatarImageUrl: string;
@@ -163,6 +166,10 @@ type StudioState = {
 
 type MemberLoadResponse = {
   member?: MemberRecord | null;
+};
+
+type StudioPostRecord = ContentPostRecord & {
+  newsReportCount?: CreatorStudioPostRecord["newsReportCount"];
 };
 
 type AutomationState = {
@@ -309,6 +316,7 @@ const EMPTY_POST_FORM = {
   coverImageCandidates: [] as ContentCoverImageCandidate[],
   coverImageUrl: "",
   contentMaturityRating: "general" as ContentMaturityRating,
+  fanReportLimit: FANLETTER_NEWS_REPORT_DEFAULT_SLOT_LIMIT,
   generatedContentImageUrls: [] as string[],
   generatedContentVideoUrls: [] as string[],
   previewText: "",
@@ -722,10 +730,18 @@ function upsertAutomationJob(
 }
 
 function upsertContentPost(
-  posts: ContentPostRecord[],
+  posts: StudioPostRecord[],
   nextPost: ContentPostRecord,
 ) {
-  return [nextPost, ...posts.filter((post) => post.contentId !== nextPost.contentId)];
+  const existingPost = posts.find((post) => post.contentId === nextPost.contentId);
+
+  return [
+    {
+      ...nextPost,
+      newsReportCount: existingPost?.newsReportCount ?? 0,
+    },
+    ...posts.filter((post) => post.contentId !== nextPost.contentId),
+  ];
 }
 
 function parseDelimitedValues(value: string) {
@@ -1141,6 +1157,10 @@ export function CreatorContentStudioPage({
     createInitialPostForm(initialPostPlan, postComposerMode),
   );
   const [postBodyError, setPostBodyError] = useState<string | null>(null);
+  const [fanReportLimitSaving, setFanReportLimitSaving] = useState<{
+    contentId: string;
+    limit: number;
+  } | null>(null);
   const [isAdvancedComposerOpen, setIsAdvancedComposerOpen] = useState(false);
   const [automation, setAutomation] = useState<AutomationState>({
     available: false,
@@ -2220,6 +2240,42 @@ export function CreatorContentStudioPage({
             "Set up your profile so creator details look more trustworthy in the feed.",
           salesWalletMissing: "Seller wallet not connected",
           salesWalletReady: "Seller wallet connected",
+        };
+  const fanReportSlotCopy =
+    locale === "ko"
+      ? {
+          blockedLower:
+            "이미 발행된 리포트 수보다 낮게 줄일 수 없습니다.",
+          composerBody:
+            "이 브이로그로 선착순 발행할 수 있는 팬 리포트 수입니다. 인기 브이로그는 10개까지 열어둘 수 있습니다.",
+          composerTitle: "팬 리포트 발행 슬롯",
+          current: (used: number, limit: number) => `${used}/${limit}개 발행`,
+          optionDescriptions: {
+            3: "소수 선점형",
+            6: "기본 추천",
+            10: "인기 브이로그",
+          } as Record<number, string>,
+          optionLabel: (limit: number) => `${limit}개`,
+          saving: "변경 중",
+          saved: "팬 리포트 슬롯을 변경했습니다.",
+          title: "리포트 슬롯",
+        }
+      : {
+          blockedLower:
+            "You cannot lower the limit below the number of published reports.",
+          composerBody:
+            "This limits how many fan reports can be published first-come for this vlog. Popular vlogs can stay open up to 10.",
+          composerTitle: "Fan report publishing slots",
+          current: (used: number, limit: number) => `${used}/${limit} published`,
+          optionDescriptions: {
+            3: "Tight drop",
+            6: "Default",
+            10: "Popular vlog",
+          } as Record<number, string>,
+          optionLabel: (limit: number) => `${limit}`,
+          saving: "Updating",
+          saved: "Fan report slots updated.",
+          title: "Report slots",
         };
   const creatorFeedSharePath = state.member?.referralCode
     ? setPathSearchParams(
@@ -3836,6 +3892,7 @@ export function CreatorContentStudioPage({
           coverImageCandidates: coverImageCandidatesToSave,
           coverImageUrl: coverImageUrlToSave,
           email,
+          fanReportLimit: postForm.fanReportLimit,
           fanRequestId: priceTypeToSave === "paid" ? initialFanRequestId : null,
           locale,
           previewClipVideoUrl: postForm.previewClipVideoUrl.trim() || null,
@@ -3909,7 +3966,7 @@ export function CreatorContentStudioPage({
           statusToSave === "published"
             ? contentCopy.messages.publishSuccess
             : contentCopy.messages.saveDraftSuccess,
-        posts: [data.content, ...current.posts],
+        posts: [{ ...data.content, newsReportCount: 0 }, ...current.posts],
       }));
       setPostBodyError(null);
     } catch (error) {
@@ -3975,7 +4032,10 @@ export function CreatorContentStudioPage({
             : contentCopy.messages.saveDraftSuccess,
         posts: current.posts.map((currentPost) =>
           currentPost.contentId === data.content.contentId
-            ? data.content
+            ? {
+                ...data.content,
+                newsReportCount: currentPost.newsReportCount ?? 0,
+              }
             : currentPost,
         ),
       }));
@@ -3988,6 +4048,63 @@ export function CreatorContentStudioPage({
             : contentCopy.messages.studioLoadFailed,
         notice: null,
       }));
+    }
+  }
+
+  async function updatePostFanReportLimit(
+    post: StudioPostRecord,
+    fanReportLimit: number,
+  ) {
+    try {
+      const email = await resolveMemberEmail();
+      setFanReportLimitSaving({ contentId: post.contentId, limit: fanReportLimit });
+      const response = await fetch(`/api/content/posts/${post.contentId}`, {
+        body: JSON.stringify({
+          email,
+          fanReportLimit,
+          walletAddress: accountAddress,
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "PATCH",
+      });
+      const data = (await response.json()) as ContentPostMutationResponse | {
+        error?: string;
+      };
+
+      if (!response.ok || !("content" in data)) {
+        throw new Error(
+          "error" in data && data.error
+            ? data.error
+            : contentCopy.messages.studioLoadFailed,
+        );
+      }
+
+      setState((current) => ({
+        ...current,
+        error: null,
+        notice: fanReportSlotCopy.saved,
+        posts: current.posts.map((currentPost) =>
+          currentPost.contentId === data.content.contentId
+            ? {
+                ...data.content,
+                newsReportCount: currentPost.newsReportCount ?? 0,
+              }
+            : currentPost,
+        ),
+      }));
+    } catch (error) {
+      setState((current) => ({
+        ...current,
+        error:
+          error instanceof Error
+            ? error.message
+            : contentCopy.messages.studioLoadFailed,
+        notice: null,
+      }));
+    } finally {
+      setFanReportLimitSaving(null);
     }
   }
 
@@ -8102,6 +8219,97 @@ export function CreatorContentStudioPage({
     );
   }
 
+  function renderFanReportLimitComposerControl() {
+    const isDark = isFanletterPaidUpload;
+
+    return (
+      <section
+        className={cn(
+          "rounded-[24px] border p-3",
+          isDark
+            ? "border-[#44f26e]/18 bg-white/[0.045] text-white"
+            : "border-emerald-200 bg-emerald-50 text-slate-950",
+        )}
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <p
+              className={cn(
+                "text-sm font-semibold",
+                isDark ? "text-[#b9ffc8]" : "text-emerald-950",
+              )}
+            >
+              {fanReportSlotCopy.composerTitle}
+            </p>
+            <p
+              className={cn(
+                "mt-1 text-xs font-medium leading-5",
+                isDark ? "text-white/58" : "text-emerald-900/70",
+              )}
+            >
+              {fanReportSlotCopy.composerBody}
+            </p>
+          </div>
+          <span
+            className={cn(
+              "inline-flex h-8 w-fit shrink-0 items-center rounded-full px-3 text-xs font-semibold",
+              isDark
+                ? "bg-[#44f26e] text-black"
+                : "bg-white text-emerald-900 ring-1 ring-emerald-200",
+            )}
+          >
+            {fanReportSlotCopy.optionLabel(postForm.fanReportLimit)}
+          </span>
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {FANLETTER_NEWS_REPORT_SLOT_OPTIONS.map((limit) => {
+            const isSelected = postForm.fanReportLimit === limit;
+
+            return (
+              <button
+                aria-pressed={isSelected}
+                className={cn(
+                  "min-h-16 rounded-[18px] border px-2.5 py-2 text-left transition",
+                  isDark
+                    ? isSelected
+                      ? "border-[#44f26e]/40 bg-[#44f26e] text-black"
+                      : "border-white/10 bg-white/[0.045] text-white hover:bg-white/[0.08]"
+                    : isSelected
+                      ? "border-emerald-300 bg-white text-emerald-950 shadow-[0_10px_24px_rgba(16,185,129,0.12)]"
+                      : "border-emerald-200 bg-white/72 text-slate-700 hover:border-emerald-300 hover:bg-white",
+                )}
+                key={limit}
+                onClick={() => {
+                  setPostForm((current) => ({
+                    ...current,
+                    fanReportLimit: limit,
+                  }));
+                }}
+                type="button"
+              >
+                <span className="block text-sm font-semibold">
+                  {fanReportSlotCopy.optionLabel(limit)}
+                </span>
+                <span
+                  className={cn(
+                    "mt-1 block text-[11px] leading-4",
+                    isDark
+                      ? isSelected
+                        ? "text-black/62"
+                        : "text-white/46"
+                      : "text-slate-500",
+                  )}
+                >
+                  {fanReportSlotCopy.optionDescriptions[limit]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
+
   function toggleCoverImageCandidatePlacement(
     candidateId: string,
     placement: ContentCoverImagePlacement,
@@ -8450,6 +8658,7 @@ export function CreatorContentStudioPage({
               </section>
             )}
             {isPaidUploadComposer ? renderPaidUploadReadinessPanel() : null}
+            {renderFanReportLimitComposerControl()}
             <input
               accept="image/png,image/jpeg,image/webp"
               className="sr-only"
@@ -10223,6 +10432,86 @@ export function CreatorContentStudioPage({
                 >
                   {post.summary}
                 </p>
+                {hasVideo ? (
+                  <div
+                    className={cn(
+                      "mt-4 rounded-[20px] border p-3",
+                      isFanletterPanel
+                        ? "border-[#44f26e]/16 bg-black/16"
+                        : "border-emerald-100 bg-emerald-50/70",
+                    )}
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                      <div className="min-w-0">
+                        <p
+                          className={cn(
+                            "text-xs font-semibold uppercase tracking-[0.14em]",
+                            isFanletterPanel
+                              ? "text-[#9bffad]"
+                              : "text-emerald-700",
+                          )}
+                        >
+                          {fanReportSlotCopy.title}
+                        </p>
+                        <p
+                          className={cn(
+                            "mt-1 text-sm font-semibold",
+                            isFanletterPanel ? "text-white" : "text-slate-950",
+                          )}
+                        >
+                          {fanReportSlotCopy.current(
+                            post.newsReportCount ?? 0,
+                            post.fanReportLimit,
+                          )}
+                        </p>
+                      </div>
+                      <div className="grid w-full grid-cols-3 gap-1.5 sm:w-auto">
+                        {FANLETTER_NEWS_REPORT_SLOT_OPTIONS.map((limit) => {
+                          const isSelected = post.fanReportLimit === limit;
+                          const isBelowPublished =
+                            (post.newsReportCount ?? 0) > limit;
+                          const isSaving =
+                            fanReportLimitSaving?.contentId === post.contentId;
+                          const isSavingTarget =
+                            isSaving && fanReportLimitSaving?.limit === limit;
+
+                          return (
+                            <button
+                              aria-pressed={isSelected}
+                              className={cn(
+                                "inline-flex h-9 items-center justify-center rounded-full border px-3 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-45",
+                                isFanletterPanel
+                                  ? isSelected
+                                    ? "border-[#44f26e]/36 bg-[#44f26e] text-black"
+                                    : "border-white/12 bg-white/[0.045] text-white hover:bg-white/[0.08]"
+                                  : isSelected
+                                    ? "border-emerald-300 bg-emerald-600 text-white"
+                                    : "border-emerald-200 bg-white text-emerald-950 hover:border-emerald-300",
+                              )}
+                              disabled={
+                                isSelected || isBelowPublished || isSaving
+                              }
+                              key={limit}
+                              onClick={() => {
+                                void updatePostFanReportLimit(post, limit);
+                              }}
+                              title={
+                                isBelowPublished
+                                  ? fanReportSlotCopy.blockedLower
+                                  : fanReportSlotCopy.optionDescriptions[limit]
+                              }
+                              type="button"
+                            >
+                              {isSavingTarget
+                                ? fanReportSlotCopy.saving
+                                : fanReportSlotCopy.optionLabel(limit)}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
                 <div className="mt-4 flex flex-wrap gap-2">
                   <Link
                     className={cn(
