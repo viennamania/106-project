@@ -127,6 +127,13 @@ type SourceVlogRevealTeaserCopy = {
 
 type SourceVlogAccessKind = "free" | "paid";
 
+type NewsHeaderNavLink = {
+  emphasized?: boolean;
+  href: string;
+  icon: ReactNode;
+  label: string;
+};
+
 type SourceVlogSceneFrame = {
   imageUrl: string;
   timestampSec: number | null;
@@ -187,6 +194,7 @@ function getCopy(locale: Locale) {
         },
         newsHeader: {
           character: "캐릭터",
+          characterNews: "캐릭터 뉴스",
           characterPrefix: "캐릭터",
           home: "뉴스 홈",
           intent: "팬 리포트",
@@ -195,6 +203,8 @@ function getCopy(locale: Locale) {
           reporterPrefix: "팬 기자",
           source: "원본 보기",
           sourceContext: "원본 브이로그 참여형 뉴스",
+          summary: "요약",
+          wantToWatch: "보고싶어요",
         },
         byline: "팬 기자",
         viewerOwnership: {
@@ -449,6 +459,7 @@ function getCopy(locale: Locale) {
         },
         newsHeader: {
           character: "Character",
+          characterNews: "Character news",
           characterPrefix: "Character",
           home: "News home",
           intent: "Fan report",
@@ -457,6 +468,8 @@ function getCopy(locale: Locale) {
           reporterPrefix: "Reporter",
           source: "Watch source",
           sourceContext: "Source-vlog participation news",
+          summary: "Summary",
+          wantToWatch: "Want it",
         },
         byline: "Fan reporter",
         viewerOwnership: {
@@ -1051,26 +1064,27 @@ function getSourceVlogRevealTeaserCopy(
 }
 
 function NewsSiteHeader({
+  characterHref,
+  characterImageUrl,
   characterName,
   copy,
   homeHref,
   locale,
+  mobileNavLinks,
   navLinks,
   referralCode,
   reporterName,
   sourceAccessLabel,
   walletHref,
 }: {
+  characterHref: string;
+  characterImageUrl: string | null;
   characterName: string | null;
   copy: ReturnType<typeof getCopy>;
   homeHref: string;
   locale: Locale;
-  navLinks: Array<{
-    emphasized?: boolean;
-    href: string;
-    icon: ReactNode;
-    label: string;
-  }>;
+  mobileNavLinks: NewsHeaderNavLink[];
+  navLinks: NewsHeaderNavLink[];
   referralCode: string | null;
   reporterName: string;
   sourceAccessLabel: string;
@@ -1082,6 +1096,9 @@ function NewsSiteHeader({
   const characterDisplayName =
     characterName?.trim() || copy.titleCharacter.fallback;
   const reporterDisplayName = reporterName.trim() || copy.byline;
+  const shouldBypassCharacterImageOptimization = characterImageUrl
+    ? shouldBypassFanletterImageOptimization(characterImageUrl)
+    : false;
   const contextItems = [
     {
       icon: <Newspaper className="size-3.5 shrink-0 text-[#16702e]" />,
@@ -1104,20 +1121,49 @@ function NewsSiteHeader({
   return (
     <header className="sticky top-0 z-40 border-b border-black/12 bg-white/95 text-[#111510] shadow-[0_10px_34px_rgba(17,21,16,0.08)] backdrop-blur">
       <div className="mx-auto flex max-w-[92rem] flex-col px-3 sm:px-6 lg:px-8">
-        <div className="flex min-h-[3.75rem] items-center justify-between gap-2 py-2 sm:min-h-[4.5rem] sm:gap-4 sm:py-3">
+        <div className="flex min-h-[3.25rem] items-center justify-between gap-2 py-1.5 sm:min-h-[4.5rem] sm:gap-4 sm:py-3">
           <Link
             className="inline-flex min-w-0 items-center gap-2 !text-[#111510] sm:gap-3"
             href={homeHref}
           >
-            <FanletterBrandMark className="size-8 shrink-0 sm:size-10" />
+            <FanletterBrandMark className="size-7 shrink-0 sm:size-10" />
             <span className="min-w-0">
-              <span className="block truncate text-[1.02rem] font-black leading-tight sm:text-xl">
+              <span className="block truncate text-[0.96rem] font-black leading-tight sm:text-xl">
                 {copy.siteName}
               </span>
-              <span className="block truncate text-[0.68rem] font-black leading-tight text-[#16702e] sm:text-xs">
-                {copy.newsHeader.intent} · {copy.newsHeader.sourceContext}
+              <span className="block truncate text-[0.66rem] font-black leading-tight text-[#16702e] sm:text-xs">
+                {copy.newsHeader.intent}
+                <span className="hidden sm:inline">
+                  {" "}
+                  · {copy.newsHeader.sourceContext}
+                </span>
               </span>
             </span>
+          </Link>
+          <Link
+            className="inline-flex max-w-[9.5rem] shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-[#f5f7f1] px-2 py-1 !text-[#111510] sm:hidden"
+            href={characterHref}
+          >
+            <span className="relative size-7 shrink-0 overflow-hidden rounded-full bg-black/8">
+              {characterImageUrl ? (
+                <Image
+                  alt={copy.titleCharacter.visualAlt(characterDisplayName)}
+                  className="h-full w-full object-cover"
+                  height={56}
+                  src={characterImageUrl}
+                  unoptimized={shouldBypassCharacterImageOptimization}
+                  width={56}
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-[#16702e]">
+                  <Users className="size-4" />
+                </span>
+              )}
+            </span>
+            <span className="min-w-0 truncate text-[0.78rem] font-black">
+              {characterDisplayName}
+            </span>
+            <ArrowUpRight className="size-3.5 shrink-0 text-black/46" />
           </Link>
           <div className="hidden min-w-0 flex-1 items-center justify-center gap-1.5 lg:flex">
             {contextItems.map((item) => (
@@ -1144,11 +1190,30 @@ function NewsSiteHeader({
         </div>
         <nav
           aria-label={copy.newsHeader.menuLabel}
-          className="grid grid-cols-4 gap-1.5 border-t border-black/8 py-2 text-[0.7rem] font-black text-black/62 sm:flex sm:gap-2 sm:overflow-x-auto sm:py-2.5 sm:text-sm sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden"
+          className="grid grid-cols-3 gap-1.5 border-t border-black/8 py-1.5 text-[0.7rem] font-black text-black/62 sm:hidden"
+        >
+          {mobileNavLinks.map((item) => (
+            <Link
+              className={`inline-flex min-w-0 items-center justify-center gap-1 rounded-full border px-2 py-2 text-center transition ${
+                item.emphasized
+                  ? "border-[#19b84b] bg-[#ecfff0] !text-[#126c2c] shadow-[inset_0_0_0_1px_rgba(25,184,75,0.14)]"
+                  : "border-black/10 bg-white !text-black/62 hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#126c2c]"
+              }`}
+              href={item.href}
+              key={item.label}
+            >
+              <span className="shrink-0">{item.icon}</span>
+              <span className="min-w-0 truncate">{item.label}</span>
+            </Link>
+          ))}
+        </nav>
+        <nav
+          aria-label={copy.newsHeader.menuLabel}
+          className="hidden border-t border-black/8 py-2.5 text-sm font-black text-black/62 sm:flex sm:gap-2 sm:overflow-x-auto sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden"
         >
           {navLinks.map((item) => (
             <Link
-              className={`inline-flex min-w-0 items-center justify-center gap-1 rounded-full border px-2 py-2 text-center transition sm:min-w-32 sm:shrink-0 sm:justify-between sm:px-3 ${
+              className={`inline-flex min-w-32 shrink-0 items-center justify-between gap-1 rounded-full border px-3 py-2 text-center transition ${
                 item.emphasized
                   ? "border-[#19b84b] bg-[#ecfff0] !text-[#126c2c] shadow-[inset_0_0_0_1px_rgba(25,184,75,0.14)]"
                   : "border-black/10 bg-white !text-black/62 hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#126c2c]"
@@ -1160,7 +1225,7 @@ function NewsSiteHeader({
                 <span className="shrink-0">{item.icon}</span>
                 <span className="min-w-0 truncate">{item.label}</span>
               </span>
-              <ArrowUpRight className="hidden size-3.5 shrink-0 text-current sm:block" />
+              <ArrowUpRight className="size-3.5 shrink-0 text-current" />
             </Link>
           ))}
         </nav>
@@ -3817,6 +3882,50 @@ export default async function LocalizedFanletterNewsReportPage({
     reporterProfile?.displayName ?? getReporterDisplayName(report);
   const shouldShowReporterTeaserCutGallery =
     sourceReveal?.unlocked !== true || !canViewerOpenSourceContent;
+  const mobileCharacterFollowupSectionId =
+    "fanletter-news-character-followup";
+  const headerCharacterName = characterName ?? report.creatorName;
+  const headerCharacterDisplayName =
+    headerCharacterName?.trim() || copy.titleCharacter.fallback;
+  const mobileHeaderPrimaryLabel = isSourceRevealLocked
+    ? copy.newsHeader.wantToWatch
+    : shouldShowPaidUnlockPanel
+      ? paidUnlockLabel
+      : canViewerOpenSourceContent
+        ? copy.newsHeader.source
+        : copy.newsHeader.summary;
+  const mobileHeaderPrimaryIcon =
+    mobileDockPrimary.kind === "pay" ? (
+      <Coins className="size-4" />
+    ) : mobileDockPrimary.kind === "read" ? (
+      <FileText className="size-4" />
+    ) : isSourceRevealLocked ? (
+      <HeartHandshake className="size-4" />
+    ) : (
+      <Clapperboard className="size-4" />
+    );
+  const mobileCharacterNewsLabel =
+    locale === "ko"
+      ? `${headerCharacterDisplayName} 뉴스`
+      : `${headerCharacterDisplayName} news`;
+  const mobileNavLinks: NewsHeaderNavLink[] = [
+    {
+      emphasized: true,
+      href: mobileDockPrimary.href,
+      icon: mobileHeaderPrimaryIcon,
+      label: mobileHeaderPrimaryLabel,
+    },
+    {
+      href: `#${mobileCharacterFollowupSectionId}`,
+      icon: <Newspaper className="size-4" />,
+      label: mobileCharacterNewsLabel,
+    },
+    {
+      href: creatorHref,
+      icon: <Users className="size-4" />,
+      label: headerCharacterDisplayName,
+    },
+  ];
   const navLinks = [
     {
       href: newsHomeHref,
@@ -3884,10 +3993,13 @@ export default async function LocalizedFanletterNewsReportPage({
   return (
     <main className="min-h-screen bg-[#eef1ec] text-[#111510]">
       <NewsSiteHeader
-        characterName={characterName ?? report.creatorName}
+        characterHref={creatorHref}
+        characterImageUrl={titleCharacterThumbnailUrl}
+        characterName={headerCharacterName}
         copy={copy}
         homeHref={newsHomeHref}
         locale={locale}
+        mobileNavLinks={mobileNavLinks}
         navLinks={navLinks}
         referralCode={referralCode}
         reporterName={reporterDisplayName}
@@ -4147,7 +4259,10 @@ export default async function LocalizedFanletterNewsReportPage({
               />
             </div>
 
-            <div className="mt-5 md:hidden">
+            <div
+              className="mt-5 scroll-mt-24 md:hidden"
+              id={mobileCharacterFollowupSectionId}
+            >
               <FanletterNewsRelatedList
                 key={`mobile-${relatedNewsApiHref}-${relatedNewsOffset}`}
                 {...relatedNewsListProps}
