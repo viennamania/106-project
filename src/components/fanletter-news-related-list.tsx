@@ -18,6 +18,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import type { FanletterRelatedNewsItem } from "@/lib/fanletter-news-related";
+import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type FanletterNewsRelatedListCopy = {
@@ -48,6 +49,7 @@ type FanletterNewsRelatedSortOption = {
 type FanletterNewsRelatedListResponse = {
   hasMore: boolean;
   items: FanletterRelatedNewsItem[];
+  totalCount: number;
 };
 
 type FanletterNewsRelatedListVariant = "sidebar" | "feature";
@@ -120,7 +122,32 @@ function isRelatedListResponse(
 
   const response = value as Partial<FanletterNewsRelatedListResponse>;
 
-  return Array.isArray(response.items) && typeof response.hasMore === "boolean";
+  return (
+    Array.isArray(response.items) &&
+    typeof response.hasMore === "boolean" &&
+    typeof response.totalCount === "number"
+  );
+}
+
+function formatRelatedNewsCount({
+  count,
+  locale,
+  searchActive,
+}: {
+  count: number;
+  locale: Locale;
+  searchActive: boolean;
+}) {
+  const normalizedCount = Math.max(0, Math.floor(count));
+  const formattedCount = new Intl.NumberFormat(locale).format(normalizedCount);
+
+  if (locale === "ko") {
+    return searchActive ? `검색 결과 ${formattedCount}개` : `뉴스 ${formattedCount}개`;
+  }
+
+  return searchActive
+    ? `${formattedCount} search result${normalizedCount === 1 ? "" : "s"}`
+    : `${formattedCount} news`;
 }
 
 function SourceRevealIcon({
@@ -344,12 +371,15 @@ function RelatedNewsCard({
 }
 
 export function FanletterNewsRelatedList({
+  characterAvatarImageUrl,
   characterName,
   copy,
   currentReportId,
   initialHasMore,
   initialItems,
   initialPageIndex,
+  initialTotalCount,
+  locale,
   pageSize,
   relatedApiHref,
   relatedOffsetParamName,
@@ -359,12 +389,15 @@ export function FanletterNewsRelatedList({
   sortValue,
   variant = "sidebar",
 }: {
+  characterAvatarImageUrl: string | null;
   characterName: string | null;
   copy: FanletterNewsRelatedListCopy;
   currentReportId: string;
   initialHasMore: boolean;
   initialItems: FanletterRelatedNewsItem[];
   initialPageIndex: number;
+  initialTotalCount: number;
+  locale: Locale;
   pageSize: number;
   relatedApiHref: string;
   relatedOffsetParamName: string;
@@ -376,11 +409,13 @@ export function FanletterNewsRelatedList({
 }) {
   const router = useRouter();
   const currentItem = initialItems.find((item) => item.reportId === currentReportId);
-  const relatedItemsPerPage = Math.max(1, pageSize - (currentItem ? 1 : 0));
   const normalizedInitialPageIndex = Math.max(0, Math.floor(initialPageIndex));
   const searchInputId = useId();
   const [searchText, setSearchText] = useState("");
   const [activeSearchQuery, setActiveSearchQuery] = useState("");
+  const searchActive = activeSearchQuery.length > 0;
+  const showCurrentItem = Boolean(currentItem && !searchActive);
+  const relatedItemsPerPage = Math.max(1, pageSize - (showCurrentItem ? 1 : 0));
   const [pages, setPages] = useState<Array<RelatedNewsPage | undefined>>(() =>
     createInitialRelatedPages({
       currentReportId,
@@ -393,14 +428,16 @@ export function FanletterNewsRelatedList({
   const [pageIndex, setPageIndex] = useState(normalizedInitialPageIndex);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [totalCount, setTotalCount] = useState(initialTotalCount);
   const sectionRef = useRef<HTMLElement | null>(null);
   const activePage = pages[pageIndex] ?? { hasMore: false, items: [] };
   const visibleRelatedItems = activePage.items;
-  const searchActive = activeSearchQuery.length > 0;
   const hasAnyRelatedItems =
-    pageIndex > 0 ||
-    pages.some((page) => (page?.items.length ?? 0) > 0) ||
-    (!searchActive && countLoadedRelatedItems(initialItems, currentReportId) > 0);
+    searchActive
+      ? pageIndex > 0 || pages.some((page) => (page?.items.length ?? 0) > 0)
+      : pageIndex > 0 ||
+        pages.some((page) => (page?.items.length ?? 0) > 0) ||
+        countLoadedRelatedItems(initialItems, currentReportId) > 0;
   const currentRelatedOffset = pageIndex * relatedItemsPerPage;
   const linkedRelatedOffset = searchActive ? 0 : currentRelatedOffset;
   const emptyMessage = searchActive
@@ -409,6 +446,11 @@ export function FanletterNewsRelatedList({
   const showSearchLoading =
     searchActive && isLoading && visibleRelatedItems.length === 0;
   const isFeatureVariant = variant === "feature";
+  const countLabel = formatRelatedNewsCount({
+    count: totalCount,
+    locale,
+    searchActive,
+  });
 
   const scrollToSectionTop = useCallback(() => {
     if (!sectionRef.current) {
@@ -445,6 +487,7 @@ export function FanletterNewsRelatedList({
         }),
       );
       setPageIndex(normalizedInitialPageIndex);
+      setTotalCount(initialTotalCount);
       setError(null);
       setIsLoading(false);
       return;
@@ -456,9 +499,6 @@ export function FanletterNewsRelatedList({
     setError(null);
     setPageIndex(0);
     setPages([{ hasMore: false, items: [] }]);
-    router.replace(buildCurrentRelatedOffsetHref(relatedOffsetParamName, 0), {
-      scroll: false,
-    });
 
     async function fetchSearchResults() {
       try {
@@ -492,6 +532,7 @@ export function FanletterNewsRelatedList({
             items: getRelatedPageItems(data.items, currentReportId),
           },
         ]);
+        setTotalCount(data.totalCount);
       } catch {
         if (controller.signal.aborted) {
           return;
@@ -514,11 +555,10 @@ export function FanletterNewsRelatedList({
     currentReportId,
     initialHasMore,
     initialItems,
+    initialTotalCount,
     normalizedInitialPageIndex,
     relatedApiHref,
     relatedItemsPerPage,
-    relatedOffsetParamName,
-    router,
   ]);
 
   const showPage = useCallback((nextPageIndex: number) => {
@@ -600,6 +640,7 @@ export function FanletterNewsRelatedList({
         updatedPages[nextPageIndex] = nextPage;
         return updatedPages;
       });
+      setTotalCount(data.totalCount + (currentItem ? 1 : 0));
       showPage(nextPageIndex);
     } catch {
       setError(copy.error);
@@ -610,6 +651,7 @@ export function FanletterNewsRelatedList({
     activePage.hasMore,
     activeSearchQuery,
     copy.error,
+    currentItem,
     currentReportId,
     isLoading,
     pageIndex,
@@ -641,27 +683,42 @@ export function FanletterNewsRelatedList({
         )}
       >
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#16702e] sm:text-[0.68rem]">
-              <BadgeCheck className="size-3.5" />
-              {copy.eyebrow}
-            </p>
-            <h2
-              className={cn(
-                "mt-1.5 break-words font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-2",
-                isFeatureVariant ? "text-xl sm:text-2xl" : "text-base sm:text-lg",
-              )}
-            >
-              {copy.title}
-            </h2>
-          </div>
-          <span
-            className={cn(
-              "hidden shrink-0 items-center rounded-full border border-[#16702e]/20 bg-white px-2.5 py-1 text-[0.64rem] font-black uppercase tracking-[0.08em] text-[#16702e] sm:inline-flex",
-              isFeatureVariant ? "sm:hidden" : "",
+          <div className="flex min-w-0 items-start gap-3">
+            {characterAvatarImageUrl ? (
+              <span className="relative size-12 shrink-0 overflow-hidden rounded-full border border-black/10 bg-[#111510] shadow-[0_10px_24px_rgba(17,21,16,0.12)] sm:size-14">
+                <Image
+                  alt={characterName ?? ""}
+                  className="object-cover object-center"
+                  fill
+                  sizes="3.5rem"
+                  src={characterAvatarImageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(
+                    characterAvatarImageUrl,
+                  )}
+                />
+              </span>
+            ) : (
+              <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-full border border-[#16702e]/18 bg-[#ecfff0] text-[#16702e] sm:size-14">
+                <BadgeCheck className="size-5" />
+              </span>
             )}
-          >
-            FanLetter
+            <div className="min-w-0">
+              <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#16702e] sm:text-[0.68rem]">
+                <BadgeCheck className="size-3.5" />
+                {copy.eyebrow}
+              </p>
+              <h2
+                className={cn(
+                  "mt-1.5 break-words font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-2",
+                  isFeatureVariant ? "text-xl sm:text-2xl" : "text-base sm:text-lg",
+                )}
+              >
+                {copy.title}
+              </h2>
+            </div>
+          </div>
+          <span className="inline-flex shrink-0 items-center whitespace-nowrap rounded-full border border-[#16702e]/20 bg-white px-2.5 py-1 text-[0.64rem] font-black text-[#16702e] sm:px-3 sm:text-[0.68rem]">
+            {countLabel}
           </span>
         </div>
         <div
@@ -748,7 +805,7 @@ export function FanletterNewsRelatedList({
       </div>
 
       <div className={cn("p-3 sm:p-4", isFeatureVariant ? "sm:p-5" : "")}>
-        {currentItem ? (
+        {showCurrentItem && currentItem ? (
           <div className="mb-3">
             <RelatedNewsCard
               currentLabel={copy.current}

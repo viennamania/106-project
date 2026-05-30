@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 
 import {
+  countRelatedFanletterNewsReports,
   getFanletterNewsReportById,
   getRelatedFanletterNewsReports,
 } from "@/lib/fanletter-news-report-service";
@@ -72,16 +73,22 @@ export async function GET(request: Request) {
     const nsfwOptInEnabled = isFanletterNsfwOptedIn(
       cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
     );
-    const reports = await getRelatedFanletterNewsReports({
+    const relatedQuery = {
       creatorReferralCode: report.creatorReferralCode,
       excludeContentId: report.contentId,
       excludeReportId: report.reportId,
-      limit: pageSize + 1,
       locale,
-      offset,
       searchQuery,
-      sort,
-    });
+    };
+    const [reports, totalCount] = await Promise.all([
+      getRelatedFanletterNewsReports({
+        ...relatedQuery,
+        limit: pageSize + 1,
+        offset,
+        sort,
+      }),
+      countRelatedFanletterNewsReports(relatedQuery),
+    ]);
     const items = reports
       .slice(0, pageSize)
       .map((relatedReport) =>
@@ -95,6 +102,7 @@ export async function GET(request: Request) {
     return Response.json({
       hasMore: reports.length > pageSize,
       items,
+      totalCount,
     });
   } catch {
     return jsonError("Failed to load related FanLetter news.", 500);

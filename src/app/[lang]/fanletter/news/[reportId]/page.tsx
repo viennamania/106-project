@@ -48,6 +48,7 @@ import {
   type FanletterPublicContentItem,
 } from "@/lib/fanletter-content-service";
 import {
+  countRelatedFanletterNewsReports,
   createFanletterNewsReportShareHref,
   getFanletterNewsReportById,
   getFanletterNewsReporterMemberByEmail,
@@ -3316,6 +3317,7 @@ export default async function LocalizedFanletterNewsReportPage({
   const [
     sourceContent,
     relatedReports,
+    relatedReportTotalCount,
     characterDiscoveryReports,
     reporterIncentiveStats,
     reporterReportIncentiveStats,
@@ -3339,6 +3341,12 @@ export default async function LocalizedFanletterNewsReportPage({
       locale,
       offset: relatedNewsOffset,
       sort: relatedNewsSort,
+    }),
+    countRelatedFanletterNewsReports({
+      creatorReferralCode: report.creatorReferralCode,
+      excludeContentId: report.contentId,
+      excludeReportId: report.reportId,
+      locale,
     }),
     getLatestFanletterNewsReports({
       contentMaturityRating: "general",
@@ -3526,6 +3534,7 @@ export default async function LocalizedFanletterNewsReportPage({
       ? `${characterName} 뉴스 이어보기`
       : `Continue ${characterName} news`
     : copy.relatedNews;
+  const relatedNewsTotalCount = Math.max(1, relatedReportTotalCount + 1);
   const relatedNewsApiHref = setPathSearchParams(
     "/api/fanletter/news-reports/related",
     {
@@ -3551,6 +3560,7 @@ export default async function LocalizedFanletterNewsReportPage({
   );
   const relatedNewsHasMore = relatedReports.length > relatedReportVisibleCount;
   const relatedNewsListProps = {
+    characterAvatarImageUrl,
     characterName,
     copy: {
       clearSearch: copy.relatedNewsClearSearch,
@@ -3573,6 +3583,8 @@ export default async function LocalizedFanletterNewsReportPage({
     initialHasMore: relatedNewsHasMore,
     initialItems: relatedNewsItems,
     initialPageIndex: relatedNewsInitialPageIndex,
+    initialTotalCount: relatedNewsTotalCount,
+    locale,
     pageSize: RELATED_NEWS_PAGE_SIZE,
     relatedApiHref: relatedNewsApiHref,
     relatedOffsetParamName: RELATED_NEWS_OFFSET_PARAM,

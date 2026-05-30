@@ -246,6 +246,14 @@ type FanletterRelatedNewsReportDocument = FanletterNewsReportDisplayDocument & {
   relatedSourceVlogAvailable: boolean;
 };
 
+type RelatedFanletterNewsReportsQueryInput = {
+  creatorReferralCode?: string | null;
+  excludeContentId?: string | null;
+  excludeReportId: string;
+  locale: Locale;
+  searchQuery?: string | null;
+};
+
 export type FanletterNewsReportCoverOption = {
   candidateId: string;
   contentType: string | null;
@@ -4045,6 +4053,64 @@ async function hydrateRelatedFanletterNewsReportSourceVlogStatuses(
   }));
 }
 
+function buildRelatedFanletterNewsReportsQuery({
+  creatorReferralCode,
+  excludeContentId,
+  excludeReportId,
+  locale,
+  searchQuery,
+}: RelatedFanletterNewsReportsQueryInput) {
+  const normalizedCreatorReferralCode =
+    normalizeReferralCode(creatorReferralCode);
+  const normalizedReportId = excludeReportId.trim();
+  const normalizedContentId = excludeContentId?.trim();
+  const normalizedSearchQuery = normalizeSearchQuery(searchQuery);
+  const searchRegex = normalizedSearchQuery
+    ? new RegExp(escapeRegExp(normalizedSearchQuery), "i")
+    : null;
+
+  if (!normalizedCreatorReferralCode || !normalizedReportId) {
+    return null;
+  }
+
+  const query: Filter<FanletterNewsReportDocument> = {
+    creatorReferralCode: normalizedCreatorReferralCode,
+    locale,
+    reportId: { $ne: normalizedReportId },
+    status: "published" as const,
+    ...(normalizedContentId ? { contentId: { $ne: normalizedContentId } } : {}),
+  };
+
+  if (searchRegex) {
+    query.$or = [
+      { body: searchRegex },
+      { dek: searchRegex },
+      { reporterName: searchRegex },
+      { reporterReferralCode: searchRegex },
+      { sourceSummary: searchRegex },
+      { sourceTitle: searchRegex },
+      { title: searchRegex },
+      { what: searchRegex },
+    ];
+  }
+
+  return query;
+}
+
+export const countRelatedFanletterNewsReports = cache(
+  async (input: RelatedFanletterNewsReportsQueryInput) => {
+    const query = buildRelatedFanletterNewsReportsQuery(input);
+
+    if (!query) {
+      return 0;
+    }
+
+    const reportsCollection = await getFanletterNewsReportsCollection();
+
+    return reportsCollection.countDocuments(query);
+  },
+);
+
 export const getRelatedFanletterNewsReports = cache(
   async ({
     creatorReferralCode,
@@ -4065,50 +4131,27 @@ export const getRelatedFanletterNewsReports = cache(
     searchQuery?: string | null;
     sort?: FanletterRelatedNewsSort;
   }) => {
-    const normalizedCreatorReferralCode =
-      normalizeReferralCode(creatorReferralCode);
-    const normalizedReportId = excludeReportId.trim();
-    const normalizedContentId = excludeContentId?.trim();
     const normalizedLimit = Math.max(1, Math.min(limit, 24));
     const normalizedOffset = Number.isFinite(offset)
       ? Math.max(0, Math.floor(offset))
       : 0;
-    const normalizedSearchQuery = normalizeSearchQuery(searchQuery);
-    const searchRegex = normalizedSearchQuery
-      ? new RegExp(escapeRegExp(normalizedSearchQuery), "i")
-      : null;
     const promotedQueryLimit = Math.max(
       normalizedOffset + normalizedLimit,
       RELATED_NEWS_FIRST_REPORT_LOOKAHEAD_LIMIT,
     );
+    const query = buildRelatedFanletterNewsReportsQuery({
+      creatorReferralCode,
+      excludeContentId,
+      excludeReportId,
+      locale,
+      searchQuery,
+    });
 
-    if (!normalizedCreatorReferralCode || !normalizedReportId) {
+    if (!query) {
       return [];
     }
 
     const reportsCollection = await getFanletterNewsReportsCollection();
-    const query: Filter<FanletterNewsReportDocument> = {
-      creatorReferralCode: normalizedCreatorReferralCode,
-      locale,
-      reportId: { $ne: normalizedReportId },
-      status: "published" as const,
-      ...(normalizedContentId
-        ? { contentId: { $ne: normalizedContentId } }
-        : {}),
-    };
-
-    if (searchRegex) {
-      query.$or = [
-        { body: searchRegex },
-        { dek: searchRegex },
-        { reporterName: searchRegex },
-        { reporterReferralCode: searchRegex },
-        { sourceSummary: searchRegex },
-        { sourceTitle: searchRegex },
-        { title: searchRegex },
-        { what: searchRegex },
-      ];
-    }
 
     const reports = await reportsCollection
       .find(query)
