@@ -2406,17 +2406,19 @@ function SourceVlogRevealTeaserOverlay({
         : "grid-cols-1";
   const rootClassName = isSideRail
     ? "absolute inset-0 overflow-y-auto bg-[#07100b] p-3 text-white sm:p-4"
-    : "absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.88)_100%)] p-3 text-white sm:p-5";
+    : hasTeaserFrames
+      ? "absolute inset-0 isolate overflow-y-auto bg-[#07100b] p-3 text-white sm:overflow-hidden sm:p-5"
+      : "absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.88)_100%)] p-3 text-white sm:p-5";
   const contentClassName = hasTeaserFrames
     ? isSideRail
       ? "mx-auto flex min-h-full w-full max-w-[24rem] flex-col justify-center gap-3"
-      : "mx-auto flex h-full min-h-0 w-full max-w-4xl flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center"
+      : "mx-auto flex min-h-full w-full max-w-4xl flex-col gap-3 sm:grid sm:h-full sm:min-h-0 sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center"
     : isSideRail
       ? "flex min-h-full w-full items-center justify-center"
       : "flex h-full min-h-0 w-full items-center justify-center";
   const teaserColumnClassName = isSideRail
     ? "flex min-h-0 flex-col gap-2"
-    : "flex min-h-0 flex-1 flex-col gap-2 sm:h-full sm:justify-center sm:gap-3";
+    : "flex flex-col gap-2 sm:h-full sm:min-h-0 sm:justify-center sm:gap-3";
   const teaserHeaderClassName = isSideRail
     ? "flex flex-col gap-1"
     : "mb-2 flex items-center justify-between gap-2";
@@ -2428,7 +2430,7 @@ function SourceVlogRevealTeaserOverlay({
     : "hidden shrink-0 rounded-full border border-white/16 bg-white/12 px-2.5 py-1 text-[0.62rem] font-black text-white/78 sm:inline-flex";
   const teaserFramesClassName = isSideRail
     ? `grid ${teaserGridClass} gap-1.5`
-    : `grid min-h-0 flex-1 ${teaserGridClass} gap-1.5 sm:gap-2`;
+    : `grid ${teaserGridClass} gap-1.5 sm:min-h-0 sm:flex-1 sm:gap-2`;
   const voteClassName = isSideRail
     ? "w-full border-white/10 bg-white/[0.05] shadow-none"
     : hasTeaserFrames
@@ -2466,8 +2468,8 @@ function SourceVlogRevealTeaserOverlay({
                     ? "relative h-20 overflow-hidden rounded-md border border-[#44f26e]/60 bg-black shadow-[0_12px_24px_rgba(68,242,110,0.18)] sm:h-24"
                     : "relative h-20 overflow-hidden rounded-md border border-white/16 bg-black shadow-[0_10px_20px_rgba(0,0,0,0.18)] sm:h-24"
                   : isPrimary
-                    ? "relative h-full min-h-[7rem] overflow-hidden rounded-lg border border-[#44f26e]/60 bg-black shadow-[0_18px_45px_rgba(68,242,110,0.22)]"
-                    : "relative h-full min-h-[7rem] overflow-hidden rounded-lg border border-white/16 bg-black shadow-[0_12px_28px_rgba(0,0,0,0.22)]";
+                    ? "relative aspect-[9/16] min-h-0 overflow-hidden rounded-lg border border-[#44f26e]/60 bg-black shadow-[0_18px_45px_rgba(68,242,110,0.22)] sm:h-full sm:min-h-[7rem] sm:aspect-auto"
+                    : "relative aspect-[9/16] min-h-0 overflow-hidden rounded-lg border border-white/16 bg-black shadow-[0_12px_28px_rgba(0,0,0,0.22)] sm:h-full sm:min-h-[7rem] sm:aspect-auto";
 
                 return (
                   <div
@@ -2596,13 +2598,13 @@ function SourceVlogPaidTeaserOverlay({
     <div
       className={
         hasTeaserFrames
-          ? "absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.9)_100%)] p-3 text-white sm:p-5"
+          ? "absolute inset-0 isolate overflow-y-auto bg-[#07100b] p-3 text-white sm:overflow-hidden sm:p-5"
           : "absolute inset-0 flex items-end justify-center bg-[linear-gradient(180deg,rgba(0,0,0,0.02)_0%,rgba(0,0,0,0.2)_48%,rgba(0,0,0,0.86)_100%)] p-3 text-white sm:p-5 lg:p-8"
       }
     >
       {hasTeaserFrames ? (
-        <div className="mx-auto grid h-full min-h-0 w-full max-w-4xl gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center">
-          <div className="flex min-h-0 flex-1 flex-col gap-2 sm:h-full sm:justify-center sm:gap-3">
+        <div className="mx-auto flex min-h-full w-full max-w-4xl flex-col gap-3 sm:grid sm:h-full sm:min-h-0 sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center">
+          <div className="flex flex-col gap-2 sm:h-full sm:min-h-0 sm:justify-center sm:gap-3">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="min-w-0">
                 <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
@@ -2617,7 +2619,7 @@ function SourceVlogPaidTeaserOverlay({
               </span>
             </div>
             <div
-              className={`grid min-h-0 flex-1 ${teaserGridClass} gap-1.5 sm:gap-2`}
+              className={`grid ${teaserGridClass} gap-1.5 sm:min-h-0 sm:flex-1 sm:gap-2`}
             >
               {teaserFrames.map((frame, index) => {
                 const imageUrl = frame.imageUrl;
@@ -2631,8 +2633,8 @@ function SourceVlogPaidTeaserOverlay({
                   <div
                     className={
                       isPrimary
-                        ? "relative h-full min-h-[7rem] overflow-hidden rounded-lg border border-[#44f26e]/60 bg-black shadow-[0_18px_45px_rgba(68,242,110,0.22)]"
-                        : "relative h-full min-h-[7rem] overflow-hidden rounded-lg border border-white/16 bg-black shadow-[0_12px_28px_rgba(0,0,0,0.22)]"
+                        ? "relative aspect-[9/16] min-h-0 overflow-hidden rounded-lg border border-[#44f26e]/60 bg-black shadow-[0_18px_45px_rgba(68,242,110,0.22)] sm:h-full sm:min-h-[7rem] sm:aspect-auto"
+                        : "relative aspect-[9/16] min-h-0 overflow-hidden rounded-lg border border-white/16 bg-black shadow-[0_12px_28px_rgba(0,0,0,0.22)] sm:h-full sm:min-h-[7rem] sm:aspect-auto"
                     }
                     key={`${imageUrl}-${index}`}
                   >
