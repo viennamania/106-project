@@ -46,6 +46,7 @@ type FanletterNewsMobileNavItem = {
   profileBadge?: string;
   profileFallback?: string | null;
   profileImageUrl?: string | null;
+  secondaryLabel?: string;
   title?: string;
 };
 
@@ -255,6 +256,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     returnToHref: vloggerManageHref,
   });
   const reporterActionHref = buildHref(`${reportsPath}/new`);
+  const reporterActionLabel = locale === "ko" ? "리포트 작성" : "Report";
   const actionItem =
     rolePreference === "vlogger"
       ? {
@@ -272,11 +274,14 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
             href: reporterActionHref,
             icon: PenLine,
             key: "action" as const,
-            label: locale === "ko" ? "리포트 작성" : "Report",
+            label: reporterProfile.displayName ?? reporterActionLabel,
             primary: true,
             profileBadge: locale === "ko" ? "기자" : "REP",
             profileFallback: getReporterProfileInitial(reporterProfile),
             profileImageUrl: reporterProfile.avatarImageUrl,
+            secondaryLabel: reporterProfile.displayName
+              ? reporterActionLabel
+              : undefined,
             title: reporterProfile.displayName
               ? locale === "ko"
                 ? `${reporterProfile.displayName} 리포트 작성`
@@ -360,8 +365,9 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
                   "relative flex h-[3.65rem] min-w-0 flex-col items-center justify-center gap-1 rounded-md px-1 text-center text-[0.64rem] font-black leading-none !text-black/48 transition hover:bg-[#f4f8f2] hover:!text-[#126c2c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]",
                   active && "bg-[#f3fbf4] !text-[#111510]",
                   item.primary &&
-                    "h-[4.05rem] -translate-y-1 bg-transparent !text-[#111510] hover:bg-transparent",
+                    "h-[4.2rem] -translate-y-1 gap-0.5 bg-transparent !text-[#111510] hover:bg-transparent",
                 )}
+                aria-label={item.title}
                 href={item.href}
                 key={item.key}
                 title={item.title}
@@ -403,9 +409,23 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
                     "block max-w-full truncate text-black/52",
                     active && "text-[#111510]",
                     item.primary && "text-[#111510]",
+                    item.primary &&
+                      item.secondaryLabel &&
+                      "flex min-h-[1.05rem] flex-col items-center justify-center leading-none",
                   )}
                 >
-                  {item.label}
+                  {item.secondaryLabel ? (
+                    <>
+                      <span className="block max-w-full truncate text-[0.64rem]">
+                        {item.label}
+                      </span>
+                      <span className="mt-0.5 block max-w-full truncate text-[0.48rem] text-black/45">
+                        {item.secondaryLabel}
+                      </span>
+                    </>
+                  ) : (
+                    item.label
+                  )}
                 </span>
               </Link>
             );
