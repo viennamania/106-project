@@ -354,6 +354,20 @@ export default async function LocalizedFanletterNewsMyPage({
         }
         serverSessionEmail={session.email}
         serverSessionWalletAddress={session.walletAddress}
+        serverVloggerProfile={
+          creatorData?.profile
+            ? {
+                avatarImageUrl:
+                  creatorData.profile.avatarImageUrl ??
+                  creatorData.profile.avatarImageSet[0]?.url ??
+                  null,
+                displayName:
+                  creatorData.profile.characterPersona?.name ??
+                  creatorData.profile.displayName,
+                referralCode: creatorData.profile.referralCode,
+              }
+            : null
+        }
       />
       <section className="mx-auto max-w-6xl">
         <div className="flex items-center justify-between gap-3 border-b border-black/12 pb-3">

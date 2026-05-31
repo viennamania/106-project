@@ -49,6 +49,11 @@ import {
 import { createContentVideoPreview } from "@/lib/content-video-preview-client";
 import type { FanletterCreateInitialPlan } from "@/lib/fanletter-create-plan";
 import {
+  FANLETTER_NEWS_VLOGGER_PROFILE_CHANGE_EVENT,
+  FANLETTER_NEWS_VLOGGER_PROFILE_STORAGE_KEY,
+  getFanletterNewsNavProfileStorageValue,
+} from "@/lib/fanletter-news-nav-profile";
+import {
   buildPathWithReferral,
   setPathSearchParams,
 } from "@/lib/landing-branding";
@@ -1307,6 +1312,15 @@ export function FanletterCreatePage({
     profile?.characterPersona?.name?.trim() ||
     profile?.displayName?.trim() ||
     copy.profileRequired;
+  const newsVloggerProfileStorageValue =
+    isNewsSurface && profile
+      ? getFanletterNewsNavProfileStorageValue({
+          avatarImageUrl:
+            profile.avatarImageUrl ?? profile.avatarImageSet[0]?.url ?? null,
+          displayName: profile.characterPersona?.name ?? profile.displayName,
+          referralCode: profile.referralCode,
+        })
+      : null;
   const fanRequestTypeLabel = initialFanRequestType
     ? copy.fanRequestContext.requestTypes[initialFanRequestType]
     : null;
@@ -1705,6 +1719,24 @@ export function FanletterCreatePage({
 
     void loadSetup();
   }, [connection.isConnected, loadSetup]);
+
+  useEffect(() => {
+    if (!newsVloggerProfileStorageValue) {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        FANLETTER_NEWS_VLOGGER_PROFILE_STORAGE_KEY,
+        newsVloggerProfileStorageValue,
+      );
+      window.dispatchEvent(
+        new Event(FANLETTER_NEWS_VLOGGER_PROFILE_CHANGE_EVENT),
+      );
+    } catch {
+      return;
+    }
+  }, [newsVloggerProfileStorageValue]);
 
   useEffect(() => {
     localDraftRestoredRef.current = false;

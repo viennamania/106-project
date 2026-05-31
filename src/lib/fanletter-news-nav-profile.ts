@@ -4,8 +4,12 @@ export const FANLETTER_NEWS_REPORTER_PROFILE_STORAGE_KEY =
   "fanletter.news.reporterProfile";
 export const FANLETTER_NEWS_REPORTER_PROFILE_CHANGE_EVENT =
   "fanletter-news-reporter-profile-change";
+export const FANLETTER_NEWS_VLOGGER_PROFILE_STORAGE_KEY =
+  "fanletter.news.vloggerProfile";
+export const FANLETTER_NEWS_VLOGGER_PROFILE_CHANGE_EVENT =
+  "fanletter-news-vlogger-profile-change";
 
-export type FanletterNewsReporterNavProfile = {
+export type FanletterNewsNavProfile = {
   avatarImageUrl: string | null;
   displayName: string | null;
   referralCode: string | null;
@@ -21,9 +25,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-export function normalizeFanletterNewsReporterNavProfile(
+export function normalizeFanletterNewsNavProfile(
   value: unknown,
-): FanletterNewsReporterNavProfile | null {
+): FanletterNewsNavProfile | null {
   if (!isRecord(value)) {
     return null;
   }
@@ -37,4 +41,10 @@ export function normalizeFanletterNewsReporterNavProfile(
   return profile.avatarImageUrl || profile.displayName || profile.referralCode
     ? profile
     : null;
+}
+
+export function getFanletterNewsNavProfileStorageValue(value: unknown) {
+  const profile = normalizeFanletterNewsNavProfile(value);
+
+  return profile ? JSON.stringify(profile) : null;
 }

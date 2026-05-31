@@ -433,6 +433,7 @@ export default async function LocalizedFanletterNewsVlogManagePage({
           locale={locale}
           serverSessionEmail={session.email}
           serverSessionWalletAddress={session.walletAddress}
+          serverVloggerProfile={null}
         />
         <section className="mx-auto max-w-3xl border border-black/12 bg-white p-5 shadow-[0_18px_46px_rgba(17,21,16,0.08)] sm:p-8">
           <span className="inline-flex size-11 items-center justify-center rounded-full bg-[#111510] text-[#44f26e]">
@@ -498,6 +499,13 @@ export default async function LocalizedFanletterNewsVlogManagePage({
         locale={locale}
         serverSessionEmail={session.email}
         serverSessionWalletAddress={session.walletAddress}
+        serverVloggerProfile={{
+          avatarImageUrl:
+            data.profile.avatarImageUrl ?? data.profile.avatarImageSet[0]?.url ?? null,
+          displayName:
+            data.profile.characterPersona?.name ?? data.profile.displayName,
+          referralCode: data.profile.referralCode,
+        }}
       />
       <section className="mx-auto max-w-6xl">
         <div className="flex items-center justify-between gap-3 border-b border-black/12 pb-3">

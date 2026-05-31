@@ -22,9 +22,11 @@ import {
 import {
   FANLETTER_NEWS_REPORTER_PROFILE_CHANGE_EVENT,
   FANLETTER_NEWS_REPORTER_PROFILE_STORAGE_KEY,
-  normalizeFanletterNewsReporterNavProfile,
-  type FanletterNewsReporterNavProfile,
-} from "@/lib/fanletter-news-reporter-nav-profile";
+  FANLETTER_NEWS_VLOGGER_PROFILE_CHANGE_EVENT,
+  FANLETTER_NEWS_VLOGGER_PROFILE_STORAGE_KEY,
+  normalizeFanletterNewsNavProfile,
+  type FanletterNewsNavProfile,
+} from "@/lib/fanletter-news-nav-profile";
 import {
   FANLETTER_NEWS_ROLE_PREFERENCE_CHANGE_EVENT,
   FANLETTER_NEWS_ROLE_PREFERENCE_STORAGE_KEY,
@@ -65,7 +67,9 @@ const fanletterNewsTopLevelServiceSegments = new Set([
   "wallet",
 ]);
 let reporterProfileSnapshotRaw: string | null = null;
-let reporterProfileSnapshotValue: FanletterNewsReporterNavProfile | null = null;
+let reporterProfileSnapshotValue: FanletterNewsNavProfile | null = null;
+let vloggerProfileSnapshotRaw: string | null = null;
+let vloggerProfileSnapshotValue: FanletterNewsNavProfile | null = null;
 
 function subscribeToRolePreference(onStoreChange: () => void) {
   window.addEventListener("storage", onStoreChange);
@@ -121,7 +125,7 @@ function getReporterProfileSnapshot() {
   reporterProfileSnapshotRaw = raw;
 
   try {
-    reporterProfileSnapshotValue = normalizeFanletterNewsReporterNavProfile(
+    reporterProfileSnapshotValue = normalizeFanletterNewsNavProfile(
       JSON.parse(raw ?? "null"),
     );
   } catch {
@@ -132,6 +136,48 @@ function getReporterProfileSnapshot() {
 }
 
 function getServerReporterProfileSnapshot() {
+  return null;
+}
+
+function subscribeToVloggerProfile(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(
+    FANLETTER_NEWS_VLOGGER_PROFILE_CHANGE_EVENT,
+    onStoreChange,
+  );
+
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(
+      FANLETTER_NEWS_VLOGGER_PROFILE_CHANGE_EVENT,
+      onStoreChange,
+    );
+  };
+}
+
+function getVloggerProfileSnapshot() {
+  const raw = window.localStorage.getItem(
+    FANLETTER_NEWS_VLOGGER_PROFILE_STORAGE_KEY,
+  );
+
+  if (raw === vloggerProfileSnapshotRaw) {
+    return vloggerProfileSnapshotValue;
+  }
+
+  vloggerProfileSnapshotRaw = raw;
+
+  try {
+    vloggerProfileSnapshotValue = normalizeFanletterNewsNavProfile(
+      JSON.parse(raw ?? "null"),
+    );
+  } catch {
+    vloggerProfileSnapshotValue = null;
+  }
+
+  return vloggerProfileSnapshotValue;
+}
+
+function getServerVloggerProfileSnapshot() {
   return null;
 }
 
@@ -161,8 +207,8 @@ function getReporterProfile({
   storedProfile,
 }: {
   member?: MemberRecord | null;
-  storedProfile?: FanletterNewsReporterNavProfile | null;
-}): FanletterNewsReporterNavProfile {
+  storedProfile?: FanletterNewsNavProfile | null;
+}): FanletterNewsNavProfile {
   if (!member) {
     return {
       avatarImageUrl: storedProfile?.avatarImageUrl ?? null,
@@ -193,7 +239,7 @@ function getReporterProfile({
   };
 }
 
-function getReporterProfileInitial(profile: FanletterNewsReporterNavProfile) {
+function getProfileInitial(profile: FanletterNewsNavProfile) {
   return (
     profile.displayName?.trim().charAt(0).toUpperCase() ||
     profile.referralCode?.trim().charAt(0).toUpperCase() ||
@@ -213,6 +259,11 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     subscribeToReporterProfile,
     getReporterProfileSnapshot,
     getServerReporterProfileSnapshot,
+  );
+  const vloggerProfile = useSyncExternalStore(
+    subscribeToVloggerProfile,
+    getVloggerProfileSnapshot,
+    getServerVloggerProfileSnapshot,
   );
   const memberSession = useMemberSession();
   const basePath = `/${locale}/fanletter/news`;
@@ -257,6 +308,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   });
   const reporterActionHref = buildHref(`${reportsPath}/new`);
   const reporterActionLabel = locale === "ko" ? "리포트 작성" : "Report";
+  const vloggerActionLabel = locale === "ko" ? "새 브이로그" : "New Vlog";
   const actionItem =
     rolePreference === "vlogger"
       ? {
@@ -265,8 +317,19 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
           href: vloggerActionHref,
           icon: Video,
           key: "action" as const,
-          label: locale === "ko" ? "새 브이로그" : "New Vlog",
+          label: vloggerProfile?.displayName ?? vloggerActionLabel,
           primary: true,
+          profileBadge: vloggerProfile ? "AI" : undefined,
+          profileFallback: vloggerProfile ? getProfileInitial(vloggerProfile) : null,
+          profileImageUrl: vloggerProfile?.avatarImageUrl ?? null,
+          secondaryLabel: vloggerProfile?.displayName
+            ? vloggerActionLabel
+            : undefined,
+          title: vloggerProfile?.displayName
+            ? locale === "ko"
+              ? `${vloggerProfile.displayName} 새 브이로그 제작`
+              : `Create new vlog as ${vloggerProfile.displayName}`
+            : undefined,
         }
       : rolePreference === "reporter"
         ? {
@@ -277,7 +340,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
             label: reporterProfile.displayName ?? reporterActionLabel,
             primary: true,
             profileBadge: locale === "ko" ? "기자" : "REP",
-            profileFallback: getReporterProfileInitial(reporterProfile),
+            profileFallback: getProfileInitial(reporterProfile),
             profileImageUrl: reporterProfile.avatarImageUrl,
             secondaryLabel: reporterProfile.displayName
               ? reporterActionLabel

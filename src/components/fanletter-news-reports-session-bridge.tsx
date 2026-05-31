@@ -7,13 +7,44 @@ import { useMemberSession } from "@/components/member-session-provider";
 import {
   FANLETTER_NEWS_REPORTER_PROFILE_CHANGE_EVENT,
   FANLETTER_NEWS_REPORTER_PROFILE_STORAGE_KEY,
-  normalizeFanletterNewsReporterNavProfile,
-  type FanletterNewsReporterNavProfile,
-} from "@/lib/fanletter-news-reporter-nav-profile";
+  FANLETTER_NEWS_VLOGGER_PROFILE_CHANGE_EVENT,
+  FANLETTER_NEWS_VLOGGER_PROFILE_STORAGE_KEY,
+  getFanletterNewsNavProfileStorageValue,
+  type FanletterNewsNavProfile,
+} from "@/lib/fanletter-news-nav-profile";
 import type { Locale } from "@/lib/i18n";
 
 function normalizeValue(value?: string | null) {
   return value?.trim().toLowerCase() ?? "";
+}
+
+function writeStoredProfile({
+  changeEvent,
+  shouldClear,
+  storageKey,
+  storageValue,
+}: {
+  changeEvent: string;
+  shouldClear: boolean;
+  storageKey: string;
+  storageValue: string | null;
+}) {
+  try {
+    if (shouldClear) {
+      window.localStorage.removeItem(storageKey);
+      window.dispatchEvent(new Event(changeEvent));
+      return;
+    }
+
+    if (!storageValue) {
+      return;
+    }
+
+    window.localStorage.setItem(storageKey, storageValue);
+    window.dispatchEvent(new Event(changeEvent));
+  } catch {
+    return;
+  }
 }
 
 function getCopy(locale: Locale) {
@@ -38,12 +69,14 @@ export function FanletterNewsReportsSessionBridge({
   serverReporterProfile,
   serverSessionEmail,
   serverSessionWalletAddress,
+  serverVloggerProfile,
 }: {
   hasServerSession: boolean;
   locale: Locale;
-  serverReporterProfile?: FanletterNewsReporterNavProfile | null;
+  serverReporterProfile?: FanletterNewsNavProfile | null;
   serverSessionEmail?: string | null;
   serverSessionWalletAddress?: string | null;
+  serverVloggerProfile?: FanletterNewsNavProfile | null;
 }) {
   const router = useRouter();
   const memberSession = useMemberSession();
@@ -53,14 +86,18 @@ export function FanletterNewsReportsSessionBridge({
   const clientWalletAddress = normalizeValue(memberSession.accountAddress);
   const serverEmail = normalizeValue(serverSessionEmail);
   const serverWalletAddress = normalizeValue(serverSessionWalletAddress);
-  const normalizedServerReporterProfile =
-    normalizeFanletterNewsReporterNavProfile(serverReporterProfile ?? null);
   const hasReporterProfileProp = serverReporterProfile !== undefined;
   const shouldClearReporterProfile =
     !hasServerSession || serverReporterProfile === null;
-  const reporterProfileStorageValue = normalizedServerReporterProfile
-    ? JSON.stringify(normalizedServerReporterProfile)
-    : "";
+  const reporterProfileStorageValue = getFanletterNewsNavProfileStorageValue(
+    serverReporterProfile ?? null,
+  );
+  const hasVloggerProfileProp = serverVloggerProfile !== undefined;
+  const shouldClearVloggerProfile =
+    !hasServerSession || serverVloggerProfile === null;
+  const vloggerProfileStorageValue = getFanletterNewsNavProfileStorageValue(
+    serverVloggerProfile ?? null,
+  );
   const isChecking =
     memberSession.isValidating || memberSession.status === "validating";
   const hasReadyClientSession = Boolean(
@@ -75,35 +112,33 @@ export function FanletterNewsReportsSessionBridge({
       return;
     }
 
-    try {
-      if (shouldClearReporterProfile) {
-        window.localStorage.removeItem(
-          FANLETTER_NEWS_REPORTER_PROFILE_STORAGE_KEY,
-        );
-        window.dispatchEvent(
-          new Event(FANLETTER_NEWS_REPORTER_PROFILE_CHANGE_EVENT),
-        );
-        return;
-      }
-
-      if (!reporterProfileStorageValue) {
-        return;
-      }
-
-      window.localStorage.setItem(
-        FANLETTER_NEWS_REPORTER_PROFILE_STORAGE_KEY,
-        reporterProfileStorageValue,
-      );
-      window.dispatchEvent(
-        new Event(FANLETTER_NEWS_REPORTER_PROFILE_CHANGE_EVENT),
-      );
-    } catch {
-      return;
-    }
+    writeStoredProfile({
+      changeEvent: FANLETTER_NEWS_REPORTER_PROFILE_CHANGE_EVENT,
+      shouldClear: shouldClearReporterProfile,
+      storageKey: FANLETTER_NEWS_REPORTER_PROFILE_STORAGE_KEY,
+      storageValue: reporterProfileStorageValue,
+    });
   }, [
     hasReporterProfileProp,
     reporterProfileStorageValue,
     shouldClearReporterProfile,
+  ]);
+
+  useEffect(() => {
+    if (!hasVloggerProfileProp && !shouldClearVloggerProfile) {
+      return;
+    }
+
+    writeStoredProfile({
+      changeEvent: FANLETTER_NEWS_VLOGGER_PROFILE_CHANGE_EVENT,
+      shouldClear: shouldClearVloggerProfile,
+      storageKey: FANLETTER_NEWS_VLOGGER_PROFILE_STORAGE_KEY,
+      storageValue: vloggerProfileStorageValue,
+    });
+  }, [
+    hasVloggerProfileProp,
+    shouldClearVloggerProfile,
+    vloggerProfileStorageValue,
   ]);
 
   useEffect(() => {
