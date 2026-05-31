@@ -635,7 +635,7 @@ export function FanletterNewsSourceSceneGallery({
             className={cn(
               "mt-1 font-black leading-tight [word-break:keep-all]",
               isReporterTeaser
-                ? "text-[1.65rem] sm:text-2xl"
+                ? "text-[1.34rem] sm:text-2xl"
                 : isCompact
                   ? "text-base sm:text-lg"
                   : "text-lg",
