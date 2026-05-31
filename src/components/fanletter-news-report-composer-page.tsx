@@ -343,7 +343,11 @@ function getCopy(locale: Locale) {
         editVisual: {
           autoGenerating: "자동 티저 컷 생성 중",
           body:
-            "대표 이미지는 16:9로 다시 저장하고 공개 티저 컷은 선택한 방식으로 교체합니다.",
+            "대표 이미지와 공개 티저 컷은 각각 따로 저장합니다. 수정한 영역만 확인하고 저장하세요.",
+          coverError: "대표 이미지를 저장하지 못했습니다.",
+          coverSave: "대표 이미지 저장",
+          coverSaved: "대표 이미지를 저장했습니다.",
+          coverSaving: "대표 이미지 저장 중",
           currentCover: "현재 대표 이미지",
           currentEmpty: "아직 저장된 공개 티저 컷이 없습니다.",
           currentTeasers: "현재 공개 티저 컷",
@@ -361,6 +365,10 @@ function getCopy(locale: Locale) {
           savedTeaserCta: "이 컷 다시 편집",
           savedTeaserSource: "원본 컷",
           savedTeaserTitle: "저장된 9:16 티저 컷",
+          teaserError: "공개 티저 컷을 저장하지 못했습니다.",
+          teaserSave: "티저 컷 저장",
+          teaserSaved: "공개 티저 컷을 저장했습니다.",
+          teaserSaving: "티저 컷 저장 중",
           title: "이미지 편집 저장",
         },
         failed: "리포트를 만들지 못했습니다.",
@@ -643,7 +651,11 @@ function getCopy(locale: Locale) {
         editVisual: {
           autoGenerating: "Creating automatic teaser cuts",
           body:
-            "Save the lead image again at 16:9 and replace the public teaser cuts with the selected mode.",
+            "Save the lead image and public teaser cuts separately. Review only the section you changed before saving.",
+          coverError: "Could not save the lead image.",
+          coverSave: "Save lead image",
+          coverSaved: "Lead image saved.",
+          coverSaving: "Saving lead image",
           currentCover: "Current lead image",
           currentEmpty: "No public teaser cuts are saved yet.",
           currentTeasers: "Current public teaser cuts",
@@ -661,6 +673,10 @@ function getCopy(locale: Locale) {
           savedTeaserCta: "Edit this cut",
           savedTeaserSource: "Source cut",
           savedTeaserTitle: "Saved 9:16 teaser cuts",
+          teaserError: "Could not save public teaser cuts.",
+          teaserSave: "Save teaser cuts",
+          teaserSaved: "Public teaser cuts saved.",
+          teaserSaving: "Saving teaser cuts",
           title: "Save image edits",
         },
         failed: "Could not create the report.",
@@ -1611,6 +1627,36 @@ function getExistingSavedTeaserItems(
   return items.slice(0, REPORT_TEASER_IMAGE_LIMIT);
 }
 
+function getSavedTeaserItemsFromPayload(
+  selectedTeaserImages: ReportTeaserImagePayload[],
+) {
+  return selectedTeaserImages
+    .map((image, index) => {
+      const imageUrl = image.imageUrl.trim();
+      const sourceImageUrl = image.sourceImageUrl.trim() || imageUrl;
+
+      if (!imageUrl) {
+        return null;
+      }
+
+      return {
+        crop: image.crop,
+        id: createStableTeaserCutId({
+          imageUrl,
+          index,
+          sourceImageUrl,
+        }),
+        imageUrl,
+        isCropped: Boolean(
+          image.crop && sourceImageUrl && imageUrl !== sourceImageUrl,
+        ),
+        sourceImageUrl,
+      } satisfies ExistingSavedTeaserItem;
+    })
+    .filter((item): item is ExistingSavedTeaserItem => Boolean(item))
+    .slice(0, REPORT_TEASER_IMAGE_LIMIT);
+}
+
 function getUniqueImageUrls(values: Array<string | null | undefined>) {
   return [
     ...new Set(values.map((value) => value?.trim() ?? "").filter(Boolean)),
@@ -2003,10 +2049,16 @@ export function FanletterNewsReportComposerPage({
     "idle",
   );
   const [error, setError] = useState<string | null>(null);
-  const [editVisualStatus, setEditVisualStatus] = useState<
+  const [editCoverStatus, setEditCoverStatus] = useState<"idle" | "saving">(
+    "idle",
+  );
+  const [editTeaserStatus, setEditTeaserStatus] = useState<
     "autoTeasers" | "idle" | "saving"
   >("idle");
-  const [editVisualMessage, setEditVisualMessage] = useState<string | null>(null);
+  const [editCoverMessage, setEditCoverMessage] = useState<string | null>(null);
+  const [editTeaserMessage, setEditTeaserMessage] = useState<string | null>(
+    null,
+  );
   const [existingReportVisualSnapshot, setExistingReportVisualSnapshot] =
     useState<ExistingReportVisualSnapshot>(() =>
       getExistingReportVisualSnapshot(
@@ -2163,12 +2215,17 @@ export function FanletterNewsReportComposerPage({
       !isExclusiveBlocked &&
       status === "idle",
   );
-  const canSaveExistingReportVisuals = Boolean(
+  const canSaveExistingReportCover = Boolean(
     selectedExistingReport &&
       selectedSource &&
       selectedCoverUrl &&
+      editCoverStatus === "idle",
+  );
+  const canSaveExistingReportTeasers = Boolean(
+    selectedExistingReport &&
+      selectedSource &&
       activeTeaserCount > 0 &&
-      editVisualStatus === "idle",
+      editTeaserStatus === "idle",
   );
   const selectedSourceRevealCount = selectedSource
     ? getSourceRevealCount(selectedSource)
@@ -2249,8 +2306,10 @@ export function FanletterNewsReportComposerPage({
       ready: Boolean(selectedCoverUrl),
     },
     {
-      label: selectedExistingReport ? copy.editVisual.save : copy.submit,
-      ready: selectedExistingReport ? canSaveExistingReportVisuals : canSubmit,
+      label: selectedExistingReport ? copy.editVisual.title : copy.submit,
+      ready: selectedExistingReport
+        ? canSaveExistingReportCover && canSaveExistingReportTeasers
+        : canSubmit,
     },
   ] as const;
   const selectedOpportunityStatusLabel = selectedSource
@@ -2530,8 +2589,10 @@ export function FanletterNewsReportComposerPage({
     setExistingSavedTeaserItems(
       getExistingSavedTeaserItems(selectedSource?.existingReport ?? null),
     );
-    setEditVisualMessage(null);
-    setEditVisualStatus("idle");
+    setEditCoverMessage(null);
+    setEditTeaserMessage(null);
+    setEditCoverStatus("idle");
+    setEditTeaserStatus("idle");
   }, [copy, selectedSource, selectedSourceContentId]);
 
   useEffect(() => {
@@ -2555,8 +2616,10 @@ export function FanletterNewsReportComposerPage({
     setNaturalSize(null);
     setTeaserNaturalSize(null);
     setError(null);
-    setEditVisualMessage(null);
-    setEditVisualStatus("idle");
+    setEditCoverMessage(null);
+    setEditTeaserMessage(null);
+    setEditCoverStatus("idle");
+    setEditTeaserStatus("idle");
     setIsTeaserPickerOpen(false);
   }, [selectedSource, selectedSourceContentId]);
 
@@ -3104,31 +3167,20 @@ export function FanletterNewsReportComposerPage({
     uploadCroppedReportImage,
   ]);
 
-  const saveExistingReportVisuals = useCallback(async () => {
+  const saveExistingReportCoverImage = useCallback(async () => {
     if (
       !selectedExistingReport ||
       !selectedSource ||
       !selectedCoverUrl ||
-      !canSaveExistingReportVisuals
+      !canSaveExistingReportCover
     ) {
       return;
     }
 
-    setEditVisualStatus(teaserMode === "auto" ? "autoTeasers" : "saving");
-    setEditVisualMessage(null);
+    setEditCoverStatus("saving");
+    setEditCoverMessage(null);
 
     try {
-      const selectedTeaserImages =
-        teaserMode === "auto"
-          ? await createAutoCroppedTeaserImages()
-          : getManualSelectedTeaserImages();
-      const selectedTeaserImageUrls =
-        teaserMode === "auto"
-          ? selectedTeaserImages.map((image) => image.sourceImageUrl)
-          : selectedTeaserCuts.map((cut) => cut.sourceImageUrl);
-
-      setEditVisualStatus("saving");
-
       const croppedCover = await uploadCroppedReportImage({
         aspectRatio: REPORT_COVER_CROP_ASPECT_RATIO,
         contentId: selectedSource.contentId,
@@ -3145,8 +3197,7 @@ export function FanletterNewsReportComposerPage({
           locale,
           reportId: selectedExistingReport.reportId,
           selectedCoverImageUrl: selectedCoverUrl,
-          selectedTeaserImages,
-          selectedTeaserImageUrls,
+          updateKind: "cover",
         }),
         headers: {
           "Content-Type": "application/json",
@@ -3162,39 +3213,90 @@ export function FanletterNewsReportComposerPage({
         throw new Error(
           data && "error" in data && data.error
             ? data.error
-            : copy.editVisual.error,
+            : copy.editVisual.coverError,
+        );
+      }
+
+      setExistingReportVisualSnapshot((current) => ({
+        ...current,
+        coverImageUrl: croppedCover.url,
+        coverSourceImageUrl: selectedCoverUrl,
+      }));
+      setEditCoverMessage(copy.editVisual.coverSaved);
+    } catch (error) {
+      setEditCoverMessage(
+        error instanceof Error ? error.message : copy.editVisual.coverError,
+      );
+    } finally {
+      setEditCoverStatus("idle");
+    }
+  }, [
+    canSaveExistingReportCover,
+    copy.editVisual.coverError,
+    copy.editVisual.coverSaved,
+    crop,
+    locale,
+    selectedCoverUrl,
+    selectedExistingReport,
+    selectedSource,
+    uploadCroppedReportImage,
+  ]);
+
+  const saveExistingReportTeaserCuts = useCallback(async () => {
+    if (
+      !selectedExistingReport ||
+      !selectedSource ||
+      !canSaveExistingReportTeasers
+    ) {
+      return;
+    }
+
+    setEditTeaserStatus(teaserMode === "auto" ? "autoTeasers" : "saving");
+    setEditTeaserMessage(null);
+
+    try {
+      const selectedTeaserImages =
+        teaserMode === "auto"
+          ? await createAutoCroppedTeaserImages()
+          : getManualSelectedTeaserImages();
+      const selectedTeaserImageUrls =
+        teaserMode === "auto"
+          ? selectedTeaserImages.map((image) => image.sourceImageUrl)
+          : selectedTeaserCuts.map((cut) => cut.sourceImageUrl);
+
+      setEditTeaserStatus("saving");
+
+      const response = await fetch("/api/fanletter/news-reports", {
+        body: JSON.stringify({
+          locale,
+          reportId: selectedExistingReport.reportId,
+          selectedTeaserImages,
+          selectedTeaserImageUrls,
+          updateKind: "teasers",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        method: "PATCH",
+      });
+      const data = (await response.json().catch(() => null)) as
+        | { report?: { teaserImageUrls?: string[] } }
+        | { error?: string }
+        | null;
+
+      if (!response.ok || !data || !("report" in data)) {
+        throw new Error(
+          data && "error" in data && data.error
+            ? data.error
+            : copy.editVisual.teaserError,
         );
       }
 
       const activeTeaserIndex = selectedTeaserCuts.findIndex(
         (cut) => cut.id === selectedTeaserCropCutId,
       );
-      const nextSavedTeaserItems = selectedTeaserImages
-        .map((image, index) => {
-          const imageUrl = image.imageUrl.trim();
-          const sourceImageUrl =
-            image.sourceImageUrl.trim() || imageUrl;
-
-          if (!imageUrl) {
-            return null;
-          }
-
-          return {
-            crop: image.crop,
-            id: createStableTeaserCutId({
-              imageUrl,
-              index,
-              sourceImageUrl,
-            }),
-            imageUrl,
-            isCropped: Boolean(
-              image.crop && sourceImageUrl && imageUrl !== sourceImageUrl,
-            ),
-            sourceImageUrl,
-          } satisfies ExistingSavedTeaserItem;
-        })
-        .filter((item): item is ExistingSavedTeaserItem => Boolean(item))
-        .slice(0, REPORT_TEASER_IMAGE_LIMIT);
+      const nextSavedTeaserItems =
+        getSavedTeaserItemsFromPayload(selectedTeaserImages);
       const nextTeaserCuts = nextSavedTeaserItems.map((item) => ({
         id: item.id,
         sourceImageUrl: item.sourceImageUrl,
@@ -3223,9 +3325,8 @@ export function FanletterNewsReportComposerPage({
         ),
       );
 
-      setExistingReportVisualSnapshot({
-        coverImageUrl: croppedCover.url,
-        coverSourceImageUrl: selectedCoverUrl,
+      setExistingReportVisualSnapshot((current) => ({
+        ...current,
         teaserImageUrls: selectedTeaserImages
           .map((image) => image.imageUrl.trim())
           .filter(Boolean)
@@ -3234,31 +3335,28 @@ export function FanletterNewsReportComposerPage({
           .map((image) => image.sourceImageUrl.trim() || image.imageUrl.trim())
           .filter(Boolean)
           .slice(0, REPORT_TEASER_IMAGE_LIMIT),
-      });
+      }));
       setExistingSavedTeaserItems(nextSavedTeaserItems);
-      setEditVisualMessage(copy.editVisual.saved);
+      setEditTeaserMessage(copy.editVisual.teaserSaved);
     } catch (error) {
-      setEditVisualMessage(
-        error instanceof Error ? error.message : copy.editVisual.error,
+      setEditTeaserMessage(
+        error instanceof Error ? error.message : copy.editVisual.teaserError,
       );
     } finally {
-      setEditVisualStatus("idle");
+      setEditTeaserStatus("idle");
     }
   }, [
-    canSaveExistingReportVisuals,
-    copy.editVisual.error,
-    copy.editVisual.saved,
+    canSaveExistingReportTeasers,
+    copy.editVisual.teaserError,
+    copy.editVisual.teaserSaved,
     createAutoCroppedTeaserImages,
-    crop,
     getManualSelectedTeaserImages,
     locale,
-    selectedCoverUrl,
     selectedExistingReport,
     selectedSource,
     selectedTeaserCropCutId,
     selectedTeaserCuts,
     teaserMode,
-    uploadCroppedReportImage,
   ]);
 
   const submitSearch = useCallback(
@@ -5623,41 +5721,104 @@ export function FanletterNewsReportComposerPage({
                             )}
                           </span>
                         </div>
-                        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                          {editVisualMessage ? (
-                            <p
-                              className={cn(
-                                "text-sm font-black leading-6",
-                                editVisualMessage === copy.editVisual.saved
-                                  ? "text-[#16702e]"
-                                  : "text-rose-700",
-                              )}
+                        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                          <div className="border border-[#19b84b]/18 bg-white p-3">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                              <div className="min-w-0">
+                                <p className="inline-flex items-center gap-1.5 text-sm font-black text-[#111510]">
+                                  <ImageIcon className="size-4 text-[#16702e]" />
+                                  {copy.teaserCrop.coverTitle}
+                                </p>
+                                <p className="mt-1 text-xs font-semibold leading-5 text-black/54">
+                                  {copy.teaserCrop.coverBody}
+                                </p>
+                              </div>
+                              <span className="inline-flex w-fit shrink-0 rounded-full bg-[#111510] px-2.5 py-1 text-[0.62rem] font-black text-[#44f26e]">
+                                16:9
+                              </span>
+                            </div>
+                            {editCoverMessage ? (
+                              <p
+                                className={cn(
+                                  "mt-3 text-sm font-black leading-6",
+                                  editCoverMessage ===
+                                    copy.editVisual.coverSaved
+                                    ? "text-[#16702e]"
+                                    : "text-rose-700",
+                                )}
+                              >
+                                {editCoverMessage}
+                              </p>
+                            ) : null}
+                            <button
+                              className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-55"
+                              disabled={!canSaveExistingReportCover}
+                              onClick={() => {
+                                void saveExistingReportCoverImage();
+                              }}
+                              type="button"
                             >
-                              {editVisualMessage}
-                            </p>
-                          ) : (
-                            <span />
-                          )}
-                          <button
-                            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-55"
-                            disabled={!canSaveExistingReportVisuals}
-                            onClick={() => {
-                              void saveExistingReportVisuals();
-                            }}
-                            type="button"
-                          >
-                            {editVisualStatus === "saving" ||
-                            editVisualStatus === "autoTeasers" ? (
-                              <Loader2 className="size-4 animate-spin text-[#44f26e]" />
-                            ) : (
-                              <CheckCircle2 className="size-4 text-[#44f26e]" />
-                            )}
-                            {editVisualStatus === "autoTeasers"
-                              ? copy.editVisual.autoGenerating
-                              : editVisualStatus === "saving"
-                                ? copy.editVisual.saving
-                                : copy.editVisual.save}
-                          </button>
+                              {editCoverStatus === "saving" ? (
+                                <Loader2 className="size-4 animate-spin text-[#44f26e]" />
+                              ) : (
+                                <CheckCircle2 className="size-4 text-[#44f26e]" />
+                              )}
+                              {editCoverStatus === "saving"
+                                ? copy.editVisual.coverSaving
+                                : copy.editVisual.coverSave}
+                            </button>
+                          </div>
+                          <div className="border border-[#19b84b]/18 bg-white p-3">
+                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                              <div className="min-w-0">
+                                <p className="inline-flex items-center gap-1.5 text-sm font-black text-[#111510]">
+                                  <Crop className="size-4 text-[#16702e]" />
+                                  {copy.editVisual.savedTeaserTitle}
+                                </p>
+                                <p className="mt-1 text-xs font-semibold leading-5 text-black/54">
+                                  {copy.teaserSelection.selectedBody}
+                                </p>
+                              </div>
+                              <span className="inline-flex w-fit shrink-0 rounded-full bg-[#111510] px-2.5 py-1 text-[0.62rem] font-black text-[#44f26e]">
+                                {copy.publishReadiness.teasers(
+                                  formatNumber(activeTeaserCount, locale),
+                                )}
+                              </span>
+                            </div>
+                            {editTeaserMessage ? (
+                              <p
+                                className={cn(
+                                  "mt-3 text-sm font-black leading-6",
+                                  editTeaserMessage ===
+                                    copy.editVisual.teaserSaved
+                                    ? "text-[#16702e]"
+                                    : "text-rose-700",
+                                )}
+                              >
+                                {editTeaserMessage}
+                              </p>
+                            ) : null}
+                            <button
+                              className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-55"
+                              disabled={!canSaveExistingReportTeasers}
+                              onClick={() => {
+                                void saveExistingReportTeaserCuts();
+                              }}
+                              type="button"
+                            >
+                              {editTeaserStatus === "saving" ||
+                              editTeaserStatus === "autoTeasers" ? (
+                                <Loader2 className="size-4 animate-spin text-[#44f26e]" />
+                              ) : (
+                                <CheckCircle2 className="size-4 text-[#44f26e]" />
+                              )}
+                              {editTeaserStatus === "autoTeasers"
+                                ? copy.editVisual.autoGenerating
+                                : editTeaserStatus === "saving"
+                                  ? copy.editVisual.teaserSaving
+                                  : copy.editVisual.teaserSave}
+                            </button>
+                          </div>
                         </div>
                       </section>
                     ) : null}

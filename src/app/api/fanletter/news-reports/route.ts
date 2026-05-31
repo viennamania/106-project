@@ -56,7 +56,7 @@ type FanletterNewsReportCreateRequest = {
 };
 
 type FanletterNewsReportCoverUpdateRequest = {
-  updateKind?: "content" | "cover" | null;
+  updateKind?: "content" | "cover" | "teasers" | null;
   croppedCoverCrop?: {
     aspectRatio?: number | null;
     height?: number | null;
