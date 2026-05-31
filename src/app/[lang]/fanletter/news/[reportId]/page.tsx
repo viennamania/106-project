@@ -2380,6 +2380,7 @@ function SourceVlogRevealTeaserOverlay({
   layout = "overlay",
   locale,
   paidAmountLabel,
+  presentation = "fill",
   reportId,
   sourceAccessKind,
   sourceReveal,
@@ -2390,6 +2391,7 @@ function SourceVlogRevealTeaserOverlay({
   layout?: "overlay" | "sideRail";
   locale: Locale;
   paidAmountLabel: string;
+  presentation?: "fill" | "flow";
   reportId: string;
   sourceAccessKind: SourceVlogAccessKind;
   sourceReveal: FanletterNewsSourceRevealState;
@@ -2398,6 +2400,7 @@ function SourceVlogRevealTeaserOverlay({
   const teaserFrames = frames.slice(0, 3);
   const hasTeaserFrames = teaserFrames.length > 0;
   const isSideRail = layout === "sideRail";
+  const isFlow = presentation === "flow";
   const teaserGridClass =
     teaserFrames.length >= 3
       ? "grid-cols-3"
@@ -2406,15 +2409,21 @@ function SourceVlogRevealTeaserOverlay({
         : "grid-cols-1";
   const rootClassName = isSideRail
     ? "absolute inset-0 overflow-y-auto bg-[#07100b] p-3 text-white sm:p-4"
+    : isFlow
+      ? "relative bg-[#07100b] p-3 text-white shadow-[inset_0_16px_28px_rgba(0,0,0,0.28)] sm:p-5"
     : hasTeaserFrames
       ? "absolute inset-0 isolate overflow-y-auto bg-[#07100b] p-3 text-white shadow-[inset_0_16px_28px_rgba(0,0,0,0.28)] sm:overflow-hidden sm:p-5"
       : "absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.88)_100%)] p-3 text-white sm:p-5";
   const contentClassName = hasTeaserFrames
     ? isSideRail
       ? "mx-auto flex min-h-full w-full max-w-[24rem] flex-col justify-center gap-3"
+      : isFlow
+        ? "mx-auto flex w-full max-w-4xl flex-col gap-4"
       : "mx-auto flex min-h-full w-full max-w-4xl flex-col gap-3 sm:grid sm:h-full sm:min-h-0 sm:grid-cols-[minmax(0,1fr)_minmax(18rem,0.82fr)] sm:items-center"
     : isSideRail
       ? "flex min-h-full w-full items-center justify-center"
+      : isFlow
+        ? "flex w-full justify-center"
       : "flex h-full min-h-0 w-full items-center justify-center";
   const teaserColumnClassName = isSideRail
     ? "flex min-h-0 flex-col gap-2"
@@ -3125,13 +3134,14 @@ function SourceVlogEmbed({
               previewVideoUrl={sourcePreviewVideoUrl}
               title={sourceDisplayTitle}
             >
-              <div className="absolute inset-0 lg:hidden">
+              <div className="lg:hidden">
                 <SourceVlogRevealTeaserOverlay
                   blurred={sourceMediaBlurred}
                   connectHref={sourceReveal.connectHref}
                   frames={sourceOverlaySceneFrames}
                   locale={locale}
                   paidAmountLabel={paidUnlockLabel}
+                  presentation="flow"
                   reportId={sourceReveal.reportId}
                   sourceAccessKind={sourceAccessKind}
                   sourceReveal={sourceReveal}
