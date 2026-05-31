@@ -3033,8 +3033,7 @@ function SourceVlogEmbed({
     isSourceNsfw && shouldShowSourceTeaserGallery;
   const shouldShowLockedPreviewHero = Boolean(
     (sourceRevealLocked || !viewerCanAccessSource) &&
-      sourcePreviewVideoUrl &&
-      !sourceMediaBlurred,
+      sourcePreviewVideoUrl,
   );
   const shouldShowDesktopSourceRevealDock = Boolean(
     sourceRevealLocked &&
@@ -3096,6 +3095,7 @@ function SourceVlogEmbed({
         {sourceRevealLocked && sourceReveal ? (
           shouldShowLockedPreviewHero && sourcePreviewVideoUrl ? (
             <FanletterNewsLockedPreviewHero
+              blurred={sourceMediaBlurred}
               posterImageUrl={sourceImageUrl}
               previewBadge={copy.embeddedPreviewBadge}
               previewMeta={copy.embeddedPreviewMeta}
@@ -3177,6 +3177,7 @@ function SourceVlogEmbed({
         ) : shouldShowPaidTeaser && paidUnlockHref ? (
           shouldShowLockedPreviewHero && sourcePreviewVideoUrl ? (
             <FanletterNewsLockedPreviewHero
+              blurred={sourceMediaBlurred}
               posterImageUrl={sourceImageUrl}
               previewBadge={copy.embeddedPreviewBadge}
               previewMeta={copy.embeddedPreviewMeta}

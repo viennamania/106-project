@@ -26,6 +26,7 @@ function getVideoOrientation(metadata: FanletterVideoMetadata | null) {
 }
 
 export function FanletterNewsLockedPreviewHero({
+  blurred = false,
   children,
   posterImageUrl,
   previewBadge,
@@ -33,6 +34,7 @@ export function FanletterNewsLockedPreviewHero({
   previewVideoUrl,
   title,
 }: {
+  blurred?: boolean;
   children?: ReactNode;
   posterImageUrl: string | null;
   previewBadge: string;
@@ -89,13 +91,21 @@ export function FanletterNewsLockedPreviewHero({
           />
         ) : null}
         <FanletterAutoplayVideo
-          className="absolute inset-0 h-full w-full object-contain brightness-[0.92] saturate-[1.04]"
+          className={cn(
+            "absolute inset-0 h-full w-full object-contain",
+            blurred
+              ? "scale-[1.04] blur-sm brightness-[0.72] saturate-[0.88]"
+              : "brightness-[0.92] saturate-[1.04]",
+          )}
           controls
           onMetadata={handleMetadata}
           poster={posterImageUrl ?? undefined}
           src={previewVideoUrl}
           title={title}
         />
+        {blurred ? (
+          <div className="pointer-events-none absolute inset-0 bg-black/12" />
+        ) : null}
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.22),rgba(0,0,0,0.04)_34%,rgba(0,0,0,0.42))]" />
         <div className="pointer-events-none absolute left-3 top-3 z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-1.5 sm:left-4 sm:top-4">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-white/18 bg-black/52 px-2.5 py-1 text-[0.68rem] font-black text-white shadow-[0_10px_24px_rgba(0,0,0,0.24)] backdrop-blur">
