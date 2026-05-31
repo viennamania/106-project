@@ -720,6 +720,7 @@ function NewsMasthead({
   navigationBaseHref,
   platformHref,
   purchasesHref,
+  reportersHref,
   reportsHref,
   vlogsHref,
 }: {
@@ -730,6 +731,7 @@ function NewsMasthead({
   navigationBaseHref: string;
   platformHref: string;
   purchasesHref: string;
+  reportersHref: string;
   reportsHref: string;
   vlogsHref: string;
 }) {
@@ -740,7 +742,7 @@ function NewsMasthead({
     `${navigationBaseHref}#top-stories`,
     galleryHref,
     platformHref,
-    `${navigationBaseHref}#fan-reporters`,
+    reportersHref,
     charactersHref,
     vlogsHref,
     purchasesHref,
@@ -2457,6 +2459,10 @@ export default async function LocalizedFanletterNewsHomePage({
     `/${locale}/fanletter/news/reports`,
     referralCode,
   );
+  const reportersHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/reporters`,
+    referralCode,
+  );
   const reportNewHref = buildPathWithReferral(
     `/${locale}/fanletter/news/reports/new`,
     referralCode,
@@ -2489,6 +2495,7 @@ export default async function LocalizedFanletterNewsHomePage({
         navigationBaseHref={currentNewsHref}
         platformHref={platformHref}
         purchasesHref={purchasesHref}
+        reportersHref={reportersHref}
         reportsHref={reportsHref}
         vlogsHref={vlogsHref}
       />

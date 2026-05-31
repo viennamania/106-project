@@ -205,6 +205,26 @@ export type FanletterNewsReporterChannelReportsResult = {
   reports: FanletterNewsReportDocument[];
 };
 
+export type FanletterNewsReporterDirectoryItem = {
+  avatarImageUrl: string | null;
+  characterCount: number;
+  fanOnlyCount: number;
+  firstReportAt: Date | null;
+  firstReportCount: number;
+  latestReport: {
+    coverImageUrl: string | null;
+    creatorName: string;
+    reportId: string;
+    title: string;
+  } | null;
+  latestReportAt: Date | null;
+  name: string;
+  nsfwCount: number;
+  publicCount: number;
+  referralCode: string;
+  reportCount: number;
+};
+
 export type FanletterNewsReporterBackfillInput = {
   limit?: number;
   locale?: string | null;
@@ -3908,6 +3928,234 @@ export const getFanletterNewsReportsForCharacterDirectory = cache(
       .toArray();
 
     return hydrateFanletterNewsReportDisplayMetadata(reports);
+  },
+);
+
+export const getFanletterNewsReporterDirectory = cache(
+  async ({
+    limit = 96,
+    locale,
+  }: {
+    limit?: number;
+    locale: Locale;
+  }): Promise<FanletterNewsReporterDirectoryItem[]> => {
+    const normalizedLimit = Number.isFinite(limit)
+      ? Math.max(1, Math.min(Math.floor(limit), 144))
+      : 96;
+    const reportsCollection = await getFanletterNewsReportsCollection();
+    const rows = await reportsCollection
+      .aggregate<{
+        avatarImageUrl: string | null;
+        characterCount: number;
+        fanOnlyCount: number;
+        firstReportAt: Date | null;
+        firstReportCount: number;
+        latestReport: {
+          coverImageUrl: string | null;
+          creatorName: string;
+          reportId: string;
+          title: string;
+        } | null;
+        latestReportAt: Date | null;
+        name: string;
+        nsfwCount: number;
+        publicCount: number;
+        referralCode: string;
+        reportCount: number;
+      }>([
+        {
+          $match: {
+            locale,
+            reporterReferralCode: { $exists: true, $ne: "" },
+            status: "published",
+          },
+        },
+        { $sort: { sourcePublishedAt: -1, createdAt: -1 } },
+        {
+          $group: {
+            _id: "$reporterReferralCode",
+            avatarImageUrl: { $first: "$reporterAvatarImageUrl" },
+            characterKeys: {
+              $addToSet: { $ifNull: ["$creatorReferralCode", "$creatorName"] },
+            },
+            fanOnlyCount: {
+              $sum: { $cond: [{ $eq: ["$priceType", "paid"] }, 1, 0] },
+            },
+            firstReportAt: {
+              $min: { $ifNull: ["$sourcePublishedAt", "$createdAt"] },
+            },
+            firstReportCount: {
+              $sum: {
+                $cond: [
+                  {
+                    $eq: [
+                      { $ifNull: ["$firstNewsReportForContent", false] },
+                      true,
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+            latestReport: {
+              $first: {
+                coverImageUrl: { $ifNull: ["$coverImageUrl", null] },
+                creatorName: "$creatorName",
+                reportId: "$reportId",
+                title: "$title",
+              },
+            },
+            latestReportAt: {
+              $max: { $ifNull: ["$sourcePublishedAt", "$createdAt"] },
+            },
+            name: { $first: "$reporterName" },
+            nsfwCount: {
+              $sum: {
+                $cond: [{ $eq: ["$contentMaturityRating", "nsfw"] }, 1, 0],
+              },
+            },
+            publicCount: {
+              $sum: { $cond: [{ $eq: ["$priceType", "free"] }, 1, 0] },
+            },
+            referralCode: { $first: "$reporterReferralCode" },
+            reportCount: { $sum: 1 },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            avatarImageUrl: { $ifNull: ["$avatarImageUrl", null] },
+            characterCount: {
+              $size: {
+                $filter: {
+                  as: "characterKey",
+                  cond: {
+                    $and: [
+                      { $ne: ["$$characterKey", null] },
+                      { $ne: ["$$characterKey", ""] },
+                    ],
+                  },
+                  input: "$characterKeys",
+                },
+              },
+            },
+            fanOnlyCount: 1,
+            firstReportAt: 1,
+            firstReportCount: 1,
+            latestReport: 1,
+            latestReportAt: 1,
+            name: 1,
+            nsfwCount: 1,
+            publicCount: 1,
+            referralCode: 1,
+            reportCount: 1,
+          },
+        },
+        {
+          $sort: {
+            firstReportCount: -1,
+            reportCount: -1,
+            latestReportAt: -1,
+          },
+        },
+        { $limit: normalizedLimit },
+      ])
+      .toArray();
+    const reporterReferralCodes = rows
+      .map((row) => row.referralCode)
+      .filter(Boolean);
+    const latestPublicReportRows = reporterReferralCodes.length
+      ? await reportsCollection
+          .aggregate<{
+            latestReport: {
+              coverImageUrl: string | null;
+              creatorName: string;
+              reportId: string;
+              title: string;
+            };
+            referralCode: string;
+          }>([
+            {
+              $match: {
+                contentMaturityRating: "general",
+                locale,
+                reporterReferralCode: { $in: reporterReferralCodes },
+                status: "published",
+              },
+            },
+            { $sort: { sourcePublishedAt: -1, createdAt: -1 } },
+            {
+              $group: {
+                _id: "$reporterReferralCode",
+                latestReport: {
+                  $first: {
+                    coverImageUrl: { $ifNull: ["$coverImageUrl", null] },
+                    creatorName: "$creatorName",
+                    reportId: "$reportId",
+                    title: "$title",
+                  },
+                },
+                referralCode: { $first: "$reporterReferralCode" },
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                latestReport: 1,
+                referralCode: 1,
+              },
+            },
+          ])
+          .toArray()
+      : [];
+    const latestPublicReportByReferralCode = new Map(
+      latestPublicReportRows.map((row) => [
+        normalizeReferralCode(row.referralCode) ?? row.referralCode,
+        row.latestReport,
+      ]),
+    );
+    const hydratedReporters = await hydrateReporterStatsWithCurrentIdentity({
+      locale,
+      reporters: rows.map((row) => ({
+        latestReportAt: row.latestReportAt,
+        reporterAvatarImageUrl: row.avatarImageUrl,
+        reporterName: row.name,
+        reporterReferralCode: row.referralCode,
+        reportCount: row.reportCount,
+      })),
+    });
+    const hydratedByReferralCode = new Map(
+      hydratedReporters.map((reporter) => [
+        normalizeReferralCode(reporter.reporterReferralCode) ??
+          reporter.reporterReferralCode,
+        reporter,
+      ]),
+    );
+
+    return rows.map((row) => {
+      const hydrated = hydratedByReferralCode.get(
+        normalizeReferralCode(row.referralCode) ?? row.referralCode,
+      );
+
+      return {
+        avatarImageUrl: hydrated?.reporterAvatarImageUrl ?? row.avatarImageUrl,
+        characterCount: row.characterCount,
+        fanOnlyCount: row.fanOnlyCount,
+        firstReportAt: row.firstReportAt,
+        firstReportCount: row.firstReportCount,
+        latestReport:
+          latestPublicReportByReferralCode.get(
+            normalizeReferralCode(row.referralCode) ?? row.referralCode,
+          ) ?? null,
+        latestReportAt: hydrated?.latestReportAt ?? row.latestReportAt,
+        name: hydrated?.reporterName ?? row.name,
+        nsfwCount: row.nsfwCount,
+        publicCount: row.publicCount,
+        referralCode: hydrated?.reporterReferralCode ?? row.referralCode,
+        reportCount: hydrated?.reportCount ?? row.reportCount,
+      };
+    });
   },
 );
 

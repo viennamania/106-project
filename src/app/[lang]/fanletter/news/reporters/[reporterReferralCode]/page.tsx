@@ -51,6 +51,7 @@ function getCopy(locale: Locale) {
           fanOnly: "팬 전용",
           public: "공개",
         },
+        allReporters: "팬 기자 전체",
         backToNews: "뉴스 홈",
         characterCoverage: {
           body:
@@ -127,6 +128,7 @@ function getCopy(locale: Locale) {
           fanOnly: "Fan-only",
           public: "Public",
         },
+        allReporters: "All fan reporters",
         backToNews: "News home",
         characterCoverage: {
           body:
@@ -550,6 +552,10 @@ export default async function FanletterNewsReporterChannelPage({
     `/${locale}/fanletter/news`,
     referralCode,
   );
+  const reportersHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/reporters`,
+    referralCode,
+  );
   const reportsHref = buildPathWithReferral(
     `/${locale}/fanletter/news/reports`,
     referralCode,
@@ -630,13 +636,22 @@ export default async function FanletterNewsReporterChannelPage({
             >
               {copy.siteName}
             </Link>
-            <Link
-              className="hidden shrink-0 items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:inline-flex"
-              href={newsHomeHref}
-            >
-              <ArrowLeft className="size-4 text-[#16702e]" />
-              {copy.backToNews}
-            </Link>
+            <div className="hidden shrink-0 items-center gap-2 sm:flex">
+              <Link
+                className="inline-flex items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                href={reportersHref}
+              >
+                <UsersRound className="size-4 text-[#16702e]" />
+                {copy.allReporters}
+              </Link>
+              <Link
+                className="inline-flex items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                href={newsHomeHref}
+              >
+                <ArrowLeft className="size-4 text-[#16702e]" />
+                {copy.backToNews}
+              </Link>
+            </div>
           </div>
         </div>
       </header>
