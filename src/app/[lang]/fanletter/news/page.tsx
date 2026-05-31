@@ -6,13 +6,16 @@ import type { ReactNode } from "react";
 import {
   AlertTriangle,
   ArrowRight,
+  Clapperboard,
   Clock3,
   FileText,
   List,
   Newspaper,
   PenLine,
+  Plus,
   Radio,
   Sparkles,
+  UploadCloud,
   UserRound,
 } from "lucide-react";
 
@@ -36,7 +39,11 @@ import {
 import {
   getFanletterNewsBareArticleDisplayTitle as getArticleDisplayTitle,
 } from "@/lib/fanletter-news-related";
-import { getFanletterNewsVlogsHref } from "@/lib/fanletter-news-vlog-routing";
+import {
+  getFanletterNewsVlogManageHref,
+  getFanletterNewsVlogNewHref,
+  getFanletterNewsVlogsHref,
+} from "@/lib/fanletter-news-vlog-routing";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
@@ -125,6 +132,29 @@ function getCopy(locale: Locale) {
         photoDesk: "포토 뉴스",
         photoDeskBody:
           "NSFW를 제외한 선명한 커버 뉴스를 포토 에디토리얼처럼 큐레이션합니다.",
+        producerDesk: {
+          body:
+            "뉴스를 보다가 PC에서 바로 리포트를 작성하거나 새 브이로그를 등록할 수 있습니다. 소비 흐름을 생산 작업으로 끊김 없이 이어갑니다.",
+          eyebrow: "PC 작업 바로가기",
+          note: "모바일은 하단 역할 버튼, PC는 이 작업 레일에서 바로 시작합니다.",
+          reporter: {
+            body:
+              "브이로그 후보를 고르고 티저 컷 기반 팬 리포트를 바로 발행합니다.",
+            label: "팬 기자",
+            primary: "기사 작성",
+            secondary: "리포트 관리",
+            title: "새 리포트 작성",
+          },
+          title: "팬 기자와 브이로거 작업을 바로 시작하세요",
+          vlogger: {
+            body:
+              "AI 캐릭터 브이로그를 만들거나 직접 영상을 업로드해 뉴스 노출 준비를 이어갑니다.",
+            label: "브이로거",
+            primary: "동영상 업로드",
+            secondary: "브이로그 관리",
+            title: "새 브이로그 등록",
+          },
+        },
         newsroomStats: "뉴스룸 현황",
         newsroomStatLabels: {
           news: "뉴스",
@@ -225,6 +255,29 @@ function getCopy(locale: Locale) {
         photoDesk: "Photo Desk",
         photoDeskBody:
           "A polished editorial curation of non-NSFW character news with strong cover moments.",
+        producerDesk: {
+          body:
+            "While reading News on desktop, jump straight into report writing or new vlog registration without detouring through a hub.",
+          eyebrow: "Desktop quick start",
+          note: "Mobile keeps the role footer; desktop starts from this work rail.",
+          reporter: {
+            body:
+              "Pick a source vlog and publish a fan report from teaser cuts.",
+            label: "Fan reporter",
+            primary: "Write article",
+            secondary: "Report desk",
+            title: "Create a report",
+          },
+          title: "Start fan reporter and vlogger work immediately",
+          vlogger: {
+            body:
+              "Create an AI character vlog or upload video, then prepare it for News exposure.",
+            label: "Vlogger",
+            primary: "Upload video",
+            secondary: "Vlog desk",
+            title: "Register a new vlog",
+          },
+        },
         newsroomStats: "Newsroom Status",
         newsroomStatLabels: {
           news: "News",
@@ -764,6 +817,122 @@ function NewsTicker({
             </Link>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function ProducerQuickStartRail({
+  copy,
+  reportDeskHref,
+  reportNewHref,
+  vlogManageHref,
+  vlogNewHref,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  reportDeskHref: string;
+  reportNewHref: string;
+  vlogManageHref: string;
+  vlogNewHref: string;
+}) {
+  const actions = [
+    {
+      accent: "green" as const,
+      body: copy.producerDesk.reporter.body,
+      icon: PenLine,
+      label: copy.producerDesk.reporter.label,
+      primaryHref: reportNewHref,
+      primaryIcon: Plus,
+      primaryLabel: copy.producerDesk.reporter.primary,
+      secondaryHref: reportDeskHref,
+      secondaryLabel: copy.producerDesk.reporter.secondary,
+      title: copy.producerDesk.reporter.title,
+    },
+    {
+      accent: "violet" as const,
+      body: copy.producerDesk.vlogger.body,
+      icon: Clapperboard,
+      label: copy.producerDesk.vlogger.label,
+      primaryHref: vlogNewHref,
+      primaryIcon: UploadCloud,
+      primaryLabel: copy.producerDesk.vlogger.primary,
+      secondaryHref: vlogManageHref,
+      secondaryLabel: copy.producerDesk.vlogger.secondary,
+      title: copy.producerDesk.vlogger.title,
+    },
+  ];
+
+  return (
+    <section className="hidden border-b border-black/10 bg-[#fbfcf8] lg:block">
+      <div className="mx-auto grid max-w-[92rem] gap-3 px-8 py-3 lg:grid-cols-[minmax(16rem,0.75fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="flex min-h-[7rem] flex-col justify-between border border-black/10 bg-white p-4 shadow-[0_12px_28px_rgba(17,21,16,0.05)]">
+          <div>
+            <p className="text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+              {copy.producerDesk.eyebrow}
+            </p>
+            <h2 className="mt-2 text-xl font-black leading-tight tracking-normal [word-break:keep-all]">
+              {copy.producerDesk.title}
+            </h2>
+          </div>
+          <p className="mt-3 text-xs font-semibold leading-5 text-black/52">
+            {copy.producerDesk.note}
+          </p>
+        </div>
+
+        {actions.map((action) => {
+          const Icon = action.icon;
+          const PrimaryIcon = action.primaryIcon;
+          const iconTone =
+            action.accent === "green" ? "text-[#16702e]" : "text-[#5b35a2]";
+          const panelClass =
+            action.accent === "green"
+              ? "border-[#19b84b]/38 bg-[#f4fff6]"
+              : "border-[#b88cff]/42 bg-[#fbf7ff]";
+          const primaryClass =
+            action.accent === "green"
+              ? "bg-[#111510] !text-white hover:bg-[#16702e]"
+              : "bg-[#2b2140] !text-white hover:bg-[#5b35a2]";
+
+          return (
+            <div
+              className={`grid min-h-[7rem] grid-cols-[auto_minmax(0,1fr)] items-center gap-4 border p-4 shadow-[0_12px_28px_rgba(17,21,16,0.05)] xl:grid-cols-[auto_minmax(0,1fr)_auto] ${panelClass}`}
+              key={action.label}
+            >
+              <span
+                className={`flex size-12 shrink-0 items-center justify-center border border-black/10 bg-white ${iconTone}`}
+              >
+                <Icon className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-black/44">
+                  {action.label}
+                </p>
+                <h3 className="mt-1 truncate text-lg font-black tracking-normal">
+                  {action.title}
+                </h3>
+                <p className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-black/55">
+                  {action.body}
+                </p>
+              </div>
+              <div className="col-span-2 grid shrink-0 grid-cols-2 gap-2 xl:col-span-1 xl:flex xl:flex-col">
+                <Link
+                  className={`inline-flex h-10 min-w-0 items-center justify-center gap-2 px-3 text-sm font-black transition xl:min-w-32 ${primaryClass}`}
+                  href={action.primaryHref}
+                >
+                  <PrimaryIcon className="size-4" />
+                  {action.primaryLabel}
+                </Link>
+                <Link
+                  className="inline-flex h-10 min-w-0 items-center justify-center gap-2 border border-black/12 bg-white px-3 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] xl:h-9 xl:min-w-32"
+                  href={action.secondaryHref}
+                >
+                  {action.secondaryLabel}
+                  <ArrowRight className="size-3.5" />
+                </Link>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -2288,9 +2457,22 @@ export default async function LocalizedFanletterNewsHomePage({
     `/${locale}/fanletter/news/reports`,
     referralCode,
   );
+  const reportNewHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/reports/new`,
+    referralCode,
+  );
   const vlogsHref = getFanletterNewsVlogsHref({
     locale,
     referralCode,
+  });
+  const vlogManageHref = getFanletterNewsVlogManageHref({
+    locale,
+    referralCode,
+  });
+  const vlogNewHref = getFanletterNewsVlogNewHref({
+    locale,
+    referralCode,
+    returnToHref: vlogManageHref,
   });
   const studioHref = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
@@ -2314,6 +2496,13 @@ export default async function LocalizedFanletterNewsHomePage({
         copy={copy}
         referralCode={referralCode}
         reports={reports.slice(0, 5)}
+      />
+      <ProducerQuickStartRail
+        copy={copy}
+        reportDeskHref={reportsHref}
+        reportNewHref={reportNewHref}
+        vlogManageHref={vlogManageHref}
+        vlogNewHref={vlogNewHref}
       />
 
       <section className="mx-auto max-w-[92rem] px-4 py-4 sm:px-6 sm:py-7 lg:px-8">
