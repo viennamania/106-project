@@ -341,7 +341,7 @@ function getCopy(locale: Locale) {
           currentCover: "현재 대표 이미지",
           currentEmpty: "아직 저장된 공개 티저 컷이 없습니다.",
           currentTeasers: "현재 공개 티저 컷",
-          currentTitle: "현재 저장된 설정",
+          currentTitle: "현재 적용된 이미지",
           currentCoverBadge: "현재 대표",
           currentTeaserBadge: "현재 공개 컷",
           coverTitle: "대표 이미지와 티저 컷 수정",
@@ -627,7 +627,7 @@ function getCopy(locale: Locale) {
           currentCover: "Current lead image",
           currentEmpty: "No public teaser cuts are saved yet.",
           currentTeasers: "Current public teaser cuts",
-          currentTitle: "Current saved setup",
+          currentTitle: "Currently applied images",
           currentCoverBadge: "Current lead",
           currentTeaserBadge: "Current cut",
           coverTitle: "Edit lead image and teaser cuts",
@@ -1972,6 +1972,15 @@ export function FanletterNewsReportComposerPage({
     teaserMode === "auto"
       ? Math.min(autoTeaserCandidateUrls.length, REPORT_TEASER_IMAGE_LIMIT)
       : selectedTeaserUrls.length;
+  const selectedExistingReport = selectedSource?.existingReport ?? null;
+  const currentSavedTeaserSourceUrlSet = useMemo(
+    () => new Set(existingReportVisualSnapshot.teaserSourceImageUrls),
+    [existingReportVisualSnapshot.teaserSourceImageUrls],
+  );
+  const currentSavedTeaserImageUrlSet = useMemo(
+    () => new Set(existingReportVisualSnapshot.teaserImageUrls),
+    [existingReportVisualSnapshot.teaserImageUrls],
+  );
   const selectedManualTeaserItems = useMemo(
     () =>
       selectedTeaserUrls.map((imageUrl, index) => {
@@ -1986,6 +1995,14 @@ export function FanletterNewsReportComposerPage({
           croppedTeaser,
           imageUrl,
           isActive: activeTeaserCropSourceUrl === imageUrl,
+          isCurrentSaved: Boolean(
+            selectedExistingReport &&
+              (currentSavedTeaserSourceUrlSet.has(imageUrl) ||
+                currentSavedTeaserImageUrlSet.has(imageUrl) ||
+                (croppedTeaser?.imageUrl
+                  ? currentSavedTeaserImageUrlSet.has(croppedTeaser.imageUrl)
+                  : false)),
+          ),
           label: option
             ? getCoverLabel(option, optionIndex, locale)
             : copy.teaserSelection.selectedItem(
@@ -1998,7 +2015,10 @@ export function FanletterNewsReportComposerPage({
       activeTeaserCropSourceUrl,
       copy.teaserSelection,
       croppedTeaserBySourceUrl,
+      currentSavedTeaserImageUrlSet,
+      currentSavedTeaserSourceUrlSet,
       locale,
+      selectedExistingReport,
       selectedSourceCoverOptions,
       selectedTeaserUrls,
     ],
@@ -2011,10 +2031,6 @@ export function FanletterNewsReportComposerPage({
       !selectedSource.reportSlot.full &&
       !isExclusiveBlocked &&
       status === "idle",
-  );
-  const selectedExistingReport = selectedSource?.existingReport ?? null;
-  const currentSavedTeaserSourceUrlSet = new Set(
-    existingReportVisualSnapshot.teaserSourceImageUrls,
   );
   const canSaveExistingReportVisuals = Boolean(
     selectedExistingReport &&
@@ -3267,6 +3283,112 @@ export function FanletterNewsReportComposerPage({
         ) : null}
       </div>
     ) : null;
+  const existingReportCurrentVisuals = selectedExistingReport ? (
+    <div className="mt-4 grid gap-3 border border-[#19b84b]/24 bg-[#f6fff7] p-3 shadow-[0_10px_24px_rgba(25,184,75,0.07)] md:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)]">
+      <div className="min-w-0">
+        <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#16702e]">
+          <CheckCircle2 className="size-3.5" />
+          {copy.editVisual.currentTitle}
+        </p>
+        <div className="mt-3 overflow-hidden rounded-lg border border-[#19b84b]/18 bg-white">
+          <div className="aspect-video bg-[#111510]">
+            {existingReportVisualSnapshot.coverImageUrl ? (
+              <span
+                className={cn(
+                  "block size-full bg-contain bg-center bg-no-repeat",
+                  shouldBlurSelectedNsfwMedia && "scale-[1.03] blur-md brightness-75",
+                )}
+                style={{
+                  backgroundImage: `url(${existingReportVisualSnapshot.coverImageUrl})`,
+                }}
+              />
+            ) : null}
+          </div>
+          <div className="flex items-center justify-between gap-2 px-3 py-2">
+            <span className="text-xs font-black text-[#111510]">
+              {copy.editVisual.currentCover}
+            </span>
+            <span className="rounded-full bg-[#111510] px-2 py-0.5 text-[0.62rem] font-black text-[#44f26e]">
+              16:9
+            </span>
+          </div>
+        </div>
+      </div>
+      <div className="min-w-0">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#16702e]">
+              <ImageIcon className="size-3.5" />
+              {copy.editVisual.savedTeaserTitle}
+            </p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-black/54">
+              {copy.editVisual.savedTeaserBody}
+            </p>
+          </div>
+          <span className="inline-flex w-fit shrink-0 rounded-full bg-[#111510] px-2.5 py-1 text-[0.62rem] font-black text-[#44f26e]">
+            9:16
+          </span>
+        </div>
+        {existingSavedTeaserItems.length > 0 ? (
+          <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
+            {existingSavedTeaserItems.map((item, index) => {
+              const isActiveTeaser =
+                activeTeaserCropSourceUrl === item.sourceImageUrl;
+
+              return (
+                <button
+                  className={cn(
+                    "group min-w-0 overflow-hidden rounded-lg border bg-white p-1 text-left transition",
+                    isActiveTeaser
+                      ? "border-[#19b84b] shadow-[0_0_0_1px_rgba(25,184,75,0.25)]"
+                      : "border-black/10 hover:border-[#19b84b]/45",
+                  )}
+                  key={`${item.imageUrl}-${index}`}
+                  onClick={() => {
+                    editSavedTeaserImage(item);
+                  }}
+                  type="button"
+                >
+                  <span className="relative block aspect-[9/16] overflow-hidden rounded-md bg-[#111510]">
+                    <span
+                      className={cn(
+                        "block size-full bg-cover bg-center transition group-hover:scale-[1.02]",
+                        shouldBlurSelectedNsfwMedia &&
+                          "scale-[1.03] blur-md brightness-75",
+                      )}
+                      style={{
+                        backgroundImage: `url(${item.imageUrl})`,
+                      }}
+                    />
+                    <span className="absolute left-1 top-1 rounded-full bg-black/72 px-1.5 py-0.5 text-[0.58rem] font-black text-[#44f26e]">
+                      {formatNumber(index + 1, locale)}
+                    </span>
+                    {isActiveTeaser ? (
+                      <span className="absolute right-1 top-1 rounded-full bg-[#44f26e] px-1.5 py-0.5 text-[0.58rem] font-black text-black">
+                        {copy.editVisual.savedTeaserActive}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="mt-2 block truncate text-[0.66rem] font-black text-[#111510]">
+                    {copy.editVisual.savedTeaserCta}
+                  </span>
+                  <span className="mt-0.5 block truncate text-[0.6rem] font-black uppercase tracking-[0.05em] text-black/42">
+                    {item.isCropped
+                      ? copy.teaserCrop.saved
+                      : copy.editVisual.savedTeaserSource}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="mt-3 rounded-lg border border-dashed border-[#19b84b]/20 bg-white px-3 py-5 text-sm font-semibold leading-6 text-black/48">
+            {copy.editVisual.currentEmpty}
+          </p>
+        )}
+      </div>
+    </div>
+  ) : null;
 
   const searchControls = (
     <form
@@ -4497,6 +4619,8 @@ export function FanletterNewsReportComposerPage({
                         </div>
                       </div>
 
+                      {existingReportCurrentVisuals}
+
                       {!isSelectedPaidLocked ? (
                         <div className="mt-4 border border-[#19b84b]/18 bg-[#ecfff0] px-4 py-3">
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -4660,6 +4784,11 @@ export function FanletterNewsReportComposerPage({
                                               {copy.teaserSelection.activeCut}
                                             </span>
                                           ) : null}
+                                          {item.isCurrentSaved && !item.isActive ? (
+                                            <span className="absolute right-1 top-1 rounded-full bg-white px-1.5 py-0.5 text-[0.58rem] font-black text-[#16702e]">
+                                              {copy.editVisual.currentTeaserBadge}
+                                            </span>
+                                          ) : null}
                                         </button>
                                         <p className="mt-2 truncate text-[0.68rem] font-black text-[#111510]">
                                           {item.label}
@@ -4711,115 +4840,6 @@ export function FanletterNewsReportComposerPage({
                       ) : null}
 
                       {autoTeaserPreview}
-
-                      {selectedExistingReport ? (
-                        <div className="mt-4 grid gap-3 border border-[#19b84b]/18 bg-[#f6fff7] p-3 md:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)]">
-                          <div className="min-w-0">
-                            <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#16702e]">
-                              <CheckCircle2 className="size-3.5" />
-                              {copy.editVisual.currentTitle}
-                            </p>
-                            <div className="mt-3 overflow-hidden rounded-lg border border-[#19b84b]/18 bg-white">
-                              <div className="aspect-video bg-[#111510]">
-                                {existingReportVisualSnapshot.coverImageUrl ? (
-                                  <span
-                                    className={cn(
-                                      "block size-full bg-contain bg-center bg-no-repeat",
-                                      shouldBlurSelectedNsfwMedia &&
-                                        "scale-[1.03] blur-md brightness-75",
-                                    )}
-                                    style={{
-                                      backgroundImage: `url(${existingReportVisualSnapshot.coverImageUrl})`,
-                                    }}
-                                  />
-                                ) : null}
-                              </div>
-                              <div className="flex items-center justify-between gap-2 px-3 py-2">
-                                <span className="text-xs font-black text-[#111510]">
-                                  {copy.editVisual.currentCover}
-                                </span>
-                                <span className="rounded-full bg-[#111510] px-2 py-0.5 text-[0.62rem] font-black text-[#44f26e]">
-                                  16:9
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="min-w-0">
-                            <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-                              <div>
-                                <p className="inline-flex items-center gap-1.5 text-xs font-black text-[#16702e]">
-                                  <ImageIcon className="size-3.5" />
-                                  {copy.editVisual.savedTeaserTitle}
-                                </p>
-                                <p className="mt-1 text-xs font-semibold leading-5 text-black/54">
-                                  {copy.editVisual.savedTeaserBody}
-                                </p>
-                              </div>
-                              <span className="inline-flex w-fit shrink-0 rounded-full bg-[#111510] px-2.5 py-1 text-[0.62rem] font-black text-[#44f26e]">
-                                9:16
-                              </span>
-                            </div>
-                            {existingSavedTeaserItems.length > 0 ? (
-                              <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
-                                {existingSavedTeaserItems.map((item, index) => {
-                                  const isActiveTeaser =
-                                    activeTeaserCropSourceUrl ===
-                                    item.sourceImageUrl;
-
-                                  return (
-                                    <button
-                                      className={cn(
-                                        "group min-w-0 overflow-hidden rounded-lg border bg-white p-1 text-left transition",
-                                        isActiveTeaser
-                                          ? "border-[#19b84b] shadow-[0_0_0_1px_rgba(25,184,75,0.25)]"
-                                          : "border-black/10 hover:border-[#19b84b]/45",
-                                      )}
-                                      key={`${item.imageUrl}-${index}`}
-                                      onClick={() => {
-                                        editSavedTeaserImage(item);
-                                      }}
-                                      type="button"
-                                    >
-                                      <span className="relative block aspect-[9/16] overflow-hidden rounded-md bg-[#111510]">
-                                        <span
-                                          className={cn(
-                                            "block size-full bg-cover bg-center transition group-hover:scale-[1.02]",
-                                            shouldBlurSelectedNsfwMedia &&
-                                              "scale-[1.03] blur-md brightness-75",
-                                          )}
-                                          style={{
-                                            backgroundImage: `url(${item.imageUrl})`,
-                                          }}
-                                        />
-                                        <span className="absolute left-1 top-1 rounded-full bg-black/72 px-1.5 py-0.5 text-[0.58rem] font-black text-[#44f26e]">
-                                          {formatNumber(index + 1, locale)}
-                                        </span>
-                                        {isActiveTeaser ? (
-                                          <span className="absolute right-1 top-1 rounded-full bg-[#44f26e] px-1.5 py-0.5 text-[0.58rem] font-black text-black">
-                                            {copy.editVisual.savedTeaserActive}
-                                          </span>
-                                        ) : null}
-                                      </span>
-                                      <span className="mt-2 block truncate text-[0.66rem] font-black text-[#111510]">
-                                        {copy.editVisual.savedTeaserCta}
-                                      </span>
-                                      <span className="mt-0.5 block truncate text-[0.6rem] font-black uppercase tracking-[0.05em] text-black/42">
-                                        {item.isCropped
-                                          ? copy.teaserCrop.saved
-                                          : copy.editVisual.savedTeaserSource}
-                                      </span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            ) : (
-                              <p className="mt-3 rounded-lg border border-dashed border-[#19b84b]/20 bg-white px-3 py-5 text-sm font-semibold leading-6 text-black/48">
-                                {copy.editVisual.currentEmpty}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ) : null}
 
                       {isSelectedPaidLocked ? (
                         <div className="mt-4 border border-rose-500/18 bg-rose-50 p-4 text-rose-900">

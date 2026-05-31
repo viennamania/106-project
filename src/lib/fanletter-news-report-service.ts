@@ -2845,6 +2845,8 @@ export async function getFanletterNewsReportDraftSourcesForMember({
             projection: {
               contentId: 1,
               body: 1,
+              coverImageOriginalUrl: 1,
+              coverImageSource: 1,
               coverImageUrl: 1,
               createdAt: 1,
               dek: 1,
@@ -2855,6 +2857,8 @@ export async function getFanletterNewsReportDraftSourcesForMember({
               reporterName: 1,
               reporterReferralCode: 1,
               reportId: 1,
+              teaserImages: 1,
+              teaserImageUrls: 1,
               title: 1,
               updatedAt: 1,
               what: 1,
