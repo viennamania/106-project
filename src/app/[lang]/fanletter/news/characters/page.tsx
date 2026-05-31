@@ -9,11 +9,14 @@ import {
   CheckCircle2,
   Clapperboard,
   Clock3,
+  Crown,
   FileText,
+  Flame,
   MessageCircleHeart,
   Newspaper,
   PenLine,
   Sparkles,
+  Trophy,
   UserRound,
 } from "lucide-react";
 
@@ -29,6 +32,7 @@ import { getFanletterNewsReportsForCharacterDirectory } from "@/lib/fanletter-ne
 import {
   getFanletterNewsArticleDisplayTitle as getArticleDisplayTitle,
 } from "@/lib/fanletter-news-related";
+import { getFanletterNewsCharacterVlogsHref } from "@/lib/fanletter-news-vlog-routing";
 import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   getFanletterNsfwCopy,
@@ -51,15 +55,19 @@ function getCopy(locale: Locale) {
           public: "공개",
         },
         allNews: "뉴스 홈",
-        characterCta: "캐릭터 채널",
+        characterCta: "IP 채널 보기",
         dek:
-          "FanLetter News에 실제로 등장한 AI 캐릭터를 뉴스룸 기준으로 모았습니다. 캐릭터별 뉴스 수, 팬 전용 리포트, 최신 브이로그 흐름을 바로 이어볼 수 있습니다.",
+          "뉴스, 공개 브이로그, 원본 오픈 반응으로 검증되는 AI 캐릭터 IP를 한눈에 비교합니다. 마음에 드는 캐릭터를 발견하고 채널, 브이로그, 최신 리포트로 바로 이어가세요.",
         emptyBody:
           "콘텐츠 상세 페이지에서 AI 리포트를 생성하면 뉴스에 등장한 캐릭터 목록이 이곳에 모입니다.",
         emptyTitle: "아직 뉴스에 등장한 AI 캐릭터가 없습니다.",
+        exploreVlogs: "브이로그 보기",
         fanOnly: "팬 전용 뉴스",
-        heroEyebrow: "FanLetter News Character Desk",
-        latest: "최신 뉴스",
+        heroEyebrow: "AI Character IP Arena",
+        ipScore: "IP 지수",
+        latest: "대표 뉴스",
+        leadDeck:
+          "뉴스룸 반응과 브이로그 운영 신호를 기준으로 오늘 가장 돋보이는 AI 캐릭터 IP입니다.",
         navItems: ["뉴스 홈", "AI 캐릭터", "팬 기자", "브이로그 뉴스", "구매함"],
         news: "뉴스",
         nsfw: "NSFW",
@@ -75,6 +83,17 @@ function getCopy(locale: Locale) {
         },
         openNews: "최신 뉴스 보기",
         publicNews: "공개 뉴스",
+        ranking: "캐릭터 IP 랭킹",
+        rankingDek:
+          "뉴스 등장 빈도, 공개 브이로그 운영, 팬의 원본 오픈 반응을 함께 반영한 경쟁 지표입니다.",
+        rankLabel: (rank: number) => `${rank}위`,
+        reportLabel: "대표 리포트",
+        signal: {
+          fanOnly: "팬 전용 수요",
+          news: "뉴스 반응 상승",
+          source: "원본 오픈 검증",
+          vlogs: "브이로그 운영 중",
+        },
         sourceOpened: "원본 오픈",
         siteName: "FanLetter News",
         stats: {
@@ -83,8 +102,8 @@ function getCopy(locale: Locale) {
           news: "전체 뉴스",
           nsfw: "NSFW",
         },
-        title: "뉴스 AI 캐릭터 목록",
-        topDesk: "오늘의 캐릭터 데스크",
+        title: "AI 캐릭터 IP 쇼케이스",
+        topDesk: "IP 스포트라이트",
         videos: "공개 브이로그",
       }
     : {
@@ -94,15 +113,19 @@ function getCopy(locale: Locale) {
           public: "Public",
         },
         allNews: "News Home",
-        characterCta: "Character channel",
+        characterCta: "View IP channel",
         dek:
-          "A FanLetter News-only directory of AI characters appearing in published reports, with news counts, fan-only coverage, and latest vlog news.",
+          "Compare AI character IP proven by news coverage, public vlogs, and source-open reactions. Find the character that stands out, then continue into the channel, vlogs, and latest reports.",
         emptyBody:
           "Create AI reports from content detail pages and the characters appearing in FanLetter News will collect here.",
         emptyTitle: "No AI characters have appeared in the news yet.",
+        exploreVlogs: "View vlogs",
         fanOnly: "Fan-only news",
-        heroEyebrow: "FanLetter News Character Desk",
-        latest: "Latest news",
+        heroEyebrow: "AI Character IP Arena",
+        ipScore: "IP score",
+        latest: "Lead report",
+        leadDeck:
+          "The AI character IP standing out today by newsroom momentum and vlog activity.",
         navItems: [
           "News home",
           "AI characters",
@@ -123,6 +146,17 @@ function getCopy(locale: Locale) {
         },
         openNews: "Read latest news",
         publicNews: "Public news",
+        ranking: "Character IP ranking",
+        rankingDek:
+          "A competition signal built from news appearances, public vlog activity, and source-open reactions.",
+        rankLabel: (rank: number) => `No. ${rank}`,
+        reportLabel: "Lead report",
+        signal: {
+          fanOnly: "Fan-only demand",
+          news: "News momentum",
+          source: "Source-open proven",
+          vlogs: "Vlog active",
+        },
         sourceOpened: "Source open",
         siteName: "FanLetter News",
         stats: {
@@ -131,8 +165,8 @@ function getCopy(locale: Locale) {
           news: "News",
           nsfw: "NSFW",
         },
-        title: "News AI Character Directory",
-        topDesk: "Today's Character Desk",
+        title: "AI Character IP Showcase",
+        topDesk: "IP Spotlight",
         videos: "Public vlogs",
       };
 }
@@ -174,6 +208,63 @@ function getCharacterChannelHref({
     `/${locale}/fanletter/news/characters/${characterReferralCode}`,
     referralCode ?? characterReferralCode,
   );
+}
+
+function getCharacterVlogsHref({
+  characterReferralCode,
+  locale,
+  referralCode,
+}: {
+  characterReferralCode: string;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  return getFanletterNewsCharacterVlogsHref({
+    creatorReferralCode: characterReferralCode,
+    locale,
+    referralCode: referralCode ?? characterReferralCode,
+  });
+}
+
+function getCharacterIpScore(character: FanletterNewsCharacterStat) {
+  return (
+    character.newsCount * 12 +
+    character.publicCount * 6 +
+    character.fanOnlyCount * 8 +
+    character.publicVideoCount * 18 +
+    character.sourceRevealUnlockedCount * 24
+  );
+}
+
+function compareCharactersByIpScore(
+  left: FanletterNewsCharacterStat,
+  right: FanletterNewsCharacterStat,
+) {
+  return (
+    getCharacterIpScore(right) - getCharacterIpScore(left) ||
+    right.newsCount - left.newsCount ||
+    (right.latestReportAt?.getTime() ?? 0) -
+      (left.latestReportAt?.getTime() ?? 0)
+  );
+}
+
+function getCharacterSignalLabel(
+  character: FanletterNewsCharacterStat,
+  copy: ReturnType<typeof getCopy>,
+) {
+  if (character.sourceRevealUnlockedCount > 0) {
+    return copy.signal.source;
+  }
+
+  if (character.publicVideoCount > 0) {
+    return copy.signal.vlogs;
+  }
+
+  if (character.fanOnlyCount > character.publicCount) {
+    return copy.signal.fanOnly;
+  }
+
+  return copy.signal.news;
 }
 
 function getAccessLabel(
@@ -355,123 +446,140 @@ function CharacterLead({
     locale,
     referralCode,
   });
+  const vlogsHref = getCharacterVlogsHref({
+    characterReferralCode: character.referralCode,
+    locale,
+    referralCode,
+  });
+  const ipScore = getCharacterIpScore(character);
+  const signalLabel = getCharacterSignalLabel(character, copy);
   const latestReportAt = formatDate(character.latestReportAt, locale);
 
   return (
-    <section className="grid overflow-hidden border-y-2 border-[#111510] bg-[#111510] text-white lg:grid-cols-[minmax(0,1.1fr)_minmax(20rem,0.9fr)]">
-      <Link className="relative block min-h-[24rem]" href={reportHref}>
+    <section className="grid overflow-hidden border-y-2 border-[#111510] bg-[#111510] text-white lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)]">
+      <Link className="group relative block min-h-[27rem]" href={channelHref}>
         <NewsCharacterImage
           blurred={shouldBlur}
           eager
           report={report}
           sizes="(max-width: 1024px) 100vw, 44rem"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/22 to-transparent" />
-        <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-          <div className="flex min-w-0 items-end gap-3 sm:gap-4">
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/28 to-black/12" />
+        <div className="absolute left-4 top-4 flex flex-wrap gap-2 sm:left-5 sm:top-5">
+          <span className="inline-flex items-center gap-1.5 bg-[#44f26e] px-3 py-1.5 text-xs font-black text-black">
+            <Crown className="size-3.5" />
+            {copy.rankLabel(1)}
+          </span>
+          <span className="inline-flex items-center gap-1.5 border border-white/20 bg-black/42 px-3 py-1.5 text-xs font-black text-white backdrop-blur">
+            <Flame className="size-3.5 text-[#ffcf4a]" />
+            {signalLabel}
+          </span>
+        </div>
+        <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
+          <div className="flex min-w-0 items-end gap-3 sm:gap-5">
             <NewsCharacterAvatar
               character={character}
-              className="size-20 border-white/20 sm:size-24"
-              sizes="6rem"
+              className="size-24 border-2 border-white/40 shadow-[0_18px_48px_rgba(0,0,0,0.42)] sm:size-32"
+              sizes="8rem"
             />
             <div className="min-w-0">
-              <span className="inline-flex bg-[#44f26e] px-2.5 py-1 text-xs font-black text-black">
+              <span className="inline-flex bg-white px-2.5 py-1 text-xs font-black text-[#111510]">
                 {copy.topDesk}
               </span>
-              <h2 className="mt-3 break-words text-[2.35rem] font-black leading-[1.05] [word-break:keep-all] sm:text-[3.25rem]">
+              <h2 className="mt-3 break-words text-[2.6rem] font-black leading-[1.02] [word-break:keep-all] sm:text-[4rem]">
                 {character.name}
               </h2>
+              <p className="mt-2 line-clamp-2 max-w-2xl text-sm font-semibold leading-6 text-white/72 sm:text-base">
+                {copy.leadDeck}
+              </p>
             </div>
           </div>
         </div>
       </Link>
-      <div className="flex flex-col justify-between p-5 sm:p-6">
+      <div className="flex flex-col justify-between bg-[#151a13] p-5 sm:p-6 lg:p-7">
         <div>
           <p className="text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
             @{character.referralCode}
           </p>
-          <h3
-            className={`mt-4 break-words text-2xl font-black leading-tight [word-break:keep-all] ${
-              shouldBlur ? "select-none blur-[2px]" : ""
-            }`}
-          >
-            {getArticleDisplayTitle(report.title)}
-          </h3>
-          <p
-            className={`mt-3 text-sm font-semibold leading-6 text-white/68 ${
-              shouldBlur ? "select-none blur-[2px]" : ""
-            }`}
-          >
-            {report.dek}
-          </p>
-        </div>
-        <div className="mt-5">
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { label: copy.news, value: character.newsCount },
-              { label: copy.fanOnly, value: character.fanOnlyCount },
-              { label: copy.nsfw, value: character.nsfwCount },
-            ].map((stat) => (
-              <div
-                className="border border-white/12 bg-white/[0.06] p-3"
-                key={stat.label}
-              >
-                <p className="text-xl font-black">
-                  {formatNumber(stat.value, locale)}
-                </p>
-                <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.1em] text-white/46">
-                  {stat.label}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            {[
-              {
-                icon: <Clapperboard className="size-4" />,
-                label: copy.videos,
-                value: character.publicVideoCount,
-              },
-              {
-                icon: <CheckCircle2 className="size-4" />,
-                label: copy.sourceOpened,
-                value: character.sourceRevealUnlockedCount,
-              },
-            ].map((stat) => (
-              <div
-                className="flex min-w-0 items-center justify-between gap-3 border border-white/12 bg-white/[0.08] p-3"
-                key={stat.label}
-              >
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="shrink-0 text-[#44f26e]">{stat.icon}</span>
-                  <p className="truncate text-[0.64rem] font-black uppercase tracking-[0.08em] text-white/52">
+          <div className="mt-4 grid gap-2 sm:grid-cols-[1.05fr_1fr]">
+            <div className="border border-[#44f26e]/40 bg-[#44f26e]/10 p-4">
+              <p className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#8dffa8]">
+                {copy.ipScore}
+              </p>
+              <p className="mt-2 text-4xl font-black leading-none text-white">
+                {formatNumber(ipScore, locale)}
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: copy.news, value: character.newsCount },
+                { label: copy.videos, value: character.publicVideoCount },
+                { label: copy.fanOnly, value: character.fanOnlyCount },
+                {
+                  label: copy.sourceOpened,
+                  value: character.sourceRevealUnlockedCount,
+                },
+              ].map((stat) => (
+                <div
+                  className="border border-white/12 bg-white/[0.06] p-3"
+                  key={stat.label}
+                >
+                  <p className="text-xl font-black">
+                    {formatNumber(stat.value, locale)}
+                  </p>
+                  <p className="mt-1 truncate text-[0.55rem] font-black uppercase tracking-[0.08em] text-white/46">
                     {stat.label}
                   </p>
                 </div>
-                <p className="shrink-0 text-xl font-black">
-                  {formatNumber(stat.value, locale)}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+          <Link className="mt-5 block" href={reportHref}>
+            <p className="text-[0.62rem] font-black uppercase tracking-[0.16em] text-white/42">
+              {copy.reportLabel}
+            </p>
+            <h3
+              className={`mt-2 break-words text-2xl font-black leading-tight [word-break:keep-all] hover:text-[#44f26e] ${
+                shouldBlur ? "select-none blur-[2px]" : ""
+              }`}
+            >
+              {getArticleDisplayTitle(report.title)}
+            </h3>
+            <p
+              className={`mt-3 line-clamp-3 text-sm font-semibold leading-6 text-white/68 ${
+                shouldBlur ? "select-none blur-[2px]" : ""
+              }`}
+            >
+              {report.dek}
+            </p>
+          </Link>
+        </div>
+        <div className="mt-5">
           <div className="mt-4 flex flex-wrap gap-2 text-xs font-bold text-white/58">
             <span>{getAccessLabel(report, copy)}</span>
             {latestReportAt ? <span>{latestReportAt}</span> : null}
           </div>
-          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+          <div className="mt-5 grid gap-2 sm:grid-cols-3">
             <Link
-              className="inline-flex h-11 items-center justify-center gap-2 bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
+              className="inline-flex h-11 items-center justify-center gap-2 bg-[#44f26e] px-3 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
+              href={channelHref}
+            >
+              <MessageCircleHeart className="size-4" />
+              {copy.characterCta}
+            </Link>
+            <Link
+              className="inline-flex h-11 items-center justify-center gap-2 border border-[#44f26e]/40 bg-[#44f26e]/10 px-3 text-sm font-black !text-white transition hover:bg-[#44f26e]/18"
+              href={vlogsHref}
+            >
+              <Clapperboard className="size-4 text-[#44f26e]" />
+              {copy.exploreVlogs}
+            </Link>
+            <Link
+              className="inline-flex h-11 items-center justify-center gap-2 border border-white/18 px-3 text-sm font-black !text-white transition hover:border-white/40"
               href={reportHref}
             >
               {copy.openNews}
               <ArrowRight className="size-4" />
-            </Link>
-            <Link
-              className="inline-flex h-11 items-center justify-center gap-2 border border-white/18 px-4 text-sm font-black !text-white transition hover:border-white/40"
-              href={channelHref}
-            >
-              <MessageCircleHeart className="size-4 text-[#44f26e]" />
-              {copy.characterCta}
             </Link>
           </div>
         </div>
@@ -485,12 +593,14 @@ function CharacterCard({
   copy,
   locale,
   nsfwOptInEnabled,
+  rank,
   referralCode,
 }: {
   character: FanletterNewsCharacterStat;
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
   nsfwOptInEnabled: boolean;
+  rank: number;
   referralCode: string | null;
 }) {
   const report = character.representativeReport;
@@ -501,54 +611,71 @@ function CharacterCard({
     locale,
     referralCode,
   });
+  const vlogsHref = getCharacterVlogsHref({
+    characterReferralCode: character.referralCode,
+    locale,
+    referralCode,
+  });
+  const ipScore = getCharacterIpScore(character);
+  const signalLabel = getCharacterSignalLabel(character, copy);
   const latestReportAt = formatDate(character.latestReportAt, locale);
 
   return (
-    <article className="grid min-w-0 overflow-hidden border border-black/12 bg-white sm:grid-rows-[auto_minmax(0,1fr)]">
-      <Link className="block" href={reportHref}>
+    <article className="group grid min-w-0 overflow-hidden rounded-lg border border-black/12 bg-white shadow-[0_16px_42px_rgba(17,21,16,0.08)] transition hover:-translate-y-0.5 hover:border-[#19b84b]/60 hover:shadow-[0_22px_58px_rgba(17,21,16,0.13)] sm:grid-rows-[auto_minmax(0,1fr)]">
+      <Link className="relative block" href={channelHref}>
         <NewsCharacterImage
           blurred={shouldBlur}
           report={report}
           sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 24rem"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/12 to-transparent" />
+        <div className="absolute left-3 top-3 flex max-w-[calc(100%-1.5rem)] flex-wrap gap-1.5">
+          <span className="inline-flex items-center gap-1.5 bg-white px-2.5 py-1 text-[0.66rem] font-black text-[#111510]">
+            <Trophy className="size-3.5 text-[#16702e]" />
+            {copy.rankLabel(rank)}
+          </span>
+          <span className="inline-flex items-center gap-1.5 bg-[#44f26e] px-2.5 py-1 text-[0.66rem] font-black text-black">
+            {copy.ipScore} {formatNumber(ipScore, locale)}
+          </span>
+        </div>
+        <div className="absolute inset-x-0 bottom-0 flex items-end gap-3 p-4">
+          <NewsCharacterAvatar
+            character={character}
+            className="size-20 border-2 border-white/42 shadow-[0_14px_34px_rgba(0,0,0,0.38)]"
+            sizes="5rem"
+          />
+          <div className="min-w-0 pb-1 text-white">
+            <p className="truncate text-[0.66rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
+              @{character.referralCode}
+            </p>
+            <h2 className="mt-1 truncate text-2xl font-black tracking-normal">
+              {character.name}
+            </h2>
+          </div>
+        </div>
       </Link>
       <div className="flex min-w-0 flex-col p-4">
-        <p className="text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
-          {copy.latest}
-        </p>
-        <div className="mt-2 flex items-center justify-between gap-3">
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            <NewsCharacterAvatar
-              character={character}
-              className="size-14"
-              sizes="3.5rem"
-            />
-            <div className="min-w-0">
-              <h2 className="truncate text-xl font-black tracking-normal">
-                {character.name}
-              </h2>
-              <p className="mt-0.5 truncate text-xs font-bold text-black/42">
-                @{character.referralCode}
-              </p>
-            </div>
-          </div>
-          <span className="shrink-0 bg-[#44f26e] px-2 py-1 text-xs font-black text-black">
-            {formatNumber(character.newsCount, locale)}
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+            {signalLabel}
+          </p>
+          <span className="shrink-0 border border-black/10 bg-[#f9f2ff] px-2 py-1 text-[0.62rem] font-black text-[#7a2fb3]">
+            {copy.latest}
           </span>
         </div>
         <Link
-          className={`mt-3 line-clamp-2 break-words text-base font-black leading-5 [word-break:keep-all] hover:text-[#16702e] ${
+          className={`mt-3 line-clamp-2 break-words text-lg font-black leading-6 [word-break:keep-all] hover:text-[#16702e] ${
             shouldBlur ? "select-none blur-[2px]" : ""
           }`}
           href={reportHref}
         >
           {getArticleDisplayTitle(report.title)}
         </Link>
-        <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="mt-4 grid grid-cols-3 gap-2">
           {[
             { label: copy.publicNews, value: character.publicCount },
             { label: copy.fanOnly, value: character.fanOnlyCount },
-            { label: copy.nsfw, value: character.nsfwCount },
+            { label: copy.news, value: character.newsCount },
           ].map((stat) => (
             <div className="bg-[#f5f6f2] p-2" key={stat.label}>
               <p className="text-lg font-black leading-none">
@@ -596,12 +723,20 @@ function CharacterCard({
               </span>
             ) : null}
           </div>
-          <Link
-            className="shrink-0 text-xs font-black text-[#16702e] hover:underline"
-            href={channelHref}
-          >
-            {copy.characterCta}
-          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              className="text-xs font-black text-[#16702e] hover:underline"
+              href={vlogsHref}
+            >
+              {copy.exploreVlogs}
+            </Link>
+            <Link
+              className="text-xs font-black text-[#111510] hover:text-[#16702e]"
+              href={channelHref}
+            >
+              {copy.characterCta}
+            </Link>
+          </div>
         </div>
       </div>
     </article>
@@ -657,9 +792,13 @@ export default async function LocalizedFanletterNewsCharactersPage({
     referralCode,
   );
   const reports = await getFanletterNewsReportsForCharacterDirectory({ locale });
-  const characters = await hydrateFanletterNewsCharacterStats(
-    getFanletterNewsCharacterStats(reports, reports.length),
+  const hydratedCharacters = await hydrateFanletterNewsCharacterStats(
+    getFanletterNewsCharacterStats(reports, reports.length, {
+      sort: "discovery",
+    }),
+    { sort: "discovery" },
   );
+  const characters = [...hydratedCharacters].sort(compareCharactersByIpScore);
   const [leadCharacter, ...restCharacters] = characters;
   const nsfwNewsCount = reports.filter(isNsfwReport).length;
   const shouldShowNsfwControl = nsfwNewsCount > 0 || nsfwOptInEnabled;
@@ -688,9 +827,10 @@ export default async function LocalizedFanletterNewsCharactersPage({
       value: nsfwNewsCount,
     },
   ];
+  const topCharacters = characters.slice(0, 3);
 
   return (
-    <main className="min-h-screen bg-[#f5f6f2] text-[#111510]">
+    <main className="min-h-screen bg-[linear-gradient(180deg,#fafaf7_0%,#eef5ee_48%,#f8f3fb_100%)] pb-[calc(6rem+env(safe-area-inset-bottom))] text-[#111510] md:pb-0">
       <NewsCharactersMasthead
         charactersHref={charactersHref}
         copy={copy}
@@ -698,31 +838,27 @@ export default async function LocalizedFanletterNewsCharactersPage({
         purchasesHref={purchasesHref}
       />
 
-      <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
-        <div className="border-b-2 border-[#111510] pb-5">
-          <p className="text-[0.72rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
-            {copy.heroEyebrow}
-          </p>
-          <div className="mt-2 grid gap-5 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-end">
-            <div>
-              <h1 className="max-w-4xl break-words text-[2.15rem] font-black leading-[1.08] [word-break:keep-all] sm:text-[3.15rem]">
-                {copy.title}
-              </h1>
-              <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-black/58 sm:text-base sm:leading-7">
-                {copy.dek}
-              </p>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
+      <section className="border-b border-black/20 bg-[#111510] text-white">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[minmax(0,1fr)_27rem] lg:px-8 lg:py-10">
+          <div>
+            <p className="inline-flex items-center gap-2 bg-[#44f26e] px-3 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.14em] text-black">
+              <Trophy className="size-4" />
+              {copy.heroEyebrow}
+            </p>
+            <h1 className="mt-5 max-w-4xl break-words text-[2.45rem] font-black leading-[1.02] [word-break:keep-all] sm:text-[4rem] lg:text-[4.6rem]">
+              {copy.title}
+            </h1>
+            <p className="mt-4 max-w-3xl text-sm font-semibold leading-6 text-white/68 sm:text-lg sm:leading-8">
+              {copy.dek}
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
               {stats.map((stat) => (
-                <div
-                  className="border border-black/12 bg-white p-3"
-                  key={stat.label}
-                >
+                <div className="border border-white/12 bg-white/[0.06] p-3" key={stat.label}>
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-[0.58rem] font-black uppercase tracking-[0.1em] text-black/42">
+                    <p className="text-[0.56rem] font-black uppercase tracking-[0.1em] text-white/42">
                       {stat.label}
                     </p>
-                    <span className="text-[#16702e]">{stat.icon}</span>
+                    <span className="text-[#44f26e]">{stat.icon}</span>
                   </div>
                   <p className="mt-2 text-2xl font-black leading-none">
                     {formatNumber(stat.value, locale)}
@@ -731,8 +867,52 @@ export default async function LocalizedFanletterNewsCharactersPage({
               ))}
             </div>
           </div>
-        </div>
 
+          <aside className="border-t border-white/12 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+            <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
+              {copy.ranking}
+            </p>
+            <p className="mt-2 text-sm font-semibold leading-6 text-white/58">
+              {copy.rankingDek}
+            </p>
+            <div className="mt-4 grid gap-2">
+              {topCharacters.map((character, index) => (
+                <Link
+                  className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border border-white/12 bg-white/[0.06] p-3 transition hover:border-[#44f26e]/60 hover:bg-white/[0.1]"
+                  href={getCharacterChannelHref({
+                    characterReferralCode: character.referralCode,
+                    locale,
+                    referralCode,
+                  })}
+                  key={character.referralCode}
+                >
+                  <NewsCharacterAvatar
+                    character={character}
+                    className="size-12 border-white/18"
+                    sizes="3rem"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black">{character.name}</p>
+                    <p className="mt-0.5 truncate text-[0.62rem] font-black uppercase tracking-[0.08em] text-white/42">
+                      {getCharacterSignalLabel(character, copy)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[0.62rem] font-black text-[#44f26e]">
+                      {copy.rankLabel(index + 1)}
+                    </p>
+                    <p className="mt-1 text-lg font-black leading-none">
+                      {formatNumber(getCharacterIpScore(character), locale)}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-7 lg:px-8">
         {shouldShowNsfwControl ? (
           <div className="mt-5">
             <FanletterNsfwOptInControl
@@ -776,13 +956,14 @@ export default async function LocalizedFanletterNewsCharactersPage({
                   <Sparkles className="size-5 text-[#16702e]" />
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {restCharacters.map((character) => (
+                  {restCharacters.map((character, index) => (
                     <CharacterCard
                       character={character}
                       copy={copy}
                       key={character.referralCode}
                       locale={locale}
                       nsfwOptInEnabled={nsfwOptInEnabled}
+                      rank={index + 2}
                       referralCode={referralCode}
                     />
                   ))}
