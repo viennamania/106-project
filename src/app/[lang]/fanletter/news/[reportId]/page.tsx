@@ -2768,7 +2768,9 @@ function ReporterTeaserCutGallery({
   blurred,
   copy,
   locale,
+  publishedAt,
   report,
+  reporterProfile,
   shouldShowTeaserCuts,
   sourceContent,
 }: {
@@ -2776,10 +2778,21 @@ function ReporterTeaserCutGallery({
   blurred: boolean;
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
+  publishedAt: string | null;
   report: FanletterNewsReportDocument;
+  reporterProfile: FanletterNewsReporterProfile | null;
   shouldShowTeaserCuts: boolean;
   sourceContent: FanletterPublicContentDetail | null;
 }) {
+  const reporterDisplayName =
+    reporterProfile?.displayName ?? getReporterDisplayName(report);
+  const reporterAvatarImageUrl =
+    reporterProfile?.avatarImageUrl ?? report.reporterAvatarImageUrl ?? null;
+  const reporterInitial =
+    reporterDisplayName.trim().charAt(0).toUpperCase() ||
+    report.reporterReferralCode.trim().charAt(0).toUpperCase() ||
+    report.reporterName.trim().charAt(0).toUpperCase() ||
+    "F";
   const reporterEditedImageUrls = getReporterEditedTeaserImageUrls(report);
   const selectedPublicImageUrls = getPublicTeaserImageUrls(report);
   const featuredImageUrl =
@@ -2865,6 +2878,14 @@ function ReporterTeaserCutGallery({
       layout="grid"
       locale={locale}
       presentation={shouldUseEditedCuts ? "reporterTeaser" : "default"}
+      reporterMeta={{
+        avatarImageUrl: reporterAvatarImageUrl,
+        initial: reporterInitial,
+        name: reporterDisplayName,
+        publishedAt,
+        publishedLabel: copy.publishedLabel,
+        roleLabel: copy.byline,
+      }}
     />
   );
 }
@@ -4046,7 +4067,7 @@ export default async function LocalizedFanletterNewsReportPage({
               />
             </div>
 
-            <header className="overflow-hidden border border-black/12 bg-white shadow-none sm:shadow-[0_20px_56px_rgba(17,21,16,0.08)]">
+            <header className="hidden overflow-hidden border border-black/12 bg-white shadow-none sm:block sm:shadow-[0_20px_56px_rgba(17,21,16,0.08)]">
               <div className="border-b-2 border-[#111510] bg-[#111510] px-3 py-2 sm:px-6 sm:py-3 lg:px-5 lg:py-2.5">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-white/58 sm:gap-y-2 sm:text-[0.68rem] sm:tracking-[0.12em]">
                   <span className="text-[#44f26e]">{copy.articleSection}</span>
@@ -4141,7 +4162,9 @@ export default async function LocalizedFanletterNewsReportPage({
               blurred={shouldBlurCurrentReport}
               copy={copy}
               locale={locale}
+              publishedAt={publishedAt}
               report={report}
+              reporterProfile={reporterProfile}
               shouldShowTeaserCuts={shouldShowReporterTeaserCutGallery}
               sourceContent={sourceContent}
             />

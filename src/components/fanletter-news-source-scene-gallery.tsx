@@ -61,6 +61,15 @@ type FanletterNewsSourceSceneGalleryNsfwPinGate = {
   title: string;
 };
 
+type FanletterNewsSourceSceneGalleryReporterMeta = {
+  avatarImageUrl: string | null;
+  initial: string;
+  name: string;
+  publishedAt: string | null;
+  publishedLabel: string;
+  roleLabel: string;
+};
+
 type ViewerTransform = {
   scale: number;
   x: number;
@@ -161,6 +170,7 @@ export function FanletterNewsSourceSceneGallery({
   locale,
   nsfwPinGate,
   presentation = "default",
+  reporterMeta,
 }: {
   blurred: boolean;
   copy: FanletterNewsSourceSceneGalleryCopy;
@@ -171,6 +181,7 @@ export function FanletterNewsSourceSceneGallery({
   locale: Locale;
   nsfwPinGate?: FanletterNewsSourceSceneGalleryNsfwPinGate;
   presentation?: "default" | "reporterTeaser";
+  reporterMeta?: FanletterNewsSourceSceneGalleryReporterMeta | null;
 }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -634,6 +645,43 @@ export function FanletterNewsSourceSceneGallery({
           </h3>
         </div>
       </div>
+
+      {reporterMeta ? (
+        <div className="mt-3 flex min-w-0 items-center gap-3 rounded-lg border border-black/10 bg-[#f7f9f4] p-2.5 sm:hidden">
+          <span className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-xs font-black text-[#44f26e]">
+            {reporterMeta.avatarImageUrl ? (
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="object-cover"
+                fill
+                sizes="2.25rem"
+                src={reporterMeta.avatarImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(
+                  reporterMeta.avatarImageUrl,
+                )}
+              />
+            ) : (
+              reporterMeta.initial
+            )}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <p className="shrink-0 text-[0.64rem] font-bold text-black/42">
+                {reporterMeta.roleLabel}
+              </p>
+              <p className="truncate text-sm font-black text-[#111510]">
+                {reporterMeta.name}
+              </p>
+            </div>
+            {reporterMeta.publishedAt ? (
+              <p className="mt-0.5 truncate text-[0.7rem] font-semibold text-black/46">
+                {reporterMeta.publishedLabel} {reporterMeta.publishedAt}
+              </p>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       {featuredItem ? (
         <figure className="mt-3 overflow-hidden border border-black/12 bg-[#111510] text-white">
