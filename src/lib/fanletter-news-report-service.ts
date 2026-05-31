@@ -594,20 +594,25 @@ function getReportTeaserImages({
   selectedTeaserImageUrls?: string[] | null;
 }): FanletterNewsReportTeaserImageDocument[] {
   const allowedImageUrls = getAllowedReportCoverImageUrls(post);
-  const imageByUrl = new Map<string, FanletterNewsReportTeaserImageDocument>();
+  const teaserImages: FanletterNewsReportTeaserImageDocument[] = [];
   const reporterCroppedSourceUrls = new Set<string>();
-  const appendSourceFrame = (imageUrl?: string | null) => {
+  const appendSourceFrame = (
+    imageUrl?: string | null,
+    { allowDuplicate = false }: { allowDuplicate?: boolean } = {},
+  ) => {
     const normalizedImageUrl = imageUrl?.trim() ?? "";
 
     if (
       !normalizedImageUrl ||
       !allowedImageUrls.has(normalizedImageUrl) ||
-      reporterCroppedSourceUrls.has(normalizedImageUrl)
+      (!allowDuplicate &&
+        (reporterCroppedSourceUrls.has(normalizedImageUrl) ||
+          teaserImages.some((image) => image.imageUrl === normalizedImageUrl)))
     ) {
       return;
     }
 
-    imageByUrl.set(normalizedImageUrl, {
+    teaserImages.push({
       crop: null,
       imageUrl: normalizedImageUrl,
       source: "source_frame",
@@ -636,8 +641,7 @@ function getReportTeaserImages({
         isAllowedReporterCroppedCoverUrl({ imageUrl, reporterReferralCode })
       ) {
         reporterCroppedSourceUrls.add(sourceImageUrl);
-        imageByUrl.delete(sourceImageUrl);
-        imageByUrl.set(imageUrl, {
+        teaserImages.push({
           crop,
           imageUrl,
           source: "reporter_cropped",
@@ -647,7 +651,7 @@ function getReportTeaserImages({
       }
 
       if (allowedImageUrls.has(imageUrl)) {
-        appendSourceFrame(imageUrl);
+        appendSourceFrame(imageUrl, { allowDuplicate: true });
       }
     }
   }
@@ -661,7 +665,7 @@ function getReportTeaserImages({
   appendSourceFrame(selectedCoverImageUrl);
   appendSourceFrame(getCoverImageUrl(post));
 
-  return [...imageByUrl.values()].slice(0, REPORT_TEASER_IMAGE_LIMIT);
+  return teaserImages.slice(0, REPORT_TEASER_IMAGE_LIMIT);
 }
 
 export function isAllowedFanletterNewsReportCoverSource({

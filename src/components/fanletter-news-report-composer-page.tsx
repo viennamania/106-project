@@ -175,6 +175,11 @@ type CroppedTeaserImage = {
   sourceImageUrl: string;
 };
 
+type SelectedTeaserCut = {
+  id: string;
+  sourceImageUrl: string;
+};
+
 type ReportTeaserImagePayload = {
   crop: ReportCoverCropPayload | null;
   imageUrl: string;
@@ -190,6 +195,7 @@ type ExistingReportVisualSnapshot = {
 
 type ExistingSavedTeaserItem = {
   crop: ReportCoverCropPayload | null;
+  id: string;
   imageUrl: string;
   isCropped: boolean;
   sourceImageUrl: string;
@@ -492,24 +498,27 @@ function getCopy(locale: Locale) {
             `후보 ${candidateCount}장 · 최대 ${count}컷 생성`,
           body: "뉴스 독자가 회원가입 전에 볼 수 있는 공개 컷입니다. 선택만 하면 원본 비율을 유지하고, 필요한 컷은 9:16 세로 티저로 저장할 수 있습니다.",
           activeCut: "편집 중",
-          editCut: "9:16 편집",
-          include: "공개 컷에 추가",
-          included: "공개 컷 포함",
-          limit: (count: string) => `최대 ${count}장`,
+          duplicateHint:
+            "같은 프레임도 여러 컷으로 추가해 서로 다른 9:16 크롭을 만들 수 있습니다.",
+          editCut: "9:16 새 컷",
+          include: "새 컷 추가",
+          included: "사용 중",
+          limit: (count: string) => `최대 ${count}컷`,
           manualMode: "직접 선택하기",
           manualModeBody:
-            "공개 컷을 직접 고르고 필요한 이미지만 9:16 세로 티저로 저장합니다.",
+            "공개 컷을 직접 고르고 같은 프레임도 여러 컷으로 나누어 9:16 세로 티저로 저장합니다.",
           modeLabel: "티저 컷 처리 방식",
           ratio: "선택 저장 9:16",
-          removeCut: "제외",
+          removeCut: "컷 삭제",
           selectedBody:
-            "여기 있는 컷만 뉴스 상세에 공개됩니다. 9:16 편집은 선택 목록 바로 아래에서 조정합니다.",
+            "여기 있는 컷 슬롯만 뉴스 상세에 공개됩니다. 같은 프레임을 여러 번 넣어도 각 슬롯마다 별도 크롭으로 저장됩니다.",
           selectedCount: (count: string, limit: string) =>
-            `${count}/${limit}장 선택`,
+            `${count}/${limit}컷 선택`,
           selectedEmpty:
-            "공개 컷이 아직 없습니다. 후보에서 공개 컷 추가 또는 9:16 편집을 누르세요.",
-          selectedItem: (index: string) => `공개 컷 ${index}`,
-          selectedTitle: "선택된 공개 티저 컷",
+            "공개 컷이 아직 없습니다. 후보에서 새 컷 추가 또는 9:16 새 컷을 누르세요.",
+          selectedItem: (index: string) => `컷 ${index}`,
+          selectedTitle: "공개 티저 컷 슬롯",
+          sourceUseCount: (count: string) => `${count}컷 사용 중`,
         },
         teaserCrop: {
           coverBody: "뉴스 카드와 공유 썸네일에 쓰이는 대표 이미지입니다.",
@@ -778,24 +787,27 @@ function getCopy(locale: Locale) {
             `${candidateCount} candidates · up to ${count} cuts`,
           body: "These are public cuts readers can see before signing in. Selected cuts keep the source ratio by default, and important cuts can be saved as 9:16 portrait teasers.",
           activeCut: "Editing",
-          editCut: "Edit 9:16",
-          include: "Add public cut",
-          included: "Public cut",
-          limit: (count: string) => `Up to ${count}`,
+          duplicateHint:
+            "You can add the same frame multiple times and crop each cut differently.",
+          editCut: "New 9:16 cut",
+          include: "Add new cut",
+          included: "In use",
+          limit: (count: string) => `Up to ${count} cuts`,
           manualMode: "Choose manually",
           manualModeBody:
-            "Pick public cuts yourself and save only the needed images as 9:16 portrait teasers.",
+            "Pick public cuts yourself, and reuse the same frame across multiple 9:16 portrait crops.",
           modeLabel: "Teaser cut mode",
           ratio: "Optional 9:16 save",
-          removeCut: "Remove",
+          removeCut: "Delete cut",
           selectedBody:
-            "Only these cuts appear on the news detail. Adjust the 9:16 crop directly below this selected list.",
+            "Only these cut slots appear on the news detail. The same frame can fill multiple slots with separate crops.",
           selectedCount: (count: string, limit: string) =>
-            `${count}/${limit} selected`,
+            `${count}/${limit} cuts selected`,
           selectedEmpty:
-            "No public cuts selected yet. Add a public cut or use Edit 9:16 from a candidate.",
-          selectedItem: (index: string) => `Public cut ${index}`,
-          selectedTitle: "Selected public teaser cuts",
+            "No public cuts selected yet. Add a new cut or use New 9:16 cut from a candidate.",
+          selectedItem: (index: string) => `Cut ${index}`,
+          selectedTitle: "Public teaser cut slots",
+          sourceUseCount: (count: string) => `${count} cuts in use`,
         },
         teaserCrop: {
           coverBody: "Used for news cards and share thumbnails.",
@@ -1335,19 +1347,65 @@ function getCoverOptionPreviewStyle(option: CoverOption) {
   };
 }
 
-function getDefaultReportTeaserImageUrls(
+function hashTeaserCutValue(value: string) {
+  let hash = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+
+  return hash.toString(36);
+}
+
+function createStableTeaserCutId({
+  imageUrl,
+  index,
+  sourceImageUrl,
+}: {
+  imageUrl?: string | null;
+  index: number;
+  sourceImageUrl: string;
+}) {
+  return `cut-${index + 1}-${hashTeaserCutValue(
+    `${sourceImageUrl}|${imageUrl ?? ""}`,
+  )}`;
+}
+
+function createRuntimeTeaserCut(sourceImageUrl: string): SelectedTeaserCut {
+  return {
+    id: `cut-${Date.now().toString(36)}-${Math.random()
+      .toString(36)
+      .slice(2, 8)}`,
+    sourceImageUrl,
+  };
+}
+
+function getDefaultReportTeaserCuts(
   source: FanletterNewsReportComposerSource | null,
 ) {
-  const existingTeaserImageSourceUrls = [
-    ...new Set(
-      (source?.existingReport?.teaserImages ?? [])
-        .map((image) => image.sourceImageUrl.trim() || image.imageUrl.trim())
-        .filter(Boolean),
-    ),
-  ].slice(0, REPORT_TEASER_IMAGE_LIMIT);
+  const existingTeaserCuts = (source?.existingReport?.teaserImages ?? [])
+    .map((image, index) => {
+      const imageUrl = image.imageUrl.trim();
+      const sourceImageUrl = image.sourceImageUrl.trim() || imageUrl;
 
-  if (existingTeaserImageSourceUrls.length > 0) {
-    return existingTeaserImageSourceUrls;
+      if (!sourceImageUrl) {
+        return null;
+      }
+
+      return {
+        id: createStableTeaserCutId({
+          imageUrl,
+          index,
+          sourceImageUrl,
+        }),
+        sourceImageUrl,
+      } satisfies SelectedTeaserCut;
+    })
+    .filter((cut): cut is SelectedTeaserCut => Boolean(cut))
+    .slice(0, REPORT_TEASER_IMAGE_LIMIT);
+
+  if (existingTeaserCuts.length > 0) {
+    return existingTeaserCuts;
   }
 
   const existingTeaserImageUrls = [
@@ -1359,7 +1417,14 @@ function getDefaultReportTeaserImageUrls(
   ].slice(0, REPORT_TEASER_IMAGE_LIMIT);
 
   if (existingTeaserImageUrls.length > 0) {
-    return existingTeaserImageUrls;
+    return existingTeaserImageUrls.map((imageUrl, index) => ({
+      id: createStableTeaserCutId({
+        imageUrl,
+        index,
+        sourceImageUrl: imageUrl,
+      }),
+      sourceImageUrl: imageUrl,
+    }));
   }
 
   return [
@@ -1368,7 +1433,16 @@ function getDefaultReportTeaserImageUrls(
         .map((option) => option.imageUrl.trim())
         .filter(Boolean),
     ),
-  ].slice(0, REPORT_TEASER_IMAGE_LIMIT);
+  ]
+    .slice(0, REPORT_TEASER_IMAGE_LIMIT)
+    .map((imageUrl, index) => ({
+      id: createStableTeaserCutId({
+        imageUrl,
+        index,
+        sourceImageUrl: imageUrl,
+      }),
+      sourceImageUrl: imageUrl,
+    }));
 }
 
 function getDefaultReportCoverImageUrl(
@@ -1382,12 +1456,14 @@ function getDefaultReportCoverImageUrl(
   );
 }
 
-function getDefaultCroppedTeaserBySourceUrl(
+function getDefaultCroppedTeaserByCutId(
   source: FanletterNewsReportComposerSource | null,
 ) {
-  const croppedTeaserBySourceUrl: Record<string, CroppedTeaserImage> = {};
+  const croppedTeaserByCutId: Record<string, CroppedTeaserImage> = {};
 
-  for (const image of source?.existingReport?.teaserImages ?? []) {
+  for (const [index, image] of (
+    source?.existingReport?.teaserImages ?? []
+  ).entries()) {
     const sourceImageUrl = image.sourceImageUrl.trim() || image.imageUrl.trim();
     const imageUrl = image.imageUrl.trim();
 
@@ -1401,14 +1477,20 @@ function getDefaultCroppedTeaserBySourceUrl(
       continue;
     }
 
-    croppedTeaserBySourceUrl[sourceImageUrl] = {
+    croppedTeaserByCutId[
+      createStableTeaserCutId({
+        imageUrl,
+        index,
+        sourceImageUrl,
+      })
+    ] = {
       crop: image.crop,
       imageUrl,
       sourceImageUrl,
     };
   }
 
-  return croppedTeaserBySourceUrl;
+  return croppedTeaserByCutId;
 }
 
 function getExistingReportVisualSnapshot(
@@ -1453,19 +1535,22 @@ function getExistingSavedTeaserItems(
   }
 
   const items: ExistingSavedTeaserItem[] = [];
-  const seenImageUrls = new Set<string>();
 
-  for (const image of report.teaserImages) {
+  for (const [index, image] of report.teaserImages.entries()) {
     const imageUrl = image.imageUrl.trim();
     const sourceImageUrl = image.sourceImageUrl.trim() || imageUrl;
 
-    if (!imageUrl || seenImageUrls.has(imageUrl)) {
+    if (!imageUrl) {
       continue;
     }
 
-    seenImageUrls.add(imageUrl);
     items.push({
       crop: image.crop ?? null,
+      id: createStableTeaserCutId({
+        imageUrl,
+        index,
+        sourceImageUrl,
+      }),
       imageUrl,
       isCropped: Boolean(
         image.source === "reporter_cropped" &&
@@ -1477,16 +1562,24 @@ function getExistingSavedTeaserItems(
     });
   }
 
-  for (const imageUrl of report.teaserImageUrls) {
+  if (items.length > 0) {
+    return items.slice(0, REPORT_TEASER_IMAGE_LIMIT);
+  }
+
+  for (const [index, imageUrl] of report.teaserImageUrls.entries()) {
     const normalizedImageUrl = imageUrl.trim();
 
-    if (!normalizedImageUrl || seenImageUrls.has(normalizedImageUrl)) {
+    if (!normalizedImageUrl) {
       continue;
     }
 
-    seenImageUrls.add(normalizedImageUrl);
     items.push({
       crop: null,
+      id: createStableTeaserCutId({
+        imageUrl: normalizedImageUrl,
+        index,
+        sourceImageUrl: normalizedImageUrl,
+      }),
       imageUrl: normalizedImageUrl,
       isCropped: false,
       sourceImageUrl: normalizedImageUrl,
@@ -1851,19 +1944,20 @@ export function FanletterNewsReportComposerPage({
   const [selectedCoverUrl, setSelectedCoverUrl] = useState<string | null>(
     getDefaultReportCoverImageUrl(initialSelectedSource),
   );
-  const [selectedTeaserUrls, setSelectedTeaserUrls] = useState<string[]>(
-    getDefaultReportTeaserImageUrls(initialSelectedSource),
+  const [selectedTeaserCuts, setSelectedTeaserCuts] = useState<
+    SelectedTeaserCut[]
+  >(
+    getDefaultReportTeaserCuts(initialSelectedSource),
   );
-  const [selectedTeaserCropSourceUrl, setSelectedTeaserCropSourceUrl] =
+  const [selectedTeaserCropCutId, setSelectedTeaserCropCutId] =
     useState<string | null>(
-      getDefaultReportTeaserImageUrls(initialSelectedSource)[0] ??
-        getDefaultReportCoverImageUrl(initialSelectedSource),
+      getDefaultReportTeaserCuts(initialSelectedSource)[0]?.id ?? null,
     );
   const [teaserMode, setTeaserMode] =
     useState<FanletterNewsReportTeaserMode>("manual");
-  const [croppedTeaserBySourceUrl, setCroppedTeaserBySourceUrl] = useState<
+  const [croppedTeaserByCutId, setCroppedTeaserByCutId] = useState<
     Record<string, CroppedTeaserImage>
-  >(() => getDefaultCroppedTeaserBySourceUrl(initialSelectedSource));
+  >(() => getDefaultCroppedTeaserByCutId(initialSelectedSource));
   const [angle, setAngle] = useState(
     getRecommendedReportAngle(initialSelectedSource, copy),
   );
@@ -1936,8 +2030,13 @@ export function FanletterNewsReportComposerPage({
           naturalSize: activeTeaserNaturalSize,
         })
       : null;
-  const activeTeaserCropSourceUrl =
-    selectedTeaserCropSourceUrl ?? selectedCoverUrl;
+  const activeTeaserCropCut = selectedTeaserCuts.find(
+    (cut) => cut.id === selectedTeaserCropCutId,
+  );
+  const activeTeaserCropSourceUrl = activeTeaserCropCut?.sourceImageUrl ?? null;
+  const activeTeaserCropIndex = activeTeaserCropCut
+    ? selectedTeaserCuts.findIndex((cut) => cut.id === activeTeaserCropCut.id)
+    : -1;
   const isExclusiveBlocked = Boolean(
     selectedSource?.exclusiveNews.active &&
       selectedSource.exclusiveNews.reporterReferralCode !==
@@ -1971,7 +2070,7 @@ export function FanletterNewsReportComposerPage({
   const activeTeaserCount =
     teaserMode === "auto"
       ? Math.min(autoTeaserCandidateUrls.length, REPORT_TEASER_IMAGE_LIMIT)
-      : selectedTeaserUrls.length;
+      : selectedTeaserCuts.length;
   const selectedExistingReport = selectedSource?.existingReport ?? null;
   const currentSavedTeaserSourceUrlSet = useMemo(
     () => new Set(existingReportVisualSnapshot.teaserSourceImageUrls),
@@ -1983,18 +2082,23 @@ export function FanletterNewsReportComposerPage({
   );
   const selectedManualTeaserItems = useMemo(
     () =>
-      selectedTeaserUrls.map((imageUrl, index) => {
+      selectedTeaserCuts.map((cut, index) => {
+        const imageUrl = cut.sourceImageUrl;
         const optionIndex = selectedSourceCoverOptions.findIndex(
           (option) => option.imageUrl === imageUrl,
         );
         const option =
           optionIndex >= 0 ? selectedSourceCoverOptions[optionIndex] : null;
-        const croppedTeaser = croppedTeaserBySourceUrl[imageUrl];
+        const croppedTeaser = croppedTeaserByCutId[cut.id];
+        const sourceUseCount = selectedTeaserCuts.filter(
+          (selectedCut) => selectedCut.sourceImageUrl === imageUrl,
+        ).length;
 
         return {
           croppedTeaser,
+          id: cut.id,
           imageUrl,
-          isActive: activeTeaserCropSourceUrl === imageUrl,
+          isActive: selectedTeaserCropCutId === cut.id,
           isCurrentSaved: Boolean(
             selectedExistingReport &&
               (currentSavedTeaserSourceUrlSet.has(imageUrl) ||
@@ -2009,18 +2113,22 @@ export function FanletterNewsReportComposerPage({
                 formatNumber(index + 1, locale),
               ),
           previewUrl: croppedTeaser?.imageUrl ?? imageUrl,
+          slotLabel: copy.teaserSelection.selectedItem(
+            formatNumber(index + 1, locale),
+          ),
+          sourceUseCount,
         };
       }),
     [
-      activeTeaserCropSourceUrl,
       copy.teaserSelection,
-      croppedTeaserBySourceUrl,
+      croppedTeaserByCutId,
       currentSavedTeaserImageUrlSet,
       currentSavedTeaserSourceUrlSet,
       locale,
       selectedExistingReport,
       selectedSourceCoverOptions,
-      selectedTeaserUrls,
+      selectedTeaserCropCutId,
+      selectedTeaserCuts,
     ],
   );
   const canSubmit = Boolean(
@@ -2413,14 +2521,12 @@ export function FanletterNewsReportComposerPage({
 
   useEffect(() => {
     const nextCoverUrl = getDefaultReportCoverImageUrl(selectedSource);
-    const nextTeaserUrls = getDefaultReportTeaserImageUrls(selectedSource);
+    const nextTeaserCuts = getDefaultReportTeaserCuts(selectedSource);
 
     setSelectedCoverUrl(nextCoverUrl);
-    setSelectedTeaserUrls(nextTeaserUrls);
-    setSelectedTeaserCropSourceUrl(nextTeaserUrls[0] ?? nextCoverUrl);
-    setCroppedTeaserBySourceUrl(
-      getDefaultCroppedTeaserBySourceUrl(selectedSource),
-    );
+    setSelectedTeaserCuts(nextTeaserCuts);
+    setSelectedTeaserCropCutId(nextTeaserCuts[0]?.id ?? null);
+    setCroppedTeaserByCutId(getDefaultCroppedTeaserByCutId(selectedSource));
     setCrop(DEFAULT_REPORT_COVER_CROP);
     setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
     setNaturalSize(null);
@@ -2432,7 +2538,7 @@ export function FanletterNewsReportComposerPage({
 
   useEffect(() => {
     setTeaserNaturalSize(null);
-  }, [selectedTeaserCropSourceUrl]);
+  }, [selectedTeaserCropCutId]);
 
   const selectCoverImage = useCallback(
     (imageUrl: string) => {
@@ -2442,81 +2548,113 @@ export function FanletterNewsReportComposerPage({
       setNaturalSize(null);
       setTeaserNaturalSize(null);
 
-      if (!selectedTeaserCropSourceUrl) {
-        setSelectedTeaserCropSourceUrl(imageUrl);
-      }
-
       if (isSelectedPaidLocked || teaserMode === "auto") {
         return;
       }
 
-      setSelectedTeaserUrls((current) => {
-        if (current.includes(imageUrl)) {
+      setSelectedTeaserCuts((current) => {
+        const existingCut = current.find(
+          (cut) => cut.sourceImageUrl === imageUrl,
+        );
+
+        if (existingCut) {
+          setSelectedTeaserCropCutId((currentCutId) =>
+            currentCutId ?? existingCut.id,
+          );
           return current;
         }
 
-        return [imageUrl, ...current].slice(0, REPORT_TEASER_IMAGE_LIMIT);
+        if (current.length >= REPORT_TEASER_IMAGE_LIMIT) {
+          return current;
+        }
+
+        const nextCut = createRuntimeTeaserCut(imageUrl);
+
+        setSelectedTeaserCropCutId((currentCutId) => currentCutId ?? nextCut.id);
+
+        return [nextCut, ...current].slice(0, REPORT_TEASER_IMAGE_LIMIT);
       });
     },
-    [isSelectedPaidLocked, selectedTeaserCropSourceUrl, teaserMode],
+    [isSelectedPaidLocked, teaserMode],
   );
 
-  const toggleTeaserImage = useCallback((imageUrl: string) => {
-    setSelectedTeaserUrls((current) => {
-      if (current.includes(imageUrl)) {
-        const next = current.filter((url) => url !== imageUrl);
+  const removeTeaserCut = useCallback((cutId: string) => {
+    setSelectedTeaserCuts((current) => {
+      const removeIndex = current.findIndex((cut) => cut.id === cutId);
 
-        setSelectedTeaserCropSourceUrl((currentSourceUrl) =>
-          currentSourceUrl === imageUrl ? next[0] ?? null : currentSourceUrl,
-        );
-
-        return next;
-      }
-
-      if (current.length >= REPORT_TEASER_IMAGE_LIMIT) {
+      if (removeIndex < 0) {
         return current;
       }
 
-      setSelectedTeaserCropSourceUrl(imageUrl);
+      const next = current.filter((cut) => cut.id !== cutId);
 
-      return [...current, imageUrl];
+      setSelectedTeaserCropCutId((currentCutId) =>
+        currentCutId === cutId
+          ? next[Math.min(removeIndex, next.length - 1)]?.id ?? null
+          : currentCutId,
+      );
+      setCroppedTeaserByCutId((currentCrops) => {
+        if (!currentCrops[cutId]) {
+          return currentCrops;
+        }
+
+        const nextCrops = { ...currentCrops };
+        delete nextCrops[cutId];
+
+        return nextCrops;
+      });
+
+      return next;
     });
   }, []);
 
-  const focusTeaserCropEditor = useCallback(
-    (imageUrl: string) => {
+  const addTeaserCutFromSource = useCallback(
+    (imageUrl: string, shouldScrollToEditor = false) => {
       if (isSelectedPaidLocked) {
         return;
       }
 
-      const isAlreadySelected = selectedTeaserUrls.includes(imageUrl);
-
-      if (
-        !isAlreadySelected &&
-        selectedTeaserUrls.length >= REPORT_TEASER_IMAGE_LIMIT
-      ) {
+      if (selectedTeaserCuts.length >= REPORT_TEASER_IMAGE_LIMIT) {
         return;
       }
 
+      const nextCut = createRuntimeTeaserCut(imageUrl);
+
       setTeaserMode("manual");
-      setSelectedTeaserCropSourceUrl(imageUrl);
-      setSelectedTeaserUrls((current) =>
-        current.includes(imageUrl)
+      setSelectedTeaserCropCutId(nextCut.id);
+      setSelectedTeaserCuts((current) =>
+        current.length >= REPORT_TEASER_IMAGE_LIMIT
           ? current
-          : [...current, imageUrl].slice(0, REPORT_TEASER_IMAGE_LIMIT),
+          : [...current, nextCut],
       );
       setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
       setTeaserNaturalSize(null);
 
-      window.setTimeout(() => {
-        teaserCropFrameRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 0);
+      if (shouldScrollToEditor) {
+        window.setTimeout(() => {
+          teaserCropFrameRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "start",
+          });
+        }, 0);
+      }
     },
-    [isSelectedPaidLocked, selectedTeaserUrls],
+    [isSelectedPaidLocked, selectedTeaserCuts.length],
   );
+
+  const focusTeaserCutEditor = useCallback((cutId: string) => {
+    setTeaserMode("manual");
+    setSelectedTeaserCropCutId(cutId);
+    setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
+    setTeaserNaturalSize(null);
+
+    window.setTimeout(() => {
+      teaserCropFrameRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 0);
+  }, []);
 
   const handleCropPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
@@ -2692,6 +2830,7 @@ export function FanletterNewsReportComposerPage({
   const saveCroppedTeaserImage = useCallback(async () => {
     if (
       !selectedSource ||
+      !activeTeaserCropCut ||
       !activeTeaserCropSourceUrl ||
       teaserCropStatus === "saving"
     ) {
@@ -2712,30 +2851,21 @@ export function FanletterNewsReportComposerPage({
         sourceImageUrl: activeTeaserCropSourceUrl,
       });
 
-      setCroppedTeaserBySourceUrl((current) => ({
+      setCroppedTeaserByCutId((current) => ({
         ...current,
-        [activeTeaserCropSourceUrl]: {
+        [activeTeaserCropCut.id]: {
           crop: croppedTeaser.crop,
           imageUrl: croppedTeaser.url,
           sourceImageUrl: activeTeaserCropSourceUrl,
         },
       }));
-      setSelectedTeaserUrls((current) => {
-        if (current.includes(activeTeaserCropSourceUrl)) {
-          return current;
-        }
-
-        return [activeTeaserCropSourceUrl, ...current].slice(
-          0,
-          REPORT_TEASER_IMAGE_LIMIT,
-        );
-      });
     } catch (error) {
       setError(error instanceof Error ? error.message : copy.failed);
     } finally {
       setTeaserCropStatus("idle");
     }
   }, [
+    activeTeaserCropCut,
     activeTeaserCropSourceUrl,
     copy.failed,
     selectedSource,
@@ -2744,57 +2874,55 @@ export function FanletterNewsReportComposerPage({
     uploadCroppedReportImage,
   ]);
 
-  const removeCroppedTeaserImage = useCallback((sourceImageUrl: string) => {
-    setCroppedTeaserBySourceUrl((current) => {
-      if (!current[sourceImageUrl]) {
-        return current;
+  const editSavedTeaserImage = useCallback(
+    (item: ExistingSavedTeaserItem) => {
+      const sourceImageUrl = item.sourceImageUrl || item.imageUrl;
+
+      if (!sourceImageUrl) {
+        return;
       }
 
-      const next = { ...current };
-      delete next[sourceImageUrl];
+      const existingCut = selectedTeaserCuts.find((cut) => cut.id === item.id);
+      const nextCut = existingCut ?? {
+        id: item.id,
+        sourceImageUrl,
+      };
 
-      return next;
-    });
-  }, []);
-
-  const editSavedTeaserImage = useCallback((item: ExistingSavedTeaserItem) => {
-    const sourceImageUrl = item.sourceImageUrl || item.imageUrl;
-
-    if (!sourceImageUrl) {
-      return;
-    }
-
-    setTeaserMode("manual");
-    setSelectedTeaserCropSourceUrl(sourceImageUrl);
-    setSelectedTeaserUrls((current) => {
-      if (current.includes(sourceImageUrl)) {
-        return current;
+      if (!existingCut && selectedTeaserCuts.length >= REPORT_TEASER_IMAGE_LIMIT) {
+        return;
       }
 
-      return [sourceImageUrl, ...current].slice(0, REPORT_TEASER_IMAGE_LIMIT);
-    });
-    setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
-    setNaturalSize(null);
-    setTeaserNaturalSize(null);
+      setTeaserMode("manual");
+      setSelectedTeaserCropCutId(nextCut.id);
+      setSelectedTeaserCuts((current) =>
+        current.some((cut) => cut.id === nextCut.id)
+          ? current
+          : [nextCut, ...current].slice(0, REPORT_TEASER_IMAGE_LIMIT),
+      );
+      setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
+      setNaturalSize(null);
+      setTeaserNaturalSize(null);
 
-    const savedCrop = item.crop;
+      const savedCrop = item.crop;
 
-    if (item.isCropped && savedCrop) {
-      setCroppedTeaserBySourceUrl((current) => ({
-        ...current,
-        [sourceImageUrl]: {
-          crop: savedCrop,
-          imageUrl: item.imageUrl,
-          sourceImageUrl,
-        },
-      }));
-    }
-  }, []);
+      if (item.isCropped && savedCrop) {
+        setCroppedTeaserByCutId((current) => ({
+          ...current,
+          [nextCut.id]: {
+            crop: savedCrop,
+            imageUrl: item.imageUrl,
+            sourceImageUrl,
+          },
+        }));
+      }
+    },
+    [selectedTeaserCuts],
+  );
 
   const getManualSelectedTeaserImages = useCallback(
     (): ReportTeaserImagePayload[] =>
-      selectedTeaserUrls.map((imageUrl) => {
-        const croppedTeaser = croppedTeaserBySourceUrl[imageUrl];
+      selectedTeaserCuts.map((cut) => {
+        const croppedTeaser = croppedTeaserByCutId[cut.id];
 
         return croppedTeaser
           ? {
@@ -2804,11 +2932,11 @@ export function FanletterNewsReportComposerPage({
             }
           : {
               crop: null,
-              imageUrl,
-              sourceImageUrl: imageUrl,
+              imageUrl: cut.sourceImageUrl,
+              sourceImageUrl: cut.sourceImageUrl,
             };
       }),
-    [croppedTeaserBySourceUrl, selectedTeaserUrls],
+    [croppedTeaserByCutId, selectedTeaserCuts],
   );
 
   const createAutoCroppedTeaserImages = useCallback(async () => {
@@ -2859,7 +2987,7 @@ export function FanletterNewsReportComposerPage({
       const selectedTeaserImageUrls =
         teaserMode === "auto"
           ? selectedTeaserImages.map((image) => image.sourceImageUrl)
-          : selectedTeaserUrls;
+          : selectedTeaserCuts.map((cut) => cut.sourceImageUrl);
 
       setStatus("submitting");
 
@@ -2920,7 +3048,7 @@ export function FanletterNewsReportComposerPage({
     router,
     selectedCoverUrl,
     selectedSource,
-    selectedTeaserUrls,
+    selectedTeaserCuts,
     teaserMode,
     uploadCroppedReportImage,
   ]);
@@ -2946,7 +3074,7 @@ export function FanletterNewsReportComposerPage({
       const selectedTeaserImageUrls =
         teaserMode === "auto"
           ? selectedTeaserImages.map((image) => image.sourceImageUrl)
-          : selectedTeaserUrls;
+          : selectedTeaserCuts.map((cut) => cut.sourceImageUrl);
 
       setEditVisualStatus("saving");
 
@@ -2987,35 +3115,62 @@ export function FanletterNewsReportComposerPage({
         );
       }
 
-      if (teaserMode === "auto") {
-        setSelectedTeaserUrls(
-          selectedTeaserImages
-            .map((image) => image.sourceImageUrl.trim())
-            .filter(Boolean)
-            .slice(0, REPORT_TEASER_IMAGE_LIMIT),
-        );
-        setCroppedTeaserBySourceUrl(
-          selectedTeaserImages.reduce<Record<string, CroppedTeaserImage>>(
-            (next, image) => {
-              if (
-                image.crop &&
-                image.imageUrl.trim() &&
-                image.sourceImageUrl.trim() &&
-                image.imageUrl !== image.sourceImageUrl
-              ) {
-                next[image.sourceImageUrl] = {
-                  crop: image.crop,
-                  imageUrl: image.imageUrl,
-                  sourceImageUrl: image.sourceImageUrl,
-                };
-              }
+      const activeTeaserIndex = selectedTeaserCuts.findIndex(
+        (cut) => cut.id === selectedTeaserCropCutId,
+      );
+      const nextSavedTeaserItems = selectedTeaserImages
+        .map((image, index) => {
+          const imageUrl = image.imageUrl.trim();
+          const sourceImageUrl =
+            image.sourceImageUrl.trim() || imageUrl;
 
-              return next;
-            },
-            {},
-          ),
-        );
-      }
+          if (!imageUrl) {
+            return null;
+          }
+
+          return {
+            crop: image.crop,
+            id: createStableTeaserCutId({
+              imageUrl,
+              index,
+              sourceImageUrl,
+            }),
+            imageUrl,
+            isCropped: Boolean(
+              image.crop && sourceImageUrl && imageUrl !== sourceImageUrl,
+            ),
+            sourceImageUrl,
+          } satisfies ExistingSavedTeaserItem;
+        })
+        .filter((item): item is ExistingSavedTeaserItem => Boolean(item))
+        .slice(0, REPORT_TEASER_IMAGE_LIMIT);
+      const nextTeaserCuts = nextSavedTeaserItems.map((item) => ({
+        id: item.id,
+        sourceImageUrl: item.sourceImageUrl,
+      }));
+
+      setSelectedTeaserCuts(nextTeaserCuts);
+      setSelectedTeaserCropCutId(
+        nextTeaserCuts[
+          activeTeaserIndex >= 0 ? activeTeaserIndex : 0
+        ]?.id ?? null,
+      );
+      setCroppedTeaserByCutId(
+        nextSavedTeaserItems.reduce<Record<string, CroppedTeaserImage>>(
+          (next, item) => {
+            if (item.isCropped && item.crop) {
+              next[item.id] = {
+                crop: item.crop,
+                imageUrl: item.imageUrl,
+                sourceImageUrl: item.sourceImageUrl,
+              };
+            }
+
+            return next;
+          },
+          {},
+        ),
+      );
 
       setExistingReportVisualSnapshot({
         coverImageUrl: croppedCover.url,
@@ -3029,29 +3184,7 @@ export function FanletterNewsReportComposerPage({
           .filter(Boolean)
           .slice(0, REPORT_TEASER_IMAGE_LIMIT),
       });
-      setExistingSavedTeaserItems(
-        selectedTeaserImages
-          .map((image) => {
-            const imageUrl = image.imageUrl.trim();
-            const sourceImageUrl =
-              image.sourceImageUrl.trim() || imageUrl;
-
-            if (!imageUrl) {
-              return null;
-            }
-
-            return {
-              crop: image.crop,
-              imageUrl,
-              isCropped: Boolean(
-                image.crop && sourceImageUrl && imageUrl !== sourceImageUrl,
-              ),
-              sourceImageUrl,
-            } satisfies ExistingSavedTeaserItem;
-          })
-          .filter((item): item is ExistingSavedTeaserItem => Boolean(item))
-          .slice(0, REPORT_TEASER_IMAGE_LIMIT),
-      );
+      setExistingSavedTeaserItems(nextSavedTeaserItems);
       setEditVisualMessage(copy.editVisual.saved);
     } catch (error) {
       setEditVisualMessage(
@@ -3071,7 +3204,8 @@ export function FanletterNewsReportComposerPage({
     selectedCoverUrl,
     selectedExistingReport,
     selectedSource,
-    selectedTeaserUrls,
+    selectedTeaserCropCutId,
+    selectedTeaserCuts,
     teaserMode,
     uploadCroppedReportImage,
   ]);
@@ -3105,8 +3239,7 @@ export function FanletterNewsReportComposerPage({
       sourceRevealFilter !== defaultSourceRevealFilter ||
       sourceSort !== "recommended",
   );
-  const activeTeaserEditorSourceUrl =
-    activeTeaserCropSourceUrl ?? selectedCoverUrl;
+  const activeTeaserEditorSourceUrl = activeTeaserCropSourceUrl;
   const manualTeaserCropEditor =
     !isSelectedPaidLocked &&
     teaserMode === "manual" &&
@@ -3126,6 +3259,11 @@ export function FanletterNewsReportComposerPage({
             </p>
             <span className="mt-2 inline-flex rounded-full border border-[#44f26e]/20 bg-white/[0.06] px-2.5 py-1 text-[0.62rem] font-black text-[#44f26e]">
               {copy.teaserSelection.activeCut}
+              {activeTeaserCropIndex >= 0
+                ? ` · ${copy.teaserSelection.selectedItem(
+                    formatNumber(activeTeaserCropIndex + 1, locale),
+                  )}`
+                : ""}
             </span>
           </div>
           <span className="inline-flex w-fit shrink-0 rounded-full bg-[#44f26e] px-3 py-1.5 text-xs font-black text-black">
@@ -3333,7 +3471,7 @@ export function FanletterNewsReportComposerPage({
           <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
             {existingSavedTeaserItems.map((item, index) => {
               const isActiveTeaser =
-                activeTeaserCropSourceUrl === item.sourceImageUrl;
+                selectedTeaserCropCutId === item.id;
 
               return (
                 <button
@@ -4730,6 +4868,9 @@ export function FanletterNewsReportComposerPage({
                                   <p className="mt-1 text-xs font-semibold leading-5 text-black/54">
                                     {copy.teaserSelection.selectedBody}
                                   </p>
+                                  <p className="mt-1.5 text-xs font-black leading-5 text-[#16702e]">
+                                    {copy.teaserSelection.duplicateHint}
+                                  </p>
                                 </div>
                                 <span className="inline-flex w-fit shrink-0 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-[#44f26e]">
                                   {copy.teaserSelection.selectedCount(
@@ -4760,9 +4901,7 @@ export function FanletterNewsReportComposerPage({
                                         <button
                                           className="group relative block aspect-[9/16] w-full overflow-hidden rounded-md bg-[#111510]"
                                           onClick={() => {
-                                            focusTeaserCropEditor(
-                                              item.imageUrl,
-                                            );
+                                            focusTeaserCutEditor(item.id);
                                           }}
                                           type="button"
                                         >
@@ -4790,16 +4929,29 @@ export function FanletterNewsReportComposerPage({
                                             </span>
                                           ) : null}
                                         </button>
-                                        <p className="mt-2 truncate text-[0.68rem] font-black text-[#111510]">
-                                          {item.label}
-                                        </p>
+                                        <div className="mt-2 min-w-0">
+                                          <p className="truncate text-[0.72rem] font-black text-[#111510]">
+                                            {item.slotLabel}
+                                          </p>
+                                          <p className="mt-0.5 truncate text-[0.62rem] font-bold text-black/42">
+                                            {item.label}
+                                          </p>
+                                          {item.sourceUseCount > 1 ? (
+                                            <p className="mt-1 inline-flex rounded-full bg-[#ecfff0] px-2 py-0.5 text-[0.58rem] font-black text-[#16702e]">
+                                              {copy.teaserSelection.sourceUseCount(
+                                                formatNumber(
+                                                  item.sourceUseCount,
+                                                  locale,
+                                                ),
+                                              )}
+                                            </p>
+                                          ) : null}
+                                        </div>
                                         <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-1.5">
                                           <button
                                             className="inline-flex h-11 min-w-0 items-center justify-center gap-1 rounded-md bg-[#111510] px-2 text-[0.7rem] font-black text-white transition hover:bg-black"
                                             onClick={() => {
-                                              focusTeaserCropEditor(
-                                                item.imageUrl,
-                                              );
+                                              focusTeaserCutEditor(item.id);
                                             }}
                                             type="button"
                                           >
@@ -4812,7 +4964,7 @@ export function FanletterNewsReportComposerPage({
                                             aria-label={`${copy.teaserSelection.removeCut} ${item.label}`}
                                             className="inline-flex size-11 items-center justify-center rounded-md border border-black/10 bg-white text-black/42 transition hover:border-rose-500/30 hover:text-rose-700"
                                             onClick={() => {
-                                              toggleTeaserImage(item.imageUrl);
+                                              removeTeaserCut(item.id);
                                             }}
                                             type="button"
                                           >
@@ -4858,8 +5010,9 @@ export function FanletterNewsReportComposerPage({
                           {selectedSource.coverOptions.map((option, index) => {
                             const isSelected =
                               option.imageUrl === selectedCoverUrl;
-                            const isTeaserSelected =
-                              selectedTeaserUrls.includes(option.imageUrl);
+                            const teaserUseCount = selectedTeaserCuts.filter(
+                              (cut) => cut.sourceImageUrl === option.imageUrl,
+                            ).length;
                             const isCurrentSavedCover =
                               Boolean(selectedExistingReport) &&
                               (existingReportVisualSnapshot.coverSourceImageUrl ===
@@ -4871,12 +5024,9 @@ export function FanletterNewsReportComposerPage({
                               currentSavedTeaserSourceUrlSet.has(
                                 option.imageUrl,
                               );
-                            const croppedTeaser =
-                              croppedTeaserBySourceUrl[option.imageUrl];
                             const isTeaserLimitReached =
-                              !isTeaserSelected &&
-                              selectedTeaserUrls.length >=
-                                REPORT_TEASER_IMAGE_LIMIT;
+                              selectedTeaserCuts.length >=
+                              REPORT_TEASER_IMAGE_LIMIT;
                             const imageSizeLabel = formatCoverOptionImageSize(
                               option,
                               locale,
@@ -4956,7 +5106,7 @@ export function FanletterNewsReportComposerPage({
                                     <button
                                       className={cn(
                                         "flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 text-[0.72rem] font-black transition",
-                                        isTeaserSelected
+                                        teaserUseCount > 0
                                           ? "border-[#19b84b]/35 bg-[#111510] text-white"
                                           : "border-black/10 bg-white text-black/56 hover:border-[#19b84b]/35 hover:text-[#111510]",
                                         isTeaserLimitReached &&
@@ -4964,37 +5114,36 @@ export function FanletterNewsReportComposerPage({
                                       )}
                                       disabled={isTeaserLimitReached}
                                       onClick={() => {
-                                        toggleTeaserImage(option.imageUrl);
+                                        addTeaserCutFromSource(option.imageUrl);
                                       }}
                                       type="button"
                                     >
-                                      {isTeaserSelected ? (
+                                      {teaserUseCount > 0 ? (
                                         <CheckCircle2 className="size-3.5 shrink-0 text-[#44f26e]" />
                                       ) : (
                                         <ImageIcon className="size-3.5 shrink-0 text-[#16702e]" />
                                       )}
                                       <span className="truncate">
-                                        {isTeaserSelected
-                                          ? copy.teaserSelection.included
+                                        {teaserUseCount > 0
+                                          ? copy.teaserSelection.sourceUseCount(
+                                              formatNumber(teaserUseCount, locale),
+                                            )
                                           : copy.teaserSelection.include}
                                       </span>
                                     </button>
                                     <button
                                       className={cn(
                                         "flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 text-[0.72rem] font-black transition",
-                                        isTeaserSelected
-                                          ? "border-[#19b84b]/30 bg-white text-[#16702e] hover:bg-[#ecfff0]"
-                                          : "border-black/10 bg-white text-black/56 hover:border-[#19b84b]/35 hover:text-[#111510]",
+                                        "border-black/10 bg-white text-black/56 hover:border-[#19b84b]/35 hover:text-[#111510]",
                                         isTeaserLimitReached &&
-                                          !isTeaserSelected &&
                                           "cursor-not-allowed opacity-45 hover:border-black/10 hover:text-black/56",
                                       )}
-                                      disabled={
-                                        isTeaserLimitReached &&
-                                        !isTeaserSelected
-                                      }
+                                      disabled={isTeaserLimitReached}
                                       onClick={() => {
-                                        focusTeaserCropEditor(option.imageUrl);
+                                        addTeaserCutFromSource(
+                                          option.imageUrl,
+                                          true,
+                                        );
                                       }}
                                       type="button"
                                     >
@@ -5005,35 +5154,13 @@ export function FanletterNewsReportComposerPage({
                                     </button>
                                   </div>
                                 ) : null}
-                                {croppedTeaser &&
-                                isTeaserSelected &&
+                                {teaserUseCount > 0 &&
                                 teaserMode === "manual" ? (
-                                  <div className="mt-2 rounded-md border border-[#19b84b]/22 bg-white p-2">
-                                    <div className="flex items-center gap-2">
-                                      <span
-                                        className="block aspect-[9/16] h-16 shrink-0 rounded bg-[#111510] bg-cover bg-center"
-                                        style={{
-                                          backgroundImage: `url(${croppedTeaser.imageUrl})`,
-                                        }}
-                                      />
-                                      <div className="min-w-0 flex-1">
-                                        <p className="truncate text-[0.68rem] font-black text-[#16702e]">
-                                          {copy.teaserCrop.saved}
-                                        </p>
-                                        <button
-                                          className="mt-1 text-[0.66rem] font-black text-black/48 underline underline-offset-2 transition hover:text-[#111510]"
-                                          onClick={() => {
-                                            removeCroppedTeaserImage(
-                                              option.imageUrl,
-                                            );
-                                          }}
-                                          type="button"
-                                        >
-                                          {copy.teaserCrop.remove}
-                                        </button>
-                                      </div>
-                                    </div>
-                                  </div>
+                                  <p className="mt-2 rounded-md border border-[#19b84b]/18 bg-white px-2 py-1.5 text-[0.62rem] font-black text-[#16702e]">
+                                    {copy.teaserSelection.sourceUseCount(
+                                      formatNumber(teaserUseCount, locale),
+                                    )}
+                                  </p>
                                 ) : null}
                               </div>
                             );
