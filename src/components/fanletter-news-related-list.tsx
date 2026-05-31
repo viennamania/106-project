@@ -834,7 +834,7 @@ export function FanletterNewsRelatedList({
 
       <div className={cn("p-3 sm:p-4", isFeatureVariant ? "sm:p-5" : "")}>
         {showCurrentItem && currentItem ? (
-          <div className="mb-3 hidden sm:block">
+          <div className="mb-3">
             <RelatedNewsCard
               currentLabel={copy.current}
               href={buildRelatedNewsHref({
