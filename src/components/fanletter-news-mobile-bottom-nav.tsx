@@ -15,6 +15,10 @@ import { useSyncExternalStore } from "react";
 
 import type { Locale } from "@/lib/i18n";
 import {
+  getFanletterNewsVlogManageHref,
+  getFanletterNewsVlogNewHref,
+} from "@/lib/fanletter-news-vlog-routing";
+import {
   FANLETTER_NEWS_ROLE_PREFERENCE_CHANGE_EVENT,
   FANLETTER_NEWS_ROLE_PREFERENCE_STORAGE_KEY,
   normalizeFanletterNewsRolePreference,
@@ -114,7 +118,8 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const purchasesPath = `${basePath}/purchases`;
   const reportsPath = `${basePath}/reports`;
   const walletPath = `${basePath}/wallet`;
-  const vlogsPath = `${basePath}/vlogs/manage`;
+  const vlogsManagePath = `${basePath}/vlogs/manage`;
+  const vlogsNewPath = `${basePath}/vlogs/new`;
 
   if (
     pathname === basePath ||
@@ -132,17 +137,25 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     pathname === walletPath ||
     pathname.startsWith(`${walletPath}/`);
   const myHref = buildHref(myPath);
-  const vloggerActionHref = buildHref(vlogsPath);
+  const vloggerManageHref = getFanletterNewsVlogManageHref({
+    locale,
+    referralCode,
+  });
+  const vloggerActionHref = getFanletterNewsVlogNewHref({
+    locale,
+    referralCode,
+    returnToHref: vloggerManageHref,
+  });
   const reporterActionHref = buildHref(`${reportsPath}/new`);
   const actionItem =
     rolePreference === "vlogger"
       ? {
-          activePath: vlogsPath,
-          activePaths: [vlogsPath],
+          activePath: vlogsNewPath,
+          activePaths: [vlogsNewPath, vlogsManagePath],
           href: vloggerActionHref,
           icon: Video,
           key: "action" as const,
-          label: locale === "ko" ? "브이로그" : "Vlog",
+          label: locale === "ko" ? "새 브이로그" : "New Vlog",
           primary: true,
         }
       : rolePreference === "reporter"
