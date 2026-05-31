@@ -46,6 +46,8 @@ import {
 import { FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD } from "@/lib/fanletter-news-source-reveal";
 import {
   getFanletterNewsCharacterVlogsHref,
+  getFanletterNewsVlogManageHref,
+  getFanletterNewsVlogNewHref,
   getFanletterNewsVlogHref,
 } from "@/lib/fanletter-news-vlog-routing";
 import {
@@ -141,6 +143,15 @@ function getCopy(locale: Locale) {
           shareTitle: (name: string) => `${name} 뉴스 캐릭터 채널`,
         },
         latest: "최신",
+        owner: {
+          badge: "내 AI 캐릭터",
+          body:
+            "로그인한 계정의 AI 캐릭터 채널입니다. 팬에게 보이는 쇼케이스를 확인하면서 브이로그 업로드와 캐릭터 정보를 바로 관리할 수 있습니다.",
+          editCharacter: "캐릭터 정보 수정",
+          manageVlogs: "브이로그 관리",
+          title: "내 캐릭터 채널",
+          uploadVlog: "새 브이로그 업로드",
+        },
         news: {
           body:
             "SNS에서 읽던 뉴스 다음에 이어보기 좋은 같은 캐릭터의 리포트입니다. 팬 기자가 포착한 다른 장면과 관전 포인트를 빠르게 확인하세요.",
@@ -312,6 +323,15 @@ function getCopy(locale: Locale) {
           shareTitle: (name: string) => `${name} news character channel`,
         },
         latest: "Latest",
+        owner: {
+          badge: "My AI character",
+          body:
+            "This is the AI character channel for your signed-in account. Review the public showcase while managing vlogs and character details.",
+          editCharacter: "Edit character",
+          manageVlogs: "Manage vlogs",
+          title: "My character channel",
+          uploadVlog: "Upload new vlog",
+        },
         news: {
           body:
             "Fan reporters expand the same AI character's day from different angles. First reports and fan-request-based stories become the growth points for the character IP.",
@@ -1332,6 +1352,10 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
   const characterSummary = character?.summary || data.profile.intro;
   const effectiveReferralCode =
     referralCodeFromQuery ?? data.profile.referralCode;
+  const isOwner = data.viewerRelation === "owner";
+  const ownerActionReferralCode = isOwner
+    ? data.profile.referralCode
+    : effectiveReferralCode;
   const newsHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/news`,
     effectiveReferralCode,
@@ -1357,6 +1381,22 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
   const requestHref = buildPathWithReferral(
     `/${locale}/fanletter/news/characters/${data.profile.referralCode}/request`,
     effectiveReferralCode,
+  );
+  const manageVlogsHref = getFanletterNewsVlogManageHref({
+    locale,
+    referralCode: ownerActionReferralCode,
+  });
+  const uploadVlogHref = getFanletterNewsVlogNewHref({
+    locale,
+    referralCode: ownerActionReferralCode,
+    returnToHref: channelHref,
+  });
+  const editCharacterHref = setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/profile/character`,
+      ownerActionReferralCode,
+    ),
+    { returnTo: channelHref },
   );
   const latestNewsHref = newsData.reports[0]
     ? buildPathWithReferral(
@@ -1618,6 +1658,12 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 <span className="inline-flex rounded-full border border-white/18 bg-white/[0.06] px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.1em] text-white/72">
                   @{data.profile.referralCode}
                 </span>
+                {isOwner ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-[#44f26e]/30 bg-white px-2.5 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
+                    <CheckCircle2 className="size-3.5" />
+                    {copy.owner.badge}
+                  </span>
+                ) : null}
               </div>
               <p className="mt-3 text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e] sm:mt-4">
                 {copy.hero.kicker}
@@ -1628,6 +1674,45 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
               <p className="mt-2 line-clamp-2 max-w-2xl text-sm font-semibold leading-6 text-white/68 sm:mt-3 sm:line-clamp-3 sm:text-base sm:leading-7">
                 {characterSummary}
               </p>
+
+              {isOwner ? (
+                <div className="mt-3 rounded-lg border border-[#44f26e]/24 bg-white/[0.06] p-3 sm:mt-4 sm:p-4">
+                  <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+                    <div className="min-w-0">
+                      <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                        <CheckCircle2 className="size-3.5" />
+                        {copy.owner.title}
+                      </p>
+                      <p className="mt-1.5 text-sm font-semibold leading-6 text-white/64 [word-break:keep-all]">
+                        {copy.owner.body}
+                      </p>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-3 lg:w-[31rem]">
+                      <Link
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-3 text-xs font-black !text-black transition hover:bg-[#69ff8c]"
+                        href={uploadVlogHref}
+                      >
+                        <Clapperboard className="size-4" />
+                        {copy.owner.uploadVlog}
+                      </Link>
+                      <Link
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/24 px-3 text-xs font-black !text-white transition hover:border-[#44f26e] hover:bg-[#44f26e]/10"
+                        href={manageVlogsHref}
+                      >
+                        <Flame className="size-4 text-[#44f26e]" />
+                        {copy.owner.manageVlogs}
+                      </Link>
+                      <Link
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/24 px-3 text-xs font-black !text-white transition hover:border-[#44f26e] hover:bg-[#44f26e]/10"
+                        href={editCharacterHref}
+                      >
+                        <Sparkles className="size-4 text-[#44f26e]" />
+                        {copy.owner.editCharacter}
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
 
               {returnToNewsHref ? (
                 <div className="mt-3 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-3 sm:mt-4 sm:p-4">
