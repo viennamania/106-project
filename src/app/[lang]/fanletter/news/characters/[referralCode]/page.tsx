@@ -110,6 +110,13 @@ function getCopy(locale: Locale) {
           publicVlogs: "공개 브이로그 보기",
           request: "팬 요청 남기기",
         },
+        entry: {
+          body:
+            "기사에서 확인한 캐릭터를 계속 탐색할 수 있게 같은 캐릭터 뉴스와 원본 브이로그를 한곳에 모았습니다.",
+          continueNews: "기사로 돌아가기",
+          sameCharacter: "같은 캐릭터 뉴스 보기",
+          title: "읽던 뉴스에서 이어진 캐릭터",
+        },
         empty: {
           body:
             "이 캐릭터의 FanLetter News 리포트가 아직 없습니다. 공개 브이로그에서 AI 팬 리포트가 생성되면 이 채널에 축적됩니다.",
@@ -272,6 +279,13 @@ function getCopy(locale: Locale) {
           latestNews: "Read latest news",
           publicVlogs: "Public vlogs",
           request: "Leave a fan request",
+        },
+        entry: {
+          body:
+            "Continue from the article into the same character's news, source vlogs, and fan activity.",
+          continueNews: "Back to article",
+          sameCharacter: "Same character news",
+          title: "Character from the article",
         },
         empty: {
           body:
@@ -1500,6 +1514,8 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
   const fanRequestSignalCount =
     character?.growth.metrics.fanRequestCount ?? data.fanRequestPreviews.length;
   const sameCharacterNewsSectionHref = "#fanletter-news-character-reports";
+  const publicVlogsSectionHref = "#fanletter-news-character-vlogs";
+  const fanRequestSectionHref = "#fanletter-news-character-requests";
   const heroQuickLinks = [
     {
       href: sameCharacterNewsSectionHref,
@@ -1508,7 +1524,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
       value: formatNumber(newsData.reportCount, locale),
     },
     {
-      href: publicVlogsHref,
+      href: publicVlogsSectionHref,
       icon: <Clapperboard className="size-4" />,
       label: copy.vlog.publicTitle,
       value: formatNumber(data.publicContentCount, locale),
@@ -1517,6 +1533,32 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
       href: requestHref,
       icon: <MessageCircleHeart className="size-4" />,
       label: locale === "ko" ? "팬 요청" : "Fan requests",
+      value: formatNumber(fanRequestSignalCount, locale),
+    },
+  ];
+  const channelSectionNavItems = [
+    {
+      href: sameCharacterNewsSectionHref,
+      icon: <Newspaper className="size-4" />,
+      label: copy.news.title,
+      value: formatNumber(newsData.reportCount, locale),
+    },
+    {
+      href: publicVlogsSectionHref,
+      icon: <Clapperboard className="size-4" />,
+      label: copy.vlog.publicTitle,
+      value: formatNumber(data.publicContentCount, locale),
+    },
+    {
+      href: fanOnlyVlogsAnchorHref,
+      icon: <Flame className="size-4" />,
+      label: copy.vlog.fanOnlyTitle,
+      value: formatNumber(data.fanOnlyContentCount, locale),
+    },
+    {
+      href: fanRequestSectionHref,
+      icon: <MessageCircleHeart className="size-4" />,
+      label: copy.requests.title,
       value: formatNumber(fanRequestSignalCount, locale),
     },
   ];
@@ -1580,6 +1622,37 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 {characterSummary}
               </p>
 
+              {returnToNewsHref ? (
+                <div className="mt-3 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-3 sm:mt-4 sm:p-4">
+                  <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                    <div className="min-w-0">
+                      <p className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                        {copy.entry.title}
+                      </p>
+                      <p className="mt-1 text-sm font-semibold leading-6 text-white/64 [word-break:keep-all]">
+                        {copy.entry.body}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 sm:w-72">
+                      <Link
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-3 text-xs font-black !text-black transition hover:bg-[#69ff8c]"
+                        href={returnToNewsHref}
+                      >
+                        <ArrowLeft className="size-4" />
+                        {copy.entry.continueNews}
+                      </Link>
+                      <Link
+                        className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/24 px-3 text-xs font-black !text-white transition hover:border-[#44f26e] hover:bg-[#44f26e]/10"
+                        href={sameCharacterNewsSectionHref}
+                      >
+                        {copy.entry.sameCharacter}
+                        <ArrowRight className="size-4 text-[#44f26e]" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
               <div className="mt-3 grid grid-cols-3 gap-1.5 sm:mt-4 sm:gap-2">
                 {heroQuickLinks.map((link) => (
                   <Link
@@ -1636,7 +1709,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 </div>
               </div>
 
-              <div className="mt-4 hidden rounded-lg border border-[#44f26e]/34 bg-[#44f26e]/10 p-3.5 sm:block sm:p-4">
+              <div className="mt-3 hidden rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-3 sm:block">
                 <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -1648,26 +1721,26 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                         {copy.revenue.walletOpened}
                       </span>
                     </div>
-                    <h2 className="mt-3 break-words text-2xl font-black leading-[1.05] [word-break:keep-all] sm:text-[2rem]">
+                    <h2 className="mt-2 break-words text-xl font-black leading-[1.08] [word-break:keep-all]">
                       {hasPaidRevenueSignal
                         ? copy.revenue.title
                         : copy.revenue.emptyTitle}
                     </h2>
-                    <p className="mt-2 max-w-xl text-sm font-semibold leading-6 text-white/62">
+                    <p className="mt-2 line-clamp-2 max-w-xl text-xs font-semibold leading-5 text-white/58">
                       {hasPaidRevenueSignal
                         ? copy.revenue.body
                         : copy.revenue.emptyBody}
                     </p>
                   </div>
                   <Link
-                    className="inline-flex min-h-10 items-center justify-center gap-2 border border-[#44f26e]/36 bg-black/28 px-3 py-2 text-xs font-black !text-[#b9ffc8] transition hover:bg-[#44f26e] hover:!text-black"
+                    className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-[#44f26e]/36 bg-black/28 px-3 py-2 text-xs font-black !text-[#b9ffc8] transition hover:bg-[#44f26e] hover:!text-black"
                     href={fanOnlyVlogsAnchorHref}
                   >
                     {copy.revenue.cta}
                     <ArrowRight className="size-4" />
                   </Link>
                 </div>
-                <div className="mt-4 grid grid-cols-3 gap-2">
+                <div className="mt-3 grid grid-cols-3 gap-2">
                   {[
                     {
                       label: copy.revenue.revenue,
@@ -1683,13 +1756,13 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                     },
                   ].map((stat) => (
                     <div
-                      className="min-w-0 border border-[#44f26e]/18 bg-black/24 p-2.5"
+                      className="min-w-0 border border-[#44f26e]/18 bg-black/24 p-2"
                       key={stat.label}
                     >
                       <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.08em] text-white/40">
                         {stat.label}
                       </p>
-                      <p className="mt-2 truncate text-lg font-black leading-none text-white sm:text-xl">
+                      <p className="mt-1.5 truncate text-base font-black leading-none text-white">
                         {stat.value}
                       </p>
                     </div>
@@ -1719,9 +1792,9 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
               <div className="mt-auto grid grid-cols-2 gap-2 pt-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:pt-5">
                 <Link
                   className="col-span-2 inline-flex min-h-11 items-center justify-center gap-2 bg-[#44f26e] px-4 py-2.5 text-sm font-black !text-black transition hover:bg-[#69ff8c] sm:col-span-1"
-                  href={latestNewsHref}
+                  href={returnToNewsHref ?? latestNewsHref}
                 >
-                  {copy.cta.latestNews}
+                  {returnToNewsHref ? copy.returnToNews : copy.cta.latestNews}
                   <ArrowRight className="size-4" />
                 </Link>
                 <Link
@@ -1753,24 +1826,27 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           </div>
         </section>
 
-        {shouldShowNsfwControl ? (
-          <div className="mt-5">
-            <FanletterNsfwOptInControl
-              compact
-              disabledBody={copy.nsfwControl.disabledBody}
-              disabledTitle={copy.nsfwControl.disabledTitle}
-              enabled={nsfwOptInEnabled}
-              enabledBody={copy.nsfwControl.enabledBody}
-              enabledTitle={copy.nsfwControl.enabledTitle}
-              hiddenCount={nsfwBlurredCount}
-              hiddenCountText={copy.nsfwControl.hiddenCountText(
-                formatNumber(nsfwBlurredCount, locale),
-              )}
-              locale={locale}
-              tone={nsfwOptInEnabled ? "dark" : "light"}
-            />
+        <nav className="mt-4 overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_12px_34px_rgba(17,21,16,0.06)] sm:mt-5">
+          <div className="grid grid-cols-2 gap-px bg-black/10 sm:grid-cols-4">
+            {channelSectionNavItems.map((item) => (
+              <Link
+                className="group min-w-0 bg-white px-3 py-3 !text-[#111510] transition hover:bg-[#ecfff0]"
+                href={item.href}
+                key={item.label}
+              >
+                <span className="flex items-center justify-between gap-2">
+                  <span className="text-[#16702e]">{item.icon}</span>
+                  <span className="text-lg font-black leading-none">
+                    {item.value}
+                  </span>
+                </span>
+                <span className="mt-2 block truncate text-[0.66rem] font-black uppercase tracking-[0.08em] text-black/48 group-hover:text-[#16702e]">
+                  {item.label}
+                </span>
+              </Link>
+            ))}
           </div>
-        ) : null}
+        </nav>
 
         <div className="flex flex-col">
         <section className="order-4 mt-7 grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)]">
@@ -1923,6 +1999,25 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
             </div>
           </div>
 
+          {shouldShowNsfwControl ? (
+            <div className="mb-4">
+              <FanletterNsfwOptInControl
+                compact
+                disabledBody={copy.nsfwControl.disabledBody}
+                disabledTitle={copy.nsfwControl.disabledTitle}
+                enabled={nsfwOptInEnabled}
+                enabledBody={copy.nsfwControl.enabledBody}
+                enabledTitle={copy.nsfwControl.enabledTitle}
+                hiddenCount={nsfwBlurredCount}
+                hiddenCountText={copy.nsfwControl.hiddenCountText(
+                  formatNumber(nsfwBlurredCount, locale),
+                )}
+                locale={locale}
+                tone={nsfwOptInEnabled ? "dark" : "light"}
+              />
+            </div>
+          ) : null}
+
           {visibleNewsReports.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {visibleNewsReports.map((report) => (
@@ -1956,7 +2051,10 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           />
         </div>
 
-        <section className="order-3 mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.62fr)]">
+        <section
+          className="order-3 mt-6 grid scroll-mt-24 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.62fr)]"
+          id="fanletter-news-character-vlogs"
+        >
           <div>
             <div className="mb-4 grid gap-3 border-b-2 border-[#111510] pb-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
               <div className="min-w-0">
@@ -2037,7 +2135,10 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
               </div>
             </section>
 
-            <section>
+            <section
+              className="scroll-mt-24"
+              id="fanletter-news-character-requests"
+            >
               <div className="mb-4 flex items-center justify-between border-b-2 border-[#111510] pb-3">
                 <div>
                   <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
