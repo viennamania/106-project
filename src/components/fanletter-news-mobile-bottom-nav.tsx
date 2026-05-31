@@ -18,6 +18,7 @@ import type { Locale } from "@/lib/i18n";
 import {
   getFanletterNewsVlogManageHref,
   getFanletterNewsVlogNewHref,
+  getFanletterNewsVlogsHref,
 } from "@/lib/fanletter-news-vlog-routing";
 import {
   FANLETTER_NEWS_REPORTER_PROFILE_CHANGE_EVENT,
@@ -273,11 +274,11 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const myPath = `${basePath}/my`;
   const purchasesPath = `${basePath}/purchases`;
   const reportsPath = `${basePath}/reports`;
+  const vlogsPath = `${basePath}/vlogs`;
   const walletPath = `${basePath}/wallet`;
   const vlogsManagePath = `${basePath}/vlogs/manage`;
   const vlogsNewPath = `${basePath}/vlogs/new`;
   const shouldHideNav =
-    pathname === basePath ||
     pathname === platformPath ||
     isNewsReportDetailPath(pathname, basePath);
 
@@ -305,6 +306,10 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     locale,
     referralCode,
     returnToHref: vloggerManageHref,
+  });
+  const publicVlogsHref = getFanletterNewsVlogsHref({
+    locale,
+    referralCode,
   });
   const reporterActionHref = buildHref(`${reportsPath}/new`);
   const reporterActionLabel = locale === "ko" ? "리포트 작성" : "Report";
@@ -334,6 +339,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
       : rolePreference === "reporter"
         ? {
             activePath: `${reportsPath}/new`,
+            activePaths: [`${reportsPath}/new`, reportsPath],
             href: reporterActionHref,
             icon: PenLine,
             key: "action" as const,
@@ -352,21 +358,20 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
               : undefined,
           }
         : {
-            activePath: myPath,
-            href: myHref,
-            icon: CircleUserRound,
+            activePath: vlogsPath,
+            href: publicVlogsHref,
+            icon: Video,
             key: "action" as const,
-            label: locale === "ko" ? "내 허브" : "My Hub",
+            label: locale === "ko" ? "브이로그" : "Vlogs",
             primary: true,
           };
   const items: FanletterNewsMobileNavItem[] = [
     {
-      activePath: platformPath,
-      exact: true,
-      href: buildHref(platformPath),
+      activePath: basePath,
+      href: buildHref(basePath),
       icon: Newspaper,
       key: "news",
-      label: locale === "ko" ? "홈" : "Home",
+      label: locale === "ko" ? "뉴스" : "News",
     },
     {
       activePath: `${basePath}/characters`,
@@ -411,9 +416,18 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
           {items.map((item) => {
             const Icon = item.icon;
             const activePaths = item.activePaths ?? [item.activePath];
-            const active = item.exact
-              ? pathname === item.activePath
-              : item.key === "my"
+            const active =
+              item.key === "news"
+                ? pathname === basePath ||
+                  pathname === `${basePath}/gallery` ||
+                  pathname.startsWith(`${basePath}/gallery/`) ||
+                  pathname === `${basePath}/reporters` ||
+                  pathname.startsWith(`${basePath}/reporters/`) ||
+                  pathname === vlogsPath ||
+                  pathname.startsWith(`${vlogsPath}/`)
+                : item.exact
+                  ? pathname === item.activePath
+                  : item.key === "my"
                 ? pathname === myPath || isWalletServicePath
                 : activePaths.some(
                     (activePath) =>
