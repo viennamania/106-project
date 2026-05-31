@@ -420,7 +420,7 @@ function getCopy(locale: Locale) {
         },
         sourceTitle: "원본 브이로그",
         summaryTitle: "뉴스 요약",
-        visualLead: "뉴스 대표 이미지",
+        visualLead: "대표 뉴스 이미지",
         walletConnect: {
           body:
             "팬 기자 활동이나 팬 전용 결제가 필요할 때만 이어갑니다.",
@@ -688,7 +688,7 @@ function getCopy(locale: Locale) {
         },
         sourceTitle: "Source vlog",
         summaryTitle: "Story summary",
-        visualLead: "Lead image",
+        visualLead: "Representative news image",
         walletConnect: {
           body:
             "Use this only when fan reporter actions or fan-only payment are needed.",
@@ -1394,6 +1394,8 @@ function FanletterNewsShareLandingHero({
     visibleHeroTeaserImageUrls.length === 0 && Boolean(previewVideoUrl);
   const showHeroTeaserPreview =
     visibleHeroTeaserImageUrls.length > 0 || showHeroVideoPreview;
+  const showMobileHeroVisual = Boolean(sourceImageUrl || previewVideoUrl);
+  const shouldBlurHeroVisual = blurred || blurBackgroundVideo;
   const heroTeaserGridClass =
     visibleHeroTeaserImageUrls.length === 1 ? "grid-cols-1" : "grid-cols-2";
   const heroTeaserImageClass =
@@ -1414,7 +1416,7 @@ function FanletterNewsShareLandingHero({
 
   return (
     <section className="relative isolate mb-5 overflow-hidden border border-black/12 bg-[#07100b] text-white shadow-[0_18px_50px_rgba(17,21,16,0.12)] sm:mb-7">
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 hidden sm:block">
         {canUsePreviewVideo && previewVideoUrl ? (
           <FanletterAutoplayVideo
             ariaHidden
@@ -1456,10 +1458,10 @@ function FanletterNewsShareLandingHero({
           <div className="h-full w-full bg-[linear-gradient(145deg,#07100b,#121812_54%,#203426)]" />
         )}
       </div>
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,8,6,0.42)_0%,rgba(5,8,6,0.64)_44%,rgba(5,8,6,0.95)_100%)] sm:bg-[linear-gradient(90deg,rgba(5,8,6,0.94)_0%,rgba(5,8,6,0.76)_43%,rgba(5,8,6,0.3)_70%,rgba(5,8,6,0.74)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(68,242,110,0.14),rgba(68,242,110,0)_34%),linear-gradient(145deg,#07100b,#121812_58%,#1a2a1f)] sm:bg-[linear-gradient(90deg,rgba(5,8,6,0.94)_0%,rgba(5,8,6,0.76)_43%,rgba(5,8,6,0.3)_70%,rgba(5,8,6,0.74)_100%)]" />
       <div className="absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(5,8,6,0.14)_0%,rgba(5,8,6,0.16)_48%,rgba(5,8,6,0.88)_100%)] sm:block" />
-      <div className="absolute inset-x-0 bottom-0 h-28 bg-[linear-gradient(180deg,rgba(238,241,236,0)_0%,rgba(238,241,236,0.12)_100%)]" />
-      <div className="relative z-10 grid min-h-[25rem] content-end gap-6 p-4 sm:min-h-[29rem] sm:p-6 lg:min-h-[31rem] lg:p-8 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,24rem)] xl:items-end">
+      <div className="absolute inset-x-0 bottom-0 h-28 bg-[linear-gradient(180deg,rgba(238,241,236,0)_0%,rgba(238,241,236,0.12)_100%)] sm:block" />
+      <div className="relative z-10 grid gap-5 p-4 sm:min-h-[29rem] sm:content-end sm:gap-6 sm:p-6 lg:min-h-[31rem] lg:p-8 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,24rem)] xl:items-end">
         <div className="max-w-4xl">
           <div className="flex flex-wrap items-center gap-2 text-[0.72rem] font-black text-white/82 sm:text-xs">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-[#44f26e]/34 bg-[#44f26e]/14 px-3 py-1.5 text-[#9bffad]">
@@ -1473,6 +1475,42 @@ function FanletterNewsShareLandingHero({
               {reporterName}
             </span>
           </div>
+
+          {showMobileHeroVisual ? (
+            <div className="mt-4 overflow-hidden rounded-lg border border-white/14 bg-black/44 shadow-[0_18px_42px_rgba(0,0,0,0.28)] sm:hidden">
+              <div className="relative aspect-[16/10] bg-[#111510]">
+                {sourceImageUrl ? (
+                  <Image
+                    alt={copy.visualLead}
+                    className={`object-cover object-center ${
+                      shouldBlurHeroVisual ? "blur-sm brightness-[0.74]" : ""
+                    }`}
+                    fill
+                    fetchPriority="high"
+                    loading="eager"
+                    sizes="100vw"
+                    src={sourceImageUrl}
+                    unoptimized={shouldBypassHeroImageOptimization}
+                  />
+                ) : previewVideoUrl ? (
+                  <FanletterAutoplayVideo
+                    ariaHidden
+                    className={`h-full w-full object-cover object-center ${
+                      shouldBlurHeroVisual ? "blur-sm brightness-[0.74]" : ""
+                    }`}
+                    src={previewVideoUrl}
+                    title={articleTitle}
+                  />
+                ) : null}
+                <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-[linear-gradient(180deg,rgba(0,0,0,0)_0%,rgba(0,0,0,0.74)_100%)] px-3 pb-3 pt-12">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-black/72 px-2.5 py-1 text-[0.6rem] font-black uppercase tracking-[0.12em] text-[#b9ffc8] shadow-[0_10px_24px_rgba(0,0,0,0.24)]">
+                    <Newspaper className="size-3.5" />
+                    {copy.visualLead}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <h1
             className={`mt-4 max-w-4xl break-words text-[1.86rem] font-black leading-[1.1] tracking-normal [overflow-wrap:anywhere] [word-break:keep-all] sm:text-[3rem] sm:leading-[1.08] lg:text-[3.25rem] ${
