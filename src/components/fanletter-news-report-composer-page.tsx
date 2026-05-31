@@ -4946,7 +4946,7 @@ export function FanletterNewsReportComposerPage({
 
                 {selectedSource ? (
                   <>
-                    {!selectedExistingReport ? (
+                    {!selectedExistingReport || isSelectedPaidLocked ? (
                       <>
                         <section
                           id={
