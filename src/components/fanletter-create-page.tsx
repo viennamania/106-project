@@ -135,7 +135,7 @@ function getCopy(locale: Locale) {
     ? {
         accountRequired: "계정 연결이 필요합니다.",
         accountRequiredBody:
-          "첫 AI 캐릭터 브이로그를 만들려면 FanLetter 계정 연결을 먼저 완료해야 합니다.",
+          "AI 캐릭터 브이로그를 만들거나 업로드하려면 FanLetter 계정 연결을 먼저 완료해야 합니다.",
         accountRequiredCta: "계정 연결하기",
         avatarExperience: {
           avatarReferenceSet:
@@ -247,6 +247,10 @@ function getCopy(locale: Locale) {
             "FanLetter News에 노출할 무료 공개 브이로그를 AI로 생성합니다. 공개 후 뉴스 리포터가 바로 발견하고 리포트 후보로 사용할 수 있습니다.",
           eyebrow: "FanLetter News Vlog Registration",
           feed: "뉴스 브이로그 보기",
+          mobileBody:
+            "휴대폰에 있는 영상을 바로 선택하고 제목만 확인한 뒤 공개하세요.",
+          mobileCta: "휴대폰 영상 선택",
+          mobileSteps: ["영상 선택", "제목 확인", "공개"],
           reports: "뉴스 리포트",
           titleText: "뉴스에 노출할 새 브이로그를 등록하세요.",
           uploadBody:
@@ -347,7 +351,7 @@ function getCopy(locale: Locale) {
     : {
         accountRequired: "Account connection required.",
         accountRequiredBody:
-          "Connect your FanLetter account before creating the first AI character vlog.",
+          "Connect your FanLetter account before creating or uploading an AI character vlog.",
         accountRequiredCta: "Connect account",
         avatarExperience: {
           avatarReferenceSet:
@@ -463,6 +467,10 @@ function getCopy(locale: Locale) {
             "Create a free public vlog for FanLetter News. After publishing, reporters can discover it and use it as a report candidate.",
           eyebrow: "FanLetter News Vlog Registration",
           feed: "News vlogs",
+          mobileBody:
+            "Choose a video from your phone, confirm the title, and publish.",
+          mobileCta: "Choose phone video",
+          mobileSteps: ["Choose video", "Confirm title", "Publish"],
           reports: "News reports",
           titleText: "Register a new vlog for News exposure.",
           uploadBody:
@@ -1061,7 +1069,7 @@ function StatusPanel({
   title: string;
 }) {
   return (
-    <main className="min-h-[calc(100svh-5.1rem)] bg-[#030504] px-4 pb-4 pt-[calc(env(safe-area-inset-top)+0.85rem)] text-white sm:min-h-screen sm:px-6 sm:py-6 lg:px-8">
+    <main className="min-h-[calc(100svh-5.1rem)] bg-[#030504] px-2 pb-4 pt-[calc(env(safe-area-inset-top)+0.85rem)] text-white sm:min-h-screen sm:px-6 sm:py-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <FanletterTabTopBar
           accountActivateHref={accountActivateHref}
@@ -1078,7 +1086,7 @@ function StatusPanel({
         />
       </div>
       <div className="mx-auto flex min-h-[calc(100svh-13rem)] max-w-xl items-center py-6 sm:min-h-[70vh]">
-        <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)] sm:p-6">
+        <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-4 shadow-[0_30px_90px_rgba(0,0,0,0.32)] sm:p-6">
           <CircleAlert className="size-8 text-[#44f26e]" />
           <h1 className="mt-5 text-2xl font-semibold leading-tight sm:text-3xl">
             {title}
@@ -1234,7 +1242,7 @@ export function FanletterCreatePage({
   const [createdContent, setCreatedContent] =
     useState<ContentPostRecord | null>(null);
   const [createSourceMode, setCreateSourceMode] = useState<CreateSourceMode>(
-    initialPlan?.sourceMode === "upload" ? "upload" : "ai",
+    initialPlan?.sourceMode === "upload" || surface === "news" ? "upload" : "ai",
   );
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [error, setError] = useState<string | null>(null);
@@ -2443,6 +2451,70 @@ export function FanletterCreatePage({
     );
   }
 
+  const uploadPickerPanel = (
+    <div className="rounded-lg border border-white/12 bg-white/[0.06] p-3 sm:p-4">
+      <input
+        accept={contentVideoMimeTypes.join(",")}
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0] ?? null;
+
+          if (file) {
+            void uploadFreeVideo(file);
+          }
+
+          event.currentTarget.value = "";
+        }}
+        ref={videoUploadInputRef}
+        type="file"
+      />
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-white">
+            {copy.upload.select}
+          </p>
+          <p className="mt-1 text-xs font-medium leading-5 text-white/46">
+            {copy.upload.fileHelp(uploadMaxSizeLabel)}
+          </p>
+        </div>
+        <button
+          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-2 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+          disabled={isUploadingVideo}
+          onClick={() => {
+            videoUploadInputRef.current?.click();
+          }}
+          type="button"
+        >
+          {isUploadingVideo ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Upload className="size-4" />
+          )}
+          {isUploadingVideo ? copy.upload.uploading : copy.upload.uploadCta}
+        </button>
+      </div>
+      {isUploadingVideo ? (
+        <div className="mt-4">
+          <div className="h-2 overflow-hidden rounded-full bg-white/10">
+            <div
+              className="h-full rounded-full bg-[#44f26e] transition-[width]"
+              style={{ width: `${Math.max(4, videoUploadProgress)}%` }}
+            />
+          </div>
+          <p className="mt-2 text-xs font-semibold text-[#c9ffd5]">
+            {copy.upload.progress(videoUploadProgress)}
+          </p>
+        </div>
+      ) : null}
+      {generatedMedia?.source === "upload" ? (
+        <p className="mt-4 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-2 text-xs font-semibold leading-5 text-[#d8ffe0]">
+          {copy.upload.selected}:{" "}
+          {generatedMedia.fileName ?? copy.upload.fallbackTitle}
+        </p>
+      ) : null}
+    </div>
+  );
+
   return (
     <main
       className={`min-h-screen bg-[#030504] text-white ${
@@ -2451,7 +2523,13 @@ export function FanletterCreatePage({
           : ""
       }`}
     >
-      <section className="px-4 pb-10 pt-[calc(env(safe-area-inset-top)+16px)] sm:px-6 lg:px-8">
+      <section
+        className={
+          isNewsSurface
+            ? "px-2 pb-6 pt-[calc(env(safe-area-inset-top)+8px)] sm:px-4 sm:pb-10 sm:pt-[calc(env(safe-area-inset-top)+16px)] lg:px-8"
+            : "px-4 pb-10 pt-[calc(env(safe-area-inset-top)+16px)] sm:px-6 lg:px-8"
+        }
+      >
         <div className="mx-auto max-w-6xl">
           <FanletterTabTopBar
             accountActivateHref={isNewsSurface ? activateBaseHref : undefined}
@@ -2467,7 +2545,89 @@ export function FanletterCreatePage({
             reportsLabel={newsSurfaceCopy?.reports}
           />
 
-          <div className="grid gap-8 pb-10 pt-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.78fr)] lg:items-end lg:pb-14 lg:pt-20">
+          {isNewsSurface ? (
+            <section className="mt-3 border border-[#44f26e]/24 bg-[#07100b] p-3 shadow-[0_18px_50px_rgba(0,0,0,0.24)] lg:hidden">
+              <div className="flex items-center gap-3">
+                <span className="relative flex size-12 shrink-0 overflow-hidden rounded-full border border-white/12 bg-white/[0.06]">
+                  {profile?.avatarImageUrl ? (
+                    <Image
+                      alt={profileCharacterName}
+                      className="object-cover"
+                      fill
+                      sizes="48px"
+                      src={profile.avatarImageUrl}
+                    />
+                  ) : (
+                    <span className="flex size-full items-center justify-center">
+                      <UserRound className="size-6 text-[#44f26e]" />
+                    </span>
+                  )}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
+                    {heroEyebrow}
+                  </p>
+                  <h1 className="mt-1 line-clamp-2 text-[1.45rem] font-semibold leading-tight tracking-normal [word-break:keep-all]">
+                    {heroTitleText}
+                  </h1>
+                </div>
+              </div>
+              <p className="mt-3 text-sm font-medium leading-6 text-white/64 [word-break:keep-all]">
+                {newsSurfaceCopy?.mobileBody ?? selectedModeCopy}
+              </p>
+              <div className="mt-3 grid grid-cols-3 gap-1.5">
+                {(newsSurfaceCopy?.mobileSteps ?? []).map((step, index) => (
+                  <div
+                    className="border border-white/10 bg-white/[0.055] px-2 py-2 text-center"
+                    key={step}
+                  >
+                    <p className="text-[0.58rem] font-semibold text-[#44f26e]">
+                      {String(index + 1).padStart(2, "0")}
+                    </p>
+                    <p className="mt-1 truncate text-[0.66rem] font-semibold text-white/72">
+                      {step}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 grid gap-2">
+                <button
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60"
+                  disabled={isUploadingVideo}
+                  onClick={() => {
+                    setCreateSourceMode("upload");
+                    window.setTimeout(() => {
+                      videoUploadInputRef.current?.click();
+                    }, 0);
+                  }}
+                  type="button"
+                >
+                  {isUploadingVideo ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Upload className="size-4" />
+                  )}
+                  {isUploadingVideo
+                    ? copy.upload.uploading
+                    : newsSurfaceCopy?.mobileCta ?? copy.upload.select}
+                </button>
+                <Link
+                  className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/14 bg-white/[0.055] px-4 text-xs font-semibold !text-white/72 transition hover:bg-white/10"
+                  href={topBarActionHref}
+                >
+                  {surfaceStudioLabel}
+                </Link>
+              </div>
+            </section>
+          ) : null}
+
+          <div
+            className={
+              isNewsSurface
+                ? "hidden gap-8 pb-10 pt-10 lg:grid lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.78fr)] lg:items-end lg:pb-14 lg:pt-20"
+                : "grid gap-8 pb-10 pt-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.78fr)] lg:items-end lg:pb-14 lg:pt-20"
+            }
+          >
             <div>
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
                 {heroEyebrow}
@@ -2804,15 +2964,21 @@ export function FanletterCreatePage({
             </section>
           ) : null}
 
-          <div className="grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">
-            <section className="rounded-lg border border-white/12 bg-white/[0.055] p-4 sm:p-5">
+          <div
+            className={
+              isNewsSurface
+                ? "grid gap-3 lg:grid-cols-[0.82fr_1.18fr]"
+                : "grid gap-4 lg:grid-cols-[0.82fr_1.18fr]"
+            }
+          >
+            <section className="rounded-lg border border-white/12 bg-white/[0.055] p-3 sm:p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
                 01
               </p>
               <h2 className="mt-3 text-2xl font-semibold">
                 {createSourceMode === "upload" ? copy.upload.title : promptLabel}
               </h2>
-              <div className="mt-4 grid rounded-full border border-white/12 bg-black/24 p-1 text-sm font-semibold sm:grid-cols-2">
+              <div className="mt-4 grid rounded-full border border-white/12 bg-black/24 p-1 text-sm font-semibold grid-cols-2">
                 {([
                   ["ai", copy.upload.tabAi, Clapperboard],
                   ["upload", copy.upload.tabUpload, Upload],
@@ -2838,7 +3004,7 @@ export function FanletterCreatePage({
                   );
                 })}
               </div>
-              <div className="mt-5 rounded-lg border border-[#44f26e]/30 bg-[#44f26e]/12 p-4 text-[#d7ffdf]">
+              <div className="mt-4 rounded-lg border border-[#44f26e]/30 bg-[#44f26e]/12 p-3 text-[#d7ffdf] sm:mt-5 sm:p-4">
                 <div className="flex items-start justify-between gap-3">
                   {createSourceMode === "upload" ? (
                     <Upload className="size-5 shrink-0 text-[#44f26e]" />
@@ -2858,7 +3024,8 @@ export function FanletterCreatePage({
                   {createSourceMode === "upload" ? copy.upload.body : videoBody}
                 </p>
               </div>
-              <div className="mt-5 grid gap-3">
+              <div className="mt-4 grid gap-3 sm:mt-5">
+                {createSourceMode === "upload" ? uploadPickerPanel : null}
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
                     {copy.title}
@@ -2899,69 +3066,7 @@ export function FanletterCreatePage({
                       value={form.prompt}
                     />
                   </label>
-                ) : (
-                  <div className="rounded-2xl border border-white/12 bg-white/[0.06] p-4">
-                    <input
-                      accept={contentVideoMimeTypes.join(",")}
-                      className="hidden"
-                      onChange={(event) => {
-                        const file = event.target.files?.[0] ?? null;
-
-                        if (file) {
-                          void uploadFreeVideo(file);
-                        }
-
-                        event.currentTarget.value = "";
-                      }}
-                      ref={videoUploadInputRef}
-                      type="file"
-                    />
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-white">
-                          {copy.upload.select}
-                        </p>
-                        <p className="mt-1 text-xs font-medium leading-5 text-white/46">
-                          {copy.upload.fileHelp(uploadMaxSizeLabel)}
-                        </p>
-                      </div>
-                      <button
-                        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-2 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60"
-                        disabled={isUploadingVideo}
-                        onClick={() => {
-                          videoUploadInputRef.current?.click();
-                        }}
-                        type="button"
-                      >
-                        {isUploadingVideo ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          <Upload className="size-4" />
-                        )}
-                        {isUploadingVideo ? copy.upload.uploading : copy.upload.uploadCta}
-                      </button>
-                    </div>
-                    {isUploadingVideo ? (
-                      <div className="mt-4">
-                        <div className="h-2 overflow-hidden rounded-full bg-white/10">
-                          <div
-                            className="h-full rounded-full bg-[#44f26e] transition-[width]"
-                            style={{ width: `${Math.max(4, videoUploadProgress)}%` }}
-                          />
-                        </div>
-                        <p className="mt-2 text-xs font-semibold text-[#c9ffd5]">
-                          {copy.upload.progress(videoUploadProgress)}
-                        </p>
-                      </div>
-                    ) : null}
-                    {generatedMedia?.source === "upload" ? (
-                      <p className="mt-4 rounded-lg border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-2 text-xs font-semibold leading-5 text-[#d8ffe0]">
-                        {copy.upload.selected}:{" "}
-                        {generatedMedia.fileName ?? copy.upload.fallbackTitle}
-                      </p>
-                    ) : null}
-                  </div>
-                )}
+                ) : null}
               </div>
               {createSourceMode === "ai" ? (
                 <button
@@ -2985,7 +3090,7 @@ export function FanletterCreatePage({
             </section>
 
             <section
-              className="rounded-lg border border-white/12 bg-white/[0.055] p-4 sm:p-5"
+              className="rounded-lg border border-white/12 bg-white/[0.055] p-3 sm:p-5"
               ref={resultSectionRef}
             >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
@@ -3222,7 +3327,7 @@ export function FanletterCreatePage({
             </section>
           </div>
 
-          <section className="mt-4 rounded-lg border border-white/12 bg-white/[0.055] p-4 sm:p-5">
+          <section className="mt-3 rounded-lg border border-white/12 bg-white/[0.055] p-3 sm:mt-4 sm:p-5">
             <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr]">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
