@@ -39,15 +39,15 @@ export type FanletterReportsPageReport = {
   coverImageUrl: string | null;
   dek: string;
   editHref: string;
-  incentiveRewardPoints: number;
-  paidUnlockPurchaseCount: number;
-  paidUnlockRevenueUsdt: number;
+  incentiveRewardPoints?: number;
+  paidUnlockPurchaseCount?: number;
+  paidUnlockRevenueUsdt?: number;
   priceType: "free" | "paid";
   reportHref: string;
   reportId: string;
   sourceHref: string;
-  sourceRevealUnlockContributionCount: number;
-  sourceRevealVoteCount: number;
+  sourceRevealUnlockContributionCount?: number;
+  sourceRevealVoteCount?: number;
   sourcePublishedAt: string | null;
   teaserImageUrls: string[];
   sourceTitle: string;
@@ -472,6 +472,7 @@ export function FanletterReportsCoverManager({
   copy: pageCopy,
   locale,
   reports: initialReports,
+  variant = "desk-table",
 }: {
   copy?: {
     coverImage: string;
@@ -490,6 +491,7 @@ export function FanletterReportsCoverManager({
   };
   locale: Locale;
   reports: FanletterReportsPageReport[];
+  variant?: "card-grid" | "desk-table";
 }) {
   const copy = useMemo(() => getCopy(locale), [locale]);
   const listCopy = {
@@ -1041,7 +1043,142 @@ export function FanletterReportsCoverManager({
 
   return (
     <>
-      <section className="mt-6">
+      <section className="mt-5 sm:mt-6">
+        {variant === "card-grid" ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {reports.map((report, index) => {
+              const updatedAt = formatDate(report.updatedAt, locale);
+              const teaserUrls = report.teaserImageUrls.slice(
+                0,
+                REPORT_TEASER_IMAGE_LIMIT,
+              );
+              const shouldBypassCoverImageOptimization =
+                shouldBypassFanletterImageOptimization(report.coverImageUrl);
+
+              return (
+                <article
+                  className="overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_16px_38px_rgba(17,21,16,0.06)] transition hover:-translate-y-0.5 hover:border-[#19b84b]/45 hover:shadow-[0_22px_50px_rgba(17,21,16,0.1)]"
+                  key={report.reportId}
+                >
+                  <Link
+                    className="group relative block aspect-[16/10] overflow-hidden bg-[#111510]"
+                    href={report.reportHref}
+                  >
+                    {report.coverImageUrl ? (
+                      <Image
+                        alt={report.title}
+                        className="object-cover transition duration-300 group-hover:scale-[1.035]"
+                        fill
+                        loading={index === 0 ? "eager" : "lazy"}
+                        sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 380px"
+                        src={report.coverImageUrl}
+                        unoptimized={shouldBypassCoverImageOptimization}
+                      />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <Newspaper className="size-10 text-[#44f26e]" />
+                      </div>
+                    )}
+                    <div className="absolute left-2 top-2 flex max-w-[calc(100%-1rem)] flex-wrap gap-1.5">
+                      <span className="inline-flex items-center rounded-full bg-white/90 px-2.5 py-1 text-[0.64rem] font-black uppercase tracking-[0.08em] text-[#111510] shadow-sm backdrop-blur">
+                        {report.priceType === "paid"
+                          ? copy.priceType.paid
+                          : copy.priceType.public}
+                      </span>
+                      {report.contentMaturityRating === "nsfw" ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-black/72 px-2.5 py-1 text-[0.64rem] font-black uppercase tracking-[0.08em] text-white shadow-sm backdrop-blur">
+                          <ShieldAlert className="size-3 text-[#ff6b7d]" />
+                          {copy.maturityRating.nsfw}
+                        </span>
+                      ) : null}
+                    </div>
+                  </Link>
+
+                  <div className="p-4">
+                    <Link
+                      className="line-clamp-2 break-words text-xl font-black leading-[1.18] !text-[#111510] transition hover:!text-[#16702e] [word-break:keep-all]"
+                      href={report.reportHref}
+                    >
+                      {report.title}
+                    </Link>
+                    <p className="mt-2 line-clamp-2 text-sm font-medium leading-6 text-black/58">
+                      {report.dek}
+                    </p>
+
+                    <div className="mt-4 rounded-lg border border-black/8 bg-[#f6f8f4] px-3 py-3">
+                      <Link
+                        className="flex min-w-0 items-center gap-2 text-sm font-black !text-[#111510] transition hover:!text-[#16702e]"
+                        href={report.sourceHref}
+                      >
+                        <Clapperboard className="size-4 shrink-0 text-[#16702e]" />
+                        <span className="line-clamp-1">{report.sourceTitle}</span>
+                      </Link>
+                      <div className="mt-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-black/46">
+                        <span className="truncate">{report.creatorName}</span>
+                        {updatedAt ? (
+                          <span className="inline-flex items-center gap-1">
+                            <CalendarDays className="size-3.5 text-[#16702e]" />
+                            {updatedAt}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    {teaserUrls.length > 0 ? (
+                      <div className="mt-3 grid grid-cols-4 gap-1.5">
+                        {teaserUrls.map((imageUrl, teaserIndex) => (
+                          <div
+                            className="relative aspect-video overflow-hidden rounded-md bg-[#111510]"
+                            key={`${report.reportId}-teaser-${imageUrl}-${teaserIndex}`}
+                          >
+                            <Image
+                              alt=""
+                              aria-hidden="true"
+                              className="object-cover"
+                              fill
+                              loading="lazy"
+                              sizes="90px"
+                              src={imageUrl}
+                              unoptimized={shouldBypassFanletterImageOptimization(
+                                imageUrl,
+                              )}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 border-t border-black/10 p-3 sm:grid-cols-3">
+                    <Link
+                      className="col-span-2 inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full bg-[#111510] px-3 text-sm font-black !text-white transition hover:bg-black sm:col-span-1"
+                      href={report.reportHref}
+                    >
+                      <ExternalLink className="size-4 text-[#44f26e]" />
+                      <span className="truncate">{listCopy.openReport}</span>
+                    </Link>
+                    <Link
+                      className="inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full border border-black/12 bg-white px-3 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                      href={report.editHref}
+                    >
+                      <Edit3 className="size-4 shrink-0 text-[#16702e]" />
+                      <span className="truncate">{listCopy.editReport}</span>
+                    </Link>
+                    <button
+                      className="inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full border border-black/12 bg-white px-3 text-sm font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                      onClick={() => openCoverModal(report)}
+                      type="button"
+                    >
+                      <ImageIcon className="size-4 shrink-0 text-[#16702e]" />
+                      <span className="truncate">{listCopy.updateCover}</span>
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <>
         <div className="hidden overflow-hidden border border-black/12 bg-white shadow-[0_18px_44px_rgba(17,21,16,0.07)] xl:block">
           <table className="w-full table-fixed border-collapse text-left">
             <thead className="border-b border-black/12 bg-[#f6f8f4] text-[0.68rem] font-black uppercase tracking-[0.12em] text-black/46">
@@ -1141,7 +1278,10 @@ export function FanletterReportsCoverManager({
                             {listCopy.sourceRevealVotes}
                           </p>
                           <p className="mt-1 text-sm font-black text-[#111510]">
-                            {formatNumber(report.sourceRevealVoteCount, locale)}
+                            {formatNumber(
+                              report.sourceRevealVoteCount ?? 0,
+                              locale,
+                            )}
                           </p>
                         </div>
                         <div className="rounded-lg border border-black/8 bg-[#f6f8f4] px-2 py-2">
@@ -1150,7 +1290,7 @@ export function FanletterReportsCoverManager({
                           </p>
                           <p className="mt-1 text-sm font-black text-[#111510]">
                             {formatNumber(
-                              report.sourceRevealUnlockContributionCount,
+                              report.sourceRevealUnlockContributionCount ?? 0,
                               locale,
                             )}
                           </p>
@@ -1160,7 +1300,10 @@ export function FanletterReportsCoverManager({
                             {listCopy.paidPurchases}
                           </p>
                           <p className="mt-1 text-sm font-black text-[#111510]">
-                            {formatNumber(report.paidUnlockPurchaseCount, locale)}
+                            {formatNumber(
+                              report.paidUnlockPurchaseCount ?? 0,
+                              locale,
+                            )}
                           </p>
                         </div>
                         <div className="rounded-lg border border-[#19b84b]/18 bg-[#ecfff0] px-2 py-2">
@@ -1168,7 +1311,10 @@ export function FanletterReportsCoverManager({
                             {listCopy.revenueShare}
                           </p>
                           <p className="mt-1 text-sm font-black text-[#16702e]">
-                            {formatUsdt(report.paidUnlockRevenueUsdt, locale)}
+                            {formatUsdt(
+                              report.paidUnlockRevenueUsdt ?? 0,
+                              locale,
+                            )}
                           </p>
                         </div>
                         <div className="col-span-2 rounded-lg border border-[#19b84b]/18 bg-[#ecfff0] px-2 py-2">
@@ -1176,7 +1322,11 @@ export function FanletterReportsCoverManager({
                             {listCopy.rewardPoints}
                           </p>
                           <p className="mt-1 text-sm font-black text-[#16702e]">
-                            {formatNumber(report.incentiveRewardPoints, locale)}P
+                            {formatNumber(
+                              report.incentiveRewardPoints ?? 0,
+                              locale,
+                            )}
+                            P
                           </p>
                         </div>
                       </div>
@@ -1292,7 +1442,10 @@ export function FanletterReportsCoverManager({
                           {listCopy.sourceRevealVotes}
                         </p>
                         <p className="mt-0.5 text-xs font-black">
-                          {formatNumber(report.sourceRevealVoteCount, locale)}
+                          {formatNumber(
+                            report.sourceRevealVoteCount ?? 0,
+                            locale,
+                          )}
                         </p>
                       </div>
                       <div className="rounded-md border border-black/8 bg-[#f6f8f4] px-2 py-1.5">
@@ -1301,7 +1454,7 @@ export function FanletterReportsCoverManager({
                         </p>
                         <p className="mt-0.5 text-xs font-black">
                           {formatNumber(
-                            report.sourceRevealUnlockContributionCount,
+                            report.sourceRevealUnlockContributionCount ?? 0,
                             locale,
                           )}
                         </p>
@@ -1311,7 +1464,10 @@ export function FanletterReportsCoverManager({
                           {listCopy.paidPurchases}
                         </p>
                         <p className="mt-0.5 text-xs font-black text-[#16702e]">
-                          {formatNumber(report.paidUnlockPurchaseCount, locale)}
+                          {formatNumber(
+                            report.paidUnlockPurchaseCount ?? 0,
+                            locale,
+                          )}
                         </p>
                       </div>
                       <div className="rounded-md border border-[#19b84b]/18 bg-[#ecfff0] px-2 py-1.5">
@@ -1319,7 +1475,7 @@ export function FanletterReportsCoverManager({
                           {listCopy.revenueShare}
                         </p>
                         <p className="mt-0.5 text-xs font-black text-[#16702e]">
-                          {formatUsdt(report.paidUnlockRevenueUsdt, locale)}
+                          {formatUsdt(report.paidUnlockRevenueUsdt ?? 0, locale)}
                         </p>
                       </div>
                       <div className="col-span-2 rounded-md border border-[#19b84b]/18 bg-[#ecfff0] px-2 py-1.5">
@@ -1327,7 +1483,11 @@ export function FanletterReportsCoverManager({
                           {listCopy.rewardPoints}
                         </p>
                         <p className="mt-0.5 text-xs font-black text-[#16702e]">
-                          {formatNumber(report.incentiveRewardPoints, locale)}P
+                          {formatNumber(
+                            report.incentiveRewardPoints ?? 0,
+                            locale,
+                          )}
+                          P
                         </p>
                       </div>
                     </div>
@@ -1365,6 +1525,8 @@ export function FanletterReportsCoverManager({
             );
           })}
         </div>
+          </>
+        )}
       </section>
 
       {activeReport ? (

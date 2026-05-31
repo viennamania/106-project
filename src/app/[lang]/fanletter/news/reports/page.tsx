@@ -5,15 +5,12 @@ import { notFound, redirect } from "next/navigation";
 import {
   ArrowRight,
   BadgeCheck,
-  BarChart3,
   BookOpenCheck,
   ImageIcon,
   Newspaper,
   ShieldAlert,
-  ShieldCheck,
   SlidersHorizontal,
   Sparkles,
-  TrendingUp,
   WalletCards,
 } from "lucide-react";
 
@@ -50,25 +47,25 @@ type ReportMaturityFilter = "all" | ContentMaturityRating;
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
-        badge: "FanLetter News 리포터",
+        badge: "내 FanLetter News",
         body:
-          "팬 기자가 AI 캐릭터의 팬 파트너가 되어 리포트로 관심을 만들고, 보고싶어요·언락·유료 구매 기여를 수익 공유 기준으로 관리합니다.",
+          "내가 만든 팬 리포트를 독자가 보는 뉴스 카드처럼 모아보고, 필요한 리포트만 다시 열어 수정하세요.",
         connectBody:
-          "FanLetter News에서 리포터로 활동한 회원만 볼 수 있는 관리 페이지입니다. 계정을 연결하면 작성한 뉴스 리포트와 보상 성과가 표시됩니다.",
+          "내가 작성한 팬 리포트를 보려면 FanLetter News 계정을 연결하세요. 연결 후 내 뉴스와 작성 흐름을 바로 이어갈 수 있습니다.",
         connectCta: "뉴스 계정 연결",
-        connectTitle: "뉴스 리포터 계정 연결이 필요합니다.",
+        connectTitle: "FanLetter News 연결이 필요합니다.",
         coverDesk: "커버",
         coverDeskValue: "편집 가능",
         coverImage: "커버",
         deskBody:
-          "뉴스 소비자에게 노출되는 뉴스, 원본 브이로그 이동, 커버 변경, 인센티브 성과를 모바일에서도 바로 확인할 수 있습니다.",
-        deskEyebrow: "Reporter Desk",
-        deskTitle: "뉴스 리포터 운영 현황",
+          "발행한 팬 리포트, 원본 브이로그, 이미지 수정 진입을 한 화면에서 편하게 확인합니다.",
+        deskEyebrow: "My reports",
+        deskTitle: "내 팬 리포트",
         editReport: "내용 수정",
         emptyBody:
-          "아직 뉴스 리포터로 작성한 AI 팬 리포트가 없습니다. 공개 브이로그에서 AI 리포트를 만들면 이곳에 모입니다.",
+          "아직 작성한 AI 팬 리포트가 없습니다. 공개 브이로그에서 마음에 드는 장면을 골라 첫 리포트를 만들어보세요.",
         emptyCta: "뉴스 브이로그 보기",
-        emptyTitle: "관리할 뉴스 리포트가 없습니다.",
+        emptyTitle: "아직 만든 팬 리포트가 없습니다.",
         filterReset: "전체 보기",
         filteredEmptyBody:
           "선택한 NSFW 기준에 해당하는 리포트가 없습니다. 필터를 바꾸면 다른 리포트를 바로 확인할 수 있습니다.",
@@ -95,12 +92,12 @@ function getCopy(locale: Locale) {
           nsfw: "NSFW",
         },
         maturityBody:
-          "뉴스에 노출되는 리포트의 성인 콘텐츠 여부를 기준으로 목록을 나누고, 커버/원본 브이로그/성과를 같은 화면에서 확인합니다.",
+          "전체, 일반, NSFW 리포트를 골라 내 뉴스 카드를 빠르게 찾아볼 수 있습니다.",
         maturityFilterLabel: "콘텐츠 등급 필터",
         maturityGeneral: "일반 리포트",
         maturityNsfw: "NSFW 리포트",
-        maturityOverview: "콘텐츠 등급 관리",
-        maturityTitle: "NSFW 리포트를 따로 점검하세요",
+        maturityOverview: "리포트 모아보기",
+        maturityTitle: "내 뉴스 카드 보기",
         nav: {
           characters: "AI 캐릭터",
           connect: "지갑",
@@ -108,8 +105,8 @@ function getCopy(locale: Locale) {
           purchases: "구매함",
         },
         nsfwGuideBody:
-          "NSFW 리포트는 목록에서 명확히 표시됩니다. 커버 이미지와 뉴스 제목을 확인한 뒤 성인 팬 전용 콘텐츠로 운영할지 빠르게 점검하세요.",
-        nsfwGuideTitle: "성인 콘텐츠 표시",
+          "NSFW 리포트는 카드에 별도 표시됩니다. 원하는 등급만 골라 편하게 확인하세요.",
+        nsfwGuideTitle: "NSFW 리포트",
         openReport: "뉴스 보기",
         pagination: {
           label: "뉴스 리포트 페이지",
@@ -145,31 +142,31 @@ function getCopy(locale: Locale) {
         sourceRevealVotes: "보고싶어요",
         statusCompleted: "활동 중",
         statusPending: "계정 준비 중",
-        title: "뉴스 리포터 리포트 관리",
+        title: "내 팬 리포트",
         unlockContributions: "언락 기여",
         updateCover: "커버/티저 변경",
         updatedAt: "최근 수정",
       }
     : {
-        badge: "FanLetter News reporter",
+        badge: "My FanLetter News",
         body:
-          "Fan reporters become AI character fan partners, creating demand through reports and tracking want-to-watch, unlock, and paid purchase contribution for revenue-sharing basis.",
+          "Browse the fan reports you created as reader-facing news cards, then reopen only the stories you want to update.",
         connectBody:
-          "This desk is for members who report inside FanLetter News. Connect your account to see your news reports and rewards.",
+          "Connect your FanLetter News account to see the fan reports you created and continue your writing flow.",
         connectCta: "Connect news account",
-        connectTitle: "Connect your news reporter account.",
+        connectTitle: "Connect FanLetter News.",
         coverDesk: "Cover",
         coverDeskValue: "Editable",
         coverImage: "Cover",
         deskBody:
-          "Review the news shown to readers, source-vlog flow, cover editing, and incentive performance from desktop or mobile.",
-        deskEyebrow: "Reporter Desk",
-        deskTitle: "News reporter operations",
+          "Review your published fan reports, source vlogs, and image-edit entry points in one simple view.",
+        deskEyebrow: "My reports",
+        deskTitle: "My fan reports",
         editReport: "Edit report",
         emptyBody:
-          "You have not created AI fan reports as a news reporter yet. Reports created from public vlogs will appear here.",
+          "You have not created an AI fan report yet. Pick a public vlog scene and publish your first report.",
         emptyCta: "Browse news vlogs",
-        emptyTitle: "No news reports to manage.",
+        emptyTitle: "No fan reports yet.",
         filterReset: "View all",
         filteredEmptyBody:
           "There are no reports matching the selected NSFW filter. Switch filters to review the rest of your reports.",
@@ -196,12 +193,12 @@ function getCopy(locale: Locale) {
           nsfw: "NSFW",
         },
         maturityBody:
-          "Split your News reports by adult-content status while reviewing covers, source vlogs, and performance in the same desk.",
+          "Filter all, general, and NSFW reports to quickly find your own news cards.",
         maturityFilterLabel: "Content rating filter",
         maturityGeneral: "General reports",
         maturityNsfw: "NSFW reports",
-        maturityOverview: "Content rating desk",
-        maturityTitle: "Review NSFW reports separately",
+        maturityOverview: "Browse reports",
+        maturityTitle: "My news cards",
         nav: {
           characters: "AI Characters",
           connect: "Wallet",
@@ -209,8 +206,8 @@ function getCopy(locale: Locale) {
           purchases: "Purchases",
         },
         nsfwGuideBody:
-          "NSFW reports are clearly marked in the list. Review the cover image and headline before operating it as adult fan-only content.",
-        nsfwGuideTitle: "Adult-content labeling",
+          "NSFW reports are marked on cards. Pick a rating filter to browse comfortably.",
+        nsfwGuideTitle: "NSFW reports",
         openReport: "Open news",
         pagination: {
           label: "News report pages",
@@ -246,7 +243,7 @@ function getCopy(locale: Locale) {
         sourceRevealVotes: "Want-to-watch",
         statusCompleted: "Active",
         statusPending: "Account pending",
-        title: "News reporter report desk",
+        title: "My fan reports",
         unlockContributions: "Unlocks",
         updateCover: "Cover/teasers",
         updatedAt: "Updated",
@@ -255,13 +252,6 @@ function getCopy(locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
-}
-
-function formatUsdt(value: number, locale: Locale) {
-  return `${new Intl.NumberFormat(locale, {
-    maximumFractionDigits: 2,
-    minimumFractionDigits: value > 0 && value < 1 ? 2 : 0,
-  }).format(value)} USDT`;
 }
 
 function readPageNumber(value?: string | string[]) {
@@ -411,17 +401,11 @@ export default async function LocalizedFanletterNewsReportsPage({
         reportCount: 0,
         reports: [],
       };
-  const [overviewIncentiveStats, pageIncentiveStats] = data.member
-    ? await Promise.all([
-        getFanletterNewsReporterIncentiveStats({
-          reporterReferralCode: data.member.referralCode,
-        }),
-        getFanletterNewsReporterIncentiveStats({
-          reporterReferralCode: data.member.referralCode,
-          reportIds: data.reports.map((report) => report.reportId),
-        }),
-      ])
-    : [null, null];
+  const overviewIncentiveStats = data.member
+    ? await getFanletterNewsReporterIncentiveStats({
+        reporterReferralCode: data.member.referralCode,
+      })
+    : null;
   const effectiveReferralCode = referralCode ?? data.member?.referralCode ?? null;
   const newsHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/news`,
@@ -499,81 +483,6 @@ export default async function LocalizedFanletterNewsReportsPage({
   const reporterTrustLevelLabel = reporterTrust
     ? getReporterTrustLevelLabel(copy, reporterTrust.level)
     : null;
-  const reporterTrustNextLabel =
-    reporterTrust && reporterTrust.nextLevel
-      ? copy.reporterTrust.next(
-          getReporterTrustLevelLabel(copy, reporterTrust.nextLevel),
-          formatNumber(reporterTrust.pointsToNextLevel, locale),
-        )
-      : copy.reporterTrust.max;
-  const reporterStats = data.member
-    ? [
-        {
-          label: copy.reporterId,
-          value: `@${data.member.referralCode}`,
-        },
-        {
-          label: copy.reporterStatus,
-          value: reporterStatusLabel,
-        },
-        {
-          label: copy.coverDesk,
-          value: copy.coverDeskValue,
-        },
-        {
-          label: copy.sourceRevealVotes,
-          value: formatNumber(
-            overviewIncentiveStats?.overview.sourceRevealVoteCount ?? 0,
-            locale,
-          ),
-        },
-        {
-          label: copy.unlockContributions,
-          value: formatNumber(
-            overviewIncentiveStats?.overview
-              .sourceRevealUnlockContributionCount ?? 0,
-            locale,
-          ),
-        },
-        {
-          label: copy.partnerModel.paidPurchases,
-          value: formatNumber(
-            overviewIncentiveStats?.overview.paidUnlockPurchaseCount ?? 0,
-            locale,
-          ),
-        },
-        {
-          label: copy.partnerModel.attributedRevenue,
-          value: formatUsdt(
-            overviewIncentiveStats?.overview.paidUnlockRevenueUsdt ?? 0,
-            locale,
-          ),
-        },
-        {
-          label: copy.maturityNsfw,
-          value: formatNumber(data.maturityCounts.nsfw, locale),
-        },
-        {
-          label: copy.maturityGeneral,
-          value: formatNumber(data.maturityCounts.general, locale),
-        },
-        {
-          label: copy.reporterTrust.label,
-          value: reporterTrust
-            ? copy.reporterTrust.score(formatNumber(reporterTrust.score, locale))
-            : "-",
-        },
-        {
-          label: copy.incentiveReward,
-          value: copy.rewardPoints(
-            formatNumber(
-              overviewIncentiveStats?.overview.rewardPoints ?? 0,
-              locale,
-            ),
-          ),
-        },
-      ]
-    : [];
   const totalPages = Math.max(
     1,
     Math.ceil(data.reportCount / NEWS_REPORTS_PAGE_SIZE),
@@ -620,14 +529,6 @@ export default async function LocalizedFanletterNewsReportsPage({
   const selectedMaturityLabel = copy.maturity[maturityFilter];
   const hasAnyReports = data.maturityCounts.all > 0;
   const reportItems: FanletterReportsPageReport[] = data.reports.map((report) => {
-    const reportIncentives =
-      pageIncentiveStats?.reports.get(report.reportId) ?? {
-        paidUnlockPurchaseCount: 0,
-        paidUnlockRevenueUsdt: 0,
-        rewardPoints: 0,
-        sourceRevealUnlockContributionCount: 0,
-        sourceRevealVoteCount: 0,
-      };
     const reportHref = buildPathWithReferral(
       `/${locale}/fanletter/news/${report.reportId}`,
       effectiveReferralCode,
@@ -655,17 +556,11 @@ export default async function LocalizedFanletterNewsReportsPage({
       contentMaturityRating: report.contentMaturityRating,
       dek: report.dek,
       editHref,
-      incentiveRewardPoints: reportIncentives.rewardPoints,
-      paidUnlockPurchaseCount: reportIncentives.paidUnlockPurchaseCount,
-      paidUnlockRevenueUsdt: reportIncentives.paidUnlockRevenueUsdt,
       priceType: report.priceType,
       reportHref,
       reportId: report.reportId,
       sourceHref,
       sourceTitle: report.sourceTitle,
-      sourceRevealUnlockContributionCount:
-        reportIncentives.sourceRevealUnlockContributionCount,
-      sourceRevealVoteCount: reportIncentives.sourceRevealVoteCount,
       sourcePublishedAt: report.sourcePublishedAt?.toISOString() ?? null,
       teaserImageUrls: report.teaserImageUrls ?? [],
       title: report.title,
@@ -702,7 +597,7 @@ export default async function LocalizedFanletterNewsReportsPage({
         serverSessionWalletAddress={session?.walletAddress ?? null}
       />
       <section className="mx-auto max-w-6xl">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/12 pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3">
           <Link
             className="inline-flex items-center gap-2 text-sm font-black !text-[#16702e]"
             href={newsHomeHref}
@@ -728,253 +623,141 @@ export default async function LocalizedFanletterNewsReportsPage({
           </nav>
         </div>
 
-        <div className="grid gap-4 py-5 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,27rem)] lg:items-stretch">
-          <div className="flex min-h-[21rem] flex-col justify-between border border-black/12 bg-white p-5 shadow-[0_18px_46px_rgba(17,21,16,0.07)] sm:p-7">
-            <div>
+        <section className="overflow-hidden border border-black/10 bg-white shadow-[0_18px_46px_rgba(17,21,16,0.06)]">
+          <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_22rem]">
+            <div className="p-5 sm:p-7">
               <p className="inline-flex items-center gap-1.5 border border-[#16702e]/20 bg-[#f6f8f4] px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
                 <BadgeCheck className="size-3.5" />
                 {copy.badge}
               </p>
-              <h1 className="mt-4 max-w-3xl text-[2rem] font-black leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
+              <h1 className="mt-4 max-w-3xl text-[2.1rem] font-black leading-[1.04] tracking-normal [word-break:keep-all] sm:text-[3.2rem]">
                 {copy.title}
               </h1>
               <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-black/60 sm:text-base sm:leading-7">
                 {copy.body}
               </p>
-            </div>
-            <div className="mt-6 grid grid-cols-2 gap-2 sm:hidden">
-              {topNavItems.map((item) => {
-                const Icon = item.icon;
-
-                return (
-                  <Link
-                    className="inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full border border-black/10 bg-[#f6f8f4] px-2 text-xs font-black !text-[#111510]"
-                    href={item.href}
-                    key={item.label}
-                  >
-                    <Icon className="size-3.5 shrink-0 text-[#16702e]" />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-
-          <aside className="border border-black/12 bg-[#111510] p-5 text-white shadow-[0_18px_46px_rgba(17,21,16,0.16)] sm:p-6">
-            <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
-              <BarChart3 className="size-3.5" />
-              {copy.deskEyebrow}
-            </p>
-            <h2 className="mt-3 text-2xl font-black leading-tight tracking-normal [word-break:keep-all]">
-              {copy.deskTitle}
-            </h2>
-            <p className="mt-2 text-sm font-semibold leading-6 text-white/62">
-              {copy.deskBody}
-            </p>
-            {data.member ? (
-              <>
-                <div className="mt-5 flex min-w-0 items-center gap-3 border-y border-white/12 py-4">
-                  <span className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-lg font-black text-[#16702e] ring-1 ring-white/12">
-                    {data.member.avatarImageUrl ? (
-                      <Image
-                        alt={copy.reporterLogo}
-                        className="object-cover"
-                        fill
-                        sizes="3.5rem"
-                        src={data.member.avatarImageUrl}
-                        unoptimized={shouldBypassFanletterImageOptimization(
-                          data.member.avatarImageUrl,
-                        )}
-                      />
-                    ) : (
-                      reporterInitial
-                    )}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#44f26e]">
-                      {copy.reporterProfile}
-                    </p>
-                    <p className="mt-1 truncate text-lg font-black leading-tight">
-                      {data.member.displayName}
-                    </p>
-                    <p className="mt-1 truncate text-xs font-bold text-white/46">
-                      @{data.member.referralCode}
-                    </p>
-                  </div>
-                </div>
-                {reporterTrust && reporterTrustLevelLabel ? (
-                  <div className="mt-4 border border-[#44f26e]/18 bg-white/[0.06] p-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
-                        <ShieldCheck className="size-3.5" />
-                        {copy.reporterTrust.title}
-                      </p>
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.68rem] font-black text-[#111510]">
-                        <TrendingUp className="size-3.5" />
-                        {copy.reporterTrust.score(
-                          formatNumber(reporterTrust.score, locale),
-                        )}
-                      </span>
-                    </div>
-                    <p className="mt-3 text-xl font-black leading-tight">
-                      {reporterTrustLevelLabel}
-                    </p>
-                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/12">
-                      <div
-                        className="h-full rounded-full bg-[#44f26e]"
-                        style={{ width: `${reporterTrust.progressPercent}%` }}
-                      />
-                    </div>
-                    <p className="mt-2 text-xs font-semibold leading-5 text-white/54">
-                      {copy.reporterTrust.basis} · {reporterTrustNextLabel}
-                    </p>
-                  </div>
-                ) : null}
-                <p className="mt-4 text-xl font-black">
-                  {copy.reportCount(
-                    formatNumber(data.maturityCounts.all, locale),
-                  )}
-                </p>
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  {reporterStats.map((stat) => (
-                    <div
-                      className="border border-white/10 bg-white/[0.06] px-3 py-2"
-                      key={stat.label}
-                    >
-                      <p className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-white/38">
-                        {stat.label}
-                      </p>
-                      <p className="mt-1 truncate text-sm font-black">
-                        {stat.value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
+              <div className="mt-6 flex flex-col gap-2 sm:flex-row">
                 <Link
-                  className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-[#111510] transition hover:bg-[#65ff86]"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-[#111510] transition hover:bg-[#65ff86]"
                   href={effectiveNewReportHref}
                 >
                   {copy.newReportCta}
                   <ArrowRight className="size-4" />
                 </Link>
-              </>
-            ) : (
-              <p className="mt-5 inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-[#111510]">
-                {copy.memberOnly}
-              </p>
-            )}
-          </aside>
-        </div>
+                <Link
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-black/10 bg-[#f6f8f4] px-5 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                  href={newsHomeHref}
+                >
+                  <Newspaper className="size-4 text-[#16702e]" />
+                  {copy.nav.home}
+                </Link>
+              </div>
+              <div className="mt-5 grid grid-cols-2 gap-2 sm:hidden">
+                {topNavItems.map((item) => {
+                  const Icon = item.icon;
 
-        {data.member ? (
-          <section className="mt-2 grid gap-3 lg:grid-cols-[minmax(0,1fr)_21rem]">
-            <div className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
-              <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
-                <Sparkles className="size-3.5" />
-                {copy.partnerModel.eyebrow}
-              </p>
-              <h2 className="mt-3 max-w-3xl text-2xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-3xl">
-                {copy.partnerModel.title}
-              </h2>
-              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-black/58">
-                {copy.partnerModel.body}
-              </p>
-              <div className="mt-4 grid gap-2 sm:grid-cols-3">
-                {copy.partnerModel.steps.map((step, index) => (
-                  <div
-                    className="border border-black/10 bg-[#f6f8f4] px-3 py-3"
-                    key={step}
-                  >
-                    <p className="text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
-                      {String(index + 1).padStart(2, "0")}
+                  return (
+                    <Link
+                      className="inline-flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-full border border-black/10 bg-[#f6f8f4] px-2 text-xs font-black !text-[#111510]"
+                      href={item.href}
+                      key={item.label}
+                    >
+                      <Icon className="size-3.5 shrink-0 text-[#16702e]" />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+
+            <aside className="border-t border-black/10 bg-[#f6f8f4] p-5 lg:border-l lg:border-t-0">
+              {data.member ? (
+                <div className="flex h-full flex-col justify-between">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <span className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white text-xl font-black text-[#16702e] ring-1 ring-black/10">
+                      {data.member.avatarImageUrl ? (
+                        <Image
+                          alt={copy.reporterLogo}
+                          className="object-cover"
+                          fill
+                          sizes="3.5rem"
+                          src={data.member.avatarImageUrl}
+                          unoptimized={shouldBypassFanletterImageOptimization(
+                            data.member.avatarImageUrl,
+                          )}
+                        />
+                      ) : (
+                        reporterInitial
+                      )}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
+                        {copy.reporterProfile}
+                      </p>
+                      <p className="mt-1 truncate text-lg font-black leading-tight">
+                        {data.member.displayName}
+                      </p>
+                      <p className="mt-1 truncate text-xs font-bold text-black/46">
+                        @{data.member.referralCode}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-5 grid grid-cols-2 gap-2">
+                    <div className="border border-black/10 bg-white px-3 py-3">
+                      <p className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/38">
+                        {copy.reportTitle}
+                      </p>
+                      <p className="mt-1 text-xl font-black">
+                        {formatNumber(data.maturityCounts.all, locale)}
+                      </p>
+                    </div>
+                    <div className="border border-black/10 bg-white px-3 py-3">
+                      <p className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-black/38">
+                        {copy.reporterStatus}
+                      </p>
+                      <p className="mt-1 truncate text-sm font-black">
+                        {reporterStatusLabel}
+                      </p>
+                    </div>
+                    {reporterTrustLevelLabel ? (
+                      <div className="col-span-2 border border-[#19b84b]/18 bg-[#ecfff0] px-3 py-3">
+                        <p className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-[#16702e]/70">
+                          {copy.reporterTrust.label}
+                        </p>
+                        <p className="mt-1 truncate text-sm font-black text-[#16702e]">
+                          {reporterTrustLevelLabel}
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex h-full flex-col justify-between gap-5">
+                  <div>
+                    <p className="inline-flex size-11 items-center justify-center rounded-full bg-white text-[#16702e] ring-1 ring-black/10">
+                      <WalletCards className="size-5" />
                     </p>
-                    <p className="mt-1 text-sm font-black text-[#111510]">
-                      {step}
+                    <h2 className="mt-4 text-xl font-black leading-tight tracking-normal [word-break:keep-all]">
+                      {copy.connectTitle}
+                    </h2>
+                    <p className="mt-2 text-sm font-semibold leading-6 text-black/56">
+                      {copy.connectBody}
                     </p>
                   </div>
-                ))}
-              </div>
-              <Link
-                className="mt-4 flex items-center justify-between gap-4 border border-[#19b84b]/20 bg-[#ecfff0] px-4 py-3 !text-[#111510] transition hover:border-[#19b84b]/45 hover:bg-white"
-                href={effectiveNewReportHref}
-              >
-                <span className="min-w-0">
-                  <span className="block text-sm font-black">
-                    {copy.newReportTitle}
-                  </span>
-                  <span className="mt-1 block text-xs font-semibold leading-5 text-black/56">
-                    {copy.newReportBody}
-                  </span>
-                </span>
-                <ArrowRight className="size-5 shrink-0 text-[#16702e]" />
-              </Link>
-            </div>
-            <aside className="border border-[#16702e]/18 bg-[#111510] p-4 text-white shadow-[0_14px_34px_rgba(17,21,16,0.14)] sm:p-5">
-              <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
-                <WalletCards className="size-3.5" />
-                {copy.partnerModel.attributedRevenue}
-              </p>
-              <p className="mt-3 text-3xl font-black leading-none">
-                {formatUsdt(
-                  overviewIncentiveStats?.overview.paidUnlockRevenueUsdt ?? 0,
-                  locale,
-                )}
-              </p>
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <div className="border border-white/10 bg-white/[0.06] px-3 py-2">
-                  <p className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-white/38">
-                    {copy.partnerModel.paidPurchases}
-                  </p>
-                  <p className="mt-1 text-sm font-black">
-                    {formatNumber(
-                      overviewIncentiveStats?.overview
-                        .paidUnlockPurchaseCount ?? 0,
-                      locale,
-                    )}
-                  </p>
+                  <Link
+                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black"
+                    href={connectHref}
+                  >
+                    {copy.connectCta}
+                    <ArrowRight className="size-4 text-[#44f26e]" />
+                  </Link>
                 </div>
-                <div className="border border-[#44f26e]/20 bg-[#44f26e]/10 px-3 py-2">
-                  <p className="text-[0.6rem] font-black uppercase tracking-[0.1em] text-[#b9ffc8]/68">
-                    {copy.incentiveReward}
-                  </p>
-                  <p className="mt-1 text-sm font-black text-[#b9ffc8]">
-                    {copy.rewardPoints(
-                      formatNumber(
-                        overviewIncentiveStats?.overview.rewardPoints ?? 0,
-                        locale,
-                      ),
-                    )}
-                  </p>
-                </div>
-              </div>
+              )}
             </aside>
-          </section>
-        ) : null}
+          </div>
+        </section>
 
-        {!session || !data.member ? (
-          <section className="mt-2 border border-black/12 bg-white p-5 shadow-[0_18px_46px_rgba(17,21,16,0.08)] sm:p-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="max-w-xl">
-                <p className="inline-flex size-11 items-center justify-center rounded-full bg-[#111510] text-[#44f26e]">
-                  <WalletCards className="size-5" />
-                </p>
-                <h2 className="mt-4 text-2xl font-black tracking-normal">
-                  {copy.connectTitle}
-                </h2>
-                <p className="mt-2 text-sm font-medium leading-6 text-black/58">
-                  {copy.connectBody}
-                </p>
-              </div>
-              <Link
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black"
-                href={connectHref}
-              >
-                {copy.connectCta}
-                <ArrowRight className="size-4 text-[#44f26e]" />
-              </Link>
-            </div>
-          </section>
-        ) : !hasAnyReports ? (
+        {!session || !data.member ? null : !hasAnyReports ? (
           <section className="mt-2 border border-dashed border-black/16 bg-white p-6 text-center shadow-[0_18px_46px_rgba(17,21,16,0.06)]">
             <ImageIcon className="mx-auto size-9 text-[#16702e]" />
             <h2 className="mt-4 text-2xl font-black tracking-normal">
@@ -993,71 +776,60 @@ export default async function LocalizedFanletterNewsReportsPage({
           </section>
         ) : (
           <>
-            <section className="mt-2 grid gap-3 lg:grid-cols-[minmax(0,1fr)_20rem]">
-              <div className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.06)] sm:p-5">
-                <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
-                  <SlidersHorizontal className="size-3.5" />
-                  {copy.maturityOverview}
-                </p>
-                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                  <div className="max-w-2xl">
-                    <h2 className="text-2xl font-black leading-tight tracking-normal [word-break:keep-all]">
-                      {copy.maturityTitle}
-                    </h2>
-                    <p className="mt-2 text-sm font-semibold leading-6 text-black/56">
-                      {copy.maturityBody}
-                    </p>
-                  </div>
-                  <div
-                    aria-label={copy.maturityFilterLabel}
-                    className="flex flex-wrap gap-2"
-                  >
-                    {maturityFilterItems.map((item) => {
-                      const isActive = item.key === maturityFilter;
+            <section className="mt-4 border border-black/10 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.045)] sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div className="max-w-2xl">
+                  <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                    <SlidersHorizontal className="size-3.5" />
+                    {copy.maturityOverview}
+                  </p>
+                  <h2 className="mt-2 text-2xl font-black leading-tight tracking-normal [word-break:keep-all]">
+                    {copy.maturityTitle}
+                  </h2>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-black/56">
+                    {copy.maturityBody}
+                  </p>
+                </div>
+                <div
+                  aria-label={copy.maturityFilterLabel}
+                  className="flex flex-wrap gap-2"
+                >
+                  {maturityFilterItems.map((item) => {
+                    const isActive = item.key === maturityFilter;
 
-                      return (
-                        <Link
-                          aria-current={isActive ? "page" : undefined}
-                          className={`inline-flex h-10 items-center justify-center gap-2 rounded-full border px-3 text-sm font-black transition ${
+                    return (
+                      <Link
+                        aria-current={isActive ? "page" : undefined}
+                        className={`inline-flex h-10 items-center justify-center gap-2 rounded-full border px-3 text-sm font-black transition ${
+                          isActive
+                            ? "border-[#111510] bg-[#111510] !text-white"
+                            : "border-black/12 bg-[#f6f8f4] !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                        }`}
+                        href={item.href}
+                        key={item.key}
+                      >
+                        <span>{item.label}</span>
+                        <span
+                          className={`inline-flex min-w-6 justify-center rounded-full px-1.5 py-0.5 text-[0.68rem] ${
                             isActive
-                              ? "border-[#111510] bg-[#111510] !text-white"
-                              : "border-black/12 bg-[#f6f8f4] !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                              ? "bg-white/14 text-white"
+                              : "bg-white text-black/54"
                           }`}
-                          href={item.href}
-                          key={item.key}
                         >
-                          <span>{item.label}</span>
-                          <span
-                            className={`inline-flex min-w-6 justify-center rounded-full px-1.5 py-0.5 text-[0.68rem] ${
-                              isActive
-                                ? "bg-white/14 text-white"
-                                : "bg-white text-black/54"
-                            }`}
-                          >
-                            {formatNumber(item.count, locale)}
-                          </span>
-                        </Link>
-                      );
-                    })}
-                  </div>
+                          {formatNumber(item.count, locale)}
+                        </span>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
-
-              <aside className="border border-[#16702e]/18 bg-[#111510] p-4 text-white shadow-[0_14px_34px_rgba(17,21,16,0.14)] sm:p-5">
-                <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
+              {data.maturityCounts.nsfw > 0 ? (
+                <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-rose-500/18 bg-rose-50 px-3 py-1.5 text-xs font-black text-rose-700">
                   <ShieldAlert className="size-3.5" />
-                  {copy.nsfwGuideTitle}
-                </p>
-                <p className="mt-3 text-3xl font-black leading-none">
+                  {copy.nsfwGuideTitle}:{" "}
                   {formatNumber(data.maturityCounts.nsfw, locale)}
                 </p>
-                <p className="mt-1 text-xs font-black uppercase tracking-[0.1em] text-white/42">
-                  {copy.maturityNsfw}
-                </p>
-                <p className="mt-3 text-sm font-semibold leading-6 text-white/62">
-                  {copy.nsfwGuideBody}
-                </p>
-              </aside>
+              ) : null}
             </section>
 
             {data.reportCount === 0 ? (
@@ -1101,6 +873,7 @@ export default async function LocalizedFanletterNewsReportsPage({
                 }}
                 locale={locale}
                 reports={reportItems}
+                variant="card-grid"
               />
             )}
 
