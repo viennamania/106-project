@@ -643,45 +643,47 @@ export function FanletterNewsSourceSceneGallery({
           >
             {copy.title}
           </h3>
-        </div>
-      </div>
-
-      {reporterMeta ? (
-        <div className="mt-3 flex min-w-0 items-center gap-3 rounded-lg border border-black/10 bg-[#f7f9f4] p-2.5 sm:hidden">
-          <span className="relative flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-xs font-black text-[#44f26e]">
-            {reporterMeta.avatarImageUrl ? (
-              <Image
-                alt=""
-                aria-hidden="true"
-                className="object-cover"
-                fill
-                sizes="2.25rem"
-                src={reporterMeta.avatarImageUrl}
-                unoptimized={shouldBypassFanletterImageOptimization(
-                  reporterMeta.avatarImageUrl,
+          {reporterMeta ? (
+            <div className="mt-2 flex min-w-0 items-center gap-2.5 sm:hidden">
+              <span className="relative flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-[0.62rem] font-black text-[#44f26e]">
+                {reporterMeta.avatarImageUrl ? (
+                  <Image
+                    alt=""
+                    aria-hidden="true"
+                    className="object-cover"
+                    fill
+                    sizes="1.75rem"
+                    src={reporterMeta.avatarImageUrl}
+                    unoptimized={shouldBypassFanletterImageOptimization(
+                      reporterMeta.avatarImageUrl,
+                    )}
+                  />
+                ) : (
+                  reporterMeta.initial
                 )}
-              />
-            ) : (
-              reporterMeta.initial
-            )}
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-              <p className="shrink-0 text-[0.64rem] font-bold text-black/42">
-                {reporterMeta.roleLabel}
-              </p>
-              <p className="truncate text-sm font-black text-[#111510]">
-                {reporterMeta.name}
+              </span>
+              <p className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[0.72rem] font-semibold leading-5 text-black/48">
+                <span className="shrink-0 font-bold text-black/42">
+                  {reporterMeta.roleLabel}
+                </span>
+                <span className="min-w-0 max-w-[8.5rem] truncate font-black text-[#111510]">
+                  {reporterMeta.name}
+                </span>
+                {reporterMeta.publishedAt ? (
+                  <>
+                    <span aria-hidden="true" className="shrink-0 text-black/24">
+                      ·
+                    </span>
+                    <span className="shrink-0">
+                      {reporterMeta.publishedLabel} {reporterMeta.publishedAt}
+                    </span>
+                  </>
+                ) : null}
               </p>
             </div>
-            {reporterMeta.publishedAt ? (
-              <p className="mt-0.5 truncate text-[0.7rem] font-semibold text-black/46">
-                {reporterMeta.publishedLabel} {reporterMeta.publishedAt}
-              </p>
-            ) : null}
-          </div>
+          ) : null}
         </div>
-      ) : null}
+      </div>
 
       {featuredItem ? (
         <figure className="mt-3 overflow-hidden border border-black/12 bg-[#111510] text-white">
