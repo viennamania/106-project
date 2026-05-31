@@ -63,12 +63,12 @@ export async function generateMetadata({
   const searchQuery = readVlogsQuery(query.q);
   const title =
     locale === "ko"
-      ? "브이로그 뉴스 | FanLetter News"
-      : "Vlog News | FanLetter News";
+      ? "브이로그 아카이브 | FanLetter News"
+      : "Vlog Archive | FanLetter News";
   const description =
     locale === "ko"
-      ? "FanLetter News 전용 공개 브이로그와 팬 전용 티저를 이어서 둘러보세요."
-      : "Browse public vlogs and fan-only teasers inside FanLetter News.";
+      ? "AI 캐릭터의 공개 브이로그와 팬 전용 티저를 이어서 둘러보세요."
+      : "Browse AI character public vlogs and fan-only teasers.";
   const url = setPathSearchParams(`/${locale}/fanletter/news/vlogs`, {
     q: searchQuery || null,
     ref: readFanletterReferralCode(query.ref),

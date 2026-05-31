@@ -57,11 +57,11 @@ function getCopy(locale: Locale) {
         allNews: "뉴스 홈",
         characterCta: "IP 채널 보기",
         dek:
-          "뉴스, 공개 브이로그, 원본 오픈 반응으로 검증되는 AI 캐릭터 IP를 한눈에 비교합니다. 마음에 드는 캐릭터를 발견하고 채널, 브이로그, 최신 리포트로 바로 이어가세요.",
+          "뉴스, 원본 공개 브이로그, 원본 오픈 반응으로 검증되는 AI 캐릭터 IP를 한눈에 비교합니다. 마음에 드는 캐릭터를 발견하고 채널, 원본 영상, 최신 리포트로 바로 이어가세요.",
         emptyBody:
           "콘텐츠 상세 페이지에서 AI 리포트를 생성하면 뉴스에 등장한 캐릭터 목록이 이곳에 모입니다.",
         emptyTitle: "아직 뉴스에 등장한 AI 캐릭터가 없습니다.",
-        exploreVlogs: "브이로그 보기",
+        exploreVlogs: "원본 브이로그 보기",
         faceArena: "오늘의 IP 얼굴",
         faceArenaDek:
           "이름과 얼굴이 바로 기억되는 캐릭터가 더 오래 소비됩니다.",
@@ -71,7 +71,7 @@ function getCopy(locale: Locale) {
         latest: "대표 뉴스",
         leadDeck:
           "뉴스룸 반응과 브이로그 운영 신호를 기준으로 오늘 가장 돋보이는 AI 캐릭터 IP입니다.",
-        navItems: ["뉴스 홈", "AI 캐릭터", "팬 기자", "브이로그 뉴스", "구매함"],
+        navItems: ["뉴스 홈", "AI 캐릭터", "팬 기자", "원본 브이로그", "구매함"],
         news: "뉴스",
         nsfw: "NSFW",
         nsfwControl: {
@@ -110,7 +110,7 @@ function getCopy(locale: Locale) {
         },
         title: "AI 캐릭터 IP 쇼케이스",
         topDesk: "IP 스포트라이트",
-        videos: "공개 브이로그",
+        videos: "원본 브이로그",
       }
     : {
         access: {
@@ -121,11 +121,11 @@ function getCopy(locale: Locale) {
         allNews: "News Home",
         characterCta: "View IP channel",
         dek:
-          "Compare AI character IP proven by news coverage, public vlogs, and source-open reactions. Find the character that stands out, then continue into the channel, vlogs, and latest reports.",
+          "Compare AI character IP proven by news coverage, source public vlogs, and source-open reactions. Find the character that stands out, then continue into the channel, source videos, and latest reports.",
         emptyBody:
           "Create AI reports from content detail pages and the characters appearing in FanLetter News will collect here.",
         emptyTitle: "No AI characters have appeared in the news yet.",
-        exploreVlogs: "View vlogs",
+        exploreVlogs: "View source vlogs",
         faceArena: "Today's IP faces",
         faceArenaDek:
           "Characters with memorable faces and names are easier to follow.",
@@ -139,7 +139,7 @@ function getCopy(locale: Locale) {
           "News home",
           "AI characters",
           "Fan reporters",
-          "Vlog news",
+          "Source vlogs",
           "Purchases",
         ],
         news: "News",
@@ -179,7 +179,7 @@ function getCopy(locale: Locale) {
         },
         title: "AI Character IP Showcase",
         topDesk: "IP Spotlight",
-        videos: "Public vlogs",
+        videos: "Source vlogs",
       };
 }
 

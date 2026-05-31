@@ -257,7 +257,7 @@ function getCopy(locale: Locale) {
         stats: {
           fanOnly: "팬 전용",
           news: "뉴스",
-          publicVlogs: "공개 브이로그",
+          publicVlogs: "원본 브이로그",
           requests: "최근 요청",
         },
         submit: "팬 요청 보내기",
@@ -268,7 +268,7 @@ function getCopy(locale: Locale) {
           title: "팬 요청이 접수되었습니다.",
         },
         viewNews: "뉴스 홈",
-        viewPublicVlogs: "공개 브이로그",
+        viewPublicVlogs: "원본 브이로그 보기",
       }
     : {
         backToChannel: "Character channel",
@@ -440,7 +440,7 @@ function getCopy(locale: Locale) {
         stats: {
           fanOnly: "Fan-only",
           news: "News",
-          publicVlogs: "Public vlogs",
+          publicVlogs: "Source vlogs",
           requests: "Recent requests",
         },
         submit: "Send fan request",
@@ -451,7 +451,7 @@ function getCopy(locale: Locale) {
           title: "Fan request delivered.",
         },
         viewNews: "News home",
-        viewPublicVlogs: "Public vlogs",
+        viewPublicVlogs: "View source vlogs",
       };
 }
 

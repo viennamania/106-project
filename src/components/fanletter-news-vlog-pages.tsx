@@ -78,17 +78,18 @@ function getCopy(locale: Locale) {
         contentReports: "이 브이로그에서 생성된 뉴스",
         contentReportsEmpty: "아직 이 브이로그에서 생성된 뉴스가 없습니다.",
         cta: {
-          archive: "공개 브이로그 뉴스",
+          archive: "공개 브이로그",
           character: "캐릭터 뉴스 홈",
           newsHome: "뉴스 홈",
           original: "원본 일반 페이지",
           purchases: "구매함",
+          reportSource: "리포트 소재로 선택",
           readNews: "뉴스 읽기",
-          viewInNews: "뉴스에서 보기",
+          viewInNews: "브이로그 보기",
           wallet: "지갑",
         },
         detail: {
-          backToArchive: "브이로그 뉴스 목록",
+          backToArchive: "공개 브이로그 목록",
           eyebrow: "FanLetter News Vlog",
           generalStatus: "일반",
           lockedBody:
@@ -109,7 +110,7 @@ function getCopy(locale: Locale) {
           publicBody:
             "공개 브이로그입니다. 뉴스 서비스 안에서 바로 볼 수 있습니다.",
           purchased: "구매 완료",
-          titleSuffix: "브이로그 뉴스",
+          titleSuffix: "브이로그",
           unpaid: "결제 필요",
           viewable: "열람 가능",
         },
@@ -117,24 +118,35 @@ function getCopy(locale: Locale) {
         footerCta: "뉴스 홈으로 돌아가기",
         latest: "최신순",
         archive: {
-          allCount: (count: string) => `뉴스 브이로그 ${count}개`,
+          allCount: (count: string) => `브이로그 ${count}개`,
           description:
-            "공개 브이로그와 팬 전용 티저를 FanLetter News 안에서 둘러보고, 관련 리포트와 캐릭터 채널로 바로 이어갑니다.",
-          eyebrow: "FanLetter News Vlog Archive",
+            "AI 캐릭터의 공개 브이로그와 팬 전용 티저를 둘러보고, 관련 리포트와 캐릭터 채널로 바로 이어갑니다.",
+          eyebrow: "FanLetter Vlog Archive",
           fanOnlyTitle: "팬 전용 브이로그 티저",
-          publicTitle: "공개 브이로그 뉴스",
+          publicTitle: "공개 브이로그",
           searchPlaceholder: "캐릭터, 제목, 키워드 검색",
           searchSubmit: "검색",
-          title: "브이로그 뉴스",
+          title: "브이로그 아카이브",
         },
         list: {
           allCount: (count: string) => `공개 브이로그 ${count}개`,
+          audience: {
+            fanBody:
+              "무료 원본 영상으로 캐릭터의 말투, 분위기, 다음 요청 포인트를 확인합니다.",
+            fanCta: "브이로그 보기",
+            fanRequestCta: "팬 요청 남기기",
+            fanTitle: "일반 팬",
+            reporterBody:
+              "영상 장면과 팬 오픈 반응을 보고 새 리포트 소재로 바로 연결합니다.",
+            reporterCta: "리포트 소재 찾기",
+            reporterTitle: "팬 리포터",
+          },
           description: (name: string) =>
-            `${name}의 공개 브이로그를 FanLetter News 안에서 보고, 관련 뉴스와 캐릭터 활동으로 바로 이어갑니다.`,
-          eyebrow: "AI 캐릭터 공개 브이로그 뉴스",
+            `${name}의 무료 원본 브이로그를 모았습니다. 팬은 캐릭터 분위기를 확인하고, 리포터는 리포트 소재가 될 장면을 찾을 수 있습니다.`,
+          eyebrow: "AI 캐릭터 원본 브이로그",
           title: (name: string) => `${name} 공개 브이로그`,
         },
-        navItems: ["뉴스 홈", "AI 캐릭터", "브이로그", "구매함"],
+        navItems: ["뉴스 홈", "AI 캐릭터", "원본 브이로그", "구매함"],
         popular: "인기순",
         comments: "댓글순",
         saves: "저장순",
@@ -183,17 +195,18 @@ function getCopy(locale: Locale) {
         contentReports: "News generated from this vlog",
         contentReportsEmpty: "No news has been generated from this vlog yet.",
         cta: {
-          archive: "Public vlog news",
+          archive: "Public vlogs",
           character: "Character news home",
           newsHome: "News home",
           original: "Original FanLetter page",
           purchases: "Purchases",
+          reportSource: "Use as report source",
           readNews: "Read news",
-          viewInNews: "View in News",
+          viewInNews: "Watch vlog",
           wallet: "Wallet",
         },
         detail: {
-          backToArchive: "Vlog news archive",
+          backToArchive: "Public vlog archive",
           eyebrow: "FanLetter News Vlog",
           generalStatus: "General",
           lockedBody:
@@ -214,7 +227,7 @@ function getCopy(locale: Locale) {
           publicBody:
             "This is a public vlog and can be watched directly inside News.",
           purchased: "Purchased",
-          titleSuffix: "vlog news",
+          titleSuffix: "vlog",
           unpaid: "Payment needed",
           viewable: "Viewable",
         },
@@ -222,24 +235,35 @@ function getCopy(locale: Locale) {
         footerCta: "Back to news home",
         latest: "Latest",
         archive: {
-          allCount: (count: string) => `${count} news vlogs`,
+          allCount: (count: string) => `${count} vlogs`,
           description:
-            "Browse public vlogs and fan-only teasers inside FanLetter News, then continue into related reports and character channels.",
-          eyebrow: "FanLetter News Vlog Archive",
+            "Browse AI character public vlogs and fan-only teasers, then continue into related reports and character channels.",
+          eyebrow: "FanLetter Vlog Archive",
           fanOnlyTitle: "Fan-only vlog teasers",
-          publicTitle: "Public vlog news",
+          publicTitle: "Public vlogs",
           searchPlaceholder: "Search character, title, or keyword",
           searchSubmit: "Search",
-          title: "Vlog News",
+          title: "Vlog Archive",
         },
         list: {
           allCount: (count: string) => `${count} public vlogs`,
+          audience: {
+            fanBody:
+              "Watch free source videos to understand the character voice, mood, and next request points.",
+            fanCta: "Watch vlogs",
+            fanRequestCta: "Leave request",
+            fanTitle: "General fans",
+            reporterBody:
+              "Review scenes and source-open reactions, then continue into a new report source.",
+            reporterCta: "Find report source",
+            reporterTitle: "Fan reporters",
+          },
           description: (name: string) =>
-            `Watch ${name}'s public vlogs inside FanLetter News, then continue into related news and character activity.`,
-          eyebrow: "AI character public vlog news",
+            `Browse ${name}'s free source vlogs. Fans can understand the character mood, while reporters can find scenes for new reports.`,
+          eyebrow: "AI character source vlogs",
           title: (name: string) => `${name} public vlogs`,
         },
-        navItems: ["News home", "AI characters", "Vlogs", "Purchases"],
+        navItems: ["News home", "AI characters", "Source vlogs", "Purchases"],
         popular: "Popular",
         comments: "Comments",
         saves: "Saves",
@@ -301,6 +325,26 @@ function getAccessLabel(
   }
 
   return item.priceType === "paid" ? copy.access.paid : copy.access.public;
+}
+
+function getFanletterNewsReportSourceHref({
+  contentId,
+  locale,
+  referralCode,
+}: {
+  contentId: string;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  return setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/reports/new`, referralCode),
+    {
+      contentId,
+      reportStatus: "all",
+      sourceReveal: "all",
+      sourceSort: "latest",
+    },
+  );
 }
 
 function getCharacterAvatarUrl(
@@ -763,12 +807,14 @@ function NewsVlogCard({
   item,
   locale,
   nsfwOptInEnabled,
+  reportHref,
 }: {
   copy: ReturnType<typeof getCopy>;
   href: string;
   item: FanletterPublicContentItem;
   locale: Locale;
   nsfwOptInEnabled: boolean;
+  reportHref?: string | null;
 }) {
   const blurred = item.contentMaturityRating === "nsfw" && !nsfwOptInEnabled;
   const publishedAt = formatDate(item.publishedAt, locale);
@@ -929,13 +975,24 @@ function NewsVlogCard({
             unlocked={sourceReveal.unlocked}
           />
         </div>
-        <Link
-          className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-4 py-2 text-sm font-black !text-white transition hover:bg-[#16702e]"
-          href={href}
-        >
-          {copy.cta.viewInNews}
-          <ArrowRight className="size-4" />
-        </Link>
+        <div className="mt-4 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <Link
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 py-2 text-sm font-black !text-white transition hover:bg-[#16702e]"
+            href={href}
+          >
+            {copy.cta.viewInNews}
+            <ArrowRight className="size-4" />
+          </Link>
+          {reportHref ? (
+            <Link
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#16702e]/26 bg-[#ecfff0] px-4 py-2 text-sm font-black !text-[#126c2c] transition hover:border-[#16702e] hover:bg-[#d9ffe2]"
+              href={reportHref}
+            >
+              <Newspaper className="size-4" />
+              {copy.cta.reportSource}
+            </Link>
+          ) : null}
+        </div>
       </div>
     </article>
   );
@@ -1290,6 +1347,11 @@ export function FanletterNewsVlogsPage({
                   key={item.contentId}
                   locale={locale}
                   nsfwOptInEnabled={data.nsfwOptInEnabled}
+                  reportHref={getFanletterNewsReportSourceHref({
+                    contentId: item.contentId,
+                    locale,
+                    referralCode: effectiveReferralCode,
+                  })}
                 />
               ))}
             </div>
@@ -1348,12 +1410,26 @@ export function FanletterNewsCharacterVlogsPage({
     `/${locale}/fanletter/news/characters/${data.profile.referralCode}`,
     effectiveReferralCode,
   );
+  const requestHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/characters/${data.profile.referralCode}/request`,
+    effectiveReferralCode,
+  );
   const archiveHref = getFanletterNewsCharacterVlogsHref({
     creatorReferralCode: data.profile.referralCode,
     locale,
     referralCode: effectiveReferralCode,
     sort: data.filters.sort,
   });
+  const listHref = `${archiveHref}#fanletter-news-character-public-vlogs`;
+  const reportSourceHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/reports/new`, effectiveReferralCode),
+    {
+      q: characterName,
+      reportStatus: "all",
+      sourceReveal: "all",
+      sourceSort: "latest",
+    },
+  );
   const purchasesHref = buildPathWithReferral(
     `/${locale}/fanletter/news/purchases`,
     effectiveReferralCode,
@@ -1451,7 +1527,67 @@ export function FanletterNewsCharacterVlogsPage({
           </aside>
         </div>
 
-        <div className="mt-5 rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_32px_rgba(8,18,12,0.06)] sm:flex sm:items-center sm:justify-between">
+        <div className="mt-5 grid gap-3 lg:grid-cols-2">
+          <section className="border border-black/12 bg-white p-4 shadow-[0_12px_32px_rgba(8,18,12,0.06)]">
+            <div className="flex items-start gap-3">
+              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#ecfff0] text-[#16702e]">
+                <PlayCircle className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-black text-[#16702e]">
+                  {copy.list.audience.fanTitle}
+                </p>
+                <p className="mt-1 text-sm font-semibold leading-6 text-black/58">
+                  {copy.list.audience.fanBody}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <Link
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-[#16702e]"
+                href={listHref}
+              >
+                {copy.list.audience.fanCta}
+                <ArrowRight className="size-4" />
+              </Link>
+              <Link
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-black/12 px-4 text-sm font-black !text-[#111510] transition hover:border-[#16702e] hover:bg-[#ecfff0]"
+                href={requestHref}
+              >
+                <MessageCircleHeart className="size-4 text-[#16702e]" />
+                {copy.list.audience.fanRequestCta}
+              </Link>
+            </div>
+          </section>
+
+          <section className="border border-[#16702e]/24 bg-[#07100b] p-4 text-white shadow-[0_12px_32px_rgba(8,18,12,0.1)]">
+            <div className="flex items-start gap-3">
+              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-black">
+                <Newspaper className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-black text-[#9bffad]">
+                  {copy.list.audience.reporterTitle}
+                </p>
+                <p className="mt-1 text-sm font-semibold leading-6 text-white/68">
+                  {copy.list.audience.reporterBody}
+                </p>
+              </div>
+            </div>
+            <Link
+              className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black transition hover:bg-[#69ff8c]"
+              href={reportSourceHref}
+            >
+              {copy.list.audience.reporterCta}
+              <ArrowRight className="size-4" />
+            </Link>
+          </section>
+        </div>
+
+        <div
+          className="mt-5 scroll-mt-24 rounded-lg border border-black/10 bg-white p-3 shadow-[0_12px_32px_rgba(8,18,12,0.06)] sm:flex sm:items-center sm:justify-between"
+          id="fanletter-news-character-public-vlogs"
+        >
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-black/42">
               {copy.sort}
@@ -1513,6 +1649,11 @@ export function FanletterNewsCharacterVlogsPage({
                   key={item.contentId}
                   locale={locale}
                   nsfwOptInEnabled={data.nsfwOptInEnabled}
+                  reportHref={getFanletterNewsReportSourceHref({
+                    contentId: item.contentId,
+                    locale,
+                    referralCode: effectiveReferralCode,
+                  })}
                 />
               );
             })}

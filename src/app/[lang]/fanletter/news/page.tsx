@@ -89,7 +89,7 @@ function getCopy(locale: Locale) {
         },
         characterWire: "AI 캐릭터 와이어",
         characterWireBody:
-          "캐릭터별 최신 이슈를 와이어 서비스처럼 빠르게 훑어보고, 팬 전용/공개 브이로그 뉴스의 흐름을 이어서 확인하세요.",
+          "캐릭터별 최신 이슈를 와이어 서비스처럼 빠르게 훑어보고, 원본 공개 브이로그와 팬 전용 흐름을 이어서 확인하세요.",
         characterWireStats: {
           characters: "캐릭터",
           stories: "와이어",
@@ -210,7 +210,7 @@ function getCopy(locale: Locale) {
         },
         characterWire: "AI Character Wire",
         characterWireBody:
-          "Scan the latest character-level issues like a wire service, then continue into public and fan-only vlog news streams.",
+          "Scan the latest character-level issues like a wire service, then continue into source public vlogs and fan-only streams.",
         characterWireStats: {
           characters: "Characters",
           stories: "Wire",

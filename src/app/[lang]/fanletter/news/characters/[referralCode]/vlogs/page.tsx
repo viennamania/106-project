@@ -71,19 +71,19 @@ export async function generateMetadata({
   const title =
     data && characterName
       ? locale === "ko"
-        ? `${characterName} 공개 브이로그 뉴스 | FanLetter News`
-        : `${characterName} public vlog news | FanLetter News`
+        ? `${characterName} 공개 브이로그 | FanLetter News`
+        : `${characterName} public vlogs | FanLetter News`
       : locale === "ko"
-        ? "공개 브이로그 뉴스 | FanLetter News"
-        : "Public vlog news | FanLetter News";
+        ? "공개 브이로그 | FanLetter News"
+        : "Public vlogs | FanLetter News";
   const description =
     data && characterName
       ? locale === "ko"
-        ? `${characterName}의 공개 브이로그 ${publicCount}개를 FanLetter News 안에서 이어봅니다.`
-        : `Watch ${publicCount} public vlogs from ${characterName} inside FanLetter News.`
+        ? `${characterName}의 공개 브이로그 ${publicCount}개를 보고, 캐릭터 분위기와 리포트 소재가 될 원본 장면을 확인하세요.`
+        : `Watch ${publicCount} public vlogs from ${characterName} and find source scenes for the character channel.`
       : locale === "ko"
-        ? "FanLetter News 전용 공개 브이로그 목록입니다."
-        : "A FanLetter News public vlog archive.";
+        ? "AI 캐릭터 공개 브이로그 목록입니다."
+        : "An AI character public vlog archive.";
   const url = setPathSearchParams(
     `/${locale}/fanletter/news/characters/${normalizedReferralCode ?? referralCode}/vlogs`,
     {
@@ -116,8 +116,8 @@ export async function generateMetadata({
   const ogImage = {
     alt: data
       ? locale === "ko"
-        ? `${characterName} 공개 브이로그 뉴스 미리보기`
-        : `${characterName} public vlog news preview`
+        ? `${characterName} 공개 브이로그 미리보기`
+        : `${characterName} public vlogs preview`
       : getFanletterOgAlt(locale, "creator"),
     height: FANLETTER_OG_IMAGE_SIZE.height,
     type: "image/png",

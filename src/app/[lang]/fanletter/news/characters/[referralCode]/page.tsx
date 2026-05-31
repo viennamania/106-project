@@ -109,7 +109,7 @@ function getCopy(locale: Locale) {
         cta: {
           dailyVlogs: "원본 브이로그",
           latestNews: "최신 뉴스 읽기",
-          publicVlogs: "공개 브이로그 보기",
+          publicVlogs: "원본 브이로그 보기",
           request: "팬 요청 남기기",
         },
         entry: {
@@ -289,7 +289,7 @@ function getCopy(locale: Locale) {
         cta: {
           dailyVlogs: "Source vlogs",
           latestNews: "Read latest news",
-          publicVlogs: "Public vlogs",
+          publicVlogs: "View source vlogs",
           request: "Leave a fan request",
         },
         entry: {

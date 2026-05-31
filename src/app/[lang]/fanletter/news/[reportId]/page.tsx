@@ -338,7 +338,7 @@ function getCopy(locale: Locale) {
         },
         generated: "AI 생성",
         publishedLabel: "작성일",
-        navItems: ["AI 캐릭터", "팬 리포트", "브이로그 뉴스", "구매함"],
+        navItems: ["AI 캐릭터", "팬 리포트", "원본 브이로그", "구매함"],
         nsfwBlurNotice:
           "NSFW 보기 동의 전에는 원본 브이로그와 뉴스 본문 일부가 블러 처리됩니다.",
         nsfwControl: {
@@ -604,7 +604,7 @@ function getCopy(locale: Locale) {
         },
         generated: "AI generated",
         publishedLabel: "Published",
-        navItems: ["AI characters", "Fan reports", "Vlog news", "Purchases"],
+        navItems: ["AI characters", "Fan reports", "Source vlogs", "Purchases"],
         nsfwBlurNotice:
           "The source vlog and parts of the news body stay blurred before NSFW opt-in.",
         nsfwControl: {
