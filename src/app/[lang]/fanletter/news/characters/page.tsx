@@ -62,6 +62,9 @@ function getCopy(locale: Locale) {
           "콘텐츠 상세 페이지에서 AI 리포트를 생성하면 뉴스에 등장한 캐릭터 목록이 이곳에 모입니다.",
         emptyTitle: "아직 뉴스에 등장한 AI 캐릭터가 없습니다.",
         exploreVlogs: "브이로그 보기",
+        faceArena: "오늘의 IP 얼굴",
+        faceArenaDek:
+          "이름과 얼굴이 바로 기억되는 캐릭터가 더 오래 소비됩니다.",
         fanOnly: "팬 전용 뉴스",
         heroEyebrow: "AI Character IP Arena",
         ipScore: "IP 지수",
@@ -88,6 +91,7 @@ function getCopy(locale: Locale) {
           "뉴스 등장 빈도, 공개 브이로그 운영, 팬의 원본 오픈 반응을 함께 반영한 경쟁 지표입니다.",
         rankLabel: (rank: number) => `${rank}위`,
         reportLabel: "대표 리포트",
+        spotlightFace: "캐릭터 페이스",
         signal: {
           fanOnly: "팬 전용 수요",
           news: "뉴스 반응 상승",
@@ -120,6 +124,9 @@ function getCopy(locale: Locale) {
           "Create AI reports from content detail pages and the characters appearing in FanLetter News will collect here.",
         emptyTitle: "No AI characters have appeared in the news yet.",
         exploreVlogs: "View vlogs",
+        faceArena: "Today's IP faces",
+        faceArenaDek:
+          "Characters with memorable faces and names are easier to follow.",
         fanOnly: "Fan-only news",
         heroEyebrow: "AI Character IP Arena",
         ipScore: "IP score",
@@ -151,6 +158,7 @@ function getCopy(locale: Locale) {
           "A competition signal built from news appearances, public vlog activity, and source-open reactions.",
         rankLabel: (rank: number) => `No. ${rank}`,
         reportLabel: "Lead report",
+        spotlightFace: "Character face",
         signal: {
           fanOnly: "Fan-only demand",
           news: "News momentum",
@@ -425,6 +433,102 @@ function NewsCharacterAvatar({
   );
 }
 
+function NewsCharacterPortrait({
+  character,
+  className,
+  sizes,
+}: {
+  character: FanletterNewsCharacterStat;
+  className: string;
+  sizes: string;
+}) {
+  return (
+    <div className={`relative overflow-hidden bg-[#111510] ${className}`}>
+      {character.avatarImageUrl ? (
+        <Image
+          alt={character.name}
+          className="h-full w-full object-cover"
+          fill
+          sizes={sizes}
+          src={character.avatarImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(
+            character.avatarImageUrl,
+          )}
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center text-white/72">
+          <UserRound className="size-12" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CharacterPodiumCard({
+  character,
+  copy,
+  locale,
+  rank,
+  referralCode,
+}: {
+  character: FanletterNewsCharacterStat;
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  rank: number;
+  referralCode: string | null;
+}) {
+  const channelHref = getCharacterChannelHref({
+    characterReferralCode: character.referralCode,
+    locale,
+    referralCode,
+  });
+  const accentClass =
+    rank === 1
+      ? "border-[#44f26e]/70 bg-[#44f26e]/12"
+      : rank === 2
+        ? "border-[#b88cff]/42 bg-[#f1e8ff]/10"
+        : "border-[#ffcf4a]/38 bg-[#ffcf4a]/10";
+
+  return (
+    <Link
+      className={`group grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 border p-3 transition hover:-translate-y-0.5 hover:bg-white/[0.11] sm:grid-cols-1 ${accentClass}`}
+      href={channelHref}
+    >
+      <div className="relative">
+        <NewsCharacterPortrait
+          character={character}
+          className="aspect-[4/5] w-full border border-white/16"
+          sizes="(max-width: 640px) 5.5rem, 12rem"
+        />
+        <span className="absolute left-2 top-2 bg-white px-2 py-1 text-[0.62rem] font-black text-[#111510] shadow-[0_8px_20px_rgba(0,0,0,0.22)]">
+          {copy.rankLabel(rank)}
+        </span>
+      </div>
+      <div className="min-w-0 self-end">
+        <p className="truncate text-xl font-black leading-tight text-white sm:text-2xl">
+          {character.name}
+        </p>
+        <p className="mt-1 truncate text-[0.62rem] font-black uppercase tracking-[0.1em] text-white/44">
+          @{character.referralCode}
+        </p>
+        <div className="mt-3 flex items-end justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
+              {copy.ipScore}
+            </p>
+            <p className="mt-0.5 text-2xl font-black leading-none text-white">
+              {formatNumber(getCharacterIpScore(character), locale)}
+            </p>
+          </div>
+          <span className="max-w-[7.5rem] truncate border border-white/14 bg-black/24 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.08em] text-white/58">
+            {getCharacterSignalLabel(character, copy)}
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 function CharacterLead({
   character,
   copy,
@@ -457,7 +561,7 @@ function CharacterLead({
 
   return (
     <section className="grid overflow-hidden border-y-2 border-[#111510] bg-[#111510] text-white lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)]">
-      <Link className="group relative block min-h-[27rem]" href={channelHref}>
+      <Link className="group relative block min-h-[30rem]" href={channelHref}>
         <NewsCharacterImage
           blurred={shouldBlur}
           eager
@@ -476,13 +580,23 @@ function CharacterLead({
           </span>
         </div>
         <div className="absolute inset-x-0 bottom-0 p-5 sm:p-7">
-          <div className="flex min-w-0 items-end gap-3 sm:gap-5">
-            <NewsCharacterAvatar
-              character={character}
-              className="size-24 border-2 border-white/40 shadow-[0_18px_48px_rgba(0,0,0,0.42)] sm:size-32"
-              sizes="8rem"
-            />
+          <div className="grid min-w-0 gap-4 sm:grid-cols-[10.5rem_minmax(0,1fr)] sm:items-end">
+            <div className="relative w-32 sm:w-full">
+              <NewsCharacterPortrait
+                character={character}
+                className="aspect-[4/5] w-full border-2 border-white/40 shadow-[0_18px_48px_rgba(0,0,0,0.42)]"
+                sizes="(max-width: 640px) 8rem, 10.5rem"
+              />
+              <span className="absolute inset-x-2 bottom-2 bg-white px-2 py-1 text-center text-[0.6rem] font-black uppercase tracking-[0.08em] text-[#111510]">
+                {copy.spotlightFace}
+              </span>
+            </div>
             <div className="min-w-0">
+              <NewsCharacterAvatar
+                character={character}
+                className="mb-3 size-14 border-2 border-white/30 sm:hidden"
+                sizes="3.5rem"
+              />
               <span className="inline-flex bg-white px-2.5 py-1 text-xs font-black text-[#111510]">
                 {copy.topDesk}
               </span>
@@ -851,7 +965,7 @@ export default async function LocalizedFanletterNewsCharactersPage({
             <p className="mt-4 max-w-3xl text-sm font-semibold leading-6 text-white/68 sm:text-lg sm:leading-8">
               {copy.dek}
             </p>
-            <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="mt-6 hidden grid-cols-2 gap-2 sm:grid sm:grid-cols-4">
               {stats.map((stat) => (
                 <div className="border border-white/12 bg-white/[0.06] p-3" key={stat.label}>
                   <div className="flex items-center justify-between gap-2">
@@ -869,46 +983,53 @@ export default async function LocalizedFanletterNewsCharactersPage({
           </div>
 
           <aside className="border-t border-white/12 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-            <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
-              {copy.ranking}
-            </p>
-            <p className="mt-2 text-sm font-semibold leading-6 text-white/58">
-              {copy.rankingDek}
-            </p>
-            <div className="mt-4 grid gap-2">
+            <div className="flex items-end justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
+                  {copy.faceArena}
+                </p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-white/58">
+                  {copy.faceArenaDek}
+                </p>
+              </div>
+              <Sparkles className="size-5 shrink-0 text-[#ffcf4a]" />
+            </div>
+            <div className="mt-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
               {topCharacters.map((character, index) => (
-                <Link
-                  className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 border border-white/12 bg-white/[0.06] p-3 transition hover:border-[#44f26e]/60 hover:bg-white/[0.1]"
-                  href={getCharacterChannelHref({
-                    characterReferralCode: character.referralCode,
-                    locale,
-                    referralCode,
-                  })}
+                <CharacterPodiumCard
+                  character={character}
+                  copy={copy}
                   key={character.referralCode}
-                >
-                  <NewsCharacterAvatar
-                    character={character}
-                    className="size-12 border-white/18"
-                    sizes="3rem"
-                  />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-black">{character.name}</p>
-                    <p className="mt-0.5 truncate text-[0.62rem] font-black uppercase tracking-[0.08em] text-white/42">
-                      {getCharacterSignalLabel(character, copy)}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-[0.62rem] font-black text-[#44f26e]">
-                      {copy.rankLabel(index + 1)}
-                    </p>
-                    <p className="mt-1 text-lg font-black leading-none">
-                      {formatNumber(getCharacterIpScore(character), locale)}
-                    </p>
-                  </div>
-                </Link>
+                  locale={locale}
+                  rank={index + 1}
+                  referralCode={referralCode}
+                />
               ))}
             </div>
+            <div className="mt-4 border border-white/12 bg-white/[0.04] p-3">
+              <p className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#b88cff]">
+                {copy.ranking}
+              </p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-white/52">
+                {copy.rankingDek}
+              </p>
+            </div>
           </aside>
+          <div className="grid grid-cols-2 gap-2 sm:hidden">
+            {stats.map((stat) => (
+              <div className="border border-white/12 bg-white/[0.06] p-3" key={stat.label}>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[0.56rem] font-black uppercase tracking-[0.1em] text-white/42">
+                    {stat.label}
+                  </p>
+                  <span className="text-[#44f26e]">{stat.icon}</span>
+                </div>
+                <p className="mt-2 text-2xl font-black leading-none">
+                  {formatNumber(stat.value, locale)}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
