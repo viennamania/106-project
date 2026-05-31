@@ -16,6 +16,7 @@ import {
 const LEGACY_NSFW_VIDEO_URL_PATTERN = /(?:^|[\W_])nsfw\d*(?:[\W_]|$)/i;
 const CHARACTER_DISCOVERY_COVER_BONUS_MS = 2 * 24 * 60 * 60 * 1000;
 const CHARACTER_DISCOVERY_PUBLIC_VIDEO_BONUS_MS = 2 * 24 * 60 * 60 * 1000;
+const CHARACTER_DISCOVERY_REPORTER_BONUS_MS = 18 * 60 * 60 * 1000;
 const CHARACTER_DISCOVERY_SOURCE_REVEAL_BONUS_MS = 36 * 60 * 60 * 1000;
 const CHARACTER_DISCOVERY_TEASER_BONUS_MS = 3 * 24 * 60 * 60 * 1000;
 const CHARACTER_DISCOVERY_VOLUME_BONUS_MS = 10 * 60 * 60 * 1000;
@@ -31,7 +32,12 @@ export type FanletterNewsCharacterStat = {
   publicVideoCount: number;
   referralCode: string;
   representativeReport: FanletterNewsReportDocument;
+  reporterCount: number;
   sourceRevealUnlockedCount: number;
+};
+
+type FanletterNewsCharacterStatAccumulator = FanletterNewsCharacterStat & {
+  reporterReferralCodes: Set<string>;
 };
 
 type FanletterNewsCharacterVideoMetrics = {
@@ -110,7 +116,9 @@ function getCharacterDiscoveryScore(character: FanletterNewsCharacterStat) {
       : 0) +
     getReportTeaserScore(character.representativeReport) *
       CHARACTER_DISCOVERY_TEASER_BONUS_MS +
-    Math.min(character.newsCount, 6) * CHARACTER_DISCOVERY_VOLUME_BONUS_MS +
+    Math.min(character.newsCount, 12) * CHARACTER_DISCOVERY_VOLUME_BONUS_MS +
+    Math.min(character.reporterCount, 8) *
+      CHARACTER_DISCOVERY_REPORTER_BONUS_MS +
     Math.min(character.publicVideoCount, 3) *
       CHARACTER_DISCOVERY_PUBLIC_VIDEO_BONUS_MS +
     Math.min(character.sourceRevealUnlockedCount, 2) *
@@ -149,10 +157,11 @@ export function getFanletterNewsCharacterStats(
   limit = 8,
   options?: FanletterNewsCharacterStatsOptions,
 ) {
-  const map = new Map<string, FanletterNewsCharacterStat>();
+  const map = new Map<string, FanletterNewsCharacterStatAccumulator>();
 
   for (const report of reports) {
     const referralCode = report.creatorReferralCode?.trim();
+    const reporterReferralCode = report.reporterReferralCode?.trim();
 
     if (!referralCode) {
       continue;
@@ -173,6 +182,10 @@ export function getFanletterNewsCharacterStats(
         publicVideoCount: 0,
         referralCode,
         representativeReport: report,
+        reporterCount: reporterReferralCode ? 1 : 0,
+        reporterReferralCodes: new Set(
+          reporterReferralCode ? [reporterReferralCode] : [],
+        ),
         sourceRevealUnlockedCount: 0,
       });
       continue;
@@ -188,6 +201,11 @@ export function getFanletterNewsCharacterStats(
           (report.coverImageUrl &&
             reportDateTime > existingDateTime &&
             Boolean(existing.representativeReport.coverImageUrl));
+    const reporterReferralCodes = new Set(existing.reporterReferralCodes);
+
+    if (reporterReferralCode) {
+      reporterReferralCodes.add(reporterReferralCode);
+    }
 
     map.set(referralCode, {
       avatarImageUrl: existing.avatarImageUrl,
@@ -206,11 +224,21 @@ export function getFanletterNewsCharacterStats(
       representativeReport: shouldUseAsRepresentative
         ? report
         : existing.representativeReport,
+      reporterCount: reporterReferralCodes.size,
+      reporterReferralCodes,
       sourceRevealUnlockedCount: existing.sourceRevealUnlockedCount,
     });
   }
 
-  return sortFanletterNewsCharacterStats(Array.from(map.values()), options).slice(
+  const characters = Array.from(map.values()).map(
+    ({ reporterReferralCodes, ...character }) => {
+      void reporterReferralCodes;
+
+      return character;
+    },
+  );
+
+  return sortFanletterNewsCharacterStats(characters, options).slice(
     0,
     Math.max(1, limit),
   );

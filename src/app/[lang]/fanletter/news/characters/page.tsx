@@ -88,13 +88,15 @@ function getCopy(locale: Locale) {
         publicNews: "공개 뉴스",
         ranking: "캐릭터 IP 랭킹",
         rankingDek:
-          "뉴스 등장 빈도, 공개 브이로그 운영, 팬의 원본 오픈 반응을 함께 반영한 경쟁 지표입니다.",
+          "뉴스 등장 빈도, 팬 기자 커버리지, 공개 브이로그 운영, 팬의 원본 오픈 반응을 함께 반영한 경쟁 지표입니다.",
         rankLabel: (rank: number) => `${rank}위`,
         reportLabel: "대표 리포트",
+        reporters: "팬 기자",
         spotlightFace: "캐릭터 페이스",
         signal: {
           fanOnly: "팬 전용 수요",
           news: "뉴스 반응 상승",
+          reporters: "팬 기자 커버리지",
           source: "원본 오픈 검증",
           vlogs: "브이로그 운영 중",
         },
@@ -155,13 +157,15 @@ function getCopy(locale: Locale) {
         publicNews: "Public news",
         ranking: "Character IP ranking",
         rankingDek:
-          "A competition signal built from news appearances, public vlog activity, and source-open reactions.",
+          "A competition signal built from news appearances, fan reporter coverage, public vlog activity, and source-open reactions.",
         rankLabel: (rank: number) => `No. ${rank}`,
         reportLabel: "Lead report",
+        reporters: "Fan reporters",
         spotlightFace: "Character face",
         signal: {
           fanOnly: "Fan-only demand",
           news: "News momentum",
+          reporters: "Fan reporter coverage",
           source: "Source-open proven",
           vlogs: "Vlog active",
         },
@@ -237,6 +241,7 @@ function getCharacterVlogsHref({
 function getCharacterIpScore(character: FanletterNewsCharacterStat) {
   return (
     character.newsCount * 12 +
+    character.reporterCount * 16 +
     character.publicCount * 6 +
     character.fanOnlyCount * 8 +
     character.publicVideoCount * 18 +
@@ -250,6 +255,7 @@ function compareCharactersByIpScore(
 ) {
   return (
     getCharacterIpScore(right) - getCharacterIpScore(left) ||
+    right.reporterCount - left.reporterCount ||
     right.newsCount - left.newsCount ||
     (right.latestReportAt?.getTime() ?? 0) -
       (left.latestReportAt?.getTime() ?? 0)
@@ -262,6 +268,10 @@ function getCharacterSignalLabel(
 ) {
   if (character.sourceRevealUnlockedCount > 0) {
     return copy.signal.source;
+  }
+
+  if (character.reporterCount >= 3 || character.newsCount >= 8) {
+    return copy.signal.reporters;
   }
 
   if (character.publicVideoCount > 0) {
@@ -436,10 +446,12 @@ function NewsCharacterAvatar({
 function NewsCharacterPortrait({
   character,
   className,
+  eager = false,
   sizes,
 }: {
   character: FanletterNewsCharacterStat;
   className: string;
+  eager?: boolean;
   sizes: string;
 }) {
   return (
@@ -449,6 +461,7 @@ function NewsCharacterPortrait({
           alt={character.name}
           className="h-full w-full object-cover"
           fill
+          loading={eager ? "eager" : undefined}
           sizes={sizes}
           src={character.avatarImageUrl}
           unoptimized={shouldBypassFanletterImageOptimization(
@@ -498,6 +511,7 @@ function CharacterPodiumCard({
         <NewsCharacterPortrait
           character={character}
           className="aspect-[4/5] w-full border border-white/16"
+          eager={rank === 1}
           sizes="(max-width: 640px) 5.5rem, 12rem"
         />
         <span className="absolute left-2 top-2 bg-white px-2 py-1 text-[0.62rem] font-black text-[#111510] shadow-[0_8px_20px_rgba(0,0,0,0.22)]">
@@ -585,6 +599,7 @@ function CharacterLead({
               <NewsCharacterPortrait
                 character={character}
                 className="aspect-[4/5] w-full border-2 border-white/40 shadow-[0_18px_48px_rgba(0,0,0,0.42)]"
+                eager
                 sizes="(max-width: 640px) 8rem, 10.5rem"
               />
               <span className="absolute inset-x-2 bottom-2 bg-white px-2 py-1 text-center text-[0.6rem] font-black uppercase tracking-[0.08em] text-[#111510]">
@@ -627,6 +642,7 @@ function CharacterLead({
             <div className="grid grid-cols-2 gap-2">
               {[
                 { label: copy.news, value: character.newsCount },
+                { label: copy.reporters, value: character.reporterCount },
                 { label: copy.videos, value: character.publicVideoCount },
                 { label: copy.fanOnly, value: character.fanOnlyCount },
                 {
@@ -785,11 +801,12 @@ function CharacterCard({
         >
           {getArticleDisplayTitle(report.title)}
         </Link>
-        <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="mt-4 grid grid-cols-4 gap-2">
           {[
             { label: copy.publicNews, value: character.publicCount },
             { label: copy.fanOnly, value: character.fanOnlyCount },
             { label: copy.news, value: character.newsCount },
+            { label: copy.reporters, value: character.reporterCount },
           ].map((stat) => (
             <div className="bg-[#f5f6f2] p-2" key={stat.label}>
               <p className="text-lg font-black leading-none">

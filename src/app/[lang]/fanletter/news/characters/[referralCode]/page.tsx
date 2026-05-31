@@ -129,6 +129,7 @@ function getCopy(locale: Locale) {
           news: "뉴스",
           publicVlogs: "공개 브이로그",
           reactions: "반응",
+          reporters: "팬 기자",
           title: "IP 성장 보드",
           unlocks: "유료 열람",
         },
@@ -299,6 +300,7 @@ function getCopy(locale: Locale) {
           news: "News",
           publicVlogs: "Public vlogs",
           reactions: "Reactions",
+          reporters: "Reporters",
           title: "IP growth board",
           unlocks: "Paid unlocks",
         },
@@ -1421,6 +1423,11 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
       icon: <Newspaper className="size-4" />,
       label: copy.growth.news,
       value: formatNumber(newsData.reportCount, locale),
+    },
+    {
+      icon: <FileText className="size-4" />,
+      label: copy.growth.reporters,
+      value: formatNumber(newsData.reporters.length, locale),
     },
     {
       icon: <Clapperboard className="size-4" />,
