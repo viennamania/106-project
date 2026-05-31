@@ -118,7 +118,7 @@ export function FanletterNewsLockedPreviewHero({
         </div>
       </div>
       {children ? (
-        <div className="relative min-h-[23rem] overflow-hidden border-t border-white/10 bg-[#07100b] sm:min-h-[24rem] lg:min-h-0 lg:border-l lg:border-t-0">
+        <div className="relative min-h-[23rem] overflow-hidden border-t border-[#44f26e]/20 bg-[#07100b] shadow-[inset_0_18px_34px_rgba(0,0,0,0.26)] sm:min-h-[24rem] lg:min-h-0 lg:border-l lg:border-t-0 lg:border-white/10">
           {children}
         </div>
       ) : null}

@@ -2407,7 +2407,7 @@ function SourceVlogRevealTeaserOverlay({
   const rootClassName = isSideRail
     ? "absolute inset-0 overflow-y-auto bg-[#07100b] p-3 text-white sm:p-4"
     : hasTeaserFrames
-      ? "absolute inset-0 isolate overflow-y-auto bg-[#07100b] p-3 text-white sm:overflow-hidden sm:p-5"
+      ? "absolute inset-0 isolate overflow-y-auto bg-[#07100b] p-3 text-white shadow-[inset_0_16px_28px_rgba(0,0,0,0.28)] sm:overflow-hidden sm:p-5"
       : "absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08)_0%,rgba(0,0,0,0.34)_45%,rgba(0,0,0,0.88)_100%)] p-3 text-white sm:p-5";
   const contentClassName = hasTeaserFrames
     ? isSideRail
