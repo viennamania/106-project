@@ -4,6 +4,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 import { useMemberSession } from "@/components/member-session-provider";
+import {
+  FANLETTER_NEWS_REPORTER_PROFILE_CHANGE_EVENT,
+  FANLETTER_NEWS_REPORTER_PROFILE_STORAGE_KEY,
+  normalizeFanletterNewsReporterNavProfile,
+  type FanletterNewsReporterNavProfile,
+} from "@/lib/fanletter-news-reporter-nav-profile";
 import type { Locale } from "@/lib/i18n";
 
 function normalizeValue(value?: string | null) {
@@ -29,11 +35,13 @@ function getCopy(locale: Locale) {
 export function FanletterNewsReportsSessionBridge({
   hasServerSession,
   locale,
+  serverReporterProfile,
   serverSessionEmail,
   serverSessionWalletAddress,
 }: {
   hasServerSession: boolean;
   locale: Locale;
+  serverReporterProfile?: FanletterNewsReporterNavProfile | null;
   serverSessionEmail?: string | null;
   serverSessionWalletAddress?: string | null;
 }) {
@@ -45,6 +53,14 @@ export function FanletterNewsReportsSessionBridge({
   const clientWalletAddress = normalizeValue(memberSession.accountAddress);
   const serverEmail = normalizeValue(serverSessionEmail);
   const serverWalletAddress = normalizeValue(serverSessionWalletAddress);
+  const normalizedServerReporterProfile =
+    normalizeFanletterNewsReporterNavProfile(serverReporterProfile ?? null);
+  const hasReporterProfileProp = serverReporterProfile !== undefined;
+  const shouldClearReporterProfile =
+    !hasServerSession || serverReporterProfile === null;
+  const reporterProfileStorageValue = normalizedServerReporterProfile
+    ? JSON.stringify(normalizedServerReporterProfile)
+    : "";
   const isChecking =
     memberSession.isValidating || memberSession.status === "validating";
   const hasReadyClientSession = Boolean(
@@ -53,6 +69,42 @@ export function FanletterNewsReportsSessionBridge({
       clientEmail &&
       clientWalletAddress,
   );
+
+  useEffect(() => {
+    if (!hasReporterProfileProp && !shouldClearReporterProfile) {
+      return;
+    }
+
+    try {
+      if (shouldClearReporterProfile) {
+        window.localStorage.removeItem(
+          FANLETTER_NEWS_REPORTER_PROFILE_STORAGE_KEY,
+        );
+        window.dispatchEvent(
+          new Event(FANLETTER_NEWS_REPORTER_PROFILE_CHANGE_EVENT),
+        );
+        return;
+      }
+
+      if (!reporterProfileStorageValue) {
+        return;
+      }
+
+      window.localStorage.setItem(
+        FANLETTER_NEWS_REPORTER_PROFILE_STORAGE_KEY,
+        reporterProfileStorageValue,
+      );
+      window.dispatchEvent(
+        new Event(FANLETTER_NEWS_REPORTER_PROFILE_CHANGE_EVENT),
+      );
+    } catch {
+      return;
+    }
+  }, [
+    hasReporterProfileProp,
+    reporterProfileStorageValue,
+    shouldClearReporterProfile,
+  ]);
 
   useEffect(() => {
     if (isChecking) {

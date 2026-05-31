@@ -343,6 +343,15 @@ export default async function LocalizedFanletterNewsMyPage({
       <FanletterNewsReportsSessionBridge
         hasServerSession
         locale={locale}
+        serverReporterProfile={
+          reporterData.member
+            ? {
+                avatarImageUrl: reporterData.member.avatarImageUrl,
+                displayName: reporterData.member.displayName,
+                referralCode: reporterData.member.referralCode,
+              }
+            : null
+        }
         serverSessionEmail={session.email}
         serverSessionWalletAddress={session.walletAddress}
       />

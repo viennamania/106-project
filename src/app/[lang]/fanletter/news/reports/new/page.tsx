@@ -231,6 +231,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
         <FanletterNewsReportsSessionBridge
           hasServerSession={Boolean(session)}
           locale={locale}
+          serverReporterProfile={null}
           serverSessionEmail={session?.email ?? null}
           serverSessionWalletAddress={session?.walletAddress ?? null}
         />
@@ -270,6 +271,11 @@ export default async function LocalizedFanletterNewsReportNewPage({
       <FanletterNewsReportsSessionBridge
         hasServerSession
         locale={locale}
+        serverReporterProfile={{
+          avatarImageUrl: data.member.avatarImageUrl,
+          displayName: data.member.displayName,
+          referralCode: data.member.referralCode,
+        }}
         serverSessionEmail={session.email}
         serverSessionWalletAddress={session.walletAddress}
       />
