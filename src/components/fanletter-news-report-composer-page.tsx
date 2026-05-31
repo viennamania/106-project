@@ -507,7 +507,18 @@ function getCopy(locale: Locale) {
           manualMode: "직접 선택하기",
           manualModeBody:
             "공개 컷을 직접 고르고 같은 프레임도 여러 컷으로 나누어 9:16 세로 티저로 저장합니다.",
+          modalBody:
+            "프레임을 누르지 말고 버튼으로 컷을 추가하세요. 같은 프레임도 여러 번 추가할 수 있습니다.",
+          modalClose: "닫기",
+          modalDone: "완료",
+          modalEmpty: "선택 가능한 프레임 이미지가 없습니다.",
+          modalEyebrow: "공개 컷 선택",
+          modalLimitReached: "최대 컷 선택됨",
+          modalSelected: "선택한 컷",
+          modalSelectedEmpty: "아직 선택한 컷이 없습니다.",
+          modalTitle: "공개 티저 컷 고르기",
           modeLabel: "티저 컷 처리 방식",
+          openPicker: "컷 고르기",
           ratio: "선택 저장 9:16",
           removeCut: "컷 삭제",
           selectedBody:
@@ -796,7 +807,18 @@ function getCopy(locale: Locale) {
           manualMode: "Choose manually",
           manualModeBody:
             "Pick public cuts yourself, and reuse the same frame across multiple 9:16 portrait crops.",
+          modalBody:
+            "Use the buttons to add cuts. The same frame can be added multiple times.",
+          modalClose: "Close",
+          modalDone: "Done",
+          modalEmpty: "No selectable frame images are available.",
+          modalEyebrow: "Public cut selection",
+          modalLimitReached: "Cut limit reached",
+          modalSelected: "Selected cuts",
+          modalSelectedEmpty: "No cuts selected yet.",
+          modalTitle: "Choose public teaser cuts",
           modeLabel: "Teaser cut mode",
+          openPicker: "Choose cuts",
           ratio: "Optional 9:16 save",
           removeCut: "Delete cut",
           selectedBody:
@@ -1955,6 +1977,7 @@ export function FanletterNewsReportComposerPage({
     );
   const [teaserMode, setTeaserMode] =
     useState<FanletterNewsReportTeaserMode>("manual");
+  const [isTeaserPickerOpen, setIsTeaserPickerOpen] = useState(false);
   const [croppedTeaserByCutId, setCroppedTeaserByCutId] = useState<
     Record<string, CroppedTeaserImage>
   >(() => getDefaultCroppedTeaserByCutId(initialSelectedSource));
@@ -2534,11 +2557,39 @@ export function FanletterNewsReportComposerPage({
     setError(null);
     setEditVisualMessage(null);
     setEditVisualStatus("idle");
+    setIsTeaserPickerOpen(false);
   }, [selectedSource, selectedSourceContentId]);
 
   useEffect(() => {
     setTeaserNaturalSize(null);
   }, [selectedTeaserCropCutId]);
+
+  useEffect(() => {
+    if (teaserMode !== "manual" || isSelectedPaidLocked) {
+      setIsTeaserPickerOpen(false);
+    }
+  }, [isSelectedPaidLocked, teaserMode]);
+
+  useEffect(() => {
+    if (!isTeaserPickerOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsTeaserPickerOpen(false);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isTeaserPickerOpen]);
 
   const selectCoverImage = useCallback(
     (imageUrl: string) => {
@@ -3421,6 +3472,241 @@ export function FanletterNewsReportComposerPage({
         ) : null}
       </div>
     ) : null;
+  const teaserPickerModal =
+    !isSelectedPaidLocked && teaserMode === "manual" && isTeaserPickerOpen ? (
+      <div
+        className="fixed inset-0 z-[180] flex items-end justify-center bg-black/64 p-0 backdrop-blur-sm sm:items-center sm:px-5 sm:py-5"
+        onClick={() => {
+          setIsTeaserPickerOpen(false);
+        }}
+      >
+        <div
+          aria-labelledby="fanletter-news-teaser-picker-title"
+          aria-modal="true"
+          className="flex h-[100dvh] max-h-[100dvh] w-full flex-col overflow-hidden rounded-none border border-white/12 bg-[#f5f6f1] text-[#111510] shadow-[0_24px_80px_rgba(0,0,0,0.34)] sm:h-auto sm:max-h-[calc(100dvh-2rem)] sm:max-w-5xl sm:rounded-lg"
+          onClick={(event) => {
+            event.stopPropagation();
+          }}
+          role="dialog"
+        >
+          <div className="flex shrink-0 items-start justify-between gap-3 border-b border-black/10 bg-white px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
+            <div className="min-w-0">
+              <p className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-[#16702e]">
+                <ImageIcon className="size-4" />
+                {copy.teaserSelection.modalEyebrow}
+              </p>
+              <h2
+                className="mt-1.5 break-words text-xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-2xl"
+                id="fanletter-news-teaser-picker-title"
+              >
+                {copy.teaserSelection.modalTitle}
+              </h2>
+              <p className="mt-1.5 text-sm font-semibold leading-5 text-black/56 sm:max-w-2xl sm:leading-6">
+                {copy.teaserSelection.modalBody}
+              </p>
+            </div>
+            <button
+              aria-label={copy.teaserSelection.modalClose}
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-black/12 bg-[#f5f6f1] text-black/56 transition hover:border-black/24 hover:bg-white hover:text-black"
+              onClick={() => {
+                setIsTeaserPickerOpen(false);
+              }}
+              type="button"
+            >
+              <X className="size-5" />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto px-3 py-3 pb-4 sm:px-5 sm:py-4">
+            <div className="rounded-xl border border-[#19b84b]/20 bg-white p-3 shadow-[0_10px_24px_rgba(25,184,75,0.08)]">
+              <div className="flex items-center justify-between gap-3">
+                <p className="inline-flex min-w-0 items-center gap-1.5 text-sm font-black text-[#111510]">
+                  <CheckCircle2 className="size-4 shrink-0 text-[#16702e]" />
+                  <span className="truncate">
+                    {copy.teaserSelection.modalSelected}
+                  </span>
+                </p>
+                <span className="inline-flex shrink-0 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-[#44f26e]">
+                  {copy.teaserSelection.selectedCount(
+                    formatNumber(selectedManualTeaserItems.length, locale),
+                    formatNumber(REPORT_TEASER_IMAGE_LIMIT, locale),
+                  )}
+                </span>
+              </div>
+              {selectedManualTeaserItems.length > 0 ? (
+                <div className="-mx-1 mt-3 grid grid-flow-col auto-cols-[5.25rem] gap-2 overflow-x-auto px-1 pb-1 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-4 sm:overflow-visible sm:pb-0 lg:grid-cols-6">
+                  {selectedManualTeaserItems.map((item, index) => (
+                    <button
+                      className={cn(
+                        "group min-w-0 overflow-hidden rounded-lg border bg-[#f7f9f4] p-1 text-left transition",
+                        item.isActive
+                          ? "border-[#19b84b] shadow-[0_0_0_1px_rgba(25,184,75,0.22)]"
+                          : "border-black/10 hover:border-[#19b84b]/45",
+                      )}
+                      key={`${item.id}-${index}`}
+                      onClick={() => {
+                        setIsTeaserPickerOpen(false);
+                        focusTeaserCutEditor(item.id);
+                      }}
+                      type="button"
+                    >
+                      <span className="relative block aspect-[9/16] overflow-hidden rounded-md bg-[#111510]">
+                        <span
+                          className={cn(
+                            "block size-full bg-cover bg-center transition group-hover:scale-[1.03]",
+                            shouldBlurSelectedNsfwMedia &&
+                              "scale-[1.03] blur-md brightness-75",
+                          )}
+                          style={{
+                            backgroundImage: `url(${item.previewUrl})`,
+                          }}
+                        />
+                        <span className="absolute left-1 top-1 rounded-full bg-black/72 px-1.5 py-0.5 text-[0.58rem] font-black text-[#44f26e]">
+                          {formatNumber(index + 1, locale)}
+                        </span>
+                      </span>
+                      <span className="mt-1.5 block truncate text-[0.62rem] font-black text-[#111510]">
+                        {item.slotLabel}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-3 rounded-lg border border-dashed border-[#19b84b]/22 bg-[#f6fff7] px-3 py-4 text-sm font-semibold leading-6 text-black/50">
+                  {copy.teaserSelection.modalSelectedEmpty}
+                </p>
+              )}
+            </div>
+
+            {selectedSourceCoverOptions.length > 0 ? (
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
+                {selectedSourceCoverOptions.map((option, index) => {
+                  const teaserUseCount = selectedTeaserCuts.filter(
+                    (cut) => cut.sourceImageUrl === option.imageUrl,
+                  ).length;
+                  const isTeaserLimitReached =
+                    selectedTeaserCuts.length >= REPORT_TEASER_IMAGE_LIMIT;
+                  const imageSizeLabel = formatCoverOptionImageSize(
+                    option,
+                    locale,
+                  );
+                  const previewStyle = getCoverOptionPreviewStyle(option);
+
+                  return (
+                    <div
+                      className="min-w-0 overflow-hidden rounded-lg border border-black/10 bg-white p-1.5 shadow-[0_8px_20px_rgba(17,21,16,0.055)]"
+                      key={`${option.candidateId}-${option.imageUrl}-${index}`}
+                    >
+                      <span className="relative block overflow-hidden rounded-md bg-[#111510]">
+                        <span
+                          className={cn(
+                            "block min-h-[8.5rem] bg-contain bg-center bg-no-repeat",
+                            shouldBlurSelectedNsfwMedia &&
+                              "scale-[1.03] blur-md brightness-75",
+                          )}
+                          style={previewStyle}
+                        />
+                        <span className="absolute left-1.5 top-1.5 rounded-full bg-black/72 px-1.5 py-0.5 text-[0.58rem] font-black text-[#44f26e]">
+                          {formatNumber(index + 1, locale)}
+                        </span>
+                        {teaserUseCount > 0 ? (
+                          <span className="absolute right-1.5 top-1.5 rounded-full bg-white px-1.5 py-0.5 text-[0.58rem] font-black text-[#16702e]">
+                            {copy.teaserSelection.sourceUseCount(
+                              formatNumber(teaserUseCount, locale),
+                            )}
+                          </span>
+                        ) : null}
+                      </span>
+                      <div className="min-w-0 px-1 pb-1 pt-2">
+                        <p className="truncate text-[0.72rem] font-black text-[#111510]">
+                          {getCoverLabel(option, index, locale)}
+                        </p>
+                        {imageSizeLabel ? (
+                          <p className="mt-0.5 truncate text-[0.62rem] font-black uppercase tracking-[0.06em] text-black/42">
+                            {copy.imageSize} · {imageSizeLabel}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="mt-1 grid grid-cols-2 gap-1.5">
+                        <button
+                          className={cn(
+                            "flex h-11 min-w-0 items-center justify-center gap-1 rounded-md border px-1.5 text-[0.68rem] font-black transition",
+                            teaserUseCount > 0
+                              ? "border-[#19b84b]/35 bg-[#111510] text-white"
+                              : "border-black/10 bg-[#f6f8f4] text-black/58 hover:border-[#19b84b]/35 hover:text-[#111510]",
+                            isTeaserLimitReached &&
+                              "cursor-not-allowed opacity-45 hover:border-black/10 hover:text-black/58",
+                          )}
+                          disabled={isTeaserLimitReached}
+                          onClick={() => {
+                            addTeaserCutFromSource(option.imageUrl);
+                          }}
+                          type="button"
+                        >
+                          {teaserUseCount > 0 ? (
+                            <CheckCircle2 className="size-3.5 shrink-0 text-[#44f26e]" />
+                          ) : (
+                            <ImageIcon className="size-3.5 shrink-0 text-[#16702e]" />
+                          )}
+                          <span className="truncate">
+                            {teaserUseCount > 0
+                              ? copy.teaserSelection.sourceUseCount(
+                                  formatNumber(teaserUseCount, locale),
+                                )
+                              : copy.teaserSelection.include}
+                          </span>
+                        </button>
+                        <button
+                          className={cn(
+                            "flex h-11 min-w-0 items-center justify-center gap-1 rounded-md border border-black/10 bg-[#f6f8f4] px-1.5 text-[0.68rem] font-black text-black/58 transition hover:border-[#19b84b]/35 hover:text-[#111510]",
+                            isTeaserLimitReached &&
+                              "cursor-not-allowed opacity-45 hover:border-black/10 hover:text-black/58",
+                          )}
+                          disabled={isTeaserLimitReached}
+                          onClick={() => {
+                            setIsTeaserPickerOpen(false);
+                            addTeaserCutFromSource(option.imageUrl, true);
+                          }}
+                          type="button"
+                        >
+                          <Crop className="size-3.5 shrink-0 text-[#16702e]" />
+                          <span className="truncate">
+                            {copy.teaserSelection.editCut}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="mt-3 rounded-xl border border-dashed border-black/14 bg-white px-4 py-10 text-center text-sm font-semibold leading-6 text-black/50">
+                {copy.teaserSelection.modalEmpty}
+              </p>
+            )}
+          </div>
+
+          <div className="shrink-0 border-t border-black/10 bg-white px-3 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] sm:px-5 sm:pb-3">
+            <div className="flex items-center justify-between gap-3">
+              <span className="min-w-0 truncate text-xs font-black text-black/48">
+                {selectedTeaserCuts.length >= REPORT_TEASER_IMAGE_LIMIT
+                  ? copy.teaserSelection.modalLimitReached
+                  : copy.teaserSelection.duplicateHint}
+              </span>
+              <button
+                className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] px-5 text-sm font-black text-[#111510] transition hover:bg-[#65ff87]"
+                onClick={() => {
+                  setIsTeaserPickerOpen(false);
+                }}
+                type="button"
+              >
+                {copy.teaserSelection.modalDone}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    ) : null;
   const existingReportCurrentVisuals = selectedExistingReport ? (
     <div className="mt-4 grid gap-3 border border-[#19b84b]/24 bg-[#f6fff7] p-3 shadow-[0_10px_24px_rgba(25,184,75,0.07)] md:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)]">
       <div className="min-w-0">
@@ -3768,7 +4054,9 @@ export function FanletterNewsReportComposerPage({
   }
 
   return (
-    <main className="min-h-screen bg-[#f2f4ef] px-4 pb-24 pt-[calc(env(safe-area-inset-top)+1rem)] text-[#111510] sm:px-6 lg:px-8">
+    <>
+      {teaserPickerModal}
+      <main className="min-h-screen bg-[#f2f4ef] px-4 pb-24 pt-[calc(env(safe-area-inset-top)+1rem)] text-[#111510] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <Link
           className="inline-flex h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-black !text-black/58 transition hover:!text-[#111510]"
@@ -4872,18 +5160,33 @@ export function FanletterNewsReportComposerPage({
                                     {copy.teaserSelection.duplicateHint}
                                   </p>
                                 </div>
-                                <span className="inline-flex w-fit shrink-0 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-[#44f26e]">
-                                  {copy.teaserSelection.selectedCount(
-                                    formatNumber(
-                                      selectedManualTeaserItems.length,
-                                      locale,
-                                    ),
-                                    formatNumber(
-                                      REPORT_TEASER_IMAGE_LIMIT,
-                                      locale,
-                                    ),
-                                  )}
-                                </span>
+                                <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+                                  <span className="inline-flex w-fit rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-[#44f26e]">
+                                    {copy.teaserSelection.selectedCount(
+                                      formatNumber(
+                                        selectedManualTeaserItems.length,
+                                        locale,
+                                      ),
+                                      formatNumber(
+                                        REPORT_TEASER_IMAGE_LIMIT,
+                                        locale,
+                                      ),
+                                    )}
+                                  </span>
+                                  <button
+                                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-[#111510] transition hover:bg-[#65ff87] disabled:cursor-not-allowed disabled:opacity-55 sm:w-fit"
+                                    disabled={
+                                      selectedSourceCoverOptions.length === 0
+                                    }
+                                    onClick={() => {
+                                      setIsTeaserPickerOpen(true);
+                                    }}
+                                    type="button"
+                                  >
+                                    <ImageIcon className="size-4" />
+                                    {copy.teaserSelection.openPicker}
+                                  </button>
+                                </div>
                               </div>
                               {selectedManualTeaserItems.length > 0 ? (
                                 <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
@@ -5102,7 +5405,7 @@ export function FanletterNewsReportComposerPage({
                                 </button>
                                 {!isSelectedPaidLocked &&
                                 teaserMode === "manual" ? (
-                                  <div className="mt-1 grid grid-cols-2 gap-1.5">
+                                  <div className="mt-1 hidden grid-cols-2 gap-1.5 sm:grid">
                                     <button
                                       className={cn(
                                         "flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 text-[0.72rem] font-black transition",
@@ -5156,7 +5459,7 @@ export function FanletterNewsReportComposerPage({
                                 ) : null}
                                 {teaserUseCount > 0 &&
                                 teaserMode === "manual" ? (
-                                  <p className="mt-2 rounded-md border border-[#19b84b]/18 bg-white px-2 py-1.5 text-[0.62rem] font-black text-[#16702e]">
+                                  <p className="mt-2 hidden rounded-md border border-[#19b84b]/18 bg-white px-2 py-1.5 text-[0.62rem] font-black text-[#16702e] sm:block">
                                     {copy.teaserSelection.sourceUseCount(
                                       formatNumber(teaserUseCount, locale),
                                     )}
@@ -5518,6 +5821,7 @@ export function FanletterNewsReportComposerPage({
           </div>
         </section>
       </div>
-    </main>
+      </main>
+    </>
   );
 }
