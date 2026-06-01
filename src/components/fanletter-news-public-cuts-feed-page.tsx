@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -12,9 +15,11 @@ import {
 
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
-  type FanletterNewsPublicCut,
-  type FanletterNewsPublicCutFeedItem,
-} from "@/lib/fanletter-news-public-cuts";
+  FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE,
+  type FanletterNewsPublicCutFeedLoadResponse,
+  type SerializedFanletterNewsPublicCut,
+  type SerializedFanletterNewsPublicCutFeedItem,
+} from "@/lib/fanletter-news-public-cuts-shared";
 import {
   getFanletterNewsBareArticleDisplayTitle,
 } from "@/lib/fanletter-news-related";
@@ -35,7 +40,11 @@ function getCopy(locale: Locale) {
         feedTitle: "리포터 컷",
         home: "뉴스 홈",
         instruction: "위아래로 넘겨 팬 기자가 고른 4컷을 확인하세요.",
+        loadError: "다음 리포터 컷을 불러오지 못했습니다.",
+        loadMore: "더 보기",
+        loadingMore: "다음 리포터 컷 불러오는 중",
         news: "뉴스 보기",
+        noMore: "모든 리포터 컷을 확인했습니다.",
         paid: "팬 전용 원본",
         reporter: "팬 기자",
         slot: (index: string) => `컷 ${index}`,
@@ -53,7 +62,11 @@ function getCopy(locale: Locale) {
         feedTitle: "Reporter Cuts",
         home: "News Home",
         instruction: "Swipe vertically to review the four cuts chosen by fan reporters.",
+        loadError: "Could not load more reporter cuts.",
+        loadMore: "Load more",
+        loadingMore: "Loading more reporter cuts",
         news: "Read news",
+        noMore: "You have reviewed every reporter cut.",
         paid: "Fan-only source",
         reporter: "Fan reporter",
         slot: (index: string) => `Cut ${index}`,
@@ -61,14 +74,20 @@ function getCopy(locale: Locale) {
       };
 }
 
-function formatDate(value: Date | null, locale: Locale) {
+function formatDate(value: string | null, locale: Locale) {
   if (!value) {
+    return null;
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
     return null;
   }
 
   return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
-  }).format(value);
+  }).format(date);
 }
 
 function formatNumber(value: number, locale: Locale) {
@@ -145,7 +164,7 @@ function CutThumbnail({
 }: {
   blurred: boolean;
   copy: ReturnType<typeof getCopy>;
-  cut: FanletterNewsPublicCut;
+  cut: SerializedFanletterNewsPublicCut;
   title: string;
 }) {
   const slotNumber = cut.slotNumber.toString().padStart(2, "0");
@@ -168,14 +187,16 @@ function CutThumbnail({
 }
 
 function FeedSlide({
+  hasMore,
   index,
   item,
   itemCount,
   locale,
   referralCode,
 }: {
+  hasMore: boolean;
   index: number;
-  item: FanletterNewsPublicCutFeedItem;
+  item: SerializedFanletterNewsPublicCutFeedItem;
   itemCount: number;
   locale: Locale;
   referralCode: string | null;
@@ -183,6 +204,9 @@ function FeedSlide({
   const copy = getCopy(locale);
   const { report } = item;
   const title = getFanletterNewsBareArticleDisplayTitle(report.title);
+  const positionLabel = hasMore
+    ? `${formatNumber(index + 1, locale)} / ${formatNumber(itemCount, locale)}+`
+    : `${formatNumber(index + 1, locale)} / ${formatNumber(itemCount, locale)}`;
   const publishedAt = formatDate(report.sourcePublishedAt ?? report.createdAt, locale);
   const isNsfw = report.contentMaturityRating === "nsfw";
   const reportHref = getReportHref({
@@ -240,7 +264,7 @@ function FeedSlide({
               {copy.feedTitle}
             </span>
             <span className="rounded-full border border-white/16 bg-white/10 px-3 py-1.5 text-white/76 backdrop-blur">
-              {formatNumber(index + 1, locale)} / {formatNumber(itemCount, locale)}
+              {positionLabel}
             </span>
             {isNsfw ? (
               <span className="rounded-full bg-rose-600 px-3 py-1.5 text-white">
@@ -328,20 +352,135 @@ function FeedSlide({
   );
 }
 
+function mergePublicCutItems(
+  previousItems: SerializedFanletterNewsPublicCutFeedItem[],
+  nextItems: SerializedFanletterNewsPublicCutFeedItem[],
+) {
+  const seenReportIds = new Set(
+    previousItems.map((item) => item.report.reportId),
+  );
+  const mergedItems = [...previousItems];
+
+  for (const item of nextItems) {
+    if (seenReportIds.has(item.report.reportId)) {
+      continue;
+    }
+
+    seenReportIds.add(item.report.reportId);
+    mergedItems.push(item);
+  }
+
+  return mergedItems;
+}
+
 export function FanletterNewsPublicCutsFeedPage({
-  items,
+  excludeReportId = null,
+  hasMore: initialHasMore,
+  items: initialItems,
   locale,
+  nextOffset: initialNextOffset,
   referralCode,
 }: {
-  items: FanletterNewsPublicCutFeedItem[];
+  excludeReportId?: string | null;
+  hasMore: boolean;
+  items: SerializedFanletterNewsPublicCutFeedItem[];
   locale: Locale;
+  nextOffset: number;
   referralCode: string | null;
 }) {
   const copy = getCopy(locale);
+  const [items, setItems] = useState(initialItems);
+  const [hasMore, setHasMore] = useState(initialHasMore);
+  const [nextOffset, setNextOffset] = useState(initialNextOffset);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const newsHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/news`,
     referralCode,
   );
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore) {
+      return;
+    }
+
+    setIsLoadingMore(true);
+    setLoadError(null);
+
+    try {
+      const params = new URLSearchParams({
+        limit: String(FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE),
+        locale,
+        offset: String(nextOffset),
+      });
+
+      if (excludeReportId) {
+        params.set("excludeReportId", excludeReportId);
+      }
+
+      const response = await fetch(`/api/fanletter/news-cuts?${params}`, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(copy.loadError);
+      }
+
+      const data = (await response.json()) as FanletterNewsPublicCutFeedLoadResponse;
+
+      setItems((currentItems) =>
+        mergePublicCutItems(currentItems, data.items),
+      );
+      setHasMore(data.hasMore);
+      setNextOffset(data.nextOffset);
+    } catch {
+      setLoadError(copy.loadError);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [
+    copy.loadError,
+    excludeReportId,
+    hasMore,
+    isLoadingMore,
+    locale,
+    nextOffset,
+  ]);
+
+  useEffect(() => {
+    if (!hasMore) {
+      return;
+    }
+
+    const sentinel = loadMoreRef.current;
+    const root = scrollContainerRef.current;
+
+    if (!sentinel || !root) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          void loadMore();
+        }
+      },
+      {
+        root,
+        rootMargin: "1400px 0px",
+        threshold: 0.01,
+      },
+    );
+
+    observer.observe(sentinel);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasMore, loadMore]);
 
   if (items.length === 0) {
     return (
@@ -391,9 +530,13 @@ export function FanletterNewsPublicCutsFeedPage({
           <div className="size-11 shrink-0 sm:hidden" aria-hidden="true" />
         </div>
       </header>
-      <div className="h-full snap-y snap-mandatory overflow-y-auto overscroll-contain scroll-smooth">
+      <div
+        className="h-full snap-y snap-mandatory overflow-y-auto overscroll-contain scroll-smooth"
+        ref={scrollContainerRef}
+      >
         {items.map((item, index) => (
           <FeedSlide
+            hasMore={hasMore}
             index={index}
             item={item}
             itemCount={items.length}
@@ -402,6 +545,32 @@ export function FanletterNewsPublicCutsFeedPage({
             referralCode={referralCode}
           />
         ))}
+        <section
+          className="flex min-h-[48dvh] snap-start items-center justify-center px-4 py-10 text-center"
+          ref={loadMoreRef}
+        >
+          <div className="max-w-sm rounded-2xl border border-white/12 bg-white/8 p-5 shadow-2xl backdrop-blur-xl">
+            <Images className="mx-auto size-8 text-[#44f26e]" />
+            <p className="mt-3 text-sm font-black text-white">
+              {isLoadingMore
+                ? copy.loadingMore
+                : loadError
+                  ? copy.loadError
+                  : hasMore
+                    ? copy.loadingMore
+                    : copy.noMore}
+            </p>
+            {loadError ? (
+              <button
+                className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-[#44f26e] px-4 text-xs font-black text-[#111510]"
+                onClick={() => void loadMore()}
+                type="button"
+              >
+                {copy.loadMore}
+              </button>
+            ) : null}
+          </div>
+        </section>
       </div>
     </main>
   );

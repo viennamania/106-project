@@ -4,13 +4,21 @@ import type {
   FanletterNewsReportDocument,
   FanletterNewsReportTeaserImageDocument,
 } from "@/lib/content";
+import { getFanletterNewsReportsCollection } from "@/lib/mongodb";
 import {
   getLatestFanletterNewsReports,
 } from "@/lib/fanletter-news-report-service";
+import {
+  FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
+  FANLETTER_NEWS_PUBLIC_CUT_MAX_PAGE_SIZE,
+  type FanletterNewsPublicCutFeedLoadResponse,
+  type SerializedFanletterNewsPublicCutFeedItem,
+} from "@/lib/fanletter-news-public-cuts-shared";
 import type { Locale } from "@/lib/i18n";
 
 const FANLETTER_NEWS_PUBLIC_CUT_LIMIT = 4;
-const FANLETTER_NEWS_PUBLIC_CUT_FEED_REPORT_LIMIT = 24;
+const FANLETTER_NEWS_PUBLIC_CUT_FEED_REPORT_LIMIT =
+  FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE;
 const FANLETTER_NEWS_PUBLIC_CUT_FEED_LOOKAHEAD_LIMIT = 48;
 
 export type FanletterNewsPublicCut = {
@@ -25,6 +33,31 @@ export type FanletterNewsPublicCutFeedItem = {
   leadCut: FanletterNewsPublicCut;
   report: FanletterNewsReportDocument;
 };
+
+export type FanletterNewsPublicCutFeedPage = {
+  hasMore: boolean;
+  items: FanletterNewsPublicCutFeedItem[];
+  nextOffset: number;
+};
+
+function normalizePublicCutFeedLimit(limit: number) {
+  if (!Number.isFinite(limit)) {
+    return FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE;
+  }
+
+  return Math.max(
+    1,
+    Math.min(Math.floor(limit), FANLETTER_NEWS_PUBLIC_CUT_MAX_PAGE_SIZE),
+  );
+}
+
+function normalizePublicCutFeedOffset(offset: number) {
+  if (!Number.isFinite(offset)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor(offset));
+}
 
 function getPublicCutsFromReport(
   report: Pick<FanletterNewsReportDocument, "teaserImages" | "teaserImageUrls">,
@@ -75,6 +108,113 @@ export function createFanletterNewsPublicCutFeedItem(
   };
 }
 
+export function serializeFanletterNewsPublicCutFeedItem(
+  item: FanletterNewsPublicCutFeedItem,
+): SerializedFanletterNewsPublicCutFeedItem {
+  return {
+    cuts: item.cuts,
+    leadCut: item.leadCut,
+    report: {
+      contentMaturityRating: item.report.contentMaturityRating,
+      createdAt: item.report.createdAt.toISOString(),
+      creatorName: item.report.creatorName,
+      creatorReferralCode: item.report.creatorReferralCode,
+      dek: item.report.dek,
+      priceType: item.report.priceType,
+      reporterName: item.report.reporterName,
+      reporterReferralCode: item.report.reporterReferralCode,
+      reportId: item.report.reportId,
+      sourcePublishedAt: item.report.sourcePublishedAt?.toISOString() ?? null,
+      title: item.report.title,
+    },
+  };
+}
+
+export function serializeFanletterNewsPublicCutFeedItems(
+  items: FanletterNewsPublicCutFeedItem[],
+) {
+  return items.map((item) => serializeFanletterNewsPublicCutFeedItem(item));
+}
+
+export function serializeFanletterNewsPublicCutFeedPage(
+  page: FanletterNewsPublicCutFeedPage,
+): FanletterNewsPublicCutFeedLoadResponse {
+  return {
+    hasMore: page.hasMore,
+    items: serializeFanletterNewsPublicCutFeedItems(page.items),
+    nextOffset: page.nextOffset,
+  };
+}
+
+export async function getFanletterNewsPublicCutFeedPage({
+  excludeReportIds = [],
+  limit = FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
+  locale,
+  offset = 0,
+  targetReport = null,
+}: {
+  excludeReportIds?: string[];
+  limit?: number;
+  locale: Locale;
+  offset?: number;
+  targetReport?: FanletterNewsReportDocument | null;
+}): Promise<FanletterNewsPublicCutFeedPage> {
+  const normalizedLimit = normalizePublicCutFeedLimit(limit);
+  const normalizedOffset = normalizePublicCutFeedOffset(offset);
+  const targetItem = targetReport
+    ? createFanletterNewsPublicCutFeedItem(targetReport)
+    : null;
+  const normalizedExcludeReportIds = [
+    ...new Set(
+      [
+        ...excludeReportIds,
+        ...(targetItem ? [targetItem.report.reportId] : []),
+      ]
+        .map((reportId) => reportId.trim())
+        .filter(Boolean),
+    ),
+  ];
+  const queryLimit = Math.max(1, normalizedLimit - (targetItem ? 1 : 0));
+  const reportsCollection = await getFanletterNewsReportsCollection();
+  const reports = await reportsCollection
+    .find({
+      locale,
+      ...(normalizedExcludeReportIds.length > 0
+        ? { reportId: { $nin: normalizedExcludeReportIds } }
+        : {}),
+      $or: [
+        {
+          teaserImages: {
+            $elemMatch: {
+              imageUrl: { $regex: /\S/ },
+              source: "reporter_cropped",
+            },
+          },
+        },
+        {
+          teaserImageUrls: {
+            $elemMatch: { $regex: /\S/ },
+          },
+        },
+      ],
+      status: "published",
+    })
+    .sort({ sourcePublishedAt: -1, createdAt: -1 })
+    .skip(normalizedOffset)
+    .limit(queryLimit + 1)
+    .toArray();
+  const feedItems = reports
+    .slice(0, queryLimit)
+    .map((report) => createFanletterNewsPublicCutFeedItem(report))
+    .filter((item): item is FanletterNewsPublicCutFeedItem => Boolean(item));
+
+  return {
+    hasMore: reports.length > queryLimit,
+    items: targetItem ? [targetItem, ...feedItems] : feedItems,
+    nextOffset: normalizedOffset + Math.min(reports.length, queryLimit),
+  };
+}
+
 export async function getFanletterNewsPublicCutFeed({
   limit = FANLETTER_NEWS_PUBLIC_CUT_FEED_REPORT_LIMIT,
   locale,
@@ -84,6 +224,16 @@ export async function getFanletterNewsPublicCutFeed({
   locale: Locale;
   targetReport?: FanletterNewsReportDocument | null;
 }) {
+  if (limit <= FANLETTER_NEWS_PUBLIC_CUT_MAX_PAGE_SIZE) {
+    const page = await getFanletterNewsPublicCutFeedPage({
+      limit,
+      locale,
+      targetReport,
+    });
+
+    return page.items;
+  }
+
   const normalizedLimit = Math.max(
     1,
     Math.min(Math.floor(limit), FANLETTER_NEWS_PUBLIC_CUT_FEED_REPORT_LIMIT),

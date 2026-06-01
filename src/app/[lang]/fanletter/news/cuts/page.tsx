@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterNewsPublicCutsFeedPage } from "@/components/fanletter-news-public-cuts-feed-page";
-import { getFanletterNewsPublicCutFeed } from "@/lib/fanletter-news-public-cuts";
+import {
+  getFanletterNewsPublicCutFeedPage,
+  serializeFanletterNewsPublicCutFeedItems,
+} from "@/lib/fanletter-news-public-cuts";
+import { FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE } from "@/lib/fanletter-news-public-cuts-shared";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 
@@ -55,14 +59,17 @@ export default async function LocalizedFanletterNewsCutsPage({
 
   const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
-  const items = await getFanletterNewsPublicCutFeed({
+  const feedPage = await getFanletterNewsPublicCutFeedPage({
+    limit: FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
     locale,
   });
 
   return (
     <FanletterNewsPublicCutsFeedPage
-      items={items}
+      hasMore={feedPage.hasMore}
+      items={serializeFanletterNewsPublicCutFeedItems(feedPage.items)}
       locale={locale}
+      nextOffset={feedPage.nextOffset}
       referralCode={referralCode}
     />
   );
