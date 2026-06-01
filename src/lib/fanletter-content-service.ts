@@ -114,6 +114,7 @@ export type FanletterPublicContentItem = {
   canViewerAccess: boolean;
   newsReportCount: number;
   social: ContentSocialSummaryRecord;
+  sourcePreviewVideoUrl?: string | null;
   summary: string;
   title: string;
 };
@@ -930,10 +931,12 @@ function toPublicContentItem({
   post,
   preferCoverImageUrl = false,
   profile,
+  includeSourcePreviewVideo = false,
   social,
 }: {
   canViewerAccess?: boolean;
   coverPlacement?: "detail" | "feed";
+  includeSourcePreviewVideo?: boolean;
   newsReportCount?: number;
   post: ContentPostDocument;
   preferCoverImageUrl?: boolean;
@@ -967,6 +970,9 @@ function toPublicContentItem({
     canViewerAccess: resolvedCanViewerAccess,
     newsReportCount: Math.max(0, Math.floor(newsReportCount)),
     social: social ?? createEmptyContentSocialSummary(),
+    ...(includeSourcePreviewVideo
+      ? { sourcePreviewVideoUrl: getSourcePreviewVideoUrl(post) }
+      : {}),
     summary: compactText(post.summary || post.previewText || post.body, SUMMARY_LIMIT),
     title: compactText(post.title, TITLE_LIMIT),
   };
@@ -2683,6 +2689,7 @@ export const getFanletterCreatorPageData = cache(
       hiddenNsfwCount,
       items: posts.map((post) =>
         toPublicContentItem({
+          includeSourcePreviewVideo: true,
           newsReportCount: newsReportCountByContentId.get(post.contentId) ?? 0,
           post,
           profile,

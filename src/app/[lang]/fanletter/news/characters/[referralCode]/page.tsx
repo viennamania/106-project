@@ -19,12 +19,14 @@ import {
   LockKeyhole,
   MessageCircleHeart,
   Newspaper,
+  PlayCircle,
   Sparkles,
   Trophy,
   UsersRound,
 } from "lucide-react";
 
 import { FanletterChannelShareButton } from "@/components/fanletter-channel-share-button";
+import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterNewsCharacterImageSelector } from "@/components/fanletter-news-character-image-selector";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import type { FanletterNewsReportDocument } from "@/lib/content";
@@ -256,6 +258,7 @@ function getCopy(locale: Locale) {
           emptyFanOnly: "표시 가능한 팬 전용 브이로그가 아직 없습니다.",
           eyebrow: "뉴스 속 원본 브이로그",
           fanOnlyTitle: "팬 전용 브이로그",
+          previewBadge: "프리뷰",
           publicTitle: "공개 브이로그",
           reports: "리포트",
         },
@@ -437,6 +440,7 @@ function getCopy(locale: Locale) {
           emptyFanOnly: "No displayable fan-only vlogs yet.",
           eyebrow: "Daily Vlog Archive",
           fanOnlyTitle: "Fan-only vlogs",
+          previewBadge: "Preview",
           publicTitle: "Public vlogs",
           reports: "reports",
         },
@@ -673,6 +677,54 @@ function CoverImage({
   );
 }
 
+function ContentCardMedia({
+  alt,
+  blurred,
+  imageUrl,
+  previewBadge,
+  previewVideoUrl,
+  showPreviewVideo,
+  sizes,
+}: {
+  alt: string;
+  blurred: boolean;
+  imageUrl: string | null;
+  previewBadge: string;
+  previewVideoUrl?: string | null;
+  showPreviewVideo: boolean;
+  sizes: string;
+}) {
+  const shouldShowPreviewVideo =
+    showPreviewVideo && !blurred && Boolean(previewVideoUrl);
+
+  if (!shouldShowPreviewVideo || !previewVideoUrl) {
+    return (
+      <CoverImage
+        alt={alt}
+        blurred={blurred}
+        imageUrl={imageUrl}
+        sizes={sizes}
+      />
+    );
+  }
+
+  return (
+    <div className="relative min-h-[13.5rem] overflow-hidden bg-[#111510] sm:min-h-[12.75rem]">
+      <FanletterAutoplayVideo
+        ariaHidden
+        className="absolute inset-0 h-full w-full object-cover"
+        poster={imageUrl ?? undefined}
+        src={previewVideoUrl}
+      />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.05)_0%,rgba(0,0,0,0.18)_48%,rgba(0,0,0,0.62)_100%)]" />
+      <span className="pointer-events-none absolute left-3 top-3 inline-flex max-w-[calc(100%-1.5rem)] items-center gap-1.5 rounded-full border border-white/18 bg-black/62 px-2.5 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-white shadow-[0_12px_28px_rgba(0,0,0,0.22)] backdrop-blur">
+        <PlayCircle className="size-3.5 text-[#44f26e]" />
+        <span className="truncate">{previewBadge}</span>
+      </span>
+    </div>
+  );
+}
+
 function getSourceRevealCardState(item: FanletterPublicContentItem) {
   const threshold = FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD;
   const count = Math.max(0, Math.floor(item.social.sourceRevealCount));
@@ -815,6 +867,7 @@ function ContentCard({
   nsfwOptInEnabled,
   referralCode,
   showSourceReveal = false,
+  showPreviewVideo = false,
 }: {
   copy: ReturnType<typeof getCopy>;
   href?: string;
@@ -823,6 +876,7 @@ function ContentCard({
   nsfwOptInEnabled: boolean;
   referralCode: string | null;
   showSourceReveal?: boolean;
+  showPreviewVideo?: boolean;
 }) {
   const blurred = isNsfwMaturity(item.contentMaturityRating) && !nsfwOptInEnabled;
   const href =
@@ -845,14 +899,21 @@ function ContentCard({
   const hasPaidSales = item.social.paidBuyerCount > 0;
   const paidSalesLabel = formatNumber(item.social.paidBuyerCount, locale);
   const paidRevenueLabel = formatUsdtAmount(item.social.paidTotalUsdt, locale);
+  const shouldShowPublicPreviewVideo =
+    showPreviewVideo &&
+    item.priceType === "free" &&
+    !isNsfwMaturity(item.contentMaturityRating);
 
   return (
     <article className="grid min-w-0 overflow-hidden rounded-lg border border-black/12 bg-white shadow-[0_16px_34px_rgba(17,21,16,0.07)]">
       <Link className="relative block" href={href}>
-        <CoverImage
+        <ContentCardMedia
           alt=""
           blurred={blurred}
           imageUrl={item.coverImageUrl}
+          previewBadge={copy.vlog.previewBadge}
+          previewVideoUrl={item.sourcePreviewVideoUrl}
+          showPreviewVideo={shouldShowPublicPreviewVideo}
           sizes="(max-width: 768px) 100vw, 22rem"
         />
         {showSourceReveal ? (
@@ -2183,6 +2244,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                   nsfwOptInEnabled={nsfwOptInEnabled}
                   referralCode={effectiveReferralCode}
                   showSourceReveal
+                  showPreviewVideo
                 />
               ))}
             </div>
