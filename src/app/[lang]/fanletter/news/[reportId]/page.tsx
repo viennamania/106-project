@@ -323,6 +323,10 @@ function getCopy(locale: Locale) {
         reportTeaserGallery: {
           body:
             "팬 기자가 직접 크롭해 편집한 티저 컷을 기사 안에서 보여줍니다.",
+          editBody:
+            "이 뉴스는 로그인한 리포터 계정이 작성했습니다. 일반 사용자 화면에서 바로 티저 컷을 다시 편집할 수 있습니다.",
+          editCta: "리포터 티저 컷 편집",
+          editEyebrow: "내가 작성한 뉴스",
           eyebrow: "리포터 티저 컷",
           fallbackBody:
             "팬 기자가 따로 고른 공개 장면이 없을 때는 뉴스 대표 이미지를 먼저 보여줍니다.",
@@ -589,6 +593,10 @@ function getCopy(locale: Locale) {
         reportTeaserGallery: {
           body:
             "The article shows teaser cuts cropped and edited by the fan reporter.",
+          editBody:
+            "This news was written by the signed-in reporter account. You can edit teaser cuts directly from the public news view.",
+          editCta: "Edit reporter teaser cuts",
+          editEyebrow: "News written by you",
           eyebrow: "Reporter teaser cuts",
           fallbackBody:
             "When the reporter did not choose public scenes, the news lead image is shown first.",
@@ -2778,6 +2786,7 @@ function ReporterTeaserCutGallery({
   accessLabel,
   blurred,
   copy,
+  editHref,
   locale,
   publishedAt,
   report,
@@ -2788,6 +2797,7 @@ function ReporterTeaserCutGallery({
   accessLabel: string;
   blurred: boolean;
   copy: ReturnType<typeof getCopy>;
+  editHref: string | null;
   locale: Locale;
   publishedAt: string | null;
   report: FanletterNewsReportDocument;
@@ -2850,54 +2860,82 @@ function ReporterTeaserCutGallery({
     };
   });
 
-  if (!featuredImageUrl && teaserItems.length === 0) {
+  if (!featuredImageUrl && teaserItems.length === 0 && !editHref) {
     return null;
   }
 
   return (
-    <FanletterNewsSourceSceneGallery
-      key={`${featuredImageUrl ?? "no-lead"}|${teaserItems
-        .map((item) => item.imageUrl)
-        .join("|")}`}
-      blurred={blurred}
-      copy={{
-        body:
-          !shouldUseEditedCuts && (featuredImageUrl || teaserItems.length === 0)
-            ? copy.reportTeaserGallery.leadBody
-            : galleryBody,
-        close: copy.sourceTeaserGallery.close,
-        eyebrow: copy.reportTeaserGallery.eyebrow,
-        next: copy.sourceTeaserGallery.next,
-        openViewer: copy.sourceTeaserGallery.openViewer,
-        pinProtectedBody: copy.sourceTeaserGallery.pinProtectedBody,
-        pinProtectedTitle: copy.sourceTeaserGallery.pinProtectedTitle,
-        previous: copy.sourceTeaserGallery.previous,
-        title: galleryTitle,
-      }}
-      density="compact"
-      featuredItem={
-        !shouldUseEditedCuts && featuredImageUrl
-          ? {
-              alt: report.title,
-              badges: [copy.visualLead, accessLabel],
-              blurNotice: copy.nsfwBlurNotice,
-              imageUrl: featuredImageUrl,
-            }
-          : null
-      }
-      items={teaserItems}
-      layout="grid"
-      locale={locale}
-      presentation={shouldUseEditedCuts ? "reporterTeaser" : "default"}
-      reporterMeta={{
-        avatarImageUrl: reporterAvatarImageUrl,
-        initial: reporterInitial,
-        name: reporterDisplayName,
-        publishedAt,
-        publishedLabel: copy.publishedLabel,
-        roleLabel: copy.byline,
-      }}
-    />
+    <>
+      {editHref ? (
+        <section className="mt-3 border border-[#19b84b]/22 bg-[#ecfff0] p-3 shadow-[0_14px_34px_rgba(25,184,75,0.08)] sm:p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="inline-flex items-center gap-1.5 rounded-full bg-[#111510] px-3 py-1.5 text-xs font-black text-[#44f26e]">
+                <ShieldCheck className="size-3.5" />
+                {copy.reportTeaserGallery.editEyebrow}
+              </p>
+              <p className="mt-2 text-sm font-semibold leading-6 text-black/62">
+                {copy.reportTeaserGallery.editBody}
+              </p>
+            </div>
+            <Link
+              className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black sm:w-auto"
+              href={editHref}
+            >
+              {copy.reportTeaserGallery.editCta}
+              <ArrowUpRight className="size-4 text-[#44f26e]" />
+            </Link>
+          </div>
+        </section>
+      ) : null}
+
+      {featuredImageUrl || teaserItems.length > 0 ? (
+        <FanletterNewsSourceSceneGallery
+          key={`${featuredImageUrl ?? "no-lead"}|${teaserItems
+            .map((item) => item.imageUrl)
+            .join("|")}`}
+          blurred={blurred}
+          copy={{
+            body:
+              !shouldUseEditedCuts &&
+              (featuredImageUrl || teaserItems.length === 0)
+                ? copy.reportTeaserGallery.leadBody
+                : galleryBody,
+            close: copy.sourceTeaserGallery.close,
+            eyebrow: copy.reportTeaserGallery.eyebrow,
+            next: copy.sourceTeaserGallery.next,
+            openViewer: copy.sourceTeaserGallery.openViewer,
+            pinProtectedBody: copy.sourceTeaserGallery.pinProtectedBody,
+            pinProtectedTitle: copy.sourceTeaserGallery.pinProtectedTitle,
+            previous: copy.sourceTeaserGallery.previous,
+            title: galleryTitle,
+          }}
+          density="compact"
+          featuredItem={
+            !shouldUseEditedCuts && featuredImageUrl
+              ? {
+                  alt: report.title,
+                  badges: [copy.visualLead, accessLabel],
+                  blurNotice: copy.nsfwBlurNotice,
+                  imageUrl: featuredImageUrl,
+                }
+              : null
+          }
+          items={teaserItems}
+          layout="grid"
+          locale={locale}
+          presentation={shouldUseEditedCuts ? "reporterTeaser" : "default"}
+          reporterMeta={{
+            avatarImageUrl: reporterAvatarImageUrl,
+            initial: reporterInitial,
+            name: reporterDisplayName,
+            publishedAt,
+            publishedLabel: copy.publishedLabel,
+            roleLabel: copy.byline,
+          }}
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -3618,6 +3656,15 @@ export default async function LocalizedFanletterNewsReportPage({
       relatedNewsOffset > 0 ? String(relatedNewsOffset) : null,
     [RELATED_NEWS_SORT_PARAM]: relatedNewsSortParam ? relatedNewsSort : null,
   });
+  const reporterTeaserEditHref = isViewerReporterOwner
+    ? setPathSearchParams(
+        buildPathWithReferral(
+          `/${locale}/fanletter/news/${report.reportId}/teasers/edit`,
+          referralCode,
+        ),
+        { returnTo: articleReturnHref },
+      )
+    : null;
   const newsConnectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
     { returnTo: articleHref },
@@ -4173,6 +4220,7 @@ export default async function LocalizedFanletterNewsReportPage({
               accessLabel={accessLabel}
               blurred={shouldBlurCurrentReport}
               copy={copy}
+              editHref={reporterTeaserEditHref}
               locale={locale}
               publishedAt={publishedAt}
               report={report}
