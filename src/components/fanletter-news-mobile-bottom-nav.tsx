@@ -59,6 +59,7 @@ const fanletterNewsTopLevelServiceSegments = new Set([
   "activate",
   "characters",
   "connect",
+  "cuts",
   "my",
   "platform",
   "purchases",
@@ -271,6 +272,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const memberSession = useMemberSession();
   const basePath = `/${locale}/fanletter/news`;
   const platformPath = `${basePath}/platform`;
+  const cutsPath = `${basePath}/cuts`;
   const connectPath = `${basePath}/connect`;
   const activatePath = `${basePath}/activate`;
   const myPath = `${basePath}/my`;
@@ -284,6 +286,8 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const vlogsNewPath = `${basePath}/vlogs/new`;
   const shouldHideNav =
     pathname === platformPath ||
+    pathname === cutsPath ||
+    pathname.startsWith(`${cutsPath}/`) ||
     isNewsReportDetailPath(pathname, basePath);
 
   if (shouldHideNav) {

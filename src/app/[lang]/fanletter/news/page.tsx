@@ -9,6 +9,7 @@ import {
   Clapperboard,
   Clock3,
   FileText,
+  Images,
   List,
   Newspaper,
   PenLine,
@@ -119,9 +120,11 @@ function getCopy(locale: Locale) {
         latest: "최근 발행 리포트",
         lead: "오늘의 리드",
         leadKicker: "FanLetter exclusive",
+        cutFeedCta: "리포터 컷 피드",
         navItems: [
           "톱뉴스",
           "티저 화보",
+          "리포터 컷",
           "홈",
           "팬 기자",
           "AI 캐릭터",
@@ -243,9 +246,11 @@ function getCopy(locale: Locale) {
         latest: "Recently Published Reports",
         lead: "Lead News",
         leadKicker: "FanLetter exclusive",
+        cutFeedCta: "Reporter cuts",
         navItems: [
           "Top news",
           "Teaser gallery",
+          "Reporter cuts",
           "Home",
           "Fan reporters",
           "AI characters",
@@ -717,6 +722,7 @@ function NewsImage({
 function NewsMasthead({
   charactersHref,
   copy,
+  cutsHref,
   galleryHref,
   locale,
   myHref,
@@ -729,6 +735,7 @@ function NewsMasthead({
 }: {
   charactersHref: string;
   copy: ReturnType<typeof getCopy>;
+  cutsHref: string;
   galleryHref: string;
   locale: Locale;
   myHref: string;
@@ -745,6 +752,7 @@ function NewsMasthead({
   const navHrefs = [
     `${navigationBaseHref}#top-stories`,
     galleryHref,
+    cutsHref,
     platformHref,
     reportersHref,
     charactersHref,
@@ -1781,11 +1789,13 @@ function WireBriefStory({
 
 function PhotoDesk({
   copy,
+  cutsHref,
   nsfwOptInEnabled,
   referralCode,
   reports,
 }: {
   copy: ReturnType<typeof getCopy>;
+  cutsHref: string;
   nsfwOptInEnabled: boolean;
   referralCode: string | null;
   reports: FanletterNewsReportDocument[];
@@ -1807,6 +1817,14 @@ function PhotoDesk({
             {copy.photoDesk}
           </h2>
         </div>
+        <Link
+          className="inline-flex h-11 w-fit items-center justify-center gap-2 rounded-full border border-black/12 bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-[#16702e] sm:justify-self-end"
+          href={cutsHref}
+        >
+          <Images className="size-4 text-[#44f26e]" />
+          {copy.cutFeedCta}
+          <ArrowRight className="size-4" />
+        </Link>
       </div>
 
       <div className="grid gap-px bg-[#111510] lg:grid-cols-[minmax(0,1.12fr)_minmax(18rem,0.88fr)]">
@@ -2460,6 +2478,10 @@ export default async function LocalizedFanletterNewsHomePage({
     `/${locale}/fanletter/news/gallery`,
     referralCode,
   );
+  const cutsHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/cuts`,
+    referralCode,
+  );
   const platformHref = buildPathWithReferral(
     `/${locale}/fanletter/news/platform`,
     referralCode,
@@ -2499,6 +2521,7 @@ export default async function LocalizedFanletterNewsHomePage({
       <NewsMasthead
         charactersHref={charactersHref}
         copy={copy}
+        cutsHref={cutsHref}
         galleryHref={galleryHref}
         locale={locale}
         myHref={myHref}
@@ -2555,6 +2578,7 @@ export default async function LocalizedFanletterNewsHomePage({
               <div className="min-w-0 space-y-7 sm:space-y-9">
                 <PhotoDesk
                   copy={copy}
+                  cutsHref={cutsHref}
                   nsfwOptInEnabled={nsfwOptInEnabled}
                   referralCode={referralCode}
                   reports={photoDeskReports}
