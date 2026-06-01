@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
-  ArrowRight,
+  ChevronLeft,
+  ChevronRight,
   Images,
   Newspaper,
   PenLine,
@@ -17,7 +18,6 @@ import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
   FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE,
   type FanletterNewsPublicCutFeedLoadResponse,
-  type SerializedFanletterNewsPublicCut,
   type SerializedFanletterNewsPublicCutFeedItem,
 } from "@/lib/fanletter-news-public-cuts-shared";
 import {
@@ -31,7 +31,6 @@ function getCopy(locale: Locale) {
     ? {
         adult: "성인 팬 전용",
         character: "캐릭터",
-        cutLink: "컷 링크",
         emptyBody:
           "아직 공개 피드로 보여줄 리포터 편집 컷이 없습니다. 팬 기자가 티저 컷을 저장하면 이곳에 모입니다.",
         emptyCta: "뉴스 홈으로 돌아가기",
@@ -44,8 +43,10 @@ function getCopy(locale: Locale) {
         loadMore: "더 보기",
         loadingMore: "다음 리포터 컷 불러오는 중",
         news: "뉴스 보기",
+        nextCut: "다음 컷",
         noMore: "모든 리포터 컷을 확인했습니다.",
         paid: "팬 전용 원본",
+        previousCut: "이전 컷",
         reporter: "팬 기자",
         slot: (index: string) => `컷 ${index}`,
         title: "팬 기자가 편집한 4컷 피드",
@@ -53,7 +54,6 @@ function getCopy(locale: Locale) {
     : {
         adult: "Adult fan-only",
         character: "Character",
-        cutLink: "Cut link",
         emptyBody:
           "No reporter-edited cuts are ready for the public feed yet. Saved teaser cuts will appear here.",
         emptyCta: "Back to News",
@@ -66,8 +66,10 @@ function getCopy(locale: Locale) {
         loadMore: "Load more",
         loadingMore: "Loading more reporter cuts",
         news: "Read news",
+        nextCut: "Next cut",
         noMore: "You have reviewed every reporter cut.",
         paid: "Fan-only source",
+        previousCut: "Previous cut",
         reporter: "Fan reporter",
         slot: (index: string) => `Cut ${index}`,
         title: "Four-cut feed edited by fan reporters",
@@ -141,55 +143,6 @@ function getReporterHref({
   );
 }
 
-function getCutHref({
-  locale,
-  referralCode,
-  reportId,
-}: {
-  locale: Locale;
-  referralCode: string | null;
-  reportId: string;
-}) {
-  return buildPathWithReferral(
-    `/${locale}/fanletter/news/cuts/${reportId}`,
-    referralCode,
-  );
-}
-
-function CutThumbnail({
-  blurred,
-  copy,
-  cut,
-  title,
-}: {
-  blurred: boolean;
-  copy: ReturnType<typeof getCopy>;
-  cut: SerializedFanletterNewsPublicCut;
-  title: string;
-}) {
-  const slotNumber = cut.slotNumber.toString().padStart(2, "0");
-
-  return (
-    <div className="relative aspect-[9/16] w-full min-w-0 overflow-hidden rounded-lg border border-white/22 bg-black/48 shadow-[0_14px_34px_rgba(0,0,0,0.34)] ring-1 ring-black/28">
-      <Image
-        alt={`${title} ${copy.slot(slotNumber)}`}
-        className={
-          blurred
-            ? "scale-105 object-cover blur-md brightness-50"
-            : "object-cover contrast-[1.04] saturate-[1.04]"
-        }
-        fill
-        sizes="(max-width: 640px) 22vw, (max-width: 1024px) 8rem, 12rem"
-        src={cut.imageUrl}
-        unoptimized={shouldBypassFanletterImageOptimization(cut.imageUrl)}
-      />
-      <span className="absolute bottom-1.5 left-1.5 rounded-full bg-black/78 px-2 py-1 text-[0.58rem] font-black text-white shadow-[0_8px_18px_rgba(0,0,0,0.3)]">
-        {slotNumber}
-      </span>
-    </div>
-  );
-}
-
 function FeedSlide({
   hasMore,
   index,
@@ -205,6 +158,8 @@ function FeedSlide({
   locale: Locale;
   referralCode: string | null;
 }) {
+  const [activeCutIndex, setActiveCutIndex] = useState(0);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const copy = getCopy(locale);
   const { report } = item;
   const title = getFanletterNewsBareArticleDisplayTitle(report.title);
@@ -228,129 +183,244 @@ function FeedSlide({
     referralCode,
     reporterReferralCode: report.reporterReferralCode,
   });
-  const cutHref = getCutHref({
-    locale,
-    referralCode,
-    reportId: report.reportId,
-  });
+  const cuts = item.cuts.length > 0 ? item.cuts : [item.leadCut];
+  const cutCount = cuts.length;
+  const activeCutLabel = `${formatNumber(activeCutIndex + 1, locale)} / ${formatNumber(cutCount, locale)}`;
+  const goToPreviousCut = useCallback(() => {
+    setActiveCutIndex((currentIndex) =>
+      cutCount > 0 ? (currentIndex - 1 + cutCount) % cutCount : currentIndex,
+    );
+  }, [cutCount]);
+  const goToNextCut = useCallback(() => {
+    setActiveCutIndex((currentIndex) =>
+      cutCount > 0 ? (currentIndex + 1) % cutCount : currentIndex,
+    );
+  }, [cutCount]);
+  const handlePointerEnd = useCallback(
+    (clientX: number, clientY: number) => {
+      const pointerStart = pointerStartRef.current;
+
+      pointerStartRef.current = null;
+
+      if (!pointerStart) {
+        return;
+      }
+
+      const deltaX = clientX - pointerStart.x;
+      const deltaY = clientY - pointerStart.y;
+
+      if (Math.abs(deltaX) < 44 || Math.abs(deltaX) < Math.abs(deltaY) * 1.1) {
+        return;
+      }
+
+      if (deltaX > 0) {
+        goToPreviousCut();
+      } else {
+        goToNextCut();
+      }
+    },
+    [goToNextCut, goToPreviousCut],
+  );
 
   return (
     <article
-      className="relative min-h-[100dvh] snap-start snap-always overflow-hidden bg-[#050706] text-white"
+      className="relative min-h-[100dvh] snap-start snap-always overflow-hidden bg-black text-white"
       id={report.reportId}
+      onPointerCancel={() => {
+        pointerStartRef.current = null;
+      }}
+      onPointerDown={(event) => {
+        pointerStartRef.current = {
+          x: event.clientX,
+          y: event.clientY,
+        };
+      }}
+      onPointerUp={(event) => {
+        handlePointerEnd(event.clientX, event.clientY);
+      }}
     >
-      <div className="absolute inset-0">
-        <Image
-          alt=""
-          aria-hidden="true"
-          className={
-            isNsfw
-              ? "scale-[1.18] object-cover blur-3xl brightness-[0.24] saturate-[0.62]"
-              : "scale-[1.12] object-cover blur-xl brightness-[0.48] saturate-[0.9]"
-          }
-          fill
-          priority={index < 2}
-          sizes="100vw"
-          src={item.leadCut.imageUrl}
-          unoptimized={shouldBypassFanletterImageOptimization(
-            item.leadCut.imageUrl,
-          )}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/68 via-black/26 to-black/86" />
-        <div className="absolute inset-x-0 bottom-0 h-[66%] bg-gradient-to-t from-black via-black/74 to-transparent" />
+      <div className="absolute inset-0 overflow-hidden">
+        <div
+          className="flex h-full transition-transform duration-300 ease-out"
+          style={{
+            transform: `translateX(-${activeCutIndex * 100}%)`,
+          }}
+        >
+          {cuts.map((cut) => {
+            const slotNumber = cut.slotNumber.toString().padStart(2, "0");
+
+            return (
+              <div
+                className="relative h-full w-full shrink-0 bg-black"
+                key={`${report.reportId}-${cut.slotNumber}-${cut.imageUrl}`}
+              >
+                <Image
+                  alt={`${title} ${copy.slot(slotNumber)}`}
+                  className={
+                    isNsfw
+                      ? "scale-[1.02] object-cover blur-2xl brightness-[0.42] saturate-[0.68]"
+                      : "object-cover"
+                  }
+                  fill
+                  priority={index < 2 && cut.slotNumber <= 2}
+                  sizes="100vw"
+                  src={cut.imageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(cut.imageUrl)}
+                />
+              </div>
+            );
+          })}
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-black/48 via-black/4 to-black/82" />
+        <div className="absolute inset-x-0 bottom-0 h-[52%] bg-gradient-to-t from-black via-black/66 to-transparent" />
       </div>
 
-      <div className="relative z-10 mx-auto grid min-h-[100dvh] max-w-7xl grid-rows-[1fr_auto] gap-5 px-4 pb-[calc(env(safe-area-inset-bottom)+1.1rem)] pt-[calc(env(safe-area-inset-top)+5.4rem)] sm:px-6 sm:pb-7 lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-1 lg:items-end lg:px-8">
-        <section className="flex min-w-0 flex-col justify-end">
-          <div className="mb-4 flex flex-wrap items-center gap-2 text-[0.64rem] font-black uppercase tracking-[0.12em]">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1.5 text-black">
-              <Images className="size-3.5" />
-              {copy.feedTitle}
+      <div className="absolute inset-x-0 top-[calc(env(safe-area-inset-top)+4.7rem)] z-20 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl gap-1.5">
+          {cuts.map((cut, cutIndex) => (
+            <button
+              aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
+              className="h-1 flex-1 overflow-hidden rounded-full bg-white/24"
+              key={`${report.reportId}-progress-${cut.slotNumber}`}
+              onClick={() => setActiveCutIndex(cutIndex)}
+              type="button"
+            >
+              <span
+                className={`block h-full rounded-full transition-all ${
+                  cutIndex <= activeCutIndex ? "bg-white" : "bg-transparent"
+                }`}
+              />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="absolute left-4 right-4 top-[calc(env(safe-area-inset-top)+5.6rem)] z-20 flex items-center justify-between gap-3 sm:left-6 sm:right-6 lg:left-8 lg:right-8">
+        <div className="flex flex-wrap items-center gap-2 text-[0.62rem] font-black uppercase tracking-[0.12em]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1.5 text-black shadow-[0_14px_30px_rgba(0,0,0,0.24)]">
+            <Images className="size-3.5" />
+            {copy.feedTitle}
+          </span>
+          <span className="rounded-full border border-white/16 bg-black/34 px-3 py-1.5 text-white/78 backdrop-blur">
+            {positionLabel}
+          </span>
+          {isNsfw ? (
+            <span className="rounded-full bg-rose-600 px-3 py-1.5 text-white">
+              {copy.adult}
             </span>
-            <span className="rounded-full border border-white/16 bg-white/10 px-3 py-1.5 text-white/76 backdrop-blur">
-              {positionLabel}
+          ) : report.priceType === "paid" ? (
+            <span className="rounded-full border border-white/16 bg-black/34 px-3 py-1.5 text-white/78 backdrop-blur">
+              {copy.paid}
             </span>
-            {isNsfw ? (
-              <span className="rounded-full bg-rose-600 px-3 py-1.5 text-white">
-                {copy.adult}
-              </span>
-            ) : report.priceType === "paid" ? (
-              <span className="rounded-full border border-white/16 bg-white/10 px-3 py-1.5 text-white/76 backdrop-blur">
-                {copy.paid}
-              </span>
-            ) : null}
+          ) : null}
+        </div>
+        <span className="rounded-full border border-white/16 bg-black/44 px-3 py-1.5 text-[0.7rem] font-black text-white backdrop-blur">
+          {activeCutLabel}
+        </span>
+      </div>
+
+      <button
+        aria-label={copy.previousCut}
+        className="absolute left-3 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/34 text-white backdrop-blur transition hover:bg-white hover:text-black sm:inline-flex"
+        onClick={goToPreviousCut}
+        type="button"
+      >
+        <ChevronLeft className="size-6" />
+      </button>
+      <button
+        aria-label={copy.nextCut}
+        className="absolute right-3 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/34 text-white backdrop-blur transition hover:bg-white hover:text-black sm:inline-flex"
+        onClick={goToNextCut}
+        type="button"
+      >
+        <ChevronRight className="size-6" />
+      </button>
+
+      <div className="relative z-10 flex min-h-[100dvh] items-end px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+7.6rem)] sm:px-6 sm:pb-7 lg:px-8">
+        <section className="mx-auto flex w-full max-w-7xl flex-col justify-end">
+          <div className="max-w-3xl">
+            <p className="text-[0.7rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+              {report.creatorName}
+            </p>
+            <h1
+              className={`mt-2 max-w-4xl break-words text-[2rem] font-black leading-[1.02] tracking-normal [word-break:keep-all] sm:text-[4rem] lg:text-[5rem] ${
+                isNsfw ? "select-none blur-[2px]" : ""
+              }`}
+            >
+              {title}
+            </h1>
+            <p
+              className={`mt-3 max-w-2xl text-sm font-semibold leading-6 text-white/74 sm:text-base sm:leading-7 ${
+                isNsfw ? "select-none blur-[2px]" : ""
+              }`}
+            >
+              {report.dek}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-bold text-white/62">
+              <span>{report.reporterName}</span>
+              {publishedAt ? <span>{publishedAt}</span> : null}
+            </div>
           </div>
-          <p className="max-w-2xl text-[0.7rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
-            {report.creatorName}
-          </p>
-          <h1
-            className={`mt-2 max-w-4xl break-words text-[2.2rem] font-black leading-[1.02] tracking-normal [word-break:keep-all] sm:text-[4rem] lg:text-[5.1rem] ${
-              isNsfw ? "select-none blur-[2px]" : ""
-            }`}
-          >
-            {title}
-          </h1>
-          <p
-            className={`mt-4 max-w-2xl text-sm font-semibold leading-6 text-white/70 sm:text-base sm:leading-7 ${
-              isNsfw ? "select-none blur-[2px]" : ""
-            }`}
-          >
-            {report.dek}
-          </p>
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-bold text-white/58">
-            <span>{report.reporterName}</span>
-            {publishedAt ? <span>{publishedAt}</span> : null}
-          </div>
+
           <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap">
             <Link
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-[#111510] transition hover:bg-[#65ff86]"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-[#111510] shadow-[0_16px_34px_rgba(0,0,0,0.24)] transition hover:bg-[#65ff86]"
               href={reportHref}
             >
               <Newspaper className="size-4" />
               {copy.news}
             </Link>
-            <Link
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/10 px-5 text-sm font-black !text-white backdrop-blur transition hover:bg-white hover:!text-[#111510]"
-              href={characterHref}
-            >
-              <Sparkles className="size-4 text-[#44f26e]" />
-              {copy.character}
-            </Link>
-            <Link
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/10 px-5 text-sm font-black !text-white backdrop-blur transition hover:bg-white hover:!text-[#111510]"
-              href={reporterHref}
-            >
-              <PenLine className="size-4 text-[#44f26e]" />
-              {copy.reporter}
-            </Link>
+            <div className="grid grid-cols-2 gap-2 sm:flex">
+              <Link
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/32 px-4 text-xs font-black !text-white backdrop-blur transition hover:bg-white hover:!text-[#111510]"
+                href={characterHref}
+              >
+                <Sparkles className="size-4 text-[#44f26e]" />
+                {copy.character}
+              </Link>
+              <Link
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/32 px-4 text-xs font-black !text-white backdrop-blur transition hover:bg-white hover:!text-[#111510]"
+                href={reporterHref}
+              >
+                <PenLine className="size-4 text-[#44f26e]" />
+                {copy.reporter}
+              </Link>
+            </div>
           </div>
-        </section>
 
-        <aside className="min-w-0 rounded-2xl border border-white/18 bg-black/56 p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-3 lg:p-4">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
-              {copy.title}
-            </p>
-            <Link
-              className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white hover:text-[#111510]"
-              href={cutHref}
-              title={copy.cutLink}
-            >
-              <ArrowRight className="size-4" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-4 gap-2 lg:grid-cols-2 lg:gap-3">
-            {item.cuts.map((cut) => (
-              <CutThumbnail
-                blurred={isNsfw}
-                copy={copy}
-                cut={cut}
-                key={`${report.reportId}-${cut.slotNumber}-${cut.imageUrl}`}
-                title={title}
+          <div className="mt-4 flex items-center justify-center gap-1.5 sm:hidden">
+            {cuts.map((cut, cutIndex) => (
+              <button
+                aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
+                className={`size-1.5 rounded-full transition ${
+                  cutIndex === activeCutIndex ? "bg-white" : "bg-white/34"
+                }`}
+                key={`${report.reportId}-dot-${cut.slotNumber}`}
+                onClick={() => setActiveCutIndex(cutIndex)}
+                type="button"
               />
             ))}
           </div>
-        </aside>
+
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
+            <button
+              aria-label={copy.previousCut}
+              className="inline-flex h-10 items-center justify-center rounded-full border border-white/12 bg-black/26 text-white backdrop-blur"
+              onClick={goToPreviousCut}
+              type="button"
+            >
+              <ChevronLeft className="size-5" />
+            </button>
+            <button
+              aria-label={copy.nextCut}
+              className="inline-flex h-10 items-center justify-center rounded-full border border-white/12 bg-black/26 text-white backdrop-blur"
+              onClick={goToNextCut}
+              type="button"
+            >
+              <ChevronRight className="size-5" />
+            </button>
+          </div>
+        </section>
       </div>
     </article>
   );
