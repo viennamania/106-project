@@ -128,6 +128,7 @@ function getCopy(locale: Locale) {
           "브이로그",
           "구매함",
           "리포터 데스크",
+          "마이",
         ],
         photoDesk: "포토 뉴스",
         photoDeskBody:
@@ -251,6 +252,7 @@ function getCopy(locale: Locale) {
           "Vlogs",
           "Purchases",
           "Reporter desk",
+          "My",
         ],
         photoDesk: "Photo Desk",
         photoDeskBody:
@@ -717,6 +719,7 @@ function NewsMasthead({
   copy,
   galleryHref,
   locale,
+  myHref,
   navigationBaseHref,
   platformHref,
   purchasesHref,
@@ -728,6 +731,7 @@ function NewsMasthead({
   copy: ReturnType<typeof getCopy>;
   galleryHref: string;
   locale: Locale;
+  myHref: string;
   navigationBaseHref: string;
   platformHref: string;
   purchasesHref: string;
@@ -747,6 +751,7 @@ function NewsMasthead({
     vlogsHref,
     purchasesHref,
     reportsHref,
+    myHref,
   ];
 
   return (
@@ -2447,6 +2452,10 @@ export default async function LocalizedFanletterNewsHomePage({
     `/${locale}/fanletter/news/purchases`,
     referralCode,
   );
+  const myHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/my`,
+    referralCode,
+  );
   const galleryHref = buildPathWithReferral(
     `/${locale}/fanletter/news/gallery`,
     referralCode,
@@ -2492,6 +2501,7 @@ export default async function LocalizedFanletterNewsHomePage({
         copy={copy}
         galleryHref={galleryHref}
         locale={locale}
+        myHref={myHref}
         navigationBaseHref={currentNewsHref}
         platformHref={platformHref}
         purchasesHref={purchasesHref}

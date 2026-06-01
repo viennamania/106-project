@@ -15,6 +15,7 @@ import {
   WalletCards,
 } from "lucide-react";
 
+import { FanletterNewsLogoutButton } from "@/components/fanletter-news-logout-button";
 import { FanletterNewsReportsSessionBridge } from "@/components/fanletter-news-reports-session-bridge";
 import { FanletterNewsRolePreferenceControl } from "@/components/fanletter-news-role-preference-control";
 import { getCreatorStudioPostsForMember } from "@/lib/content-service";
@@ -456,6 +457,12 @@ export default async function LocalizedFanletterNewsMyPage({
                 </div>
               ))}
             </div>
+            <FanletterNewsLogoutButton
+              className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/14 px-5 text-sm font-black text-white/72 transition hover:bg-white hover:text-[#111510]"
+              locale={locale}
+              postLogoutHref={newsHomeHref}
+              walletAddress={session.walletAddress}
+            />
           </aside>
         </div>
 
