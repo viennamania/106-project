@@ -382,6 +382,10 @@ function getReportDate(report: FanletterNewsReportDocument) {
   return report.sourcePublishedAt ?? report.createdAt ?? null;
 }
 
+function canShowReportPreviewVideo(report: FanletterNewsReportDocument) {
+  return report.contentMaturityRating !== "nsfw";
+}
+
 function NewsHomeReportCard({
   copy,
   href,
@@ -396,7 +400,9 @@ function NewsHomeReportCard({
   report: FanletterNewsReportDocument;
 }) {
   const publishedAt = formatDate(getReportDate(report), locale);
-  const normalizedPreviewClipVideoUrl = previewClipVideoUrl?.trim() ?? "";
+  const normalizedPreviewClipVideoUrl = canShowReportPreviewVideo(report)
+    ? previewClipVideoUrl?.trim() ?? ""
+    : "";
   const hasPreviewVideo = Boolean(normalizedPreviewClipVideoUrl);
   const accessLabel =
     locale === "ko"
@@ -674,6 +680,7 @@ export default async function FanletterNewsPlatformPage({
     ...landingData.featuredVideos,
     ...landingData.featuredPaidVideos,
   ]
+    .filter((video) => video.contentMaturityRating !== "nsfw")
     .filter((video) => video.videoUrl.trim())
     .slice(0, 5)
     .map((video) => ({
