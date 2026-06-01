@@ -38,6 +38,7 @@ import {
 } from "@/lib/fanletter-news-character-directory";
 import {
   getLatestFanletterNewsReports,
+  getFanletterNewsTeaserGalleryItems,
 } from "@/lib/fanletter-news-report-service";
 import {
   getFanletterNewsBareArticleDisplayTitle as getArticleDisplayTitle,
@@ -77,6 +78,7 @@ function getCopy(locale: Locale) {
           cta: "뉴스 읽기",
           empty: "아직 홈에 표시할 공개 뉴스가 없습니다.",
           eyebrow: "지금 이어볼 뉴스",
+          previewBadge: "원본 프리뷰",
           title: "뉴스를 보고 캐릭터가 궁금해지는 흐름",
         },
         homeCharacters: {
@@ -208,6 +210,7 @@ function getCopy(locale: Locale) {
           cta: "Read news",
           empty: "No public news is ready for the home page yet.",
           eyebrow: "Continue Reading",
+          previewBadge: "Source preview",
           title: "News that turns into character curiosity",
         },
         homeCharacters: {
@@ -383,14 +386,18 @@ function NewsHomeReportCard({
   copy,
   href,
   locale,
+  previewClipVideoUrl,
   report,
 }: {
   copy: ReturnType<typeof getCopy>;
   href: string;
   locale: Locale;
+  previewClipVideoUrl?: string | null;
   report: FanletterNewsReportDocument;
 }) {
   const publishedAt = formatDate(getReportDate(report), locale);
+  const normalizedPreviewClipVideoUrl = previewClipVideoUrl?.trim() ?? "";
+  const hasPreviewVideo = Boolean(normalizedPreviewClipVideoUrl);
   const accessLabel =
     locale === "ko"
       ? report.priceType === "paid"
@@ -418,11 +425,30 @@ function NewsHomeReportCard({
               report.coverImageUrl,
             )}
           />
-        ) : (
+        ) : !hasPreviewVideo ? (
           <div className="flex h-full min-h-[9.5rem] items-center justify-center text-[#44f26e]">
             <Newspaper className="size-10" />
           </div>
-        )}
+        ) : null}
+        {hasPreviewVideo ? (
+          <video
+            aria-hidden="true"
+            autoPlay
+            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+            loop
+            muted
+            playsInline
+            poster={report.coverImageUrl ?? undefined}
+            preload="metadata"
+            src={normalizedPreviewClipVideoUrl}
+          />
+        ) : null}
+        {hasPreviewVideo ? (
+          <span className="absolute left-2.5 top-2.5 inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-[#071108] shadow-[0_10px_24px_rgba(0,0,0,0.22)] sm:left-3 sm:top-3">
+            <Clapperboard className="size-3" />
+            {copy.homeNews.previewBadge}
+          </span>
+        ) : null}
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0)_38%,rgba(7,17,8,0.58)_100%)]" />
       </div>
       <div className="flex min-w-0 flex-col p-3 sm:p-4">
@@ -597,16 +623,49 @@ export default async function FanletterNewsPlatformPage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
-  const [landingData, latestReports] = await Promise.all([
+  const [landingData, latestReports, teaserGalleryItems] = await Promise.all([
     getFanletterLandingData(locale, false),
     getLatestFanletterNewsReports({
       contentMaturityRating: "general",
-      limit: 18,
+      limit: 48,
       locale,
       promoteFirstReports: true,
     }),
+    getFanletterNewsTeaserGalleryItems({
+      limit: 8,
+      locale,
+    }),
   ]);
-  const featuredReports = latestReports.slice(0, 6);
+  const latestReportById = new Map(
+    latestReports.map((report) => [report.reportId, report] as const),
+  );
+  const previewClipVideoUrlByReportId = new Map(
+    teaserGalleryItems.map(
+      (item) => [item.reportId, item.previewClipVideoUrl] as const,
+    ),
+  );
+  const featuredPreviewReports: (typeof latestReports)[number][] = [];
+
+  for (const item of teaserGalleryItems) {
+    const report = latestReportById.get(item.reportId);
+
+    if (report) {
+      featuredPreviewReports.push(report);
+    }
+
+    if (featuredPreviewReports.length >= 2) {
+      break;
+    }
+  }
+  const featuredPreviewReportIds = new Set(
+    featuredPreviewReports.map((report) => report.reportId),
+  );
+  const featuredReports = [
+    ...featuredPreviewReports,
+    ...latestReports.filter(
+      (report) => !featuredPreviewReportIds.has(report.reportId),
+    ),
+  ].slice(0, 6);
   const featuredCharacters = await hydrateFanletterNewsCharacterStats(
     getFanletterNewsCharacterStats(latestReports, 6, { sort: "discovery" }),
     { limit: 4, sort: "discovery" },
@@ -841,6 +900,11 @@ export default async function FanletterNewsPlatformPage({
                 )}
                 key={report.reportId}
                 locale={locale}
+                previewClipVideoUrl={
+                  featuredPreviewReportIds.has(report.reportId)
+                    ? previewClipVideoUrlByReportId.get(report.reportId)
+                    : null
+                }
                 report={report}
               />
             ))}
