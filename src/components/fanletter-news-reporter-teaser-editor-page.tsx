@@ -677,12 +677,14 @@ export function FanletterNewsReporterTeaserEditorPage({
   newsHref,
   report,
   returnHref,
+  returnLabel,
 }: {
   coverOptions: FanletterNewsReporterTeaserEditorCoverOption[];
   locale: Locale;
   newsHref: string;
   report: FanletterNewsReporterTeaserEditorReport;
   returnHref: string;
+  returnLabel?: string;
 }) {
   const copy = useMemo(() => getCopy(locale), [locale]);
   const router = useRouter();
@@ -1355,7 +1357,7 @@ export function FanletterNewsReporterTeaserEditorPage({
             href={returnHref || newsHref}
           >
             <ArrowLeft className="size-4 text-[#16702e]" />
-            {copy.backToNews}
+            {returnLabel ?? copy.backToNews}
           </Link>
 
           <section className="mt-3 overflow-hidden border border-black/12 bg-white shadow-[0_18px_46px_rgba(17,21,16,0.07)]">

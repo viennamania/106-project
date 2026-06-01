@@ -41,6 +41,7 @@ function getCopy(locale: Locale) {
           "로그인한 회원의 리포터 코드와 이 뉴스의 작성 리포터 코드가 다릅니다. 본인이 작성한 뉴스에서만 티저 컷을 수정할 수 있습니다.",
         forbiddenTitle: "내가 작성한 뉴스만 수정할 수 있습니다.",
         newsCta: "뉴스로 돌아가기",
+        photoCollectionCta: "포토 컬렉션으로 돌아가기",
         title: "리포터 티저 컷 편집",
       }
     : {
@@ -52,8 +53,31 @@ function getCopy(locale: Locale) {
           "The signed-in reporter code does not match the reporter who wrote this news. Teaser cuts can only be edited on news written by you.",
         forbiddenTitle: "Only your own news can be edited.",
         newsCta: "Back to news",
+        photoCollectionCta: "Back to photo collection",
         title: "Edit reporter teaser cuts",
       };
+}
+
+function getReturnLabel({
+  copy,
+  locale,
+  newsHref,
+  returnHref,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  newsHref: string;
+  returnHref: string;
+}) {
+  if (
+    returnHref !== newsHref &&
+    (returnHref === `/${locale}/fanletter/news/reporter/photos` ||
+      returnHref.startsWith(`/${locale}/fanletter/news/reporter/photos?`))
+  ) {
+    return copy.photoCollectionCta;
+  }
+
+  return copy.newsCta;
 }
 
 function serializeCoverOption(
@@ -150,6 +174,12 @@ export default async function LocalizedFanletterNewsReporterTeaserEditPage({
   );
   const returnHref =
     normalizeFanletterReturnToPath(query.returnTo, locale) ?? newsHref;
+  const returnLabel = getReturnLabel({
+    copy,
+    locale,
+    newsHref,
+    returnHref,
+  });
   const editHref = setPathSearchParams(
     buildPathWithReferral(
       `/${locale}/fanletter/news/${report.reportId}/teasers/edit`,
@@ -184,7 +214,7 @@ export default async function LocalizedFanletterNewsReporterTeaserEditPage({
         connectHref={connectHref}
         connectLabel={copy.connectCta}
         newsHref={returnHref}
-        newsLabel={copy.newsCta}
+        newsLabel={returnLabel}
         title={copy.connectTitle}
         tone="connect"
       />
@@ -198,7 +228,7 @@ export default async function LocalizedFanletterNewsReporterTeaserEditPage({
         connectHref={null}
         connectLabel={copy.connectCta}
         newsHref={returnHref}
-        newsLabel={copy.newsCta}
+        newsLabel={returnLabel}
         title={copy.forbiddenTitle}
         tone="forbidden"
       />
@@ -217,6 +247,7 @@ export default async function LocalizedFanletterNewsReporterTeaserEditPage({
       newsHref={newsHref}
       report={serializeReport(report)}
       returnHref={returnHref}
+      returnLabel={returnLabel}
     />
   );
 }
