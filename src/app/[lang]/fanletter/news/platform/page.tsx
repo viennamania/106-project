@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterHeroBackgroundCarousel } from "@/components/fanletter-mobile-hero-carousel";
@@ -485,15 +486,10 @@ function NewsHomeReportCard({
           </div>
         ) : null}
         {hasPreviewVideo ? (
-          <video
-            aria-hidden="true"
-            autoPlay
+          <FanletterAutoplayVideo
+            ariaHidden
             className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-            loop
-            muted
-            playsInline
             poster={report.coverImageUrl ?? undefined}
-            preload="metadata"
             src={normalizedPreviewClipVideoUrl}
           />
         ) : null}
@@ -756,6 +752,11 @@ export default async function FanletterNewsPlatformPage({
       (item) => [item.reportId, item.previewClipVideoUrl] as const,
     ),
   );
+  const previewClipVideoUrlByContentId = new Map(
+    teaserGalleryItems.map(
+      (item) => [item.contentId, item.previewClipVideoUrl] as const,
+    ),
+  );
   const featuredPreviewReports: (typeof latestReports)[number][] = [];
 
   for (const item of teaserGalleryItems) {
@@ -764,18 +765,14 @@ export default async function FanletterNewsPlatformPage({
     if (report) {
       featuredPreviewReports.push(report);
     }
-
-    if (featuredPreviewReports.length >= 2) {
-      break;
-    }
   }
-  const featuredPreviewReportIds = new Set(
-    featuredPreviewReports.map((report) => report.reportId),
+  const featuredPreviewContentIds = new Set(
+    featuredPreviewReports.map((report) => report.contentId),
   );
   const featuredReports = [
     ...featuredPreviewReports,
     ...latestReports.filter(
-      (report) => !featuredPreviewReportIds.has(report.reportId),
+      (report) => !featuredPreviewContentIds.has(report.contentId),
     ),
   ].slice(0, 6);
   const featuredCharacters = await hydrateFanletterNewsCharacterStats(
@@ -1042,9 +1039,8 @@ export default async function FanletterNewsPlatformPage({
                 key={report.reportId}
                 locale={locale}
                 previewClipVideoUrl={
-                  featuredPreviewReportIds.has(report.reportId)
-                    ? previewClipVideoUrlByReportId.get(report.reportId)
-                    : null
+                  previewClipVideoUrlByReportId.get(report.reportId) ??
+                  previewClipVideoUrlByContentId.get(report.contentId)
                 }
                 report={report}
               />
