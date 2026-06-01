@@ -41,6 +41,10 @@ import {
   type FanletterNewsCharacterReporterStat,
 } from "@/lib/fanletter-news-report-service";
 import {
+  getFanletterNewsReporterIncentiveStats,
+  type FanletterNewsReporterIncentiveReportStats,
+} from "@/lib/fanletter-news-reporter-incentives";
+import {
   getFanletterNewsArticleDisplayTitle as getArticleDisplayTitle,
   getFanletterNewsFirstReportBadgeLabel,
   isFanletterNewsFirstReportForContent,
@@ -177,8 +181,19 @@ function getCopy(locale: Locale) {
             `블러 처리된 NSFW 콘텐츠 ${count}개`,
         },
         reporter: {
-          title: "리포터 커버리지",
+          body:
+            "이 캐릭터 IP가 뉴스로 확산되는 데 기여한 팬 기자를 리포트, 원본 공개 참여, 오픈 기여, 구매 전환 기준으로 비교합니다.",
+          contributionScore: "공헌 지수",
+          empty: "아직 공헌도를 계산할 리포터 활동이 없습니다.",
+          labels: {
+            purchases: "구매 전환",
+            reports: "리포트",
+            rewards: "보상",
+            sourceReveal: "원본 참여",
+            unlocks: "오픈 기여",
+          },
           reports: (count: string) => `${count}개 리포트`,
+          title: "IP 성장 공헌 리포터",
         },
         revenue: {
           body:
@@ -357,8 +372,19 @@ function getCopy(locale: Locale) {
           hiddenCountText: (count: string) => `${count} NSFW items blurred`,
         },
         reporter: {
-          title: "Reporter coverage",
+          body:
+            "Compare fan reporters who helped this character IP spread through reports, source-open participation, open contributions, and purchase conversion.",
+          contributionScore: "Contribution score",
+          empty: "No reporter activity is ready for contribution scoring yet.",
+          labels: {
+            purchases: "Purchases",
+            reports: "Reports",
+            rewards: "Rewards",
+            sourceReveal: "Source joins",
+            unlocks: "Open assists",
+          },
           reports: (count: string) => `${count} reports`,
+          title: "IP growth contributors",
         },
         revenue: {
           body:
@@ -1081,17 +1107,67 @@ function ContentCard({
   );
 }
 
-function ReporterCoverageCard({
+type CharacterReporterContribution = {
+  reporter: FanletterNewsCharacterReporterStat;
+  score: number;
+  stats: FanletterNewsReporterIncentiveReportStats;
+};
+
+const REPORTER_CONTRIBUTION_SCORE_WEIGHTS = {
+  paidPurchases: 8,
+  reports: 4,
+  sourceRevealUnlocks: 10,
+  sourceRevealVotes: 2,
+} as const;
+
+function getReporterContributionScore({
+  reporter,
+  stats,
+}: {
+  reporter: FanletterNewsCharacterReporterStat;
+  stats: FanletterNewsReporterIncentiveReportStats;
+}) {
+  return (
+    reporter.reportCount * REPORTER_CONTRIBUTION_SCORE_WEIGHTS.reports +
+    stats.sourceRevealVoteCount *
+      REPORTER_CONTRIBUTION_SCORE_WEIGHTS.sourceRevealVotes +
+    stats.sourceRevealUnlockContributionCount *
+      REPORTER_CONTRIBUTION_SCORE_WEIGHTS.sourceRevealUnlocks +
+    stats.paidUnlockPurchaseCount *
+      REPORTER_CONTRIBUTION_SCORE_WEIGHTS.paidPurchases
+  );
+}
+
+function getContributionWidth(value: number, max: number) {
+  if (max <= 0 || value <= 0) {
+    return 0;
+  }
+
+  return Math.max(6, Math.min(100, Math.round((value / max) * 100)));
+}
+
+function getContributionSegmentWidth(value: number, total: number) {
+  if (total <= 0 || value <= 0) {
+    return 0;
+  }
+
+  return (value / total) * 100;
+}
+
+function ReporterContributionCard({
+  contribution,
   copy,
   locale,
+  maxScore,
   referralCode,
-  reporter,
 }: {
+  contribution: CharacterReporterContribution;
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
+  maxScore: number;
   referralCode: string | null;
-  reporter: FanletterNewsCharacterReporterStat;
 }) {
+  const { reporter, score, stats } = contribution;
   const initial =
     reporter.reporterName.trim().charAt(0).toUpperCase() ||
     reporter.reporterReferralCode.trim().charAt(0).toUpperCase() ||
@@ -1103,45 +1179,149 @@ function ReporterCoverageCard({
     )}`,
     referralCode,
   );
+  const reportScore =
+    reporter.reportCount * REPORTER_CONTRIBUTION_SCORE_WEIGHTS.reports;
+  const sourceRevealScore =
+    stats.sourceRevealVoteCount *
+    REPORTER_CONTRIBUTION_SCORE_WEIGHTS.sourceRevealVotes;
+  const unlockScore =
+    stats.sourceRevealUnlockContributionCount *
+    REPORTER_CONTRIBUTION_SCORE_WEIGHTS.sourceRevealUnlocks;
+  const purchaseScore =
+    stats.paidUnlockPurchaseCount *
+    REPORTER_CONTRIBUTION_SCORE_WEIGHTS.paidPurchases;
+  const segmentTotal =
+    reportScore + sourceRevealScore + unlockScore + purchaseScore;
+  const barWidth = getContributionWidth(score, maxScore);
+  const segments = [
+    {
+      className: "bg-[#44f26e]",
+      label: copy.reporter.labels.reports,
+      value: reportScore,
+    },
+    {
+      className: "bg-[#4cc9f0]",
+      label: copy.reporter.labels.sourceReveal,
+      value: sourceRevealScore,
+    },
+    {
+      className: "bg-[#ffd76b]",
+      label: copy.reporter.labels.unlocks,
+      value: unlockScore,
+    },
+    {
+      className: "bg-[#b98cff]",
+      label: copy.reporter.labels.purchases,
+      value: purchaseScore,
+    },
+  ];
+  const detailStats = [
+    {
+      label: copy.reporter.labels.reports,
+      value: reporter.reportCount,
+    },
+    {
+      label: copy.reporter.labels.sourceReveal,
+      value: stats.sourceRevealVoteCount,
+    },
+    {
+      label: copy.reporter.labels.unlocks,
+      value: stats.sourceRevealUnlockContributionCount,
+    },
+    {
+      label: copy.reporter.labels.purchases,
+      value: stats.paidUnlockPurchaseCount,
+    },
+  ];
 
   return (
     <Link
-      className="flex min-w-0 items-center gap-3 border border-black/10 bg-white p-3 !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+      className="group block min-w-0 rounded-lg border border-black/10 bg-white p-3 !text-[#111510] shadow-[0_14px_36px_rgba(17,21,16,0.05)] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:p-4"
       href={reporterHref}
     >
-      <span className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-sm font-black text-[#44f26e]">
-        {reporter.reporterAvatarImageUrl ? (
-          <Image
-            alt=""
-            aria-hidden="true"
-            className="object-cover"
-            fill
-            sizes="3rem"
-            src={reporter.reporterAvatarImageUrl}
-            unoptimized={shouldBypassFanletterImageOptimization(
-              reporter.reporterAvatarImageUrl,
-            )}
-          />
-        ) : (
-          initial
-        )}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-black text-[#111510]">
-          {reporter.reporterName}
-        </p>
-        <p className="mt-1 truncate text-xs font-bold text-black/42">
-          @{reporter.reporterReferralCode}
-        </p>
-      </div>
-      <div className="shrink-0 text-right">
-        <p className="text-sm font-black text-[#16702e]">
-          {copy.reporter.reports(formatNumber(reporter.reportCount, locale))}
-        </p>
-        {latestReportAt ? (
-          <p className="mt-1 text-[0.62rem] font-bold text-black/34">
-            {latestReportAt}
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="relative flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#111510] text-sm font-black text-[#44f26e]">
+          {reporter.reporterAvatarImageUrl ? (
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="object-cover"
+              fill
+              sizes="3rem"
+              src={reporter.reporterAvatarImageUrl}
+              unoptimized={shouldBypassFanletterImageOptimization(
+                reporter.reporterAvatarImageUrl,
+              )}
+            />
+          ) : (
+            initial
+          )}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-black text-[#111510]">
+            {reporter.reporterName}
           </p>
+          <p className="mt-1 truncate text-xs font-bold text-black/42">
+            @{reporter.reporterReferralCode}
+          </p>
+        </div>
+        <div className="shrink-0 text-right">
+          <p className="text-sm font-black text-[#16702e]">
+            {formatNumber(score, locale)}
+          </p>
+          <p className="mt-1 text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/36">
+            {copy.reporter.contributionScore}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 h-3 overflow-hidden rounded-full bg-black/8">
+        <div
+          className="flex h-full overflow-hidden rounded-full transition-[width] duration-500"
+          style={{ width: `${barWidth}%` }}
+        >
+          {segments.map((segment) =>
+            segment.value > 0 ? (
+              <span
+                aria-label={segment.label}
+                className={`h-full ${segment.className}`}
+                key={segment.label}
+                style={{
+                  width: `${getContributionSegmentWidth(
+                    segment.value,
+                    segmentTotal,
+                  )}%`,
+                }}
+              />
+            ) : null,
+          )}
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-4 gap-1.5 text-center">
+        {detailStats.map((stat) => (
+          <div
+            className="min-w-0 rounded-md border border-black/8 bg-[#f7f8f4] px-1.5 py-2 transition group-hover:bg-white"
+            key={stat.label}
+          >
+            <p className="truncate text-sm font-black">
+              {formatNumber(stat.value, locale)}
+            </p>
+            <p className="mt-0.5 truncate text-[0.52rem] font-black uppercase tracking-[0.04em] text-black/42">
+              {stat.label}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-black/8 pt-3">
+        <span className="truncate text-xs font-black text-[#16702e]">
+          {copy.reporter.reports(formatNumber(reporter.reportCount, locale))}
+        </span>
+        {latestReportAt ? (
+          <span className="shrink-0 text-[0.62rem] font-bold text-black/34">
+            {latestReportAt}
+          </span>
         ) : null}
       </div>
     </Link>
@@ -1470,6 +1650,41 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
     data.profile.avatarImageUrl,
   );
   const visibleNewsReports = newsData.reports.slice(0, 9);
+  const reporterContributions = (
+    await Promise.all(
+      newsData.reporters.map(async (reporter) => {
+        const reporterReportIds = reporter.reportIds?.length
+          ? reporter.reportIds
+          : newsData.reports
+              .filter(
+                (report) =>
+                  report.reporterReferralCode === reporter.reporterReferralCode,
+              )
+              .map((report) => report.reportId);
+        const incentiveStats = await getFanletterNewsReporterIncentiveStats({
+          reporterReferralCode: reporter.reporterReferralCode,
+          reportIds: reporterReportIds,
+        });
+        const stats = incentiveStats.overview;
+
+        return {
+          reporter,
+          score: getReporterContributionScore({ reporter, stats }),
+          stats,
+        };
+      }),
+    )
+  ).sort(
+    (left, right) =>
+      right.score - left.score ||
+      right.reporter.reportCount - left.reporter.reportCount ||
+      toTimestamp(right.reporter.latestReportAt) -
+        toTimestamp(left.reporter.latestReportAt),
+  );
+  const maxReporterContributionScore = Math.max(
+    1,
+    ...reporterContributions.map((contribution) => contribution.score),
+  );
   const publicVlogs = data.items.slice(0, 6);
   const displayableFanOnlyItems = data.fanOnlyItems.filter(
     (item) => !isNsfwMaturity(item.contentMaturityRating),
@@ -2002,7 +2217,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
         </nav>
 
         <div className="flex flex-col">
-        <section className="order-4 mt-7 grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)]">
+        <section className="order-1 mt-7 grid gap-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)]">
           <div className="border border-black/12 bg-white p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3 border-b-2 border-[#111510] pb-3">
               <div>
@@ -2195,7 +2410,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           )}
         </section>
 
-        <div className="order-2">
+        <div className="order-3">
           <CharacterActivityTimeline
             characterName={characterName}
             copy={copy}
@@ -2205,7 +2420,7 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
         </div>
 
         <section
-          className="order-3 mt-6 grid scroll-mt-24 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.62fr)]"
+          className="order-4 mt-6 grid scroll-mt-24 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.62fr)]"
           id="fanletter-news-character-vlogs"
         >
           <div>
@@ -2355,9 +2570,12 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
           </div>
         </section>
 
-        {newsData.reporters.length > 0 ? (
-          <section className="order-5 mt-7 border-t-2 border-[#111510] pt-5">
-            <div className="mb-4 flex items-center justify-between gap-3">
+        {reporterContributions.length > 0 ? (
+          <section
+            className="order-2 mt-7 scroll-mt-24 border-t-2 border-[#111510] pt-5"
+            id="fanletter-news-character-reporters"
+          >
+            <div className="mb-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
               <div>
                 <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
                   Newsroom
@@ -2365,17 +2583,48 @@ export default async function LocalizedFanletterNewsCharacterChannelPage({
                 <h2 className="mt-1 text-2xl font-black">
                   {copy.reporter.title}
                 </h2>
+                <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-black/58">
+                  {copy.reporter.body}
+                </p>
               </div>
-              <FileText className="size-5 text-[#16702e]" />
+              <div className="flex flex-wrap gap-2">
+                {[
+                  {
+                    className: "bg-[#44f26e]",
+                    label: copy.reporter.labels.reports,
+                  },
+                  {
+                    className: "bg-[#4cc9f0]",
+                    label: copy.reporter.labels.sourceReveal,
+                  },
+                  {
+                    className: "bg-[#ffd76b]",
+                    label: copy.reporter.labels.unlocks,
+                  },
+                  {
+                    className: "bg-[#b98cff]",
+                    label: copy.reporter.labels.purchases,
+                  },
+                ].map((item) => (
+                  <span
+                    className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1.5 text-[0.62rem] font-black uppercase tracking-[0.08em] text-black/54"
+                    key={item.label}
+                  >
+                    <span className={`size-2.5 rounded-full ${item.className}`} />
+                    {item.label}
+                  </span>
+                ))}
+              </div>
             </div>
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {newsData.reporters.map((reporter) => (
-                <ReporterCoverageCard
+            <div className="grid gap-3 lg:grid-cols-2">
+              {reporterContributions.map((contribution) => (
+                <ReporterContributionCard
+                  contribution={contribution}
                   copy={copy}
-                  key={reporter.reporterReferralCode}
+                  key={contribution.reporter.reporterReferralCode}
                   locale={locale}
+                  maxScore={maxReporterContributionScore}
                   referralCode={referralCode}
-                  reporter={reporter}
                 />
               ))}
             </div>

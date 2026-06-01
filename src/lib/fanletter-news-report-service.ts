@@ -175,6 +175,7 @@ export type FanletterNewsCharacterReporterStat = {
   reporterName: string;
   reporterReferralCode: string;
   reportCount: number;
+  reportIds?: string[];
 };
 
 export type FanletterNewsCharacterChannelReportsResult = {
@@ -4253,6 +4254,7 @@ export const getFanletterNewsReportsForCharacterChannel = cache(
               reporterName: { $first: "$reporterName" },
               reporterReferralCode: { $first: "$reporterReferralCode" },
               reportCount: { $sum: 1 },
+              reportIds: { $push: "$reportId" },
             },
           },
           { $sort: { reportCount: -1, latestReportAt: -1 } },
@@ -4265,6 +4267,7 @@ export const getFanletterNewsReportsForCharacterChannel = cache(
               reporterName: 1,
               reporterReferralCode: 1,
               reportCount: 1,
+              reportIds: 1,
             },
           },
         ])
