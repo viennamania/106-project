@@ -20,6 +20,11 @@ import {
   UserRound,
 } from "lucide-react";
 
+import {
+  FanletterNewsCharacterProfileMarquee,
+  FanletterNewsCountUp,
+  type FanletterNewsCharacterProfileMarqueeItem,
+} from "@/components/fanletter-news-character-motion";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import type { FanletterNewsReportDocument } from "@/lib/content";
 import {
@@ -100,6 +105,7 @@ function getCopy(locale: Locale) {
             `블러 처리된 NSFW 뉴스 ${count}개`,
         },
         openNews: "최신 뉴스 보기",
+        profileRailLabel: "AI 캐릭터 프로필 순환",
         publicNews: "공개 뉴스",
         ranking: "캐릭터 IP 랭킹",
         rankingDek:
@@ -184,6 +190,7 @@ function getCopy(locale: Locale) {
           hiddenCountText: (count: string) => `${count} NSFW news items blurred`,
         },
         openNews: "Read latest news",
+        profileRailLabel: "AI character profile reel",
         publicNews: "Public news",
         ranking: "Character IP ranking",
         rankingDek:
@@ -573,9 +580,11 @@ function CharacterPodiumCard({
             <p className="text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
               {copy.ipScore}
             </p>
-            <p className="mt-0.5 text-2xl font-black leading-none text-white">
-              {formatNumber(getCharacterIpScore(character), locale)}
-            </p>
+            <FanletterNewsCountUp
+              className="mt-0.5 block text-2xl font-black leading-none text-white"
+              locale={locale}
+              value={getCharacterIpScore(character)}
+            />
           </div>
           <span className="max-w-[7.5rem] truncate border border-white/14 bg-black/24 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.08em] text-white/58">
             {getCharacterSignalLabel(character, copy)}
@@ -708,9 +717,12 @@ function CharacterHeroArenaPanel({
                       <p className="text-[0.54rem] font-black uppercase tracking-[0.1em] text-[#44f26e]">
                         {copy.ipScore}
                       </p>
-                      <p className="mt-0.5 text-xl font-black leading-none text-white">
-                        {formatNumber(getCharacterIpScore(character), locale)}
-                      </p>
+                      <FanletterNewsCountUp
+                        className="mt-0.5 block text-xl font-black leading-none text-white"
+                        durationMs={760}
+                        locale={locale}
+                        value={getCharacterIpScore(character)}
+                      />
                     </div>
                     <span className="max-w-[6.75rem] truncate border border-white/14 bg-white/[0.08] px-2 py-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-white/62">
                       {getCharacterSignalLabel(character, copy)}
@@ -737,9 +749,12 @@ function CharacterHeroArenaPanel({
                 <p className="truncate text-[0.58rem] font-black uppercase tracking-[0.08em] text-white/52">
                   {stat.label}
                 </p>
-                <p className="mt-1 text-2xl font-black leading-none text-white">
-                  {formatNumber(stat.value, locale)}
-                </p>
+                <FanletterNewsCountUp
+                  className="mt-1 block text-2xl font-black leading-none text-white"
+                  durationMs={760}
+                  locale={locale}
+                  value={stat.value}
+                />
               </div>
               <span className="shrink-0 text-[#44f26e]">{stat.icon}</span>
             </div>
@@ -870,9 +885,11 @@ function CharacterLead({
               <p className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#8dffa8]">
                 {copy.ipScore}
               </p>
-              <p className="mt-2 text-4xl font-black leading-none text-white">
-                {formatNumber(ipScore, locale)}
-              </p>
+              <FanletterNewsCountUp
+                className="mt-2 block text-4xl font-black leading-none text-white"
+                locale={locale}
+                value={ipScore}
+              />
             </div>
             <div className="grid grid-cols-2 gap-2">
               {[
@@ -889,9 +906,12 @@ function CharacterLead({
                   className="border border-white/12 bg-white/[0.06] p-3"
                   key={stat.label}
                 >
-                  <p className="text-xl font-black">
-                    {formatNumber(stat.value, locale)}
-                  </p>
+                  <FanletterNewsCountUp
+                    className="block text-xl font-black"
+                    durationMs={760}
+                    locale={locale}
+                    value={stat.value}
+                  />
                   <p className="mt-1 truncate text-[0.55rem] font-black uppercase tracking-[0.08em] text-white/46">
                     {stat.label}
                   </p>
@@ -1000,7 +1020,12 @@ function CharacterCard({
             {copy.rankLabel(rank)}
           </span>
           <span className="inline-flex items-center gap-1.5 bg-[#44f26e] px-2.5 py-1 text-[0.66rem] font-black text-black">
-            {copy.ipScore} {formatNumber(ipScore, locale)}
+            {copy.ipScore}{" "}
+            <FanletterNewsCountUp
+              durationMs={760}
+              locale={locale}
+              value={ipScore}
+            />
           </span>
         </div>
         <div className="absolute inset-x-0 bottom-0 flex items-end gap-3 p-4">
@@ -1044,9 +1069,12 @@ function CharacterCard({
             { label: copy.reporters, value: character.reporterCount },
           ].map((stat) => (
             <div className="bg-[#f5f6f2] p-2" key={stat.label}>
-              <p className="text-lg font-black leading-none">
-                {formatNumber(stat.value, locale)}
-              </p>
+              <FanletterNewsCountUp
+                className="block text-lg font-black leading-none"
+                durationMs={720}
+                locale={locale}
+                value={stat.value}
+              />
               <p className="mt-1 truncate text-[0.54rem] font-black uppercase tracking-[0.08em] text-black/42">
                 {stat.label}
               </p>
@@ -1074,9 +1102,12 @@ function CharacterCard({
               <span className="min-w-0 flex-1 truncate text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/45">
                 {stat.label}
               </span>
-              <span className="shrink-0 text-base font-black leading-none">
-                {formatNumber(stat.value, locale)}
-              </span>
+              <FanletterNewsCountUp
+                className="shrink-0 text-base font-black leading-none"
+                durationMs={720}
+                locale={locale}
+                value={stat.value}
+              />
             </div>
           ))}
         </div>
@@ -1194,6 +1225,26 @@ export default async function LocalizedFanletterNewsCharactersPage({
     },
   ];
   const topCharacters = characters.slice(0, 3);
+  const profileMarqueeItems: FanletterNewsCharacterProfileMarqueeItem[] =
+    characters.slice(0, 10).map((character, index) => {
+      const imageUrl = character.avatarImageUrl;
+
+      return {
+        href: getCharacterChannelHref({
+          characterReferralCode: character.referralCode,
+          locale,
+          referralCode,
+        }),
+        imageUrl,
+        name: character.name,
+        rankLabel: copy.rankLabel(index + 1),
+        score: getCharacterIpScore(character),
+        signalLabel: getCharacterSignalLabel(character, copy),
+        unoptimized: imageUrl
+          ? shouldBypassFanletterImageOptimization(imageUrl)
+          : undefined,
+      };
+    });
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#fafaf7_0%,#eef5ee_48%,#f8f3fb_100%)] pb-[calc(6rem+env(safe-area-inset-bottom))] text-[#111510] md:pb-0">
@@ -1226,12 +1277,20 @@ export default async function LocalizedFanletterNewsCharactersPage({
                     </p>
                     <span className="text-[#44f26e]">{stat.icon}</span>
                   </div>
-                  <p className="mt-2 text-2xl font-black leading-none">
-                    {formatNumber(stat.value, locale)}
-                  </p>
+                  <FanletterNewsCountUp
+                    className="mt-2 block text-2xl font-black leading-none"
+                    locale={locale}
+                    value={stat.value}
+                  />
                 </div>
               ))}
             </div>
+            <FanletterNewsCharacterProfileMarquee
+              ariaLabel={copy.profileRailLabel}
+              items={profileMarqueeItems}
+              locale={locale}
+              scoreLabel={copy.ipScore}
+            />
             <CharacterHeroArenaPanel
               characters={characters}
               copy={copy}
@@ -1284,9 +1343,11 @@ export default async function LocalizedFanletterNewsCharactersPage({
                   </p>
                   <span className="text-[#44f26e]">{stat.icon}</span>
                 </div>
-                <p className="mt-2 text-2xl font-black leading-none">
-                  {formatNumber(stat.value, locale)}
-                </p>
+                <FanletterNewsCountUp
+                  className="mt-2 block text-2xl font-black leading-none"
+                  locale={locale}
+                  value={stat.value}
+                />
               </div>
             ))}
           </div>
