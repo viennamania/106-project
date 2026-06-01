@@ -324,6 +324,28 @@ function getCopy(locale: Locale) {
           publishedBadge: "발행",
           remainingShort: (remaining: string) => `${remaining}자리 남음`,
           reporterLabel: "발행 리포터",
+          revealMomentum: {
+            closingBody: (remaining: string) =>
+              `원본 공개가 가까워질수록 리포트 유입 경쟁도 더 선명해집니다. 내 리포트 링크로 팬을 모아 ${remaining}명의 참여를 완성하면 인센티브 신호가 강해집니다.`,
+            closingLabel: "공개 임박",
+            earlyBody: (remaining: string) =>
+              `참여율이 낮을수록 리포터 선점 가치가 큽니다. 지금 리포트를 작성하고 카톡·SNS로 배포해 ${remaining}명의 참여를 먼저 모으세요.`,
+            earlyLabel: "초기 선점",
+            label: "원본 공개 연동",
+            remainingPeople: (remaining: string) => `${remaining}명`,
+            risingBody: (remaining: string) =>
+              `팬들이 내 리포트에서 보고싶어요를 누르면 원본 공개와 리포터 인센티브 기회가 같이 커집니다. 공개까지 ${remaining}명 남았습니다.`,
+            risingLabel: "확산 가속",
+            statParticipation: "원본 공개 참여",
+            statRemaining: "공개까지",
+            statReportSlots: "리포트 잔여",
+            title: (count: string, threshold: string) =>
+              `${count}/${threshold}명 원본 공개 참여 중`,
+            unlockedBody:
+              "원본 공개를 만든 팬 유입은 리포터의 검증 신호로 남습니다. 다음 브이로그도 빠르게 선점해 리포트 유입을 만드세요.",
+            unlockedLabel: "공개 완료",
+            unlockedTitle: "원본 공개 완료",
+          },
           rising: "인기 브이로그 경쟁 중",
           title: (count: string, limit: string) =>
             `${count}/${limit}개 리포트 발행 중`,
@@ -621,6 +643,28 @@ function getCopy(locale: Locale) {
           publishedBadge: "Published",
           remainingShort: (remaining: string) => `${remaining} left`,
           reporterLabel: "Published reporters",
+          revealMomentum: {
+            closingBody: (remaining: string) =>
+              `As source access gets close, report traffic competition becomes more visible. Bring fans through your report link and finish the final ${remaining} wants to strengthen your incentive signal.`,
+            closingLabel: "Almost open",
+            earlyBody: (remaining: string) =>
+              `Low source-open participation is the best claim window. Publish now and share through chat or social channels to gather the first ${remaining} wants.`,
+            earlyLabel: "Early claim",
+            label: "Source-open link",
+            remainingPeople: (remaining: string) => `${remaining}`,
+            risingBody: (remaining: string) =>
+              `When fans tap want-to-watch from your report, source access and reporter incentive opportunities grow together. ${remaining} more to open.`,
+            risingLabel: "Traffic push",
+            statParticipation: "Source wants",
+            statRemaining: "To open",
+            statReportSlots: "Report slots",
+            title: (count: string, threshold: string) =>
+              `${count}/${threshold} fans want source access`,
+            unlockedBody:
+              "Fan traffic that helped open the source remains a reporter proof signal. Claim the next vlog early and build traffic again.",
+            unlockedLabel: "Open",
+            unlockedTitle: "Source access opened",
+          },
           rising: "Popular vlog competition",
           title: (count: string, limit: string) =>
             `${count}/${limit} reports published`,
@@ -3035,10 +3079,12 @@ function SourceVlogReportSlotStatusCard({
   copy,
   locale,
   reportSlot,
+  sourceReveal,
 }: {
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
   reportSlot: SourceVlogReportSlotState;
+  sourceReveal: SourceVlogRevealGateState | null;
 }) {
   const normalizedLimit = Math.max(1, reportSlot.limit);
   const clampedCount = Math.min(Math.max(0, reportSlot.count), normalizedLimit);
@@ -3089,6 +3135,61 @@ function SourceVlogReportSlotStatusCard({
   const CtaIcon = cta?.icon;
   const visibleReports = reportSlot.reports.slice(0, normalizedLimit);
   const hiddenReportCount = Math.max(0, reportSlot.count - visibleReports.length);
+  const revealThreshold = sourceReveal ? Math.max(1, sourceReveal.threshold) : 0;
+  const revealCount = sourceReveal
+    ? Math.min(Math.max(0, sourceReveal.count), revealThreshold)
+    : 0;
+  const revealRemainingCount = sourceReveal
+    ? Math.max(0, revealThreshold - sourceReveal.count)
+    : 0;
+  const revealProgressPercent = sourceReveal
+    ? Math.min(100, Math.max(0, (revealCount / revealThreshold) * 100))
+    : 0;
+  const revealCountLabel = formatNumber(revealCount, locale);
+  const revealThresholdLabel = formatNumber(revealThreshold, locale);
+  const revealRemainingLabel = formatNumber(revealRemainingCount, locale);
+  const revealMomentumStage = sourceReveal?.unlocked
+    ? {
+        body: copy.embeddedReportSlot.revealMomentum.unlockedBody,
+        label: copy.embeddedReportSlot.revealMomentum.unlockedLabel,
+        title: copy.embeddedReportSlot.revealMomentum.unlockedTitle,
+      }
+    : revealProgressPercent >= 72
+      ? {
+          body: copy.embeddedReportSlot.revealMomentum.closingBody(
+            revealRemainingLabel,
+          ),
+          label: copy.embeddedReportSlot.revealMomentum.closingLabel,
+          title: copy.embeddedReportSlot.revealMomentum.title(
+            revealCountLabel,
+            revealThresholdLabel,
+          ),
+        }
+      : revealProgressPercent >= 34
+        ? {
+            body: copy.embeddedReportSlot.revealMomentum.risingBody(
+              revealRemainingLabel,
+            ),
+            label: copy.embeddedReportSlot.revealMomentum.risingLabel,
+            title: copy.embeddedReportSlot.revealMomentum.title(
+              revealCountLabel,
+              revealThresholdLabel,
+            ),
+          }
+        : {
+            body: copy.embeddedReportSlot.revealMomentum.earlyBody(
+              revealRemainingLabel,
+            ),
+            label: copy.embeddedReportSlot.revealMomentum.earlyLabel,
+            title: copy.embeddedReportSlot.revealMomentum.title(
+              revealCountLabel,
+              revealThresholdLabel,
+            ),
+          };
+  const revealMomentumPanelClass =
+    sourceReveal?.unlocked || revealProgressPercent >= 72
+      ? "border-[#44f26e]/44 bg-[#07150b] text-white shadow-[0_18px_34px_rgba(7,21,11,0.2)]"
+      : "border-[#16702e]/18 bg-white text-[#111510] shadow-[0_12px_28px_rgba(22,112,46,0.08)]";
 
   return (
     <div className="mb-4 rounded-lg border border-[#19b84b]/30 bg-[linear-gradient(180deg,#f7fff8_0%,#eefbf1_100%)] p-4 shadow-[0_16px_38px_rgba(22,112,46,0.12)] sm:p-5">
@@ -3117,6 +3218,120 @@ function SourceVlogReportSlotStatusCard({
           </p>
         </div>
       </div>
+
+      {sourceReveal ? (
+        <div
+          className={`mt-4 rounded-lg border p-3 ${revealMomentumPanelClass}`}
+        >
+          <div className="flex items-start gap-3">
+            <span
+              className={`mt-0.5 inline-flex size-9 shrink-0 items-center justify-center rounded-full ${
+                sourceReveal.unlocked || revealProgressPercent >= 72
+                  ? "bg-[#44f26e] text-[#07150b]"
+                  : "bg-[#07150b] text-[#44f26e]"
+              }`}
+            >
+              <HeartHandshake className="size-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <p
+                  className={`text-[0.66rem] font-black uppercase tracking-[0.08em] ${
+                    sourceReveal.unlocked || revealProgressPercent >= 72
+                      ? "text-[#9dffb2]"
+                      : "text-[#16702e]"
+                  }`}
+                >
+                  {copy.embeddedReportSlot.revealMomentum.label}
+                </p>
+                <span
+                  className={`rounded-full border px-2 py-0.5 text-[0.58rem] font-black ${
+                    sourceReveal.unlocked || revealProgressPercent >= 72
+                      ? "border-white/16 bg-white/[0.08] text-white"
+                      : "border-[#16702e]/14 bg-[#ecfff0] text-[#16702e]"
+                  }`}
+                >
+                  {revealMomentumStage.label}
+                </span>
+              </div>
+              <h4 className="mt-1 text-lg font-black leading-tight [word-break:keep-all]">
+                {revealMomentumStage.title}
+              </h4>
+              <p
+                className={`mt-2 text-sm font-semibold leading-6 [word-break:keep-all] ${
+                  sourceReveal.unlocked || revealProgressPercent >= 72
+                    ? "text-white/70"
+                    : "text-black/62"
+                }`}
+              >
+                {revealMomentumStage.body}
+              </p>
+            </div>
+          </div>
+          <div
+            aria-label={copy.embeddedReportSlot.revealMomentum.title(
+              revealCountLabel,
+              revealThresholdLabel,
+            )}
+            aria-valuemax={revealThreshold}
+            aria-valuemin={0}
+            aria-valuenow={revealCount}
+            className={`mt-3 h-2 overflow-hidden rounded-full ${
+              sourceReveal.unlocked || revealProgressPercent >= 72
+                ? "bg-white/14"
+                : "bg-[#dfeee2]"
+            }`}
+            role="progressbar"
+          >
+            <div
+              className="h-full rounded-full bg-[#44f26e] transition-[width]"
+              style={{ width: `${revealProgressPercent}%` }}
+            />
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-1.5">
+            {[
+              {
+                label: copy.embeddedReportSlot.revealMomentum.statParticipation,
+                value: `${revealCountLabel}/${revealThresholdLabel}`,
+              },
+              {
+                label: copy.embeddedReportSlot.revealMomentum.statRemaining,
+                value: sourceReveal.unlocked
+                  ? copy.embeddedReportSlot.revealMomentum.unlockedLabel
+                  : copy.embeddedReportSlot.revealMomentum.remainingPeople(
+                      revealRemainingLabel,
+                    ),
+              },
+              {
+                label: copy.embeddedReportSlot.revealMomentum.statReportSlots,
+                value: copy.embeddedReportSlot.remainingShort(remainingLabel),
+              },
+            ].map((stat) => (
+              <div
+                className={`min-w-0 rounded-md border px-2 py-2 text-center ${
+                  sourceReveal.unlocked || revealProgressPercent >= 72
+                    ? "border-white/10 bg-white/[0.06]"
+                    : "border-[#16702e]/10 bg-[#f8fff9]"
+                }`}
+                key={stat.label}
+              >
+                <p
+                  className={`truncate text-[0.56rem] font-black uppercase tracking-[0.06em] ${
+                    sourceReveal.unlocked || revealProgressPercent >= 72
+                      ? "text-[#9dffb2]"
+                      : "text-[#16702e]"
+                  }`}
+                >
+                  {stat.label}
+                </p>
+                <p className="mt-0.5 truncate text-[0.72rem] font-black sm:text-xs">
+                  {stat.value}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-4">
         <div
@@ -3474,6 +3689,7 @@ function SourceVlogEmbed({
         copy={copy}
         locale={locale}
         reportSlot={reportSlot}
+        sourceReveal={sourceReveal}
       />
       <div className="-mx-4 overflow-hidden border-y border-black/10 bg-black shadow-[0_20px_46px_rgba(17,21,16,0.1)] sm:mx-0 sm:border">
         {sourceRevealLocked && sourceReveal ? (
