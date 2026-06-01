@@ -22,7 +22,7 @@ import {
   UserRound,
   WalletCards,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
@@ -115,6 +115,7 @@ function getCopy(locale: Locale) {
           empty: "아직 홈에 표시할 AI 캐릭터가 없습니다.",
           eyebrow: "AI 캐릭터 채널",
           news: "뉴스",
+          profileCuts: (count: string) => `${count}컷`,
           source: "원본 오픈",
           title: "계속 보게 만드는 캐릭터 IP",
           vlogs: "브이로그",
@@ -269,6 +270,7 @@ function getCopy(locale: Locale) {
           empty: "No AI characters are ready for the home page yet.",
           eyebrow: "AI Character Channels",
           news: "News",
+          profileCuts: (count: string) => `${count} cuts`,
           source: "Opened sources",
           title: "Character IP worth following",
           vlogs: "Vlogs",
@@ -532,6 +534,124 @@ function NewsHomeReportCard({
   );
 }
 
+function getCharacterProfileImages(character: FanletterNewsCharacterStat) {
+  const uniqueImageUrls = new Set<string>();
+
+  return [
+    ...character.profileImageUrls,
+    character.avatarImageUrl,
+    character.representativeReport.coverImageUrl,
+  ]
+    .map((imageUrl) => imageUrl?.trim() ?? "")
+    .filter((imageUrl) => {
+      if (!imageUrl || uniqueImageUrls.has(imageUrl)) {
+        return false;
+      }
+
+      uniqueImageUrls.add(imageUrl);
+      return true;
+    })
+    .slice(0, 5);
+}
+
+function CharacterProfileReel({
+  character,
+  copy,
+  locale,
+}: {
+  character: FanletterNewsCharacterStat;
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+}) {
+  const profileImages = getCharacterProfileImages(character);
+  const hasMultipleImages = profileImages.length > 1;
+  const reelImages = hasMultipleImages
+    ? [...profileImages, ...profileImages]
+    : profileImages;
+  const reelStyle = hasMultipleImages
+    ? ({
+        "--platform-character-reel-duration": `${Math.max(
+          9,
+          profileImages.length * 2.6,
+        )}s`,
+        width: `${reelImages.length * 100}%`,
+      } as CSSProperties)
+    : undefined;
+  const reelItemStyle =
+    reelImages.length > 0
+      ? ({
+          width: `${100 / reelImages.length}%`,
+        } as CSSProperties)
+      : undefined;
+
+  return (
+    <div className="relative aspect-square overflow-hidden rounded-lg bg-[#071108]">
+      {reelImages.length > 0 ? (
+        <div
+          className={
+            hasMultipleImages
+              ? "platform-character-profile-reel flex h-full"
+              : "flex h-full w-full"
+          }
+          style={reelStyle}
+        >
+          {reelImages.map((imageUrl, index) => (
+            <div
+              className="relative h-full shrink-0 overflow-hidden"
+              key={`${imageUrl}:${index}`}
+              style={reelItemStyle}
+            >
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="object-cover object-top transition duration-500 group-hover:scale-[1.04]"
+                fill
+                sizes="(max-width: 640px) 5.25rem, 6.5rem"
+                src={imageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex h-full items-center justify-center text-[#44f26e]">
+          <UserRound className="size-8" />
+        </div>
+      )}
+
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0)_34%,rgba(7,17,8,0.7)_100%)]" />
+
+      {hasMultipleImages ? (
+        <div className="absolute inset-x-1.5 bottom-1.5 flex items-center justify-between gap-1.5">
+          <div className="flex min-w-0 -space-x-1.5">
+            {profileImages.slice(0, 3).map((imageUrl) => (
+              <span
+                className="relative block size-5 shrink-0 overflow-hidden rounded-full border border-white/74 bg-[#071108]"
+                key={imageUrl}
+              >
+                <Image
+                  alt=""
+                  aria-hidden="true"
+                  className="object-cover object-top"
+                  fill
+                  sizes="1.25rem"
+                  src={imageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+                />
+              </span>
+            ))}
+          </div>
+          <span className="shrink-0 rounded-full border border-white/24 bg-black/52 px-2 py-1 text-[0.52rem] font-black uppercase tracking-[0.06em] text-[#9bffad] backdrop-blur">
+            {copy.homeCharacters.profileCuts(
+              formatNumber(profileImages.length, locale),
+            )}
+          </span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function HomeCharacterCard({
   character,
   copy,
@@ -548,25 +668,7 @@ function HomeCharacterCard({
       className="group grid min-w-0 grid-cols-[5.25rem_minmax(0,1fr)] gap-3 rounded-lg border border-white/12 bg-white/[0.07] p-3 !text-white transition hover:border-[#44f26e]/60 hover:bg-white/[0.1] sm:grid-cols-[6.5rem_minmax(0,1fr)] sm:p-4"
       href={href}
     >
-      <div className="relative aspect-square overflow-hidden rounded-lg bg-[#071108]">
-        {character.avatarImageUrl ? (
-          <Image
-            alt=""
-            aria-hidden="true"
-            className="object-cover object-top transition duration-500 group-hover:scale-[1.04]"
-            fill
-            sizes="6.5rem"
-            src={character.avatarImageUrl}
-            unoptimized={shouldBypassFanletterImageOptimization(
-              character.avatarImageUrl,
-            )}
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-[#44f26e]">
-            <UserRound className="size-8" />
-          </div>
-        )}
-      </div>
+      <CharacterProfileReel character={character} copy={copy} locale={locale} />
       <div className="min-w-0">
         <p className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#7cff98]">
           {copy.homeCharacters.eyebrow}
