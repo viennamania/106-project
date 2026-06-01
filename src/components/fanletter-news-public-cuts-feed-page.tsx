@@ -224,7 +224,7 @@ function FeedSlide({
 
   return (
     <article
-      className="relative min-h-[100dvh] snap-start snap-always overflow-hidden bg-black text-white"
+      className="relative min-h-[100dvh] touch-pan-y snap-start snap-always overflow-hidden bg-black text-white"
       id={report.reportId}
       onPointerCancel={() => {
         pointerStartRef.current = null;
@@ -321,19 +321,19 @@ function FeedSlide({
 
       <button
         aria-label={copy.previousCut}
-        className="absolute left-2 top-1/2 z-20 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/18 text-white/86 backdrop-blur transition hover:bg-white hover:text-black sm:left-3 sm:size-11"
+        className="absolute left-3 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/18 text-white/86 backdrop-blur transition hover:bg-white hover:text-black sm:inline-flex"
         onClick={goToPreviousCut}
         type="button"
       >
-        <ChevronLeft className="size-5 sm:size-6" />
+        <ChevronLeft className="size-6" />
       </button>
       <button
         aria-label={copy.nextCut}
-        className="absolute right-2 top-1/2 z-20 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/18 text-white/86 backdrop-blur transition hover:bg-white hover:text-black sm:right-3 sm:size-11"
+        className="absolute right-3 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/18 text-white/86 backdrop-blur transition hover:bg-white hover:text-black sm:inline-flex"
         onClick={goToNextCut}
         type="button"
       >
-        <ChevronRight className="size-5 sm:size-6" />
+        <ChevronRight className="size-6" />
       </button>
 
       <div className="relative z-10 flex min-h-[100dvh] items-end px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+7.6rem)] sm:px-6 sm:pb-7 lg:px-8">
