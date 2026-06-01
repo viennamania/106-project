@@ -42,6 +42,7 @@ import {
 import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive-media-frame";
 import {
   CONTENT_PAID_USDT_AMOUNT,
+  FANLETTER_NEWS_REPORT_DEFAULT_SLOT_LIMIT,
   type FanletterNewsReportDocument,
 } from "@/lib/content";
 import {
@@ -53,6 +54,7 @@ import {
   countRelatedFanletterNewsReports,
   createFanletterNewsReportShareHref,
   getFanletterNewsReportById,
+  getFanletterNewsReportsForContent,
   getFanletterNewsReporterMemberByEmail,
   getFanletterNewsReporterProfile,
   getLatestFanletterNewsReports,
@@ -118,6 +120,26 @@ type FanletterNewsReportSearchParams = {
 type SourceVlogRevealGateState = FanletterNewsSourceRevealState & {
   connectHref: string;
   reportId: string;
+};
+
+type SourceVlogReportSlotItem = {
+  avatarImageUrl: string | null;
+  href: string;
+  isViewerReport: boolean;
+  reporterName: string;
+  reporterReferralCode: string;
+  reportId: string;
+};
+
+type SourceVlogReportSlotState = {
+  browseHref: string;
+  connectHref: string;
+  count: number;
+  isViewerReporter: boolean;
+  limit: number;
+  reports: SourceVlogReportSlotItem[];
+  viewerReportHref: string | null;
+  writeHref: string;
 };
 
 type SourceVlogRevealTeaserCopy = {
@@ -282,6 +304,31 @@ function getCopy(locale: Locale) {
         embeddedPreviewBadge: "잠금 프리뷰",
         embeddedPreviewMeta: "가입 전 맛보기 재생",
         embeddedPlayFullVideoCta: "전체 원본 재생",
+        embeddedReportSlot: {
+          body: (remaining: string) =>
+            `팬 기자가 이 브이로그를 기사화한 수입니다. ${remaining}자리가 남아 일반 회원도 리포터로 참여할 수 있습니다.`,
+          browseCta: "다른 리포트 기회 찾기",
+          connectCta: "팬 리포터로 활동하기",
+          countLabel: (count: string, limit: string) =>
+            `${count}/${limit}개 발행`,
+          emptyBody:
+            "아직 이 원본 브이로그를 기사화한 팬 기자가 없습니다. 첫 리포터가 되면 가장 먼저 노출됩니다.",
+          eyebrow: "팬 리포트 경쟁",
+          firstOpportunity: "첫 리포터 기회",
+          full: "리포터 슬롯 마감",
+          fullBody:
+            "이 원본 브이로그의 리포트 슬롯이 모두 채워졌습니다. 다른 브이로그에서 새 리포트 기회를 찾아보세요.",
+          leadReporter: "대표 리포터",
+          myReportCta: "내 리포트 보기",
+          publishedBadge: "발행",
+          remainingShort: (remaining: string) => `${remaining}자리 남음`,
+          reporterLabel: "발행 리포터",
+          rising: "인기 브이로그 경쟁 중",
+          title: (count: string, limit: string) =>
+            `${count}/${limit}개 리포트 발행 중`,
+          writeCta: "이 브이로그 리포트 작성",
+          early: "초기 선점 구간",
+        },
         embeddedTitle: "뉴스 속 원본 브이로그",
         embeddedUnlockBody:
           "결제 후 전체 원본 영상, 본문, 추가 미디어를 이 뉴스 화면에서 바로 이어봅니다.",
@@ -552,6 +599,31 @@ function getCopy(locale: Locale) {
         embeddedPreviewBadge: "Locked preview",
         embeddedPreviewMeta: "Autoplay before unlock",
         embeddedPlayFullVideoCta: "Play full source",
+        embeddedReportSlot: {
+          body: (remaining: string) =>
+            `Fan reporters have published reports from this vlog. ${remaining} slots remain, so regular members can still join as reporters.`,
+          browseCta: "Find another report opportunity",
+          connectCta: "Become a fan reporter",
+          countLabel: (count: string, limit: string) =>
+            `${count}/${limit} reports`,
+          emptyBody:
+            "No fan reporter has covered this source vlog yet. The first reporter gets the earliest visibility.",
+          eyebrow: "Fan report race",
+          firstOpportunity: "First reporter opportunity",
+          full: "Reporter slots full",
+          fullBody:
+            "All report slots for this source vlog are filled. Find another vlog with open report opportunities.",
+          leadReporter: "Lead reporter",
+          myReportCta: "View my report",
+          publishedBadge: "Published",
+          remainingShort: (remaining: string) => `${remaining} left`,
+          reporterLabel: "Published reporters",
+          rising: "Popular vlog competition",
+          title: (count: string, limit: string) =>
+            `${count}/${limit} reports published`,
+          writeCta: "Write a report for this vlog",
+          early: "Early claim zone",
+        },
         embeddedTitle: "Source vlog in this news",
         embeddedUnlockBody:
           "Unlock the full source video, news body, and extra media directly on this news page.",
@@ -2955,6 +3027,205 @@ function resolveSourceVlogPreviewVideoUrl(
   );
 }
 
+function SourceVlogReportSlotStatusCard({
+  copy,
+  locale,
+  reportSlot,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  reportSlot: SourceVlogReportSlotState;
+}) {
+  const normalizedLimit = Math.max(1, reportSlot.limit);
+  const clampedCount = Math.min(Math.max(0, reportSlot.count), normalizedLimit);
+  const remainingCount = Math.max(0, normalizedLimit - reportSlot.count);
+  const countLabel = formatNumber(clampedCount, locale);
+  const totalCountLabel = formatNumber(reportSlot.count, locale);
+  const limitLabel = formatNumber(normalizedLimit, locale);
+  const remainingLabel = formatNumber(remainingCount, locale);
+  const reportSlotFull = reportSlot.count >= normalizedLimit;
+  const progressPercent = Math.min(
+    100,
+    Math.max(0, (clampedCount / normalizedLimit) * 100),
+  );
+  const stageLabel =
+    reportSlot.count <= 0
+      ? copy.embeddedReportSlot.firstOpportunity
+      : reportSlotFull
+        ? copy.embeddedReportSlot.full
+        : reportSlot.count <= 2
+          ? copy.embeddedReportSlot.early
+          : copy.embeddedReportSlot.rising;
+  const body =
+    reportSlot.count <= 0
+      ? copy.embeddedReportSlot.emptyBody
+      : reportSlotFull
+        ? copy.embeddedReportSlot.fullBody
+        : copy.embeddedReportSlot.body(remainingLabel);
+  const cta = reportSlot.viewerReportHref
+    ? {
+        href: reportSlot.viewerReportHref,
+        icon: CheckCircle2,
+        label: copy.embeddedReportSlot.myReportCta,
+      }
+    : reportSlot.isViewerReporter
+      ? reportSlotFull
+        ? {
+            href: reportSlot.browseHref,
+            icon: Newspaper,
+            label: copy.embeddedReportSlot.browseCta,
+          }
+        : {
+            href: reportSlot.writeHref,
+            icon: FileText,
+            label: copy.embeddedReportSlot.writeCta,
+          }
+      : {
+          href: reportSlot.connectHref,
+          icon: Users,
+          label: copy.embeddedReportSlot.connectCta,
+        };
+  const CtaIcon = cta.icon;
+  const visibleReports = reportSlot.reports.slice(0, normalizedLimit);
+  const hiddenReportCount = Math.max(0, reportSlot.count - visibleReports.length);
+
+  return (
+    <div className="mb-4 rounded-lg border border-[#16702e]/16 bg-[#f8fff9] p-4 shadow-[0_10px_26px_rgba(22,112,46,0.06)] sm:p-5">
+      <div className="flex items-start gap-3">
+        <span className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#07150b] text-[#44f26e]">
+          {reportSlotFull ? (
+            <CheckCircle2 className="size-4.5" />
+          ) : (
+            <Newspaper className="size-4.5" />
+          )}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-[0.7rem] font-black text-[#16702e]">
+              {copy.embeddedReportSlot.eyebrow}
+            </p>
+            <span className="inline-flex rounded-full border border-[#16702e]/16 bg-white px-2 py-0.5 text-[0.62rem] font-black text-[#16702e]">
+              {stageLabel}
+            </span>
+          </div>
+          <h3 className="mt-1 text-xl font-black leading-tight text-[#111510] [word-break:keep-all] sm:text-2xl">
+            {copy.embeddedReportSlot.title(totalCountLabel, limitLabel)}
+          </h3>
+          <p className="mt-2 text-sm font-semibold leading-6 text-black/62 [word-break:keep-all] sm:text-base">
+            {body}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <div
+          aria-label={copy.embeddedReportSlot.countLabel(
+            countLabel,
+            limitLabel,
+          )}
+          aria-valuemax={normalizedLimit}
+          aria-valuemin={0}
+          aria-valuenow={clampedCount}
+          className="h-2 overflow-hidden rounded-full bg-[#dfeee2]"
+          role="progressbar"
+        >
+          <div
+            className="h-full rounded-full bg-[#44f26e] transition-[width]"
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+        <div className="mt-2 flex items-center justify-between gap-3 text-xs font-black text-black/46">
+          <span>
+            {copy.embeddedReportSlot.countLabel(countLabel, limitLabel)}
+          </span>
+          <span className={reportSlotFull ? "text-[#16702e]" : ""}>
+            {reportSlotFull
+              ? copy.embeddedReportSlot.full
+              : copy.embeddedReportSlot.remainingShort(remainingLabel)}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 rounded-xl border border-[#16702e]/12 bg-white p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+        <div className="min-w-0">
+          <p className="text-[0.68rem] font-black uppercase tracking-[0.08em] text-[#16702e]">
+            {copy.embeddedReportSlot.reporterLabel}
+          </p>
+          {visibleReports.length > 0 ? (
+            <div className="mt-2 flex min-w-0 items-center gap-3">
+              <div className="flex shrink-0 -space-x-2">
+                {visibleReports.map((slotReport) => {
+                  const initial =
+                    slotReport.reporterName.trim().charAt(0).toUpperCase() ||
+                    slotReport.reporterReferralCode
+                      .trim()
+                      .charAt(0)
+                      .toUpperCase() ||
+                    "R";
+
+                  return (
+                    <Link
+                      aria-label={slotReport.reporterName}
+                      className={`relative inline-flex size-9 items-center justify-center overflow-hidden rounded-full border-2 text-xs font-black shadow-[0_8px_18px_rgba(17,21,16,0.12)] ${
+                        slotReport.isViewerReport
+                          ? "border-[#44f26e] bg-[#111510] text-[#44f26e]"
+                          : "border-white bg-[#111510] text-white"
+                      }`}
+                      href={slotReport.href}
+                      key={slotReport.reportId}
+                    >
+                      {slotReport.avatarImageUrl ? (
+                        <Image
+                          alt=""
+                          aria-hidden="true"
+                          className="object-cover"
+                          fill
+                          sizes="2.25rem"
+                          src={slotReport.avatarImageUrl}
+                          unoptimized={shouldBypassFanletterImageOptimization(
+                            slotReport.avatarImageUrl,
+                          )}
+                        />
+                      ) : (
+                        initial
+                      )}
+                    </Link>
+                  );
+                })}
+                {hiddenReportCount > 0 ? (
+                  <span className="inline-flex size-9 items-center justify-center rounded-full border-2 border-white bg-[#ecfff0] text-xs font-black text-[#16702e] shadow-[0_8px_18px_rgba(17,21,16,0.1)]">
+                    +{formatNumber(hiddenReportCount, locale)}
+                  </span>
+                ) : null}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-black text-[#111510]">
+                  {visibleReports[0]?.reporterName ??
+                    copy.embeddedReportSlot.leadReporter}
+                </p>
+                <p className="mt-0.5 text-xs font-semibold text-black/46">
+                  {copy.embeddedReportSlot.publishedBadge}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-2 text-sm font-semibold leading-6 text-black/52">
+              {copy.embeddedReportSlot.firstOpportunity}
+            </p>
+          )}
+        </div>
+        <Link
+          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-[#243026] sm:w-auto"
+          href={cta.href}
+        >
+          <CtaIcon className="size-4 text-[#44f26e]" />
+          {cta.label}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 function SourceVlogEmbed({
   accessLabel,
   blurred,
@@ -2965,6 +3236,7 @@ function SourceVlogEmbed({
   newsConnectHref,
   paidUnlockHref,
   pinUnlockHref,
+  reportSlot,
   reportCoverImageSource,
   priceUsdt,
   reportCoverImageUrl,
@@ -2982,6 +3254,7 @@ function SourceVlogEmbed({
   newsConnectHref: string;
   paidUnlockHref: string | null;
   pinUnlockHref: string;
+  reportSlot: SourceVlogReportSlotState;
   reportCoverImageSource?: FanletterNewsReportDocument["coverImageSource"];
   priceUsdt: string | null;
   reportCoverImageUrl: string | null;
@@ -3161,6 +3434,11 @@ function SourceVlogEmbed({
           viewerCanAccessSource={viewerCanAccessSource}
         />
       ) : null}
+      <SourceVlogReportSlotStatusCard
+        copy={copy}
+        locale={locale}
+        reportSlot={reportSlot}
+      />
       <div className="-mx-4 overflow-hidden border-y border-black/10 bg-black shadow-[0_20px_46px_rgba(17,21,16,0.1)] sm:mx-0 sm:border">
         {sourceRevealLocked && sourceReveal ? (
           shouldShowLockedPreviewHero && sourcePreviewVideoUrl ? (
@@ -3669,6 +3947,27 @@ export default async function LocalizedFanletterNewsReportPage({
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
     { returnTo: articleHref },
   );
+  const reportWriteHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/reports/new`, referralCode),
+    {
+      contentId: report.contentId,
+      reportStatus: "all",
+      sourceReveal: "all",
+      sourceSort: "recommended",
+    },
+  );
+  const reportOpportunityHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/reports/new`, referralCode),
+    {
+      reportStatus: "unreported",
+      sourceReveal: "opportunity",
+      sourceSort: "recommended",
+    },
+  );
+  const reporterSlotConnectHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
+    { returnTo: reportWriteHref },
+  );
   const walletHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/wallet`, referralCode),
     { returnTo: articleHref },
@@ -3709,15 +4008,61 @@ export default async function LocalizedFanletterNewsReportPage({
       );
     },
   );
-  const selectedOtherCharacterNewsCharacters =
-    await hydrateFanletterNewsCharacterStats(
-      getFanletterNewsCharacterStats(
-        otherCharacterCandidateReports,
-        Math.max(4, otherCharacterCandidateReports.length),
-        { sort: "discovery" },
+  const reportSlotLimit =
+    sourceContent?.fanReportLimit ?? FANLETTER_NEWS_REPORT_DEFAULT_SLOT_LIMIT;
+  const [selectedOtherCharacterNewsCharacters, contentReportSlot] =
+    await Promise.all([
+      hydrateFanletterNewsCharacterStats(
+        getFanletterNewsCharacterStats(
+          otherCharacterCandidateReports,
+          Math.max(4, otherCharacterCandidateReports.length),
+          { sort: "discovery" },
+        ),
+        { limit: 4, sort: "discovery" },
       ),
-      { limit: 4, sort: "discovery" },
-    );
+      getFanletterNewsReportsForContent({
+        contentId: report.contentId,
+        limit: reportSlotLimit,
+        locale,
+        viewerReporterReferralCode: viewerReferralCode,
+      }),
+    ]);
+  const contentReportSlotReports: SourceVlogReportSlotItem[] =
+    contentReportSlot.reports.map((slotReport) => {
+      const slotReporterReferralCode = normalizeReferralCode(
+        slotReport.reporterReferralCode,
+      );
+      const isViewerReport = Boolean(
+        viewerReferralCode &&
+          slotReporterReferralCode &&
+          viewerReferralCode === slotReporterReferralCode,
+      );
+
+      return {
+        avatarImageUrl: slotReport.reporterAvatarImageUrl ?? null,
+        href: buildPathWithReferral(
+          `/${locale}/fanletter/news/${slotReport.reportId}`,
+          referralCode,
+        ),
+        isViewerReport,
+        reporterName: getReporterDisplayName(slotReport),
+        reporterReferralCode: slotReport.reporterReferralCode,
+        reportId: slotReport.reportId,
+      };
+    });
+  const viewerContentReportHref =
+    contentReportSlotReports.find((slotReport) => slotReport.isViewerReport)
+      ?.href ?? null;
+  const sourceReportSlot: SourceVlogReportSlotState = {
+    browseHref: reportOpportunityHref,
+    connectHref: reporterSlotConnectHref,
+    count: contentReportSlot.reportCount,
+    isViewerReporter: Boolean(viewerReporterMember),
+    limit: reportSlotLimit,
+    reports: contentReportSlotReports,
+    viewerReportHref: viewerContentReportHref,
+    writeHref: reportWriteHref,
+  };
   const visibleRelatedReports = relatedReports.slice(0, relatedReportVisibleCount);
   const currentRelatedNewsItem = serializeFanletterRelatedNewsItem({
     nsfwOptInEnabled: includeNsfw,
@@ -4304,6 +4649,7 @@ export default async function LocalizedFanletterNewsReportPage({
                 paidUnlockHref={paidUnlockHref}
                 pinUnlockHref={pinUnlockHref}
                 priceUsdt={paidUnlockAmount}
+                reportSlot={sourceReportSlot}
                 reportCoverImageSource={report.coverImageSource}
                 reportCoverImageUrl={report.coverImageUrl}
                 sourceMaturityRating={

@@ -19,6 +19,7 @@ import {
   createEmptyContentSocialSummary,
   hasUploadedContentVideoUrl,
   normalizeContentLocale,
+  normalizeFanletterNewsReportSlotLimit,
 } from "@/lib/content";
 import { resolveContentCoverImageUrl } from "@/lib/content-cover-selection";
 import { getContentSocialSummaryForViewer } from "@/lib/content-service";
@@ -103,6 +104,7 @@ export type FanletterPublicContentItem = {
   contentVideoCount: number;
   coverImageUrl: string | null;
   exclusiveNews: ContentExclusiveNewsAssignmentRecord;
+  fanReportLimit: number;
   mediaType: "image" | "text" | "video";
   previewText: string | null;
   priceType: ContentPriceType;
@@ -953,6 +955,7 @@ function toPublicContentItem({
       preferCoverImageUrl,
     }),
     exclusiveNews: toPublicExclusiveNewsAssignment(post),
+    fanReportLimit: normalizeFanletterNewsReportSlotLimit(post.fanReportLimit),
     mediaType: getMediaType(post),
     previewText: post.previewText?.trim()
       ? compactText(post.previewText, SUMMARY_LIMIT)
