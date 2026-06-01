@@ -12,6 +12,7 @@ import {
   PenLine,
   ShieldCheck,
   Sparkles,
+  Trophy,
   WalletCards,
 } from "lucide-react";
 
@@ -60,6 +61,7 @@ function getCopy(locale: Locale) {
           purchases: "구매함",
           reportDesk: "리포트 관리",
           reportNew: "새 리포트 작성",
+          reportRewards: "리포터 보상",
           studio: "브이로그 관리",
           wallet: "전체 지갑 관리",
         },
@@ -95,6 +97,7 @@ function getCopy(locale: Locale) {
           purchases: "Purchases",
           reportDesk: "Report desk",
           reportNew: "Create report",
+          reportRewards: "Reporter rewards",
           studio: "Vlog desk",
           wallet: "Wallet management",
         },
@@ -233,6 +236,10 @@ export default async function LocalizedFanletterNewsMyPage({
     `/${locale}/fanletter/news/reports`,
     effectiveReferralCode,
   );
+  const reportRewardsHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/reporter/rewards`,
+    effectiveReferralCode,
+  );
   const purchasesHref = buildPathWithReferral(
     `/${locale}/fanletter/news/purchases`,
     effectiveReferralCode,
@@ -318,6 +325,11 @@ export default async function LocalizedFanletterNewsMyPage({
       label: copy.quickActions.reportDesk,
     },
     {
+      href: reportRewardsHref,
+      icon: Trophy,
+      label: copy.quickActions.reportRewards,
+    },
+    {
       href: newsVlogManageHref,
       icon: LayoutDashboard,
       label: copy.quickActions.studio,
@@ -397,8 +409,8 @@ export default async function LocalizedFanletterNewsMyPage({
             <h1 className="mt-4 max-w-3xl text-[2.15rem] font-black leading-[1.06] tracking-normal [word-break:keep-all] sm:text-[3rem]">
               {copy.heroTitle}
             </h1>
-            <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {statItems.slice(0, 4).map((item) => (
+            <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
+              {statItems.map((item) => (
                 <div
                   className="rounded-lg border border-black/10 bg-[#f6f8f4] p-3"
                   key={item.label}
@@ -445,7 +457,7 @@ export default async function LocalizedFanletterNewsMyPage({
               </div>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-2">
-              {statItems.slice(0, 4).map((item) => (
+              {statItems.map((item) => (
                 <div
                   className="rounded-lg border border-white/10 bg-white/[0.06] p-3"
                   key={item.label}
