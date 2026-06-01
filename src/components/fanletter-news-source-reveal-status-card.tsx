@@ -46,6 +46,10 @@ function getCopy({
         completeLabel: "조건 완료",
         ctaPay: `${paidAmountLabel} 원본 보기`,
         eyebrow: "원본 공개",
+        flywheel: {
+          label: "참여 루프",
+          steps: ["리포트 유입", "보고싶어요", "인센티브"],
+        },
         freeLockedBody: `${remainingLabel}명이 더 누르면 모두에게 무료 공개됩니다.`,
         freeLockedTitle: `${countLabel}/${thresholdLabel}명 참여 중`,
         freeUnlockedBody:
@@ -66,6 +70,10 @@ function getCopy({
         completeLabel: "Complete",
         ctaPay: `Watch for ${paidAmountLabel}`,
         eyebrow: "Source access",
+        flywheel: {
+          label: "Growth loop",
+          steps: ["Report traffic", "Want-to-watch", "Incentive"],
+        },
         freeLockedBody: `${remainingLabel} more fan${remainingCount === 1 ? "" : "s"} need to want it. Then this source vlog opens for everyone for free.`,
         freeLockedTitle: `${countLabel}/${thresholdLabel} joined`,
         freeUnlockedBody:
@@ -199,7 +207,7 @@ export function FanletterNewsSourceRevealStatusCard({
   return (
     <div
       aria-live="polite"
-      className="mb-4 rounded-lg border border-[#16702e]/16 bg-[#f8fff9] p-4 shadow-[0_10px_26px_rgba(22,112,46,0.06)] sm:p-5"
+      className="mb-4 rounded-lg border border-[#19b84b]/28 bg-[linear-gradient(180deg,#f8fff9_0%,#effcf2_100%)] p-4 shadow-[0_14px_34px_rgba(22,112,46,0.1)] sm:p-5"
     >
       <div className="flex items-start gap-3">
         <span className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#07150b] text-[#44f26e]">
@@ -243,6 +251,21 @@ export function FanletterNewsSourceRevealStatusCard({
             <span className={revealUnlocked ? "text-[#16702e]" : ""}>
               {progressTail}
             </span>
+          </div>
+          <div className="mt-3 grid grid-cols-3 overflow-hidden rounded-lg border border-[#16702e]/12 bg-white text-center shadow-[0_8px_20px_rgba(22,112,46,0.06)]">
+            {copy.flywheel.steps.map((step, index) => (
+              <div
+                className="border-l border-[#16702e]/10 px-2 py-2 first:border-l-0"
+                key={step}
+              >
+                <p className="text-[0.56rem] font-black uppercase tracking-[0.08em] text-[#16702e]">
+                  {index === 0 ? copy.flywheel.label : `${index + 1}`}
+                </p>
+                <p className="mt-0.5 truncate text-[0.68rem] font-black text-[#111510] sm:text-xs">
+                  {step}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       ) : null}

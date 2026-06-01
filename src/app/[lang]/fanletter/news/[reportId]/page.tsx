@@ -306,26 +306,28 @@ function getCopy(locale: Locale) {
         embeddedPlayFullVideoCta: "전체 원본 재생",
         embeddedReportSlot: {
           body: (remaining: string) =>
-            `팬 기자가 이 브이로그를 기사화한 수입니다. ${remaining}자리가 남아 일반 회원도 리포터로 참여할 수 있습니다.`,
+            `내 리포트로 들어온 팬의 보고싶어요가 원본 공개 참여와 리포터 인센티브 기회로 이어집니다. ${remaining}자리 남음.`,
           browseCta: "다른 리포트 기회 찾기",
           connectCta: "팬 리포터로 활동하기",
           countLabel: (count: string, limit: string) =>
             `${count}/${limit}개 발행`,
           emptyBody:
-            "아직 이 원본 브이로그를 기사화한 팬 기자가 없습니다. 첫 리포터가 되면 가장 먼저 노출됩니다.",
+            "아직 이 브이로그를 선점한 팬 기자가 없습니다. 먼저 발행하면 내 리포트 유입이 원본 공개 참여로 연결됩니다.",
           eyebrow: "팬 리포트 경쟁",
           firstOpportunity: "첫 리포터 기회",
           full: "리포터 슬롯 마감",
           fullBody:
             "이 원본 브이로그의 리포트 슬롯이 모두 채워졌습니다. 다른 브이로그에서 새 리포트 기회를 찾아보세요.",
+          growthLoopLabel: "리포터 인센티브 루프",
+          growthLoopSteps: ["내 리포트 유입", "보고싶어요", "인센티브"],
           leadReporter: "대표 리포터",
-          myReportCta: "내 리포트 보기",
           publishedBadge: "발행",
           remainingShort: (remaining: string) => `${remaining}자리 남음`,
           reporterLabel: "발행 리포터",
           rising: "인기 브이로그 경쟁 중",
           title: (count: string, limit: string) =>
             `${count}/${limit}개 리포트 발행 중`,
+          viewerReportNotice: "나도 이 브이로그로 리포트를 발행했습니다",
           writeCta: "이 브이로그 리포트 작성",
           early: "초기 선점 구간",
         },
@@ -601,26 +603,28 @@ function getCopy(locale: Locale) {
         embeddedPlayFullVideoCta: "Play full source",
         embeddedReportSlot: {
           body: (remaining: string) =>
-            `Fan reporters have published reports from this vlog. ${remaining} slots remain, so regular members can still join as reporters.`,
+            `Fans coming through your report can join want-to-watch, helping source access and reporter incentive opportunities. ${remaining} slots remain.`,
           browseCta: "Find another report opportunity",
           connectCta: "Become a fan reporter",
           countLabel: (count: string, limit: string) =>
             `${count}/${limit} reports`,
           emptyBody:
-            "No fan reporter has covered this source vlog yet. The first reporter gets the earliest visibility.",
+            "No fan reporter has claimed this vlog yet. Publish first to turn your report traffic into source access participation.",
           eyebrow: "Fan report race",
           firstOpportunity: "First reporter opportunity",
           full: "Reporter slots full",
           fullBody:
             "All report slots for this source vlog are filled. Find another vlog with open report opportunities.",
+          growthLoopLabel: "Reporter incentive loop",
+          growthLoopSteps: ["Report traffic", "Want-to-watch", "Incentive"],
           leadReporter: "Lead reporter",
-          myReportCta: "View my report",
           publishedBadge: "Published",
           remainingShort: (remaining: string) => `${remaining} left`,
           reporterLabel: "Published reporters",
           rising: "Popular vlog competition",
           title: (count: string, limit: string) =>
             `${count}/${limit} reports published`,
+          viewerReportNotice: "You also published a report from this vlog",
           writeCta: "Write a report for this vlog",
           early: "Early claim zone",
         },
@@ -3062,12 +3066,9 @@ function SourceVlogReportSlotStatusCard({
       : reportSlotFull
         ? copy.embeddedReportSlot.fullBody
         : copy.embeddedReportSlot.body(remainingLabel);
-  const cta = reportSlot.viewerReportHref
-    ? {
-        href: reportSlot.viewerReportHref,
-        icon: CheckCircle2,
-        label: copy.embeddedReportSlot.myReportCta,
-      }
+  const viewerHasReport = Boolean(reportSlot.viewerReportHref);
+  const cta = viewerHasReport
+    ? null
     : reportSlot.isViewerReporter
       ? reportSlotFull
         ? {
@@ -3085,12 +3086,12 @@ function SourceVlogReportSlotStatusCard({
           icon: Users,
           label: copy.embeddedReportSlot.connectCta,
         };
-  const CtaIcon = cta.icon;
+  const CtaIcon = cta?.icon;
   const visibleReports = reportSlot.reports.slice(0, normalizedLimit);
   const hiddenReportCount = Math.max(0, reportSlot.count - visibleReports.length);
 
   return (
-    <div className="mb-4 rounded-lg border border-[#16702e]/16 bg-[#f8fff9] p-4 shadow-[0_10px_26px_rgba(22,112,46,0.06)] sm:p-5">
+    <div className="mb-4 rounded-lg border border-[#19b84b]/30 bg-[linear-gradient(180deg,#f7fff8_0%,#eefbf1_100%)] p-4 shadow-[0_16px_38px_rgba(22,112,46,0.12)] sm:p-5">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#07150b] text-[#44f26e]">
           {reportSlotFull ? (
@@ -3143,6 +3144,32 @@ function SourceVlogReportSlotStatusCard({
               ? copy.embeddedReportSlot.full
               : copy.embeddedReportSlot.remainingShort(remainingLabel)}
           </span>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-lg border border-[#07150b]/10 bg-[#07150b] p-3 text-white shadow-[0_14px_28px_rgba(7,21,11,0.18)]">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#07150b]">
+            <TrendingUp className="size-3.5" />
+          </span>
+          <p className="text-[0.72rem] font-black uppercase tracking-[0.1em] text-[#9dffb2]">
+            {copy.embeddedReportSlot.growthLoopLabel}
+          </p>
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-1.5">
+          {copy.embeddedReportSlot.growthLoopSteps.map((step, index) => (
+            <div
+              className="min-w-0 rounded-md border border-white/10 bg-white/[0.06] px-2 py-2 text-center"
+              key={step}
+            >
+              <p className="text-[0.56rem] font-black text-[#44f26e]">
+                0{index + 1}
+              </p>
+              <p className="mt-0.5 truncate text-[0.68rem] font-black sm:text-xs">
+                {step}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
 
@@ -3214,13 +3241,22 @@ function SourceVlogReportSlotStatusCard({
             </p>
           )}
         </div>
-        <Link
-          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-[#243026] sm:w-auto"
-          href={cta.href}
-        >
-          <CtaIcon className="size-4 text-[#44f26e]" />
-          {cta.label}
-        </Link>
+        {viewerHasReport ? (
+          <div className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-[#16702e]/16 bg-[#ecfff0] px-4 text-center text-sm font-black text-[#16702e] sm:w-auto">
+            <CheckCircle2 className="size-4 shrink-0" />
+            <span className="[word-break:keep-all]">
+              {copy.embeddedReportSlot.viewerReportNotice}
+            </span>
+          </div>
+        ) : cta && CtaIcon ? (
+          <Link
+            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-[#243026] sm:w-auto"
+            href={cta.href}
+          >
+            <CtaIcon className="size-4 text-[#44f26e]" />
+            {cta.label}
+          </Link>
+        ) : null}
       </div>
     </div>
   );
