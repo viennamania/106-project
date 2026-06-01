@@ -66,7 +66,22 @@ function getCopy(locale: Locale) {
         faceArenaDek:
           "이름과 얼굴이 바로 기억되는 캐릭터가 더 오래 소비됩니다.",
         fanOnly: "팬 전용 뉴스",
+        heroLineupDek:
+          "상위 캐릭터의 얼굴, IP 지수, 현재 신호를 같은 화면에서 바로 비교합니다.",
+        heroLineupTitle: "오늘의 경쟁 라인업",
         heroEyebrow: "AI Character IP Arena",
+        heroQuickLinks: {
+          channel: "1위 채널",
+          news: "대표 뉴스",
+          title: "바로 이어가기",
+          vlogs: "원본 브이로그",
+        },
+        heroSignals: {
+          reporters: "팬 기자 커버리지",
+          sourceOpened: "원본 오픈 검증",
+          title: "검증 신호",
+          vlogs: "브이로그 운영",
+        },
         ipScore: "IP 지수",
         latest: "대표 뉴스",
         leadDeck:
@@ -130,7 +145,22 @@ function getCopy(locale: Locale) {
         faceArenaDek:
           "Characters with memorable faces and names are easier to follow.",
         fanOnly: "Fan-only news",
+        heroLineupDek:
+          "Compare the leading faces, IP scores, and current signals in one view.",
+        heroLineupTitle: "Today's competitive lineup",
         heroEyebrow: "AI Character IP Arena",
+        heroQuickLinks: {
+          channel: "No. 1 channel",
+          news: "Lead report",
+          title: "Continue",
+          vlogs: "Source vlogs",
+        },
+        heroSignals: {
+          reporters: "Fan reporter coverage",
+          sourceOpened: "Source-open proven",
+          title: "Proof signals",
+          vlogs: "Vlog activity",
+        },
         ipScore: "IP score",
         latest: "Lead report",
         leadDeck:
@@ -501,25 +531,38 @@ function CharacterPodiumCard({
       : rank === 2
         ? "border-[#b88cff]/42 bg-[#f1e8ff]/10"
         : "border-[#ffcf4a]/38 bg-[#ffcf4a]/10";
+  const isLeadRank = rank === 1;
+  const layoutClass = isLeadRank
+    ? "sm:grid-cols-1"
+    : "sm:grid-cols-1 lg:grid-cols-[5.5rem_1fr]";
+  const portraitClass = isLeadRank
+    ? "aspect-[4/5] w-full border border-white/16"
+    : "aspect-[4/5] w-full border border-white/16 lg:aspect-square";
+  const portraitSizes = isLeadRank
+    ? "(max-width: 640px) 5.5rem, 12rem"
+    : "(max-width: 640px) 5.5rem, (max-width: 1024px) 12rem, 5.5rem";
+  const titleClass = isLeadRank
+    ? "text-xl sm:text-2xl"
+    : "text-xl sm:text-2xl lg:text-xl xl:text-2xl";
 
   return (
     <Link
-      className={`group grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 border p-3 transition hover:-translate-y-0.5 hover:bg-white/[0.11] sm:grid-cols-1 ${accentClass}`}
+      className={`group grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 border p-3 transition hover:-translate-y-0.5 hover:bg-white/[0.11] ${layoutClass} ${accentClass}`}
       href={channelHref}
     >
       <div className="relative">
         <NewsCharacterPortrait
           character={character}
-          className="aspect-[4/5] w-full border border-white/16"
+          className={portraitClass}
           eager={rank === 1}
-          sizes="(max-width: 640px) 5.5rem, 12rem"
+          sizes={portraitSizes}
         />
         <span className="absolute left-2 top-2 bg-white px-2 py-1 text-[0.62rem] font-black text-[#111510] shadow-[0_8px_20px_rgba(0,0,0,0.22)]">
           {copy.rankLabel(rank)}
         </span>
       </div>
       <div className="min-w-0 self-end">
-        <p className="truncate text-xl font-black leading-tight text-white sm:text-2xl">
+        <p className={`truncate font-black leading-tight text-white ${titleClass}`}>
           {character.name}
         </p>
         <p className="mt-1 truncate text-[0.62rem] font-black uppercase tracking-[0.1em] text-white/44">
@@ -540,6 +583,198 @@ function CharacterPodiumCard({
         </div>
       </div>
     </Link>
+  );
+}
+
+function CharacterHeroArenaPanel({
+  characters,
+  copy,
+  locale,
+  newsHomeHref,
+  referralCode,
+  topCharacters,
+}: {
+  characters: FanletterNewsCharacterStat[];
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  newsHomeHref: string;
+  referralCode: string | null;
+  topCharacters: FanletterNewsCharacterStat[];
+}) {
+  const leadCharacter = topCharacters[0];
+
+  if (!leadCharacter) {
+    return null;
+  }
+
+  const leadChannelHref = getCharacterChannelHref({
+    characterReferralCode: leadCharacter.referralCode,
+    locale,
+    referralCode,
+  });
+  const leadVlogsHref = getCharacterVlogsHref({
+    characterReferralCode: leadCharacter.referralCode,
+    locale,
+    referralCode,
+  });
+  const signalStats = [
+    {
+      icon: <PenLine className="size-4" />,
+      label: copy.heroSignals.reporters,
+      value: characters.reduce(
+        (total, character) => total + character.reporterCount,
+        0,
+      ),
+    },
+    {
+      icon: <CheckCircle2 className="size-4" />,
+      label: copy.heroSignals.sourceOpened,
+      value: characters.reduce(
+        (total, character) => total + character.sourceRevealUnlockedCount,
+        0,
+      ),
+    },
+    {
+      icon: <Clapperboard className="size-4" />,
+      label: copy.heroSignals.vlogs,
+      value: characters.reduce(
+        (total, character) => total + character.publicVideoCount,
+        0,
+      ),
+    },
+  ];
+  const quickLinks = [
+    {
+      href: leadChannelHref,
+      icon: <MessageCircleHeart className="size-4" />,
+      label: copy.heroQuickLinks.channel,
+    },
+    {
+      href: leadVlogsHref,
+      icon: <Clapperboard className="size-4" />,
+      label: copy.heroQuickLinks.vlogs,
+    },
+    {
+      href: getReportHref(leadCharacter.representativeReport, referralCode),
+      icon: <Newspaper className="size-4" />,
+      label: copy.heroQuickLinks.news,
+    },
+  ];
+
+  return (
+    <section className="mt-6 hidden gap-3 lg:grid lg:grid-cols-[minmax(0,1fr)_18rem]">
+      <div className="min-w-0 border border-white/12 bg-white/[0.045] p-3 shadow-[0_18px_50px_rgba(0,0,0,0.18)]">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
+              {copy.heroLineupTitle}
+            </p>
+            <p className="mt-1 max-w-2xl text-xs font-semibold leading-5 text-white/52">
+              {copy.heroLineupDek}
+            </p>
+          </div>
+          <Trophy className="size-5 shrink-0 text-[#ffcf4a]" />
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {topCharacters.map((character, index) => {
+            const channelHref = getCharacterChannelHref({
+              characterReferralCode: character.referralCode,
+              locale,
+              referralCode,
+            });
+
+            return (
+              <Link
+                className="group relative block min-w-0 overflow-hidden border border-white/12 bg-[#07100b] transition hover:-translate-y-0.5 hover:border-[#44f26e]/70"
+                href={channelHref}
+                key={character.referralCode}
+              >
+                <NewsCharacterPortrait
+                  character={character}
+                  className="h-56 w-full xl:h-64"
+                  eager={index === 0}
+                  sizes="(max-width: 1280px) 14rem, 18rem"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/16 to-transparent" />
+                <span className="absolute left-2 top-2 bg-white px-2 py-1 text-[0.58rem] font-black text-[#111510]">
+                  {copy.rankLabel(index + 1)}
+                </span>
+                <div className="absolute inset-x-0 bottom-0 min-w-0 p-3">
+                  <p className="truncate text-lg font-black leading-tight text-white">
+                    {character.name}
+                  </p>
+                  <div className="mt-2 flex items-end justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-[0.54rem] font-black uppercase tracking-[0.1em] text-[#44f26e]">
+                        {copy.ipScore}
+                      </p>
+                      <p className="mt-0.5 text-xl font-black leading-none text-white">
+                        {formatNumber(getCharacterIpScore(character), locale)}
+                      </p>
+                    </div>
+                    <span className="max-w-[6.75rem] truncate border border-white/14 bg-white/[0.08] px-2 py-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-white/62">
+                      {getCharacterSignalLabel(character, copy)}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="flex min-w-0 flex-col border border-[#44f26e]/24 bg-[#44f26e]/[0.08] p-4">
+        <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
+          {copy.heroSignals.title}
+        </p>
+        <div className="mt-3 grid gap-2">
+          {signalStats.map((stat) => (
+            <div
+              className="flex items-center justify-between gap-3 border border-white/12 bg-black/16 px-3 py-2.5"
+              key={stat.label}
+            >
+              <div className="min-w-0">
+                <p className="truncate text-[0.58rem] font-black uppercase tracking-[0.08em] text-white/52">
+                  {stat.label}
+                </p>
+                <p className="mt-1 text-2xl font-black leading-none text-white">
+                  {formatNumber(stat.value, locale)}
+                </p>
+              </div>
+              <span className="shrink-0 text-[#44f26e]">{stat.icon}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-auto pt-4">
+          <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-white/48">
+            {copy.heroQuickLinks.title}
+          </p>
+          <div className="mt-2 grid gap-2">
+            {quickLinks.map((link) => (
+              <Link
+                className="inline-flex h-10 min-w-0 items-center justify-between gap-2 border border-white/12 bg-[#07100b] px-3 text-xs font-black !text-white transition hover:border-[#44f26e]/70 hover:bg-[#0d1c11]"
+                href={link.href}
+                key={link.label}
+              >
+                <span className="inline-flex min-w-0 items-center gap-2">
+                  <span className="shrink-0 text-[#44f26e]">{link.icon}</span>
+                  <span className="truncate">{link.label}</span>
+                </span>
+                <ArrowRight className="size-3.5 shrink-0 text-white/46" />
+              </Link>
+            ))}
+          </div>
+          <Link
+            className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 border border-[#44f26e]/34 bg-[#44f26e] px-3 text-xs font-black !text-black transition hover:bg-[#69ff8c]"
+            href={newsHomeHref}
+          >
+            {copy.allNews}
+            <ArrowRight className="size-3.5" />
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -997,6 +1232,14 @@ export default async function LocalizedFanletterNewsCharactersPage({
                 </div>
               ))}
             </div>
+            <CharacterHeroArenaPanel
+              characters={characters}
+              copy={copy}
+              locale={locale}
+              newsHomeHref={newsHomeHref}
+              referralCode={referralCode}
+              topCharacters={topCharacters}
+            />
           </div>
 
           <aside className="border-t border-white/12 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
@@ -1011,8 +1254,8 @@ export default async function LocalizedFanletterNewsCharactersPage({
               </div>
               <Sparkles className="size-5 shrink-0 text-[#ffcf4a]" />
             </div>
-            <div className="mt-4 grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
-              {topCharacters.map((character, index) => (
+            <div className="mt-4 grid gap-2">
+              {topCharacters.slice(0, 1).map((character, index) => (
                 <CharacterPodiumCard
                   character={character}
                   copy={copy}
