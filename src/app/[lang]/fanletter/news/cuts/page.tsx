@@ -9,6 +9,7 @@ import {
 import { FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE } from "@/lib/fanletter-news-public-cuts-shared";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
+import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsCutsSearchParams = {
   ref?: string | string[];
@@ -59,9 +60,11 @@ export default async function LocalizedFanletterNewsCutsPage({
 
   const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
+  const session = await readMemberServerSession();
   const feedPage = await getFanletterNewsPublicCutFeedPage({
     limit: FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
     locale,
+    viewerEmail: session?.email ?? null,
   });
 
   return (

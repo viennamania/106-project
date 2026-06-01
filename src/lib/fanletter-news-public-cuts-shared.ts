@@ -3,6 +3,7 @@ import type {
   ContentPriceType,
   FanletterNewsReportTeaserImageDocument,
 } from "@/lib/content";
+import type { FanletterNewsSourceRevealState } from "@/lib/fanletter-news-source-reveal";
 
 export const FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE = 12;
 export const FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE = 12;
@@ -33,6 +34,7 @@ export type SerializedFanletterNewsPublicCutFeedItem = {
   cuts: SerializedFanletterNewsPublicCut[];
   leadCut: SerializedFanletterNewsPublicCut;
   report: SerializedFanletterNewsPublicCutReport;
+  sourceReveal: FanletterNewsSourceRevealState;
 };
 
 export type FanletterNewsPublicCutFeedLoadResponse = {

@@ -4,6 +4,7 @@ import {
 } from "@/lib/fanletter-news-public-cuts";
 import { FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE } from "@/lib/fanletter-news-public-cuts-shared";
 import { hasLocale, type Locale } from "@/lib/i18n";
+import { readMemberServerSession } from "@/lib/member-server-session";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -41,11 +42,13 @@ export async function GET(request: Request) {
 
   try {
     const excludeReportId = searchParams.get("excludeReportId")?.trim();
+    const session = await readMemberServerSession();
     const page = await getFanletterNewsPublicCutFeedPage({
       excludeReportIds: excludeReportId ? [excludeReportId] : [],
       limit: readPositiveInteger(searchParams.get("limit")),
       locale: localeParam as Locale,
       offset: readNonNegativeInteger(searchParams.get("offset")),
+      viewerEmail: session?.email ?? null,
     });
 
     return Response.json(serializeFanletterNewsPublicCutFeedPage(page));

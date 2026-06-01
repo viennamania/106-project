@@ -11,6 +11,7 @@ import { FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE } from "@/lib/fanletter-new
 import { getFanletterNewsReportById } from "@/lib/fanletter-news-report-service";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
+import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsCutDetailSearchParams = {
   ref?: string | string[];
@@ -62,6 +63,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
 
   const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
+  const session = await readMemberServerSession();
   const report = await getFanletterNewsReportById(reportId);
 
   if (
@@ -77,6 +79,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
     limit: FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
     locale,
     targetReport: report,
+    viewerEmail: session?.email ?? null,
   });
 
   return (

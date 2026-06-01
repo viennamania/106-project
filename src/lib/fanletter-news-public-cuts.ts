@@ -1,13 +1,19 @@
 import "server-only";
 
-import type {
-  FanletterNewsReportDocument,
-  FanletterNewsReportTeaserImageDocument,
+import {
+  createEmptyContentSocialSummary,
+  type FanletterNewsReportDocument,
+  type FanletterNewsReportTeaserImageDocument,
 } from "@/lib/content";
+import { getContentSocialSummaryForViewer } from "@/lib/content-service";
 import { getFanletterNewsReportsCollection } from "@/lib/mongodb";
 import {
   getLatestFanletterNewsReports,
 } from "@/lib/fanletter-news-report-service";
+import {
+  createFanletterNewsSourceRevealState,
+  type FanletterNewsSourceRevealState,
+} from "@/lib/fanletter-news-source-reveal";
 import {
   FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
   FANLETTER_NEWS_PUBLIC_CUT_MAX_PAGE_SIZE,
@@ -32,6 +38,7 @@ export type FanletterNewsPublicCutFeedItem = {
   cuts: FanletterNewsPublicCut[];
   leadCut: FanletterNewsPublicCut;
   report: FanletterNewsReportDocument;
+  sourceReveal: FanletterNewsSourceRevealState;
 };
 
 export type FanletterNewsPublicCutFeedPage = {
@@ -105,7 +112,59 @@ export function createFanletterNewsPublicCutFeedItem(
     cuts,
     leadCut,
     report,
+    sourceReveal: createFanletterNewsSourceRevealState(
+      createEmptyContentSocialSummary(),
+    ),
   };
+}
+
+async function hydrateFanletterNewsPublicCutFeedItemsSourceReveal(
+  items: FanletterNewsPublicCutFeedItem[],
+  viewerEmail?: string | null,
+) {
+  if (items.length === 0) {
+    return items;
+  }
+
+  const uniqueContentIds = [
+    ...new Set(
+      items
+        .map((item) => item.report.contentId.trim())
+        .filter((contentId) => contentId.length > 0),
+    ),
+  ];
+
+  if (uniqueContentIds.length === 0) {
+    return items;
+  }
+
+  const sourceRevealByContentId = new Map<string, FanletterNewsSourceRevealState>();
+
+  await Promise.all(
+    uniqueContentIds.map(async (contentId) => {
+      let social = createEmptyContentSocialSummary();
+
+      try {
+        social = await getContentSocialSummaryForViewer(
+          contentId,
+          viewerEmail ?? null,
+        );
+      } catch {
+        social = createEmptyContentSocialSummary();
+      }
+
+      sourceRevealByContentId.set(
+        contentId,
+        createFanletterNewsSourceRevealState(social),
+      );
+    }),
+  );
+
+  return items.map((item) => ({
+    ...item,
+    sourceReveal:
+      sourceRevealByContentId.get(item.report.contentId) ?? item.sourceReveal,
+  }));
 }
 
 export function serializeFanletterNewsPublicCutFeedItem(
@@ -127,6 +186,7 @@ export function serializeFanletterNewsPublicCutFeedItem(
       sourcePublishedAt: item.report.sourcePublishedAt?.toISOString() ?? null,
       title: item.report.title,
     },
+    sourceReveal: item.sourceReveal,
   };
 }
 
@@ -152,12 +212,14 @@ export async function getFanletterNewsPublicCutFeedPage({
   locale,
   offset = 0,
   targetReport = null,
+  viewerEmail = null,
 }: {
   excludeReportIds?: string[];
   limit?: number;
   locale: Locale;
   offset?: number;
   targetReport?: FanletterNewsReportDocument | null;
+  viewerEmail?: string | null;
 }): Promise<FanletterNewsPublicCutFeedPage> {
   const normalizedLimit = normalizePublicCutFeedLimit(limit);
   const normalizedOffset = normalizePublicCutFeedOffset(offset);
@@ -207,10 +269,14 @@ export async function getFanletterNewsPublicCutFeedPage({
     .slice(0, queryLimit)
     .map((report) => createFanletterNewsPublicCutFeedItem(report))
     .filter((item): item is FanletterNewsPublicCutFeedItem => Boolean(item));
+  const items = targetItem ? [targetItem, ...feedItems] : feedItems;
 
   return {
     hasMore: reports.length > queryLimit,
-    items: targetItem ? [targetItem, ...feedItems] : feedItems,
+    items: await hydrateFanletterNewsPublicCutFeedItemsSourceReveal(
+      items,
+      viewerEmail,
+    ),
     nextOffset: normalizedOffset + Math.min(reports.length, queryLimit),
   };
 }
@@ -219,16 +285,19 @@ export async function getFanletterNewsPublicCutFeed({
   limit = FANLETTER_NEWS_PUBLIC_CUT_FEED_REPORT_LIMIT,
   locale,
   targetReport = null,
+  viewerEmail = null,
 }: {
   limit?: number;
   locale: Locale;
   targetReport?: FanletterNewsReportDocument | null;
+  viewerEmail?: string | null;
 }) {
   if (limit <= FANLETTER_NEWS_PUBLIC_CUT_MAX_PAGE_SIZE) {
     const page = await getFanletterNewsPublicCutFeedPage({
       limit,
       locale,
       targetReport,
+      viewerEmail,
     });
 
     return page.items;
@@ -264,5 +333,8 @@ export async function getFanletterNewsPublicCutFeed({
     }
   }
 
-  return Array.from(itemsByReportId.values()).slice(0, normalizedLimit);
+  return hydrateFanletterNewsPublicCutFeedItemsSourceReveal(
+    Array.from(itemsByReportId.values()).slice(0, normalizedLimit),
+    viewerEmail,
+  );
 }

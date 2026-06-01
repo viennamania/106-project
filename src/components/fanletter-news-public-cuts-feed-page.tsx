@@ -7,13 +7,17 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  CheckCircle2,
+  HeartHandshake,
   Images,
-  Newspaper,
+  Loader2,
+  LockKeyhole,
   PenLine,
   Sparkles,
   UserRound,
 } from "lucide-react";
 
+import { useMemberSession } from "@/components/member-session-provider";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
   FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE,
@@ -23,8 +27,13 @@ import {
 import {
   getFanletterNewsBareArticleDisplayTitle,
 } from "@/lib/fanletter-news-related";
+import type { FanletterNewsSourceRevealState } from "@/lib/fanletter-news-source-reveal";
+import {
+  FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
+  type FanletterNewsSourceRevealStateChangeDetail,
+} from "@/lib/fanletter-news-source-reveal-events";
 import type { Locale } from "@/lib/i18n";
-import { buildPathWithReferral } from "@/lib/landing-branding";
+import { buildPathWithReferral, setPathSearchParams } from "@/lib/landing-branding";
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -42,14 +51,25 @@ function getCopy(locale: Locale) {
         loadError: "다음 리포터 컷을 불러오지 못했습니다.",
         loadMore: "더 보기",
         loadingMore: "다음 리포터 컷 불러오는 중",
-        news: "뉴스 보기",
         nextCut: "다음 컷",
         noMore: "모든 리포터 컷을 확인했습니다.",
         paid: "팬 전용 원본",
         previousCut: "이전 컷",
         reporter: "팬 기자",
         slot: (index: string) => `컷 ${index}`,
+        sourceOpen: "팬 오픈 투표",
+        sourceOpenDone: "원본 공개 완료",
+        sourceOpenStatus: (
+          count: string,
+          threshold: string,
+          remaining: string,
+        ) => `${count}/${threshold} 참여 · ${remaining}명 남음`,
         title: "팬 기자가 편집한 4컷 피드",
+        voteCta: "보고싶어요",
+        voteDone: "참여 완료",
+        voteFailed: "참여 실패",
+        voteLogin: "로그인",
+        voteSaving: "반영 중",
       }
     : {
         adult: "Adult fan-only",
@@ -65,14 +85,25 @@ function getCopy(locale: Locale) {
         loadError: "Could not load more reporter cuts.",
         loadMore: "Load more",
         loadingMore: "Loading more reporter cuts",
-        news: "Read news",
         nextCut: "Next cut",
         noMore: "You have reviewed every reporter cut.",
         paid: "Fan-only source",
         previousCut: "Previous cut",
         reporter: "Fan reporter",
         slot: (index: string) => `Cut ${index}`,
+        sourceOpen: "Fan-open vote",
+        sourceOpenDone: "Source open",
+        sourceOpenStatus: (
+          count: string,
+          threshold: string,
+          remaining: string,
+        ) => `${count}/${threshold} joined · ${remaining} left`,
         title: "Four-cut feed edited by fan reporters",
+        voteCta: "Want it",
+        voteDone: "Joined",
+        voteFailed: "Could not join",
+        voteLogin: "Log in",
+        voteSaving: "Saving",
       };
 }
 
@@ -96,7 +127,7 @@ function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
 }
 
-function getReportHref({
+function getCutFeedHref({
   locale,
   referralCode,
   reportId,
@@ -106,7 +137,7 @@ function getReportHref({
   reportId: string;
 }) {
   return buildPathWithReferral(
-    `/${locale}/fanletter/news/${reportId}`,
+    `/${locale}/fanletter/news/cuts/${reportId}`,
     referralCode,
   );
 }
@@ -143,6 +174,208 @@ function getReporterHref({
   );
 }
 
+type SourceRevealMiniVoteCopy = Pick<
+  ReturnType<typeof getCopy>,
+  | "sourceOpen"
+  | "sourceOpenDone"
+  | "sourceOpenStatus"
+  | "voteCta"
+  | "voteDone"
+  | "voteFailed"
+  | "voteLogin"
+  | "voteSaving"
+>;
+
+type SourceRevealResponse = {
+  sourceReveal: FanletterNewsSourceRevealState;
+};
+
+function isSourceRevealResponse(value: unknown): value is SourceRevealResponse {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "sourceReveal" in value &&
+    typeof (value as SourceRevealResponse).sourceReveal?.count === "number"
+  );
+}
+
+function SourceRevealMiniVote({
+  connectHref,
+  copy,
+  endpoint,
+  initialState,
+  locale,
+  reportId,
+}: {
+  connectHref: string;
+  copy: SourceRevealMiniVoteCopy;
+  endpoint: string;
+  initialState: FanletterNewsSourceRevealState;
+  locale: Locale;
+  reportId: string;
+}) {
+  const memberSession = useMemberSession();
+  const [state, setState] = useState(initialState);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setState(initialState);
+  }, [initialState]);
+
+  const remaining = Math.max(0, state.threshold - state.count);
+  const progressPercent =
+    state.threshold > 0
+      ? Math.min(100, Math.max(0, (state.count / state.threshold) * 100))
+      : 100;
+  const countLabel = formatNumber(state.count, locale);
+  const thresholdLabel = formatNumber(state.threshold, locale);
+  const remainingLabel = formatNumber(remaining, locale);
+  const isLoggedIn = Boolean(memberSession.email) || state.requestedByViewer;
+  const statusLabel = state.unlocked
+    ? copy.sourceOpenDone
+    : copy.sourceOpenStatus(countLabel, thresholdLabel, remainingLabel);
+  const ctaLabel = state.unlocked
+    ? copy.sourceOpenDone
+    : state.requestedByViewer
+      ? copy.voteDone
+      : isSaving
+        ? copy.voteSaving
+        : copy.voteCta;
+
+  const updateSourceReveal = useCallback(
+    (nextState: FanletterNewsSourceRevealState) => {
+      setState(nextState);
+      window.dispatchEvent(
+        new CustomEvent<FanletterNewsSourceRevealStateChangeDetail>(
+          FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
+          {
+            detail: {
+              endpoint,
+              reportId,
+              state: nextState,
+            },
+          },
+        ),
+      );
+    },
+    [endpoint, reportId],
+  );
+
+  const handleVote = useCallback(async () => {
+    if (isSaving || state.requestedByViewer || state.unlocked) {
+      return;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    try {
+      const response = await fetch(endpoint, {
+        headers: {
+          Accept: "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json()) as unknown;
+
+      if (!response.ok || !isSourceRevealResponse(data)) {
+        throw new Error(copy.voteFailed);
+      }
+
+      updateSourceReveal(data.sourceReveal);
+    } catch {
+      setError(copy.voteFailed);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [
+    copy.voteFailed,
+    endpoint,
+    isSaving,
+    state.requestedByViewer,
+    state.unlocked,
+    updateSourceReveal,
+  ]);
+
+  const buttonClassName =
+    "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-[0.66rem] font-black transition sm:h-9 sm:px-4 sm:text-xs";
+  const disabledButtonClassName =
+    "bg-white/12 text-white/62 ring-1 ring-white/10";
+
+  return (
+    <div className="mt-3 max-w-[30rem] rounded-[1.05rem] border border-white/12 bg-black/30 p-2.5 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md sm:mt-4 sm:p-3">
+      <div className="flex items-center gap-2.5">
+        <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/16 text-[#44f26e] ring-1 ring-[#44f26e]/20 sm:size-9">
+          {state.unlocked ? (
+            <CheckCircle2 className="size-4.5" />
+          ) : (
+            <LockKeyhole className="size-4.5" />
+          )}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[0.58rem] font-black uppercase tracking-[0.14em] text-[#9bffad] sm:text-[0.64rem]">
+            {copy.sourceOpen}
+          </p>
+          <p className="truncate text-[0.72rem] font-black text-white/88 sm:text-sm">
+            {statusLabel}
+          </p>
+        </div>
+        {state.unlocked || state.requestedByViewer ? (
+          <button
+            className={`${buttonClassName} ${disabledButtonClassName}`}
+            disabled
+            type="button"
+          >
+            <CheckCircle2 className="size-3.5" />
+            {ctaLabel}
+          </button>
+        ) : isLoggedIn ? (
+          <button
+            className={`${buttonClassName} bg-[#44f26e] text-[#101510] shadow-[0_10px_22px_rgba(0,0,0,0.2)] hover:bg-[#67ff88] disabled:cursor-wait disabled:bg-[#44f26e]/70`}
+            disabled={isSaving}
+            onClick={() => void handleVote()}
+            type="button"
+          >
+            {isSaving ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : (
+              <HeartHandshake className="size-3.5" />
+            )}
+            {ctaLabel}
+          </button>
+        ) : (
+          <Link
+            className={`${buttonClassName} bg-[#44f26e] !text-[#101510] shadow-[0_10px_22px_rgba(0,0,0,0.2)] hover:bg-[#67ff88]`}
+            href={connectHref}
+          >
+            <HeartHandshake className="size-3.5" />
+            {copy.voteLogin}
+          </Link>
+        )}
+      </div>
+      <div
+        aria-label={statusLabel}
+        className="mt-2 h-1 overflow-hidden rounded-full bg-white/14"
+        role="progressbar"
+        aria-valuemax={state.threshold}
+        aria-valuemin={0}
+        aria-valuenow={Math.min(state.count, state.threshold)}
+      >
+        <div
+          className="h-full rounded-full bg-[#44f26e] transition-[width] duration-300"
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
+      {error ? (
+        <p className="mt-1.5 text-[0.64rem] font-bold text-rose-200">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function FeedSlide({
   hasMore,
   index,
@@ -168,11 +401,18 @@ function FeedSlide({
     : `${formatNumber(index + 1, locale)} / ${formatNumber(itemCount, locale)}`;
   const publishedAt = formatDate(report.sourcePublishedAt ?? report.createdAt, locale);
   const isNsfw = report.contentMaturityRating === "nsfw";
-  const reportHref = getReportHref({
+  const cutFeedHref = getCutFeedHref({
     locale,
     referralCode,
     reportId: report.reportId,
   });
+  const sourceRevealEndpoint = `/api/fanletter/news-reports/${encodeURIComponent(report.reportId)}/source-reveal`;
+  const sourceRevealConnectHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
+    {
+      returnTo: cutFeedHref,
+    },
+  );
   const characterHref = getCharacterHref({
     creatorReferralCode: report.creatorReferralCode,
     locale,
@@ -362,15 +602,16 @@ function FeedSlide({
             </div>
           </div>
 
-          <div className="mt-3 grid gap-2 sm:mt-5 sm:flex sm:flex-wrap">
-            <Link
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-xs font-black !text-[#111510] shadow-[0_14px_30px_rgba(0,0,0,0.26)] transition hover:bg-[#65ff86] sm:h-12 sm:text-sm"
-              href={reportHref}
-            >
-              <Newspaper className="size-4" />
-              {copy.news}
-            </Link>
-            <div className="grid grid-cols-2 gap-2 sm:flex">
+          <div className="mt-3 sm:mt-5">
+            <SourceRevealMiniVote
+              connectHref={sourceRevealConnectHref}
+              copy={copy}
+              endpoint={sourceRevealEndpoint}
+              initialState={item.sourceReveal}
+              locale={locale}
+              reportId={report.reportId}
+            />
+            <div className="mt-2 grid max-w-[30rem] grid-cols-2 gap-2 sm:flex">
               <Link
                 className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/24 px-4 text-[0.72rem] font-black !text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:!text-[#111510] sm:h-11 sm:text-xs"
                 href={characterHref}
