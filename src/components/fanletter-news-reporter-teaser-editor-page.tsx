@@ -1348,7 +1348,7 @@ export function FanletterNewsReporterTeaserEditorPage({
   return (
     <>
       {pickerModal}
-      <main className="min-h-screen bg-[#f2f4ef] px-2 pb-28 pt-[calc(env(safe-area-inset-top)+0.75rem)] text-[#111510] sm:px-5 sm:py-6 lg:px-8">
+      <main className="min-h-screen bg-[#f2f4ef] px-2 pb-[calc(11.25rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+0.75rem)] text-[#111510] sm:px-5 sm:pb-[calc(11.25rem+env(safe-area-inset-bottom))] sm:pt-6 md:pb-28 lg:px-8 lg:py-6">
         <div className="mx-auto max-w-6xl">
           <Link
             className="inline-flex h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-black !text-black/58 transition hover:!text-[#111510]"
@@ -1699,7 +1699,7 @@ export function FanletterNewsReporterTeaserEditorPage({
           </section>
         </div>
 
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/96 px-3 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] shadow-[0_-16px_44px_rgba(17,21,16,0.14)] backdrop-blur lg:hidden">
+        <div className="fixed inset-x-0 bottom-[calc(5.35rem+env(safe-area-inset-bottom))] z-50 border-t border-black/10 bg-white/96 px-3 py-3 pb-3 shadow-[0_-16px_44px_rgba(17,21,16,0.14)] backdrop-blur md:bottom-0 md:pb-[calc(env(safe-area-inset-bottom)+0.75rem)] lg:hidden">
           <button
             className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-55"
             disabled={!canSaveAll}
