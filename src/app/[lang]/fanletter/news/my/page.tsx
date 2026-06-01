@@ -7,6 +7,7 @@ import {
   BookOpenCheck,
   CircleUserRound,
   Clapperboard,
+  ImageIcon,
   LayoutDashboard,
   Newspaper,
   PenLine,
@@ -58,6 +59,7 @@ function getCopy(locale: Locale) {
         quickActions: {
           characters: "AI 캐릭터",
           createVlog: "브이로그 생성",
+          photoCollection: "포토 컬렉션",
           purchases: "구매함",
           reportDesk: "리포트 관리",
           reportNew: "새 리포트 작성",
@@ -94,6 +96,7 @@ function getCopy(locale: Locale) {
         quickActions: {
           characters: "AI Characters",
           createVlog: "Create vlog",
+          photoCollection: "Photo collection",
           purchases: "Purchases",
           reportDesk: "Report desk",
           reportNew: "Create report",
@@ -244,6 +247,10 @@ export default async function LocalizedFanletterNewsMyPage({
     `/${locale}/fanletter/news/rewards`,
     effectiveReferralCode,
   );
+  const photoCollectionHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/reporter/photos`,
+    effectiveReferralCode,
+  );
   const purchasesHref = buildPathWithReferral(
     `/${locale}/fanletter/news/purchases`,
     effectiveReferralCode,
@@ -325,6 +332,11 @@ export default async function LocalizedFanletterNewsMyPage({
       href: reportRewardsHref,
       icon: Trophy,
       label: copy.quickActions.reportRewards,
+    },
+    {
+      href: photoCollectionHref,
+      icon: ImageIcon,
+      label: copy.quickActions.photoCollection,
     },
     {
       href: newsVlogManageHref,

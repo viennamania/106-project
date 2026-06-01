@@ -115,6 +115,7 @@ function getCopy(locale: Locale) {
             `${current} / ${total} 페이지`,
           previous: "이전",
         },
+        photoCollection: "포토 컬렉션",
         reportCount: (count: string) => `작성 뉴스 ${count}개`,
         reportTitle: "뉴스 리포트",
         reporterId: "리포터 ID",
@@ -216,6 +217,7 @@ function getCopy(locale: Locale) {
             `Page ${current} of ${total}`,
           previous: "Previous",
         },
+        photoCollection: "Photo collection",
         reportCount: (count: string) => `${count} news reports`,
         reportTitle: "News report",
         reporterId: "Reporter ID",
@@ -433,6 +435,10 @@ export default async function LocalizedFanletterNewsReportsPage({
     `/${locale}/fanletter/news/reports/new`,
     effectiveReferralCode,
   );
+  const photoCollectionHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/reporter/photos`,
+    effectiveReferralCode,
+  );
   const topNavItems = [
     {
       href: newsHomeHref,
@@ -643,6 +649,13 @@ export default async function LocalizedFanletterNewsReportsPage({
                 >
                   {copy.newReportCta}
                   <ArrowRight className="size-4" />
+                </Link>
+                <Link
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-black/10 bg-[#f6f8f4] px-5 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                  href={photoCollectionHref}
+                >
+                  <ImageIcon className="size-4 text-[#16702e]" />
+                  {copy.photoCollection}
                 </Link>
                 <Link
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-black/10 bg-[#f6f8f4] px-5 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
