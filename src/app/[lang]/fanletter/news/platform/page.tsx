@@ -27,6 +27,10 @@ import type { ReactNode } from "react";
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterHeroBackgroundCarousel } from "@/components/fanletter-mobile-hero-carousel";
+import {
+  FanletterNewsPlatformMomentum,
+  type FanletterNewsPlatformMomentumStat,
+} from "@/components/fanletter-news-platform-momentum";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import type { FanletterNewsReportDocument } from "@/lib/content";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
@@ -72,6 +76,28 @@ function getCopy(locale: Locale) {
           { label: "이어보는 콘텐츠", value: "Vlog", hint: "AI 캐릭터 원본 장면" },
           { label: "계속 보는 공간", value: "Channel", hint: "캐릭터별 뉴스 채널" },
         ],
+        momentumStats: {
+          characters: {
+            hint: "뉴스와 브이로그가 쌓이는 캐릭터 채널",
+            label: "AI 캐릭터",
+            suffix: "명",
+          },
+          news: {
+            hint: "SNS 유입 후 바로 이어볼 공개 뉴스",
+            label: "공개 뉴스",
+            suffix: "개",
+          },
+          previews: {
+            hint: "뉴스 안에서 움직이는 원본 프리뷰",
+            label: "원본 프리뷰",
+            suffix: "개",
+          },
+        },
+        momentumTicker: {
+          body:
+            "클릭되는 뉴스가 원본 브이로그와 캐릭터 채널로 이어지는 홍보 흐름입니다.",
+          label: "Live News Flow",
+        },
         homeNews: {
           body:
             "SNS에서 들어온 사용자가 바로 이어보기 좋은 최신 리포트입니다. 티저 컷, 원본 브이로그, 캐릭터 채널로 자연스럽게 연결됩니다.",
@@ -204,6 +230,28 @@ function getCopy(locale: Locale) {
           { label: "Next content", value: "Vlog", hint: "Original AI character scene" },
           { label: "Repeat space", value: "Channel", hint: "Character-level news hub" },
         ],
+        momentumStats: {
+          characters: {
+            hint: "Character channels accumulating news and vlogs",
+            label: "AI characters",
+            suffix: "",
+          },
+          news: {
+            hint: "Public news ready for SNS visitors to continue",
+            label: "Public news",
+            suffix: "",
+          },
+          previews: {
+            hint: "Moving source previews inside news",
+            label: "Source previews",
+            suffix: "",
+          },
+        },
+        momentumTicker: {
+          body:
+            "Every clicked news item can continue into a source vlog and character channel.",
+          label: "Live News Flow",
+        },
         homeNews: {
           body:
             "Latest reports that help SNS visitors keep reading, open source vlogs, and remember the character channel.",
@@ -565,6 +613,64 @@ function HomeCharacterCard({
   );
 }
 
+function NewsFlowTicker({
+  copy,
+  locale,
+  referralCode,
+  reports,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  referralCode: string | null;
+  reports: FanletterNewsReportDocument[];
+}) {
+  if (reports.length === 0) {
+    return null;
+  }
+
+  const tickerReports = [...reports, ...reports];
+
+  return (
+    <section className="border-y border-[#44f26e]/18 bg-[#071108] text-white">
+      <div className="mx-auto grid max-w-[92rem] gap-3 px-4 py-3 sm:grid-cols-[18rem_minmax(0,1fr)] sm:items-center sm:px-6 lg:px-8">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-2 text-[0.66rem] font-black uppercase tracking-[0.18em] text-[#7cff98]">
+            <Sparkles className="size-3.5" />
+            {copy.momentumTicker.label}
+          </p>
+          <p className="mt-1 line-clamp-2 text-xs font-bold leading-5 text-white/54">
+            {copy.momentumTicker.body}
+          </p>
+        </div>
+        <div className="min-w-0 overflow-hidden">
+          <div className="platform-news-marquee flex w-max gap-2 pr-2">
+            {tickerReports.map((report, index) => (
+              <Link
+                className="group inline-flex h-12 min-w-[16rem] max-w-[18rem] shrink-0 items-center justify-between gap-3 rounded-full border border-white/12 bg-white/[0.07] px-3 !text-white transition hover:border-[#44f26e]/62 hover:bg-[#44f26e]/12 sm:h-14 sm:min-w-[21rem] sm:max-w-[23rem] sm:px-4"
+                href={buildPathWithReferral(
+                  `/${locale}/fanletter/news/${report.reportId}`,
+                  referralCode,
+                )}
+                key={`${report.reportId}:${index}`}
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#7cff98]">
+                    {report.creatorName || report.reporterName || "FanLetter"}
+                  </span>
+                  <span className="mt-0.5 block truncate text-sm font-black">
+                    {getArticleDisplayTitle(report.title)}
+                  </span>
+                </span>
+                <ArrowRight className="size-4 shrink-0 text-[#44f26e] transition group-hover:translate-x-0.5" />
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export async function generateMetadata({
   params,
   searchParams,
@@ -676,6 +782,20 @@ export default async function FanletterNewsPlatformPage({
     getFanletterNewsCharacterStats(latestReports, 6, { sort: "discovery" }),
     { limit: 4, sort: "discovery" },
   );
+  const platformMomentumStats: FanletterNewsPlatformMomentumStat[] = [
+    {
+      ...copy.momentumStats.news,
+      value: latestReports.length,
+    },
+    {
+      ...copy.momentumStats.previews,
+      value: teaserGalleryItems.length,
+    },
+    {
+      ...copy.momentumStats.characters,
+      value: featuredCharacters.length,
+    },
+  ];
   const heroSlides = [
     ...landingData.featuredVideos,
     ...landingData.featuredPaidVideos,
@@ -788,6 +908,13 @@ export default async function FanletterNewsPlatformPage({
                   {copy.secondaryCta}
                 </CtaLink>
               </div>
+
+              <FanletterNewsPlatformMomentum
+                className="mt-5 sm:mt-7"
+                flowItems={copy.newsroomPreview.flow}
+                locale={locale}
+                stats={platformMomentumStats}
+              />
             </LandingReveal>
 
             <LandingReveal className="grid gap-3" delay={120} variant="soft">
@@ -875,6 +1002,13 @@ export default async function FanletterNewsPlatformPage({
           </div>
         </div>
       </section>
+
+      <NewsFlowTicker
+        copy={copy}
+        locale={locale}
+        referralCode={referralCode}
+        reports={featuredReports}
+      />
 
       <section className="mx-auto max-w-[92rem] px-4 py-9 sm:px-6 sm:py-12 lg:px-8">
         <div className="mb-5 grid gap-3 sm:mb-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
