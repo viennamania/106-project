@@ -18,6 +18,7 @@ import {
   ShieldCheck,
   Sparkles,
   Trophy,
+  TrendingUp,
   UsersRound,
   UserRound,
   WalletCards,
@@ -119,6 +120,20 @@ function getCopy(locale: Locale) {
           source: "원본 오픈",
           title: "계속 보게 만드는 캐릭터 IP",
           vlogs: "브이로그",
+        },
+        homeGrowth: {
+          body:
+            "뉴스 발행, 원본 브이로그, 원본 오픈, 팬 리포터 확산을 합산해 어떤 AI 캐릭터 IP가 더 빠르게 성장하는지 보여줍니다.",
+          empty: "아직 성장 차트로 표시할 AI 캐릭터 데이터가 없습니다.",
+          eyebrow: "AI 성장 차트",
+          legend: {
+            news: "뉴스",
+            reporters: "리포터",
+            source: "원본 오픈",
+            vlogs: "브이로그",
+          },
+          score: "IP 지수",
+          title: "캐릭터 IP 성장 레이스",
         },
         newsroomPreview: {
           label: "NEWS ENTRY",
@@ -274,6 +289,20 @@ function getCopy(locale: Locale) {
           source: "Opened sources",
           title: "Character IP worth following",
           vlogs: "Vlogs",
+        },
+        homeGrowth: {
+          body:
+            "A visual score combining published news, source vlogs, opened sources, and fan-reporter distribution.",
+          empty: "No AI character data is ready for the growth chart yet.",
+          eyebrow: "AI Growth Chart",
+          legend: {
+            news: "News",
+            reporters: "Reporters",
+            source: "Opened",
+            vlogs: "Vlogs",
+          },
+          score: "IP score",
+          title: "Character IP growth race",
         },
         newsroomPreview: {
           label: "NEWS ENTRY",
@@ -534,6 +563,13 @@ function NewsHomeReportCard({
   );
 }
 
+const CHARACTER_GROWTH_SCORE_WEIGHTS = {
+  news: 3,
+  reporters: 5,
+  source: 8,
+  vlogs: 2,
+} as const;
+
 function getCharacterProfileImages(character: FanletterNewsCharacterStat) {
   const uniqueImageUrls = new Set<string>();
 
@@ -652,6 +688,32 @@ function CharacterProfileReel({
   );
 }
 
+function getCharacterGrowthScore(character: FanletterNewsCharacterStat) {
+  return (
+    character.newsCount * CHARACTER_GROWTH_SCORE_WEIGHTS.news +
+    character.publicVideoCount * CHARACTER_GROWTH_SCORE_WEIGHTS.vlogs +
+    character.sourceRevealUnlockedCount *
+      CHARACTER_GROWTH_SCORE_WEIGHTS.source +
+    character.reporterCount * CHARACTER_GROWTH_SCORE_WEIGHTS.reporters
+  );
+}
+
+function getPercent(value: number, max: number) {
+  if (max <= 0 || value <= 0) {
+    return 0;
+  }
+
+  return Math.max(6, Math.min(100, Math.round((value / max) * 100)));
+}
+
+function getSegmentPercent(value: number, total: number) {
+  if (total <= 0 || value <= 0) {
+    return 0;
+  }
+
+  return Math.max(4, (value / total) * 100);
+}
+
 function HomeCharacterCard({
   character,
   copy,
@@ -708,6 +770,217 @@ function HomeCharacterCard({
         </p>
       </div>
     </Link>
+  );
+}
+
+function CharacterGrowthChart({
+  characters,
+  copy,
+  locale,
+  referralCode,
+}: {
+  characters: FanletterNewsCharacterStat[];
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const rows = characters
+    .map((character) => {
+      const weightedNews =
+        character.newsCount * CHARACTER_GROWTH_SCORE_WEIGHTS.news;
+      const weightedVlogs =
+        character.publicVideoCount * CHARACTER_GROWTH_SCORE_WEIGHTS.vlogs;
+      const weightedSource =
+        character.sourceRevealUnlockedCount *
+        CHARACTER_GROWTH_SCORE_WEIGHTS.source;
+      const weightedReporters =
+        character.reporterCount * CHARACTER_GROWTH_SCORE_WEIGHTS.reporters;
+      const score = getCharacterGrowthScore(character);
+      const segmentTotal =
+        weightedNews + weightedVlogs + weightedSource + weightedReporters;
+
+      return {
+        character,
+        profileImageUrl: getCharacterProfileImages(character)[0] ?? null,
+        score,
+        segments: {
+          news: getSegmentPercent(weightedNews, segmentTotal),
+          reporters: getSegmentPercent(weightedReporters, segmentTotal),
+          source: getSegmentPercent(weightedSource, segmentTotal),
+          vlogs: getSegmentPercent(weightedVlogs, segmentTotal),
+        },
+      };
+    })
+    .sort((left, right) => right.score - left.score);
+  const maxScore = Math.max(1, ...rows.map((row) => row.score));
+  const legendItems = [
+    {
+      className: "bg-[#44f26e]",
+      label: copy.homeGrowth.legend.news,
+    },
+    {
+      className: "bg-[#4cc9f0]",
+      label: copy.homeGrowth.legend.vlogs,
+    },
+    {
+      className: "bg-[#ffd76b]",
+      label: copy.homeGrowth.legend.source,
+    },
+    {
+      className: "bg-[#b98cff]",
+      label: copy.homeGrowth.legend.reporters,
+    },
+  ];
+
+  return (
+    <section className="border-b border-black/10 bg-white">
+      <div className="mx-auto grid max-w-[92rem] gap-6 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1fr)] lg:items-start lg:px-8">
+        <LandingReveal className="lg:sticky lg:top-8" variant="soft">
+          <SectionLabel>{copy.homeGrowth.eyebrow}</SectionLabel>
+          <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
+            {copy.homeGrowth.title}
+          </h2>
+          <p className="mt-3 text-sm font-semibold leading-6 text-black/58 sm:text-base sm:leading-7">
+            {copy.homeGrowth.body}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {legendItems.map((item) => (
+              <span
+                className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-[#f6f8f4] px-3 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.08em] text-black/62"
+                key={item.label}
+              >
+                <span className={`size-2.5 rounded-full ${item.className}`} />
+                {item.label}
+              </span>
+            ))}
+          </div>
+        </LandingReveal>
+
+        {rows.length > 0 ? (
+          <div className="grid gap-3">
+            {rows.map((row, index) => {
+              const { character } = row;
+              const scorePercent = getPercent(row.score, maxScore);
+              const href = buildPathWithReferral(
+                `/${locale}/fanletter/news/characters/${character.referralCode}`,
+                referralCode,
+              );
+
+              return (
+                <LandingReveal
+                  delay={index * 65}
+                  key={character.referralCode}
+                  variant="soft"
+                >
+                  <Link
+                    className="group block rounded-lg border border-black/10 bg-[#f7f8f4] p-4 !text-[#111510] shadow-[0_16px_42px_rgba(17,21,16,0.06)] transition hover:border-[#19b84b]/55 hover:bg-[#f0fff3] sm:p-5"
+                    href={href}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#111510] font-mono text-sm font-black text-[#44f26e]">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="relative size-12 shrink-0 overflow-hidden rounded-full border border-black/10 bg-[#071108]">
+                        {row.profileImageUrl ? (
+                          <Image
+                            alt=""
+                            aria-hidden="true"
+                            className="object-cover object-top transition duration-500 group-hover:scale-[1.05]"
+                            fill
+                            sizes="3rem"
+                            src={row.profileImageUrl}
+                            unoptimized={shouldBypassFanletterImageOptimization(
+                              row.profileImageUrl,
+                            )}
+                          />
+                        ) : (
+                          <span className="flex h-full items-center justify-center text-[#44f26e]">
+                            <UserRound className="size-5" />
+                          </span>
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-xl font-black">
+                          {character.name}
+                        </span>
+                        <span className="mt-0.5 block truncate text-xs font-black uppercase tracking-[0.08em] text-[#16702e]">
+                          {copy.homeGrowth.score}{" "}
+                          {formatNumber(row.score, locale)}
+                        </span>
+                      </span>
+                      <TrendingUp className="hidden size-5 shrink-0 text-[#16702e] transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5 sm:block" />
+                    </div>
+
+                    <div className="mt-4">
+                      <div className="h-4 overflow-hidden rounded-full bg-black/8">
+                        <div
+                          className="flex h-full overflow-hidden rounded-full shadow-[0_0_28px_rgba(68,242,110,0.22)] transition-[width] duration-700"
+                          style={{ width: `${scorePercent}%` }}
+                        >
+                          <span
+                            className="h-full bg-[#44f26e]"
+                            style={{ width: `${row.segments.news}%` }}
+                          />
+                          <span
+                            className="h-full bg-[#4cc9f0]"
+                            style={{ width: `${row.segments.vlogs}%` }}
+                          />
+                          <span
+                            className="h-full bg-[#ffd76b]"
+                            style={{ width: `${row.segments.source}%` }}
+                          />
+                          <span
+                            className="h-full bg-[#b98cff]"
+                            style={{ width: `${row.segments.reporters}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-4 gap-1.5 text-center">
+                      {[
+                        {
+                          label: copy.homeGrowth.legend.news,
+                          value: character.newsCount,
+                        },
+                        {
+                          label: copy.homeGrowth.legend.vlogs,
+                          value: character.publicVideoCount,
+                        },
+                        {
+                          label: copy.homeGrowth.legend.source,
+                          value: character.sourceRevealUnlockedCount,
+                        },
+                        {
+                          label: copy.homeGrowth.legend.reporters,
+                          value: character.reporterCount,
+                        },
+                      ].map((stat) => (
+                        <div
+                          className="min-w-0 rounded-md border border-black/8 bg-white px-1.5 py-2"
+                          key={stat.label}
+                        >
+                          <p className="truncate text-sm font-black">
+                            {formatNumber(stat.value, locale)}
+                          </p>
+                          <p className="mt-0.5 truncate text-[0.54rem] font-black uppercase tracking-[0.04em] text-black/42">
+                            {stat.label}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </Link>
+                </LandingReveal>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="rounded-lg border border-black/10 bg-[#f7f8f4] p-5 text-sm font-semibold text-black/54">
+            {copy.homeGrowth.empty}
+          </p>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -1199,6 +1472,13 @@ export default async function FanletterNewsPlatformPage({
           )}
         </div>
       </section>
+
+      <CharacterGrowthChart
+        characters={featuredCharacters}
+        copy={copy}
+        locale={locale}
+        referralCode={referralCode}
+      />
 
       <section className="mx-auto max-w-[92rem] px-4 py-9 sm:px-6 sm:py-12 lg:px-8">
         <div className="grid gap-6 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
