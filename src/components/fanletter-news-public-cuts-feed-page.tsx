@@ -259,7 +259,7 @@ function FeedSlide({
                   className={
                     isNsfw
                       ? "scale-[1.02] object-cover blur-2xl brightness-[0.42] saturate-[0.68]"
-                      : "object-cover brightness-[1.06] contrast-[1.03] saturate-[1.08]"
+                      : "object-cover brightness-[1.14] contrast-[1.02] saturate-[1.1]"
                   }
                   fill
                   priority={index < 2 && cut.slotNumber <= 2}
@@ -271,8 +271,8 @@ function FeedSlide({
             );
           })}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/22 via-transparent to-black/34" />
-        <div className="absolute inset-x-0 bottom-0 h-[38%] bg-gradient-to-t from-black/78 via-black/30 to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-[18%] bg-gradient-to-b from-black/14 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-[22%] bg-gradient-to-t from-black/42 via-black/8 to-transparent" />
       </div>
 
       <div className="absolute inset-x-0 top-[calc(env(safe-area-inset-top)+4.7rem)] z-20 px-4 sm:px-6 lg:px-8">
