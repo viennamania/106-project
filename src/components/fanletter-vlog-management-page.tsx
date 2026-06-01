@@ -4584,11 +4584,6 @@ function VlogManagerCard({
             </p>
           </section>
         </div>
-        {!canManageNsfw && post.priceType === "paid" && post.status !== "archived" ? (
-          <p className="mt-3 rounded-lg border border-black/10 bg-[#f7faf5] px-3 py-2 text-xs font-semibold leading-5 text-black/50">
-            {copy.nsfwUnavailable}
-          </p>
-        ) : null}
         <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           {post.status !== "published" ? (
             <button
@@ -4627,27 +4622,27 @@ function VlogManagerCard({
               {copy.actions.archive}
             </button>
           ) : null}
-          {canManageNsfw ? (
-            <button
-              className={`inline-flex h-11 items-center justify-center gap-2 rounded-full px-3 text-sm font-semibold transition disabled:opacity-50 sm:h-10 ${
-                isNsfw
-                  ? "border border-black/10 bg-white text-black hover:border-black/20 hover:bg-[#f6f8f4]"
-                  : "bg-[#111] text-white hover:bg-black/82"
-              }`}
-              disabled={isUpdating}
-              onClick={() => {
-                onToggleMaturity();
-              }}
-              type="button"
-            >
-              {isUpdating ? (
-                <Loader2 className="size-4 animate-spin" />
-              ) : (
-                <ShieldAlert className="size-4" />
-              )}
-              {isNsfw ? copy.actions.unmarkNsfw : copy.actions.markNsfw}
-            </button>
-          ) : null}
+          <button
+            className={`inline-flex h-11 items-center justify-center gap-2 rounded-full px-3 text-sm font-semibold transition disabled:opacity-50 sm:h-10 ${
+              isNsfw
+                ? "border border-black/10 bg-white text-black hover:border-black/20 hover:bg-[#f6f8f4]"
+                : canManageNsfw
+                  ? "bg-[#111] text-white hover:bg-black/82"
+                  : "border border-black/10 bg-white text-black/62 hover:border-black/20 hover:bg-[#f6f8f4]"
+            }`}
+            disabled={isUpdating}
+            onClick={() => {
+              onToggleMaturity();
+            }}
+            type="button"
+          >
+            {isUpdating ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <ShieldAlert className="size-4" />
+            )}
+            {isNsfw ? copy.actions.unmarkNsfw : copy.actions.markNsfw}
+          </button>
         </div>
       </div>
     </article>
