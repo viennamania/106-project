@@ -2313,11 +2313,12 @@ export function CreatorContentStudioPage({
   );
   const hasUploadedPostVideo = postVideoSource === "uploaded";
   const hasGeneratedPostVideo = postVideoSource === "generated";
-  const effectivePostPriceType: ContentPriceType = isPaidUploadComposer || hasUploadedPostVideo
-    ? "paid"
-    : "free";
+  const hasPostVideo = Boolean(postForm.contentVideoUrls[0]?.trim());
+  const hasKnownPostVideo = hasUploadedPostVideo || hasGeneratedPostVideo;
+  const effectivePostPriceType: ContentPriceType =
+    isPaidUploadComposer || hasUploadedPostVideo ? "paid" : "free";
   const nsfwCopy = getFanletterNsfwCopy(locale);
-  const canMarkPostNsfw = effectivePostPriceType === "paid" && hasUploadedPostVideo;
+  const canMarkPostNsfw = hasKnownPostVideo;
   const isNsfwPost =
     canMarkPostNsfw && postForm.contentMaturityRating === "nsfw";
   const hasRequiredPostMedia = isPaidUploadComposer
@@ -3726,9 +3727,7 @@ export function CreatorContentStudioPage({
         ? "paid"
         : effectivePostPriceType;
       const contentMaturityRatingToSave: ContentMaturityRating =
-        priceTypeToSave === "paid" && hasUploadedPostVideo
-          ? postForm.contentMaturityRating
-          : "general";
+        canMarkPostNsfw ? postForm.contentMaturityRating : "general";
       let coverImageUrlToSave = postForm.coverImageUrl || null;
       let coverImageCandidatesToSave = postForm.coverImageCandidates;
       let contentImageUrlsToSave = mergeContentImageUrls(
@@ -8458,7 +8457,7 @@ export function CreatorContentStudioPage({
       </section>
     );
     const renderNsfwPostControl = () =>
-      effectivePostPriceType === "paid" ? (
+      hasPostVideo ? (
         <label
           className={cn(
             "flex items-start gap-3 rounded-[22px] border px-4 py-3 text-left transition",
@@ -8491,8 +8490,8 @@ export function CreatorContentStudioPage({
               {canMarkPostNsfw
                 ? nsfwCopy.studioBody
                 : locale === "ko"
-                  ? "NSFW는 직접 업로드한 유료 팬 전용 동영상에서만 선택할 수 있습니다."
-                  : "NSFW is available only for directly uploaded paid fan-only videos."}
+                  ? "AI 생성 또는 직접 업로드한 동영상만 NSFW로 선택할 수 있습니다."
+                  : "Only AI-generated or directly uploaded videos can be marked NSFW."}
             </span>
           </span>
         </label>
@@ -9071,7 +9070,7 @@ export function CreatorContentStudioPage({
                           setPostForm((current) => ({
                             ...current,
                             contentMaturityRating:
-                              priceType === "paid"
+                              priceType === "paid" || canMarkPostNsfw
                                 ? current.contentMaturityRating
                                 : "general",
                             priceType,
@@ -9278,7 +9277,7 @@ export function CreatorContentStudioPage({
                             setPostForm((current) => ({
                               ...current,
                               contentMaturityRating:
-                                priceType === "paid"
+                                priceType === "paid" || canMarkPostNsfw
                                   ? current.contentMaturityRating
                                   : "general",
                               priceType,

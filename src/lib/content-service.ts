@@ -19,7 +19,7 @@ import {
   CONTENT_VIDEO_SOURCE_REQUIRED_ERROR,
   CONTENT_EXCLUSIVE_NEWS_REPORTER_NOT_FOUND_ERROR,
   CONTENT_FAN_REPORT_LIMIT_BELOW_PUBLISHED_ERROR,
-  CONTENT_NSFW_REQUIRES_PAID_UPLOAD_ERROR,
+  CONTENT_NSFW_REQUIRES_VIDEO_ERROR,
   contentCoverImagePlacements,
   creatorAvatarExpressions,
   createEmptyContentSocialSummary,
@@ -809,22 +809,16 @@ function validateContentVideoPricingPolicy({
 function validateContentMaturityPolicy({
   contentMaturityRating,
   contentVideoUrls,
-  priceType,
 }: {
   contentMaturityRating: ContentMaturityRating;
   contentVideoUrls: string[];
-  priceType: ContentPriceType;
 }) {
   if (contentMaturityRating !== "nsfw") {
     return;
   }
 
-  const hasUploadedVideo = contentVideoUrls.some(
-    (url) => getContentVideoAssetSource(url) === "uploaded",
-  );
-
-  if (priceType !== "paid" || !hasUploadedVideo) {
-    throw new Error(CONTENT_NSFW_REQUIRES_PAID_UPLOAD_ERROR);
+  if (contentVideoUrls.length === 0) {
+    throw new Error(CONTENT_NSFW_REQUIRES_VIDEO_ERROR);
   }
 }
 
@@ -3256,7 +3250,6 @@ export async function createContentPostForMember(
   validateContentMaturityPolicy({
     contentMaturityRating,
     contentVideoUrls,
-    priceType,
   });
 
   const fanRequest =
@@ -3447,7 +3440,6 @@ export async function updateContentPostForMember(
     validateContentMaturityPolicy({
       contentMaturityRating: nextContentMaturityRating,
       contentVideoUrls: nextContentVideoUrls,
-      priceType: nextPriceType,
     });
   }
 

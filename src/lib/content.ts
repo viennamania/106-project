@@ -30,8 +30,8 @@ export const CONTENT_VIDEO_SOURCE_MIXED_ERROR =
   "Use either an AI-generated video or an uploaded video, not both.";
 export const CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR =
   "Paid FanLetter content requires an unused fan vlog request.";
-export const CONTENT_NSFW_REQUIRES_PAID_UPLOAD_ERROR =
-  "NSFW content requires a paid directly uploaded video.";
+export const CONTENT_NSFW_REQUIRES_VIDEO_ERROR =
+  "NSFW content requires a video.";
 export const CONTENT_EXCLUSIVE_NEWS_REPORTER_NOT_FOUND_ERROR =
   "Exclusive news reporter not found.";
 export const FANLETTER_NEWS_REPORT_SLOT_OPTIONS = [3, 6, 10] as const;
@@ -159,7 +159,7 @@ const contentFanRequestPolicyErrorMessages = new Set([
   CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR,
 ]);
 const contentMaturityPolicyErrorMessages = new Set([
-  CONTENT_NSFW_REQUIRES_PAID_UPLOAD_ERROR,
+  CONTENT_NSFW_REQUIRES_VIDEO_ERROR,
 ]);
 
 function safelyDecodePathSegment(segment: string) {

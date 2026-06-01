@@ -195,7 +195,7 @@ function getCopy(locale: Locale) {
           fanOnlyDefault:
             "AI 생성 동영상은 무료 공개로 저장됩니다. 유료 팬 전용 콘텐츠는 스튜디오에서 직접 업로드 동영상으로 등록하세요.",
           fanOnlyHint:
-            "이 AI 생성 브이로그는 무료 공개로 등록됩니다. NSFW 가능성이 있는 업로드 동영상만 유료 팬 전용으로 운영합니다.",
+            "이 AI 생성 브이로그는 무료 공개로 등록됩니다. NSFW 표시는 저장 후 전체 관리에서 별도로 조정할 수 있습니다.",
           publishStep: "공개하면 요청 카드가 완성된 브이로그와 연결됩니다.",
           requestTypes: {
             message: "응원 메시지",
@@ -414,7 +414,7 @@ function getCopy(locale: Locale) {
           fanOnlyDefault:
             "AI-generated videos are saved as free public content. Register paid fan-only content from Studio with a directly uploaded video.",
           fanOnlyHint:
-            "This AI-generated vlog is saved as free public content. Only directly uploaded videos can be used for paid fan-only content.",
+            "This AI-generated vlog is saved as free public content. Adjust NSFW marking later from full management when needed.",
           publishStep: "Publishing links the request card to the finished vlog.",
           requestTypes: {
             message: "Support message",

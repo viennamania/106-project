@@ -53,7 +53,6 @@ import { FanletterAccountStatusLink } from "@/components/fanletter-account-statu
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { useMemberSession } from "@/components/member-session-provider";
 import {
-  getContentVideoAssetSource,
   type ContentCoverImageCandidate,
   type ContentMaturityRating,
   type ContentPostMutationResponse,
@@ -355,12 +354,12 @@ function getCopy(locale: Locale) {
         loading: "브이로그 목록을 불러오고 있습니다.",
         noMatching: "조건에 맞는 브이로그가 없습니다.",
         nsfwModeBody:
-          "NSFW는 팬 요청에 답장한 직접 업로드 유료 영상에서만 켤 수 있습니다. 무료 공개와 AI 생성 영상은 일반 콘텐츠로 유지됩니다.",
+          "영상 콘텐츠는 무료 공개와 유료 팬 전용 여부와 관계없이 NSFW로 표시할 수 있습니다. NSFW는 기본 피드에서 숨겨지고 opt-in한 팬에게 표시됩니다.",
         nsfwNoticeOff: "일반 콘텐츠로 전환했습니다.",
         nsfwNoticeOn: "NSFW 콘텐츠로 표시했습니다.",
         nsfwModal: {
           body:
-            "NSFW 설정은 피드 노출, 구매 전 미리보기, 팬 전용 관리 화면에 바로 반영됩니다. 변경 전 동영상과 적용 조건을 확인하세요.",
+            "NSFW 설정은 피드 노출, 구매 전 미리보기, 팬 전용 관리 화면에 바로 반영됩니다. 변경 전 동영상과 노출 영향을 확인하세요.",
           close: "취소",
           confirmGeneral: "일반으로 변경",
           confirmNsfw: "NSFW로 변경",
@@ -369,7 +368,7 @@ function getCopy(locale: Locale) {
           next: "변경 후",
           title: "NSFW 설정 변경",
           warningGeneral:
-            "일반으로 변경하면 NSFW 필터에서 제외되고 일반 유료 팬 전용 콘텐츠로 표시됩니다.",
+            "일반으로 변경하면 NSFW 필터에서 제외되고 일반 콘텐츠로 표시됩니다.",
           warningNsfw:
             "NSFW로 표시하면 기본 피드에서는 숨겨지고 NSFW 보기 설정을 켠 팬에게만 강조됩니다.",
         },
@@ -378,7 +377,7 @@ function getCopy(locale: Locale) {
         nsfwShortcutBody:
           "현재 페이지에 NSFW 카드가 없어도 NSFW 필터에서 전체 NSFW 콘텐츠를 모아 관리할 수 있습니다.",
         nsfwUnavailable:
-          "직접 업로드한 유료 팬 전용 영상만 NSFW로 전환할 수 있습니다.",
+          "동영상이 없거나 보관된 콘텐츠는 NSFW로 전환할 수 없습니다.",
         paymentRequired:
           "FanLetter 시작 준비 확인이 끝나면 브이로그 전체 관리를 사용할 수 있습니다.",
         searchPlaceholder: "제목, 요약, 본문으로 검색",
@@ -565,12 +564,12 @@ function getCopy(locale: Locale) {
         loading: "Loading vlogs.",
         noMatching: "No vlogs match the current filters.",
         nsfwModeBody:
-          "NSFW can only be enabled for paid uploaded videos that answer a fan request. Free public and AI-generated videos stay general.",
+          "Any video content can be marked NSFW, whether it is free public or paid fan-only. NSFW items stay hidden from default feeds and appear for opted-in fans.",
         nsfwNoticeOff: "The vlog is now marked general.",
         nsfwNoticeOn: "The vlog is now marked NSFW.",
         nsfwModal: {
           body:
-            "The NSFW setting immediately affects feed visibility, purchase previews, and fan-only management. Review the vlog and policy conditions before saving.",
+            "The NSFW setting immediately affects feed visibility, purchase previews, and fan-only management. Review the vlog and visibility impact before saving.",
           close: "Cancel",
           confirmGeneral: "Change to general",
           confirmNsfw: "Change to NSFW",
@@ -579,7 +578,7 @@ function getCopy(locale: Locale) {
           next: "After change",
           title: "Change NSFW setting",
           warningGeneral:
-            "Changing to general removes it from the NSFW filter and shows it as regular paid fan-only content.",
+            "Changing to general removes it from the NSFW filter and shows it as regular content.",
           warningNsfw:
             "Marking NSFW hides it from default feeds and highlights it only for fans who enable NSFW viewing.",
         },
@@ -588,7 +587,7 @@ function getCopy(locale: Locale) {
         nsfwShortcutBody:
           "Even when this page has no NSFW cards, the NSFW filter keeps every NSFW item available for review.",
         nsfwUnavailable:
-          "Only paid fan-only videos uploaded directly can be marked NSFW.",
+          "Archived content or content without a video cannot be marked NSFW.",
         paymentRequired:
           "Confirm FanLetter readiness to manage all vlogs.",
         searchPlaceholder: "Search by title, summary, or body",
@@ -1236,11 +1235,7 @@ function canAssignExclusiveNews(post: CreatorStudioPostRecord) {
 }
 
 function canManagePostNsfw(post: CreatorStudioPostRecord) {
-  return (
-    post.status !== "archived" &&
-    post.priceType === "paid" &&
-    getContentVideoAssetSource(getPostVideoUrl(post)) === "uploaded"
-  );
+  return post.status !== "archived" && Boolean(getPostVideoUrl(post)?.trim());
 }
 
 function getPriceFilterLabel(

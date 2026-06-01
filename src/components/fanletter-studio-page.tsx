@@ -185,9 +185,9 @@ function getCopy(locale: Locale) {
         loading: "FanLetter 스튜디오 상태를 확인하고 있습니다.",
         noPersona: "페르소나 미설정",
         nsfwStudioBody:
-          "NSFW 팬 전용 영상만 따로 모아 표시 상태와 공개 범위를 확인합니다.",
+          "NSFW로 표시한 영상을 따로 모아 표시 상태와 공개 범위를 확인합니다.",
         nsfwStudioEmptyBody:
-          "아직 NSFW로 표시된 영상은 없습니다. 팬 요청 유료 업로드 후 전체 관리에서 NSFW 표시를 켤 수 있습니다.",
+          "아직 NSFW로 표시된 영상은 없습니다. 전체 관리에서 필요한 영상의 NSFW 표시를 켤 수 있습니다.",
         paidUploadBody:
           "팬이 남긴 브이로그 요청 카드에서만 직접 업로드 유료 등록을 시작합니다.",
         contentHub: {
@@ -408,9 +408,9 @@ function getCopy(locale: Locale) {
         loading: "Checking FanLetter studio state.",
         noPersona: "No persona",
         nsfwStudioBody:
-          "Review NSFW fan-only videos, visibility state, and audience scope in one filtered view.",
+          "Review videos marked NSFW, visibility state, and audience scope in one filtered view.",
         nsfwStudioEmptyBody:
-          "No videos are marked NSFW yet. After a fan-request paid upload, turn on NSFW marking from full management.",
+          "No videos are marked NSFW yet. Turn on NSFW marking for any needed video from full management.",
         paidUploadBody:
           "Start direct paid upload only from a fan vlog request card.",
         contentHub: {
