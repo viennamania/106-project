@@ -259,7 +259,7 @@ function FeedSlide({
                   className={
                     isNsfw
                       ? "scale-[1.02] object-cover blur-2xl brightness-[0.42] saturate-[0.68]"
-                      : "object-cover"
+                      : "object-cover brightness-[1.06] contrast-[1.03] saturate-[1.08]"
                   }
                   fill
                   priority={index < 2 && cut.slotNumber <= 2}
@@ -271,8 +271,8 @@ function FeedSlide({
             );
           })}
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/48 via-black/4 to-black/82" />
-        <div className="absolute inset-x-0 bottom-0 h-[52%] bg-gradient-to-t from-black via-black/66 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/22 via-transparent to-black/34" />
+        <div className="absolute inset-x-0 bottom-0 h-[38%] bg-gradient-to-t from-black/78 via-black/30 to-transparent" />
       </div>
 
       <div className="absolute inset-x-0 top-[calc(env(safe-area-inset-top)+4.7rem)] z-20 px-4 sm:px-6 lg:px-8">
@@ -321,50 +321,50 @@ function FeedSlide({
 
       <button
         aria-label={copy.previousCut}
-        className="absolute left-3 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/34 text-white backdrop-blur transition hover:bg-white hover:text-black sm:inline-flex"
+        className="absolute left-2 top-1/2 z-20 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/18 text-white/86 backdrop-blur transition hover:bg-white hover:text-black sm:left-3 sm:size-11"
         onClick={goToPreviousCut}
         type="button"
       >
-        <ChevronLeft className="size-6" />
+        <ChevronLeft className="size-5 sm:size-6" />
       </button>
       <button
         aria-label={copy.nextCut}
-        className="absolute right-3 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/34 text-white backdrop-blur transition hover:bg-white hover:text-black sm:inline-flex"
+        className="absolute right-2 top-1/2 z-20 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/18 text-white/86 backdrop-blur transition hover:bg-white hover:text-black sm:right-3 sm:size-11"
         onClick={goToNextCut}
         type="button"
       >
-        <ChevronRight className="size-6" />
+        <ChevronRight className="size-5 sm:size-6" />
       </button>
 
-      <div className="relative z-10 flex min-h-[100dvh] items-end px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+7.6rem)] sm:px-6 sm:pb-7 lg:px-8">
+      <div className="relative z-10 flex min-h-[100dvh] items-end px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+7.6rem)] sm:px-6 sm:pb-7 lg:px-8">
         <section className="mx-auto flex w-full max-w-7xl flex-col justify-end">
           <div className="max-w-3xl">
-            <p className="text-[0.7rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+            <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e] drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)]">
               {report.creatorName}
             </p>
             <h1
-              className={`mt-2 max-w-4xl break-words text-[2rem] font-black leading-[1.02] tracking-normal [word-break:keep-all] sm:text-[4rem] lg:text-[5rem] ${
+              className={`mt-1.5 max-w-4xl break-words text-[1.42rem] font-black leading-[1.08] tracking-normal drop-shadow-[0_3px_18px_rgba(0,0,0,0.82)] [word-break:keep-all] sm:text-[3.4rem] lg:text-[4.4rem] ${
                 isNsfw ? "select-none blur-[2px]" : ""
               }`}
             >
               {title}
             </h1>
             <p
-              className={`mt-3 max-w-2xl text-sm font-semibold leading-6 text-white/74 sm:text-base sm:leading-7 ${
+              className={`mt-2 max-w-2xl text-xs font-semibold leading-5 text-white/82 drop-shadow-[0_2px_12px_rgba(0,0,0,0.72)] sm:text-base sm:leading-7 ${
                 isNsfw ? "select-none blur-[2px]" : ""
               }`}
             >
               {report.dek}
             </p>
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-bold text-white/62">
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.72rem] font-bold text-white/72 drop-shadow-[0_2px_10px_rgba(0,0,0,0.72)] sm:text-xs">
               <span>{report.reporterName}</span>
               {publishedAt ? <span>{publishedAt}</span> : null}
             </div>
           </div>
 
-          <div className="mt-5 grid gap-2 sm:flex sm:flex-wrap">
+          <div className="mt-3 grid gap-2 sm:mt-5 sm:flex sm:flex-wrap">
             <Link
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-[#111510] shadow-[0_16px_34px_rgba(0,0,0,0.24)] transition hover:bg-[#65ff86]"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-xs font-black !text-[#111510] shadow-[0_14px_30px_rgba(0,0,0,0.26)] transition hover:bg-[#65ff86] sm:h-12 sm:text-sm"
               href={reportHref}
             >
               <Newspaper className="size-4" />
@@ -372,14 +372,14 @@ function FeedSlide({
             </Link>
             <div className="grid grid-cols-2 gap-2 sm:flex">
               <Link
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/32 px-4 text-xs font-black !text-white backdrop-blur transition hover:bg-white hover:!text-[#111510]"
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/24 px-4 text-[0.72rem] font-black !text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:!text-[#111510] sm:h-11 sm:text-xs"
                 href={characterHref}
               >
                 <Sparkles className="size-4 text-[#44f26e]" />
                 {copy.character}
               </Link>
               <Link
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/32 px-4 text-xs font-black !text-white backdrop-blur transition hover:bg-white hover:!text-[#111510]"
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/24 px-4 text-[0.72rem] font-black !text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:!text-[#111510] sm:h-11 sm:text-xs"
                 href={reporterHref}
               >
                 <PenLine className="size-4 text-[#44f26e]" />
@@ -400,25 +400,6 @@ function FeedSlide({
                 type="button"
               />
             ))}
-          </div>
-
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
-            <button
-              aria-label={copy.previousCut}
-              className="inline-flex h-10 items-center justify-center rounded-full border border-white/12 bg-black/26 text-white backdrop-blur"
-              onClick={goToPreviousCut}
-              type="button"
-            >
-              <ChevronLeft className="size-5" />
-            </button>
-            <button
-              aria-label={copy.nextCut}
-              className="inline-flex h-10 items-center justify-center rounded-full border border-white/12 bg-black/26 text-white backdrop-blur"
-              onClick={goToNextCut}
-              type="button"
-            >
-              <ChevronRight className="size-5" />
-            </button>
           </div>
         </section>
       </div>
