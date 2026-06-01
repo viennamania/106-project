@@ -358,6 +358,21 @@ function getCopy(locale: Locale) {
           "NSFW는 팬 요청에 답장한 직접 업로드 유료 영상에서만 켤 수 있습니다. 무료 공개와 AI 생성 영상은 일반 콘텐츠로 유지됩니다.",
         nsfwNoticeOff: "일반 콘텐츠로 전환했습니다.",
         nsfwNoticeOn: "NSFW 콘텐츠로 표시했습니다.",
+        nsfwModal: {
+          body:
+            "NSFW 설정은 피드 노출, 구매 전 미리보기, 팬 전용 관리 화면에 바로 반영됩니다. 변경 전 동영상과 적용 조건을 확인하세요.",
+          close: "취소",
+          confirmGeneral: "일반으로 변경",
+          confirmNsfw: "NSFW로 변경",
+          current: "현재 설정",
+          eyebrow: "콘텐츠 수위",
+          next: "변경 후",
+          title: "NSFW 설정 변경",
+          warningGeneral:
+            "일반으로 변경하면 NSFW 필터에서 제외되고 일반 유료 팬 전용 콘텐츠로 표시됩니다.",
+          warningNsfw:
+            "NSFW로 표시하면 기본 피드에서는 숨겨지고 NSFW 보기 설정을 켠 팬에게만 강조됩니다.",
+        },
         nsfwShortcutActiveBody:
           "NSFW 필터가 적용되어 있습니다. 전체 수위로 돌아가면 일반 콘텐츠와 함께 비교할 수 있습니다.",
         nsfwShortcutBody:
@@ -553,6 +568,21 @@ function getCopy(locale: Locale) {
           "NSFW can only be enabled for paid uploaded videos that answer a fan request. Free public and AI-generated videos stay general.",
         nsfwNoticeOff: "The vlog is now marked general.",
         nsfwNoticeOn: "The vlog is now marked NSFW.",
+        nsfwModal: {
+          body:
+            "The NSFW setting immediately affects feed visibility, purchase previews, and fan-only management. Review the vlog and policy conditions before saving.",
+          close: "Cancel",
+          confirmGeneral: "Change to general",
+          confirmNsfw: "Change to NSFW",
+          current: "Current setting",
+          eyebrow: "Content maturity",
+          next: "After change",
+          title: "Change NSFW setting",
+          warningGeneral:
+            "Changing to general removes it from the NSFW filter and shows it as regular paid fan-only content.",
+          warningNsfw:
+            "Marking NSFW hides it from default feeds and highlights it only for fans who enable NSFW viewing.",
+        },
         nsfwShortcutActiveBody:
           "The NSFW filter is active. Return to all maturity levels to compare it with general content.",
         nsfwShortcutBody:
@@ -1205,6 +1235,14 @@ function canAssignExclusiveNews(post: CreatorStudioPostRecord) {
   return post.priceType === "free" && post.status === "published";
 }
 
+function canManagePostNsfw(post: CreatorStudioPostRecord) {
+  return (
+    post.status !== "archived" &&
+    post.priceType === "paid" &&
+    getContentVideoAssetSource(getPostVideoUrl(post)) === "uploaded"
+  );
+}
+
 function getPriceFilterLabel(
   copy: ReturnType<typeof getCopy>,
   price: VlogPriceFilter,
@@ -1327,6 +1365,12 @@ export function FanletterVlogManagementPage({
   const [activeTeaserPostId, setActiveTeaserPostId] = useState<string | null>(
     null,
   );
+  const [activeMaturityPostId, setActiveMaturityPostId] = useState<string | null>(
+    null,
+  );
+  const [maturityModalError, setMaturityModalError] = useState<string | null>(
+    null,
+  );
   const [selectedCoverOptionKey, setSelectedCoverOptionKey] =
     useState<string | null>(null);
   const [savingCoverKey, setSavingCoverKey] = useState<string | null>(null);
@@ -1394,6 +1438,21 @@ export function FanletterVlogManagementPage({
     state.posts.find((post) => post.contentId === activeCoverPostId) ?? null;
   const activeTeaserPost =
     state.posts.find((post) => post.contentId === activeTeaserPostId) ?? null;
+  const activeMaturityPost =
+    state.posts.find((post) => post.contentId === activeMaturityPostId) ?? null;
+  const activeMaturityIsNsfw =
+    activeMaturityPost?.contentMaturityRating === "nsfw";
+  const activeMaturityNextRating: ContentMaturityRating | null =
+    activeMaturityPost
+      ? activeMaturityIsNsfw
+        ? "general"
+        : "nsfw"
+      : null;
+  const canManageActiveMaturity =
+    activeMaturityPost !== null && canManagePostNsfw(activeMaturityPost);
+  const isUpdatingActiveMaturity =
+    activeMaturityPost !== null &&
+    updatingPostId === activeMaturityPost.contentId;
   const coverOptions = useMemo(
     () => (activeCoverPost ? buildVlogCoverOptions(activeCoverPost) : []),
     [activeCoverPost],
@@ -1431,7 +1490,7 @@ export function FanletterVlogManagementPage({
   }, [appliedQuery]);
 
   useEffect(() => {
-    if (!activeCoverPostId && !activeTeaserPostId) {
+    if (!activeCoverPostId && !activeTeaserPostId && !activeMaturityPostId) {
       return;
     }
 
@@ -1441,16 +1500,18 @@ export function FanletterVlogManagementPage({
     return () => {
       document.body.style.overflow = originalOverflow;
     };
-  }, [activeCoverPostId, activeTeaserPostId]);
+  }, [activeCoverPostId, activeMaturityPostId, activeTeaserPostId]);
 
   useEffect(() => {
-    if (!activeCoverPostId && !activeTeaserPostId) {
+    if (!activeCoverPostId && !activeTeaserPostId && !activeMaturityPostId) {
       return;
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setActiveCoverPostId(null);
+        setActiveMaturityPostId(null);
+        setMaturityModalError(null);
         setActiveTeaserPostId(null);
       }
     };
@@ -1459,7 +1520,7 @@ export function FanletterVlogManagementPage({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [activeCoverPostId, activeTeaserPostId]);
+  }, [activeCoverPostId, activeMaturityPostId, activeTeaserPostId]);
 
   useEffect(() => {
     setCoverCrop(DEFAULT_VLOG_COVER_CROP);
@@ -1759,6 +1820,8 @@ export function FanletterVlogManagementPage({
       });
       await readApiJson<ContentPostMutationResponse>(response, copy.loading);
       await loadVlogs();
+      setActiveMaturityPostId(null);
+      setMaturityModalError(null);
       setState((current) => ({
         ...current,
         error: null,
@@ -1768,9 +1831,11 @@ export function FanletterVlogManagementPage({
             : copy.nsfwNoticeOff,
       }));
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : copy.loading;
+      setMaturityModalError(errorMessage);
       setState((current) => ({
         ...current,
-        error: error instanceof Error ? error.message : copy.loading,
+        error: null,
         notice: null,
       }));
     } finally {
@@ -3248,8 +3313,9 @@ export function FanletterVlogManagementPage({
                         reporterReferralCode,
                       });
                     }}
-                    onToggleMaturity={(nextContentMaturityRating) => {
-                      void updatePostMaturity(post, nextContentMaturityRating);
+                    onToggleMaturity={() => {
+                      setActiveMaturityPostId(post.contentId);
+                      setMaturityModalError(null);
                     }}
                     onPublish={() => {
                       void updatePostStatus(post, "published");
@@ -3324,6 +3390,147 @@ export function FanletterVlogManagementPage({
           </div>
         </div>
       </section>
+      {activeMaturityPost ? (
+        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/66 p-0 backdrop-blur-sm sm:items-center sm:px-6 sm:py-4">
+          <div
+            aria-labelledby="fanletter-vlog-maturity-modal-title"
+            aria-modal="true"
+            className="flex max-h-[100dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-white/12 bg-[#f5f6f1] text-[#111510] shadow-[0_24px_80px_rgba(0,0,0,0.34)] sm:max-h-[calc(100dvh-2rem)] sm:max-w-xl sm:rounded-lg"
+            role="dialog"
+          >
+            <div className="flex shrink-0 items-start justify-between gap-3 border-b border-black/10 bg-white px-4 py-3 sm:gap-4 sm:px-5 sm:py-4">
+              <div className="min-w-0">
+                <p className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.12em] text-[#16702e]">
+                  <ShieldAlert className="size-4" />
+                  {copy.nsfwModal.eyebrow}
+                </p>
+                <h2
+                  className="mt-1.5 break-words text-xl font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-2 sm:text-2xl"
+                  id="fanletter-vlog-maturity-modal-title"
+                >
+                  {copy.nsfwModal.title}
+                </h2>
+              </div>
+              <button
+                aria-label={copy.nsfwModal.close}
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-white text-black transition hover:border-black/20 hover:bg-[#f6f8f4]"
+                onClick={() => {
+                  setActiveMaturityPostId(null);
+                  setMaturityModalError(null);
+                }}
+                type="button"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
+              <div className="rounded-lg border border-black/10 bg-white p-3 shadow-sm sm:p-4">
+                <p className="line-clamp-2 break-words text-lg font-black leading-snug [word-break:keep-all]">
+                  {activeMaturityPost.title}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <StatusPill status={activeMaturityPost.priceType}>
+                    {getPostPriceLabel(copy, activeMaturityPost)}
+                  </StatusPill>
+                  <StatusPill
+                    status={activeMaturityIsNsfw ? "nsfw" : "general"}
+                  >
+                    {copy.nsfwModal.current} ·{" "}
+                    {activeMaturityIsNsfw
+                      ? copy.labels.nsfw
+                      : copy.labels.generalContent}
+                  </StatusPill>
+                </div>
+              </div>
+
+              <p className="mt-4 text-sm font-semibold leading-6 text-black/62">
+                {copy.nsfwModal.body}
+              </p>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                <div className="rounded-lg border border-black/10 bg-white p-4">
+                  <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-black/38">
+                    {copy.nsfwModal.current}
+                  </p>
+                  <p className="mt-2 text-2xl font-black tracking-normal">
+                    {activeMaturityIsNsfw
+                      ? copy.labels.nsfw
+                      : copy.labels.generalContent}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-[#16702e]/18 bg-[#ecfff0] p-4">
+                  <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+                    {copy.nsfwModal.next}
+                  </p>
+                  <p className="mt-2 text-2xl font-black tracking-normal text-[#0c5f24]">
+                    {activeMaturityNextRating === "nsfw"
+                      ? copy.labels.nsfw
+                      : copy.labels.generalContent}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-lg border border-black/10 bg-[#fffaf0] p-4 text-sm font-semibold leading-6 text-black/68">
+                {activeMaturityNextRating === "nsfw"
+                  ? copy.nsfwModal.warningNsfw
+                  : copy.nsfwModal.warningGeneral}
+              </div>
+
+              {!canManageActiveMaturity ? (
+                <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-900">
+                  {copy.nsfwUnavailable}
+                </div>
+              ) : null}
+
+              {maturityModalError ? (
+                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-semibold leading-6 text-red-800">
+                  {maturityModalError}
+                </div>
+              ) : null}
+            </div>
+            <div className="grid shrink-0 gap-2 border-t border-black/10 bg-white px-4 py-3 sm:grid-cols-[auto_minmax(0,1fr)] sm:px-5 sm:py-4">
+              <button
+                className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-white px-5 text-sm font-semibold text-black transition hover:border-black/20 hover:bg-[#f6f8f4]"
+                onClick={() => {
+                  setActiveMaturityPostId(null);
+                  setMaturityModalError(null);
+                }}
+                type="button"
+              >
+                {copy.nsfwModal.close}
+              </button>
+              <button
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white transition hover:bg-black/82 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={
+                  !canManageActiveMaturity ||
+                  !activeMaturityNextRating ||
+                  isUpdatingActiveMaturity
+                }
+                onClick={() => {
+                  if (!activeMaturityNextRating) {
+                    return;
+                  }
+
+                  void updatePostMaturity(
+                    activeMaturityPost,
+                    activeMaturityNextRating,
+                  );
+                }}
+                type="button"
+              >
+                {isUpdatingActiveMaturity ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <ShieldAlert className="size-4" />
+                )}
+                {activeMaturityNextRating === "nsfw"
+                  ? copy.nsfwModal.confirmNsfw
+                  : copy.nsfwModal.confirmGeneral}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {activeCoverPost ? (
         <div className="fixed inset-0 z-[80] flex items-stretch justify-center bg-black/66 p-0 backdrop-blur-sm sm:items-center sm:px-6 sm:py-4">
           <div
@@ -3936,7 +4143,7 @@ function VlogManagerCard({
   onManageTeasers: () => void;
   onPublish: () => void;
   onSaveExclusive: (reporterReferralCode: string, durationHours: number) => void;
-  onToggleMaturity: (nextContentMaturityRating: ContentMaturityRating) => void;
+  onToggleMaturity: () => void;
   post: CreatorStudioPostRecord;
   referralCode: string | null;
 }) {
@@ -3955,11 +4162,7 @@ function VlogManagerCard({
   const coverMetadata = getSelectedVlogCoverMetadata(post);
   const coverSizeLabel = formatImageSizeLabel(coverMetadata, locale);
   const isNsfw = post.contentMaturityRating === "nsfw";
-  const canManageNsfw =
-    post.status !== "archived" &&
-    post.priceType === "paid" &&
-    getContentVideoAssetSource(videoUrl) === "uploaded";
-  const nextMaturity = isNsfw ? "general" : "nsfw";
+  const canManageNsfw = canManagePostNsfw(post);
   const exclusiveReporterLabel = getExclusiveNewsReporterLabel(post);
   const hasExclusiveNewsAssignment = Boolean(
     post.exclusiveNews.reporterReferralCode && post.exclusiveNews.until,
@@ -4433,7 +4636,7 @@ function VlogManagerCard({
               }`}
               disabled={isUpdating}
               onClick={() => {
-                onToggleMaturity(nextMaturity);
+                onToggleMaturity();
               }}
               type="button"
             >
