@@ -2,7 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from "react";
 import {
   ArrowLeft,
   ChevronLeft,
@@ -35,11 +41,20 @@ import {
 import type { Locale } from "@/lib/i18n";
 import { buildPathWithReferral, setPathSearchParams } from "@/lib/landing-branding";
 
+const DOUBLE_TAP_DELAY_MS = 320;
+const DOUBLE_TAP_MOVE_TOLERANCE_PX = 14;
+const DOUBLE_TAP_DISTANCE_TOLERANCE_PX = 48;
+const DOUBLE_TAP_FEEDBACK_MS = 920;
+
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         adult: "성인 팬 전용",
         character: "캐릭터",
+        doubleTapDone: "참여 완료",
+        doubleTapLogin: "로그인 필요",
+        doubleTapOpen: "원본 공개 완료",
+        doubleTapWant: "보고싶어요",
         emptyBody:
           "아직 공개 피드로 보여줄 리포터 편집 컷이 없습니다. 팬 기자가 티저 컷을 저장하면 이곳에 모입니다.",
         emptyCta: "뉴스 홈으로 돌아가기",
@@ -74,6 +89,10 @@ function getCopy(locale: Locale) {
     : {
         adult: "Adult fan-only",
         character: "Character",
+        doubleTapDone: "Joined",
+        doubleTapLogin: "Log in required",
+        doubleTapOpen: "Source open",
+        doubleTapWant: "Want it",
         emptyBody:
           "No reporter-edited cuts are ready for the public feed yet. Saved teaser cuts will appear here.",
         emptyCta: "Back to News",
@@ -125,6 +144,31 @@ function formatDate(value: string | null, locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function getDistance({
+  endX,
+  endY,
+  startX,
+  startY,
+}: {
+  endX: number;
+  endY: number;
+  startX: number;
+  startY: number;
+}) {
+  return Math.hypot(endX - startX, endY - startY);
+}
+
+function isInteractiveTarget(target: EventTarget | null) {
+  return (
+    target instanceof Element &&
+    Boolean(
+      target.closest(
+        "a,button,input,textarea,select,label,[role='button'],[role='link']",
+      ),
+    )
+  );
 }
 
 function getCutFeedHref({
@@ -190,6 +234,11 @@ type SourceRevealResponse = {
   sourceReveal: FanletterNewsSourceRevealState;
 };
 
+type SourceRevealTapFeedback = {
+  id: number;
+  label: string;
+};
+
 function isSourceRevealResponse(value: unknown): value is SourceRevealResponse {
   return (
     typeof value === "object" &&
@@ -200,29 +249,26 @@ function isSourceRevealResponse(value: unknown): value is SourceRevealResponse {
 }
 
 function SourceRevealMiniVote({
+  authNudge,
   connectHref,
   copy,
-  endpoint,
-  initialState,
+  error,
+  isLoggedIn,
+  isSaving,
   locale,
-  reportId,
+  onVote,
+  state,
 }: {
+  authNudge: boolean;
   connectHref: string;
   copy: SourceRevealMiniVoteCopy;
-  endpoint: string;
-  initialState: FanletterNewsSourceRevealState;
+  error: string | null;
+  isLoggedIn: boolean;
+  isSaving: boolean;
   locale: Locale;
-  reportId: string;
+  onVote: () => void;
+  state: FanletterNewsSourceRevealState;
 }) {
-  const memberSession = useMemberSession();
-  const [state, setState] = useState(initialState);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setState(initialState);
-  }, [initialState]);
-
   const remaining = Math.max(0, state.threshold - state.count);
   const progressPercent =
     state.threshold > 0
@@ -231,7 +277,6 @@ function SourceRevealMiniVote({
   const countLabel = formatNumber(state.count, locale);
   const thresholdLabel = formatNumber(state.threshold, locale);
   const remainingLabel = formatNumber(remaining, locale);
-  const isLoggedIn = Boolean(memberSession.email) || state.requestedByViewer;
   const statusLabel = state.unlocked
     ? copy.sourceOpenDone
     : copy.sourceOpenStatus(countLabel, thresholdLabel, remainingLabel);
@@ -242,69 +287,19 @@ function SourceRevealMiniVote({
       : isSaving
         ? copy.voteSaving
         : copy.voteCta;
-
-  const updateSourceReveal = useCallback(
-    (nextState: FanletterNewsSourceRevealState) => {
-      setState(nextState);
-      window.dispatchEvent(
-        new CustomEvent<FanletterNewsSourceRevealStateChangeDetail>(
-          FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
-          {
-            detail: {
-              endpoint,
-              reportId,
-              state: nextState,
-            },
-          },
-        ),
-      );
-    },
-    [endpoint, reportId],
-  );
-
-  const handleVote = useCallback(async () => {
-    if (isSaving || state.requestedByViewer || state.unlocked) {
-      return;
-    }
-
-    setIsSaving(true);
-    setError(null);
-
-    try {
-      const response = await fetch(endpoint, {
-        headers: {
-          Accept: "application/json",
-        },
-        method: "POST",
-      });
-      const data = (await response.json()) as unknown;
-
-      if (!response.ok || !isSourceRevealResponse(data)) {
-        throw new Error(copy.voteFailed);
-      }
-
-      updateSourceReveal(data.sourceReveal);
-    } catch {
-      setError(copy.voteFailed);
-    } finally {
-      setIsSaving(false);
-    }
-  }, [
-    copy.voteFailed,
-    endpoint,
-    isSaving,
-    state.requestedByViewer,
-    state.unlocked,
-    updateSourceReveal,
-  ]);
-
   const buttonClassName =
     "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-[0.66rem] font-black transition sm:h-9 sm:px-4 sm:text-xs";
   const disabledButtonClassName =
     "bg-white/12 text-white/62 ring-1 ring-white/10";
 
   return (
-    <div className="mt-3 max-w-[30rem] rounded-[1.05rem] border border-white/12 bg-black/30 p-2.5 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md sm:mt-4 sm:p-3">
+    <div
+      className={`mt-3 max-w-[30rem] rounded-[1.05rem] border border-white/12 bg-black/30 p-2.5 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md transition sm:mt-4 sm:p-3 ${
+        authNudge
+          ? "scale-[1.015] border-[#44f26e]/55 ring-2 ring-[#44f26e]/28"
+          : ""
+      }`}
+    >
       <div className="flex items-center gap-2.5">
         <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/16 text-[#44f26e] ring-1 ring-[#44f26e]/20 sm:size-9">
           {state.unlocked ? (
@@ -334,7 +329,7 @@ function SourceRevealMiniVote({
           <button
             className={`${buttonClassName} bg-[#44f26e] text-[#101510] shadow-[0_10px_22px_rgba(0,0,0,0.2)] hover:bg-[#67ff88] disabled:cursor-wait disabled:bg-[#44f26e]/70`}
             disabled={isSaving}
-            onClick={() => void handleVote()}
+            onClick={onVote}
             type="button"
           >
             {isSaving ? (
@@ -392,7 +387,23 @@ function FeedSlide({
   referralCode: string | null;
 }) {
   const [activeCutIndex, setActiveCutIndex] = useState(0);
-  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [sourceRevealState, setSourceRevealState] = useState(item.sourceReveal);
+  const [isSourceRevealSaving, setIsSourceRevealSaving] = useState(false);
+  const [sourceRevealError, setSourceRevealError] = useState<string | null>(null);
+  const [tapFeedback, setTapFeedback] =
+    useState<SourceRevealTapFeedback | null>(null);
+  const [authNudge, setAuthNudge] = useState(false);
+  const memberSession = useMemberSession();
+  const pointerStartRef = useRef<{
+    target: EventTarget | null;
+    x: number;
+    y: number;
+  } | null>(null);
+  const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
+  const tapFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const authNudgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const copy = getCopy(locale);
   const { report } = item;
   const title = getFanletterNewsBareArticleDisplayTitle(report.title);
@@ -423,9 +434,154 @@ function FeedSlide({
     referralCode,
     reporterReferralCode: report.reporterReferralCode,
   });
+  const isSourceRevealLoggedIn =
+    Boolean(memberSession.email) || sourceRevealState.requestedByViewer;
   const cuts = item.cuts.length > 0 ? item.cuts : [item.leadCut];
   const cutCount = cuts.length;
   const activeCutLabel = `${formatNumber(activeCutIndex + 1, locale)} / ${formatNumber(cutCount, locale)}`;
+
+  useEffect(() => {
+    setSourceRevealState(item.sourceReveal);
+    setSourceRevealError(null);
+  }, [item.sourceReveal]);
+
+  useEffect(() => {
+    return () => {
+      if (tapFeedbackTimeoutRef.current) {
+        clearTimeout(tapFeedbackTimeoutRef.current);
+      }
+
+      if (authNudgeTimeoutRef.current) {
+        clearTimeout(authNudgeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const showTapFeedback = useCallback((label: string) => {
+    const id = Date.now();
+
+    if (tapFeedbackTimeoutRef.current) {
+      clearTimeout(tapFeedbackTimeoutRef.current);
+    }
+
+    setTapFeedback({ id, label });
+    tapFeedbackTimeoutRef.current = setTimeout(() => {
+      setTapFeedback((currentFeedback) =>
+        currentFeedback?.id === id ? null : currentFeedback,
+      );
+    }, DOUBLE_TAP_FEEDBACK_MS);
+  }, []);
+
+  const nudgeLoginVote = useCallback(() => {
+    if (authNudgeTimeoutRef.current) {
+      clearTimeout(authNudgeTimeoutRef.current);
+    }
+
+    setAuthNudge(true);
+    authNudgeTimeoutRef.current = setTimeout(() => {
+      setAuthNudge(false);
+    }, DOUBLE_TAP_FEEDBACK_MS);
+  }, []);
+
+  const updateSourceReveal = useCallback(
+    (nextState: FanletterNewsSourceRevealState) => {
+      setSourceRevealState(nextState);
+      window.dispatchEvent(
+        new CustomEvent<FanletterNewsSourceRevealStateChangeDetail>(
+          FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
+          {
+            detail: {
+              endpoint: sourceRevealEndpoint,
+              reportId: report.reportId,
+              state: nextState,
+            },
+          },
+        ),
+      );
+    },
+    [report.reportId, sourceRevealEndpoint],
+  );
+
+  const submitSourceRevealVote = useCallback(async () => {
+    if (
+      isSourceRevealSaving ||
+      sourceRevealState.requestedByViewer ||
+      sourceRevealState.unlocked
+    ) {
+      return false;
+    }
+
+    if (!isSourceRevealLoggedIn) {
+      nudgeLoginVote();
+      return false;
+    }
+
+    setIsSourceRevealSaving(true);
+    setSourceRevealError(null);
+
+    try {
+      const response = await fetch(sourceRevealEndpoint, {
+        headers: {
+          Accept: "application/json",
+        },
+        method: "POST",
+      });
+      const data = (await response.json()) as unknown;
+
+      if (!response.ok || !isSourceRevealResponse(data)) {
+        throw new Error(copy.voteFailed);
+      }
+
+      updateSourceReveal(data.sourceReveal);
+      return true;
+    } catch {
+      setSourceRevealError(copy.voteFailed);
+      return false;
+    } finally {
+      setIsSourceRevealSaving(false);
+    }
+  }, [
+    copy.voteFailed,
+    isSourceRevealLoggedIn,
+    isSourceRevealSaving,
+    nudgeLoginVote,
+    sourceRevealEndpoint,
+    sourceRevealState.requestedByViewer,
+    sourceRevealState.unlocked,
+    updateSourceReveal,
+  ]);
+
+  const handleSourceRevealDoubleTap = useCallback(() => {
+    if (sourceRevealState.unlocked) {
+      showTapFeedback(copy.doubleTapOpen);
+      return;
+    }
+
+    if (sourceRevealState.requestedByViewer) {
+      showTapFeedback(copy.doubleTapDone);
+      return;
+    }
+
+    if (!isSourceRevealLoggedIn) {
+      showTapFeedback(copy.doubleTapLogin);
+      nudgeLoginVote();
+      return;
+    }
+
+    showTapFeedback(copy.doubleTapWant);
+    void submitSourceRevealVote();
+  }, [
+    copy.doubleTapDone,
+    copy.doubleTapLogin,
+    copy.doubleTapOpen,
+    copy.doubleTapWant,
+    isSourceRevealLoggedIn,
+    nudgeLoginVote,
+    showTapFeedback,
+    sourceRevealState.requestedByViewer,
+    sourceRevealState.unlocked,
+    submitSourceRevealVote,
+  ]);
   const goToPreviousCut = useCallback(() => {
     setActiveCutIndex((currentIndex) =>
       cutCount > 0 ? (currentIndex - 1 + cutCount) % cutCount : currentIndex,
@@ -437,7 +593,7 @@ function FeedSlide({
     );
   }, [cutCount]);
   const handlePointerEnd = useCallback(
-    (clientX: number, clientY: number) => {
+    (event: ReactPointerEvent<HTMLElement>) => {
       const pointerStart = pointerStartRef.current;
 
       pointerStartRef.current = null;
@@ -446,20 +602,61 @@ function FeedSlide({
         return;
       }
 
-      const deltaX = clientX - pointerStart.x;
-      const deltaY = clientY - pointerStart.y;
+      const deltaX = event.clientX - pointerStart.x;
+      const deltaY = event.clientY - pointerStart.y;
+      const travelDistance = getDistance({
+        endX: event.clientX,
+        endY: event.clientY,
+        startX: pointerStart.x,
+        startY: pointerStart.y,
+      });
 
-      if (Math.abs(deltaX) < 44 || Math.abs(deltaX) < Math.abs(deltaY) * 1.1) {
+      if (Math.abs(deltaX) >= 44 && Math.abs(deltaX) >= Math.abs(deltaY) * 1.1) {
+        lastTapRef.current = null;
+
+        if (deltaX > 0) {
+          goToPreviousCut();
+        } else {
+          goToNextCut();
+        }
+
         return;
       }
 
-      if (deltaX > 0) {
-        goToPreviousCut();
-      } else {
-        goToNextCut();
+      if (
+        travelDistance > DOUBLE_TAP_MOVE_TOLERANCE_PX ||
+        event.pointerType === "mouse" ||
+        isInteractiveTarget(pointerStart.target) ||
+        isInteractiveTarget(event.target)
+      ) {
+        return;
       }
+
+      const now = window.performance.now();
+      const previousTap = lastTapRef.current;
+
+      if (
+        previousTap &&
+        now - previousTap.time <= DOUBLE_TAP_DELAY_MS &&
+        getDistance({
+          endX: event.clientX,
+          endY: event.clientY,
+          startX: previousTap.x,
+          startY: previousTap.y,
+        }) <= DOUBLE_TAP_DISTANCE_TOLERANCE_PX
+      ) {
+        lastTapRef.current = null;
+        handleSourceRevealDoubleTap();
+        return;
+      }
+
+      lastTapRef.current = {
+        time: now,
+        x: event.clientX,
+        y: event.clientY,
+      };
     },
-    [goToNextCut, goToPreviousCut],
+    [goToNextCut, goToPreviousCut, handleSourceRevealDoubleTap],
   );
 
   return (
@@ -471,12 +668,13 @@ function FeedSlide({
       }}
       onPointerDown={(event) => {
         pointerStartRef.current = {
+          target: event.target,
           x: event.clientX,
           y: event.clientY,
         };
       }}
       onPointerUp={(event) => {
-        handlePointerEnd(event.clientX, event.clientY);
+        handlePointerEnd(event);
       }}
     >
       <div className="absolute inset-0 overflow-hidden">
@@ -576,6 +774,24 @@ function FeedSlide({
         <ChevronRight className="size-6" />
       </button>
 
+      {tapFeedback ? (
+        <div
+          aria-live="polite"
+          className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center sm:hidden"
+          key={tapFeedback.id}
+        >
+          <div className="relative flex flex-col items-center justify-center">
+            <span className="absolute size-28 rounded-full bg-[#44f26e]/22 animate-ping" />
+            <div className="relative flex size-24 animate-[bounce_760ms_ease-out_1] flex-col items-center justify-center rounded-full bg-black/58 text-[#44f26e] shadow-[0_24px_64px_rgba(0,0,0,0.36)] ring-2 ring-[#44f26e]/45 backdrop-blur-xl">
+              <HeartHandshake className="size-9" />
+              <span className="mt-1 text-[0.68rem] font-black">
+                {tapFeedback.label}
+              </span>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       <div className="relative z-10 flex min-h-[100dvh] items-end px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+7.6rem)] sm:px-6 sm:pb-7 lg:px-8">
         <section className="mx-auto flex w-full max-w-7xl flex-col justify-end">
           <div className="max-w-3xl">
@@ -604,12 +820,15 @@ function FeedSlide({
 
           <div className="mt-3 sm:mt-5">
             <SourceRevealMiniVote
+              authNudge={authNudge}
               connectHref={sourceRevealConnectHref}
               copy={copy}
-              endpoint={sourceRevealEndpoint}
-              initialState={item.sourceReveal}
+              error={sourceRevealError}
+              isLoggedIn={isSourceRevealLoggedIn}
+              isSaving={isSourceRevealSaving}
               locale={locale}
-              reportId={report.reportId}
+              onVote={() => void submitSourceRevealVote()}
+              state={sourceRevealState}
             />
             <div className="mt-2 grid max-w-[30rem] grid-cols-2 gap-2 sm:flex">
               <Link
