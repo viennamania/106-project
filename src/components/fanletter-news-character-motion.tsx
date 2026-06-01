@@ -19,13 +19,18 @@ type FanletterNewsCountUpProps = {
 
 export type FanletterNewsCharacterProfileMarqueeItem = {
   href: string;
-  imageUrl: string | null;
+  imageUrl?: string | null;
+  imageUrls?: string[];
   name: string;
   rankLabel: string;
   score: number;
   signalLabel: string;
   unoptimized?: boolean;
+  unoptimizedImageUrls?: string[];
 };
+
+const PROFILE_IMAGE_SLIDE_INTERVAL_MS = 3400;
+const PROFILE_IMAGE_CROSSFADE_MS = 680;
 
 function easeOutCubic(progress: number) {
   return 1 - Math.pow(1 - progress, 3);
@@ -125,6 +130,132 @@ export function FanletterNewsCountUp({
   );
 }
 
+function getNormalizedImageUrls(imageUrls: string[]) {
+  const uniqueUrls = new Set<string>();
+
+  return imageUrls
+    .map((imageUrl) => imageUrl.trim())
+    .filter((imageUrl) => {
+      if (!imageUrl || uniqueUrls.has(imageUrl)) {
+        return false;
+      }
+
+      uniqueUrls.add(imageUrl);
+      return true;
+    });
+}
+
+export function FanletterNewsCharacterProfileImageSlider({
+  alt,
+  imageClassName = "h-full w-full object-cover",
+  imageUrls,
+  intervalMs = PROFILE_IMAGE_SLIDE_INTERVAL_MS,
+  loading,
+  sizes,
+  unoptimizedImageUrls = [],
+}: {
+  alt: string;
+  imageClassName?: string;
+  imageUrls: string[];
+  intervalMs?: number;
+  loading?: "eager" | "lazy";
+  sizes: string;
+  unoptimizedImageUrls?: string[];
+}) {
+  const normalizedImageUrls = useMemo(
+    () => getNormalizedImageUrls(imageUrls),
+    [imageUrls],
+  );
+  const unoptimizedUrlSet = useMemo(
+    () => new Set(unoptimizedImageUrls.map((imageUrl) => imageUrl.trim())),
+    [unoptimizedImageUrls],
+  );
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [previousIndex, setPreviousIndex] = useState<number | null>(null);
+  const [paused, setPaused] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncReduceMotion = () => setReduceMotion(query.matches);
+
+    syncReduceMotion();
+    query.addEventListener("change", syncReduceMotion);
+
+    return () => query.removeEventListener("change", syncReduceMotion);
+  }, []);
+
+  useEffect(() => {
+    if (previousIndex === null) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(
+      () => setPreviousIndex(null),
+      PROFILE_IMAGE_CROSSFADE_MS,
+    );
+
+    return () => window.clearTimeout(timeoutId);
+  }, [previousIndex]);
+
+  useEffect(() => {
+    if (normalizedImageUrls.length <= 1 || paused || reduceMotion) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setActiveIndex((currentIndex) => {
+        setPreviousIndex(currentIndex);
+        return (currentIndex + 1) % normalizedImageUrls.length;
+      });
+    }, Math.max(1800, intervalMs));
+
+    return () => window.clearInterval(intervalId);
+  }, [intervalMs, normalizedImageUrls.length, paused, reduceMotion]);
+
+  if (normalizedImageUrls.length === 0) {
+    return null;
+  }
+
+  const safeActiveIndex = activeIndex % normalizedImageUrls.length;
+  const safePreviousIndex =
+    previousIndex === null ? null : previousIndex % normalizedImageUrls.length;
+  const visibleIndexes =
+    safePreviousIndex !== null && safePreviousIndex !== safeActiveIndex
+      ? [safePreviousIndex, safeActiveIndex]
+      : [safeActiveIndex];
+
+  return (
+    <div
+      className="relative h-full w-full overflow-hidden"
+      onBlurCapture={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      {visibleIndexes.map((imageIndex) => {
+        const imageUrl = normalizedImageUrls[imageIndex];
+        const isActive = imageIndex === safeActiveIndex;
+
+        return (
+          <Image
+            alt={alt}
+            className={`${imageClassName} absolute inset-0 transition-[opacity,transform] duration-700 ${
+              isActive ? "opacity-100 scale-100" : "opacity-0 scale-[1.015]"
+            }`}
+            fill
+            key={`${imageUrl}-${isActive ? "active" : "previous"}`}
+            loading={loading}
+            sizes={sizes}
+            src={imageUrl}
+            unoptimized={unoptimizedUrlSet.has(imageUrl)}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 export function FanletterNewsCharacterProfileMarquee({
   ariaLabel,
   items,
@@ -179,6 +310,18 @@ export function FanletterNewsCharacterProfileMarquee({
       <div className="fanletter-news-character-marquee-track flex w-max gap-2 px-2 py-2">
         {loopItems.map((item, index) => {
           const initial = item.name.trim().charAt(0).toUpperCase() || "A";
+          const imageUrls =
+            item.imageUrls && item.imageUrls.length > 0
+              ? item.imageUrls
+              : item.imageUrl
+                ? [item.imageUrl]
+                : [];
+          const unoptimizedImageUrls =
+            item.unoptimizedImageUrls && item.unoptimizedImageUrls.length > 0
+              ? item.unoptimizedImageUrls
+              : item.unoptimized && item.imageUrl
+                ? [item.imageUrl]
+                : [];
 
           return (
             <Link
@@ -187,14 +330,14 @@ export function FanletterNewsCharacterProfileMarquee({
               key={`${item.href}-${index}`}
             >
               <div className="relative size-14 shrink-0 overflow-hidden rounded-full border border-white/18 bg-[#111510]">
-                {item.imageUrl ? (
-                  <Image
+                {imageUrls.length > 0 ? (
+                  <FanletterNewsCharacterProfileImageSlider
                     alt={item.name}
-                    className="object-cover transition duration-300 group-hover:scale-105"
-                    fill
+                    imageClassName="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                    imageUrls={imageUrls}
+                    loading={index === 0 ? "eager" : undefined}
                     sizes="3.5rem"
-                    src={item.imageUrl}
-                    unoptimized={item.unoptimized}
+                    unoptimizedImageUrls={unoptimizedImageUrls}
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-lg font-black text-white/70">

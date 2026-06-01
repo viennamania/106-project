@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import {
+  FanletterNewsCharacterProfileImageSlider,
   FanletterNewsCharacterProfileMarquee,
   FanletterNewsCountUp,
   type FanletterNewsCharacterProfileMarqueeItem,
@@ -322,6 +323,20 @@ function getCharacterSignalLabel(
   return copy.signal.news;
 }
 
+function getCharacterProfileImageUrls(character: FanletterNewsCharacterStat) {
+  if (character.profileImageUrls.length > 0) {
+    return character.profileImageUrls;
+  }
+
+  return character.avatarImageUrl ? [character.avatarImageUrl] : [];
+}
+
+function getUnoptimizedCharacterProfileImageUrls(imageUrls: string[]) {
+  return imageUrls.filter((imageUrl) =>
+    shouldBypassFanletterImageOptimization(imageUrl),
+  );
+}
+
 function getAccessLabel(
   report: FanletterNewsReportDocument,
   copy: ReturnType<typeof getCopy>,
@@ -456,19 +471,20 @@ function NewsCharacterAvatar({
   className?: string;
   sizes?: string;
 }) {
+  const imageUrls = getCharacterProfileImageUrls(character);
+
   return (
     <div
       className={`relative shrink-0 overflow-hidden rounded-full border border-black/10 bg-[#111510] ${className}`}
     >
-      {character.avatarImageUrl ? (
-        <Image
+      {imageUrls.length > 0 ? (
+        <FanletterNewsCharacterProfileImageSlider
           alt={character.name}
-          className="h-full w-full object-cover"
-          fill
+          imageClassName="h-full w-full object-cover"
+          imageUrls={imageUrls}
           sizes={sizes}
-          src={character.avatarImageUrl}
-          unoptimized={shouldBypassFanletterImageOptimization(
-            character.avatarImageUrl,
+          unoptimizedImageUrls={getUnoptimizedCharacterProfileImageUrls(
+            imageUrls,
           )}
         />
       ) : (
@@ -491,18 +507,19 @@ function NewsCharacterPortrait({
   eager?: boolean;
   sizes: string;
 }) {
+  const imageUrls = getCharacterProfileImageUrls(character);
+
   return (
     <div className={`relative overflow-hidden bg-[#111510] ${className}`}>
-      {character.avatarImageUrl ? (
-        <Image
+      {imageUrls.length > 0 ? (
+        <FanletterNewsCharacterProfileImageSlider
           alt={character.name}
-          className="h-full w-full object-cover"
-          fill
+          imageClassName="h-full w-full object-cover"
+          imageUrls={imageUrls}
           loading={eager ? "eager" : undefined}
           sizes={sizes}
-          src={character.avatarImageUrl}
-          unoptimized={shouldBypassFanletterImageOptimization(
-            character.avatarImageUrl,
+          unoptimizedImageUrls={getUnoptimizedCharacterProfileImageUrls(
+            imageUrls,
           )}
         />
       ) : (
@@ -1227,7 +1244,7 @@ export default async function LocalizedFanletterNewsCharactersPage({
   const topCharacters = characters.slice(0, 3);
   const profileMarqueeItems: FanletterNewsCharacterProfileMarqueeItem[] =
     characters.slice(0, 10).map((character, index) => {
-      const imageUrl = character.avatarImageUrl;
+      const imageUrls = getCharacterProfileImageUrls(character);
 
       return {
         href: getCharacterChannelHref({
@@ -1235,14 +1252,15 @@ export default async function LocalizedFanletterNewsCharactersPage({
           locale,
           referralCode,
         }),
-        imageUrl,
+        imageUrl: imageUrls[0] ?? null,
+        imageUrls,
         name: character.name,
         rankLabel: copy.rankLabel(index + 1),
         score: getCharacterIpScore(character),
         signalLabel: getCharacterSignalLabel(character, copy),
-        unoptimized: imageUrl
-          ? shouldBypassFanletterImageOptimization(imageUrl)
-          : undefined,
+        unoptimizedImageUrls: getUnoptimizedCharacterProfileImageUrls(
+          imageUrls,
+        ),
       };
     });
 

@@ -2,6 +2,7 @@ import type { Filter } from "mongodb";
 
 import {
   normalizeContentLocale,
+  type CreatorProfileDocument,
   type ContentPostDocument,
   type FanletterNewsReportDocument,
 } from "@/lib/content";
@@ -28,6 +29,7 @@ export type FanletterNewsCharacterStat = {
   name: string;
   newsCount: number;
   nsfwCount: number;
+  profileImageUrls: string[];
   publicCount: number;
   publicVideoCount: number;
   referralCode: string;
@@ -73,6 +75,57 @@ function getReportSortTime(report: FanletterNewsReportDocument) {
     report.updatedAt?.getTime() ??
     0
   );
+}
+
+function getStableProfileImageScore(seed: string, url: string) {
+  let hash = 2166136261;
+  const value = `${seed}:${url}`;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+}
+
+function getUniqueProfileImageUrls(urls: Array<string | null | undefined>) {
+  const uniqueUrls = new Set<string>();
+
+  return urls
+    .map((url) => url?.trim() ?? "")
+    .filter((url) => {
+      if (!url || uniqueUrls.has(url)) {
+        return false;
+      }
+
+      uniqueUrls.add(url);
+      return true;
+    });
+}
+
+function getCharacterProfileImageUrls(
+  profile:
+    | Pick<CreatorProfileDocument, "avatarImageSet" | "avatarImageUrl">
+    | null
+    | undefined,
+  referralCode: string,
+) {
+  const primaryImageUrl =
+    profile?.avatarImageSet?.[0]?.url ?? profile?.avatarImageUrl ?? null;
+  const shuffledSetUrls = [...(profile?.avatarImageSet ?? [])]
+    .map((candidate) => candidate.url)
+    .sort(
+      (left, right) =>
+        getStableProfileImageScore(referralCode, left) -
+        getStableProfileImageScore(referralCode, right),
+    );
+
+  return getUniqueProfileImageUrls([
+    primaryImageUrl,
+    ...shuffledSetUrls,
+    profile?.avatarImageUrl,
+  ]).slice(0, 5);
 }
 
 function getReportTeaserScore(report: FanletterNewsReportDocument) {
@@ -178,6 +231,7 @@ export function getFanletterNewsCharacterStats(
         name: report.creatorName.trim() || referralCode,
         newsCount: 1,
         nsfwCount: report.contentMaturityRating === "nsfw" ? 1 : 0,
+        profileImageUrls: [],
         publicCount: report.priceType === "free" ? 1 : 0,
         publicVideoCount: 0,
         referralCode,
@@ -217,6 +271,7 @@ export function getFanletterNewsCharacterStats(
       newsCount: existing.newsCount + 1,
       nsfwCount:
         existing.nsfwCount + (report.contentMaturityRating === "nsfw" ? 1 : 0),
+      profileImageUrls: existing.profileImageUrls,
       publicCount:
         existing.publicCount + (report.priceType === "free" ? 1 : 0),
       publicVideoCount: existing.publicVideoCount,
@@ -419,6 +474,10 @@ export async function hydrateFanletterNewsCharacterStats(
     const profile = profilesByReferralCode.get(character.referralCode);
     const avatarImageUrl =
       profile?.avatarImageSet?.[0]?.url ?? profile?.avatarImageUrl ?? null;
+    const profileImageUrls = getCharacterProfileImageUrls(
+      profile,
+      character.referralCode,
+    );
     const profileName =
       profile?.characterPersona?.name?.trim() || profile?.displayName?.trim();
     const videoMetrics = videoMetricsByReferralCode.get(character.referralCode);
@@ -427,6 +486,7 @@ export async function hydrateFanletterNewsCharacterStats(
       ...character,
       avatarImageUrl,
       name: profileName || character.name,
+      profileImageUrls,
       publicVideoCount: videoMetrics?.publicVideoCount ?? 0,
       sourceRevealUnlockedCount:
         videoMetrics?.sourceRevealUnlockedCount ?? 0,
