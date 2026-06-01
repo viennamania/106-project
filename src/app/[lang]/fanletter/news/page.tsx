@@ -1744,15 +1744,15 @@ function WireBriefStory({
 
   return (
     <Link
-      className="group grid grid-cols-[5.5rem_minmax(0,1fr)] gap-3 py-3 first:pt-0 last:pb-0"
+      className="group grid grid-cols-[7.75rem_minmax(0,1fr)] gap-3 py-3 first:pt-0 last:pb-0 sm:grid-cols-[9.25rem_minmax(0,1fr)]"
       href={getReportHref(report, referralCode)}
     >
       <NewsImage
         blurred={shouldBlur}
-        className="aspect-[4/5] border border-white/12"
+        className="aspect-video self-start border border-white/12"
         nsfwLabel={nsfwCopy.badge}
         report={report}
-        sizes="5.5rem"
+        sizes="(max-width: 640px) 7.75rem, 9.25rem"
       />
       <div className="min-w-0">
         <div className="flex flex-wrap gap-2 text-[0.62rem] font-black uppercase tracking-[0.1em]">
