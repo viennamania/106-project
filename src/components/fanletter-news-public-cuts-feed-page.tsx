@@ -170,16 +170,20 @@ function CutThumbnail({
   const slotNumber = cut.slotNumber.toString().padStart(2, "0");
 
   return (
-    <div className="relative aspect-[9/16] min-w-20 overflow-hidden rounded-lg border border-white/16 bg-white/8 shadow-[0_12px_30px_rgba(0,0,0,0.26)] sm:min-w-24">
+    <div className="relative aspect-[9/16] w-full min-w-0 overflow-hidden rounded-lg border border-white/22 bg-black/48 shadow-[0_14px_34px_rgba(0,0,0,0.34)] ring-1 ring-black/28">
       <Image
         alt={`${title} ${copy.slot(slotNumber)}`}
-        className={blurred ? "object-cover blur-md brightness-50" : "object-cover"}
+        className={
+          blurred
+            ? "scale-105 object-cover blur-md brightness-50"
+            : "object-cover contrast-[1.04] saturate-[1.04]"
+        }
         fill
-        sizes="6rem"
+        sizes="(max-width: 640px) 22vw, (max-width: 1024px) 8rem, 12rem"
         src={cut.imageUrl}
         unoptimized={shouldBypassFanletterImageOptimization(cut.imageUrl)}
       />
-      <span className="absolute bottom-1.5 left-1.5 rounded-full bg-black/72 px-2 py-1 text-[0.58rem] font-black text-white">
+      <span className="absolute bottom-1.5 left-1.5 rounded-full bg-black/78 px-2 py-1 text-[0.58rem] font-black text-white shadow-[0_8px_18px_rgba(0,0,0,0.3)]">
         {slotNumber}
       </span>
     </div>
@@ -241,8 +245,8 @@ function FeedSlide({
           aria-hidden="true"
           className={
             isNsfw
-              ? "scale-110 object-cover blur-2xl brightness-[0.34] saturate-[0.7]"
-              : "object-cover brightness-[0.72]"
+              ? "scale-[1.18] object-cover blur-3xl brightness-[0.24] saturate-[0.62]"
+              : "scale-[1.12] object-cover blur-xl brightness-[0.48] saturate-[0.9]"
           }
           fill
           priority={index < 2}
@@ -252,8 +256,8 @@ function FeedSlide({
             item.leadCut.imageUrl,
           )}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/58 via-black/10 to-black/86" />
-        <div className="absolute inset-x-0 bottom-0 h-[58%] bg-gradient-to-t from-black via-black/62 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/68 via-black/26 to-black/86" />
+        <div className="absolute inset-x-0 bottom-0 h-[66%] bg-gradient-to-t from-black via-black/74 to-transparent" />
       </div>
 
       <div className="relative z-10 mx-auto grid min-h-[100dvh] max-w-7xl grid-rows-[1fr_auto] gap-5 px-4 pb-[calc(env(safe-area-inset-bottom)+1.1rem)] pt-[calc(env(safe-area-inset-top)+5.4rem)] sm:px-6 sm:pb-7 lg:grid-cols-[minmax(0,1fr)_24rem] lg:grid-rows-1 lg:items-end lg:px-8">
@@ -322,7 +326,7 @@ function FeedSlide({
           </div>
         </section>
 
-        <aside className="min-w-0 rounded-2xl border border-white/14 bg-black/36 p-3 shadow-[0_18px_42px_rgba(0,0,0,0.32)] backdrop-blur-xl lg:p-4">
+        <aside className="min-w-0 rounded-2xl border border-white/18 bg-black/56 p-2.5 shadow-[0_20px_50px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-3 lg:p-4">
           <div className="mb-3 flex items-center justify-between gap-3">
             <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
               {copy.title}
@@ -335,7 +339,7 @@ function FeedSlide({
               <ArrowRight className="size-4" />
             </Link>
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] lg:grid lg:grid-cols-2 lg:overflow-visible lg:pb-0 [&::-webkit-scrollbar]:hidden">
+          <div className="grid grid-cols-4 gap-2 lg:grid-cols-2 lg:gap-3">
             {item.cuts.map((cut) => (
               <CutThumbnail
                 blurred={isNsfw}
