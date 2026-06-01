@@ -11,6 +11,7 @@ import {
 } from "react";
 import {
   ArrowLeft,
+  Check,
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
@@ -19,6 +20,7 @@ import {
   Loader2,
   LockKeyhole,
   PenLine,
+  Share2,
   Sparkles,
   UserRound,
 } from "lucide-react";
@@ -38,8 +40,10 @@ import {
   FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
   type FanletterNewsSourceRevealStateChangeDetail,
 } from "@/lib/fanletter-news-source-reveal-events";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { Locale } from "@/lib/i18n";
 import { buildPathWithReferral, setPathSearchParams } from "@/lib/landing-branding";
+import { createShareId, setShareIdOnHref } from "@/lib/share-tracking";
 
 const DOUBLE_TAP_DELAY_MS = 320;
 const DOUBLE_TAP_MOVE_TOLERANCE_PX = 14;
@@ -71,6 +75,13 @@ function getCopy(locale: Locale) {
         paid: "팬 전용 원본",
         previousCut: "이전 컷",
         reporter: "팬 기자",
+        share: "공유하기",
+        shareCopied: "링크 복사됨",
+        shareError: "공유 실패",
+        shareSharing: "공유 중",
+        shareSummary: (headline: string, reporterName: string) =>
+          `팬 기자 ${reporterName}가 고른 ${headline} 4컷을 확인해보세요.`,
+        shareTitle: (headline: string) => `팬 기자가 편집한 4컷: ${headline}`,
         slot: (index: string) => `컷 ${index}`,
         sourceOpen: "팬 오픈 투표",
         sourceOpenDone: "원본 공개 완료",
@@ -109,6 +120,13 @@ function getCopy(locale: Locale) {
         paid: "Fan-only source",
         previousCut: "Previous cut",
         reporter: "Fan reporter",
+        share: "Share",
+        shareCopied: "Link copied",
+        shareError: "Share failed",
+        shareSharing: "Sharing",
+        shareSummary: (headline: string, reporterName: string) =>
+          `See the four cuts ${reporterName} selected for ${headline}.`,
+        shareTitle: (headline: string) => `Four cuts edited by a fan reporter: ${headline}`,
         slot: (index: string) => `Cut ${index}`,
         sourceOpen: "Fan-open vote",
         sourceOpenDone: "Source open",
@@ -234,6 +252,8 @@ type SourceRevealResponse = {
   sourceReveal: FanletterNewsSourceRevealState;
 };
 
+type ShareState = "copied" | "error" | "idle" | "sharing";
+
 type SourceRevealTapFeedback = {
   id: number;
   label: string;
@@ -245,6 +265,153 @@ function isSourceRevealResponse(value: unknown): value is SourceRevealResponse {
     value !== null &&
     "sourceReveal" in value &&
     typeof (value as SourceRevealResponse).sourceReveal?.count === "number"
+  );
+}
+
+async function copyToClipboard(value: string) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(value);
+      return;
+    } catch {}
+  }
+
+  const textarea = document.createElement("textarea");
+
+  textarea.value = value;
+  textarea.setAttribute("readonly", "true");
+  textarea.style.left = "-9999px";
+  textarea.style.position = "fixed";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  document.body.removeChild(textarea);
+}
+
+function CutFeedShareButton({
+  copy,
+  href,
+  previewImageKind,
+  referralCode,
+  reportId,
+  shareSummary,
+  shareTitle,
+}: {
+  copy: Pick<
+    ReturnType<typeof getCopy>,
+    "share" | "shareCopied" | "shareError" | "shareSharing"
+  >;
+  href: string;
+  previewImageKind: "cover" | "leadCut";
+  referralCode: string | null;
+  reportId: string;
+  shareSummary: string;
+  shareTitle: string;
+}) {
+  const [state, setState] = useState<ShareState>("idle");
+
+  useEffect(() => {
+    if (state !== "copied" && state !== "error") {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => {
+      setState("idle");
+    }, 2200);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [state]);
+
+  const handleShare = useCallback(async () => {
+    const nextShareId = createShareId("newscut");
+    const absoluteHref = new URL(href, window.location.origin).toString();
+    const shareUrl = setShareIdOnHref(absoluteHref, nextShareId);
+
+    trackFunnelEvent("share_click", {
+      metadata: {
+        previewImageKind,
+        reportId,
+        source: "fanletter-news-cut-feed",
+      },
+      referralCode,
+      shareId: nextShareId,
+      targetHref: shareUrl,
+    });
+
+    if (typeof navigator.share === "function") {
+      setState("sharing");
+
+      try {
+        await navigator.share({
+          text: shareSummary,
+          title: shareTitle,
+          url: shareUrl,
+        });
+        setState("idle");
+        return;
+      } catch (error) {
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "name" in error &&
+          error.name === "AbortError"
+        ) {
+          setState("idle");
+          return;
+        }
+      }
+    }
+
+    try {
+      await copyToClipboard(shareUrl);
+      setState("copied");
+    } catch {
+      setState("error");
+    }
+  }, [
+    href,
+    previewImageKind,
+    referralCode,
+    reportId,
+    shareSummary,
+    shareTitle,
+  ]);
+
+  const label =
+    state === "copied"
+      ? copy.shareCopied
+      : state === "error"
+        ? copy.shareError
+        : state === "sharing"
+          ? copy.shareSharing
+          : copy.share;
+  const isCopied = state === "copied";
+
+  return (
+    <button
+      aria-label={label}
+      className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full border text-white shadow-[0_10px_24px_rgba(0,0,0,0.2)] backdrop-blur transition hover:bg-white hover:text-[#111510] disabled:cursor-wait disabled:opacity-80 sm:size-9 ${
+        isCopied
+          ? "border-[#44f26e]/50 bg-[#44f26e] !text-[#101510]"
+          : "border-white/16 bg-black/44"
+      }`}
+      disabled={state === "sharing"}
+      onClick={() => {
+        void handleShare();
+      }}
+      title={label}
+      type="button"
+    >
+      {state === "sharing" ? (
+        <Loader2 className="size-4 animate-spin" />
+      ) : isCopied ? (
+        <Check className="size-4" />
+      ) : (
+        <Share2 className="size-4" />
+      )}
+    </button>
   );
 }
 
@@ -439,6 +606,9 @@ function FeedSlide({
   const cuts = item.cuts.length > 0 ? item.cuts : [item.leadCut];
   const cutCount = cuts.length;
   const activeCutLabel = `${formatNumber(activeCutIndex + 1, locale)} / ${formatNumber(cutCount, locale)}`;
+  const sharePreviewImageKind = report.coverImageUrl ? "cover" : "leadCut";
+  const shareTitle = copy.shareTitle(title);
+  const shareSummary = copy.shareSummary(title, report.reporterName);
 
   useEffect(() => {
     setSourceRevealState(item.sourceReveal);
@@ -752,9 +922,20 @@ function FeedSlide({
             </span>
           ) : null}
         </div>
-        <span className="rounded-full border border-white/16 bg-black/44 px-3 py-1.5 text-[0.7rem] font-black text-white backdrop-blur">
-          {activeCutLabel}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="rounded-full border border-white/16 bg-black/44 px-3 py-1.5 text-[0.7rem] font-black text-white backdrop-blur">
+            {activeCutLabel}
+          </span>
+          <CutFeedShareButton
+            copy={copy}
+            href={cutFeedHref}
+            previewImageKind={sharePreviewImageKind}
+            referralCode={referralCode}
+            reportId={report.reportId}
+            shareSummary={shareSummary}
+            shareTitle={shareTitle}
+          />
+        </div>
       </div>
 
       <button

@@ -18,6 +18,7 @@ export type SerializedFanletterNewsPublicCut = {
 
 export type SerializedFanletterNewsPublicCutReport = {
   contentMaturityRating: ContentMaturityRating;
+  coverImageUrl: string | null;
   createdAt: string;
   creatorName: string;
   creatorReferralCode: string | null;

@@ -11,6 +11,7 @@ import { FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE } from "@/lib/fanletter-new
 import { getFanletterNewsReportById } from "@/lib/fanletter-news-report-service";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
+import { buildPathWithReferral } from "@/lib/landing-branding";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsCutDetailSearchParams = {
@@ -40,10 +41,50 @@ export async function generateMetadata({
   const locale = hasLocale(lang) ? (lang as Locale) : defaultLocale;
   const copy = getCopy(locale);
   const report = await getFanletterNewsReportById(reportId);
+  const localizedReport = report?.locale === locale ? report : null;
+  const feedItem = localizedReport
+    ? createFanletterNewsPublicCutFeedItem(localizedReport)
+    : null;
+  const imageUrl =
+    localizedReport?.coverImageUrl ?? feedItem?.leadCut.imageUrl ?? null;
+  const title = localizedReport
+    ? `${localizedReport.title} | ${copy.title}`
+    : copy.title;
+  const description = localizedReport?.dek ?? copy.description;
+  const url = localizedReport
+    ? buildPathWithReferral(
+        `/${locale}/fanletter/news/cuts/${localizedReport.reportId}`,
+        localizedReport.reporterReferralCode,
+      )
+    : `/${locale}/fanletter/news/cuts/${reportId}`;
 
   return {
-    title: report ? `${report.title} | ${copy.title}` : copy.title,
-    description: report?.dek ?? copy.description,
+    title,
+    description,
+    alternates: {
+      canonical: url,
+    },
+    openGraph: {
+      description,
+      images: imageUrl
+        ? [
+            {
+              alt: localizedReport?.title ?? copy.title,
+              url: imageUrl,
+            },
+          ]
+        : undefined,
+      siteName: "FanLetter News",
+      title,
+      type: "article",
+      url,
+    },
+    twitter: {
+      card: imageUrl ? "summary_large_image" : "summary",
+      description,
+      images: imageUrl ? [imageUrl] : undefined,
+      title,
+    },
   };
 }
 
