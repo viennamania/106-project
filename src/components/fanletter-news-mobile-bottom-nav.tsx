@@ -62,6 +62,7 @@ const fanletterNewsTopLevelServiceSegments = new Set([
   "my",
   "platform",
   "purchases",
+  "rewards",
   "reporters",
   "reports",
   "vlogs",
@@ -273,6 +274,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const activatePath = `${basePath}/activate`;
   const myPath = `${basePath}/my`;
   const purchasesPath = `${basePath}/purchases`;
+  const rewardsPath = `${basePath}/rewards`;
   const reportsPath = `${basePath}/reports`;
   const vlogsPath = `${basePath}/vlogs`;
   const walletPath = `${basePath}/wallet`;
@@ -390,7 +392,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     },
     {
       activePath: myPath,
-      activePaths: [myPath, connectPath, activatePath, walletPath],
+      activePaths: [myPath, connectPath, activatePath, walletPath, rewardsPath],
       href: myHref,
       icon: CircleUserRound,
       key: "my",
@@ -428,7 +430,13 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
                 : item.exact
                   ? pathname === item.activePath
                   : item.key === "my"
-                ? pathname === myPath || isWalletServicePath
+                ? pathname === myPath ||
+                  isWalletServicePath ||
+                  activePaths.some(
+                    (activePath) =>
+                      pathname === activePath ||
+                      pathname.startsWith(`${activePath}/`),
+                  )
                 : activePaths.some(
                     (activePath) =>
                       pathname === activePath ||

@@ -21,7 +21,7 @@ import { FanletterNewsReportsSessionBridge } from "@/components/fanletter-news-r
 import { FanletterNewsRolePreferenceControl } from "@/components/fanletter-news-role-preference-control";
 import { getCreatorStudioPostsForMember } from "@/lib/content-service";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
-import { getFanletterNewsReporterIncentiveStats } from "@/lib/fanletter-news-reporter-incentives";
+import { getFanletterNewsMemberRewardsSummary } from "@/lib/fanletter-news-member-rewards";
 import { getFanletterNewsReportsForMember } from "@/lib/fanletter-news-report-service";
 import { getFanletterNewsVlogManageHref } from "@/lib/fanletter-news-vlog-routing";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
@@ -61,7 +61,7 @@ function getCopy(locale: Locale) {
           purchases: "구매함",
           reportDesk: "리포트 관리",
           reportNew: "새 리포트 작성",
-          reportRewards: "리포터 보상",
+          reportRewards: "보상 포인트",
           studio: "브이로그 관리",
           wallet: "전체 지갑 관리",
         },
@@ -69,7 +69,7 @@ function getCopy(locale: Locale) {
           paidPurchases: "구매 기여",
           reports: "작성 리포트",
           reward: "보상 포인트",
-          sourceVotes: "보고싶어요",
+          sourceVotes: "내 참여",
           vlogs: "브이로그",
         },
         title: "내 뉴스 허브 | FanLetter News",
@@ -97,7 +97,7 @@ function getCopy(locale: Locale) {
           purchases: "Purchases",
           reportDesk: "Report desk",
           reportNew: "Create report",
-          reportRewards: "Reporter rewards",
+          reportRewards: "Reward points",
           studio: "Vlog desk",
           wallet: "Wallet management",
         },
@@ -105,7 +105,7 @@ function getCopy(locale: Locale) {
           paidPurchases: "Paid assists",
           reports: "Reports",
           reward: "Reward points",
-          sourceVotes: "Want-to-watch",
+          sourceVotes: "My joins",
           vlogs: "Vlogs",
         },
         title: "My News Hub | FanLetter News",
@@ -207,13 +207,17 @@ export default async function LocalizedFanletterNewsMyPage({
     );
   }
 
-  const [reporterData, creatorData] = await Promise.all([
+  const [reporterData, creatorData, rewardSummary] = await Promise.all([
     getFanletterNewsReportsForMember({
       email: session.email,
       limit: 1,
       locale,
     }),
     readCreatorHubData(session.email, locale),
+    getFanletterNewsMemberRewardsSummary({
+      email: session.email,
+      locale,
+    }),
   ]);
   const effectiveReferralCode =
     referralCode ??
@@ -237,7 +241,7 @@ export default async function LocalizedFanletterNewsMyPage({
     effectiveReferralCode,
   );
   const reportRewardsHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/reporter/rewards`,
+    `/${locale}/fanletter/news/rewards`,
     effectiveReferralCode,
   );
   const purchasesHref = buildPathWithReferral(
@@ -263,11 +267,7 @@ export default async function LocalizedFanletterNewsMyPage({
     ),
     { returnTo: myHref },
   );
-  const incentiveStats = reporterData.member
-    ? await getFanletterNewsReporterIncentiveStats({
-        reporterReferralCode: reporterData.member.referralCode,
-      })
-    : null;
+  const reporterRewardOverview = rewardSummary.reporterRewards.overview;
   const displayName =
     reporterData.member?.displayName ??
     creatorData?.profile.displayName ??
@@ -289,21 +289,18 @@ export default async function LocalizedFanletterNewsMyPage({
     },
     {
       label: copy.stats.sourceVotes,
-      value: formatNumber(
-        incentiveStats?.overview.sourceRevealVoteCount ?? 0,
-        locale,
-      ),
+      value: formatNumber(rewardSummary.overview.fanParticipationCount, locale),
     },
     {
       label: copy.stats.paidPurchases,
       value: formatNumber(
-        incentiveStats?.overview.paidUnlockPurchaseCount ?? 0,
+        reporterRewardOverview.paidUnlockPurchaseCount,
         locale,
       ),
     },
     {
       label: copy.stats.reward,
-      value: `${formatNumber(incentiveStats?.overview.rewardPoints ?? 0, locale)}P`,
+      value: `${formatNumber(rewardSummary.overview.totalRewardPoints, locale)}P`,
     },
   ];
   const actionItems = [
