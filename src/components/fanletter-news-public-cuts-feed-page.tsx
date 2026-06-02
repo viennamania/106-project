@@ -430,6 +430,7 @@ function CutFeedShareButton({
   reportId,
   shareSummary,
   shareTitle,
+  variant = "compact",
 }: {
   copy: Pick<
     ReturnType<typeof getCopy>,
@@ -441,6 +442,7 @@ function CutFeedShareButton({
   reportId: string;
   shareSummary: string;
   shareTitle: string;
+  variant?: "compact" | "reel";
 }) {
   const [state, setState] = useState<ShareState>("idle");
 
@@ -522,15 +524,24 @@ function CutFeedShareButton({
           ? copy.shareSharing
           : copy.share;
   const isCopied = state === "copied";
+  const buttonClassName =
+    variant === "reel"
+      ? `inline-flex size-11 shrink-0 items-center justify-center rounded-full border text-white shadow-[0_14px_30px_rgba(0,0,0,0.26)] backdrop-blur-xl transition hover:bg-white hover:text-[#111510] disabled:cursor-wait disabled:opacity-80 ${
+          isCopied
+            ? "border-[#44f26e]/60 bg-[#44f26e] !text-[#101510]"
+            : "border-white/16 bg-black/46"
+        }`
+      : `inline-flex size-8 shrink-0 items-center justify-center rounded-full border text-white shadow-[0_10px_24px_rgba(0,0,0,0.2)] backdrop-blur transition hover:bg-white hover:text-[#111510] disabled:cursor-wait disabled:opacity-80 ${
+          isCopied
+            ? "border-[#44f26e]/50 bg-[#44f26e] !text-[#101510]"
+            : "border-white/16 bg-black/44"
+        }`;
+  const iconClassName = variant === "reel" ? "size-5" : "size-4";
 
   return (
     <button
       aria-label={label}
-      className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full border text-white shadow-[0_10px_24px_rgba(0,0,0,0.2)] backdrop-blur transition hover:bg-white hover:text-[#111510] disabled:cursor-wait disabled:opacity-80 ${
-        isCopied
-          ? "border-[#44f26e]/50 bg-[#44f26e] !text-[#101510]"
-          : "border-white/16 bg-black/44"
-      }`}
+      className={buttonClassName}
       disabled={state === "sharing"}
       onClick={() => {
         void handleShare();
@@ -539,11 +550,11 @@ function CutFeedShareButton({
       type="button"
     >
       {state === "sharing" ? (
-        <Loader2 className="size-4 animate-spin" />
+        <Loader2 className={`${iconClassName} animate-spin`} />
       ) : isCopied ? (
-        <Check className="size-4" />
+        <Check className={iconClassName} />
       ) : (
-        <Share2 className="size-4" />
+        <Share2 className={iconClassName} />
       )}
     </button>
   );
@@ -1577,8 +1588,82 @@ function FeedSlide({
         y: event.clientY,
       };
     },
-    [goToNextCut, goToPreviousCut, handleSourceRevealDoubleTap, onDismissSwipeGuide],
+    [
+      goToNextCut,
+      goToPreviousCut,
+      handleSourceRevealDoubleTap,
+      onDismissSwipeGuide,
+    ],
   );
+  const handleSourceRailClick = useCallback(() => {
+    if (sourceRevealState.unlocked) {
+      if (sourceContentId) {
+        openSourceOverlay();
+      }
+
+      return;
+    }
+
+    if (sourceRevealState.requestedByViewer) {
+      showTapFeedback(copy.doubleTapDone);
+      return;
+    }
+
+    if (!isSourceRevealLoggedIn) {
+      showTapFeedback(copy.doubleTapLogin);
+      nudgeLoginVote();
+      return;
+    }
+
+    showTapFeedback(copy.doubleTapWant);
+    void submitSourceRevealVote();
+  }, [
+    copy.doubleTapDone,
+    copy.doubleTapLogin,
+    copy.doubleTapWant,
+    isSourceRevealLoggedIn,
+    nudgeLoginVote,
+    openSourceOverlay,
+    showTapFeedback,
+    sourceContentId,
+    sourceRevealState.requestedByViewer,
+    sourceRevealState.unlocked,
+    submitSourceRevealVote,
+  ]);
+  const sourceRailProgressPercent =
+    sourceRevealState.threshold > 0
+      ? Math.min(
+          100,
+          Math.max(
+            0,
+            (sourceRevealState.count / sourceRevealState.threshold) * 100,
+          ),
+        )
+      : 100;
+  const sourceRailCountLabel = `${formatNumber(
+    Math.min(sourceRevealState.count, sourceRevealState.threshold),
+    locale,
+  )}/${formatNumber(sourceRevealState.threshold, locale)}`;
+  const sourceRailLabel = sourceRevealState.unlocked
+    ? copy.sourceView
+    : sourceRevealState.requestedByViewer
+      ? copy.voteDone
+      : copy.voteCta;
+  const sourceRailButtonLabel = `${sourceRailLabel} ${sourceRailCountLabel}`;
+  const SourceRailIcon: LucideIcon = sourceRevealState.unlocked
+    ? PlayCircle
+    : sourceRevealState.requestedByViewer
+      ? CheckCircle2
+      : HeartHandshake;
+  const sourceRailButtonClassName = `inline-flex size-11 items-center justify-center rounded-full border shadow-[0_16px_34px_rgba(0,0,0,0.3)] backdrop-blur-xl transition disabled:cursor-wait disabled:opacity-70 ${
+    sourceRevealState.unlocked
+      ? "border-[#44f26e]/70 bg-[#44f26e] text-[#101510] hover:bg-[#67ff88]"
+      : sourceRevealState.requestedByViewer
+        ? "border-white/28 bg-white/88 text-[#101510] hover:bg-white"
+        : "border-white/18 bg-black/52 text-white hover:bg-[#44f26e] hover:text-[#101510]"
+  }`;
+  const sourceRailDisabled =
+    isSourceRevealSaving || (sourceRevealState.unlocked && !sourceContentId);
 
   return (
     <article
@@ -1680,6 +1765,40 @@ function FeedSlide({
           <span className="rounded-full border border-white/16 bg-black/44 px-3 py-1.5 text-[0.7rem] font-black text-white backdrop-blur">
             {activeCutLabel}
           </span>
+        </div>
+      </div>
+
+      <div className="absolute right-3 top-[48%] z-30 flex -translate-y-1/2 flex-col items-center gap-4 text-white">
+        <div className="flex flex-col items-center gap-1.5">
+          <span
+            className="inline-flex rounded-full p-[2px] shadow-[0_12px_34px_rgba(0,0,0,0.26)]"
+            style={{
+              background: `conic-gradient(#44f26e ${sourceRailProgressPercent}%, rgba(255,255,255,0.18) 0)`,
+            }}
+          >
+            <button
+              aria-label={sourceRailButtonLabel}
+              className={sourceRailButtonClassName}
+              disabled={sourceRailDisabled}
+              onClick={handleSourceRailClick}
+              title={sourceRailButtonLabel}
+              type="button"
+            >
+              {isSourceRevealSaving ? (
+                <Loader2 className="size-5 animate-spin" />
+              ) : (
+                <SourceRailIcon className="size-5" />
+              )}
+            </button>
+          </span>
+          <span className="max-w-14 text-center text-[0.58rem] font-black leading-[1.05] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
+            {sourceRailLabel}
+          </span>
+          <span className="rounded-full bg-black/38 px-1.5 py-0.5 text-[0.56rem] font-black leading-none text-white/84 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur">
+            {sourceRailCountLabel}
+          </span>
+        </div>
+        <div className="flex flex-col items-center gap-1.5">
           <CutFeedShareButton
             copy={copy}
             href={cutFeedHref}
@@ -1688,7 +1807,11 @@ function FeedSlide({
             reportId={report.reportId}
             shareSummary={shareSummary}
             shareTitle={shareTitle}
+            variant="reel"
           />
+          <span className="max-w-14 text-center text-[0.58rem] font-black leading-[1.05] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
+            {copy.share}
+          </span>
         </div>
       </div>
 

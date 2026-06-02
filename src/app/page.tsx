@@ -1,6 +1,10 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { getFanletterNewsCutsHomeHref } from "@/lib/fanletter-news-home-routing";
+import {
+  readFanletterReferralCode,
+} from "@/lib/fanletter-routing";
 import {
   localeCookieName,
   resolveLocale,
@@ -13,7 +17,7 @@ function readSingleValue(value?: string | string[]) {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ pwa?: string | string[] }>;
+  searchParams: Promise<{ pwa?: string | string[]; ref?: string | string[] }>;
 }) {
   const query = await searchParams;
   const cookieStore = await cookies();
@@ -23,6 +27,13 @@ export default async function Home({
     requestedLocale: cookieStore.get(localeCookieName)?.value,
   });
   const pwaLaunch = readSingleValue(query.pwa) === "1";
+  const referralCode = readFanletterReferralCode(query.ref);
 
-  redirect(pwaLaunch ? `/${locale}?pwa=1` : `/${locale}`);
+  redirect(
+    getFanletterNewsCutsHomeHref({
+      locale,
+      pwaLaunch,
+      referralCode,
+    }),
+  );
 }
