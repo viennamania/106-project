@@ -14,7 +14,10 @@ import {
   readFirstSearchParam,
 } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
-import { buildPathWithReferral } from "@/lib/landing-branding";
+import {
+  buildPathWithReferral,
+  setPathSearchParams,
+} from "@/lib/landing-branding";
 import { readMemberServerSession } from "@/lib/member-server-session";
 import { normalizeShareId } from "@/lib/share-tracking";
 
@@ -37,14 +40,44 @@ function getCopy(locale: Locale) {
       };
 }
 
+function getFanletterNewsCutDetailMetadataUrl({
+  fallbackReferralCode,
+  locale,
+  referralCode,
+  reportId,
+  shareId,
+}: {
+  fallbackReferralCode: string | null;
+  locale: Locale;
+  referralCode: string | null;
+  reportId: string;
+  shareId: string | null;
+}) {
+  const basePath = `/${locale}/fanletter/news/cuts/${reportId}`;
+
+  if (shareId) {
+    return setPathSearchParams(basePath, {
+      ref: referralCode,
+      shareId,
+    });
+  }
+
+  return buildPathWithReferral(basePath, referralCode ?? fallbackReferralCode);
+}
+
 export async function generateMetadata({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string; reportId: string }>;
+  searchParams: Promise<FanletterNewsCutDetailSearchParams>;
 }): Promise<Metadata> {
   const { lang, reportId } = await params;
+  const query = await searchParams;
   const locale = hasLocale(lang) ? (lang as Locale) : defaultLocale;
   const copy = getCopy(locale);
+  const referralCode = readFanletterReferralCode(query.ref);
+  const shareId = normalizeShareId(readFirstSearchParam(query.shareId));
   const report = await getFanletterNewsReportById(reportId);
   const localizedReport = report?.locale === locale ? report : null;
   const feedItem = localizedReport
@@ -56,12 +89,24 @@ export async function generateMetadata({
     ? `${localizedReport.title} | ${copy.title}`
     : copy.title;
   const description = localizedReport?.dek ?? copy.description;
-  const url = localizedReport
-    ? buildPathWithReferral(
-        `/${locale}/fanletter/news/cuts/${localizedReport.reportId}`,
-        localizedReport.reporterReferralCode,
-      )
-    : `/${locale}/fanletter/news/cuts/${reportId}`;
+  const url = getFanletterNewsCutDetailMetadataUrl({
+    fallbackReferralCode: localizedReport?.reporterReferralCode ?? null,
+    locale,
+    referralCode,
+    reportId: localizedReport?.reportId ?? reportId,
+    shareId,
+  });
+  const ogImages = imageUrl
+    ? [
+        {
+          alt: localizedReport?.title ?? copy.title,
+          height: 675,
+          type: "image/jpeg",
+          url: imageUrl,
+          width: 1200,
+        },
+      ]
+    : undefined;
 
   return {
     title,
@@ -71,14 +116,7 @@ export async function generateMetadata({
     },
     openGraph: {
       description,
-      images: imageUrl
-        ? [
-            {
-              alt: localizedReport?.title ?? copy.title,
-              url: imageUrl,
-            },
-          ]
-        : undefined,
+      images: ogImages,
       siteName: "FanLetter News",
       title,
       type: "article",
