@@ -189,7 +189,11 @@ function getCopy(locale: Locale) {
           `${count}/${threshold}명이 참여했습니다. ${remaining}명이 더 보고싶어요를 누르면 피드에서 바로 열립니다.`,
         sourceRevealLockedTitle: "아직 원본 공개 전입니다.",
         sourceView: "원본 보기",
-        swipeGuide: "좌우로 넘겨 4컷 보기",
+        sourceViewGuideBody:
+          "초록 원본 보기 버튼을 누르면 공개된 브이로그가 바로 열립니다.",
+        sourceViewGuideEyebrow: "원본 공개 완료",
+        sourceViewGuideTitle: "여기서 원본 보기",
+        swipeGuide: (cutCount: string) => `좌우로 넘겨 ${cutCount}컷 보기`,
         unavailableSourceBody:
           "이 원본은 현재 피드 안에서 바로 재생할 수 없습니다. 상세 화면에서 상태를 확인하세요.",
         unavailableSourceTitle: "원본을 바로 열 수 없습니다.",
@@ -302,7 +306,12 @@ function getCopy(locale: Locale) {
           `${count}/${threshold} fans joined. ${remaining} more want-it votes open the source in this feed.`,
         sourceRevealLockedTitle: "The source is not open yet.",
         sourceView: "View source",
-        swipeGuide: "Swipe sideways for 4 cuts",
+        sourceViewGuideBody:
+          "Tap the green source button to open the unlocked vlog in this feed.",
+        sourceViewGuideEyebrow: "Source unlocked",
+        sourceViewGuideTitle: "Watch the source here",
+        swipeGuide: (cutCount: string) =>
+          `Swipe sideways for ${cutCount} cuts`,
         unavailableSourceBody:
           "This source cannot play directly in the feed right now. Check the detail screen for status.",
         unavailableSourceTitle: "Source cannot open here.",
@@ -1078,6 +1087,7 @@ function SourceRevealParticipantRail({
   authNudge,
   copy,
   error,
+  highlightSourceView = false,
   isLoggedIn,
   isLoginBusy,
   isSaving,
@@ -1093,6 +1103,7 @@ function SourceRevealParticipantRail({
   authNudge: boolean;
   copy: SourceRevealParticipantRailCopy;
   error: string | null;
+  highlightSourceView?: boolean;
   isLoggedIn: boolean;
   isLoginBusy: boolean;
   isSaving: boolean;
@@ -1139,6 +1150,10 @@ function SourceRevealParticipantRail({
       : state.requestedByViewer
         ? "border-white/28 bg-white/88 text-[#101510] hover:bg-white"
         : "border-white/18 bg-black/52 text-white hover:bg-[#44f26e] hover:text-[#101510]"
+  } ${
+    highlightSourceView && state.unlocked
+      ? "ring-4 ring-[#44f26e]/28 shadow-[0_0_0_1px_rgba(68,242,110,0.38),0_18px_42px_rgba(68,242,110,0.34)]"
+      : ""
   }`;
   const isDisabled = isSaving || isLoginBusy;
 
@@ -2182,6 +2197,11 @@ function FeedSlide({
     referralCode: memberSession.member?.referralCode,
   });
   const viewerReferralCode = memberSession.member?.referralCode?.trim() || null;
+  const cutCountLabel = formatNumber(cutCount, locale);
+  const showSourceViewGuide =
+    showSwipeGuide && sourceRevealState.unlocked && cutCount > 1;
+  const showCutSwipeGuide =
+    showSwipeGuide && !sourceRevealState.unlocked && cutCount > 1;
 
   useEffect(() => {
     const article = articleRef.current;
@@ -2360,10 +2380,30 @@ function FeedSlide({
       </div>
 
       <div className="absolute right-3 top-[48%] z-30 flex -translate-y-1/2 flex-col items-center gap-4 text-white">
+        {showSourceViewGuide ? (
+          <div
+            aria-live="polite"
+            className="pointer-events-none absolute right-[3.75rem] top-0 z-40 w-[12.5rem] max-w-[calc(100vw_-_6.2rem)] rounded-2xl border border-[#44f26e]/34 bg-black/72 px-3.5 py-3 text-left text-white shadow-[0_24px_70px_rgba(0,0,0,0.46)] backdrop-blur-xl"
+            role="status"
+          >
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e]/16 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
+              <PlayCircle className="size-3" />
+              {copy.sourceViewGuideEyebrow}
+            </span>
+            <p className="mt-2 text-sm font-black leading-tight tracking-normal [word-break:keep-all]">
+              {copy.sourceViewGuideTitle}
+            </p>
+            <p className="mt-1 text-[0.68rem] font-bold leading-snug text-white/74 [word-break:keep-all]">
+              {copy.sourceViewGuideBody}
+            </p>
+            <span className="absolute -right-1.5 top-[1.35rem] size-3 rotate-45 border-r border-t border-[#44f26e]/34 bg-black/72" />
+          </div>
+        ) : null}
         <SourceRevealParticipantRail
           authNudge={authNudge}
           copy={copy}
           error={sourceRevealError}
+          highlightSourceView={showSourceViewGuide}
           isLoggedIn={isSourceRevealLoggedIn}
           isLoginBusy={isLoginSyncing}
           isSaving={isSourceRevealSaving}
@@ -2393,7 +2433,7 @@ function FeedSlide({
         </div>
       </div>
 
-      {showSwipeGuide && cutCount > 1 ? (
+      {showCutSwipeGuide ? (
         <div
           aria-live="polite"
           className="pointer-events-none absolute left-1/2 top-[39%] z-30 w-[18.5rem] max-w-[calc(100%_-_2rem)] -translate-x-1/2 rounded-2xl border border-white/14 bg-black/58 px-4 py-3 text-center text-white shadow-[0_24px_70px_rgba(0,0,0,0.38)] backdrop-blur-xl"
@@ -2409,7 +2449,7 @@ function FeedSlide({
             <ChevronRight className="size-4" />
           </div>
           <p className="mt-2 text-sm font-black tracking-normal [word-break:keep-all]">
-            {copy.swipeGuide}
+            {copy.swipeGuide(cutCountLabel)}
           </p>
         </div>
       ) : null}
