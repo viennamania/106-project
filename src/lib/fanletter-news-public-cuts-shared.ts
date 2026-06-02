@@ -21,10 +21,12 @@ export type SerializedFanletterNewsPublicCutReport = {
   contentMaturityRating: ContentMaturityRating;
   coverImageUrl: string | null;
   createdAt: string;
+  creatorAvatarImageUrl: string | null;
   creatorName: string;
   creatorReferralCode: string | null;
   dek: string;
   priceType: ContentPriceType;
+  reporterAvatarImageUrl: string | null;
   reporterName: string;
   reporterReferralCode: string;
   reportId: string;

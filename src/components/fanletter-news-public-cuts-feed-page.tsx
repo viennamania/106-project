@@ -643,6 +643,50 @@ function CutFeedServiceMenuSheet({
   );
 }
 
+function CutFeedProfileActionLink({
+  fallbackIcon: FallbackIcon,
+  href,
+  imageUrl,
+  label,
+  name,
+}: {
+  fallbackIcon: LucideIcon;
+  href: string;
+  imageUrl: string | null;
+  label: string;
+  name: string;
+}) {
+  return (
+    <Link
+      className="group inline-flex h-11 min-w-0 items-center gap-2 rounded-full border border-white/14 bg-black/28 py-1.5 pl-1.5 pr-3 !text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:!text-[#111510]"
+      href={href}
+    >
+      <span className="relative inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/18 bg-black/36 text-[#44f26e]">
+        {imageUrl ? (
+          <Image
+            alt=""
+            className="object-cover"
+            fill
+            sizes="32px"
+            src={imageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+          />
+        ) : (
+          <FallbackIcon className="size-4" />
+        )}
+      </span>
+      <span className="min-w-0 text-left">
+        <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.1em] text-[#9bffad] transition group-hover:text-[#0b3518]">
+          {label}
+        </span>
+        <span className="block truncate text-[0.72rem] font-black leading-tight text-white/92 transition group-hover:text-[#111510]">
+          {name}
+        </span>
+      </span>
+    </Link>
+  );
+}
+
 function SourceRevealMiniVote({
   authNudge,
   connectHref,
@@ -1745,20 +1789,20 @@ function FeedSlide({
               state={sourceRevealState}
             />
             <div className="mt-2 grid max-w-[30rem] grid-cols-2 gap-2">
-              <Link
-                className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/24 px-4 text-[0.72rem] font-black !text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:!text-[#111510]"
+              <CutFeedProfileActionLink
+                fallbackIcon={Sparkles}
                 href={characterHref}
-              >
-                <Sparkles className="size-4 text-[#44f26e]" />
-                {copy.character}
-              </Link>
-              <Link
-                className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/24 px-4 text-[0.72rem] font-black !text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:!text-[#111510]"
+                imageUrl={report.creatorAvatarImageUrl}
+                label={copy.character}
+                name={report.creatorName}
+              />
+              <CutFeedProfileActionLink
+                fallbackIcon={PenLine}
                 href={reporterHref}
-              >
-                <PenLine className="size-4 text-[#44f26e]" />
-                {copy.reporter}
-              </Link>
+                imageUrl={report.reporterAvatarImageUrl}
+                label={copy.reporter}
+                name={report.reporterName}
+              />
             </div>
           </div>
 

@@ -2,11 +2,15 @@ import "server-only";
 
 import {
   createEmptyContentSocialSummary,
+  type CreatorProfileDocument,
   type FanletterNewsReportDocument,
   type FanletterNewsReportTeaserImageDocument,
 } from "@/lib/content";
 import { getContentSocialSummaryForViewer } from "@/lib/content-service";
-import { getFanletterNewsReportsCollection } from "@/lib/mongodb";
+import {
+  getCreatorProfilesCollection,
+  getFanletterNewsReportsCollection,
+} from "@/lib/mongodb";
 import {
   getLatestFanletterNewsReports,
 } from "@/lib/fanletter-news-report-service";
@@ -37,11 +41,22 @@ export type FanletterNewsPublicCut = {
 };
 
 export type FanletterNewsPublicCutFeedItem = {
+  creatorAvatarImageUrl: string | null;
   cuts: FanletterNewsPublicCut[];
   leadCut: FanletterNewsPublicCut;
   report: FanletterNewsReportDocument;
   sourceReveal: FanletterNewsSourceRevealState;
 };
+
+function getCreatorAvatarImageUrl(
+  profile: Pick<CreatorProfileDocument, "avatarImageSet" | "avatarImageUrl"> | null,
+) {
+  return (
+    profile?.avatarImageSet?.find((avatar) => Boolean(avatar.url.trim()))?.url ??
+    profile?.avatarImageUrl?.trim() ??
+    null
+  );
+}
 
 export type FanletterNewsPublicCutFeedPage = {
   hasMore: boolean;
@@ -245,6 +260,7 @@ export function createFanletterNewsPublicCutFeedItem(
   }
 
   return {
+    creatorAvatarImageUrl: null,
     cuts,
     leadCut,
     report,
@@ -303,6 +319,64 @@ async function hydrateFanletterNewsPublicCutFeedItemsSourceReveal(
   }));
 }
 
+async function hydrateFanletterNewsPublicCutFeedItemsProfileImages(
+  items: FanletterNewsPublicCutFeedItem[],
+) {
+  if (items.length === 0) {
+    return items;
+  }
+
+  const creatorReferralCodes = [
+    ...new Set(
+      items
+        .map((item) => item.report.creatorReferralCode?.trim())
+        .filter((code): code is string => Boolean(code)),
+    ),
+  ];
+
+  if (creatorReferralCodes.length === 0) {
+    return items;
+  }
+
+  const profilesCollection = await getCreatorProfilesCollection();
+  const profiles = await profilesCollection
+    .find(
+      { referralCode: { $in: creatorReferralCodes } },
+      {
+        projection: {
+          avatarImageSet: 1,
+          avatarImageUrl: 1,
+          referralCode: 1,
+        },
+      },
+    )
+    .toArray();
+  const creatorAvatarByReferralCode = new Map(
+    profiles.map((profile) => [
+      profile.referralCode,
+      getCreatorAvatarImageUrl(profile),
+    ]),
+  );
+
+  return items.map((item) => ({
+    ...item,
+    creatorAvatarImageUrl:
+      (item.report.creatorReferralCode
+        ? creatorAvatarByReferralCode.get(item.report.creatorReferralCode)
+        : null) ?? item.creatorAvatarImageUrl,
+  }));
+}
+
+async function hydrateFanletterNewsPublicCutFeedItems(
+  items: FanletterNewsPublicCutFeedItem[],
+  viewerEmail?: string | null,
+) {
+  const sourceRevealItems =
+    await hydrateFanletterNewsPublicCutFeedItemsSourceReveal(items, viewerEmail);
+
+  return hydrateFanletterNewsPublicCutFeedItemsProfileImages(sourceRevealItems);
+}
+
 export function serializeFanletterNewsPublicCutFeedItem(
   item: FanletterNewsPublicCutFeedItem,
 ): SerializedFanletterNewsPublicCutFeedItem {
@@ -314,10 +388,12 @@ export function serializeFanletterNewsPublicCutFeedItem(
       contentMaturityRating: item.report.contentMaturityRating,
       coverImageUrl: item.report.coverImageUrl,
       createdAt: item.report.createdAt.toISOString(),
+      creatorAvatarImageUrl: item.creatorAvatarImageUrl,
       creatorName: item.report.creatorName,
       creatorReferralCode: item.report.creatorReferralCode,
       dek: item.report.dek,
       priceType: item.report.priceType,
+      reporterAvatarImageUrl: item.report.reporterAvatarImageUrl ?? null,
       reporterName: item.report.reporterName,
       reporterReferralCode: item.report.reporterReferralCode,
       reportId: item.report.reportId,
@@ -421,7 +497,7 @@ export async function getFanletterNewsPublicCutFeedPage({
   const candidateItems = reports
     .map((report) => createFanletterNewsPublicCutFeedItem(report))
     .filter((item): item is FanletterNewsPublicCutFeedItem => Boolean(item));
-  const hydratedItems = await hydrateFanletterNewsPublicCutFeedItemsSourceReveal(
+  const hydratedItems = await hydrateFanletterNewsPublicCutFeedItems(
     targetItem ? [targetItem, ...candidateItems] : candidateItems,
     viewerEmail,
   );
@@ -505,7 +581,7 @@ export async function getFanletterNewsPublicCutFeed({
     }
   }
 
-  return hydrateFanletterNewsPublicCutFeedItemsSourceReveal(
+  return hydrateFanletterNewsPublicCutFeedItems(
     Array.from(itemsByReportId.values()).slice(0, normalizedLimit),
     viewerEmail,
   );
