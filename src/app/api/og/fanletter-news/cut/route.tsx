@@ -111,7 +111,7 @@ export async function GET(request: Request) {
             style={{
               border: "4px solid rgba(255,255,255,0.92)",
               borderRadius: 999,
-              bottom: 32,
+              bottom: 52,
               boxShadow: "0 18px 46px rgba(0,0,0,0.36)",
               display: "flex",
               height: 104,
