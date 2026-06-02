@@ -827,34 +827,29 @@ function CutFeedHeaderReporterChip({
     <button
       aria-label={`${label} ${name}`}
       aria-pressed={active}
-      className={`group inline-flex h-10 w-[5.3rem] shrink-0 items-center gap-1.5 rounded-full border py-1 pl-1 pr-2 text-left shadow-[0_12px_30px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:text-[#111510] min-[390px]:w-[5.9rem] ${
+      className={`group relative inline-flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full border text-white shadow-[0_12px_34px_rgba(0,0,0,0.2)] backdrop-blur transition hover:bg-white hover:text-[#111510] ${
         active
-          ? "border-[#44f26e]/70 bg-[#44f26e]/18 ring-2 ring-[#44f26e]/22"
-          : "border-white/14 bg-black/28"
+          ? "border-[#44f26e]/78 bg-[#44f26e]/18 ring-2 ring-[#44f26e]/22"
+          : "border-[#44f26e]/30 bg-black/32"
       }`}
       onClick={onClick}
       title={`${label} ${name}`}
       type="button"
     >
-      <span className="relative inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/18 bg-black/36 text-[#44f26e]">
-        {avatarImageUrl ? (
-          <Image
-            alt=""
-            className="object-cover"
-            fill
-            sizes="32px"
-            src={avatarImageUrl}
-            unoptimized={shouldBypassFanletterImageOptimization(avatarImageUrl)}
-          />
-        ) : (
-          <PenLine className="size-4" />
-        )}
-      </span>
-      <span className="min-w-0">
-        <span className="block truncate text-[0.66rem] font-black leading-tight text-white/92 transition group-hover:text-[#111510]">
-          {name}
+      {avatarImageUrl ? (
+        <Image
+          alt=""
+          className="object-cover"
+          fill
+          sizes="44px"
+          src={avatarImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(avatarImageUrl)}
+        />
+      ) : (
+        <span className="text-sm font-black uppercase text-[#44f26e] transition group-hover:text-[#111510]">
+          {name.slice(0, 1)}
         </span>
-      </span>
+      )}
     </button>
   );
 }
@@ -3332,19 +3327,6 @@ export function FanletterNewsPublicCutsFeedPage({
     >
       <header className="fixed left-1/2 top-0 z-30 w-full max-w-[430px] -translate-x-1/2 border-b border-white/10 bg-black/30 px-3 py-3 text-white backdrop-blur-xl">
         <div className="mx-auto flex items-center gap-2">
-          <div className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/14 text-[#44f26e] shadow-[0_12px_34px_rgba(68,242,110,0.14)]">
-            <Images className="size-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
-              <span className="min-[430px]:hidden">{copy.eyebrowShort}</span>
-              <span className="hidden min-[430px]:inline">{copy.eyebrow}</span>
-            </p>
-            <h1 className="truncate text-[1.02rem] font-black leading-tight tracking-normal">
-              <span className="min-[430px]:hidden">{copy.titleShort}</span>
-              <span className="hidden min-[430px]:inline">{copy.title}</span>
-            </h1>
-          </div>
           {visibleItem ? (
             <CutFeedHeaderReporterChip
               avatarImageUrl={visibleItem.report.reporterAvatarImageUrl}
@@ -3359,6 +3341,16 @@ export function FanletterNewsPublicCutsFeedPage({
               }}
             />
           ) : null}
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+              <span className="min-[430px]:hidden">{copy.eyebrowShort}</span>
+              <span className="hidden min-[430px]:inline">{copy.eyebrow}</span>
+            </p>
+            <h1 className="truncate text-[1.02rem] font-black leading-tight tracking-normal">
+              <span className="min-[430px]:hidden">{copy.titleShort}</span>
+              <span className="hidden min-[430px]:inline">{copy.title}</span>
+            </h1>
+          </div>
           <button
             aria-expanded={serviceMenuOpen}
             aria-label={copy.serviceMenu}
