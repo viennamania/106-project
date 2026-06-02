@@ -398,6 +398,32 @@ function getCutFeedHref({
   );
 }
 
+function getCutFeedReturnHref({
+  cutSlotNumber,
+  locale,
+  referralCode,
+  reportId,
+  shareId,
+}: {
+  cutSlotNumber: number;
+  locale: Locale;
+  referralCode: string | null;
+  reportId: string;
+  shareId: string | null;
+}) {
+  return setPathSearchParams(
+    getCutFeedHref({
+      locale,
+      referralCode,
+      reportId,
+    }),
+    {
+      [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(cutSlotNumber),
+      shareId,
+    },
+  );
+}
+
 function getReporterHref({
   locale,
   referralCode,
@@ -415,18 +441,30 @@ function getReporterHref({
 
 function getCharacterHref({
   characterReferralCode,
+  cutSlotNumber,
   locale,
   referralCode,
+  reportId,
+  returnToHref,
 }: {
   characterReferralCode: string | null;
+  cutSlotNumber: number;
   locale: Locale;
   referralCode: string | null;
+  reportId: string;
+  returnToHref: string;
 }) {
   const characterPath = characterReferralCode
-    ? `/${locale}/fanletter/news/characters/${characterReferralCode}`
+    ? `/${locale}/fanletter/news/cuts/characters/${characterReferralCode}`
     : `/${locale}/fanletter/news/characters`;
 
-  return buildPathWithReferral(characterPath, referralCode);
+  return characterReferralCode
+    ? setPathSearchParams(buildPathWithReferral(characterPath, referralCode), {
+        [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(cutSlotNumber),
+        returnTo: returnToHref,
+        sourceReportId: reportId,
+      })
+    : buildPathWithReferral(characterPath, referralCode);
 }
 
 type SourceRevealParticipantRailCopy = Pick<
@@ -1678,6 +1716,7 @@ function FeedSlide({
   reporterPanelRequestId = 0,
   onSourceViewSlideVisible,
   referralCode,
+  shareId,
   showSwipeGuide = false,
 }: {
   dictionary: Dictionary;
@@ -1692,6 +1731,7 @@ function FeedSlide({
   reporterPanelRequestId?: number;
   onSourceViewSlideVisible?: (index: number) => void;
   referralCode: string | null;
+  shareId: string | null;
   showSwipeGuide?: boolean;
 }) {
   const [activeCutIndex, setActiveCutIndex] = useState(() => {
@@ -1795,11 +1835,6 @@ function FeedSlide({
     referralCode,
     reporterReferralCode: report.reporterReferralCode,
   });
-  const characterHref = getCharacterHref({
-    characterReferralCode: report.creatorReferralCode,
-    locale,
-    referralCode,
-  });
   const isSourceRevealLoggedIn =
     Boolean(memberSession.email) || sourceRevealState.requestedByViewer;
   const cuts = item.cuts.length > 0 ? item.cuts : [item.leadCut];
@@ -1812,6 +1847,21 @@ function FeedSlide({
   )}/${formatNumber(sourceRevealState.threshold, locale)}`;
   const reporterPublishedAtLabel = publishedAt ?? "-";
   const activeCutSlotNumber = cuts[activeCutIndex]?.slotNumber ?? 1;
+  const cutFeedReturnHref = getCutFeedReturnHref({
+    cutSlotNumber: activeCutSlotNumber,
+    locale,
+    referralCode,
+    reportId: report.reportId,
+    shareId,
+  });
+  const characterHref = getCharacterHref({
+    characterReferralCode: report.creatorReferralCode,
+    cutSlotNumber: activeCutSlotNumber,
+    locale,
+    referralCode,
+    reportId: report.reportId,
+    returnToHref: cutFeedReturnHref,
+  });
   const sharePreviewImageKind = "activeCut";
   const shareTitle = copy.shareTitle(title);
   const shareSummary = copy.shareSummary(title, report.reporterName);
@@ -3563,6 +3613,7 @@ export function FanletterNewsPublicCutsFeedPage({
                 : 0
             }
             referralCode={referralCode}
+            shareId={shareId}
             showSwipeGuide={swipeGuideTarget?.index === index}
           />
         ))}
