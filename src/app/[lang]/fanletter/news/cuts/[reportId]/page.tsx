@@ -24,6 +24,7 @@ import { normalizeShareId } from "@/lib/share-tracking";
 type FanletterNewsCutDetailSearchParams = {
   ref?: string | string[];
   shareId?: string | string[];
+  source?: string | string[];
 };
 
 function getCopy(locale: Locale) {
@@ -148,6 +149,8 @@ export default async function LocalizedFanletterNewsCutDetailPage({
   const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
   const shareId = normalizeShareId(readFirstSearchParam(query.shareId));
+  const initialSourceContentId =
+    readFirstSearchParam(query.source)?.trim() || null;
   const session = await readMemberServerSession();
   const report = await getFanletterNewsReportById(reportId);
 
@@ -178,6 +181,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
       nextOffset={feedPage.nextOffset}
       referralCode={referralCode}
       shareId={shareId}
+      sourceContentId={initialSourceContentId}
     />
   );
 }

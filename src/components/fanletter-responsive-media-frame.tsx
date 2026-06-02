@@ -31,6 +31,7 @@ type FanletterResponsiveMediaFrameProps = {
   deferVideoUntilInteraction?: boolean;
   deferredVideoCtaPlacement?: "bottom" | "center";
   eager?: boolean;
+  fitWithinViewport?: boolean;
   imageUrl: string | null;
   mediaType: FanletterPublicContentItem["mediaType"];
   nsfwPinGate?: {
@@ -72,6 +73,25 @@ function getMediaOrientation(aspectRatio: number | null) {
   return "square";
 }
 
+function getMediaFrameSizeClass(
+  orientation: ReturnType<typeof getMediaOrientation>,
+  fitWithinViewport: boolean,
+) {
+  if (orientation === "landscape") {
+    return "aspect-video max-w-full";
+  }
+
+  if (orientation === "square") {
+    return fitWithinViewport
+      ? "aspect-square max-w-[var(--fanletter-video-max-width,min(100%,72svh,42rem))]"
+      : "aspect-square max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,72svh,42rem))]";
+  }
+
+  return fitWithinViewport
+    ? "aspect-[9/16] max-w-[var(--fanletter-video-max-width,min(100%,40.5svh,32rem))]"
+    : "aspect-[9/16] max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,40.5svh,32rem))]";
+}
+
 function getNsfwPinRelockCopy(locale: Locale) {
   return locale === "ko"
     ? {
@@ -92,6 +112,7 @@ export function FanletterResponsiveMediaFrame({
   deferVideoUntilInteraction = false,
   deferredVideoCtaPlacement = "bottom",
   eager = false,
+  fitWithinViewport = false,
   imageUrl,
   mediaType,
   nsfwPinGate,
@@ -193,11 +214,14 @@ export function FanletterResponsiveMediaFrame({
     };
 
     if (orientation === "portrait") {
-      const portraitWidthByViewport = ((aspectRatio ?? 9 / 16) * 72).toFixed(3);
+      const portraitWidthByViewport = ((aspectRatio ?? 9 / 16) * 0.72).toFixed(
+        4,
+      );
       nextStyle["--fanletter-video-max-width"] =
-        `min(100%, ${portraitWidthByViewport}svh, 32rem)`;
+        `min(100%, calc(var(--fanletter-cut-feed-vh, 100svh) * ${portraitWidthByViewport}), 32rem)`;
     } else if (orientation === "square") {
-      nextStyle["--fanletter-video-max-width"] = "min(100%, 72svh, 42rem)";
+      nextStyle["--fanletter-video-max-width"] =
+        "min(100%, calc(var(--fanletter-cut-feed-vh, 100svh) * 0.72), 42rem)";
     }
 
     return nextStyle;
@@ -213,11 +237,7 @@ export function FanletterResponsiveMediaFrame({
       <div
         className={cn(
           "relative mx-auto w-full overflow-hidden bg-black transition-[max-width] duration-300",
-          orientation === "landscape"
-            ? "aspect-video max-w-full"
-            : orientation === "square"
-              ? "aspect-square max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,72svh,42rem))]"
-              : "aspect-[9/16] max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,40.5svh,32rem))]",
+          getMediaFrameSizeClass(orientation, fitWithinViewport),
           blurred && "bg-[#050806]",
           className,
         )}
@@ -291,11 +311,7 @@ export function FanletterResponsiveMediaFrame({
       <div
         className={cn(
           "relative mx-auto w-full overflow-hidden bg-black transition-[max-width] duration-300",
-          orientation === "landscape"
-            ? "aspect-video max-w-full"
-            : orientation === "square"
-              ? "aspect-square max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,72svh,42rem))]"
-              : "aspect-[9/16] max-w-full sm:max-w-[var(--fanletter-video-max-width,min(100%,40.5svh,32rem))]",
+          getMediaFrameSizeClass(orientation, fitWithinViewport),
           blurred && "bg-[#050806]",
           className,
         )}

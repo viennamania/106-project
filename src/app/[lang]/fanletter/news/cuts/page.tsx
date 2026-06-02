@@ -7,6 +7,7 @@ import {
   serializeFanletterNewsPublicCutFeedItems,
 } from "@/lib/fanletter-news-public-cuts";
 import { FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE } from "@/lib/fanletter-news-public-cuts-shared";
+import { getFanletterNewsReportsForContent } from "@/lib/fanletter-news-report-service";
 import {
   readFanletterReferralCode,
   readFirstSearchParam,
@@ -18,6 +19,7 @@ import { normalizeShareId } from "@/lib/share-tracking";
 type FanletterNewsCutsSearchParams = {
   ref?: string | string[];
   shareId?: string | string[];
+  source?: string | string[];
 };
 
 function getCopy(locale: Locale) {
@@ -66,12 +68,23 @@ export default async function LocalizedFanletterNewsCutsPage({
   const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
   const shareId = normalizeShareId(readFirstSearchParam(query.shareId));
+  const initialSourceContentId =
+    readFirstSearchParam(query.source)?.trim() || null;
   const session = await readMemberServerSession();
+  const sourceReports = initialSourceContentId
+    ? await getFanletterNewsReportsForContent({
+        contentId: initialSourceContentId,
+        limit: 1,
+        locale,
+      })
+    : null;
+  const targetReport = sourceReports?.reports[0] ?? null;
   const feedPage = await getFanletterNewsPublicCutFeedPage({
     limit: FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
     locale,
     referralCode,
     shareId,
+    targetReport,
     viewerEmail: session?.email ?? null,
   });
 
@@ -83,6 +96,7 @@ export default async function LocalizedFanletterNewsCutsPage({
       nextOffset={feedPage.nextOffset}
       referralCode={referralCode}
       shareId={shareId}
+      sourceContentId={initialSourceContentId}
     />
   );
 }

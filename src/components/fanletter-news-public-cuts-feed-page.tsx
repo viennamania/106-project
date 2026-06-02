@@ -7,6 +7,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import {
@@ -66,6 +67,10 @@ const DOUBLE_TAP_DISTANCE_TOLERANCE_PX = 48;
 const DOUBLE_TAP_FEEDBACK_MS = 920;
 const CUT_SWIPE_GUIDE_DISMISS_SCROLL_RATIO = 0.45;
 
+type CutFeedViewportStyle = CSSProperties & {
+  "--fanletter-cut-feed-vh"?: string;
+};
+
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
@@ -88,6 +93,7 @@ function getCopy(locale: Locale) {
         loadingMore: "다음 리포터 컷 불러오는 중",
         nextCut: "다음 컷",
         noMore: "모든 리포터 컷을 확인했습니다.",
+        openPaidSource: "구매하고 원본 보기",
         openSourceDetail: "원본 상세",
         paid: "팬 전용 원본",
         paidSourceBody:
@@ -180,6 +186,7 @@ function getCopy(locale: Locale) {
         loadingMore: "Loading more reporter cuts",
         nextCut: "Next cut",
         noMore: "You have reviewed every reporter cut.",
+        openPaidSource: "Purchase to watch",
         openSourceDetail: "Source detail",
         paid: "Fan-only source",
         paidSourceBody:
@@ -560,7 +567,7 @@ function CutFeedServiceMenuSheet({
     >
       <section
         aria-label={copy.serviceMenuTitle}
-        className="max-h-[calc(100dvh_-_env(safe-area-inset-top)_-_1rem)] w-full max-w-[430px] overflow-hidden rounded-t-[1.35rem] border border-white/12 bg-[#060907]/96 shadow-[0_-22px_70px_rgba(0,0,0,0.42)]"
+        className="max-h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_1rem)] w-full max-w-[430px] overflow-hidden rounded-t-[1.35rem] border border-white/12 bg-[#060907]/96 shadow-[0_-22px_70px_rgba(0,0,0,0.42)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
@@ -584,7 +591,7 @@ function CutFeedServiceMenuSheet({
             <X className="size-5" />
           </button>
         </div>
-        <div className="grid max-h-[calc(100dvh_-_env(safe-area-inset-top)_-_6.5rem)] grid-cols-2 gap-2 overflow-y-auto p-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="grid max-h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_6.5rem)] grid-cols-2 gap-2 overflow-y-auto p-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {items.map((item) => {
             const Icon = item.icon;
 
@@ -813,6 +820,7 @@ function SourceRevealMiniVote({
 type SourceOverlayCopy = Pick<
   ReturnType<typeof getCopy>,
   | "adult"
+  | "openPaidSource"
   | "openSourceDetail"
   | "paidSourceBody"
   | "paidSourceTitle"
@@ -980,10 +988,10 @@ function SourceVlogFeedOverlay({
               <FanletterResponsiveMediaFrame
                 alt={source.title}
                 blurred={source.accessState === "nsfw_opt_in_required"}
-                className="!max-w-full"
                 deferVideoUntilInteraction={Boolean(source.previewVideoUrl)}
                 deferredVideoCtaPlacement="center"
                 eager
+                fitWithinViewport
                 imageUrl={source.coverImageUrl}
                 mediaType={source.mediaType}
                 nsfwPinGate={
@@ -1031,7 +1039,7 @@ function SourceVlogFeedOverlay({
                             href={paidUnlockHref}
                           >
                             <LockKeyhole className="size-4" />
-                            {copy.openSourceDetail}
+                            {copy.openPaidSource}
                           </Link>
                         ) : null}
                         <Link
@@ -1073,6 +1081,7 @@ function SourceVlogFeedOverlay({
 function FeedSlide({
   hasMore,
   index,
+  initialSourceContentId = null,
   item,
   itemCount,
   locale,
@@ -1082,6 +1091,7 @@ function FeedSlide({
 }: {
   hasMore: boolean;
   index: number;
+  initialSourceContentId?: string | null;
   item: SerializedFanletterNewsPublicCutFeedItem;
   itemCount: number;
   locale: Locale;
@@ -1114,6 +1124,7 @@ function FeedSlide({
     null,
   );
   const authNudgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialSourceOverlayOpenedRef = useRef(false);
   const sourceOverlayHistoryPushedRef = useRef(false);
   const copy = getCopy(locale);
   const { report } = item;
@@ -1249,7 +1260,44 @@ function FeedSlide({
     }
 
     setSourceOverlayOpen(false);
-  }, []);
+    const url = new URL(window.location.href);
+
+    if (url.searchParams.get("source") === sourceContentId) {
+      url.searchParams.delete("source");
+      window.history.replaceState(
+        typeof window.history.state === "object" && window.history.state !== null
+          ? window.history.state
+          : {},
+        "",
+        `${url.pathname}${url.search}${url.hash}`,
+      );
+    }
+  }, [sourceContentId]);
+
+  useEffect(() => {
+    const normalizedInitialSourceContentId = initialSourceContentId?.trim();
+
+    if (
+      initialSourceOverlayOpenedRef.current ||
+      !normalizedInitialSourceContentId ||
+      normalizedInitialSourceContentId !== sourceContentId
+    ) {
+      return;
+    }
+
+    initialSourceOverlayOpenedRef.current = true;
+    setSourceOverlayOpen(true);
+
+    if (!sourceOverlaySource && !isSourceOverlayLoading) {
+      void loadSourceOverlay();
+    }
+  }, [
+    initialSourceContentId,
+    isSourceOverlayLoading,
+    loadSourceOverlay,
+    sourceContentId,
+    sourceOverlaySource,
+  ]);
 
   useEffect(() => {
     setSourceRevealState(item.sourceReveal);
@@ -1490,7 +1538,7 @@ function FeedSlide({
 
   return (
     <article
-      className="relative min-h-[100dvh] touch-pan-y snap-start snap-always overflow-hidden bg-black text-white"
+      className="relative min-h-[var(--fanletter-cut-feed-vh,100dvh)] touch-pan-y snap-start snap-always overflow-hidden bg-black text-white"
       id={report.reportId}
       onPointerCancel={() => {
         pointerStartRef.current = null;
@@ -1656,7 +1704,7 @@ function FeedSlide({
         </div>
       ) : null}
 
-      <div className="relative z-10 flex min-h-[100dvh] items-end px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+7.6rem)]">
+      <div className="relative z-10 flex min-h-[var(--fanletter-cut-feed-vh,100dvh)] items-end px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+7.6rem)]">
         <section className="mx-auto flex w-full flex-col justify-end">
           <div className="max-w-3xl">
             <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e] drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)]">
@@ -1773,6 +1821,7 @@ export function FanletterNewsPublicCutsFeedPage({
   nextOffset: initialNextOffset,
   referralCode,
   shareId,
+  sourceContentId = null,
 }: {
   excludeReportId?: string | null;
   hasMore: boolean;
@@ -1781,6 +1830,7 @@ export function FanletterNewsPublicCutsFeedPage({
   nextOffset: number;
   referralCode: string | null;
   shareId: string | null;
+  sourceContentId?: string | null;
 }) {
   const copy = getCopy(locale);
   const [items, setItems] = useState(initialItems);
@@ -1791,6 +1841,9 @@ export function FanletterNewsPublicCutsFeedPage({
   const [showSwipeGuide, setShowSwipeGuide] = useState(false);
   const [swipeGuideDismissed, setSwipeGuideDismissed] = useState(false);
   const [serviceMenuOpen, setServiceMenuOpen] = useState(false);
+  const [visibleViewportHeight, setVisibleViewportHeight] = useState<
+    string | null
+  >(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const cutFeedHomeHref = buildPathWithReferral(
@@ -1903,6 +1956,11 @@ export function FanletterNewsPublicCutsFeedPage({
   const shouldOfferSwipeGuide = Boolean(
     (shareId || excludeReportId) && firstSlideCutCount > 1,
   );
+  const viewportStyle: CutFeedViewportStyle | undefined = visibleViewportHeight
+    ? {
+        "--fanletter-cut-feed-vh": visibleViewportHeight,
+      }
+    : undefined;
   const dismissSwipeGuide = useCallback(() => {
     setSwipeGuideDismissed(true);
     setShowSwipeGuide(false);
@@ -1981,6 +2039,50 @@ export function FanletterNewsPublicCutsFeedPage({
   ]);
 
   useEffect(() => {
+    let animationFrameId: number | null = null;
+
+    const updateVisibleViewportHeight = () => {
+      if (animationFrameId !== null) {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+
+      animationFrameId = window.requestAnimationFrame(() => {
+        const nextHeight =
+          window.visualViewport?.height && window.visualViewport.height > 0
+            ? window.visualViewport.height
+            : window.innerHeight;
+        const nextValue = `${Math.round(nextHeight)}px`;
+
+        setVisibleViewportHeight((currentValue) =>
+          currentValue === nextValue ? currentValue : nextValue,
+        );
+        animationFrameId = null;
+      });
+    };
+    const visualViewport = window.visualViewport;
+
+    updateVisibleViewportHeight();
+    window.addEventListener("orientationchange", updateVisibleViewportHeight);
+    window.addEventListener("resize", updateVisibleViewportHeight);
+    visualViewport?.addEventListener("resize", updateVisibleViewportHeight);
+    visualViewport?.addEventListener("scroll", updateVisibleViewportHeight);
+
+    return () => {
+      if (animationFrameId !== null) {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+
+      window.removeEventListener(
+        "orientationchange",
+        updateVisibleViewportHeight,
+      );
+      window.removeEventListener("resize", updateVisibleViewportHeight);
+      visualViewport?.removeEventListener("resize", updateVisibleViewportHeight);
+      visualViewport?.removeEventListener("scroll", updateVisibleViewportHeight);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!shouldOfferSwipeGuide || swipeGuideDismissed) {
       setShowSwipeGuide(false);
       return;
@@ -2041,7 +2143,10 @@ export function FanletterNewsPublicCutsFeedPage({
 
   if (items.length === 0) {
     return (
-      <main className="flex min-h-[100dvh] items-center justify-center bg-[#050706] px-4 text-white">
+      <main
+        className="flex min-h-[var(--fanletter-cut-feed-vh,100dvh)] items-center justify-center bg-[#050706] px-4 text-white"
+        style={viewportStyle}
+      >
         <section className="max-w-lg rounded-2xl border border-white/12 bg-white/8 p-6 text-center shadow-2xl backdrop-blur-xl">
           <UserRound className="mx-auto size-10 text-[#44f26e]" />
           <h1 className="mt-4 text-2xl font-black tracking-normal [word-break:keep-all]">
@@ -2063,7 +2168,10 @@ export function FanletterNewsPublicCutsFeedPage({
   }
 
   return (
-    <main className="h-[100dvh] overflow-hidden bg-[#050706] text-white">
+    <main
+      className="h-[var(--fanletter-cut-feed-vh,100dvh)] overflow-hidden bg-[#050706] text-white"
+      style={viewportStyle}
+    >
       <header className="fixed left-1/2 top-0 z-30 w-full max-w-[430px] -translate-x-1/2 border-b border-white/10 bg-black/30 px-3 py-3 text-white backdrop-blur-xl">
         <div className="mx-auto flex items-center gap-3">
           <div className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/14 text-[#44f26e] shadow-[0_12px_34px_rgba(68,242,110,0.14)]">
@@ -2110,6 +2218,7 @@ export function FanletterNewsPublicCutsFeedPage({
           <FeedSlide
             hasMore={hasMore}
             index={index}
+            initialSourceContentId={index === 0 ? sourceContentId : null}
             item={item}
             itemCount={items.length}
             key={item.report.reportId}
