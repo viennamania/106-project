@@ -781,7 +781,7 @@ function SourceRevealMiniVote({
       <div className="mt-2 max-w-[30rem] rounded-[1.05rem] border border-[#44f26e]/22 bg-black/28 p-2.5 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md">
         <div className="flex items-center gap-2.5">
           <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/18 text-[#44f26e] ring-1 ring-[#44f26e]/22">
-          <CheckCircle2 className="size-4" />
+            <CheckCircle2 className="size-4" />
           </span>
           <span className="min-w-0 flex-1 text-left">
             <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
@@ -790,10 +790,6 @@ function SourceRevealMiniVote({
             <span className="block truncate text-[0.72rem] font-black text-white/86">
               {copy.sourceOpenCompleteSummary(countLabel, thresholdLabel)}
             </span>
-          </span>
-          <span className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-[#44f26e]/14 px-2.5 text-[0.68rem] font-black text-[#9bffad] ring-1 ring-[#44f26e]/20">
-            <CheckCircle2 className="size-3.5" />
-            {copy.sourceOpenDone}
           </span>
         </div>
       </div>
