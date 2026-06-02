@@ -129,7 +129,6 @@ function getCopy(locale: Locale) {
         paidSourceTitle: "구매 후 원본을 볼 수 있습니다.",
         previousCut: "이전 컷",
         reporter: "팬 기자",
-        reporterCharacterMetric: "캐릭터",
         reporterChannelCta: "팬 기자 채널 보기",
         reporterCutMetric: "편집 컷",
         reporterPanelClose: "팬 기자 닫기",
@@ -246,7 +245,6 @@ function getCopy(locale: Locale) {
         paidSourceTitle: "Unlock purchase to watch the source.",
         previousCut: "Previous cut",
         reporter: "Fan reporter",
-        reporterCharacterMetric: "Character",
         reporterChannelCta: "View reporter channel",
         reporterCutMetric: "Edited cuts",
         reporterPanelClose: "Close reporter",
@@ -906,7 +904,6 @@ function CutFeedCharacterInlinePanel({
 
 type CutFeedReporterPanelCopy = Pick<
   ReturnType<typeof getCopy>,
-  | "reporterCharacterMetric"
   | "reporterChannelCta"
   | "reporterCutMetric"
   | "reporterPanelClose"
@@ -919,7 +916,6 @@ type CutFeedReporterPanelCopy = Pick<
 function CutFeedReporterInlinePanel({
   avatarImageUrl,
   channelHref,
-  characterName,
   copy,
   cutCountLabel,
   name,
@@ -930,7 +926,6 @@ function CutFeedReporterInlinePanel({
 }: {
   avatarImageUrl: string | null;
   channelHref: string;
-  characterName: string;
   copy: CutFeedReporterPanelCopy;
   cutCountLabel: string;
   name: string;
@@ -1009,17 +1004,9 @@ function CutFeedReporterInlinePanel({
             </div>
           ))}
         </div>
-        <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-1.5">
-          <div className="min-w-0 rounded-xl border border-white/10 bg-white/[0.07] px-2.5 py-2">
-            <p className="truncate text-[0.54rem] font-black uppercase tracking-[0.08em] text-[#9bffad]">
-              {copy.reporterCharacterMetric}
-            </p>
-            <p className="mt-1 truncate text-[0.72rem] font-black text-white">
-              {characterName}
-            </p>
-          </div>
+        <div className="mt-2">
           <Link
-            className="inline-flex h-full items-center justify-center rounded-xl border border-[#44f26e]/24 bg-[#44f26e]/14 px-3 text-[0.64rem] font-black !text-[#9bffad] transition hover:bg-[#44f26e] hover:!text-[#111510]"
+            className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-[#44f26e]/24 bg-[#44f26e]/14 px-3 text-[0.78rem] font-black !text-[#9bffad] transition hover:bg-[#44f26e] hover:!text-[#111510]"
             href={channelHref}
           >
             {copy.reporterChannelCta}
@@ -2542,7 +2529,6 @@ function FeedSlide({
         <CutFeedReporterInlinePanel
           avatarImageUrl={report.reporterAvatarImageUrl}
           channelHref={reporterHref}
-          characterName={report.creatorName}
           copy={copy}
           cutCountLabel={characterCutCountLabel}
           name={report.reporterName}
