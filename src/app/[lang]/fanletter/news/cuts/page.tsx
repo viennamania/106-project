@@ -24,13 +24,13 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "팬 기자가 원본 브이로그 프레임에서 직접 고르고 크롭한 4컷을 전체화면 피드로 넘겨보는 FanLetter News 서비스입니다.",
-        title: "리포터 컷 피드 | FanLetter News",
+          "팬 기자가 직접 편집한 4컷에서 원본 브이로그, AI 캐릭터, 팬 기자 채널로 이어지는 FanLetter News 홈 피드입니다.",
+        title: "FanLetter News 홈 피드",
       }
     : {
         description:
-          "A full-screen FanLetter News feed of four teaser cuts selected and cropped by fan reporters.",
-        title: "Reporter Cut Feed | FanLetter News",
+          "A FanLetter News home feed that starts with four cuts edited by fan reporters and continues to source vlogs, AI characters, and reporter channels.",
+        title: "FanLetter News Home Feed",
       };
 }
 

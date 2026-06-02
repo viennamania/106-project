@@ -12,21 +12,29 @@ import {
 import {
   AlertTriangle,
   ArrowLeft,
+  BookOpenCheck,
   Check,
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
+  Compass,
   ExternalLink,
   HeartHandshake,
+  Home,
   Images,
   Loader2,
   LockKeyhole,
+  Menu,
+  Newspaper,
   PenLine,
   PlayCircle,
+  Plus,
   Share2,
   Sparkles,
   UserRound,
+  Video,
   X,
+  type LucideIcon,
 } from "lucide-react";
 
 import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive-media-frame";
@@ -69,11 +77,11 @@ function getCopy(locale: Locale) {
         doubleTapWant: "보고싶어요",
         emptyBody:
           "아직 공개 피드로 보여줄 리포터 편집 컷이 없습니다. 팬 기자가 티저 컷을 저장하면 이곳에 모입니다.",
-        emptyCta: "뉴스 홈으로 돌아가기",
+        emptyCta: "뉴스룸 보기",
         emptyTitle: "리포터 컷 피드가 준비 중입니다.",
         eyebrow: "Reporter Cut Feed",
         feedTitle: "리포터 컷",
-        home: "뉴스 홈",
+        home: "홈 피드",
         instruction: "위아래로 넘겨 팬 기자가 고른 4컷을 확인하세요.",
         loadError: "다음 리포터 컷을 불러오지 못했습니다.",
         loadMore: "더 보기",
@@ -88,6 +96,27 @@ function getCopy(locale: Locale) {
         previousCut: "이전 컷",
         reporter: "팬 기자",
         retry: "다시 시도",
+        serviceCharacters: "AI 캐릭터",
+        serviceCharactersHint: "IP 채널",
+        serviceHome: "홈 피드",
+        serviceHomeHint: "4컷 피드",
+        serviceMenu: "탐색",
+        serviceMenuClose: "탐색 닫기",
+        serviceMenuTitle: "FanLetter News",
+        serviceMy: "마이",
+        serviceMyHint: "활동·보상",
+        serviceNewsroom: "뉴스룸",
+        serviceNewsroomHint: "리포트 편집판",
+        servicePurchases: "구매함",
+        servicePurchasesHint: "팬 전용",
+        serviceReportNew: "리포트 작성",
+        serviceReportNewHint: "팬 기자",
+        serviceReporters: "팬 기자",
+        serviceReportersHint: "리포터 채널",
+        serviceVlogNew: "새 브이로그",
+        serviceVlogNewHint: "브이로거",
+        serviceVlogs: "원본 브이로그",
+        serviceVlogsHint: "공개 영상",
         share: "공유하기",
         shareCopied: "링크 복사됨",
         shareError: "공유 실패",
@@ -159,6 +188,27 @@ function getCopy(locale: Locale) {
         previousCut: "Previous cut",
         reporter: "Fan reporter",
         retry: "Retry",
+        serviceCharacters: "AI Characters",
+        serviceCharactersHint: "IP channels",
+        serviceHome: "Home Feed",
+        serviceHomeHint: "4-cut feed",
+        serviceMenu: "Explore",
+        serviceMenuClose: "Close explore",
+        serviceMenuTitle: "FanLetter News",
+        serviceMy: "My",
+        serviceMyHint: "Activity",
+        serviceNewsroom: "Newsroom",
+        serviceNewsroomHint: "Report edit",
+        servicePurchases: "Purchases",
+        servicePurchasesHint: "Fan-only",
+        serviceReportNew: "Write Report",
+        serviceReportNewHint: "Reporter",
+        serviceReporters: "Fan Reporters",
+        serviceReportersHint: "Reporter channels",
+        serviceVlogNew: "New Vlog",
+        serviceVlogNewHint: "Vlogger",
+        serviceVlogs: "Source Vlogs",
+        serviceVlogsHint: "Public videos",
         share: "Share",
         shareCopied: "Link copied",
         shareError: "Share failed",
@@ -321,6 +371,21 @@ type SourceRevealTapFeedback = {
   label: string;
 };
 
+type CutFeedServiceMenuCopy = Pick<
+  ReturnType<typeof getCopy>,
+  | "serviceMenu"
+  | "serviceMenuClose"
+  | "serviceMenuTitle"
+>;
+
+type CutFeedServiceMenuItem = {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  secondaryLabel: string;
+  primary?: boolean;
+};
+
 function isSourceRevealResponse(value: unknown): value is SourceRevealResponse {
   return (
     typeof value === "object" &&
@@ -474,6 +539,100 @@ function CutFeedShareButton({
         <Share2 className="size-4" />
       )}
     </button>
+  );
+}
+
+function CutFeedServiceMenuSheet({
+  copy,
+  items,
+  onClose,
+}: {
+  copy: CutFeedServiceMenuCopy;
+  items: CutFeedServiceMenuItem[];
+  onClose: () => void;
+}) {
+  return (
+    <div
+      aria-modal="true"
+      className="fixed inset-0 z-[70] flex items-end justify-center bg-black/42 px-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] text-white backdrop-blur-sm"
+      onClick={onClose}
+      role="dialog"
+    >
+      <section
+        aria-label={copy.serviceMenuTitle}
+        className="max-h-[calc(100dvh_-_env(safe-area-inset-top)_-_1rem)] w-full max-w-[430px] overflow-hidden rounded-t-[1.35rem] border border-white/12 bg-[#060907]/96 shadow-[0_-22px_70px_rgba(0,0,0,0.42)]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/14 text-[#44f26e] ring-1 ring-[#44f26e]/22">
+            <Compass className="size-5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+              {copy.serviceMenuTitle}
+            </p>
+            <h2 className="mt-0.5 truncate text-lg font-black leading-tight">
+              {copy.serviceMenu}
+            </h2>
+          </div>
+          <button
+            aria-label={copy.serviceMenuClose}
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white transition hover:bg-white hover:text-[#111510]"
+            onClick={onClose}
+            type="button"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
+        <div className="grid max-h-[calc(100dvh_-_env(safe-area-inset-top)_-_6.5rem)] grid-cols-2 gap-2 overflow-y-auto p-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {items.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <Link
+                className={`group flex min-h-[4.15rem] items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition ${
+                  item.primary
+                    ? "border-[#44f26e]/34 bg-[#44f26e]/14 hover:bg-[#44f26e]"
+                    : "border-white/10 bg-white/7 hover:border-[#44f26e]/34 hover:bg-white/12"
+                }`}
+                href={item.href}
+                key={`${item.href}-${item.label}`}
+              >
+                <span
+                  className={`inline-flex size-10 shrink-0 items-center justify-center rounded-full transition ${
+                    item.primary
+                      ? "bg-[#44f26e] text-[#111510] group-hover:bg-[#111510] group-hover:text-[#44f26e]"
+                      : "bg-white/8 text-[#44f26e] group-hover:bg-[#44f26e] group-hover:text-[#111510]"
+                  }`}
+                >
+                  <Icon className="size-5" />
+                </span>
+                <span className="min-w-0">
+                  <span
+                    className={`block truncate text-sm font-black ${
+                      item.primary
+                        ? "text-white group-hover:text-[#111510]"
+                        : "text-white"
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                  <span
+                    className={`mt-0.5 block truncate text-[0.62rem] font-black uppercase tracking-[0.08em] ${
+                      item.primary
+                        ? "text-[#9bffad] group-hover:text-[#0b3518]"
+                        : "text-white/42"
+                    }`}
+                  >
+                    {item.secondaryLabel}
+                  </span>
+                </span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -1628,12 +1787,110 @@ export function FanletterNewsPublicCutsFeedPage({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showSwipeGuide, setShowSwipeGuide] = useState(false);
   const [swipeGuideDismissed, setSwipeGuideDismissed] = useState(false);
+  const [serviceMenuOpen, setServiceMenuOpen] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
-  const newsHomeHref = buildPathWithReferral(
+  const cutFeedHomeHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/cuts`,
+    referralCode,
+  );
+  const newsroomHref = buildPathWithReferral(
     `/${locale}/fanletter/news`,
     referralCode,
   );
+  const charactersHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/characters`,
+    referralCode,
+  );
+  const reportersHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/reporters`,
+    referralCode,
+  );
+  const vlogsHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/vlogs`,
+    referralCode,
+  );
+  const purchasesHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/purchases`,
+    referralCode,
+  );
+  const myHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/my`,
+    referralCode,
+  );
+  const reportsNewHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/reports/new`, referralCode),
+    {
+      returnTo: cutFeedHomeHref,
+    },
+  );
+  const vlogsManageHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/vlogs/manage`,
+    referralCode,
+  );
+  const vlogsNewHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/vlogs/new`, referralCode),
+    {
+      returnTo: vlogsManageHref,
+    },
+  );
+  const serviceMenuItems: CutFeedServiceMenuItem[] = [
+    {
+      href: cutFeedHomeHref,
+      icon: Home,
+      label: copy.serviceHome,
+      secondaryLabel: copy.serviceHomeHint,
+      primary: true,
+    },
+    {
+      href: charactersHref,
+      icon: Sparkles,
+      label: copy.serviceCharacters,
+      secondaryLabel: copy.serviceCharactersHint,
+    },
+    {
+      href: reportersHref,
+      icon: PenLine,
+      label: copy.serviceReporters,
+      secondaryLabel: copy.serviceReportersHint,
+    },
+    {
+      href: vlogsHref,
+      icon: Video,
+      label: copy.serviceVlogs,
+      secondaryLabel: copy.serviceVlogsHint,
+    },
+    {
+      href: purchasesHref,
+      icon: BookOpenCheck,
+      label: copy.servicePurchases,
+      secondaryLabel: copy.servicePurchasesHint,
+    },
+    {
+      href: myHref,
+      icon: UserRound,
+      label: copy.serviceMy,
+      secondaryLabel: copy.serviceMyHint,
+    },
+    {
+      href: reportsNewHref,
+      icon: Plus,
+      label: copy.serviceReportNew,
+      secondaryLabel: copy.serviceReportNewHint,
+    },
+    {
+      href: vlogsNewHref,
+      icon: Video,
+      label: copy.serviceVlogNew,
+      secondaryLabel: copy.serviceVlogNewHint,
+    },
+    {
+      href: newsroomHref,
+      icon: Newspaper,
+      label: copy.serviceNewsroom,
+      secondaryLabel: copy.serviceNewsroomHint,
+    },
+  ];
   const headerCountLabel = hasMore
     ? `${formatNumber(items.length, locale)}+`
     : formatNumber(items.length, locale);
@@ -1730,6 +1987,24 @@ export function FanletterNewsPublicCutsFeedPage({
   }, [shouldOfferSwipeGuide, swipeGuideDismissed]);
 
   useEffect(() => {
+    if (!serviceMenuOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setServiceMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [serviceMenuOpen]);
+
+  useEffect(() => {
     if (!hasMore) {
       return;
     }
@@ -1774,7 +2049,7 @@ export function FanletterNewsPublicCutsFeedPage({
           </p>
           <Link
             className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-[#111510]"
-            href={newsHomeHref}
+            href={newsroomHref}
           >
             <ArrowLeft className="size-4" />
             {copy.emptyCta}
@@ -1799,16 +2074,30 @@ export function FanletterNewsPublicCutsFeedPage({
               {copy.title}
             </h1>
           </div>
-          <div className="shrink-0 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-3 py-1.5 text-right shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
-            <p className="text-sm font-black leading-none text-white">
+          <button
+            aria-expanded={serviceMenuOpen}
+            aria-label={copy.serviceMenu}
+            className="group inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/14 px-3 text-white shadow-[0_12px_30px_rgba(0,0,0,0.18)] transition hover:bg-[#44f26e] hover:text-[#111510]"
+            onClick={() => setServiceMenuOpen(true)}
+            type="button"
+          >
+            <Menu className="size-4" />
+            <span className="hidden text-[0.72rem] font-black min-[360px]:inline">
+              {copy.serviceMenu}
+            </span>
+            <span className="rounded-full bg-white/12 px-2 py-1 text-xs font-black leading-none text-white transition group-hover:text-[#111510]">
               {headerCountLabel}
-            </p>
-            <p className="mt-1 text-[0.56rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
-              {copy.feedTitle}
-            </p>
-          </div>
+            </span>
+          </button>
         </div>
       </header>
+      {serviceMenuOpen ? (
+        <CutFeedServiceMenuSheet
+          copy={copy}
+          items={serviceMenuItems}
+          onClose={() => setServiceMenuOpen(false)}
+        />
+      ) : null}
       <div
         className="mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overflow-y-auto overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] scroll-smooth sm:border-x sm:border-white/10"
         onScroll={handleFeedScroll}

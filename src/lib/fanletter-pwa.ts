@@ -19,7 +19,7 @@ export const fanletterViewport: Viewport = {
 };
 
 export function getFanletterPwaStartUrl(locale: Locale) {
-  return `/${locale}/fanletter/news?pwa=1`;
+  return `/${locale}/fanletter/news/cuts?pwa=1`;
 }
 
 export function getFanletterPwaScope(locale: Locale) {
@@ -75,7 +75,7 @@ export function createFanletterPwaManifest(
         description: copy.shortcuts.news.description,
         name: copy.shortcuts.news.name,
         short_name: copy.shortcuts.news.shortName,
-        url: `${scope}/news`,
+        url: `${scope}/news/cuts`,
       },
       {
         description: copy.shortcuts.characters.description,
@@ -162,9 +162,9 @@ function getFanletterPwaCopy(locale: Locale) {
           shortName: "캐릭터",
         },
         news: {
-          description: "AI 캐릭터 포토 뉴스 홈을 엽니다.",
-          name: "뉴스 홈",
-          shortName: "뉴스",
+          description: "팬 기자가 편집한 4컷 홈 피드를 엽니다.",
+          name: "홈 피드",
+          shortName: "홈",
         },
         purchases: {
           description: "구매한 팬 전용 콘텐츠를 이어봅니다.",
@@ -196,9 +196,9 @@ function getFanletterPwaCopy(locale: Locale) {
         shortName: "Characters",
       },
       news: {
-        description: "Open the AI character photo news home.",
-        name: "News Home",
-        shortName: "News",
+        description: "Open the four-cut home feed edited by fan reporters.",
+        name: "Home Feed",
+        shortName: "Home",
       },
       purchases: {
         description: "Continue purchased fan-only content.",

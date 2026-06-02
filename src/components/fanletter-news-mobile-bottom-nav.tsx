@@ -375,11 +375,11 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
           };
   const items: FanletterNewsMobileNavItem[] = [
     {
-      activePath: basePath,
-      href: buildHref(basePath),
+      activePath: cutsPath,
+      href: buildHref(cutsPath),
       icon: Newspaper,
       key: "news",
-      label: locale === "ko" ? "뉴스" : "News",
+      label: locale === "ko" ? "홈" : "Home",
     },
     {
       activePath: `${basePath}/characters`,
@@ -433,13 +433,8 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
             const activePaths = item.activePaths ?? [item.activePath];
             const active =
               item.key === "news"
-                ? pathname === basePath ||
-                  pathname === `${basePath}/gallery` ||
-                  pathname.startsWith(`${basePath}/gallery/`) ||
-                  pathname === `${basePath}/reporters` ||
-                  pathname.startsWith(`${basePath}/reporters/`) ||
-                  pathname === vlogsPath ||
-                  pathname.startsWith(`${vlogsPath}/`)
+                ? pathname === cutsPath ||
+                  pathname.startsWith(`${cutsPath}/`)
                 : item.exact
                   ? pathname === item.activePath
                   : item.key === "my"
