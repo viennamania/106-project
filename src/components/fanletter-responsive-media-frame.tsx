@@ -263,7 +263,7 @@ export function FanletterResponsiveMediaFrame({
           )}
         />
         {children}
-        <div className="absolute inset-x-0 bottom-0 z-20 flex justify-center p-4 sm:p-5">
+        <div className="absolute inset-x-0 bottom-0 z-20 flex items-start justify-center px-4 pb-[calc(env(safe-area-inset-bottom)+5rem)] pt-4 sm:p-5">
           <button
             className="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black text-black shadow-[0_18px_40px_rgba(0,0,0,0.28)] transition hover:bg-[#69ff8c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e]"
             onClick={() => setDeferredVideoActivatedUrl(playableVideoUrl)}
