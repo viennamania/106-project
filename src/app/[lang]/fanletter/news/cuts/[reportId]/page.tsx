@@ -7,7 +7,11 @@ import {
   getFanletterNewsPublicCutFeedPage,
   serializeFanletterNewsPublicCutFeedItems,
 } from "@/lib/fanletter-news-public-cuts";
-import { FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE } from "@/lib/fanletter-news-public-cuts-shared";
+import {
+  FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
+  FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM,
+  normalizeFanletterNewsPublicCutSlotNumber,
+} from "@/lib/fanletter-news-public-cuts-shared";
 import { getFanletterNewsReportById } from "@/lib/fanletter-news-report-service";
 import {
   readFanletterReferralCode,
@@ -22,6 +26,7 @@ import { readMemberServerSession } from "@/lib/member-server-session";
 import { normalizeShareId } from "@/lib/share-tracking";
 
 type FanletterNewsCutDetailSearchParams = {
+  cut?: string | string[];
   ref?: string | string[];
   shareId?: string | string[];
   source?: string | string[];
@@ -47,7 +52,9 @@ function getFanletterNewsCutDetailMetadataUrl({
   referralCode,
   reportId,
   shareId,
+  cutSlotNumber,
 }: {
+  cutSlotNumber: number | null;
   fallbackReferralCode: string | null;
   locale: Locale;
   referralCode: string | null;
@@ -55,15 +62,22 @@ function getFanletterNewsCutDetailMetadataUrl({
   shareId: string | null;
 }) {
   const basePath = `/${locale}/fanletter/news/cuts/${reportId}`;
+  const cutSlotNumberValue = cutSlotNumber ? String(cutSlotNumber) : null;
 
   if (shareId) {
     return setPathSearchParams(basePath, {
+      [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: cutSlotNumberValue,
       ref: referralCode,
       shareId,
     });
   }
 
-  return buildPathWithReferral(basePath, referralCode ?? fallbackReferralCode);
+  return setPathSearchParams(
+    buildPathWithReferral(basePath, referralCode ?? fallbackReferralCode),
+    {
+      [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: cutSlotNumberValue,
+    },
+  );
 }
 
 export async function generateMetadata({
@@ -79,18 +93,28 @@ export async function generateMetadata({
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
   const shareId = normalizeShareId(readFirstSearchParam(query.shareId));
+  const cutSlotNumber = normalizeFanletterNewsPublicCutSlotNumber(
+    readFirstSearchParam(query.cut),
+  );
   const report = await getFanletterNewsReportById(reportId);
   const localizedReport = report?.locale === locale ? report : null;
   const feedItem = localizedReport
     ? createFanletterNewsPublicCutFeedItem(localizedReport)
     : null;
+  const selectedCut = cutSlotNumber
+    ? feedItem?.cuts.find((cut) => cut.slotNumber === cutSlotNumber) ?? null
+    : null;
   const imageUrl =
-    localizedReport?.coverImageUrl ?? feedItem?.leadCut.imageUrl ?? null;
+    selectedCut?.imageUrl ??
+    localizedReport?.coverImageUrl ??
+    feedItem?.leadCut.imageUrl ??
+    null;
   const title = localizedReport
     ? `${localizedReport.title} | ${copy.title}`
     : copy.title;
   const description = localizedReport?.dek ?? copy.description;
   const url = getFanletterNewsCutDetailMetadataUrl({
+    cutSlotNumber,
     fallbackReferralCode: localizedReport?.reporterReferralCode ?? null,
     locale,
     referralCode,
@@ -149,6 +173,9 @@ export default async function LocalizedFanletterNewsCutDetailPage({
   const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
   const shareId = normalizeShareId(readFirstSearchParam(query.shareId));
+  const initialCutSlotNumber = normalizeFanletterNewsPublicCutSlotNumber(
+    readFirstSearchParam(query.cut),
+  );
   const initialSourceContentId =
     readFirstSearchParam(query.source)?.trim() || null;
   const session = await readMemberServerSession();
@@ -177,6 +204,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
       dictionary={getDictionary(locale)}
       excludeReportId={report.reportId}
       hasMore={feedPage.hasMore}
+      initialCutSlotNumber={initialCutSlotNumber}
       items={serializeFanletterNewsPublicCutFeedItems(feedPage.items)}
       locale={locale}
       nextOffset={feedPage.nextOffset}

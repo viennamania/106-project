@@ -8,6 +8,23 @@ import type { FanletterNewsSourceRevealState } from "@/lib/fanletter-news-source
 export const FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE = 12;
 export const FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE = 12;
 export const FANLETTER_NEWS_PUBLIC_CUT_MAX_PAGE_SIZE = 24;
+export const FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM = "cut";
+export const FANLETTER_NEWS_PUBLIC_CUT_MAX_SLOTS = 4;
+
+export function normalizeFanletterNewsPublicCutSlotNumber(value: unknown) {
+  const candidate = typeof value === "string" ? value.trim() : "";
+  const parsed = Number.parseInt(candidate, 10);
+
+  if (
+    !Number.isFinite(parsed) ||
+    parsed < 1 ||
+    parsed > FANLETTER_NEWS_PUBLIC_CUT_MAX_SLOTS
+  ) {
+    return null;
+  }
+
+  return parsed;
+}
 
 export type SerializedFanletterNewsPublicCut = {
   imageUrl: string;

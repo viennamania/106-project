@@ -48,7 +48,9 @@ import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive
 import { useMemberSession } from "@/components/member-session-provider";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
+  FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM,
   FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE,
+  normalizeFanletterNewsPublicCutSlotNumber,
   type FanletterNewsPublicCutFeedLoadResponse,
   type FanletterNewsPublicCutSource,
   type FanletterNewsPublicCutSourceLoadResponse,
@@ -504,6 +506,7 @@ async function copyToClipboard(value: string) {
 }
 
 function CutFeedShareButton({
+  activeCutSlotNumber,
   copy,
   href,
   previewImageKind,
@@ -513,12 +516,13 @@ function CutFeedShareButton({
   shareTitle,
   variant = "compact",
 }: {
+  activeCutSlotNumber: number;
   copy: Pick<
     ReturnType<typeof getCopy>,
     "share" | "shareCopied" | "shareError" | "shareSharing"
   >;
   href: string;
-  previewImageKind: "cover" | "leadCut";
+  previewImageKind: "activeCut" | "cover" | "leadCut";
   referralCode: string | null;
   reportId: string;
   shareSummary: string;
@@ -544,10 +548,16 @@ function CutFeedShareButton({
   const handleShare = useCallback(async () => {
     const nextShareId = createShareId("newscut");
     const absoluteHref = new URL(href, window.location.origin).toString();
-    const shareUrl = setShareIdOnHref(absoluteHref, nextShareId);
+    const shareUrl = setPathSearchParams(
+      setShareIdOnHref(absoluteHref, nextShareId),
+      {
+        [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(activeCutSlotNumber),
+      },
+    );
 
     trackFunnelEvent("share_click", {
       metadata: {
+        cutSlotNumber: activeCutSlotNumber,
         previewImageKind,
         reportId,
         source: "fanletter-news-cut-feed",
@@ -588,6 +598,7 @@ function CutFeedShareButton({
       setState("error");
     }
   }, [
+    activeCutSlotNumber,
     href,
     previewImageKind,
     referralCode,
@@ -1593,6 +1604,7 @@ function FeedSlide({
   dictionary,
   hasMore,
   index,
+  initialCutSlotNumber = null,
   initialSourceContentId = null,
   item,
   itemCount,
@@ -1606,6 +1618,7 @@ function FeedSlide({
   dictionary: Dictionary;
   hasMore: boolean;
   index: number;
+  initialCutSlotNumber?: number | null;
   initialSourceContentId?: string | null;
   item: SerializedFanletterNewsPublicCutFeedItem;
   itemCount: number;
@@ -1616,7 +1629,20 @@ function FeedSlide({
   referralCode: string | null;
   showSwipeGuide?: boolean;
 }) {
-  const [activeCutIndex, setActiveCutIndex] = useState(0);
+  const [activeCutIndex, setActiveCutIndex] = useState(() => {
+    const normalizedInitialCutSlotNumber =
+      normalizeFanletterNewsPublicCutSlotNumber(
+        initialCutSlotNumber ? String(initialCutSlotNumber) : null,
+      );
+    const initialCuts = item.cuts.length > 0 ? item.cuts : [item.leadCut];
+    const initialCutIndex = normalizedInitialCutSlotNumber
+      ? initialCuts.findIndex(
+          (cut) => cut.slotNumber === normalizedInitialCutSlotNumber,
+        )
+      : -1;
+
+    return initialCutIndex >= 0 ? initialCutIndex : 0;
+  });
   const [sourceRevealState, setSourceRevealState] = useState(item.sourceReveal);
   const [isSourceRevealSaving, setIsSourceRevealSaving] = useState(false);
   const [sourceRevealError, setSourceRevealError] = useState<string | null>(null);
@@ -1700,7 +1726,8 @@ function FeedSlide({
     locale,
   )}/${formatNumber(sourceRevealState.threshold, locale)}`;
   const reporterPublishedAtLabel = publishedAt ?? "-";
-  const sharePreviewImageKind = report.coverImageUrl ? "cover" : "leadCut";
+  const activeCutSlotNumber = cuts[activeCutIndex]?.slotNumber ?? 1;
+  const sharePreviewImageKind = "activeCut";
   const shareTitle = copy.shareTitle(title);
   const shareSummary = copy.shareSummary(title, report.reporterName);
 
@@ -2506,6 +2533,7 @@ function FeedSlide({
         />
         <div className="flex flex-col items-center gap-1.5">
           <CutFeedShareButton
+            activeCutSlotNumber={activeCutSlotNumber}
             copy={copy}
             href={cutFeedHref}
             previewImageKind={sharePreviewImageKind}
@@ -2764,6 +2792,7 @@ export function FanletterNewsPublicCutsFeedPage({
   dictionary,
   excludeReportId = null,
   hasMore: initialHasMore,
+  initialCutSlotNumber = null,
   items: initialItems,
   locale,
   nextOffset: initialNextOffset,
@@ -2774,6 +2803,7 @@ export function FanletterNewsPublicCutsFeedPage({
   dictionary: Dictionary;
   excludeReportId?: string | null;
   hasMore: boolean;
+  initialCutSlotNumber?: number | null;
   items: SerializedFanletterNewsPublicCutFeedItem[];
   locale: Locale;
   nextOffset: number;
@@ -3342,6 +3372,7 @@ export function FanletterNewsPublicCutsFeedPage({
             dictionary={dictionary}
             hasMore={hasMore}
             index={index}
+            initialCutSlotNumber={index === 0 ? initialCutSlotNumber : null}
             initialSourceContentId={index === 0 ? sourceContentId : null}
             item={item}
             itemCount={items.length}
