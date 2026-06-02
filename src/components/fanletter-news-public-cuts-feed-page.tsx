@@ -1696,6 +1696,7 @@ function FeedSlide({
   const pendingVoteAfterLoginRef = useRef(false);
   const loginSyncKeyRef = useRef<string | null>(null);
   const sourceOverlayHistoryPushedRef = useRef(false);
+  const handledReporterPanelRequestIdRef = useRef(0);
   const copy = getCopy(locale);
   const { report } = item;
   const title = getFanletterNewsBareArticleDisplayTitle(report.title);
@@ -1868,13 +1869,17 @@ function FeedSlide({
   }, [item.sourceReveal]);
 
   useEffect(() => {
-    if (reporterPanelRequestId <= 0) {
+    if (
+      reporterPanelRequestId <= 0 ||
+      handledReporterPanelRequestIdRef.current === reporterPanelRequestId
+    ) {
       return;
     }
 
+    handledReporterPanelRequestIdRef.current = reporterPanelRequestId;
     onDismissSwipeGuide?.();
     setIsCharacterPanelOpen(false);
-    setIsReporterPanelOpen(true);
+    setIsReporterPanelOpen((current) => !current);
   }, [onDismissSwipeGuide, reporterPanelRequestId]);
 
   useEffect(() => {
