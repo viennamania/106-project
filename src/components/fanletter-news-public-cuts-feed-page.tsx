@@ -840,7 +840,7 @@ function SourceVlogFeedOverlay({
                 videoUrl={source.videoUrl}
               >
                 {!isPlayable && lockedCopy ? (
-                  <div className="absolute inset-0 flex items-end bg-[linear-gradient(180deg,rgba(0,0,0,0.16),rgba(0,0,0,0.46)_42%,rgba(0,0,0,0.88))] p-4">
+                  <div className="absolute inset-0 flex items-end bg-[linear-gradient(180deg,rgba(0,0,0,0.16),rgba(0,0,0,0.46)_42%,rgba(0,0,0,0.88))] px-4 pb-[calc(env(safe-area-inset-bottom)+4rem)] pt-4 sm:p-4">
                     <div className="w-full rounded-2xl border border-white/14 bg-black/62 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.34)] backdrop-blur-xl">
                       <div className="flex items-start gap-3">
                         <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/16 text-[#44f26e] ring-1 ring-[#44f26e]/20">
@@ -885,7 +885,7 @@ function SourceVlogFeedOverlay({
               </FanletterResponsiveMediaFrame>
             </div>
 
-            <div className="shrink-0 border-t border-white/10 bg-[#080c09] p-4">
+            <div className="shrink-0 border-t border-white/10 bg-[#080c09] px-4 pb-[calc(env(safe-area-inset-bottom)+4rem)] pt-4 sm:p-4">
               <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
                 {source.authorName}
               </p>
