@@ -382,19 +382,33 @@ function getReporterHref({
   );
 }
 
-type SourceRevealMiniVoteCopy = Pick<
+type SourceRevealParticipantRailCopy = Pick<
   ReturnType<typeof getCopy>,
   | "loginSyncing"
   | "sourceOpen"
-  | "sourceOpenCompleteSummary"
   | "sourceOpenDone"
-  | "sourceOpenStatus"
+  | "sourceView"
   | "voteCta"
   | "voteDone"
-  | "voteFailed"
   | "voteLogin"
   | "voteSaving"
 >;
+
+type SourceRevealParticipantSlot =
+  | {
+      avatarImageUrl: string | null;
+      displayName: string;
+      kind: "participant" | "viewer";
+      position: number;
+      referralCode: string | null;
+    }
+  | {
+      avatarImageUrl: null;
+      displayName: string;
+      kind: "complete" | "empty";
+      position: number;
+      referralCode: null;
+    };
 
 type SourceRevealResponse = {
   sourceReveal: FanletterNewsSourceRevealState;
@@ -727,155 +741,257 @@ function CutFeedProfileActionLink({
   );
 }
 
-function SourceRevealMiniVote({
+function getSourceRevealViewerDisplayName({
+  email,
+  referralCode,
+  publicDisplayName,
+}: {
+  email: string | null;
+  publicDisplayName?: string | null;
+  referralCode?: string | null;
+}) {
+  const displayName = publicDisplayName?.trim();
+
+  if (displayName) {
+    return displayName;
+  }
+
+  const normalizedReferralCode = referralCode?.trim();
+
+  if (normalizedReferralCode) {
+    return normalizedReferralCode;
+  }
+
+  return email?.split("@")[0]?.trim() || "Fan";
+}
+
+function getSourceRevealParticipantSlots({
+  isLoggedIn,
+  state,
+  viewerAvatarImageUrl,
+  viewerDisplayName,
+  viewerReferralCode,
+}: {
+  isLoggedIn: boolean;
+  state: FanletterNewsSourceRevealState;
+  viewerAvatarImageUrl: string | null;
+  viewerDisplayName: string;
+  viewerReferralCode: string | null;
+}): SourceRevealParticipantSlot[] {
+  const threshold = Math.max(1, state.threshold);
+  const participants = state.participants.slice(0, threshold);
+  const slots: SourceRevealParticipantSlot[] = participants.map(
+    (participant, index) => ({
+      avatarImageUrl: participant.avatarImageUrl,
+      displayName: participant.displayName,
+      kind: "participant",
+      position: index + 1,
+      referralCode: participant.referralCode,
+    }),
+  );
+  const hasViewerParticipant =
+    Boolean(viewerReferralCode) &&
+    participants.some(
+      (participant) => participant.referralCode === viewerReferralCode,
+    );
+  const shouldShowViewerSlot =
+    isLoggedIn &&
+    !hasViewerParticipant &&
+    !state.unlocked &&
+    (!state.requestedByViewer || slots.length < threshold);
+
+  if (shouldShowViewerSlot && slots.length < threshold) {
+    slots.push({
+      avatarImageUrl: viewerAvatarImageUrl,
+      displayName: viewerDisplayName,
+      kind: state.requestedByViewer ? "participant" : "viewer",
+      position: slots.length + 1,
+      referralCode: viewerReferralCode,
+    });
+  }
+
+  while (slots.length < threshold) {
+    slots.push({
+      avatarImageUrl: null,
+      displayName: state.unlocked ? "Open complete" : "Open slot",
+      kind: state.unlocked ? "complete" : "empty",
+      position: slots.length + 1,
+      referralCode: null,
+    });
+  }
+
+  return slots.slice(0, threshold);
+}
+
+function SourceRevealParticipantRail({
   authNudge,
   copy,
   error,
   isLoggedIn,
   isLoginBusy,
   isSaving,
-  loginError,
   locale,
-  onLogin,
-  onVote,
+  loginError,
+  onActivate,
+  progressPercent,
   state,
+  viewerAvatarImageUrl,
+  viewerDisplayName,
+  viewerReferralCode,
 }: {
   authNudge: boolean;
-  copy: SourceRevealMiniVoteCopy;
+  copy: SourceRevealParticipantRailCopy;
   error: string | null;
   isLoggedIn: boolean;
   isLoginBusy: boolean;
   isSaving: boolean;
-  loginError: string | null;
   locale: Locale;
-  onLogin: () => void;
-  onVote: () => void;
+  loginError: string | null;
+  onActivate: () => void;
+  progressPercent: number;
   state: FanletterNewsSourceRevealState;
+  viewerAvatarImageUrl: string | null;
+  viewerDisplayName: string;
+  viewerReferralCode: string | null;
 }) {
-  const remaining = Math.max(0, state.threshold - state.count);
-  const progressPercent =
-    state.threshold > 0
-      ? Math.min(100, Math.max(0, (state.count / state.threshold) * 100))
-      : 100;
-  const countLabel = formatNumber(state.count, locale);
-  const thresholdLabel = formatNumber(state.threshold, locale);
-  const remainingLabel = formatNumber(remaining, locale);
-  const statusLabel = state.unlocked
-    ? copy.sourceOpenDone
-    : copy.sourceOpenStatus(countLabel, thresholdLabel, remainingLabel);
+  const countLabel = `${formatNumber(
+    Math.min(state.count, state.threshold),
+    locale,
+  )}/${formatNumber(state.threshold, locale)}`;
+  const statusError = loginError ?? error;
+  const slots = getSourceRevealParticipantSlots({
+    isLoggedIn,
+    state,
+    viewerAvatarImageUrl,
+    viewerDisplayName,
+    viewerReferralCode,
+  });
   const ctaLabel = state.unlocked
-    ? copy.sourceOpenDone
+    ? copy.sourceView
     : state.requestedByViewer
       ? copy.voteDone
-      : isSaving
-        ? copy.voteSaving
-        : copy.voteCta;
-  const buttonClassName =
-    "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-[0.66rem] font-black transition";
-  const disabledButtonClassName =
-    "bg-white/12 text-white/62 ring-1 ring-white/10";
-  const statusError = loginError ?? error;
-
-  if (state.unlocked) {
-    return (
-      <div className="mt-2 max-w-[30rem] rounded-[1.05rem] border border-[#44f26e]/22 bg-black/28 p-2.5 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md">
-        <div className="flex items-center gap-2.5">
-          <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/18 text-[#44f26e] ring-1 ring-[#44f26e]/22">
-            <CheckCircle2 className="size-4" />
-          </span>
-          <span className="min-w-0 flex-1 text-left">
-            <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
-              {copy.sourceOpenDone}
-            </span>
-            <span className="block truncate text-[0.72rem] font-black text-white/86">
-              {copy.sourceOpenCompleteSummary(countLabel, thresholdLabel)}
-            </span>
-          </span>
-        </div>
-      </div>
-    );
-  }
+      : isLoginBusy
+        ? copy.loginSyncing
+        : isSaving
+          ? copy.voteSaving
+          : isLoggedIn
+            ? copy.voteCta
+            : copy.voteLogin;
+  const RailIcon: LucideIcon = state.unlocked
+    ? PlayCircle
+    : state.requestedByViewer
+      ? CheckCircle2
+      : HeartHandshake;
+  const buttonClassName = `inline-flex size-11 items-center justify-center rounded-full border shadow-[0_16px_34px_rgba(0,0,0,0.3)] backdrop-blur-xl transition disabled:cursor-wait disabled:opacity-70 ${
+    state.unlocked
+      ? "border-[#44f26e]/70 bg-[#44f26e] text-[#101510] hover:bg-[#67ff88]"
+      : state.requestedByViewer
+        ? "border-white/28 bg-white/88 text-[#101510] hover:bg-white"
+        : "border-white/18 bg-black/52 text-white hover:bg-[#44f26e] hover:text-[#101510]"
+  }`;
+  const isDisabled = isSaving || isLoginBusy;
 
   return (
     <div
-      className={`mt-3 max-w-[30rem] rounded-[1.05rem] border border-white/12 bg-black/30 p-2.5 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md transition ${
-        authNudge
-          ? "scale-[1.015] border-[#44f26e]/55 ring-2 ring-[#44f26e]/28"
-          : ""
+      className={`flex flex-col items-center gap-1.5 transition ${
+        authNudge ? "scale-[1.035]" : ""
       }`}
     >
-      <div className="flex items-center gap-2.5">
-        <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/16 text-[#44f26e] ring-1 ring-[#44f26e]/20">
-          {state.unlocked ? (
-            <CheckCircle2 className="size-4.5" />
-          ) : (
-            <LockKeyhole className="size-4.5" />
-          )}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[0.58rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
-            {copy.sourceOpen}
-          </p>
-          <p className="truncate text-[0.72rem] font-black text-white/88">
-            {statusLabel}
-          </p>
-        </div>
-        {state.unlocked || state.requestedByViewer ? (
-          <button
-            className={`${buttonClassName} ${disabledButtonClassName}`}
-            disabled
-            type="button"
-          >
-            <CheckCircle2 className="size-3.5" />
-            {ctaLabel}
-          </button>
-        ) : isLoggedIn ? (
-          <button
-            className={`${buttonClassName} bg-[#44f26e] text-[#101510] shadow-[0_10px_22px_rgba(0,0,0,0.2)] hover:bg-[#67ff88] disabled:cursor-wait disabled:bg-[#44f26e]/70`}
-            disabled={isSaving}
-            onClick={onVote}
-            type="button"
-          >
-            {isSaving ? (
-              <Loader2 className="size-3.5 animate-spin" />
-            ) : (
-              <HeartHandshake className="size-3.5" />
-            )}
-            {ctaLabel}
-          </button>
-        ) : (
-          <button
-            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-[#101510] shadow-[0_12px_26px_rgba(0,0,0,0.24)] transition hover:bg-[#67ff88] disabled:cursor-wait disabled:bg-[#44f26e]/74 sm:h-9 sm:px-3 sm:text-[0.72rem]"
-            disabled={isLoginBusy}
-            onClick={onLogin}
-            type="button"
-          >
-            {isLoginBusy ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <HeartHandshake className="size-4" />
-            )}
-            {isLoginBusy ? copy.loginSyncing : copy.voteLogin}
-          </button>
-        )}
-      </div>
-      <div
-        aria-label={statusLabel}
-        className="mt-2 h-1 overflow-hidden rounded-full bg-white/14"
-        role="progressbar"
-        aria-valuemax={state.threshold}
-        aria-valuemin={0}
-        aria-valuenow={Math.min(state.count, state.threshold)}
+      <span
+        className="inline-flex rounded-full p-[2px] shadow-[0_12px_34px_rgba(0,0,0,0.26)]"
+        style={{
+          background: `conic-gradient(#44f26e ${progressPercent}%, rgba(255,255,255,0.18) 0)`,
+        }}
       >
-        <div
-          className="h-full rounded-full bg-[#44f26e] transition-[width] duration-300"
-          style={{ width: `${progressPercent}%` }}
-        />
+        <button
+          aria-label={`${ctaLabel} ${countLabel}`}
+          className={buttonClassName}
+          disabled={isDisabled}
+          onClick={onActivate}
+          title={`${ctaLabel} ${countLabel}`}
+          type="button"
+        >
+          {isSaving || isLoginBusy ? (
+            <Loader2 className="size-5 animate-spin" />
+          ) : (
+            <RailIcon className="size-5" />
+          )}
+        </button>
+      </span>
+      <span className="max-w-14 text-center text-[0.58rem] font-black leading-[1.05] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
+        {ctaLabel}
+      </span>
+      <span className="rounded-full bg-black/38 px-1.5 py-0.5 text-[0.56rem] font-black leading-none text-white/84 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur">
+        {countLabel}
+      </span>
+      <div className="mt-1 flex flex-col items-center gap-1">
+        {slots.map((slot) => {
+          const isActionable =
+            !state.unlocked &&
+            !state.requestedByViewer &&
+            (slot.kind === "viewer" || slot.kind === "empty");
+          const slotContent = slot.avatarImageUrl ? (
+            <Image
+              alt=""
+              className="object-cover"
+              fill
+              sizes="30px"
+              src={slot.avatarImageUrl}
+              unoptimized={shouldBypassFanletterImageOptimization(
+                slot.avatarImageUrl,
+              )}
+            />
+          ) : slot.kind === "complete" ? (
+            <CheckCircle2 className="size-3.5" />
+          ) : slot.kind === "viewer" ? (
+            <UserRound className="size-3.5" />
+          ) : (
+            <LockKeyhole className="size-3.5" />
+          );
+          const className = `relative inline-flex size-[1.88rem] items-center justify-center overflow-hidden rounded-full border text-[0.58rem] font-black shadow-[0_8px_18px_rgba(0,0,0,0.24)] transition ${
+            slot.kind === "participant"
+              ? "border-white/62 bg-black/48 text-white"
+              : slot.kind === "viewer"
+                ? "border-[#44f26e] bg-[#44f26e]/20 text-[#44f26e] ring-2 ring-[#44f26e]/36"
+                : slot.kind === "complete"
+                  ? "border-[#44f26e]/70 bg-[#44f26e] text-[#101510]"
+                  : "border-white/18 bg-black/30 text-white/46"
+          }`;
+          const title =
+            slot.kind === "empty"
+              ? `${copy.sourceOpen} ${slot.position}`
+              : slot.kind === "complete"
+                ? copy.sourceOpenDone
+                : slot.displayName;
+
+          return isActionable ? (
+            <button
+              aria-label={title}
+              className={className}
+              disabled={isSaving || isLoginBusy}
+              key={`${slot.kind}-${slot.position}-${slot.referralCode ?? slot.displayName}`}
+              onClick={onActivate}
+              title={title}
+              type="button"
+            >
+              {slotContent}
+            </button>
+          ) : (
+            <span
+              aria-label={title}
+              className={className}
+              key={`${slot.kind}-${slot.position}-${slot.referralCode ?? slot.displayName}`}
+              title={title}
+            >
+              {slotContent}
+            </span>
+          );
+        })}
       </div>
       {statusError ? (
-        <p className="mt-1.5 text-[0.64rem] font-bold text-rose-200">
+        <span className="max-w-16 text-center text-[0.54rem] font-black leading-[1.1] text-rose-100 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
           {statusError}
-        </p>
+        </span>
       ) : null}
     </div>
   );
@@ -1795,30 +1911,15 @@ function FeedSlide({
           ),
         )
       : 100;
-  const sourceRailCountLabel = `${formatNumber(
-    Math.min(sourceRevealState.count, sourceRevealState.threshold),
-    locale,
-  )}/${formatNumber(sourceRevealState.threshold, locale)}`;
-  const sourceRailLabel = sourceRevealState.unlocked
-    ? copy.sourceView
-    : sourceRevealState.requestedByViewer
-      ? copy.voteDone
-      : copy.voteCta;
-  const sourceRailButtonLabel = `${sourceRailLabel} ${sourceRailCountLabel}`;
-  const SourceRailIcon: LucideIcon = sourceRevealState.unlocked
-    ? PlayCircle
-    : sourceRevealState.requestedByViewer
-      ? CheckCircle2
-      : HeartHandshake;
-  const sourceRailButtonClassName = `inline-flex size-11 items-center justify-center rounded-full border shadow-[0_16px_34px_rgba(0,0,0,0.3)] backdrop-blur-xl transition disabled:cursor-wait disabled:opacity-70 ${
-    sourceRevealState.unlocked
-      ? "border-[#44f26e]/70 bg-[#44f26e] text-[#101510] hover:bg-[#67ff88]"
-      : sourceRevealState.requestedByViewer
-        ? "border-white/28 bg-white/88 text-[#101510] hover:bg-white"
-        : "border-white/18 bg-black/52 text-white hover:bg-[#44f26e] hover:text-[#101510]"
-  }`;
-  const sourceRailDisabled =
-    isSourceRevealSaving || (sourceRevealState.unlocked && !sourceContentId);
+  const viewerPublicProfile = memberSession.member?.publicProfile;
+  const viewerAvatarImageUrl =
+    viewerPublicProfile?.avatarImageUrl?.trim() || null;
+  const viewerDisplayName = getSourceRevealViewerDisplayName({
+    email: memberSession.email,
+    publicDisplayName: viewerPublicProfile?.displayName,
+    referralCode: memberSession.member?.referralCode,
+  });
+  const viewerReferralCode = memberSession.member?.referralCode?.trim() || null;
 
   return (
     <article
@@ -1940,35 +2041,22 @@ function FeedSlide({
       </div>
 
       <div className="absolute right-3 top-[48%] z-30 flex -translate-y-1/2 flex-col items-center gap-4 text-white">
-        <div className="flex flex-col items-center gap-1.5">
-          <span
-            className="inline-flex rounded-full p-[2px] shadow-[0_12px_34px_rgba(0,0,0,0.26)]"
-            style={{
-              background: `conic-gradient(#44f26e ${sourceRailProgressPercent}%, rgba(255,255,255,0.18) 0)`,
-            }}
-          >
-            <button
-              aria-label={sourceRailButtonLabel}
-              className={sourceRailButtonClassName}
-              disabled={sourceRailDisabled}
-              onClick={handleSourceRailClick}
-              title={sourceRailButtonLabel}
-              type="button"
-            >
-              {isSourceRevealSaving ? (
-                <Loader2 className="size-5 animate-spin" />
-              ) : (
-                <SourceRailIcon className="size-5" />
-              )}
-            </button>
-          </span>
-          <span className="max-w-14 text-center text-[0.58rem] font-black leading-[1.05] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
-            {sourceRailLabel}
-          </span>
-          <span className="rounded-full bg-black/38 px-1.5 py-0.5 text-[0.56rem] font-black leading-none text-white/84 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur">
-            {sourceRailCountLabel}
-          </span>
-        </div>
+        <SourceRevealParticipantRail
+          authNudge={authNudge}
+          copy={copy}
+          error={sourceRevealError}
+          isLoggedIn={isSourceRevealLoggedIn}
+          isLoginBusy={isLoginSyncing}
+          isSaving={isSourceRevealSaving}
+          locale={locale}
+          loginError={loginSyncError}
+          onActivate={handleSourceRailClick}
+          progressPercent={sourceRailProgressPercent}
+          state={sourceRevealState}
+          viewerAvatarImageUrl={viewerAvatarImageUrl}
+          viewerDisplayName={viewerDisplayName}
+          viewerReferralCode={viewerReferralCode}
+        />
         <div className="flex flex-col items-center gap-1.5">
           <CutFeedShareButton
             copy={copy}
@@ -2069,20 +2157,7 @@ function FeedSlide({
           </div>
 
           <div className="mt-3">
-            <SourceRevealMiniVote
-              authNudge={authNudge}
-              copy={copy}
-              error={sourceRevealError}
-              isLoggedIn={isSourceRevealLoggedIn}
-              isLoginBusy={isLoginSyncing}
-              isSaving={isSourceRevealSaving}
-              loginError={loginSyncError}
-              locale={locale}
-              onLogin={openInlineLoginForVote}
-              onVote={() => void submitSourceRevealVote()}
-              state={sourceRevealState}
-            />
-            <div className="mt-2 grid max-w-[30rem] grid-cols-2 gap-2">
+            <div className="grid max-w-[30rem] grid-cols-2 gap-2">
               <CutFeedProfileActionLink
                 fallbackIcon={Sparkles}
                 href={characterHref}

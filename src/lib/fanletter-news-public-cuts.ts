@@ -6,7 +6,10 @@ import {
   type FanletterNewsReportDocument,
   type FanletterNewsReportTeaserImageDocument,
 } from "@/lib/content";
-import { getContentSocialSummaryForViewer } from "@/lib/content-service";
+import {
+  getContentSocialSummaryForViewer,
+  getContentSourceRevealParticipants,
+} from "@/lib/content-service";
 import {
   getCreatorProfilesCollection,
   getFanletterNewsReportsCollection,
@@ -297,18 +300,25 @@ async function hydrateFanletterNewsPublicCutFeedItemsSourceReveal(
       let social = createEmptyContentSocialSummary();
 
       try {
-        social = await getContentSocialSummaryForViewer(
+        const [nextSocial, participants] = await Promise.all([
+          getContentSocialSummaryForViewer(contentId, viewerEmail ?? null),
+          getContentSourceRevealParticipants(contentId),
+        ]);
+
+        social = nextSocial;
+        sourceRevealByContentId.set(
           contentId,
-          viewerEmail ?? null,
+          createFanletterNewsSourceRevealState(social, {
+            participants,
+          }),
         );
       } catch {
         social = createEmptyContentSocialSummary();
+        sourceRevealByContentId.set(
+          contentId,
+          createFanletterNewsSourceRevealState(social),
+        );
       }
-
-      sourceRevealByContentId.set(
-        contentId,
-        createFanletterNewsSourceRevealState(social),
-      );
     }),
   );
 
