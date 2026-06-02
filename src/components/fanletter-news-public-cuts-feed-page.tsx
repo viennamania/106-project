@@ -401,7 +401,7 @@ function CutFeedShareButton({
   return (
     <button
       aria-label={label}
-      className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full border text-white shadow-[0_10px_24px_rgba(0,0,0,0.2)] backdrop-blur transition hover:bg-white hover:text-[#111510] disabled:cursor-wait disabled:opacity-80 sm:size-9 ${
+      className={`inline-flex size-8 shrink-0 items-center justify-center rounded-full border text-white shadow-[0_10px_24px_rgba(0,0,0,0.2)] backdrop-blur transition hover:bg-white hover:text-[#111510] disabled:cursor-wait disabled:opacity-80 ${
         isCopied
           ? "border-[#44f26e]/50 bg-[#44f26e] !text-[#101510]"
           : "border-white/16 bg-black/44"
@@ -466,25 +466,25 @@ function SourceRevealMiniVote({
         ? copy.voteSaving
         : copy.voteCta;
   const buttonClassName =
-    "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-[0.66rem] font-black transition sm:h-9 sm:px-4 sm:text-xs";
+    "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-[0.66rem] font-black transition";
   const disabledButtonClassName =
     "bg-white/12 text-white/62 ring-1 ring-white/10";
 
   if (state.unlocked) {
     const content = (
       <>
-        <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/18 text-[#44f26e] ring-1 ring-[#44f26e]/22 transition group-hover:bg-[#101510] group-hover:text-[#44f26e] sm:size-8">
+        <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/18 text-[#44f26e] ring-1 ring-[#44f26e]/22 transition group-hover:bg-[#101510] group-hover:text-[#44f26e]">
           <CheckCircle2 className="size-4" />
         </span>
         <span className="min-w-0 flex-1 text-left">
-          <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#9bffad] transition group-hover:text-[#0b3518] sm:text-[0.64rem]">
+          <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#9bffad] transition group-hover:text-[#0b3518]">
             {copy.sourceOpenDone}
           </span>
-          <span className="block truncate text-[0.72rem] font-black text-white/86 transition group-hover:text-[#101510] sm:text-xs">
+          <span className="block truncate text-[0.72rem] font-black text-white/86 transition group-hover:text-[#101510]">
             {copy.sourceOpenCompleteSummary(countLabel, thresholdLabel)}
           </span>
         </span>
-        <span className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-white/10 px-2.5 text-[0.68rem] font-black text-white transition group-hover:bg-[#101510] group-hover:text-white sm:h-8 sm:text-xs">
+        <span className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-white/10 px-2.5 text-[0.68rem] font-black text-white transition group-hover:bg-[#101510] group-hover:text-white">
           <PlayCircle className="size-3.5" />
           {copy.sourceView}
         </span>
@@ -492,16 +492,16 @@ function SourceRevealMiniVote({
     );
 
     return (
-      <div className="mt-2 max-w-[30rem] sm:mt-3">
+      <div className="mt-2 max-w-[30rem]">
         {sourceVlogHref ? (
           <Link
-            className="group inline-flex h-11 w-full items-center gap-2.5 rounded-full border border-[#44f26e]/28 bg-black/34 px-3 text-white shadow-[0_10px_26px_rgba(0,0,0,0.18)] backdrop-blur-md transition hover:border-[#44f26e]/60 hover:bg-[#44f26e] hover:!text-[#101510] sm:h-12 sm:w-auto sm:min-w-[18rem] sm:px-4"
+            className="group inline-flex h-11 w-full items-center gap-2.5 rounded-full border border-[#44f26e]/28 bg-black/34 px-3 text-white shadow-[0_10px_26px_rgba(0,0,0,0.18)] backdrop-blur-md transition hover:border-[#44f26e]/60 hover:bg-[#44f26e] hover:!text-[#101510]"
             href={sourceVlogHref}
           >
             {content}
           </Link>
         ) : (
-          <div className="inline-flex h-11 w-full items-center gap-2.5 rounded-full border border-[#44f26e]/18 bg-black/24 px-3 text-white/74 shadow-[0_10px_26px_rgba(0,0,0,0.14)] backdrop-blur-md sm:h-12 sm:w-auto sm:min-w-[18rem] sm:px-4">
+          <div className="inline-flex h-11 w-full items-center gap-2.5 rounded-full border border-[#44f26e]/18 bg-black/24 px-3 text-white/74 shadow-[0_10px_26px_rgba(0,0,0,0.14)] backdrop-blur-md">
             {content}
           </div>
         )}
@@ -511,14 +511,14 @@ function SourceRevealMiniVote({
 
   return (
     <div
-      className={`mt-3 max-w-[30rem] rounded-[1.05rem] border border-white/12 bg-black/30 p-2.5 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md transition sm:mt-4 sm:p-3 ${
+      className={`mt-3 max-w-[30rem] rounded-[1.05rem] border border-white/12 bg-black/30 p-2.5 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md transition ${
         authNudge
           ? "scale-[1.015] border-[#44f26e]/55 ring-2 ring-[#44f26e]/28"
           : ""
       }`}
     >
       <div className="flex items-center gap-2.5">
-        <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/16 text-[#44f26e] ring-1 ring-[#44f26e]/20 sm:size-9">
+        <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/16 text-[#44f26e] ring-1 ring-[#44f26e]/20">
           {state.unlocked ? (
             <CheckCircle2 className="size-4.5" />
           ) : (
@@ -526,10 +526,10 @@ function SourceRevealMiniVote({
           )}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-[0.58rem] font-black uppercase tracking-[0.14em] text-[#9bffad] sm:text-[0.64rem]">
+          <p className="text-[0.58rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
             {copy.sourceOpen}
           </p>
-          <p className="truncate text-[0.72rem] font-black text-white/88 sm:text-sm">
+          <p className="truncate text-[0.72rem] font-black text-white/88">
             {statusLabel}
           </p>
         </div>
@@ -934,7 +934,7 @@ function FeedSlide({
                   }
                   fill
                   priority={index < 2 && cut.slotNumber <= 2}
-                  sizes="100vw"
+                  sizes="(min-width: 640px) 430px, 100vw"
                   src={cut.imageUrl}
                   unoptimized={shouldBypassFanletterImageOptimization(cut.imageUrl)}
                 />
@@ -946,8 +946,8 @@ function FeedSlide({
         <div className="absolute inset-x-0 bottom-0 h-[22%] bg-gradient-to-t from-black/42 via-black/8 to-transparent" />
       </div>
 
-      <div className="absolute inset-x-0 top-[calc(env(safe-area-inset-top)+4.7rem)] z-20 px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl gap-1.5">
+      <div className="absolute inset-x-0 top-[calc(env(safe-area-inset-top)+4.7rem)] z-20 px-4">
+        <div className="mx-auto flex w-full gap-1.5">
           {cuts.map((cut, cutIndex) => (
             <button
               aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
@@ -966,7 +966,7 @@ function FeedSlide({
         </div>
       </div>
 
-      <div className="absolute left-4 right-4 top-[calc(env(safe-area-inset-top)+5.6rem)] z-20 flex items-center justify-between gap-3 sm:left-6 sm:right-6 lg:left-8 lg:right-8">
+      <div className="absolute left-4 right-4 top-[calc(env(safe-area-inset-top)+5.6rem)] z-20 flex items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 text-[0.62rem] font-black uppercase tracking-[0.12em]">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1.5 text-black shadow-[0_14px_30px_rgba(0,0,0,0.24)]">
             <Images className="size-3.5" />
@@ -1003,7 +1003,7 @@ function FeedSlide({
 
       <button
         aria-label={copy.previousCut}
-        className="absolute left-3 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/18 text-white/86 backdrop-blur transition hover:bg-white hover:text-black sm:inline-flex"
+        className="absolute left-3 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/18 text-white/86 backdrop-blur transition hover:bg-white hover:text-black"
         onClick={goToPreviousCut}
         type="button"
       >
@@ -1011,7 +1011,7 @@ function FeedSlide({
       </button>
       <button
         aria-label={copy.nextCut}
-        className="absolute right-3 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/18 text-white/86 backdrop-blur transition hover:bg-white hover:text-black sm:inline-flex"
+        className="absolute right-3 top-1/2 z-20 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full bg-black/18 text-white/86 backdrop-blur transition hover:bg-white hover:text-black"
         onClick={goToNextCut}
         type="button"
       >
@@ -1021,7 +1021,7 @@ function FeedSlide({
       {tapFeedback ? (
         <div
           aria-live="polite"
-          className="pointer-events-none fixed inset-0 z-40 flex items-center justify-center sm:hidden"
+          className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center"
           key={tapFeedback.id}
         >
           <div className="relative flex flex-col items-center justify-center">
@@ -1036,33 +1036,33 @@ function FeedSlide({
         </div>
       ) : null}
 
-      <div className="relative z-10 flex min-h-[100dvh] items-end px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+7.6rem)] sm:px-6 sm:pb-7 lg:px-8">
-        <section className="mx-auto flex w-full max-w-7xl flex-col justify-end">
+      <div className="relative z-10 flex min-h-[100dvh] items-end px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+7.6rem)]">
+        <section className="mx-auto flex w-full flex-col justify-end">
           <div className="max-w-3xl">
             <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e] drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)]">
               {report.creatorName}
             </p>
             <h1
-              className={`mt-1.5 max-w-4xl break-words text-[1.42rem] font-black leading-[1.08] tracking-normal drop-shadow-[0_3px_18px_rgba(0,0,0,0.82)] [word-break:keep-all] sm:text-[3.4rem] lg:text-[4.4rem] ${
+              className={`mt-1.5 max-w-4xl break-words text-[1.42rem] font-black leading-[1.08] tracking-normal drop-shadow-[0_3px_18px_rgba(0,0,0,0.82)] [word-break:keep-all] ${
                 isNsfw ? "select-none blur-[2px]" : ""
               }`}
             >
               {title}
             </h1>
             <p
-              className={`mt-2 max-w-2xl text-xs font-semibold leading-5 text-white/82 drop-shadow-[0_2px_12px_rgba(0,0,0,0.72)] sm:text-base sm:leading-7 ${
+              className={`mt-2 max-w-2xl text-xs font-semibold leading-5 text-white/82 drop-shadow-[0_2px_12px_rgba(0,0,0,0.72)] ${
                 isNsfw ? "select-none blur-[2px]" : ""
               }`}
             >
               {report.dek}
             </p>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.72rem] font-bold text-white/72 drop-shadow-[0_2px_10px_rgba(0,0,0,0.72)] sm:text-xs">
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.72rem] font-bold text-white/72 drop-shadow-[0_2px_10px_rgba(0,0,0,0.72)]">
               <span>{report.reporterName}</span>
               {publishedAt ? <span>{publishedAt}</span> : null}
             </div>
           </div>
 
-          <div className="mt-3 sm:mt-5">
+          <div className="mt-3">
             <SourceRevealMiniVote
               authNudge={authNudge}
               connectHref={sourceRevealConnectHref}
@@ -1075,16 +1075,16 @@ function FeedSlide({
               sourceVlogHref={sourceVlogHref}
               state={sourceRevealState}
             />
-            <div className="mt-2 grid max-w-[30rem] grid-cols-2 gap-2 sm:flex">
+            <div className="mt-2 grid max-w-[30rem] grid-cols-2 gap-2">
               <Link
-                className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/24 px-4 text-[0.72rem] font-black !text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:!text-[#111510] sm:h-11 sm:text-xs"
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/24 px-4 text-[0.72rem] font-black !text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:!text-[#111510]"
                 href={characterHref}
               >
                 <Sparkles className="size-4 text-[#44f26e]" />
                 {copy.character}
               </Link>
               <Link
-                className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/24 px-4 text-[0.72rem] font-black !text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:!text-[#111510] sm:h-11 sm:text-xs"
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-white/14 bg-black/24 px-4 text-[0.72rem] font-black !text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:!text-[#111510]"
                 href={reporterHref}
               >
                 <PenLine className="size-4 text-[#44f26e]" />
@@ -1093,7 +1093,7 @@ function FeedSlide({
             </div>
           </div>
 
-          <div className="mt-4 flex items-center justify-center gap-1.5 sm:hidden">
+          <div className="mt-4 flex items-center justify-center gap-1.5">
             {cuts.map((cut, cutIndex) => (
               <button
                 aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
@@ -1279,8 +1279,8 @@ export function FanletterNewsPublicCutsFeedPage({
 
   return (
     <main className="h-[100dvh] overflow-hidden bg-[#050706] text-white">
-      <header className="fixed inset-x-0 top-0 z-30 border-b border-white/10 bg-black/34 px-3 py-3 text-white backdrop-blur-xl sm:px-5">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
+      <header className="fixed left-1/2 top-0 z-30 w-full max-w-[430px] -translate-x-1/2 border-b border-white/10 bg-black/34 px-3 py-3 text-white backdrop-blur-xl">
+        <div className="mx-auto flex items-center justify-between gap-3">
           <Link
             className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white hover:text-[#111510]"
             href={newsHomeHref}
@@ -1292,18 +1292,18 @@ export function FanletterNewsPublicCutsFeedPage({
             <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
               {copy.eyebrow}
             </p>
-            <h1 className="truncate text-sm font-black sm:text-base">
+            <h1 className="truncate text-sm font-black">
               {copy.title}
             </h1>
           </div>
-          <div className="hidden min-w-40 justify-end text-right text-[0.68rem] font-bold text-white/54 sm:block">
+          <div className="hidden min-w-40 justify-end text-right text-[0.68rem] font-bold text-white/54">
             {copy.instruction}
           </div>
-          <div className="size-11 shrink-0 sm:hidden" aria-hidden="true" />
+          <div className="size-11 shrink-0" aria-hidden="true" />
         </div>
       </header>
       <div
-        className="h-full snap-y snap-mandatory overflow-y-auto overscroll-contain scroll-smooth"
+        className="mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overflow-y-auto overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] scroll-smooth sm:border-x sm:border-white/10"
         ref={scrollContainerRef}
       >
         {items.map((item, index) => (
