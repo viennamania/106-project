@@ -254,7 +254,14 @@ export function FanletterResponsiveMediaFrame({
             <Clapperboard className="size-14 text-[#44f26e]" />
           </div>
         )}
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.08),rgba(0,0,0,0.16)_42%,rgba(0,0,0,0.72))]" />
+        <div
+          className={cn(
+            "pointer-events-none absolute inset-0",
+            blurred
+              ? "bg-[linear-gradient(180deg,rgba(0,0,0,0.08),rgba(0,0,0,0.16)_42%,rgba(0,0,0,0.72))]"
+              : "bg-[linear-gradient(180deg,rgba(0,0,0,0.02),rgba(0,0,0,0.04)_48%,rgba(0,0,0,0.28))]",
+          )}
+        />
         {children}
         <div className="absolute inset-x-0 bottom-0 z-20 flex justify-center p-4 sm:p-5">
           <button
