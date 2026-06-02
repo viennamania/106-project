@@ -129,6 +129,14 @@ function getCopy(locale: Locale) {
         paidSourceTitle: "구매 후 원본을 볼 수 있습니다.",
         previousCut: "이전 컷",
         reporter: "팬 기자",
+        reporterCharacterMetric: "캐릭터",
+        reporterChannelCta: "팬 기자 채널 보기",
+        reporterCutMetric: "편집 컷",
+        reporterPanelClose: "팬 기자 닫기",
+        reporterPanelEyebrow: "Fan Reporter",
+        reporterPanelTitle: "편집 리포터",
+        reporterPublishedMetric: "발행일",
+        reporterSourceMetric: "원본 오픈",
         retry: "다시 시도",
         serviceCharacters: "AI 캐릭터",
         serviceCharactersHint: "IP 채널",
@@ -234,6 +242,14 @@ function getCopy(locale: Locale) {
         paidSourceTitle: "Unlock purchase to watch the source.",
         previousCut: "Previous cut",
         reporter: "Fan reporter",
+        reporterCharacterMetric: "Character",
+        reporterChannelCta: "View reporter channel",
+        reporterCutMetric: "Edited cuts",
+        reporterPanelClose: "Close reporter",
+        reporterPanelEyebrow: "Fan Reporter",
+        reporterPanelTitle: "Edit reporter",
+        reporterPublishedMetric: "Published",
+        reporterSourceMetric: "Source open",
         retry: "Retry",
         serviceCharacters: "AI Characters",
         serviceCharactersHint: "IP channels",
@@ -692,50 +708,6 @@ function CutFeedServiceMenuSheet({
   );
 }
 
-function CutFeedProfileActionLink({
-  fallbackIcon: FallbackIcon,
-  href,
-  imageUrl,
-  label,
-  name,
-}: {
-  fallbackIcon: LucideIcon;
-  href: string;
-  imageUrl: string | null;
-  label: string;
-  name: string;
-}) {
-  return (
-    <Link
-      className="group inline-flex h-11 min-w-0 items-center gap-2 rounded-full border border-white/14 bg-black/28 py-1.5 pl-1.5 pr-3 !text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:!text-[#111510]"
-      href={href}
-    >
-      <span className="relative inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/18 bg-black/36 text-[#44f26e]">
-        {imageUrl ? (
-          <Image
-            alt=""
-            className="object-cover"
-            fill
-            sizes="32px"
-            src={imageUrl}
-            unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
-          />
-        ) : (
-          <FallbackIcon className="size-4" />
-        )}
-      </span>
-      <span className="min-w-0 text-left">
-        <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.1em] text-[#9bffad] transition group-hover:text-[#0b3518]">
-          {label}
-        </span>
-        <span className="block truncate text-[0.72rem] font-black leading-tight text-white/92 transition group-hover:text-[#111510]">
-          {name}
-        </span>
-      </span>
-    </Link>
-  );
-}
-
 function CutFeedProfileActionButton({
   active = false,
   fallbackIcon: FallbackIcon,
@@ -888,6 +860,132 @@ function CutFeedCharacterInlinePanel({
               </p>
             </div>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type CutFeedReporterPanelCopy = Pick<
+  ReturnType<typeof getCopy>,
+  | "reporterCharacterMetric"
+  | "reporterChannelCta"
+  | "reporterCutMetric"
+  | "reporterPanelClose"
+  | "reporterPanelEyebrow"
+  | "reporterPanelTitle"
+  | "reporterPublishedMetric"
+  | "reporterSourceMetric"
+>;
+
+function CutFeedReporterInlinePanel({
+  avatarImageUrl,
+  channelHref,
+  characterName,
+  copy,
+  cutCountLabel,
+  name,
+  onClose,
+  publishedAtLabel,
+  referralCode,
+  sourceRevealLabel,
+}: {
+  avatarImageUrl: string | null;
+  channelHref: string;
+  characterName: string;
+  copy: CutFeedReporterPanelCopy;
+  cutCountLabel: string;
+  name: string;
+  onClose: () => void;
+  publishedAtLabel: string;
+  referralCode: string;
+  sourceRevealLabel: string;
+}) {
+  return (
+    <div
+      aria-labelledby="cut-feed-reporter-panel-title"
+      aria-modal="false"
+      className="absolute inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+5.4rem)] z-40"
+      role="dialog"
+    >
+      <div className="rounded-2xl border border-white/14 bg-black/68 p-3 text-white shadow-[0_26px_70px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
+        <div className="flex items-start gap-3">
+          <span className="relative inline-flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#44f26e]/42 bg-[#44f26e]/12 text-[#44f26e] shadow-[0_16px_34px_rgba(0,0,0,0.28)]">
+            {avatarImageUrl ? (
+              <Image
+                alt=""
+                className="object-cover"
+                fill
+                sizes="64px"
+                src={avatarImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(avatarImageUrl)}
+              />
+            ) : (
+              <PenLine className="size-7" />
+            )}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.58rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+              {copy.reporterPanelEyebrow}
+            </p>
+            <h2
+              className="mt-1 truncate text-xl font-black leading-tight"
+              id="cut-feed-reporter-panel-title"
+            >
+              {name}
+            </h2>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="rounded-full border border-white/12 bg-white/8 px-2 py-1 text-[0.58rem] font-black text-white/74">
+                @{referralCode}
+              </span>
+              <span className="rounded-full border border-[#44f26e]/22 bg-[#44f26e]/12 px-2 py-1 text-[0.58rem] font-black text-[#9bffad]">
+                {copy.reporterPanelTitle}
+              </span>
+            </div>
+          </div>
+          <button
+            aria-label={copy.reporterPanelClose}
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white/72 transition hover:bg-white hover:text-[#111510]"
+            onClick={onClose}
+            type="button"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-1.5">
+          {[
+            [copy.reporterCutMetric, cutCountLabel],
+            [copy.reporterSourceMetric, sourceRevealLabel],
+            [copy.reporterPublishedMetric, publishedAtLabel],
+          ].map(([label, value]) => (
+            <div
+              className="min-w-0 rounded-xl border border-white/10 bg-white/[0.07] px-2 py-2"
+              key={label}
+            >
+              <p className="truncate text-[0.54rem] font-black uppercase tracking-[0.08em] text-[#9bffad]">
+                {label}
+              </p>
+              <p className="mt-1 truncate text-[0.72rem] font-black text-white">
+                {value}
+              </p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-1.5">
+          <div className="min-w-0 rounded-xl border border-white/10 bg-white/[0.07] px-2.5 py-2">
+            <p className="truncate text-[0.54rem] font-black uppercase tracking-[0.08em] text-[#9bffad]">
+              {copy.reporterCharacterMetric}
+            </p>
+            <p className="mt-1 truncate text-[0.72rem] font-black text-white">
+              {characterName}
+            </p>
+          </div>
+          <Link
+            className="inline-flex h-full items-center justify-center rounded-xl border border-[#44f26e]/24 bg-[#44f26e]/14 px-3 text-[0.64rem] font-black !text-[#9bffad] transition hover:bg-[#44f26e] hover:!text-[#111510]"
+            href={channelHref}
+          >
+            {copy.reporterChannelCta}
+          </Link>
         </div>
       </div>
     </div>
@@ -1445,6 +1543,7 @@ function FeedSlide({
   );
   const [isSourceOverlayLoading, setIsSourceOverlayLoading] = useState(false);
   const [isCharacterPanelOpen, setIsCharacterPanelOpen] = useState(false);
+  const [isReporterPanelOpen, setIsReporterPanelOpen] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLoginSyncing, setIsLoginSyncing] = useState(false);
   const [loginSyncError, setLoginSyncError] = useState<string | null>(null);
@@ -1506,6 +1605,7 @@ function FeedSlide({
     Math.min(sourceRevealState.count, sourceRevealState.threshold),
     locale,
   )}/${formatNumber(sourceRevealState.threshold, locale)}`;
+  const reporterPublishedAtLabel = publishedAt ?? "-";
   const sharePreviewImageKind = report.coverImageUrl ? "cover" : "leadCut";
   const shareTitle = copy.shareTitle(title);
   const shareSummary = copy.shareSummary(title, report.reporterName);
@@ -2302,6 +2402,21 @@ function FeedSlide({
         />
       ) : null}
 
+      {isReporterPanelOpen ? (
+        <CutFeedReporterInlinePanel
+          avatarImageUrl={report.reporterAvatarImageUrl}
+          channelHref={reporterHref}
+          characterName={report.creatorName}
+          copy={copy}
+          cutCountLabel={characterCutCountLabel}
+          name={report.reporterName}
+          onClose={() => setIsReporterPanelOpen(false)}
+          publishedAtLabel={reporterPublishedAtLabel}
+          referralCode={report.reporterReferralCode}
+          sourceRevealLabel={characterSourceRevealLabel}
+        />
+      ) : null}
+
       <div className="relative z-10 flex min-h-[var(--fanletter-cut-feed-vh,100dvh)] items-end px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+7.6rem)]">
         <section className="mx-auto flex w-full flex-col justify-end">
           <div className="max-w-3xl">
@@ -2336,14 +2451,21 @@ function FeedSlide({
                 imageUrl={report.creatorAvatarImageUrl}
                 label={copy.character}
                 name={report.creatorName}
-                onClick={() => setIsCharacterPanelOpen((current) => !current)}
+                onClick={() => {
+                  setIsReporterPanelOpen(false);
+                  setIsCharacterPanelOpen((current) => !current);
+                }}
               />
-              <CutFeedProfileActionLink
+              <CutFeedProfileActionButton
+                active={isReporterPanelOpen}
                 fallbackIcon={PenLine}
-                href={reporterHref}
                 imageUrl={report.reporterAvatarImageUrl}
                 label={copy.reporter}
                 name={report.reporterName}
+                onClick={() => {
+                  setIsCharacterPanelOpen(false);
+                  setIsReporterPanelOpen((current) => !current);
+                }}
               />
             </div>
           </div>
