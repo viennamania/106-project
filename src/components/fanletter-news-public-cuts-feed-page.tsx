@@ -2840,7 +2840,10 @@ export function FanletterNewsPublicCutsFeedPage({
     useState(false);
   const [serviceMenuOpen, setServiceMenuOpen] = useState(false);
   const [visibleFeedIndex, setVisibleFeedIndex] = useState(0);
-  const [reporterPanelRequestId, setReporterPanelRequestId] = useState(0);
+  const [reporterPanelRequest, setReporterPanelRequest] = useState<{
+    id: number;
+    index: number;
+  } | null>(null);
   const [visibleViewportHeight, setVisibleViewportHeight] = useState<
     string | null
   >(null);
@@ -3349,7 +3352,10 @@ export function FanletterNewsPublicCutsFeedPage({
               name={visibleItem.report.reporterName}
               onClick={() => {
                 setServiceMenuOpen(false);
-                setReporterPanelRequestId((currentId) => currentId + 1);
+                setReporterPanelRequest((currentRequest) => ({
+                  id: (currentRequest?.id ?? 0) + 1,
+                  index: visibleFeedIndex,
+                }));
               }}
             />
           ) : null}
@@ -3396,7 +3402,9 @@ export function FanletterNewsPublicCutsFeedPage({
             onDismissSwipeGuide={dismissSwipeGuide}
             onSourceViewSlideVisible={handleSourceViewSlideVisible}
             reporterPanelRequestId={
-              visibleFeedIndex === index ? reporterPanelRequestId : 0
+              reporterPanelRequest?.index === index
+                ? reporterPanelRequest.id
+                : 0
             }
             referralCode={referralCode}
             showSwipeGuide={swipeGuideTarget?.index === index}
