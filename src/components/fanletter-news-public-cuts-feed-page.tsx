@@ -1600,6 +1600,9 @@ export function FanletterNewsPublicCutsFeedPage({
     `/${locale}/fanletter/news`,
     referralCode,
   );
+  const headerCountLabel = hasMore
+    ? `${formatNumber(items.length, locale)}+`
+    : formatNumber(items.length, locale);
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore) {
       return;
@@ -1717,27 +1720,27 @@ export function FanletterNewsPublicCutsFeedPage({
 
   return (
     <main className="h-[100dvh] overflow-hidden bg-[#050706] text-white">
-      <header className="fixed left-1/2 top-0 z-30 w-full max-w-[430px] -translate-x-1/2 border-b border-white/10 bg-black/34 px-3 py-3 text-white backdrop-blur-xl">
-        <div className="mx-auto flex items-center justify-between gap-3">
-          <Link
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white hover:text-[#111510]"
-            href={newsHomeHref}
-            title={copy.home}
-          >
-            <ArrowLeft className="size-5" />
-          </Link>
-          <div className="min-w-0 text-center">
-            <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+      <header className="fixed left-1/2 top-0 z-30 w-full max-w-[430px] -translate-x-1/2 border-b border-white/10 bg-black/30 px-3 py-3 text-white backdrop-blur-xl">
+        <div className="mx-auto flex items-center gap-3">
+          <div className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/14 text-[#44f26e] shadow-[0_12px_34px_rgba(68,242,110,0.14)]">
+            <Images className="size-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
               {copy.eyebrow}
             </p>
-            <h1 className="truncate text-sm font-black">
+            <h1 className="truncate text-[1.02rem] font-black leading-tight tracking-normal">
               {copy.title}
             </h1>
           </div>
-          <div className="hidden min-w-40 justify-end text-right text-[0.68rem] font-bold text-white/54">
-            {copy.instruction}
+          <div className="shrink-0 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-3 py-1.5 text-right shadow-[0_12px_30px_rgba(0,0,0,0.18)]">
+            <p className="text-sm font-black leading-none text-white">
+              {headerCountLabel}
+            </p>
+            <p className="mt-1 text-[0.56rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
+              {copy.feedTitle}
+            </p>
           </div>
-          <div className="size-11 shrink-0" aria-hidden="true" />
         </div>
       </header>
       <div
