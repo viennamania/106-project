@@ -12,6 +12,7 @@ import {
   FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM,
   normalizeFanletterNewsPublicCutSlotNumber,
 } from "@/lib/fanletter-news-public-cuts-shared";
+import { buildFanletterOgVersionToken } from "@/lib/fanletter-og";
 import { getFanletterNewsReportById } from "@/lib/fanletter-news-report-service";
 import {
   readFanletterReferralCode,
@@ -80,6 +81,46 @@ function getFanletterNewsCutDetailMetadataUrl({
   );
 }
 
+type FanletterNewsCutDetailReport = NonNullable<
+  Awaited<ReturnType<typeof getFanletterNewsReportById>>
+>;
+type FanletterNewsCutDetailCut = NonNullable<
+  ReturnType<typeof createFanletterNewsPublicCutFeedItem>
+>["leadCut"];
+
+function getFanletterNewsCutOgImagePath({
+  cut,
+  locale,
+  report,
+  shareId,
+}: {
+  cut: FanletterNewsCutDetailCut;
+  locale: Locale;
+  report: FanletterNewsCutDetailReport;
+  shareId: string | null;
+}) {
+  const searchParams = new URLSearchParams({
+    cut: String(cut.slotNumber),
+    lang: locale,
+    reportId: report.reportId,
+  });
+  const version = buildFanletterOgVersionToken(
+    cut.imageUrl,
+    report.reporterAvatarImageUrl ?? null,
+    report.updatedAt.toISOString(),
+  );
+
+  if (shareId) {
+    searchParams.set("shareId", shareId);
+  }
+
+  if (version) {
+    searchParams.set("v", version);
+  }
+
+  return `/api/og/fanletter-news/cut?${searchParams.toString()}`;
+}
+
 export async function generateMetadata({
   params,
   searchParams,
@@ -101,14 +142,21 @@ export async function generateMetadata({
   const feedItem = localizedReport
     ? createFanletterNewsPublicCutFeedItem(localizedReport)
     : null;
-  const selectedCut = cutSlotNumber
-    ? feedItem?.cuts.find((cut) => cut.slotNumber === cutSlotNumber) ?? null
+  const selectedCut = feedItem
+    ? cutSlotNumber
+      ? feedItem.cuts.find((cut) => cut.slotNumber === cutSlotNumber) ??
+        feedItem.leadCut
+      : feedItem.leadCut
     : null;
   const imageUrl =
-    selectedCut?.imageUrl ??
-    localizedReport?.coverImageUrl ??
-    feedItem?.leadCut.imageUrl ??
-    null;
+    selectedCut && localizedReport
+      ? getFanletterNewsCutOgImagePath({
+          cut: selectedCut,
+          locale,
+          report: localizedReport,
+          shareId,
+        })
+      : (localizedReport?.coverImageUrl ?? null);
   const title = localizedReport
     ? `${localizedReport.title} | ${copy.title}`
     : copy.title;
@@ -125,8 +173,8 @@ export async function generateMetadata({
     ? [
         {
           alt: localizedReport?.title ?? copy.title,
-          height: 675,
-          type: "image/jpeg",
+          height: selectedCut ? 630 : 675,
+          type: selectedCut ? "image/png" : "image/jpeg",
           url: imageUrl,
           width: 1200,
         },
