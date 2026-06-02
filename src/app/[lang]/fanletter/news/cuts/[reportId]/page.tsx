@@ -13,7 +13,7 @@ import {
   readFanletterReferralCode,
   readFirstSearchParam,
 } from "@/lib/fanletter-routing";
-import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
+import { defaultLocale, getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
   setPathSearchParams,
@@ -174,6 +174,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
 
   return (
     <FanletterNewsPublicCutsFeedPage
+      dictionary={getDictionary(locale)}
       excludeReportId={report.reportId}
       hasMore={feedPage.hasMore}
       items={serializeFanletterNewsPublicCutFeedItems(feedPage.items)}

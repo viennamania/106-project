@@ -11,6 +11,11 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import {
+  useActiveAccount,
+  useActiveWalletChain,
+  useActiveWalletConnectionStatus,
+} from "thirdweb/react";
+import {
   AlertTriangle,
   ArrowLeft,
   BookOpenCheck,
@@ -38,6 +43,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive-media-frame";
 import { useMemberSession } from "@/components/member-session-provider";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
@@ -57,15 +63,26 @@ import {
   type FanletterNewsSourceRevealStateChangeDetail,
 } from "@/lib/fanletter-news-source-reveal-events";
 import { trackFunnelEvent } from "@/lib/funnel-client";
-import type { Locale } from "@/lib/i18n";
+import type { Dictionary, Locale } from "@/lib/i18n";
 import { buildPathWithReferral, setPathSearchParams } from "@/lib/landing-branding";
+import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { createShareId, setShareIdOnHref } from "@/lib/share-tracking";
+import {
+  hasThirdwebClientId,
+  smartWalletChain,
+  thirdwebClient,
+} from "@/lib/thirdweb";
+import {
+  getThirdwebUserEmail,
+  useThirdwebConnectionState,
+} from "@/lib/thirdweb-client";
 
 const DOUBLE_TAP_DELAY_MS = 320;
 const DOUBLE_TAP_MOVE_TOLERANCE_PX = 14;
 const DOUBLE_TAP_DISTANCE_TOLERANCE_PX = 48;
 const DOUBLE_TAP_FEEDBACK_MS = 920;
 const CUT_SWIPE_GUIDE_DISMISS_SCROLL_RATIO = 0.45;
+const CUT_FEED_LOGIN_SYNC_GRACE_MS = 4500;
 
 type CutFeedViewportStyle = CSSProperties & {
   "--fanletter-cut-feed-vh"?: string;
@@ -91,6 +108,11 @@ function getCopy(locale: Locale) {
         loadError: "다음 리포터 컷을 불러오지 못했습니다.",
         loadMore: "더 보기",
         loadingMore: "다음 리포터 컷 불러오는 중",
+        loginSyncFailed: "로그인 확인에 실패했습니다. 다시 시도하세요.",
+        loginSyncing: "로그인 확인 중",
+        loginTitle: "보고싶어요 참여 로그인",
+        loginUnavailable:
+          "현재 브라우저에서 이메일 로그인을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
         nextCut: "다음 컷",
         noMore: "모든 리포터 컷을 확인했습니다.",
         openPaidSource: "구매하고 원본 보기",
@@ -184,6 +206,11 @@ function getCopy(locale: Locale) {
         loadError: "Could not load more reporter cuts.",
         loadMore: "Load more",
         loadingMore: "Loading more reporter cuts",
+        loginSyncFailed: "Could not confirm the login. Please try again.",
+        loginSyncing: "Checking login",
+        loginTitle: "Sign in to join",
+        loginUnavailable:
+          "Email login cannot start in this browser right now. Please try again shortly.",
         nextCut: "Next cut",
         noMore: "You have reviewed every reporter cut.",
         openPaidSource: "Purchase to watch",
@@ -355,6 +382,7 @@ function getReporterHref({
 
 type SourceRevealMiniVoteCopy = Pick<
   ReturnType<typeof getCopy>,
+  | "loginSyncing"
   | "sourceOpen"
   | "sourceOpenCompleteSummary"
   | "sourceOpenDone"
@@ -700,24 +728,28 @@ function CutFeedProfileActionLink({
 
 function SourceRevealMiniVote({
   authNudge,
-  connectHref,
   copy,
   error,
   isLoggedIn,
+  isLoginBusy,
   isSaving,
+  loginError,
   locale,
+  onLogin,
   onOpenSource,
   onVote,
   sourceVlogHref,
   state,
 }: {
   authNudge: boolean;
-  connectHref: string;
   copy: SourceRevealMiniVoteCopy;
   error: string | null;
   isLoggedIn: boolean;
+  isLoginBusy: boolean;
   isSaving: boolean;
+  loginError: string | null;
   locale: Locale;
+  onLogin: () => void;
   onOpenSource?: () => void;
   onVote: () => void;
   sourceVlogHref: string | null;
@@ -745,6 +777,7 @@ function SourceRevealMiniVote({
     "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-[0.66rem] font-black transition";
   const disabledButtonClassName =
     "bg-white/12 text-white/62 ring-1 ring-white/10";
+  const statusError = loginError ?? error;
 
   if (state.unlocked) {
     const content = (
@@ -841,13 +874,19 @@ function SourceRevealMiniVote({
             {ctaLabel}
           </button>
         ) : (
-          <Link
-            className={`${buttonClassName} bg-[#44f26e] !text-[#101510] shadow-[0_10px_22px_rgba(0,0,0,0.2)] hover:bg-[#67ff88]`}
-            href={connectHref}
+          <button
+            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-[#101510] shadow-[0_12px_26px_rgba(0,0,0,0.24)] transition hover:bg-[#67ff88] disabled:cursor-wait disabled:bg-[#44f26e]/74 sm:h-9 sm:px-3 sm:text-[0.72rem]"
+            disabled={isLoginBusy}
+            onClick={onLogin}
+            type="button"
           >
-            <HeartHandshake className="size-3.5" />
-            {copy.voteLogin}
-          </Link>
+            {isLoginBusy ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <HeartHandshake className="size-4" />
+            )}
+            {isLoginBusy ? copy.loginSyncing : copy.voteLogin}
+          </button>
         )}
       </div>
       <div
@@ -863,9 +902,9 @@ function SourceRevealMiniVote({
           style={{ width: `${progressPercent}%` }}
         />
       </div>
-      {error ? (
+      {statusError ? (
         <p className="mt-1.5 text-[0.64rem] font-bold text-rose-200">
-          {error}
+          {statusError}
         </p>
       ) : null}
     </div>
@@ -1134,6 +1173,7 @@ function SourceVlogFeedOverlay({
 }
 
 function FeedSlide({
+  dictionary,
   hasMore,
   index,
   initialSourceContentId = null,
@@ -1144,6 +1184,7 @@ function FeedSlide({
   referralCode,
   showSwipeGuide = false,
 }: {
+  dictionary: Dictionary;
   hasMore: boolean;
   index: number;
   initialSourceContentId?: string | null;
@@ -1168,7 +1209,22 @@ function FeedSlide({
     null,
   );
   const [isSourceOverlayLoading, setIsSourceOverlayLoading] = useState(false);
+  const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
+  const [isLoginSyncing, setIsLoginSyncing] = useState(false);
+  const [loginSyncError, setLoginSyncError] = useState<string | null>(null);
+  const account = useActiveAccount();
+  const chain = useActiveWalletChain() ?? smartWalletChain;
+  const connectionStatus = useActiveWalletConnectionStatus();
   const memberSession = useMemberSession();
+  const { updateMemberSession } = memberSession;
+  const accountAddress = account?.address ?? null;
+  const connection = useThirdwebConnectionState({
+    accountAddress,
+    clientConfigured: hasThirdwebClientId,
+    disconnectedResolveGraceMs: CUT_FEED_LOGIN_SYNC_GRACE_MS,
+    resolveGraceMs: CUT_FEED_LOGIN_SYNC_GRACE_MS,
+    status: connectionStatus,
+  });
   const pointerStartRef = useRef<{
     target: EventTarget | null;
     x: number;
@@ -1180,6 +1236,8 @@ function FeedSlide({
   );
   const authNudgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initialSourceOverlayOpenedRef = useRef(false);
+  const pendingVoteAfterLoginRef = useRef(false);
+  const loginSyncKeyRef = useRef<string | null>(null);
   const sourceOverlayHistoryPushedRef = useRef(false);
   const copy = getCopy(locale);
   const { report } = item;
@@ -1195,12 +1253,6 @@ function FeedSlide({
     reportId: report.reportId,
   });
   const sourceRevealEndpoint = `/api/fanletter/news-reports/${encodeURIComponent(report.reportId)}/source-reveal`;
-  const sourceRevealConnectHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
-    {
-      returnTo: cutFeedHref,
-    },
-  );
   const sourceContentId =
     typeof report.contentId === "string" ? report.contentId.trim() : "";
   const sourceVlogHref = sourceContentId
@@ -1357,6 +1409,9 @@ function FeedSlide({
   useEffect(() => {
     setSourceRevealState(item.sourceReveal);
     setSourceRevealError(null);
+    setLoginSyncError(null);
+    pendingVoteAfterLoginRef.current = false;
+    loginSyncKeyRef.current = null;
   }, [item.sourceReveal]);
 
   useEffect(() => {
@@ -1433,7 +1488,9 @@ function FeedSlide({
     [report.reportId, sourceRevealEndpoint],
   );
 
-  const submitSourceRevealVote = useCallback(async () => {
+  const submitSourceRevealVote = useCallback(async ({
+    skipLoginCheck = false,
+  }: { skipLoginCheck?: boolean } = {}) => {
     if (
       isSourceRevealSaving ||
       sourceRevealState.requestedByViewer ||
@@ -1442,7 +1499,7 @@ function FeedSlide({
       return false;
     }
 
-    if (!isSourceRevealLoggedIn) {
+    if (!skipLoginCheck && !isSourceRevealLoggedIn) {
       nudgeLoginVote();
       return false;
     }
@@ -1482,6 +1539,154 @@ function FeedSlide({
     updateSourceReveal,
   ]);
 
+  const openInlineLoginForVote = useCallback(() => {
+    if (
+      isSourceRevealSaving ||
+      sourceRevealState.requestedByViewer ||
+      sourceRevealState.unlocked
+    ) {
+      return;
+    }
+
+    pendingVoteAfterLoginRef.current = true;
+    setLoginSyncError(null);
+
+    if (isSourceRevealLoggedIn) {
+      void submitSourceRevealVote();
+      return;
+    }
+
+    if (!hasThirdwebClientId) {
+      setLoginSyncError(copy.loginUnavailable);
+      nudgeLoginVote();
+      return;
+    }
+
+    nudgeLoginVote();
+    setIsLoginDialogOpen(true);
+  }, [
+    copy.loginUnavailable,
+    isSourceRevealLoggedIn,
+    isSourceRevealSaving,
+    nudgeLoginVote,
+    sourceRevealState.requestedByViewer,
+    sourceRevealState.unlocked,
+    submitSourceRevealVote,
+  ]);
+
+  useEffect(() => {
+    if (
+      !pendingVoteAfterLoginRef.current ||
+      !connection.isConnected ||
+      !accountAddress ||
+      isLoginSyncing ||
+      sourceRevealState.requestedByViewer ||
+      sourceRevealState.unlocked
+    ) {
+      return;
+    }
+
+    const syncKey = `${accountAddress}:${sourceRevealEndpoint}`;
+
+    if (loginSyncKeyRef.current === syncKey) {
+      return;
+    }
+
+    loginSyncKeyRef.current = syncKey;
+    let isCancelled = false;
+
+    async function syncLoginAndVote() {
+      if (!accountAddress) {
+        return;
+      }
+
+      setIsLoginDialogOpen(false);
+      setIsLoginSyncing(true);
+      setLoginSyncError(null);
+
+      try {
+        const email =
+          memberSession.email ??
+          (await getThirdwebUserEmail({ client: thirdwebClient }));
+
+        if (!email) {
+          throw new Error(dictionary.member.errors.missingEmail);
+        }
+
+        const result = await syncServerMemberRegistration({
+          chainId: chain.id,
+          chainName: chain.name ?? "BSC",
+          email,
+          locale,
+          referredByCode: referralCode,
+          syncMode: "light",
+          walletAddress: accountAddress,
+        });
+
+        if (!result.ok) {
+          throw new Error(result.error || copy.loginSyncFailed);
+        }
+
+        if (!result.member) {
+          throw new Error(copy.loginSyncFailed);
+        }
+
+        if (isCancelled) {
+          return;
+        }
+
+        updateMemberSession({
+          email: result.member.email,
+          member: result.member,
+          walletAddress: accountAddress,
+        });
+        pendingVoteAfterLoginRef.current = false;
+        showTapFeedback(copy.doubleTapWant);
+        void submitSourceRevealVote({ skipLoginCheck: true });
+      } catch (error) {
+        if (isCancelled) {
+          return;
+        }
+
+        pendingVoteAfterLoginRef.current = false;
+        loginSyncKeyRef.current = null;
+        setLoginSyncError(
+          error instanceof Error ? error.message : copy.loginSyncFailed,
+        );
+        nudgeLoginVote();
+      } finally {
+        if (!isCancelled) {
+          setIsLoginSyncing(false);
+        }
+      }
+    }
+
+    void syncLoginAndVote();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    accountAddress,
+    chain.id,
+    chain.name,
+    connection.isConnected,
+    copy.doubleTapWant,
+    copy.loginSyncFailed,
+    dictionary.member.errors.missingEmail,
+    isLoginSyncing,
+    locale,
+    memberSession.email,
+    nudgeLoginVote,
+    referralCode,
+    showTapFeedback,
+    sourceRevealEndpoint,
+    sourceRevealState.requestedByViewer,
+    sourceRevealState.unlocked,
+    submitSourceRevealVote,
+    updateMemberSession,
+  ]);
+
   const handleSourceRevealDoubleTap = useCallback(() => {
     if (sourceRevealState.unlocked) {
       showTapFeedback(copy.doubleTapOpen);
@@ -1495,7 +1700,7 @@ function FeedSlide({
 
     if (!isSourceRevealLoggedIn) {
       showTapFeedback(copy.doubleTapLogin);
-      nudgeLoginVote();
+      openInlineLoginForVote();
       return;
     }
 
@@ -1507,7 +1712,7 @@ function FeedSlide({
     copy.doubleTapOpen,
     copy.doubleTapWant,
     isSourceRevealLoggedIn,
-    nudgeLoginVote,
+    openInlineLoginForVote,
     showTapFeedback,
     sourceRevealState.requestedByViewer,
     sourceRevealState.unlocked,
@@ -1611,7 +1816,7 @@ function FeedSlide({
 
     if (!isSourceRevealLoggedIn) {
       showTapFeedback(copy.doubleTapLogin);
-      nudgeLoginVote();
+      openInlineLoginForVote();
       return;
     }
 
@@ -1622,7 +1827,7 @@ function FeedSlide({
     copy.doubleTapLogin,
     copy.doubleTapWant,
     isSourceRevealLoggedIn,
-    nudgeLoginVote,
+    openInlineLoginForVote,
     openSourceOverlay,
     showTapFeedback,
     sourceContentId,
@@ -1683,6 +1888,22 @@ function FeedSlide({
         handlePointerEnd(event);
       }}
     >
+      <EmailLoginDialog
+        dictionary={dictionary}
+        onClose={() => {
+          setIsLoginDialogOpen(false);
+          if (
+            connectionStatus === "disconnected" ||
+            connectionStatus === "unknown"
+          ) {
+            pendingVoteAfterLoginRef.current = false;
+            loginSyncKeyRef.current = null;
+          }
+        }}
+        open={isLoginDialogOpen}
+        title={copy.loginTitle}
+        variant="fanletter"
+      />
       <div className="absolute inset-0 overflow-hidden">
         <div
           className="flex h-full transition-transform duration-300 ease-out"
@@ -1900,12 +2121,14 @@ function FeedSlide({
           <div className="mt-3">
             <SourceRevealMiniVote
               authNudge={authNudge}
-              connectHref={sourceRevealConnectHref}
               copy={copy}
               error={sourceRevealError}
               isLoggedIn={isSourceRevealLoggedIn}
+              isLoginBusy={isLoginSyncing}
               isSaving={isSourceRevealSaving}
+              loginError={loginSyncError}
               locale={locale}
+              onLogin={openInlineLoginForVote}
               onOpenSource={sourceContentId ? openSourceOverlay : undefined}
               onVote={() => void submitSourceRevealVote()}
               sourceVlogHref={sourceVlogHref}
@@ -1981,6 +2204,7 @@ function mergePublicCutItems(
 }
 
 export function FanletterNewsPublicCutsFeedPage({
+  dictionary,
   excludeReportId = null,
   hasMore: initialHasMore,
   items: initialItems,
@@ -1990,6 +2214,7 @@ export function FanletterNewsPublicCutsFeedPage({
   shareId,
   sourceContentId = null,
 }: {
+  dictionary: Dictionary;
   excludeReportId?: string | null;
   hasMore: boolean;
   items: SerializedFanletterNewsPublicCutFeedItem[];
@@ -2383,6 +2608,7 @@ export function FanletterNewsPublicCutsFeedPage({
       >
         {items.map((item, index) => (
           <FeedSlide
+            dictionary={dictionary}
             hasMore={hasMore}
             index={index}
             initialSourceContentId={index === 0 ? sourceContentId : null}

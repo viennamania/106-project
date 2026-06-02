@@ -12,7 +12,7 @@ import {
   readFanletterReferralCode,
   readFirstSearchParam,
 } from "@/lib/fanletter-routing";
-import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
+import { defaultLocale, getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import { readMemberServerSession } from "@/lib/member-server-session";
 import { normalizeShareId } from "@/lib/share-tracking";
 
@@ -90,6 +90,7 @@ export default async function LocalizedFanletterNewsCutsPage({
 
   return (
     <FanletterNewsPublicCutsFeedPage
+      dictionary={getDictionary(locale)}
       hasMore={feedPage.hasMore}
       items={serializeFanletterNewsPublicCutFeedItems(feedPage.items)}
       locale={locale}
