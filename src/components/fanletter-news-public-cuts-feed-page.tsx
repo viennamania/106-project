@@ -1140,6 +1140,7 @@ export function FanletterNewsPublicCutsFeedPage({
   locale,
   nextOffset: initialNextOffset,
   referralCode,
+  shareId,
 }: {
   excludeReportId?: string | null;
   hasMore: boolean;
@@ -1147,6 +1148,7 @@ export function FanletterNewsPublicCutsFeedPage({
   locale: Locale;
   nextOffset: number;
   referralCode: string | null;
+  shareId: string | null;
 }) {
   const copy = getCopy(locale);
   const [items, setItems] = useState(initialItems);
@@ -1179,6 +1181,14 @@ export function FanletterNewsPublicCutsFeedPage({
         params.set("excludeReportId", excludeReportId);
       }
 
+      if (referralCode) {
+        params.set("ref", referralCode);
+      }
+
+      if (shareId) {
+        params.set("shareId", shareId);
+      }
+
       const response = await fetch(`/api/fanletter/news-cuts?${params}`, {
         headers: {
           Accept: "application/json",
@@ -1208,6 +1218,8 @@ export function FanletterNewsPublicCutsFeedPage({
     isLoadingMore,
     locale,
     nextOffset,
+    referralCode,
+    shareId,
   ]);
 
   useEffect(() => {

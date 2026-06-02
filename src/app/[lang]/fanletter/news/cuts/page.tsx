@@ -7,12 +7,17 @@ import {
   serializeFanletterNewsPublicCutFeedItems,
 } from "@/lib/fanletter-news-public-cuts";
 import { FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE } from "@/lib/fanletter-news-public-cuts-shared";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import {
+  readFanletterReferralCode,
+  readFirstSearchParam,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { readMemberServerSession } from "@/lib/member-server-session";
+import { normalizeShareId } from "@/lib/share-tracking";
 
 type FanletterNewsCutsSearchParams = {
   ref?: string | string[];
+  shareId?: string | string[];
 };
 
 function getCopy(locale: Locale) {
@@ -60,10 +65,13 @@ export default async function LocalizedFanletterNewsCutsPage({
 
   const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
+  const shareId = normalizeShareId(readFirstSearchParam(query.shareId));
   const session = await readMemberServerSession();
   const feedPage = await getFanletterNewsPublicCutFeedPage({
     limit: FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
     locale,
+    referralCode,
+    shareId,
     viewerEmail: session?.email ?? null,
   });
 
@@ -74,6 +82,7 @@ export default async function LocalizedFanletterNewsCutsPage({
       locale={locale}
       nextOffset={feedPage.nextOffset}
       referralCode={referralCode}
+      shareId={shareId}
     />
   );
 }
