@@ -387,7 +387,6 @@ type SourceRevealMiniVoteCopy = Pick<
   | "sourceOpenCompleteSummary"
   | "sourceOpenDone"
   | "sourceOpenStatus"
-  | "sourceView"
   | "voteCta"
   | "voteDone"
   | "voteFailed"
@@ -736,9 +735,7 @@ function SourceRevealMiniVote({
   loginError,
   locale,
   onLogin,
-  onOpenSource,
   onVote,
-  sourceVlogHref,
   state,
 }: {
   authNudge: boolean;
@@ -750,9 +747,7 @@ function SourceRevealMiniVote({
   loginError: string | null;
   locale: Locale;
   onLogin: () => void;
-  onOpenSource?: () => void;
   onVote: () => void;
-  sourceVlogHref: string | null;
   state: FanletterNewsSourceRevealState;
 }) {
   const remaining = Math.max(0, state.threshold - state.count);
@@ -780,48 +775,25 @@ function SourceRevealMiniVote({
   const statusError = loginError ?? error;
 
   if (state.unlocked) {
-    const content = (
-      <>
-        <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/18 text-[#44f26e] ring-1 ring-[#44f26e]/22 transition group-hover:bg-[#101510] group-hover:text-[#44f26e]">
+    return (
+      <div className="mt-2 max-w-[30rem] rounded-[1.05rem] border border-[#44f26e]/22 bg-black/28 p-2.5 text-white shadow-[0_12px_28px_rgba(0,0,0,0.18)] backdrop-blur-md">
+        <div className="flex items-center gap-2.5">
+          <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/18 text-[#44f26e] ring-1 ring-[#44f26e]/22">
           <CheckCircle2 className="size-4" />
-        </span>
-        <span className="min-w-0 flex-1 text-left">
-          <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#9bffad] transition group-hover:text-[#0b3518]">
+          </span>
+          <span className="min-w-0 flex-1 text-left">
+            <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
+              {copy.sourceOpenDone}
+            </span>
+            <span className="block truncate text-[0.72rem] font-black text-white/86">
+              {copy.sourceOpenCompleteSummary(countLabel, thresholdLabel)}
+            </span>
+          </span>
+          <span className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-[#44f26e]/14 px-2.5 text-[0.68rem] font-black text-[#9bffad] ring-1 ring-[#44f26e]/20">
+            <CheckCircle2 className="size-3.5" />
             {copy.sourceOpenDone}
           </span>
-          <span className="block truncate text-[0.72rem] font-black text-white/86 transition group-hover:text-[#101510]">
-            {copy.sourceOpenCompleteSummary(countLabel, thresholdLabel)}
-          </span>
-        </span>
-        <span className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-white/10 px-2.5 text-[0.68rem] font-black text-white transition group-hover:bg-[#101510] group-hover:text-white">
-          <PlayCircle className="size-3.5" />
-          {copy.sourceView}
-        </span>
-      </>
-    );
-
-    return (
-      <div className="mt-2 max-w-[30rem]">
-        {sourceVlogHref && onOpenSource ? (
-          <button
-            className="group inline-flex h-11 w-full items-center gap-2.5 rounded-full border border-[#44f26e]/28 bg-black/34 px-3 text-white shadow-[0_10px_26px_rgba(0,0,0,0.18)] backdrop-blur-md transition hover:border-[#44f26e]/60 hover:bg-[#44f26e] hover:!text-[#101510]"
-            onClick={onOpenSource}
-            type="button"
-          >
-            {content}
-          </button>
-        ) : sourceVlogHref ? (
-          <Link
-            className="group inline-flex h-11 w-full items-center gap-2.5 rounded-full border border-[#44f26e]/28 bg-black/34 px-3 text-white shadow-[0_10px_26px_rgba(0,0,0,0.18)] backdrop-blur-md transition hover:border-[#44f26e]/60 hover:bg-[#44f26e] hover:!text-[#101510]"
-            href={sourceVlogHref}
-          >
-            {content}
-          </Link>
-        ) : (
-          <div className="inline-flex h-11 w-full items-center gap-2.5 rounded-full border border-[#44f26e]/18 bg-black/24 px-3 text-white/74 shadow-[0_10px_26px_rgba(0,0,0,0.14)] backdrop-blur-md">
-            {content}
-          </div>
-        )}
+        </div>
       </div>
     );
   }
@@ -1242,17 +1214,6 @@ function FeedSlide({
   const sourceRevealEndpoint = `/api/fanletter/news-reports/${encodeURIComponent(report.reportId)}/source-reveal`;
   const sourceContentId =
     typeof report.contentId === "string" ? report.contentId.trim() : "";
-  const sourceVlogHref = sourceContentId
-    ? setPathSearchParams(
-        buildPathWithReferral(
-          `/${locale}/fanletter/news/vlogs/${sourceContentId}`,
-          referralCode,
-        ),
-        {
-          returnTo: cutFeedHref,
-        },
-      )
-    : null;
   const characterHref = getCharacterHref({
     creatorReferralCode: report.creatorReferralCode,
     locale,
@@ -2116,9 +2077,7 @@ function FeedSlide({
               loginError={loginSyncError}
               locale={locale}
               onLogin={openInlineLoginForVote}
-              onOpenSource={sourceContentId ? openSourceOverlay : undefined}
               onVote={() => void submitSourceRevealVote()}
-              sourceVlogHref={sourceVlogHref}
               state={sourceRevealState}
             />
             <div className="mt-2 grid max-w-[30rem] grid-cols-2 gap-2">
