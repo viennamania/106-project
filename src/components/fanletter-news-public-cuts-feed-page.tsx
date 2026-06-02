@@ -924,8 +924,8 @@ function SourceRevealParticipantRail({
       <span className="rounded-full bg-black/38 px-1.5 py-0.5 text-[0.56rem] font-black leading-none text-white/84 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur">
         {countLabel}
       </span>
-      <div className="mt-1 flex flex-col items-center gap-1">
-        {slots.map((slot) => {
+      <div className="mt-1 flex flex-col items-center pb-1">
+        {slots.map((slot, slotIndex) => {
           const isActionable =
             !state.unlocked &&
             !state.requestedByViewer &&
@@ -948,15 +948,18 @@ function SourceRevealParticipantRail({
           ) : (
             <LockKeyhole className="size-3.5" />
           );
-          const className = `relative inline-flex size-[1.88rem] items-center justify-center overflow-hidden rounded-full border text-[0.58rem] font-black shadow-[0_8px_18px_rgba(0,0,0,0.24)] transition ${
+          const className = `relative inline-flex size-[1.88rem] items-center justify-center overflow-hidden rounded-full border text-[0.58rem] font-black shadow-[0_8px_18px_rgba(0,0,0,0.24)] transition first:mt-0 ${
             slot.kind === "participant"
-              ? "border-white/62 bg-black/48 text-white"
+              ? "-mt-2 border-white/72 bg-black/48 text-white"
               : slot.kind === "viewer"
-                ? "border-[#44f26e] bg-[#44f26e]/20 text-[#44f26e] ring-2 ring-[#44f26e]/36"
+                ? "-mt-2 border-[#44f26e] bg-[#44f26e]/20 text-[#44f26e] ring-2 ring-[#44f26e]/36"
                 : slot.kind === "complete"
-                  ? "border-[#44f26e]/70 bg-[#44f26e] text-[#101510]"
-                  : "border-white/18 bg-black/30 text-white/46"
+                  ? "-mt-2 border-[#44f26e]/70 bg-[#44f26e] text-[#101510]"
+                  : "-mt-2 border-white/14 bg-black/22 text-white/34"
           }`;
+          const slotStyle = {
+            zIndex: slots.length - slotIndex,
+          };
           const title =
             slot.kind === "empty"
               ? `${copy.sourceOpen} ${slot.position}`
@@ -971,6 +974,7 @@ function SourceRevealParticipantRail({
               disabled={isSaving || isLoginBusy}
               key={`${slot.kind}-${slot.position}-${slot.referralCode ?? slot.displayName}`}
               onClick={onActivate}
+              style={slotStyle}
               title={title}
               type="button"
             >
@@ -981,6 +985,7 @@ function SourceRevealParticipantRail({
               aria-label={title}
               className={className}
               key={`${slot.kind}-${slot.position}-${slot.referralCode ?? slot.displayName}`}
+              style={slotStyle}
               title={title}
             >
               {slotContent}
