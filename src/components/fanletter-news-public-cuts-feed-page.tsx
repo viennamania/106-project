@@ -653,6 +653,7 @@ function SourceRevealMiniVote({
 
 type SourceOverlayCopy = Pick<
   ReturnType<typeof getCopy>,
+  | "adult"
   | "openSourceDetail"
   | "paidSourceBody"
   | "paidSourceTitle"
@@ -761,34 +762,33 @@ function SourceVlogFeedOverlay({
       className="absolute inset-0 z-50 flex flex-col bg-[#050706] text-white"
       role="dialog"
     >
-      <div className="flex h-[3.9rem] shrink-0 items-center justify-between gap-3 border-b border-white/10 bg-black/78 px-3 backdrop-blur-xl">
+      <div className="flex h-[4.35rem] shrink-0 items-center gap-3 border-b border-white/10 bg-[linear-gradient(90deg,rgba(5,7,6,0.96),rgba(13,24,16,0.92)_58%,rgba(5,7,6,0.96))] px-3 shadow-[0_18px_42px_rgba(0,0,0,0.24)] backdrop-blur-xl">
         <button
           aria-label={copy.sourceOverlayClose}
-          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white hover:text-[#111510]"
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white shadow-[0_12px_30px_rgba(0,0,0,0.22)] transition hover:bg-white hover:text-[#111510]"
           onClick={onClose}
           type="button"
         >
           <X className="size-5" />
         </button>
-        <div className="min-w-0 text-center">
-          <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
-            {copy.sourceOverlayTitle}
-          </p>
-          <h2 className="truncate text-sm font-black">
+        <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/14 text-[#44f26e] shadow-[0_12px_30px_rgba(68,242,110,0.12)]">
+          <PlayCircle className="size-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-center gap-2">
+            <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+              {copy.sourceOverlayTitle}
+            </p>
+            {source?.contentMaturityRating === "nsfw" ? (
+              <span className="shrink-0 rounded-full bg-rose-500/90 px-2 py-0.5 text-[0.52rem] font-black uppercase tracking-[0.1em] text-white">
+                {copy.adult}
+              </span>
+            ) : null}
+          </div>
+          <h2 className="mt-1 truncate text-base font-black leading-tight tracking-normal">
             {source?.title ?? copy.sourceOverlayLoading}
           </h2>
         </div>
-        {source?.detailHref ? (
-          <Link
-            aria-label={copy.openSourceDetail}
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white hover:text-[#111510]"
-            href={source.detailHref}
-          >
-            <ExternalLink className="size-4" />
-          </Link>
-        ) : (
-          <span className="size-10 shrink-0" aria-hidden="true" />
-        )}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto bg-black [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
