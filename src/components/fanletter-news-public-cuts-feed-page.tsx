@@ -125,6 +125,7 @@ function getCopy(locale: Locale) {
         loginTitle: "보고싶어요 참여 로그인",
         loginUnavailable:
           "현재 브라우저에서 이메일 로그인을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
+        myCharacterBadge: "내 캐릭터",
         myReportBadge: "내 리포트",
         nextCut: "다음 컷",
         noMore: "모든 리포터 컷을 확인했습니다.",
@@ -244,6 +245,7 @@ function getCopy(locale: Locale) {
         loginTitle: "Sign in to join",
         loginUnavailable:
           "Email login cannot start in this browser right now. Please try again shortly.",
+        myCharacterBadge: "My character",
         myReportBadge: "My report",
         nextCut: "Next cut",
         noMore: "You have reviewed every reporter cut.",
@@ -767,26 +769,39 @@ function CutFeedProfileActionButton({
   active = false,
   fallbackIcon: FallbackIcon,
   imageUrl,
+  isViewerOwned = false,
   label,
   name,
   onClick,
+  viewerOwnedLabel,
 }: {
   active?: boolean;
   fallbackIcon: LucideIcon;
   imageUrl: string | null;
+  isViewerOwned?: boolean;
   label: string;
   name: string;
   onClick: () => void;
+  viewerOwnedLabel?: string;
 }) {
+  const accessibilityLabel =
+    isViewerOwned && viewerOwnedLabel
+      ? `${label} ${name} ${viewerOwnedLabel}`
+      : `${label} ${name}`;
+
   return (
     <button
+      aria-label={accessibilityLabel}
       aria-pressed={active}
       className={`group inline-flex h-10 max-w-[14rem] items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:text-[#111510] ${
-        active
+        isViewerOwned
+          ? "border-[#44f26e]/80 bg-[#44f26e]/18 ring-2 ring-[#44f26e]/24"
+          : active
           ? "border-[#44f26e]/70 bg-[#44f26e]/18 ring-2 ring-[#44f26e]/22"
           : "border-white/14 bg-black/28"
       }`}
       onClick={onClick}
+      title={accessibilityLabel}
       type="button"
     >
       <span className="relative inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/18 bg-black/36 text-[#44f26e]">
@@ -802,6 +817,11 @@ function CutFeedProfileActionButton({
         ) : (
           <FallbackIcon className="size-4" />
         )}
+        {isViewerOwned ? (
+          <span className="absolute bottom-0 right-0 inline-flex size-3.5 items-center justify-center rounded-full border border-black/50 bg-[#44f26e] text-[#07110a] shadow-[0_4px_10px_rgba(0,0,0,0.28)]">
+            <Check className="size-2.5 stroke-[3]" />
+          </span>
+        ) : null}
       </span>
       <span className="min-w-0 text-left">
         <span className="block truncate text-[0.54rem] font-black uppercase tracking-[0.1em] text-[#9bffad] transition group-hover:text-[#0b3518]">
@@ -882,6 +902,7 @@ type CutFeedCharacterPanelCopy = Pick<
   | "characterPanelEyebrow"
   | "characterPanelTitle"
   | "characterSourceMetric"
+  | "myCharacterBadge"
 >;
 
 function CutFeedCharacterInlinePanel({
@@ -889,6 +910,7 @@ function CutFeedCharacterInlinePanel({
   channelHref,
   copy,
   cutCountLabel,
+  isViewerCharacter = false,
   name,
   onClose,
   referralCode,
@@ -898,6 +920,7 @@ function CutFeedCharacterInlinePanel({
   channelHref: string;
   copy: CutFeedCharacterPanelCopy;
   cutCountLabel: string;
+  isViewerCharacter?: boolean;
   name: string;
   onClose: () => void;
   referralCode: string | null;
@@ -945,6 +968,12 @@ function CutFeedCharacterInlinePanel({
               <span className="rounded-full border border-[#44f26e]/22 bg-[#44f26e]/12 px-2 py-1 text-[0.58rem] font-black text-[#9bffad]">
                 {copy.characterPanelTitle}
               </span>
+              {isViewerCharacter ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-[#44f26e]/40 bg-[#44f26e] px-2 py-1 text-[0.58rem] font-black text-[#07110a]">
+                  <Check className="size-3 stroke-[3]" />
+                  {copy.myCharacterBadge}
+                </span>
+              ) : null}
             </div>
           </div>
           <button
@@ -1728,16 +1757,24 @@ function FeedSlide({
   const handledReporterPanelRequestIdRef = useRef(0);
   const copy = getCopy(locale);
   const { report } = item;
-  const normalizedViewerReporterReferralCode = normalizeReferralCode(
+  const normalizedViewerReferralCode = normalizeReferralCode(
     memberSession.member?.referralCode,
   );
   const normalizedReportReporterReferralCode = normalizeReferralCode(
     report.reporterReferralCode,
   );
+  const normalizedCreatorReferralCode = normalizeReferralCode(
+    report.creatorReferralCode,
+  );
   const isViewerReport = Boolean(
-    normalizedViewerReporterReferralCode &&
+    normalizedViewerReferralCode &&
       normalizedReportReporterReferralCode &&
-      normalizedViewerReporterReferralCode === normalizedReportReporterReferralCode,
+      normalizedViewerReferralCode === normalizedReportReporterReferralCode,
+  );
+  const isViewerCharacter = Boolean(
+    normalizedViewerReferralCode &&
+      normalizedCreatorReferralCode &&
+      normalizedViewerReferralCode === normalizedCreatorReferralCode,
   );
   const title = getFanletterNewsBareArticleDisplayTitle(report.title);
   const positionLabel = hasMore
@@ -2666,6 +2703,7 @@ function FeedSlide({
           channelHref={characterHref}
           copy={copy}
           cutCountLabel={characterCutCountLabel}
+          isViewerCharacter={isViewerCharacter}
           name={report.creatorName}
           onClose={() => setIsCharacterPanelOpen(false)}
           referralCode={report.creatorReferralCode}
@@ -2695,6 +2733,7 @@ function FeedSlide({
               active={isCharacterPanelOpen}
               fallbackIcon={Sparkles}
               imageUrl={report.creatorAvatarImageUrl}
+              isViewerOwned={isViewerCharacter}
               label={copy.character}
               name={report.creatorName}
               onClick={() => {
@@ -2702,6 +2741,7 @@ function FeedSlide({
                 setIsReporterPanelOpen(false);
                 setIsCharacterPanelOpen((current) => !current);
               }}
+              viewerOwnedLabel={copy.myCharacterBadge}
             />
             <h1
               className={`mt-2 max-w-4xl break-words text-[1.42rem] font-black leading-[1.08] tracking-normal drop-shadow-[0_3px_18px_rgba(0,0,0,0.82)] [word-break:keep-all] ${
