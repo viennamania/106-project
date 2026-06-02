@@ -67,6 +67,7 @@ import {
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import { buildPathWithReferral, setPathSearchParams } from "@/lib/landing-branding";
+import { normalizeReferralCode } from "@/lib/member";
 import { syncServerMemberRegistration } from "@/lib/member-session-client";
 import { createShareId, setShareIdOnHref } from "@/lib/share-tracking";
 import {
@@ -124,6 +125,7 @@ function getCopy(locale: Locale) {
         loginTitle: "보고싶어요 참여 로그인",
         loginUnavailable:
           "현재 브라우저에서 이메일 로그인을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
+        myReportBadge: "내 리포트",
         nextCut: "다음 컷",
         noMore: "모든 리포터 컷을 확인했습니다.",
         openPaidSource: "구매하고 원본 보기",
@@ -242,6 +244,7 @@ function getCopy(locale: Locale) {
         loginTitle: "Sign in to join",
         loginUnavailable:
           "Email login cannot start in this browser right now. Please try again shortly.",
+        myReportBadge: "My report",
         nextCut: "Next cut",
         noMore: "You have reviewed every reporter cut.",
         openPaidSource: "Purchase to watch",
@@ -815,27 +818,37 @@ function CutFeedProfileActionButton({
 function CutFeedHeaderReporterChip({
   active = false,
   avatarImageUrl,
+  isViewerReport = false,
   label,
   name,
+  viewerReportLabel,
   onClick,
 }: {
   active?: boolean;
   avatarImageUrl: string | null;
+  isViewerReport?: boolean;
   label: string;
   name: string;
+  viewerReportLabel: string;
   onClick: () => void;
 }) {
+  const accessibilityLabel = isViewerReport
+    ? `${label} ${name} ${viewerReportLabel}`
+    : `${label} ${name}`;
+
   return (
     <button
-      aria-label={`${label} ${name}`}
+      aria-label={accessibilityLabel}
       aria-pressed={active}
       className={`group relative inline-flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-full border text-white shadow-[0_12px_34px_rgba(0,0,0,0.2)] backdrop-blur transition hover:bg-white hover:text-[#111510] ${
-        active
+        isViewerReport
+          ? "border-[#44f26e] bg-[#44f26e]/18 ring-2 ring-[#44f26e]/34"
+          : active
           ? "border-[#44f26e]/78 bg-[#44f26e]/18 ring-2 ring-[#44f26e]/22"
           : "border-[#44f26e]/30 bg-black/32"
       }`}
       onClick={onClick}
-      title={`${label} ${name}`}
+      title={accessibilityLabel}
       type="button"
     >
       {avatarImageUrl ? (
@@ -852,6 +865,11 @@ function CutFeedHeaderReporterChip({
           {name.slice(0, 1)}
         </span>
       )}
+      {isViewerReport ? (
+        <span className="absolute bottom-0 right-0 inline-flex size-4 items-center justify-center rounded-full border border-black/50 bg-[#44f26e] text-[#07110a] shadow-[0_4px_10px_rgba(0,0,0,0.28)]">
+          <Check className="size-2.5 stroke-[3]" />
+        </span>
+      ) : null}
     </button>
   );
 }
@@ -977,6 +995,7 @@ function CutFeedCharacterInlinePanel({
 
 type CutFeedReporterPanelCopy = Pick<
   ReturnType<typeof getCopy>,
+  | "myReportBadge"
   | "reporterChannelCta"
   | "reporterCutMetric"
   | "reporterPanelClose"
@@ -991,6 +1010,7 @@ function CutFeedReporterInlinePanel({
   channelHref,
   copy,
   cutCountLabel,
+  isViewerReport = false,
   name,
   onClose,
   publishedAtLabel,
@@ -1001,6 +1021,7 @@ function CutFeedReporterInlinePanel({
   channelHref: string;
   copy: CutFeedReporterPanelCopy;
   cutCountLabel: string;
+  isViewerReport?: boolean;
   name: string;
   onClose: () => void;
   publishedAtLabel: string;
@@ -1047,6 +1068,12 @@ function CutFeedReporterInlinePanel({
               <span className="rounded-full border border-[#44f26e]/22 bg-[#44f26e]/12 px-2 py-1 text-[0.58rem] font-black text-[#9bffad]">
                 {copy.reporterPanelTitle}
               </span>
+              {isViewerReport ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-[#44f26e]/40 bg-[#44f26e] px-2 py-1 text-[0.58rem] font-black text-[#07110a]">
+                  <Check className="size-3 stroke-[3]" />
+                  {copy.myReportBadge}
+                </span>
+              ) : null}
             </div>
           </div>
           <button
@@ -1701,6 +1728,17 @@ function FeedSlide({
   const handledReporterPanelRequestIdRef = useRef(0);
   const copy = getCopy(locale);
   const { report } = item;
+  const normalizedViewerReporterReferralCode = normalizeReferralCode(
+    memberSession.member?.referralCode,
+  );
+  const normalizedReportReporterReferralCode = normalizeReferralCode(
+    report.reporterReferralCode,
+  );
+  const isViewerReport = Boolean(
+    normalizedViewerReporterReferralCode &&
+      normalizedReportReporterReferralCode &&
+      normalizedViewerReporterReferralCode === normalizedReportReporterReferralCode,
+  );
   const title = getFanletterNewsBareArticleDisplayTitle(report.title);
   const positionLabel = hasMore
     ? `${formatNumber(index + 1, locale)} / ${formatNumber(itemCount, locale)}+`
@@ -2641,6 +2679,7 @@ function FeedSlide({
           channelHref={reporterHref}
           copy={copy}
           cutCountLabel={characterCutCountLabel}
+          isViewerReport={isViewerReport}
           name={report.reporterName}
           onClose={() => setIsReporterPanelOpen(false)}
           publishedAtLabel={reporterPublishedAtLabel}
@@ -2680,6 +2719,12 @@ function FeedSlide({
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.72rem] font-bold text-white/72 drop-shadow-[0_2px_10px_rgba(0,0,0,0.72)]">
               <span>{report.reporterName}</span>
+              {isViewerReport ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-[#44f26e]/34 bg-[#44f26e]/18 px-2 py-0.5 text-[0.62rem] font-black text-[#9bffad]">
+                  <Check className="size-3 stroke-[3]" />
+                  {copy.myReportBadge}
+                </span>
+              ) : null}
               {publishedAt ? <span>{publishedAt}</span> : null}
             </div>
           </div>
@@ -2821,6 +2866,7 @@ export function FanletterNewsPublicCutsFeedPage({
   sourceContentId?: string | null;
 }) {
   const copy = getCopy(locale);
+  const memberSession = useMemberSession();
   const [items, setItems] = useState(initialItems);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [nextOffset, setNextOffset] = useState(initialNextOffset);
@@ -2953,6 +2999,17 @@ export function FanletterNewsPublicCutsFeedPage({
     items[
       Math.min(Math.max(visibleFeedIndex, 0), Math.max(items.length - 1, 0))
     ] ?? items[0];
+  const viewerReporterReferralCode = normalizeReferralCode(
+    memberSession.member?.referralCode,
+  );
+  const visibleItemReporterReferralCode = normalizeReferralCode(
+    visibleItem?.report.reporterReferralCode,
+  );
+  const isVisibleItemViewerReport = Boolean(
+    viewerReporterReferralCode &&
+      visibleItemReporterReferralCode &&
+      viewerReporterReferralCode === visibleItemReporterReferralCode,
+  );
   const firstSlideCutCount = items[0] ? getPublicCutItemCutCount(items[0]) : 0;
   const shouldOfferEntrySwipeGuide = Boolean(
     (shareId || excludeReportId) && firstSlideCutCount > 1,
@@ -3390,6 +3447,7 @@ export function FanletterNewsPublicCutsFeedPage({
             <div className={headerReporterClassName}>
               <CutFeedHeaderReporterChip
                 avatarImageUrl={visibleItem.report.reporterAvatarImageUrl}
+                isViewerReport={isVisibleItemViewerReport}
                 label={copy.reporter}
                 name={visibleItem.report.reporterName}
                 onClick={() => {
@@ -3399,6 +3457,7 @@ export function FanletterNewsPublicCutsFeedPage({
                     index: visibleFeedIndex,
                   }));
                 }}
+                viewerReportLabel={copy.myReportBadge}
               />
             </div>
           ) : null}
