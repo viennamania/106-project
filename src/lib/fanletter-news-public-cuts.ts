@@ -174,6 +174,7 @@ export function serializeFanletterNewsPublicCutFeedItem(
     cuts: item.cuts,
     leadCut: item.leadCut,
     report: {
+      contentId: item.report.contentId,
       contentMaturityRating: item.report.contentMaturityRating,
       coverImageUrl: item.report.coverImageUrl,
       createdAt: item.report.createdAt.toISOString(),

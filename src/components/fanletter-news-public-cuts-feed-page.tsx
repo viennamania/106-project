@@ -20,6 +20,7 @@ import {
   Loader2,
   LockKeyhole,
   PenLine,
+  PlayCircle,
   Share2,
   Sparkles,
   UserRound,
@@ -84,12 +85,15 @@ function getCopy(locale: Locale) {
         shareTitle: (headline: string) => `팬 기자가 편집한 4컷: ${headline}`,
         slot: (index: string) => `컷 ${index}`,
         sourceOpen: "팬 오픈 투표",
+        sourceOpenCompleteSummary: (count: string, threshold: string) =>
+          `${count}/${threshold}명 참여 완료`,
         sourceOpenDone: "원본 공개 완료",
         sourceOpenStatus: (
           count: string,
           threshold: string,
           remaining: string,
         ) => `${count}/${threshold} 참여 · ${remaining}명 남음`,
+        sourceView: "원본 보기",
         title: "팬 기자가 편집한 4컷 피드",
         voteCta: "보고싶어요",
         voteDone: "참여 완료",
@@ -129,12 +133,15 @@ function getCopy(locale: Locale) {
         shareTitle: (headline: string) => `Four cuts edited by a fan reporter: ${headline}`,
         slot: (index: string) => `Cut ${index}`,
         sourceOpen: "Fan-open vote",
+        sourceOpenCompleteSummary: (count: string, threshold: string) =>
+          `${count}/${threshold} joined`,
         sourceOpenDone: "Source open",
         sourceOpenStatus: (
           count: string,
           threshold: string,
           remaining: string,
         ) => `${count}/${threshold} joined · ${remaining} left`,
+        sourceView: "View source",
         title: "Four-cut feed edited by fan reporters",
         voteCta: "Want it",
         voteDone: "Joined",
@@ -239,8 +246,10 @@ function getReporterHref({
 type SourceRevealMiniVoteCopy = Pick<
   ReturnType<typeof getCopy>,
   | "sourceOpen"
+  | "sourceOpenCompleteSummary"
   | "sourceOpenDone"
   | "sourceOpenStatus"
+  | "sourceView"
   | "voteCta"
   | "voteDone"
   | "voteFailed"
@@ -424,6 +433,7 @@ function SourceRevealMiniVote({
   isSaving,
   locale,
   onVote,
+  sourceVlogHref,
   state,
 }: {
   authNudge: boolean;
@@ -434,6 +444,7 @@ function SourceRevealMiniVote({
   isSaving: boolean;
   locale: Locale;
   onVote: () => void;
+  sourceVlogHref: string | null;
   state: FanletterNewsSourceRevealState;
 }) {
   const remaining = Math.max(0, state.threshold - state.count);
@@ -458,6 +469,45 @@ function SourceRevealMiniVote({
     "inline-flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-full px-3 text-[0.66rem] font-black transition sm:h-9 sm:px-4 sm:text-xs";
   const disabledButtonClassName =
     "bg-white/12 text-white/62 ring-1 ring-white/10";
+
+  if (state.unlocked) {
+    const content = (
+      <>
+        <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/18 text-[#44f26e] ring-1 ring-[#44f26e]/22 transition group-hover:bg-[#101510] group-hover:text-[#44f26e] sm:size-8">
+          <CheckCircle2 className="size-4" />
+        </span>
+        <span className="min-w-0 flex-1 text-left">
+          <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#9bffad] transition group-hover:text-[#0b3518] sm:text-[0.64rem]">
+            {copy.sourceOpenDone}
+          </span>
+          <span className="block truncate text-[0.72rem] font-black text-white/86 transition group-hover:text-[#101510] sm:text-xs">
+            {copy.sourceOpenCompleteSummary(countLabel, thresholdLabel)}
+          </span>
+        </span>
+        <span className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-white/10 px-2.5 text-[0.68rem] font-black text-white transition group-hover:bg-[#101510] group-hover:text-white sm:h-8 sm:text-xs">
+          <PlayCircle className="size-3.5" />
+          {copy.sourceView}
+        </span>
+      </>
+    );
+
+    return (
+      <div className="mt-2 max-w-[30rem] sm:mt-3">
+        {sourceVlogHref ? (
+          <Link
+            className="group inline-flex h-11 w-full items-center gap-2.5 rounded-full border border-[#44f26e]/28 bg-black/34 px-3 text-white shadow-[0_10px_26px_rgba(0,0,0,0.18)] backdrop-blur-md transition hover:border-[#44f26e]/60 hover:bg-[#44f26e] hover:!text-[#101510] sm:h-12 sm:w-auto sm:min-w-[18rem] sm:px-4"
+            href={sourceVlogHref}
+          >
+            {content}
+          </Link>
+        ) : (
+          <div className="inline-flex h-11 w-full items-center gap-2.5 rounded-full border border-[#44f26e]/18 bg-black/24 px-3 text-white/74 shadow-[0_10px_26px_rgba(0,0,0,0.14)] backdrop-blur-md sm:h-12 sm:w-auto sm:min-w-[18rem] sm:px-4">
+            {content}
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -591,6 +641,19 @@ function FeedSlide({
       returnTo: cutFeedHref,
     },
   );
+  const sourceContentId =
+    typeof report.contentId === "string" ? report.contentId.trim() : "";
+  const sourceVlogHref = sourceContentId
+    ? setPathSearchParams(
+        buildPathWithReferral(
+          `/${locale}/fanletter/news/vlogs/${sourceContentId}`,
+          referralCode,
+        ),
+        {
+          returnTo: cutFeedHref,
+        },
+      )
+    : null;
   const characterHref = getCharacterHref({
     creatorReferralCode: report.creatorReferralCode,
     locale,
@@ -1009,6 +1072,7 @@ function FeedSlide({
               isSaving={isSourceRevealSaving}
               locale={locale}
               onVote={() => void submitSourceRevealVote()}
+              sourceVlogHref={sourceVlogHref}
               state={sourceRevealState}
             />
             <div className="mt-2 grid max-w-[30rem] grid-cols-2 gap-2 sm:flex">
