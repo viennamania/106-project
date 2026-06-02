@@ -28,6 +28,8 @@ export type FunnelEventDocument = {
   createdAt: Date;
   eventId: string;
   metadata?: FunnelEventMetadata;
+  memberEmail?: string | null;
+  memberWalletAddress?: string | null;
   name: FunnelEventName;
   path?: string | null;
   referer?: string | null;
@@ -35,6 +37,7 @@ export type FunnelEventDocument = {
   shareId?: string | null;
   targetHref?: string | null;
   userAgent?: string | null;
+  viewerType?: "guest" | "member";
   viewport?: {
     height: number;
     width: number;

@@ -1380,6 +1380,7 @@ export async function getFunnelEventsCollection() {
         collection.createIndex({ referralCode: 1, createdAt: -1 }),
         collection.createIndex({ shareId: 1, createdAt: -1 }),
         collection.createIndex({ contentId: 1, createdAt: -1 }),
+        collection.createIndex({ memberEmail: 1, name: 1, createdAt: -1 }),
       ]);
 
       return collection;

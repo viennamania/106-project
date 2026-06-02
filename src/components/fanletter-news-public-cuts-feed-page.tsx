@@ -507,23 +507,29 @@ async function copyToClipboard(value: string) {
 
 function CutFeedShareButton({
   activeCutSlotNumber,
+  contentId,
   copy,
+  creatorReferralCode,
   href,
   previewImageKind,
   referralCode,
+  reporterReferralCode,
   reportId,
   shareSummary,
   shareTitle,
   variant = "compact",
 }: {
   activeCutSlotNumber: number;
+  contentId: string | null;
   copy: Pick<
     ReturnType<typeof getCopy>,
     "share" | "shareCopied" | "shareError" | "shareSharing"
   >;
+  creatorReferralCode: string | null;
   href: string;
   previewImageKind: "activeCut" | "cover" | "leadCut";
   referralCode: string | null;
+  reporterReferralCode: string | null;
   reportId: string;
   shareSummary: string;
   shareTitle: string;
@@ -556,9 +562,12 @@ function CutFeedShareButton({
     );
 
     trackFunnelEvent("share_click", {
+      contentId,
       metadata: {
+        creatorReferralCode,
         cutSlotNumber: activeCutSlotNumber,
         previewImageKind,
+        reporterReferralCode,
         reportId,
         source: "fanletter-news-cut-feed",
       },
@@ -599,9 +608,12 @@ function CutFeedShareButton({
     }
   }, [
     activeCutSlotNumber,
+    contentId,
+    creatorReferralCode,
     href,
     previewImageKind,
     referralCode,
+    reporterReferralCode,
     reportId,
     shareSummary,
     shareTitle,
@@ -2534,10 +2546,13 @@ function FeedSlide({
         <div className="flex flex-col items-center gap-1.5">
           <CutFeedShareButton
             activeCutSlotNumber={activeCutSlotNumber}
+            contentId={sourceContentId || null}
             copy={copy}
+            creatorReferralCode={report.creatorReferralCode}
             href={cutFeedHref}
             previewImageKind={sharePreviewImageKind}
             referralCode={referralCode}
+            reporterReferralCode={report.reporterReferralCode}
             reportId={report.reportId}
             shareSummary={shareSummary}
             shareTitle={shareTitle}

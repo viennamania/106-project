@@ -4,9 +4,11 @@ import {
   type FunnelEventMetadata,
   isFunnelEventName,
 } from "@/lib/funnel";
+import { readMemberServerSession } from "@/lib/member-server-session";
 import { getFunnelEventsCollection } from "@/lib/mongodb";
 import { normalizeReferralCode } from "@/lib/member";
 import { normalizeShareId } from "@/lib/share-tracking";
+import { normalizeAddress } from "@/lib/thirdweb-webhooks";
 
 function readNullableString(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
@@ -75,6 +77,11 @@ export async function POST(request: Request) {
   }
 
   const headerStore = request.headers;
+  const session = await readMemberServerSession();
+  const memberEmail = session?.email ?? null;
+  const memberWalletAddress = session?.walletAddress
+    ? normalizeAddress(session.walletAddress)
+    : null;
   const collection = await getFunnelEventsCollection();
   const now = new Date();
 
@@ -82,6 +89,8 @@ export async function POST(request: Request) {
     contentId: readNullableString("contentId" in body ? body.contentId : null),
     createdAt: now,
     eventId: randomUUID(),
+    memberEmail,
+    memberWalletAddress,
     metadata: readMetadata("metadata" in body ? body.metadata : null),
     name,
     path: readNullableString("path" in body ? body.path : null),
@@ -94,6 +103,7 @@ export async function POST(request: Request) {
     ),
     targetHref: readNullableString("targetHref" in body ? body.targetHref : null),
     userAgent: headerStore.get("user-agent"),
+    viewerType: memberEmail ? "member" : "guest",
     viewport: readViewport("viewport" in body ? body.viewport : null),
   });
 
