@@ -108,6 +108,7 @@ function getCopy(locale: Locale) {
         emptyCta: "뉴스룸 보기",
         emptyTitle: "리포터 컷 피드가 준비 중입니다.",
         eyebrow: "Reporter Cut Feed",
+        eyebrowShort: "Cut Feed",
         feedTitle: "리포터 컷",
         home: "홈 피드",
         instruction: "위아래로 넘겨 팬 기자가 고른 4컷을 확인하세요.",
@@ -200,6 +201,7 @@ function getCopy(locale: Locale) {
           "NSFW 원본은 보기 설정 또는 지갑 PIN 확인 후 재생됩니다.",
         unlockNsfwTitle: "NSFW 원본 보호 중",
         title: "팬 기자가 편집한 4컷 피드",
+        titleShort: "4컷 피드",
         voteCta: "보고싶어요",
         voteDone: "참여 완료",
         voteFailed: "참여 실패",
@@ -224,6 +226,7 @@ function getCopy(locale: Locale) {
         emptyCta: "Back to News",
         emptyTitle: "Reporter cut feed is getting ready.",
         eyebrow: "Reporter Cut Feed",
+        eyebrowShort: "Cut Feed",
         feedTitle: "Reporter Cuts",
         home: "News Home",
         instruction: "Swipe vertically to review the four cuts chosen by fan reporters.",
@@ -317,6 +320,7 @@ function getCopy(locale: Locale) {
           "NSFW sources play after enabling viewing or confirming the wallet PIN.",
         unlockNsfwTitle: "NSFW source protected",
         title: "Four-cut feed edited by fan reporters",
+        titleShort: "4-cut feed",
         voteCta: "Want it",
         voteDone: "Joined",
         voteFailed: "Could not join",
@@ -776,6 +780,55 @@ function CutFeedProfileActionButton({
           {label}
         </span>
         <span className="block truncate text-[0.72rem] font-black leading-tight text-white/92 transition group-hover:text-[#111510]">
+          {name}
+        </span>
+      </span>
+    </button>
+  );
+}
+
+function CutFeedHeaderReporterChip({
+  active = false,
+  avatarImageUrl,
+  label,
+  name,
+  onClick,
+}: {
+  active?: boolean;
+  avatarImageUrl: string | null;
+  label: string;
+  name: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      aria-label={`${label} ${name}`}
+      aria-pressed={active}
+      className={`group inline-flex h-10 w-[5.3rem] shrink-0 items-center gap-1.5 rounded-full border py-1 pl-1 pr-2 text-left shadow-[0_12px_30px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:text-[#111510] min-[390px]:w-[5.9rem] ${
+        active
+          ? "border-[#44f26e]/70 bg-[#44f26e]/18 ring-2 ring-[#44f26e]/22"
+          : "border-white/14 bg-black/28"
+      }`}
+      onClick={onClick}
+      title={`${label} ${name}`}
+      type="button"
+    >
+      <span className="relative inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/18 bg-black/36 text-[#44f26e]">
+        {avatarImageUrl ? (
+          <Image
+            alt=""
+            className="object-cover"
+            fill
+            sizes="32px"
+            src={avatarImageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(avatarImageUrl)}
+          />
+        ) : (
+          <PenLine className="size-4" />
+        )}
+      </span>
+      <span className="min-w-0">
+        <span className="block truncate text-[0.66rem] font-black leading-tight text-white/92 transition group-hover:text-[#111510]">
           {name}
         </span>
       </span>
@@ -1545,6 +1598,7 @@ function FeedSlide({
   itemCount,
   locale,
   onDismissSwipeGuide,
+  reporterPanelRequestId = 0,
   onSourceViewSlideVisible,
   referralCode,
   showSwipeGuide = false,
@@ -1557,6 +1611,7 @@ function FeedSlide({
   itemCount: number;
   locale: Locale;
   onDismissSwipeGuide?: () => void;
+  reporterPanelRequestId?: number;
   onSourceViewSlideVisible?: (index: number) => void;
   referralCode: string | null;
   showSwipeGuide?: boolean;
@@ -1777,6 +1832,16 @@ function FeedSlide({
     pendingVoteAfterLoginRef.current = false;
     loginSyncKeyRef.current = null;
   }, [item.sourceReveal]);
+
+  useEffect(() => {
+    if (reporterPanelRequestId <= 0) {
+      return;
+    }
+
+    onDismissSwipeGuide?.();
+    setIsCharacterPanelOpen(false);
+    setIsReporterPanelOpen(true);
+  }, [onDismissSwipeGuide, reporterPanelRequestId]);
 
   useEffect(() => {
     return () => {
@@ -2566,7 +2631,7 @@ function FeedSlide({
           </div>
 
           <div className="mt-3">
-            <div className="grid max-w-[30rem] grid-cols-2 gap-2">
+            <div className="flex max-w-[13.5rem]">
               <CutFeedProfileActionButton
                 active={isCharacterPanelOpen}
                 fallbackIcon={Sparkles}
@@ -2577,18 +2642,6 @@ function FeedSlide({
                   onDismissSwipeGuide?.();
                   setIsReporterPanelOpen(false);
                   setIsCharacterPanelOpen((current) => !current);
-                }}
-              />
-              <CutFeedProfileActionButton
-                active={isReporterPanelOpen}
-                fallbackIcon={PenLine}
-                imageUrl={report.reporterAvatarImageUrl}
-                label={copy.reporter}
-                name={report.reporterName}
-                onClick={() => {
-                  onDismissSwipeGuide?.();
-                  setIsCharacterPanelOpen(false);
-                  setIsReporterPanelOpen((current) => !current);
                 }}
               />
             </div>
@@ -2741,6 +2794,8 @@ export function FanletterNewsPublicCutsFeedPage({
   const [sourceViewSwipeGuideDismissed, setSourceViewSwipeGuideDismissed] =
     useState(false);
   const [serviceMenuOpen, setServiceMenuOpen] = useState(false);
+  const [visibleFeedIndex, setVisibleFeedIndex] = useState(0);
+  const [reporterPanelRequestId, setReporterPanelRequestId] = useState(0);
   const [visibleViewportHeight, setVisibleViewportHeight] = useState<
     string | null
   >(null);
@@ -2850,6 +2905,10 @@ export function FanletterNewsPublicCutsFeedPage({
   const headerCountLabel = hasMore
     ? `${formatNumber(items.length, locale)}+`
     : formatNumber(items.length, locale);
+  const visibleItem =
+    items[
+      Math.min(Math.max(visibleFeedIndex, 0), Math.max(items.length - 1, 0))
+    ] ?? items[0];
   const firstSlideCutCount = items[0] ? getPublicCutItemCutCount(items[0]) : 0;
   const shouldOfferEntrySwipeGuide = Boolean(
     (shareId || excludeReportId) && firstSlideCutCount > 1,
@@ -2914,6 +2973,15 @@ export function FanletterNewsPublicCutsFeedPage({
       return;
     }
 
+    const visibleIndex = getVisibleFeedIndex({
+      itemCount: items.length,
+      root,
+    });
+
+    setVisibleFeedIndex((currentIndex) =>
+      currentIndex === visibleIndex ? currentIndex : visibleIndex,
+    );
+
     if (swipeGuideTarget) {
       const guideScrollTop = root.clientHeight * swipeGuideTarget.index;
       const dismissDistance =
@@ -2929,11 +2997,6 @@ export function FanletterNewsPublicCutsFeedPage({
     if (sourceViewSwipeGuideDismissed) {
       return;
     }
-
-    const visibleIndex = getVisibleFeedIndex({
-      itemCount: items.length,
-      root,
-    });
 
     if (
       canShowSourceViewSwipeGuideAtIndex({
@@ -3220,18 +3283,31 @@ export function FanletterNewsPublicCutsFeedPage({
       style={viewportStyle}
     >
       <header className="fixed left-1/2 top-0 z-30 w-full max-w-[430px] -translate-x-1/2 border-b border-white/10 bg-black/30 px-3 py-3 text-white backdrop-blur-xl">
-        <div className="mx-auto flex items-center gap-3">
+        <div className="mx-auto flex items-center gap-2">
           <div className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/14 text-[#44f26e] shadow-[0_12px_34px_rgba(68,242,110,0.14)]">
             <Images className="size-5" />
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
-              {copy.eyebrow}
+              <span className="min-[430px]:hidden">{copy.eyebrowShort}</span>
+              <span className="hidden min-[430px]:inline">{copy.eyebrow}</span>
             </p>
             <h1 className="truncate text-[1.02rem] font-black leading-tight tracking-normal">
-              {copy.title}
+              <span className="min-[430px]:hidden">{copy.titleShort}</span>
+              <span className="hidden min-[430px]:inline">{copy.title}</span>
             </h1>
           </div>
+          {visibleItem ? (
+            <CutFeedHeaderReporterChip
+              avatarImageUrl={visibleItem.report.reporterAvatarImageUrl}
+              label={copy.reporter}
+              name={visibleItem.report.reporterName}
+              onClick={() => {
+                setServiceMenuOpen(false);
+                setReporterPanelRequestId((currentId) => currentId + 1);
+              }}
+            />
+          ) : null}
           <button
             aria-expanded={serviceMenuOpen}
             aria-label={copy.serviceMenu}
@@ -3240,7 +3316,7 @@ export function FanletterNewsPublicCutsFeedPage({
             type="button"
           >
             <Menu className="size-4" />
-            <span className="hidden text-[0.72rem] font-black min-[360px]:inline">
+            <span className="hidden text-[0.72rem] font-black min-[430px]:inline">
               {copy.serviceMenu}
             </span>
             <span className="rounded-full bg-white/12 px-2 py-1 text-xs font-black leading-none text-white transition group-hover:text-[#111510]">
@@ -3273,6 +3349,9 @@ export function FanletterNewsPublicCutsFeedPage({
             locale={locale}
             onDismissSwipeGuide={dismissSwipeGuide}
             onSourceViewSlideVisible={handleSourceViewSlideVisible}
+            reporterPanelRequestId={
+              visibleFeedIndex === index ? reporterPanelRequestId : 0
+            }
             referralCode={referralCode}
             showSwipeGuide={swipeGuideTarget?.index === index}
           />
