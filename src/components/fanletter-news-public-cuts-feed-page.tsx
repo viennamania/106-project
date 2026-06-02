@@ -56,6 +56,8 @@ const DOUBLE_TAP_DELAY_MS = 320;
 const DOUBLE_TAP_MOVE_TOLERANCE_PX = 14;
 const DOUBLE_TAP_DISTANCE_TOLERANCE_PX = 48;
 const DOUBLE_TAP_FEEDBACK_MS = 920;
+const CUT_SWIPE_GUIDE_AUTO_HIDE_MS = 5200;
+const CUT_SWIPE_GUIDE_STORAGE_KEY = "fanletter-news-cuts-swipe-guide-seen";
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -116,6 +118,7 @@ function getCopy(locale: Locale) {
           `${count}/${threshold}명이 참여했습니다. ${remaining}명이 더 보고싶어요를 누르면 피드에서 바로 열립니다.`,
         sourceRevealLockedTitle: "아직 원본 공개 전입니다.",
         sourceView: "원본 보기",
+        swipeGuide: "좌우로 넘겨 4컷 보기",
         unavailableSourceBody:
           "이 원본은 현재 피드 안에서 바로 재생할 수 없습니다. 상세 화면에서 상태를 확인하세요.",
         unavailableSourceTitle: "원본을 바로 열 수 없습니다.",
@@ -186,6 +189,7 @@ function getCopy(locale: Locale) {
           `${count}/${threshold} fans joined. ${remaining} more want-it votes open the source in this feed.`,
         sourceRevealLockedTitle: "The source is not open yet.",
         sourceView: "View source",
+        swipeGuide: "Swipe sideways for 4 cuts",
         unavailableSourceBody:
           "This source cannot play directly in the feed right now. Check the detail screen for status.",
         unavailableSourceTitle: "Source cannot open here.",
@@ -911,14 +915,18 @@ function FeedSlide({
   item,
   itemCount,
   locale,
+  onDismissSwipeGuide,
   referralCode,
+  showSwipeGuide = false,
 }: {
   hasMore: boolean;
   index: number;
   item: SerializedFanletterNewsPublicCutFeedItem;
   itemCount: number;
   locale: Locale;
+  onDismissSwipeGuide?: () => void;
   referralCode: string | null;
+  showSwipeGuide?: boolean;
 }) {
   const [activeCutIndex, setActiveCutIndex] = useState(0);
   const [sourceRevealState, setSourceRevealState] = useState(item.sourceReveal);
@@ -1272,6 +1280,7 @@ function FeedSlide({
 
       if (Math.abs(deltaX) >= 44 && Math.abs(deltaX) >= Math.abs(deltaY) * 1.1) {
         lastTapRef.current = null;
+        onDismissSwipeGuide?.();
 
         if (deltaX > 0) {
           goToPreviousCut();
@@ -1315,7 +1324,7 @@ function FeedSlide({
         y: event.clientY,
       };
     },
-    [goToNextCut, goToPreviousCut, handleSourceRevealDoubleTap],
+    [goToNextCut, goToPreviousCut, handleSourceRevealDoubleTap, onDismissSwipeGuide],
   );
 
   return (
@@ -1326,6 +1335,7 @@ function FeedSlide({
         pointerStartRef.current = null;
       }}
       onPointerDown={(event) => {
+        onDismissSwipeGuide?.();
         pointerStartRef.current = {
           target: event.target,
           x: event.clientX,
@@ -1379,7 +1389,10 @@ function FeedSlide({
               aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
               className="h-1 flex-1 overflow-hidden rounded-full bg-white/24"
               key={`${report.reportId}-progress-${cut.slotNumber}`}
-              onClick={() => setActiveCutIndex(cutIndex)}
+              onClick={() => {
+                onDismissSwipeGuide?.();
+                setActiveCutIndex(cutIndex);
+              }}
               type="button"
             >
               <span
@@ -1426,6 +1439,27 @@ function FeedSlide({
           />
         </div>
       </div>
+
+      {showSwipeGuide && cutCount > 1 ? (
+        <div
+          aria-live="polite"
+          className="pointer-events-none absolute left-1/2 top-[39%] z-30 w-[18.5rem] max-w-[calc(100%_-_2rem)] -translate-x-1/2 rounded-2xl border border-white/14 bg-black/58 px-4 py-3 text-center text-white shadow-[0_24px_70px_rgba(0,0,0,0.38)] backdrop-blur-xl"
+          role="status"
+        >
+          <div className="mx-auto flex items-center justify-center gap-2 text-[#9bffad]">
+            <ChevronLeft className="size-4" />
+            <span className="relative h-9 w-20 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/10">
+              <span className="fanletter-cut-swipe-guide-thumb absolute left-1/2 top-1/2 inline-flex size-9 items-center justify-center rounded-full bg-[#44f26e] text-black shadow-[0_12px_28px_rgba(68,242,110,0.26)]">
+                <Images className="size-4" />
+              </span>
+            </span>
+            <ChevronRight className="size-4" />
+          </div>
+          <p className="mt-2 text-sm font-black tracking-normal [word-break:keep-all]">
+            {copy.swipeGuide}
+          </p>
+        </div>
+      ) : null}
 
       <button
         aria-label={copy.previousCut}
@@ -1594,6 +1628,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const [nextOffset, setNextOffset] = useState(initialNextOffset);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [showSwipeGuide, setShowSwipeGuide] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const newsHomeHref = buildPathWithReferral(
@@ -1603,6 +1638,22 @@ export function FanletterNewsPublicCutsFeedPage({
   const headerCountLabel = hasMore
     ? `${formatNumber(items.length, locale)}+`
     : formatNumber(items.length, locale);
+  const firstSlideCutCount = items[0]
+    ? Math.max(items[0].cuts.length, 1)
+    : 0;
+  const dismissSwipeGuide = useCallback(() => {
+    if (!showSwipeGuide) {
+      return;
+    }
+
+    setShowSwipeGuide(false);
+
+    try {
+      window.localStorage.setItem(CUT_SWIPE_GUIDE_STORAGE_KEY, "1");
+    } catch {
+      // Ignore storage failures in privacy-restricted in-app browsers.
+    }
+  }, [showSwipeGuide]);
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore) {
       return;
@@ -1662,6 +1713,33 @@ export function FanletterNewsPublicCutsFeedPage({
     referralCode,
     shareId,
   ]);
+
+  useEffect(() => {
+    if (!shareId || firstSlideCutCount < 2) {
+      setShowSwipeGuide(false);
+      return;
+    }
+
+    try {
+      if (window.localStorage.getItem(CUT_SWIPE_GUIDE_STORAGE_KEY) === "1") {
+        return;
+      }
+
+      window.localStorage.setItem(CUT_SWIPE_GUIDE_STORAGE_KEY, "1");
+    } catch {
+      // Showing the hint once per session is still acceptable if storage is blocked.
+    }
+
+    setShowSwipeGuide(true);
+
+    const timeoutId = window.setTimeout(() => {
+      setShowSwipeGuide(false);
+    }, CUT_SWIPE_GUIDE_AUTO_HIDE_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [firstSlideCutCount, shareId]);
 
   useEffect(() => {
     if (!hasMore) {
@@ -1755,7 +1833,9 @@ export function FanletterNewsPublicCutsFeedPage({
             itemCount={items.length}
             key={item.report.reportId}
             locale={locale}
+            onDismissSwipeGuide={dismissSwipeGuide}
             referralCode={referralCode}
+            showSwipeGuide={index === 0 && showSwipeGuide}
           />
         ))}
         <section

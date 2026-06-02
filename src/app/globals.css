@@ -159,6 +159,31 @@ a {
   background: rgba(37, 99, 235, 0.18);
 }
 
+@keyframes fanletter-cut-swipe-guide {
+  0%,
+  100% {
+    opacity: 0.86;
+    transform: translate3d(calc(-50% - 1.1rem), -50%, 0);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translate3d(calc(-50% + 1.1rem), -50%, 0);
+  }
+}
+
+.fanletter-cut-swipe-guide-thumb {
+  animation: fanletter-cut-swipe-guide 1.55s ease-in-out 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fanletter-cut-swipe-guide-thumb {
+    animation: none;
+    opacity: 1;
+    transform: translate3d(-50%, -50%, 0);
+  }
+}
+
 .glass-card {
   background: var(--surface);
   border: 1px solid rgba(255, 255, 255, 0.72);
