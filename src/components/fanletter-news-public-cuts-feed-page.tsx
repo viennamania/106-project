@@ -165,6 +165,7 @@ function getCopy(locale: Locale) {
         sourceOverlayClose: "원본 닫기",
         sourceOverlayError: "원본을 불러오지 못했습니다.",
         sourceOverlayLoading: "원본 불러오는 중",
+        sourceOverlayPlay: "재생하기",
         sourceOverlayTitle: "원본 브이로그",
         sourceRevealLockedBody: (
           count: string,
@@ -263,6 +264,7 @@ function getCopy(locale: Locale) {
         sourceOverlayClose: "Close source",
         sourceOverlayError: "Could not load the source.",
         sourceOverlayLoading: "Loading source",
+        sourceOverlayPlay: "Play video",
         sourceOverlayTitle: "Source vlog",
         sourceRevealLockedBody: (
           count: string,
@@ -894,6 +896,7 @@ type SourceOverlayCopy = Pick<
   | "sourceOverlayClose"
   | "sourceOverlayError"
   | "sourceOverlayLoading"
+  | "sourceOverlayPlay"
   | "sourceOverlayTitle"
   | "sourceRevealLockedBody"
   | "sourceRevealLockedTitle"
@@ -992,50 +995,52 @@ function SourceVlogFeedOverlay({
   return (
     <div
       aria-modal="true"
-      className="absolute inset-0 z-50 flex flex-col bg-[#050706] text-white"
+      className="absolute inset-0 z-50 overflow-hidden bg-black text-white"
       role="dialog"
     >
-      <div className="flex h-[4.35rem] shrink-0 items-center gap-3 border-b border-white/10 bg-[linear-gradient(90deg,rgba(5,7,6,0.96),rgba(13,24,16,0.92)_58%,rgba(5,7,6,0.96))] px-3 shadow-[0_18px_42px_rgba(0,0,0,0.24)] backdrop-blur-xl">
-        <button
-          aria-label={copy.sourceOverlayClose}
-          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white shadow-[0_12px_30px_rgba(0,0,0,0.22)] transition hover:bg-white hover:text-[#111510]"
-          onClick={onClose}
-          type="button"
-        >
-          <X className="size-5" />
-        </button>
-        <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/14 text-[#44f26e] shadow-[0_12px_30px_rgba(68,242,110,0.12)]">
-          <PlayCircle className="size-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-2">
-            <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
-              {source?.authorName
-                ? `${copy.sourceOverlayTitle} · ${source.authorName}`
-                : copy.sourceOverlayTitle}
-            </p>
-            {source?.contentMaturityRating === "nsfw" ? (
-              <span className="shrink-0 rounded-full bg-rose-500/90 px-2 py-0.5 text-[0.52rem] font-black uppercase tracking-[0.1em] text-white">
-                {copy.adult}
-              </span>
-            ) : null}
+      <div className="absolute inset-x-0 top-0 z-30 bg-[linear-gradient(180deg,rgba(0,0,0,0.82),rgba(0,0,0,0.5)_62%,rgba(0,0,0,0))] px-3 pb-5 pt-[calc(env(safe-area-inset-top)+0.7rem)]">
+        <div className="flex items-center gap-2.5">
+          <button
+            aria-label={copy.sourceOverlayClose}
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-black/56 text-white shadow-[0_12px_30px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:bg-white hover:text-[#111510]"
+            onClick={onClose}
+            type="button"
+          >
+            <X className="size-5" />
+          </button>
+          <div className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/14 text-[#44f26e] shadow-[0_12px_30px_rgba(68,242,110,0.12)] backdrop-blur-xl">
+            <PlayCircle className="size-4.5" />
           </div>
-          <h2 className="mt-1 truncate text-base font-black leading-tight tracking-normal">
-            {source?.title ?? copy.sourceOverlayLoading}
-          </h2>
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 items-center gap-2">
+              <p className="truncate text-[0.6rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+                {source?.authorName
+                  ? `${copy.sourceOverlayTitle} · ${source.authorName}`
+                  : copy.sourceOverlayTitle}
+              </p>
+              {source?.contentMaturityRating === "nsfw" ? (
+                <span className="shrink-0 rounded-full bg-rose-500/90 px-2 py-0.5 text-[0.52rem] font-black uppercase tracking-[0.1em] text-white">
+                  {copy.adult}
+                </span>
+              ) : null}
+            </div>
+            <h2 className="mt-0.5 truncate text-[1.02rem] font-black leading-tight tracking-normal">
+              {source?.title ?? copy.sourceOverlayLoading}
+            </h2>
+          </div>
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto bg-black [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="absolute inset-0 bg-black">
         {isLoading ? (
-          <div className="flex min-h-full flex-col items-center justify-center gap-3 px-5 text-center">
+          <div className="flex h-full flex-col items-center justify-center gap-3 px-5 pt-[calc(env(safe-area-inset-top)+4.2rem)] text-center">
             <Loader2 className="size-8 animate-spin text-[#44f26e]" />
             <p className="text-sm font-black text-white/78">
               {copy.sourceOverlayLoading}
             </p>
           </div>
         ) : error ? (
-          <div className="flex min-h-full items-center justify-center px-5 text-center">
+          <div className="flex h-full items-center justify-center px-5 pt-[calc(env(safe-area-inset-top)+4.2rem)] text-center">
             <div className="max-w-xs rounded-2xl border border-white/12 bg-white/8 p-5 shadow-2xl backdrop-blur-xl">
               <AlertTriangle className="mx-auto size-8 text-rose-300" />
               <p className="mt-3 text-base font-black">
@@ -1051,8 +1056,8 @@ function SourceVlogFeedOverlay({
             </div>
           </div>
         ) : source ? (
-          <div className="relative min-h-full bg-black">
-            <div className="absolute inset-0 flex items-center bg-black">
+          <div className="relative h-full bg-black">
+            <div className="absolute inset-0 flex items-start justify-center bg-black px-0 pb-[calc(env(safe-area-inset-bottom)+0.6rem)] pt-[calc(env(safe-area-inset-top)+4.45rem)]">
               <FanletterResponsiveMediaFrame
                 alt={source.title}
                 blurred={source.accessState === "nsfw_opt_in_required"}
@@ -1073,7 +1078,7 @@ function SourceVlogFeedOverlay({
                       }
                     : undefined
                 }
-                playButtonLabel={copy.sourceOverlayTitle}
+                playButtonLabel={copy.sourceOverlayPlay}
                 previewVideoUrl={source.previewVideoUrl}
                 title={source.title}
                 videoUrl={source.videoUrl}
