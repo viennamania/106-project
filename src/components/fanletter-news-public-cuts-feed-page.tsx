@@ -93,6 +93,12 @@ function getCopy(locale: Locale) {
     ? {
         adult: "성인 팬 전용",
         character: "캐릭터",
+        characterCutMetric: "편집 컷",
+        characterPanelClose: "캐릭터 닫기",
+        characterPanelEyebrow: "AI Character IP",
+        characterPanelTitle: "캐릭터 채널",
+        characterReporterMetric: "팬 기자",
+        characterSourceMetric: "원본 오픈",
         doubleTapDone: "참여 완료",
         doubleTapLogin: "로그인 필요",
         doubleTapOpen: "원본 공개 완료",
@@ -192,6 +198,12 @@ function getCopy(locale: Locale) {
     : {
         adult: "Adult fan-only",
         character: "Character",
+        characterCutMetric: "Edited cuts",
+        characterPanelClose: "Close character",
+        characterPanelEyebrow: "AI Character IP",
+        characterPanelTitle: "Character channel",
+        characterReporterMetric: "Reporter",
+        characterSourceMetric: "Source open",
         doubleTapDone: "Joined",
         doubleTapLogin: "Log in required",
         doubleTapOpen: "Source open",
@@ -347,23 +359,6 @@ function getCutFeedHref({
   return buildPathWithReferral(
     `/${locale}/fanletter/news/cuts/${reportId}`,
     referralCode,
-  );
-}
-
-function getCharacterHref({
-  creatorReferralCode,
-  locale,
-  referralCode,
-}: {
-  creatorReferralCode: string | null;
-  locale: Locale;
-  referralCode: string | null;
-}) {
-  return buildPathWithReferral(
-    creatorReferralCode
-      ? `/${locale}/fanletter/news/characters/${creatorReferralCode}`
-      : `/${locale}/fanletter/news/characters`,
-    referralCode ?? creatorReferralCode,
   );
 }
 
@@ -738,6 +733,164 @@ function CutFeedProfileActionLink({
         </span>
       </span>
     </Link>
+  );
+}
+
+function CutFeedProfileActionButton({
+  active = false,
+  fallbackIcon: FallbackIcon,
+  imageUrl,
+  label,
+  name,
+  onClick,
+}: {
+  active?: boolean;
+  fallbackIcon: LucideIcon;
+  imageUrl: string | null;
+  label: string;
+  name: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      aria-pressed={active}
+      className={`group inline-flex h-11 min-w-0 items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:text-[#111510] ${
+        active
+          ? "border-[#44f26e]/70 bg-[#44f26e]/18 ring-2 ring-[#44f26e]/22"
+          : "border-white/14 bg-black/28"
+      }`}
+      onClick={onClick}
+      type="button"
+    >
+      <span className="relative inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/18 bg-black/36 text-[#44f26e]">
+        {imageUrl ? (
+          <Image
+            alt=""
+            className="object-cover"
+            fill
+            sizes="32px"
+            src={imageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+          />
+        ) : (
+          <FallbackIcon className="size-4" />
+        )}
+      </span>
+      <span className="min-w-0 text-left">
+        <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.1em] text-[#9bffad] transition group-hover:text-[#0b3518]">
+          {label}
+        </span>
+        <span className="block truncate text-[0.72rem] font-black leading-tight text-white/92 transition group-hover:text-[#111510]">
+          {name}
+        </span>
+      </span>
+    </button>
+  );
+}
+
+type CutFeedCharacterPanelCopy = Pick<
+  ReturnType<typeof getCopy>,
+  | "characterCutMetric"
+  | "characterPanelClose"
+  | "characterPanelEyebrow"
+  | "characterPanelTitle"
+  | "characterReporterMetric"
+  | "characterSourceMetric"
+>;
+
+function CutFeedCharacterInlinePanel({
+  avatarImageUrl,
+  copy,
+  cutCountLabel,
+  name,
+  onClose,
+  referralCode,
+  reporterName,
+  sourceRevealLabel,
+}: {
+  avatarImageUrl: string | null;
+  copy: CutFeedCharacterPanelCopy;
+  cutCountLabel: string;
+  name: string;
+  onClose: () => void;
+  referralCode: string | null;
+  reporterName: string;
+  sourceRevealLabel: string;
+}) {
+  return (
+    <div
+      aria-labelledby="cut-feed-character-panel-title"
+      aria-modal="false"
+      className="absolute inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+5.4rem)] z-40"
+      role="dialog"
+    >
+      <div className="rounded-2xl border border-white/14 bg-black/68 p-3 text-white shadow-[0_26px_70px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
+        <div className="flex items-start gap-3">
+          <span className="relative inline-flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#44f26e]/42 bg-[#44f26e]/12 text-[#44f26e] shadow-[0_16px_34px_rgba(0,0,0,0.28)]">
+            {avatarImageUrl ? (
+              <Image
+                alt=""
+                className="object-cover"
+                fill
+                sizes="64px"
+                src={avatarImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(avatarImageUrl)}
+              />
+            ) : (
+              <Sparkles className="size-7" />
+            )}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.58rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+              {copy.characterPanelEyebrow}
+            </p>
+            <h2
+              className="mt-1 truncate text-xl font-black leading-tight"
+              id="cut-feed-character-panel-title"
+            >
+              {name}
+            </h2>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              {referralCode ? (
+                <span className="rounded-full border border-white/12 bg-white/8 px-2 py-1 text-[0.58rem] font-black text-white/74">
+                  @{referralCode}
+                </span>
+              ) : null}
+              <span className="rounded-full border border-[#44f26e]/22 bg-[#44f26e]/12 px-2 py-1 text-[0.58rem] font-black text-[#9bffad]">
+                {copy.characterPanelTitle}
+              </span>
+            </div>
+          </div>
+          <button
+            aria-label={copy.characterPanelClose}
+            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white/72 transition hover:bg-white hover:text-[#111510]"
+            onClick={onClose}
+            type="button"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <div className="mt-3 grid grid-cols-3 gap-1.5">
+          {[
+            [copy.characterCutMetric, cutCountLabel],
+            [copy.characterSourceMetric, sourceRevealLabel],
+            [copy.characterReporterMetric, reporterName],
+          ].map(([label, value]) => (
+            <div
+              className="min-w-0 rounded-xl border border-white/10 bg-white/[0.07] px-2 py-2"
+              key={label}
+            >
+              <p className="truncate text-[0.54rem] font-black uppercase tracking-[0.08em] text-[#9bffad]">
+                {label}
+              </p>
+              <p className="mt-1 truncate text-[0.72rem] font-black text-white">
+                {value}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1291,6 +1444,7 @@ function FeedSlide({
     null,
   );
   const [isSourceOverlayLoading, setIsSourceOverlayLoading] = useState(false);
+  const [isCharacterPanelOpen, setIsCharacterPanelOpen] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLoginSyncing, setIsLoginSyncing] = useState(false);
   const [loginSyncError, setLoginSyncError] = useState<string | null>(null);
@@ -1337,11 +1491,6 @@ function FeedSlide({
   const sourceRevealEndpoint = `/api/fanletter/news-reports/${encodeURIComponent(report.reportId)}/source-reveal`;
   const sourceContentId =
     typeof report.contentId === "string" ? report.contentId.trim() : "";
-  const characterHref = getCharacterHref({
-    creatorReferralCode: report.creatorReferralCode,
-    locale,
-    referralCode,
-  });
   const reporterHref = getReporterHref({
     locale,
     referralCode,
@@ -1352,6 +1501,11 @@ function FeedSlide({
   const cuts = item.cuts.length > 0 ? item.cuts : [item.leadCut];
   const cutCount = cuts.length;
   const activeCutLabel = `${formatNumber(activeCutIndex + 1, locale)} / ${formatNumber(cutCount, locale)}`;
+  const characterCutCountLabel = formatNumber(cutCount, locale);
+  const characterSourceRevealLabel = `${formatNumber(
+    Math.min(sourceRevealState.count, sourceRevealState.threshold),
+    locale,
+  )}/${formatNumber(sourceRevealState.threshold, locale)}`;
   const sharePreviewImageKind = report.coverImageUrl ? "cover" : "leadCut";
   const shareTitle = copy.shareTitle(title);
   const shareSummary = copy.shareSummary(title, report.reporterName);
@@ -2135,6 +2289,19 @@ function FeedSlide({
         </div>
       ) : null}
 
+      {isCharacterPanelOpen ? (
+        <CutFeedCharacterInlinePanel
+          avatarImageUrl={report.creatorAvatarImageUrl}
+          copy={copy}
+          cutCountLabel={characterCutCountLabel}
+          name={report.creatorName}
+          onClose={() => setIsCharacterPanelOpen(false)}
+          referralCode={report.creatorReferralCode}
+          reporterName={report.reporterName}
+          sourceRevealLabel={characterSourceRevealLabel}
+        />
+      ) : null}
+
       <div className="relative z-10 flex min-h-[var(--fanletter-cut-feed-vh,100dvh)] items-end px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+7.6rem)]">
         <section className="mx-auto flex w-full flex-col justify-end">
           <div className="max-w-3xl">
@@ -2163,12 +2330,13 @@ function FeedSlide({
 
           <div className="mt-3">
             <div className="grid max-w-[30rem] grid-cols-2 gap-2">
-              <CutFeedProfileActionLink
+              <CutFeedProfileActionButton
+                active={isCharacterPanelOpen}
                 fallbackIcon={Sparkles}
-                href={characterHref}
                 imageUrl={report.creatorAvatarImageUrl}
                 label={copy.character}
                 name={report.creatorName}
+                onClick={() => setIsCharacterPanelOpen((current) => !current)}
               />
               <CutFeedProfileActionLink
                 fallbackIcon={PenLine}
