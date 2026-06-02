@@ -84,6 +84,8 @@ const DOUBLE_TAP_MOVE_TOLERANCE_PX = 14;
 const DOUBLE_TAP_DISTANCE_TOLERANCE_PX = 48;
 const DOUBLE_TAP_FEEDBACK_MS = 920;
 const CUT_SWIPE_GUIDE_DISMISS_SCROLL_RATIO = 0.45;
+const CUT_FEED_HEADER_VISIBLE_MS = 2200;
+const CUT_FEED_ENTRY_HEADER_VISIBLE_MS = 2800;
 const CUT_FEED_LOGIN_SYNC_GRACE_MS = 4500;
 
 type CutFeedViewportStyle = CSSProperties & {
@@ -2831,6 +2833,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const [sourceViewSwipeGuideDismissed, setSourceViewSwipeGuideDismissed] =
     useState(false);
   const [serviceMenuOpen, setServiceMenuOpen] = useState(false);
+  const [isCutFeedHeaderVisible, setIsCutFeedHeaderVisible] = useState(true);
   const [visibleFeedIndex, setVisibleFeedIndex] = useState(0);
   const [reporterPanelRequest, setReporterPanelRequest] = useState<{
     id: number;
@@ -2841,6 +2844,7 @@ export function FanletterNewsPublicCutsFeedPage({
   >(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const headerRevealTimerRef = useRef<number | null>(null);
   const cutFeedHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/news/cuts`,
     referralCode,
@@ -3018,9 +3022,15 @@ export function FanletterNewsPublicCutsFeedPage({
       root,
     });
 
-    setVisibleFeedIndex((currentIndex) =>
-      currentIndex === visibleIndex ? currentIndex : visibleIndex,
-    );
+    setVisibleFeedIndex((currentIndex) => {
+      if (currentIndex === visibleIndex) {
+        return currentIndex;
+      }
+
+      setIsCutFeedHeaderVisible(true);
+
+      return visibleIndex;
+    });
 
     if (swipeGuideTarget) {
       const guideScrollTop = root.clientHeight * swipeGuideTarget.index;
@@ -3260,6 +3270,36 @@ export function FanletterNewsPublicCutsFeedPage({
   }, [serviceMenuOpen]);
 
   useEffect(() => {
+    if (headerRevealTimerRef.current) {
+      window.clearTimeout(headerRevealTimerRef.current);
+      headerRevealTimerRef.current = null;
+    }
+
+    setIsCutFeedHeaderVisible(true);
+
+    if (serviceMenuOpen) {
+      return;
+    }
+
+    const visibleDuration =
+      visibleFeedIndex === 0 && (shareId || excludeReportId)
+        ? CUT_FEED_ENTRY_HEADER_VISIBLE_MS
+        : CUT_FEED_HEADER_VISIBLE_MS;
+
+    headerRevealTimerRef.current = window.setTimeout(() => {
+      setIsCutFeedHeaderVisible(false);
+      headerRevealTimerRef.current = null;
+    }, visibleDuration);
+
+    return () => {
+      if (headerRevealTimerRef.current) {
+        window.clearTimeout(headerRevealTimerRef.current);
+        headerRevealTimerRef.current = null;
+      }
+    };
+  }, [excludeReportId, serviceMenuOpen, shareId, visibleFeedIndex]);
+
+  useEffect(() => {
     if (!hasMore) {
       return;
     }
@@ -3317,28 +3357,52 @@ export function FanletterNewsPublicCutsFeedPage({
     );
   }
 
+  const isCutFeedHeaderExpanded = serviceMenuOpen || isCutFeedHeaderVisible;
+  const headerClassName = `pointer-events-none fixed left-1/2 top-0 z-30 w-full max-w-[430px] -translate-x-1/2 text-white transition-[background-color,border-color,padding,box-shadow] duration-500 ease-out ${
+    isCutFeedHeaderExpanded
+      ? "border-b border-white/10 bg-black/30 px-3 py-3 shadow-[0_18px_38px_rgba(0,0,0,0.16)] backdrop-blur-xl"
+      : "border-b border-transparent bg-transparent px-3 py-2 shadow-none backdrop-blur-none"
+  }`;
+  const headerReporterClassName = `pointer-events-auto shrink-0 overflow-hidden transition-[width,opacity,transform] duration-500 ease-out ${
+    isCutFeedHeaderExpanded
+      ? "w-11 opacity-100 translate-y-0 scale-100 min-[430px]:w-12"
+      : "w-0 -translate-y-2 scale-90 opacity-0"
+  }`;
+  const headerTitleClassName = `min-w-0 flex-1 overflow-hidden transition-[max-height,opacity,transform] duration-500 ease-out ${
+    isCutFeedHeaderExpanded
+      ? "max-h-14 translate-y-0 opacity-100"
+      : "max-h-0 -translate-y-2 opacity-0"
+  }`;
+  const serviceMenuButtonClassName = `pointer-events-auto group inline-flex h-10 shrink-0 items-center rounded-full border text-white shadow-[0_12px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-[background-color,border-color,color,gap,padding,transform] duration-500 ease-out hover:bg-[#44f26e] hover:text-[#111510] ${
+    isCutFeedHeaderExpanded
+      ? "gap-2 border-[#44f26e]/28 bg-[#44f26e]/14 px-3"
+      : "gap-1.5 border-white/16 bg-black/42 px-3"
+  }`;
+
   return (
     <main
       className="h-[var(--fanletter-cut-feed-vh,100dvh)] overflow-hidden bg-[#050706] text-white"
       style={viewportStyle}
     >
-      <header className="fixed left-1/2 top-0 z-30 w-full max-w-[430px] -translate-x-1/2 border-b border-white/10 bg-black/30 px-3 py-3 text-white backdrop-blur-xl">
+      <header className={headerClassName}>
         <div className="mx-auto flex items-center gap-2">
           {visibleItem ? (
-            <CutFeedHeaderReporterChip
-              avatarImageUrl={visibleItem.report.reporterAvatarImageUrl}
-              label={copy.reporter}
-              name={visibleItem.report.reporterName}
-              onClick={() => {
-                setServiceMenuOpen(false);
-                setReporterPanelRequest((currentRequest) => ({
-                  id: (currentRequest?.id ?? 0) + 1,
-                  index: visibleFeedIndex,
-                }));
-              }}
-            />
+            <div className={headerReporterClassName}>
+              <CutFeedHeaderReporterChip
+                avatarImageUrl={visibleItem.report.reporterAvatarImageUrl}
+                label={copy.reporter}
+                name={visibleItem.report.reporterName}
+                onClick={() => {
+                  setServiceMenuOpen(false);
+                  setReporterPanelRequest((currentRequest) => ({
+                    id: (currentRequest?.id ?? 0) + 1,
+                    index: visibleFeedIndex,
+                  }));
+                }}
+              />
+            </div>
           ) : null}
-          <div className="min-w-0 flex-1">
+          <div className={headerTitleClassName}>
             <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
               <span className="min-[430px]:hidden">{copy.eyebrowShort}</span>
               <span className="hidden min-[430px]:inline">{copy.eyebrow}</span>
@@ -3351,12 +3415,16 @@ export function FanletterNewsPublicCutsFeedPage({
           <button
             aria-expanded={serviceMenuOpen}
             aria-label={copy.serviceMenu}
-            className="group inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/14 px-3 text-white shadow-[0_12px_30px_rgba(0,0,0,0.18)] transition hover:bg-[#44f26e] hover:text-[#111510]"
+            className={serviceMenuButtonClassName}
             onClick={() => setServiceMenuOpen(true)}
             type="button"
           >
             <Menu className="size-4" />
-            <span className="hidden text-[0.72rem] font-black min-[430px]:inline">
+            <span
+              className={`hidden text-[0.72rem] font-black transition-opacity duration-300 min-[430px]:inline ${
+                isCutFeedHeaderExpanded ? "opacity-100" : "opacity-0"
+              }`}
+            >
               {copy.serviceMenu}
             </span>
             <span className="rounded-full bg-white/12 px-2 py-1 text-xs font-black leading-none text-white transition group-hover:text-[#111510]">
