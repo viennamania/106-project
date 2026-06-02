@@ -56,8 +56,7 @@ const DOUBLE_TAP_DELAY_MS = 320;
 const DOUBLE_TAP_MOVE_TOLERANCE_PX = 14;
 const DOUBLE_TAP_DISTANCE_TOLERANCE_PX = 48;
 const DOUBLE_TAP_FEEDBACK_MS = 920;
-const CUT_SWIPE_GUIDE_AUTO_HIDE_MS = 5200;
-const CUT_SWIPE_GUIDE_STORAGE_KEY = "fanletter-news-cuts-swipe-guide-seen";
+const CUT_SWIPE_GUIDE_DISMISS_SCROLL_RATIO = 0.45;
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -1335,7 +1334,6 @@ function FeedSlide({
         pointerStartRef.current = null;
       }}
       onPointerDown={(event) => {
-        onDismissSwipeGuide?.();
         pointerStartRef.current = {
           target: event.target,
           x: event.clientX,
@@ -1629,6 +1627,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showSwipeGuide, setShowSwipeGuide] = useState(false);
+  const [swipeGuideDismissed, setSwipeGuideDismissed] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const newsHomeHref = buildPathWithReferral(
@@ -1641,19 +1640,26 @@ export function FanletterNewsPublicCutsFeedPage({
   const firstSlideCutCount = items[0]
     ? Math.max(items[0].cuts.length, 1)
     : 0;
+  const shouldOfferSwipeGuide = Boolean(
+    (shareId || excludeReportId) && firstSlideCutCount > 1,
+  );
   const dismissSwipeGuide = useCallback(() => {
-    if (!showSwipeGuide) {
+    setSwipeGuideDismissed(true);
+    setShowSwipeGuide(false);
+  }, []);
+  const handleFeedScroll = useCallback(() => {
+    const root = scrollContainerRef.current;
+
+    if (!root || !showSwipeGuide) {
       return;
     }
 
-    setShowSwipeGuide(false);
+    const dismissScrollTop = root.clientHeight * CUT_SWIPE_GUIDE_DISMISS_SCROLL_RATIO;
 
-    try {
-      window.localStorage.setItem(CUT_SWIPE_GUIDE_STORAGE_KEY, "1");
-    } catch {
-      // Ignore storage failures in privacy-restricted in-app browsers.
+    if (root.scrollTop >= dismissScrollTop) {
+      dismissSwipeGuide();
     }
-  }, [showSwipeGuide]);
+  }, [dismissSwipeGuide, showSwipeGuide]);
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore) {
       return;
@@ -1715,31 +1721,13 @@ export function FanletterNewsPublicCutsFeedPage({
   ]);
 
   useEffect(() => {
-    if (!shareId || firstSlideCutCount < 2) {
+    if (!shouldOfferSwipeGuide || swipeGuideDismissed) {
       setShowSwipeGuide(false);
       return;
     }
 
-    try {
-      if (window.localStorage.getItem(CUT_SWIPE_GUIDE_STORAGE_KEY) === "1") {
-        return;
-      }
-
-      window.localStorage.setItem(CUT_SWIPE_GUIDE_STORAGE_KEY, "1");
-    } catch {
-      // Showing the hint once per session is still acceptable if storage is blocked.
-    }
-
     setShowSwipeGuide(true);
-
-    const timeoutId = window.setTimeout(() => {
-      setShowSwipeGuide(false);
-    }, CUT_SWIPE_GUIDE_AUTO_HIDE_MS);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [firstSlideCutCount, shareId]);
+  }, [shouldOfferSwipeGuide, swipeGuideDismissed]);
 
   useEffect(() => {
     if (!hasMore) {
@@ -1823,6 +1811,7 @@ export function FanletterNewsPublicCutsFeedPage({
       </header>
       <div
         className="mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overflow-y-auto overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] scroll-smooth sm:border-x sm:border-white/10"
+        onScroll={handleFeedScroll}
         ref={scrollContainerRef}
       >
         {items.map((item, index) => (
