@@ -32,6 +32,7 @@ type FanletterResponsiveMediaFrameProps = {
   deferredVideoCtaPlacement?: "bottom" | "center";
   eager?: boolean;
   fitWithinViewport?: boolean;
+  fitWithinViewportHeightRatio?: number;
   imageUrl: string | null;
   mediaType: FanletterPublicContentItem["mediaType"];
   nsfwPinGate?: {
@@ -113,6 +114,7 @@ export function FanletterResponsiveMediaFrame({
   deferredVideoCtaPlacement = "bottom",
   eager = false,
   fitWithinViewport = false,
+  fitWithinViewportHeightRatio = 0.72,
   imageUrl,
   mediaType,
   nsfwPinGate,
@@ -159,13 +161,24 @@ export function FanletterResponsiveMediaFrame({
     setNsfwPinUnlockedVideoUrl(null);
   }, [accountAddress, email]);
 
+  const effectivePreviewVideoUrl =
+    shouldDeferVideoLoad && previewVideoUrl && previewVideoUrl !== playableVideoUrl
+      ? previewVideoUrl
+      : null;
+  const activeVideoMetadataSrc =
+    effectivePreviewVideoUrl ?? (shouldDeferVideoLoad ? null : playableVideoUrl);
+  const normalizedViewportHeightRatio = Math.min(
+    1,
+    Math.max(0.5, fitWithinViewportHeightRatio),
+  );
+
   const handleMetadata = useCallback((metadata: FanletterVideoMetadata) => {
-    if (!playableVideoUrl) {
+    if (!activeVideoMetadataSrc) {
       return;
     }
 
-    setVideoMetadataState({ metadata, src: playableVideoUrl });
-  }, [playableVideoUrl]);
+    setVideoMetadataState({ metadata, src: activeVideoMetadataSrc });
+  }, [activeVideoMetadataSrc]);
   const handleImageLoad = useCallback(
     (event: SyntheticEvent<HTMLImageElement>) => {
       if (!imageUrl) {
@@ -191,13 +204,13 @@ export function FanletterResponsiveMediaFrame({
   );
 
   const videoMetadata =
-    videoMetadataState?.src === playableVideoUrl
+    videoMetadataState?.src === activeVideoMetadataSrc
       ? videoMetadataState.metadata
       : null;
   const imageMetadata =
     imageMetadataState?.src === imageUrl ? imageMetadataState.metadata : null;
-  const shouldUseImageMetadata = !playableVideoUrl && Boolean(imageUrl);
-  const activeMetadata = playableVideoUrl
+  const shouldUseImageMetadata = !activeVideoMetadataSrc && Boolean(imageUrl);
+  const activeMetadata = activeVideoMetadataSrc
     ? videoMetadata
     : shouldUseImageMetadata
       ? imageMetadata
@@ -206,33 +219,45 @@ export function FanletterResponsiveMediaFrame({
   const orientation = getMediaOrientation(aspectRatio);
   const frameStyle = useMemo<ResponsiveVideoFrameStyle | undefined>(() => {
     if (!activeMetadata) {
-      return undefined;
+      if (!fitWithinViewport) {
+        return undefined;
+      }
+
+      return {
+        "--fanletter-video-max-width":
+          `min(100%, calc(var(--fanletter-cut-feed-vh, 100svh) * ${(9 / 16 * normalizedViewportHeightRatio).toFixed(4)}), 32rem)`,
+      };
     }
 
     const nextStyle: ResponsiveVideoFrameStyle = {
       aspectRatio: `${activeMetadata.width} / ${activeMetadata.height}`,
     };
 
+    if (!fitWithinViewport) {
+      return nextStyle;
+    }
+
     if (orientation === "portrait") {
-      const portraitWidthByViewport = ((aspectRatio ?? 9 / 16) * 0.72).toFixed(
-        4,
-      );
+      const portraitWidthByViewport = (
+        (aspectRatio ?? 9 / 16) * normalizedViewportHeightRatio
+      ).toFixed(4);
       nextStyle["--fanletter-video-max-width"] =
         `min(100%, calc(var(--fanletter-cut-feed-vh, 100svh) * ${portraitWidthByViewport}), 32rem)`;
     } else if (orientation === "square") {
       nextStyle["--fanletter-video-max-width"] =
-        "min(100%, calc(var(--fanletter-cut-feed-vh, 100svh) * 0.72), 42rem)";
+        `min(100%, calc(var(--fanletter-cut-feed-vh, 100svh) * ${normalizedViewportHeightRatio.toFixed(4)}), 42rem)`;
     }
 
     return nextStyle;
-  }, [activeMetadata, aspectRatio, orientation]);
+  }, [
+    activeMetadata,
+    aspectRatio,
+    fitWithinViewport,
+    normalizedViewportHeightRatio,
+    orientation,
+  ]);
 
   if (playableVideoUrl && shouldDeferVideoLoad) {
-    const effectivePreviewVideoUrl =
-      previewVideoUrl && previewVideoUrl !== playableVideoUrl
-        ? previewVideoUrl
-        : null;
-
     return (
       <div
         className={cn(
@@ -251,6 +276,7 @@ export function FanletterResponsiveMediaFrame({
                 ? "absolute inset-0 h-full w-full scale-[1.06] object-cover blur-lg brightness-[0.72] saturate-[0.88]"
                 : "absolute inset-0 h-full w-full object-contain"
             }
+            onMetadata={handleMetadata}
             poster={imageUrl ?? undefined}
             src={effectivePreviewVideoUrl}
             title={title}

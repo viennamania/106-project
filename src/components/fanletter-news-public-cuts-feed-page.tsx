@@ -1061,6 +1061,7 @@ function SourceVlogFeedOverlay({
                 deferredVideoCtaPlacement="center"
                 eager
                 fitWithinViewport
+                fitWithinViewportHeightRatio={0.92}
                 imageUrl={source.coverImageUrl}
                 mediaType={source.mediaType}
                 nsfwPinGate={
