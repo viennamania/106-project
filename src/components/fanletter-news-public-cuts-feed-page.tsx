@@ -93,11 +93,11 @@ function getCopy(locale: Locale) {
     ? {
         adult: "성인 팬 전용",
         character: "캐릭터",
+        characterChannelCta: "채널 보기",
         characterCutMetric: "편집 컷",
         characterPanelClose: "캐릭터 닫기",
         characterPanelEyebrow: "AI Character IP",
         characterPanelTitle: "캐릭터 채널",
-        characterReporterMetric: "팬 기자",
         characterSourceMetric: "원본 오픈",
         doubleTapDone: "참여 완료",
         doubleTapLogin: "로그인 필요",
@@ -210,11 +210,11 @@ function getCopy(locale: Locale) {
     : {
         adult: "Adult fan-only",
         character: "Character",
+        characterChannelCta: "Open channel",
         characterCutMetric: "Edited cuts",
         characterPanelClose: "Close character",
         characterPanelEyebrow: "AI Character IP",
         characterPanelTitle: "Character channel",
-        characterReporterMetric: "Reporter",
         characterSourceMetric: "Source open",
         doubleTapDone: "Joined",
         doubleTapLogin: "Log in required",
@@ -400,6 +400,22 @@ function getReporterHref({
     `/${locale}/fanletter/news/reporters/${reporterReferralCode}`,
     referralCode,
   );
+}
+
+function getCharacterHref({
+  characterReferralCode,
+  locale,
+  referralCode,
+}: {
+  characterReferralCode: string | null;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const characterPath = characterReferralCode
+    ? `/${locale}/fanletter/news/characters/${characterReferralCode}`
+    : `/${locale}/fanletter/news/characters`;
+
+  return buildPathWithReferral(characterPath, referralCode);
 }
 
 type SourceRevealParticipantRailCopy = Pick<
@@ -771,31 +787,31 @@ function CutFeedProfileActionButton({
 
 type CutFeedCharacterPanelCopy = Pick<
   ReturnType<typeof getCopy>,
+  | "characterChannelCta"
   | "characterCutMetric"
   | "characterPanelClose"
   | "characterPanelEyebrow"
   | "characterPanelTitle"
-  | "characterReporterMetric"
   | "characterSourceMetric"
 >;
 
 function CutFeedCharacterInlinePanel({
   avatarImageUrl,
+  channelHref,
   copy,
   cutCountLabel,
   name,
   onClose,
   referralCode,
-  reporterName,
   sourceRevealLabel,
 }: {
   avatarImageUrl: string | null;
+  channelHref: string;
   copy: CutFeedCharacterPanelCopy;
   cutCountLabel: string;
   name: string;
   onClose: () => void;
   referralCode: string | null;
-  reporterName: string;
   sourceRevealLabel: string;
 }) {
   return (
@@ -855,7 +871,6 @@ function CutFeedCharacterInlinePanel({
           {[
             [copy.characterCutMetric, cutCountLabel],
             [copy.characterSourceMetric, sourceRevealLabel],
-            [copy.characterReporterMetric, reporterName],
           ].map(([label, value]) => (
             <div
               className="min-w-0 rounded-xl border border-white/10 bg-white/[0.07] px-2 py-2"
@@ -869,6 +884,20 @@ function CutFeedCharacterInlinePanel({
               </p>
             </div>
           ))}
+          <Link
+            className="group inline-flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[#44f26e]/28 bg-[#44f26e]/14 px-2 py-2 !text-[#9bffad] transition hover:bg-[#44f26e] hover:!text-[#101510]"
+            href={channelHref}
+          >
+            <span className="min-w-0">
+              <span className="block truncate text-[0.54rem] font-black uppercase tracking-[0.08em]">
+                {copy.characterPanelTitle}
+              </span>
+              <span className="mt-1 block truncate text-[0.72rem] font-black">
+                {copy.characterChannelCta}
+              </span>
+            </span>
+            <ExternalLink className="size-3.5 shrink-0 transition group-hover:translate-x-0.5" />
+          </Link>
         </div>
       </div>
     </div>
@@ -1612,6 +1641,11 @@ function FeedSlide({
     locale,
     referralCode,
     reporterReferralCode: report.reporterReferralCode,
+  });
+  const characterHref = getCharacterHref({
+    characterReferralCode: report.creatorReferralCode,
+    locale,
+    referralCode,
   });
   const isSourceRevealLoggedIn =
     Boolean(memberSession.email) || sourceRevealState.requestedByViewer;
@@ -2492,12 +2526,12 @@ function FeedSlide({
       {isCharacterPanelOpen ? (
         <CutFeedCharacterInlinePanel
           avatarImageUrl={report.creatorAvatarImageUrl}
+          channelHref={characterHref}
           copy={copy}
           cutCountLabel={characterCutCountLabel}
           name={report.creatorName}
           onClose={() => setIsCharacterPanelOpen(false)}
           referralCode={report.creatorReferralCode}
-          reporterName={report.reporterName}
           sourceRevealLabel={characterSourceRevealLabel}
         />
       ) : null}
@@ -2552,6 +2586,7 @@ function FeedSlide({
                 label={copy.character}
                 name={report.creatorName}
                 onClick={() => {
+                  onDismissSwipeGuide?.();
                   setIsReporterPanelOpen(false);
                   setIsCharacterPanelOpen((current) => !current);
                 }}
@@ -2563,6 +2598,7 @@ function FeedSlide({
                 label={copy.reporter}
                 name={report.reporterName}
                 onClick={() => {
+                  onDismissSwipeGuide?.();
                   setIsCharacterPanelOpen(false);
                   setIsReporterPanelOpen((current) => !current);
                 }}
