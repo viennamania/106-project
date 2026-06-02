@@ -1514,6 +1514,7 @@ function FeedSlide({
   itemCount,
   locale,
   onDismissSwipeGuide,
+  onSourceViewSlideVisible,
   referralCode,
   showSwipeGuide = false,
 }: {
@@ -1525,6 +1526,7 @@ function FeedSlide({
   itemCount: number;
   locale: Locale;
   onDismissSwipeGuide?: () => void;
+  onSourceViewSlideVisible?: (index: number) => void;
   referralCode: string | null;
   showSwipeGuide?: boolean;
 }) {
@@ -1565,6 +1567,7 @@ function FeedSlide({
     x: number;
     y: number;
   } | null>(null);
+  const articleRef = useRef<HTMLElement | null>(null);
   const lastTapRef = useRef<{ time: number; x: number; y: number } | null>(null);
   const tapFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
@@ -2180,10 +2183,67 @@ function FeedSlide({
   });
   const viewerReferralCode = memberSession.member?.referralCode?.trim() || null;
 
+  useEffect(() => {
+    const article = articleRef.current;
+
+    if (!article) {
+      return;
+    }
+
+    article.dataset.cutCount = String(cutCount);
+
+    if (sourceRevealState.unlocked) {
+      article.dataset.sourceView = "true";
+    } else {
+      delete article.dataset.sourceView;
+    }
+  }, [cutCount, sourceRevealState.unlocked]);
+
+  useEffect(() => {
+    if (
+      !onSourceViewSlideVisible ||
+      !sourceRevealState.unlocked ||
+      cutCount <= 1
+    ) {
+      return;
+    }
+
+    const article = articleRef.current;
+    const root = article?.parentElement ?? null;
+
+    if (!article || !root || !("IntersectionObserver" in window)) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting && entry.intersectionRatio >= 0.68) {
+          onSourceViewSlideVisible(index);
+        }
+      },
+      {
+        root,
+        threshold: [0.68],
+      },
+    );
+
+    observer.observe(article);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [
+    cutCount,
+    index,
+    onSourceViewSlideVisible,
+    sourceRevealState.unlocked,
+  ]);
+
   return (
     <article
       className="relative min-h-[var(--fanletter-cut-feed-vh,100dvh)] touch-pan-y snap-start snap-always overflow-hidden bg-black text-white"
       id={report.reportId}
+      ref={articleRef}
       onPointerCancel={() => {
         pointerStartRef.current = null;
       }}
@@ -2521,6 +2581,68 @@ function mergePublicCutItems(
   return mergedItems;
 }
 
+type CutFeedSwipeGuideTarget = {
+  index: number;
+  reason: "entry" | "sourceView";
+};
+
+function getPublicCutItemCutCount(item: SerializedFanletterNewsPublicCutFeedItem) {
+  return Math.max(item.cuts.length, 1);
+}
+
+function canShowSourceViewSwipeGuide(
+  item: SerializedFanletterNewsPublicCutFeedItem | undefined,
+) {
+  return Boolean(
+    item && item.sourceReveal.unlocked && getPublicCutItemCutCount(item) > 1,
+  );
+}
+
+function canShowSourceViewSwipeGuideForSlide(slide: Element | null | undefined) {
+  if (!(slide instanceof HTMLElement)) {
+    return false;
+  }
+
+  const cutCount = Number(slide.dataset.cutCount);
+
+  return slide.dataset.sourceView === "true" && cutCount > 1;
+}
+
+function canShowSourceViewSwipeGuideAtIndex({
+  index,
+  items,
+  root,
+}: {
+  index: number;
+  items: SerializedFanletterNewsPublicCutFeedItem[];
+  root: HTMLDivElement | null;
+}) {
+  const slide = root?.querySelectorAll("article").item(index);
+
+  if (slide) {
+    return canShowSourceViewSwipeGuideForSlide(slide);
+  }
+
+  return canShowSourceViewSwipeGuide(items[index]);
+}
+
+function getVisibleFeedIndex({
+  itemCount,
+  root,
+}: {
+  itemCount: number;
+  root: HTMLDivElement;
+}) {
+  if (itemCount <= 0 || root.clientHeight <= 0) {
+    return 0;
+  }
+
+  return Math.min(
+    itemCount - 1,
+    Math.max(0, Math.round(root.scrollTop / root.clientHeight)),
+  );
+}
+
 export function FanletterNewsPublicCutsFeedPage({
   dictionary,
   excludeReportId = null,
@@ -2548,8 +2670,12 @@ export function FanletterNewsPublicCutsFeedPage({
   const [nextOffset, setNextOffset] = useState(initialNextOffset);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [showSwipeGuide, setShowSwipeGuide] = useState(false);
-  const [swipeGuideDismissed, setSwipeGuideDismissed] = useState(false);
+  const [swipeGuideTarget, setSwipeGuideTarget] =
+    useState<CutFeedSwipeGuideTarget | null>(null);
+  const [entrySwipeGuideDismissed, setEntrySwipeGuideDismissed] =
+    useState(false);
+  const [sourceViewSwipeGuideDismissed, setSourceViewSwipeGuideDismissed] =
+    useState(false);
   const [serviceMenuOpen, setServiceMenuOpen] = useState(false);
   const [visibleViewportHeight, setVisibleViewportHeight] = useState<
     string | null
@@ -2660,10 +2786,8 @@ export function FanletterNewsPublicCutsFeedPage({
   const headerCountLabel = hasMore
     ? `${formatNumber(items.length, locale)}+`
     : formatNumber(items.length, locale);
-  const firstSlideCutCount = items[0]
-    ? Math.max(items[0].cuts.length, 1)
-    : 0;
-  const shouldOfferSwipeGuide = Boolean(
+  const firstSlideCutCount = items[0] ? getPublicCutItemCutCount(items[0]) : 0;
+  const shouldOfferEntrySwipeGuide = Boolean(
     (shareId || excludeReportId) && firstSlideCutCount > 1,
   );
   const viewportStyle: CutFeedViewportStyle | undefined = visibleViewportHeight
@@ -2672,22 +2796,100 @@ export function FanletterNewsPublicCutsFeedPage({
       }
     : undefined;
   const dismissSwipeGuide = useCallback(() => {
-    setSwipeGuideDismissed(true);
-    setShowSwipeGuide(false);
-  }, []);
+    if (swipeGuideTarget?.reason === "entry") {
+      setEntrySwipeGuideDismissed(true);
+
+      if (
+        canShowSourceViewSwipeGuideAtIndex({
+          index: swipeGuideTarget.index,
+          items,
+          root: scrollContainerRef.current,
+        })
+      ) {
+        setSourceViewSwipeGuideDismissed(true);
+      }
+    }
+
+    if (swipeGuideTarget?.reason === "sourceView") {
+      setSourceViewSwipeGuideDismissed(true);
+    }
+
+    setSwipeGuideTarget(null);
+  }, [items, swipeGuideTarget]);
+  const handleSourceViewSlideVisible = useCallback(
+    (index: number) => {
+      if (sourceViewSwipeGuideDismissed || swipeGuideTarget) {
+        return;
+      }
+
+      if (
+        index === 0 &&
+        shouldOfferEntrySwipeGuide &&
+        !entrySwipeGuideDismissed
+      ) {
+        return;
+      }
+
+      setSourceViewSwipeGuideDismissed(true);
+      setSwipeGuideTarget({
+        index,
+        reason: "sourceView",
+      });
+    },
+    [
+      entrySwipeGuideDismissed,
+      shouldOfferEntrySwipeGuide,
+      sourceViewSwipeGuideDismissed,
+      swipeGuideTarget,
+    ],
+  );
   const handleFeedScroll = useCallback(() => {
     const root = scrollContainerRef.current;
 
-    if (!root || !showSwipeGuide) {
+    if (!root) {
       return;
     }
 
-    const dismissScrollTop = root.clientHeight * CUT_SWIPE_GUIDE_DISMISS_SCROLL_RATIO;
+    if (swipeGuideTarget) {
+      const guideScrollTop = root.clientHeight * swipeGuideTarget.index;
+      const dismissDistance =
+        root.clientHeight * CUT_SWIPE_GUIDE_DISMISS_SCROLL_RATIO;
 
-    if (root.scrollTop >= dismissScrollTop) {
-      dismissSwipeGuide();
+      if (Math.abs(root.scrollTop - guideScrollTop) >= dismissDistance) {
+        dismissSwipeGuide();
+      }
+
+      return;
     }
-  }, [dismissSwipeGuide, showSwipeGuide]);
+
+    if (sourceViewSwipeGuideDismissed) {
+      return;
+    }
+
+    const visibleIndex = getVisibleFeedIndex({
+      itemCount: items.length,
+      root,
+    });
+
+    if (
+      canShowSourceViewSwipeGuideAtIndex({
+        index: visibleIndex,
+        items,
+        root,
+      })
+    ) {
+      setSourceViewSwipeGuideDismissed(true);
+      setSwipeGuideTarget({
+        index: visibleIndex,
+        reason: "sourceView",
+      });
+    }
+  }, [
+    dismissSwipeGuide,
+    items,
+    sourceViewSwipeGuideDismissed,
+    swipeGuideTarget,
+  ]);
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore) {
       return;
@@ -2793,13 +2995,84 @@ export function FanletterNewsPublicCutsFeedPage({
   }, []);
 
   useEffect(() => {
-    if (!shouldOfferSwipeGuide || swipeGuideDismissed) {
-      setShowSwipeGuide(false);
+    const handleSourceRevealStateChange = (event: Event) => {
+      const detail = (event as CustomEvent<FanletterNewsSourceRevealStateChangeDetail>)
+        .detail;
+
+      if (!detail?.reportId) {
+        return;
+      }
+
+      setItems((currentItems) =>
+        currentItems.map((item) =>
+          item.report.reportId === detail.reportId
+            ? {
+                ...item,
+                sourceReveal: detail.state,
+              }
+            : item,
+        ),
+      );
+    };
+
+    window.addEventListener(
+      FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
+      handleSourceRevealStateChange,
+    );
+
+    return () => {
+      window.removeEventListener(
+        FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
+        handleSourceRevealStateChange,
+      );
+    };
+  }, []);
+
+  useEffect(() => {
+    if (swipeGuideTarget) {
       return;
     }
 
-    setShowSwipeGuide(true);
-  }, [shouldOfferSwipeGuide, swipeGuideDismissed]);
+    if (shouldOfferEntrySwipeGuide && !entrySwipeGuideDismissed) {
+      setSwipeGuideTarget({
+        index: 0,
+        reason: "entry",
+      });
+      return;
+    }
+
+    if (sourceViewSwipeGuideDismissed) {
+      return;
+    }
+
+    const root = scrollContainerRef.current;
+    const visibleIndex = root
+      ? getVisibleFeedIndex({
+          itemCount: items.length,
+          root,
+        })
+      : 0;
+
+    if (
+      canShowSourceViewSwipeGuideAtIndex({
+        index: visibleIndex,
+        items,
+        root,
+      })
+    ) {
+      setSourceViewSwipeGuideDismissed(true);
+      setSwipeGuideTarget({
+        index: visibleIndex,
+        reason: "sourceView",
+      });
+    }
+  }, [
+    entrySwipeGuideDismissed,
+    items,
+    shouldOfferEntrySwipeGuide,
+    sourceViewSwipeGuideDismissed,
+    swipeGuideTarget,
+  ]);
 
   useEffect(() => {
     if (!serviceMenuOpen) {
@@ -2935,8 +3208,9 @@ export function FanletterNewsPublicCutsFeedPage({
             key={item.report.reportId}
             locale={locale}
             onDismissSwipeGuide={dismissSwipeGuide}
+            onSourceViewSlideVisible={handleSourceViewSlideVisible}
             referralCode={referralCode}
-            showSwipeGuide={index === 0 && showSwipeGuide}
+            showSwipeGuide={swipeGuideTarget?.index === index}
           />
         ))}
         <section
