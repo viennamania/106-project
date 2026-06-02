@@ -29,6 +29,7 @@ type FanletterResponsiveMediaFrameProps = {
   children?: ReactNode;
   className?: string;
   deferVideoUntilInteraction?: boolean;
+  deferredVideoCtaPlacement?: "bottom" | "center";
   eager?: boolean;
   imageUrl: string | null;
   mediaType: FanletterPublicContentItem["mediaType"];
@@ -89,6 +90,7 @@ export function FanletterResponsiveMediaFrame({
   children,
   className,
   deferVideoUntilInteraction = false,
+  deferredVideoCtaPlacement = "bottom",
   eager = false,
   imageUrl,
   mediaType,
@@ -263,7 +265,14 @@ export function FanletterResponsiveMediaFrame({
           )}
         />
         {children}
-        <div className="absolute inset-x-0 bottom-0 z-20 flex items-start justify-center px-4 pb-[calc(env(safe-area-inset-bottom)+5rem)] pt-4 sm:p-5">
+        <div
+          className={cn(
+            "absolute z-20 flex justify-center px-4",
+            deferredVideoCtaPlacement === "center"
+              ? "inset-0 items-center py-4"
+              : "inset-x-0 bottom-0 items-start pb-[calc(env(safe-area-inset-bottom)+5rem)] pt-4 sm:p-5",
+          )}
+        >
           <button
             className="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black text-black shadow-[0_18px_40px_rgba(0,0,0,0.28)] transition hover:bg-[#69ff8c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e]"
             onClick={() => setDeferredVideoActivatedUrl(playableVideoUrl)}

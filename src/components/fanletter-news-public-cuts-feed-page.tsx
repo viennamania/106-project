@@ -975,13 +975,14 @@ function SourceVlogFeedOverlay({
             </div>
           </div>
         ) : source ? (
-          <div className="flex min-h-full flex-col">
-            <div className="relative flex min-h-0 flex-1 items-center bg-black">
+          <div className="relative min-h-full bg-black">
+            <div className="absolute inset-0 flex items-center bg-black">
               <FanletterResponsiveMediaFrame
                 alt={source.title}
                 blurred={source.accessState === "nsfw_opt_in_required"}
                 className="!max-w-full"
                 deferVideoUntilInteraction={Boolean(source.previewVideoUrl)}
+                deferredVideoCtaPlacement="center"
                 eager
                 imageUrl={source.coverImageUrl}
                 mediaType={source.mediaType}
@@ -1002,8 +1003,8 @@ function SourceVlogFeedOverlay({
                 videoUrl={source.videoUrl}
               >
                 {!isPlayable && lockedCopy ? (
-                  <div className="absolute inset-0 flex items-end bg-[linear-gradient(180deg,rgba(0,0,0,0.16),rgba(0,0,0,0.46)_42%,rgba(0,0,0,0.88))] px-4 pb-[calc(env(safe-area-inset-bottom)+4rem)] pt-4 sm:p-4">
-                    <div className="w-full rounded-2xl border border-white/14 bg-black/62 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+                  <div className="absolute inset-0 flex items-center bg-[linear-gradient(180deg,rgba(0,0,0,0.14),rgba(0,0,0,0.42)_42%,rgba(0,0,0,0.66))] px-4 py-4 sm:p-5">
+                    <div className="w-full rounded-2xl border border-white/14 bg-black/68 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.34)] backdrop-blur-xl">
                       <div className="flex items-start gap-3">
                         <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/16 text-[#44f26e] ring-1 ring-[#44f26e]/20">
                           {source.accessState === "paid_locked" ? (
@@ -1047,18 +1048,20 @@ function SourceVlogFeedOverlay({
               </FanletterResponsiveMediaFrame>
             </div>
 
-            <div className="shrink-0 border-t border-white/10 bg-[#080c09] px-4 pb-[calc(env(safe-area-inset-bottom)+4rem)] pt-4 sm:p-4">
-              <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
-                {source.authorName}
-              </p>
-              <h3 className="mt-1 line-clamp-2 text-xl font-black leading-tight [word-break:keep-all]">
-                {source.title}
-              </h3>
-              {source.summary ? (
-                <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-white/58 [word-break:keep-all]">
-                  {source.summary}
+            <div className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+0.7rem)] z-20 px-4 sm:top-4 sm:px-5">
+              <div className="mx-auto max-w-[30rem] rounded-2xl border border-white/12 bg-black/58 p-3.5 text-white shadow-[0_18px_50px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+                <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
+                  {source.authorName}
                 </p>
-              ) : null}
+                <h3 className="mt-1 line-clamp-2 text-base font-black leading-tight [word-break:keep-all]">
+                  {source.title}
+                </h3>
+                {source.summary ? (
+                  <p className="mt-1.5 line-clamp-2 text-xs font-semibold leading-5 text-white/62 [word-break:keep-all]">
+                    {source.summary}
+                  </p>
+                ) : null}
+              </div>
             </div>
           </div>
         ) : null}
