@@ -10,11 +10,13 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import {
+  AlertTriangle,
   ArrowLeft,
   Check,
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
+  ExternalLink,
   HeartHandshake,
   Images,
   Loader2,
@@ -24,13 +26,17 @@ import {
   Share2,
   Sparkles,
   UserRound,
+  X,
 } from "lucide-react";
 
+import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive-media-frame";
 import { useMemberSession } from "@/components/member-session-provider";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
   FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE,
   type FanletterNewsPublicCutFeedLoadResponse,
+  type FanletterNewsPublicCutSource,
+  type FanletterNewsPublicCutSourceLoadResponse,
   type SerializedFanletterNewsPublicCutFeedItem,
 } from "@/lib/fanletter-news-public-cuts-shared";
 import {
@@ -73,9 +79,14 @@ function getCopy(locale: Locale) {
         loadingMore: "다음 리포터 컷 불러오는 중",
         nextCut: "다음 컷",
         noMore: "모든 리포터 컷을 확인했습니다.",
+        openSourceDetail: "원본 상세",
         paid: "팬 전용 원본",
+        paidSourceBody:
+          "이 원본은 유료 팬 전용입니다. 구매 단계는 안전하게 상세 화면에서 이어집니다.",
+        paidSourceTitle: "구매 후 원본을 볼 수 있습니다.",
         previousCut: "이전 컷",
         reporter: "팬 기자",
+        retry: "다시 시도",
         share: "공유하기",
         shareCopied: "링크 복사됨",
         shareError: "공유 실패",
@@ -93,7 +104,24 @@ function getCopy(locale: Locale) {
           threshold: string,
           remaining: string,
         ) => `${count}/${threshold} 참여 · ${remaining}명 남음`,
+        sourceOverlayClose: "원본 닫기",
+        sourceOverlayError: "원본을 불러오지 못했습니다.",
+        sourceOverlayLoading: "원본 불러오는 중",
+        sourceOverlayTitle: "원본 브이로그",
+        sourceRevealLockedBody: (
+          count: string,
+          threshold: string,
+          remaining: string,
+        ) =>
+          `${count}/${threshold}명이 참여했습니다. ${remaining}명이 더 보고싶어요를 누르면 피드에서 바로 열립니다.`,
+        sourceRevealLockedTitle: "아직 원본 공개 전입니다.",
         sourceView: "원본 보기",
+        unavailableSourceBody:
+          "이 원본은 현재 피드 안에서 바로 재생할 수 없습니다. 상세 화면에서 상태를 확인하세요.",
+        unavailableSourceTitle: "원본을 바로 열 수 없습니다.",
+        unlockNsfwBody:
+          "NSFW 원본은 보기 설정 또는 지갑 PIN 확인 후 재생됩니다.",
+        unlockNsfwTitle: "NSFW 원본 보호 중",
         title: "팬 기자가 편집한 4컷 피드",
         voteCta: "보고싶어요",
         voteDone: "참여 완료",
@@ -121,9 +149,14 @@ function getCopy(locale: Locale) {
         loadingMore: "Loading more reporter cuts",
         nextCut: "Next cut",
         noMore: "You have reviewed every reporter cut.",
+        openSourceDetail: "Source detail",
         paid: "Fan-only source",
+        paidSourceBody:
+          "This source is fan-only paid content. Continue securely on the detail screen.",
+        paidSourceTitle: "Unlock purchase to watch the source.",
         previousCut: "Previous cut",
         reporter: "Fan reporter",
+        retry: "Retry",
         share: "Share",
         shareCopied: "Link copied",
         shareError: "Share failed",
@@ -141,7 +174,24 @@ function getCopy(locale: Locale) {
           threshold: string,
           remaining: string,
         ) => `${count}/${threshold} joined · ${remaining} left`,
+        sourceOverlayClose: "Close source",
+        sourceOverlayError: "Could not load the source.",
+        sourceOverlayLoading: "Loading source",
+        sourceOverlayTitle: "Source vlog",
+        sourceRevealLockedBody: (
+          count: string,
+          threshold: string,
+          remaining: string,
+        ) =>
+          `${count}/${threshold} fans joined. ${remaining} more want-it votes open the source in this feed.`,
+        sourceRevealLockedTitle: "The source is not open yet.",
         sourceView: "View source",
+        unavailableSourceBody:
+          "This source cannot play directly in the feed right now. Check the detail screen for status.",
+        unavailableSourceTitle: "Source cannot open here.",
+        unlockNsfwBody:
+          "NSFW sources play after enabling viewing or confirming the wallet PIN.",
+        unlockNsfwTitle: "NSFW source protected",
         title: "Four-cut feed edited by fan reporters",
         voteCta: "Want it",
         voteDone: "Joined",
@@ -432,6 +482,7 @@ function SourceRevealMiniVote({
   isLoggedIn,
   isSaving,
   locale,
+  onOpenSource,
   onVote,
   sourceVlogHref,
   state,
@@ -443,6 +494,7 @@ function SourceRevealMiniVote({
   isLoggedIn: boolean;
   isSaving: boolean;
   locale: Locale;
+  onOpenSource?: () => void;
   onVote: () => void;
   sourceVlogHref: string | null;
   state: FanletterNewsSourceRevealState;
@@ -493,7 +545,15 @@ function SourceRevealMiniVote({
 
     return (
       <div className="mt-2 max-w-[30rem]">
-        {sourceVlogHref ? (
+        {sourceVlogHref && onOpenSource ? (
+          <button
+            className="group inline-flex h-11 w-full items-center gap-2.5 rounded-full border border-[#44f26e]/28 bg-black/34 px-3 text-white shadow-[0_10px_26px_rgba(0,0,0,0.18)] backdrop-blur-md transition hover:border-[#44f26e]/60 hover:bg-[#44f26e] hover:!text-[#101510]"
+            onClick={onOpenSource}
+            type="button"
+          >
+            {content}
+          </button>
+        ) : sourceVlogHref ? (
           <Link
             className="group inline-flex h-11 w-full items-center gap-2.5 rounded-full border border-[#44f26e]/28 bg-black/34 px-3 text-white shadow-[0_10px_26px_rgba(0,0,0,0.18)] backdrop-blur-md transition hover:border-[#44f26e]/60 hover:bg-[#44f26e] hover:!text-[#101510]"
             href={sourceVlogHref}
@@ -588,6 +648,263 @@ function SourceRevealMiniVote({
   );
 }
 
+type SourceOverlayCopy = Pick<
+  ReturnType<typeof getCopy>,
+  | "openSourceDetail"
+  | "paidSourceBody"
+  | "paidSourceTitle"
+  | "retry"
+  | "sourceOverlayClose"
+  | "sourceOverlayError"
+  | "sourceOverlayLoading"
+  | "sourceOverlayTitle"
+  | "sourceRevealLockedBody"
+  | "sourceRevealLockedTitle"
+  | "unavailableSourceBody"
+  | "unavailableSourceTitle"
+  | "unlockNsfwBody"
+  | "unlockNsfwTitle"
+>;
+
+function isFanletterNewsPublicCutSourceLoadResponse(
+  value: unknown,
+): value is FanletterNewsPublicCutSourceLoadResponse {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "source" in value &&
+    typeof (value as FanletterNewsPublicCutSourceLoadResponse).source
+      ?.contentId === "string"
+  );
+}
+
+function getSourceOverlayLockedCopy({
+  copy,
+  locale,
+  source,
+}: {
+  copy: SourceOverlayCopy;
+  locale: Locale;
+  source: FanletterNewsPublicCutSource;
+}) {
+  if (source.accessState === "source_reveal_locked") {
+    const countLabel = formatNumber(source.sourceReveal.count, locale);
+    const thresholdLabel = formatNumber(source.sourceReveal.threshold, locale);
+    const remainingLabel = formatNumber(
+      Math.max(0, source.sourceReveal.threshold - source.sourceReveal.count),
+      locale,
+    );
+
+    return {
+      body: copy.sourceRevealLockedBody(
+        countLabel,
+        thresholdLabel,
+        remainingLabel,
+      ),
+      title: copy.sourceRevealLockedTitle,
+    };
+  }
+
+  if (source.accessState === "paid_locked") {
+    return {
+      body: copy.paidSourceBody,
+      title: copy.paidSourceTitle,
+    };
+  }
+
+  if (source.accessState === "nsfw_opt_in_required") {
+    return {
+      body: copy.unlockNsfwBody,
+      title: copy.unlockNsfwTitle,
+    };
+  }
+
+  return {
+    body: copy.unavailableSourceBody,
+    title: copy.unavailableSourceTitle,
+  };
+}
+
+function SourceVlogFeedOverlay({
+  copy,
+  error,
+  isLoading,
+  locale,
+  onClose,
+  onRetry,
+  source,
+}: {
+  copy: SourceOverlayCopy;
+  error: string | null;
+  isLoading: boolean;
+  locale: Locale;
+  onClose: () => void;
+  onRetry: () => void;
+  source: FanletterNewsPublicCutSource | null;
+}) {
+  const isPlayable = source?.accessState === "playable" && Boolean(source.videoUrl);
+  const shouldUsePinGate =
+    isPlayable &&
+    source?.contentMaturityRating === "nsfw";
+  const lockedCopy = source
+    ? getSourceOverlayLockedCopy({ copy, locale, source })
+    : null;
+  const paidUnlockHref =
+    source?.accessState === "paid_locked" ? source.paidUnlockHref : null;
+
+  return (
+    <div
+      aria-modal="true"
+      className="absolute inset-0 z-50 flex flex-col bg-[#050706] text-white"
+      role="dialog"
+    >
+      <div className="flex h-[3.9rem] shrink-0 items-center justify-between gap-3 border-b border-white/10 bg-black/78 px-3 backdrop-blur-xl">
+        <button
+          aria-label={copy.sourceOverlayClose}
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white hover:text-[#111510]"
+          onClick={onClose}
+          type="button"
+        >
+          <X className="size-5" />
+        </button>
+        <div className="min-w-0 text-center">
+          <p className="text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+            {copy.sourceOverlayTitle}
+          </p>
+          <h2 className="truncate text-sm font-black">
+            {source?.title ?? copy.sourceOverlayLoading}
+          </h2>
+        </div>
+        {source?.detailHref ? (
+          <Link
+            aria-label={copy.openSourceDetail}
+            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white hover:text-[#111510]"
+            href={source.detailHref}
+          >
+            <ExternalLink className="size-4" />
+          </Link>
+        ) : (
+          <span className="size-10 shrink-0" aria-hidden="true" />
+        )}
+      </div>
+
+      <div className="min-h-0 flex-1 overflow-y-auto bg-black [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {isLoading ? (
+          <div className="flex min-h-full flex-col items-center justify-center gap-3 px-5 text-center">
+            <Loader2 className="size-8 animate-spin text-[#44f26e]" />
+            <p className="text-sm font-black text-white/78">
+              {copy.sourceOverlayLoading}
+            </p>
+          </div>
+        ) : error ? (
+          <div className="flex min-h-full items-center justify-center px-5 text-center">
+            <div className="max-w-xs rounded-2xl border border-white/12 bg-white/8 p-5 shadow-2xl backdrop-blur-xl">
+              <AlertTriangle className="mx-auto size-8 text-rose-300" />
+              <p className="mt-3 text-base font-black">
+                {copy.sourceOverlayError}
+              </p>
+              <button
+                className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-[#44f26e] px-4 text-xs font-black text-[#111510]"
+                onClick={onRetry}
+                type="button"
+              >
+                {copy.retry}
+              </button>
+            </div>
+          </div>
+        ) : source ? (
+          <div className="flex min-h-full flex-col">
+            <div className="relative flex min-h-0 flex-1 items-center bg-black">
+              <FanletterResponsiveMediaFrame
+                alt={source.title}
+                blurred={source.accessState === "nsfw_opt_in_required"}
+                className="!max-w-full"
+                deferVideoUntilInteraction={Boolean(source.previewVideoUrl)}
+                eager
+                imageUrl={source.coverImageUrl}
+                mediaType={source.mediaType}
+                nsfwPinGate={
+                  shouldUsePinGate
+                    ? {
+                        connectHref: source.connectHref,
+                        enabled: true,
+                        locale,
+                        managePinHref: source.pinUnlockHref,
+                        teaserBlurred: true,
+                      }
+                    : undefined
+                }
+                playButtonLabel={copy.sourceOverlayTitle}
+                previewVideoUrl={source.previewVideoUrl}
+                title={source.title}
+                videoUrl={source.videoUrl}
+              >
+                {!isPlayable && lockedCopy ? (
+                  <div className="absolute inset-0 flex items-end bg-[linear-gradient(180deg,rgba(0,0,0,0.16),rgba(0,0,0,0.46)_42%,rgba(0,0,0,0.88))] p-4">
+                    <div className="w-full rounded-2xl border border-white/14 bg-black/62 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+                      <div className="flex items-start gap-3">
+                        <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/16 text-[#44f26e] ring-1 ring-[#44f26e]/20">
+                          {source.accessState === "paid_locked" ? (
+                            <LockKeyhole className="size-5" />
+                          ) : source.accessState === "nsfw_opt_in_required" ? (
+                            <AlertTriangle className="size-5" />
+                          ) : (
+                            <HeartHandshake className="size-5" />
+                          )}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-lg font-black leading-tight [word-break:keep-all]">
+                            {lockedCopy.title}
+                          </h3>
+                          <p className="mt-2 text-sm font-semibold leading-6 text-white/68 [word-break:keep-all]">
+                            {lockedCopy.body}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-4 grid gap-2">
+                        {paidUnlockHref ? (
+                          <Link
+                            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-[#111510]"
+                            href={paidUnlockHref}
+                          >
+                            <LockKeyhole className="size-4" />
+                            {copy.openSourceDetail}
+                          </Link>
+                        ) : null}
+                        <Link
+                          className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/8 px-4 text-xs font-black !text-white"
+                          href={source.detailHref}
+                        >
+                          <ExternalLink className="size-3.5" />
+                          {copy.openSourceDetail}
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+              </FanletterResponsiveMediaFrame>
+            </div>
+
+            <div className="shrink-0 border-t border-white/10 bg-[#080c09] p-4">
+              <p className="text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
+                {source.authorName}
+              </p>
+              <h3 className="mt-1 line-clamp-2 text-xl font-black leading-tight [word-break:keep-all]">
+                {source.title}
+              </h3>
+              {source.summary ? (
+                <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-white/58 [word-break:keep-all]">
+                  {source.summary}
+                </p>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function FeedSlide({
   hasMore,
   index,
@@ -610,6 +927,13 @@ function FeedSlide({
   const [tapFeedback, setTapFeedback] =
     useState<SourceRevealTapFeedback | null>(null);
   const [authNudge, setAuthNudge] = useState(false);
+  const [sourceOverlayOpen, setSourceOverlayOpen] = useState(false);
+  const [sourceOverlaySource, setSourceOverlaySource] =
+    useState<FanletterNewsPublicCutSource | null>(null);
+  const [sourceOverlayError, setSourceOverlayError] = useState<string | null>(
+    null,
+  );
+  const [isSourceOverlayLoading, setIsSourceOverlayLoading] = useState(false);
   const memberSession = useMemberSession();
   const pointerStartRef = useRef<{
     target: EventTarget | null;
@@ -621,6 +945,7 @@ function FeedSlide({
     null,
   );
   const authNudgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sourceOverlayHistoryPushedRef = useRef(false);
   const copy = getCopy(locale);
   const { report } = item;
   const title = getFanletterNewsBareArticleDisplayTitle(report.title);
@@ -673,6 +998,90 @@ function FeedSlide({
   const shareTitle = copy.shareTitle(title);
   const shareSummary = copy.shareSummary(title, report.reporterName);
 
+  const loadSourceOverlay = useCallback(async () => {
+    if (!sourceContentId) {
+      setSourceOverlayError(copy.sourceOverlayError);
+      return;
+    }
+
+    setIsSourceOverlayLoading(true);
+    setSourceOverlayError(null);
+
+    try {
+      const params = new URLSearchParams({
+        contentId: sourceContentId,
+        locale,
+        returnTo: cutFeedHref,
+      });
+
+      if (referralCode) {
+        params.set("ref", referralCode);
+      }
+
+      const response = await fetch(`/api/fanletter/news-cuts/source?${params}`, {
+        headers: {
+          Accept: "application/json",
+        },
+      });
+      const data = (await response.json()) as unknown;
+
+      if (!response.ok || !isFanletterNewsPublicCutSourceLoadResponse(data)) {
+        throw new Error(copy.sourceOverlayError);
+      }
+
+      setSourceOverlaySource(data.source);
+    } catch {
+      setSourceOverlayError(copy.sourceOverlayError);
+    } finally {
+      setIsSourceOverlayLoading(false);
+    }
+  }, [copy.sourceOverlayError, cutFeedHref, locale, referralCode, sourceContentId]);
+
+  const openSourceOverlay = useCallback(() => {
+    if (!sourceContentId) {
+      return;
+    }
+
+    setSourceOverlayOpen(true);
+
+    if (!sourceOverlayHistoryPushedRef.current) {
+      const url = new URL(window.location.href);
+
+      url.searchParams.set("source", sourceContentId);
+      window.history.pushState(
+        {
+          ...(typeof window.history.state === "object" &&
+          window.history.state !== null
+            ? window.history.state
+            : {}),
+          fanletterNewsCutSource: report.reportId,
+        },
+        "",
+        `${url.pathname}${url.search}${url.hash}`,
+      );
+      sourceOverlayHistoryPushedRef.current = true;
+    }
+
+    if (!sourceOverlaySource && !isSourceOverlayLoading) {
+      void loadSourceOverlay();
+    }
+  }, [
+    isSourceOverlayLoading,
+    loadSourceOverlay,
+    report.reportId,
+    sourceContentId,
+    sourceOverlaySource,
+  ]);
+
+  const closeSourceOverlay = useCallback(() => {
+    if (sourceOverlayHistoryPushedRef.current) {
+      window.history.back();
+      return;
+    }
+
+    setSourceOverlayOpen(false);
+  }, []);
+
   useEffect(() => {
     setSourceRevealState(item.sourceReveal);
     setSourceRevealError(null);
@@ -689,6 +1098,23 @@ function FeedSlide({
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!sourceOverlayOpen) {
+      return;
+    }
+
+    const handlePopState = () => {
+      sourceOverlayHistoryPushedRef.current = false;
+      setSourceOverlayOpen(false);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [sourceOverlayOpen]);
 
   const showTapFeedback = useCallback((label: string) => {
     const id = Date.now();
@@ -1071,6 +1497,7 @@ function FeedSlide({
               isLoggedIn={isSourceRevealLoggedIn}
               isSaving={isSourceRevealSaving}
               locale={locale}
+              onOpenSource={sourceContentId ? openSourceOverlay : undefined}
               onVote={() => void submitSourceRevealVote()}
               sourceVlogHref={sourceVlogHref}
               state={sourceRevealState}
@@ -1108,6 +1535,17 @@ function FeedSlide({
           </div>
         </section>
       </div>
+      {sourceOverlayOpen ? (
+        <SourceVlogFeedOverlay
+          copy={copy}
+          error={sourceOverlayError}
+          isLoading={isSourceOverlayLoading}
+          locale={locale}
+          onClose={closeSourceOverlay}
+          onRetry={() => void loadSourceOverlay()}
+          source={sourceOverlaySource}
+        />
+      ) : null}
     </article>
   );
 }

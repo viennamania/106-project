@@ -44,3 +44,37 @@ export type FanletterNewsPublicCutFeedLoadResponse = {
   items: SerializedFanletterNewsPublicCutFeedItem[];
   nextOffset: number;
 };
+
+export type FanletterNewsPublicCutSourceAccessState =
+  | "no_video"
+  | "nsfw_opt_in_required"
+  | "paid_locked"
+  | "playable"
+  | "source_reveal_locked";
+
+export type FanletterNewsPublicCutSource = {
+  accessState: FanletterNewsPublicCutSourceAccessState;
+  authorName: string;
+  canViewerAccess: boolean;
+  connectHref: string;
+  contentId: string;
+  contentMaturityRating: ContentMaturityRating;
+  coverImageUrl: string | null;
+  detailHref: string;
+  mediaType: "image" | "text" | "video";
+  paidUnlockHref: string | null;
+  pinUnlockHref: string;
+  previewVideoUrl: string | null;
+  priceType: ContentPriceType;
+  priceUsdt: string | null;
+  sourceReveal: FanletterNewsSourceRevealState;
+  summary: string;
+  title: string;
+  videoUrl: string | null;
+  viewerHasPaidEntitlement: boolean;
+  viewerRelation: "audience" | "owner";
+};
+
+export type FanletterNewsPublicCutSourceLoadResponse = {
+  source: FanletterNewsPublicCutSource;
+};
