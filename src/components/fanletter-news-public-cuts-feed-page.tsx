@@ -776,7 +776,7 @@ function CutFeedProfileActionButton({
   return (
     <button
       aria-pressed={active}
-      className={`group inline-flex h-11 min-w-0 items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:text-[#111510] ${
+      className={`group inline-flex h-10 max-w-[14rem] items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:text-[#111510] ${
         active
           ? "border-[#44f26e]/70 bg-[#44f26e]/18 ring-2 ring-[#44f26e]/22"
           : "border-white/14 bg-black/28"
@@ -799,7 +799,7 @@ function CutFeedProfileActionButton({
         )}
       </span>
       <span className="min-w-0 text-left">
-        <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.1em] text-[#9bffad] transition group-hover:text-[#0b3518]">
+        <span className="block truncate text-[0.54rem] font-black uppercase tracking-[0.1em] text-[#9bffad] transition group-hover:text-[#0b3518]">
           {label}
         </span>
         <span className="block truncate text-[0.72rem] font-black leading-tight text-white/92 transition group-hover:text-[#111510]">
@@ -2645,11 +2645,20 @@ function FeedSlide({
       <div className="relative z-10 flex min-h-[var(--fanletter-cut-feed-vh,100dvh)] items-end px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+7.6rem)]">
         <section className="mx-auto flex w-full flex-col justify-end">
           <div className="max-w-3xl">
-            <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#44f26e] drop-shadow-[0_2px_12px_rgba(0,0,0,0.7)]">
-              {report.creatorName}
-            </p>
+            <CutFeedProfileActionButton
+              active={isCharacterPanelOpen}
+              fallbackIcon={Sparkles}
+              imageUrl={report.creatorAvatarImageUrl}
+              label={copy.character}
+              name={report.creatorName}
+              onClick={() => {
+                onDismissSwipeGuide?.();
+                setIsReporterPanelOpen(false);
+                setIsCharacterPanelOpen((current) => !current);
+              }}
+            />
             <h1
-              className={`mt-1.5 max-w-4xl break-words text-[1.42rem] font-black leading-[1.08] tracking-normal drop-shadow-[0_3px_18px_rgba(0,0,0,0.82)] [word-break:keep-all] ${
+              className={`mt-2 max-w-4xl break-words text-[1.42rem] font-black leading-[1.08] tracking-normal drop-shadow-[0_3px_18px_rgba(0,0,0,0.82)] [word-break:keep-all] ${
                 isNsfw ? "select-none blur-[2px]" : ""
               }`}
             >
@@ -2665,23 +2674,6 @@ function FeedSlide({
             <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.72rem] font-bold text-white/72 drop-shadow-[0_2px_10px_rgba(0,0,0,0.72)]">
               <span>{report.reporterName}</span>
               {publishedAt ? <span>{publishedAt}</span> : null}
-            </div>
-          </div>
-
-          <div className="mt-3">
-            <div className="flex max-w-[13.5rem]">
-              <CutFeedProfileActionButton
-                active={isCharacterPanelOpen}
-                fallbackIcon={Sparkles}
-                imageUrl={report.creatorAvatarImageUrl}
-                label={copy.character}
-                name={report.creatorName}
-                onClick={() => {
-                  onDismissSwipeGuide?.();
-                  setIsReporterPanelOpen(false);
-                  setIsCharacterPanelOpen((current) => !current);
-                }}
-              />
             </div>
           </div>
 
