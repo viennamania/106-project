@@ -2234,8 +2234,10 @@ function FeedSlide({
   const cutCountLabel = formatNumber(cutCount, locale);
   const showSourceViewGuide =
     showSwipeGuide && sourceRevealState.unlocked && cutCount > 1;
-  const showCutSwipeGuide =
-    showSwipeGuide && !sourceRevealState.unlocked && cutCount > 1;
+  const showCutSwipeGuide = showSwipeGuide && cutCount > 1;
+  const cutSwipeGuideClassName = `pointer-events-none absolute left-1/2 z-30 w-[18.5rem] max-w-[calc(100%_-_2rem)] -translate-x-1/2 rounded-2xl border border-white/14 bg-black/58 px-4 py-3 text-center text-white shadow-[0_24px_70px_rgba(0,0,0,0.38)] backdrop-blur-xl ${
+    showSourceViewGuide ? "top-[54%]" : "top-[39%]"
+  }`;
 
   useEffect(() => {
     const article = articleRef.current;
@@ -2470,7 +2472,7 @@ function FeedSlide({
       {showCutSwipeGuide ? (
         <div
           aria-live="polite"
-          className="pointer-events-none absolute left-1/2 top-[39%] z-30 w-[18.5rem] max-w-[calc(100%_-_2rem)] -translate-x-1/2 rounded-2xl border border-white/14 bg-black/58 px-4 py-3 text-center text-white shadow-[0_24px_70px_rgba(0,0,0,0.38)] backdrop-blur-xl"
+          className={cutSwipeGuideClassName}
           role="status"
         >
           <div className="mx-auto flex items-center justify-center gap-2 text-[#9bffad]">
