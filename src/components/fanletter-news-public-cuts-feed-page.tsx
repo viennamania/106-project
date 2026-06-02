@@ -1038,7 +1038,9 @@ function SourceVlogFeedOverlay({
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-center gap-2">
             <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
-              {copy.sourceOverlayTitle}
+              {source?.authorName
+                ? `${copy.sourceOverlayTitle} · ${source.authorName}`
+                : copy.sourceOverlayTitle}
             </p>
             {source?.contentMaturityRating === "nsfw" ? (
               <span className="shrink-0 rounded-full bg-rose-500/90 px-2 py-0.5 text-[0.52rem] font-black uppercase tracking-[0.1em] text-white">
@@ -1150,21 +1152,6 @@ function SourceVlogFeedOverlay({
               </FanletterResponsiveMediaFrame>
             </div>
 
-            <div className="pointer-events-none absolute inset-x-0 top-[calc(env(safe-area-inset-top)+0.7rem)] z-20 px-4 sm:top-4 sm:px-5">
-              <div className="mx-auto max-w-[30rem] rounded-2xl border border-white/12 bg-black/58 p-3.5 text-white shadow-[0_18px_50px_rgba(0,0,0,0.3)] backdrop-blur-xl">
-                <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
-                  {source.authorName}
-                </p>
-                <h3 className="mt-1 line-clamp-2 text-base font-black leading-tight [word-break:keep-all]">
-                  {source.title}
-                </h3>
-                {source.summary ? (
-                  <p className="mt-1.5 line-clamp-2 text-xs font-semibold leading-5 text-white/62 [word-break:keep-all]">
-                    {source.summary}
-                  </p>
-                ) : null}
-              </div>
-            </div>
           </div>
         ) : null}
       </div>
