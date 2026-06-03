@@ -5,6 +5,7 @@ import Link from "next/link";
 import { upload as uploadBlob } from "@vercel/blob/client";
 import {
   ArrowRight,
+  ChevronDown,
   CheckCircle2,
   CircleAlert,
   Clapperboard,
@@ -1258,6 +1259,7 @@ export function FanletterCreatePage({
     useState<(typeof EXCLUSIVE_NEWS_DURATION_OPTIONS)[number]>(12);
   const [exclusiveNewsReporterCode, setExclusiveNewsReporterCode] =
     useState("");
+  const [isExclusiveNewsOpen, setIsExclusiveNewsOpen] = useState(false);
   const [generatedMedia, setGeneratedMedia] = useState<GeneratedMedia | null>(
     null,
   );
@@ -2519,7 +2521,7 @@ export function FanletterCreatePage({
     <main
       className={`min-h-screen bg-[#030504] text-white ${
         isNewsSurface
-          ? "pb-[calc(5.75rem+env(safe-area-inset-bottom))] sm:pb-0"
+          ? "pb-[calc(8.5rem+env(safe-area-inset-bottom))] sm:pb-0"
           : ""
       }`}
     >
@@ -3367,72 +3369,88 @@ export function FanletterCreatePage({
                   </Link>
                 </div>
                 <div className="mt-4 rounded-2xl border border-white/12 bg-black/20 p-4">
-                  <div className="flex items-start gap-3">
+                  <button
+                    aria-expanded={isExclusiveNewsOpen}
+                    className="flex w-full items-start gap-3 text-left"
+                    onClick={() => {
+                      setIsExclusiveNewsOpen((current) => !current);
+                    }}
+                    type="button"
+                  >
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#44f26e]/14 text-[#44f26e]">
                       <Newspaper className="size-5" />
                     </span>
-                    <div className="min-w-0">
+                    <span className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-white">
                         {copy.exclusiveNews.title}
                       </p>
                       <p className="mt-1 text-xs font-medium leading-5 text-white/52">
                         {copy.exclusiveNews.body}
                       </p>
-                    </div>
-                  </div>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-                    <label className="block">
-                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
-                        {copy.exclusiveNews.codeLabel}
-                      </span>
-                      <input
-                        className="mt-2 h-11 w-full rounded-full border border-white/12 bg-white/[0.06] px-4 text-sm font-semibold uppercase tracking-[0.08em] text-white outline-none transition placeholder:normal-case placeholder:tracking-normal placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
-                        maxLength={12}
-                        onChange={(event) => {
-                          setExclusiveNewsReporterCode(
-                            event.target.value
-                              .replace(/[^a-zA-Z0-9]/g, "")
-                              .slice(0, 12)
-                              .toUpperCase(),
-                          );
-                        }}
-                        placeholder={copy.exclusiveNews.codePlaceholder}
-                        value={exclusiveNewsReporterCode}
-                      />
-                    </label>
-                    <div>
-                      <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
-                        {copy.exclusiveNews.durationLabel}
-                      </span>
-                      <div className="mt-2 grid grid-cols-3 gap-1.5">
-                        {EXCLUSIVE_NEWS_DURATION_OPTIONS.map((durationHours) => {
-                          const isSelected =
-                            exclusiveNewsDurationHours === durationHours;
+                    </span>
+                    <ChevronDown
+                      className={`mt-1 size-5 shrink-0 text-white/42 transition ${
+                        isExclusiveNewsOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                  {isExclusiveNewsOpen ? (
+                    <>
+                      <div className="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                        <label className="block">
+                          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                            {copy.exclusiveNews.codeLabel}
+                          </span>
+                          <input
+                            className="mt-2 h-11 w-full rounded-full border border-white/12 bg-white/[0.06] px-4 text-sm font-semibold uppercase tracking-[0.08em] text-white outline-none transition placeholder:normal-case placeholder:tracking-normal placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
+                            maxLength={12}
+                            onChange={(event) => {
+                              setExclusiveNewsReporterCode(
+                                event.target.value
+                                  .replace(/[^a-zA-Z0-9]/g, "")
+                                  .slice(0, 12)
+                                  .toUpperCase(),
+                              );
+                            }}
+                            placeholder={copy.exclusiveNews.codePlaceholder}
+                            value={exclusiveNewsReporterCode}
+                          />
+                        </label>
+                        <div>
+                          <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
+                            {copy.exclusiveNews.durationLabel}
+                          </span>
+                          <div className="mt-2 grid grid-cols-3 gap-1.5">
+                            {EXCLUSIVE_NEWS_DURATION_OPTIONS.map((durationHours) => {
+                              const isSelected =
+                                exclusiveNewsDurationHours === durationHours;
 
-                          return (
-                            <button
-                              className={`inline-flex h-11 min-w-16 items-center justify-center gap-1.5 rounded-full border px-3 text-sm font-semibold transition ${
-                                isSelected
-                                  ? "border-[#44f26e] bg-[#44f26e] text-black"
-                                  : "border-white/12 bg-white/[0.055] text-white/68 hover:border-[#44f26e]/42 hover:text-white"
-                              }`}
-                              key={durationHours}
-                              onClick={() => {
-                                setExclusiveNewsDurationHours(durationHours);
-                              }}
-                              type="button"
-                            >
-                              <Timer className="size-3.5" />
-                              {durationHours}h
-                            </button>
-                          );
-                        })}
+                              return (
+                                <button
+                                  className={`inline-flex h-11 min-w-16 items-center justify-center gap-1.5 rounded-full border px-3 text-sm font-semibold transition ${
+                                    isSelected
+                                      ? "border-[#44f26e] bg-[#44f26e] text-black"
+                                      : "border-white/12 bg-white/[0.055] text-white/68 hover:border-[#44f26e]/42 hover:text-white"
+                                  }`}
+                                  key={durationHours}
+                                  onClick={() => {
+                                    setExclusiveNewsDurationHours(durationHours);
+                                  }}
+                                  type="button"
+                                >
+                                  <Timer className="size-3.5" />
+                                  {durationHours}h
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  <p className="mt-3 text-xs font-medium leading-5 text-white/42">
-                    {copy.exclusiveNews.helper}
-                  </p>
+                      <p className="mt-3 text-xs font-medium leading-5 text-white/42">
+                        {copy.exclusiveNews.helper}
+                      </p>
+                    </>
+                  ) : null}
                 </div>
                 {fanOnlyIntent ? (
                   <p className="mt-3 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 py-2 text-xs font-semibold leading-5 text-[#d8ffe0]">
