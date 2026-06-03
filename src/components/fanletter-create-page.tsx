@@ -314,6 +314,14 @@ function getCopy(locale: Locale) {
           title: "제목 입력",
           video: "동영상 생성",
         },
+        sharedVlog: {
+          body:
+            "TikTok 공유로 들어온 링크와 문구를 초안에 넣었습니다. 실제 동영상은 TikTok에서 기기에 저장한 뒤 아래에서 선택하세요.",
+          sourceLabel: "공유 출처",
+          title: "공유한 TikTok 영상으로 시작",
+          unknownSource: "공유 링크",
+          urlLabel: "공유 링크",
+        },
         summary: "동영상 요약",
         summaryPlaceholder: "짧은 소개 문구",
         studio: "브이로그 스튜디오",
@@ -338,6 +346,8 @@ function getCopy(locale: Locale) {
           teaserGenerating: "업로드 동영상에서 공개 티저 이미지 후보를 준비하고 있습니다.",
           teaserReady: "업로드 동영상 티저 이미지 후보가 자동 저장되었습니다.",
           title: "무료 공개 동영상 업로드",
+          tiktokHelp:
+            "TikTok 앱에서는 공유 링크만 넘어올 수 있습니다. 원본이 필요하면 TikTok에서 먼저 사진/파일에 저장한 뒤 이 버튼으로 선택하세요.",
           unsupported: "MP4, MOV, WEBM 동영상만 업로드할 수 있습니다.",
           uploadCta: "무료 동영상 업로드",
           uploading: "동영상을 업로드하고 있습니다.",
@@ -535,6 +545,14 @@ function getCopy(locale: Locale) {
           title: "Title ready",
           video: "Video generated",
         },
+        sharedVlog: {
+          body:
+            "The shared TikTok link and text were added to this draft. Save the actual video to your phone first, then choose it below.",
+          sourceLabel: "Shared from",
+          title: "Start from shared TikTok video",
+          unknownSource: "Shared link",
+          urlLabel: "Shared link",
+        },
         summary: "Video summary",
         summaryPlaceholder: "Short intro",
         studio: "Vlog studio",
@@ -559,6 +577,8 @@ function getCopy(locale: Locale) {
           teaserGenerating: "Preparing public teaser image candidates from the uploaded video.",
           teaserReady: "Uploaded video teaser image candidates were saved automatically.",
           title: "Upload a free public video",
+          tiktokHelp:
+            "TikTok may share only a link. If you need the original video, save it to Photos or Files first, then choose it here.",
           unsupported: "Only MP4, MOV, and WEBM videos are supported.",
           uploadCta: "Upload free video",
           uploading: "Uploading video.",
@@ -1291,6 +1311,13 @@ export function FanletterCreatePage({
   const hasAvatar = Boolean(profile?.avatarImageUrl);
   const hasCharacterReady = hasProfileBasics && hasPersona && hasAvatar;
   const initialPlanId = initialPlan?.planId?.trim() || null;
+  const sharedVlogSource = initialPlan?.sharedSource ?? null;
+  const sharedVlogUrl = initialPlan?.sharedUrl?.trim() || null;
+  const sharedVlogTitle = initialPlan?.sharedTitle?.trim() || null;
+  const sharedVlogText = initialPlan?.sharedText?.trim() || null;
+  const hasSharedVlogIntent = Boolean(
+    sharedVlogSource || sharedVlogUrl || sharedVlogTitle || sharedVlogText,
+  );
   const fanOnlyIntent = Boolean(initialPlan?.fanOnlyIntent);
   const hasAvatarReferencePlan = Boolean(
     initialPlan?.avatarReferenceExpression ||
@@ -2478,6 +2505,11 @@ export function FanletterCreatePage({
           <p className="mt-1 text-xs font-medium leading-5 text-white/46">
             {copy.upload.fileHelp(uploadMaxSizeLabel)}
           </p>
+          {isNewsSurface ? (
+            <p className="mt-2 text-xs font-semibold leading-5 text-[#c9ffd5]">
+              {copy.upload.tiktokHelp}
+            </p>
+          ) : null}
         </div>
         <button
           className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-2 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
@@ -2619,6 +2651,9 @@ export function FanletterCreatePage({
                 >
                   {surfaceStudioLabel}
                 </Link>
+                <p className="text-xs font-semibold leading-5 text-white/48">
+                  {copy.upload.tiktokHelp}
+                </p>
               </div>
             </section>
           ) : null}
@@ -2793,6 +2828,41 @@ export function FanletterCreatePage({
                 </div>
               </div>
             </div>
+          ) : null}
+
+          {hasSharedVlogIntent ? (
+            <section className="mb-4 rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-4 text-[#d8ffe0] sm:p-5">
+              <div className="flex items-start gap-3">
+                <Upload className="mt-0.5 size-5 shrink-0 text-[#44f26e]" />
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+                    {copy.sharedVlog.sourceLabel} ·{" "}
+                    {sharedVlogSource === "tiktok"
+                      ? "TikTok"
+                      : copy.sharedVlog.unknownSource}
+                  </p>
+                  <h2 className="mt-2 text-xl font-semibold tracking-normal">
+                    {copy.sharedVlog.title}
+                  </h2>
+                  <p className="mt-2 text-sm font-medium leading-6 text-white/64">
+                    {copy.sharedVlog.body}
+                  </p>
+                  {sharedVlogUrl ? (
+                    <a
+                      className="mt-3 inline-flex max-w-full items-center gap-2 rounded-full border border-white/14 bg-black/24 px-3 py-2 text-xs font-semibold !text-[#d8ffe0] transition hover:bg-black/34"
+                      href={sharedVlogUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      <span className="shrink-0">{copy.sharedVlog.urlLabel}</span>
+                      <span className="truncate text-white/56">
+                        {sharedVlogUrl}
+                      </span>
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+            </section>
           ) : null}
 
           {hasPlanContext ? (

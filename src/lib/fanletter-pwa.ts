@@ -11,6 +11,19 @@ export const FANLETTER_PWA_ICON_192 = "/fanletter-icon-192.png";
 export const FANLETTER_PWA_ICON_512 = "/fanletter-icon-512.png";
 export const FANLETTER_PWA_APPLE_ICON = "/fanletter-apple-icon.png";
 
+type FanletterPwaManifest = MetadataRoute.Manifest & {
+  share_target?: {
+    action: string;
+    enctype?: "application/x-www-form-urlencoded" | "multipart/form-data";
+    method?: "GET" | "POST";
+    params: {
+      text?: string;
+      title?: string;
+      url?: string;
+    };
+  };
+};
+
 export const fanletterViewport: Viewport = {
   colorScheme: "dark",
   themeColor: FANLETTER_PWA_THEME_COLOR,
@@ -28,9 +41,10 @@ export function getFanletterPwaScope(locale: Locale) {
 
 export function createFanletterPwaManifest(
   locale: Locale,
-): MetadataRoute.Manifest {
+): FanletterPwaManifest {
   const scope = getFanletterPwaScope(locale);
   const copy = getFanletterPwaCopy(locale);
+  const vlogsManageUrl = `${scope}/news/vlogs/manage`;
 
   return {
     background_color: FANLETTER_PWA_BACKGROUND_COLOR,
@@ -70,6 +84,16 @@ export function createFanletterPwaManifest(
     name: copy.name,
     orientation: "portrait",
     scope,
+    share_target: {
+      action: `${scope}/news/vlogs/new?planSource=upload&shareSource=tiktok&returnTo=${encodeURIComponent(vlogsManageUrl)}`,
+      enctype: "application/x-www-form-urlencoded",
+      method: "GET",
+      params: {
+        text: "shareText",
+        title: "shareTitle",
+        url: "shareUrl",
+      },
+    },
     shortcuts: [
       {
         description: copy.shortcuts.news.description,

@@ -20,6 +20,10 @@ export type FanletterCreateInitialPlan = {
   priceType?: ContentPriceType;
   prompt?: string;
   sourceMode?: "upload";
+  sharedSource?: "tiktok" | "unknown";
+  sharedText?: string;
+  sharedTitle?: string;
+  sharedUrl?: string;
   summary?: string;
   title?: string;
 };
@@ -42,6 +46,13 @@ export type FanletterCreateSearchParams = {
   planTitle?: string | string[];
   ref?: string | string[];
   returnTo?: string | string[];
+  shareSource?: string | string[];
+  shareText?: string | string[];
+  shareTitle?: string | string[];
+  shareUrl?: string | string[];
+  text?: string | string[];
+  title?: string | string[];
+  url?: string | string[];
 };
 
 function readPlanText(rawValue: string | string[] | undefined, limit: number) {
@@ -69,16 +80,26 @@ export function getFanletterCreateInitialPlanSearchParams(
     planSource: readPlanText(query.planSource, 32) ?? null,
     planSummary: readPlanText(query.planSummary, 180) ?? null,
     planTitle: readPlanText(query.planTitle, 88) ?? null,
+    shareSource: readPlanText(query.shareSource, 32) ?? null,
+    shareText: readPlanText(query.shareText ?? query.text, 600) ?? null,
+    shareTitle: readPlanText(query.shareTitle ?? query.title, 88) ?? null,
+    shareUrl: readPlanText(query.shareUrl ?? query.url, 600) ?? null,
   };
 }
 
 export function readFanletterCreateInitialPlan(
   query: FanletterCreateSearchParams,
 ): FanletterCreateInitialPlan | undefined {
-  const title = readPlanText(query.planTitle, 88);
+  const sharedTitle = readPlanText(query.shareTitle ?? query.title, 88);
+  const sharedText = readPlanText(query.shareText ?? query.text, 600);
+  const sharedUrl = readPlanText(query.shareUrl ?? query.url, 600);
+  const rawSharedSource = readPlanText(query.shareSource, 32);
+  const sharedSource = rawSharedSource === "tiktok" ? rawSharedSource : undefined;
+  const title = readPlanText(query.planTitle, 88) ?? sharedTitle;
   const summary = readPlanText(query.planSummary, 180);
   const prompt = readPlanText(query.planPrompt, 1_200);
-  const body = readPlanText(query.planBody, 600);
+  const sharedBody = [sharedText, sharedUrl].filter(Boolean).join("\n");
+  const body = readPlanText(query.planBody, 600) ?? (sharedBody || undefined);
   const fanRequestBody = readPlanText(query.fanRequestBody, 600);
   const fanRequestCharacterName = readPlanText(
     query.fanRequestCharacterName,
@@ -120,6 +141,10 @@ export function readFanletterCreateInitialPlan(
     !fanRequestType &&
     !priceType &&
     !sourceMode &&
+    !sharedSource &&
+    !sharedText &&
+    !sharedTitle &&
+    !sharedUrl &&
     !fanOnlyIntent &&
     !avatarReferenceExpression &&
     !avatarReferenceMode
@@ -140,6 +165,11 @@ export function readFanletterCreateInitialPlan(
     planId,
     priceType,
     prompt,
+    sharedSource:
+      sharedSource ?? (sharedText || sharedTitle || sharedUrl ? "unknown" : undefined),
+    sharedText,
+    sharedTitle,
+    sharedUrl,
     sourceMode,
     summary,
     title,
