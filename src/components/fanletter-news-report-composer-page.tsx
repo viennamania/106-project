@@ -2298,6 +2298,11 @@ export function FanletterNewsReportComposerPage({
   const selectedSourceRevealRemaining = selectedSource
     ? getSourceRevealRemaining(selectedSource)
     : 0;
+  const selectedDisplayedSourceIndex = selectedSource
+    ? displayedSources.findIndex(
+        (source) => source.contentId === selectedSource.contentId,
+      )
+    : -1;
   const isSelectedSourceRevealLocked = Boolean(
     selectedSource && isSourceRevealLocked(selectedSource),
   );
@@ -4448,22 +4453,22 @@ export function FanletterNewsReportComposerPage({
         </Link>
 
         {isQuickComposer ? (
-          <section className="mt-3 overflow-hidden rounded-[2rem] border border-[#44f26e]/24 bg-[#0a120d] p-4 text-white shadow-[0_24px_80px_rgba(0,0,0,0.34)] lg:hidden">
+          <section className="mt-3 overflow-hidden rounded-2xl border border-[#44f26e]/22 bg-[#07110a] p-3 text-white shadow-[0_18px_54px_rgba(0,0,0,0.32)] lg:hidden">
             <p className="inline-flex items-center gap-1.5 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-2.5 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
               <Newspaper className="size-3.5" />
               {copy.quick.eyebrow}
             </p>
-            <h1 className="mt-4 text-[1.95rem] font-black leading-[1.04] tracking-normal [word-break:keep-all]">
+            <h1 className="mt-3 text-[1.45rem] font-black leading-[1.08] tracking-normal [word-break:keep-all]">
               {copy.quick.title}
             </h1>
-            <p className="mt-3 text-sm font-bold leading-6 text-white/62 [word-break:keep-all]">
+            <p className="mt-2 line-clamp-2 text-xs font-bold leading-5 text-white/56 [word-break:keep-all]">
               {copy.quick.body}
             </p>
             <a
-              className="mt-5 inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-base font-black !text-[#111510] shadow-[0_18px_42px_rgba(68,242,110,0.22)]"
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-[#111510] shadow-[0_14px_30px_rgba(68,242,110,0.18)]"
               href="#fanletter-report-teasers"
             >
-              <Newspaper className="size-5" />
+              <Newspaper className="size-4" />
               {copy.quick.cta}
             </a>
           </section>
@@ -4506,11 +4511,17 @@ export function FanletterNewsReportComposerPage({
         <section
           className={cn(
             "mt-3 border border-[#19b84b]/18 bg-[#ecfff0] p-3 shadow-[0_12px_28px_rgba(17,21,16,0.055)] lg:hidden",
-            isQuickComposer && "rounded-2xl border-[#44f26e]/26 bg-[#0e1a12] text-white",
+            isQuickComposer &&
+              "rounded-2xl border-[#44f26e]/18 bg-[#07110a] text-white shadow-[0_14px_38px_rgba(0,0,0,0.24)]",
           )}
         >
           <div className="flex items-center justify-between gap-3">
-            <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+            <p
+              className={cn(
+                "inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em]",
+                isQuickComposer ? "text-[#9bffad]" : "text-[#16702e]",
+              )}
+            >
               <CheckCircle2 className="size-3.5" />
               {copy.publishReadiness.title}
             </p>
@@ -4526,10 +4537,10 @@ export function FanletterNewsReportComposerPage({
             {mobileComposerSteps.map((step, index) => (
               <span
                 className={cn(
-                  "inline-flex min-h-11 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-black",
+                  "inline-flex min-h-9 items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs font-black",
                   step.ready
                     ? isQuickComposer
-                      ? "border-[#44f26e]/24 bg-[#44f26e]/12 text-[#9bffad]"
+                      ? "border-[#44f26e]/18 bg-[#44f26e]/10 text-[#9bffad]"
                       : "border-[#19b84b]/24 bg-white text-[#16702e]"
                     : isQuickComposer
                       ? "border-white/10 bg-white/8 text-white/38"
@@ -4551,26 +4562,28 @@ export function FanletterNewsReportComposerPage({
         </section>
 
         {isQuickComposer && displayedSources.length > 1 ? (
-          <section className="mt-3 rounded-2xl border border-white/10 bg-white/[0.06] p-3 text-white shadow-[0_16px_46px_rgba(0,0,0,0.24)] lg:hidden">
+          <section className="mt-3 rounded-2xl border border-white/10 bg-[#0b0f0d] p-3 text-white shadow-[0_16px_46px_rgba(0,0,0,0.24)] lg:hidden">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
                   {copy.quick.sourceList}
                 </p>
                 <p className="mt-1 truncate text-xs font-bold text-white/46">
-                  {formatNumber(displayedSources.length, locale)}
+                  {locale === "ko"
+                    ? `후보 ${formatNumber(displayedSources.length, locale)}개 · 좌우로 선택`
+                    : `${formatNumber(displayedSources.length, locale)} candidates · swipe to choose`}
                 </p>
               </div>
               <span className="shrink-0 rounded-full bg-[#44f26e] px-2.5 py-1 text-xs font-black text-[#111510]">
-                {selectedSource
-                  ? `${formatNumber(selectedSourceRevealCount, locale)}/${formatNumber(
-                      selectedSource.sourceReveal.threshold,
+                {selectedDisplayedSourceIndex >= 0
+                  ? `${formatNumber(selectedDisplayedSourceIndex + 1, locale)}/${formatNumber(
+                      displayedSources.length,
                       locale,
                     )}`
                   : formatNumber(displayedSources.length, locale)}
               </span>
             </div>
-            <div className="-mx-1 mt-3 grid grid-flow-col auto-cols-[minmax(10.25rem,72vw)] gap-2 overflow-x-auto px-1 pb-1">
+            <div className="-mx-1 mt-3 grid grid-flow-col auto-cols-[minmax(10rem,70vw)] gap-2 overflow-x-auto px-1 pb-1">
               {displayedSources.slice(0, 12).map((source) => {
                 const isSelected = source.contentId === selectedContentId;
                 const sourceRevealCount = getSourceRevealCount(source);
@@ -4583,7 +4596,7 @@ export function FanletterNewsReportComposerPage({
                 return (
                   <button
                     className={cn(
-                      "grid min-h-[8.25rem] grid-cols-[4.5rem_minmax(0,1fr)] gap-2 rounded-xl border p-2 text-left transition",
+                      "grid min-h-[7.5rem] grid-cols-[4.25rem_minmax(0,1fr)] gap-2 rounded-xl border p-2 text-left transition",
                       isSelected
                         ? "border-[#44f26e] bg-[#44f26e]/14 shadow-[0_0_0_1px_rgba(68,242,110,0.22)]"
                         : "border-white/10 bg-black/28",
@@ -4591,12 +4604,6 @@ export function FanletterNewsReportComposerPage({
                     key={`quick-mobile-source-${source.contentId}`}
                     onClick={() => {
                       selectSource(source.contentId);
-                      window.requestAnimationFrame(() => {
-                        selectedDetailRef.current?.scrollIntoView({
-                          behavior: "smooth",
-                          block: "start",
-                        });
-                      });
                     }}
                     type="button"
                   >
@@ -4621,7 +4628,11 @@ export function FanletterNewsReportComposerPage({
                     <span className="min-w-0 py-0.5">
                       <span className="flex flex-wrap gap-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-white/44">
                         <span>{source.creatorName}</span>
-                        <span>{copy.price[source.priceType]}</span>
+                        <span>
+                          {source.sourceReveal.unlocked
+                            ? copy.sourceReveal.unlocked
+                            : copy.sourceReveal.locked}
+                        </span>
                       </span>
                       <span className="mt-1 line-clamp-2 text-sm font-black leading-5 [word-break:keep-all]">
                         {source.title}
