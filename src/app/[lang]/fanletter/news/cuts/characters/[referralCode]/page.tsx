@@ -5,7 +5,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
-  ArrowUpRight,
   BadgeCheck,
   Clapperboard,
   FileText,
@@ -31,9 +30,6 @@ import {
   getFanletterNewsReportsForCharacterChannel,
 } from "@/lib/fanletter-news-report-service";
 import {
-  getFanletterNewsCharacterVlogsHref,
-} from "@/lib/fanletter-news-vlog-routing";
-import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   isFanletterNsfwOptedIn,
 } from "@/lib/fanletter-nsfw";
@@ -49,7 +45,6 @@ import {
 import { hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
-  setPathSearchParams,
 } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
 import { readMemberServerSession } from "@/lib/member-server-session";
@@ -70,7 +65,6 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         backToCuts: "컷 피드로 돌아가기",
-        channelCta: "전체 캐릭터 채널",
         cutEyebrow: "보고 있던 리포터 컷",
         cutFallback: "컷 피드에서 선택한 장면을 기준으로 이어진 캐릭터 채널입니다.",
         cutTitle: (slot: string) => `${slot}번 컷에서 이어보기`,
@@ -85,15 +79,12 @@ function getCopy(locale: Locale) {
         newsCount: "뉴스",
         noNews: "아직 같은 캐릭터 뉴스가 없습니다.",
         noVlogs: "아직 공개 브이로그가 없습니다.",
-        openNews: "뉴스 읽기",
-        openVlogs: "원본 브이로그",
         publicVlogs: "원본",
         reporterCount: "팬 기자",
         sourceOpen: "원본 오픈",
       }
     : {
         backToCuts: "Back to cut feed",
-        channelCta: "Full character channel",
         cutEyebrow: "Reporter cut you were viewing",
         cutFallback:
           "This character channel continues from the cut selected in the feed.",
@@ -109,8 +100,6 @@ function getCopy(locale: Locale) {
         newsCount: "News",
         noNews: "No same-character news is ready yet.",
         noVlogs: "No public source vlogs are ready yet.",
-        openNews: "Read news",
-        openVlogs: "Source vlogs",
         publicVlogs: "Sources",
         reporterCount: "Reporters",
         sourceOpen: "Source open",
@@ -268,21 +257,6 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
     locale,
     returnToHref: safeReturnToHref,
   });
-  const regularChannelHref = setPathSearchParams(
-    buildPathWithReferral(
-      `/${locale}/fanletter/news/characters/${data.profile.referralCode}`,
-      effectiveReferralCode,
-    ),
-    { returnTo: returnHref },
-  );
-  const vlogsHref = setPathSearchParams(
-    getFanletterNewsCharacterVlogsHref({
-      creatorReferralCode: data.profile.referralCode,
-      locale,
-      referralCode: effectiveReferralCode,
-    }),
-    { returnTo: returnHref },
-  );
   const character = data.profile.character;
   const characterName = character?.name ?? data.profile.displayName;
   const characterSummary = character?.summary || data.profile.intro;
@@ -457,31 +431,13 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
           </section>
 
           <section className="rounded-2xl border border-white/12 bg-white/[0.06] p-3">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-base font-black">{copy.latestNews}</h2>
-              <Link
-                className="inline-flex items-center gap-1 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-3 py-1.5 text-[0.65rem] font-black !text-[#9bffad]"
-                href={regularChannelHref}
-              >
-                {copy.channelCta}
-                <ArrowUpRight className="size-3.5" />
-              </Link>
-            </div>
+            <h2 className="text-base font-black">{copy.latestNews}</h2>
             <div className="mt-3 space-y-2">
               {visibleReports.length > 0 ? (
                 visibleReports.map((report) => {
-                  const reportHref = setPathSearchParams(
-                    buildPathWithReferral(
-                      `/${locale}/fanletter/news/${report.reportId}`,
-                      effectiveReferralCode,
-                    ),
-                    { returnTo: returnHref },
-                  );
-
                   return (
-                    <Link
-                      className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-3 rounded-xl border border-white/10 bg-black/30 p-2 !text-white transition hover:border-[#44f26e]/40"
-                      href={reportHref}
+                    <article
+                      className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-3 rounded-xl border border-white/10 bg-black/30 p-2 text-white"
                       key={report.reportId}
                     >
                       <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-white/8">
@@ -511,7 +467,7 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                           )}
                         </p>
                       </div>
-                    </Link>
+                    </article>
                   );
                 })
               ) : (
@@ -523,28 +479,12 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
           </section>
 
           <section className="rounded-2xl border border-white/12 bg-white/[0.06] p-3">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-base font-black">{copy.latestVlogs}</h2>
-              <Link
-                className="inline-flex items-center gap-1 rounded-full border border-white/12 bg-white/8 px-3 py-1.5 text-[0.65rem] font-black !text-white/74"
-                href={vlogsHref}
-              >
-                {copy.openVlogs}
-                <ArrowUpRight className="size-3.5" />
-              </Link>
-            </div>
+            <h2 className="text-base font-black">{copy.latestVlogs}</h2>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {visibleVlogs.length > 0 ? (
                 visibleVlogs.map((item) => (
-                  <Link
-                    className="min-w-0 !text-white"
-                    href={setPathSearchParams(
-                      buildPathWithReferral(
-                        `/${locale}/fanletter/content/${item.contentId}`,
-                        effectiveReferralCode,
-                      ),
-                      { returnTo: returnHref },
-                    )}
+                  <article
+                    className="min-w-0 text-white"
                     key={item.contentId}
                   >
                     <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-white/10 bg-black/30">
@@ -566,7 +506,7 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                     <p className="mt-1 line-clamp-2 text-[0.68rem] font-black leading-tight [word-break:keep-all]">
                       {item.title}
                     </p>
-                  </Link>
+                  </article>
                 ))
               ) : (
                 <p className="col-span-3 rounded-xl border border-white/10 bg-black/28 p-4 text-sm font-semibold text-white/58">
@@ -578,20 +518,13 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
         </section>
 
         <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[430px] border-t border-white/10 bg-black/76 px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-3 backdrop-blur-xl">
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
+          <div className="grid">
             <Link
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black"
               href={returnHref}
             >
               <ArrowLeft className="size-4" />
               {copy.backToCuts}
-            </Link>
-            <Link
-              aria-label={copy.channelCta}
-              className="inline-flex size-12 items-center justify-center rounded-full border border-white/12 bg-white/8 !text-white"
-              href={regularChannelHref}
-            >
-              <ArrowUpRight className="size-5" />
             </Link>
           </div>
         </div>
