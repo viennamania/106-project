@@ -99,7 +99,7 @@ function getCopy(locale: Locale) {
         accountBody:
           "FanLetter News의 구매함, 팬 기자 리포트, 브이로그 관리가 같은 회원 계정으로 이어지도록 이메일 지갑을 연결합니다.",
         accountReady: "뉴스 계정 연결 완료",
-        activate: "가입 완료하기",
+        activate: "10 USDT 활성화하기",
         checking: "연결 상태 확인 중",
         connect: "뉴스 지갑 연결",
         connectBody:
@@ -117,15 +117,15 @@ function getCopy(locale: Locale) {
         missingClient:
           "현재 브라우저에서 이메일 지갑 연결을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
         paymentBody:
-          "계정은 연결되었지만 시작 준비 확인이 필요합니다. 확인을 마치면 선택한 화면으로 이동합니다.",
-        paymentTitle: "가입 완료가 필요합니다.",
+          "계정 연결은 저장되었습니다. 지금은 선택한 뉴스 화면으로 돌아갈 수 있고, 리포터 리워드·수익 기능이 필요할 때 10 USDT 활성화를 진행하면 됩니다.",
+        paymentTitle: "뉴스 계정이 연결되었습니다.",
         reconnect: "다시 확인",
         returnLabel: "돌아갈 화면",
         routeTitle: "연결 후 이동",
         signOut: "연결 해제",
         siteName: "FanLetter News",
         statusDesk: "뉴스 계정 데스크",
-        steps: ["이메일 지갑 연결", "회원 정보 확인", "선택 화면으로 이동"],
+        steps: ["이메일 지갑 연결", "계정 저장", "선택 화면으로 이동"],
         syncing: "뉴스 계정을 확인하고 있습니다.",
         title: "뉴스 활동을 이어갈 계정 연결",
         wallet: "뉴스 지갑 관리",
@@ -136,7 +136,7 @@ function getCopy(locale: Locale) {
         accountBody:
           "Connect an email wallet so purchases, reporter activity, and vlog management stay attached to one FanLetter News member account.",
         accountReady: "News account connected",
-        activate: "Verify signup",
+        activate: "Activate with 10 USDT",
         checking: "Checking connection",
         connect: "Connect news wallet",
         connectBody:
@@ -154,15 +154,15 @@ function getCopy(locale: Locale) {
         missingClient:
           "Email wallet connection cannot start in this browser right now. Please try again shortly.",
         paymentBody:
-          "The account is connected, but signup verification is required. Complete it, then continue to the selected screen.",
-        paymentTitle: "Signup verification is required.",
+          "Your account connection is saved. You can return to the selected News screen now, then activate with 10 USDT when reporter rewards or revenue features require it.",
+        paymentTitle: "Your News account is connected.",
         reconnect: "Check again",
         returnLabel: "Destination",
         routeTitle: "Continue after connection",
         signOut: "Disconnect",
         siteName: "FanLetter News",
         statusDesk: "News Account Desk",
-        steps: ["Email wallet", "Member check", "Continue"],
+        steps: ["Email wallet", "Account saved", "Continue"],
         syncing: "Checking your news account.",
         title: "Connect your account to continue",
         wallet: "News wallet",
@@ -214,8 +214,8 @@ function getMemberStatusLabel(member: MemberRecord | null, locale: Locale) {
       ? "시작 준비 완료"
       : "Ready"
     : locale === "ko"
-      ? "확인 필요"
-      : "Needs verification";
+      ? "둘러보기 가능"
+      : "Ready to explore";
 }
 
 function getReturnKind(returnToHref: string, locale: Locale): NewsReturnKind {
@@ -638,7 +638,7 @@ export function FanletterNewsConnectPage({
           fanletterShareAttribution,
           locale,
           referredByCode: referralCode,
-          syncMode: "full",
+          syncMode: "light",
           walletAddress: accountAddress,
         });
 
@@ -728,7 +728,7 @@ export function FanletterNewsConnectPage({
           ? connection.isConnected
           : index === 1
             ? Boolean(connectedMember || syncState.email)
-            : memberIsCompleted
+            : Boolean(connectedMember)
       }
       index={index}
       key={step}
@@ -809,7 +809,7 @@ export function FanletterNewsConnectPage({
                   memberIsCompleted
                     ? "bg-[#44f26e] text-black"
                     : memberNeedsPayment
-                      ? "bg-amber-200 text-amber-950"
+                      ? "bg-[#44f26e] text-black"
                       : syncState.status === "error"
                         ? "bg-red-100 text-red-900"
                         : "bg-white/10 text-white",
@@ -859,13 +859,22 @@ export function FanletterNewsConnectPage({
                   </Link>
                 </>
               ) : memberNeedsPayment ? (
-                <Link
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-amber-200 px-5 text-sm font-bold !text-amber-950 transition hover:bg-amber-300"
-                  href={activateHref}
-                >
-                  <ShieldCheck className="size-4" />
-                  {copy.activate}
-                </Link>
+                <>
+                  <Link
+                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-bold !text-black transition hover:bg-[#69ff8c]"
+                    href={returnToHref}
+                  >
+                    {returnLabel}
+                    <ArrowRight className="size-4" />
+                  </Link>
+                  <Link
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/14 px-5 text-sm font-bold !text-white transition hover:bg-white hover:!text-[#111510]"
+                    href={activateHref}
+                  >
+                    <ShieldCheck className="size-4" />
+                    {copy.activate}
+                  </Link>
+                </>
               ) : connection.isConnected ? (
                 <button
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/14 px-5 text-sm font-bold text-white transition hover:bg-white hover:text-[#111510]"

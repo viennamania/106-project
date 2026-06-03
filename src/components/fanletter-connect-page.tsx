@@ -115,12 +115,12 @@ function getCopy(locale: Locale) {
         onboardingCta: "온보딩 체크리스트 보기",
         onboardingTitle: "온보딩과 연결됨",
         paymentBody:
-          "계정은 연결되었지만 시작 준비 확인이 더 필요합니다. 확인 화면에서 완료한 뒤 온보딩 체크리스트로 돌아오세요.",
-        paymentCta: "가입 완료 확인하기",
-        paymentTitle: "가입 완료 확인이 필요합니다.",
+          "계정 연결은 저장되었습니다. 지금은 둘러보고 온보딩을 이어갈 수 있으며, 수익·리워드 기능이 필요할 때 10 USDT 활성화를 진행하면 됩니다.",
+        paymentCta: "10 USDT 활성화하기",
+        paymentTitle: "FanLetter 계정이 연결되었습니다.",
         primary: "온보딩 계속하기",
         readinessBody:
-          "가입 완료 확인이 필요한 경우 확인 화면을 거치고, 완료되면 온보딩 체크리스트로 돌아옵니다.",
+          "먼저 계정을 연결해 FanLetter를 둘러보고, 유료 활성화가 필요한 기능은 해당 시점에 이어서 진행합니다.",
         reconnect: "다시 확인",
         returnBody: (target: string) =>
           `연결을 취소하거나 확인만 하려면 ${target}으로 돌아갈 수 있습니다.`,
@@ -130,7 +130,7 @@ function getCopy(locale: Locale) {
         secondary: "첫 브이로그 만들기",
         signOut: "연결 해제",
         studio: "브이로그 스튜디오로 이동",
-        steps: ["이메일 로그인", "계정 연결 확인", "시작 준비 확인"],
+        steps: ["이메일 로그인", "계정 저장", "둘러보기 시작"],
         syncErrorTitle: "계정 상태 확인이 필요합니다.",
         syncing: "시작 준비 상태를 확인하고 있습니다.",
         title: "계정 연결 후 온보딩을 이어가세요.",
@@ -164,12 +164,12 @@ function getCopy(locale: Locale) {
         onboardingCta: "View onboarding checklist",
         onboardingTitle: "Connected to onboarding",
         paymentBody:
-          "The account is connected, but readiness confirmation is still required. Complete it on the verification screen, then return to the onboarding checklist.",
-        paymentCta: "Verify signup",
-        paymentTitle: "Signup verification is required.",
+          "Your account connection is saved. You can explore and continue onboarding now, then activate with 10 USDT when revenue or rewards features need it.",
+        paymentCta: "Activate with 10 USDT",
+        paymentTitle: "Your FanLetter account is connected.",
         primary: "Continue onboarding",
         readinessBody:
-          "If signup verification is required, complete it on the verification screen and return to the onboarding checklist.",
+          "Connect first, explore FanLetter, and complete paid activation only when a feature requires it.",
         reconnect: "Check again",
         returnBody: (target: string) =>
           `If you only need to confirm or cancel connection, you can return to ${target}.`,
@@ -179,7 +179,7 @@ function getCopy(locale: Locale) {
         secondary: "Create first vlog",
         signOut: "Disconnect",
         studio: "Go to vlog studio",
-        steps: ["Email login", "Account check", "Readiness check"],
+        steps: ["Email login", "Account saved", "Start exploring"],
         syncErrorTitle: "Account status needs attention.",
         syncing: "Checking readiness.",
         title: "Connect your account, then continue onboarding.",
@@ -210,14 +210,14 @@ function getContextCopy(
         onboardingCta: "온보딩 체크리스트 보기",
         onboardingTitle: "필요할 때 온보딩으로 이동",
         paymentBody:
-          "계정은 연결되었지만 시작 준비 확인이 더 필요합니다. 확인 화면에서 완료하면 보던 팬 전용 콘텐츠로 돌아옵니다.",
+          "계정 연결은 저장되었습니다. 보던 팬 전용 콘텐츠로 돌아갈 수 있고, 유료 열람이나 리워드 기능에서 10 USDT 활성화가 필요하면 그때 이어서 진행합니다.",
         primary: returnTarget.backLabel,
         readinessBody:
-          "가입 완료 확인이 필요한 경우 확인 화면을 거치고, 완료되면 보던 팬 전용 콘텐츠로 돌아옵니다.",
+          "먼저 이메일 계정을 연결해 구매 계정을 만들고, 결제가 필요한 순간에 활성화 화면으로 이어갑니다.",
         returnBody: returnTarget.body,
         returnCta: returnTarget.cta,
         returnTitle: "보던 콘텐츠",
-        steps: ["이메일 로그인", "구매 계정 확인", "콘텐츠로 복귀"],
+        steps: ["이메일 로그인", "구매 계정 저장", "콘텐츠로 복귀"],
         title: "팬 전용 콘텐츠를 열기 위해 계정을 연결하세요.",
       };
     }
@@ -234,17 +234,17 @@ function getContextCopy(
       onboardingCta: "온보딩 체크리스트 보기",
       onboardingTitle: "온보딩도 이어갈 수 있음",
       paymentBody:
-        "계정은 연결되었지만 시작 준비 확인이 더 필요합니다. 확인 화면에서 완료한 뒤 보던 위치로 돌아옵니다.",
+        "계정 연결은 저장되었습니다. 지금은 보던 위치로 돌아가 둘러볼 수 있고, 수익·리워드 기능이 필요할 때 10 USDT 활성화를 진행합니다.",
       primary:
         returnTarget.kind === "onboarding"
           ? "온보딩 계속하기"
           : returnTarget.backLabel,
       readinessBody:
-        "가입 완료 확인이 필요한 경우 확인 화면을 거치고, 완료되면 보던 위치로 돌아옵니다.",
+        "먼저 계정을 연결해 FanLetter를 이어서 둘러보고, 결제가 필요한 기능에서 활성화 화면으로 이동합니다.",
       returnBody: returnTarget.body,
       returnCta: returnTarget.cta,
       returnTitle: "연결 전 위치",
-      steps: ["이메일 로그인", "계정 연결 확인", "시작 준비 확인"],
+      steps: ["이메일 로그인", "계정 저장", "둘러보기 시작"],
       title:
         returnTarget.kind === "onboarding"
           ? "계정 연결 후 온보딩을 이어가세요."
@@ -267,14 +267,14 @@ function getContextCopy(
       onboardingCta: "View onboarding checklist",
       onboardingTitle: "Onboarding is optional here",
       paymentBody:
-        "The account is connected, but readiness confirmation is still required. Complete it, then return to the fan-only content.",
+        "Your account connection is saved. You can return to the fan-only content now, then activate with 10 USDT when paid access or rewards require it.",
       primary: returnTarget.backLabel,
       readinessBody:
-        "If signup verification is required, complete it and return to the fan-only content.",
+        "Connect the email account first; activation can happen when a paid access step requires it.",
       returnBody: returnTarget.body,
       returnCta: returnTarget.cta,
       returnTitle: "Content you were viewing",
-      steps: ["Email login", "Purchase account", "Return to content"],
+      steps: ["Email login", "Purchase account saved", "Return to content"],
       title: "Connect your account to unlock fan-only content.",
     };
   }
@@ -291,17 +291,17 @@ function getContextCopy(
     onboardingCta: "View onboarding checklist",
     onboardingTitle: "Onboarding is still available",
     paymentBody:
-      "The account is connected, but readiness confirmation is still required. Complete it, then return to where you came from.",
+      "Your account connection is saved. You can return and explore now, then activate with 10 USDT when revenue or rewards features require it.",
     primary:
       returnTarget.kind === "onboarding"
         ? "Continue onboarding"
         : returnTarget.backLabel,
     readinessBody:
-      "If signup verification is required, complete it and return to where you came from.",
+      "Connect first, keep exploring FanLetter, and move to activation only when a feature requires payment.",
     returnBody: returnTarget.body,
     returnCta: returnTarget.cta,
     returnTitle: "Where you came from",
-    steps: ["Email login", "Account check", "Readiness check"],
+    steps: ["Email login", "Account saved", "Start exploring"],
     title:
       returnTarget.kind === "onboarding"
         ? "Connect your account, then continue onboarding."
@@ -353,8 +353,8 @@ function getMemberStatusLabel(member: MemberRecord | null, locale: Locale) {
       ? "시작 준비 완료"
       : "Ready"
     : locale === "ko"
-      ? "확인 필요"
-      : "Needs confirmation";
+      ? "둘러보기 가능"
+      : "Ready to explore";
 }
 
 function getReturnTarget(path: string, locale: Locale): FanletterConnectReturnTarget {
@@ -717,7 +717,7 @@ export function FanletterConnectPage({
           fanletterShareAttribution,
           locale,
           referredByCode: referralCode,
-          syncMode: "full",
+          syncMode: "light",
           walletAddress: accountAddress,
         });
 
@@ -808,7 +808,7 @@ export function FanletterConnectPage({
             ? connection.isConnected
             : index === 1
               ? Boolean(connectedMember || syncState.email)
-              : memberIsCompleted
+              : Boolean(connectedMember)
         }
         key={step}
         label={step}
@@ -1061,13 +1061,21 @@ export function FanletterConnectPage({
                     </div>
                   </>
                 ) : memberNeedsPayment ? (
-                  <Link
-                    className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
-                    href={activateHref}
-                  >
-                    {copy.paymentCta}
-                    <ArrowRight className="size-4" />
-                  </Link>
+                  <>
+                    <Link
+                      className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88]"
+                      href={postConnectHref}
+                    >
+                      {contextCopy.primary}
+                      <ArrowRight className="size-4" />
+                    </Link>
+                    <Link
+                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
+                      href={activateHref}
+                    >
+                      {copy.paymentCta}
+                    </Link>
+                  </>
                 ) : (
                   <button
                     className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold text-white transition hover:bg-white/12 disabled:cursor-not-allowed disabled:opacity-60"
