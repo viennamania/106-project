@@ -114,6 +114,7 @@ export function FanletterNewsRolePreferenceControl({
   locale,
   reporterHref,
   reporterReportCount,
+  variant = "light",
   vloggerHref,
   vloggerVideoCount,
 }: {
@@ -121,6 +122,7 @@ export function FanletterNewsRolePreferenceControl({
   locale: Locale;
   reporterHref: string;
   reporterReportCount: string;
+  variant?: "dark" | "light";
   vloggerHref: string;
   vloggerVideoCount: string;
 }) {
@@ -159,15 +161,33 @@ export function FanletterNewsRolePreferenceControl({
       metric: vloggerVideoCount,
     },
   ];
+  const isDark = variant === "dark";
 
   return (
-    <section className="border border-black/12 bg-white p-4 shadow-[0_16px_42px_rgba(17,21,16,0.08)] sm:p-5">
+    <section
+      className={cn(
+        "p-4 shadow-[0_16px_42px_rgba(17,21,16,0.08)] sm:p-5",
+        isDark
+          ? "rounded-2xl border border-white/10 bg-white/[0.06] text-white shadow-[0_18px_46px_rgba(0,0,0,0.18)]"
+          : "border border-black/12 bg-white",
+      )}
+    >
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+          <p
+            className={cn(
+              "text-[0.68rem] font-black uppercase tracking-[0.12em]",
+              isDark ? "text-[#44f26e]" : "text-[#16702e]",
+            )}
+          >
             {copy.eyebrow}
           </p>
-          <h2 className="mt-1 text-xl font-black tracking-normal text-[#111510]">
+          <h2
+            className={cn(
+              "mt-1 text-xl font-black tracking-normal",
+              isDark ? "text-white" : "text-[#111510]",
+            )}
+          >
             {copy.title}
           </h2>
         </div>
@@ -181,9 +201,13 @@ export function FanletterNewsRolePreferenceControl({
             <div
               className={cn(
                 "flex min-h-[9.25rem] flex-col justify-between rounded-lg border p-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#19b84b]",
-                selected
-                  ? "border-[#19b84b] bg-[#ecfff0] shadow-[0_12px_26px_rgba(25,184,75,0.14)]"
-                  : "border-black/10 bg-[#f6f8f4] hover:border-[#19b84b]/60",
+                isDark
+                  ? selected
+                    ? "border-[#44f26e]/52 bg-[#44f26e]/14 shadow-[0_12px_26px_rgba(25,184,75,0.12)]"
+                    : "border-white/10 bg-black/22 hover:border-[#44f26e]/42"
+                  : selected
+                    ? "border-[#19b84b] bg-[#ecfff0] shadow-[0_12px_26px_rgba(25,184,75,0.14)]"
+                    : "border-black/10 bg-[#f6f8f4] hover:border-[#19b84b]/60",
               )}
               key={option.key}
             >
@@ -197,9 +221,13 @@ export function FanletterNewsRolePreferenceControl({
                   <span
                     className={cn(
                       "inline-flex size-10 items-center justify-center rounded-full",
-                      selected
-                        ? "bg-[#111510] text-[#44f26e]"
-                        : "bg-white text-[#16702e]",
+                      isDark
+                        ? selected
+                          ? "bg-[#44f26e] text-[#111510]"
+                          : "bg-white/10 text-[#44f26e]"
+                        : selected
+                          ? "bg-[#111510] text-[#44f26e]"
+                          : "bg-white text-[#16702e]",
                     )}
                   >
                     <Icon className="size-5" />
@@ -207,9 +235,13 @@ export function FanletterNewsRolePreferenceControl({
                   <span
                     className={cn(
                       "inline-flex min-w-0 items-center gap-1 rounded-full px-2 py-1 text-[0.62rem] font-black",
-                      selected
-                        ? "bg-[#111510] text-white"
-                        : "bg-white text-black/52",
+                      isDark
+                        ? selected
+                          ? "bg-[#44f26e] text-[#111510]"
+                          : "bg-white/10 text-white/52"
+                        : selected
+                          ? "bg-[#111510] text-white"
+                          : "bg-white text-black/52",
                     )}
                   >
                     {selected ? <Check className="size-3" /> : null}
@@ -219,16 +251,31 @@ export function FanletterNewsRolePreferenceControl({
                   </span>
                 </span>
                 <span className="mt-3 block">
-                  <span className="block text-base font-black tracking-normal text-[#111510]">
+                  <span
+                    className={cn(
+                      "block text-base font-black tracking-normal",
+                      isDark ? "text-white" : "text-[#111510]",
+                    )}
+                  >
                     {option.label}
                   </span>
-                  <span className="mt-1 block text-xs font-bold leading-5 text-black/58">
+                  <span
+                    className={cn(
+                      "mt-1 block text-xs font-bold leading-5",
+                      isDark ? "text-white/58" : "text-black/58",
+                    )}
+                  >
                     {option.body}
                   </span>
                 </span>
               </button>
               <Link
-                className="mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full bg-[#111510] px-3 text-xs font-black !text-white transition hover:bg-black"
+                className={cn(
+                  "mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-full px-3 text-xs font-black transition",
+                  isDark
+                    ? "bg-white/10 !text-white hover:bg-[#44f26e] hover:!text-[#111510]"
+                    : "bg-[#111510] !text-white hover:bg-black",
+                )}
                 href={option.href}
               >
                 {option.cta}

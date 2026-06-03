@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { FanletterNewsReportsSessionBridge } from "@/components/fanletter-news-reports-session-bridge";
+import { FanletterNewsRolePreferenceControl } from "@/components/fanletter-news-role-preference-control";
 import { getCreatorStudioPostsForMember } from "@/lib/content-service";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getFanletterNewsMemberRewardsSummary } from "@/lib/fanletter-news-member-rewards";
@@ -430,6 +431,18 @@ export default async function LocalizedFanletterNewsMePage({
               </div>
             ))}
           </div>
+        </div>
+
+        <div className="mt-3">
+          <FanletterNewsRolePreferenceControl
+            generalHref={fullHubHref}
+            locale={locale}
+            reporterHref={reportNewHref}
+            reporterReportCount={formatNumber(reportCount, locale)}
+            variant="dark"
+            vloggerHref={vlogsManageHref}
+            vloggerVideoCount={formatNumber(vlogCount, locale)}
+          />
         </div>
 
         <div className="mt-3 grid grid-cols-2 gap-2">
