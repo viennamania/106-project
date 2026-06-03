@@ -123,6 +123,7 @@ export type CreateFanletterNewsReportInput = {
   croppedCoverCrop?: FanletterNewsReportCoverCropInput | null;
   croppedCoverImageUrl?: string | null;
   croppedCoverSourceImageUrl?: string | null;
+  dek?: string | null;
   locale?: string | null;
   reporterEmail?: string | null;
   reporterComment?: string | null;
@@ -130,6 +131,7 @@ export type CreateFanletterNewsReportInput = {
   selectedCoverImageUrl?: string | null;
   selectedTeaserImages?: FanletterNewsReportTeaserImageInput[] | null;
   selectedTeaserImageUrls?: string[] | null;
+  title?: string | null;
 };
 
 export type FanletterNewsReportCoverCropInput = {
@@ -2194,6 +2196,7 @@ export async function getOrCreateFanletterNewsReport({
   croppedCoverCrop,
   croppedCoverImageUrl,
   croppedCoverSourceImageUrl,
+  dek,
   locale,
   reporterEmail,
   reporterComment,
@@ -2201,6 +2204,7 @@ export async function getOrCreateFanletterNewsReport({
   selectedCoverImageUrl,
   selectedTeaserImages,
   selectedTeaserImageUrls,
+  title,
 }: CreateFanletterNewsReportInput) {
   const normalizedContentId = contentId?.trim() ?? "";
   const normalizedLocale =
@@ -2323,9 +2327,16 @@ export async function getOrCreateFanletterNewsReport({
     sourceSummary,
     sourceTitle: post.title,
   });
+  const reporterTitle = trimToLength(title, REPORT_TITLE_LIMIT);
+  const reporterDek = trimToLength(dek, REPORT_DEK_LIMIT);
+  const finalPayload = {
+    ...payload,
+    dek: reporterDek || payload.dek,
+    title: reporterTitle || payload.title,
+  };
   const now = new Date();
   const document: FanletterNewsReportDocument = {
-    body: payload.body,
+    body: finalPayload.body,
     contentId: post.contentId,
     contentMaturityRating,
     coverImageCrop: coverImageSelection.coverImageCrop,
@@ -2337,7 +2348,7 @@ export async function getOrCreateFanletterNewsReport({
     creatorReferralCode: normalizeReferralCode(
       profile?.referralCode ?? post.authorReferralCode,
     ),
-    dek: payload.dek,
+    dek: finalPayload.dek,
     exclusiveNewsReport:
       getActiveExclusiveNewsReporterReferralCode(post, now) ===
       normalizedReporterReferralCode,
@@ -2345,7 +2356,7 @@ export async function getOrCreateFanletterNewsReport({
       normalizeReferralCode(post.exclusiveNewsReporterReferralCode),
     exclusiveNewsUntil: post.exclusiveNewsUntil ?? null,
     generatedBy,
-    how: payload.how,
+    how: finalPayload.how,
     locale: normalizedLocale,
     model: generatedBy === "openai" ? getFanletterNewsReportModel() : null,
     priceType: post.priceType,
@@ -2365,13 +2376,13 @@ export async function getOrCreateFanletterNewsReport({
     status: "published",
     teaserImages,
     teaserImageUrls,
-    title: payload.title,
+    title: finalPayload.title,
     updatedAt: now,
-    what: payload.what,
-    when: payload.when,
-    where: payload.where,
-    who: payload.who,
-    why: payload.why,
+    what: finalPayload.what,
+    when: finalPayload.when,
+    where: finalPayload.where,
+    who: finalPayload.who,
+    why: finalPayload.why,
   };
 
   await reportsCollection.updateOne(

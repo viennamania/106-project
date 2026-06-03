@@ -33,6 +33,7 @@ type FanletterNewsReportCreateRequest = {
   } | null;
   croppedCoverImageUrl?: string | null;
   croppedCoverSourceImageUrl?: string | null;
+  dek?: string | null;
   email?: string | null;
   locale?: string | null;
   reporterComment?: string | null;
@@ -52,6 +53,7 @@ type FanletterNewsReportCreateRequest = {
     sourceImageUrl?: string | null;
   }> | null;
   selectedTeaserImageUrls?: string[] | null;
+  title?: string | null;
   walletAddress?: string | null;
 };
 
@@ -414,6 +416,7 @@ export async function POST(request: Request) {
       croppedCoverCrop: body?.croppedCoverCrop,
       croppedCoverImageUrl: body?.croppedCoverImageUrl,
       croppedCoverSourceImageUrl: body?.croppedCoverSourceImageUrl,
+      dek: body?.dek,
       locale: body?.locale,
       reporterEmail: reporter.credentials.email,
       reporterComment: body?.reporterComment,
@@ -421,6 +424,7 @@ export async function POST(request: Request) {
       selectedCoverImageUrl: body?.selectedCoverImageUrl,
       selectedTeaserImages: body?.selectedTeaserImages,
       selectedTeaserImageUrls: body?.selectedTeaserImageUrls,
+      title: body?.title,
     });
 
     return Response.json({

@@ -261,6 +261,8 @@ const REPORT_AUTO_TEASER_MAX_ZOOM = 2.4;
 const REPORT_AUTO_TEASER_MIN_ZOOM = 1.2;
 const REPORT_TEASER_CROP_NUDGE_STEP = 0.06;
 const REPORT_TEASER_CROP_ZOOM_STEP = 0.15;
+const REPORT_TITLE_MAX_LENGTH = 96;
+const REPORT_DEK_MAX_LENGTH = 180;
 const REPORTER_COMMENT_MAX_LENGTH = 220;
 const SOURCE_RESULT_PAGE_SIZE = 6;
 const DEFAULT_REPORT_COVER_CROP: ReportCoverCropState = {
@@ -305,7 +307,7 @@ function getCopy(locale: Locale) {
           "팬 요청 반응",
           "유료 브이로그 추천",
           "캐릭터 일상 포착",
-          "언락 유도",
+          "원본 열기 유도",
           "티저 중심",
         ],
         blocked:
@@ -355,6 +357,14 @@ function getCopy(locale: Locale) {
           eyebrow: "Reporter Quick Desk",
           sourceList: "다른 공개 전 원본 보기",
           title: "원본 공개 전 4컷 기사 작성",
+        },
+        reportMeta: {
+          body:
+            "컷 피드 카드에 바로 보이는 제목과 요약입니다. 테스트 발행이면 제목이나 요약에 TEST를 남기세요.",
+          dek: "공개 요약",
+          dekPlaceholder: "독자가 왜 원본 열기에 참여할지 짧게 적어주세요.",
+          title: "공개 제목",
+          titlePlaceholder: "팬이 누르고 싶게 보이는 리포트 제목",
         },
         existing: "이미 작성함",
         existingBody:
@@ -450,8 +460,9 @@ function getCopy(locale: Locale) {
         publishReadiness: {
           access: "작성 권한",
           angle: "리포터 관점",
-          body: "뉴스 이미지, 공개 컷, 관점, 권한을 확인하고 바로 발행하세요.",
+          body: "뉴스 이미지, 공개 컷, 기사 문구, 관점, 권한을 확인하고 바로 발행하세요.",
           cover: "뉴스 이미지",
+          meta: "기사 문구",
           slots: (used: string, limit: string) => `발행 슬롯 ${used}/${limit}`,
           statusReady: "발행 가능",
           statusWaiting: "준비 필요",
@@ -601,11 +612,11 @@ function getCopy(locale: Locale) {
           early: "선점 후보",
           filterAll: "전체",
           filterBody:
-            "미작성·락 상태 후보를 먼저 보여줘 팬 오픈 보상을 노릴 브이로그를 빠르게 고르게 합니다.",
+            "미작성·공개 전 상태 후보를 먼저 보여줘 팬 오픈 보상을 노릴 브이로그를 빠르게 고르게 합니다.",
           filterLabel: "팬 오픈 우선순위",
           fanOpenMetric: "팬 오픈",
-          lockedFilter: "락",
-          locked: "락",
+          lockedFilter: "공개 전",
+          locked: "공개 전",
           lowCompetition: "경쟁 낮음",
           opportunityAlreadyReported: "이미 작성함",
           opportunityExclusive: "단독 보도권 대기",
@@ -624,8 +635,8 @@ function getCopy(locale: Locale) {
           recommended: "추천",
           teaserMissingShort: "티저 없음",
           teaserReadyShort: "티저 있음",
-          unlocked: "언락",
-          unlockedFilter: "언락",
+          unlocked: "공개됨",
+          unlockedFilter: "공개됨",
           writeStateMetric: "작성 상태",
         },
       }
@@ -686,6 +697,14 @@ function getCopy(locale: Locale) {
           eyebrow: "Reporter Quick Desk",
           sourceList: "View other unopened sources",
           title: "Write four cuts before source opens",
+        },
+        reportMeta: {
+          body:
+            "This title and summary appear directly on the cut feed card. For live tests, include TEST in the title or summary.",
+          dek: "Public summary",
+          dekPlaceholder: "Briefly state why readers should join the source open.",
+          title: "Public title",
+          titlePlaceholder: "A report title fans will want to open",
         },
         existing: "Already reported",
         existingBody:
@@ -781,8 +800,9 @@ function getCopy(locale: Locale) {
         publishReadiness: {
           access: "Report access",
           angle: "Reporter angle",
-          body: "Check the news image, public cuts, angle, and access before publishing.",
+          body: "Check the news image, public cuts, story copy, angle, and access before publishing.",
           cover: "News image",
+          meta: "Story copy",
           slots: (used: string, limit: string) => `Slots ${used}/${limit}`,
           statusReady: "Ready",
           statusWaiting: "Needs setup",
@@ -932,11 +952,11 @@ function getCopy(locale: Locale) {
           early: "Early claim",
           filterAll: "All",
           filterBody:
-            "Prioritize unreported locked vlogs so reporters can find fan-open reward opportunities faster.",
+            "Prioritize unreported before-open vlogs so reporters can find fan-open reward opportunities faster.",
           filterLabel: "Fan open priority",
           fanOpenMetric: "Fan open",
-          lockedFilter: "Locked",
-          locked: "Locked",
+          lockedFilter: "Before open",
+          locked: "Before open",
           lowCompetition: "Low competition",
           opportunityAlreadyReported: "Already reported",
           opportunityExclusive: "Exclusive pending",
@@ -955,8 +975,8 @@ function getCopy(locale: Locale) {
           recommended: "Recommended",
           teaserMissingShort: "No teaser",
           teaserReadyShort: "Teaser ready",
-          unlocked: "Unlocked",
-          unlockedFilter: "Unlocked",
+          unlocked: "Opened",
+          unlockedFilter: "Opened",
           writeStateMetric: "Report status",
         },
       };
@@ -982,6 +1002,42 @@ function formatDate(value: string | null, locale: Locale) {
     month: "short",
     year: "numeric",
   }).format(date);
+}
+
+function trimComposerText(value: string, limit: number) {
+  return value.replace(/\s+/g, " ").trim().slice(0, limit);
+}
+
+function getDefaultReportTitle(
+  source: FanletterNewsReportComposerSource | null,
+  locale: Locale,
+) {
+  if (!source) {
+    return "";
+  }
+
+  return locale === "ko"
+    ? `${source.creatorName} 새 브이로그 팬 리포트 공개`
+    : `${source.creatorName} shares a new vlog fan report`;
+}
+
+function getDefaultReportDek(
+  source: FanletterNewsReportComposerSource | null,
+  locale: Locale,
+) {
+  if (!source) {
+    return "";
+  }
+
+  return locale === "ko"
+    ? `${source.creatorName}의 원본 브이로그에서 팬들이 반응할 장면을 짚었습니다.`
+    : `Follow the moments fans are reacting to in ${source.creatorName}'s source vlog.`;
+}
+
+function getQuickSourceGroupKey(source: FanletterNewsReportComposerSource) {
+  return [source.creatorName, source.title]
+    .map((value) => value.replace(/\s+/g, " ").trim().toLowerCase())
+    .join("|");
 }
 
 function formatNumber(value: number, locale: Locale) {
@@ -2064,6 +2120,40 @@ export function FanletterNewsReportComposerPage({
     [reportSources, selectedContentId],
   );
   const selectedSourceContentId = selectedSource?.contentId ?? null;
+  const quickMobileSources = useMemo(() => {
+    if (!isQuickComposer) {
+      return displayedSources;
+    }
+
+    const groupedSources: FanletterNewsReportComposerSource[] = [];
+    const seenGroupKeys = new Set<string>();
+
+    for (const source of displayedSources) {
+      const groupKey = getQuickSourceGroupKey(source);
+
+      if (seenGroupKeys.has(groupKey)) {
+        continue;
+      }
+
+      seenGroupKeys.add(groupKey);
+      groupedSources.push(source);
+    }
+
+    if (
+      selectedContentId &&
+      !groupedSources.some((source) => source.contentId === selectedContentId)
+    ) {
+      const selectedDuplicate = displayedSources.find(
+        (source) => source.contentId === selectedContentId,
+      );
+
+      if (selectedDuplicate) {
+        groupedSources.unshift(selectedDuplicate);
+      }
+    }
+
+    return groupedSources;
+  }, [displayedSources, isQuickComposer, selectedContentId]);
   const selectedSourceCoverOptions =
     selectedSource?.coverOptions ?? EMPTY_COVER_OPTIONS;
   const [selectedCoverUrl, setSelectedCoverUrl] = useState<string | null>(
@@ -2086,6 +2176,12 @@ export function FanletterNewsReportComposerPage({
   >(() => getDefaultCroppedTeaserByCutId(initialSelectedSource));
   const [angle, setAngle] = useState(
     getRecommendedReportAngle(initialSelectedSource, copy),
+  );
+  const [reportTitle, setReportTitle] = useState(() =>
+    getDefaultReportTitle(initialSelectedSource, locale),
+  );
+  const [reportDek, setReportDek] = useState(() =>
+    getDefaultReportDek(initialSelectedSource, locale),
   );
   const [reporterComment, setReporterComment] = useState("");
   const [crop, setCrop] = useState<ReportCoverCropState>(
@@ -2211,6 +2307,11 @@ export function FanletterNewsReportComposerPage({
     teaserMode === "auto"
       ? Math.min(autoTeaserCandidateUrls.length, REPORT_TEASER_IMAGE_LIMIT)
       : selectedTeaserCuts.length;
+  const normalizedReportTitle = trimComposerText(
+    reportTitle,
+    REPORT_TITLE_MAX_LENGTH,
+  );
+  const normalizedReportDek = trimComposerText(reportDek, REPORT_DEK_MAX_LENGTH);
   const selectedExistingReport = selectedSource?.existingReport ?? null;
   const currentSavedTeaserSourceUrlSet = useMemo(
     () => new Set(existingReportVisualSnapshot.teaserSourceImageUrls),
@@ -2275,6 +2376,8 @@ export function FanletterNewsReportComposerPage({
     selectedSource &&
       selectedSource.mediaAccess.canView &&
       selectedCoverUrl &&
+      normalizedReportTitle &&
+      normalizedReportDek &&
       !selectedSource.existingReport &&
       !selectedSource.reportSlot.full &&
       !isExclusiveBlocked &&
@@ -2299,7 +2402,7 @@ export function FanletterNewsReportComposerPage({
     ? getSourceRevealRemaining(selectedSource)
     : 0;
   const selectedDisplayedSourceIndex = selectedSource
-    ? displayedSources.findIndex(
+    ? quickMobileSources.findIndex(
         (source) => source.contentId === selectedSource.contentId,
       )
     : -1;
@@ -2346,6 +2449,10 @@ export function FanletterNewsReportComposerPage({
       ready: Boolean(angle.trim()),
     },
     {
+      label: copy.publishReadiness.meta,
+      ready: Boolean(normalizedReportTitle && normalizedReportDek),
+    },
+    {
       label: copy.publishReadiness.access,
       ready: canCreateSelectedSource,
     },
@@ -2374,6 +2481,10 @@ export function FanletterNewsReportComposerPage({
     {
       label: copy.teaserCrop.coverTitle,
       ready: Boolean(selectedCoverUrl),
+    },
+    {
+      label: copy.publishReadiness.meta,
+      ready: Boolean(normalizedReportTitle && normalizedReportDek),
     },
     {
       label: selectedExistingReport ? copy.editVisual.title : copy.submit,
@@ -2656,6 +2767,8 @@ export function FanletterNewsReportComposerPage({
 
     previousSelectedContentIdRef.current = selectedSourceContentId;
     setAngle(getRecommendedReportAngle(selectedSource, copy));
+    setReportTitle(getDefaultReportTitle(selectedSource, locale));
+    setReportDek(getDefaultReportDek(selectedSource, locale));
     setReporterComment("");
     setExistingReportVisualSnapshot(
       getExistingReportVisualSnapshot(selectedSource?.existingReport ?? null),
@@ -2667,7 +2780,7 @@ export function FanletterNewsReportComposerPage({
     setEditTeaserMessage(null);
     setEditCoverStatus("idle");
     setEditTeaserStatus("idle");
-  }, [copy, selectedSource, selectedSourceContentId]);
+  }, [copy, locale, selectedSource, selectedSourceContentId]);
 
   useEffect(() => {
     if (selectedSource || !firstAvailableSource?.contentId) {
@@ -3269,11 +3382,13 @@ export function FanletterNewsReportComposerPage({
           croppedCoverCrop: croppedCover.crop,
           croppedCoverImageUrl: croppedCover.url,
           croppedCoverSourceImageUrl: selectedCoverUrl,
+          dek: normalizedReportDek,
           locale,
           reporterComment: reporterCommentPayload,
           selectedCoverImageUrl: selectedCoverUrl,
           selectedTeaserImages,
           selectedTeaserImageUrls,
+          title: normalizedReportTitle,
         }),
         headers: {
           "Content-Type": "application/json",
@@ -3308,6 +3423,8 @@ export function FanletterNewsReportComposerPage({
     crop,
     getManualSelectedTeaserImages,
     locale,
+    normalizedReportDek,
+    normalizedReportTitle,
     reporterComment,
     reporterReferralCode,
     router,
@@ -4561,7 +4678,7 @@ export function FanletterNewsReportComposerPage({
           </div>
         </section>
 
-        {isQuickComposer && displayedSources.length > 1 ? (
+        {isQuickComposer && quickMobileSources.length > 1 ? (
           <section className="mt-3 rounded-2xl border border-white/10 bg-[#0b0f0d] p-3 text-white shadow-[0_16px_46px_rgba(0,0,0,0.24)] lg:hidden">
             <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
@@ -4570,21 +4687,21 @@ export function FanletterNewsReportComposerPage({
                 </p>
                 <p className="mt-1 truncate text-xs font-bold text-white/46">
                   {locale === "ko"
-                    ? `후보 ${formatNumber(displayedSources.length, locale)}개 · 좌우로 선택`
-                    : `${formatNumber(displayedSources.length, locale)} candidates · swipe to choose`}
+                    ? `후보 ${formatNumber(quickMobileSources.length, locale)}개 · 좌우로 선택`
+                    : `${formatNumber(quickMobileSources.length, locale)} candidates · swipe to choose`}
                 </p>
               </div>
               <span className="shrink-0 rounded-full bg-[#44f26e] px-2.5 py-1 text-xs font-black text-[#111510]">
                 {selectedDisplayedSourceIndex >= 0
                   ? `${formatNumber(selectedDisplayedSourceIndex + 1, locale)}/${formatNumber(
-                      displayedSources.length,
+                      quickMobileSources.length,
                       locale,
                     )}`
-                  : formatNumber(displayedSources.length, locale)}
+                  : formatNumber(quickMobileSources.length, locale)}
               </span>
             </div>
             <div className="-mx-1 mt-3 grid grid-flow-col auto-cols-[minmax(10rem,70vw)] gap-2 overflow-x-auto px-1 pb-1">
-              {displayedSources.slice(0, 12).map((source) => {
+              {quickMobileSources.slice(0, 12).map((source) => {
                 const isSelected = source.contentId === selectedContentId;
                 const sourceRevealCount = getSourceRevealCount(source);
                 const sourceRevealRemaining = getSourceRevealRemaining(source);
@@ -6334,6 +6451,54 @@ export function FanletterNewsReportComposerPage({
                               </button>
                             );
                           })}
+                        </div>
+                        <div className="mt-4 border border-[#19b84b]/18 bg-[#f7fff8] p-3">
+                          <div className="flex flex-col gap-1">
+                            <p className="text-sm font-black text-[#111510]">
+                              {copy.reportMeta.title}
+                            </p>
+                            <p className="text-xs font-semibold leading-5 text-black/54">
+                              {copy.reportMeta.body}
+                            </p>
+                          </div>
+                          <label className="mt-3 block">
+                            <span className="sr-only">
+                              {copy.reportMeta.title}
+                            </span>
+                            <input
+                              className="h-12 w-full border border-black/12 bg-white px-3 text-sm font-black text-[#111510] outline-none transition placeholder:text-black/28 focus:border-[#19b84b]"
+                              maxLength={REPORT_TITLE_MAX_LENGTH}
+                              onChange={(event) => {
+                                setReportTitle(event.target.value);
+                              }}
+                              placeholder={copy.reportMeta.titlePlaceholder}
+                              value={reportTitle}
+                            />
+                          </label>
+                          <label className="mt-2 block">
+                            <span className="sr-only">
+                              {copy.reportMeta.dek}
+                            </span>
+                            <textarea
+                              className="min-h-20 w-full resize-y border border-black/12 bg-white px-3 py-3 text-sm font-semibold leading-6 outline-none transition placeholder:text-black/28 focus:border-[#19b84b]"
+                              maxLength={REPORT_DEK_MAX_LENGTH}
+                              onChange={(event) => {
+                                setReportDek(event.target.value);
+                              }}
+                              placeholder={copy.reportMeta.dekPlaceholder}
+                              value={reportDek}
+                            />
+                          </label>
+                          <div className="mt-2 flex items-center justify-between gap-3 text-[0.68rem] font-semibold text-black/42">
+                            <span>{copy.reportMeta.dek}</span>
+                            <span>
+                              {formatNumber(normalizedReportTitle.length, locale)}/
+                              {formatNumber(REPORT_TITLE_MAX_LENGTH, locale)}
+                              {" · "}
+                              {formatNumber(normalizedReportDek.length, locale)}/
+                              {formatNumber(REPORT_DEK_MAX_LENGTH, locale)}
+                            </span>
+                          </div>
                         </div>
                         <label className="mt-4 block">
                           <span className="text-sm font-black">
