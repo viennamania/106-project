@@ -3875,6 +3875,10 @@ export function FanletterNewsReportComposerPage({
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                 {selectedSourceCoverOptions.map((option, index) => {
                   const coverLabel = getCoverLabel(option, index, locale);
+                  const coverActionLabel = `${formatNumber(
+                    index + 1,
+                    locale,
+                  )} ${coverLabel}`;
                   const teaserUseCount = selectedTeaserCuts.filter(
                     (cut) => cut.sourceImageUrl === option.imageUrl,
                   ).length;
@@ -3923,7 +3927,7 @@ export function FanletterNewsReportComposerPage({
                       </div>
                       <div className="mt-1 grid grid-cols-2 gap-1.5">
                         <button
-                          aria-label={`${coverLabel} ${
+                          aria-label={`${coverActionLabel} ${
                             teaserUseCount > 0
                               ? copy.teaserSelection.sourceUseCount(
                                   formatNumber(teaserUseCount, locale),
@@ -3958,7 +3962,7 @@ export function FanletterNewsReportComposerPage({
                           </span>
                         </button>
                         <button
-                          aria-label={`${coverLabel} ${copy.teaserSelection.editCut}`}
+                          aria-label={`${coverActionLabel} ${copy.teaserSelection.editCut}`}
                           className={cn(
                             "flex h-11 min-w-0 items-center justify-center gap-1 rounded-md border border-black/10 bg-[#f6f8f4] px-1.5 text-[0.68rem] font-black text-black/58 transition hover:border-[#19b84b]/35 hover:text-[#111510]",
                             isTeaserLimitReached &&
