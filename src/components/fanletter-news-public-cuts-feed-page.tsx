@@ -156,8 +156,8 @@ function getCopy(locale: Locale) {
         reporterPublishedMetric: "발행일",
         reporterQuickDesk: {
           currentCta: "이 원본으로 기사 작성",
-          currentLockedCta: "미언락 원본 4컷 기사 작성",
-          jumpCta: "미언락 소재 찾기",
+          currentLockedCta: "원본 공개 전 4컷 기사 작성",
+          jumpCta: "공개 전 원본 찾기",
           summary: (count: string) =>
             `아직 원본이 열리지 않은 소재 ${count}개를 빠르게 찾아 4컷 편집으로 이어갈 수 있습니다.`,
           title: "리포터 빠른 작성",
@@ -313,10 +313,10 @@ function getCopy(locale: Locale) {
         reporterPublishedMetric: "Published",
         reporterQuickDesk: {
           currentCta: "Write from this source",
-          currentLockedCta: "Edit locked source as 4 cuts",
-          jumpCta: "Find locked source",
+          currentLockedCta: "Write four cuts before source opens",
+          jumpCta: "Find unopened source",
           summary: (count: string) =>
-            `${count} locked candidates can be found quickly and turned into a four-cut report.`,
+            `${count} unopened source candidates can be found quickly and turned into a four-cut report.`,
           title: "Reporter quick desk",
         },
         reporterSourceMetric: "Source open",

@@ -9,10 +9,10 @@ import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
-        title: "미언락 원본 4컷 기사 작성",
+        title: "원본 공개 전 4컷 기사 작성",
       }
     : {
-        title: "Write Locked-Source Four-Cut Report",
+        title: "Write Four Cuts Before Source Opens",
       };
 }
 

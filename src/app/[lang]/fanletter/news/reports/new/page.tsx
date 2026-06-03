@@ -117,9 +117,9 @@ function getCopy(locale: Locale) {
         connectTitle: "뉴스 리포터 계정 연결이 필요합니다.",
         quickBackCta: "컷 피드로 돌아가기",
         quickConnectBody:
-          "미언락 원본을 4컷 기사로 편집하려면 팬 리포터 계정 연결이 필요합니다. 연결 후 바로 소재 선택과 크롭 편집으로 이어집니다.",
+          "아직 열리지 않은 원본을 4컷 기사로 편집하려면 팬 리포터 계정 연결이 필요합니다. 연결 후 바로 소재 선택과 크롭 편집으로 이어집니다.",
         reportsCta: "리포트 관리로 돌아가기",
-        quickTitle: "미언락 원본 4컷 기사 작성",
+        quickTitle: "원본 공개 전 4컷 기사 작성",
         title: "새 뉴스 리포트 작성",
       }
     : {
@@ -129,9 +129,9 @@ function getCopy(locale: Locale) {
         connectTitle: "Connect your news reporter account.",
         quickBackCta: "Back to cut feed",
         quickConnectBody:
-          "Connect a fan reporter account to edit a locked source into a four-cut report. After connecting, you can continue directly into source selection and cropping.",
+          "Connect a fan reporter account to edit an unopened source into a four-cut report. After connecting, you can continue directly into source selection and cropping.",
         reportsCta: "Back to report desk",
-        quickTitle: "Write locked-source four-cut report",
+        quickTitle: "Write four cuts before source opens",
         title: "Create new news report",
       };
 }

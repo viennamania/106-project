@@ -350,11 +350,11 @@ function getCopy(locale: Locale) {
         quick: {
           back: "컷 피드로 돌아가기",
           body:
-            "피드에서 고른 미언락 원본을 바로 기사화합니다. 후보 확인, 4컷 선택, 크롭, 코멘트만 순서대로 처리하세요.",
-          cta: "미언락 원본 4컷 기사 작성",
+            "피드에서 고른 아직 안 열린 원본을 바로 기사화합니다. 후보 확인, 4컷 선택, 크롭, 코멘트만 순서대로 처리하세요.",
+          cta: "원본 공개 전 4컷 기사 작성",
           eyebrow: "Reporter Quick Desk",
-          sourceList: "다른 미언락 소재 보기",
-          title: "미언락 원본 4컷 기사 작성",
+          sourceList: "다른 공개 전 원본 보기",
+          title: "원본 공개 전 4컷 기사 작성",
         },
         existing: "이미 작성함",
         existingBody:
@@ -681,11 +681,11 @@ function getCopy(locale: Locale) {
         quick: {
           back: "Back to cut feed",
           body:
-            "Turn the locked source selected from the feed into a report. Confirm the source, choose four cuts, crop, and add the reporter note.",
-          cta: "Write locked-source four-cut report",
+            "Turn the unopened source selected from the feed into a report. Confirm the source, choose four cuts, crop, and add the reporter note.",
+          cta: "Write four cuts before source opens",
           eyebrow: "Reporter Quick Desk",
-          sourceList: "View other locked sources",
-          title: "Write locked-source four-cut report",
+          sourceList: "View other unopened sources",
+          title: "Write four cuts before source opens",
         },
         existing: "Already reported",
         existingBody:
