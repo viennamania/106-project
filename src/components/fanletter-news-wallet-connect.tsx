@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   CircleAlert,
   Loader2,
-  ShieldAlert,
   WalletMinimal,
 } from "lucide-react";
 import { Suspense, useMemo, type ComponentType } from "react";
@@ -136,10 +135,6 @@ function FanletterNewsWalletConnectInner({
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
     { returnTo: currentHref },
   );
-  const activateHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/news/activate`, referralCode),
-    { returnTo: currentHref },
-  );
   const member = accountStatus.member;
   const shouldShowConnectWhileResolving =
     accountStatus.status === "checking" &&
@@ -188,29 +183,21 @@ function FanletterNewsWalletConnectInner({
                 title: copy.issue,
                 tone: "warning",
               }
-            : accountStatus.status === "pendingPayment"
+            : accountStatus.status === "issue"
               ? {
-                  Icon: ShieldAlert,
-                  href: activateHref,
-                  label: copy.payment,
-                  title: copy.payment,
+                  Icon: CircleAlert,
+                  href: connectHref,
+                  label: copy.issue,
+                  title: accountStatus.memberSession.error ?? copy.issue,
                   tone: "warning",
                 }
-              : accountStatus.status === "issue"
-                ? {
-                    Icon: CircleAlert,
-                    href: connectHref,
-                    label: copy.issue,
-                    title: accountStatus.memberSession.error ?? copy.issue,
-                    tone: "warning",
-                  }
-                : {
-                    Icon: CheckCircle2,
-                    href: walletHref,
-                    label: copy.connected,
-                    title: copy.wallet,
-                    tone: "connected",
-                  };
+              : {
+                  Icon: CheckCircle2,
+                  href: walletHref,
+                  label: copy.connected,
+                  title: copy.wallet,
+                  tone: "connected",
+                };
   const Icon = view.Icon;
 
   return (

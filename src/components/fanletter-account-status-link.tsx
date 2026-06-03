@@ -7,7 +7,6 @@ import {
   CircleAlert,
   Loader2,
   Mail,
-  ShieldAlert,
 } from "lucide-react";
 import { Suspense, useMemo, type ComponentType } from "react";
 
@@ -142,7 +141,6 @@ function FanletterAccountStatusLinkFallback({
 
 function FanletterAccountStatusLinkInner({
   className,
-  accountActivateHref,
   accountConnectHref,
   accountFallbackHref,
   compactOnMobile = true,
@@ -168,11 +166,6 @@ function FanletterAccountStatusLinkInner({
   const connectHref = setPathSearchParams(
     accountConnectHref ??
       buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
-    { returnTo: currentHref },
-  );
-  const activateHref = setPathSearchParams(
-    accountActivateHref ??
-      buildPathWithReferral(`/${locale}/activate`, referralCode),
     { returnTo: currentHref },
   );
   const identityLabel =
@@ -235,32 +228,23 @@ function FanletterAccountStatusLinkInner({
               title: copy.serviceSuspended,
               tone: "warning",
             }
-          : accountStatus.status === "pendingPayment"
+          : accountStatus.status === "issue"
             ? {
-                Icon: ShieldAlert,
-                href: activateHref,
-                label: copy.payment,
-                mobileLabel: copy.payment,
-                title: copy.payment,
+                Icon: CircleAlert,
+                href: connectHref,
+                label: copy.issue,
+                mobileLabel: copy.issue,
+                title: accountStatus.memberSession.error ?? copy.issue,
                 tone: "warning",
               }
-            : accountStatus.status === "issue"
-              ? {
-                  Icon: CircleAlert,
-                  href: connectHref,
-                  label: copy.issue,
-                  mobileLabel: copy.issue,
-                  title: accountStatus.memberSession.error ?? copy.issue,
-                  tone: "warning",
-                }
-              : {
-                  Icon: CheckCircle2,
-                  href: connectHref,
-                  label: connectedLabel,
-                  mobileLabel: copy.connected,
-                  title: connectedTitle,
-                  tone: "connected",
-                };
+            : {
+                Icon: CheckCircle2,
+                href: connectHref,
+                label: connectedLabel,
+                mobileLabel: copy.connected,
+                title: connectedTitle,
+                tone: "connected",
+              };
   const Icon = view.Icon;
 
   return (

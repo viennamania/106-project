@@ -28,7 +28,11 @@ export function FanletterNewsWalletSidebarCard({
     resolveGraceMs: CONNECTION_RESOLVE_GRACE_MS,
   });
 
-  if (!forceVisible && accountStatus.status === "connected") {
+  if (
+    !forceVisible &&
+    (accountStatus.status === "connected" ||
+      accountStatus.status === "pendingPayment")
+  ) {
     return null;
   }
 

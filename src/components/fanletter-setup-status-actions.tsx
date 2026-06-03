@@ -146,10 +146,15 @@ export function FanletterSetupStatusProvider({
     resolveGraceMs: CONNECTION_RESOLVE_GRACE_MS,
   });
   const [loadedSetup, setLoadedSetup] = useState<LoadedSetupState>(null);
+  // Light account sync intentionally keeps activation pending while onboarding stays open.
+  const setupAccountStatus =
+    accountStatus.status === "pendingPayment" && accountStatus.accountAddress
+      ? "connected"
+      : accountStatus.status;
 
   useEffect(() => {
     if (
-      accountStatus.status !== "connected" ||
+      setupAccountStatus !== "connected" ||
       !accountStatus.accountAddress ||
       !accountStatus.email
     ) {
@@ -241,12 +246,12 @@ export function FanletterSetupStatusProvider({
     return () => {
       controller.abort();
     };
-  }, [accountStatus.accountAddress, accountStatus.email, accountStatus.status]);
+  }, [accountStatus.accountAddress, accountStatus.email, setupAccountStatus]);
 
   const value = useMemo<SetupState>(() => {
-    if (accountStatus.status === "checking") {
+    if (setupAccountStatus === "checking") {
       return {
-        accountStatus: accountStatus.status,
+        accountStatus: setupAccountStatus,
         character: {
           ...EMPTY_CHARACTER_STATE,
           status: "checking",
@@ -259,11 +264,11 @@ export function FanletterSetupStatusProvider({
     }
 
     if (
-      accountStatus.status !== "connected" ||
+      setupAccountStatus !== "connected" ||
       !accountStatus.accountAddress
     ) {
       return {
-        accountStatus: accountStatus.status,
+        accountStatus: setupAccountStatus,
         character: EMPTY_CHARACTER_STATE,
         vlogs: EMPTY_VLOG_STATE,
       };
@@ -271,7 +276,7 @@ export function FanletterSetupStatusProvider({
 
     if (!accountStatus.email) {
       return {
-        accountStatus: accountStatus.status,
+        accountStatus: setupAccountStatus,
         character: {
           ...EMPTY_CHARACTER_STATE,
           status: "checking",
@@ -290,14 +295,14 @@ export function FanletterSetupStatusProvider({
 
     if (loadedSetup?.key === lookupKey) {
       return {
-        accountStatus: accountStatus.status,
+        accountStatus: setupAccountStatus,
         character: loadedSetup.character,
         vlogs: loadedSetup.vlogs,
       };
     }
 
     return {
-      accountStatus: accountStatus.status,
+      accountStatus: setupAccountStatus,
       character: {
         ...EMPTY_CHARACTER_STATE,
         status: "checking",
@@ -310,8 +315,8 @@ export function FanletterSetupStatusProvider({
   }, [
     accountStatus.accountAddress,
     accountStatus.email,
-    accountStatus.status,
     loadedSetup,
+    setupAccountStatus,
   ]);
 
   return (
