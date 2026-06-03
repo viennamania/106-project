@@ -17,6 +17,7 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { readMemberServerSession } from "@/lib/member-server-session";
+import { cn } from "@/lib/utils";
 
 export type FanletterNewsReportNewSearchParams = {
   contentId?: string | string[];
@@ -114,6 +115,9 @@ function getCopy(locale: Locale) {
           "팬 리포터 회원만 새 뉴스 리포트를 작성할 수 있습니다. 계정을 연결하면 브이로그 후보와 티저 이미지 편집실이 열립니다.",
         connectCta: "뉴스 계정 연결",
         connectTitle: "뉴스 리포터 계정 연결이 필요합니다.",
+        quickBackCta: "컷 피드로 돌아가기",
+        quickConnectBody:
+          "미언락 원본을 4컷 기사로 편집하려면 팬 리포터 계정 연결이 필요합니다. 연결 후 바로 소재 선택과 크롭 편집으로 이어집니다.",
         reportsCta: "리포트 관리로 돌아가기",
         quickTitle: "미언락 원본 4컷 기사 작성",
         title: "새 뉴스 리포트 작성",
@@ -123,6 +127,9 @@ function getCopy(locale: Locale) {
           "Only fan reporter members can create new news reports. Connect your account to open vlog candidates and the teaser image desk.",
         connectCta: "Connect news account",
         connectTitle: "Connect your news reporter account.",
+        quickBackCta: "Back to cut feed",
+        quickConnectBody:
+          "Connect a fan reporter account to edit a locked source into a four-cut report. After connecting, you can continue directly into source selection and cropping.",
         reportsCta: "Back to report desk",
         quickTitle: "Write locked-source four-cut report",
         title: "Create new news report",
@@ -265,8 +272,17 @@ export async function renderFanletterNewsReportComposerRoute({
       };
 
   if (!session || !data.member) {
+    const isQuickExperience = experience === "quick";
+
     return (
-      <main className="min-h-screen bg-[#f2f4ef] px-4 pb-28 pt-5 text-[#111510] sm:px-6 sm:py-6 lg:px-8">
+      <main
+        className={cn(
+          "min-h-screen px-4 text-[#111510] sm:px-6 lg:px-8",
+          isQuickExperience
+            ? "bg-[#050706] pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)] text-white"
+            : "bg-[#f2f4ef] pb-28 pt-5 sm:py-6",
+        )}
+      >
         <FanletterNewsReportsSessionBridge
           hasServerSession={Boolean(session)}
           locale={locale}
@@ -274,30 +290,69 @@ export async function renderFanletterNewsReportComposerRoute({
           serverSessionEmail={session?.email ?? null}
           serverSessionWalletAddress={session?.walletAddress ?? null}
         />
-        <section className="mx-auto max-w-3xl border border-black/12 bg-white p-5 shadow-[0_18px_46px_rgba(17,21,16,0.08)] sm:p-8">
-          <p className="inline-flex size-11 items-center justify-center rounded-full bg-[#111510] text-[#44f26e]">
+        <section
+          className={cn(
+            "mx-auto p-5 shadow-[0_18px_46px_rgba(17,21,16,0.08)] sm:p-8",
+            isQuickExperience
+              ? "max-w-[430px] rounded-3xl border border-[#44f26e]/24 bg-[#0a120d] shadow-[0_24px_80px_rgba(0,0,0,0.42)]"
+              : "max-w-3xl border border-black/12 bg-white",
+          )}
+        >
+          <p
+            className={cn(
+              "inline-flex size-11 items-center justify-center rounded-full",
+              isQuickExperience
+                ? "bg-[#44f26e] text-[#111510]"
+                : "bg-[#111510] text-[#44f26e]",
+            )}
+          >
             <WalletCards className="size-5" />
           </p>
           <h1 className="mt-4 text-[2rem] font-black leading-tight tracking-normal [word-break:keep-all] sm:text-3xl">
-            {experience === "quick" ? copy.quickTitle : copy.connectTitle}
+            {isQuickExperience ? copy.quickTitle : copy.connectTitle}
           </h1>
-          <p className="mt-2 text-sm font-semibold leading-6 text-black/58">
-            {copy.connectBody}
+          <p
+            className={cn(
+              "mt-2 text-sm font-semibold leading-6",
+              isQuickExperience ? "text-white/62" : "text-black/58",
+            )}
+          >
+            {isQuickExperience ? copy.quickConnectBody : copy.connectBody}
           </p>
           <div className="mt-5 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             <Link
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black sm:h-11 sm:w-auto"
+              className={cn(
+                "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-black transition sm:h-11 sm:w-auto",
+                isQuickExperience
+                  ? "bg-[#44f26e] !text-[#111510] hover:bg-[#65ff87]"
+                  : "bg-[#111510] !text-white hover:bg-black",
+              )}
               href={connectHref}
             >
               {copy.connectCta}
-              <ArrowRight className="size-4 text-[#44f26e]" />
+              <ArrowRight
+                className={cn(
+                  "size-4",
+                  isQuickExperience ? "text-[#111510]" : "text-[#44f26e]",
+                )}
+              />
             </Link>
             <Link
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f6f8f4] px-5 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:h-11 sm:w-auto"
+              className={cn(
+                "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border px-5 text-sm font-black transition sm:h-11 sm:w-auto",
+                isQuickExperience
+                  ? "border-white/12 bg-white/8 !text-white/78 hover:border-[#44f26e]/34 hover:bg-white/12"
+                  : "border-black/12 bg-[#f6f8f4] !text-[#111510] hover:border-[#19b84b] hover:bg-[#ecfff0]",
+              )}
               href={returnToHref}
             >
-              <Newspaper className="size-4 text-[#16702e]" />
-              {copy.reportsCta}
+              <Newspaper
+                className={cn(
+                  "size-4",
+                  isQuickExperience ? "text-[#44f26e]" : "text-[#16702e]",
+                )}
+              />
+              {isQuickExperience ? copy.quickBackCta : copy.reportsCta}
             </Link>
           </div>
         </section>

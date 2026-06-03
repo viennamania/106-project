@@ -4550,6 +4550,103 @@ export function FanletterNewsReportComposerPage({
           </div>
         </section>
 
+        {isQuickComposer && displayedSources.length > 1 ? (
+          <section className="mt-3 rounded-2xl border border-white/10 bg-white/[0.06] p-3 text-white shadow-[0_16px_46px_rgba(0,0,0,0.24)] lg:hidden">
+            <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
+                  {copy.quick.sourceList}
+                </p>
+                <p className="mt-1 truncate text-xs font-bold text-white/46">
+                  {formatNumber(displayedSources.length, locale)}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-[#44f26e] px-2.5 py-1 text-xs font-black text-[#111510]">
+                {selectedSource
+                  ? `${formatNumber(selectedSourceRevealCount, locale)}/${formatNumber(
+                      selectedSource.sourceReveal.threshold,
+                      locale,
+                    )}`
+                  : formatNumber(displayedSources.length, locale)}
+              </span>
+            </div>
+            <div className="-mx-1 mt-3 grid grid-flow-col auto-cols-[minmax(10.25rem,72vw)] gap-2 overflow-x-auto px-1 pb-1">
+              {displayedSources.slice(0, 12).map((source) => {
+                const isSelected = source.contentId === selectedContentId;
+                const sourceRevealCount = getSourceRevealCount(source);
+                const sourceRevealRemaining = getSourceRevealRemaining(source);
+                const isOpportunitySource = isSourceRevealOpportunitySource({
+                  reporterReferralCode,
+                  source,
+                });
+
+                return (
+                  <button
+                    className={cn(
+                      "grid min-h-[8.25rem] grid-cols-[4.5rem_minmax(0,1fr)] gap-2 rounded-xl border p-2 text-left transition",
+                      isSelected
+                        ? "border-[#44f26e] bg-[#44f26e]/14 shadow-[0_0_0_1px_rgba(68,242,110,0.22)]"
+                        : "border-white/10 bg-black/28",
+                    )}
+                    key={`quick-mobile-source-${source.contentId}`}
+                    onClick={() => {
+                      selectSource(source.contentId);
+                      window.requestAnimationFrame(() => {
+                        selectedDetailRef.current?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "start",
+                        });
+                      });
+                    }}
+                    type="button"
+                  >
+                    <span className="relative block aspect-[4/5] overflow-hidden rounded-lg bg-black">
+                      <span
+                        aria-hidden="true"
+                        className="absolute inset-0 bg-cover bg-center"
+                        style={
+                          source.coverImageUrl
+                            ? {
+                                backgroundImage: `url(${source.coverImageUrl})`,
+                              }
+                            : undefined
+                        }
+                      />
+                      {isOpportunitySource ? (
+                        <span className="absolute left-1 top-1 rounded-full bg-[#44f26e] px-1.5 py-0.5 text-[0.56rem] font-black text-black">
+                          {copy.sourceReveal.recommended}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="min-w-0 py-0.5">
+                      <span className="flex flex-wrap gap-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-white/44">
+                        <span>{source.creatorName}</span>
+                        <span>{copy.price[source.priceType]}</span>
+                      </span>
+                      <span className="mt-1 line-clamp-2 text-sm font-black leading-5 [word-break:keep-all]">
+                        {source.title}
+                      </span>
+                      <span className="mt-2 flex flex-wrap gap-1">
+                        <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[0.58rem] font-black text-[#9bffad]">
+                          {formatNumber(sourceRevealCount, locale)}/
+                          {formatNumber(source.sourceReveal.threshold, locale)}
+                        </span>
+                        {!source.sourceReveal.unlocked ? (
+                          <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[0.58rem] font-black text-white/62">
+                            {copy.sourceReveal.remaining(
+                              formatNumber(sourceRevealRemaining, locale),
+                            )}
+                          </span>
+                        ) : null}
+                      </span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+
         <section
           className={cn(
             "mt-3 grid gap-4 lg:mt-4",

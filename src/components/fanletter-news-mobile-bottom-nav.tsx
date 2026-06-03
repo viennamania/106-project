@@ -280,6 +280,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const reporterPath = `${basePath}/reporter`;
   const rewardsPath = `${basePath}/rewards`;
   const reportsPath = `${basePath}/reports`;
+  const quickReportPath = `${reportsPath}/quick`;
   const vlogsPath = `${basePath}/vlogs`;
   const walletPath = `${basePath}/wallet`;
   const vlogsManagePath = `${basePath}/vlogs/manage`;
@@ -288,6 +289,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     pathname === platformPath ||
     pathname === cutsPath ||
     pathname.startsWith(`${cutsPath}/`) ||
+    pathname === quickReportPath ||
     isNewsReportDetailPath(pathname, basePath);
 
   if (shouldHideNav) {
