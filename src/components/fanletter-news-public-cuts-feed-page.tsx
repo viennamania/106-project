@@ -3258,6 +3258,31 @@ function getPublicCutItemCutCount(item: SerializedFanletterNewsPublicCutFeedItem
   return Math.max(item.cuts.length, 1);
 }
 
+type LockedReporterCandidate = {
+  contentId: string;
+  index: number;
+};
+
+function getLockedReporterCandidates(
+  items: SerializedFanletterNewsPublicCutFeedItem[],
+) {
+  const seenContentIds = new Set<string>();
+  const candidates: LockedReporterCandidate[] = [];
+
+  items.forEach((item, index) => {
+    const contentId = item.report.contentId.trim();
+
+    if (!contentId || item.sourceReveal.unlocked || seenContentIds.has(contentId)) {
+      return;
+    }
+
+    seenContentIds.add(contentId);
+    candidates.push({ contentId, index });
+  });
+
+  return candidates;
+}
+
 function canShowSourceViewSwipeGuide(
   item: SerializedFanletterNewsPublicCutFeedItem | undefined,
 ) {
@@ -3488,13 +3513,24 @@ export function FanletterNewsPublicCutsFeedPage({
     viewerReporterReferralCode && selectedRolePreference === "reporter",
   );
   const lockedReporterCandidateCount = useMemo(
-    () => items.filter((item) => !item.sourceReveal.unlocked).length,
+    () => getLockedReporterCandidates(items).length,
     [items],
   );
-  const firstLockedReporterCandidateIndex = useMemo(
-    () => items.findIndex((item) => !item.sourceReveal.unlocked),
+  const lockedReporterCandidates = useMemo(
+    () => getLockedReporterCandidates(items),
     [items],
   );
+  const nextLockedReporterCandidateIndex = useMemo(() => {
+    if (lockedReporterCandidates.length <= 0) {
+      return -1;
+    }
+
+    return (
+      lockedReporterCandidates.find(
+        (candidate) => candidate.index > visibleFeedIndex,
+      )?.index ?? lockedReporterCandidates[0]?.index ?? -1
+    );
+  }, [lockedReporterCandidates, visibleFeedIndex]);
   const firstSlideCutCount = items[0] ? getPublicCutItemCutCount(items[0]) : 0;
   const shouldOfferEntrySwipeGuide = Boolean(
     (shareId || excludeReportId) && firstSlideCutCount > 1,
@@ -3636,6 +3672,10 @@ export function FanletterNewsPublicCutsFeedPage({
         params.set("shareId", shareId);
       }
 
+      if (selectedRolePreference === "reporter") {
+        params.set("mode", "reporter_locked");
+      }
+
       const response = await fetch(`/api/fanletter/news-cuts?${params}`, {
         headers: {
           Accept: "application/json",
@@ -3666,6 +3706,7 @@ export function FanletterNewsPublicCutsFeedPage({
     locale,
     nextOffset,
     referralCode,
+    selectedRolePreference,
     shareId,
   ]);
 
@@ -4018,13 +4059,13 @@ export function FanletterNewsPublicCutsFeedPage({
                 onClick={() => {
                   const root = scrollContainerRef.current;
 
-                  if (!root || firstLockedReporterCandidateIndex < 0) {
+                  if (!root || nextLockedReporterCandidateIndex < 0) {
                     return;
                   }
 
                   root.scrollTo({
                     behavior: "smooth",
-                    top: root.clientHeight * firstLockedReporterCandidateIndex,
+                    top: root.clientHeight * nextLockedReporterCandidateIndex,
                   });
                 }}
                 type="button"

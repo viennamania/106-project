@@ -35,6 +35,7 @@ const FANLETTER_NEWS_PUBLIC_CUT_FEED_REPORT_LIMIT =
 const FANLETTER_NEWS_PUBLIC_CUT_FEED_LOOKAHEAD_LIMIT = 48;
 
 type FanletterNewsPublicCutFeedAudience = "guest_direct" | "guest_social" | "member";
+type FanletterNewsPublicCutFeedMode = "default" | "reporter_locked";
 
 export type FanletterNewsPublicCut = {
   imageUrl: string;
@@ -115,11 +116,13 @@ function getPublicCutReportSortTime(report: FanletterNewsReportDocument) {
 function scoreFanletterNewsPublicCutFeedItem({
   audience,
   item,
+  mode = "default",
   referralCode,
   targetReport,
 }: {
   audience: FanletterNewsPublicCutFeedAudience;
   item: FanletterNewsPublicCutFeedItem;
+  mode?: FanletterNewsPublicCutFeedMode;
   referralCode: string | null;
   targetReport: FanletterNewsReportDocument | null;
 }) {
@@ -152,7 +155,15 @@ function scoreFanletterNewsPublicCutFeedItem({
     score += audience === "member" ? 60 : 140;
   }
 
-  if (audience === "guest_social") {
+  if (mode === "reporter_locked") {
+    score += sourceReveal.unlocked ? -260 : 280;
+    score += nearUnlock ? 150 : 0;
+    score += sourceReveal.requestedByViewer ? 70 : 0;
+    score += sourceReveal.count * 22;
+    score += report.coverImageUrl ? 24 : 0;
+    score += report.priceType === "free" ? 36 : -20;
+    score += report.contentMaturityRating === "nsfw" ? -80 : 0;
+  } else if (audience === "guest_social") {
     score += sourceReveal.unlocked ? 120 : 0;
     score += nearUnlock ? 110 : 0;
     score += sourceReveal.count * 15;
@@ -181,25 +192,29 @@ function scoreFanletterNewsPublicCutFeedItem({
 function sortFanletterNewsPublicCutFeedItems({
   audience,
   items,
+  mode = "default",
   referralCode,
   targetReport,
 }: {
   audience: FanletterNewsPublicCutFeedAudience;
   items: FanletterNewsPublicCutFeedItem[];
+  mode?: FanletterNewsPublicCutFeedMode;
   referralCode: string | null;
   targetReport: FanletterNewsReportDocument | null;
 }) {
-  return [...items].sort((left, right) => {
+  const sortedItems = [...items].sort((left, right) => {
     const scoreDelta =
       scoreFanletterNewsPublicCutFeedItem({
         audience,
         item: right,
+        mode,
         referralCode,
         targetReport,
       }) -
       scoreFanletterNewsPublicCutFeedItem({
         audience,
         item: left,
+        mode,
         referralCode,
         targetReport,
       });
@@ -218,6 +233,28 @@ function sortFanletterNewsPublicCutFeedItems({
 
     return right.report.reportId.localeCompare(left.report.reportId);
   });
+
+  if (mode !== "reporter_locked") {
+    return sortedItems;
+  }
+
+  const firstByContentId = new Set<string>();
+  const firstPass: FanletterNewsPublicCutFeedItem[] = [];
+  const duplicatePass: FanletterNewsPublicCutFeedItem[] = [];
+
+  for (const item of sortedItems) {
+    const contentId = item.report.contentId.trim();
+
+    if (!contentId || firstByContentId.has(contentId)) {
+      duplicatePass.push(item);
+      continue;
+    }
+
+    firstByContentId.add(contentId);
+    firstPass.push(item);
+  }
+
+  return [...firstPass, ...duplicatePass];
 }
 
 function getPublicCutsFromReport(
@@ -434,6 +471,7 @@ export async function getFanletterNewsPublicCutFeedPage({
   excludeReportIds = [],
   limit = FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
   locale,
+  mode = "default",
   offset = 0,
   referralCode = null,
   shareId = null,
@@ -443,6 +481,7 @@ export async function getFanletterNewsPublicCutFeedPage({
   excludeReportIds?: string[];
   limit?: number;
   locale: Locale;
+  mode?: FanletterNewsPublicCutFeedMode;
   offset?: number;
   referralCode?: string | null;
   shareId?: string | null;
@@ -518,6 +557,7 @@ export async function getFanletterNewsPublicCutFeedPage({
   const sortedCandidateItems = sortFanletterNewsPublicCutFeedItems({
     audience,
     items: hydratedCandidateItems,
+    mode,
     referralCode: normalizedReferralCode,
     targetReport,
   });

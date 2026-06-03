@@ -49,10 +49,12 @@ export async function GET(request: Request) {
     );
     const shareId = normalizeShareId(searchParams.get("shareId"));
     const session = await readMemberServerSession();
+    const reporterLockedMode = searchParams.get("mode") === "reporter_locked";
     const page = await getFanletterNewsPublicCutFeedPage({
       excludeReportIds: excludeReportId ? [excludeReportId] : [],
       limit: readPositiveInteger(searchParams.get("limit")),
       locale: localeParam as Locale,
+      mode: reporterLockedMode ? "reporter_locked" : "default",
       offset: readNonNegativeInteger(searchParams.get("offset")),
       referralCode,
       shareId,
