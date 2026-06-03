@@ -167,8 +167,8 @@ function getCopy(locale: Locale) {
         serviceVlogs: "원본 브이로그",
         serviceVlogsHint: "공개 영상",
         share: "공유하기",
-        shareCopied: "링크 복사됨",
-        shareError: "공유 실패",
+        shareCopied: "링크가 복사되었습니다",
+        shareError: "공유할 수 없습니다",
         shareSharing: "공유 중",
         shareSummary: (headline: string, reporterName: string) =>
           `팬 기자 ${reporterName}가 고른 ${headline} 4컷을 확인해보세요.`,
@@ -287,8 +287,8 @@ function getCopy(locale: Locale) {
         serviceVlogs: "Source Vlogs",
         serviceVlogsHint: "Public videos",
         share: "Share",
-        shareCopied: "Link copied",
-        shareError: "Share failed",
+        shareCopied: "Link copied to clipboard",
+        shareError: "Could not share",
         shareSharing: "Sharing",
         shareSummary: (headline: string, reporterName: string) =>
           `See the four cuts ${reporterName} selected for ${headline}.`,
@@ -534,20 +534,40 @@ async function copyToClipboard(value: string) {
   if (navigator.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(value);
-      return;
-    } catch {}
+      return true;
+    } catch {
+      // Fall through to the textarea copy path for browsers that expose
+      // clipboard.writeText but reject it without a direct user gesture.
+    }
   }
 
   const textarea = document.createElement("textarea");
 
-  textarea.value = value;
-  textarea.setAttribute("readonly", "true");
-  textarea.style.left = "-9999px";
-  textarea.style.position = "fixed";
-  document.body.appendChild(textarea);
-  textarea.select();
-  document.execCommand("copy");
-  document.body.removeChild(textarea);
+  try {
+    textarea.value = value;
+    textarea.setAttribute("readonly", "true");
+    textarea.style.left = "-9999px";
+    textarea.style.opacity = "0";
+    textarea.style.position = "fixed";
+    textarea.style.top = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    return document.execCommand("copy");
+  } catch {
+    return false;
+  } finally {
+    textarea.remove();
+  }
+}
+
+function isShareAbortError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    error.name === "AbortError"
+  );
 }
 
 function CutFeedShareButton({
@@ -581,75 +601,94 @@ function CutFeedShareButton({
   variant?: "compact" | "reel";
 }) {
   const [state, setState] = useState<ShareState>("idle");
+  const feedbackTimeoutRef = useRef<number | null>(null);
+  const isSharingRef = useRef(false);
 
-  useEffect(() => {
-    if (state !== "copied" && state !== "error") {
+  const showShareFeedback = useCallback((nextState: Exclude<ShareState, "sharing">) => {
+    if (feedbackTimeoutRef.current !== null) {
+      window.clearTimeout(feedbackTimeoutRef.current);
+      feedbackTimeoutRef.current = null;
+    }
+
+    setState(nextState);
+
+    if (nextState === "copied" || nextState === "error") {
+      feedbackTimeoutRef.current = window.setTimeout(() => {
+        setState("idle");
+        feedbackTimeoutRef.current = null;
+      }, 2200);
+    }
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (feedbackTimeoutRef.current !== null) {
+        window.clearTimeout(feedbackTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  const handleShare = useCallback(async () => {
+    if (isSharingRef.current) {
       return;
     }
 
-    const timeout = window.setTimeout(() => {
-      setState("idle");
-    }, 2200);
+    isSharingRef.current = true;
+    setState("sharing");
 
-    return () => {
-      window.clearTimeout(timeout);
-    };
-  }, [state]);
-
-  const handleShare = useCallback(async () => {
-    const nextShareId = createShareId("newscut");
-    const absoluteHref = new URL(href, window.location.origin).toString();
-    const shareUrl = setPathSearchParams(
-      setShareIdOnHref(absoluteHref, nextShareId),
-      {
-        [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(activeCutSlotNumber),
-      },
-    );
-
-    trackFunnelEvent("share_click", {
-      contentId,
-      metadata: {
-        creatorReferralCode,
-        cutSlotNumber: activeCutSlotNumber,
-        previewImageKind,
-        reporterReferralCode,
-        reportId,
-        source: "fanletter-news-cut-feed",
-      },
-      referralCode,
-      shareId: nextShareId,
-      targetHref: shareUrl,
-    });
-
-    if (typeof navigator.share === "function") {
-      setState("sharing");
-
-      try {
-        await navigator.share({
-          text: shareSummary,
-          title: shareTitle,
-          url: shareUrl,
-        });
-        setState("idle");
-        return;
-      } catch (error) {
-        if (
-          typeof error === "object" &&
-          error !== null &&
-          "name" in error &&
-          error.name === "AbortError"
-        ) {
-          setState("idle");
-          return;
-        }
-      }
-    }
+    let nextState: Exclude<ShareState, "sharing"> = "idle";
 
     try {
-      await copyToClipboard(shareUrl);
-      setState("copied");
+      const nextShareId = createShareId("newscut");
+      const absoluteHref = new URL(href, window.location.origin).toString();
+      const shareUrl = setPathSearchParams(
+        setShareIdOnHref(absoluteHref, nextShareId),
+        {
+          [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(activeCutSlotNumber),
+        },
+      );
+
+      trackFunnelEvent("share_click", {
+        contentId,
+        metadata: {
+          creatorReferralCode,
+          cutSlotNumber: activeCutSlotNumber,
+          previewImageKind,
+          reporterReferralCode,
+          reportId,
+          source: "fanletter-news-cut-feed",
+        },
+        referralCode,
+        shareId: nextShareId,
+        targetHref: shareUrl,
+      });
+
+      if (typeof navigator.share === "function") {
+        try {
+          await navigator.share({
+            text: shareSummary,
+            title: shareTitle,
+            url: shareUrl,
+          });
+        } catch (error) {
+          if (isShareAbortError(error)) {
+            nextState = "idle";
+            return;
+          }
+
+          nextState = (await copyToClipboard(shareUrl)) ? "copied" : "error";
+        }
+
+        return;
+      }
+
+      nextState = (await copyToClipboard(shareUrl)) ? "copied" : "error";
     } catch {
-      setState("error");
+      nextState = "error";
+    } finally {
+      isSharingRef.current = false;
+      showShareFeedback(nextState);
     }
   }, [
     activeCutSlotNumber,
@@ -662,6 +701,7 @@ function CutFeedShareButton({
     reportId,
     shareSummary,
     shareTitle,
+    showShareFeedback,
   ]);
 
   const label =
@@ -673,6 +713,27 @@ function CutFeedShareButton({
           ? copy.shareSharing
           : copy.share;
   const isCopied = state === "copied";
+  const feedbackMessage = state === "copied" || state === "error" ? label : "";
+  const feedbackClassName =
+    variant === "reel"
+      ? `pointer-events-none absolute right-[calc(100%+0.55rem)] top-1/2 z-40 max-w-[11rem] -translate-y-1/2 rounded-full border px-3 py-1.5 text-center text-[0.68rem] font-black leading-tight text-white shadow-[0_18px_40px_rgba(0,0,0,0.32)] backdrop-blur-xl transition duration-200 ${
+          feedbackMessage
+            ? "translate-x-0 opacity-100"
+            : "translate-x-1 opacity-0"
+        } ${
+          state === "error"
+            ? "border-rose-300/28 bg-rose-950/78"
+            : "border-[#44f26e]/28 bg-black/72"
+        }`
+      : `pointer-events-none absolute left-1/2 top-[calc(100%+0.45rem)] z-40 w-max max-w-[12rem] -translate-x-1/2 rounded-full border px-3 py-1.5 text-center text-[0.68rem] font-black leading-tight text-white shadow-[0_14px_34px_rgba(0,0,0,0.26)] backdrop-blur-xl transition duration-200 ${
+          feedbackMessage
+            ? "translate-y-0 opacity-100"
+            : "-translate-y-1 opacity-0"
+        } ${
+          state === "error"
+            ? "border-rose-300/28 bg-rose-950/78"
+            : "border-[#44f26e]/28 bg-black/72"
+        }`;
   const buttonClassName =
     variant === "reel"
       ? `inline-flex size-11 shrink-0 items-center justify-center rounded-full border text-white shadow-[0_14px_30px_rgba(0,0,0,0.26)] backdrop-blur-xl transition hover:bg-white hover:text-[#111510] disabled:cursor-wait disabled:opacity-80 ${
@@ -688,24 +749,35 @@ function CutFeedShareButton({
   const iconClassName = variant === "reel" ? "size-5" : "size-4";
 
   return (
-    <button
-      aria-label={label}
-      className={buttonClassName}
-      disabled={state === "sharing"}
-      onClick={() => {
-        void handleShare();
-      }}
-      title={label}
-      type="button"
-    >
-      {state === "sharing" ? (
-        <Loader2 className={`${iconClassName} animate-spin`} />
-      ) : isCopied ? (
-        <Check className={iconClassName} />
-      ) : (
-        <Share2 className={iconClassName} />
-      )}
-    </button>
+    <span className="relative inline-flex">
+      <button
+        aria-busy={state === "sharing"}
+        aria-label={label}
+        className={buttonClassName}
+        disabled={state === "sharing"}
+        onClick={() => {
+          void handleShare();
+        }}
+        title={label}
+        type="button"
+      >
+        {state === "sharing" ? (
+          <Loader2 className={`${iconClassName} animate-spin`} />
+        ) : isCopied ? (
+          <Check className={iconClassName} />
+        ) : (
+          <Share2 className={iconClassName} />
+        )}
+      </button>
+      <span
+        aria-live="polite"
+        className={feedbackClassName}
+        data-share-feedback
+        role="status"
+      >
+        {feedbackMessage}
+      </span>
+    </span>
   );
 }
 
