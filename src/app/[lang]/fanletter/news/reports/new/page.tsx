@@ -7,7 +7,10 @@ import { ArrowRight, Newspaper, WalletCards } from "lucide-react";
 import { FanletterNewsReportComposerPage } from "@/components/fanletter-news-report-composer-page";
 import { FanletterNewsReportsSessionBridge } from "@/components/fanletter-news-reports-session-bridge";
 import { getFanletterNewsReportDraftSourcesForMember } from "@/lib/fanletter-news-report-service";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import {
+  getSafeFanletterReturnTo,
+  readFanletterReferralCode,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
@@ -15,12 +18,13 @@ import {
 } from "@/lib/landing-branding";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
-type FanletterNewsReportNewSearchParams = {
+export type FanletterNewsReportNewSearchParams = {
   contentId?: string | string[];
   nsfw?: string | string[];
   q?: string | string[];
   ref?: string | string[];
   reportStatus?: string | string[];
+  returnTo?: string | string[];
   sourcePage?: string | string[];
   sourceReveal?: string | string[];
   sourceSort?: string | string[];
@@ -111,6 +115,7 @@ function getCopy(locale: Locale) {
         connectCta: "뉴스 계정 연결",
         connectTitle: "뉴스 리포터 계정 연결이 필요합니다.",
         reportsCta: "리포트 관리로 돌아가기",
+        quickTitle: "미언락 원본 4컷 기사 작성",
         title: "새 뉴스 리포트 작성",
       }
     : {
@@ -119,6 +124,7 @@ function getCopy(locale: Locale) {
         connectCta: "Connect news account",
         connectTitle: "Connect your news reporter account.",
         reportsCta: "Back to report desk",
+        quickTitle: "Write locked-source four-cut report",
         title: "Create new news report",
       };
 }
@@ -144,6 +150,22 @@ export default async function LocalizedFanletterNewsReportNewPage({
   params: Promise<{ lang: string }>;
   searchParams: Promise<FanletterNewsReportNewSearchParams>;
 }) {
+  return renderFanletterNewsReportComposerRoute({
+    experience: "default",
+    params,
+    searchParams,
+  });
+}
+
+export async function renderFanletterNewsReportComposerRoute({
+  experience,
+  params,
+  searchParams,
+}: {
+  experience: "default" | "quick";
+  params: Promise<{ lang: string }>;
+  searchParams: Promise<FanletterNewsReportNewSearchParams>;
+}) {
   const { lang } = await params;
   const query = await searchParams;
 
@@ -160,10 +182,14 @@ export default async function LocalizedFanletterNewsReportNewPage({
   const sourcePage = normalizeSourcePage(query.sourcePage);
   const hasSelectedContentId = Boolean(selectedContentId);
   const defaultReportStatusFilter: ReportStatusFilter = hasSelectedContentId
-    ? "all"
+    ? experience === "quick"
+      ? "unreported"
+      : "all"
     : "unreported";
   const defaultSourceRevealFilter: SourceRevealFilter = hasSelectedContentId
-    ? "all"
+    ? experience === "quick"
+      ? "locked"
+      : "all"
     : "opportunity";
   const sourceSort = normalizeSourceSort(query.sourceSort);
   const reportStatusFilter = normalizeReportStatusFilter({
@@ -178,14 +204,27 @@ export default async function LocalizedFanletterNewsReportNewPage({
     `/${locale}/fanletter/news/reports`,
     referralCode,
   );
+  const fallbackReturnToHref =
+    experience === "quick"
+      ? buildPathWithReferral(`/${locale}/fanletter/news/cuts`, referralCode)
+      : reportsHref;
+  const returnToHref = getSafeFanletterReturnTo({
+    fallbackPath: fallbackReturnToHref,
+    locale,
+    referralCode,
+    returnTo: query.returnTo,
+  });
   const reportNewBaseHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/reports/new`,
+    experience === "quick"
+      ? `/${locale}/fanletter/news/reports/quick`
+      : `/${locale}/fanletter/news/reports/new`,
     referralCode,
   );
   const filteredReportNewHref = setPathSearchParams(reportNewBaseHref, {
     nsfw: includeNsfw ? null : "off",
     reportStatus:
       reportStatusFilter === defaultReportStatusFilter ? null : reportStatusFilter,
+    returnTo: returnToHref,
     sourceReveal:
       sourceRevealFilter === defaultSourceRevealFilter ? null : sourceRevealFilter,
     sourceSort: sourceSort === "recommended" ? null : sourceSort,
@@ -240,7 +279,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
             <WalletCards className="size-5" />
           </p>
           <h1 className="mt-4 text-[2rem] font-black leading-tight tracking-normal [word-break:keep-all] sm:text-3xl">
-            {copy.connectTitle}
+            {experience === "quick" ? copy.quickTitle : copy.connectTitle}
           </h1>
           <p className="mt-2 text-sm font-semibold leading-6 text-black/58">
             {copy.connectBody}
@@ -255,7 +294,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
             </Link>
             <Link
               className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-black/12 bg-[#f6f8f4] px-5 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:h-11 sm:w-auto"
-              href={reportsHref}
+              href={returnToHref}
             >
               <Newspaper className="size-4 text-[#16702e]" />
               {copy.reportsCta}
@@ -285,6 +324,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
         currentHref={reportNewHref}
         defaultReportStatusFilter={defaultReportStatusFilter}
         defaultSourceRevealFilter={defaultSourceRevealFilter}
+        experience={experience}
         initialSelectedContentId={selectedContentId}
         locale={locale}
         onboardingHref={onboardingHref}
@@ -296,6 +336,7 @@ export default async function LocalizedFanletterNewsReportNewPage({
         }}
         reporterReferralCode={data.member.referralCode}
         reportsHref={reportsHref}
+        returnToHref={returnToHref}
         searchQuery={searchQuery}
         sourcePage={sourcePage}
         sourceRevealFilter={sourceRevealFilter}

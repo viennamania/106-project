@@ -675,7 +675,10 @@ function getReportComposerHref({
   returnToHref: string;
 }) {
   return setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/news/reports/new`, referralCode),
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/reports/quick`,
+      referralCode,
+    ),
     {
       contentId,
       returnTo: returnToHref,

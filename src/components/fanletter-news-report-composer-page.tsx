@@ -347,6 +347,15 @@ function getCopy(locale: Locale) {
           title: "모바일 작성",
         },
         mobileFilters: "필터/정렬",
+        quick: {
+          back: "컷 피드로 돌아가기",
+          body:
+            "피드에서 고른 미언락 원본을 바로 기사화합니다. 후보 확인, 4컷 선택, 크롭, 코멘트만 순서대로 처리하세요.",
+          cta: "미언락 원본 4컷 기사 작성",
+          eyebrow: "Reporter Quick Desk",
+          sourceList: "다른 미언락 소재 보기",
+          title: "미언락 원본 4컷 기사 작성",
+        },
         existing: "이미 작성함",
         existingBody:
           "이미 이 브이로그로 작성한 리포트가 있습니다. 본문과 구조 수정은 편집 페이지에서 진행하세요.",
@@ -669,6 +678,15 @@ function getCopy(locale: Locale) {
           title: "Mobile desk",
         },
         mobileFilters: "Filters/sort",
+        quick: {
+          back: "Back to cut feed",
+          body:
+            "Turn the locked source selected from the feed into a report. Confirm the source, choose four cuts, crop, and add the reporter note.",
+          cta: "Write locked-source four-cut report",
+          eyebrow: "Reporter Quick Desk",
+          sourceList: "View other locked sources",
+          title: "Write locked-source four-cut report",
+        },
         existing: "Already reported",
         existingBody:
           "You already created a report for this vlog. Edit the story text and structure on the dedicated edit page.",
@@ -1911,6 +1929,7 @@ export function FanletterNewsReportComposerPage({
   currentHref,
   defaultReportStatusFilter,
   defaultSourceRevealFilter,
+  experience = "default",
   includeNsfw,
   initialSelectedContentId,
   locale,
@@ -1920,6 +1939,7 @@ export function FanletterNewsReportComposerPage({
   reporter,
   reporterReferralCode,
   reportsHref,
+  returnToHref,
   searchQuery,
   sourcePage,
   sourceRevealFilter,
@@ -1930,6 +1950,7 @@ export function FanletterNewsReportComposerPage({
   currentHref: string;
   defaultReportStatusFilter: FanletterNewsReportComposerReportStatusFilter;
   defaultSourceRevealFilter: FanletterNewsReportComposerSourceRevealFilter;
+  experience?: "default" | "quick";
   includeNsfw: boolean;
   initialSelectedContentId: string;
   locale: Locale;
@@ -1939,6 +1960,7 @@ export function FanletterNewsReportComposerPage({
   reporter: FanletterNewsReportComposerReporterMember;
   reporterReferralCode: string;
   reportsHref: string;
+  returnToHref?: string;
   searchQuery: string;
   sourcePage: number;
   sourceRevealFilter: FanletterNewsReportComposerSourceRevealFilter;
@@ -1946,6 +1968,7 @@ export function FanletterNewsReportComposerPage({
   sources: FanletterNewsReportComposerSource[];
 }) {
   const copy = useMemo(() => getCopy(locale), [locale]);
+  const isQuickComposer = experience === "quick";
   const router = useRouter();
   const [searchInput, setSearchInput] = useState(searchQuery);
   const reportSources = sources;
@@ -2557,6 +2580,7 @@ export function FanletterNewsReportComposerPage({
     `/${locale}/fanletter/news/reporters/${reporter.referralCode}`,
     { ref: reporterReferralCode },
   );
+  const backHref = isQuickComposer ? returnToHref ?? reportsHref : reportsHref;
   const routeSelectionKey = [
     initialSelectedContentId,
     reportStatusFilter,
@@ -4403,17 +4427,54 @@ export function FanletterNewsReportComposerPage({
   return (
     <>
       {teaserPickerModal}
-      <main className="min-h-screen bg-[#f2f4ef] px-4 pb-24 pt-[calc(env(safe-area-inset-top)+1rem)] text-[#111510] sm:px-6 lg:px-8">
+      <main
+        className={cn(
+          "min-h-screen px-4 pb-28 pt-[calc(env(safe-area-inset-top)+1rem)] text-[#111510] sm:px-6 lg:px-8",
+          isQuickComposer ? "bg-[#050706] lg:bg-[#f2f4ef]" : "bg-[#f2f4ef]",
+        )}
+      >
       <div className="mx-auto max-w-7xl">
         <Link
-          className="inline-flex h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-black !text-black/58 transition hover:!text-[#111510]"
-          href={reportsHref}
+          className={cn(
+            "inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-black transition",
+            isQuickComposer
+              ? "border border-white/14 bg-white/10 !text-white/72 hover:!text-white lg:border-black/10 lg:bg-white lg:!text-black/58"
+              : "border border-black/10 bg-white !text-black/58 hover:!text-[#111510]",
+          )}
+          href={backHref}
         >
           <ArrowLeft className="size-4 text-[#16702e]" />
-          {copy.toReports}
+          {isQuickComposer ? copy.quick.back : copy.toReports}
         </Link>
 
-        <section className="mt-3 grid gap-4 lg:mt-4 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        {isQuickComposer ? (
+          <section className="mt-3 overflow-hidden rounded-[2rem] border border-[#44f26e]/24 bg-[#0a120d] p-4 text-white shadow-[0_24px_80px_rgba(0,0,0,0.34)] lg:hidden">
+            <p className="inline-flex items-center gap-1.5 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-2.5 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
+              <Newspaper className="size-3.5" />
+              {copy.quick.eyebrow}
+            </p>
+            <h1 className="mt-4 text-[1.95rem] font-black leading-[1.04] tracking-normal [word-break:keep-all]">
+              {copy.quick.title}
+            </h1>
+            <p className="mt-3 text-sm font-bold leading-6 text-white/62 [word-break:keep-all]">
+              {copy.quick.body}
+            </p>
+            <a
+              className="mt-5 inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-base font-black !text-[#111510] shadow-[0_18px_42px_rgba(68,242,110,0.22)]"
+              href="#fanletter-report-teasers"
+            >
+              <Newspaper className="size-5" />
+              {copy.quick.cta}
+            </a>
+          </section>
+        ) : null}
+
+        <section
+          className={cn(
+            "mt-3 gap-4 lg:mt-4 lg:grid-cols-[minmax(0,1fr)_22rem]",
+            isQuickComposer ? "hidden lg:grid" : "grid",
+          )}
+        >
           <div className="border border-black/12 bg-white p-4 shadow-[0_18px_46px_rgba(17,21,16,0.07)] sm:p-7">
             <p className="inline-flex items-center gap-1.5 border border-[#16702e]/20 bg-[#f6f8f4] px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
               <Newspaper className="size-3.5" />
@@ -4436,13 +4497,18 @@ export function FanletterNewsReportComposerPage({
         </section>
 
         <ReporterInfoPanel
-          className="mt-3 lg:hidden"
+          className={cn("mt-3 lg:hidden", isQuickComposer && "hidden")}
           copy={copy}
           reporter={reporter}
           reporterChannelHref={reporterChannelHref}
         />
 
-        <section className="mt-3 border border-[#19b84b]/18 bg-[#ecfff0] p-3 shadow-[0_12px_28px_rgba(17,21,16,0.055)] lg:hidden">
+        <section
+          className={cn(
+            "mt-3 border border-[#19b84b]/18 bg-[#ecfff0] p-3 shadow-[0_12px_28px_rgba(17,21,16,0.055)] lg:hidden",
+            isQuickComposer && "rounded-2xl border-[#44f26e]/26 bg-[#0e1a12] text-white",
+          )}
+        >
           <div className="flex items-center justify-between gap-3">
             <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
               <CheckCircle2 className="size-3.5" />
@@ -4462,8 +4528,12 @@ export function FanletterNewsReportComposerPage({
                 className={cn(
                   "inline-flex min-h-11 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-black",
                   step.ready
-                    ? "border-[#19b84b]/24 bg-white text-[#16702e]"
-                    : "border-black/10 bg-white/70 text-black/38",
+                    ? isQuickComposer
+                      ? "border-[#44f26e]/24 bg-[#44f26e]/12 text-[#9bffad]"
+                      : "border-[#19b84b]/24 bg-white text-[#16702e]"
+                    : isQuickComposer
+                      ? "border-white/10 bg-white/8 text-white/38"
+                      : "border-black/10 bg-white/70 text-black/38",
                 )}
                 key={step.label}
               >
@@ -4481,10 +4551,20 @@ export function FanletterNewsReportComposerPage({
         </section>
 
         <section
-          className="mt-3 grid gap-4 lg:mt-4 lg:grid-cols-[22rem_minmax(0,1fr)]"
+          className={cn(
+            "mt-3 grid gap-4 lg:mt-4",
+            isQuickComposer
+              ? "lg:grid-cols-[18rem_minmax(0,1fr)]"
+              : "lg:grid-cols-[22rem_minmax(0,1fr)]",
+          )}
           id="fanletter-report-source"
         >
-          <div className="border border-black/12 bg-white p-3 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-4">
+          <div
+            className={cn(
+              "border border-black/12 bg-white p-3 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-4",
+              isQuickComposer && "hidden lg:block",
+            )}
+          >
             {searchControls}
             <div className="flex items-center justify-between gap-3 px-1 pb-3">
               <div>
