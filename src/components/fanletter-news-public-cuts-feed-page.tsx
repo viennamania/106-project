@@ -99,6 +99,7 @@ const CUT_FEED_HEADER_VISIBLE_MS = 2200;
 const CUT_FEED_ENTRY_HEADER_VISIBLE_MS = 2800;
 const CUT_FEED_LOGIN_SYNC_GRACE_MS = 4500;
 const CUT_FEED_RENDER_WINDOW_RADIUS = 0;
+const CUT_FEED_ROLE_SHORTCUT_VISIBLE_MS = 1800;
 
 type CutFeedViewportStyle = CSSProperties & {
   "--fanletter-cut-feed-vh"?: string;
@@ -3402,6 +3403,7 @@ export function FanletterNewsPublicCutsFeedPage({
     useState(false);
   const [serviceMenuOpen, setServiceMenuOpen] = useState(false);
   const [isCutFeedHeaderVisible, setIsCutFeedHeaderVisible] = useState(true);
+  const [isRoleShortcutVisible, setIsRoleShortcutVisible] = useState(true);
   const [visibleFeedIndex, setVisibleFeedIndex] = useState(0);
   const [reporterPanelRequest, setReporterPanelRequest] = useState<{
     id: number;
@@ -3413,6 +3415,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const headerRevealTimerRef = useRef<number | null>(null);
+  const roleShortcutRevealTimerRef = useRef<number | null>(null);
   const cutFeedHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/news/cuts`,
     referralCode,
@@ -3551,6 +3554,9 @@ export function FanletterNewsPublicCutsFeedPage({
     () => getLockedReporterCandidates(items).length,
     [items],
   );
+  const isRoleShortcutEnabled =
+    isVloggerDeskVisible ||
+    (isReporterQuickDeskVisible && lockedReporterCandidateCount > 0);
   const lockedReporterCandidates = useMemo(
     () => getLockedReporterCandidates(items),
     [items],
@@ -3596,6 +3602,19 @@ export function FanletterNewsPublicCutsFeedPage({
 
     setSwipeGuideTarget(null);
   }, [items, swipeGuideTarget]);
+  const revealRoleShortcutTemporarily = useCallback(() => {
+    if (roleShortcutRevealTimerRef.current) {
+      window.clearTimeout(roleShortcutRevealTimerRef.current);
+      roleShortcutRevealTimerRef.current = null;
+    }
+
+    setIsRoleShortcutVisible(true);
+
+    roleShortcutRevealTimerRef.current = window.setTimeout(() => {
+      setIsRoleShortcutVisible(false);
+      roleShortcutRevealTimerRef.current = null;
+    }, CUT_FEED_ROLE_SHORTCUT_VISIBLE_MS);
+  }, []);
   const handleSourceViewSlideVisible = useCallback(
     (index: number) => {
       if (sourceViewSwipeGuideDismissed || swipeGuideTarget) {
@@ -3634,6 +3653,10 @@ export function FanletterNewsPublicCutsFeedPage({
       itemCount: items.length,
       root,
     });
+
+    if (isRoleShortcutEnabled) {
+      revealRoleShortcutTemporarily();
+    }
 
     setVisibleFeedIndex((currentIndex) => {
       if (currentIndex === visibleIndex) {
@@ -3676,7 +3699,9 @@ export function FanletterNewsPublicCutsFeedPage({
     }
   }, [
     dismissSwipeGuide,
+    isRoleShortcutEnabled,
     items,
+    revealRoleShortcutTemporarily,
     sourceViewSwipeGuideDismissed,
     swipeGuideTarget,
   ]);
@@ -3918,6 +3943,27 @@ export function FanletterNewsPublicCutsFeedPage({
   }, [excludeReportId, serviceMenuOpen, shareId, visibleFeedIndex]);
 
   useEffect(() => {
+    if (!isRoleShortcutEnabled) {
+      if (roleShortcutRevealTimerRef.current) {
+        window.clearTimeout(roleShortcutRevealTimerRef.current);
+        roleShortcutRevealTimerRef.current = null;
+      }
+
+      setIsRoleShortcutVisible(false);
+      return;
+    }
+
+    revealRoleShortcutTemporarily();
+
+    return () => {
+      if (roleShortcutRevealTimerRef.current) {
+        window.clearTimeout(roleShortcutRevealTimerRef.current);
+        roleShortcutRevealTimerRef.current = null;
+      }
+    };
+  }, [isRoleShortcutEnabled, revealRoleShortcutTemporarily]);
+
+  useEffect(() => {
     if (!hasMore) {
       return;
     }
@@ -3996,6 +4042,14 @@ export function FanletterNewsPublicCutsFeedPage({
       ? "gap-2 border-[#44f26e]/28 bg-[#44f26e]/14 px-3"
       : "gap-1.5 border-white/16 bg-black/42 px-3"
   }`;
+  const roleShortcutSectionClassName = `pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+4.25rem)] z-30 w-full max-w-[430px] -translate-x-1/2 px-3 transition-[opacity,transform] duration-500 ease-out ${
+    isRoleShortcutVisible
+      ? "translate-y-0 opacity-100"
+      : "-translate-y-3 opacity-0"
+  }`;
+  const roleShortcutSurfaceClassName = `${
+    isRoleShortcutVisible ? "pointer-events-auto" : "pointer-events-none"
+  } rounded-full border border-[#44f26e]/22 bg-black/66 px-2.5 py-2 text-white shadow-[0_16px_42px_rgba(0,0,0,0.3)] backdrop-blur-xl`;
   const activeFeedIndex = Math.min(
     Math.max(visibleFeedIndex, 0),
     Math.max(items.length - 1, 0),
@@ -4073,8 +4127,8 @@ export function FanletterNewsPublicCutsFeedPage({
         />
       ) : null}
       {isReporterQuickDeskVisible && lockedReporterCandidateCount > 0 ? (
-        <section className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+4.25rem)] z-30 w-full max-w-[430px] -translate-x-1/2 px-3">
-          <div className="pointer-events-auto rounded-full border border-[#44f26e]/22 bg-black/66 px-2.5 py-2 text-white shadow-[0_16px_42px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+        <section className={roleShortcutSectionClassName}>
+          <div className={roleShortcutSurfaceClassName}>
             <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
               <div className="flex min-w-0 items-center gap-2">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
@@ -4115,8 +4169,8 @@ export function FanletterNewsPublicCutsFeedPage({
         </section>
       ) : null}
       {isVloggerDeskVisible ? (
-        <section className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+4.25rem)] z-30 w-full max-w-[430px] -translate-x-1/2 px-3">
-          <div className="pointer-events-auto rounded-full border border-[#44f26e]/22 bg-black/66 px-2.5 py-2 text-white shadow-[0_16px_42px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+        <section className={roleShortcutSectionClassName}>
+          <div className={roleShortcutSurfaceClassName}>
             <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
               <div className="flex min-w-0 items-center gap-2">
                 <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
