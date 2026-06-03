@@ -7,12 +7,14 @@ import {
   ArrowLeft,
   BadgeCheck,
   CalendarClock,
+  ChevronRight,
   Clapperboard,
   Clock3,
   FileText,
   Images,
   Moon,
   Newspaper,
+  PencilLine,
   Radio,
   Sparkles,
   SunMedium,
@@ -78,7 +80,13 @@ function getCopy(locale: Locale) {
           "리포터 컷에서 관심이 생긴 AI 캐릭터의 뉴스, 원본 브이로그, 팬 반응을 한 화면에서 이어봅니다.",
         heroEyebrow: "Cut Feed Character Channel",
         latestNews: "같은 캐릭터 뉴스",
+        latestNewsBody:
+          "보고 있던 컷과 같은 캐릭터의 기사 흐름을 이어봅니다. 마음에 드는 장면은 컷 피드에서 바로 열어볼 수 있습니다.",
+        latestNewsCta: "대표 뉴스 보기",
+        latestNewsFeedCta: "컷 피드에서 이어보기",
+        quickReportCta: "이 캐릭터로 4컷 기사 작성",
         latestVlogs: "최근 원본 브이로그",
+        latestVlogsCta: "원본 기반 기사 쓰기",
         metaDescription:
           "리포터 컷 피드에서 이어지는 FanLetter News AI 캐릭터 채널입니다.",
         metaTitle: "컷 피드 캐릭터 채널",
@@ -114,7 +122,13 @@ function getCopy(locale: Locale) {
           "Keep exploring the AI character behind the reporter cut, with news, source vlogs, and fan reactions in one focused view.",
         heroEyebrow: "Cut Feed Character Channel",
         latestNews: "Same character news",
+        latestNewsBody:
+          "Continue the story flow for the same character behind the cut you were viewing.",
+        latestNewsCta: "Open featured news",
+        latestNewsFeedCta: "Continue in cut feed",
+        quickReportCta: "Write a 4-cut report",
         latestVlogs: "Recent source vlogs",
+        latestVlogsCta: "Write from a source vlog",
         metaDescription:
           "A FanLetter News AI character channel connected to the reporter cut feed.",
         metaTitle: "Cut Feed Character Channel",
@@ -230,6 +244,34 @@ function getCutNewsHref({
   );
 }
 
+function getCharacterChannelHref({
+  cutSlotNumber,
+  effectiveReferralCode,
+  locale,
+  referralCode,
+  returnToHref,
+  sourceReportId,
+}: {
+  cutSlotNumber: number | null;
+  effectiveReferralCode: string | null;
+  locale: Locale;
+  referralCode: string;
+  returnToHref: string | null;
+  sourceReportId: string | null;
+}) {
+  return setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/characters/${referralCode}`,
+      effectiveReferralCode,
+    ),
+    {
+      cut: cutSlotNumber ? String(cutSlotNumber) : null,
+      returnTo: returnToHref,
+      sourceReportId,
+    },
+  );
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -315,6 +357,14 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
     locale,
     returnToHref: safeReturnToHref,
   });
+  const characterChannelHref = getCharacterChannelHref({
+    cutSlotNumber: sourceCutSlotNumber,
+    effectiveReferralCode,
+    locale,
+    referralCode: normalizedCharacterReferralCode,
+    returnToHref: safeReturnToHref,
+    sourceReportId: sourceReportId || null,
+  });
   const character = data.profile.character;
   const characterName = character?.name ?? data.profile.displayName;
   const characterSummary = character?.summary || data.profile.intro;
@@ -342,6 +392,21 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
   const visibleVlogs = data.items
     .filter((item) => item.mediaType === "video")
     .slice(0, 3);
+  const primaryRelatedReport = visibleReports[0] ?? null;
+  const secondaryRelatedReports = visibleReports.slice(1, 3);
+  const quickReportHref = setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/reports/quick`,
+      effectiveReferralCode,
+    ),
+    {
+      contentId: visibleVlogs[0]?.contentId ?? null,
+      q: visibleVlogs[0] ? null : characterName,
+      reportStatus: "unreported",
+      returnTo: characterChannelHref,
+      sourceReveal: "opportunity",
+    },
+  );
   const primaryVlog = visibleVlogs[0] ?? null;
   const secondaryVlog = visibleVlogs[1] ?? primaryVlog;
   const primaryReport = visibleReports[0] ?? null;
@@ -657,10 +722,75 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
           </section>
 
           <section className="rounded-2xl border border-white/12 bg-white/[0.06] p-3">
-            <h2 className="text-base font-black">{copy.latestNews}</h2>
-            <div className="mt-3 space-y-2">
-              {visibleReports.length > 0 ? (
-                visibleReports.map((report) => {
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="text-base font-black">{copy.latestNews}</h2>
+                <p className="mt-1 text-xs font-semibold leading-5 text-white/56 [word-break:keep-all]">
+                  {copy.latestNewsBody}
+                </p>
+              </div>
+              <span className="inline-flex shrink-0 items-center rounded-full bg-[#44f26e]/14 px-2.5 py-1 text-[0.68rem] font-black text-[#9bffad]">
+                {formatNumber(visibleReports.length, locale)}
+              </span>
+            </div>
+
+            {primaryRelatedReport ? (
+              <div className="mt-3 space-y-2">
+                {(() => {
+                  const primaryReportHref = getCutNewsHref({
+                    cutSlotNumber: sourceCutSlotNumber,
+                    effectiveReferralCode,
+                    locale,
+                    reportId: primaryRelatedReport.reportId,
+                  });
+
+                  return (
+                    <Link
+                      className="group grid grid-cols-[6.25rem_minmax(0,1fr)] gap-3 rounded-2xl border border-[#44f26e]/28 bg-[#07130a] p-2.5 text-white transition hover:border-[#44f26e]/60"
+                      href={primaryReportHref}
+                    >
+                      <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-white/8">
+                        {primaryRelatedReport.coverImageUrl ? (
+                          <Image
+                            alt=""
+                            className="object-cover"
+                            fill
+                            sizes="6.25rem"
+                            src={primaryRelatedReport.coverImageUrl}
+                            unoptimized={shouldBypassFanletterImageOptimization(
+                              primaryRelatedReport.coverImageUrl,
+                            )}
+                          />
+                        ) : (
+                          <FileText className="absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 text-[#44f26e]" />
+                        )}
+                      </div>
+                      <div className="min-w-0 self-end">
+                        <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
+                          {copy.latestNewsCta}
+                        </p>
+                        <p className="mt-1 line-clamp-3 text-lg font-black leading-tight [word-break:keep-all]">
+                          {getFanletterNewsArticleDisplayTitle(
+                            primaryRelatedReport.title,
+                          )}
+                        </p>
+                        <p className="mt-2 text-[0.68rem] font-bold text-white/50">
+                          {formatDate(
+                            primaryRelatedReport.sourcePublishedAt ??
+                              primaryRelatedReport.createdAt,
+                            locale,
+                          )}
+                        </p>
+                        <span className="mt-3 inline-flex items-center gap-1 text-xs font-black text-[#9bffad]">
+                          {copy.latestNewsCta}
+                          <ChevronRight className="size-3.5 transition group-hover:translate-x-0.5" />
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })()}
+
+                {secondaryRelatedReports.map((report) => {
                   const reportHref = getCutNewsHref({
                     cutSlotNumber: sourceCutSlotNumber,
                     effectiveReferralCode,
@@ -703,13 +833,30 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                       </div>
                     </Link>
                   );
-                })
-              ) : (
-                <p className="rounded-xl border border-white/10 bg-black/28 p-4 text-sm font-semibold text-white/58">
-                  {copy.noNews}
-                </p>
-              )}
-            </div>
+                })}
+
+                <div className="grid gap-2 pt-1">
+                  <Link
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black"
+                    href={returnHref}
+                  >
+                    <Newspaper className="size-4" />
+                    {copy.latestNewsFeedCta}
+                  </Link>
+                  <Link
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/10 px-4 text-sm font-black !text-[#9bffad]"
+                    href={quickReportHref}
+                  >
+                    <PencilLine className="size-4" />
+                    {copy.quickReportCta}
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <p className="rounded-xl border border-white/10 bg-black/28 p-4 text-sm font-semibold text-white/58">
+                {copy.noNews}
+              </p>
+            )}
           </section>
 
           <section className="rounded-2xl border border-white/12 bg-white/[0.06] p-3">
@@ -748,6 +895,13 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                 </p>
               )}
             </div>
+            <Link
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-4 text-sm font-black !text-white"
+              href={quickReportHref}
+            >
+              <PencilLine className="size-4 text-[#44f26e]" />
+              {copy.latestVlogsCta}
+            </Link>
           </section>
         </section>
 
