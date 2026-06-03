@@ -155,9 +155,11 @@ function getCopy(locale: Locale) {
         reporterPanelTitle: "편집 리포터",
         reporterPublishedMetric: "발행일",
         reporterQuickDesk: {
+          compactSummary: (count: string) => `공개 전 원본 ${count}개`,
           currentCta: "이 원본으로 기사 작성",
           currentLockedCta: "원본 공개 전 4컷 기사 작성",
           jumpCta: "공개 전 원본 찾기",
+          jumpShortCta: "찾기",
           summary: (count: string) =>
             `아직 원본이 열리지 않은 소재 ${count}개를 빠르게 찾아 4컷 편집으로 이어갈 수 있습니다.`,
           title: "리포터 빠른 작성",
@@ -324,9 +326,11 @@ function getCopy(locale: Locale) {
         reporterPanelTitle: "Edit reporter",
         reporterPublishedMetric: "Published",
         reporterQuickDesk: {
+          compactSummary: (count: string) => `${count} unopened sources`,
           currentCta: "Write from this source",
           currentLockedCta: "Write four cuts before source opens",
           jumpCta: "Find unopened source",
+          jumpShortCta: "Find",
           summary: (count: string) =>
             `${count} unopened source candidates can be found quickly and turned into a four-cut report.`,
           title: "Reporter quick desk",
@@ -4070,23 +4074,26 @@ export function FanletterNewsPublicCutsFeedPage({
       ) : null}
       {isReporterQuickDeskVisible && lockedReporterCandidateCount > 0 ? (
         <section className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+4.25rem)] z-30 w-full max-w-[430px] -translate-x-1/2 px-3">
-          <div className="pointer-events-auto rounded-2xl border border-[#44f26e]/28 bg-black/64 p-3 text-white shadow-[0_22px_58px_rgba(0,0,0,0.32)] backdrop-blur-xl">
-            <div className="flex items-start gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
-                <PenLine className="size-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-black">
-                  {copy.reporterQuickDesk.title}
-                </p>
-                <p className="mt-1 line-clamp-2 text-xs font-bold leading-5 text-white/68">
-                  {copy.reporterQuickDesk.summary(
-                    formatNumber(lockedReporterCandidateCount, locale),
-                  )}
-                </p>
+          <div className="pointer-events-auto rounded-full border border-[#44f26e]/22 bg-black/66 px-2.5 py-2 text-white shadow-[0_16px_42px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+            <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
+                  <PenLine className="size-4.5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-black leading-tight">
+                    {copy.reporterQuickDesk.title}
+                  </p>
+                  <p className="mt-0.5 truncate text-[0.68rem] font-bold leading-tight text-white/62">
+                    {copy.reporterQuickDesk.compactSummary(
+                      formatNumber(lockedReporterCandidateCount, locale),
+                    )}
+                  </p>
+                </div>
               </div>
               <button
-                className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-white px-3 text-xs font-black text-[#111510] transition hover:bg-[#44f26e]"
+                aria-label={copy.reporterQuickDesk.jumpCta}
+                className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-white px-4 text-xs font-black text-[#111510] transition hover:bg-[#44f26e]"
                 onClick={() => {
                   const root = scrollContainerRef.current;
 
@@ -4101,7 +4108,7 @@ export function FanletterNewsPublicCutsFeedPage({
                 }}
                 type="button"
               >
-                {copy.reporterQuickDesk.jumpCta}
+                {copy.reporterQuickDesk.jumpShortCta}
               </button>
             </div>
           </div>
