@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   ArrowLeft,
+  ArrowDown,
   ArrowRight,
+  ArrowUp,
   CheckCircle2,
   Clapperboard,
   Crop,
@@ -13,7 +15,9 @@ import {
   ImageIcon,
   LockKeyhole,
   Loader2,
+  Minus,
   Newspaper,
+  Plus,
   RefreshCw,
   Search,
   ShieldAlert,
@@ -255,6 +259,8 @@ const REPORT_AUTO_TEASER_CENTER_MAX = 0.84;
 const REPORT_AUTO_TEASER_CENTER_MIN = 0.16;
 const REPORT_AUTO_TEASER_MAX_ZOOM = 2.4;
 const REPORT_AUTO_TEASER_MIN_ZOOM = 1.2;
+const REPORT_TEASER_CROP_NUDGE_STEP = 0.06;
+const REPORT_TEASER_CROP_ZOOM_STEP = 0.15;
 const REPORTER_COMMENT_MAX_LENGTH = 220;
 const SOURCE_RESULT_PAGE_SIZE = 6;
 const DEFAULT_REPORT_COVER_CROP: ReportCoverCropState = {
@@ -543,6 +549,11 @@ function getCopy(locale: Locale) {
           coverBody: "뉴스 카드와 공유 썸네일에 쓰이는 대표 이미지입니다.",
           coverTitle: "대표 뉴스 이미지",
           previewTitle: "9:16 저장 미리보기",
+          moveDown: "아래",
+          moveLeft: "왼쪽",
+          moveRight: "오른쪽",
+          moveUp: "위",
+          nextCut: "저장 후 다음 컷",
           remove: "원본 컷으로 되돌리기",
           save: "9:16 티저 컷으로 저장",
           saved: "9:16 티저 저장됨",
@@ -550,6 +561,8 @@ function getCopy(locale: Locale) {
           teaserBody:
             "선택한 공개 컷을 모바일 뉴스 상세에 맞게 9:16 세로 이미지로 저장합니다.",
           teaserTitle: "공개 티저 컷",
+          zoomIn: "확대",
+          zoomOut: "축소",
         },
         sourceMeta: {
           ai: "AI 커버",
@@ -851,6 +864,11 @@ function getCopy(locale: Locale) {
           coverBody: "Used for news cards and share thumbnails.",
           coverTitle: "Lead news image",
           previewTitle: "9:16 save preview",
+          moveDown: "Down",
+          moveLeft: "Left",
+          moveRight: "Right",
+          moveUp: "Up",
+          nextCut: "Save and edit next cut",
           remove: "Revert to source cut",
           save: "Save 9:16 teaser cut",
           saved: "9:16 teaser saved",
@@ -858,6 +876,8 @@ function getCopy(locale: Locale) {
           teaserBody:
             "Save the selected public cut as a 9:16 portrait image for the mobile news detail.",
           teaserTitle: "Public teaser cut",
+          zoomIn: "Zoom in",
+          zoomOut: "Zoom out",
         },
         sourceMeta: {
           ai: "AI cover",
@@ -2037,6 +2057,9 @@ export function FanletterNewsReportComposerPage({
   const [teaserCrop, setTeaserCrop] = useState<ReportCoverCropState>(
     DEFAULT_REPORT_COVER_CROP,
   );
+  const [teaserCropByCutId, setTeaserCropByCutId] = useState<
+    Record<string, ReportCoverCropState>
+  >({});
   const [naturalSize, setNaturalSize] = useState<ReportCoverNaturalSize | null>(
     null,
   );
@@ -2112,6 +2135,11 @@ export function FanletterNewsReportComposerPage({
   const activeTeaserCropIndex = activeTeaserCropCut
     ? selectedTeaserCuts.findIndex((cut) => cut.id === activeTeaserCropCut.id)
     : -1;
+  const nextTeaserCropCutId =
+    activeTeaserCropIndex >= 0 &&
+    activeTeaserCropIndex < selectedTeaserCuts.length - 1
+      ? selectedTeaserCuts[activeTeaserCropIndex + 1]?.id ?? null
+      : null;
   const isExclusiveBlocked = Boolean(
     selectedSource?.exclusiveNews.active &&
       selectedSource.exclusiveNews.reporterReferralCode !==
@@ -2611,6 +2639,7 @@ export function FanletterNewsReportComposerPage({
     setSelectedTeaserCuts(nextTeaserCuts);
     setSelectedTeaserCropCutId(nextTeaserCuts[0]?.id ?? null);
     setCroppedTeaserByCutId(getDefaultCroppedTeaserByCutId(selectedSource));
+    setTeaserCropByCutId({});
     setCrop(DEFAULT_REPORT_COVER_CROP);
     setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
     setNaturalSize(null);
@@ -2717,6 +2746,16 @@ export function FanletterNewsReportComposerPage({
 
         return nextCrops;
       });
+      setTeaserCropByCutId((currentCrops) => {
+        if (!currentCrops[cutId]) {
+          return currentCrops;
+        }
+
+        const nextCrops = { ...currentCrops };
+        delete nextCrops[cutId];
+
+        return nextCrops;
+      });
 
       return next;
     });
@@ -2733,6 +2772,12 @@ export function FanletterNewsReportComposerPage({
       }
 
       const nextCut = createRuntimeTeaserCut(imageUrl);
+      const nextCrop = shouldScrollToEditor
+        ? {
+            ...DEFAULT_REPORT_COVER_CROP,
+            zoom: 1 + REPORT_TEASER_CROP_ZOOM_STEP,
+          }
+        : DEFAULT_REPORT_COVER_CROP;
 
       setTeaserMode("manual");
       setSelectedTeaserCropCutId(nextCut.id);
@@ -2741,7 +2786,11 @@ export function FanletterNewsReportComposerPage({
           ? current
           : [...current, nextCut],
       );
-      setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
+      setTeaserCrop(nextCrop);
+      setTeaserCropByCutId((current) => ({
+        ...current,
+        [nextCut.id]: nextCrop,
+      }));
       setTeaserNaturalSize(null);
 
       if (shouldScrollToEditor) {
@@ -2756,19 +2805,50 @@ export function FanletterNewsReportComposerPage({
     [isSelectedPaidLocked, selectedTeaserCuts.length],
   );
 
-  const focusTeaserCutEditor = useCallback((cutId: string) => {
-    setTeaserMode("manual");
-    setSelectedTeaserCropCutId(cutId);
-    setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
-    setTeaserNaturalSize(null);
+  const updateActiveTeaserCrop = useCallback(
+    (
+      updater:
+        | ReportCoverCropState
+        | ((current: ReportCoverCropState) => ReportCoverCropState),
+    ) => {
+      setTeaserCrop((current) => {
+        const nextCrop =
+          typeof updater === "function" ? updater(current) : updater;
+        const normalizedCrop = {
+          centerX: clampNumber(nextCrop.centerX, 0, 1),
+          centerY: clampNumber(nextCrop.centerY, 0, 1),
+          zoom: clampNumber(nextCrop.zoom, 1, REPORT_COVER_CROP_MAX_ZOOM),
+        };
 
-    window.setTimeout(() => {
-      teaserCropFrameRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
+        if (selectedTeaserCropCutId) {
+          setTeaserCropByCutId((currentCrops) => ({
+            ...currentCrops,
+            [selectedTeaserCropCutId]: normalizedCrop,
+          }));
+        }
+
+        return normalizedCrop;
       });
-    }, 0);
-  }, []);
+    },
+    [selectedTeaserCropCutId],
+  );
+
+  const focusTeaserCutEditor = useCallback(
+    (cutId: string) => {
+      setTeaserMode("manual");
+      setSelectedTeaserCropCutId(cutId);
+      setTeaserCrop(teaserCropByCutId[cutId] ?? DEFAULT_REPORT_COVER_CROP);
+      setTeaserNaturalSize(null);
+
+      window.setTimeout(() => {
+        teaserCropFrameRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 0);
+    },
+    [teaserCropByCutId],
+  );
 
   const handleCropPointerDown = useCallback(
     (event: PointerEvent<HTMLDivElement>) => {
@@ -2843,7 +2923,7 @@ export function FanletterNewsReportComposerPage({
       };
 
       if (drag.cropKind === "teaser") {
-        setTeaserCrop((current) => ({
+        updateActiveTeaserCrop((current) => ({
           ...current,
           ...nextCrop,
         }));
@@ -2855,7 +2935,13 @@ export function FanletterNewsReportComposerPage({
         ...nextCrop,
       }));
     },
-    [activeTeaserNaturalSize, coverCropRect, naturalSize, teaserCropRect],
+    [
+      activeTeaserNaturalSize,
+      coverCropRect,
+      naturalSize,
+      teaserCropRect,
+      updateActiveTeaserCrop,
+    ],
   );
 
   const handleCropPointerEnd = useCallback(
@@ -2948,7 +3034,7 @@ export function FanletterNewsReportComposerPage({
       !activeTeaserCropSourceUrl ||
       teaserCropStatus === "saving"
     ) {
-      return;
+      return false;
     }
 
     setTeaserCropStatus("saving");
@@ -2973,8 +3059,14 @@ export function FanletterNewsReportComposerPage({
           sourceImageUrl: activeTeaserCropSourceUrl,
         },
       }));
+      setTeaserCropByCutId((current) => ({
+        ...current,
+        [activeTeaserCropCut.id]: teaserCrop,
+      }));
+      return true;
     } catch (error) {
       setError(error instanceof Error ? error.message : copy.failed);
+      return false;
     } finally {
       setTeaserCropStatus("idle");
     }
@@ -2987,6 +3079,14 @@ export function FanletterNewsReportComposerPage({
     teaserCropStatus,
     uploadCroppedReportImage,
   ]);
+
+  const saveCroppedTeaserImageAndEditNext = useCallback(async () => {
+    const saved = await saveCroppedTeaserImage();
+
+    if (saved && nextTeaserCropCutId) {
+      focusTeaserCutEditor(nextTeaserCropCutId);
+    }
+  }, [focusTeaserCutEditor, nextTeaserCropCutId, saveCroppedTeaserImage]);
 
   const editSavedTeaserImage = useCallback(
     (item: ExistingSavedTeaserItem) => {
@@ -3489,7 +3589,7 @@ export function FanletterNewsReportComposerPage({
               max={REPORT_COVER_CROP_MAX_ZOOM}
               min={1}
               onChange={(event) => {
-                setTeaserCrop((current) => ({
+                updateActiveTeaserCrop((current) => ({
                   ...current,
                   zoom: Number(event.target.value),
                 }));
@@ -3498,10 +3598,90 @@ export function FanletterNewsReportComposerPage({
               type="range"
               value={teaserCrop.zoom}
             />
+            <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              <button
+                className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg border border-white/12 bg-white/[0.06] text-xs font-black text-white transition hover:border-white/24 hover:bg-white/[0.1]"
+                onClick={() => {
+                  updateActiveTeaserCrop((current) => ({
+                    ...current,
+                    zoom: current.zoom + REPORT_TEASER_CROP_ZOOM_STEP,
+                  }));
+                }}
+                type="button"
+              >
+                <Plus className="size-3.5 text-[#44f26e]" />
+                {copy.teaserCrop.zoomIn}
+              </button>
+              <button
+                className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg border border-white/12 bg-white/[0.06] text-xs font-black text-white transition hover:border-white/24 hover:bg-white/[0.1]"
+                onClick={() => {
+                  updateActiveTeaserCrop((current) => ({
+                    ...current,
+                    zoom: current.zoom - REPORT_TEASER_CROP_ZOOM_STEP,
+                  }));
+                }}
+                type="button"
+              >
+                <Minus className="size-3.5 text-[#44f26e]" />
+                {copy.teaserCrop.zoomOut}
+              </button>
+              <button
+                className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg border border-white/12 bg-white/[0.06] text-xs font-black text-white transition hover:border-white/24 hover:bg-white/[0.1]"
+                onClick={() => {
+                  updateActiveTeaserCrop((current) => ({
+                    ...current,
+                    centerY: current.centerY - REPORT_TEASER_CROP_NUDGE_STEP,
+                  }));
+                }}
+                type="button"
+              >
+                <ArrowUp className="size-3.5 text-[#44f26e]" />
+                {copy.teaserCrop.moveUp}
+              </button>
+              <button
+                className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg border border-white/12 bg-white/[0.06] text-xs font-black text-white transition hover:border-white/24 hover:bg-white/[0.1]"
+                onClick={() => {
+                  updateActiveTeaserCrop((current) => ({
+                    ...current,
+                    centerY: current.centerY + REPORT_TEASER_CROP_NUDGE_STEP,
+                  }));
+                }}
+                type="button"
+              >
+                <ArrowDown className="size-3.5 text-[#44f26e]" />
+                {copy.teaserCrop.moveDown}
+              </button>
+              <button
+                className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg border border-white/12 bg-white/[0.06] text-xs font-black text-white transition hover:border-white/24 hover:bg-white/[0.1]"
+                onClick={() => {
+                  updateActiveTeaserCrop((current) => ({
+                    ...current,
+                    centerX: current.centerX - REPORT_TEASER_CROP_NUDGE_STEP,
+                  }));
+                }}
+                type="button"
+              >
+                <ArrowLeft className="size-3.5 text-[#44f26e]" />
+                {copy.teaserCrop.moveLeft}
+              </button>
+              <button
+                className="inline-flex h-11 items-center justify-center gap-1.5 rounded-lg border border-white/12 bg-white/[0.06] text-xs font-black text-white transition hover:border-white/24 hover:bg-white/[0.1]"
+                onClick={() => {
+                  updateActiveTeaserCrop((current) => ({
+                    ...current,
+                    centerX: current.centerX + REPORT_TEASER_CROP_NUDGE_STEP,
+                  }));
+                }}
+                type="button"
+              >
+                <ArrowRight className="size-3.5 text-[#44f26e]" />
+                {copy.teaserCrop.moveRight}
+              </button>
+            </div>
             <button
               className="mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-white/12 text-xs font-black text-white/62 transition hover:border-white/24 hover:bg-white/[0.06] hover:text-white"
               onClick={() => {
-                setTeaserCrop(DEFAULT_REPORT_COVER_CROP);
+                updateActiveTeaserCrop(DEFAULT_REPORT_COVER_CROP);
               }}
               type="button"
             >
@@ -3522,6 +3702,15 @@ export function FanletterNewsReportComposerPage({
               {teaserCropStatus === "saving"
                 ? copy.teaserCrop.saving
                 : copy.teaserCrop.save}
+            </button>
+            <button
+              className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[#44f26e]/40 bg-[#44f26e]/10 px-3 text-xs font-black text-[#44f26e] transition hover:bg-[#44f26e]/16 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={teaserCropStatus === "saving" || !nextTeaserCropCutId}
+              onClick={saveCroppedTeaserImageAndEditNext}
+              type="button"
+            >
+              <ArrowRight className="size-3.5" />
+              {copy.teaserCrop.nextCut}
             </button>
           </div>
         </div>
