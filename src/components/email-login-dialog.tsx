@@ -18,12 +18,16 @@ type EmailLoginDialogVariant = "default" | "fanletter";
 
 export function EmailLoginDialog({
   dictionary,
+  guideDescription,
+  guideTitle,
   onClose,
   open,
   title,
   variant = "default",
 }: {
   dictionary: Dictionary;
+  guideDescription?: string;
+  guideTitle?: string;
   onClose: () => void;
   open: boolean;
   title: string;
@@ -42,6 +46,10 @@ export function EmailLoginDialog({
 
   const isBusy = sendStatus === "sending" || verifyStatus === "verifying";
   const isFanletter = variant === "fanletter";
+  const signupGuideDescription =
+    guideDescription ?? dictionary.common.loginDialog.signupGuideDescription;
+  const signupGuideTitle =
+    guideTitle ?? dictionary.common.loginDialog.signupGuideTitle;
   const inputClassName = isFanletter
     ? "h-12 w-full rounded-2xl border border-white/12 bg-white/[0.06] px-4 text-base text-white outline-none transition placeholder:text-white/30 focus:border-[#44f26e] focus:bg-white/[0.08]"
     : "h-12 w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 text-base text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:bg-white";
@@ -236,14 +244,14 @@ export function EmailLoginDialog({
               isFanletter ? "text-white" : "text-slate-950"
             }`}
           >
-            {dictionary.common.loginDialog.signupGuideTitle}
+            {signupGuideTitle}
           </p>
           <p
             className={`mt-2 text-sm leading-6 ${
               isFanletter ? "text-white/62" : "text-slate-700"
             }`}
           >
-            {dictionary.common.loginDialog.signupGuideDescription}
+            {signupGuideDescription}
           </p>
         </div>
 

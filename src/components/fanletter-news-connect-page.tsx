@@ -112,6 +112,9 @@ function getCopy(locale: Locale) {
         errorTitle: "계정 확인이 필요합니다.",
         eyebrow: "FanLetter News Wallet",
         homeReturn: "FanLetter News 홈으로 돌아가기",
+        loginGuideDescription:
+          "이메일 인증으로 뉴스 계정을 먼저 연결합니다. 10 USDT 활성화는 리포터 리워드·수익 기능이 필요할 때 이어서 진행할 수 있습니다.",
+        loginGuideTitle: "뉴스 계정 연결 방법",
         loginTitle: "FanLetter News 지갑 연결",
         member: "회원 상태",
         missingClient:
@@ -149,6 +152,9 @@ function getCopy(locale: Locale) {
         errorTitle: "Account status needs attention.",
         eyebrow: "FanLetter News Wallet",
         homeReturn: "Back to FanLetter News",
+        loginGuideDescription:
+          "Verify your email to connect the News account first. You can activate with 10 USDT later when reporter rewards or revenue features require it.",
+        loginGuideTitle: "How News account connection works",
         loginTitle: "Connect FanLetter News wallet",
         member: "Member status",
         missingClient:
@@ -744,6 +750,8 @@ export function FanletterNewsConnectPage({
     <main className="min-h-screen bg-[#eef1ec] pb-[calc(6.25rem+env(safe-area-inset-bottom))] text-[#111510] sm:pb-0">
       <EmailLoginDialog
         dictionary={dictionary}
+        guideDescription={copy.loginGuideDescription}
+        guideTitle={copy.loginGuideTitle}
         onClose={() => {
           setIsLoginDialogOpen(false);
         }}

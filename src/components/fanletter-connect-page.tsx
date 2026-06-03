@@ -107,6 +107,9 @@ function getCopy(locale: Locale) {
         helper:
           "연결 상태가 확인되면 온보딩 체크리스트에서 다음 단계가 열립니다.",
         loginTitle: "FanLetter 계정 연결",
+        loginGuideDescription:
+          "이메일 인증으로 계정을 먼저 연결합니다. 10 USDT 활성화는 수익·리워드 기능이 필요할 때 이어서 진행할 수 있습니다.",
+        loginGuideTitle: "계정 연결 방법",
         member: "시작 상태",
         missingClient:
           "현재 브라우저에서 이메일 계정 연결을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
@@ -156,6 +159,9 @@ function getCopy(locale: Locale) {
         helper:
           "After the connection is confirmed, the next steps open from the onboarding checklist.",
         loginTitle: "Connect FanLetter account",
+        loginGuideDescription:
+          "Verify your email to connect the account first. You can activate with 10 USDT later when revenue or rewards features require it.",
+        loginGuideTitle: "How account connection works",
         member: "Readiness",
         missingClient:
           "Email account connection cannot start in this browser right now. Please try again shortly.",
@@ -863,6 +869,8 @@ export function FanletterConnectPage({
     <main className="min-h-screen bg-[#030504] text-white">
       <EmailLoginDialog
         dictionary={dictionary}
+        guideDescription={copy.loginGuideDescription}
+        guideTitle={copy.loginGuideTitle}
         onClose={() => {
           setIsLoginDialogOpen(false);
         }}
