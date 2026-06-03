@@ -183,6 +183,14 @@ function getCopy(locale: Locale) {
         serviceReportersHint: "리포터 채널",
         serviceVlogNew: "새 브이로그",
         serviceVlogNewHint: "브이로거",
+        vloggerDesk: {
+          characterCta: "이 캐릭터 원본 보기",
+          manageCta: "내 브이로그 관리",
+          newCta: "새 브이로그 만들기",
+          summary:
+            "컷 피드 반응을 보면서 다음 원본을 만들거나 업로드하세요. 브이로거도 먼저 팬처럼 소비한 뒤 제작으로 이어집니다.",
+          title: "브이로거 제작 바로가기",
+        },
         serviceVlogs: "원본 브이로그",
         serviceVlogsHint: "공개 영상",
         share: "공유하기",
@@ -340,6 +348,14 @@ function getCopy(locale: Locale) {
         serviceReportersHint: "Reporter channels",
         serviceVlogNew: "New Vlog",
         serviceVlogNewHint: "Vlogger",
+        vloggerDesk: {
+          characterCta: "View this character's sources",
+          manageCta: "Manage my vlogs",
+          newCta: "Create new vlog",
+          summary:
+            "Watch cut-feed reactions, then create or upload the next source. Vloggers stay consumers first, then move into production.",
+          title: "Vlogger production shortcut",
+        },
         serviceVlogs: "Source Vlogs",
         serviceVlogsHint: "Public videos",
         share: "Share",
@@ -3512,6 +3528,13 @@ export function FanletterNewsPublicCutsFeedPage({
   const isReporterQuickDeskVisible = Boolean(
     viewerReporterReferralCode && selectedRolePreference === "reporter",
   );
+  const isVloggerDeskVisible = selectedRolePreference === "vlogger";
+  const visibleCharacterVlogsHref = visibleItem?.report.creatorReferralCode
+    ? buildPathWithReferral(
+        `/${locale}/fanletter/news/characters/${visibleItem.report.creatorReferralCode}/vlogs`,
+        referralCode,
+      )
+    : vlogsHref;
   const lockedReporterCandidateCount = useMemo(
     () => getLockedReporterCandidates(items).length,
     [items],
@@ -4072,6 +4095,43 @@ export function FanletterNewsPublicCutsFeedPage({
               >
                 {copy.reporterQuickDesk.jumpCta}
               </button>
+            </div>
+          </div>
+        </section>
+      ) : null}
+      {isVloggerDeskVisible ? (
+        <section className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+4.25rem)] z-30 w-full max-w-[430px] -translate-x-1/2 px-3">
+          <div className="pointer-events-auto rounded-2xl border border-[#44f26e]/24 bg-black/64 p-3 text-white shadow-[0_22px_58px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+            <div className="flex items-start gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
+                <Video className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-black">{copy.vloggerDesk.title}</p>
+                <p className="mt-1 line-clamp-2 text-xs font-bold leading-5 text-white/68">
+                  {copy.vloggerDesk.summary}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <Link
+                    className="inline-flex h-9 items-center justify-center rounded-full bg-[#44f26e] px-3 text-xs font-black !text-[#111510] transition hover:bg-[#65ff86]"
+                    href={vlogsNewHref}
+                  >
+                    {copy.vloggerDesk.newCta}
+                  </Link>
+                  <Link
+                    className="inline-flex h-9 items-center justify-center rounded-full bg-white px-3 text-xs font-black !text-[#111510] transition hover:bg-[#44f26e]"
+                    href={vlogsManageHref}
+                  >
+                    {copy.vloggerDesk.manageCta}
+                  </Link>
+                  <Link
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-white/14 bg-white/10 px-3 text-xs font-black !text-white transition hover:border-[#44f26e]/50 hover:text-[#44f26e]"
+                    href={visibleCharacterVlogsHref}
+                  >
+                    {copy.vloggerDesk.characterCta}
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </section>
