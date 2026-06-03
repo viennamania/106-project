@@ -3145,7 +3145,11 @@ export function FanletterNewsReportComposerPage({
         );
       }
 
-      router.push(data.report.shareHref);
+      router.push(
+        `/${locale}/fanletter/news/cuts/${encodeURIComponent(
+          data.report.reportId,
+        )}?ref=${encodeURIComponent(reporterReferralCode)}`,
+      );
     } catch (error) {
       setError(error instanceof Error ? error.message : copy.failed);
       setStatus("idle");
@@ -3159,6 +3163,7 @@ export function FanletterNewsReportComposerPage({
     getManualSelectedTeaserImages,
     locale,
     reporterComment,
+    reporterReferralCode,
     router,
     selectedCoverUrl,
     selectedSource,
