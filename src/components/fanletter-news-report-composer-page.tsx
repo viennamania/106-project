@@ -5689,7 +5689,9 @@ export function FanletterNewsReportComposerPage({
                                 key={`${option.candidateId}-${option.imageUrl}`}
                               >
                                 <button
-                                  aria-label={`${coverActionLabel} ${copy.selected}`}
+                                  aria-label={`${coverActionLabel} ${
+                                    isSelected ? copy.selected : copy.select
+                                  }`}
                                   className="block w-full text-left"
                                   onClick={() => {
                                     selectCoverImage(option.imageUrl);
