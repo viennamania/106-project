@@ -3524,6 +3524,31 @@ export function FanletterNewsReportComposerPage({
             9:16
           </span>
         </div>
+        {selectedManualTeaserItems.length > 1 ? (
+          <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1">
+            {selectedManualTeaserItems.map((item) => (
+              <button
+                aria-label={`${item.slotLabel} ${item.label} ${copy.teaserSelection.activeCut}`}
+                className={cn(
+                  "inline-flex h-10 shrink-0 items-center gap-2 rounded-full border px-3 text-xs font-black transition",
+                  item.isActive
+                    ? "border-[#44f26e] bg-[#44f26e] text-black"
+                    : "border-white/12 bg-white/[0.06] text-white/62 hover:border-white/24 hover:text-white",
+                )}
+                key={`teaser-editor-nav-${item.id}`}
+                onClick={() => {
+                  focusTeaserCutEditor(item.id);
+                }}
+                type="button"
+              >
+                <span>{item.slotLabel}</span>
+                {item.croppedTeaser ? (
+                  <CheckCircle2 className="size-3.5" />
+                ) : null}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,13rem)_minmax(0,1fr)] lg:items-center">
           <div className="min-w-0">
             <div
@@ -5494,7 +5519,7 @@ export function FanletterNewsReportComposerPage({
                                 </div>
                               </div>
                               {selectedManualTeaserItems.length > 0 ? (
-                                <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
+                                <div className="-mx-1 mt-3 grid grid-flow-col auto-cols-[8.25rem] gap-2 overflow-x-auto px-1 pb-1 sm:mx-0 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
                                   {selectedManualTeaserItems.map(
                                     (item, index) => (
                                       <div
@@ -5507,6 +5532,7 @@ export function FanletterNewsReportComposerPage({
                                         key={`${item.imageUrl}-${index}`}
                                       >
                                         <button
+                                          aria-label={`${item.slotLabel} ${item.label} ${copy.teaserSelection.editCut}`}
                                           className="group relative block aspect-[9/16] w-full overflow-hidden rounded-md bg-[#111510]"
                                           onClick={() => {
                                             focusTeaserCutEditor(item.id);
@@ -5557,6 +5583,7 @@ export function FanletterNewsReportComposerPage({
                                         </div>
                                         <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-1.5">
                                           <button
+                                            aria-label={`${item.slotLabel} ${item.label} ${copy.teaserSelection.editCut}`}
                                             className="inline-flex h-11 min-w-0 items-center justify-center gap-1 rounded-md bg-[#111510] px-2 text-[0.7rem] font-black text-white transition hover:bg-black"
                                             onClick={() => {
                                               focusTeaserCutEditor(item.id);
@@ -5569,7 +5596,7 @@ export function FanletterNewsReportComposerPage({
                                             </span>
                                           </button>
                                           <button
-                                            aria-label={`${copy.teaserSelection.removeCut} ${item.label}`}
+                                            aria-label={`${copy.teaserSelection.removeCut} ${item.slotLabel} ${item.label}`}
                                             className="inline-flex size-11 items-center justify-center rounded-md border border-black/10 bg-white text-black/42 transition hover:border-rose-500/30 hover:text-rose-700"
                                             onClick={() => {
                                               removeTeaserCut(item.id);
@@ -5614,8 +5641,17 @@ export function FanletterNewsReportComposerPage({
                       ) : null}
 
                       {selectedSource.coverOptions.length > 0 ? (
-                        <div className="mt-4 grid grid-cols-1 gap-3 min-[520px]:grid-cols-2 xl:grid-cols-3">
+                        <div className="-mx-1 mt-4 grid grid-flow-col auto-cols-[10rem] gap-2 overflow-x-auto px-1 pb-1 min-[520px]:mx-0 min-[520px]:grid-flow-row min-[520px]:auto-cols-auto min-[520px]:grid-cols-2 min-[520px]:gap-3 min-[520px]:overflow-visible min-[520px]:px-0 min-[520px]:pb-0 xl:grid-cols-3">
                           {selectedSource.coverOptions.map((option, index) => {
+                            const coverLabel = getCoverLabel(
+                              option,
+                              index,
+                              locale,
+                            );
+                            const coverActionLabel = `${formatNumber(
+                              index + 1,
+                              locale,
+                            )} ${coverLabel}`;
                             const isSelected =
                               option.imageUrl === selectedCoverUrl;
                             const teaserUseCount = selectedTeaserCuts.filter(
@@ -5653,6 +5689,7 @@ export function FanletterNewsReportComposerPage({
                                 key={`${option.candidateId}-${option.imageUrl}`}
                               >
                                 <button
+                                  aria-label={`${coverActionLabel} ${copy.selected}`}
                                   className="block w-full text-left"
                                   onClick={() => {
                                     selectCoverImage(option.imageUrl);
@@ -5662,7 +5699,7 @@ export function FanletterNewsReportComposerPage({
                                   <span className="block overflow-hidden rounded-md bg-[#111510]">
                                     <span
                                       className={cn(
-                                        "block min-h-[10rem] bg-contain bg-center bg-no-repeat transition",
+                                        "block min-h-[7rem] bg-contain bg-center bg-no-repeat transition min-[520px]:min-h-[10rem]",
                                         shouldBlurSelectedNsfwMedia &&
                                           "scale-[1.03] blur-md brightness-75",
                                       )}
@@ -5712,6 +5749,13 @@ export function FanletterNewsReportComposerPage({
                                 teaserMode === "manual" ? (
                                   <div className="mt-1 hidden grid-cols-2 gap-1.5 sm:grid">
                                     <button
+                                      aria-label={`${coverActionLabel} ${
+                                        teaserUseCount > 0
+                                          ? copy.teaserSelection.sourceUseCount(
+                                              formatNumber(teaserUseCount, locale),
+                                            )
+                                          : copy.teaserSelection.include
+                                      }`}
                                       className={cn(
                                         "flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 text-[0.72rem] font-black transition",
                                         teaserUseCount > 0
@@ -5740,6 +5784,7 @@ export function FanletterNewsReportComposerPage({
                                       </span>
                                     </button>
                                     <button
+                                      aria-label={`${coverActionLabel} ${copy.teaserSelection.editCut}`}
                                       className={cn(
                                         "flex h-11 min-w-0 items-center justify-center gap-1.5 rounded-md border px-2 text-[0.72rem] font-black transition",
                                         "border-black/10 bg-white text-black/56 hover:border-[#19b84b]/35 hover:text-[#111510]",
