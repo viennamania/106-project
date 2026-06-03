@@ -3829,6 +3829,7 @@ export function FanletterNewsReportComposerPage({
                 <div className="-mx-1 mt-3 grid grid-flow-col auto-cols-[5.25rem] gap-2 overflow-x-auto px-1 pb-1 sm:grid-flow-row sm:auto-cols-auto sm:grid-cols-4 sm:overflow-visible sm:pb-0 lg:grid-cols-6">
                   {selectedManualTeaserItems.map((item, index) => (
                     <button
+                      aria-label={`${item.slotLabel} ${item.label}`}
                       className={cn(
                         "group min-w-0 overflow-hidden rounded-lg border bg-[#f7f9f4] p-1 text-left transition",
                         item.isActive
@@ -3873,6 +3874,7 @@ export function FanletterNewsReportComposerPage({
             {selectedSourceCoverOptions.length > 0 ? (
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
                 {selectedSourceCoverOptions.map((option, index) => {
+                  const coverLabel = getCoverLabel(option, index, locale);
                   const teaserUseCount = selectedTeaserCuts.filter(
                     (cut) => cut.sourceImageUrl === option.imageUrl,
                   ).length;
@@ -3911,7 +3913,7 @@ export function FanletterNewsReportComposerPage({
                       </span>
                       <div className="min-w-0 px-1 pb-1 pt-2">
                         <p className="truncate text-[0.72rem] font-black text-[#111510]">
-                          {getCoverLabel(option, index, locale)}
+                          {coverLabel}
                         </p>
                         {imageSizeLabel ? (
                           <p className="mt-0.5 truncate text-[0.62rem] font-black uppercase tracking-[0.06em] text-black/42">
@@ -3921,6 +3923,13 @@ export function FanletterNewsReportComposerPage({
                       </div>
                       <div className="mt-1 grid grid-cols-2 gap-1.5">
                         <button
+                          aria-label={`${coverLabel} ${
+                            teaserUseCount > 0
+                              ? copy.teaserSelection.sourceUseCount(
+                                  formatNumber(teaserUseCount, locale),
+                                )
+                              : copy.teaserSelection.include
+                          }`}
                           className={cn(
                             "flex h-11 min-w-0 items-center justify-center gap-1 rounded-md border px-1.5 text-[0.68rem] font-black transition",
                             teaserUseCount > 0
@@ -3949,6 +3958,7 @@ export function FanletterNewsReportComposerPage({
                           </span>
                         </button>
                         <button
+                          aria-label={`${coverLabel} ${copy.teaserSelection.editCut}`}
                           className={cn(
                             "flex h-11 min-w-0 items-center justify-center gap-1 rounded-md border border-black/10 bg-[#f6f8f4] px-1.5 text-[0.68rem] font-black text-black/58 transition hover:border-[#19b84b]/35 hover:text-[#111510]",
                             isTeaserLimitReached &&
@@ -3956,7 +3966,6 @@ export function FanletterNewsReportComposerPage({
                           )}
                           disabled={isTeaserLimitReached}
                           onClick={() => {
-                            setIsTeaserPickerOpen(false);
                             addTeaserCutFromSource(option.imageUrl, true);
                           }}
                           type="button"
