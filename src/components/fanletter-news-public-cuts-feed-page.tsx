@@ -214,6 +214,12 @@ function getCopy(locale: Locale) {
         sourceOverlayLoading: "원본 불러오는 중",
         sourceOverlayPlay: "재생하기",
         sourceOverlayTitle: "원본 브이로그",
+        sourcePreviewBody:
+          "6명의 오픈 스폰서가 모이면 전체 원본 브이로그가 공개됩니다.",
+        sourcePreviewEyebrow: "원본 프리뷰",
+        sourcePreviewJoinCta: "오픈 스폰서로 참여",
+        sourcePreviewLoginCta: "로그인하고 참여",
+        sourcePreviewTitle: "프리뷰를 보고 원본 열기에 참여하세요",
         sourceRevealLockedBody: (
           count: string,
           threshold: string,
@@ -357,6 +363,12 @@ function getCopy(locale: Locale) {
         sourceOverlayLoading: "Loading source",
         sourceOverlayPlay: "Play video",
         sourceOverlayTitle: "Source vlog",
+        sourcePreviewBody:
+          "When 6 open sponsors join, the full source vlog opens.",
+        sourcePreviewEyebrow: "Source preview",
+        sourcePreviewJoinCta: "Join as open sponsor",
+        sourcePreviewLoginCta: "Sign in to join",
+        sourcePreviewTitle: "Preview it, then help open the source",
         sourceRevealLockedBody: (
           count: string,
           threshold: string,
@@ -1606,12 +1618,20 @@ type SourceOverlayCopy = Pick<
   | "sourceOverlayLoading"
   | "sourceOverlayPlay"
   | "sourceOverlayTitle"
+  | "sourceOpenSponsorsRemaining"
+  | "sourcePreviewBody"
+  | "sourcePreviewEyebrow"
+  | "sourcePreviewJoinCta"
+  | "sourcePreviewLoginCta"
+  | "sourcePreviewTitle"
   | "sourceRevealLockedBody"
   | "sourceRevealLockedTitle"
   | "unavailableSourceBody"
   | "unavailableSourceTitle"
   | "unlockNsfwBody"
   | "unlockNsfwTitle"
+  | "voteDone"
+  | "voteSaving"
 >;
 
 function isFanletterNewsPublicCutSourceLoadResponse(
@@ -1676,21 +1696,38 @@ function getSourceOverlayLockedCopy({
 function SourceVlogFeedOverlay({
   copy,
   error,
+  isSourceRevealActionBusy,
+  isSourceRevealLoggedIn,
   isLoading,
   locale,
   onClose,
   onRetry,
+  onSourceRevealActivate,
   source,
 }: {
   copy: SourceOverlayCopy;
   error: string | null;
+  isSourceRevealActionBusy: boolean;
+  isSourceRevealLoggedIn: boolean;
   isLoading: boolean;
   locale: Locale;
   onClose: () => void;
   onRetry: () => void;
+  onSourceRevealActivate: () => void;
   source: FanletterNewsPublicCutSource | null;
 }) {
   const isPlayable = source?.accessState === "playable" && Boolean(source.videoUrl);
+  const canShowLockedPreviewVideo = Boolean(
+    source?.accessState === "source_reveal_locked" &&
+      source.previewVideoUrl &&
+      source.contentMaturityRating !== "nsfw",
+  );
+  const mediaFrameVideoUrl = canShowLockedPreviewVideo
+    ? source?.previewVideoUrl ?? null
+    : source?.videoUrl ?? null;
+  const mediaFramePreviewVideoUrl = canShowLockedPreviewVideo
+    ? null
+    : source?.previewVideoUrl ?? null;
   const shouldUsePinGate =
     isPlayable &&
     source?.contentMaturityRating === "nsfw";
@@ -1699,6 +1736,59 @@ function SourceVlogFeedOverlay({
     : null;
   const paidUnlockHref =
     source?.accessState === "paid_locked" ? source.paidUnlockHref : null;
+  const sourceRevealCountLabel = source
+    ? formatNumber(
+        Math.min(source.sourceReveal.count, source.sourceReveal.threshold),
+        locale,
+      )
+    : "0";
+  const sourceRevealThresholdLabel = source
+    ? formatNumber(source.sourceReveal.threshold, locale)
+    : "0";
+  const sourceRevealRemainingLabel = source
+    ? formatNumber(
+        Math.max(0, source.sourceReveal.threshold - source.sourceReveal.count),
+        locale,
+      )
+    : "0";
+  const sourceRevealProgressPercent =
+    source && source.sourceReveal.threshold > 0
+      ? Math.min(
+          100,
+          Math.max(
+            0,
+            (source.sourceReveal.count / source.sourceReveal.threshold) * 100,
+          ),
+        )
+      : 0;
+  const sourceRevealCountText = `${sourceRevealCountLabel}/${sourceRevealThresholdLabel}`;
+  const sourceRevealCtaLabel = source?.sourceReveal.requestedByViewer
+    ? copy.voteDone
+    : isSourceRevealActionBusy
+      ? copy.voteSaving
+      : isSourceRevealLoggedIn
+        ? copy.sourcePreviewJoinCta
+        : copy.sourcePreviewLoginCta;
+  const sourceRevealCtaDisabled =
+    Boolean(source?.sourceReveal.requestedByViewer) || isSourceRevealActionBusy;
+  const sourceRevealAction = source?.sourceReveal.unlocked ? null : (
+    <button
+      aria-label={`${sourceRevealCtaLabel} ${sourceRevealCountText}`}
+      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-[#111510] shadow-[0_18px_42px_rgba(68,242,110,0.22)] transition hover:bg-[#69ff8c] disabled:cursor-default disabled:bg-white/18 disabled:text-white/58"
+      disabled={sourceRevealCtaDisabled}
+      onClick={onSourceRevealActivate}
+      type="button"
+    >
+      {isSourceRevealActionBusy ? (
+        <Loader2 className="size-4 animate-spin" />
+      ) : source?.sourceReveal.requestedByViewer ? (
+        <CheckCircle2 className="size-4" />
+      ) : (
+        <HeartHandshake className="size-4" />
+      )}
+      {sourceRevealCtaLabel}
+    </button>
+  );
 
   return (
     <div
@@ -1723,8 +1813,10 @@ function SourceVlogFeedOverlay({
             <div className="flex min-w-0 items-center gap-2">
               <p className="truncate text-[0.6rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
                 {source?.authorName
-                  ? `${copy.sourceOverlayTitle} · ${source.authorName}`
-                  : copy.sourceOverlayTitle}
+                  ? `${canShowLockedPreviewVideo ? copy.sourcePreviewEyebrow : copy.sourceOverlayTitle} · ${source.authorName}`
+                  : canShowLockedPreviewVideo
+                    ? copy.sourcePreviewEyebrow
+                    : copy.sourceOverlayTitle}
               </p>
               {source?.contentMaturityRating === "nsfw" ? (
                 <span className="shrink-0 rounded-full bg-rose-500/90 px-2 py-0.5 text-[0.52rem] font-black uppercase tracking-[0.1em] text-white">
@@ -1769,13 +1861,15 @@ function SourceVlogFeedOverlay({
               <FanletterResponsiveMediaFrame
                 alt={source.title}
                 blurred={source.accessState === "nsfw_opt_in_required"}
-                deferVideoUntilInteraction={Boolean(source.previewVideoUrl)}
+                deferVideoUntilInteraction={
+                  !canShowLockedPreviewVideo && Boolean(source.previewVideoUrl)
+                }
                 deferredVideoCtaPlacement="center"
                 eager
                 fitWithinViewport
                 fitWithinViewportHeightRatio={0.92}
                 imageUrl={source.coverImageUrl}
-                mediaType={source.mediaType}
+                mediaType={canShowLockedPreviewVideo ? "video" : source.mediaType}
                 nsfwPinGate={
                   shouldUsePinGate
                     ? {
@@ -1788,11 +1882,45 @@ function SourceVlogFeedOverlay({
                     : undefined
                 }
                 playButtonLabel={copy.sourceOverlayPlay}
-                previewVideoUrl={source.previewVideoUrl}
+                previewVideoUrl={mediaFramePreviewVideoUrl}
                 title={source.title}
-                videoUrl={source.videoUrl}
+                videoUrl={mediaFrameVideoUrl}
               >
-                {!isPlayable && lockedCopy ? (
+                {canShowLockedPreviewVideo ? (
+                  <div className="absolute inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-20 rounded-2xl border border-white/14 bg-black/62 p-3 text-white shadow-[0_24px_70px_rgba(0,0,0,0.36)] backdrop-blur-xl">
+                    <div className="flex items-start gap-3">
+                      <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/16 text-[#44f26e] ring-1 ring-[#44f26e]/22">
+                        <PlayCircle className="size-5" />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#9bffad]">
+                            {copy.sourcePreviewEyebrow}
+                          </p>
+                          <span className="rounded-full bg-white/10 px-2 py-1 text-[0.62rem] font-black text-white/86">
+                            {sourceRevealCountText}
+                          </span>
+                        </div>
+                        <h3 className="mt-1 text-sm font-black leading-tight [word-break:keep-all]">
+                          {copy.sourcePreviewTitle}
+                        </h3>
+                        <p className="mt-1 text-[0.68rem] font-bold leading-snug text-white/70 [word-break:keep-all]">
+                          {copy.sourceOpenSponsorsRemaining(
+                            sourceRevealRemainingLabel,
+                          )}{" "}
+                          · {copy.sourcePreviewBody}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/16">
+                      <span
+                        className="block h-full rounded-full bg-[#44f26e]"
+                        style={{ width: `${sourceRevealProgressPercent}%` }}
+                      />
+                    </div>
+                    <div className="mt-3">{sourceRevealAction}</div>
+                  </div>
+                ) : !isPlayable && lockedCopy ? (
                   <div className="absolute inset-0 flex items-center bg-[linear-gradient(180deg,rgba(0,0,0,0.14),rgba(0,0,0,0.42)_42%,rgba(0,0,0,0.66))] px-4 py-4 sm:p-5">
                     <div className="w-full rounded-2xl border border-white/14 bg-black/68 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.34)] backdrop-blur-xl">
                       <div className="flex items-start gap-3">
@@ -1815,6 +1943,10 @@ function SourceVlogFeedOverlay({
                         </div>
                       </div>
                       <div className="mt-4 grid gap-2">
+                        {source.accessState === "source_reveal_locked" &&
+                        sourceRevealAction ? (
+                          sourceRevealAction
+                        ) : null}
                         {paidUnlockHref ? (
                           <Link
                             className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-[#111510]"
@@ -2537,12 +2669,9 @@ function FeedSlide({
       onDismissSwipeGuide,
     ],
   );
-  const handleSourceRailClick = useCallback(() => {
+  const handleSourceRevealParticipation = useCallback(() => {
     if (sourceRevealState.unlocked) {
-      if (sourceContentId) {
-        openSourceOverlay();
-      }
-
+      showTapFeedback(copy.doubleTapOpen);
       return;
     }
 
@@ -2562,15 +2691,26 @@ function FeedSlide({
   }, [
     copy.doubleTapDone,
     copy.doubleTapLogin,
+    copy.doubleTapOpen,
     copy.doubleTapWant,
     isSourceRevealLoggedIn,
     openInlineLoginForVote,
-    openSourceOverlay,
     showTapFeedback,
-    sourceContentId,
     sourceRevealState.requestedByViewer,
     sourceRevealState.unlocked,
     submitSourceRevealVote,
+  ]);
+  const handleSourceRailClick = useCallback(() => {
+    if (sourceContentId) {
+      openSourceOverlay();
+      return;
+    }
+
+    handleSourceRevealParticipation();
+  }, [
+    handleSourceRevealParticipation,
+    openSourceOverlay,
+    sourceContentId,
   ]);
   const sourceRailProgressPercent =
     sourceRevealState.threshold > 0
@@ -2972,10 +3112,13 @@ function FeedSlide({
         <SourceVlogFeedOverlay
           copy={copy}
           error={sourceOverlayError}
+          isSourceRevealActionBusy={isSourceRevealSaving || isLoginSyncing}
+          isSourceRevealLoggedIn={isSourceRevealLoggedIn}
           isLoading={isSourceOverlayLoading}
           locale={locale}
           onClose={closeSourceOverlay}
           onRetry={() => void loadSourceOverlay()}
+          onSourceRevealActivate={handleSourceRevealParticipation}
           source={sourceOverlaySource}
         />
       ) : null}
