@@ -50,6 +50,7 @@ import {
 import { hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
+  setPathSearchParams,
 } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
 import { readMemberServerSession } from "@/lib/member-server-session";
@@ -204,6 +205,28 @@ function getReturnHref({
   return (
     returnToHref ??
     buildPathWithReferral(`/${locale}/fanletter/news/cuts`, effectiveReferralCode)
+  );
+}
+
+function getCutNewsHref({
+  cutSlotNumber,
+  effectiveReferralCode,
+  locale,
+  reportId,
+}: {
+  cutSlotNumber: number | null;
+  effectiveReferralCode: string | null;
+  locale: Locale;
+  reportId: string;
+}) {
+  return setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/${reportId}`,
+      effectiveReferralCode,
+    ),
+    {
+      cut: cutSlotNumber ? String(cutSlotNumber) : null,
+    },
   );
 }
 
@@ -638,9 +661,17 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
             <div className="mt-3 space-y-2">
               {visibleReports.length > 0 ? (
                 visibleReports.map((report) => {
+                  const reportHref = getCutNewsHref({
+                    cutSlotNumber: sourceCutSlotNumber,
+                    effectiveReferralCode,
+                    locale,
+                    reportId: report.reportId,
+                  });
+
                   return (
-                    <article
+                    <Link
                       className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-3 rounded-xl border border-white/10 bg-black/30 p-2 text-white"
+                      href={reportHref}
                       key={report.reportId}
                     >
                       <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-white/8">
@@ -670,7 +701,7 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                           )}
                         </p>
                       </div>
-                    </article>
+                    </Link>
                   );
                 })
               ) : (
