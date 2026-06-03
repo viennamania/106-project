@@ -397,13 +397,16 @@ function formatDate(value: string | null, locale: Locale) {
     return null;
   }
 
-  return new Intl.DateTimeFormat(locale, {
+  return new Intl.DateTimeFormat(locale === "ko" ? "ko-KR" : "en-US", {
     dateStyle: "medium",
+    timeZone: "Asia/Seoul",
   }).format(date);
 }
 
 function formatNumber(value: number, locale: Locale) {
-  return new Intl.NumberFormat(locale).format(value);
+  return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US").format(
+    value,
+  );
 }
 
 function getDistance({
@@ -1213,12 +1216,14 @@ function getSourceRevealViewerDisplayName({
 }
 
 function getSourceRevealParticipantSlots({
+  canShowViewerSlot,
   isLoggedIn,
   state,
   viewerAvatarImageUrl,
   viewerDisplayName,
   viewerReferralCode,
 }: {
+  canShowViewerSlot: boolean;
   isLoggedIn: boolean;
   state: FanletterNewsSourceRevealState;
   viewerAvatarImageUrl: string | null;
@@ -1242,6 +1247,7 @@ function getSourceRevealParticipantSlots({
       (participant) => participant.referralCode === viewerReferralCode,
     );
   const shouldShowViewerSlot =
+    canShowViewerSlot &&
     isLoggedIn &&
     !hasViewerParticipant &&
     !state.unlocked &&
@@ -1304,6 +1310,7 @@ function SourceRevealParticipantRail({
   viewerReferralCode: string | null;
 }) {
   const [isSponsorSheetOpen, setIsSponsorSheetOpen] = useState(false);
+  const [isClientReady, setIsClientReady] = useState(false);
   const boundedCount = Math.min(state.count, state.threshold);
   const remainingCount = Math.max(0, state.threshold - boundedCount);
   const joinedLabel = formatNumber(boundedCount, locale);
@@ -1312,6 +1319,7 @@ function SourceRevealParticipantRail({
   const countLabel = `${joinedLabel}/${thresholdLabel}`;
   const statusError = loginError ?? error;
   const slots = getSourceRevealParticipantSlots({
+    canShowViewerSlot: isClientReady,
     isLoggedIn,
     state,
     viewerAvatarImageUrl,
@@ -1336,6 +1344,16 @@ function SourceRevealParticipantRail({
   const sponsorSheetBody = state.unlocked
     ? copy.sourceOpenSponsorsCompletedBody
     : copy.sourceOpenSponsorsIntro;
+
+  useEffect(() => {
+    const animationFrameId = window.requestAnimationFrame(() => {
+      setIsClientReady(true);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isSponsorSheetOpen) {
@@ -1402,7 +1420,7 @@ function SourceRevealParticipantRail({
         <span className="rounded-full bg-black/38 px-1.5 py-0.5 text-[0.56rem] font-black leading-none text-white/84 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur">
           {countLabel}
         </span>
-        <span className="max-w-16 text-center text-[0.52rem] font-black leading-[1.08] text-[#9bffad] drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
+        <span className="max-w-[4.25rem] rounded-full border border-[#44f26e]/18 bg-black/34 px-1.5 py-1 text-center text-[0.58rem] font-black leading-none text-[#9bffad] shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
           {sponsorStatusLabel}
         </span>
         <div
@@ -1475,7 +1493,7 @@ function SourceRevealParticipantRail({
         ) : null}
       </div>
 
-      {isSponsorSheetOpen
+      {isSponsorSheetOpen && isClientReady
         ? createPortal(
             <div
               aria-modal="true"
@@ -2574,7 +2592,7 @@ function FeedSlide({
   const showSourceViewGuide =
     showSwipeGuide && sourceRevealState.unlocked && cutCount > 1;
   const showCutSwipeGuide = showSwipeGuide && cutCount > 1;
-  const cutSwipeGuideClassName = `pointer-events-none absolute left-1/2 z-30 w-[18.5rem] max-w-[calc(100%_-_2rem)] -translate-x-1/2 rounded-2xl border border-white/14 bg-black/58 px-4 py-3 text-center text-white shadow-[0_24px_70px_rgba(0,0,0,0.38)] backdrop-blur-xl ${
+  const cutSwipeGuideClassName = `pointer-events-none absolute left-[44%] z-30 w-[17rem] max-w-[calc(100%_-_6.8rem)] -translate-x-1/2 rounded-2xl border border-white/14 bg-black/58 px-4 py-3 text-center text-white shadow-[0_24px_70px_rgba(0,0,0,0.38)] backdrop-blur-xl ${
     showSourceViewGuide ? "top-[54%]" : "top-[39%]"
   }`;
 
