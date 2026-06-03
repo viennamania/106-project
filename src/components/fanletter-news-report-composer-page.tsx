@@ -339,6 +339,13 @@ function getCopy(locale: Locale) {
         myReportFilterUnreported: "미작성",
         myReportUnwritten: "미작성",
         myReportWritten: "내가 작성함",
+        mobileAction: {
+          compose: "발행",
+          source: "소재",
+          status: "준비",
+          teasers: "컷 편집",
+          title: "모바일 작성",
+        },
         mobileFilters: "필터/정렬",
         existing: "이미 작성함",
         existingBody:
@@ -654,6 +661,13 @@ function getCopy(locale: Locale) {
         myReportFilterUnreported: "Not reported",
         myReportUnwritten: "Not reported",
         myReportWritten: "Reported by me",
+        mobileAction: {
+          compose: "Publish",
+          source: "Source",
+          status: "Ready",
+          teasers: "Cuts",
+          title: "Mobile desk",
+        },
         mobileFilters: "Filters/sort",
         existing: "Already reported",
         existingBody:
@@ -2340,6 +2354,9 @@ export function FanletterNewsReportComposerPage({
         : canSubmit,
     },
   ] as const;
+  const mobileReadyStepCount = mobileComposerSteps.filter(
+    (step) => step.ready,
+  ).length;
   const selectedOpportunityStatusLabel = selectedSource
     ? isSelectedOpportunitySource
       ? copy.sourceReveal.opportunity
@@ -4433,7 +4450,7 @@ export function FanletterNewsReportComposerPage({
             </p>
             <span className="rounded-full bg-[#111510] px-2.5 py-1 text-xs font-black text-[#44f26e]">
               {formatNumber(
-                mobileComposerSteps.filter((step) => step.ready).length,
+                mobileReadyStepCount,
                 locale,
               )}
               /{formatNumber(mobileComposerSteps.length, locale)}
@@ -4463,7 +4480,10 @@ export function FanletterNewsReportComposerPage({
           </div>
         </section>
 
-        <section className="mt-3 grid gap-4 lg:mt-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
+        <section
+          className="mt-3 grid gap-4 lg:mt-4 lg:grid-cols-[22rem_minmax(0,1fr)]"
+          id="fanletter-report-source"
+        >
           <div className="border border-black/12 bg-white p-3 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-4">
             {searchControls}
             <div className="flex items-center justify-between gap-3 px-1 pb-3">
@@ -5349,7 +5369,10 @@ export function FanletterNewsReportComposerPage({
                       </>
                     ) : null}
 
-                    <section className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
+                    <section
+                      className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5"
+                      id="fanletter-report-teasers"
+                    >
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                           <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
@@ -6078,7 +6101,10 @@ export function FanletterNewsReportComposerPage({
                     ) : null}
 
                     {!selectedExistingReport && !isSelectedPaidLocked ? (
-                      <section className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5">
+                      <section
+                        className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5"
+                        id="fanletter-report-compose"
+                      >
                         <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
                           5. Reporter note
                         </p>
@@ -6236,6 +6262,58 @@ export function FanletterNewsReportComposerPage({
           </div>
         </section>
       </div>
+      {selectedSource ? (
+        <nav
+          aria-label={copy.mobileAction.title}
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-white/96 px-3 pb-[calc(env(safe-area-inset-bottom)+0.65rem)] pt-2 shadow-[0_-14px_38px_rgba(17,21,16,0.14)] backdrop-blur-xl lg:hidden"
+        >
+          <div className="mx-auto max-w-md">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
+                  {copy.mobileAction.title}
+                </p>
+                <p className="mt-0.5 truncate text-xs font-black text-[#111510]">
+                  {selectedSource.title}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-[#111510] px-2.5 py-1 text-xs font-black text-[#44f26e]">
+                {copy.mobileAction.status}{" "}
+                {formatNumber(mobileReadyStepCount, locale)}/
+                {formatNumber(mobileComposerSteps.length, locale)}
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              <a
+                className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-black/10 bg-[#f6f8f4] px-2 text-xs font-black !text-[#111510]"
+                href="#fanletter-report-source"
+              >
+                <FileText className="size-3.5 text-[#16702e]" />
+                {copy.mobileAction.source}
+              </a>
+              <a
+                className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-[#19b84b]/24 bg-[#ecfff0] px-2 text-xs font-black !text-[#16702e]"
+                href="#fanletter-report-teasers"
+              >
+                <Crop className="size-3.5" />
+                {copy.mobileAction.teasers}
+              </a>
+              <a
+                className={cn(
+                  "inline-flex h-11 items-center justify-center gap-1.5 rounded-full px-2 text-xs font-black",
+                  canSubmit || selectedExistingReport
+                    ? "bg-[#44f26e] !text-[#111510]"
+                    : "bg-[#111510] !text-white",
+                )}
+                href="#fanletter-report-compose"
+              >
+                <Sparkles className="size-3.5" />
+                {copy.mobileAction.compose}
+              </a>
+            </div>
+          </div>
+        </nav>
+      ) : null}
       </main>
     </>
   );

@@ -6,8 +6,10 @@ import { createPortal } from "react-dom";
 import {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
 } from "react";
@@ -58,6 +60,12 @@ import {
   type FanletterNewsPublicCutSourceLoadResponse,
   type SerializedFanletterNewsPublicCutFeedItem,
 } from "@/lib/fanletter-news-public-cuts-shared";
+import {
+  FANLETTER_NEWS_ROLE_PREFERENCE_CHANGE_EVENT,
+  FANLETTER_NEWS_ROLE_PREFERENCE_STORAGE_KEY,
+  normalizeFanletterNewsRolePreference,
+  type FanletterNewsRolePreference,
+} from "@/lib/fanletter-news-role-preference";
 import {
   getFanletterNewsBareArticleDisplayTitle,
 } from "@/lib/fanletter-news-related";
@@ -146,6 +154,14 @@ function getCopy(locale: Locale) {
         reporterPanelEyebrow: "Fan Reporter",
         reporterPanelTitle: "편집 리포터",
         reporterPublishedMetric: "발행일",
+        reporterQuickDesk: {
+          currentCta: "이 원본으로 기사 작성",
+          currentLockedCta: "미언락 원본 4컷 기사 작성",
+          jumpCta: "미언락 소재 찾기",
+          summary: (count: string) =>
+            `아직 원본이 열리지 않은 소재 ${count}개를 빠르게 찾아 4컷 편집으로 이어갈 수 있습니다.`,
+          title: "리포터 빠른 작성",
+        },
         reporterSourceMetric: "원본 오픈",
         retry: "다시 시도",
         serviceCharacters: "AI 캐릭터",
@@ -295,6 +311,14 @@ function getCopy(locale: Locale) {
         reporterPanelEyebrow: "Fan Reporter",
         reporterPanelTitle: "Edit reporter",
         reporterPublishedMetric: "Published",
+        reporterQuickDesk: {
+          currentCta: "Write from this source",
+          currentLockedCta: "Edit locked source as 4 cuts",
+          jumpCta: "Find locked source",
+          summary: (count: string) =>
+            `${count} locked candidates can be found quickly and turned into a four-cut report.`,
+          title: "Reporter quick desk",
+        },
         reporterSourceMetric: "Source open",
         retry: "Retry",
         serviceCharacters: "AI Characters",
@@ -606,6 +630,57 @@ function isSourceRevealResponse(value: unknown): value is SourceRevealResponse {
     value !== null &&
     "sourceReveal" in value &&
     typeof (value as SourceRevealResponse).sourceReveal?.count === "number"
+  );
+}
+
+function subscribeToRolePreference(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  window.addEventListener(
+    FANLETTER_NEWS_ROLE_PREFERENCE_CHANGE_EVENT,
+    onStoreChange,
+  );
+
+  return () => {
+    window.removeEventListener("storage", onStoreChange);
+    window.removeEventListener(
+      FANLETTER_NEWS_ROLE_PREFERENCE_CHANGE_EVENT,
+      onStoreChange,
+    );
+  };
+}
+
+function getRolePreferenceSnapshot() {
+  if (typeof window === "undefined") {
+    return "general";
+  }
+
+  return normalizeFanletterNewsRolePreference(
+    window.localStorage.getItem(FANLETTER_NEWS_ROLE_PREFERENCE_STORAGE_KEY),
+  );
+}
+
+function getServerRolePreferenceSnapshot(): FanletterNewsRolePreference {
+  return "general";
+}
+
+function getReportComposerHref({
+  contentId,
+  locale,
+  referralCode,
+  returnToHref,
+}: {
+  contentId: string | null;
+  locale: Locale;
+  referralCode: string | null;
+  returnToHref: string;
+}) {
+  return setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/reports/new`, referralCode),
+    {
+      contentId,
+      returnTo: returnToHref,
+      sourceReveal: "locked",
+    },
   );
 }
 
@@ -1984,6 +2059,7 @@ function FeedSlide({
   initialCutSlotNumber = null,
   initialSourceContentId = null,
   isActive,
+  isReporterQuickDeskVisible,
   item,
   itemCount,
   locale,
@@ -2000,6 +2076,7 @@ function FeedSlide({
   initialCutSlotNumber?: number | null;
   initialSourceContentId?: string | null;
   isActive: boolean;
+  isReporterQuickDeskVisible: boolean;
   item: SerializedFanletterNewsPublicCutFeedItem;
   itemCount: number;
   locale: Locale;
@@ -2140,6 +2217,12 @@ function FeedSlide({
   const sharePreviewImageKind = "activeCut";
   const shareTitle = copy.shareTitle(title);
   const shareSummary = copy.shareSummary(title, report.reporterName);
+  const reportComposerHref = getReportComposerHref({
+    contentId: sourceContentId || null,
+    locale,
+    referralCode,
+    returnToHref: cutFeedReturnHref,
+  });
 
   const loadSourceOverlay = useCallback(async () => {
     if (!sourceContentId) {
@@ -3091,6 +3174,22 @@ function FeedSlide({
               ) : null}
               {publishedAt ? <span>{publishedAt}</span> : null}
             </div>
+            {isReporterQuickDeskVisible && sourceContentId ? (
+              <Link
+                className="mt-3 inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full border border-[#44f26e]/34 bg-[#44f26e] px-4 py-2 text-sm font-black !text-[#111510] shadow-[0_16px_34px_rgba(0,0,0,0.28)] transition hover:bg-[#65ff87]"
+                href={reportComposerHref}
+                onClick={() => {
+                  onDismissSwipeGuide?.();
+                }}
+              >
+                <PenLine className="size-4 shrink-0" />
+                <span className="truncate">
+                  {sourceRevealState.unlocked
+                    ? copy.reporterQuickDesk.currentCta
+                    : copy.reporterQuickDesk.currentLockedCta}
+                </span>
+              </Link>
+            ) : null}
           </div>
 
           <div className="mt-4 flex items-center justify-center gap-1.5">
@@ -3362,6 +3461,11 @@ export function FanletterNewsPublicCutsFeedPage({
   const headerCountLabel = hasMore
     ? `${formatNumber(items.length, locale)}+`
     : formatNumber(items.length, locale);
+  const selectedRolePreference = useSyncExternalStore(
+    subscribeToRolePreference,
+    getRolePreferenceSnapshot,
+    getServerRolePreferenceSnapshot,
+  );
   const visibleItem =
     items[
       Math.min(Math.max(visibleFeedIndex, 0), Math.max(items.length - 1, 0))
@@ -3376,6 +3480,17 @@ export function FanletterNewsPublicCutsFeedPage({
     viewerReporterReferralCode &&
       visibleItemReporterReferralCode &&
       viewerReporterReferralCode === visibleItemReporterReferralCode,
+  );
+  const isReporterQuickDeskVisible = Boolean(
+    viewerReporterReferralCode && selectedRolePreference === "reporter",
+  );
+  const lockedReporterCandidateCount = useMemo(
+    () => items.filter((item) => !item.sourceReveal.unlocked).length,
+    [items],
+  );
+  const firstLockedReporterCandidateIndex = useMemo(
+    () => items.findIndex((item) => !item.sourceReveal.unlocked),
+    [items],
   );
   const firstSlideCutCount = items[0] ? getPublicCutItemCutCount(items[0]) : 0;
   const shouldOfferEntrySwipeGuide = Boolean(
@@ -3878,6 +3993,45 @@ export function FanletterNewsPublicCutsFeedPage({
           onClose={() => setServiceMenuOpen(false)}
         />
       ) : null}
+      {isReporterQuickDeskVisible && lockedReporterCandidateCount > 0 ? (
+        <section className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+4.25rem)] z-30 w-full max-w-[430px] -translate-x-1/2 px-3">
+          <div className="pointer-events-auto rounded-2xl border border-[#44f26e]/28 bg-black/64 p-3 text-white shadow-[0_22px_58px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+            <div className="flex items-start gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
+                <PenLine className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-black">
+                  {copy.reporterQuickDesk.title}
+                </p>
+                <p className="mt-1 line-clamp-2 text-xs font-bold leading-5 text-white/68">
+                  {copy.reporterQuickDesk.summary(
+                    formatNumber(lockedReporterCandidateCount, locale),
+                  )}
+                </p>
+              </div>
+              <button
+                className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-white px-3 text-xs font-black text-[#111510] transition hover:bg-[#44f26e]"
+                onClick={() => {
+                  const root = scrollContainerRef.current;
+
+                  if (!root || firstLockedReporterCandidateIndex < 0) {
+                    return;
+                  }
+
+                  root.scrollTo({
+                    behavior: "smooth",
+                    top: root.clientHeight * firstLockedReporterCandidateIndex,
+                  });
+                }}
+                type="button"
+              >
+                {copy.reporterQuickDesk.jumpCta}
+              </button>
+            </div>
+          </div>
+        </section>
+      ) : null}
       <div
         className="mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overflow-y-auto overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] scroll-smooth sm:border-x sm:border-white/10"
         onScroll={handleFeedScroll}
@@ -3906,6 +4060,7 @@ export function FanletterNewsPublicCutsFeedPage({
               initialCutSlotNumber={index === 0 ? initialCutSlotNumber : null}
               initialSourceContentId={index === 0 ? sourceContentId : null}
               isActive={index === activeFeedIndex}
+              isReporterQuickDeskVisible={isReporterQuickDeskVisible}
               item={item}
               itemCount={items.length}
               key={item.report.reportId}
