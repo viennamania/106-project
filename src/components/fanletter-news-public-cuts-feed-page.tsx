@@ -38,6 +38,7 @@ import {
   Share2,
   Sparkles,
   UserRound,
+  UsersRound,
   Video,
   X,
   type LucideIcon,
@@ -122,7 +123,7 @@ function getCopy(locale: Locale) {
         loadingMore: "다음 리포터 컷 불러오는 중",
         loginSyncFailed: "로그인 확인에 실패했습니다. 다시 시도하세요.",
         loginSyncing: "로그인 확인 중",
-        loginTitle: "보고싶어요 참여 로그인",
+        loginTitle: "원본 열기 참여 로그인",
         loginUnavailable:
           "현재 브라우저에서 이메일 로그인을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
         myCharacterBadge: "내 캐릭터",
@@ -175,9 +176,32 @@ function getCopy(locale: Locale) {
         shareTitle: (headline: string) => `팬 기자가 편집한 4컷: ${headline}`,
         slot: (index: string) => `컷 ${index}`,
         sourceOpen: "팬 오픈 투표",
+        sourceOpenCta: "원본 열기",
         sourceOpenCompleteSummary: (count: string, threshold: string) =>
           `${count}/${threshold}명 참여 완료`,
         sourceOpenDone: "원본 공개 완료",
+        sourceOpenSponsors: "오픈 스폰서",
+        sourceOpenSponsorsAnonymous: "익명 오픈 스폰서",
+        sourceOpenSponsorsClose: "오픈 스폰서 닫기",
+        sourceOpenSponsorsCompletedA11y: (count: string) =>
+          `오픈 스폰서 ${count}명`,
+        sourceOpenSponsorsCompletedBody:
+          "이 팬들이 원본 브이로그를 공개했습니다.",
+        sourceOpenSponsorsCompletedStatus: "오픈 완료",
+        sourceOpenSponsorsCompletedTitle: "오픈 스폰서 6명",
+        sourceOpenSponsorsEmptySlot: (position: string) =>
+          `빈 오픈 스폰서 슬롯 ${position}`,
+        sourceOpenSponsorsIntro:
+          "6명의 오픈 스폰서가 모이면 원본 브이로그가 공개됩니다. 참여하면 선공개와 영구 크레딧을 받습니다.",
+        sourceOpenSponsorsJoined: (count: string, remaining: string) =>
+          `오픈 스폰서 ${count}명 참여, ${remaining}명 남음`,
+        sourceOpenSponsorsListTitle: "오픈 스폰서 슬롯",
+        sourceOpenSponsorsOpenA11y: (count: string, remaining: string) =>
+          `오픈 스폰서 ${count}명 참여, ${remaining}명 남음`,
+        sourceOpenSponsorsParticipant: (name: string) =>
+          `오픈 스폰서 ${name}`,
+        sourceOpenSponsorsRemaining: (remaining: string) =>
+          `${remaining}명 남음`,
         sourceOpenStatus: (
           count: string,
           threshold: string,
@@ -242,7 +266,7 @@ function getCopy(locale: Locale) {
         loadingMore: "Loading more reporter cuts",
         loginSyncFailed: "Could not confirm the login. Please try again.",
         loginSyncing: "Checking login",
-        loginTitle: "Sign in to join",
+        loginTitle: "Sign in to open source",
         loginUnavailable:
           "Email login cannot start in this browser right now. Please try again shortly.",
         myCharacterBadge: "My character",
@@ -295,9 +319,32 @@ function getCopy(locale: Locale) {
         shareTitle: (headline: string) => `Four cuts edited by a fan reporter: ${headline}`,
         slot: (index: string) => `Cut ${index}`,
         sourceOpen: "Fan-open vote",
+        sourceOpenCta: "Open source",
         sourceOpenCompleteSummary: (count: string, threshold: string) =>
           `${count}/${threshold} joined`,
         sourceOpenDone: "Source open",
+        sourceOpenSponsors: "Open sponsors",
+        sourceOpenSponsorsAnonymous: "Anonymous open sponsor",
+        sourceOpenSponsorsClose: "Close open sponsors",
+        sourceOpenSponsorsCompletedA11y: (count: string) =>
+          `${count} open sponsors`,
+        sourceOpenSponsorsCompletedBody:
+          "These fans opened the source vlog.",
+        sourceOpenSponsorsCompletedStatus: "Open complete",
+        sourceOpenSponsorsCompletedTitle: "6 open sponsors",
+        sourceOpenSponsorsEmptySlot: (position: string) =>
+          `Empty open sponsor slot ${position}`,
+        sourceOpenSponsorsIntro:
+          "When 6 open sponsors join, the source vlog opens. Join to get early access and permanent credit.",
+        sourceOpenSponsorsJoined: (count: string, remaining: string) =>
+          `${count} open sponsors joined, ${remaining} left`,
+        sourceOpenSponsorsListTitle: "Open sponsor slots",
+        sourceOpenSponsorsOpenA11y: (count: string, remaining: string) =>
+          `${count} open sponsors joined, ${remaining} left`,
+        sourceOpenSponsorsParticipant: (name: string) =>
+          `Open sponsor ${name}`,
+        sourceOpenSponsorsRemaining: (remaining: string) =>
+          `${remaining} left`,
         sourceOpenStatus: (
           count: string,
           threshold: string,
@@ -471,7 +518,22 @@ type SourceRevealParticipantRailCopy = Pick<
   ReturnType<typeof getCopy>,
   | "loginSyncing"
   | "sourceOpen"
+  | "sourceOpenCta"
   | "sourceOpenDone"
+  | "sourceOpenSponsors"
+  | "sourceOpenSponsorsAnonymous"
+  | "sourceOpenSponsorsClose"
+  | "sourceOpenSponsorsCompletedA11y"
+  | "sourceOpenSponsorsCompletedBody"
+  | "sourceOpenSponsorsCompletedStatus"
+  | "sourceOpenSponsorsCompletedTitle"
+  | "sourceOpenSponsorsEmptySlot"
+  | "sourceOpenSponsorsIntro"
+  | "sourceOpenSponsorsJoined"
+  | "sourceOpenSponsorsListTitle"
+  | "sourceOpenSponsorsOpenA11y"
+  | "sourceOpenSponsorsParticipant"
+  | "sourceOpenSponsorsRemaining"
   | "sourceView"
   | "voteCta"
   | "voteDone"
@@ -1240,10 +1302,13 @@ function SourceRevealParticipantRail({
   viewerDisplayName: string;
   viewerReferralCode: string | null;
 }) {
-  const countLabel = `${formatNumber(
-    Math.min(state.count, state.threshold),
-    locale,
-  )}/${formatNumber(state.threshold, locale)}`;
+  const [isSponsorSheetOpen, setIsSponsorSheetOpen] = useState(false);
+  const boundedCount = Math.min(state.count, state.threshold);
+  const remainingCount = Math.max(0, state.threshold - boundedCount);
+  const joinedLabel = formatNumber(boundedCount, locale);
+  const remainingLabel = formatNumber(remainingCount, locale);
+  const thresholdLabel = formatNumber(state.threshold, locale);
+  const countLabel = `${joinedLabel}/${thresholdLabel}`;
   const statusError = loginError ?? error;
   const slots = getSourceRevealParticipantSlots({
     isLoggedIn,
@@ -1252,17 +1317,24 @@ function SourceRevealParticipantRail({
     viewerDisplayName,
     viewerReferralCode,
   });
-  const ctaLabel = state.unlocked
-    ? copy.sourceView
-    : state.requestedByViewer
-      ? copy.voteDone
-      : isLoginBusy
-        ? copy.loginSyncing
-        : isSaving
-          ? copy.voteSaving
-          : isLoggedIn
-            ? copy.voteCta
-            : copy.voteLogin;
+  const ctaLabel = state.unlocked ? copy.sourceView : copy.sourceOpenCta;
+  const buttonA11yLabel = isLoginBusy
+    ? `${copy.loginSyncing} ${countLabel}`
+    : isSaving
+      ? `${copy.voteSaving} ${countLabel}`
+      : `${ctaLabel} ${countLabel}`;
+  const sponsorStatusLabel = state.unlocked
+    ? copy.sourceOpenSponsorsCompletedStatus
+    : copy.sourceOpenSponsorsRemaining(remainingLabel);
+  const sponsorsStackLabel = state.unlocked
+    ? copy.sourceOpenSponsorsCompletedA11y(thresholdLabel)
+    : copy.sourceOpenSponsorsOpenA11y(joinedLabel, remainingLabel);
+  const sponsorSheetTitle = state.unlocked
+    ? copy.sourceOpenSponsorsCompletedTitle
+    : copy.sourceOpenSponsorsListTitle;
+  const sponsorSheetBody = state.unlocked
+    ? copy.sourceOpenSponsorsCompletedBody
+    : copy.sourceOpenSponsorsIntro;
   const RailIcon: LucideIcon = state.unlocked
     ? PlayCircle
     : state.requestedByViewer
@@ -1282,113 +1354,205 @@ function SourceRevealParticipantRail({
   const isDisabled = isSaving || isLoginBusy;
 
   return (
-    <div
-      className={`flex flex-col items-center gap-1.5 transition ${
-        authNudge ? "scale-[1.035]" : ""
-      }`}
-    >
-      <span
-        className="inline-flex rounded-full p-[2px] shadow-[0_12px_34px_rgba(0,0,0,0.26)]"
-        style={{
-          background: `conic-gradient(#44f26e ${progressPercent}%, rgba(255,255,255,0.18) 0)`,
-        }}
+    <>
+      <div
+        className={`flex flex-col items-center gap-1.5 transition ${
+          authNudge ? "scale-[1.035]" : ""
+        }`}
       >
-        <button
-          aria-label={`${ctaLabel} ${countLabel}`}
-          className={buttonClassName}
-          disabled={isDisabled}
-          onClick={onActivate}
-          title={`${ctaLabel} ${countLabel}`}
-          type="button"
+        <span
+          className="inline-flex rounded-full p-[2px] shadow-[0_12px_34px_rgba(0,0,0,0.26)]"
+          style={{
+            background: `conic-gradient(#44f26e ${progressPercent}%, rgba(255,255,255,0.18) 0)`,
+          }}
         >
-          {isSaving || isLoginBusy ? (
-            <Loader2 className="size-5 animate-spin" />
-          ) : (
-            <RailIcon className="size-5" />
-          )}
-        </button>
-      </span>
-      <span className="max-w-14 text-center text-[0.58rem] font-black leading-[1.05] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
-        {ctaLabel}
-      </span>
-      <span className="rounded-full bg-black/38 px-1.5 py-0.5 text-[0.56rem] font-black leading-none text-white/84 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur">
-        {countLabel}
-      </span>
-      <div className="mt-1 flex flex-col items-center pb-1">
-        {slots.map((slot, slotIndex) => {
-          const isActionable =
-            !state.unlocked &&
-            !state.requestedByViewer &&
-            (slot.kind === "viewer" || slot.kind === "empty");
-          const slotContent = slot.avatarImageUrl ? (
-            <Image
-              alt=""
-              className="object-cover"
-              fill
-              sizes="30px"
-              src={slot.avatarImageUrl}
-              unoptimized={shouldBypassFanletterImageOptimization(
-                slot.avatarImageUrl,
-              )}
-            />
-          ) : slot.kind === "complete" ? (
-            <CheckCircle2 className="size-3.5" />
-          ) : slot.kind === "viewer" ? (
-            <UserRound className="size-3.5" />
-          ) : (
-            <LockKeyhole className="size-3.5" />
-          );
-          const className = `relative inline-flex size-[1.88rem] items-center justify-center overflow-hidden rounded-full border text-[0.58rem] font-black shadow-[0_8px_18px_rgba(0,0,0,0.24)] transition first:mt-0 ${
-            slot.kind === "participant"
-              ? "-mt-2 border-white/72 bg-black/48 text-white"
-              : slot.kind === "viewer"
-                ? "-mt-2 border-[#44f26e] bg-[#44f26e]/20 text-[#44f26e] ring-2 ring-[#44f26e]/36"
-                : slot.kind === "complete"
-                  ? "-mt-2 border-[#44f26e]/70 bg-[#44f26e] text-[#101510]"
-                  : "-mt-2 border-white/14 bg-black/22 text-white/34"
-          }`;
-          const slotStyle = {
-            zIndex: slots.length - slotIndex,
-          };
-          const title =
-            slot.kind === "empty"
-              ? `${copy.sourceOpen} ${slot.position}`
-              : slot.kind === "complete"
-                ? copy.sourceOpenDone
-                : slot.displayName;
-
-          return isActionable ? (
-            <button
-              aria-label={title}
-              className={className}
-              disabled={isSaving || isLoginBusy}
-              key={`${slot.kind}-${slot.position}-${slot.referralCode ?? slot.displayName}`}
-              onClick={onActivate}
-              style={slotStyle}
-              title={title}
-              type="button"
-            >
-              {slotContent}
-            </button>
-          ) : (
-            <span
-              aria-label={title}
-              className={className}
-              key={`${slot.kind}-${slot.position}-${slot.referralCode ?? slot.displayName}`}
-              style={slotStyle}
-              title={title}
-            >
-              {slotContent}
-            </span>
-          );
-        })}
-      </div>
-      {statusError ? (
-        <span className="max-w-16 text-center text-[0.54rem] font-black leading-[1.1] text-rose-100 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
-          {statusError}
+          <button
+            aria-label={buttonA11yLabel}
+            className={buttonClassName}
+            disabled={isDisabled}
+            onClick={onActivate}
+            title={buttonA11yLabel}
+            type="button"
+          >
+            {isSaving || isLoginBusy ? (
+              <Loader2 className="size-5 animate-spin" />
+            ) : (
+              <RailIcon className="size-5" />
+            )}
+          </button>
         </span>
+        <span className="max-w-14 text-center text-[0.58rem] font-black leading-[1.05] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
+          {ctaLabel}
+        </span>
+        <span className="rounded-full bg-black/38 px-1.5 py-0.5 text-[0.56rem] font-black leading-none text-white/84 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur">
+          {countLabel}
+        </span>
+        <span className="max-w-16 text-center text-[0.52rem] font-black leading-[1.08] text-[#9bffad] drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
+          {sponsorStatusLabel}
+        </span>
+        <div
+          aria-label={sponsorsStackLabel}
+          className="mt-1 flex flex-col items-center pb-1"
+          role="group"
+        >
+          {slots.map((slot, slotIndex) => {
+            const isParticipant = slot.kind === "participant";
+            const isViewerSlot = slot.kind === "viewer";
+            const isAnonymousComplete = slot.kind === "complete";
+            const sponsorName =
+              isAnonymousComplete || slot.kind === "empty"
+                ? copy.sourceOpenSponsorsAnonymous
+                : slot.displayName;
+            const slotLabel =
+              slot.kind === "empty"
+                ? copy.sourceOpenSponsorsEmptySlot(
+                    formatNumber(slot.position, locale),
+                  )
+                : copy.sourceOpenSponsorsParticipant(sponsorName);
+            const slotContent = slot.avatarImageUrl ? (
+              <Image
+                alt=""
+                className="object-cover"
+                fill
+                sizes="30px"
+                src={slot.avatarImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(
+                  slot.avatarImageUrl,
+                )}
+              />
+            ) : isAnonymousComplete || isViewerSlot ? (
+              <UserRound className="size-3.5" />
+            ) : (
+              <Plus className="size-3.5" />
+            );
+            const className = `relative inline-flex size-[1.88rem] items-center justify-center overflow-hidden rounded-full border text-[0.58rem] font-black shadow-[0_8px_18px_rgba(0,0,0,0.24)] transition first:mt-0 focus:outline-none focus:ring-2 focus:ring-[#44f26e]/60 ${
+              isParticipant
+                ? "-mt-2 border-white/72 bg-black/48 text-white"
+                : isViewerSlot
+                  ? "-mt-2 border-[#44f26e] bg-[#44f26e]/20 text-[#44f26e] ring-2 ring-[#44f26e]/36"
+                  : isAnonymousComplete
+                    ? "-mt-2 border-[#44f26e]/60 bg-[#44f26e]/18 text-[#9bffad]"
+                    : "-mt-2 border-white/16 bg-black/24 text-white/42"
+            }`;
+            const slotStyle = {
+              zIndex: slots.length - slotIndex,
+            };
+
+            return (
+              <button
+                aria-label={slotLabel}
+                className={className}
+                key={`${slot.kind}-${slot.position}-${slot.referralCode ?? slot.displayName}`}
+                onClick={() => setIsSponsorSheetOpen(true)}
+                style={slotStyle}
+                title={slotLabel}
+                type="button"
+              >
+                {slotContent}
+              </button>
+            );
+          })}
+        </div>
+        {statusError ? (
+          <span className="max-w-16 text-center text-[0.54rem] font-black leading-[1.1] text-rose-100 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
+            {statusError}
+          </span>
+        ) : null}
+      </div>
+
+      {isSponsorSheetOpen ? (
+        <div
+          aria-modal="true"
+          className="fixed inset-0 z-[80] flex items-end justify-center bg-black/46 px-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] text-white backdrop-blur-sm"
+          onClick={() => setIsSponsorSheetOpen(false)}
+          role="dialog"
+        >
+          <section
+            aria-label={sponsorSheetTitle}
+            className="flex max-h-[calc(100svh-0.75rem)] w-full max-w-[430px] flex-col overflow-hidden rounded-t-3xl border border-white/12 bg-[#070b08]/96 p-4 shadow-[0_-24px_80px_rgba(0,0,0,0.48)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start gap-3">
+              <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/14 text-[#44f26e] ring-1 ring-[#44f26e]/24">
+                <UsersRound className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
+                  {copy.sourceOpenSponsors}
+                </p>
+                <h2 className="mt-1 text-xl font-black leading-tight">
+                  {sponsorSheetTitle}
+                </h2>
+                <p className="mt-2 text-sm font-semibold leading-5 text-white/68 [word-break:keep-all]">
+                  {sponsorSheetBody}
+                </p>
+              </div>
+              <button
+                aria-label={copy.sourceOpenSponsorsClose}
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white/72 transition hover:bg-white hover:text-black"
+                onClick={() => setIsSponsorSheetOpen(false)}
+                type="button"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+            <div className="mt-4 grid max-h-[46svh] grid-cols-2 gap-2 overflow-y-auto pr-1">
+              {slots.map((slot) => {
+                const isEmpty = slot.kind === "empty";
+                const isAnonymousComplete = slot.kind === "complete";
+                const displayName = isEmpty
+                  ? copy.sourceOpenSponsorsEmptySlot(
+                      formatNumber(slot.position, locale),
+                    )
+                  : isAnonymousComplete
+                    ? copy.sourceOpenSponsorsAnonymous
+                    : slot.displayName || copy.sourceOpenSponsorsAnonymous;
+
+                return (
+                  <div
+                    className={`flex min-w-0 items-center gap-2 rounded-2xl border px-2 py-2 ${
+                      isEmpty
+                        ? "border-white/10 bg-white/[0.04] text-white/48"
+                        : "border-[#44f26e]/20 bg-[#44f26e]/10 text-white"
+                    }`}
+                    key={`sheet-${slot.kind}-${slot.position}-${slot.referralCode ?? slot.displayName}`}
+                  >
+                    <span className="relative inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/14 bg-black/34 text-[#44f26e]">
+                      {slot.avatarImageUrl ? (
+                        <Image
+                          alt=""
+                          className="object-cover"
+                          fill
+                          sizes="36px"
+                          src={slot.avatarImageUrl}
+                          unoptimized={shouldBypassFanletterImageOptimization(
+                            slot.avatarImageUrl,
+                          )}
+                        />
+                      ) : isEmpty ? (
+                        <Plus className="size-4" />
+                      ) : (
+                        <UserRound className="size-4" />
+                      )}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.1em] text-[#9bffad]">
+                        {isEmpty
+                          ? formatNumber(slot.position, locale)
+                          : copy.sourceOpenSponsors}
+                      </span>
+                      <span className="block truncate text-xs font-black">
+                        {displayName}
+                      </span>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        </div>
       ) : null}
-    </div>
+    </>
   );
 }
 
