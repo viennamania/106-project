@@ -185,10 +185,14 @@ function getCopy(locale: Locale) {
         serviceVlogNewHint: "브이로거",
         vloggerDesk: {
           characterCta: "이 캐릭터 원본 보기",
+          characterShortCta: "원본",
           manageCta: "내 브이로그 관리",
+          manageShortCta: "관리",
           newCta: "새 브이로그 만들기",
+          newShortCta: "만들기",
           summary:
             "컷 피드 반응을 보면서 다음 원본을 만들거나 업로드하세요. 브이로거도 먼저 팬처럼 소비한 뒤 제작으로 이어집니다.",
+          compactSummary: "컷 반응 보고 다음 원본 제작",
           title: "브이로거 제작 바로가기",
         },
         serviceVlogs: "원본 브이로그",
@@ -350,10 +354,14 @@ function getCopy(locale: Locale) {
         serviceVlogNewHint: "Vlogger",
         vloggerDesk: {
           characterCta: "View this character's sources",
+          characterShortCta: "Sources",
           manageCta: "Manage my vlogs",
+          manageShortCta: "Manage",
           newCta: "Create new vlog",
+          newShortCta: "Create",
           summary:
             "Watch cut-feed reactions, then create or upload the next source. Vloggers stay consumers first, then move into production.",
+          compactSummary: "Create from cut-feed reactions",
           title: "Vlogger production shortcut",
         },
         serviceVlogs: "Source Vlogs",
@@ -4101,36 +4109,43 @@ export function FanletterNewsPublicCutsFeedPage({
       ) : null}
       {isVloggerDeskVisible ? (
         <section className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+4.25rem)] z-30 w-full max-w-[430px] -translate-x-1/2 px-3">
-          <div className="pointer-events-auto rounded-2xl border border-[#44f26e]/24 bg-black/64 p-3 text-white shadow-[0_22px_58px_rgba(0,0,0,0.32)] backdrop-blur-xl">
-            <div className="flex items-start gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
-                <Video className="size-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-black">{copy.vloggerDesk.title}</p>
-                <p className="mt-1 line-clamp-2 text-xs font-bold leading-5 text-white/68">
-                  {copy.vloggerDesk.summary}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  <Link
-                    className="inline-flex h-9 items-center justify-center rounded-full bg-[#44f26e] px-3 text-xs font-black !text-[#111510] transition hover:bg-[#65ff86]"
-                    href={vlogsNewHref}
-                  >
-                    {copy.vloggerDesk.newCta}
-                  </Link>
-                  <Link
-                    className="inline-flex h-9 items-center justify-center rounded-full bg-white px-3 text-xs font-black !text-[#111510] transition hover:bg-[#44f26e]"
-                    href={vlogsManageHref}
-                  >
-                    {copy.vloggerDesk.manageCta}
-                  </Link>
-                  <Link
-                    className="inline-flex h-9 items-center justify-center rounded-full border border-white/14 bg-white/10 px-3 text-xs font-black !text-white transition hover:border-[#44f26e]/50 hover:text-[#44f26e]"
-                    href={visibleCharacterVlogsHref}
-                  >
-                    {copy.vloggerDesk.characterCta}
-                  </Link>
+          <div className="pointer-events-auto rounded-full border border-[#44f26e]/22 bg-black/66 px-2.5 py-2 text-white shadow-[0_16px_42px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+            <div className="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
+                  <Video className="size-4.5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-black leading-tight">
+                    {copy.vloggerDesk.title}
+                  </p>
+                  <p className="mt-0.5 truncate text-[0.68rem] font-bold leading-tight text-white/62">
+                    {copy.vloggerDesk.compactSummary}
+                  </p>
                 </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <Link
+                  aria-label={copy.vloggerDesk.newCta}
+                  className="inline-flex h-9 items-center justify-center rounded-full bg-[#44f26e] px-3 text-xs font-black !text-[#111510] transition hover:bg-[#65ff86]"
+                  href={vlogsNewHref}
+                >
+                  {copy.vloggerDesk.newShortCta}
+                </Link>
+                <Link
+                  aria-label={copy.vloggerDesk.manageCta}
+                  className="inline-flex h-9 items-center justify-center rounded-full bg-white px-3 text-xs font-black !text-[#111510] transition hover:bg-[#44f26e]"
+                  href={vlogsManageHref}
+                >
+                  {copy.vloggerDesk.manageShortCta}
+                </Link>
+                <Link
+                  aria-label={copy.vloggerDesk.characterCta}
+                  className="inline-flex h-9 items-center justify-center rounded-full border border-white/14 bg-white/10 px-3 text-xs font-black !text-white transition hover:border-[#44f26e]/50 hover:!text-[#44f26e]"
+                  href={visibleCharacterVlogsHref}
+                >
+                  {copy.vloggerDesk.characterShortCta}
+                </Link>
               </div>
             </div>
           </div>
