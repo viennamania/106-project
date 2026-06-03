@@ -876,8 +876,8 @@ function CutFeedServiceMenuSheet({
 }
 
 function CutFeedProfileActionButton({
-  active = false,
   fallbackIcon: FallbackIcon,
+  href,
   imageUrl,
   isViewerOwned = false,
   label,
@@ -885,13 +885,13 @@ function CutFeedProfileActionButton({
   onClick,
   viewerOwnedLabel,
 }: {
-  active?: boolean;
   fallbackIcon: LucideIcon;
+  href: string;
   imageUrl: string | null;
   isViewerOwned?: boolean;
   label: string;
   name: string;
-  onClick: () => void;
+  onClick?: () => void;
   viewerOwnedLabel?: string;
 }) {
   const accessibilityLabel =
@@ -900,19 +900,16 @@ function CutFeedProfileActionButton({
       : `${label} ${name}`;
 
   return (
-    <button
+    <Link
       aria-label={accessibilityLabel}
-      aria-pressed={active}
       className={`group inline-flex h-10 max-w-[14rem] items-center gap-2 rounded-full border py-1 pl-1 pr-3 text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur transition hover:bg-white hover:text-[#111510] ${
         isViewerOwned
           ? "border-[#44f26e]/80 bg-[#44f26e]/18 ring-2 ring-[#44f26e]/24"
-          : active
-          ? "border-[#44f26e]/70 bg-[#44f26e]/18 ring-2 ring-[#44f26e]/22"
           : "border-white/14 bg-black/28"
       }`}
+      href={href}
       onClick={onClick}
       title={accessibilityLabel}
-      type="button"
     >
       <span className="relative inline-flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/18 bg-black/36 text-[#44f26e]">
         {imageUrl ? (
@@ -941,7 +938,7 @@ function CutFeedProfileActionButton({
           {name}
         </span>
       </span>
-    </button>
+    </Link>
   );
 }
 
@@ -1001,134 +998,6 @@ function CutFeedHeaderReporterChip({
         </span>
       ) : null}
     </button>
-  );
-}
-
-type CutFeedCharacterPanelCopy = Pick<
-  ReturnType<typeof getCopy>,
-  | "characterChannelCta"
-  | "characterCutMetric"
-  | "characterPanelClose"
-  | "characterPanelEyebrow"
-  | "characterPanelTitle"
-  | "characterSourceMetric"
-  | "myCharacterBadge"
->;
-
-function CutFeedCharacterInlinePanel({
-  avatarImageUrl,
-  channelHref,
-  copy,
-  cutCountLabel,
-  isViewerCharacter = false,
-  name,
-  onClose,
-  referralCode,
-  sourceRevealLabel,
-}: {
-  avatarImageUrl: string | null;
-  channelHref: string;
-  copy: CutFeedCharacterPanelCopy;
-  cutCountLabel: string;
-  isViewerCharacter?: boolean;
-  name: string;
-  onClose: () => void;
-  referralCode: string | null;
-  sourceRevealLabel: string;
-}) {
-  return (
-    <div
-      aria-labelledby="cut-feed-character-panel-title"
-      aria-modal="false"
-      className="absolute inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+5.4rem)] z-40"
-      role="dialog"
-    >
-      <div className="rounded-2xl border border-white/14 bg-black/68 p-3 text-white shadow-[0_26px_70px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
-        <div className="flex items-start gap-3">
-          <span className="relative inline-flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[#44f26e]/42 bg-[#44f26e]/12 text-[#44f26e] shadow-[0_16px_34px_rgba(0,0,0,0.28)]">
-            {avatarImageUrl ? (
-              <Image
-                alt=""
-                className="object-cover"
-                fill
-                sizes="64px"
-                src={avatarImageUrl}
-                unoptimized={shouldBypassFanletterImageOptimization(avatarImageUrl)}
-              />
-            ) : (
-              <Sparkles className="size-7" />
-            )}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-[0.58rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
-              {copy.characterPanelEyebrow}
-            </p>
-            <h2
-              className="mt-1 truncate text-xl font-black leading-tight"
-              id="cut-feed-character-panel-title"
-            >
-              {name}
-            </h2>
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              {referralCode ? (
-                <span className="rounded-full border border-white/12 bg-white/8 px-2 py-1 text-[0.58rem] font-black text-white/74">
-                  @{referralCode}
-                </span>
-              ) : null}
-              <span className="rounded-full border border-[#44f26e]/22 bg-[#44f26e]/12 px-2 py-1 text-[0.58rem] font-black text-[#9bffad]">
-                {copy.characterPanelTitle}
-              </span>
-              {isViewerCharacter ? (
-                <span className="inline-flex items-center gap-1 rounded-full border border-[#44f26e]/40 bg-[#44f26e] px-2 py-1 text-[0.58rem] font-black text-[#07110a]">
-                  <Check className="size-3 stroke-[3]" />
-                  {copy.myCharacterBadge}
-                </span>
-              ) : null}
-            </div>
-          </div>
-          <button
-            aria-label={copy.characterPanelClose}
-            className="inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white/72 transition hover:bg-white hover:text-[#111510]"
-            onClick={onClose}
-            type="button"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
-        <div className="mt-3 grid grid-cols-3 gap-1.5">
-          {[
-            [copy.characterCutMetric, cutCountLabel],
-            [copy.characterSourceMetric, sourceRevealLabel],
-          ].map(([label, value]) => (
-            <div
-              className="min-w-0 rounded-xl border border-white/10 bg-white/[0.07] px-2 py-2"
-              key={label}
-            >
-              <p className="truncate text-[0.54rem] font-black uppercase tracking-[0.08em] text-[#9bffad]">
-                {label}
-              </p>
-              <p className="mt-1 truncate text-[0.72rem] font-black text-white">
-                {value}
-              </p>
-            </div>
-          ))}
-          <Link
-            className="group inline-flex min-w-0 items-center justify-between gap-2 rounded-xl border border-[#44f26e]/28 bg-[#44f26e]/14 px-2 py-2 !text-[#9bffad] transition hover:bg-[#44f26e] hover:!text-[#101510]"
-            href={channelHref}
-          >
-            <span className="min-w-0">
-              <span className="block truncate text-[0.54rem] font-black uppercase tracking-[0.08em]">
-                {copy.characterPanelTitle}
-              </span>
-              <span className="mt-1 block truncate text-[0.72rem] font-black">
-                {copy.characterChannelCta}
-              </span>
-            </span>
-            <ExternalLink className="size-3.5 shrink-0 transition group-hover:translate-x-0.5" />
-          </Link>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -1833,7 +1702,6 @@ function FeedSlide({
     null,
   );
   const [isSourceOverlayLoading, setIsSourceOverlayLoading] = useState(false);
-  const [isCharacterPanelOpen, setIsCharacterPanelOpen] = useState(false);
   const [isReporterPanelOpen, setIsReporterPanelOpen] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLoginSyncing, setIsLoginSyncing] = useState(false);
@@ -2077,7 +1945,6 @@ function FeedSlide({
 
     handledReporterPanelRequestIdRef.current = reporterPanelRequestId;
     onDismissSwipeGuide?.();
-    setIsCharacterPanelOpen(false);
     setIsReporterPanelOpen((current) => !current);
   }, [onDismissSwipeGuide, reporterPanelRequestId]);
 
@@ -2819,20 +2686,6 @@ function FeedSlide({
         </div>
       ) : null}
 
-      {isCharacterPanelOpen ? (
-        <CutFeedCharacterInlinePanel
-          avatarImageUrl={report.creatorAvatarImageUrl}
-          channelHref={characterHref}
-          copy={copy}
-          cutCountLabel={characterCutCountLabel}
-          isViewerCharacter={isViewerCharacter}
-          name={report.creatorName}
-          onClose={() => setIsCharacterPanelOpen(false)}
-          referralCode={report.creatorReferralCode}
-          sourceRevealLabel={characterSourceRevealLabel}
-        />
-      ) : null}
-
       {isReporterPanelOpen ? (
         <CutFeedReporterInlinePanel
           avatarImageUrl={report.reporterAvatarImageUrl}
@@ -2852,16 +2705,14 @@ function FeedSlide({
         <section className="mx-auto flex w-full flex-col justify-end">
           <div className="max-w-3xl">
             <CutFeedProfileActionButton
-              active={isCharacterPanelOpen}
               fallbackIcon={Sparkles}
+              href={characterHref}
               imageUrl={report.creatorAvatarImageUrl}
               isViewerOwned={isViewerCharacter}
               label={copy.character}
               name={report.creatorName}
               onClick={() => {
                 onDismissSwipeGuide?.();
-                setIsReporterPanelOpen(false);
-                setIsCharacterPanelOpen((current) => !current);
               }}
               viewerOwnedLabel={copy.myCharacterBadge}
             />
