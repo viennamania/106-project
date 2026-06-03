@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import {
   useCallback,
   useEffect,
@@ -1335,6 +1336,20 @@ function SourceRevealParticipantRail({
   const sponsorSheetBody = state.unlocked
     ? copy.sourceOpenSponsorsCompletedBody
     : copy.sourceOpenSponsorsIntro;
+
+  useEffect(() => {
+    if (!isSponsorSheetOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isSponsorSheetOpen]);
+
   const RailIcon: LucideIcon = state.unlocked
     ? PlayCircle
     : state.requestedByViewer
@@ -1460,98 +1475,101 @@ function SourceRevealParticipantRail({
         ) : null}
       </div>
 
-      {isSponsorSheetOpen ? (
-        <div
-          aria-modal="true"
-          className="fixed inset-0 z-[80] flex items-end justify-center bg-black/46 px-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] text-white backdrop-blur-sm"
-          onClick={() => setIsSponsorSheetOpen(false)}
-          role="dialog"
-        >
-          <section
-            aria-label={sponsorSheetTitle}
-            className="flex max-h-[calc(100svh-0.75rem)] w-full max-w-[430px] flex-col overflow-hidden rounded-t-3xl border border-white/12 bg-[#070b08]/96 p-4 shadow-[0_-24px_80px_rgba(0,0,0,0.48)]"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex items-start gap-3">
-              <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/14 text-[#44f26e] ring-1 ring-[#44f26e]/24">
-                <UsersRound className="size-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
-                  {copy.sourceOpenSponsors}
-                </p>
-                <h2 className="mt-1 text-xl font-black leading-tight">
-                  {sponsorSheetTitle}
-                </h2>
-                <p className="mt-2 text-sm font-semibold leading-5 text-white/68 [word-break:keep-all]">
-                  {sponsorSheetBody}
-                </p>
-              </div>
-              <button
-                aria-label={copy.sourceOpenSponsorsClose}
-                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white/72 transition hover:bg-white hover:text-black"
-                onClick={() => setIsSponsorSheetOpen(false)}
-                type="button"
+      {isSponsorSheetOpen
+        ? createPortal(
+            <div
+              aria-modal="true"
+              className="fixed inset-0 z-[80] flex items-end justify-center bg-black/46 px-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] text-white backdrop-blur-sm"
+              onClick={() => setIsSponsorSheetOpen(false)}
+              role="dialog"
+            >
+              <section
+                aria-label={sponsorSheetTitle}
+                className="flex max-h-[calc(100svh-0.75rem)] w-full max-w-[430px] flex-col overflow-hidden rounded-t-3xl border border-white/12 bg-[#070b08]/96 p-4 shadow-[0_-24px_80px_rgba(0,0,0,0.48)]"
+                onClick={(event) => event.stopPropagation()}
               >
-                <X className="size-4" />
-              </button>
-            </div>
-            <div className="mt-4 grid max-h-[46svh] grid-cols-2 gap-2 overflow-y-auto pr-1">
-              {slots.map((slot) => {
-                const isEmpty = slot.kind === "empty";
-                const isAnonymousComplete = slot.kind === "complete";
-                const displayName = isEmpty
-                  ? copy.sourceOpenSponsorsEmptySlot(
-                      formatNumber(slot.position, locale),
-                    )
-                  : isAnonymousComplete
-                    ? copy.sourceOpenSponsorsAnonymous
-                    : slot.displayName || copy.sourceOpenSponsorsAnonymous;
-
-                return (
-                  <div
-                    className={`flex min-w-0 items-center gap-2 rounded-2xl border px-2 py-2 ${
-                      isEmpty
-                        ? "border-white/10 bg-white/[0.04] text-white/48"
-                        : "border-[#44f26e]/20 bg-[#44f26e]/10 text-white"
-                    }`}
-                    key={`sheet-${slot.kind}-${slot.position}-${slot.referralCode ?? slot.displayName}`}
-                  >
-                    <span className="relative inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/14 bg-black/34 text-[#44f26e]">
-                      {slot.avatarImageUrl ? (
-                        <Image
-                          alt=""
-                          className="object-cover"
-                          fill
-                          sizes="36px"
-                          src={slot.avatarImageUrl}
-                          unoptimized={shouldBypassFanletterImageOptimization(
-                            slot.avatarImageUrl,
-                          )}
-                        />
-                      ) : isEmpty ? (
-                        <Plus className="size-4" />
-                      ) : (
-                        <UserRound className="size-4" />
-                      )}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.1em] text-[#9bffad]">
-                        {isEmpty
-                          ? formatNumber(slot.position, locale)
-                          : copy.sourceOpenSponsors}
-                      </span>
-                      <span className="block truncate text-xs font-black">
-                        {displayName}
-                      </span>
-                    </span>
+                <div className="flex items-start gap-3">
+                  <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/14 text-[#44f26e] ring-1 ring-[#44f26e]/24">
+                    <UsersRound className="size-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
+                      {copy.sourceOpenSponsors}
+                    </p>
+                    <h2 className="mt-1 text-xl font-black leading-tight">
+                      {sponsorSheetTitle}
+                    </h2>
+                    <p className="mt-2 text-sm font-semibold leading-5 text-white/68 [word-break:keep-all]">
+                      {sponsorSheetBody}
+                    </p>
                   </div>
-                );
-              })}
-            </div>
-          </section>
-        </div>
-      ) : null}
+                  <button
+                    aria-label={copy.sourceOpenSponsorsClose}
+                    className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white/72 transition hover:bg-white hover:text-black"
+                    onClick={() => setIsSponsorSheetOpen(false)}
+                    type="button"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </div>
+                <div className="mt-4 grid max-h-[46svh] grid-cols-2 gap-2 overflow-y-auto pr-1">
+                  {slots.map((slot) => {
+                    const isEmpty = slot.kind === "empty";
+                    const isAnonymousComplete = slot.kind === "complete";
+                    const displayName = isEmpty
+                      ? copy.sourceOpenSponsorsEmptySlot(
+                          formatNumber(slot.position, locale),
+                        )
+                      : isAnonymousComplete
+                        ? copy.sourceOpenSponsorsAnonymous
+                        : slot.displayName || copy.sourceOpenSponsorsAnonymous;
+
+                    return (
+                      <div
+                        className={`flex min-w-0 items-center gap-2 rounded-2xl border px-2 py-2 ${
+                          isEmpty
+                            ? "border-white/10 bg-white/[0.04] text-white/48"
+                            : "border-[#44f26e]/20 bg-[#44f26e]/10 text-white"
+                        }`}
+                        key={`sheet-${slot.kind}-${slot.position}-${slot.referralCode ?? slot.displayName}`}
+                      >
+                        <span className="relative inline-flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/14 bg-black/34 text-[#44f26e]">
+                          {slot.avatarImageUrl ? (
+                            <Image
+                              alt=""
+                              className="object-cover"
+                              fill
+                              sizes="36px"
+                              src={slot.avatarImageUrl}
+                              unoptimized={shouldBypassFanletterImageOptimization(
+                                slot.avatarImageUrl,
+                              )}
+                            />
+                          ) : isEmpty ? (
+                            <Plus className="size-4" />
+                          ) : (
+                            <UserRound className="size-4" />
+                          )}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.1em] text-[#9bffad]">
+                            {isEmpty
+                              ? formatNumber(slot.position, locale)
+                              : copy.sourceOpenSponsors}
+                          </span>
+                          <span className="block truncate text-xs font-black">
+                            {displayName}
+                          </span>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            </div>,
+            document.body,
+          )
+        : null}
     </>
   );
 }
