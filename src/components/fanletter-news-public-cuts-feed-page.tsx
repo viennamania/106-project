@@ -90,6 +90,7 @@ const CUT_SWIPE_GUIDE_DISMISS_SCROLL_RATIO = 0.45;
 const CUT_FEED_HEADER_VISIBLE_MS = 2200;
 const CUT_FEED_ENTRY_HEADER_VISIBLE_MS = 2800;
 const CUT_FEED_LOGIN_SYNC_GRACE_MS = 4500;
+const CUT_FEED_RENDER_WINDOW_RADIUS = 0;
 
 type CutFeedViewportStyle = CSSProperties & {
   "--fanletter-cut-feed-vh"?: string;
@@ -1850,6 +1851,7 @@ function FeedSlide({
   index,
   initialCutSlotNumber = null,
   initialSourceContentId = null,
+  isActive,
   item,
   itemCount,
   locale,
@@ -1865,6 +1867,7 @@ function FeedSlide({
   index: number;
   initialCutSlotNumber?: number | null;
   initialSourceContentId?: string | null;
+  isActive: boolean;
   item: SerializedFanletterNewsPublicCutFeedItem;
   itemCount: number;
   locale: Locale;
@@ -2590,11 +2593,18 @@ function FeedSlide({
   const viewerReferralCode = memberSession.member?.referralCode?.trim() || null;
   const cutCountLabel = formatNumber(cutCount, locale);
   const showSourceViewGuide =
-    showSwipeGuide && sourceRevealState.unlocked && cutCount > 1;
-  const showCutSwipeGuide = showSwipeGuide && cutCount > 1;
+    isActive && showSwipeGuide && sourceRevealState.unlocked && cutCount > 1;
+  const showCutSwipeGuide = isActive && showSwipeGuide && cutCount > 1;
   const cutSwipeGuideClassName = `pointer-events-none absolute left-[44%] z-30 w-[17rem] max-w-[calc(100%_-_6.8rem)] -translate-x-1/2 rounded-2xl border border-white/14 bg-black/58 px-4 py-3 text-center text-white shadow-[0_24px_70px_rgba(0,0,0,0.38)] backdrop-blur-xl ${
     showSourceViewGuide ? "top-[54%]" : "top-[39%]"
   }`;
+  const inactiveArticleAttributes = isActive
+    ? {}
+    : {
+        "aria-hidden": true,
+        inert: true,
+        tabIndex: -1,
+      };
 
   useEffect(() => {
     const article = articleRef.current;
@@ -2654,6 +2664,7 @@ function FeedSlide({
 
   return (
     <article
+      {...inactiveArticleAttributes}
       className="relative min-h-[var(--fanletter-cut-feed-vh,100dvh)] touch-pan-y snap-start snap-always overflow-hidden bg-black text-white"
       id={report.reportId}
       ref={articleRef}
@@ -2694,7 +2705,7 @@ function FeedSlide({
             transform: `translateX(-${activeCutIndex * 100}%)`,
           }}
         >
-          {cuts.map((cut) => {
+          {cuts.map((cut, cutIndex) => {
             const slotNumber = cut.slotNumber.toString().padStart(2, "0");
 
             return (
@@ -2710,7 +2721,7 @@ function FeedSlide({
                       : "object-cover brightness-[1.14] contrast-[1.02] saturate-[1.1]"
                   }
                   fill
-                  priority={index < 2 && cut.slotNumber <= 2}
+                  priority={isActive && cutIndex === activeCutIndex}
                   sizes="(min-width: 640px) 430px, 100vw"
                   src={cut.imageUrl}
                   unoptimized={shouldBypassFanletterImageOptimization(cut.imageUrl)}
@@ -2916,13 +2927,13 @@ function FeedSlide({
               }}
               viewerOwnedLabel={copy.myCharacterBadge}
             />
-            <h1
+            <h2
               className={`mt-2 max-w-4xl break-words text-[1.42rem] font-black leading-[1.08] tracking-normal drop-shadow-[0_3px_18px_rgba(0,0,0,0.82)] [word-break:keep-all] ${
                 isNsfw ? "select-none blur-[2px]" : ""
               }`}
             >
               {title}
-            </h1>
+            </h2>
             <p
               className={`mt-2 max-w-2xl text-xs font-semibold leading-5 text-white/82 drop-shadow-[0_2px_12px_rgba(0,0,0,0.72)] ${
                 isNsfw ? "select-none blur-[2px]" : ""
@@ -3648,6 +3659,18 @@ export function FanletterNewsPublicCutsFeedPage({
       ? "gap-2 border-[#44f26e]/28 bg-[#44f26e]/14 px-3"
       : "gap-1.5 border-white/16 bg-black/42 px-3"
   }`;
+  const activeFeedIndex = Math.min(
+    Math.max(visibleFeedIndex, 0),
+    Math.max(items.length - 1, 0),
+  );
+  const renderWindowStart = Math.max(
+    0,
+    activeFeedIndex - CUT_FEED_RENDER_WINDOW_RADIUS,
+  );
+  const renderWindowEnd = Math.min(
+    items.length - 1,
+    activeFeedIndex + CUT_FEED_RENDER_WINDOW_RADIUS,
+  );
 
   return (
     <main
@@ -3717,29 +3740,46 @@ export function FanletterNewsPublicCutsFeedPage({
         onScroll={handleFeedScroll}
         ref={scrollContainerRef}
       >
-        {items.map((item, index) => (
-          <FeedSlide
-            dictionary={dictionary}
-            hasMore={hasMore}
-            index={index}
-            initialCutSlotNumber={index === 0 ? initialCutSlotNumber : null}
-            initialSourceContentId={index === 0 ? sourceContentId : null}
-            item={item}
-            itemCount={items.length}
-            key={item.report.reportId}
-            locale={locale}
-            onDismissSwipeGuide={dismissSwipeGuide}
-            onSourceViewSlideVisible={handleSourceViewSlideVisible}
-            reporterPanelRequestId={
-              reporterPanelRequest?.index === index
-                ? reporterPanelRequest.id
-                : 0
-            }
-            referralCode={referralCode}
-            shareId={shareId}
-            showSwipeGuide={swipeGuideTarget?.index === index}
-          />
-        ))}
+        {items.map((item, index) => {
+          const isRenderedSlide =
+            index >= renderWindowStart && index <= renderWindowEnd;
+
+          if (!isRenderedSlide) {
+            return (
+              <div
+                aria-hidden="true"
+                className="min-h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always bg-black"
+                data-cut-feed-placeholder={index}
+                key={item.report.reportId}
+              />
+            );
+          }
+
+          return (
+            <FeedSlide
+              dictionary={dictionary}
+              hasMore={hasMore}
+              index={index}
+              initialCutSlotNumber={index === 0 ? initialCutSlotNumber : null}
+              initialSourceContentId={index === 0 ? sourceContentId : null}
+              isActive={index === activeFeedIndex}
+              item={item}
+              itemCount={items.length}
+              key={item.report.reportId}
+              locale={locale}
+              onDismissSwipeGuide={dismissSwipeGuide}
+              onSourceViewSlideVisible={handleSourceViewSlideVisible}
+              reporterPanelRequestId={
+                reporterPanelRequest?.index === index
+                  ? reporterPanelRequest.id
+                  : 0
+              }
+              referralCode={referralCode}
+              shareId={shareId}
+              showSwipeGuide={swipeGuideTarget?.index === index}
+            />
+          );
+        })}
         <section
           className="flex min-h-[48dvh] snap-start items-center justify-center px-4 py-10 text-center"
           ref={loadMoreRef}
