@@ -60,6 +60,7 @@ const fanletterNewsTopLevelServiceSegments = new Set([
   "characters",
   "connect",
   "cuts",
+  "me",
   "my",
   "platform",
   "purchases",
@@ -275,6 +276,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const cutsPath = `${basePath}/cuts`;
   const connectPath = `${basePath}/connect`;
   const activatePath = `${basePath}/activate`;
+  const mePath = `${basePath}/me`;
   const myPath = `${basePath}/my`;
   const purchasesPath = `${basePath}/purchases`;
   const reporterPath = `${basePath}/reporter`;
@@ -401,6 +403,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     {
       activePath: myPath,
       activePaths: [
+        mePath,
         myPath,
         connectPath,
         activatePath,

@@ -3441,7 +3441,7 @@ export function FanletterNewsPublicCutsFeedPage({
     referralCode,
   );
   const myHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/my`,
+    `/${locale}/fanletter/news/me`,
     referralCode,
   );
   const reportsNewHref = setPathSearchParams(
