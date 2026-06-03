@@ -6,11 +6,16 @@ import { notFound } from "next/navigation";
 import {
   ArrowLeft,
   BadgeCheck,
+  CalendarClock,
   Clapperboard,
+  Clock3,
   FileText,
   Images,
+  Moon,
   Newspaper,
+  Radio,
   Sparkles,
+  SunMedium,
   UsersRound,
 } from "lucide-react";
 
@@ -81,6 +86,21 @@ function getCopy(locale: Locale) {
         noVlogs: "아직 공개 브이로그가 없습니다.",
         publicVlogs: "원본",
         reporterCount: "팬 기자",
+        routineAfternoon: "오후",
+        routineAfternoonFallback: (name: string) =>
+          `${name} 장면을 팬 기자가 리포트로 확장합니다.`,
+        routineBody:
+          "원본 브이로그가 올라오고, 팬 기자가 컷으로 포착하고, 팬 반응이 다시 캐릭터 채널로 쌓이는 흐름입니다.",
+        routineCut: "컷",
+        routineEvening: "밤",
+        routineEveningFallback: (name: string) =>
+          `${name}를 다시 보게 만드는 팬 반응이 모입니다.`,
+        routineMorning: "오전",
+        routineMorningFallback: (name: string) =>
+          `${name}의 오늘 분위기를 원본 브이로그로 확인합니다.`,
+        routineTitle: "윤서의 일상 리듬",
+        routineTitleFor: (name: string) => `${name}의 일상 리듬`,
+        usageFlow: "활용 흐름",
         sourceOpen: "원본 오픈",
       }
     : {
@@ -102,6 +122,21 @@ function getCopy(locale: Locale) {
         noVlogs: "No public source vlogs are ready yet.",
         publicVlogs: "Sources",
         reporterCount: "Reporters",
+        routineAfternoon: "Afternoon",
+        routineAfternoonFallback: (name: string) =>
+          `Fan reporters turn ${name}'s moments into reports.`,
+        routineBody:
+          "Source vlogs become reporter cuts, fan reports, and fan-open reactions that build the character channel.",
+        routineCut: "Cut",
+        routineEvening: "Night",
+        routineEveningFallback: (name: string) =>
+          `Fan reactions keep ${name}'s channel moving.`,
+        routineMorning: "Morning",
+        routineMorningFallback: (name: string) =>
+          `Start with ${name}'s latest source vlog mood.`,
+        routineTitle: "Daily rhythm",
+        routineTitleFor: (name: string) => `${name}'s daily rhythm`,
+        usageFlow: "Usage flow",
         sourceOpen: "Source open",
       };
 }
@@ -284,6 +319,87 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
   const visibleVlogs = data.items
     .filter((item) => item.mediaType === "video")
     .slice(0, 3);
+  const primaryVlog = visibleVlogs[0] ?? null;
+  const secondaryVlog = visibleVlogs[1] ?? primaryVlog;
+  const primaryReport = visibleReports[0] ?? null;
+  const secondaryReport = visibleReports[1] ?? primaryReport;
+  const routineItems = [
+    {
+      accentClassName: "border-amber-300/28 bg-amber-300/10 text-amber-200",
+      dateLabel: formatDate(primaryVlog?.publishedAt ?? null, locale),
+      fallbackIcon: <Clapperboard className="size-5" />,
+      imageUrl: primaryVlog?.coverImageUrl ?? heroImage,
+      kindLabel: copy.publicVlogs,
+      slotIcon: <SunMedium className="size-4" />,
+      slotLabel: copy.routineMorning,
+      title: primaryVlog?.title ?? copy.routineMorningFallback(characterName),
+    },
+    {
+      accentClassName: "border-[#44f26e]/30 bg-[#44f26e]/12 text-[#9bffad]",
+      dateLabel: formatDate(
+        primaryReport?.sourcePublishedAt ?? primaryReport?.createdAt ?? null,
+        locale,
+      ),
+      fallbackIcon: <Newspaper className="size-5" />,
+      imageUrl:
+        primaryReport?.coverImageUrl ?? selectedSourceCut?.imageUrl ?? heroImage,
+      kindLabel: copy.latestNews,
+      slotIcon: <Clock3 className="size-4" />,
+      slotLabel: copy.routineAfternoon,
+      title: primaryReport
+        ? getFanletterNewsBareArticleDisplayTitle(primaryReport.title)
+        : copy.routineAfternoonFallback(characterName),
+    },
+    {
+      accentClassName: "border-sky-300/28 bg-sky-300/10 text-sky-200",
+      dateLabel: formatDate(
+        secondaryVlog?.publishedAt ??
+          secondaryReport?.sourcePublishedAt ??
+          secondaryReport?.createdAt ??
+          null,
+        locale,
+      ),
+      fallbackIcon: <Radio className="size-5" />,
+      imageUrl:
+        secondaryVlog?.coverImageUrl ??
+        secondaryReport?.coverImageUrl ??
+        selectedSourceCut?.imageUrl ??
+        heroImage,
+      kindLabel: secondaryVlog ? copy.publicVlogs : copy.sourceOpen,
+      slotIcon: <Moon className="size-4" />,
+      slotLabel: copy.routineEvening,
+      title:
+        secondaryVlog?.title ??
+        (secondaryReport
+          ? getFanletterNewsBareArticleDisplayTitle(secondaryReport.title)
+          : copy.routineEveningFallback(characterName)),
+    },
+  ];
+  const usageFlowItems = [
+    {
+      icon: <Clapperboard className="size-4" />,
+      label: copy.publicVlogs,
+      value: formatNumber(data.publicContentCount, locale),
+    },
+    {
+      icon: <Images className="size-4" />,
+      label: copy.routineCut,
+      value: selectedCutSlotLabel,
+    },
+    {
+      icon: <Newspaper className="size-4" />,
+      label: copy.newsCount,
+      value: formatNumber(newsData.reportCount, locale),
+    },
+    {
+      icon: <BadgeCheck className="size-4" />,
+      label: copy.sourceOpen,
+      value: `${formatNumber(newsData.publicCount, locale)}/${formatNumber(
+        newsData.reportCount,
+        locale,
+      )}`,
+    },
+  ];
   const statItems = [
     {
       icon: <Newspaper className="size-4" />,
@@ -391,6 +507,93 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
         </section>
 
         <section className="space-y-4 px-4 pb-[calc(6rem+env(safe-area-inset-bottom))]">
+          <section className="overflow-hidden rounded-2xl border border-white/12 bg-white/[0.06]">
+            <div className="border-b border-white/10 bg-black/24 px-3 py-3">
+              <div className="flex items-center gap-2 text-[#44f26e]">
+                <CalendarClock className="size-4" />
+                <p className="text-[0.62rem] font-black uppercase tracking-[0.16em]">
+                  {copy.routineTitleFor(characterName)}
+                </p>
+              </div>
+              <p className="mt-1.5 text-xs font-semibold leading-5 text-white/60 [word-break:keep-all]">
+                {copy.routineBody}
+              </p>
+            </div>
+
+            <div className="space-y-2 p-3">
+              {routineItems.map((item, index) => (
+                <article
+                  className="grid grid-cols-[4.25rem_minmax(0,1fr)] gap-3 rounded-xl border border-white/10 bg-black/32 p-2"
+                  key={`${item.slotLabel}-${index}`}
+                >
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-white/8">
+                    {item.imageUrl ? (
+                      <Image
+                        alt=""
+                        className="object-cover"
+                        fill
+                        sizes="4.25rem"
+                        src={item.imageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          item.imageUrl,
+                        )}
+                      />
+                    ) : (
+                      <span className="absolute left-1/2 top-1/2 inline-flex size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#44f26e]/12 text-[#44f26e]">
+                        {item.fallbackIcon}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0 self-center">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.08em] ${item.accentClassName}`}
+                      >
+                        {item.slotIcon}
+                        {item.slotLabel}
+                      </span>
+                      <span className="rounded-full border border-white/10 bg-white/8 px-2 py-1 text-[0.58rem] font-black text-white/62">
+                        {item.kindLabel}
+                      </span>
+                    </div>
+                    <h3 className="mt-2 line-clamp-2 text-sm font-black leading-tight [word-break:keep-all]">
+                      {item.title}
+                    </h3>
+                    {item.dateLabel ? (
+                      <p className="mt-1 text-[0.66rem] font-bold text-white/46">
+                        {item.dateLabel}
+                      </p>
+                    ) : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="border-t border-white/10 bg-black/24 p-3">
+              <p className="text-[0.62rem] font-black uppercase tracking-[0.16em] text-white/50">
+                {copy.usageFlow}
+              </p>
+              <div className="mt-2 grid grid-cols-4 gap-1.5">
+                {usageFlowItems.map((item) => (
+                  <div
+                    className="min-w-0 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-2 text-center"
+                    key={item.label}
+                  >
+                    <div className="mx-auto flex size-8 items-center justify-center rounded-full bg-[#44f26e]/12 text-[#44f26e]">
+                      {item.icon}
+                    </div>
+                    <p className="mt-1 truncate text-[0.55rem] font-black text-white/48">
+                      {item.label}
+                    </p>
+                    <p className="mt-0.5 truncate text-[0.82rem] font-black text-white">
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
           <section className="rounded-2xl border border-[#44f26e]/24 bg-[#06120a] p-3">
             <p className="text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
               {copy.cutEyebrow}
