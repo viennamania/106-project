@@ -248,9 +248,11 @@ function getCopy(locale: Locale) {
             "FanLetter News에 노출할 무료 공개 브이로그를 AI로 생성합니다. 공개 후 뉴스 리포터가 바로 발견하고 리포트 후보로 사용할 수 있습니다.",
           eyebrow: "FanLetter News Vlog Registration",
           feed: "뉴스 브이로그 보기",
+          mobileAiCta: "AI로 새 원본 만들기",
           mobileBody:
-            "휴대폰에 있는 영상을 바로 선택하고 제목만 확인한 뒤 공개하세요.",
+            "컷 피드 반응을 보고 바로 다음 원본을 만듭니다. AI 생성 또는 휴대폰 영상 업로드 중 편한 방식을 고르세요.",
           mobileCta: "휴대폰 영상 선택",
+          mobileUploadCta: "휴대폰 영상 업로드",
           mobileSteps: ["영상 선택", "제목 확인", "공개"],
           reports: "뉴스 리포트",
           titleText: "뉴스에 노출할 새 브이로그를 등록하세요.",
@@ -478,9 +480,11 @@ function getCopy(locale: Locale) {
             "Create a free public vlog for FanLetter News. After publishing, reporters can discover it and use it as a report candidate.",
           eyebrow: "FanLetter News Vlog Registration",
           feed: "News vlogs",
+          mobileAiCta: "Create with AI",
           mobileBody:
-            "Choose a video from your phone, confirm the title, and publish.",
+            "Turn cut-feed reactions into the next source. Choose AI generation or upload a phone video.",
           mobileCta: "Choose phone video",
+          mobileUploadCta: "Upload phone video",
           mobileSteps: ["Choose video", "Confirm title", "Publish"],
           reports: "News reports",
           titleText: "Register a new vlog for News exposure.",
@@ -1263,7 +1267,7 @@ export function FanletterCreatePage({
   const [createdContent, setCreatedContent] =
     useState<ContentPostRecord | null>(null);
   const [createSourceMode, setCreateSourceMode] = useState<CreateSourceMode>(
-    initialPlan?.sourceMode === "upload" || surface === "news" ? "upload" : "ai",
+    initialPlan?.sourceMode === "upload" ? "upload" : "ai",
   );
   const [email, setEmail] = useState<string | null>(memberSession.email);
   const [error, setError] = useState<string | null>(null);
@@ -2624,9 +2628,27 @@ export function FanletterCreatePage({
                   </div>
                 ))}
               </div>
-              <div className="mt-3 grid gap-2">
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <a
+                  className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition ${
+                    createSourceMode === "ai"
+                      ? "bg-[#44f26e] !text-black"
+                      : "border border-white/14 bg-white/[0.055] !text-white/72 hover:bg-white/10"
+                  }`}
+                  href="#fanletter-vlog-compose"
+                  onClick={() => {
+                    setCreateSourceMode("ai");
+                  }}
+                >
+                  <Clapperboard className="size-4" />
+                  {newsSurfaceCopy?.mobileAiCta ?? copy.generate}
+                </a>
                 <button
-                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-semibold text-black transition hover:bg-[#67ff88] disabled:cursor-not-allowed disabled:opacity-60"
+                  className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                    createSourceMode === "upload"
+                      ? "bg-[#44f26e] text-black hover:bg-[#67ff88]"
+                      : "border border-white/14 bg-white/[0.055] text-white/72 hover:bg-white/10"
+                  }`}
                   disabled={isUploadingVideo}
                   onClick={() => {
                     setCreateSourceMode("upload");
@@ -2643,8 +2665,12 @@ export function FanletterCreatePage({
                   )}
                   {isUploadingVideo
                     ? copy.upload.uploading
-                    : newsSurfaceCopy?.mobileCta ?? copy.upload.select}
+                    : newsSurfaceCopy?.mobileUploadCta ??
+                      newsSurfaceCopy?.mobileCta ??
+                      copy.upload.select}
                 </button>
+              </div>
+              <div className="mt-2 grid gap-2">
                 <Link
                   className="inline-flex min-h-10 items-center justify-center rounded-full border border-white/14 bg-white/[0.055] px-4 text-xs font-semibold !text-white/72 transition hover:bg-white/10"
                   href={topBarActionHref}
@@ -3043,7 +3069,10 @@ export function FanletterCreatePage({
                 : "grid gap-4 lg:grid-cols-[0.82fr_1.18fr]"
             }
           >
-            <section className="rounded-lg border border-white/12 bg-white/[0.055] p-3 sm:p-5">
+            <section
+              className="rounded-lg border border-white/12 bg-white/[0.055] p-3 sm:p-5"
+              id="fanletter-vlog-compose"
+            >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
                 01
               </p>
