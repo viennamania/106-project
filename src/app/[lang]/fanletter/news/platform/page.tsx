@@ -15,6 +15,7 @@ import {
   Images,
   Layers3,
   LockKeyhole,
+  Mail,
   Newspaper,
   PlayCircle,
   RadioTower,
@@ -69,9 +70,9 @@ const MARKET_SIGNAL_ARTICLE_URL =
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
-        title: "AIAVpark News 홈",
+        title: "AIAVpark 플랫폼 투자자 브리프",
         description:
-          "SNS와 숏폼에서 생긴 반응을 팬 리포트, 원본 브이로그, 구매 전환까지 이어보는 AIAVpark News 홈입니다.",
+          "AI 캐릭터 숏폼 반응을 팬 리포트, 원본 브이로그, 구매 전환, 정산 기록으로 연결하는 AIAVpark 플랫폼 투자자 브리프입니다.",
         brand: "AIAVpark",
         eyebrow: "Shortform Exposure Engine",
         heroTitle: "숏폼 반응을 뉴스·원본·구매로 이어주는 노출력 홈",
@@ -86,6 +87,37 @@ function getCopy(locale: Locale) {
           { label: "이어보는 원본", value: "Vlog", hint: "AI 캐릭터 원본 장면" },
           { label: "기록되는 성과", value: "Signal", hint: "공유·오픈·구매 기여" },
         ],
+        mobileQuickNav: {
+          data: "데이터",
+          inquiry: "문의",
+          summary: "요약",
+        },
+        investorSnapshot: {
+          basis: "기준: 공개 일반 콘텐츠와 현재 운영 DB",
+          body:
+            "동일한 리포트 제목 반복은 줄이고, 투자자가 바로 해석할 수 있는 운영 규모와 콘텐츠 다양성 지표를 먼저 보여줍니다.",
+          contactCta: "문의하기",
+          eyebrow: "Investor Snapshot",
+          metrics: {
+            characters: {
+              hint: "캐릭터별 소비와 IP 확장의 기본 단위",
+              label: "캐릭터 채널",
+            },
+            previews: {
+              hint: "뉴스 안에서 원본 소비를 유도하는 프리뷰",
+              label: "원본 프리뷰",
+            },
+            representativeReports: {
+              hint: "동일 제목/캐릭터 중복을 제거한 대표 노출",
+              label: "대표 리포트",
+            },
+            reports: {
+              hint: "현재 홈에서 집계 가능한 공개 리포트",
+              label: "운영 리포트",
+            },
+          },
+          title: "투자자가 30초 안에 확인할 핵심 운영 지표",
+        },
         momentumStats: {
           characters: {
             hint: "뉴스와 브이로그가 쌓이는 캐릭터 채널",
@@ -454,9 +486,9 @@ function getCopy(locale: Locale) {
         ctaReports: "리포터 데스크",
       }
     : {
-        title: "AIAVpark News Home",
+        title: "AIAVpark Platform Investor Brief",
         description:
-          "The AIAVpark News home for turning SNS and shortform reactions into fan reports, source vlogs, and purchase conversion.",
+          "An AIAVpark platform investor brief showing how AI character shortform reactions connect to fan reports, source vlogs, purchase conversion, and settlement records.",
         brand: "AIAVpark",
         eyebrow: "Shortform Exposure Engine",
         heroTitle: "Turn shortform reactions into news, sources, and purchases",
@@ -471,6 +503,37 @@ function getCopy(locale: Locale) {
           { label: "Next content", value: "Vlog", hint: "Original AI character scene" },
           { label: "Tracked impact", value: "Signal", hint: "Shares, opens, and purchase assists" },
         ],
+        mobileQuickNav: {
+          data: "Data",
+          inquiry: "Contact",
+          summary: "Summary",
+        },
+        investorSnapshot: {
+          basis: "Basis: public general content and the current operating database",
+          body:
+            "Repeated report titles are reduced, and the first block focuses on operating scale and content-diversity metrics investors can read quickly.",
+          contactCta: "Contact us",
+          eyebrow: "Investor Snapshot",
+          metrics: {
+            characters: {
+              hint: "The base unit for character consumption and IP expansion",
+              label: "Character channels",
+            },
+            previews: {
+              hint: "Previews that pull readers from news into source consumption",
+              label: "Source previews",
+            },
+            representativeReports: {
+              hint: "Representative exposure after removing same-title character duplicates",
+              label: "Representative reports",
+            },
+            reports: {
+              hint: "Public reports currently measurable from News home",
+              label: "Operating reports",
+            },
+          },
+          title: "The key operating metrics investors should grasp in 30 seconds",
+        },
         momentumStats: {
           characters: {
             hint: "Character channels accumulating news and vlogs",
@@ -882,6 +945,57 @@ function CtaLink({
   );
 }
 
+function PlatformMobileQuickNav({ copy }: { copy: ReturnType<typeof getCopy> }) {
+  const items = [
+    {
+      href: "#platform-investor-summary",
+      icon: Blocks,
+      label: copy.mobileQuickNav.summary,
+    },
+    {
+      href: "#platform-operating-data",
+      icon: TrendingUp,
+      label: copy.mobileQuickNav.data,
+    },
+    {
+      href: "#platform-inquiry",
+      icon: Mail,
+      label: copy.mobileQuickNav.inquiry,
+    },
+  ];
+
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-black/10 bg-[#f8faf4]/96 px-3 pb-[calc(env(safe-area-inset-bottom)+0.5rem)] pt-2 shadow-[0_-18px_44px_rgba(17,21,16,0.12)] backdrop-blur md:hidden">
+      <div className="mx-auto grid max-w-md grid-cols-3 gap-2">
+        {items.map((item, index) => {
+          const Icon = item.icon;
+
+          return (
+            <Link
+              className={
+                index === 2
+                  ? "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-[#071108] px-2.5 text-xs font-black !text-white"
+                  : "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-black/10 bg-white px-2.5 text-xs font-black !text-[#111510]"
+              }
+              href={item.href}
+              key={item.href}
+            >
+              <Icon
+                className={
+                  index === 2
+                    ? "size-3.5 text-[#44f26e]"
+                    : "size-3.5 text-[#16702e]"
+                }
+              />
+              <span className="truncate">{item.label}</span>
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
+}
+
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
 }
@@ -899,6 +1013,44 @@ function formatDate(value: Date | string | null, locale: Locale) {
 
 function getReportDate(report: FanletterNewsReportDocument) {
   return report.sourcePublishedAt ?? report.createdAt ?? null;
+}
+
+function getReportDiversityKey(report: FanletterNewsReportDocument) {
+  const title = getArticleDisplayTitle(report.title)
+    .trim()
+    .toLocaleLowerCase("en-US");
+  const creator =
+    report.creatorReferralCode?.trim() ||
+    report.creatorName?.trim() ||
+    report.reporterName?.trim() ||
+    "aiavpark";
+
+  return `${creator.toLocaleLowerCase("en-US")}:${title || report.contentId}`;
+}
+
+function getRepresentativeReports(
+  reports: FanletterNewsReportDocument[],
+  limit: number,
+) {
+  const seen = new Set<string>();
+  const representativeReports: FanletterNewsReportDocument[] = [];
+
+  for (const report of reports) {
+    const key = getReportDiversityKey(report);
+
+    if (seen.has(key)) {
+      continue;
+    }
+
+    seen.add(key);
+    representativeReports.push(report);
+
+    if (representativeReports.length >= limit) {
+      break;
+    }
+  }
+
+  return representativeReports;
 }
 
 function canShowReportPreviewVideo(report: FanletterNewsReportDocument) {
@@ -1546,7 +1698,10 @@ function PlatformInvestorBrief({
   ];
 
   return (
-    <section className="border-b border-black/10 bg-[#f4f6f0]">
+    <section
+      className="border-b border-black/10 bg-[#f4f6f0]"
+      id="platform-operating-data"
+    >
       <div className="mx-auto grid max-w-[92rem] gap-5 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:px-8">
         <LandingReveal
           className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_24px_70px_rgba(17,21,16,0.08)] sm:p-7"
@@ -1757,7 +1912,7 @@ function PlatformPortalStrategy({
     },
   ];
   const moduleIcons = [RadioTower, Layers3, Trophy, BadgeDollarSign, UsersRound];
-  const featuredReports = reports.slice(0, 4);
+  const featuredReports = getRepresentativeReports(reports, 4);
   const featuredCharacters = characters.slice(0, 3);
   const ctaLinks = [
     {
@@ -2414,6 +2569,114 @@ function CharacterGrowthChart({
   );
 }
 
+function PlatformInvestorSnapshot({
+  characters,
+  contactHref,
+  copy,
+  locale,
+  reports,
+  representativeReports,
+  teaserItems,
+}: {
+  characters: FanletterNewsCharacterStat[];
+  contactHref: string;
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  reports: FanletterNewsReportDocument[];
+  representativeReports: FanletterNewsReportDocument[];
+  teaserItems: FanletterNewsTeaserGalleryItem[];
+}) {
+  const metrics = [
+    {
+      icon: Newspaper,
+      label: copy.investorSnapshot.metrics.reports.label,
+      value: formatNumber(reports.length, locale),
+      hint: copy.investorSnapshot.metrics.reports.hint,
+    },
+    {
+      icon: Layers3,
+      label: copy.investorSnapshot.metrics.representativeReports.label,
+      value: formatNumber(representativeReports.length, locale),
+      hint: copy.investorSnapshot.metrics.representativeReports.hint,
+    },
+    {
+      icon: PlayCircle,
+      label: copy.investorSnapshot.metrics.previews.label,
+      value: formatNumber(teaserItems.length, locale),
+      hint: copy.investorSnapshot.metrics.previews.hint,
+    },
+    {
+      icon: UsersRound,
+      label: copy.investorSnapshot.metrics.characters.label,
+      value: formatNumber(characters.length, locale),
+      hint: copy.investorSnapshot.metrics.characters.hint,
+    },
+  ];
+
+  return (
+    <section
+      className="border-b border-black/10 bg-[#f8faf4]"
+      id="platform-investor-summary"
+    >
+      <div className="mx-auto grid max-w-[92rem] gap-4 px-4 py-8 sm:px-6 sm:py-10 lg:grid-cols-[minmax(0,0.74fr)_minmax(0,1.26fr)] lg:items-center lg:px-8">
+        <LandingReveal variant="soft">
+          <SectionLabel>{copy.investorSnapshot.eyebrow}</SectionLabel>
+          <h2 className="mt-3 max-w-3xl text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
+            {copy.investorSnapshot.title}
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-black/58 sm:text-base sm:leading-7">
+            {copy.investorSnapshot.body}
+          </p>
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <span className="inline-flex min-h-9 items-center rounded-full border border-[#16702e]/16 bg-white px-3 text-xs font-black text-[#16702e]">
+              {copy.investorSnapshot.basis}
+            </span>
+            <Link
+              className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full bg-[#071108] px-3 text-xs font-black !text-white transition hover:bg-[#19251a]"
+              href={contactHref}
+            >
+              {copy.investorSnapshot.contactCta}
+              <ArrowRight className="size-3.5 text-[#44f26e]" />
+            </Link>
+          </div>
+        </LandingReveal>
+
+        <LandingReveal delay={120} variant="soft">
+          <div className="grid gap-px overflow-hidden rounded-lg border border-black/10 bg-black/10 sm:grid-cols-2 xl:grid-cols-4">
+            {metrics.map((metric, index) => {
+              const Icon = metric.icon;
+
+              return (
+                <div
+                  className={
+                    index === 0
+                      ? "min-w-0 bg-[#44f26e] p-4 text-[#071108]"
+                      : "min-w-0 bg-white p-4 text-[#111510]"
+                  }
+                  key={metric.label}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.12em] opacity-62">
+                      {metric.label}
+                    </p>
+                    <Icon className="size-4 shrink-0 text-[#16702e]" />
+                  </div>
+                  <p className="mt-3 text-3xl font-black leading-none">
+                    {metric.value}
+                  </p>
+                  <p className="mt-2 text-xs font-bold leading-5 opacity-62">
+                    {metric.hint}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </LandingReveal>
+      </div>
+    </section>
+  );
+}
+
 function NewsFlowTicker({
   copy,
   locale,
@@ -2429,7 +2692,7 @@ function NewsFlowTicker({
     return null;
   }
 
-  const tickerReports = [...reports, ...reports];
+  const tickerReports = reports.length > 1 ? [...reports, ...reports] : reports;
 
   return (
     <section className="border-y border-[#44f26e]/18 bg-[#071108] text-white">
@@ -2574,12 +2837,14 @@ export default async function FanletterNewsPlatformPage({
   const featuredPreviewContentIds = new Set(
     featuredPreviewReports.map((report) => report.contentId),
   );
-  const featuredReports = [
+  const representativeReports = getRepresentativeReports(latestReports, 12);
+  const featuredReportCandidates = [
     ...featuredPreviewReports,
     ...latestReports.filter(
       (report) => !featuredPreviewContentIds.has(report.contentId),
     ),
-  ].slice(0, 6);
+  ];
+  const featuredReports = getRepresentativeReports(featuredReportCandidates, 6);
   const featuredCharacters = await hydrateFanletterNewsCharacterStats(
     getFanletterNewsCharacterStats(latestReports, 6, { sort: "discovery" }),
     { limit: 4, sort: "discovery" },
@@ -2629,7 +2894,8 @@ export default async function FanletterNewsPlatformPage({
     referralCode,
   );
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]">
+    <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] pb-20 text-[#111510] md:pb-0">
+      <PlatformMobileQuickNav copy={copy} />
       <section className="relative min-h-[100svh] overflow-hidden bg-[#071108] text-white sm:min-h-[92svh]">
         {hasHeroVideoSlides ? (
           <FanletterHeroBackgroundCarousel
@@ -2744,6 +3010,16 @@ export default async function FanletterNewsPlatformPage({
         locale={locale}
         referralCode={referralCode}
         reports={featuredReports}
+      />
+
+      <PlatformInvestorSnapshot
+        characters={featuredCharacters}
+        contactHref="#platform-inquiry"
+        copy={copy}
+        locale={locale}
+        reports={latestReports}
+        representativeReports={representativeReports}
+        teaserItems={teaserGalleryItems}
       />
 
       <PlatformMarketSignal
