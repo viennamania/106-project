@@ -57,7 +57,7 @@ function getCopy(locale: Locale) {
         labels: {
           cutCollection: "컷 모음",
           representative: "대표 티저",
-          sameSource: "같은 브이로그 컷",
+          sameSource: "같은 브이로거 컷",
           fanOnly: "팬 전용",
           free: "공개",
           news: "뉴스",
@@ -67,11 +67,11 @@ function getCopy(locale: Locale) {
         },
         gallery: {
           groupedBody:
-            "같은 브이로그의 비슷한 티저는 하나의 대표 카드로 묶고, 나머지 컷은 썸네일로 압축했습니다.",
+            "같은 브이로거의 비슷한 티저는 하나의 대표 카드로 묶고, 나머지 컷은 썸네일로 압축했습니다.",
           groupedTitle: "대표 티저 모음",
           sameSourceBody:
             "대표 티저와 같은 원본에서 뽑힌 다른 공개 컷입니다. 반복 설명 없이 이미지 흐름만 빠르게 확인하세요.",
-          sameSourceTitle: "같은 브이로그의 다른 컷",
+          sameSourceTitle: "같은 브이로거의 다른 컷",
         },
         nav: {
           characters: "AI 캐릭터",
@@ -101,7 +101,7 @@ function getCopy(locale: Locale) {
         labels: {
           cutCollection: "Cut set",
           representative: "Lead teaser",
-          sameSource: "Same-vlog cuts",
+          sameSource: "Same-vlogger cuts",
           fanOnly: "Fan-only",
           free: "Public",
           news: "News",
@@ -111,11 +111,11 @@ function getCopy(locale: Locale) {
         },
         gallery: {
           groupedBody:
-            "Similar teasers from the same vlog are grouped into one lead card, while extra cuts are compressed into thumbnails.",
+            "Similar teasers from the same vlogger are grouped into one lead card, while extra cuts are compressed into thumbnails.",
           groupedTitle: "Representative teaser sets",
           sameSourceBody:
             "More public cuts from the same source as the lead teaser, shown as image flow without repeated descriptions.",
-          sameSourceTitle: "More cuts from the same vlog",
+          sameSourceTitle: "More cuts from the same vlogger",
         },
         nav: {
           characters: "AI characters",
