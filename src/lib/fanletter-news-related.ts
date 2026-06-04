@@ -184,6 +184,44 @@ function getFanletterRelatedNewsCardTitle(title: string) {
   return getFanletterNewsBareArticleDisplayTitle(title);
 }
 
+function getUniqueRelatedNewsImageUrls(values: Array<string | null | undefined>) {
+  return [
+    ...new Set(
+      values
+        .map((value) => value?.trim() ?? "")
+        .filter(Boolean),
+    ),
+  ];
+}
+
+export function getFanletterNewsReportPreviewImageUrl(
+  report: Pick<
+    FanletterNewsReportDocument,
+    "coverImageUrl" | "teaserImages" | "teaserImageUrls"
+  >,
+) {
+  const reporterCroppedTeaserImageUrls =
+    report.teaserImages
+      ?.filter(
+        (image) =>
+          image.source === "reporter_cropped" &&
+          image.imageUrl.trim() &&
+          image.imageUrl.trim() !== image.sourceImageUrl.trim(),
+      )
+      .map((image) => image.imageUrl) ?? [];
+
+  return (
+    getUniqueRelatedNewsImageUrls([
+      ...reporterCroppedTeaserImageUrls,
+      ...(report.teaserImageUrls ?? []),
+      ...(report.teaserImages ?? [])
+        .filter((image) => image.source !== "reporter_cropped")
+        .map((image) => image.imageUrl),
+      report.coverImageUrl,
+    ])[0] ?? null
+  );
+}
+
 export function getFanletterNewsDisplayDek({
   locale,
   rawDek,
@@ -347,7 +385,7 @@ export function serializeFanletterRelatedNewsItem({
   const sourceReveal = createRelatedNewsSourceRevealStatus(report);
 
   return {
-    coverImageUrl: report.coverImageUrl,
+    coverImageUrl: getFanletterNewsReportPreviewImageUrl(report),
     dek: getFanletterRelatedNewsCardDek({
       locale: report.locale,
       rawDek: report.dek,

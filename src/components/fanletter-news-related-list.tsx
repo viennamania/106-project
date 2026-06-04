@@ -285,21 +285,34 @@ function RelatedNewsCard({
     <>
       <div className="relative aspect-[4/3] overflow-hidden rounded-md bg-[#111510] sm:rounded-lg">
         {item.coverImageUrl ? (
-          <Image
-            alt=""
-            aria-hidden="true"
-            className={
-              item.shouldBlur
-                ? "scale-[1.06] object-cover blur-md brightness-[0.68] saturate-[0.86] transition duration-300 group-hover:scale-[1.08]"
-                : "object-cover transition duration-300 group-hover:scale-[1.04]"
-            }
-            fill
-            sizes="(max-width: 640px) 8rem, 8.75rem"
-            src={item.coverImageUrl}
-            unoptimized={shouldBypassFanletterImageOptimization(
-              item.coverImageUrl,
-            )}
-          />
+          <>
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="scale-110 object-cover opacity-[0.58] blur-lg brightness-[0.46] saturate-[0.92] transition duration-300 group-hover:scale-[1.14]"
+              fill
+              sizes="(max-width: 640px) 8rem, 8.75rem"
+              src={item.coverImageUrl}
+              unoptimized={shouldBypassFanletterImageOptimization(
+                item.coverImageUrl,
+              )}
+            />
+            <Image
+              alt=""
+              aria-hidden="true"
+              className={
+                item.shouldBlur
+                  ? "object-contain blur-md brightness-[0.68] saturate-[0.86] transition duration-300 group-hover:scale-[1.03]"
+                  : "object-contain transition duration-300 group-hover:scale-[1.03]"
+              }
+              fill
+              sizes="(max-width: 640px) 8rem, 8.75rem"
+              src={item.coverImageUrl}
+              unoptimized={shouldBypassFanletterImageOptimization(
+                item.coverImageUrl,
+              )}
+            />
+          </>
         ) : (
           <div className="flex h-full w-full items-center justify-center text-white/68">
             <Newspaper className="size-7 text-[#44f26e]" />

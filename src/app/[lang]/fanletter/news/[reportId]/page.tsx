@@ -87,6 +87,7 @@ import {
   FANLETTER_RELATED_NEWS_SORTS,
   getFanletterNewsArticleDisplayTitle as getArticleDisplayTitle,
   getFanletterNewsFirstReportBadgeLabel,
+  getFanletterNewsReportPreviewImageUrl,
   getFanletterNewsReporterDisplayName as getReporterDisplayName,
   getFanletterNewsSourceDisplayTitle,
   isFanletterNewsLowSignalSourceTitle,
@@ -1621,18 +1622,30 @@ function FanletterNewsShareLandingHero({
             <div className="mt-4 overflow-hidden rounded-lg border border-white/14 bg-black/44 shadow-[0_18px_42px_rgba(0,0,0,0.28)] sm:hidden">
               <div className="relative aspect-[16/10] bg-[#111510]">
                 {sourceImageUrl ? (
-                  <Image
-                    alt={copy.visualLead}
-                    className={`object-cover object-center ${
-                      shouldBlurHeroVisual ? "blur-sm brightness-[0.74]" : ""
-                    }`}
-                    fill
-                    fetchPriority="high"
-                    loading="eager"
-                    sizes="100vw"
-                    src={sourceImageUrl}
-                    unoptimized={shouldBypassHeroImageOptimization}
-                  />
+                  <>
+                    <Image
+                      alt=""
+                      aria-hidden="true"
+                      className="scale-110 object-cover object-center opacity-[0.58] blur-xl brightness-[0.52] saturate-[0.96]"
+                      fill
+                      loading="eager"
+                      sizes="100vw"
+                      src={sourceImageUrl}
+                      unoptimized={shouldBypassHeroImageOptimization}
+                    />
+                    <Image
+                      alt={copy.visualLead}
+                      className={`object-contain object-center ${
+                        shouldBlurHeroVisual ? "blur-sm brightness-[0.74]" : ""
+                      }`}
+                      fill
+                      fetchPriority="high"
+                      loading="eager"
+                      sizes="100vw"
+                      src={sourceImageUrl}
+                      unoptimized={shouldBypassHeroImageOptimization}
+                    />
+                  </>
                 ) : previewVideoUrl ? (
                   <FanletterAutoplayVideo
                     ariaHidden
@@ -4039,6 +4052,9 @@ export async function generateMetadata({
   const url = report
     ? createFanletterNewsReportShareHref(report)
     : `/${locale}/fanletter/news/${reportId}`;
+  const previewImageUrl = report
+    ? getFanletterNewsReportPreviewImageUrl(report)
+    : null;
 
   return {
     title,
@@ -4048,11 +4064,11 @@ export async function generateMetadata({
     },
     openGraph: {
       description,
-      images: report?.coverImageUrl
+      images: previewImageUrl
         ? [
             {
-              alt: report.title,
-              url: report.coverImageUrl,
+              alt: report?.title ?? title,
+              url: previewImageUrl,
             },
           ]
         : undefined,
@@ -4062,9 +4078,9 @@ export async function generateMetadata({
       url,
     },
     twitter: {
-      card: report?.coverImageUrl ? "summary_large_image" : "summary",
+      card: previewImageUrl ? "summary_large_image" : "summary",
       description,
-      images: report?.coverImageUrl ? [report.coverImageUrl] : undefined,
+      images: previewImageUrl ? [previewImageUrl] : undefined,
       title,
     },
   };
@@ -4528,8 +4544,9 @@ export default async function LocalizedFanletterNewsReportPage({
       .map((image) => image.imageUrl),
     ...(report.teaserImageUrls ?? []),
   ]);
+  const reportPreviewImageUrl = getFanletterNewsReportPreviewImageUrl(report);
   const landingHeroImageUrl =
-    report.coverImageUrl ??
+    reportPreviewImageUrl ??
     landingHeroPublicImageUrls[0] ??
     sourceContent?.coverImageUrl ??
     characterAvatarImageUrl ??
