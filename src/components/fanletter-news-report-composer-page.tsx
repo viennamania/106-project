@@ -434,7 +434,7 @@ function getCopy(locale: Locale) {
             hiddenBody:
               "NSFW 블러 상태에서는 프리뷰 동영상을 불러오지 않습니다. NSFW를 켜면 저장된 프리뷰를 확인할 수 있습니다.",
             hiddenTitle: "NSFW 프리뷰 숨김",
-            title: "블로그 동영상 프리뷰",
+            title: "브이로그 동영상 프리뷰",
           },
           purchaseOnceBody:
             "결제는 이 작성 권한 영역에서 한 번만 진행합니다. 결제 후 선택한 브이로그가 유지되고 티저 선택, 크롭, 리포트 발행 도구가 열립니다.",
@@ -6614,7 +6614,7 @@ export function FanletterNewsReportComposerPage({
                         id="fanletter-report-compose"
                       >
                         <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
-                          5. Reporter note
+                          5. 리포터 관점
                         </p>
                         <h2 className="mt-1 text-2xl font-black">
                           {copy.angleLabel}
