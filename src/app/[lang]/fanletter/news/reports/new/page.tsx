@@ -112,27 +112,27 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         connectBody:
-          "팬 리포터 회원만 새 뉴스 리포트를 작성할 수 있습니다. 계정을 연결하면 브이로그 후보와 티저 이미지 편집실이 열립니다.",
+          "팬 리포터 계정을 연결하면 브이로그 후보를 4컷 노출 리포트로 편집하고 공유 흐름까지 이어갈 수 있습니다.",
         connectCta: "뉴스 계정 연결",
         connectTitle: "뉴스 리포터 계정 연결이 필요합니다.",
         quickBackCta: "컷 피드로 돌아가기",
         quickConnectBody:
-          "아직 열리지 않은 원본을 4컷 기사로 편집하려면 팬 리포터 계정 연결이 필요합니다. 연결 후 바로 소재 선택과 크롭 편집으로 이어집니다.",
+          "아직 열리지 않은 원본을 4컷 노출 리포트로 먼저 보여주려면 팬 리포터 계정 연결이 필요합니다. 연결 후 바로 소재 선택과 크롭 편집으로 이어집니다.",
         reportsCta: "리포트 관리로 돌아가기",
-        quickTitle: "원본 공개 전 4컷 기사 작성",
-        title: "새 뉴스 리포트 작성",
+        quickTitle: "공개 전 4컷으로 반응 만들기",
+        title: "새 노출 리포트 작성",
       }
     : {
         connectBody:
-          "Only fan reporter members can create new news reports. Connect your account to open vlog candidates and the teaser image desk.",
+          "Connect a fan reporter account to turn vlog candidates into four-cut exposure reports and continue into sharing.",
         connectCta: "Connect news account",
         connectTitle: "Connect your news reporter account.",
         quickBackCta: "Back to cut feed",
         quickConnectBody:
-          "Connect a fan reporter account to edit an unopened source into a four-cut report. After connecting, you can continue directly into source selection and cropping.",
+          "Connect a fan reporter account to preview an unopened source as a four-cut exposure report. After connecting, you can continue directly into source selection and cropping.",
         reportsCta: "Back to report desk",
-        quickTitle: "Write four cuts before source opens",
-        title: "Create new news report",
+        quickTitle: "Build demand with four cuts",
+        title: "Create exposure report",
       };
 }
 

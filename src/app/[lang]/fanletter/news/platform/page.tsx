@@ -64,19 +64,19 @@ function getCopy(locale: Locale) {
     ? {
         title: "FanLetter News 홈",
         description:
-          "SNS에서 본 AI 캐릭터 뉴스, 원본 브이로그, 캐릭터 채널을 한 곳에서 이어보는 FanLetter News 홈입니다.",
+          "SNS와 숏폼에서 생긴 반응을 팬 리포트, 원본 브이로그, 구매 전환까지 이어보는 FanLetter News 홈입니다.",
         brand: "FanLetter",
-        eyebrow: "AI Character News Home",
-        heroTitle: "AI 캐릭터 뉴스에서 원본 브이로그까지 이어보는 홈",
+        eyebrow: "Shortform Exposure Engine",
+        heroTitle: "숏폼 반응을 뉴스·원본·구매로 이어주는 노출력 홈",
         heroBody:
-          "팬 기자가 편집한 티저 컷으로 뉴스를 먼저 보고, 마음에 드는 AI 캐릭터의 원본 브이로그와 다른 뉴스를 계속 이어볼 수 있습니다.",
+          "팬 기자가 편집한 티저 컷으로 먼저 반응을 만들고, 마음에 드는 AI 캐릭터의 원본 브이로그와 다른 뉴스, 구매 흐름까지 이어갈 수 있습니다.",
         primaryCta: "지금 뉴스 보기",
         secondaryCta: "AI 캐릭터 보기",
-        proofBadges: ["AI 캐릭터 뉴스", "리포터 티저 컷", "원본 브이로그"],
+        proofBadges: ["숏폼 노출", "리포터 4컷", "구매 기여"],
         heroStats: [
-          { label: "먼저 보는 콘텐츠", value: "News", hint: "팬 리포터 포토 뉴스" },
-          { label: "이어보는 콘텐츠", value: "Vlog", hint: "AI 캐릭터 원본 장면" },
-          { label: "계속 보는 공간", value: "Channel", hint: "캐릭터별 뉴스 채널" },
+          { label: "먼저 만드는 반응", value: "4 Cuts", hint: "팬 리포터 포토 뉴스" },
+          { label: "이어보는 원본", value: "Vlog", hint: "AI 캐릭터 원본 장면" },
+          { label: "기록되는 성과", value: "Signal", hint: "공유·오픈·구매 기여" },
         ],
         momentumStats: {
           characters: {
@@ -85,8 +85,8 @@ function getCopy(locale: Locale) {
             suffix: "명",
           },
           news: {
-            hint: "SNS 유입 후 바로 이어볼 공개 뉴스",
-            label: "공개 뉴스",
+            hint: "SNS 유입 후 바로 이어볼 노출 리포트",
+            label: "노출 리포트",
             suffix: "개",
           },
           previews: {
@@ -97,17 +97,17 @@ function getCopy(locale: Locale) {
         },
         momentumTicker: {
           body:
-            "클릭되는 뉴스가 원본 브이로그와 캐릭터 채널로 이어지는 홍보 흐름입니다.",
-          label: "Live News Flow",
+            "클릭되는 4컷 리포트가 원본 브이로그, 팬 참여, 구매 기여로 이어지는 홍보 흐름입니다.",
+          label: "Live Exposure Flow",
         },
         homeNews: {
           body:
-            "SNS에서 들어온 사용자가 바로 이어보기 좋은 최신 리포트입니다. 티저 컷, 원본 브이로그, 캐릭터 채널로 자연스럽게 연결됩니다.",
+            "SNS에서 들어온 사용자가 바로 이어보기 좋은 최신 노출 리포트입니다. 티저 컷, 원본 브이로그, 캐릭터 채널로 자연스럽게 연결됩니다.",
           cta: "뉴스 읽기",
           empty: "아직 홈에 표시할 공개 뉴스가 없습니다.",
           eyebrow: "지금 이어볼 뉴스",
           previewBadge: "원본 프리뷰",
-          title: "뉴스를 보고 캐릭터가 궁금해지는 흐름",
+          title: "뉴스가 반응과 원본 소비로 이어지는 흐름",
         },
         homeCharacters: {
           body:
@@ -136,24 +136,24 @@ function getCopy(locale: Locale) {
           title: "캐릭터 IP 성장 레이스",
         },
         newsroomPreview: {
-          label: "NEWS ENTRY",
-          title: "뉴스 한 편이 캐릭터 채널의 입구가 됩니다",
+          label: "EXPOSURE ENTRY",
+          title: "4컷 리포트 한 편이 원본 소비의 입구가 됩니다",
           body:
-            "대표 티저, 리포터 편집 컷, 팬 오픈 투표를 한 화면에 묶어 원본 장면을 보고 싶게 만듭니다.",
-          flow: ["SNS 유입", "포토 뉴스", "원본 보기", "캐릭터 채널"],
+            "대표 티저, 리포터 편집 컷, 팬 오픈 투표를 한 화면에 묶어 원본 장면과 다음 구매 행동을 보고 싶게 만듭니다.",
+          flow: ["SNS 유입", "4컷 리포트", "원본 보기", "구매 기여"],
           metrics: [
             { label: "유입", value: "SNS" },
             { label: "티저", value: "4컷" },
-            { label: "원본", value: "Vlog" },
+            { label: "성과", value: "Signal" },
           ],
         },
         vloggerSignal: {
           eyebrow: "Character Curiosity Loop",
           title: "뉴스를 읽고, 원본을 보고, 캐릭터를 따라갑니다",
         },
-        modelTitle: "하나의 브이로그가 IP 수익 구조가 되는 방식",
+        modelTitle: "하나의 숏폼 원본이 노출력 자산이 되는 방식",
         modelBody:
-          "뉴스는 홍보용이고, 브이로그는 실제 소비 대상입니다. 팬 참여가 많을수록 캐릭터 IP의 콘텐츠, 뉴스, 구매, 정산 기록이 함께 축적됩니다.",
+          "뉴스는 반응을 만드는 노출 계층이고, 브이로그는 실제 소비 대상입니다. 팬 참여가 많을수록 캐릭터 IP의 콘텐츠, 공유, 구매, 정산 기록이 함께 축적됩니다.",
         modelSteps: [
           {
             title: "Persona",
@@ -168,7 +168,7 @@ function getCopy(locale: Locale) {
           {
             title: "Photo News",
             body:
-              "대표 티저와 장면 이미지를 포토 뉴스로 편집해 브이로그 소비를 유도합니다.",
+              "대표 티저와 장면 이미지를 4컷 노출 리포트로 편집해 브이로그 소비를 유도합니다.",
           },
           {
             title: "Participation",
@@ -181,9 +181,9 @@ function getCopy(locale: Locale) {
               "수익이 발생하면 기여도 기준으로 보상 내역을 만들고 USDT 정산 기록으로 투명성을 높입니다.",
           },
         ],
-        participationTitle: "팬 참여가 캐릭터 IP의 성장 자산이 됩니다",
+        participationTitle: "팬 반응이 캐릭터 IP의 노출력 자산이 됩니다",
         participationBody:
-          "단순한 좋아요가 아니라, 다음 장면을 만들고 뉴스 확산과 구매 전환에 영향을 준 행동을 분리해서 추적합니다.",
+          "단순한 좋아요가 아니라, 다음 장면을 만들고 리포트 확산과 구매 전환에 영향을 준 행동을 분리해서 추적합니다.",
         participationItems: [
           {
             title: "팬",
@@ -194,7 +194,7 @@ function getCopy(locale: Locale) {
           {
             title: "팬 리포터",
             body:
-              "브이로그를 포토 뉴스로 포장해 더 많은 팬이 원본 콘텐츠를 소비하게 만듭니다.",
+              "브이로그를 4컷 노출 리포트로 포장해 더 많은 팬이 원본 콘텐츠를 소비하게 만듭니다.",
             metric: "Report · Share · Conversion",
           },
           {
@@ -220,12 +220,12 @@ function getCopy(locale: Locale) {
           revenue: "Revenue Event",
           settlement: "USDT Settlement",
         },
-        loopTitle: "뉴스는 유입, 브이로그는 소비, 정산은 신뢰입니다",
+        loopTitle: "노출 리포트는 유입, 브이로그는 소비, 정산은 신뢰입니다",
         loopBody:
           "이 세 가지가 연결될 때 팬은 단순 소비자가 아니라 AI 캐릭터 IP의 성장 파트너가 됩니다.",
-        ctaTitle: "FanLetter News 홈에서 캐릭터 IP 성장 흐름을 시작하세요",
+        ctaTitle: "FanLetter News 홈에서 노출력 성장 흐름을 시작하세요",
         ctaBody:
-          "뉴스 홈에서 포토 뉴스와 AI 캐릭터를 둘러보고, 리포터 데스크에서 직접 브이로그 기반 리포트를 작성할 수 있습니다.",
+          "뉴스 홈에서 4컷 리포트와 AI 캐릭터를 둘러보고, 리포터 데스크에서 직접 브이로그 기반 노출 리포트를 작성할 수 있습니다.",
         ctaNews: "뉴스룸 보기",
         ctaCharacters: "AI 캐릭터",
         ctaReports: "리포터 데스크",
@@ -233,19 +233,19 @@ function getCopy(locale: Locale) {
     : {
         title: "FanLetter News Home",
         description:
-          "The FanLetter News home for continuing from SNS AI character news into source vlogs and character channels.",
+          "The FanLetter News home for turning SNS and shortform reactions into fan reports, source vlogs, and purchase conversion.",
         brand: "FanLetter",
-        eyebrow: "AI Character News Home",
-        heroTitle: "Continue from AI character news into source vlogs",
+        eyebrow: "Shortform Exposure Engine",
+        heroTitle: "Turn shortform reactions into news, sources, and purchases",
         heroBody:
-          "Read fan-reporter teaser cuts first, then continue into the original AI character vlog and more news from the same character.",
+          "Fan reporters create the first reaction with teaser cuts, then readers continue into the original AI character vlog, more news, and purchase flows.",
         primaryCta: "Read news",
         secondaryCta: "AI characters",
-        proofBadges: ["AI character news", "Reporter teaser cuts", "Source vlogs"],
+        proofBadges: ["Shortform exposure", "Reporter four-cuts", "Purchase assists"],
         heroStats: [
-          { label: "Entry content", value: "News", hint: "Fan-reporter photo news" },
+          { label: "First reaction", value: "4 Cuts", hint: "Fan-reporter photo news" },
           { label: "Next content", value: "Vlog", hint: "Original AI character scene" },
-          { label: "Repeat space", value: "Channel", hint: "Character-level news hub" },
+          { label: "Tracked impact", value: "Signal", hint: "Shares, opens, and purchase assists" },
         ],
         momentumStats: {
           characters: {
@@ -254,8 +254,8 @@ function getCopy(locale: Locale) {
             suffix: "",
           },
           news: {
-            hint: "Public news ready for SNS visitors to continue",
-            label: "Public news",
+            hint: "Exposure reports ready for SNS visitors to continue",
+            label: "Exposure reports",
             suffix: "",
           },
           previews: {
@@ -266,17 +266,17 @@ function getCopy(locale: Locale) {
         },
         momentumTicker: {
           body:
-            "Every clicked news item can continue into a source vlog and character channel.",
-          label: "Live News Flow",
+            "Every clicked four-cut report can continue into a source vlog, fan participation, and purchase attribution.",
+          label: "Live Exposure Flow",
         },
         homeNews: {
           body:
-            "Latest reports that help SNS visitors keep reading, open source vlogs, and remember the character channel.",
+            "Latest exposure reports that help SNS visitors keep reading, open source vlogs, and remember the character channel.",
           cta: "Read news",
           empty: "No public news is ready for the home page yet.",
           eyebrow: "Continue Reading",
           previewBadge: "Source preview",
-          title: "News that turns into character curiosity",
+          title: "News that turns into reactions and source consumption",
         },
         homeCharacters: {
           body:
@@ -305,24 +305,24 @@ function getCopy(locale: Locale) {
           title: "Character IP growth race",
         },
         newsroomPreview: {
-          label: "NEWS ENTRY",
-          title: "One news page becomes the character-channel entrance",
+          label: "EXPOSURE ENTRY",
+          title: "One four-cut report becomes the source-consumption entrance",
           body:
-            "Lead teasers, reporter-edited cuts, and fan-open votes make readers want the source scene.",
-          flow: ["SNS entry", "Photo news", "Source vlog", "Character channel"],
+            "Lead teasers, reporter-edited cuts, and fan-open votes make readers want the source scene and the next purchase action.",
+          flow: ["SNS entry", "Four-cut report", "Source vlog", "Purchase assist"],
           metrics: [
             { label: "Entry", value: "SNS" },
             { label: "Teasers", value: "4 cuts" },
-            { label: "Source", value: "Vlog" },
+            { label: "Impact", value: "Signal" },
           ],
         },
         vloggerSignal: {
           eyebrow: "Character Curiosity Loop",
           title: "Read the news, watch the source, follow the character",
         },
-        modelTitle: "How one vlog becomes an IP revenue loop",
+        modelTitle: "How one shortform source becomes an exposure asset",
         modelBody:
-          "News is the promotion layer, and the vlog is the product people consume. The more fans participate, the more character IP, news, purchases, and settlement history compound.",
+          "News is the exposure layer that creates reactions, and the vlog is the product people consume. The more fans participate, the more character IP, sharing, purchases, and settlement history compound.",
         modelSteps: [
           {
             title: "Persona",
@@ -337,7 +337,7 @@ function getCopy(locale: Locale) {
           {
             title: "Photo News",
             body:
-              "Edit lead teasers and scene images into news that drives vlog consumption.",
+              "Edit lead teasers and scene images into four-cut exposure reports that drive vlog consumption.",
           },
           {
             title: "Participation",
@@ -350,9 +350,9 @@ function getCopy(locale: Locale) {
               "When revenue happens, contribution-based rewards are settled with a transparent USDT record.",
           },
         ],
-        participationTitle: "Fan participation becomes character IP equity",
+        participationTitle: "Fan reactions become character IP exposure equity",
         participationBody:
-          "Fan actions are tracked by role and impact, separating demand creation, reporting, distribution, and purchase conversion.",
+          "Fan actions are tracked by role and impact, separating demand creation, report distribution, and purchase conversion.",
         participationItems: [
           {
             title: "Fans",
@@ -363,7 +363,7 @@ function getCopy(locale: Locale) {
           {
             title: "Fan reporters",
             body:
-              "Package vlogs as photo news so more fans discover and consume the source content.",
+              "Package vlogs as four-cut exposure reports so more fans discover and consume the source content.",
             metric: "Report · Share · Conversion",
           },
           {
@@ -389,12 +389,12 @@ function getCopy(locale: Locale) {
           revenue: "Revenue Event",
           settlement: "USDT Settlement",
         },
-        loopTitle: "News brings traffic, vlogs drive consumption, settlement builds trust",
+        loopTitle: "Exposure reports bring traffic, vlogs drive consumption, settlement builds trust",
         loopBody:
           "When all three are connected, fans become growth partners for AI character IP instead of passive consumers.",
-        ctaTitle: "Start the character IP loop from FanLetter News home",
+        ctaTitle: "Start the exposure growth loop from FanLetter News home",
         ctaBody:
-          "Browse photo news and AI characters, then use the reporter desk to create reports from vlog source content.",
+          "Browse four-cut reports and AI characters, then use the reporter desk to create exposure reports from vlog source content.",
         ctaNews: "Newsroom",
         ctaCharacters: "AI characters",
         ctaReports: "Reporter desk",

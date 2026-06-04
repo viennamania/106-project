@@ -75,7 +75,7 @@ function getCopy(locale: Locale) {
           paid: "팬 전용",
           public: "공개",
         },
-        allNews: "AI 캐릭터 엔터테인먼트 뉴스룸",
+        allNews: "FanLetter 노출력 뉴스룸",
         characterDirectory: {
           body:
             "뉴스가 나온 AI 캐릭터 채널을 모았습니다. 캐릭터별 최신 리포트와 팬 전용 브이로그 흐름을 바로 이어볼 수 있습니다.",
@@ -96,8 +96,8 @@ function getCopy(locale: Locale) {
           stories: "와이어",
         },
         dek:
-          "팬 기자가 만든 AI 캐릭터 브이로그 리포트를 이어 읽는 FanLetter News입니다.",
-        edition: "AI 캐릭터·팬 리포트 전문 뉴스",
+          "팬 기자가 숏폼 원본을 4컷 리포트로 포장해 공유와 원본 소비로 이어주는 FanLetter News입니다.",
+        edition: "숏폼 노출·팬 리포트 전문 뉴스",
         emptyBody:
           "콘텐츠 상세 페이지에서 AI 리포트를 생성하면 이곳에 최신 뉴스가 모입니다.",
         emptyReporterBody: (name: string) =>
@@ -107,12 +107,13 @@ function getCopy(locale: Locale) {
         frontPage: {
           characters: "캐릭터 편집판",
           desk: "뉴스룸 데스크",
-          deskBody: "리포터 활동, AI 캐릭터 이슈, 공개 뉴스 흐름을 빠르게 훑습니다.",
+          deskBody:
+            "리포터 활동, AI 캐릭터 이슈, 공개 뉴스 흐름, 원본 반응을 빠르게 훑습니다.",
           headlines: "주요 헤드라인",
           leadDeck:
-            "빠르게 발행된 팬 리포트를 리드와 주요 헤드라인으로 큐레이션하는 FanLetter 뉴스 편집판입니다.",
+            "빠르게 발행된 팬 리포트를 노출력 있는 리드와 주요 헤드라인으로 큐레이션하는 FanLetter 뉴스 편집판입니다.",
           reporters: "리포터 편집판",
-          title: "FanLetter 뉴스 편집판",
+          title: "FanLetter 노출력 편집판",
         },
         firstReport: "최초 리포트",
         heroEyebrow: "FanLetter Entertainment News",
@@ -135,24 +136,24 @@ function getCopy(locale: Locale) {
         ],
         photoDesk: "포토 뉴스",
         photoDeskBody:
-          "NSFW를 제외한 선명한 커버 뉴스를 포토 에디토리얼처럼 큐레이션합니다.",
+          "공유하기 좋은 커버와 4컷 뉴스를 포토 에디토리얼처럼 큐레이션합니다.",
         producerDesk: {
           body:
-            "뉴스를 보다가 PC에서 바로 리포트를 작성하거나 새 브이로그를 등록할 수 있습니다. 소비 흐름을 생산 작업으로 끊김 없이 이어갑니다.",
+            "뉴스를 보다가 PC에서 바로 리포트를 작성하거나 새 브이로그를 등록할 수 있습니다. 유입 흐름을 생산 작업으로 끊김 없이 이어갑니다.",
           eyebrow: "PC 작업 바로가기",
           note: "모바일은 하단 역할 버튼, PC는 이 작업 레일에서 바로 시작합니다.",
           reporter: {
             body:
-              "브이로그 후보를 고르고 티저 컷 기반 팬 리포트를 바로 발행합니다.",
+              "브이로그 후보를 고르고 티저 컷 기반 노출 리포트를 바로 발행합니다.",
             label: "팬 기자",
-            primary: "기사 작성",
+            primary: "노출 리포트 작성",
             secondary: "리포트 관리",
             title: "새 리포트 작성",
           },
-          title: "팬 기자와 브이로거 작업을 바로 시작하세요",
+          title: "팬 기자와 브이로거의 노출 작업을 시작하세요",
           vlogger: {
             body:
-              "AI 캐릭터 브이로그를 만들거나 직접 영상을 업로드해 뉴스 노출 준비를 이어갑니다.",
+              "AI 캐릭터 브이로그를 만들거나 직접 영상을 업로드해 뉴스와 공유 노출 준비를 이어갑니다.",
             label: "브이로거",
             primary: "동영상 업로드",
             secondary: "브이로그 관리",
@@ -199,7 +200,7 @@ function getCopy(locale: Locale) {
           paid: "Fan-only",
           public: "Public",
         },
-        allNews: "AI Character Entertainment Newsroom",
+        allNews: "FanLetter Exposure Newsroom",
         characterDirectory: {
           body:
             "Browse the AI character channels generating FanLetter News, then jump into each character's latest reports and fan-only vlog stream.",
@@ -220,8 +221,8 @@ function getCopy(locale: Locale) {
           stories: "Wire",
         },
         dek:
-          "FanLetter News collects AI character vlog reports from fan reporters.",
-        edition: "AI character and fan-report news",
+          "FanLetter News packages shortform source videos into four-cut reports that continue into sharing and source consumption.",
+        edition: "Shortform exposure and fan-report news",
         emptyBody:
           "Create an AI report from a content detail page and the latest news will appear here.",
         emptyReporterBody: (name: string) =>
@@ -233,12 +234,12 @@ function getCopy(locale: Locale) {
           characters: "Character Edition",
           desk: "Newsroom Desk",
           deskBody:
-            "Track reporter activity, AI character issues, and public news flow.",
+            "Track reporter activity, AI character issues, public news flow, and source reactions.",
           headlines: "Major Headlines",
           leadDeck:
-            "A FanLetter news edition that curates fast-moving fan reports into lead news and major headlines.",
+            "A FanLetter news edition that curates fast-moving fan reports into exposure-ready leads and major headlines.",
           reporters: "Reporter Edition",
-          title: "FanLetter News Edition",
+          title: "FanLetter Exposure Edition",
         },
         firstReport: "First report",
         heroEyebrow: "FanLetter Entertainment News",
@@ -261,24 +262,24 @@ function getCopy(locale: Locale) {
         ],
         photoDesk: "Photo Desk",
         photoDeskBody:
-          "A polished editorial curation of non-NSFW character news with strong cover moments.",
+          "A polished editorial curation of share-ready covers and four-cut news moments.",
         producerDesk: {
           body:
-            "While reading News on desktop, jump straight into report writing or new vlog registration without detouring through a hub.",
+            "While reading News on desktop, jump straight into report writing or new vlog registration so traffic can continue into production.",
           eyebrow: "Desktop quick start",
           note: "Mobile keeps the role footer; desktop starts from this work rail.",
           reporter: {
             body:
-              "Pick a source vlog and publish a fan report from teaser cuts.",
+              "Pick a source vlog and publish an exposure report from teaser cuts.",
             label: "Fan reporter",
-            primary: "Write article",
+            primary: "Write exposure report",
             secondary: "Report desk",
             title: "Create a report",
           },
-          title: "Start fan reporter and vlogger work immediately",
+          title: "Start fan reporter and vlogger exposure work immediately",
           vlogger: {
             body:
-              "Create an AI character vlog or upload video, then prepare it for News exposure.",
+              "Create an AI character vlog or upload video, then prepare it for News and share exposure.",
             label: "Vlogger",
             primary: "Upload video",
             secondary: "Vlog desk",
