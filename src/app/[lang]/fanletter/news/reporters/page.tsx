@@ -38,7 +38,11 @@ import {
   type FanletterNewsReporterTrustLevel,
   type FanletterNewsReporterTrustProfile,
 } from "@/lib/fanletter-news-reporter-trust";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import {
+  isFanletterNewsCutFeedReturnPath,
+  normalizeFanletterReturnToPath,
+  readFanletterReferralCode,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
@@ -47,6 +51,7 @@ import {
 
 type FanletterNewsReportersSearchParams = {
   ref?: string | string[];
+  returnTo?: string | string[];
   sort?: string | string[];
 };
 
@@ -72,6 +77,8 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         backToNews: "뉴스 홈",
+        returnToFeed: "4컷 피드로 돌아가기",
+        returnToPrevious: "이전 화면으로 돌아가기",
         empty: {
           body:
             "공개된 팬 기자 리포트가 쌓이면 이곳에서 팬 기자들이 경쟁적으로 노출됩니다.",
@@ -125,6 +132,8 @@ function getCopy(locale: Locale) {
       }
     : {
         backToNews: "News home",
+        returnToFeed: "Back to 4-cut feed",
+        returnToPrevious: "Back",
         empty: {
           body:
             "Fan reporters will be promoted here once public reports are available.",
@@ -221,15 +230,18 @@ function getTrustLevelLabel(
 function getDirectoryHref({
   locale,
   referralCode,
+  returnToHref,
   sort,
 }: {
   locale: Locale;
   referralCode: string | null;
+  returnToHref?: string | null;
   sort: ReporterDirectorySort;
 }) {
   return setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/reporters`, referralCode),
     {
+      returnTo: returnToHref ?? null,
       sort: sort === "recommended" ? null : sort,
     },
   );
@@ -517,6 +529,16 @@ export default async function FanletterNewsReportersDirectoryPage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
+  const returnToHref = normalizeFanletterReturnToPath(query.returnTo, locale);
+  const returnLinkHref = returnToHref ?? buildPathWithReferral(
+    `/${locale}/fanletter/news`,
+    referralCode,
+  );
+  const returnLinkLabel = returnToHref
+    ? isFanletterNewsCutFeedReturnPath(returnToHref, locale)
+      ? copy.returnToFeed
+      : copy.returnToPrevious
+    : copy.backToNews;
   const selectedSort = readSort(query.sort);
   const reporters = await getFanletterNewsReporterDirectory({
     limit: REPORTER_DIRECTORY_LIMIT,
@@ -599,10 +621,19 @@ export default async function FanletterNewsReportersDirectoryPage({
             </Link>
             <Link
               className="hidden shrink-0 items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:inline-flex"
-              href={newsHomeHref}
+              href={returnLinkHref}
             >
               <ArrowLeft className="size-4 text-[#16702e]" />
-              {copy.backToNews}
+              {returnLinkLabel}
+            </Link>
+          </div>
+          <div className="py-2 sm:hidden">
+            <Link
+              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-black/10 bg-[#fbfcf8] px-3 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#16702e]"
+              href={returnLinkHref}
+            >
+              <ArrowLeft className="size-4 text-[#16702e]" />
+              {returnLinkLabel}
             </Link>
           </div>
         </div>
@@ -698,6 +729,7 @@ export default async function FanletterNewsReportersDirectoryPage({
                   href={getDirectoryHref({
                     locale,
                     referralCode,
+                    returnToHref,
                     sort,
                   })}
                   key={sort}

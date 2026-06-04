@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  ArrowLeft,
   ArrowRight,
   BookOpenCheck,
   CircleUserRound,
@@ -25,7 +26,11 @@ import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getFanletterNewsMemberRewardsSummary } from "@/lib/fanletter-news-member-rewards";
 import { getFanletterNewsReportsForMember } from "@/lib/fanletter-news-report-service";
 import { getFanletterNewsVlogManageHref } from "@/lib/fanletter-news-vlog-routing";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import {
+  isFanletterNewsCutFeedReturnPath,
+  normalizeFanletterReturnToPath,
+  readFanletterReferralCode,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
@@ -35,6 +40,7 @@ import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsMySearchParams = {
   ref?: string | string[];
+  returnTo?: string | string[];
 };
 
 function getCopy(locale: Locale) {
@@ -56,6 +62,8 @@ function getCopy(locale: Locale) {
           completed: "활성 회원",
           pending_payment: "결제 대기",
         },
+        returnToFeed: "4컷 피드로 돌아가기",
+        returnToPrevious: "이전 화면으로 돌아가기",
         quickActions: {
           characters: "AI 캐릭터",
           createVlog: "브이로그 생성",
@@ -93,6 +101,8 @@ function getCopy(locale: Locale) {
           completed: "Active member",
           pending_payment: "Payment pending",
         },
+        returnToFeed: "Back to 4-cut feed",
+        returnToPrevious: "Back",
         quickActions: {
           characters: "AI Characters",
           createVlog: "Create vlog",
@@ -169,10 +179,19 @@ export default async function LocalizedFanletterNewsMyPage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
-  const requestedMyHref = buildPathWithReferral(
+  const returnToHref = normalizeFanletterReturnToPath(query.returnTo, locale);
+  const returnLinkLabel = returnToHref
+    ? isFanletterNewsCutFeedReturnPath(returnToHref, locale)
+      ? copy.returnToFeed
+      : copy.returnToPrevious
+    : null;
+  const requestedMyBaseHref = buildPathWithReferral(
     `/${locale}/fanletter/news/my`,
     referralCode,
   );
+  const requestedMyHref = returnToHref
+    ? setPathSearchParams(requestedMyBaseHref, { returnTo: returnToHref })
+    : requestedMyBaseHref;
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
     { returnTo: requestedMyHref },
@@ -188,6 +207,17 @@ export default async function LocalizedFanletterNewsMyPage({
           serverSessionEmail={null}
           serverSessionWalletAddress={null}
         />
+        {returnToHref ? (
+          <div className="mx-auto mb-3 max-w-3xl">
+            <Link
+              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-3 text-xs font-black !text-[#111510] shadow-sm transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#16702e]"
+              href={returnToHref}
+            >
+              <ArrowLeft className="size-4 text-[#16702e]" />
+              {returnLinkLabel}
+            </Link>
+          </div>
+        ) : null}
         <section className="mx-auto max-w-3xl border border-black/12 bg-white p-5 shadow-[0_18px_46px_rgba(17,21,16,0.08)] sm:p-8">
           <span className="inline-flex size-11 items-center justify-center rounded-full bg-[#111510] text-[#44f26e]">
             <WalletCards className="size-5" />
@@ -393,13 +423,24 @@ export default async function LocalizedFanletterNewsMyPage({
       />
       <section className="mx-auto max-w-6xl">
         <div className="flex items-center justify-between gap-3 border-b border-black/12 pb-3">
-          <Link
-            className="inline-flex items-center gap-2 text-sm font-black !text-[#16702e]"
-            href={newsHomeHref}
-          >
-            <Newspaper className="size-4" />
-            AIAVpark News
-          </Link>
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <Link
+              className="inline-flex items-center gap-2 text-sm font-black !text-[#16702e]"
+              href={newsHomeHref}
+            >
+              <Newspaper className="size-4" />
+              AIAVpark News
+            </Link>
+            {returnToHref ? (
+              <Link
+                className="inline-flex min-h-9 items-center gap-2 rounded-full border border-black/10 bg-white px-3 text-xs font-black !text-[#111510] shadow-sm transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#16702e]"
+                href={returnToHref}
+              >
+                <ArrowLeft className="size-4 text-[#16702e]" />
+                {returnLinkLabel}
+              </Link>
+            ) : null}
+          </div>
           <Link
             className="hidden h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:inline-flex"
             href={walletManageHref}

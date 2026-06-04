@@ -48,7 +48,7 @@ function getCopy(locale: Locale) {
         actions: {
           ai: "AI로 만들기",
           connect: "뉴스 계정 연결",
-          feed: "컷 피드로 돌아가기",
+          feed: "4컷 피드로 돌아가기",
           manage: "내 브이로그 관리",
           paidUpload: "팬 요청 답장 업로드",
           profile: "캐릭터 설정",

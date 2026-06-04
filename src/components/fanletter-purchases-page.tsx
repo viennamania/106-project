@@ -28,6 +28,7 @@ import type {
 } from "@/lib/content";
 import { useFanletterAccountStatus } from "@/lib/fanletter-account-status";
 import { getFanletterNsfwCopy } from "@/lib/fanletter-nsfw";
+import { isFanletterNewsCutFeedReturnPath } from "@/lib/fanletter-routing";
 import type { Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
@@ -88,6 +89,7 @@ function getCopy(
         purchasedCount: "구매 콘텐츠",
         retry: "다시 확인",
         returnTo: "이전 화면으로 돌아가기",
+        returnToFeed: "이전 화면으로 돌아가기",
         replies: "댓글",
         start: "내 채널 만들기",
         statsCreators: "캐릭터",
@@ -133,6 +135,7 @@ function getCopy(
         purchasedCount: "Purchases",
         retry: "Retry",
         returnTo: "Back",
+        returnToFeed: "Back",
         replies: "Replies",
         start: "Start my channel",
         statsCreators: "Characters",
@@ -170,6 +173,7 @@ function getCopy(
         heroTitle: "내 구매 콘텐츠",
         navLabel: "AIAVpark News 구매 콘텐츠 메뉴",
         purchased: "구매함",
+        returnToFeed: "4컷 피드로 돌아가기",
         returnTo: "읽던 뉴스로 돌아가기",
         start: "가입 상태 확인",
         studio: "AI 캐릭터",
@@ -197,6 +201,7 @@ function getCopy(
         heroTitle: "My purchased content",
         navLabel: "AIAVpark News purchased content navigation",
         purchased: "Purchases",
+        returnToFeed: "Back to 4-cut feed",
         returnTo: "Back to news",
         start: "Check signup",
         studio: "AI Characters",
@@ -517,6 +522,10 @@ export function FanletterPurchasesPage({
 }) {
   const isNewsService = service === "news";
   const copy = getCopy(locale, service);
+  const returnToLabel =
+    returnToHref && isNewsService && isFanletterNewsCutFeedReturnPath(returnToHref, locale)
+      ? copy.returnToFeed
+      : copy.returnTo;
   const accountStatus = useFanletterAccountStatus({
     disconnectedResolveGraceMs: 3000,
     resolveGraceMs: 3000,
@@ -906,7 +915,7 @@ export function FanletterPurchasesPage({
               >
                 <BadgeCheck className="size-4" />
                 {returnToHref
-                  ? copy.returnTo
+                  ? returnToLabel
                   : isNewsService
                     ? copy.backToFeed
                     : copy.fanHome}
@@ -948,7 +957,7 @@ export function FanletterPurchasesPage({
               body={copy.accountRequiredBody}
               icon="connect"
               secondaryActionHref={returnToHref ?? followingHref}
-              secondaryActionLabel={returnToHref ? copy.returnTo : copy.fanHome}
+              secondaryActionLabel={returnToHref ? returnToLabel : copy.fanHome}
               title={copy.accountRequiredTitle}
             />
           ) : state.status === "error" ? (
@@ -960,13 +969,13 @@ export function FanletterPurchasesPage({
                 void loadPurchases();
               }}
               secondaryActionHref={returnToHref ?? followingHref}
-              secondaryActionLabel={returnToHref ? copy.returnTo : copy.fanHome}
+              secondaryActionLabel={returnToHref ? returnToLabel : copy.fanHome}
               title={copy.errorBody}
             />
           ) : state.items.length === 0 ? (
             <PurchaseStatePanel
               actionHref={returnToHref ?? feedHref}
-              actionLabel={returnToHref ? copy.returnTo : copy.backToFeed}
+              actionLabel={returnToHref ? returnToLabel : copy.backToFeed}
               body={copy.emptyBody}
               icon="empty"
               secondaryActionHref={followingHref}

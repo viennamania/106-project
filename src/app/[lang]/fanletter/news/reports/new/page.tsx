@@ -9,6 +9,7 @@ import { FanletterNewsReportsSessionBridge } from "@/components/fanletter-news-r
 import { getFanletterNewsReportDraftSourcesForMember } from "@/lib/fanletter-news-report-service";
 import {
   getSafeFanletterReturnTo,
+  isFanletterNewsCutFeedReturnPath,
   readFanletterReferralCode,
 } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
@@ -115,7 +116,7 @@ function getCopy(locale: Locale) {
           "팬 리포터 계정을 연결하면 브이로그 후보를 4컷 노출 리포트로 편집하고 공유 흐름까지 이어갈 수 있습니다.",
         connectCta: "뉴스 계정 연결",
         connectTitle: "뉴스 리포터 계정 연결이 필요합니다.",
-        quickBackCta: "컷 피드로 돌아가기",
+        quickBackCta: "4컷 피드로 돌아가기",
         quickConnectBody:
           "아직 열리지 않은 원본을 4컷 노출 리포트로 먼저 보여주려면 팬 리포터 계정 연결이 필요합니다. 연결 후 바로 소재 선택과 크롭 편집으로 이어집니다.",
         reportsCta: "리포트 관리로 돌아가기",
@@ -182,6 +183,7 @@ export async function renderFanletterNewsReportComposerRoute({
 
   const locale = lang as Locale;
   const copy = getCopy(locale);
+  const isQuickExperience = experience === "quick";
   const referralCode = readFanletterReferralCode(query.ref);
   const includeNsfw = readIncludeNsfwSearchParam(query.nsfw);
   const searchQuery = normalizeReportSearchQuery(query.q);
@@ -189,12 +191,12 @@ export async function renderFanletterNewsReportComposerRoute({
   const sourcePage = normalizeSourcePage(query.sourcePage);
   const hasSelectedContentId = Boolean(selectedContentId);
   const defaultReportStatusFilter: ReportStatusFilter = hasSelectedContentId
-    ? experience === "quick"
+    ? isQuickExperience
       ? "unreported"
       : "all"
     : "unreported";
   const defaultSourceRevealFilter: SourceRevealFilter = hasSelectedContentId
-    ? experience === "quick"
+    ? isQuickExperience
       ? "locked"
       : "all"
     : "opportunity";
@@ -212,7 +214,7 @@ export async function renderFanletterNewsReportComposerRoute({
     referralCode,
   );
   const fallbackReturnToHref =
-    experience === "quick"
+    isQuickExperience
       ? buildPathWithReferral(`/${locale}/fanletter/news/cuts`, referralCode)
       : reportsHref;
   const returnToHref = getSafeFanletterReturnTo({
@@ -221,8 +223,14 @@ export async function renderFanletterNewsReportComposerRoute({
     referralCode,
     returnTo: query.returnTo,
   });
+  const isCutFeedReturn = isFanletterNewsCutFeedReturnPath(
+    returnToHref,
+    locale,
+  );
+  const returnToLabel =
+    isQuickExperience || isCutFeedReturn ? copy.quickBackCta : copy.reportsCta;
   const reportNewBaseHref = buildPathWithReferral(
-    experience === "quick"
+    isQuickExperience
       ? `/${locale}/fanletter/news/reports/quick`
       : `/${locale}/fanletter/news/reports/new`,
     referralCode,
@@ -272,8 +280,6 @@ export async function renderFanletterNewsReportComposerRoute({
       };
 
   if (!session || !data.member) {
-    const isQuickExperience = experience === "quick";
-
     return (
       <main
         className={cn(
@@ -352,7 +358,7 @@ export async function renderFanletterNewsReportComposerRoute({
                   isQuickExperience ? "text-[#44f26e]" : "text-[#16702e]",
                 )}
               />
-              {isQuickExperience ? copy.quickBackCta : copy.reportsCta}
+              {returnToLabel}
             </Link>
           </div>
         </section>

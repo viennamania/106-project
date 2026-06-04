@@ -315,8 +315,32 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     pathname === walletPath ||
     pathname.startsWith(`${walletPath}/`);
   const myHref = buildHref(myPath);
+  const isPurchasesServicePath =
+    pathname === purchasesPath || pathname.startsWith(`${purchasesPath}/`);
+  const isReporterServicePath =
+    pathname === reportsPath || pathname.startsWith(`${reportsPath}/`);
   const isCharactersServicePath =
     pathname === charactersPath || pathname.startsWith(`${charactersPath}/`);
+  const isVlogsManageServicePath =
+    pathname === vlogsManagePath || pathname.startsWith(`${vlogsManagePath}/`);
+  const isVlogsCreateServicePath =
+    pathname === vlogsNewPath ||
+    pathname.startsWith(`${vlogsNewPath}/`) ||
+    pathname === vlogsStartPath ||
+    pathname.startsWith(`${vlogsStartPath}/`);
+  const isPublicVlogsServicePath =
+    (pathname === vlogsPath || pathname.startsWith(`${vlogsPath}/`)) &&
+    !isVlogsManageServicePath &&
+    !isVlogsCreateServicePath;
+  const isMyServicePath =
+    pathname === myPath ||
+    isWalletServicePath ||
+    pathname === mePath ||
+    pathname.startsWith(`${mePath}/`) ||
+    pathname === rewardsPath ||
+    pathname.startsWith(`${rewardsPath}/`) ||
+    pathname === reporterPath ||
+    pathname.startsWith(`${reporterPath}/`);
   const vloggerManageHref = getFanletterNewsVlogManageHref({
     locale,
     referralCode,
@@ -334,7 +358,36 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const reporterActionLabel = locale === "ko" ? "리포트 작성" : "Report";
   const vloggerActionLabel = locale === "ko" ? "새 브이로그" : "New Vlog";
   const actionItem =
-    rolePreference === "vlogger"
+    isReporterServicePath
+      ? {
+          activePath: reportsPath,
+          href: reporterActionHref,
+          icon: PenLine,
+          key: "action" as const,
+          label: reporterProfile.displayName ?? reporterActionLabel,
+          primary: true,
+          profileBadge: locale === "ko" ? "기자" : "REP",
+          profileFallback: getProfileInitial(reporterProfile),
+          profileImageUrl: reporterProfile.avatarImageUrl,
+          secondaryLabel: reporterProfile.displayName
+            ? reporterActionLabel
+            : undefined,
+          title: reporterProfile.displayName
+            ? locale === "ko"
+              ? `${reporterProfile.displayName} 리포트 작성`
+              : `Create report as ${reporterProfile.displayName}`
+            : undefined,
+        }
+      : isPublicVlogsServicePath
+        ? {
+            activePath: vlogsPath,
+            href: publicVlogsHref,
+            icon: Video,
+            key: "action" as const,
+            label: locale === "ko" ? "브이로그" : "Vlogs",
+            primary: true,
+          }
+        : rolePreference === "vlogger"
       ? {
           activePath: vlogsNewPath,
           activePaths: [vlogsNewPath, vlogsManagePath],
@@ -342,7 +395,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
           icon: Video,
           key: "action" as const,
           label: vloggerProfile?.displayName ?? vloggerActionLabel,
-          primary: !isCharactersServicePath,
+          primary: isVlogsManageServicePath || isVlogsCreateServicePath,
           profileBadge: vloggerProfile ? "AI" : undefined,
           profileFallback: vloggerProfile ? getProfileInitial(vloggerProfile) : null,
           profileImageUrl: vloggerProfile?.avatarImageUrl ?? null,
@@ -363,7 +416,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
             icon: PenLine,
             key: "action" as const,
             label: reporterProfile.displayName ?? reporterActionLabel,
-            primary: !isCharactersServicePath,
+            primary: isReporterServicePath,
             profileBadge: locale === "ko" ? "기자" : "REP",
             profileFallback: getProfileInitial(reporterProfile),
             profileImageUrl: reporterProfile.avatarImageUrl,
@@ -382,7 +435,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
             icon: Video,
             key: "action" as const,
             label: locale === "ko" ? "브이로그" : "Vlogs",
-            primary: !isCharactersServicePath,
+            primary: isPublicVlogsServicePath,
           };
   const items: FanletterNewsMobileNavItem[] = [
     {
@@ -407,6 +460,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
       icon: BookOpenCheck,
       key: "purchases",
       label: locale === "ko" ? "구매함" : "Purchases",
+      primary: isPurchasesServicePath,
     },
     {
       activePath: myPath,
@@ -423,6 +477,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
       icon: CircleUserRound,
       key: "my",
       label: locale === "ko" ? "마이" : "My",
+      primary: isMyServicePath,
     },
   ];
 

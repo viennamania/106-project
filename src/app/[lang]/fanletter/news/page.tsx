@@ -5,6 +5,7 @@ import { notFound, redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import {
   AlertTriangle,
+  ArrowLeft,
   ArrowRight,
   Clapperboard,
   Clock3,
@@ -46,13 +47,21 @@ import {
   getFanletterNewsVlogStartHref,
   getFanletterNewsVlogsHref,
 } from "@/lib/fanletter-news-vlog-routing";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import {
+  isFanletterNewsCutFeedReturnPath,
+  normalizeFanletterReturnToPath,
+  readFanletterReferralCode,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
-import { buildPathWithReferral } from "@/lib/landing-branding";
+import {
+  buildPathWithReferral,
+  setPathSearchParams,
+} from "@/lib/landing-branding";
 
 type FanletterNewsHomeSearchParams = {
   ref?: string | string[];
   reporter?: string | string[];
+  returnTo?: string | string[];
 };
 
 type ReporterStat = {
@@ -213,6 +222,8 @@ function getCopy(locale: Locale) {
             `블러 처리된 NSFW 뉴스 ${count}개`,
         },
         read: "뉴스 보기",
+        returnToFeed: "4컷 피드로 돌아가기",
+        returnToPrevious: "이전 화면으로 돌아가기",
         reporterFilter: {
           allNews: "전체 뉴스 보기",
           body: (count: string) =>
@@ -373,6 +384,8 @@ function getCopy(locale: Locale) {
           hiddenCountText: (count: string) => `${count} NSFW news items blurred`,
         },
         read: "Read news",
+        returnToFeed: "Back to 4-cut feed",
+        returnToPrevious: "Back",
         reporterFilter: {
           allNews: "All news",
           body: (count: string) =>
@@ -2833,11 +2846,18 @@ export default async function LocalizedFanletterNewsHomePage({
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
   const activeReporterReferralCode = readFanletterReferralCode(query.reporter);
+  const returnToHref = normalizeFanletterReturnToPath(query.returnTo, locale);
+  const returnToLabel = isFanletterNewsCutFeedReturnPath(returnToHref, locale)
+    ? copy.returnToFeed
+    : copy.returnToPrevious;
   const nsfwOptInEnabled = false;
   const newsHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/news`,
     referralCode,
   );
+  const returnableNewsHomeHref = returnToHref
+    ? setPathSearchParams(newsHomeHref, { returnTo: returnToHref })
+    : newsHomeHref;
 
   if (activeReporterReferralCode) {
     redirect(getReporterNewsHref(locale, activeReporterReferralCode, referralCode));
@@ -2845,7 +2865,7 @@ export default async function LocalizedFanletterNewsHomePage({
 
   const currentNewsHref = activeReporterReferralCode
     ? getReporterNewsHref(locale, activeReporterReferralCode, referralCode)
-    : newsHomeHref;
+    : returnableNewsHomeHref;
   const [
     allReports,
     latestNewsReports,
@@ -3014,6 +3034,19 @@ export default async function LocalizedFanletterNewsHomePage({
         reportsHref={reportsHref}
         vlogsHref={vlogsHref}
       />
+      {returnToHref ? (
+        <section className="border-b border-black/10 bg-[#fbfcf8]">
+          <div className="mx-auto max-w-[92rem] px-4 py-2.5 sm:px-6 lg:px-8">
+            <Link
+              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-3 text-xs font-black !text-[#111510] shadow-sm transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#16702e]"
+              href={returnToHref}
+            >
+              <ArrowLeft className="size-4 text-[#16702e]" />
+              {returnToLabel}
+            </Link>
+          </div>
+        </section>
+      ) : null}
       <NewsTicker
         copy={copy}
         referralCode={referralCode}

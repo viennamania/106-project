@@ -3723,6 +3723,9 @@ export function FanletterNewsPublicCutsFeedPage({
     `/${locale}/fanletter/news`,
     referralCode,
   );
+  const returnableNewsroomHref = setPathSearchParams(newsroomHref, {
+    returnTo: cutFeedHomeHref,
+  });
   const charactersHref = buildPathWithReferral(
     `/${locale}/fanletter/news/characters`,
     referralCode,
@@ -3734,6 +3737,9 @@ export function FanletterNewsPublicCutsFeedPage({
     `/${locale}/fanletter/news/reporters`,
     referralCode,
   );
+  const returnableReportersHref = setPathSearchParams(reportersHref, {
+    returnTo: cutFeedHomeHref,
+  });
   const vlogsHref = buildPathWithReferral(
     `/${locale}/fanletter/news/vlogs`,
     referralCode,
@@ -3745,10 +3751,16 @@ export function FanletterNewsPublicCutsFeedPage({
     `/${locale}/fanletter/news/purchases`,
     referralCode,
   );
+  const returnablePurchasesHref = setPathSearchParams(purchasesHref, {
+    returnTo: cutFeedHomeHref,
+  });
   const myHref = buildPathWithReferral(
     `/${locale}/fanletter/news/my`,
     referralCode,
   );
+  const returnableMyHref = setPathSearchParams(myHref, {
+    returnTo: cutFeedHomeHref,
+  });
   const reportsNewHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/reports/new`, referralCode),
     {
@@ -3775,7 +3787,7 @@ export function FanletterNewsPublicCutsFeedPage({
           primary: true,
         },
         {
-          href: newsroomHref,
+          href: returnableNewsroomHref,
           icon: Newspaper,
           label: copy.serviceNewsroom,
           secondaryLabel: copy.serviceNewsroomHint,
@@ -3787,7 +3799,7 @@ export function FanletterNewsPublicCutsFeedPage({
           secondaryLabel: copy.serviceCharactersHint,
         },
         {
-          href: reportersHref,
+          href: returnableReportersHref,
           icon: PenLine,
           label: copy.serviceReporters,
           secondaryLabel: copy.serviceReportersHint,
@@ -3804,13 +3816,13 @@ export function FanletterNewsPublicCutsFeedPage({
     {
       items: [
         {
-          href: purchasesHref,
+          href: returnablePurchasesHref,
           icon: BookOpenCheck,
           label: copy.servicePurchases,
           secondaryLabel: copy.servicePurchasesHint,
         },
         {
-          href: myHref,
+          href: returnableMyHref,
           icon: UserRound,
           label: copy.serviceMy,
           secondaryLabel: copy.serviceMyHint,

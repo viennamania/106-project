@@ -29,6 +29,16 @@ export function normalizeFanletterReturnToPath(
   return candidate;
 }
 
+export function isFanletterNewsCutFeedReturnPath(
+  value: string | null | undefined,
+  locale: Locale,
+) {
+  const pathname = value?.split(/[?#]/)[0]?.replace(/\/+$/, "");
+  const cutsPath = `/${locale}/fanletter/news/cuts`;
+
+  return pathname === cutsPath || pathname?.startsWith(`${cutsPath}/`) === true;
+}
+
 export function getSafeFanletterReturnTo({
   fallbackPath,
   locale,

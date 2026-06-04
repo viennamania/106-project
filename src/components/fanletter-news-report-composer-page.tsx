@@ -48,6 +48,7 @@ import {
   type ContentPriceType,
 } from "@/lib/content";
 import type { FanletterNewsSourceRevealState } from "@/lib/fanletter-news-source-reveal";
+import { isFanletterNewsCutFeedReturnPath } from "@/lib/fanletter-routing";
 import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -350,7 +351,7 @@ function getCopy(locale: Locale) {
         },
         mobileFilters: "필터/정렬",
         quick: {
-          back: "컷 피드로 돌아가기",
+          back: "4컷 피드로 돌아가기",
           body:
             "피드에서 고른 아직 안 열린 원본을 바로 기사화합니다. 후보 확인, 4컷 선택, 크롭, 코멘트만 순서대로 처리하세요.",
           candidateHint: "프레임, 슬롯, 업로드 정보로 원본을 구분하세요.",
@@ -705,7 +706,7 @@ function getCopy(locale: Locale) {
         },
         mobileFilters: "Filters/sort",
         quick: {
-          back: "Back to cut feed",
+          back: "Back to 4-cut feed",
           body:
             "Turn the unopened source selected from the feed into a report. Confirm the source, choose four cuts, crop, and add the reporter note.",
           candidateHint: "Use frame, slot, and upload details to tell sources apart.",
@@ -2734,7 +2735,13 @@ export function FanletterNewsReportComposerPage({
     `/${locale}/fanletter/news/reporters/${reporter.referralCode}`,
     { ref: reporterReferralCode },
   );
-  const backHref = isQuickComposer ? returnToHref ?? reportsHref : reportsHref;
+  const isCutFeedReturn = isFanletterNewsCutFeedReturnPath(
+    returnToHref,
+    locale,
+  );
+  const backHref = returnToHref ?? reportsHref;
+  const backLabel =
+    isQuickComposer || isCutFeedReturn ? copy.quick.back : copy.toReports;
   const routeSelectionKey = [
     initialSelectedContentId,
     reportStatusFilter,
@@ -4671,10 +4678,10 @@ export function FanletterNewsReportComposerPage({
             </div>
             <Link
               className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white"
-              href={reportsHref}
+              href={backHref}
             >
               <ArrowLeft className="size-4 text-[#44f26e]" />
-              {copy.toReports}
+              {backLabel}
             </Link>
           </section>
           <ReporterInfoPanel
@@ -4708,7 +4715,7 @@ export function FanletterNewsReportComposerPage({
           href={backHref}
         >
           <ArrowLeft className="size-4 text-[#16702e]" />
-          {isQuickComposer ? copy.quick.back : copy.toReports}
+          {backLabel}
         </Link>
 
         {isQuickComposer ? (
