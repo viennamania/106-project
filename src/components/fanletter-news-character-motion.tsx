@@ -42,12 +42,12 @@ export function FanletterNewsCountUp({
   locale,
   value,
 }: FanletterNewsCountUpProps) {
-  const [displayValue, setDisplayValue] = useState(0);
+  const targetValue = Math.max(0, value);
+  const [displayValue, setDisplayValue] = useState(targetValue);
   const frameRef = useRef<number | null>(null);
   const hasStartedRef = useRef(false);
   const spanRef = useRef<HTMLSpanElement>(null);
   const formatter = useMemo(() => new Intl.NumberFormat(locale), [locale]);
-  const targetValue = Math.max(0, value);
 
   useEffect(() => {
     hasStartedRef.current = false;
@@ -78,12 +78,16 @@ export function FanletterNewsCountUp({
       }
 
       const startedAt = window.performance.now();
-      setDisplayValue(0);
+      const startValue =
+        targetValue > 100 ? Math.round(targetValue * 0.82) : 0;
+      setDisplayValue(startValue);
 
       const tick = (now: number) => {
         const progress = Math.min((now - startedAt) / durationMs, 1);
         const eased = easeOutCubic(progress);
-        setDisplayValue(Math.round(targetValue * eased));
+        setDisplayValue(
+          Math.round(startValue + (targetValue - startValue) * eased),
+        );
 
         if (progress < 1) {
           frameRef.current = window.requestAnimationFrame(tick);
@@ -309,6 +313,7 @@ export function FanletterNewsCharacterProfileMarquee({
       `}</style>
       <div className="fanletter-news-character-marquee-track flex w-max gap-2 px-2 py-2">
         {loopItems.map((item, index) => {
+          const isDuplicate = index >= visibleItems.length;
           const initial = item.name.trim().charAt(0).toUpperCase() || "A";
           const imageUrls =
             item.imageUrls && item.imageUrls.length > 0
@@ -325,9 +330,18 @@ export function FanletterNewsCharacterProfileMarquee({
 
           return (
             <Link
+              aria-hidden={isDuplicate ? "true" : undefined}
+              aria-label={
+                isDuplicate
+                  ? undefined
+                  : `${item.rankLabel} ${item.name}, ${scoreLabel} ${formatter.format(
+                      item.score,
+                    )}, ${item.signalLabel}`
+              }
               className="group flex w-[13.5rem] shrink-0 items-center gap-3 border border-white/12 bg-[#07100b] p-2 !text-white transition hover:border-[#44f26e]/70 hover:bg-[#0d1c11]"
               href={item.href}
               key={`${item.href}-${index}`}
+              tabIndex={isDuplicate ? -1 : undefined}
             >
               <div className="relative size-14 shrink-0 overflow-hidden rounded-full border border-white/18 bg-[#111510]">
                 {imageUrls.length > 0 ? (

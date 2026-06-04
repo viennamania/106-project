@@ -62,8 +62,9 @@ function getCopy(locale: Locale) {
         },
         allNews: "뉴스 홈",
         characterCta: "IP 채널 보기",
+        characterIndex: "캐릭터 랭킹",
         dek:
-          "뉴스, 원본 공개 브이로그, 원본 오픈 반응으로 검증되는 AI 캐릭터 IP를 한눈에 비교합니다. 마음에 드는 캐릭터를 발견하고 채널, 원본 영상, 최신 리포트로 바로 이어가세요.",
+          "뉴스 반응, 원본 브이로그, 원본 오픈 신호를 기준으로 지금 주목할 AI 캐릭터를 비교합니다. 마음에 드는 캐릭터를 발견하고 채널, 원본 영상, 최신 리포트로 바로 이어가세요.",
         emptyBody:
           "콘텐츠 상세 페이지에서 AI 리포트를 생성하면 뉴스에 등장한 캐릭터 목록이 이곳에 모입니다.",
         emptyTitle: "아직 뉴스에 등장한 AI 캐릭터가 없습니다.",
@@ -75,7 +76,7 @@ function getCopy(locale: Locale) {
         heroLineupDek:
           "상위 캐릭터의 얼굴, IP 지수, 현재 신호를 같은 화면에서 바로 비교합니다.",
         heroLineupTitle: "오늘의 경쟁 라인업",
-        heroEyebrow: "AI Character IP Arena",
+        heroEyebrow: "AI 캐릭터 랭킹",
         heroQuickLinks: {
           channel: "1위 채널",
           news: "대표 뉴스",
@@ -130,7 +131,7 @@ function getCopy(locale: Locale) {
           news: "전체 뉴스",
           nsfw: "NSFW",
         },
-        title: "AI 캐릭터 IP 쇼케이스",
+        title: "AI 캐릭터 랭킹",
         topDesk: "IP 스포트라이트",
         videos: "원본 브이로그",
       }
@@ -142,6 +143,7 @@ function getCopy(locale: Locale) {
         },
         allNews: "News Home",
         characterCta: "View IP channel",
+        characterIndex: "Character ranking",
         dek:
           "Compare AI character IP proven by news coverage, source public vlogs, and source-open reactions. Find the character that stands out, then continue into the channel, source videos, and latest reports.",
         emptyBody:
@@ -215,7 +217,7 @@ function getCopy(locale: Locale) {
           news: "News",
           nsfw: "NSFW",
         },
-        title: "AI Character IP Showcase",
+        title: "AI Character Ranking",
         topDesk: "IP Spotlight",
         videos: "Source vlogs",
       };
@@ -711,6 +713,10 @@ function CharacterHeroArenaPanel({
 
             return (
               <Link
+                aria-label={`${copy.rankLabel(index + 1)} ${character.name}, ${copy.ipScore} ${formatNumber(
+                  getCharacterIpScore(character),
+                  locale,
+                )}`}
                 className="group relative block min-w-0 overflow-hidden border border-white/12 bg-[#07100b] transition hover:-translate-y-0.5 hover:border-[#44f26e]/70"
                 href={channelHref}
                 key={character.referralCode}
@@ -842,7 +848,11 @@ function CharacterLead({
 
   return (
     <section className="grid overflow-hidden border-y-2 border-[#111510] bg-[#111510] text-white lg:grid-cols-[minmax(0,1.05fr)_minmax(20rem,0.95fr)]">
-      <Link className="group relative block min-h-[30rem]" href={channelHref}>
+      <Link
+        aria-label={`${copy.rankLabel(1)} ${character.name} ${copy.characterCta}`}
+        className="group relative block min-h-[30rem]"
+        href={channelHref}
+      >
         <NewsCharacterImage
           blurred={shouldBlur}
           eager
@@ -936,7 +946,11 @@ function CharacterLead({
               ))}
             </div>
           </div>
-          <Link className="mt-5 block" href={reportHref}>
+          <Link
+            aria-label={`${copy.reportLabel}: ${getArticleDisplayTitle(report.title)}`}
+            className="mt-5 block"
+            href={reportHref}
+          >
             <p className="text-[0.62rem] font-black uppercase tracking-[0.16em] text-white/42">
               {copy.reportLabel}
             </p>
@@ -1024,7 +1038,11 @@ function CharacterCard({
 
   return (
     <article className="group grid min-w-0 overflow-hidden rounded-lg border border-black/12 bg-white shadow-[0_16px_42px_rgba(17,21,16,0.08)] transition hover:-translate-y-0.5 hover:border-[#19b84b]/60 hover:shadow-[0_22px_58px_rgba(17,21,16,0.13)] sm:grid-rows-[auto_minmax(0,1fr)]">
-      <Link className="relative block" href={channelHref}>
+      <Link
+        aria-label={`${copy.rankLabel(rank)} ${character.name} ${copy.characterCta}`}
+        className="relative block"
+        href={channelHref}
+      >
         <NewsCharacterImage
           blurred={shouldBlur}
           report={report}
@@ -1071,6 +1089,7 @@ function CharacterCard({
           </span>
         </div>
         <Link
+          aria-label={`${copy.latest}: ${getArticleDisplayTitle(report.title)}`}
           className={`mt-3 line-clamp-2 break-words text-lg font-black leading-6 [word-break:keep-all] hover:text-[#16702e] ${
             shouldBlur ? "select-none blur-[2px]" : ""
           }`}
@@ -1407,7 +1426,7 @@ export default async function LocalizedFanletterNewsCharactersPage({
                 <div className="mb-4 flex items-end justify-between gap-3 border-b-2 border-[#111510] pb-3">
                   <div>
                     <p className="text-[0.66rem] font-black uppercase tracking-[0.18em] text-[#16702e]">
-                      Character Index
+                      {copy.characterIndex}
                     </p>
                     <h2 className="mt-1 text-xl font-black tracking-normal">
                       {copy.title}
