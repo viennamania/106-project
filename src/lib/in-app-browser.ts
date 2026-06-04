@@ -17,8 +17,15 @@ export function isKakaoInAppBrowser(userAgent: string) {
 }
 
 export function isRestrictedInAppBrowser(userAgent: string) {
-  return /(KAKAOTALK|Instagram|FBAN|FBAV|Line\/|NAVER|DaumApps|KAKAOStory)/i.test(
-    userAgent,
+  return (
+    /(KAKAOTALK|Instagram|FBAN|FBAV|Line\/|NAVER|DaumApps|KAKAOStory|TikTok|Bytedance|Snapchat|Pinterest)/i.test(
+      userAgent,
+    ) ||
+    /;\s*wv\)/i.test(userAgent) ||
+    (/Android/i.test(userAgent) &&
+      /Version\/[\d.]+/i.test(userAgent) &&
+      /Chrome\/[\d.]+/i.test(userAgent) &&
+      /Mobile Safari/i.test(userAgent))
   );
 }
 

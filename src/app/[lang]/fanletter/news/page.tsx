@@ -42,7 +42,7 @@ import {
 } from "@/lib/fanletter-news-related";
 import {
   getFanletterNewsVlogManageHref,
-  getFanletterNewsVlogNewHref,
+  getFanletterNewsVlogStartHref,
   getFanletterNewsVlogsHref,
 } from "@/lib/fanletter-news-vlog-routing";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
@@ -2506,7 +2506,7 @@ export default async function LocalizedFanletterNewsHomePage({
     locale,
     referralCode,
   });
-  const vlogNewHref = getFanletterNewsVlogNewHref({
+  const vlogNewHref = getFanletterNewsVlogStartHref({
     locale,
     referralCode,
     returnToHref: vlogManageHref,

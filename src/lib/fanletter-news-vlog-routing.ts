@@ -52,6 +52,23 @@ export function getFanletterNewsVlogManageHref({
   );
 }
 
+export function getFanletterNewsVlogStartHref({
+  locale,
+  referralCode,
+  returnToHref,
+}: {
+  locale: Locale;
+  referralCode: string | null;
+  returnToHref?: string | null;
+}) {
+  return setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/vlogs/start`, referralCode),
+    {
+      returnTo: returnToHref,
+    },
+  );
+}
+
 export function getFanletterNewsVlogNewHref({
   locale,
   referralCode,

@@ -70,6 +70,7 @@ import {
 import {
   getFanletterNewsBareArticleDisplayTitle,
 } from "@/lib/fanletter-news-related";
+import { getFanletterNewsVlogStartHref } from "@/lib/fanletter-news-vlog-routing";
 import type { FanletterNewsSourceRevealState } from "@/lib/fanletter-news-source-reveal";
 import {
   FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
@@ -3480,12 +3481,11 @@ export function FanletterNewsPublicCutsFeedPage({
     `/${locale}/fanletter/news/vlogs/manage`,
     referralCode,
   );
-  const vlogsNewHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/news/vlogs/new`, referralCode),
-    {
-      returnTo: vlogsManageHref,
-    },
-  );
+  const vlogsNewHref = getFanletterNewsVlogStartHref({
+    locale,
+    referralCode,
+    returnToHref: cutFeedHomeHref,
+  });
   const serviceMenuItems: CutFeedServiceMenuItem[] = [
     {
       href: cutFeedHomeHref,

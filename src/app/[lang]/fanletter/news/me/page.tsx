@@ -25,7 +25,7 @@ import { getFanletterNewsMemberRewardsSummary } from "@/lib/fanletter-news-membe
 import { getFanletterNewsReportsForMember } from "@/lib/fanletter-news-report-service";
 import {
   getFanletterNewsVlogManageHref,
-  getFanletterNewsVlogNewHref,
+  getFanletterNewsVlogStartHref,
 } from "@/lib/fanletter-news-vlog-routing";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
@@ -258,7 +258,7 @@ export default async function LocalizedFanletterNewsMePage({
     locale,
     referralCode: effectiveReferralCode,
   });
-  const vlogsNewHref = getFanletterNewsVlogNewHref({
+  const vlogsNewHref = getFanletterNewsVlogStartHref({
     locale,
     referralCode: effectiveReferralCode,
     returnToHref: vlogsManageHref,

@@ -380,17 +380,21 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
   }, []);
 
   useEffect(() => {
-    if (
-      !eligibleSurface ||
-      !environment.ready ||
-      environment.restrictedInApp ||
-      environment.standalone ||
-      environment.platform !== "android"
-    ) {
+    if (!eligibleSurface) {
       return;
     }
 
     const handleBeforeInstallPrompt = (event: Event) => {
+      const platform = getInstallPlatform(window.navigator.userAgent ?? "");
+
+      if (platform !== "android") {
+        return;
+      }
+
+      if (isStandaloneDisplayMode()) {
+        return;
+      }
+
       event.preventDefault();
       setInstallPrompt(event as BeforeInstallPromptEvent);
     };
@@ -400,7 +404,7 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
-  }, [eligibleSurface, environment]);
+  }, [eligibleSurface]);
 
   const isEligible =
     eligibleSurface &&
