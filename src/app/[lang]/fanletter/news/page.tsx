@@ -717,6 +717,7 @@ function NewsImage({
   className,
   imageClassName = "object-cover",
   nsfwLabel,
+  optimizeImage = false,
   priority = false,
   report,
   sizes,
@@ -725,6 +726,7 @@ function NewsImage({
   className?: string;
   imageClassName?: string;
   nsfwLabel?: string;
+  optimizeImage?: boolean;
   priority?: boolean;
   report: FanletterNewsReportDocument;
   sizes: string;
@@ -745,9 +747,10 @@ function NewsImage({
           priority={priority}
           sizes={sizes}
           src={report.coverImageUrl}
-          unoptimized={shouldBypassFanletterImageOptimization(
-            report.coverImageUrl,
-          )}
+          unoptimized={
+            !optimizeImage &&
+            shouldBypassFanletterImageOptimization(report.coverImageUrl)
+          }
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_52%,#24372a)] text-[#44f26e]">
@@ -820,7 +823,7 @@ function NewsMasthead({
       <div className="mx-auto max-w-[92rem] px-4 pt-2.5 sm:px-6 sm:pt-5 lg:px-8">
         <div className="flex items-end justify-between gap-4 border-b-[3px] border-[#111510] pb-2 sm:pb-3.5">
           <Link
-            className="inline-flex min-h-10 min-w-0 items-center gap-2.5 text-[1.74rem] font-black leading-none tracking-normal !text-[#111510] sm:gap-4 sm:text-[3.85rem] lg:text-[4.55rem]"
+            className="inline-flex min-h-11 min-w-0 items-center gap-2.5 text-[1.74rem] font-black leading-none tracking-normal !text-[#111510] sm:min-h-10 sm:gap-4 sm:text-[3.85rem] lg:text-[4.55rem]"
             href={platformHref}
           >
             <FanletterBrandMark className="size-8 sm:size-[3.45rem] lg:size-[3.95rem]" />
@@ -836,7 +839,7 @@ function NewsMasthead({
         >
           {copy.navItems.map((item, index) => (
             <Link
-              className="inline-flex min-h-10 min-w-10 shrink-0 items-center justify-center rounded-full border border-black/10 bg-white/70 px-3 text-[0.68rem] font-black uppercase tracking-[0.08em] !text-black/60 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#16702e] sm:min-h-0 sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:pb-1 sm:text-[0.74rem] sm:tracking-[0.14em] sm:!text-black/52 sm:hover:bg-transparent"
+              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-black/10 bg-white/70 px-3 text-[0.68rem] font-black uppercase tracking-[0.08em] !text-black/60 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#16702e] sm:min-h-0 sm:min-w-0 sm:rounded-none sm:border-0 sm:bg-transparent sm:px-0 sm:pb-1 sm:text-[0.74rem] sm:tracking-[0.14em] sm:!text-black/52 sm:hover:bg-transparent"
               href={navHrefs[index] ?? navigationBaseHref}
               key={item}
             >
@@ -871,7 +874,7 @@ function NewsTicker({
         <div className="flex min-w-0 gap-0 overflow-x-auto text-xs font-bold text-black/64 [scrollbar-width:none] sm:text-sm [&::-webkit-scrollbar]:hidden">
           {reports.map((report) => (
             <Link
-              className="inline-flex h-8 max-w-[17rem] shrink-0 items-center truncate border-l border-black/12 px-3 transition first:border-l-0 first:pl-0 hover:text-[#16702e] sm:h-9 sm:max-w-[22rem]"
+              className="inline-flex h-11 max-w-[17rem] shrink-0 items-center truncate border-l border-black/12 px-3 transition first:border-l-0 first:pl-0 hover:text-[#16702e] sm:h-9 sm:max-w-[22rem]"
               href={getReportHref(report, referralCode)}
               key={report.reportId}
             >
@@ -1200,8 +1203,9 @@ function DailyUpdatePortal({
                   >
                     <NewsImage
                       className="aspect-[16/10] border border-black/10"
+                      optimizeImage
                       report={report}
-                      sizes="4.75rem"
+                      sizes="76px"
                     />
                     <span className="min-w-0 self-center">
                       <span className="block line-clamp-2 break-words text-xs font-black leading-4 [word-break:keep-all] group-hover:text-[#16702e]">
@@ -1248,11 +1252,9 @@ function DailyUpdatePortal({
                             aria-hidden="true"
                             className="object-cover"
                             fill
-                            sizes="2.5rem"
+                            sizes="40px"
                             src={character.avatarImageUrl}
-                            unoptimized={shouldBypassFanletterImageOptimization(
-                              character.avatarImageUrl,
-                            )}
+                            unoptimized
                           />
                         ) : (
                           <span className="flex h-full w-full items-center justify-center text-white/64">
@@ -1275,7 +1277,7 @@ function DailyUpdatePortal({
               </div>
               {topReporter ? (
                 <Link
-                  className="mt-3 flex items-center justify-between gap-3 border-t border-black/12 pt-3 text-xs font-bold text-black/50 transition hover:text-[#16702e]"
+                  className="mt-3 flex min-h-11 items-center justify-between gap-3 border-t border-black/12 pt-3 text-xs font-bold text-black/50 transition hover:text-[#16702e]"
                   href={getReporterNewsHref(
                     locale,
                     topReporter.referralCode,
@@ -1451,7 +1453,7 @@ function HeroSideStory({
         className="h-full min-h-[8.5rem] sm:aspect-[16/10] sm:h-auto sm:min-h-[15.5rem] lg:aspect-auto lg:h-[16.5rem]"
         nsfwLabel={nsfwCopy.badge}
         report={report}
-        sizes="(max-width: 640px) 7rem, (max-width: 1024px) 50vw, 20rem"
+        sizes="(max-width: 640px) 112px, (max-width: 1024px) 50vw, 320px"
       />
       <div className="hidden sm:absolute sm:inset-0 sm:block sm:bg-gradient-to-t sm:from-black/86 sm:via-black/26 sm:to-transparent" />
       <div className="min-w-0 p-3 sm:absolute sm:inset-x-0 sm:bottom-0 sm:p-4">
@@ -1808,7 +1810,7 @@ function CompactStory({
         className="aspect-[16/10] border border-black/10"
         nsfwLabel={nsfwCopy.badge}
         report={report}
-        sizes="(max-width: 640px) 7.25rem, 8.25rem"
+        sizes="(max-width: 640px) 116px, 132px"
       />
       <div className="min-w-0">
         <div className="flex flex-wrap gap-2 text-[0.68rem] font-black text-[#16702e]">
@@ -2105,7 +2107,7 @@ function WireBriefStory({
         className="aspect-video self-start border border-white/12"
         nsfwLabel={nsfwCopy.badge}
         report={report}
-        sizes="(max-width: 640px) 7.75rem, 9.25rem"
+        sizes="(max-width: 640px) 124px, 148px"
       />
       <div className="min-w-0">
         <div className="flex flex-wrap gap-2 text-[0.62rem] font-black uppercase tracking-[0.1em]">
@@ -2866,7 +2868,7 @@ export default async function LocalizedFanletterNewsHomePage({
   );
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]">
+    <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-[#111510] md:pb-0">
       <NewsMasthead
         charactersHref={charactersHref}
         copy={copy}
