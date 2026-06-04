@@ -287,12 +287,15 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const walletPath = `${basePath}/wallet`;
   const vlogsManagePath = `${basePath}/vlogs/manage`;
   const vlogsNewPath = `${basePath}/vlogs/new`;
+  const vlogsStartPath = `${basePath}/vlogs/start`;
   const shouldHideNav =
     pathname === platformPath ||
     pathname === cutsPath ||
     pathname.startsWith(`${cutsPath}/`) ||
     pathname === mePath ||
     pathname === quickReportPath ||
+    pathname === vlogsNewPath ||
+    pathname === vlogsStartPath ||
     isNewsReportDetailPath(pathname, basePath);
 
   if (shouldHideNav) {
