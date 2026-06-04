@@ -188,6 +188,56 @@ function getCopy(locale: Locale) {
             },
           ],
         },
+        investorBrief: {
+          body:
+            "IR 자리에서는 긴 기능 설명보다 문제, 해법, 수익화, 방어력을 한 화면에서 보여주는 것이 중요합니다. FanLetter News는 라이브 콘텐츠 자체를 그 증거로 씁니다.",
+          ctaCharacters: "캐릭터 자산 보기",
+          ctaNews: "라이브 뉴스 보기",
+          ctaReports: "리포터 데스크",
+          eyebrow: "IR Snapshot",
+          evidenceTitle: "지금 보여줄 수 있는 운영 증거",
+          latestReport: "최신 리포트",
+          noReport: "공개 리포트 준비 중",
+          script: [
+            "시장은 제품력만으로는 부족하고 노출력이 성과를 가르는 구조로 바뀌고 있습니다.",
+            "FanLetter News는 AI 캐릭터의 원본 숏폼을 팬 리포터 뉴스로 재포장해 발견과 반응을 만듭니다.",
+            "그 반응은 원본 오픈, 구매, 보상 기록으로 이어져 플랫폼의 기여 데이터가 됩니다.",
+          ],
+          scriptLabel: "90초 IR 스크립트",
+          stats: {
+            characters: "캐릭터 채널",
+            reports: "라이브 리포트",
+            reportDesk: "리포터 동선",
+            sourcePreviews: "원본 프리뷰",
+          },
+          title: "투자자에게 보여줄 한 장짜리 사업 구조",
+          cards: [
+            {
+              eyebrow: "Problem",
+              title: "콘텐츠는 넘치지만 먼저 발견되기 어렵습니다",
+              body:
+                "AI 캐릭터와 숏폼 원본이 많아질수록, 소비 전에 반응을 만드는 노출 계층이 필요합니다.",
+            },
+            {
+              eyebrow: "Product",
+              title: "팬 리포터가 원본을 뉴스로 바꿉니다",
+              body:
+                "원본 장면을 4컷 리포트와 프리뷰로 재포장해 캐릭터 기억과 원본 소비를 동시에 만듭니다.",
+            },
+            {
+              eyebrow: "Revenue",
+              title: "원본 오픈과 구매 기여가 기록됩니다",
+              body:
+                "뉴스에서 생긴 반응은 원본 보기, 팬 요청, 구매 흐름으로 이어지고 보상 기준이 됩니다.",
+            },
+            {
+              eyebrow: "Moat",
+              title: "콘텐츠 DB와 기여 원장이 같이 쌓입니다",
+              body:
+                "캐릭터, 리포트, 프리뷰, 정산 이벤트가 연결될수록 플랫폼 데이터가 방어력이 됩니다.",
+            },
+          ],
+        },
         newsroomPreview: {
           label: "EXPOSURE ENTRY",
           title: "4컷 리포트 한 편이 원본 소비의 입구가 됩니다",
@@ -401,6 +451,56 @@ function getCopy(locale: Locale) {
                 "Source opens, purchases, and rewards connect the signal beyond raw view counts.",
               kicker: "03 Conversion",
               title: "Signals that continue into settlement",
+            },
+          ],
+        },
+        investorBrief: {
+          body:
+            "For IR, the page needs to explain the problem, product, monetization path, and moat in one screen. FanLetter News uses live content itself as that proof.",
+          ctaCharacters: "View character assets",
+          ctaNews: "View live news",
+          ctaReports: "Reporter desk",
+          eyebrow: "IR Snapshot",
+          evidenceTitle: "Operating proof available now",
+          latestReport: "Latest report",
+          noReport: "Public reports are being prepared",
+          script: [
+            "The market is moving from product quality alone to exposure power as a performance driver.",
+            "FanLetter News repackages AI character source shorts into fan-reporter news to create discovery and reaction.",
+            "Those reactions continue into source opens, purchases, reward records, and contribution data.",
+          ],
+          scriptLabel: "90-second IR script",
+          stats: {
+            characters: "Character channels",
+            reports: "Live reports",
+            reportDesk: "Reporter path",
+            sourcePreviews: "Source previews",
+          },
+          title: "A one-screen business structure for investors",
+          cards: [
+            {
+              eyebrow: "Problem",
+              title: "Content is abundant, but discovery is scarce",
+              body:
+                "As AI characters and shortform sources multiply, platforms need an exposure layer before consumption.",
+            },
+            {
+              eyebrow: "Product",
+              title: "Fan reporters turn sources into news",
+              body:
+                "Source scenes become four-cut reports and previews that build character memory and source consumption.",
+            },
+            {
+              eyebrow: "Revenue",
+              title: "Source opens and purchase assists are recorded",
+              body:
+                "Reactions from news continue into source views, paid requests, purchases, and reward criteria.",
+            },
+            {
+              eyebrow: "Moat",
+              title: "Content DB and contribution ledger compound together",
+              body:
+                "Characters, reports, previews, and settlement events become more defensible as they connect.",
             },
           ],
         },
@@ -1128,6 +1228,232 @@ function PlatformMarketSignal({
               <ArrowRight className="size-5 shrink-0 text-[#44f26e] transition group-hover:translate-x-0.5" />
             </Link>
           ) : null}
+        </LandingReveal>
+      </div>
+    </section>
+  );
+}
+
+function PlatformInvestorBrief({
+  characters,
+  charactersHref,
+  copy,
+  locale,
+  newsHref,
+  reports,
+  reportsHref,
+  teaserItems,
+}: {
+  characters: FanletterNewsCharacterStat[];
+  charactersHref: string;
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  newsHref: string;
+  reports: FanletterNewsReportDocument[];
+  reportsHref: string;
+  teaserItems: FanletterNewsTeaserGalleryItem[];
+}) {
+  const latestReport = reports[0] ?? null;
+  const leadingCharacter = characters[0] ?? null;
+  const leadingCharacterImageUrl = leadingCharacter
+    ? getCharacterProfileImages(leadingCharacter)[0] ?? null
+    : null;
+  const statTiles = [
+    {
+      label: copy.investorBrief.stats.reports,
+      value: reports.length,
+    },
+    {
+      label: copy.investorBrief.stats.sourcePreviews,
+      value: teaserItems.length,
+    },
+    {
+      label: copy.investorBrief.stats.characters,
+      value: characters.length,
+    },
+    {
+      label: copy.investorBrief.stats.reportDesk,
+      value: "Live",
+    },
+  ];
+  const cardIcons = [Eye, Newspaper, BadgeDollarSign, ShieldCheck];
+  const ctaLinks = [
+    {
+      href: newsHref,
+      label: copy.investorBrief.ctaNews,
+    },
+    {
+      href: charactersHref,
+      label: copy.investorBrief.ctaCharacters,
+    },
+    {
+      href: reportsHref,
+      label: copy.investorBrief.ctaReports,
+    },
+  ];
+
+  return (
+    <section className="border-b border-black/10 bg-[#f4f6f0]">
+      <div className="mx-auto grid max-w-[92rem] gap-5 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-start lg:px-8">
+        <LandingReveal
+          className="rounded-lg border border-black/10 bg-white p-5 shadow-[0_24px_70px_rgba(17,21,16,0.08)] sm:p-7"
+          variant="soft"
+        >
+          <SectionLabel>{copy.investorBrief.eyebrow}</SectionLabel>
+          <h2 className="mt-3 text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
+            {copy.investorBrief.title}
+          </h2>
+          <p className="mt-4 text-sm font-semibold leading-6 text-black/58 sm:text-base sm:leading-7">
+            {copy.investorBrief.body}
+          </p>
+
+          <div className="mt-6 rounded-lg border border-black/10 bg-[#071108] p-4 text-white sm:p-5">
+            <p className="text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#7cff98]">
+              {copy.investorBrief.scriptLabel}
+            </p>
+            <div className="mt-4 grid gap-3">
+              {copy.investorBrief.script.map((line, index) => (
+                <div
+                  className="grid grid-cols-[auto_minmax(0,1fr)] gap-3"
+                  key={line}
+                >
+                  <span className="flex size-7 items-center justify-center rounded-full bg-[#44f26e] font-mono text-xs font-black text-[#071108]">
+                    {index + 1}
+                  </span>
+                  <p className="text-sm font-bold leading-6 text-white/74">
+                    {line}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </LandingReveal>
+
+        <LandingReveal className="grid gap-3" delay={120} variant="soft">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {statTiles.map((stat, index) => (
+              <div
+                className={
+                  index === 0
+                    ? "min-w-0 rounded-lg bg-[#44f26e] p-3 text-[#071108]"
+                    : index === 1
+                      ? "min-w-0 rounded-lg border border-[#4cc9f0]/24 bg-[#e9fbff] p-3 text-[#071108]"
+                      : index === 2
+                        ? "min-w-0 rounded-lg border border-[#ffd76b]/36 bg-[#fff7d8] p-3 text-[#071108]"
+                        : "min-w-0 rounded-lg border border-black/10 bg-white p-3 text-[#071108]"
+                }
+                key={stat.label}
+              >
+                <p className="truncate text-[0.58rem] font-black uppercase tracking-[0.1em] opacity-62">
+                  {stat.label}
+                </p>
+                <p className="mt-1 truncate text-2xl font-black">
+                  {typeof stat.value === "number"
+                    ? formatNumber(stat.value, locale)
+                    : stat.value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_16rem]">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {copy.investorBrief.cards.map((card, index) => {
+                const Icon = cardIcons[index] ?? CheckCircle2;
+
+                return (
+                  <div
+                    className="min-w-0 rounded-lg border border-black/10 bg-white p-4 shadow-[0_16px_42px_rgba(17,21,16,0.05)]"
+                    key={card.eyebrow}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+                        {card.eyebrow}
+                      </p>
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#071108] text-[#44f26e]">
+                        <Icon className="size-4" />
+                      </span>
+                    </div>
+                    <h3 className="mt-3 text-lg font-black leading-6 [word-break:keep-all]">
+                      {card.title}
+                    </h3>
+                    <p className="mt-2 text-sm font-semibold leading-6 text-black/54">
+                      {card.body}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="grid gap-3 rounded-lg border border-black/10 bg-[#071108] p-3 text-white">
+              <p className="px-1 text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#7cff98]">
+                {copy.investorBrief.evidenceTitle}
+              </p>
+              {leadingCharacter ? (
+                <Link
+                  className="group overflow-hidden rounded-lg border border-white/12 bg-white/[0.07] !text-white"
+                  href={charactersHref}
+                >
+                  <span className="relative block aspect-square overflow-hidden bg-black">
+                    {leadingCharacterImageUrl ? (
+                      <Image
+                        alt=""
+                        aria-hidden="true"
+                        className="object-cover object-top transition duration-500 group-hover:scale-[1.04]"
+                        fill
+                        sizes="16rem"
+                        src={leadingCharacterImageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          leadingCharacterImageUrl,
+                        )}
+                      />
+                    ) : (
+                      <span className="flex h-full items-center justify-center text-[#44f26e]">
+                        <UserRound className="size-9" />
+                      </span>
+                    )}
+                    <span className="absolute bottom-2 left-2 right-2 truncate text-sm font-black">
+                      {leadingCharacter.name}
+                    </span>
+                  </span>
+                </Link>
+              ) : null}
+              <Link
+                className="group min-w-0 rounded-lg border border-[#44f26e]/30 bg-[#44f26e]/12 p-3 !text-white transition hover:border-[#44f26e]/70 hover:bg-[#44f26e]/18"
+                href={newsHref}
+              >
+                <p className="text-[0.58rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                  {copy.investorBrief.latestReport}
+                </p>
+                <p className="mt-1 line-clamp-2 text-sm font-black leading-5">
+                  {latestReport
+                    ? getArticleDisplayTitle(latestReport.title)
+                    : copy.investorBrief.noReport}
+                </p>
+                <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-black text-[#9bffad]">
+                  {copy.investorBrief.ctaNews}
+                  <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
+                </span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="grid gap-2 sm:grid-cols-3">
+            {ctaLinks.map((link, index) => (
+              <Link
+                className={
+                  index === 0
+                    ? "inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#071108] px-4 py-3 text-sm font-black !text-white transition hover:bg-[#19251a]"
+                    : "inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-black/12 bg-white px-4 py-3 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                }
+                href={link.href}
+                key={link.href}
+              >
+                {link.label}
+                <ArrowRight className="size-4 text-[#44f26e]" />
+              </Link>
+            ))}
+          </div>
         </LandingReveal>
       </div>
     </section>
@@ -1890,6 +2216,17 @@ export default async function FanletterNewsPlatformPage({
         locale={locale}
         referralCode={referralCode}
         reports={latestReports}
+        teaserItems={teaserGalleryItems}
+      />
+
+      <PlatformInvestorBrief
+        characters={featuredCharacters}
+        charactersHref={charactersHref}
+        copy={copy}
+        locale={locale}
+        newsHref={newsHref}
+        reports={latestReports}
+        reportsHref={reportsHref}
         teaserItems={teaserGalleryItems}
       />
 
