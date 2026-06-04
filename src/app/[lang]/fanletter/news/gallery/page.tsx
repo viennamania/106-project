@@ -38,6 +38,12 @@ type FanletterNewsGallerySearchParams = {
   ref?: string | string[];
 };
 
+type TeaserGalleryGroup = {
+  groupKey: string;
+  items: FanletterNewsTeaserGalleryItem[];
+  primary: FanletterNewsTeaserGalleryItem;
+};
+
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
@@ -49,12 +55,23 @@ function getCopy(locale: Locale) {
           "회원가입 전에도 원본 브이로그의 짧은 공개 티저만 빠르게 훑어볼 수 있는 뉴스 화보입니다. NSFW 콘텐츠와 원본 영상 URL은 이 페이지에서 제외합니다.",
         heroTitle: "뉴스 티저 화보",
         labels: {
+          cutCollection: "컷 모음",
+          representative: "대표 티저",
+          sameSource: "같은 브이로그 컷",
           fanOnly: "팬 전용",
           free: "공개",
           news: "뉴스",
           reporter: "팬 기자",
           safe: "NSFW 제외",
           teasers: "티저",
+        },
+        gallery: {
+          groupedBody:
+            "같은 브이로그의 비슷한 티저는 하나의 대표 카드로 묶고, 나머지 컷은 썸네일로 압축했습니다.",
+          groupedTitle: "대표 티저 모음",
+          sameSourceBody:
+            "대표 티저와 같은 원본에서 뽑힌 다른 공개 컷입니다. 반복 설명 없이 이미지 흐름만 빠르게 확인하세요.",
+          sameSourceTitle: "같은 브이로그의 다른 컷",
         },
         nav: {
           characters: "AI 캐릭터",
@@ -70,6 +87,7 @@ function getCopy(locale: Locale) {
           characters: "캐릭터",
           reporters: "팬 기자",
           teasers: "공개 티저",
+          vlogs: "대표 묶음",
         },
       }
     : {
@@ -81,12 +99,23 @@ function getCopy(locale: Locale) {
           "A public news gallery where visitors can preview short source-vlog teasers before joining. NSFW content and original video URLs are excluded from this page.",
         heroTitle: "News Teaser Gallery",
         labels: {
+          cutCollection: "Cut set",
+          representative: "Lead teaser",
+          sameSource: "Same-vlog cuts",
           fanOnly: "Fan-only",
           free: "Public",
           news: "News",
           reporter: "Fan reporter",
           safe: "NSFW excluded",
           teasers: "Teasers",
+        },
+        gallery: {
+          groupedBody:
+            "Similar teasers from the same vlog are grouped into one lead card, while extra cuts are compressed into thumbnails.",
+          groupedTitle: "Representative teaser sets",
+          sameSourceBody:
+            "More public cuts from the same source as the lead teaser, shown as image flow without repeated descriptions.",
+          sameSourceTitle: "More cuts from the same vlog",
         },
         nav: {
           characters: "AI characters",
@@ -102,6 +131,7 @@ function getCopy(locale: Locale) {
           characters: "Characters",
           reporters: "Fan reporters",
           teasers: "Public teasers",
+          vlogs: "Lead sets",
         },
       };
 }
@@ -120,7 +150,10 @@ function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
 }
 
-function getGalleryStats(items: FanletterNewsTeaserGalleryItem[]) {
+function getGalleryStats(
+  items: FanletterNewsTeaserGalleryItem[],
+  groups: TeaserGalleryGroup[],
+) {
   return {
     characters: new Set(
       items
@@ -129,7 +162,46 @@ function getGalleryStats(items: FanletterNewsTeaserGalleryItem[]) {
     ).size,
     reporters: new Set(items.map((item) => item.reporterReferralCode)).size,
     teasers: items.length,
+    vlogs: groups.length,
   };
+}
+
+function getTeaserImageUrl(item: FanletterNewsTeaserGalleryItem) {
+  return item.teaserImageUrls[0] ?? item.coverImageUrl;
+}
+
+function getTeaserGroupKey(item: FanletterNewsTeaserGalleryItem) {
+  const creator =
+    item.creatorReferralCode?.trim() ||
+    item.creatorName.trim() ||
+    item.reporterReferralCode;
+  const sourceVideoUrl = item.previewClipVideoUrl.trim();
+  const sourceTitle = item.sourceTitle.trim().toLocaleLowerCase("en-US");
+  const sourceKey = sourceVideoUrl || sourceTitle || item.contentId;
+
+  return `${creator.toLocaleLowerCase("en-US")}:${sourceKey}`;
+}
+
+function getTeaserGalleryGroups(items: FanletterNewsTeaserGalleryItem[]) {
+  const groupByKey = new Map<string, TeaserGalleryGroup>();
+
+  for (const item of items) {
+    const groupKey = getTeaserGroupKey(item);
+    const existingGroup = groupByKey.get(groupKey);
+
+    if (existingGroup) {
+      existingGroup.items.push(item);
+      continue;
+    }
+
+    groupByKey.set(groupKey, {
+      groupKey,
+      items: [item],
+      primary: item,
+    });
+  }
+
+  return Array.from(groupByKey.values());
 }
 
 function getReportHref({
@@ -194,60 +266,120 @@ function GalleryVideo({
 
 function TeaserCard({
   copy,
-  item,
+  group,
   locale,
   referralCode,
   returnTo,
 }: {
   copy: ReturnType<typeof getCopy>;
-  item: FanletterNewsTeaserGalleryItem;
+  group: TeaserGalleryGroup;
   locale: Locale;
   referralCode: string | null;
   returnTo: string;
 }) {
+  const item = group.primary;
   const reportHref = getReportHref({ item, locale, referralCode });
   const vlogHref = getVlogHref({ item, locale, referralCode, returnTo });
   const publishedAt = formatDate(item.publishedAt, locale);
+  const imageUrl = getTeaserImageUrl(item);
+  const extraCuts = group.items.slice(1, 5);
 
   return (
     <article className="grid min-w-0 overflow-hidden border border-black/10 bg-white shadow-[0_16px_36px_rgba(17,21,16,0.06)]">
-      <div className="relative aspect-[9/13] bg-[#111510]">
-        <GalleryVideo
-          className="absolute inset-0 h-full w-full object-cover"
-          item={item}
-        />
+      <Link
+        aria-label={`${copy.openNews}: ${item.sourceTitle}`}
+        className="group relative aspect-[9/13] bg-[#111510]"
+        href={reportHref}
+      >
+        {imageUrl ? (
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="object-cover transition duration-500 group-hover:scale-[1.035]"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 22rem"
+            src={imageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center text-white/62">
+            <Clapperboard className="size-8" />
+          </span>
+        )}
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,21,16,0.02)_28%,rgba(17,21,16,0.74)_100%)]" />
         <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
           <span className="inline-flex items-center gap-1.5 bg-[#44f26e] px-2.5 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-black">
             <Play className="size-3" />
-            {copy.labels.teasers}
+            {group.items.length > 1 ? copy.labels.cutCollection : copy.labels.teasers}
           </span>
           <span className="inline-flex bg-white/92 px-2.5 py-1 text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#111510]">
             {item.priceType === "paid" ? copy.labels.fanOnly : copy.labels.free}
           </span>
         </div>
-      </div>
+        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2">
+          <span className="min-w-0 truncate text-[0.62rem] font-black uppercase tracking-[0.12em] text-white/78">
+            {copy.labels.representative}
+          </span>
+          <span className="shrink-0 bg-white/92 px-2 py-1 text-[0.6rem] font-black text-[#111510]">
+            {formatNumber(group.items.length, locale)} {copy.labels.teasers}
+          </span>
+        </div>
+      </Link>
       <div className="grid min-h-[13rem] content-between gap-4 p-4">
         <div>
           <div className="flex flex-wrap gap-x-2 gap-y-1 text-[0.65rem] font-black uppercase tracking-[0.1em] text-black/42">
             <span className="text-[#16702e]">{item.creatorName}</span>
             {publishedAt ? <span>{publishedAt}</span> : null}
           </div>
-          <h2 className="mt-2 line-clamp-3 break-words text-lg font-black leading-6 tracking-normal [word-break:keep-all]">
+          <h3 className="mt-2 line-clamp-3 break-words text-lg font-black leading-6 tracking-normal [word-break:keep-all]">
             {item.sourceTitle}
-          </h2>
+          </h3>
           <p className="mt-2 line-clamp-2 text-sm font-semibold leading-6 text-black/58">
             {item.dek}
           </p>
+          {extraCuts.length > 0 ? (
+            <div className="mt-3 grid grid-cols-4 gap-1.5">
+              {extraCuts.map((cut) => {
+                const cutImageUrl = getTeaserImageUrl(cut);
+
+                return (
+                  <span
+                    className="relative aspect-square overflow-hidden bg-[#111510]"
+                    key={`${cut.contentId}-${cut.reportId}`}
+                  >
+                    {cutImageUrl ? (
+                      <Image
+                        alt=""
+                        aria-hidden="true"
+                        className="object-cover"
+                        fill
+                        sizes="4rem"
+                        src={cutImageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          cutImageUrl,
+                        )}
+                      />
+                    ) : (
+                      <span className="flex h-full w-full items-center justify-center text-white/50">
+                        <Images className="size-4" />
+                      </span>
+                    )}
+                  </span>
+                );
+              })}
+            </div>
+          ) : null}
         </div>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid gap-2">
           <Link
-            className="inline-flex h-10 items-center justify-center gap-2 border border-black/12 px-3 text-center text-xs font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+            className="inline-flex h-10 items-center justify-center gap-2 bg-[#111510] px-3 text-center text-xs font-black !text-white transition hover:bg-[#183121]"
             href={reportHref}
           >
             {copy.openNews}
+            <ArrowRight className="size-3.5 text-[#44f26e]" />
           </Link>
           <Link
-            className="inline-flex h-10 items-center justify-center gap-2 bg-[#111510] px-3 text-center text-xs font-black !text-white transition hover:bg-[#183121]"
+            className="inline-flex h-9 items-center justify-center gap-2 border border-black/12 px-3 text-center text-xs font-black text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
             href={vlogHref}
           >
             {copy.openVlog}
@@ -260,17 +392,19 @@ function TeaserCard({
 
 function TeaserStrip({
   copy,
-  item,
+  group,
   locale,
   referralCode,
 }: {
   copy: ReturnType<typeof getCopy>;
-  item: FanletterNewsTeaserGalleryItem;
+  group: TeaserGalleryGroup;
   locale: Locale;
   referralCode: string | null;
 }) {
+  const item = group.primary;
   const reportHref = getReportHref({ item, locale, referralCode });
   const publishedAt = formatDate(item.publishedAt, locale);
+  const imageUrl = getTeaserImageUrl(item);
 
   return (
     <Link
@@ -278,17 +412,15 @@ function TeaserStrip({
       href={reportHref}
     >
       <div className="relative aspect-[4/5] overflow-hidden bg-[#111510]">
-        {item.coverImageUrl ? (
+        {imageUrl ? (
           <Image
             alt=""
             aria-hidden="true"
             className="object-cover transition duration-300 group-hover:scale-[1.04]"
             fill
             sizes="5rem"
-            src={item.coverImageUrl}
-            unoptimized={shouldBypassFanletterImageOptimization(
-              item.coverImageUrl,
-            )}
+            src={imageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
           />
         ) : (
           <span className="flex h-full w-full items-center justify-center text-white/62">
@@ -298,10 +430,10 @@ function TeaserStrip({
       </div>
       <div className="min-w-0 py-1">
         <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
-          {copy.labels.news}
+          {copy.labels.cutCollection} · {formatNumber(group.items.length, locale)}
         </p>
         <h3 className="mt-1 line-clamp-2 break-words text-sm font-black leading-5 [word-break:keep-all] group-hover:text-[#16702e]">
-          {item.title}
+          {item.sourceTitle}
         </h3>
         <p className="mt-1 truncate text-xs font-semibold text-black/44">
           {item.reporterName}
@@ -309,6 +441,79 @@ function TeaserStrip({
         </p>
       </div>
     </Link>
+  );
+}
+
+function SameSourceCutGrid({
+  copy,
+  group,
+  locale,
+  referralCode,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  group: TeaserGalleryGroup;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  const cuts = group.items.slice(1);
+
+  if (cuts.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="border border-black/10 bg-white p-3 shadow-[0_14px_32px_rgba(17,21,16,0.045)] sm:p-4">
+      <div className="mb-3 grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <div className="min-w-0">
+          <p className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#16702e]">
+            {copy.labels.sameSource}
+          </p>
+          <h2 className="mt-1 text-xl font-black leading-tight [word-break:keep-all]">
+            {copy.gallery.sameSourceTitle}
+          </h2>
+          <p className="mt-1 max-w-2xl text-xs font-semibold leading-5 text-black/52 sm:text-sm sm:leading-6">
+            {copy.gallery.sameSourceBody}
+          </p>
+        </div>
+        <span className="inline-flex min-h-8 items-center justify-center border border-black/10 px-2.5 text-xs font-black text-black/54">
+          {formatNumber(cuts.length, locale)} {copy.labels.teasers}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+        {cuts.map((cut, index) => {
+          const imageUrl = getTeaserImageUrl(cut);
+
+          return (
+            <Link
+              aria-label={`${copy.openNews}: ${cut.sourceTitle}`}
+              className="group relative aspect-square overflow-hidden bg-[#111510]"
+              href={getReportHref({ item: cut, locale, referralCode })}
+              key={`${cut.contentId}-${cut.reportId}`}
+            >
+              {imageUrl ? (
+                <Image
+                  alt=""
+                  aria-hidden="true"
+                  className="object-cover transition duration-300 group-hover:scale-[1.04]"
+                  fill
+                  sizes="(max-width: 640px) 30vw, 8rem"
+                  src={imageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+                />
+              ) : (
+                <span className="flex h-full w-full items-center justify-center text-white/50">
+                  <Images className="size-5" />
+                </span>
+              )}
+              <span className="absolute left-1.5 top-1.5 bg-[#44f26e] px-1.5 py-0.5 font-mono text-[0.58rem] font-black text-black">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -421,9 +626,12 @@ export default async function LocalizedFanletterNewsGalleryPage({
     limit: 36,
     locale,
   });
-  const [featuredItem, ...galleryItems] = items;
-  const stats = getGalleryStats(items);
-  const secondaryItems = galleryItems.slice(0, 4);
+  const groups = getTeaserGalleryGroups(items);
+  const [featuredGroup, ...otherGroups] = groups;
+  const featuredItem = featuredGroup?.primary ?? null;
+  const stats = getGalleryStats(items, groups);
+  const secondaryGroups = otherGroups.slice(0, 4);
+  const galleryGroups = otherGroups.slice(4);
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]">
@@ -463,14 +671,14 @@ export default async function LocalizedFanletterNewsGalleryPage({
         {featuredItem ? (
           <div className="space-y-7">
             <section className="grid overflow-hidden border-y-2 border-[#111510] bg-white shadow-[0_18px_44px_rgba(17,21,16,0.06)] lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.72fr)]">
-              <div className="relative min-h-[32rem] bg-[#111510] sm:min-h-[42rem] lg:min-h-[46rem]">
+              <div className="relative order-2 min-h-[24rem] bg-[#111510] sm:min-h-[42rem] lg:order-1 lg:min-h-[46rem]">
                 <GalleryVideo
                   featured
                   className="absolute inset-0 h-full w-full object-cover"
                   item={featuredItem}
                 />
               </div>
-              <div className="grid content-between gap-8 border-t border-black/12 p-5 lg:border-l lg:border-t-0 lg:p-7">
+              <div className="order-1 grid content-between gap-6 border-t border-black/12 p-5 lg:order-2 lg:border-l lg:border-t-0 lg:p-7">
                 <div>
                   <p className="text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#16702e]">
                     {copy.eyebrow}
@@ -478,10 +686,13 @@ export default async function LocalizedFanletterNewsGalleryPage({
                   <h1 className="mt-3 break-words text-[2rem] font-black leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                     {copy.heroTitle}
                   </h1>
+                  <p className="mt-3 text-sm font-semibold leading-6 text-black/58 sm:text-base sm:leading-7">
+                    {copy.heroBody}
+                  </p>
                   <div className="mt-6 grid grid-cols-3 gap-px bg-black/10">
                     {[
                       [copy.stats.teasers, stats.teasers],
-                      [copy.stats.characters, stats.characters],
+                      [copy.stats.vlogs, stats.vlogs],
                       [copy.stats.reporters, stats.reporters],
                     ].map(([label, value]) => (
                       <div className="bg-[#f7faf4] p-3" key={label}>
@@ -543,13 +754,22 @@ export default async function LocalizedFanletterNewsGalleryPage({
               </div>
             </section>
 
-            {secondaryItems.length > 0 ? (
+            {featuredGroup ? (
+              <SameSourceCutGrid
+                copy={copy}
+                group={featuredGroup}
+                locale={locale}
+                referralCode={referralCode}
+              />
+            ) : null}
+
+            {secondaryGroups.length > 0 ? (
               <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                {secondaryItems.map((item) => (
+                {secondaryGroups.map((group) => (
                   <TeaserStrip
                     copy={copy}
-                    item={item}
-                    key={item.contentId}
+                    group={group}
+                    key={group.groupKey}
                     locale={locale}
                     referralCode={referralCode}
                   />
@@ -557,18 +777,37 @@ export default async function LocalizedFanletterNewsGalleryPage({
               </section>
             ) : null}
 
-            {galleryItems.length > 0 ? (
-              <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {galleryItems.map((item) => (
-                  <TeaserCard
-                    copy={copy}
-                    item={item}
-                    key={`${item.contentId}-${item.reportId}`}
-                    locale={locale}
-                    referralCode={referralCode}
-                    returnTo={galleryHref}
-                  />
-                ))}
+            {galleryGroups.length > 0 ? (
+              <section>
+                <div className="mb-4 grid gap-1 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                  <div className="min-w-0">
+                    <p className="text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
+                      {copy.labels.cutCollection}
+                    </p>
+                    <h2 className="mt-1 text-2xl font-black leading-tight [word-break:keep-all]">
+                      {copy.gallery.groupedTitle}
+                    </h2>
+                    <p className="mt-1 max-w-2xl text-sm font-semibold leading-6 text-black/54">
+                      {copy.gallery.groupedBody}
+                    </p>
+                  </div>
+                  <span className="inline-flex min-h-9 items-center border border-black/10 bg-white px-3 text-xs font-black text-black/54">
+                    {formatNumber(galleryGroups.length, locale)}{" "}
+                    {copy.stats.vlogs}
+                  </span>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {galleryGroups.map((group) => (
+                    <TeaserCard
+                      copy={copy}
+                      group={group}
+                      key={group.groupKey}
+                      locale={locale}
+                      referralCode={referralCode}
+                      returnTo={galleryHref}
+                    />
+                  ))}
+                </div>
               </section>
             ) : null}
           </div>
