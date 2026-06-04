@@ -37,6 +37,7 @@ import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getFanletterNewsReportsForCharacterDirectory } from "@/lib/fanletter-news-report-service";
 import {
   getFanletterNewsArticleDisplayTitle as getArticleDisplayTitle,
+  getFanletterNewsReportPreviewImageUrl,
 } from "@/lib/fanletter-news-related";
 import { getFanletterNewsCharacterVlogsHref } from "@/lib/fanletter-news-vlog-routing";
 import {
@@ -433,26 +434,40 @@ function NewsCharacterImage({
   sizes: string;
 }) {
   const nsfwCopy = getFanletterNsfwCopy(report.locale);
+  const imageUrl = getFanletterNewsReportPreviewImageUrl(report);
+  const shouldBypassImageOptimization = imageUrl
+    ? shouldBypassFanletterImageOptimization(imageUrl)
+    : false;
 
   return (
     <div className="relative h-full min-h-[13rem] overflow-hidden bg-[#111510]">
-      {report.coverImageUrl ? (
-        <Image
-          alt=""
-          aria-hidden="true"
-          className={
-            blurred
-              ? "scale-[1.06] object-cover blur-md brightness-[0.68] saturate-[0.86]"
-              : "object-cover"
-          }
-          fill
-          loading={eager ? "eager" : undefined}
-          sizes={sizes}
-          src={report.coverImageUrl}
-          unoptimized={shouldBypassFanletterImageOptimization(
-            report.coverImageUrl,
-          )}
-        />
+      {imageUrl ? (
+        <>
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="scale-125 object-cover object-center opacity-[0.58] blur-2xl brightness-[0.62] saturate-[0.95]"
+            fill
+            loading={eager ? "eager" : undefined}
+            sizes={sizes}
+            src={imageUrl}
+            unoptimized={shouldBypassImageOptimization}
+          />
+          <Image
+            alt=""
+            aria-hidden="true"
+            className={
+              blurred
+                ? "scale-[1.03] object-cover object-center blur-md brightness-[0.68] saturate-[0.86]"
+                : "object-cover object-center"
+            }
+            fill
+            loading={eager ? "eager" : undefined}
+            sizes={sizes}
+            src={imageUrl}
+            unoptimized={shouldBypassImageOptimization}
+          />
+        </>
       ) : (
         <div className="flex h-full min-h-[13rem] w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_52%,#24372a)] text-[#44f26e]">
           <Newspaper className="size-14" />
