@@ -213,6 +213,8 @@ function getCopy(locale: Locale) {
           pay: (amount: string) => `${amount} 원본 보기`,
           read: "기사 요약",
           vote: "보고싶어요",
+          voteWithRemaining: (remaining: string) =>
+            `보고싶어요 · ${remaining}명 남음`,
           wallet: "가입하고 보고싶어요",
           watch: "원본 보기",
         },
@@ -323,8 +325,12 @@ function getCopy(locale: Locale) {
           growthLoopSteps: ["내 리포트 유입", "보고싶어요", "인센티브"],
           leadReporter: "대표 리포터",
           publishedBadge: "발행",
+          readerBody:
+            "팬 기자들이 만든 리포트 현황입니다. 원본 공개 참여는 위의 보고싶어요에서 바로 진행할 수 있습니다.",
+          readerDetailsSummary: "리포터 경쟁 정보 보기",
           remainingShort: (remaining: string) => `${remaining}자리 남음`,
           reporterLabel: "발행 리포터",
+          reporterDetailsSummary: "리포터용 인센티브 정보",
           revealMomentum: {
             closingBody: (remaining: string) =>
               `원본 공개가 가까워질수록 리포트 유입 경쟁도 더 선명해집니다. 내 리포트 링크로 팬을 모아 ${remaining}명의 참여를 완성하면 인센티브 신호가 강해집니다.`,
@@ -532,6 +538,8 @@ function getCopy(locale: Locale) {
           pay: (amount: string) => `Watch for ${amount}`,
           read: "Story summary",
           vote: "Want to watch",
+          voteWithRemaining: (remaining: string) =>
+            `Want it · ${remaining} left`,
           wallet: "Join and want-to-watch",
           watch: "Watch source",
         },
@@ -642,8 +650,12 @@ function getCopy(locale: Locale) {
           growthLoopSteps: ["Report traffic", "Want-to-watch", "Incentive"],
           leadReporter: "Lead reporter",
           publishedBadge: "Published",
+          readerBody:
+            "This is the fan reporter activity around this vlog. Use the want-to-watch action above to join source opening.",
+          readerDetailsSummary: "View reporter competition details",
           remainingShort: (remaining: string) => `${remaining} left`,
           reporterLabel: "Published reporters",
+          reporterDetailsSummary: "Reporter incentive details",
           revealMomentum: {
             closingBody: (remaining: string) =>
               `As source access gets close, report traffic competition becomes more visible. Bring fans through your report link and finish the final ${remaining} wants to strengthen your incentive signal.`,
@@ -3114,13 +3126,19 @@ function SourceVlogReportSlotStatusCard({
         : reportSlot.count <= 2
           ? copy.embeddedReportSlot.early
           : copy.embeddedReportSlot.rising;
-  const body =
-    reportSlot.count <= 0
-      ? copy.embeddedReportSlot.emptyBody
-      : reportSlotFull
-        ? copy.embeddedReportSlot.fullBody
-        : copy.embeddedReportSlot.body(remainingLabel);
   const viewerHasReport = Boolean(reportSlot.viewerReportHref);
+  const isReporterContext = Boolean(reportSlot.isViewerReporter || viewerHasReport);
+  const body =
+    !viewerHasReport
+      ? copy.embeddedReportSlot.readerBody
+      : reportSlot.count <= 0
+        ? copy.embeddedReportSlot.emptyBody
+        : reportSlotFull
+          ? copy.embeddedReportSlot.fullBody
+          : copy.embeddedReportSlot.body(remainingLabel);
+  const detailsSummary = isReporterContext
+    ? copy.embeddedReportSlot.reporterDetailsSummary
+    : copy.embeddedReportSlot.readerDetailsSummary;
   const cta = viewerHasReport
     ? null
     : reportSlot.isViewerReporter
@@ -3226,6 +3244,14 @@ function SourceVlogReportSlotStatusCard({
           </p>
         </div>
       </div>
+
+      <details className="group mt-4 border-t border-[#16702e]/14 pt-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-lg border border-[#16702e]/12 bg-white/72 px-3 py-3 text-sm font-black text-[#111510] transition hover:bg-white [&::-webkit-details-marker]:hidden">
+          <span className="min-w-0 [word-break:keep-all]">
+            {detailsSummary}
+          </span>
+          <ChevronDown className="size-4 shrink-0 text-[#16702e] transition-transform group-open:rotate-180" />
+        </summary>
 
       {sourceReveal ? (
         <div
@@ -3481,6 +3507,7 @@ function SourceVlogReportSlotStatusCard({
           </Link>
         ) : null}
       </div>
+      </details>
     </div>
   );
 }
@@ -4510,12 +4537,19 @@ export default async function LocalizedFanletterNewsReportPage({
   const paidUnlockLabel = `${paidUnlockAmount ?? CONTENT_PAID_USDT_AMOUNT} USDT`;
   const heroCopy = getNewsLandingHeroCopy(locale);
   const isSourceRevealLocked = sourceReveal?.unlocked === false;
+  const mobileSourceRevealRemainingLabel = sourceReveal
+    ? formatNumber(Math.max(0, sourceReveal.threshold - sourceReveal.count), locale)
+    : null;
   const mobileDockPrimary = isSourceRevealLocked
     ? {
         href: isViewerLoggedIn ? sourceVlogHref : newsConnectHref,
         kind: isViewerLoggedIn ? ("vote" as const) : ("wallet" as const),
         label: isViewerLoggedIn
-          ? copy.mobileActionDock.vote
+          ? mobileSourceRevealRemainingLabel
+            ? copy.mobileActionDock.voteWithRemaining(
+                mobileSourceRevealRemainingLabel,
+              )
+            : copy.mobileActionDock.vote
           : copy.mobileActionDock.wallet,
       }
     : shouldShowPaidUnlockPanel && paidUnlockHref

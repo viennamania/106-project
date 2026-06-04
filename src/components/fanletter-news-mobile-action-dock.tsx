@@ -98,12 +98,15 @@ function getDockCopy(locale: Locale) {
         progressEyebrow: "원본 공개",
         progressShort: (count: string, threshold: string, remaining: string) =>
           `${count}/${threshold} 참여 · ${remaining}명 남음`,
+        voteWithRemaining: (remaining: string) =>
+          `보고싶어요 · ${remaining}명 남음`,
       }
     : {
         openComplete: "Open",
         progressEyebrow: "Source access",
         progressShort: (count: string, threshold: string, remaining: string) =>
           `${count}/${threshold} joined · ${remaining} left`,
+        voteWithRemaining: (remaining: string) => `Want it · ${remaining} left`,
       };
 }
 
@@ -205,11 +208,6 @@ export function FanletterNewsMobileActionDock({
       sourceRevealState?.requestedByViewer &&
       !sourceRevealState.unlocked,
   );
-  const effectivePrimaryLabel = shouldUseUnlockedSourceAction
-    ? sourceUnlockedLabel ?? primaryLabel
-    : sourceRevealVoteJoined
-      ? joinedLabel ?? primaryLabel
-      : primaryLabel;
   const progressCountLabel = sourceRevealState
     ? formatCount(sourceRevealState.count, locale)
     : null;
@@ -251,6 +249,18 @@ export function FanletterNewsMobileActionDock({
             progressRemainingLabel,
           )
       : effectiveStatusLabel;
+  const voteRemainingPrimaryLabel =
+    effectivePrimaryKind === "vote" &&
+    sourceRevealState &&
+    !sourceRevealState.unlocked &&
+    progressRemainingLabel
+      ? copy.voteWithRemaining(progressRemainingLabel)
+      : null;
+  const effectivePrimaryLabel = shouldUseUnlockedSourceAction
+    ? sourceUnlockedLabel ?? primaryLabel
+    : sourceRevealVoteJoined
+      ? joinedLabel ?? primaryLabel
+      : voteRemainingPrimaryLabel ?? primaryLabel;
   const primaryActionClassName = sourceRevealVoteJoined
     ? "inline-flex min-h-[3.25rem] min-w-0 cursor-default items-center justify-center gap-2 rounded-[1.15rem] border border-[#44f26e]/34 bg-[#44f26e]/14 px-3.5 text-sm font-black !text-[#b9ffc8]"
     : "inline-flex min-h-[3.25rem] min-w-0 items-center justify-center gap-2 rounded-[1.15rem] bg-[#44f26e] px-3.5 text-sm font-black !text-black shadow-[0_10px_28px_rgba(68,242,110,0.22)] transition hover:bg-[#69ff8c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e]";

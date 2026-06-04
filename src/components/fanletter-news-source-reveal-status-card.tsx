@@ -47,9 +47,11 @@ function getCopy({
         ctaPay: `${paidAmountLabel} 원본 보기`,
         eyebrow: "원본 공개",
         flywheel: {
-          label: "참여 루프",
-          steps: ["리포트 유입", "보고싶어요", "인센티브"],
+          label: "참여 흐름",
+          steps: ["리포트 읽기", "보고싶어요", "원본 공개"],
         },
+        firstFreeLockedBody: `${remainingLabel}명이 모이면 원본 브이로그가 모두에게 무료 공개됩니다. 첫 보고싶어요로 공개 흐름을 시작하세요.`,
+        firstPaidLockedBody: `${remainingLabel}명이 모이면 원본 접근 단계가 열립니다. 첫 보고싶어요로 공개 흐름을 시작하세요.`,
         freeLockedBody: `${remainingLabel}명이 더 누르면 모두에게 무료 공개됩니다.`,
         freeLockedTitle: `${countLabel}/${thresholdLabel}명 참여 중`,
         freeUnlockedBody:
@@ -71,9 +73,11 @@ function getCopy({
         ctaPay: `Watch for ${paidAmountLabel}`,
         eyebrow: "Source access",
         flywheel: {
-          label: "Growth loop",
-          steps: ["Report traffic", "Want-to-watch", "Incentive"],
+          label: "Action flow",
+          steps: ["Read report", "Want it", "Open source"],
         },
+        firstFreeLockedBody: `${remainingLabel} fans need to join for the source vlog to open free for everyone. Start the source-opening flow with the first want-to-watch.`,
+        firstPaidLockedBody: `${remainingLabel} fans need to join before source access opens. Start the source-opening flow with the first want-to-watch.`,
         freeLockedBody: `${remainingLabel} more fan${remainingCount === 1 ? "" : "s"} need to want it. Then this source vlog opens for everyone for free.`,
         freeLockedTitle: `${countLabel}/${thresholdLabel} joined`,
         freeUnlockedBody:
@@ -182,13 +186,17 @@ export function FanletterNewsSourceRevealStatusCard({
             : copy.freeUnlockedTitle;
   const body =
     stage === "paidLocked"
-      ? copy.paidLockedBody
+      ? sourceReveal?.count === 0
+        ? copy.firstPaidLockedBody
+        : copy.paidLockedBody
       : stage === "paidReady"
         ? copy.paidReadyBody
         : stage === "paidUnlocked"
           ? copy.paidUnlockedBody
           : stage === "freeLocked"
-            ? copy.freeLockedBody
+            ? sourceReveal?.count === 0
+              ? copy.firstFreeLockedBody
+              : copy.freeLockedBody
             : copy.freeUnlockedBody;
   const showPayCta =
     isPaidContent && revealUnlocked && !viewerCanAccessSource && paidUnlockHref;
