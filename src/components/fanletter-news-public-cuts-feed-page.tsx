@@ -595,7 +595,7 @@ function getCharacterHref({
 }) {
   const characterPath = characterReferralCode
     ? `/${locale}/fanletter/news/cuts/characters/${characterReferralCode}`
-    : `/${locale}/fanletter/news/characters`;
+    : `/${locale}/fanletter/news/cuts/characters`;
 
   return characterReferralCode
     ? setPathSearchParams(buildPathWithReferral(characterPath, referralCode), {
@@ -3749,7 +3749,7 @@ export function FanletterNewsPublicCutsFeedPage({
     returnTo: cutFeedHomeHref,
   });
   const charactersHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/characters`,
+    `/${locale}/fanletter/news/cuts/characters`,
     referralCode,
   );
   const returnableCharactersHref = setPathSearchParams(charactersHref, {
