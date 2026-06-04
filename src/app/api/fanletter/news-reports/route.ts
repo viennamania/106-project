@@ -107,6 +107,10 @@ type FanletterNewsReportContentUpdateRequest =
     why?: string | null;
   };
 
+const FANLETTER_NEWS_REPORT_MIN_TEASER_IMAGE_COUNT = 4;
+const FANLETTER_NEWS_REPORT_TEASER_IMAGE_COUNT_ERROR =
+  "At least four teaser images are required.";
+
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
 }
@@ -116,7 +120,8 @@ function getErrorStatus(message: string) {
     message === "contentId is required." ||
     message === "reportId is required." ||
     message === "Report title, summary, and body are required." ||
-    message === "Report summary facts are required."
+    message === "Report summary facts are required." ||
+    message === FANLETTER_NEWS_REPORT_TEASER_IMAGE_COUNT_ERROR
   ) {
     return 400;
   }
@@ -216,6 +221,22 @@ function serializeCoverOption(option: FanletterNewsReportCoverOption) {
     timestampSec: option.timestampSec,
     width: option.width,
   };
+}
+
+function countValidTeaserImages(
+  teaserImages: FanletterNewsReportCreateRequest["selectedTeaserImages"],
+) {
+  if (!Array.isArray(teaserImages)) {
+    return 0;
+  }
+
+  return teaserImages.filter(
+    (image) =>
+      typeof image?.imageUrl === "string" &&
+      image.imageUrl.trim().length > 0 &&
+      typeof image.sourceImageUrl === "string" &&
+      image.sourceImageUrl.trim().length > 0,
+  ).length;
 }
 
 async function resolveReporterCredentials({
@@ -409,6 +430,13 @@ export async function POST(request: Request) {
 
     if (reporter.error) {
       return reporter.error;
+    }
+
+    if (
+      countValidTeaserImages(body?.selectedTeaserImages) <
+      FANLETTER_NEWS_REPORT_MIN_TEASER_IMAGE_COUNT
+    ) {
+      return jsonError(FANLETTER_NEWS_REPORT_TEASER_IMAGE_COUNT_ERROR, 400);
     }
 
     const report = await getOrCreateFanletterNewsReport({

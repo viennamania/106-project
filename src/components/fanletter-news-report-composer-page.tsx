@@ -566,6 +566,8 @@ function getCopy(locale: Locale) {
           modalSelectedEmpty: "아직 선택한 컷이 없습니다.",
           modalTitle: "공개 티저 컷 고르기",
           modeLabel: "티저 컷 처리 방식",
+          minimumRequired: (count: string) =>
+            `4컷 기사에는 공개 티저 컷 ${count}장이 필요합니다. 다른 원본을 고르거나 직접 컷을 추가하세요.`,
           openPicker: "컷 고르기",
           ratio: "선택 저장 9:16",
           removeCut: "컷 삭제",
@@ -918,6 +920,8 @@ function getCopy(locale: Locale) {
           modalSelectedEmpty: "No cuts selected yet.",
           modalTitle: "Choose public teaser cuts",
           modeLabel: "Teaser cut mode",
+          minimumRequired: (count: string) =>
+            `A four-cut report needs ${count} public teaser cuts. Choose another source or add cuts manually.`,
           openPicker: "Choose cuts",
           ratio: "Optional 9:16 save",
           removeCut: "Delete cut",
@@ -3362,6 +3366,11 @@ export function FanletterNewsReportComposerPage({
       autoTeaserCandidateUrls,
       REPORT_TEASER_IMAGE_LIMIT,
     );
+
+    if (pickedImageUrls.length < REPORT_TEASER_IMAGE_LIMIT) {
+      return [];
+    }
+
     const croppedTeasers: ReportTeaserImagePayload[] = await Promise.all(
       pickedImageUrls.map(async (sourceImageUrl) => {
         const croppedTeaser = await uploadCroppedReportImage({
@@ -3402,6 +3411,16 @@ export function FanletterNewsReportComposerPage({
         teaserMode === "auto"
           ? selectedTeaserImages.map((image) => image.sourceImageUrl)
           : selectedTeaserCuts.map((cut) => cut.sourceImageUrl);
+
+      if (selectedTeaserImages.length < REPORT_TEASER_IMAGE_LIMIT) {
+        setError(
+          copy.teaserSelection.minimumRequired(
+            formatNumber(REPORT_TEASER_IMAGE_LIMIT, locale),
+          ),
+        );
+        setStatus("idle");
+        return;
+      }
 
       setStatus("submitting");
 
@@ -3460,6 +3479,7 @@ export function FanletterNewsReportComposerPage({
     angle,
     canSubmit,
     copy.failed,
+    copy.teaserSelection,
     createAutoCroppedTeaserImages,
     crop,
     getManualSelectedTeaserImages,
@@ -4730,18 +4750,18 @@ export function FanletterNewsReportComposerPage({
                   "inline-flex min-h-9 items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs font-black",
                   step.ready
                     ? isQuickComposer
-                      ? "border-[#44f26e]/18 bg-[#44f26e]/10 text-[#9bffad]"
+                      ? "border-[#44f26e]/30 bg-[#44f26e]/14 text-[#d7ffde]"
                       : "border-[#19b84b]/24 bg-white text-[#16702e]"
                     : isQuickComposer
-                      ? "border-white/10 bg-white/8 text-white/38"
-                      : "border-black/10 bg-white/70 text-black/38",
+                      ? "border-white/16 bg-white/10 text-white/66"
+                      : "border-black/10 bg-white/80 text-black/58",
                 )}
                 key={step.label}
               >
                 {step.ready ? (
                   <CheckCircle2 className="size-3.5 shrink-0" />
                 ) : (
-                  <span className="inline-flex size-3.5 shrink-0 items-center justify-center rounded-full bg-black/12 text-[0.58rem] text-black/46">
+                  <span className="inline-flex size-3.5 shrink-0 items-center justify-center rounded-full bg-black/12 text-[0.58rem] text-current">
                     {formatNumber(index + 1, locale)}
                   </span>
                 )}
@@ -4758,12 +4778,12 @@ export function FanletterNewsReportComposerPage({
                 <p className="text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#44f26e]">
                   {copy.quick.sourceList}
                 </p>
-                <p className="mt-1 truncate text-xs font-bold text-white/46">
+                <p className="mt-1 truncate text-xs font-bold text-white/72">
                   {locale === "ko"
                     ? `후보 ${formatNumber(quickMobileSources.length, locale)}개 · 좌우로 선택`
                     : `${formatNumber(quickMobileSources.length, locale)} candidates · swipe to choose`}
                 </p>
-                <p className="mt-1 line-clamp-1 text-[0.66rem] font-semibold text-white/34">
+                <p className="mt-1 line-clamp-1 text-[0.7rem] font-bold text-white/68">
                   {copy.quick.candidateHint}
                 </p>
               </div>
@@ -4824,7 +4844,7 @@ export function FanletterNewsReportComposerPage({
                       </span>
                     </span>
                     <span className="min-w-0 py-0.5">
-                      <span className="flex flex-wrap gap-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-white/44">
+                      <span className="flex flex-wrap gap-1 text-[0.62rem] font-black uppercase tracking-[0.08em] text-white/72">
                         <span>{source.creatorName}</span>
                         <span>
                           {source.sourceReveal.unlocked
@@ -5998,7 +6018,7 @@ export function FanletterNewsReportComposerPage({
                                             <AlertTriangle className="size-3.5 shrink-0 text-amber-600" />
                                           )}
                                         </span>
-                                        <span className="mt-2 block truncate text-[0.68rem] font-semibold text-black/46">
+                                        <span className="mt-2 block truncate text-[0.72rem] font-bold text-black/62">
                                           {item.label}
                                         </span>
                                         <span
@@ -6019,10 +6039,10 @@ export function FanletterNewsReportComposerPage({
                                         className="min-h-[5.25rem] rounded-lg border border-dashed border-black/14 bg-[#f6f8f4] p-2 text-left"
                                         key={`teaser-slot-${label}-empty`}
                                       >
-                                        <p className="truncate text-xs font-black text-black/38">
+                                        <p className="truncate text-xs font-black text-black/60">
                                           {label}
                                         </p>
-                                        <p className="mt-2 text-[0.68rem] font-black text-black/32">
+                                        <p className="mt-2 text-[0.7rem] font-black text-black/54">
                                           {copy.teaserSelection.slotEmpty}
                                         </p>
                                       </div>
