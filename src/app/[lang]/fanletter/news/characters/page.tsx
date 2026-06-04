@@ -1319,7 +1319,7 @@ export default async function LocalizedFanletterNewsCharactersPage({
 
       <section className="border-b border-black/20 bg-[#111510] text-white">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[minmax(0,1fr)_27rem] lg:px-8 lg:py-10">
-          <div>
+          <div className="min-w-0">
             {returnToHref ? (
               <Link
                 className="mb-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/[0.08] px-4 py-2 text-sm font-black !text-white transition hover:border-[#44f26e]/70 hover:bg-[#44f26e] hover:!text-black"
@@ -1372,7 +1372,7 @@ export default async function LocalizedFanletterNewsCharactersPage({
             />
           </div>
 
-          <aside className="border-t border-white/12 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+          <aside className="min-w-0 border-t border-white/12 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
             <div className="flex items-end justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">

@@ -287,7 +287,7 @@ export function FanletterNewsCharacterProfileMarquee({
   return (
     <div
       aria-label={ariaLabel}
-      className="fanletter-news-character-marquee mt-5 overflow-hidden border border-white/12 bg-white/[0.045] shadow-[0_14px_36px_rgba(0,0,0,0.16)]"
+      className="fanletter-news-character-marquee mt-5 max-w-full overflow-hidden border border-white/12 bg-white/[0.045] shadow-[0_14px_36px_rgba(0,0,0,0.16)]"
       role="region"
       style={marqueeStyle}
     >
