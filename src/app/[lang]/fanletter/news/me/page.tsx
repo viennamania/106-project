@@ -177,7 +177,7 @@ export default async function LocalizedFanletterNewsMePage({
 
   if (!session) {
     return (
-      <main className="min-h-screen bg-[#050706] px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-4 text-white">
+      <main className="min-h-screen bg-[#050706] px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4 text-white">
         <FanletterNewsReportsSessionBridge
           hasServerSession={false}
           locale={locale}
@@ -351,7 +351,7 @@ export default async function LocalizedFanletterNewsMePage({
   ];
 
   return (
-    <main className="min-h-screen bg-[#050706] px-4 pb-[calc(6.25rem+env(safe-area-inset-bottom))] pt-4 text-white">
+    <main className="min-h-screen bg-[#050706] px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4 text-white">
       <FanletterNewsReportsSessionBridge
         hasServerSession
         locale={locale}

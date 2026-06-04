@@ -291,6 +291,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     pathname === platformPath ||
     pathname === cutsPath ||
     pathname.startsWith(`${cutsPath}/`) ||
+    pathname === mePath ||
     pathname === quickReportPath ||
     isNewsReportDetailPath(pathname, basePath);
 
