@@ -3496,6 +3496,27 @@ export function FanletterNewsReportComposerPage({
     uploadCroppedReportImage,
   ]);
 
+  const scrollToReportSection = useCallback((sectionId: string) => {
+    document.getElementById(sectionId)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, []);
+
+  const handleMobileComposeAction = useCallback(() => {
+    if (canSubmit && !selectedExistingReport) {
+      void submitReport();
+      return;
+    }
+
+    scrollToReportSection("fanletter-report-compose");
+  }, [
+    canSubmit,
+    scrollToReportSection,
+    selectedExistingReport,
+    submitReport,
+  ]);
+
   const saveExistingReportCoverImage = useCallback(async () => {
     if (
       !selectedExistingReport ||
@@ -4720,9 +4741,10 @@ export function FanletterNewsReportComposerPage({
 
         <section
           className={cn(
-            "mt-3 border border-[#19b84b]/18 bg-[#ecfff0] p-3 shadow-[0_12px_28px_rgba(17,21,16,0.055)] lg:hidden",
-            isQuickComposer &&
-              "rounded-2xl border-[#44f26e]/18 bg-[#07110a] text-white shadow-[0_14px_38px_rgba(0,0,0,0.24)]",
+            "mt-3 border p-3 lg:hidden",
+            isQuickComposer
+              ? "rounded-2xl border-[#44f26e]/18 bg-[#07110a] text-white shadow-[0_14px_38px_rgba(0,0,0,0.24)]"
+              : "border-[#19b84b]/18 bg-[#ecfff0] shadow-[0_12px_28px_rgba(17,21,16,0.055)]",
           )}
         >
           <div className="flex items-center justify-between gap-3">
@@ -4797,7 +4819,7 @@ export function FanletterNewsReportComposerPage({
               </span>
             </div>
             <div className="-mx-1 mt-3 grid grid-flow-col auto-cols-[minmax(10rem,70vw)] gap-2 overflow-x-auto px-1 pb-1">
-              {quickMobileSources.slice(0, 12).map((source) => {
+              {quickMobileSources.map((source) => {
                 const isSelected = source.contentId === selectedContentId;
                 const sourceRevealCount = getSourceRevealCount(source);
                 const sourceRevealRemaining = getSourceRevealRemaining(source);
@@ -6610,7 +6632,7 @@ export function FanletterNewsReportComposerPage({
 
                     {!selectedExistingReport && !isSelectedPaidLocked ? (
                       <section
-                        className="border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5"
+                        className="scroll-mt-24 border border-black/12 bg-white p-4 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-5"
                         id="fanletter-report-compose"
                       >
                         <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
@@ -6779,6 +6801,7 @@ export function FanletterNewsReportComposerPage({
                         <button
                           className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black text-[#111510] transition hover:bg-[#65ff86] disabled:cursor-not-allowed disabled:opacity-55 sm:w-fit"
                           disabled={!canSubmit}
+                          id="fanletter-report-submit"
                           onClick={() => {
                             void submitReport();
                           }}
@@ -6840,32 +6863,40 @@ export function FanletterNewsReportComposerPage({
               </span>
             </div>
             <div className="grid grid-cols-3 gap-1.5">
-              <a
+              <button
                 className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-black/10 bg-[#f6f8f4] px-2 text-xs font-black !text-[#111510]"
-                href="#fanletter-report-source"
+                onClick={() => {
+                  scrollToReportSection("fanletter-report-source");
+                }}
+                type="button"
               >
                 <FileText className="size-3.5 text-[#16702e]" />
                 {copy.mobileAction.source}
-              </a>
-              <a
+              </button>
+              <button
                 className="inline-flex h-11 items-center justify-center gap-1.5 rounded-full border border-[#19b84b]/24 bg-[#ecfff0] px-2 text-xs font-black !text-[#16702e]"
-                href="#fanletter-report-teasers"
+                onClick={() => {
+                  scrollToReportSection("fanletter-report-teasers");
+                }}
+                type="button"
               >
                 <Crop className="size-3.5" />
                 {copy.mobileAction.teasers}
-              </a>
-              <a
+              </button>
+              <button
+                aria-controls="fanletter-report-compose"
                 className={cn(
                   "inline-flex h-11 items-center justify-center gap-1.5 rounded-full px-2 text-xs font-black",
                   canSubmit || selectedExistingReport
                     ? "bg-[#44f26e] !text-[#111510]"
                     : "bg-[#111510] !text-white",
                 )}
-                href="#fanletter-report-compose"
+                onClick={handleMobileComposeAction}
+                type="button"
               >
                 <Sparkles className="size-3.5" />
                 {copy.mobileAction.compose}
-              </a>
+              </button>
             </div>
           </div>
         </nav>
