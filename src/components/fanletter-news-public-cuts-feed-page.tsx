@@ -251,6 +251,9 @@ function getCopy(locale: Locale) {
         sourcePreviewBody:
           "6명의 오픈 스폰서가 모이면 전체 원본 브이로그가 공개됩니다.",
         sourcePreviewEyebrow: "원본 프리뷰",
+        sourcePreviewJoinedBody: (remaining: string) =>
+          `참여가 반영되었습니다. ${remaining}명만 더 참여하면 원본이 열리고, 내 참여 기록도 남습니다.`,
+        sourcePreviewJoinedTitle: "참여 완료 · 공개까지 이어집니다",
         sourcePreviewJoinCta: "오픈 스폰서로 참여",
         sourcePreviewLoginCta: "로그인하고 참여",
         sourcePreviewTitle: "프리뷰를 보고 원본 열기에 참여하세요",
@@ -423,6 +426,9 @@ function getCopy(locale: Locale) {
         sourcePreviewBody:
           "When 6 open sponsors join, the full source vlog opens.",
         sourcePreviewEyebrow: "Source preview",
+        sourcePreviewJoinedBody: (remaining: string) =>
+          `Your join was saved. ${remaining} more sponsor slots open the source, and your credit stays attached.`,
+        sourcePreviewJoinedTitle: "Joined · helping open the source",
         sourcePreviewJoinCta: "Join as open sponsor",
         sourcePreviewLoginCta: "Sign in to join",
         sourcePreviewTitle: "Preview it, then help open the source",
@@ -1734,6 +1740,8 @@ type SourceOverlayCopy = Pick<
   | "sourceOpenSponsorsRemaining"
   | "sourcePreviewBody"
   | "sourcePreviewEyebrow"
+  | "sourcePreviewJoinedBody"
+  | "sourcePreviewJoinedTitle"
   | "sourcePreviewJoinCta"
   | "sourcePreviewLoginCta"
   | "sourcePreviewTitle"
@@ -1884,6 +1892,18 @@ function SourceVlogFeedOverlay({
         : copy.sourcePreviewLoginCta;
   const sourceRevealCtaDisabled =
     Boolean(source?.sourceReveal.requestedByViewer) || isSourceRevealActionBusy;
+  const sourceRevealDoneFeedback =
+    source?.sourceReveal.requestedByViewer && !source.sourceReveal.unlocked ? (
+      <div className="rounded-2xl border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-2.5 text-[#d9ffdf]">
+        <p className="inline-flex items-center gap-1.5 text-xs font-black">
+          <CheckCircle2 className="size-3.5" />
+          {copy.sourcePreviewJoinedTitle}
+        </p>
+        <p className="mt-1 text-[0.68rem] font-bold leading-snug text-white/72 [word-break:keep-all]">
+          {copy.sourcePreviewJoinedBody(sourceRevealRemainingLabel)}
+        </p>
+      </div>
+    ) : null;
   const sourceRevealAction = source?.sourceReveal.unlocked ? null : (
     <button
       aria-label={`${sourceRevealCtaLabel} ${sourceRevealCountText}`}
@@ -2031,7 +2051,10 @@ function SourceVlogFeedOverlay({
                         style={{ width: `${sourceRevealProgressPercent}%` }}
                       />
                     </div>
-                    <div className="mt-3">{sourceRevealAction}</div>
+                    <div className="mt-3 grid gap-2">
+                      {sourceRevealAction}
+                      {sourceRevealDoneFeedback}
+                    </div>
                   </div>
                 ) : !isPlayable && lockedCopy ? (
                   <div className="absolute inset-0 flex items-center bg-[linear-gradient(180deg,rgba(0,0,0,0.14),rgba(0,0,0,0.42)_42%,rgba(0,0,0,0.66))] px-4 py-4 sm:p-5">
@@ -2058,7 +2081,10 @@ function SourceVlogFeedOverlay({
                       <div className="mt-4 grid gap-2">
                         {source.accessState === "source_reveal_locked" &&
                         sourceRevealAction ? (
-                          sourceRevealAction
+                          <>
+                            {sourceRevealAction}
+                            {sourceRevealDoneFeedback}
+                          </>
                         ) : null}
                         {paidUnlockHref ? (
                           <Link
@@ -2994,9 +3020,8 @@ function FeedSlide({
   const showSourceViewGuide =
     isActive && showSwipeGuide && sourceRevealState.unlocked && cutCount > 1;
   const showCutSwipeGuide = isActive && showSwipeGuide && cutCount > 1;
-  const cutSwipeGuideClassName = `pointer-events-none absolute left-[44%] z-30 w-[17rem] max-w-[calc(100%_-_6.8rem)] -translate-x-1/2 rounded-2xl border border-white/14 bg-black/58 px-4 py-3 text-center text-white shadow-[0_24px_70px_rgba(0,0,0,0.38)] backdrop-blur-xl ${
-    showSourceViewGuide ? "top-[54%]" : "top-[39%]"
-  }`;
+  const cutSwipeGuideClassName =
+    "pointer-events-none absolute left-1/2 top-[calc(env(safe-area-inset-top)+8.05rem)] z-30 w-fit max-w-[calc(100%_-_7rem)] -translate-x-1/2 rounded-full border border-white/14 bg-black/54 px-3 py-2 text-center text-white shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl";
   const inactiveArticleAttributes = isActive
     ? {}
     : {
@@ -3246,18 +3271,18 @@ function FeedSlide({
           className={cutSwipeGuideClassName}
           role="status"
         >
-          <div className="mx-auto flex items-center justify-center gap-2 text-[#9bffad]">
+          <div className="mx-auto flex items-center justify-center gap-1.5 text-[#9bffad]">
             <ChevronLeft className="size-4" />
-            <span className="relative h-9 w-20 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/10">
-              <span className="fanletter-cut-swipe-guide-thumb absolute left-1/2 top-1/2 inline-flex size-9 items-center justify-center rounded-full bg-[#44f26e] text-black shadow-[0_12px_28px_rgba(68,242,110,0.26)]">
+            <span className="relative h-7 w-14 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/10">
+              <span className="fanletter-cut-swipe-guide-thumb absolute left-1/2 top-1/2 inline-flex size-7 items-center justify-center rounded-full bg-[#44f26e] text-black shadow-[0_12px_28px_rgba(68,242,110,0.26)]">
                 <Images className="size-4" />
               </span>
             </span>
             <ChevronRight className="size-4" />
+            <span className="text-xs font-black tracking-normal [word-break:keep-all]">
+              {copy.swipeGuide(cutCountLabel)}
+            </span>
           </div>
-          <p className="mt-2 text-sm font-black tracking-normal [word-break:keep-all]">
-            {copy.swipeGuide(cutCountLabel)}
-          </p>
         </div>
       ) : null}
 
@@ -3684,6 +3709,7 @@ export function FanletterNewsPublicCutsFeedPage({
     getRolePreferenceSnapshot,
     getServerRolePreferenceSnapshot,
   );
+  const isSharedConsumptionEntry = Boolean(shareId || excludeReportId);
   const visibleItem =
     items[
       Math.min(Math.max(visibleFeedIndex, 0), Math.max(items.length - 1, 0))
@@ -3700,7 +3726,9 @@ export function FanletterNewsPublicCutsFeedPage({
       viewerReporterReferralCode === visibleItemReporterReferralCode,
   );
   const isReporterQuickDeskVisible = Boolean(
-    viewerReporterReferralCode && selectedRolePreference === "reporter",
+    viewerReporterReferralCode &&
+      selectedRolePreference === "reporter" &&
+      !isSharedConsumptionEntry,
   );
   const isVloggerDeskVisible = selectedRolePreference === "vlogger";
   const visibleCharacterVlogsHref = visibleItem?.report.creatorReferralCode
