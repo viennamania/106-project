@@ -115,6 +115,29 @@ function getCopy(locale: Locale) {
           reporters: "리포터 편집판",
           title: "FanLetter 노출력 편집판",
         },
+        todayPortal: {
+          body:
+            "뉴스, 무료 프리뷰, 캐릭터 채널, 리포터 활동을 한 화면에 묶어 매일 확인하는 업데이트 포털로 전환합니다.",
+          characterRank: "급상승 캐릭터 채널",
+          ctaCharacters: "캐릭터 포털",
+          ctaGallery: "티저 화보",
+          ctaNews: "전체 업데이트",
+          ctaReports: "리포터 참여",
+          empty: "표시할 업데이트가 준비되는 중입니다.",
+          eyebrow: "Daily Update Portal",
+          freePreview: "무료로 먼저 보는 프리뷰",
+          latest: "방금 올라온 업데이트",
+          publicBadge: "무료 프리뷰",
+          rank: "랭킹",
+          reporterSignal: "리포터 기여",
+          stats: {
+            characters: "캐릭터 채널",
+            freePreviews: "무료 프리뷰",
+            reporters: "활동 리포터",
+            updates: "오늘 볼 업데이트",
+          },
+          title: "오늘 업데이트만 훑어도 캐릭터 세계관이 이어집니다",
+        },
         firstReport: "최초 리포트",
         heroEyebrow: "FanLetter Entertainment News",
         issueLabel: "오늘의 FanLetter 엔터테인먼트 브리핑",
@@ -240,6 +263,29 @@ function getCopy(locale: Locale) {
             "A FanLetter news edition that curates fast-moving fan reports into exposure-ready leads and major headlines.",
           reporters: "Reporter Edition",
           title: "FanLetter Exposure Edition",
+        },
+        todayPortal: {
+          body:
+            "News, free previews, character channels, and reporter activity are bundled into a daily update portal users can check repeatedly.",
+          characterRank: "Rising character channels",
+          ctaCharacters: "Character portals",
+          ctaGallery: "Teaser gallery",
+          ctaNews: "All updates",
+          ctaReports: "Join reporters",
+          empty: "Updates are being prepared.",
+          eyebrow: "Daily Update Portal",
+          freePreview: "Free previews first",
+          latest: "Just-published updates",
+          publicBadge: "Free preview",
+          rank: "Rank",
+          reporterSignal: "Reporter signal",
+          stats: {
+            characters: "Character channels",
+            freePreviews: "Free previews",
+            reporters: "Active reporters",
+            updates: "Updates to watch",
+          },
+          title: "One daily scan should continue the character universe",
         },
         firstReport: "First report",
         heroEyebrow: "FanLetter Entertainment News",
@@ -949,6 +995,304 @@ function ProducerQuickStartRail({
             </div>
           );
         })}
+      </div>
+    </section>
+  );
+}
+
+function DailyUpdatePortal({
+  characters,
+  charactersHref,
+  copy,
+  freePreviewReports,
+  galleryHref,
+  latestReports,
+  locale,
+  referralCode,
+  reporterCount,
+  reporterStats,
+  reportNewHref,
+  reportsHref,
+}: {
+  characters: FanletterNewsCharacterStat[];
+  charactersHref: string;
+  copy: ReturnType<typeof getCopy>;
+  freePreviewReports: FanletterNewsReportDocument[];
+  galleryHref: string;
+  latestReports: FanletterNewsReportDocument[];
+  locale: Locale;
+  referralCode: string | null;
+  reporterCount: number;
+  reporterStats: ReporterStat[];
+  reportNewHref: string;
+  reportsHref: string;
+}) {
+  const topCharacters = characters.slice(0, 4);
+  const topReporter = reporterStats[0] ?? null;
+  const statItems = [
+    {
+      label: copy.todayPortal.stats.updates,
+      value: latestReports.length,
+    },
+    {
+      label: copy.todayPortal.stats.freePreviews,
+      value: freePreviewReports.length,
+    },
+    {
+      label: copy.todayPortal.stats.characters,
+      value: characters.length,
+    },
+    {
+      label: copy.todayPortal.stats.reporters,
+      value: reporterCount,
+    },
+  ];
+  const ctaItems = [
+    {
+      href: reportsHref,
+      icon: <Newspaper className="size-4" />,
+      label: copy.todayPortal.ctaNews,
+    },
+    {
+      href: galleryHref,
+      icon: <Images className="size-4" />,
+      label: copy.todayPortal.ctaGallery,
+    },
+    {
+      href: charactersHref,
+      icon: <UserRound className="size-4" />,
+      label: copy.todayPortal.ctaCharacters,
+    },
+    {
+      href: reportNewHref,
+      icon: <PenLine className="size-4" />,
+      label: copy.todayPortal.ctaReports,
+    },
+  ];
+
+  return (
+    <section
+      className="overflow-hidden border-2 border-[#111510] bg-[#111510] text-white shadow-[0_24px_68px_rgba(17,21,16,0.16)]"
+      id="today-update-portal"
+    >
+      <div className="grid gap-px bg-white/12 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)]">
+        <div className="bg-[#111510] p-4 sm:p-5 lg:p-6">
+          <p className="inline-flex items-center gap-2 text-[0.66rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
+            <Radio className="size-3.5" />
+            {copy.todayPortal.eyebrow}
+          </p>
+          <h2 className="mt-3 max-w-3xl break-words text-[2.35rem] font-black leading-[0.98] tracking-normal [word-break:keep-all] sm:text-[4rem] lg:text-[4.45rem]">
+            {copy.todayPortal.title}
+          </h2>
+          <p className="mt-4 max-w-2xl text-sm font-semibold leading-6 text-white/64 sm:text-base sm:leading-7">
+            {copy.todayPortal.body}
+          </p>
+
+          <div className="mt-5 grid grid-cols-2 gap-px bg-white/12 sm:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4">
+            {statItems.map((stat, index) => (
+              <div
+                className={
+                  index === 0
+                    ? "bg-[#44f26e] p-3 text-[#111510]"
+                    : index === 1
+                      ? "bg-[#ffd76b] p-3 text-[#111510]"
+                      : "bg-white/[0.07] p-3"
+                }
+                key={stat.label}
+              >
+                <p className="text-2xl font-black leading-none">
+                  {formatNumber(stat.value, locale)}
+                </p>
+                <p className="mt-2 truncate text-[0.56rem] font-black uppercase tracking-[0.1em] opacity-70">
+                  {stat.label}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-4">
+            {ctaItems.map((item, index) => (
+              <Link
+                className={
+                  index === 0
+                    ? "inline-flex min-h-11 items-center justify-center gap-2 bg-white px-3 text-sm font-black !text-[#111510] transition hover:bg-[#44f26e]"
+                    : "inline-flex min-h-11 items-center justify-center gap-2 border border-white/14 bg-white/[0.07] px-3 text-sm font-black !text-white transition hover:border-[#44f26e] hover:bg-[#44f26e]/10"
+                }
+                href={item.href}
+                key={item.label}
+              >
+                {item.icon}
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-px bg-[#111510] md:grid-cols-[minmax(0,1fr)_minmax(0,0.82fr)]">
+          <div className="bg-[#f8fbf5] p-3 text-[#111510] sm:p-4">
+            <div className="mb-3 flex items-center justify-between gap-3 border-b-2 border-[#111510] pb-2">
+              <h3 className="text-base font-black tracking-normal">
+                {copy.todayPortal.latest}
+              </h3>
+              <Clock3 className="size-4 text-[#16702e]" />
+            </div>
+            <div className="divide-y divide-black/10">
+              {latestReports.length > 0 ? (
+                latestReports.slice(0, 5).map((report, index) => {
+                  const shouldBlur = shouldBlurReport(report, false);
+                  const publishedAt = formatDate(
+                    report.sourcePublishedAt,
+                    locale,
+                  );
+
+                  return (
+                    <Link
+                      className="group grid grid-cols-[2rem_minmax(0,1fr)_auto] gap-2 py-3 first:pt-0 last:pb-0"
+                      href={getReportHref(report, referralCode)}
+                      key={report.reportId}
+                    >
+                      <span className="flex size-7 items-center justify-center bg-[#111510] text-xs font-black text-[#44f26e]">
+                        {index + 1}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="flex flex-wrap gap-2 text-[0.6rem] font-black uppercase tracking-[0.08em] text-black/42">
+                          <span className="text-[#16702e]">
+                            {getAccessLabel(report, copy)}
+                          </span>
+                          {publishedAt ? <span>{publishedAt}</span> : null}
+                        </span>
+                        <span
+                          className={`mt-1 block line-clamp-2 break-words text-sm font-black leading-5 [word-break:keep-all] group-hover:text-[#16702e] ${
+                            shouldBlur ? "select-none blur-[2px]" : ""
+                          }`}
+                        >
+                          {getArticleDisplayTitle(report.title)}
+                        </span>
+                      </span>
+                      <ArrowRight className="mt-1 size-4 text-black/28 transition group-hover:text-[#16702e]" />
+                    </Link>
+                  );
+                })
+              ) : (
+                <p className="py-4 text-sm font-semibold text-black/48">
+                  {copy.todayPortal.empty}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid gap-px bg-[#111510] sm:grid-cols-2 md:grid-cols-1">
+            <div className="bg-white p-3 text-[#111510] sm:p-4">
+              <div className="mb-3 flex items-center justify-between gap-3 border-b border-black/12 pb-2">
+                <h3 className="text-sm font-black">
+                  {copy.todayPortal.freePreview}
+                </h3>
+                <span className="bg-[#ffd76b] px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.08em] text-[#111510]">
+                  {copy.todayPortal.publicBadge}
+                </span>
+              </div>
+              <div className="space-y-2">
+                {freePreviewReports.slice(0, 3).map((report) => (
+                  <Link
+                    className="group grid grid-cols-[4.75rem_minmax(0,1fr)] gap-2"
+                    href={getReportHref(report, referralCode)}
+                    key={report.reportId}
+                  >
+                    <NewsImage
+                      className="aspect-[16/10] border border-black/10"
+                      report={report}
+                      sizes="4.75rem"
+                    />
+                    <span className="min-w-0 self-center">
+                      <span className="block line-clamp-2 break-words text-xs font-black leading-4 [word-break:keep-all] group-hover:text-[#16702e]">
+                        {getArticleDisplayTitle(report.title)}
+                      </span>
+                      <span className="mt-1 block truncate text-[0.58rem] font-bold text-black/42">
+                        {report.creatorName}
+                      </span>
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-[#f1f5ee] p-3 text-[#111510] sm:p-4">
+              <div className="mb-3 flex items-center justify-between gap-3 border-b border-black/12 pb-2">
+                <h3 className="text-sm font-black">
+                  {copy.todayPortal.characterRank}
+                </h3>
+                <span className="text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#16702e]">
+                  {copy.todayPortal.rank}
+                </span>
+              </div>
+              <div className="divide-y divide-black/10">
+                {topCharacters.map((character, index) => {
+                  const channelHref = buildPathWithReferral(
+                    `/${locale}/fanletter/news/characters/${character.referralCode}`,
+                    referralCode ?? character.referralCode,
+                  );
+
+                  return (
+                    <Link
+                      className="group grid grid-cols-[2rem_2.5rem_minmax(0,1fr)] items-center gap-2 py-2 first:pt-0 last:pb-0"
+                      href={channelHref}
+                      key={character.referralCode}
+                    >
+                      <span className="font-mono text-xs font-black text-[#16702e]">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="relative size-10 overflow-hidden rounded-full bg-[#111510]">
+                        {character.avatarImageUrl ? (
+                          <Image
+                            alt=""
+                            aria-hidden="true"
+                            className="object-cover"
+                            fill
+                            sizes="2.5rem"
+                            src={character.avatarImageUrl}
+                            unoptimized={shouldBypassFanletterImageOptimization(
+                              character.avatarImageUrl,
+                            )}
+                          />
+                        ) : (
+                          <span className="flex h-full w-full items-center justify-center text-white/64">
+                            <UserRound className="size-5" />
+                          </span>
+                        )}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-sm font-black group-hover:text-[#16702e]">
+                          {character.name}
+                        </span>
+                        <span className="mt-0.5 block truncate text-[0.58rem] font-black uppercase tracking-[0.08em] text-black/38">
+                          {formatNumber(character.newsCount, locale)}{" "}
+                          {copy.characterDirectory.news}
+                        </span>
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+              {topReporter ? (
+                <Link
+                  className="mt-3 flex items-center justify-between gap-3 border-t border-black/12 pt-3 text-xs font-bold text-black/50 transition hover:text-[#16702e]"
+                  href={getReporterNewsHref(
+                    locale,
+                    topReporter.referralCode,
+                    referralCode,
+                  )}
+                >
+                  <span className="min-w-0 truncate">
+                    {copy.todayPortal.reporterSignal}: {topReporter.name}
+                  </span>
+                  <span className="shrink-0 font-black text-[#16702e]">
+                    {formatNumber(topReporter.count, locale)}
+                  </span>
+                </Link>
+              ) : null}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -2463,6 +2807,10 @@ export default async function LocalizedFanletterNewsHomePage({
       : 0
     : getNewsroomReporterCount(reports);
   const visualReportCount = photoDeskReports.length;
+  const portalLatestReports = reports.filter(isEditorialSafeReport).slice(0, 6);
+  const portalFreePreviewReports = publicReports
+    .filter(isEditorialSafeReport)
+    .slice(0, 4);
   const charactersHref = buildPathWithReferral(
     `/${locale}/fanletter/news/characters`,
     referralCode,
@@ -2558,6 +2906,21 @@ export default async function LocalizedFanletterNewsHomePage({
                 reporterReferralCode={activeReporterReferralCode}
               />
             ) : null}
+
+            <DailyUpdatePortal
+              characters={characterNewsStats}
+              charactersHref={charactersHref}
+              copy={copy}
+              freePreviewReports={portalFreePreviewReports}
+              galleryHref={galleryHref}
+              latestReports={portalLatestReports}
+              locale={locale}
+              referralCode={referralCode}
+              reporterCount={displayedReporterCount}
+              reporterStats={reporterStats}
+              reportNewHref={reportNewHref}
+              reportsHref={reportsHref}
+            />
 
             <NewsFrontPage
               characterNewsStats={characterNewsStats}
