@@ -105,6 +105,6 @@ export async function GET(request: Request) {
       totalCount,
     });
   } catch {
-    return jsonError("Failed to load related FanLetter news.", 500);
+    return jsonError("Failed to load related AIAVpark news.", 500);
   }
 }

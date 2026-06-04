@@ -24,27 +24,27 @@ export function getFanletterOgAlt(locale: Locale, variant: FanletterOgVariant) {
   if (locale === "ko") {
     switch (variant) {
       case "creator":
-        return "FanLetter 크리에이터 채널 미리보기";
+        return "AIAVpark 크리에이터 채널 미리보기";
       case "feed":
-        return "FanLetter 공개 AI 콘텐츠 피드 미리보기";
+        return "AIAVpark 공개 AI 콘텐츠 피드 미리보기";
       case "start":
-        return "FanLetter 크리에이터 시작하기 미리보기";
+        return "AIAVpark 크리에이터 시작하기 미리보기";
       case "home":
       default:
-        return "FanLetter AI 크리에이터 수익화 홈 미리보기";
+        return "AIAVpark AI 크리에이터 수익화 홈 미리보기";
     }
   }
 
   switch (variant) {
     case "creator":
-      return "FanLetter creator channel preview";
+      return "AIAVpark creator channel preview";
     case "feed":
-      return "FanLetter public AI content feed preview";
+      return "AIAVpark public AI content feed preview";
     case "start":
-      return "FanLetter creator onboarding preview";
+      return "AIAVpark creator onboarding preview";
     case "home":
     default:
-      return "FanLetter AI creator monetisation home preview";
+      return "AIAVpark AI creator monetisation home preview";
   }
 }
 

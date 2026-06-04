@@ -44,7 +44,7 @@ function getCopy(locale: Locale) {
         emptyBody:
           "공개 가능한 뉴스 브이로그 티저가 준비되면 이곳에 먼저 표시됩니다.",
         emptyTitle: "아직 공개할 뉴스 티저가 없습니다.",
-        eyebrow: "FanLetter News Preview Gallery",
+        eyebrow: "AIAVpark News Preview Gallery",
         heroBody:
           "회원가입 전에도 원본 브이로그의 짧은 공개 티저만 빠르게 훑어볼 수 있는 뉴스 화보입니다. NSFW 콘텐츠와 원본 영상 URL은 이 페이지에서 제외합니다.",
         heroTitle: "뉴스 티저 화보",
@@ -65,7 +65,7 @@ function getCopy(locale: Locale) {
         },
         openNews: "뉴스 보기",
         openVlog: "원본 브이로그 열기",
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         stats: {
           characters: "캐릭터",
           reporters: "팬 기자",
@@ -74,9 +74,9 @@ function getCopy(locale: Locale) {
       }
     : {
         emptyBody:
-          "Public FanLetter News vlog teasers will appear here as they become available.",
+          "Public AIAVpark News vlog teasers will appear here as they become available.",
         emptyTitle: "No public news teasers yet.",
-        eyebrow: "FanLetter News Preview Gallery",
+        eyebrow: "AIAVpark News Preview Gallery",
         heroBody:
           "A public news gallery where visitors can preview short source-vlog teasers before joining. NSFW content and original video URLs are excluded from this page.",
         heroTitle: "News Teaser Gallery",
@@ -97,7 +97,7 @@ function getCopy(locale: Locale) {
         },
         openNews: "Read news",
         openVlog: "Open source vlog",
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         stats: {
           characters: "Characters",
           reporters: "Fan reporters",

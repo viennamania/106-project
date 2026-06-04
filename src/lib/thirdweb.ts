@@ -14,7 +14,7 @@ export const smartWalletChain = bsc;
 
 export function getAppMetadata(description: string) {
   return {
-    name: "Pocket Smart Wallet",
+    name: "AIAVpark",
     description,
     url: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
     logoUrl: "/favicon.ico",
@@ -36,10 +36,10 @@ export const emailWallet = inAppWallet({
     smartAccount: smartWalletOptions,
   },
   metadata: {
-    name: "Pocket Smart Wallet",
+    name: "AIAVpark",
     image: {
       src: "/favicon.ico",
-      alt: "Pocket Smart Wallet",
+      alt: "AIAVpark",
       width: 96,
       height: 96,
     },

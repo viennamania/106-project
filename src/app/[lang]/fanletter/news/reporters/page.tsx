@@ -496,7 +496,7 @@ export async function generateMetadata({
 
   return {
     description: copy.hero.body,
-    title: `${copy.hero.title} | FanLetter News`,
+    title: `${copy.hero.title} | AIAVpark News`,
   };
 }
 
@@ -595,7 +595,7 @@ export default async function FanletterNewsReportersDirectoryPage({
               className="inline-flex min-w-0 items-center break-words text-[2.05rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[4.25rem]"
               href={newsHomeHref}
             >
-              FanLetter News
+              AIAVpark News
             </Link>
             <Link
               className="hidden shrink-0 items-center gap-2 border border-black/14 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:inline-flex"

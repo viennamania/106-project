@@ -94,16 +94,16 @@ function getCopy(locale: Locale) {
           "9:16 세로형 영상이 정상 재생되는지 확인",
           "제목과 요약을 팬이 읽는 문장으로 정리",
           "캡션과 해시태그를 복사해 릴스/쇼츠/틱톡에 업로드",
-          "외부 게시 후 FanLetter 링크를 프로필이나 댓글에 연결",
+          "외부 게시 후 AIAVpark 링크를 프로필이나 댓글에 연결",
         ],
         channels: [
           {
-            body: "릴스 업로드용 캡션, 해시태그, FanLetter 링크를 한 번에 준비합니다.",
+            body: "릴스 업로드용 캡션, 해시태그, AIAVpark 링크를 한 번에 준비합니다.",
             meta: "수동 업로드",
             title: "Instagram Reels",
           },
           {
-            body: "쇼츠 설명문과 고정 댓글에 넣을 FanLetter 링크를 정리합니다.",
+            body: "쇼츠 설명문과 고정 댓글에 넣을 AIAVpark 링크를 정리합니다.",
             meta: "수동 업로드",
             title: "YouTube Shorts",
           },
@@ -114,15 +114,15 @@ function getCopy(locale: Locale) {
           },
         ],
         connectRequired:
-          "외부 채널 배포 관리는 FanLetter 계정 연결 후 사용할 수 있습니다.",
+          "외부 채널 배포 관리는 AIAVpark 계정 연결 후 사용할 수 있습니다.",
         connectTitle: "계정 연결이 필요합니다.",
         distributionBody:
-          "FanLetter 영상, 캡션, 해시태그, 링크를 릴스·쇼츠·틱톡 업로드에 바로 쓸 수 있는 게시 패키지로 정리합니다.",
+          "AIAVpark 영상, 캡션, 해시태그, 링크를 릴스·쇼츠·틱톡 업로드에 바로 쓸 수 있는 게시 패키지로 정리합니다.",
         distributionTitle: "외부 숏폼 채널에 올릴 준비를 끝냅니다.",
         emptyBody:
           "먼저 AI 캐릭터 브이로그를 만들면 외부 채널용 캡션과 링크 패키지가 자동으로 준비됩니다.",
         emptyTitle: "배포할 브이로그가 아직 없습니다.",
-        eyebrow: "FanLetter Channel Distribution",
+        eyebrow: "AIAVpark Channel Distribution",
         labels: {
           account: "계정 상태",
           automaticLater: "예약 게시·성과 분석 확장 예정",
@@ -139,7 +139,7 @@ function getCopy(locale: Locale) {
         },
         loading: "외부 채널 배포 상태를 확인하고 있습니다.",
         paymentRequired:
-          "FanLetter 시작 준비 확인이 끝나면 외부 채널 배포 관리를 사용할 수 있습니다.",
+          "AIAVpark 시작 준비 확인이 끝나면 외부 채널 배포 관리를 사용할 수 있습니다.",
         paymentTitle: "시작 준비 확인이 필요합니다.",
         postTypes: {
           video: "동영상",
@@ -167,16 +167,16 @@ function getCopy(locale: Locale) {
           "Check that the 9:16 vertical video plays correctly",
           "Turn title and summary into a fan-facing caption",
           "Copy caption and hashtags into Reels, Shorts, or TikTok",
-          "Add the FanLetter link to profile, description, or comments",
+          "Add the AIAVpark link to profile, description, or comments",
         ],
         channels: [
           {
-            body: "Prepare caption, hashtags, and FanLetter link for Reels upload.",
+            body: "Prepare caption, hashtags, and AIAVpark link for Reels upload.",
             meta: "Manual upload",
             title: "Instagram Reels",
           },
           {
-            body: "Prepare Shorts description and a pinned-comment FanLetter link.",
+            body: "Prepare Shorts description and a pinned-comment AIAVpark link.",
             meta: "Manual upload",
             title: "YouTube Shorts",
           },
@@ -187,15 +187,15 @@ function getCopy(locale: Locale) {
           },
         ],
         connectRequired:
-          "Channel distribution is available after connecting your FanLetter account.",
+          "Channel distribution is available after connecting your AIAVpark account.",
         connectTitle: "Account connection is required.",
         distributionBody:
-          "Turn each FanLetter video, caption, hashtag set, and link into a posting package for Reels, Shorts, and TikTok.",
+          "Turn each AIAVpark video, caption, hashtag set, and link into a posting package for Reels, Shorts, and TikTok.",
         distributionTitle: "Prepare external short-form publishing.",
         emptyBody:
           "Create an AI character vlog first, then caption and link packages will appear here.",
         emptyTitle: "No vlogs are ready for distribution yet.",
-        eyebrow: "FanLetter Channel Distribution",
+        eyebrow: "AIAVpark Channel Distribution",
         labels: {
           account: "Account state",
           automaticLater: "Scheduling and insights next",
@@ -212,7 +212,7 @@ function getCopy(locale: Locale) {
         },
         loading: "Checking channel distribution state.",
         paymentRequired:
-          "Confirm FanLetter readiness to use channel distribution.",
+          "Confirm AIAVpark readiness to use channel distribution.",
         paymentTitle: "Readiness confirmation is required.",
         postTypes: {
           video: "Video",
@@ -303,8 +303,8 @@ function buildHashtags(post: ContentPostRecord, locale: Locale) {
     .slice(0, 3);
   const base =
     locale === "ko"
-      ? ["FanLetter", "AI캐릭터", "브이로그", "숏폼영상"]
-      : ["FanLetter", "AICharacter", "Vlog", "Shorts"];
+      ? ["AIAVpark", "AI캐릭터", "브이로그", "숏폼영상"]
+      : ["AIAVpark", "AICharacter", "Vlog", "Shorts"];
   const uniqueTags = Array.from(new Set([...base, ...normalizedTags]));
 
   return uniqueTags.map((tag) => `#${tag.replace(/\s+/g, "")}`).join(" ");
@@ -331,7 +331,7 @@ function buildCaption({
       author ? `${author}의 새 AI 캐릭터 브이로그` : "새 AI 캐릭터 브이로그",
       post.title,
       summary,
-      "FanLetter에서 전체 콘텐츠를 확인하세요.",
+      "AIAVpark에서 전체 콘텐츠를 확인하세요.",
       contentUrl,
       hashtags,
     ]
@@ -343,7 +343,7 @@ function buildCaption({
     author ? `New AI character vlog from ${author}` : "New AI character vlog",
     post.title,
     summary,
-    "Watch the full content on FanLetter.",
+    "Watch the full content on AIAVpark.",
     contentUrl,
     hashtags,
   ]
@@ -893,7 +893,7 @@ export function FanletterChannelsPage({
                 <MessageCircleHeart className="size-5" />
               </span>
               <span className="truncate text-xl font-semibold tracking-normal">
-                FanLetter
+                AIAVpark
               </span>
             </Link>
             <div className="flex items-center gap-2">

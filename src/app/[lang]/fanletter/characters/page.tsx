@@ -53,15 +53,15 @@ function getCharactersMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "FanLetter에서 공개 브이로그와 팬 전용 콘텐츠로 성장 중인 AI 캐릭터 채널 전체 목록을 둘러보세요.",
-      title: "FanLetter AI 캐릭터 전체 목록",
+        "AIAVpark에서 공개 브이로그와 팬 전용 콘텐츠로 성장 중인 AI 캐릭터 채널 전체 목록을 둘러보세요.",
+      title: "AIAVpark AI 캐릭터 전체 목록",
     };
   }
 
   return {
     description:
-      "Browse every FanLetter AI character channel growing through public vlogs and fan-only content.",
-    title: "FanLetter AI Characters",
+      "Browse every AIAVpark AI character channel growing through public vlogs and fan-only content.",
+    title: "AIAVpark AI Characters",
   };
 }
 
@@ -106,7 +106,7 @@ export async function generateMetadata({
     openGraph: {
       description: meta.description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title: meta.title,
       type: "website",
       url,

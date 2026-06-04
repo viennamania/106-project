@@ -91,7 +91,7 @@ self.addEventListener("push", (event) => {
         icon: "/icon-192.png",
         notificationId: "",
         tag: "",
-        title: "Pocket Smart Wallet",
+        title: "AIAVpark",
         type: "direct_member_completed",
       };
 

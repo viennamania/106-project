@@ -190,7 +190,7 @@ export default async function Image() {
             fonts: [
               {
                 data: fontData,
-                name: "FanLetterKR",
+                name: "AIAVparkKR",
                 style: "normal" as const,
                 weight: 700 as const,
               },

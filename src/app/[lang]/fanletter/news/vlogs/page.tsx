@@ -63,8 +63,8 @@ export async function generateMetadata({
   const searchQuery = readVlogsQuery(query.q);
   const title =
     locale === "ko"
-      ? "브이로그 아카이브 | FanLetter News"
-      : "Vlog Archive | FanLetter News";
+      ? "브이로그 아카이브 | AIAVpark News"
+      : "Vlog Archive | AIAVpark News";
   const description =
     locale === "ko"
       ? "AI 캐릭터의 공개 브이로그와 팬 전용 티저를 이어서 둘러보세요."
@@ -106,7 +106,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter News",
+      siteName: "AIAVpark News",
       title,
       type: "website",
       url,

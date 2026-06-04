@@ -127,7 +127,7 @@ function getCopy(locale: Locale) {
         },
         empty: {
           body:
-            "이 캐릭터의 FanLetter News 리포트가 아직 없습니다. 공개 브이로그에서 AI 팬 리포트가 생성되면 이 채널에 축적됩니다.",
+            "이 캐릭터의 AIAVpark News 리포트가 아직 없습니다. 공개 브이로그에서 AI 팬 리포트가 생성되면 이 채널에 축적됩니다.",
           title: "뉴스 리포트가 아직 없습니다.",
         },
         generated: "AI 캐릭터 이미지",
@@ -145,7 +145,7 @@ function getCopy(locale: Locale) {
           eyebrow: "AI 캐릭터 채널",
           kicker: "뉴스 속 주인공",
           shareSummary: (name: string) =>
-            `${name}의 FanLetter News 캐릭터 채널`,
+            `${name}의 AIAVpark News 캐릭터 채널`,
           shareTitle: (name: string) => `${name} 뉴스 캐릭터 채널`,
         },
         latest: "최신",
@@ -249,7 +249,7 @@ function getCopy(locale: Locale) {
           quickTitle: "빠른 장면 요청",
           title: "팬 참여 루프",
         },
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         sourceReveal: {
           bodyLocked: (remaining: string) => `${remaining}명 더 누르면 원본 오픈`,
           bodyReady: "팬들이 열어낸 원본",
@@ -319,7 +319,7 @@ function getCopy(locale: Locale) {
         },
         empty: {
           body:
-            "FanLetter News reports for this character will collect here after AI fan reports are created from public vlogs.",
+            "AIAVpark News reports for this character will collect here after AI fan reports are created from public vlogs.",
           title: "No news reports yet.",
         },
         generated: "AI character image",
@@ -334,10 +334,10 @@ function getCopy(locale: Locale) {
           unlocks: "Paid unlocks",
         },
         hero: {
-          eyebrow: "FanLetter News Character Channel",
+          eyebrow: "AIAVpark News Character Channel",
           kicker: "News-only character IP channel",
           shareSummary: (name: string) =>
-            `${name}'s FanLetter News character channel`,
+            `${name}'s AIAVpark News character channel`,
           shareTitle: (name: string) => `${name} news character channel`,
         },
         latest: "Latest",
@@ -440,7 +440,7 @@ function getCopy(locale: Locale) {
           quickTitle: "Quick scene ideas",
           title: "Fan participation loop",
         },
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         sourceReveal: {
           bodyLocked: (remaining: string) =>
             `${remaining} more fan${remaining === "1" ? "" : "s"} to open`,
@@ -1466,16 +1466,16 @@ export async function generateMetadata({
   const characterName = data?.profile.character?.name ?? data?.profile.displayName;
   const copy = getCopy(locale);
   const title = characterName
-    ? `${characterName} | FanLetter News`
+    ? `${characterName} | AIAVpark News`
     : locale === "ko"
-      ? "FanLetter News 캐릭터 채널"
-      : "FanLetter News character channel";
+      ? "AIAVpark News 캐릭터 채널"
+      : "AIAVpark News character channel";
   const description =
     data?.profile.character?.summary ??
     data?.profile.intro ??
     (locale === "ko"
-      ? "FanLetter News 전용 AI 캐릭터 채널입니다."
-      : "A FanLetter News-only AI character channel.");
+      ? "AIAVpark News 전용 AI 캐릭터 채널입니다."
+      : "An AIAVpark News-only AI character channel.");
   const url = `/${locale}/fanletter/news/characters/${normalizedReferralCode}`;
   const image =
     data?.items[0]?.coverImageUrl ??

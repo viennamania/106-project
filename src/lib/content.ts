@@ -29,7 +29,7 @@ export const CONTENT_VIDEO_SOURCE_REQUIRED_ERROR =
 export const CONTENT_VIDEO_SOURCE_MIXED_ERROR =
   "Use either an AI-generated video or an uploaded video, not both.";
 export const CONTENT_PAID_FAN_REQUEST_REQUIRED_ERROR =
-  "Paid FanLetter content requires an unused fan vlog request.";
+  "Paid AIAVpark content requires an unused fan vlog request.";
 export const CONTENT_NSFW_REQUIRES_VIDEO_ERROR =
   "NSFW content requires a video.";
 export const CONTENT_EXCLUSIVE_NEWS_REPORTER_NOT_FOUND_ERROR =

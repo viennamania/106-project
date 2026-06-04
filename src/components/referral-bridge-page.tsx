@@ -137,16 +137,16 @@ export function ReferralBridgePage({
             copiedLink: "링크 복사됨",
             eyebrow: "KAKAO REFERRAL BRIDGE",
             intro:
-              "카카오톡 안에서는 이메일 로그인과 결제 흐름이 제한될 수 있습니다. 이미 설치했다면 홈 화면의 Pocket 앱을 직접 열고, 아니라면 먼저 외부 브라우저에서 이어가는 것을 권장합니다.",
+              "카카오톡 안에서는 이메일 로그인과 결제 흐름이 제한될 수 있습니다. 이미 설치했다면 홈 화면의 AIAVpark 앱을 직접 열고, 아니라면 먼저 외부 브라우저에서 이어가는 것을 권장합니다.",
             installTitle: "브라우저나 홈 화면 앱으로 이어가세요",
             installSteps:
               platformHint === "ios"
                 ? [
-                    "이미 설치했다면 홈 화면의 Pocket Smart Wallet 앱을 직접 열어보세요.",
+                    "이미 설치했다면 홈 화면의 AIAVpark 앱을 직접 열어보세요.",
                     "설치하지 않았다면 Safari로 연 뒤 공유 메뉴에서 홈 화면에 추가를 선택하세요.",
                   ]
                 : [
-                    "이미 설치했다면 홈 화면의 Pocket Smart Wallet 앱을 직접 열어보세요.",
+                    "이미 설치했다면 홈 화면의 AIAVpark 앱을 직접 열어보세요.",
                     "설치하지 않았다면 Chrome으로 연 뒤 브라우저 메뉴에서 앱 설치 또는 홈 화면에 추가를 선택하세요.",
                   ],
             opening: "브라우저를 여는 중...",
@@ -170,16 +170,16 @@ export function ReferralBridgePage({
             copiedLink: "Link copied",
             eyebrow: "KAKAO REFERRAL BRIDGE",
             intro:
-              "KakaoTalk's in-app browser can limit login and payment steps. If Pocket is already installed, open it from your home screen. Otherwise, continue in an external browser first.",
+              "KakaoTalk's in-app browser can limit login and payment steps. If AIAVpark is already installed, open it from your home screen. Otherwise, continue in an external browser first.",
             installTitle: "Continue in a browser or open the home screen app",
             installSteps:
               platformHint === "ios"
                 ? [
-                    "If Pocket is already installed, open it directly from your home screen.",
+                    "If AIAVpark is already installed, open it directly from your home screen.",
                     "If not, open this in Safari, then use Share > Add to Home Screen.",
                   ]
                 : [
-                    "If Pocket is already installed, open it directly from your home screen.",
+                    "If AIAVpark is already installed, open it directly from your home screen.",
                     "If not, open this in Chrome, then use Install app or Add to Home screen from the browser menu.",
                   ],
             opening: "Opening browser...",

@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     const message =
       error instanceof Error
         ? error.message
-        : "Failed to load FanLetter readiness.";
+        : "Failed to load AIAVpark readiness.";
 
     return jsonError(message, 500);
   }

@@ -28,12 +28,12 @@ export async function generateMetadata({
   const referralCode = readFanletterReferralCode(query.ref);
   const title =
     locale === "ko"
-      ? "내 팬 요청 인박스 | FanLetter"
-      : "My Fan Request Inbox | FanLetter";
+      ? "내 팬 요청 인박스 | AIAVpark"
+      : "My Fan Request Inbox | AIAVpark";
   const description =
     locale === "ko"
-      ? "FanLetter에서 내가 남긴 팬 요청을 접수, 검토, 제작 완료 단계로 추적하세요."
-      : "Track FanLetter fan requests from received to reviewed and produced.";
+      ? "AIAVpark에서 내가 남긴 팬 요청을 접수, 검토, 제작 완료 단계로 추적하세요."
+      : "Track AIAVpark fan requests from received to reviewed and produced.";
   const url = buildPathWithReferral(
     `/${locale}/fanletter/requests`,
     referralCode,
@@ -63,7 +63,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title,
       type: "website",
       url,

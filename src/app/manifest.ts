@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#0a1325",
     categories: ["finance", "productivity", "utilities"],
     description:
-      "Pocket Smart Wallet offers smart-wallet onboarding, referral rewards, and USDT wallet tools in a mobile-first experience.",
+      "AIAVpark brings AI character vlogs, fan requests, news reports, and creator monetization into a mobile-first experience.",
     display: "standalone",
     id: "/",
     icons: [
@@ -32,10 +32,10 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "maskable",
       },
     ],
-    name: "Pocket Smart Wallet",
+    name: "AIAVpark",
     orientation: "portrait",
     scope: "/",
-    short_name: "Pocket",
+    short_name: "AIAVpark",
     start_url: "/?pwa=1",
     theme_color: "#0a1325",
   };

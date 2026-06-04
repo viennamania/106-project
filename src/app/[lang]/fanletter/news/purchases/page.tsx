@@ -28,13 +28,13 @@ function getMetadataCopy(locale: Locale) {
   return locale === "ko"
       ? {
         description:
-          "FanLetter News에서 결제한 팬 전용 브이로그와 유료 콘텐츠를 다시 열어보세요.",
-        title: "내 구매 콘텐츠 | FanLetter News",
+          "AIAVpark News에서 결제한 팬 전용 브이로그와 유료 콘텐츠를 다시 열어보세요.",
+        title: "내 구매 콘텐츠 | AIAVpark News",
       }
     : {
         description:
-          "Review fan-only vlogs and paid content purchased from FanLetter News.",
-        title: "My purchases | FanLetter News",
+          "Review fan-only vlogs and paid content purchased from AIAVpark News.",
+        title: "My purchases | AIAVpark News",
       };
 }
 
@@ -79,7 +79,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter News",
+      siteName: "AIAVpark News",
       title,
       type: "website",
       url,

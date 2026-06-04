@@ -47,12 +47,12 @@ function getCopy(locale: Locale) {
         connectCta: "뉴스 계정 연결",
         connectTitle: "마이 페이지는 로그인 후 사용할 수 있습니다.",
         description:
-          "FanLetter News 탐색 메뉴에서 들어오는 마이 전용 모바일 페이지입니다.",
+          "AIAVpark News 탐색 메뉴에서 들어오는 마이 전용 모바일 페이지입니다.",
         heroBody:
           "소비자로 계속 보거나, 팬 리포터와 브이로거 작업으로 바로 전환합니다.",
-        heroEyebrow: "FanLetter News My",
+        heroEyebrow: "AIAVpark News My",
         heroTitle: "마이",
-        memberFallback: "FanLetter 회원",
+        memberFallback: "AIAVpark 회원",
         primaryActions: {
           continueFeed: "컷 피드 계속 보기",
           createReport: "리포트 작성",
@@ -73,7 +73,7 @@ function getCopy(locale: Locale) {
           votes: "참여",
           vlogs: "브이로그",
         },
-        title: "마이 | FanLetter News",
+        title: "마이 | AIAVpark News",
       }
     : {
         connectBody:
@@ -81,12 +81,12 @@ function getCopy(locale: Locale) {
         connectCta: "Connect news account",
         connectTitle: "My page requires sign-in.",
         description:
-          "A dedicated mobile My page opened from the FanLetter News explore menu.",
+          "A dedicated mobile My page opened from the AIAVpark News explore menu.",
         heroBody:
           "Keep consuming the feed, or switch directly into fan reporter and vlogger work.",
-        heroEyebrow: "FanLetter News My",
+        heroEyebrow: "AIAVpark News My",
         heroTitle: "My",
-        memberFallback: "FanLetter member",
+        memberFallback: "AIAVpark member",
         primaryActions: {
           continueFeed: "Continue cut feed",
           createReport: "Write report",
@@ -107,7 +107,7 @@ function getCopy(locale: Locale) {
           votes: "Joins",
           vlogs: "Vlogs",
         },
-        title: "My | FanLetter News",
+        title: "My | AIAVpark News",
       };
 }
 

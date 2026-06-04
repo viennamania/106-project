@@ -35,19 +35,19 @@ export async function generateMetadata({
   const locale = hasLocale(lang) ? lang : defaultLocale;
   const content = await getPublishedContentShareMetadata(contentId);
   const title = content
-    ? `${content.title} | FanLetter News`
+    ? `${content.title} | AIAVpark News`
     : locale === "ko"
-      ? "FanLetter News 브이로그"
-      : "FanLetter News vlog";
+      ? "AIAVpark News 브이로그"
+      : "AIAVpark News vlog";
   const description =
     content?.summary ??
     (locale === "ko"
-      ? "FanLetter News 전용 AI 캐릭터 브이로그 상세 페이지입니다."
-      : "A FanLetter News AI character vlog detail page.");
+      ? "AIAVpark News 전용 AI 캐릭터 브이로그 상세 페이지입니다."
+      : "An AIAVpark News AI character vlog detail page.");
   const ogImagePath = `/api/og/content?lang=${locale}&contentId=${encodeURIComponent(contentId)}${content ? `&v=${encodeURIComponent(content.updatedAt.toISOString())}` : ""}`;
   const url = `/${locale}/fanletter/news/vlogs/${contentId}`;
   const ogImage = {
-    alt: content?.title ?? "FanLetter News",
+    alt: content?.title ?? "AIAVpark News",
     height: FANLETTER_OG_IMAGE_SIZE.height,
     type: "image/png",
     url: ogImagePath,
@@ -63,7 +63,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter News",
+      siteName: "AIAVpark News",
       title,
       type: content?.hasVideo ? "video.other" : "website",
       url,

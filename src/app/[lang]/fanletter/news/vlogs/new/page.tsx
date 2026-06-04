@@ -18,13 +18,13 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "FanLetter News에 노출할 무료 공개 브이로그를 AI로 만들거나 직접 업로드하고, 프리뷰 영상과 프레임 후보를 함께 준비합니다.",
-        title: "새 브이로그 등록 | FanLetter News",
+          "AIAVpark News에 노출할 무료 공개 브이로그를 AI로 만들거나 직접 업로드하고, 프리뷰 영상과 프레임 후보를 함께 준비합니다.",
+        title: "새 브이로그 등록 | AIAVpark News",
       }
     : {
         description:
-          "Create or upload a free public vlog for FanLetter News, including preview video and frame candidates.",
-        title: "Register New Vlog | FanLetter News",
+          "Create or upload a free public vlog for AIAVpark News, including preview video and frame candidates.",
+        title: "Register New Vlog | AIAVpark News",
       };
 }
 

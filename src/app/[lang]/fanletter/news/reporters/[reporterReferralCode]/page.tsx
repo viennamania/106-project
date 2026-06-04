@@ -107,7 +107,7 @@ function getCopy(locale: Locale) {
           votes: "보고싶어요",
         },
         reporterDesk: "리포터 데스크",
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         trust: {
           basis: "작성·반응·언락·구매 기여 기준",
           max: "최고 등급",
@@ -184,7 +184,7 @@ function getCopy(locale: Locale) {
           votes: "Want-to-watch",
         },
         reporterDesk: "Reporter desk",
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         trust: {
           basis: "Based on reports, reactions, unlocks, and purchases",
           max: "Top level",
@@ -465,7 +465,7 @@ export async function generateMetadata({
 
   if (!normalizedReporterReferralCode) {
     return {
-      title: `${copy.hero.titleSuffix} | FanLetter News`,
+      title: `${copy.hero.titleSuffix} | AIAVpark News`,
     };
   }
 
@@ -476,7 +476,7 @@ export async function generateMetadata({
     profile?.displayName ?? copy.hero.fallbackName(normalizedReporterReferralCode);
 
   return {
-    title: `${reporterName} ${copy.hero.titleSuffix} | FanLetter News`,
+    title: `${reporterName} ${copy.hero.titleSuffix} | AIAVpark News`,
     description: copy.hero.body,
   };
 }

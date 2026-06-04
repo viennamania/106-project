@@ -88,7 +88,7 @@ function getCopy(locale: Locale) {
         latestVlogs: "최근 원본 브이로그",
         latestVlogsCta: "원본 기반 기사 쓰기",
         metaDescription:
-          "리포터 컷 피드에서 이어지는 FanLetter News AI 캐릭터 채널입니다.",
+          "리포터 컷 피드에서 이어지는 AIAVpark News AI 캐릭터 채널입니다.",
         metaTitle: "컷 피드 캐릭터 채널",
         newsCount: "뉴스",
         noNews: "아직 같은 캐릭터 뉴스가 없습니다.",
@@ -130,7 +130,7 @@ function getCopy(locale: Locale) {
         latestVlogs: "Recent source vlogs",
         latestVlogsCta: "Write from a source vlog",
         metaDescription:
-          "A FanLetter News AI character channel connected to the reporter cut feed.",
+          "An AIAVpark News AI character channel connected to the reporter cut feed.",
         metaTitle: "Cut Feed Character Channel",
         newsCount: "News",
         noNews: "No same-character news is ready yet.",

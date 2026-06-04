@@ -28,12 +28,12 @@ export async function generateMetadata({
   const referralCode = readFanletterReferralCode(query.ref);
   const title =
     locale === "ko"
-      ? "FanLetter 나의 AI 캐릭터 브이로그 스튜디오"
-      : "FanLetter My AI Character Vlog Studio";
+      ? "AIAVpark 나의 AI 캐릭터 브이로그 스튜디오"
+      : "AIAVpark My AI Character Vlog Studio";
   const description =
     locale === "ko"
-      ? "FanLetter 안에서 AI 캐릭터 프로필, 숏폼 브이로그 생성, 게시물 관리, 판매 요약을 확인하세요."
-      : "Manage AI character profile, short-form vlog creation, posts, and sales summary inside FanLetter.";
+      ? "AIAVpark 안에서 AI 캐릭터 프로필, 숏폼 브이로그 생성, 게시물 관리, 판매 요약을 확인하세요."
+      : "Manage AI character profile, short-form vlog creation, posts, and sales summary inside AIAVpark.";
   const url = buildPathWithReferral(
     `/${locale}/fanletter/studio`,
     referralCode,
@@ -63,7 +63,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title,
       type: "website",
       url,

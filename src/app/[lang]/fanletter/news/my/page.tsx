@@ -41,16 +41,16 @@ function getCopy(locale: Locale) {
   return locale === "ko"
       ? {
         connectBody:
-          "FanLetter News의 구매함, 팬 리포트, 브이로그 생성 동선을 이어가려면 뉴스 계정 연결이 필요합니다.",
+          "AIAVpark News의 구매함, 팬 리포트, 브이로그 생성 동선을 이어가려면 뉴스 계정 연결이 필요합니다.",
         connectCta: "뉴스 계정 연결",
         connectTitle: "내 뉴스 허브는 로그인 후 사용할 수 있습니다.",
         description:
-          "FanLetter News 회원이 구매, 팬 리포트, 브이로그 생성 바로가기를 관리하는 모바일 허브입니다.",
+          "AIAVpark News 회원이 구매, 팬 리포트, 브이로그 생성 바로가기를 관리하는 모바일 허브입니다.",
         email: "계정",
-        fallbackName: "FanLetter 회원",
+        fallbackName: "AIAVpark 회원",
         heroBody:
           "뉴스 소비, 팬 리포터 활동, 브이로거 작업을 전환하고 모바일 푸터의 바로가기를 내 역할에 맞춥니다.",
-        heroEyebrow: "My FanLetter News",
+        heroEyebrow: "My AIAVpark News",
         heroTitle: "내 뉴스 허브",
         memberStatus: {
           completed: "활성 회원",
@@ -74,7 +74,7 @@ function getCopy(locale: Locale) {
           sourceVotes: "내 참여",
           vlogs: "브이로그",
         },
-        title: "내 뉴스 허브 | FanLetter News",
+        title: "내 뉴스 허브 | AIAVpark News",
       }
     : {
         connectBody:
@@ -82,12 +82,12 @@ function getCopy(locale: Locale) {
         connectCta: "Connect news account",
         connectTitle: "My News hub requires sign-in.",
         description:
-          "A mobile hub for FanLetter News members to manage purchases, fan reports, and vlog creation shortcuts.",
+          "A mobile hub for AIAVpark News members to manage purchases, fan reports, and vlog creation shortcuts.",
         email: "Account",
-        fallbackName: "FanLetter member",
+        fallbackName: "AIAVpark member",
         heroBody:
           "Switch between news reader, fan reporter, and vlogger workflows while tailoring the mobile footer shortcut to your role.",
-        heroEyebrow: "My FanLetter News",
+        heroEyebrow: "My AIAVpark News",
         heroTitle: "My News Hub",
         memberStatus: {
           completed: "Active member",
@@ -111,7 +111,7 @@ function getCopy(locale: Locale) {
           sourceVotes: "My joins",
           vlogs: "Vlogs",
         },
-        title: "My News Hub | FanLetter News",
+        title: "My News Hub | AIAVpark News",
       };
 }
 
@@ -398,7 +398,7 @@ export default async function LocalizedFanletterNewsMyPage({
             href={newsHomeHref}
           >
             <Newspaper className="size-4" />
-            FanLetter News
+            AIAVpark News
           </Link>
           <Link
             className="hidden h-10 items-center justify-center gap-2 rounded-full border border-black/10 bg-white px-3 text-xs font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0] sm:inline-flex"

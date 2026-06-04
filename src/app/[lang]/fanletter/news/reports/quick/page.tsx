@@ -30,7 +30,7 @@ export async function generateMetadata({
       follow: false,
       index: false,
     },
-    title: `${copy.title} | FanLetter News`,
+    title: `${copy.title} | AIAVpark News`,
   };
 }
 

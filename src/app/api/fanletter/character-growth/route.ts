@@ -39,7 +39,7 @@ export async function GET(request: Request) {
     const message =
       error instanceof Error
         ? error.message
-        : "Failed to load FanLetter character growth.";
+        : "Failed to load AIAVpark character growth.";
 
     return jsonError(message, 500);
   }

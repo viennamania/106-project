@@ -427,8 +427,8 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
       <nav
         aria-label={
           locale === "ko"
-            ? "FanLetter News 모바일 메뉴"
-            : "FanLetter News mobile navigation"
+            ? "AIAVpark News 모바일 메뉴"
+            : "AIAVpark News mobile navigation"
         }
         className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(0.55rem+env(safe-area-inset-bottom))] pt-2 text-[#111510] md:hidden"
       >

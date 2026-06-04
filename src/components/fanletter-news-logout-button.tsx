@@ -15,8 +15,8 @@ function getCopy(locale: Locale) {
         cancel: "취소",
         confirm: "로그아웃",
         description:
-          "현재 FanLetter News 계정 연결을 해제합니다. 다시 이용하려면 이메일로 다시 연결하면 됩니다.",
-        eyebrow: "FanLetter News",
+          "현재 AIAVpark News 계정 연결을 해제합니다. 다시 이용하려면 이메일로 다시 연결하면 됩니다.",
+        eyebrow: "AIAVpark News",
         pending: "로그아웃 중",
         title: "로그아웃할까요?",
       }
@@ -24,8 +24,8 @@ function getCopy(locale: Locale) {
         cancel: "Cancel",
         confirm: "Log out",
         description:
-          "This disconnects the current FanLetter News account session. You can reconnect with email anytime.",
-        eyebrow: "FanLetter News",
+          "This disconnects the current AIAVpark News account session. You can reconnect with email anytime.",
+        eyebrow: "AIAVpark News",
         pending: "Logging out",
         title: "Log out?",
       };

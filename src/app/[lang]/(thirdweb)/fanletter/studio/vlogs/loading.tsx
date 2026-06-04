@@ -11,7 +11,7 @@ export default function FanletterVlogsLoading() {
               <span className="flex size-9 items-center justify-center rounded-lg bg-[#44f26e] text-black">
                 <MessageCircleHeart className="size-5" />
               </span>
-              <span className="text-sm font-semibold">FanLetter</span>
+              <span className="text-sm font-semibold">AIAVpark</span>
             </div>
             <div className="size-11 rounded-full border border-white/14 bg-white/[0.04]" />
           </header>

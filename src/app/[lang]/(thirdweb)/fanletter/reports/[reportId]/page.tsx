@@ -316,11 +316,11 @@ export async function generateMetadata({
   const copy = getCopy(locale);
 
   return {
-    title: `${copy.title} | FanLetter`,
+    title: `${copy.title} | AIAVpark`,
     description:
       locale === "ko"
-        ? `FanLetter AI 팬 리포트 ${reportId} 수정`
-        : `Edit FanLetter AI fan report ${reportId}`,
+        ? `AIAVpark AI 팬 리포트 ${reportId} 수정`
+        : `Edit AIAVpark AI fan report ${reportId}`,
   };
 }
 

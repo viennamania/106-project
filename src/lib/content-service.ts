@@ -1627,13 +1627,13 @@ async function getPublishedContentShareMetadata(contentId: string) {
     publishedAt: post.publishedAt ?? null,
     summary: isNsfwContent
       ? postLocale === "ko"
-        ? "별도 opt-in 후 확인할 수 있는 FanLetter 팬 전용 콘텐츠입니다."
-        : "FanLetter fan-only content available after a separate opt-in."
+        ? "별도 opt-in 후 확인할 수 있는 AIAVpark 팬 전용 콘텐츠입니다."
+        : "AIAVpark fan-only content available after a separate opt-in."
       : post.summary,
     title: isNsfwContent
       ? postLocale === "ko"
-        ? "FanLetter NSFW 팬 전용 콘텐츠"
-        : "FanLetter NSFW fan-only content"
+        ? "AIAVpark NSFW 팬 전용 콘텐츠"
+        : "AIAVpark NSFW fan-only content"
       : post.title,
     updatedAt: post.updatedAt,
   };
@@ -2387,7 +2387,7 @@ export async function getContentSourceRevealParticipants(
     const displayName =
       trimToLength(publicProfile?.displayName, 24) ||
       trimToLength(member?.referralCode, 12) ||
-      "FanLetter fan";
+      "AIAVpark fan";
     const requestedAt =
       action.sourceRevealRequestedAt ?? action.updatedAt ?? action.createdAt ?? null;
 

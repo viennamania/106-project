@@ -268,8 +268,8 @@ function buildVideoCoverVisualBrief(options: {
 
   return [
     isPaid
-      ? "FanLetter paid video public teaser cover for a locked 1 USDT fan-only vlog."
-      : "FanLetter public AI character vlog cover for an unlocked feed video.",
+      ? "AIAVpark paid video public teaser cover for a locked 1 USDT fan-only vlog."
+      : "AIAVpark public AI character vlog cover for an unlocked feed video.",
     isPaid
       ? "Create curiosity before payment without revealing the full paid content."
       : "Create a clear, inviting public thumbnail that represents the vlog mood.",

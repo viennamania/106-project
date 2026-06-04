@@ -90,7 +90,7 @@ function getCopy(locale: Locale) {
         },
         detail: {
           backToArchive: "공개 브이로그 목록",
-          eyebrow: "FanLetter News Vlog",
+          eyebrow: "AIAVpark News Vlog",
           generalStatus: "일반",
           lockedBody:
             "팬 전용 원본 브이로그는 결제 후 뉴스 서비스 안에서 바로 열람할 수 있습니다.",
@@ -121,7 +121,7 @@ function getCopy(locale: Locale) {
           allCount: (count: string) => `브이로그 ${count}개`,
           description:
             "AI 캐릭터의 공개 브이로그와 팬 전용 티저를 둘러보고, 관련 리포트와 캐릭터 채널로 바로 이어갑니다.",
-          eyebrow: "FanLetter Vlog Archive",
+          eyebrow: "AIAVpark Vlog Archive",
           fanOnlyTitle: "팬 전용 브이로그 티저",
           publicTitle: "공개 브이로그",
           searchPlaceholder: "캐릭터, 제목, 키워드 검색",
@@ -153,8 +153,8 @@ function getCopy(locale: Locale) {
         relatedVlogs: "같은 캐릭터의 다른 공개 브이로그",
         relatedVlogsEmpty: "이어볼 공개 브이로그가 아직 없습니다.",
         reportUnit: "뉴스",
-        siteEdition: "AI 캐릭터와 팬 리포트를 다루는 FanLetter 온라인 뉴스",
-        siteName: "FanLetter News",
+        siteEdition: "AI 캐릭터와 팬 리포트를 다루는 AIAVpark 온라인 뉴스",
+        siteName: "AIAVpark News",
         sort: "정렬",
         source: "원본",
         sourceReveal: {
@@ -164,7 +164,7 @@ function getCopy(locale: Locale) {
           complete: "오픈 완료",
           detailBody:
             "여러 티저 컷으로 분위기를 먼저 확인하고, 팬 리포트에서 모인 오픈 진행률을 이어서 확인하세요.",
-          detailEyebrow: "FanLetter 팬 오픈",
+          detailEyebrow: "AIAVpark 팬 오픈",
           detailMeta: "티저 컷 먼저 공개",
           detailNote:
             "보고싶어요 참여는 팬 기자가 작성한 뉴스 리포트에서 진행됩니다.",
@@ -198,7 +198,7 @@ function getCopy(locale: Locale) {
           archive: "Public vlogs",
           character: "Character news home",
           newsHome: "News home",
-          original: "Original FanLetter page",
+          original: "Original AIAVpark page",
           purchases: "Purchases",
           reportSource: "Use as report source",
           readNews: "Read news",
@@ -207,10 +207,10 @@ function getCopy(locale: Locale) {
         },
         detail: {
           backToArchive: "Public vlog archive",
-          eyebrow: "FanLetter News Vlog",
+          eyebrow: "AIAVpark News Vlog",
           generalStatus: "General",
           lockedBody:
-            "Unlock the fan-only source vlog and continue watching inside FanLetter News.",
+            "Unlock the fan-only source vlog and continue watching inside AIAVpark News.",
           lockedMeta: "Full video · body · extra media",
           lockedTitle: "Unlock fan-only vlog",
           meta: "Continue the source vlog inside the News service.",
@@ -238,7 +238,7 @@ function getCopy(locale: Locale) {
           allCount: (count: string) => `${count} vlogs`,
           description:
             "Browse AI character public vlogs and fan-only teasers, then continue into related reports and character channels.",
-          eyebrow: "FanLetter Vlog Archive",
+          eyebrow: "AIAVpark Vlog Archive",
           fanOnlyTitle: "Fan-only vlog teasers",
           publicTitle: "Public vlogs",
           searchPlaceholder: "Search character, title, or keyword",
@@ -270,8 +270,8 @@ function getCopy(locale: Locale) {
         relatedVlogs: "More public vlogs from this character",
         relatedVlogsEmpty: "No other public vlogs are ready yet.",
         reportUnit: "news",
-        siteEdition: "FanLetter online news for AI characters and fan reports",
-        siteName: "FanLetter News",
+        siteEdition: "AIAVpark online news for AI characters and fan reports",
+        siteName: "AIAVpark News",
         sort: "Sort",
         source: "Source",
         sourceReveal: {
@@ -281,7 +281,7 @@ function getCopy(locale: Locale) {
           complete: "Opened",
           detailBody:
             "Preview the mood through several teaser cuts, then keep track of open progress gathered from fan reports.",
-          detailEyebrow: "FanLetter fan open",
+          detailEyebrow: "AIAVpark fan open",
           detailMeta: "Teaser cuts first",
           detailNote:
             "Want-to-watch participation happens from fan reporter news reports.",
@@ -2257,7 +2257,7 @@ export function FanletterNewsVlogDetailPage({
                   </span>
                   <div>
                     <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#16702e]">
-                      FanLetter Wallet
+                      AIAVpark Wallet
                     </p>
                     <h2 className="mt-1 text-2xl font-black">
                       {copy.detail.lockedTitle}

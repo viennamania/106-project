@@ -47,13 +47,13 @@ type ReportMaturityFilter = "all" | ContentMaturityRating;
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
-        badge: "내 FanLetter News",
+        badge: "내 AIAVpark News",
         body:
           "내가 만든 팬 리포트를 독자가 보는 뉴스 카드처럼 모아보고, 필요한 리포트만 다시 열어 수정하세요.",
         connectBody:
-          "내가 작성한 팬 리포트를 보려면 FanLetter News 계정을 연결하세요. 연결 후 내 뉴스와 작성 흐름을 바로 이어갈 수 있습니다.",
+          "내가 작성한 팬 리포트를 보려면 AIAVpark News 계정을 연결하세요. 연결 후 내 뉴스와 작성 흐름을 바로 이어갈 수 있습니다.",
         connectCta: "뉴스 계정 연결",
-        connectTitle: "FanLetter News 연결이 필요합니다.",
+        connectTitle: "AIAVpark News 연결이 필요합니다.",
         coverDesk: "커버",
         coverDeskValue: "편집 가능",
         coverImage: "커버",
@@ -149,13 +149,13 @@ function getCopy(locale: Locale) {
         updatedAt: "최근 수정",
       }
     : {
-        badge: "My FanLetter News",
+        badge: "My AIAVpark News",
         body:
           "Browse the fan reports you created as reader-facing news cards, then reopen only the stories you want to update.",
         connectBody:
-          "Connect your FanLetter News account to see the fan reports you created and continue your writing flow.",
+          "Connect your AIAVpark News account to see the fan reports you created and continue your writing flow.",
         connectCta: "Connect news account",
-        connectTitle: "Connect FanLetter News.",
+        connectTitle: "Connect AIAVpark News.",
         coverDesk: "Cover",
         coverDeskValue: "Editable",
         coverImage: "Cover",
@@ -345,7 +345,7 @@ export async function generateMetadata({
   const copy = getCopy(locale);
 
   return {
-    title: `${copy.title} | FanLetter News`,
+    title: `${copy.title} | AIAVpark News`,
     description: copy.body,
     robots: {
       follow: false,
@@ -609,7 +609,7 @@ export default async function LocalizedFanletterNewsReportsPage({
             href={newsHomeHref}
           >
             <Newspaper className="size-4" />
-            FanLetter News
+            AIAVpark News
           </Link>
           <nav className="hidden items-center gap-2 sm:flex">
             {topNavItems.map((item) => {

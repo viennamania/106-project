@@ -1861,7 +1861,7 @@ export function CreatorContentStudioPage({
       ? {
           description:
             "팬이 남긴 브이로그 요청에 직접 업로드 영상으로 답장합니다.",
-          eyebrow: "FanLetter Paid Upload",
+          eyebrow: "AIAVpark Paid Upload",
           helper:
             "유료 콘텐츠 등록에는 직접 업로드한 동영상 1개가 필요합니다.",
           composerTitle: "요청에 영상으로 답장",
@@ -1968,7 +1968,7 @@ export function CreatorContentStudioPage({
       : {
           description:
             "Reply to a fan vlog request with a directly uploaded paid video.",
-          eyebrow: "FanLetter Paid Upload",
+          eyebrow: "AIAVpark Paid Upload",
           helper: "Paid content requires one directly uploaded video.",
           composerTitle: "Reply with a video",
           composerDescription:
@@ -2014,7 +2014,7 @@ export function CreatorContentStudioPage({
           publishCoverFailed:
             "A public teaser cover is required before publishing this paid vlog. Generate again or upload a cover manually.",
           publishCoverGenerating:
-            "No cover is set, so FanLetter is extracting a cover frame from the uploaded video before publishing.",
+            "No cover is set, so AIAVpark is extracting a cover frame from the uploaded video before publishing.",
           imageEmpty:
             "Add directly uploaded images that should appear on the paid detail page.",
           previewHint:
@@ -2025,7 +2025,7 @@ export function CreatorContentStudioPage({
           previewRequiredLabel: "Public teaser (required)",
           readinessAuto: "Auto",
           readinessCoverDescription:
-            "If no cover is set, FanLetter extracts one from the uploaded video.",
+            "If no cover is set, AIAVpark extracts one from the uploaded video.",
           readinessCoverLabel: "Public cover",
           readinessMissing: "Required",
           readinessPreviewDescription:
@@ -4599,7 +4599,7 @@ export function CreatorContentStudioPage({
         ?.prompt ?? paidTeaserCoverStyles[0]?.prompt;
 
     return [
-      "FanLetter paid video public teaser cover for a locked 1 USDT fan-only vlog.",
+      "AIAVpark paid video public teaser cover for a locked 1 USDT fan-only vlog.",
       "Create curiosity before payment without revealing the full paid content.",
       stylePrompt,
       characterName
@@ -4619,7 +4619,7 @@ export function CreatorContentStudioPage({
 
   function buildNsfwPaidUploadTeaserVisualBrief() {
     return [
-      "FanLetter NSFW fan-only public teaser cover for a locked paid vlog.",
+      "AIAVpark NSFW fan-only public teaser cover for a locked paid vlog.",
       "Create an age-gated premium teaser without revealing explicit paid content.",
       "Safe-for-work public cover only: no nudity, sexual acts, private body focus, underwear, exposed skin focus, minors, gore, weapons, text, logos, watermarks, UI, price labels, or payment icons.",
       "Use abstract editorial objects, a private-membership mood, cinematic lighting, dark rose accents, and one clear vertical-vlog focal composition.",
@@ -7524,18 +7524,18 @@ export function CreatorContentStudioPage({
         ? {
             advancedBody:
               isFanletterSurface
-                ? "필요할 때만 후보를 직접 고르고 아바타 세트를 다시 만듭니다. 저장 후 FanLetter 콘텐츠 생성에 자동 적용됩니다."
+                ? "필요할 때만 후보를 직접 고르고 아바타 세트를 다시 만듭니다. 저장 후 AIAVpark 콘텐츠 생성에 자동 적용됩니다."
                 : "원하는 경우 후보를 직접 고르고 아바타 세트를 다시 만들 수 있습니다.",
             advancedTitle: isFanletterSurface ? "직접 바꾸기" : "직접 변경",
             currentBody:
               isFanletterSurface
-                ? "현재 FanLetter 캐릭터와 새 캐릭터를 비교한 뒤 저장하세요. 기존 브이로그는 그대로 유지됩니다."
+                ? "현재 AIAVpark 캐릭터와 새 캐릭터를 비교한 뒤 저장하세요. 기존 브이로그는 그대로 유지됩니다."
                 : "현재 캐릭터와 새 캐릭터를 비교한 뒤 저장하세요. 기존 콘텐츠는 그대로 유지됩니다.",
             currentTitle: isFanletterSurface
-              ? "현재 FanLetter 캐릭터"
+              ? "현재 AIAVpark 캐릭터"
               : "현재 캐릭터",
             eyebrow: isFanletterSurface
-              ? "FanLetter Character"
+              ? "AIAVpark Character"
               : contentCopy.page.studioEyebrow,
             warning:
               "캐릭터를 바꾸면 이후 생성되는 이미지와 동영상의 인물 정체성이 달라질 수 있습니다.",
@@ -7543,18 +7543,18 @@ export function CreatorContentStudioPage({
         : {
             advancedBody:
               isFanletterSurface
-                ? "Only when needed, choose a candidate manually and regenerate the avatar set. Saved changes apply to future FanLetter content."
+                ? "Only when needed, choose a candidate manually and regenerate the avatar set. Saved changes apply to future AIAVpark content."
                 : "You can manually choose a candidate and regenerate the avatar set.",
             advancedTitle: isFanletterSurface ? "Change manually" : "Manual Change",
             currentBody:
               isFanletterSurface
-                ? "Compare the current FanLetter character with the new one before saving. Existing vlogs stay unchanged."
+                ? "Compare the current AIAVpark character with the new one before saving. Existing vlogs stay unchanged."
                 : "Compare your current character with the new one before saving. Existing posts stay unchanged.",
             currentTitle: isFanletterSurface
-              ? "Current FanLetter character"
+              ? "Current AIAVpark character"
               : "Current Character",
             eyebrow: isFanletterSurface
-              ? "FanLetter Character"
+              ? "AIAVpark Character"
               : contentCopy.page.studioEyebrow,
             warning:
               "Changing the character can change the person used in future image and video generations.",

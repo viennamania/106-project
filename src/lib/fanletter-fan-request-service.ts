@@ -169,7 +169,7 @@ async function resolveFanRequestCreator({
 
   const profilesCollection = await getCreatorProfilesCollection();
   const profile = await profilesCollection.findOne({ email: member.email });
-  const fallbackDisplayName = member.email.split("@")[0] || "FanLetter";
+  const fallbackDisplayName = member.email.split("@")[0] || "AIAVpark";
   const accountDisplayName =
     profile?.displayName?.trim() || fallbackDisplayName;
   const resolvedCharacterName =

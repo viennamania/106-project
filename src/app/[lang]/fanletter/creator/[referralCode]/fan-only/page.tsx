@@ -77,11 +77,11 @@ export async function generateMetadata({
   const data = await getFanletterCreatorFanOnlyPageData(locale, referralCode, null);
   const characterName = data?.profile.character?.name ?? data?.profile.displayName;
   const fallbackTitle =
-    locale === "ko" ? "FanLetter 팬 전용 브이로그" : "FanLetter fan-only vlogs";
+    locale === "ko" ? "AIAVpark 팬 전용 브이로그" : "AIAVpark fan-only vlogs";
   const fallbackDescription =
     locale === "ko"
-      ? "FanLetter AI 캐릭터 팬 전용 브이로그 페이지입니다."
-      : "A FanLetter AI character fan-only vlog page.";
+      ? "AIAVpark AI 캐릭터 팬 전용 브이로그 페이지입니다."
+      : "An AIAVpark AI character fan-only vlog page.";
   const shareMetadata =
     data && characterName
       ? getFanOnlyShareMetadata({ characterName, data, locale })
@@ -137,7 +137,7 @@ export async function generateMetadata({
     openGraph: {
       description: shareMetadata.description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title: shareMetadata.title,
       type: "website",
       url,

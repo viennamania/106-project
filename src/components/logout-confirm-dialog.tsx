@@ -60,7 +60,7 @@ export function LogoutConfirmDialog({
       />
       <div className="relative w-full max-w-md rounded-[30px] border border-white/75 bg-white p-5 shadow-[0_30px_90px_rgba(15,23,42,0.22)] sm:p-6">
         <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
-          Pocket Smart Wallet
+          AIAVpark
         </p>
         <h2
           className="mt-3 text-2xl font-semibold tracking-tight text-slate-950"

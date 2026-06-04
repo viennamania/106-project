@@ -212,7 +212,7 @@ function getCopy(locale: Locale) {
           title: "AI 캐릭터 프로필",
         },
         connectRequired:
-          "FanLetter 계정을 연결하면 내 AI 캐릭터 브이로그를 관리할 수 있습니다.",
+          "AIAVpark 계정을 연결하면 내 AI 캐릭터 브이로그를 관리할 수 있습니다.",
         mobileGuide: {
           body:
             "새 공개 영상, 팬 요청 답장, 커버 프레임, 채널 배포를 모바일에서 바로 실행하세요.",
@@ -308,7 +308,7 @@ function getCopy(locale: Locale) {
         emptyPaidBody:
           "유료 팬 전용 브이로그는 팬이 남긴 브이로그 요청에 답장할 때 등록합니다. 팬 요청함에서 답장할 요청을 먼저 선택하세요.",
         emptyPaidTitle: "답장할 팬 요청을 먼저 선택하세요.",
-        eyebrow: "FanLetter Vlog Manager",
+        eyebrow: "AIAVpark Vlog Manager",
         exclusiveNews: {
           active: "단독 보도 진행 중",
           body:
@@ -379,7 +379,7 @@ function getCopy(locale: Locale) {
         nsfwUnavailable:
           "동영상이 없거나 보관된 콘텐츠는 NSFW로 전환할 수 없습니다.",
         paymentRequired:
-          "FanLetter 시작 준비 확인이 끝나면 브이로그 전체 관리를 사용할 수 있습니다.",
+          "AIAVpark 시작 준비 확인이 끝나면 브이로그 전체 관리를 사용할 수 있습니다.",
         searchPlaceholder: "제목, 요약, 본문으로 검색",
         subtitle:
           "무료 공개 브이로그와 유료 팬 전용 콘텐츠를 분리해 검색하고 공개, 임시저장, 보관 상태를 정리합니다.",
@@ -422,7 +422,7 @@ function getCopy(locale: Locale) {
           title: "AI character profile",
         },
         connectRequired:
-          "Connect your FanLetter account to manage your AI character vlogs.",
+          "Connect your AIAVpark account to manage your AI character vlogs.",
         mobileGuide: {
           body:
             "Run public uploads, fan-request replies, cover frames, and channel distribution directly on mobile.",
@@ -518,7 +518,7 @@ function getCopy(locale: Locale) {
         emptyPaidBody:
           "Paid fan-only vlogs are registered when you answer a fan's vlog request. Choose the request from the fan request inbox first.",
         emptyPaidTitle: "Choose a fan request first.",
-        eyebrow: "FanLetter Vlog Manager",
+        eyebrow: "AIAVpark Vlog Manager",
         exclusiveNews: {
           active: "Exclusive report window active",
           body:
@@ -589,7 +589,7 @@ function getCopy(locale: Locale) {
         nsfwUnavailable:
           "Archived content or content without a video cannot be marked NSFW.",
         paymentRequired:
-          "Confirm FanLetter readiness to manage all vlogs.",
+          "Confirm AIAVpark readiness to manage all vlogs.",
         searchPlaceholder: "Search by title, summary, or body",
         subtitle:
           "Separate free public vlogs and paid fan-only content, then manage published, draft, and archived states from one focused page.",
@@ -2757,7 +2757,7 @@ export function FanletterVlogManagementPage({
                 <MessageCircleHeart className="size-5" />
               </span>
               <span className="truncate text-sm font-semibold tracking-normal">
-                FanLetter
+                AIAVpark
               </span>
             </Link>
             <div className="flex items-center gap-2">

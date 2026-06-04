@@ -35,12 +35,12 @@ export async function generateMetadata({
   const referralCode = readFanletterReferralCode(query.ref);
   const title =
     locale === "ko"
-      ? "FanLetter 브이로그 채널 배포 관리"
-      : "FanLetter Vlog Channel Distribution";
+      ? "AIAVpark 브이로그 채널 배포 관리"
+      : "AIAVpark Vlog Channel Distribution";
   const description =
     locale === "ko"
-      ? "FanLetter AI 캐릭터 브이로그를 Instagram Reels, YouTube Shorts, TikTok에 올릴 수 있는 게시 패키지로 정리하세요."
-      : "Prepare FanLetter AI character vlogs as posting packages for Instagram Reels, YouTube Shorts, and TikTok.";
+      ? "AIAVpark AI 캐릭터 브이로그를 Instagram Reels, YouTube Shorts, TikTok에 올릴 수 있는 게시 패키지로 정리하세요."
+      : "Prepare AIAVpark AI character vlogs as posting packages for Instagram Reels, YouTube Shorts, and TikTok.";
   const url = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/channels`, referralCode),
     {
@@ -77,7 +77,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title,
       type: "website",
       url,

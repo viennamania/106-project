@@ -71,11 +71,11 @@ export async function generateMetadata({
   const title =
     data && characterName
       ? locale === "ko"
-        ? `${characterName} 공개 브이로그 | FanLetter News`
-        : `${characterName} public vlogs | FanLetter News`
+        ? `${characterName} 공개 브이로그 | AIAVpark News`
+        : `${characterName} public vlogs | AIAVpark News`
       : locale === "ko"
-        ? "공개 브이로그 | FanLetter News"
-        : "Public vlogs | FanLetter News";
+        ? "공개 브이로그 | AIAVpark News"
+        : "Public vlogs | AIAVpark News";
   const description =
     data && characterName
       ? locale === "ko"
@@ -134,7 +134,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter News",
+      siteName: "AIAVpark News",
       title,
       type: "website",
       url,

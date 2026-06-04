@@ -772,19 +772,19 @@ export type Dictionary = {
 const dictionaries: Record<BuiltInLocale, Dictionary> = {
   ko: {
     meta: {
-      title: "Pocket Smart Wallet",
+      title: "AIAVpark",
       description:
         "이메일 로그인 후 10 USDT 입금 확인으로 가입을 완료하는 모바일 우선 스마트 월렛 앱.",
     },
     common: {
-      appName: "Pocket Smart Wallet",
+      appName: "AIAVpark",
       headerEyebrow: "V0-compatible x thirdweb",
       headerDescription:
         "이메일 로그인 뒤 PROJECT_WALLET로 10 USDT를 전송하면 webhook가 회원가입을 완료합니다.",
       languageLabel: "언어",
       connectWallet: "이메일 로그인",
       disconnectWallet: "로그아웃",
-      connectModalTitle: "이메일로 Pocket Smart Wallet 로그인",
+      connectModalTitle: "이메일로 AIAVpark 로그인",
       loginDialog: {
         close: "닫기",
         codeDescription: "{email} 로 받은 6자리 인증 코드를 입력하세요.",
@@ -1644,19 +1644,19 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
   },
   en: {
     meta: {
-      title: "Pocket Smart Wallet",
+      title: "AIAVpark",
       description:
         "A mobile-first smart wallet app that completes signup after a confirmed 10 USDT payment.",
     },
     common: {
-      appName: "Pocket Smart Wallet",
+      appName: "AIAVpark",
       headerEyebrow: "V0-compatible x thirdweb",
       headerDescription:
         "Sign in with email, send 10 USDT to PROJECT_WALLET, and let the webhook finish signup.",
       languageLabel: "Language",
       connectWallet: "Email login",
       disconnectWallet: "Log out",
-      connectModalTitle: "Sign in to Pocket Smart Wallet with email",
+      connectModalTitle: "Sign in to AIAVpark with email",
       loginDialog: {
         close: "Close",
         codeDescription: "Enter the 6-digit verification code sent to {email}.",
@@ -2524,19 +2524,19 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
   },
   ja: {
     meta: {
-      title: "Pocket Smart Wallet",
+      title: "AIAVpark",
       description:
         "メールログイン後、10 USDT の入金確認で登録完了するモバイルファーストのスマートウォレットアプリ。",
     },
     common: {
-      appName: "Pocket Smart Wallet",
+      appName: "AIAVpark",
       headerEyebrow: "V0-compatible x thirdweb",
       headerDescription:
         "メールログイン後、PROJECT_WALLET に 10 USDT を送ると webhook が登録完了を処理します。",
       languageLabel: "言語",
       connectWallet: "メールログイン",
       disconnectWallet: "ログアウト",
-      connectModalTitle: "メールで Pocket Smart Wallet にログイン",
+      connectModalTitle: "メールで AIAVpark にログイン",
       loginDialog: {
         close: "閉じる",
         codeDescription:
@@ -3410,19 +3410,19 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
   },
   zh: {
     meta: {
-      title: "Pocket Smart Wallet",
+      title: "AIAVpark",
       description:
         "一个在邮箱登录后，通过确认 10 USDT 入账来完成注册的移动优先智能钱包应用。",
     },
     common: {
-      appName: "Pocket Smart Wallet",
+      appName: "AIAVpark",
       headerEyebrow: "V0-compatible x thirdweb",
       headerDescription:
         "邮箱登录后，向 PROJECT_WALLET 转入 10 USDT，webhook 会完成注册。",
       languageLabel: "语言",
       connectWallet: "邮箱登录",
       disconnectWallet: "退出登录",
-      connectModalTitle: "通过邮箱登录 Pocket Smart Wallet",
+      connectModalTitle: "通过邮箱登录 AIAVpark",
       loginDialog: {
         close: "关闭",
         codeDescription: "请输入发送到 {email} 的 6 位验证码。",
@@ -4277,7 +4277,7 @@ function createVietnameseDictionary(base: Dictionary): Dictionary {
   return {
     ...base,
     meta: {
-      title: "Pocket Smart Wallet",
+      title: "AIAVpark",
       description:
         "Ứng dụng smart wallet ưu tiên di động, hoàn tất đăng ký sau khi xác nhận nạp 10 USDT bằng đăng nhập email.",
     },
@@ -4288,7 +4288,7 @@ function createVietnameseDictionary(base: Dictionary): Dictionary {
       languageLabel: "Ngôn ngữ",
       connectWallet: "Đăng nhập email",
       disconnectWallet: "Đăng xuất",
-      connectModalTitle: "Đăng nhập Pocket Smart Wallet bằng email",
+      connectModalTitle: "Đăng nhập AIAVpark bằng email",
       loginDialog: {
         ...base.common.loginDialog,
         close: "Đóng",
@@ -4605,7 +4605,7 @@ function createIndonesianDictionary(base: Dictionary): Dictionary {
   return {
     ...base,
     meta: {
-      title: "Pocket Smart Wallet",
+      title: "AIAVpark",
       description:
         "Aplikasi smart wallet mobile-first yang menyelesaikan pendaftaran setelah deposit 10 USDT terverifikasi melalui login email.",
     },
@@ -4616,7 +4616,7 @@ function createIndonesianDictionary(base: Dictionary): Dictionary {
       languageLabel: "Bahasa",
       connectWallet: "Login email",
       disconnectWallet: "Keluar",
-      connectModalTitle: "Masuk ke Pocket Smart Wallet dengan email",
+      connectModalTitle: "Masuk ke AIAVpark dengan email",
       loginDialog: {
         ...base.common.loginDialog,
         close: "Tutup",

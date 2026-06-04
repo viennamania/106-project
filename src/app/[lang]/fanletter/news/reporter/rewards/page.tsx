@@ -47,11 +47,11 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         connectBody:
-          "리포터 보상 내역을 보려면 FanLetter News 계정 연결이 필요합니다.",
+          "리포터 보상 내역을 보려면 AIAVpark News 계정 연결이 필요합니다.",
         connectCta: "뉴스 계정 연결",
         connectTitle: "리포터 포인트 리포트는 로그인 후 확인할 수 있습니다.",
         description:
-          "FanLetter News 리포터가 받은 보고싶어요 보상, 원본 공개 보너스, 리포트별 성과를 한눈에 확인하는 페이지입니다.",
+          "AIAVpark News 리포터가 받은 보고싶어요 보상, 원본 공개 보너스, 리포트별 성과를 한눈에 확인하는 페이지입니다.",
         emptyLedger:
           "아직 지급된 리포터 포인트가 없습니다. 리포트를 발행하고 공유하면 팬 참여가 보상 내역으로 쌓입니다.",
         emptyReports:
@@ -62,7 +62,7 @@ function getCopy(locale: Locale) {
         heroTitle: "리포터 포인트 리포트",
         ledgerTitle: "최근 지급 내역",
         newReport: "새 리포트 작성",
-        newsHome: "FanLetter News",
+        newsHome: "AIAVpark News",
         reportDesk: "리포트 관리",
         reportPerformance: "리포트별 성과",
         rewardFlow: "보상 흐름",
@@ -81,16 +81,16 @@ function getCopy(locale: Locale) {
           unlocks: "공개 보너스",
           votes: "참여 보상",
         },
-        title: "리포터 포인트 리포트 | FanLetter News",
+        title: "리포터 포인트 리포트 | AIAVpark News",
         wallet: "전체 지갑",
       }
     : {
         connectBody:
-          "Connect your FanLetter News account to view reporter reward history.",
+          "Connect your AIAVpark News account to view reporter reward history.",
         connectCta: "Connect news account",
         connectTitle: "Reporter point reports require sign-in.",
         description:
-          "A FanLetter News page for reporter point rewards, source-open bonuses, and report-level performance.",
+          "An AIAVpark News page for reporter point rewards, source-open bonuses, and report-level performance.",
         emptyLedger:
           "No reporter points have been awarded yet. Publish and share reports to turn fan participation into rewards.",
         emptyReports:
@@ -101,7 +101,7 @@ function getCopy(locale: Locale) {
         heroTitle: "Reporter Point Report",
         ledgerTitle: "Recent payouts",
         newReport: "Create report",
-        newsHome: "FanLetter News",
+        newsHome: "AIAVpark News",
         reportDesk: "Report desk",
         reportPerformance: "Report performance",
         rewardFlow: "Reward flow",
@@ -120,7 +120,7 @@ function getCopy(locale: Locale) {
           unlocks: "Unlock bonus",
           votes: "Vote rewards",
         },
-        title: "Reporter Point Report | FanLetter News",
+        title: "Reporter Point Report | AIAVpark News",
         wallet: "Wallet",
       };
 }

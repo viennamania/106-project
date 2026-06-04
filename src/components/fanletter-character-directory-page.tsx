@@ -50,7 +50,7 @@ function getCopy(locale: Locale) {
         },
         hero: {
           body:
-            "FanLetter에서 팬 요청과 공개 브이로그, 팬 전용 콘텐츠로 성장 중인 AI 캐릭터 채널을 탐색하세요.",
+            "AIAVpark에서 팬 요청과 공개 브이로그, 팬 전용 콘텐츠로 성장 중인 AI 캐릭터 채널을 탐색하세요.",
           eyebrow: "AI Character Directory",
           title: "AI 캐릭터 전체 목록",
         },
@@ -99,7 +99,7 @@ function getCopy(locale: Locale) {
         },
         hero: {
           body:
-            "Browse AI character channels growing through fan requests, public vlogs, and fan-only content inside FanLetter.",
+            "Browse AI character channels growing through fan requests, public vlogs, and fan-only content inside AIAVpark.",
           eyebrow: "AI Character Directory",
           title: "All AI Characters",
         },
@@ -194,7 +194,7 @@ function DirectoryHeader({
           <MessageCircleHeart className="size-5" />
         </span>
         <span className="hidden truncate text-xl font-semibold tracking-normal text-white sm:inline">
-          FanLetter
+          AIAVpark
         </span>
       </Link>
       <nav className="hidden items-center gap-5 text-sm font-semibold text-white/68 lg:flex">

@@ -125,7 +125,7 @@ function getCopy(locale: Locale) {
               title: "소재 검토",
             },
             {
-              body: "브이로그가 공개되면 FanLetter News 리포트와 캐릭터 채널 성장 신호로 쌓입니다.",
+              body: "브이로그가 공개되면 AIAVpark News 리포트와 캐릭터 채널 성장 신호로 쌓입니다.",
               title: "뉴스 확장",
             },
           ],
@@ -134,7 +134,7 @@ function getCopy(locale: Locale) {
         emptyBody: "요청 내용을 입력해 주세요.",
         errorFallback: "팬 요청을 저장하지 못했습니다.",
         hero: {
-          eyebrow: "FanLetter News Request Desk",
+          eyebrow: "AIAVpark News Request Desk",
           kicker: "뉴스 전용 팬 요청",
           title: (name: string) => `${name}에게 팬 요청 남기기`,
         },
@@ -253,7 +253,7 @@ function getCopy(locale: Locale) {
           noteLabel: "꼭 넣고 싶은 한 문장",
           notePlaceholder: "예: 마지막에 팬에게 오늘도 고생했다고 말해 주세요.",
         },
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         stats: {
           fanOnly: "팬 전용",
           news: "뉴스",
@@ -278,7 +278,7 @@ function getCopy(locale: Locale) {
           "Example: Add a line that comforts fans after work.",
         editorialLoop: {
           body:
-            "Fan requests are saved to the creator studio inbox. Strong requests can become vlogs and future FanLetter News report angles.",
+            "Fan requests are saved to the creator studio inbox. Strong requests can become vlogs and future AIAVpark News report angles.",
           steps: [
             {
               body: "A fan leaves a scene request or support message.",
@@ -289,7 +289,7 @@ function getCopy(locale: Locale) {
               title: "Editorial review",
             },
             {
-              body: "Published vlogs can become FanLetter News reports and character growth signals.",
+              body: "Published vlogs can become AIAVpark News reports and character growth signals.",
               title: "News expansion",
             },
           ],
@@ -298,7 +298,7 @@ function getCopy(locale: Locale) {
         emptyBody: "Write a fan request first.",
         errorFallback: "Could not save the fan request.",
         hero: {
-          eyebrow: "FanLetter News Request Desk",
+          eyebrow: "AIAVpark News Request Desk",
           kicker: "News-only fan request",
           title: (name: string) => `Leave a fan request for ${name}`,
         },
@@ -436,7 +436,7 @@ function getCopy(locale: Locale) {
           noteLabel: "One must-have line",
           notePlaceholder: "Example: End by telling fans they did well today.",
         },
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         stats: {
           fanOnly: "Fan-only",
           news: "News",
@@ -447,7 +447,7 @@ function getCopy(locale: Locale) {
         submitting: "Saving",
         success: {
           body:
-            "The request was saved to the Studio inbox. Strong ideas can be reviewed for future vlogs and FanLetter News reports.",
+            "The request was saved to the Studio inbox. Strong ideas can be reviewed for future vlogs and AIAVpark News reports.",
           title: "Fan request delivered.",
         },
         viewNews: "News home",
@@ -565,7 +565,7 @@ function buildSceneRequestBody({
 
   if (locale === "ko") {
     return [
-      "[FanLetter News 장면 요청]",
+      "[AIAVpark News 장면 요청]",
       `AI 캐릭터: ${characterName}`,
       `장면 분위기: ${selections.mood}`,
       `장소: ${selections.location}`,
@@ -580,7 +580,7 @@ function buildSceneRequestBody({
   }
 
   return [
-    "[FanLetter News scene request]",
+    "[AIAVpark News scene request]",
     `AI character: ${characterName}`,
     `Mood: ${selections.mood}`,
     `Location: ${selections.location}`,

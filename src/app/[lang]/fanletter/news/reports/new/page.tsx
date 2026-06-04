@@ -146,7 +146,7 @@ export async function generateMetadata({
   const copy = getCopy(locale);
 
   return {
-    title: `${copy.title} | FanLetter News`,
+    title: `${copy.title} | AIAVpark News`,
   };
 }
 

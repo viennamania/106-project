@@ -227,14 +227,14 @@ function getCopy(locale: Locale) {
         balanceUnknown: "확인 필요",
         cancel: "취소",
         connectBody:
-          "FanLetter 계정을 연결하면 팬 전용 브이로그를 바로 열 수 있습니다.",
+          "AIAVpark 계정을 연결하면 팬 전용 브이로그를 바로 열 수 있습니다.",
         connectCta: "계정 연결하기",
         connectTitle: "팬 전용 브이로그를 열려면 계정 연결이 필요합니다.",
         fullBody: "전체 브이로그 본문",
         fullMedia: "전체 브이로그 미디어",
         lockedBody:
           "결제하면 이 캐릭터의 팬 전용 영상, 전체 본문, 추가 미디어가 이 화면에서 바로 열립니다.",
-        lockedEyebrow: "FanLetter 팬 전용",
+        lockedEyebrow: "AIAVpark 팬 전용",
         lockedTitle: "팬 전용 브이로그 잠금 해제",
         paymentCtaHelper:
           "1회 결제로 전체 영상, 전체 본문, 추가 미디어를 바로 엽니다.",
@@ -261,8 +261,8 @@ function getCopy(locale: Locale) {
         retryVerification: "결제 다시 확인",
         sellerWallet: "크리에이터 정산 주소",
         signupBody:
-          "FanLetter 시작 절차를 완료하면 팬 전용 콘텐츠 결제와 댓글, 요청 기능을 이어서 사용할 수 있습니다.",
-        signupCta: "FanLetter 시작 완료",
+          "AIAVpark 시작 절차를 완료하면 팬 전용 콘텐츠 결제와 댓글, 요청 기능을 이어서 사용할 수 있습니다.",
+        signupCta: "AIAVpark 시작 완료",
         signupTitle: "회원 권한 확인이 필요합니다.",
         transaction: "결제 트랜잭션 보기",
         verifying: "결제 확인 중",
@@ -272,7 +272,7 @@ function getCopy(locale: Locale) {
           "결제하려면 연결된 결제 주소에 최소 {amount} USDT가 필요합니다.",
         walletBalanceLabel: "내 지갑 잔고",
         walletMismatch:
-          "현재 결제 주소가 이 FanLetter 계정에 등록된 주소와 다릅니다. 계정을 다시 연결해 주세요.",
+          "현재 결제 주소가 이 AIAVpark 계정에 등록된 주소와 다릅니다. 계정을 다시 연결해 주세요.",
       }
     : {
         alreadyUnlocked: "Payment complete · Full access",
@@ -286,14 +286,14 @@ function getCopy(locale: Locale) {
         balanceUnknown: "Needs check",
         cancel: "Cancel",
         connectBody:
-          "Connect your FanLetter account to unlock this fan-only vlog.",
+          "Connect your AIAVpark account to unlock this fan-only vlog.",
         connectCta: "Connect account",
         connectTitle: "Connect an account to unlock this fan-only vlog.",
         fullBody: "Full vlog body",
         fullMedia: "Full vlog media",
         lockedBody:
           "Pay once to open the fan-only video, full body, and extra media on this page.",
-        lockedEyebrow: "FanLetter fan-only",
+        lockedEyebrow: "AIAVpark fan-only",
         lockedTitle: "Unlock fan-only vlog",
         paymentCtaHelper:
           "One payment unlocks the full video, full body, and extra media immediately.",
@@ -320,18 +320,18 @@ function getCopy(locale: Locale) {
         retryVerification: "Check payment again",
         sellerWallet: "Creator settlement address",
         signupBody:
-          "Complete FanLetter onboarding to use fan-only payments, comments, and requests.",
-        signupCta: "Complete FanLetter setup",
+          "Complete AIAVpark onboarding to use fan-only payments, comments, and requests.",
+        signupCta: "Complete AIAVpark setup",
         signupTitle: "Membership verification required.",
         transaction: "View payment transaction",
         verifying: "Verifying payment",
         walletApproval:
-          "Approve the payment prompt, then FanLetter will recheck the unlock status automatically.",
+          "Approve the payment prompt, then AIAVpark will recheck the unlock status automatically.",
         walletBalance:
           "Your connected payment address needs at least {amount} USDT to pay.",
         walletBalanceLabel: "Wallet balance",
         walletMismatch:
-          "The current payment address is not registered to this FanLetter account. Reconnect your account.",
+          "The current payment address is not registered to this AIAVpark account. Reconnect your account.",
       };
 }
 
@@ -345,14 +345,14 @@ function translatePaidUnlockError(message: string, locale: Locale) {
   }
 
   if (message === "Member not found.") {
-    return "FanLetter 회원 정보를 찾지 못했습니다. 계정을 다시 연결해 주세요.";
+    return "AIAVpark 회원 정보를 찾지 못했습니다. 계정을 다시 연결해 주세요.";
   }
 
   if (
     message === "Completed signup is required." ||
     message === "This member status is not authorized for this action."
   ) {
-    return "FanLetter 시작 절차를 완료한 뒤 결제를 확인할 수 있습니다.";
+    return "AIAVpark 시작 절차를 완료한 뒤 결제를 확인할 수 있습니다.";
   }
 
   if (message === "Content order not found.") {
@@ -383,7 +383,7 @@ function translatePaidUnlockError(message: string, locale: Locale) {
     message === "This wallet is not authorized for the requested member." ||
     message === "Member session does not match this request."
   ) {
-    return "현재 결제 주소가 이 FanLetter 계정에 등록된 주소와 다릅니다. 계정을 다시 연결해 주세요.";
+    return "현재 결제 주소가 이 AIAVpark 계정에 등록된 주소와 다릅니다. 계정을 다시 연결해 주세요.";
   }
 
   if (
@@ -1382,7 +1382,7 @@ export function FanletterPaidUnlockPanel({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
-                  FanLetter
+                  AIAVpark
                 </p>
                 <h2 className="mt-2 text-xl font-semibold">
                   {copy.paymentTitle}
@@ -1524,7 +1524,7 @@ export function FanletterPaidUnlockPanel({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
-                  FanLetter
+                  AIAVpark
                 </p>
                 <h2 className="mt-2 text-xl font-semibold">
                   {copy.lockedTitle}

@@ -70,18 +70,18 @@ export async function generateMetadata({
   const characterName = data?.profile.character?.name ?? data?.profile.displayName;
   const title = characterName
     ? locale === "ko"
-      ? `${characterName} 팬 요청 | FanLetter News`
-      : `${characterName} fan request | FanLetter News`
+      ? `${characterName} 팬 요청 | AIAVpark News`
+      : `${characterName} fan request | AIAVpark News`
     : locale === "ko"
-      ? "FanLetter News 팬 요청"
-      : "FanLetter News fan request";
+      ? "AIAVpark News 팬 요청"
+      : "AIAVpark News fan request";
   const description = characterName
     ? locale === "ko"
-      ? `${characterName}에게 FanLetter News 전용 팬 요청을 남기는 페이지입니다.`
-      : `Leave a FanLetter News fan request for ${characterName}.`
+      ? `${characterName}에게 AIAVpark News 전용 팬 요청을 남기는 페이지입니다.`
+      : `Leave an AIAVpark News fan request for ${characterName}.`
     : locale === "ko"
-      ? "FanLetter News 전용 팬 요청 페이지입니다."
-      : "A FanLetter News-only fan request page.";
+      ? "AIAVpark News 전용 팬 요청 페이지입니다."
+      : "An AIAVpark News-only fan request page.";
   const image =
     data?.profile.character?.avatarImageSet[0]?.url ??
     data?.profile.avatarImageUrl ??
@@ -98,7 +98,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: image ? [{ url: image }] : undefined,
-      siteName: "FanLetter News",
+      siteName: "AIAVpark News",
       title,
       type: "website",
       url,
@@ -176,8 +176,8 @@ export default async function LocalizedFanletterNewsCharacterRequestPage({
     character?.summary ||
     data.profile.intro ||
     (locale === "ko"
-      ? "FanLetter News에서 성장 중인 AI 캐릭터입니다."
-      : "An AI character growing inside FanLetter News.");
+      ? "AIAVpark News에서 성장 중인 AI 캐릭터입니다."
+      : "An AI character growing inside AIAVpark News.");
   const avatarImageUrl =
     character?.avatarImageSet[0]?.url ??
     data.profile.avatarImageUrl ??

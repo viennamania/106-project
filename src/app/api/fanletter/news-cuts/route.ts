@@ -63,6 +63,6 @@ export async function GET(request: Request) {
 
     return Response.json(serializeFanletterNewsPublicCutFeedPage(page));
   } catch {
-    return jsonError("Failed to load FanLetter News reporter cuts.", 500);
+    return jsonError("Failed to load AIAVpark News reporter cuts.", 500);
   }
 }

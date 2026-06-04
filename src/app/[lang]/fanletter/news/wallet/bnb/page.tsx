@@ -32,13 +32,13 @@ function getMetadataCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "FanLetter News 결제 지갑의 BNB 잔액과 네트워크 수수료 준비 상태를 확인하세요.",
-        title: "FanLetter News BNB 관리",
+          "AIAVpark News 결제 지갑의 BNB 잔액과 네트워크 수수료 준비 상태를 확인하세요.",
+        title: "AIAVpark News BNB 관리",
       }
     : {
         description:
-          "Check BNB balance and network-fee readiness for the FanLetter News payment wallet.",
-        title: "FanLetter News BNB",
+          "Check BNB balance and network-fee readiness for the AIAVpark News payment wallet.",
+        title: "AIAVpark News BNB",
       };
 }
 
@@ -92,7 +92,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter News",
+      siteName: "AIAVpark News",
       title,
       type: "website",
       url,

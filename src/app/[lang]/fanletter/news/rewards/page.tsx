@@ -43,11 +43,11 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         connectBody:
-          "팬 참여 보상과 리포터 보상 내역을 보려면 FanLetter News 계정 연결이 필요합니다.",
+          "팬 참여 보상과 리포터 보상 내역을 보려면 AIAVpark News 계정 연결이 필요합니다.",
         connectCta: "뉴스 계정 연결",
         connectTitle: "보상 포인트는 로그인 후 확인할 수 있습니다.",
         description:
-          "FanLetter News 회원이 받은 팬 참여 보상과 리포터 보상을 한곳에서 확인하는 페이지입니다.",
+          "AIAVpark News 회원이 받은 팬 참여 보상과 리포터 보상을 한곳에서 확인하는 페이지입니다.",
         emptyFanRewards:
           "아직 팬 참여 보상이 없습니다. 원본 공개에 참여하면 조건 달성 시 보상이 이곳에 쌓입니다.",
         fanFlowBody: `${FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD}명 중 선착순 참여자가 원본 공개를 달성하면 ${FANLETTER_NEWS_SOURCE_REVEAL_FAN_UNLOCK_REWARD_POINTS}P 보상을 받습니다.`,
@@ -55,9 +55,9 @@ function getCopy(locale: Locale) {
         fanRewardsTitle: "팬 참여 보상 내역",
         heroBody:
           "일반 팬의 원본 공개 참여 보상과 리포터 활동 보상을 합산해 보여줍니다.",
-        heroEyebrow: "FanLetter Rewards",
+        heroEyebrow: "AIAVpark Rewards",
         heroTitle: "보상 포인트",
-        newsHome: "FanLetter News",
+        newsHome: "AIAVpark News",
         reporterDetail: "리포터 보상 상세",
         reporterEmpty:
           "리포터로 리포트를 발행하면 참여 보상과 공개 보너스가 이 영역에 함께 표시됩니다.",
@@ -74,16 +74,16 @@ function getCopy(locale: Locale) {
           closed: "공개 완료",
           pending: "조건 대기",
         },
-        title: "보상 포인트 | FanLetter News",
+        title: "보상 포인트 | AIAVpark News",
         wallet: "전체 지갑",
       }
     : {
         connectBody:
-          "Connect your FanLetter News account to view fan participation and reporter rewards.",
+          "Connect your AIAVpark News account to view fan participation and reporter rewards.",
         connectCta: "Connect news account",
         connectTitle: "Reward points require sign-in.",
         description:
-          "A FanLetter News page for fan participation rewards and reporter rewards.",
+          "An AIAVpark News page for fan participation rewards and reporter rewards.",
         emptyFanRewards:
           "No fan participation rewards yet. Join source-open participation and rewards will appear here when the condition is met.",
         fanFlowBody: `The first ${FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD} participants can receive ${FANLETTER_NEWS_SOURCE_REVEAL_FAN_UNLOCK_REWARD_POINTS}P when the source opens.`,
@@ -91,9 +91,9 @@ function getCopy(locale: Locale) {
         fanRewardsTitle: "Fan participation rewards",
         heroBody:
           "Review source-open fan rewards and reporter activity rewards in one place.",
-        heroEyebrow: "FanLetter Rewards",
+        heroEyebrow: "AIAVpark Rewards",
         heroTitle: "Reward Points",
-        newsHome: "FanLetter News",
+        newsHome: "AIAVpark News",
         reporterDetail: "Reporter reward detail",
         reporterEmpty:
           "Publish reports as a reporter and vote rewards plus source-open bonuses will appear here.",
@@ -110,7 +110,7 @@ function getCopy(locale: Locale) {
           closed: "Opened",
           pending: "Pending",
         },
-        title: "Reward Points | FanLetter News",
+        title: "Reward Points | AIAVpark News",
         wallet: "Wallet",
       };
 }

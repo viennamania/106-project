@@ -105,15 +105,15 @@ function getCopy(locale: Locale) {
         checkingPayment:
           "10 USDT 가입 결제 기록을 확인하고 있습니다. 블록체인/웹훅 반영 상태에 따라 잠시 걸릴 수 있습니다.",
         completeBody:
-          "가입 완료가 확인되었습니다. 이제 FanLetter News에서 AI 리포트, 팬 기자 활동, 유료 브이로그 열람을 같은 계정으로 이어갈 수 있습니다.",
+          "가입 완료가 확인되었습니다. 이제 AIAVpark News에서 AI 리포트, 팬 기자 활동, 유료 브이로그 열람을 같은 계정으로 이어갈 수 있습니다.",
         connect: "뉴스 지갑 연결",
         disconnected: "뉴스 지갑을 먼저 연결하세요.",
-        edition: "FanLetter Entertainment News",
+        edition: "AIAVpark Entertainment News",
         email: "이메일",
-        eyebrow: "FanLetter News Signup",
+        eyebrow: "AIAVpark News Signup",
         home: "뉴스 홈",
         insufficientBalance: `${MEMBER_SIGNUP_USDT_AMOUNT} USDT 이상 보유해야 가입 완료 결제를 진행할 수 있습니다.`,
-        loginTitle: "FanLetter News 지갑 연결",
+        loginTitle: "AIAVpark News 지갑 연결",
         missingClient:
           "현재 브라우저에서 이메일 지갑 연결을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
         missingProjectWallet:
@@ -126,11 +126,11 @@ function getCopy(locale: Locale) {
         projectWallet: "수신 지갑",
         refresh: "상태 다시 확인",
         returnTo: "뉴스로 돌아가기",
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         status: "상태",
         steps: ["뉴스 지갑 연결", "10 USDT 결제", "뉴스 계정 활성화"],
         syncing: "회원 정보를 동기화하고 있습니다.",
-        title: "FanLetter News 안에서 가입 완료",
+        title: "AIAVpark News 안에서 가입 완료",
         txConfirmed:
           "결제가 확인되었습니다. 잠시 후 가입 완료 상태를 다시 확인합니다.",
         txSent: "결제가 전송되었습니다. 블록체인 확인 후 상태를 갱신합니다.",
@@ -146,15 +146,15 @@ function getCopy(locale: Locale) {
         checkingPayment:
           "Checking the 10 USDT signup payment record. Chain and webhook updates can take a moment.",
         completeBody:
-          "Signup is complete. You can continue AI reports, fan reporter actions, and paid vlog access in FanLetter News with the same account.",
+          "Signup is complete. You can continue AI reports, fan reporter actions, and paid vlog access in AIAVpark News with the same account.",
         connect: "Connect news wallet",
         disconnected: "Connect your news wallet first.",
-        edition: "FanLetter Entertainment News",
+        edition: "AIAVpark Entertainment News",
         email: "Email",
-        eyebrow: "FanLetter News Signup",
+        eyebrow: "AIAVpark News Signup",
         home: "News home",
         insufficientBalance: `You need at least ${MEMBER_SIGNUP_USDT_AMOUNT} USDT to complete signup.`,
-        loginTitle: "Connect FanLetter News wallet",
+        loginTitle: "Connect AIAVpark News wallet",
         missingClient:
           "Email wallet connection cannot start in this browser right now. Please try again shortly.",
         missingProjectWallet:
@@ -167,11 +167,11 @@ function getCopy(locale: Locale) {
         projectWallet: "Receiving wallet",
         refresh: "Check status again",
         returnTo: "Back to news",
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         status: "Status",
         steps: ["Connect news wallet", "Pay 10 USDT", "Activate news account"],
         syncing: "Syncing member information.",
-        title: "Complete signup inside FanLetter News",
+        title: "Complete signup inside AIAVpark News",
         txConfirmed:
           "Payment is confirmed. Signup status will be checked again shortly.",
         txSent: "Payment was sent. Status will refresh after chain confirmation.",

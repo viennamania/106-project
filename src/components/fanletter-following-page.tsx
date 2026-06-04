@@ -52,7 +52,7 @@ function getCopy(locale: Locale) {
         channel: "채널 보기",
         connect: "계정 연결",
         connectBody:
-          "팔로우한 캐릭터 목록은 연결된 FanLetter 계정 기준으로 불러옵니다.",
+          "팔로우한 캐릭터 목록은 연결된 AIAVpark 계정 기준으로 불러옵니다.",
         connectTitle: "연결 후 팔로우 목록을 확인하세요.",
         continueWatching: "이어보기",
         emptyBody:
@@ -136,7 +136,7 @@ function getCopy(locale: Locale) {
         channel: "View channel",
         connect: "Connect account",
         connectBody:
-          "Followed characters are loaded from your connected FanLetter account.",
+          "Followed characters are loaded from your connected AIAVpark account.",
         connectTitle: "Connect to see your following list.",
         continueWatching: "Continue watching",
         emptyBody:
@@ -390,7 +390,7 @@ function CharacterCover({
     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[linear-gradient(145deg,#07100b,#111b15_52%,#1b2d22)] text-white/72">
       <Clapperboard className="size-12 text-[#44f26e]" />
       <span className="text-xs font-semibold uppercase tracking-[0.2em]">
-        FanLetter
+        AIAVpark
       </span>
     </div>
   );
@@ -434,7 +434,7 @@ function FollowingHeader({
           <MessageCircleHeart className="size-5" />
         </span>
         <span className="truncate text-xl font-semibold tracking-normal">
-          FanLetter
+          AIAVpark
         </span>
       </Link>
 
@@ -949,7 +949,7 @@ function FanHomeDashboard({
                 <p className="mt-1 text-xs font-medium text-white/58">
                   {formatDate(latest?.publishedAt ?? null, locale) ??
                     formatDate(featured.updatedAt, locale) ??
-                    "FanLetter"}
+                    "AIAVpark"}
                 </p>
               </div>
             </div>
@@ -1120,7 +1120,7 @@ function ProducedRequestHighlight({
               <span className="text-xs font-semibold text-white/38">
                 {formatDate(featuredRequest.updatedAt, locale) ??
                   formatDate(featuredRequest.createdAt, locale) ??
-                  "FanLetter"}
+                  "AIAVpark"}
               </span>
             </div>
             <h3 className="mt-4 truncate text-sm font-semibold text-[#b9ffc8]">
@@ -1366,7 +1366,7 @@ function MyFanRequestsPanel({
                   <span className="text-xs font-semibold text-black/38">
                     {formatDate(request.updatedAt, locale) ??
                       formatDate(request.createdAt, locale) ??
-                      "FanLetter"}
+                      "AIAVpark"}
                   </span>
                 </div>
                 <h3 className="mt-4 truncate text-sm font-semibold text-[#1f7c38]">
@@ -1453,7 +1453,7 @@ function LatestVlogStrip({
                   {latest?.title ?? character.referralCode}
                 </p>
                 <p className="mt-2 text-xs font-medium text-black/46">
-                  {formatDate(latest?.publishedAt ?? null, locale) ?? "FanLetter"}
+                  {formatDate(latest?.publishedAt ?? null, locale) ?? "AIAVpark"}
                 </p>
               </div>
             </Link>

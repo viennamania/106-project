@@ -202,7 +202,7 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
               : [
                   "Chrome에서 열린 뒤 브라우저 메뉴를 누릅니다.",
                   "\"앱 설치\" 또는 \"홈 화면에 추가\"를 선택합니다.",
-                  "홈 화면의 FanLetter 아이콘으로 다시 들어옵니다.",
+                  "홈 화면의 AIAVpark 아이콘으로 다시 들어옵니다.",
                 ],
           guideTitle: "홈 화면 바로가기 만드는 방법",
           install:
@@ -213,13 +213,13 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
             environment.platform === "android"
               ? "Chrome 여는 중"
               : "방법 확인 중",
-          title: "FanLetter 바로가기 만들기",
+          title: "AIAVpark 바로가기 만들기",
         };
       }
 
       if (environment.platform === "ios") {
         return {
-          body: "Safari 공유 버튼에서 홈 화면에 추가하면 FanLetter News와 AI 캐릭터 브이로그를 앱처럼 열 수 있습니다.",
+          body: "Safari 공유 버튼에서 홈 화면에 추가하면 AIAVpark News와 AI 캐릭터 브이로그를 앱처럼 열 수 있습니다.",
           copied: "복사됨",
           copyError: "복사 실패",
           copyLink: "링크 복사",
@@ -227,33 +227,33 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
           guideSteps: [
             "Safari 공유 버튼을 누릅니다.",
             "\"홈 화면에 추가\"를 선택합니다.",
-            "홈 화면의 FanLetter 아이콘으로 다시 들어옵니다.",
+            "홈 화면의 AIAVpark 아이콘으로 다시 들어옵니다.",
           ],
           guideTitle: "iPhone 홈 화면 추가",
           install: "방법 보기",
           installing: "안내 확인 중",
-          title: "FanLetter를 홈 화면에 추가",
+          title: "AIAVpark를 홈 화면에 추가",
         };
       }
 
       return installPrompt
         ? {
-            body: "설치하면 FanLetter News, AI 캐릭터, 브이로그 구매 흐름을 더 빠르게 이어볼 수 있습니다.",
+            body: "설치하면 AIAVpark News, AI 캐릭터, 브이로그 구매 흐름을 더 빠르게 이어볼 수 있습니다.",
             copied: "복사됨",
             copyError: "복사 실패",
             copyLink: "링크 복사",
             dismiss: "나중에",
             guideSteps: [
               "브라우저 설치 안내가 열리면 설치를 선택합니다.",
-              "홈 화면의 FanLetter 아이콘으로 다시 들어옵니다.",
+              "홈 화면의 AIAVpark 아이콘으로 다시 들어옵니다.",
             ],
             guideTitle: "앱 설치 방법",
             install: "앱 설치",
             installing: "설치 화면 여는 중",
-            title: "FanLetter 앱으로 열기",
+            title: "AIAVpark 앱으로 열기",
           }
         : {
-            body: "Chrome 메뉴에서 홈 화면에 추가하면 FanLetter News와 브이로그 제작 화면을 앱처럼 빠르게 열 수 있습니다.",
+            body: "Chrome 메뉴에서 홈 화면에 추가하면 AIAVpark News와 브이로그 제작 화면을 앱처럼 빠르게 열 수 있습니다.",
             copied: "복사됨",
             copyError: "복사 실패",
             copyLink: "링크 복사",
@@ -261,19 +261,19 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
             guideSteps: [
               "Chrome 오른쪽 위 메뉴를 누릅니다.",
               "\"앱 설치\" 또는 \"홈 화면에 추가\"를 선택합니다.",
-              "홈 화면의 FanLetter 아이콘으로 다시 들어옵니다.",
+              "홈 화면의 AIAVpark 아이콘으로 다시 들어옵니다.",
             ],
             guideTitle: "Android 홈 화면 추가",
             install: "방법 보기",
             installing: "안내 확인 중",
-            title: "FanLetter를 홈 화면에 추가",
+            title: "AIAVpark를 홈 화면에 추가",
           };
     }
 
     if (environment.restrictedInApp) {
       return {
         body:
-          "Social app browsers can limit PWA install and notifications. Open FanLetter in an external browser, then add it to your Home Screen.",
+          "Social app browsers can limit PWA install and notifications. Open AIAVpark in an external browser, then add it to your Home Screen.",
         copied: "Copied",
         copyError: "Copy failed",
         copyLink: "Copy link",
@@ -288,7 +288,7 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
             : [
                 "Open this link in Chrome.",
                 "Use Install app or Add to Home screen from the browser menu.",
-                "Return from the FanLetter icon on your Home Screen.",
+                "Return from the AIAVpark icon on your Home Screen.",
               ],
         guideTitle: "Create a Home Screen shortcut",
         install:
@@ -299,13 +299,13 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
           environment.platform === "android"
             ? "Opening Chrome"
             : "Opening guide",
-        title: "Create a FanLetter shortcut",
+        title: "Create an AIAVpark shortcut",
       };
     }
 
     if (environment.platform === "ios") {
       return {
-        body: "Use Safari Share, then Add to Home Screen to open FanLetter News and AI character vlogs like an app.",
+        body: "Use Safari Share, then Add to Home Screen to open AIAVpark News and AI character vlogs like an app.",
         copied: "Copied",
         copyError: "Copy failed",
         copyLink: "Copy link",
@@ -313,33 +313,33 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
         guideSteps: [
           "Tap Safari Share.",
           "Choose Add to Home Screen.",
-          "Return from the FanLetter icon on your Home Screen.",
+          "Return from the AIAVpark icon on your Home Screen.",
         ],
         guideTitle: "Add on iPhone",
         install: "View steps",
         installing: "Checking guide",
-        title: "Add FanLetter to Home Screen",
+        title: "Add AIAVpark to Home Screen",
       };
     }
 
     return installPrompt
       ? {
-          body: "Install FanLetter to continue News, AI characters, and purchased vlogs faster.",
+          body: "Install AIAVpark to continue News, AI characters, and purchased vlogs faster.",
           copied: "Copied",
           copyError: "Copy failed",
           copyLink: "Copy link",
           dismiss: "Maybe later",
           guideSteps: [
             "Use the browser install prompt.",
-            "Return from the FanLetter icon on your Home Screen.",
+            "Return from the AIAVpark icon on your Home Screen.",
           ],
           guideTitle: "Install app",
           install: "Install app",
           installing: "Opening install prompt",
-          title: "Open FanLetter as an app",
+          title: "Open AIAVpark as an app",
         }
       : {
-          body: "Use Chrome's menu to add FanLetter to your Home Screen and open News or vlog creation like an app.",
+          body: "Use Chrome's menu to add AIAVpark to your Home Screen and open News or vlog creation like an app.",
           copied: "Copied",
           copyError: "Copy failed",
           copyLink: "Copy link",
@@ -347,12 +347,12 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
           guideSteps: [
             "Open Chrome's menu.",
             "Choose Install app or Add to Home screen.",
-            "Return from the FanLetter icon on your Home Screen.",
+            "Return from the AIAVpark icon on your Home Screen.",
           ],
           guideTitle: "Add on Android",
           install: "View steps",
           installing: "Checking guide",
-          title: "Add FanLetter to Home Screen",
+          title: "Add AIAVpark to Home Screen",
         };
   }, [environment.platform, environment.restrictedInApp, installPrompt, locale]);
 

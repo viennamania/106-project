@@ -26,13 +26,13 @@ function getMetadataCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "FanLetter News 안에서 뉴스 지갑 가입 완료와 10 USDT 결제 확인을 진행하세요.",
-        title: "FanLetter News 가입 완료",
+          "AIAVpark News 안에서 뉴스 지갑 가입 완료와 10 USDT 결제 확인을 진행하세요.",
+        title: "AIAVpark News 가입 완료",
       }
     : {
         description:
-          "Complete FanLetter News wallet signup and 10 USDT payment verification inside the news service.",
-        title: "Complete FanLetter News Signup",
+          "Complete AIAVpark News wallet signup and 10 USDT payment verification inside the news service.",
+        title: "Complete AIAVpark News Signup",
       };
 }
 
@@ -83,7 +83,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter News",
+      siteName: "AIAVpark News",
       title,
       type: "website",
       url,

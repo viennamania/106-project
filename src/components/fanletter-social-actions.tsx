@@ -382,14 +382,14 @@ function FanletterNewsReportsList({
   const labels =
     locale === "ko"
       ? {
-          dateFallback: "FanLetter News",
+          dateFallback: "AIAVpark News",
           empty:
             "아직 이 브이로그로 생성된 리포트가 없습니다. 첫 리포트를 만들면 목록에 표시됩니다.",
           reporter: "팬 기자",
           viewerReport: "내 리포트",
         }
       : {
-          dateFallback: "FanLetter News",
+          dateFallback: "AIAVpark News",
           empty:
             "No reports have been generated from this vlog yet. Create the first report to show it here.",
           reporter: "Fan reporter",

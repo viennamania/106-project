@@ -63,7 +63,7 @@ function getFanletterCreatorShareMetadata({
     return {
       description: latestTitle
         ? `공개 브이로그 ${publicCount}개, 팬 전용 ${fanOnlyCount}개, Lv.${level} 캐릭터 채널입니다. 대표 브이로그: ${latestTitle}.`
-        : `공개 브이로그 ${publicCount}개와 팬 전용 콘텐츠 ${fanOnlyCount}개를 볼 수 있는 Lv.${level} FanLetter AI 캐릭터 채널입니다.`,
+        : `공개 브이로그 ${publicCount}개와 팬 전용 콘텐츠 ${fanOnlyCount}개를 볼 수 있는 Lv.${level} AIAVpark AI 캐릭터 채널입니다.`,
       title: `${characterName} AI 브이로그 채널`,
     };
   }
@@ -71,7 +71,7 @@ function getFanletterCreatorShareMetadata({
   return {
     description: latestTitle
       ? `${publicCount} public vlogs, ${fanOnlyCount} fan-only posts, and a Lv.${level} AI character channel. Featured vlog: ${latestTitle}.`
-      : `A Lv.${level} FanLetter AI character channel with ${publicCount} public vlogs and ${fanOnlyCount} fan-only posts.`,
+      : `A Lv.${level} AIAVpark AI character channel with ${publicCount} public vlogs and ${fanOnlyCount} fan-only posts.`,
     title: `${characterName} AI vlog channel`,
   };
 }
@@ -86,16 +86,16 @@ export async function generateMetadata({
   const data = await getFanletterCreatorPageData(locale, referralCode);
   const characterName = data?.profile.character?.name ?? data?.profile.displayName;
   const title = data
-    ? `${characterName} | FanLetter`
+    ? `${characterName} | AIAVpark`
     : locale === "ko"
-      ? "FanLetter 캐릭터"
-      : "FanLetter character";
+      ? "AIAVpark 캐릭터"
+      : "AIAVpark character";
   const description =
     data?.profile.character?.summary ??
     data?.profile.intro ??
     (locale === "ko"
-      ? "FanLetter 가상 인물 공개 채널입니다."
-      : "A public FanLetter virtual character channel.");
+      ? "AIAVpark 가상 인물 공개 채널입니다."
+      : "A public AIAVpark virtual character channel.");
   const shareMetadata =
     data && characterName
       ? getFanletterCreatorShareMetadata({ characterName, data, locale })
@@ -128,8 +128,8 @@ export async function generateMetadata({
   const ogImage = {
     alt: data
       ? locale === "ko"
-        ? `${characterName} FanLetter 채널 미리보기`
-        : `${characterName} FanLetter channel preview`
+        ? `${characterName} AIAVpark 채널 미리보기`
+        : `${characterName} AIAVpark channel preview`
       : getFanletterOgAlt(locale, "creator"),
     height: FANLETTER_OG_IMAGE_SIZE.height,
     type: "image/png",
@@ -146,7 +146,7 @@ export async function generateMetadata({
     openGraph: {
       description: shareMetadata.description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title: shareMetadata.title,
       type: "profile",
       url,

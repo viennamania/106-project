@@ -71,19 +71,19 @@ export async function generateMetadata({
   const title =
     data && characterName
       ? locale === "ko"
-        ? `${characterName} 공개 브이로그 | FanLetter`
-        : `${characterName} public vlogs | FanLetter`
+        ? `${characterName} 공개 브이로그 | AIAVpark`
+        : `${characterName} public vlogs | AIAVpark`
       : locale === "ko"
-        ? "FanLetter 공개 브이로그"
-        : "FanLetter public vlogs";
+        ? "AIAVpark 공개 브이로그"
+        : "AIAVpark public vlogs";
   const description =
     data && characterName
       ? locale === "ko"
         ? `${characterName} 채널의 공개 브이로그 ${publicCount}개를 확인하세요.`
         : `Browse ${publicCount} public vlogs from ${characterName}.`
       : locale === "ko"
-        ? "FanLetter AI 캐릭터 공개 브이로그 목록입니다."
-        : "A FanLetter AI character public vlog archive.";
+        ? "AIAVpark AI 캐릭터 공개 브이로그 목록입니다."
+        : "An AIAVpark AI character public vlog archive.";
   const url = setPathSearchParams(
     `/${locale}/fanletter/creator/${normalizedReferralCode ?? referralCode}/vlogs`,
     {
@@ -134,7 +134,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title,
       type: "website",
       url,

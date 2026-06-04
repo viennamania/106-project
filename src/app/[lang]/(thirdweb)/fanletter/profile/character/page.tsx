@@ -49,12 +49,12 @@ export async function generateMetadata({
   return {
     title:
       locale === "ko"
-        ? "캐릭터 변경 | FanLetter"
-        : "Change Character | FanLetter",
+        ? "캐릭터 변경 | AIAVpark"
+        : "Change Character | AIAVpark",
     description:
       locale === "ko"
-        ? "FanLetter AI 캐릭터 페르소나와 대표 아바타를 전용 변경 화면에서 관리하세요."
-        : "Manage the FanLetter AI character persona and representative avatar in a dedicated change screen.",
+        ? "AIAVpark AI 캐릭터 페르소나와 대표 아바타를 전용 변경 화면에서 관리하세요."
+        : "Manage the AIAVpark AI character persona and representative avatar in a dedicated change screen.",
   };
 }
 
@@ -106,10 +106,10 @@ export default async function LocalizedFanletterCharacterPage({
       ? {
           back: "이전으로",
           body:
-            "FanLetter 캐릭터 정체성은 콘텐츠의 중심 자산입니다. 변경이 필요할 때만 이 전용 화면에서 현재 캐릭터, 새 페르소나, 아바타 세트를 확인한 뒤 저장합니다.",
+            "AIAVpark 캐릭터 정체성은 콘텐츠의 중심 자산입니다. 변경이 필요할 때만 이 전용 화면에서 현재 캐릭터, 새 페르소나, 아바타 세트를 확인한 뒤 저장합니다.",
           create: "브이로그 만들기",
-          eyebrow: "FanLetter Character",
-          home: "FanLetter 홈",
+          eyebrow: "AIAVpark Character",
+          home: "AIAVpark 홈",
           steps: [
             {
               body: "현재 적용된 페르소나와 대표 아바타를 먼저 확인합니다.",
@@ -132,10 +132,10 @@ export default async function LocalizedFanletterCharacterPage({
       : {
           back: "Back",
           body:
-            "The FanLetter character identity is the core asset of the content channel. Change it only from this dedicated screen after reviewing the current character, new persona, and avatar set.",
+            "The AIAVpark character identity is the core asset of the content channel. Change it only from this dedicated screen after reviewing the current character, new persona, and avatar set.",
           create: "Create vlog",
-          eyebrow: "FanLetter Character",
-          home: "FanLetter home",
+          eyebrow: "AIAVpark Character",
+          home: "AIAVpark home",
           steps: [
             {
               body: "Review the current persona and representative avatar first.",
@@ -173,7 +173,7 @@ export default async function LocalizedFanletterCharacterPage({
                 <MessageCircleHeart className="size-5" />
               </span>
               <span className="truncate text-xl font-semibold tracking-normal">
-                FanLetter
+                AIAVpark
               </span>
             </Link>
             <div className="flex items-center gap-2">

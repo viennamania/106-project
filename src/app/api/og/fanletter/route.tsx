@@ -24,7 +24,7 @@ export const runtime = "nodejs";
 export const size = FANLETTER_OG_IMAGE_SIZE;
 
 const fanletterOgFontFamily =
-  "FanLetterKR, Arial, Helvetica, sans-serif";
+  "AIAVparkKR, Arial, Helvetica, sans-serif";
 const notoSansKrBoldFontPromise = readFile(
   join(process.cwd(), "public/fonts/noto-sans-kr-bold.ttf"),
 )
@@ -56,11 +56,11 @@ const copyByLocale: Record<"en" | "ko", FanletterOgCopy> = {
       { label: "Creator studio", value: "01" },
       { label: "Mobile first", value: "24/7" },
     ],
-    title: "FanLetter Creator AI",
+    title: "AIAVpark Creator AI",
     variantLabels: {
       creator: "Creator channel",
       feed: "Public AI feed",
-      home: "FanLetter",
+      home: "AIAVpark",
       start: "Start creating",
     },
   },
@@ -74,11 +74,11 @@ const copyByLocale: Record<"en" | "ko", FanletterOgCopy> = {
       { label: "크리에이터 스튜디오", value: "01" },
       { label: "모바일 중심", value: "24/7" },
     ],
-    title: "FanLetter AI 캐릭터 브이로그",
+    title: "AIAVpark AI 캐릭터 브이로그",
     variantLabels: {
       creator: "크리에이터 채널",
       feed: "공개 AI 피드",
-      home: "FanLetter",
+      home: "AIAVpark",
       start: "콘텐츠 시작",
     },
   },
@@ -122,7 +122,7 @@ function getRenderableImageUrl(
 }
 
 function stripFanletterTitleSuffix(value: string) {
-  return value.replace(/\s*\|\s*FanLetter\s*$/i, "").trim();
+  return value.replace(/\s*\|\s*AIAVpark\s*$/i, "").trim();
 }
 
 function getCreatorName(data: FanletterCreatorPageData | null) {
@@ -200,7 +200,7 @@ async function getFanletterOgImageOptions() {
     ...FANLETTER_OG_IMAGE_SIZE,
     fonts: ([400, 700, 900] as const).map((weight) => ({
       data: fontData,
-      name: "FanLetterKR",
+      name: "AIAVparkKR",
       style: "normal" as const,
       weight,
     })),
@@ -377,7 +377,7 @@ export async function GET(request: Request) {
       seenImageUrls.add(imageUrl);
       cards.push({
         imageUrl,
-        name: name.trim() || "FanLetter",
+        name: name.trim() || "AIAVpark",
       });
     };
 
@@ -486,7 +486,7 @@ export async function GET(request: Request) {
         : [
             {
               imageUrl: visualUrl as string,
-              name: visualName ?? "FanLetter",
+              name: visualName ?? "AIAVpark",
             },
           ];
     const homeHeadline = locale === "ko"
@@ -632,7 +632,7 @@ export async function GET(request: Request) {
                   }}
                 >
                   <div style={{ display: "flex", fontSize: 25, fontWeight: 900 }}>
-                    FanLetter
+                    AIAVpark
                   </div>
                 </div>
               </div>
@@ -843,7 +843,7 @@ export async function GET(request: Request) {
       : truncateText(title, 44);
     const promoDescription = truncateText(description, 72);
     const promoKicker =
-      locale === "ko" ? "FanLetter 공유 미리보기" : "FanLetter share preview";
+      locale === "ko" ? "AIAVpark 공유 미리보기" : "AIAVpark share preview";
     const promoVisualLabel =
       creatorCoverImageUrl
         ? locale === "ko"
@@ -941,7 +941,7 @@ export async function GET(request: Request) {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <div style={{ display: "flex", fontSize: 25, fontWeight: 900 }}>
-                FanLetter
+                AIAVpark
               </div>
               <div
                 style={{
@@ -1319,7 +1319,7 @@ export async function GET(request: Request) {
                   }}
                 >
                   <div style={{ display: "flex", fontSize: 25, fontWeight: 900 }}>
-                    FanLetter
+                    AIAVpark
                   </div>
                   <div
                     style={{
@@ -1575,7 +1575,7 @@ export async function GET(request: Request) {
                   }}
                 >
                   <div style={{ display: "flex", fontSize: 27, fontWeight: 900 }}>
-                    FanLetter
+                    AIAVpark
                   </div>
                   <div
                     style={{
@@ -1846,7 +1846,7 @@ export async function GET(request: Request) {
                   }}
                 >
                   <div style={{ display: "flex", fontSize: 30, fontWeight: 900 }}>
-                    FanLetter
+                    AIAVpark
                   </div>
                   <div
                     style={{

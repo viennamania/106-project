@@ -88,7 +88,7 @@ export async function GET(request: Request) {
     const message =
       error instanceof Error
         ? error.message
-        : "Failed to load FanLetter vlog plans.";
+        : "Failed to load AIAVpark vlog plans.";
     const status = message.endsWith("is required.") ? 400 : 500;
 
     return jsonError(message, status);
@@ -159,7 +159,7 @@ export async function POST(request: Request) {
     const message =
       error instanceof Error
         ? error.message
-        : "Failed to generate FanLetter vlog plans.";
+        : "Failed to generate AIAVpark vlog plans.";
     const status =
       message === "Member not found."
         ? 404
@@ -222,9 +222,9 @@ export async function PATCH(request: Request) {
     const message =
       error instanceof Error
         ? error.message
-        : "Failed to update FanLetter vlog plan.";
+        : "Failed to update AIAVpark vlog plan.";
     const apiStatus =
-      message === "FanLetter vlog plan not found."
+      message === "AIAVpark vlog plan not found."
         ? 404
         : message.endsWith("is required.")
           ? 400

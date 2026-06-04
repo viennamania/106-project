@@ -82,12 +82,12 @@ function getCopy(locale: Locale) {
         typeAll: "모든 유형",
         typeMessage: "응원 메시지",
         typeVlog: "브이로그 요청",
-        unknownDate: "FanLetter",
+        unknownDate: "AIAVpark",
         vlogRequestType: "브이로그 요청",
       }
     : {
         accountBody:
-          "Connect your account to keep request receipts from this device with your FanLetter inbox.",
+          "Connect your account to keep request receipts from this device with your AIAVpark inbox.",
         accountConnected: "Tracking requests with your connected account.",
         accountEyebrow: "Account",
         accountTitle: "Request tracking account",
@@ -122,13 +122,13 @@ function getCopy(locale: Locale) {
         statusNewBody: "The request is saved and delivered to the creator studio.",
         statusReviewedBody:
           "The creator reviewed it and is considering it for a future vlog.",
-        statusUsedBody: "The request became a public FanLetter vlog.",
+        statusUsedBody: "The request became a public AIAVpark vlog.",
         summaryTitle: "Request progress",
         timeline: "Timeline",
         typeAll: "All types",
         typeMessage: "Message",
         typeVlog: "Vlog request",
-        unknownDate: "FanLetter",
+        unknownDate: "AIAVpark",
         vlogRequestType: "Vlog request",
       };
 }
@@ -517,7 +517,7 @@ export function FanletterRequestsPage({
                 <MessageCircleHeart className="size-5" />
               </span>
               <span className="truncate text-xl font-semibold tracking-normal">
-                FanLetter
+                AIAVpark
               </span>
             </Link>
             <nav className="hidden items-center gap-2 text-sm font-semibold text-white/62 md:flex">

@@ -4,9 +4,9 @@ import type { Locale } from "@/lib/i18n";
 
 export const FANLETTER_PWA_THEME_COLOR = "#030504";
 export const FANLETTER_PWA_BACKGROUND_COLOR = "#030504";
-export const FANLETTER_PWA_NAME = "FanLetter";
+export const FANLETTER_PWA_NAME = "AIAVpark";
 export const FANLETTER_PWA_DESCRIPTION =
-  "FanLetter News turns AI character one-take vlogs into photo news, fan participation, and transparent USDT profit sharing.";
+  "AIAVpark News turns AI character one-take vlogs into photo news, fan participation, and transparent USDT profit sharing.";
 export const FANLETTER_PWA_ICON_192 = "/fanletter-icon-192.png";
 export const FANLETTER_PWA_ICON_512 = "/fanletter-icon-512.png";
 export const FANLETTER_PWA_APPLE_ICON = "/fanletter-apple-icon.png";
@@ -176,9 +176,9 @@ function getFanletterPwaCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "FanLetter News는 AI 캐릭터 One Take 브이로그를 포토 뉴스, 팬 참여, 투명한 USDT 수익 공유로 연결합니다.",
-      name: "FanLetter News",
-      shortName: "FanLetter",
+        "AIAVpark News는 AI 캐릭터 One Take 브이로그를 포토 뉴스, 팬 참여, 투명한 USDT 수익 공유로 연결합니다.",
+      name: "AIAVpark News",
+      shortName: "AIAVpark",
       shortcuts: {
         characters: {
           description: "AI 캐릭터 채널과 최신 일상을 탐색합니다.",
@@ -211,7 +211,7 @@ function getFanletterPwaCopy(locale: Locale) {
 
   return {
     description: FANLETTER_PWA_DESCRIPTION,
-    name: "FanLetter News",
+    name: "AIAVpark News",
     shortName: FANLETTER_PWA_NAME,
     shortcuts: {
       characters: {

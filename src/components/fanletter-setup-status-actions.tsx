@@ -188,7 +188,7 @@ export function FanletterSetupStatusProvider({
         throw new Error(
           data && "error" in data && data.error
             ? data.error
-            : "Failed to load FanLetter readiness.",
+            : "Failed to load AIAVpark readiness.",
         );
       }
 
@@ -394,10 +394,10 @@ function getOnboardingCopy(locale: Locale) {
   return locale === "ko"
     ? {
         accountCheckingBody:
-          "FanLetter 계정과 시작 준비 상태를 확인하고 있습니다. 확인이 끝나면 다음 단계가 자동으로 정리됩니다.",
+          "AIAVpark 계정과 시작 준비 상태를 확인하고 있습니다. 확인이 끝나면 다음 단계가 자동으로 정리됩니다.",
         accountCheckingTitle: "계정 상태 확인 중",
         accountReadyBody:
-          "FanLetter 계정 연결이 확인되었습니다. 이제 캐릭터 상태만 이어서 확인하면 됩니다.",
+          "AIAVpark 계정 연결이 확인되었습니다. 이제 캐릭터 상태만 이어서 확인하면 됩니다.",
         accountReadyTitle: "계정 연결 완료",
         accountReviewBody:
           "가입 또는 연결 상태 확인이 필요합니다. 계정 연결 페이지에서 상태를 먼저 정리하세요.",
@@ -454,11 +454,11 @@ function getOnboardingCopy(locale: Locale) {
         heroChecking:
           "계정과 캐릭터 상태를 확인하고 있습니다. 확인이 끝나면 필요한 다음 작업만 보여드립니다.",
         heroPayment:
-          "FanLetter 시작 준비 확인이 필요합니다. 확인을 마친 뒤 캐릭터와 브이로그 생성을 이어가세요.",
+          "AIAVpark 시작 준비 확인이 필요합니다. 확인을 마친 뒤 캐릭터와 브이로그 생성을 이어가세요.",
         heroReady: (name: string | null) =>
           name
-            ? `${name} 캐릭터가 준비되어 있습니다. 이제 첫 브이로그를 만들고 FanLetter 피드로 이어가세요.`
-            : "계정과 AI 캐릭터가 준비되어 있습니다. 이제 첫 브이로그를 만들고 FanLetter 피드로 이어가세요.",
+            ? `${name} 캐릭터가 준비되어 있습니다. 이제 첫 브이로그를 만들고 AIAVpark 피드로 이어가세요.`
+            : "계정과 AI 캐릭터가 준비되어 있습니다. 이제 첫 브이로그를 만들고 AIAVpark 피드로 이어가세요.",
         heroReview:
           "계정 연결 상태 확인이 필요합니다. 먼저 연결 상태를 정리한 뒤 캐릭터와 브이로그 생성을 이어가세요.",
         heroVlogReady: (count: number) =>
@@ -483,10 +483,10 @@ function getOnboardingCopy(locale: Locale) {
       }
     : {
         accountCheckingBody:
-          "Checking the FanLetter account and readiness state. The next step will update automatically.",
+          "Checking the AIAVpark account and readiness state. The next step will update automatically.",
         accountCheckingTitle: "Checking account status",
         accountReadyBody:
-          "The FanLetter account is connected. Next, confirm the character state.",
+          "The AIAVpark account is connected. Next, confirm the character state.",
         accountReadyTitle: "Account connected",
         accountReviewBody:
           "Signup or connection status needs review. Start by resolving it on the account page.",
@@ -543,11 +543,11 @@ function getOnboardingCopy(locale: Locale) {
         heroChecking:
           "Checking account and character status. Once resolved, only the next required action will be shown.",
         heroPayment:
-          "Signup verification is required. Resolve payment or signup status before continuing FanLetter.",
+          "Signup verification is required. Resolve payment or signup status before continuing AIAVpark.",
         heroReady: (name: string | null) =>
           name
-            ? `${name} is ready. Create the first vlog and continue into the FanLetter feed.`
-            : "The account and AI character are ready. Create the first vlog and continue into the FanLetter feed.",
+            ? `${name} is ready. Create the first vlog and continue into the AIAVpark feed.`
+            : "The account and AI character are ready. Create the first vlog and continue into the AIAVpark feed.",
         heroReview:
           "Account connection needs review. Resolve the connection first, then continue into character and vlog creation.",
         heroVlogReady: (count: number) =>

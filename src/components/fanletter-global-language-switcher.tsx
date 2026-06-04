@@ -17,32 +17,32 @@ const copyByLocale: Record<
   ko: {
     detail: `${supportedLocales.length}개 언어 지원`,
     eyebrow: "GLOBAL SERVICE",
-    label: "FanLetter 언어 선택",
+    label: "AIAVpark 언어 선택",
   },
   en: {
     detail: `${supportedLocales.length} languages`,
     eyebrow: "GLOBAL SERVICE",
-    label: "Select FanLetter language",
+    label: "Select AIAVpark language",
   },
   ja: {
     detail: `${supportedLocales.length} languages`,
     eyebrow: "GLOBAL SERVICE",
-    label: "Select FanLetter language",
+    label: "Select AIAVpark language",
   },
   zh: {
     detail: `${supportedLocales.length} languages`,
     eyebrow: "GLOBAL SERVICE",
-    label: "Select FanLetter language",
+    label: "Select AIAVpark language",
   },
   vi: {
     detail: `${supportedLocales.length} languages`,
     eyebrow: "GLOBAL SERVICE",
-    label: "Select FanLetter language",
+    label: "Select AIAVpark language",
   },
   id: {
     detail: `${supportedLocales.length} languages`,
     eyebrow: "GLOBAL SERVICE",
-    label: "Select FanLetter language",
+    label: "Select AIAVpark language",
   },
 };
 

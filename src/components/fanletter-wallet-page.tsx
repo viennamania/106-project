@@ -78,7 +78,7 @@ function getCopy(locale: Locale, service: FanletterWalletService) {
     ? {
         actions: {
           advanced: "전체 지갑 관리",
-          back: "FanLetter",
+          back: "AIAVpark",
           connect: "이메일로 지갑 연결",
           copy: "주소 복사",
           copied: "복사됨",
@@ -93,17 +93,17 @@ function getCopy(locale: Locale, service: FanletterWalletService) {
         balance: "사용 가능 USDT",
         bsc: "BSC",
         connectBody:
-          "FanLetter 결제와 구매 내역은 연결된 이메일 스마트월렛 기준으로 관리합니다.",
-        connectTitle: "지갑을 연결하면 FanLetter 결제 상태를 바로 볼 수 있습니다.",
+          "AIAVpark 결제와 구매 내역은 연결된 이메일 스마트월렛 기준으로 관리합니다.",
+        connectTitle: "지갑을 연결하면 AIAVpark 결제 상태를 바로 볼 수 있습니다.",
         description:
-          "팬 전용 콘텐츠 결제, 입금 주소, 최근 USDT 흐름, 크리에이터 정산 진입점을 FanLetter 안에서 확인합니다.",
+          "팬 전용 콘텐츠 결제, 입금 주소, 최근 USDT 흐름, 크리에이터 정산 진입점을 AIAVpark 안에서 확인합니다.",
         emptyHistory: "아직 표시할 USDT 입출금 내역이 없습니다.",
-        eyebrow: "FanLetter Wallet",
+        eyebrow: "AIAVpark Wallet",
         history: "최근 USDT 내역",
         historyBody:
           "구매 결제와 입금 흐름을 같은 지갑 기준으로 확인합니다.",
         loading: "지갑 정보를 확인하고 있습니다.",
-        loginTitle: "FanLetter 지갑 연결",
+        loginTitle: "AIAVpark 지갑 연결",
         network: "네트워크",
         quickLinks: {
           purchases: "Fan-only",
@@ -117,15 +117,15 @@ function getCopy(locale: Locale, service: FanletterWalletService) {
         settlementBody:
           "크리에이터 수익은 별도 정산 주소에서 관리됩니다. 판매 정산 화면에서 정산 주소와 회수 상태를 확인하세요.",
         settlementTitle: "크리에이터 정산은 분리해서 관리합니다.",
-        siteName: "FanLetter",
-        title: "FanLetter 지갑 관리",
+        siteName: "AIAVpark",
+        title: "AIAVpark 지갑 관리",
         updated: "업데이트",
         walletAddress: "지갑 주소",
       }
     : {
         actions: {
           advanced: "Full wallet",
-          back: "FanLetter",
+          back: "AIAVpark",
           connect: "Connect wallet with email",
           copy: "Copy address",
           copied: "Copied",
@@ -140,17 +140,17 @@ function getCopy(locale: Locale, service: FanletterWalletService) {
         balance: "Available USDT",
         bsc: "BSC",
         connectBody:
-          "FanLetter payments and purchases are managed from your connected email smart wallet.",
-        connectTitle: "Connect your wallet to see FanLetter payment status.",
+          "AIAVpark payments and purchases are managed from your connected email smart wallet.",
+        connectTitle: "Connect your wallet to see AIAVpark payment status.",
         description:
-          "Check fan-only payments, deposit address, recent USDT activity, and creator settlement entry points inside FanLetter.",
+          "Check fan-only payments, deposit address, recent USDT activity, and creator settlement entry points inside AIAVpark.",
         emptyHistory: "No USDT activity to show yet.",
-        eyebrow: "FanLetter Wallet",
+        eyebrow: "AIAVpark Wallet",
         history: "Recent USDT activity",
         historyBody:
           "Review purchase payments and deposits from the same wallet basis.",
         loading: "Checking wallet information.",
-        loginTitle: "Connect FanLetter wallet",
+        loginTitle: "Connect AIAVpark wallet",
         network: "Network",
         quickLinks: {
           purchases: "Fan-only",
@@ -164,8 +164,8 @@ function getCopy(locale: Locale, service: FanletterWalletService) {
         settlementBody:
           "Creator revenue is handled through a separate settlement address. Check settlement address and withdrawals on the sales page.",
         settlementTitle: "Creator settlement is managed separately.",
-        siteName: "FanLetter",
-        title: "FanLetter wallet",
+        siteName: "AIAVpark",
+        title: "AIAVpark wallet",
         updated: "Updated",
         walletAddress: "Wallet address",
       };
@@ -186,16 +186,16 @@ function getCopy(locale: Locale, service: FanletterWalletService) {
           studio: "AI 캐릭터",
         },
         connectBody:
-          "FanLetter News의 AI 리포트, 공유자 정보, 팬 전용 브이로그 결제와 열람 내역을 같은 이메일 스마트월렛 기준으로 관리합니다.",
+          "AIAVpark News의 AI 리포트, 공유자 정보, 팬 전용 브이로그 결제와 열람 내역을 같은 이메일 스마트월렛 기준으로 관리합니다.",
         connectTitle:
-          "뉴스 지갑을 연결하면 FanLetter News 활동 상태를 바로 확인할 수 있습니다.",
+          "뉴스 지갑을 연결하면 AIAVpark News 활동 상태를 바로 확인할 수 있습니다.",
         description:
           "뉴스 결제에 쓰는 이메일 지갑, USDT 잔액, 입금 주소, 최근 흐름과 가입 완료 진입점을 관리합니다.",
-        eyebrow: "FanLetter News Wallet",
+        eyebrow: "AIAVpark News Wallet",
         history: "뉴스 지갑 USDT 내역",
         historyBody:
           "뉴스와 팬 전용 브이로그에서 발생한 결제와 입금 흐름을 같은 지갑 기준으로 확인합니다.",
-        loginTitle: "FanLetter News 지갑 연결",
+        loginTitle: "AIAVpark News 지갑 연결",
         quickLinks: {
           purchases: "최신 AI 팬 리포트로 돌아가기",
           sales: "뉴스 계정 결제 확인과 활성화 진행",
@@ -204,8 +204,8 @@ function getCopy(locale: Locale, service: FanletterWalletService) {
         settlementBody:
           "뉴스 계정 가입 완료와 결제 확인이 필요하면 뉴스 서비스 안에서 바로 이어서 진행합니다.",
         settlementTitle: "뉴스 계정 활성화 상태를 확인합니다.",
-        siteName: "FanLetter News",
-        title: "FanLetter News 지갑 관리",
+        siteName: "AIAVpark News",
+        title: "AIAVpark News 지갑 관리",
       }
     : {
         ...copy,
@@ -218,16 +218,16 @@ function getCopy(locale: Locale, service: FanletterWalletService) {
           studio: "AI Characters",
         },
         connectBody:
-          "Manage FanLetter News AI reports, sharer identity, fan-only vlog payments, and access from the same email smart wallet.",
+          "Manage AIAVpark News AI reports, sharer identity, fan-only vlog payments, and access from the same email smart wallet.",
         connectTitle:
-          "Connect your news wallet to see FanLetter News activity status.",
+          "Connect your news wallet to see AIAVpark News activity status.",
         description:
           "Manage the email wallet used for the news service, USDT balance, deposit address, recent activity, and signup verification entry points.",
-        eyebrow: "FanLetter News Wallet",
+        eyebrow: "AIAVpark News Wallet",
         history: "News wallet USDT activity",
         historyBody:
           "Review payments and deposits from news and fan-only vlogs on the same wallet basis.",
-        loginTitle: "Connect FanLetter News wallet",
+        loginTitle: "Connect AIAVpark News wallet",
         quickLinks: {
           purchases: "Return to the latest AI fan reports",
           sales: "Verify news account payment and activation",
@@ -236,8 +236,8 @@ function getCopy(locale: Locale, service: FanletterWalletService) {
         settlementBody:
           "If signup completion or payment verification is required, continue directly inside the news service.",
         settlementTitle: "Check news account activation status.",
-        siteName: "FanLetter News",
-        title: "FanLetter News wallet",
+        siteName: "AIAVpark News",
+        title: "AIAVpark News wallet",
       };
 }
 
@@ -720,7 +720,7 @@ export function FanletterWalletPage({
             <div className="mx-auto flex max-w-[92rem] items-center justify-between gap-4 px-4 py-1.5 text-[0.68rem] font-bold text-black/52 sm:px-6 sm:py-2 lg:px-8">
               <span>{copy.eyebrow}</span>
               <span className="hidden sm:inline">
-                FanLetter Entertainment News
+                AIAVpark Entertainment News
               </span>
             </div>
           </div>
@@ -916,7 +916,7 @@ export function FanletterWalletPage({
                   <div className="mt-5 border border-[#19b84b]/24 bg-[#ecfff0] p-4">
                     {qrCodeUrl ? (
                       <Image
-                        alt="FanLetter wallet QR code"
+                        alt="AIAVpark wallet QR code"
                         className="mx-auto aspect-square w-full max-w-[14rem] bg-white p-3"
                         height={260}
                         src={qrCodeUrl}
@@ -1258,7 +1258,7 @@ export function FanletterWalletPage({
                 <div className="mt-5 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/8 p-4">
                   {qrCodeUrl ? (
                     <Image
-                      alt="FanLetter wallet QR code"
+                      alt="AIAVpark wallet QR code"
                       className="mx-auto aspect-square w-full max-w-[14rem] rounded-lg bg-white p-3"
                       height={260}
                       src={qrCodeUrl}

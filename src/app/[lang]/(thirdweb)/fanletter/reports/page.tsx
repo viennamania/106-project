@@ -39,9 +39,9 @@ function getCopy(locale: Locale) {
     ? {
         badge: "팬 리포터 데스크",
         body:
-          "FanLetter에서 팬 리포터로 활동하는 회원이 작성한 AI 팬 리포트, 원본 브이로그, 대표 커버를 PC와 모바일에서 관리하는 공간입니다.",
+          "AIAVpark에서 팬 리포터로 활동하는 회원이 작성한 AI 팬 리포트, 원본 브이로그, 대표 커버를 PC와 모바일에서 관리하는 공간입니다.",
         connectBody:
-          "FanLetter 리포터 회원 서비스입니다. 계정을 연결하면 내가 만든 AI 팬 리포트와 대표 이미지 선택 상태를 확인할 수 있습니다.",
+          "AIAVpark 리포터 회원 서비스입니다. 계정을 연결하면 내가 만든 AI 팬 리포트와 대표 이미지 선택 상태를 확인할 수 있습니다.",
         connectCta: "계정 연결하기",
         connectTitle: "팬 리포터 계정 연결이 필요합니다.",
         coverSource: {
@@ -55,7 +55,7 @@ function getCopy(locale: Locale) {
         deskBody:
           "공개 브이로그 상세에서 AI 리포트를 만들고, 이 페이지에서 작성 리포트와 커버 편집을 이어갑니다.",
         deskLabel: "리포터 회원 서비스",
-        deskTitle: "FanLetter 리포터 활동 관리",
+        deskTitle: "AIAVpark 리포터 활동 관리",
         editReport: "내용 수정",
         emptyBody:
           "아직 작성한 AI 팬 리포트가 없습니다. 공개 브이로그 상세에서 AI 리포트를 만들면 리포터 데스크에 모입니다.",
@@ -100,9 +100,9 @@ function getCopy(locale: Locale) {
     : {
         badge: "Fan reporter desk",
         body:
-          "A member service for FanLetter reporters to manage AI fan reports, source vlogs, and lead images across desktop and mobile.",
+          "A member service for AIAVpark reporters to manage AI fan reports, source vlogs, and lead images across desktop and mobile.",
         connectBody:
-          "This is a FanLetter reporter member service. Connect your account to review AI fan reports you created and the selected lead image for each report.",
+          "This is an AIAVpark reporter member service. Connect your account to review AI fan reports you created and the selected lead image for each report.",
         connectCta: "Connect account",
         connectTitle: "Connect your fan reporter account.",
         coverSource: {
@@ -116,7 +116,7 @@ function getCopy(locale: Locale) {
         deskBody:
           "Create AI reports from public vlog detail pages, then manage the report list and cover edits here.",
         deskLabel: "Reporter member service",
-        deskTitle: "FanLetter reporter operations",
+        deskTitle: "AIAVpark reporter operations",
         editReport: "Edit report",
         emptyBody:
           "You have not created any AI fan reports yet. Reports created from public vlog detail pages will appear in this reporter desk.",
@@ -241,7 +241,7 @@ export async function generateMetadata({
   const copy = getCopy(locale);
 
   return {
-    title: `${copy.title} | FanLetter`,
+    title: `${copy.title} | AIAVpark`,
     description: copy.connectBody,
   };
 }
@@ -463,7 +463,7 @@ export default async function LocalizedFanletterReportsPage({
             )}
           >
             <Newspaper className="size-4" />
-            FanLetter
+            AIAVpark
           </Link>
           <nav className="hidden items-center gap-2 sm:flex">
             {topNavItems.map((item) => {

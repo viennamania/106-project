@@ -123,7 +123,7 @@ function getCopy(locale: Locale) {
           vlogs: "브이로그 운영 중",
         },
         sourceOpened: "원본 오픈",
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         stats: {
           characters: "등장 캐릭터",
           fanOnly: "팬 전용",
@@ -145,7 +145,7 @@ function getCopy(locale: Locale) {
         dek:
           "Compare AI character IP proven by news coverage, source public vlogs, and source-open reactions. Find the character that stands out, then continue into the channel, source videos, and latest reports.",
         emptyBody:
-          "Create AI reports from content detail pages and the characters appearing in FanLetter News will collect here.",
+          "Create AI reports from content detail pages and the characters appearing in AIAVpark News will collect here.",
         emptyTitle: "No AI characters have appeared in the news yet.",
         exploreVlogs: "View source vlogs",
         faceArena: "Today's IP faces",
@@ -208,7 +208,7 @@ function getCopy(locale: Locale) {
           vlogs: "Vlog active",
         },
         sourceOpened: "Source open",
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         stats: {
           characters: "Characters",
           fanOnly: "Fan-only",
@@ -1167,7 +1167,7 @@ export async function generateMetadata({
   const copy = getCopy(locale);
 
   return {
-    title: `${copy.title} | FanLetter News`,
+    title: `${copy.title} | AIAVpark News`,
     description: copy.dek,
   };
 }

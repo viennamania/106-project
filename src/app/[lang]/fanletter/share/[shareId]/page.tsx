@@ -51,13 +51,13 @@ function getPromoShareMetadata({
 
   if (locale === "ko") {
     return {
-      description: `무료 브이로그 ${publicCount}개와 팬 전용 미리보기 ${fanOnlyCount}개를 확인할 수 있는 FanLetter 공유 페이지입니다.`,
+      description: `무료 브이로그 ${publicCount}개와 팬 전용 미리보기 ${fanOnlyCount}개를 확인할 수 있는 AIAVpark 공유 페이지입니다.`,
       title: `${characterName} AI 브이로그 프로모션`,
     };
   }
 
   return {
-    description: `A FanLetter share page with ${publicCount} free vlogs and ${fanOnlyCount} fan-only previews.`,
+    description: `An AIAVpark share page with ${publicCount} free vlogs and ${fanOnlyCount} fan-only previews.`,
     title: `${characterName} AI vlog promotion`,
   };
 }
@@ -83,11 +83,11 @@ export async function generateMetadata({
     : null;
   const characterName = data?.profile.character?.name ?? data?.profile.displayName;
   const fallbackTitle =
-    locale === "ko" ? "FanLetter 공유 페이지" : "FanLetter share page";
+    locale === "ko" ? "AIAVpark 공유 페이지" : "AIAVpark share page";
   const fallbackDescription =
     locale === "ko"
-      ? "FanLetter AI 캐릭터 프로모션 공유 페이지입니다."
-      : "A FanLetter AI character promotional share page.";
+      ? "AIAVpark AI 캐릭터 프로모션 공유 페이지입니다."
+      : "An AIAVpark AI character promotional share page.";
   const shareMetadata =
     data && characterName
       ? getPromoShareMetadata({ characterName, data, locale })
@@ -135,8 +135,8 @@ export async function generateMetadata({
   const ogImage = {
     alt: data
       ? locale === "ko"
-        ? `${characterName} FanLetter 프로모션 미리보기`
-        : `${characterName} FanLetter promotion preview`
+        ? `${characterName} AIAVpark 프로모션 미리보기`
+        : `${characterName} AIAVpark promotion preview`
       : getFanletterOgAlt(locale, "creator"),
     height: FANLETTER_OG_IMAGE_SIZE.height,
     type: "image/png",
@@ -153,7 +153,7 @@ export async function generateMetadata({
     openGraph: {
       description: shareMetadata.description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title: shareMetadata.title,
       type: "website",
       url,

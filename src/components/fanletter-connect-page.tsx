@@ -96,17 +96,17 @@ function getCopy(locale: Locale) {
         backToTarget: (target: string) => `${target}으로 돌아가기`,
         completedBody:
           "계정 연결이 확인되었습니다. 온보딩 체크리스트에서 캐릭터 만들기와 첫 브이로그 생성을 이어가세요.",
-        completedTitle: "FanLetter 계정 연결이 끝났습니다.",
+        completedTitle: "AIAVpark 계정 연결이 끝났습니다.",
         connect: "이메일로 계정 연결",
         connectBody:
-          "이메일로 FanLetter 계정을 연결하면 캐릭터, 팬 요청, 구매와 판매 내역이 같은 계정에 저장됩니다.",
+          "이메일로 AIAVpark 계정을 연결하면 캐릭터, 팬 요청, 구매와 판매 내역이 같은 계정에 저장됩니다.",
         connecting: "연결 상태 확인 중",
         disconnected: "아직 연결되지 않았습니다.",
         email: "이메일",
-        eyebrow: "FanLetter Account",
+        eyebrow: "AIAVpark Account",
         helper:
           "연결 상태가 확인되면 온보딩 체크리스트에서 다음 단계가 열립니다.",
-        loginTitle: "FanLetter 계정 연결",
+        loginTitle: "AIAVpark 계정 연결",
         loginGuideDescription:
           "이메일 인증으로 계정을 먼저 연결합니다. 10 USDT 활성화는 수익·리워드 기능이 필요할 때 이어서 진행할 수 있습니다.",
         loginGuideTitle: "계정 연결 방법",
@@ -120,10 +120,10 @@ function getCopy(locale: Locale) {
         paymentBody:
           "계정 연결은 저장되었습니다. 지금은 둘러보고 온보딩을 이어갈 수 있으며, 수익·리워드 기능이 필요할 때 10 USDT 활성화를 진행하면 됩니다.",
         paymentCta: "10 USDT 활성화하기",
-        paymentTitle: "FanLetter 계정이 연결되었습니다.",
+        paymentTitle: "AIAVpark 계정이 연결되었습니다.",
         primary: "온보딩 계속하기",
         readinessBody:
-          "먼저 계정을 연결해 FanLetter를 둘러보고, 유료 활성화가 필요한 기능은 해당 시점에 이어서 진행합니다.",
+          "먼저 계정을 연결해 AIAVpark를 둘러보고, 유료 활성화가 필요한 기능은 해당 시점에 이어서 진행합니다.",
         reconnect: "다시 확인",
         returnBody: (target: string) =>
           `연결을 취소하거나 확인만 하려면 ${target}으로 돌아갈 수 있습니다.`,
@@ -148,17 +148,17 @@ function getCopy(locale: Locale) {
         backToTarget: (target: string) => `Back to ${target}`,
         completedBody:
           "Your account connection is ready. Continue in the onboarding checklist to create a character and first vlog.",
-        completedTitle: "Your FanLetter account is connected.",
+        completedTitle: "Your AIAVpark account is connected.",
         connect: "Connect with email",
         connectBody:
-          "Connect with email so characters, fan requests, purchases, and sales stay attached to the same FanLetter account.",
+          "Connect with email so characters, fan requests, purchases, and sales stay attached to the same AIAVpark account.",
         connecting: "Checking connection",
         disconnected: "Not connected yet.",
         email: "Email",
-        eyebrow: "FanLetter Account",
+        eyebrow: "AIAVpark Account",
         helper:
           "After the connection is confirmed, the next steps open from the onboarding checklist.",
-        loginTitle: "Connect FanLetter account",
+        loginTitle: "Connect AIAVpark account",
         loginGuideDescription:
           "Verify your email to connect the account first. You can activate with 10 USDT later when revenue or rewards features require it.",
         loginGuideTitle: "How account connection works",
@@ -172,10 +172,10 @@ function getCopy(locale: Locale) {
         paymentBody:
           "Your account connection is saved. You can explore and continue onboarding now, then activate with 10 USDT when revenue or rewards features need it.",
         paymentCta: "Activate with 10 USDT",
-        paymentTitle: "Your FanLetter account is connected.",
+        paymentTitle: "Your AIAVpark account is connected.",
         primary: "Continue onboarding",
         readinessBody:
-          "Connect first, explore FanLetter, and complete paid activation only when a feature requires it.",
+          "Connect first, explore AIAVpark, and complete paid activation only when a feature requires it.",
         reconnect: "Check again",
         returnBody: (target: string) =>
           `If you only need to confirm or cancel connection, you can return to ${target}.`,
@@ -208,7 +208,7 @@ function getContextCopy(
         completedBody:
           "계정 연결이 확인되었습니다. 보던 팬 전용 콘텐츠로 돌아가 결제와 전체 열람을 이어가세요.",
         connectBody:
-          "이메일로 FanLetter 계정을 연결하면 팬 전용 콘텐츠 결제, 구매 내역, 열람 권한이 같은 계정에 저장됩니다.",
+          "이메일로 AIAVpark 계정을 연결하면 팬 전용 콘텐츠 결제, 구매 내역, 열람 권한이 같은 계정에 저장됩니다.",
         helper:
           "연결 상태가 확인되면 팬 전용 콘텐츠 결제와 열람 권한을 이 계정 기준으로 확인합니다.",
         onboardingBody:
@@ -230,10 +230,10 @@ function getContextCopy(
 
     return {
       accountBody:
-        "계정 연결은 FanLetter를 시작하는 첫 단계입니다. 연결 후 보던 위치로 돌아가거나 온보딩 체크리스트에서 캐릭터 만들기와 첫 브이로그 생성을 이어갑니다.",
+        "계정 연결은 AIAVpark를 시작하는 첫 단계입니다. 연결 후 보던 위치로 돌아가거나 온보딩 체크리스트에서 캐릭터 만들기와 첫 브이로그 생성을 이어갑니다.",
       completedBody: `계정 연결이 확인되었습니다. ${returnTarget.label}에서 이어서 진행하세요.`,
       connectBody:
-        "이메일로 FanLetter 계정을 연결하면 캐릭터, 팬 요청, 구매와 판매 내역이 같은 계정에 저장됩니다.",
+        "이메일로 AIAVpark 계정을 연결하면 캐릭터, 팬 요청, 구매와 판매 내역이 같은 계정에 저장됩니다.",
       helper: "연결 상태가 확인되면 보던 위치로 돌아갈 수 있습니다.",
       onboardingBody:
         "캐릭터 설정과 첫 브이로그 생성을 시작하려면 온보딩 체크리스트에서 이어갈 수 있습니다.",
@@ -246,7 +246,7 @@ function getContextCopy(
           ? "온보딩 계속하기"
           : returnTarget.backLabel,
       readinessBody:
-        "먼저 계정을 연결해 FanLetter를 이어서 둘러보고, 결제가 필요한 기능에서 활성화 화면으로 이동합니다.",
+        "먼저 계정을 연결해 AIAVpark를 이어서 둘러보고, 결제가 필요한 기능에서 활성화 화면으로 이동합니다.",
       returnBody: returnTarget.body,
       returnCta: returnTarget.cta,
       returnTitle: "연결 전 위치",
@@ -267,7 +267,7 @@ function getContextCopy(
       connectBody:
         "Connect with email so fan-only payments, purchase history, and access stay attached to the same account.",
       helper:
-        "After connection, FanLetter checks fan-only payment and access from this account.",
+        "After connection, AIAVpark checks fan-only payment and access from this account.",
       onboardingBody:
         "If you want to create a character or first vlog, continue from the onboarding checklist.",
       onboardingCta: "View onboarding checklist",
@@ -287,10 +287,10 @@ function getContextCopy(
 
   return {
     accountBody:
-      "Account connection is the first FanLetter step. After connecting, return to where you came from or continue in the onboarding checklist.",
+      "Account connection is the first AIAVpark step. After connecting, return to where you came from or continue in the onboarding checklist.",
     completedBody: `Your account connection is ready. Continue from ${returnTarget.label}.`,
     connectBody:
-      "Connect with email so characters, fan requests, purchases, and sales stay attached to the same FanLetter account.",
+      "Connect with email so characters, fan requests, purchases, and sales stay attached to the same AIAVpark account.",
     helper: "After connection, you can return to where you came from.",
     onboardingBody:
       "Continue in the onboarding checklist when you want to set up a character and first vlog.",
@@ -303,7 +303,7 @@ function getContextCopy(
         ? "Continue onboarding"
         : returnTarget.backLabel,
     readinessBody:
-      "Connect first, keep exploring FanLetter, and move to activation only when a feature requires payment.",
+      "Connect first, keep exploring AIAVpark, and move to activation only when a feature requires payment.",
     returnBody: returnTarget.body,
     returnCta: returnTarget.cta,
     returnTitle: "Where you came from",
@@ -369,18 +369,18 @@ function getReturnTarget(path: string, locale: Locale): FanletterConnectReturnTa
   if (pathname === `/${locale}/fanletter`) {
     return locale === "ko"
       ? {
-          backLabel: "FanLetter 홈으로 돌아가기",
-          body: "연결을 취소하거나 확인만 하려면 FanLetter 홈으로 돌아갈 수 있습니다.",
-          cta: "FanLetter 홈으로 돌아가기",
+          backLabel: "AIAVpark 홈으로 돌아가기",
+          body: "연결을 취소하거나 확인만 하려면 AIAVpark 홈으로 돌아갈 수 있습니다.",
+          cta: "AIAVpark 홈으로 돌아가기",
           kind: "home",
-          label: "FanLetter 홈",
+          label: "AIAVpark 홈",
         }
       : {
-          backLabel: "Back to FanLetter home",
-          body: "If you only need to confirm or cancel connection, you can return to FanLetter home.",
-          cta: "Back to FanLetter home",
+          backLabel: "Back to AIAVpark home",
+          body: "If you only need to confirm or cancel connection, you can return to AIAVpark home.",
+          cta: "Back to AIAVpark home",
           kind: "home",
-          label: "FanLetter home",
+          label: "AIAVpark home",
         };
   }
 
@@ -896,7 +896,7 @@ export function FanletterConnectPage({
                 <MessageCircleHeart className="size-5" />
               </span>
               <span className="truncate text-xl font-semibold tracking-normal">
-                FanLetter
+                AIAVpark
               </span>
             </Link>
             <div className="hidden items-center gap-2 sm:flex">

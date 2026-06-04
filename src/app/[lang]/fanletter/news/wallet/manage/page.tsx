@@ -32,13 +32,13 @@ function getMetadataCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "FanLetter News 결제 지갑의 USDT 잔액, 입금 주소, 송금, 최근 내역을 뉴스 서비스 안에서 관리하세요.",
-        title: "FanLetter News 전체 지갑 관리",
+          "AIAVpark News 결제 지갑의 USDT 잔액, 입금 주소, 송금, 최근 내역을 뉴스 서비스 안에서 관리하세요.",
+        title: "AIAVpark News 전체 지갑 관리",
       }
     : {
         description:
-          "Manage USDT balance, deposit address, transfers, and recent activity for the FanLetter News payment wallet inside the news service.",
-        title: "FanLetter News full wallet",
+          "Manage USDT balance, deposit address, transfers, and recent activity for the AIAVpark News payment wallet inside the news service.",
+        title: "AIAVpark News full wallet",
       };
 }
 
@@ -92,7 +92,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter News",
+      siteName: "AIAVpark News",
       title,
       type: "website",
       url,

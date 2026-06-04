@@ -30,13 +30,13 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "팬 기자가 직접 편집한 4컷에서 원본 브이로그, AI 캐릭터, 팬 기자 채널로 이어지는 FanLetter News 홈 피드입니다.",
-        title: "FanLetter News 홈 피드",
+          "팬 기자가 직접 편집한 4컷에서 원본 브이로그, AI 캐릭터, 팬 기자 채널로 이어지는 AIAVpark News 홈 피드입니다.",
+        title: "AIAVpark News 홈 피드",
       }
     : {
         description:
-          "A FanLetter News home feed that starts with four cuts edited by fan reporters and continues to source vlogs, AI characters, and reporter channels.",
-        title: "FanLetter News Home Feed",
+          "An AIAVpark News home feed that starts with four cuts edited by fan reporters and continues to source vlogs, AI characters, and reporter channels.",
+        title: "AIAVpark News Home Feed",
       };
 }
 

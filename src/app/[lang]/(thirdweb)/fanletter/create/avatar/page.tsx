@@ -34,8 +34,8 @@ export async function generateMetadata({
   const referralCode = readFanletterReferralCode(query.ref);
   const title =
     locale === "ko"
-      ? "FanLetter 표정 컷 브이로그 만들기"
-      : "Create a FanLetter Avatar Cut Vlog";
+      ? "AIAVpark 표정 컷 브이로그 만들기"
+      : "Create an AIAVpark Avatar Cut Vlog";
   const description =
     locale === "ko"
       ? "선택한 캐릭터 표정 컷을 reference로 사용해 인물 중심 세로형 브이로그 동영상을 생성하세요."
@@ -75,7 +75,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title,
       type: "website",
       url,

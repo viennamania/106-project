@@ -121,7 +121,7 @@ export function AndroidInstallBanner({
               badge: "PWA APP INSTALL",
               body: "홈 화면에 추가하면 다음부터 더 빠르고 안정적으로 열립니다.",
               dismiss: "나중에",
-              fallback: "이미 설치했다면 홈 화면의 Pocket 앱을 열어주세요.",
+              fallback: "이미 설치했다면 홈 화면의 AIAVpark 앱을 열어주세요.",
               title: "앱처럼 빠르게 열기",
               trigger: "앱 설치",
               triggering: "설치 화면 여는 중...",
@@ -131,7 +131,7 @@ export function AndroidInstallBanner({
       return environment.platform === "ios"
         ? {
             badge: "HOME SCREEN APP",
-            body: "Add Pocket to your Home Screen to open it directly next time.",
+            body: "Add AIAVpark to your Home Screen to open it directly next time.",
             dismiss: "Maybe later",
             fallback: "Use Safari Share, then Add to Home Screen.",
             title: "Open faster like an app",
@@ -142,7 +142,7 @@ export function AndroidInstallBanner({
             badge: "PWA APP INSTALL",
             body: "Install once to open this flow faster and more reliably.",
             dismiss: "Maybe later",
-            fallback: "Already installed? Open Pocket from your Home Screen.",
+            fallback: "Already installed? Open AIAVpark from your Home Screen.",
             title: "Open faster like an app",
             trigger: "Install app",
             triggering: "Opening install prompt...",

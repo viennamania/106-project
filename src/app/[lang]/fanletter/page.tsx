@@ -42,15 +42,15 @@ function getFanletterMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "팬 요청으로 성장하는 AI 캐릭터 브이로그를 만들고, 팬 전용 콘텐츠 수익을 참여 보상과 공유 모델로 확장하는 FanLetter 플랫폼입니다.",
-      title: "FanLetter | 팬이 키우는 AI 캐릭터 성장 플랫폼",
+        "팬 요청으로 성장하는 AI 캐릭터 브이로그를 만들고, 팬 전용 콘텐츠 수익을 참여 보상과 공유 모델로 확장하는 AIAVpark 플랫폼입니다.",
+      title: "AIAVpark | 팬이 키우는 AI 캐릭터 성장 플랫폼",
     };
   }
 
   return {
     description:
-      "FanLetter helps creators grow AI character vlogs through fan requests, then expand fan-only content revenue into participation rewards and sharing models.",
-    title: "FanLetter | Fan-powered AI character growth platform",
+      "AIAVpark helps creators grow AI character vlogs through fan requests, then expand fan-only content revenue into participation rewards and sharing models.",
+    title: "AIAVpark | Fan-powered AI character growth platform",
   };
 }
 
@@ -92,7 +92,7 @@ export async function generateMetadata({
     openGraph: {
       description: meta.description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title: meta.title,
       type: "website",
       url,

@@ -407,7 +407,7 @@ export async function GET(request: Request) {
     const message =
       error instanceof Error
         ? error.message
-        : "Failed to load FanLetter news report.";
+        : "Failed to load AIAVpark news report.";
 
     return jsonError(message, getErrorStatus(message));
   }
@@ -462,7 +462,7 @@ export async function POST(request: Request) {
     const message =
       error instanceof Error
         ? error.message
-        : "Failed to create FanLetter news report.";
+        : "Failed to create AIAVpark news report.";
 
     return jsonError(message, getErrorStatus(message));
   }
@@ -547,7 +547,7 @@ export async function PATCH(request: Request) {
     const message =
       error instanceof Error
         ? error.message
-        : "Failed to update FanLetter news report.";
+        : "Failed to update AIAVpark news report.";
 
     return jsonError(message, getErrorStatus(message));
   }

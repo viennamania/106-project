@@ -83,7 +83,7 @@ function getRewardsNftMetadata(rewardId: RewardCatalogId) {
   const baseMetadata = {
     external_url: REWARDS_APP_URL || undefined,
     properties: {
-      app: "Pocket Smart Wallet",
+      app: "AIAVpark",
       chain: smartWalletChain.name ?? "BSC",
       rewardId,
     },
@@ -97,8 +97,8 @@ function getRewardsNftMetadata(rewardId: RewardCatalogId) {
         { trait_type: "Tier", value: "Silver" },
       ],
       description:
-        "Pocket Smart Wallet silver member card issued on BNB Smart Chain after redeeming 1,000 points.",
-      name: "Pocket Silver Member Card",
+        "AIAVpark silver member card issued on BNB Smart Chain after redeeming 1,000 points.",
+      name: "AIAVpark Silver Member Card",
     };
   }
 
@@ -110,8 +110,8 @@ function getRewardsNftMetadata(rewardId: RewardCatalogId) {
         { trait_type: "Tier", value: "Gold" },
       ],
       description:
-        "Pocket Smart Wallet gold member card issued on BNB Smart Chain after redeeming 5,000 points.",
-      name: "Pocket Gold Member Card",
+        "AIAVpark gold member card issued on BNB Smart Chain after redeeming 5,000 points.",
+      name: "AIAVpark Gold Member Card",
     };
   }
 
@@ -123,8 +123,8 @@ function getRewardsNftMetadata(rewardId: RewardCatalogId) {
         { trait_type: "Tier", value: "VIP" },
       ],
       description:
-        "Pocket Smart Wallet VIP pass NFT issued on BNB Smart Chain after redeeming 10,000 points.",
-      name: "Pocket VIP Pass NFT",
+        "AIAVpark VIP pass NFT issued on BNB Smart Chain after redeeming 10,000 points.",
+      name: "AIAVpark VIP Pass NFT",
     };
   }
 

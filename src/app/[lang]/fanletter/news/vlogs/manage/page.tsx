@@ -74,7 +74,7 @@ function getCopy(locale: Locale) {
           publicArchive: "공개 브이로그 보기",
         },
         connectBody:
-          "내 브이로그를 등록하고 뉴스 노출 상태를 관리하려면 FanLetter News 계정 연결이 필요합니다.",
+          "내 브이로그를 등록하고 뉴스 노출 상태를 관리하려면 AIAVpark News 계정 연결이 필요합니다.",
         connectTitle: "내 브이로그 관리는 로그인 후 사용할 수 있습니다.",
         emptyBody:
           "아직 등록된 브이로그가 없습니다. 공개 브이로그를 먼저 등록하면 뉴스와 캐릭터 채널에서 바로 활용할 수 있습니다.",
@@ -89,7 +89,7 @@ function getCopy(locale: Locale) {
         },
         heroBody:
           "내가 만든 공개 브이로그와 팬 전용 영상을 관리하고, 새 영상 등록과 프레임 편집으로 바로 이어갑니다.",
-        heroEyebrow: "My FanLetter News Vlogs",
+        heroEyebrow: "My AIAVpark News Vlogs",
         heroTitle: "내 브이로그 관리",
         labels: {
           fanSignals: "팬 반응",
@@ -114,7 +114,7 @@ function getCopy(locale: Locale) {
           paid: "유료",
           published: "공개",
         },
-        title: "내 브이로그 관리 | FanLetter News",
+        title: "내 브이로그 관리 | AIAVpark News",
       }
     : {
         actions: {
@@ -131,7 +131,7 @@ function getCopy(locale: Locale) {
           publicArchive: "Public vlogs",
         },
         connectBody:
-          "Connect your FanLetter News account to register your vlogs and manage News exposure.",
+          "Connect your AIAVpark News account to register your vlogs and manage News exposure.",
         connectTitle: "My vlog management requires sign-in.",
         emptyBody:
           "No vlogs are registered yet. Register a public vlog first so News and character channels can use it immediately.",
@@ -146,7 +146,7 @@ function getCopy(locale: Locale) {
         },
         heroBody:
           "Review your public vlogs and fan-only videos, then jump into new registration or frame editing from one mobile-first desk.",
-        heroEyebrow: "My FanLetter News Vlogs",
+        heroEyebrow: "My AIAVpark News Vlogs",
         heroTitle: "My Vlog Desk",
         labels: {
           fanSignals: "Fan signals",
@@ -171,7 +171,7 @@ function getCopy(locale: Locale) {
           paid: "Paid",
           published: "Published",
         },
-        title: "My Vlog Desk | FanLetter News",
+        title: "My Vlog Desk | AIAVpark News",
       };
 }
 

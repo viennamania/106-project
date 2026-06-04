@@ -216,8 +216,8 @@ const koCopy: FanletterCopy = {
   },
   faq: [
     {
-      answer: "FanLetter는 얼굴 공개 없이 같은 AI 캐릭터와 대표 아바타로 숏폼 브이로그 채널을 만들고, 팬 요청과 유료 콘텐츠 수익 흐름으로 캐릭터를 성장시키는 창작자 플랫폼입니다.",
-      question: "FanLetter는 무엇인가요?",
+      answer: "AIAVpark는 얼굴 공개 없이 같은 AI 캐릭터와 대표 아바타로 숏폼 브이로그 채널을 만들고, 팬 요청과 유료 콘텐츠 수익 흐름으로 캐릭터를 성장시키는 창작자 플랫폼입니다.",
+      question: "AIAVpark는 무엇인가요?",
     },
     {
       answer: "얼굴 공개 없이 숏폼 채널을 만들고 싶은 개인, AI 인플루언서 운영자, 유료 커뮤니티 크리에이터, 브랜드 마스코트와 IP 팀에 맞춰져 있습니다.",
@@ -368,7 +368,7 @@ const koCopy: FanletterCopy = {
     videoLabel: "성인 팬 전용 AI 캐릭터 예시 영상",
   },
   platformTrust: {
-    body: "릴스·쇼츠·틱톡 게시에 필요한 캡션, 해시태그, FanLetter 링크를 정리합니다.",
+    body: "릴스·쇼츠·틱톡 게시에 필요한 캡션, 해시태그, AIAVpark 링크를 정리합니다.",
     eyebrow: "숏폼 게시 패키지",
   },
   proof: {
@@ -430,8 +430,8 @@ const enCopy: FanletterCopy = {
   },
   faq: [
     {
-      answer: "FanLetter is a creator platform for building short-form vlog channels with a fixed AI character, then growing that character through fan requests and paid content revenue flows without showing your real face.",
-      question: "What is FanLetter?",
+      answer: "AIAVpark is a creator platform for building short-form vlog channels with a fixed AI character, then growing that character through fan requests and paid content revenue flows without showing your real face.",
+      question: "What is AIAVpark?",
     },
     {
       answer: "It is built for no-face creators, AI influencer operators, paid community creators, brands, and teams turning webtoon, game, or virtual idol IP into short-form channels.",
@@ -583,7 +583,7 @@ const enCopy: FanletterCopy = {
     videoLabel: "Adult fan-only AI character sample video",
   },
   platformTrust: {
-    body: "Prepares captions, hashtags, and FanLetter links for Reels, Shorts, and TikTok posts.",
+    body: "Prepares captions, hashtags, and AIAVpark links for Reels, Shorts, and TikTok posts.",
     eyebrow: "Short-form posting package",
   },
   proof: {
@@ -1717,7 +1717,7 @@ export function FanletterHomePage({
     locale === "ko"
       ? [
           {
-            body: "FanLetter 계정과 시작 준비 상태를 확인합니다.",
+            body: "AIAVpark 계정과 시작 준비 상태를 확인합니다.",
             Icon: ShieldCheck,
             label: "01",
             title: "계정 연결",
@@ -1737,7 +1737,7 @@ export function FanletterHomePage({
         ]
       : [
           {
-            body: "Confirm the FanLetter account and readiness state.",
+            body: "Confirm the AIAVpark account and readiness state.",
             Icon: ShieldCheck,
             label: "01",
             title: "Connect account",
@@ -1771,16 +1771,16 @@ export function FanletterHomePage({
           channel: "이 캐릭터 채널 보기",
           eyebrow: `${shareContext?.sponsorName ?? "SNS"} 공유에서 이어짐`,
           rewardDisclosure:
-            "이 공유 흐름으로 가입을 완료하면 공유 페이지를 만든 회원에게 FanLetter 보상이 적립될 수 있습니다.",
+            "이 공유 흐름으로 가입을 완료하면 공유 페이지를 만든 회원에게 AIAVpark 보상이 적립될 수 있습니다.",
           start: "나도 AI 캐릭터 만들기",
           title: (name: string) => `${name} 공유 페이지에서 오셨나요?`,
         }
       : {
-          body: "Return to the character channel you just saw, or start your own AI character channel with the same FanLetter flow.",
+          body: "Return to the character channel you just saw, or start your own AI character channel with the same AIAVpark flow.",
           channel: "View this character",
           eyebrow: `Continued from ${shareContext?.sponsorName ?? "SNS"} share`,
           rewardDisclosure:
-            "Completing signup through this shared flow may award a FanLetter reward to the member who created the share page.",
+            "Completing signup through this shared flow may award an AIAVpark reward to the member who created the share page.",
           start: "Create my AI character",
           title: (name: string) => `Coming from ${name}'s share page?`,
         };
@@ -1829,7 +1829,7 @@ export function FanletterHomePage({
           <header className="mt-4 flex items-center justify-between gap-4">
             <Link className="flex items-center gap-2" href={homeHref}>
               <FanletterBrandMark className="size-9" />
-              <span className="text-xl font-semibold tracking-tight">FanLetter</span>
+              <span className="text-xl font-semibold tracking-tight">AIAVpark</span>
             </Link>
 
             <nav className="hidden items-center gap-4 text-xs font-semibold text-white/82 md:flex lg:gap-6 lg:text-sm">
@@ -2781,7 +2781,7 @@ export function FanletterHomePage({
           </div>
           <div className="hidden grid-cols-2 gap-6 text-sm font-semibold text-black/62 sm:grid sm:grid-cols-4">
             <div>
-              <p className="text-black">FanLetter</p>
+              <p className="text-black">AIAVpark</p>
               <div className="mt-4 space-y-2">
                 <Link className="block" href={studioHref}>
                   {footerLabels.studio}

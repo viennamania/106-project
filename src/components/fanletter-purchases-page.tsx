@@ -55,7 +55,7 @@ function getCopy(
   const copy = locale === "ko"
     ? {
         accountRequiredBody:
-          "구매 내역은 연결된 FanLetter 계정 기준으로 확인합니다.",
+          "구매 내역은 연결된 AIAVpark 계정 기준으로 확인합니다.",
         accountRequiredTitle: "계정 연결 후 구매한 콘텐츠를 확인하세요.",
         allFeed: "브이로그 피드",
         backToFeed: "브이로그 둘러보기",
@@ -78,7 +78,7 @@ function getCopy(
         likes: "좋아요",
         loadMore: "더 보기",
         loading: "구매한 팬 전용 브이로그를 확인하는 중입니다.",
-        navLabel: "FanLetter 구매 콘텐츠 메뉴",
+        navLabel: "AIAVpark 구매 콘텐츠 메뉴",
         nsfwHiddenBody:
           "구매한 NSFW 팬 전용 콘텐츠가 있습니다. NSFW 보기를 켜면 이 라이브러리에서 다시 볼 수 있습니다.",
         nsfwHiddenTitle: "NSFW 구매 콘텐츠가 숨겨져 있습니다.",
@@ -100,7 +100,7 @@ function getCopy(
       }
     : {
         accountRequiredBody:
-          "Purchases are loaded from your connected FanLetter account.",
+          "Purchases are loaded from your connected AIAVpark account.",
         accountRequiredTitle: "Connect your account to see purchases.",
         allFeed: "Vlog feed",
         backToFeed: "Browse vlogs",
@@ -123,7 +123,7 @@ function getCopy(
         likes: "Likes",
         loadMore: "Load more",
         loading: "Checking your purchased fan-only vlogs.",
-        navLabel: "FanLetter purchased content navigation",
+        navLabel: "AIAVpark purchased content navigation",
         nsfwHiddenBody:
           "You have purchased NSFW fan-only content. Turn on NSFW visibility to replay it in this library.",
         nsfwHiddenTitle: "NSFW purchases are hidden.",
@@ -152,7 +152,7 @@ function getCopy(
     ? {
         ...copy,
         accountRequiredBody:
-          "뉴스에서 결제한 콘텐츠는 연결된 FanLetter News 계정 기준으로 확인합니다.",
+          "뉴스에서 결제한 콘텐츠는 연결된 AIAVpark News 계정 기준으로 확인합니다.",
         accountRequiredTitle: "뉴스 계정 연결 후 구매한 콘텐츠를 확인하세요.",
         allFeed: "뉴스 홈",
         backToFeed: "뉴스룸으로 돌아가기",
@@ -161,14 +161,14 @@ function getCopy(
         cover: "뉴스 커버",
         coverCta: "뉴스에서 보기",
         emptyBody:
-          "FanLetter News에서 팬 전용 브이로그를 결제하면 이곳에 모이고, 다시 해당 캐릭터 콘텐츠로 이어갈 수 있습니다.",
+          "AIAVpark News에서 팬 전용 브이로그를 결제하면 이곳에 모이고, 다시 해당 캐릭터 콘텐츠로 이어갈 수 있습니다.",
         emptyTitle: "아직 뉴스에서 구매한 콘텐츠가 없습니다.",
-        eyebrow: "FanLetter News Library",
+        eyebrow: "AIAVpark News Library",
         fanHome: "AI 캐릭터",
         heroBody:
-          "FanLetter News에서 결제한 팬 전용 브이로그와 유료 열람 콘텐츠를 같은 이메일 지갑 기준으로 다시 확인합니다.",
+          "AIAVpark News에서 결제한 팬 전용 브이로그와 유료 열람 콘텐츠를 같은 이메일 지갑 기준으로 다시 확인합니다.",
         heroTitle: "내 구매 콘텐츠",
-        navLabel: "FanLetter News 구매 콘텐츠 메뉴",
+        navLabel: "AIAVpark News 구매 콘텐츠 메뉴",
         purchased: "구매함",
         returnTo: "읽던 뉴스로 돌아가기",
         start: "가입 상태 확인",
@@ -179,7 +179,7 @@ function getCopy(
     : {
         ...copy,
         accountRequiredBody:
-          "Content purchased from FanLetter News is loaded from your connected news account.",
+          "Content purchased from AIAVpark News is loaded from your connected news account.",
         accountRequiredTitle: "Connect your news account to see purchases.",
         allFeed: "News home",
         backToFeed: "Back to newsroom",
@@ -188,14 +188,14 @@ function getCopy(
         cover: "News cover",
         coverCta: "Open in News",
         emptyBody:
-          "Fan-only vlogs purchased from FanLetter News will appear here so you can return to the character content.",
+          "Fan-only vlogs purchased from AIAVpark News will appear here so you can return to the character content.",
         emptyTitle: "No content purchased from News yet.",
-        eyebrow: "FanLetter News Library",
+        eyebrow: "AIAVpark News Library",
         fanHome: "AI Characters",
         heroBody:
-          "Review fan-only vlogs and paid-access content purchased from FanLetter News with the same email wallet.",
+          "Review fan-only vlogs and paid-access content purchased from AIAVpark News with the same email wallet.",
         heroTitle: "My purchased content",
-        navLabel: "FanLetter News purchased content navigation",
+        navLabel: "AIAVpark News purchased content navigation",
         purchased: "Purchases",
         returnTo: "Back to news",
         start: "Check signup",
@@ -460,7 +460,7 @@ function PurchaseCard({
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold">{displayName}</p>
             <p className="text-xs font-medium text-black/46">
-              {publishedAt ?? "FanLetter"}
+              {publishedAt ?? "AIAVpark"}
             </p>
           </div>
         </div>
@@ -632,7 +632,7 @@ export function FanletterPurchasesPage({
       {
         icon: Clapperboard,
         label: copy.latestPurchase,
-        value: latest ?? "FanLetter",
+        value: latest ?? "AIAVpark",
       },
     ];
   }, [
@@ -836,7 +836,7 @@ export function FanletterPurchasesPage({
                 className="inline-flex min-w-0 text-[2.1rem] font-black leading-none tracking-normal !text-[#111510] sm:text-[4.5rem]"
                 href={feedHref}
               >
-                FanLetter News
+                AIAVpark News
               </Link>
               <Link
                 className="hidden shrink-0 border border-black/16 px-3 py-1.5 text-[0.66rem] font-black uppercase tracking-[0.16em] !text-[#16702e] transition hover:border-[#16702e] sm:inline-flex"

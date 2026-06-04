@@ -170,7 +170,7 @@ const koCopy: FanletterSubpageCopy = {
   actions: {
     creatorChannel: "캐릭터 채널 보기",
     creatorStudio: "브이로그 스튜디오",
-    existingDetail: "FanLetter에서 권한 확인",
+    existingDetail: "AIAVpark에서 권한 확인",
     feed: "브이로그 피드",
     following: "팔로잉",
     home: "홈",
@@ -181,9 +181,9 @@ const koCopy: FanletterSubpageCopy = {
   },
   content: {
     body: "브이로그 본문",
-    lockedBody: "FanLetter 온보딩을 완료한 뒤 같은 브이로그 상세로 돌아와 이어서 볼 수 있습니다.",
+    lockedBody: "AIAVpark 온보딩을 완료한 뒤 같은 브이로그 상세로 돌아와 이어서 볼 수 있습니다.",
     lockedDescription:
-      "캐릭터 채널, 댓글, 권한 확인 흐름을 FanLetter 안에서 이어가도록 준비합니다.",
+      "캐릭터 채널, 댓글, 권한 확인 흐름을 AIAVpark 안에서 이어가도록 준비합니다.",
     lockedTitle: "권한 확인이 필요한 브이로그입니다.",
     media: "브이로그 미디어",
     paid: "유료",
@@ -206,7 +206,7 @@ const koCopy: FanletterSubpageCopy = {
     eyebrow: "AI 캐릭터 채널",
     publicPosts: "공개 브이로그",
     stage: "성장 단계",
-    titleSuffix: "의 FanLetter",
+    titleSuffix: "의 AIAVpark",
   },
   feed: {
     allContent: "전체 공개 브이로그",
@@ -216,7 +216,7 @@ const koCopy: FanletterSubpageCopy = {
     freePublic: "무료 공개",
     latest: "최신 브이로그",
     suggestedCreators: "추천 캐릭터",
-    title: "AI 캐릭터의 공개 숏폼 브이로그를 FanLetter 흐름 안에서 둘러보세요.",
+    title: "AI 캐릭터의 공개 숏폼 브이로그를 AIAVpark 흐름 안에서 둘러보세요.",
     trending: "인기 브이로그",
     videos: "브이로그",
   },
@@ -228,10 +228,10 @@ const koCopy: FanletterSubpageCopy = {
   },
   start: {
     body: "처음 시작하는 사람도 가입, 캐릭터 만들기, 첫 브이로그 생성까지 순서대로 따라갈 수 있게 정리했습니다.",
-    eyebrow: "Start FanLetter",
+    eyebrow: "Start AIAVpark",
     steps: [
       {
-        body: "FanLetter 계정과 시작 준비 상태를 확인합니다. 완료 후 캐릭터 준비로 이어집니다.",
+        body: "AIAVpark 계정과 시작 준비 상태를 확인합니다. 완료 후 캐릭터 준비로 이어집니다.",
         title: "계정 연결",
       },
       {
@@ -251,7 +251,7 @@ const enCopy: FanletterSubpageCopy = {
   actions: {
     creatorChannel: "View character channel",
     creatorStudio: "Vlog Studio",
-    existingDetail: "Verify in FanLetter",
+    existingDetail: "Verify in AIAVpark",
     feed: "Vlog Feed",
     following: "Following",
     home: "Home",
@@ -262,9 +262,9 @@ const enCopy: FanletterSubpageCopy = {
   },
   content: {
     body: "Vlog body",
-    lockedBody: "Complete FanLetter onboarding, then return to this vlog detail to continue.",
+    lockedBody: "Complete AIAVpark onboarding, then return to this vlog detail to continue.",
     lockedDescription:
-      "Character channels, comments, and access checks should stay inside the FanLetter flow.",
+      "Character channels, comments, and access checks should stay inside the AIAVpark flow.",
     lockedTitle: "This vlog requires access verification.",
     media: "Vlog media",
     paid: "Paid",
@@ -287,7 +287,7 @@ const enCopy: FanletterSubpageCopy = {
     eyebrow: "AI Character Channel",
     publicPosts: "public vlogs",
     stage: "Stage",
-    titleSuffix: "'s FanLetter",
+    titleSuffix: "'s AIAVpark",
   },
   feed: {
     allContent: "All public vlogs",
@@ -297,7 +297,7 @@ const enCopy: FanletterSubpageCopy = {
     freePublic: "Free public",
     latest: "Latest vlogs",
     suggestedCreators: "Suggested characters",
-    title: "Browse public short-form vlogs from AI characters inside FanLetter.",
+    title: "Browse public short-form vlogs from AI characters inside AIAVpark.",
     trending: "Popular vlogs",
     videos: "Vlogs",
   },
@@ -309,10 +309,10 @@ const enCopy: FanletterSubpageCopy = {
   },
   start: {
     body: "New creators can follow signup, character creation, and first vlog creation in order.",
-    eyebrow: "Start FanLetter",
+    eyebrow: "Start AIAVpark",
     steps: [
       {
-        body: "Confirm the FanLetter account and readiness state, then continue into character setup.",
+        body: "Confirm the AIAVpark account and readiness state, then continue into character setup.",
         title: "Connect account",
       },
       {
@@ -1058,7 +1058,7 @@ function FanletterShell({
                 <MessageCircleHeart className="size-5" />
               </span>
               <span className="hidden truncate text-xl font-semibold tracking-normal sm:inline">
-                FanLetter
+                AIAVpark
               </span>
             </Link>
 
@@ -1367,7 +1367,7 @@ function ContentCard({
                 {displayAuthorName}
               </p>
               <p className="text-[0.68rem] font-medium text-white/62 sm:text-xs">
-                {formatDate(item.publishedAt, locale) ?? "FanLetter"}
+                {formatDate(item.publishedAt, locale) ?? "AIAVpark"}
               </p>
             </div>
           </div>
@@ -1648,7 +1648,7 @@ function FeaturedFeedCard({
                     {displayAuthorName}
                   </p>
                   <p className="text-xs font-medium text-white/58">
-                    {publishedAt ?? "FanLetter"}
+                    {publishedAt ?? "AIAVpark"}
                   </p>
                 </div>
               </div>
@@ -1755,7 +1755,7 @@ function CreatorDiscoveryCard({
         </div>
         <div className="rounded-lg border border-black/10 bg-[#f6f8f4] p-2.5">
           <p className="line-clamp-1 text-sm font-semibold leading-none">
-            {formatDate(item.publishedAt, locale) ?? "FanLetter"}
+            {formatDate(item.publishedAt, locale) ?? "AIAVpark"}
           </p>
           <p className="mt-1 text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-black/42">
             {labels.latest}
@@ -1765,7 +1765,7 @@ function CreatorDiscoveryCard({
 
       <div className="mt-4 flex items-center justify-between gap-3 border-t border-black/10 pt-3">
         <span className="truncate text-xs font-semibold text-black/46">
-          {item.authorReferralCode ?? "FanLetter"}
+          {item.authorReferralCode ?? "AIAVpark"}
         </span>
         <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-black transition group-hover:text-[#16702e]">
           {labels.open}
@@ -1969,7 +1969,7 @@ function FanletterFeedCuriosityBoard({
     latestItem,
     labels.latest,
     labels.latestMetric,
-    latestItem ? (formatDate(latestItem.publishedAt, locale) ?? "FanLetter") : "",
+    latestItem ? (formatDate(latestItem.publishedAt, locale) ?? "AIAVpark") : "",
   );
   pushCard(
     "comments",
@@ -2008,7 +2008,7 @@ function FanletterFeedCuriosityBoard({
       <div className="mb-3 flex items-end justify-between gap-3">
         <div>
           <p className="text-xs font-semibold text-[#1f7c38]">
-            {locale === "ko" ? "FanLetter 추천" : "FanLetter Pick"}
+            {locale === "ko" ? "AIAVpark 추천" : "AIAVpark Pick"}
           </p>
           <h2 className="mt-1 text-2xl font-semibold tracking-normal">
             {labels.title}
@@ -2259,7 +2259,7 @@ function FanletterCreatorRanking({
                     {leader.authorName}
                   </h3>
                   <p className="mt-1 text-xs font-semibold text-[#8dffa5]">
-                    {leader.authorReferralCode ?? "FanLetter"}
+                    {leader.authorReferralCode ?? "AIAVpark"}
                   </p>
                   <p className="mt-2 inline-flex rounded-full border border-[#44f26e]/28 bg-[#44f26e]/10 px-3 py-1 text-xs font-semibold text-[#b9ffc8]">
                     {getCreatorMomentumLabel(leader, locale)}
@@ -2704,7 +2704,7 @@ function FanletterCreatorFanAccessPanel({
           anonymousConnectTitle: "마음에 들면 팔로우",
           anonymousFanOnly: "팬 전용 흐름 보기",
           anonymousIdentityBody:
-            "이 페이지는 일반 회원 프로필이 아니라 고정 페르소나로 운영되는 FanLetter AI 캐릭터 채널입니다.",
+            "이 페이지는 일반 회원 프로필이 아니라 고정 페르소나로 운영되는 AIAVpark AI 캐릭터 채널입니다.",
           anonymousIdentityTitle: "AI 캐릭터 정체성 확인",
           anonymousPrimary: "무료 공개 브이로그 보기",
           anonymousPublicBody:
@@ -2767,7 +2767,7 @@ function FanletterCreatorFanAccessPanel({
           anonymousConnectTitle: "Follow if it fits",
           anonymousFanOnly: "View fan-only flow",
           anonymousIdentityBody:
-            "This is a FanLetter AI character channel operated through a fixed persona, not a standard member profile.",
+            "This is an AIAVpark AI character channel operated through a fixed persona, not a standard member profile.",
           anonymousIdentityTitle: "Confirm the AI character",
           anonymousPrimary: "Watch free public vlogs",
           anonymousPublicBody:
@@ -3285,7 +3285,7 @@ function FanletterFanOnlyPreview({
           actionTitle: "What you can do now",
           availableActionTitle: "Fan-only entry",
           availableBody:
-            "Fan-only and paid vlogs from this character are grouped here. Opening a card continues into the FanLetter detail flow for preview, access verification, and the next fan request.",
+            "Fan-only and paid vlogs from this character are grouped here. Opening a card continues into the AIAVpark detail flow for preview, access verification, and the next fan request.",
           availableCta: "Preview featured teaser",
           availableEyebrow: "Fan-only library",
           availableNote:
@@ -3721,7 +3721,7 @@ function FanletterFanOnlyPreview({
                     ) : null}
                     <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
                       <span className="text-xs font-semibold text-white/42">
-                        {publishedAt ?? "FanLetter"}
+                        {publishedAt ?? "AIAVpark"}
                       </span>
                       <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#b9ffc8]">
                         {cardCtaLabel}
@@ -5188,14 +5188,14 @@ function FanletterDetailWatchPanel({
   const labels =
     locale === "ko"
       ? {
-          body: "영상, 캐릭터 채널, 팬 요청을 같은 FanLetter 흐름에서 이어봅니다.",
-          detail: "FanLetter 전용 보기",
+          body: "영상, 캐릭터 채널, 팬 요청을 같은 AIAVpark 흐름에서 이어봅니다.",
+          detail: "AIAVpark 전용 보기",
           publicVlogs: "공개 브이로그",
           title: "지금 보는 캐릭터",
         }
       : {
-          body: "Keep the video, character channel, and fan requests inside one FanLetter flow.",
-          detail: "FanLetter view",
+          body: "Keep the video, character channel, and fan requests inside one AIAVpark flow.",
+          detail: "AIAVpark view",
           publicVlogs: "public vlogs",
           title: "Now watching",
         };
@@ -6106,7 +6106,7 @@ export function FanletterFeedPage({
       eyebrow={copy.feed.eyebrow}
       locale={locale}
       referralCode={referralCode}
-      title={locale === "ko" ? "FanLetter AI 캐릭터 브이로그 피드" : "FanLetter AI Character Vlog Feed"}
+      title={locale === "ko" ? "AIAVpark AI 캐릭터 브이로그 피드" : "AIAVpark AI Character Vlog Feed"}
       descriptionClassName="mt-4 !text-sm !leading-6 sm:!text-lg sm:!leading-7"
       heroSpacingClassName="pt-10 sm:pt-24"
       titleClassName="mt-4 max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]"
@@ -6386,8 +6386,8 @@ export function FanletterCreatorVlogsPage({
     locale === "ko" ? `${channelName} 공개 브이로그` : `${channelName} public vlogs`;
   const shareSummary =
     locale === "ko"
-      ? `${labels.allPublicCount}를 볼 수 있는 FanLetter AI 캐릭터 채널입니다.`
-      : `A FanLetter AI character channel with ${labels.allPublicCount}.`;
+      ? `${labels.allPublicCount}를 볼 수 있는 AIAVpark AI 캐릭터 채널입니다.`
+      : `An AIAVpark AI character channel with ${labels.allPublicCount}.`;
   const fanOnlyCtaLabel =
     data.fanOnlyContentCount > 0
       ? locale === "ko"
@@ -6590,7 +6590,7 @@ export function FanletterCreatorFanOnlyPage({
             data.fanOnlyContentCount > 0
               ? `${channelName}의 팬 전용 브이로그 ${fanOnlyCountLabel}개를 모았습니다. 티저와 반응 신호를 먼저 확인한 뒤, 원하는 콘텐츠만 개별 결제로 전체 열람할 수 있습니다.`
               : `${channelName}의 팬 전용 브이로그가 준비되면 이곳에서 먼저 열립니다.`,
-          eyebrow: "FanLetter 팬 전용",
+          eyebrow: "AIAVpark 팬 전용",
           heroCta:
             data.fanOnlyContentCount > 0
               ? `팬 전용 ${fanOnlyCountLabel}개 미리보기`
@@ -6600,7 +6600,7 @@ export function FanletterCreatorFanOnlyPage({
           publicProofBody:
             "처음 방문한 팬은 공개 브이로그로 캐릭터 분위기를 확인한 뒤 팬 전용으로 이어질 수 있습니다.",
           publicVlogs: `공개 브이로그 ${publicCountLabel}개`,
-          shareSummary: `${channelName}의 팬 전용 브이로그 ${fanOnlyCountLabel}개를 볼 수 있는 FanLetter 채널입니다.`,
+          shareSummary: `${channelName}의 팬 전용 브이로그 ${fanOnlyCountLabel}개를 볼 수 있는 AIAVpark 채널입니다.`,
           shareTitle: `${channelName} 팬 전용 브이로그`,
           nsfwBlurDisabledBody:
             "팬 전용 유료 브이로그 목록은 모두 유지하고 NSFW 썸네일만 블러 처리합니다.",
@@ -6628,7 +6628,7 @@ export function FanletterCreatorFanOnlyPage({
             data.fanOnlyContentCount > 0
               ? `${fanOnlyCountLabel} fan-only vlogs from ${channelName}. Preview teasers and fan signals first, then unlock only the full vlogs you want.`
               : `${channelName}'s fan-only vlogs will open here first when ready.`,
-          eyebrow: "FanLetter fan-only",
+          eyebrow: "AIAVpark fan-only",
           heroCta:
             data.fanOnlyContentCount > 0
               ? `Preview ${fanOnlyCountLabel} fan-only vlogs`
@@ -6638,7 +6638,7 @@ export function FanletterCreatorFanOnlyPage({
           publicProofBody:
             "New fans can verify the character through public vlogs before moving into fan-only content.",
           publicVlogs: `${publicCountLabel} public vlogs`,
-          shareSummary: `A FanLetter channel with ${fanOnlyCountLabel} fan-only vlogs from ${channelName}.`,
+          shareSummary: `An AIAVpark channel with ${fanOnlyCountLabel} fan-only vlogs from ${channelName}.`,
           shareTitle: `${channelName} fan-only vlogs`,
           nsfwBlurDisabledBody:
             "All paid fan-only vlogs stay in the list; only NSFW thumbnails are blurred.",
@@ -6929,7 +6929,7 @@ function CharacterPersonaShowcase({
       label: copy.creator.characterLatest,
       value: character.latestTitle
         ? getDisplayContentTitleText(character.latestTitle, character.latestTitle, locale)
-        : "FanLetter",
+        : "AIAVpark",
     },
   ];
   const growthMetrics = [
@@ -7287,7 +7287,7 @@ export function FanletterCreatorPage({
           publicVlogsShort: "Free public",
           expressionSet: "Expression cuts",
         };
-  const growthLevelLabel = character ? `Lv.${character.growth.level}` : "FanLetter";
+  const growthLevelLabel = character ? `Lv.${character.growth.level}` : "AIAVpark";
   const fanRequestCount =
     character?.growth.metrics.fanRequestCount ?? data.fanRequestPreviews.length;
   const channelStats = [
@@ -7315,24 +7315,24 @@ export function FanletterCreatorPage({
       : `${channelName} AI vlog channel`;
   const channelShareSummary =
     locale === "ko"
-      ? `공개 브이로그 ${formatNumber(data.publicContentCount, locale)}개와 팬 전용 콘텐츠 ${formatNumber(data.fanOnlyContentCount, locale)}개를 볼 수 있는 FanLetter AI 캐릭터 채널입니다.`
-      : `A FanLetter AI character channel with ${formatNumber(data.publicContentCount, locale)} public vlogs and ${formatNumber(data.fanOnlyContentCount, locale)} fan-only posts.`;
+      ? `공개 브이로그 ${formatNumber(data.publicContentCount, locale)}개와 팬 전용 콘텐츠 ${formatNumber(data.fanOnlyContentCount, locale)}개를 볼 수 있는 AIAVpark AI 캐릭터 채널입니다.`
+      : `An AIAVpark AI character channel with ${formatNumber(data.publicContentCount, locale)} public vlogs and ${formatNumber(data.fanOnlyContentCount, locale)} fan-only posts.`;
   const anonymousVisitorLabels =
     locale === "ko"
       ? {
           fanRequest: "팬 요청 흐름 보기",
-          heroDescription: `FanLetter AI 캐릭터 채널입니다. ${compactChannelSummary} 공개 브이로그로 분위기를 먼저 확인하세요.`,
+          heroDescription: `AIAVpark AI 캐릭터 채널입니다. ${compactChannelSummary} 공개 브이로그로 분위기를 먼저 확인하세요.`,
           identityEyebrow: "SNS 공유로 열린 AI 캐릭터",
           identityNote:
-            "고정 페르소나와 표정 아바타로 운영되는 FanLetter AI 캐릭터 채널입니다.",
+            "고정 페르소나와 표정 아바타로 운영되는 AIAVpark AI 캐릭터 채널입니다.",
           primary: "무료 공개 브이로그 보기",
         }
       : {
           fanRequest: "View request flow",
-          heroDescription: `A FanLetter AI character channel. ${compactChannelSummary} Preview the public vlogs first.`,
+          heroDescription: `An AIAVpark AI character channel. ${compactChannelSummary} Preview the public vlogs first.`,
           identityEyebrow: "Shared AI character",
           identityNote:
-            "A FanLetter AI character channel built around a fixed persona and expression avatar set.",
+            "An AIAVpark AI character channel built around a fixed persona and expression avatar set.",
           primary: "Watch free public vlogs",
         };
   const viewerModeLabels: Record<
@@ -7862,7 +7862,7 @@ export function FanletterCreatorPromoSharePage({
     source: "fanletter-promo-share",
     sponsorSlug: sponsor.slug,
   };
-  const levelLabel = character ? `Lv.${character.growth.level}` : "FanLetter";
+  const levelLabel = character ? `Lv.${character.growth.level}` : "AIAVpark";
   const sponsorCtaLabel =
     locale === "ko" ? sponsor.ctaLabel : `Explore ${sponsor.name}`;
   const sponsorDescription =
@@ -7957,14 +7957,14 @@ export function FanletterCreatorPromoSharePage({
           publicTitle: "먼저 볼 공개 브이로그",
           secondaryCta: "팬 전용 보기",
           serviceBody:
-            "SNS에서 들어온 팬은 캐릭터를 먼저 보고, 더 알고 싶은 사용자는 FanLetter 서비스 홈에서 AI 캐릭터 생성, 공개 브이로그, 팬 전용 콘텐츠 흐름을 이어서 확인합니다.",
-          serviceEyebrow: "FanLetter 서비스 연결",
-          serviceHome: "FanLetter 서비스 알아보기",
+            "SNS에서 들어온 팬은 캐릭터를 먼저 보고, 더 알고 싶은 사용자는 AIAVpark 서비스 홈에서 AI 캐릭터 생성, 공개 브이로그, 팬 전용 콘텐츠 흐름을 이어서 확인합니다.",
+          serviceEyebrow: "AIAVpark 서비스 연결",
+          serviceHome: "AIAVpark 서비스 알아보기",
           serviceRewardDisclosure:
-            "이 공유 링크로 가입을 완료하면 공유 페이지를 만든 회원에게 FanLetter 보상이 적립될 수 있습니다.",
+            "이 공유 링크로 가입을 완료하면 공유 페이지를 만든 회원에게 AIAVpark 보상이 적립될 수 있습니다.",
           serviceStart: "나도 AI 캐릭터 만들기",
           serviceSteps: ["SNS 공유", "캐릭터 미리보기", "팬 전용 확인", "서비스 시작"],
-          serviceTitle: "이 공유 페이지는 FanLetter 캐릭터 채널의 SNS 입구입니다.",
+          serviceTitle: "이 공유 페이지는 AIAVpark 캐릭터 채널의 SNS 입구입니다.",
           shareCode: "공유 코드",
           stickyServiceCta: "서비스 보기",
           stickyVlogsCta: "무료 브이로그",
@@ -8057,14 +8057,14 @@ export function FanletterCreatorPromoSharePage({
           publicTitle: "Start with public vlogs",
           secondaryCta: "View fan-only",
           serviceBody:
-            "Fans arriving from social can preview the character first. Visitors who want the wider product can continue to the FanLetter home page for AI character creation, public vlogs, and fan-only content flows.",
-          serviceEyebrow: "FanLetter service link",
-          serviceHome: "Learn about FanLetter",
+            "Fans arriving from social can preview the character first. Visitors who want the wider product can continue to the AIAVpark home page for AI character creation, public vlogs, and fan-only content flows.",
+          serviceEyebrow: "AIAVpark service link",
+          serviceHome: "Learn about AIAVpark",
           serviceRewardDisclosure:
-            "Completing signup through this shared link may award a FanLetter reward to the member who created this share page.",
+            "Completing signup through this shared link may award an AIAVpark reward to the member who created this share page.",
           serviceStart: "Create my AI character",
           serviceSteps: ["Social share", "Character preview", "Fan-only view", "Start service"],
-          serviceTitle: "This share page is the social entry point for a FanLetter character channel.",
+          serviceTitle: "This share page is the social entry point for an AIAVpark character channel.",
           shareCode: "Share code",
           stickyServiceCta: "Service",
           stickyVlogsCta: "Free vlogs",
@@ -8324,7 +8324,7 @@ export function FanletterCreatorPromoSharePage({
               <span className="flex size-8 items-center justify-center rounded-full bg-[#44f26e] text-black">
                 F
               </span>
-              FanLetter
+              AIAVpark
             </FanletterTrackedLink>
             <a
               className="hidden h-11 items-center justify-center gap-2 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/12 px-4 text-sm font-semibold !text-[#c9ffd3] backdrop-blur transition hover:bg-[#44f26e]/18 sm:inline-flex"
@@ -8599,7 +8599,7 @@ export function FanletterCreatorPromoSharePage({
                     key={`${date}-${title}-${index}`}
                   >
                     <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#9bffad] sm:block">
-                      <span>{formatDate(date, locale) ?? "FanLetter"}</span>
+                      <span>{formatDate(date, locale) ?? "AIAVpark"}</span>
                       <span className="text-white/24 sm:hidden">/</span>
                       <span className="text-white/46 sm:mt-2 sm:block">{label}</span>
                     </div>
@@ -9155,7 +9155,7 @@ function FanletterCharacterMiniCard({
               {characterName}
             </h2>
             <p className="mt-1 text-sm font-semibold text-white/42">
-              {content.authorReferralCode ?? "FanLetter"}
+              {content.authorReferralCode ?? "AIAVpark"}
             </p>
           </div>
         </Link>
@@ -9608,7 +9608,7 @@ export function FanletterContentDetailPage({
     locale === "ko"
       ? {
           character: "캐릭터",
-          heroEyebrow: "FanLetter 전용 브이로그",
+          heroEyebrow: "AIAVpark 전용 브이로그",
           ownerManage: "내 브이로그 관리",
           requestCta: "이어서 볼 장면 요청",
           requestStatusCta: "내 요청 상태 보기",
@@ -9621,7 +9621,7 @@ export function FanletterContentDetailPage({
         }
       : {
           character: "Character",
-          heroEyebrow: "FanLetter vlog detail",
+          heroEyebrow: "AIAVpark vlog detail",
           ownerManage: "Manage my vlog",
           requestCta: "Request follow-up scene",
           requestStatusCta: "Track my request",
@@ -9813,7 +9813,7 @@ export function FanletterContentDetailPage({
                       </span>
                     ) : null}
                     <span className="inline-flex rounded-full bg-[#44f26e] px-3 py-1 text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-black">
-                      FanLetter
+                      AIAVpark
                     </span>
                   </div>
                 </div>
@@ -10205,7 +10205,7 @@ export function FanletterOnboardingPage({
   const labels =
     locale === "ko"
       ? {
-          accountState: "연결된 FanLetter 계정을 기준으로 시작 상태를 확인합니다.",
+          accountState: "연결된 AIAVpark 계정을 기준으로 시작 상태를 확인합니다.",
           asideBody:
             "처음 방문한 사용자도 필요한 작업만 순서대로 진행할 수 있게 정리했습니다.",
           asideTitle: "시작 준비",
@@ -10214,7 +10214,7 @@ export function FanletterOnboardingPage({
           completeTitle: "3단계 시작 체크리스트",
           description:
             "계정 연결, 캐릭터 만들기, 첫 숏폼 브이로그 생성까지 순서대로 진행하세요.",
-          eyebrow: "FanLetter 온보딩",
+          eyebrow: "AIAVpark 온보딩",
           feedCta: "브이로그 피드 보기",
           helper: "계정 연결, 캐릭터 준비, 첫 브이로그 생성을 한 흐름으로 묶어 처음 시작하는 사용자가 길을 잃지 않게 합니다.",
           homeCta: "브이로그 스튜디오",
@@ -10226,12 +10226,12 @@ export function FanletterOnboardingPage({
           title: "AI 캐릭터 브이로그 시작하기",
           steps: [
             {
-              body: "FanLetter 계정과 시작 준비 상태를 확인합니다. 완료 후 다시 이 온보딩 화면으로 돌아옵니다.",
+              body: "AIAVpark 계정과 시작 준비 상태를 확인합니다. 완료 후 다시 이 온보딩 화면으로 돌아옵니다.",
               cta: "계정 연결하기",
               href: connectHref,
               Icon: User,
               meta: "01 · 계정",
-              title: "FanLetter 계정 연결",
+              title: "AIAVpark 계정 연결",
             },
             {
               body: "표시 이름과 분위기만 정하면 캐릭터 설정과 대표 아바타를 자동으로 저장합니다.",
@@ -10252,18 +10252,18 @@ export function FanletterOnboardingPage({
           ],
         }
       : {
-          accountState: "FanLetter checks readiness from the connected account.",
+          accountState: "AIAVpark checks readiness from the connected account.",
           asideBody:
             "A focused path for new creators to start an AI character vlogger channel quickly.",
           asideTitle: "Start today's channel",
           completeBody:
-            "After account connection, character creation, and first vlog, continue directly into the FanLetter vlog feed and studio.",
+            "After account connection, character creation, and first vlog, continue directly into the AIAVpark vlog feed and studio.",
           completeTitle: "3-step start checklist",
           description:
-            "Move through account connection, character creation, and first short-form vlog creation inside FanLetter.",
-          eyebrow: "FanLetter Onboarding",
+            "Move through account connection, character creation, and first short-form vlog creation inside AIAVpark.",
+          eyebrow: "AIAVpark Onboarding",
           feedCta: "View vlog feed",
-          helper: "Account connection, character setup, and first vlog creation stay in one guided FanLetter flow.",
+          helper: "Account connection, character setup, and first vlog creation stay in one guided AIAVpark flow.",
           homeCta: "Vlog studio",
           progress: "Quick start",
           readyValue: "3 steps",
@@ -10273,12 +10273,12 @@ export function FanletterOnboardingPage({
           title: "Start your AI character vlog",
           steps: [
             {
-              body: "Confirm the FanLetter account and readiness state. After completion, return to this onboarding page.",
+              body: "Confirm the AIAVpark account and readiness state. After completion, return to this onboarding page.",
               cta: "Connect account",
               href: connectHref,
               Icon: User,
               meta: "01 · Account",
-              title: "Connect FanLetter account",
+              title: "Connect AIAVpark account",
             },
             {
               body: "Choose a display name and mood to save the character setup and representative avatar automatically.",

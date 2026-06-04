@@ -4693,7 +4693,7 @@ export function FanletterNewsReportComposerPage({
           <div className="border border-black/12 bg-white p-4 shadow-[0_18px_46px_rgba(17,21,16,0.07)] sm:p-7">
             <p className="inline-flex items-center gap-1.5 border border-[#16702e]/20 bg-[#f6f8f4] px-2.5 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#16702e]">
               <Newspaper className="size-3.5" />
-              FanLetter News Reporter
+              AIAVpark News Reporter
             </p>
             <h1 className="mt-3 max-w-3xl text-[1.72rem] font-black leading-[1.08] tracking-normal [word-break:keep-all] sm:mt-4 sm:text-[3rem] lg:text-[3.25rem]">
               {copy.title}

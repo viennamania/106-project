@@ -68,10 +68,10 @@ const MARKET_SIGNAL_ARTICLE_URL =
 function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
-        title: "FanLetter News 홈",
+        title: "AIAVpark News 홈",
         description:
-          "SNS와 숏폼에서 생긴 반응을 팬 리포트, 원본 브이로그, 구매 전환까지 이어보는 FanLetter News 홈입니다.",
-        brand: "FanLetter",
+          "SNS와 숏폼에서 생긴 반응을 팬 리포트, 원본 브이로그, 구매 전환까지 이어보는 AIAVpark News 홈입니다.",
+        brand: "AIAVpark",
         eyebrow: "Shortform Exposure Engine",
         heroTitle: "숏폼 반응을 뉴스·원본·구매로 이어주는 노출력 홈",
         heroBody:
@@ -156,7 +156,7 @@ function getCopy(locale: Locale) {
         marketSignal: {
           assetLabel: "라이브 증거",
           body:
-            "K-뷰티가 제품력 다음 경쟁 축을 노출력으로 옮기고 있습니다. FanLetter News는 이 변화를 AI 캐릭터 콘텐츠에도 그대로 적용해, 발견·반응·원본 소비·구매 기여를 한 화면에서 이어줍니다.",
+            "K-뷰티가 제품력 다음 경쟁 축을 노출력으로 옮기고 있습니다. AIAVpark News는 이 변화를 AI 캐릭터 콘텐츠에도 그대로 적용해, 발견·반응·원본 소비·구매 기여를 한 화면에서 이어줍니다.",
           eyebrow: "Market Signal",
           liveReports: "운영 중인 리포트",
           source:
@@ -190,7 +190,7 @@ function getCopy(locale: Locale) {
         },
         investorBrief: {
           body:
-            "IR 자리에서는 긴 기능 설명보다 문제, 해법, 수익화, 방어력을 한 화면에서 보여주는 것이 중요합니다. FanLetter News는 라이브 콘텐츠 자체를 그 증거로 씁니다.",
+            "IR 자리에서는 긴 기능 설명보다 문제, 해법, 수익화, 방어력을 한 화면에서 보여주는 것이 중요합니다. AIAVpark News는 라이브 콘텐츠 자체를 그 증거로 씁니다.",
           ctaCharacters: "캐릭터 자산 보기",
           ctaNews: "라이브 뉴스 보기",
           ctaReports: "리포터 데스크",
@@ -200,7 +200,7 @@ function getCopy(locale: Locale) {
           noReport: "공개 리포트 준비 중",
           script: [
             "시장은 제품력만으로는 부족하고 노출력이 성과를 가르는 구조로 바뀌고 있습니다.",
-            "FanLetter News는 AI 캐릭터의 원본 숏폼을 팬 리포터 뉴스로 재포장해 발견과 반응을 만듭니다.",
+            "AIAVpark News는 AI 캐릭터의 원본 숏폼을 팬 리포터 뉴스로 재포장해 발견과 반응을 만듭니다.",
             "그 반응은 원본 오픈, 구매, 보상 기록으로 이어져 플랫폼의 기여 데이터가 됩니다.",
           ],
           scriptLabel: "90초 IR 스크립트",
@@ -240,13 +240,13 @@ function getCopy(locale: Locale) {
         },
         portalStrategy: {
           body:
-            "불법 유통의 방식이 아니라, 사용자가 계속 돌아오는 콘텐츠 포털의 구조를 합법적으로 가져갑니다. FanLetter는 직접 생성·권리 보유·팬 리포터 기여 기록을 기반으로 AI 캐릭터 콘텐츠의 업데이트 허브가 되어야 합니다.",
+            "불법 유통의 방식이 아니라, 사용자가 계속 돌아오는 콘텐츠 포털의 구조를 합법적으로 가져갑니다. AIAVpark는 직접 생성·권리 보유·팬 리포터 기여 기록을 기반으로 AI 캐릭터 콘텐츠의 업데이트 허브가 되어야 합니다.",
           ctaCharacters: "캐릭터별 포털 보기",
           ctaNews: "최신 업데이트 보기",
           ctaReports: "리포터로 참여하기",
           eyebrow: "Legal Content Portal Strategy",
           proofLabel: "현재 라이브 데이터로 시작",
-          title: "FanLetter가 가야 할 길은 AI 캐릭터판 합법 콘텐츠 포털입니다",
+          title: "AIAVpark가 가야 할 길은 AI 캐릭터판 합법 콘텐츠 포털입니다",
           modules: [
             {
               label: "01 Update",
@@ -376,7 +376,7 @@ function getCopy(locale: Locale) {
         ],
         settlementTitle: "USDT 정산이 공정성을 설명합니다",
         settlementBody:
-          "FanLetter의 핵심은 참여 기록과 수익 기록을 분리하지 않는 것입니다. 누가 어떤 행동으로 매출에 기여했는지 남기고, 정산 결과를 USDT 기준으로 확인할 수 있게 설계합니다.",
+          "AIAVpark의 핵심은 참여 기록과 수익 기록을 분리하지 않는 것입니다. 누가 어떤 행동으로 매출에 기여했는지 남기고, 정산 결과를 USDT 기준으로 확인할 수 있게 설계합니다.",
         settlementItems: [
           "구매, 언락, 팬 요청 결제를 수익 이벤트로 기록",
           "리포트, 보고싶어요, 공유, 구매 전환을 기여 이벤트로 기록",
@@ -393,7 +393,7 @@ function getCopy(locale: Locale) {
         loopTitle: "노출 리포트는 유입, 브이로그는 소비, 정산은 신뢰입니다",
         loopBody:
           "이 세 가지가 연결될 때 팬은 단순 소비자가 아니라 AI 캐릭터 IP의 성장 파트너가 됩니다.",
-        ctaTitle: "FanLetter News 홈에서 노출력 성장 흐름을 시작하세요",
+        ctaTitle: "AIAVpark News 홈에서 노출력 성장 흐름을 시작하세요",
         ctaBody:
           "뉴스 홈에서 4컷 리포트와 AI 캐릭터를 둘러보고, 리포터 데스크에서 직접 브이로그 기반 노출 리포트를 작성할 수 있습니다.",
         ctaNews: "뉴스룸 보기",
@@ -401,10 +401,10 @@ function getCopy(locale: Locale) {
         ctaReports: "리포터 데스크",
       }
     : {
-        title: "FanLetter News Home",
+        title: "AIAVpark News Home",
         description:
-          "The FanLetter News home for turning SNS and shortform reactions into fan reports, source vlogs, and purchase conversion.",
-        brand: "FanLetter",
+          "The AIAVpark News home for turning SNS and shortform reactions into fan reports, source vlogs, and purchase conversion.",
+        brand: "AIAVpark",
         eyebrow: "Shortform Exposure Engine",
         heroTitle: "Turn shortform reactions into news, sources, and purchases",
         heroBody:
@@ -489,7 +489,7 @@ function getCopy(locale: Locale) {
         marketSignal: {
           assetLabel: "Live proof",
           body:
-            "K-beauty is shifting the next competition layer from product quality alone to exposure power. FanLetter News applies the same shift to AI character content by connecting discovery, reaction, source consumption, and purchase attribution.",
+            "K-beauty is shifting the next competition layer from product quality alone to exposure power. AIAVpark News applies the same shift to AI character content by connecting discovery, reaction, source consumption, and purchase attribution.",
           eyebrow: "Market Signal",
           liveReports: "Live reports",
           source:
@@ -523,7 +523,7 @@ function getCopy(locale: Locale) {
         },
         investorBrief: {
           body:
-            "For IR, the page needs to explain the problem, product, monetization path, and moat in one screen. FanLetter News uses live content itself as that proof.",
+            "For IR, the page needs to explain the problem, product, monetization path, and moat in one screen. AIAVpark News uses live content itself as that proof.",
           ctaCharacters: "View character assets",
           ctaNews: "View live news",
           ctaReports: "Reporter desk",
@@ -533,7 +533,7 @@ function getCopy(locale: Locale) {
           noReport: "Public reports are being prepared",
           script: [
             "The market is moving from product quality alone to exposure power as a performance driver.",
-            "FanLetter News repackages AI character source shorts into fan-reporter news to create discovery and reaction.",
+            "AIAVpark News repackages AI character source shorts into fan-reporter news to create discovery and reaction.",
             "Those reactions continue into source opens, purchases, reward records, and contribution data.",
           ],
           scriptLabel: "90-second IR script",
@@ -573,14 +573,14 @@ function getCopy(locale: Locale) {
         },
         portalStrategy: {
           body:
-            "The goal is not to copy illegal distribution, but to legally adopt the product structure that makes people return: fast updates, serialized consumption, rankings, free previews, and community contribution. FanLetter should become the update hub for rights-owned AI character content.",
+            "The goal is not to copy illegal distribution, but to legally adopt the product structure that makes people return: fast updates, serialized consumption, rankings, free previews, and community contribution. AIAVpark should become the update hub for rights-owned AI character content.",
           ctaCharacters: "View character portals",
           ctaNews: "View latest updates",
           ctaReports: "Join as reporter",
           eyebrow: "Legal Content Portal Strategy",
           proofLabel: "Start from live data",
           title:
-            "FanLetter should become the legal content portal for AI characters",
+            "AIAVpark should become the legal content portal for AI characters",
           modules: [
             {
               label: "01 Update",
@@ -710,7 +710,7 @@ function getCopy(locale: Locale) {
         ],
         settlementTitle: "USDT settlement makes fairness visible",
         settlementBody:
-          "FanLetter keeps participation and revenue connected. It records who contributed to revenue and lets members inspect settlement outcomes in USDT terms.",
+          "AIAVpark keeps participation and revenue connected. It records who contributed to revenue and lets members inspect settlement outcomes in USDT terms.",
         settlementItems: [
           "Record purchases, unlocks, and paid requests as revenue events",
           "Record reports, votes, shares, and purchase conversion as contribution events",
@@ -727,7 +727,7 @@ function getCopy(locale: Locale) {
         loopTitle: "Exposure reports bring traffic, vlogs drive consumption, settlement builds trust",
         loopBody:
           "When all three are connected, fans become growth partners for AI character IP instead of passive consumers.",
-        ctaTitle: "Start the exposure growth loop from FanLetter News home",
+        ctaTitle: "Start the exposure growth loop from AIAVpark News home",
         ctaBody:
           "Browse four-cut reports and AI characters, then use the reporter desk to create exposure reports from vlog source content.",
         ctaNews: "Newsroom",
@@ -2330,7 +2330,7 @@ function NewsFlowTicker({
               >
                 <span className="min-w-0">
                   <span className="block truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#7cff98]">
-                    {report.creatorName || report.reporterName || "FanLetter"}
+                    {report.creatorName || report.reporterName || "AIAVpark"}
                   </span>
                   <span className="mt-0.5 block truncate text-sm font-black">
                     {getArticleDisplayTitle(report.title)}
@@ -2364,7 +2364,7 @@ export async function generateMetadata({
   );
 
   return {
-    title: `${copy.title} | FanLetter News`,
+    title: `${copy.title} | AIAVpark News`,
     description: copy.description,
     alternates: {
       canonical,
@@ -2379,8 +2379,8 @@ export async function generateMetadata({
           width: 1920,
         },
       ],
-      siteName: "FanLetter News",
-      title: `${copy.title} | FanLetter News`,
+      siteName: "AIAVpark News",
+      title: `${copy.title} | AIAVpark News`,
       type: "website",
       url: canonical,
     },
@@ -2388,7 +2388,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       description: copy.description,
       images: [HERO_IMAGE],
-      title: `${copy.title} | FanLetter News`,
+      title: `${copy.title} | AIAVpark News`,
     },
   };
 }

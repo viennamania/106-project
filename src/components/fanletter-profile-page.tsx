@@ -270,7 +270,7 @@ function getCopy(locale: Locale) {
         avatarSelect: "대표로 저장",
         avatarSelected: "대표 이미지",
         back: "온보딩으로 돌아가기",
-        characterChange: "FanLetter 변경 화면",
+        characterChange: "AIAVpark 변경 화면",
         characterLockedBody:
           "이 화면에서는 성장 상태와 다음 미션을 확인합니다. 페르소나나 대표 아바타를 바꾸려면 전용 변경 페이지에서 진행하세요.",
         characterLockedTitle: "캐릭터 정체성이 고정되어 있습니다.",
@@ -285,7 +285,7 @@ function getCopy(locale: Locale) {
             body:
               "같은 인물 정체성을 고정한 상태에서 대표 컷, 표정 컷, 팬 반응 컷을 콘텐츠 제작에 바로 쓰는 비주얼 자산으로 정리합니다.",
             changeHint:
-              "정체성을 바꾸는 경우 FanLetter 전용 변경 화면에서 현재 캐릭터와 새 아바타 세트를 확인합니다.",
+              "정체성을 바꾸는 경우 AIAVpark 전용 변경 화면에서 현재 캐릭터와 새 아바타 세트를 확인합니다.",
             directionTitle: "성장 연출",
             empty:
               "아바타를 만들면 같은 캐릭터의 대표, 미소, 차분, 리액션, 팬 반응 컷이 이곳에 비주얼 키트로 정리됩니다.",
@@ -444,7 +444,7 @@ function getCopy(locale: Locale) {
         displayNameHint: "브이로그 피드와 상세에 보이는 AI 캐릭터/채널 이름입니다.",
         displayNamePlaceholder: "예: 지니뮤직",
         errorFallback: "프로필을 처리하지 못했습니다.",
-        eyebrow: "FanLetter Profile",
+        eyebrow: "AIAVpark Profile",
         gender: "성별",
         genderAuto: "자동",
         genderFemale: "여성",
@@ -457,7 +457,7 @@ function getCopy(locale: Locale) {
           "원하는 경우 성별, 연령, 페르소나 후보, 아바타 후보를 직접 고를 수 있습니다.",
         manualSetupTitle: "직접 고급 설정",
         paymentRequired:
-          "FanLetter 시작 준비 확인이 끝나면 캐릭터 프로필을 설정할 수 있습니다.",
+          "AIAVpark 시작 준비 확인이 끝나면 캐릭터 프로필을 설정할 수 있습니다.",
         paymentRequiredCta: "시작 준비 확인하기",
         profileStep: "02 · 캐릭터 만들기",
         persona: "캐릭터 페르소나",
@@ -479,7 +479,7 @@ function getCopy(locale: Locale) {
         quickStyleDaily: "일상 브이로그",
         quickStyleFanService: "팬 소통형",
         quickStyleFriendly: "친근한",
-        quickSuccess: "캐릭터를 만들고 FanLetter 프로필에 저장했습니다.",
+        quickSuccess: "캐릭터를 만들고 AIAVpark 프로필에 저장했습니다.",
         quickWorldCurrent: "현재 설정",
         quickWorldHint:
           "정확한 현재 위치가 아니라 날씨, 낮밤, 계절을 맞추는 공개 기준 도시만 사용합니다.",
@@ -569,7 +569,7 @@ function getCopy(locale: Locale) {
         avatarSelect: "Save as avatar",
         avatarSelected: "Current avatar",
         back: "Back to onboarding",
-        characterChange: "FanLetter change screen",
+        characterChange: "AIAVpark change screen",
         characterLockedBody:
           "This screen is for growth status and next missions. Use the dedicated change page when you need to change the persona or representative avatar.",
         characterLockedTitle: "Character identity is locked.",
@@ -584,7 +584,7 @@ function getCopy(locale: Locale) {
             body:
               "Organize hero looks, expression cuts, and fan reaction cuts as production-ready assets while keeping the same character identity locked.",
             changeHint:
-              "When changing identity, review the current character and new avatar set in the dedicated FanLetter change screen.",
+              "When changing identity, review the current character and new avatar set in the dedicated AIAVpark change screen.",
             directionTitle: "Growth directions",
             empty:
               "After avatar creation, the character's hero, smile, calm, reaction, and fan-reaction cuts will appear here as a visual kit.",
@@ -744,7 +744,7 @@ function getCopy(locale: Locale) {
         displayNameHint: "Shown in the vlog feed and detail pages.",
         displayNamePlaceholder: "Example: Genie Music",
         errorFallback: "Failed to process profile.",
-        eyebrow: "FanLetter Profile",
+        eyebrow: "AIAVpark Profile",
         gender: "Gender",
         genderAuto: "Auto",
         genderFemale: "Female",
@@ -757,7 +757,7 @@ function getCopy(locale: Locale) {
           "Optionally choose gender, age range, persona candidates, and avatar candidates yourself.",
         manualSetupTitle: "Manual advanced setup",
         paymentRequired:
-          "Confirm FanLetter readiness to set up a character profile.",
+          "Confirm AIAVpark readiness to set up a character profile.",
         paymentRequiredCta: "Confirm readiness",
         profileStep: "02 · Create character",
         persona: "Character persona",
@@ -779,7 +779,7 @@ function getCopy(locale: Locale) {
         quickStyleDaily: "Daily vlog",
         quickStyleFanService: "Fan communication",
         quickStyleFriendly: "Friendly",
-        quickSuccess: "Character created and saved to your FanLetter profile.",
+        quickSuccess: "Character created and saved to your AIAVpark profile.",
         quickWorldCurrent: "Current setting",
         quickWorldHint:
           "This stores a public base city for weather, day/night, and season context, not an exact live location.",

@@ -75,7 +75,7 @@ function getCopy(locale: Locale) {
           paid: "팬 전용",
           public: "공개",
         },
-        allNews: "FanLetter 노출력 뉴스룸",
+        allNews: "AIAVpark 노출력 뉴스룸",
         characterDirectory: {
           body:
             "뉴스가 나온 AI 캐릭터 채널을 모았습니다. 캐릭터별 최신 리포트와 팬 전용 브이로그 흐름을 바로 이어볼 수 있습니다.",
@@ -96,14 +96,14 @@ function getCopy(locale: Locale) {
           stories: "와이어",
         },
         dek:
-          "팬 기자가 숏폼 원본을 4컷 리포트로 포장해 공유와 원본 소비로 이어주는 FanLetter News입니다.",
+          "팬 기자가 숏폼 원본을 4컷 리포트로 포장해 공유와 원본 소비로 이어주는 AIAVpark News입니다.",
         edition: "숏폼 노출·팬 리포트 전문 뉴스",
         emptyBody:
           "콘텐츠 상세 페이지에서 AI 리포트를 생성하면 이곳에 최신 뉴스가 모입니다.",
         emptyReporterBody: (name: string) =>
           `${name}가 만든 공개 뉴스가 아직 없습니다. 전체 뉴스룸에서 다른 팬 기자의 리포트를 먼저 확인해보세요.`,
         emptyReporterTitle: (name: string) => `${name}의 뉴스가 아직 없습니다.`,
-        emptyTitle: "아직 공개된 FanLetter 뉴스가 없습니다.",
+        emptyTitle: "아직 공개된 AIAVpark 뉴스가 없습니다.",
         frontPage: {
           characters: "캐릭터 편집판",
           desk: "뉴스룸 데스크",
@@ -111,9 +111,9 @@ function getCopy(locale: Locale) {
             "리포터 활동, AI 캐릭터 이슈, 공개 뉴스 흐름, 원본 반응을 빠르게 훑습니다.",
           headlines: "주요 헤드라인",
           leadDeck:
-            "빠르게 발행된 팬 리포트를 노출력 있는 리드와 주요 헤드라인으로 큐레이션하는 FanLetter 뉴스 편집판입니다.",
+            "빠르게 발행된 팬 리포트를 노출력 있는 리드와 주요 헤드라인으로 큐레이션하는 AIAVpark 뉴스 편집판입니다.",
           reporters: "리포터 편집판",
-          title: "FanLetter 노출력 편집판",
+          title: "AIAVpark 노출력 편집판",
         },
         todayPortal: {
           body:
@@ -139,11 +139,11 @@ function getCopy(locale: Locale) {
           title: "오늘 업데이트만 훑어도 캐릭터 세계관이 이어집니다",
         },
         firstReport: "최초 리포트",
-        heroEyebrow: "FanLetter Entertainment News",
-        issueLabel: "오늘의 FanLetter 엔터테인먼트 브리핑",
+        heroEyebrow: "AIAVpark Entertainment News",
+        issueLabel: "오늘의 AIAVpark 엔터테인먼트 브리핑",
         latest: "최근 발행 리포트",
         lead: "오늘의 리드",
-        leadKicker: "FanLetter exclusive",
+        leadKicker: "AIAVpark exclusive",
         cutFeedCta: "리포터 컷 피드",
         navItems: [
           "톱뉴스",
@@ -205,14 +205,14 @@ function getCopy(locale: Locale) {
           body: (count: string) =>
             `${count}개의 AI 캐릭터 리포트를 작성했습니다. 이 팬 기자가 만든 뉴스만 모아볼 수 있습니다.`,
           eyebrow: "팬 기자 채널",
-          title: (name: string) => `${name}의 FanLetter News`,
+          title: (name: string) => `${name}의 AIAVpark News`,
         },
         reporterDesk: "팬 기자 데스크",
         reporterFirstMetric: "선점",
         reporterNewsCta: "이 팬 기자 뉴스 보기",
         reporterReportUnit: "뉴스",
         reporterRank: "활동 기자",
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         ticker: "뉴스 브리핑",
         topStories: "주요 뉴스",
         wireLatest: "캐릭터별 최신",
@@ -223,10 +223,10 @@ function getCopy(locale: Locale) {
           paid: "Fan-only",
           public: "Public",
         },
-        allNews: "FanLetter Exposure Newsroom",
+        allNews: "AIAVpark Exposure Newsroom",
         characterDirectory: {
           body:
-            "Browse the AI character channels generating FanLetter News, then jump into each character's latest reports and fan-only vlog stream.",
+            "Browse the AI character channels generating AIAVpark News, then jump into each character's latest reports and fan-only vlog stream.",
           cta: "All news AI characters",
           eyebrow: "AI Character Profiles",
           fanOnly: "Fan-only",
@@ -244,7 +244,7 @@ function getCopy(locale: Locale) {
           stories: "Wire",
         },
         dek:
-          "FanLetter News packages shortform source videos into four-cut reports that continue into sharing and source consumption.",
+          "AIAVpark News packages shortform source videos into four-cut reports that continue into sharing and source consumption.",
         edition: "Shortform exposure and fan-report news",
         emptyBody:
           "Create an AI report from a content detail page and the latest news will appear here.",
@@ -252,7 +252,7 @@ function getCopy(locale: Locale) {
           `${name} has not published fan-reporter news yet. Browse the full newsroom for other fan reports.`,
         emptyReporterTitle: (name: string) =>
           `${name} has no news yet.`,
-        emptyTitle: "No FanLetter news has been published yet.",
+        emptyTitle: "No AIAVpark news has been published yet.",
         frontPage: {
           characters: "Character Edition",
           desk: "Newsroom Desk",
@@ -260,9 +260,9 @@ function getCopy(locale: Locale) {
             "Track reporter activity, AI character issues, public news flow, and source reactions.",
           headlines: "Major Headlines",
           leadDeck:
-            "A FanLetter news edition that curates fast-moving fan reports into exposure-ready leads and major headlines.",
+            "An AIAVpark news edition that curates fast-moving fan reports into exposure-ready leads and major headlines.",
           reporters: "Reporter Edition",
-          title: "FanLetter Exposure Edition",
+          title: "AIAVpark Exposure Edition",
         },
         todayPortal: {
           body:
@@ -288,11 +288,11 @@ function getCopy(locale: Locale) {
           title: "One daily scan should continue the character universe",
         },
         firstReport: "First report",
-        heroEyebrow: "FanLetter Entertainment News",
-        issueLabel: "Today's FanLetter entertainment briefing",
+        heroEyebrow: "AIAVpark Entertainment News",
+        issueLabel: "Today's AIAVpark entertainment briefing",
         latest: "Recently Published Reports",
         lead: "Lead News",
-        leadKicker: "FanLetter exclusive",
+        leadKicker: "AIAVpark exclusive",
         cutFeedCta: "Reporter cuts",
         navItems: [
           "Top news",
@@ -353,14 +353,14 @@ function getCopy(locale: Locale) {
           body: (count: string) =>
             `${count} AI character reports published. View only the news from this fan reporter.`,
           eyebrow: "Fan reporter channel",
-          title: (name: string) => `${name}'s FanLetter News`,
+          title: (name: string) => `${name}'s AIAVpark News`,
         },
         reporterDesk: "Fan Reporter Desk",
         reporterFirstMetric: "Scoops",
         reporterNewsCta: "View reporter news",
         reporterReportUnit: "News",
         reporterRank: "Active reporters",
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         ticker: "News Briefing",
         topStories: "Top Stories",
         wireLatest: "Latest By Character",
@@ -2156,7 +2156,7 @@ function PhotoDesk({
       <div className="grid gap-3 border-b-2 border-[#111510] p-4 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,0.42fr)] sm:items-end sm:p-5">
         <div>
           <p className="text-[0.66rem] font-black uppercase tracking-[0.26em] text-[#16702e]">
-            FanLetter Visual Edit
+            AIAVpark Visual Edit
           </p>
           <h2 className="mt-2 max-w-3xl text-[2.6rem] font-black leading-[0.96] tracking-normal sm:text-[4.7rem]">
             {copy.photoDesk}
@@ -2677,7 +2677,7 @@ export async function generateMetadata({
   const copy = getCopy(locale);
 
   return {
-    title: `${copy.siteName} | FanLetter`,
+    title: `${copy.siteName} | AIAVpark`,
     description: copy.dek,
   };
 }

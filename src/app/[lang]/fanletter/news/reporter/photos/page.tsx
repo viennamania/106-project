@@ -38,11 +38,11 @@ function getCopy(locale: Locale) {
     ? {
         collectionTitle: "내 편집 컷 모음",
         connectBody:
-          "내가 리포터로 만든 편집 컷을 보려면 FanLetter News 계정 연결이 필요합니다.",
+          "내가 리포터로 만든 편집 컷을 보려면 AIAVpark News 계정 연결이 필요합니다.",
         connectCta: "뉴스 계정 연결",
         connectTitle: "포토 컬렉션은 로그인 후 확인할 수 있습니다.",
         description:
-          "FanLetter News 리포터가 직접 크롭해 만든 티저 컷을 한곳에서 감상하고 뉴스와 편집 화면으로 돌아가는 페이지입니다.",
+          "AIAVpark News 리포터가 직접 크롭해 만든 티저 컷을 한곳에서 감상하고 뉴스와 편집 화면으로 돌아가는 페이지입니다.",
         editCut: "컷 다시 편집",
         emptyBody:
           "아직 모아볼 편집 컷이 없습니다. 원본 브이로그 프레임을 크롭해 첫 팬 리포트를 만들면 이곳에 사진첩처럼 쌓입니다.",
@@ -54,7 +54,7 @@ function getCopy(locale: Locale) {
         heroTitle: "리포터 포토 컬렉션",
         latestUpdate: "최근 업데이트",
         myHub: "내 뉴스 허브",
-        newsHome: "FanLetter News",
+        newsHome: "AIAVpark News",
         openNews: "뉴스 보기",
         pageStatus: (current: string, total: string) =>
           `${current} / ${total} 페이지`,
@@ -70,16 +70,16 @@ function getCopy(locale: Locale) {
           photos: "편집 컷",
           reports: "리포트",
         },
-        title: "리포터 포토 컬렉션 | FanLetter News",
+        title: "리포터 포토 컬렉션 | AIAVpark News",
       }
     : {
         collectionTitle: "My edited cut collection",
         connectBody:
-          "Connect your FanLetter News account to view the edited cuts you created as a reporter.",
+          "Connect your AIAVpark News account to view the edited cuts you created as a reporter.",
         connectCta: "Connect news account",
         connectTitle: "Photo collections require sign-in.",
         description:
-          "A FanLetter News reporter page for reviewing cropped teaser cuts and returning to news or editing.",
+          "An AIAVpark News reporter page for reviewing cropped teaser cuts and returning to news or editing.",
         editCut: "Edit cuts",
         emptyBody:
           "No edited cuts yet. Crop frames from a source vlog and publish your first fan report to build this collection.",
@@ -91,7 +91,7 @@ function getCopy(locale: Locale) {
         heroTitle: "Reporter Photo Collection",
         latestUpdate: "Latest update",
         myHub: "My News Hub",
-        newsHome: "FanLetter News",
+        newsHome: "AIAVpark News",
         openNews: "Open news",
         pageStatus: (current: string, total: string) =>
           `Page ${current} of ${total}`,
@@ -107,7 +107,7 @@ function getCopy(locale: Locale) {
           photos: "Edited cuts",
           reports: "Reports",
         },
-        title: "Reporter Photo Collection | FanLetter News",
+        title: "Reporter Photo Collection | AIAVpark News",
       };
 }
 

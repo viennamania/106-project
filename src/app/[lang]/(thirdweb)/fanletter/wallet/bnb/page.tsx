@@ -32,13 +32,13 @@ function getMetadataCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "FanLetter 스마트월렛의 BNB 잔액과 네트워크 수수료 준비 상태를 확인하세요.",
-        title: "FanLetter BNB 관리",
+          "AIAVpark 스마트월렛의 BNB 잔액과 네트워크 수수료 준비 상태를 확인하세요.",
+        title: "AIAVpark BNB 관리",
       }
     : {
         description:
-          "Check BNB balance and network-fee readiness for the FanLetter smart wallet.",
-        title: "FanLetter BNB",
+          "Check BNB balance and network-fee readiness for the AIAVpark smart wallet.",
+        title: "AIAVpark BNB",
       };
 }
 
@@ -89,7 +89,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title,
       type: "website",
       url,

@@ -147,7 +147,7 @@ export async function POST(request: Request) {
     return jsonError(
       error instanceof Error
         ? error.message
-        : "Failed to backfill FanLetter news reporter profiles.",
+        : "Failed to backfill AIAVpark news reporter profiles.",
       500,
     );
   }

@@ -15,12 +15,12 @@ function getCopy(locale: Locale) {
     ? {
         back: "이전 화면",
         reports: "리포트",
-        home: "FanLetter 홈",
+        home: "AIAVpark 홈",
       }
     : {
         back: "Previous screen",
         reports: "Reports",
-        home: "FanLetter home",
+        home: "AIAVpark home",
       };
 }
 
@@ -78,7 +78,7 @@ export function FanletterTabTopBar({
         >
           <FanletterBrandMark className="size-11 sm:size-9" />
           <span className="hidden truncate text-xl font-semibold tracking-normal sm:inline">
-            FanLetter
+            AIAVpark
           </span>
         </Link>
       </div>

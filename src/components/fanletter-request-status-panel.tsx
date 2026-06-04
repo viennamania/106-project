@@ -212,7 +212,7 @@ export function FanletterRequestStatusPanel({
           </span>
           <div className="min-w-0">
             <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
-              FanLetter Receipt
+              AIAVpark Receipt
             </p>
             <h2 className="mt-2 text-xl font-semibold tracking-normal [word-break:keep-all]">
               {copy.title}

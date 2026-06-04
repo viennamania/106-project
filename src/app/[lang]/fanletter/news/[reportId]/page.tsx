@@ -205,7 +205,7 @@ function getCopy(locale: Locale) {
         aiReport: "AI 팬 리포트",
         articleEyebrow: "AI Character News",
         articleNotice:
-          "이 리포트는 원본 브이로그의 공개 정보와 팬 기자의 관전 포인트를 바탕으로 작성된 FanLetter AI 팬 리포트입니다. 언론사 보도가 아닌 팬 참여형 콘텐츠입니다.",
+          "이 리포트는 원본 브이로그의 공개 정보와 팬 기자의 관전 포인트를 바탕으로 작성된 AIAVpark AI 팬 리포트입니다. 언론사 보도가 아닌 팬 참여형 콘텐츠입니다.",
         articleSection: "연예",
         mobileActionDock: {
           eyebrow: "원본 공개",
@@ -297,7 +297,7 @@ function getCopy(locale: Locale) {
           },
           title: "리포트 커버 이미지",
         },
-        edition: "AI 캐릭터와 팬 참여를 다루는 FanLetter 온라인 뉴스",
+        edition: "AI 캐릭터와 팬 참여를 다루는 AIAVpark 온라인 뉴스",
         embeddedLocked:
           "잠금 콘텐츠는 공개 티저와 뉴스로 공개 가능한 정보만 이 화면에 표시됩니다.",
         embeddedLockedPaid: (amount: string) =>
@@ -500,7 +500,7 @@ function getCopy(locale: Locale) {
         walletConnect: {
           body:
             "팬 기자 활동이나 팬 전용 결제가 필요할 때만 이어갑니다.",
-          eyebrow: "FanLetter Wallet",
+          eyebrow: "AIAVpark Wallet",
           title: "필요할 때 뉴스 지갑 연결",
         },
         sixW: {
@@ -511,7 +511,7 @@ function getCopy(locale: Locale) {
           who: "누가",
           why: "왜",
         },
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
       }
     : {
         articleActions: {
@@ -524,7 +524,7 @@ function getCopy(locale: Locale) {
         aiReport: "AI fan report",
         articleEyebrow: "AI Character News",
         articleNotice:
-          "This report is a FanLetter AI fan report based on public source-vlog context and the fan reporter's angle. It is fan-participation content, not newsroom coverage.",
+          "This report is an AIAVpark AI fan report based on public source-vlog context and the fan reporter's angle. It is fan-participation content, not newsroom coverage.",
         articleSection: "Entertainment",
         mobileActionDock: {
           eyebrow: "Source access",
@@ -616,7 +616,7 @@ function getCopy(locale: Locale) {
           },
           title: "Report cover image",
         },
-        edition: "FanLetter online news for AI characters and fan participation",
+        edition: "AIAVpark online news for AI characters and fan participation",
         embeddedLocked:
           "Locked content is represented with public teaser details available for the news page.",
         embeddedLockedPaid: (amount: string) =>
@@ -821,7 +821,7 @@ function getCopy(locale: Locale) {
         walletConnect: {
           body:
             "Use this only when fan reporter actions or fan-only payment are needed.",
-          eyebrow: "FanLetter Wallet",
+          eyebrow: "AIAVpark Wallet",
           title: "News wallet when needed",
         },
         sixW: {
@@ -832,7 +832,7 @@ function getCopy(locale: Locale) {
           who: "Who",
           why: "Why",
         },
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
       };
 }
 
@@ -888,34 +888,34 @@ function normalizeLowSignalSourceTitleText(value: string, locale: Locale) {
   if (locale !== "ko") {
     return value
       .replace(
-        /^(.+?)'s source vlog "([^"]+)" was presented on FanLetter as a (.+?)\.$/i,
+        /^(.+?)'s source vlog "([^"]+)" was presented on AIAVpark as a (.+?)\.$/i,
         (matchedText: string, creatorName: string, sourceTitle: string, accessLabel: string) =>
           isFanletterNewsLowSignalSourceTitle(sourceTitle)
-            ? `${creatorName}'s new source vlog was presented on FanLetter as a ${accessLabel}.`
+            ? `${creatorName}'s new source vlog was presented on AIAVpark as a ${accessLabel}.`
             : matchedText,
       )
       .replace(
-        /^"([^"]+)" was shared on FanLetter as a (.+?)\.?$/i,
+        /^"([^"]+)" was shared on AIAVpark as a (.+?)\.?$/i,
         (matchedText: string, sourceTitle: string, accessLabel: string) =>
           isFanletterNewsLowSignalSourceTitle(sourceTitle)
-            ? `A new source vlog was shared on FanLetter as a ${accessLabel}.`
+            ? `A new source vlog was shared on AIAVpark as a ${accessLabel}.`
             : matchedText,
       );
   }
 
   return value
     .replace(
-      /^(.+?)의 원본 브이로그 '([^']+)'가 FanLetter에서 (.+?)로 게시됐다\.?$/,
+      /^(.+?)의 원본 브이로그 '([^']+)'가 AIAVpark에서 (.+?)로 게시됐다\.?$/,
       (matchedText: string, creatorName: string, sourceTitle: string, accessLabel: string) =>
         isFanletterNewsLowSignalSourceTitle(sourceTitle)
-          ? `${creatorName}의 새 원본 브이로그가 FanLetter에서 ${accessLabel}로 게시됐다.`
+          ? `${creatorName}의 새 원본 브이로그가 AIAVpark에서 ${accessLabel}로 게시됐다.`
           : matchedText,
     )
     .replace(
-      /^원본 브이로그 '([^']+)'가 FanLetter에서 (.+?)로 공유됐습니다\.?$/,
+      /^원본 브이로그 '([^']+)'가 AIAVpark에서 (.+?)로 공유됐습니다\.?$/,
       (matchedText: string, sourceTitle: string, accessLabel: string) =>
         isFanletterNewsLowSignalSourceTitle(sourceTitle)
-          ? `새 원본 브이로그가 FanLetter에서 ${accessLabel}로 공유됐습니다.`
+          ? `새 원본 브이로그가 AIAVpark에서 ${accessLabel}로 공유됐습니다.`
           : matchedText,
     );
 }
@@ -940,21 +940,21 @@ function normalizeFanletterNewsDisplayText(value: string, locale: Locale) {
   }
 
   return normalized
-    .replace(/([가-힣])와 FanLetter 팬/g, (_match: string, nameEnd: string) =>
-      `${nameEnd}${hasHangulFinalConsonant(nameEnd) ? "과" : "와"} FanLetter 팬`,
+    .replace(/([가-힣])와 AIAVpark 팬/g, (_match: string, nameEnd: string) =>
+      `${nameEnd}${hasHangulFinalConsonant(nameEnd) ? "과" : "와"} AIAVpark 팬`,
     )
-    .replace(/'([^']+)'이 FanLetter/g, "'$1'가 FanLetter")
+    .replace(/'([^']+)'이 AIAVpark/g, "'$1'가 AIAVpark")
     .replace(
-      /^(.+?)의 브이로그 '([^']+)'가 FanLetter에서 (.+?)로 소개됐다\. \2$/,
-      "$1의 원본 브이로그 '$2'가 FanLetter에서 $3로 게시됐다.",
-    )
-    .replace(
-      /^'([^']+)' 브이로그가 FanLetter에서 (.+?)로 공유됨$/,
-      "원본 브이로그 '$1'가 FanLetter에서 $2로 공유됐습니다.",
+      /^(.+?)의 브이로그 '([^']+)'가 AIAVpark에서 (.+?)로 소개됐다\. \2$/,
+      "$1의 원본 브이로그 '$2'가 AIAVpark에서 $3로 게시됐다.",
     )
     .replace(
-      /^원본 브이로그 '([^']+)'가 FanLetter에서 (.+?)로 공유됨$/,
-      "원본 브이로그 '$1'가 FanLetter에서 $2로 공유됐습니다.",
+      /^'([^']+)' 브이로그가 AIAVpark에서 (.+?)로 공유됨$/,
+      "원본 브이로그 '$1'가 AIAVpark에서 $2로 공유됐습니다.",
+    )
+    .replace(
+      /^원본 브이로그 '([^']+)'가 AIAVpark에서 (.+?)로 공유됨$/,
+      "원본 브이로그 '$1'가 AIAVpark에서 $2로 공유됐습니다.",
     )
     .replace(
       /^(.+?)의 브이로그를 팬 기자 관점(?:에서|으로) 육하원칙으로 정리했습니다\.?$/,
@@ -4000,15 +4000,15 @@ export async function generateMetadata({
   const report = await getFanletterNewsReportById(reportId);
   const reportTitle = report ? getArticleDisplayTitle(report.title) : null;
   const title = report
-    ? `${reportTitle} | FanLetter News`
+    ? `${reportTitle} | AIAVpark News`
     : locale === "ko"
-      ? "FanLetter AI 팬 리포트"
-      : "FanLetter AI fan report";
+      ? "AIAVpark AI 팬 리포트"
+      : "AIAVpark AI fan report";
   const description =
     report?.dek ??
     (locale === "ko"
-      ? "FanLetter 원본 브이로그와 팬 참여 흐름을 함께 보여주는 AI 팬 리포트입니다."
-      : "An AI fan report connecting a FanLetter source vlog with fan participation.");
+      ? "AIAVpark 원본 브이로그와 팬 참여 흐름을 함께 보여주는 AI 팬 리포트입니다."
+      : "An AI fan report connecting an AIAVpark source vlog with fan participation.");
   const url = report
     ? createFanletterNewsReportShareHref(report)
     : `/${locale}/fanletter/news/${reportId}`;
@@ -4029,7 +4029,7 @@ export async function generateMetadata({
             },
           ]
         : undefined,
-      siteName: "FanLetter News",
+      siteName: "AIAVpark News",
       title,
       type: "article",
       url,

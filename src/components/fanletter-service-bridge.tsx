@@ -33,11 +33,11 @@ function getCopy(locale: Locale) {
     ? {
         newsBody:
           "리포트는 AI 캐릭터와 원본 브이로그를 발견하게 만드는 홍보면입니다. 사용자는 뉴스에서 캐릭터 채널, 공개 브이로그, 구매 콘텐츠로 이동합니다.",
-        newsEyebrow: "FanLetter 서비스 연결",
+        newsEyebrow: "AIAVpark 서비스 연결",
         newsTitle: "뉴스는 브이로그 소비 입구입니다",
         studioBody:
           "Studio는 AI 캐릭터, 팬 요청, 브이로그 게시와 유료 콘텐츠를 운영하는 백오피스입니다. 운영 결과는 News의 소비 흐름으로 연결됩니다.",
-        studioEyebrow: "FanLetter 운영 구조",
+        studioEyebrow: "AIAVpark 운영 구조",
         studioTitle: "Studio는 캐릭터와 브이로그 운영실입니다",
         steps: {
           news: {
@@ -66,11 +66,11 @@ function getCopy(locale: Locale) {
     : {
         newsBody:
           "Reports are the promotional surface for discovering AI characters and source vlogs. Readers move from news into character channels, public vlogs, and purchased content.",
-        newsEyebrow: "FanLetter service link",
+        newsEyebrow: "AIAVpark service link",
         newsTitle: "News is the entry point for vlog consumption",
         studioBody:
           "Studio is the back office for AI characters, fan requests, vlog publishing, and paid content operations. That work feeds the News consumption flow.",
-        studioEyebrow: "FanLetter operating model",
+        studioEyebrow: "AIAVpark operating model",
         studioTitle: "Studio runs characters and vlogs",
         steps: {
           news: {

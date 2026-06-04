@@ -733,7 +733,7 @@ function getAuthorName(
     compactText(profile?.characterPersona?.name, 36) ||
     compactText(profile?.displayName, 36) ||
     post.authorEmail.split("@")[0] ||
-    "FanLetter"
+    "AIAVpark"
   );
 }
 
@@ -2197,7 +2197,7 @@ export const getFanletterCreatorVlogsPageData = cache(
     const displayName =
       compactText(profile?.displayName, 48) ||
       characterPosts[0]?.authorEmail.split("@")[0] ||
-      "FanLetter Creator";
+      "AIAVpark Creator";
 
     return {
       fanOnlyContentCount,
@@ -2226,8 +2226,8 @@ export const getFanletterCreatorVlogsPageData = cache(
         intro:
           compactText(profile?.intro, 220) ||
           (locale === "ko"
-            ? "FanLetter에서 공개 콘텐츠를 운영하는 크리에이터입니다."
-            : "A creator publishing public content on FanLetter."),
+            ? "AIAVpark에서 공개 콘텐츠를 운영하는 크리에이터입니다."
+            : "A creator publishing public content on AIAVpark."),
         referralCode,
       },
       publicContentCount,
@@ -2518,7 +2518,7 @@ export const getFanletterCreatorFanOnlyPageData = cache(
     const displayName =
       compactText(profile?.displayName, 48) ||
       creatorPosts[0]?.authorEmail.split("@")[0] ||
-      "FanLetter Creator";
+      "AIAVpark Creator";
 
     return {
       fanOnlyContentCount,
@@ -2558,8 +2558,8 @@ export const getFanletterCreatorFanOnlyPageData = cache(
         intro:
           compactText(profile?.intro, 220) ||
           (locale === "ko"
-            ? "FanLetter에서 팬 전용 콘텐츠를 운영하는 크리에이터입니다."
-            : "A creator publishing fan-only content on FanLetter."),
+            ? "AIAVpark에서 팬 전용 콘텐츠를 운영하는 크리에이터입니다."
+            : "A creator publishing fan-only content on AIAVpark."),
         referralCode,
       },
       publicContentCount,
@@ -2669,7 +2669,7 @@ export const getFanletterCreatorPageData = cache(
     const displayName =
       compactText(profile?.displayName, 48) ||
       creatorPosts[0]?.authorEmail.split("@")[0] ||
-      "FanLetter Creator";
+      "AIAVpark Creator";
 
     return {
       communityStats,
@@ -2711,8 +2711,8 @@ export const getFanletterCreatorPageData = cache(
         intro:
           compactText(profile?.intro, 220) ||
           (locale === "ko"
-            ? "FanLetter에서 공개 콘텐츠를 운영하는 크리에이터입니다."
-            : "A creator publishing public content on FanLetter."),
+            ? "AIAVpark에서 공개 콘텐츠를 운영하는 크리에이터입니다."
+            : "A creator publishing public content on AIAVpark."),
         referralCode,
       },
       publicContentCount,

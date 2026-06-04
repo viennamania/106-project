@@ -30,26 +30,26 @@ function getFanletterConnectMetadataCopy(locale: Locale, returnToHref: string) {
     return isContentReturn
       ? {
           description:
-            "FanLetter 팬 전용 콘텐츠 결제와 전체 열람을 이어가기 위해 이메일 계정을 연결하세요.",
-          title: "FanLetter 팬 전용 콘텐츠 계정 연결",
+            "AIAVpark 팬 전용 콘텐츠 결제와 전체 열람을 이어가기 위해 이메일 계정을 연결하세요.",
+          title: "AIAVpark 팬 전용 콘텐츠 계정 연결",
         }
       : {
           description:
-            "FanLetter 계정 연결과 시작 준비 확인을 완료하고 보던 위치로 돌아가세요.",
-          title: "FanLetter 계정 연결",
+            "AIAVpark 계정 연결과 시작 준비 확인을 완료하고 보던 위치로 돌아가세요.",
+          title: "AIAVpark 계정 연결",
         };
   }
 
   return isContentReturn
     ? {
         description:
-          "Connect your email account to continue FanLetter fan-only payment and full access.",
-        title: "FanLetter Fan-only Account Connect",
+          "Connect your email account to continue AIAVpark fan-only payment and full access.",
+        title: "AIAVpark Fan-only Account Connect",
       }
     : {
         description:
-          "Complete FanLetter account connection and readiness confirmation, then return where you left off.",
-        title: "FanLetter Account Connect",
+          "Complete AIAVpark account connection and readiness confirmation, then return where you left off.",
+        title: "AIAVpark Account Connect",
       };
 }
 
@@ -104,7 +104,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title,
       type: "website",
       url,

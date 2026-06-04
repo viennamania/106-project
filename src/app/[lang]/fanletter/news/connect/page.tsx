@@ -26,13 +26,13 @@ function getMetadataCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "FanLetter News에서 팬 기자 활동, AI 리포트 공유, 팬 전용 브이로그 결제와 열람을 이어가기 위해 지갑을 연결하세요.",
-        title: "FanLetter News 지갑 연결",
+          "AIAVpark News에서 팬 기자 활동, AI 리포트 공유, 팬 전용 브이로그 결제와 열람을 이어가기 위해 지갑을 연결하세요.",
+        title: "AIAVpark News 지갑 연결",
       }
     : {
         description:
-          "Connect your wallet from a FanLetter News page to continue fan reporter actions, AI report sharing, fan-only vlog payments, and access.",
-        title: "FanLetter News Wallet Connect",
+          "Connect your wallet from an AIAVpark News page to continue fan reporter actions, AI report sharing, fan-only vlog payments, and access.",
+        title: "AIAVpark News Wallet Connect",
       };
 }
 
@@ -83,7 +83,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter News",
+      siteName: "AIAVpark News",
       title,
       type: "website",
       url,

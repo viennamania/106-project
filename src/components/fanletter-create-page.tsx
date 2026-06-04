@@ -136,7 +136,7 @@ function getCopy(locale: Locale) {
     ? {
         accountRequired: "계정 연결이 필요합니다.",
         accountRequiredBody:
-          "AI 캐릭터 브이로그를 만들거나 업로드하려면 FanLetter 계정 연결을 먼저 완료해야 합니다.",
+          "AI 캐릭터 브이로그를 만들거나 업로드하려면 AIAVpark 계정 연결을 먼저 완료해야 합니다.",
         accountRequiredCta: "계정 연결하기",
         avatarExperience: {
           avatarReferenceSet:
@@ -184,7 +184,7 @@ function getCopy(locale: Locale) {
         draftSaved: "임시 저장했습니다.",
         emptyPrompt: "동영상으로 만들 브이로그 장면을 입력하세요.",
         errorFallback: "첫 AI 캐릭터 브이로그를 처리하지 못했습니다.",
-        eyebrow: "FanLetter AI 캐릭터 브이로그",
+        eyebrow: "AIAVpark AI 캐릭터 브이로그",
         fanRequestContext: {
           autoClose: "공개하면 팬 요청함에서 제작 반영으로 자동 정리됩니다.",
           autoFill: "제목, 요약, 장면 프롬프트에 요청 내용이 반영되었습니다.",
@@ -227,7 +227,7 @@ function getCopy(locale: Locale) {
           titleLabel: "추천 제목",
           titlePlanner: "선택한 기획으로 시작합니다.",
         },
-        feed: "FanLetter 브이로그 피드 보기",
+        feed: "AIAVpark 브이로그 피드 보기",
         free: "무료 공개",
         freeOnlyPolicy:
           "AI 생성 영상과 직접 업로드 영상은 이 화면에서 무료 공개 브이로그로 등록됩니다. 유료 직접 업로드는 팬 요청함의 브이로그 요청에서 시작하세요.",
@@ -245,8 +245,8 @@ function getCopy(locale: Locale) {
         newsSurface: {
           actionLabel: "내 브이로그 관리",
           aiBody:
-            "FanLetter News에 노출할 무료 공개 브이로그를 AI로 생성합니다. 공개 후 뉴스 리포터가 바로 발견하고 리포트 후보로 사용할 수 있습니다.",
-          eyebrow: "FanLetter News Vlog Registration",
+            "AIAVpark News에 노출할 무료 공개 브이로그를 AI로 생성합니다. 공개 후 뉴스 리포터가 바로 발견하고 리포트 후보로 사용할 수 있습니다.",
+          eyebrow: "AIAVpark News Vlog Registration",
           feed: "뉴스 브이로그 보기",
           mobileAiCta: "AI로 새 원본 만들기",
           mobileBody:
@@ -269,7 +269,7 @@ function getCopy(locale: Locale) {
         teaserGenerating: "AI 동영상에서 공개 티저 이미지 후보를 준비하고 있습니다.",
         teaserReady: "AI 동영상 티저 이미지 후보가 자동 저장되었습니다.",
         paymentRequired:
-          "FanLetter 시작 준비 확인이 끝나면 첫 AI 캐릭터 브이로그를 만들 수 있습니다.",
+          "AIAVpark 시작 준비 확인이 끝나면 첫 AI 캐릭터 브이로그를 만들 수 있습니다.",
         paymentRequiredCta: "시작 준비 확인하기",
         personaEmpty: "프로필에서 캐릭터를 한 번 만들면 같은 인물 유지가 강해집니다.",
         price: "등록 정책",
@@ -366,7 +366,7 @@ function getCopy(locale: Locale) {
     : {
         accountRequired: "Account connection required.",
         accountRequiredBody:
-          "Connect your FanLetter account before creating or uploading an AI character vlog.",
+          "Connect your AIAVpark account before creating or uploading an AI character vlog.",
         accountRequiredCta: "Connect account",
         avatarExperience: {
           avatarReferenceSet:
@@ -415,7 +415,7 @@ function getCopy(locale: Locale) {
         draftSaved: "Draft saved.",
         emptyPrompt: "Enter the vlog scene to turn into a video.",
         errorFallback: "Failed to process first AI character vlog.",
-        eyebrow: "FanLetter AI Character Vlog",
+        eyebrow: "AIAVpark AI Character Vlog",
         fanRequestContext: {
           autoClose:
             "Publishing will automatically mark the fan request as used.",
@@ -461,7 +461,7 @@ function getCopy(locale: Locale) {
           titleLabel: "Suggested title",
           titlePlanner: "Starting from the selected plan.",
         },
-        feed: "View FanLetter vlog feed",
+        feed: "View AIAVpark vlog feed",
         free: "Free public",
         freeOnlyPolicy:
           "AI-generated and directly uploaded videos are saved here as free public vlogs. Start paid direct upload from a fan vlog request in the request inbox.",
@@ -479,8 +479,8 @@ function getCopy(locale: Locale) {
         newsSurface: {
           actionLabel: "My vlog desk",
           aiBody:
-            "Create a free public vlog for FanLetter News. After publishing, reporters can discover it and use it as a report candidate.",
-          eyebrow: "FanLetter News Vlog Registration",
+            "Create a free public vlog for AIAVpark News. After publishing, reporters can discover it and use it as a report candidate.",
+          eyebrow: "AIAVpark News Vlog Registration",
           feed: "News vlogs",
           mobileAiCta: "Create with AI",
           mobileBody:
@@ -499,11 +499,11 @@ function getCopy(locale: Locale) {
         loading: "Checking vlog setup.",
         missingMedia: "Generate a vlog video before publishing.",
         teaserFailed:
-          "The video is ready, but teaser image candidates could not be saved automatically. FanLetter will retry before publishing.",
+          "The video is ready, but teaser image candidates could not be saved automatically. AIAVpark will retry before publishing.",
         teaserGenerating: "Preparing public teaser image candidates from the AI video.",
         teaserReady: "AI video teaser image candidates were saved automatically.",
         paymentRequired:
-          "Confirm FanLetter readiness to create your first AI character vlog.",
+          "Confirm AIAVpark readiness to create your first AI character vlog.",
         paymentRequiredCta: "Confirm readiness",
         personaEmpty:
           "Create a character once in your profile to keep the same person stronger.",
@@ -531,7 +531,7 @@ function getCopy(locale: Locale) {
           deleteFrame: "Delete frame",
           frameCandidates: "Frame candidates",
           frameEmpty:
-            "Frame candidates could not be saved automatically. FanLetter will retry before publishing.",
+            "Frame candidates could not be saved automatically. AIAVpark will retry before publishing.",
           limitReached: "Up to 8 frame candidates can be saved.",
           manageFrames: "Edit frames",
           original: "Original video",
@@ -564,7 +564,7 @@ function getCopy(locale: Locale) {
         studio: "Vlog studio",
         title: "Title",
         titlePlaceholder: "Today's vlog title",
-        titleText: "Create today's AI character vlog inside FanLetter.",
+        titleText: "Create today's AI character vlog inside AIAVpark.",
         upload: {
           body:
             "Upload an existing MP4, MOV, or WEBM vlog as free public content. Fan-only paid upload and NSFW controls stay limited to fan-request uploads.",
@@ -581,7 +581,7 @@ function getCopy(locale: Locale) {
           tabAi: "Create with AI",
           tabUpload: "Upload video",
           teaserFailed:
-            "The video was uploaded, but teaser image candidates could not be saved automatically. FanLetter will retry before publishing.",
+            "The video was uploaded, but teaser image candidates could not be saved automatically. AIAVpark will retry before publishing.",
           teaserGenerating: "Preparing public teaser image candidates from the uploaded video.",
           teaserReady: "Uploaded video teaser image candidates were saved automatically.",
           title: "Upload a free public video",

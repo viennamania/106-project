@@ -368,8 +368,8 @@ function serializeFollowedCharacter({
     compactText(profile?.characterPersona?.summary, 220) ||
     compactText(profile?.intro, 220) ||
     (locale === "ko"
-      ? "FanLetter에서 팔로우 중인 AI 캐릭터 채널입니다."
-      : "An AI character channel you follow on FanLetter.");
+      ? "AIAVpark에서 팔로우 중인 AI 캐릭터 채널입니다."
+      : "An AI character channel you follow on AIAVpark.");
   const traits =
     profile?.characterPersona?.lockedTraits
       .map((trait) => compactText(trait, TRAIT_LIMIT))

@@ -181,7 +181,7 @@ async function awardReporterVoteReward({
   await awardBonusPointsForMember({
     ledgerEntryId: `${normalizedReporterEmail}:${sourceId}`,
     memberEmail: normalizedReporterEmail,
-    memo: `FanLetter News source reveal vote · ${report.reportId}`,
+    memo: `AIAVpark News source reveal vote · ${report.reportId}`,
     points: FANLETTER_NEWS_REPORT_SOURCE_REVEAL_VOTE_REWARD_POINTS,
     sourceId,
     sourceMemberEmail: normalizedViewerEmail,
@@ -268,7 +268,7 @@ async function awardReporterUnlockRewards({
       await awardBonusPointsForMember({
         ledgerEntryId: `${reporterMember.email}:${sourceId}`,
         memberEmail: reporterMember.email,
-        memo: `FanLetter News source reveal unlock · ${reportId}`,
+        memo: `AIAVpark News source reveal unlock · ${reportId}`,
         points: FANLETTER_NEWS_REPORT_SOURCE_REVEAL_UNLOCK_REWARD_POINTS,
         sourceId,
         sourceMemberEmail: normalizedActionMemberEmail,
@@ -424,7 +424,7 @@ export async function awardFanletterNewsSourceRevealFanUnlockRewards({
       await awardBonusPointsForMember({
         ledgerEntryId: `${participantEmail}:${sourceId}`,
         memberEmail: participantEmail,
-        memo: `FanLetter News fan-open source vlog · ${contentId}`,
+        memo: `AIAVpark News fan-open source vlog · ${contentId}`,
         points: FANLETTER_NEWS_SOURCE_REVEAL_FAN_UNLOCK_REWARD_POINTS,
         sourceId,
         sourceMemberEmail: participantEmail,

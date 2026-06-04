@@ -18,7 +18,7 @@ export default function OfflinePage() {
               />
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.26em] text-[#44f26e]">
-                  FanLetter PWA
+                  AIAVpark PWA
                 </p>
                 <h1 className="mt-2 text-3xl font-black tracking-normal">
                   연결이 끊겼습니다
@@ -26,7 +26,7 @@ export default function OfflinePage() {
               </div>
             </div>
             <p className="mt-5 text-sm font-semibold leading-7 text-white/68">
-              인터넷 연결을 확인한 뒤 다시 시도하세요. 설치된 FanLetter 앱에서는
+              인터넷 연결을 확인한 뒤 다시 시도하세요. 설치된 AIAVpark 앱에서는
               최근 방문한 뉴스 홈, AI 캐릭터 채널, 공개 뉴스 화면을 다시 열 수
               있습니다.
             </p>
@@ -46,7 +46,7 @@ export default function OfflinePage() {
                 className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#44f26e] px-5 text-sm font-black text-black"
                 href="/ko/fanletter/news"
               >
-                FanLetter News 홈
+                AIAVpark News 홈
               </Link>
               <Link
                 className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/12 bg-white/[0.04] px-5 text-sm font-black text-white"

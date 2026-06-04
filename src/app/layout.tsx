@@ -37,15 +37,15 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  applicationName: "Pocket Smart Wallet",
-  title: "Pocket Smart Wallet",
+  applicationName: "AIAVpark",
+  title: "AIAVpark",
   description:
-    "Mobile-first smart wallet starter built with thirdweb and a v0-compatible Next.js setup.",
+    "AIAVpark is an AI character content platform for vlogs, fan requests, news reports, and creator monetization.",
   metadataBase,
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Pocket Smart Wallet",
+    title: "AIAVpark",
   },
   formatDetection: {
     address: false,

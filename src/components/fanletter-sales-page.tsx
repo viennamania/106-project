@@ -91,14 +91,14 @@ function getCopy(locale: Locale) {
           withdrawing: "회수 처리 중",
         },
         connectRequired:
-          "FanLetter 계정을 연결하면 AI 캐릭터 브이로그 판매 내역을 확인할 수 있습니다.",
+          "AIAVpark 계정을 연결하면 AI 캐릭터 브이로그 판매 내역을 확인할 수 있습니다.",
         description:
-          "유료 브이로그 판매, 구매자 확인, 정산 가능 잔고, 회수 상태를 FanLetter 안에서 관리합니다.",
+          "유료 브이로그 판매, 구매자 확인, 정산 가능 잔고, 회수 상태를 AIAVpark 안에서 관리합니다.",
         emptyHistory:
           "아직 판매 내역이 없습니다. 유료 브이로그를 공개하면 구매 내역이 이곳에 표시됩니다.",
         emptyPaidUpload:
           "유료 등록은 팬이 남긴 브이로그 요청에서 직접 업로드로 시작합니다.",
-        eyebrow: "FanLetter Sales",
+        eyebrow: "AIAVpark Sales",
         labels: {
           balance: "정산 가능 잔고",
           buyer: "구매자",
@@ -115,12 +115,12 @@ function getCopy(locale: Locale) {
         },
         loading: "판매 내역을 불러오고 있습니다.",
         noWallet:
-          "유료 브이로그 판매 수익을 받으려면 FanLetter 정산 주소가 필요합니다.",
+          "유료 브이로그 판매 수익을 받으려면 AIAVpark 정산 주소가 필요합니다.",
         paymentRequired:
-          "FanLetter 시작 준비 확인이 끝나면 판매 내역을 관리할 수 있습니다.",
+          "AIAVpark 시작 준비 확인이 끝나면 판매 내역을 관리할 수 있습니다.",
         submitted:
           "회수 트랜잭션을 전송했습니다. 온체인 반영 후 잔고가 갱신됩니다.",
-        title: "FanLetter 판매 내역",
+        title: "AIAVpark 판매 내역",
         walletReady: "정산 주소가 준비되었습니다.",
       }
     : {
@@ -146,14 +146,14 @@ function getCopy(locale: Locale) {
           withdrawing: "Withdrawing",
         },
         connectRequired:
-          "Connect your FanLetter account to view AI character vlog sales.",
+          "Connect your AIAVpark account to view AI character vlog sales.",
         description:
-          "Manage paid vlog sales, buyers, settlement balance, and withdrawals inside FanLetter.",
+          "Manage paid vlog sales, buyers, settlement balance, and withdrawals inside AIAVpark.",
         emptyHistory:
           "No sales yet. Paid vlog purchases will appear here after you publish paid content.",
         emptyPaidUpload:
           "Paid publishing starts from a fan vlog request with a directly uploaded video.",
-        eyebrow: "FanLetter Sales",
+        eyebrow: "AIAVpark Sales",
         labels: {
           balance: "Settlement balance",
           buyer: "Buyer",
@@ -170,12 +170,12 @@ function getCopy(locale: Locale) {
         },
         loading: "Loading sales.",
         noWallet:
-          "Paid vlog sales require a FanLetter settlement address.",
+          "Paid vlog sales require an AIAVpark settlement address.",
         paymentRequired:
-          "Confirm FanLetter readiness to manage sales.",
+          "Confirm AIAVpark readiness to manage sales.",
         submitted:
           "Withdrawal transaction was submitted. The balance will refresh after it lands onchain.",
-        title: "FanLetter sales",
+        title: "AIAVpark sales",
         walletReady: "Settlement address is ready.",
       };
 }
@@ -702,7 +702,7 @@ export function FanletterSalesPage({
                 <MessageCircleHeart className="size-5" />
               </span>
               <span className="truncate text-sm font-semibold tracking-normal">
-                FanLetter
+                AIAVpark
               </span>
             </Link>
             <div className="flex items-center gap-2">

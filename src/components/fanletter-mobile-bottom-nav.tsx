@@ -107,7 +107,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
           create: "만들기",
           feed: "피드",
           home: "홈",
-          label: "FanLetter 주요 메뉴",
+          label: "AIAVpark 주요 메뉴",
           reports: "리포트",
           studio: "스튜디오",
         }
@@ -115,7 +115,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
           create: "Create",
           feed: "Feed",
           home: "Home",
-          label: "FanLetter navigation",
+          label: "AIAVpark navigation",
           reports: "Reports",
           studio: "Studio",
         };

@@ -221,7 +221,7 @@ export function EmailLoginDialog({
             isFanletter ? "text-[#44f26e]" : "text-slate-500"
           }`}
         >
-          {isFanletter ? "FanLetter Account" : "Pocket Smart Wallet"}
+          {isFanletter ? "AIAVpark Account" : "AIAVpark"}
         </p>
         <h2
           className={`mt-3 max-w-[17rem] text-2xl font-semibold tracking-normal sm:max-w-none ${

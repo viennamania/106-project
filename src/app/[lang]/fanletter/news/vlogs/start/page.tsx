@@ -56,16 +56,16 @@ function getCopy(locale: Locale) {
           upload: "휴대폰 영상 업로드",
         },
         connectBody:
-          "휴대폰 영상을 올리고 뉴스에 노출하려면 FanLetter News 계정 연결이 필요합니다.",
+          "휴대폰 영상을 올리고 뉴스에 노출하려면 AIAVpark News 계정 연결이 필요합니다.",
         connectTitle: "브이로거 작업은 로그인 후 이어집니다.",
         description:
           "컷 피드에서 바로 넘어와 휴대폰 영상 업로드, AI 브이로그 생성, 프레임 관리까지 이어가는 모바일 브이로거 작업대입니다.",
         heroBody:
           "컷 피드 반응을 보다가 바로 새 원본을 만들고, 프리뷰 영상과 프레임 후보까지 한 번에 준비하세요.",
-        heroEyebrow: "FanLetter News Vlogger",
+        heroEyebrow: "AIAVpark News Vlogger",
         heroTitle: "새 원본 브이로그 만들기",
         latest: "최근 작업",
-        memberFallback: "FanLetter 브이로거",
+        memberFallback: "AIAVpark 브이로거",
         mobileFlow: [
           "영상 선택",
           "프리뷰 확인",
@@ -94,7 +94,7 @@ function getCopy(locale: Locale) {
           paid: "유료",
           published: "공개",
         },
-        title: "브이로거 제작 시작 | FanLetter News",
+        title: "브이로거 제작 시작 | AIAVpark News",
       }
     : {
         actions: {
@@ -108,16 +108,16 @@ function getCopy(locale: Locale) {
           upload: "Upload phone video",
         },
         connectBody:
-          "Connect your FanLetter News account to upload phone video and publish it into News.",
+          "Connect your AIAVpark News account to upload phone video and publish it into News.",
         connectTitle: "Vlogger work continues after sign-in.",
         description:
           "A mobile-first vlogger desk that opens from the cut feed into phone upload, AI creation, preview video, and frame management.",
         heroBody:
           "Turn cut-feed reactions into the next source vlog, then prepare preview video and frame candidates in one flow.",
-        heroEyebrow: "FanLetter News Vlogger",
+        heroEyebrow: "AIAVpark News Vlogger",
         heroTitle: "Create a Source Vlog",
         latest: "Recent work",
-        memberFallback: "FanLetter vlogger",
+        memberFallback: "AIAVpark vlogger",
         mobileFlow: ["Choose video", "Review preview", "Keep frames", "Publish"],
         primary: {
           aiBody:
@@ -141,7 +141,7 @@ function getCopy(locale: Locale) {
           paid: "Paid",
           published: "Published",
         },
-        title: "Start Vlogger Production | FanLetter News",
+        title: "Start Vlogger Production | AIAVpark News",
       };
 }
 

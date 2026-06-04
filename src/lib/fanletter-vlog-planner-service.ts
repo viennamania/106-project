@@ -161,13 +161,13 @@ function parsePlannerPayload(
   const outputText = extractResponseTextContent(response);
 
   if (!outputText) {
-    throw new Error("FanLetter planner returned an empty payload.");
+    throw new Error("AIAVpark planner returned an empty payload.");
   }
 
   try {
     return JSON.parse(outputText) as PlannerPayload;
   } catch {
-    throw new Error("FanLetter planner returned invalid JSON.");
+    throw new Error("AIAVpark planner returned invalid JSON.");
   }
 }
 
@@ -303,7 +303,7 @@ function createPlannerPayload(
       {
         role: "system",
         content: [
-          "You are a mobile-first content strategist for FanLetter, a platform for AI character vlog channels.",
+          "You are a mobile-first content strategist for AIAVpark, a platform for AI character vlog channels.",
           "Generate practical daily vlog plans that reduce creator effort.",
           FANLETTER_REALISM_POLICY_PROMPT,
           "Plans must be easy to execute from a phone: clear scene, action, camera feeling, short caption hook, and platform angle.",
@@ -316,7 +316,7 @@ function createPlannerPayload(
         role: "user",
         content: [
           `Output language: ${language}.`,
-          `Creator display name: ${trimToLength(input.profile.displayName, 80) || "FanLetter Creator"}.`,
+          `Creator display name: ${trimToLength(input.profile.displayName, 80) || "AIAVpark Creator"}.`,
           `Creator intro: ${trimToLength(input.profile.intro, 220) || "No intro provided."}.`,
           personaInstruction,
           worldContextPrompt ??
@@ -329,7 +329,7 @@ function createPlannerPayload(
           "Each summary should explain why fans would care.",
           "Each scenePrompt should be directly usable by the existing video generation model and include the persona identity lock if available, scene, motion, action, camera framing, mood, and safe visual style.",
           "Each captionHook should be a short post caption opener.",
-          "Each platformAngle should say how to use the result on Reels, Shorts, TikTok, or FanLetter.",
+          "Each platformAngle should say how to use the result on Reels, Shorts, TikTok, or AIAVpark.",
           "Each checklist should contain 3 to 4 concise mobile execution checks.",
         ].join(" "),
       },
@@ -364,7 +364,7 @@ export async function generateFanletterVlogPlans(
     .slice(0, PLAN_COUNT);
 
   if (plans.length === 0) {
-    throw new Error("FanLetter planner returned no usable plans.");
+    throw new Error("AIAVpark planner returned no usable plans.");
   }
 
   return { plans };

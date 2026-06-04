@@ -98,7 +98,7 @@ function getPostCreatorName(post: ContentPostDocument | undefined) {
   return (
     trimText(post?.authorReferralCode, 32) ||
     trimText(post?.authorEmail?.split("@")[0], 32) ||
-    "FanLetter"
+    "AIAVpark"
   );
 }
 

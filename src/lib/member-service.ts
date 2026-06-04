@@ -859,7 +859,7 @@ async function ensureFanletterShareSignupRewardIssued({
       shareId: attribution.shareId,
     }),
     memberEmail: recipient.email,
-    memo: `FanLetter share signup · ${attribution.shareId}`,
+    memo: `AIAVpark share signup · ${attribution.shareId}`,
     points: FANLETTER_SHARE_SIGNUP_REWARD_POINTS,
     sourceId,
     sourceMemberEmail: member.email,

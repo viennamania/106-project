@@ -32,11 +32,11 @@ export async function generateMetadata({
   const locale = hasLocale(lang) ? lang : defaultLocale;
   const referralCode = readFanletterReferralCode(query.ref);
   const title =
-    locale === "ko" ? "FanLetter 지갑 관리" : "FanLetter Wallet";
+    locale === "ko" ? "AIAVpark 지갑 관리" : "AIAVpark Wallet";
   const description =
     locale === "ko"
-      ? "FanLetter 결제 지갑, USDT 잔액, 입금 주소, 최근 입출금, 정산 진입점을 관리하세요."
-      : "Manage your FanLetter payment wallet, USDT balance, deposit address, recent activity, and settlement links.";
+      ? "AIAVpark 결제 지갑, USDT 잔액, 입금 주소, 최근 입출금, 정산 진입점을 관리하세요."
+      : "Manage your AIAVpark payment wallet, USDT balance, deposit address, recent activity, and settlement links.";
   const url = buildPathWithReferral(
     `/${locale}/fanletter/wallet`,
     referralCode,
@@ -66,7 +66,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title,
       type: "website",
       url,

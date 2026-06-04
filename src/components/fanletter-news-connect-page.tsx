@@ -97,7 +97,7 @@ function getCopy(locale: Locale) {
     ? {
         account: "뉴스 계정",
         accountBody:
-          "FanLetter News의 구매함, 팬 기자 리포트, 브이로그 관리가 같은 회원 계정으로 이어지도록 이메일 지갑을 연결합니다.",
+          "AIAVpark News의 구매함, 팬 기자 리포트, 브이로그 관리가 같은 회원 계정으로 이어지도록 이메일 지갑을 연결합니다.",
         accountReady: "뉴스 계정 연결 완료",
         activate: "10 USDT 활성화하기",
         checking: "연결 상태 확인 중",
@@ -107,15 +107,15 @@ function getCopy(locale: Locale) {
         connectedBody:
           "연결이 확인되었습니다. 선택한 화면으로 바로 이동하거나 뉴스 지갑을 확인할 수 있습니다.",
         disconnected: "뉴스 지갑이 아직 연결되지 않았습니다.",
-        edition: "FanLetter Entertainment News",
+        edition: "AIAVpark Entertainment News",
         email: "이메일",
         errorTitle: "계정 확인이 필요합니다.",
-        eyebrow: "FanLetter News Wallet",
-        homeReturn: "FanLetter News 홈으로 돌아가기",
+        eyebrow: "AIAVpark News Wallet",
+        homeReturn: "AIAVpark News 홈으로 돌아가기",
         loginGuideDescription:
           "이메일 인증으로 뉴스 계정을 먼저 연결합니다. 10 USDT 활성화는 리포터 리워드·수익 기능이 필요할 때 이어서 진행할 수 있습니다.",
         loginGuideTitle: "뉴스 계정 연결 방법",
-        loginTitle: "FanLetter News 지갑 연결",
+        loginTitle: "AIAVpark News 지갑 연결",
         member: "회원 상태",
         missingClient:
           "현재 브라우저에서 이메일 지갑 연결을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
@@ -126,7 +126,7 @@ function getCopy(locale: Locale) {
         returnLabel: "돌아갈 화면",
         routeTitle: "연결 후 이동",
         signOut: "연결 해제",
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         statusDesk: "뉴스 계정 데스크",
         steps: ["이메일 지갑 연결", "계정 저장", "선택 화면으로 이동"],
         syncing: "뉴스 계정을 확인하고 있습니다.",
@@ -137,7 +137,7 @@ function getCopy(locale: Locale) {
     : {
         account: "News account",
         accountBody:
-          "Connect an email wallet so purchases, reporter activity, and vlog management stay attached to one FanLetter News member account.",
+          "Connect an email wallet so purchases, reporter activity, and vlog management stay attached to one AIAVpark News member account.",
         accountReady: "News account connected",
         activate: "Activate with 10 USDT",
         checking: "Checking connection",
@@ -145,17 +145,17 @@ function getCopy(locale: Locale) {
         connectBody:
           "Connect with email so reports, sharer identity, and purchases are organized under one account.",
         connectedBody:
-          "Connection is ready. Continue to the selected screen or review your FanLetter News wallet.",
+          "Connection is ready. Continue to the selected screen or review your AIAVpark News wallet.",
         disconnected: "No news wallet is connected yet.",
-        edition: "FanLetter Entertainment News",
+        edition: "AIAVpark Entertainment News",
         email: "Email",
         errorTitle: "Account status needs attention.",
-        eyebrow: "FanLetter News Wallet",
-        homeReturn: "Back to FanLetter News",
+        eyebrow: "AIAVpark News Wallet",
+        homeReturn: "Back to AIAVpark News",
         loginGuideDescription:
           "Verify your email to connect the News account first. You can activate with 10 USDT later when reporter rewards or revenue features require it.",
         loginGuideTitle: "How News account connection works",
-        loginTitle: "Connect FanLetter News wallet",
+        loginTitle: "Connect AIAVpark News wallet",
         member: "Member status",
         missingClient:
           "Email wallet connection cannot start in this browser right now. Please try again shortly.",
@@ -166,7 +166,7 @@ function getCopy(locale: Locale) {
         returnLabel: "Destination",
         routeTitle: "Continue after connection",
         signOut: "Disconnect",
-        siteName: "FanLetter News",
+        siteName: "AIAVpark News",
         statusDesk: "News Account Desk",
         steps: ["Email wallet", "Account saved", "Continue"],
         syncing: "Checking your news account.",
@@ -304,9 +304,9 @@ function getReturnDestination(kind: NewsReturnKind, locale: Locale): {
       return {
         Icon: Home,
         body: ko
-          ? "FanLetter News 홈에서 주요 뉴스, 캐릭터, 팬 기자 흐름을 다시 볼 수 있습니다."
-          : "Return to the FanLetter News home for featured news, characters, and reporters.",
-        label: ko ? "FanLetter News 홈으로 돌아가기" : "Back to FanLetter News",
+          ? "AIAVpark News 홈에서 주요 뉴스, 캐릭터, 팬 기자 흐름을 다시 볼 수 있습니다."
+          : "Return to the AIAVpark News home for featured news, characters, and reporters.",
+        label: ko ? "AIAVpark News 홈으로 돌아가기" : "Back to AIAVpark News",
       };
     case "my":
       return {

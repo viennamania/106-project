@@ -13,13 +13,13 @@ function getMetaCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "FanLetter AI 캐릭터 브이로그를 무료 공개와 유료 팬 전용으로 분리해 관리합니다.",
-        title: "브이로그 전체 관리 | FanLetter",
+          "AIAVpark AI 캐릭터 브이로그를 무료 공개와 유료 팬 전용으로 분리해 관리합니다.",
+        title: "브이로그 전체 관리 | AIAVpark",
       }
     : {
         description:
-          "Separate FanLetter AI character vlogs into free public and paid fan-only management.",
-        title: "Manage all vlogs | FanLetter",
+          "Separate AIAVpark AI character vlogs into free public and paid fan-only management.",
+        title: "Manage all vlogs | AIAVpark",
       };
 }
 

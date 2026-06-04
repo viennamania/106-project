@@ -34,7 +34,7 @@ export async function generateMetadata({
   const locale = hasLocale(lang) ? lang : defaultLocale;
   const referralCode = readFanletterReferralCode(query.ref);
   const title =
-    locale === "ko" ? "FanLetter 프로필 설정" : "FanLetter Profile Setup";
+    locale === "ko" ? "AIAVpark 프로필 설정" : "AIAVpark Profile Setup";
   const description =
     locale === "ko"
       ? "표시 이름, 캐릭터 페르소나, AI 아바타를 설정해 같은 AI 캐릭터 브이로그 채널을 준비하세요."
@@ -74,7 +74,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: [ogImage],
-      siteName: "FanLetter",
+      siteName: "AIAVpark",
       title,
       type: "website",
       url,

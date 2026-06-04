@@ -202,7 +202,7 @@ export function createFanletterRealismRevision(
 }
 
 export const FANLETTER_REALISM_POLICY_PROMPT = [
-  "Reality grounding policy: Treat every FanLetter character as a fictional adult AI character rooted in the real world.",
+  "Reality grounding policy: Treat every AIAVpark character as a fictional adult AI character rooted in the real world.",
   "Keep real human age continuity, ordinary gravity, plausible body mechanics, practical movement, weather/season/time consistency, and public or fictionalized private locations.",
   "Do not imply the character is a real person, celebrity, exact living person, minor, or physically present at an exact real-time private address.",
   "If a request asks for impossible physics, supernatural power, teleportation, age regression, exact whereabouts, private addresses, or real-person impersonation, reinterpret it as a grounded, safe, fictional vlog alternative.",

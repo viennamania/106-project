@@ -140,13 +140,13 @@ function getCopy(locale: Locale) {
           sales: "판매 내역 보기",
         },
         connectRequired:
-          "나의 AI 캐릭터 브이로그 스튜디오는 FanLetter 계정 연결 후 사용할 수 있습니다.",
+          "나의 AI 캐릭터 브이로그 스튜디오는 AIAVpark 계정 연결 후 사용할 수 있습니다.",
         connectTitle: "계정 연결이 필요합니다.",
         draft: "임시저장",
         emptyBody:
-          "아직 브이로그가 없습니다. 첫 AI 캐릭터 브이로그를 만들고 FanLetter 피드에 게시해보세요.",
+          "아직 브이로그가 없습니다. 첫 AI 캐릭터 브이로그를 만들고 AIAVpark 피드에 게시해보세요.",
         emptyTitle: "첫 AI 캐릭터 브이로그를 만들 시간입니다.",
-        eyebrow: "FanLetter AI 캐릭터 브이로그 스튜디오",
+        eyebrow: "AIAVpark AI 캐릭터 브이로그 스튜디오",
         hero: {
           body:
             "캐릭터, 팬 요청, 업로드, 판매를 모바일에서 바로 시작하세요.",
@@ -182,7 +182,7 @@ function getCopy(locale: Locale) {
             sales: "판매",
           },
         },
-        loading: "FanLetter 스튜디오 상태를 확인하고 있습니다.",
+        loading: "AIAVpark 스튜디오 상태를 확인하고 있습니다.",
         noPersona: "페르소나 미설정",
         nsfwStudioBody:
           "NSFW로 표시한 영상을 따로 모아 표시 상태와 공개 범위를 확인합니다.",
@@ -220,7 +220,7 @@ function getCopy(locale: Locale) {
           title: "오늘 할 일",
         },
         paymentRequired:
-          "FanLetter 시작 준비 확인이 끝나면 AI 캐릭터 브이로그 스튜디오를 사용할 수 있습니다.",
+          "AIAVpark 시작 준비 확인이 끝나면 AI 캐릭터 브이로그 스튜디오를 사용할 수 있습니다.",
         paymentTitle: "시작 준비 확인이 필요합니다.",
         priceFree: "무료",
         pricePaid: "유료",
@@ -303,7 +303,7 @@ function getCopy(locale: Locale) {
           workflow: ["요청 확인", "브이로그 요청이면 유료 업로드 선택", "게시 후 자동 정리"],
         },
         channelDistribution:
-          "Instagram Reels, YouTube Shorts, TikTok에 올릴 수 있도록 캡션, 해시태그, FanLetter 링크를 한 번에 준비합니다.",
+          "Instagram Reels, YouTube Shorts, TikTok에 올릴 수 있도록 캡션, 해시태그, AIAVpark 링크를 한 번에 준비합니다.",
         planner: {
           body: "캐릭터 페르소나와 최근 브이로그를 OpenAI가 분석해서 오늘부터 바로 만들 수 있는 7일치 소재를 제안합니다.",
           checklist: "체크",
@@ -337,12 +337,12 @@ function getCopy(locale: Locale) {
             title: "숏폼 브이로그 생성",
           },
           {
-            body: "FanLetter 브이로그 피드로 팬에게 보여주고 유료 커뮤니티와 판매 흐름으로 연결합니다.",
+            body: "AIAVpark 브이로그 피드로 팬에게 보여주고 유료 커뮤니티와 판매 흐름으로 연결합니다.",
             title: "게시와 수익화",
           },
         ],
         subtitle:
-          "AI 캐릭터 프로필, 숏폼 브이로그 생성, 게시물 관리, 판매 요약을 FanLetter 흐름 안에서 한 번에 확인합니다.",
+          "AI 캐릭터 프로필, 숏폼 브이로그 생성, 게시물 관리, 판매 요약을 AIAVpark 흐름 안에서 한 번에 확인합니다.",
         title: "나의 AI 캐릭터 브이로그 스튜디오",
         unknown: "확인 전",
       }
@@ -363,13 +363,13 @@ function getCopy(locale: Locale) {
           sales: "View sales",
         },
         connectRequired:
-          "My AI character vlog studio is available after connecting your FanLetter account.",
+          "My AI character vlog studio is available after connecting your AIAVpark account.",
         connectTitle: "Account connection is required.",
         draft: "Draft",
         emptyBody:
-          "No vlogs yet. Create your first AI character vlog and publish it to FanLetter.",
+          "No vlogs yet. Create your first AI character vlog and publish it to AIAVpark.",
         emptyTitle: "Create your first AI character vlog.",
-        eyebrow: "FanLetter AI Character Vlog Studio",
+        eyebrow: "AIAVpark AI Character Vlog Studio",
         hero: {
           body:
             "Start character work, fan requests, uploads, and sales directly on mobile.",
@@ -405,7 +405,7 @@ function getCopy(locale: Locale) {
             sales: "Sales",
           },
         },
-        loading: "Checking FanLetter studio state.",
+        loading: "Checking AIAVpark studio state.",
         noPersona: "No persona",
         nsfwStudioBody:
           "Review videos marked NSFW, visibility state, and audience scope in one filtered view.",
@@ -443,7 +443,7 @@ function getCopy(locale: Locale) {
           title: "Today's work",
         },
         paymentRequired:
-          "Confirm FanLetter readiness to use the AI character vlog studio.",
+          "Confirm AIAVpark readiness to use the AI character vlog studio.",
         paymentTitle: "Readiness confirmation is required.",
         priceFree: "Free",
         pricePaid: "Paid",
@@ -534,7 +534,7 @@ function getCopy(locale: Locale) {
           ],
         },
         channelDistribution:
-          "Prepare captions, hashtags, and FanLetter links for Instagram Reels, YouTube Shorts, and TikTok.",
+          "Prepare captions, hashtags, and AIAVpark links for Instagram Reels, YouTube Shorts, and TikTok.",
         planner: {
           body: "OpenAI reads the character persona and recent vlogs, then suggests seven ready-to-create ideas.",
           checklist: "Checks",
@@ -568,12 +568,12 @@ function getCopy(locale: Locale) {
             title: "Short-form vlog creation",
           },
           {
-            body: "Publish to the FanLetter vlog feed and connect fans to paid community and sales flows.",
+            body: "Publish to the AIAVpark vlog feed and connect fans to paid community and sales flows.",
             title: "Publish and monetise",
           },
         ],
         subtitle:
-          "Review AI character profile, short-form vlog creation, post management, and sales summary inside FanLetter.",
+          "Review AI character profile, short-form vlog creation, post management, and sales summary inside AIAVpark.",
         title: "My AI Character Vlog Studio",
         unknown: "Not checked",
       };
@@ -1542,7 +1542,7 @@ function FanRequestsSection({
                     <span className="text-black/64">
                       {request.requesterDisplayName ??
                         request.requesterEmail ??
-                        "FanLetter"}
+                        "AIAVpark"}
                     </span>
                   </span>
                   <span className="sm:text-right">{createdLabel ?? "-"}</span>

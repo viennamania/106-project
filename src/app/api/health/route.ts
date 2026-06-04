@@ -34,7 +34,7 @@ export async function GET() {
         process.env.VERCEL_GIT_COMMIT_SHA?.trim() ??
         null,
       ok: true,
-      service: "106-project-api",
+      service: "aiavpark-api",
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

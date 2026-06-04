@@ -175,7 +175,7 @@ export async function updateFanletterVlogPlanForMember({
   );
 
   if (!result) {
-    throw new Error("FanLetter vlog plan not found.");
+    throw new Error("AIAVpark vlog plan not found.");
   }
 
   return serializeFanletterVlogPlan(result);

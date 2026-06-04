@@ -37,13 +37,13 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "팬 기자가 직접 편집한 4컷을 먼저 보고 뉴스와 캐릭터 채널로 이어가는 FanLetter News 피드입니다.",
-        title: "리포터 컷 | FanLetter News",
+          "팬 기자가 직접 편집한 4컷을 먼저 보고 뉴스와 캐릭터 채널로 이어가는 AIAVpark News 피드입니다.",
+        title: "리포터 컷 | AIAVpark News",
       }
     : {
         description:
-          "A FanLetter News cut feed that starts with the four teaser cuts edited by a fan reporter.",
-        title: "Reporter Cut | FanLetter News",
+          "An AIAVpark News cut feed that starts with the four teaser cuts edited by a fan reporter.",
+        title: "Reporter Cut | AIAVpark News",
       };
 }
 
@@ -190,7 +190,7 @@ export async function generateMetadata({
     openGraph: {
       description,
       images: ogImages,
-      siteName: "FanLetter News",
+      siteName: "AIAVpark News",
       title,
       type: "article",
       url,
