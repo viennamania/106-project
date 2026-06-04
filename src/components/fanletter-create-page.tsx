@@ -333,6 +333,8 @@ function getCopy(locale: Locale) {
         upload: {
           body:
             "이미 만든 MP4, MOV, WEBM 브이로그를 무료 공개 콘텐츠로 올립니다. 팬 전용 유료 업로드와 NSFW 설정은 팬 요청 기반 업로드에서만 사용합니다.",
+          directHint:
+            "휴대폰 영상 선택부터 시작하세요. 업로드 후 프리뷰 영상과 프레임 후보가 자동으로 준비됩니다.",
           fallbackTitle: "오늘의 브이로그",
           fileHelp: (size: string) => `MP4, MOV, WEBM · 최대 ${size}MB`,
           missingReferral: "회원 추천 코드를 확인하지 못했습니다.",
@@ -566,6 +568,8 @@ function getCopy(locale: Locale) {
         upload: {
           body:
             "Upload an existing MP4, MOV, or WEBM vlog as free public content. Fan-only paid upload and NSFW controls stay limited to fan-request uploads.",
+          directHint:
+            "Start by choosing a phone video. After upload, the preview video and frame candidates are prepared automatically.",
           fallbackTitle: "Today's vlog",
           fileHelp: (size: string) => `MP4, MOV, WEBM · up to ${size}MB`,
           missingReferral: "Could not find the member referral code.",
@@ -1306,9 +1310,11 @@ export function FanletterCreatePage({
   const [videoUploadProgress, setVideoUploadProgress] = useState(0);
   const loadInFlightRef = useRef(false);
   const localDraftRestoredRef = useRef(false);
+  const composeSectionRef = useRef<HTMLElement | null>(null);
   const resultSectionRef = useRef<HTMLElement | null>(null);
   const saveInFlightRef = useRef(false);
   const scrolledResultMediaUrlRef = useRef<string | null>(null);
+  const scrolledUploadComposeRef = useRef(false);
   const videoUploadInputRef = useRef<HTMLInputElement | null>(null);
   const hasProfileBasics = Boolean(profile?.displayName?.trim());
   const hasPersona = Boolean(profile?.characterPersona);
@@ -1383,6 +1389,7 @@ export function FanletterCreatePage({
   );
   const hasPlanContext = Boolean(
     initialPlan &&
+      createSourceMode !== "upload" &&
       !initialFanRequestId &&
       (initialPlanId ||
         form.title.trim() ||
@@ -1863,6 +1870,27 @@ export function FanletterCreatePage({
       window.clearTimeout(timeout);
     };
   }, [generatedVideoUrl, generationStatus, localDraftStatus]);
+
+  useEffect(() => {
+    if (
+      initialPlan?.sourceMode !== "upload" ||
+      scrolledUploadComposeRef.current
+    ) {
+      return;
+    }
+
+    scrolledUploadComposeRef.current = true;
+    const timeout = window.setTimeout(() => {
+      composeSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 180);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [initialPlan?.sourceMode]);
 
   function updateForm(patch: Partial<CreateForm>) {
     setForm((current) => ({ ...current, ...patch }));
@@ -2611,7 +2639,9 @@ export function FanletterCreatePage({
                 </div>
               </div>
               <p className="mt-3 text-sm font-medium leading-6 text-white/64 [word-break:keep-all]">
-                {newsSurfaceCopy?.mobileBody ?? selectedModeCopy}
+                {createSourceMode === "upload"
+                  ? selectedModeCopy
+                  : newsSurfaceCopy?.mobileBody ?? selectedModeCopy}
               </p>
               <div className="mt-3 grid grid-cols-3 gap-1.5">
                 {(newsSurfaceCopy?.mobileSteps ?? []).map((step, index) => (
@@ -3072,6 +3102,7 @@ export function FanletterCreatePage({
             <section
               className="rounded-lg border border-white/12 bg-white/[0.055] p-3 sm:p-5"
               id="fanletter-vlog-compose"
+              ref={composeSectionRef}
             >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
                 01
@@ -3126,7 +3157,14 @@ export function FanletterCreatePage({
                 </p>
               </div>
               <div className="mt-4 grid gap-3 sm:mt-5">
-                {createSourceMode === "upload" ? uploadPickerPanel : null}
+                {createSourceMode === "upload" ? (
+                  <>
+                    <div className="rounded-lg border border-[#44f26e]/24 bg-[#44f26e]/10 p-3 text-sm font-semibold leading-6 text-[#d8ffe0]">
+                      {copy.upload.directHint}
+                    </div>
+                    {uploadPickerPanel}
+                  </>
+                ) : null}
                 <label className="block">
                   <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/42">
                     {copy.title}
