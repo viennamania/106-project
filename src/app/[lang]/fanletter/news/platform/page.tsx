@@ -143,7 +143,7 @@ function getCopy(locale: Locale) {
         },
         liveStudio: {
           characterRail: "성장 중인 AI 캐릭터",
-          eyebrow: "Live Platform Showcase",
+          eyebrow: "실시간 운영 쇼케이스",
           liveReports: "라이브 뉴스",
           proof:
             "현재 서비스 DB에서 불러온 공개 리포트, 원본 프리뷰, 캐릭터 채널로 운영 중인 콘텐츠 흐름을 보여줍니다.",
@@ -157,7 +157,7 @@ function getCopy(locale: Locale) {
           assetLabel: "라이브 증거",
           body:
             "K-뷰티가 제품력 다음 경쟁 축을 노출력으로 옮기고 있습니다. AIAVpark News는 이 변화를 AI 캐릭터 콘텐츠에도 그대로 적용해, 발견·반응·원본 소비·구매 기여를 한 화면에서 이어줍니다.",
-          eyebrow: "Market Signal",
+          eyebrow: "시장 신호",
           liveReports: "운영 중인 리포트",
           source:
             "조선비즈 2026.06.02 · ‘제품력’ 넘어 ‘노출력’ 경쟁",
@@ -171,19 +171,19 @@ function getCopy(locale: Locale) {
             {
               body:
                 "숏폼에서 먼저 멈춰 보게 만드는 티저 컷과 영상 프리뷰를 전면에 배치합니다.",
-              kicker: "01 Discovery",
+              kicker: "01 발견",
               title: "스크롤을 멈추는 첫 장면",
             },
             {
               body:
                 "팬 리포터가 장면을 뉴스처럼 포장해 AI 캐릭터와 원본 콘텐츠에 대한 궁금증을 키웁니다.",
-              kicker: "02 Reaction",
+              kicker: "02 반응",
               title: "팬이 만드는 리포트 확산",
             },
             {
               body:
                 "원본 오픈, 구매, 보상 기록까지 연결해 단순 조회수가 아닌 기여 흐름으로 설명합니다.",
-              kicker: "03 Conversion",
+              kicker: "03 전환",
               title: "구매와 정산으로 이어지는 신호",
             },
           ],
@@ -194,7 +194,7 @@ function getCopy(locale: Locale) {
           ctaCharacters: "캐릭터 자산 보기",
           ctaNews: "라이브 뉴스 보기",
           ctaReports: "리포터 데스크",
-          eyebrow: "Platform Snapshot",
+          eyebrow: "플랫폼 구조 요약",
           evidenceTitle: "지금 보여줄 수 있는 운영 증거",
           latestReport: "최신 리포트",
           noReport: "공개 리포트 준비 중",
@@ -210,7 +210,7 @@ function getCopy(locale: Locale) {
             reportDesk: "리포터 동선",
             sourcePreviews: "원본 프리뷰",
           },
-          title: "한 화면으로 보는 AIAVpark 사업 구조",
+          title: "뉴스가 원본 소비로 이어지는 구조",
           cards: [
             {
               eyebrow: "Problem",
@@ -365,7 +365,7 @@ function getCopy(locale: Locale) {
             title: "팬 리포터",
             body:
               "브이로그를 4컷 노출 리포트로 포장해 더 많은 팬이 원본 콘텐츠를 소비하게 만듭니다.",
-            metric: "Report · Share · Conversion",
+            metric: "리포트 · 공유 · 구매 전환",
           },
           {
             title: "브이로거",
@@ -476,7 +476,7 @@ function getCopy(locale: Locale) {
         },
         liveStudio: {
           characterRail: "Growing AI characters",
-          eyebrow: "Live Platform Showcase",
+          eyebrow: "Live Operating Showcase",
           liveReports: "Live news",
           proof:
             "Public reports, source previews, and character channels are pulled from the live service database to show the operating content flow.",
@@ -527,7 +527,7 @@ function getCopy(locale: Locale) {
           ctaCharacters: "View character assets",
           ctaNews: "View live news",
           ctaReports: "Reporter desk",
-          eyebrow: "Platform Snapshot",
+          eyebrow: "Platform flow summary",
           evidenceTitle: "Operating proof available now",
           latestReport: "Latest report",
           noReport: "Public reports are being prepared",
@@ -543,7 +543,7 @@ function getCopy(locale: Locale) {
             reportDesk: "Reporter path",
             sourcePreviews: "Source previews",
           },
-          title: "AIAVpark business structure in one screen",
+          title: "How news leads to source consumption",
           cards: [
             {
               eyebrow: "Problem",
@@ -699,7 +699,7 @@ function getCopy(locale: Locale) {
             title: "Fan reporters",
             body:
               "Package vlogs as four-cut exposure reports so more fans discover and consume the source content.",
-            metric: "Report · Share · Conversion",
+            metric: "Report · Share · Purchase",
           },
           {
             title: "Vloggers",
@@ -978,6 +978,13 @@ function PlatformLiveContentWall({
         </div>
 
         <Link
+          aria-label={
+            primaryReport
+              ? `${copy.liveStudio.liveReports}: ${getArticleDisplayTitle(
+                  primaryReport.title,
+                )}`
+              : copy.liveStudio.title
+          }
           className="group relative min-h-[14.5rem] overflow-hidden rounded-[1.05rem] border border-white/14 bg-[#071108] !text-white sm:min-h-[23rem] lg:min-h-[28rem]"
           href={primaryHref}
         >
@@ -1062,6 +1069,9 @@ function PlatformLiveContentWall({
 
               return (
                 <Link
+                  aria-label={`${copy.liveStudio.sourceClip}: ${getArticleDisplayTitle(
+                    item.title,
+                  )}`}
                   className="group relative aspect-[3/4] overflow-hidden rounded-lg border border-white/12 bg-[#071108] !text-white"
                   href={href}
                   key={item.reportId}
@@ -1102,6 +1112,9 @@ function PlatformLiveContentWall({
           <div className="grid gap-1.5">
             {reportStack.map((report, index) => (
               <Link
+                aria-label={`${copy.liveStudio.reportStack}: ${getArticleDisplayTitle(
+                  report.title,
+                )}`}
                 className="grid min-h-11 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-2 !text-white transition hover:border-[#44f26e]/44 hover:bg-[#44f26e]/10"
                 href={buildPathWithReferral(
                   `/${locale}/fanletter/news/${report.reportId}`,
@@ -1138,6 +1151,7 @@ function PlatformLiveContentWall({
 
                 return (
                   <Link
+                    aria-label={`${copy.liveStudio.characterRail}: ${character.name}`}
                     className="group min-w-0 overflow-hidden rounded-lg border border-white/10 bg-black/22 !text-white transition hover:border-[#4cc9f0]/54 hover:bg-[#4cc9f0]/10"
                     href={buildPathWithReferral(
                       `/${locale}/fanletter/news/characters/${character.referralCode}`,
@@ -1526,6 +1540,7 @@ function PlatformInvestorBrief({
               </p>
               {leadingCharacter ? (
                 <Link
+                  aria-label={`${copy.investorBrief.ctaCharacters}: ${leadingCharacter.name}`}
                   className="group overflow-hidden rounded-lg border border-white/12 bg-white/[0.07] !text-white"
                   href={charactersHref}
                 >
@@ -1554,6 +1569,13 @@ function PlatformInvestorBrief({
                 </Link>
               ) : null}
               <Link
+                aria-label={
+                  latestReport
+                    ? `${copy.investorBrief.latestReport}: ${getArticleDisplayTitle(
+                        latestReport.title,
+                      )}`
+                    : copy.investorBrief.ctaNews
+                }
                 className="group min-w-0 rounded-lg border border-[#44f26e]/30 bg-[#44f26e]/12 p-3 !text-white transition hover:border-[#44f26e]/70 hover:bg-[#44f26e]/18"
                 href={newsHref}
               >
