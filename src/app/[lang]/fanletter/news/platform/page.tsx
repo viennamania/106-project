@@ -48,9 +48,11 @@ import {
   type FanletterNewsCharacterStat,
 } from "@/lib/fanletter-news-character-directory";
 import {
+  getFanletterNewsPlatformInvestorStats,
   getFanletterNewsReportsForCharacterDirectory,
   getLatestFanletterNewsReports,
   getFanletterNewsTeaserGalleryItems,
+  type FanletterNewsPlatformInvestorStats,
   type FanletterNewsTeaserGalleryItem,
 } from "@/lib/fanletter-news-report-service";
 import {
@@ -94,27 +96,27 @@ function getCopy(locale: Locale) {
           summary: "요약",
         },
         investorSnapshot: {
-          basis: "기준: 공개 일반 콘텐츠와 현재 운영 DB",
+          basis: "기준: 공개 일반 콘텐츠 전체 누적",
           body:
-            "동일한 리포트 제목 반복은 줄이고, 투자자가 바로 해석할 수 있는 운영 규모와 콘텐츠 다양성 지표를 먼저 보여줍니다.",
+            "샘플 카드 수가 아니라 운영 DB 전체에서 집계한 발행량, 원본 수, 프리뷰 보유량, 캐릭터 채널 규모를 먼저 보여줍니다.",
           contactCta: "문의하기",
           eyebrow: "Investor Snapshot",
           metrics: {
             characters: {
-              hint: "캐릭터별 소비와 IP 확장의 기본 단위",
+              hint: "공개 리포트가 쌓인 고유 AI 캐릭터",
               label: "캐릭터 채널",
             },
             previews: {
-              hint: "뉴스 안에서 원본 소비를 유도하는 프리뷰",
+              hint: "짧은 영상 프리뷰가 준비된 원본",
               label: "원본 프리뷰",
             },
             representativeReports: {
-              hint: "동일 제목/캐릭터 중복을 제거한 대표 노출",
-              label: "대표 리포트",
+              hint: "팬 리포트가 연결된 고유 원본 콘텐츠",
+              label: "원본 브이로그",
             },
             reports: {
-              hint: "현재 홈에서 집계 가능한 공개 리포트",
-              label: "운영 리포트",
+              hint: "현재 DB에 발행된 공개 일반 팬 리포트",
+              label: "공개 리포트",
             },
           },
           title: "투자자가 30초 안에 확인할 핵심 운영 지표",
@@ -510,27 +512,27 @@ function getCopy(locale: Locale) {
           summary: "Summary",
         },
         investorSnapshot: {
-          basis: "Basis: public general content and the current operating database",
+          basis: "Basis: all public general content in the operating database",
           body:
-            "Repeated report titles are reduced, and the first block focuses on operating scale and content-diversity metrics investors can read quickly.",
+            "This block uses whole-database operating counts, not the number of sample cards rendered on this page.",
           contactCta: "Contact us",
           eyebrow: "Investor Snapshot",
           metrics: {
             characters: {
-              hint: "The base unit for character consumption and IP expansion",
+              hint: "Unique AI characters with public reports",
               label: "Character channels",
             },
             previews: {
-              hint: "Previews that pull readers from news into source consumption",
+              hint: "Source vlogs with a short preview ready",
               label: "Source previews",
             },
             representativeReports: {
-              hint: "Representative exposure after removing same-title character duplicates",
-              label: "Representative reports",
+              hint: "Unique source content connected to fan reports",
+              label: "Source vlogs",
             },
             reports: {
-              hint: "Public reports currently measurable from News home",
-              label: "Operating reports",
+              hint: "Published public general fan reports in the database",
+              label: "Public reports",
             },
           },
           title: "The key operating metrics investors should grasp in 30 seconds",
@@ -2572,45 +2574,39 @@ function CharacterGrowthChart({
 }
 
 function PlatformInvestorSnapshot({
-  characters,
   contactHref,
   copy,
   locale,
-  reports,
-  representativeReports,
-  teaserItems,
+  stats,
 }: {
-  characters: FanletterNewsCharacterStat[];
   contactHref: string;
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
-  reports: FanletterNewsReportDocument[];
-  representativeReports: FanletterNewsReportDocument[];
-  teaserItems: FanletterNewsTeaserGalleryItem[];
+  stats: FanletterNewsPlatformInvestorStats;
 }) {
   const metrics = [
     {
       icon: Newspaper,
       label: copy.investorSnapshot.metrics.reports.label,
-      value: formatNumber(reports.length, locale),
+      value: formatNumber(stats.reportCount, locale),
       hint: copy.investorSnapshot.metrics.reports.hint,
     },
     {
       icon: Layers3,
       label: copy.investorSnapshot.metrics.representativeReports.label,
-      value: formatNumber(representativeReports.length, locale),
+      value: formatNumber(stats.sourceContentCount, locale),
       hint: copy.investorSnapshot.metrics.representativeReports.hint,
     },
     {
       icon: PlayCircle,
       label: copy.investorSnapshot.metrics.previews.label,
-      value: formatNumber(teaserItems.length, locale),
+      value: formatNumber(stats.previewContentCount, locale),
       hint: copy.investorSnapshot.metrics.previews.hint,
     },
     {
       icon: UsersRound,
       label: copy.investorSnapshot.metrics.characters.label,
-      value: formatNumber(characters.length, locale),
+      value: formatNumber(stats.characterCount, locale),
       hint: copy.investorSnapshot.metrics.characters.hint,
     },
   ];
@@ -2806,6 +2802,7 @@ export default async function FanletterNewsPlatformPage({
     latestReports,
     teaserGalleryItems,
     characterDirectoryReports,
+    platformInvestorStats,
   ] = await Promise.all([
     getFanletterLandingData(locale, false),
     getLatestFanletterNewsReports({
@@ -2819,6 +2816,10 @@ export default async function FanletterNewsPlatformPage({
       locale,
     }),
     getFanletterNewsReportsForCharacterDirectory({ locale }),
+    getFanletterNewsPlatformInvestorStats({
+      contentMaturityRating: "general",
+      locale,
+    }),
   ]);
   const latestReportById = new Map(
     latestReports.map((report) => [report.reportId, report] as const),
@@ -2845,7 +2846,6 @@ export default async function FanletterNewsPlatformPage({
   const featuredPreviewContentIds = new Set(
     featuredPreviewReports.map((report) => report.contentId),
   );
-  const representativeReports = getRepresentativeReports(latestReports, 12);
   const featuredReportCandidates = [
     ...featuredPreviewReports,
     ...latestReports.filter(
@@ -2865,15 +2865,15 @@ export default async function FanletterNewsPlatformPage({
   const platformMomentumStats: FanletterNewsPlatformMomentumStat[] = [
     {
       ...copy.momentumStats.news,
-      value: latestReports.length,
+      value: platformInvestorStats.reportCount,
     },
     {
       ...copy.momentumStats.previews,
-      value: teaserGalleryItems.length,
+      value: platformInvestorStats.previewContentCount,
     },
     {
       ...copy.momentumStats.characters,
-      value: featuredCharacters.length,
+      value: platformInvestorStats.characterCount,
     },
   ];
   const heroSlides = [
@@ -3026,13 +3026,10 @@ export default async function FanletterNewsPlatformPage({
       />
 
       <PlatformInvestorSnapshot
-        characters={featuredCharacters}
         contactHref="#platform-inquiry"
         copy={copy}
         locale={locale}
-        reports={latestReports}
-        representativeReports={representativeReports}
-        teaserItems={teaserGalleryItems}
+        stats={platformInvestorStats}
       />
 
       <PlatformMarketSignal

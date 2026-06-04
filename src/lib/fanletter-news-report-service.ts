@@ -439,6 +439,14 @@ export type FanletterNewsTeaserGalleryItem = {
   title: string;
 };
 
+export type FanletterNewsPlatformInvestorStats = {
+  characterCount: number;
+  previewContentCount: number;
+  reportCount: number;
+  reporterCount: number;
+  sourceContentCount: number;
+};
+
 type FanletterNewsReportDraftSourceReportStatusFilter =
   | "all"
   | "reported"
@@ -560,6 +568,22 @@ function getAllowedReportCoverImageUrls(
       .map((url) => url?.trim() ?? "")
       .filter(Boolean),
   );
+}
+
+function normalizeDistinctStringValues(values: unknown[]) {
+  return values
+    .map((value) => (typeof value === "string" ? value.trim() : ""))
+    .filter(Boolean);
+}
+
+function getDistinctFanletterNewsReportFieldValues(
+  fieldName: "contentId" | "creatorReferralCode" | "reporterReferralCode",
+  filter: Filter<FanletterNewsReportDocument>,
+) {
+  return [
+    { $match: { ...filter, [fieldName]: { $exists: true, $ne: "" } } },
+    { $group: { _id: `$${fieldName}` } },
+  ];
 }
 
 function getReportTeaserImageUrls({
@@ -3803,6 +3827,87 @@ export const getFanletterNewsTeaserGalleryItems = cache(
     }
 
     return items;
+  },
+);
+
+export const getFanletterNewsPlatformInvestorStats = cache(
+  async ({
+    contentMaturityRating = "general",
+    locale,
+  }: {
+    contentMaturityRating?: ContentMaturityRating | null;
+    locale: Locale;
+  }): Promise<FanletterNewsPlatformInvestorStats> => {
+    const normalizedMaturityRating =
+      contentMaturityRating === "general" || contentMaturityRating === "nsfw"
+        ? contentMaturityRating
+        : null;
+    const reportQuery: Filter<FanletterNewsReportDocument> = {
+      locale,
+      ...(normalizedMaturityRating
+        ? { contentMaturityRating: normalizedMaturityRating }
+        : {}),
+      status: "published",
+    };
+    const [reportsCollection, postsCollection] = await Promise.all([
+      getFanletterNewsReportsCollection(),
+      getContentPostsCollection(),
+    ]);
+    const [
+      reportCount,
+      contentIdRows,
+      creatorReferralCodeRows,
+      reporterReferralCodeRows,
+    ] = await Promise.all([
+      reportsCollection.countDocuments(reportQuery),
+      reportsCollection
+        .aggregate<{ _id: unknown }>(
+          getDistinctFanletterNewsReportFieldValues("contentId", reportQuery),
+        )
+        .toArray(),
+      reportsCollection
+        .aggregate<{ _id: unknown }>(
+          getDistinctFanletterNewsReportFieldValues(
+            "creatorReferralCode",
+            reportQuery,
+          ),
+        )
+        .toArray(),
+      reportsCollection
+        .aggregate<{ _id: unknown }>(
+          getDistinctFanletterNewsReportFieldValues(
+            "reporterReferralCode",
+            reportQuery,
+          ),
+        )
+        .toArray(),
+    ]);
+    const sourceContentIds = normalizeDistinctStringValues(
+      contentIdRows.map((row) => row._id),
+    );
+    const characterReferralCodes = normalizeDistinctStringValues(
+      creatorReferralCodeRows.map((row) => row._id),
+    );
+    const reporterReferralCodes = normalizeDistinctStringValues(
+      reporterReferralCodeRows.map((row) => row._id),
+    );
+    const previewContentCount =
+      sourceContentIds.length > 0
+        ? await postsCollection.countDocuments({
+            contentId: { $in: sourceContentIds },
+            contentMaturityRating: { $ne: "nsfw" },
+            previewClipVideoUrl: { $exists: true, $ne: "" },
+            status: "published",
+          })
+        : 0;
+
+    return {
+      characterCount: characterReferralCodes.length,
+      previewContentCount,
+      reportCount,
+      reporterCount: reporterReferralCodes.length,
+      sourceContentCount: sourceContentIds.length,
+    };
   },
 );
 
