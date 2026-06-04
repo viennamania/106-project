@@ -2184,6 +2184,7 @@ function FeedSlide({
   const loginSyncKeyRef = useRef<string | null>(null);
   const sourceOverlayHistoryPushedRef = useRef(false);
   const handledReporterPanelRequestIdRef = useRef(0);
+  const trackedCutViewKeyRef = useRef<string | null>(null);
   const copy = getCopy(locale);
   const { report } = item;
   const normalizedViewerReferralCode = normalizeReferralCode(
@@ -2266,6 +2267,55 @@ function FeedSlide({
     referralCode,
     returnToHref: cutFeedReturnHref,
   });
+
+  useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
+    const viewKey = `${report.reportId}:${activeCutSlotNumber}:${shareId ?? ""}`;
+
+    if (trackedCutViewKeyRef.current === viewKey) {
+      return;
+    }
+
+    trackedCutViewKeyRef.current = viewKey;
+    trackFunnelEvent("fanletter_news_cut_view", {
+      contentId: report.contentId,
+      metadata: {
+        creatorReferralCode: report.creatorReferralCode,
+        cutCount,
+        cutSlotNumber: activeCutSlotNumber,
+        feedIndex: index,
+        priceType: report.priceType,
+        reportId: report.reportId,
+        reporterReferralCode: report.reporterReferralCode,
+        source: "fanletter-news-cut-feed",
+        sourceRevealCount: sourceRevealState.count,
+        sourceRevealThreshold: sourceRevealState.threshold,
+        sourceRevealUnlocked: sourceRevealState.unlocked,
+      },
+      referralCode,
+      shareId,
+      targetHref: cutFeedReturnHref,
+    });
+  }, [
+    activeCutSlotNumber,
+    cutCount,
+    cutFeedReturnHref,
+    index,
+    isActive,
+    referralCode,
+    report.contentId,
+    report.creatorReferralCode,
+    report.priceType,
+    report.reportId,
+    report.reporterReferralCode,
+    shareId,
+    sourceRevealState.count,
+    sourceRevealState.threshold,
+    sourceRevealState.unlocked,
+  ]);
 
   const loadSourceOverlay = useCallback(async () => {
     if (!sourceContentId) {
@@ -2463,6 +2513,44 @@ function FeedSlide({
       setAuthNudge(false);
     }, DOUBLE_TAP_FEEDBACK_MS);
   }, []);
+
+  const trackSourceOpenIntent = useCallback(
+    (action: "double_tap" | "source_button") => {
+      trackFunnelEvent("fanletter_news_source_open_click", {
+        contentId: report.contentId,
+        metadata: {
+          action,
+          authState: isSourceRevealLoggedIn ? "authenticated" : "guest",
+          count: sourceRevealState.count,
+          creatorReferralCode: report.creatorReferralCode,
+          cutSlotNumber: activeCutSlotNumber,
+          priceType: report.priceType,
+          reportId: report.reportId,
+          reporterReferralCode: report.reporterReferralCode,
+          source: "fanletter-news-cut-feed",
+          sourceAccessKind: report.priceType === "paid" ? "paid" : "free",
+          threshold: sourceRevealState.threshold,
+        },
+        referralCode,
+        shareId,
+        targetHref: cutFeedReturnHref,
+      });
+    },
+    [
+      activeCutSlotNumber,
+      cutFeedReturnHref,
+      isSourceRevealLoggedIn,
+      referralCode,
+      report.contentId,
+      report.creatorReferralCode,
+      report.priceType,
+      report.reportId,
+      report.reporterReferralCode,
+      shareId,
+      sourceRevealState.count,
+      sourceRevealState.threshold,
+    ],
+  );
 
   const updateSourceReveal = useCallback(
     (nextState: FanletterNewsSourceRevealState) => {
@@ -2693,6 +2781,8 @@ function FeedSlide({
       return;
     }
 
+    trackSourceOpenIntent("double_tap");
+
     if (!isSourceRevealLoggedIn) {
       showTapFeedback(copy.doubleTapLogin);
       openInlineLoginForVote();
@@ -2712,6 +2802,7 @@ function FeedSlide({
     sourceRevealState.requestedByViewer,
     sourceRevealState.unlocked,
     submitSourceRevealVote,
+    trackSourceOpenIntent,
   ]);
   const goToPreviousCut = useCallback(() => {
     setActiveCutIndex((currentIndex) =>
@@ -2806,6 +2897,8 @@ function FeedSlide({
       return;
     }
 
+    trackSourceOpenIntent("source_button");
+
     if (!isSourceRevealLoggedIn) {
       showTapFeedback(copy.doubleTapLogin);
       openInlineLoginForVote();
@@ -2825,6 +2918,7 @@ function FeedSlide({
     sourceRevealState.requestedByViewer,
     sourceRevealState.unlocked,
     submitSourceRevealVote,
+    trackSourceOpenIntent,
   ]);
   const handleSourceRailClick = useCallback(() => {
     if (sourceContentId) {

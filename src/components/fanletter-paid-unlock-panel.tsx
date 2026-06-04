@@ -1086,6 +1086,8 @@ export function FanletterPaidUnlockPanel({
       contentId,
       metadata: {
         amountUsdt: paidUnlockAmount,
+        sourceReportId,
+        sourceReporterReferralCode,
         source: trackingSource,
       },
       referralCode,
@@ -1095,7 +1097,14 @@ export function FanletterPaidUnlockPanel({
       error: null,
     }));
     setIsPaymentOpen(true);
-  }, [contentId, paidUnlockAmount, referralCode, trackingSource]);
+  }, [
+    contentId,
+    paidUnlockAmount,
+    referralCode,
+    sourceReportId,
+    sourceReporterReferralCode,
+    trackingSource,
+  ]);
   const canOpenPaymentModalFromTrigger =
     !isPaymentOpen &&
     !isDisconnected &&

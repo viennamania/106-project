@@ -35,6 +35,7 @@ import {
   FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
   type FanletterNewsSourceRevealStateChangeDetail,
 } from "@/lib/fanletter-news-source-reveal-events";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { Locale } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -68,16 +69,20 @@ type CelebrationSpark = {
 type FanletterNewsSourceRevealVoteProps = {
   className?: string;
   connectHref: string;
+  contentId?: string | null;
   density?: "regular" | "compact" | "dock";
   initialState: FanletterNewsSourceRevealState;
   isViewerAuthenticated?: boolean;
   locale: Locale;
   onStateChange?: (state: FanletterNewsSourceRevealState) => void;
   paidAmountLabel?: string;
+  referralCode?: string | null;
   reportId?: string;
+  shareId?: string | null;
   sourceRevealEndpoint?: string;
   sourceAccessKind?: "free" | "paid";
   tone?: "dark" | "light";
+  trackingSource?: string;
 };
 
 const UNLOCK_CELEBRATION_HIDE_MS = 2300;
@@ -592,16 +597,20 @@ function SourceRevealParticipantStack({
 export function FanletterNewsSourceRevealVote({
   className,
   connectHref,
+  contentId = null,
   density = "regular",
   initialState,
   isViewerAuthenticated = false,
   locale,
   onStateChange,
   paidAmountLabel = "1 USDT",
+  referralCode = null,
   reportId,
+  shareId = null,
   sourceRevealEndpoint,
   sourceAccessKind = "free",
   tone = "dark",
+  trackingSource = "fanletter-news-source-reveal",
 }: FanletterNewsSourceRevealVoteProps) {
   const copy = getCopy(locale);
   const router = useRouter();
@@ -922,6 +931,21 @@ export function FanletterNewsSourceRevealVote({
       return;
     }
 
+    trackFunnelEvent("fanletter_news_source_open_click", {
+      contentId,
+      metadata: {
+        action: "vote",
+        authState: isLoggedIn ? "authenticated" : "guest",
+        count: state.count,
+        reportId: reportId ?? null,
+        source: trackingSource,
+        sourceAccessKind,
+        threshold: state.threshold,
+      },
+      referralCode,
+      shareId,
+    });
+
     setIsSaving(true);
     setError(null);
 
@@ -1128,6 +1152,23 @@ export function FanletterNewsSourceRevealVote({
               isCompact && "mt-2 h-10",
             )}
             href={connectHref}
+            onClick={() => {
+              trackFunnelEvent("fanletter_news_source_open_click", {
+                contentId,
+                metadata: {
+                  action: "connect",
+                  authState: "guest",
+                  count: state.count,
+                  reportId: reportId ?? null,
+                  source: trackingSource,
+                  sourceAccessKind,
+                  threshold: state.threshold,
+                },
+                referralCode,
+                shareId,
+                targetHref: connectHref,
+              });
+            }}
           >
             <HeartHandshake className="size-4" />
             {copy.loginCta}

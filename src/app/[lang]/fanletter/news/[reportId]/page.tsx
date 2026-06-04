@@ -25,6 +25,7 @@ import {
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
+import { FanletterNewsExposureTracker } from "@/components/fanletter-news-exposure-tracker";
 import { FanletterNewsLockedPreviewHero } from "@/components/fanletter-news-locked-preview-hero";
 import { FanletterNewsRelatedList } from "@/components/fanletter-news-related-list";
 import { FanletterNewsMobileActionDock } from "@/components/fanletter-news-mobile-action-dock";
@@ -2504,22 +2505,26 @@ function ViewerOwnershipStatus({
 function SourceVlogRevealTeaserOverlay({
   blurred,
   connectHref,
+  contentId,
   frames,
   layout = "overlay",
   locale,
   paidAmountLabel,
   presentation = "fill",
+  referralCode,
   reportId,
   sourceAccessKind,
   sourceReveal,
 }: {
   blurred: boolean;
   connectHref: string;
+  contentId: string | null;
   frames: SourceVlogSceneFrame[];
   layout?: "overlay" | "sideRail";
   locale: Locale;
   paidAmountLabel: string;
   presentation?: "fill" | "flow";
+  referralCode: string | null;
   reportId: string;
   sourceAccessKind: SourceVlogAccessKind;
   sourceReveal: FanletterNewsSourceRevealState;
@@ -2648,12 +2653,15 @@ function SourceVlogRevealTeaserOverlay({
         <FanletterNewsSourceRevealVote
           className={voteClassName}
           connectHref={connectHref}
+          contentId={contentId}
           density="compact"
           initialState={sourceReveal}
           locale={locale}
           paidAmountLabel={paidAmountLabel}
+          referralCode={referralCode}
           reportId={reportId}
           sourceAccessKind={sourceAccessKind}
+          trackingSource="fanletter-news-detail-source-teaser"
         />
       </div>
     </div>
@@ -3487,6 +3495,7 @@ function SourceVlogEmbed({
   newsConnectHref,
   paidUnlockHref,
   pinUnlockHref,
+  referralCode,
   reportSlot,
   reportCoverImageSource,
   priceUsdt,
@@ -3505,6 +3514,7 @@ function SourceVlogEmbed({
   newsConnectHref: string;
   paidUnlockHref: string | null;
   pinUnlockHref: string;
+  referralCode: string | null;
   reportSlot: SourceVlogReportSlotState;
   reportCoverImageSource?: FanletterNewsReportDocument["coverImageSource"];
   priceUsdt: string | null;
@@ -3706,10 +3716,12 @@ function SourceVlogEmbed({
                 <SourceVlogRevealTeaserOverlay
                   blurred={sourceMediaBlurred}
                   connectHref={sourceReveal.connectHref}
+                  contentId={sourceContent?.contentId ?? null}
                   frames={sourceOverlaySceneFrames}
                   locale={locale}
                   paidAmountLabel={paidUnlockLabel}
                   presentation="flow"
+                  referralCode={referralCode}
                   reportId={sourceReveal.reportId}
                   sourceAccessKind={sourceAccessKind}
                   sourceReveal={sourceReveal}
@@ -3719,10 +3731,12 @@ function SourceVlogEmbed({
                 <SourceVlogRevealTeaserOverlay
                   blurred={sourceMediaBlurred}
                   connectHref={sourceReveal.connectHref}
+                  contentId={sourceContent?.contentId ?? null}
                   frames={[]}
                   layout="sideRail"
                   locale={locale}
                   paidAmountLabel={paidUnlockLabel}
+                  referralCode={referralCode}
                   reportId={sourceReveal.reportId}
                   sourceAccessKind={sourceAccessKind}
                   sourceReveal={sourceReveal}
@@ -3765,9 +3779,11 @@ function SourceVlogEmbed({
                 <SourceVlogRevealTeaserOverlay
                   blurred={sourceMediaBlurred}
                   connectHref={sourceReveal.connectHref}
+                  contentId={sourceContent?.contentId ?? null}
                   frames={sourceOverlaySceneFrames}
                   locale={locale}
                   paidAmountLabel={paidUnlockLabel}
+                  referralCode={referralCode}
                   reportId={sourceReveal.reportId}
                   sourceAccessKind={sourceAccessKind}
                   sourceReveal={sourceReveal}
@@ -3889,12 +3905,15 @@ function SourceVlogEmbed({
             <FanletterNewsSourceRevealVote
               className="mx-auto w-full max-w-3xl border-white/10 bg-white/[0.05] shadow-none"
               connectHref={sourceReveal.connectHref}
+              contentId={sourceContent?.contentId ?? null}
               density="dock"
               initialState={sourceReveal}
               locale={locale}
               paidAmountLabel={paidUnlockLabel}
+              referralCode={referralCode}
               reportId={sourceReveal.reportId}
               sourceAccessKind={sourceAccessKind}
+              trackingSource="fanletter-news-detail-source-dock"
             />
           </div>
         ) : null}
@@ -3921,13 +3940,16 @@ function SourceVlogEmbed({
         <FanletterNewsSourceRevealVote
           className="mt-3"
           connectHref={sourceReveal.connectHref}
+          contentId={sourceContent?.contentId ?? null}
           density="compact"
           initialState={sourceReveal}
           locale={locale}
           paidAmountLabel={paidUnlockLabel}
+          referralCode={referralCode}
           reportId={sourceReveal.reportId}
           sourceAccessKind={sourceAccessKind}
           tone="light"
+          trackingSource="fanletter-news-detail-source-status"
         />
       ) : null}
       {shouldShowPaidUnlockPrompt && paidUnlockHref ? (
@@ -4656,6 +4678,21 @@ export default async function LocalizedFanletterNewsReportPage({
 
   return (
     <main className="min-h-screen bg-[#eef1ec] text-[#111510]">
+      <FanletterNewsExposureTracker
+        contentId={report.contentId}
+        eventName="fanletter_news_report_view"
+        metadata={{
+          creatorReferralCode,
+          priceType: sourceContent?.priceType ?? report.priceType,
+          reportId: report.reportId,
+          reporterReferralCode: report.reporterReferralCode,
+          source: "fanletter-news-detail",
+          sourceRevealUnlocked: sourceReveal?.unlocked ?? null,
+          viewerCanAccessSource: sourceContent?.canViewerAccess ?? null,
+        }}
+        referralCode={referralCode}
+        targetHref={articleHref}
+      />
       <NewsSiteHeader
         characterHref={creatorHref}
         characterImageUrl={titleCharacterThumbnailUrl}
@@ -4911,6 +4948,7 @@ export default async function LocalizedFanletterNewsReportPage({
                 sourceReveal={sourceReveal}
                 sourceRevealEndpoint={sourceRevealEndpoint}
                 sourceContent={sourceContent}
+                referralCode={referralCode}
               />
             </div>
 
