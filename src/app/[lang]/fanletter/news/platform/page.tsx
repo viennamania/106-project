@@ -190,11 +190,11 @@ function getCopy(locale: Locale) {
         },
         investorBrief: {
           body:
-            "IR 자리에서는 긴 기능 설명보다 문제, 해법, 수익화, 방어력을 한 화면에서 보여주는 것이 중요합니다. AIAVpark News는 라이브 콘텐츠 자체를 그 증거로 씁니다.",
+            "AIAVpark News는 원본 브이로그, 팬 리포트, 원본 오픈, 구매 기여를 하나의 흐름으로 연결합니다. 현재 운영 중인 콘텐츠가 그 구조를 바로 보여줍니다.",
           ctaCharacters: "캐릭터 자산 보기",
           ctaNews: "라이브 뉴스 보기",
           ctaReports: "리포터 데스크",
-          eyebrow: "IR Snapshot",
+          eyebrow: "Platform Snapshot",
           evidenceTitle: "지금 보여줄 수 있는 운영 증거",
           latestReport: "최신 리포트",
           noReport: "공개 리포트 준비 중",
@@ -203,14 +203,14 @@ function getCopy(locale: Locale) {
             "AIAVpark News는 AI 캐릭터의 원본 숏폼을 팬 리포터 뉴스로 재포장해 발견과 반응을 만듭니다.",
             "그 반응은 원본 오픈, 구매, 보상 기록으로 이어져 플랫폼의 기여 데이터가 됩니다.",
           ],
-          scriptLabel: "90초 IR 스크립트",
+          scriptLabel: "운영 흐름 요약",
           stats: {
             characters: "캐릭터 채널",
             reports: "라이브 리포트",
             reportDesk: "리포터 동선",
             sourcePreviews: "원본 프리뷰",
           },
-          title: "투자자에게 보여줄 한 장짜리 사업 구조",
+          title: "한 화면으로 보는 AIAVpark 사업 구조",
           cards: [
             {
               eyebrow: "Problem",
@@ -523,11 +523,11 @@ function getCopy(locale: Locale) {
         },
         investorBrief: {
           body:
-            "For IR, the page needs to explain the problem, product, monetization path, and moat in one screen. AIAVpark News uses live content itself as that proof.",
+            "AIAVpark News connects source vlogs, fan reports, source opens, and purchase assists into one operating flow. Live content on the service shows that structure directly.",
           ctaCharacters: "View character assets",
           ctaNews: "View live news",
           ctaReports: "Reporter desk",
-          eyebrow: "IR Snapshot",
+          eyebrow: "Platform Snapshot",
           evidenceTitle: "Operating proof available now",
           latestReport: "Latest report",
           noReport: "Public reports are being prepared",
@@ -536,14 +536,14 @@ function getCopy(locale: Locale) {
             "AIAVpark News repackages AI character source shorts into fan-reporter news to create discovery and reaction.",
             "Those reactions continue into source opens, purchases, reward records, and contribution data.",
           ],
-          scriptLabel: "90-second IR script",
+          scriptLabel: "Operating flow summary",
           stats: {
             characters: "Character channels",
             reports: "Live reports",
             reportDesk: "Reporter path",
             sourcePreviews: "Source previews",
           },
-          title: "A one-screen business structure for investors",
+          title: "AIAVpark business structure in one screen",
           cards: [
             {
               eyebrow: "Problem",
