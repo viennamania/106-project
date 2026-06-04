@@ -143,10 +143,10 @@ function getCopy(locale: Locale) {
         },
         liveStudio: {
           characterRail: "성장 중인 AI 캐릭터",
-          eyebrow: "Live IR Showcase",
+          eyebrow: "Live Platform Showcase",
           liveReports: "라이브 뉴스",
           proof:
-            "현재 서비스 DB에서 불러온 공개 리포트, 원본 프리뷰, 캐릭터 채널을 IR 첫 화면에 그대로 보여줍니다.",
+            "현재 서비스 DB에서 불러온 공개 리포트, 원본 프리뷰, 캐릭터 채널로 운영 중인 콘텐츠 흐름을 보여줍니다.",
           reportStack: "노출 리포트 스택",
           signalRail: "노출 → 원본 → 구매 기여",
           sourceClip: "원본 프리뷰",
@@ -476,10 +476,10 @@ function getCopy(locale: Locale) {
         },
         liveStudio: {
           characterRail: "Growing AI characters",
-          eyebrow: "Live IR Showcase",
+          eyebrow: "Live Platform Showcase",
           liveReports: "Live news",
           proof:
-            "Public reports, source previews, and character channels are pulled from the live service database for the IR first screen.",
+            "Public reports, source previews, and character channels are pulled from the live service database to show the operating content flow.",
           reportStack: "Exposure report stack",
           signalRail: "Exposure → source → purchase assist",
           sourceClip: "Source preview",
