@@ -238,6 +238,73 @@ function getCopy(locale: Locale) {
             },
           ],
         },
+        portalStrategy: {
+          body:
+            "불법 유통의 방식이 아니라, 사용자가 계속 돌아오는 콘텐츠 포털의 구조를 합법적으로 가져갑니다. FanLetter는 직접 생성·권리 보유·팬 리포터 기여 기록을 기반으로 AI 캐릭터 콘텐츠의 업데이트 허브가 되어야 합니다.",
+          ctaCharacters: "캐릭터별 포털 보기",
+          ctaNews: "최신 업데이트 보기",
+          ctaReports: "리포터로 참여하기",
+          eyebrow: "Legal Content Portal Strategy",
+          proofLabel: "현재 라이브 데이터로 시작",
+          title: "FanLetter가 가야 할 길은 AI 캐릭터판 합법 콘텐츠 포털입니다",
+          modules: [
+            {
+              label: "01 Update",
+              title: "매일 들어오는 최신 업데이트 홈",
+              body:
+                "최신 리포트, 새 브이로그, 원본 프리뷰를 한 화면에 모아 사용자가 습관적으로 확인하게 만듭니다.",
+            },
+            {
+              label: "02 Episodes",
+              title: "캐릭터별 회차형 소비",
+              body:
+                "캐릭터 채널을 시즌·에피소드처럼 구성해 1편을 본 사용자가 다음 뉴스와 원본으로 이어가게 합니다.",
+            },
+            {
+              label: "03 Rankings",
+              title: "오늘 인기와 급상승 랭킹",
+              body:
+                "많이 열린 원본, 급상승 캐릭터, 인기 리포터를 보여줘 탐색 시간을 늘리고 다음 클릭을 만듭니다.",
+            },
+            {
+              label: "04 Free → Paid",
+              title: "무료 티저에서 유료 원본으로",
+              body:
+                "가입 전에도 볼 수 있는 티저를 넓히고, 반응이 생긴 장면은 원본 오픈과 구매로 자연스럽게 연결합니다.",
+            },
+            {
+              label: "05 Community",
+              title: "팬 요청과 리포터 참여",
+              body:
+                "보고싶어요, 다음 장면 요청, 리포트 작성, 공유를 보상 가능한 기여 이벤트로 축적합니다.",
+            },
+          ],
+          roadmap: [
+            {
+              label: "Now",
+              title: "뉴스 홈을 업데이트 포털로 정리",
+              body:
+                "최신·인기·캐릭터별 흐름을 강화해 처음 온 사용자가 바로 볼 콘텐츠를 찾게 합니다.",
+            },
+            {
+              label: "Next",
+              title: "캐릭터별 시즌/회차 UX",
+              body:
+                "캐릭터 페이지 안에서 뉴스, 브이로그, 원본 오픈, 팬 요청을 이어보기 구조로 묶습니다.",
+            },
+            {
+              label: "Scale",
+              title: "랭킹과 보상 원장으로 네트워크 효과",
+              body:
+                "인기 리포트와 리포터 보상이 공개되면 팬이 소비자이자 유통 파트너가 됩니다.",
+            },
+          ],
+          stats: {
+            characters: "캐릭터 포털",
+            reports: "업데이트 항목",
+            sourcePreviews: "무료 프리뷰",
+          },
+        },
         newsroomPreview: {
           label: "EXPOSURE ENTRY",
           title: "4컷 리포트 한 편이 원본 소비의 입구가 됩니다",
@@ -503,6 +570,74 @@ function getCopy(locale: Locale) {
                 "Characters, reports, previews, and settlement events become more defensible as they connect.",
             },
           ],
+        },
+        portalStrategy: {
+          body:
+            "The goal is not to copy illegal distribution, but to legally adopt the product structure that makes people return: fast updates, serialized consumption, rankings, free previews, and community contribution. FanLetter should become the update hub for rights-owned AI character content.",
+          ctaCharacters: "View character portals",
+          ctaNews: "View latest updates",
+          ctaReports: "Join as reporter",
+          eyebrow: "Legal Content Portal Strategy",
+          proofLabel: "Start from live data",
+          title:
+            "FanLetter should become the legal content portal for AI characters",
+          modules: [
+            {
+              label: "01 Update",
+              title: "A daily latest-update home",
+              body:
+                "Put latest reports, new vlogs, and source previews in one place so users build a habit of checking in.",
+            },
+            {
+              label: "02 Episodes",
+              title: "Serialized consumption by character",
+              body:
+                "Structure character channels like seasons and episodes so one view leads into the next report and source.",
+            },
+            {
+              label: "03 Rankings",
+              title: "Today’s popular and rising rankings",
+              body:
+                "Show opened sources, rising characters, and top reporters to extend exploration and generate the next click.",
+            },
+            {
+              label: "04 Free → Paid",
+              title: "From free teaser to paid source",
+              body:
+                "Widen free previews before signup, then move high-intent scenes into source opens and purchases.",
+            },
+            {
+              label: "05 Community",
+              title: "Fan requests and reporter participation",
+              body:
+                "Convert want-to-watch, scene requests, report creation, and sharing into rewardable contribution events.",
+            },
+          ],
+          roadmap: [
+            {
+              label: "Now",
+              title: "Turn News home into an update portal",
+              body:
+                "Strengthen latest, popular, and character-based flows so new users immediately find something to watch.",
+            },
+            {
+              label: "Next",
+              title: "Season and episode UX by character",
+              body:
+                "Bind news, vlogs, source opens, and fan requests inside each character page as a continue-watching loop.",
+            },
+            {
+              label: "Scale",
+              title: "Rankings and reward ledger create network effects",
+              body:
+                "When popular reports and reporter rewards are visible, fans become distribution partners.",
+            },
+          ],
+          stats: {
+            characters: "Character portals",
+            reports: "Update items",
+            sourcePreviews: "Free previews",
+          },
         },
         newsroomPreview: {
           label: "EXPOSURE ENTRY",
@@ -1460,6 +1595,278 @@ function PlatformInvestorBrief({
   );
 }
 
+function PlatformPortalStrategy({
+  characters,
+  charactersHref,
+  copy,
+  locale,
+  newsHref,
+  referralCode,
+  reports,
+  reportsHref,
+  teaserItems,
+}: {
+  characters: FanletterNewsCharacterStat[];
+  charactersHref: string;
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  newsHref: string;
+  referralCode: string | null;
+  reports: FanletterNewsReportDocument[];
+  reportsHref: string;
+  teaserItems: FanletterNewsTeaserGalleryItem[];
+}) {
+  const portalStats = [
+    {
+      label: copy.portalStrategy.stats.reports,
+      value: reports.length,
+    },
+    {
+      label: copy.portalStrategy.stats.sourcePreviews,
+      value: teaserItems.length,
+    },
+    {
+      label: copy.portalStrategy.stats.characters,
+      value: characters.length,
+    },
+  ];
+  const moduleIcons = [RadioTower, Layers3, Trophy, BadgeDollarSign, UsersRound];
+  const featuredReports = reports.slice(0, 4);
+  const featuredCharacters = characters.slice(0, 3);
+  const ctaLinks = [
+    {
+      href: newsHref,
+      label: copy.portalStrategy.ctaNews,
+    },
+    {
+      href: charactersHref,
+      label: copy.portalStrategy.ctaCharacters,
+    },
+    {
+      href: reportsHref,
+      label: copy.portalStrategy.ctaReports,
+    },
+  ];
+
+  return (
+    <section className="relative overflow-hidden border-b border-black/10 bg-[#071108] text-white">
+      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(68,242,110,0.14)_0%,rgba(7,17,8,0)_44%,rgba(76,201,240,0.1)_100%)]" />
+      <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(68,242,110,0.86),rgba(255,215,107,0.72),transparent)]" />
+      <div className="relative mx-auto max-w-[92rem] px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+        <div className="grid gap-7 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:items-start">
+          <LandingReveal variant="soft">
+            <p className="inline-flex items-center gap-2 text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#7cff98]">
+              <Blocks className="size-4" />
+              {copy.portalStrategy.eyebrow}
+            </p>
+            <h2 className="mt-3 max-w-3xl text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
+              {copy.portalStrategy.title}
+            </h2>
+            <p className="mt-4 max-w-2xl text-sm font-bold leading-6 text-white/66 sm:text-base sm:leading-7">
+              {copy.portalStrategy.body}
+            </p>
+
+            <div className="mt-6 grid grid-cols-3 gap-2">
+              {portalStats.map((stat, index) => (
+                <div
+                  className={
+                    index === 0
+                      ? "min-w-0 rounded-lg bg-[#44f26e] p-3 text-[#071108]"
+                      : index === 1
+                        ? "min-w-0 rounded-lg border border-[#4cc9f0]/32 bg-[#4cc9f0]/12 p-3 text-white"
+                        : "min-w-0 rounded-lg border border-[#ffd76b]/32 bg-[#ffd76b]/12 p-3 text-white"
+                  }
+                  key={stat.label}
+                >
+                  <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.1em] opacity-70">
+                    {stat.label}
+                  </p>
+                  <p className="mt-1 text-2xl font-black">
+                    {formatNumber(stat.value, locale)}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 grid gap-2 sm:grid-cols-3">
+              {ctaLinks.map((link, index) => (
+                <Link
+                  className={
+                    index === 0
+                      ? "inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-3 text-sm font-black !text-[#071108] transition hover:bg-[#69ff8c]"
+                      : "inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/[0.08] px-4 py-3 text-sm font-black !text-white transition hover:border-[#44f26e]/60 hover:bg-[#44f26e]/12"
+                  }
+                  href={link.href}
+                  key={link.href}
+                >
+                  {link.label}
+                  <ArrowRight className="size-4" />
+                </Link>
+              ))}
+            </div>
+          </LandingReveal>
+
+          <LandingReveal className="grid gap-3" delay={120} variant="soft">
+            <div className="grid gap-2 sm:grid-cols-2">
+              {copy.portalStrategy.modules.map((module, index) => {
+                const Icon = moduleIcons[index] ?? Sparkles;
+
+                return (
+                  <div
+                    className={
+                      index === 0
+                        ? "min-w-0 rounded-lg border border-[#44f26e]/26 bg-[#44f26e]/12 p-4 sm:col-span-2"
+                        : "min-w-0 rounded-lg border border-white/12 bg-white/[0.07] p-4"
+                    }
+                    key={module.label}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                        {module.label}
+                      </p>
+                      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-[#ffd76b]">
+                        <Icon className="size-4" />
+                      </span>
+                    </div>
+                    <h3 className="mt-3 text-xl font-black leading-7 [word-break:keep-all]">
+                      {module.title}
+                    </h3>
+                    <p className="mt-2 text-sm font-semibold leading-6 text-white/58">
+                      {module.body}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </LandingReveal>
+        </div>
+
+        <div className="mt-6 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <LandingReveal
+            className="rounded-lg border border-white/12 bg-white/[0.06] p-4"
+            delay={160}
+            variant="soft"
+          >
+            <p className="text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#7cff98]">
+              {copy.portalStrategy.proofLabel}
+            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {featuredReports.map((report, index) => (
+                <Link
+                  className="group grid min-h-16 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-white/10 bg-black/24 px-3 py-2.5 !text-white transition hover:border-[#44f26e]/54 hover:bg-[#44f26e]/10"
+                  href={buildPathWithReferral(
+                    `/${locale}/fanletter/news/${report.reportId}`,
+                    referralCode,
+                  )}
+                  key={report.reportId}
+                >
+                  <span className="font-mono text-[0.62rem] font-black text-[#9bffad]">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-black">
+                      {getArticleDisplayTitle(report.title)}
+                    </span>
+                    <span className="mt-0.5 block truncate text-[0.58rem] font-bold text-white/38">
+                      {report.creatorName || report.reporterName}
+                    </span>
+                  </span>
+                  <ArrowRight className="size-3.5 shrink-0 text-[#44f26e]" />
+                </Link>
+              ))}
+            </div>
+          </LandingReveal>
+
+          <LandingReveal
+            className="rounded-lg border border-white/12 bg-white/[0.06] p-4"
+            delay={220}
+            variant="soft"
+          >
+            <div className="grid gap-3">
+              {copy.portalStrategy.roadmap.map((step, index) => (
+                <div
+                  className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-lg border border-white/10 bg-black/24 p-3"
+                  key={step.label}
+                >
+                  <span
+                    className={
+                      index === 0
+                        ? "flex size-11 items-center justify-center rounded-full bg-[#44f26e] font-mono text-xs font-black uppercase text-[#071108]"
+                        : "flex size-11 items-center justify-center rounded-full border border-white/16 bg-white/[0.08] font-mono text-xs font-black uppercase text-[#9bffad]"
+                    }
+                  >
+                    {step.label}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-base font-black [word-break:keep-all]">
+                      {step.title}
+                    </span>
+                    <span className="mt-1 block text-sm font-semibold leading-6 text-white/54">
+                      {step.body}
+                    </span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          </LandingReveal>
+        </div>
+
+        {featuredCharacters.length > 0 ? (
+          <LandingReveal
+            className="mt-3 grid gap-2 sm:grid-cols-3"
+            delay={260}
+            variant="soft"
+          >
+            {featuredCharacters.map((character) => {
+              const imageUrl = getCharacterProfileImages(character)[0] ?? null;
+
+              return (
+                <Link
+                  className="group grid min-w-0 grid-cols-[4.25rem_minmax(0,1fr)] items-center gap-3 rounded-lg border border-white/12 bg-white/[0.07] p-2.5 !text-white transition hover:border-[#44f26e]/60 hover:bg-[#44f26e]/10"
+                  href={buildPathWithReferral(
+                    `/${locale}/fanletter/news/characters/${character.referralCode}`,
+                    referralCode,
+                  )}
+                  key={character.referralCode}
+                >
+                  <span className="relative aspect-square overflow-hidden rounded-lg bg-black">
+                    {imageUrl ? (
+                      <Image
+                        alt=""
+                        aria-hidden="true"
+                        className="object-cover object-top transition duration-500 group-hover:scale-[1.04]"
+                        fill
+                        sizes="4.25rem"
+                        src={imageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          imageUrl,
+                        )}
+                      />
+                    ) : (
+                      <span className="flex h-full items-center justify-center text-[#44f26e]">
+                        <UserRound className="size-6" />
+                      </span>
+                    )}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-base font-black">
+                      {character.name}
+                    </span>
+                    <span className="mt-1 block truncate text-[0.58rem] font-black uppercase tracking-[0.08em] text-[#9bffad]">
+                      {formatNumber(character.newsCount, locale)}{" "}
+                      {copy.homeCharacters.news}
+                    </span>
+                  </span>
+                </Link>
+              );
+            })}
+          </LandingReveal>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
 const CHARACTER_GROWTH_SCORE_WEIGHTS = {
   news: 3,
   reporters: 5,
@@ -2225,6 +2632,18 @@ export default async function FanletterNewsPlatformPage({
         copy={copy}
         locale={locale}
         newsHref={newsHref}
+        reports={latestReports}
+        reportsHref={reportsHref}
+        teaserItems={teaserGalleryItems}
+      />
+
+      <PlatformPortalStrategy
+        characters={featuredCharacters}
+        charactersHref={charactersHref}
+        copy={copy}
+        locale={locale}
+        newsHref={newsHref}
+        referralCode={referralCode}
         reports={latestReports}
         reportsHref={reportsHref}
         teaserItems={teaserGalleryItems}
