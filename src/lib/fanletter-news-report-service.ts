@@ -28,6 +28,7 @@ import {
   getFanletterNewsArticleDisplayTitle,
   getFanletterNewsBareArticleDisplayTitle,
   getFanletterNewsDisplayDek,
+  getFanletterNewsReportPreviewImageUrl,
   isFanletterNewsLowSignalSourceTitle,
   type FanletterRelatedNewsSort,
 } from "@/lib/fanletter-news-related";
@@ -3075,7 +3076,7 @@ export async function getFanletterNewsReportDraftSourcesForMember({
           used: reportSlotUsed,
         },
         reports: contentReports.slice(0, 8).map((report) => ({
-          coverImageUrl: report.coverImageUrl ?? null,
+          coverImageUrl: getFanletterNewsReportPreviewImageUrl(report),
           createdAt: report.createdAt.toISOString(),
           dek: trimToLength(report.dek, 120),
           href: createFanletterNewsReportShareHref(report),
