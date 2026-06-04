@@ -48,6 +48,7 @@ import {
   type FanletterNewsCharacterStat,
 } from "@/lib/fanletter-news-character-directory";
 import {
+  getFanletterNewsReportsForCharacterDirectory,
   getLatestFanletterNewsReports,
   getFanletterNewsTeaserGalleryItems,
   type FanletterNewsTeaserGalleryItem,
@@ -2800,7 +2801,12 @@ export default async function FanletterNewsPlatformPage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
-  const [landingData, latestReports, teaserGalleryItems] = await Promise.all([
+  const [
+    landingData,
+    latestReports,
+    teaserGalleryItems,
+    characterDirectoryReports,
+  ] = await Promise.all([
     getFanletterLandingData(locale, false),
     getLatestFanletterNewsReports({
       contentMaturityRating: "general",
@@ -2812,6 +2818,7 @@ export default async function FanletterNewsPlatformPage({
       limit: 8,
       locale,
     }),
+    getFanletterNewsReportsForCharacterDirectory({ locale }),
   ]);
   const latestReportById = new Map(
     latestReports.map((report) => [report.reportId, report] as const),
@@ -2846,8 +2853,13 @@ export default async function FanletterNewsPlatformPage({
     ),
   ];
   const featuredReports = getRepresentativeReports(featuredReportCandidates, 6);
+  const characterCandidateReports = characterDirectoryReports.filter(
+    (report) => report.contentMaturityRating === "general",
+  );
   const featuredCharacters = await hydrateFanletterNewsCharacterStats(
-    getFanletterNewsCharacterStats(latestReports, 6, { sort: "discovery" }),
+    getFanletterNewsCharacterStats(characterCandidateReports, 6, {
+      sort: "discovery",
+    }),
     { limit: 4, sort: "discovery" },
   );
   const platformMomentumStats: FanletterNewsPlatformMomentumStat[] = [
