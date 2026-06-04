@@ -1374,15 +1374,16 @@ function getSourceRevealParticipantSlots({
   const shouldShowViewerSlot =
     canShowViewerSlot &&
     isLoggedIn &&
+    state.requestedByViewer &&
     !hasViewerParticipant &&
     !state.unlocked &&
-    (!state.requestedByViewer || slots.length < threshold);
+    slots.length < threshold;
 
   if (shouldShowViewerSlot && slots.length < threshold) {
     slots.push({
       avatarImageUrl: viewerAvatarImageUrl,
       displayName: viewerDisplayName,
-      kind: state.requestedByViewer ? "participant" : "viewer",
+      kind: "participant",
       position: slots.length + 1,
       referralCode: viewerReferralCode,
     });
@@ -2440,11 +2441,36 @@ function FeedSlide({
 
   useEffect(() => {
     setSourceRevealState(item.sourceReveal);
+    setSourceOverlaySource((currentSource) =>
+      currentSource
+        ? {
+            ...currentSource,
+            sourceReveal: item.sourceReveal,
+          }
+        : currentSource,
+    );
     setSourceRevealError(null);
     setLoginSyncError(null);
     pendingVoteAfterLoginRef.current = false;
     loginSyncKeyRef.current = null;
   }, [item.sourceReveal]);
+
+  useEffect(() => {
+    if (
+      !sourceOverlayOpen ||
+      sourceOverlaySource?.accessState !== "source_reveal_locked" ||
+      !sourceRevealState.unlocked
+    ) {
+      return;
+    }
+
+    void loadSourceOverlay();
+  }, [
+    loadSourceOverlay,
+    sourceOverlayOpen,
+    sourceOverlaySource?.accessState,
+    sourceRevealState.unlocked,
+  ]);
 
   useEffect(() => {
     if (
@@ -2555,6 +2581,19 @@ function FeedSlide({
   const updateSourceReveal = useCallback(
     (nextState: FanletterNewsSourceRevealState) => {
       setSourceRevealState(nextState);
+      setSourceOverlaySource((currentSource) =>
+        currentSource
+          ? {
+              ...currentSource,
+              sourceReveal: nextState,
+            }
+          : currentSource,
+      );
+
+      if (nextState.unlocked && sourceOverlayOpen) {
+        void loadSourceOverlay();
+      }
+
       window.dispatchEvent(
         new CustomEvent<FanletterNewsSourceRevealStateChangeDetail>(
           FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
@@ -2568,7 +2607,7 @@ function FeedSlide({
         ),
       );
     },
-    [report.reportId, sourceRevealEndpoint],
+    [loadSourceOverlay, report.reportId, sourceOverlayOpen, sourceRevealEndpoint],
   );
 
   const submitSourceRevealVote = useCallback(async ({
