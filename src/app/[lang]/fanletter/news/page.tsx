@@ -39,6 +39,7 @@ import {
 } from "@/lib/fanletter-nsfw";
 import {
   getFanletterNewsBareArticleDisplayTitle as getArticleDisplayTitle,
+  getFanletterNewsReportPreviewImageUrl,
 } from "@/lib/fanletter-news-related";
 import {
   getFanletterNewsVlogManageHref,
@@ -739,7 +740,7 @@ async function hydrateReporterStats(reporters: ReporterStat[]) {
 function NewsImage({
   blurred = false,
   className,
-  imageClassName = "object-cover",
+  imageClassName = "object-contain object-center",
   nsfwLabel,
   optimizeImage = false,
   priority = false,
@@ -755,27 +756,42 @@ function NewsImage({
   report: FanletterNewsReportDocument;
   sizes: string;
 }) {
+  const imageUrl = getFanletterNewsReportPreviewImageUrl(report);
+  const shouldBypassImageOptimization = imageUrl
+    ? !optimizeImage && shouldBypassFanletterImageOptimization(imageUrl)
+    : false;
+
   return (
     <div className={`relative overflow-hidden bg-[#0d120f] ${className ?? ""}`}>
-      {report.coverImageUrl ? (
-        <Image
-          alt=""
-          aria-hidden="true"
-          className={
-            blurred
-              ? `scale-[1.06] blur-md brightness-[0.68] saturate-[0.86] ${imageClassName}`
-              : imageClassName
-          }
-          fill
-          loading={priority ? "eager" : undefined}
-          priority={priority}
-          sizes={sizes}
-          src={report.coverImageUrl}
-          unoptimized={
-            !optimizeImage &&
-            shouldBypassFanletterImageOptimization(report.coverImageUrl)
-          }
-        />
+      {imageUrl ? (
+        <>
+          <Image
+            alt=""
+            aria-hidden="true"
+            className="scale-110 object-cover object-center opacity-[0.56] blur-xl brightness-[0.5] saturate-[0.92]"
+            fill
+            loading={priority ? "eager" : undefined}
+            priority={priority}
+            sizes={sizes}
+            src={imageUrl}
+            unoptimized={shouldBypassImageOptimization}
+          />
+          <Image
+            alt=""
+            aria-hidden="true"
+            className={
+              blurred
+                ? `blur-md brightness-[0.68] saturate-[0.86] ${imageClassName}`
+                : imageClassName
+            }
+            fill
+            loading={priority ? "eager" : undefined}
+            priority={priority}
+            sizes={sizes}
+            src={imageUrl}
+            unoptimized={shouldBypassImageOptimization}
+          />
+        </>
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(145deg,#07100b,#111510_52%,#24372a)] text-[#44f26e]">
           <Newspaper className="size-12" />
@@ -2404,6 +2420,8 @@ function NewsCharacterDirectory({
     referralCode ?? featuredCharacter.referralCode,
   );
   const featuredReport = featuredCharacter.representativeReport;
+  const featuredReportImageUrl =
+    getFanletterNewsReportPreviewImageUrl(featuredReport);
   const featuredLatestReportAt = formatDate(
     featuredCharacter.latestReportAt,
     locale,
@@ -2440,18 +2458,31 @@ function NewsCharacterDirectory({
           className="group relative min-h-[25rem] overflow-hidden bg-[#111510] text-white lg:min-h-full"
           href={featuredChannelHref}
         >
-          {featuredReport.coverImageUrl ? (
-            <Image
-              alt=""
-              aria-hidden="true"
-              className="object-cover opacity-64 transition duration-300 group-hover:scale-[1.025] group-hover:opacity-72"
-              fill
-              sizes="(max-width: 1024px) 100vw, 40rem"
-              src={featuredReport.coverImageUrl}
-              unoptimized={shouldBypassFanletterImageOptimization(
-                featuredReport.coverImageUrl,
-              )}
-            />
+          {featuredReportImageUrl ? (
+            <>
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="scale-110 object-cover object-center opacity-[0.54] blur-xl brightness-[0.48] saturate-[0.92] transition duration-300 group-hover:scale-[1.14]"
+                fill
+                sizes="(max-width: 1024px) 100vw, 40rem"
+                src={featuredReportImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(
+                  featuredReportImageUrl,
+                )}
+              />
+              <Image
+                alt=""
+                aria-hidden="true"
+                className="object-contain object-center opacity-80 transition duration-300 group-hover:scale-[1.02] group-hover:opacity-90"
+                fill
+                sizes="(max-width: 1024px) 100vw, 40rem"
+                src={featuredReportImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(
+                  featuredReportImageUrl,
+                )}
+              />
+            </>
           ) : (
             <div className="absolute inset-0 bg-[linear-gradient(145deg,#07100b,#111510_52%,#203426)]" />
           )}
