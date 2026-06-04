@@ -140,6 +140,18 @@ function formatUsdt(value: number, locale: Locale) {
   }).format(value)} USDT`;
 }
 
+function formatPercent(numerator: number, denominator: number, locale: Locale) {
+  if (denominator <= 0 || numerator <= 0) {
+    return "0%";
+  }
+
+  const value = (numerator / denominator) * 100;
+
+  return `${new Intl.NumberFormat(locale, {
+    maximumFractionDigits: value < 10 ? 1 : 0,
+  }).format(value)}%`;
+}
+
 function formatDateTime(value: string, locale: Locale) {
   const date = new Date(value);
 
@@ -281,24 +293,30 @@ export default async function LocalizedFanletterNewsReporterRewardsPage({
     ),
     { returnTo: myHref },
   );
+  const overviewViewCount =
+    summary.overview.reportViewCount + summary.overview.cutViewCount;
   const statItems = [
     {
       detail:
         locale === "ko"
-          ? `${formatNumber(
-              summary.overview.reportViewCount + summary.overview.cutViewCount,
+          ? `${formatNumber(overviewViewCount, locale)}회 조회 · 원본 ${formatPercent(
+              summary.overview.sourceOpenClickCount,
+              overviewViewCount,
               locale,
-            )}회 조회 · ${formatNumber(
-              summary.overview.shareClickCount,
+            )} · 구매의도 ${formatPercent(
+              summary.overview.paidUnlockClickCount,
+              overviewViewCount,
               locale,
-            )}회 공유`
-          : `${formatNumber(
-              summary.overview.reportViewCount + summary.overview.cutViewCount,
+            )}`
+          : `${formatNumber(overviewViewCount, locale)} views · Source ${formatPercent(
+              summary.overview.sourceOpenClickCount,
+              overviewViewCount,
               locale,
-            )} views · ${formatNumber(
-              summary.overview.shareClickCount,
+            )} · Paid intent ${formatPercent(
+              summary.overview.paidUnlockClickCount,
+              overviewViewCount,
               locale,
-            )} shares`,
+            )}`,
       icon: Eye,
       label: copy.stats.exposure,
       value: formatNumber(summary.overview.exposureSignalCount, locale),
@@ -574,6 +592,7 @@ function ReportPerformanceCard({
 }) {
   const reportHref = getReportHref(locale, report.reportId, referralCode);
   const dateLabel = formatDateTime(report.publishedAt, locale);
+  const viewCount = report.reportViewCount + report.cutViewCount;
 
   return (
     <Link
@@ -612,10 +631,7 @@ function ReportPerformanceCard({
       <div className="grid grid-cols-4 gap-2 text-center">
         <Metric
           label={locale === "ko" ? "조회" : "Views"}
-          value={formatNumber(
-            report.reportViewCount + report.cutViewCount,
-            locale,
-          )}
+          value={formatNumber(viewCount, locale)}
         />
         <Metric
           label={locale === "ko" ? "원본" : "Source"}
@@ -628,6 +644,20 @@ function ReportPerformanceCard({
         <Metric
           label={locale === "ko" ? "구매의도" : "Paid CTA"}
           value={formatNumber(report.paidUnlockClickCount, locale)}
+        />
+      </div>
+      <div className="grid grid-cols-3 gap-2 text-center">
+        <Metric
+          label={locale === "ko" ? "원본률" : "Source %"}
+          value={formatPercent(report.sourceOpenClickCount, viewCount, locale)}
+        />
+        <Metric
+          label={locale === "ko" ? "공유율" : "Share %"}
+          value={formatPercent(report.shareClickCount, viewCount, locale)}
+        />
+        <Metric
+          label={locale === "ko" ? "구매의도율" : "Paid CTA %"}
+          value={formatPercent(report.paidUnlockClickCount, viewCount, locale)}
         />
       </div>
       <div className="grid grid-cols-3 gap-2 text-center">
