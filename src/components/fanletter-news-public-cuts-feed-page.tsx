@@ -21,6 +21,7 @@ import {
 import {
   AlertTriangle,
   ArrowLeft,
+  ArrowRight,
   BookOpenCheck,
   Check,
   ChevronLeft,
@@ -161,6 +162,7 @@ function getCopy(locale: Locale) {
           currentLockedCta: "원본 공개 전 4컷 기사 작성",
           jumpCta: "공개 전 원본 찾기",
           jumpShortCta: "찾기",
+          nextCta: "다음 미작성 소재 작성",
           summary: (count: string) =>
             `아직 원본이 열리지 않은 소재 ${count}개를 빠르게 찾아 4컷 편집으로 이어갈 수 있습니다.`,
           title: "리포터 빠른 작성",
@@ -332,6 +334,7 @@ function getCopy(locale: Locale) {
           currentLockedCta: "Write four cuts before source opens",
           jumpCta: "Find unopened source",
           jumpShortCta: "Find",
+          nextCta: "Write next unreported source",
           summary: (count: string) =>
             `${count} unopened source candidates can be found quickly and turned into a four-cut report.`,
           title: "Reporter quick desk",
@@ -710,6 +713,7 @@ function getReportComposerHref({
     ),
     {
       contentId,
+      reportStatus: "unreported",
       returnTo: returnToHref,
       sourceReveal: "locked",
     },
@@ -2255,6 +2259,12 @@ function FeedSlide({
     referralCode,
     returnToHref: cutFeedReturnHref,
   });
+  const nextReportComposerHref = getReportComposerHref({
+    contentId: null,
+    locale,
+    referralCode,
+    returnToHref: cutFeedReturnHref,
+  });
 
   const loadSourceOverlay = useCallback(async () => {
     if (!sourceContentId) {
@@ -3207,20 +3217,36 @@ function FeedSlide({
               {publishedAt ? <span>{publishedAt}</span> : null}
             </div>
             {isReporterQuickDeskVisible && sourceContentId ? (
-              <Link
-                className="mt-3 inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full border border-[#44f26e]/34 bg-[#44f26e] px-4 py-2 text-sm font-black !text-[#111510] shadow-[0_16px_34px_rgba(0,0,0,0.28)] transition hover:bg-[#65ff87]"
-                href={reportComposerHref}
-                onClick={() => {
-                  onDismissSwipeGuide?.();
-                }}
-              >
-                <PenLine className="size-4 shrink-0" />
-                <span className="truncate">
-                  {sourceRevealState.unlocked
-                    ? copy.reporterQuickDesk.currentCta
-                    : copy.reporterQuickDesk.currentLockedCta}
-                </span>
-              </Link>
+              <div className="mt-3 flex max-w-full flex-wrap gap-2">
+                <Link
+                  className="inline-flex min-h-11 max-w-full flex-1 items-center justify-center gap-2 rounded-full border border-[#44f26e]/34 bg-[#44f26e] px-4 py-2 text-sm font-black !text-[#111510] shadow-[0_16px_34px_rgba(0,0,0,0.28)] transition hover:bg-[#65ff87] sm:flex-none"
+                  href={reportComposerHref}
+                  onClick={() => {
+                    onDismissSwipeGuide?.();
+                  }}
+                >
+                  <PenLine className="size-4 shrink-0" />
+                  <span className="truncate">
+                    {sourceRevealState.unlocked
+                      ? copy.reporterQuickDesk.currentCta
+                      : copy.reporterQuickDesk.currentLockedCta}
+                  </span>
+                </Link>
+                {isViewerReport ? (
+                  <Link
+                    className="inline-flex min-h-11 max-w-full flex-1 items-center justify-center gap-2 rounded-full border border-white/18 bg-black/44 px-4 py-2 text-sm font-black !text-white shadow-[0_16px_34px_rgba(0,0,0,0.28)] backdrop-blur transition hover:bg-white hover:!text-[#111510] sm:flex-none"
+                    href={nextReportComposerHref}
+                    onClick={() => {
+                      onDismissSwipeGuide?.();
+                    }}
+                  >
+                    <ArrowRight className="size-4 shrink-0 text-[#44f26e]" />
+                    <span className="truncate">
+                      {copy.reporterQuickDesk.nextCta}
+                    </span>
+                  </Link>
+                ) : null}
+              </div>
             ) : null}
           </div>
 
