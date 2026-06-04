@@ -159,11 +159,13 @@ function getCopy(locale: Locale) {
         reporterPublishedMetric: "발행일",
         reporterQuickDesk: {
           compactSummary: (count: string) => `공개 전 원본 ${count}개`,
-          currentCta: "이 원본으로 기사 작성",
-          currentLockedCta: "원본 공개 전 4컷 기사 작성",
+          currentCta: "공개 원본으로 4컷 리포트 작성",
+          currentLockedCta: "공개 전 4컷 선점 리포트 작성",
           jumpCta: "공개 전 원본 찾기",
           jumpShortCta: "찾기",
           nextCta: "다음 미작성 소재 작성",
+          slotFullCta: (used: string, limit: string) =>
+            `리포터 슬롯 마감 ${used}/${limit}`,
           summary: (count: string) =>
             `아직 원본이 열리지 않은 소재 ${count}개를 빠르게 찾아 4컷 편집으로 이어갈 수 있습니다.`,
           title: "리포터 빠른 작성",
@@ -338,11 +340,13 @@ function getCopy(locale: Locale) {
         reporterPublishedMetric: "Published",
         reporterQuickDesk: {
           compactSummary: (count: string) => `${count} unopened sources`,
-          currentCta: "Write from this source",
-          currentLockedCta: "Write four cuts before source opens",
+          currentCta: "Write a 4-cut report from this open source",
+          currentLockedCta: "Claim 4 cuts before source opens",
           jumpCta: "Find unopened source",
           jumpShortCta: "Find",
           nextCta: "Write next unreported source",
+          slotFullCta: (used: string, limit: string) =>
+            `Reporter slots full ${used}/${limit}`,
           summary: (count: string) =>
             `${count} unopened source candidates can be found quickly and turned into a four-cut report.`,
           title: "Reporter quick desk",
@@ -2163,7 +2167,7 @@ function FeedSlide({
   initialCutSlotNumber = null,
   initialSourceContentId = null,
   isActive,
-  isReporterQuickDeskVisible,
+  isReporterComposerCtaVisible,
   item,
   itemCount,
   locale,
@@ -2181,7 +2185,7 @@ function FeedSlide({
   initialCutSlotNumber?: number | null;
   initialSourceContentId?: string | null;
   isActive: boolean;
-  isReporterQuickDeskVisible: boolean;
+  isReporterComposerCtaVisible: boolean;
   item: SerializedFanletterNewsPublicCutFeedItem;
   itemCount: number;
   locale: Locale;
@@ -2330,6 +2334,16 @@ function FeedSlide({
     referralCode,
     returnToHref: cutFeedReturnHref,
   });
+  const reportSlotUsedLabel = formatNumber(item.reportSlot.used, locale);
+  const reportSlotLimitLabel = formatNumber(item.reportSlot.limit, locale);
+  const reportComposerCtaLabel = item.reportSlot.full
+    ? copy.reporterQuickDesk.slotFullCta(
+        reportSlotUsedLabel,
+        reportSlotLimitLabel,
+      )
+    : sourceRevealState.unlocked
+      ? copy.reporterQuickDesk.currentCta
+      : copy.reporterQuickDesk.currentLockedCta;
   const nextReportComposerHref = getReportComposerHref({
     contentId: null,
     locale,
@@ -3441,22 +3455,25 @@ function FeedSlide({
               ) : null}
               {publishedAt ? <span>{publishedAt}</span> : null}
             </div>
-            {isReporterQuickDeskVisible && sourceContentId ? (
+            {isReporterComposerCtaVisible && sourceContentId ? (
               <div className="mt-3 flex max-w-full flex-wrap gap-2">
-                <Link
-                  className="inline-flex min-h-11 max-w-full flex-1 items-center justify-center gap-2 rounded-full border border-[#44f26e]/34 bg-[#44f26e] px-4 py-2 text-sm font-black !text-[#111510] shadow-[0_16px_34px_rgba(0,0,0,0.28)] transition hover:bg-[#65ff87] sm:flex-none"
-                  href={reportComposerHref}
-                  onClick={() => {
-                    onDismissSwipeGuide?.();
-                  }}
-                >
-                  <PenLine className="size-4 shrink-0" />
-                  <span className="truncate">
-                    {sourceRevealState.unlocked
-                      ? copy.reporterQuickDesk.currentCta
-                      : copy.reporterQuickDesk.currentLockedCta}
+                {item.reportSlot.full ? (
+                  <span className="inline-flex min-h-11 max-w-full flex-1 items-center justify-center gap-2 rounded-full border border-white/18 bg-black/50 px-4 py-2 text-sm font-black text-white/76 shadow-[0_16px_34px_rgba(0,0,0,0.28)] backdrop-blur sm:flex-none">
+                    <PenLine className="size-4 shrink-0 text-[#44f26e]" />
+                    <span className="truncate">{reportComposerCtaLabel}</span>
                   </span>
-                </Link>
+                ) : (
+                  <Link
+                    className="inline-flex min-h-11 max-w-full flex-1 items-center justify-center gap-2 rounded-full border border-[#44f26e]/34 bg-[#44f26e] px-4 py-2 text-sm font-black !text-[#111510] shadow-[0_16px_34px_rgba(0,0,0,0.28)] transition hover:bg-[#65ff87] sm:flex-none"
+                    href={reportComposerHref}
+                    onClick={() => {
+                      onDismissSwipeGuide?.();
+                    }}
+                  >
+                    <PenLine className="size-4 shrink-0" />
+                    <span className="truncate">{reportComposerCtaLabel}</span>
+                  </Link>
+                )}
                 {isViewerReport ? (
                   <Link
                     className="inline-flex min-h-11 max-w-full flex-1 items-center justify-center gap-2 rounded-full border border-white/18 bg-black/44 px-4 py-2 text-sm font-black !text-white shadow-[0_16px_34px_rgba(0,0,0,0.28)] backdrop-blur transition hover:bg-white hover:!text-[#111510] sm:flex-none"
@@ -3558,7 +3575,12 @@ function getLockedReporterCandidates(
   items.forEach((item, index) => {
     const contentId = item.report.contentId.trim();
 
-    if (!contentId || item.sourceReveal.unlocked || seenContentIds.has(contentId)) {
+    if (
+      !contentId ||
+      item.reportSlot.full ||
+      item.sourceReveal.unlocked ||
+      seenContentIds.has(contentId)
+    ) {
       return;
     }
 
@@ -3875,6 +3897,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const isPublishedViewerReportEntry = Boolean(
     isPublishedReturnEntry && isVisibleItemViewerReport,
   );
+  const isReporterComposerCtaVisible = Boolean(viewerReporterReferralCode);
   const isReporterQuickDeskVisible = Boolean(
     viewerReporterReferralCode &&
       (selectedRolePreference === "reporter" || isPublishedViewerReportEntry) &&
@@ -4638,7 +4661,7 @@ export function FanletterNewsPublicCutsFeedPage({
               initialCutSlotNumber={index === 0 ? initialCutSlotNumber : null}
               initialSourceContentId={index === 0 ? sourceContentId : null}
               isActive={index === activeFeedIndex}
-              isReporterQuickDeskVisible={isReporterQuickDeskVisible}
+              isReporterComposerCtaVisible={isReporterComposerCtaVisible}
               item={item}
               itemCount={items.length}
               key={item.report.reportId}

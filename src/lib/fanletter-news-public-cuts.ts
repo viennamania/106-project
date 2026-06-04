@@ -2,6 +2,8 @@ import "server-only";
 
 import {
   createEmptyContentSocialSummary,
+  FANLETTER_NEWS_REPORT_DEFAULT_SLOT_LIMIT,
+  normalizeFanletterNewsReportSlotLimit,
   type CreatorProfileDocument,
   type FanletterNewsReportDocument,
   type FanletterNewsReportTeaserImageDocument,
@@ -11,6 +13,7 @@ import {
   getContentSourceRevealParticipants,
 } from "@/lib/content-service";
 import {
+  getContentPostsCollection,
   getCreatorProfilesCollection,
   getFanletterNewsReportsCollection,
 } from "@/lib/mongodb";
@@ -49,6 +52,12 @@ export type FanletterNewsPublicCutFeedItem = {
   cuts: FanletterNewsPublicCut[];
   leadCut: FanletterNewsPublicCut;
   report: FanletterNewsReportDocument;
+  reportSlot: {
+    full: boolean;
+    limit: number;
+    remaining: number;
+    used: number;
+  };
   sourceReveal: FanletterNewsSourceRevealState;
 };
 
@@ -304,10 +313,91 @@ export function createFanletterNewsPublicCutFeedItem(
     cuts,
     leadCut,
     report,
+    reportSlot: {
+      full: false,
+      limit: FANLETTER_NEWS_REPORT_DEFAULT_SLOT_LIMIT,
+      remaining: FANLETTER_NEWS_REPORT_DEFAULT_SLOT_LIMIT,
+      used: 0,
+    },
     sourceReveal: createFanletterNewsSourceRevealState(
       createEmptyContentSocialSummary(),
     ),
   };
+}
+
+async function hydrateFanletterNewsPublicCutFeedItemsReportSlots(
+  items: FanletterNewsPublicCutFeedItem[],
+) {
+  if (items.length === 0) {
+    return items;
+  }
+
+  const uniqueContentIds = [
+    ...new Set(
+      items
+        .map((item) => item.report.contentId.trim())
+        .filter((contentId) => contentId.length > 0),
+    ),
+  ];
+
+  if (uniqueContentIds.length === 0) {
+    return items;
+  }
+
+  const [postsCollection, reportsCollection] = await Promise.all([
+    getContentPostsCollection(),
+    getFanletterNewsReportsCollection(),
+  ]);
+  const [posts, reportSlotRows] = await Promise.all([
+    postsCollection
+      .find(
+        { contentId: { $in: uniqueContentIds } },
+        { projection: { contentId: 1, fanReportLimit: 1 } },
+      )
+      .toArray(),
+    reportsCollection
+      .aggregate<{ _id: string; count: number }>([
+        {
+          $match: {
+            contentId: { $in: uniqueContentIds },
+            status: "published",
+          },
+        },
+        {
+          $group: {
+            _id: "$contentId",
+            count: { $sum: 1 },
+          },
+        },
+      ])
+      .toArray(),
+  ]);
+  const slotLimitByContentId = new Map(
+    posts.map((post) => [
+      post.contentId,
+      normalizeFanletterNewsReportSlotLimit(post.fanReportLimit),
+    ]),
+  );
+  const slotUsedByContentId = new Map(
+    reportSlotRows.map((row) => [row._id, row.count]),
+  );
+
+  return items.map((item) => {
+    const limit =
+      slotLimitByContentId.get(item.report.contentId) ??
+      FANLETTER_NEWS_REPORT_DEFAULT_SLOT_LIMIT;
+    const used = slotUsedByContentId.get(item.report.contentId) ?? 0;
+
+    return {
+      ...item,
+      reportSlot: {
+        full: used >= limit,
+        limit,
+        remaining: Math.max(0, limit - used),
+        used,
+      },
+    };
+  });
 }
 
 async function hydrateFanletterNewsPublicCutFeedItemsSourceReveal(
@@ -420,8 +510,10 @@ async function hydrateFanletterNewsPublicCutFeedItems(
 ) {
   const sourceRevealItems =
     await hydrateFanletterNewsPublicCutFeedItemsSourceReveal(items, viewerEmail);
+  const reportSlotItems =
+    await hydrateFanletterNewsPublicCutFeedItemsReportSlots(sourceRevealItems);
 
-  return hydrateFanletterNewsPublicCutFeedItemsProfileImages(sourceRevealItems);
+  return hydrateFanletterNewsPublicCutFeedItemsProfileImages(reportSlotItems);
 }
 
 export function serializeFanletterNewsPublicCutFeedItem(
@@ -447,6 +539,7 @@ export function serializeFanletterNewsPublicCutFeedItem(
       sourcePublishedAt: item.report.sourcePublishedAt?.toISOString() ?? null,
       title: item.report.title,
     },
+    reportSlot: item.reportSlot,
     sourceReveal: item.sourceReveal,
   };
 }

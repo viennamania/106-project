@@ -51,10 +51,18 @@ export type SerializedFanletterNewsPublicCutReport = {
   title: string;
 };
 
+export type SerializedFanletterNewsPublicCutReportSlot = {
+  full: boolean;
+  limit: number;
+  remaining: number;
+  used: number;
+};
+
 export type SerializedFanletterNewsPublicCutFeedItem = {
   cuts: SerializedFanletterNewsPublicCut[];
   leadCut: SerializedFanletterNewsPublicCut;
   report: SerializedFanletterNewsPublicCutReport;
+  reportSlot: SerializedFanletterNewsPublicCutReportSlot;
   sourceReveal: FanletterNewsSourceRevealState;
 };
 
