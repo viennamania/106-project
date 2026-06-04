@@ -32,6 +32,7 @@ import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterHeroBackgroundCarousel } from "@/components/fanletter-mobile-hero-carousel";
+import { FanletterNewsPlatformInquiryForm } from "@/components/fanletter-news-platform-inquiry-form";
 import {
   FanletterNewsPlatformMomentum,
   type FanletterNewsPlatformMomentumStat,
@@ -78,6 +79,7 @@ function getCopy(locale: Locale) {
           "팬 기자가 편집한 티저 컷으로 먼저 반응을 만들고, 마음에 드는 AI 캐릭터의 원본 브이로그와 다른 뉴스, 구매 흐름까지 이어갈 수 있습니다.",
         primaryCta: "지금 뉴스 보기",
         secondaryCta: "AI 캐릭터 보기",
+        contactCta: "투자·제휴 문의",
         proofBadges: ["숏폼 노출", "리포터 4컷", "구매 기여"],
         heroStats: [
           { label: "먼저 만드는 반응", value: "4 Cuts", hint: "팬 리포터 포토 뉴스" },
@@ -236,6 +238,57 @@ function getCopy(locale: Locale) {
               body:
                 "캐릭터, 리포트, 프리뷰, 정산 이벤트가 연결될수록 플랫폼 데이터가 방어력이 됩니다.",
             },
+          ],
+        },
+        inquiryForm: {
+          asideItems: [
+            "투자 검토, 전략적 제휴, 미디어 문의를 담당자가 함께 확인합니다.",
+            "남겨주신 배경과 관심 분야를 바탕으로 후속 자료나 미팅 일정을 정리합니다.",
+            "문의가 접수되면 입력하신 이메일로 회신할 수 있도록 기록됩니다.",
+          ],
+          asideTitle: "접수 후 진행 방식",
+          body:
+            "AIAVpark의 사업 구조, 투자 검토, 제휴 가능성에 대해 남겨주세요. 페이지를 벗어나지 않고 바로 접수됩니다.",
+          emailLabel: "이메일",
+          emailPlaceholder: "name@company.com",
+          errorMessages: {
+            blocked:
+              "문의 내용에 접수할 수 없는 문구가 포함되어 있습니다. 내용을 조정해 다시 보내주세요.",
+            duplicate:
+              "같은 내용의 문의가 이미 접수되었습니다. 담당자가 확인 후 회신하겠습니다.",
+            fallback:
+              "문의 접수에 실패했습니다. 잠시 후 다시 시도해주세요.",
+            invalidEmail: "회신 가능한 이메일 주소를 입력해주세요.",
+            messageRequired: "문의 내용을 10자 이상 입력해주세요.",
+            nameRequired: "이름을 입력해주세요.",
+            rateLimited:
+              "짧은 시간 안에 여러 번 접수되었습니다. 잠시 후 다시 시도해주세요.",
+          },
+          eyebrow: "Contact",
+          messageLabel: "문의 내용",
+          messagePlaceholder:
+            "검토하고 싶은 내용, 회사 소개, 미팅 희망 일정 등을 적어주세요.",
+          nameLabel: "이름",
+          namePlaceholder: "홍길동",
+          organizationLabel: "회사/소속",
+          organizationPlaceholder: "회사명 또는 투자사명",
+          privacyCta: "약관 보기",
+          privacyNote:
+            "입력한 정보는 문의 응대와 후속 연락 목적으로만 사용되며, 처리 목적에 필요한 기간 동안 보관됩니다.",
+          responseHint:
+            "담당자가 내용을 확인한 뒤 입력하신 이메일로 회신합니다.",
+          submit: "문의 접수하기",
+          submitting: "접수 중",
+          successBody:
+            "남겨주신 연락처로 검토 후 회신하겠습니다.",
+          successTitle: "문의가 접수되었습니다.",
+          title: "투자 및 제휴 문의를 바로 남겨주세요",
+          typeLabel: "문의 유형",
+          typeOptions: [
+            { label: "투자 검토", value: "investment" },
+            { label: "전략적 제휴", value: "partnership" },
+            { label: "미디어/취재", value: "media" },
+            { label: "기타", value: "other" },
           ],
         },
         portalStrategy: {
@@ -411,6 +464,7 @@ function getCopy(locale: Locale) {
           "Fan reporters create the first reaction with teaser cuts, then readers continue into the original AI character vlog, more news, and purchase flows.",
         primaryCta: "Read news",
         secondaryCta: "AI characters",
+        contactCta: "Investor inquiry",
         proofBadges: ["Shortform exposure", "Reporter four-cuts", "Purchase assists"],
         heroStats: [
           { label: "First reaction", value: "4 Cuts", hint: "Fan-reporter photo news" },
@@ -569,6 +623,56 @@ function getCopy(locale: Locale) {
               body:
                 "Characters, reports, previews, and settlement events become more defensible as they connect.",
             },
+          ],
+        },
+        inquiryForm: {
+          asideItems: [
+            "Investment, strategic partnership, and media inquiries are reviewed by the team.",
+            "The context you share helps us prepare follow-up materials or meeting options.",
+            "Your inquiry is recorded so the team can reply through the email you provide.",
+          ],
+          asideTitle: "What happens after submission",
+          body:
+            "Leave a note about AIAVpark's business structure, investment review, or partnership potential without leaving this page.",
+          emailLabel: "Email",
+          emailPlaceholder: "name@company.com",
+          errorMessages: {
+            blocked:
+              "The message includes terms that cannot be accepted. Please revise it and try again.",
+            duplicate:
+              "The same inquiry has already been submitted. The team will review it and follow up.",
+            fallback: "Failed to submit the inquiry. Please try again shortly.",
+            invalidEmail: "Please enter a reachable email address.",
+            messageRequired: "Please enter a message with at least 10 characters.",
+            nameRequired: "Please enter your name.",
+            rateLimited:
+              "Too many inquiries were submitted in a short time. Please try again later.",
+          },
+          eyebrow: "Contact",
+          messageLabel: "Message",
+          messagePlaceholder:
+            "Share what you would like to review, your company context, or preferred meeting timing.",
+          nameLabel: "Name",
+          namePlaceholder: "Alex Kim",
+          organizationLabel: "Company",
+          organizationPlaceholder: "Company or fund name",
+          privacyCta: "View terms",
+          privacyNote:
+            "Submitted information is used only for inquiry handling and follow-up contact, and retained only as needed for that purpose.",
+          responseHint:
+            "The team will review your message and reply through the email you provide.",
+          submit: "Submit inquiry",
+          submitting: "Submitting",
+          successBody:
+            "We will review your note and follow up through the contact information provided.",
+          successTitle: "Inquiry submitted.",
+          title: "Send an investment or partnership inquiry",
+          typeLabel: "Inquiry type",
+          typeOptions: [
+            { label: "Investment review", value: "investment" },
+            { label: "Strategic partnership", value: "partnership" },
+            { label: "Media", value: "media" },
+            { label: "Other", value: "other" },
           ],
         },
         portalStrategy: {
@@ -2597,10 +2701,13 @@ export default async function FanletterNewsPlatformPage({
                 ))}
               </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-2.5 sm:mt-7 sm:flex sm:flex-row sm:gap-3">
+              <div className="mt-5 grid grid-cols-1 gap-2.5 sm:mt-7 sm:flex sm:flex-row sm:gap-3">
                 <CtaLink href={newsHref}>{copy.primaryCta}</CtaLink>
                 <CtaLink href={charactersHref} variant="secondary">
                   {copy.secondaryCta}
+                </CtaLink>
+                <CtaLink href="#platform-inquiry" variant="secondary">
+                  {copy.contactCta}
                 </CtaLink>
               </div>
 
@@ -2657,6 +2764,12 @@ export default async function FanletterNewsPlatformPage({
         reports={latestReports}
         reportsHref={reportsHref}
         teaserItems={teaserGalleryItems}
+      />
+
+      <FanletterNewsPlatformInquiryForm
+        copy={copy.inquiryForm}
+        locale={locale}
+        referralCode={referralCode}
       />
 
       <PlatformPortalStrategy

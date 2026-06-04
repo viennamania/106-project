@@ -52,6 +52,7 @@ import type {
   ContentSourceItemDocument,
   CreatorAutomationProfileDocument,
 } from "@/lib/content-automation";
+import type { FanletterNewsPlatformInquiryDocument } from "@/lib/fanletter-news-platform-inquiry";
 import type { FunnelEventDocument } from "@/lib/funnel";
 
 const globalForMongo = globalThis as typeof globalThis & {
@@ -146,6 +147,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoFanletterNewsReportsCollectionPromise?: Promise<
     Collection<FanletterNewsReportDocument>
+  >;
+  mongoFanletterNewsPlatformInquiriesCollectionPromise?: Promise<
+    Collection<FanletterNewsPlatformInquiryDocument>
   >;
   mongoCreatorAutomationProfilesCollectionPromise?: Promise<
     Collection<CreatorAutomationProfileDocument>
@@ -1236,6 +1240,34 @@ export async function getFanletterNewsReportsCollection() {
   }
 
   return globalForMongo.mongoFanletterNewsReportsCollectionPromise;
+}
+
+export async function getFanletterNewsPlatformInquiriesCollection() {
+  if (!globalForMongo.mongoFanletterNewsPlatformInquiriesCollectionPromise) {
+    globalForMongo.mongoFanletterNewsPlatformInquiriesCollectionPromise =
+      (async () => {
+        const { dbName } = getMongoConfig();
+        const client = await getMongoClient();
+        const collectionName =
+          process.env.MONGODB_FANLETTER_NEWS_PLATFORM_INQUIRIES_COLLECTION ??
+          "fanletterNewsPlatformInquiries";
+        const collection = client
+          .db(dbName)
+          .collection<FanletterNewsPlatformInquiryDocument>(collectionName);
+
+        await Promise.all([
+          collection.createIndex({ inquiryId: 1 }, { unique: true }),
+          collection.createIndex({ status: 1, createdAt: -1 }),
+          collection.createIndex({ email: 1, createdAt: -1 }),
+          collection.createIndex({ requesterFingerprint: 1, createdAt: -1 }),
+          collection.createIndex({ referralCode: 1, createdAt: -1 }),
+        ]);
+
+        return collection;
+      })();
+  }
+
+  return globalForMongo.mongoFanletterNewsPlatformInquiriesCollectionPromise;
 }
 
 export async function getFanletterVlogPlansCollection() {

@@ -149,7 +149,7 @@ function getCopy(locale: Locale) {
           "톱뉴스",
           "티저 화보",
           "리포터 컷",
-          "홈",
+          "플랫폼 구조",
           "팬 기자",
           "AI 캐릭터",
           "브이로그",
@@ -160,6 +160,18 @@ function getCopy(locale: Locale) {
         photoDesk: "포토 뉴스",
         photoDeskBody:
           "공유하기 좋은 커버와 4컷 뉴스를 포토 에디토리얼처럼 큐레이션합니다.",
+        platformPitch: {
+          body:
+            "시장 문제, 제품 루프, 수익화 흐름, 방어력을 라이브 리포트와 캐릭터 채널 데이터로 설명하는 페이지입니다.",
+          cta: "플랫폼 구조 보기",
+          eyebrow: "Investor Brief",
+          stats: {
+            characters: "캐릭터 채널",
+            previews: "원본 프리뷰",
+            reports: "공개 리포트",
+          },
+          title: "투자자와 파트너에게 보여줄 AIAVpark 사업 구조",
+        },
         producerDesk: {
           body:
             "뉴스를 보다가 PC에서 바로 리포트를 작성하거나 새 브이로그를 등록할 수 있습니다. 유입 흐름을 생산 작업으로 끊김 없이 이어갑니다.",
@@ -298,7 +310,7 @@ function getCopy(locale: Locale) {
           "Top news",
           "Teaser gallery",
           "Reporter cuts",
-          "Home",
+          "Platform",
           "Fan reporters",
           "AI characters",
           "Vlogs",
@@ -309,6 +321,18 @@ function getCopy(locale: Locale) {
         photoDesk: "Photo Desk",
         photoDeskBody:
           "A polished editorial curation of share-ready covers and four-cut news moments.",
+        platformPitch: {
+          body:
+            "A dedicated page that explains the market problem, product loop, monetization path, and moat using live reports and character-channel data.",
+          cta: "View platform structure",
+          eyebrow: "Investor Brief",
+          stats: {
+            characters: "Character channels",
+            previews: "Source previews",
+            reports: "Public reports",
+          },
+          title: "AIAVpark's business structure for investors and partners",
+        },
         producerDesk: {
           body:
             "While reading News on desktop, jump straight into report writing or new vlog registration so traffic can continue into production.",
@@ -998,6 +1022,82 @@ function ProducerQuickStartRail({
             </div>
           );
         })}
+      </div>
+    </section>
+  );
+}
+
+function InvestorPlatformEntry({
+  characterCount,
+  copy,
+  locale,
+  platformHref,
+  previewCount,
+  reportCount,
+}: {
+  characterCount: number;
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  platformHref: string;
+  previewCount: number;
+  reportCount: number;
+}) {
+  const stats = [
+    {
+      label: copy.platformPitch.stats.reports,
+      value: reportCount,
+    },
+    {
+      label: copy.platformPitch.stats.previews,
+      value: previewCount,
+    },
+    {
+      label: copy.platformPitch.stats.characters,
+      value: characterCount,
+    },
+  ];
+
+  return (
+    <section className="border-b border-black/10 bg-[#111510] text-white">
+      <div className="mx-auto grid max-w-[92rem] gap-4 px-4 py-4 sm:px-6 sm:py-5 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-center lg:px-8">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#44f26e]">
+            <FileText className="size-3.5" />
+            {copy.platformPitch.eyebrow}
+          </p>
+          <h2 className="mt-2 max-w-4xl break-words text-2xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-3xl">
+            {copy.platformPitch.title}
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-white/64">
+            {copy.platformPitch.body}
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-px bg-white/12">
+          {stats.map((stat, index) => (
+            <div
+              className={
+                index === 0
+                  ? "min-w-0 bg-[#44f26e] px-3 py-2.5 text-[#111510]"
+                  : "min-w-0 bg-white/[0.07] px-3 py-2.5"
+              }
+              key={stat.label}
+            >
+              <p className="text-xl font-black leading-none">
+                {formatNumber(stat.value, locale)}
+              </p>
+              <p className="mt-1 truncate text-[0.56rem] font-black uppercase tracking-[0.08em] opacity-70">
+                {stat.label}
+              </p>
+            </div>
+          ))}
+        </div>
+        <Link
+          className="inline-flex min-h-11 items-center justify-center gap-2 bg-white px-4 text-sm font-black !text-[#111510] transition hover:bg-[#44f26e]"
+          href={platformHref}
+        >
+          {copy.platformPitch.cta}
+          <ArrowRight className="size-4" />
+        </Link>
       </div>
     </section>
   );
@@ -2887,6 +2987,14 @@ export default async function LocalizedFanletterNewsHomePage({
         copy={copy}
         referralCode={referralCode}
         reports={reports.slice(0, 5)}
+      />
+      <InvestorPlatformEntry
+        characterCount={characterNewsStats.length}
+        copy={copy}
+        locale={locale}
+        platformHref={platformHref}
+        previewCount={portalFreePreviewReports.length}
+        reportCount={displayedNewsCount}
       />
       <ProducerQuickStartRail
         copy={copy}
