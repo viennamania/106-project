@@ -8,6 +8,7 @@ import {
   BadgeDollarSign,
   CheckCircle2,
   Coins,
+  Eye,
   FileText,
   HandHeart,
   Newspaper,
@@ -73,6 +74,7 @@ function getCopy(locale: Locale) {
           "원본 공개 달성 시 추가 보상",
         ],
         stats: {
+          exposure: "노출 신호",
           paidUnlocks: "구매 기여",
           reports: "발행 리포트",
           total: "누적 보상",
@@ -111,6 +113,7 @@ function getCopy(locale: Locale) {
           "Unlock milestone adds bonus rewards",
         ],
         stats: {
+          exposure: "Exposure signals",
           paidUnlocks: "Paid assists",
           reports: "Reports",
           total: "Total rewards",
@@ -282,6 +285,27 @@ export default async function LocalizedFanletterNewsReporterRewardsPage({
     {
       detail:
         locale === "ko"
+          ? `${formatNumber(
+              summary.overview.reportViewCount + summary.overview.cutViewCount,
+              locale,
+            )}회 조회 · ${formatNumber(
+              summary.overview.shareClickCount,
+              locale,
+            )}회 공유`
+          : `${formatNumber(
+              summary.overview.reportViewCount + summary.overview.cutViewCount,
+              locale,
+            )} views · ${formatNumber(
+              summary.overview.shareClickCount,
+              locale,
+            )} shares`,
+      icon: Eye,
+      label: copy.stats.exposure,
+      value: formatNumber(summary.overview.exposureSignalCount, locale),
+    },
+    {
+      detail:
+        locale === "ko"
           ? "보고싶어요와 공개 달성 보상 합계"
           : "Vote and unlock rewards combined",
       icon: Trophy,
@@ -388,7 +412,7 @@ export default async function LocalizedFanletterNewsReporterRewardsPage({
             <p className="mt-3 max-w-3xl text-sm font-bold leading-6 text-black/58 sm:text-base sm:leading-7">
               {copy.heroBody}
             </p>
-            <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="mt-5 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               {statItems.map((item) => {
                 const Icon = item.icon;
 
@@ -584,6 +608,27 @@ function ReportPerformanceCard({
           {report.creatorName}
           {dateLabel ? ` · ${dateLabel}` : ""}
         </p>
+      </div>
+      <div className="grid grid-cols-4 gap-2 text-center">
+        <Metric
+          label={locale === "ko" ? "조회" : "Views"}
+          value={formatNumber(
+            report.reportViewCount + report.cutViewCount,
+            locale,
+          )}
+        />
+        <Metric
+          label={locale === "ko" ? "원본" : "Source"}
+          value={formatNumber(report.sourceOpenClickCount, locale)}
+        />
+        <Metric
+          label={locale === "ko" ? "공유" : "Shares"}
+          value={formatNumber(report.shareClickCount, locale)}
+        />
+        <Metric
+          label={locale === "ko" ? "구매의도" : "Paid CTA"}
+          value={formatNumber(report.paidUnlockClickCount, locale)}
+        />
       </div>
       <div className="grid grid-cols-3 gap-2 text-center">
         <Metric

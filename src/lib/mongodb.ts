@@ -1381,6 +1381,26 @@ export async function getFunnelEventsCollection() {
         collection.createIndex({ shareId: 1, createdAt: -1 }),
         collection.createIndex({ contentId: 1, createdAt: -1 }),
         collection.createIndex({ memberEmail: 1, name: 1, createdAt: -1 }),
+        collection.createIndex({
+          "metadata.reportId": 1,
+          name: 1,
+          createdAt: -1,
+        }),
+        collection.createIndex({
+          "metadata.sourceReportId": 1,
+          name: 1,
+          createdAt: -1,
+        }),
+        collection.createIndex({
+          "metadata.reporterReferralCode": 1,
+          name: 1,
+          createdAt: -1,
+        }),
+        collection.createIndex({
+          "metadata.sourceReporterReferralCode": 1,
+          name: 1,
+          createdAt: -1,
+        }),
       ]);
 
       return collection;

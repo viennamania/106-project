@@ -12,14 +12,24 @@ import {
   type FanletterNewsReporterMember,
 } from "@/lib/fanletter-news-report-service";
 import type { Locale } from "@/lib/i18n";
-import { normalizeEmail } from "@/lib/member";
+import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
 import {
   getFanletterNewsReportsCollection,
+  getFunnelEventsCollection,
   getPointLedgerCollection,
 } from "@/lib/mongodb";
 import { serializePointLedger } from "@/lib/points";
 
 export type FanletterNewsReporterRewardCategory = "unlock" | "vote";
+
+export type FanletterNewsReporterExposureReportStats = {
+  cutViewCount: number;
+  exposureSignalCount: number;
+  paidUnlockClickCount: number;
+  reportViewCount: number;
+  shareClickCount: number;
+  sourceOpenClickCount: number;
+};
 
 export type FanletterNewsReporterRewardLedgerItem = {
   awardedAt: string;
@@ -39,10 +49,11 @@ export type FanletterNewsReporterRewardReportItem =
     publishedAt: string;
     reportId: string;
     title: string;
-  };
+  } & FanletterNewsReporterExposureReportStats;
 
 export type FanletterNewsReporterRewardsOverview =
-  FanletterNewsReporterIncentiveReportStats & {
+  FanletterNewsReporterIncentiveReportStats &
+  FanletterNewsReporterExposureReportStats & {
     reportCount: number;
     sourceRevealUnlockRewardCount: number;
     sourceRevealVoteRewardCount: number;
@@ -64,10 +75,16 @@ const REPORTER_REWARD_SOURCE_ID_QUERY =
 
 function createEmptyOverview(): FanletterNewsReporterRewardsOverview {
   return {
+    cutViewCount: 0,
+    exposureSignalCount: 0,
     paidUnlockPurchaseCount: 0,
+    paidUnlockClickCount: 0,
     paidUnlockRevenueUsdt: 0,
+    reportViewCount: 0,
     reportCount: 0,
     rewardPoints: 0,
+    shareClickCount: 0,
+    sourceOpenClickCount: 0,
     sourceRevealUnlockContributionCount: 0,
     sourceRevealUnlockRewardCount: 0,
     sourceRevealVoteCount: 0,
@@ -75,6 +92,33 @@ function createEmptyOverview(): FanletterNewsReporterRewardsOverview {
     unlockRewardPoints: 0,
     voteRewardPoints: 0,
   };
+}
+
+function createEmptyExposureStats(): FanletterNewsReporterExposureReportStats {
+  return {
+    cutViewCount: 0,
+    exposureSignalCount: 0,
+    paidUnlockClickCount: 0,
+    reportViewCount: 0,
+    shareClickCount: 0,
+    sourceOpenClickCount: 0,
+  };
+}
+
+function getExposureSignalCount({
+  cutViewCount,
+  paidUnlockClickCount,
+  reportViewCount,
+  shareClickCount,
+  sourceOpenClickCount,
+}: FanletterNewsReporterExposureReportStats) {
+  return (
+    cutViewCount +
+    paidUnlockClickCount +
+    reportViewCount +
+    shareClickCount +
+    sourceOpenClickCount
+  );
 }
 
 function parseReporterRewardSourceId(sourceId: string | null | undefined) {
@@ -124,16 +168,26 @@ function getReportPublishedAt(report: FanletterNewsReportDocument) {
 function createReportItem(
   report: FanletterNewsReportDocument,
   stats: FanletterNewsReporterIncentiveReportStats | undefined,
+  exposureStats: FanletterNewsReporterExposureReportStats | undefined,
 ): FanletterNewsReporterRewardReportItem {
+  const normalizedExposureStats =
+    exposureStats ?? createEmptyExposureStats();
+
   return {
     contentId: report.contentId,
     coverImageUrl: report.coverImageUrl ?? null,
     creatorName: report.creatorName,
+    cutViewCount: normalizedExposureStats.cutViewCount,
+    exposureSignalCount: normalizedExposureStats.exposureSignalCount,
+    paidUnlockClickCount: normalizedExposureStats.paidUnlockClickCount,
     paidUnlockPurchaseCount: stats?.paidUnlockPurchaseCount ?? 0,
     paidUnlockRevenueUsdt: stats?.paidUnlockRevenueUsdt ?? 0,
     publishedAt: getReportPublishedAt(report).toISOString(),
+    reportViewCount: normalizedExposureStats.reportViewCount,
     reportId: report.reportId,
     rewardPoints: stats?.rewardPoints ?? 0,
+    shareClickCount: normalizedExposureStats.shareClickCount,
+    sourceOpenClickCount: normalizedExposureStats.sourceOpenClickCount,
     sourceRevealUnlockContributionCount:
       stats?.sourceRevealUnlockContributionCount ?? 0,
     sourceRevealVoteCount: stats?.sourceRevealVoteCount ?? 0,
@@ -153,9 +207,157 @@ function compareReportItems(
     return b.sourceRevealVoteCount - a.sourceRevealVoteCount;
   }
 
+  if (b.exposureSignalCount !== a.exposureSignalCount) {
+    return b.exposureSignalCount - a.exposureSignalCount;
+  }
+
   return (
     new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
   );
+}
+
+async function getFanletterNewsReporterExposureStats({
+  reporterReferralCode,
+  reportIds,
+}: {
+  reporterReferralCode: string | null;
+  reportIds: string[];
+}) {
+  const normalizedReporterReferralCode =
+    normalizeReferralCode(reporterReferralCode);
+  const normalizedReportIds = [
+    ...new Set(reportIds.map((reportId) => reportId.trim()).filter(Boolean)),
+  ];
+  const reports = new Map<string, FanletterNewsReporterExposureReportStats>();
+
+  for (const reportId of normalizedReportIds) {
+    reports.set(reportId, createEmptyExposureStats());
+  }
+
+  if (!normalizedReporterReferralCode || normalizedReportIds.length === 0) {
+    return {
+      overview: createEmptyExposureStats(),
+      reports,
+    };
+  }
+
+  const rows = await (await getFunnelEventsCollection())
+    .aggregate<{
+      _id: string;
+      cutViewCount: number;
+      paidUnlockClickCount: number;
+      reportViewCount: number;
+      shareClickCount: number;
+      sourceOpenClickCount: number;
+    }>([
+      {
+        $match: {
+          name: {
+            $in: [
+              "fanletter_news_report_view",
+              "fanletter_news_cut_view",
+              "fanletter_news_source_open_click",
+              "share_click",
+              "paid_unlock_click",
+            ],
+          },
+          $or: [
+            { "metadata.reportId": { $in: normalizedReportIds } },
+            { "metadata.sourceReportId": { $in: normalizedReportIds } },
+            {
+              "metadata.reporterReferralCode": normalizedReporterReferralCode,
+            },
+            {
+              "metadata.sourceReporterReferralCode":
+                normalizedReporterReferralCode,
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          eventReportId: {
+            $cond: [
+              { $eq: ["$name", "paid_unlock_click"] },
+              "$metadata.sourceReportId",
+              "$metadata.reportId",
+            ],
+          },
+          name: 1,
+        },
+      },
+      {
+        $match: {
+          eventReportId: { $in: normalizedReportIds },
+        },
+      },
+      {
+        $group: {
+          _id: "$eventReportId",
+          cutViewCount: {
+            $sum: {
+              $cond: [{ $eq: ["$name", "fanletter_news_cut_view"] }, 1, 0],
+            },
+          },
+          paidUnlockClickCount: {
+            $sum: {
+              $cond: [{ $eq: ["$name", "paid_unlock_click"] }, 1, 0],
+            },
+          },
+          reportViewCount: {
+            $sum: {
+              $cond: [{ $eq: ["$name", "fanletter_news_report_view"] }, 1, 0],
+            },
+          },
+          shareClickCount: {
+            $sum: {
+              $cond: [{ $eq: ["$name", "share_click"] }, 1, 0],
+            },
+          },
+          sourceOpenClickCount: {
+            $sum: {
+              $cond: [
+                { $eq: ["$name", "fanletter_news_source_open_click"] },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ])
+    .toArray();
+  const overview = createEmptyExposureStats();
+
+  for (const row of rows) {
+    if (!row._id) {
+      continue;
+    }
+
+    const stats = {
+      cutViewCount: row.cutViewCount,
+      exposureSignalCount: 0,
+      paidUnlockClickCount: row.paidUnlockClickCount,
+      reportViewCount: row.reportViewCount,
+      shareClickCount: row.shareClickCount,
+      sourceOpenClickCount: row.sourceOpenClickCount,
+    };
+
+    stats.exposureSignalCount = getExposureSignalCount(stats);
+    reports.set(row._id, stats);
+    overview.cutViewCount += stats.cutViewCount;
+    overview.paidUnlockClickCount += stats.paidUnlockClickCount;
+    overview.reportViewCount += stats.reportViewCount;
+    overview.shareClickCount += stats.shareClickCount;
+    overview.sourceOpenClickCount += stats.sourceOpenClickCount;
+  }
+
+  overview.exposureSignalCount = getExposureSignalCount(overview);
+
+  return {
+    overview,
+    reports,
+  };
 }
 
 function getRewardTotal(
@@ -309,9 +511,17 @@ export async function getFanletterNewsReporterRewardsSummary({
       (report) => [report.reportId, report] as const,
     ),
   );
+  const exposureStats = await getFanletterNewsReporterExposureStats({
+    reporterReferralCode: member.referralCode,
+    reportIds: Array.from(reportsById.keys()),
+  });
   const reports = Array.from(reportsById.values())
     .map((report) =>
-      createReportItem(report, incentiveStats.reports.get(report.reportId)),
+      createReportItem(
+        report,
+        incentiveStats.reports.get(report.reportId),
+        exposureStats.reports.get(report.reportId),
+      ),
     )
     .sort(compareReportItems);
   const ledger = parsedLedger.map(({ entry, parsedSource }) => {
@@ -348,6 +558,7 @@ export async function getFanletterNewsReporterRewardsSummary({
       : Math.max(0, rewardPoints - unlockRewardPoints);
   const overview = {
     ...incentiveStats.overview,
+    ...exposureStats.overview,
     rewardPoints,
     reportCount: reporterData.maturityCounts.all,
     sourceRevealUnlockRewardCount:
