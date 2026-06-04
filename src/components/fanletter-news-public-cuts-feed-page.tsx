@@ -3589,6 +3589,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const [serviceMenuOpen, setServiceMenuOpen] = useState(false);
   const [isCutFeedHeaderVisible, setIsCutFeedHeaderVisible] = useState(true);
   const [isRoleShortcutVisible, setIsRoleShortcutVisible] = useState(true);
+  const [isPublishedReturnEntry, setIsPublishedReturnEntry] = useState(false);
   const [visibleFeedIndex, setVisibleFeedIndex] = useState(0);
   const [reporterPanelRequest, setReporterPanelRequest] = useState<{
     id: number;
@@ -3725,9 +3726,12 @@ export function FanletterNewsPublicCutsFeedPage({
       visibleItemReporterReferralCode &&
       viewerReporterReferralCode === visibleItemReporterReferralCode,
   );
+  const isPublishedViewerReportEntry = Boolean(
+    isPublishedReturnEntry && isVisibleItemViewerReport,
+  );
   const isReporterQuickDeskVisible = Boolean(
     viewerReporterReferralCode &&
-      selectedRolePreference === "reporter" &&
+      (selectedRolePreference === "reporter" || isPublishedViewerReportEntry) &&
       !isSharedConsumptionEntry,
   );
   const isVloggerDeskVisible = selectedRolePreference === "vlogger";
@@ -3737,6 +3741,12 @@ export function FanletterNewsPublicCutsFeedPage({
         referralCode,
       )
     : vlogsHref;
+  const publishedReturnNextReportHref = getReportComposerHref({
+    contentId: null,
+    locale,
+    referralCode,
+    returnToHref: buildPathWithReferral(`/${locale}/fanletter/news/cuts`, referralCode),
+  });
   const lockedReporterCandidateCount = useMemo(
     () => getLockedReporterCandidates(items).length,
     [items],
@@ -3759,6 +3769,16 @@ export function FanletterNewsPublicCutsFeedPage({
       )?.index ?? lockedReporterCandidates[0]?.index ?? -1
     );
   }, [lockedReporterCandidates, visibleFeedIndex]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    setIsPublishedReturnEntry(
+      new URLSearchParams(window.location.search).get("published") === "1",
+    );
+  }, []);
   const firstSlideCutCount = items[0] ? getPublicCutItemCutCount(items[0]) : 0;
   const shouldOfferEntrySwipeGuide = Boolean(
     (shareId || excludeReportId) && firstSlideCutCount > 1,
@@ -4332,25 +4352,35 @@ export function FanletterNewsPublicCutsFeedPage({
                   </p>
                 </div>
               </div>
-              <button
-                aria-label={copy.reporterQuickDesk.jumpCta}
-                className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-white px-4 text-xs font-black text-[#111510] transition hover:bg-[#44f26e]"
-                onClick={() => {
-                  const root = scrollContainerRef.current;
+              {isPublishedViewerReportEntry ? (
+                <Link
+                  aria-label={copy.reporterQuickDesk.nextCta}
+                  className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-white px-4 text-xs font-black !text-[#111510] transition hover:bg-[#44f26e]"
+                  href={publishedReturnNextReportHref}
+                >
+                  {copy.reporterQuickDesk.nextCta}
+                </Link>
+              ) : (
+                <button
+                  aria-label={copy.reporterQuickDesk.jumpCta}
+                  className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-white px-4 text-xs font-black text-[#111510] transition hover:bg-[#44f26e]"
+                  onClick={() => {
+                    const root = scrollContainerRef.current;
 
-                  if (!root || nextLockedReporterCandidateIndex < 0) {
-                    return;
-                  }
+                    if (!root || nextLockedReporterCandidateIndex < 0) {
+                      return;
+                    }
 
-                  root.scrollTo({
-                    behavior: "smooth",
-                    top: root.clientHeight * nextLockedReporterCandidateIndex,
-                  });
-                }}
-                type="button"
-              >
-                {copy.reporterQuickDesk.jumpShortCta}
-              </button>
+                    root.scrollTo({
+                      behavior: "smooth",
+                      top: root.clientHeight * nextLockedReporterCandidateIndex,
+                    });
+                  }}
+                  type="button"
+                >
+                  {copy.reporterQuickDesk.jumpShortCta}
+                </button>
+              )}
             </div>
           </div>
         </section>

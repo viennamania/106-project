@@ -595,6 +595,7 @@ function getCopy(locale: Locale) {
           moveRight: "오른쪽",
           moveUp: "위",
           nextCut: "저장 후 다음 컷",
+          publishReady: "저장 후 발행 준비",
           remove: "원본 컷으로 되돌리기",
           save: "9:16 티저 컷으로 저장",
           saved: "9:16 티저 저장됨",
@@ -949,6 +950,7 @@ function getCopy(locale: Locale) {
           moveRight: "Right",
           moveUp: "Up",
           nextCut: "Save and edit next cut",
+          publishReady: "Save and prepare publish",
           remove: "Revert to source cut",
           save: "Save 9:16 teaser cut",
           saved: "9:16 teaser saved",
@@ -3284,14 +3286,6 @@ export function FanletterNewsReportComposerPage({
     uploadCroppedReportImage,
   ]);
 
-  const saveCroppedTeaserImageAndEditNext = useCallback(async () => {
-    const saved = await saveCroppedTeaserImage();
-
-    if (saved && nextTeaserCropCutId) {
-      focusTeaserCutEditor(nextTeaserCropCutId);
-    }
-  }, [focusTeaserCutEditor, nextTeaserCropCutId, saveCroppedTeaserImage]);
-
   const editSavedTeaserImage = useCallback(
     (item: ExistingSavedTeaserItem) => {
       const sourceImageUrl = item.sourceImageUrl || item.imageUrl;
@@ -3467,9 +3461,18 @@ export function FanletterNewsReportComposerPage({
       }
 
       router.push(
-        `/${locale}/fanletter/news/cuts/${encodeURIComponent(
-          data.report.reportId,
-        )}?ref=${encodeURIComponent(reporterReferralCode)}`,
+        setRelativeSearchParams(
+          `/${locale}/fanletter/news/cuts/${encodeURIComponent(
+            data.report.reportId,
+          )}`,
+          {
+            published: isQuickComposer ? "1" : null,
+            ref: reporterReferralCode,
+            reportStatus: isQuickComposer ? "unreported" : null,
+            sourceReveal: isQuickComposer ? "opportunity" : null,
+            sort: isQuickComposer ? "recommended" : null,
+          },
+        ),
       );
     } catch (error) {
       setError(error instanceof Error ? error.message : copy.failed);
@@ -3483,6 +3486,7 @@ export function FanletterNewsReportComposerPage({
     createAutoCroppedTeaserImages,
     crop,
     getManualSelectedTeaserImages,
+    isQuickComposer,
     locale,
     normalizedReportDek,
     normalizedReportTitle,
@@ -3502,6 +3506,28 @@ export function FanletterNewsReportComposerPage({
       block: "start",
     });
   }, []);
+
+  const saveCroppedTeaserImageAndContinue = useCallback(async () => {
+    const saved = await saveCroppedTeaserImage();
+
+    if (!saved) {
+      return;
+    }
+
+    if (nextTeaserCropCutId) {
+      focusTeaserCutEditor(nextTeaserCropCutId);
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      scrollToReportSection("fanletter-report-submit");
+    });
+  }, [
+    focusTeaserCutEditor,
+    nextTeaserCropCutId,
+    saveCroppedTeaserImage,
+    scrollToReportSection,
+  ]);
 
   const handleMobileComposeAction = useCallback(() => {
     if (canSubmit && !selectedExistingReport) {
@@ -3983,12 +4009,14 @@ export function FanletterNewsReportComposerPage({
             </button>
             <button
               className="mt-2 inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[#44f26e]/40 bg-[#44f26e]/10 px-3 text-xs font-black text-[#44f26e] transition hover:bg-[#44f26e]/16 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={teaserCropStatus === "saving" || !nextTeaserCropCutId}
-              onClick={saveCroppedTeaserImageAndEditNext}
+              disabled={teaserCropStatus === "saving"}
+              onClick={saveCroppedTeaserImageAndContinue}
               type="button"
             >
               <ArrowRight className="size-3.5" />
-              {copy.teaserCrop.nextCut}
+              {nextTeaserCropCutId
+                ? copy.teaserCrop.nextCut
+                : copy.teaserCrop.publishReady}
             </button>
           </div>
         </div>
