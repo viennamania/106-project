@@ -217,24 +217,27 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
         };
       }
 
-      return environment.platform === "ios"
+      if (environment.platform === "ios") {
+        return {
+          body: "Safari 공유 버튼에서 홈 화면에 추가하면 FanLetter News와 AI 캐릭터 브이로그를 앱처럼 열 수 있습니다.",
+          copied: "복사됨",
+          copyError: "복사 실패",
+          copyLink: "링크 복사",
+          dismiss: "닫기",
+          guideSteps: [
+            "Safari 공유 버튼을 누릅니다.",
+            "\"홈 화면에 추가\"를 선택합니다.",
+            "홈 화면의 FanLetter 아이콘으로 다시 들어옵니다.",
+          ],
+          guideTitle: "iPhone 홈 화면 추가",
+          install: "방법 보기",
+          installing: "안내 확인 중",
+          title: "FanLetter를 홈 화면에 추가",
+        };
+      }
+
+      return installPrompt
         ? {
-            body: "Safari 공유 버튼에서 홈 화면에 추가하면 FanLetter News와 AI 캐릭터 브이로그를 앱처럼 열 수 있습니다.",
-            copied: "복사됨",
-            copyError: "복사 실패",
-            copyLink: "링크 복사",
-            dismiss: "닫기",
-            guideSteps: [
-              "Safari 공유 버튼을 누릅니다.",
-              "\"홈 화면에 추가\"를 선택합니다.",
-              "홈 화면의 FanLetter 아이콘으로 다시 들어옵니다.",
-            ],
-            guideTitle: "iPhone 홈 화면 추가",
-            install: "방법 보기",
-            installing: "안내 확인 중",
-            title: "FanLetter를 홈 화면에 추가",
-          }
-        : {
             body: "설치하면 FanLetter News, AI 캐릭터, 브이로그 구매 흐름을 더 빠르게 이어볼 수 있습니다.",
             copied: "복사됨",
             copyError: "복사 실패",
@@ -248,6 +251,22 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
             install: "앱 설치",
             installing: "설치 화면 여는 중",
             title: "FanLetter 앱으로 열기",
+          }
+        : {
+            body: "Chrome 메뉴에서 홈 화면에 추가하면 FanLetter News와 브이로그 제작 화면을 앱처럼 빠르게 열 수 있습니다.",
+            copied: "복사됨",
+            copyError: "복사 실패",
+            copyLink: "링크 복사",
+            dismiss: "나중에",
+            guideSteps: [
+              "Chrome 오른쪽 위 메뉴를 누릅니다.",
+              "\"앱 설치\" 또는 \"홈 화면에 추가\"를 선택합니다.",
+              "홈 화면의 FanLetter 아이콘으로 다시 들어옵니다.",
+            ],
+            guideTitle: "Android 홈 화면 추가",
+            install: "방법 보기",
+            installing: "안내 확인 중",
+            title: "FanLetter를 홈 화면에 추가",
           };
     }
 
@@ -284,24 +303,27 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
       };
     }
 
-    return environment.platform === "ios"
+    if (environment.platform === "ios") {
+      return {
+        body: "Use Safari Share, then Add to Home Screen to open FanLetter News and AI character vlogs like an app.",
+        copied: "Copied",
+        copyError: "Copy failed",
+        copyLink: "Copy link",
+        dismiss: "Close",
+        guideSteps: [
+          "Tap Safari Share.",
+          "Choose Add to Home Screen.",
+          "Return from the FanLetter icon on your Home Screen.",
+        ],
+        guideTitle: "Add on iPhone",
+        install: "View steps",
+        installing: "Checking guide",
+        title: "Add FanLetter to Home Screen",
+      };
+    }
+
+    return installPrompt
       ? {
-          body: "Use Safari Share, then Add to Home Screen to open FanLetter News and AI character vlogs like an app.",
-          copied: "Copied",
-          copyError: "Copy failed",
-          copyLink: "Copy link",
-          dismiss: "Close",
-          guideSteps: [
-            "Tap Safari Share.",
-            "Choose Add to Home Screen.",
-            "Return from the FanLetter icon on your Home Screen.",
-          ],
-          guideTitle: "Add on iPhone",
-          install: "View steps",
-          installing: "Checking guide",
-          title: "Add FanLetter to Home Screen",
-        }
-      : {
           body: "Install FanLetter to continue News, AI characters, and purchased vlogs faster.",
           copied: "Copied",
           copyError: "Copy failed",
@@ -315,8 +337,24 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
           install: "Install app",
           installing: "Opening install prompt",
           title: "Open FanLetter as an app",
+        }
+      : {
+          body: "Use Chrome's menu to add FanLetter to your Home Screen and open News or vlog creation like an app.",
+          copied: "Copied",
+          copyError: "Copy failed",
+          copyLink: "Copy link",
+          dismiss: "Maybe later",
+          guideSteps: [
+            "Open Chrome's menu.",
+            "Choose Install app or Add to Home screen.",
+            "Return from the FanLetter icon on your Home Screen.",
+          ],
+          guideTitle: "Add on Android",
+          install: "View steps",
+          installing: "Checking guide",
+          title: "Add FanLetter to Home Screen",
         };
-  }, [environment.platform, environment.restrictedInApp, locale]);
+  }, [environment.platform, environment.restrictedInApp, installPrompt, locale]);
 
   const eligibleSurface = publicSurfacePattern.test(pathname);
   const currentPath = useMemo(() => {
@@ -371,7 +409,7 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
     !environment.standalone &&
     (environment.restrictedInApp ||
       environment.platform === "ios" ||
-      (environment.platform === "android" && Boolean(installPrompt)));
+      environment.platform === "android");
 
   useEffect(() => {
     if (!isEligible || trackedViewRef.current) {
@@ -546,6 +584,19 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
     }
 
     if (!installPrompt) {
+      if (environment.platform === "android") {
+        setGuideVisible(true);
+        trackFunnelEvent("pwa_install_click", {
+          metadata: {
+            app: "fanletter",
+            platform: "android",
+            surface: "fanletter-mobile-guide",
+          },
+          referralCode,
+          shareId,
+          targetHref: currentPath,
+        });
+      }
       return;
     }
 
@@ -601,6 +652,7 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
   const canPrompt =
     environment.restrictedInApp ||
     environment.platform === "ios" ||
+    environment.platform === "android" ||
     Boolean(installPrompt);
   const showCopyLinkAction =
     environment.restrictedInApp || environment.platform === "ios";
@@ -609,7 +661,9 @@ export function FanletterPwaMobileBridge({ locale }: { locale: Locale }) {
       ? "external"
       : environment.platform === "ios"
         ? "share"
-        : "download";
+        : installPrompt
+          ? "download"
+          : "share";
 
   return (
     <aside className="fixed inset-x-3 bottom-[calc(6.15rem+env(safe-area-inset-bottom))] z-50 mx-auto max-w-md sm:bottom-5">
