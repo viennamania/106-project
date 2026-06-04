@@ -62,6 +62,8 @@ type FanletterNewsPlatformSearchParams = {
 };
 
 const HERO_IMAGE = "/landing/premium-phone.png?v=20260415";
+const MARKET_SIGNAL_ARTICLE_URL =
+  "https://biz.chosun.com/distribution/channel/2026/06/02/32FCODIXEVG3PF3GFXWKHDYPSI/";
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -150,6 +152,41 @@ function getCopy(locale: Locale) {
           sourceClip: "원본 프리뷰",
           sourcePreviews: "원본 클립",
           title: "데모가 아니라 지금 운영 중인 콘텐츠 월",
+        },
+        marketSignal: {
+          assetLabel: "라이브 증거",
+          body:
+            "K-뷰티가 제품력 다음 경쟁 축을 노출력으로 옮기고 있습니다. FanLetter News는 이 변화를 AI 캐릭터 콘텐츠에도 그대로 적용해, 발견·반응·원본 소비·구매 기여를 한 화면에서 이어줍니다.",
+          eyebrow: "Market Signal",
+          liveReports: "운영 중인 리포트",
+          source:
+            "조선비즈 2026.06.02 · ‘제품력’ 넘어 ‘노출력’ 경쟁",
+          sourceCta: "시장 기사 보기",
+          sourcePreviews: "움직이는 원본 프리뷰",
+          thesis:
+            "제품이 좋아도 먼저 발견되지 않으면 팔리지 않습니다. 이제 콘텐츠 플랫폼은 노출을 만들고, 반응을 읽고, 구매 기여를 기록해야 합니다.",
+          title: "제품력 이후의 승부처는 노출력입니다",
+          totalAssets: "노출 자산",
+          tracks: [
+            {
+              body:
+                "숏폼에서 먼저 멈춰 보게 만드는 티저 컷과 영상 프리뷰를 전면에 배치합니다.",
+              kicker: "01 Discovery",
+              title: "스크롤을 멈추는 첫 장면",
+            },
+            {
+              body:
+                "팬 리포터가 장면을 뉴스처럼 포장해 AI 캐릭터와 원본 콘텐츠에 대한 궁금증을 키웁니다.",
+              kicker: "02 Reaction",
+              title: "팬이 만드는 리포트 확산",
+            },
+            {
+              body:
+                "원본 오픈, 구매, 보상 기록까지 연결해 단순 조회수가 아닌 기여 흐름으로 설명합니다.",
+              kicker: "03 Conversion",
+              title: "구매와 정산으로 이어지는 신호",
+            },
+          ],
         },
         newsroomPreview: {
           label: "EXPOSURE ENTRY",
@@ -331,6 +368,41 @@ function getCopy(locale: Locale) {
           sourceClip: "Source preview",
           sourcePreviews: "Source clips",
           title: "A live content wall, not a static demo",
+        },
+        marketSignal: {
+          assetLabel: "Live proof",
+          body:
+            "K-beauty is shifting the next competition layer from product quality alone to exposure power. FanLetter News applies the same shift to AI character content by connecting discovery, reaction, source consumption, and purchase attribution.",
+          eyebrow: "Market Signal",
+          liveReports: "Live reports",
+          source:
+            "ChosunBiz 2026.06.02 · exposure power after product power",
+          sourceCta: "Read market article",
+          sourcePreviews: "Moving source previews",
+          thesis:
+            "Great products do not sell if they are not discovered first. Content platforms now need to create exposure, read reactions, and record purchase contribution.",
+          title: "After product power, exposure power becomes the battleground",
+          totalAssets: "Exposure assets",
+          tracks: [
+            {
+              body:
+                "Lead with teaser cuts and moving source previews that stop the shortform scroll.",
+              kicker: "01 Discovery",
+              title: "The first scene that earns attention",
+            },
+            {
+              body:
+                "Fan reporters package scenes like news, increasing curiosity for the AI character and source content.",
+              kicker: "02 Reaction",
+              title: "Reporter-led distribution",
+            },
+            {
+              body:
+                "Source opens, purchases, and rewards connect the signal beyond raw view counts.",
+              kicker: "03 Conversion",
+              title: "Signals that continue into settlement",
+            },
+          ],
         },
         newsroomPreview: {
           label: "EXPOSURE ENTRY",
@@ -874,6 +946,191 @@ function PlatformLiveContentWall({
         ) : null}
       </div>
     </div>
+  );
+}
+
+function PlatformMarketSignal({
+  characters,
+  copy,
+  locale,
+  referralCode,
+  reports,
+  teaserItems,
+}: {
+  characters: FanletterNewsCharacterStat[];
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  referralCode: string | null;
+  reports: FanletterNewsReportDocument[];
+  teaserItems: FanletterNewsTeaserGalleryItem[];
+}) {
+  const signalIcons = [Eye, FileText, WalletCards];
+  const marketTiles = teaserItems.slice(0, 6);
+  const featuredReport = reports[0] ?? null;
+  const featuredReportHref = featuredReport
+    ? buildPathWithReferral(
+        `/${locale}/fanletter/news/${featuredReport.reportId}`,
+        referralCode,
+      )
+    : buildPathWithReferral(`/${locale}/fanletter/news`, referralCode);
+  const proofStats = [
+    {
+      className: "bg-[#44f26e] text-[#071108]",
+      label: copy.marketSignal.totalAssets,
+      value: reports.length + teaserItems.length + characters.length,
+    },
+    {
+      className: "border border-[#ffd76b]/30 bg-[#ffd76b]/12 text-white",
+      label: copy.marketSignal.liveReports,
+      value: reports.length,
+    },
+    {
+      className: "border border-[#4cc9f0]/30 bg-[#4cc9f0]/12 text-white",
+      label: copy.marketSignal.sourcePreviews,
+      value: teaserItems.length,
+    },
+  ];
+
+  return (
+    <section className="relative overflow-hidden border-y border-[#44f26e]/18 bg-[#071108] text-white">
+      <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(68,242,110,0.16)_0%,rgba(7,17,8,0)_36%,rgba(76,201,240,0.13)_100%)]" />
+      <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(68,242,110,0.9),rgba(255,215,107,0.85),transparent)]" />
+      <div className="relative mx-auto grid max-w-[92rem] gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:items-start lg:px-8">
+        <LandingReveal variant="soft">
+          <p className="inline-flex items-center gap-2 text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#7cff98]">
+            <TrendingUp className="size-4" />
+            {copy.marketSignal.eyebrow}
+          </p>
+          <h2 className="mt-3 max-w-3xl text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
+            {copy.marketSignal.title}
+          </h2>
+          <p className="mt-4 max-w-2xl text-sm font-bold leading-6 text-white/66 sm:text-base sm:leading-7">
+            {copy.marketSignal.body}
+          </p>
+          <div className="mt-6 border-l-4 border-[#44f26e] bg-white/[0.07] px-4 py-4">
+            <p className="text-lg font-black leading-7 [word-break:keep-all] sm:text-2xl sm:leading-9">
+              {copy.marketSignal.thesis}
+            </p>
+            <a
+              className="mt-3 inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.12em] text-[#ffd76b] underline-offset-4 hover:underline"
+              href={MARKET_SIGNAL_ARTICLE_URL}
+              rel="noreferrer"
+              target="_blank"
+            >
+              {copy.marketSignal.source}
+              <ArrowRight className="size-3.5" />
+            </a>
+          </div>
+        </LandingReveal>
+
+        <LandingReveal className="grid gap-3" delay={120} variant="soft">
+          <div className="grid gap-2 sm:grid-cols-3">
+            {proofStats.map((stat) => (
+              <div
+                className={`min-w-0 rounded-lg p-3 shadow-[0_20px_52px_rgba(0,0,0,0.18)] ${stat.className}`}
+                key={stat.label}
+              >
+                <p className="truncate text-[0.58rem] font-black uppercase tracking-[0.12em] opacity-70">
+                  {stat.label}
+                </p>
+                <p className="mt-1 text-2xl font-black">
+                  {formatNumber(stat.value, locale)}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {marketTiles.length > 0 ? (
+            <div className="grid grid-cols-3 gap-2">
+              {marketTiles.map((item, index) => {
+                const imageUrl = getTeaserGalleryImage(item);
+                const href = buildPathWithReferral(
+                  `/${locale}/fanletter/news/${item.reportId}`,
+                  referralCode,
+                );
+
+                return (
+                  <Link
+                    className={
+                      index === 0
+                        ? "group relative col-span-2 row-span-2 aspect-[4/5] overflow-hidden rounded-lg border border-white/14 bg-black !text-white"
+                        : "group relative aspect-[4/5] overflow-hidden rounded-lg border border-white/14 bg-black !text-white"
+                    }
+                    href={href}
+                    key={`${item.reportId}:${index}`}
+                  >
+                    {imageUrl ? (
+                      <Image
+                        alt=""
+                        aria-hidden="true"
+                        className="object-cover transition duration-700 group-hover:scale-[1.045]"
+                        fill
+                        sizes={
+                          index === 0
+                            ? "(max-width: 1024px) 66vw, 34rem"
+                            : "(max-width: 1024px) 33vw, 13rem"
+                        }
+                        src={imageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          imageUrl,
+                        )}
+                      />
+                    ) : null}
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0.02)_0%,rgba(7,17,8,0.18)_42%,rgba(7,17,8,0.82)_100%)]" />
+                    <span className="absolute bottom-2 left-2 right-2 truncate text-[0.58rem] font-black uppercase tracking-[0.1em] text-white/82">
+                      {item.creatorName || item.reporterName}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : null}
+
+          <div className="grid gap-2 lg:grid-cols-3">
+            {copy.marketSignal.tracks.map((track, index) => {
+              const Icon = signalIcons[index] ?? Sparkles;
+
+              return (
+                <div
+                  className="min-w-0 rounded-lg border border-white/12 bg-white/[0.07] p-4"
+                  key={track.kicker}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="truncate text-[0.6rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                      {track.kicker}
+                    </p>
+                    <Icon className="size-4 shrink-0 text-[#ffd76b]" />
+                  </div>
+                  <h3 className="mt-3 text-lg font-black leading-6 [word-break:keep-all]">
+                    {track.title}
+                  </h3>
+                  <p className="mt-2 text-sm font-semibold leading-6 text-white/56">
+                    {track.body}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          {featuredReport ? (
+            <Link
+              className="group grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-[#44f26e]/32 bg-[#44f26e]/12 px-4 py-3 !text-white transition hover:border-[#44f26e]/72 hover:bg-[#44f26e]/18"
+              href={featuredReportHref}
+            >
+              <span className="min-w-0">
+                <span className="block text-[0.58rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                  {copy.marketSignal.assetLabel}
+                </span>
+                <span className="mt-1 block truncate text-base font-black">
+                  {getArticleDisplayTitle(featuredReport.title)}
+                </span>
+              </span>
+              <ArrowRight className="size-5 shrink-0 text-[#44f26e] transition group-hover:translate-x-0.5" />
+            </Link>
+          ) : null}
+        </LandingReveal>
+      </div>
+    </section>
   );
 }
 
@@ -1625,6 +1882,15 @@ export default async function FanletterNewsPlatformPage({
         locale={locale}
         referralCode={referralCode}
         reports={featuredReports}
+      />
+
+      <PlatformMarketSignal
+        characters={featuredCharacters}
+        copy={copy}
+        locale={locale}
+        referralCode={referralCode}
+        reports={latestReports}
+        teaserItems={teaserGalleryItems}
       />
 
       <section className="mx-auto max-w-[92rem] px-4 py-9 sm:px-6 sm:py-12 lg:px-8">
