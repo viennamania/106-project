@@ -171,24 +171,27 @@ function getCopy(locale: Locale) {
         reporterSourceMetric: "원본 오픈",
         retry: "다시 시도",
         serviceCharacters: "AI 캐릭터",
-        serviceCharactersHint: "IP 채널",
-        serviceHome: "홈 피드",
-        serviceHomeHint: "4컷 피드",
+        serviceCharactersHint: "캐릭터 채널",
+        serviceHome: "4컷 피드",
+        serviceHomeHint: "홈",
         serviceMenu: "탐색",
         serviceMenuClose: "탐색 닫기",
         serviceMenuTitle: "AIAVpark News",
         serviceMy: "마이",
         serviceMyHint: "활동·보상",
         serviceNewsroom: "뉴스룸",
-        serviceNewsroomHint: "리포트 편집판",
+        serviceNewsroomHint: "전체 리포트",
         servicePurchases: "구매함",
-        servicePurchasesHint: "팬 전용",
+        servicePurchasesHint: "구매 콘텐츠",
         serviceReportNew: "리포트 작성",
-        serviceReportNewHint: "팬 기자",
+        serviceReportNewHint: "작성 시작",
         serviceReporters: "팬 기자",
-        serviceReportersHint: "리포터 채널",
-        serviceVlogNew: "새 브이로그",
-        serviceVlogNewHint: "브이로거",
+        serviceReportersHint: "기자 채널",
+        serviceSectionCreate: "만들기",
+        serviceSectionExplore: "탐색",
+        serviceSectionMine: "내 활동",
+        serviceVlogNew: "브이로그 등록",
+        serviceVlogNewHint: "등록 시작",
         vloggerDesk: {
           characterCta: "이 캐릭터 원본 보기",
           characterShortCta: "원본",
@@ -202,7 +205,7 @@ function getCopy(locale: Locale) {
           title: "브이로거 제작 바로가기",
         },
         serviceVlogs: "원본 브이로그",
-        serviceVlogsHint: "공개 영상",
+        serviceVlogsHint: "공개·팬 전용",
         share: "공유하기",
         shareCopied: "링크가 복사되었습니다",
         shareError: "공유할 수 없습니다",
@@ -346,24 +349,27 @@ function getCopy(locale: Locale) {
         reporterSourceMetric: "Source open",
         retry: "Retry",
         serviceCharacters: "AI Characters",
-        serviceCharactersHint: "IP channels",
-        serviceHome: "Home Feed",
-        serviceHomeHint: "4-cut feed",
+        serviceCharactersHint: "Character channels",
+        serviceHome: "4-Cut Feed",
+        serviceHomeHint: "Home",
         serviceMenu: "Explore",
         serviceMenuClose: "Close explore",
         serviceMenuTitle: "AIAVpark News",
         serviceMy: "My",
         serviceMyHint: "Activity",
         serviceNewsroom: "Newsroom",
-        serviceNewsroomHint: "Report edit",
+        serviceNewsroomHint: "All reports",
         servicePurchases: "Purchases",
-        servicePurchasesHint: "Fan-only",
+        servicePurchasesHint: "Paid content",
         serviceReportNew: "Write Report",
-        serviceReportNewHint: "Reporter",
+        serviceReportNewHint: "Start writing",
         serviceReporters: "Fan Reporters",
         serviceReportersHint: "Reporter channels",
-        serviceVlogNew: "New Vlog",
-        serviceVlogNewHint: "Vlogger",
+        serviceSectionCreate: "Create",
+        serviceSectionExplore: "Explore",
+        serviceSectionMine: "My Activity",
+        serviceVlogNew: "Upload Vlog",
+        serviceVlogNewHint: "Start upload",
         vloggerDesk: {
           characterCta: "View this character's sources",
           characterShortCta: "Sources",
@@ -377,7 +383,7 @@ function getCopy(locale: Locale) {
           title: "Vlogger production shortcut",
         },
         serviceVlogs: "Source Vlogs",
-        serviceVlogsHint: "Public videos",
+        serviceVlogsHint: "Public & fan-only",
         share: "Share",
         shareCopied: "Link copied to clipboard",
         shareError: "Could not share",
@@ -653,6 +659,9 @@ type CutFeedServiceMenuCopy = Pick<
   | "serviceMenu"
   | "serviceMenuClose"
   | "serviceMenuTitle"
+  | "serviceSectionCreate"
+  | "serviceSectionExplore"
+  | "serviceSectionMine"
 >;
 
 type CutFeedServiceMenuItem = {
@@ -661,6 +670,11 @@ type CutFeedServiceMenuItem = {
   label: string;
   secondaryLabel: string;
   primary?: boolean;
+};
+
+type CutFeedServiceMenuGroup = {
+  items: CutFeedServiceMenuItem[];
+  label: string;
 };
 
 function isSourceRevealResponse(value: unknown): value is SourceRevealResponse {
@@ -980,11 +994,11 @@ function CutFeedShareButton({
 
 function CutFeedServiceMenuSheet({
   copy,
-  items,
+  groups,
   onClose,
 }: {
   copy: CutFeedServiceMenuCopy;
-  items: CutFeedServiceMenuItem[];
+  groups: CutFeedServiceMenuGroup[];
   onClose: () => void;
 }) {
   return (
@@ -1013,59 +1027,68 @@ function CutFeedServiceMenuSheet({
           </div>
           <button
             aria-label={copy.serviceMenuClose}
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white transition hover:bg-white hover:text-[#111510]"
+            className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-white/12 bg-white/8 text-white transition hover:bg-white hover:text-[#111510]"
             onClick={onClose}
             type="button"
           >
             <X className="size-5" />
           </button>
         </div>
-        <div className="grid max-h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_6.5rem)] grid-cols-2 gap-2 overflow-y-auto p-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {items.map((item) => {
-            const Icon = item.icon;
+        <div className="max-h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_6.75rem)] space-y-4 overflow-y-auto p-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {groups.map((group) => (
+            <section aria-label={group.label} key={group.label}>
+              <h3 className="px-1 pb-1.5 text-[0.68rem] font-black uppercase tracking-[0.14em] text-white/45">
+                {group.label}
+              </h3>
+              <div className="grid grid-cols-2 gap-2">
+                {group.items.map((item) => {
+                  const Icon = item.icon;
 
-            return (
-              <Link
-                className={`group flex min-h-[4.15rem] items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition ${
-                  item.primary
-                    ? "border-[#44f26e]/34 bg-[#44f26e]/14 hover:bg-[#44f26e]"
-                    : "border-white/10 bg-white/7 hover:border-[#44f26e]/34 hover:bg-white/12"
-                }`}
-                href={item.href}
-                key={`${item.href}-${item.label}`}
-              >
-                <span
-                  className={`inline-flex size-10 shrink-0 items-center justify-center rounded-full transition ${
-                    item.primary
-                      ? "bg-[#44f26e] text-[#111510] group-hover:bg-[#111510] group-hover:text-[#44f26e]"
-                      : "bg-white/8 text-[#44f26e] group-hover:bg-[#44f26e] group-hover:text-[#111510]"
-                  }`}
-                >
-                  <Icon className="size-5" />
-                </span>
-                <span className="min-w-0">
-                  <span
-                    className={`block truncate text-sm font-black ${
-                      item.primary
-                        ? "text-white group-hover:text-[#111510]"
-                        : "text-white"
-                    }`}
-                  >
-                    {item.label}
-                  </span>
-                  <span
-                    className={`mt-0.5 block truncate text-[0.62rem] font-black uppercase tracking-[0.08em] ${
-                      item.primary
-                        ? "text-[#9bffad] group-hover:text-[#0b3518]"
-                        : "text-white/42"
-                    }`}
-                  >
-                    {item.secondaryLabel}
-                  </span>
-                </span>
-              </Link>
-            );
-          })}
+                  return (
+                    <Link
+                      className={`group flex min-h-[4.15rem] items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition ${
+                        item.primary
+                          ? "border-[#44f26e]/34 bg-[#44f26e]/14 hover:bg-[#44f26e]"
+                          : "border-white/10 bg-white/7 hover:border-[#44f26e]/34 hover:bg-white/12"
+                      }`}
+                      href={item.href}
+                      key={`${item.href}-${item.label}`}
+                    >
+                      <span
+                        className={`inline-flex size-10 shrink-0 items-center justify-center rounded-full transition ${
+                          item.primary
+                            ? "bg-[#44f26e] text-[#111510] group-hover:bg-[#111510] group-hover:text-[#44f26e]"
+                            : "bg-white/8 text-[#44f26e] group-hover:bg-[#44f26e] group-hover:text-[#111510]"
+                        }`}
+                      >
+                        <Icon className="size-5" />
+                      </span>
+                      <span className="min-w-0">
+                        <span
+                          className={`block truncate text-sm font-black ${
+                            item.primary
+                              ? "text-white group-hover:text-[#111510]"
+                              : "text-white"
+                          }`}
+                        >
+                          {item.label}
+                        </span>
+                        <span
+                          className={`mt-0.5 block truncate text-[0.62rem] font-black uppercase tracking-[0.08em] ${
+                            item.primary
+                              ? "text-[#9bffad] group-hover:text-[#0b3518]"
+                              : "text-white/42"
+                          }`}
+                        >
+                          {item.secondaryLabel}
+                        </span>
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          ))}
         </div>
       </section>
     </div>
@@ -3627,7 +3650,7 @@ export function FanletterNewsPublicCutsFeedPage({
     referralCode,
   );
   const myHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/me`,
+    `/${locale}/fanletter/news/my`,
     referralCode,
   );
   const reportsNewHref = setPathSearchParams(
@@ -3645,61 +3668,76 @@ export function FanletterNewsPublicCutsFeedPage({
     referralCode,
     returnToHref: cutFeedHomeHref,
   });
-  const serviceMenuItems: CutFeedServiceMenuItem[] = [
+  const serviceMenuGroups: CutFeedServiceMenuGroup[] = [
     {
-      href: cutFeedHomeHref,
-      icon: Home,
-      label: copy.serviceHome,
-      secondaryLabel: copy.serviceHomeHint,
-      primary: true,
+      items: [
+        {
+          href: cutFeedHomeHref,
+          icon: Home,
+          label: copy.serviceHome,
+          secondaryLabel: copy.serviceHomeHint,
+          primary: true,
+        },
+        {
+          href: newsroomHref,
+          icon: Newspaper,
+          label: copy.serviceNewsroom,
+          secondaryLabel: copy.serviceNewsroomHint,
+        },
+        {
+          href: charactersHref,
+          icon: Sparkles,
+          label: copy.serviceCharacters,
+          secondaryLabel: copy.serviceCharactersHint,
+        },
+        {
+          href: reportersHref,
+          icon: PenLine,
+          label: copy.serviceReporters,
+          secondaryLabel: copy.serviceReportersHint,
+        },
+        {
+          href: vlogsHref,
+          icon: Video,
+          label: copy.serviceVlogs,
+          secondaryLabel: copy.serviceVlogsHint,
+        },
+      ],
+      label: copy.serviceSectionExplore,
     },
     {
-      href: charactersHref,
-      icon: Sparkles,
-      label: copy.serviceCharacters,
-      secondaryLabel: copy.serviceCharactersHint,
+      items: [
+        {
+          href: purchasesHref,
+          icon: BookOpenCheck,
+          label: copy.servicePurchases,
+          secondaryLabel: copy.servicePurchasesHint,
+        },
+        {
+          href: myHref,
+          icon: UserRound,
+          label: copy.serviceMy,
+          secondaryLabel: copy.serviceMyHint,
+        },
+      ],
+      label: copy.serviceSectionMine,
     },
     {
-      href: reportersHref,
-      icon: PenLine,
-      label: copy.serviceReporters,
-      secondaryLabel: copy.serviceReportersHint,
-    },
-    {
-      href: vlogsHref,
-      icon: Video,
-      label: copy.serviceVlogs,
-      secondaryLabel: copy.serviceVlogsHint,
-    },
-    {
-      href: purchasesHref,
-      icon: BookOpenCheck,
-      label: copy.servicePurchases,
-      secondaryLabel: copy.servicePurchasesHint,
-    },
-    {
-      href: myHref,
-      icon: UserRound,
-      label: copy.serviceMy,
-      secondaryLabel: copy.serviceMyHint,
-    },
-    {
-      href: reportsNewHref,
-      icon: Plus,
-      label: copy.serviceReportNew,
-      secondaryLabel: copy.serviceReportNewHint,
-    },
-    {
-      href: vlogsNewHref,
-      icon: Video,
-      label: copy.serviceVlogNew,
-      secondaryLabel: copy.serviceVlogNewHint,
-    },
-    {
-      href: newsroomHref,
-      icon: Newspaper,
-      label: copy.serviceNewsroom,
-      secondaryLabel: copy.serviceNewsroomHint,
+      items: [
+        {
+          href: reportsNewHref,
+          icon: Plus,
+          label: copy.serviceReportNew,
+          secondaryLabel: copy.serviceReportNewHint,
+        },
+        {
+          href: vlogsNewHref,
+          icon: Video,
+          label: copy.serviceVlogNew,
+          secondaryLabel: copy.serviceVlogNewHint,
+        },
+      ],
+      label: copy.serviceSectionCreate,
     },
   ];
   const headerCountLabel = hasMore
@@ -4244,7 +4282,7 @@ export function FanletterNewsPublicCutsFeedPage({
       ? "max-h-14 translate-y-0 opacity-100"
       : "max-h-0 -translate-y-2 opacity-0"
   }`;
-  const serviceMenuButtonClassName = `pointer-events-auto group inline-flex h-10 shrink-0 items-center rounded-full border text-white shadow-[0_12px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-[background-color,border-color,color,gap,padding,transform] duration-500 ease-out hover:bg-[#44f26e] hover:text-[#111510] ${
+  const serviceMenuButtonClassName = `pointer-events-auto group inline-flex h-11 shrink-0 items-center rounded-full border text-white shadow-[0_12px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-[background-color,border-color,color,gap,padding,transform] duration-500 ease-out hover:bg-[#44f26e] hover:text-[#111510] ${
     isCutFeedHeaderExpanded
       ? "gap-2 border-[#44f26e]/28 bg-[#44f26e]/14 px-3"
       : "gap-1.5 border-white/16 bg-black/42 px-3"
@@ -4329,7 +4367,7 @@ export function FanletterNewsPublicCutsFeedPage({
       {serviceMenuOpen ? (
         <CutFeedServiceMenuSheet
           copy={copy}
-          items={serviceMenuItems}
+          groups={serviceMenuGroups}
           onClose={() => setServiceMenuOpen(false)}
         />
       ) : null}
