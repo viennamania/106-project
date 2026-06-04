@@ -44,12 +44,16 @@ import {
   getFanletterNsfwCopy,
   isFanletterNsfwOptedIn,
 } from "@/lib/fanletter-nsfw";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import {
+  normalizeFanletterReturnToPath,
+  readFanletterReferralCode,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
-import { buildPathWithReferral } from "@/lib/landing-branding";
+import { buildPathWithReferral, setPathSearchParams } from "@/lib/landing-branding";
 
 type FanletterNewsCharactersSearchParams = {
   ref?: string | string[];
+  returnTo?: string | string[];
 };
 
 function getCopy(locale: Locale) {
@@ -115,6 +119,7 @@ function getCopy(locale: Locale) {
         rankLabel: (rank: number) => `${rank}위`,
         reportLabel: "대표 리포트",
         reporters: "팬 기자",
+        returnToFeed: "4컷 피드로 돌아가기",
         spotlightFace: "캐릭터 페이스",
         signal: {
           fanOnly: "팬 전용 수요",
@@ -201,6 +206,7 @@ function getCopy(locale: Locale) {
         rankLabel: (rank: number) => `No. ${rank}`,
         reportLabel: "Lead report",
         reporters: "Fan reporters",
+        returnToFeed: "Back to 4-cut feed",
         spotlightFace: "Character face",
         signal: {
           fanOnly: "Fan-only demand",
@@ -1216,10 +1222,14 @@ export default async function LocalizedFanletterNewsCharactersPage({
     `/${locale}/fanletter/news`,
     referralCode,
   );
-  const charactersHref = buildPathWithReferral(
+  const returnToHref = normalizeFanletterReturnToPath(query.returnTo, locale);
+  const baseCharactersHref = buildPathWithReferral(
     `/${locale}/fanletter/news/characters`,
     referralCode,
   );
+  const charactersHref = returnToHref
+    ? setPathSearchParams(baseCharactersHref, { returnTo: returnToHref })
+    : baseCharactersHref;
   const purchasesHref = buildPathWithReferral(
     `/${locale}/fanletter/news/purchases`,
     referralCode,
@@ -1295,6 +1305,15 @@ export default async function LocalizedFanletterNewsCharactersPage({
       <section className="border-b border-black/20 bg-[#111510] text-white">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:grid-cols-[minmax(0,1fr)_27rem] lg:px-8 lg:py-10">
           <div>
+            {returnToHref ? (
+              <Link
+                className="mb-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/16 bg-white/[0.08] px-4 py-2 text-sm font-black !text-white transition hover:border-[#44f26e]/70 hover:bg-[#44f26e] hover:!text-black"
+                href={returnToHref}
+              >
+                <ArrowRight className="size-4 rotate-180" />
+                {copy.returnToFeed}
+              </Link>
+            ) : null}
             <p className="inline-flex items-center gap-2 bg-[#44f26e] px-3 py-1.5 text-[0.68rem] font-black uppercase tracking-[0.14em] text-black">
               <Trophy className="size-4" />
               {copy.heroEyebrow}

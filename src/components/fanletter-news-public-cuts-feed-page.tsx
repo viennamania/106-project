@@ -3727,6 +3727,9 @@ export function FanletterNewsPublicCutsFeedPage({
     `/${locale}/fanletter/news/characters`,
     referralCode,
   );
+  const returnableCharactersHref = setPathSearchParams(charactersHref, {
+    returnTo: cutFeedHomeHref,
+  });
   const reportersHref = buildPathWithReferral(
     `/${locale}/fanletter/news/reporters`,
     referralCode,
@@ -3778,7 +3781,7 @@ export function FanletterNewsPublicCutsFeedPage({
           secondaryLabel: copy.serviceNewsroomHint,
         },
         {
-          href: charactersHref,
+          href: returnableCharactersHref,
           icon: Sparkles,
           label: copy.serviceCharacters,
           secondaryLabel: copy.serviceCharactersHint,

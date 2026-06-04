@@ -283,6 +283,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
   const rewardsPath = `${basePath}/rewards`;
   const reportsPath = `${basePath}/reports`;
   const quickReportPath = `${reportsPath}/quick`;
+  const charactersPath = `${basePath}/characters`;
   const vlogsPath = `${basePath}/vlogs`;
   const walletPath = `${basePath}/wallet`;
   const vlogsManagePath = `${basePath}/vlogs/manage`;
@@ -314,6 +315,8 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     pathname === walletPath ||
     pathname.startsWith(`${walletPath}/`);
   const myHref = buildHref(myPath);
+  const isCharactersServicePath =
+    pathname === charactersPath || pathname.startsWith(`${charactersPath}/`);
   const vloggerManageHref = getFanletterNewsVlogManageHref({
     locale,
     referralCode,
@@ -339,7 +342,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
           icon: Video,
           key: "action" as const,
           label: vloggerProfile?.displayName ?? vloggerActionLabel,
-          primary: true,
+          primary: !isCharactersServicePath,
           profileBadge: vloggerProfile ? "AI" : undefined,
           profileFallback: vloggerProfile ? getProfileInitial(vloggerProfile) : null,
           profileImageUrl: vloggerProfile?.avatarImageUrl ?? null,
@@ -360,7 +363,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
             icon: PenLine,
             key: "action" as const,
             label: reporterProfile.displayName ?? reporterActionLabel,
-            primary: true,
+            primary: !isCharactersServicePath,
             profileBadge: locale === "ko" ? "기자" : "REP",
             profileFallback: getProfileInitial(reporterProfile),
             profileImageUrl: reporterProfile.avatarImageUrl,
@@ -379,7 +382,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
             icon: Video,
             key: "action" as const,
             label: locale === "ko" ? "브이로그" : "Vlogs",
-            primary: true,
+            primary: !isCharactersServicePath,
           };
   const items: FanletterNewsMobileNavItem[] = [
     {
@@ -390,11 +393,12 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
       label: locale === "ko" ? "홈" : "Home",
     },
     {
-      activePath: `${basePath}/characters`,
-      href: buildHref(`${basePath}/characters`),
+      activePath: charactersPath,
+      href: buildHref(charactersPath),
       icon: Sparkles,
       key: "characters",
       label: locale === "ko" ? "AI 캐릭터" : "AI Characters",
+      primary: isCharactersServicePath,
     },
     actionItem,
     {
