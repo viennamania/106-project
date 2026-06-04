@@ -1019,13 +1019,14 @@ function getReportDiversityKey(report: FanletterNewsReportDocument) {
   const title = getArticleDisplayTitle(report.title)
     .trim()
     .toLocaleLowerCase("en-US");
+  const contentId = report.contentId.trim();
   const creator =
     report.creatorReferralCode?.trim() ||
     report.creatorName?.trim() ||
     report.reporterName?.trim() ||
     "aiavpark";
 
-  return `${creator.toLocaleLowerCase("en-US")}:${title || report.contentId}`;
+  return `${creator.toLocaleLowerCase("en-US")}:${contentId || title || report.reportId}`;
 }
 
 function getRepresentativeReports(

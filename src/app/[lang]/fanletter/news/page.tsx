@@ -740,7 +740,7 @@ async function hydrateReporterStats(reporters: ReporterStat[]) {
 function NewsImage({
   blurred = false,
   className,
-  imageClassName = "object-contain object-center",
+  imageClassName = "object-cover object-center",
   nsfwLabel,
   optimizeImage = false,
   priority = false,
@@ -768,7 +768,7 @@ function NewsImage({
           <Image
             alt=""
             aria-hidden="true"
-            className="scale-110 object-cover object-center opacity-[0.56] blur-xl brightness-[0.5] saturate-[0.92]"
+            className="scale-125 object-cover object-center opacity-[0.62] blur-2xl brightness-[0.62] saturate-[0.95]"
             fill
             loading={priority ? "eager" : undefined}
             priority={priority}
@@ -2463,7 +2463,7 @@ function NewsCharacterDirectory({
               <Image
                 alt=""
                 aria-hidden="true"
-                className="scale-110 object-cover object-center opacity-[0.54] blur-xl brightness-[0.48] saturate-[0.92] transition duration-300 group-hover:scale-[1.14]"
+                className="scale-125 object-cover object-center opacity-[0.62] blur-2xl brightness-[0.62] saturate-[0.95] transition duration-300 group-hover:scale-[1.3]"
                 fill
                 sizes="(max-width: 1024px) 100vw, 40rem"
                 src={featuredReportImageUrl}
@@ -2474,7 +2474,7 @@ function NewsCharacterDirectory({
               <Image
                 alt=""
                 aria-hidden="true"
-                className="object-contain object-center opacity-80 transition duration-300 group-hover:scale-[1.02] group-hover:opacity-90"
+                className="object-cover object-center opacity-90 transition duration-300 group-hover:scale-[1.03] group-hover:opacity-100"
                 fill
                 sizes="(max-width: 1024px) 100vw, 40rem"
                 src={featuredReportImageUrl}
