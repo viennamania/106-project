@@ -214,31 +214,31 @@ function getCopy(locale: Locale) {
           `팬 기자 ${reporterName}가 고른 ${headline} 4컷을 확인해보세요.`,
         shareTitle: (headline: string) => `팬 기자가 편집한 4컷: ${headline}`,
         slot: (index: string) => `컷 ${index}`,
-        sourceOpen: "팬 오픈 투표",
-        sourceOpenCta: "원본 열기",
+        sourceOpen: "보고싶어요",
+        sourceOpenCta: "보고싶어요",
         sourceOpenCompleteSummary: (count: string, threshold: string) =>
           `${count}/${threshold}명 참여 완료`,
         sourceOpenDone: "원본 공개 완료",
-        sourceOpenSponsors: "오픈 스폰서",
-        sourceOpenSponsorsAnonymous: "익명 오픈 스폰서",
-        sourceOpenSponsorsClose: "오픈 스폰서 닫기",
+        sourceOpenSponsors: "보고싶어요 참여자",
+        sourceOpenSponsorsAnonymous: "익명 참여자",
+        sourceOpenSponsorsClose: "참여자 닫기",
         sourceOpenSponsorsCompletedA11y: (count: string) =>
-          `오픈 스폰서 ${count}명`,
+          `보고싶어요 참여자 ${count}명`,
         sourceOpenSponsorsCompletedBody:
-          "이 팬들이 원본 브이로그를 공개했습니다.",
-        sourceOpenSponsorsCompletedStatus: "오픈 완료",
-        sourceOpenSponsorsCompletedTitle: "오픈 스폰서 6명",
+          "이 팬들의 보고싶어요로 원본 브이로그가 공개됐습니다.",
+        sourceOpenSponsorsCompletedStatus: "공개 완료",
+        sourceOpenSponsorsCompletedTitle: "6명이 보고싶어요",
         sourceOpenSponsorsEmptySlot: (position: string) =>
-          `빈 오픈 스폰서 슬롯 ${position}`,
+          `보고싶어요 대기 슬롯 ${position}`,
         sourceOpenSponsorsIntro:
-          "6명의 오픈 스폰서가 모이면 원본 브이로그가 공개됩니다. 참여하면 선공개와 영구 크레딧을 받습니다.",
+          "6명이 보고싶어요를 누르면 원본 브이로그가 공개됩니다. 참여하면 선공개와 영구 크레딧을 받습니다.",
         sourceOpenSponsorsJoined: (count: string, remaining: string) =>
-          `오픈 스폰서 ${count}명 참여, ${remaining}명 남음`,
-        sourceOpenSponsorsListTitle: "오픈 스폰서 슬롯",
+          `보고싶어요 ${count}명 참여, ${remaining}명 남음`,
+        sourceOpenSponsorsListTitle: "보고싶어요 참여 현황",
         sourceOpenSponsorsOpenA11y: (count: string, remaining: string) =>
-          `오픈 스폰서 ${count}명 참여, ${remaining}명 남음`,
+          `보고싶어요 ${count}명 참여, ${remaining}명 남음`,
         sourceOpenSponsorsParticipant: (name: string) =>
-          `오픈 스폰서 ${name}`,
+          `보고싶어요 참여자 ${name}`,
         sourceOpenSponsorsRemaining: (remaining: string) =>
           `${remaining}명 남음`,
         sourceOpenStatus: (
@@ -252,14 +252,15 @@ function getCopy(locale: Locale) {
         sourceOverlayPlay: "재생하기",
         sourceOverlayTitle: "원본 브이로그",
         sourcePreviewBody:
-          "6명의 오픈 스폰서가 모이면 전체 원본 브이로그가 공개됩니다.",
+          "6명이 보고싶어요를 누르면 전체 원본 브이로그가 공개됩니다.",
         sourcePreviewEyebrow: "원본 프리뷰",
         sourcePreviewJoinedBody: (remaining: string) =>
           `참여가 반영되었습니다. ${remaining}명만 더 참여하면 원본이 열리고, 내 참여 기록도 남습니다.`,
         sourcePreviewJoinedTitle: "참여 완료 · 공개까지 이어집니다",
-        sourcePreviewJoinCta: "오픈 스폰서로 참여",
+        sourcePreviewJoinCta: "보고싶어요 참여",
         sourcePreviewLoginCta: "로그인하고 참여",
-        sourcePreviewTitle: "프리뷰를 보고 원본 열기에 참여하세요",
+        sourcePreviewNextCta: "다음 보고싶어요 찾기",
+        sourcePreviewTitle: "프리뷰를 보고 보고싶어요에 참여하세요",
         sourceRevealLockedBody: (
           count: string,
           threshold: string,
@@ -393,7 +394,7 @@ function getCopy(locale: Locale) {
         shareTitle: (headline: string) => `Four cuts edited by a fan reporter: ${headline}`,
         slot: (index: string) => `Cut ${index}`,
         sourceOpen: "Fan-open vote",
-        sourceOpenCta: "Open source",
+        sourceOpenCta: "Want it",
         sourceOpenCompleteSummary: (count: string, threshold: string) =>
           `${count}/${threshold} joined`,
         sourceOpenDone: "Source open",
@@ -435,8 +436,9 @@ function getCopy(locale: Locale) {
         sourcePreviewJoinedBody: (remaining: string) =>
           `Your join was saved. ${remaining} more sponsor slots open the source, and your credit stays attached.`,
         sourcePreviewJoinedTitle: "Joined · helping open the source",
-        sourcePreviewJoinCta: "Join as open sponsor",
+        sourcePreviewJoinCta: "Join Want It",
         sourcePreviewLoginCta: "Sign in to join",
+        sourcePreviewNextCta: "Find next Want It",
         sourcePreviewTitle: "Preview it, then help open the source",
         sourceRevealLockedBody: (
           count: string,
@@ -1767,6 +1769,7 @@ type SourceOverlayCopy = Pick<
   | "sourcePreviewJoinedTitle"
   | "sourcePreviewJoinCta"
   | "sourcePreviewLoginCta"
+  | "sourcePreviewNextCta"
   | "sourcePreviewTitle"
   | "sourceRevealLockedBody"
   | "sourceRevealLockedTitle"
@@ -1845,6 +1848,7 @@ function SourceVlogFeedOverlay({
   isLoading,
   locale,
   onClose,
+  onFindNextSourceRevealCandidate,
   onRetry,
   onSourceRevealActivate,
   source,
@@ -1856,6 +1860,7 @@ function SourceVlogFeedOverlay({
   isLoading: boolean;
   locale: Locale;
   onClose: () => void;
+  onFindNextSourceRevealCandidate?: () => void;
   onRetry: () => void;
   onSourceRevealActivate: () => void;
   source: FanletterNewsPublicCutSource | null;
@@ -1917,14 +1922,26 @@ function SourceVlogFeedOverlay({
     Boolean(source?.sourceReveal.requestedByViewer) || isSourceRevealActionBusy;
   const sourceRevealDoneFeedback =
     source?.sourceReveal.requestedByViewer && !source.sourceReveal.unlocked ? (
-      <div className="rounded-2xl border border-[#44f26e]/22 bg-[#44f26e]/10 px-3 py-2.5 text-[#d9ffdf]">
-        <p className="inline-flex items-center gap-1.5 text-xs font-black">
-          <CheckCircle2 className="size-3.5" />
-          {copy.sourcePreviewJoinedTitle}
-        </p>
-        <p className="mt-1 text-[0.68rem] font-bold leading-snug text-white/72 [word-break:keep-all]">
-          {copy.sourcePreviewJoinedBody(sourceRevealRemainingLabel)}
-        </p>
+      <div className="rounded-2xl border border-[#44f26e]/22 bg-[#44f26e]/10 p-2.5 text-[#d9ffdf]">
+        <div className="px-0.5">
+          <p className="inline-flex items-center gap-1.5 text-xs font-black">
+            <CheckCircle2 className="size-3.5" />
+            {copy.sourcePreviewJoinedTitle}
+          </p>
+          <p className="mt-1 text-[0.68rem] font-bold leading-snug text-white/72 [word-break:keep-all]">
+            {copy.sourcePreviewJoinedBody(sourceRevealRemainingLabel)}
+          </p>
+        </div>
+        {onFindNextSourceRevealCandidate ? (
+          <button
+            className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[#44f26e]/28 bg-black/34 px-3 text-xs font-black text-[#9bffad] transition hover:border-[#44f26e]/60 hover:bg-[#44f26e] hover:text-[#111510]"
+            onClick={onFindNextSourceRevealCandidate}
+            type="button"
+          >
+            <ArrowRight className="size-3.5" />
+            {copy.sourcePreviewNextCta}
+          </button>
+        ) : null}
       </div>
     ) : null;
   const sourceRevealAction = source?.sourceReveal.unlocked ? null : (
@@ -2151,6 +2168,7 @@ function FeedSlide({
   itemCount,
   locale,
   onDismissSwipeGuide,
+  onFindNextSourceRevealCandidate,
   reporterPanelRequestId = 0,
   onSourceViewSlideVisible,
   referralCode,
@@ -2168,6 +2186,7 @@ function FeedSlide({
   itemCount: number;
   locale: Locale;
   onDismissSwipeGuide?: () => void;
+  onFindNextSourceRevealCandidate?: (currentIndex: number, currentContentId: string) => void;
   reporterPanelRequestId?: number;
   onSourceViewSlideVisible?: (index: number) => void;
   referralCode: string | null;
@@ -2462,6 +2481,30 @@ function FeedSlide({
       );
     }
   }, [sourceContentId]);
+
+  const findNextSourceRevealCandidate = useCallback(() => {
+    setSourceOverlayOpen(false);
+    sourceOverlayHistoryPushedRef.current = false;
+
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+
+      if (url.searchParams.get("source") === sourceContentId) {
+        url.searchParams.delete("source");
+        window.history.replaceState(
+          typeof window.history.state === "object" && window.history.state !== null
+            ? window.history.state
+            : {},
+          "",
+          `${url.pathname}${url.search}${url.hash}`,
+        );
+      }
+    }
+
+    if (sourceContentId) {
+      onFindNextSourceRevealCandidate?.(index, sourceContentId);
+    }
+  }, [index, onFindNextSourceRevealCandidate, sourceContentId]);
 
   useEffect(() => {
     const normalizedInitialSourceContentId = initialSourceContentId?.trim();
@@ -3456,6 +3499,7 @@ function FeedSlide({
           isLoading={isSourceOverlayLoading}
           locale={locale}
           onClose={closeSourceOverlay}
+          onFindNextSourceRevealCandidate={findNextSourceRevealCandidate}
           onRetry={() => void loadSourceOverlay()}
           onSourceRevealActivate={handleSourceRevealParticipation}
           source={sourceOverlaySource}
@@ -3500,6 +3544,11 @@ type LockedReporterCandidate = {
   index: number;
 };
 
+type SourceRevealCandidate = {
+  contentId: string;
+  index: number;
+};
+
 function getLockedReporterCandidates(
   items: SerializedFanletterNewsPublicCutFeedItem[],
 ) {
@@ -3518,6 +3567,47 @@ function getLockedReporterCandidates(
   });
 
   return candidates;
+}
+
+function getNextSourceRevealCandidateIndex({
+  currentContentId,
+  currentIndex,
+  items,
+}: {
+  currentContentId: string;
+  currentIndex: number;
+  items: SerializedFanletterNewsPublicCutFeedItem[];
+}) {
+  const normalizedCurrentContentId = currentContentId.trim();
+  const candidates: SourceRevealCandidate[] = [];
+  const seenContentIds = new Set<string>();
+
+  items.forEach((item, index) => {
+    const contentId = item.report.contentId.trim();
+
+    if (
+      !contentId ||
+      contentId === normalizedCurrentContentId ||
+      item.sourceReveal.unlocked ||
+      item.sourceReveal.requestedByViewer ||
+      seenContentIds.has(contentId)
+    ) {
+      return;
+    }
+
+    seenContentIds.add(contentId);
+    candidates.push({ contentId, index });
+  });
+
+  if (candidates.length <= 0) {
+    return -1;
+  }
+
+  return (
+    candidates.find((candidate) => candidate.index > currentIndex)?.index ??
+    candidates[0]?.index ??
+    -1
+  );
 }
 
 function canShowSourceViewSwipeGuide(
@@ -4017,6 +4107,41 @@ export function FanletterNewsPublicCutsFeedPage({
     selectedRolePreference,
     shareId,
   ]);
+  const handleFindNextSourceRevealCandidate = useCallback(
+    (currentIndex: number, currentContentId: string) => {
+      const root = scrollContainerRef.current;
+
+      if (!root) {
+        return;
+      }
+
+      const nextIndex = getNextSourceRevealCandidateIndex({
+        currentContentId,
+        currentIndex,
+        items,
+      });
+
+      setIsCutFeedHeaderVisible(true);
+
+      if (nextIndex >= 0) {
+        root.scrollTo({
+          behavior: "smooth",
+          top: root.clientHeight * nextIndex,
+        });
+        return;
+      }
+
+      root.scrollTo({
+        behavior: "smooth",
+        top: Math.max(0, root.scrollHeight - root.clientHeight),
+      });
+
+      if (hasMore) {
+        void loadMore();
+      }
+    },
+    [hasMore, items, loadMore],
+  );
 
   useEffect(() => {
     let animationFrameId: number | null = null;
@@ -4504,6 +4629,9 @@ export function FanletterNewsPublicCutsFeedPage({
               key={item.report.reportId}
               locale={locale}
               onDismissSwipeGuide={dismissSwipeGuide}
+              onFindNextSourceRevealCandidate={
+                handleFindNextSourceRevealCandidate
+              }
               onSourceViewSlideVisible={handleSourceViewSlideVisible}
               reporterPanelRequestId={
                 reporterPanelRequest?.index === index
