@@ -6,15 +6,18 @@ import {
   ArrowRight,
   BadgeDollarSign,
   Blocks,
-  Camera,
   CheckCircle2,
   Clapperboard,
   Coins,
   Eye,
   FileText,
   HandHeart,
+  Images,
+  Layers3,
   LockKeyhole,
   Newspaper,
+  PlayCircle,
+  RadioTower,
   ShieldCheck,
   Sparkles,
   Trophy,
@@ -45,6 +48,7 @@ import {
 import {
   getLatestFanletterNewsReports,
   getFanletterNewsTeaserGalleryItems,
+  type FanletterNewsTeaserGalleryItem,
 } from "@/lib/fanletter-news-report-service";
 import {
   getFanletterNewsBareArticleDisplayTitle as getArticleDisplayTitle,
@@ -134,6 +138,18 @@ function getCopy(locale: Locale) {
           },
           score: "IP 지수",
           title: "캐릭터 IP 성장 레이스",
+        },
+        liveStudio: {
+          characterRail: "성장 중인 AI 캐릭터",
+          eyebrow: "Live IR Showcase",
+          liveReports: "라이브 뉴스",
+          proof:
+            "현재 서비스 DB에서 불러온 공개 리포트, 원본 프리뷰, 캐릭터 채널을 IR 첫 화면에 그대로 보여줍니다.",
+          reportStack: "노출 리포트 스택",
+          signalRail: "노출 → 원본 → 구매 기여",
+          sourceClip: "원본 프리뷰",
+          sourcePreviews: "원본 클립",
+          title: "데모가 아니라 지금 운영 중인 콘텐츠 월",
         },
         newsroomPreview: {
           label: "EXPOSURE ENTRY",
@@ -303,6 +319,18 @@ function getCopy(locale: Locale) {
           },
           score: "IP score",
           title: "Character IP growth race",
+        },
+        liveStudio: {
+          characterRail: "Growing AI characters",
+          eyebrow: "Live IR Showcase",
+          liveReports: "Live news",
+          proof:
+            "Public reports, source previews, and character channels are pulled from the live service database for the IR first screen.",
+          reportStack: "Exposure report stack",
+          signalRail: "Exposure → source → purchase assist",
+          sourceClip: "Source preview",
+          sourcePreviews: "Source clips",
+          title: "A live content wall, not a static demo",
         },
         newsroomPreview: {
           label: "EXPOSURE ENTRY",
@@ -560,6 +588,292 @@ function NewsHomeReportCard({
         </div>
       </div>
     </Link>
+  );
+}
+
+function getTeaserGalleryImage(item: FanletterNewsTeaserGalleryItem) {
+  return item.teaserImageUrls[0] ?? item.coverImageUrl;
+}
+
+function getOptionalTeaserGalleryImage(
+  item: FanletterNewsTeaserGalleryItem | null | undefined,
+) {
+  return item ? getTeaserGalleryImage(item) : null;
+}
+
+function PlatformLiveContentWall({
+  characters,
+  copy,
+  locale,
+  referralCode,
+  reports,
+  teaserItems,
+}: {
+  characters: FanletterNewsCharacterStat[];
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  referralCode: string | null;
+  reports: FanletterNewsReportDocument[];
+  teaserItems: FanletterNewsTeaserGalleryItem[];
+}) {
+  const primaryTeaser = teaserItems[0] ?? null;
+  const primaryReport =
+    (primaryTeaser
+      ? reports.find((report) => report.reportId === primaryTeaser.reportId)
+      : null) ??
+    reports[0] ??
+    null;
+  const primaryHref = primaryReport
+    ? buildPathWithReferral(
+        `/${locale}/fanletter/news/${primaryReport.reportId}`,
+        referralCode,
+      )
+    : buildPathWithReferral(`/${locale}/fanletter/news`, referralCode);
+  const primaryCoverImageUrl =
+    primaryTeaser?.coverImageUrl ??
+    primaryReport?.coverImageUrl ??
+    getOptionalTeaserGalleryImage(teaserItems[1] ?? primaryTeaser) ??
+    null;
+  const previewTiles = teaserItems.slice(0, 4);
+  const reportStack = reports.slice(0, 4);
+  const characterRail = characters.slice(0, 3);
+  const statTiles = [
+    {
+      label: copy.liveStudio.liveReports,
+      value: reports.length,
+    },
+    {
+      label: copy.liveStudio.sourcePreviews,
+      value: teaserItems.length,
+    },
+    {
+      label: copy.homeCharacters.eyebrow,
+      value: characters.length,
+    },
+  ];
+
+  return (
+    <div className="relative overflow-hidden rounded-[1.35rem] border border-white/18 bg-white/[0.08] p-2.5 shadow-[0_34px_110px_rgba(0,0,0,0.42)] backdrop-blur-xl sm:p-3">
+      <span
+        aria-hidden="true"
+        className="platform-scan-line pointer-events-none absolute left-0 top-0 z-20 h-px w-full bg-[linear-gradient(90deg,transparent,rgba(255,215,107,0.86),rgba(68,242,110,0.92),transparent)]"
+      />
+      <div className="grid gap-2.5">
+        <div className="flex items-center justify-between gap-3 px-1.5 pt-1">
+          <p className="inline-flex min-w-0 items-center gap-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#9bffad]">
+            <RadioTower className="platform-live-indicator size-3.5 shrink-0" />
+            <span className="truncate">{copy.liveStudio.eyebrow}</span>
+          </p>
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#071108]">
+            <PlayCircle className="size-3.5" />
+            Live
+          </span>
+        </div>
+
+        <Link
+          className="group relative min-h-[14.5rem] overflow-hidden rounded-[1.05rem] border border-white/14 bg-[#071108] !text-white sm:min-h-[23rem] lg:min-h-[28rem]"
+          href={primaryHref}
+        >
+          {primaryCoverImageUrl ? (
+            <Image
+              alt=""
+              aria-hidden="true"
+              className="object-cover opacity-72 saturate-[1.08] transition duration-700 group-hover:scale-[1.035]"
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 34rem"
+              src={primaryCoverImageUrl}
+              unoptimized={shouldBypassFanletterImageOptimization(
+                primaryCoverImageUrl,
+              )}
+            />
+          ) : null}
+          {primaryTeaser?.previewClipVideoUrl ? (
+            <FanletterAutoplayVideo
+              ariaHidden
+              className="absolute inset-0 h-full w-full object-cover opacity-82 saturate-[1.08] transition duration-700 group-hover:scale-[1.035]"
+              poster={primaryCoverImageUrl ?? undefined}
+              src={primaryTeaser.previewClipVideoUrl}
+            />
+          ) : null}
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0.04)_0%,rgba(7,17,8,0.34)_42%,rgba(7,17,8,0.92)_100%)]" />
+          <div className="absolute inset-x-0 top-0 flex items-start justify-between gap-3 p-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/46 px-2.5 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/82 backdrop-blur">
+              <Clapperboard className="size-3.5 text-[#ffd76b]" />
+              {copy.liveStudio.sourceClip}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#44f26e]/36 bg-[#44f26e]/14 px-2.5 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#9bffad] backdrop-blur">
+              <Eye className="size-3.5" />
+              Signal
+            </span>
+          </div>
+          <div className="absolute inset-x-0 bottom-0 p-3 sm:p-4">
+            <p className="max-w-sm text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
+              {copy.liveStudio.title}
+            </p>
+            <h2 className="mt-2 line-clamp-2 max-w-md text-2xl font-black leading-tight [word-break:keep-all] sm:text-3xl">
+              {primaryReport
+                ? getArticleDisplayTitle(primaryReport.title)
+                : copy.newsroomPreview.title}
+            </h2>
+            <p className="mt-2 line-clamp-2 max-w-md text-sm font-bold leading-6 text-white/68">
+              {primaryReport?.dek ?? copy.liveStudio.proof}
+            </p>
+          </div>
+        </Link>
+
+        <div className="grid grid-cols-3 gap-2">
+          {statTiles.map((stat, index) => (
+            <div
+              className={
+                index === 0
+                  ? "min-w-0 rounded-lg bg-[#44f26e] p-2.5 text-[#071108]"
+                  : index === 1
+                    ? "min-w-0 rounded-lg border border-[#ffd76b]/28 bg-[#ffd76b]/12 p-2.5 text-white"
+                    : "min-w-0 rounded-lg border border-[#4cc9f0]/28 bg-[#4cc9f0]/12 p-2.5 text-white"
+              }
+              key={stat.label}
+            >
+              <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.1em] opacity-70">
+                {stat.label}
+              </p>
+              <p className="mt-1 text-lg font-black">
+                {formatNumber(stat.value, locale)}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {previewTiles.length > 0 ? (
+          <div className="grid grid-cols-4 gap-2">
+            {previewTiles.map((item) => {
+              const imageUrl = getTeaserGalleryImage(item);
+              const href = buildPathWithReferral(
+                `/${locale}/fanletter/news/${item.reportId}`,
+                referralCode,
+              );
+
+              return (
+                <Link
+                  className="group relative aspect-[3/4] overflow-hidden rounded-lg border border-white/12 bg-[#071108] !text-white"
+                  href={href}
+                  key={item.reportId}
+                >
+                  {imageUrl ? (
+                    <Image
+                      alt=""
+                      aria-hidden="true"
+                      className="object-cover transition duration-500 group-hover:scale-[1.05]"
+                      fill
+                      sizes="(max-width: 1024px) 22vw, 7rem"
+                      src={imageUrl}
+                      unoptimized={shouldBypassFanletterImageOptimization(
+                        imageUrl,
+                      )}
+                    />
+                  ) : null}
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0)_20%,rgba(7,17,8,0.78)_100%)]" />
+                  <span className="absolute bottom-1.5 left-1.5 right-1.5 truncate text-[0.55rem] font-black uppercase tracking-[0.08em] text-white/82">
+                    {item.creatorName || item.reporterName}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
+        ) : null}
+
+        <div className="hidden gap-2 rounded-lg border border-white/12 bg-black/24 p-2.5 sm:grid">
+          <div className="flex items-center justify-between gap-2">
+            <p className="inline-flex items-center gap-1.5 text-[0.6rem] font-black uppercase tracking-[0.14em] text-[#ffd76b]">
+              <Layers3 className="size-3.5" />
+              {copy.liveStudio.reportStack}
+            </p>
+            <p className="truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/38">
+              {copy.liveStudio.signalRail}
+            </p>
+          </div>
+          <div className="grid gap-1.5">
+            {reportStack.map((report, index) => (
+              <Link
+                className="grid min-h-11 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-2 !text-white transition hover:border-[#44f26e]/44 hover:bg-[#44f26e]/10"
+                href={buildPathWithReferral(
+                  `/${locale}/fanletter/news/${report.reportId}`,
+                  referralCode,
+                )}
+                key={report.reportId}
+              >
+                <span className="font-mono text-[0.6rem] font-black text-[#9bffad]">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-xs font-black">
+                    {getArticleDisplayTitle(report.title)}
+                  </span>
+                  <span className="mt-0.5 block truncate text-[0.58rem] font-bold text-white/38">
+                    {report.creatorName || report.reporterName}
+                  </span>
+                </span>
+                <ArrowRight className="size-3.5 shrink-0 text-[#44f26e]" />
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {characterRail.length > 0 ? (
+          <div className="hidden rounded-lg border border-white/12 bg-white/[0.06] p-2.5 sm:block">
+            <p className="inline-flex items-center gap-1.5 text-[0.6rem] font-black uppercase tracking-[0.14em] text-[#4cc9f0]">
+              <Images className="size-3.5" />
+              {copy.liveStudio.characterRail}
+            </p>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {characterRail.map((character) => {
+                const imageUrl = getCharacterProfileImages(character)[0] ?? null;
+
+                return (
+                  <Link
+                    className="group min-w-0 overflow-hidden rounded-lg border border-white/10 bg-black/22 !text-white transition hover:border-[#4cc9f0]/54 hover:bg-[#4cc9f0]/10"
+                    href={buildPathWithReferral(
+                      `/${locale}/fanletter/news/characters/${character.referralCode}`,
+                      referralCode,
+                    )}
+                    key={character.referralCode}
+                  >
+                    <span className="relative block aspect-square overflow-hidden bg-[#071108]">
+                      {imageUrl ? (
+                        <Image
+                          alt=""
+                          aria-hidden="true"
+                          className="object-cover object-top transition duration-500 group-hover:scale-[1.05]"
+                          fill
+                          sizes="(max-width: 1024px) 28vw, 8rem"
+                          src={imageUrl}
+                          unoptimized={shouldBypassFanletterImageOptimization(
+                            imageUrl,
+                          )}
+                        />
+                      ) : (
+                        <span className="flex h-full items-center justify-center text-[#44f26e]">
+                          <UserRound className="size-6" />
+                        </span>
+                      )}
+                    </span>
+                    <span className="block min-w-0 p-2">
+                      <span className="block truncate text-xs font-black">
+                        {character.name}
+                      </span>
+                      <span className="mt-0.5 block truncate text-[0.56rem] font-black uppercase tracking-[0.08em] text-[#9bffad]">
+                        {formatNumber(character.newsCount, locale)}{" "}
+                        {copy.homeCharacters.news}
+                      </span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -1182,9 +1496,6 @@ export default async function FanletterNewsPlatformPage({
       videoUrl: video.videoUrl,
     }));
   const hasHeroVideoSlides = heroSlides.length > 0;
-  const previewCoverImageUrl =
-    heroSlides.find((slide) => slide.coverImageUrl?.trim())?.coverImageUrl ??
-    HERO_IMAGE;
   const homeHref = buildPathWithReferral(
     `/${locale}/fanletter/news/platform`,
     referralCode,
@@ -1255,7 +1566,7 @@ export default async function FanletterNewsPlatformPage({
             </div>
           </header>
 
-          <div className="grid flex-1 content-start gap-5 pb-10 pt-[36svh] sm:gap-8 sm:py-8 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-center lg:py-12">
+          <div className="grid flex-1 content-start gap-5 pb-10 pt-[26svh] sm:gap-8 sm:py-8 lg:grid-cols-[minmax(0,1fr)_34rem] lg:items-center lg:py-10">
             <LandingReveal className="max-w-3xl" variant="hero">
               <p className="inline-flex items-center gap-2 text-[0.7rem] font-black uppercase tracking-[0.16em] text-[#7cff98] drop-shadow-[0_2px_16px_rgba(0,0,0,0.42)] sm:text-[0.72rem]">
                 <Blocks className="size-4" />
@@ -1281,95 +1592,29 @@ export default async function FanletterNewsPlatformPage({
                 </CtaLink>
               </div>
 
+            </LandingReveal>
+
+            <LandingReveal delay={120} variant="soft">
+              <PlatformLiveContentWall
+                characters={featuredCharacters}
+                copy={copy}
+                locale={locale}
+                referralCode={referralCode}
+                reports={featuredReports}
+                teaserItems={teaserGalleryItems}
+              />
+            </LandingReveal>
+
+            <LandingReveal
+              className="lg:col-span-2"
+              delay={180}
+              variant="soft"
+            >
               <FanletterNewsPlatformMomentum
-                className="mt-5 sm:mt-7"
                 flowItems={copy.newsroomPreview.flow}
                 locale={locale}
                 stats={platformMomentumStats}
               />
-            </LandingReveal>
-
-            <LandingReveal className="grid gap-3" delay={120} variant="soft">
-              <div className="relative overflow-hidden rounded-lg border border-white/18 bg-[#071108]/72 shadow-[0_28px_90px_rgba(0,0,0,0.32)] backdrop-blur">
-                <Image
-                  alt=""
-                  aria-hidden="true"
-                  className="object-cover opacity-62 saturate-[1.08]"
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 28rem"
-                  src={previewCoverImageUrl}
-                  unoptimized={shouldBypassFanletterImageOptimization(
-                    previewCoverImageUrl,
-                  )}
-                />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0.08)_0%,rgba(7,17,8,0.76)_46%,rgba(7,17,8,0.96)_100%)]" />
-                <div className="relative flex min-h-[15.5rem] flex-col justify-between p-3 sm:min-h-[28rem] sm:p-4 lg:min-h-[35rem]">
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="inline-flex items-center gap-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#7cff98]">
-                      <Clapperboard className="size-3.5" />
-                      {copy.newsroomPreview.label}
-                    </p>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/18 bg-white/10 px-2.5 py-1 text-[0.62rem] font-black uppercase tracking-[0.12em] text-white/78">
-                      <Camera className="size-3.5 text-[#ffd76b]" />
-                      Live
-                    </span>
-                  </div>
-
-                  <div>
-                    <p className="inline-flex items-center gap-2 text-[0.62rem] font-black uppercase tracking-[0.16em] text-[#ffd76b]">
-                      <Sparkles className="size-3.5" />
-                      {copy.vloggerSignal.eyebrow}
-                    </p>
-                    <h2 className="mt-2 max-w-sm text-xl font-black leading-tight text-white [word-break:keep-all] sm:text-3xl">
-                      {copy.newsroomPreview.title}
-                    </h2>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-                      {copy.newsroomPreview.metrics.map((metric, index) => (
-                        <div
-                          className={
-                            index === 2
-                              ? "min-w-0 rounded-lg bg-[#44f26e] p-2 text-[#071108] sm:p-3"
-                              : "min-w-0 rounded-lg border border-white/14 bg-white/10 p-2 text-white sm:p-3"
-                          }
-                          key={metric.label}
-                        >
-                          <p
-                            className={
-                              index === 2
-                                ? "truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#071108]/62"
-                                : "truncate text-[0.58rem] font-black uppercase tracking-[0.12em] text-white/50"
-                            }
-                          >
-                            {metric.label}
-                          </p>
-                          <p className="mt-1 truncate text-sm font-black sm:text-lg">
-                            {metric.value}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="grid grid-cols-4 gap-1.5">
-                      {copy.newsroomPreview.flow.map((step, index) => (
-                        <div
-                          className="min-w-0 rounded-lg border border-white/12 bg-black/28 px-2 py-2 text-center"
-                          key={step}
-                        >
-                          <p className="font-mono text-[0.56rem] font-black text-[#7cff98]">
-                            0{index + 1}
-                          </p>
-                          <p className="mt-0.5 truncate text-[0.58rem] font-black text-white/72 sm:text-[0.64rem]">
-                            {step}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
             </LandingReveal>
           </div>
         </div>
