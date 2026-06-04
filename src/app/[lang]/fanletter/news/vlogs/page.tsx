@@ -19,6 +19,7 @@ import {
   isFanletterNsfwOptedIn,
 } from "@/lib/fanletter-nsfw";
 import {
+  getSafeFanletterReturnTo,
   readFanletterReferralCode,
   readFirstSearchParam,
 } from "@/lib/fanletter-routing";
@@ -29,6 +30,7 @@ type FanletterNewsVlogsSearchParams = {
   page?: string | string[];
   q?: string | string[];
   ref?: string | string[];
+  returnTo?: string | string[];
   sort?: string | string[];
 };
 
@@ -63,12 +65,12 @@ export async function generateMetadata({
   const searchQuery = readVlogsQuery(query.q);
   const title =
     locale === "ko"
-      ? "브이로그 아카이브 | AIAVpark News"
-      : "Vlog Archive | AIAVpark News";
+      ? "원본 브이로그 | AIAVpark News"
+      : "Source Vlogs | AIAVpark News";
   const description =
     locale === "ko"
-      ? "AI 캐릭터의 공개 브이로그와 팬 전용 티저를 이어서 둘러보세요."
-      : "Browse AI character public vlogs and fan-only teasers.";
+      ? "4컷 피드에서 관심 생긴 AI 캐릭터의 원본 영상, 팬 전용 티저, 리포트 소재를 이어서 둘러보세요."
+      : "Continue from the 4-cut feed into source videos, fan-only teasers, and report-ready vlog material.";
   const url = setPathSearchParams(`/${locale}/fanletter/news/vlogs`, {
     q: searchQuery || null,
     ref: readFanletterReferralCode(query.ref),
@@ -140,6 +142,12 @@ export default async function LocalizedFanletterNewsVlogsPage({
     cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
   );
   const referralCode = readFanletterReferralCode(query.ref);
+  const returnToHref = getSafeFanletterReturnTo({
+    fallbackPath: `/${locale}/fanletter/news/cuts`,
+    locale,
+    referralCode,
+    returnTo: query.returnTo,
+  });
   const data = await getFanletterFeedPageData(locale, referralCode, {
     includeNsfw,
     page: readVlogsPage(query.page),
@@ -152,6 +160,7 @@ export default async function LocalizedFanletterNewsVlogsPage({
       data={data}
       locale={locale}
       referralCode={referralCode}
+      returnToHref={returnToHref}
     />
   );
 }

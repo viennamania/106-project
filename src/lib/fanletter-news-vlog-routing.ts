@@ -9,12 +9,14 @@ export function getFanletterNewsVlogsHref({
   page,
   query,
   referralCode,
+  returnToHref,
   sort,
 }: {
   locale: Locale;
   page?: number | null;
   query?: string | null;
   referralCode: string | null;
+  returnToHref?: string | null;
   sort?: string | null;
 }) {
   const normalizedQuery = query?.trim() ?? "";
@@ -24,6 +26,7 @@ export function getFanletterNewsVlogsHref({
     {
       page: page && page > 1 ? String(page) : null,
       q: normalizedQuery || null,
+      returnTo: returnToHref,
       sort: sort && sort !== "latest" ? sort : null,
     },
   );

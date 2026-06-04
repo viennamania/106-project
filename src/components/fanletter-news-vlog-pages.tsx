@@ -80,6 +80,7 @@ function getCopy(locale: Locale) {
         cta: {
           archive: "공개 브이로그",
           character: "캐릭터 뉴스 홈",
+          cutFeed: "4컷 피드로 돌아가기",
           newsHome: "뉴스 홈",
           original: "원본 일반 페이지",
           purchases: "구매함",
@@ -120,13 +121,18 @@ function getCopy(locale: Locale) {
         archive: {
           allCount: (count: string) => `브이로그 ${count}개`,
           description:
-            "AI 캐릭터의 공개 브이로그와 팬 전용 티저를 둘러보고, 관련 리포트와 캐릭터 채널로 바로 이어갑니다.",
-          eyebrow: "AIAVpark Vlog Archive",
+            "4컷 피드에서 관심 생긴 AI 캐릭터의 원본 영상, 팬 전용 티저, 리포트 소재를 한 화면에서 이어봅니다.",
+          eyebrow: "AIAVpark Source Vlog Hub",
           fanOnlyTitle: "팬 전용 브이로그 티저",
+          publicBody: "바로 볼 수 있는 공개 원본 영상",
           publicTitle: "공개 브이로그",
+          reportBody: "팬 기자가 4컷 리포트로 이어갈 소재",
+          reportTitle: "리포트 소재",
           searchPlaceholder: "캐릭터, 제목, 키워드 검색",
           searchSubmit: "검색",
-          title: "브이로그 아카이브",
+          sourceBody: "공개 원본과 팬 전용 티저를 한곳에서 확인",
+          sourceTitle: "원본 이어보기",
+          title: "원본 브이로그",
         },
         list: {
           allCount: (count: string) => `공개 브이로그 ${count}개`,
@@ -197,6 +203,7 @@ function getCopy(locale: Locale) {
         cta: {
           archive: "Public vlogs",
           character: "Character news home",
+          cutFeed: "Back to 4-cut feed",
           newsHome: "News home",
           original: "Original AIAVpark page",
           purchases: "Purchases",
@@ -237,13 +244,18 @@ function getCopy(locale: Locale) {
         archive: {
           allCount: (count: string) => `${count} vlogs`,
           description:
-            "Browse AI character public vlogs and fan-only teasers, then continue into related reports and character channels.",
-          eyebrow: "AIAVpark Vlog Archive",
+            "Continue from the 4-cut feed into source videos, fan-only teasers, and report-ready vlog material.",
+          eyebrow: "AIAVpark Source Vlog Hub",
           fanOnlyTitle: "Fan-only vlog teasers",
+          publicBody: "Public source videos ready to watch",
           publicTitle: "Public vlogs",
+          reportBody: "Source material fan reporters can turn into four-cut reports",
+          reportTitle: "Report material",
           searchPlaceholder: "Search character, title, or keyword",
           searchSubmit: "Search",
-          title: "Vlog Archive",
+          sourceBody: "Public sources and fan-only teasers in one place",
+          sourceTitle: "Continue source vlogs",
+          title: "Source Vlogs",
         },
         list: {
           allCount: (count: string) => `${count} public vlogs`,
@@ -410,7 +422,7 @@ function NewsShellHeader({
         >
           {navLinks.map((item) => (
             <Link
-              className="shrink-0 border border-black/10 bg-white px-3 py-1.5 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#126c2c]"
+              className="inline-flex min-h-11 shrink-0 items-center border border-black/10 bg-white px-3 py-2 transition hover:border-[#19b84b] hover:bg-[#ecfff0] hover:text-[#126c2c]"
               href={item.href}
               key={item.label}
             >
@@ -1076,10 +1088,12 @@ export function FanletterNewsVlogsPage({
   data,
   locale,
   referralCode,
+  returnToHref,
 }: {
   data: FanletterFeedPageData;
   locale: Locale;
   referralCode: string | null;
+  returnToHref: string;
 }) {
   const copy = getCopy(locale);
   const effectiveReferralCode = referralCode ?? data.referralCode;
@@ -1089,6 +1103,7 @@ export function FanletterNewsVlogsPage({
     locale,
     query,
     referralCode: effectiveReferralCode,
+    returnToHref,
     sort: data.filters.sort,
   });
   const homeHref = buildPathWithReferral(
@@ -1119,6 +1134,26 @@ export function FanletterNewsVlogsPage({
     { label: copy.comments, sort: "comments" },
     { label: copy.saves, sort: "saves" },
   ];
+  const hubCards = [
+    {
+      body: copy.archive.sourceBody,
+      icon: <PlayCircle className="size-4" />,
+      title: copy.archive.sourceTitle,
+      value: formatNumber(data.filters.totalCount, locale),
+    },
+    {
+      body: copy.archive.publicBody,
+      icon: <Clapperboard className="size-4" />,
+      title: copy.archive.publicTitle,
+      value: formatNumber(data.items.length, locale),
+    },
+    {
+      body: copy.archive.reportBody,
+      icon: <Newspaper className="size-4" />,
+      title: copy.archive.reportTitle,
+      value: locale === "ko" ? "4컷" : "4-cut",
+    },
+  ];
   const featuredItems = [...data.items, ...data.fanOnlyPreviewItems]
     .filter((item) => item.coverImageUrl)
     .slice(0, 4);
@@ -1143,11 +1178,11 @@ export function FanletterNewsVlogsPage({
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-stretch">
           <header className="border border-black/12 bg-white p-4 shadow-[0_18px_54px_rgba(17,21,16,0.08)] sm:p-6 lg:p-8">
             <Link
-              className="inline-flex items-center gap-2 text-sm font-black !text-[#16702e] hover:!text-[#0f5522]"
-              href={homeHref}
+              className="inline-flex min-h-11 items-center gap-2 text-sm font-black !text-[#16702e] hover:!text-[#0f5522]"
+              href={returnToHref}
             >
               <ArrowLeft className="size-4" />
-              {copy.cta.newsHome}
+              {copy.cta.cutFeed}
             </Link>
             <p className="mt-5 text-[0.7rem] font-black uppercase tracking-[0.18em] text-[#16702e]">
               {copy.archive.eyebrow}
@@ -1169,6 +1204,41 @@ export function FanletterNewsVlogsPage({
                 label={copy.archive.fanOnlyTitle}
                 value={formatNumber(data.fanOnlyPreviewItems.length, locale)}
               />
+            </div>
+            <div className="mt-5 grid gap-2 sm:grid-cols-3">
+              {hubCards.map((card) => (
+                <div
+                  className="rounded-lg border border-black/10 bg-[#f5f7f1] p-3"
+                  key={card.title}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="inline-flex size-9 items-center justify-center rounded-full bg-[#111510] text-[#44f26e]">
+                      {card.icon}
+                    </span>
+                    <span className="text-lg font-black text-[#111510]">
+                      {card.value}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm font-black">{card.title}</p>
+                  <p className="mt-1 text-xs font-bold leading-5 text-black/52">
+                    {card.body}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Link
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#111510] px-4 py-2 text-sm font-black !text-white transition hover:bg-[#16702e]"
+                href={returnToHref}
+              >
+                {copy.cta.cutFeed}
+              </Link>
+              <Link
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/12 bg-white px-4 py-2 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                href={homeHref}
+              >
+                {copy.cta.newsHome}
+              </Link>
             </div>
           </header>
 
@@ -1241,6 +1311,7 @@ export function FanletterNewsVlogsPage({
             {effectiveReferralCode ? (
               <input name="ref" type="hidden" value={effectiveReferralCode} />
             ) : null}
+            <input name="returnTo" type="hidden" value={returnToHref} />
             {data.filters.sort !== "latest" ? (
               <input name="sort" type="hidden" value={data.filters.sort} />
             ) : null}
@@ -1270,7 +1341,7 @@ export function FanletterNewsVlogsPage({
                 <Link
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "inline-flex h-10 items-center justify-center rounded-full px-4 text-sm font-black transition",
+                    "inline-flex min-h-11 items-center justify-center rounded-full px-4 text-sm font-black transition",
                     active
                       ? "bg-[#111510] !text-white"
                       : "border border-black/10 !text-black/58 hover:border-[#19b84b] hover:bg-[#ecfff0] hover:!text-[#111510]",
@@ -1279,6 +1350,7 @@ export function FanletterNewsVlogsPage({
                     locale,
                     query,
                     referralCode: effectiveReferralCode,
+                    returnToHref,
                     sort: option.sort,
                   })}
                   key={option.sort}
@@ -1377,6 +1449,7 @@ export function FanletterNewsVlogsPage({
               page,
               query,
               referralCode: effectiveReferralCode,
+              returnToHref,
               sort: data.filters.sort,
             })
           }

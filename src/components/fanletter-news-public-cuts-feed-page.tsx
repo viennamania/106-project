@@ -3645,6 +3645,9 @@ export function FanletterNewsPublicCutsFeedPage({
     `/${locale}/fanletter/news/vlogs`,
     referralCode,
   );
+  const sourceVlogsHref = setPathSearchParams(vlogsHref, {
+    returnTo: cutFeedHomeHref,
+  });
   const purchasesHref = buildPathWithReferral(
     `/${locale}/fanletter/news/purchases`,
     referralCode,
@@ -3697,7 +3700,7 @@ export function FanletterNewsPublicCutsFeedPage({
           secondaryLabel: copy.serviceReportersHint,
         },
         {
-          href: vlogsHref,
+          href: sourceVlogsHref,
           icon: Video,
           label: copy.serviceVlogs,
           secondaryLabel: copy.serviceVlogsHint,
