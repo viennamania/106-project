@@ -4145,7 +4145,7 @@ function FeedSlide({
               {copy.swipeGuide(cutCountLabel)}
             </span>
           </div>
-          <div className="inline-flex max-w-full items-center justify-center gap-2 rounded-[1.65rem] border border-white/14 bg-black/54 px-2.5 py-2 text-white/88 shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+          <div className="inline-flex max-w-full flex-col items-center justify-center gap-1.5 rounded-[1.65rem] border border-white/14 bg-black/54 px-5 py-2.5 text-white/88 shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl">
             <span className="relative h-14 w-8 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10">
               <ChevronUp className="absolute left-1/2 top-1 size-3.5 -translate-x-1/2 text-[#9bffad]" />
               <span className="fanletter-cut-vertical-swipe-guide-thumb absolute left-1/2 top-1/2 inline-flex size-7 items-center justify-center rounded-full bg-[#44f26e] text-black shadow-[0_12px_28px_rgba(68,242,110,0.22)]">
@@ -4153,7 +4153,7 @@ function FeedSlide({
               </span>
               <ChevronDown className="absolute bottom-1 left-1/2 size-3.5 -translate-x-1/2 text-[#9bffad]" />
             </span>
-            <span className="whitespace-nowrap text-xs font-black tracking-normal [word-break:keep-all]">
+            <span className="whitespace-nowrap text-center text-xs font-black tracking-normal [word-break:keep-all]">
               {copy.verticalSwipeGuide}
             </span>
           </div>
@@ -4322,13 +4322,7 @@ function FeedSlide({
               </div>
             ) : null}
           </div>
-          <div
-            className={`mt-4 flex items-center justify-center gap-1.5 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
-              areBottomDetailsVisible
-                ? "visible translate-y-0 opacity-100 blur-0"
-                : "invisible translate-y-3 opacity-0 blur-[1px]"
-            }`}
-          >
+          <div className="mt-4 flex items-center justify-center gap-1.5">
             {cuts.map((cut, cutIndex) => (
               <button
                 aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
