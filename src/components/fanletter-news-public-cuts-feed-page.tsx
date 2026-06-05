@@ -4743,6 +4743,7 @@ export function FanletterNewsPublicCutsFeedPage({
     getServerRolePreferenceSnapshot,
   );
   const isSharedConsumptionEntry = Boolean(shareId || excludeReportId);
+  const shouldShowHeaderCount = !isSharedConsumptionEntry;
   const visibleItem =
     items[
       Math.min(Math.max(visibleFeedIndex, 0), Math.max(items.length - 1, 0))
@@ -5495,9 +5496,11 @@ export function FanletterNewsPublicCutsFeedPage({
             >
               {copy.serviceMenu}
             </span>
-            <span className="rounded-full bg-white/12 px-2 py-1 text-xs font-black leading-none text-white transition group-hover:text-[#111510]">
-              {headerCountLabel}
-            </span>
+            {shouldShowHeaderCount ? (
+              <span className="rounded-full bg-white/12 px-2 py-1 text-xs font-black leading-none text-white transition group-hover:text-[#111510]">
+                {headerCountLabel}
+              </span>
+            ) : null}
           </button>
         </div>
       </header>
