@@ -201,6 +201,7 @@ function getCopy(locale: Locale) {
         reporterSourceMetric: "원본 오픈",
         returnToBrief: "브리프",
         returnToBriefA11y: "플랫폼 브리프로 돌아가기",
+        returnToBriefFull: "플랫폼 브리프로 돌아가기",
         retry: "다시 시도",
         serviceCharacters: "AI 캐릭터",
         serviceCharactersHint: "캐릭터 채널",
@@ -384,6 +385,7 @@ function getCopy(locale: Locale) {
         reporterSourceMetric: "Source open",
         returnToBrief: "Brief",
         returnToBriefA11y: "Back to platform brief",
+        returnToBriefFull: "Back to brief",
         retry: "Retry",
         serviceCharacters: "AI Characters",
         serviceCharactersHint: "Character channels",
@@ -1903,6 +1905,8 @@ type SourceOverlayCopy = Pick<
   | "unlockNsfwTitle"
   | "voteDone"
   | "voteSaving"
+  | "returnToBriefA11y"
+  | "returnToBriefFull"
 >;
 
 function isFanletterNewsPublicCutSourceLoadResponse(
@@ -1975,6 +1979,7 @@ function SourceVlogFeedOverlay({
   onFindNextSourceRevealCandidate,
   onRetry,
   onSourceRevealActivate,
+  returnToHref = null,
   source,
 }: {
   copy: SourceOverlayCopy;
@@ -1987,6 +1992,7 @@ function SourceVlogFeedOverlay({
   onFindNextSourceRevealCandidate?: () => void;
   onRetry: () => void;
   onSourceRevealActivate: () => void;
+  returnToHref?: string | null;
   source: FanletterNewsPublicCutSource | null;
 }) {
   const isPlayable = source?.accessState === "playable" && Boolean(source.videoUrl);
@@ -2103,6 +2109,18 @@ function SourceVlogFeedOverlay({
           >
             <X className="size-5" />
           </button>
+          {returnToHref ? (
+            <Link
+              aria-label={copy.returnToBriefA11y}
+              className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-white/12 bg-white/10 px-3 text-[0.68rem] font-black !text-white shadow-[0_12px_30px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:bg-white hover:!text-[#111510]"
+              href={returnToHref}
+            >
+              <ArrowLeft className="size-3.5" />
+              <span className="max-w-[6.2rem] truncate">
+                {copy.returnToBriefFull}
+              </span>
+            </Link>
+          ) : null}
           <div className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/14 text-[#44f26e] shadow-[0_12px_30px_rgba(68,242,110,0.12)] backdrop-blur-xl">
             <PlayCircle className="size-4.5" />
           </div>
@@ -2296,6 +2314,7 @@ function FeedSlide({
   reporterPanelRequestId = 0,
   onSourceViewSlideVisible,
   referralCode,
+  returnToHref = null,
   shareId,
   showSwipeGuide = false,
 }: {
@@ -2314,6 +2333,7 @@ function FeedSlide({
   reporterPanelRequestId?: number;
   onSourceViewSlideVisible?: (index: number) => void;
   referralCode: string | null;
+  returnToHref?: string | null;
   shareId: string | null;
   showSwipeGuide?: boolean;
 }) {
@@ -3897,6 +3917,7 @@ function FeedSlide({
           onFindNextSourceRevealCandidate={findNextSourceRevealCandidate}
           onRetry={() => void loadSourceOverlay()}
           onSourceRevealActivate={handleSourceRevealParticipation}
+          returnToHref={returnToHref}
           source={sourceOverlaySource}
         />
       ) : null}
@@ -5126,6 +5147,7 @@ export function FanletterNewsPublicCutsFeedPage({
                   : 0
               }
               referralCode={referralCode}
+              returnToHref={returnToHref}
               shareId={shareId}
               showSwipeGuide={swipeGuideTarget?.index === index}
             />
