@@ -101,6 +101,7 @@ const CUT_SWIPE_GUIDE_DISMISS_SCROLL_RATIO = 0.45;
 const CUT_FEED_CHROME_VISIBLE_MS = 4200;
 const CUT_FEED_LOGIN_SYNC_GRACE_MS = 4500;
 const CUT_FEED_RENDER_WINDOW_RADIUS = 0;
+const CUT_FEED_CHROME_HIDE_EVENT = "fanletter-news-cut-feed-chrome-hide";
 const CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT =
   "fanletter-news-cut-feed-visible-index-change";
 const CUT_DWELL_MIN_TRACK_MS = 800;
@@ -2459,6 +2460,7 @@ function FeedSlide({
   locale,
   onDismissSwipeGuide,
   onFindNextSourceRevealCandidate,
+  onHideFeedChrome,
   onRevealFeedChrome,
   onNavigationStart,
   reporterPanelRequestId = 0,
@@ -2480,6 +2482,7 @@ function FeedSlide({
   locale: Locale;
   onDismissSwipeGuide?: () => void;
   onFindNextSourceRevealCandidate?: (currentIndex: number, currentContentId: string) => void;
+  onHideFeedChrome?: () => void;
   onRevealFeedChrome?: () => void;
   onNavigationStart?: CutFeedNavigationStart;
   reporterPanelRequestId?: number;
@@ -2796,6 +2799,20 @@ function FeedSlide({
       revealTopOverlays,
     ],
   );
+  const hideCutOverlays = useCallback(() => {
+    onHideFeedChrome?.();
+    clearBottomDetailsTimer();
+    clearSideActionsTimer();
+    clearTopOverlaysTimer();
+    setAreBottomDetailsVisible(false);
+    setAreSideActionsVisible(false);
+    setAreTopOverlaysVisible(false);
+  }, [
+    clearBottomDetailsTimer,
+    clearSideActionsTimer,
+    clearTopOverlaysTimer,
+    onHideFeedChrome,
+  ]);
   const flushCutDwell = useCallback((exitReason: CutDwellExitReason) => {
     const snapshot = cutDwellSnapshotRef.current;
 
@@ -3253,6 +3270,18 @@ function FeedSlide({
     };
   }, [sourceOverlayOpen]);
 
+  useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
+    window.addEventListener(CUT_FEED_CHROME_HIDE_EVENT, hideCutOverlays);
+
+    return () => {
+      window.removeEventListener(CUT_FEED_CHROME_HIDE_EVENT, hideCutOverlays);
+    };
+  }, [hideCutOverlays, isActive]);
+
   const showTapFeedback = useCallback((label: string) => {
     const id = Date.now();
 
@@ -3703,6 +3732,7 @@ function FeedSlide({
       if (Math.abs(deltaX) >= 44 && Math.abs(deltaX) >= Math.abs(deltaY) * 1.1) {
         lastTapRef.current = null;
         onDismissSwipeGuide?.();
+        hideCutOverlays();
 
         if (deltaX > 0) {
           goToPreviousCut();
@@ -3751,6 +3781,7 @@ function FeedSlide({
       goToNextCut,
       goToPreviousCut,
       handleSourceRevealDoubleTap,
+      hideCutOverlays,
       onDismissSwipeGuide,
       revealCutOverlays,
     ],
@@ -4114,14 +4145,14 @@ function FeedSlide({
               {copy.swipeGuide(cutCountLabel)}
             </span>
           </div>
-          <div className={`${cutSwipeGuidePillClassName} text-white/88`}>
-            <ChevronUp className="size-4 text-[#9bffad]" />
-            <span className="relative h-7 w-9 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10">
-              <span className="fanletter-cut-vertical-swipe-guide-thumb absolute left-1/2 top-1/2 inline-flex size-6 items-center justify-center rounded-full bg-[#44f26e] text-black shadow-[0_12px_28px_rgba(68,242,110,0.22)]">
+          <div className="inline-flex max-w-full items-center justify-center gap-2 rounded-[1.65rem] border border-white/14 bg-black/54 px-2.5 py-2 text-white/88 shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+            <span className="relative h-14 w-8 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10">
+              <ChevronUp className="absolute left-1/2 top-1 size-3.5 -translate-x-1/2 text-[#9bffad]" />
+              <span className="fanletter-cut-vertical-swipe-guide-thumb absolute left-1/2 top-1/2 inline-flex size-7 items-center justify-center rounded-full bg-[#44f26e] text-black shadow-[0_12px_28px_rgba(68,242,110,0.22)]">
                 <ChevronDown className="size-3.5" />
               </span>
+              <ChevronDown className="absolute bottom-1 left-1/2 size-3.5 -translate-x-1/2 text-[#9bffad]" />
             </span>
-            <ChevronDown className="size-4 text-[#9bffad]" />
             <span className="whitespace-nowrap text-xs font-black tracking-normal [word-break:keep-all]">
               {copy.verticalSwipeGuide}
             </span>
@@ -4827,11 +4858,14 @@ export function FanletterNewsPublicCutsFeedPage({
 
     setSwipeGuideTarget(null);
   }, [items, swipeGuideTarget]);
-  const revealRoleShortcutTemporarily = useCallback(() => {
+  const clearRoleShortcutRevealTimer = useCallback(() => {
     if (roleShortcutRevealTimerRef.current) {
       window.clearTimeout(roleShortcutRevealTimerRef.current);
       roleShortcutRevealTimerRef.current = null;
     }
+  }, []);
+  const revealRoleShortcutTemporarily = useCallback(() => {
+    clearRoleShortcutRevealTimer();
 
     setIsRoleShortcutVisible(true);
 
@@ -4839,13 +4873,19 @@ export function FanletterNewsPublicCutsFeedPage({
       setIsRoleShortcutVisible(false);
       roleShortcutRevealTimerRef.current = null;
     }, CUT_FEED_CHROME_VISIBLE_MS);
-  }, []);
+  }, [clearRoleShortcutRevealTimer]);
   const clearHeaderRevealTimer = useCallback(() => {
     if (headerRevealTimerRef.current) {
       window.clearTimeout(headerRevealTimerRef.current);
       headerRevealTimerRef.current = null;
     }
   }, []);
+  const hideFeedChromeImmediately = useCallback(() => {
+    clearHeaderRevealTimer();
+    clearRoleShortcutRevealTimer();
+    setIsCutFeedHeaderVisible(false);
+    setIsRoleShortcutVisible(false);
+  }, [clearHeaderRevealTimer, clearRoleShortcutRevealTimer]);
   const revealCutFeedHeaderTemporarily = useCallback(() => {
     clearHeaderRevealTimer();
     setIsCutFeedHeaderVisible(true);
@@ -4909,6 +4949,9 @@ export function FanletterNewsPublicCutsFeedPage({
       root,
     });
 
+    hideFeedChromeImmediately();
+    window.dispatchEvent(new Event(CUT_FEED_CHROME_HIDE_EVENT));
+
     setVisibleFeedIndex((currentIndex) => {
       if (currentIndex === visibleIndex) {
         return currentIndex;
@@ -4959,6 +5002,7 @@ export function FanletterNewsPublicCutsFeedPage({
     }
   }, [
     dismissSwipeGuide,
+    hideFeedChromeImmediately,
     items,
     sourceViewSwipeGuideDismissed,
     swipeGuideTarget,
@@ -5243,22 +5287,15 @@ export function FanletterNewsPublicCutsFeedPage({
 
   useEffect(() => {
     if (!isRoleShortcutEnabled) {
-      if (roleShortcutRevealTimerRef.current) {
-        window.clearTimeout(roleShortcutRevealTimerRef.current);
-        roleShortcutRevealTimerRef.current = null;
-      }
-
+      clearRoleShortcutRevealTimer();
       setIsRoleShortcutVisible(false);
       return;
     }
 
     return () => {
-      if (roleShortcutRevealTimerRef.current) {
-        window.clearTimeout(roleShortcutRevealTimerRef.current);
-        roleShortcutRevealTimerRef.current = null;
-      }
+      clearRoleShortcutRevealTimer();
     };
-  }, [isRoleShortcutEnabled]);
+  }, [clearRoleShortcutRevealTimer, isRoleShortcutEnabled]);
 
   useEffect(() => {
     if (!hasMore) {
@@ -5636,6 +5673,7 @@ export function FanletterNewsPublicCutsFeedPage({
               onFindNextSourceRevealCandidate={
                 handleFindNextSourceRevealCandidate
               }
+              onHideFeedChrome={hideFeedChromeImmediately}
               onNavigationStart={startNavigation}
               onRevealFeedChrome={revealFeedChromeTemporarily}
               onSourceViewSlideVisible={handleSourceViewSlideVisible}
