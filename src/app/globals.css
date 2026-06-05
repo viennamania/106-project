@@ -176,12 +176,12 @@ a {
   0%,
   100% {
     opacity: 0.86;
-    transform: translate3d(-50%, calc(-50% - 0.76rem), 0);
+    transform: translate3d(-50%, calc(-50% - 1.1rem), 0);
   }
 
   50% {
     opacity: 1;
-    transform: translate3d(-50%, calc(-50% + 0.76rem), 0);
+    transform: translate3d(-50%, calc(-50% + 1.1rem), 0);
   }
 }
 

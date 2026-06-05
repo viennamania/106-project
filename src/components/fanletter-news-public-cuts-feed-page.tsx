@@ -2448,6 +2448,7 @@ function SourceVlogFeedOverlay({
 }
 
 function FeedSlide({
+  autoRevealChromeOnEntry = false,
   dictionary,
   hasMore,
   index,
@@ -2470,6 +2471,7 @@ function FeedSlide({
   shareId,
   showSwipeGuide = false,
 }: {
+  autoRevealChromeOnEntry?: boolean;
   dictionary: Dictionary;
   hasMore: boolean;
   index: number;
@@ -2556,6 +2558,8 @@ function FeedSlide({
   const topOverlaysTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const entryChromeRevealTimeoutRef = useRef<number | null>(null);
+  const entryChromeRevealedRef = useRef(false);
   const initialSourceOverlayOpenedRef = useRef(false);
   const pendingVoteAfterLoginRef = useRef(false);
   const loginSyncKeyRef = useRef<string | null>(null);
@@ -2813,6 +2817,30 @@ function FeedSlide({
     clearTopOverlaysTimer,
     onHideFeedChrome,
   ]);
+
+  useEffect(() => {
+    if (
+      !autoRevealChromeOnEntry ||
+      !isActive ||
+      entryChromeRevealedRef.current
+    ) {
+      return;
+    }
+
+    entryChromeRevealedRef.current = true;
+    entryChromeRevealTimeoutRef.current = window.setTimeout(() => {
+      revealCutOverlays();
+      entryChromeRevealTimeoutRef.current = null;
+    }, 120);
+
+    return () => {
+      if (entryChromeRevealTimeoutRef.current) {
+        window.clearTimeout(entryChromeRevealTimeoutRef.current);
+        entryChromeRevealTimeoutRef.current = null;
+      }
+    };
+  }, [autoRevealChromeOnEntry, isActive, revealCutOverlays]);
+
   const flushCutDwell = useCallback((exitReason: CutDwellExitReason) => {
     const snapshot = cutDwellSnapshotRef.current;
 
@@ -4146,12 +4174,14 @@ function FeedSlide({
             </span>
           </div>
           <div className="inline-flex max-w-full flex-col items-center justify-center gap-1.5 rounded-[1.65rem] border border-white/14 bg-black/54 px-5 py-2.5 text-white/88 shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl">
-            <span className="relative h-14 w-8 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10">
-              <ChevronUp className="absolute left-1/2 top-1 size-3.5 -translate-x-1/2 text-[#9bffad]" />
-              <span className="fanletter-cut-vertical-swipe-guide-thumb absolute left-1/2 top-1/2 inline-flex size-7 items-center justify-center rounded-full bg-[#44f26e] text-black shadow-[0_12px_28px_rgba(68,242,110,0.22)]">
-                <ChevronDown className="size-3.5" />
+            <span className="flex flex-col items-center justify-center gap-1 text-[#9bffad]">
+              <ChevronUp className="size-4" />
+              <span className="relative h-14 w-7 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/10">
+                <span className="fanletter-cut-vertical-swipe-guide-thumb absolute left-1/2 top-1/2 inline-flex size-7 items-center justify-center rounded-full bg-[#44f26e] text-black shadow-[0_12px_28px_rgba(68,242,110,0.26)]">
+                  <ChevronDown className="size-3.5" />
+                </span>
               </span>
-              <ChevronDown className="absolute bottom-1 left-1/2 size-3.5 -translate-x-1/2 text-[#9bffad]" />
+              <ChevronDown className="size-4" />
             </span>
             <span className="whitespace-nowrap text-center text-xs font-black tracking-normal [word-break:keep-all]">
               {copy.verticalSwipeGuide}
@@ -5642,6 +5672,7 @@ export function FanletterNewsPublicCutsFeedPage({
 
           return (
             <FeedSlide
+              autoRevealChromeOnEntry={isSharedConsumptionEntry && index === 0}
               dictionary={dictionary}
               hasMore={hasMore}
               index={index}
