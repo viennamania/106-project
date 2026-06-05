@@ -646,17 +646,32 @@ function getCutFeedReturnHref({
 }
 
 function getReporterHref({
+  cutSlotNumber,
   locale,
   referralCode,
   reporterReferralCode,
+  reportId,
+  returnToHref,
 }: {
+  cutSlotNumber: number;
   locale: Locale;
   referralCode: string | null;
   reporterReferralCode: string;
+  reportId: string;
+  returnToHref: string;
 }) {
-  return buildPathWithReferral(
-    `/${locale}/fanletter/news/reporters/${reporterReferralCode}`,
-    referralCode,
+  return setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/reporters/${encodeURIComponent(
+        reporterReferralCode,
+      )}`,
+      referralCode,
+    ),
+    {
+      [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(cutSlotNumber),
+      returnTo: returnToHref,
+      sourceReportId: reportId,
+    },
   );
 }
 
@@ -2377,11 +2392,6 @@ function FeedSlide({
   const sourceRevealEndpoint = `/api/fanletter/news-reports/${encodeURIComponent(report.reportId)}/source-reveal`;
   const sourceContentId =
     typeof report.contentId === "string" ? report.contentId.trim() : "";
-  const reporterHref = getReporterHref({
-    locale,
-    referralCode,
-    reporterReferralCode: report.reporterReferralCode,
-  });
   const isSourceRevealLoggedIn =
     Boolean(memberSession.email) || sourceRevealState.requestedByViewer;
   const cuts = item.cuts.length > 0 ? item.cuts : [item.leadCut];
@@ -2400,6 +2410,14 @@ function FeedSlide({
     referralCode,
     reportId: report.reportId,
     shareId,
+  });
+  const reporterHref = getReporterHref({
+    cutSlotNumber: activeCutSlotNumber,
+    locale,
+    referralCode,
+    reporterReferralCode: report.reporterReferralCode,
+    reportId: report.reportId,
+    returnToHref: cutFeedReturnHref,
   });
   const characterHref = getCharacterHref({
     characterReferralCode: report.creatorReferralCode,
@@ -3678,7 +3696,15 @@ function FeedSlide({
               {report.dek}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.72rem] font-bold text-white/72 drop-shadow-[0_2px_10px_rgba(0,0,0,0.72)]">
-              <span>{report.reporterName}</span>
+              <Link
+                className="inline-flex items-center rounded-full border border-white/14 bg-black/28 px-2 py-0.5 !text-white/82 transition hover:border-[#44f26e]/42 hover:bg-[#44f26e]/16 hover:!text-[#9bffad]"
+                href={reporterHref}
+                onClick={() => {
+                  onDismissSwipeGuide?.();
+                }}
+              >
+                {report.reporterName}
+              </Link>
               {isViewerReport ? (
                 <span className="inline-flex items-center gap-1 rounded-full border border-[#44f26e]/34 bg-[#44f26e]/18 px-2 py-0.5 text-[0.62rem] font-black text-[#9bffad]">
                   <Check className="size-3 stroke-[3]" />
@@ -3991,7 +4017,7 @@ export function FanletterNewsPublicCutsFeedPage({
     returnTo: cutFeedHomeHref,
   });
   const reportersHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/reporters`,
+    `/${locale}/fanletter/news/cuts/reporters`,
     referralCode,
   );
   const returnableReportersHref = setPathSearchParams(reportersHref, {
