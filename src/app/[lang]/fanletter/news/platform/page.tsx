@@ -39,7 +39,14 @@ import {
   type FanletterNewsPlatformMomentumStat,
 } from "@/components/fanletter-news-platform-momentum";
 import { LandingReveal } from "@/components/landing/landing-reveal";
-import type { FanletterNewsReportDocument } from "@/lib/content";
+import {
+  createEmptyContentSocialSummary,
+  type FanletterNewsReportDocument,
+} from "@/lib/content";
+import {
+  getFanletterPublicContentDetail,
+  type FanletterPublicContentDetail,
+} from "@/lib/fanletter-content-service";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { getFanletterLandingData } from "@/lib/fanletter-landing-service";
 import {
@@ -58,9 +65,14 @@ import {
 import {
   getFanletterNewsBareArticleDisplayTitle as getArticleDisplayTitle,
 } from "@/lib/fanletter-news-related";
+import {
+  createFanletterNewsSourceRevealState,
+  type FanletterNewsSourceRevealState,
+} from "@/lib/fanletter-news-source-reveal";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
-import { buildPathWithReferral } from "@/lib/landing-branding";
+import { buildPathWithReferral, setPathSearchParams } from "@/lib/landing-branding";
+import { getContentSocialActionsCollection } from "@/lib/mongodb";
 
 type FanletterNewsPlatformSearchParams = {
   ref?: string | string[];
@@ -69,6 +81,16 @@ type FanletterNewsPlatformSearchParams = {
 const HERO_IMAGE = "/landing/premium-phone.png?v=20260415";
 const MARKET_SIGNAL_ARTICLE_URL =
   "https://biz.chosun.com/distribution/channel/2026/06/02/32FCODIXEVG3PF3GFXWKHDYPSI/";
+const PLATFORM_UNLOCKED_VLOG_SOURCE_SCAN_LIMIT = 120;
+const PLATFORM_UNLOCKED_VLOG_DETAIL_LOOKAHEAD = 16;
+const PLATFORM_UNLOCKED_VLOG_DISPLAY_LIMIT = 4;
+
+type PlatformUnlockedVlogItem = {
+  href: string;
+  item: FanletterPublicContentDetail;
+  report: FanletterNewsReportDocument;
+  sourceReveal: FanletterNewsSourceRevealState;
+};
 
 function getCopy(locale: Locale) {
   return locale === "ko"
@@ -224,6 +246,34 @@ function getCopy(locale: Locale) {
               title: "구매와 정산으로 이어지는 신호",
             },
           ],
+        },
+        unlockedVlogs: {
+          body:
+            "보고싶어요가 6/6을 채운 원본 브이로그를 실제 영상 프리뷰로 보여줍니다. 이후 유료 원본 판매가 발생하면 구매 이벤트와 언락·리포트·공유 기여를 분리 기록해 USDT 보상 정산 근거로 연결합니다.",
+          cta: "언락 원본 보기",
+          disclaimer:
+            "보상은 운영 정책과 정산 조건에 따라 기록·지급되며 투자 수익을 보장하지 않습니다.",
+          empty: "아직 홍보할 언락 원본 브이로그가 없습니다.",
+          eyebrow: "Unlocked Vlog Economy",
+          freeSource: "공개 원본",
+          openedBadge: "원본 공개 완료",
+          paidSource: "유료 원본",
+          previewBadge: "언락 프리뷰",
+          rewardBody:
+            "유료 판매, 팬 요청 결제, 보고싶어요 언락, 리포트 확산, 공유 유입을 따로 기록해야 누가 어떤 매출 신호에 기여했는지 계산할 수 있습니다.",
+          rewardItems: [
+            "유료 콘텐츠 판매를 USDT 매출 이벤트로 기록",
+            "언락 참여자, 리포터, 공유자를 기여 이벤트로 분리",
+            "운영 정책에 따라 보상 포인트와 USDT 지급 로그 연결",
+          ],
+          rewardTitle: "USDT 분배는 기여 원장 위에서 설명됩니다",
+          stats: {
+            ledger: "정산 원장",
+            opened: "언락 참여",
+            sale: "판매 이벤트",
+          },
+          title: "팬이 연 원본이 유료 소비와 USDT 정산으로 이어집니다",
+          usdtSale: "USDT 판매",
         },
         investorBrief: {
           body:
@@ -641,6 +691,34 @@ function getCopy(locale: Locale) {
             },
           ],
         },
+        unlockedVlogs: {
+          body:
+            "Show source vlogs that fans have already opened by completing the 6/6 want-to-watch threshold. When paid source sales happen later, purchase events and unlock, report, and share contributions can be recorded separately as the basis for USDT reward settlement.",
+          cta: "Watch unlocked source",
+          disclaimer:
+            "Rewards are recorded and paid according to operating policy and settlement conditions. This is not a guaranteed investment return.",
+          empty: "No unlocked source vlog is ready to promote yet.",
+          eyebrow: "Unlocked Vlog Economy",
+          freeSource: "Public source",
+          openedBadge: "Source opened",
+          paidSource: "Paid source",
+          previewBadge: "Unlocked preview",
+          rewardBody:
+            "Paid sales, fan requests, want-to-watch unlocks, reporter distribution, and shared-link traffic need separate event records so the platform can calculate who contributed to each revenue signal.",
+          rewardItems: [
+            "Record paid content sales as USDT revenue events",
+            "Separate unlock participants, reporters, and sharers as contribution events",
+            "Connect reward points and USDT payout logs according to operating policy",
+          ],
+          rewardTitle: "USDT distribution is explained by the contribution ledger",
+          stats: {
+            ledger: "Settlement ledger",
+            opened: "Unlocks",
+            sale: "Sales event",
+          },
+          title: "Fan-opened sources can lead into paid consumption and USDT settlement",
+          usdtSale: "USDT sale",
+        },
         investorBrief: {
           body:
             "AIAVpark News connects source vlogs, fan reports, source opens, and purchase assists into one operating flow. Live content on the service shows that structure directly.",
@@ -1055,6 +1133,188 @@ function getRepresentativeReports(
   }
 
   return representativeReports;
+}
+
+function getRecentUniqueContentReports(
+  reports: FanletterNewsReportDocument[],
+  limit: number,
+) {
+  const seenContentIds = new Set<string>();
+  const uniqueReports: FanletterNewsReportDocument[] = [];
+
+  for (const report of reports) {
+    const contentId = report.contentId.trim();
+
+    if (!contentId || seenContentIds.has(contentId)) {
+      continue;
+    }
+
+    seenContentIds.add(contentId);
+    uniqueReports.push(report);
+
+    if (uniqueReports.length >= limit) {
+      break;
+    }
+  }
+
+  return uniqueReports;
+}
+
+function getUnlockedVlogVideoUrl(item: FanletterPublicContentDetail) {
+  return (
+    item.sourcePreviewVideoUrl?.trim() ||
+    item.primaryVideoUrl?.trim() ||
+    null
+  );
+}
+
+function getPlatformUnlockedSourceHref({
+  contentId,
+  locale,
+  referralCode,
+  reportId,
+}: {
+  contentId: string;
+  locale: Locale;
+  referralCode: string | null;
+  reportId: string;
+}) {
+  return setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/cuts/${reportId}`, referralCode),
+    {
+      cut: "1",
+      source: contentId,
+    },
+  );
+}
+
+async function getPlatformSourceRevealStatesByContentId(contentIds: string[]) {
+  const uniqueContentIds = [
+    ...new Set(contentIds.map((contentId) => contentId.trim()).filter(Boolean)),
+  ];
+  const stateByContentId = new Map<string, FanletterNewsSourceRevealState>();
+
+  if (uniqueContentIds.length === 0) {
+    return stateByContentId;
+  }
+
+  const socialActionsCollection = await getContentSocialActionsCollection();
+  const sourceRevealCounts = await socialActionsCollection
+    .aggregate<{ _id: string; count: number }>([
+      {
+        $match: {
+          contentId: { $in: uniqueContentIds },
+          sourceRevealRequested: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$contentId",
+          count: { $sum: 1 },
+        },
+      },
+    ])
+    .toArray();
+  const sourceRevealCountByContentId = new Map(
+    sourceRevealCounts.map((row) => [row._id, row.count] as const),
+  );
+
+  for (const contentId of uniqueContentIds) {
+    stateByContentId.set(
+      contentId,
+      createFanletterNewsSourceRevealState(
+        createEmptyContentSocialSummary({
+          sourceRevealCount: sourceRevealCountByContentId.get(contentId) ?? 0,
+        }),
+      ),
+    );
+  }
+
+  return stateByContentId;
+}
+
+async function getPlatformUnlockedVlogItems({
+  locale,
+  referralCode,
+  reports,
+}: {
+  locale: Locale;
+  referralCode: string | null;
+  reports: FanletterNewsReportDocument[];
+}): Promise<PlatformUnlockedVlogItem[]> {
+  const sourceReports = getRecentUniqueContentReports(
+    reports.filter((report) => report.contentMaturityRating === "general"),
+    PLATFORM_UNLOCKED_VLOG_SOURCE_SCAN_LIMIT,
+  );
+
+  if (sourceReports.length === 0) {
+    return [];
+  }
+
+  const sourceRevealByContentId = await getPlatformSourceRevealStatesByContentId(
+    sourceReports.map((report) => report.contentId),
+  );
+  const unlockedRows = sourceReports
+    .map((report) => {
+      const sourceReveal = sourceRevealByContentId.get(report.contentId);
+
+      if (!sourceReveal?.unlocked) {
+        return null;
+      }
+
+      return { report, sourceReveal };
+    })
+    .filter((row): row is NonNullable<typeof row> => Boolean(row))
+    .slice(0, PLATFORM_UNLOCKED_VLOG_DETAIL_LOOKAHEAD);
+
+  if (unlockedRows.length === 0) {
+    return [];
+  }
+
+  const items: PlatformUnlockedVlogItem[] = [];
+
+  for (const { report, sourceReveal } of unlockedRows) {
+    try {
+      const item = await getFanletterPublicContentDetail(
+        report.contentId,
+        locale,
+        null,
+        {
+          includeLockedPreviewVideo: true,
+          includeNsfw: false,
+        },
+      );
+
+      if (
+        !item ||
+        item.contentMaturityRating !== "general" ||
+        item.mediaType !== "video" ||
+        !getUnlockedVlogVideoUrl(item)
+      ) {
+        continue;
+      }
+
+      items.push({
+        href: getPlatformUnlockedSourceHref({
+          contentId: item.contentId,
+          locale,
+          referralCode,
+          reportId: report.reportId,
+        }),
+        item,
+        report,
+        sourceReveal,
+      });
+
+      if (items.length >= PLATFORM_UNLOCKED_VLOG_DISPLAY_LIMIT) {
+        break;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return items;
 }
 
 function canShowReportPreviewVideo(report: FanletterNewsReportDocument) {
@@ -1638,6 +1898,250 @@ function PlatformMarketSignal({
             </Link>
           ) : null}
         </LandingReveal>
+      </div>
+    </section>
+  );
+}
+
+function PlatformUnlockedVlogEconomy({
+  copy,
+  items,
+  locale,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  items: PlatformUnlockedVlogItem[];
+  locale: Locale;
+}) {
+  const primaryItem = items[0] ?? null;
+  const secondaryItems = items.slice(1);
+  const primaryVideoUrl = primaryItem
+    ? getUnlockedVlogVideoUrl(primaryItem.item)
+    : null;
+  const primaryImageUrl =
+    primaryItem?.item.coverImageUrl ?? primaryItem?.report.coverImageUrl ?? null;
+  const primaryPriceLabel = primaryItem
+    ? primaryItem.item.priceType === "paid"
+      ? primaryItem.item.priceUsdt
+        ? `${primaryItem.item.priceUsdt} USDT`
+        : copy.unlockedVlogs.paidSource
+      : copy.unlockedVlogs.freeSource
+    : null;
+  const statTiles = [
+    {
+      label: copy.unlockedVlogs.stats.opened,
+      value: primaryItem
+        ? `${formatNumber(primaryItem.sourceReveal.count, locale)}/${formatNumber(
+            primaryItem.sourceReveal.threshold,
+            locale,
+          )}`
+        : "6/6",
+    },
+    {
+      label: copy.unlockedVlogs.stats.sale,
+      value: primaryPriceLabel ?? copy.unlockedVlogs.usdtSale,
+    },
+    {
+      label: copy.unlockedVlogs.stats.ledger,
+      value: "USDT",
+    },
+  ];
+
+  return (
+    <section className="relative overflow-hidden border-y border-[#44f26e]/18 bg-[#071108] text-white">
+      <div className="absolute inset-0 bg-[linear-gradient(115deg,rgba(68,242,110,0.14)_0%,rgba(7,17,8,0)_40%,rgba(255,215,107,0.12)_100%)]" />
+      <div className="absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(68,242,110,0.92),rgba(255,215,107,0.8),transparent)]" />
+      <div className="relative mx-auto grid max-w-[92rem] gap-6 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:items-start lg:px-8">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-2 text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#7cff98]">
+            <BadgeDollarSign className="size-4" />
+            {copy.unlockedVlogs.eyebrow}
+          </p>
+          <h2 className="mt-3 max-w-3xl text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
+            {copy.unlockedVlogs.title}
+          </h2>
+          <p className="mt-4 max-w-2xl text-sm font-bold leading-6 text-white/66 sm:text-base sm:leading-7">
+            {copy.unlockedVlogs.body}
+          </p>
+
+          <div className="mt-6 grid grid-cols-3 gap-2">
+            {statTiles.map((stat, index) => (
+              <div
+                className={
+                  index === 0
+                    ? "min-w-0 rounded-lg bg-[#44f26e] p-3 text-[#071108]"
+                    : index === 1
+                      ? "min-w-0 rounded-lg border border-[#ffd76b]/32 bg-[#ffd76b]/12 p-3 text-white"
+                      : "min-w-0 rounded-lg border border-white/12 bg-white/[0.07] p-3 text-white"
+                }
+                key={stat.label}
+              >
+                <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.1em] opacity-70">
+                  {stat.label}
+                </p>
+                <p className="mt-1 truncate text-lg font-black sm:text-2xl">
+                  {stat.value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 rounded-lg border border-[#ffd76b]/28 bg-[#ffd76b]/12 p-4">
+            <p className="text-lg font-black leading-7 [word-break:keep-all]">
+              {copy.unlockedVlogs.rewardTitle}
+            </p>
+            <p className="mt-2 text-sm font-semibold leading-6 text-white/64">
+              {copy.unlockedVlogs.rewardBody}
+            </p>
+            <div className="mt-4 grid gap-2">
+              {copy.unlockedVlogs.rewardItems.map((item) => (
+                <div
+                  className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 rounded-md border border-white/10 bg-black/24 p-2.5"
+                  key={item}
+                >
+                  <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-[#44f26e]" />
+                  <p className="text-xs font-bold leading-5 text-white/70 sm:text-sm sm:leading-6">
+                    {item}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs font-bold leading-5 text-white/38">
+              {copy.unlockedVlogs.disclaimer}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          {primaryItem ? (
+            <Link
+              className="group relative min-h-[25rem] overflow-hidden rounded-lg border border-[#44f26e]/34 bg-black !text-white shadow-[0_34px_96px_rgba(0,0,0,0.34)] sm:min-h-[33rem]"
+              href={primaryItem.href}
+            >
+              {primaryImageUrl ? (
+                <Image
+                  alt=""
+                  aria-hidden="true"
+                  className="object-cover opacity-72 transition duration-700 group-hover:scale-[1.035]"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 42rem"
+                  src={primaryImageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(
+                    primaryImageUrl,
+                  )}
+                />
+              ) : null}
+              {primaryVideoUrl ? (
+                <FanletterAutoplayVideo
+                  ariaHidden
+                  className="absolute inset-0 h-full w-full object-cover opacity-88 transition duration-700 group-hover:scale-[1.035]"
+                  poster={primaryImageUrl ?? undefined}
+                  src={primaryVideoUrl}
+                />
+              ) : null}
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0.04)_0%,rgba(7,17,8,0.18)_38%,rgba(7,17,8,0.92)_100%)]" />
+              <div className="absolute inset-x-0 top-0 flex flex-wrap items-start justify-between gap-2 p-3 sm:p-4">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1.5 text-[0.62rem] font-black uppercase tracking-[0.11em] text-[#071108] shadow-[0_12px_28px_rgba(0,0,0,0.2)]">
+                  <PlayCircle className="size-3.5" />
+                  {copy.unlockedVlogs.previewBadge}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/22 bg-black/44 px-3 py-1.5 text-[0.62rem] font-black uppercase tracking-[0.11em] text-white/86 backdrop-blur">
+                  <LockKeyhole className="size-3.5 text-[#ffd76b]" />
+                  {copy.unlockedVlogs.openedBadge}
+                </span>
+              </div>
+              <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
+                <p className="text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#9bffad]">
+                  {primaryItem.item.authorName}
+                </p>
+                <h3 className="mt-2 max-w-2xl text-2xl font-black leading-tight [word-break:keep-all] sm:text-4xl">
+                  {getArticleDisplayTitle(primaryItem.report.title)}
+                </h3>
+                <p className="mt-2 line-clamp-2 max-w-xl text-sm font-bold leading-6 text-white/66 sm:text-base sm:leading-7">
+                  {primaryItem.report.dek || primaryItem.item.summary}
+                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <span className="rounded-full border border-white/18 bg-white/10 px-3 py-1.5 text-xs font-black text-white/82">
+                    {primaryPriceLabel}
+                  </span>
+                  <span className="rounded-full border border-[#44f26e]/32 bg-[#44f26e]/14 px-3 py-1.5 text-xs font-black text-[#9bffad]">
+                    {formatNumber(primaryItem.sourceReveal.count, locale)}/
+                    {formatNumber(primaryItem.sourceReveal.threshold, locale)}
+                  </span>
+                </div>
+                <span className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-2.5 text-sm font-black text-[#071108] transition group-hover:bg-[#69ff8c]">
+                  {copy.unlockedVlogs.cta}
+                  <ArrowRight className="size-4" />
+                </span>
+              </div>
+            </Link>
+          ) : (
+            <div className="flex min-h-[22rem] items-center justify-center rounded-lg border border-white/12 bg-white/[0.06] p-6 text-center text-sm font-bold text-white/54">
+              {copy.unlockedVlogs.empty}
+            </div>
+          )}
+
+          {secondaryItems.length > 0 ? (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {secondaryItems.map((item) => {
+                const videoUrl = getUnlockedVlogVideoUrl(item.item);
+                const imageUrl = item.item.coverImageUrl ?? item.report.coverImageUrl;
+                const priceLabel =
+                  item.item.priceType === "paid"
+                    ? item.item.priceUsdt
+                      ? `${item.item.priceUsdt} USDT`
+                      : copy.unlockedVlogs.paidSource
+                    : copy.unlockedVlogs.freeSource;
+
+                return (
+                  <Link
+                    className="group min-w-0 overflow-hidden rounded-lg border border-white/12 bg-white/[0.07] !text-white transition hover:border-[#44f26e]/54 hover:bg-[#44f26e]/10"
+                    href={item.href}
+                    key={item.item.contentId}
+                  >
+                    <span className="relative block aspect-[4/5] overflow-hidden bg-black">
+                      {imageUrl ? (
+                        <Image
+                          alt=""
+                          aria-hidden="true"
+                          className="object-cover opacity-74 transition duration-500 group-hover:scale-[1.04]"
+                          fill
+                          sizes="(max-width: 1024px) 32vw, 13rem"
+                          src={imageUrl}
+                          unoptimized={shouldBypassFanletterImageOptimization(
+                            imageUrl,
+                          )}
+                        />
+                      ) : null}
+                      {videoUrl ? (
+                        <FanletterAutoplayVideo
+                          ariaHidden
+                          className="absolute inset-0 h-full w-full object-cover opacity-84 transition duration-500 group-hover:scale-[1.04]"
+                          poster={imageUrl ?? undefined}
+                          src={videoUrl}
+                        />
+                      ) : null}
+                      <span className="absolute left-2 top-2 rounded-full bg-[#44f26e] px-2 py-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-[#071108]">
+                        {priceLabel}
+                      </span>
+                    </span>
+                    <span className="block min-w-0 p-3">
+                      <span className="block text-[0.58rem] font-black uppercase tracking-[0.13em] text-[#9bffad]">
+                        {item.item.authorName}
+                      </span>
+                      <span className="mt-1 block line-clamp-2 text-sm font-black leading-5">
+                        {getArticleDisplayTitle(item.report.title)}
+                      </span>
+                      <span className="mt-3 inline-flex items-center gap-1.5 text-xs font-black text-[#9bffad]">
+                        {copy.unlockedVlogs.cta}
+                        <ArrowRight className="size-3.5" />
+                      </span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
       </div>
     </section>
   );
@@ -2856,12 +3360,19 @@ export default async function FanletterNewsPlatformPage({
   const characterCandidateReports = characterDirectoryReports.filter(
     (report) => report.contentMaturityRating === "general",
   );
-  const featuredCharacters = await hydrateFanletterNewsCharacterStats(
-    getFanletterNewsCharacterStats(characterCandidateReports, 6, {
-      sort: "discovery",
+  const [featuredCharacters, unlockedVlogItems] = await Promise.all([
+    hydrateFanletterNewsCharacterStats(
+      getFanletterNewsCharacterStats(characterCandidateReports, 6, {
+        sort: "discovery",
+      }),
+      { limit: 4, sort: "discovery" },
+    ),
+    getPlatformUnlockedVlogItems({
+      locale,
+      referralCode,
+      reports: characterCandidateReports,
     }),
-    { limit: 4, sort: "discovery" },
-  );
+  ]);
   const platformMomentumStats: FanletterNewsPlatformMomentumStat[] = [
     {
       ...copy.momentumStats.news,
@@ -3039,6 +3550,12 @@ export default async function FanletterNewsPlatformPage({
         referralCode={referralCode}
         reports={latestReports}
         teaserItems={teaserGalleryItems}
+      />
+
+      <PlatformUnlockedVlogEconomy
+        copy={copy}
+        items={unlockedVlogItems}
+        locale={locale}
       />
 
       <PlatformInvestorBrief
