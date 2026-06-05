@@ -1685,6 +1685,7 @@ function SourceRevealParticipantRail({
   loginError,
   onActivate,
   progressPercent,
+  showMeta = true,
   state,
   viewerAvatarImageUrl,
   viewerDisplayName,
@@ -1702,6 +1703,7 @@ function SourceRevealParticipantRail({
   loginError: string | null;
   onActivate: () => void;
   progressPercent: number;
+  showMeta?: boolean;
   state: FanletterNewsSourceRevealState;
   viewerAvatarImageUrl: string | null;
   viewerDisplayName: string;
@@ -1819,79 +1821,83 @@ function SourceRevealParticipantRail({
         <span className="max-w-14 text-center text-[0.58rem] font-black leading-[1.05] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
           {ctaLabel}
         </span>
-        <span className="rounded-full bg-black/38 px-1.5 py-0.5 text-[0.56rem] font-black leading-none text-white/84 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur">
-          {countLabel}
-        </span>
-        <span className="max-w-[4.25rem] rounded-full border border-[#44f26e]/18 bg-black/34 px-1.5 py-1 text-center text-[0.58rem] font-black leading-none text-[#9bffad] shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
-          {sponsorStatusLabel}
-        </span>
-        <div
-          aria-label={sponsorsStackLabel}
-          className="mt-1 flex flex-col items-center pb-1"
-          role="group"
-        >
-          {slots.map((slot, slotIndex) => {
-            const isParticipant = slot.kind === "participant";
-            const isViewerSlot = slot.kind === "viewer";
-            const isAnonymousComplete = slot.kind === "complete";
-            const sponsorName =
-              isAnonymousComplete || slot.kind === "empty"
-                ? copy.sourceOpenSponsorsAnonymous
-                : slot.displayName;
-            const slotLabel =
-              slot.kind === "empty"
-                ? copy.sourceOpenSponsorsEmptySlot(
-                    formatNumber(slot.position, locale),
-                  )
-                : copy.sourceOpenSponsorsParticipant(sponsorName);
-            const slotContent = slot.avatarImageUrl ? (
-              <Image
-                alt=""
-                className="object-cover"
-                fill
-                sizes="30px"
-                src={slot.avatarImageUrl}
-                unoptimized={shouldBypassFanletterImageOptimization(
-                  slot.avatarImageUrl,
-                )}
-              />
-            ) : isAnonymousComplete || isViewerSlot ? (
-              <UserRound className="size-3.5" />
-            ) : (
-              <Plus className="size-3.5" />
-            );
-            const className = `relative inline-flex size-[1.88rem] items-center justify-center overflow-hidden rounded-full border text-[0.58rem] font-black shadow-[0_8px_18px_rgba(0,0,0,0.24)] transition first:mt-0 focus:outline-none focus:ring-2 focus:ring-[#44f26e]/60 ${
-              isParticipant
-                ? "-mt-2 border-white/72 bg-black/48 text-white"
-                : isViewerSlot
-                  ? "-mt-2 border-[#44f26e] bg-[#44f26e]/20 text-[#44f26e] ring-2 ring-[#44f26e]/36"
-                  : isAnonymousComplete
-                    ? "-mt-2 border-[#44f26e]/60 bg-[#44f26e]/18 text-[#9bffad]"
-                    : "-mt-2 border-white/16 bg-black/24 text-white/42"
-            }`;
-            const slotStyle = {
-              zIndex: slots.length - slotIndex,
-            };
+        {showMeta ? (
+          <>
+            <span className="rounded-full bg-black/38 px-1.5 py-0.5 text-[0.56rem] font-black leading-none text-white/84 shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur">
+              {countLabel}
+            </span>
+            <span className="max-w-[4.25rem] rounded-full border border-[#44f26e]/18 bg-black/34 px-1.5 py-1 text-center text-[0.58rem] font-black leading-none text-[#9bffad] shadow-[0_8px_18px_rgba(0,0,0,0.18)] backdrop-blur drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
+              {sponsorStatusLabel}
+            </span>
+            <div
+              aria-label={sponsorsStackLabel}
+              className="mt-1 flex flex-col items-center pb-1"
+              role="group"
+            >
+              {slots.map((slot, slotIndex) => {
+                const isParticipant = slot.kind === "participant";
+                const isViewerSlot = slot.kind === "viewer";
+                const isAnonymousComplete = slot.kind === "complete";
+                const sponsorName =
+                  isAnonymousComplete || slot.kind === "empty"
+                    ? copy.sourceOpenSponsorsAnonymous
+                    : slot.displayName;
+                const slotLabel =
+                  slot.kind === "empty"
+                    ? copy.sourceOpenSponsorsEmptySlot(
+                        formatNumber(slot.position, locale),
+                      )
+                    : copy.sourceOpenSponsorsParticipant(sponsorName);
+                const slotContent = slot.avatarImageUrl ? (
+                  <Image
+                    alt=""
+                    className="object-cover"
+                    fill
+                    sizes="30px"
+                    src={slot.avatarImageUrl}
+                    unoptimized={shouldBypassFanletterImageOptimization(
+                      slot.avatarImageUrl,
+                    )}
+                  />
+                ) : isAnonymousComplete || isViewerSlot ? (
+                  <UserRound className="size-3.5" />
+                ) : (
+                  <Plus className="size-3.5" />
+                );
+                const className = `relative inline-flex size-[1.88rem] items-center justify-center overflow-hidden rounded-full border text-[0.58rem] font-black shadow-[0_8px_18px_rgba(0,0,0,0.24)] transition first:mt-0 focus:outline-none focus:ring-2 focus:ring-[#44f26e]/60 ${
+                  isParticipant
+                    ? "-mt-2 border-white/72 bg-black/48 text-white"
+                    : isViewerSlot
+                      ? "-mt-2 border-[#44f26e] bg-[#44f26e]/20 text-[#44f26e] ring-2 ring-[#44f26e]/36"
+                      : isAnonymousComplete
+                        ? "-mt-2 border-[#44f26e]/60 bg-[#44f26e]/18 text-[#9bffad]"
+                        : "-mt-2 border-white/16 bg-black/24 text-white/42"
+                }`;
+                const slotStyle = {
+                  zIndex: slots.length - slotIndex,
+                };
 
-            return (
-              <button
-                aria-label={slotLabel}
-                className={className}
-                key={`${slot.kind}-${slot.position}-${slot.referralCode ?? slot.displayName}`}
-                onClick={() => setIsSponsorSheetOpen(true)}
-                style={slotStyle}
-                title={slotLabel}
-                type="button"
-              >
-                {slotContent}
-              </button>
-            );
-          })}
-        </div>
-        {statusError ? (
-          <span className="max-w-16 text-center text-[0.54rem] font-black leading-[1.1] text-rose-100 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
-            {statusError}
-          </span>
+                return (
+                  <button
+                    aria-label={slotLabel}
+                    className={className}
+                    key={`${slot.kind}-${slot.position}-${slot.referralCode ?? slot.displayName}`}
+                    onClick={() => setIsSponsorSheetOpen(true)}
+                    style={slotStyle}
+                    title={slotLabel}
+                    type="button"
+                  >
+                    {slotContent}
+                  </button>
+                );
+              })}
+            </div>
+            {statusError ? (
+              <span className="max-w-16 text-center text-[0.54rem] font-black leading-[1.1] text-rose-100 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
+                {statusError}
+              </span>
+            ) : null}
+          </>
         ) : null}
       </div>
 
@@ -2448,7 +2454,6 @@ function SourceVlogFeedOverlay({
 }
 
 function FeedSlide({
-  autoRevealChromeOnEntry = false,
   dictionary,
   hasMore,
   index,
@@ -2471,7 +2476,6 @@ function FeedSlide({
   shareId,
   showSwipeGuide = false,
 }: {
-  autoRevealChromeOnEntry?: boolean;
   dictionary: Dictionary;
   hasMore: boolean;
   index: number;
@@ -2558,8 +2562,6 @@ function FeedSlide({
   const topOverlaysTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
-  const entryChromeRevealTimeoutRef = useRef<number | null>(null);
-  const entryChromeRevealedRef = useRef(false);
   const initialSourceOverlayOpenedRef = useRef(false);
   const pendingVoteAfterLoginRef = useRef(false);
   const loginSyncKeyRef = useRef<string | null>(null);
@@ -2817,29 +2819,6 @@ function FeedSlide({
     clearTopOverlaysTimer,
     onHideFeedChrome,
   ]);
-
-  useEffect(() => {
-    if (
-      !autoRevealChromeOnEntry ||
-      !isActive ||
-      entryChromeRevealedRef.current
-    ) {
-      return;
-    }
-
-    entryChromeRevealedRef.current = true;
-    entryChromeRevealTimeoutRef.current = window.setTimeout(() => {
-      revealCutOverlays();
-      entryChromeRevealTimeoutRef.current = null;
-    }, 120);
-
-    return () => {
-      if (entryChromeRevealTimeoutRef.current) {
-        window.clearTimeout(entryChromeRevealTimeoutRef.current);
-        entryChromeRevealTimeoutRef.current = null;
-      }
-    };
-  }, [autoRevealChromeOnEntry, isActive, revealCutOverlays]);
 
   const flushCutDwell = useCallback((exitReason: CutDwellExitReason) => {
     const snapshot = cutDwellSnapshotRef.current;
@@ -3883,6 +3862,12 @@ function FeedSlide({
   const showSourceViewGuide =
     isActive && showSwipeGuide && sourceRevealState.unlocked && cutCount > 1;
   const showCutSwipeGuide = isActive && showSwipeGuide && cutCount > 1;
+  const areSideActionDetailsVisible =
+    areSideActionsVisible ||
+    authNudge ||
+    isLoginSyncing ||
+    isSourceRevealSaving ||
+    Boolean(sourceRevealError || loginSyncError);
   const cutSwipeGuideClassName =
     "pointer-events-none absolute left-1/2 top-1/2 z-30 flex w-fit max-w-[calc(100%_-_1.5rem)] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2 text-center text-white";
   const cutSwipeGuidePillClassName =
@@ -4091,11 +4076,7 @@ function FeedSlide({
       </div>
 
       <div
-        className={`absolute right-3 top-[48%] z-30 flex -translate-y-1/2 flex-col items-center gap-4 text-white transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
-          areSideActionsVisible
-            ? "visible pointer-events-auto translate-x-0 opacity-100 blur-0"
-            : "invisible pointer-events-none translate-x-3 opacity-0 blur-[1px]"
-        }`}
+        className="absolute right-3 top-[48%] z-30 flex -translate-y-1/2 flex-col items-center gap-4 text-white"
       >
         {showSourceViewGuide ? (
           <div
@@ -4129,12 +4110,19 @@ function FeedSlide({
           loginError={loginSyncError}
           onActivate={handleSourceRailClick}
           progressPercent={sourceRailProgressPercent}
+          showMeta={areSideActionDetailsVisible}
           state={sourceRevealState}
           viewerAvatarImageUrl={viewerAvatarImageUrl}
           viewerDisplayName={viewerDisplayName}
           viewerReferralCode={viewerReferralCode}
         />
-        <div className="flex flex-col items-center gap-1.5">
+        <div
+          className={`flex flex-col items-center gap-1.5 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
+            areSideActionsVisible
+              ? "visible pointer-events-auto translate-x-0 opacity-100 blur-0"
+              : "invisible pointer-events-none translate-x-3 opacity-0 blur-[1px]"
+          }`}
+        >
           <CutFeedShareButton
             activeCutSlotNumber={activeCutSlotNumber}
             contentId={sourceContentId || null}
@@ -4588,9 +4576,9 @@ export function FanletterNewsPublicCutsFeedPage({
   const [swipeGuideTarget, setSwipeGuideTarget] =
     useState<CutFeedSwipeGuideTarget | null>(null);
   const [entrySwipeGuideDismissed, setEntrySwipeGuideDismissed] =
-    useState(false);
+    useState(() => Boolean(shareId || excludeReportId));
   const [sourceViewSwipeGuideDismissed, setSourceViewSwipeGuideDismissed] =
-    useState(false);
+    useState(() => Boolean(shareId || excludeReportId));
   const [serviceMenuOpen, setServiceMenuOpen] = useState(false);
   const [navigationPending, setNavigationPending] =
     useState<CutFeedNavigationPending | null>(null);
@@ -5672,7 +5660,6 @@ export function FanletterNewsPublicCutsFeedPage({
 
           return (
             <FeedSlide
-              autoRevealChromeOnEntry={isSharedConsumptionEntry && index === 0}
               dictionary={dictionary}
               hasMore={hasMore}
               index={index}
