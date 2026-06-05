@@ -1126,6 +1126,29 @@ function getPlatformReportCutHref({
   );
 }
 
+function getPlatformCharacterCutHref({
+  characterReferralCode,
+  locale,
+  referralCode,
+}: {
+  characterReferralCode: string;
+  locale: Locale;
+  referralCode: string | null;
+}) {
+  return setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/characters/${characterReferralCode}`,
+      referralCode,
+    ),
+    {
+      returnTo: buildPathWithReferral(
+        `/${locale}/fanletter/news/platform`,
+        referralCode,
+      ),
+    },
+  );
+}
+
 function getReportDiversityKey(report: FanletterNewsReportDocument) {
   const title = getArticleDisplayTitle(report.title)
     .trim()
@@ -1789,10 +1812,11 @@ function PlatformLiveContentWall({
                   <Link
                     aria-label={`${copy.liveStudio.characterRail}: ${character.name}`}
                     className="group min-w-0 overflow-hidden rounded-lg border border-white/10 bg-black/22 !text-white transition hover:border-[#4cc9f0]/54 hover:bg-[#4cc9f0]/10"
-                    href={buildPathWithReferral(
-                      `/${locale}/fanletter/news/characters/${character.referralCode}`,
+                    href={getPlatformCharacterCutHref({
+                      characterReferralCode: character.referralCode,
+                      locale,
                       referralCode,
-                    )}
+                    })}
                     key={character.referralCode}
                   >
                     <span className="relative block aspect-square overflow-hidden bg-[#071108]">
@@ -2734,10 +2758,11 @@ function PlatformPortalStrategy({
               return (
                 <Link
                   className="group grid min-w-0 grid-cols-[4.25rem_minmax(0,1fr)] items-center gap-3 rounded-lg border border-white/12 bg-white/[0.07] p-2.5 !text-white transition hover:border-[#44f26e]/60 hover:bg-[#44f26e]/10"
-                  href={buildPathWithReferral(
-                    `/${locale}/fanletter/news/characters/${character.referralCode}`,
+                  href={getPlatformCharacterCutHref({
+                    characterReferralCode: character.referralCode,
+                    locale,
                     referralCode,
-                  )}
+                  })}
                   key={character.referralCode}
                 >
                   <span className="relative aspect-square overflow-hidden rounded-lg bg-black">
@@ -3076,10 +3101,11 @@ function CharacterGrowthChart({
             {rows.map((row, index) => {
               const { character } = row;
               const scorePercent = getPercent(row.score, maxScore);
-              const href = buildPathWithReferral(
-                `/${locale}/fanletter/news/characters/${character.referralCode}`,
+              const href = getPlatformCharacterCutHref({
+                characterReferralCode: character.referralCode,
+                locale,
                 referralCode,
-              );
+              });
 
               return (
                 <LandingReveal
@@ -3800,10 +3826,11 @@ export default async function FanletterNewsPlatformPage({
                 <HomeCharacterCard
                   character={character}
                   copy={copy}
-                  href={buildPathWithReferral(
-                    `/${locale}/fanletter/news/characters/${character.referralCode}`,
+                  href={getPlatformCharacterCutHref({
+                    characterReferralCode: character.referralCode,
+                    locale,
                     referralCode,
-                  )}
+                  })}
                   key={character.referralCode}
                   locale={locale}
                 />

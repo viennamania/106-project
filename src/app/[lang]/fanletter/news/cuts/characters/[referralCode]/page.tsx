@@ -89,6 +89,7 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         backToCuts: "컷 피드로 돌아가기",
+        backToPlatform: "플랫폼으로 돌아가기",
         cutEyebrow: "보고 있던 리포터 컷",
         cutFallback: "컷 피드에서 선택한 장면을 기준으로 이어진 캐릭터 채널입니다.",
         cutTitle: (slot: string) => `${slot}번 컷에서 이어보기`,
@@ -140,6 +141,7 @@ function getCopy(locale: Locale) {
       }
     : {
         backToCuts: "Back to cut feed",
+        backToPlatform: "Back to platform",
         cutEyebrow: "Reporter cut you were viewing",
         cutFallback:
           "This character channel continues from the cut selected in the feed.",
@@ -464,6 +466,12 @@ function getReturnHref({
   );
 }
 
+function isPlatformReturnPath(returnToHref: string | null, locale: Locale) {
+  const pathname = returnToHref?.split(/[?#]/, 1)[0]?.replace(/\/+$/, "") ?? "";
+
+  return pathname === `/${locale}/fanletter/news/platform`;
+}
+
 function getCutNewsHref({
   cutSlotNumber,
   effectiveReferralCode,
@@ -602,6 +610,11 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
     locale,
     returnToHref: safeReturnToHref,
   });
+  const isPlatformReturn = isPlatformReturnPath(safeReturnToHref, locale);
+  const returnLabel = isPlatformReturn ? copy.backToPlatform : copy.backToCuts;
+  const latestNewsReturnLabel = isPlatformReturn
+    ? copy.backToPlatform
+    : copy.latestNewsFeedCta;
   const characterChannelHref = getCharacterChannelHref({
     cutSlotNumber: sourceCutSlotNumber,
     effectiveReferralCode,
@@ -849,7 +862,7 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
         <header className="sticky top-0 z-40 border-b border-white/10 bg-black/72 px-4 py-3 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             <Link
-              aria-label={copy.backToCuts}
+              aria-label={returnLabel}
               className="inline-flex size-11 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/34 bg-[#44f26e]/14 !text-[#9bffad] transition hover:bg-[#44f26e] hover:!text-black"
               href={returnHref}
             >
@@ -1308,7 +1321,7 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                     href={returnHref}
                   >
                     <Newspaper className="size-4" />
-                    {copy.latestNewsFeedCta}
+                    {latestNewsReturnLabel}
                   </Link>
                   <Link
                     className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/10 px-4 text-sm font-black !text-[#9bffad]"
@@ -1428,7 +1441,7 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
               href={returnHref}
             >
               <ArrowLeft className="size-4" />
-              {copy.backToCuts}
+              {returnLabel}
             </Link>
           </div>
         </div>
