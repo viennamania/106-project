@@ -217,15 +217,17 @@ function getCopy(locale: Locale) {
           body:
             "K-뷰티가 제품력 다음 경쟁 축을 노출력으로 옮기고 있습니다. AIAVpark News는 이 변화를 AI 캐릭터 콘텐츠에도 그대로 적용해, 발견·반응·원본 소비·구매 기여를 한 화면에서 이어줍니다.",
           eyebrow: "시장 신호",
-          liveReports: "운영 중인 리포트",
+          liveReports: "공개 리포트",
           source:
             "조선비즈 2026.06.02 · ‘제품력’ 넘어 ‘노출력’ 경쟁",
           sourceCta: "시장 기사 보기",
-          sourcePreviews: "움직이는 원본 프리뷰",
+          sourcePreviews: "영상 프리뷰 원본",
+          statsNote:
+            "공개 리포트, 원본 브이로그, 영상 프리뷰, 캐릭터 채널을 합산한 서비스 운영 집계입니다.",
           thesis:
             "제품이 좋아도 먼저 발견되지 않으면 팔리지 않습니다. 이제 콘텐츠 플랫폼은 노출을 만들고, 반응을 읽고, 구매 기여를 기록해야 합니다.",
           title: "제품력 이후의 승부처는 노출력입니다",
-          totalAssets: "노출 자산",
+          totalAssets: "총 노출 자산",
           tracks: [
             {
               body:
@@ -661,15 +663,17 @@ function getCopy(locale: Locale) {
           body:
             "K-beauty is shifting the next competition layer from product quality alone to exposure power. AIAVpark News applies the same shift to AI character content by connecting discovery, reaction, source consumption, and purchase attribution.",
           eyebrow: "Market Signal",
-          liveReports: "Live reports",
+          liveReports: "Published reports",
           source:
             "ChosunBiz 2026.06.02 · exposure power after product power",
           sourceCta: "Read market article",
-          sourcePreviews: "Moving source previews",
+          sourcePreviews: "Video preview sources",
+          statsNote:
+            "Service operating aggregate across published reports, source vlogs, video previews, and character channels.",
           thesis:
             "Great products do not sell if they are not discovered first. Content platforms now need to create exposure, read reactions, and record purchase contribution.",
           title: "After product power, exposure power becomes the battleground",
-          totalAssets: "Exposure assets",
+          totalAssets: "Total exposure assets",
           tracks: [
             {
               body:
@@ -1831,22 +1835,27 @@ function PlatformLiveContentWall({
 }
 
 function PlatformMarketSignal({
-  characters,
   copy,
   locale,
   referralCode,
   reports,
+  stats,
   teaserItems,
 }: {
-  characters: FanletterNewsCharacterStat[];
   copy: ReturnType<typeof getCopy>;
   locale: Locale;
   referralCode: string | null;
   reports: FanletterNewsReportDocument[];
+  stats: FanletterNewsPlatformInvestorStats;
   teaserItems: FanletterNewsTeaserGalleryItem[];
 }) {
   const signalIcons = [Eye, FileText, WalletCards];
   const marketTiles = teaserItems.slice(0, 6);
+  const totalExposureAssets =
+    stats.reportCount +
+    stats.sourceContentCount +
+    stats.previewContentCount +
+    stats.characterCount;
   const featuredReport = reports[0] ?? null;
   const featuredReportHref = featuredReport
     ? getPlatformReportCutHref({
@@ -1859,17 +1868,17 @@ function PlatformMarketSignal({
     {
       className: "bg-[#44f26e] text-[#071108]",
       label: copy.marketSignal.totalAssets,
-      value: reports.length + teaserItems.length + characters.length,
+      value: totalExposureAssets,
     },
     {
       className: "border border-[#ffd76b]/30 bg-[#ffd76b]/12 text-white",
       label: copy.marketSignal.liveReports,
-      value: reports.length,
+      value: stats.reportCount,
     },
     {
       className: "border border-[#4cc9f0]/30 bg-[#4cc9f0]/12 text-white",
       label: copy.marketSignal.sourcePreviews,
-      value: teaserItems.length,
+      value: stats.previewContentCount,
     },
   ];
 
@@ -1921,6 +1930,9 @@ function PlatformMarketSignal({
               </div>
             ))}
           </div>
+          <p className="text-[0.65rem] font-bold leading-5 text-white/48 [word-break:keep-all]">
+            {copy.marketSignal.statsNote}
+          </p>
 
           {marketTiles.length > 0 ? (
             <div className="grid grid-cols-3 gap-2">
@@ -3670,11 +3682,11 @@ export default async function FanletterNewsPlatformPage({
       />
 
       <PlatformMarketSignal
-        characters={featuredCharacters}
         copy={copy}
         locale={locale}
         referralCode={referralCode}
         reports={latestReports}
+        stats={platformInvestorStats}
         teaserItems={teaserGalleryItems}
       />
 
