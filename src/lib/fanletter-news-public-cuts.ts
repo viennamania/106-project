@@ -13,6 +13,7 @@ import {
   getContentSourceRevealParticipants,
 } from "@/lib/content-service";
 import {
+  getContentSocialActionsCollection,
   getContentPostsCollection,
   getCreatorProfilesCollection,
   getFanletterNewsReportsCollection,
@@ -26,6 +27,7 @@ import {
   type FanletterNewsShareCohortSignals,
 } from "@/lib/fanletter-news-share-cohort";
 import {
+  FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD,
   createFanletterNewsSourceRevealState,
   type FanletterNewsSourceRevealState,
 } from "@/lib/fanletter-news-source-reveal";
@@ -42,6 +44,10 @@ const FANLETTER_NEWS_PUBLIC_CUT_FEED_REPORT_LIMIT =
   FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE;
 const FANLETTER_NEWS_PUBLIC_CUT_FEED_LOOKAHEAD_LIMIT = 48;
 const FANLETTER_NEWS_PUBLIC_CUT_FEED_SOCIAL_LOOKAHEAD_LIMIT = 144;
+const FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_CONTENT_LIMIT = 96;
+const FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_REPORT_LIMIT = 36;
+const FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_FIRST_INDEX = 5;
+const FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_INTERVAL = 8;
 
 type FanletterNewsPublicCutFeedAudience = "guest_direct" | "guest_social" | "member";
 type FanletterNewsPublicCutFeedMode = "default" | "reporter_locked";
@@ -424,6 +430,209 @@ function sortFanletterNewsPublicCutFeedItems({
   return moveDuplicateContentAfterFirstPass(sortedItems);
 }
 
+function hasPublicCutFeedNeighborConflict(
+  item: FanletterNewsPublicCutFeedItem,
+  neighbor: FanletterNewsPublicCutFeedItem | null,
+) {
+  if (!neighbor) {
+    return false;
+  }
+
+  const itemContentId = normalizePublicCutFeedScoreKey(item.report.contentId);
+  const neighborContentId = normalizePublicCutFeedScoreKey(
+    neighbor.report.contentId,
+  );
+  const itemCreatorCode = normalizePublicCutFeedScoreKey(
+    item.report.creatorReferralCode,
+  );
+  const neighborCreatorCode = normalizePublicCutFeedScoreKey(
+    neighbor.report.creatorReferralCode,
+  );
+
+  return Boolean(
+    (itemContentId && itemContentId === neighborContentId) ||
+      (itemCreatorCode && itemCreatorCode === neighborCreatorCode),
+  );
+}
+
+function takeGuestArchiveUnlockedItem({
+  archiveItems,
+  nextRegularItem,
+  previousItem,
+}: {
+  archiveItems: FanletterNewsPublicCutFeedItem[];
+  nextRegularItem: FanletterNewsPublicCutFeedItem | null;
+  previousItem: FanletterNewsPublicCutFeedItem | null;
+}) {
+  const preferredIndex = archiveItems.findIndex(
+    (item) =>
+      !hasPublicCutFeedNeighborConflict(item, previousItem) &&
+      !hasPublicCutFeedNeighborConflict(item, nextRegularItem),
+  );
+  const selectedIndex = preferredIndex >= 0 ? preferredIndex : 0;
+  const [selectedItem] = archiveItems.splice(selectedIndex, 1);
+
+  return selectedItem;
+}
+
+function mixGuestArchiveUnlockedFeedItems({
+  archiveReportIds,
+  audience,
+  sortedItems,
+}: {
+  archiveReportIds: Set<string>;
+  audience: FanletterNewsPublicCutFeedAudience;
+  sortedItems: FanletterNewsPublicCutFeedItem[];
+}) {
+  if (
+    archiveReportIds.size === 0 ||
+    (audience !== "guest_direct" && audience !== "guest_social")
+  ) {
+    return sortedItems;
+  }
+
+  const archiveItems = sortedItems
+    .filter(
+      (item) =>
+        archiveReportIds.has(item.report.reportId) && item.sourceReveal.unlocked,
+    )
+    .sort(
+      (left, right) =>
+        getPublicCutReportSortTime(left.report) -
+        getPublicCutReportSortTime(right.report),
+    );
+
+  if (archiveItems.length === 0) {
+    return sortedItems;
+  }
+
+  const archiveReportIdSet = new Set(
+    archiveItems.map((item) => item.report.reportId),
+  );
+  const regularItems = sortedItems.filter(
+    (item) => !archiveReportIdSet.has(item.report.reportId),
+  );
+  const result: FanletterNewsPublicCutFeedItem[] = [];
+  let nextArchiveIndex =
+    audience === "guest_direct"
+      ? FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_FIRST_INDEX - 1
+      : FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_FIRST_INDEX;
+
+  for (let index = 0; index < regularItems.length; index += 1) {
+    const regularItem = regularItems[index];
+
+    if (result.length >= nextArchiveIndex && archiveItems.length > 0) {
+      const archiveItem = takeGuestArchiveUnlockedItem({
+        archiveItems,
+        nextRegularItem: regularItem,
+        previousItem: result.at(-1) ?? null,
+      });
+
+      if (archiveItem) {
+        result.push(archiveItem);
+        nextArchiveIndex +=
+          FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_INTERVAL;
+      }
+    }
+
+    result.push(regularItem);
+  }
+
+  while (archiveItems.length > 0 && result.length >= nextArchiveIndex) {
+    const archiveItem = takeGuestArchiveUnlockedItem({
+      archiveItems,
+      nextRegularItem: null,
+      previousItem: result.at(-1) ?? null,
+    });
+
+    if (!archiveItem) {
+      break;
+    }
+
+    result.push(archiveItem);
+    nextArchiveIndex +=
+      FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_INTERVAL;
+  }
+
+  return result;
+}
+
+async function getGuestArchiveUnlockedFanletterNewsReports({
+  excludeReportIds,
+  locale,
+}: {
+  excludeReportIds: string[];
+  locale: Locale;
+}) {
+  const socialActionsCollection = await getContentSocialActionsCollection();
+  const unlockedContentRows = await socialActionsCollection
+    .aggregate<{ _id: string; latestRequestedAt: Date | null }>([
+      {
+        $match: {
+          contentId: {
+            $type: "string",
+          },
+          sourceRevealRequested: true,
+        },
+      },
+      {
+        $group: {
+          _id: "$contentId",
+          latestRequestedAt: { $max: "$sourceRevealRequestedAt" },
+          sourceRevealCount: { $sum: 1 },
+        },
+      },
+      {
+        $match: {
+          _id: { $ne: "" },
+          sourceRevealCount: {
+            $gte: FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD,
+          },
+        },
+      },
+      { $sort: { latestRequestedAt: 1, _id: 1 } },
+      { $limit: FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_CONTENT_LIMIT },
+    ])
+    .toArray();
+  const unlockedContentIds = unlockedContentRows
+    .map((row) => row._id.trim())
+    .filter(Boolean);
+
+  if (unlockedContentIds.length === 0) {
+    return [];
+  }
+
+  const reportsCollection = await getFanletterNewsReportsCollection();
+
+  return reportsCollection
+    .find({
+      contentId: { $in: unlockedContentIds },
+      ...(excludeReportIds.length > 0
+        ? { reportId: { $nin: excludeReportIds } }
+        : {}),
+      locale,
+      $or: [
+        {
+          teaserImages: {
+            $elemMatch: {
+              imageUrl: { $regex: /\S/ },
+              source: "reporter_cropped",
+            },
+          },
+        },
+        {
+          teaserImageUrls: {
+            $elemMatch: { $regex: /\S/ },
+          },
+        },
+      ],
+      status: "published",
+    })
+    .sort({ sourcePublishedAt: 1, createdAt: 1 })
+    .limit(FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_REPORT_LIMIT)
+    .toArray();
+}
+
 function getPublicCutsFromReport(
   report: Pick<FanletterNewsReportDocument, "teaserImages" | "teaserImageUrls">,
 ): FanletterNewsPublicCut[] {
@@ -802,7 +1011,22 @@ export async function getFanletterNewsPublicCutFeedPage({
     .sort({ sourcePublishedAt: -1, createdAt: -1 })
     .limit(candidateWindowLimit)
     .toArray();
-  const candidateItems = reports
+  const shouldMixArchiveUnlocked =
+    mode === "default" &&
+    (audience === "guest_direct" || audience === "guest_social");
+  const archiveReports = shouldMixArchiveUnlocked
+    ? await getGuestArchiveUnlockedFanletterNewsReports({
+        excludeReportIds: normalizedExcludeReportIds,
+        locale,
+      })
+    : [];
+  const reportsById = new Map(
+    [...reports, ...archiveReports].map((report) => [report.reportId, report]),
+  );
+  const archiveReportIds = new Set(
+    archiveReports.map((report) => report.reportId),
+  );
+  const candidateItems = [...reportsById.values()]
     .map((report) => createFanletterNewsPublicCutFeedItem(report))
     .filter((item): item is FanletterNewsPublicCutFeedItem => Boolean(item));
   const hydratedItems = await hydrateFanletterNewsPublicCutFeedItems(
@@ -821,7 +1045,14 @@ export async function getFanletterNewsPublicCutFeedPage({
     shareCohortSignals,
     targetReport,
   });
-  const feedItems = sortedCandidateItems.slice(
+  const mixedCandidateItems = shouldMixArchiveUnlocked
+    ? mixGuestArchiveUnlockedFeedItems({
+        archiveReportIds,
+        audience,
+        sortedItems: sortedCandidateItems,
+      })
+    : sortedCandidateItems;
+  const feedItems = mixedCandidateItems.slice(
     normalizedOffset,
     normalizedOffset + queryLimit,
   );
@@ -832,7 +1063,7 @@ export async function getFanletterNewsPublicCutFeedPage({
 
   return {
     hasMore:
-      sortedCandidateItems.length > normalizedOffset + queryLimit ||
+      mixedCandidateItems.length > normalizedOffset + queryLimit ||
       reports.length >= candidateWindowLimit,
     items,
     nextOffset: normalizedOffset + feedItems.length,

@@ -992,6 +992,11 @@ export async function getContentSocialActionsCollection() {
         collection.createIndex({ contentId: 1, saved: 1 }),
         collection.createIndex({ contentId: 1, sourceRevealRequested: 1 }),
         collection.createIndex({
+          sourceRevealRequested: 1,
+          contentId: 1,
+          sourceRevealRequestedAt: 1,
+        }),
+        collection.createIndex({
           sourceRevealReporterReferralCode: 1,
           sourceRevealReportId: 1,
           sourceRevealRequested: 1,
