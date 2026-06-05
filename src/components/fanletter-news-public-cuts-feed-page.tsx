@@ -168,6 +168,15 @@ function getCopy(locale: Locale) {
           "현재 브라우저에서 이메일 로그인을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
         myCharacterBadge: "내 캐릭터",
         myReportBadge: "내 리포트",
+        navigationPending: {
+          body: "새 화면을 불러오고 있습니다. 이전 흐름으로 돌아올 수 있는 화면이 열립니다.",
+          character: (name: string) => `${name} 캐릭터 채널로 이동 중`,
+          destination: (label: string) => `${label} 화면으로 이동 중`,
+          report: "리포트 작성 화면으로 이동 중",
+          reporter: (name: string) => `${name} 팬 기자 채널로 이동 중`,
+          source: "원본 화면으로 이동 중",
+          title: "이동 중",
+        },
         nextCut: "다음 컷",
         noMore: "모든 리포터 컷을 확인했습니다.",
         openPaidSource: "구매하고 원본 보기",
@@ -352,6 +361,15 @@ function getCopy(locale: Locale) {
           "Email login cannot start in this browser right now. Please try again shortly.",
         myCharacterBadge: "My character",
         myReportBadge: "My report",
+        navigationPending: {
+          body: "Loading the next screen. It will keep a return path back to this flow.",
+          character: (name: string) => `Opening ${name}'s character channel`,
+          destination: (label: string) => `Opening ${label}`,
+          report: "Opening report composer",
+          reporter: (name: string) => `Opening ${name}'s reporter channel`,
+          source: "Opening source screen",
+          title: "Moving",
+        },
         nextCut: "Next cut",
         noMore: "You have reviewed every reporter cut.",
         openPaidSource: "Purchase to watch",
@@ -783,8 +801,16 @@ type SourceRevealTapFeedback = {
   label: string;
 };
 
+type CutFeedNavigationPending = {
+  href: string;
+  label: string;
+};
+
+type CutFeedNavigationStart = (pending: CutFeedNavigationPending) => void;
+
 type CutFeedServiceMenuCopy = Pick<
   ReturnType<typeof getCopy>,
+  | "navigationPending"
   | "serviceMenu"
   | "serviceMenuClose"
   | "serviceMenuTitle"
@@ -805,6 +831,44 @@ type CutFeedServiceMenuGroup = {
   items: CutFeedServiceMenuItem[];
   label: string;
 };
+
+function CutFeedNavigationPendingOverlay({
+  copy,
+  pending,
+}: {
+  copy: Pick<ReturnType<typeof getCopy>, "navigationPending">;
+  pending: CutFeedNavigationPending | null;
+}) {
+  if (!pending || typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
+    <div
+      aria-busy="true"
+      aria-live="polite"
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/42 px-5 text-white backdrop-blur-[6px]"
+      data-cut-feed-navigation-pending
+      role="status"
+    >
+      <div className="w-full max-w-[20rem] rounded-[1.35rem] border border-[#44f26e]/24 bg-[#061008]/94 p-5 text-center shadow-[0_28px_80px_rgba(0,0,0,0.46)]">
+        <span className="mx-auto inline-flex size-12 items-center justify-center rounded-full bg-[#44f26e] text-[#07110a] shadow-[0_18px_44px_rgba(68,242,110,0.24)]">
+          <Loader2 className="size-6 animate-spin" />
+        </span>
+        <p className="mt-4 text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
+          {copy.navigationPending.title}
+        </p>
+        <h2 className="mt-1 text-xl font-black leading-tight tracking-normal [word-break:keep-all]">
+          {pending.label}
+        </h2>
+        <p className="mt-2 text-xs font-bold leading-5 text-white/58 [word-break:keep-all]">
+          {copy.navigationPending.body}
+        </p>
+      </div>
+    </div>,
+    document.body,
+  );
+}
 
 function isSourceRevealResponse(value: unknown): value is SourceRevealResponse {
   return (
@@ -1128,10 +1192,12 @@ function CutFeedServiceMenuSheet({
   copy,
   groups,
   onClose,
+  onNavigate,
 }: {
   copy: CutFeedServiceMenuCopy;
   groups: CutFeedServiceMenuGroup[];
   onClose: () => void;
+  onNavigate?: CutFeedNavigationStart;
 }) {
   return (
     <div
@@ -1185,6 +1251,12 @@ function CutFeedServiceMenuSheet({
                       }`}
                       href={item.href}
                       key={`${item.href}-${item.label}`}
+                      onClick={() => {
+                        onNavigate?.({
+                          href: item.href,
+                          label: copy.navigationPending.destination(item.label),
+                        });
+                      }}
                     >
                       <span
                         className={`inline-flex size-10 shrink-0 items-center justify-center rounded-full transition ${
@@ -1373,8 +1445,10 @@ function CutFeedReporterInlinePanel({
   isViewerReport = false,
   name,
   onClose,
+  onNavigate,
   publishedAtLabel,
   referralCode,
+  navigationPendingLabel,
   sourceRevealLabel,
 }: {
   avatarImageUrl: string | null;
@@ -1384,8 +1458,10 @@ function CutFeedReporterInlinePanel({
   isViewerReport?: boolean;
   name: string;
   onClose: () => void;
+  onNavigate?: CutFeedNavigationStart;
   publishedAtLabel: string;
   referralCode: string;
+  navigationPendingLabel: string;
   sourceRevealLabel: string;
 }) {
   return (
@@ -1468,6 +1544,12 @@ function CutFeedReporterInlinePanel({
           <Link
             className="inline-flex h-12 w-full items-center justify-center rounded-xl border border-[#44f26e]/24 bg-[#44f26e]/14 px-3 text-[0.78rem] font-black !text-[#9bffad] transition hover:bg-[#44f26e] hover:!text-[#111510]"
             href={channelHref}
+            onClick={() => {
+              onNavigate?.({
+                href: channelHref,
+                label: navigationPendingLabel,
+              });
+            }}
           >
             {copy.reporterChannelCta}
           </Link>
@@ -1882,6 +1964,7 @@ function SourceRevealParticipantRail({
 type SourceOverlayCopy = Pick<
   ReturnType<typeof getCopy>,
   | "adult"
+  | "navigationPending"
   | "openPaidSource"
   | "openSourceDetail"
   | "paidSourceBody"
@@ -1981,6 +2064,7 @@ function SourceVlogFeedOverlay({
   locale,
   onClose,
   onFindNextSourceRevealCandidate,
+  onNavigate,
   onRetry,
   onSourceRevealActivate,
   returnToHref = null,
@@ -1994,6 +2078,7 @@ function SourceVlogFeedOverlay({
   locale: Locale;
   onClose: () => void;
   onFindNextSourceRevealCandidate?: () => void;
+  onNavigate?: CutFeedNavigationStart;
   onRetry: () => void;
   onSourceRevealActivate: () => void;
   returnToHref?: string | null;
@@ -2118,6 +2203,14 @@ function SourceVlogFeedOverlay({
               aria-label={copy.returnToBriefA11y}
               className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-white/12 bg-white/10 px-3 text-[0.68rem] font-black !text-white shadow-[0_12px_30px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:bg-white hover:!text-[#111510]"
               href={returnToHref}
+              onClick={() => {
+                onNavigate?.({
+                  href: returnToHref,
+                  label: copy.navigationPending.destination(
+                    copy.returnToBriefFull,
+                  ),
+                });
+              }}
             >
               <ArrowLeft className="size-3.5" />
               <span className="max-w-[6.2rem] truncate">
@@ -2276,6 +2369,14 @@ function SourceVlogFeedOverlay({
                           <Link
                             className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-[#111510]"
                             href={paidUnlockHref}
+                            onClick={() => {
+                              onNavigate?.({
+                                href: paidUnlockHref,
+                                label: copy.navigationPending.destination(
+                                  copy.openPaidSource,
+                                ),
+                              });
+                            }}
                           >
                             <LockKeyhole className="size-4" />
                             {copy.openPaidSource}
@@ -2284,6 +2385,12 @@ function SourceVlogFeedOverlay({
                         <Link
                           className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/8 px-4 text-xs font-black !text-white"
                           href={source.detailHref}
+                          onClick={() => {
+                            onNavigate?.({
+                              href: source.detailHref,
+                              label: copy.navigationPending.source,
+                            });
+                          }}
                         >
                           <ExternalLink className="size-3.5" />
                           {copy.openSourceDetail}
@@ -2315,6 +2422,7 @@ function FeedSlide({
   locale,
   onDismissSwipeGuide,
   onFindNextSourceRevealCandidate,
+  onNavigationStart,
   reporterPanelRequestId = 0,
   onSourceViewSlideVisible,
   referralCode,
@@ -2334,6 +2442,7 @@ function FeedSlide({
   locale: Locale;
   onDismissSwipeGuide?: () => void;
   onFindNextSourceRevealCandidate?: (currentIndex: number, currentContentId: string) => void;
+  onNavigationStart?: CutFeedNavigationStart;
   reporterPanelRequestId?: number;
   onSourceViewSlideVisible?: (index: number) => void;
   referralCode: string | null;
@@ -2521,6 +2630,13 @@ function FeedSlide({
     referralCode,
     returnToHref: cutFeedReturnHref,
   });
+  const startNavigation = useCallback(
+    (pending: CutFeedNavigationPending) => {
+      onDismissSwipeGuide?.();
+      onNavigationStart?.(pending);
+    },
+    [onDismissSwipeGuide, onNavigationStart],
+  );
   const flushCutDwell = useCallback((exitReason: CutDwellExitReason) => {
     const snapshot = cutDwellSnapshotRef.current;
 
@@ -3801,7 +3917,11 @@ function FeedSlide({
           cutCountLabel={characterCutCountLabel}
           isViewerReport={isViewerReport}
           name={report.reporterName}
+          navigationPendingLabel={copy.navigationPending.reporter(
+            report.reporterName,
+          )}
           onClose={() => setIsReporterPanelOpen(false)}
+          onNavigate={onNavigationStart}
           publishedAtLabel={reporterPublishedAtLabel}
           referralCode={report.reporterReferralCode}
           sourceRevealLabel={characterSourceRevealLabel}
@@ -3819,7 +3939,10 @@ function FeedSlide({
               label={copy.character}
               name={report.creatorName}
               onClick={() => {
-                onDismissSwipeGuide?.();
+                startNavigation({
+                  href: characterHref,
+                  label: copy.navigationPending.character(report.creatorName),
+                });
               }}
               viewerOwnedLabel={copy.myCharacterBadge}
             />
@@ -3842,7 +3965,10 @@ function FeedSlide({
                 className="inline-flex items-center rounded-full border border-white/14 bg-black/28 px-2 py-0.5 !text-white/82 transition hover:border-[#44f26e]/42 hover:bg-[#44f26e]/16 hover:!text-[#9bffad]"
                 href={reporterHref}
                 onClick={() => {
-                  onDismissSwipeGuide?.();
+                  startNavigation({
+                    href: reporterHref,
+                    label: copy.navigationPending.reporter(report.reporterName),
+                  });
                 }}
               >
                 {report.reporterName}
@@ -3867,7 +3993,10 @@ function FeedSlide({
                     className="inline-flex min-h-11 max-w-full flex-1 items-center justify-center gap-2 rounded-full border border-[#44f26e]/34 bg-[#44f26e] px-4 py-2 text-sm font-black !text-[#111510] shadow-[0_16px_34px_rgba(0,0,0,0.28)] transition hover:bg-[#65ff87] sm:flex-none"
                     href={reportComposerHref}
                     onClick={() => {
-                      onDismissSwipeGuide?.();
+                      startNavigation({
+                        href: reportComposerHref,
+                        label: copy.navigationPending.report,
+                      });
                     }}
                   >
                     <PenLine className="size-4 shrink-0" />
@@ -3879,7 +4008,10 @@ function FeedSlide({
                     className="inline-flex min-h-11 max-w-full flex-1 items-center justify-center gap-2 rounded-full border border-white/18 bg-black/44 px-4 py-2 text-sm font-black !text-white shadow-[0_16px_34px_rgba(0,0,0,0.28)] backdrop-blur transition hover:bg-white hover:!text-[#111510] sm:flex-none"
                     href={nextReportComposerHref}
                     onClick={() => {
-                      onDismissSwipeGuide?.();
+                      startNavigation({
+                        href: nextReportComposerHref,
+                        label: copy.navigationPending.report,
+                      });
                     }}
                   >
                     <ArrowRight className="size-4 shrink-0 text-[#44f26e]" />
@@ -3920,6 +4052,7 @@ function FeedSlide({
           locale={locale}
           onClose={closeSourceOverlay}
           onFindNextSourceRevealCandidate={findNextSourceRevealCandidate}
+          onNavigate={onNavigationStart}
           onRetry={() => void loadSourceOverlay()}
           onSourceRevealActivate={handleSourceRevealParticipation}
           returnToHref={returnToHref}
@@ -4130,6 +4263,8 @@ export function FanletterNewsPublicCutsFeedPage({
   const [sourceViewSwipeGuideDismissed, setSourceViewSwipeGuideDismissed] =
     useState(false);
   const [serviceMenuOpen, setServiceMenuOpen] = useState(false);
+  const [navigationPending, setNavigationPending] =
+    useState<CutFeedNavigationPending | null>(null);
   const [isCutFeedHeaderVisible, setIsCutFeedHeaderVisible] = useState(true);
   const [isRoleShortcutVisible, setIsRoleShortcutVisible] = useState(true);
   const [isPublishedReturnEntry, setIsPublishedReturnEntry] = useState(false);
@@ -4328,6 +4463,10 @@ export function FanletterNewsPublicCutsFeedPage({
     referralCode,
     returnToHref: buildPathWithReferral(`/${locale}/fanletter/news/cuts`, referralCode),
   });
+  const startNavigation = useCallback((pending: CutFeedNavigationPending) => {
+    setNavigationPending(pending);
+    setServiceMenuOpen(false);
+  }, []);
   const lockedReporterCandidateCount = useMemo(
     () => getLockedReporterCandidates(items).length,
     [items],
@@ -4359,6 +4498,30 @@ export function FanletterNewsPublicCutsFeedPage({
     setIsPublishedReturnEntry(
       new URLSearchParams(window.location.search).get("published") === "1",
     );
+  }, []);
+  useEffect(() => {
+    if (!navigationPending) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setNavigationPending(null);
+    }, 9000);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [navigationPending]);
+  useEffect(() => {
+    const clearNavigationPending = () => {
+      setNavigationPending(null);
+    };
+
+    window.addEventListener("pageshow", clearNavigationPending);
+
+    return () => {
+      window.removeEventListener("pageshow", clearNavigationPending);
+    };
   }, []);
   const firstSlideCutCount = items[0] ? getPublicCutItemCutCount(items[0]) : 0;
   const shouldOfferEntrySwipeGuide = Boolean(
@@ -4874,11 +5037,21 @@ export function FanletterNewsPublicCutsFeedPage({
           <Link
             className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-[#111510]"
             href={newsroomHref}
+            onClick={() => {
+              startNavigation({
+                href: newsroomHref,
+                label: copy.navigationPending.destination(copy.emptyCta),
+              });
+            }}
           >
             <ArrowLeft className="size-4" />
             {copy.emptyCta}
           </Link>
         </section>
+        <CutFeedNavigationPendingOverlay
+          copy={copy}
+          pending={navigationPending}
+        />
       </main>
     );
   }
@@ -4943,7 +5116,10 @@ export function FanletterNewsPublicCutsFeedPage({
               className={returnToButtonClassName}
               href={returnToHref}
               onClick={() => {
-                setServiceMenuOpen(false);
+                startNavigation({
+                  href: returnToHref,
+                  label: copy.navigationPending.destination(copy.returnToBriefFull),
+                });
               }}
             >
               <ArrowLeft className="size-4" />
@@ -5009,6 +5185,7 @@ export function FanletterNewsPublicCutsFeedPage({
           copy={copy}
           groups={serviceMenuGroups}
           onClose={() => setServiceMenuOpen(false)}
+          onNavigate={startNavigation}
         />
       ) : null}
       {isReporterQuickDeskVisible && lockedReporterCandidateCount > 0 ? (
@@ -5035,6 +5212,12 @@ export function FanletterNewsPublicCutsFeedPage({
                   aria-label={copy.reporterQuickDesk.nextCta}
                   className="inline-flex h-9 shrink-0 items-center justify-center rounded-full bg-white px-4 text-xs font-black !text-[#111510] transition hover:bg-[#44f26e]"
                   href={publishedReturnNextReportHref}
+                  onClick={() => {
+                    startNavigation({
+                      href: publishedReturnNextReportHref,
+                      label: copy.navigationPending.report,
+                    });
+                  }}
                 >
                   {copy.reporterQuickDesk.nextCta}
                 </Link>
@@ -5085,6 +5268,14 @@ export function FanletterNewsPublicCutsFeedPage({
                   aria-label={copy.vloggerDesk.newCta}
                   className="inline-flex h-9 items-center justify-center rounded-full bg-[#44f26e] px-3 text-xs font-black !text-[#111510] transition hover:bg-[#65ff86]"
                   href={vlogsNewHref}
+                  onClick={() => {
+                    startNavigation({
+                      href: vlogsNewHref,
+                      label: copy.navigationPending.destination(
+                        copy.vloggerDesk.newCta,
+                      ),
+                    });
+                  }}
                 >
                   {copy.vloggerDesk.newShortCta}
                 </Link>
@@ -5092,6 +5283,14 @@ export function FanletterNewsPublicCutsFeedPage({
                   aria-label={copy.vloggerDesk.manageCta}
                   className="inline-flex h-9 items-center justify-center rounded-full bg-white px-3 text-xs font-black !text-[#111510] transition hover:bg-[#44f26e]"
                   href={vlogsManageHref}
+                  onClick={() => {
+                    startNavigation({
+                      href: vlogsManageHref,
+                      label: copy.navigationPending.destination(
+                        copy.vloggerDesk.manageCta,
+                      ),
+                    });
+                  }}
                 >
                   {copy.vloggerDesk.manageShortCta}
                 </Link>
@@ -5099,6 +5298,14 @@ export function FanletterNewsPublicCutsFeedPage({
                   aria-label={copy.vloggerDesk.characterCta}
                   className="inline-flex h-9 items-center justify-center rounded-full border border-white/14 bg-white/10 px-3 text-xs font-black !text-white transition hover:border-[#44f26e]/50 hover:!text-[#44f26e]"
                   href={visibleCharacterVlogsHref}
+                  onClick={() => {
+                    startNavigation({
+                      href: visibleCharacterVlogsHref,
+                      label: copy.navigationPending.destination(
+                        copy.vloggerDesk.characterCta,
+                      ),
+                    });
+                  }}
                 >
                   {copy.vloggerDesk.characterShortCta}
                 </Link>
@@ -5154,6 +5361,7 @@ export function FanletterNewsPublicCutsFeedPage({
               onFindNextSourceRevealCandidate={
                 handleFindNextSourceRevealCandidate
               }
+              onNavigationStart={startNavigation}
               onSourceViewSlideVisible={handleSourceViewSlideVisible}
               reporterPanelRequestId={
                 reporterPanelRequest?.index === index
@@ -5194,6 +5402,10 @@ export function FanletterNewsPublicCutsFeedPage({
           </div>
         </section>
       </div>
+      <CutFeedNavigationPendingOverlay
+        copy={copy}
+        pending={navigationPending}
+      />
     </main>
   );
 }
