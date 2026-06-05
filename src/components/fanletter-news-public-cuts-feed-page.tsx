@@ -4408,7 +4408,7 @@ export function FanletterNewsPublicCutsFeedPage({
     returnTo: cutFeedHomeHref,
   });
   const purchasesHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/purchases`,
+    `/${locale}/fanletter/news/cuts/purchases`,
     referralCode,
   );
   const returnablePurchasesHref = setPathSearchParams(purchasesHref, {

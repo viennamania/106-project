@@ -278,13 +278,6 @@ function getReturnKind(returnToHref: string, locale: Locale): NewsReturnKind {
     return "home";
   }
 
-  if (
-    pathname === `${newsBasePath}/cuts` ||
-    pathname.startsWith(`${newsBasePath}/cuts/`)
-  ) {
-    return "cutFeed";
-  }
-
   if (pathname === `${newsBasePath}/my` || pathname === `${newsBasePath}/me`) {
     return "my";
   }
@@ -311,6 +304,17 @@ function getReturnKind(returnToHref: string, locale: Locale): NewsReturnKind {
 
   if (pathname === `${newsBasePath}/purchases`) {
     return "purchases";
+  }
+
+  if (pathname === `${newsBasePath}/cuts/purchases`) {
+    return "purchases";
+  }
+
+  if (
+    pathname === `${newsBasePath}/cuts` ||
+    pathname.startsWith(`${newsBasePath}/cuts/`)
+  ) {
+    return "cutFeed";
   }
 
   if (pathname === `${newsBasePath}/wallet`) {

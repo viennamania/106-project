@@ -41,6 +41,7 @@ import { getThirdwebUserEmail } from "@/lib/thirdweb-client";
 
 type LoadStatus = "error" | "idle" | "loading" | "ready";
 type FanletterPurchasesService = "fanletter" | "news";
+type FanletterPurchasesSurface = "cutFeed" | "default";
 
 type PurchasesState = {
   error: string | null;
@@ -52,6 +53,7 @@ type PurchasesState = {
 function getCopy(
   locale: Locale,
   service: FanletterPurchasesService = "fanletter",
+  surface: FanletterPurchasesSurface = "default",
 ) {
   const copy = locale === "ko"
     ? {
@@ -151,7 +153,7 @@ function getCopy(
     return copy;
   }
 
-  return locale === "ko"
+  const newsCopy = locale === "ko"
     ? {
         ...copy,
         accountRequiredBody:
@@ -207,6 +209,64 @@ function getCopy(
         studio: "AI Characters",
         view: "Watch in News",
         wallet: "News wallet",
+      };
+
+  if (surface !== "cutFeed") {
+    return newsCopy;
+  }
+
+  return locale === "ko"
+    ? {
+        ...newsCopy,
+        accountRequiredBody:
+          "4컷 피드에서 구매한 팬 전용 원본과 유료 콘텐츠는 연결된 AIAVpark News 계정 기준으로 확인합니다.",
+        accountRequiredTitle: "뉴스 계정 연결 후 4컷 구매함을 확인하세요.",
+        allFeed: "4컷 피드",
+        backToFeed: "4컷 피드로 돌아가기",
+        channel: "IP 채널 보기",
+        connect: "뉴스 계정 연결",
+        coverCta: "콘텐츠 보기",
+        emptyBody:
+          "4컷 피드에서 팬 전용 원본이나 유료 콘텐츠를 구매하면 이곳에 모입니다. 보던 흐름으로 돌아가 관심 있는 원본을 계속 찾아보세요.",
+        emptyTitle: "아직 4컷 피드에서 구매한 콘텐츠가 없습니다.",
+        eyebrow: "AIAVpark News",
+        fanHome: "AI 캐릭터",
+        heroBody:
+          "4컷 피드에서 구매한 팬 전용 원본과 유료 콘텐츠를 모바일에서 다시 열어보고, 원래 보던 피드로 바로 돌아갑니다.",
+        heroTitle: "4컷 피드 구매함",
+        navLabel: "AIAVpark News 4컷 구매함 메뉴",
+        purchased: "구매함",
+        returnTo: "4컷 피드로 돌아가기",
+        returnToFeed: "4컷 피드로 돌아가기",
+        start: "가입 상태 확인",
+        view: "원본 보기",
+        wallet: "마이",
+      }
+    : {
+        ...newsCopy,
+        accountRequiredBody:
+          "Purchases from the 4-cut feed are loaded from your connected AIAVpark News account.",
+        accountRequiredTitle: "Connect your News account to view 4-cut purchases.",
+        allFeed: "4-cut feed",
+        backToFeed: "Back to 4-cut feed",
+        channel: "IP channel",
+        connect: "Connect News account",
+        coverCta: "Open content",
+        emptyBody:
+          "Fan-only sources and paid content bought from the 4-cut feed will appear here. Return to the feed to keep discovering source content.",
+        emptyTitle: "No purchases from the 4-cut feed yet.",
+        eyebrow: "AIAVpark News",
+        fanHome: "AI Characters",
+        heroBody:
+          "Replay fan-only sources and paid content purchased from the 4-cut feed, then return to the feed you were viewing.",
+        heroTitle: "4-cut feed purchases",
+        navLabel: "AIAVpark News 4-cut purchase menu",
+        purchased: "Purchases",
+        returnTo: "Back to 4-cut feed",
+        returnToFeed: "Back to 4-cut feed",
+        start: "Check signup",
+        view: "View source",
+        wallet: "My",
       };
 }
 
@@ -513,15 +573,18 @@ export function FanletterPurchasesPage({
   referralCode,
   returnToHref = null,
   service = "fanletter",
+  surface = "default",
 }: {
   locale: Locale;
   nsfwOptInEnabled: boolean;
   referralCode: string | null;
   returnToHref?: string | null;
   service?: FanletterPurchasesService;
+  surface?: FanletterPurchasesSurface;
 }) {
   const isNewsService = service === "news";
-  const copy = getCopy(locale, service);
+  const isCutFeedSurface = isNewsService && surface === "cutFeed";
+  const copy = getCopy(locale, service, surface);
   const returnToLabel =
     returnToHref && isNewsService && isFanletterNewsCutFeedReturnPath(returnToHref, locale)
       ? copy.returnToFeed
@@ -545,10 +608,10 @@ export function FanletterPurchasesPage({
   });
 
   const serviceBasePath = `/${locale}/fanletter${isNewsService ? "/news" : ""}`;
-  const purchasesBaseHref = buildPathWithReferral(
-    `${serviceBasePath}/purchases`,
-    referralCode,
-  );
+  const purchasesBasePath = isCutFeedSurface
+    ? `${serviceBasePath}/cuts/purchases`
+    : `${serviceBasePath}/purchases`;
+  const purchasesBaseHref = buildPathWithReferral(purchasesBasePath, referralCode);
   const purchasesHref = returnToHref
     ? setPathSearchParams(purchasesBaseHref, { returnTo: returnToHref })
     : purchasesBaseHref;
@@ -557,11 +620,17 @@ export function FanletterPurchasesPage({
     { returnTo: purchasesHref },
   );
   const feedHref = buildPathWithReferral(
-    isNewsService ? serviceBasePath : `${serviceBasePath}/feed`,
+    isCutFeedSurface
+      ? `${serviceBasePath}/cuts`
+      : isNewsService
+        ? serviceBasePath
+        : `${serviceBasePath}/feed`,
     referralCode,
   );
   const followingHref = buildPathWithReferral(
-    isNewsService
+    isCutFeedSurface
+      ? `${serviceBasePath}/cuts/characters`
+      : isNewsService
       ? `${serviceBasePath}/characters`
       : `${serviceBasePath}/following`,
     referralCode,
@@ -571,7 +640,7 @@ export function FanletterPurchasesPage({
     referralCode,
   );
   const walletHref = buildPathWithReferral(
-    `${serviceBasePath}/wallet`,
+    isCutFeedSurface ? `${serviceBasePath}/me` : `${serviceBasePath}/wallet`,
     referralCode,
   );
   const startHref = isNewsService
