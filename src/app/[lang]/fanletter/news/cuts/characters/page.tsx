@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
@@ -14,6 +13,9 @@ import {
 } from "lucide-react";
 
 import { FanletterNewsCharacterProfileImageSlider } from "@/components/fanletter-news-character-motion";
+import {
+  FanletterNewsPlatformPendingLink as PendingLink,
+} from "@/components/fanletter-news-platform-pending-link";
 import type { FanletterNewsReportDocument } from "@/lib/content";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
@@ -64,6 +66,12 @@ function getCopy(locale: Locale) {
         metaDescription:
           "4컷 피드에서 바로 이어지는 AIAVpark News AI 캐릭터 선택 화면입니다.",
         metaTitle: "4컷 피드 AI 캐릭터",
+        navigationPending: {
+          body: "캐릭터 채널, 리포트, 원본 브이로그 데이터를 불러오고 있습니다. 잠시만 기다려주세요.",
+          destination: (label: string) => `${label} 화면으로 이동 중`,
+          fallbackLabel: "다음 화면으로 이동 중",
+          title: "이동 중",
+        },
         news: "뉴스",
         openNews: "뉴스 보기",
         publicVlogs: "원본",
@@ -93,6 +101,12 @@ function getCopy(locale: Locale) {
         metaDescription:
           "A focused AIAVpark News AI character picker connected to the 4-cut feed.",
         metaTitle: "4-cut feed AI characters",
+        navigationPending: {
+          body: "Loading the character channel, report, or source vlog. Please wait a moment.",
+          destination: (label: string) => `Opening ${label}`,
+          fallbackLabel: "Opening next screen",
+          title: "Moving",
+        },
         news: "News",
         openNews: "Open news",
         publicVlogs: "Sources",
@@ -365,13 +379,16 @@ function CharacterCard({
           : "overflow-hidden rounded-[1.1rem] border border-white/10 bg-white/[0.055]"
       }
     >
-      <Link
+      <PendingLink
         className={`grid min-w-0 gap-3 !text-white ${
           isLead
             ? "grid-cols-[7.25rem_minmax(0,1fr)] p-3"
             : "grid-cols-[5.25rem_minmax(0,1fr)] p-2.5"
         }`}
         href={channelHref}
+        pendingLabel={copy.navigationPending.destination(
+          `${character.name} ${copy.channelCta}`,
+        )}
       >
         <div className="relative">
           <CharacterAvatar
@@ -410,7 +427,7 @@ function CharacterCard({
             {formatNumber(score, locale)}
           </p>
         </div>
-      </Link>
+      </PendingLink>
 
       <div className="grid grid-cols-3 gap-2 px-3 pb-3">
         <CharacterMetric
@@ -428,9 +445,10 @@ function CharacterCard({
       </div>
 
       <div className="border-t border-white/10 px-3 py-3">
-        <Link
+        <PendingLink
           className="grid grid-cols-[5.75rem_minmax(0,1fr)_auto] items-stretch gap-3 rounded-2xl border border-white/10 bg-black/24 p-2 !text-white transition hover:border-[#44f26e]/38 hover:bg-[#12301a]/42"
           href={reportHref}
+          pendingLabel={copy.navigationPending.destination(copy.latestNews)}
         >
           <div className="relative aspect-[9/14] overflow-hidden rounded-xl bg-white/8">
             {reportImageUrls.length > 0 ? (
@@ -458,23 +476,29 @@ function CharacterCard({
             </p>
           </div>
           <ChevronRight className="self-center size-4 text-white/44" />
-        </Link>
+        </PendingLink>
 
         <div className="mt-2 grid grid-cols-2 gap-2">
-          <Link
+          <PendingLink
             className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-[#44f26e] px-3 text-xs font-black !text-black"
             href={channelHref}
+            pendingLabel={copy.navigationPending.destination(
+              `${character.name} ${copy.channelCta}`,
+            )}
           >
             <MessageCircleHeart className="size-4" />
             {copy.channelCta}
-          </Link>
-          <Link
+          </PendingLink>
+          <PendingLink
             className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-white/12 bg-white/8 px-3 text-xs font-black !text-white"
             href={vlogsHref}
+            pendingLabel={copy.navigationPending.destination(
+              `${character.name} ${copy.vlogsCta}`,
+            )}
           >
             <Clapperboard className="size-4 text-[#44f26e]" />
             {copy.vlogsCta}
-          </Link>
+          </PendingLink>
         </div>
       </div>
     </article>
@@ -552,13 +576,14 @@ export default async function LocalizedFanletterNewsCutCharactersPage({
       <div className="mx-auto min-h-screen w-full max-w-[430px] bg-black shadow-[0_0_56px_rgba(0,0,0,0.42)] sm:border-x sm:border-white/10">
         <header className="sticky top-0 z-40 border-b border-white/10 bg-black/78 px-4 py-3 backdrop-blur-xl">
           <div className="flex items-center justify-between gap-3">
-            <Link
+            <PendingLink
               className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 text-xs font-black !text-white"
               href={returnHref}
+              pendingLabel={copy.navigationPending.destination(returnLabel)}
             >
               <ArrowLeft className="size-4" />
               {returnLabel}
-            </Link>
+            </PendingLink>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.62rem] font-black uppercase tracking-[0.12em] text-black">
               <Sparkles className="size-3.5" />
               {copy.browse}
@@ -625,13 +650,14 @@ export default async function LocalizedFanletterNewsCutCharactersPage({
         </section>
 
         <div className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[430px] border-t border-white/10 bg-black/76 px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-3 backdrop-blur-xl">
-          <Link
+          <PendingLink
             className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-black"
             href={returnHref}
+            pendingLabel={copy.navigationPending.destination(returnLabel)}
           >
             <ArrowLeft className="size-4" />
             {returnLabel}
-          </Link>
+          </PendingLink>
         </div>
       </div>
     </main>

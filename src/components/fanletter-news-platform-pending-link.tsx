@@ -2,6 +2,8 @@
 
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { createPortal, flushSync } from "react-dom";
 import {
   createContext,
   useCallback,
@@ -13,7 +15,6 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { createPortal } from "react-dom";
 
 type PlatformNavigationPendingCopy = {
   body: string;
@@ -24,6 +25,11 @@ type PlatformNavigationPendingCopy = {
 type PlatformNavigationPendingContextValue = {
   copy: PlatformNavigationPendingCopy;
   startNavigation: (label?: string) => void;
+};
+
+type PlatformNavigationPendingState = {
+  label: string;
+  pathname: string;
 };
 
 const PlatformNavigationPendingContext =
@@ -86,6 +92,34 @@ function shouldStartNavigationPending({
   return true;
 }
 
+function getClientNavigationHref(href: ComponentProps<typeof Link>["href"]) {
+  if (typeof href !== "string") {
+    return null;
+  }
+
+  const trimmedHref = href.trim();
+
+  if (!trimmedHref || trimmedHref.startsWith("#")) {
+    return null;
+  }
+
+  if (/^https?:\/\//i.test(trimmedHref)) {
+    try {
+      const url = new URL(trimmedHref);
+
+      if (url.origin !== window.location.origin) {
+        return null;
+      }
+
+      return `${url.pathname}${url.search}${url.hash}`;
+    } catch {
+      return null;
+    }
+  }
+
+  return trimmedHref;
+}
+
 function PlatformNavigationPendingOverlay({
   copy,
   pendingLabel,
@@ -131,12 +165,19 @@ export function FanletterNewsPlatformPendingProvider({
   children: ReactNode;
   copy: PlatformNavigationPendingCopy;
 }) {
-  const [pendingLabel, setPendingLabel] = useState<string | null>(null);
+  const pathname = usePathname();
+  const [pendingNavigation, setPendingNavigation] =
+    useState<PlatformNavigationPendingState | null>(null);
+  const pendingLabel =
+    pendingNavigation?.pathname === pathname ? pendingNavigation.label : null;
   const startNavigation = useCallback(
     (label?: string) => {
-      setPendingLabel(label?.trim() || copy.fallbackLabel);
+      setPendingNavigation({
+        label: label?.trim() || copy.fallbackLabel,
+        pathname,
+      });
     },
-    [copy.fallbackLabel],
+    [copy.fallbackLabel, pathname],
   );
   const contextValue = useMemo(
     () => ({ copy, startNavigation }),
@@ -149,7 +190,7 @@ export function FanletterNewsPlatformPendingProvider({
     }
 
     const timeoutId = window.setTimeout(() => {
-      setPendingLabel(null);
+      setPendingNavigation(null);
     }, 9000);
 
     return () => {
@@ -159,7 +200,7 @@ export function FanletterNewsPlatformPendingProvider({
 
   useEffect(() => {
     const clearNavigationPending = () => {
-      setPendingLabel(null);
+      setPendingNavigation(null);
     };
 
     window.addEventListener("pageshow", clearNavigationPending);
@@ -183,11 +224,14 @@ export function FanletterNewsPlatformPendingLink({
   href,
   onClick,
   pendingLabel,
+  replace,
+  scroll,
   suppressPending,
   target,
   ...props
 }: PlatformNavigationPendingLinkProps) {
   const context = useContext(PlatformNavigationPendingContext);
+  const router = useRouter();
   const ariaPendingLabel =
     typeof props["aria-label"] === "string" ? props["aria-label"] : undefined;
 
@@ -207,9 +251,27 @@ export function FanletterNewsPlatformPendingLink({
             target,
           })
         ) {
-          context.startNavigation(pendingLabel ?? ariaPendingLabel);
+          flushSync(() => {
+            context.startNavigation(pendingLabel ?? ariaPendingLabel);
+          });
+
+          const clientNavigationHref = getClientNavigationHref(href);
+
+          if (clientNavigationHref) {
+            event.preventDefault();
+            window.setTimeout(() => {
+              if (replace) {
+                router.replace(clientNavigationHref, { scroll });
+                return;
+              }
+
+              router.push(clientNavigationHref, { scroll });
+            }, 120);
+          }
         }
       }}
+      replace={replace}
+      scroll={scroll}
       target={target}
     />
   );
