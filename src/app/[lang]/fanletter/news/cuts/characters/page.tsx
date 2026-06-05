@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -30,7 +29,7 @@ import {
 import { getFanletterNewsReportsForCharacterDirectory } from "@/lib/fanletter-news-report-service";
 import {
   getFanletterNewsArticleDisplayTitle,
-  getFanletterNewsReportPreviewImageUrl,
+  getFanletterNewsReportPreviewImageUrls,
 } from "@/lib/fanletter-news-related";
 import {
   normalizeFanletterReturnToPath,
@@ -238,6 +237,28 @@ function getReportHref({
   );
 }
 
+function ReportImageFadeKeyframes() {
+  return (
+    <style id="fanletter-news-image-fade-keyframes">{`
+      @keyframes fanletter-news-image-fade {
+        0% {
+          opacity: 0;
+        }
+
+        5%,
+        20% {
+          opacity: 1;
+        }
+
+        27%,
+        100% {
+          opacity: 0;
+        }
+      }
+    `}</style>
+  );
+}
+
 function CharacterAvatar({
   character,
   className,
@@ -256,6 +277,7 @@ function CharacterAvatar({
       {imageUrls.length > 0 ? (
         <FanletterNewsCharacterProfileImageSlider
           alt={character.name}
+          autoRotate={false}
           imageClassName="h-full w-full object-cover"
           imageUrls={imageUrls}
           loading={eager ? "eager" : undefined}
@@ -317,7 +339,8 @@ function CharacterCard({
     referralCode,
   });
   const report = character.representativeReport;
-  const reportImageUrl = getFanletterNewsReportPreviewImageUrl(report);
+  const reportImageUrls = getFanletterNewsReportPreviewImageUrls(report);
+  const reportTitle = getFanletterNewsArticleDisplayTitle(report.title);
   const reportHref = getReportHref({
     currentHref,
     locale,
@@ -398,32 +421,35 @@ function CharacterCard({
 
       <div className="border-t border-white/10 px-3 py-3">
         <Link
-          className="grid grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-3 rounded-2xl border border-white/10 bg-black/24 p-2 !text-white"
+          className="grid grid-cols-[5.75rem_minmax(0,1fr)_auto] items-stretch gap-3 rounded-2xl border border-white/10 bg-black/24 p-2 !text-white transition hover:border-[#44f26e]/38 hover:bg-[#12301a]/42"
           href={reportHref}
         >
-          <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-white/8">
-            {reportImageUrl ? (
-              <Image
-                alt=""
-                className="object-cover"
-                fill
-                sizes="4.5rem"
-                src={reportImageUrl}
-                unoptimized={shouldBypassFanletterImageOptimization(reportImageUrl)}
+          <div className="relative aspect-[9/14] overflow-hidden rounded-xl bg-white/8">
+            {reportImageUrls.length > 0 ? (
+              <FanletterNewsCharacterProfileImageSlider
+                alt={reportTitle}
+                imageClassName="h-full w-full object-cover"
+                imageUrls={reportImageUrls}
+                intervalMs={2200}
+                loading={isLead ? "eager" : undefined}
+                pauseOnInteraction={false}
+                sizes="5.75rem"
+                transitionMode="css"
+                unoptimizedImageUrls={getUnoptimizedImageUrls(reportImageUrls)}
               />
             ) : (
               <FileText className="absolute left-1/2 top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 text-[#44f26e]" />
             )}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 self-center py-2">
             <p className="text-[0.6rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
               {copy.latestNews}
             </p>
-            <p className="mt-1 line-clamp-2 text-sm font-black leading-tight [word-break:keep-all]">
-              {getFanletterNewsArticleDisplayTitle(report.title)}
+            <p className="mt-1 line-clamp-3 text-base font-black leading-tight [word-break:keep-all]">
+              {reportTitle}
             </p>
           </div>
-          <ChevronRight className="size-4 text-white/44" />
+          <ChevronRight className="self-center size-4 text-white/44" />
         </Link>
 
         <div className="mt-2 grid grid-cols-2 gap-2">
@@ -511,6 +537,7 @@ export default async function LocalizedFanletterNewsCutCharactersPage({
 
   return (
     <main className="min-h-screen bg-[#050706] text-white">
+      <ReportImageFadeKeyframes />
       <div className="mx-auto min-h-screen w-full max-w-[430px] bg-black shadow-[0_0_56px_rgba(0,0,0,0.42)] sm:border-x sm:border-white/10">
         <header className="sticky top-0 z-40 border-b border-white/10 bg-black/78 px-4 py-3 backdrop-blur-xl">
           <div className="flex items-center justify-between gap-3">

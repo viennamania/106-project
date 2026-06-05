@@ -200,6 +200,22 @@ export function getFanletterNewsReportPreviewImageUrl(
     "coverImageUrl" | "teaserImages" | "teaserImageUrls"
   >,
 ) {
+  return getFanletterNewsReportPreviewImageUrls(report, 1)[0] ?? null;
+}
+
+export function getFanletterNewsReportPreviewImageUrls(
+  report: Pick<
+    FanletterNewsReportDocument,
+    "coverImageUrl" | "teaserImages" | "teaserImageUrls"
+  >,
+  limit = 4,
+) {
+  const maxImages = Math.max(0, Math.floor(limit));
+
+  if (maxImages === 0) {
+    return [];
+  }
+
   const reporterCroppedTeaserImageUrls =
     report.teaserImages
       ?.filter(
@@ -210,16 +226,14 @@ export function getFanletterNewsReportPreviewImageUrl(
       )
       .map((image) => image.imageUrl) ?? [];
 
-  return (
-    getUniqueRelatedNewsImageUrls([
-      ...reporterCroppedTeaserImageUrls,
-      ...(report.teaserImageUrls ?? []),
-      ...(report.teaserImages ?? [])
-        .filter((image) => image.source !== "reporter_cropped")
-        .map((image) => image.imageUrl),
-      report.coverImageUrl,
-    ])[0] ?? null
-  );
+  return getUniqueRelatedNewsImageUrls([
+    ...reporterCroppedTeaserImageUrls,
+    ...(report.teaserImageUrls ?? []),
+    ...(report.teaserImages ?? [])
+      .filter((image) => image.source !== "reporter_cropped")
+      .map((image) => image.imageUrl),
+    report.coverImageUrl,
+  ]).slice(0, maxImages);
 }
 
 export function getFanletterNewsDisplayDek({

@@ -30,7 +30,25 @@ export type FanletterNewsCharacterProfileMarqueeItem = {
 };
 
 const PROFILE_IMAGE_SLIDE_INTERVAL_MS = 3400;
-const PROFILE_IMAGE_CROSSFADE_MS = 680;
+const FANLETTER_NEWS_IMAGE_FADE_STYLE_ID =
+  "fanletter-news-image-fade-keyframes";
+const FANLETTER_NEWS_IMAGE_FADE_KEYFRAMES = `
+  @keyframes fanletter-news-image-fade {
+    0% {
+      opacity: 0;
+    }
+
+    5%,
+    20% {
+      opacity: 1;
+    }
+
+    27%,
+    100% {
+      opacity: 0;
+    }
+  }
+`;
 
 function easeOutCubic(progress: number) {
   return 1 - Math.pow(1 - progress, 3);
@@ -151,19 +169,25 @@ function getNormalizedImageUrls(imageUrls: string[]) {
 
 export function FanletterNewsCharacterProfileImageSlider({
   alt,
+  autoRotate = true,
   imageClassName = "h-full w-full object-cover",
   imageUrls,
   intervalMs = PROFILE_IMAGE_SLIDE_INTERVAL_MS,
   loading,
+  pauseOnInteraction = true,
   sizes,
+  transitionMode = "state",
   unoptimizedImageUrls = [],
 }: {
   alt: string;
+  autoRotate?: boolean;
   imageClassName?: string;
   imageUrls: string[];
   intervalMs?: number;
   loading?: "eager" | "lazy";
+  pauseOnInteraction?: boolean;
   sizes: string;
+  transitionMode?: "css" | "state";
   unoptimizedImageUrls?: string[];
 }) {
   const normalizedImageUrls = useMemo(
@@ -175,7 +199,6 @@ export function FanletterNewsCharacterProfileImageSlider({
     [unoptimizedImageUrls],
   );
   const [activeIndex, setActiveIndex] = useState(0);
-  const [previousIndex, setPreviousIndex] = useState<number | null>(null);
   const [paused, setPaused] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
 
@@ -190,68 +213,105 @@ export function FanletterNewsCharacterProfileImageSlider({
   }, []);
 
   useEffect(() => {
-    if (previousIndex === null) {
+    if (transitionMode !== "css") {
       return;
     }
 
-    const timeoutId = window.setTimeout(
-      () => setPreviousIndex(null),
-      PROFILE_IMAGE_CROSSFADE_MS,
-    );
+    if (document.getElementById(FANLETTER_NEWS_IMAGE_FADE_STYLE_ID)) {
+      return;
+    }
 
-    return () => window.clearTimeout(timeoutId);
-  }, [previousIndex]);
+    const styleElement = document.createElement("style");
+    styleElement.id = FANLETTER_NEWS_IMAGE_FADE_STYLE_ID;
+    styleElement.textContent = FANLETTER_NEWS_IMAGE_FADE_KEYFRAMES;
+    document.head.appendChild(styleElement);
+  }, [transitionMode]);
 
   useEffect(() => {
-    if (normalizedImageUrls.length <= 1 || paused || reduceMotion) {
+    if (
+      !autoRotate ||
+      transitionMode === "css" ||
+      normalizedImageUrls.length <= 1 ||
+      paused ||
+      reduceMotion
+    ) {
       return;
     }
 
     const intervalId = window.setInterval(() => {
-      setActiveIndex((currentIndex) => {
-        setPreviousIndex(currentIndex);
-        return (currentIndex + 1) % normalizedImageUrls.length;
-      });
+      setActiveIndex(
+        (currentIndex) => (currentIndex + 1) % normalizedImageUrls.length,
+      );
     }, Math.max(1800, intervalMs));
 
     return () => window.clearInterval(intervalId);
-  }, [intervalMs, normalizedImageUrls.length, paused, reduceMotion]);
+  }, [
+    autoRotate,
+    intervalMs,
+    normalizedImageUrls.length,
+    paused,
+    reduceMotion,
+    transitionMode,
+  ]);
 
   if (normalizedImageUrls.length === 0) {
     return null;
   }
 
+  const shouldRotate =
+    autoRotate && !reduceMotion && normalizedImageUrls.length > 1;
+  const shouldUseCssFade = shouldRotate && transitionMode === "css";
+  const renderedImageUrls = shouldRotate
+    ? normalizedImageUrls
+    : normalizedImageUrls.slice(0, 1);
   const safeActiveIndex = activeIndex % normalizedImageUrls.length;
-  const safePreviousIndex =
-    previousIndex === null ? null : previousIndex % normalizedImageUrls.length;
-  const visibleIndexes =
-    safePreviousIndex !== null && safePreviousIndex !== safeActiveIndex
-      ? [safePreviousIndex, safeActiveIndex]
-      : [safeActiveIndex];
+  const visibleActiveIndex = shouldRotate ? safeActiveIndex : 0;
+  const safeIntervalMs = Math.max(1800, intervalMs);
+  const cssFadeCycleMs = safeIntervalMs * renderedImageUrls.length;
 
   return (
     <div
       className="relative h-full w-full overflow-hidden"
-      onBlurCapture={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      onBlurCapture={
+        pauseOnInteraction ? () => setPaused(false) : undefined
+      }
+      onFocusCapture={pauseOnInteraction ? () => setPaused(true) : undefined}
+      onMouseEnter={pauseOnInteraction ? () => setPaused(true) : undefined}
+      onMouseLeave={pauseOnInteraction ? () => setPaused(false) : undefined}
     >
-      {visibleIndexes.map((imageIndex) => {
-        const imageUrl = normalizedImageUrls[imageIndex];
-        const isActive = imageIndex === safeActiveIndex;
+      {renderedImageUrls.map((imageUrl, imageIndex) => {
+        const isActive = shouldUseCssFade
+          ? imageIndex === 0
+          : imageIndex === visibleActiveIndex;
+        const imageStyle: CSSProperties | undefined = shouldUseCssFade
+          ? {
+              animationDelay: `${imageIndex * safeIntervalMs - 420}ms`,
+              animationDuration: `${cssFadeCycleMs}ms`,
+              animationFillMode: "both",
+              animationIterationCount: "infinite",
+              animationName: "fanletter-news-image-fade",
+              animationTimingFunction: "ease-in-out",
+              willChange: "opacity",
+            }
+          : undefined;
 
         return (
           <Image
-            alt={alt}
-            className={`${imageClassName} absolute inset-0 transition-[opacity,transform] duration-700 ${
-              isActive ? "opacity-100 scale-100" : "opacity-0 scale-[1.015]"
+            alt={shouldUseCssFade ? "" : isActive ? alt : ""}
+            aria-hidden={shouldUseCssFade || !isActive ? true : undefined}
+            className={`${imageClassName} absolute inset-0 ${
+              shouldUseCssFade
+                ? "opacity-0"
+                : `transition-[opacity,transform] duration-700 ${
+                    isActive ? "opacity-100 scale-100" : "opacity-0 scale-100"
+                  }`
             }`}
             fill
-            key={`${imageUrl}-${isActive ? "active" : "previous"}`}
+            key={imageUrl}
             loading={loading}
             sizes={sizes}
             src={imageUrl}
+            style={imageStyle}
             unoptimized={unoptimizedUrlSet.has(imageUrl)}
           />
         );
