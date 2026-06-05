@@ -97,7 +97,6 @@ const DOUBLE_TAP_DISTANCE_TOLERANCE_PX = 48;
 const DOUBLE_TAP_FEEDBACK_MS = 920;
 const CUT_SWIPE_GUIDE_DISMISS_SCROLL_RATIO = 0.45;
 const CUT_FEED_HEADER_VISIBLE_MS = 2200;
-const CUT_FEED_ENTRY_HEADER_VISIBLE_MS = 2800;
 const CUT_FEED_LOGIN_SYNC_GRACE_MS = 4500;
 const CUT_FEED_RENDER_WINDOW_RADIUS = 0;
 const CUT_FEED_BOTTOM_DETAILS_VISIBLE_MS = 5600;
@@ -2460,6 +2459,7 @@ function FeedSlide({
   locale,
   onDismissSwipeGuide,
   onFindNextSourceRevealCandidate,
+  onRevealFeedChrome,
   onNavigationStart,
   reporterPanelRequestId = 0,
   onSourceViewSlideVisible,
@@ -2480,6 +2480,7 @@ function FeedSlide({
   locale: Locale;
   onDismissSwipeGuide?: () => void;
   onFindNextSourceRevealCandidate?: (currentIndex: number, currentContentId: string) => void;
+  onRevealFeedChrome?: () => void;
   onNavigationStart?: CutFeedNavigationStart;
   reporterPanelRequestId?: number;
   onSourceViewSlideVisible?: (index: number) => void;
@@ -2783,11 +2784,17 @@ function FeedSlide({
   );
   const revealCutOverlays = useCallback(
     (options?: { persist?: boolean }) => {
+      onRevealFeedChrome?.();
       revealTopOverlays(options);
       revealSideActions(options);
       revealBottomDetails(options);
     },
-    [revealBottomDetails, revealSideActions, revealTopOverlays],
+    [
+      onRevealFeedChrome,
+      revealBottomDetails,
+      revealSideActions,
+      revealTopOverlays,
+    ],
   );
   const flushCutDwell = useCallback((exitReason: CutDwellExitReason) => {
     const snapshot = cutDwellSnapshotRef.current;
@@ -4518,8 +4525,8 @@ export function FanletterNewsPublicCutsFeedPage({
   const [serviceMenuOpen, setServiceMenuOpen] = useState(false);
   const [navigationPending, setNavigationPending] =
     useState<CutFeedNavigationPending | null>(null);
-  const [isCutFeedHeaderVisible, setIsCutFeedHeaderVisible] = useState(true);
-  const [isRoleShortcutVisible, setIsRoleShortcutVisible] = useState(true);
+  const [isCutFeedHeaderVisible, setIsCutFeedHeaderVisible] = useState(false);
+  const [isRoleShortcutVisible, setIsRoleShortcutVisible] = useState(false);
   const [isPublishedReturnEntry, setIsPublishedReturnEntry] = useState(false);
   const [visibleFeedIndex, setVisibleFeedIndex] = useState(0);
   const [reporterPanelRequest, setReporterPanelRequest] = useState<{
@@ -4819,6 +4826,36 @@ export function FanletterNewsPublicCutsFeedPage({
       roleShortcutRevealTimerRef.current = null;
     }, CUT_FEED_ROLE_SHORTCUT_VISIBLE_MS);
   }, []);
+  const clearHeaderRevealTimer = useCallback(() => {
+    if (headerRevealTimerRef.current) {
+      window.clearTimeout(headerRevealTimerRef.current);
+      headerRevealTimerRef.current = null;
+    }
+  }, []);
+  const revealCutFeedHeaderTemporarily = useCallback(() => {
+    clearHeaderRevealTimer();
+    setIsCutFeedHeaderVisible(true);
+
+    if (serviceMenuOpen) {
+      return;
+    }
+
+    headerRevealTimerRef.current = window.setTimeout(() => {
+      setIsCutFeedHeaderVisible(false);
+      headerRevealTimerRef.current = null;
+    }, CUT_FEED_HEADER_VISIBLE_MS);
+  }, [clearHeaderRevealTimer, serviceMenuOpen]);
+  const revealFeedChromeTemporarily = useCallback(() => {
+    revealCutFeedHeaderTemporarily();
+
+    if (isRoleShortcutEnabled) {
+      revealRoleShortcutTemporarily();
+    }
+  }, [
+    isRoleShortcutEnabled,
+    revealCutFeedHeaderTemporarily,
+    revealRoleShortcutTemporarily,
+  ]);
   const handleSourceViewSlideVisible = useCallback(
     (index: number) => {
       if (sourceViewSwipeGuideDismissed || swipeGuideTarget) {
@@ -4858,10 +4895,6 @@ export function FanletterNewsPublicCutsFeedPage({
       root,
     });
 
-    if (isRoleShortcutEnabled) {
-      revealRoleShortcutTemporarily();
-    }
-
     setVisibleFeedIndex((currentIndex) => {
       if (currentIndex === visibleIndex) {
         return currentIndex;
@@ -4878,8 +4911,6 @@ export function FanletterNewsPublicCutsFeedPage({
           },
         ),
       );
-      setIsCutFeedHeaderVisible(true);
-
       return visibleIndex;
     });
 
@@ -4914,9 +4945,7 @@ export function FanletterNewsPublicCutsFeedPage({
     }
   }, [
     dismissSwipeGuide,
-    isRoleShortcutEnabled,
     items,
-    revealRoleShortcutTemporarily,
     sourceViewSwipeGuideDismissed,
     swipeGuideTarget,
   ]);
@@ -5025,8 +5054,6 @@ export function FanletterNewsPublicCutsFeedPage({
         currentIndex,
         items,
       });
-
-      setIsCutFeedHeaderVisible(true);
 
       if (nextIndex >= 0) {
         root.scrollTo({
@@ -5191,34 +5218,14 @@ export function FanletterNewsPublicCutsFeedPage({
   }, [serviceMenuOpen]);
 
   useEffect(() => {
-    if (headerRevealTimerRef.current) {
-      window.clearTimeout(headerRevealTimerRef.current);
-      headerRevealTimerRef.current = null;
-    }
-
-    setIsCutFeedHeaderVisible(true);
-
     if (serviceMenuOpen) {
-      return;
+      clearHeaderRevealTimer();
     }
-
-    const visibleDuration =
-      visibleFeedIndex === 0 && (shareId || excludeReportId)
-        ? CUT_FEED_ENTRY_HEADER_VISIBLE_MS
-        : CUT_FEED_HEADER_VISIBLE_MS;
-
-    headerRevealTimerRef.current = window.setTimeout(() => {
-      setIsCutFeedHeaderVisible(false);
-      headerRevealTimerRef.current = null;
-    }, visibleDuration);
 
     return () => {
-      if (headerRevealTimerRef.current) {
-        window.clearTimeout(headerRevealTimerRef.current);
-        headerRevealTimerRef.current = null;
-      }
+      clearHeaderRevealTimer();
     };
-  }, [excludeReportId, serviceMenuOpen, shareId, visibleFeedIndex]);
+  }, [clearHeaderRevealTimer, serviceMenuOpen]);
 
   useEffect(() => {
     if (!isRoleShortcutEnabled) {
@@ -5231,15 +5238,13 @@ export function FanletterNewsPublicCutsFeedPage({
       return;
     }
 
-    revealRoleShortcutTemporarily();
-
     return () => {
       if (roleShortcutRevealTimerRef.current) {
         window.clearTimeout(roleShortcutRevealTimerRef.current);
         roleShortcutRevealTimerRef.current = null;
       }
     };
-  }, [isRoleShortcutEnabled, revealRoleShortcutTemporarily]);
+  }, [isRoleShortcutEnabled]);
 
   useEffect(() => {
     if (!hasMore) {
@@ -5335,10 +5340,10 @@ export function FanletterNewsPublicCutsFeedPage({
       ? "gap-2 border-white/18 bg-white/12 px-3"
       : "gap-1.5 border-white/16 bg-black/42 px-3"
   }`;
-  const roleShortcutSectionClassName = `pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+4.25rem)] z-30 w-full max-w-[430px] -translate-x-1/2 px-3 transition-[opacity,transform] duration-500 ease-out ${
+  const roleShortcutSectionClassName = `pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+4.25rem)] z-30 w-full max-w-[430px] -translate-x-1/2 px-3 transition-[opacity,transform,visibility] duration-500 ease-out ${
     isRoleShortcutVisible
-      ? "translate-y-0 opacity-100"
-      : "-translate-y-3 opacity-0"
+      ? "visible translate-y-0 opacity-100"
+      : "invisible -translate-y-3 opacity-0"
   }`;
   const roleShortcutSurfaceClassName = `${
     isRoleShortcutVisible ? "pointer-events-auto" : "pointer-events-none"
@@ -5437,7 +5442,10 @@ export function FanletterNewsPublicCutsFeedPage({
         <CutFeedServiceMenuSheet
           copy={copy}
           groups={serviceMenuGroups}
-          onClose={() => setServiceMenuOpen(false)}
+          onClose={() => {
+            setServiceMenuOpen(false);
+            setIsCutFeedHeaderVisible(false);
+          }}
           onNavigate={startNavigation}
         />
       ) : null}
@@ -5615,6 +5623,7 @@ export function FanletterNewsPublicCutsFeedPage({
                 handleFindNextSourceRevealCandidate
               }
               onNavigationStart={startNavigation}
+              onRevealFeedChrome={revealFeedChromeTemporarily}
               onSourceViewSlideVisible={handleSourceViewSlideVisible}
               reporterPanelRequestId={
                 reporterPanelRequest?.index === index
