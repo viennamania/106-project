@@ -4123,6 +4123,30 @@ export function FanletterNewsPublicCutsFeedPage({
       }
 
       const data = (await response.json()) as FanletterNewsPublicCutFeedLoadResponse;
+      const currentItem =
+        items[
+          Math.min(Math.max(visibleFeedIndex, 0), Math.max(items.length - 1, 0))
+        ] ?? null;
+
+      if (shareId && currentItem) {
+        trackFunnelEvent("fanletter_news_cut_feed_load_more", {
+          contentId: currentItem.report.contentId,
+          metadata: {
+            currentContentId: currentItem.report.contentId,
+            currentCreatorReferralCode: currentItem.report.creatorReferralCode,
+            currentReportId: currentItem.report.reportId,
+            currentReporterReferralCode: currentItem.report.reporterReferralCode,
+            hasMoreAfterLoad: data.hasMore,
+            loadedCount: data.items.length,
+            nextOffsetBeforeLoad: nextOffset,
+            previousItemCount: items.length,
+            source: "fanletter-news-cut-feed",
+          },
+          referralCode,
+          shareId,
+          targetHref: `${window.location.pathname}${window.location.search}`,
+        });
+      }
 
       setItems((currentItems) =>
         mergePublicCutItems(currentItems, data.items),
@@ -4139,11 +4163,13 @@ export function FanletterNewsPublicCutsFeedPage({
     excludeReportId,
     hasMore,
     isLoadingMore,
+    items,
     locale,
     nextOffset,
     referralCode,
     selectedRolePreference,
     shareId,
+    visibleFeedIndex,
   ]);
   const handleFindNextSourceRevealCandidate = useCallback(
     (currentIndex: number, currentContentId: string) => {
