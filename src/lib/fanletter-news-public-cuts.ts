@@ -455,7 +455,7 @@ function hasPublicCutFeedNeighborConflict(
   );
 }
 
-function takeGuestArchiveUnlockedItem({
+function takeArchiveUnlockedItem({
   archiveItems,
   nextRegularItem,
   previousItem,
@@ -475,7 +475,7 @@ function takeGuestArchiveUnlockedItem({
   return selectedItem;
 }
 
-function mixGuestArchiveUnlockedFeedItems({
+function mixArchiveUnlockedFeedItems({
   archiveReportIds,
   audience,
   sortedItems,
@@ -484,10 +484,7 @@ function mixGuestArchiveUnlockedFeedItems({
   audience: FanletterNewsPublicCutFeedAudience;
   sortedItems: FanletterNewsPublicCutFeedItem[];
 }) {
-  if (
-    archiveReportIds.size === 0 ||
-    (audience !== "guest_direct" && audience !== "guest_social")
-  ) {
+  if (archiveReportIds.size === 0) {
     return sortedItems;
   }
 
@@ -522,7 +519,7 @@ function mixGuestArchiveUnlockedFeedItems({
     const regularItem = regularItems[index];
 
     if (result.length >= nextArchiveIndex && archiveItems.length > 0) {
-      const archiveItem = takeGuestArchiveUnlockedItem({
+      const archiveItem = takeArchiveUnlockedItem({
         archiveItems,
         nextRegularItem: regularItem,
         previousItem: result.at(-1) ?? null,
@@ -539,7 +536,7 @@ function mixGuestArchiveUnlockedFeedItems({
   }
 
   while (archiveItems.length > 0 && result.length >= nextArchiveIndex) {
-    const archiveItem = takeGuestArchiveUnlockedItem({
+    const archiveItem = takeArchiveUnlockedItem({
       archiveItems,
       nextRegularItem: null,
       previousItem: result.at(-1) ?? null,
@@ -557,7 +554,7 @@ function mixGuestArchiveUnlockedFeedItems({
   return result;
 }
 
-async function getGuestArchiveUnlockedFanletterNewsReports({
+async function getArchiveUnlockedFanletterNewsReports({
   excludeReportIds,
   locale,
 }: {
@@ -977,8 +974,10 @@ export async function getFanletterNewsPublicCutFeedPage({
     audience === "guest_social"
       ? FANLETTER_NEWS_PUBLIC_CUT_FEED_SOCIAL_LOOKAHEAD_LIMIT
       : FANLETTER_NEWS_PUBLIC_CUT_FEED_LOOKAHEAD_LIMIT;
-  const candidateWindowLimit =
-    normalizedOffset + Math.max(queryLimit + 1, lookaheadLimit);
+  const candidateWindowLimit = Math.max(
+    normalizedOffset + queryLimit + 1,
+    lookaheadLimit,
+  );
   const [reportsCollection, shareCohortSignals] = await Promise.all([
     getFanletterNewsReportsCollection(),
     audience === "guest_social" && normalizedShareId
@@ -1012,10 +1011,9 @@ export async function getFanletterNewsPublicCutFeedPage({
     .limit(candidateWindowLimit)
     .toArray();
   const shouldMixArchiveUnlocked =
-    mode === "default" &&
-    (audience === "guest_direct" || audience === "guest_social");
+    mode === "default";
   const archiveReports = shouldMixArchiveUnlocked
-    ? await getGuestArchiveUnlockedFanletterNewsReports({
+    ? await getArchiveUnlockedFanletterNewsReports({
         excludeReportIds: normalizedExcludeReportIds,
         locale,
       })
@@ -1046,7 +1044,7 @@ export async function getFanletterNewsPublicCutFeedPage({
     targetReport,
   });
   const mixedCandidateItems = shouldMixArchiveUnlocked
-    ? mixGuestArchiveUnlockedFeedItems({
+    ? mixArchiveUnlockedFeedItems({
         archiveReportIds,
         audience,
         sortedItems: sortedCandidateItems,
