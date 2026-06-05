@@ -1096,6 +1096,28 @@ function getReportDate(report: FanletterNewsReportDocument) {
   return report.sourcePublishedAt ?? report.createdAt ?? null;
 }
 
+function getPlatformReportCutHref({
+  cutSlotNumber = 1,
+  locale,
+  referralCode,
+  reportId,
+}: {
+  cutSlotNumber?: number;
+  locale: Locale;
+  referralCode: string | null;
+  reportId: string;
+}) {
+  return setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/${reportId}`,
+      referralCode,
+    ),
+    {
+      cut: String(cutSlotNumber),
+    },
+  );
+}
+
 function getReportDiversityKey(report: FanletterNewsReportDocument) {
   const title = getArticleDisplayTitle(report.title)
     .trim()
@@ -1451,10 +1473,11 @@ function PlatformLiveContentWall({
     reports[0] ??
     null;
   const primaryHref = primaryReport
-    ? buildPathWithReferral(
-        `/${locale}/fanletter/news/${primaryReport.reportId}`,
+    ? getPlatformReportCutHref({
+        locale,
         referralCode,
-      )
+        reportId: primaryReport.reportId,
+      })
     : buildPathWithReferral(`/${locale}/fanletter/news`, referralCode);
   const primaryCoverImageUrl =
     primaryTeaser?.coverImageUrl ??
@@ -1582,10 +1605,11 @@ function PlatformLiveContentWall({
           <div className="grid grid-cols-4 gap-2">
             {previewTiles.map((item) => {
               const imageUrl = getTeaserGalleryImage(item);
-              const href = buildPathWithReferral(
-                `/${locale}/fanletter/news/${item.reportId}`,
+              const href = getPlatformReportCutHref({
+                locale,
                 referralCode,
-              );
+                reportId: item.reportId,
+              });
 
               return (
                 <Link
@@ -1636,10 +1660,11 @@ function PlatformLiveContentWall({
                   report.title,
                 )}`}
                 className="grid min-h-11 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-white/10 bg-white/[0.06] px-2.5 py-2 !text-white transition hover:border-[#44f26e]/44 hover:bg-[#44f26e]/10"
-                href={buildPathWithReferral(
-                  `/${locale}/fanletter/news/${report.reportId}`,
+                href={getPlatformReportCutHref({
+                  locale,
                   referralCode,
-                )}
+                  reportId: report.reportId,
+                })}
                 key={report.reportId}
               >
                 <span className="font-mono text-[0.6rem] font-black text-[#9bffad]">
@@ -1737,10 +1762,11 @@ function PlatformMarketSignal({
   const marketTiles = teaserItems.slice(0, 6);
   const featuredReport = reports[0] ?? null;
   const featuredReportHref = featuredReport
-    ? buildPathWithReferral(
-        `/${locale}/fanletter/news/${featuredReport.reportId}`,
+    ? getPlatformReportCutHref({
+        locale,
         referralCode,
-      )
+        reportId: featuredReport.reportId,
+      })
     : buildPathWithReferral(`/${locale}/fanletter/news`, referralCode);
   const proofStats = [
     {
@@ -1813,10 +1839,11 @@ function PlatformMarketSignal({
             <div className="grid grid-cols-3 gap-2">
               {marketTiles.map((item, index) => {
                 const imageUrl = getTeaserGalleryImage(item);
-                const href = buildPathWithReferral(
-                  `/${locale}/fanletter/news/${item.reportId}`,
+                const href = getPlatformReportCutHref({
+                  locale,
                   referralCode,
-                );
+                  reportId: item.reportId,
+                });
 
                 return (
                   <Link
@@ -2543,10 +2570,11 @@ function PlatformPortalStrategy({
               {featuredReports.map((report, index) => (
                 <Link
                   className="group grid min-h-16 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-white/10 bg-black/24 px-3 py-2.5 !text-white transition hover:border-[#44f26e]/54 hover:bg-[#44f26e]/10"
-                  href={buildPathWithReferral(
-                    `/${locale}/fanletter/news/${report.reportId}`,
+                  href={getPlatformReportCutHref({
+                    locale,
                     referralCode,
-                  )}
+                    reportId: report.reportId,
+                  })}
                   key={report.reportId}
                 >
                   <span className="font-mono text-[0.62rem] font-black text-[#9bffad]">
@@ -3213,10 +3241,11 @@ function NewsFlowTicker({
             {tickerReports.map((report, index) => (
               <Link
                 className="group inline-flex h-12 min-w-[16rem] max-w-[18rem] shrink-0 items-center justify-between gap-3 rounded-full border border-white/12 bg-white/[0.07] px-3 !text-white transition hover:border-[#44f26e]/62 hover:bg-[#44f26e]/12 sm:h-14 sm:min-w-[21rem] sm:max-w-[23rem] sm:px-4"
-                href={buildPathWithReferral(
-                  `/${locale}/fanletter/news/${report.reportId}`,
+                href={getPlatformReportCutHref({
+                  locale,
                   referralCode,
-                )}
+                  reportId: report.reportId,
+                })}
                 key={`${report.reportId}:${index}`}
               >
                 <span className="min-w-0">
@@ -3612,10 +3641,11 @@ export default async function FanletterNewsPlatformPage({
             {featuredReports.map((report) => (
               <NewsHomeReportCard
                 copy={copy}
-                href={buildPathWithReferral(
-                  `/${locale}/fanletter/news/${report.reportId}`,
+                href={getPlatformReportCutHref({
+                  locale,
                   referralCode,
-                )}
+                  reportId: report.reportId,
+                })}
                 key={report.reportId}
                 locale={locale}
                 previewClipVideoUrl={
