@@ -79,6 +79,8 @@ type NewsReturnKind =
   | "vlogManage"
   | "wallet";
 
+type FanletterNewsConnectSurface = "default" | "my";
+
 const NEWS_CONNECT_DISCONNECTED_GRACE_MS = 4500;
 
 const emptySyncState: FanletterNewsConnectSyncState = {
@@ -93,8 +95,8 @@ function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-function getCopy(locale: Locale) {
-  return locale === "ko"
+function getCopy(locale: Locale, surface: FanletterNewsConnectSurface = "default") {
+  const copy = locale === "ko"
     ? {
         account: "뉴스 계정",
         accountBody:
@@ -175,6 +177,48 @@ function getCopy(locale: Locale) {
         wallet: "News wallet",
         walletId: "Connection ID",
       };
+
+  if (surface !== "my") {
+    return copy;
+  }
+
+  return locale === "ko"
+    ? {
+        ...copy,
+        account: "마이 뉴스 계정",
+        accountBody:
+          "구매함, 팬 리포트, 브이로그 제작 바로가기를 한 마이 계정으로 이어가도록 이메일 계정을 연결합니다.",
+        connectBody:
+          "이메일 인증을 완료하면 지금 보던 마이 전용 페이지로 돌아와 활동 현황과 작업 바로가기를 계속 사용할 수 있습니다.",
+        edition: "My AIAVpark News",
+        eyebrow: "AIAVpark News My",
+        loginGuideDescription:
+          "이메일로 뉴스 계정을 연결하면 마이 페이지에서 구매함, 리포트, 브이로그 관리, 보상 포인트를 한 번에 이어볼 수 있습니다.",
+        loginGuideTitle: "마이 계정 연결 방법",
+        loginTitle: "마이 뉴스 계정 연결",
+        routeTitle: "연결 후 마이로 이동",
+        statusDesk: "마이 계정 상태",
+        steps: ["이메일 계정 연결", "마이 계정 저장", "마이로 돌아가기"],
+        title: "마이 페이지를 이어갈 계정 연결",
+      }
+    : {
+        ...copy,
+        account: "My News account",
+        accountBody:
+          "Connect an email account so purchases, fan reports, and vlog shortcuts stay attached to one My News hub.",
+        connectBody:
+          "After email verification, return to the dedicated My page and continue activity status and workflow shortcuts.",
+        edition: "My AIAVpark News",
+        eyebrow: "AIAVpark News My",
+        loginGuideDescription:
+          "Connect by email to keep purchases, reports, vlog management, and reward points together on the My page.",
+        loginGuideTitle: "How My account connection works",
+        loginTitle: "Connect My News account",
+        routeTitle: "Continue to My after connection",
+        statusDesk: "My account status",
+        steps: ["Email account", "My account saved", "Back to My"],
+        title: "Connect your account for the My page",
+      };
 }
 
 function formatAddressLabel(address?: string | null) {
@@ -241,7 +285,7 @@ function getReturnKind(returnToHref: string, locale: Locale): NewsReturnKind {
     return "cutFeed";
   }
 
-  if (pathname === `${newsBasePath}/my`) {
+  if (pathname === `${newsBasePath}/my` || pathname === `${newsBasePath}/me`) {
     return "my";
   }
 
@@ -532,11 +576,13 @@ export function FanletterNewsConnectPage({
   locale,
   referralCode,
   returnToHref,
+  surface = "default",
 }: {
   dictionary: Dictionary;
   locale: Locale;
   referralCode: string | null;
   returnToHref: string;
+  surface?: FanletterNewsConnectSurface;
 }) {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
@@ -550,7 +596,7 @@ export function FanletterNewsConnectPage({
     useState<FanletterNewsConnectSyncState>(emptySyncState);
   const [syncNonce, setSyncNonce] = useState(0);
   const syncInFlightRef = useRef(false);
-  const copy = getCopy(locale);
+  const copy = getCopy(locale, surface);
   const accountAddress = account?.address ?? null;
   const accountLabel = formatAddressLabel(accountAddress);
   const returnKind = getReturnKind(returnToHref, locale);
