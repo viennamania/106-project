@@ -283,6 +283,7 @@ export async function renderFanletterNewsReportComposerRoute({
         locale,
         reportStatus: reportStatusFilter,
         searchQuery,
+        selectedContentId,
       })
     : {
         items: [],

@@ -850,11 +850,13 @@ function getReportComposerHref({
   locale,
   referralCode,
   returnToHref,
+  sourceReveal,
 }: {
   contentId: string | null;
   locale: Locale;
   referralCode: string | null;
   returnToHref: string;
+  sourceReveal?: "locked" | "opportunity" | "unlocked" | null;
 }) {
   return setPathSearchParams(
     buildPathWithReferral(
@@ -866,7 +868,7 @@ function getReportComposerHref({
       reportStatus: "unreported",
       returnTo: returnToHref,
       sourceMode: contentId ? "direct" : null,
-      sourceReveal: "locked",
+      sourceReveal: contentId ? (sourceReveal ?? "locked") : "opportunity",
     },
   );
 }
@@ -2501,6 +2503,7 @@ function FeedSlide({
     locale,
     referralCode,
     returnToHref: cutFeedReturnHref,
+    sourceReveal: sourceRevealState.unlocked ? "unlocked" : "locked",
   });
   const reportSlotUsedLabel = formatNumber(item.reportSlot.used, locale);
   const reportSlotLimitLabel = formatNumber(item.reportSlot.limit, locale);

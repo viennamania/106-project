@@ -2694,6 +2694,7 @@ export async function getFanletterNewsReportDraftSourcesForMember({
   locale,
   reportStatus,
   searchQuery,
+  selectedContentId,
 }: {
   email?: string | null;
   includeNsfw?: boolean;
@@ -2701,11 +2702,13 @@ export async function getFanletterNewsReportDraftSourcesForMember({
   locale?: Locale | null;
   reportStatus?: string | null;
   searchQuery?: string | null;
+  selectedContentId?: string | null;
 }): Promise<FanletterNewsReportDraftSourcesResult> {
   const normalizedLocale = locale ?? defaultLocale;
   const normalizedReportStatus =
     normalizeDraftSourceReportStatusFilter(reportStatus);
   const normalizedSearchQuery = normalizeSearchQuery(searchQuery);
+  const normalizedSelectedContentId = selectedContentId?.trim().slice(0, 120) ?? "";
   const member = await getFanletterNewsReporterMemberByEmail(
     email,
     normalizedLocale,
@@ -2864,6 +2867,46 @@ export async function getFanletterNewsReportDraftSourcesForMember({
     .sort({ publishedAt: -1, createdAt: -1 })
     .limit(normalizedLimit)
     .toArray();
+  if (
+    normalizedSelectedContentId &&
+    !posts.some((post) => post.contentId === normalizedSelectedContentId)
+  ) {
+    const selectedPost = await postsCollection.findOne(
+      {
+        ...basePostFilter,
+        contentId: normalizedSelectedContentId,
+      },
+      {
+        projection: {
+          authorEmail: 1,
+          authorReferralCode: 1,
+          contentId: 1,
+          contentImageUrls: 1,
+          contentMaturityRating: 1,
+          coverImageCandidates: 1,
+          coverImageUrl: 1,
+          createdAt: 1,
+          exclusiveNewsReporterName: 1,
+          exclusiveNewsReporterReferralCode: 1,
+          exclusiveNewsUntil: 1,
+          fanReportLimit: 1,
+          locale: 1,
+          previewClipVideoUrl: 1,
+          previewText: 1,
+          priceType: 1,
+          publishedAt: 1,
+          status: 1,
+          summary: 1,
+          title: 1,
+          updatedAt: 1,
+        },
+      },
+    );
+
+    if (selectedPost) {
+      posts.unshift(selectedPost);
+    }
+  }
   const contentIds = posts.map((post) => post.contentId);
 
   if (contentIds.length === 0) {
