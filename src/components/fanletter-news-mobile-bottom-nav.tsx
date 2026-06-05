@@ -314,7 +314,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     pathname === activatePath ||
     pathname === walletPath ||
     pathname.startsWith(`${walletPath}/`);
-  const myHref = buildHref(myPath);
+  const myHref = buildHref(mePath);
   const isPurchasesServicePath =
     pathname === purchasesPath || pathname.startsWith(`${purchasesPath}/`);
   const isReporterServicePath =
@@ -463,7 +463,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
       primary: isPurchasesServicePath,
     },
     {
-      activePath: myPath,
+      activePath: mePath,
       activePaths: [
         mePath,
         myPath,

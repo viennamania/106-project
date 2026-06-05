@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
+  ArrowLeft,
   ArrowRight,
   BookOpenCheck,
   CircleUserRound,
@@ -27,7 +28,11 @@ import {
   getFanletterNewsVlogManageHref,
   getFanletterNewsVlogStartHref,
 } from "@/lib/fanletter-news-vlog-routing";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import {
+  isFanletterNewsCutFeedReturnPath,
+  normalizeFanletterReturnToPath,
+  readFanletterReferralCode,
+} from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
@@ -37,6 +42,7 @@ import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FanletterNewsMeSearchParams = {
   ref?: string | string[];
+  returnTo?: string | string[];
 };
 
 function getCopy(locale: Locale) {
@@ -59,6 +65,8 @@ function getCopy(locale: Locale) {
           createVlog: "새 브이로그",
           purchases: "구매함",
         },
+        returnToFeed: "4컷 피드로 돌아가기",
+        returnToPrevious: "이전 화면으로 돌아가기",
         secondaryActions: {
           characters: "AI 캐릭터",
           fullHub: "상세 뉴스 허브",
@@ -93,6 +101,8 @@ function getCopy(locale: Locale) {
           createVlog: "New vlog",
           purchases: "Purchases",
         },
+        returnToFeed: "Back to 4-cut feed",
+        returnToPrevious: "Back",
         secondaryActions: {
           characters: "AI Characters",
           fullHub: "Full news hub",
@@ -165,10 +175,19 @@ export default async function LocalizedFanletterNewsMePage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
-  const meHref = buildPathWithReferral(
+  const returnToHref = normalizeFanletterReturnToPath(query.returnTo, locale);
+  const returnLinkLabel = returnToHref
+    ? isFanletterNewsCutFeedReturnPath(returnToHref, locale)
+      ? copy.returnToFeed
+      : copy.returnToPrevious
+    : null;
+  const meBaseHref = buildPathWithReferral(
     `/${locale}/fanletter/news/me`,
     referralCode,
   );
+  const meHref = returnToHref
+    ? setPathSearchParams(meBaseHref, { returnTo: returnToHref })
+    : meBaseHref;
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
     { returnTo: meHref },
@@ -184,23 +203,34 @@ export default async function LocalizedFanletterNewsMePage({
           serverSessionEmail={null}
           serverSessionWalletAddress={null}
         />
-        <section className="mx-auto max-w-md rounded-2xl border border-white/12 bg-white/[0.06] p-5 shadow-[0_18px_48px_rgba(0,0,0,0.28)]">
-          <span className="inline-flex size-12 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
-            <UserRound className="size-6" />
-          </span>
-          <h1 className="mt-4 text-2xl font-black tracking-normal [word-break:keep-all]">
-            {copy.connectTitle}
-          </h1>
-          <p className="mt-2 text-sm font-semibold leading-6 text-white/62 [word-break:keep-all]">
-            {copy.connectBody}
-          </p>
-          <Link
-            className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-[#111510]"
-            href={connectHref}
-          >
-            {copy.connectCta}
-            <ArrowRight className="size-4" />
-          </Link>
+        <section className="mx-auto max-w-md">
+          {returnToHref ? (
+            <Link
+              className="mb-3 inline-flex min-h-10 items-center gap-2 rounded-full border border-white/12 bg-white/[0.08] px-3 text-xs font-black !text-white transition hover:border-[#44f26e]/40 hover:bg-[#44f26e]/12"
+              href={returnToHref}
+            >
+              <ArrowLeft className="size-4 text-[#44f26e]" />
+              {returnLinkLabel}
+            </Link>
+          ) : null}
+          <div className="rounded-2xl border border-white/12 bg-white/[0.06] p-5 shadow-[0_18px_48px_rgba(0,0,0,0.28)]">
+            <span className="inline-flex size-12 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
+              <UserRound className="size-6" />
+            </span>
+            <h1 className="mt-4 text-2xl font-black tracking-normal [word-break:keep-all]">
+              {copy.connectTitle}
+            </h1>
+            <p className="mt-2 text-sm font-semibold leading-6 text-white/62 [word-break:keep-all]">
+              {copy.connectBody}
+            </p>
+            <Link
+              className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-[#111510]"
+              href={connectHref}
+            >
+              {copy.connectCta}
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
         </section>
       </main>
     );
@@ -227,6 +257,7 @@ export default async function LocalizedFanletterNewsMePage({
     `/${locale}/fanletter/news/cuts`,
     effectiveReferralCode,
   );
+  const continueFeedHref = returnToHref ?? cutsHref;
   const fullHubHref = buildPathWithReferral(
     `/${locale}/fanletter/news/my`,
     effectiveReferralCode,
@@ -252,7 +283,7 @@ export default async function LocalizedFanletterNewsMePage({
       `/${locale}/fanletter/news/wallet/manage`,
       effectiveReferralCode,
     ),
-    { returnTo: fullHubHref },
+    { returnTo: meHref },
   );
   const vlogsManageHref = getFanletterNewsVlogManageHref({
     locale,
@@ -302,7 +333,7 @@ export default async function LocalizedFanletterNewsMePage({
   ];
   const primaryActions = [
     {
-      href: cutsHref,
+      href: continueFeedHref,
       icon: Home,
       label: copy.primaryActions.continueFeed,
     },
@@ -382,6 +413,15 @@ export default async function LocalizedFanletterNewsMePage({
         }
       />
       <section className="mx-auto max-w-md">
+        {returnToHref ? (
+          <Link
+            className="mb-3 inline-flex min-h-10 items-center gap-2 rounded-full border border-white/12 bg-white/[0.08] px-3 text-xs font-black !text-white transition hover:border-[#44f26e]/40 hover:bg-[#44f26e]/12"
+            href={returnToHref}
+          >
+            <ArrowLeft className="size-4 text-[#44f26e]" />
+            {returnLinkLabel}
+          </Link>
+        ) : null}
         <div className="rounded-2xl border border-[#44f26e]/24 bg-[#07110a] p-4 shadow-[0_18px_46px_rgba(0,0,0,0.22)]">
           <div className="flex items-center gap-3">
             <div className="relative size-16 shrink-0 overflow-hidden rounded-full border border-white/12 bg-white/8">

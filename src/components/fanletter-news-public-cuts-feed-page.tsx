@@ -3777,7 +3777,7 @@ export function FanletterNewsPublicCutsFeedPage({
     returnTo: cutFeedHomeHref,
   });
   const myHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/my`,
+    `/${locale}/fanletter/news/me`,
     referralCode,
   );
   const returnableMyHref = setPathSearchParams(myHref, {
