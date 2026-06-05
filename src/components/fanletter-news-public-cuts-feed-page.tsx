@@ -100,6 +100,7 @@ const CUT_FEED_HEADER_VISIBLE_MS = 2200;
 const CUT_FEED_ENTRY_HEADER_VISIBLE_MS = 2800;
 const CUT_FEED_LOGIN_SYNC_GRACE_MS = 4500;
 const CUT_FEED_RENDER_WINDOW_RADIUS = 0;
+const CUT_FEED_BOTTOM_DETAILS_VISIBLE_MS = 5600;
 const CUT_FEED_ROLE_SHORTCUT_VISIBLE_MS = 1800;
 const CUT_FEED_SIDE_ACTION_VISIBLE_MS = 4200;
 const CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT =
@@ -2503,6 +2504,7 @@ function FeedSlide({
   const [tapFeedback, setTapFeedback] =
     useState<SourceRevealTapFeedback | null>(null);
   const [authNudge, setAuthNudge] = useState(false);
+  const [areBottomDetailsVisible, setAreBottomDetailsVisible] = useState(true);
   const [areSideActionsVisible, setAreSideActionsVisible] = useState(true);
   const [sourceOverlayOpen, setSourceOverlayOpen] = useState(false);
   const [sourceOverlaySource, setSourceOverlaySource] =
@@ -2539,6 +2541,9 @@ function FeedSlide({
     null,
   );
   const authNudgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const bottomDetailsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const sideActionsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
@@ -2683,6 +2688,30 @@ function FeedSlide({
     referralCode,
     returnToHref: cutFeedReturnHref,
   });
+  const compactBottomAction =
+    isReporterComposerCtaVisible && sourceContentId
+      ? isViewerReport
+        ? {
+            href: nextReportComposerHref,
+            icon: ArrowRight,
+            label: copy.reporterQuickDesk.nextCta,
+            pendingLabel: copy.navigationPending.report,
+          }
+        : item.reportSlot.full
+          ? {
+              href: null,
+              icon: PenLine,
+              label: reportComposerCtaLabel,
+              pendingLabel: null,
+            }
+          : {
+              href: reportComposerHref,
+              icon: PenLine,
+              label: reportComposerCtaLabel,
+              pendingLabel: copy.navigationPending.report,
+            }
+      : null;
+  const CompactBottomActionIcon = compactBottomAction?.icon ?? PenLine;
   const startNavigation = useCallback(
     (pending: CutFeedNavigationPending) => {
       onDismissSwipeGuide?.();
@@ -2711,6 +2740,28 @@ function FeedSlide({
       sideActionsTimeoutRef.current = null;
     }
   }, []);
+  const clearBottomDetailsTimer = useCallback(() => {
+    if (bottomDetailsTimeoutRef.current) {
+      clearTimeout(bottomDetailsTimeoutRef.current);
+      bottomDetailsTimeoutRef.current = null;
+    }
+  }, []);
+  const revealBottomDetails = useCallback(
+    (options?: { persist?: boolean }) => {
+      clearBottomDetailsTimer();
+      setAreBottomDetailsVisible(true);
+
+      if (!isActive || options?.persist) {
+        return;
+      }
+
+      bottomDetailsTimeoutRef.current = setTimeout(() => {
+        setAreBottomDetailsVisible(false);
+        bottomDetailsTimeoutRef.current = null;
+      }, CUT_FEED_BOTTOM_DETAILS_VISIBLE_MS);
+    },
+    [clearBottomDetailsTimer, isActive],
+  );
   const revealSideActions = useCallback(
     (options?: { persist?: boolean }) => {
       clearSideActionsTimer();
@@ -2766,16 +2817,21 @@ function FeedSlide({
 
   useEffect(() => {
     if (!isActive) {
+      clearBottomDetailsTimer();
       clearSideActionsTimer();
+      setAreBottomDetailsVisible(false);
       setAreSideActionsVisible(false);
       return;
     }
 
+    revealBottomDetails();
     revealSideActions();
   }, [
     activeCutIndex,
+    clearBottomDetailsTimer,
     clearSideActionsTimer,
     isActive,
+    revealBottomDetails,
     revealSideActions,
     report.reportId,
   ]);
@@ -2788,6 +2844,9 @@ function FeedSlide({
       return;
     }
 
+    revealBottomDetails({
+      persist: authNudge || isLoginSyncing || isSourceRevealSaving,
+    });
     revealSideActions({
       persist: authNudge || isLoginSyncing || isSourceRevealSaving,
     });
@@ -2796,6 +2855,7 @@ function FeedSlide({
     isActive,
     isLoginSyncing,
     isSourceRevealSaving,
+    revealBottomDetails,
     revealSideActions,
     tapFeedback,
   ]);
@@ -3159,9 +3219,10 @@ function FeedSlide({
         clearTimeout(authNudgeTimeoutRef.current);
       }
 
+      clearBottomDetailsTimer();
       clearSideActionsTimer();
     };
-  }, [clearSideActionsTimer]);
+  }, [clearBottomDetailsTimer, clearSideActionsTimer]);
 
   useEffect(() => {
     if (!sourceOverlayOpen) {
@@ -3825,7 +3886,11 @@ function FeedSlide({
         pointerStartRef.current = null;
       }}
       onPointerDown={(event) => {
-        revealSideActions();
+        if (!isInteractiveTarget(event.target)) {
+          revealBottomDetails();
+          revealSideActions();
+        }
+
         pointerStartRef.current = {
           target: event.target,
           x: event.clientX,
@@ -4084,8 +4149,14 @@ function FeedSlide({
       ) : null}
 
       <div className="relative z-10 flex min-h-[var(--fanletter-cut-feed-vh,100dvh)] items-end px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+7.6rem)]">
-        <section className="mx-auto flex w-full flex-col justify-end">
-          <div className="max-w-3xl">
+        <section className="relative mx-auto flex w-full flex-col justify-end">
+          <div
+            className={`max-w-3xl transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
+              areBottomDetailsVisible
+                ? "visible translate-y-0 opacity-100 blur-0"
+                : "invisible translate-y-5 opacity-0 blur-[1px]"
+            }`}
+          >
             <CutFeedProfileActionButton
               fallbackIcon={Sparkles}
               href={characterHref}
@@ -4185,6 +4256,38 @@ function FeedSlide({
               </div>
             ) : null}
           </div>
+          {compactBottomAction ? (
+            <div
+              className={`absolute inset-x-0 bottom-8 flex justify-center px-2 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
+                areBottomDetailsVisible
+                  ? "invisible translate-y-3 opacity-0 blur-[1px]"
+                  : "visible translate-y-0 opacity-100 blur-0"
+              }`}
+            >
+              {compactBottomAction.href ? (
+                <Link
+                  className="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-full border border-[#44f26e]/36 bg-[#44f26e]/92 px-5 py-2 text-sm font-black !text-[#111510] shadow-[0_18px_44px_rgba(0,0,0,0.34)] backdrop-blur transition hover:bg-[#65ff87]"
+                  href={compactBottomAction.href}
+                  onClick={() => {
+                    if (compactBottomAction.pendingLabel) {
+                      startNavigation({
+                        href: compactBottomAction.href,
+                        label: compactBottomAction.pendingLabel,
+                      });
+                    }
+                  }}
+                >
+                  <CompactBottomActionIcon className="size-4 shrink-0" />
+                  <span className="truncate">{compactBottomAction.label}</span>
+                </Link>
+              ) : (
+                <span className="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-full border border-white/18 bg-black/54 px-5 py-2 text-sm font-black text-white/82 shadow-[0_18px_44px_rgba(0,0,0,0.34)] backdrop-blur">
+                  <CompactBottomActionIcon className="size-4 shrink-0 text-[#44f26e]" />
+                  <span className="truncate">{compactBottomAction.label}</span>
+                </span>
+              )}
+            </div>
+          ) : null}
 
           <div className="mt-4 flex items-center justify-center gap-1.5">
             {cuts.map((cut, cutIndex) => (
