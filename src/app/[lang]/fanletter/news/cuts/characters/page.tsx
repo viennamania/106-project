@@ -48,8 +48,9 @@ type FanletterNewsCutCharactersSearchParams = {
 
 function getCopy(locale: Locale) {
   return locale === "ko"
-    ? {
+      ? {
         backToCuts: "4컷 피드로 돌아가기",
+        backToPlatformBrief: "플랫폼 브리프로 돌아가기",
         browse: "캐릭터 둘러보기",
         channelCta: "IP 채널",
         emptyBody: "4컷 피드에 연결할 AI 캐릭터 뉴스가 아직 없습니다.",
@@ -78,6 +79,7 @@ function getCopy(locale: Locale) {
       }
     : {
         backToCuts: "Back to 4-cut feed",
+        backToPlatformBrief: "Back to platform brief",
         browse: "Browse characters",
         channelCta: "IP channel",
         emptyBody: "No AI characters are ready from the 4-cut feed yet.",
@@ -104,6 +106,12 @@ function getCopy(locale: Locale) {
         },
         vlogsCta: "Source vlogs",
       };
+}
+
+function isPlatformBriefReturnHref(returnHref: string, locale: Locale) {
+  const [pathname] = returnHref.split(/[?#]/, 1);
+
+  return pathname === `/${locale}/fanletter/news/platform`;
 }
 
 function formatNumber(value: number, locale: Locale) {
@@ -511,6 +519,9 @@ export default async function LocalizedFanletterNewsCutCharactersPage({
   );
   const returnHref =
     normalizeFanletterReturnToPath(query.returnTo, locale) ?? cutsHref;
+  const returnLabel = isPlatformBriefReturnHref(returnHref, locale)
+    ? copy.backToPlatformBrief
+    : copy.backToCuts;
   const currentHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/cuts/characters`, referralCode),
     {
@@ -546,7 +557,7 @@ export default async function LocalizedFanletterNewsCutCharactersPage({
               href={returnHref}
             >
               <ArrowLeft className="size-4" />
-              {copy.backToCuts}
+              {returnLabel}
             </Link>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1 text-[0.62rem] font-black uppercase tracking-[0.12em] text-black">
               <Sparkles className="size-3.5" />
@@ -619,7 +630,7 @@ export default async function LocalizedFanletterNewsCutCharactersPage({
             href={returnHref}
           >
             <ArrowLeft className="size-4" />
-            {copy.backToCuts}
+            {returnLabel}
           </Link>
         </div>
       </div>

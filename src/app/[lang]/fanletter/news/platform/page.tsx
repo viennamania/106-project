@@ -3534,6 +3534,15 @@ export default async function FanletterNewsPlatformPage({
     `/${locale}/fanletter/news/characters`,
     referralCode,
   );
+  const cutCharactersHref = setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/characters`,
+      referralCode,
+    ),
+    {
+      returnTo: homeHref,
+    },
+  );
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] pb-20 text-[#111510] md:pb-0">
       <PlatformMobileQuickNav copy={copy} />
@@ -3610,7 +3619,7 @@ export default async function FanletterNewsPlatformPage({
 
               <div className="mt-5 grid grid-cols-1 gap-2.5 sm:mt-7 sm:flex sm:flex-row sm:gap-3">
                 <CtaLink href={cutsHref}>{copy.primaryCta}</CtaLink>
-                <CtaLink href={charactersHref} variant="secondary">
+                <CtaLink href={cutCharactersHref} variant="secondary">
                   {copy.secondaryCta}
                 </CtaLink>
                 <CtaLink href="#platform-inquiry" variant="secondary">
