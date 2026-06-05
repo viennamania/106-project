@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowRight,
@@ -38,6 +37,10 @@ import {
   FanletterNewsPlatformMomentum,
   type FanletterNewsPlatformMomentumStat,
 } from "@/components/fanletter-news-platform-momentum";
+import {
+  FanletterNewsPlatformPendingLink as PlatformPendingLink,
+  FanletterNewsPlatformPendingProvider,
+} from "@/components/fanletter-news-platform-pending-link";
 import { LandingReveal } from "@/components/landing/landing-reveal";
 import {
   createEmptyContentSocialSummary,
@@ -116,6 +119,13 @@ function getCopy(locale: Locale) {
           data: "데이터",
           inquiry: "문의",
           summary: "요약",
+        },
+        navigationPending: {
+          body:
+            "새 화면을 불러오고 있습니다. 플랫폼 브리프로 다시 돌아올 수 있는 경로를 유지합니다.",
+          destination: (label: string) => `${label} 화면으로 이동 중`,
+          fallbackLabel: "다음 화면으로 이동 중",
+          title: "이동 중",
         },
         investorSnapshot: {
           basis: "기준: 공개 일반 콘텐츠 전체 누적",
@@ -582,6 +592,13 @@ function getCopy(locale: Locale) {
           inquiry: "Contact",
           summary: "Summary",
         },
+        navigationPending: {
+          body:
+            "Loading the next screen while keeping a return path to this platform brief.",
+          destination: (label: string) => `Opening ${label}`,
+          fallbackLabel: "Opening the next screen",
+          title: "Moving",
+        },
         investorSnapshot: {
           basis: "Basis: all public general content in the operating database",
           body:
@@ -1047,24 +1064,29 @@ function SectionLabel({ children }: { children: ReactNode }) {
 function CtaLink({
   children,
   href,
+  pendingLabel,
   variant = "primary",
 }: {
   children: ReactNode;
   href: string;
+  pendingLabel?: string;
   variant?: "primary" | "secondary";
 }) {
   return (
-    <Link
+    <PlatformPendingLink
       className={
         variant === "primary"
           ? "inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 py-3 text-sm font-black !text-[#071108] shadow-[0_20px_45px_rgba(68,242,110,0.24)] transition hover:translate-y-[-1px] hover:bg-[#5dff82]"
           : "inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/26 bg-white/10 px-5 py-3 text-sm font-black !text-white backdrop-blur transition hover:border-white/48 hover:bg-white/16"
       }
       href={href}
+      pendingLabel={
+        pendingLabel ?? (typeof children === "string" ? children : undefined)
+      }
     >
       {children}
       <ArrowRight className="size-4" />
-    </Link>
+    </PlatformPendingLink>
   );
 }
 
@@ -1094,7 +1116,7 @@ function PlatformMobileQuickNav({ copy }: { copy: ReturnType<typeof getCopy> }) 
           const Icon = item.icon;
 
           return (
-            <Link
+            <PlatformPendingLink
               className={
                 index === 2
                   ? "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full bg-[#071108] px-2.5 text-xs font-black !text-white"
@@ -1111,7 +1133,7 @@ function PlatformMobileQuickNav({ copy }: { copy: ReturnType<typeof getCopy> }) 
                 }
               />
               <span className="truncate">{item.label}</span>
-            </Link>
+            </PlatformPendingLink>
           );
         })}
       </div>
@@ -1543,9 +1565,10 @@ function NewsHomeReportCard({
         : "Public news";
 
   return (
-    <Link
+    <PlatformPendingLink
       className="group grid min-w-0 grid-cols-[7.5rem_minmax(0,1fr)] overflow-hidden rounded-lg border border-black/10 bg-white !text-[#111510] shadow-[0_16px_42px_rgba(17,21,16,0.06)] transition hover:border-[#19b84b]/55 hover:shadow-[0_20px_52px_rgba(17,21,16,0.1)] sm:grid-cols-1"
       href={href}
+      pendingLabel={copy.navigationPending.destination(copy.homeNews.cta)}
     >
       <div className="relative min-h-[9.5rem] overflow-hidden bg-[#071108] sm:min-h-[15rem]">
         {reportCutImageUrls.length > 0 ? (
@@ -1603,7 +1626,7 @@ function NewsHomeReportCard({
           </span>
         </div>
       </div>
-    </Link>
+    </PlatformPendingLink>
   );
 }
 
@@ -1692,7 +1715,7 @@ function PlatformLiveContentWall({
           </span>
         </div>
 
-        <Link
+        <PlatformPendingLink
           aria-label={
             primaryReport
               ? `${copy.liveStudio.liveReports}: ${getArticleDisplayTitle(
@@ -1744,7 +1767,7 @@ function PlatformLiveContentWall({
               {primaryReport?.dek ?? copy.liveStudio.proof}
             </p>
           </div>
-        </Link>
+        </PlatformPendingLink>
 
         <div className="grid grid-cols-3 gap-2">
           {statTiles.map((stat, index) => (
@@ -1779,7 +1802,7 @@ function PlatformLiveContentWall({
               });
 
               return (
-                <Link
+                <PlatformPendingLink
                   aria-label={`${copy.liveStudio.sourceClip}: ${getArticleDisplayTitle(
                     item.title,
                   )}`}
@@ -1799,7 +1822,7 @@ function PlatformLiveContentWall({
                   <span className="absolute bottom-1.5 left-1.5 right-1.5 truncate text-[0.55rem] font-black uppercase tracking-[0.08em] text-white/82">
                     {item.creatorName || item.reporterName}
                   </span>
-                </Link>
+                </PlatformPendingLink>
               );
             })}
           </div>
@@ -1817,7 +1840,7 @@ function PlatformLiveContentWall({
           </div>
           <div className="grid gap-1.5">
             {reportStack.map((report, index) => (
-              <Link
+              <PlatformPendingLink
                 aria-label={`${copy.liveStudio.reportStack}: ${getArticleDisplayTitle(
                   report.title,
                 )}`}
@@ -1841,7 +1864,7 @@ function PlatformLiveContentWall({
                   </span>
                 </span>
                 <ArrowRight className="size-3.5 shrink-0 text-[#44f26e]" />
-              </Link>
+              </PlatformPendingLink>
             ))}
           </div>
         </div>
@@ -1857,7 +1880,7 @@ function PlatformLiveContentWall({
                 const imageUrl = getCharacterProfileImages(character)[0] ?? null;
 
                 return (
-                  <Link
+                  <PlatformPendingLink
                     aria-label={`${copy.liveStudio.characterRail}: ${character.name}`}
                     className="group min-w-0 overflow-hidden rounded-lg border border-white/10 bg-black/22 !text-white transition hover:border-[#4cc9f0]/54 hover:bg-[#4cc9f0]/10"
                     href={getPlatformCharacterCutHref({
@@ -1895,7 +1918,7 @@ function PlatformLiveContentWall({
                         {copy.homeCharacters.news}
                       </span>
                     </span>
-                  </Link>
+                  </PlatformPendingLink>
                 );
               })}
             </div>
@@ -2017,7 +2040,7 @@ function PlatformMarketSignal({
                 });
 
                 return (
-                  <Link
+                  <PlatformPendingLink
                     className={
                       index === 0
                         ? "group relative col-span-2 row-span-2 aspect-[4/5] overflow-hidden rounded-lg border border-white/14 bg-black !text-white"
@@ -2042,7 +2065,7 @@ function PlatformMarketSignal({
                     <span className="absolute bottom-2 left-2 right-2 truncate text-[0.58rem] font-black uppercase tracking-[0.1em] text-white/82">
                       {item.creatorName || item.reporterName}
                     </span>
-                  </Link>
+                  </PlatformPendingLink>
                 );
               })}
             </div>
@@ -2075,9 +2098,12 @@ function PlatformMarketSignal({
           </div>
 
           {featuredReport ? (
-            <Link
+            <PlatformPendingLink
               className="group grid min-h-16 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-[#44f26e]/32 bg-[#44f26e]/12 px-4 py-3 !text-white transition hover:border-[#44f26e]/72 hover:bg-[#44f26e]/18"
               href={featuredReportHref}
+              pendingLabel={copy.navigationPending.destination(
+                copy.marketSignal.assetLabel,
+              )}
             >
               <span className="min-w-0">
                 <span className="block text-[0.58rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
@@ -2088,7 +2114,7 @@ function PlatformMarketSignal({
                 </span>
               </span>
               <ArrowRight className="size-5 shrink-0 text-[#44f26e] transition group-hover:translate-x-0.5" />
-            </Link>
+            </PlatformPendingLink>
           ) : null}
         </LandingReveal>
       </div>
@@ -2206,9 +2232,10 @@ function PlatformUnlockedVlogEconomy({
 
         <div className="grid gap-3">
           {primaryItem ? (
-            <Link
+            <PlatformPendingLink
               className="group relative min-h-[25rem] overflow-hidden rounded-lg border border-[#44f26e]/34 bg-black !text-white shadow-[0_34px_96px_rgba(0,0,0,0.34)] sm:min-h-[33rem]"
               href={primaryItem.href}
+              pendingLabel={copy.navigationPending.destination(copy.unlockedVlogs.cta)}
             >
               {primaryImageUrl ? (
                 <Image
@@ -2266,7 +2293,7 @@ function PlatformUnlockedVlogEconomy({
                   <ArrowRight className="size-4" />
                 </span>
               </div>
-            </Link>
+            </PlatformPendingLink>
           ) : (
             <div className="flex min-h-[22rem] items-center justify-center rounded-lg border border-white/12 bg-white/[0.06] p-6 text-center text-sm font-bold text-white/54">
               {copy.unlockedVlogs.empty}
@@ -2286,10 +2313,13 @@ function PlatformUnlockedVlogEconomy({
                     : copy.unlockedVlogs.freeSource;
 
                 return (
-                  <Link
+                  <PlatformPendingLink
                     className="group min-w-0 overflow-hidden rounded-lg border border-white/12 bg-white/[0.07] !text-white transition hover:border-[#44f26e]/54 hover:bg-[#44f26e]/10"
                     href={item.href}
                     key={item.item.contentId}
+                    pendingLabel={copy.navigationPending.destination(
+                      copy.unlockedVlogs.cta,
+                    )}
                   >
                     <span className="relative block aspect-[4/5] overflow-hidden bg-black">
                       {imageUrl ? (
@@ -2329,7 +2359,7 @@ function PlatformUnlockedVlogEconomy({
                         <ArrowRight className="size-3.5" />
                       </span>
                     </span>
-                  </Link>
+                  </PlatformPendingLink>
                 );
               })}
             </div>
@@ -2499,7 +2529,7 @@ function PlatformInvestorBrief({
                 {copy.investorBrief.evidenceTitle}
               </p>
               {leadingCharacter ? (
-                <Link
+                <PlatformPendingLink
                   aria-label={`${copy.investorBrief.ctaCharacters}: ${leadingCharacter.name}`}
                   className="group overflow-hidden rounded-lg border border-white/12 bg-white/[0.07] !text-white"
                   href={charactersHref}
@@ -2526,9 +2556,9 @@ function PlatformInvestorBrief({
                       {leadingCharacter.name}
                     </span>
                   </span>
-                </Link>
+                </PlatformPendingLink>
               ) : null}
-              <Link
+              <PlatformPendingLink
                 aria-label={
                   latestReport
                     ? `${copy.investorBrief.latestReport}: ${getArticleDisplayTitle(
@@ -2551,13 +2581,13 @@ function PlatformInvestorBrief({
                   {copy.investorBrief.ctaNews}
                   <ArrowRight className="size-3.5 transition group-hover:translate-x-0.5" />
                 </span>
-              </Link>
+              </PlatformPendingLink>
             </div>
           </div>
 
           <div className="grid gap-2 sm:grid-cols-3">
             {ctaLinks.map((link, index) => (
-              <Link
+              <PlatformPendingLink
                 className={
                   index === 0
                     ? "inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#071108] px-4 py-3 text-sm font-black !text-white transition hover:bg-[#19251a]"
@@ -2565,10 +2595,11 @@ function PlatformInvestorBrief({
                 }
                 href={link.href}
                 key={link.href}
+                pendingLabel={copy.navigationPending.destination(link.label)}
               >
                 {link.label}
                 <ArrowRight className="size-4 text-[#44f26e]" />
-              </Link>
+              </PlatformPendingLink>
             ))}
           </div>
         </LandingReveal>
@@ -2672,7 +2703,7 @@ function PlatformPortalStrategy({
 
             <div className="mt-6 grid gap-2 sm:grid-cols-3">
               {ctaLinks.map((link, index) => (
-                <Link
+                <PlatformPendingLink
                   className={
                     index === 0
                       ? "inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-3 text-sm font-black !text-[#071108] transition hover:bg-[#69ff8c]"
@@ -2680,10 +2711,11 @@ function PlatformPortalStrategy({
                   }
                   href={link.href}
                   key={link.href}
+                  pendingLabel={copy.navigationPending.destination(link.label)}
                 >
                   {link.label}
                   <ArrowRight className="size-4" />
-                </Link>
+                </PlatformPendingLink>
               ))}
             </div>
           </LandingReveal>
@@ -2734,7 +2766,7 @@ function PlatformPortalStrategy({
             </p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {featuredReports.map((report, index) => (
-                <Link
+                <PlatformPendingLink
                   className="group grid min-h-16 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-white/10 bg-black/24 px-3 py-2.5 !text-white transition hover:border-[#44f26e]/54 hover:bg-[#44f26e]/10"
                   href={getPlatformReportCutHref({
                     locale,
@@ -2755,7 +2787,7 @@ function PlatformPortalStrategy({
                     </span>
                   </span>
                   <ArrowRight className="size-3.5 shrink-0 text-[#44f26e]" />
-                </Link>
+                </PlatformPendingLink>
               ))}
             </div>
           </LandingReveal>
@@ -2804,7 +2836,7 @@ function PlatformPortalStrategy({
               const imageUrl = getCharacterProfileImages(character)[0] ?? null;
 
               return (
-                <Link
+                <PlatformPendingLink
                   className="group grid min-w-0 grid-cols-[4.25rem_minmax(0,1fr)] items-center gap-3 rounded-lg border border-white/12 bg-white/[0.07] p-2.5 !text-white transition hover:border-[#44f26e]/60 hover:bg-[#44f26e]/10"
                   href={getPlatformCharacterCutHref({
                     characterReferralCode: character.referralCode,
@@ -2841,7 +2873,7 @@ function PlatformPortalStrategy({
                       {copy.homeCharacters.news}
                     </span>
                   </span>
-                </Link>
+                </PlatformPendingLink>
               );
             })}
           </LandingReveal>
@@ -3014,9 +3046,10 @@ function HomeCharacterCard({
   locale: Locale;
 }) {
   return (
-    <Link
+    <PlatformPendingLink
       className="group grid min-w-0 grid-cols-[5.25rem_minmax(0,1fr)] gap-3 rounded-lg border border-white/12 bg-white/[0.07] p-3 !text-white transition hover:border-[#44f26e]/60 hover:bg-white/[0.1] sm:grid-cols-[6.5rem_minmax(0,1fr)] sm:p-4"
       href={href}
+      pendingLabel={copy.navigationPending.destination(copy.homeCharacters.cta)}
     >
       <CharacterProfileReel character={character} copy={copy} locale={locale} />
       <div className="min-w-0">
@@ -3057,7 +3090,7 @@ function HomeCharacterCard({
           <ArrowRight className="size-3.5" />
         </p>
       </div>
-    </Link>
+    </PlatformPendingLink>
   );
 }
 
@@ -3161,7 +3194,7 @@ function CharacterGrowthChart({
                   key={character.referralCode}
                   variant="soft"
                 >
-                  <Link
+                  <PlatformPendingLink
                     className="group block rounded-lg border border-black/10 bg-[#f7f8f4] p-4 !text-[#111510] shadow-[0_16px_42px_rgba(17,21,16,0.06)] transition hover:border-[#19b84b]/55 hover:bg-[#f0fff3] sm:p-5"
                     href={href}
                   >
@@ -3258,7 +3291,7 @@ function CharacterGrowthChart({
                         </div>
                       ))}
                     </div>
-                  </Link>
+                  </PlatformPendingLink>
                 </LandingReveal>
               );
             })}
@@ -3329,13 +3362,13 @@ function PlatformInvestorSnapshot({
             <span className="inline-flex min-h-9 items-center rounded-full border border-[#16702e]/16 bg-white px-3 text-xs font-black text-[#16702e]">
               {copy.investorSnapshot.basis}
             </span>
-            <Link
+            <PlatformPendingLink
               className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-full bg-[#071108] px-3 text-xs font-black !text-white transition hover:bg-[#19251a]"
               href={contactHref}
             >
               {copy.investorSnapshot.contactCta}
               <ArrowRight className="size-3.5 text-[#44f26e]" />
-            </Link>
+            </PlatformPendingLink>
           </div>
         </LandingReveal>
 
@@ -3526,7 +3559,7 @@ function NewsFlowTicker({
         <div className="min-w-0 overflow-hidden">
           <div className="platform-news-marquee flex w-max gap-2 pr-2">
             {tickerReports.map((report, index) => (
-              <Link
+              <PlatformPendingLink
                 className="group inline-flex h-12 min-w-[16rem] max-w-[18rem] shrink-0 items-center justify-between gap-3 rounded-full border border-white/12 bg-white/[0.07] px-3 !text-white transition hover:border-[#44f26e]/62 hover:bg-[#44f26e]/12 sm:h-14 sm:min-w-[21rem] sm:max-w-[23rem] sm:px-4"
                 href={getPlatformReportCutHref({
                   locale,
@@ -3544,7 +3577,7 @@ function NewsFlowTicker({
                   </span>
                 </span>
                 <ArrowRight className="size-4 shrink-0 text-[#44f26e] transition group-hover:translate-x-0.5" />
-              </Link>
+              </PlatformPendingLink>
             ))}
           </div>
         </div>
@@ -3749,8 +3782,15 @@ export default async function FanletterNewsPlatformPage({
     },
   );
   const cutCharactersHref = charactersHref;
+  const navigationPendingCopy = {
+    body: copy.navigationPending.body,
+    fallbackLabel: copy.navigationPending.fallbackLabel,
+    title: copy.navigationPending.title,
+  };
+
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] pb-20 text-[#111510] md:pb-0">
+    <FanletterNewsPlatformPendingProvider copy={navigationPendingCopy}>
+      <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] pb-20 text-[#111510] md:pb-0">
       <PlatformMobileQuickNav copy={copy} />
       <section className="relative min-h-[100svh] overflow-hidden bg-[#071108] text-white sm:min-h-[92svh]">
         {hasHeroVideoSlides ? (
@@ -3776,13 +3816,13 @@ export default async function FanletterNewsPlatformPage({
         <div className="absolute inset-x-0 bottom-0 h-56 bg-[linear-gradient(180deg,rgba(7,17,8,0)_0%,#071108_100%)]" />
         <div className="relative mx-auto flex min-h-[100svh] max-w-[92rem] flex-col px-4 py-4 sm:min-h-[92svh] sm:px-6 sm:py-7 lg:px-8">
           <header className="flex items-center justify-between gap-3 border-b border-white/14 pb-3 sm:gap-4 sm:pb-4">
-            <Link
+            <PlatformPendingLink
               className="inline-flex min-w-0 items-center gap-2 text-lg font-black !text-white"
               href={homeHref}
             >
               <FanletterBrandMark className="size-9" />
               <span className="truncate">{copy.brand} News</span>
-            </Link>
+            </PlatformPendingLink>
             <div className="flex shrink-0 items-center gap-2">
               <FanletterGlobalLanguageSwitcher
                 className="hidden sm:inline-flex"
@@ -3795,12 +3835,15 @@ export default async function FanletterNewsPlatformPage({
                 locale={locale}
                 tight
               />
-              <Link
+              <PlatformPendingLink
                 className="hidden min-h-10 items-center justify-center rounded-full border border-white/18 px-4 text-xs font-black uppercase tracking-[0.12em] !text-white/82 transition hover:border-[#44f26e] hover:text-white sm:inline-flex"
                 href={charactersHref}
+                pendingLabel={copy.navigationPending.destination(
+                  copy.ctaCharacters,
+                )}
               >
                 {copy.ctaCharacters}
-              </Link>
+              </PlatformPendingLink>
             </div>
           </header>
 
@@ -3824,8 +3867,17 @@ export default async function FanletterNewsPlatformPage({
               </div>
 
               <div className="mt-5 grid grid-cols-1 gap-2.5 sm:mt-7 sm:flex sm:flex-row sm:gap-3">
-                <CtaLink href={cutsHref}>{copy.primaryCta}</CtaLink>
-                <CtaLink href={cutCharactersHref} variant="secondary">
+                <CtaLink
+                  href={cutsHref}
+                  pendingLabel={copy.navigationPending.destination(copy.primaryCta)}
+                >
+                  {copy.primaryCta}
+                </CtaLink>
+                <CtaLink
+                  href={cutCharactersHref}
+                  pendingLabel={copy.navigationPending.destination(copy.secondaryCta)}
+                  variant="secondary"
+                >
                   {copy.secondaryCta}
                 </CtaLink>
                 <CtaLink href="#platform-inquiry" variant="secondary">
@@ -3936,13 +3988,14 @@ export default async function FanletterNewsPlatformPage({
               {copy.homeNews.body}
             </p>
           </div>
-          <Link
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-black/12 bg-white px-4 py-2.5 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
-            href={newsHref}
-          >
+              <PlatformPendingLink
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-black/12 bg-white px-4 py-2.5 text-sm font-black !text-[#111510] transition hover:border-[#19b84b] hover:bg-[#ecfff0]"
+                href={newsHref}
+                pendingLabel={copy.navigationPending.destination(copy.ctaNews)}
+              >
             {copy.ctaNews}
             <ArrowRight className="size-4 text-[#16702e]" />
-          </Link>
+          </PlatformPendingLink>
         </div>
 
         {featuredReports.length > 0 ? (
@@ -3985,13 +4038,14 @@ export default async function FanletterNewsPlatformPage({
             <p className="mt-3 text-sm font-semibold leading-6 text-white/62 sm:text-base sm:leading-7">
               {copy.homeCharacters.body}
             </p>
-            <Link
+            <PlatformPendingLink
               className="mt-5 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-2.5 text-sm font-black !text-[#071108] transition hover:bg-[#69ff8c]"
               href={charactersHref}
+              pendingLabel={copy.navigationPending.destination(copy.ctaCharacters)}
             >
               {copy.ctaCharacters}
               <ArrowRight className="size-4" />
-            </Link>
+            </PlatformPendingLink>
           </LandingReveal>
 
           {featuredCharacters.length > 0 ? (
@@ -4189,16 +4243,30 @@ export default async function FanletterNewsPlatformPage({
             </h2>
           </LandingReveal>
           <LandingReveal className="grid gap-3 sm:min-w-[17rem]" delay={120}>
-            <CtaLink href={newsHref}>{copy.ctaNews}</CtaLink>
-            <CtaLink href={charactersHref} variant="secondary">
+            <CtaLink
+              href={newsHref}
+              pendingLabel={copy.navigationPending.destination(copy.ctaNews)}
+            >
+              {copy.ctaNews}
+            </CtaLink>
+            <CtaLink
+              href={charactersHref}
+              pendingLabel={copy.navigationPending.destination(copy.ctaCharacters)}
+              variant="secondary"
+            >
               {copy.ctaCharacters}
             </CtaLink>
-            <CtaLink href={reportsHref} variant="secondary">
+            <CtaLink
+              href={reportsHref}
+              pendingLabel={copy.navigationPending.destination(copy.ctaReports)}
+              variant="secondary"
+            >
               {copy.ctaReports}
             </CtaLink>
           </LandingReveal>
         </div>
       </section>
-    </main>
+      </main>
+    </FanletterNewsPlatformPendingProvider>
   );
 }
