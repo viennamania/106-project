@@ -277,6 +277,25 @@ function getCopy(locale: Locale) {
           title: "팬이 연 원본이 유료 소비와 USDT 정산으로 이어집니다",
           usdtSale: "USDT 판매",
         },
+        usdtSales: {
+          basis: "완료된 USDT 결제 기준 · 실패/만료 주문 제외",
+          body:
+            "팬 전용 원본과 유료 콘텐츠 구매가 결제 완료 이벤트로 쌓입니다. 이 숫자는 이후 언락 참여, 리포터 확산, 공유 유입의 기여 원장과 연결할 수 있는 판매 신호입니다.",
+          empty: "아직 공개할 완료 결제 데이터가 없습니다.",
+          eyebrow: "USDT 판매 시그널",
+          ledgerItems: [
+            "결제 완료 주문만 누적 판매액에 반영",
+            "구매 건수와 판매된 원본 수를 함께 공개",
+            "분배 예정/완료액은 정산 정책 확정 후 별도 분리",
+          ],
+          ledgerTitle: "숫자보다 중요한 것은 기준입니다",
+          purchaseLabel: "완료 구매",
+          purchaseSuffix: "건",
+          revenueLabel: "누적 판매액",
+          sourceLabel: "판매된 원본",
+          sourceSuffix: "개",
+          title: "유료 원본 소비가 실제 USDT 판매액으로 기록됩니다",
+        },
         investorBrief: {
           body:
             "AIAVpark News는 원본 브이로그, 팬 리포트, 원본 오픈, 구매 기여를 하나의 흐름으로 연결합니다. 현재 운영 중인 콘텐츠가 그 구조를 바로 보여줍니다.",
@@ -723,6 +742,25 @@ function getCopy(locale: Locale) {
           title: "Fan-opened sources can lead into paid consumption and USDT settlement",
           usdtSale: "USDT sale",
         },
+        usdtSales: {
+          basis: "Completed USDT payments only · failed and expired orders excluded",
+          body:
+            "Fan-only sources and paid content purchases accumulate as confirmed payment events. This becomes the sales signal that can later connect to unlock participation, reporter distribution, and shared-link contribution ledgers.",
+          empty: "No completed payment data is ready to publish yet.",
+          eyebrow: "USDT Sales Signal",
+          ledgerItems: [
+            "Only confirmed orders are counted in cumulative sales",
+            "Show purchase count and sold source count beside revenue",
+            "Separate pending and completed distributions after settlement policy is finalized",
+          ],
+          ledgerTitle: "The definition matters as much as the number",
+          purchaseLabel: "Completed purchases",
+          purchaseSuffix: "",
+          revenueLabel: "Cumulative sales",
+          sourceLabel: "Sold sources",
+          sourceSuffix: "",
+          title: "Paid source consumption is recorded as real USDT sales",
+        },
         investorBrief: {
           body:
             "AIAVpark News connects source vlogs, fan reports, source opens, and purchase assists into one operating flow. Live content on the service shows that structure directly.",
@@ -1083,6 +1121,16 @@ function PlatformMobileQuickNav({ copy }: { copy: ReturnType<typeof getCopy> }) 
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function formatUsdtAmount(value: number, locale: Locale) {
+  const safeValue = Number.isFinite(value) ? Math.max(0, value) : 0;
+  const hasFraction = !Number.isInteger(safeValue);
+
+  return `${new Intl.NumberFormat(locale, {
+    maximumFractionDigits: hasFraction ? 2 : 0,
+    minimumFractionDigits: 0,
+  }).format(safeValue)} USDT`;
 }
 
 function formatDate(value: Date | string | null, locale: Locale) {
@@ -3327,6 +3375,125 @@ function PlatformInvestorSnapshot({
   );
 }
 
+function PlatformUsdtSalesSignal({
+  copy,
+  locale,
+  stats,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  stats: FanletterNewsPlatformInvestorStats;
+}) {
+  const hasSales = stats.paidContentPurchaseCount > 0;
+  const purchaseSuffix = copy.usdtSales.purchaseSuffix;
+  const sourceSuffix = copy.usdtSales.sourceSuffix;
+  const purchaseValue = `${formatNumber(
+    stats.paidContentPurchaseCount,
+    locale,
+  )}${purchaseSuffix}`;
+  const sourceValue = `${formatNumber(
+    stats.paidContentSourceCount,
+    locale,
+  )}${sourceSuffix}`;
+  const metricTiles = [
+    {
+      icon: WalletCards,
+      label: copy.usdtSales.purchaseLabel,
+      value: purchaseValue,
+    },
+    {
+      icon: Clapperboard,
+      label: copy.usdtSales.sourceLabel,
+      value: sourceValue,
+    },
+  ];
+
+  return (
+    <section
+      className="relative overflow-hidden border-b border-[#44f26e]/18 bg-[#071108] text-white"
+      id="platform-usdt-sales"
+    >
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(68,242,110,0.2),transparent_32%),linear-gradient(125deg,rgba(7,17,8,0)_0%,rgba(255,215,107,0.1)_100%)]" />
+      <div className="relative mx-auto grid max-w-[92rem] gap-5 px-4 py-9 sm:px-6 sm:py-12 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:items-center lg:px-8">
+        <LandingReveal variant="soft">
+          <p className="inline-flex items-center gap-2 text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#7cff98]">
+            <Coins className="size-4" />
+            {copy.usdtSales.eyebrow}
+          </p>
+          <h2 className="mt-3 max-w-3xl text-3xl font-black leading-tight tracking-normal [word-break:keep-all] sm:text-5xl">
+            {copy.usdtSales.title}
+          </h2>
+          <p className="mt-4 max-w-2xl text-sm font-bold leading-6 text-white/66 sm:text-base sm:leading-7">
+            {copy.usdtSales.body}
+          </p>
+          <p className="mt-4 inline-flex min-h-9 max-w-full items-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10 px-3 text-xs font-black text-[#9bffad] [word-break:keep-all]">
+            {copy.usdtSales.basis}
+          </p>
+        </LandingReveal>
+
+        <LandingReveal className="grid gap-3" delay={120} variant="soft">
+          <div className="rounded-lg border border-[#44f26e]/36 bg-[#44f26e] p-5 text-[#071108] shadow-[0_30px_88px_rgba(68,242,110,0.18)]">
+            <div className="flex items-start justify-between gap-3">
+              <p className="min-w-0 text-[0.68rem] font-black uppercase tracking-[0.16em] opacity-70">
+                {copy.usdtSales.revenueLabel}
+              </p>
+              <BadgeDollarSign className="size-5 shrink-0" />
+            </div>
+            <p className="mt-3 break-words text-4xl font-black leading-none sm:text-6xl">
+              {formatUsdtAmount(stats.paidContentRevenueUsdt, locale)}
+            </p>
+            {!hasSales ? (
+              <p className="mt-3 text-xs font-black leading-5 opacity-62">
+                {copy.usdtSales.empty}
+              </p>
+            ) : null}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            {metricTiles.map((metric) => {
+              const Icon = metric.icon;
+
+              return (
+                <div
+                  className="min-w-0 rounded-lg border border-white/12 bg-white/[0.07] p-4"
+                  key={metric.label}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.12em] text-white/54">
+                      {metric.label}
+                    </p>
+                    <Icon className="size-4 shrink-0 text-[#ffd76b]" />
+                  </div>
+                  <p className="mt-3 text-3xl font-black leading-none">
+                    {metric.value}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="rounded-lg border border-white/12 bg-black/24 p-4">
+            <p className="text-base font-black leading-6 [word-break:keep-all]">
+              {copy.usdtSales.ledgerTitle}
+            </p>
+            <div className="mt-3 grid gap-2">
+              {copy.usdtSales.ledgerItems.map((item) => (
+                <div
+                  className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 text-xs font-bold leading-5 text-white/66 sm:text-sm sm:leading-6"
+                  key={item}
+                >
+                  <ShieldCheck className="mt-0.5 size-4 shrink-0 text-[#44f26e]" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </LandingReveal>
+      </div>
+    </section>
+  );
+}
+
 function NewsFlowTicker({
   copy,
   locale,
@@ -3702,6 +3869,12 @@ export default async function FanletterNewsPlatformPage({
 
       <PlatformInvestorSnapshot
         contactHref="#platform-inquiry"
+        copy={copy}
+        locale={locale}
+        stats={platformInvestorStats}
+      />
+
+      <PlatformUsdtSalesSignal
         copy={copy}
         locale={locale}
         stats={platformInvestorStats}

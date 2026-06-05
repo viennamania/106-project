@@ -46,6 +46,7 @@ import {
 } from "@/lib/member";
 import {
   getContentEntitlementsCollection,
+  getContentOrdersCollection,
   getContentPostsCollection,
   getContentSocialActionsCollection,
   getCreatorProfilesCollection,
@@ -442,6 +443,9 @@ export type FanletterNewsTeaserGalleryItem = {
 
 export type FanletterNewsPlatformInvestorStats = {
   characterCount: number;
+  paidContentPurchaseCount: number;
+  paidContentRevenueUsdt: number;
+  paidContentSourceCount: number;
   previewContentCount: number;
   reportCount: number;
   reporterCount: number;
@@ -3850,15 +3854,17 @@ export const getFanletterNewsPlatformInvestorStats = cache(
         : {}),
       status: "published",
     };
-    const [reportsCollection, postsCollection] = await Promise.all([
+    const [reportsCollection, postsCollection, ordersCollection] = await Promise.all([
       getFanletterNewsReportsCollection(),
       getContentPostsCollection(),
+      getContentOrdersCollection(),
     ]);
     const [
       reportCount,
       contentIdRows,
       creatorReferralCodeRows,
       reporterReferralCodeRows,
+      paidOrderSummaryRows,
     ] = await Promise.all([
       reportsCollection.countDocuments(reportQuery),
       reportsCollection
@@ -3882,6 +3888,37 @@ export const getFanletterNewsPlatformInvestorStats = cache(
           ),
         )
         .toArray(),
+      ordersCollection
+        .aggregate<{
+          _id: null;
+          paidContentPurchaseCount: number;
+          paidContentRevenueUsdt: number;
+          paidContentSourceIds: string[];
+        }>([
+          {
+            $match: {
+              status: "confirmed",
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              paidContentPurchaseCount: { $sum: 1 },
+              paidContentRevenueUsdt: {
+                $sum: {
+                  $convert: {
+                    input: "$amountUsdt",
+                    to: "double",
+                    onError: 0,
+                    onNull: 0,
+                  },
+                },
+              },
+              paidContentSourceIds: { $addToSet: "$contentId" },
+            },
+          },
+        ])
+        .toArray(),
     ]);
     const sourceContentIds = normalizeDistinctStringValues(
       contentIdRows.map((row) => row._id),
@@ -3901,9 +3938,13 @@ export const getFanletterNewsPlatformInvestorStats = cache(
             status: "published",
           })
         : 0;
+    const paidOrderSummary = paidOrderSummaryRows[0] ?? null;
 
     return {
       characterCount: characterReferralCodes.length,
+      paidContentPurchaseCount: paidOrderSummary?.paidContentPurchaseCount ?? 0,
+      paidContentRevenueUsdt: paidOrderSummary?.paidContentRevenueUsdt ?? 0,
+      paidContentSourceCount: paidOrderSummary?.paidContentSourceIds.length ?? 0,
       previewContentCount,
       reportCount,
       reporterCount: reporterReferralCodes.length,
