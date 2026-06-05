@@ -39,6 +39,29 @@ export function isFanletterNewsCutFeedReturnPath(
   return pathname === cutsPath || pathname?.startsWith(`${cutsPath}/`) === true;
 }
 
+export function unwrapFanletterNewsMeReturnToPath(
+  value: string,
+  locale: Locale,
+) {
+  try {
+    const url = new URL(value, "https://aiavpark.local");
+    const pathname = url.pathname.replace(/\/+$/, "");
+
+    if (pathname !== `/${locale}/fanletter/news/me`) {
+      return value;
+    }
+
+    return (
+      normalizeFanletterReturnToPath(
+        url.searchParams.get("returnTo") ?? undefined,
+        locale,
+      ) ?? value
+    );
+  } catch {
+    return value;
+  }
+}
+
 export function getSafeFanletterReturnTo({
   fallbackPath,
   locale,

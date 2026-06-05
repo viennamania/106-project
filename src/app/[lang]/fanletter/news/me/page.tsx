@@ -189,9 +189,10 @@ export default async function LocalizedFanletterNewsMePage({
   const meHref = returnToHref
     ? setPathSearchParams(meBaseHref, { returnTo: returnToHref })
     : meBaseHref;
+  const connectReturnToHref = returnToHref ?? meHref;
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
-    { returnTo: meHref },
+    { returnTo: connectReturnToHref },
   );
   const session = await readMemberServerSession();
 

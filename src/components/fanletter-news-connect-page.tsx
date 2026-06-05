@@ -65,6 +65,7 @@ type NewsReturnKind =
   | "article"
   | "character"
   | "characters"
+  | "cutFeed"
   | "home"
   | "listing"
   | "my"
@@ -97,28 +98,28 @@ function getCopy(locale: Locale) {
     ? {
         account: "뉴스 계정",
         accountBody:
-          "AIAVpark News의 구매함, 팬 기자 리포트, 브이로그 관리가 같은 회원 계정으로 이어지도록 이메일 지갑을 연결합니다.",
+          "AIAVpark News의 구매함, 팬 기자 리포트, 브이로그 관리가 같은 회원 계정으로 이어지도록 이메일 계정을 연결합니다.",
         accountReady: "뉴스 계정 연결 완료",
         activate: "10 USDT 활성화하기",
         checking: "연결 상태 확인 중",
-        connect: "뉴스 지갑 연결",
+        connect: "뉴스 계정 연결",
         connectBody:
-          "이메일 지갑을 연결하면 리포트, 공유자 정보, 구매 내역이 한 계정으로 정리됩니다.",
+          "이메일 인증을 완료하면 리포트, 공유자 정보, 구매 내역이 한 뉴스 계정으로 정리됩니다.",
         connectedBody:
-          "연결이 확인되었습니다. 선택한 화면으로 바로 이동하거나 뉴스 지갑을 확인할 수 있습니다.",
-        disconnected: "뉴스 지갑이 아직 연결되지 않았습니다.",
+          "연결이 확인되었습니다. 선택한 화면으로 바로 이동하거나 뉴스 계정 상태를 확인할 수 있습니다.",
+        disconnected: "뉴스 계정이 아직 연결되지 않았습니다.",
         edition: "AIAVpark Entertainment News",
         email: "이메일",
         errorTitle: "계정 확인이 필요합니다.",
-        eyebrow: "AIAVpark News Wallet",
+        eyebrow: "AIAVpark News Account",
         homeReturn: "AIAVpark News 홈으로 돌아가기",
         loginGuideDescription:
           "이메일 인증으로 뉴스 계정을 먼저 연결합니다. 10 USDT 활성화는 리포터 리워드·수익 기능이 필요할 때 이어서 진행할 수 있습니다.",
         loginGuideTitle: "뉴스 계정 연결 방법",
-        loginTitle: "AIAVpark News 지갑 연결",
+        loginTitle: "AIAVpark News 계정 연결",
         member: "회원 상태",
         missingClient:
-          "현재 브라우저에서 이메일 지갑 연결을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
+          "현재 브라우저에서 이메일 계정 연결을 시작할 수 없습니다. 잠시 후 다시 시도하세요.",
         paymentBody:
           "계정 연결은 저장되었습니다. 지금은 선택한 뉴스 화면으로 돌아갈 수 있고, 리포터 리워드·수익 기능이 필요할 때 10 USDT 활성화를 진행하면 됩니다.",
         paymentTitle: "뉴스 계정이 연결되었습니다.",
@@ -128,7 +129,7 @@ function getCopy(locale: Locale) {
         signOut: "연결 해제",
         siteName: "AIAVpark News",
         statusDesk: "뉴스 계정 데스크",
-        steps: ["이메일 지갑 연결", "계정 저장", "선택 화면으로 이동"],
+        steps: ["이메일 계정 연결", "계정 저장", "선택 화면으로 이동"],
         syncing: "뉴스 계정을 확인하고 있습니다.",
         title: "뉴스 활동을 이어갈 계정 연결",
         wallet: "뉴스 지갑 관리",
@@ -137,28 +138,28 @@ function getCopy(locale: Locale) {
     : {
         account: "News account",
         accountBody:
-          "Connect an email wallet so purchases, reporter activity, and vlog management stay attached to one AIAVpark News member account.",
+          "Connect an email account so purchases, reporter activity, and vlog management stay attached to one AIAVpark News member account.",
         accountReady: "News account connected",
         activate: "Activate with 10 USDT",
         checking: "Checking connection",
-        connect: "Connect news wallet",
+        connect: "Connect News account",
         connectBody:
-          "Connect with email so reports, sharer identity, and purchases are organized under one account.",
+          "Verify your email so reports, sharer identity, and purchases are organized under one News account.",
         connectedBody:
-          "Connection is ready. Continue to the selected screen or review your AIAVpark News wallet.",
-        disconnected: "No news wallet is connected yet.",
+          "Connection is ready. Continue to the selected screen or review your News account status.",
+        disconnected: "No News account is connected yet.",
         edition: "AIAVpark Entertainment News",
         email: "Email",
         errorTitle: "Account status needs attention.",
-        eyebrow: "AIAVpark News Wallet",
+        eyebrow: "AIAVpark News Account",
         homeReturn: "Back to AIAVpark News",
         loginGuideDescription:
           "Verify your email to connect the News account first. You can activate with 10 USDT later when reporter rewards or revenue features require it.",
         loginGuideTitle: "How News account connection works",
-        loginTitle: "Connect AIAVpark News wallet",
+        loginTitle: "Connect AIAVpark News account",
         member: "Member status",
         missingClient:
-          "Email wallet connection cannot start in this browser right now. Please try again shortly.",
+          "Email account connection cannot start in this browser right now. Please try again shortly.",
         paymentBody:
           "Your account connection is saved. You can return to the selected News screen now, then activate with 10 USDT when reporter rewards or revenue features require it.",
         paymentTitle: "Your News account is connected.",
@@ -231,6 +232,13 @@ function getReturnKind(returnToHref: string, locale: Locale): NewsReturnKind {
 
   if (pathname === newsBasePath) {
     return "home";
+  }
+
+  if (
+    pathname === `${newsBasePath}/cuts` ||
+    pathname.startsWith(`${newsBasePath}/cuts/`)
+  ) {
+    return "cutFeed";
   }
 
   if (pathname === `${newsBasePath}/my`) {
@@ -307,6 +315,14 @@ function getReturnDestination(kind: NewsReturnKind, locale: Locale): {
           ? "AIAVpark News 홈에서 주요 뉴스, 캐릭터, 팬 기자 흐름을 다시 볼 수 있습니다."
           : "Return to the AIAVpark News home for featured news, characters, and reporters.",
         label: ko ? "AIAVpark News 홈으로 돌아가기" : "Back to AIAVpark News",
+      };
+    case "cutFeed":
+      return {
+        Icon: Home,
+        body: ko
+          ? "보던 4컷 피드와 공유 유입 흐름으로 바로 돌아갑니다."
+          : "Return directly to the 4-cut feed and shared browsing flow.",
+        label: ko ? "4컷 피드로 돌아가기" : "Back to 4-cut feed",
       };
     case "my":
       return {

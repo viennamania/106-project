@@ -10,6 +10,7 @@ import {
 import {
   getSafeFanletterReturnTo,
   readFanletterReferralCode,
+  unwrapFanletterNewsMeReturnToPath,
 } from "@/lib/fanletter-routing";
 import { defaultLocale, getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import {
@@ -26,13 +27,13 @@ function getMetadataCopy(locale: Locale) {
   return locale === "ko"
     ? {
         description:
-          "AIAVpark News에서 팬 기자 활동, AI 리포트 공유, 팬 전용 브이로그 결제와 열람을 이어가기 위해 지갑을 연결하세요.",
-        title: "AIAVpark News 지갑 연결",
+          "AIAVpark News에서 팬 기자 활동, AI 리포트 공유, 팬 전용 브이로그 결제와 열람을 이어가기 위해 뉴스 계정을 연결하세요.",
+        title: "AIAVpark News 계정 연결",
       }
     : {
         description:
-          "Connect your wallet from an AIAVpark News page to continue fan reporter actions, AI report sharing, fan-only vlog payments, and access.",
-        title: "AIAVpark News Wallet Connect",
+          "Connect your AIAVpark News account to continue fan reporter actions, AI report sharing, fan-only vlog payments, and access.",
+        title: "AIAVpark News Account Connect",
       };
 }
 
@@ -47,12 +48,15 @@ export async function generateMetadata({
   const query = await searchParams;
   const locale = hasLocale(lang) ? lang : defaultLocale;
   const referralCode = readFanletterReferralCode(query.ref);
-  const returnToHref = getSafeFanletterReturnTo({
-    fallbackPath: `/${locale}/fanletter/news`,
+  const returnToHref = unwrapFanletterNewsMeReturnToPath(
+    getSafeFanletterReturnTo({
+      fallbackPath: `/${locale}/fanletter/news`,
+      locale,
+      referralCode,
+      returnTo: query.returnTo,
+    }),
     locale,
-    referralCode,
-    returnTo: query.returnTo,
-  });
+  );
   const { description, title } = getMetadataCopy(locale);
   const url = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
@@ -117,18 +121,22 @@ export default async function LocalizedFanletterNewsConnectPage({
 
   const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
+  const returnToHref = unwrapFanletterNewsMeReturnToPath(
+    getSafeFanletterReturnTo({
+      fallbackPath: `/${locale}/fanletter/news`,
+      locale,
+      referralCode,
+      returnTo: query.returnTo,
+    }),
+    locale,
+  );
 
   return (
     <FanletterNewsConnectPage
       dictionary={getDictionary(locale)}
       locale={locale}
       referralCode={referralCode}
-      returnToHref={getSafeFanletterReturnTo({
-        fallbackPath: `/${locale}/fanletter/news`,
-        locale,
-        referralCode,
-        returnTo: query.returnTo,
-      })}
+      returnToHref={returnToHref}
     />
   );
 }
