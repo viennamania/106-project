@@ -35,7 +35,6 @@ import {
   Loader2,
   LockKeyhole,
   Menu,
-  Newspaper,
   PenLine,
   PlayCircle,
   Plus,
@@ -212,8 +211,8 @@ function getCopy(locale: Locale) {
         serviceMenuTitle: "AIAVpark News",
         serviceMy: "마이",
         serviceMyHint: "활동·계정",
-        serviceNewsroom: "뉴스룸",
-        serviceNewsroomHint: "전체 리포트",
+        servicePlatform: "플랫폼 소개",
+        servicePlatformHint: "서비스 구조",
         servicePurchases: "구매함",
         servicePurchasesHint: "구매 콘텐츠",
         serviceReportNew: "리포트 작성",
@@ -396,8 +395,8 @@ function getCopy(locale: Locale) {
         serviceMenuTitle: "AIAVpark News",
         serviceMy: "My",
         serviceMyHint: "Activity · account",
-        serviceNewsroom: "Newsroom",
-        serviceNewsroomHint: "All reports",
+        servicePlatform: "Platform",
+        servicePlatformHint: "Service model",
         servicePurchases: "Purchases",
         servicePurchasesHint: "Paid content",
         serviceReportNew: "Write Report",
@@ -4146,7 +4145,11 @@ export function FanletterNewsPublicCutsFeedPage({
     `/${locale}/fanletter/news`,
     referralCode,
   );
-  const returnableNewsroomHref = setPathSearchParams(newsroomHref, {
+  const platformHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/platform`,
+    referralCode,
+  );
+  const returnablePlatformHref = setPathSearchParams(platformHref, {
     returnTo: cutFeedHomeHref,
   });
   const charactersHref = buildPathWithReferral(
@@ -4210,10 +4213,10 @@ export function FanletterNewsPublicCutsFeedPage({
           primary: true,
         },
         {
-          href: returnableNewsroomHref,
-          icon: Newspaper,
-          label: copy.serviceNewsroom,
-          secondaryLabel: copy.serviceNewsroomHint,
+          href: returnablePlatformHref,
+          icon: Compass,
+          label: copy.servicePlatform,
+          secondaryLabel: copy.servicePlatformHint,
         },
         {
           href: returnableCharactersHref,
