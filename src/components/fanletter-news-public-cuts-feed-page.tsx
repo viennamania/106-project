@@ -26,6 +26,8 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   CheckCircle2,
   Compass,
   ExternalLink,
@@ -320,6 +322,7 @@ function getCopy(locale: Locale) {
         sourceViewGuideEyebrow: "원본 공개 완료",
         sourceViewGuideTitle: "여기서 원본 보기",
         swipeGuide: (cutCount: string) => `좌우로 넘겨 ${cutCount}컷 보기`,
+        verticalSwipeGuide: "위아래로 넘겨 다음 피드 보기",
         unavailableSourceBody:
           "이 원본은 현재 피드 안에서 바로 재생할 수 없습니다. 상세 화면에서 상태를 확인하세요.",
         unavailableSourceTitle: "원본을 바로 열 수 없습니다.",
@@ -517,6 +520,7 @@ function getCopy(locale: Locale) {
         sourceViewGuideTitle: "Watch the source here",
         swipeGuide: (cutCount: string) =>
           `Swipe sideways for ${cutCount} cuts`,
+        verticalSwipeGuide: "Swipe up/down for next feed",
         unavailableSourceBody:
           "This source cannot play directly in the feed right now. Check the detail screen for status.",
         unavailableSourceTitle: "Source cannot open here.",
@@ -3825,7 +3829,9 @@ function FeedSlide({
     isActive && showSwipeGuide && sourceRevealState.unlocked && cutCount > 1;
   const showCutSwipeGuide = isActive && showSwipeGuide && cutCount > 1;
   const cutSwipeGuideClassName =
-    "pointer-events-none absolute left-1/2 top-[calc(env(safe-area-inset-top)+8.05rem)] z-30 w-fit max-w-[calc(100%_-_7rem)] -translate-x-1/2 rounded-full border border-white/14 bg-black/54 px-3 py-2 text-center text-white shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl";
+    "pointer-events-none absolute left-1/2 top-[calc(env(safe-area-inset-top)+8.05rem)] z-30 flex w-fit max-w-[calc(100%_-_1.5rem)] -translate-x-1/2 flex-col items-center gap-2 text-center text-white";
+  const cutSwipeGuidePillClassName =
+    "inline-flex max-w-full items-center justify-center gap-1.5 rounded-full border border-white/14 bg-black/54 px-3 py-2 shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl";
   const inactiveArticleAttributes = isActive
     ? {}
     : {
@@ -4100,7 +4106,7 @@ function FeedSlide({
           className={cutSwipeGuideClassName}
           role="status"
         >
-          <div className="mx-auto flex items-center justify-center gap-1.5 text-[#9bffad]">
+          <div className={`${cutSwipeGuidePillClassName} text-[#9bffad]`}>
             <ChevronLeft className="size-4" />
             <span className="relative h-7 w-14 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/10">
               <span className="fanletter-cut-swipe-guide-thumb absolute left-1/2 top-1/2 inline-flex size-7 items-center justify-center rounded-full bg-[#44f26e] text-black shadow-[0_12px_28px_rgba(68,242,110,0.26)]">
@@ -4108,8 +4114,20 @@ function FeedSlide({
               </span>
             </span>
             <ChevronRight className="size-4" />
-            <span className="text-xs font-black tracking-normal [word-break:keep-all]">
+            <span className="whitespace-nowrap text-xs font-black tracking-normal [word-break:keep-all]">
               {copy.swipeGuide(cutCountLabel)}
+            </span>
+          </div>
+          <div className={`${cutSwipeGuidePillClassName} text-white/88`}>
+            <ChevronUp className="size-4 text-[#9bffad]" />
+            <span className="relative h-7 w-9 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10">
+              <span className="absolute left-1/2 top-1/2 inline-flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#44f26e] text-black shadow-[0_12px_28px_rgba(68,242,110,0.22)]">
+                <ArrowRight className="size-3.5 rotate-90" />
+              </span>
+            </span>
+            <ChevronDown className="size-4 text-[#9bffad]" />
+            <span className="whitespace-nowrap text-xs font-black tracking-normal [word-break:keep-all]">
+              {copy.verticalSwipeGuide}
             </span>
           </div>
         </div>
