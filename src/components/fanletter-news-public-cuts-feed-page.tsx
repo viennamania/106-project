@@ -857,6 +857,7 @@ function getReportComposerHref({
       contentId,
       reportStatus: "unreported",
       returnTo: returnToHref,
+      sourceMode: contentId ? "direct" : null,
       sourceReveal: "locked",
     },
   );

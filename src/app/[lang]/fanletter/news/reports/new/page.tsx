@@ -27,6 +27,7 @@ export type FanletterNewsReportNewSearchParams = {
   ref?: string | string[];
   reportStatus?: string | string[];
   returnTo?: string | string[];
+  sourceMode?: string | string[];
   sourcePage?: string | string[];
   sourceReveal?: string | string[];
   sourceSort?: string | string[];
@@ -52,6 +53,10 @@ function normalizeReportSearchQuery(value?: string | string[]) {
 
 function normalizeSelectedContentId(value?: string | string[]) {
   return readStringSearchParam(value).trim().slice(0, 120);
+}
+
+function isDirectSourceMode(value?: string | string[]) {
+  return readStringSearchParam(value).trim().toLowerCase() === "direct";
 }
 
 function normalizeSourcePage(value?: string | string[]) {
@@ -188,6 +193,10 @@ export async function renderFanletterNewsReportComposerRoute({
   const includeNsfw = readIncludeNsfwSearchParam(query.nsfw);
   const searchQuery = normalizeReportSearchQuery(query.q);
   const selectedContentId = normalizeSelectedContentId(query.contentId);
+  const directSourceMode =
+    isQuickExperience &&
+    Boolean(selectedContentId) &&
+    isDirectSourceMode(query.sourceMode);
   const sourcePage = normalizeSourcePage(query.sourcePage);
   const hasSelectedContentId = Boolean(selectedContentId);
   const defaultReportStatusFilter: ReportStatusFilter = hasSelectedContentId
@@ -247,6 +256,7 @@ export async function renderFanletterNewsReportComposerRoute({
   const reportNewHref = setPathSearchParams(filteredReportNewHref, {
     contentId: selectedContentId,
     q: searchQuery,
+    sourceMode: directSourceMode ? "direct" : null,
     sourcePage: sourcePage > 1 ? String(sourcePage) : null,
   });
   const connectHref = setPathSearchParams(
@@ -385,6 +395,7 @@ export async function renderFanletterNewsReportComposerRoute({
         currentHref={reportNewHref}
         defaultReportStatusFilter={defaultReportStatusFilter}
         defaultSourceRevealFilter={defaultSourceRevealFilter}
+        directSourceMode={directSourceMode}
         experience={experience}
         initialSelectedContentId={selectedContentId}
         locale={locale}

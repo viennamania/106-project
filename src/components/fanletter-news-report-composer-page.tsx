@@ -2020,6 +2020,7 @@ export function FanletterNewsReportComposerPage({
   currentHref,
   defaultReportStatusFilter,
   defaultSourceRevealFilter,
+  directSourceMode = false,
   experience = "default",
   includeNsfw,
   initialSelectedContentId,
@@ -2041,6 +2042,7 @@ export function FanletterNewsReportComposerPage({
   currentHref: string;
   defaultReportStatusFilter: FanletterNewsReportComposerReportStatusFilter;
   defaultSourceRevealFilter: FanletterNewsReportComposerSourceRevealFilter;
+  directSourceMode?: boolean;
   experience?: "default" | "quick";
   includeNsfw: boolean;
   initialSelectedContentId: string;
@@ -2060,6 +2062,8 @@ export function FanletterNewsReportComposerPage({
 }) {
   const copy = useMemo(() => getCopy(locale), [locale]);
   const isQuickComposer = experience === "quick";
+  const isDirectSourceComposer =
+    isQuickComposer && directSourceMode && Boolean(initialSelectedContentId);
   const router = useRouter();
   const [searchInput, setSearchInput] = useState(searchQuery);
   const reportSources = sources;
@@ -2160,6 +2164,10 @@ export function FanletterNewsReportComposerPage({
       return displayedSources;
     }
 
+    if (isDirectSourceComposer && selectedSource) {
+      return [selectedSource];
+    }
+
     if (
       selectedContentId &&
       !displayedSources.some((source) => source.contentId === selectedContentId)
@@ -2174,7 +2182,14 @@ export function FanletterNewsReportComposerPage({
     }
 
     return displayedSources;
-  }, [displayedSources, isQuickComposer, reportSources, selectedContentId]);
+  }, [
+    displayedSources,
+    isDirectSourceComposer,
+    isQuickComposer,
+    reportSources,
+    selectedContentId,
+    selectedSource,
+  ]);
   const selectedSourceCoverOptions =
     selectedSource?.coverOptions ?? EMPTY_COVER_OPTIONS;
   const [selectedCoverUrl, setSelectedCoverUrl] = useState<string | null>(
@@ -4950,7 +4965,9 @@ export function FanletterNewsReportComposerPage({
         <section
           className={cn(
             "mt-3 grid gap-4 lg:mt-4",
-            isQuickComposer
+            isDirectSourceComposer
+              ? "lg:grid-cols-1"
+              : isQuickComposer
               ? "lg:grid-cols-[18rem_minmax(0,1fr)]"
               : "lg:grid-cols-[22rem_minmax(0,1fr)]",
           )}
@@ -4959,7 +4976,9 @@ export function FanletterNewsReportComposerPage({
           <div
             className={cn(
               "border border-black/12 bg-white p-3 shadow-[0_14px_34px_rgba(17,21,16,0.055)] sm:p-4",
-              isQuickComposer && "hidden lg:block",
+              isDirectSourceComposer
+                ? "hidden"
+                : isQuickComposer && "hidden lg:block",
             )}
           >
             {searchControls}
