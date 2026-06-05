@@ -192,6 +192,7 @@ export type FanletterNewsCharacterChannelReportsResult = {
 };
 
 export type FanletterNewsReporterChannelCharacterStat = {
+  avatarImageUrl: string | null;
   coverImageUrl: string | null;
   creatorName: string;
   creatorReferralCode: string | null;
@@ -3992,7 +3993,7 @@ export const getFanletterNewsReportsForReporterChannel = cache(
         ])
         .toArray(),
       reportsCollection
-        .aggregate<FanletterNewsReporterChannelCharacterStat>([
+        .aggregate<Omit<FanletterNewsReporterChannelCharacterStat, "avatarImageUrl">>([
           { $match: publicQuery },
           { $sort: { sourcePublishedAt: -1, createdAt: -1 } },
           {
@@ -4025,9 +4026,61 @@ export const getFanletterNewsReportsForReporterChannel = cache(
         .toArray(),
     ]);
     const summary = summaryRows[0];
+    const characterReferralCodes = [
+      ...new Set(
+        characterRows
+          .map((row) => normalizeReferralCode(row.creatorReferralCode))
+          .filter((code): code is string => Boolean(code)),
+      ),
+    ];
+    const characterProfiles =
+      characterReferralCodes.length > 0
+        ? await (
+            await getCreatorProfilesCollection()
+          )
+            .find(
+              { referralCode: { $in: characterReferralCodes } },
+              {
+                projection: {
+                  avatarImageSet: 1,
+                  avatarImageUrl: 1,
+                  characterPersona: 1,
+                  displayName: 1,
+                  referralCode: 1,
+                },
+              },
+            )
+            .toArray()
+        : [];
+    const characterProfilesByReferralCode = new Map(
+      characterProfiles.map((profile) => [
+        normalizeReferralCode(profile.referralCode) ?? profile.referralCode,
+        profile,
+      ]),
+    );
+    const hydratedCharacters = characterRows.map((row) => {
+      const normalizedCreatorReferralCode = normalizeReferralCode(
+        row.creatorReferralCode,
+      );
+      const profile = normalizedCreatorReferralCode
+        ? characterProfilesByReferralCode.get(normalizedCreatorReferralCode)
+        : null;
+      const avatarImageUrl =
+        profile?.avatarImageSet?.find((avatar) => avatar.url.trim())?.url ??
+        profile?.avatarImageUrl?.trim() ??
+        null;
+      const profileName =
+        profile?.characterPersona?.name?.trim() || profile?.displayName?.trim();
+
+      return {
+        ...row,
+        avatarImageUrl,
+        creatorName: profileName || row.creatorName,
+      };
+    });
 
     return {
-      characters: characterRows,
+      characters: hydratedCharacters,
       fanOnlyCount: summary?.fanOnlyCount ?? 0,
       latestReportAt: summary?.latestReportAt ?? null,
       nsfwCount: summary?.nsfwCount ?? 0,

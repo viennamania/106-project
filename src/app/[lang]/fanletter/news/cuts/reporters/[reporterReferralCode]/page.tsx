@@ -410,6 +410,7 @@ function CharacterCoverageCard({
   referralCode,
 }: {
   character: {
+    avatarImageUrl: string | null;
     coverImageUrl: string | null;
     creatorName: string;
     creatorReferralCode: string | null;
@@ -427,20 +428,19 @@ function CharacterCoverageCard({
     referralCode,
     referralCodeForCharacter: character.creatorReferralCode,
   });
+  const imageUrl = character.avatarImageUrl ?? character.coverImageUrl;
   const content = (
     <>
       <span className="relative block aspect-[4/3] overflow-hidden rounded-t-[1rem] bg-white/8">
-        {character.coverImageUrl ? (
+        {imageUrl ? (
           <Image
             alt=""
             aria-hidden="true"
             className="object-cover"
             fill
             sizes="11rem"
-            src={character.coverImageUrl}
-            unoptimized={shouldBypassFanletterImageOptimization(
-              character.coverImageUrl,
-            )}
+            src={imageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
           />
         ) : (
           <span className="flex h-full w-full items-center justify-center text-[#44f26e]">
