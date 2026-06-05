@@ -103,6 +103,7 @@ const CUT_FEED_RENDER_WINDOW_RADIUS = 0;
 const CUT_FEED_BOTTOM_DETAILS_VISIBLE_MS = 5600;
 const CUT_FEED_ROLE_SHORTCUT_VISIBLE_MS = 1800;
 const CUT_FEED_SIDE_ACTION_VISIBLE_MS = 4200;
+const CUT_FEED_TOP_OVERLAY_VISIBLE_MS = 4200;
 const CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT =
   "fanletter-news-cut-feed-visible-index-change";
 const CUT_DWELL_MIN_TRACK_MS = 800;
@@ -2504,8 +2505,9 @@ function FeedSlide({
   const [tapFeedback, setTapFeedback] =
     useState<SourceRevealTapFeedback | null>(null);
   const [authNudge, setAuthNudge] = useState(false);
-  const [areBottomDetailsVisible, setAreBottomDetailsVisible] = useState(true);
-  const [areSideActionsVisible, setAreSideActionsVisible] = useState(true);
+  const [areBottomDetailsVisible, setAreBottomDetailsVisible] = useState(false);
+  const [areSideActionsVisible, setAreSideActionsVisible] = useState(false);
+  const [areTopOverlaysVisible, setAreTopOverlaysVisible] = useState(false);
   const [sourceOverlayOpen, setSourceOverlayOpen] = useState(false);
   const [sourceOverlaySource, setSourceOverlaySource] =
     useState<FanletterNewsPublicCutSource | null>(null);
@@ -2545,6 +2547,9 @@ function FeedSlide({
     null,
   );
   const sideActionsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const topOverlaysTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
   const initialSourceOverlayOpenedRef = useRef(false);
@@ -2688,30 +2693,6 @@ function FeedSlide({
     referralCode,
     returnToHref: cutFeedReturnHref,
   });
-  const compactBottomAction =
-    isReporterComposerCtaVisible && sourceContentId
-      ? isViewerReport
-        ? {
-            href: nextReportComposerHref,
-            icon: ArrowRight,
-            label: copy.reporterQuickDesk.nextCta,
-            pendingLabel: copy.navigationPending.report,
-          }
-        : item.reportSlot.full
-          ? {
-              href: null,
-              icon: PenLine,
-              label: reportComposerCtaLabel,
-              pendingLabel: null,
-            }
-          : {
-              href: reportComposerHref,
-              icon: PenLine,
-              label: reportComposerCtaLabel,
-              pendingLabel: copy.navigationPending.report,
-            }
-      : null;
-  const CompactBottomActionIcon = compactBottomAction?.icon ?? PenLine;
   const startNavigation = useCallback(
     (pending: CutFeedNavigationPending) => {
       onDismissSwipeGuide?.();
@@ -2746,6 +2727,12 @@ function FeedSlide({
       bottomDetailsTimeoutRef.current = null;
     }
   }, []);
+  const clearTopOverlaysTimer = useCallback(() => {
+    if (topOverlaysTimeoutRef.current) {
+      clearTimeout(topOverlaysTimeoutRef.current);
+      topOverlaysTimeoutRef.current = null;
+    }
+  }, []);
   const revealBottomDetails = useCallback(
     (options?: { persist?: boolean }) => {
       clearBottomDetailsTimer();
@@ -2762,6 +2749,22 @@ function FeedSlide({
     },
     [clearBottomDetailsTimer, isActive],
   );
+  const revealTopOverlays = useCallback(
+    (options?: { persist?: boolean }) => {
+      clearTopOverlaysTimer();
+      setAreTopOverlaysVisible(true);
+
+      if (!isActive || options?.persist) {
+        return;
+      }
+
+      topOverlaysTimeoutRef.current = setTimeout(() => {
+        setAreTopOverlaysVisible(false);
+        topOverlaysTimeoutRef.current = null;
+      }, CUT_FEED_TOP_OVERLAY_VISIBLE_MS);
+    },
+    [clearTopOverlaysTimer, isActive],
+  );
   const revealSideActions = useCallback(
     (options?: { persist?: boolean }) => {
       clearSideActionsTimer();
@@ -2777,6 +2780,14 @@ function FeedSlide({
       }, CUT_FEED_SIDE_ACTION_VISIBLE_MS);
     },
     [clearSideActionsTimer, isActive],
+  );
+  const revealCutOverlays = useCallback(
+    (options?: { persist?: boolean }) => {
+      revealTopOverlays(options);
+      revealSideActions(options);
+      revealBottomDetails(options);
+    },
+    [revealBottomDetails, revealSideActions, revealTopOverlays],
   );
   const flushCutDwell = useCallback((exitReason: CutDwellExitReason) => {
     const snapshot = cutDwellSnapshotRef.current;
@@ -2816,24 +2827,21 @@ function FeedSlide({
   }, []);
 
   useEffect(() => {
-    if (!isActive) {
-      clearBottomDetailsTimer();
-      clearSideActionsTimer();
-      setAreBottomDetailsVisible(false);
-      setAreSideActionsVisible(false);
+    if (isActive) {
       return;
     }
 
-    revealBottomDetails();
-    revealSideActions();
+    clearBottomDetailsTimer();
+    clearSideActionsTimer();
+    clearTopOverlaysTimer();
+    setAreBottomDetailsVisible(false);
+    setAreSideActionsVisible(false);
+    setAreTopOverlaysVisible(false);
   }, [
-    activeCutIndex,
     clearBottomDetailsTimer,
     clearSideActionsTimer,
+    clearTopOverlaysTimer,
     isActive,
-    revealBottomDetails,
-    revealSideActions,
-    report.reportId,
   ]);
 
   useEffect(() => {
@@ -2844,10 +2852,7 @@ function FeedSlide({
       return;
     }
 
-    revealBottomDetails({
-      persist: authNudge || isLoginSyncing || isSourceRevealSaving,
-    });
-    revealSideActions({
+    revealCutOverlays({
       persist: authNudge || isLoginSyncing || isSourceRevealSaving,
     });
   }, [
@@ -2855,8 +2860,7 @@ function FeedSlide({
     isActive,
     isLoginSyncing,
     isSourceRevealSaving,
-    revealBottomDetails,
-    revealSideActions,
+    revealCutOverlays,
     tapFeedback,
   ]);
 
@@ -3221,8 +3225,9 @@ function FeedSlide({
 
       clearBottomDetailsTimer();
       clearSideActionsTimer();
+      clearTopOverlaysTimer();
     };
-  }, [clearBottomDetailsTimer, clearSideActionsTimer]);
+  }, [clearBottomDetailsTimer, clearSideActionsTimer, clearTopOverlaysTimer]);
 
   useEffect(() => {
     if (!sourceOverlayOpen) {
@@ -3710,6 +3715,7 @@ function FeedSlide({
         return;
       }
 
+      revealCutOverlays();
       const now = window.performance.now();
       const previousTap = lastTapRef.current;
 
@@ -3739,6 +3745,7 @@ function FeedSlide({
       goToPreviousCut,
       handleSourceRevealDoubleTap,
       onDismissSwipeGuide,
+      revealCutOverlays,
     ],
   );
   const handleSourceRevealParticipation = useCallback(() => {
@@ -3886,11 +3893,6 @@ function FeedSlide({
         pointerStartRef.current = null;
       }}
       onPointerDown={(event) => {
-        if (!isInteractiveTarget(event.target)) {
-          revealBottomDetails();
-          revealSideActions();
-        }
-
         pointerStartRef.current = {
           target: event.target,
           x: event.clientX,
@@ -3958,7 +3960,13 @@ function FeedSlide({
         <div className="absolute inset-x-0 bottom-0 h-[22%] bg-gradient-to-t from-black/42 via-black/8 to-transparent" />
       </div>
 
-      <div className="absolute inset-x-0 top-[calc(env(safe-area-inset-top)+4.7rem)] z-20 px-4">
+      <div
+        className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+4.7rem)] z-20 px-4 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
+          areTopOverlaysVisible
+            ? "visible translate-y-0 opacity-100 blur-0"
+            : "invisible -translate-y-2 opacity-0 blur-[1px]"
+        }`}
+      >
         <div className="mx-auto flex w-full gap-1.5">
           {cuts.map((cut, cutIndex) => (
             <button
@@ -3982,7 +3990,13 @@ function FeedSlide({
         </div>
       </div>
 
-      <div className="absolute left-4 right-4 top-[calc(env(safe-area-inset-top)+5.6rem)] z-20 flex items-center justify-between gap-3">
+      <div
+        className={`absolute left-4 right-4 top-[calc(env(safe-area-inset-top)+5.6rem)] z-20 flex items-center justify-between gap-3 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
+          areTopOverlaysVisible
+            ? "visible translate-y-0 opacity-100 blur-0"
+            : "invisible -translate-y-2 opacity-0 blur-[1px]"
+        }`}
+      >
         <div className="flex flex-wrap items-center gap-2 text-[0.62rem] font-black uppercase tracking-[0.12em]">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1.5 text-black shadow-[0_14px_30px_rgba(0,0,0,0.24)]">
             <Images className="size-3.5" />
@@ -4256,40 +4270,13 @@ function FeedSlide({
               </div>
             ) : null}
           </div>
-          {compactBottomAction ? (
-            <div
-              className={`absolute inset-x-0 bottom-8 flex justify-center px-2 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
-                areBottomDetailsVisible
-                  ? "invisible translate-y-3 opacity-0 blur-[1px]"
-                  : "visible translate-y-0 opacity-100 blur-0"
-              }`}
-            >
-              {compactBottomAction.href ? (
-                <Link
-                  className="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-full border border-[#44f26e]/36 bg-[#44f26e]/92 px-5 py-2 text-sm font-black !text-[#111510] shadow-[0_18px_44px_rgba(0,0,0,0.34)] backdrop-blur transition hover:bg-[#65ff87]"
-                  href={compactBottomAction.href}
-                  onClick={() => {
-                    if (compactBottomAction.pendingLabel) {
-                      startNavigation({
-                        href: compactBottomAction.href,
-                        label: compactBottomAction.pendingLabel,
-                      });
-                    }
-                  }}
-                >
-                  <CompactBottomActionIcon className="size-4 shrink-0" />
-                  <span className="truncate">{compactBottomAction.label}</span>
-                </Link>
-              ) : (
-                <span className="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-full border border-white/18 bg-black/54 px-5 py-2 text-sm font-black text-white/82 shadow-[0_18px_44px_rgba(0,0,0,0.34)] backdrop-blur">
-                  <CompactBottomActionIcon className="size-4 shrink-0 text-[#44f26e]" />
-                  <span className="truncate">{compactBottomAction.label}</span>
-                </span>
-              )}
-            </div>
-          ) : null}
-
-          <div className="mt-4 flex items-center justify-center gap-1.5">
+          <div
+            className={`mt-4 flex items-center justify-center gap-1.5 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
+              areBottomDetailsVisible
+                ? "visible translate-y-0 opacity-100 blur-0"
+                : "invisible translate-y-3 opacity-0 blur-[1px]"
+            }`}
+          >
             {cuts.map((cut, cutIndex) => (
               <button
                 aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
