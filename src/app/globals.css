@@ -266,6 +266,22 @@ a {
   }
 }
 
+@keyframes platform-report-cut-fade {
+  0%,
+  18% {
+    opacity: 1;
+  }
+
+  24%,
+  94% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .platform-news-marquee {
     animation: platform-news-marquee 34s linear infinite;
@@ -290,6 +306,17 @@ a {
   }
 
   .group:hover .platform-character-profile-reel {
+    animation-play-state: paused;
+  }
+
+  .platform-report-cut-fade {
+    animation: platform-report-cut-fade
+      var(--platform-report-cut-fade-duration, 12.8s) ease-in-out infinite;
+    animation-delay: var(--platform-report-cut-fade-delay, 0s);
+    will-change: opacity;
+  }
+
+  .group:hover .platform-report-cut-fade {
     animation-play-state: paused;
   }
 }

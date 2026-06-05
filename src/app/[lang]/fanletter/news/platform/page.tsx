@@ -1351,6 +1351,94 @@ function canShowReportPreviewVideo(report: FanletterNewsReportDocument) {
   return report.contentMaturityRating !== "nsfw";
 }
 
+function getUniqueImageUrls(imageUrls: (string | null | undefined)[]) {
+  const uniqueImageUrls = new Set<string>();
+
+  for (const imageUrl of imageUrls) {
+    const normalizedImageUrl = imageUrl?.trim();
+
+    if (!normalizedImageUrl || uniqueImageUrls.has(normalizedImageUrl)) {
+      continue;
+    }
+
+    uniqueImageUrls.add(normalizedImageUrl);
+  }
+
+  return [...uniqueImageUrls];
+}
+
+function getReportCutImageUrls(report: FanletterNewsReportDocument) {
+  return getUniqueImageUrls([
+    ...(report.teaserImageUrls ?? []),
+    report.coverImageUrl,
+  ]).slice(0, 4);
+}
+
+function getTeaserGalleryCutImageUrls(item: FanletterNewsTeaserGalleryItem) {
+  return getUniqueImageUrls([
+    ...item.teaserImageUrls,
+    item.coverImageUrl,
+  ]).slice(0, 4);
+}
+
+function PlatformReportCutFadeImages({
+  alt,
+  imageClassName = "object-cover",
+  imageUrls,
+  priority = false,
+  sizes,
+}: {
+  alt: string;
+  imageClassName?: string;
+  imageUrls: string[];
+  priority?: boolean;
+  sizes: string;
+}) {
+  const visibleImageUrls = imageUrls.slice(0, 4);
+  const fadeDuration = Math.max(visibleImageUrls.length * 3.2, 3.2);
+
+  if (visibleImageUrls.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      {visibleImageUrls.map((imageUrl, index) => {
+        const imageStyle =
+          visibleImageUrls.length > 1
+            ? ({
+                "--platform-report-cut-fade-delay": `${(
+                  (fadeDuration / visibleImageUrls.length) *
+                  index
+                ).toFixed(2)}s`,
+                "--platform-report-cut-fade-duration": `${fadeDuration.toFixed(
+                  2,
+                )}s`,
+                opacity: index === 0 ? 1 : 0,
+              } as CSSProperties)
+            : undefined;
+
+        return (
+          <Image
+            alt={alt}
+            aria-hidden="true"
+            className={`${imageClassName} ${
+              visibleImageUrls.length > 1 ? "platform-report-cut-fade" : ""
+            }`}
+            fill
+            key={`${imageUrl}:${index}`}
+            priority={priority && index === 0}
+            sizes={sizes}
+            src={imageUrl}
+            style={imageStyle}
+            unoptimized={shouldBypassFanletterImageOptimization(imageUrl)}
+          />
+        );
+      })}
+    </>
+  );
+}
+
 function NewsHomeReportCard({
   copy,
   href,
@@ -1369,6 +1457,7 @@ function NewsHomeReportCard({
     ? previewClipVideoUrl?.trim() ?? ""
     : "";
   const hasPreviewVideo = Boolean(normalizedPreviewClipVideoUrl);
+  const reportCutImageUrls = getReportCutImageUrls(report);
   const accessLabel =
     locale === "ko"
       ? report.priceType === "paid"
@@ -1384,17 +1473,12 @@ function NewsHomeReportCard({
       href={href}
     >
       <div className="relative min-h-[9.5rem] overflow-hidden bg-[#071108] sm:min-h-[15rem]">
-        {report.coverImageUrl ? (
-          <Image
+        {reportCutImageUrls.length > 0 ? (
+          <PlatformReportCutFadeImages
             alt=""
-            aria-hidden="true"
-            className="object-cover transition duration-500 group-hover:scale-[1.03]"
-            fill
+            imageClassName="object-cover transition duration-500 group-hover:scale-[1.03]"
+            imageUrls={reportCutImageUrls}
             sizes="(max-width: 640px) 7.5rem, (max-width: 1024px) 50vw, 25rem"
-            src={report.coverImageUrl}
-            unoptimized={shouldBypassFanletterImageOptimization(
-              report.coverImageUrl,
-            )}
           />
         ) : !hasPreviewVideo ? (
           <div className="flex h-full min-h-[9.5rem] items-center justify-center text-[#44f26e]">
@@ -1405,7 +1489,7 @@ function NewsHomeReportCard({
           <FanletterAutoplayVideo
             ariaHidden
             className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
-            poster={report.coverImageUrl ?? undefined}
+            poster={reportCutImageUrls[0] ?? report.coverImageUrl ?? undefined}
             src={normalizedPreviewClipVideoUrl}
           />
         ) : null}
@@ -1492,6 +1576,11 @@ function PlatformLiveContentWall({
     primaryReport?.coverImageUrl ??
     getOptionalTeaserGalleryImage(teaserItems[1] ?? primaryTeaser) ??
     null;
+  const primaryVisualImageUrls = getUniqueImageUrls([
+    ...(primaryReport ? getReportCutImageUrls(primaryReport) : []),
+    ...(primaryTeaser ? getTeaserGalleryCutImageUrls(primaryTeaser) : []),
+    primaryCoverImageUrl,
+  ]).slice(0, 4);
   const previewTiles = teaserItems.slice(0, 4);
   const reportStack = reports.slice(0, 4);
   const characterRail = characters.slice(0, 3);
@@ -1539,18 +1628,13 @@ function PlatformLiveContentWall({
           className="group relative min-h-[14.5rem] overflow-hidden rounded-[1.05rem] border border-white/14 bg-[#071108] !text-white sm:min-h-[23rem] lg:min-h-[28rem]"
           href={primaryHref}
         >
-          {primaryCoverImageUrl ? (
-            <Image
+          {primaryVisualImageUrls.length > 0 ? (
+            <PlatformReportCutFadeImages
               alt=""
-              aria-hidden="true"
-              className="object-cover opacity-72 saturate-[1.08] transition duration-700 group-hover:scale-[1.035]"
-              fill
+              imageClassName="object-cover opacity-72 saturate-[1.08] transition duration-700 group-hover:scale-[1.035]"
+              imageUrls={primaryVisualImageUrls}
               priority
               sizes="(max-width: 1024px) 100vw, 34rem"
-              src={primaryCoverImageUrl}
-              unoptimized={shouldBypassFanletterImageOptimization(
-                primaryCoverImageUrl,
-              )}
             />
           ) : null}
           {primaryTeaser?.previewClipVideoUrl ? (
@@ -1612,7 +1696,7 @@ function PlatformLiveContentWall({
         {previewTiles.length > 0 ? (
           <div className="grid grid-cols-4 gap-2">
             {previewTiles.map((item) => {
-              const imageUrl = getTeaserGalleryImage(item);
+              const cutImageUrls = getTeaserGalleryCutImageUrls(item);
               const href = getPlatformReportCutHref({
                 locale,
                 referralCode,
@@ -1628,17 +1712,12 @@ function PlatformLiveContentWall({
                   href={href}
                   key={item.reportId}
                 >
-                  {imageUrl ? (
-                    <Image
+                  {cutImageUrls.length > 0 ? (
+                    <PlatformReportCutFadeImages
                       alt=""
-                      aria-hidden="true"
-                      className="object-cover transition duration-500 group-hover:scale-[1.05]"
-                      fill
+                      imageClassName="object-cover transition duration-500 group-hover:scale-[1.05]"
+                      imageUrls={cutImageUrls}
                       sizes="(max-width: 1024px) 22vw, 7rem"
-                      src={imageUrl}
-                      unoptimized={shouldBypassFanletterImageOptimization(
-                        imageUrl,
-                      )}
                     />
                   ) : null}
                   <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0)_20%,rgba(7,17,8,0.78)_100%)]" />
@@ -1846,7 +1925,7 @@ function PlatformMarketSignal({
           {marketTiles.length > 0 ? (
             <div className="grid grid-cols-3 gap-2">
               {marketTiles.map((item, index) => {
-                const imageUrl = getTeaserGalleryImage(item);
+                const cutImageUrls = getTeaserGalleryCutImageUrls(item);
                 const href = getPlatformReportCutHref({
                   locale,
                   referralCode,
@@ -1863,21 +1942,16 @@ function PlatformMarketSignal({
                     href={href}
                     key={`${item.reportId}:${index}`}
                   >
-                    {imageUrl ? (
-                      <Image
+                    {cutImageUrls.length > 0 ? (
+                      <PlatformReportCutFadeImages
                         alt=""
-                        aria-hidden="true"
-                        className="object-cover transition duration-700 group-hover:scale-[1.045]"
-                        fill
+                        imageClassName="object-cover transition duration-700 group-hover:scale-[1.045]"
+                        imageUrls={cutImageUrls}
                         sizes={
                           index === 0
                             ? "(max-width: 1024px) 66vw, 34rem"
                             : "(max-width: 1024px) 33vw, 13rem"
                         }
-                        src={imageUrl}
-                        unoptimized={shouldBypassFanletterImageOptimization(
-                          imageUrl,
-                        )}
                       />
                     ) : null}
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,8,0.02)_0%,rgba(7,17,8,0.18)_42%,rgba(7,17,8,0.82)_100%)]" />
