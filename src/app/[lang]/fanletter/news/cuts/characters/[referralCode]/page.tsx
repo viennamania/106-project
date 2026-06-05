@@ -52,9 +52,17 @@ import {
 } from "@/lib/fanletter-routing";
 import {
   getFanletterCreatorPageData,
+  getFanletterPublicContentDetail,
   type FanletterCreatorPageData,
   type FanletterPublicContentItem,
 } from "@/lib/fanletter-content-service";
+import {
+  getContentSocialSummaryForViewer,
+} from "@/lib/content-service";
+import {
+  createFanletterNewsSourceRevealState,
+  type FanletterNewsSourceRevealState,
+} from "@/lib/fanletter-news-source-reveal";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import {
   buildPathWithReferral,
@@ -62,11 +70,13 @@ import {
 } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
 import { readMemberServerSession } from "@/lib/member-server-session";
+import { normalizeShareId } from "@/lib/share-tracking";
 
 type FanletterNewsCutCharacterChannelSearchParams = {
   cut?: string | string[];
   ref?: string | string[];
   returnTo?: string | string[];
+  shareId?: string | string[];
   sourceReportId?: string | string[];
 };
 
@@ -119,6 +129,13 @@ function getCopy(locale: Locale) {
         routineTitleFor: (name: string) => `${name}의 일상 리듬`,
         usageFlow: "활용 흐름",
         sourceOpen: "원본 오픈",
+        sourceOpenProgress: (count: string, threshold: string) =>
+          `${count}/${threshold} 공개 완료`,
+        unlockedVlogs: "언락된 브이로그",
+        unlockedVlogsBody:
+          "팬들이 보고싶어요를 채워 공개한 원본입니다. 컷 피드 안에서 바로 원본 영상을 이어보세요.",
+        unlockedVlogsCta: "원본 영상 보기",
+        unlockedVlogsEmpty: "아직 팬들이 열어 둔 원본 브이로그가 없습니다.",
         vlogPreview: "프리뷰 재생",
       }
     : {
@@ -164,6 +181,13 @@ function getCopy(locale: Locale) {
         routineTitleFor: (name: string) => `${name}'s daily rhythm`,
         usageFlow: "Usage flow",
         sourceOpen: "Source open",
+        sourceOpenProgress: (count: string, threshold: string) =>
+          `${count}/${threshold} open`,
+        unlockedVlogs: "Unlocked vlogs",
+        unlockedVlogsBody:
+          "Source vlogs opened by fan demand. Watch the full source inside the cut feed context.",
+        unlockedVlogsCta: "Watch source",
+        unlockedVlogsEmpty: "No fan-opened source vlogs are ready yet.",
         vlogPreview: "Preview",
       };
 }
@@ -246,6 +270,89 @@ function getVlogContentHref({
     `/${locale}/fanletter/content/${contentId}`,
     effectiveReferralCode,
   );
+}
+
+function readShareIdFromPath(path: string | null) {
+  if (!path) {
+    return null;
+  }
+
+  try {
+    return normalizeShareId(
+      new URL(path, "https://aiavpark.local").searchParams.get("shareId"),
+    );
+  } catch {
+    return null;
+  }
+}
+
+function getSourceCutNewsHref({
+  contentId,
+  cutSlotNumber,
+  effectiveReferralCode,
+  locale,
+  reportId,
+  shareId,
+}: {
+  contentId: string;
+  cutSlotNumber: number | null;
+  effectiveReferralCode: string | null;
+  locale: Locale;
+  reportId: string;
+  shareId: string | null;
+}) {
+  return setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/${reportId}`,
+      effectiveReferralCode,
+    ),
+    {
+      cut: cutSlotNumber ? String(cutSlotNumber) : null,
+      shareId,
+      source: contentId,
+    },
+  );
+}
+
+async function getSourceRevealStatesByContentId({
+  contentIds,
+  viewerEmail,
+}: {
+  contentIds: string[];
+  viewerEmail: string | null;
+}) {
+  const uniqueContentIds = [
+    ...new Set(contentIds.map((contentId) => contentId.trim()).filter(Boolean)),
+  ];
+
+  if (uniqueContentIds.length === 0) {
+    return new Map<string, FanletterNewsSourceRevealState>();
+  }
+
+  const rows = await Promise.all(
+    uniqueContentIds.map(async (contentId) => {
+      try {
+        const social = await getContentSocialSummaryForViewer(
+          contentId,
+          viewerEmail,
+        );
+
+        return [
+          contentId,
+          createFanletterNewsSourceRevealState(social),
+        ] as const;
+      } catch {
+        return null;
+      }
+    }),
+  );
+
+  const entries = rows.filter(
+    (row): row is readonly [string, FanletterNewsSourceRevealState] =>
+      Boolean(row),
+  );
+
+  return new Map(entries);
 }
 
 function ReportImageFadeKeyframes() {
@@ -461,6 +568,9 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
   const sourceCutSlotNumber = normalizeFanletterNewsPublicCutSlotNumber(
     readFirstSearchParam(query.cut),
   );
+  const inheritedShareId =
+    normalizeShareId(readFirstSearchParam(query.shareId)) ??
+    readShareIdFromPath(safeReturnToHref);
   const memberSession = await readMemberServerSession();
   const cookieStore = await cookies();
   const nsfwOptInEnabled = isFanletterNsfwOptedIn(
@@ -475,7 +585,7 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
     ),
     getFanletterNewsReportsForCharacterChannel({
       creatorReferralCode: normalizedCharacterReferralCode,
-      limit: 8,
+      limit: 96,
       locale,
     }),
     sourceReportId ? getFanletterNewsReportById(sourceReportId) : null,
@@ -527,6 +637,64 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
   const visibleVlogs = data.items
     .filter((item) => item.mediaType === "video")
     .slice(0, 3);
+  const sourceRevealByContentId = await getSourceRevealStatesByContentId({
+    contentIds: newsData.reports.map((report) => report.contentId),
+    viewerEmail: memberSession?.email ?? null,
+  });
+  const unlockedReportByContentId = new Map<
+    string,
+    (typeof newsData.reports)[number]
+  >();
+
+  for (const report of newsData.reports) {
+    const contentId = report.contentId.trim();
+    const sourceReveal = sourceRevealByContentId.get(contentId);
+
+    if (!contentId || !sourceReveal?.unlocked) {
+      continue;
+    }
+
+    if (!unlockedReportByContentId.has(contentId)) {
+      unlockedReportByContentId.set(contentId, report);
+    }
+  }
+
+  const unlockedVlogItems = (
+    await Promise.all(
+      Array.from(unlockedReportByContentId.values())
+        .slice(0, 4)
+        .map(async (report) => {
+          const item = await getFanletterPublicContentDetail(
+            report.contentId,
+            locale,
+            memberSession?.email ?? null,
+            {
+              includeLockedPreviewVideo: true,
+              includeNsfw: nsfwOptInEnabled,
+            },
+          );
+          const sourceReveal = sourceRevealByContentId.get(report.contentId);
+
+          if (!item || item.mediaType !== "video" || !sourceReveal) {
+            return null;
+          }
+
+          return {
+            href: getSourceCutNewsHref({
+              contentId: item.contentId,
+              cutSlotNumber: sourceCutSlotNumber,
+              effectiveReferralCode,
+              locale,
+              reportId: report.reportId,
+              shareId: inheritedShareId,
+            }),
+            item,
+            report,
+            sourceReveal,
+          };
+        }),
+    )
+  ).filter((item): item is NonNullable<typeof item> => Boolean(item));
   const primaryRelatedReport = visibleReports[0] ?? null;
   const secondaryRelatedReports = visibleReports.slice(1, 3);
   const quickReportHref = setPathSearchParams(
@@ -905,6 +1073,127 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                 </p>
               </div>
             </div>
+          </section>
+
+          <section className="rounded-2xl border border-[#44f26e]/24 bg-[#06120a] p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 text-[#44f26e]">
+                  <BadgeCheck className="size-4" />
+                  <h2 className="text-base font-black">{copy.unlockedVlogs}</h2>
+                </div>
+                <p className="mt-1 text-xs font-semibold leading-5 text-white/58 [word-break:keep-all]">
+                  {copy.unlockedVlogsBody}
+                </p>
+              </div>
+              <span className="inline-flex shrink-0 items-center rounded-full bg-[#44f26e]/14 px-2.5 py-1 text-[0.68rem] font-black text-[#9bffad]">
+                {formatNumber(unlockedVlogItems.length, locale)}
+              </span>
+            </div>
+
+            {unlockedVlogItems.length > 0 ? (
+              <div className="mt-3 space-y-2">
+                {(() => {
+                  const featured = unlockedVlogItems[0];
+                  const openCountLabel = formatNumber(
+                    Math.min(
+                      featured.sourceReveal.count,
+                      featured.sourceReveal.threshold,
+                    ),
+                    locale,
+                  );
+                  const thresholdLabel = formatNumber(
+                    featured.sourceReveal.threshold,
+                    locale,
+                  );
+
+                  return (
+                    <Link
+                      className="group grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3 rounded-2xl border border-[#44f26e]/34 bg-black/32 p-2.5 text-white transition hover:border-[#44f26e]/70"
+                      href={featured.href}
+                    >
+                      <VlogPreviewMedia
+                        className="aspect-[9/14] rounded-xl"
+                        item={featured.item}
+                        sizes="7.5rem"
+                      />
+                      <div className="min-w-0 self-end">
+                        <p className="inline-flex items-center gap-1 rounded-full bg-[#44f26e] px-2 py-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-black">
+                          <PlayCircle className="size-3" />
+                          {copy.unlockedVlogsCta}
+                        </p>
+                        <h3 className="mt-2 line-clamp-3 text-lg font-black leading-tight [word-break:keep-all]">
+                          {featured.item.title}
+                        </h3>
+                        <p className="mt-2 line-clamp-2 text-[0.72rem] font-bold leading-4 text-white/52 [word-break:keep-all]">
+                          {getFanletterNewsBareArticleDisplayTitle(
+                            featured.report.title,
+                          )}
+                        </p>
+                        <p className="mt-2 text-[0.68rem] font-black text-[#9bffad]">
+                          {copy.sourceOpenProgress(
+                            openCountLabel,
+                            thresholdLabel,
+                          )}
+                        </p>
+                        <span className="mt-3 inline-flex items-center gap-1 text-xs font-black text-[#9bffad]">
+                          {copy.unlockedVlogsCta}
+                          <ChevronRight className="size-3.5 transition group-hover:translate-x-0.5" />
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })()}
+
+                {unlockedVlogItems.length > 1 ? (
+                  <div className="grid gap-2">
+                    {unlockedVlogItems.slice(1).map(({ href, item, sourceReveal }) => {
+                      const openCountLabel = formatNumber(
+                        Math.min(sourceReveal.count, sourceReveal.threshold),
+                        locale,
+                      );
+                      const thresholdLabel = formatNumber(
+                        sourceReveal.threshold,
+                        locale,
+                      );
+
+                      return (
+                        <Link
+                          className="grid grid-cols-[5.25rem_minmax(0,1fr)] gap-3 rounded-xl border border-white/10 bg-black/30 p-2 text-white transition hover:border-[#44f26e]/46"
+                          href={href}
+                          key={item.contentId}
+                        >
+                          <VlogPreviewMedia
+                            className="aspect-[9/12] rounded-lg"
+                            item={item}
+                            sizes="5.25rem"
+                          />
+                          <div className="min-w-0 self-center">
+                            <p className="line-clamp-2 text-sm font-black leading-tight [word-break:keep-all]">
+                              {item.title}
+                            </p>
+                            <p className="mt-1 text-[0.66rem] font-black text-[#9bffad]">
+                              {copy.sourceOpenProgress(
+                                openCountLabel,
+                                thresholdLabel,
+                              )}
+                            </p>
+                            <span className="mt-2 inline-flex items-center gap-1 text-[0.72rem] font-black text-white/72">
+                              {copy.unlockedVlogsCta}
+                              <ChevronRight className="size-3" />
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <p className="mt-3 rounded-xl border border-white/10 bg-black/28 p-4 text-sm font-semibold leading-6 text-white/58 [word-break:keep-all]">
+                {copy.unlockedVlogsEmpty}
+              </p>
+            )}
           </section>
 
           <section className="rounded-2xl border border-white/12 bg-white/[0.06] p-3">

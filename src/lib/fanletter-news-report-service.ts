@@ -4307,7 +4307,7 @@ export const getFanletterNewsReportsForCharacterChannel = cache(
     }
 
     const normalizedLimit = Number.isFinite(limit)
-      ? Math.max(1, Math.min(Math.floor(limit), 48))
+      ? Math.max(1, Math.min(Math.floor(limit), 120))
       : 24;
     const reportsCollection = await getFanletterNewsReportsCollection();
     const query = {
