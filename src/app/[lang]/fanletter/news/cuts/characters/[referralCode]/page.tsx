@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { ReactNode } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -15,12 +16,15 @@ import {
   Moon,
   Newspaper,
   PencilLine,
+  PlayCircle,
   Radio,
   Sparkles,
   SunMedium,
   UsersRound,
 } from "lucide-react";
 
+import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
+import { FanletterNewsCharacterProfileImageSlider } from "@/components/fanletter-news-character-motion";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
   createFanletterNewsPublicCutFeedItem,
@@ -31,6 +35,7 @@ import {
 import {
   getFanletterNewsArticleDisplayTitle,
   getFanletterNewsBareArticleDisplayTitle,
+  getFanletterNewsReportPreviewImageUrls,
 } from "@/lib/fanletter-news-related";
 import {
   getFanletterNewsReportById,
@@ -48,6 +53,7 @@ import {
 import {
   getFanletterCreatorPageData,
   type FanletterCreatorPageData,
+  type FanletterPublicContentItem,
 } from "@/lib/fanletter-content-service";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import {
@@ -86,6 +92,8 @@ function getCopy(locale: Locale) {
         latestNewsFeedCta: "컷 피드에서 이어보기",
         quickReportCta: "이 캐릭터로 4컷 기사 작성",
         latestVlogs: "최근 원본 브이로그",
+        latestVlogsBody:
+          "캐릭터의 원본 분위기를 영상 프리뷰로 먼저 확인하고, 마음에 드는 원본으로 팬 리포트를 작성할 수 있습니다.",
         latestVlogsCta: "원본 기반 기사 쓰기",
         metaDescription:
           "리포터 컷 피드에서 이어지는 AIAVpark News AI 캐릭터 채널입니다.",
@@ -111,6 +119,7 @@ function getCopy(locale: Locale) {
         routineTitleFor: (name: string) => `${name}의 일상 리듬`,
         usageFlow: "활용 흐름",
         sourceOpen: "원본 오픈",
+        vlogPreview: "프리뷰 재생",
       }
     : {
         backToCuts: "Back to cut feed",
@@ -128,6 +137,8 @@ function getCopy(locale: Locale) {
         latestNewsFeedCta: "Continue in cut feed",
         quickReportCta: "Write a 4-cut report",
         latestVlogs: "Recent source vlogs",
+        latestVlogsBody:
+          "Preview the character's source mood, then turn a favorite vlog into a fan report.",
         latestVlogsCta: "Write from a source vlog",
         metaDescription:
           "An AIAVpark News AI character channel connected to the reporter cut feed.",
@@ -153,6 +164,7 @@ function getCopy(locale: Locale) {
         routineTitleFor: (name: string) => `${name}'s daily rhythm`,
         usageFlow: "Usage flow",
         sourceOpen: "Source open",
+        vlogPreview: "Preview",
       };
 }
 
@@ -205,6 +217,129 @@ function getAvatarImages(
   });
 
   return images;
+}
+
+function getUnoptimizedImageUrls(imageUrls: string[]) {
+  return imageUrls.filter((imageUrl) =>
+    shouldBypassFanletterImageOptimization(imageUrl),
+  );
+}
+
+function getVlogPreviewVideoUrl(item: FanletterPublicContentItem | null) {
+  return (
+    item?.sourcePreviewVideoUrl?.trim() ||
+    item?.primaryVideoUrl?.trim() ||
+    null
+  );
+}
+
+function getVlogContentHref({
+  contentId,
+  effectiveReferralCode,
+  locale,
+}: {
+  contentId: string;
+  effectiveReferralCode: string | null;
+  locale: Locale;
+}) {
+  return buildPathWithReferral(
+    `/${locale}/fanletter/content/${contentId}`,
+    effectiveReferralCode,
+  );
+}
+
+function ReportImageFadeKeyframes() {
+  return (
+    <style id="fanletter-news-image-fade-keyframes">{`
+      @keyframes fanletter-news-image-fade {
+        0% {
+          opacity: 0;
+        }
+
+        5%,
+        20% {
+          opacity: 1;
+        }
+
+        27%,
+        100% {
+          opacity: 0;
+        }
+      }
+    `}</style>
+  );
+}
+
+function ReportPreviewMedia({
+  alt,
+  fallback,
+  imageUrls,
+  sizes,
+}: {
+  alt: string;
+  fallback: ReactNode;
+  imageUrls: string[];
+  sizes: string;
+}) {
+  return imageUrls.length > 0 ? (
+    <FanletterNewsCharacterProfileImageSlider
+      alt={alt}
+      imageClassName="h-full w-full object-cover"
+      imageUrls={imageUrls}
+      intervalMs={2200}
+      pauseOnInteraction={false}
+      sizes={sizes}
+      transitionMode="css"
+      unoptimizedImageUrls={getUnoptimizedImageUrls(imageUrls)}
+    />
+  ) : (
+    fallback
+  );
+}
+
+function VlogPreviewMedia({
+  className,
+  item,
+  sizes,
+}: {
+  className: string;
+  item: FanletterPublicContentItem;
+  sizes: string;
+}) {
+  const previewVideoUrl = getVlogPreviewVideoUrl(item);
+
+  return (
+    <div
+      className={`relative overflow-hidden border border-white/10 bg-black/30 ${className}`}
+    >
+      {previewVideoUrl ? (
+        <>
+          <FanletterAutoplayVideo
+            ariaHidden
+            className="absolute inset-0 h-full w-full object-cover"
+            poster={item.coverImageUrl ?? undefined}
+            src={previewVideoUrl}
+          />
+          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.04)_0%,rgba(0,0,0,0.16)_50%,rgba(0,0,0,0.58)_100%)]" />
+          <span className="pointer-events-none absolute left-2 top-2 inline-flex max-w-[calc(100%-1rem)] items-center gap-1 rounded-full border border-white/18 bg-black/62 px-2 py-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-white backdrop-blur">
+            <PlayCircle className="size-3 text-[#44f26e]" />
+            Preview
+          </span>
+        </>
+      ) : item.coverImageUrl ? (
+        <Image
+          alt=""
+          className="object-cover"
+          fill
+          sizes={sizes}
+          src={item.coverImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(item.coverImageUrl)}
+        />
+      ) : (
+        <Clapperboard className="absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 text-[#44f26e]" />
+      )}
+    </div>
+  );
 }
 
 function getReturnHref({
@@ -411,6 +546,12 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
   const secondaryVlog = visibleVlogs[1] ?? primaryVlog;
   const primaryReport = visibleReports[0] ?? null;
   const secondaryReport = visibleReports[1] ?? primaryReport;
+  const primaryReportImageUrls = primaryReport
+    ? getFanletterNewsReportPreviewImageUrls(primaryReport)
+    : [];
+  const secondaryReportImageUrls = secondaryReport
+    ? getFanletterNewsReportPreviewImageUrls(secondaryReport)
+    : [];
   const routineItems = [
     {
       accentClassName: "border-amber-300/28 bg-amber-300/10 text-amber-200",
@@ -418,6 +559,8 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
       fallbackIcon: <Clapperboard className="size-5" />,
       imageUrl: primaryVlog?.coverImageUrl ?? heroImage,
       kindLabel: copy.publicVlogs,
+      previewVideoUrl: getVlogPreviewVideoUrl(primaryVlog),
+      reportImageUrls: [],
       slotIcon: <SunMedium className="size-4" />,
       slotLabel: copy.routineMorning,
       title: primaryVlog?.title ?? copy.routineMorningFallback(characterName),
@@ -432,6 +575,13 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
       imageUrl:
         primaryReport?.coverImageUrl ?? selectedSourceCut?.imageUrl ?? heroImage,
       kindLabel: copy.latestNews,
+      previewVideoUrl: null,
+      reportImageUrls:
+        primaryReportImageUrls.length > 0
+          ? primaryReportImageUrls
+          : selectedSourceCut?.imageUrl
+            ? [selectedSourceCut.imageUrl]
+            : [],
       slotIcon: <Clock3 className="size-4" />,
       slotLabel: copy.routineAfternoon,
       title: primaryReport
@@ -454,6 +604,16 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
         selectedSourceCut?.imageUrl ??
         heroImage,
       kindLabel: secondaryVlog ? copy.publicVlogs : copy.sourceOpen,
+      previewVideoUrl: secondaryVlog
+        ? getVlogPreviewVideoUrl(secondaryVlog)
+        : null,
+      reportImageUrls: secondaryVlog
+        ? []
+        : secondaryReportImageUrls.length > 0
+          ? secondaryReportImageUrls
+          : selectedSourceCut?.imageUrl
+            ? [selectedSourceCut.imageUrl]
+            : [],
       slotIcon: <Moon className="size-4" />,
       slotLabel: copy.routineEvening,
       title:
@@ -516,6 +676,7 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
 
   return (
     <main className="min-h-screen bg-[#050706] text-white">
+      <ReportImageFadeKeyframes />
       <div className="mx-auto min-h-screen w-full max-w-[430px] bg-black shadow-[0_0_56px_rgba(0,0,0,0.42)] sm:border-x sm:border-white/10">
         <header className="sticky top-0 z-40 border-b border-white/10 bg-black/72 px-4 py-3 backdrop-blur-xl">
           <div className="flex items-center gap-3">
@@ -615,7 +776,32 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                   key={`${item.slotLabel}-${index}`}
                 >
                   <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-white/8">
-                    {item.imageUrl ? (
+                    {item.previewVideoUrl ? (
+                      <>
+                        <FanletterAutoplayVideo
+                          ariaHidden
+                          className="absolute inset-0 h-full w-full object-cover"
+                          poster={item.imageUrl ?? undefined}
+                          src={item.previewVideoUrl}
+                        />
+                        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0)_0%,rgba(0,0,0,0.12)_45%,rgba(0,0,0,0.56)_100%)]" />
+                        <span className="pointer-events-none absolute left-1.5 top-1.5 inline-flex items-center gap-1 rounded-full bg-black/62 px-1.5 py-1 text-[0.5rem] font-black uppercase tracking-[0.08em] text-white backdrop-blur">
+                          <PlayCircle className="size-2.5 text-[#44f26e]" />
+                          Vlog
+                        </span>
+                      </>
+                    ) : item.reportImageUrls.length > 0 ? (
+                      <ReportPreviewMedia
+                        alt={item.title}
+                        fallback={
+                          <span className="absolute left-1/2 top-1/2 inline-flex size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#44f26e]/12 text-[#44f26e]">
+                            {item.fallbackIcon}
+                          </span>
+                        }
+                        imageUrls={item.reportImageUrls}
+                        sizes="4.25rem"
+                      />
+                    ) : item.imageUrl ? (
                       <Image
                         alt=""
                         className="object-cover"
@@ -750,20 +936,16 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                       href={primaryReportHref}
                     >
                       <div className="relative aspect-[4/5] overflow-hidden rounded-xl bg-white/8">
-                        {primaryRelatedReport.coverImageUrl ? (
-                          <Image
-                            alt=""
-                            className="object-cover"
-                            fill
-                            sizes="6.25rem"
-                            src={primaryRelatedReport.coverImageUrl}
-                            unoptimized={shouldBypassFanletterImageOptimization(
-                              primaryRelatedReport.coverImageUrl,
-                            )}
-                          />
-                        ) : (
-                          <FileText className="absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 text-[#44f26e]" />
-                        )}
+                        <ReportPreviewMedia
+                          alt={getFanletterNewsArticleDisplayTitle(
+                            primaryRelatedReport.title,
+                          )}
+                          fallback={
+                            <FileText className="absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 text-[#44f26e]" />
+                          }
+                          imageUrls={primaryReportImageUrls}
+                          sizes="6.25rem"
+                        />
                       </div>
                       <div className="min-w-0 self-end">
                         <p className="text-[0.68rem] font-black uppercase tracking-[0.12em] text-[#44f26e]">
@@ -797,28 +979,24 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                     locale,
                     reportId: report.reportId,
                   });
+                  const reportImageUrls =
+                    getFanletterNewsReportPreviewImageUrls(report);
 
                   return (
                     <Link
-                      className="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-3 rounded-xl border border-white/10 bg-black/30 p-2 text-white"
+                      className="grid grid-cols-[5rem_minmax(0,1fr)] gap-3 rounded-xl border border-white/10 bg-black/30 p-2 text-white"
                       href={reportHref}
                       key={report.reportId}
                     >
-                      <div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-white/8">
-                        {report.coverImageUrl ? (
-                          <Image
-                            alt=""
-                            className="object-cover"
-                            fill
-                            sizes="4.5rem"
-                            src={report.coverImageUrl}
-                            unoptimized={shouldBypassFanletterImageOptimization(
-                              report.coverImageUrl,
-                            )}
-                          />
-                        ) : (
-                          <FileText className="absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 text-[#44f26e]" />
-                        )}
+                      <div className="relative aspect-[9/14] overflow-hidden rounded-lg bg-white/8">
+                        <ReportPreviewMedia
+                          alt={getFanletterNewsArticleDisplayTitle(report.title)}
+                          fallback={
+                            <FileText className="absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 text-[#44f26e]" />
+                          }
+                          imageUrls={reportImageUrls}
+                          sizes="5rem"
+                        />
                       </div>
                       <div className="min-w-0 self-center">
                         <p className="line-clamp-2 text-sm font-black leading-tight [word-break:keep-all]">
@@ -860,41 +1038,90 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
           </section>
 
           <section className="rounded-2xl border border-white/12 bg-white/[0.06] p-3">
-            <h2 className="text-base font-black">{copy.latestVlogs}</h2>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {visibleVlogs.length > 0 ? (
-                visibleVlogs.map((item) => (
-                  <article
-                    className="min-w-0 text-white"
-                    key={item.contentId}
-                  >
-                    <div className="relative aspect-[3/4] overflow-hidden rounded-xl border border-white/10 bg-black/30">
-                      {item.coverImageUrl ? (
-                        <Image
-                          alt=""
-                          className="object-cover"
-                          fill
-                          sizes="8rem"
-                          src={item.coverImageUrl}
-                          unoptimized={shouldBypassFanletterImageOptimization(
-                            item.coverImageUrl,
-                          )}
-                        />
-                      ) : (
-                        <Clapperboard className="absolute left-1/2 top-1/2 size-6 -translate-x-1/2 -translate-y-1/2 text-[#44f26e]" />
-                      )}
-                    </div>
-                    <p className="mt-1 line-clamp-2 text-[0.68rem] font-black leading-tight [word-break:keep-all]">
-                      {item.title}
-                    </p>
-                  </article>
-                ))
-              ) : (
-                <p className="col-span-3 rounded-xl border border-white/10 bg-black/28 p-4 text-sm font-semibold text-white/58">
-                  {copy.noVlogs}
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="text-base font-black">{copy.latestVlogs}</h2>
+                <p className="mt-1 text-xs font-semibold leading-5 text-white/56 [word-break:keep-all]">
+                  {copy.latestVlogsBody}
                 </p>
-              )}
+              </div>
+              <span className="inline-flex shrink-0 items-center rounded-full bg-white/8 px-2.5 py-1 text-[0.68rem] font-black text-white/70">
+                {formatNumber(visibleVlogs.length, locale)}
+              </span>
             </div>
+
+            {visibleVlogs.length > 0 ? (
+              <div className="mt-3 space-y-2">
+                {(() => {
+                  const featuredVlog = visibleVlogs[0];
+                  const featuredHref = getVlogContentHref({
+                    contentId: featuredVlog.contentId,
+                    effectiveReferralCode,
+                    locale,
+                  });
+
+                  return (
+                    <Link
+                      className="group grid grid-cols-[7.25rem_minmax(0,1fr)] gap-3 rounded-2xl border border-[#44f26e]/24 bg-[#07130a] p-2.5 text-white transition hover:border-[#44f26e]/56"
+                      href={featuredHref}
+                    >
+                      <VlogPreviewMedia
+                        className="aspect-[9/14] rounded-xl"
+                        item={featuredVlog}
+                        sizes="7.25rem"
+                      />
+                      <div className="min-w-0 self-end">
+                        <p className="inline-flex items-center gap-1 rounded-full bg-[#44f26e]/14 px-2 py-1 text-[0.6rem] font-black uppercase tracking-[0.1em] text-[#9bffad]">
+                          <PlayCircle className="size-3" />
+                          {copy.vlogPreview}
+                        </p>
+                        <h3 className="mt-2 line-clamp-3 text-lg font-black leading-tight [word-break:keep-all]">
+                          {featuredVlog.title}
+                        </h3>
+                        {formatDate(featuredVlog.publishedAt, locale) ? (
+                          <p className="mt-2 text-[0.68rem] font-bold text-white/50">
+                            {formatDate(featuredVlog.publishedAt, locale)}
+                          </p>
+                        ) : null}
+                        <span className="mt-3 inline-flex items-center gap-1 text-xs font-black text-[#9bffad]">
+                          {copy.latestVlogsCta}
+                          <ChevronRight className="size-3.5 transition group-hover:translate-x-0.5" />
+                        </span>
+                      </div>
+                    </Link>
+                  );
+                })()}
+
+                {visibleVlogs.length > 1 ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {visibleVlogs.slice(1).map((item) => (
+                      <Link
+                        className="min-w-0 rounded-xl border border-white/10 bg-black/30 p-2 text-white"
+                        href={getVlogContentHref({
+                          contentId: item.contentId,
+                          effectiveReferralCode,
+                          locale,
+                        })}
+                        key={item.contentId}
+                      >
+                        <VlogPreviewMedia
+                          className="aspect-[3/4] rounded-lg"
+                          item={item}
+                          sizes="10rem"
+                        />
+                        <p className="mt-2 line-clamp-2 text-xs font-black leading-tight [word-break:keep-all]">
+                          {item.title}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <p className="mt-3 rounded-xl border border-white/10 bg-black/28 p-4 text-sm font-semibold text-white/58">
+                {copy.noVlogs}
+              </p>
+            )}
             <Link
               className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-4 text-sm font-black !text-white"
               href={quickReportHref}
