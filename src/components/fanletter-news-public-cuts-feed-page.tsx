@@ -98,13 +98,9 @@ const DOUBLE_TAP_MOVE_TOLERANCE_PX = 14;
 const DOUBLE_TAP_DISTANCE_TOLERANCE_PX = 48;
 const DOUBLE_TAP_FEEDBACK_MS = 920;
 const CUT_SWIPE_GUIDE_DISMISS_SCROLL_RATIO = 0.45;
-const CUT_FEED_HEADER_VISIBLE_MS = 2200;
+const CUT_FEED_CHROME_VISIBLE_MS = 4200;
 const CUT_FEED_LOGIN_SYNC_GRACE_MS = 4500;
 const CUT_FEED_RENDER_WINDOW_RADIUS = 0;
-const CUT_FEED_BOTTOM_DETAILS_VISIBLE_MS = 5600;
-const CUT_FEED_ROLE_SHORTCUT_VISIBLE_MS = 1800;
-const CUT_FEED_SIDE_ACTION_VISIBLE_MS = 4200;
-const CUT_FEED_TOP_OVERLAY_VISIBLE_MS = 4200;
 const CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT =
   "fanletter-news-cut-feed-visible-index-change";
 const CUT_DWELL_MIN_TRACK_MS = 800;
@@ -2750,7 +2746,7 @@ function FeedSlide({
       bottomDetailsTimeoutRef.current = setTimeout(() => {
         setAreBottomDetailsVisible(false);
         bottomDetailsTimeoutRef.current = null;
-      }, CUT_FEED_BOTTOM_DETAILS_VISIBLE_MS);
+      }, CUT_FEED_CHROME_VISIBLE_MS);
     },
     [clearBottomDetailsTimer, isActive],
   );
@@ -2766,7 +2762,7 @@ function FeedSlide({
       topOverlaysTimeoutRef.current = setTimeout(() => {
         setAreTopOverlaysVisible(false);
         topOverlaysTimeoutRef.current = null;
-      }, CUT_FEED_TOP_OVERLAY_VISIBLE_MS);
+      }, CUT_FEED_CHROME_VISIBLE_MS);
     },
     [clearTopOverlaysTimer, isActive],
   );
@@ -2782,7 +2778,7 @@ function FeedSlide({
       sideActionsTimeoutRef.current = setTimeout(() => {
         setAreSideActionsVisible(false);
         sideActionsTimeoutRef.current = null;
-      }, CUT_FEED_SIDE_ACTION_VISIBLE_MS);
+      }, CUT_FEED_CHROME_VISIBLE_MS);
     },
     [clearSideActionsTimer, isActive],
   );
@@ -4121,8 +4117,8 @@ function FeedSlide({
           <div className={`${cutSwipeGuidePillClassName} text-white/88`}>
             <ChevronUp className="size-4 text-[#9bffad]" />
             <span className="relative h-7 w-9 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/10">
-              <span className="absolute left-1/2 top-1/2 inline-flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#44f26e] text-black shadow-[0_12px_28px_rgba(68,242,110,0.22)]">
-                <ArrowRight className="size-3.5 rotate-90" />
+              <span className="fanletter-cut-vertical-swipe-guide-thumb absolute left-1/2 top-1/2 inline-flex size-6 items-center justify-center rounded-full bg-[#44f26e] text-black shadow-[0_12px_28px_rgba(68,242,110,0.22)]">
+                <ChevronDown className="size-3.5" />
               </span>
             </span>
             <ChevronDown className="size-4 text-[#9bffad]" />
@@ -4842,7 +4838,7 @@ export function FanletterNewsPublicCutsFeedPage({
     roleShortcutRevealTimerRef.current = window.setTimeout(() => {
       setIsRoleShortcutVisible(false);
       roleShortcutRevealTimerRef.current = null;
-    }, CUT_FEED_ROLE_SHORTCUT_VISIBLE_MS);
+    }, CUT_FEED_CHROME_VISIBLE_MS);
   }, []);
   const clearHeaderRevealTimer = useCallback(() => {
     if (headerRevealTimerRef.current) {
@@ -4861,7 +4857,7 @@ export function FanletterNewsPublicCutsFeedPage({
     headerRevealTimerRef.current = window.setTimeout(() => {
       setIsCutFeedHeaderVisible(false);
       headerRevealTimerRef.current = null;
-    }, CUT_FEED_HEADER_VISIBLE_MS);
+    }, CUT_FEED_CHROME_VISIBLE_MS);
   }, [clearHeaderRevealTimer, serviceMenuOpen]);
   const revealFeedChromeTemporarily = useCallback(() => {
     revealCutFeedHeaderTemporarily();
