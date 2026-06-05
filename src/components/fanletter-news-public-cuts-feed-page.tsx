@@ -199,6 +199,8 @@ function getCopy(locale: Locale) {
           title: "리포터 빠른 작성",
         },
         reporterSourceMetric: "원본 오픈",
+        returnToBrief: "브리프",
+        returnToBriefA11y: "플랫폼 브리프로 돌아가기",
         retry: "다시 시도",
         serviceCharacters: "AI 캐릭터",
         serviceCharactersHint: "캐릭터 채널",
@@ -380,6 +382,8 @@ function getCopy(locale: Locale) {
           title: "Reporter quick desk",
         },
         reporterSourceMetric: "Source open",
+        returnToBrief: "Brief",
+        returnToBriefA11y: "Back to platform brief",
         retry: "Retry",
         serviceCharacters: "AI Characters",
         serviceCharactersHint: "Character channels",
@@ -4068,6 +4072,7 @@ export function FanletterNewsPublicCutsFeedPage({
   locale,
   nextOffset: initialNextOffset,
   referralCode,
+  returnToHref = null,
   shareId,
   sourceContentId = null,
 }: {
@@ -4079,6 +4084,7 @@ export function FanletterNewsPublicCutsFeedPage({
   locale: Locale;
   nextOffset: number;
   referralCode: string | null;
+  returnToHref?: string | null;
   shareId: string | null;
   sourceContentId?: string | null;
 }) {
@@ -4864,6 +4870,11 @@ export function FanletterNewsPublicCutsFeedPage({
       ? "gap-2 border-[#44f26e]/28 bg-[#44f26e]/14 px-3"
       : "gap-1.5 border-white/16 bg-black/42 px-3"
   }`;
+  const returnToButtonClassName = `pointer-events-auto inline-flex h-11 shrink-0 items-center rounded-full border text-white shadow-[0_12px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-[background-color,border-color,color,gap,padding,transform] duration-500 ease-out hover:bg-white hover:text-[#111510] ${
+    isCutFeedHeaderExpanded
+      ? "gap-2 border-white/18 bg-white/12 px-3"
+      : "gap-1.5 border-white/16 bg-black/42 px-3"
+  }`;
   const roleShortcutSectionClassName = `pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+4.25rem)] z-30 w-full max-w-[430px] -translate-x-1/2 px-3 transition-[opacity,transform] duration-500 ease-out ${
     isRoleShortcutVisible
       ? "translate-y-0 opacity-100"
@@ -4892,7 +4903,25 @@ export function FanletterNewsPublicCutsFeedPage({
     >
       <header className={headerClassName}>
         <div className="mx-auto flex items-center gap-2">
-          {visibleItem ? (
+          {returnToHref ? (
+            <Link
+              aria-label={copy.returnToBriefA11y}
+              className={returnToButtonClassName}
+              href={returnToHref}
+              onClick={() => {
+                setServiceMenuOpen(false);
+              }}
+            >
+              <ArrowLeft className="size-4" />
+              <span
+                className={`hidden text-[0.72rem] font-black transition-opacity duration-300 min-[430px]:inline ${
+                  isCutFeedHeaderExpanded ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                {copy.returnToBrief}
+              </span>
+            </Link>
+          ) : visibleItem ? (
             <div className={headerReporterClassName}>
               <CutFeedHeaderReporterChip
                 avatarImageUrl={visibleItem.report.reporterAvatarImageUrl}

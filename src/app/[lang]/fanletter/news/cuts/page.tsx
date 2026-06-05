@@ -12,6 +12,7 @@ import {
 } from "@/lib/fanletter-news-public-cuts-shared";
 import { getFanletterNewsReportsForContent } from "@/lib/fanletter-news-report-service";
 import {
+  normalizeFanletterReturnToPath,
   readFanletterReferralCode,
   readFirstSearchParam,
 } from "@/lib/fanletter-routing";
@@ -22,6 +23,7 @@ import { normalizeShareId } from "@/lib/share-tracking";
 type FanletterNewsCutsSearchParams = {
   cut?: string | string[];
   ref?: string | string[];
+  returnTo?: string | string[];
   shareId?: string | string[];
   source?: string | string[];
 };
@@ -75,6 +77,7 @@ export default async function LocalizedFanletterNewsCutsPage({
   const initialCutSlotNumber = normalizeFanletterNewsPublicCutSlotNumber(
     readFirstSearchParam(query.cut),
   );
+  const returnToHref = normalizeFanletterReturnToPath(query.returnTo, locale);
   const initialSourceContentId =
     readFirstSearchParam(query.source)?.trim() || null;
   const session = await readMemberServerSession();
@@ -104,6 +107,7 @@ export default async function LocalizedFanletterNewsCutsPage({
       locale={locale}
       nextOffset={feedPage.nextOffset}
       referralCode={referralCode}
+      returnToHref={returnToHref}
       shareId={shareId}
       sourceContentId={initialSourceContentId}
     />

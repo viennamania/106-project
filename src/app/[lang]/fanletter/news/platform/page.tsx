@@ -1114,6 +1114,10 @@ function getPlatformReportCutHref({
     ),
     {
       cut: String(cutSlotNumber),
+      returnTo: buildPathWithReferral(
+        `/${locale}/fanletter/news/platform`,
+        referralCode,
+      ),
     },
   );
 }
@@ -1205,6 +1209,10 @@ function getPlatformUnlockedSourceHref({
     buildPathWithReferral(`/${locale}/fanletter/news/cuts/${reportId}`, referralCode),
     {
       cut: "1",
+      returnTo: buildPathWithReferral(
+        `/${locale}/fanletter/news/platform`,
+        referralCode,
+      ),
       source: contentId,
     },
   );
