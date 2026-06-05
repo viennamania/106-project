@@ -3721,25 +3721,25 @@ export default async function FanletterNewsPlatformPage({
     `/${locale}/fanletter/news/platform`,
     referralCode,
   );
-  const newsHref = buildPathWithReferral(
-    `/${locale}/fanletter/news`,
-    referralCode,
-  );
-  const cutsHref = setPathSearchParams(
+  const newsHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/news/cuts`, referralCode),
     {
       returnTo: homeHref,
     },
   );
-  const reportsHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/reports`,
-    referralCode,
+  const cutsHref = newsHref;
+  const reportsHref = setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/reports/quick`,
+      referralCode,
+    ),
+    {
+      reportStatus: "unreported",
+      returnTo: homeHref,
+      sourceReveal: "opportunity",
+    },
   );
-  const charactersHref = buildPathWithReferral(
-    `/${locale}/fanletter/news/characters`,
-    referralCode,
-  );
-  const cutCharactersHref = setPathSearchParams(
+  const charactersHref = setPathSearchParams(
     buildPathWithReferral(
       `/${locale}/fanletter/news/cuts/characters`,
       referralCode,
@@ -3748,6 +3748,7 @@ export default async function FanletterNewsPlatformPage({
       returnTo: homeHref,
     },
   );
+  const cutCharactersHref = charactersHref;
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] pb-20 text-[#111510] md:pb-0">
       <PlatformMobileQuickNav copy={copy} />
