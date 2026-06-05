@@ -285,7 +285,7 @@ export default async function LocalizedFanletterNewsVlogStartPage({
     ),
     {
       planSource: "upload",
-      returnTo: manageHref,
+      returnTo: effectiveStartHref,
     },
   );
   const aiHref = setPathSearchParams(
@@ -293,7 +293,7 @@ export default async function LocalizedFanletterNewsVlogStartPage({
       `/${locale}/fanletter/news/vlogs/new`,
       effectiveReferralCode,
     ),
-    { returnTo: manageHref },
+    { returnTo: effectiveStartHref },
   );
   const paidUploadHref = setPathSearchParams(
     buildPathWithReferral(
