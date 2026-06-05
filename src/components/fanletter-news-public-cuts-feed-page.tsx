@@ -3884,7 +3884,7 @@ function FeedSlide({
     isActive && showSwipeGuide && sourceRevealState.unlocked && cutCount > 1;
   const showCutSwipeGuide = isActive && showSwipeGuide && cutCount > 1;
   const cutSwipeGuideClassName =
-    "pointer-events-none absolute left-1/2 top-[calc(env(safe-area-inset-top)+8.05rem)] z-30 flex w-fit max-w-[calc(100%_-_1.5rem)] -translate-x-1/2 flex-col items-center gap-2 text-center text-white";
+    "pointer-events-none absolute left-1/2 top-1/2 z-30 flex w-fit max-w-[calc(100%_-_1.5rem)] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2 text-center text-white";
   const cutSwipeGuidePillClassName =
     "inline-flex max-w-full items-center justify-center gap-1.5 rounded-full border border-white/14 bg-black/54 px-3 py-2 shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl";
   const inactiveArticleAttributes = isActive
