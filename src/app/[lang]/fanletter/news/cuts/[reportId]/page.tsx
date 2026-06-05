@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { FanletterNewsPublicCutsFeedPage } from "@/components/fanletter-news-public-cuts-feed-page";
 import {
+  createFanletterNewsPublicCutFeedRotationSeed,
   createFanletterNewsPublicCutFeedItem,
   getFanletterNewsPublicCutFeedPage,
   serializeFanletterNewsPublicCutFeedItems,
@@ -230,6 +231,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
   const initialSourceContentId =
     readFirstSearchParam(query.source)?.trim() || null;
   const session = await readMemberServerSession();
+  const feedRotationSeed = createFanletterNewsPublicCutFeedRotationSeed();
   const report = await getFanletterNewsReportById(reportId);
 
   if (
@@ -245,6 +247,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
     limit: FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
     locale,
     referralCode,
+    rotationSeed: feedRotationSeed,
     shareId,
     targetReport: report,
     viewerEmail: session?.email ?? null,
@@ -254,6 +257,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
     <FanletterNewsPublicCutsFeedPage
       dictionary={getDictionary(locale)}
       excludeReportId={report.reportId}
+      feedRotationSeed={feedRotationSeed}
       hasMore={feedPage.hasMore}
       initialCutSlotNumber={initialCutSlotNumber}
       items={serializeFanletterNewsPublicCutFeedItems(feedPage.items)}

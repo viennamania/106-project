@@ -557,11 +557,13 @@ function hashStringToPositiveInt(value: string) {
 }
 
 function getStableRandomInitialCutSlotNumber({
+  feedRotationSeed,
   index,
   item,
   referralCode,
   shareId,
 }: {
+  feedRotationSeed: string;
   index: number;
   item: SerializedFanletterNewsPublicCutFeedItem;
   referralCode: string | null;
@@ -574,6 +576,7 @@ function getStableRandomInitialCutSlotNumber({
   }
 
   const seed = [
+    feedRotationSeed,
     shareId?.trim() || referralCode?.trim() || "direct",
     item.report.reportId,
     item.report.contentId,
@@ -4086,6 +4089,7 @@ function getVisibleFeedIndex({
 export function FanletterNewsPublicCutsFeedPage({
   dictionary,
   excludeReportId = null,
+  feedRotationSeed,
   hasMore: initialHasMore,
   initialCutSlotNumber = null,
   items: initialItems,
@@ -4098,6 +4102,7 @@ export function FanletterNewsPublicCutsFeedPage({
 }: {
   dictionary: Dictionary;
   excludeReportId?: string | null;
+  feedRotationSeed: string;
   hasMore: boolean;
   initialCutSlotNumber?: number | null;
   items: SerializedFanletterNewsPublicCutFeedItem[];
@@ -4506,6 +4511,7 @@ export function FanletterNewsPublicCutsFeedPage({
 
     try {
       const params = new URLSearchParams({
+        rotationSeed: feedRotationSeed,
         limit: String(FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE),
         locale,
         offset: String(nextOffset),
@@ -4576,6 +4582,7 @@ export function FanletterNewsPublicCutsFeedPage({
   }, [
     copy.loadError,
     excludeReportId,
+    feedRotationSeed,
     hasMore,
     isLoadingMore,
     items,
@@ -5126,6 +5133,7 @@ export function FanletterNewsPublicCutsFeedPage({
                 index === 0
                   ? initialCutSlotNumber
                   : getStableRandomInitialCutSlotNumber({
+                      feedRotationSeed,
                       index,
                       item,
                       referralCode,

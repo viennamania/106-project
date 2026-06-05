@@ -34,6 +34,10 @@ function readPositiveInteger(value: string | null) {
   return parsed;
 }
 
+function readRotationSeed(value: string | null) {
+  return value?.trim().slice(0, 128) || null;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const localeParam = searchParams.get("locale");
@@ -57,6 +61,7 @@ export async function GET(request: Request) {
       mode: reporterLockedMode ? "reporter_locked" : "default",
       offset: readNonNegativeInteger(searchParams.get("offset")),
       referralCode,
+      rotationSeed: readRotationSeed(searchParams.get("rotationSeed")),
       shareId,
       viewerEmail: session?.email ?? null,
     });
