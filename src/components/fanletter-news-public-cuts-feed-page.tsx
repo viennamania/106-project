@@ -604,6 +604,24 @@ function isInteractiveTarget(target: EventTarget | null) {
   );
 }
 
+function getInitialPublicCutIndex(
+  item: SerializedFanletterNewsPublicCutFeedItem,
+  initialCutSlotNumber?: number | null,
+) {
+  const normalizedInitialCutSlotNumber =
+    normalizeFanletterNewsPublicCutSlotNumber(
+      initialCutSlotNumber ? String(initialCutSlotNumber) : null,
+    );
+  const initialCuts = item.cuts.length > 0 ? item.cuts : [item.leadCut];
+  const initialCutIndex = normalizedInitialCutSlotNumber
+    ? initialCuts.findIndex(
+        (cut) => cut.slotNumber === normalizedInitialCutSlotNumber,
+      )
+    : -1;
+
+  return initialCutIndex >= 0 ? initialCutIndex : 0;
+}
+
 function getCutFeedHref({
   locale,
   referralCode,
@@ -2294,20 +2312,17 @@ function FeedSlide({
   shareId: string | null;
   showSwipeGuide?: boolean;
 }) {
-  const [activeCutIndex, setActiveCutIndex] = useState(() => {
-    const normalizedInitialCutSlotNumber =
-      normalizeFanletterNewsPublicCutSlotNumber(
-        initialCutSlotNumber ? String(initialCutSlotNumber) : null,
-      );
-    const initialCuts = item.cuts.length > 0 ? item.cuts : [item.leadCut];
-    const initialCutIndex = normalizedInitialCutSlotNumber
-      ? initialCuts.findIndex(
-          (cut) => cut.slotNumber === normalizedInitialCutSlotNumber,
-        )
-      : -1;
-
-    return initialCutIndex >= 0 ? initialCutIndex : 0;
-  });
+  const initialCutCount = item.cuts.length > 0 ? item.cuts.length : 1;
+  const initialActiveCutIndex = getInitialPublicCutIndex(
+    item,
+    initialCutSlotNumber,
+  );
+  const [activeCutIndex, setActiveCutIndex] = useState(initialActiveCutIndex);
+  const [trackCutIndex, setTrackCutIndex] = useState(() =>
+    initialCutCount > 1 ? initialActiveCutIndex + 1 : initialActiveCutIndex,
+  );
+  const [isCutTrackTransitionEnabled, setIsCutTrackTransitionEnabled] =
+    useState(true);
   const [sourceRevealState, setSourceRevealState] = useState(item.sourceReveal);
   const [isSourceRevealSaving, setIsSourceRevealSaving] = useState(false);
   const [sourceRevealError, setSourceRevealError] = useState<string | null>(null);
@@ -2396,6 +2411,30 @@ function FeedSlide({
     Boolean(memberSession.email) || sourceRevealState.requestedByViewer;
   const cuts = item.cuts.length > 0 ? item.cuts : [item.leadCut];
   const cutCount = cuts.length;
+  const carouselCuts =
+    cutCount > 1
+      ? [
+          {
+            cut: cuts[cutCount - 1],
+            key: `clone-start-${cuts[cutCount - 1]?.slotNumber ?? 0}`,
+            realIndex: cutCount - 1,
+          },
+          ...cuts.map((cut, cutIndex) => ({
+            cut,
+            key: `real-${cut.slotNumber}-${cut.imageUrl}`,
+            realIndex: cutIndex,
+          })),
+          {
+            cut: cuts[0],
+            key: `clone-end-${cuts[0]?.slotNumber ?? 0}`,
+            realIndex: 0,
+          },
+        ]
+      : cuts.map((cut, cutIndex) => ({
+          cut,
+          key: `real-${cut.slotNumber}-${cut.imageUrl}`,
+          realIndex: cutIndex,
+        }));
   const activeCutLabel = `${formatNumber(activeCutIndex + 1, locale)} / ${formatNumber(cutCount, locale)}`;
   const characterCutCountLabel = formatNumber(cutCount, locale);
   const characterSourceRevealLabel = `${formatNumber(
@@ -3196,17 +3235,85 @@ function FeedSlide({
     submitSourceRevealVote,
     trackSourceOpenIntent,
   ]);
+  const enableCutTrackTransitionOnNextFrame = useCallback(() => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        setIsCutTrackTransitionEnabled(true);
+      });
+    });
+  }, []);
+  const handleCutTrackTransitionEnd = useCallback(() => {
+    if (cutCount <= 1) {
+      return;
+    }
+
+    if (trackCutIndex === 0) {
+      setIsCutTrackTransitionEnabled(false);
+      setTrackCutIndex(cutCount);
+      enableCutTrackTransitionOnNextFrame();
+      return;
+    }
+
+    if (trackCutIndex === cutCount + 1) {
+      setIsCutTrackTransitionEnabled(false);
+      setTrackCutIndex(1);
+      enableCutTrackTransitionOnNextFrame();
+    }
+  }, [cutCount, enableCutTrackTransitionOnNextFrame, trackCutIndex]);
+  const selectCutIndex = useCallback(
+    (nextIndex: number) => {
+      const normalizedNextIndex = Math.max(
+        0,
+        Math.min(nextIndex, Math.max(cutCount - 1, 0)),
+      );
+      const shouldAnimateAdjacent =
+        cutCount > 1 && Math.abs(normalizedNextIndex - activeCutIndex) <= 1;
+
+      setIsCutTrackTransitionEnabled(shouldAnimateAdjacent);
+      setActiveCutIndex(normalizedNextIndex);
+      setTrackCutIndex(
+        cutCount > 1 ? normalizedNextIndex + 1 : normalizedNextIndex,
+      );
+
+      if (!shouldAnimateAdjacent) {
+        enableCutTrackTransitionOnNextFrame();
+      }
+    },
+    [activeCutIndex, cutCount, enableCutTrackTransitionOnNextFrame],
+  );
   const goToPreviousCut = useCallback(() => {
     pendingCutDwellExitReasonRef.current = "horizontal_swipe";
-    setActiveCutIndex((currentIndex) =>
-      cutCount > 0 ? (currentIndex - 1 + cutCount) % cutCount : currentIndex,
-    );
+    setActiveCutIndex((currentIndex) => {
+      if (cutCount <= 1) {
+        setTrackCutIndex(currentIndex);
+        return currentIndex;
+      }
+
+      const nextIndex = (currentIndex - 1 + cutCount) % cutCount;
+
+      setIsCutTrackTransitionEnabled(true);
+      setTrackCutIndex(currentIndex === 0 ? 0 : nextIndex + 1);
+
+      return nextIndex;
+    });
   }, [cutCount]);
   const goToNextCut = useCallback(() => {
     pendingCutDwellExitReasonRef.current = "horizontal_swipe";
-    setActiveCutIndex((currentIndex) =>
-      cutCount > 0 ? (currentIndex + 1) % cutCount : currentIndex,
-    );
+    setActiveCutIndex((currentIndex) => {
+      if (cutCount <= 1) {
+        setTrackCutIndex(currentIndex);
+        return currentIndex;
+      }
+
+      const nextIndex = (currentIndex + 1) % cutCount;
+
+      setIsCutTrackTransitionEnabled(true);
+      setTrackCutIndex(
+        currentIndex === cutCount - 1 ? cutCount + 1 : nextIndex + 1,
+      );
+
+      return nextIndex;
+    });
   }, [cutCount]);
   const handlePointerEnd = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
@@ -3453,18 +3560,23 @@ function FeedSlide({
       />
       <div className="absolute inset-0 overflow-hidden">
         <div
-          className="flex h-full transition-transform duration-300 ease-out"
+          className={`flex h-full ${
+            isCutTrackTransitionEnabled
+              ? "transition-transform duration-300 ease-out"
+              : ""
+          }`}
+          onTransitionEnd={handleCutTrackTransitionEnd}
           style={{
-            transform: `translateX(-${activeCutIndex * 100}%)`,
+            transform: `translateX(-${trackCutIndex * 100}%)`,
           }}
         >
-          {cuts.map((cut, cutIndex) => {
+          {carouselCuts.map(({ cut, key, realIndex }) => {
             const slotNumber = cut.slotNumber.toString().padStart(2, "0");
 
             return (
               <div
                 className="relative h-full w-full shrink-0 bg-black"
-                key={`${report.reportId}-${cut.slotNumber}-${cut.imageUrl}`}
+                key={`${report.reportId}-${key}`}
               >
                 <Image
                   alt={`${title} ${copy.slot(slotNumber)}`}
@@ -3474,7 +3586,7 @@ function FeedSlide({
                       : "object-cover brightness-[1.14] contrast-[1.02] saturate-[1.1]"
                   }
                   fill
-                  priority={isActive && cutIndex === activeCutIndex}
+                  priority={isActive && realIndex === activeCutIndex}
                   sizes="(min-width: 640px) 430px, 100vw"
                   src={cut.imageUrl}
                   unoptimized={shouldBypassFanletterImageOptimization(cut.imageUrl)}
@@ -3497,7 +3609,7 @@ function FeedSlide({
               onClick={() => {
                 onDismissSwipeGuide?.();
                 pendingCutDwellExitReasonRef.current = "cut_select";
-                setActiveCutIndex(cutIndex);
+                selectCutIndex(cutIndex);
               }}
               type="button"
             >
@@ -3760,7 +3872,7 @@ function FeedSlide({
                 key={`${report.reportId}-dot-${cut.slotNumber}`}
                 onClick={() => {
                   pendingCutDwellExitReasonRef.current = "cut_select";
-                  setActiveCutIndex(cutIndex);
+                  selectCutIndex(cutIndex);
                 }}
                 type="button"
               />
