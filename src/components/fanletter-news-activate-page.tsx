@@ -56,6 +56,7 @@ import {
 } from "@/lib/thirdweb-client";
 
 type FanletterNewsActivateStatus = "error" | "idle" | "ready" | "syncing";
+type FanletterNewsActivateSurface = "default" | "cutFeed";
 
 type FanletterNewsActivateSyncState = {
   email: string | null;
@@ -93,8 +94,11 @@ function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-function getCopy(locale: Locale) {
-  return locale === "ko"
+function getCopy(
+  locale: Locale,
+  surface: FanletterNewsActivateSurface = "default",
+) {
+  const copy = locale === "ko"
     ? {
         account: "뉴스 계정",
         accountReady: "뉴스 계정 활성화 완료",
@@ -176,6 +180,44 @@ function getCopy(locale: Locale) {
           "Payment is confirmed. Signup status will be checked again shortly.",
         txSent: "Payment was sent. Status will refresh after chain confirmation.",
         walletId: "Connection ID",
+      };
+
+  if (surface !== "cutFeed") {
+    return copy;
+  }
+
+  return locale === "ko"
+    ? {
+        ...copy,
+        activate: "10 USDT 가입 완료",
+        completeBody:
+          "가입 완료가 확인되었습니다. 보던 4컷 피드로 돌아가 보고싶어요 참여와 원본 공개 흐름을 이어갈 수 있습니다.",
+        connect: "뉴스 계정 연결하고 계속",
+        edition: "AIAVpark 4-Cut Feed",
+        eyebrow: "Cut Feed Join",
+        loginTitle: "4컷 피드 참여 계정 연결",
+        pendingBody:
+          "보고싶어요 참여는 가입 완료 회원에게만 열립니다. 10 USDT 가입을 완료하면 방금 보던 4컷으로 돌아가 바로 참여할 수 있습니다.",
+        pendingTitle: "4컷 피드 참여 준비",
+        returnTo: "4컷 피드로 돌아가기",
+        steps: ["뉴스 계정 연결", "10 USDT 가입 완료", "4컷 참여"],
+        title: "보고싶어요 참여를 위한 가입 완료",
+      }
+    : {
+        ...copy,
+        activate: "Complete 10 USDT signup",
+        completeBody:
+          "Signup is confirmed. Return to the 4-cut feed to join the source-open signal and continue the content flow.",
+        connect: "Connect News account",
+        edition: "AIAVpark 4-Cut Feed",
+        eyebrow: "Cut Feed Join",
+        loginTitle: "Connect for 4-cut participation",
+        pendingBody:
+          "Source-open participation is available to completed members. Finish the 10 USDT signup, then return to the cut you were viewing.",
+        pendingTitle: "Get ready to join the 4-cut feed",
+        returnTo: "Back to 4-cut feed",
+        steps: ["Connect News account", "Complete 10 USDT signup", "Join 4-cut"],
+        title: "Complete signup to join source-open",
       };
 }
 
@@ -353,12 +395,14 @@ export function FanletterNewsActivatePage({
   projectWallet,
   referralCode,
   returnToHref,
+  surface = "default",
 }: {
   dictionary: Dictionary;
   locale: Locale;
   projectWallet: string | null;
   referralCode: string | null;
   returnToHref: string;
+  surface?: FanletterNewsActivateSurface;
 }) {
   const account = useActiveAccount();
   const chain = useActiveWalletChain() ?? smartWalletChain;
@@ -370,7 +414,7 @@ export function FanletterNewsActivatePage({
   const [syncState, setSyncState] =
     useState<FanletterNewsActivateSyncState>(emptySyncState);
   const syncRequestIdRef = useRef(0);
-  const copy = getCopy(locale);
+  const copy = getCopy(locale, surface);
   const accountAddress = account?.address ?? null;
   const accountLabel = formatAddressLabel(accountAddress);
   const newsHomeHref = buildPathWithReferral(

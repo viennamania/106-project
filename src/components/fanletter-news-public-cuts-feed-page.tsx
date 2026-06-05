@@ -260,6 +260,7 @@ function getCopy(locale: Locale) {
         sourceOpenCompleteSummary: (count: string, threshold: string) =>
           `${count}/${threshold}명 참여 완료`,
         sourceOpenDone: "원본 공개 완료",
+        sourceOpenSignupCta: "가입 완료",
         sourceOpenSponsors: "보고싶어요 참여자",
         sourceOpenSponsorsAnonymous: "익명 참여자",
         sourceOpenSponsorsClose: "참여자 닫기",
@@ -300,6 +301,7 @@ function getCopy(locale: Locale) {
         sourcePreviewJoinedTitle: "참여 완료 · 공개까지 이어집니다",
         sourcePreviewJoinCta: "보고싶어요 참여",
         sourcePreviewLoginCta: "로그인하고 참여",
+        sourcePreviewSignupCta: "가입 완료 후 참여",
         sourcePreviewNextCta: "다음 보고싶어요 찾기",
         sourcePreviewTitle: "프리뷰를 보고 보고싶어요에 참여하세요",
         sourceRevealLockedBody: (
@@ -453,6 +455,7 @@ function getCopy(locale: Locale) {
         sourceOpenCompleteSummary: (count: string, threshold: string) =>
           `${count}/${threshold} joined`,
         sourceOpenDone: "Source open",
+        sourceOpenSignupCta: "Sign up",
         sourceOpenSponsors: "Open sponsors",
         sourceOpenSponsorsAnonymous: "Anonymous open sponsor",
         sourceOpenSponsorsClose: "Close open sponsors",
@@ -493,6 +496,7 @@ function getCopy(locale: Locale) {
         sourcePreviewJoinedTitle: "Joined · helping open the source",
         sourcePreviewJoinCta: "Join Want It",
         sourcePreviewLoginCta: "Sign in to join",
+        sourcePreviewSignupCta: "Complete signup to join",
         sourcePreviewNextCta: "Find next Want It",
         sourcePreviewTitle: "Preview it, then help open the source",
         sourceRevealLockedBody: (
@@ -753,6 +757,7 @@ type SourceRevealParticipantRailCopy = Pick<
   | "sourceOpen"
   | "sourceOpenCta"
   | "sourceOpenDone"
+  | "sourceOpenSignupCta"
   | "sourceOpenSponsors"
   | "sourceOpenSponsorsAnonymous"
   | "sourceOpenSponsorsClose"
@@ -933,6 +938,23 @@ function getReportComposerHref({
       returnTo: returnToHref,
       sourceMode: contentId ? "direct" : null,
       sourceReveal: contentId ? (sourceReveal ?? "locked") : "opportunity",
+    },
+  );
+}
+
+function getCutFeedJoinHref({
+  locale,
+  referralCode,
+  returnToHref,
+}: {
+  locale: Locale;
+  referralCode: string | null;
+  returnToHref: string;
+}) {
+  return setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/cuts/join`, referralCode),
+    {
+      returnTo: returnToHref,
     },
   );
 }
@@ -1652,6 +1674,7 @@ function SourceRevealParticipantRail({
   highlightSourceView = false,
   isLoggedIn,
   isLoginBusy,
+  needsCutFeedJoin,
   isSaving,
   locale,
   loginError,
@@ -1668,6 +1691,7 @@ function SourceRevealParticipantRail({
   highlightSourceView?: boolean;
   isLoggedIn: boolean;
   isLoginBusy: boolean;
+  needsCutFeedJoin: boolean;
   isSaving: boolean;
   locale: Locale;
   loginError: string | null;
@@ -1695,7 +1719,11 @@ function SourceRevealParticipantRail({
     viewerDisplayName,
     viewerReferralCode,
   });
-  const ctaLabel = state.unlocked ? copy.sourceView : copy.sourceOpenCta;
+  const ctaLabel = state.unlocked
+    ? copy.sourceView
+    : needsCutFeedJoin
+      ? copy.sourceOpenSignupCta
+      : copy.sourceOpenCta;
   const buttonA11yLabel = isLoginBusy
     ? `${copy.loginSyncing} ${countLabel}`
     : isSaving
@@ -1982,6 +2010,7 @@ type SourceOverlayCopy = Pick<
   | "sourcePreviewJoinedTitle"
   | "sourcePreviewJoinCta"
   | "sourcePreviewLoginCta"
+  | "sourcePreviewSignupCta"
   | "sourcePreviewNextCta"
   | "sourcePreviewTitle"
   | "sourceRevealLockedBody"
@@ -2062,6 +2091,7 @@ function SourceVlogFeedOverlay({
   isSourceRevealLoggedIn,
   isLoading,
   locale,
+  needsCutFeedJoin = false,
   onClose,
   onFindNextSourceRevealCandidate,
   onNavigate,
@@ -2076,6 +2106,7 @@ function SourceVlogFeedOverlay({
   isSourceRevealLoggedIn: boolean;
   isLoading: boolean;
   locale: Locale;
+  needsCutFeedJoin?: boolean;
   onClose: () => void;
   onFindNextSourceRevealCandidate?: () => void;
   onNavigate?: CutFeedNavigationStart;
@@ -2134,9 +2165,11 @@ function SourceVlogFeedOverlay({
     ? copy.voteDone
     : isSourceRevealActionBusy
       ? copy.voteSaving
-      : isSourceRevealLoggedIn
-        ? copy.sourcePreviewJoinCta
-        : copy.sourcePreviewLoginCta;
+      : needsCutFeedJoin
+        ? copy.sourcePreviewSignupCta
+        : isSourceRevealLoggedIn
+          ? copy.sourcePreviewJoinCta
+          : copy.sourcePreviewLoginCta;
   const sourceRevealCtaDisabled =
     Boolean(source?.sourceReveal.requestedByViewer) || isSourceRevealActionBusy;
   const sourceRevealDoneFeedback =
@@ -2545,8 +2578,16 @@ function FeedSlide({
   const sourceRevealEndpoint = `/api/fanletter/news-reports/${encodeURIComponent(report.reportId)}/source-reveal`;
   const sourceContentId =
     typeof report.contentId === "string" ? report.contentId.trim() : "";
+  const connectedMember = memberSession.member ?? null;
+  const isCompletedNewsMember =
+    connectedMember?.status === "completed" && !connectedMember.serviceSuspendedAt;
+  const needsCutFeedJoin =
+    Boolean(memberSession.email) &&
+    Boolean(connectedMember) &&
+    !isCompletedNewsMember &&
+    !sourceRevealState.requestedByViewer;
   const isSourceRevealLoggedIn =
-    Boolean(memberSession.email) || sourceRevealState.requestedByViewer;
+    isCompletedNewsMember || sourceRevealState.requestedByViewer;
   const cuts = item.cuts.length > 0 ? item.cuts : [item.leadCut];
   const cutCount = cuts.length;
   const carouselCuts =
@@ -2587,6 +2628,11 @@ function FeedSlide({
     referralCode,
     reportId: report.reportId,
     shareId,
+  });
+  const cutFeedJoinHref = getCutFeedJoinHref({
+    locale,
+    referralCode,
+    returnToHref: cutFeedReturnHref,
   });
   const reporterHref = getReporterHref({
     cutSlotNumber: activeCutSlotNumber,
@@ -2637,6 +2683,21 @@ function FeedSlide({
     },
     [onDismissSwipeGuide, onNavigationStart],
   );
+  const openCutFeedJoin = useCallback(() => {
+    startNavigation({
+      href: cutFeedJoinHref,
+      label: copy.navigationPending.destination(copy.sourcePreviewSignupCta),
+    });
+
+    window.setTimeout(() => {
+      window.location.assign(cutFeedJoinHref);
+    }, 120);
+  }, [
+    copy.navigationPending,
+    copy.sourcePreviewSignupCta,
+    cutFeedJoinHref,
+    startNavigation,
+  ]);
   const flushCutDwell = useCallback((exitReason: CutDwellExitReason) => {
     const snapshot = cutDwellSnapshotRef.current;
 
@@ -3211,6 +3272,11 @@ function FeedSlide({
     pendingVoteAfterLoginRef.current = true;
     setLoginSyncError(null);
 
+    if (needsCutFeedJoin) {
+      openCutFeedJoin();
+      return;
+    }
+
     if (isSourceRevealLoggedIn) {
       void submitSourceRevealVote();
       return;
@@ -3228,7 +3294,9 @@ function FeedSlide({
     copy.loginUnavailable,
     isSourceRevealLoggedIn,
     isSourceRevealSaving,
+    needsCutFeedJoin,
     nudgeLoginVote,
+    openCutFeedJoin,
     sourceRevealState.requestedByViewer,
     sourceRevealState.unlocked,
     submitSourceRevealVote,
@@ -3300,6 +3368,17 @@ function FeedSlide({
           member: result.member,
           walletAddress: accountAddress,
         });
+
+        if (
+          result.member.status !== "completed" ||
+          result.member.serviceSuspendedAt
+        ) {
+          pendingVoteAfterLoginRef.current = false;
+          loginSyncKeyRef.current = null;
+          openCutFeedJoin();
+          return;
+        }
+
         pendingVoteAfterLoginRef.current = false;
         showTapFeedback(copy.doubleTapWant);
         void submitSourceRevealVote({ skipLoginCheck: true });
@@ -3338,6 +3417,7 @@ function FeedSlide({
     locale,
     memberSession.email,
     nudgeLoginVote,
+    openCutFeedJoin,
     referralCode,
     showTapFeedback,
     sourceRevealEndpoint,
@@ -3822,6 +3902,7 @@ function FeedSlide({
           highlightSourceView={showSourceViewGuide}
           isLoggedIn={isSourceRevealLoggedIn}
           isLoginBusy={isLoginSyncing}
+          needsCutFeedJoin={needsCutFeedJoin}
           isSaving={isSourceRevealSaving}
           locale={locale}
           loginError={loginSyncError}
@@ -4050,6 +4131,7 @@ function FeedSlide({
           isSourceRevealLoggedIn={isSourceRevealLoggedIn}
           isLoading={isSourceOverlayLoading}
           locale={locale}
+          needsCutFeedJoin={needsCutFeedJoin}
           onClose={closeSourceOverlay}
           onFindNextSourceRevealCandidate={findNextSourceRevealCandidate}
           onNavigate={onNavigationStart}
