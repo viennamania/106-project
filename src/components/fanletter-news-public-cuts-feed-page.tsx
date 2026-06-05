@@ -101,6 +101,7 @@ const CUT_FEED_ENTRY_HEADER_VISIBLE_MS = 2800;
 const CUT_FEED_LOGIN_SYNC_GRACE_MS = 4500;
 const CUT_FEED_RENDER_WINDOW_RADIUS = 0;
 const CUT_FEED_ROLE_SHORTCUT_VISIBLE_MS = 1800;
+const CUT_FEED_SIDE_ACTION_VISIBLE_MS = 4200;
 const CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT =
   "fanletter-news-cut-feed-visible-index-change";
 const CUT_DWELL_MIN_TRACK_MS = 800;
@@ -2502,6 +2503,7 @@ function FeedSlide({
   const [tapFeedback, setTapFeedback] =
     useState<SourceRevealTapFeedback | null>(null);
   const [authNudge, setAuthNudge] = useState(false);
+  const [areSideActionsVisible, setAreSideActionsVisible] = useState(true);
   const [sourceOverlayOpen, setSourceOverlayOpen] = useState(false);
   const [sourceOverlaySource, setSourceOverlaySource] =
     useState<FanletterNewsPublicCutSource | null>(null);
@@ -2537,6 +2539,9 @@ function FeedSlide({
     null,
   );
   const authNudgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sideActionsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const initialSourceOverlayOpenedRef = useRef(false);
   const pendingVoteAfterLoginRef = useRef(false);
   const loginSyncKeyRef = useRef<string | null>(null);
@@ -2700,6 +2705,28 @@ function FeedSlide({
     cutFeedJoinHref,
     startNavigation,
   ]);
+  const clearSideActionsTimer = useCallback(() => {
+    if (sideActionsTimeoutRef.current) {
+      clearTimeout(sideActionsTimeoutRef.current);
+      sideActionsTimeoutRef.current = null;
+    }
+  }, []);
+  const revealSideActions = useCallback(
+    (options?: { persist?: boolean }) => {
+      clearSideActionsTimer();
+      setAreSideActionsVisible(true);
+
+      if (!isActive || options?.persist) {
+        return;
+      }
+
+      sideActionsTimeoutRef.current = setTimeout(() => {
+        setAreSideActionsVisible(false);
+        sideActionsTimeoutRef.current = null;
+      }, CUT_FEED_SIDE_ACTION_VISIBLE_MS);
+    },
+    [clearSideActionsTimer, isActive],
+  );
   const flushCutDwell = useCallback((exitReason: CutDwellExitReason) => {
     const snapshot = cutDwellSnapshotRef.current;
 
@@ -2736,6 +2763,42 @@ function FeedSlide({
       targetHref: snapshot.targetHref,
     });
   }, []);
+
+  useEffect(() => {
+    if (!isActive) {
+      clearSideActionsTimer();
+      setAreSideActionsVisible(false);
+      return;
+    }
+
+    revealSideActions();
+  }, [
+    activeCutIndex,
+    clearSideActionsTimer,
+    isActive,
+    revealSideActions,
+    report.reportId,
+  ]);
+
+  useEffect(() => {
+    if (
+      !isActive ||
+      (!authNudge && !isLoginSyncing && !isSourceRevealSaving && !tapFeedback)
+    ) {
+      return;
+    }
+
+    revealSideActions({
+      persist: authNudge || isLoginSyncing || isSourceRevealSaving,
+    });
+  }, [
+    authNudge,
+    isActive,
+    isLoginSyncing,
+    isSourceRevealSaving,
+    revealSideActions,
+    tapFeedback,
+  ]);
 
   useEffect(() => {
     if (!isActive) {
@@ -3095,8 +3158,10 @@ function FeedSlide({
       if (authNudgeTimeoutRef.current) {
         clearTimeout(authNudgeTimeoutRef.current);
       }
+
+      clearSideActionsTimer();
     };
-  }, []);
+  }, [clearSideActionsTimer]);
 
   useEffect(() => {
     if (!sourceOverlayOpen) {
@@ -3760,6 +3825,7 @@ function FeedSlide({
         pointerStartRef.current = null;
       }}
       onPointerDown={(event) => {
+        revealSideActions();
         pointerStartRef.current = {
           target: event.target,
           x: event.clientX,
@@ -3877,7 +3943,13 @@ function FeedSlide({
         </div>
       </div>
 
-      <div className="absolute right-3 top-[48%] z-30 flex -translate-y-1/2 flex-col items-center gap-4 text-white">
+      <div
+        className={`absolute right-3 top-[48%] z-30 flex -translate-y-1/2 flex-col items-center gap-4 text-white transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
+          areSideActionsVisible
+            ? "visible pointer-events-auto translate-x-0 opacity-100 blur-0"
+            : "invisible pointer-events-none translate-x-3 opacity-0 blur-[1px]"
+        }`}
+      >
         {showSourceViewGuide ? (
           <div
             aria-live="polite"
