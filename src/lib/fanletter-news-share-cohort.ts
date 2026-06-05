@@ -15,6 +15,7 @@ const FANLETTER_NEWS_SHARE_COHORT_MIN_EVENTS = 3;
 const FANLETTER_NEWS_SHARE_COHORT_MIN_SCORE = 4;
 
 const FANLETTER_NEWS_SHARE_COHORT_EVENT_NAMES: FunnelEventName[] = [
+  "fanletter_news_cut_dwell",
   "fanletter_news_cut_feed_load_more",
   "fanletter_news_cut_view",
   "fanletter_news_source_open_click",
@@ -50,6 +51,15 @@ function readMetadataString(
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+function readMetadataNumber(
+  metadata: FunnelEventMetadata | undefined,
+  key: string,
+) {
+  const value = metadata?.[key];
+
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
 function addScore(map: Map<string, number>, key: string | null, score: number) {
   const normalizedKey = key?.trim().toUpperCase();
 
@@ -60,8 +70,34 @@ function addScore(map: Map<string, number>, key: string | null, score: number) {
   map.set(normalizedKey, (map.get(normalizedKey) ?? 0) + score);
 }
 
-function getEventWeight(event: Pick<FunnelEventDocument, "name">) {
+function getCutDwellEventWeight(
+  event: Pick<FunnelEventDocument, "metadata">,
+) {
+  const durationMs = readMetadataNumber(event.metadata, "durationMs");
+
+  if (!durationMs || durationMs < 800) {
+    return 0;
+  }
+
+  if (durationMs >= 6000) {
+    return 7;
+  }
+
+  if (durationMs >= 3000) {
+    return 5;
+  }
+
+  if (durationMs >= 1500) {
+    return 3;
+  }
+
+  return 1;
+}
+
+function getEventWeight(event: Pick<FunnelEventDocument, "metadata" | "name">) {
   switch (event.name) {
+    case "fanletter_news_cut_dwell":
+      return getCutDwellEventWeight(event);
     case "fanletter_news_source_open_click":
       return 5;
     case "share_click":

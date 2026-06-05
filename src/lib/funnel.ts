@@ -2,6 +2,7 @@ export const funnelEventNames = [
   "bridge_view",
   "content_open",
   "external_browser_click",
+  "fanletter_news_cut_dwell",
   "fanletter_news_cut_feed_load_more",
   "fanletter_news_cut_view",
   "fanletter_news_report_view",

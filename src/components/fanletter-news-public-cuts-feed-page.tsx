@@ -102,9 +102,37 @@ const CUT_FEED_ENTRY_HEADER_VISIBLE_MS = 2800;
 const CUT_FEED_LOGIN_SYNC_GRACE_MS = 4500;
 const CUT_FEED_RENDER_WINDOW_RADIUS = 0;
 const CUT_FEED_ROLE_SHORTCUT_VISIBLE_MS = 1800;
+const CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT =
+  "fanletter-news-cut-feed-visible-index-change";
+const CUT_DWELL_MIN_TRACK_MS = 800;
+const CUT_DWELL_MAX_TRACK_MS = 60000;
 
 type CutFeedViewportStyle = CSSProperties & {
   "--fanletter-cut-feed-vh"?: string;
+};
+
+type CutDwellExitReason =
+  | "cut_select"
+  | "horizontal_swipe"
+  | "page_hide"
+  | "slide_unmount"
+  | "source_open"
+  | "vertical_next"
+  | "vertical_previous";
+
+type CutDwellSnapshot = {
+  contentId: string;
+  key: string;
+  metadata: Record<string, boolean | null | number | string>;
+  referralCode: string | null;
+  shareId: string | null;
+  startedAt: number;
+  targetHref: string;
+};
+
+type CutFeedVisibleIndexChangeDetail = {
+  nextIndex: number;
+  previousIndex: number;
 };
 
 function getCopy(locale: Locale) {
@@ -495,6 +523,60 @@ function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US").format(
     value,
   );
+}
+
+function getCutDwellBucket(durationMs: number) {
+  if (durationMs >= 6000) {
+    return "strong_6s";
+  }
+
+  if (durationMs >= 3000) {
+    return "strong_3s";
+  }
+
+  if (durationMs >= 1500) {
+    return "interested";
+  }
+
+  return "glance";
+}
+
+function hashStringToPositiveInt(value: string) {
+  let hash = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) | 0;
+  }
+
+  return Math.abs(hash);
+}
+
+function getStableRandomInitialCutSlotNumber({
+  index,
+  item,
+  referralCode,
+  shareId,
+}: {
+  index: number;
+  item: SerializedFanletterNewsPublicCutFeedItem;
+  referralCode: string | null;
+  shareId: string | null;
+}) {
+  const cuts = item.cuts.length > 0 ? item.cuts : [item.leadCut];
+
+  if (cuts.length <= 1) {
+    return null;
+  }
+
+  const seed = [
+    shareId?.trim() || referralCode?.trim() || "direct",
+    item.report.reportId,
+    item.report.contentId,
+    String(index),
+  ].join(":");
+  const cutIndex = hashStringToPositiveInt(seed) % cuts.length;
+
+  return cuts[cutIndex]?.slotNumber ?? null;
 }
 
 function getDistance({
@@ -2258,6 +2340,8 @@ function FeedSlide({
   const sourceOverlayHistoryPushedRef = useRef(false);
   const handledReporterPanelRequestIdRef = useRef(0);
   const trackedCutViewKeyRef = useRef<string | null>(null);
+  const cutDwellSnapshotRef = useRef<CutDwellSnapshot | null>(null);
+  const pendingCutDwellExitReasonRef = useRef<CutDwellExitReason | null>(null);
   const copy = getCopy(locale);
   const { report } = item;
   const normalizedViewerReferralCode = normalizeReferralCode(
@@ -2350,6 +2434,148 @@ function FeedSlide({
     referralCode,
     returnToHref: cutFeedReturnHref,
   });
+  const flushCutDwell = useCallback((exitReason: CutDwellExitReason) => {
+    const snapshot = cutDwellSnapshotRef.current;
+
+    if (!snapshot) {
+      return;
+    }
+
+    cutDwellSnapshotRef.current = null;
+
+    const now =
+      typeof performance !== "undefined" ? performance.now() : Date.now();
+    const durationMs = Math.max(
+      0,
+      Math.min(
+        CUT_DWELL_MAX_TRACK_MS,
+        Math.round(now - snapshot.startedAt),
+      ),
+    );
+
+    if (durationMs < CUT_DWELL_MIN_TRACK_MS) {
+      return;
+    }
+
+    trackFunnelEvent("fanletter_news_cut_dwell", {
+      contentId: snapshot.contentId,
+      metadata: {
+        ...snapshot.metadata,
+        durationMs,
+        exitReason,
+        interestBucket: getCutDwellBucket(durationMs),
+      },
+      referralCode: snapshot.referralCode,
+      shareId: snapshot.shareId,
+      targetHref: snapshot.targetHref,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!isActive) {
+      return;
+    }
+
+    const startedAt =
+      typeof performance !== "undefined" ? performance.now() : Date.now();
+    const dwellKey = [
+      report.reportId,
+      activeCutSlotNumber,
+      index,
+      shareId ?? "",
+    ].join(":");
+
+    cutDwellSnapshotRef.current = {
+      contentId: report.contentId,
+      key: dwellKey,
+      metadata: {
+        creatorReferralCode: report.creatorReferralCode,
+        cutCount,
+        cutSlotNumber: activeCutSlotNumber,
+        feedIndex: index,
+        priceType: report.priceType,
+        reportId: report.reportId,
+        reporterReferralCode: report.reporterReferralCode,
+        source: "fanletter-news-cut-feed",
+        sourceRevealCount: sourceRevealState.count,
+        sourceRevealThreshold: sourceRevealState.threshold,
+        sourceRevealUnlocked: sourceRevealState.unlocked,
+      },
+      referralCode,
+      shareId,
+      startedAt,
+      targetHref: cutFeedReturnHref,
+    };
+
+    return () => {
+      flushCutDwell(
+        pendingCutDwellExitReasonRef.current ?? "slide_unmount",
+      );
+      pendingCutDwellExitReasonRef.current = null;
+    };
+  }, [
+    activeCutSlotNumber,
+    cutCount,
+    cutFeedReturnHref,
+    flushCutDwell,
+    index,
+    isActive,
+    referralCode,
+    report.contentId,
+    report.creatorReferralCode,
+    report.priceType,
+    report.reportId,
+    report.reporterReferralCode,
+    shareId,
+    sourceRevealState.count,
+    sourceRevealState.threshold,
+    sourceRevealState.unlocked,
+  ]);
+
+  useEffect(() => {
+    const handlePageHide = () => {
+      flushCutDwell("page_hide");
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushCutDwell("page_hide");
+      }
+    };
+    const handleVisibleIndexChange = (event: Event) => {
+      const detail = (
+        event as CustomEvent<CutFeedVisibleIndexChangeDetail>
+      ).detail;
+
+      if (detail?.previousIndex !== index) {
+        return;
+      }
+
+      flushCutDwell(
+        detail.nextIndex > detail.previousIndex
+          ? "vertical_next"
+          : "vertical_previous",
+      );
+    };
+
+    window.addEventListener("pagehide", handlePageHide);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener(
+      CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT,
+      handleVisibleIndexChange,
+    );
+
+    return () => {
+      window.removeEventListener("pagehide", handlePageHide);
+      document.removeEventListener(
+        "visibilitychange",
+        handleVisibilityChange,
+      );
+      window.removeEventListener(
+        CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT,
+        handleVisibleIndexChange,
+      );
+    };
+  }, [flushCutDwell, index]);
 
   useEffect(() => {
     if (!isActive) {
@@ -2444,6 +2670,8 @@ function FeedSlide({
       return;
     }
 
+    flushCutDwell("source_open");
+    pendingCutDwellExitReasonRef.current = "source_open";
     setSourceOverlayOpen(true);
 
     if (!sourceOverlayHistoryPushedRef.current) {
@@ -2469,6 +2697,7 @@ function FeedSlide({
     }
   }, [
     isSourceOverlayLoading,
+    flushCutDwell,
     loadSourceOverlay,
     report.reportId,
     sourceContentId,
@@ -2950,11 +3179,13 @@ function FeedSlide({
     trackSourceOpenIntent,
   ]);
   const goToPreviousCut = useCallback(() => {
+    pendingCutDwellExitReasonRef.current = "horizontal_swipe";
     setActiveCutIndex((currentIndex) =>
       cutCount > 0 ? (currentIndex - 1 + cutCount) % cutCount : currentIndex,
     );
   }, [cutCount]);
   const goToNextCut = useCallback(() => {
+    pendingCutDwellExitReasonRef.current = "horizontal_swipe";
     setActiveCutIndex((currentIndex) =>
       cutCount > 0 ? (currentIndex + 1) % cutCount : currentIndex,
     );
@@ -3247,6 +3478,7 @@ function FeedSlide({
               key={`${report.reportId}-progress-${cut.slotNumber}`}
               onClick={() => {
                 onDismissSwipeGuide?.();
+                pendingCutDwellExitReasonRef.current = "cut_select";
                 setActiveCutIndex(cutIndex);
               }}
               type="button"
@@ -3500,7 +3732,10 @@ function FeedSlide({
                   cutIndex === activeCutIndex ? "bg-white" : "bg-white/34"
                 }`}
                 key={`${report.reportId}-dot-${cut.slotNumber}`}
-                onClick={() => setActiveCutIndex(cutIndex)}
+                onClick={() => {
+                  pendingCutDwellExitReasonRef.current = "cut_select";
+                  setActiveCutIndex(cutIndex);
+                }}
                 type="button"
               />
             ))}
@@ -4039,6 +4274,17 @@ export function FanletterNewsPublicCutsFeedPage({
         return currentIndex;
       }
 
+      window.dispatchEvent(
+        new CustomEvent<CutFeedVisibleIndexChangeDetail>(
+          CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT,
+          {
+            detail: {
+              nextIndex: visibleIndex,
+              previousIndex: currentIndex,
+            },
+          },
+        ),
+      );
       setIsCutFeedHeaderVisible(true);
 
       return visibleIndex;
@@ -4684,7 +4930,16 @@ export function FanletterNewsPublicCutsFeedPage({
               dictionary={dictionary}
               hasMore={hasMore}
               index={index}
-              initialCutSlotNumber={index === 0 ? initialCutSlotNumber : null}
+              initialCutSlotNumber={
+                index === 0
+                  ? initialCutSlotNumber
+                  : getStableRandomInitialCutSlotNumber({
+                      index,
+                      item,
+                      referralCode,
+                      shareId,
+                    })
+              }
               initialSourceContentId={index === 0 ? sourceContentId : null}
               isActive={index === activeFeedIndex}
               isReporterComposerCtaVisible={isReporterComposerCtaVisible}
