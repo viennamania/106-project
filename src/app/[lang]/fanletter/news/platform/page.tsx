@@ -3520,6 +3520,12 @@ export default async function FanletterNewsPlatformPage({
     `/${locale}/fanletter/news`,
     referralCode,
   );
+  const cutsHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/cuts`, referralCode),
+    {
+      returnTo: homeHref,
+    },
+  );
   const reportsHref = buildPathWithReferral(
     `/${locale}/fanletter/news/reports`,
     referralCode,
@@ -3603,7 +3609,7 @@ export default async function FanletterNewsPlatformPage({
               </div>
 
               <div className="mt-5 grid grid-cols-1 gap-2.5 sm:mt-7 sm:flex sm:flex-row sm:gap-3">
-                <CtaLink href={newsHref}>{copy.primaryCta}</CtaLink>
+                <CtaLink href={cutsHref}>{copy.primaryCta}</CtaLink>
                 <CtaLink href={charactersHref} variant="secondary">
                   {copy.secondaryCta}
                 </CtaLink>
