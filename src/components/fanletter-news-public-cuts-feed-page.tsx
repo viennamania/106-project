@@ -205,6 +205,7 @@ function getCopy(locale: Locale) {
           summary: (count: string) =>
             `아직 원본이 열리지 않은 소재 ${count}개를 빠르게 찾아 4컷 편집으로 이어갈 수 있습니다.`,
           title: "리포터 빠른 작성",
+          viewerCurrentCta: "이미 작성한 리포트",
         },
         reporterSourceMetric: "원본 오픈",
         returnToBrief: "브리프",
@@ -400,6 +401,7 @@ function getCopy(locale: Locale) {
           summary: (count: string) =>
             `${count} unopened source candidates can be found quickly and turned into a four-cut report.`,
           title: "Reporter quick desk",
+          viewerCurrentCta: "Already your report",
         },
         reporterSourceMetric: "Source open",
         returnToBrief: "Brief",
@@ -4064,7 +4066,31 @@ function FeedSlide({
             </div>
             {isReporterComposerCtaVisible && sourceContentId ? (
               <div className="mt-3 flex max-w-full flex-wrap gap-2">
-                {item.reportSlot.full ? (
+                {isViewerReport ? (
+                  <>
+                    <span className="inline-flex min-h-11 max-w-full flex-1 items-center justify-center gap-2 rounded-full border border-[#44f26e]/24 bg-black/48 px-4 py-2 text-sm font-black text-[#9bffad] shadow-[0_16px_34px_rgba(0,0,0,0.28)] backdrop-blur sm:flex-none">
+                      <Check className="size-4 shrink-0 stroke-[3]" />
+                      <span className="truncate">
+                        {copy.reporterQuickDesk.viewerCurrentCta}
+                      </span>
+                    </span>
+                    <Link
+                      className="inline-flex min-h-11 max-w-full flex-1 items-center justify-center gap-2 rounded-full border border-[#44f26e]/34 bg-[#44f26e] px-4 py-2 text-sm font-black !text-[#111510] shadow-[0_16px_34px_rgba(0,0,0,0.28)] transition hover:bg-[#65ff87] sm:flex-none"
+                      href={nextReportComposerHref}
+                      onClick={() => {
+                        startNavigation({
+                          href: nextReportComposerHref,
+                          label: copy.navigationPending.report,
+                        });
+                      }}
+                    >
+                      <ArrowRight className="size-4 shrink-0" />
+                      <span className="truncate">
+                        {copy.reporterQuickDesk.nextCta}
+                      </span>
+                    </Link>
+                  </>
+                ) : item.reportSlot.full ? (
                   <span className="inline-flex min-h-11 max-w-full flex-1 items-center justify-center gap-2 rounded-full border border-white/18 bg-black/50 px-4 py-2 text-sm font-black text-white/76 shadow-[0_16px_34px_rgba(0,0,0,0.28)] backdrop-blur sm:flex-none">
                     <PenLine className="size-4 shrink-0 text-[#44f26e]" />
                     <span className="truncate">{reportComposerCtaLabel}</span>
@@ -4084,23 +4110,6 @@ function FeedSlide({
                     <span className="truncate">{reportComposerCtaLabel}</span>
                   </Link>
                 )}
-                {isViewerReport ? (
-                  <Link
-                    className="inline-flex min-h-11 max-w-full flex-1 items-center justify-center gap-2 rounded-full border border-white/18 bg-black/44 px-4 py-2 text-sm font-black !text-white shadow-[0_16px_34px_rgba(0,0,0,0.28)] backdrop-blur transition hover:bg-white hover:!text-[#111510] sm:flex-none"
-                    href={nextReportComposerHref}
-                    onClick={() => {
-                      startNavigation({
-                        href: nextReportComposerHref,
-                        label: copy.navigationPending.report,
-                      });
-                    }}
-                  >
-                    <ArrowRight className="size-4 shrink-0 text-[#44f26e]" />
-                    <span className="truncate">
-                      {copy.reporterQuickDesk.nextCta}
-                    </span>
-                  </Link>
-                ) : null}
               </div>
             ) : null}
           </div>
