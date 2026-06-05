@@ -5394,11 +5394,17 @@ export function FanletterNewsPublicCutsFeedPage({
       ? "max-h-14 translate-y-0 opacity-100"
       : "max-h-0 -translate-y-2 opacity-0"
   }`;
-  const serviceMenuButtonClassName = `pointer-events-auto group inline-flex h-11 shrink-0 items-center rounded-full border text-white shadow-[0_12px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-[background-color,border-color,color,gap,padding,transform] duration-500 ease-out hover:bg-[#44f26e] hover:text-[#111510] ${
-    isCutFeedHeaderExpanded
-      ? "gap-2 border-[#44f26e]/28 bg-[#44f26e]/14 px-3"
-      : "gap-1.5 border-white/16 bg-black/42 px-3"
-  }`;
+  const serviceMenuButtonClassName = shouldShowHeaderCount
+    ? `pointer-events-auto group inline-flex h-11 shrink-0 items-center rounded-full border text-white shadow-[0_12px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-[background-color,border-color,color,gap,padding,transform] duration-500 ease-out hover:bg-[#44f26e] hover:text-[#111510] ${
+        isCutFeedHeaderExpanded
+          ? "gap-2 border-[#44f26e]/28 bg-[#44f26e]/14 px-3"
+          : "gap-1.5 border-white/16 bg-black/42 px-3"
+      }`
+    : `pointer-events-auto inline-flex size-11 shrink-0 items-center justify-center rounded-full border text-white shadow-[0_12px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-[background-color,border-color,color,transform] duration-500 ease-out hover:bg-[#44f26e] hover:text-[#111510] ${
+        isCutFeedHeaderExpanded
+          ? "border-[#44f26e]/28 bg-[#44f26e]/14"
+          : "border-white/16 bg-black/42"
+      }`;
   const returnToButtonClassName = `pointer-events-auto inline-flex h-11 shrink-0 items-center rounded-full border text-white shadow-[0_12px_30px_rgba(0,0,0,0.18)] backdrop-blur-xl transition-[background-color,border-color,color,gap,padding,transform] duration-500 ease-out hover:bg-white hover:text-[#111510] ${
     isCutFeedHeaderExpanded
       ? "gap-2 border-white/18 bg-white/12 px-3"
@@ -5489,13 +5495,15 @@ export function FanletterNewsPublicCutsFeedPage({
             type="button"
           >
             <Menu className="size-4" />
-            <span
-              className={`hidden text-[0.72rem] font-black transition-opacity duration-300 min-[430px]:inline ${
-                isCutFeedHeaderExpanded ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              {copy.serviceMenu}
-            </span>
+            {shouldShowHeaderCount ? (
+              <span
+                className={`hidden text-[0.72rem] font-black transition-opacity duration-300 min-[430px]:inline ${
+                  isCutFeedHeaderExpanded ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                {copy.serviceMenu}
+              </span>
+            ) : null}
             {shouldShowHeaderCount ? (
               <span className="rounded-full bg-white/12 px-2 py-1 text-xs font-black leading-none text-white transition group-hover:text-[#111510]">
                 {headerCountLabel}
