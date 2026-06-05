@@ -2,6 +2,7 @@
 
 import { ArrowLeft, Mail, ShieldCheck, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   useSetActiveWallet,
   useSetActiveWalletConnectionStatus,
@@ -174,15 +175,15 @@ export function EmailLoginDialog({
     }
   }
 
-  if (!open) {
+  if (!open || typeof document === "undefined") {
     return null;
   }
 
-  return (
+  return createPortal(
     <div
       aria-labelledby="email-login-dialog-title"
       aria-modal="true"
-      className={`fixed inset-0 z-50 flex items-end justify-center px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-6 sm:items-center sm:px-6 sm:py-10 ${
+      className={`fixed inset-0 z-[120] flex items-end justify-center px-4 pb-[calc(env(safe-area-inset-bottom)+16px)] pt-6 sm:items-center sm:px-6 sm:py-10 ${
         isFanletter
           ? "bg-black/72 backdrop-blur-md"
           : "bg-slate-950/48"
@@ -433,6 +434,7 @@ export function EmailLoginDialog({
           ) : null}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
