@@ -273,6 +273,9 @@ function getCopy(locale: Locale) {
         sharedSourceCtaEyebrow: "4컷 확인 완료",
         sharedSourceCtaTitle: "이제 원본 브이로그로 이어보기",
         sharedSourcePreviewContinueCta: "돌아가기",
+        sharedPaidSourceBody:
+          "팬 전용 원본이라 여기서는 분위기만 확인할 수 있어요. 리포트 컷 흐름으로 돌아가 이어서 살펴보세요.",
+        sharedPaidSourceTitle: "팬 전용 원본입니다.",
         sharedSourcePreviewCtaBody:
           "원본 프리뷰까지 확인하면, 같은 캐릭터의 다음 컷으로 이어집니다.",
         sharedSourcePreviewCtaTitle: "원본 프리뷰 먼저 보기",
@@ -517,6 +520,9 @@ function getCopy(locale: Locale) {
         sharedSourceCtaEyebrow: "All cuts viewed",
         sharedSourceCtaTitle: "Continue to the source vlog",
         sharedSourcePreviewContinueCta: "Back",
+        sharedPaidSourceBody:
+          "This is fan-only source content. Preview the mood here, then return to the report flow.",
+        sharedPaidSourceTitle: "Fan-only source content.",
         sharedSourcePreviewCtaBody:
           "After the source preview, continue into the next cuts from this character.",
         sharedSourcePreviewCtaTitle: "Preview the source first",
@@ -2290,6 +2296,8 @@ type SourceOverlayCopy = Pick<
   | "paidSourceBody"
   | "paidSourceTitle"
   | "retry"
+  | "sharedPaidSourceBody"
+  | "sharedPaidSourceTitle"
   | "sharedSourcePreviewContinueCta"
   | "sharedSourcePreviewCtaBody"
   | "sharedSourcePreviewCtaTitle"
@@ -2342,10 +2350,12 @@ function isFanletterNewsPublicCutSourceLoadResponse(
 
 function getSourceOverlayLockedCopy({
   copy,
+  isSharedSourceOverlay = false,
   locale,
   source,
 }: {
   copy: SourceOverlayCopy;
+  isSharedSourceOverlay?: boolean;
   locale: Locale;
   source: FanletterNewsPublicCutSource;
 }) {
@@ -2369,8 +2379,12 @@ function getSourceOverlayLockedCopy({
 
   if (source.accessState === "paid_locked") {
     return {
-      body: copy.paidSourceBody,
-      title: copy.paidSourceTitle,
+      body: isSharedSourceOverlay
+        ? copy.sharedPaidSourceBody
+        : copy.paidSourceBody,
+      title: isSharedSourceOverlay
+        ? copy.sharedPaidSourceTitle
+        : copy.paidSourceTitle,
     };
   }
 
@@ -2391,6 +2405,7 @@ function SourceVlogFeedOverlay({
   copy,
   error,
   isSharedEntryPreview = false,
+  isSharedSourceOverlay = false,
   isSourceRevealActionBusy,
   isSourceRevealLoggedIn,
   isLoading,
@@ -2407,6 +2422,7 @@ function SourceVlogFeedOverlay({
   copy: SourceOverlayCopy;
   error: string | null;
   isSharedEntryPreview?: boolean;
+  isSharedSourceOverlay?: boolean;
   isSourceRevealActionBusy: boolean;
   isSourceRevealLoggedIn: boolean;
   isLoading: boolean;
@@ -2421,28 +2437,44 @@ function SourceVlogFeedOverlay({
   source: FanletterNewsPublicCutSource | null;
 }) {
   const isPlayable = source?.accessState === "playable" && Boolean(source.videoUrl);
-  const canShowLockedPreviewVideo = Boolean(
-    source?.accessState === "source_reveal_locked" &&
+  const canPlayLockedPreviewVideo = Boolean(
+    (source?.accessState === "source_reveal_locked" ||
+      source?.accessState === "paid_locked") &&
       source.previewVideoUrl &&
       source.contentMaturityRating !== "nsfw",
   );
-  const mediaFrameVideoUrl = canShowLockedPreviewVideo
+  const shouldShowSourceRevealPreviewPanel = Boolean(
+    source?.accessState === "source_reveal_locked" &&
+      canPlayLockedPreviewVideo,
+  );
+  const mediaFrameVideoUrl = canPlayLockedPreviewVideo
     ? source?.previewVideoUrl ?? null
     : source?.videoUrl ?? null;
-  const mediaFramePreviewVideoUrl = canShowLockedPreviewVideo
+  const mediaFramePreviewVideoUrl = canPlayLockedPreviewVideo
     ? null
     : source?.previewVideoUrl ?? null;
   const shouldUsePinGate =
     isPlayable &&
     source?.contentMaturityRating === "nsfw";
   const shouldUseSharedEntryPreviewCopy = Boolean(
-    isSharedEntryPreview && canShowLockedPreviewVideo,
+    isSharedEntryPreview && shouldShowSourceRevealPreviewPanel,
   );
   const lockedCopy = source
-    ? getSourceOverlayLockedCopy({ copy, locale, source })
+    ? getSourceOverlayLockedCopy({
+        copy,
+        isSharedSourceOverlay,
+        locale,
+        source,
+      })
     : null;
   const paidUnlockHref =
     source?.accessState === "paid_locked" ? source.paidUnlockHref : null;
+  const shouldHidePaidSourceActions = Boolean(
+    isSharedSourceOverlay && source?.accessState === "paid_locked",
+  );
+  const shouldUseSharedPaidPreviewOverlay = Boolean(
+    shouldHidePaidSourceActions && canPlayLockedPreviewVideo,
+  );
   const sourceRevealCountLabel = source
     ? formatNumber(
         Math.min(source.sourceReveal.count, source.sourceReveal.threshold),
@@ -2597,8 +2629,8 @@ function SourceVlogFeedOverlay({
             <div className="flex min-w-0 items-center gap-2">
               <p className="truncate text-[0.6rem] font-black uppercase tracking-[0.18em] text-[#44f26e]">
                 {source?.authorName
-                  ? `${canShowLockedPreviewVideo ? copy.sourcePreviewEyebrow : copy.sourceOverlayTitle} · ${source.authorName}`
-                  : canShowLockedPreviewVideo
+                  ? `${shouldShowSourceRevealPreviewPanel ? copy.sourcePreviewEyebrow : copy.sourceOverlayTitle} · ${source.authorName}`
+                  : shouldShowSourceRevealPreviewPanel
                     ? copy.sourcePreviewEyebrow
                     : copy.sourceOverlayTitle}
               </p>
@@ -2646,14 +2678,14 @@ function SourceVlogFeedOverlay({
                 alt={source.title}
                 blurred={source.accessState === "nsfw_opt_in_required"}
                 deferVideoUntilInteraction={
-                  !canShowLockedPreviewVideo && Boolean(source.previewVideoUrl)
+                  !canPlayLockedPreviewVideo && Boolean(source.previewVideoUrl)
                 }
                 deferredVideoCtaPlacement="center"
                 eager
                 fitWithinViewport
                 fitWithinViewportHeightRatio={0.92}
                 imageUrl={source.coverImageUrl}
-                mediaType={canShowLockedPreviewVideo ? "video" : source.mediaType}
+                mediaType={canPlayLockedPreviewVideo ? "video" : source.mediaType}
                 nsfwPinGate={
                   shouldUsePinGate
                     ? {
@@ -2670,7 +2702,7 @@ function SourceVlogFeedOverlay({
                 title={source.title}
                 videoUrl={mediaFrameVideoUrl}
               >
-                {canShowLockedPreviewVideo ? (
+                {shouldShowSourceRevealPreviewPanel ? (
                   <div className="absolute inset-x-3 bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] z-20 rounded-2xl border border-white/14 bg-black/62 p-3 text-white shadow-[0_24px_70px_rgba(0,0,0,0.36)] backdrop-blur-xl">
                     <div className="flex items-start gap-3">
                       <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/16 text-[#44f26e] ring-1 ring-[#44f26e]/22">
@@ -2792,8 +2824,20 @@ function SourceVlogFeedOverlay({
                     </div>
                   </div>
                 ) : !isPlayable && lockedCopy ? (
-                  <div className="absolute inset-0 flex items-center bg-[linear-gradient(180deg,rgba(0,0,0,0.14),rgba(0,0,0,0.42)_42%,rgba(0,0,0,0.66))] px-4 py-4 sm:p-5">
-                    <div className="w-full rounded-2xl border border-white/14 bg-black/68 p-4 shadow-[0_24px_60px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+                  <div
+                    className={`absolute inset-0 flex bg-[linear-gradient(180deg,rgba(0,0,0,0.02),rgba(0,0,0,0.18)_46%,rgba(0,0,0,0.72))] px-4 py-4 sm:p-5 ${
+                      shouldUseSharedPaidPreviewOverlay
+                        ? "items-end"
+                        : "items-center"
+                    }`}
+                  >
+                    <div
+                      className={`w-full rounded-2xl border shadow-[0_24px_60px_rgba(0,0,0,0.34)] backdrop-blur-xl ${
+                        shouldUseSharedPaidPreviewOverlay
+                          ? "mb-[calc(env(safe-area-inset-bottom)+0.6rem)] border-white/12 bg-black/58 p-3"
+                          : "border-white/14 bg-black/68 p-4"
+                      }`}
+                    >
                       <div className="flex items-start gap-3">
                         <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/16 text-[#44f26e] ring-1 ring-[#44f26e]/20">
                           {source.accessState === "paid_locked" ? (
@@ -2821,7 +2865,17 @@ function SourceVlogFeedOverlay({
                             {sourceRevealDoneFeedback}
                           </>
                         ) : null}
-                        {paidUnlockHref ? (
+                        {shouldHidePaidSourceActions ? (
+                          <button
+                            className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/8 px-4 text-sm font-black text-white/78 transition hover:border-white/28 hover:bg-white/12"
+                            onClick={onClose}
+                            type="button"
+                          >
+                            <ChevronDown className="size-4 text-[#44f26e]" />
+                            {copy.sharedSourcePreviewContinueCta}
+                          </button>
+                        ) : null}
+                        {paidUnlockHref && !shouldHidePaidSourceActions ? (
                           <Link
                             className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-[#111510]"
                             href={paidUnlockHref}
@@ -2838,19 +2892,21 @@ function SourceVlogFeedOverlay({
                             {copy.openPaidSource}
                           </Link>
                         ) : null}
-                        <Link
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/8 px-4 text-xs font-black !text-white"
-                          href={source.detailHref}
-                          onClick={() => {
-                            onNavigate?.({
-                              href: source.detailHref,
-                              label: copy.navigationPending.source,
-                            });
-                          }}
-                        >
-                          <ExternalLink className="size-3.5" />
-                          {copy.openSourceDetail}
-                        </Link>
+                        {!shouldHidePaidSourceActions ? (
+                          <Link
+                            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/14 bg-white/8 px-4 text-xs font-black !text-white"
+                            href={source.detailHref}
+                            onClick={() => {
+                              onNavigate?.({
+                                href: source.detailHref,
+                                label: copy.navigationPending.source,
+                              });
+                            }}
+                          >
+                            <ExternalLink className="size-3.5" />
+                            {copy.openSourceDetail}
+                          </Link>
+                        ) : null}
                       </div>
                     </div>
                   </div>
@@ -5142,6 +5198,7 @@ function FeedSlide({
           isSharedEntryPreview={
             Boolean(shareId && !sourceRevealState.unlocked)
           }
+          isSharedSourceOverlay={Boolean(shareId)}
           isSourceRevealActionBusy={isSourceRevealSaving || isLoginSyncing}
           isSourceRevealLoggedIn={isSourceRevealLoggedIn}
           isLoading={isSourceOverlayLoading}
