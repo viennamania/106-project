@@ -2515,6 +2515,7 @@ function SourceVlogFeedOverlay({
   const shouldHidePaidSourceActions = Boolean(
     isSharedSourceOverlay && source?.accessState === "paid_locked",
   );
+  const shouldShowSourceOverlayCloseButton = !isSharedSourceOverlay;
   const shouldUseSharedPaidPreviewOverlay = Boolean(
     shouldHidePaidSourceActions && canPlayLockedPreviewVideo,
   );
@@ -2637,14 +2638,16 @@ function SourceVlogFeedOverlay({
     >
       <div className="absolute inset-x-0 top-0 z-30 bg-[linear-gradient(180deg,rgba(0,0,0,0.82),rgba(0,0,0,0.5)_62%,rgba(0,0,0,0))] px-3 pb-5 pt-[calc(env(safe-area-inset-top)+0.7rem)]">
         <div className="flex items-center gap-2.5">
-          <button
-            aria-label={copy.sourceOverlayClose}
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-black/56 text-white shadow-[0_12px_30px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:bg-white hover:text-[#111510]"
-            onClick={onClose}
-            type="button"
-          >
-            <X className="size-5" />
-          </button>
+          {shouldShowSourceOverlayCloseButton ? (
+            <button
+              aria-label={copy.sourceOverlayClose}
+              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-black/56 text-white shadow-[0_12px_30px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:bg-white hover:text-[#111510]"
+              onClick={onClose}
+              type="button"
+            >
+              <X className="size-5" />
+            </button>
+          ) : null}
           {returnToHref ? (
             <Link
               aria-label={copy.returnToBriefA11y}
@@ -3008,7 +3011,11 @@ function FeedSlide({
   onRevealFeedChrome?: () => void;
   onNavigationStart?: CutFeedNavigationStart;
   onSharedEntryConsumptionComplete?: () => void;
-  onSourceOverlayOpenChange?: (index: number, isOpen: boolean) => void;
+  onSourceOverlayOpenChange?: (
+    index: number,
+    isOpen: boolean,
+    activeCutSlotNumber?: number,
+  ) => void;
   reporterPanelRequestId?: number;
   onSourceViewSlideVisible?: (index: number) => void;
   referralCode: string | null;
@@ -3092,6 +3099,7 @@ function FeedSlide({
   const pendingVoteAfterLoginRef = useRef(false);
   const loginSyncKeyRef = useRef<string | null>(null);
   const sourceOverlayHistoryPushedRef = useRef(false);
+  const sourceOverlayReturnCutIndexRef = useRef<number | null>(null);
   const handledReporterPanelRequestIdRef = useRef(0);
   const trackedCutViewKeyRef = useRef<string | null>(null);
   const cutDwellSnapshotRef = useRef<CutDwellSnapshot | null>(null);
@@ -3143,7 +3151,10 @@ function FeedSlide({
     !sourceRevealState.requestedByViewer;
   const isSourceRevealLoggedIn =
     isCompletedNewsMember || sourceRevealState.requestedByViewer;
-  const cuts = item.cuts.length > 0 ? item.cuts : [item.leadCut];
+  const cuts = useMemo(
+    () => (item.cuts.length > 0 ? item.cuts : [item.leadCut]),
+    [item.cuts, item.leadCut],
+  );
   const cutCount = cuts.length;
   const carouselCuts =
     cutCount > 1
@@ -3248,13 +3259,20 @@ function FeedSlide({
       !sourceOverlayOpen,
   );
   const isSharedTimelineSlide = Boolean(shareId && index > 0);
+  const shouldShowCharacterProfileButton = Boolean(
+    !isSharedTimelineSlide && !(shareId && index === 0),
+  );
+  const shouldShowTopCutProgress = !shareId;
+  const shouldShowCutStatusChips = !shareId;
+  const shouldShowShareAction = !shareId;
   const shouldUseSharedSourceRail = Boolean(
     shareId &&
       sourceContentId &&
       (!isSharedSourceActionGateActive || hasReachedSharedSourceGate),
   );
   const shouldShowSourceRail =
-    shouldUseSharedSourceRail || (!shareId && !isSharedSourceActionGateActive);
+    (shouldUseSharedSourceRail && !showSharedSourceCompletionCta) ||
+    (!shareId && !isSharedSourceActionGateActive);
   const cutFeedReturnHref = getCutFeedReturnHref({
     cutSlotNumber: activeCutSlotNumber,
     locale,
@@ -3759,18 +3777,34 @@ function FeedSlide({
 
     flushCutDwell("source_open");
     pendingCutDwellExitReasonRef.current = "source_open";
+    sourceOverlayReturnCutIndexRef.current = activeCutIndex;
     setSourceOverlayOpen(true);
 
     if (!sourceOverlayHistoryPushedRef.current) {
       const url = new URL(window.location.href);
+      const currentHistoryState =
+        typeof window.history.state === "object" && window.history.state !== null
+          ? window.history.state
+          : {};
+      const returnHistoryState = {
+        ...currentHistoryState,
+        fanletterNewsCutReturnReport: report.reportId,
+        fanletterNewsCutReturnSlot: activeCutSlotNumber,
+      };
 
+      url.searchParams.set(
+        FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM,
+        String(activeCutSlotNumber),
+      );
+      window.history.replaceState(
+        returnHistoryState,
+        "",
+        `${url.pathname}${url.search}${url.hash}`,
+      );
       url.searchParams.set("source", sourceContentId);
       window.history.pushState(
         {
-          ...(typeof window.history.state === "object" &&
-          window.history.state !== null
-            ? window.history.state
-            : {}),
+          ...returnHistoryState,
           fanletterNewsCutSource: report.reportId,
         },
         "",
@@ -3785,6 +3819,8 @@ function FeedSlide({
       setHasEnteredSourceOverlay(true);
     }
   }, [
+    activeCutIndex,
+    activeCutSlotNumber,
     isSourceOverlayLoading,
     flushCutDwell,
     loadSourceOverlay,
@@ -3794,25 +3830,36 @@ function FeedSlide({
   ]);
 
   const closeSourceOverlay = useCallback(() => {
-    if (sourceOverlayHistoryPushedRef.current) {
+    if (sourceOverlayHistoryPushedRef.current && !shareId) {
       window.history.back();
       return;
     }
 
+    sourceOverlayHistoryPushedRef.current = false;
+    sourceOverlayReturnCutIndexRef.current = null;
     setSourceOverlayOpen(false);
     const url = new URL(window.location.href);
+    const nextHistoryState =
+      typeof window.history.state === "object" && window.history.state !== null
+        ? { ...(window.history.state as Record<string, unknown>) }
+        : {};
 
     if (url.searchParams.get("source") === sourceContentId) {
       url.searchParams.delete("source");
+      url.searchParams.set(
+        FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM,
+        String(activeCutSlotNumber),
+      );
+      delete nextHistoryState.fanletterNewsCutSource;
+      delete nextHistoryState.fanletterNewsCutReturnReport;
+      delete nextHistoryState.fanletterNewsCutReturnSlot;
       window.history.replaceState(
-        typeof window.history.state === "object" && window.history.state !== null
-          ? window.history.state
-          : {},
+        nextHistoryState,
         "",
         `${url.pathname}${url.search}${url.hash}`,
       );
     }
-  }, [sourceContentId]);
+  }, [activeCutSlotNumber, shareId, sourceContentId]);
 
   const findNextSourceRevealCandidate = useCallback(() => {
     setSourceOverlayOpen(false);
@@ -3926,12 +3973,22 @@ function FeedSlide({
   }, [clearBottomDetailsTimer, clearSideActionsTimer, clearTopOverlaysTimer]);
 
   useEffect(() => {
-    onSourceOverlayOpenChange?.(index, isActive && sourceOverlayOpen);
+    onSourceOverlayOpenChange?.(
+      index,
+      isActive && sourceOverlayOpen,
+      activeCutSlotNumber,
+    );
 
     return () => {
-      onSourceOverlayOpenChange?.(index, false);
+      onSourceOverlayOpenChange?.(index, false, activeCutSlotNumber);
     };
-  }, [index, isActive, onSourceOverlayOpenChange, sourceOverlayOpen]);
+  }, [
+    activeCutSlotNumber,
+    index,
+    isActive,
+    onSourceOverlayOpenChange,
+    sourceOverlayOpen,
+  ]);
 
   useEffect(() => {
     if (!sourceOverlayOpen) {
@@ -4362,6 +4419,61 @@ function FeedSlide({
     },
     [activeCutIndex, cutCount, enableCutTrackTransitionOnNextFrame],
   );
+  useEffect(() => {
+    if (sourceOverlayOpen) {
+      return;
+    }
+
+    const returnCutIndex = sourceOverlayReturnCutIndexRef.current;
+
+    if (returnCutIndex === null) {
+      return;
+    }
+
+    sourceOverlayReturnCutIndexRef.current = null;
+
+    if (returnCutIndex !== activeCutIndex) {
+      selectCutIndex(returnCutIndex);
+    }
+  }, [activeCutIndex, selectCutIndex, sourceOverlayOpen]);
+  useEffect(() => {
+    if (sourceOverlayOpen || typeof window === "undefined") {
+      return;
+    }
+
+    const currentHistoryState =
+      typeof window.history.state === "object" && window.history.state !== null
+        ? (window.history.state as Record<string, unknown>)
+        : null;
+
+    if (
+      !currentHistoryState ||
+      currentHistoryState.fanletterNewsCutReturnReport !== report.reportId
+    ) {
+      return;
+    }
+
+    const returnSlotNumber = normalizeFanletterNewsPublicCutSlotNumber(
+      String(currentHistoryState.fanletterNewsCutReturnSlot ?? ""),
+    );
+    const returnCutIndex = returnSlotNumber
+      ? cuts.findIndex((cut) => cut.slotNumber === returnSlotNumber)
+      : -1;
+    const nextHistoryState = { ...currentHistoryState };
+
+    delete nextHistoryState.fanletterNewsCutReturnReport;
+    delete nextHistoryState.fanletterNewsCutReturnSlot;
+
+    window.history.replaceState(
+      nextHistoryState,
+      "",
+      `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    );
+
+    if (returnCutIndex >= 0 && returnCutIndex !== activeCutIndex) {
+      selectCutIndex(returnCutIndex);
+    }
+  }, [activeCutIndex, cuts, report.reportId, selectCutIndex, sourceOverlayOpen]);
   const goToPreviousCut = useCallback(() => {
     pendingCutDwellExitReasonRef.current = "horizontal_swipe";
     if (cutCount <= 1) {
@@ -4755,73 +4867,77 @@ function FeedSlide({
         <div className="absolute inset-x-0 bottom-0 h-[22%] bg-gradient-to-t from-black/42 via-black/8 to-transparent" />
       </div>
 
-      <div
-        className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+4.7rem)] z-20 px-4 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
-          areTopOverlaysVisible
-            ? "visible translate-y-0 opacity-100 blur-0"
-            : "invisible -translate-y-2 opacity-0 blur-[1px]"
-        }`}
-      >
-        <div className="mx-auto flex w-full gap-1.5">
-          {cutProgressOrder.map((orderedCutIndex, progressIndex) => {
-            const cut = cuts[orderedCutIndex] ?? cuts[progressIndex];
+      {shouldShowTopCutProgress ? (
+        <div
+          className={`absolute inset-x-0 top-[calc(env(safe-area-inset-top)+4.7rem)] z-20 px-4 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
+            areTopOverlaysVisible
+              ? "visible translate-y-0 opacity-100 blur-0"
+              : "invisible -translate-y-2 opacity-0 blur-[1px]"
+          }`}
+        >
+          <div className="mx-auto flex w-full gap-1.5">
+            {cutProgressOrder.map((orderedCutIndex, progressIndex) => {
+              const cut = cuts[orderedCutIndex] ?? cuts[progressIndex];
 
-            return (
-              <button
-                aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
-                className="h-1 flex-1 overflow-hidden rounded-full bg-white/24"
-                key={`${report.reportId}-progress-${progressIndex}-${cut.slotNumber}`}
-                onClick={() => {
-                  onDismissSwipeGuide?.();
-                  pendingCutDwellExitReasonRef.current = "cut_select";
-                  selectCutIndex(orderedCutIndex);
-                }}
-                type="button"
-              >
-                <span
-                  className={`block h-full rounded-full transition-all ${
-                    progressIndex <= activeCutProgressIndex
-                      ? "bg-white"
-                      : "bg-transparent"
-                  }`}
-                />
-              </button>
-            );
-          })}
+              return (
+                <button
+                  aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
+                  className="h-1 flex-1 overflow-hidden rounded-full bg-white/24"
+                  key={`${report.reportId}-progress-${progressIndex}-${cut.slotNumber}`}
+                  onClick={() => {
+                    onDismissSwipeGuide?.();
+                    pendingCutDwellExitReasonRef.current = "cut_select";
+                    selectCutIndex(orderedCutIndex);
+                  }}
+                  type="button"
+                >
+                  <span
+                    className={`block h-full rounded-full transition-all ${
+                      progressIndex <= activeCutProgressIndex
+                        ? "bg-white"
+                        : "bg-transparent"
+                    }`}
+                  />
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      <div
-        className={`absolute left-4 right-4 top-[calc(env(safe-area-inset-top)+5.6rem)] z-20 flex items-center justify-between gap-3 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
-          areTopOverlaysVisible
-            ? "visible translate-y-0 opacity-100 blur-0"
-            : "invisible -translate-y-2 opacity-0 blur-[1px]"
-        }`}
-      >
-        <div className="flex flex-wrap items-center gap-2 text-[0.62rem] font-black uppercase tracking-[0.12em]">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1.5 text-black shadow-[0_14px_30px_rgba(0,0,0,0.24)]">
-            <Images className="size-3.5" />
-            {copy.feedTitle}
-          </span>
-          <span className="rounded-full border border-white/16 bg-black/34 px-3 py-1.5 text-white/78 backdrop-blur">
-            {positionLabel}
-          </span>
-          {isNsfw ? (
-            <span className="rounded-full bg-rose-600 px-3 py-1.5 text-white">
-              {copy.adult}
+      {shouldShowCutStatusChips ? (
+        <div
+          className={`absolute left-4 right-4 top-[calc(env(safe-area-inset-top)+5.6rem)] z-20 flex items-center justify-between gap-3 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
+            areTopOverlaysVisible
+              ? "visible translate-y-0 opacity-100 blur-0"
+              : "invisible -translate-y-2 opacity-0 blur-[1px]"
+          }`}
+        >
+          <div className="flex flex-wrap items-center gap-2 text-[0.62rem] font-black uppercase tracking-[0.12em]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-3 py-1.5 text-black shadow-[0_14px_30px_rgba(0,0,0,0.24)]">
+              <Images className="size-3.5" />
+              {copy.feedTitle}
             </span>
-          ) : report.priceType === "paid" ? (
             <span className="rounded-full border border-white/16 bg-black/34 px-3 py-1.5 text-white/78 backdrop-blur">
-              {copy.paid}
+              {positionLabel}
             </span>
-          ) : null}
+            {isNsfw ? (
+              <span className="rounded-full bg-rose-600 px-3 py-1.5 text-white">
+                {copy.adult}
+              </span>
+            ) : report.priceType === "paid" ? (
+              <span className="rounded-full border border-white/16 bg-black/34 px-3 py-1.5 text-white/78 backdrop-blur">
+                {copy.paid}
+              </span>
+            ) : null}
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <span className="rounded-full border border-white/16 bg-black/44 px-3 py-1.5 text-[0.7rem] font-black text-white backdrop-blur">
+              {activeCutLabel}
+            </span>
+          </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <span className="rounded-full border border-white/16 bg-black/44 px-3 py-1.5 text-[0.7rem] font-black text-white backdrop-blur">
-            {activeCutLabel}
-          </span>
-        </div>
-      </div>
+      ) : null}
 
       <div
         className="absolute right-3 top-[48%] z-30 flex -translate-y-1/2 flex-col items-center gap-4 text-white"
@@ -4868,32 +4984,34 @@ function FeedSlide({
             viewerReferralCode={viewerReferralCode}
           />
         ) : null}
-        <div
-          className={`flex flex-col items-center gap-1.5 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
-            areSideActionsVisible
-              ? "visible pointer-events-auto translate-x-0 opacity-100 blur-0"
-              : "invisible pointer-events-none translate-x-3 opacity-0 blur-[1px]"
-          }`}
-        >
-          <CutFeedShareButton
-            activeCutSlotNumber={activeCutSlotNumber}
-            contentId={sourceContentId || null}
-            copy={copy}
-            creatorReferralCode={report.creatorReferralCode}
-            href={cutFeedHref}
-            previewImageKind={sharePreviewImageKind}
-            referralCode={referralCode}
-            reporterReferralCode={report.reporterReferralCode}
-            reportId={report.reportId}
-            shareSummary={shareSummary}
-            shareTitle={shareTitle}
-            variant="reel"
-            viewerEmail={viewerEmail}
-          />
-          <span className="max-w-14 text-center text-[0.58rem] font-black leading-[1.05] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
-            {copy.share}
-          </span>
-        </div>
+        {shouldShowShareAction ? (
+          <div
+            className={`flex flex-col items-center gap-1.5 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
+              areSideActionsVisible
+                ? "visible pointer-events-auto translate-x-0 opacity-100 blur-0"
+                : "invisible pointer-events-none translate-x-3 opacity-0 blur-[1px]"
+            }`}
+          >
+            <CutFeedShareButton
+              activeCutSlotNumber={activeCutSlotNumber}
+              contentId={sourceContentId || null}
+              copy={copy}
+              creatorReferralCode={report.creatorReferralCode}
+              href={cutFeedHref}
+              previewImageKind={sharePreviewImageKind}
+              referralCode={referralCode}
+              reporterReferralCode={report.reporterReferralCode}
+              reportId={report.reportId}
+              shareSummary={shareSummary}
+              shareTitle={shareTitle}
+              variant="reel"
+              viewerEmail={viewerEmail}
+            />
+            <span className="max-w-14 text-center text-[0.58rem] font-black leading-[1.05] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
+              {copy.share}
+            </span>
+          </div>
+        ) : null}
       </div>
 
       {showCutSwipeGuide ? (
@@ -4994,7 +5112,7 @@ function FeedSlide({
                 : "invisible translate-y-5 opacity-0 blur-[1px]"
             }`}
           >
-            {!isSharedTimelineSlide ? (
+            {shouldShowCharacterProfileButton ? (
               <CutFeedProfileActionButton
                 fallbackIcon={Sparkles}
                 href={characterHref}
@@ -5734,6 +5852,9 @@ export function FanletterNewsPublicCutsFeedPage({
   const [visibleSlideIndex, setVisibleSlideIndex] = useState(0);
   const [sourceOverlayOpenSlideIndex, setSourceOverlayOpenSlideIndex] =
     useState<number | null>(null);
+  const [sharedCutSlotOverrides, setSharedCutSlotOverrides] = useState<
+    Record<number, number>
+  >({});
   const [sharedConsumedReportIds, setSharedConsumedReportIds] = useState<
     Set<string>
   >(
@@ -6135,7 +6256,7 @@ export function FanletterNewsPublicCutsFeedPage({
     setServiceMenuOpen(false);
   }, []);
   const handleSourceOverlayOpenChange = useCallback(
-    (index: number, isOpen: boolean) => {
+    (index: number, isOpen: boolean, activeCutSlotNumber?: number) => {
       setSourceOverlayOpenSlideIndex((currentIndex) => {
         if (isOpen) {
           return index;
@@ -6147,9 +6268,22 @@ export function FanletterNewsPublicCutsFeedPage({
       if (isOpen) {
         setServiceMenuOpen(false);
         setIsCutFeedHeaderVisible(false);
+
+        if (shareId && activeCutSlotNumber) {
+          setSharedCutSlotOverrides((currentOverrides) => {
+            if (currentOverrides[index] === activeCutSlotNumber) {
+              return currentOverrides;
+            }
+
+            return {
+              ...currentOverrides,
+              [index]: activeCutSlotNumber,
+            };
+          });
+        }
       }
     },
-    [],
+    [shareId],
   );
   const markSharedConsumptionComplete = useCallback(
     (reportId: string) => {
@@ -7526,6 +7660,7 @@ export function FanletterNewsPublicCutsFeedPage({
           const isSharedConsumptionGateActive = shouldGateSharedItemAtIndex(
             item,
           );
+          const sharedCutSlotOverride = sharedCutSlotOverrides[index] ?? null;
           const isRenderedSlide =
             itemSlideIndex >= renderWindowStart &&
             itemSlideIndex <= renderWindowEnd;
@@ -7542,17 +7677,18 @@ export function FanletterNewsPublicCutsFeedPage({
               hasMore={hasMore}
               index={index}
               initialCutSlotNumber={
-                index === 0
+                sharedCutSlotOverride ??
+                (index === 0
                   ? initialCutSlotNumber
                   : shareId
                     ? item.cuts[0]?.slotNumber ?? item.leadCut.slotNumber
-                  : getStableRandomInitialCutSlotNumber({
-                      feedRotationSeed,
-                      index,
-                      item,
-                      referralCode,
-                      shareId,
-                    })
+                    : getStableRandomInitialCutSlotNumber({
+                        feedRotationSeed,
+                        index,
+                        item,
+                        referralCode,
+                        shareId,
+                      }))
               }
               initialSourceContentId={index === 0 ? sourceContentId : null}
               isActive={itemSlideIndex === activeSlideIndex}
