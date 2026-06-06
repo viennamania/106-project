@@ -6197,7 +6197,9 @@ export function FanletterNewsPublicCutsFeedPage({
   const isSourceOverlayScrollLocked = sourceOverlayOpenSlideIndex !== null;
   const isCutFeedScrollLocked =
     isSharedEntryScrollLocked || isSourceOverlayScrollLocked;
-  const shouldFreezeSharedLockedScroll = isSharedEntryScrollLocked;
+  const shouldFreezeSharedLockedScroll = Boolean(
+    isSharedEntryScrollLocked && activeSharedLockedSlideIndex === 0,
+  );
   const shouldShowHeaderCount = !isSharedConsumptionEntry;
   const shouldShowServiceMenuButton =
     !isCutFeedScrollLocked &&
@@ -6703,6 +6705,13 @@ export function FanletterNewsPublicCutsFeedPage({
       }
 
       if (event.deltaY < -CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX) {
+        if (
+          activeSharedLockedSlideIndex !== null &&
+          activeSharedLockedSlideIndex > 0
+        ) {
+          return;
+        }
+
         event.preventDefault();
 
         if (!moveToPreviousSharedLockedSlide()) {
@@ -6717,6 +6726,7 @@ export function FanletterNewsPublicCutsFeedPage({
       }
     },
     [
+      activeSharedLockedSlideIndex,
       isSharedEntryScrollLocked,
       keepSharedLockedSlideInPlace,
       moveToPreviousSharedLockedSlide,
@@ -6749,9 +6759,15 @@ export function FanletterNewsPublicCutsFeedPage({
         return;
       }
 
-      event.preventDefault();
-
       if (deltaY < 0 && !lockedTouchNavigationHandledRef.current) {
+        if (
+          activeSharedLockedSlideIndex !== null &&
+          activeSharedLockedSlideIndex > 0
+        ) {
+          return;
+        }
+
+        event.preventDefault();
         lockedTouchNavigationHandledRef.current = true;
 
         if (!moveToPreviousSharedLockedSlide()) {
@@ -6761,6 +6777,7 @@ export function FanletterNewsPublicCutsFeedPage({
       }
 
       if (deltaY > 0) {
+        event.preventDefault();
         keepSharedLockedSlideInPlace();
       }
     },
@@ -6768,6 +6785,7 @@ export function FanletterNewsPublicCutsFeedPage({
       isSharedEntryScrollLocked,
       keepSharedLockedSlideInPlace,
       moveToPreviousSharedLockedSlide,
+      activeSharedLockedSlideIndex,
     ],
   );
   const handleFeedTouchEnd = useCallback(() => {
