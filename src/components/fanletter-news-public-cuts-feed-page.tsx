@@ -304,6 +304,7 @@ function getCopy(locale: Locale) {
         sharedCutRecapNextGuide:
           "아래로 넘기면 다음 브이로그의 팬 리포트를 고를 수 있어요.",
         sharedCutRecapTitle: (count: string) => `${count}컷 확인 완료`,
+        sharedCutRecapTopCutTitle: "가장 오래 본 컷",
         sharedCutRecapTotalActions: "전체 행동",
         sharedVlogPickerBody:
           "팬 리포트 하나를 골라 이어보거나, 그냥 아래로 넘기면 추천 리포트로 시작합니다.",
@@ -315,6 +316,9 @@ function getCopy(locale: Locale) {
         sharedVlogPickerReportCount: (count: string) => `팬 리포트 ${count}개`,
         sharedVlogPickerReports: "팬 리포트",
         sharedVlogPickerSkip: "선택하지 않고 아래로",
+        sharedVlogPickerSingleBody:
+          "추천 리포트로 바로 이어보거나, 그냥 아래로 넘기면 같은 흐름으로 시작합니다.",
+        sharedVlogPickerSingleTitle: "추천 팬 리포트로 이어보기",
         sharedVlogPickerTitle: "다음 브이로그의 팬 리포트 선택",
         sharedTimelineSourceGateBody: (
           viewed: string,
@@ -564,6 +568,7 @@ function getCopy(locale: Locale) {
         sharedCutRecapNextGuide:
           "Swipe down to choose a fan report for the next vlog.",
         sharedCutRecapTitle: (count: string) => `${count} cuts viewed`,
+        sharedCutRecapTopCutTitle: "Most watched cut",
         sharedCutRecapTotalActions: "All actions",
         sharedVlogPickerBody:
           "Choose one fan report, or keep swiping to start with the recommended report.",
@@ -575,6 +580,9 @@ function getCopy(locale: Locale) {
         sharedVlogPickerReportCount: (count: string) => `${count} fan reports`,
         sharedVlogPickerReports: "Fan reports",
         sharedVlogPickerSkip: "Skip and swipe down",
+        sharedVlogPickerSingleBody:
+          "Continue with the recommended report, or swipe down to start the same flow.",
+        sharedVlogPickerSingleTitle: "Continue with the recommended report",
         sharedVlogPickerTitle: "Choose a fan report for the next vlog",
         sharedTimelineSourceGateBody: (
           viewed: string,
@@ -2567,7 +2575,10 @@ function SourceVlogFeedOverlay({
   const shouldHidePaidSourceActions = Boolean(
     isSharedSourceOverlay && source?.accessState === "paid_locked",
   );
-  const shouldShowSourceOverlayCloseButton = !isSharedSourceOverlay;
+  const shouldShowSourceOverlayCloseButton = true;
+  const sourceOverlayCloseLabel = isSharedSourceOverlay
+    ? copy.sharedSourcePreviewContinueCta
+    : copy.sourceOverlayClose;
   const shouldUseSharedPaidPreviewOverlay = Boolean(
     shouldHidePaidSourceActions && canPlayLockedPreviewVideo,
   );
@@ -2692,12 +2703,23 @@ function SourceVlogFeedOverlay({
         <div className="flex items-center gap-2.5">
           {shouldShowSourceOverlayCloseButton ? (
             <button
-              aria-label={copy.sourceOverlayClose}
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-black/56 text-white shadow-[0_12px_30px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:bg-white hover:text-[#111510]"
+              aria-label={sourceOverlayCloseLabel}
+              className={`inline-flex h-10 shrink-0 items-center justify-center rounded-full border border-white/12 bg-black/56 text-white shadow-[0_12px_30px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:bg-white hover:text-[#111510] ${
+                isSharedSourceOverlay ? "gap-1.5 px-3" : "w-10"
+              }`}
               onClick={onClose}
               type="button"
             >
-              <X className="size-5" />
+              {isSharedSourceOverlay ? (
+                <>
+                  <ArrowLeft className="size-4" />
+                  <span className="text-[0.72rem] font-black">
+                    {sourceOverlayCloseLabel}
+                  </span>
+                </>
+              ) : (
+                <X className="size-5" />
+              )}
             </button>
           ) : null}
           {returnToHref ? (
@@ -3323,7 +3345,9 @@ function FeedSlide({
       (!isSharedSourceActionGateActive || hasReachedSharedSourceGate),
   );
   const shouldShowSourceRail =
-    (shouldUseSharedSourceRail && !showSharedSourceCompletionCta) ||
+    (shouldUseSharedSourceRail &&
+      !showSharedSourceCompletionCta &&
+      !showSharedScrollGuide) ||
     (!shareId && !isSharedSourceActionGateActive);
   const cutFeedReturnHref = getCutFeedReturnHref({
     cutSlotNumber: activeCutSlotNumber,
@@ -5380,25 +5404,29 @@ function FeedSlide({
               </span>
             </div>
           ) : null}
-          <div className="mt-4 flex items-center justify-center gap-1.5">
+          <div className="mt-4 flex items-center justify-center gap-0">
             {cutProgressOrder.map((orderedCutIndex, progressIndex) => {
               const cut = cuts[orderedCutIndex] ?? cuts[progressIndex];
+              const isActiveProgressDot =
+                progressIndex === activeCutProgressIndex;
 
               return (
                 <button
                   aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
-                  className={`size-1.5 rounded-full transition ${
-                    progressIndex === activeCutProgressIndex
-                      ? "bg-white"
-                      : "bg-white/34"
-                  }`}
+                  className="-mx-2 grid size-8 place-items-center rounded-full transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
                   key={`${report.reportId}-dot-${progressIndex}-${cut.slotNumber}`}
                   onClick={() => {
                     pendingCutDwellExitReasonRef.current = "cut_select";
                     selectCutIndex(orderedCutIndex);
                   }}
                   type="button"
-                />
+                >
+                  <span
+                    className={`size-1.5 rounded-full transition ${
+                      isActiveProgressDot ? "bg-white" : "bg-white/34"
+                    }`}
+                  />
+                </button>
               );
             })}
           </div>
@@ -5475,6 +5503,32 @@ function SharedCutDwellRecapSlide({
     (maxValue, row) => Math.max(maxValue, row.averageDwellMs),
     0,
   );
+  const topRecapDwellRow = recapDwellRows.reduce<
+    (typeof recapDwellRows)[number] | null
+  >((selectedRow, row) => {
+    if (!selectedRow) {
+      return row;
+    }
+
+    if (row.averageDwellMs > selectedRow.averageDwellMs) {
+      return row;
+    }
+
+    if (
+      row.averageDwellMs === selectedRow.averageDwellMs &&
+      row.count > selectedRow.count
+    ) {
+      return row;
+    }
+
+    return selectedRow;
+  }, null);
+  const topRecapDwellSlotLabel = topRecapDwellRow
+    ? copy.slot(topRecapDwellRow.cutSlotNumber.toString().padStart(2, "0"))
+    : "";
+  const topRecapDwellCountLabel = topRecapDwellRow
+    ? formatNumber(topRecapDwellRow.count, locale)
+    : "0";
   const sharedRecapEventCountLabel = formatNumber(
     sharedCutRecap?.eventCount ?? 0,
     locale,
@@ -5534,7 +5588,42 @@ function SharedCutDwellRecapSlide({
           <p className="mt-2 break-words text-sm font-bold leading-6 text-white/68 [word-break:keep-all]">
             {copy.sharedCutRecapBody(characterName)}
           </p>
-          <div className="mt-5 rounded-[1.25rem] border border-white/12 bg-black/58 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+          {topRecapDwellRow ? (
+            <div className="mt-4 grid grid-cols-[4.35rem_minmax(0,1fr)] gap-3 rounded-[1.1rem] border border-[#44f26e]/24 bg-[#44f26e]/10 p-2.5 shadow-[0_22px_58px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+              <span className="relative block h-[5.25rem] overflow-hidden rounded-[0.8rem] bg-white/8 ring-1 ring-[#44f26e]/22">
+                <Image
+                  alt={topRecapDwellSlotLabel}
+                  className="object-cover"
+                  fill
+                  sizes="72px"
+                  src={topRecapDwellRow.imageUrl}
+                  unoptimized={shouldBypassFanletterImageOptimization(
+                    topRecapDwellRow.imageUrl,
+                  )}
+                />
+                <span className="absolute inset-0 bg-gradient-to-t from-black/66 via-transparent to-black/8" />
+                <span className="absolute left-1.5 top-1.5 rounded-full bg-[#44f26e] px-2 py-0.5 text-[0.54rem] font-black text-[#111510]">
+                  {topRecapDwellRow.isEntryCut
+                    ? copy.sharedCutRecapEntryBadge
+                    : topRecapDwellSlotLabel}
+                </span>
+              </span>
+              <div className="min-w-0 self-center">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e]/16 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
+                  <Sparkles className="size-3" />
+                  {copy.sharedCutRecapTopCutTitle}
+                </span>
+                <p className="mt-2 break-words text-[1.05rem] font-black leading-tight text-white [word-break:keep-all]">
+                  {formatDuration(topRecapDwellRow.averageDwellMs, locale)}
+                </p>
+                <p className="mt-1 text-[0.68rem] font-bold leading-snug text-white/62 [word-break:keep-all]">
+                  {topRecapDwellSlotLabel} ·{" "}
+                  {copy.sharedCutRecapDwellEvents(topRecapDwellCountLabel)}
+                </p>
+              </div>
+            </div>
+          ) : null}
+          <div className="mt-4 rounded-[1.25rem] border border-white/12 bg-black/58 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.4)] backdrop-blur-xl">
             <div className="flex items-center justify-between gap-3">
               <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
                 {copy.sharedCutRecapDwellTitle}
@@ -5659,6 +5748,7 @@ function SharedCharacterVlogPickerSlide({
     completedItem.leadCut.imageUrl;
   const defaultReportId = defaultItem.report.reportId;
   const displayedOptions = options.slice(0, 6);
+  const isSingleOption = displayedOptions.length === 1;
   const optionCountLabel = formatNumber(displayedOptions.length, locale);
   const backgroundImageUrl =
     completedItem.report.coverImageUrl || completedItem.leadCut.imageUrl;
@@ -5743,8 +5833,10 @@ function SharedCharacterVlogPickerSlide({
         <div
           className={`flex min-h-0 flex-1 flex-col ${
             compactPickerOnly
-              ? "justify-center gap-6 py-6"
-              : `justify-between ${showCutRecap ? "gap-3 py-3" : "gap-4 py-4"}`
+              ? "justify-center gap-5 py-5"
+              : showCutRecap
+                ? "justify-between gap-3 py-3"
+                : "justify-center gap-7 py-5"
           }`}
         >
           {showCutRecap ? (
@@ -5912,7 +6004,9 @@ function SharedCharacterVlogPickerSlide({
                     showCutRecap ? "text-[1.2rem]" : "text-[1.55rem]"
                   }`}
                 >
-                  {copy.sharedVlogPickerTitle}
+                  {isSingleOption
+                    ? copy.sharedVlogPickerSingleTitle
+                    : copy.sharedVlogPickerTitle}
                 </h3>
               </div>
               <span
@@ -5930,12 +6024,16 @@ function SharedCharacterVlogPickerSlide({
                   : "mt-2 text-xs leading-5"
               }`}
             >
-              {copy.sharedVlogPickerBody}
+              {isSingleOption
+                ? copy.sharedVlogPickerSingleBody
+                : copy.sharedVlogPickerBody}
             </p>
           </div>
           <div
             aria-label={copy.sharedVlogPickerReports}
-            className="grid grid-cols-2 gap-2"
+            className={`grid gap-2 ${
+              isSingleOption ? "grid-cols-1" : "grid-cols-2"
+            }`}
           >
             {displayedOptions.map((option) => {
               const optionReportId = option.report.reportId;
@@ -5968,7 +6066,9 @@ function SharedCharacterVlogPickerSlide({
                 <button
                   aria-label={`${option.report.reporterName} ${option.report.title} ${copy.sharedVlogPickerCta}`}
                   className={`group grid gap-2 rounded-[0.9rem] border p-1.5 text-left shadow-[0_16px_42px_rgba(0,0,0,0.3)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28 ${
-                    showCutRecap
+                    isSingleOption
+                      ? "min-h-[7rem] grid-cols-[4.55rem_minmax(0,1fr)]"
+                      : showCutRecap
                       ? "min-h-[5.05rem] grid-cols-[3rem_minmax(0,1fr)]"
                       : "min-h-[5.9rem] grid-cols-[3.35rem_minmax(0,1fr)]"
                   } ${cardStateClassName}`}
@@ -6085,7 +6185,30 @@ function getSharedVlogReportOptions(
     options.unshift(defaultOption);
   }
 
-  return options.slice(0, 6);
+  const [defaultOption, ...remainingOptions] = options;
+  const rankedRemainingOptions = remainingOptions.sort((left, right) => {
+    const getOptionScore = (
+      option: SerializedFanletterNewsPublicCutFeedItemBase,
+    ) => {
+      const publishedAtTime = option.report.sourcePublishedAt
+        ? Date.parse(option.report.sourcePublishedAt)
+        : Date.parse(option.report.createdAt);
+
+      return (
+        (option.sourceReveal.unlocked ? 1_000_000 : 0) +
+        option.sourceReveal.count * 1_000 +
+        (Number.isFinite(publishedAtTime) ? publishedAtTime / 1_000_000 : 0)
+      );
+    };
+
+    return getOptionScore(right) - getOptionScore(left);
+  });
+
+  const rankedOptions = defaultOption
+    ? [defaultOption, ...rankedRemainingOptions]
+    : rankedRemainingOptions;
+
+  return rankedOptions.slice(0, 6);
 }
 
 type SharedVlogTransition = {
@@ -6724,13 +6847,16 @@ export function FanletterNewsPublicCutsFeedPage({
   const isPublishedViewerReportEntry = Boolean(
     isPublishedReturnEntry && isVisibleItemViewerReport,
   );
-  const isReporterComposerCtaVisible = Boolean(viewerReporterReferralCode);
+  const isReporterComposerCtaVisible = Boolean(
+    viewerReporterReferralCode && !isSharedConsumptionEntry,
+  );
   const isReporterQuickDeskVisible = Boolean(
     viewerReporterReferralCode &&
       (selectedRolePreference === "reporter" || isPublishedViewerReportEntry) &&
       !isSharedConsumptionEntry,
   );
-  const isVloggerDeskVisible = selectedRolePreference === "vlogger";
+  const isVloggerDeskVisible =
+    selectedRolePreference === "vlogger" && !isSharedConsumptionEntry;
   const visibleCharacterVlogsHref = visibleItem?.report.creatorReferralCode
     ? buildPathWithReferral(
         `/${locale}/fanletter/news/characters/${visibleItem.report.creatorReferralCode}/vlogs`,
