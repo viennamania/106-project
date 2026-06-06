@@ -111,6 +111,8 @@ const CUT_DWELL_MIN_TRACK_MS = 800;
 const CUT_DWELL_MAX_TRACK_MS = 60000;
 const CUT_FEED_SHARED_CONSUMED_STORAGE_PREFIX =
   "fanletter-news-cut-feed-shared-consumed";
+const CUT_FEED_SHARED_VIEWED_STORAGE_PREFIX =
+  "fanletter-news-cut-feed-shared-viewed";
 
 type CutFeedViewportStyle = CSSProperties & {
   "--fanletter-cut-feed-vh"?: string;
@@ -292,6 +294,8 @@ function getCopy(locale: Locale) {
           "팬 리포트 하나를 골라 이어보거나, 그냥 아래로 넘기면 추천 리포트로 시작합니다.",
         sharedVlogPickerCta: "이 리포트 보기",
         sharedVlogPickerDefaultBadge: "추천",
+        sharedVlogPickerViewedBadge: "보는 중",
+        sharedVlogPickerCompletedBadge: "시청 완료",
         sharedVlogPickerEyebrow: "다음 브이로그",
         sharedVlogPickerReportCount: (count: string) => `팬 리포트 ${count}개`,
         sharedVlogPickerReports: "팬 리포트",
@@ -539,6 +543,8 @@ function getCopy(locale: Locale) {
           "Choose one fan report, or keep swiping to start with the recommended report.",
         sharedVlogPickerCta: "View this report",
         sharedVlogPickerDefaultBadge: "Recommended",
+        sharedVlogPickerViewedBadge: "Watching",
+        sharedVlogPickerCompletedBadge: "Viewed",
         sharedVlogPickerEyebrow: "Next vlog",
         sharedVlogPickerReportCount: (count: string) => `${count} fan reports`,
         sharedVlogPickerReports: "Fan reports",
@@ -762,15 +768,27 @@ function getInitialPublicCutIndex(
   return initialCutIndex >= 0 ? initialCutIndex : 0;
 }
 
-function getSharedConsumedStorageKey(shareId: string | null) {
+function getSharedReportIdsStorageKey(prefix: string, shareId: string | null) {
   const normalizedShareId = shareId?.trim();
 
-  return normalizedShareId
-    ? `${CUT_FEED_SHARED_CONSUMED_STORAGE_PREFIX}:${normalizedShareId}`
-    : null;
+  return normalizedShareId ? `${prefix}:${normalizedShareId}` : null;
 }
 
-function readSharedConsumedReportIds(storageKey: string | null) {
+function getSharedConsumedStorageKey(shareId: string | null) {
+  return getSharedReportIdsStorageKey(
+    CUT_FEED_SHARED_CONSUMED_STORAGE_PREFIX,
+    shareId,
+  );
+}
+
+function getSharedViewedStorageKey(shareId: string | null) {
+  return getSharedReportIdsStorageKey(
+    CUT_FEED_SHARED_VIEWED_STORAGE_PREFIX,
+    shareId,
+  );
+}
+
+function readSharedStoredReportIds(storageKey: string | null) {
   if (!storageKey || typeof window === "undefined") {
     return new Set<string>();
   }
@@ -792,7 +810,7 @@ function readSharedConsumedReportIds(storageKey: string | null) {
   }
 }
 
-function writeSharedConsumedReportIds(
+function writeSharedStoredReportIds(
   storageKey: string | null,
   reportIds: Set<string>,
 ) {
@@ -808,6 +826,28 @@ function writeSharedConsumedReportIds(
   } catch {
     // Session persistence is a convenience; the in-memory gate state still works.
   }
+}
+
+function readSharedConsumedReportIds(storageKey: string | null) {
+  return readSharedStoredReportIds(storageKey);
+}
+
+function writeSharedConsumedReportIds(
+  storageKey: string | null,
+  reportIds: Set<string>,
+) {
+  writeSharedStoredReportIds(storageKey, reportIds);
+}
+
+function readSharedViewedReportIds(storageKey: string | null) {
+  return readSharedStoredReportIds(storageKey);
+}
+
+function writeSharedViewedReportIds(
+  storageKey: string | null,
+  reportIds: Set<string>,
+) {
+  writeSharedStoredReportIds(storageKey, reportIds);
 }
 
 function getCutFeedHref({
@@ -5218,19 +5258,23 @@ function FeedSlide({
 }
 
 function SharedCharacterVlogPickerSlide({
+  completedReportIds,
   completedItem,
   defaultItem,
   locale,
   onSelect,
   onSkip,
   options,
+  viewedReportIds,
 }: {
+  completedReportIds: Set<string>;
   completedItem: SerializedFanletterNewsPublicCutFeedItem;
   defaultItem: SerializedFanletterNewsPublicCutFeedItem;
   locale: Locale;
   onSelect: (item: SerializedFanletterNewsPublicCutFeedItemBase) => void;
   onSkip: () => void;
   options: SerializedFanletterNewsPublicCutFeedItemBase[];
+  viewedReportIds: Set<string>;
 }) {
   const copy = getCopy(locale);
   const { report } = completedItem;
@@ -5323,7 +5367,27 @@ function SharedCharacterVlogPickerSlide({
             className="grid grid-cols-2 gap-2"
           >
             {displayedOptions.map((option) => {
-              const isDefault = option.report.reportId === defaultReportId;
+              const optionReportId = option.report.reportId;
+              const isDefault = optionReportId === defaultReportId;
+              const isCompleted = completedReportIds.has(optionReportId);
+              const isViewed = viewedReportIds.has(optionReportId);
+              const statusLabel = isCompleted
+                ? copy.sharedVlogPickerCompletedBadge
+                : isViewed
+                  ? copy.sharedVlogPickerViewedBadge
+                  : isDefault
+                    ? copy.sharedVlogPickerDefaultBadge
+                    : null;
+              const statusClassName = isCompleted
+                ? "bg-white text-[#111510]"
+                : isViewed
+                  ? "border border-[#44f26e]/48 bg-[#44f26e]/16 text-[#9bffad]"
+                  : "bg-[#44f26e] text-[#111510]";
+              const cardStateClassName = isCompleted
+                ? "border-[#44f26e]/62 bg-[#102014]/76"
+                : isViewed
+                  ? "border-[#44f26e]/42 bg-black/68"
+                  : "border-white/14 bg-black/56";
               const participantCountLabel = formatNumber(
                 option.sourceReveal.count,
                 locale,
@@ -5332,8 +5396,8 @@ function SharedCharacterVlogPickerSlide({
               return (
                 <button
                   aria-label={`${option.report.reporterName} ${option.report.title} ${copy.sharedVlogPickerCta}`}
-                  className="group grid min-h-[5.9rem] grid-cols-[3.35rem_minmax(0,1fr)] gap-2 rounded-[0.9rem] border border-white/14 bg-black/56 p-1.5 text-left shadow-[0_16px_42px_rgba(0,0,0,0.3)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28"
-                  key={`${option.report.reportId}:vlog-option`}
+                  className={`group grid min-h-[5.9rem] grid-cols-[3.35rem_minmax(0,1fr)] gap-2 rounded-[0.9rem] border p-1.5 text-left shadow-[0_16px_42px_rgba(0,0,0,0.3)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28 ${cardStateClassName}`}
+                  key={`${optionReportId}:vlog-option`}
                   onClick={() => onSelect(option)}
                   type="button"
                 >
@@ -5354,9 +5418,11 @@ function SharedCharacterVlogPickerSlide({
                       <span className="truncate text-[0.58rem] font-black uppercase tracking-[0.09em] text-[#9bffad]">
                         {option.report.reporterName}
                       </span>
-                      {isDefault ? (
-                        <span className="shrink-0 rounded-full bg-[#44f26e] px-1.5 py-0.5 text-[0.53rem] font-black leading-none text-[#111510]">
-                          {copy.sharedVlogPickerDefaultBadge}
+                      {statusLabel ? (
+                        <span
+                          className={`shrink-0 rounded-full px-1.5 py-0.5 text-[0.53rem] font-black leading-none ${statusClassName}`}
+                        >
+                          {statusLabel}
                         </span>
                       ) : null}
                     </span>
@@ -5666,6 +5732,11 @@ export function FanletterNewsPublicCutsFeedPage({
   const [sourceOverlayOpenSlideIndex, setSourceOverlayOpenSlideIndex] =
     useState<number | null>(null);
   const [sharedConsumedReportIds, setSharedConsumedReportIds] = useState<
+    Set<string>
+  >(
+    () => new Set(),
+  );
+  const [sharedViewedReportIds, setSharedViewedReportIds] = useState<
     Set<string>
   >(
     () => new Set(),
@@ -6019,6 +6090,7 @@ export function FanletterNewsPublicCutsFeedPage({
     ? items[0]?.report.reportId.trim() || null
     : null;
   const sharedConsumedStorageKey = getSharedConsumedStorageKey(shareId);
+  const sharedViewedStorageKey = getSharedViewedStorageKey(shareId);
   const viewerReporterReferralCode = normalizeReferralCode(
     memberSession.member?.referralCode,
   );
@@ -6089,10 +6161,27 @@ export function FanletterNewsPublicCutsFeedPage({
     },
     [sharedConsumedStorageKey],
   );
+  const markSharedReportViewed = useCallback(
+    (reportId: string) => {
+      setSharedViewedReportIds((currentReportIds) => {
+        if (currentReportIds.has(reportId)) {
+          return currentReportIds;
+        }
+
+        const nextReportIds = new Set(currentReportIds);
+
+        nextReportIds.add(reportId);
+        writeSharedViewedReportIds(sharedViewedStorageKey, nextReportIds);
+        return nextReportIds;
+      });
+    },
+    [sharedViewedStorageKey],
+  );
   const completeSharedConsumption = useCallback(
     (reportId: string, itemIndex: number) => {
       const slideIndex = getItemSlideIndex(itemIndex);
 
+      markSharedReportViewed(reportId);
       markSharedConsumptionComplete(reportId);
       setVisibleSlideIndex(slideIndex);
 
@@ -6106,7 +6195,7 @@ export function FanletterNewsPublicCutsFeedPage({
         root.scrollTo({ top: root.clientHeight * slideIndex });
       });
     },
-    [getItemSlideIndex, markSharedConsumptionComplete],
+    [getItemSlideIndex, markSharedConsumptionComplete, markSharedReportViewed],
   );
   const scrollToFeedItemIndex = useCallback(
     (itemIndex: number, behavior: ScrollBehavior = "smooth") => {
@@ -6128,9 +6217,15 @@ export function FanletterNewsPublicCutsFeedPage({
   );
   const handleSharedVlogReportSkip = useCallback(
     (targetItemIndex: number) => {
+      const targetItem = items[targetItemIndex];
+
+      if (targetItem) {
+        markSharedReportViewed(targetItem.report.reportId);
+      }
+
       scrollToFeedItemIndex(targetItemIndex);
     },
-    [scrollToFeedItemIndex],
+    [items, markSharedReportViewed, scrollToFeedItemIndex],
   );
   const handleSharedVlogReportSelect = useCallback(
     (
@@ -6142,6 +6237,8 @@ export function FanletterNewsPublicCutsFeedPage({
       const existingIndex = items.findIndex(
         (item) => item.report.reportId === selectedReportId,
       );
+
+      markSharedReportViewed(selectedReportId);
 
       if (existingIndex >= 0) {
         scrollToFeedItemIndex(existingIndex);
@@ -6177,7 +6274,7 @@ export function FanletterNewsPublicCutsFeedPage({
         });
       });
     },
-    [items, scrollToFeedItemIndex],
+    [items, markSharedReportViewed, scrollToFeedItemIndex],
   );
   const lockedReporterCandidateCount = useMemo(
     () => getLockedReporterCandidates(items).length,
@@ -6215,11 +6312,12 @@ export function FanletterNewsPublicCutsFeedPage({
     setSharedConsumedReportIds(
       readSharedConsumedReportIds(sharedConsumedStorageKey),
     );
+    setSharedViewedReportIds(readSharedViewedReportIds(sharedViewedStorageKey));
 
     if (shareId) {
       setVisibleSlideIndex(0);
     }
-  }, [shareId, sharedConsumedStorageKey]);
+  }, [shareId, sharedConsumedStorageKey, sharedViewedStorageKey]);
   useEffect(() => {
     if (!isSharedEntryScrollLocked) {
       return;
@@ -7348,6 +7446,7 @@ export function FanletterNewsPublicCutsFeedPage({
               <Fragment key={`${item.report.reportId}:shared-vlog-transition`}>
                 {feedSlide}
                 <SharedCharacterVlogPickerSlide
+                  completedReportIds={sharedConsumedReportIds}
                   completedItem={item}
                   defaultItem={sharedTransitionAfterItem.targetItem}
                   locale={locale}
@@ -7364,6 +7463,7 @@ export function FanletterNewsPublicCutsFeedPage({
                     )
                   }
                   options={sharedTransitionAfterItem.options}
+                  viewedReportIds={sharedViewedReportIds}
                 />
               </Fragment>
             );
