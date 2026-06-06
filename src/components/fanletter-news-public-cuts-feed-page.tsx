@@ -5162,35 +5162,51 @@ function FeedSlide({
   );
 }
 
-function SharedCharacterIntroSlide({
-  item,
+function SharedCharacterVlogPickerSlide({
+  completedItem,
+  defaultItem,
   locale,
+  onSelect,
+  onSkip,
+  options,
 }: {
-  item: SerializedFanletterNewsPublicCutFeedItem;
+  completedItem: SerializedFanletterNewsPublicCutFeedItem;
+  defaultItem: SerializedFanletterNewsPublicCutFeedItem;
   locale: Locale;
+  onSelect: (item: SerializedFanletterNewsPublicCutFeedItemBase) => void;
+  onSkip: () => void;
+  options: SerializedFanletterNewsPublicCutFeedItemBase[];
 }) {
   const copy = getCopy(locale);
-  const { report } = item;
+  const { report } = completedItem;
   const characterName = report.creatorName;
   const characterImageUrl =
-    report.creatorAvatarImageUrl || report.coverImageUrl || item.leadCut.imageUrl;
+    report.creatorAvatarImageUrl ||
+    report.coverImageUrl ||
+    completedItem.leadCut.imageUrl;
+  const defaultReportId = defaultItem.report.reportId;
+  const displayedOptions = options.slice(0, 6);
+  const optionCountLabel = formatNumber(displayedOptions.length, locale);
+  const backgroundImageUrl =
+    completedItem.report.coverImageUrl || completedItem.leadCut.imageUrl;
 
   return (
     <section
-      aria-label={copy.characterIntroTitle(characterName)}
+      aria-label={copy.sharedVlogPickerTitle}
       className="relative min-h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+1.35rem)] text-white"
       data-shared-character-intro
+      data-shared-vlog-picker
     >
       <div className="absolute inset-0">
         <Image
           alt=""
-          className="scale-[1.04] object-cover opacity-44 blur-[1px] saturate-[1.08]"
+          className="scale-[1.04] object-cover opacity-42 blur-[1px] saturate-[1.08]"
           fill
           sizes="(min-width: 640px) 430px, 100vw"
-          src={item.leadCut.imageUrl}
-          unoptimized={shouldBypassFanletterImageOptimization(item.leadCut.imageUrl)}
+          src={backgroundImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(backgroundImageUrl)}
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,6,4,0.48),rgba(3,6,4,0.72)_42%,rgba(3,6,4,0.94))]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,6,4,0.56),rgba(3,6,4,0.74)_34%,rgba(3,6,4,0.96))]" />
       </div>
       <div className="relative z-10 mx-auto flex min-h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom)_-_2.4rem)] w-full max-w-[430px] flex-col">
         <div className="flex items-center gap-2">
@@ -5206,101 +5222,50 @@ function SharedCharacterIntroSlide({
             </p>
           </div>
         </div>
-        <div className="flex flex-1 flex-col justify-center py-8">
-          <div className="relative mx-auto size-36 overflow-hidden rounded-[1.35rem] border border-[#44f26e]/34 bg-black/38 shadow-[0_28px_90px_rgba(0,0,0,0.48)]">
-            <Image
-              alt=""
-              className="object-cover"
-              fill
-              sizes="144px"
-              src={characterImageUrl}
-              unoptimized={shouldBypassFanletterImageOptimization(characterImageUrl)}
-            />
+        <div className="flex min-h-0 flex-1 flex-col justify-between gap-4 py-4">
+          <div className="mx-auto flex w-full max-w-[24rem] items-center gap-3">
+            <div className="relative size-[5.8rem] shrink-0 overflow-hidden rounded-[1.05rem] border border-[#44f26e]/34 bg-black/38 shadow-[0_22px_70px_rgba(0,0,0,0.45)]">
+              <Image
+                alt=""
+                className="object-cover"
+                fill
+                sizes="96px"
+                src={characterImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(
+                  characterImageUrl,
+                )}
+              />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="break-words text-[1.45rem] font-black leading-[1.05] tracking-normal [word-break:keep-all]">
+                {copy.characterIntroTitle(characterName)}
+              </h2>
+              <p className="mt-2 line-clamp-3 text-xs font-bold leading-5 text-white/70 [word-break:keep-all]">
+                {copy.characterIntroBody(characterName)}
+              </p>
+            </div>
           </div>
-          <h2 className="mt-5 break-words text-center text-[2rem] font-black leading-[1.02] tracking-normal [word-break:keep-all]">
-            {copy.characterIntroTitle(characterName)}
-          </h2>
-          <p className="mx-auto mt-3 max-w-[22rem] text-center text-sm font-bold leading-6 text-white/72 [word-break:keep-all]">
-            {copy.characterIntroBody(characterName)}
-          </p>
-        </div>
-        <div className="mx-auto flex max-w-[22rem] flex-col items-center gap-2 rounded-[1.35rem] border border-white/12 bg-black/42 px-4 py-3 text-center shadow-[0_18px_48px_rgba(0,0,0,0.32)] backdrop-blur-xl">
-          <ChevronDown className="size-5 animate-bounce text-[#44f26e]" />
-          <p className="text-xs font-black leading-5 text-white/82 [word-break:keep-all]">
-            {copy.characterIntroNextGuide}
-          </p>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function SharedVlogReportPickerSlide({
-  defaultItem,
-  locale,
-  onSelect,
-  onSkip,
-  options,
-}: {
-  defaultItem: SerializedFanletterNewsPublicCutFeedItem;
-  locale: Locale;
-  onSelect: (item: SerializedFanletterNewsPublicCutFeedItemBase) => void;
-  onSkip: () => void;
-  options: SerializedFanletterNewsPublicCutFeedItemBase[];
-}) {
-  const copy = getCopy(locale);
-  const defaultReportId = defaultItem.report.reportId;
-  const displayedOptions = options.slice(0, 6);
-  const optionCountLabel = formatNumber(displayedOptions.length, locale);
-  const backgroundImageUrl =
-    defaultItem.report.coverImageUrl || defaultItem.leadCut.imageUrl;
-
-  return (
-    <section
-      aria-label={copy.sharedVlogPickerTitle}
-      className="relative min-h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+1.35rem)] text-white"
-      data-shared-vlog-picker
-    >
-      <div className="absolute inset-0">
-        <Image
-          alt=""
-          className="scale-[1.04] object-cover opacity-42 blur-[1px] saturate-[1.08]"
-          fill
-          sizes="(min-width: 640px) 430px, 100vw"
-          src={backgroundImageUrl}
-          unoptimized={shouldBypassFanletterImageOptimization(backgroundImageUrl)}
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,7,6,0.5),rgba(4,7,6,0.74)_34%,rgba(4,7,6,0.95))]" />
-      </div>
-      <div className="relative z-10 mx-auto flex min-h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom)_-_2.4rem)] w-full max-w-[430px] flex-col">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_16px_38px_rgba(68,242,110,0.22)]">
-            <Video className="size-5" />
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
-              {copy.sharedVlogPickerEyebrow}
-            </p>
-            <p className="mt-0.5 truncate text-xs font-black text-white/62">
-              {defaultItem.report.creatorName}
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-1 flex-col justify-end gap-5 py-7">
-          <div>
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-[#9bffad]">
-              {copy.sharedVlogPickerReportCount(optionCountLabel)}
-            </p>
-            <h2 className="mt-2 break-words text-[2rem] font-black leading-[1.04] tracking-normal [word-break:keep-all]">
-              {copy.sharedVlogPickerTitle}
-            </h2>
-            <p className="mt-3 max-w-[22rem] break-words text-sm font-bold leading-6 text-white/72 [word-break:keep-all]">
+          <div className="min-h-0">
+            <div className="flex items-end justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[0.65rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                  {copy.sharedVlogPickerReportCount(optionCountLabel)}
+                </p>
+                <h3 className="mt-1 break-words text-[1.55rem] font-black leading-[1.04] tracking-normal [word-break:keep-all]">
+                  {copy.sharedVlogPickerTitle}
+                </h3>
+              </div>
+              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_16px_38px_rgba(68,242,110,0.2)]">
+                <Video className="size-5" />
+              </span>
+            </div>
+            <p className="mt-2 max-w-[22rem] break-words text-xs font-bold leading-5 text-white/66 [word-break:keep-all]">
               {copy.sharedVlogPickerBody}
             </p>
           </div>
           <div
             aria-label={copy.sharedVlogPickerReports}
-            className="grid grid-cols-2 gap-2.5"
+            className="grid grid-cols-2 gap-2"
           >
             {displayedOptions.map((option) => {
               const isDefault = option.report.reportId === defaultReportId;
@@ -5312,7 +5277,7 @@ function SharedVlogReportPickerSlide({
               return (
                 <button
                   aria-label={`${option.report.reporterName} ${option.report.title} ${copy.sharedVlogPickerCta}`}
-                  className="group grid min-h-[8.25rem] grid-cols-[4rem_minmax(0,1fr)] gap-2 rounded-[1rem] border border-white/14 bg-black/56 p-2 text-left shadow-[0_16px_42px_rgba(0,0,0,0.3)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28"
+                  className="group grid min-h-[5.9rem] grid-cols-[3.35rem_minmax(0,1fr)] gap-2 rounded-[0.9rem] border border-white/14 bg-black/56 p-1.5 text-left shadow-[0_16px_42px_rgba(0,0,0,0.3)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28"
                   key={`${option.report.reportId}:vlog-option`}
                   onClick={() => onSelect(option)}
                   type="button"
@@ -5340,7 +5305,7 @@ function SharedVlogReportPickerSlide({
                         </span>
                       ) : null}
                     </span>
-                    <span className="mt-1 line-clamp-3 block text-[0.82rem] font-black leading-snug text-white [word-break:keep-all]">
+                    <span className="mt-1 line-clamp-2 block text-[0.78rem] font-black leading-snug text-white [word-break:keep-all]">
                       {option.report.title}
                     </span>
                     <span className="mt-1.5 inline-flex items-center gap-1 text-[0.62rem] font-black text-white/58">
@@ -5424,6 +5389,13 @@ function getSharedVlogReportOptions(
 
   return options.slice(0, 6);
 }
+
+type SharedVlogTransition = {
+  afterItemIndex: number;
+  options: SerializedFanletterNewsPublicCutFeedItemBase[];
+  targetItem: SerializedFanletterNewsPublicCutFeedItem;
+  targetItemIndex: number;
+};
 
 function getPublicCutFeedPreloadImageUrls(
   items: SerializedFanletterNewsPublicCutFeedItemBase[],
@@ -5814,75 +5786,113 @@ export function FanletterNewsPublicCutsFeedPage({
     getServerRolePreferenceSnapshot,
   );
   const isSharedConsumptionEntry = Boolean(shareId || excludeReportId);
-  const shouldShowSharedCharacterIntro = Boolean(
+  const shouldShowSharedTimelineTransitions = Boolean(
     shareId && items[0]?.report.creatorReferralCode,
   );
-  const sharedCharacterIntroSlideIndex = shouldShowSharedCharacterIntro ? 1 : -1;
-  const sharedTimelineDefaultItem =
-    shareId && items.length > 1 ? items[1] : null;
-  const sharedVlogReportOptions = useMemo(
-    () => getSharedVlogReportOptions(sharedTimelineDefaultItem),
-    [sharedTimelineDefaultItem],
+  const sharedVlogTransitions = useMemo<SharedVlogTransition[]>(() => {
+    if (!shouldShowSharedTimelineTransitions) {
+      return [];
+    }
+
+    return items.flatMap((item, index) => {
+      if (index <= 0) {
+        return [];
+      }
+
+      const options = getSharedVlogReportOptions(item);
+
+      if (options.length <= 0) {
+        return [];
+      }
+
+      return [
+        {
+          afterItemIndex: index - 1,
+          options,
+          targetItem: item,
+          targetItemIndex: index,
+        },
+      ];
+    });
+  }, [items, shouldShowSharedTimelineTransitions]);
+  const getSharedTransitionCountBeforeItemIndex = useCallback(
+    (itemIndex: number) =>
+      sharedVlogTransitions.filter(
+        (transition) => transition.targetItemIndex <= itemIndex,
+      ).length,
+    [sharedVlogTransitions],
   );
-  const shouldShowSharedVlogPicker = Boolean(
-    shouldShowSharedCharacterIntro &&
-      sharedTimelineDefaultItem &&
-      sharedVlogReportOptions.length > 0,
-  );
-  const sharedVlogPickerSlideIndex = shouldShowSharedVlogPicker
-    ? sharedCharacterIntroSlideIndex + 1
-    : -1;
-  const sharedExtraSlideCount = shouldShowSharedCharacterIntro
-    ? 1 + (shouldShowSharedVlogPicker ? 1 : 0)
-    : 0;
-  const isSharedEntrySlideVisible = Boolean(shareId && visibleSlideIndex === 0);
-  const isSharedCharacterIntroSlideVisible = Boolean(
-    shareId &&
-      shouldShowSharedCharacterIntro &&
-      visibleSlideIndex === sharedCharacterIntroSlideIndex,
-  );
-  const isSharedTimelineFeedSlideVisible = Boolean(
-    shareId &&
-      shouldShowSharedCharacterIntro &&
-      visibleSlideIndex > sharedCharacterIntroSlideIndex,
-  );
-  const virtualSlideCount = items.length + sharedExtraSlideCount;
   const getItemSlideIndex = useCallback(
     (itemIndex: number) =>
-      itemIndex > 0 ? itemIndex + sharedExtraSlideCount : itemIndex,
-    [sharedExtraSlideCount],
+      itemIndex + getSharedTransitionCountBeforeItemIndex(itemIndex),
+    [getSharedTransitionCountBeforeItemIndex],
   );
+  const getSharedTransitionSlideIndex = useCallback(
+    (transition: SharedVlogTransition) =>
+      getItemSlideIndex(transition.afterItemIndex) + 1,
+    [getItemSlideIndex],
+  );
+  const getSharedTransitionForSlideIndex = useCallback(
+    (slideIndex: number) =>
+      sharedVlogTransitions.find(
+        (transition) =>
+          getSharedTransitionSlideIndex(transition) === slideIndex,
+      ) ?? null,
+    [getSharedTransitionSlideIndex, sharedVlogTransitions],
+  );
+  const sharedVlogPreloadItems = useMemo(
+    () => sharedVlogTransitions.flatMap((transition) => transition.options),
+    [sharedVlogTransitions],
+  );
+  const isSharedEntrySlideVisible = Boolean(shareId && visibleSlideIndex === 0);
+  const isSharedTransitionSlideVisible = Boolean(
+    shareId && getSharedTransitionForSlideIndex(visibleSlideIndex),
+  );
+  const virtualSlideCount = items.length + sharedVlogTransitions.length;
   const getFeedIndexForSlide = useCallback(
     (slideIndex: number) => {
-      if (!shouldShowSharedCharacterIntro) {
+      if (!shouldShowSharedTimelineTransitions) {
         return slideIndex;
       }
 
-      if (slideIndex === sharedCharacterIntroSlideIndex) {
-        return 0;
+      for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
+        if (getItemSlideIndex(itemIndex) === slideIndex) {
+          return itemIndex;
+        }
       }
 
-      if (
-        shouldShowSharedVlogPicker &&
-        slideIndex === sharedVlogPickerSlideIndex
-      ) {
-        return Math.min(1, Math.max(items.length - 1, 0));
+      const transition = getSharedTransitionForSlideIndex(slideIndex);
+
+      if (transition) {
+        return transition.afterItemIndex;
       }
 
-      if (slideIndex > sharedCharacterIntroSlideIndex) {
-        return Math.max(1, slideIndex - sharedExtraSlideCount);
+      let nearestItemIndex = 0;
+
+      for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
+        if (getItemSlideIndex(itemIndex) <= slideIndex) {
+          nearestItemIndex = itemIndex;
+        }
       }
 
-      return slideIndex;
+      return nearestItemIndex;
     },
     [
+      getItemSlideIndex,
+      getSharedTransitionForSlideIndex,
       items.length,
-      sharedCharacterIntroSlideIndex,
-      sharedExtraSlideCount,
-      sharedVlogPickerSlideIndex,
-      shouldShowSharedCharacterIntro,
-      shouldShowSharedVlogPicker,
+      shouldShowSharedTimelineTransitions,
     ],
+  );
+  const activeFeedIndex = Math.min(
+    Math.max(getFeedIndexForSlide(visibleSlideIndex), 0),
+    Math.max(items.length - 1, 0),
+  );
+  const isSharedTimelineFeedSlideVisible = Boolean(
+    shareId &&
+      shouldShowSharedTimelineTransitions &&
+      activeFeedIndex > 0 &&
+      !isSharedTransitionSlideVisible,
   );
   const shouldGateSharedItemAtIndex = useCallback(
     (item: SerializedFanletterNewsPublicCutFeedItem) =>
@@ -5912,14 +5922,10 @@ export function FanletterNewsPublicCutsFeedPage({
   const shouldShowServiceMenuButton =
     !isCutFeedScrollLocked &&
     !isSharedEntrySlideVisible &&
-    !isSharedCharacterIntroSlideVisible &&
+    !isSharedTransitionSlideVisible &&
     (!isSharedTimelineFeedSlideVisible ||
       isCutFeedHeaderVisible ||
       serviceMenuOpen);
-  const activeFeedIndex = Math.min(
-    Math.max(getFeedIndexForSlide(visibleSlideIndex), 0),
-    Math.max(items.length - 1, 0),
-  );
   const visibleItem =
     items[
       activeFeedIndex
@@ -6038,11 +6044,18 @@ export function FanletterNewsPublicCutsFeedPage({
     },
     [getItemSlideIndex],
   );
-  const handleSharedVlogReportSkip = useCallback(() => {
-    scrollToFeedItemIndex(1);
-  }, [scrollToFeedItemIndex]);
+  const handleSharedVlogReportSkip = useCallback(
+    (targetItemIndex: number) => {
+      scrollToFeedItemIndex(targetItemIndex);
+    },
+    [scrollToFeedItemIndex],
+  );
   const handleSharedVlogReportSelect = useCallback(
-    (option: SerializedFanletterNewsPublicCutFeedItemBase) => {
+    (
+      option: SerializedFanletterNewsPublicCutFeedItemBase,
+      targetItemIndex: number,
+      options: SerializedFanletterNewsPublicCutFeedItemBase[],
+    ) => {
       const selectedReportId = option.report.reportId;
       const existingIndex = items.findIndex(
         (item) => item.report.reportId === selectedReportId,
@@ -6055,7 +6068,7 @@ export function FanletterNewsPublicCutsFeedPage({
 
       const selectedItem: SerializedFanletterNewsPublicCutFeedItem = {
         ...option,
-        vlogReportOptions: sharedVlogReportOptions,
+        vlogReportOptions: options,
       };
 
       setItems((currentItems) => {
@@ -6067,20 +6080,22 @@ export function FanletterNewsPublicCutsFeedPage({
           return currentItems;
         }
 
-        if (currentItems.length <= 1) {
+        if (targetItemIndex >= currentItems.length) {
           return [...currentItems, selectedItem];
         }
 
-        return [currentItems[0], selectedItem, ...currentItems.slice(2)];
+        return currentItems.map((item, index) =>
+          index === targetItemIndex ? selectedItem : item,
+        );
       });
 
       window.requestAnimationFrame(() => {
         window.requestAnimationFrame(() => {
-          scrollToFeedItemIndex(1);
+          scrollToFeedItemIndex(targetItemIndex);
         });
       });
     },
-    [items, scrollToFeedItemIndex, sharedVlogReportOptions],
+    [items, scrollToFeedItemIndex],
   );
   const lockedReporterCandidateCount = useMemo(
     () => getLockedReporterCandidates(items).length,
@@ -6487,26 +6502,32 @@ export function FanletterNewsPublicCutsFeedPage({
     activeFeedIndex,
   ]);
   useEffect(() => {
+    const activeSharedTimelineItem = items[activeFeedIndex] ?? null;
+
     if (
       !isSharedConsumptionEntry ||
       !shareId ||
       isSharedEntryScrollLocked ||
-      items.length > 1 ||
       !hasMore ||
-      isLoadingMore
+      isLoadingMore ||
+      activeFeedIndex < items.length - 1 ||
+      !activeSharedTimelineItem ||
+      shouldGateSharedItemAtIndex(activeSharedTimelineItem)
     ) {
       return;
     }
 
     void loadMore();
   }, [
+    activeFeedIndex,
     hasMore,
     isLoadingMore,
     isSharedConsumptionEntry,
     isSharedEntryScrollLocked,
-    items.length,
+    items,
     loadMore,
     shareId,
+    shouldGateSharedItemAtIndex,
   ]);
   useEffect(() => {
     if (!shareId || typeof window === "undefined") {
@@ -6515,7 +6536,7 @@ export function FanletterNewsPublicCutsFeedPage({
 
     const urls = getPublicCutFeedPreloadImageUrls([
       ...items.slice(0, 4),
-      ...sharedVlogReportOptions,
+      ...sharedVlogPreloadItems,
     ])
       .filter((url) => !preloadedImageUrlsRef.current.has(url))
       .slice(0, 32);
@@ -6543,7 +6564,7 @@ export function FanletterNewsPublicCutsFeedPage({
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [items, shareId, sharedVlogReportOptions]);
+  }, [items, shareId, sharedVlogPreloadItems]);
   const handleFindNextSourceRevealCandidate = useCallback(
     (currentIndex: number, currentContentId: string) => {
       const root = scrollContainerRef.current;
@@ -7168,23 +7189,33 @@ export function FanletterNewsPublicCutsFeedPage({
             />
           );
 
-          if (index === 0 && shouldShowSharedCharacterIntro) {
+          const sharedTransitionAfterItem =
+            sharedVlogTransitions.find(
+              (transition) => transition.afterItemIndex === index,
+            ) ?? null;
+
+          if (sharedTransitionAfterItem) {
             return (
-              <Fragment key={`${item.report.reportId}:shared-character-intro`}>
+              <Fragment key={`${item.report.reportId}:shared-vlog-transition`}>
                 {feedSlide}
-                <SharedCharacterIntroSlide
-                  item={item}
+                <SharedCharacterVlogPickerSlide
+                  completedItem={item}
+                  defaultItem={sharedTransitionAfterItem.targetItem}
                   locale={locale}
+                  onSelect={(option) =>
+                    handleSharedVlogReportSelect(
+                      option,
+                      sharedTransitionAfterItem.targetItemIndex,
+                      sharedTransitionAfterItem.options,
+                    )
+                  }
+                  onSkip={() =>
+                    handleSharedVlogReportSkip(
+                      sharedTransitionAfterItem.targetItemIndex,
+                    )
+                  }
+                  options={sharedTransitionAfterItem.options}
                 />
-                {shouldShowSharedVlogPicker && sharedTimelineDefaultItem ? (
-                  <SharedVlogReportPickerSlide
-                    defaultItem={sharedTimelineDefaultItem}
-                    locale={locale}
-                    onSelect={handleSharedVlogReportSelect}
-                    onSkip={handleSharedVlogReportSkip}
-                    options={sharedVlogReportOptions}
-                  />
-                ) : null}
               </Fragment>
             );
           }
