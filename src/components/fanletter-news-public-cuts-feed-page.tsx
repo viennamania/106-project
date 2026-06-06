@@ -5753,6 +5753,7 @@ export function FanletterNewsPublicCutsFeedPage({
   >(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const lockedTouchStartYRef = useRef<number | null>(null);
+  const lockedTouchNavigationHandledRef = useRef(false);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const headerRevealTimerRef = useRef<number | null>(null);
   const roleShortcutRevealTimerRef = useRef<number | null>(null);
@@ -6075,9 +6076,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const isSourceOverlayScrollLocked = sourceOverlayOpenSlideIndex !== null;
   const isCutFeedScrollLocked =
     isSharedEntryScrollLocked || isSourceOverlayScrollLocked;
-  const shouldFreezeSharedInitialScroll = Boolean(
-    isSharedEntryScrollLocked && activeSharedLockedSlideIndex === 0,
-  );
+  const shouldFreezeSharedLockedScroll = isSharedEntryScrollLocked;
   const shouldShowHeaderCount = !isSharedConsumptionEntry;
   const shouldShowServiceMenuButton =
     !isCutFeedScrollLocked &&
@@ -6524,68 +6523,123 @@ export function FanletterNewsPublicCutsFeedPage({
     setVisibleSlideIndex(activeSharedLockedSlideIndex);
     return true;
   }, [activeSharedLockedSlideIndex, isSharedEntryScrollLocked]);
-  const shouldBlockSharedLockedDownScroll = useCallback(
-    (deltaY: number) => {
-      if (
-        deltaY <= CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX ||
-        !isSharedEntryScrollLocked ||
-        activeSharedLockedSlideIndex === null
-      ) {
-        return false;
+  const moveToPreviousSharedLockedSlide = useCallback(() => {
+    const root = scrollContainerRef.current;
+
+    if (
+      !root ||
+      !isSharedEntryScrollLocked ||
+      activeSharedLockedSlideIndex === null ||
+      activeSharedLockedSlideIndex <= 0
+    ) {
+      return false;
+    }
+
+    const previousSlideIndex = activeSharedLockedSlideIndex - 1;
+
+    setVisibleSlideIndex((currentIndex) => {
+      if (currentIndex === previousSlideIndex) {
+        return currentIndex;
       }
 
-      const root = scrollContainerRef.current;
+      window.dispatchEvent(
+        new CustomEvent<CutFeedVisibleIndexChangeDetail>(
+          CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT,
+          {
+            detail: {
+              nextIndex: previousSlideIndex,
+              previousIndex: currentIndex,
+            },
+          },
+        ),
+      );
+      return previousSlideIndex;
+    });
 
-      if (!root) {
-        return false;
-      }
-
-      const lockedScrollTop = root.clientHeight * activeSharedLockedSlideIndex;
-
-      return root.scrollTop >= lockedScrollTop - 1;
-    },
-    [activeSharedLockedSlideIndex, isSharedEntryScrollLocked],
-  );
+    root.scrollTo({
+      behavior: "smooth",
+      top: root.clientHeight * previousSlideIndex,
+    });
+    return true;
+  }, [activeSharedLockedSlideIndex, isSharedEntryScrollLocked]);
   const handleFeedWheel = useCallback(
     (event: ReactWheelEvent<HTMLDivElement>) => {
-      if (!shouldBlockSharedLockedDownScroll(event.deltaY)) {
+      if (!isSharedEntryScrollLocked) {
         return;
       }
 
-      event.preventDefault();
-      keepSharedLockedSlideInPlace();
+      if (event.deltaY < -CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX) {
+        event.preventDefault();
+
+        if (!moveToPreviousSharedLockedSlide()) {
+          keepSharedLockedSlideInPlace();
+        }
+        return;
+      }
+
+      if (event.deltaY > CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX) {
+        event.preventDefault();
+        keepSharedLockedSlideInPlace();
+      }
     },
-    [keepSharedLockedSlideInPlace, shouldBlockSharedLockedDownScroll],
+    [
+      isSharedEntryScrollLocked,
+      keepSharedLockedSlideInPlace,
+      moveToPreviousSharedLockedSlide,
+    ],
   );
   const handleFeedTouchStart = useCallback(
     (event: ReactTouchEvent<HTMLDivElement>) => {
       lockedTouchStartYRef.current = event.touches[0]?.clientY ?? null;
+      lockedTouchNavigationHandledRef.current = false;
     },
     [],
   );
   const handleFeedTouchMove = useCallback(
     (event: ReactTouchEvent<HTMLDivElement>) => {
       const currentTouchY = event.touches[0]?.clientY ?? null;
-      const previousTouchY = lockedTouchStartYRef.current;
+      const startTouchY = lockedTouchStartYRef.current;
 
-      if (currentTouchY === null || previousTouchY === null) {
+      if (currentTouchY === null || startTouchY === null) {
         lockedTouchStartYRef.current = currentTouchY;
         return;
       }
 
-      const deltaY = previousTouchY - currentTouchY;
+      if (!isSharedEntryScrollLocked) {
+        return;
+      }
 
-      lockedTouchStartYRef.current = currentTouchY;
+      const deltaY = startTouchY - currentTouchY;
 
-      if (!shouldBlockSharedLockedDownScroll(deltaY)) {
+      if (Math.abs(deltaY) <= CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX) {
         return;
       }
 
       event.preventDefault();
-      keepSharedLockedSlideInPlace();
+
+      if (deltaY < 0 && !lockedTouchNavigationHandledRef.current) {
+        lockedTouchNavigationHandledRef.current = true;
+
+        if (!moveToPreviousSharedLockedSlide()) {
+          keepSharedLockedSlideInPlace();
+        }
+        return;
+      }
+
+      if (deltaY > 0) {
+        keepSharedLockedSlideInPlace();
+      }
     },
-    [keepSharedLockedSlideInPlace, shouldBlockSharedLockedDownScroll],
+    [
+      isSharedEntryScrollLocked,
+      keepSharedLockedSlideInPlace,
+      moveToPreviousSharedLockedSlide,
+    ],
   );
+  const handleFeedTouchEnd = useCallback(() => {
+    lockedTouchStartYRef.current = null;
+    lockedTouchNavigationHandledRef.current = false;
+  }, []);
   const handleFeedScroll = useCallback(() => {
     const root = scrollContainerRef.current;
 
@@ -7229,7 +7283,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const scrollContainerClassName = `mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] sm:border-x sm:border-white/10 ${
     isCutFeedScrollLocked ? "scroll-auto" : "scroll-smooth"
   } ${
-    isSourceOverlayScrollLocked || shouldFreezeSharedInitialScroll
+    isSourceOverlayScrollLocked || shouldFreezeSharedLockedScroll
       ? "overflow-y-hidden"
       : "overflow-y-auto"
   }`;
@@ -7459,6 +7513,8 @@ export function FanletterNewsPublicCutsFeedPage({
       <div
         className={scrollContainerClassName}
         data-cut-feed-scroll-container
+        onTouchCancel={handleFeedTouchEnd}
+        onTouchEnd={handleFeedTouchEnd}
         onTouchMove={handleFeedTouchMove}
         onTouchStart={handleFeedTouchStart}
         onWheel={handleFeedWheel}
