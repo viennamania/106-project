@@ -1416,66 +1416,71 @@ function CutFeedShareButton({
         {feedbackMessage}
       </span>
     </span>
-    {isMemoOpen ? (
-      <div
-        aria-modal="true"
-        className="fixed inset-0 z-[90] flex items-end justify-center bg-black/52 px-3 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] text-white backdrop-blur-sm"
-        onClick={() => {
-          if (state !== "sharing") {
-            setIsMemoOpen(false);
-          }
-        }}
-        role="dialog"
-      >
-        <form
-          className="w-full max-w-[430px] rounded-[1.25rem] border border-white/12 bg-[#070a08]/96 p-4 shadow-[0_-24px_70px_rgba(0,0,0,0.44)]"
-          onClick={(event) => event.stopPropagation()}
-          onSubmit={(event) => {
-            event.preventDefault();
-            void handleShare(shareMemo);
-          }}
-        >
-          <div className="flex items-start gap-3">
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
-              <Share2 className="size-5" />
-            </span>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-lg font-black leading-tight">
-                {copy.shareMemoTitle}
-              </h2>
-              <p className="mt-1 text-xs font-bold leading-5 text-white/62 [word-break:keep-all]">
-                {copy.shareMemoBody}
-              </p>
-            </div>
-          </div>
-          <textarea
-            className="mt-4 min-h-24 w-full resize-none rounded-[1rem] border border-white/12 bg-white/8 px-3.5 py-3 text-sm font-bold leading-5 text-white outline-none transition placeholder:text-white/34 focus:border-[#44f26e]/50 focus:ring-4 focus:ring-[#44f26e]/14"
-            maxLength={120}
-            onChange={(event) => setShareMemo(event.target.value)}
-            placeholder={copy.shareMemoPlaceholder}
-            value={shareMemo}
-          />
-          <div className="mt-3 flex gap-2">
-            <button
-              className="inline-flex h-12 flex-1 items-center justify-center rounded-full border border-white/12 bg-white/8 px-4 text-sm font-black text-white transition hover:bg-white/14 disabled:opacity-55"
-              disabled={state === "sharing"}
-              onClick={() => setIsMemoOpen(false)}
-              type="button"
+    {isMemoOpen && typeof document !== "undefined"
+      ? createPortal(
+          <div
+            aria-modal="true"
+            className="fixed inset-0 z-[90] flex items-end justify-center bg-black/52 px-3 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] text-white backdrop-blur-sm"
+            onClick={() => {
+              if (state !== "sharing") {
+                setIsMemoOpen(false);
+              }
+            }}
+            role="dialog"
+          >
+            <form
+              className="w-full max-w-[430px] rounded-[1.25rem] border border-white/12 bg-[#070a08]/96 p-4 shadow-[0_-24px_70px_rgba(0,0,0,0.44)]"
+              onClick={(event) => event.stopPropagation()}
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handleShare(shareMemo);
+              }}
             >
-              {copy.shareMemoCancel}
-            </button>
-            <button
-              className="inline-flex h-12 flex-[1.45] items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-[#111510] transition hover:bg-[#65ff87] disabled:cursor-wait disabled:opacity-70"
-              disabled={state === "sharing"}
-              type="submit"
-            >
-              {state === "sharing" ? <Loader2 className="size-4 animate-spin" /> : null}
-              {copy.shareMemoSubmit}
-            </button>
-          </div>
-        </form>
-      </div>
-    ) : null}
+              <div className="flex items-start gap-3">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
+                  <Share2 className="size-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-lg font-black leading-tight">
+                    {copy.shareMemoTitle}
+                  </h2>
+                  <p className="mt-1 text-xs font-bold leading-5 text-white/62 [word-break:keep-all]">
+                    {copy.shareMemoBody}
+                  </p>
+                </div>
+              </div>
+              <textarea
+                className="mt-4 min-h-24 w-full resize-none rounded-[1rem] border border-white/12 bg-white/8 px-3.5 py-3 text-sm font-bold leading-5 text-white outline-none transition placeholder:text-white/34 focus:border-[#44f26e]/50 focus:ring-4 focus:ring-[#44f26e]/14"
+                maxLength={120}
+                onChange={(event) => setShareMemo(event.target.value)}
+                placeholder={copy.shareMemoPlaceholder}
+                value={shareMemo}
+              />
+              <div className="mt-3 flex gap-2">
+                <button
+                  className="inline-flex h-12 flex-1 items-center justify-center rounded-full border border-white/12 bg-white/8 px-4 text-sm font-black text-white transition hover:bg-white/14 disabled:opacity-55"
+                  disabled={state === "sharing"}
+                  onClick={() => setIsMemoOpen(false)}
+                  type="button"
+                >
+                  {copy.shareMemoCancel}
+                </button>
+                <button
+                  className="inline-flex h-12 flex-[1.45] items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-[#111510] transition hover:bg-[#65ff87] disabled:cursor-wait disabled:opacity-70"
+                  disabled={state === "sharing"}
+                  type="submit"
+                >
+                  {state === "sharing" ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : null}
+                  {copy.shareMemoSubmit}
+                </button>
+              </div>
+            </form>
+          </div>,
+          document.body,
+        )
+      : null}
     </>
   );
 }
