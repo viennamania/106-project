@@ -262,6 +262,10 @@ function getCopy(locale: Locale) {
           "팬 기자가 고른 장면의 전체 흐름을 원본 브이로그로 이어서 확인하세요.",
         sharedSourceCtaEyebrow: "4컷 확인 완료",
         sharedSourceCtaTitle: "이제 원본 브이로그로 이어보기",
+        sharedSourcePreviewContinueCta: "닫고 계속 보기",
+        sharedSourcePreviewCtaBody:
+          "로그인 없이 원본 일부를 확인한 뒤, 아래로 넘겨 이 캐릭터의 다른 컷을 계속 볼 수 있어요.",
+        sharedSourcePreviewCtaTitle: "원본 프리뷰 먼저 보기",
         sharedScrollGuideBody:
           "방금 본 브이로그의 AI 캐릭터 IP를 먼저 소개한 뒤, 같은 캐릭터의 다른 컷으로 이어집니다.",
         sharedScrollGuideTitle: (name: string) =>
@@ -476,6 +480,10 @@ function getCopy(locale: Locale) {
           "Continue from the moments the fan reporter picked into the full source vlog.",
         sharedSourceCtaEyebrow: "All cuts viewed",
         sharedSourceCtaTitle: "Continue to the source vlog",
+        sharedSourcePreviewContinueCta: "Close and keep browsing",
+        sharedSourcePreviewCtaBody:
+          "Preview part of the source without signing in, then swipe down to keep exploring this character's cuts.",
+        sharedSourcePreviewCtaTitle: "Preview the source first",
         sharedScrollGuideBody:
           "The next screen introduces the AI character IP behind this vlog, then keeps the feed focused on that character.",
         sharedScrollGuideTitle: (name: string) =>
@@ -2045,6 +2053,9 @@ type SourceOverlayCopy = Pick<
   | "paidSourceBody"
   | "paidSourceTitle"
   | "retry"
+  | "sharedSourcePreviewContinueCta"
+  | "sharedSourcePreviewCtaBody"
+  | "sharedSourcePreviewCtaTitle"
   | "sourceOverlayClose"
   | "sourceOverlayError"
   | "sourceOverlayLoading"
@@ -2134,6 +2145,7 @@ function getSourceOverlayLockedCopy({
 function SourceVlogFeedOverlay({
   copy,
   error,
+  isSharedEntryPreview = false,
   isSourceRevealActionBusy,
   isSourceRevealLoggedIn,
   isLoading,
@@ -2149,6 +2161,7 @@ function SourceVlogFeedOverlay({
 }: {
   copy: SourceOverlayCopy;
   error: string | null;
+  isSharedEntryPreview?: boolean;
   isSourceRevealActionBusy: boolean;
   isSourceRevealLoggedIn: boolean;
   isLoading: boolean;
@@ -2177,6 +2190,9 @@ function SourceVlogFeedOverlay({
   const shouldUsePinGate =
     isPlayable &&
     source?.contentMaturityRating === "nsfw";
+  const shouldUseSharedEntryPreviewCopy = Boolean(
+    isSharedEntryPreview && canShowLockedPreviewVideo,
+  );
   const lockedCopy = source
     ? getSourceOverlayLockedCopy({ copy, locale, source })
     : null;
@@ -2208,6 +2224,12 @@ function SourceVlogFeedOverlay({
         )
       : 0;
   const sourceRevealCountText = `${sourceRevealCountLabel}/${sourceRevealThresholdLabel}`;
+  const sourcePreviewPanelTitle = shouldUseSharedEntryPreviewCopy
+    ? copy.sharedSourcePreviewCtaTitle
+    : copy.sourcePreviewTitle;
+  const sourcePreviewPanelBody = shouldUseSharedEntryPreviewCopy
+    ? copy.sharedSourcePreviewCtaBody
+    : copy.sourcePreviewBody;
   const sourceRevealCtaLabel = source?.sourceReveal.requestedByViewer
     ? copy.voteDone
     : isSourceRevealActionBusy
@@ -2246,7 +2268,11 @@ function SourceVlogFeedOverlay({
   const sourceRevealAction = source?.sourceReveal.unlocked ? null : (
     <button
       aria-label={`${sourceRevealCtaLabel} ${sourceRevealCountText}`}
-      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-[#111510] shadow-[0_18px_42px_rgba(68,242,110,0.22)] transition hover:bg-[#69ff8c] disabled:cursor-default disabled:bg-white/18 disabled:text-white/58"
+      className={
+        shouldUseSharedEntryPreviewCopy
+          ? "inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-white/8 px-4 text-sm font-black text-white/78 transition hover:border-white/32 hover:bg-white/14 disabled:cursor-default disabled:bg-white/8 disabled:text-white/42"
+          : "inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-[#111510] shadow-[0_18px_42px_rgba(68,242,110,0.22)] transition hover:bg-[#69ff8c] disabled:cursor-default disabled:bg-white/18 disabled:text-white/58"
+      }
       disabled={sourceRevealCtaDisabled}
       onClick={onSourceRevealActivate}
       type="button"
@@ -2261,6 +2287,16 @@ function SourceVlogFeedOverlay({
       {sourceRevealCtaLabel}
     </button>
   );
+  const sharedPreviewContinueAction = shouldUseSharedEntryPreviewCopy ? (
+    <button
+      className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-[#111510] shadow-[0_18px_42px_rgba(68,242,110,0.22)] transition hover:bg-[#69ff8c]"
+      onClick={onClose}
+      type="button"
+    >
+      <ChevronDown className="size-4" />
+      {copy.sharedSourcePreviewContinueCta}
+    </button>
+  ) : null;
 
   return (
     <div
@@ -2394,13 +2430,14 @@ function SourceVlogFeedOverlay({
                           </span>
                         </div>
                         <h3 className="mt-1 text-sm font-black leading-tight [word-break:keep-all]">
-                          {copy.sourcePreviewTitle}
+                          {sourcePreviewPanelTitle}
                         </h3>
                         <p className="mt-1 text-[0.68rem] font-bold leading-snug text-white/70 [word-break:keep-all]">
-                          {copy.sourceOpenSponsorsRemaining(
-                            sourceRevealRemainingLabel,
-                          )}{" "}
-                          · {copy.sourcePreviewBody}
+                          {shouldUseSharedEntryPreviewCopy
+                            ? sourcePreviewPanelBody
+                            : `${copy.sourceOpenSponsorsRemaining(
+                                sourceRevealRemainingLabel,
+                              )} · ${sourcePreviewPanelBody}`}
                         </p>
                       </div>
                     </div>
@@ -2411,6 +2448,7 @@ function SourceVlogFeedOverlay({
                       />
                     </div>
                     <div className="mt-3 grid gap-2">
+                      {sharedPreviewContinueAction}
                       {sourceRevealAction}
                       {sourceRevealDoneFeedback}
                     </div>
@@ -4038,16 +4076,16 @@ function FeedSlide({
     "inline-flex max-w-full items-center justify-center gap-1.5 rounded-full border border-white/14 bg-black/54 px-3 py-2 shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl";
   const sharedSourceCompletionCtaTitle = sourceRevealState.unlocked
     ? copy.sharedSourceCtaTitle
-    : copy.sourcePreviewTitle;
+    : copy.sharedSourcePreviewCtaTitle;
   const sharedSourceCompletionCtaBody = sourceRevealState.unlocked
     ? copy.sharedSourceCtaBody
-    : copy.sourcePreviewBody;
+    : copy.sharedSourcePreviewCtaBody;
   const sharedSourceCompletionCtaBadge = sourceRevealState.unlocked
     ? `${cutCountLabel}/${cutCountLabel}`
-    : characterSourceRevealLabel;
+    : copy.sourcePreviewEyebrow;
   const SharedSourceCompletionCtaIcon = sourceRevealState.unlocked
     ? PlayCircle
-    : HeartHandshake;
+    : PlayCircle;
   const inactiveArticleAttributes = isActive
     ? {}
     : {
@@ -4609,6 +4647,9 @@ function FeedSlide({
         <SourceVlogFeedOverlay
           copy={copy}
           error={sourceOverlayError}
+          isSharedEntryPreview={
+            isSharedSourceActionGateActive && !sourceRevealState.unlocked
+          }
           isSourceRevealActionBusy={isSourceRevealSaving || isLoginSyncing}
           isSourceRevealLoggedIn={isSourceRevealLoggedIn}
           isLoading={isSourceOverlayLoading}
