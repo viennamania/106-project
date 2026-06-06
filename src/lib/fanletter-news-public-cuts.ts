@@ -53,6 +53,12 @@ const FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_REPORT_POOL_LIMIT = 144;
 const FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_FIRST_INDEX = 5;
 const FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_INTERVAL = 8;
 const FANLETTER_NEWS_PUBLIC_CUT_FEED_ROTATION_BUCKET_MS = 1000 * 60 * 15;
+const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_SOURCE_REVEAL_SCORE = 100;
+const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_LIKE_SCORE = 24;
+const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_SAVE_SCORE = 18;
+const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_UNLOCKED_SCORE = 420;
+const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_NEAR_UNLOCK_SCORE = 180;
+const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_COVER_SCORE = 20;
 
 type FanletterNewsPublicCutFeedAudience = "guest_direct" | "guest_social" | "member";
 type FanletterNewsPublicCutFeedMode = "default" | "reporter_locked";
@@ -1164,10 +1170,10 @@ export async function getFanletterNewsPublicCutFeedPage({
       normalizePublicCutFeedScoreKey(normalizedFocusCreatorReferralCode);
 
     if (anchorReport && anchorCreatorReferralCode && anchorCreatorMatches) {
+      const socialActionsCollection = await getContentSocialActionsCollection();
       const timelineExcludeReportIds = [
         ...new Set([...normalizedExcludeReportIds, anchorReport.reportId]),
       ];
-      const anchorTime = anchorReport.sourcePublishedAt ?? anchorReport.createdAt;
       const timelineReports = await reportsCollection
         .aggregate<FanletterNewsReportDocument>([
           {
@@ -1181,25 +1187,159 @@ export async function getFanletterNewsPublicCutFeedPage({
             },
           },
           {
-            $addFields: {
-              publicCutSortTime: { $ifNull: ["$sourcePublishedAt", "$createdAt"] },
+            $lookup: {
+              as: "timelineSocialActions",
+              foreignField: "contentId",
+              from: socialActionsCollection.collectionName,
+              localField: "contentId",
             },
           },
           {
             $addFields: {
-              timelineDistanceMs: {
-                $abs: { $subtract: ["$publicCutSortTime", anchorTime] },
+              publicCutSortTime: { $ifNull: ["$sourcePublishedAt", "$createdAt"] },
+              timelineLikeCount: {
+                $size: {
+                  $filter: {
+                    as: "action",
+                    cond: { $eq: ["$$action.liked", true] },
+                    input: "$timelineSocialActions",
+                  },
+                },
               },
-              timelineDirection: {
-                $cond: [{ $gt: ["$publicCutSortTime", anchorTime] }, 0, 1],
+              timelineSaveCount: {
+                $size: {
+                  $filter: {
+                    as: "action",
+                    cond: { $eq: ["$$action.saved", true] },
+                    input: "$timelineSocialActions",
+                  },
+                },
+              },
+              timelineSourceRevealCount: {
+                $size: {
+                  $filter: {
+                    as: "action",
+                    cond: { $eq: ["$$action.sourceRevealRequested", true] },
+                    input: "$timelineSocialActions",
+                  },
+                },
+              },
+            },
+          },
+          {
+            $addFields: {
+              timelineSourceRevealUnlockedRank: {
+                $cond: [
+                  {
+                    $gte: [
+                      "$timelineSourceRevealCount",
+                      FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD,
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+              timelineQualityScore: {
+                $add: [
+                  {
+                    $multiply: [
+                      "$timelineSourceRevealCount",
+                      FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_SOURCE_REVEAL_SCORE,
+                    ],
+                  },
+                  {
+                    $multiply: [
+                      "$timelineLikeCount",
+                      FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_LIKE_SCORE,
+                    ],
+                  },
+                  {
+                    $multiply: [
+                      "$timelineSaveCount",
+                      FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_SAVE_SCORE,
+                    ],
+                  },
+                  {
+                    $cond: [
+                      {
+                        $gte: [
+                          "$timelineSourceRevealCount",
+                          FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD,
+                        ],
+                      },
+                      FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_UNLOCKED_SCORE,
+                      0,
+                    ],
+                  },
+                  {
+                    $cond: [
+                      {
+                        $and: [
+                          {
+                            $lt: [
+                              "$timelineSourceRevealCount",
+                              FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD,
+                            ],
+                          },
+                          {
+                            $gte: [
+                              "$timelineSourceRevealCount",
+                              FANLETTER_NEWS_SOURCE_REVEAL_THRESHOLD - 2,
+                            ],
+                          },
+                        ],
+                      },
+                      FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_NEAR_UNLOCK_SCORE,
+                      0,
+                    ],
+                  },
+                  {
+                    $cond: [
+                      {
+                        $regexMatch: {
+                          input: { $ifNull: ["$coverImageUrl", ""] },
+                          regex: /\S/,
+                        },
+                      },
+                      FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_COVER_SCORE,
+                      0,
+                    ],
+                  },
+                ],
               },
             },
           },
           {
             $sort: {
-              timelineDirection: 1,
-              timelineDistanceMs: 1,
-              publicCutSortTime: 1,
+              timelineSourceRevealUnlockedRank: -1,
+              timelineQualityScore: -1,
+              timelineSourceRevealCount: -1,
+              timelineLikeCount: -1,
+              timelineSaveCount: -1,
+              publicCutSortTime: -1,
+              reportId: 1,
+            },
+          },
+          {
+            $group: {
+              _id: "$contentId",
+              report: { $first: "$$ROOT" },
+            },
+          },
+          {
+            $replaceRoot: {
+              newRoot: "$report",
+            },
+          },
+          {
+            $sort: {
+              timelineSourceRevealUnlockedRank: -1,
+              timelineQualityScore: -1,
+              timelineSourceRevealCount: -1,
+              timelineLikeCount: -1,
+              timelineSaveCount: -1,
+              publicCutSortTime: -1,
               reportId: 1,
             },
           },
@@ -1208,8 +1348,12 @@ export async function getFanletterNewsPublicCutFeedPage({
           {
             $project: {
               publicCutSortTime: 0,
-              timelineDirection: 0,
-              timelineDistanceMs: 0,
+              timelineLikeCount: 0,
+              timelineQualityScore: 0,
+              timelineSaveCount: 0,
+              timelineSocialActions: 0,
+              timelineSourceRevealCount: 0,
+              timelineSourceRevealUnlockedRank: 0,
             },
           },
         ])
