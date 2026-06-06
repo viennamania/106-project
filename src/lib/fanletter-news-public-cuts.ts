@@ -1052,6 +1052,7 @@ export async function getFanletterNewsPublicCutFeedPage({
   shareId = null,
   targetReport = null,
   targetOnly = false,
+  timelineAnchorReportId = null,
   viewerEmail = null,
 }: {
   excludeReportIds?: string[];
@@ -1065,6 +1066,7 @@ export async function getFanletterNewsPublicCutFeedPage({
   shareId?: string | null;
   targetReport?: FanletterNewsReportDocument | null;
   targetOnly?: boolean;
+  timelineAnchorReportId?: string | null;
   viewerEmail?: string | null;
 }): Promise<FanletterNewsPublicCutFeedPage> {
   const normalizedLimit = normalizePublicCutFeedLimit(limit);
@@ -1074,6 +1076,8 @@ export async function getFanletterNewsPublicCutFeedPage({
     focusCreatorReferralCode?.trim() || null;
   const normalizedRotationSeed = normalizePublicCutFeedRotationSeed(rotationSeed);
   const normalizedShareId = shareId?.trim() || null;
+  const normalizedTimelineAnchorReportId =
+    timelineAnchorReportId?.trim() || null;
   const audience = resolvePublicCutFeedAudience({
     referralCode: normalizedReferralCode,
     shareId: normalizedShareId,
@@ -1145,6 +1149,88 @@ export async function getFanletterNewsPublicCutFeedPage({
     ],
     status: "published" as const,
   };
+
+  if (normalizedTimelineAnchorReportId && normalizedFocusCreatorReferralCode) {
+    const anchorReport =
+      targetReport?.reportId === normalizedTimelineAnchorReportId
+        ? targetReport
+        : await reportsCollection.findOne({
+            locale,
+            reportId: normalizedTimelineAnchorReportId,
+          });
+    const anchorCreatorReferralCode = anchorReport?.creatorReferralCode?.trim() || null;
+    const anchorCreatorMatches =
+      normalizePublicCutFeedScoreKey(anchorCreatorReferralCode) ===
+      normalizePublicCutFeedScoreKey(normalizedFocusCreatorReferralCode);
+
+    if (anchorReport && anchorCreatorReferralCode && anchorCreatorMatches) {
+      const timelineExcludeReportIds = [
+        ...new Set([...normalizedExcludeReportIds, anchorReport.reportId]),
+      ];
+      const anchorTime = anchorReport.sourcePublishedAt ?? anchorReport.createdAt;
+      const timelineReports = await reportsCollection
+        .aggregate<FanletterNewsReportDocument>([
+          {
+            $match: {
+              ...publicCutReportQuery,
+              ...(anchorReport.contentId.trim()
+                ? { contentId: { $ne: anchorReport.contentId.trim() } }
+                : {}),
+              creatorReferralCode: anchorCreatorReferralCode,
+              reportId: { $nin: timelineExcludeReportIds },
+            },
+          },
+          {
+            $addFields: {
+              publicCutSortTime: { $ifNull: ["$sourcePublishedAt", "$createdAt"] },
+            },
+          },
+          {
+            $addFields: {
+              timelineDistanceMs: {
+                $abs: { $subtract: ["$publicCutSortTime", anchorTime] },
+              },
+              timelineDirection: {
+                $cond: [{ $gt: ["$publicCutSortTime", anchorTime] }, 0, 1],
+              },
+            },
+          },
+          {
+            $sort: {
+              timelineDirection: 1,
+              timelineDistanceMs: 1,
+              publicCutSortTime: 1,
+              reportId: 1,
+            },
+          },
+          { $skip: normalizedOffset },
+          { $limit: queryLimit + 1 },
+          {
+            $project: {
+              publicCutSortTime: 0,
+              timelineDirection: 0,
+              timelineDistanceMs: 0,
+            },
+          },
+        ])
+        .toArray();
+      const timelineItems = timelineReports
+        .slice(0, queryLimit)
+        .map((report) => createFanletterNewsPublicCutFeedItem(report))
+        .filter((item): item is FanletterNewsPublicCutFeedItem => Boolean(item));
+      const hydratedTimelineItems = await hydrateFanletterNewsPublicCutFeedItems(
+        timelineItems,
+        viewerEmail,
+      );
+
+      return {
+        hasMore: timelineReports.length > queryLimit,
+        items: hydratedTimelineItems,
+        nextOffset: normalizedOffset + hydratedTimelineItems.length,
+      };
+    }
+  }
+
   const [reports, focusedCreatorReports] = await Promise.all([
     reportsCollection
       .find(publicCutReportQuery)

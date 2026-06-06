@@ -55,6 +55,9 @@ export async function GET(request: Request) {
     const focusCreatorReferralCode =
       searchParams.get("focusCreatorReferralCode")?.trim().slice(0, 96) ||
       null;
+    const creatorTimelineMode = searchParams.get("timeline") === "creator";
+    const timelineAnchorReportId =
+      searchParams.get("timelineAnchorReportId")?.trim().slice(0, 96) || null;
     const session = await readMemberServerSession();
     const reporterLockedMode = searchParams.get("mode") === "reporter_locked";
     const page = await getFanletterNewsPublicCutFeedPage({
@@ -67,6 +70,7 @@ export async function GET(request: Request) {
       referralCode,
       rotationSeed: readRotationSeed(searchParams.get("rotationSeed")),
       shareId,
+      timelineAnchorReportId: creatorTimelineMode ? timelineAnchorReportId : null,
       viewerEmail: session?.email ?? null,
     });
 

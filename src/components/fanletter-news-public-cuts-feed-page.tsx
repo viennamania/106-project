@@ -143,7 +143,6 @@ function getCopy(locale: Locale) {
         adult: "성인 팬 전용",
         character: "캐릭터",
         characterChannelCta: "채널 보기",
-        characterCutMetric: "편집 컷",
         characterPanelClose: "캐릭터 닫기",
         characterPanelEyebrow: "AI Character IP",
         characterPanelTitle: "캐릭터 채널",
@@ -276,8 +275,6 @@ function getCopy(locale: Locale) {
         characterIntroEyebrow: "AI Character IP",
         characterIntroNextGuide:
           "한 번 더 아래로 넘기면 이 캐릭터의 다른 컷을 볼 수 있어요.",
-        characterIntroReporterMetric: "팬 기자",
-        characterIntroSourceMetric: "보고싶어요",
         characterIntroTitle: (name: string) => `${name} 캐릭터 IP`,
         slot: (index: string) => `컷 ${index}`,
         sourceOpen: "보고싶어요",
@@ -361,7 +358,6 @@ function getCopy(locale: Locale) {
         adult: "Adult fan-only",
         character: "Character",
         characterChannelCta: "Open channel",
-        characterCutMetric: "Edited cuts",
         characterPanelClose: "Close character",
         characterPanelEyebrow: "AI Character IP",
         characterPanelTitle: "Character channel",
@@ -494,8 +490,6 @@ function getCopy(locale: Locale) {
         characterIntroEyebrow: "AI Character IP",
         characterIntroNextGuide:
           "Swipe down once more to see more cuts from this character.",
-        characterIntroReporterMetric: "Fan reporter",
-        characterIntroSourceMetric: "Want it",
         characterIntroTitle: (name: string) => `${name} character IP`,
         slot: (index: string) => `Cut ${index}`,
         sourceOpen: "Fan-open vote",
@@ -4671,42 +4665,15 @@ function FeedSlide({
 function SharedCharacterIntroSlide({
   item,
   locale,
-  onNavigate,
-  referralCode,
-  shareId,
 }: {
   item: SerializedFanletterNewsPublicCutFeedItem;
   locale: Locale;
-  onNavigate?: CutFeedNavigationStart;
-  referralCode: string | null;
-  shareId: string | null;
 }) {
   const copy = getCopy(locale);
   const { report } = item;
   const characterName = report.creatorName;
   const characterImageUrl =
     report.creatorAvatarImageUrl || report.coverImageUrl || item.leadCut.imageUrl;
-  const cutSlotNumber = item.leadCut.slotNumber || 1;
-  const cutFeedReturnHref = getCutFeedReturnHref({
-    cutSlotNumber,
-    locale,
-    referralCode,
-    reportId: report.reportId,
-    shareId,
-  });
-  const characterHref = getCharacterHref({
-    characterReferralCode: report.creatorReferralCode,
-    cutSlotNumber,
-    locale,
-    referralCode,
-    reportId: report.reportId,
-    returnToHref: cutFeedReturnHref,
-  });
-  const cutCountLabel = formatNumber(Math.max(item.cuts.length, 1), locale);
-  const sourceRevealLabel = `${formatNumber(
-    Math.min(item.sourceReveal.count, item.sourceReveal.threshold),
-    locale,
-  )}/${formatNumber(item.sourceReveal.threshold, locale)}`;
 
   return (
     <section
@@ -4756,39 +4723,6 @@ function SharedCharacterIntroSlide({
           <p className="mx-auto mt-3 max-w-[22rem] text-center text-sm font-bold leading-6 text-white/72 [word-break:keep-all]">
             {copy.characterIntroBody(characterName)}
           </p>
-          <div className="mt-5 grid grid-cols-3 gap-2">
-            {[
-              [copy.characterCutMetric, cutCountLabel],
-              [copy.characterIntroReporterMetric, report.reporterName],
-              [copy.characterIntroSourceMetric, sourceRevealLabel],
-            ].map(([label, value]) => (
-              <div
-                className="min-w-0 rounded-2xl border border-white/12 bg-black/34 px-2.5 py-3 text-center backdrop-blur-xl"
-                key={label}
-              >
-                <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.1em] text-[#9bffad]">
-                  {label}
-                </p>
-                <p className="mt-1 truncate text-[0.78rem] font-black text-white">
-                  {value}
-                </p>
-              </div>
-            ))}
-          </div>
-          <Link
-            className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-[#111510] shadow-[0_18px_50px_rgba(68,242,110,0.22)] transition hover:bg-[#69ff8b]"
-            href={characterHref}
-            onClick={() => {
-              onNavigate?.({
-                href: characterHref,
-                label: copy.navigationPending.character(characterName),
-              });
-            }}
-          >
-            <Sparkles className="size-4" />
-            {copy.characterIntroCta}
-            <ArrowRight className="size-4" />
-          </Link>
         </div>
         <div className="mx-auto flex max-w-[22rem] flex-col items-center gap-2 rounded-[1.35rem] border border-white/12 bg-black/42 px-4 py-3 text-center shadow-[0_18px_48px_rgba(0,0,0,0.32)] backdrop-blur-xl">
           <ChevronDown className="size-5 animate-bounce text-[#44f26e]" />
@@ -5168,12 +5102,29 @@ export function FanletterNewsPublicCutsFeedPage({
     getServerRolePreferenceSnapshot,
   );
   const isSharedConsumptionEntry = Boolean(shareId || excludeReportId);
-  const shouldShowHeaderCount = !isSharedConsumptionEntry;
-  const shouldShowServiceMenuButton = !isSharedEntryScrollLocked;
   const shouldShowSharedCharacterIntro = Boolean(
     shareId && items[0]?.report.creatorReferralCode,
   );
   const sharedCharacterIntroSlideIndex = shouldShowSharedCharacterIntro ? 1 : -1;
+  const isSharedEntrySlideVisible = Boolean(shareId && visibleSlideIndex === 0);
+  const isSharedCharacterIntroSlideVisible = Boolean(
+    shareId &&
+      shouldShowSharedCharacterIntro &&
+      visibleSlideIndex === sharedCharacterIntroSlideIndex,
+  );
+  const isSharedTimelineFeedSlideVisible = Boolean(
+    shareId &&
+      shouldShowSharedCharacterIntro &&
+      visibleSlideIndex > sharedCharacterIntroSlideIndex,
+  );
+  const shouldShowHeaderCount = !isSharedConsumptionEntry;
+  const shouldShowServiceMenuButton =
+    !isSharedEntryScrollLocked &&
+    !isSharedEntrySlideVisible &&
+    !isSharedCharacterIntroSlideVisible &&
+    (!isSharedTimelineFeedSlideVisible ||
+      isCutFeedHeaderVisible ||
+      serviceMenuOpen);
   const virtualSlideCount =
     items.length + (shouldShowSharedCharacterIntro ? 1 : 0);
   const getItemSlideIndex = useCallback(
@@ -5205,6 +5156,9 @@ export function FanletterNewsPublicCutsFeedPage({
     ] ?? items[0];
   const sharedFocusCreatorReferralCode = shareId
     ? items[0]?.report.creatorReferralCode?.trim() || null
+    : null;
+  const sharedTimelineAnchorReportId = shareId
+    ? items[0]?.report.reportId.trim() || null
     : null;
   const viewerReporterReferralCode = normalizeReferralCode(
     memberSession.member?.referralCode,
@@ -5532,7 +5486,9 @@ export function FanletterNewsPublicCutsFeedPage({
       const params = new URLSearchParams({
         rotationSeed: feedRotationSeed,
         limit: String(
-          isSharedConsumptionEntry
+          shareId && sharedTimelineAnchorReportId
+            ? 1
+            : isSharedConsumptionEntry
             ? FANLETTER_NEWS_PUBLIC_CUT_SHARED_PAGE_SIZE
             : FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE,
         ),
@@ -5554,6 +5510,11 @@ export function FanletterNewsPublicCutsFeedPage({
 
       if (sharedFocusCreatorReferralCode) {
         params.set("focusCreatorReferralCode", sharedFocusCreatorReferralCode);
+      }
+
+      if (shareId && sharedTimelineAnchorReportId) {
+        params.set("timeline", "creator");
+        params.set("timelineAnchorReportId", sharedTimelineAnchorReportId);
       }
 
       if (selectedRolePreference === "reporter") {
@@ -5619,6 +5580,7 @@ export function FanletterNewsPublicCutsFeedPage({
     referralCode,
     selectedRolePreference,
     sharedFocusCreatorReferralCode,
+    sharedTimelineAnchorReportId,
     shareId,
     activeFeedIndex,
   ]);
@@ -6265,9 +6227,6 @@ export function FanletterNewsPublicCutsFeedPage({
                 <SharedCharacterIntroSlide
                   item={item}
                   locale={locale}
-                  onNavigate={startNavigation}
-                  referralCode={referralCode}
-                  shareId={shareId}
                 />
               </Fragment>
             );
