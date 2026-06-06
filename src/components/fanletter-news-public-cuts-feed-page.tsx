@@ -6704,6 +6704,20 @@ export function FanletterNewsPublicCutsFeedPage({
         return;
       }
 
+      const root = scrollContainerRef.current;
+      const lockedScrollTop =
+        root && activeSharedLockedSlideIndex !== null
+          ? root.clientHeight * activeSharedLockedSlideIndex
+          : null;
+
+      if (
+        root &&
+        lockedScrollTop !== null &&
+        root.scrollTop < lockedScrollTop - 1
+      ) {
+        return;
+      }
+
       if (event.deltaY < -CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX) {
         if (
           activeSharedLockedSlideIndex !== null &&
@@ -6750,6 +6764,20 @@ export function FanletterNewsPublicCutsFeedPage({
       }
 
       if (!isSharedEntryScrollLocked) {
+        return;
+      }
+
+      const root = scrollContainerRef.current;
+      const lockedScrollTop =
+        root && activeSharedLockedSlideIndex !== null
+          ? root.clientHeight * activeSharedLockedSlideIndex
+          : null;
+
+      if (
+        root &&
+        lockedScrollTop !== null &&
+        root.scrollTop < lockedScrollTop - 1
+      ) {
         return;
       }
 
