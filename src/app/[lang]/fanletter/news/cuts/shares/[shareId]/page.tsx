@@ -39,6 +39,12 @@ function getCopy(locale: Locale) {
         back: "공유 링크 목록",
         copiedCut: "공유 진입 컷",
         createdAt: "생성",
+        cutDwell: "컷별 체류",
+        cutDwellBody:
+          "공유 링크 방문자가 각 이미지 컷에서 얼마나 오래 머물렀는지 평균 체류와 기록 수로 비교합니다.",
+        cutDwellEmpty: "아직 컷별 체류 데이터가 없습니다.",
+        cutDwellEvents: (count: string) => `${count}회`,
+        cutDwellTotal: "전체 행동",
         cutDetail: "컷별 이미지와 반응",
         cutDetailBody:
           "공유 링크로 들어온 사용자가 각 컷에서 얼마나 조회하고 머물렀는지 이미지와 함께 확인합니다.",
@@ -73,6 +79,12 @@ function getCopy(locale: Locale) {
         back: "Share link list",
         copiedCut: "Shared entry cut",
         createdAt: "Created",
+        cutDwell: "Dwell by cut",
+        cutDwellBody:
+          "Compare how long share-link visitors stayed on each image cut by average dwell and records.",
+        cutDwellEmpty: "No cut dwell data yet.",
+        cutDwellEvents: (count: string) => `${count} records`,
+        cutDwellTotal: "All actions",
         cutDetail: "Cut images and response",
         cutDetailBody:
           "Review how visitors viewed and stayed on each cut from this share link.",
@@ -222,6 +234,96 @@ function CutImageCard({
         />
       </div>
     </article>
+  );
+}
+
+function CutDwellSummary({
+  copy,
+  detail,
+  locale,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  detail: FanletterNewsCutShareLinkDetail;
+  locale: Locale;
+}) {
+  const cuts = detail.cuts.length > 0 ? detail.cuts : [];
+  const maxAverageDwellMs = cuts.reduce(
+    (maxValue, cut) => Math.max(maxValue, cut.metrics.averageDwellMs),
+    0,
+  );
+
+  return (
+    <section className="mt-5 rounded-[1.15rem] border border-white/12 bg-[#090d0a] p-4 shadow-[0_18px_54px_rgba(0,0,0,0.28)]">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+            {copy.cutDwell}
+          </p>
+          <p className="mt-1 max-w-2xl text-sm font-bold leading-6 text-white/58 [word-break:keep-all]">
+            {copy.cutDwellBody}
+          </p>
+        </div>
+        <div className="shrink-0 text-right">
+          <p className="text-xs font-black text-white/36">
+            {copy.cutDwellTotal}
+          </p>
+          <p className="mt-1 text-xl font-black text-white/72">
+            {formatNumber(detail.metrics.eventCount, locale)}
+          </p>
+        </div>
+      </div>
+      {cuts.length > 0 ? (
+        <div className="mt-5 space-y-4">
+          {cuts.map((cut) => {
+            const progress =
+              maxAverageDwellMs > 0
+                ? Math.max(
+                    cut.metrics.averageDwellMs > 0 ? 8 : 0,
+                    Math.round(
+                      (cut.metrics.averageDwellMs / maxAverageDwellMs) * 100,
+                    ),
+                  )
+                : 0;
+            const countLabel = formatNumber(
+              cut.metrics.dwellEvents || cut.metrics.cutViews,
+              locale,
+            );
+            const slotLabel = copy.cutLabel(
+              formatNumber(cut.slotNumber, locale),
+            );
+
+            return (
+              <div
+                className="grid grid-cols-[3rem_minmax(0,1fr)_5rem] items-center gap-3"
+                key={`${detail.shareId}:dwell:${cut.slotNumber}`}
+              >
+                <span className="text-lg font-black text-white/62">
+                  {slotLabel}
+                </span>
+                <div className="h-3 overflow-hidden rounded-full bg-white/12">
+                  <div
+                    className="h-full rounded-full bg-[#44f26e] shadow-[0_0_24px_rgba(68,242,110,0.28)]"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-black text-white/78">
+                    {formatDuration(cut.metrics.averageDwellMs, locale)}
+                  </p>
+                  <p className="mt-0.5 text-xs font-black text-white/34">
+                    {copy.cutDwellEvents(countLabel)}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="mt-5 rounded-[0.9rem] border border-white/10 bg-white/[0.04] p-4 text-sm font-bold text-white/48">
+          {copy.cutDwellEmpty}
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -384,6 +486,7 @@ export default async function LocalizedFanletterNewsCutShareDetailPage({
                 </div>
               </div>
             </section>
+            <CutDwellSummary copy={copy} detail={detail} locale={locale} />
             <section className="mt-7">
               <div className="flex items-start gap-3">
                 <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
