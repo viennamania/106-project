@@ -296,6 +296,10 @@ function getCopy(locale: Locale) {
         sharedTimelineNext: "다음 브이로그",
         sharedCutRecapBody: (name: string) =>
           `${name} 컷을 본 사람들이 어느 장면에서 더 오래 머물렀는지 먼저 보고, 아래에서 다음 팬 리포트를 골라 이어보세요.`,
+        sharedCutRecapCollectingBody: (name: string) =>
+          `${name} 공유 반응이 쌓이는 중입니다. 지금 확인된 컷을 먼저 보고, 아래에서 다음 팬 리포트로 이어보세요.`,
+        sharedCutRecapCollectingMetric: "수집 중",
+        sharedCutRecapCollectingTitle: "반응 수집 중",
         sharedCutRecapDwellEvents: (count: string) => `${count}회`,
         sharedCutRecapDwellTitle: "컷별 체류",
         sharedCutRecapEntryBadge: "진입 컷",
@@ -560,6 +564,10 @@ function getCopy(locale: Locale) {
         sharedTimelineNext: "Next vlog",
         sharedCutRecapBody: (name: string) =>
           `See where people spent more time in ${name}'s cuts, then choose the next fan report below to keep going.`,
+        sharedCutRecapCollectingBody: (name: string) =>
+          `${name}'s share signals are still collecting. Start with the confirmed cut, then continue into the next fan report below.`,
+        sharedCutRecapCollectingMetric: "Collecting",
+        sharedCutRecapCollectingTitle: "Collecting signals",
         sharedCutRecapDwellEvents: (count: string) => `${count} views`,
         sharedCutRecapDwellTitle: "Dwell by cut",
         sharedCutRecapEntryBadge: "Entry cut",
@@ -3344,10 +3352,18 @@ function FeedSlide({
       sourceContentId &&
       (!isSharedSourceActionGateActive || hasReachedSharedSourceGate),
   );
+  const shouldSuppressSharedSourceRailAfterPreview = Boolean(
+    shareId &&
+      index === 0 &&
+      hasReachedSharedSourceGate &&
+      hasEnteredSourceOverlay &&
+      !sourceOverlayOpen,
+  );
   const shouldShowSourceRail =
     (shouldUseSharedSourceRail &&
       !showSharedSourceCompletionCta &&
-      !showSharedScrollGuide) ||
+      !showSharedScrollGuide &&
+      !shouldSuppressSharedSourceRailAfterPreview) ||
     (!shareId && !isSharedSourceActionGateActive);
   const cutFeedReturnHref = getCutFeedReturnHref({
     cutSlotNumber: activeCutSlotNumber,
@@ -5499,11 +5515,28 @@ function SharedCutDwellRecapSlide({
       isEntryCut: cut.slotNumber === normalizedEntryCutSlotNumber,
     };
   });
-  const maxRecapAverageDwellMs = recapDwellRows.reduce(
+  const measuredRecapDwellRows = recapDwellRows.filter(
+    (row) => row.averageDwellMs > 0 || row.count > 0,
+  );
+  const isCollectingSharedRecapSignals = measuredRecapDwellRows.length < 2;
+  const collectingFallbackDwellRows =
+    measuredRecapDwellRows.length > 0
+      ? measuredRecapDwellRows
+      : recapDwellRows.filter((row) => row.isEntryCut).slice(0, 1);
+  const displayedRecapDwellRows = isCollectingSharedRecapSignals
+    ? collectingFallbackDwellRows.length > 0
+      ? collectingFallbackDwellRows
+      : recapDwellRows.slice(0, 1)
+    : recapDwellRows;
+  const topRecapDwellCandidates =
+    measuredRecapDwellRows.length > 0
+      ? measuredRecapDwellRows
+      : displayedRecapDwellRows;
+  const maxRecapAverageDwellMs = displayedRecapDwellRows.reduce(
     (maxValue, row) => Math.max(maxValue, row.averageDwellMs),
     0,
   );
-  const topRecapDwellRow = recapDwellRows.reduce<
+  const topRecapDwellRow = topRecapDwellCandidates.reduce<
     (typeof recapDwellRows)[number] | null
   >((selectedRow, row) => {
     if (!selectedRow) {
@@ -5529,6 +5562,14 @@ function SharedCutDwellRecapSlide({
   const topRecapDwellCountLabel = topRecapDwellRow
     ? formatNumber(topRecapDwellRow.count, locale)
     : "0";
+  const topRecapDwellHasMetric = Boolean(
+    topRecapDwellRow &&
+      (topRecapDwellRow.averageDwellMs > 0 || topRecapDwellRow.count > 0),
+  );
+  const topRecapDwellMetricLabel =
+    topRecapDwellRow && topRecapDwellHasMetric
+      ? formatDuration(topRecapDwellRow.averageDwellMs, locale)
+      : copy.sharedCutRecapCollectingMetric;
   const sharedRecapEventCountLabel = formatNumber(
     sharedCutRecap?.eventCount ?? 0,
     locale,
@@ -5586,7 +5627,9 @@ function SharedCutDwellRecapSlide({
             </span>
           </div>
           <p className="mt-2 break-words text-sm font-bold leading-6 text-white/68 [word-break:keep-all]">
-            {copy.sharedCutRecapBody(characterName)}
+            {isCollectingSharedRecapSignals
+              ? copy.sharedCutRecapCollectingBody(characterName)
+              : copy.sharedCutRecapBody(characterName)}
           </p>
           {topRecapDwellRow ? (
             <div className="mt-4 grid grid-cols-[4.35rem_minmax(0,1fr)] gap-3 rounded-[1.1rem] border border-[#44f26e]/24 bg-[#44f26e]/10 p-2.5 shadow-[0_22px_58px_rgba(0,0,0,0.34)] backdrop-blur-xl">
@@ -5611,14 +5654,18 @@ function SharedCutDwellRecapSlide({
               <div className="min-w-0 self-center">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e]/16 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
                   <Sparkles className="size-3" />
-                  {copy.sharedCutRecapTopCutTitle}
+                  {isCollectingSharedRecapSignals
+                    ? copy.sharedCutRecapCollectingTitle
+                    : copy.sharedCutRecapTopCutTitle}
                 </span>
                 <p className="mt-2 break-words text-[1.05rem] font-black leading-tight text-white [word-break:keep-all]">
-                  {formatDuration(topRecapDwellRow.averageDwellMs, locale)}
+                  {topRecapDwellMetricLabel}
                 </p>
                 <p className="mt-1 text-[0.68rem] font-bold leading-snug text-white/62 [word-break:keep-all]">
                   {topRecapDwellSlotLabel} ·{" "}
-                  {copy.sharedCutRecapDwellEvents(topRecapDwellCountLabel)}
+                  {topRecapDwellHasMetric
+                    ? copy.sharedCutRecapDwellEvents(topRecapDwellCountLabel)
+                    : copy.sharedCutRecapCollectingMetric}
                 </p>
               </div>
             </div>
@@ -5626,17 +5673,20 @@ function SharedCutDwellRecapSlide({
           <div className="mt-4 rounded-[1.25rem] border border-white/12 bg-black/58 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.4)] backdrop-blur-xl">
             <div className="flex items-center justify-between gap-3">
               <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
-                {copy.sharedCutRecapDwellTitle}
+                {isCollectingSharedRecapSignals
+                  ? copy.sharedCutRecapCollectingTitle
+                  : copy.sharedCutRecapDwellTitle}
               </p>
               <p className="text-[0.62rem] font-black text-white/40">
                 {copy.sharedCutRecapTotalActions} {sharedRecapEventCountLabel}
               </p>
             </div>
             <div className="mt-3 space-y-3">
-              {recapDwellRows.map((row) => {
+              {displayedRecapDwellRows.map((row) => {
                 const slotLabel = copy.slot(
                   row.cutSlotNumber.toString().padStart(2, "0"),
                 );
+                const hasRowMetric = row.averageDwellMs > 0 || row.count > 0;
                 const progress =
                   maxRecapAverageDwellMs > 0
                     ? Math.max(
@@ -5645,7 +5695,9 @@ function SharedCutDwellRecapSlide({
                           (row.averageDwellMs / maxRecapAverageDwellMs) * 100,
                         ),
                       )
-                    : 0;
+                    : isCollectingSharedRecapSignals
+                      ? 18
+                      : 0;
                 const countLabel = formatNumber(row.count, locale);
 
                 return (
@@ -5689,10 +5741,14 @@ function SharedCutDwellRecapSlide({
                     </div>
                     <div className="text-right">
                       <p className="text-sm font-black text-white/78">
-                        {formatDuration(row.averageDwellMs, locale)}
+                        {hasRowMetric
+                          ? formatDuration(row.averageDwellMs, locale)
+                          : copy.sharedCutRecapCollectingMetric}
                       </p>
                       <p className="mt-0.5 text-[0.58rem] font-black text-white/34">
-                        {copy.sharedCutRecapDwellEvents(countLabel)}
+                        {hasRowMetric
+                          ? copy.sharedCutRecapDwellEvents(countLabel)
+                          : copy.sharedCutRecapCollectingMetric}
                       </p>
                     </div>
                   </div>
@@ -5777,7 +5833,20 @@ function SharedCharacterVlogPickerSlide({
       isEntryCut: cut.slotNumber === normalizedEntryCutSlotNumber,
     };
   });
-  const maxRecapAverageDwellMs = recapDwellRows.reduce(
+  const measuredRecapDwellRows = recapDwellRows.filter(
+    (row) => row.averageDwellMs > 0 || row.count > 0,
+  );
+  const isCollectingSharedRecapSignals = measuredRecapDwellRows.length < 2;
+  const collectingFallbackDwellRows =
+    measuredRecapDwellRows.length > 0
+      ? measuredRecapDwellRows
+      : recapDwellRows.filter((row) => row.isEntryCut).slice(0, 1);
+  const displayedRecapDwellRows = isCollectingSharedRecapSignals
+    ? collectingFallbackDwellRows.length > 0
+      ? collectingFallbackDwellRows
+      : recapDwellRows.slice(0, 1)
+    : recapDwellRows;
+  const maxRecapAverageDwellMs = displayedRecapDwellRows.reduce(
     (maxValue, row) => Math.max(maxValue, row.averageDwellMs),
     0,
   );
@@ -5860,22 +5929,27 @@ function SharedCharacterVlogPickerSlide({
                 </span>
               </div>
               <p className="mt-2 line-clamp-2 break-words text-xs font-bold leading-5 text-white/68 [word-break:keep-all]">
-                {copy.sharedCutRecapBody(characterName)}
+                {isCollectingSharedRecapSignals
+                  ? copy.sharedCutRecapCollectingBody(characterName)
+                  : copy.sharedCutRecapBody(characterName)}
               </p>
               <div className="mt-3 rounded-[1.25rem] border border-white/12 bg-black/58 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.4)] backdrop-blur-xl">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
-                    {copy.sharedCutRecapDwellTitle}
+                    {isCollectingSharedRecapSignals
+                      ? copy.sharedCutRecapCollectingTitle
+                      : copy.sharedCutRecapDwellTitle}
                   </p>
                   <p className="text-[0.62rem] font-black text-white/40">
                     {copy.sharedCutRecapTotalActions} {sharedRecapEventCountLabel}
                   </p>
                 </div>
                 <div className="mt-3 space-y-3">
-                  {recapDwellRows.map((row) => {
+                  {displayedRecapDwellRows.map((row) => {
                     const slotLabel = copy.slot(
                       row.cutSlotNumber.toString().padStart(2, "0"),
                     );
+                    const hasRowMetric = row.averageDwellMs > 0 || row.count > 0;
                     const progress =
                       maxRecapAverageDwellMs > 0
                         ? Math.max(
@@ -5885,7 +5959,9 @@ function SharedCharacterVlogPickerSlide({
                                 100,
                             ),
                           )
-                        : 0;
+                        : isCollectingSharedRecapSignals
+                          ? 18
+                          : 0;
                     const countLabel = formatNumber(row.count, locale);
 
                     return (
@@ -5929,10 +6005,14 @@ function SharedCharacterVlogPickerSlide({
                         </div>
                         <div className="text-right">
                           <p className="text-sm font-black text-white/78">
-                            {formatDuration(row.averageDwellMs, locale)}
+                            {hasRowMetric
+                              ? formatDuration(row.averageDwellMs, locale)
+                              : copy.sharedCutRecapCollectingMetric}
                           </p>
                           <p className="mt-0.5 text-[0.58rem] font-black text-white/34">
-                            {copy.sharedCutRecapDwellEvents(countLabel)}
+                            {hasRowMetric
+                              ? copy.sharedCutRecapDwellEvents(countLabel)
+                              : copy.sharedCutRecapCollectingMetric}
                           </p>
                         </div>
                       </div>
