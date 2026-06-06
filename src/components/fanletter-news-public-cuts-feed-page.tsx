@@ -277,11 +277,12 @@ function getCopy(locale: Locale) {
           `아래로 넘겨 ${name} 타임라인 보기`,
         sharedTimelineBadge: (name: string) => `${name} 타임라인`,
         sharedTimelineNext: "다음 브이로그",
-        sharedVlogPickerBody: (count: string) =>
-          `${count}개의 팬 리포트 중 하나를 골라 이어보거나, 그냥 아래로 넘기면 추천 리포트로 시작합니다.`,
+        sharedVlogPickerBody:
+          "팬 리포트 하나를 골라 이어보거나, 그냥 아래로 넘기면 추천 리포트로 시작합니다.",
         sharedVlogPickerCta: "이 리포트 보기",
         sharedVlogPickerDefaultBadge: "추천",
         sharedVlogPickerEyebrow: "다음 브이로그",
+        sharedVlogPickerReportCount: (count: string) => `팬 리포트 ${count}개`,
         sharedVlogPickerReports: "팬 리포트",
         sharedVlogPickerSkip: "선택하지 않고 아래로",
         sharedVlogPickerTitle: "다음 브이로그의 팬 리포트 선택",
@@ -512,11 +513,12 @@ function getCopy(locale: Locale) {
           `Swipe down for ${name}'s timeline`,
         sharedTimelineBadge: (name: string) => `${name}'s timeline`,
         sharedTimelineNext: "Next vlog",
-        sharedVlogPickerBody: (count: string) =>
-          `Choose one of ${count} fan reports, or keep swiping to start with the recommended report.`,
+        sharedVlogPickerBody:
+          "Choose one fan report, or keep swiping to start with the recommended report.",
         sharedVlogPickerCta: "View this report",
         sharedVlogPickerDefaultBadge: "Recommended",
         sharedVlogPickerEyebrow: "Next vlog",
+        sharedVlogPickerReportCount: (count: string) => `${count} fan reports`,
         sharedVlogPickerReports: "Fan reports",
         sharedVlogPickerSkip: "Skip and swipe down",
         sharedVlogPickerTitle: "Choose a fan report for the next vlog",
@@ -2980,10 +2982,7 @@ function FeedSlide({
   const reporterPublishedAtLabel = publishedAt ?? "-";
   const activeCutSlotNumber = cuts[activeCutIndex]?.slotNumber ?? 1;
   const hasViewedAllCuts = cutCount <= 1 || viewedCutIndexes.size >= cutCount;
-  const hasReachedSharedSourceGate = Boolean(
-    hasViewedAllCuts ||
-      (shareId && cutCount > 1 && activeCutSlotNumber >= cutCount),
-  );
+  const hasReachedSharedSourceGate = hasViewedAllCuts;
   const isSharedSourceActionGateActive = Boolean(
     isSharedConsumptionGateActive && cutCount > 1,
   );
@@ -5117,7 +5116,8 @@ function SharedVlogReportPickerSlide({
 }) {
   const copy = getCopy(locale);
   const defaultReportId = defaultItem.report.reportId;
-  const optionCountLabel = formatNumber(options.length, locale);
+  const displayedOptions = options.slice(0, 6);
+  const optionCountLabel = formatNumber(displayedOptions.length, locale);
   const backgroundImageUrl =
     defaultItem.report.coverImageUrl || defaultItem.leadCut.imageUrl;
 
@@ -5155,20 +5155,20 @@ function SharedVlogReportPickerSlide({
         <div className="flex flex-1 flex-col justify-end gap-5 py-7">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.16em] text-[#9bffad]">
-              {copy.sharedVlogPickerReports} {optionCountLabel}
+              {copy.sharedVlogPickerReportCount(optionCountLabel)}
             </p>
             <h2 className="mt-2 break-words text-[2rem] font-black leading-[1.04] tracking-normal [word-break:keep-all]">
               {copy.sharedVlogPickerTitle}
             </h2>
             <p className="mt-3 max-w-[22rem] break-words text-sm font-bold leading-6 text-white/72 [word-break:keep-all]">
-              {copy.sharedVlogPickerBody(optionCountLabel)}
+              {copy.sharedVlogPickerBody}
             </p>
           </div>
           <div
             aria-label={copy.sharedVlogPickerReports}
-            className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="grid grid-cols-2 gap-2.5"
           >
-            {options.map((option) => {
+            {displayedOptions.map((option) => {
               const isDefault = option.report.reportId === defaultReportId;
               const participantCountLabel = formatNumber(
                 option.sourceReveal.count,
@@ -5178,12 +5178,12 @@ function SharedVlogReportPickerSlide({
               return (
                 <button
                   aria-label={`${option.report.reporterName} ${option.report.title} ${copy.sharedVlogPickerCta}`}
-                  className="group grid w-[13.5rem] shrink-0 snap-start grid-cols-[4.6rem_minmax(0,1fr)] gap-3 rounded-[1.1rem] border border-white/14 bg-black/56 p-2.5 text-left shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28"
+                  className="group grid min-h-[8.25rem] grid-cols-[4rem_minmax(0,1fr)] gap-2 rounded-[1rem] border border-white/14 bg-black/56 p-2 text-left shadow-[0_16px_42px_rgba(0,0,0,0.3)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28"
                   key={`${option.report.reportId}:vlog-option`}
                   onClick={() => onSelect(option)}
                   type="button"
                 >
-                  <span className="relative block aspect-[4/5] overflow-hidden rounded-[0.8rem] bg-white/10">
+                  <span className="relative block aspect-[9/16] self-center overflow-hidden rounded-[0.72rem] bg-white/10">
                     <Image
                       alt=""
                       className="object-cover"
@@ -5195,22 +5195,22 @@ function SharedVlogReportPickerSlide({
                       )}
                     />
                   </span>
-                  <span className="min-w-0 py-0.5">
-                    <span className="flex min-h-5 items-center gap-1.5">
-                      <span className="truncate text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#9bffad]">
+                  <span className="flex min-w-0 flex-col justify-center py-0.5">
+                    <span className="flex min-h-4 items-center gap-1">
+                      <span className="truncate text-[0.58rem] font-black uppercase tracking-[0.09em] text-[#9bffad]">
                         {option.report.reporterName}
                       </span>
                       {isDefault ? (
-                        <span className="shrink-0 rounded-full bg-[#44f26e] px-1.5 py-0.5 text-[0.56rem] font-black leading-none text-[#111510]">
+                        <span className="shrink-0 rounded-full bg-[#44f26e] px-1.5 py-0.5 text-[0.53rem] font-black leading-none text-[#111510]">
                           {copy.sharedVlogPickerDefaultBadge}
                         </span>
                       ) : null}
                     </span>
-                    <span className="mt-1 line-clamp-2 block text-sm font-black leading-tight text-white [word-break:keep-all]">
+                    <span className="mt-1 line-clamp-3 block text-[0.82rem] font-black leading-snug text-white [word-break:keep-all]">
                       {option.report.title}
                     </span>
-                    <span className="mt-2 inline-flex items-center gap-1 text-[0.66rem] font-black text-white/58">
-                      <HeartHandshake className="size-3.5 text-[#44f26e]" />
+                    <span className="mt-1.5 inline-flex items-center gap-1 text-[0.62rem] font-black text-white/58">
+                      <HeartHandshake className="size-3 text-[#44f26e]" />
                       {participantCountLabel}/{option.sourceReveal.threshold}
                     </span>
                   </span>
@@ -5288,7 +5288,7 @@ function getSharedVlogReportOptions(
     options.unshift(defaultOption);
   }
 
-  return options;
+  return options.slice(0, 6);
 }
 
 function getPublicCutFeedPreloadImageUrls(
