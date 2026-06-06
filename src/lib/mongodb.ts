@@ -53,6 +53,7 @@ import type {
   CreatorAutomationProfileDocument,
 } from "@/lib/content-automation";
 import type { FanletterNewsPlatformInquiryDocument } from "@/lib/fanletter-news-platform-inquiry";
+import type { FanletterNewsCutShareLinkDocument } from "@/lib/fanletter-news-cut-share-links";
 import type { FunnelEventDocument } from "@/lib/funnel";
 
 const globalForMongo = globalThis as typeof globalThis & {
@@ -150,6 +151,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoFanletterNewsPlatformInquiriesCollectionPromise?: Promise<
     Collection<FanletterNewsPlatformInquiryDocument>
+  >;
+  mongoFanletterNewsCutShareLinksCollectionPromise?: Promise<
+    Collection<FanletterNewsCutShareLinkDocument>
   >;
   mongoCreatorAutomationProfilesCollectionPromise?: Promise<
     Collection<CreatorAutomationProfileDocument>
@@ -1245,6 +1249,33 @@ export async function getFanletterNewsReportsCollection() {
   }
 
   return globalForMongo.mongoFanletterNewsReportsCollectionPromise;
+}
+
+export async function getFanletterNewsCutShareLinksCollection() {
+  if (!globalForMongo.mongoFanletterNewsCutShareLinksCollectionPromise) {
+    globalForMongo.mongoFanletterNewsCutShareLinksCollectionPromise =
+      (async () => {
+        const { dbName } = getMongoConfig();
+        const client = await getMongoClient();
+        const collectionName =
+          process.env.MONGODB_FANLETTER_NEWS_CUT_SHARE_LINKS_COLLECTION ??
+          "fanletterNewsCutShareLinks";
+        const collection = client
+          .db(dbName)
+          .collection<FanletterNewsCutShareLinkDocument>(collectionName);
+
+        await Promise.all([
+          collection.createIndex({ shareId: 1 }, { unique: true }),
+          collection.createIndex({ ownerEmail: 1, createdAt: -1 }),
+          collection.createIndex({ reportId: 1, createdAt: -1 }),
+          collection.createIndex({ contentId: 1, createdAt: -1 }),
+        ]);
+
+        return collection;
+      })();
+  }
+
+  return globalForMongo.mongoFanletterNewsCutShareLinksCollectionPromise;
 }
 
 export async function getFanletterNewsPlatformInquiriesCollection() {

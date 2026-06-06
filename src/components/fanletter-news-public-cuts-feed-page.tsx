@@ -234,6 +234,8 @@ function getCopy(locale: Locale) {
         serviceReportNewHint: "작성 시작",
         serviceReporters: "팬 기자",
         serviceReportersHint: "기자 채널",
+        serviceShareLinks: "공유 링크",
+        serviceShareLinksHint: "유입 분석",
         serviceSectionCreate: "만들기",
         serviceSectionExplore: "탐색",
         serviceSectionMine: "내 활동",
@@ -256,6 +258,12 @@ function getCopy(locale: Locale) {
         share: "공유하기",
         shareCopied: "링크가 복사되었습니다",
         shareError: "공유할 수 없습니다",
+        shareMemoBody:
+          "이 링크가 어디에 공유됐는지 나중에 구분할 수 있도록 짧게 메모하세요.",
+        shareMemoCancel: "취소",
+        shareMemoPlaceholder: "예: 인스타 스토리, X 테스트, 친구방 공유",
+        shareMemoSubmit: "공유 링크 만들기",
+        shareMemoTitle: "공유 메모",
         shareSharing: "공유 중",
         shareSummary: (headline: string, reporterName: string) =>
           `팬 기자 ${reporterName}가 고른 ${headline} 4컷을 확인해보세요.`,
@@ -470,6 +478,8 @@ function getCopy(locale: Locale) {
         serviceReportNewHint: "Start writing",
         serviceReporters: "Fan Reporters",
         serviceReportersHint: "Reporter channels",
+        serviceShareLinks: "Share Links",
+        serviceShareLinksHint: "Traffic analytics",
         serviceSectionCreate: "Create",
         serviceSectionExplore: "Explore",
         serviceSectionMine: "My Activity",
@@ -492,6 +502,12 @@ function getCopy(locale: Locale) {
         share: "Share",
         shareCopied: "Link copied to clipboard",
         shareError: "Could not share",
+        shareMemoBody:
+          "Add a short note so you can identify where this link was shared later.",
+        shareMemoCancel: "Cancel",
+        shareMemoPlaceholder: "Ex. Instagram story, X test, group chat",
+        shareMemoSubmit: "Create share link",
+        shareMemoTitle: "Share note",
         shareSharing: "Sharing",
         shareSummary: (headline: string, reporterName: string) =>
           `See the four cuts ${reporterName} selected for ${headline}.`,
@@ -1153,7 +1169,15 @@ function CutFeedShareButton({
   contentId: string | null;
   copy: Pick<
     ReturnType<typeof getCopy>,
-    "share" | "shareCopied" | "shareError" | "shareSharing"
+    | "share"
+    | "shareCopied"
+    | "shareError"
+    | "shareMemoBody"
+    | "shareMemoCancel"
+    | "shareMemoPlaceholder"
+    | "shareMemoSubmit"
+    | "shareMemoTitle"
+    | "shareSharing"
   >;
   creatorReferralCode: string | null;
   href: string;
@@ -1166,8 +1190,11 @@ function CutFeedShareButton({
   variant?: "compact" | "reel";
 }) {
   const [state, setState] = useState<ShareState>("idle");
+  const [isMemoOpen, setIsMemoOpen] = useState(false);
+  const [shareMemo, setShareMemo] = useState("");
   const feedbackTimeoutRef = useRef<number | null>(null);
   const isSharingRef = useRef(false);
+  const memberSession = useMemberSession();
 
   const showShareFeedback = useCallback((nextState: Exclude<ShareState, "sharing">) => {
     if (feedbackTimeoutRef.current !== null) {
@@ -1194,7 +1221,7 @@ function CutFeedShareButton({
     [],
   );
 
-  const handleShare = useCallback(async () => {
+  const handleShare = useCallback(async (memo = "") => {
     if (isSharingRef.current) {
       return;
     }
@@ -1205,20 +1232,53 @@ function CutFeedShareButton({
     let nextState: Exclude<ShareState, "sharing"> = "idle";
 
     try {
-      const nextShareId = createShareId("newscut");
       const absoluteHref = new URL(href, window.location.origin).toString();
-      const shareUrl = setPathSearchParams(
-        setShareIdOnHref(absoluteHref, nextShareId),
-        {
-          [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(activeCutSlotNumber),
-        },
-      );
+      let nextShareId = createShareId("newscut");
+      let shareUrl = setPathSearchParams(
+          setShareIdOnHref(absoluteHref, nextShareId),
+          {
+            [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(activeCutSlotNumber),
+          },
+        );
+
+      if (memberSession.email) {
+        const response = await fetch("/api/fanletter/news-cuts/shares", {
+          body: JSON.stringify({
+            cutSlotNumber: activeCutSlotNumber,
+            href: absoluteHref,
+            memo,
+            reportId,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        });
+
+        if (!response.ok) {
+          throw new Error("Could not create share link.");
+        }
+
+        const data = (await response.json()) as {
+          shareId?: string;
+          shareUrl?: string;
+        };
+
+        if (!data.shareId || !data.shareUrl) {
+          throw new Error("Invalid share link response.");
+        }
+
+        nextShareId = data.shareId;
+        shareUrl = data.shareUrl;
+      }
 
       trackFunnelEvent("share_click", {
         contentId,
         metadata: {
           creatorReferralCode,
           cutSlotNumber: activeCutSlotNumber,
+          managedShareLink: Boolean(memberSession.email),
+          memoProvided: Boolean(memo.trim()),
           previewImageKind,
           reporterReferralCode,
           reportId,
@@ -1253,6 +1313,7 @@ function CutFeedShareButton({
       nextState = "error";
     } finally {
       isSharingRef.current = false;
+      setIsMemoOpen(false);
       showShareFeedback(nextState);
     }
   }, [
@@ -1260,6 +1321,7 @@ function CutFeedShareButton({
     contentId,
     creatorReferralCode,
     href,
+    memberSession.email,
     previewImageKind,
     referralCode,
     reporterReferralCode,
@@ -1313,7 +1375,18 @@ function CutFeedShareButton({
         }`;
   const iconClassName = variant === "reel" ? "size-5" : "size-4";
 
+  const handleShareButtonClick = useCallback(() => {
+    if (memberSession.email) {
+      setShareMemo("");
+      setIsMemoOpen(true);
+      return;
+    }
+
+    void handleShare();
+  }, [handleShare, memberSession.email]);
+
   return (
+    <>
     <span className="relative inline-flex">
       <button
         aria-busy={state === "sharing"}
@@ -1321,7 +1394,7 @@ function CutFeedShareButton({
         className={buttonClassName}
         disabled={state === "sharing"}
         onClick={() => {
-          void handleShare();
+          handleShareButtonClick();
         }}
         title={label}
         type="button"
@@ -1343,6 +1416,67 @@ function CutFeedShareButton({
         {feedbackMessage}
       </span>
     </span>
+    {isMemoOpen ? (
+      <div
+        aria-modal="true"
+        className="fixed inset-0 z-[90] flex items-end justify-center bg-black/52 px-3 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] text-white backdrop-blur-sm"
+        onClick={() => {
+          if (state !== "sharing") {
+            setIsMemoOpen(false);
+          }
+        }}
+        role="dialog"
+      >
+        <form
+          className="w-full max-w-[430px] rounded-[1.25rem] border border-white/12 bg-[#070a08]/96 p-4 shadow-[0_-24px_70px_rgba(0,0,0,0.44)]"
+          onClick={(event) => event.stopPropagation()}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleShare(shareMemo);
+          }}
+        >
+          <div className="flex items-start gap-3">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
+              <Share2 className="size-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-black leading-tight">
+                {copy.shareMemoTitle}
+              </h2>
+              <p className="mt-1 text-xs font-bold leading-5 text-white/62 [word-break:keep-all]">
+                {copy.shareMemoBody}
+              </p>
+            </div>
+          </div>
+          <textarea
+            className="mt-4 min-h-24 w-full resize-none rounded-[1rem] border border-white/12 bg-white/8 px-3.5 py-3 text-sm font-bold leading-5 text-white outline-none transition placeholder:text-white/34 focus:border-[#44f26e]/50 focus:ring-4 focus:ring-[#44f26e]/14"
+            maxLength={120}
+            onChange={(event) => setShareMemo(event.target.value)}
+            placeholder={copy.shareMemoPlaceholder}
+            value={shareMemo}
+          />
+          <div className="mt-3 flex gap-2">
+            <button
+              className="inline-flex h-12 flex-1 items-center justify-center rounded-full border border-white/12 bg-white/8 px-4 text-sm font-black text-white transition hover:bg-white/14 disabled:opacity-55"
+              disabled={state === "sharing"}
+              onClick={() => setIsMemoOpen(false)}
+              type="button"
+            >
+              {copy.shareMemoCancel}
+            </button>
+            <button
+              className="inline-flex h-12 flex-[1.45] items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-[#111510] transition hover:bg-[#65ff87] disabled:cursor-wait disabled:opacity-70"
+              disabled={state === "sharing"}
+              type="submit"
+            >
+              {state === "sharing" ? <Loader2 className="size-4 animate-spin" /> : null}
+              {copy.shareMemoSubmit}
+            </button>
+          </div>
+        </form>
+      </div>
+    ) : null}
+    </>
   );
 }
 
@@ -5564,6 +5698,13 @@ export function FanletterNewsPublicCutsFeedPage({
   const returnablePurchasesHref = setPathSearchParams(purchasesHref, {
     returnTo: cutFeedHomeHref,
   });
+  const shareLinksHref = buildPathWithReferral(
+    `/${locale}/fanletter/news/cuts/shares`,
+    referralCode,
+  );
+  const returnableShareLinksHref = setPathSearchParams(shareLinksHref, {
+    returnTo: cutFeedHomeHref,
+  });
   const myHref = buildPathWithReferral(
     `/${locale}/fanletter/news/me`,
     referralCode,
@@ -5630,6 +5771,12 @@ export function FanletterNewsPublicCutsFeedPage({
           icon: BookOpenCheck,
           label: copy.servicePurchases,
           secondaryLabel: copy.servicePurchasesHint,
+        },
+        {
+          href: returnableShareLinksHref,
+          icon: Share2,
+          label: copy.serviceShareLinks,
+          secondaryLabel: copy.serviceShareLinksHint,
         },
         {
           href: returnableMyHref,
