@@ -2923,26 +2923,18 @@ function FeedSlide({
     item,
     initialCutSlotNumber,
   );
-  const shouldDeferSharedInitialCut = Boolean(
+  const shouldStartSharedInitialCutWithoutTransition = Boolean(
     shareId && index === 0 && initialCutCount > 1 && initialActiveCutIndex > 0,
   );
-  const hydrationActiveCutIndex = shouldDeferSharedInitialCut
-    ? 0
-    : initialActiveCutIndex;
-  const [activeCutIndex, setActiveCutIndex] = useState(hydrationActiveCutIndex);
+  const [activeCutIndex, setActiveCutIndex] = useState(initialActiveCutIndex);
   const [viewedCutIndexes, setViewedCutIndexes] = useState<Set<number>>(
-    () =>
-      shouldDeferSharedInitialCut
-        ? new Set()
-        : new Set([hydrationActiveCutIndex]),
+    () => new Set([initialActiveCutIndex]),
   );
   const [trackCutIndex, setTrackCutIndex] = useState(() =>
-    initialCutCount > 1 ? hydrationActiveCutIndex + 1 : hydrationActiveCutIndex,
+    initialCutCount > 1 ? initialActiveCutIndex + 1 : initialActiveCutIndex,
   );
   const [isCutTrackTransitionEnabled, setIsCutTrackTransitionEnabled] =
-    useState(true);
-  const [hasAppliedSharedInitialCut, setHasAppliedSharedInitialCut] =
-    useState(!shouldDeferSharedInitialCut);
+    useState(!shouldStartSharedInitialCutWithoutTransition);
   const [sourceRevealState, setSourceRevealState] = useState(item.sourceReveal);
   const [isSourceRevealSaving, setIsSourceRevealSaving] = useState(false);
   const [sourceRevealError, setSourceRevealError] = useState<string | null>(null);
@@ -3084,8 +3076,7 @@ function FeedSlide({
     if (
       !shareId ||
       index !== 0 ||
-      cutCount <= 1 ||
-      !hasAppliedSharedInitialCut
+      cutCount <= 1
     ) {
       return baseOrder;
     }
@@ -3095,7 +3086,6 @@ function FeedSlide({
     );
   }, [
     cutCount,
-    hasAppliedSharedInitialCut,
     index,
     initialActiveCutIndex,
     shareId,
@@ -3240,37 +3230,20 @@ function FeedSlide({
   ]);
 
   useEffect(() => {
-    if (!shouldDeferSharedInitialCut || hasAppliedSharedInitialCut) {
+    if (!shouldStartSharedInitialCutWithoutTransition) {
       return;
     }
 
-    setIsCutTrackTransitionEnabled(false);
-    setActiveCutIndex(initialActiveCutIndex);
-    setViewedCutIndexes(new Set([initialActiveCutIndex]));
-    setTrackCutIndex(
-      initialCutCount > 1 ? initialActiveCutIndex + 1 : initialActiveCutIndex,
-    );
-    setHasAppliedSharedInitialCut(true);
-
-    const animationFrameId = window.requestAnimationFrame(() => {
+    const transitionTimerId = window.setTimeout(() => {
       setIsCutTrackTransitionEnabled(true);
-    });
+    }, 80);
 
     return () => {
-      window.cancelAnimationFrame(animationFrameId);
+      window.clearTimeout(transitionTimerId);
     };
-  }, [
-    hasAppliedSharedInitialCut,
-    initialActiveCutIndex,
-    initialCutCount,
-    shouldDeferSharedInitialCut,
-  ]);
+  }, [shouldStartSharedInitialCutWithoutTransition]);
 
   useEffect(() => {
-    if (shouldDeferSharedInitialCut && !hasAppliedSharedInitialCut) {
-      return;
-    }
-
     setViewedCutIndexes((currentIndexes) => {
       if (currentIndexes.has(activeCutIndex)) {
         return currentIndexes;
@@ -3280,7 +3253,7 @@ function FeedSlide({
       nextIndexes.add(activeCutIndex);
       return nextIndexes;
     });
-  }, [activeCutIndex, hasAppliedSharedInitialCut, shouldDeferSharedInitialCut]);
+  }, [activeCutIndex]);
 
   useEffect(() => {
     if (
