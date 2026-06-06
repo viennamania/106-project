@@ -2931,7 +2931,10 @@ function FeedSlide({
     : initialActiveCutIndex;
   const [activeCutIndex, setActiveCutIndex] = useState(hydrationActiveCutIndex);
   const [viewedCutIndexes, setViewedCutIndexes] = useState<Set<number>>(
-    () => new Set([hydrationActiveCutIndex]),
+    () =>
+      shouldDeferSharedInitialCut
+        ? new Set()
+        : new Set([hydrationActiveCutIndex]),
   );
   const [trackCutIndex, setTrackCutIndex] = useState(() =>
     initialCutCount > 1 ? hydrationActiveCutIndex + 1 : hydrationActiveCutIndex,
@@ -3264,6 +3267,10 @@ function FeedSlide({
   ]);
 
   useEffect(() => {
+    if (shouldDeferSharedInitialCut && !hasAppliedSharedInitialCut) {
+      return;
+    }
+
     setViewedCutIndexes((currentIndexes) => {
       if (currentIndexes.has(activeCutIndex)) {
         return currentIndexes;
@@ -3273,7 +3280,7 @@ function FeedSlide({
       nextIndexes.add(activeCutIndex);
       return nextIndexes;
     });
-  }, [activeCutIndex]);
+  }, [activeCutIndex, hasAppliedSharedInitialCut, shouldDeferSharedInitialCut]);
 
   useEffect(() => {
     if (
