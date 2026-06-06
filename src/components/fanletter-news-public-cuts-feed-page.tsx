@@ -276,6 +276,13 @@ function getCopy(locale: Locale) {
           `아래로 넘겨 ${name} 타임라인 보기`,
         sharedTimelineBadge: (name: string) => `${name} 타임라인`,
         sharedTimelineNext: "다음 브이로그",
+        sharedTimelineSourceGateBody: (
+          viewed: string,
+          total: string,
+          action: string,
+        ) =>
+          `${total}컷 중 ${viewed}컷을 확인했습니다. 남은 컷을 모두 보면 ${action} 버튼이 열립니다.`,
+        sharedTimelineSourceGateTitle: "새 4컷 확인 중",
         characterIntroBody: (name: string) =>
           `방금 본 컷과 원본은 ${name} 캐릭터 IP에서 이어집니다. 팬 리포트와 원본 브이로그를 같은 흐름으로 더 살펴보세요.`,
         characterIntroCta: "캐릭터 채널 보기",
@@ -496,6 +503,13 @@ function getCopy(locale: Locale) {
           `Swipe down for ${name}'s timeline`,
         sharedTimelineBadge: (name: string) => `${name}'s timeline`,
         sharedTimelineNext: "Next vlog",
+        sharedTimelineSourceGateBody: (
+          viewed: string,
+          total: string,
+          action: string,
+        ) =>
+          `${viewed} of ${total} cuts viewed in this new set. Finish the remaining cuts to open the ${action} button.`,
+        sharedTimelineSourceGateTitle: "New 4-cut set in progress",
         characterIntroBody: (name: string) =>
           `The cuts and source you just watched come from ${name}'s AI character IP. Keep exploring related fan reports and source vlogs in the same flow.`,
         characterIntroCta: "Open character channel",
@@ -2929,6 +2943,10 @@ function FeedSlide({
     [cutCount, cutProgressOrder],
   );
   const activeCutLabel = `${formatNumber(activeCutProgressIndex + 1, locale)} / ${formatNumber(cutCount, locale)}`;
+  const viewedCutCountLabel = formatNumber(
+    Math.min(viewedCutIndexes.size, cutCount),
+    locale,
+  );
   const characterCutCountLabel = formatNumber(cutCount, locale);
   const characterSourceRevealLabel = `${formatNumber(
     Math.min(sourceRevealState.count, sourceRevealState.threshold),
@@ -2951,6 +2969,14 @@ function FeedSlide({
       shareId &&
       hasViewedAllCuts &&
       hasEnteredSourceOverlay &&
+      !sourceOverlayOpen,
+  );
+  const showSharedTimelineSourceGateHint = Boolean(
+    isActive &&
+      shareId &&
+      index > 0 &&
+      isSharedSourceActionGateActive &&
+      !hasViewedAllCuts &&
       !sourceOverlayOpen,
   );
   const shouldShowSourceRail = !shareId && !isSharedSourceActionGateActive;
@@ -4302,6 +4328,16 @@ function FeedSlide({
   const SharedSourceCompletionCtaIcon = sourceRevealState.unlocked
     ? PlayCircle
     : PlayCircle;
+  const sharedTimelineSourceGateAction = sourceRevealState.unlocked
+    ? copy.sourceView
+    : copy.sourcePreviewEyebrow;
+  const sharedTimelineSourceGateProgressPercent =
+    cutCount > 0
+      ? Math.min(
+          100,
+          Math.max(0, (viewedCutIndexes.size / cutCount) * 100),
+        )
+      : 100;
   const inactiveArticleAttributes = isActive
     ? {}
     : {
@@ -4797,6 +4833,46 @@ function FeedSlide({
               </div>
             ) : null}
           </div>
+          {showSharedTimelineSourceGateHint ? (
+            <div
+              aria-live="polite"
+              className="mt-3 w-full rounded-[1.35rem] border border-white/14 bg-black/62 px-3.5 py-3 text-white shadow-[0_18px_52px_rgba(0,0,0,0.36)] backdrop-blur-xl"
+              data-shared-timeline-source-gate
+              role="status"
+            >
+              <div className="flex items-start gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/16 text-[#44f26e] ring-1 ring-[#44f26e]/24">
+                  <Images className="size-4.5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-1.5 text-[0.62rem] font-black uppercase leading-tight tracking-[0.12em] text-[#9bffad]">
+                    <span>{copy.sharedTimelineNext}</span>
+                    <span className="rounded-full bg-white/10 px-2 py-0.5 text-white/72">
+                      {viewedCutCountLabel}/{cutCountLabel}
+                    </span>
+                  </span>
+                  <span className="mt-1 block break-words text-sm font-black leading-tight [word-break:keep-all]">
+                    {copy.sharedTimelineSourceGateTitle}
+                  </span>
+                  <span className="mt-1 block break-words text-[0.7rem] font-bold leading-snug text-white/68 [word-break:keep-all]">
+                    {copy.sharedTimelineSourceGateBody(
+                      viewedCutCountLabel,
+                      cutCountLabel,
+                      sharedTimelineSourceGateAction,
+                    )}
+                  </span>
+                </span>
+              </div>
+              <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/16">
+                <span
+                  className="block h-full rounded-full bg-[#44f26e]"
+                  style={{
+                    width: `${sharedTimelineSourceGateProgressPercent}%`,
+                  }}
+                />
+              </div>
+            </div>
+          ) : null}
           {showSharedSourceCompletionCta ? (
             <div aria-live="polite" className="mt-3 w-full">
               <button
