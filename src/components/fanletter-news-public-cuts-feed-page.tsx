@@ -2478,6 +2478,7 @@ function FeedSlide({
   onHideFeedChrome,
   onRevealFeedChrome,
   onNavigationStart,
+  onSharedEntryConsumptionComplete,
   reporterPanelRequestId = 0,
   onSourceViewSlideVisible,
   referralCode,
@@ -2500,6 +2501,7 @@ function FeedSlide({
   onHideFeedChrome?: () => void;
   onRevealFeedChrome?: () => void;
   onNavigationStart?: CutFeedNavigationStart;
+  onSharedEntryConsumptionComplete?: () => void;
   reporterPanelRequestId?: number;
   onSourceViewSlideVisible?: (index: number) => void;
   referralCode: string | null;
@@ -2537,6 +2539,7 @@ function FeedSlide({
     null,
   );
   const [isSourceOverlayLoading, setIsSourceOverlayLoading] = useState(false);
+  const [hasEnteredSourceOverlay, setHasEnteredSourceOverlay] = useState(false);
   const [isReporterPanelOpen, setIsReporterPanelOpen] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLoginSyncing, setIsLoginSyncing] = useState(false);
@@ -2762,6 +2765,24 @@ function FeedSlide({
       return nextIndexes;
     });
   }, [activeCutIndex]);
+
+  useEffect(() => {
+    if (
+      !isActive ||
+      !onSharedEntryConsumptionComplete ||
+      !hasViewedAllCuts ||
+      !hasEnteredSourceOverlay
+    ) {
+      return;
+    }
+
+    onSharedEntryConsumptionComplete();
+  }, [
+    hasEnteredSourceOverlay,
+    hasViewedAllCuts,
+    isActive,
+    onSharedEntryConsumptionComplete,
+  ]);
 
   const clearSideActionsTimer = useCallback(() => {
     if (sideActionsTimeoutRef.current) {
@@ -3129,6 +3150,7 @@ function FeedSlide({
       }
 
       setSourceOverlaySource(data.source);
+      setHasEnteredSourceOverlay(true);
     } catch {
       setSourceOverlayError(copy.sourceOverlayError);
     } finally {
@@ -3165,6 +3187,8 @@ function FeedSlide({
 
     if (!sourceOverlaySource && !isSourceOverlayLoading) {
       void loadSourceOverlay();
+    } else if (sourceOverlaySource) {
+      setHasEnteredSourceOverlay(true);
     }
   }, [
     isSourceOverlayLoading,
@@ -4669,6 +4693,9 @@ export function FanletterNewsPublicCutsFeedPage({
   const [isRoleShortcutVisible, setIsRoleShortcutVisible] = useState(false);
   const [isPublishedReturnEntry, setIsPublishedReturnEntry] = useState(false);
   const [visibleFeedIndex, setVisibleFeedIndex] = useState(0);
+  const [isSharedEntryScrollLocked, setIsSharedEntryScrollLocked] = useState(
+    () => Boolean(shareId),
+  );
   const [reporterPanelRequest, setReporterPanelRequest] = useState<{
     id: number;
     index: number;
@@ -4680,6 +4707,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const headerRevealTimerRef = useRef<number | null>(null);
   const roleShortcutRevealTimerRef = useRef<number | null>(null);
+  const loadMoreIntersectionArmedRef = useRef(true);
   const cutFeedHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/news/cuts`,
     referralCode,
@@ -4868,6 +4896,9 @@ export function FanletterNewsPublicCutsFeedPage({
     setNavigationPending(pending);
     setServiceMenuOpen(false);
   }, []);
+  const unlockSharedEntryScroll = useCallback(() => {
+    setIsSharedEntryScrollLocked(false);
+  }, []);
   const lockedReporterCandidateCount = useMemo(
     () => getLockedReporterCandidates(items).length,
     [items],
@@ -4900,6 +4931,22 @@ export function FanletterNewsPublicCutsFeedPage({
       new URLSearchParams(window.location.search).get("published") === "1",
     );
   }, []);
+  useEffect(() => {
+    setIsSharedEntryScrollLocked(Boolean(shareId));
+  }, [shareId]);
+  useEffect(() => {
+    if (!isSharedEntryScrollLocked) {
+      return;
+    }
+
+    const root = scrollContainerRef.current;
+
+    if (root && root.scrollTop > 0) {
+      root.scrollTo({ top: 0 });
+    }
+
+    setVisibleFeedIndex(0);
+  }, [isSharedEntryScrollLocked]);
   useEffect(() => {
     if (!navigationPending) {
       return;
@@ -5040,6 +5087,15 @@ export function FanletterNewsPublicCutsFeedPage({
       return;
     }
 
+    if (isSharedEntryScrollLocked) {
+      if (root.scrollTop > 0) {
+        root.scrollTo({ top: 0 });
+      }
+
+      setVisibleFeedIndex(0);
+      return;
+    }
+
     const visibleIndex = getVisibleFeedIndex({
       itemCount: items.length,
       root,
@@ -5099,6 +5155,7 @@ export function FanletterNewsPublicCutsFeedPage({
   }, [
     dismissSwipeGuide,
     hideFeedChromeImmediately,
+    isSharedEntryScrollLocked,
     items,
     sourceViewSwipeGuideDismissed,
     swipeGuideTarget,
@@ -5399,7 +5456,7 @@ export function FanletterNewsPublicCutsFeedPage({
   }, [clearRoleShortcutRevealTimer, isRoleShortcutEnabled]);
 
   useEffect(() => {
-    if (!hasMore) {
+    if (!hasMore || isSharedEntryScrollLocked) {
       return;
     }
 
@@ -5412,9 +5469,17 @@ export function FanletterNewsPublicCutsFeedPage({
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          void loadMore();
+        if (!entries.some((entry) => entry.isIntersecting)) {
+          loadMoreIntersectionArmedRef.current = true;
+          return;
         }
+
+        if (!loadMoreIntersectionArmedRef.current) {
+          return;
+        }
+
+        loadMoreIntersectionArmedRef.current = false;
+        void loadMore();
       },
       {
         root,
@@ -5428,7 +5493,7 @@ export function FanletterNewsPublicCutsFeedPage({
     return () => {
       observer.disconnect();
     };
-  }, [hasMore, isSharedConsumptionEntry, loadMore]);
+  }, [hasMore, isSharedConsumptionEntry, isSharedEntryScrollLocked, loadMore]);
 
   if (items.length === 0) {
     return (
@@ -5518,6 +5583,9 @@ export function FanletterNewsPublicCutsFeedPage({
     items.length - 1,
     activeFeedIndex + CUT_FEED_RENDER_WINDOW_RADIUS,
   );
+  const scrollContainerClassName = `mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] scroll-smooth sm:border-x sm:border-white/10 ${
+    isSharedEntryScrollLocked ? "overflow-y-hidden" : "overflow-y-auto"
+  }`;
 
   return (
     <main
@@ -5738,7 +5806,7 @@ export function FanletterNewsPublicCutsFeedPage({
         </section>
       ) : null}
       <div
-        className="mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overflow-y-auto overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] scroll-smooth sm:border-x sm:border-white/10"
+        className={scrollContainerClassName}
         onScroll={handleFeedScroll}
         ref={scrollContainerRef}
       >
@@ -5787,6 +5855,9 @@ export function FanletterNewsPublicCutsFeedPage({
               onHideFeedChrome={hideFeedChromeImmediately}
               onNavigationStart={startNavigation}
               onRevealFeedChrome={revealFeedChromeTemporarily}
+              onSharedEntryConsumptionComplete={
+                index === 0 && shareId ? unlockSharedEntryScroll : undefined
+              }
               onSourceViewSlideVisible={handleSourceViewSlideVisible}
               reporterPanelRequestId={
                 reporterPanelRequest?.index === index
