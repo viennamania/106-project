@@ -2666,17 +2666,13 @@ function FeedSlide({
   const reporterPublishedAtLabel = publishedAt ?? "-";
   const activeCutSlotNumber = cuts[activeCutIndex]?.slotNumber ?? 1;
   const hasViewedAllCuts = cutCount <= 1 || viewedCutIndexes.size >= cutCount;
-  const isSharedSourceViewGateActive = Boolean(
-    shareId &&
-      index === 0 &&
-      sourceRevealState.unlocked &&
-      sourceContentId &&
-      cutCount > 1,
+  const isSharedSourceActionGateActive = Boolean(
+    shareId && index === 0 && cutCount > 1,
   );
   const showSharedSourceCompletionCta = Boolean(
-    isActive && isSharedSourceViewGateActive && hasViewedAllCuts,
+    isActive && isSharedSourceActionGateActive && hasViewedAllCuts,
   );
-  const shouldShowSourceRail = !isSharedSourceViewGateActive;
+  const shouldShowSourceRail = !isSharedSourceActionGateActive;
   const cutFeedReturnHref = getCutFeedReturnHref({
     cutSlotNumber: activeCutSlotNumber,
     locale,
@@ -3675,6 +3671,10 @@ function FeedSlide({
   ]);
 
   const handleSourceRevealDoubleTap = useCallback(() => {
+    if (isSharedSourceActionGateActive && !hasViewedAllCuts) {
+      return;
+    }
+
     if (sourceRevealState.unlocked) {
       showTapFeedback(copy.doubleTapOpen);
       return;
@@ -3700,6 +3700,8 @@ function FeedSlide({
     copy.doubleTapLogin,
     copy.doubleTapOpen,
     copy.doubleTapWant,
+    hasViewedAllCuts,
+    isSharedSourceActionGateActive,
     isSourceRevealLoggedIn,
     openInlineLoginForVote,
     showTapFeedback,
@@ -3865,6 +3867,10 @@ function FeedSlide({
     ],
   );
   const handleSourceRevealParticipation = useCallback(() => {
+    if (isSharedSourceActionGateActive && !hasViewedAllCuts) {
+      return;
+    }
+
     if (sourceRevealState.unlocked) {
       showTapFeedback(copy.doubleTapOpen);
       return;
@@ -3890,6 +3896,8 @@ function FeedSlide({
     copy.doubleTapLogin,
     copy.doubleTapOpen,
     copy.doubleTapWant,
+    hasViewedAllCuts,
+    isSharedSourceActionGateActive,
     isSourceRevealLoggedIn,
     openInlineLoginForVote,
     showTapFeedback,
@@ -3904,9 +3912,14 @@ function FeedSlide({
       return;
     }
 
+    if (isSharedSourceActionGateActive) {
+      setHasEnteredSourceOverlay(true);
+    }
+
     handleSourceRevealParticipation();
   }, [
     handleSourceRevealParticipation,
+    isSharedSourceActionGateActive,
     openSourceOverlay,
     sourceContentId,
   ]);
@@ -3947,6 +3960,18 @@ function FeedSlide({
     "pointer-events-none absolute left-1/2 top-1/2 z-30 flex w-fit max-w-[calc(100%_-_1.5rem)] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-2 text-center text-white";
   const cutSwipeGuidePillClassName =
     "inline-flex max-w-full items-center justify-center gap-1.5 rounded-full border border-white/14 bg-black/54 px-3 py-2 shadow-[0_18px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl";
+  const sharedSourceCompletionCtaTitle = sourceRevealState.unlocked
+    ? copy.sharedSourceCtaTitle
+    : copy.sourcePreviewTitle;
+  const sharedSourceCompletionCtaBody = sourceRevealState.unlocked
+    ? copy.sharedSourceCtaBody
+    : copy.sourcePreviewBody;
+  const sharedSourceCompletionCtaBadge = sourceRevealState.unlocked
+    ? `${cutCountLabel}/${cutCountLabel}`
+    : characterSourceRevealLabel;
+  const SharedSourceCompletionCtaIcon = sourceRevealState.unlocked
+    ? PlayCircle
+    : HeartHandshake;
   const inactiveArticleAttributes = isActive
     ? {}
     : {
@@ -4420,27 +4445,27 @@ function FeedSlide({
           {showSharedSourceCompletionCta ? (
             <div aria-live="polite" className="mt-3 w-full">
               <button
-                aria-label={copy.sharedSourceCtaTitle}
+                aria-label={sharedSourceCompletionCtaTitle}
                 className="group flex min-h-[5.4rem] w-full items-center gap-3 rounded-[1.35rem] border border-[#44f26e]/46 bg-[#44f26e] px-3.5 py-3 text-left text-[#101510] shadow-[0_20px_58px_rgba(0,0,0,0.38)] transition hover:bg-[#69ff8b] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/30"
                 data-shared-source-cta="ready"
                 onClick={handleSourceRailClick}
                 type="button"
               >
                 <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#101510] text-[#44f26e] shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
-                  <PlayCircle className="size-5" />
+                  <SharedSourceCompletionCtaIcon className="size-5" />
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex flex-wrap items-center gap-1.5 text-[0.62rem] font-black uppercase leading-tight tracking-[0.12em] text-[#17391f]/72">
                     <span>{copy.sharedSourceCtaEyebrow}</span>
                     <span className="rounded-full bg-[#101510]/10 px-2 py-0.5 text-[#101510]/78">
-                      {cutCountLabel}/{cutCountLabel}
+                      {sharedSourceCompletionCtaBadge}
                     </span>
                   </span>
                   <span className="mt-1 block break-words text-[1rem] font-black leading-tight tracking-normal [word-break:keep-all]">
-                    {copy.sharedSourceCtaTitle}
+                    {sharedSourceCompletionCtaTitle}
                   </span>
                   <span className="mt-1 block break-words text-[0.72rem] font-bold leading-snug text-[#101510]/70 [word-break:keep-all]">
-                    {copy.sharedSourceCtaBody}
+                    {sharedSourceCompletionCtaBody}
                   </span>
                 </span>
                 <ArrowRight className="size-5 shrink-0 transition group-hover:translate-x-0.5" />
@@ -4855,6 +4880,7 @@ export function FanletterNewsPublicCutsFeedPage({
   );
   const isSharedConsumptionEntry = Boolean(shareId || excludeReportId);
   const shouldShowHeaderCount = !isSharedConsumptionEntry;
+  const shouldShowServiceMenuButton = !isSharedEntryScrollLocked;
   const visibleItem =
     items[
       Math.min(Math.max(visibleFeedIndex, 0), Math.max(items.length - 1, 0))
@@ -4934,6 +4960,14 @@ export function FanletterNewsPublicCutsFeedPage({
   useEffect(() => {
     setIsSharedEntryScrollLocked(Boolean(shareId));
   }, [shareId]);
+  useEffect(() => {
+    if (!isSharedEntryScrollLocked) {
+      return;
+    }
+
+    setServiceMenuOpen(false);
+    setIsCutFeedHeaderVisible(false);
+  }, [isSharedEntryScrollLocked]);
   useEffect(() => {
     if (!isSharedEntryScrollLocked) {
       return;
@@ -5030,6 +5064,10 @@ export function FanletterNewsPublicCutsFeedPage({
     setIsRoleShortcutVisible(false);
   }, [clearHeaderRevealTimer, clearRoleShortcutRevealTimer]);
   const revealCutFeedHeaderTemporarily = useCallback(() => {
+    if (isSharedEntryScrollLocked) {
+      return;
+    }
+
     clearHeaderRevealTimer();
     setIsCutFeedHeaderVisible(true);
 
@@ -5041,7 +5079,7 @@ export function FanletterNewsPublicCutsFeedPage({
       setIsCutFeedHeaderVisible(false);
       headerRevealTimerRef.current = null;
     }, CUT_FEED_CHROME_VISIBLE_MS);
-  }, [clearHeaderRevealTimer, serviceMenuOpen]);
+  }, [clearHeaderRevealTimer, isSharedEntryScrollLocked, serviceMenuOpen]);
   const revealFeedChromeTemporarily = useCallback(() => {
     revealCutFeedHeaderTemporarily();
 
@@ -5643,32 +5681,34 @@ export function FanletterNewsPublicCutsFeedPage({
               <span className="hidden min-[430px]:inline">{copy.title}</span>
             </h1>
           </div>
-          <button
-            aria-expanded={serviceMenuOpen}
-            aria-label={copy.serviceMenu}
-            className={serviceMenuButtonClassName}
-            onClick={() => setServiceMenuOpen(true)}
-            type="button"
-          >
-            <Menu className="size-4" />
-            {shouldShowHeaderCount ? (
-              <span
-                className={`hidden text-[0.72rem] font-black transition-opacity duration-300 min-[430px]:inline ${
-                  isCutFeedHeaderExpanded ? "opacity-100" : "opacity-0"
-                }`}
-              >
-                {copy.serviceMenu}
-              </span>
-            ) : null}
-            {shouldShowHeaderCount ? (
-              <span className="rounded-full bg-white/12 px-2 py-1 text-xs font-black leading-none text-white transition group-hover:text-[#111510]">
-                {headerCountLabel}
-              </span>
-            ) : null}
-          </button>
+          {shouldShowServiceMenuButton ? (
+            <button
+              aria-expanded={serviceMenuOpen}
+              aria-label={copy.serviceMenu}
+              className={serviceMenuButtonClassName}
+              onClick={() => setServiceMenuOpen(true)}
+              type="button"
+            >
+              <Menu className="size-4" />
+              {shouldShowHeaderCount ? (
+                <span
+                  className={`hidden text-[0.72rem] font-black transition-opacity duration-300 min-[430px]:inline ${
+                    isCutFeedHeaderExpanded ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  {copy.serviceMenu}
+                </span>
+              ) : null}
+              {shouldShowHeaderCount ? (
+                <span className="rounded-full bg-white/12 px-2 py-1 text-xs font-black leading-none text-white transition group-hover:text-[#111510]">
+                  {headerCountLabel}
+                </span>
+              ) : null}
+            </button>
+          ) : null}
         </div>
       </header>
-      {serviceMenuOpen ? (
+      {shouldShowServiceMenuButton && serviceMenuOpen ? (
         <CutFeedServiceMenuSheet
           copy={copy}
           groups={serviceMenuGroups}
