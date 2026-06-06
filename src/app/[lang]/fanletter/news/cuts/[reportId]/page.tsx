@@ -14,6 +14,7 @@ import {
   normalizeFanletterNewsPublicCutSlotNumber,
 } from "@/lib/fanletter-news-public-cuts-shared";
 import { buildFanletterOgVersionToken } from "@/lib/fanletter-og";
+import { getFanletterNewsCutSharePublicRecap } from "@/lib/fanletter-news-cut-share-links";
 import { getFanletterNewsReportById } from "@/lib/fanletter-news-report-service";
 import {
   normalizeFanletterReturnToPath,
@@ -253,6 +254,12 @@ export default async function LocalizedFanletterNewsCutDetailPage({
     targetReport: report,
     viewerEmail: session?.email ?? null,
   });
+  const sharedCutRecap = shareId
+    ? await getFanletterNewsCutSharePublicRecap({
+        reportId: report.reportId,
+        shareId,
+      })
+    : null;
 
   return (
     <FanletterNewsPublicCutsFeedPage
@@ -267,6 +274,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
       referralCode={referralCode}
       returnToHref={returnToHref}
       shareId={shareId}
+      sharedCutRecap={sharedCutRecap}
       sourceContentId={initialSourceContentId}
       viewerEmail={session?.email ?? null}
     />

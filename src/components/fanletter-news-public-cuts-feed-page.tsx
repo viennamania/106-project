@@ -66,6 +66,7 @@ import {
   type FanletterNewsPublicCutSourceLoadResponse,
   type SerializedFanletterNewsPublicCutFeedItem,
   type SerializedFanletterNewsPublicCutFeedItemBase,
+  type SerializedFanletterNewsPublicCutShareRecap,
 } from "@/lib/fanletter-news-public-cuts-shared";
 import {
   FANLETTER_NEWS_ROLE_PREFERENCE_CHANGE_EVENT,
@@ -294,15 +295,16 @@ function getCopy(locale: Locale) {
         sharedTimelineBadge: (name: string) => `${name} 타임라인`,
         sharedTimelineNext: "다음 브이로그",
         sharedCutRecapBody: (name: string) =>
-          `방금 본 컷은 ${name} 캐릭터의 원본 브이로그에서 이어집니다. 아래에서 다음 팬 리포트를 골라 같은 흐름으로 계속 보세요.`,
+          `${name} 컷을 본 사람들이 어느 장면에서 더 오래 머물렀는지 먼저 보고, 아래에서 다음 팬 리포트를 골라 이어보세요.`,
+        sharedCutRecapDwellEvents: (count: string) => `${count}회`,
+        sharedCutRecapDwellTitle: "컷별 체류",
         sharedCutRecapEntryBadge: "진입 컷",
-        sharedCutRecapEyebrow: "Share Cut Recap",
-        sharedCutRecapFlowCuts: "4컷",
-        sharedCutRecapFlowNext: "다음 리포트",
-        sharedCutRecapFlowSource: "원본",
-        sharedCutRecapHeadline: "방금 본 4컷 요약",
+        sharedCutRecapEyebrow: "공유 반응",
+        sharedCutRecapHeadline: "사람들이 오래 본 컷",
+        sharedCutRecapNextGuide:
+          "아래로 넘기면 다음 브이로그의 팬 리포트를 고를 수 있어요.",
         sharedCutRecapTitle: (count: string) => `${count}컷 확인 완료`,
-        sharedCutRecapViewedBadge: "확인",
+        sharedCutRecapTotalActions: "전체 행동",
         sharedVlogPickerBody:
           "팬 리포트 하나를 골라 이어보거나, 그냥 아래로 넘기면 추천 리포트로 시작합니다.",
         sharedVlogPickerCta: "이 리포트 보기",
@@ -553,15 +555,16 @@ function getCopy(locale: Locale) {
         sharedTimelineBadge: (name: string) => `${name}'s timeline`,
         sharedTimelineNext: "Next vlog",
         sharedCutRecapBody: (name: string) =>
-          `The cuts you just watched continue from ${name}'s source vlog. Choose the next fan report below and keep the same flow going.`,
+          `See where people spent more time in ${name}'s cuts, then choose the next fan report below to keep going.`,
+        sharedCutRecapDwellEvents: (count: string) => `${count} views`,
+        sharedCutRecapDwellTitle: "Dwell by cut",
         sharedCutRecapEntryBadge: "Entry cut",
-        sharedCutRecapEyebrow: "Share Cut Recap",
-        sharedCutRecapFlowCuts: "4 cuts",
-        sharedCutRecapFlowNext: "Next report",
-        sharedCutRecapFlowSource: "Source",
-        sharedCutRecapHeadline: "The 4-cut recap",
+        sharedCutRecapEyebrow: "Share Cut Signals",
+        sharedCutRecapHeadline: "Cuts people stayed on",
+        sharedCutRecapNextGuide:
+          "Swipe down to choose a fan report for the next vlog.",
         sharedCutRecapTitle: (count: string) => `${count} cuts viewed`,
-        sharedCutRecapViewedBadge: "Viewed",
+        sharedCutRecapTotalActions: "All actions",
         sharedVlogPickerBody:
           "Choose one fan report, or keep swiping to start with the recommended report.",
         sharedVlogPickerCta: "View this report",
@@ -689,6 +692,35 @@ function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US").format(
     value,
   );
+}
+
+function formatDuration(valueMs: number, locale: Locale) {
+  if (!Number.isFinite(valueMs) || valueMs <= 0) {
+    return "-";
+  }
+
+  const seconds = valueMs / 1000;
+
+  if (seconds < 60) {
+    const formattedSeconds = new Intl.NumberFormat(
+      locale === "ko" ? "ko-KR" : "en-US",
+      {
+        maximumFractionDigits: seconds < 10 ? 1 : 0,
+      },
+    ).format(seconds);
+
+    return locale === "ko" ? `${formattedSeconds}초` : `${formattedSeconds}s`;
+  }
+
+  const minutes = seconds / 60;
+  const formattedMinutes = new Intl.NumberFormat(
+    locale === "ko" ? "ko-KR" : "en-US",
+    {
+      maximumFractionDigits: minutes < 10 ? 1 : 0,
+    },
+  ).format(minutes);
+
+  return locale === "ko" ? `${formattedMinutes}분` : `${formattedMinutes}m`;
 }
 
 function getCutDwellBucket(durationMs: number) {
@@ -5398,7 +5430,201 @@ function FeedSlide({
   );
 }
 
+function SharedCutDwellRecapSlide({
+  completedItem,
+  entryCutSlotNumber = null,
+  locale,
+  sharedCutRecap = null,
+}: {
+  completedItem: SerializedFanletterNewsPublicCutFeedItem;
+  entryCutSlotNumber?: number | null;
+  locale: Locale;
+  sharedCutRecap?: SerializedFanletterNewsPublicCutShareRecap | null;
+}) {
+  const copy = getCopy(locale);
+  const { report } = completedItem;
+  const characterName = report.creatorName;
+  const backgroundImageUrl =
+    completedItem.report.coverImageUrl || completedItem.leadCut.imageUrl;
+  const completedCuts =
+    completedItem.cuts.length > 0 ? completedItem.cuts : [completedItem.leadCut];
+  const recapCuts = completedCuts.slice(0, 4);
+  const recapCutCountLabel = formatNumber(recapCuts.length, locale);
+  const normalizedEntryCutSlotNumber =
+    normalizeFanletterNewsPublicCutSlotNumber(
+      entryCutSlotNumber ? String(entryCutSlotNumber) : null,
+    ) ?? completedItem.leadCut.slotNumber;
+  const recapDwellBySlot = new Map(
+    (sharedCutRecap?.cuts ?? []).map((cutMetric) => [
+      cutMetric.cutSlotNumber,
+      cutMetric,
+    ]),
+  );
+  const recapDwellRows = recapCuts.map((cut) => {
+    const cutMetric = recapDwellBySlot.get(cut.slotNumber);
+
+    return {
+      averageDwellMs: cutMetric?.averageDwellMs ?? 0,
+      count: cutMetric?.dwellEvents || cutMetric?.cutViews || 0,
+      cutSlotNumber: cut.slotNumber,
+      imageUrl: cut.imageUrl,
+      isEntryCut: cut.slotNumber === normalizedEntryCutSlotNumber,
+    };
+  });
+  const maxRecapAverageDwellMs = recapDwellRows.reduce(
+    (maxValue, row) => Math.max(maxValue, row.averageDwellMs),
+    0,
+  );
+  const sharedRecapEventCountLabel = formatNumber(
+    sharedCutRecap?.eventCount ?? 0,
+    locale,
+  );
+
+  return (
+    <section
+      aria-label={copy.sharedCutRecapHeadline}
+      className="relative min-h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+1.35rem)] text-white"
+      data-shared-cut-recap
+      data-shared-character-intro
+    >
+      <div className="absolute inset-0">
+        <Image
+          alt=""
+          className="scale-[1.04] object-cover opacity-42 blur-[1px] saturate-[1.08]"
+          fill
+          sizes="(min-width: 640px) 430px, 100vw"
+          src={backgroundImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(backgroundImageUrl)}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,6,4,0.56),rgba(3,6,4,0.74)_34%,rgba(3,6,4,0.96))]" />
+      </div>
+      <div className="relative z-10 mx-auto flex min-h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom)_-_2.4rem)] w-full max-w-[430px] flex-col justify-between">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_16px_38px_rgba(68,242,110,0.22)]">
+              <Images className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
+                {copy.sharedCutRecapEyebrow}
+              </p>
+              <p className="mt-0.5 truncate text-xs font-black text-white/62">
+                {copy.sharedTimelineBadge(characterName)}
+              </p>
+            </div>
+          </div>
+          <div className="mt-7 flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[0.65rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                {copy.sharedCutRecapTitle(recapCutCountLabel)}
+              </p>
+              <h2 className="mt-1 break-words text-[1.65rem] font-black leading-[1.03] tracking-normal [word-break:keep-all]">
+                {copy.sharedCutRecapHeadline}
+              </h2>
+            </div>
+            <span className="shrink-0 rounded-full border border-[#44f26e]/26 bg-[#44f26e]/12 px-2.5 py-1.5 text-right text-[0.62rem] font-black text-[#9bffad] backdrop-blur">
+              <span className="block text-white/42">
+                {copy.sharedCutRecapTotalActions}
+              </span>
+              <span className="mt-0.5 block text-sm text-white/78">
+                {sharedRecapEventCountLabel}
+              </span>
+            </span>
+          </div>
+          <p className="mt-2 break-words text-sm font-bold leading-6 text-white/68 [word-break:keep-all]">
+            {copy.sharedCutRecapBody(characterName)}
+          </p>
+          <div className="mt-5 rounded-[1.25rem] border border-white/12 bg-black/58 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                {copy.sharedCutRecapDwellTitle}
+              </p>
+              <p className="text-[0.62rem] font-black text-white/40">
+                {copy.sharedCutRecapTotalActions} {sharedRecapEventCountLabel}
+              </p>
+            </div>
+            <div className="mt-3 space-y-3">
+              {recapDwellRows.map((row) => {
+                const slotLabel = copy.slot(
+                  row.cutSlotNumber.toString().padStart(2, "0"),
+                );
+                const progress =
+                  maxRecapAverageDwellMs > 0
+                    ? Math.max(
+                        row.averageDwellMs > 0 ? 8 : 0,
+                        Math.round(
+                          (row.averageDwellMs / maxRecapAverageDwellMs) * 100,
+                        ),
+                      )
+                    : 0;
+                const countLabel = formatNumber(row.count, locale);
+
+                return (
+                  <div
+                    className="grid grid-cols-[2.8rem_minmax(0,1fr)_4.35rem] items-center gap-2.5"
+                    key={`${completedItem.report.reportId}:dwell-only:${row.cutSlotNumber}`}
+                  >
+                    <span className="relative block h-[3.55rem] overflow-hidden rounded-[0.62rem] bg-white/8 ring-1 ring-white/10">
+                      <Image
+                        alt={slotLabel}
+                        className="object-cover"
+                        fill
+                        sizes="46px"
+                        src={row.imageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          row.imageUrl,
+                        )}
+                      />
+                      <span className="absolute inset-0 bg-gradient-to-t from-black/62 via-transparent to-black/10" />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="mb-1.5 flex items-center gap-1.5">
+                        <span
+                          className={`inline-flex h-5 items-center rounded-full px-2 text-[0.56rem] font-black ${
+                            row.isEntryCut
+                              ? "bg-[#44f26e] text-[#111510]"
+                              : "bg-white/8 text-white/60"
+                          }`}
+                        >
+                          {row.isEntryCut
+                            ? copy.sharedCutRecapEntryBadge
+                            : slotLabel}
+                        </span>
+                      </div>
+                      <div className="h-3 overflow-hidden rounded-full bg-white/13">
+                        <div
+                          className="h-full rounded-full bg-[#44f26e] shadow-[0_0_24px_rgba(68,242,110,0.26)]"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-black text-white/78">
+                        {formatDuration(row.averageDwellMs, locale)}
+                      </p>
+                      <p className="mt-0.5 text-[0.58rem] font-black text-white/34">
+                        {copy.sharedCutRecapDwellEvents(countLabel)}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        <div className="mx-auto mt-5 flex min-h-14 w-full max-w-[22rem] items-center justify-center gap-2 rounded-full border border-white/16 bg-black/54 px-5 text-center text-sm font-black text-white shadow-[0_16px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+          <ChevronDown className="size-5 shrink-0 text-[#44f26e]" />
+          <span className="min-w-0 [word-break:keep-all]">
+            {copy.sharedCutRecapNextGuide}
+          </span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function SharedCharacterVlogPickerSlide({
+  compactPickerOnly = false,
   completedReportIds,
   completedItem,
   defaultItem,
@@ -5407,9 +5633,11 @@ function SharedCharacterVlogPickerSlide({
   onSelect,
   onSkip,
   options,
+  sharedCutRecap = null,
   showCutRecap = false,
   viewedReportIds,
 }: {
+  compactPickerOnly?: boolean;
   completedReportIds: Set<string>;
   completedItem: SerializedFanletterNewsPublicCutFeedItem;
   defaultItem: SerializedFanletterNewsPublicCutFeedItem;
@@ -5418,6 +5646,7 @@ function SharedCharacterVlogPickerSlide({
   onSelect: (item: SerializedFanletterNewsPublicCutFeedItemBase) => void;
   onSkip: () => void;
   options: SerializedFanletterNewsPublicCutFeedItemBase[];
+  sharedCutRecap?: SerializedFanletterNewsPublicCutShareRecap | null;
   showCutRecap?: boolean;
   viewedReportIds: Set<string>;
 }) {
@@ -5441,12 +5670,29 @@ function SharedCharacterVlogPickerSlide({
     normalizeFanletterNewsPublicCutSlotNumber(
       entryCutSlotNumber ? String(entryCutSlotNumber) : null,
     ) ?? completedItem.leadCut.slotNumber;
-  const sourceRevealCountLabel = formatNumber(
-    Math.min(completedItem.sourceReveal.count, completedItem.sourceReveal.threshold),
-    locale,
+  const recapDwellBySlot = new Map(
+    (sharedCutRecap?.cuts ?? []).map((cutMetric) => [
+      cutMetric.cutSlotNumber,
+      cutMetric,
+    ]),
   );
-  const sourceRevealThresholdLabel = formatNumber(
-    completedItem.sourceReveal.threshold,
+  const recapDwellRows = recapCuts.map((cut) => {
+    const cutMetric = recapDwellBySlot.get(cut.slotNumber);
+
+    return {
+      averageDwellMs: cutMetric?.averageDwellMs ?? 0,
+      count: cutMetric?.dwellEvents || cutMetric?.cutViews || 0,
+      cutSlotNumber: cut.slotNumber,
+      imageUrl: cut.imageUrl,
+      isEntryCut: cut.slotNumber === normalizedEntryCutSlotNumber,
+    };
+  });
+  const maxRecapAverageDwellMs = recapDwellRows.reduce(
+    (maxValue, row) => Math.max(maxValue, row.averageDwellMs),
+    0,
+  );
+  const sharedRecapEventCountLabel = formatNumber(
+    sharedCutRecap?.eventCount ?? 0,
     locale,
   );
 
@@ -5479,18 +5725,26 @@ function SharedCharacterVlogPickerSlide({
           </span>
           <div className="min-w-0">
             <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
-              {showCutRecap ? copy.sharedCutRecapEyebrow : copy.characterIntroEyebrow}
+              {showCutRecap
+                ? copy.sharedCutRecapEyebrow
+                : compactPickerOnly
+                  ? copy.sharedVlogPickerEyebrow
+                  : copy.characterIntroEyebrow}
             </p>
             <p className="mt-0.5 truncate text-xs font-black text-white/62">
               {showCutRecap
                 ? copy.sharedTimelineBadge(characterName)
-                : copy.sharedSourceCtaEyebrow}
+                : compactPickerOnly
+                  ? characterName
+                  : copy.sharedSourceCtaEyebrow}
             </p>
           </div>
         </div>
         <div
-          className={`flex min-h-0 flex-1 flex-col justify-between ${
-            showCutRecap ? "gap-3 py-3" : "gap-4 py-4"
+          className={`flex min-h-0 flex-1 flex-col ${
+            compactPickerOnly
+              ? "justify-center gap-6 py-6"
+              : `justify-between ${showCutRecap ? "gap-3 py-3" : "gap-4 py-4"}`
           }`}
         >
           {showCutRecap ? (
@@ -5504,79 +5758,124 @@ function SharedCharacterVlogPickerSlide({
                     {copy.sharedCutRecapHeadline}
                   </h2>
                 </div>
-                <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#44f26e]/32 bg-[#44f26e]/14 px-2.5 py-1.5 text-[0.62rem] font-black text-[#9bffad] backdrop-blur">
-                  <HeartHandshake className="size-3.5" />
-                  {sourceRevealCountLabel}/{sourceRevealThresholdLabel}
+                <span className="shrink-0 rounded-full border border-[#44f26e]/26 bg-[#44f26e]/12 px-2.5 py-1.5 text-right text-[0.62rem] font-black text-[#9bffad] backdrop-blur">
+                  <span className="block text-white/42">
+                    {copy.sharedCutRecapTotalActions}
+                  </span>
+                  <span className="mt-0.5 block text-sm text-white/78">
+                    {sharedRecapEventCountLabel}
+                  </span>
                 </span>
               </div>
               <p className="mt-2 line-clamp-2 break-words text-xs font-bold leading-5 text-white/68 [word-break:keep-all]">
                 {copy.sharedCutRecapBody(characterName)}
               </p>
-              <div className="mt-3 overflow-hidden rounded-[1.25rem] border border-white/12 bg-black/54 p-2 shadow-[0_24px_70px_rgba(0,0,0,0.4)] backdrop-blur-xl">
-                <div className="grid h-[clamp(9.4rem,26vh,13rem)] grid-cols-4 grid-rows-2 gap-1.5">
-                  {recapCuts.map((cut, cutIndex) => {
-                    const isEntryCut =
-                      cut.slotNumber === normalizedEntryCutSlotNumber;
+              <div className="mt-3 rounded-[1.25rem] border border-white/12 bg-black/58 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                    {copy.sharedCutRecapDwellTitle}
+                  </p>
+                  <p className="text-[0.62rem] font-black text-white/40">
+                    {copy.sharedCutRecapTotalActions} {sharedRecapEventCountLabel}
+                  </p>
+                </div>
+                <div className="mt-3 space-y-3">
+                  {recapDwellRows.map((row) => {
                     const slotLabel = copy.slot(
-                      cut.slotNumber.toString().padStart(2, "0"),
+                      row.cutSlotNumber.toString().padStart(2, "0"),
                     );
-                    const layoutClassName =
-                      cutIndex === 0
-                        ? "col-span-2 row-span-2"
-                        : cutIndex === 1
-                          ? "col-span-2"
-                          : "col-span-1";
+                    const progress =
+                      maxRecapAverageDwellMs > 0
+                        ? Math.max(
+                            row.averageDwellMs > 0 ? 8 : 0,
+                            Math.round(
+                              (row.averageDwellMs / maxRecapAverageDwellMs) *
+                                100,
+                            ),
+                          )
+                        : 0;
+                    const countLabel = formatNumber(row.count, locale);
 
                     return (
                       <div
-                        className={`relative overflow-hidden rounded-[0.8rem] bg-white/8 ring-1 ${
-                          isEntryCut
-                            ? "ring-[#44f26e]/80"
-                            : "ring-white/10"
-                        } ${layoutClassName}`}
-                        key={`${completedItem.report.reportId}:recap:${cut.slotNumber}`}
+                        className="grid grid-cols-[2.8rem_minmax(0,1fr)_4.35rem] items-center gap-2.5"
+                        key={`${completedItem.report.reportId}:dwell-recap:${row.cutSlotNumber}`}
                       >
-                        <Image
-                          alt={slotLabel}
-                          className="object-cover"
-                          fill
-                          sizes="(min-width: 640px) 210px, 45vw"
-                          src={cut.imageUrl}
-                          unoptimized={shouldBypassFanletterImageOptimization(
-                            cut.imageUrl,
-                          )}
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/54 via-transparent to-black/12" />
-                        <span
-                          className={`absolute left-2 top-2 rounded-full px-2 py-0.5 text-[0.56rem] font-black ${
-                            isEntryCut
-                              ? "bg-[#44f26e] text-[#111510]"
-                              : "bg-black/58 text-white/86"
-                          }`}
-                        >
-                          {isEntryCut ? copy.sharedCutRecapEntryBadge : slotLabel}
+                        <span className="relative block h-[3.55rem] overflow-hidden rounded-[0.62rem] bg-white/8 ring-1 ring-white/10">
+                          <Image
+                            alt={slotLabel}
+                            className="object-cover"
+                            fill
+                            sizes="46px"
+                            src={row.imageUrl}
+                            unoptimized={shouldBypassFanletterImageOptimization(
+                              row.imageUrl,
+                            )}
+                          />
+                          <span className="absolute inset-0 bg-gradient-to-t from-black/62 via-transparent to-black/10" />
                         </span>
-                        <span className="absolute bottom-2 right-2 rounded-full bg-black/62 px-2 py-0.5 text-[0.55rem] font-black text-white/72">
-                          {copy.sharedCutRecapViewedBadge}
-                        </span>
+                        <div className="min-w-0">
+                          <div className="mb-1.5 flex items-center gap-1.5">
+                            <span
+                              className={`inline-flex h-5 items-center rounded-full px-2 text-[0.56rem] font-black ${
+                                row.isEntryCut
+                                  ? "bg-[#44f26e] text-[#111510]"
+                                  : "bg-white/8 text-white/60"
+                              }`}
+                            >
+                              {row.isEntryCut
+                                ? copy.sharedCutRecapEntryBadge
+                                : slotLabel}
+                            </span>
+                          </div>
+                          <div className="h-3 overflow-hidden rounded-full bg-white/13">
+                            <div
+                              className="h-full rounded-full bg-[#44f26e] shadow-[0_0_24px_rgba(68,242,110,0.26)]"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-black text-white/78">
+                            {formatDuration(row.averageDwellMs, locale)}
+                          </p>
+                          <p className="mt-0.5 text-[0.58rem] font-black text-white/34">
+                            {copy.sharedCutRecapDwellEvents(countLabel)}
+                          </p>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
-                <div className="mt-2 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-1.5 text-center text-[0.58rem] font-black uppercase tracking-[0.08em] text-white/72">
-                  <span className="rounded-full bg-[#44f26e]/16 px-2 py-1.5 text-[#9bffad]">
-                    {copy.sharedCutRecapFlowCuts}
-                  </span>
-                  <ArrowRight className="mx-auto size-3.5 text-[#44f26e]" />
-                  <span className="rounded-full bg-white/10 px-2 py-1.5">
-                    {copy.sharedCutRecapFlowSource}
-                  </span>
-                  <ArrowRight className="mx-auto size-3.5 text-[#44f26e]" />
-                  <span className="rounded-full bg-white/10 px-2 py-1.5">
-                    {copy.sharedCutRecapFlowNext}
-                  </span>
+              </div>
+            </div>
+          ) : compactPickerOnly ? (
+            <div className="mx-auto w-full max-w-[22.5rem] rounded-[1.25rem] border border-[#44f26e]/18 bg-black/48 p-3.5 shadow-[0_20px_58px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+              <div className="flex items-center gap-3">
+                <div className="relative size-[4.75rem] shrink-0 overflow-hidden rounded-[1rem] border border-[#44f26e]/38 bg-black/38">
+                  <Image
+                    alt=""
+                    className="object-cover"
+                    fill
+                    sizes="76px"
+                    src={characterImageUrl}
+                    unoptimized={shouldBypassFanletterImageOptimization(
+                      characterImageUrl,
+                    )}
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[0.58rem] font-black uppercase tracking-[0.16em] text-[#9bffad]">
+                    {copy.characterIntroEyebrow}
+                  </p>
+                  <h2 className="mt-0.5 break-words text-xl font-black leading-tight [word-break:keep-all]">
+                    {copy.characterIntroTitle(characterName)}
+                  </h2>
                 </div>
               </div>
+              <p className="mt-3 line-clamp-2 break-words text-[0.74rem] font-bold leading-5 text-white/62 [word-break:keep-all]">
+                {copy.characterIntroBody(characterName)}
+              </p>
             </div>
           ) : (
             <div className="mx-auto flex w-full max-w-[24rem] items-center gap-3">
@@ -5796,6 +6095,10 @@ type SharedVlogTransition = {
   targetItemIndex: number;
 };
 
+function getSharedVlogTransitionSlideCount(transition: SharedVlogTransition) {
+  return transition.afterItemIndex === 0 ? 2 : 1;
+}
+
 function getPublicCutFeedPreloadImageUrls(
   items: SerializedFanletterNewsPublicCutFeedItemBase[],
 ) {
@@ -5970,6 +6273,7 @@ export function FanletterNewsPublicCutsFeedPage({
   referralCode,
   returnToHref = null,
   shareId,
+  sharedCutRecap = null,
   sourceContentId = null,
   viewerEmail = null,
 }: {
@@ -5984,6 +6288,7 @@ export function FanletterNewsPublicCutsFeedPage({
   referralCode: string | null;
   returnToHref?: string | null;
   shareId: string | null;
+  sharedCutRecap?: SerializedFanletterNewsPublicCutShareRecap | null;
   sourceContentId?: string | null;
   viewerEmail?: string | null;
 }) {
@@ -6228,9 +6533,13 @@ export function FanletterNewsPublicCutsFeedPage({
   }, [items, shouldShowSharedTimelineTransitions]);
   const getSharedTransitionCountBeforeItemIndex = useCallback(
     (itemIndex: number) =>
-      sharedVlogTransitions.filter(
-        (transition) => transition.targetItemIndex <= itemIndex,
-      ).length,
+      sharedVlogTransitions.reduce(
+        (count, transition) =>
+          transition.targetItemIndex <= itemIndex
+            ? count + getSharedVlogTransitionSlideCount(transition)
+            : count,
+        0,
+      ),
     [sharedVlogTransitions],
   );
   const getItemSlideIndex = useCallback(
@@ -6246,8 +6555,16 @@ export function FanletterNewsPublicCutsFeedPage({
   const getSharedTransitionForSlideIndex = useCallback(
     (slideIndex: number) =>
       sharedVlogTransitions.find(
-        (transition) =>
-          getSharedTransitionSlideIndex(transition) === slideIndex,
+        (transition) => {
+          const transitionSlideIndex = getSharedTransitionSlideIndex(transition);
+
+          return (
+            slideIndex >= transitionSlideIndex &&
+            slideIndex <
+              transitionSlideIndex +
+                getSharedVlogTransitionSlideCount(transition)
+          );
+        },
       ) ?? null,
     [getSharedTransitionSlideIndex, sharedVlogTransitions],
   );
@@ -6261,14 +6578,25 @@ export function FanletterNewsPublicCutsFeedPage({
 
       for (const transition of sharedVlogTransitions) {
         const transitionSlideIndex = getSharedTransitionSlideIndex(transition);
+        const transitionSlideCount =
+          getSharedVlogTransitionSlideCount(transition);
 
-        if (
-          transitionSlideIndex > previousSlideIndex &&
-          transitionSlideIndex < nextSlideIndex &&
-          (skippedSlideIndex === null ||
-            transitionSlideIndex < skippedSlideIndex)
+        for (
+          let transitionSlideOffset = 0;
+          transitionSlideOffset < transitionSlideCount;
+          transitionSlideOffset += 1
         ) {
-          skippedSlideIndex = transitionSlideIndex;
+          const candidateSlideIndex =
+            transitionSlideIndex + transitionSlideOffset;
+
+          if (
+            candidateSlideIndex > previousSlideIndex &&
+            candidateSlideIndex < nextSlideIndex &&
+            (skippedSlideIndex === null ||
+              candidateSlideIndex < skippedSlideIndex)
+          ) {
+            skippedSlideIndex = candidateSlideIndex;
+          }
         }
       }
 
@@ -6284,7 +6612,12 @@ export function FanletterNewsPublicCutsFeedPage({
   const isSharedTransitionSlideVisible = Boolean(
     shareId && getSharedTransitionForSlideIndex(visibleSlideIndex),
   );
-  const virtualSlideCount = items.length + sharedVlogTransitions.length;
+  const sharedVlogTransitionSlideCount = sharedVlogTransitions.reduce(
+    (count, transition) =>
+      count + getSharedVlogTransitionSlideCount(transition),
+    0,
+  );
+  const virtualSlideCount = items.length + sharedVlogTransitionSlideCount;
   const getFeedIndexForSlide = useCallback(
     (slideIndex: number) => {
       if (!shouldShowSharedTimelineTransitions) {
@@ -7934,18 +8267,30 @@ export function FanletterNewsPublicCutsFeedPage({
             ) ?? null;
 
           if (sharedTransitionAfterItem) {
+            const shouldSplitSharedTransition =
+              sharedTransitionAfterItem.afterItemIndex === 0;
+            const sharedTransitionEntryCutSlotNumber =
+              sharedTransitionAfterItem.afterItemIndex === 0
+                ? initialCutSlotNumber
+                : sharedCutSlotOverrides[index] ?? item.leadCut.slotNumber;
+
             return (
               <Fragment key={`${item.report.reportId}:shared-vlog-transition`}>
                 {feedSlide}
+                {shouldSplitSharedTransition ? (
+                  <SharedCutDwellRecapSlide
+                    completedItem={item}
+                    entryCutSlotNumber={sharedTransitionEntryCutSlotNumber}
+                    locale={locale}
+                    sharedCutRecap={sharedCutRecap}
+                  />
+                ) : null}
                 <SharedCharacterVlogPickerSlide
+                  compactPickerOnly={shouldSplitSharedTransition}
                   completedReportIds={sharedConsumedReportIds}
                   completedItem={item}
                   defaultItem={sharedTransitionAfterItem.targetItem}
-                  entryCutSlotNumber={
-                    sharedTransitionAfterItem.afterItemIndex === 0
-                      ? initialCutSlotNumber
-                      : sharedCutSlotOverrides[index] ?? item.leadCut.slotNumber
-                  }
+                  entryCutSlotNumber={sharedTransitionEntryCutSlotNumber}
                   locale={locale}
                   onSelect={(option) =>
                     handleSharedVlogReportSelect(
@@ -7960,7 +8305,16 @@ export function FanletterNewsPublicCutsFeedPage({
                     )
                   }
                   options={sharedTransitionAfterItem.options}
-                  showCutRecap={sharedTransitionAfterItem.afterItemIndex === 0}
+                  sharedCutRecap={
+                    !shouldSplitSharedTransition &&
+                    sharedTransitionAfterItem.afterItemIndex === 0
+                      ? sharedCutRecap
+                      : null
+                  }
+                  showCutRecap={
+                    !shouldSplitSharedTransition &&
+                    sharedTransitionAfterItem.afterItemIndex === 0
+                  }
                   viewedReportIds={sharedViewedReportIds}
                 />
               </Fragment>

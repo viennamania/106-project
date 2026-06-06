@@ -72,6 +72,21 @@ export type SerializedFanletterNewsPublicCutFeedItem =
     vlogReportOptions?: SerializedFanletterNewsPublicCutFeedItemBase[];
   };
 
+export type SerializedFanletterNewsPublicCutShareRecapMetric = {
+  averageDwellMs: number;
+  cutSlotNumber: number;
+  cutViews: number;
+  dwellEvents: number;
+  maxDwellMs: number;
+  totalDwellMs: number;
+};
+
+export type SerializedFanletterNewsPublicCutShareRecap = {
+  cuts: SerializedFanletterNewsPublicCutShareRecapMetric[];
+  eventCount: number;
+  shareId: string;
+};
+
 export type FanletterNewsPublicCutFeedLoadResponse = {
   hasMore: boolean;
   items: SerializedFanletterNewsPublicCutFeedItem[];

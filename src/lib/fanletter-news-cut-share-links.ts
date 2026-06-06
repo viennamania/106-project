@@ -13,6 +13,7 @@ import {
   getPublicCutsFromReport,
   type FanletterNewsPublicCut,
 } from "@/lib/fanletter-news-public-cuts";
+import type { SerializedFanletterNewsPublicCutShareRecap } from "@/lib/fanletter-news-public-cuts-shared";
 import { normalizeReferralCode } from "@/lib/member";
 import { normalizeShareId } from "@/lib/share-tracking";
 
@@ -704,5 +705,177 @@ export async function getFanletterNewsCutShareLinkDetail({
     reportTitle: report?.title ?? null,
     shareId: link.shareId,
     targetHref: link.targetHref,
+  };
+}
+
+export async function getFanletterNewsCutSharePublicRecap({
+  reportId,
+  shareId,
+}: {
+  reportId?: string | null;
+  shareId: string | null;
+}): Promise<SerializedFanletterNewsPublicCutShareRecap | null> {
+  const normalizedShareId = normalizeShareId(shareId);
+  const normalizedReportId = reportId?.trim() || null;
+
+  if (!normalizedShareId) {
+    return null;
+  }
+
+  const shareLinksCollection = await getFanletterNewsCutShareLinksCollection();
+  const link = await shareLinksCollection.findOne(
+    {
+      shareId: normalizedShareId,
+      ...(normalizedReportId ? { reportId: normalizedReportId } : {}),
+    },
+    {
+      projection: {
+        reportId: 1,
+        shareId: 1,
+      },
+    },
+  );
+
+  if (!link) {
+    return null;
+  }
+
+  const [metricRows, cutDwellRows, cutViewRows] = await Promise.all([
+    getFunnelEventsCollection().then((collection) =>
+      collection
+        .aggregate<Pick<RawMetricsRow, "_id" | "eventCount">>([
+          {
+            $match: {
+              name: {
+                $in: [
+                  "fanletter_news_cut_view",
+                  "fanletter_news_cut_dwell",
+                  "fanletter_news_cut_feed_load_more",
+                  "fanletter_news_source_open_click",
+                ] satisfies FunnelEventName[],
+              },
+              shareId: normalizedShareId,
+            },
+          },
+          {
+            $group: {
+              _id: "$shareId",
+              eventCount: { $sum: 1 },
+            },
+          },
+        ])
+        .toArray(),
+    ),
+    getFunnelEventsCollection().then((collection) =>
+      collection
+        .aggregate<RawCutDwellMetricsRow>([
+          {
+            $match: {
+              name: "fanletter_news_cut_dwell" satisfies FunnelEventName,
+              shareId: normalizedShareId,
+            },
+          },
+          {
+            $project: {
+              cutSlotNumber: {
+                $convert: {
+                  input: "$metadata.cutSlotNumber",
+                  onError: null,
+                  onNull: null,
+                  to: "int",
+                },
+              },
+              durationMs: {
+                $convert: {
+                  input: "$metadata.durationMs",
+                  onError: 0,
+                  onNull: 0,
+                  to: "double",
+                },
+              },
+            },
+          },
+          {
+            $match: {
+              cutSlotNumber: { $gte: 1, $lte: 4 },
+              durationMs: { $gt: 0 },
+            },
+          },
+          {
+            $group: {
+              _id: {
+                cutSlotNumber: "$cutSlotNumber",
+                shareId: normalizedShareId,
+              },
+              averageDwellMs: { $avg: "$durationMs" },
+              dwellEvents: { $sum: 1 },
+              maxDwellMs: { $max: "$durationMs" },
+              totalDwellMs: { $sum: "$durationMs" },
+            },
+          },
+          { $sort: { "_id.cutSlotNumber": 1 } },
+        ])
+        .toArray(),
+    ),
+    getFunnelEventsCollection().then((collection) =>
+      collection
+        .aggregate<RawCutViewMetricsRow>([
+          {
+            $match: {
+              name: "fanletter_news_cut_view" satisfies FunnelEventName,
+              shareId: normalizedShareId,
+            },
+          },
+          {
+            $project: {
+              cutSlotNumber: {
+                $convert: {
+                  input: "$metadata.cutSlotNumber",
+                  onError: null,
+                  onNull: null,
+                  to: "int",
+                },
+              },
+            },
+          },
+          {
+            $match: {
+              cutSlotNumber: { $gte: 1, $lte: 4 },
+            },
+          },
+          {
+            $group: {
+              _id: "$cutSlotNumber",
+              cutViews: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .toArray(),
+    ),
+  ]);
+  const cutViewsBySlot = new Map(
+    cutViewRows.map((row) => [row._id, row.cutViews ?? 0]),
+  );
+  const cutDwellBySlot = new Map(
+    cutDwellRows.map((row) => [row._id.cutSlotNumber, row]),
+  );
+
+  return {
+    cuts: Array.from({ length: 4 }, (_, index) => {
+      const cutSlotNumber = index + 1;
+      const dwellMetric = cutDwellBySlot.get(cutSlotNumber);
+
+      return {
+        averageDwellMs: Math.round(dwellMetric?.averageDwellMs ?? 0),
+        cutSlotNumber,
+        cutViews: cutViewsBySlot.get(cutSlotNumber) ?? 0,
+        dwellEvents: dwellMetric?.dwellEvents ?? 0,
+        maxDwellMs: Math.round(dwellMetric?.maxDwellMs ?? 0),
+        totalDwellMs: Math.round(dwellMetric?.totalDwellMs ?? 0),
+      };
+    }),
+    eventCount: metricRows[0]?.eventCount ?? 0,
+    shareId: link.shareId,
   };
 }
