@@ -6239,14 +6239,29 @@ export function FanletterNewsPublicCutsFeedPage({
         ? root.clientHeight * activeSharedLockedSlideIndex
         : 0;
 
-    if (root && Math.abs(root.scrollTop - lockedScrollTop) > 1) {
+    if (root && root.scrollTop > lockedScrollTop + 1) {
       root.scrollTo({ top: lockedScrollTop });
     }
 
-    if (activeSharedLockedSlideIndex !== null) {
+    if (root && activeSharedLockedSlideIndex !== null) {
+      const visibleIndex = getVisibleFeedIndex({
+        itemCount: virtualSlideCount,
+        root,
+      });
+
+      setVisibleSlideIndex(
+        visibleIndex <= activeSharedLockedSlideIndex
+          ? visibleIndex
+          : activeSharedLockedSlideIndex,
+      );
+    } else if (activeSharedLockedSlideIndex !== null) {
       setVisibleSlideIndex(activeSharedLockedSlideIndex);
     }
-  }, [activeSharedLockedSlideIndex, isSharedEntryScrollLocked]);
+  }, [
+    activeSharedLockedSlideIndex,
+    isSharedEntryScrollLocked,
+    virtualSlideCount,
+  ]);
   useEffect(() => {
     if (!navigationPending) {
       return;
@@ -6397,13 +6412,35 @@ export function FanletterNewsPublicCutsFeedPage({
           ? root.clientHeight * activeSharedLockedSlideIndex
           : 0;
 
-      if (Math.abs(root.scrollTop - lockedScrollTop) > 1) {
+      if (root.scrollTop > lockedScrollTop + 1) {
         root.scrollTo({ top: lockedScrollTop });
+        setVisibleSlideIndex(activeSharedLockedSlideIndex);
+        return;
       }
 
-      if (activeSharedLockedSlideIndex !== null) {
-        setVisibleSlideIndex(activeSharedLockedSlideIndex);
-      }
+      const visibleIndex = getVisibleFeedIndex({
+        itemCount: virtualSlideCount,
+        root,
+      });
+
+      setVisibleSlideIndex((currentIndex) => {
+        if (currentIndex === visibleIndex) {
+          return currentIndex;
+        }
+
+        window.dispatchEvent(
+          new CustomEvent<CutFeedVisibleIndexChangeDetail>(
+            CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT,
+            {
+              detail: {
+                nextIndex: visibleIndex,
+                previousIndex: currentIndex,
+              },
+            },
+          ),
+        );
+        return visibleIndex;
+      });
       return;
     }
 
@@ -7003,7 +7040,7 @@ export function FanletterNewsPublicCutsFeedPage({
     activeSlideIndex + CUT_FEED_RENDER_WINDOW_RADIUS,
   );
   const scrollContainerClassName = `mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] scroll-smooth sm:border-x sm:border-white/10 ${
-    isCutFeedScrollLocked ? "overflow-y-hidden" : "overflow-y-auto"
+    isSourceOverlayScrollLocked ? "overflow-y-hidden" : "overflow-y-auto"
   }`;
 
   return (
