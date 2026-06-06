@@ -2570,6 +2570,7 @@ function FeedSlide({
   const trackedCutViewKeyRef = useRef<string | null>(null);
   const cutDwellSnapshotRef = useRef<CutDwellSnapshot | null>(null);
   const pendingCutDwellExitReasonRef = useRef<CutDwellExitReason | null>(null);
+  const sharedEntryChromeRevealedRef = useRef(false);
   const copy = getCopy(locale);
   const { report } = item;
   const normalizedViewerReferralCode = normalizeReferralCode(
@@ -2819,6 +2820,15 @@ function FeedSlide({
     clearTopOverlaysTimer,
     onHideFeedChrome,
   ]);
+
+  useEffect(() => {
+    if (!isActive || !shareId || sharedEntryChromeRevealedRef.current) {
+      return;
+    }
+
+    sharedEntryChromeRevealedRef.current = true;
+    revealCutOverlays();
+  }, [isActive, revealCutOverlays, shareId]);
 
   const flushCutDwell = useCallback((exitReason: CutDwellExitReason) => {
     const snapshot = cutDwellSnapshotRef.current;
