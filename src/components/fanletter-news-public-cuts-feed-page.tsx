@@ -6075,6 +6075,9 @@ export function FanletterNewsPublicCutsFeedPage({
   const isSourceOverlayScrollLocked = sourceOverlayOpenSlideIndex !== null;
   const isCutFeedScrollLocked =
     isSharedEntryScrollLocked || isSourceOverlayScrollLocked;
+  const shouldFreezeSharedInitialScroll = Boolean(
+    isSharedEntryScrollLocked && activeSharedLockedSlideIndex === 0,
+  );
   const shouldShowHeaderCount = !isSharedConsumptionEntry;
   const shouldShowServiceMenuButton =
     !isCutFeedScrollLocked &&
@@ -7226,7 +7229,9 @@ export function FanletterNewsPublicCutsFeedPage({
   const scrollContainerClassName = `mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] sm:border-x sm:border-white/10 ${
     isCutFeedScrollLocked ? "scroll-auto" : "scroll-smooth"
   } ${
-    isSourceOverlayScrollLocked ? "overflow-y-hidden" : "overflow-y-auto"
+    isSourceOverlayScrollLocked || shouldFreezeSharedInitialScroll
+      ? "overflow-y-hidden"
+      : "overflow-y-auto"
   }`;
 
   return (
