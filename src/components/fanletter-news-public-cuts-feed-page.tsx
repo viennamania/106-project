@@ -13,6 +13,8 @@ import {
   useSyncExternalStore,
   type CSSProperties,
   type PointerEvent as ReactPointerEvent,
+  type TouchEvent as ReactTouchEvent,
+  type WheelEvent as ReactWheelEvent,
 } from "react";
 import {
   useActiveAccount,
@@ -109,6 +111,7 @@ const CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT =
   "fanletter-news-cut-feed-visible-index-change";
 const CUT_DWELL_MIN_TRACK_MS = 800;
 const CUT_DWELL_MAX_TRACK_MS = 60000;
+const CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX = 6;
 const CUT_FEED_SHARED_CONSUMED_STORAGE_PREFIX =
   "fanletter-news-cut-feed-shared-consumed";
 const CUT_FEED_SHARED_VIEWED_STORAGE_PREFIX =
@@ -5749,6 +5752,7 @@ export function FanletterNewsPublicCutsFeedPage({
     string | null
   >(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const lockedTouchStartYRef = useRef<number | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const headerRevealTimerRef = useRef<number | null>(null);
   const roleShortcutRevealTimerRef = useRef<number | null>(null);
@@ -6338,7 +6342,7 @@ export function FanletterNewsPublicCutsFeedPage({
         : 0;
 
     if (root && root.scrollTop > lockedScrollTop + 1) {
-      root.scrollTo({ top: lockedScrollTop });
+      root.scrollTop = lockedScrollTop;
     }
 
     if (root && activeSharedLockedSlideIndex !== null) {
@@ -6497,6 +6501,88 @@ export function FanletterNewsPublicCutsFeedPage({
       swipeGuideTarget,
     ],
   );
+  const keepSharedLockedSlideInPlace = useCallback(() => {
+    const root = scrollContainerRef.current;
+
+    if (
+      !root ||
+      !isSharedEntryScrollLocked ||
+      activeSharedLockedSlideIndex === null
+    ) {
+      return false;
+    }
+
+    const lockedScrollTop = root.clientHeight * activeSharedLockedSlideIndex;
+
+    if (root.scrollTop > lockedScrollTop + 1) {
+      root.scrollTop = lockedScrollTop;
+    }
+
+    setVisibleSlideIndex(activeSharedLockedSlideIndex);
+    return true;
+  }, [activeSharedLockedSlideIndex, isSharedEntryScrollLocked]);
+  const shouldBlockSharedLockedDownScroll = useCallback(
+    (deltaY: number) => {
+      if (
+        deltaY <= CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX ||
+        !isSharedEntryScrollLocked ||
+        activeSharedLockedSlideIndex === null
+      ) {
+        return false;
+      }
+
+      const root = scrollContainerRef.current;
+
+      if (!root) {
+        return false;
+      }
+
+      const lockedScrollTop = root.clientHeight * activeSharedLockedSlideIndex;
+
+      return root.scrollTop >= lockedScrollTop - 1;
+    },
+    [activeSharedLockedSlideIndex, isSharedEntryScrollLocked],
+  );
+  const handleFeedWheel = useCallback(
+    (event: ReactWheelEvent<HTMLDivElement>) => {
+      if (!shouldBlockSharedLockedDownScroll(event.deltaY)) {
+        return;
+      }
+
+      event.preventDefault();
+      keepSharedLockedSlideInPlace();
+    },
+    [keepSharedLockedSlideInPlace, shouldBlockSharedLockedDownScroll],
+  );
+  const handleFeedTouchStart = useCallback(
+    (event: ReactTouchEvent<HTMLDivElement>) => {
+      lockedTouchStartYRef.current = event.touches[0]?.clientY ?? null;
+    },
+    [],
+  );
+  const handleFeedTouchMove = useCallback(
+    (event: ReactTouchEvent<HTMLDivElement>) => {
+      const currentTouchY = event.touches[0]?.clientY ?? null;
+      const previousTouchY = lockedTouchStartYRef.current;
+
+      if (currentTouchY === null || previousTouchY === null) {
+        lockedTouchStartYRef.current = currentTouchY;
+        return;
+      }
+
+      const deltaY = previousTouchY - currentTouchY;
+
+      lockedTouchStartYRef.current = currentTouchY;
+
+      if (!shouldBlockSharedLockedDownScroll(deltaY)) {
+        return;
+      }
+
+      event.preventDefault();
+      keepSharedLockedSlideInPlace();
+    },
+    [keepSharedLockedSlideInPlace, shouldBlockSharedLockedDownScroll],
+  );
   const handleFeedScroll = useCallback(() => {
     const root = scrollContainerRef.current;
 
@@ -6511,7 +6597,7 @@ export function FanletterNewsPublicCutsFeedPage({
           : 0;
 
       if (root.scrollTop > lockedScrollTop + 1) {
-        root.scrollTo({ top: lockedScrollTop });
+        root.scrollTop = lockedScrollTop;
         setVisibleSlideIndex(activeSharedLockedSlideIndex);
         return;
       }
@@ -7137,7 +7223,9 @@ export function FanletterNewsPublicCutsFeedPage({
     Math.max(virtualSlideCount - 1, 0),
     activeSlideIndex + CUT_FEED_RENDER_WINDOW_RADIUS,
   );
-  const scrollContainerClassName = `mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] scroll-smooth sm:border-x sm:border-white/10 ${
+  const scrollContainerClassName = `mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] sm:border-x sm:border-white/10 ${
+    isCutFeedScrollLocked ? "scroll-auto" : "scroll-smooth"
+  } ${
     isSourceOverlayScrollLocked ? "overflow-y-hidden" : "overflow-y-auto"
   }`;
 
@@ -7365,6 +7453,10 @@ export function FanletterNewsPublicCutsFeedPage({
       ) : null}
       <div
         className={scrollContainerClassName}
+        data-cut-feed-scroll-container
+        onTouchMove={handleFeedTouchMove}
+        onTouchStart={handleFeedTouchStart}
+        onWheel={handleFeedWheel}
         onScroll={handleFeedScroll}
         ref={scrollContainerRef}
       >
