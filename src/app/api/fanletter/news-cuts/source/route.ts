@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 
 import { CONTENT_PAID_USDT_AMOUNT } from "@/lib/content";
+import { getContentSourceRevealParticipants } from "@/lib/content-service";
 import { getFanletterPublicContentDetail } from "@/lib/fanletter-content-service";
 import {
   type FanletterNewsPublicCutSourceAccessState,
@@ -119,7 +120,9 @@ export async function GET(request: Request) {
       content.priceType === "paid"
         ? `${currentDetailHref}#fanletter-news-vlog-paid-unlock`
         : null;
-    const sourceReveal = createFanletterNewsSourceRevealState(content.social);
+    const sourceReveal = createFanletterNewsSourceRevealState(content.social, {
+      participants: await getContentSourceRevealParticipants(content.contentId),
+    });
     const isOwner = content.viewerRelation === "owner";
     const isPaidLocked =
       content.priceType === "paid" &&

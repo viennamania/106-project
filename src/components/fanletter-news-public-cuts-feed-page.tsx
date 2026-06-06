@@ -2117,6 +2117,12 @@ type SourceOverlayCopy = Pick<
   | "sourceOverlayLoading"
   | "sourceOverlayPlay"
   | "sourceOverlayTitle"
+  | "sourceOpenSponsors"
+  | "sourceOpenSponsorsAnonymous"
+  | "sourceOpenSponsorsEmptySlot"
+  | "sourceOpenSponsorsJoined"
+  | "sourceOpenSponsorsListTitle"
+  | "sourceOpenSponsorsParticipant"
   | "sourceOpenSponsorsRemaining"
   | "sourcePreviewBody"
   | "sourcePreviewEyebrow"
@@ -2280,11 +2286,22 @@ function SourceVlogFeedOverlay({
         )
       : 0;
   const sourceRevealCountText = `${sourceRevealCountLabel}/${sourceRevealThresholdLabel}`;
+  const sharedSourceRevealParticipantSlots =
+    shouldUseSharedEntryPreviewCopy && source
+      ? getSourceRevealParticipantSlots({
+          canShowViewerSlot: false,
+          isLoggedIn: false,
+          state: source.sourceReveal,
+          viewerAvatarImageUrl: null,
+          viewerDisplayName: "",
+          viewerReferralCode: null,
+        })
+      : [];
   const sourcePreviewPanelTitle = shouldUseSharedEntryPreviewCopy
-    ? copy.sharedSourcePreviewPanelTitle
+    ? copy.sourceOpenSponsorsListTitle
     : copy.sourcePreviewTitle;
   const sourcePreviewPanelBody = shouldUseSharedEntryPreviewCopy
-    ? copy.sharedSourcePreviewPanelBody
+    ? copy.sourcePreviewBody
     : copy.sourcePreviewBody;
   const sourceRevealCtaLabel = source?.sourceReveal.requestedByViewer
     ? copy.voteDone
@@ -2497,6 +2514,88 @@ function SourceVlogFeedOverlay({
                         </p>
                       </div>
                     </div>
+                    {shouldUseSharedEntryPreviewCopy ? (
+                      <div className="mt-3 rounded-2xl border border-[#44f26e]/18 bg-[#44f26e]/10 p-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="min-w-0 text-[0.66rem] font-black leading-snug text-[#d9ffdf] [word-break:keep-all]">
+                            {copy.sourceOpenSponsorsJoined(
+                              sourceRevealCountLabel,
+                              sourceRevealRemainingLabel,
+                            )}
+                          </p>
+                          <span className="shrink-0 rounded-full border border-white/12 bg-black/24 px-2 py-1 text-[0.56rem] font-black uppercase tracking-[0.1em] text-white/62">
+                            {copy.sourceOpenSponsors}
+                          </span>
+                        </div>
+                        <div
+                          aria-label={copy.sourceOpenSponsorsJoined(
+                            sourceRevealCountLabel,
+                            sourceRevealRemainingLabel,
+                          )}
+                          className="mt-2 flex flex-wrap items-center gap-1"
+                          role="list"
+                        >
+                          {sharedSourceRevealParticipantSlots.map((slot) => {
+                            const isEmpty = slot.kind === "empty";
+                            const isAnonymousComplete =
+                              slot.kind === "complete";
+                            const sponsorName =
+                              isEmpty || isAnonymousComplete
+                                ? copy.sourceOpenSponsorsAnonymous
+                                : slot.displayName ||
+                                  copy.sourceOpenSponsorsAnonymous;
+                            const slotLabel = isEmpty
+                              ? copy.sourceOpenSponsorsEmptySlot(
+                                  formatNumber(slot.position, locale),
+                                )
+                              : copy.sourceOpenSponsorsParticipant(sponsorName);
+                            const slotIcon = slot.avatarImageUrl ? (
+                              <span className="relative inline-flex size-5 shrink-0 overflow-hidden rounded-full bg-black/24">
+                                <Image
+                                  alt=""
+                                  className="object-cover"
+                                  fill
+                                  sizes="20px"
+                                  src={slot.avatarImageUrl}
+                                  unoptimized={shouldBypassFanletterImageOptimization(
+                                    slot.avatarImageUrl,
+                                  )}
+                                />
+                              </span>
+                            ) : (
+                              <span className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-black/24">
+                                {isEmpty ? (
+                                  <Plus className="size-3" />
+                                ) : (
+                                  <UserRound className="size-3" />
+                                )}
+                              </span>
+                            );
+
+                            return (
+                              <span
+                                aria-label={slotLabel}
+                                className={`inline-flex h-7 min-w-0 items-center rounded-full border text-[0.56rem] font-black ${
+                                  isEmpty
+                                    ? "w-7 justify-center border-white/14 bg-black/22 text-white/42"
+                                    : "max-w-[6.75rem] gap-1 border-white/40 bg-black/34 py-0.5 pl-0.5 pr-1.5 text-white shadow-[0_8px_18px_rgba(0,0,0,0.24)]"
+                                }`}
+                                key={`source-preview-slot-${slot.kind}-${slot.position}-${slot.referralCode ?? slot.displayName}`}
+                                role="listitem"
+                                title={slotLabel}
+                              >
+                                {slotIcon}
+                                {isEmpty ? null : (
+                                  <span className="truncate text-[0.58rem] leading-none">
+                                    {sponsorName}
+                                  </span>
+                                )}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
                     <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/16">
                       <span
                         className="block h-full rounded-full bg-[#44f26e]"
@@ -4777,7 +4876,7 @@ function FeedSlide({
           copy={copy}
           error={sourceOverlayError}
           isSharedEntryPreview={
-            isSharedSourceActionGateActive && !sourceRevealState.unlocked
+            Boolean(shareId && !sourceRevealState.unlocked)
           }
           isSourceRevealActionBusy={isSourceRevealSaving || isLoginSyncing}
           isSourceRevealLoggedIn={isSourceRevealLoggedIn}
