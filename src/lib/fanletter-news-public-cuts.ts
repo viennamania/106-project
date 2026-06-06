@@ -38,6 +38,7 @@ import {
   FANLETTER_NEWS_PUBLIC_CUT_MAX_PAGE_SIZE,
   type FanletterNewsPublicCutFeedLoadResponse,
   type SerializedFanletterNewsPublicCutFeedItem,
+  type SerializedFanletterNewsPublicCutFeedItemBase,
 } from "@/lib/fanletter-news-public-cuts-shared";
 import type { Locale } from "@/lib/i18n";
 
@@ -82,6 +83,7 @@ export type FanletterNewsPublicCutFeedItem = {
     used: number;
   };
   sourceReveal: FanletterNewsSourceRevealState;
+  vlogReportOptions?: FanletterNewsPublicCutFeedItem[];
 };
 
 function getCreatorAvatarImageUrl(
@@ -1002,9 +1004,9 @@ async function hydrateFanletterNewsPublicCutFeedItems(
   return hydrateFanletterNewsPublicCutFeedItemsProfileImages(reportSlotItems);
 }
 
-export function serializeFanletterNewsPublicCutFeedItem(
+function serializeFanletterNewsPublicCutFeedItemBase(
   item: FanletterNewsPublicCutFeedItem,
-): SerializedFanletterNewsPublicCutFeedItem {
+): SerializedFanletterNewsPublicCutFeedItemBase {
   return {
     cuts: item.cuts,
     leadCut: item.leadCut,
@@ -1027,6 +1029,21 @@ export function serializeFanletterNewsPublicCutFeedItem(
     },
     reportSlot: item.reportSlot,
     sourceReveal: item.sourceReveal,
+  };
+}
+
+export function serializeFanletterNewsPublicCutFeedItem(
+  item: FanletterNewsPublicCutFeedItem,
+): SerializedFanletterNewsPublicCutFeedItem {
+  return {
+    ...serializeFanletterNewsPublicCutFeedItemBase(item),
+    ...(item.vlogReportOptions?.length
+      ? {
+          vlogReportOptions: item.vlogReportOptions.map((option) =>
+            serializeFanletterNewsPublicCutFeedItemBase(option),
+          ),
+        }
+      : {}),
   };
 }
 
@@ -1366,11 +1383,104 @@ export async function getFanletterNewsPublicCutFeedPage({
         timelineItems,
         viewerEmail,
       );
+      const timelineContentIds = [
+        ...new Set(
+          timelineItems
+            .map((item) => item.report.contentId.trim())
+            .filter((contentId) => contentId.length > 0),
+        ),
+      ];
+      const hydratedVlogReportOptions =
+        timelineContentIds.length > 0
+          ? await hydrateFanletterNewsPublicCutFeedItems(
+              (
+                await reportsCollection
+                  .find({
+                    ...publicCutReportQuery,
+                    contentId: { $in: timelineContentIds },
+                  })
+                  .sort({ sourcePublishedAt: -1, createdAt: -1, reportId: 1 })
+                  .limit(Math.max(24, timelineContentIds.length * 8))
+                  .toArray()
+              )
+                .map((report) => createFanletterNewsPublicCutFeedItem(report))
+                .filter(
+                  (item): item is FanletterNewsPublicCutFeedItem =>
+                    Boolean(item),
+                ),
+              viewerEmail,
+            )
+          : [];
+      const vlogReportOptionsByContentId = new Map<
+        string,
+        FanletterNewsPublicCutFeedItem[]
+      >();
+
+      for (const option of hydratedVlogReportOptions) {
+        const contentId = option.report.contentId.trim();
+
+        if (!contentId) {
+          continue;
+        }
+
+        const options = vlogReportOptionsByContentId.get(contentId) ?? [];
+
+        options.push(option);
+        vlogReportOptionsByContentId.set(contentId, options);
+      }
+
+      for (const [contentId, options] of vlogReportOptionsByContentId) {
+        const seenReportIds = new Set<string>();
+        const uniqueOptions = options
+          .filter((option) => {
+            const reportId = option.report.reportId.trim();
+
+            if (!reportId || seenReportIds.has(reportId)) {
+              return false;
+            }
+
+            seenReportIds.add(reportId);
+            return true;
+          })
+          .sort((left, right) => {
+            if (left.sourceReveal.unlocked !== right.sourceReveal.unlocked) {
+              return left.sourceReveal.unlocked ? -1 : 1;
+            }
+
+            if (left.sourceReveal.count !== right.sourceReveal.count) {
+              return right.sourceReveal.count - left.sourceReveal.count;
+            }
+
+            return (
+              getPublicCutReportSortTime(right.report) -
+              getPublicCutReportSortTime(left.report)
+            );
+          });
+
+        vlogReportOptionsByContentId.set(contentId, uniqueOptions);
+      }
+      const hydratedTimelineItemsWithOptions = hydratedTimelineItems.map((item) => {
+        const contentId = item.report.contentId.trim();
+        const options = contentId
+          ? vlogReportOptionsByContentId.get(contentId) ?? []
+          : [];
+        const containsCurrentReport = options.some(
+          (option) => option.report.reportId === item.report.reportId,
+        );
+        const vlogReportOptions = containsCurrentReport
+          ? options
+          : [item, ...options];
+
+        return {
+          ...item,
+          ...(vlogReportOptions.length > 0 ? { vlogReportOptions } : {}),
+        };
+      });
 
       return {
         hasMore: timelineReports.length > queryLimit,
-        items: hydratedTimelineItems,
-        nextOffset: normalizedOffset + hydratedTimelineItems.length,
+        items: hydratedTimelineItemsWithOptions,
+        nextOffset: normalizedOffset + hydratedTimelineItemsWithOptions.length,
       };
     }
   }

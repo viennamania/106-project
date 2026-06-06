@@ -63,6 +63,7 @@ import {
   type FanletterNewsPublicCutSource,
   type FanletterNewsPublicCutSourceLoadResponse,
   type SerializedFanletterNewsPublicCutFeedItem,
+  type SerializedFanletterNewsPublicCutFeedItemBase,
 } from "@/lib/fanletter-news-public-cuts-shared";
 import {
   FANLETTER_NEWS_ROLE_PREFERENCE_CHANGE_EVENT,
@@ -276,6 +277,14 @@ function getCopy(locale: Locale) {
           `아래로 넘겨 ${name} 타임라인 보기`,
         sharedTimelineBadge: (name: string) => `${name} 타임라인`,
         sharedTimelineNext: "다음 브이로그",
+        sharedVlogPickerBody: (count: string) =>
+          `${count}개의 팬 리포트 중 하나를 골라 이어보거나, 그냥 아래로 넘기면 추천 리포트로 시작합니다.`,
+        sharedVlogPickerCta: "이 리포트 보기",
+        sharedVlogPickerDefaultBadge: "추천",
+        sharedVlogPickerEyebrow: "다음 브이로그",
+        sharedVlogPickerReports: "팬 리포트",
+        sharedVlogPickerSkip: "선택하지 않고 아래로",
+        sharedVlogPickerTitle: "다음 브이로그의 팬 리포트 선택",
         sharedTimelineSourceGateBody: (
           viewed: string,
           total: string,
@@ -503,6 +512,14 @@ function getCopy(locale: Locale) {
           `Swipe down for ${name}'s timeline`,
         sharedTimelineBadge: (name: string) => `${name}'s timeline`,
         sharedTimelineNext: "Next vlog",
+        sharedVlogPickerBody: (count: string) =>
+          `Choose one of ${count} fan reports, or keep swiping to start with the recommended report.`,
+        sharedVlogPickerCta: "View this report",
+        sharedVlogPickerDefaultBadge: "Recommended",
+        sharedVlogPickerEyebrow: "Next vlog",
+        sharedVlogPickerReports: "Fan reports",
+        sharedVlogPickerSkip: "Skip and swipe down",
+        sharedVlogPickerTitle: "Choose a fan report for the next vlog",
         sharedTimelineSourceGateBody: (
           viewed: string,
           total: string,
@@ -5069,6 +5086,136 @@ function SharedCharacterIntroSlide({
   );
 }
 
+function SharedVlogReportPickerSlide({
+  defaultItem,
+  locale,
+  onSelect,
+  onSkip,
+  options,
+}: {
+  defaultItem: SerializedFanletterNewsPublicCutFeedItem;
+  locale: Locale;
+  onSelect: (item: SerializedFanletterNewsPublicCutFeedItemBase) => void;
+  onSkip: () => void;
+  options: SerializedFanletterNewsPublicCutFeedItemBase[];
+}) {
+  const copy = getCopy(locale);
+  const defaultReportId = defaultItem.report.reportId;
+  const optionCountLabel = formatNumber(options.length, locale);
+  const backgroundImageUrl =
+    defaultItem.report.coverImageUrl || defaultItem.leadCut.imageUrl;
+
+  return (
+    <section
+      aria-label={copy.sharedVlogPickerTitle}
+      className="relative min-h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+1.35rem)] text-white"
+      data-shared-vlog-picker
+    >
+      <div className="absolute inset-0">
+        <Image
+          alt=""
+          className="scale-[1.04] object-cover opacity-42 blur-[1px] saturate-[1.08]"
+          fill
+          sizes="(min-width: 640px) 430px, 100vw"
+          src={backgroundImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(backgroundImageUrl)}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,7,6,0.5),rgba(4,7,6,0.74)_34%,rgba(4,7,6,0.95))]" />
+      </div>
+      <div className="relative z-10 mx-auto flex min-h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom)_-_2.4rem)] w-full max-w-[430px] flex-col">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_16px_38px_rgba(68,242,110,0.22)]">
+            <Video className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
+              {copy.sharedVlogPickerEyebrow}
+            </p>
+            <p className="mt-0.5 truncate text-xs font-black text-white/62">
+              {defaultItem.report.creatorName}
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-1 flex-col justify-end gap-5 py-7">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-[#9bffad]">
+              {copy.sharedVlogPickerReports} {optionCountLabel}
+            </p>
+            <h2 className="mt-2 break-words text-[2rem] font-black leading-[1.04] tracking-normal [word-break:keep-all]">
+              {copy.sharedVlogPickerTitle}
+            </h2>
+            <p className="mt-3 max-w-[22rem] break-words text-sm font-bold leading-6 text-white/72 [word-break:keep-all]">
+              {copy.sharedVlogPickerBody(optionCountLabel)}
+            </p>
+          </div>
+          <div
+            aria-label={copy.sharedVlogPickerReports}
+            className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {options.map((option) => {
+              const isDefault = option.report.reportId === defaultReportId;
+              const participantCountLabel = formatNumber(
+                option.sourceReveal.count,
+                locale,
+              );
+
+              return (
+                <button
+                  aria-label={`${option.report.reporterName} ${option.report.title} ${copy.sharedVlogPickerCta}`}
+                  className="group grid w-[13.5rem] shrink-0 snap-start grid-cols-[4.6rem_minmax(0,1fr)] gap-3 rounded-[1.1rem] border border-white/14 bg-black/56 p-2.5 text-left shadow-[0_18px_50px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28"
+                  key={`${option.report.reportId}:vlog-option`}
+                  onClick={() => onSelect(option)}
+                  type="button"
+                >
+                  <span className="relative block aspect-[4/5] overflow-hidden rounded-[0.8rem] bg-white/10">
+                    <Image
+                      alt=""
+                      className="object-cover"
+                      fill
+                      sizes="74px"
+                      src={option.leadCut.imageUrl}
+                      unoptimized={shouldBypassFanletterImageOptimization(
+                        option.leadCut.imageUrl,
+                      )}
+                    />
+                  </span>
+                  <span className="min-w-0 py-0.5">
+                    <span className="flex min-h-5 items-center gap-1.5">
+                      <span className="truncate text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#9bffad]">
+                        {option.report.reporterName}
+                      </span>
+                      {isDefault ? (
+                        <span className="shrink-0 rounded-full bg-[#44f26e] px-1.5 py-0.5 text-[0.56rem] font-black leading-none text-[#111510]">
+                          {copy.sharedVlogPickerDefaultBadge}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="mt-1 line-clamp-2 block text-sm font-black leading-tight text-white [word-break:keep-all]">
+                      {option.report.title}
+                    </span>
+                    <span className="mt-2 inline-flex items-center gap-1 text-[0.66rem] font-black text-white/58">
+                      <HeartHandshake className="size-3.5 text-[#44f26e]" />
+                      {participantCountLabel}/{option.sourceReveal.threshold}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <button
+          className="mx-auto flex min-h-14 w-full max-w-[22rem] items-center justify-center gap-2 rounded-full border border-white/16 bg-black/54 px-5 text-sm font-black text-white shadow-[0_16px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl transition hover:border-[#44f26e]/52 hover:text-[#44f26e] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/24"
+          onClick={onSkip}
+          type="button"
+        >
+          <ChevronDown className="size-5 text-[#44f26e]" />
+          {copy.sharedVlogPickerSkip}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function mergePublicCutItems(
   previousItems: SerializedFanletterNewsPublicCutFeedItem[],
   nextItems: SerializedFanletterNewsPublicCutFeedItem[],
@@ -5088,6 +5235,68 @@ function mergePublicCutItems(
   }
 
   return mergedItems;
+}
+
+function getSharedVlogReportOptions(
+  item?: SerializedFanletterNewsPublicCutFeedItem | null,
+) {
+  if (!item) {
+    return [];
+  }
+
+  const candidates: SerializedFanletterNewsPublicCutFeedItemBase[] =
+    item.vlogReportOptions?.length ? item.vlogReportOptions : [item];
+  const seenReportIds = new Set<string>();
+  const options = candidates.filter((option) => {
+    const reportId = option.report.reportId.trim();
+
+    if (!reportId || seenReportIds.has(reportId)) {
+      return false;
+    }
+
+    seenReportIds.add(reportId);
+    return true;
+  });
+
+  if (!seenReportIds.has(item.report.reportId)) {
+    options.unshift(item);
+  }
+
+  const defaultOptionIndex = options.findIndex(
+    (option) => option.report.reportId === item.report.reportId,
+  );
+
+  if (defaultOptionIndex > 0) {
+    const [defaultOption] = options.splice(defaultOptionIndex, 1);
+
+    options.unshift(defaultOption);
+  }
+
+  return options;
+}
+
+function getPublicCutFeedPreloadImageUrls(
+  items: SerializedFanletterNewsPublicCutFeedItemBase[],
+) {
+  const urls = new Set<string>();
+
+  for (const item of items) {
+    [
+      item.leadCut.imageUrl,
+      item.report.coverImageUrl,
+      item.report.creatorAvatarImageUrl,
+      item.report.reporterAvatarImageUrl,
+      ...item.cuts.map((cut) => cut.imageUrl),
+    ].forEach((url) => {
+      const normalizedUrl = url?.trim();
+
+      if (normalizedUrl) {
+        urls.add(normalizedUrl);
+      }
+    });
+  }
+
+  return [...urls];
 }
 
 type CutFeedSwipeGuideTarget = {
@@ -5294,6 +5503,8 @@ export function FanletterNewsPublicCutsFeedPage({
   const headerRevealTimerRef = useRef<number | null>(null);
   const roleShortcutRevealTimerRef = useRef<number | null>(null);
   const loadMoreIntersectionArmedRef = useRef(true);
+  const preloadedImageUrlsRef = useRef<Set<string>>(new Set());
+  const preloadedImagesRef = useRef<HTMLImageElement[]>([]);
   const cutFeedHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/news/cuts`,
     referralCode,
@@ -5444,6 +5655,23 @@ export function FanletterNewsPublicCutsFeedPage({
     shareId && items[0]?.report.creatorReferralCode,
   );
   const sharedCharacterIntroSlideIndex = shouldShowSharedCharacterIntro ? 1 : -1;
+  const sharedTimelineDefaultItem =
+    shareId && items.length > 1 ? items[1] : null;
+  const sharedVlogReportOptions = useMemo(
+    () => getSharedVlogReportOptions(sharedTimelineDefaultItem),
+    [sharedTimelineDefaultItem],
+  );
+  const shouldShowSharedVlogPicker = Boolean(
+    shouldShowSharedCharacterIntro &&
+      sharedTimelineDefaultItem &&
+      sharedVlogReportOptions.length > 0,
+  );
+  const sharedVlogPickerSlideIndex = shouldShowSharedVlogPicker
+    ? sharedCharacterIntroSlideIndex + 1
+    : -1;
+  const sharedExtraSlideCount = shouldShowSharedCharacterIntro
+    ? 1 + (shouldShowSharedVlogPicker ? 1 : 0)
+    : 0;
   const isSharedEntrySlideVisible = Boolean(shareId && visibleSlideIndex === 0);
   const isSharedCharacterIntroSlideVisible = Boolean(
     shareId &&
@@ -5455,26 +5683,43 @@ export function FanletterNewsPublicCutsFeedPage({
       shouldShowSharedCharacterIntro &&
       visibleSlideIndex > sharedCharacterIntroSlideIndex,
   );
-  const virtualSlideCount =
-    items.length + (shouldShowSharedCharacterIntro ? 1 : 0);
+  const virtualSlideCount = items.length + sharedExtraSlideCount;
   const getItemSlideIndex = useCallback(
     (itemIndex: number) =>
-      itemIndex + (shouldShowSharedCharacterIntro && itemIndex > 0 ? 1 : 0),
-    [shouldShowSharedCharacterIntro],
+      itemIndex > 0 ? itemIndex + sharedExtraSlideCount : itemIndex,
+    [sharedExtraSlideCount],
   );
   const getFeedIndexForSlide = useCallback(
     (slideIndex: number) => {
-      if (shouldShowSharedCharacterIntro && slideIndex > sharedCharacterIntroSlideIndex) {
-        return slideIndex - 1;
+      if (!shouldShowSharedCharacterIntro) {
+        return slideIndex;
       }
 
-      if (shouldShowSharedCharacterIntro && slideIndex === sharedCharacterIntroSlideIndex) {
+      if (slideIndex === sharedCharacterIntroSlideIndex) {
         return 0;
+      }
+
+      if (
+        shouldShowSharedVlogPicker &&
+        slideIndex === sharedVlogPickerSlideIndex
+      ) {
+        return Math.min(1, Math.max(items.length - 1, 0));
+      }
+
+      if (slideIndex > sharedCharacterIntroSlideIndex) {
+        return Math.max(1, slideIndex - sharedExtraSlideCount);
       }
 
       return slideIndex;
     },
-    [sharedCharacterIntroSlideIndex, shouldShowSharedCharacterIntro],
+    [
+      items.length,
+      sharedCharacterIntroSlideIndex,
+      sharedExtraSlideCount,
+      sharedVlogPickerSlideIndex,
+      shouldShowSharedCharacterIntro,
+      shouldShowSharedVlogPicker,
+    ],
   );
   const shouldGateSharedItemAtIndex = useCallback(
     (item: SerializedFanletterNewsPublicCutFeedItem) =>
@@ -5611,6 +5856,68 @@ export function FanletterNewsPublicCutsFeedPage({
       });
     },
     [getItemSlideIndex, markSharedConsumptionComplete],
+  );
+  const scrollToFeedItemIndex = useCallback(
+    (itemIndex: number, behavior: ScrollBehavior = "smooth") => {
+      const root = scrollContainerRef.current;
+      const slideIndex = getItemSlideIndex(itemIndex);
+
+      setVisibleSlideIndex(slideIndex);
+
+      if (!root) {
+        return;
+      }
+
+      root.scrollTo({
+        behavior,
+        top: root.clientHeight * slideIndex,
+      });
+    },
+    [getItemSlideIndex],
+  );
+  const handleSharedVlogReportSkip = useCallback(() => {
+    scrollToFeedItemIndex(1);
+  }, [scrollToFeedItemIndex]);
+  const handleSharedVlogReportSelect = useCallback(
+    (option: SerializedFanletterNewsPublicCutFeedItemBase) => {
+      const selectedReportId = option.report.reportId;
+      const existingIndex = items.findIndex(
+        (item) => item.report.reportId === selectedReportId,
+      );
+
+      if (existingIndex >= 0) {
+        scrollToFeedItemIndex(existingIndex);
+        return;
+      }
+
+      const selectedItem: SerializedFanletterNewsPublicCutFeedItem = {
+        ...option,
+        vlogReportOptions: sharedVlogReportOptions,
+      };
+
+      setItems((currentItems) => {
+        if (
+          currentItems.some(
+            (item) => item.report.reportId === selectedItem.report.reportId,
+          )
+        ) {
+          return currentItems;
+        }
+
+        if (currentItems.length <= 1) {
+          return [...currentItems, selectedItem];
+        }
+
+        return [currentItems[0], selectedItem, ...currentItems.slice(2)];
+      });
+
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          scrollToFeedItemIndex(1);
+        });
+      });
+    },
+    [items, scrollToFeedItemIndex, sharedVlogReportOptions],
   );
   const lockedReporterCandidateCount = useMemo(
     () => getLockedReporterCandidates(items).length,
@@ -6038,6 +6345,42 @@ export function FanletterNewsPublicCutsFeedPage({
     loadMore,
     shareId,
   ]);
+  useEffect(() => {
+    if (!shareId || typeof window === "undefined") {
+      return;
+    }
+
+    const urls = getPublicCutFeedPreloadImageUrls([
+      ...items.slice(0, 4),
+      ...sharedVlogReportOptions,
+    ])
+      .filter((url) => !preloadedImageUrlsRef.current.has(url))
+      .slice(0, 32);
+
+    if (urls.length === 0) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const images = urls.map((url) => {
+        const image = new window.Image();
+
+        image.decoding = "async";
+        image.src = url;
+        preloadedImageUrlsRef.current.add(url);
+        return image;
+      });
+
+      preloadedImagesRef.current = [
+        ...preloadedImagesRef.current,
+        ...images,
+      ].slice(-64);
+    }, 120);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [items, shareId, sharedVlogReportOptions]);
   const handleFindNextSourceRevealCandidate = useCallback(
     (currentIndex: number, currentContentId: string) => {
       const root = scrollContainerRef.current;
@@ -6670,6 +7013,15 @@ export function FanletterNewsPublicCutsFeedPage({
                   item={item}
                   locale={locale}
                 />
+                {shouldShowSharedVlogPicker && sharedTimelineDefaultItem ? (
+                  <SharedVlogReportPickerSlide
+                    defaultItem={sharedTimelineDefaultItem}
+                    locale={locale}
+                    onSelect={handleSharedVlogReportSelect}
+                    onSkip={handleSharedVlogReportSkip}
+                    options={sharedVlogReportOptions}
+                  />
+                ) : null}
               </Fragment>
             );
           }

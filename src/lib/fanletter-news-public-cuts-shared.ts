@@ -59,13 +59,18 @@ export type SerializedFanletterNewsPublicCutReportSlot = {
   used: number;
 };
 
-export type SerializedFanletterNewsPublicCutFeedItem = {
+export type SerializedFanletterNewsPublicCutFeedItemBase = {
   cuts: SerializedFanletterNewsPublicCut[];
   leadCut: SerializedFanletterNewsPublicCut;
   report: SerializedFanletterNewsPublicCutReport;
   reportSlot: SerializedFanletterNewsPublicCutReportSlot;
   sourceReveal: FanletterNewsSourceRevealState;
 };
+
+export type SerializedFanletterNewsPublicCutFeedItem =
+  SerializedFanletterNewsPublicCutFeedItemBase & {
+    vlogReportOptions?: SerializedFanletterNewsPublicCutFeedItemBase[];
+  };
 
 export type FanletterNewsPublicCutFeedLoadResponse = {
   hasMore: boolean;
