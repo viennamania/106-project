@@ -49,6 +49,7 @@ function getCopy(locale: Locale) {
         heroEyebrow: "Share Analytics",
         heroTitle: "공유 링크 관리",
         lastEvent: "최근 유입",
+        linkDetail: "링크 상세 보기",
         loginBody:
           "공유 링크 관리 페이지는 링크를 발행한 회원만 볼 수 있습니다. 4컷 피드에서 로그인한 뒤 다시 열어주세요.",
         loginTitle: "로그인이 필요합니다.",
@@ -82,6 +83,7 @@ function getCopy(locale: Locale) {
         heroEyebrow: "Share Analytics",
         heroTitle: "Share Link Manager",
         lastEvent: "Last traffic",
+        linkDetail: "View link detail",
         loginBody:
           "Only the member who created share links can view this dashboard. Sign in from the 4-cut feed and return here.",
         loginTitle: "Login required.",
@@ -160,10 +162,12 @@ function MetricTile({
 
 function ShareLinkCard({
   copy,
+  detailHref,
   item,
   locale,
 }: {
   copy: ReturnType<typeof getCopy>;
+  detailHref: string;
   item: FanletterNewsCutShareLinkDashboardItem;
   locale: Locale;
 }) {
@@ -288,13 +292,22 @@ function ShareLinkCard({
           </p>
         )}
       </div>
-      <Link
-        className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-black !text-[#111510] transition hover:bg-[#44f26e]"
-        href={item.targetHref}
-      >
-        {copy.openLink}
-        <ExternalLink className="size-4" />
-      </Link>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        <Link
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-[#111510] transition hover:bg-white"
+          href={detailHref}
+        >
+          {copy.linkDetail}
+          <BarChart3 className="size-4" />
+        </Link>
+        <Link
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-black !text-[#111510] transition hover:bg-[#44f26e]"
+          href={item.targetHref}
+        >
+          {copy.openLink}
+          <ExternalLink className="size-4" />
+        </Link>
+      </div>
     </article>
   );
 }
@@ -412,6 +425,12 @@ export default async function LocalizedFanletterNewsCutSharesPage({
                 {items.map((item) => (
                   <ShareLinkCard
                     copy={copy}
+                    detailHref={buildPathWithReferral(
+                      `/${locale}/fanletter/news/cuts/shares/${encodeURIComponent(
+                        item.shareId,
+                      )}`,
+                      referralCode,
+                    )}
                     item={item}
                     key={item.shareId}
                     locale={locale}

@@ -799,7 +799,7 @@ async function getArchiveUnlockedFanletterNewsReports({
   ).slice(0, FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_REPORT_LIMIT);
 }
 
-function getPublicCutsFromReport(
+export function getPublicCutsFromReport(
   report: Pick<FanletterNewsReportDocument, "teaserImages" | "teaserImageUrls">,
 ): FanletterNewsPublicCut[] {
   const croppedCuts =
