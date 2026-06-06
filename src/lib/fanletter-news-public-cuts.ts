@@ -233,6 +233,7 @@ function scoreFanletterNewsShareCohortFit({
 
 function scoreFanletterNewsPublicCutFeedItem({
   audience,
+  focusCreatorReferralCode,
   item,
   mode = "default",
   referralCode,
@@ -240,6 +241,7 @@ function scoreFanletterNewsPublicCutFeedItem({
   targetReport,
 }: {
   audience: FanletterNewsPublicCutFeedAudience;
+  focusCreatorReferralCode: string | null;
   item: FanletterNewsPublicCutFeedItem;
   mode?: FanletterNewsPublicCutFeedMode;
   referralCode: string | null;
@@ -251,7 +253,14 @@ function scoreFanletterNewsPublicCutFeedItem({
   const nearUnlock = !sourceReveal.unlocked && remaining <= 2;
   const referralMatchesReporter = referralCode === report.reporterReferralCode;
   const referralMatchesCreator = referralCode === report.creatorReferralCode;
+  const focusMatchesCreator =
+    normalizePublicCutFeedScoreKey(focusCreatorReferralCode) ===
+    normalizePublicCutFeedScoreKey(report.creatorReferralCode);
   let score = 0;
+
+  if (focusCreatorReferralCode) {
+    score += focusMatchesCreator ? 640 : -80;
+  }
 
   if (targetReport) {
     if (report.contentId === targetReport.contentId) {
@@ -344,9 +353,11 @@ function incrementFeedKeyCount(map: Map<string, number>, key: string | null) {
 }
 
 function diversifySocialGuestFeedItems({
+  focusCreatorReferralCode,
   sortedItems,
   targetReport,
 }: {
+  focusCreatorReferralCode: string | null;
   sortedItems: FanletterNewsPublicCutFeedItem[];
   targetReport: FanletterNewsReportDocument | null;
 }) {
@@ -357,6 +368,9 @@ function diversifySocialGuestFeedItems({
   const targetContentId = normalizePublicCutFeedScoreKey(targetReport?.contentId);
   const targetCreatorCode = normalizePublicCutFeedScoreKey(
     targetReport?.creatorReferralCode,
+  );
+  const focusCreatorCode = normalizePublicCutFeedScoreKey(
+    focusCreatorReferralCode,
   );
   let previousContentId: string | null = null;
   let previousCreatorCode: string | null = null;
@@ -381,18 +395,27 @@ function diversifySocialGuestFeedItems({
       }
 
       if (creatorCode && creatorCode === previousCreatorCode) {
-        penalty += 520;
+        penalty += creatorCode === focusCreatorCode ? 80 : 520;
       }
 
       penalty += contentSeenCount * 360;
-      penalty += creatorSeenCount * 120;
+      penalty += creatorSeenCount * (creatorCode === focusCreatorCode ? 40 : 120);
 
       if (result.length < 4 && targetContentId && contentId === targetContentId) {
         penalty += 520;
       }
 
-      if (result.length < 4 && targetCreatorCode && creatorCode === targetCreatorCode) {
+      if (
+        result.length < 4 &&
+        targetCreatorCode &&
+        creatorCode === targetCreatorCode &&
+        !focusCreatorCode
+      ) {
         penalty += 140;
+      }
+
+      if (result.length < 4 && focusCreatorCode) {
+        penalty += creatorCode === focusCreatorCode ? -180 : 480;
       }
 
       if (penalty < selectedPenalty) {
@@ -421,6 +444,7 @@ function diversifySocialGuestFeedItems({
 
 function sortFanletterNewsPublicCutFeedItems({
   audience,
+  focusCreatorReferralCode,
   items,
   mode = "default",
   referralCode,
@@ -428,6 +452,7 @@ function sortFanletterNewsPublicCutFeedItems({
   targetReport,
 }: {
   audience: FanletterNewsPublicCutFeedAudience;
+  focusCreatorReferralCode: string | null;
   items: FanletterNewsPublicCutFeedItem[];
   mode?: FanletterNewsPublicCutFeedMode;
   referralCode: string | null;
@@ -438,6 +463,7 @@ function sortFanletterNewsPublicCutFeedItems({
     const scoreDelta =
       scoreFanletterNewsPublicCutFeedItem({
         audience,
+        focusCreatorReferralCode,
         item: right,
         mode,
         referralCode,
@@ -446,6 +472,7 @@ function sortFanletterNewsPublicCutFeedItems({
       }) -
       scoreFanletterNewsPublicCutFeedItem({
         audience,
+        focusCreatorReferralCode,
         item: left,
         mode,
         referralCode,
@@ -471,6 +498,7 @@ function sortFanletterNewsPublicCutFeedItems({
   if (mode !== "reporter_locked") {
     return audience === "guest_social"
       ? diversifySocialGuestFeedItems({
+          focusCreatorReferralCode,
           sortedItems,
           targetReport,
         })
@@ -1014,6 +1042,7 @@ export function serializeFanletterNewsPublicCutFeedPage(
 
 export async function getFanletterNewsPublicCutFeedPage({
   excludeReportIds = [],
+  focusCreatorReferralCode = null,
   limit = FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
   locale,
   mode = "default",
@@ -1026,6 +1055,7 @@ export async function getFanletterNewsPublicCutFeedPage({
   viewerEmail = null,
 }: {
   excludeReportIds?: string[];
+  focusCreatorReferralCode?: string | null;
   limit?: number;
   locale: Locale;
   mode?: FanletterNewsPublicCutFeedMode;
@@ -1040,6 +1070,8 @@ export async function getFanletterNewsPublicCutFeedPage({
   const normalizedLimit = normalizePublicCutFeedLimit(limit);
   const normalizedOffset = normalizePublicCutFeedOffset(offset);
   const normalizedReferralCode = referralCode?.trim() || null;
+  const normalizedFocusCreatorReferralCode =
+    focusCreatorReferralCode?.trim() || null;
   const normalizedRotationSeed = normalizePublicCutFeedRotationSeed(rotationSeed);
   const normalizedShareId = shareId?.trim() || null;
   const audience = resolvePublicCutFeedAudience({
@@ -1091,32 +1123,45 @@ export async function getFanletterNewsPublicCutFeedPage({
       ? getFanletterNewsShareCohortSignals(normalizedShareId)
       : Promise.resolve(null),
   ]);
-  const reports = await reportsCollection
-    .find({
-      locale,
-      ...(normalizedExcludeReportIds.length > 0
-        ? { reportId: { $nin: normalizedExcludeReportIds } }
-        : {}),
-      $or: [
-        {
-          teaserImages: {
-            $elemMatch: {
-              imageUrl: { $regex: /\S/ },
-              source: "reporter_cropped",
-            },
+  const publicCutReportQuery = {
+    locale,
+    ...(normalizedExcludeReportIds.length > 0
+      ? { reportId: { $nin: normalizedExcludeReportIds } }
+      : {}),
+    $or: [
+      {
+        teaserImages: {
+          $elemMatch: {
+            imageUrl: { $regex: /\S/ },
+            source: "reporter_cropped",
           },
         },
-        {
-          teaserImageUrls: {
-            $elemMatch: { $regex: /\S/ },
-          },
+      },
+      {
+        teaserImageUrls: {
+          $elemMatch: { $regex: /\S/ },
         },
-      ],
-      status: "published",
-    })
-    .sort({ sourcePublishedAt: -1, createdAt: -1 })
-    .limit(candidateWindowLimit)
-    .toArray();
+      },
+    ],
+    status: "published" as const,
+  };
+  const [reports, focusedCreatorReports] = await Promise.all([
+    reportsCollection
+      .find(publicCutReportQuery)
+      .sort({ sourcePublishedAt: -1, createdAt: -1 })
+      .limit(candidateWindowLimit)
+      .toArray(),
+    normalizedFocusCreatorReferralCode
+      ? reportsCollection
+          .find({
+            ...publicCutReportQuery,
+            creatorReferralCode: normalizedFocusCreatorReferralCode,
+          })
+          .sort({ sourcePublishedAt: -1, createdAt: -1 })
+          .limit(Math.max(queryLimit + 8, 16))
+          .toArray()
+      : Promise.resolve([]),
+  ]);
   const shouldMixArchiveUnlocked =
     mode === "default";
   const archiveReports = shouldMixArchiveUnlocked
@@ -1127,7 +1172,10 @@ export async function getFanletterNewsPublicCutFeedPage({
       })
     : [];
   const reportsById = new Map(
-    [...reports, ...archiveReports].map((report) => [report.reportId, report]),
+    [...focusedCreatorReports, ...reports, ...archiveReports].map((report) => [
+      report.reportId,
+      report,
+    ]),
   );
   const archiveReportIds = new Set(
     archiveReports.map((report) => report.reportId),
@@ -1145,6 +1193,7 @@ export async function getFanletterNewsPublicCutFeedPage({
     : hydratedItems;
   const sortedCandidateItems = sortFanletterNewsPublicCutFeedItems({
     audience,
+    focusCreatorReferralCode: normalizedFocusCreatorReferralCode,
     items: hydratedCandidateItems,
     mode,
     referralCode: normalizedReferralCode,

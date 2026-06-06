@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import {
+  Fragment,
   useCallback,
   useEffect,
   useMemo,
@@ -261,6 +262,19 @@ function getCopy(locale: Locale) {
           "팬 기자가 고른 장면의 전체 흐름을 원본 브이로그로 이어서 확인하세요.",
         sharedSourceCtaEyebrow: "4컷 확인 완료",
         sharedSourceCtaTitle: "이제 원본 브이로그로 이어보기",
+        sharedScrollGuideBody:
+          "방금 본 브이로그의 AI 캐릭터 IP를 먼저 소개한 뒤, 같은 캐릭터의 다른 컷으로 이어집니다.",
+        sharedScrollGuideTitle: (name: string) =>
+          `아래로 넘겨 ${name} 캐릭터 보기`,
+        characterIntroBody: (name: string) =>
+          `방금 본 컷과 원본은 ${name} 캐릭터 IP에서 이어집니다. 팬 리포트와 원본 브이로그를 같은 흐름으로 더 살펴보세요.`,
+        characterIntroCta: "캐릭터 채널 보기",
+        characterIntroEyebrow: "AI Character IP",
+        characterIntroNextGuide:
+          "한 번 더 아래로 넘기면 이 캐릭터의 다른 컷을 볼 수 있어요.",
+        characterIntroReporterMetric: "팬 기자",
+        characterIntroSourceMetric: "보고싶어요",
+        characterIntroTitle: (name: string) => `${name} 캐릭터 IP`,
         slot: (index: string) => `컷 ${index}`,
         sourceOpen: "보고싶어요",
         sourceOpenCta: "보고싶어요",
@@ -462,6 +476,19 @@ function getCopy(locale: Locale) {
           "Continue from the moments the fan reporter picked into the full source vlog.",
         sharedSourceCtaEyebrow: "All cuts viewed",
         sharedSourceCtaTitle: "Continue to the source vlog",
+        sharedScrollGuideBody:
+          "The next screen introduces the AI character IP behind this vlog, then keeps the feed focused on that character.",
+        sharedScrollGuideTitle: (name: string) =>
+          `Swipe down for ${name}'s character`,
+        characterIntroBody: (name: string) =>
+          `The cuts and source you just watched come from ${name}'s AI character IP. Keep exploring related fan reports and source vlogs in the same flow.`,
+        characterIntroCta: "Open character channel",
+        characterIntroEyebrow: "AI Character IP",
+        characterIntroNextGuide:
+          "Swipe down once more to see more cuts from this character.",
+        characterIntroReporterMetric: "Fan reporter",
+        characterIntroSourceMetric: "Want it",
+        characterIntroTitle: (name: string) => `${name} character IP`,
         slot: (index: string) => `Cut ${index}`,
         sourceOpen: "Fan-open vote",
         sourceOpenCta: "Want it",
@@ -2670,7 +2697,17 @@ function FeedSlide({
     shareId && index === 0 && cutCount > 1,
   );
   const showSharedSourceCompletionCta = Boolean(
-    isActive && isSharedSourceActionGateActive && hasViewedAllCuts,
+    isActive &&
+      isSharedSourceActionGateActive &&
+      hasViewedAllCuts &&
+      !hasEnteredSourceOverlay,
+  );
+  const showSharedScrollGuide = Boolean(
+    isActive &&
+      isSharedSourceActionGateActive &&
+      hasViewedAllCuts &&
+      hasEnteredSourceOverlay &&
+      !sourceOverlayOpen,
   );
   const shouldShowSourceRail = !isSharedSourceActionGateActive;
   const cutFeedReturnHref = getCutFeedReturnHref({
@@ -4474,6 +4511,26 @@ function FeedSlide({
               </button>
             </div>
           ) : null}
+          {showSharedScrollGuide ? (
+            <div
+              aria-live="polite"
+              className="mt-3 flex w-full items-center gap-3 rounded-[1.35rem] border border-white/14 bg-black/58 px-3.5 py-3 text-white shadow-[0_18px_52px_rgba(0,0,0,0.36)] backdrop-blur-xl"
+              data-shared-scroll-guide
+              role="status"
+            >
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_12px_30px_rgba(68,242,110,0.22)]">
+                <ChevronDown className="size-5 animate-bounce" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block break-words text-sm font-black leading-tight [word-break:keep-all]">
+                  {copy.sharedScrollGuideTitle(report.creatorName)}
+                </span>
+                <span className="mt-1 block break-words text-[0.7rem] font-bold leading-snug text-white/66 [word-break:keep-all]">
+                  {copy.sharedScrollGuideBody}
+                </span>
+              </span>
+            </div>
+          ) : null}
           <div className="mt-4 flex items-center justify-center gap-1.5">
             {cuts.map((cut, cutIndex) => (
               <button
@@ -4511,6 +4568,139 @@ function FeedSlide({
         />
       ) : null}
     </article>
+  );
+}
+
+function SharedCharacterIntroSlide({
+  item,
+  locale,
+  onNavigate,
+  referralCode,
+  shareId,
+}: {
+  item: SerializedFanletterNewsPublicCutFeedItem;
+  locale: Locale;
+  onNavigate?: CutFeedNavigationStart;
+  referralCode: string | null;
+  shareId: string | null;
+}) {
+  const copy = getCopy(locale);
+  const { report } = item;
+  const characterName = report.creatorName;
+  const characterImageUrl =
+    report.creatorAvatarImageUrl || report.coverImageUrl || item.leadCut.imageUrl;
+  const cutSlotNumber = item.leadCut.slotNumber || 1;
+  const cutFeedReturnHref = getCutFeedReturnHref({
+    cutSlotNumber,
+    locale,
+    referralCode,
+    reportId: report.reportId,
+    shareId,
+  });
+  const characterHref = getCharacterHref({
+    characterReferralCode: report.creatorReferralCode,
+    cutSlotNumber,
+    locale,
+    referralCode,
+    reportId: report.reportId,
+    returnToHref: cutFeedReturnHref,
+  });
+  const cutCountLabel = formatNumber(Math.max(item.cuts.length, 1), locale);
+  const sourceRevealLabel = `${formatNumber(
+    Math.min(item.sourceReveal.count, item.sourceReveal.threshold),
+    locale,
+  )}/${formatNumber(item.sourceReveal.threshold, locale)}`;
+
+  return (
+    <section
+      aria-label={copy.characterIntroTitle(characterName)}
+      className="relative min-h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+1.35rem)] text-white"
+      data-shared-character-intro
+    >
+      <div className="absolute inset-0">
+        <Image
+          alt=""
+          className="scale-[1.04] object-cover opacity-44 blur-[1px] saturate-[1.08]"
+          fill
+          sizes="(min-width: 640px) 430px, 100vw"
+          src={item.leadCut.imageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(item.leadCut.imageUrl)}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,6,4,0.48),rgba(3,6,4,0.72)_42%,rgba(3,6,4,0.94))]" />
+      </div>
+      <div className="relative z-10 mx-auto flex min-h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom)_-_2.4rem)] w-full max-w-[430px] flex-col">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_16px_38px_rgba(68,242,110,0.22)]">
+            <Sparkles className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
+              {copy.characterIntroEyebrow}
+            </p>
+            <p className="mt-0.5 truncate text-xs font-black text-white/62">
+              {copy.sharedSourceCtaEyebrow}
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-1 flex-col justify-center py-8">
+          <div className="relative mx-auto size-36 overflow-hidden rounded-[1.35rem] border border-[#44f26e]/34 bg-black/38 shadow-[0_28px_90px_rgba(0,0,0,0.48)]">
+            <Image
+              alt=""
+              className="object-cover"
+              fill
+              sizes="144px"
+              src={characterImageUrl}
+              unoptimized={shouldBypassFanletterImageOptimization(characterImageUrl)}
+            />
+          </div>
+          <h2 className="mt-5 break-words text-center text-[2rem] font-black leading-[1.02] tracking-normal [word-break:keep-all]">
+            {copy.characterIntroTitle(characterName)}
+          </h2>
+          <p className="mx-auto mt-3 max-w-[22rem] text-center text-sm font-bold leading-6 text-white/72 [word-break:keep-all]">
+            {copy.characterIntroBody(characterName)}
+          </p>
+          <div className="mt-5 grid grid-cols-3 gap-2">
+            {[
+              [copy.characterCutMetric, cutCountLabel],
+              [copy.characterIntroReporterMetric, report.reporterName],
+              [copy.characterIntroSourceMetric, sourceRevealLabel],
+            ].map(([label, value]) => (
+              <div
+                className="min-w-0 rounded-2xl border border-white/12 bg-black/34 px-2.5 py-3 text-center backdrop-blur-xl"
+                key={label}
+              >
+                <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.1em] text-[#9bffad]">
+                  {label}
+                </p>
+                <p className="mt-1 truncate text-[0.78rem] font-black text-white">
+                  {value}
+                </p>
+              </div>
+            ))}
+          </div>
+          <Link
+            className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-[#111510] shadow-[0_18px_50px_rgba(68,242,110,0.22)] transition hover:bg-[#69ff8b]"
+            href={characterHref}
+            onClick={() => {
+              onNavigate?.({
+                href: characterHref,
+                label: copy.navigationPending.character(characterName),
+              });
+            }}
+          >
+            <Sparkles className="size-4" />
+            {copy.characterIntroCta}
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+        <div className="mx-auto flex max-w-[22rem] flex-col items-center gap-2 rounded-[1.35rem] border border-white/12 bg-black/42 px-4 py-3 text-center shadow-[0_18px_48px_rgba(0,0,0,0.32)] backdrop-blur-xl">
+          <ChevronDown className="size-5 animate-bounce text-[#44f26e]" />
+          <p className="text-xs font-black leading-5 text-white/82 [word-break:keep-all]">
+            {copy.characterIntroNextGuide}
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -4719,7 +4909,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const [isCutFeedHeaderVisible, setIsCutFeedHeaderVisible] = useState(false);
   const [isRoleShortcutVisible, setIsRoleShortcutVisible] = useState(false);
   const [isPublishedReturnEntry, setIsPublishedReturnEntry] = useState(false);
-  const [visibleFeedIndex, setVisibleFeedIndex] = useState(0);
+  const [visibleSlideIndex, setVisibleSlideIndex] = useState(0);
   const [isSharedEntryScrollLocked, setIsSharedEntryScrollLocked] = useState(
     () => Boolean(shareId),
   );
@@ -4883,10 +5073,42 @@ export function FanletterNewsPublicCutsFeedPage({
   const isSharedConsumptionEntry = Boolean(shareId || excludeReportId);
   const shouldShowHeaderCount = !isSharedConsumptionEntry;
   const shouldShowServiceMenuButton = !isSharedEntryScrollLocked;
+  const shouldShowSharedCharacterIntro = Boolean(
+    shareId && items[0]?.report.creatorReferralCode,
+  );
+  const sharedCharacterIntroSlideIndex = shouldShowSharedCharacterIntro ? 1 : -1;
+  const virtualSlideCount =
+    items.length + (shouldShowSharedCharacterIntro ? 1 : 0);
+  const getItemSlideIndex = useCallback(
+    (itemIndex: number) =>
+      itemIndex + (shouldShowSharedCharacterIntro && itemIndex > 0 ? 1 : 0),
+    [shouldShowSharedCharacterIntro],
+  );
+  const getFeedIndexForSlide = useCallback(
+    (slideIndex: number) => {
+      if (shouldShowSharedCharacterIntro && slideIndex > sharedCharacterIntroSlideIndex) {
+        return slideIndex - 1;
+      }
+
+      if (shouldShowSharedCharacterIntro && slideIndex === sharedCharacterIntroSlideIndex) {
+        return 0;
+      }
+
+      return slideIndex;
+    },
+    [sharedCharacterIntroSlideIndex, shouldShowSharedCharacterIntro],
+  );
+  const activeFeedIndex = Math.min(
+    Math.max(getFeedIndexForSlide(visibleSlideIndex), 0),
+    Math.max(items.length - 1, 0),
+  );
   const visibleItem =
     items[
-      Math.min(Math.max(visibleFeedIndex, 0), Math.max(items.length - 1, 0))
+      activeFeedIndex
     ] ?? items[0];
+  const sharedFocusCreatorReferralCode = shareId
+    ? items[0]?.report.creatorReferralCode?.trim() || null
+    : null;
   const viewerReporterReferralCode = normalizeReferralCode(
     memberSession.member?.referralCode,
   );
@@ -4945,10 +5167,10 @@ export function FanletterNewsPublicCutsFeedPage({
 
     return (
       lockedReporterCandidates.find(
-        (candidate) => candidate.index > visibleFeedIndex,
+        (candidate) => candidate.index > activeFeedIndex,
       )?.index ?? lockedReporterCandidates[0]?.index ?? -1
     );
-  }, [lockedReporterCandidates, visibleFeedIndex]);
+  }, [activeFeedIndex, lockedReporterCandidates]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -4981,7 +5203,7 @@ export function FanletterNewsPublicCutsFeedPage({
       root.scrollTo({ top: 0 });
     }
 
-    setVisibleFeedIndex(0);
+    setVisibleSlideIndex(0);
   }, [isSharedEntryScrollLocked]);
   useEffect(() => {
     if (!navigationPending) {
@@ -5132,19 +5354,19 @@ export function FanletterNewsPublicCutsFeedPage({
         root.scrollTo({ top: 0 });
       }
 
-      setVisibleFeedIndex(0);
+      setVisibleSlideIndex(0);
       return;
     }
 
     const visibleIndex = getVisibleFeedIndex({
-      itemCount: items.length,
+      itemCount: virtualSlideCount,
       root,
     });
 
     hideFeedChromeImmediately();
     window.dispatchEvent(new Event(CUT_FEED_CHROME_HIDE_EVENT));
 
-    setVisibleFeedIndex((currentIndex) => {
+    setVisibleSlideIndex((currentIndex) => {
       if (currentIndex === visibleIndex) {
         return currentIndex;
       }
@@ -5199,6 +5421,7 @@ export function FanletterNewsPublicCutsFeedPage({
     items,
     sourceViewSwipeGuideDismissed,
     swipeGuideTarget,
+    virtualSlideCount,
   ]);
   const loadMore = useCallback(async () => {
     if (isLoadingMore || !hasMore) {
@@ -5232,6 +5455,10 @@ export function FanletterNewsPublicCutsFeedPage({
         params.set("shareId", shareId);
       }
 
+      if (sharedFocusCreatorReferralCode) {
+        params.set("focusCreatorReferralCode", sharedFocusCreatorReferralCode);
+      }
+
       if (selectedRolePreference === "reporter") {
         params.set("mode", "reporter_locked");
       }
@@ -5249,7 +5476,7 @@ export function FanletterNewsPublicCutsFeedPage({
       const data = (await response.json()) as FanletterNewsPublicCutFeedLoadResponse;
       const currentItem =
         items[
-          Math.min(Math.max(visibleFeedIndex, 0), Math.max(items.length - 1, 0))
+          activeFeedIndex
         ] ?? null;
 
       if (shareId && currentItem) {
@@ -5294,8 +5521,31 @@ export function FanletterNewsPublicCutsFeedPage({
     nextOffset,
     referralCode,
     selectedRolePreference,
+    sharedFocusCreatorReferralCode,
     shareId,
-    visibleFeedIndex,
+    activeFeedIndex,
+  ]);
+  useEffect(() => {
+    if (
+      !isSharedConsumptionEntry ||
+      !shareId ||
+      isSharedEntryScrollLocked ||
+      items.length > 1 ||
+      !hasMore ||
+      isLoadingMore
+    ) {
+      return;
+    }
+
+    void loadMore();
+  }, [
+    hasMore,
+    isLoadingMore,
+    isSharedConsumptionEntry,
+    isSharedEntryScrollLocked,
+    items.length,
+    loadMore,
+    shareId,
   ]);
   const handleFindNextSourceRevealCandidate = useCallback(
     (currentIndex: number, currentContentId: string) => {
@@ -5314,7 +5564,7 @@ export function FanletterNewsPublicCutsFeedPage({
       if (nextIndex >= 0) {
         root.scrollTo({
           behavior: "smooth",
-          top: root.clientHeight * nextIndex,
+          top: root.clientHeight * getItemSlideIndex(nextIndex),
         });
         return;
       }
@@ -5328,7 +5578,7 @@ export function FanletterNewsPublicCutsFeedPage({
         void loadMore();
       }
     },
-    [hasMore, items, loadMore],
+    [getItemSlideIndex, hasMore, items, loadMore],
   );
 
   useEffect(() => {
@@ -5611,17 +5861,17 @@ export function FanletterNewsPublicCutsFeedPage({
   const roleShortcutSurfaceClassName = `${
     isRoleShortcutVisible ? "pointer-events-auto" : "pointer-events-none"
   } rounded-full border border-[#44f26e]/22 bg-black/66 px-2.5 py-2 text-white shadow-[0_16px_42px_rgba(0,0,0,0.3)] backdrop-blur-xl`;
-  const activeFeedIndex = Math.min(
-    Math.max(visibleFeedIndex, 0),
-    Math.max(items.length - 1, 0),
+  const activeSlideIndex = Math.min(
+    Math.max(visibleSlideIndex, 0),
+    Math.max(virtualSlideCount - 1, 0),
   );
   const renderWindowStart = Math.max(
     0,
-    activeFeedIndex - CUT_FEED_RENDER_WINDOW_RADIUS,
+    activeSlideIndex - CUT_FEED_RENDER_WINDOW_RADIUS,
   );
   const renderWindowEnd = Math.min(
-    items.length - 1,
-    activeFeedIndex + CUT_FEED_RENDER_WINDOW_RADIUS,
+    Math.max(virtualSlideCount - 1, 0),
+    activeSlideIndex + CUT_FEED_RENDER_WINDOW_RADIUS,
   );
   const scrollContainerClassName = `mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] scroll-smooth sm:border-x sm:border-white/10 ${
     isSharedEntryScrollLocked ? "overflow-y-hidden" : "overflow-y-auto"
@@ -5666,7 +5916,7 @@ export function FanletterNewsPublicCutsFeedPage({
                   setServiceMenuOpen(false);
                   setReporterPanelRequest((currentRequest) => ({
                     id: (currentRequest?.id ?? 0) + 1,
-                    index: visibleFeedIndex,
+                    index: activeFeedIndex,
                   }));
                 }}
                 viewerReportLabel={copy.myReportBadge}
@@ -5767,7 +6017,9 @@ export function FanletterNewsPublicCutsFeedPage({
 
                     root.scrollTo({
                       behavior: "smooth",
-                      top: root.clientHeight * nextLockedReporterCandidateIndex,
+                      top:
+                        root.clientHeight *
+                        getItemSlideIndex(nextLockedReporterCandidateIndex),
                     });
                   }}
                   type="button"
@@ -5853,21 +6105,18 @@ export function FanletterNewsPublicCutsFeedPage({
         ref={scrollContainerRef}
       >
         {items.map((item, index) => {
+          const itemSlideIndex = getItemSlideIndex(index);
           const isRenderedSlide =
-            index >= renderWindowStart && index <= renderWindowEnd;
+            itemSlideIndex >= renderWindowStart &&
+            itemSlideIndex <= renderWindowEnd;
 
-          if (!isRenderedSlide) {
-            return (
+          const feedSlide = !isRenderedSlide ? (
               <div
                 aria-hidden="true"
                 className="min-h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always bg-black"
-                data-cut-feed-placeholder={index}
-                key={item.report.reportId}
+                data-cut-feed-placeholder={itemSlideIndex}
               />
-            );
-          }
-
-          return (
+          ) : (
             <FeedSlide
               dictionary={dictionary}
               hasMore={hasMore}
@@ -5886,11 +6135,10 @@ export function FanletterNewsPublicCutsFeedPage({
                     })
               }
               initialSourceContentId={index === 0 ? sourceContentId : null}
-              isActive={index === activeFeedIndex}
+              isActive={itemSlideIndex === activeSlideIndex}
               isReporterComposerCtaVisible={isReporterComposerCtaVisible}
               item={item}
               itemCount={items.length}
-              key={item.report.reportId}
               locale={locale}
               onDismissSwipeGuide={dismissSwipeGuide}
               onFindNextSourceRevealCandidate={
@@ -5914,6 +6162,23 @@ export function FanletterNewsPublicCutsFeedPage({
               showSwipeGuide={swipeGuideTarget?.index === index}
             />
           );
+
+          if (index === 0 && shouldShowSharedCharacterIntro) {
+            return (
+              <Fragment key={`${item.report.reportId}:shared-character-intro`}>
+                {feedSlide}
+                <SharedCharacterIntroSlide
+                  item={item}
+                  locale={locale}
+                  onNavigate={startNavigation}
+                  referralCode={referralCode}
+                  shareId={shareId}
+                />
+              </Fragment>
+            );
+          }
+
+          return <Fragment key={item.report.reportId}>{feedSlide}</Fragment>;
         })}
         <section
           className="flex min-h-[48dvh] snap-start items-center justify-center px-4 py-10 text-center"

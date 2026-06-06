@@ -52,10 +52,14 @@ export async function GET(request: Request) {
       searchParams.get("ref") ?? undefined,
     );
     const shareId = normalizeShareId(searchParams.get("shareId"));
+    const focusCreatorReferralCode =
+      searchParams.get("focusCreatorReferralCode")?.trim().slice(0, 96) ||
+      null;
     const session = await readMemberServerSession();
     const reporterLockedMode = searchParams.get("mode") === "reporter_locked";
     const page = await getFanletterNewsPublicCutFeedPage({
       excludeReportIds: excludeReportId ? [excludeReportId] : [],
+      focusCreatorReferralCode,
       limit: readPositiveInteger(searchParams.get("limit")),
       locale: localeParam as Locale,
       mode: reporterLockedMode ? "reporter_locked" : "default",
