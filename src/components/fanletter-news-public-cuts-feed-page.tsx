@@ -2684,7 +2684,34 @@ function FeedSlide({
           key: `real-${cut.slotNumber}-${cut.imageUrl}`,
           realIndex: cutIndex,
         }));
-  const activeCutLabel = `${formatNumber(activeCutIndex + 1, locale)} / ${formatNumber(cutCount, locale)}`;
+  const cutProgressOrder = useMemo(() => {
+    const baseOrder = Array.from({ length: cutCount }, (_, cutIndex) => cutIndex);
+
+    if (!shareId || index !== 0 || cutCount <= 1) {
+      return baseOrder;
+    }
+
+    return baseOrder.map(
+      (_, progressIndex) => (initialActiveCutIndex + progressIndex) % cutCount,
+    );
+  }, [cutCount, index, initialActiveCutIndex, shareId]);
+  const activeCutProgressIndex = Math.max(
+    0,
+    cutProgressOrder.indexOf(activeCutIndex),
+  );
+  const getCutIndexForProgressIndex = useCallback(
+    (progressIndex: number) => {
+      if (cutCount <= 0) {
+        return 0;
+      }
+
+      const normalizedProgressIndex =
+        ((progressIndex % cutCount) + cutCount) % cutCount;
+      return cutProgressOrder[normalizedProgressIndex] ?? normalizedProgressIndex;
+    },
+    [cutCount, cutProgressOrder],
+  );
+  const activeCutLabel = `${formatNumber(activeCutProgressIndex + 1, locale)} / ${formatNumber(cutCount, locale)}`;
   const characterCutCountLabel = formatNumber(cutCount, locale);
   const characterSourceRevealLabel = `${formatNumber(
     Math.min(sourceRevealState.count, sourceRevealState.threshold),
@@ -3797,38 +3824,48 @@ function FeedSlide({
   );
   const goToPreviousCut = useCallback(() => {
     pendingCutDwellExitReasonRef.current = "horizontal_swipe";
-    setActiveCutIndex((currentIndex) => {
-      if (cutCount <= 1) {
-        setTrackCutIndex(currentIndex);
-        return currentIndex;
-      }
+    if (cutCount <= 1) {
+      setTrackCutIndex(activeCutIndex);
+      return;
+    }
 
-      const nextIndex = (currentIndex - 1 + cutCount) % cutCount;
+    const nextIndex = getCutIndexForProgressIndex(activeCutProgressIndex - 1);
 
-      setIsCutTrackTransitionEnabled(true);
-      setTrackCutIndex(currentIndex === 0 ? 0 : nextIndex + 1);
-
-      return nextIndex;
-    });
-  }, [cutCount]);
+    setIsCutTrackTransitionEnabled(true);
+    setActiveCutIndex(nextIndex);
+    setTrackCutIndex(
+      activeCutIndex === 0 && nextIndex === cutCount - 1
+        ? 0
+        : nextIndex + 1,
+    );
+  }, [
+    activeCutIndex,
+    activeCutProgressIndex,
+    cutCount,
+    getCutIndexForProgressIndex,
+  ]);
   const goToNextCut = useCallback(() => {
     pendingCutDwellExitReasonRef.current = "horizontal_swipe";
-    setActiveCutIndex((currentIndex) => {
-      if (cutCount <= 1) {
-        setTrackCutIndex(currentIndex);
-        return currentIndex;
-      }
+    if (cutCount <= 1) {
+      setTrackCutIndex(activeCutIndex);
+      return;
+    }
 
-      const nextIndex = (currentIndex + 1) % cutCount;
+    const nextIndex = getCutIndexForProgressIndex(activeCutProgressIndex + 1);
 
-      setIsCutTrackTransitionEnabled(true);
-      setTrackCutIndex(
-        currentIndex === cutCount - 1 ? cutCount + 1 : nextIndex + 1,
-      );
-
-      return nextIndex;
-    });
-  }, [cutCount]);
+    setIsCutTrackTransitionEnabled(true);
+    setActiveCutIndex(nextIndex);
+    setTrackCutIndex(
+      activeCutIndex === cutCount - 1 && nextIndex === 0
+        ? cutCount + 1
+        : nextIndex + 1,
+    );
+  }, [
+    activeCutIndex,
+    activeCutProgressIndex,
+    cutCount,
+    getCutIndexForProgressIndex,
+  ]);
   const handlePointerEnd = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
       const pointerStart = pointerStartRef.current;
@@ -4027,13 +4064,20 @@ function FeedSlide({
     }
 
     article.dataset.cutCount = String(cutCount);
+    article.dataset.activeCutSlot = String(activeCutSlotNumber);
+    article.dataset.activeCutProgress = String(activeCutProgressIndex + 1);
 
     if (sourceRevealState.unlocked) {
       article.dataset.sourceView = "true";
     } else {
       delete article.dataset.sourceView;
     }
-  }, [cutCount, sourceRevealState.unlocked]);
+  }, [
+    activeCutProgressIndex,
+    activeCutSlotNumber,
+    cutCount,
+    sourceRevealState.unlocked,
+  ]);
 
   useEffect(() => {
     if (
@@ -4160,25 +4204,31 @@ function FeedSlide({
         }`}
       >
         <div className="mx-auto flex w-full gap-1.5">
-          {cuts.map((cut, cutIndex) => (
-            <button
-              aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
-              className="h-1 flex-1 overflow-hidden rounded-full bg-white/24"
-              key={`${report.reportId}-progress-${cut.slotNumber}`}
-              onClick={() => {
-                onDismissSwipeGuide?.();
-                pendingCutDwellExitReasonRef.current = "cut_select";
-                selectCutIndex(cutIndex);
-              }}
-              type="button"
-            >
-              <span
-                className={`block h-full rounded-full transition-all ${
-                  cutIndex <= activeCutIndex ? "bg-white" : "bg-transparent"
-                }`}
-              />
-            </button>
-          ))}
+          {cutProgressOrder.map((orderedCutIndex, progressIndex) => {
+            const cut = cuts[orderedCutIndex] ?? cuts[progressIndex];
+
+            return (
+              <button
+                aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
+                className="h-1 flex-1 overflow-hidden rounded-full bg-white/24"
+                key={`${report.reportId}-progress-${progressIndex}-${cut.slotNumber}`}
+                onClick={() => {
+                  onDismissSwipeGuide?.();
+                  pendingCutDwellExitReasonRef.current = "cut_select";
+                  selectCutIndex(orderedCutIndex);
+                }}
+                type="button"
+              >
+                <span
+                  className={`block h-full rounded-full transition-all ${
+                    progressIndex <= activeCutProgressIndex
+                      ? "bg-white"
+                      : "bg-transparent"
+                  }`}
+                />
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -4532,20 +4582,26 @@ function FeedSlide({
             </div>
           ) : null}
           <div className="mt-4 flex items-center justify-center gap-1.5">
-            {cuts.map((cut, cutIndex) => (
-              <button
-                aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
-                className={`size-1.5 rounded-full transition ${
-                  cutIndex === activeCutIndex ? "bg-white" : "bg-white/34"
-                }`}
-                key={`${report.reportId}-dot-${cut.slotNumber}`}
-                onClick={() => {
-                  pendingCutDwellExitReasonRef.current = "cut_select";
-                  selectCutIndex(cutIndex);
-                }}
-                type="button"
-              />
-            ))}
+            {cutProgressOrder.map((orderedCutIndex, progressIndex) => {
+              const cut = cuts[orderedCutIndex] ?? cuts[progressIndex];
+
+              return (
+                <button
+                  aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
+                  className={`size-1.5 rounded-full transition ${
+                    progressIndex === activeCutProgressIndex
+                      ? "bg-white"
+                      : "bg-white/34"
+                  }`}
+                  key={`${report.reportId}-dot-${progressIndex}-${cut.slotNumber}`}
+                  onClick={() => {
+                    pendingCutDwellExitReasonRef.current = "cut_select";
+                    selectCutIndex(orderedCutIndex);
+                  }}
+                  type="button"
+                />
+              );
+            })}
           </div>
         </section>
       </div>
@@ -6123,9 +6179,7 @@ export function FanletterNewsPublicCutsFeedPage({
               index={index}
               initialCutSlotNumber={
                 index === 0
-                  ? shareId
-                    ? null
-                    : initialCutSlotNumber
+                  ? initialCutSlotNumber
                   : getStableRandomInitialCutSlotNumber({
                       feedRotationSeed,
                       index,
