@@ -2827,8 +2827,8 @@ function FeedSlide({
     }
 
     sharedEntryChromeRevealedRef.current = true;
-    revealCutOverlays();
-  }, [isActive, revealCutOverlays, shareId]);
+    revealBottomDetails();
+  }, [isActive, revealBottomDetails, shareId]);
 
   const flushCutDwell = useCallback((exitReason: CutDwellExitReason) => {
     const snapshot = cutDwellSnapshotRef.current;
