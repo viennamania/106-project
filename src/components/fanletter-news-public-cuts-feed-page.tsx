@@ -5874,7 +5874,9 @@ export function FanletterNewsPublicCutsFeedPage({
               index={index}
               initialCutSlotNumber={
                 index === 0
-                  ? initialCutSlotNumber
+                  ? shareId
+                    ? null
+                    : initialCutSlotNumber
                   : getStableRandomInitialCutSlotNumber({
                       feedRotationSeed,
                       index,
