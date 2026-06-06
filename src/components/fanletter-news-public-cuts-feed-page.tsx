@@ -4350,7 +4350,6 @@ function FeedSlide({
 
       if (
         travelDistance > DOUBLE_TAP_MOVE_TOLERANCE_PX ||
-        event.pointerType === "mouse" ||
         isInteractiveTarget(pointerStart.target) ||
         isInteractiveTarget(event.target)
       ) {
@@ -4358,6 +4357,12 @@ function FeedSlide({
       }
 
       revealCutOverlays();
+
+      if (event.pointerType === "mouse") {
+        lastTapRef.current = null;
+        return;
+      }
+
       const now = window.performance.now();
       const previousTap = lastTapRef.current;
 
