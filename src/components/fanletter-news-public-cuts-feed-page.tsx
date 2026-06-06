@@ -1787,6 +1787,8 @@ function getSourceRevealParticipantSlots({
 function SourceRevealParticipantRail({
   authNudge,
   copy,
+  ctaIconOverride = null,
+  ctaLabelOverride = null,
   error,
   highlightSourceView = false,
   isLoggedIn,
@@ -1805,6 +1807,8 @@ function SourceRevealParticipantRail({
 }: {
   authNudge: boolean;
   copy: SourceRevealParticipantRailCopy;
+  ctaIconOverride?: LucideIcon | null;
+  ctaLabelOverride?: string | null;
   error: string | null;
   highlightSourceView?: boolean;
   isLoggedIn: boolean;
@@ -1838,11 +1842,13 @@ function SourceRevealParticipantRail({
     viewerDisplayName,
     viewerReferralCode,
   });
-  const ctaLabel = state.unlocked
-    ? copy.sourceView
-    : needsCutFeedJoin
-      ? copy.sourceOpenSignupCta
-      : copy.sourceOpenCta;
+  const ctaLabel =
+    ctaLabelOverride ??
+    (state.unlocked
+      ? copy.sourceView
+      : needsCutFeedJoin
+        ? copy.sourceOpenSignupCta
+        : copy.sourceOpenCta);
   const buttonA11yLabel = isLoginBusy
     ? `${copy.loginSyncing} ${countLabel}`
     : isSaving
@@ -1884,11 +1890,13 @@ function SourceRevealParticipantRail({
     };
   }, [isSponsorSheetOpen]);
 
-  const RailIcon: LucideIcon = state.unlocked
-    ? PlayCircle
-    : state.requestedByViewer
-      ? CheckCircle2
-      : HeartHandshake;
+  const RailIcon: LucideIcon =
+    ctaIconOverride ??
+    (state.unlocked
+      ? PlayCircle
+      : state.requestedByViewer
+        ? CheckCircle2
+        : HeartHandshake);
   const buttonClassName = `inline-flex size-11 items-center justify-center rounded-full border shadow-[0_16px_34px_rgba(0,0,0,0.3)] backdrop-blur-xl transition disabled:cursor-wait disabled:opacity-70 ${
     state.unlocked
       ? "border-[#44f26e]/70 bg-[#44f26e] text-[#101510] hover:bg-[#67ff88]"
@@ -2955,19 +2963,23 @@ function FeedSlide({
   const reporterPublishedAtLabel = publishedAt ?? "-";
   const activeCutSlotNumber = cuts[activeCutIndex]?.slotNumber ?? 1;
   const hasViewedAllCuts = cutCount <= 1 || viewedCutIndexes.size >= cutCount;
+  const hasReachedSharedSourceGate = Boolean(
+    hasViewedAllCuts ||
+      (shareId && cutCount > 1 && activeCutSlotNumber >= cutCount),
+  );
   const isSharedSourceActionGateActive = Boolean(
     isSharedConsumptionGateActive && cutCount > 1,
   );
   const showSharedSourceCompletionCta = Boolean(
     isActive &&
       isSharedSourceActionGateActive &&
-      hasViewedAllCuts &&
+      hasReachedSharedSourceGate &&
       !hasEnteredSourceOverlay,
   );
   const showSharedScrollGuide = Boolean(
     isActive &&
       shareId &&
-      hasViewedAllCuts &&
+      hasReachedSharedSourceGate &&
       hasEnteredSourceOverlay &&
       !sourceOverlayOpen,
   );
@@ -2976,10 +2988,16 @@ function FeedSlide({
       shareId &&
       index > 0 &&
       isSharedSourceActionGateActive &&
-      !hasViewedAllCuts &&
+      !hasReachedSharedSourceGate &&
       !sourceOverlayOpen,
   );
-  const shouldShowSourceRail = !shareId && !isSharedSourceActionGateActive;
+  const shouldUseSharedSourceRail = Boolean(
+    shareId &&
+      sourceContentId &&
+      (!isSharedSourceActionGateActive || hasReachedSharedSourceGate),
+  );
+  const shouldShowSourceRail =
+    shouldUseSharedSourceRail || (!shareId && !isSharedSourceActionGateActive);
   const cutFeedReturnHref = getCutFeedReturnHref({
     cutSlotNumber: activeCutSlotNumber,
     locale,
@@ -3101,7 +3119,7 @@ function FeedSlide({
       !isActive ||
       !onSharedEntryConsumptionComplete ||
       sharedConsumptionCompletedRef.current ||
-      !hasViewedAllCuts ||
+      !hasReachedSharedSourceGate ||
       !hasEnteredSourceOverlay ||
       sourceOverlayOpen
     ) {
@@ -3112,7 +3130,7 @@ function FeedSlide({
     onSharedEntryConsumptionComplete();
   }, [
     hasEnteredSourceOverlay,
-    hasViewedAllCuts,
+    hasReachedSharedSourceGate,
     isActive,
     onSharedEntryConsumptionComplete,
     sourceOverlayOpen,
@@ -4017,7 +4035,7 @@ function FeedSlide({
   ]);
 
   const handleSourceRevealDoubleTap = useCallback(() => {
-    if (isSharedSourceActionGateActive && !hasViewedAllCuts) {
+    if (isSharedSourceActionGateActive && !hasReachedSharedSourceGate) {
       return;
     }
 
@@ -4046,7 +4064,7 @@ function FeedSlide({
     copy.doubleTapLogin,
     copy.doubleTapOpen,
     copy.doubleTapWant,
-    hasViewedAllCuts,
+    hasReachedSharedSourceGate,
     isSharedSourceActionGateActive,
     isSourceRevealLoggedIn,
     openInlineLoginForVote,
@@ -4223,7 +4241,7 @@ function FeedSlide({
     ],
   );
   const handleSourceRevealParticipation = useCallback(() => {
-    if (isSharedSourceActionGateActive && !hasViewedAllCuts) {
+    if (isSharedSourceActionGateActive && !hasReachedSharedSourceGate) {
       return;
     }
 
@@ -4252,7 +4270,7 @@ function FeedSlide({
     copy.doubleTapLogin,
     copy.doubleTapOpen,
     copy.doubleTapWant,
-    hasViewedAllCuts,
+    hasReachedSharedSourceGate,
     isSharedSourceActionGateActive,
     isSourceRevealLoggedIn,
     openInlineLoginForVote,
@@ -4264,6 +4282,10 @@ function FeedSlide({
   ]);
   const handleSourceRailClick = useCallback(() => {
     if (sourceContentId) {
+      if (isSharedSourceActionGateActive) {
+        setHasEnteredSourceOverlay(true);
+      }
+
       openSourceOverlay();
       return;
     }
@@ -4580,8 +4602,10 @@ function FeedSlide({
           <SourceRevealParticipantRail
             authNudge={authNudge}
             copy={copy}
+            ctaIconOverride={shouldUseSharedSourceRail ? PlayCircle : null}
+            ctaLabelOverride={shouldUseSharedSourceRail ? copy.sourceView : null}
             error={sourceRevealError}
-            highlightSourceView={showSourceViewGuide}
+            highlightSourceView={showSourceViewGuide || shouldUseSharedSourceRail}
             isLoggedIn={isSourceRevealLoggedIn}
             isLoginBusy={isLoginSyncing}
             needsCutFeedJoin={needsCutFeedJoin}
