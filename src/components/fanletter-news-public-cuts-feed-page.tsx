@@ -257,6 +257,10 @@ function getCopy(locale: Locale) {
         shareSummary: (headline: string, reporterName: string) =>
           `팬 기자 ${reporterName}가 고른 ${headline} 4컷을 확인해보세요.`,
         shareTitle: (headline: string) => `팬 기자가 편집한 4컷: ${headline}`,
+        sharedSourceCtaBody:
+          "팬 기자가 고른 장면의 전체 흐름을 원본 브이로그로 이어서 확인하세요.",
+        sharedSourceCtaEyebrow: "4컷 확인 완료",
+        sharedSourceCtaTitle: "이제 원본 브이로그로 이어보기",
         slot: (index: string) => `컷 ${index}`,
         sourceOpen: "보고싶어요",
         sourceOpenCta: "보고싶어요",
@@ -454,6 +458,10 @@ function getCopy(locale: Locale) {
         shareSummary: (headline: string, reporterName: string) =>
           `See the four cuts ${reporterName} selected for ${headline}.`,
         shareTitle: (headline: string) => `Four cuts edited by a fan reporter: ${headline}`,
+        sharedSourceCtaBody:
+          "Continue from the moments the fan reporter picked into the full source vlog.",
+        sharedSourceCtaEyebrow: "All cuts viewed",
+        sharedSourceCtaTitle: "Continue to the source vlog",
         slot: (index: string) => `Cut ${index}`,
         sourceOpen: "Fan-open vote",
         sourceOpenCta: "Want it",
@@ -2505,6 +2513,9 @@ function FeedSlide({
     initialCutSlotNumber,
   );
   const [activeCutIndex, setActiveCutIndex] = useState(initialActiveCutIndex);
+  const [viewedCutIndexes, setViewedCutIndexes] = useState<Set<number>>(
+    () => new Set([initialActiveCutIndex]),
+  );
   const [trackCutIndex, setTrackCutIndex] = useState(() =>
     initialCutCount > 1 ? initialActiveCutIndex + 1 : initialActiveCutIndex,
   );
@@ -2651,6 +2662,18 @@ function FeedSlide({
   )}/${formatNumber(sourceRevealState.threshold, locale)}`;
   const reporterPublishedAtLabel = publishedAt ?? "-";
   const activeCutSlotNumber = cuts[activeCutIndex]?.slotNumber ?? 1;
+  const hasViewedAllCuts = cutCount <= 1 || viewedCutIndexes.size >= cutCount;
+  const isSharedSourceViewGateActive = Boolean(
+    shareId &&
+      index === 0 &&
+      sourceRevealState.unlocked &&
+      sourceContentId &&
+      cutCount > 1,
+  );
+  const showSharedSourceCompletionCta = Boolean(
+    isActive && isSharedSourceViewGateActive && hasViewedAllCuts,
+  );
+  const shouldShowSourceRail = !isSharedSourceViewGateActive;
   const cutFeedReturnHref = getCutFeedReturnHref({
     cutSlotNumber: activeCutSlotNumber,
     locale,
@@ -2727,6 +2750,19 @@ function FeedSlide({
     cutFeedJoinHref,
     startNavigation,
   ]);
+
+  useEffect(() => {
+    setViewedCutIndexes((currentIndexes) => {
+      if (currentIndexes.has(activeCutIndex)) {
+        return currentIndexes;
+      }
+
+      const nextIndexes = new Set(currentIndexes);
+      nextIndexes.add(activeCutIndex);
+      return nextIndexes;
+    });
+  }, [activeCutIndex]);
+
   const clearSideActionsTimer = useCallback(() => {
     if (sideActionsTimeoutRef.current) {
       clearTimeout(sideActionsTimeoutRef.current);
@@ -3871,7 +3907,11 @@ function FeedSlide({
   const viewerReferralCode = memberSession.member?.referralCode?.trim() || null;
   const cutCountLabel = formatNumber(cutCount, locale);
   const showSourceViewGuide =
-    isActive && showSwipeGuide && sourceRevealState.unlocked && cutCount > 1;
+    shouldShowSourceRail &&
+    isActive &&
+    showSwipeGuide &&
+    sourceRevealState.unlocked &&
+    cutCount > 1;
   const showCutSwipeGuide = isActive && showSwipeGuide && cutCount > 1;
   const areSideActionDetailsVisible =
     areSideActionsVisible ||
@@ -4108,25 +4148,27 @@ function FeedSlide({
             <span className="absolute -right-1.5 top-[1.35rem] size-3 rotate-45 border-r border-t border-[#44f26e]/34 bg-black/72" />
           </div>
         ) : null}
-        <SourceRevealParticipantRail
-          authNudge={authNudge}
-          copy={copy}
-          error={sourceRevealError}
-          highlightSourceView={showSourceViewGuide}
-          isLoggedIn={isSourceRevealLoggedIn}
-          isLoginBusy={isLoginSyncing}
-          needsCutFeedJoin={needsCutFeedJoin}
-          isSaving={isSourceRevealSaving}
-          locale={locale}
-          loginError={loginSyncError}
-          onActivate={handleSourceRailClick}
-          progressPercent={sourceRailProgressPercent}
-          showMeta={areSideActionDetailsVisible}
-          state={sourceRevealState}
-          viewerAvatarImageUrl={viewerAvatarImageUrl}
-          viewerDisplayName={viewerDisplayName}
-          viewerReferralCode={viewerReferralCode}
-        />
+        {shouldShowSourceRail ? (
+          <SourceRevealParticipantRail
+            authNudge={authNudge}
+            copy={copy}
+            error={sourceRevealError}
+            highlightSourceView={showSourceViewGuide}
+            isLoggedIn={isSourceRevealLoggedIn}
+            isLoginBusy={isLoginSyncing}
+            needsCutFeedJoin={needsCutFeedJoin}
+            isSaving={isSourceRevealSaving}
+            locale={locale}
+            loginError={loginSyncError}
+            onActivate={handleSourceRailClick}
+            progressPercent={sourceRailProgressPercent}
+            showMeta={areSideActionDetailsVisible}
+            state={sourceRevealState}
+            viewerAvatarImageUrl={viewerAvatarImageUrl}
+            viewerDisplayName={viewerDisplayName}
+            viewerReferralCode={viewerReferralCode}
+          />
+        ) : null}
         <div
           className={`flex flex-col items-center gap-1.5 transition-[opacity,transform,filter,visibility] duration-500 ease-out ${
             areSideActionsVisible
@@ -4351,6 +4393,36 @@ function FeedSlide({
               </div>
             ) : null}
           </div>
+          {showSharedSourceCompletionCta ? (
+            <div aria-live="polite" className="mt-3 w-full">
+              <button
+                aria-label={copy.sharedSourceCtaTitle}
+                className="group flex min-h-[5.4rem] w-full items-center gap-3 rounded-[1.35rem] border border-[#44f26e]/46 bg-[#44f26e] px-3.5 py-3 text-left text-[#101510] shadow-[0_20px_58px_rgba(0,0,0,0.38)] transition hover:bg-[#69ff8b] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/30"
+                data-shared-source-cta="ready"
+                onClick={handleSourceRailClick}
+                type="button"
+              >
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#101510] text-[#44f26e] shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
+                  <PlayCircle className="size-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex flex-wrap items-center gap-1.5 text-[0.62rem] font-black uppercase leading-tight tracking-[0.12em] text-[#17391f]/72">
+                    <span>{copy.sharedSourceCtaEyebrow}</span>
+                    <span className="rounded-full bg-[#101510]/10 px-2 py-0.5 text-[#101510]/78">
+                      {cutCountLabel}/{cutCountLabel}
+                    </span>
+                  </span>
+                  <span className="mt-1 block break-words text-[1rem] font-black leading-tight tracking-normal [word-break:keep-all]">
+                    {copy.sharedSourceCtaTitle}
+                  </span>
+                  <span className="mt-1 block break-words text-[0.72rem] font-bold leading-snug text-[#101510]/70 [word-break:keep-all]">
+                    {copy.sharedSourceCtaBody}
+                  </span>
+                </span>
+                <ArrowRight className="size-5 shrink-0 transition group-hover:translate-x-0.5" />
+              </button>
+            </div>
+          ) : null}
           <div className="mt-4 flex items-center justify-center gap-1.5">
             {cuts.map((cut, cutIndex) => (
               <button
