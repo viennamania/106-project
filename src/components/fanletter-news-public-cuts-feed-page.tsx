@@ -261,7 +261,7 @@ function getCopy(locale: Locale) {
           "팬 기자가 고른 장면의 전체 흐름을 원본 브이로그로 이어서 확인하세요.",
         sharedSourceCtaEyebrow: "4컷 확인 완료",
         sharedSourceCtaTitle: "이제 원본 브이로그로 이어보기",
-        sharedSourcePreviewContinueCta: "닫고 계속 보기",
+        sharedSourcePreviewContinueCta: "돌아가기",
         sharedSourcePreviewCtaBody:
           "로그인 없이 원본 일부를 확인한 뒤, 아래로 넘겨 이 캐릭터의 다른 컷을 계속 볼 수 있어요.",
         sharedSourcePreviewCtaTitle: "원본 프리뷰 먼저 보기",
@@ -476,7 +476,7 @@ function getCopy(locale: Locale) {
           "Continue from the moments the fan reporter picked into the full source vlog.",
         sharedSourceCtaEyebrow: "All cuts viewed",
         sharedSourceCtaTitle: "Continue to the source vlog",
-        sharedSourcePreviewContinueCta: "Close and keep browsing",
+        sharedSourcePreviewContinueCta: "Back",
         sharedSourcePreviewCtaBody:
           "Preview part of the source without signing in, then swipe down to keep exploring this character's cuts.",
         sharedSourcePreviewCtaTitle: "Preview the source first",
@@ -2443,8 +2443,8 @@ function SourceVlogFeedOverlay({
                     </div>
                     <div className="mt-3 grid gap-2">
                       {sharedPreviewContinueAction}
-                      {sourceRevealAction}
-                      {sourceRevealDoneFeedback}
+                      {shouldUseSharedEntryPreviewCopy ? null : sourceRevealAction}
+                      {shouldUseSharedEntryPreviewCopy ? null : sourceRevealDoneFeedback}
                     </div>
                   </div>
                 ) : !isPlayable && lockedCopy ? (
@@ -2528,6 +2528,7 @@ function FeedSlide({
   initialCutSlotNumber = null,
   initialSourceContentId = null,
   isActive,
+  isSharedConsumptionGateActive = false,
   isReporterComposerCtaVisible,
   item,
   itemCount,
@@ -2551,6 +2552,7 @@ function FeedSlide({
   initialCutSlotNumber?: number | null;
   initialSourceContentId?: string | null;
   isActive: boolean;
+  isSharedConsumptionGateActive?: boolean;
   isReporterComposerCtaVisible: boolean;
   item: SerializedFanletterNewsPublicCutFeedItem;
   itemCount: number;
@@ -2753,7 +2755,7 @@ function FeedSlide({
   const activeCutSlotNumber = cuts[activeCutIndex]?.slotNumber ?? 1;
   const hasViewedAllCuts = cutCount <= 1 || viewedCutIndexes.size >= cutCount;
   const isSharedSourceActionGateActive = Boolean(
-    shareId && index === 0 && cutCount > 1,
+    isSharedConsumptionGateActive && cutCount > 1,
   );
   const showSharedSourceCompletionCta = Boolean(
     isActive &&
@@ -4941,8 +4943,10 @@ export function FanletterNewsPublicCutsFeedPage({
   const [isRoleShortcutVisible, setIsRoleShortcutVisible] = useState(false);
   const [isPublishedReturnEntry, setIsPublishedReturnEntry] = useState(false);
   const [visibleSlideIndex, setVisibleSlideIndex] = useState(0);
-  const [isSharedEntryScrollLocked, setIsSharedEntryScrollLocked] = useState(
-    () => Boolean(shareId),
+  const [sharedConsumedReportIds, setSharedConsumedReportIds] = useState<
+    Set<string>
+  >(
+    () => new Set(),
   );
   const [reporterPanelRequest, setReporterPanelRequest] = useState<{
     id: number;
@@ -5117,14 +5121,6 @@ export function FanletterNewsPublicCutsFeedPage({
       shouldShowSharedCharacterIntro &&
       visibleSlideIndex > sharedCharacterIntroSlideIndex,
   );
-  const shouldShowHeaderCount = !isSharedConsumptionEntry;
-  const shouldShowServiceMenuButton =
-    !isSharedEntryScrollLocked &&
-    !isSharedEntrySlideVisible &&
-    !isSharedCharacterIntroSlideVisible &&
-    (!isSharedTimelineFeedSlideVisible ||
-      isCutFeedHeaderVisible ||
-      serviceMenuOpen);
   const virtualSlideCount =
     items.length + (shouldShowSharedCharacterIntro ? 1 : 0);
   const getItemSlideIndex = useCallback(
@@ -5146,6 +5142,35 @@ export function FanletterNewsPublicCutsFeedPage({
     },
     [sharedCharacterIntroSlideIndex, shouldShowSharedCharacterIntro],
   );
+  const shouldGateSharedItemAtIndex = useCallback(
+    (item: SerializedFanletterNewsPublicCutFeedItem) =>
+      Boolean(
+        shareId &&
+          getPublicCutItemCutCount(item) > 1 &&
+          !sharedConsumedReportIds.has(item.report.reportId),
+      ),
+    [shareId, sharedConsumedReportIds],
+  );
+  const activeSharedLockedItemIndex = shareId
+    ? items.findIndex(
+        (item, index) =>
+          visibleSlideIndex === getItemSlideIndex(index) &&
+          shouldGateSharedItemAtIndex(item),
+      )
+    : -1;
+  const activeSharedLockedSlideIndex =
+    activeSharedLockedItemIndex >= 0
+      ? getItemSlideIndex(activeSharedLockedItemIndex)
+      : null;
+  const isSharedEntryScrollLocked = activeSharedLockedSlideIndex !== null;
+  const shouldShowHeaderCount = !isSharedConsumptionEntry;
+  const shouldShowServiceMenuButton =
+    !isSharedEntryScrollLocked &&
+    !isSharedEntrySlideVisible &&
+    !isSharedCharacterIntroSlideVisible &&
+    (!isSharedTimelineFeedSlideVisible ||
+      isCutFeedHeaderVisible ||
+      serviceMenuOpen);
   const activeFeedIndex = Math.min(
     Math.max(getFeedIndexForSlide(visibleSlideIndex), 0),
     Math.max(items.length - 1, 0),
@@ -5197,8 +5222,16 @@ export function FanletterNewsPublicCutsFeedPage({
     setNavigationPending(pending);
     setServiceMenuOpen(false);
   }, []);
-  const unlockSharedEntryScroll = useCallback(() => {
-    setIsSharedEntryScrollLocked(false);
+  const markSharedConsumptionComplete = useCallback((reportId: string) => {
+    setSharedConsumedReportIds((currentReportIds) => {
+      if (currentReportIds.has(reportId)) {
+        return currentReportIds;
+      }
+
+      const nextReportIds = new Set(currentReportIds);
+      nextReportIds.add(reportId);
+      return nextReportIds;
+    });
   }, []);
   const lockedReporterCandidateCount = useMemo(
     () => getLockedReporterCandidates(items).length,
@@ -5233,7 +5266,11 @@ export function FanletterNewsPublicCutsFeedPage({
     );
   }, []);
   useEffect(() => {
-    setIsSharedEntryScrollLocked(Boolean(shareId));
+    setSharedConsumedReportIds(new Set());
+
+    if (shareId) {
+      setVisibleSlideIndex(0);
+    }
   }, [shareId]);
   useEffect(() => {
     if (!isSharedEntryScrollLocked) {
@@ -5249,13 +5286,19 @@ export function FanletterNewsPublicCutsFeedPage({
     }
 
     const root = scrollContainerRef.current;
+    const lockedScrollTop =
+      root && activeSharedLockedSlideIndex !== null
+        ? root.clientHeight * activeSharedLockedSlideIndex
+        : 0;
 
-    if (root && root.scrollTop > 0) {
-      root.scrollTo({ top: 0 });
+    if (root && Math.abs(root.scrollTop - lockedScrollTop) > 1) {
+      root.scrollTo({ top: lockedScrollTop });
     }
 
-    setVisibleSlideIndex(0);
-  }, [isSharedEntryScrollLocked]);
+    if (activeSharedLockedSlideIndex !== null) {
+      setVisibleSlideIndex(activeSharedLockedSlideIndex);
+    }
+  }, [activeSharedLockedSlideIndex, isSharedEntryScrollLocked]);
   useEffect(() => {
     if (!navigationPending) {
       return;
@@ -5401,11 +5444,18 @@ export function FanletterNewsPublicCutsFeedPage({
     }
 
     if (isSharedEntryScrollLocked) {
-      if (root.scrollTop > 0) {
-        root.scrollTo({ top: 0 });
+      const lockedScrollTop =
+        activeSharedLockedSlideIndex !== null
+          ? root.clientHeight * activeSharedLockedSlideIndex
+          : 0;
+
+      if (Math.abs(root.scrollTop - lockedScrollTop) > 1) {
+        root.scrollTo({ top: lockedScrollTop });
       }
 
-      setVisibleSlideIndex(0);
+      if (activeSharedLockedSlideIndex !== null) {
+        setVisibleSlideIndex(activeSharedLockedSlideIndex);
+      }
       return;
     }
 
@@ -5467,6 +5517,7 @@ export function FanletterNewsPublicCutsFeedPage({
     }
   }, [
     dismissSwipeGuide,
+    activeSharedLockedSlideIndex,
     hideFeedChromeImmediately,
     isSharedEntryScrollLocked,
     items,
@@ -6165,6 +6216,9 @@ export function FanletterNewsPublicCutsFeedPage({
       >
         {items.map((item, index) => {
           const itemSlideIndex = getItemSlideIndex(index);
+          const isSharedConsumptionGateActive = shouldGateSharedItemAtIndex(
+            item,
+          );
           const isRenderedSlide =
             itemSlideIndex >= renderWindowStart &&
             itemSlideIndex <= renderWindowEnd;
@@ -6183,6 +6237,8 @@ export function FanletterNewsPublicCutsFeedPage({
               initialCutSlotNumber={
                 index === 0
                   ? initialCutSlotNumber
+                  : shareId
+                    ? item.cuts[0]?.slotNumber ?? item.leadCut.slotNumber
                   : getStableRandomInitialCutSlotNumber({
                       feedRotationSeed,
                       index,
@@ -6193,6 +6249,7 @@ export function FanletterNewsPublicCutsFeedPage({
               }
               initialSourceContentId={index === 0 ? sourceContentId : null}
               isActive={itemSlideIndex === activeSlideIndex}
+              isSharedConsumptionGateActive={isSharedConsumptionGateActive}
               isReporterComposerCtaVisible={isReporterComposerCtaVisible}
               item={item}
               itemCount={items.length}
@@ -6205,7 +6262,9 @@ export function FanletterNewsPublicCutsFeedPage({
               onNavigationStart={startNavigation}
               onRevealFeedChrome={revealFeedChromeTemporarily}
               onSharedEntryConsumptionComplete={
-                index === 0 && shareId ? unlockSharedEntryScroll : undefined
+                isSharedConsumptionGateActive
+                  ? () => markSharedConsumptionComplete(item.report.reportId)
+                  : undefined
               }
               onSourceViewSlideVisible={handleSourceViewSlideVisible}
               reporterPanelRequestId={
