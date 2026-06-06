@@ -7554,8 +7554,12 @@ export function FanletterNewsPublicCutsFeedPage({
       sharedResolvedTransitionSlideIndexesRef.current.add(transitionSlideIndex);
 
       if (existingIndex >= 0) {
-        lockSharedBackwardScrollAtItemIndex(existingIndex);
-        scrollToFeedItemIndex(existingIndex);
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => {
+            lockSharedBackwardScrollAtItemIndex(existingIndex);
+            scrollToFeedItemIndex(existingIndex);
+          });
+        });
         return;
       }
 
