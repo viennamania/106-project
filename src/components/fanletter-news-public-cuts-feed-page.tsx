@@ -108,6 +108,8 @@ const CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT =
   "fanletter-news-cut-feed-visible-index-change";
 const CUT_DWELL_MIN_TRACK_MS = 800;
 const CUT_DWELL_MAX_TRACK_MS = 60000;
+const CUT_FEED_SHARED_CONSUMED_STORAGE_PREFIX =
+  "fanletter-news-cut-feed-shared-consumed";
 
 type CutFeedViewportStyle = CSSProperties & {
   "--fanletter-cut-feed-vh"?: string;
@@ -266,9 +268,11 @@ function getCopy(locale: Locale) {
           "로그인 없이 원본 일부를 확인한 뒤, 아래로 넘겨 이 캐릭터의 다른 컷을 계속 볼 수 있어요.",
         sharedSourcePreviewCtaTitle: "원본 프리뷰 먼저 보기",
         sharedScrollGuideBody:
-          "방금 본 브이로그의 AI 캐릭터 IP를 먼저 소개한 뒤, 같은 캐릭터의 다른 컷으로 이어집니다.",
+          "지금부터 아래로 스크롤할 수 있어요. AI 캐릭터 IP를 먼저 소개한 뒤, 같은 캐릭터의 다른 컷으로 이어집니다.",
         sharedScrollGuideTitle: (name: string) =>
-          `아래로 넘겨 ${name} 캐릭터 보기`,
+          `아래로 넘겨 ${name} 타임라인 보기`,
+        sharedTimelineBadge: (name: string) => `${name} 타임라인`,
+        sharedTimelineNext: "다음 브이로그",
         characterIntroBody: (name: string) =>
           `방금 본 컷과 원본은 ${name} 캐릭터 IP에서 이어집니다. 팬 리포트와 원본 브이로그를 같은 흐름으로 더 살펴보세요.`,
         characterIntroCta: "캐릭터 채널 보기",
@@ -481,9 +485,11 @@ function getCopy(locale: Locale) {
           "Preview part of the source without signing in, then swipe down to keep exploring this character's cuts.",
         sharedSourcePreviewCtaTitle: "Preview the source first",
         sharedScrollGuideBody:
-          "The next screen introduces the AI character IP behind this vlog, then keeps the feed focused on that character.",
+          "You can scroll down now. The next screen introduces the AI character IP behind this vlog, then keeps the feed focused on that character.",
         sharedScrollGuideTitle: (name: string) =>
-          `Swipe down for ${name}'s character`,
+          `Swipe down for ${name}'s timeline`,
+        sharedTimelineBadge: (name: string) => `${name}'s timeline`,
+        sharedTimelineNext: "Next vlog",
         characterIntroBody: (name: string) =>
           `The cuts and source you just watched come from ${name}'s AI character IP. Keep exploring related fan reports and source vlogs in the same flow.`,
         characterIntroCta: "Open character channel",
@@ -693,6 +699,54 @@ function getInitialPublicCutIndex(
     : -1;
 
   return initialCutIndex >= 0 ? initialCutIndex : 0;
+}
+
+function getSharedConsumedStorageKey(shareId: string | null) {
+  const normalizedShareId = shareId?.trim();
+
+  return normalizedShareId
+    ? `${CUT_FEED_SHARED_CONSUMED_STORAGE_PREFIX}:${normalizedShareId}`
+    : null;
+}
+
+function readSharedConsumedReportIds(storageKey: string | null) {
+  if (!storageKey || typeof window === "undefined") {
+    return new Set<string>();
+  }
+
+  try {
+    const parsedValue = JSON.parse(
+      window.sessionStorage.getItem(storageKey) ?? "[]",
+    ) as unknown;
+
+    if (!Array.isArray(parsedValue)) {
+      return new Set<string>();
+    }
+
+    return new Set(
+      parsedValue.filter((value): value is string => typeof value === "string"),
+    );
+  } catch {
+    return new Set<string>();
+  }
+}
+
+function writeSharedConsumedReportIds(
+  storageKey: string | null,
+  reportIds: Set<string>,
+) {
+  if (!storageKey || typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(
+      storageKey,
+      JSON.stringify(Array.from(reportIds)),
+    );
+  } catch {
+    // Session persistence is a convenience; the in-memory gate state still works.
+  }
 }
 
 function getCutFeedHref({
@@ -2575,15 +2629,23 @@ function FeedSlide({
     item,
     initialCutSlotNumber,
   );
-  const [activeCutIndex, setActiveCutIndex] = useState(initialActiveCutIndex);
+  const shouldDeferSharedInitialCut = Boolean(
+    shareId && index === 0 && initialCutCount > 1 && initialActiveCutIndex > 0,
+  );
+  const hydrationActiveCutIndex = shouldDeferSharedInitialCut
+    ? 0
+    : initialActiveCutIndex;
+  const [activeCutIndex, setActiveCutIndex] = useState(hydrationActiveCutIndex);
   const [viewedCutIndexes, setViewedCutIndexes] = useState<Set<number>>(
-    () => new Set([initialActiveCutIndex]),
+    () => new Set([hydrationActiveCutIndex]),
   );
   const [trackCutIndex, setTrackCutIndex] = useState(() =>
-    initialCutCount > 1 ? initialActiveCutIndex + 1 : initialActiveCutIndex,
+    initialCutCount > 1 ? hydrationActiveCutIndex + 1 : hydrationActiveCutIndex,
   );
   const [isCutTrackTransitionEnabled, setIsCutTrackTransitionEnabled] =
     useState(true);
+  const [hasAppliedSharedInitialCut, setHasAppliedSharedInitialCut] =
+    useState(!shouldDeferSharedInitialCut);
   const [sourceRevealState, setSourceRevealState] = useState(item.sourceReveal);
   const [isSourceRevealSaving, setIsSourceRevealSaving] = useState(false);
   const [sourceRevealError, setSourceRevealError] = useState<string | null>(null);
@@ -2646,6 +2708,7 @@ function FeedSlide({
   const trackedCutViewKeyRef = useRef<string | null>(null);
   const cutDwellSnapshotRef = useRef<CutDwellSnapshot | null>(null);
   const pendingCutDwellExitReasonRef = useRef<CutDwellExitReason | null>(null);
+  const sharedConsumptionCompletedRef = useRef(false);
   const sharedEntryChromeRevealedRef = useRef(false);
   const copy = getCopy(locale);
   const { report } = item;
@@ -2721,14 +2784,25 @@ function FeedSlide({
   const cutProgressOrder = useMemo(() => {
     const baseOrder = Array.from({ length: cutCount }, (_, cutIndex) => cutIndex);
 
-    if (!shareId || index !== 0 || cutCount <= 1) {
+    if (
+      !shareId ||
+      index !== 0 ||
+      cutCount <= 1 ||
+      !hasAppliedSharedInitialCut
+    ) {
       return baseOrder;
     }
 
     return baseOrder.map(
       (_, progressIndex) => (initialActiveCutIndex + progressIndex) % cutCount,
     );
-  }, [cutCount, index, initialActiveCutIndex, shareId]);
+  }, [
+    cutCount,
+    hasAppliedSharedInitialCut,
+    index,
+    initialActiveCutIndex,
+    shareId,
+  ]);
   const activeCutProgressIndex = Math.max(
     0,
     cutProgressOrder.indexOf(activeCutIndex),
@@ -2765,7 +2839,7 @@ function FeedSlide({
   );
   const showSharedScrollGuide = Boolean(
     isActive &&
-      isSharedSourceActionGateActive &&
+      shareId &&
       hasViewedAllCuts &&
       hasEnteredSourceOverlay &&
       !sourceOverlayOpen,
@@ -2849,6 +2923,33 @@ function FeedSlide({
   ]);
 
   useEffect(() => {
+    if (!shouldDeferSharedInitialCut || hasAppliedSharedInitialCut) {
+      return;
+    }
+
+    setIsCutTrackTransitionEnabled(false);
+    setActiveCutIndex(initialActiveCutIndex);
+    setViewedCutIndexes(new Set([initialActiveCutIndex]));
+    setTrackCutIndex(
+      initialCutCount > 1 ? initialActiveCutIndex + 1 : initialActiveCutIndex,
+    );
+    setHasAppliedSharedInitialCut(true);
+
+    const animationFrameId = window.requestAnimationFrame(() => {
+      setIsCutTrackTransitionEnabled(true);
+    });
+
+    return () => {
+      window.cancelAnimationFrame(animationFrameId);
+    };
+  }, [
+    hasAppliedSharedInitialCut,
+    initialActiveCutIndex,
+    initialCutCount,
+    shouldDeferSharedInitialCut,
+  ]);
+
+  useEffect(() => {
     setViewedCutIndexes((currentIndexes) => {
       if (currentIndexes.has(activeCutIndex)) {
         return currentIndexes;
@@ -2864,6 +2965,7 @@ function FeedSlide({
     if (
       !isActive ||
       !onSharedEntryConsumptionComplete ||
+      sharedConsumptionCompletedRef.current ||
       !hasViewedAllCuts ||
       !hasEnteredSourceOverlay ||
       sourceOverlayOpen
@@ -2871,6 +2973,7 @@ function FeedSlide({
       return;
     }
 
+    sharedConsumptionCompletedRef.current = true;
     onSharedEntryConsumptionComplete();
   }, [
     hasEnteredSourceOverlay,
@@ -4481,6 +4584,18 @@ function FeedSlide({
               }}
               viewerOwnedLabel={copy.myCharacterBadge}
             />
+            {shareId && index > 0 ? (
+              <div className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full border border-[#44f26e]/24 bg-black/42 px-3 py-1.5 text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#9bffad] shadow-[0_10px_24px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+                <Sparkles className="size-3.5 shrink-0" />
+                <span className="truncate">
+                  {copy.sharedTimelineBadge(report.creatorName)}
+                </span>
+                <span className="shrink-0 text-white/46">·</span>
+                <span className="shrink-0 text-white/72">
+                  {copy.sharedTimelineNext}
+                </span>
+              </div>
+            ) : null}
             <h2
               className={`mt-2 max-w-4xl break-words text-[1.42rem] font-black leading-[1.08] tracking-normal drop-shadow-[0_3px_18px_rgba(0,0,0,0.82)] [word-break:keep-all] ${
                 isNsfw ? "select-none blur-[2px]" : ""
@@ -4598,7 +4713,7 @@ function FeedSlide({
           {showSharedScrollGuide ? (
             <div
               aria-live="polite"
-              className="mt-3 flex w-full items-center gap-3 rounded-[1.35rem] border border-white/14 bg-black/58 px-3.5 py-3 text-white shadow-[0_18px_52px_rgba(0,0,0,0.36)] backdrop-blur-xl"
+              className="pointer-events-none mt-3 flex w-full items-center gap-3 rounded-[1.35rem] border border-white/14 bg-black/58 px-3.5 py-3 text-white shadow-[0_18px_52px_rgba(0,0,0,0.36)] backdrop-blur-xl"
               data-shared-scroll-guide
               role="status"
             >
@@ -5185,6 +5300,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const sharedTimelineAnchorReportId = shareId
     ? items[0]?.report.reportId.trim() || null
     : null;
+  const sharedConsumedStorageKey = getSharedConsumedStorageKey(shareId);
   const viewerReporterReferralCode = normalizeReferralCode(
     memberSession.member?.referralCode,
   );
@@ -5222,17 +5338,41 @@ export function FanletterNewsPublicCutsFeedPage({
     setNavigationPending(pending);
     setServiceMenuOpen(false);
   }, []);
-  const markSharedConsumptionComplete = useCallback((reportId: string) => {
-    setSharedConsumedReportIds((currentReportIds) => {
-      if (currentReportIds.has(reportId)) {
-        return currentReportIds;
-      }
+  const markSharedConsumptionComplete = useCallback(
+    (reportId: string) => {
+      setSharedConsumedReportIds((currentReportIds) => {
+        if (currentReportIds.has(reportId)) {
+          return currentReportIds;
+        }
 
-      const nextReportIds = new Set(currentReportIds);
-      nextReportIds.add(reportId);
-      return nextReportIds;
-    });
-  }, []);
+        const nextReportIds = new Set(currentReportIds);
+
+        nextReportIds.add(reportId);
+        writeSharedConsumedReportIds(sharedConsumedStorageKey, nextReportIds);
+        return nextReportIds;
+      });
+    },
+    [sharedConsumedStorageKey],
+  );
+  const completeSharedConsumption = useCallback(
+    (reportId: string, itemIndex: number) => {
+      const slideIndex = getItemSlideIndex(itemIndex);
+
+      markSharedConsumptionComplete(reportId);
+      setVisibleSlideIndex(slideIndex);
+
+      window.requestAnimationFrame(() => {
+        const root = scrollContainerRef.current;
+
+        if (!root) {
+          return;
+        }
+
+        root.scrollTo({ top: root.clientHeight * slideIndex });
+      });
+    },
+    [getItemSlideIndex, markSharedConsumptionComplete],
+  );
   const lockedReporterCandidateCount = useMemo(
     () => getLockedReporterCandidates(items).length,
     [items],
@@ -5266,12 +5406,14 @@ export function FanletterNewsPublicCutsFeedPage({
     );
   }, []);
   useEffect(() => {
-    setSharedConsumedReportIds(new Set());
+    setSharedConsumedReportIds(
+      readSharedConsumedReportIds(sharedConsumedStorageKey),
+    );
 
     if (shareId) {
       setVisibleSlideIndex(0);
     }
-  }, [shareId]);
+  }, [shareId, sharedConsumedStorageKey]);
   useEffect(() => {
     if (!isSharedEntryScrollLocked) {
       return;
@@ -6263,7 +6405,8 @@ export function FanletterNewsPublicCutsFeedPage({
               onRevealFeedChrome={revealFeedChromeTemporarily}
               onSharedEntryConsumptionComplete={
                 isSharedConsumptionGateActive
-                  ? () => markSharedConsumptionComplete(item.report.reportId)
+                  ? () =>
+                      completeSharedConsumption(item.report.reportId, index)
                   : undefined
               }
               onSourceViewSlideVisible={handleSourceViewSlideVisible}
