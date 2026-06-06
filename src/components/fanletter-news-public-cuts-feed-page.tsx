@@ -3008,6 +3008,7 @@ function FeedSlide({
       !hasReachedSharedSourceGate &&
       !sourceOverlayOpen,
   );
+  const isSharedTimelineSlide = Boolean(shareId && index > 0);
   const shouldUseSharedSourceRail = Boolean(
     shareId &&
       sourceContentId &&
@@ -4763,50 +4764,65 @@ function FeedSlide({
                 : "invisible translate-y-5 opacity-0 blur-[1px]"
             }`}
           >
-            <CutFeedProfileActionButton
-              fallbackIcon={Sparkles}
-              href={characterHref}
-              imageUrl={report.creatorAvatarImageUrl}
-              isViewerOwned={isViewerCharacter}
-              label={copy.character}
-              name={report.creatorName}
-              onClick={() => {
-                startNavigation({
-                  href: characterHref,
-                  label: copy.navigationPending.character(report.creatorName),
-                });
-              }}
-              viewerOwnedLabel={copy.myCharacterBadge}
-            />
-            {shareId && index > 0 ? (
-              <div className="mt-2 inline-flex max-w-full items-center gap-1.5 rounded-full border border-[#44f26e]/24 bg-black/42 px-3 py-1.5 text-[0.62rem] font-black uppercase tracking-[0.1em] text-[#9bffad] shadow-[0_10px_24px_rgba(0,0,0,0.22)] backdrop-blur-xl">
+            {!isSharedTimelineSlide ? (
+              <CutFeedProfileActionButton
+                fallbackIcon={Sparkles}
+                href={characterHref}
+                imageUrl={report.creatorAvatarImageUrl}
+                isViewerOwned={isViewerCharacter}
+                label={copy.character}
+                name={report.creatorName}
+                onClick={() => {
+                  startNavigation({
+                    href: characterHref,
+                    label: copy.navigationPending.character(report.creatorName),
+                  });
+                }}
+                viewerOwnedLabel={copy.myCharacterBadge}
+              />
+            ) : (
+              <div className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-[#44f26e]/24 bg-black/46 px-3 py-1.5 text-[0.66rem] font-black tracking-normal text-white/82 shadow-[0_10px_24px_rgba(0,0,0,0.22)] backdrop-blur-xl">
                 <Sparkles className="size-3.5 shrink-0" />
-                <span className="truncate">
-                  {copy.sharedTimelineBadge(report.creatorName)}
-                </span>
-                <span className="shrink-0 text-white/46">·</span>
-                <span className="shrink-0 text-white/72">
+                <span className="shrink-0 text-[#9bffad]">
                   {copy.sharedTimelineNext}
                 </span>
+                <span className="shrink-0 text-white/46">·</span>
+                <span className="truncate">
+                  {report.creatorName}
+                </span>
               </div>
-            ) : null}
+            )}
             <h2
-              className={`mt-2 max-w-4xl break-words text-[1.42rem] font-black leading-[1.08] tracking-normal drop-shadow-[0_3px_18px_rgba(0,0,0,0.82)] [word-break:keep-all] ${
+              className={`mt-2 break-words font-black tracking-normal drop-shadow-[0_3px_18px_rgba(0,0,0,0.82)] [word-break:keep-all] ${
+                isSharedTimelineSlide
+                  ? "line-clamp-2 max-w-[22rem] text-[1.28rem] leading-[1.12]"
+                  : "max-w-4xl text-[1.42rem] leading-[1.08]"
+              } ${
                 isNsfw ? "select-none blur-[2px]" : ""
               }`}
             >
               {title}
             </h2>
-            <p
-              className={`mt-2 max-w-2xl text-xs font-semibold leading-5 text-white/82 drop-shadow-[0_2px_12px_rgba(0,0,0,0.72)] ${
-                isNsfw ? "select-none blur-[2px]" : ""
+            {!isSharedTimelineSlide ? (
+              <p
+                className={`mt-2 max-w-2xl text-xs font-semibold leading-5 text-white/82 drop-shadow-[0_2px_12px_rgba(0,0,0,0.72)] ${
+                  isNsfw ? "select-none blur-[2px]" : ""
+                }`}
+              >
+                {report.dek}
+              </p>
+            ) : null}
+            <div
+              className={`mt-2 flex flex-wrap items-center gap-2 font-bold drop-shadow-[0_2px_10px_rgba(0,0,0,0.72)] ${
+                isSharedTimelineSlide
+                  ? "text-[0.68rem] text-white/66"
+                  : "text-[0.72rem] text-white/72"
               }`}
             >
-              {report.dek}
-            </p>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-[0.72rem] font-bold text-white/72 drop-shadow-[0_2px_10px_rgba(0,0,0,0.72)]">
               <Link
-                className="inline-flex items-center rounded-full border border-white/14 bg-black/28 px-2 py-0.5 !text-white/82 transition hover:border-[#44f26e]/42 hover:bg-[#44f26e]/16 hover:!text-[#9bffad]"
+                className={`inline-flex items-center rounded-full border border-white/14 bg-black/28 !text-white/82 transition hover:border-[#44f26e]/42 hover:bg-[#44f26e]/16 hover:!text-[#9bffad] ${
+                  isSharedTimelineSlide ? "px-2.5 py-1" : "px-2 py-0.5"
+                }`}
                 href={reporterHref}
                 onClick={() => {
                   startNavigation({
@@ -4817,13 +4833,13 @@ function FeedSlide({
               >
                 {report.reporterName}
               </Link>
-              {isViewerReport ? (
+              {!isSharedTimelineSlide && isViewerReport ? (
                 <span className="inline-flex items-center gap-1 rounded-full border border-[#44f26e]/34 bg-[#44f26e]/18 px-2 py-0.5 text-[0.62rem] font-black text-[#9bffad]">
                   <Check className="size-3 stroke-[3]" />
                   {copy.myReportBadge}
                 </span>
               ) : null}
-              {publishedAt ? <span>{publishedAt}</span> : null}
+              {!isSharedTimelineSlide && publishedAt ? <span>{publishedAt}</span> : null}
             </div>
             {isReporterComposerCtaVisible && sourceContentId ? (
               <div className="mt-3 flex max-w-full flex-wrap gap-2">
