@@ -5374,49 +5374,44 @@ function FeedSlide({
             <div aria-live="polite" className="mt-3 w-full">
               <button
                 aria-label={sharedSourceCompletionCtaTitle}
-                className="group flex min-h-[5.4rem] w-full items-center gap-3 rounded-[1.35rem] border border-[#44f26e]/46 bg-[#44f26e] px-3.5 py-3 text-left text-[#101510] shadow-[0_20px_58px_rgba(0,0,0,0.38)] transition hover:bg-[#69ff8b] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/30"
+                className="group flex min-h-[4.7rem] w-full items-center gap-3 rounded-[1.2rem] border border-[#44f26e]/34 bg-black/72 px-3.5 py-3 text-left text-white shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:border-[#44f26e]/62 hover:bg-black/82 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/26"
                 data-shared-source-cta="ready"
                 onClick={handleSourceRailClick}
                 type="button"
               >
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#101510] text-[#44f26e] shadow-[0_10px_24px_rgba(0,0,0,0.22)]">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#101510] shadow-[0_10px_24px_rgba(68,242,110,0.18)]">
                   <SharedSourceCompletionCtaIcon className="size-5" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="flex flex-wrap items-center gap-1.5 text-[0.62rem] font-black uppercase leading-tight tracking-[0.12em] text-[#17391f]/72">
+                  <span className="flex flex-wrap items-center gap-1.5 text-[0.6rem] font-black uppercase leading-tight tracking-[0.12em] text-[#9bffad]">
                     <span>{copy.sharedSourceCtaEyebrow}</span>
-                    <span className="rounded-full bg-[#101510]/10 px-2 py-0.5 text-[#101510]/78">
+                    <span className="rounded-full bg-[#44f26e]/14 px-2 py-0.5 text-white/72">
                       {sharedSourceCompletionCtaBadge}
                     </span>
                   </span>
-                  <span className="mt-1 block break-words text-[1rem] font-black leading-tight tracking-normal [word-break:keep-all]">
+                  <span className="mt-1 block break-words text-[0.94rem] font-black leading-tight tracking-normal [word-break:keep-all]">
                     {sharedSourceCompletionCtaTitle}
                   </span>
-                  <span className="mt-1 block break-words text-[0.72rem] font-bold leading-snug text-[#101510]/70 [word-break:keep-all]">
+                  <span className="mt-1 block break-words text-[0.68rem] font-bold leading-snug text-white/62 [word-break:keep-all]">
                     {sharedSourceCompletionCtaBody}
                   </span>
                 </span>
-                <ArrowRight className="size-5 shrink-0 transition group-hover:translate-x-0.5" />
+                <ArrowRight className="size-4.5 shrink-0 text-[#44f26e] transition group-hover:translate-x-0.5" />
               </button>
             </div>
           ) : null}
           {showSharedScrollGuide ? (
             <div
               aria-live="polite"
-              className="pointer-events-none mt-3 flex w-full items-center gap-3 rounded-[1.35rem] border border-white/14 bg-black/58 px-3.5 py-3 text-white shadow-[0_18px_52px_rgba(0,0,0,0.36)] backdrop-blur-xl"
+              className="pointer-events-none mx-auto mt-3 flex min-h-11 w-full max-w-[21rem] items-center justify-center gap-2 rounded-full border border-white/14 bg-black/52 px-4 text-center text-white shadow-[0_14px_38px_rgba(0,0,0,0.26)] backdrop-blur-xl"
               data-shared-scroll-guide
               role="status"
             >
-              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_12px_30px_rgba(68,242,110,0.22)]">
-                <ChevronDown className="size-5 animate-bounce" />
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/14 text-[#44f26e]">
+                <ChevronDown className="size-4" />
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="block break-words text-sm font-black leading-tight [word-break:keep-all]">
-                  {copy.sharedScrollGuideTitle(report.creatorName)}
-                </span>
-                <span className="mt-1 block break-words text-[0.7rem] font-bold leading-snug text-white/66 [word-break:keep-all]">
-                  {copy.sharedScrollGuideBody}
-                </span>
+              <span className="min-w-0 break-words text-[0.78rem] font-black leading-tight [word-break:keep-all]">
+                {copy.sharedScrollGuideTitle(report.creatorName)}
               </span>
             </div>
           ) : null}
@@ -5429,7 +5424,7 @@ function FeedSlide({
               return (
                 <button
                   aria-label={copy.slot(cut.slotNumber.toString().padStart(2, "0"))}
-                  className="-mx-2 grid size-8 place-items-center rounded-full transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
+                  className="-mx-2 grid h-8 w-8 min-w-8 place-items-center rounded-full transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
                   key={`${report.reportId}-dot-${progressIndex}-${cut.slotNumber}`}
                   onClick={() => {
                     pendingCutDwellExitReasonRef.current = "cut_select";
@@ -5438,7 +5433,7 @@ function FeedSlide({
                   type="button"
                 >
                   <span
-                    className={`size-1.5 rounded-full transition ${
+                    className={`h-1.5 w-1.5 rounded-full transition ${
                       isActiveProgressDot ? "bg-white" : "bg-white/34"
                     }`}
                   />
@@ -5614,7 +5609,9 @@ function SharedCutDwellRecapSlide({
                 {copy.sharedCutRecapTitle(recapCutCountLabel)}
               </p>
               <h2 className="mt-1 break-words text-[1.65rem] font-black leading-[1.03] tracking-normal [word-break:keep-all]">
-                {copy.sharedCutRecapHeadline}
+                {isCollectingSharedRecapSignals
+                  ? copy.sharedCutRecapCollectingTitle
+                  : copy.sharedCutRecapHeadline}
               </h2>
             </div>
             <span className="shrink-0 rounded-full border border-[#44f26e]/26 bg-[#44f26e]/12 px-2.5 py-1.5 text-right text-[0.62rem] font-black text-[#9bffad] backdrop-blur">
@@ -5916,7 +5913,9 @@ function SharedCharacterVlogPickerSlide({
                     {copy.sharedCutRecapTitle(recapCutCountLabel)}
                   </p>
                   <h2 className="mt-1 break-words text-[1.5rem] font-black leading-[1.03] tracking-normal [word-break:keep-all]">
-                    {copy.sharedCutRecapHeadline}
+                    {isCollectingSharedRecapSignals
+                      ? copy.sharedCutRecapCollectingTitle
+                      : copy.sharedCutRecapHeadline}
                   </h2>
                 </div>
                 <span className="shrink-0 rounded-full border border-[#44f26e]/26 bg-[#44f26e]/12 px-2.5 py-1.5 text-right text-[0.62rem] font-black text-[#9bffad] backdrop-blur">
@@ -6195,13 +6194,13 @@ function SharedCharacterVlogPickerSlide({
           </div>
         </div>
         <button
-          className={`mx-auto flex w-full max-w-[22rem] items-center justify-center gap-2 rounded-full border border-white/16 bg-black/54 px-5 text-sm font-black text-white shadow-[0_16px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl transition hover:border-[#44f26e]/52 hover:text-[#44f26e] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/24 ${
-            showCutRecap ? "min-h-12" : "min-h-14"
+          className={`mx-auto flex w-full max-w-[18rem] items-center justify-center gap-2 rounded-full border border-white/12 bg-black/34 px-4 text-xs font-black text-white/78 shadow-[0_12px_34px_rgba(0,0,0,0.24)] backdrop-blur-xl transition hover:border-[#44f26e]/42 hover:text-[#44f26e] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20 ${
+            showCutRecap ? "min-h-10" : "min-h-11"
           }`}
           onClick={onSkip}
           type="button"
         >
-          <ChevronDown className="size-5 text-[#44f26e]" />
+          <ChevronDown className="size-4 text-[#44f26e]" />
           {copy.sharedVlogPickerSkip}
         </button>
       </div>
@@ -7030,7 +7029,10 @@ export function FanletterNewsPublicCutsFeedPage({
           return;
         }
 
-        root.scrollTo({ top: root.clientHeight * slideIndex });
+        root.scrollTo({
+          behavior: "smooth",
+          top: root.clientHeight * slideIndex,
+        });
       });
     },
     [getItemSlideIndex, markSharedConsumptionComplete, markSharedReportViewed],
@@ -7573,6 +7575,7 @@ export function FanletterNewsPublicCutsFeedPage({
 
     if (skippedSharedTransitionSlideIndex !== null) {
       root.scrollTo({
+        behavior: "smooth",
         top: root.clientHeight * skippedSharedTransitionSlideIndex,
       });
       setVisibleSlideIndex((currentIndex) => {
