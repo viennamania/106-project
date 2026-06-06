@@ -265,8 +265,11 @@ function getCopy(locale: Locale) {
         sharedSourceCtaTitle: "이제 원본 브이로그로 이어보기",
         sharedSourcePreviewContinueCta: "돌아가기",
         sharedSourcePreviewCtaBody:
-          "로그인 없이 원본 일부를 확인한 뒤, 아래로 넘겨 이 캐릭터의 다른 컷을 계속 볼 수 있어요.",
+          "원본 프리뷰까지 확인하면, 같은 캐릭터의 다음 컷으로 이어집니다.",
         sharedSourcePreviewCtaTitle: "원본 프리뷰 먼저 보기",
+        sharedSourcePreviewPanelBody:
+          "프리뷰를 본 뒤 돌아가면, 같은 캐릭터의 다음 컷으로 이어집니다.",
+        sharedSourcePreviewPanelTitle: "원본 프리뷰 확인 중",
         sharedScrollGuideBody:
           "지금부터 아래로 스크롤할 수 있어요. AI 캐릭터 IP를 먼저 소개한 뒤, 같은 캐릭터의 다른 컷으로 이어집니다.",
         sharedScrollGuideTitle: (name: string) =>
@@ -482,8 +485,11 @@ function getCopy(locale: Locale) {
         sharedSourceCtaTitle: "Continue to the source vlog",
         sharedSourcePreviewContinueCta: "Back",
         sharedSourcePreviewCtaBody:
-          "Preview part of the source without signing in, then swipe down to keep exploring this character's cuts.",
+          "After the source preview, continue into the next cuts from this character.",
         sharedSourcePreviewCtaTitle: "Preview the source first",
+        sharedSourcePreviewPanelBody:
+          "After this preview, go back to continue into the next cuts from this character.",
+        sharedSourcePreviewPanelTitle: "Source preview in progress",
         sharedScrollGuideBody:
           "You can scroll down now. The next screen introduces the AI character IP behind this vlog, then keeps the feed focused on that character.",
         sharedScrollGuideTitle: (name: string) =>
@@ -2104,6 +2110,8 @@ type SourceOverlayCopy = Pick<
   | "sharedSourcePreviewContinueCta"
   | "sharedSourcePreviewCtaBody"
   | "sharedSourcePreviewCtaTitle"
+  | "sharedSourcePreviewPanelBody"
+  | "sharedSourcePreviewPanelTitle"
   | "sourceOverlayClose"
   | "sourceOverlayError"
   | "sourceOverlayLoading"
@@ -2273,10 +2281,10 @@ function SourceVlogFeedOverlay({
       : 0;
   const sourceRevealCountText = `${sourceRevealCountLabel}/${sourceRevealThresholdLabel}`;
   const sourcePreviewPanelTitle = shouldUseSharedEntryPreviewCopy
-    ? copy.sharedSourcePreviewCtaTitle
+    ? copy.sharedSourcePreviewPanelTitle
     : copy.sourcePreviewTitle;
   const sourcePreviewPanelBody = shouldUseSharedEntryPreviewCopy
-    ? copy.sharedSourcePreviewCtaBody
+    ? copy.sharedSourcePreviewPanelBody
     : copy.sourcePreviewBody;
   const sourceRevealCtaLabel = source?.sourceReveal.requestedByViewer
     ? copy.voteDone
