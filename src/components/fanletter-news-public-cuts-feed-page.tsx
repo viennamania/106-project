@@ -2854,7 +2854,7 @@ function FeedSlide({
       hasEnteredSourceOverlay &&
       !sourceOverlayOpen,
   );
-  const shouldShowSourceRail = !isSharedSourceActionGateActive;
+  const shouldShowSourceRail = !shareId && !isSharedSourceActionGateActive;
   const cutFeedReturnHref = getCutFeedReturnHref({
     cutSlotNumber: activeCutSlotNumber,
     locale,
