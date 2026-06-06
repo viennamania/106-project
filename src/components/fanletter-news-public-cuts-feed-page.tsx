@@ -107,6 +107,8 @@ const CUT_SWIPE_GUIDE_DISMISS_SCROLL_RATIO = 0.45;
 const CUT_FEED_CHROME_VISIBLE_MS = 4200;
 const CUT_FEED_LOGIN_SYNC_GRACE_MS = 4500;
 const CUT_FEED_RENDER_WINDOW_RADIUS = 0;
+const CUT_FEED_SHARED_JOURNEY_MAX_REPORTS = 3;
+const CUT_FEED_SHARED_DISCOVERY_LIMIT = 3;
 const CUT_FEED_CHROME_HIDE_EVENT = "fanletter-news-cut-feed-chrome-hide";
 const CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT =
   "fanletter-news-cut-feed-visible-index-change";
@@ -324,6 +326,20 @@ function getCopy(locale: Locale) {
           "추천 리포트로 바로 이어보거나, 그냥 아래로 넘기면 같은 흐름으로 시작합니다.",
         sharedVlogPickerSingleTitle: "추천 팬 리포트로 이어보기",
         sharedVlogPickerTitle: "다음 브이로그의 팬 리포트 선택",
+        sharedEndBody: (name: string) =>
+          `${name}의 오늘 컷 흐름을 확인했어요. 계속 보거나, 새 리포트 알림을 받고 다른 AI 캐릭터도 둘러보세요.`,
+        sharedEndContinue: (name: string) => `${name} 계속 보기`,
+        sharedEndCutsMetric: "본 컷",
+        sharedEndEyebrow: "오늘의 공유 흐름",
+        sharedEndNotify: "새 리포트 알림 받기",
+        sharedEndOtherBody:
+          "공유 링크 밖에도 새 브이로그와 팬 리포트가 이어집니다.",
+        sharedEndOtherEmpty: "곧 다른 캐릭터도 소개할게요",
+        sharedEndOtherLoading: "다른 캐릭터 불러오는 중",
+        sharedEndOtherTitle: "다른 AI 캐릭터도 활동 중이에요",
+        sharedEndReportsMetric: "본 리포트",
+        sharedEndShare: "이 흐름 공유하기",
+        sharedEndTitle: (name: string) => `${name} 리포트는 여기까지`,
         sharedTimelineSourceGateBody: (
           viewed: string,
           total: string,
@@ -592,6 +608,20 @@ function getCopy(locale: Locale) {
           "Continue with the recommended report, or swipe down to start the same flow.",
         sharedVlogPickerSingleTitle: "Continue with the recommended report",
         sharedVlogPickerTitle: "Choose a fan report for the next vlog",
+        sharedEndBody: (name: string) =>
+          `You finished today's ${name} cut flow. Keep watching, get notified about new reports, or discover other AI characters.`,
+        sharedEndContinue: (name: string) => `Keep watching ${name}`,
+        sharedEndCutsMetric: "Cuts viewed",
+        sharedEndEyebrow: "Today's shared flow",
+        sharedEndNotify: "Get new report alerts",
+        sharedEndOtherBody:
+          "More source vlogs and fan reports continue beyond this shared link.",
+        sharedEndOtherEmpty: "More characters will be introduced soon",
+        sharedEndOtherLoading: "Loading other characters",
+        sharedEndOtherTitle: "Other AI characters are active too",
+        sharedEndReportsMetric: "Reports viewed",
+        sharedEndShare: "Share this flow",
+        sharedEndTitle: (name: string) => `${name}'s reports end here`,
         sharedTimelineSourceGateBody: (
           viewed: string,
           total: string,
@@ -6208,6 +6238,367 @@ function SharedCharacterVlogPickerSlide({
   );
 }
 
+function SharedJourneyEndSlide({
+  characterHref,
+  connectHref,
+  discoveryItems,
+  isDiscoveryLoading,
+  journeyItems,
+  locale,
+  onNavigationStart,
+  referralCode,
+  returnToHref,
+  shareId,
+}: {
+  characterHref: string;
+  connectHref: string;
+  discoveryItems: SerializedFanletterNewsPublicCutFeedItemBase[];
+  isDiscoveryLoading: boolean;
+  journeyItems: SerializedFanletterNewsPublicCutFeedItem[];
+  locale: Locale;
+  onNavigationStart: (pending: CutFeedNavigationPending) => void;
+  referralCode: string | null;
+  returnToHref: string;
+  shareId: string | null;
+}) {
+  const copy = getCopy(locale);
+  const [shareState, setShareState] = useState<ShareState>("idle");
+  const shareFeedbackTimeoutRef = useRef<number | null>(null);
+  const shareInFlightRef = useRef(false);
+  const primaryItem = journeyItems[0] ?? null;
+  const characterName = primaryItem?.report.creatorName ?? copy.serviceCharacters;
+  const backgroundImageUrl =
+    primaryItem?.report.coverImageUrl ||
+    primaryItem?.leadCut.imageUrl ||
+    discoveryItems[0]?.leadCut.imageUrl ||
+    "";
+  const characterImageUrl =
+    primaryItem?.report.creatorAvatarImageUrl ||
+    primaryItem?.report.coverImageUrl ||
+    primaryItem?.leadCut.imageUrl ||
+    discoveryItems[0]?.report.creatorAvatarImageUrl ||
+    discoveryItems[0]?.leadCut.imageUrl ||
+    "";
+  const reportCountLabel = formatNumber(journeyItems.length, locale);
+  const cutCountLabel = formatNumber(
+    journeyItems.reduce(
+      (totalCount, item) =>
+        totalCount + Math.min(getPublicCutItemCutCount(item), 4),
+      0,
+    ),
+    locale,
+  );
+  const shareLabel =
+    shareState === "copied"
+      ? copy.shareCopied
+      : shareState === "error"
+        ? copy.shareError
+        : shareState === "sharing"
+          ? copy.shareSharing
+          : copy.sharedEndShare;
+
+  useEffect(
+    () => () => {
+      if (shareFeedbackTimeoutRef.current !== null) {
+        window.clearTimeout(shareFeedbackTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
+  const showShareFeedback = useCallback(
+    (nextState: Exclude<ShareState, "sharing">) => {
+      if (shareFeedbackTimeoutRef.current !== null) {
+        window.clearTimeout(shareFeedbackTimeoutRef.current);
+        shareFeedbackTimeoutRef.current = null;
+      }
+
+      setShareState(nextState);
+
+      if (nextState === "copied" || nextState === "error") {
+        shareFeedbackTimeoutRef.current = window.setTimeout(() => {
+          setShareState("idle");
+          shareFeedbackTimeoutRef.current = null;
+        }, 2200);
+      }
+    },
+    [],
+  );
+
+  const handleShare = useCallback(async () => {
+    if (shareInFlightRef.current || !primaryItem) {
+      return;
+    }
+
+    shareInFlightRef.current = true;
+    setShareState("sharing");
+
+    let nextState: Exclude<ShareState, "sharing"> = "idle";
+
+    try {
+      const shareUrl = window.location.href;
+      const shareTitle = copy.shareTitle(primaryItem.report.title);
+      const shareSummary = copy.shareSummary(
+        primaryItem.report.title,
+        primaryItem.report.reporterName,
+      );
+
+      trackFunnelEvent("share_click", {
+        contentId: primaryItem.report.contentId,
+        metadata: {
+          creatorReferralCode: primaryItem.report.creatorReferralCode,
+          journeyReportCount: journeyItems.length,
+          reportId: primaryItem.report.reportId,
+          reporterReferralCode: primaryItem.report.reporterReferralCode,
+          source: "fanletter-news-cut-shared-end",
+        },
+        referralCode,
+        shareId,
+        targetHref: shareUrl,
+      });
+
+      if (typeof navigator.share === "function") {
+        try {
+          await navigator.share({
+            text: shareSummary,
+            title: shareTitle,
+            url: shareUrl,
+          });
+          nextState = "idle";
+          return;
+        } catch (error) {
+          if (isShareAbortError(error)) {
+            nextState = "idle";
+            return;
+          }
+        }
+      }
+
+      nextState = (await copyToClipboard(shareUrl)) ? "copied" : "error";
+    } catch {
+      nextState = "error";
+    } finally {
+      shareInFlightRef.current = false;
+      showShareFeedback(nextState);
+    }
+  }, [
+    copy,
+    journeyItems.length,
+    primaryItem,
+    referralCode,
+    shareId,
+    showShareFeedback,
+  ]);
+
+  return (
+    <section
+      aria-label={copy.sharedEndTitle(characterName)}
+      className="relative flex min-h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+1.2rem)] text-white"
+      data-shared-journey-end
+    >
+      {backgroundImageUrl ? (
+        <div className="absolute inset-0">
+          <Image
+            alt=""
+            className="scale-[1.05] object-cover opacity-38 blur-[1.5px] saturate-[1.08]"
+            fill
+            sizes="(min-width: 640px) 430px, 100vw"
+            src={backgroundImageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(backgroundImageUrl)}
+          />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(68,242,110,0.2),transparent_32%),linear-gradient(180deg,rgba(3,6,4,0.48),rgba(3,6,4,0.82)_42%,rgba(3,6,4,0.98))]" />
+        </div>
+      ) : (
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,rgba(68,242,110,0.18),transparent_30%),linear-gradient(180deg,#0d1710,#050706)]" />
+      )}
+      <div className="relative z-10 mx-auto flex min-h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom)_-_2.2rem)] w-full max-w-[430px] flex-col">
+        <div className="flex items-center gap-2.5">
+          <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_18px_42px_rgba(68,242,110,0.24)]">
+            <CheckCircle2 className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
+              {copy.sharedEndEyebrow}
+            </p>
+            <p className="mt-0.5 truncate text-xs font-black text-white/62">
+              {characterName}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex min-h-0 flex-1 flex-col justify-center py-5">
+          <div className="mx-auto w-full max-w-[24rem]">
+            <div className="flex items-center gap-3">
+              {characterImageUrl ? (
+                <span className="relative block size-[4.65rem] shrink-0 overflow-hidden rounded-[1.05rem] border border-[#44f26e]/34 bg-black/36 shadow-[0_20px_60px_rgba(0,0,0,0.42)]">
+                  <Image
+                    alt=""
+                    className="object-cover"
+                    fill
+                    sizes="76px"
+                    src={characterImageUrl}
+                    unoptimized={shouldBypassFanletterImageOptimization(
+                      characterImageUrl,
+                    )}
+                  />
+                </span>
+              ) : null}
+              <div className="min-w-0">
+                <p className="text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#9bffad]">
+                  {copy.characterIntroEyebrow}
+                </p>
+                <h2 className="mt-1 break-words text-[1.78rem] font-black leading-[1.02] tracking-normal [word-break:keep-all]">
+                  {copy.sharedEndTitle(characterName)}
+                </h2>
+              </div>
+            </div>
+            <p className="mt-4 max-w-[22rem] break-words text-sm font-bold leading-6 text-white/70 [word-break:keep-all]">
+              {copy.sharedEndBody(characterName)}
+            </p>
+
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <div className="rounded-[1rem] border border-white/10 bg-black/42 p-3 backdrop-blur-xl">
+                <p className="text-[0.62rem] font-black uppercase tracking-[0.13em] text-white/38">
+                  {copy.sharedEndReportsMetric}
+                </p>
+                <p className="mt-1 text-xl font-black text-white">
+                  {reportCountLabel}
+                </p>
+              </div>
+              <div className="rounded-[1rem] border border-white/10 bg-black/42 p-3 backdrop-blur-xl">
+                <p className="text-[0.62rem] font-black uppercase tracking-[0.13em] text-white/38">
+                  {copy.sharedEndCutsMetric}
+                </p>
+                <p className="mt-1 text-xl font-black text-white">
+                  {cutCountLabel}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-2">
+              <Link
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-[#111510] shadow-[0_18px_44px_rgba(68,242,110,0.2)] transition hover:bg-[#65ff86] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28"
+                href={characterHref}
+                onClick={() => {
+                  onNavigationStart({
+                    href: characterHref,
+                    label: copy.navigationPending.character(characterName),
+                  });
+                }}
+              >
+                <Sparkles className="size-4" />
+                {copy.sharedEndContinue(characterName)}
+              </Link>
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 text-xs font-black !text-white/82 backdrop-blur-xl transition hover:border-[#44f26e]/40 hover:!text-[#9bffad] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
+                  href={connectHref}
+                  onClick={() => {
+                    onNavigationStart({
+                      href: connectHref,
+                      label: copy.navigationPending.destination(
+                        copy.sharedEndNotify,
+                      ),
+                    });
+                  }}
+                >
+                  <Check className="size-4 text-[#44f26e]" />
+                  {copy.sharedEndNotify}
+                </Link>
+                <button
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 text-xs font-black text-white/82 backdrop-blur-xl transition hover:border-[#44f26e]/40 hover:text-[#9bffad] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
+                  disabled={shareState === "sharing"}
+                  onClick={() => void handleShare()}
+                  type="button"
+                >
+                  <Share2 className="size-4 text-[#44f26e]" />
+                  <span className="truncate">{shareLabel}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-[1.25rem] border border-white/10 bg-black/46 p-3 shadow-[0_20px_58px_rgba(0,0,0,0.34)] backdrop-blur-xl">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[0.65rem] font-black uppercase tracking-[0.15em] text-[#9bffad]">
+                {copy.serviceCharacters}
+              </p>
+              <h3 className="mt-1 break-words text-sm font-black leading-tight [word-break:keep-all]">
+                {copy.sharedEndOtherTitle}
+              </h3>
+              <p className="mt-1 line-clamp-2 text-[0.68rem] font-bold leading-4 text-white/50 [word-break:keep-all]">
+                {copy.sharedEndOtherBody}
+              </p>
+            </div>
+            <Sparkles className="mt-1 size-5 shrink-0 text-[#44f26e]" />
+          </div>
+          {discoveryItems.length > 0 ? (
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {discoveryItems.map((item) => {
+                const discoveryHref = getCharacterHref({
+                  characterReferralCode: item.report.creatorReferralCode,
+                  cutSlotNumber: item.leadCut.slotNumber,
+                  locale,
+                  referralCode,
+                  reportId: item.report.reportId,
+                  returnToHref,
+                });
+                const discoveryImageUrl =
+                  item.report.creatorAvatarImageUrl ||
+                  item.report.coverImageUrl ||
+                  item.leadCut.imageUrl;
+
+                return (
+                  <Link
+                    className="group min-w-0 rounded-[0.95rem] border border-white/10 bg-white/6 p-1.5 transition hover:border-[#44f26e]/42 hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/18"
+                    href={discoveryHref}
+                    key={`${item.report.creatorReferralCode ?? item.report.reportId}:shared-discovery`}
+                    onClick={() => {
+                      onNavigationStart({
+                        href: discoveryHref,
+                        label: copy.navigationPending.character(
+                          item.report.creatorName,
+                        ),
+                      });
+                    }}
+                  >
+                    <span className="relative block aspect-square overflow-hidden rounded-[0.72rem] bg-white/10">
+                      <Image
+                        alt=""
+                        className="object-cover transition duration-500 group-hover:scale-[1.04]"
+                        fill
+                        sizes="96px"
+                        src={discoveryImageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          discoveryImageUrl,
+                        )}
+                      />
+                    </span>
+                    <span className="mt-1.5 block truncate text-[0.64rem] font-black text-white">
+                      {item.report.creatorName}
+                    </span>
+                    <span className="mt-0.5 block truncate text-[0.56rem] font-bold text-white/42">
+                      {item.report.title}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-3 rounded-[0.9rem] border border-white/8 bg-white/5 px-3 py-2 text-xs font-bold text-white/48">
+              {isDiscoveryLoading
+                ? copy.sharedEndOtherLoading
+                : copy.sharedEndOtherEmpty}
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function mergePublicCutItems(
   previousItems: SerializedFanletterNewsPublicCutFeedItem[],
   nextItems: SerializedFanletterNewsPublicCutFeedItem[],
@@ -6529,6 +6920,11 @@ export function FanletterNewsPublicCutsFeedPage({
   >(
     () => new Set(),
   );
+  const [sharedDiscoveryItems, setSharedDiscoveryItems] = useState<
+    SerializedFanletterNewsPublicCutFeedItemBase[]
+  >([]);
+  const [isSharedDiscoveryLoading, setIsSharedDiscoveryLoading] =
+    useState(false);
   const [reporterPanelRequest, setReporterPanelRequest] = useState<{
     id: number;
     index: number;
@@ -6545,6 +6941,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const loadMoreIntersectionArmedRef = useRef(true);
   const preloadedImageUrlsRef = useRef<Set<string>>(new Set());
   const preloadedImagesRef = useRef<HTMLImageElement[]>([]);
+  const sharedDiscoveryLoadedForRef = useRef<string | null>(null);
   const cutFeedHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/news/cuts`,
     referralCode,
@@ -6704,15 +7101,27 @@ export function FanletterNewsPublicCutsFeedPage({
     getServerRolePreferenceSnapshot,
   );
   const isSharedConsumptionEntry = Boolean(shareId || excludeReportId);
+  const feedItems = useMemo(
+    () =>
+      shareId
+        ? items.slice(0, CUT_FEED_SHARED_JOURNEY_MAX_REPORTS)
+        : items,
+    [items, shareId],
+  );
+  const shouldShowSharedJourneyEndSlide = Boolean(
+    shareId &&
+      feedItems.length > 0 &&
+      (feedItems.length >= CUT_FEED_SHARED_JOURNEY_MAX_REPORTS || !hasMore),
+  );
   const shouldShowSharedTimelineTransitions = Boolean(
-    shareId && items[0]?.report.creatorReferralCode,
+    shareId && feedItems[0]?.report.creatorReferralCode,
   );
   const sharedVlogTransitions = useMemo<SharedVlogTransition[]>(() => {
     if (!shouldShowSharedTimelineTransitions) {
       return [];
     }
 
-    return items.flatMap((item, index) => {
+    return feedItems.flatMap((item, index) => {
       if (index <= 0) {
         return [];
       }
@@ -6732,7 +7141,7 @@ export function FanletterNewsPublicCutsFeedPage({
         },
       ];
     });
-  }, [items, shouldShowSharedTimelineTransitions]);
+  }, [feedItems, shouldShowSharedTimelineTransitions]);
   const getSharedTransitionCountBeforeItemIndex = useCallback(
     (itemIndex: number) =>
       sharedVlogTransitions.reduce(
@@ -6819,14 +7228,18 @@ export function FanletterNewsPublicCutsFeedPage({
       count + getSharedVlogTransitionSlideCount(transition),
     0,
   );
-  const virtualSlideCount = items.length + sharedVlogTransitionSlideCount;
+  const sharedJourneyEndSlideCount = shouldShowSharedJourneyEndSlide ? 1 : 0;
+  const virtualSlideCount =
+    feedItems.length +
+    sharedVlogTransitionSlideCount +
+    sharedJourneyEndSlideCount;
   const getFeedIndexForSlide = useCallback(
     (slideIndex: number) => {
       if (!shouldShowSharedTimelineTransitions) {
-        return slideIndex;
+        return Math.min(slideIndex, Math.max(feedItems.length - 1, 0));
       }
 
-      for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
+      for (let itemIndex = 0; itemIndex < feedItems.length; itemIndex += 1) {
         if (getItemSlideIndex(itemIndex) === slideIndex) {
           return itemIndex;
         }
@@ -6840,7 +7253,7 @@ export function FanletterNewsPublicCutsFeedPage({
 
       let nearestItemIndex = 0;
 
-      for (let itemIndex = 0; itemIndex < items.length; itemIndex += 1) {
+      for (let itemIndex = 0; itemIndex < feedItems.length; itemIndex += 1) {
         if (getItemSlideIndex(itemIndex) <= slideIndex) {
           nearestItemIndex = itemIndex;
         }
@@ -6849,15 +7262,15 @@ export function FanletterNewsPublicCutsFeedPage({
       return nearestItemIndex;
     },
     [
+      feedItems.length,
       getItemSlideIndex,
       getSharedTransitionForSlideIndex,
-      items.length,
       shouldShowSharedTimelineTransitions,
     ],
   );
   const activeFeedIndex = Math.min(
     Math.max(getFeedIndexForSlide(visibleSlideIndex), 0),
-    Math.max(items.length - 1, 0),
+    Math.max(feedItems.length - 1, 0),
   );
   const isSharedTimelineFeedSlideVisible = Boolean(
     shareId &&
@@ -6875,7 +7288,7 @@ export function FanletterNewsPublicCutsFeedPage({
     [shareId, sharedConsumedReportIds],
   );
   const activeSharedLockedItemIndex = shareId
-    ? items.findIndex(
+    ? feedItems.findIndex(
         (item, index) =>
           visibleSlideIndex === getItemSlideIndex(index) &&
           shouldGateSharedItemAtIndex(item),
@@ -6897,18 +7310,19 @@ export function FanletterNewsPublicCutsFeedPage({
     !isCutFeedScrollLocked &&
     !isSharedEntrySlideVisible &&
     !isSharedTransitionSlideVisible &&
+    !shouldShowSharedJourneyEndSlide &&
     (!isSharedTimelineFeedSlideVisible ||
       isCutFeedHeaderVisible ||
       serviceMenuOpen);
   const visibleItem =
-    items[
+    feedItems[
       activeFeedIndex
-    ] ?? items[0];
+    ] ?? feedItems[0];
   const sharedFocusCreatorReferralCode = shareId
-    ? items[0]?.report.creatorReferralCode?.trim() || null
+    ? feedItems[0]?.report.creatorReferralCode?.trim() || null
     : null;
   const sharedTimelineAnchorReportId = shareId
-    ? items[0]?.report.reportId.trim() || null
+    ? feedItems[0]?.report.reportId.trim() || null
     : null;
   const sharedConsumedStorageKey = getSharedConsumedStorageKey(shareId);
   const sharedViewedStorageKey = getSharedViewedStorageKey(shareId);
@@ -6942,6 +7356,23 @@ export function FanletterNewsPublicCutsFeedPage({
         referralCode,
       )
     : vlogsHref;
+  const sharedEntryItem = feedItems[0] ?? null;
+  const sharedEntryCharacterHref = sharedEntryItem
+    ? getCharacterHref({
+        characterReferralCode: sharedEntryItem.report.creatorReferralCode,
+        cutSlotNumber: sharedEntryItem.leadCut.slotNumber,
+        locale,
+        referralCode,
+        reportId: sharedEntryItem.report.reportId,
+        returnToHref: cutFeedHomeHref,
+      })
+    : returnableCharactersHref;
+  const sharedEndConnectHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/news/connect`, referralCode),
+    {
+      returnTo: sharedEntryCharacterHref,
+    },
+  );
   const publishedReturnNextReportHref = getReportComposerHref({
     contentId: null,
     locale,
@@ -7224,7 +7655,9 @@ export function FanletterNewsPublicCutsFeedPage({
       window.removeEventListener("pageshow", clearNavigationPending);
     };
   }, []);
-  const firstSlideCutCount = items[0] ? getPublicCutItemCutCount(items[0]) : 0;
+  const firstSlideCutCount = feedItems[0]
+    ? getPublicCutItemCutCount(feedItems[0])
+    : 0;
   const shouldOfferEntrySwipeGuide = Boolean(
     (shareId || excludeReportId) && firstSlideCutCount > 1,
   );
@@ -7240,7 +7673,7 @@ export function FanletterNewsPublicCutsFeedPage({
       if (
         canShowSourceViewSwipeGuideAtIndex({
           index: swipeGuideTarget.index,
-          items,
+          items: feedItems,
           root: scrollContainerRef.current,
         })
       ) {
@@ -7253,7 +7686,7 @@ export function FanletterNewsPublicCutsFeedPage({
     }
 
     setSwipeGuideTarget(null);
-  }, [items, swipeGuideTarget]);
+  }, [feedItems, swipeGuideTarget]);
   const clearRoleShortcutRevealTimer = useCallback(() => {
     if (roleShortcutRevealTimerRef.current) {
       window.clearTimeout(roleShortcutRevealTimerRef.current);
@@ -7637,7 +8070,7 @@ export function FanletterNewsPublicCutsFeedPage({
     if (
       canShowSourceViewSwipeGuideAtIndex({
         index: visibleIndex,
-        items,
+        items: feedItems,
         root,
       })
     ) {
@@ -7653,14 +8086,18 @@ export function FanletterNewsPublicCutsFeedPage({
     getSkippedSharedTransitionSlideIndex,
     hideFeedChromeImmediately,
     isSharedEntryScrollLocked,
-    items,
+    feedItems,
     sourceViewSwipeGuideDismissed,
     swipeGuideTarget,
     visibleSlideIndex,
     virtualSlideCount,
   ]);
   const loadMore = useCallback(async () => {
-    if (isLoadingMore || !hasMore) {
+    if (
+      isLoadingMore ||
+      !hasMore ||
+      (shareId && items.length >= CUT_FEED_SHARED_JOURNEY_MAX_REPORTS)
+    ) {
       return;
     }
 
@@ -7718,7 +8155,7 @@ export function FanletterNewsPublicCutsFeedPage({
 
       const data = (await response.json()) as FanletterNewsPublicCutFeedLoadResponse;
       const currentItem =
-        items[
+        feedItems[
           activeFeedIndex
         ] ?? null;
 
@@ -7756,6 +8193,7 @@ export function FanletterNewsPublicCutsFeedPage({
     copy.loadError,
     excludeReportId,
     feedRotationSeed,
+    feedItems,
     hasMore,
     isSharedConsumptionEntry,
     isLoadingMore,
@@ -7770,15 +8208,16 @@ export function FanletterNewsPublicCutsFeedPage({
     activeFeedIndex,
   ]);
   useEffect(() => {
-    const activeSharedTimelineItem = items[activeFeedIndex] ?? null;
+    const activeSharedTimelineItem = feedItems[activeFeedIndex] ?? null;
 
     if (
       !isSharedConsumptionEntry ||
       !shareId ||
       isSharedEntryScrollLocked ||
+      shouldShowSharedJourneyEndSlide ||
       !hasMore ||
       isLoadingMore ||
-      activeFeedIndex < items.length - 1 ||
+      activeFeedIndex < feedItems.length - 1 ||
       !activeSharedTimelineItem ||
       shouldGateSharedItemAtIndex(activeSharedTimelineItem)
     ) {
@@ -7788,13 +8227,14 @@ export function FanletterNewsPublicCutsFeedPage({
     void loadMore();
   }, [
     activeFeedIndex,
+    feedItems,
     hasMore,
     isLoadingMore,
     isSharedConsumptionEntry,
     isSharedEntryScrollLocked,
-    items,
     loadMore,
     shareId,
+    shouldShowSharedJourneyEndSlide,
     shouldGateSharedItemAtIndex,
   ]);
   useEffect(() => {
@@ -7803,7 +8243,7 @@ export function FanletterNewsPublicCutsFeedPage({
     }
 
     const urls = getPublicCutFeedPreloadImageUrls([
-      ...items.slice(0, 4),
+      ...feedItems.slice(0, 4),
       ...sharedVlogPreloadItems,
     ])
       .filter((url) => !preloadedImageUrlsRef.current.has(url))
@@ -7832,7 +8272,130 @@ export function FanletterNewsPublicCutsFeedPage({
     return () => {
       window.clearTimeout(timeoutId);
     };
-  }, [items, shareId, sharedVlogPreloadItems]);
+  }, [feedItems, shareId, sharedVlogPreloadItems]);
+  useEffect(() => {
+    const normalizedFocusCreatorReferralCode =
+      sharedFocusCreatorReferralCode?.toLowerCase() ?? "";
+
+    if (!shareId || !normalizedFocusCreatorReferralCode) {
+      setSharedDiscoveryItems([]);
+      setIsSharedDiscoveryLoading(false);
+      sharedDiscoveryLoadedForRef.current = null;
+      return;
+    }
+
+    const discoveryKey = [
+      locale,
+      feedRotationSeed,
+      normalizedFocusCreatorReferralCode,
+    ].join(":");
+
+    if (sharedDiscoveryLoadedForRef.current === discoveryKey) {
+      return;
+    }
+
+    const controller = new AbortController();
+    let isActive = true;
+
+    sharedDiscoveryLoadedForRef.current = discoveryKey;
+    setSharedDiscoveryItems([]);
+    setIsSharedDiscoveryLoading(true);
+
+    const params = new URLSearchParams({
+      limit: "12",
+      locale,
+      offset: "0",
+      rotationSeed: `${feedRotationSeed}:shared-discovery`,
+    });
+
+    if (referralCode) {
+      params.set("ref", referralCode);
+    }
+
+    const firstReportId = feedItems[0]?.report.reportId.trim();
+
+    if (firstReportId) {
+      params.set("excludeReportId", firstReportId);
+    }
+
+    fetch(`/api/fanletter/news-cuts?${params}`, {
+      headers: {
+        Accept: "application/json",
+      },
+      signal: controller.signal,
+    })
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Could not load shared discovery items.");
+        }
+
+        return (await response.json()) as FanletterNewsPublicCutFeedLoadResponse;
+      })
+      .then((data) => {
+        if (!isActive) {
+          return;
+        }
+
+        const seenCreatorKeys = new Set<string>();
+        const nextDiscoveryItems: SerializedFanletterNewsPublicCutFeedItemBase[] =
+          [];
+
+        for (const item of data.items) {
+          const creatorKey =
+            item.report.creatorReferralCode?.trim().toLowerCase() ?? "";
+
+          if (
+            !creatorKey ||
+            creatorKey === normalizedFocusCreatorReferralCode ||
+            seenCreatorKeys.has(creatorKey)
+          ) {
+            continue;
+          }
+
+          seenCreatorKeys.add(creatorKey);
+          nextDiscoveryItems.push(item);
+
+          if (nextDiscoveryItems.length >= CUT_FEED_SHARED_DISCOVERY_LIMIT) {
+            break;
+          }
+        }
+
+        setSharedDiscoveryItems(nextDiscoveryItems);
+      })
+      .catch((error: unknown) => {
+        if (!isActive) {
+          return;
+        }
+
+        if (
+          typeof error === "object" &&
+          error !== null &&
+          "name" in error &&
+          error.name === "AbortError"
+        ) {
+          return;
+        }
+
+        setSharedDiscoveryItems([]);
+      })
+      .finally(() => {
+        if (isActive) {
+          setIsSharedDiscoveryLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+      controller.abort();
+    };
+  }, [
+    feedItems,
+    feedRotationSeed,
+    locale,
+    referralCode,
+    shareId,
+    sharedFocusCreatorReferralCode,
+  ]);
   const handleFindNextSourceRevealCandidate = useCallback(
     (currentIndex: number, currentContentId: string) => {
       const root = scrollContainerRef.current;
@@ -7844,7 +8407,7 @@ export function FanletterNewsPublicCutsFeedPage({
       const nextIndex = getNextSourceRevealCandidateIndex({
         currentContentId,
         currentIndex,
-        items,
+        items: shareId ? feedItems : items,
       });
 
       if (nextIndex >= 0) {
@@ -7864,7 +8427,7 @@ export function FanletterNewsPublicCutsFeedPage({
         void loadMore();
       }
     },
-    [getItemSlideIndex, hasMore, items, loadMore],
+    [feedItems, getItemSlideIndex, hasMore, items, loadMore, shareId],
   );
 
   useEffect(() => {
@@ -7946,7 +8509,7 @@ export function FanletterNewsPublicCutsFeedPage({
   }, []);
 
   useEffect(() => {
-    if (swipeGuideTarget) {
+    if (swipeGuideTarget || shouldShowSharedJourneyEndSlide) {
       return;
     }
 
@@ -7963,17 +8526,18 @@ export function FanletterNewsPublicCutsFeedPage({
     }
 
     const root = scrollContainerRef.current;
-    const visibleIndex = root
+    const visibleSlide = root
       ? getVisibleFeedIndex({
-          itemCount: items.length,
+          itemCount: virtualSlideCount,
           root,
         })
       : 0;
+    const visibleIndex = getFeedIndexForSlide(visibleSlide);
 
     if (
       canShowSourceViewSwipeGuideAtIndex({
         index: visibleIndex,
-        items,
+        items: feedItems,
         root,
       })
     ) {
@@ -7985,10 +8549,13 @@ export function FanletterNewsPublicCutsFeedPage({
     }
   }, [
     entrySwipeGuideDismissed,
-    items,
+    feedItems,
+    getFeedIndexForSlide,
     shouldOfferEntrySwipeGuide,
+    shouldShowSharedJourneyEndSlide,
     sourceViewSwipeGuideDismissed,
     swipeGuideTarget,
+    virtualSlideCount,
   ]);
 
   useEffect(() => {
@@ -8032,7 +8599,7 @@ export function FanletterNewsPublicCutsFeedPage({
   }, [clearRoleShortcutRevealTimer, isRoleShortcutEnabled]);
 
   useEffect(() => {
-    if (!hasMore || isSharedEntryScrollLocked) {
+    if (!hasMore || isSharedEntryScrollLocked || shouldShowSharedJourneyEndSlide) {
       return;
     }
 
@@ -8069,7 +8636,13 @@ export function FanletterNewsPublicCutsFeedPage({
     return () => {
       observer.disconnect();
     };
-  }, [hasMore, isSharedConsumptionEntry, isSharedEntryScrollLocked, loadMore]);
+  }, [
+    hasMore,
+    isSharedConsumptionEntry,
+    isSharedEntryScrollLocked,
+    loadMore,
+    shouldShowSharedJourneyEndSlide,
+  ]);
 
   if (items.length === 0) {
     return (
@@ -8400,7 +8973,7 @@ export function FanletterNewsPublicCutsFeedPage({
         onScroll={handleFeedScroll}
         ref={scrollContainerRef}
       >
-        {items.map((item, index) => {
+        {feedItems.map((item, index) => {
           const itemSlideIndex = getItemSlideIndex(index);
           const isSharedConsumptionGateActive = shouldGateSharedItemAtIndex(
             item,
@@ -8440,7 +9013,7 @@ export function FanletterNewsPublicCutsFeedPage({
               isSharedConsumptionGateActive={isSharedConsumptionGateActive}
               isReporterComposerCtaVisible={isReporterComposerCtaVisible}
               item={item}
-              itemCount={items.length}
+              itemCount={feedItems.length}
               locale={locale}
               onDismissSwipeGuide={dismissSwipeGuide}
               onFindNextSourceRevealCandidate={
@@ -8532,32 +9105,47 @@ export function FanletterNewsPublicCutsFeedPage({
 
           return <Fragment key={item.report.reportId}>{feedSlide}</Fragment>;
         })}
-        <section
-          className="flex min-h-[48dvh] snap-start items-center justify-center px-4 py-10 text-center"
-          ref={loadMoreRef}
-        >
-          <div className="max-w-sm rounded-2xl border border-white/12 bg-white/8 p-5 shadow-2xl backdrop-blur-xl">
-            <Images className="mx-auto size-8 text-[#44f26e]" />
-            <p className="mt-3 text-sm font-black text-white">
-              {isLoadingMore
-                ? copy.loadingMore
-                : loadError
-                  ? copy.loadError
-                  : hasMore
-                    ? copy.loadingMore
-                    : copy.noMore}
-            </p>
-            {loadError ? (
-              <button
-                className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-[#44f26e] px-4 text-xs font-black text-[#111510]"
-                onClick={() => void loadMore()}
-                type="button"
-              >
-                {copy.loadMore}
-              </button>
-            ) : null}
-          </div>
-        </section>
+        {shouldShowSharedJourneyEndSlide ? (
+          <SharedJourneyEndSlide
+            characterHref={sharedEntryCharacterHref}
+            connectHref={sharedEndConnectHref}
+            discoveryItems={sharedDiscoveryItems}
+            isDiscoveryLoading={isSharedDiscoveryLoading}
+            journeyItems={feedItems}
+            locale={locale}
+            onNavigationStart={startNavigation}
+            referralCode={referralCode}
+            returnToHref={cutFeedHomeHref}
+            shareId={shareId}
+          />
+        ) : (
+          <section
+            className="flex min-h-[48dvh] snap-start items-center justify-center px-4 py-10 text-center"
+            ref={loadMoreRef}
+          >
+            <div className="max-w-sm rounded-2xl border border-white/12 bg-white/8 p-5 shadow-2xl backdrop-blur-xl">
+              <Images className="mx-auto size-8 text-[#44f26e]" />
+              <p className="mt-3 text-sm font-black text-white">
+                {isLoadingMore
+                  ? copy.loadingMore
+                  : loadError
+                    ? copy.loadError
+                    : hasMore
+                      ? copy.loadingMore
+                      : copy.noMore}
+              </p>
+              {loadError ? (
+                <button
+                  className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-[#44f26e] px-4 text-xs font-black text-[#111510]"
+                  onClick={() => void loadMore()}
+                  type="button"
+                >
+                  {copy.loadMore}
+                </button>
+              ) : null}
+            </div>
+          </section>
+        )}
       </div>
       <CutFeedNavigationPendingOverlay
         copy={copy}
