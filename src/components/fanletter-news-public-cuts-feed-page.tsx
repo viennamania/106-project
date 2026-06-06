@@ -2767,7 +2767,8 @@ function FeedSlide({
       !isActive ||
       !onSharedEntryConsumptionComplete ||
       !hasViewedAllCuts ||
-      !hasEnteredSourceOverlay
+      !hasEnteredSourceOverlay ||
+      sourceOverlayOpen
     ) {
       return;
     }
@@ -2778,6 +2779,7 @@ function FeedSlide({
     hasViewedAllCuts,
     isActive,
     onSharedEntryConsumptionComplete,
+    sourceOverlayOpen,
   ]);
 
   const clearSideActionsTimer = useCallback(() => {
