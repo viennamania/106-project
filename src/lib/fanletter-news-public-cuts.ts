@@ -1022,6 +1022,7 @@ export async function getFanletterNewsPublicCutFeedPage({
   rotationSeed = null,
   shareId = null,
   targetReport = null,
+  targetOnly = false,
   viewerEmail = null,
 }: {
   excludeReportIds?: string[];
@@ -1033,6 +1034,7 @@ export async function getFanletterNewsPublicCutFeedPage({
   rotationSeed?: string | null;
   shareId?: string | null;
   targetReport?: FanletterNewsReportDocument | null;
+  targetOnly?: boolean;
   viewerEmail?: string | null;
 }): Promise<FanletterNewsPublicCutFeedPage> {
   const normalizedLimit = normalizePublicCutFeedLimit(limit);
@@ -1050,6 +1052,20 @@ export async function getFanletterNewsPublicCutFeedPage({
     ? createFanletterNewsPublicCutFeedItem(targetReport)
     : null;
   const includeTargetItem = Boolean(targetItem && normalizedOffset === 0);
+
+  if (targetOnly && includeTargetItem && targetItem) {
+    const [hydratedTargetItem] = await hydrateFanletterNewsPublicCutFeedItems(
+      [targetItem],
+      viewerEmail,
+    );
+
+    return {
+      hasMore: true,
+      items: hydratedTargetItem ? [hydratedTargetItem] : [],
+      nextOffset: 0,
+    };
+  }
+
   const normalizedExcludeReportIds = [
     ...new Set(
       [

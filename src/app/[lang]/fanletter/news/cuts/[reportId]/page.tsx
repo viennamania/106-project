@@ -249,6 +249,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
     referralCode,
     rotationSeed: feedRotationSeed,
     shareId,
+    targetOnly: Boolean(shareId),
     targetReport: report,
     viewerEmail: session?.email ?? null,
   });

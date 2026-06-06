@@ -56,6 +56,7 @@ import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
   FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM,
   FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE,
+  FANLETTER_NEWS_PUBLIC_CUT_SHARED_PAGE_SIZE,
   normalizeFanletterNewsPublicCutSlotNumber,
   type FanletterNewsPublicCutFeedLoadResponse,
   type FanletterNewsPublicCutSource,
@@ -5041,7 +5042,11 @@ export function FanletterNewsPublicCutsFeedPage({
     try {
       const params = new URLSearchParams({
         rotationSeed: feedRotationSeed,
-        limit: String(FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE),
+        limit: String(
+          isSharedConsumptionEntry
+            ? FANLETTER_NEWS_PUBLIC_CUT_SHARED_PAGE_SIZE
+            : FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE,
+        ),
         locale,
         offset: String(nextOffset),
       });
@@ -5113,6 +5118,7 @@ export function FanletterNewsPublicCutsFeedPage({
     excludeReportId,
     feedRotationSeed,
     hasMore,
+    isSharedConsumptionEntry,
     isLoadingMore,
     items,
     locale,
@@ -5340,7 +5346,7 @@ export function FanletterNewsPublicCutsFeedPage({
       },
       {
         root,
-        rootMargin: "1400px 0px",
+        rootMargin: isSharedConsumptionEntry ? "0px" : "1400px 0px",
         threshold: 0.01,
       },
     );
@@ -5350,7 +5356,7 @@ export function FanletterNewsPublicCutsFeedPage({
     return () => {
       observer.disconnect();
     };
-  }, [hasMore, loadMore]);
+  }, [hasMore, isSharedConsumptionEntry, loadMore]);
 
   if (items.length === 0) {
     return (

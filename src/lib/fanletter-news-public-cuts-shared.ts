@@ -7,6 +7,7 @@ import type { FanletterNewsSourceRevealState } from "@/lib/fanletter-news-source
 
 export const FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE = 12;
 export const FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE = 12;
+export const FANLETTER_NEWS_PUBLIC_CUT_SHARED_PAGE_SIZE = 4;
 export const FANLETTER_NEWS_PUBLIC_CUT_MAX_PAGE_SIZE = 24;
 export const FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM = "cut";
 export const FANLETTER_NEWS_PUBLIC_CUT_MAX_SLOTS = 4;
