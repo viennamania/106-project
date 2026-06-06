@@ -60,6 +60,13 @@ const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_SAVE_SCORE = 18;
 const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_UNLOCKED_SCORE = 420;
 const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_NEAR_UNLOCK_SCORE = 180;
 const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_COVER_SCORE = 20;
+const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_SCENE_CUT_SCORE = 90;
+const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_GENERATED_FRAME_COVER_PENALTY =
+  140;
+const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_ALL_GENERATED_FRAME_COVER_PENALTY =
+  520;
+const FANLETTER_NEWS_PUBLIC_CUT_GENERATED_FRAME_COVER_URL_PATTERN =
+  /\/generated\/[^?]*-frame-cover-\d{2}/i;
 
 type FanletterNewsPublicCutFeedAudience = "guest_direct" | "guest_social" | "member";
 type FanletterNewsPublicCutFeedMode = "default" | "reporter_locked";
@@ -190,6 +197,44 @@ function resolvePublicCutFeedAudience({
 
 function getPublicCutReportSortTime(report: FanletterNewsReportDocument) {
   return (report.sourcePublishedAt ?? report.createdAt).getTime();
+}
+
+function isPublicCutGeneratedFrameCoverUrl(value?: string | null) {
+  return FANLETTER_NEWS_PUBLIC_CUT_GENERATED_FRAME_COVER_URL_PATTERN.test(
+    value?.trim() ?? "",
+  );
+}
+
+function isPublicCutGeneratedFrameCover(cut: FanletterNewsPublicCut) {
+  return (
+    isPublicCutGeneratedFrameCoverUrl(cut.imageUrl) ||
+    isPublicCutGeneratedFrameCoverUrl(cut.sourceImageUrl)
+  );
+}
+
+function getPublicCutVisualQualityScore(item: FanletterNewsPublicCutFeedItem) {
+  const generatedFrameCoverCount = item.cuts.filter((cut) =>
+    isPublicCutGeneratedFrameCover(cut),
+  ).length;
+  const sceneCutCount = item.cuts.length - generatedFrameCoverCount;
+  const reporterCroppedSceneCutCount = item.cuts.filter(
+    (cut) =>
+      cut.source === "reporter_cropped" && !isPublicCutGeneratedFrameCover(cut),
+  ).length;
+  const allCutsAreGeneratedFrameCovers =
+    generatedFrameCoverCount >=
+    Math.min(item.cuts.length, FANLETTER_NEWS_PUBLIC_CUT_LIMIT);
+
+  return (
+    sceneCutCount *
+      FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_SCENE_CUT_SCORE +
+    reporterCroppedSceneCutCount * 24 -
+    generatedFrameCoverCount *
+      FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_GENERATED_FRAME_COVER_PENALTY -
+    (allCutsAreGeneratedFrameCovers
+      ? FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_ALL_GENERATED_FRAME_COVER_PENALTY
+      : 0)
+  );
 }
 
 function normalizePublicCutFeedScoreKey(value?: string | null) {
@@ -1213,6 +1258,25 @@ export async function getFanletterNewsPublicCutFeedPage({
           },
           {
             $addFields: {
+              timelineCutImageUrls: {
+                $setUnion: [
+                  {
+                    $map: {
+                      as: "image",
+                      in: { $ifNull: ["$$image.imageUrl", ""] },
+                      input: { $ifNull: ["$teaserImages", []] },
+                    },
+                  },
+                  {
+                    $map: {
+                      as: "image",
+                      in: { $ifNull: ["$$image.sourceImageUrl", ""] },
+                      input: { $ifNull: ["$teaserImages", []] },
+                    },
+                  },
+                  { $ifNull: ["$teaserImageUrls", []] },
+                ],
+              },
               publicCutSortTime: { $ifNull: ["$sourcePublishedAt", "$createdAt"] },
               timelineLikeCount: {
                 $size: {
@@ -1238,6 +1302,54 @@ export async function getFanletterNewsPublicCutFeedPage({
                     as: "action",
                     cond: { $eq: ["$$action.sourceRevealRequested", true] },
                     input: "$timelineSocialActions",
+                  },
+                },
+              },
+            },
+          },
+          {
+            $addFields: {
+              timelineGeneratedFrameCoverCount: {
+                $size: {
+                  $filter: {
+                    as: "imageUrl",
+                    cond: {
+                      $regexMatch: {
+                        input: "$$imageUrl",
+                        regex:
+                          FANLETTER_NEWS_PUBLIC_CUT_GENERATED_FRAME_COVER_URL_PATTERN,
+                      },
+                    },
+                    input: "$timelineCutImageUrls",
+                  },
+                },
+              },
+              timelineSceneCutCount: {
+                $size: {
+                  $filter: {
+                    as: "imageUrl",
+                    cond: {
+                      $and: [
+                        {
+                          $regexMatch: {
+                            input: "$$imageUrl",
+                            regex: /\S/,
+                          },
+                        },
+                        {
+                          $not: [
+                            {
+                              $regexMatch: {
+                                input: "$$imageUrl",
+                                regex:
+                                  FANLETTER_NEWS_PUBLIC_CUT_GENERATED_FRAME_COVER_URL_PATTERN,
+                              },
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    input: "$timelineCutImageUrls",
                   },
                 },
               },
@@ -1312,6 +1424,30 @@ export async function getFanletterNewsPublicCutFeedPage({
                     ],
                   },
                   {
+                    $multiply: [
+                      "$timelineSceneCutCount",
+                      FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_SCENE_CUT_SCORE,
+                    ],
+                  },
+                  {
+                    $multiply: [
+                      "$timelineGeneratedFrameCoverCount",
+                      -FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_GENERATED_FRAME_COVER_PENALTY,
+                    ],
+                  },
+                  {
+                    $cond: [
+                      {
+                        $gte: [
+                          "$timelineGeneratedFrameCoverCount",
+                          FANLETTER_NEWS_PUBLIC_CUT_LIMIT,
+                        ],
+                      },
+                      -FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_ALL_GENERATED_FRAME_COVER_PENALTY,
+                      0,
+                    ],
+                  },
+                  {
                     $cond: [
                       {
                         $regexMatch: {
@@ -1365,8 +1501,11 @@ export async function getFanletterNewsPublicCutFeedPage({
           {
             $project: {
               publicCutSortTime: 0,
+              timelineCutImageUrls: 0,
+              timelineGeneratedFrameCoverCount: 0,
               timelineLikeCount: 0,
               timelineQualityScore: 0,
+              timelineSceneCutCount: 0,
               timelineSaveCount: 0,
               timelineSocialActions: 0,
               timelineSourceRevealCount: 0,
@@ -1445,6 +1584,14 @@ export async function getFanletterNewsPublicCutFeedPage({
           .sort((left, right) => {
             if (left.sourceReveal.unlocked !== right.sourceReveal.unlocked) {
               return left.sourceReveal.unlocked ? -1 : 1;
+            }
+
+            const visualQualityDelta =
+              getPublicCutVisualQualityScore(right) -
+              getPublicCutVisualQualityScore(left);
+
+            if (visualQualityDelta !== 0) {
+              return visualQualityDelta;
             }
 
             if (left.sourceReveal.count !== right.sourceReveal.count) {

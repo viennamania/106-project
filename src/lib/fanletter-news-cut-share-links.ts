@@ -32,14 +32,26 @@ export type FanletterNewsCutShareLinkDocument = {
 };
 
 export type FanletterNewsCutShareLinkMetrics = {
+  averageDwellMs: number;
+  cutDwell: FanletterNewsCutShareLinkCutDwellMetric[];
   cutViews: number;
   dwellEvents: number;
   eventCount: number;
   guestEvents: number;
   lastEventAt: string | null;
   loadMoreEvents: number;
+  maxDwellMs: number;
   memberEvents: number;
   sourceOpenClicks: number;
+  totalDwellMs: number;
+};
+
+export type FanletterNewsCutShareLinkCutDwellMetric = {
+  averageDwellMs: number;
+  cutSlotNumber: number;
+  dwellEvents: number;
+  maxDwellMs: number;
+  totalDwellMs: number;
 };
 
 export type FanletterNewsCutShareLinkDashboardItem = {
@@ -80,6 +92,17 @@ type RawMetricsRow = {
   loadMoreEvents?: number;
   memberEvents?: number;
   sourceOpenClicks?: number;
+};
+
+type RawCutDwellMetricsRow = {
+  _id: {
+    cutSlotNumber: number;
+    shareId: string;
+  };
+  averageDwellMs?: number;
+  dwellEvents?: number;
+  maxDwellMs?: number;
+  totalDwellMs?: number;
 };
 
 export function createFanletterNewsCutShareId() {
@@ -169,7 +192,7 @@ export async function getFanletterNewsCutShareLinkDashboard({
 
   const shareIds = links.map((link) => link.shareId);
   const reportIds = [...new Set(links.map((link) => link.reportId))];
-  const [metricRows, reports] = await Promise.all([
+  const [metricRows, cutDwellRows, reports] = await Promise.all([
     getFunnelEventsCollection().then((collection) =>
       collection
         .aggregate<RawMetricsRow>([
@@ -234,6 +257,63 @@ export async function getFanletterNewsCutShareLinkDashboard({
         ])
         .toArray(),
     ),
+    getFunnelEventsCollection().then((collection) =>
+      collection
+        .aggregate<RawCutDwellMetricsRow>([
+          {
+            $match: {
+              name: "fanletter_news_cut_dwell" satisfies FunnelEventName,
+              shareId: { $in: shareIds },
+            },
+          },
+          {
+            $project: {
+              cutSlotNumber: {
+                $convert: {
+                  input: "$metadata.cutSlotNumber",
+                  onError: null,
+                  onNull: null,
+                  to: "int",
+                },
+              },
+              durationMs: {
+                $convert: {
+                  input: "$metadata.durationMs",
+                  onError: 0,
+                  onNull: 0,
+                  to: "double",
+                },
+              },
+              shareId: 1,
+            },
+          },
+          {
+            $match: {
+              cutSlotNumber: { $gte: 1, $lte: 4 },
+              durationMs: { $gt: 0 },
+            },
+          },
+          {
+            $group: {
+              _id: {
+                cutSlotNumber: "$cutSlotNumber",
+                shareId: "$shareId",
+              },
+              averageDwellMs: { $avg: "$durationMs" },
+              dwellEvents: { $sum: 1 },
+              maxDwellMs: { $max: "$durationMs" },
+              totalDwellMs: { $sum: "$durationMs" },
+            },
+          },
+          {
+            $sort: {
+              "_id.shareId": 1,
+              "_id.cutSlotNumber": 1,
+            },
+          },
+        ])
+        .toArray(),
+    ),
     getFanletterNewsReportsCollection().then((collection) =>
       collection
         .find(
@@ -250,10 +330,42 @@ export async function getFanletterNewsCutShareLinkDashboard({
     ),
   ]);
   const metricsByShareId = new Map(metricRows.map((row) => [row._id, row]));
+  const cutDwellByShareId = new Map<
+    string,
+    FanletterNewsCutShareLinkCutDwellMetric[]
+  >();
+
+  for (const row of cutDwellRows) {
+    const shareId = row._id.shareId;
+    const cutMetrics = cutDwellByShareId.get(shareId) ?? [];
+
+    cutMetrics.push({
+      averageDwellMs: Math.round(row.averageDwellMs ?? 0),
+      cutSlotNumber: row._id.cutSlotNumber,
+      dwellEvents: row.dwellEvents ?? 0,
+      maxDwellMs: Math.round(row.maxDwellMs ?? 0),
+      totalDwellMs: Math.round(row.totalDwellMs ?? 0),
+    });
+    cutDwellByShareId.set(shareId, cutMetrics);
+  }
+
   const reportsById = new Map(reports.map((report) => [report.reportId, report]));
 
   return links.map((link): FanletterNewsCutShareLinkDashboardItem => {
     const metrics = metricsByShareId.get(link.shareId);
+    const cutDwell = cutDwellByShareId.get(link.shareId) ?? [];
+    const totalDwellMs = cutDwell.reduce(
+      (sum, cutMetric) => sum + cutMetric.totalDwellMs,
+      0,
+    );
+    const dwellEvents = cutDwell.reduce(
+      (sum, cutMetric) => sum + cutMetric.dwellEvents,
+      0,
+    );
+    const maxDwellMs = cutDwell.reduce(
+      (maxValue, cutMetric) => Math.max(maxValue, cutMetric.maxDwellMs),
+      0,
+    );
     const report = reportsById.get(link.reportId);
 
     return {
@@ -263,14 +375,19 @@ export async function getFanletterNewsCutShareLinkDashboard({
       cutSlotNumber: link.cutSlotNumber,
       memo: link.memo,
       metrics: {
+        averageDwellMs:
+          dwellEvents > 0 ? Math.round(totalDwellMs / dwellEvents) : 0,
+        cutDwell,
         cutViews: metrics?.cutViews ?? 0,
-        dwellEvents: metrics?.dwellEvents ?? 0,
+        dwellEvents,
         eventCount: metrics?.eventCount ?? 0,
         guestEvents: metrics?.guestEvents ?? 0,
         lastEventAt: metrics?.lastEventAt?.toISOString() ?? null,
         loadMoreEvents: metrics?.loadMoreEvents ?? 0,
+        maxDwellMs,
         memberEvents: metrics?.memberEvents ?? 0,
         sourceOpenClicks: metrics?.sourceOpenClicks ?? 0,
+        totalDwellMs,
       },
       reportId: link.reportId,
       reportTitle: report?.title ?? null,

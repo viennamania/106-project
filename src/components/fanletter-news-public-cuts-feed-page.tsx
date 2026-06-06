@@ -3120,20 +3120,24 @@ function FeedSlide({
   const activeCutSlotNumber = cuts[activeCutIndex]?.slotNumber ?? 1;
   const hasViewedAllCuts = cutCount <= 1 || viewedCutIndexes.size >= cutCount;
   const hasReachedSharedSourceGate = hasViewedAllCuts;
+  const requiresSharedSourceConsumption = Boolean(shareId && index === 0);
+  const hasCompletedSharedConsumptionGate =
+    hasReachedSharedSourceGate &&
+    (!requiresSharedSourceConsumption || hasEnteredSourceOverlay);
   const isSharedSourceActionGateActive = Boolean(
     isSharedConsumptionGateActive && cutCount > 1,
   );
   const showSharedSourceCompletionCta = Boolean(
     isActive &&
       isSharedSourceActionGateActive &&
+      requiresSharedSourceConsumption &&
       hasReachedSharedSourceGate &&
       !hasEnteredSourceOverlay,
   );
   const showSharedScrollGuide = Boolean(
     isActive &&
       shareId &&
-      hasReachedSharedSourceGate &&
-      hasEnteredSourceOverlay &&
+      hasCompletedSharedConsumptionGate &&
       !sourceOverlayOpen,
   );
   const showSharedTimelineSourceGateHint = Boolean(
@@ -3260,8 +3264,7 @@ function FeedSlide({
       !isActive ||
       !onSharedEntryConsumptionComplete ||
       sharedConsumptionCompletedRef.current ||
-      !hasReachedSharedSourceGate ||
-      !hasEnteredSourceOverlay ||
+      !hasCompletedSharedConsumptionGate ||
       sourceOverlayOpen
     ) {
       return;
@@ -3270,8 +3273,7 @@ function FeedSlide({
     sharedConsumptionCompletedRef.current = true;
     onSharedEntryConsumptionComplete();
   }, [
-    hasEnteredSourceOverlay,
-    hasReachedSharedSourceGate,
+    hasCompletedSharedConsumptionGate,
     isActive,
     onSharedEntryConsumptionComplete,
     sourceOverlayOpen,
@@ -5838,6 +5840,31 @@ export function FanletterNewsPublicCutsFeedPage({
       ) ?? null,
     [getSharedTransitionSlideIndex, sharedVlogTransitions],
   );
+  const getSkippedSharedTransitionSlideIndex = useCallback(
+    (previousSlideIndex: number, nextSlideIndex: number) => {
+      if (!shareId || nextSlideIndex <= previousSlideIndex) {
+        return null;
+      }
+
+      let skippedSlideIndex: number | null = null;
+
+      for (const transition of sharedVlogTransitions) {
+        const transitionSlideIndex = getSharedTransitionSlideIndex(transition);
+
+        if (
+          transitionSlideIndex > previousSlideIndex &&
+          transitionSlideIndex < nextSlideIndex &&
+          (skippedSlideIndex === null ||
+            transitionSlideIndex < skippedSlideIndex)
+        ) {
+          skippedSlideIndex = transitionSlideIndex;
+        }
+      }
+
+      return skippedSlideIndex;
+    },
+    [getSharedTransitionSlideIndex, shareId, sharedVlogTransitions],
+  );
   const sharedVlogPreloadItems = useMemo(
     () => sharedVlogTransitions.flatMap((transition) => transition.options),
     [sharedVlogTransitions],
@@ -6327,9 +6354,36 @@ export function FanletterNewsPublicCutsFeedPage({
       itemCount: virtualSlideCount,
       root,
     });
+    const skippedSharedTransitionSlideIndex =
+      getSkippedSharedTransitionSlideIndex(visibleSlideIndex, visibleIndex);
 
     hideFeedChromeImmediately();
     window.dispatchEvent(new Event(CUT_FEED_CHROME_HIDE_EVENT));
+
+    if (skippedSharedTransitionSlideIndex !== null) {
+      root.scrollTo({
+        top: root.clientHeight * skippedSharedTransitionSlideIndex,
+      });
+      setVisibleSlideIndex((currentIndex) => {
+        if (currentIndex === skippedSharedTransitionSlideIndex) {
+          return currentIndex;
+        }
+
+        window.dispatchEvent(
+          new CustomEvent<CutFeedVisibleIndexChangeDetail>(
+            CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT,
+            {
+              detail: {
+                nextIndex: skippedSharedTransitionSlideIndex,
+                previousIndex: currentIndex,
+              },
+            },
+          ),
+        );
+        return skippedSharedTransitionSlideIndex;
+      });
+      return;
+    }
 
     setVisibleSlideIndex((currentIndex) => {
       if (currentIndex === visibleIndex) {
@@ -6382,11 +6436,13 @@ export function FanletterNewsPublicCutsFeedPage({
   }, [
     dismissSwipeGuide,
     activeSharedLockedSlideIndex,
+    getSkippedSharedTransitionSlideIndex,
     hideFeedChromeImmediately,
     isSharedEntryScrollLocked,
     items,
     sourceViewSwipeGuideDismissed,
     swipeGuideTarget,
+    visibleSlideIndex,
     virtualSlideCount,
   ]);
   const loadMore = useCallback(async () => {

@@ -32,7 +32,12 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         back: "4컷 피드로 돌아가기",
+        averageDwell: "평균 체류",
         createdAt: "생성",
+        cutDwell: "컷별 체류",
+        cutDwellEmpty: "아직 컷별 체류 데이터가 없습니다.",
+        cutDwellEvents: (count: string) => `${count}회`,
+        cutLabel: (slot: string) => `${slot}컷`,
         cutViews: "컷 조회",
         emptyBody:
           "로그인 상태에서 4컷 피드의 공유 버튼을 누르고 메모를 남기면 이곳에 링크별 유입 흐름이 쌓입니다.",
@@ -56,10 +61,16 @@ function getCopy(locale: Locale) {
         report: "팬 리포트",
         sourceOpens: "원본 진입",
         timelineLoads: "다음 로드",
+        totalDwell: "총 체류",
       }
     : {
         back: "Back to 4-cut feed",
+        averageDwell: "Avg. dwell",
         createdAt: "Created",
+        cutDwell: "Dwell by cut",
+        cutDwellEmpty: "No cut dwell data yet.",
+        cutDwellEvents: (count: string) => `${count} events`,
+        cutLabel: (slot: string) => `Cut ${slot}`,
         cutViews: "Cut views",
         emptyBody:
           "When you create a noted share link from the 4-cut feed, traffic and behavior metrics will appear here.",
@@ -83,6 +94,7 @@ function getCopy(locale: Locale) {
         report: "Fan report",
         sourceOpens: "Source opens",
         timelineLoads: "Next loads",
+        totalDwell: "Total dwell",
       };
 }
 
@@ -101,6 +113,29 @@ function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
 }
 
+function formatDuration(valueMs: number, locale: Locale) {
+  if (!Number.isFinite(valueMs) || valueMs <= 0) {
+    return "-";
+  }
+
+  const seconds = valueMs / 1000;
+
+  if (seconds < 60) {
+    const formattedSeconds = new Intl.NumberFormat(locale, {
+      maximumFractionDigits: seconds < 10 ? 1 : 0,
+    }).format(seconds);
+
+    return locale === "ko" ? `${formattedSeconds}초` : `${formattedSeconds}s`;
+  }
+
+  const minutes = seconds / 60;
+  const formattedMinutes = new Intl.NumberFormat(locale, {
+    maximumFractionDigits: minutes < 10 ? 1 : 0,
+  }).format(minutes);
+
+  return locale === "ko" ? `${formattedMinutes}분` : `${formattedMinutes}m`;
+}
+
 function MetricTile({
   label,
   locale,
@@ -108,16 +143,17 @@ function MetricTile({
 }: {
   label: string;
   locale: Locale;
-  value: number;
+  value: number | string;
 }) {
+  const displayValue =
+    typeof value === "number" ? formatNumber(value, locale) : value;
+
   return (
     <div className="rounded-[0.85rem] border border-white/10 bg-white/[0.06] px-3 py-2.5">
       <p className="text-[0.64rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
         {label}
       </p>
-      <p className="mt-1 text-lg font-black text-white">
-        {formatNumber(value, locale)}
-      </p>
+      <p className="mt-1 text-lg font-black text-white">{displayValue}</p>
     </div>
   );
 }
@@ -132,6 +168,16 @@ function ShareLinkCard({
   locale: Locale;
 }) {
   const title = item.reportTitle ?? item.reportId;
+  const maxAverageDwellMs = item.metrics.cutDwell.reduce(
+    (maxValue, cutMetric) => Math.max(maxValue, cutMetric.averageDwellMs),
+    0,
+  );
+  const cutDwellBySlot = new Map(
+    item.metrics.cutDwell.map((cutMetric) => [
+      cutMetric.cutSlotNumber,
+      cutMetric,
+    ]),
+  );
 
   return (
     <article className="rounded-[1.1rem] border border-white/12 bg-[#090d0a] p-4 shadow-[0_18px_54px_rgba(0,0,0,0.28)]">
@@ -158,6 +204,11 @@ function ShareLinkCard({
           value={item.metrics.cutViews}
         />
         <MetricTile
+          label={copy.averageDwell}
+          locale={locale}
+          value={formatDuration(item.metrics.averageDwellMs, locale)}
+        />
+        <MetricTile
           label={copy.sourceOpens}
           locale={locale}
           value={item.metrics.sourceOpenClicks}
@@ -166,11 +217,6 @@ function ShareLinkCard({
           label={copy.timelineLoads}
           locale={locale}
           value={item.metrics.loadMoreEvents}
-        />
-        <MetricTile
-          label={copy.eventCount}
-          locale={locale}
-          value={item.metrics.eventCount}
         />
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-bold text-white/62">
@@ -186,6 +232,61 @@ function ShareLinkCard({
           <Timer className="size-3.5 text-[#44f26e]" />
           {copy.lastEvent} {formatDate(item.metrics.lastEventAt, locale)}
         </div>
+      </div>
+      <div className="mt-4 space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[0.66rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+            {copy.cutDwell}
+          </p>
+          <p className="text-xs font-bold text-white/44">
+            {copy.eventCount} {formatNumber(item.metrics.eventCount, locale)}
+          </p>
+        </div>
+        {item.metrics.cutDwell.length > 0 ? (
+          [1, 2, 3, 4].map((slotNumber) => {
+            const cutMetric = cutDwellBySlot.get(slotNumber);
+            const progress =
+              cutMetric && maxAverageDwellMs > 0
+                ? Math.max(
+                    8,
+                    Math.round(
+                      (cutMetric.averageDwellMs / maxAverageDwellMs) * 100,
+                    ),
+                  )
+                : 0;
+
+            return (
+              <div
+                className="grid grid-cols-[2.8rem_minmax(0,1fr)_4.8rem] items-center gap-2 text-xs font-bold"
+                key={slotNumber}
+              >
+                <span className="text-white/58">
+                  {copy.cutLabel(formatNumber(slotNumber, locale))}
+                </span>
+                <span className="h-2 overflow-hidden rounded-full bg-white/10">
+                  <span
+                    className="block h-full rounded-full bg-[#44f26e]"
+                    style={{ width: `${progress}%` }}
+                  />
+                </span>
+                <span className="text-right text-white/70">
+                  {formatDuration(cutMetric?.averageDwellMs ?? 0, locale)}
+                </span>
+                <span className="col-start-3 text-right text-[0.68rem] text-white/38">
+                  {cutMetric
+                    ? copy.cutDwellEvents(
+                        formatNumber(cutMetric.dwellEvents, locale),
+                      )
+                    : ""}
+                </span>
+              </div>
+            );
+          })
+        ) : (
+          <p className="text-xs font-bold text-white/42">
+            {copy.cutDwellEmpty}
+          </p>
+        )}
       </div>
       <Link
         className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-black !text-[#111510] transition hover:bg-[#44f26e]"
@@ -251,6 +352,10 @@ export default async function LocalizedFanletterNewsCutSharesPage({
     (sum, item) => sum + item.metrics.sourceOpenClicks,
     0,
   );
+  const totalDwellMs = items.reduce(
+    (sum, item) => sum + item.metrics.totalDwellMs,
+    0,
+  );
 
   return (
     <main className="min-h-dvh bg-[#050706] px-4 py-[calc(env(safe-area-inset-top)+1rem)] text-white">
@@ -285,11 +390,16 @@ export default async function LocalizedFanletterNewsCutSharesPage({
           </section>
         ) : (
           <>
-            <section className="mt-7 grid grid-cols-2 gap-2">
+            <section className="mt-7 grid grid-cols-2 gap-2 sm:grid-cols-3">
               <MetricTile
                 label={copy.cutViews}
                 locale={locale}
                 value={totalCutViews}
+              />
+              <MetricTile
+                label={copy.totalDwell}
+                locale={locale}
+                value={formatDuration(totalDwellMs, locale)}
               />
               <MetricTile
                 label={copy.sourceOpens}
