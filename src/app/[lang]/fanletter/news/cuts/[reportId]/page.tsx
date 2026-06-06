@@ -268,6 +268,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
       returnToHref={returnToHref}
       shareId={shareId}
       sourceContentId={initialSourceContentId}
+      viewerEmail={session?.email ?? null}
     />
   );
 }

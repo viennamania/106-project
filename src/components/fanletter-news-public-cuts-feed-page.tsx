@@ -1164,6 +1164,7 @@ function CutFeedShareButton({
   shareSummary,
   shareTitle,
   variant = "compact",
+  viewerEmail = null,
 }: {
   activeCutSlotNumber: number;
   contentId: string | null;
@@ -1188,6 +1189,7 @@ function CutFeedShareButton({
   shareSummary: string;
   shareTitle: string;
   variant?: "compact" | "reel";
+  viewerEmail?: string | null;
 }) {
   const [state, setState] = useState<ShareState>("idle");
   const [isMemoOpen, setIsMemoOpen] = useState(false);
@@ -1195,6 +1197,7 @@ function CutFeedShareButton({
   const feedbackTimeoutRef = useRef<number | null>(null);
   const isSharingRef = useRef(false);
   const memberSession = useMemberSession();
+  const managedShareEmail = memberSession.email ?? viewerEmail;
 
   const showShareFeedback = useCallback((nextState: Exclude<ShareState, "sharing">) => {
     if (feedbackTimeoutRef.current !== null) {
@@ -1241,7 +1244,7 @@ function CutFeedShareButton({
           },
         );
 
-      if (memberSession.email) {
+      if (managedShareEmail) {
         const response = await fetch("/api/fanletter/news-cuts/shares", {
           body: JSON.stringify({
             cutSlotNumber: activeCutSlotNumber,
@@ -1277,7 +1280,7 @@ function CutFeedShareButton({
         metadata: {
           creatorReferralCode,
           cutSlotNumber: activeCutSlotNumber,
-          managedShareLink: Boolean(memberSession.email),
+          managedShareLink: Boolean(managedShareEmail),
           memoProvided: Boolean(memo.trim()),
           previewImageKind,
           reporterReferralCode,
@@ -1321,7 +1324,7 @@ function CutFeedShareButton({
     contentId,
     creatorReferralCode,
     href,
-    memberSession.email,
+    managedShareEmail,
     previewImageKind,
     referralCode,
     reporterReferralCode,
@@ -1376,14 +1379,14 @@ function CutFeedShareButton({
   const iconClassName = variant === "reel" ? "size-5" : "size-4";
 
   const handleShareButtonClick = useCallback(() => {
-    if (memberSession.email) {
+    if (managedShareEmail) {
       setShareMemo("");
       setIsMemoOpen(true);
       return;
     }
 
     void handleShare();
-  }, [handleShare, memberSession.email]);
+  }, [handleShare, managedShareEmail]);
 
   return (
     <>
@@ -2887,6 +2890,7 @@ function FeedSlide({
   returnToHref = null,
   shareId,
   showSwipeGuide = false,
+  viewerEmail = null,
 }: {
   dictionary: Dictionary;
   hasMore: boolean;
@@ -2912,6 +2916,7 @@ function FeedSlide({
   returnToHref?: string | null;
   shareId: string | null;
   showSwipeGuide?: boolean;
+  viewerEmail?: string | null;
 }) {
   const initialCutCount = item.cuts.length > 0 ? item.cuts.length : 1;
   const initialActiveCutIndex = getInitialPublicCutIndex(
@@ -4802,6 +4807,7 @@ function FeedSlide({
             shareSummary={shareSummary}
             shareTitle={shareTitle}
             variant="reel"
+            viewerEmail={viewerEmail}
           />
           <span className="max-w-14 text-center text-[0.58rem] font-black leading-[1.05] text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.82)]">
             {copy.share}
@@ -5582,6 +5588,7 @@ export function FanletterNewsPublicCutsFeedPage({
   returnToHref = null,
   shareId,
   sourceContentId = null,
+  viewerEmail = null,
 }: {
   dictionary: Dictionary;
   excludeReportId?: string | null;
@@ -5595,6 +5602,7 @@ export function FanletterNewsPublicCutsFeedPage({
   returnToHref?: string | null;
   shareId: string | null;
   sourceContentId?: string | null;
+  viewerEmail?: string | null;
 }) {
   const copy = getCopy(locale);
   const memberSession = useMemberSession();
@@ -7196,6 +7204,7 @@ export function FanletterNewsPublicCutsFeedPage({
               returnToHref={returnToHref}
               shareId={shareId}
               showSwipeGuide={swipeGuideTarget?.index === index}
+              viewerEmail={viewerEmail}
             />
           );
 
