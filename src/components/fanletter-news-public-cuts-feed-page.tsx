@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createPortal, flushSync } from "react-dom";
 import {
   Fragment,
@@ -305,10 +306,10 @@ function getCopy(locale: Locale) {
         sharedCutRecapBody: (name: string) =>
           `${name} 흐름에서 사람들이 어느 컷에 오래 머물렀는지 전체 여정으로 정리했어요.`,
         sharedCutRecapCollectingBody: (name: string) =>
-          `${name} 공유 링크가 지금부터 컷별 체류, 조회, 원본 이동 신호를 수집합니다.`,
-        sharedCutRecapCollectingMetric: "측정 중",
-        sharedCutRecapCollectingRank: "측정",
-        sharedCutRecapCollectingTitle: "반응 엔진 준비 중",
+          `${name} 공유 링크가 지금부터 컷별 체류, 조회, 원본 이동 신호를 실시간으로 쌓습니다.`,
+        sharedCutRecapCollectingMetric: "수집 중",
+        sharedCutRecapCollectingRank: "수집",
+        sharedCutRecapCollectingTitle: "실시간 반응 수집 중",
         sharedCutRecapCandidateCuts: "후보 컷",
         sharedCutRecapCollectionBody: (
           viewedCount: string,
@@ -358,8 +359,9 @@ function getCopy(locale: Locale) {
         sharedEndNotify: "새 리포트 알림 받기",
         sharedEndOtherBody:
           "공유 링크 밖에도 새 브이로그와 팬 리포트가 이어집니다.",
-        sharedEndOtherEmpty: "곧 다른 캐릭터도 소개할게요",
-        sharedEndOtherLoading: "다른 캐릭터 불러오는 중",
+        sharedEndOtherBrowse: "AI 캐릭터 둘러보기",
+        sharedEndOtherEmpty: "AI 캐릭터 탐색으로 이어갈 수 있어요",
+        sharedEndOtherLoading: "추천 캐릭터 준비 중",
         sharedEndOtherTitle: "다른 AI 캐릭터도 활동 중이에요",
         sharedEndReportsMetric: "본 리포트",
         sharedEndShare: "이 흐름 공유하기",
@@ -609,10 +611,10 @@ function getCopy(locale: Locale) {
         sharedCutRecapBody: (name: string) =>
           `See which ${name} cuts held people's attention across this shared journey.`,
         sharedCutRecapCollectingBody: (name: string) =>
-          `${name}'s shared link now starts collecting cut dwell, views, and source-open signals.`,
-        sharedCutRecapCollectingMetric: "Measuring",
-        sharedCutRecapCollectingRank: "Signal",
-        sharedCutRecapCollectingTitle: "Reaction engine warming up",
+          `${name}'s shared link is now collecting cut dwell, views, and source-open signals in real time.`,
+        sharedCutRecapCollectingMetric: "Collecting",
+        sharedCutRecapCollectingRank: "Live",
+        sharedCutRecapCollectingTitle: "Live reaction collection",
         sharedCutRecapCandidateCuts: "Candidate cuts",
         sharedCutRecapCollectionBody: (
           viewedCount: string,
@@ -662,8 +664,9 @@ function getCopy(locale: Locale) {
         sharedEndNotify: "Get new report alerts",
         sharedEndOtherBody:
           "More source vlogs and fan reports continue beyond this shared link.",
-        sharedEndOtherEmpty: "More characters will be introduced soon",
-        sharedEndOtherLoading: "Loading other characters",
+        sharedEndOtherBrowse: "Browse AI characters",
+        sharedEndOtherEmpty: "You can continue into AI character discovery.",
+        sharedEndOtherLoading: "Preparing character picks",
         sharedEndOtherTitle: "Other AI characters are active too",
         sharedEndReportsMetric: "Reports viewed",
         sharedEndShare: "Share this flow",
@@ -5550,10 +5553,13 @@ function FeedSlide({
             </div>
           ) : null}
           {showSharedEntryMiniGuide ? (
-            <div
+            <button
+              aria-label={copy.nextCut}
               aria-live="polite"
-              className="pointer-events-none mx-auto mt-3 inline-flex max-w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-black/42 px-3.5 py-2 text-center text-[0.68rem] font-black text-white/78 shadow-[0_12px_30px_rgba(0,0,0,0.24)] backdrop-blur-xl"
-              role="status"
+              className="mx-auto mt-3 inline-flex max-w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-black/42 px-3.5 py-2 text-center text-[0.68rem] font-black text-white/78 shadow-[0_12px_30px_rgba(0,0,0,0.24)] backdrop-blur-xl transition hover:border-[#44f26e]/38 hover:bg-black/60 hover:text-white focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
+              data-shared-entry-mini-guide
+              onClick={goToNextCut}
+              type="button"
             >
               <ChevronLeft className="size-3.5 shrink-0 text-[#9bffad]" />
               <Images className="size-3.5 shrink-0 text-[#44f26e]" />
@@ -5561,7 +5567,7 @@ function FeedSlide({
                 {copy.sharedEntryMiniGuide}
               </span>
               <ChevronRight className="size-3.5 shrink-0 text-[#9bffad]" />
-            </div>
+            </button>
           ) : null}
           <div className="mt-4 flex items-center justify-center gap-0">
             {cutProgressOrder.map((orderedCutIndex, progressIndex) => {
@@ -6431,6 +6437,7 @@ function SharedCharacterVlogPickerSlide({
 
 function SharedJourneyEndSlide({
   characterHref,
+  charactersHref,
   connectHref,
   discoveryItems,
   isNestedFinalSlot = false,
@@ -6443,6 +6450,7 @@ function SharedJourneyEndSlide({
   shareId,
 }: {
   characterHref: string;
+  charactersHref: string;
   connectHref: string;
   discoveryItems: SerializedFanletterNewsPublicCutFeedItemBase[];
   isNestedFinalSlot?: boolean;
@@ -6455,6 +6463,7 @@ function SharedJourneyEndSlide({
   shareId: string | null;
 }) {
   const copy = getCopy(locale);
+  const router = useRouter();
   const [shareState, setShareState] = useState<ShareState>("idle");
   const shareFeedbackTimeoutRef = useRef<number | null>(null);
   const shareInFlightRef = useRef(false);
@@ -6489,6 +6498,12 @@ function SharedJourneyEndSlide({
         : shareState === "sharing"
           ? copy.shareSharing
           : copy.sharedEndShare;
+
+  useEffect(() => {
+    router.prefetch(characterHref);
+    router.prefetch(charactersHref);
+    router.prefetch(connectHref);
+  }, [characterHref, charactersHref, connectHref, router]);
 
   useEffect(
     () => () => {
@@ -6782,11 +6797,40 @@ function SharedJourneyEndSlide({
               })}
             </div>
           ) : (
-            <p className="mt-3 rounded-[0.9rem] border border-white/8 bg-white/5 px-3 py-2 text-xs font-bold text-white/48">
-              {isDiscoveryLoading
-                ? copy.sharedEndOtherLoading
-                : copy.sharedEndOtherEmpty}
-            </p>
+            <div className="mt-3 space-y-2">
+              {isDiscoveryLoading ? (
+                <div className="grid grid-cols-3 gap-2" aria-hidden="true">
+                  {Array.from({ length: 3 }, (_, index) => (
+                    <span
+                      className="block aspect-square overflow-hidden rounded-[0.85rem] border border-white/8 bg-white/[0.055]"
+                      key={`shared-end-discovery-skeleton:${index}`}
+                    >
+                      <span className="block h-full w-full bg-[linear-gradient(135deg,rgba(68,242,110,0.16),rgba(255,255,255,0.07)_42%,rgba(255,255,255,0.02))]" />
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              <p className="rounded-[0.9rem] border border-white/8 bg-white/5 px-3 py-2 text-xs font-bold text-white/48">
+                {isDiscoveryLoading
+                  ? copy.sharedEndOtherLoading
+                  : copy.sharedEndOtherEmpty}
+              </p>
+              <Link
+                className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-3 text-xs font-black !text-[#9bffad] transition hover:border-[#44f26e]/48 hover:bg-[#44f26e]/18 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/18"
+                href={charactersHref}
+                onClick={() => {
+                  onNavigationStart({
+                    href: charactersHref,
+                    label: copy.navigationPending.destination(
+                      copy.serviceCharacters,
+                    ),
+                  });
+                }}
+              >
+                <Sparkles className="size-4" />
+                {copy.sharedEndOtherBrowse}
+              </Link>
+            </div>
           )}
         </div>
       </div>
@@ -9789,6 +9833,7 @@ export function FanletterNewsPublicCutsFeedPage({
             />
             <SharedJourneyEndSlide
               characterHref={sharedEntryCharacterHref}
+              charactersHref={returnableCharactersHref}
               connectHref={sharedEndConnectHref}
               discoveryItems={sharedDiscoveryItems}
               isNestedFinalSlot
