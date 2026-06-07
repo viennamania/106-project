@@ -7768,23 +7768,40 @@ export function FanletterNewsPublicCutsFeedPage({
     setVisibleSlideIndex(sharedJourneyFinalSlideIndex);
     return true;
   }, [shareId, sharedJourneyFinalSlideIndex]);
-  const lockSharedFeedTopInPlace = useCallback(() => {
+  const lockSharedVisibleFeedSlideStartInPlace = useCallback(() => {
     const root = scrollContainerRef.current;
 
-    if (!shareId || !root || root.scrollTop > 1) {
+    if (
+      !shareId ||
+      !root ||
+      getSharedTransitionForSlideIndex(visibleSlideIndex) ||
+      (sharedJourneyFinalSlideIndex !== null &&
+        visibleSlideIndex === sharedJourneyFinalSlideIndex)
+    ) {
       return false;
     }
 
-    if (root.scrollTop !== 0) {
+    const visibleSlideScrollTop = root.clientHeight * visibleSlideIndex;
+
+    if (Math.abs(root.scrollTop - visibleSlideScrollTop) > 1) {
+      return false;
+    }
+
+    if (Math.abs(root.scrollTop - visibleSlideScrollTop) > 0.5) {
       root.scrollTo({
         behavior: "auto",
-        top: 0,
+        top: visibleSlideScrollTop,
       });
     }
 
-    setVisibleSlideIndex(0);
+    setVisibleSlideIndex(visibleSlideIndex);
     return true;
-  }, [shareId]);
+  }, [
+    getSharedTransitionForSlideIndex,
+    shareId,
+    sharedJourneyFinalSlideIndex,
+    visibleSlideIndex,
+  ]);
   const getIsSharedTransitionSelectionRequired = useCallback(
     (slideIndex: number) =>
       Boolean(
@@ -8145,7 +8162,7 @@ export function FanletterNewsPublicCutsFeedPage({
     (event: ReactWheelEvent<HTMLDivElement>) => {
       const root = scrollContainerRef.current;
 
-      if (event.deltaY < 0 && lockSharedFeedTopInPlace()) {
+      if (event.deltaY < 0 && lockSharedVisibleFeedSlideStartInPlace()) {
         event.preventDefault();
         return;
       }
@@ -8236,8 +8253,8 @@ export function FanletterNewsPublicCutsFeedPage({
       keepSharedJourneyFinalSlideInPlace,
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
-      lockSharedFeedTopInPlace,
       lockSharedJourneyFinalStartInPlace,
+      lockSharedVisibleFeedSlideStartInPlace,
       moveToPreviousSharedLockedSlide,
       shareId,
       sharedJourneyFinalSlideIndex,
@@ -8265,7 +8282,7 @@ export function FanletterNewsPublicCutsFeedPage({
       const root = scrollContainerRef.current;
       const deltaY = startTouchY - currentTouchY;
 
-      if (deltaY < 0 && lockSharedFeedTopInPlace()) {
+      if (deltaY < 0 && lockSharedVisibleFeedSlideStartInPlace()) {
         event.preventDefault();
         lockedTouchNavigationHandledRef.current = true;
         return;
@@ -8367,8 +8384,8 @@ export function FanletterNewsPublicCutsFeedPage({
       keepSharedJourneyFinalSlideInPlace,
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
-      lockSharedFeedTopInPlace,
       lockSharedJourneyFinalStartInPlace,
+      lockSharedVisibleFeedSlideStartInPlace,
       moveToPreviousSharedLockedSlide,
       activeSharedLockedSlideIndex,
       shareId,
