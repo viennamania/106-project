@@ -53,6 +53,14 @@ function getCopy(locale: Locale) {
         cutViews: "컷 조회",
         dwellEvents: "체류 기록",
         eventCount: "전체 행동",
+        fanRequestAnonymous: "익명 팬",
+        fanRequestCount: "팬 요청",
+        fanRequestEmpty:
+          "아직 이 공유 링크에서 남겨진 다음 브이로그 요청은 없습니다.",
+        fanRequestSignalBody:
+          "SNS 유입이 단순 조회에서 끝났는지, 아니면 AI 캐릭터의 다음 브이로그 소재로 전환됐는지 확인합니다.",
+        fanRequestSignalTitle: "다음 브이로그 요청 전환",
+        fanRequestSourceCut: (slot: string) => `${slot}컷에서 요청`,
         guestEvents: "비로그인 행동",
         heroBody:
           "이 공유 링크 하나에 대한 컷 소비, 원본 진입, 사용자 행동 흐름을 확인합니다.",
@@ -103,6 +111,14 @@ function getCopy(locale: Locale) {
         cutViews: "Cut views",
         dwellEvents: "Dwell records",
         eventCount: "All actions",
+        fanRequestAnonymous: "Anonymous fan",
+        fanRequestCount: "Fan requests",
+        fanRequestEmpty:
+          "No next-vlog requests have been submitted from this shared link yet.",
+        fanRequestSignalBody:
+          "See whether SNS traffic stops at views or turns into next-vlog material for the AI character.",
+        fanRequestSignalTitle: "Next Vlog Request Conversion",
+        fanRequestSourceCut: (slot: string) => `Requested from cut ${slot}`,
         guestEvents: "Guest actions",
         heroBody:
           "Review cut consumption, source opens, and behavior flow for this single shared link.",
@@ -316,6 +332,76 @@ function PartnerSignalSummary({
           value={formatPercent(guestRatio, locale)}
         />
       </div>
+    </section>
+  );
+}
+
+function FanRequestSignalSummary({
+  copy,
+  detail,
+  locale,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  detail: FanletterNewsCutShareLinkDetail;
+  locale: Locale;
+}) {
+  const fanRequestCountLabel = formatNumber(detail.fanRequests.length, locale);
+
+  return (
+    <section className="mt-5 rounded-[1.15rem] border border-white/10 bg-[#070a08] p-4 shadow-[0_20px_62px_rgba(0,0,0,0.28)]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[0.68rem] font-black uppercase tracking-[0.16em] text-[#9bffad]">
+            {copy.fanRequestCount} {fanRequestCountLabel}
+          </p>
+          <h2 className="mt-1 text-xl font-black leading-tight [word-break:keep-all]">
+            {copy.fanRequestSignalTitle}
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm font-bold leading-6 text-white/58 [word-break:keep-all]">
+            {copy.fanRequestSignalBody}
+          </p>
+        </div>
+        <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/14 text-[#44f26e]">
+          <Sparkles className="size-5" />
+        </span>
+      </div>
+      {detail.fanRequests.length > 0 ? (
+        <div className="mt-4 grid gap-2">
+          {detail.fanRequests.map((request) => {
+            const sourceCutLabel = request.sourceCutSlotNumber
+              ? copy.fanRequestSourceCut(
+                  formatNumber(request.sourceCutSlotNumber, locale),
+                )
+              : copy.fanRequestCount;
+
+            return (
+              <article
+                className="rounded-[0.95rem] border border-white/10 bg-white/[0.055] px-3 py-2.5"
+                key={request.requestId}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <p className="truncate text-[0.64rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
+                    {request.requesterDisplayName || copy.fanRequestAnonymous}
+                  </p>
+                  <p className="shrink-0 text-[0.62rem] font-bold text-white/36">
+                    {formatDate(request.createdAt, locale)}
+                  </p>
+                </div>
+                <p className="mt-1.5 text-sm font-black leading-5 text-white [word-break:keep-all]">
+                  {request.body}
+                </p>
+                <p className="mt-1 text-[0.65rem] font-bold text-white/42">
+                  {sourceCutLabel}
+                </p>
+              </article>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="mt-4 rounded-[0.9rem] border border-white/8 bg-white/[0.045] px-3 py-2.5 text-sm font-bold leading-5 text-white/48 [word-break:keep-all]">
+          {copy.fanRequestEmpty}
+        </p>
+      )}
     </section>
   );
 }
@@ -631,6 +717,11 @@ export default async function LocalizedFanletterNewsCutShareDetailPage({
               </div>
             </section>
             <PartnerSignalSummary
+              copy={copy}
+              detail={detail}
+              locale={locale}
+            />
+            <FanRequestSignalSummary
               copy={copy}
               detail={detail}
               locale={locale}

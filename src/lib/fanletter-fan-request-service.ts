@@ -37,6 +37,9 @@ const FANLETTER_FAN_REQUEST_BODY_LIMIT = 600;
 const FANLETTER_FAN_REQUEST_DISPLAY_NAME_LIMIT = 40;
 const FANLETTER_FAN_REQUEST_CHARACTER_NAME_LIMIT = 80;
 const FANLETTER_FAN_REQUEST_SOURCE_PATH_LIMIT = 240;
+const FANLETTER_FAN_REQUEST_SOURCE_REPORT_ID_LIMIT = 96;
+const FANLETTER_FAN_REQUEST_SOURCE_SHARE_ID_LIMIT = 120;
+const FANLETTER_FAN_REQUEST_SOURCE_JOURNEY_REPORT_LIMIT = 12;
 const FANLETTER_FAN_REQUEST_PAGE_SIZE_MAX = 50;
 const FANLETTER_FAN_REQUEST_RATE_LIMIT_COUNT = 3;
 const FANLETTER_FAN_REQUEST_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
@@ -63,6 +66,37 @@ function normalizeRequesterFingerprint(value: string | null | undefined) {
   const normalized = collapseWhitespace(value ?? "");
 
   return normalized ? normalized.slice(0, 80) : null;
+}
+
+function normalizeSourceCutSlotNumber(value: number | null | undefined) {
+  const parsed =
+    typeof value === "number" && Number.isFinite(value)
+      ? Math.trunc(value)
+      : null;
+
+  return parsed && parsed >= 1 && parsed <= 4 ? parsed : null;
+}
+
+function normalizeSourceReportId(value: string | null | undefined) {
+  return trimToLength(value, FANLETTER_FAN_REQUEST_SOURCE_REPORT_ID_LIMIT);
+}
+
+function normalizeSourceShareId(value: string | null | undefined) {
+  return trimToLength(value, FANLETTER_FAN_REQUEST_SOURCE_SHARE_ID_LIMIT);
+}
+
+function normalizeSourceJourneyReportIds(values: string[] | null | undefined) {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+
+  return Array.from(
+    new Set(
+      values
+        .map((value) => normalizeSourceReportId(value))
+        .filter((value): value is string => Boolean(value)),
+    ),
+  ).slice(0, FANLETTER_FAN_REQUEST_SOURCE_JOURNEY_REPORT_LIMIT);
 }
 
 function normalizeReceiptRequestIds(values: unknown[]) {
@@ -134,7 +168,11 @@ function serializeFanRequest(
       Boolean(request.originalBody && request.originalBody !== request.body),
     realismRevisionReasons,
     sourceContentId: request.sourceContentId,
+    sourceCutSlotNumber: request.sourceCutSlotNumber ?? null,
+    sourceJourneyReportIds: request.sourceJourneyReportIds ?? [],
     sourcePath: request.sourcePath,
+    sourceReportId: request.sourceReportId ?? null,
+    sourceShareId: request.sourceShareId ?? null,
     status: request.status,
     templateCategory: request.templateCategory ?? null,
     templateId: request.templateId ?? null,
@@ -325,7 +363,11 @@ export async function createFanletterFanRequest(input: {
   requesterEmail?: string | null;
   requesterFingerprint?: string | null;
   sourceContentId?: string | null;
+  sourceCutSlotNumber?: number | null;
+  sourceJourneyReportIds?: string[] | null;
   sourcePath?: string | null;
+  sourceReportId?: string | null;
+  sourceShareId?: string | null;
   templateId?: string | null;
 }) {
   const originalBody = trimToLength(input.body, FANLETTER_FAN_REQUEST_BODY_LIMIT);
@@ -382,7 +424,15 @@ export async function createFanletterFanRequest(input: {
     realismReviewedAt: now,
     realismRevisionReasons: realismRevision.reasons,
     sourceContentId,
+    sourceCutSlotNumber: normalizeSourceCutSlotNumber(
+      input.sourceCutSlotNumber,
+    ),
+    sourceJourneyReportIds: normalizeSourceJourneyReportIds(
+      input.sourceJourneyReportIds,
+    ),
     sourcePath: trimToLength(input.sourcePath, FANLETTER_FAN_REQUEST_SOURCE_PATH_LIMIT),
+    sourceReportId: normalizeSourceReportId(input.sourceReportId),
+    sourceShareId: normalizeSourceShareId(input.sourceShareId),
     status: "new",
     templateCategory: template?.category ?? null,
     templateId: template?.templateId ?? null,

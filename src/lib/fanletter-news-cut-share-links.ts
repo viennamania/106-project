@@ -4,6 +4,7 @@ import { randomUUID } from "node:crypto";
 
 import type { FunnelEventName } from "@/lib/funnel";
 import {
+  getFanletterFanRequestsCollection,
   getFanletterNewsCutShareLinksCollection,
   getFanletterNewsReportsCollection,
   getFunnelEventsCollection,
@@ -83,10 +84,20 @@ export type FanletterNewsCutShareLinkCutDetail = FanletterNewsPublicCut & {
   };
 };
 
+export type FanletterNewsCutShareLinkFanRequest = {
+  body: string;
+  createdAt: string;
+  requestId: string;
+  requesterDisplayName: string | null;
+  sourceCutSlotNumber: number | null;
+  sourceReportId: string | null;
+};
+
 export type FanletterNewsCutShareLinkDetail = FanletterNewsCutShareLinkDashboardItem & {
   cuts: FanletterNewsCutShareLinkCutDetail[];
   creatorName: string | null;
   coverImageUrl: string | null;
+  fanRequests: FanletterNewsCutShareLinkFanRequest[];
 };
 
 type CreateFanletterNewsCutShareLinkInput = {
@@ -481,7 +492,8 @@ export async function getFanletterNewsCutShareLinkDetail({
     return null;
   }
 
-  const [metricRows, cutDwellRows, cutViewRows, report] = await Promise.all([
+  const [metricRows, cutDwellRows, cutViewRows, fanRequests, report] =
+    await Promise.all([
     getFunnelEventsCollection().then((collection) =>
       collection
         .aggregate<RawMetricsRow>([
@@ -633,23 +645,42 @@ export async function getFanletterNewsCutShareLinkDetail({
         ])
         .toArray(),
     ),
-    getFanletterNewsReportsCollection().then((collection) =>
-      collection.findOne(
-        { reportId: link.reportId },
-        {
-          projection: {
-            coverImageUrl: 1,
-            creatorName: 1,
-            reportId: 1,
-            reporterName: 1,
-            teaserImages: 1,
-            teaserImageUrls: 1,
-            title: 1,
-          },
-        },
+      getFanletterFanRequestsCollection().then((collection) =>
+        collection
+          .find(
+            { sourceShareId: normalizedShareId },
+            {
+              projection: {
+                body: 1,
+                createdAt: 1,
+                requestId: 1,
+                requesterDisplayName: 1,
+                sourceCutSlotNumber: 1,
+                sourceReportId: 1,
+              },
+            },
+          )
+          .sort({ createdAt: -1 })
+          .limit(4)
+          .toArray(),
       ),
-    ),
-  ]);
+      getFanletterNewsReportsCollection().then((collection) =>
+        collection.findOne(
+          { reportId: link.reportId },
+          {
+            projection: {
+              coverImageUrl: 1,
+              creatorName: 1,
+              reportId: 1,
+              reporterName: 1,
+              teaserImages: 1,
+              teaserImageUrls: 1,
+              title: 1,
+            },
+          },
+        ),
+      ),
+    ]);
 
   const cutDwell = cutDwellRows.map((row) => ({
     averageDwellMs: Math.round(row.averageDwellMs ?? 0),
@@ -689,6 +720,14 @@ export async function getFanletterNewsCutShareLinkDetail({
         },
       };
     }),
+    fanRequests: fanRequests.map((request) => ({
+      body: request.body,
+      createdAt: request.createdAt.toISOString(),
+      requestId: request.requestId,
+      requesterDisplayName: request.requesterDisplayName ?? null,
+      sourceCutSlotNumber: request.sourceCutSlotNumber ?? null,
+      sourceReportId: request.sourceReportId ?? null,
+    })),
     memo: link.memo,
     metrics: {
       ...totalMetrics,

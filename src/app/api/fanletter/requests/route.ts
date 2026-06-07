@@ -168,7 +168,11 @@ export async function POST(request: Request) {
       requesterEmail,
       requesterFingerprint: getRequesterFingerprint(request),
       sourceContentId: body?.sourceContentId,
+      sourceCutSlotNumber: body?.sourceCutSlotNumber,
+      sourceJourneyReportIds: body?.sourceJourneyReportIds,
       sourcePath: body?.sourcePath,
+      sourceReportId: body?.sourceReportId,
+      sourceShareId: body?.sourceShareId,
       templateId: body?.templateId,
     });
     const response: FanletterFanRequestCreateResponse = {

@@ -457,7 +457,11 @@ export type FanletterFanRequestDocument = {
   realismReviewedAt?: Date | null;
   realismRevisionReasons?: FanletterRealismRevisionReason[] | null;
   sourceContentId: string | null;
+  sourceCutSlotNumber?: number | null;
+  sourceJourneyReportIds?: string[] | null;
   sourcePath: string | null;
+  sourceReportId?: string | null;
+  sourceShareId?: string | null;
   status: FanletterFanRequestStatus;
   templateCategory?: FanletterFanRequestTemplateCategory | null;
   templateId?: string | null;
@@ -794,7 +798,11 @@ export type FanletterFanRequestRecord = {
   realismRevised: boolean;
   realismRevisionReasons: FanletterRealismRevisionReason[];
   sourceContentId: string | null;
+  sourceCutSlotNumber: number | null;
+  sourceJourneyReportIds: string[];
   sourcePath: string | null;
+  sourceReportId: string | null;
+  sourceShareId: string | null;
   status: FanletterFanRequestStatus;
   templateCategory: FanletterFanRequestTemplateCategory | null;
   templateId: string | null;
@@ -811,7 +819,11 @@ export type FanletterFanRequestCreateRequest = {
   requestType?: string | null;
   requesterDisplayName?: string | null;
   sourceContentId?: string | null;
+  sourceCutSlotNumber?: number | null;
+  sourceJourneyReportIds?: string[] | null;
   sourcePath?: string | null;
+  sourceReportId?: string | null;
+  sourceShareId?: string | null;
   templateId?: string | null;
 };
 

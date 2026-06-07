@@ -5,6 +5,7 @@ export const funnelEventNames = [
   "fanletter_news_cut_dwell",
   "fanletter_news_cut_feed_load_more",
   "fanletter_news_cut_view",
+  "fanletter_news_fan_request_submit",
   "fanletter_news_report_view",
   "fanletter_news_source_open_click",
   "feed_view_public",

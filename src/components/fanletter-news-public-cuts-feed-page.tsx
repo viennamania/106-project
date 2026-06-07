@@ -13,6 +13,7 @@ import {
   useState,
   useSyncExternalStore,
   type CSSProperties,
+  type FormEvent,
   type PointerEvent as ReactPointerEvent,
   type TouchEvent as ReactTouchEvent,
   type WheelEvent as ReactWheelEvent,
@@ -84,7 +85,13 @@ import {
   FANLETTER_NEWS_SOURCE_REVEAL_STATE_CHANGE_EVENT,
   type FanletterNewsSourceRevealStateChangeDetail,
 } from "@/lib/fanletter-news-source-reveal-events";
+import type { FanletterFanRequestCreateResponse } from "@/lib/content";
 import { trackFunnelEvent } from "@/lib/funnel-client";
+import {
+  FANLETTER_FAN_REQUEST_SUBMITTED_EVENT,
+  type FanletterFanRequestSubmittedDetail,
+} from "@/lib/fanletter-request-events";
+import { rememberFanletterRequestReceiptId } from "@/lib/fanletter-request-receipts";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import { buildPathWithReferral, setPathSearchParams } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
@@ -366,6 +373,17 @@ function getCopy(locale: Locale) {
         sharedEndOtherLoading: "추천 캐릭터 준비 중",
         sharedEndOtherTitle: "다른 AI 캐릭터도 활동 중이에요",
         sharedEndReportsMetric: "본 리포트",
+        sharedEndRequestBody: (name: string) =>
+          `${name}가 다음 브이로그에서 보여줬으면 하는 장소, 상황, 대사를 한 줄로 남겨보세요.`,
+        sharedEndRequestEmpty: "보고 싶은 다음 장면을 한 줄로 적어주세요.",
+        sharedEndRequestError: "요청을 저장하지 못했습니다. 잠시 뒤 다시 시도해 주세요.",
+        sharedEndRequestEyebrow: "팬이 만드는 다음 브이로그",
+        sharedEndRequestPlaceholder:
+          "예: 바닷가에서 팬 질문에 답하는 브이로그를 보고 싶어요",
+        sharedEndRequestSubmit: "다음 브이로그 요청 남기기",
+        sharedEndRequestSubmitting: "요청 남기는 중",
+        sharedEndRequestSuccess: "요청이 전달됐어요. 이 요청은 캐릭터의 다음 브이로그 소재로 쌓입니다.",
+        sharedEndRequestTitle: "다음에 보고 싶은 장면",
         sharedEndShare: "이 흐름 공유하기",
         sharedEndTitle: (name: string) => `${name} 리포트는 여기까지`,
         sharedTimelineSourceGateBody: (
@@ -672,6 +690,18 @@ function getCopy(locale: Locale) {
         sharedEndOtherLoading: "Preparing character picks",
         sharedEndOtherTitle: "Other AI characters are active too",
         sharedEndReportsMetric: "Reports viewed",
+        sharedEndRequestBody: (name: string) =>
+          `Leave one scene, setting, or line you want ${name} to show in the next vlog.`,
+        sharedEndRequestEmpty: "Write one next-scene idea first.",
+        sharedEndRequestError: "Could not save the request. Please try again shortly.",
+        sharedEndRequestEyebrow: "Fans shape the next vlog",
+        sharedEndRequestPlaceholder:
+          "Example: I want a beach vlog answering fan questions",
+        sharedEndRequestSubmit: "Leave next vlog request",
+        sharedEndRequestSubmitting: "Saving request",
+        sharedEndRequestSuccess:
+          "Request sent. It now becomes a signal for this character's next vlog.",
+        sharedEndRequestTitle: "What should happen next?",
         sharedEndShare: "Share this flow",
         sharedEndTitle: (name: string) => `${name}'s reports end here`,
         sharedTimelineSourceGateBody: (
@@ -1151,6 +1181,7 @@ type SourceRevealResponse = {
 };
 
 type ShareState = "copied" | "error" | "idle" | "sharing";
+type SharedEndFanRequestStatus = "error" | "idle" | "loading" | "success";
 
 type SourceRevealTapFeedback = {
   id: number;
@@ -6530,9 +6561,14 @@ function SharedJourneyEndSlide({
   const copy = getCopy(locale);
   const router = useRouter();
   const [shareState, setShareState] = useState<ShareState>("idle");
+  const [fanRequestBody, setFanRequestBody] = useState("");
+  const [fanRequestError, setFanRequestError] = useState<string | null>(null);
+  const [fanRequestStatus, setFanRequestStatus] =
+    useState<SharedEndFanRequestStatus>("idle");
   const shareFeedbackTimeoutRef = useRef<number | null>(null);
   const shareInFlightRef = useRef(false);
   const primaryItem = journeyItems[0] ?? null;
+  const latestJourneyItem = journeyItems[journeyItems.length - 1] ?? primaryItem;
   const characterName = primaryItem?.report.creatorName ?? copy.serviceCharacters;
   const backgroundImageUrl =
     primaryItem?.report.coverImageUrl ||
@@ -6563,6 +6599,10 @@ function SharedJourneyEndSlide({
         : shareState === "sharing"
           ? copy.shareSharing
           : copy.sharedEndShare;
+  const fanRequestSubmitLabel =
+    fanRequestStatus === "loading"
+      ? copy.sharedEndRequestSubmitting
+      : copy.sharedEndRequestSubmit;
 
   useEffect(() => {
     router.prefetch(characterHref);
@@ -6663,6 +6703,107 @@ function SharedJourneyEndSlide({
     showShareFeedback,
   ]);
 
+  const handleFanRequestSubmit = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      const body = fanRequestBody.trim();
+
+      if (!body) {
+        setFanRequestError(copy.sharedEndRequestEmpty);
+        setFanRequestStatus("error");
+        return;
+      }
+
+      if (!primaryItem) {
+        setFanRequestError(copy.sharedEndRequestError);
+        setFanRequestStatus("error");
+        return;
+      }
+
+      setFanRequestError(null);
+      setFanRequestStatus("loading");
+
+      try {
+        const sourcePath =
+          typeof window === "undefined"
+            ? null
+            : `${window.location.pathname}${window.location.search}`;
+        const response = await fetch("/api/fanletter/requests", {
+          body: JSON.stringify({
+            body,
+            characterName,
+            creatorReferralCode: primaryItem.report.creatorReferralCode,
+            requestType: "vlog_request",
+            sourceContentId: latestJourneyItem?.report.contentId ?? null,
+            sourceCutSlotNumber: latestJourneyItem?.leadCut.slotNumber ?? null,
+            sourceJourneyReportIds: journeyItems.map(
+              (item) => item.report.reportId,
+            ),
+            sourcePath,
+            sourceReportId: latestJourneyItem?.report.reportId ?? null,
+            sourceShareId: shareId,
+          }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        });
+        const data = (await response.json()) as
+          | FanletterFanRequestCreateResponse
+          | { error?: string };
+
+        if (!response.ok || !("request" in data)) {
+          throw new Error("error" in data ? data.error : undefined);
+        }
+
+        rememberFanletterRequestReceiptId(data.request.requestId);
+        window.dispatchEvent(
+          new CustomEvent<FanletterFanRequestSubmittedDetail>(
+            FANLETTER_FAN_REQUEST_SUBMITTED_EVENT,
+            {
+              detail: {
+                creatorReferralCode: primaryItem.report.creatorReferralCode,
+                requestId: data.request.requestId,
+                sourceContentId: latestJourneyItem?.report.contentId ?? null,
+              },
+            },
+          ),
+        );
+        trackFunnelEvent("fanletter_news_fan_request_submit", {
+          contentId: latestJourneyItem?.report.contentId ?? null,
+          metadata: {
+            creatorReferralCode: primaryItem.report.creatorReferralCode,
+            journeyReportCount: journeyItems.length,
+            requestId: data.request.requestId,
+            source: "fanletter-news-cut-shared-end",
+            sourceCutSlotNumber: latestJourneyItem?.leadCut.slotNumber ?? null,
+            sourceReportId: latestJourneyItem?.report.reportId ?? null,
+          },
+          referralCode,
+          shareId,
+          targetHref: sourcePath,
+        });
+        setFanRequestBody("");
+        setFanRequestStatus("success");
+      } catch {
+        setFanRequestError(copy.sharedEndRequestError);
+        setFanRequestStatus("error");
+      }
+    },
+    [
+      characterName,
+      copy.sharedEndRequestEmpty,
+      copy.sharedEndRequestError,
+      fanRequestBody,
+      journeyItems,
+      latestJourneyItem,
+      primaryItem,
+      referralCode,
+      shareId,
+    ],
+  );
+
   return (
     <section
       aria-label={copy.sharedEndTitle(characterName)}
@@ -6750,9 +6891,63 @@ function SharedJourneyEndSlide({
               </div>
             </div>
 
-            <div className="mt-5 grid gap-2">
+            <form
+              className="mt-5 rounded-[1.05rem] border border-[#44f26e]/18 bg-black/50 p-3 shadow-[0_18px_48px_rgba(0,0,0,0.28)] backdrop-blur-xl"
+              onSubmit={(event) => void handleFanRequestSubmit(event)}
+            >
+              <p className="text-[0.62rem] font-black uppercase tracking-[0.15em] text-[#9bffad]">
+                {copy.sharedEndRequestEyebrow}
+              </p>
+              <h3 className="mt-1 text-base font-black leading-tight [word-break:keep-all]">
+                {copy.sharedEndRequestTitle}
+              </h3>
+              <p className="mt-1.5 text-[0.72rem] font-bold leading-5 text-white/56 [word-break:keep-all]">
+                {copy.sharedEndRequestBody(characterName)}
+              </p>
+              {fanRequestStatus === "success" ? (
+                <div className="mt-3 rounded-[0.85rem] border border-[#44f26e]/24 bg-[#44f26e]/12 px-3 py-2 text-[0.72rem] font-black leading-5 text-[#9bffad] [word-break:keep-all]">
+                  {copy.sharedEndRequestSuccess}
+                </div>
+              ) : (
+                <>
+                  <textarea
+                    className="mt-3 min-h-[4.35rem] w-full resize-none rounded-[0.85rem] border border-white/10 bg-white/[0.06] px-3 py-2 text-sm font-bold leading-5 text-white outline-none placeholder:text-white/28 focus:border-[#44f26e]/54 focus:ring-4 focus:ring-[#44f26e]/16"
+                    disabled={fanRequestStatus === "loading"}
+                    maxLength={180}
+                    onChange={(event) => {
+                      setFanRequestBody(event.target.value);
+                      if (fanRequestError) {
+                        setFanRequestError(null);
+                        setFanRequestStatus("idle");
+                      }
+                    }}
+                    placeholder={copy.sharedEndRequestPlaceholder}
+                    value={fanRequestBody}
+                  />
+                  {fanRequestError ? (
+                    <p className="mt-2 text-[0.68rem] font-bold leading-4 text-red-200">
+                      {fanRequestError}
+                    </p>
+                  ) : null}
+                  <button
+                    className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-[#111510] shadow-[0_16px_38px_rgba(68,242,110,0.2)] transition hover:bg-[#65ff86] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28 disabled:cursor-wait disabled:opacity-72"
+                    disabled={fanRequestStatus === "loading"}
+                    type="submit"
+                  >
+                    {fanRequestStatus === "loading" ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="size-4" />
+                    )}
+                    {fanRequestSubmitLabel}
+                  </button>
+                </>
+              )}
+            </form>
+
+            <div className="mt-3 grid gap-2">
               <Link
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black !text-[#111510] shadow-[0_18px_44px_rgba(68,242,110,0.2)] transition hover:bg-[#65ff86] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-4 text-sm font-black !text-[#9bffad] transition hover:border-[#44f26e]/48 hover:bg-[#44f26e]/18 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
                 href={characterHref}
                 onClick={() => {
                   onNavigationStart({
