@@ -5883,9 +5883,9 @@ function SharedCharacterVlogPickerSlide({
   );
 
   return (
-	    <section
-	      aria-label={copy.sharedVlogPickerTitle}
-	      className="relative min-h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+0.95rem)] text-white"
+    <section
+      aria-label={copy.sharedVlogPickerTitle}
+      className="relative h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-[calc(env(safe-area-inset-top)+0.8rem)] text-white"
       data-shared-character-intro
       data-shared-vlog-picker
     >
@@ -5900,24 +5900,24 @@ function SharedCharacterVlogPickerSlide({
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,6,4,0.56),rgba(3,6,4,0.74)_34%,rgba(3,6,4,0.96))]" />
       </div>
-	      <div className="relative z-10 mx-auto flex min-h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom)_-_1.75rem)] w-full max-w-[430px] flex-col">
-	        <div className="flex items-center gap-2">
-	          <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_14px_30px_rgba(68,242,110,0.18)]">
-	            {showCutRecap ? (
-	              <Images className="size-4" />
-	            ) : (
-	              <Sparkles className="size-4" />
-	            )}
-	          </span>
-	          <div className="min-w-0">
-	            <p className="truncate text-[0.56rem] font-black uppercase tracking-[0.16em] text-[#9bffad]">
+      <div className="relative z-10 mx-auto flex h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom)_-_1.55rem)] w-full max-w-[430px] flex-col">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_14px_30px_rgba(68,242,110,0.18)]">
+            {showCutRecap ? (
+              <Images className="size-3.5" />
+            ) : (
+              <Sparkles className="size-3.5" />
+            )}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[0.5rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
               {showCutRecap
                 ? copy.sharedCutRecapEyebrow
                 : compactPickerOnly
                   ? copy.sharedVlogPickerEyebrow
                   : copy.characterIntroEyebrow}
             </p>
-	            <p className="mt-0.5 truncate text-[0.7rem] font-black text-white/58">
+            <p className="truncate text-[0.62rem] font-black text-white/58">
               {showCutRecap
                 ? copy.sharedTimelineBadge(characterName)
                 : compactPickerOnly
@@ -5932,7 +5932,7 @@ function SharedCharacterVlogPickerSlide({
 	              ? "justify-center gap-5 py-5"
 	              : showCutRecap
 	                ? "justify-between gap-3 py-3"
-	                : "justify-start gap-3 py-3"
+                : "justify-start gap-2 py-2"
 	          }`}
         >
           {showCutRecap ? (
@@ -6078,40 +6078,40 @@ function SharedCharacterVlogPickerSlide({
                 {copy.characterIntroBody(characterName)}
               </p>
             </div>
-	          ) : (
-	            <div className="mx-auto flex w-full max-w-[24rem] items-center gap-2 rounded-[1rem] border border-white/10 bg-black/38 p-2 shadow-[0_18px_48px_rgba(0,0,0,0.28)] backdrop-blur-xl">
-	              <div className="relative size-[3.35rem] shrink-0 overflow-hidden rounded-[0.8rem] border border-[#44f26e]/28 bg-black/38">
-	                <Image
-	                  alt=""
-	                  className="object-cover"
-	                  fill
-	                  sizes="56px"
+          ) : (
+            <div className="mx-auto flex w-full max-w-[24rem] items-center gap-2 rounded-[0.85rem] border border-white/10 bg-black/38 p-1.5 shadow-[0_18px_48px_rgba(0,0,0,0.24)] backdrop-blur-xl">
+              <div className="relative size-10 shrink-0 overflow-hidden rounded-[0.65rem] border border-[#44f26e]/28 bg-black/38">
+                <Image
+                  alt=""
+                  className="object-cover"
+                  fill
+                  sizes="40px"
                   src={characterImageUrl}
                   unoptimized={shouldBypassFanletterImageOptimization(
                     characterImageUrl,
                   )}
 	                />
-	              </div>
-	              <div className="min-w-0 flex-1">
-	                <h2 className="truncate text-[0.98rem] font-black leading-tight tracking-normal">
-	                  {copy.characterIntroTitle(characterName)}
-	                </h2>
-	                <p className="mt-1 line-clamp-1 text-[0.66rem] font-bold leading-4 text-white/58 [word-break:keep-all]">
-	                  {copy.characterIntroBody(characterName)}
-	                </p>
-	              </div>
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate text-[0.82rem] font-black leading-tight tracking-normal">
+                  {copy.characterIntroTitle(characterName)}
+                </h2>
+                <p className="mt-0.5 line-clamp-1 text-[0.58rem] font-bold leading-3 text-white/50 [word-break:keep-all]">
+                  {copy.characterIntroBody(characterName)}
+                </p>
+              </div>
             </div>
           )}
           <div className="min-h-0">
             <div className="flex items-end justify-between gap-3">
               <div className="min-w-0">
-	                <p className="text-[0.58rem] font-black uppercase tracking-[0.13em] text-[#9bffad]">
-	                  {copy.sharedVlogPickerReportCount(optionCountLabel)}
-	                </p>
-	                <h3
-	                  className={`mt-0.5 break-words font-black leading-[1.04] tracking-normal [word-break:keep-all] ${
-	                    showCutRecap ? "text-[1.2rem]" : "text-[1.24rem]"
-	                  }`}
+                <p className="text-[0.52rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
+                  {copy.sharedVlogPickerReportCount(optionCountLabel)}
+                </p>
+                <h3
+                  className={`mt-0.5 break-words font-black leading-[1.04] tracking-normal [word-break:keep-all] ${
+                    showCutRecap ? "text-[1.2rem]" : "text-[1.05rem]"
+                  }`}
                 >
                   {isSingleOption
                     ? copy.sharedVlogPickerSingleTitle
@@ -6128,10 +6128,10 @@ function SharedCharacterVlogPickerSlide({
 	            </div>
             <p
               className={`max-w-[22rem] break-words font-bold text-white/66 [word-break:keep-all] ${
-	                showCutRecap
-	                  ? "mt-1 line-clamp-2 text-[0.7rem] leading-4"
-	                  : "mt-1 line-clamp-1 text-[0.72rem] leading-4"
-	              }`}
+                  showCutRecap
+                    ? "mt-1 line-clamp-2 text-[0.7rem] leading-4"
+                    : "mt-0.5 line-clamp-1 text-[0.62rem] leading-3"
+              }`}
             >
               {isSingleOption
                 ? copy.sharedVlogPickerSingleBody
@@ -6140,7 +6140,7 @@ function SharedCharacterVlogPickerSlide({
           </div>
           <div
             aria-label={copy.sharedVlogPickerReports}
-            className={`grid min-h-0 gap-1.5 ${
+            className={`grid min-h-0 flex-1 content-start gap-1.5 ${
               isSingleOption ? "grid-cols-1" : "grid-cols-3"
             }`}
           >
@@ -6174,12 +6174,12 @@ function SharedCharacterVlogPickerSlide({
               return (
                 <button
                   aria-label={`${option.report.reporterName} ${option.report.title} ${copy.sharedVlogPickerCta}`}
-	                  className={`group flex min-h-0 flex-col rounded-[0.78rem] border p-1 text-left shadow-[0_14px_34px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28 ${cardStateClassName}`}
+                  className={`group flex min-h-0 flex-col rounded-[0.72rem] border p-1 text-left shadow-[0_14px_34px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28 ${cardStateClassName}`}
                   key={`${optionReportId}:vlog-option`}
                   onClick={() => onSelect(option)}
                   type="button"
                 >
-	                  <span className="relative block aspect-[9/16] w-full overflow-hidden rounded-[0.64rem] bg-white/10">
+                  <span className="relative block aspect-[9/16] w-full overflow-hidden rounded-[0.58rem] bg-white/10">
                     <Image
                       alt=""
                       className="object-cover"
@@ -6193,25 +6193,23 @@ function SharedCharacterVlogPickerSlide({
                     <span className="absolute inset-0 bg-gradient-to-t from-black/66 via-black/6 to-black/8" />
                     {statusLabel ? (
                       <span
-                        className={`absolute right-1 top-1 rounded-full px-1.5 py-0.5 text-[0.46rem] font-black leading-none ${statusClassName}`}
+                        className={`absolute right-1 top-1 rounded-full px-1.5 py-0.5 text-[0.44rem] font-black leading-none ${statusClassName}`}
                       >
                         {statusLabel}
                       </span>
                     ) : null}
-                  </span>
-                  <span className="flex min-w-0 flex-1 flex-col justify-between px-0.5 py-0.5">
-                    <span className="flex min-h-3 items-center gap-1">
-                      <span className="truncate text-[0.48rem] font-black uppercase tracking-[0.07em] text-[#9bffad]">
+                    <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/88 via-black/44 to-transparent px-1.5 pb-1.5 pt-5">
+                      <span className="block truncate text-[0.5rem] font-black uppercase tracking-[0.06em] text-[#9bffad]">
                         {option.report.reporterName}
                       </span>
+                      <span className="mt-0.5 inline-flex items-center gap-0.5 text-[0.5rem] font-black text-white/72">
+                        <HeartHandshake className="size-2.5 text-[#44f26e]" />
+                        {participantCountLabel}/{option.sourceReveal.threshold}
+                      </span>
                     </span>
-                    <span className="mt-0.5 line-clamp-2 block text-[0.64rem] font-black leading-tight text-white [word-break:keep-all]">
+                  </span>
+                  <span className="sr-only">
                       {option.report.title}
-                    </span>
-                    <span className="mt-1 inline-flex items-center gap-0.5 text-[0.52rem] font-black text-white/58">
-                      <HeartHandshake className="size-2.5 text-[#44f26e]" />
-                      {participantCountLabel}/{option.sourceReveal.threshold}
-                    </span>
                   </span>
                 </button>
               );
@@ -9232,6 +9230,12 @@ export function FanletterNewsPublicCutsFeedPage({
         })}
         {shouldShowSharedJourneyEndSlide ? (
           <>
+            <SharedCutDwellRecapSlide
+              completedItems={feedItems}
+              entryCutSlotNumber={initialCutSlotNumber}
+              locale={locale}
+              sharedCutRecap={sharedCutRecap}
+            />
             <SharedJourneyEndSlide
               characterHref={sharedEntryCharacterHref}
               connectHref={sharedEndConnectHref}
@@ -9243,12 +9247,6 @@ export function FanletterNewsPublicCutsFeedPage({
               referralCode={referralCode}
               returnToHref={cutFeedHomeHref}
               shareId={shareId}
-            />
-            <SharedCutDwellRecapSlide
-              completedItems={feedItems}
-              entryCutSlotNumber={initialCutSlotNumber}
-              locale={locale}
-              sharedCutRecap={sharedCutRecap}
             />
           </>
         ) : (
