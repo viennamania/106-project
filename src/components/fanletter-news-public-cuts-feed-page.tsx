@@ -5086,7 +5086,7 @@ function FeedSlide({
                   }
                   fill
                   loading={shouldLoadCutImageEagerly ? "eager" : "lazy"}
-                  priority={shouldLoadCutImageEagerly}
+                  preload={shouldLoadCutImageEagerly}
                   sizes="(min-width: 640px) 430px, 100vw"
                   src={cut.imageUrl}
                   unoptimized={shouldBypassFanletterImageOptimization(cut.imageUrl)}
