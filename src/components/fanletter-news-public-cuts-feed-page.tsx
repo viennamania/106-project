@@ -7768,6 +7768,23 @@ export function FanletterNewsPublicCutsFeedPage({
     setVisibleSlideIndex(sharedJourneyFinalSlideIndex);
     return true;
   }, [shareId, sharedJourneyFinalSlideIndex]);
+  const lockSharedFeedTopInPlace = useCallback(() => {
+    const root = scrollContainerRef.current;
+
+    if (!shareId || !root || root.scrollTop > 1) {
+      return false;
+    }
+
+    if (root.scrollTop !== 0) {
+      root.scrollTo({
+        behavior: "auto",
+        top: 0,
+      });
+    }
+
+    setVisibleSlideIndex(0);
+    return true;
+  }, [shareId]);
   const getIsSharedTransitionSelectionRequired = useCallback(
     (slideIndex: number) =>
       Boolean(
@@ -8128,6 +8145,11 @@ export function FanletterNewsPublicCutsFeedPage({
     (event: ReactWheelEvent<HTMLDivElement>) => {
       const root = scrollContainerRef.current;
 
+      if (event.deltaY < 0 && lockSharedFeedTopInPlace()) {
+        event.preventDefault();
+        return;
+      }
+
       if (
         root &&
         shareId &&
@@ -8214,6 +8236,7 @@ export function FanletterNewsPublicCutsFeedPage({
       keepSharedJourneyFinalSlideInPlace,
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
+      lockSharedFeedTopInPlace,
       lockSharedJourneyFinalStartInPlace,
       moveToPreviousSharedLockedSlide,
       shareId,
@@ -8241,6 +8264,12 @@ export function FanletterNewsPublicCutsFeedPage({
 
       const root = scrollContainerRef.current;
       const deltaY = startTouchY - currentTouchY;
+
+      if (deltaY < 0 && lockSharedFeedTopInPlace()) {
+        event.preventDefault();
+        lockedTouchNavigationHandledRef.current = true;
+        return;
+      }
 
       if (deltaY < 0 && lockSharedJourneyFinalStartInPlace()) {
         event.preventDefault();
@@ -8338,6 +8367,7 @@ export function FanletterNewsPublicCutsFeedPage({
       keepSharedJourneyFinalSlideInPlace,
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
+      lockSharedFeedTopInPlace,
       lockSharedJourneyFinalStartInPlace,
       moveToPreviousSharedLockedSlide,
       activeSharedLockedSlideIndex,
