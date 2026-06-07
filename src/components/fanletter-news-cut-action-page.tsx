@@ -91,6 +91,7 @@ function getCopy(locale: Locale) {
         manageShares: "공유 캠페인 보기",
         openCharacters: "AI 캐릭터 둘러보기",
         openConnect: "뉴스 계정 연결",
+        openCharacter: (name: string) => `${name} 계속 보기`,
         platformLabel: "팬이 키우는 AI 캐릭터 브이로그",
         sharing: "공유 준비 중",
       }
@@ -144,6 +145,7 @@ function getCopy(locale: Locale) {
         manageShares: "View share campaigns",
         openCharacters: "Browse AI characters",
         openConnect: "Connect News account",
+        openCharacter: (name: string) => `Continue ${name}`,
         platformLabel: "AI character vlogs shaped by fans",
         sharing: "Preparing share",
       };
@@ -232,7 +234,7 @@ export function FanletterNewsCutActionPage({
       : action === "alerts"
         ? copy.openCharacters
         : action === "characters"
-          ? `${displayCharacterName} 계속 보기`
+          ? copy.openCharacter(displayCharacterName)
           : copy.openCharacters;
   const shareLabel =
     shareState === "copied"

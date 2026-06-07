@@ -6601,6 +6601,7 @@ function SharedJourneyEndSlide({
         ),
         {
           cut: String(primaryItem.leadCut.slotNumber),
+          end: "1",
           shareId,
         },
       )
@@ -6978,7 +6979,7 @@ function SharedJourneyEndSlide({
                   locale,
                   referralCode,
                   reportId: item.report.reportId,
-                  returnToHref,
+                  returnToHref: sharedEndReturnToHref,
                 });
                 const discoveryImageUrl =
                   item.report.creatorAvatarImageUrl ||
@@ -7348,6 +7349,7 @@ export function FanletterNewsPublicCutsFeedPage({
   locale,
   nextOffset: initialNextOffset,
   referralCode,
+  resumeSharedJourneyEnd = false,
   returnToHref = null,
   shareId,
   sharedCutRecap = null,
@@ -7363,6 +7365,7 @@ export function FanletterNewsPublicCutsFeedPage({
   locale: Locale;
   nextOffset: number;
   referralCode: string | null;
+  resumeSharedJourneyEnd?: boolean;
   returnToHref?: string | null;
   shareId: string | null;
   sharedCutRecap?: SerializedFanletterNewsPublicCutShareRecap | null;
@@ -7434,6 +7437,7 @@ export function FanletterNewsPublicCutsFeedPage({
     new Set(),
   );
   const sharedJourneyFinalReachedRef = useRef(false);
+  const resumeSharedJourneyEndAppliedRef = useRef(false);
   const cutFeedHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/news/cuts`,
     referralCode,
@@ -8233,8 +8237,74 @@ export function FanletterNewsPublicCutsFeedPage({
       setSharedMinimumSlideIndex(0);
       sharedResolvedTransitionSlideIndexesRef.current = new Set();
       sharedJourneyFinalReachedRef.current = false;
+      resumeSharedJourneyEndAppliedRef.current = false;
     }
   }, [shareId, sharedConsumedStorageKey, sharedViewedStorageKey]);
+  useEffect(() => {
+    if (
+      !resumeSharedJourneyEnd ||
+      !shareId ||
+      sharedJourneyFinalSlideIndex === null ||
+      resumeSharedJourneyEndAppliedRef.current
+    ) {
+      return;
+    }
+
+    const reportIds = feedItems
+      .map((item) => item.report.reportId.trim())
+      .filter(Boolean);
+    const consumedReportIds = feedItems
+      .filter((item) => getPublicCutItemCutCount(item) > 1)
+      .map((item) => item.report.reportId.trim())
+      .filter(Boolean);
+
+    setSharedViewedReportIds((currentReportIds) => {
+      const nextReportIds = new Set(currentReportIds);
+
+      reportIds.forEach((reportId) => nextReportIds.add(reportId));
+      writeSharedViewedReportIds(sharedViewedStorageKey, nextReportIds);
+      return nextReportIds;
+    });
+    setSharedConsumedReportIds((currentReportIds) => {
+      const nextReportIds = new Set(currentReportIds);
+
+      consumedReportIds.forEach((reportId) => nextReportIds.add(reportId));
+      writeSharedConsumedReportIds(sharedConsumedStorageKey, nextReportIds);
+      return nextReportIds;
+    });
+
+    sharedResolvedTransitionSlideIndexesRef.current = new Set(
+      sharedVlogTransitions.map((transition) =>
+        getSharedTransitionSlideIndex(transition),
+      ),
+    );
+    sharedJourneyFinalReachedRef.current = true;
+    setSharedMinimumSlideIndex(sharedJourneyFinalSlideIndex);
+    setVisibleSlideIndex(sharedJourneyFinalSlideIndex);
+    resumeSharedJourneyEndAppliedRef.current = true;
+
+    window.requestAnimationFrame(() => {
+      const root = scrollContainerRef.current;
+
+      if (!root) {
+        return;
+      }
+
+      root.scrollTo({
+        behavior: "auto",
+        top: root.clientHeight * sharedJourneyFinalSlideIndex,
+      });
+    });
+  }, [
+    feedItems,
+    getSharedTransitionSlideIndex,
+    resumeSharedJourneyEnd,
+    shareId,
+    sharedConsumedStorageKey,
+    sharedJourneyFinalSlideIndex,
+    sharedViewedStorageKey,
+    sharedVlogTransitions,
+  ]);
   useEffect(() => {
     if (!shareId || typeof document === "undefined") {
       return;

@@ -31,6 +31,7 @@ import { normalizeShareId } from "@/lib/share-tracking";
 
 type FanletterNewsCutDetailSearchParams = {
   cut?: string | string[];
+  end?: string | string[];
   ref?: string | string[];
   returnTo?: string | string[];
   shareId?: string | string[];
@@ -231,6 +232,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
   const returnToHref = normalizeFanletterReturnToPath(query.returnTo, locale);
   const initialSourceContentId =
     readFirstSearchParam(query.source)?.trim() || null;
+  const resumeSharedJourneyEnd = readFirstSearchParam(query.end) === "1";
   const session = await readMemberServerSession();
   const feedRotationSeed = createFanletterNewsPublicCutFeedRotationSeed();
   const report = await getFanletterNewsReportById(reportId);
@@ -273,6 +275,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
       nextOffset={feedPage.nextOffset}
       referralCode={referralCode}
       returnToHref={returnToHref}
+      resumeSharedJourneyEnd={resumeSharedJourneyEnd}
       shareId={shareId}
       sharedCutRecap={sharedCutRecap}
       sourceContentId={initialSourceContentId}
