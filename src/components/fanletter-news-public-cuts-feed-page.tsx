@@ -5774,13 +5774,17 @@ function SharedCutDwellRecapSlide({
     sharedCutRecap?.eventCount ?? 0,
     locale,
   );
+  const sectionClassName = isNestedFinalSlot
+    ? "relative min-h-[var(--fanletter-cut-feed-vh,100dvh)] overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+1.4rem)] pt-[calc(env(safe-area-inset-top)+0.9rem)] text-white"
+    : "relative h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+0.9rem)] text-white";
+  const contentClassName = isNestedFinalSlot
+    ? "relative z-10 mx-auto flex min-h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom)_-_2.3rem)] w-full max-w-[430px] flex-col justify-start"
+    : "relative z-10 mx-auto flex h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom)_-_1.7rem)] w-full max-w-[430px] flex-col justify-between";
 
   return (
     <section
       aria-label={copy.sharedCutRecapHeadline}
-      className={`relative h-[var(--fanletter-cut-feed-vh,100dvh)] overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+0.9rem)] text-white ${
-        isNestedFinalSlot ? "" : "snap-start snap-always"
-      }`}
+      className={sectionClassName}
       data-shared-cut-recap
       data-shared-character-intro
     >
@@ -5795,7 +5799,7 @@ function SharedCutDwellRecapSlide({
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,6,4,0.56),rgba(3,6,4,0.74)_34%,rgba(3,6,4,0.96))]" />
       </div>
-      <div className="relative z-10 mx-auto flex h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom)_-_1.7rem)] w-full max-w-[430px] flex-col justify-between">
+      <div className={contentClassName}>
         <div>
           <div className="flex items-center gap-2">
             <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_16px_38px_rgba(68,242,110,0.22)]">
@@ -10090,7 +10094,7 @@ export function FanletterNewsPublicCutsFeedPage({
         })}
         {shouldShowSharedJourneyEndSlide ? (
           <section
-            className="snap-start snap-always bg-[#050706]"
+            className="snap-start snap-always overflow-visible bg-[#050706]"
             data-shared-journey-final
           >
             <SharedCutDwellRecapSlide
