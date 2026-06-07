@@ -144,6 +144,31 @@ export async function readMemberServerSession() {
   );
 }
 
+export function readMemberServerSessionFromCookieHeader(
+  cookieHeader?: string | null,
+) {
+  if (!cookieHeader) {
+    return null;
+  }
+
+  const sessionCookie = cookieHeader
+    .split(";")
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith(`${MEMBER_SERVER_SESSION_COOKIE}=`));
+
+  if (!sessionCookie) {
+    return null;
+  }
+
+  const rawValue = sessionCookie.slice(MEMBER_SERVER_SESSION_COOKIE.length + 1);
+
+  try {
+    return parseSessionValue(decodeURIComponent(rawValue));
+  } catch {
+    return parseSessionValue(rawValue);
+  }
+}
+
 export async function setMemberServerSessionCookie({
   email,
   walletAddress,

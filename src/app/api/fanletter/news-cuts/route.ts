@@ -5,7 +5,10 @@ import {
 import { FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE } from "@/lib/fanletter-news-public-cuts-shared";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import { readFanletterReferralCode } from "@/lib/fanletter-routing";
-import { readMemberServerSession } from "@/lib/member-server-session";
+import {
+  readMemberServerSession,
+  readMemberServerSessionFromCookieHeader,
+} from "@/lib/member-server-session";
 import { normalizeShareId } from "@/lib/share-tracking";
 
 function jsonError(message: string, status: number) {
@@ -58,7 +61,10 @@ export async function GET(request: Request) {
     const creatorTimelineMode = searchParams.get("timeline") === "creator";
     const timelineAnchorReportId =
       searchParams.get("timelineAnchorReportId")?.trim().slice(0, 96) || null;
-    const session = await readMemberServerSession();
+    const session =
+      creatorTimelineMode && shareId
+        ? readMemberServerSessionFromCookieHeader(request.headers.get("cookie"))
+        : await readMemberServerSession();
     const reporterLockedMode = searchParams.get("mode") === "reporter_locked";
     const page = await getFanletterNewsPublicCutFeedPage({
       excludeReportIds: excludeReportId ? [excludeReportId] : [],
