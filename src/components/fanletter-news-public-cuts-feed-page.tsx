@@ -117,6 +117,7 @@ const CUT_FEED_LOGIN_SYNC_GRACE_MS = 4500;
 const CUT_FEED_RENDER_WINDOW_RADIUS = 0;
 const CUT_FEED_SHARED_JOURNEY_MAX_REPORTS = 3;
 const CUT_FEED_SHARED_DISCOVERY_LIMIT = 3;
+const CUT_FEED_SHARED_DISCOVERY_TIMEOUT_MS = 6500;
 const CUT_FEED_SHARED_TIMELINE_CANDIDATE_LOAD_LIMIT = 6;
 const CUT_FEED_SHARED_TIMELINE_CANDIDATE_LOAD_BUFFER = 1;
 const CUT_FEED_CHROME_HIDE_EVENT = "fanletter-news-cut-feed-chrome-hide";
@@ -1231,29 +1232,55 @@ function CutFeedNavigationPendingOverlay({
   }
 
   return createPortal(
-    <div
-      aria-busy="true"
-      aria-live="polite"
-      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/42 px-5 text-white backdrop-blur-[6px]"
-      data-cut-feed-navigation-pending
-      role="status"
-    >
-      <div className="w-full max-w-[20rem] rounded-[1.35rem] border border-[#44f26e]/24 bg-[#061008]/94 p-5 text-center shadow-[0_28px_80px_rgba(0,0,0,0.46)]">
-        <span className="mx-auto inline-flex size-12 items-center justify-center rounded-full bg-[#44f26e] text-[#07110a] shadow-[0_18px_44px_rgba(68,242,110,0.24)]">
-          <Loader2 className="size-6 animate-spin" />
-        </span>
-        <p className="mt-4 text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
-          {copy.navigationPending.title}
-        </p>
-        <h2 className="mt-1 text-xl font-black leading-tight tracking-normal [word-break:keep-all]">
-          {pending.label}
-        </h2>
-        <p className="mt-2 text-xs font-bold leading-5 text-white/58 [word-break:keep-all]">
-          {copy.navigationPending.body}
-        </p>
+    <>
+      <CutFeedNavigationPendingKeyframes />
+      <div
+        aria-busy="true"
+        aria-live="polite"
+        className="fixed inset-0 z-[90] flex items-center justify-center bg-black/42 px-5 text-white backdrop-blur-[6px]"
+        data-cut-feed-navigation-pending
+        role="status"
+      >
+        <div className="w-full max-w-[20rem] rounded-[1.35rem] border border-[#44f26e]/24 bg-[#061008]/94 p-5 text-center shadow-[0_28px_80px_rgba(0,0,0,0.46)]">
+          <span className="mx-auto inline-flex size-12 items-center justify-center rounded-full bg-[#44f26e] text-[#07110a] shadow-[0_18px_44px_rgba(68,242,110,0.24)]">
+            <Loader2 className="size-6 animate-spin" />
+          </span>
+          <p className="mt-4 text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
+            {copy.navigationPending.title}
+          </p>
+          <h2 className="mt-1 text-xl font-black leading-tight tracking-normal [word-break:keep-all]">
+            {pending.label}
+          </h2>
+          <p className="mt-2 text-xs font-bold leading-5 text-white/58 [word-break:keep-all]">
+            {copy.navigationPending.body}
+          </p>
+          <span className="mt-4 block h-1.5 overflow-hidden rounded-full bg-white/10">
+            <span className="block h-full w-2/5 animate-[fanletter-news-navigation-pending_1.05s_ease-in-out_infinite] rounded-full bg-[#44f26e] shadow-[0_0_18px_rgba(68,242,110,0.42)]" />
+          </span>
+        </div>
       </div>
-    </div>,
+    </>,
     document.body,
+  );
+}
+
+function CutFeedNavigationPendingKeyframes() {
+  return (
+    <style id="fanletter-news-navigation-pending-keyframes">{`
+      @keyframes fanletter-news-navigation-pending {
+        0% {
+          transform: translateX(-120%);
+        }
+
+        52% {
+          transform: translateX(80%);
+        }
+
+        100% {
+          transform: translateX(260%);
+        }
+      }
+    `}</style>
   );
 }
 
@@ -7895,8 +7922,10 @@ export function FanletterNewsPublicCutsFeedPage({
     returnToHref: buildPathWithReferral(`/${locale}/fanletter/news/cuts`, referralCode),
   });
   const startNavigation = useCallback((pending: CutFeedNavigationPending) => {
-    setNavigationPending(pending);
-    setServiceMenuOpen(false);
+    flushSync(() => {
+      setNavigationPending(pending);
+      setServiceMenuOpen(false);
+    });
   }, []);
   const handleSourceOverlayOpenChange = useCallback(
     (index: number, isOpen: boolean, activeCutSlotNumber?: number) => {
@@ -9323,6 +9352,9 @@ export function FanletterNewsPublicCutsFeedPage({
 
     const controller = new AbortController();
     let isActive = true;
+    const timeoutId = window.setTimeout(() => {
+      controller.abort();
+    }, CUT_FEED_SHARED_DISCOVERY_TIMEOUT_MS);
 
     sharedDiscoveryLoadedForRef.current = discoveryKey;
     setSharedDiscoveryItems([]);
@@ -9406,6 +9438,8 @@ export function FanletterNewsPublicCutsFeedPage({
         setSharedDiscoveryItems([]);
       })
       .finally(() => {
+        window.clearTimeout(timeoutId);
+
         if (isActive) {
           setIsSharedDiscoveryLoading(false);
         }
@@ -9413,6 +9447,7 @@ export function FanletterNewsPublicCutsFeedPage({
 
     return () => {
       isActive = false;
+      window.clearTimeout(timeoutId);
       controller.abort();
     };
   }, [
