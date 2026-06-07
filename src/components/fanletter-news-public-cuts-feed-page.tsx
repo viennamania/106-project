@@ -7375,9 +7375,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const isSourceOverlayScrollLocked = sourceOverlayOpenSlideIndex !== null;
   const isCutFeedScrollLocked =
     isSharedEntryScrollLocked || isSourceOverlayScrollLocked;
-  const shouldFreezeSharedLockedScroll = Boolean(
-    isSharedEntryScrollLocked && activeSharedLockedSlideIndex === 0,
-  );
+  const shouldFreezeSharedLockedScroll = isSharedEntryScrollLocked;
   const shouldShowHeaderCount = !isSharedConsumptionEntry;
   const shouldShowServiceMenuButton =
     !isCutFeedScrollLocked &&
