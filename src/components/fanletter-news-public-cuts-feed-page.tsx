@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { createPortal } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import {
   Fragment,
   useCallback,
@@ -7822,17 +7822,16 @@ export function FanletterNewsPublicCutsFeedPage({
       const existingIndex = items.findIndex(
         (item) => item.report.reportId === selectedReportId,
       );
+      const targetIndex = existingIndex >= 0 ? existingIndex : targetItemIndex;
 
-      markSharedReportViewed(selectedReportId);
       sharedResolvedTransitionSlideIndexesRef.current.add(transitionSlideIndex);
 
       if (existingIndex >= 0) {
-        window.requestAnimationFrame(() => {
-          window.requestAnimationFrame(() => {
-            lockSharedBackwardScrollAtItemIndex(existingIndex);
-            scrollToFeedItemIndex(existingIndex);
-          });
+        flushSync(() => {
+          markSharedReportViewed(selectedReportId);
+          lockSharedBackwardScrollAtItemIndex(targetIndex);
         });
+        scrollToFeedItemIndex(targetIndex);
         return;
       }
 
@@ -7841,30 +7840,28 @@ export function FanletterNewsPublicCutsFeedPage({
         vlogReportOptions: options,
       };
 
-      setItems((currentItems) => {
-        if (
-          currentItems.some(
-            (item) => item.report.reportId === selectedItem.report.reportId,
-          )
-        ) {
-          return currentItems;
-        }
+      flushSync(() => {
+        markSharedReportViewed(selectedReportId);
+        lockSharedBackwardScrollAtItemIndex(targetIndex);
+        setItems((currentItems) => {
+          if (
+            currentItems.some(
+              (item) => item.report.reportId === selectedItem.report.reportId,
+            )
+          ) {
+            return currentItems;
+          }
 
-        if (targetItemIndex >= currentItems.length) {
-          return [...currentItems, selectedItem];
-        }
+          if (targetItemIndex >= currentItems.length) {
+            return [...currentItems, selectedItem];
+          }
 
-        return currentItems.map((item, index) =>
-          index === targetItemIndex ? selectedItem : item,
-        );
-      });
-
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(() => {
-          lockSharedBackwardScrollAtItemIndex(targetItemIndex);
-          scrollToFeedItemIndex(targetItemIndex);
+          return currentItems.map((item, index) =>
+            index === targetItemIndex ? selectedItem : item,
+          );
         });
       });
+      scrollToFeedItemIndex(targetIndex);
     },
     [
       items,
@@ -9328,13 +9325,16 @@ export function FanletterNewsPublicCutsFeedPage({
     Math.max(visibleSlideIndex, 0),
     Math.max(virtualSlideCount - 1, 0),
   );
+  const renderWindowRadius = isSharedTransitionSlideVisible
+    ? 1
+    : CUT_FEED_RENDER_WINDOW_RADIUS;
   const renderWindowStart = Math.max(
     0,
-    activeSlideIndex - CUT_FEED_RENDER_WINDOW_RADIUS,
+    activeSlideIndex - renderWindowRadius,
   );
   const renderWindowEnd = Math.min(
     Math.max(virtualSlideCount - 1, 0),
-    activeSlideIndex + CUT_FEED_RENDER_WINDOW_RADIUS,
+    activeSlideIndex + renderWindowRadius,
   );
   const scrollContainerClassName = `mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overscroll-none bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] sm:border-x sm:border-white/10 ${
     isCutFeedScrollLocked ? "scroll-auto" : "scroll-smooth"
