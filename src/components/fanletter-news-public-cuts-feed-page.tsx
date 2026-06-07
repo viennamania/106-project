@@ -6564,13 +6564,10 @@ function SharedJourneyEndSlide({
 }) {
   const copy = getCopy(locale);
   const router = useRouter();
-  const [shareState, setShareState] = useState<ShareState>("idle");
   const [fanRequestBody, setFanRequestBody] = useState("");
   const [fanRequestError, setFanRequestError] = useState<string | null>(null);
   const [fanRequestStatus, setFanRequestStatus] =
     useState<SharedEndFanRequestStatus>("idle");
-  const shareFeedbackTimeoutRef = useRef<number | null>(null);
-  const shareInFlightRef = useRef(false);
   const primaryItem = journeyItems[0] ?? null;
   const latestJourneyItem = journeyItems[journeyItems.length - 1] ?? primaryItem;
   const characterName = primaryItem?.report.creatorName ?? copy.serviceCharacters;
@@ -6595,14 +6592,54 @@ function SharedJourneyEndSlide({
     ),
     locale,
   );
-  const shareLabel =
-    shareState === "copied"
-      ? copy.shareCopied
-      : shareState === "error"
-        ? copy.shareError
-        : shareState === "sharing"
-          ? copy.shareSharing
-          : copy.sharedEndShare;
+  const shareLabel = copy.sharedEndShare;
+  const sharedEndReturnToHref = primaryItem
+    ? setPathSearchParams(
+        buildPathWithReferral(
+          `/${locale}/fanletter/news/cuts/${primaryItem.report.reportId}`,
+          referralCode,
+        ),
+        {
+          cut: String(primaryItem.leadCut.slotNumber),
+          shareId,
+        },
+      )
+    : returnToHref;
+  const sharedEndActionParams = {
+    characterName,
+    characterRef: primaryItem?.report.creatorReferralCode ?? null,
+    returnTo: sharedEndReturnToHref,
+    shareId,
+    sourceReportId: primaryItem?.report.reportId ?? null,
+  };
+  const continueActionHref = setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/actions/continue`,
+      referralCode,
+    ),
+    sharedEndActionParams,
+  );
+  const alertsActionHref = setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/actions/alerts`,
+      referralCode,
+    ),
+    sharedEndActionParams,
+  );
+  const shareActionHref = setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/actions/share`,
+      referralCode,
+    ),
+    sharedEndActionParams,
+  );
+  const charactersActionHref = setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/actions/characters`,
+      referralCode,
+    ),
+    sharedEndActionParams,
+  );
   const fanRequestSubmitLabel =
     fanRequestStatus === "loading"
       ? copy.sharedEndRequestSubmitting
@@ -6612,99 +6649,19 @@ function SharedJourneyEndSlide({
     router.prefetch(characterHref);
     router.prefetch(charactersHref);
     router.prefetch(connectHref);
-  }, [characterHref, charactersHref, connectHref, router]);
-
-  useEffect(
-    () => () => {
-      if (shareFeedbackTimeoutRef.current !== null) {
-        window.clearTimeout(shareFeedbackTimeoutRef.current);
-      }
-    },
-    [],
-  );
-
-  const showShareFeedback = useCallback(
-    (nextState: Exclude<ShareState, "sharing">) => {
-      if (shareFeedbackTimeoutRef.current !== null) {
-        window.clearTimeout(shareFeedbackTimeoutRef.current);
-        shareFeedbackTimeoutRef.current = null;
-      }
-
-      setShareState(nextState);
-
-      if (nextState === "copied" || nextState === "error") {
-        shareFeedbackTimeoutRef.current = window.setTimeout(() => {
-          setShareState("idle");
-          shareFeedbackTimeoutRef.current = null;
-        }, 2200);
-      }
-    },
-    [],
-  );
-
-  const handleShare = useCallback(async () => {
-    if (shareInFlightRef.current || !primaryItem) {
-      return;
-    }
-
-    shareInFlightRef.current = true;
-    setShareState("sharing");
-
-    let nextState: Exclude<ShareState, "sharing"> = "idle";
-
-    try {
-      const shareUrl = window.location.href;
-      const shareTitle = copy.shareTitle(primaryItem.report.title);
-      const shareSummary = copy.shareSummary(
-        primaryItem.report.title,
-        primaryItem.report.reporterName,
-      );
-
-      trackFunnelEvent("share_click", {
-        contentId: primaryItem.report.contentId,
-        metadata: {
-          creatorReferralCode: primaryItem.report.creatorReferralCode,
-          journeyReportCount: journeyItems.length,
-          reportId: primaryItem.report.reportId,
-          reporterReferralCode: primaryItem.report.reporterReferralCode,
-          source: "fanletter-news-cut-shared-end",
-        },
-        referralCode,
-        shareId,
-        targetHref: shareUrl,
-      });
-
-      if (typeof navigator.share === "function") {
-        try {
-          await navigator.share({
-            text: shareSummary,
-            title: shareTitle,
-            url: shareUrl,
-          });
-          nextState = "idle";
-          return;
-        } catch (error) {
-          if (isShareAbortError(error)) {
-            nextState = "idle";
-            return;
-          }
-        }
-      }
-
-      nextState = (await copyToClipboard(shareUrl)) ? "copied" : "error";
-    } catch {
-      nextState = "error";
-    } finally {
-      shareInFlightRef.current = false;
-      showShareFeedback(nextState);
-    }
+    router.prefetch(continueActionHref);
+    router.prefetch(alertsActionHref);
+    router.prefetch(shareActionHref);
+    router.prefetch(charactersActionHref);
   }, [
-    copy,
-    journeyItems.length,
-    primaryItem,
-    referralCode,
-    shareId,
-    showShareFeedback,
+    alertsActionHref,
+    characterHref,
+    charactersActionHref,
+    charactersHref,
+    connectHref,
+    continueActionHref,
+    router,
+    shareActionHref,
   ]);
 
   const handleFanRequestSubmit = useCallback(
@@ -6952,10 +6909,10 @@ function SharedJourneyEndSlide({
             <div className="mt-3 grid gap-2">
               <Link
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-4 text-sm font-black !text-[#9bffad] transition hover:border-[#44f26e]/48 hover:bg-[#44f26e]/18 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
-                href={characterHref}
+                href={continueActionHref}
                 onClick={() => {
                   onNavigationStart({
-                    href: characterHref,
+                    href: continueActionHref,
                     label: copy.navigationPending.character(characterName),
                   });
                 }}
@@ -6966,10 +6923,10 @@ function SharedJourneyEndSlide({
               <div className="grid grid-cols-2 gap-2">
                 <Link
                   className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 text-xs font-black !text-white/82 backdrop-blur-xl transition hover:border-[#44f26e]/40 hover:!text-[#9bffad] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
-                  href={connectHref}
+                  href={alertsActionHref}
                   onClick={() => {
                     onNavigationStart({
-                      href: connectHref,
+                      href: alertsActionHref,
                       label: copy.navigationPending.destination(
                         copy.sharedEndNotify,
                       ),
@@ -6979,15 +6936,19 @@ function SharedJourneyEndSlide({
                   <Check className="size-4 text-[#44f26e]" />
                   {copy.sharedEndNotify}
                 </Link>
-                <button
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 text-xs font-black text-white/82 backdrop-blur-xl transition hover:border-[#44f26e]/40 hover:text-[#9bffad] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
-                  disabled={shareState === "sharing"}
-                  onClick={() => void handleShare()}
-                  type="button"
+                <Link
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 text-xs font-black !text-white/82 backdrop-blur-xl transition hover:border-[#44f26e]/40 hover:!text-[#9bffad] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
+                  href={shareActionHref}
+                  onClick={() => {
+                    onNavigationStart({
+                      href: shareActionHref,
+                      label: copy.navigationPending.destination(shareLabel),
+                    });
+                  }}
                 >
                   <Share2 className="size-4 text-[#44f26e]" />
                   <span className="truncate">{shareLabel}</span>
-                </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -7063,28 +7024,22 @@ function SharedJourneyEndSlide({
           ) : (
             <div className="mt-3 space-y-2">
               {isDiscoveryLoading ? (
-                <div className="grid grid-cols-3 gap-2" aria-hidden="true">
-                  {Array.from({ length: 3 }, (_, index) => (
-                    <span
-                      className="block aspect-square overflow-hidden rounded-[0.85rem] border border-white/8 bg-white/[0.055]"
-                      key={`shared-end-discovery-skeleton:${index}`}
-                    >
-                      <span className="block h-full w-full bg-[linear-gradient(135deg,rgba(68,242,110,0.16),rgba(255,255,255,0.07)_42%,rgba(255,255,255,0.02))]" />
-                    </span>
-                  ))}
+                <div className="flex items-center gap-2 rounded-[0.9rem] border border-white/8 bg-white/[0.055] px-3 py-2 text-xs font-black text-white/54">
+                  <Loader2 className="size-4 animate-spin text-[#44f26e]" />
+                  {copy.sharedEndOtherLoading}
                 </div>
               ) : null}
-              <p className="rounded-[0.9rem] border border-white/8 bg-white/5 px-3 py-2 text-xs font-bold text-white/48">
-                {isDiscoveryLoading
-                  ? copy.sharedEndOtherLoading
-                  : copy.sharedEndOtherEmpty}
-              </p>
+              {!isDiscoveryLoading ? (
+                <p className="rounded-[0.9rem] border border-white/8 bg-white/5 px-3 py-2 text-xs font-bold text-white/48">
+                  {copy.sharedEndOtherEmpty}
+                </p>
+              ) : null}
               <Link
                 className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-3 text-xs font-black !text-[#9bffad] transition hover:border-[#44f26e]/48 hover:bg-[#44f26e]/18 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/18"
-                href={charactersHref}
+                href={charactersActionHref}
                 onClick={() => {
                   onNavigationStart({
-                    href: charactersHref,
+                    href: charactersActionHref,
                     label: copy.navigationPending.destination(
                       copy.serviceCharacters,
                     ),
