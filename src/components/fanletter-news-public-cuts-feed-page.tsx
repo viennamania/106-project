@@ -116,6 +116,7 @@ const CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT =
 const CUT_DWELL_MIN_TRACK_MS = 800;
 const CUT_DWELL_MAX_TRACK_MS = 60000;
 const CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX = 6;
+const CUT_FEED_SHARED_SLIDE_START_LOCK_TOLERANCE_PX = 18;
 const CUT_FEED_SHARED_CONSUMED_STORAGE_PREFIX =
   "fanletter-news-cut-feed-shared-consumed";
 const CUT_FEED_SHARED_VIEWED_STORAGE_PREFIX =
@@ -7119,6 +7120,9 @@ export function FanletterNewsPublicCutsFeedPage({
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const lockedTouchStartYRef = useRef<number | null>(null);
   const lockedTouchNavigationHandledRef = useRef(false);
+  const sharedNativeTouchStartRef = useRef<{ x: number; y: number } | null>(
+    null,
+  );
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const headerRevealTimerRef = useRef<number | null>(null);
   const roleShortcutRevealTimerRef = useRef<number | null>(null);
@@ -7768,40 +7772,36 @@ export function FanletterNewsPublicCutsFeedPage({
     setVisibleSlideIndex(sharedJourneyFinalSlideIndex);
     return true;
   }, [shareId, sharedJourneyFinalSlideIndex]);
-  const lockSharedVisibleFeedSlideStartInPlace = useCallback(() => {
+  const lockSharedCurrentSlideStartInPlace = useCallback(() => {
     const root = scrollContainerRef.current;
 
+    if (!shareId || !root || root.clientHeight <= 0) {
+      return false;
+    }
+
+    const currentSlideIndex = Math.min(
+      Math.max(Math.round(root.scrollTop / root.clientHeight), 0),
+      Math.max(virtualSlideCount - 1, 0),
+    );
+    const currentSlideScrollTop = root.clientHeight * currentSlideIndex;
+
     if (
-      !shareId ||
-      !root ||
-      getSharedTransitionForSlideIndex(visibleSlideIndex) ||
-      (sharedJourneyFinalSlideIndex !== null &&
-        visibleSlideIndex === sharedJourneyFinalSlideIndex)
+      Math.abs(root.scrollTop - currentSlideScrollTop) >
+      CUT_FEED_SHARED_SLIDE_START_LOCK_TOLERANCE_PX
     ) {
       return false;
     }
 
-    const visibleSlideScrollTop = root.clientHeight * visibleSlideIndex;
-
-    if (Math.abs(root.scrollTop - visibleSlideScrollTop) > 1) {
-      return false;
-    }
-
-    if (Math.abs(root.scrollTop - visibleSlideScrollTop) > 0.5) {
+    if (Math.abs(root.scrollTop - currentSlideScrollTop) > 0.5) {
       root.scrollTo({
         behavior: "auto",
-        top: visibleSlideScrollTop,
+        top: currentSlideScrollTop,
       });
     }
 
-    setVisibleSlideIndex(visibleSlideIndex);
+    setVisibleSlideIndex(currentSlideIndex);
     return true;
-  }, [
-    getSharedTransitionForSlideIndex,
-    shareId,
-    sharedJourneyFinalSlideIndex,
-    visibleSlideIndex,
-  ]);
+  }, [shareId, virtualSlideCount]);
   const getIsSharedTransitionSelectionRequired = useCallback(
     (slideIndex: number) =>
       Boolean(
@@ -7918,6 +7918,25 @@ export function FanletterNewsPublicCutsFeedPage({
       sharedJourneyFinalReachedRef.current = false;
     }
   }, [shareId, sharedConsumedStorageKey, sharedViewedStorageKey]);
+  useEffect(() => {
+    if (!shareId || typeof document === "undefined") {
+      return;
+    }
+
+    const { body, documentElement } = document;
+    const previousBodyOverscrollBehavior = body.style.overscrollBehavior;
+    const previousDocumentOverscrollBehavior =
+      documentElement.style.overscrollBehavior;
+
+    body.style.overscrollBehavior = "none";
+    documentElement.style.overscrollBehavior = "none";
+
+    return () => {
+      body.style.overscrollBehavior = previousBodyOverscrollBehavior;
+      documentElement.style.overscrollBehavior =
+        previousDocumentOverscrollBehavior;
+    };
+  }, [shareId]);
   useEffect(() => {
     if (!isSharedEntryScrollLocked) {
       return;
@@ -8162,7 +8181,7 @@ export function FanletterNewsPublicCutsFeedPage({
     (event: ReactWheelEvent<HTMLDivElement>) => {
       const root = scrollContainerRef.current;
 
-      if (event.deltaY < 0 && lockSharedVisibleFeedSlideStartInPlace()) {
+      if (event.deltaY < 0 && lockSharedCurrentSlideStartInPlace()) {
         event.preventDefault();
         return;
       }
@@ -8254,7 +8273,7 @@ export function FanletterNewsPublicCutsFeedPage({
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
       lockSharedJourneyFinalStartInPlace,
-      lockSharedVisibleFeedSlideStartInPlace,
+      lockSharedCurrentSlideStartInPlace,
       moveToPreviousSharedLockedSlide,
       shareId,
       sharedJourneyFinalSlideIndex,
@@ -8282,7 +8301,7 @@ export function FanletterNewsPublicCutsFeedPage({
       const root = scrollContainerRef.current;
       const deltaY = startTouchY - currentTouchY;
 
-      if (deltaY < 0 && lockSharedVisibleFeedSlideStartInPlace()) {
+      if (deltaY < 0 && lockSharedCurrentSlideStartInPlace()) {
         event.preventDefault();
         lockedTouchNavigationHandledRef.current = true;
         return;
@@ -8385,7 +8404,7 @@ export function FanletterNewsPublicCutsFeedPage({
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
       lockSharedJourneyFinalStartInPlace,
-      lockSharedVisibleFeedSlideStartInPlace,
+      lockSharedCurrentSlideStartInPlace,
       moveToPreviousSharedLockedSlide,
       activeSharedLockedSlideIndex,
       shareId,
@@ -8398,6 +8417,86 @@ export function FanletterNewsPublicCutsFeedPage({
     lockedTouchStartYRef.current = null;
     lockedTouchNavigationHandledRef.current = false;
   }, []);
+  useEffect(() => {
+    const root = scrollContainerRef.current;
+
+    if (!shareId || !root) {
+      return;
+    }
+
+    const clearSharedNativeTouchStart = () => {
+      sharedNativeTouchStartRef.current = null;
+    };
+    const handleSharedNativeTouchStart = (event: TouchEvent) => {
+      const touch = event.touches[0] ?? null;
+
+      sharedNativeTouchStartRef.current = touch
+        ? {
+            x: touch.clientX,
+            y: touch.clientY,
+          }
+        : null;
+    };
+    const handleSharedNativeTouchMove = (event: TouchEvent) => {
+      if (sourceOverlayOpenSlideIndex !== null) {
+        return;
+      }
+
+      const startTouch = sharedNativeTouchStartRef.current;
+      const currentTouch = event.touches[0] ?? null;
+
+      if (!startTouch || !currentTouch) {
+        return;
+      }
+
+      const deltaX = startTouch.x - currentTouch.clientX;
+      const deltaY = startTouch.y - currentTouch.clientY;
+      const isPreviousSlidePull =
+        deltaY < 0 &&
+        Math.abs(deltaY) > Math.abs(deltaX) &&
+        Math.abs(deltaY) > 1;
+
+      if (!isPreviousSlidePull) {
+        return;
+      }
+
+      if (lockSharedCurrentSlideStartInPlace()) {
+        event.preventDefault();
+        event.stopPropagation();
+        lockedTouchNavigationHandledRef.current = true;
+      }
+    };
+
+    root.addEventListener("touchstart", handleSharedNativeTouchStart, {
+      capture: true,
+      passive: true,
+    });
+    root.addEventListener("touchmove", handleSharedNativeTouchMove, {
+      capture: true,
+      passive: false,
+    });
+    root.addEventListener("touchend", clearSharedNativeTouchStart, {
+      capture: true,
+    });
+    root.addEventListener("touchcancel", clearSharedNativeTouchStart, {
+      capture: true,
+    });
+
+    return () => {
+      root.removeEventListener("touchstart", handleSharedNativeTouchStart, {
+        capture: true,
+      });
+      root.removeEventListener("touchmove", handleSharedNativeTouchMove, {
+        capture: true,
+      });
+      root.removeEventListener("touchend", clearSharedNativeTouchStart, {
+        capture: true,
+      });
+      root.removeEventListener("touchcancel", clearSharedNativeTouchStart, {
+        capture: true,
+      });
+    };
+  }, [lockSharedCurrentSlideStartInPlace, shareId, sourceOverlayOpenSlideIndex]);
   const handleFeedScroll = useCallback(() => {
     const root = scrollContainerRef.current;
 
@@ -9237,7 +9336,7 @@ export function FanletterNewsPublicCutsFeedPage({
     Math.max(virtualSlideCount - 1, 0),
     activeSlideIndex + CUT_FEED_RENDER_WINDOW_RADIUS,
   );
-  const scrollContainerClassName = `mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] sm:border-x sm:border-white/10 ${
+  const scrollContainerClassName = `mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overscroll-none bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] sm:border-x sm:border-white/10 ${
     isCutFeedScrollLocked ? "scroll-auto" : "scroll-smooth"
   } ${
     isSourceOverlayScrollLocked ||
