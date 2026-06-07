@@ -295,14 +295,16 @@ function getCopy(locale: Locale) {
           "지금부터 아래로 스크롤할 수 있어요. AI 캐릭터 IP를 먼저 소개한 뒤, 같은 캐릭터의 다른 컷으로 이어집니다.",
         sharedScrollGuideTitle: (name: string) =>
           `아래로 넘겨 ${name} 타임라인 보기`,
+        sharedEntryMiniGuide: "공유된 4컷 리포트 · 좌우로 넘겨 보기",
         sharedTimelineBadge: (name: string) => `${name} 타임라인`,
         sharedTimelineNext: "다음 브이로그",
         sharedCutRecapBody: (name: string) =>
           `${name} 흐름에서 사람들이 어느 컷에 오래 머물렀는지 전체 여정으로 정리했어요.`,
         sharedCutRecapCollectingBody: (name: string) =>
-          `${name} 공유 반응이 쌓이는 중입니다. 지금 확인된 컷 반응을 전체 여정으로 정리했어요.`,
-        sharedCutRecapCollectingMetric: "수집 중",
-        sharedCutRecapCollectingTitle: "반응 수집 중",
+          `${name} 공유 링크가 지금부터 컷별 체류, 조회, 원본 이동 신호를 수집합니다.`,
+        sharedCutRecapCollectingMetric: "측정 중",
+        sharedCutRecapCollectingRank: "측정",
+        sharedCutRecapCollectingTitle: "반응 엔진 준비 중",
         sharedCutRecapCollectionBody:
           "이미지 위에 체류와 조회 신호를 겹쳐, 어떤 장면이 관심을 만들었는지 보여줍니다.",
         sharedCutRecapCollectionTitle: "12컷 반응 컬렉션",
@@ -329,6 +331,11 @@ function getCopy(locale: Locale) {
         sharedVlogPickerEyebrow: "다음 브이로그",
         sharedVlogPickerReportCount: (count: string) => `팬 리포트 ${count}개`,
         sharedVlogPickerReports: "팬 리포트",
+        sharedVlogPickerReasonCompleted: "이미 확인한 관점",
+        sharedVlogPickerReasonOther: "다른 기자 관점",
+        sharedVlogPickerReasonRecommended: "반응 좋은 리포트",
+        sharedVlogPickerReasonUnlocked: "원본 언락됨",
+        sharedVlogPickerReasonViewed: "현재 보는 흐름",
         sharedVlogPickerSkip: "선택하지 않고 아래로",
         sharedVlogPickerSingleBody:
           "사진을 보고 추천 리포트로 이어보세요.",
@@ -584,14 +591,16 @@ function getCopy(locale: Locale) {
           "You can scroll down now. The next screen introduces the AI character IP behind this vlog, then keeps the feed focused on that character.",
         sharedScrollGuideTitle: (name: string) =>
           `Swipe down for ${name}'s timeline`,
+        sharedEntryMiniGuide: "Shared 4-cut report · swipe sideways",
         sharedTimelineBadge: (name: string) => `${name}'s timeline`,
         sharedTimelineNext: "Next vlog",
         sharedCutRecapBody: (name: string) =>
           `See which ${name} cuts held people's attention across this shared journey.`,
         sharedCutRecapCollectingBody: (name: string) =>
-          `${name}'s share signals are still collecting. The confirmed cut reactions are summarized across this journey.`,
-        sharedCutRecapCollectingMetric: "Collecting",
-        sharedCutRecapCollectingTitle: "Collecting signals",
+          `${name}'s shared link now starts collecting cut dwell, views, and source-open signals.`,
+        sharedCutRecapCollectingMetric: "Measuring",
+        sharedCutRecapCollectingRank: "Signal",
+        sharedCutRecapCollectingTitle: "Reaction engine warming up",
         sharedCutRecapCollectionBody:
           "Dwell and view signals are layered on the images to show which scenes created attention.",
         sharedCutRecapCollectionTitle: "12-cut reaction collection",
@@ -618,6 +627,11 @@ function getCopy(locale: Locale) {
         sharedVlogPickerEyebrow: "Next vlog",
         sharedVlogPickerReportCount: (count: string) => `${count} fan reports`,
         sharedVlogPickerReports: "Fan reports",
+        sharedVlogPickerReasonCompleted: "Already viewed angle",
+        sharedVlogPickerReasonOther: "Another reporter angle",
+        sharedVlogPickerReasonRecommended: "High-signal report",
+        sharedVlogPickerReasonUnlocked: "Source unlocked",
+        sharedVlogPickerReasonViewed: "Current flow",
         sharedVlogPickerSkip: "Skip and swipe down",
         sharedVlogPickerSingleBody:
           "Use the cut image to continue with the recommended report.",
@@ -2822,11 +2836,28 @@ function SourceVlogFeedOverlay({
 
       <div className="absolute inset-0 bg-black">
         {isLoading ? (
-          <div className="flex h-full flex-col items-center justify-center gap-3 px-5 pt-[calc(env(safe-area-inset-top)+4.2rem)] text-center">
-            <Loader2 className="size-8 animate-spin text-[#44f26e]" />
-            <p className="text-sm font-black text-white/78">
-              {copy.sourceOverlayLoading}
-            </p>
+          <div className="flex h-full items-center justify-center px-5 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+5rem)] text-center">
+            <div className="w-full max-w-[19rem] overflow-hidden rounded-[1.6rem] border border-white/10 bg-white/[0.045] shadow-[0_24px_70px_rgba(0,0,0,0.42)] backdrop-blur-xl">
+              <div className="relative aspect-[9/16] overflow-hidden bg-[linear-gradient(145deg,rgba(68,242,110,0.13),rgba(255,255,255,0.055)_38%,rgba(0,0,0,0.62))]">
+                <div className="absolute inset-x-5 top-5 h-2 rounded-full bg-white/10" />
+                <div className="absolute inset-x-5 top-10 h-2 rounded-full bg-white/6" />
+                <div className="absolute left-1/2 top-1/2 flex size-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-[#44f26e]/24 bg-black/36 text-[#44f26e] shadow-[0_18px_44px_rgba(68,242,110,0.14)]">
+                  <Loader2 className="size-7 animate-spin" />
+                </div>
+                <div className="absolute inset-x-5 bottom-5 space-y-2">
+                  <div className="h-2 rounded-full bg-white/10" />
+                  <div className="h-2 w-2/3 rounded-full bg-white/7" />
+                </div>
+              </div>
+              <div className="flex items-center gap-3 px-4 py-3 text-left">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
+                  <PlayCircle className="size-4.5" />
+                </span>
+                <p className="min-w-0 flex-1 text-sm font-black leading-tight text-white/82 [word-break:keep-all]">
+                  {copy.sourceOverlayLoading}
+                </p>
+              </div>
+            </div>
           </div>
         ) : error ? (
           <div className="flex h-full items-center justify-center px-5 pt-[calc(env(safe-area-inset-top)+4.2rem)] text-center">
@@ -3513,6 +3544,19 @@ function FeedSlide({
     });
   }, [activeCutIndex]);
 
+  const completeSharedEntryConsumptionGate = useCallback(() => {
+    if (
+      !onSharedEntryConsumptionComplete ||
+      sharedConsumptionCompletedRef.current ||
+      !hasReachedSharedSourceGate
+    ) {
+      return;
+    }
+
+    sharedConsumptionCompletedRef.current = true;
+    onSharedEntryConsumptionComplete();
+  }, [hasReachedSharedSourceGate, onSharedEntryConsumptionComplete]);
+
   useEffect(() => {
     if (
       !isActive ||
@@ -3524,9 +3568,9 @@ function FeedSlide({
       return;
     }
 
-    sharedConsumptionCompletedRef.current = true;
-    onSharedEntryConsumptionComplete();
+    completeSharedEntryConsumptionGate();
   }, [
+    completeSharedEntryConsumptionGate,
     hasCompletedSharedConsumptionGate,
     isActive,
     onSharedEntryConsumptionComplete,
@@ -3912,6 +3956,11 @@ function FeedSlide({
       return;
     }
 
+    if (isSharedSourceActionGateActive && hasReachedSharedSourceGate) {
+      setHasEnteredSourceOverlay(true);
+      completeSharedEntryConsumptionGate();
+    }
+
     flushCutDwell("source_open");
     pendingCutDwellExitReasonRef.current = "source_open";
     sourceOverlayReturnCutIndexRef.current = activeCutIndex;
@@ -3958,6 +4007,9 @@ function FeedSlide({
   }, [
     activeCutIndex,
     activeCutSlotNumber,
+    completeSharedEntryConsumptionGate,
+    hasReachedSharedSourceGate,
+    isSharedSourceActionGateActive,
     isSourceOverlayLoading,
     flushCutDwell,
     loadSourceOverlay,
@@ -3974,6 +4026,10 @@ function FeedSlide({
 
     sourceOverlayHistoryPushedRef.current = false;
     sourceOverlayReturnCutIndexRef.current = null;
+    if (isSharedSourceActionGateActive && hasReachedSharedSourceGate) {
+      setHasEnteredSourceOverlay(true);
+      completeSharedEntryConsumptionGate();
+    }
     setSourceOverlayOpen(false);
     const url = new URL(window.location.href);
     const nextHistoryState =
@@ -3996,7 +4052,14 @@ function FeedSlide({
         `${url.pathname}${url.search}${url.hash}`,
       );
     }
-  }, [activeCutSlotNumber, shareId, sourceContentId]);
+  }, [
+    activeCutSlotNumber,
+    completeSharedEntryConsumptionGate,
+    hasReachedSharedSourceGate,
+    isSharedSourceActionGateActive,
+    shareId,
+    sourceContentId,
+  ]);
 
   const findNextSourceRevealCandidate = useCallback(() => {
     setSourceOverlayOpen(false);
@@ -4824,6 +4887,15 @@ function FeedSlide({
     sourceRevealState.unlocked &&
     cutCount > 1;
   const showCutSwipeGuide = isActive && showSwipeGuide && cutCount > 1;
+  const showSharedEntryMiniGuide = Boolean(
+    isActive &&
+      shareId &&
+      index === 0 &&
+      cutCount > 1 &&
+      !hasReachedSharedSourceGate &&
+      !sourceOverlayOpen &&
+      !showCutSwipeGuide,
+  );
   const areSideActionDetailsVisible =
     areSideActionsVisible ||
     authNudge ||
@@ -5460,6 +5532,20 @@ function FeedSlide({
               </span>
             </div>
           ) : null}
+          {showSharedEntryMiniGuide ? (
+            <div
+              aria-live="polite"
+              className="pointer-events-none mx-auto mt-3 inline-flex max-w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-black/42 px-3.5 py-2 text-center text-[0.68rem] font-black text-white/78 shadow-[0_12px_30px_rgba(0,0,0,0.24)] backdrop-blur-xl"
+              role="status"
+            >
+              <ChevronLeft className="size-3.5 shrink-0 text-[#9bffad]" />
+              <Images className="size-3.5 shrink-0 text-[#44f26e]" />
+              <span className="min-w-0 truncate [word-break:keep-all]">
+                {copy.sharedEntryMiniGuide}
+              </span>
+              <ChevronRight className="size-3.5 shrink-0 text-[#9bffad]" />
+            </div>
+          ) : null}
           <div className="mt-4 flex items-center justify-center gap-0">
             {cutProgressOrder.map((orderedCutIndex, progressIndex) => {
               const cut = cuts[orderedCutIndex] ?? cuts[progressIndex];
@@ -5571,6 +5657,7 @@ function SharedCutDwellRecapSlide({
     (row) => row.averageDwellMs > 0 || row.count > 0,
   );
   const isCollectingSharedRecapSignals = measuredRecapDwellRows.length < 2;
+  const shouldShowSharedRecapRanks = measuredRecapDwellRows.length >= 2;
   const displayedRecapDwellRows = recapDwellRows;
   const maxRecapAverageDwellMs = displayedRecapDwellRows.reduce(
     (maxValue, row) => Math.max(maxValue, row.averageDwellMs),
@@ -5710,7 +5797,8 @@ function SharedCutDwellRecapSlide({
                 );
                 const rowKey = `${row.reportIndex}:${row.cutSlotNumber}`;
                 const rank = recapDwellRankByKey.get(rowKey) ?? 0;
-                const isTopRank = rank > 0 && rank <= 3;
+                const isTopRank =
+                  shouldShowSharedRecapRanks && rank > 0 && rank <= 3;
                 const hasRowMetric = row.averageDwellMs > 0 || row.count > 0;
                 const progress =
                   maxRecapAverageDwellMs > 0
@@ -5816,7 +5904,9 @@ function SharedCutDwellRecapSlide({
                     key={`shared-journey-engine:${row.reportIndex}:${row.cutSlotNumber}`}
                   >
                     <span className="rounded-full bg-[#44f26e]/14 px-1.5 py-1 text-center text-[0.54rem] font-black text-[#9bffad]">
-                      {copy.sharedCutRecapRank(formatNumber(rank, locale))}
+                      {shouldShowSharedRecapRanks
+                        ? copy.sharedCutRecapRank(formatNumber(rank, locale))
+                        : copy.sharedCutRecapCollectingRank}
                     </span>
                     <div className="min-w-0">
                       <div className="mb-1 flex items-center justify-between gap-2">
@@ -6234,6 +6324,15 @@ function SharedCharacterVlogPickerSlide({
                 option.sourceReveal.count,
                 locale,
               );
+              const reasonLabel = isDefault
+                ? copy.sharedVlogPickerReasonRecommended
+                : isViewed
+                  ? copy.sharedVlogPickerReasonViewed
+                  : isCompleted
+                    ? copy.sharedVlogPickerReasonCompleted
+                    : option.sourceReveal.unlocked
+                      ? copy.sharedVlogPickerReasonUnlocked
+                      : copy.sharedVlogPickerReasonOther;
 
               return (
                 <button
@@ -6265,6 +6364,9 @@ function SharedCharacterVlogPickerSlide({
                     <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/88 via-black/44 to-transparent px-1.5 pb-1.5 pt-5">
                       <span className="block truncate text-[0.5rem] font-black uppercase tracking-[0.06em] text-[#9bffad]">
                         {option.report.reporterName}
+                      </span>
+                      <span className="mt-0.5 block truncate text-[0.46rem] font-black text-white/58">
+                        {reasonLabel}
                       </span>
                       <span className="mt-0.5 inline-flex items-center gap-0.5 text-[0.5rem] font-black text-white/72">
                         <HeartHandshake className="size-2.5 text-[#44f26e]" />
