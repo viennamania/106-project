@@ -6140,8 +6140,8 @@ function SharedCharacterVlogPickerSlide({
           </div>
           <div
             aria-label={copy.sharedVlogPickerReports}
-            className={`grid min-h-0 gap-2 ${
-              isSingleOption ? "grid-cols-1" : "grid-cols-2"
+            className={`grid min-h-0 gap-1.5 ${
+              isSingleOption ? "grid-cols-1" : "grid-cols-3"
             }`}
           >
             {displayedOptions.map((option) => {
@@ -6174,17 +6174,17 @@ function SharedCharacterVlogPickerSlide({
               return (
                 <button
                   aria-label={`${option.report.reporterName} ${option.report.title} ${copy.sharedVlogPickerCta}`}
-                  className={`group flex min-h-0 flex-col rounded-[0.95rem] border p-1.5 text-left shadow-[0_16px_42px_rgba(0,0,0,0.3)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28 ${cardStateClassName}`}
+                  className={`group flex min-h-0 flex-col rounded-[0.78rem] border p-1 text-left shadow-[0_14px_34px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28 ${cardStateClassName}`}
                   key={`${optionReportId}:vlog-option`}
                   onClick={() => onSelect(option)}
                   type="button"
                 >
-                  <span className="relative block aspect-[3/4] w-full overflow-hidden rounded-[0.78rem] bg-white/10">
+                  <span className="relative block aspect-[3/4] w-full overflow-hidden rounded-[0.64rem] bg-white/10">
                     <Image
                       alt=""
                       className="object-cover"
                       fill
-                      sizes="(min-width: 640px) 190px, 47vw"
+                      sizes="(min-width: 640px) 130px, 31vw"
                       src={option.leadCut.imageUrl}
                       unoptimized={shouldBypassFanletterImageOptimization(
                         option.leadCut.imageUrl,
@@ -6193,23 +6193,23 @@ function SharedCharacterVlogPickerSlide({
                     <span className="absolute inset-0 bg-gradient-to-t from-black/66 via-black/6 to-black/8" />
                     {statusLabel ? (
                       <span
-                        className={`absolute right-1.5 top-1.5 rounded-full px-1.5 py-0.5 text-[0.52rem] font-black leading-none ${statusClassName}`}
+                        className={`absolute right-1 top-1 rounded-full px-1.5 py-0.5 text-[0.46rem] font-black leading-none ${statusClassName}`}
                       >
                         {statusLabel}
                       </span>
                     ) : null}
                   </span>
-                  <span className="flex min-w-0 flex-1 flex-col justify-between px-0.5 py-1">
-                    <span className="flex min-h-4 items-center gap-1">
-                      <span className="truncate text-[0.58rem] font-black uppercase tracking-[0.09em] text-[#9bffad]">
+                  <span className="flex min-w-0 flex-1 flex-col justify-between px-0.5 py-0.5">
+                    <span className="flex min-h-3 items-center gap-1">
+                      <span className="truncate text-[0.48rem] font-black uppercase tracking-[0.07em] text-[#9bffad]">
                         {option.report.reporterName}
                       </span>
                     </span>
-                    <span className="mt-1 line-clamp-2 block text-[0.78rem] font-black leading-snug text-white [word-break:keep-all]">
+                    <span className="mt-0.5 line-clamp-2 block text-[0.64rem] font-black leading-tight text-white [word-break:keep-all]">
                       {option.report.title}
                     </span>
-                    <span className="mt-1.5 inline-flex items-center gap-1 text-[0.62rem] font-black text-white/58">
-                      <HeartHandshake className="size-3 text-[#44f26e]" />
+                    <span className="mt-1 inline-flex items-center gap-0.5 text-[0.52rem] font-black text-white/58">
+                      <HeartHandshake className="size-2.5 text-[#44f26e]" />
                       {participantCountLabel}/{option.sourceReveal.threshold}
                     </span>
                   </span>
