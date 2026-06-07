@@ -303,13 +303,20 @@ function getCopy(locale: Locale) {
           `${name} 공유 반응이 쌓이는 중입니다. 지금 확인된 컷 반응을 전체 여정으로 정리했어요.`,
         sharedCutRecapCollectingMetric: "수집 중",
         sharedCutRecapCollectingTitle: "반응 수집 중",
+        sharedCutRecapCollectionBody:
+          "이미지 위에 체류와 조회 신호를 겹쳐, 어떤 장면이 관심을 만들었는지 보여줍니다.",
+        sharedCutRecapCollectionTitle: "12컷 반응 컬렉션",
         sharedCutRecapDwellEvents: (count: string) => `${count}회`,
         sharedCutRecapDwellTitle: "컷별 체류",
+        sharedCutRecapEngineTitle: "컷별 체류 분석 엔진",
         sharedCutRecapEntryBadge: "진입 컷",
         sharedCutRecapEyebrow: "공유 반응",
         sharedCutRecapHeadline: "사람들이 오래 본 컷",
+        sharedCutRecapInsight: (name: string) =>
+          `공유 링크에서 ${name} 컷 반응을 장면 단위로 추적합니다.`,
         sharedCutRecapNextGuide:
           "오늘 본 컷 반응을 확인했어요.",
+        sharedCutRecapRank: (rank: string) => `${rank}위`,
         sharedCutRecapTitle: (count: string) => `${count}컷 확인 완료`,
         sharedCutRecapTopCutTitle: "가장 오래 본 컷",
         sharedCutRecapTotalActions: "전체 행동",
@@ -585,13 +592,20 @@ function getCopy(locale: Locale) {
           `${name}'s share signals are still collecting. The confirmed cut reactions are summarized across this journey.`,
         sharedCutRecapCollectingMetric: "Collecting",
         sharedCutRecapCollectingTitle: "Collecting signals",
+        sharedCutRecapCollectionBody:
+          "Dwell and view signals are layered on the images to show which scenes created attention.",
+        sharedCutRecapCollectionTitle: "12-cut reaction collection",
         sharedCutRecapDwellEvents: (count: string) => `${count} views`,
         sharedCutRecapDwellTitle: "Dwell by cut",
+        sharedCutRecapEngineTitle: "Cut dwell analytics engine",
         sharedCutRecapEntryBadge: "Entry cut",
         sharedCutRecapEyebrow: "Share Cut Signals",
         sharedCutRecapHeadline: "Cuts people stayed on",
+        sharedCutRecapInsight: (name: string) =>
+          `This shared link tracks ${name}'s cut reactions scene by scene.`,
         sharedCutRecapNextGuide:
           "You reviewed the cut reactions from this flow.",
+        sharedCutRecapRank: (rank: string) => `#${rank}`,
         sharedCutRecapTitle: (count: string) => `${count} cuts viewed`,
         sharedCutRecapTopCutTitle: "Most watched cut",
         sharedCutRecapTotalActions: "All actions",
@@ -5556,34 +5570,33 @@ function SharedCutDwellRecapSlide({
   );
   const isCollectingSharedRecapSignals = measuredRecapDwellRows.length < 2;
   const displayedRecapDwellRows = recapDwellRows;
-  const topRecapDwellCandidates =
-    measuredRecapDwellRows.length > 0
-      ? measuredRecapDwellRows
-      : displayedRecapDwellRows;
   const maxRecapAverageDwellMs = displayedRecapDwellRows.reduce(
     (maxValue, row) => Math.max(maxValue, row.averageDwellMs),
     0,
   );
-  const topRecapDwellRow = topRecapDwellCandidates.reduce<
-    (typeof recapDwellRows)[number] | null
-  >((selectedRow, row) => {
-    if (!selectedRow) {
-      return row;
+  const rankedRecapDwellRows = [...displayedRecapDwellRows].sort((a, b) => {
+    if (b.averageDwellMs !== a.averageDwellMs) {
+      return b.averageDwellMs - a.averageDwellMs;
     }
 
-    if (row.averageDwellMs > selectedRow.averageDwellMs) {
-      return row;
+    if (b.count !== a.count) {
+      return b.count - a.count;
     }
 
-    if (
-      row.averageDwellMs === selectedRow.averageDwellMs &&
-      row.count > selectedRow.count
-    ) {
-      return row;
+    if (a.reportIndex !== b.reportIndex) {
+      return a.reportIndex - b.reportIndex;
     }
 
-    return selectedRow;
-  }, null);
+    return a.cutSlotNumber - b.cutSlotNumber;
+  });
+  const recapDwellRankByKey = new Map(
+    rankedRecapDwellRows.map((row, index) => [
+      `${row.reportIndex}:${row.cutSlotNumber}`,
+      index + 1,
+    ]),
+  );
+  const topRankedRecapDwellRows = rankedRecapDwellRows.slice(0, 4);
+  const topRecapDwellRow = rankedRecapDwellRows[0] ?? null;
   const topRecapDwellSlotLabel = topRecapDwellRow
     ? copy.slot(topRecapDwellRow.cutSlotNumber.toString().padStart(2, "0"))
     : "";
@@ -5606,7 +5619,7 @@ function SharedCutDwellRecapSlide({
   return (
     <section
       aria-label={copy.sharedCutRecapHeadline}
-      className="relative min-h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+1.35rem)] text-white"
+      className="relative h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+0.9rem)] text-white"
       data-shared-cut-recap
       data-shared-character-intro
     >
@@ -5621,7 +5634,7 @@ function SharedCutDwellRecapSlide({
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,6,4,0.56),rgba(3,6,4,0.74)_34%,rgba(3,6,4,0.96))]" />
       </div>
-      <div className="relative z-10 mx-auto flex min-h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom)_-_2.4rem)] w-full max-w-[430px] flex-col justify-between">
+      <div className="relative z-10 mx-auto flex h-[calc(var(--fanletter-cut-feed-vh,100dvh)_-_env(safe-area-inset-top)_-_env(safe-area-inset-bottom)_-_1.7rem)] w-full max-w-[430px] flex-col justify-between">
         <div>
           <div className="flex items-center gap-2">
             <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_16px_38px_rgba(68,242,110,0.22)]">
@@ -5636,12 +5649,12 @@ function SharedCutDwellRecapSlide({
               </p>
             </div>
           </div>
-          <div className="mt-7 flex items-end justify-between gap-3">
+          <div className="mt-3 flex items-end justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[0.65rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
                 {copy.sharedCutRecapTitle(recapCutCountLabel)}
               </p>
-              <h2 className="mt-1 break-words text-[1.65rem] font-black leading-[1.03] tracking-normal [word-break:keep-all]">
+              <h2 className="mt-1 break-words text-[1.42rem] font-black leading-[1.03] tracking-normal [word-break:keep-all]">
                 {isCollectingSharedRecapSignals
                   ? copy.sharedCutRecapCollectingTitle
                   : copy.sharedCutRecapHeadline}
@@ -5656,66 +5669,129 @@ function SharedCutDwellRecapSlide({
               </span>
             </span>
           </div>
-          <p className="mt-2 break-words text-sm font-bold leading-6 text-white/68 [word-break:keep-all]">
+          <p className="mt-1.5 line-clamp-2 break-words text-[0.72rem] font-bold leading-5 text-white/64 [word-break:keep-all]">
             {isCollectingSharedRecapSignals
               ? copy.sharedCutRecapCollectingBody(characterName)
               : copy.sharedCutRecapBody(characterName)}
           </p>
-          {topRecapDwellRow ? (
-            <div className="mt-4 grid grid-cols-[4.35rem_minmax(0,1fr)] gap-3 rounded-[1.1rem] border border-[#44f26e]/24 bg-[#44f26e]/10 p-2.5 shadow-[0_22px_58px_rgba(0,0,0,0.34)] backdrop-blur-xl">
-              <span className="relative block h-[5.25rem] overflow-hidden rounded-[0.8rem] bg-white/8 ring-1 ring-[#44f26e]/22">
-                <Image
-                  alt={topRecapDwellSlotLabel}
-                  className="object-cover"
-                  fill
-                  sizes="72px"
-                  src={topRecapDwellRow.imageUrl}
-                  unoptimized={shouldBypassFanletterImageOptimization(
-                    topRecapDwellRow.imageUrl,
-                  )}
-                />
-                <span className="absolute inset-0 bg-gradient-to-t from-black/66 via-transparent to-black/8" />
-                <span className="absolute left-1.5 top-1.5 rounded-full bg-[#44f26e] px-2 py-0.5 text-[0.54rem] font-black text-[#111510]">
-                  {topRecapDwellRow.isEntryCut
-                    ? copy.sharedCutRecapEntryBadge
-                    : topRecapDwellSlotLabel}
-                </span>
-              </span>
-              <div className="min-w-0 self-center">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e]/16 px-2 py-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
-                  <Sparkles className="size-3" />
-                  {isCollectingSharedRecapSignals
-                    ? copy.sharedCutRecapCollectingTitle
-                    : copy.sharedCutRecapTopCutTitle}
-                </span>
-                <p className="mt-2 break-words text-[1.05rem] font-black leading-tight text-white [word-break:keep-all]">
-                  {topRecapDwellMetricLabel}
+          <div className="mt-3 rounded-[1.15rem] border border-white/12 bg-black/58 p-2.5 shadow-[0_24px_70px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                  {copy.sharedCutRecapCollectionTitle}
                 </p>
-                <p className="mt-1 text-[0.68rem] font-bold leading-snug text-white/62 [word-break:keep-all]">
-                  {topRecapDwellSlotLabel} ·{" "}
-                  {topRecapDwellHasMetric
-                    ? copy.sharedCutRecapDwellEvents(topRecapDwellCountLabel)
-                    : copy.sharedCutRecapCollectingMetric}
+                <p className="mt-0.5 line-clamp-1 text-[0.58rem] font-bold leading-3 text-white/46 [word-break:keep-all]">
+                  {copy.sharedCutRecapCollectionBody}
                 </p>
               </div>
+              {topRecapDwellRow ? (
+                <span className="shrink-0 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/12 px-2 py-1 text-right text-[0.52rem] font-black text-[#9bffad]">
+                  <span className="block text-white/42">
+                    {topRecapDwellSlotLabel}
+                  </span>
+                  <span className="mt-0.5 block text-white/78">
+                    {topRecapDwellHasMetric
+                      ? `${topRecapDwellMetricLabel} · ${copy.sharedCutRecapDwellEvents(
+                          topRecapDwellCountLabel,
+                        )}`
+                      : copy.sharedCutRecapCollectingMetric}
+                  </span>
+                </span>
+              ) : null}
             </div>
-          ) : null}
-          <div className="mt-4 rounded-[1.25rem] border border-white/12 bg-black/58 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.4)] backdrop-blur-xl">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
-                {isCollectingSharedRecapSignals
-                  ? copy.sharedCutRecapCollectingTitle
-                  : copy.sharedCutRecapDwellTitle}
-              </p>
-              <p className="text-[0.62rem] font-black text-white/40">
-                {copy.sharedCutRecapTotalActions} {sharedRecapEventCountLabel}
-              </p>
-            </div>
-            <div className="mt-3 grid grid-cols-3 gap-2">
+            <div className="mt-2 grid grid-cols-4 gap-1.5">
               {displayedRecapDwellRows.map((row) => {
                 const slotLabel = copy.slot(
                   row.cutSlotNumber.toString().padStart(2, "0"),
                 );
+                const rowKey = `${row.reportIndex}:${row.cutSlotNumber}`;
+                const rank = recapDwellRankByKey.get(rowKey) ?? 0;
+                const isTopRank = rank > 0 && rank <= 3;
+                const hasRowMetric = row.averageDwellMs > 0 || row.count > 0;
+                const progress =
+                  maxRecapAverageDwellMs > 0
+                    ? Math.max(
+                        row.averageDwellMs > 0 ? 8 : 0,
+                        Math.round(
+                          (row.averageDwellMs / maxRecapAverageDwellMs) * 100,
+                        ),
+                      )
+                    : isCollectingSharedRecapSignals
+                      ? 18
+                      : 0;
+                const rankLabel = copy.sharedCutRecapRank(
+                  formatNumber(rank, locale),
+                );
+
+                return (
+                  <div
+                    className={`min-w-0 rounded-[0.72rem] border bg-white/5 p-1 ${
+                      isTopRank
+                        ? "border-[#44f26e]/48 shadow-[0_0_24px_rgba(68,242,110,0.12)]"
+                        : "border-white/8"
+                    }`}
+                    key={`shared-journey-collection:${row.reportIndex}:${row.cutSlotNumber}`}
+                  >
+                    <span className="relative block aspect-[4/5] overflow-hidden rounded-[0.58rem] bg-white/8 ring-1 ring-white/10">
+                      <Image
+                        alt={slotLabel}
+                        className="object-cover"
+                        fill
+                        sizes="96px"
+                        src={row.imageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          row.imageUrl,
+                        )}
+                      />
+                      <span className="absolute inset-0 bg-gradient-to-t from-black/76 via-black/8 to-black/20" />
+                      <span
+                        className={`absolute left-1 top-1 rounded-full px-1.5 py-0.5 text-[0.46rem] font-black leading-none ${
+                          row.isEntryCut || isTopRank
+                            ? "bg-[#44f26e] text-[#111510]"
+                            : "bg-black/56 text-white/72"
+                        }`}
+                      >
+                        {row.isEntryCut
+                          ? copy.sharedCutRecapEntryBadge
+                          : isTopRank
+                            ? rankLabel
+                            : slotLabel}
+                      </span>
+                      <span className="absolute bottom-1 left-1 right-1">
+                        <span className="block truncate text-[0.48rem] font-black text-white/72">
+                          {hasRowMetric
+                            ? formatDuration(row.averageDwellMs, locale)
+                            : copy.sharedCutRecapCollectingMetric}
+                        </span>
+                        <span className="mt-0.5 block h-1 overflow-hidden rounded-full bg-white/18">
+                          <span
+                            className="block h-full rounded-full bg-[#44f26e]"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </span>
+                      </span>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="mt-2 rounded-[1.05rem] border border-[#44f26e]/16 bg-black/52 p-2.5 shadow-[0_20px_58px_rgba(0,0,0,0.3)] backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[0.64rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                {copy.sharedCutRecapEngineTitle}
+              </p>
+              <p className="text-[0.58rem] font-black text-white/38">
+                {copy.sharedCutRecapTotalActions} {sharedRecapEventCountLabel}
+              </p>
+            </div>
+            <div className="mt-2 space-y-1.5">
+              {topRankedRecapDwellRows.map((row) => {
+                const slotLabel = copy.slot(
+                  row.cutSlotNumber.toString().padStart(2, "0"),
+                );
+                const rowKey = `${row.reportIndex}:${row.cutSlotNumber}`;
+                const rank = recapDwellRankByKey.get(rowKey) ?? 0;
                 const hasRowMetric = row.averageDwellMs > 0 || row.count > 0;
                 const progress =
                   maxRecapAverageDwellMs > 0
@@ -5732,58 +5808,42 @@ function SharedCutDwellRecapSlide({
 
                 return (
                   <div
-                    className="min-w-0 rounded-[0.8rem] border border-white/8 bg-white/5 p-1.5"
-                    key={`shared-journey-dwell:${row.reportIndex}:${row.cutSlotNumber}`}
+                    className="grid grid-cols-[2.35rem_minmax(0,1fr)_4.05rem] items-center gap-2"
+                    key={`shared-journey-engine:${row.reportIndex}:${row.cutSlotNumber}`}
                   >
-                    <span className="relative block aspect-[3/4] overflow-hidden rounded-[0.62rem] bg-white/8 ring-1 ring-white/10">
-                      <Image
-                        alt={slotLabel}
-                        className="object-cover"
-                        fill
-                        sizes="120px"
-                        src={row.imageUrl}
-                        unoptimized={shouldBypassFanletterImageOptimization(
-                          row.imageUrl,
-                        )}
-                      />
-                      <span className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/10" />
-                      <span
-                        className={`absolute left-1.5 top-1.5 rounded-full px-1.5 py-0.5 text-[0.5rem] font-black ${
-                          row.isEntryCut
-                            ? "bg-[#44f26e] text-[#111510]"
-                            : "bg-black/52 text-white/76"
-                        }`}
-                      >
-                        {row.isEntryCut
-                          ? copy.sharedCutRecapEntryBadge
-                          : slotLabel}
-                      </span>
-                      <span className="absolute bottom-1.5 left-1.5 right-1.5 truncate text-[0.5rem] font-black text-white/70">
-                        {row.reportIndex}
-                      </span>
+                    <span className="rounded-full bg-[#44f26e]/14 px-1.5 py-1 text-center text-[0.54rem] font-black text-[#9bffad]">
+                      {copy.sharedCutRecapRank(formatNumber(rank, locale))}
                     </span>
-                    <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-white/12">
-                      <div
-                        className="h-full rounded-full bg-[#44f26e] shadow-[0_0_18px_rgba(68,242,110,0.22)]"
-                        style={{ width: `${progress}%` }}
-                      />
+                    <div className="min-w-0">
+                      <div className="mb-1 flex items-center justify-between gap-2">
+                        <span className="truncate text-[0.56rem] font-black text-white/64">
+                          {row.reportIndex} · {slotLabel}
+                        </span>
+                        <span className="shrink-0 text-[0.5rem] font-black text-white/34">
+                          {hasRowMetric
+                            ? copy.sharedCutRecapDwellEvents(countLabel)
+                            : copy.sharedCutRecapCollectingMetric}
+                        </span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-white/12">
+                        <div
+                          className="h-full rounded-full bg-[#44f26e] shadow-[0_0_18px_rgba(68,242,110,0.22)]"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="mt-1 flex items-center justify-between gap-1">
-                      <p className="truncate text-[0.58rem] font-black text-white/78">
-                        {hasRowMetric
-                          ? formatDuration(row.averageDwellMs, locale)
-                          : copy.sharedCutRecapCollectingMetric}
-                      </p>
-                      <p className="shrink-0 text-[0.5rem] font-black text-white/34">
-                        {hasRowMetric
-                          ? copy.sharedCutRecapDwellEvents(countLabel)
-                          : copy.sharedCutRecapCollectingMetric}
-                      </p>
-                    </div>
+                    <p className="text-right text-[0.72rem] font-black text-white/78">
+                      {hasRowMetric
+                        ? formatDuration(row.averageDwellMs, locale)
+                        : copy.sharedCutRecapCollectingMetric}
+                    </p>
                   </div>
                 );
               })}
             </div>
+            <p className="mt-2 line-clamp-1 text-[0.58rem] font-bold text-white/42 [word-break:keep-all]">
+              {copy.sharedCutRecapInsight(characterName)}
+            </p>
           </div>
         </div>
         <div className="mx-auto mt-5 flex min-h-14 w-full max-w-[22rem] items-center justify-center gap-2 rounded-full border border-white/16 bg-black/54 px-5 text-center text-sm font-black text-white shadow-[0_16px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl">
