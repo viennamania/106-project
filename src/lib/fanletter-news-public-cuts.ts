@@ -54,6 +54,7 @@ const FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_REPORT_POOL_LIMIT = 144;
 const FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_FIRST_INDEX = 5;
 const FANLETTER_NEWS_PUBLIC_CUT_FEED_ARCHIVE_UNLOCKED_INTERVAL = 8;
 const FANLETTER_NEWS_PUBLIC_CUT_FEED_ROTATION_BUCKET_MS = 1000 * 60 * 15;
+const FANLETTER_NEWS_PUBLIC_CUT_SHARED_VLOG_OPTION_LIMIT = 6;
 const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_SOURCE_REVEAL_SCORE = 100;
 const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_LIKE_SCORE = 24;
 const FANLETTER_NEWS_PUBLIC_CUT_CREATOR_TIMELINE_SAVE_SCORE = 18;
@@ -1534,12 +1535,39 @@ export async function getFanletterNewsPublicCutFeedPage({
           ? await hydrateFanletterNewsPublicCutFeedItems(
               (
                 await reportsCollection
-                  .find({
-                    ...publicCutReportQuery,
-                    contentId: { $in: timelineContentIds },
-                  })
-                  .sort({ sourcePublishedAt: -1, createdAt: -1, reportId: 1 })
-                  .limit(Math.max(24, timelineContentIds.length * 8))
+                  .aggregate<FanletterNewsReportDocument>([
+                    {
+                      $match: {
+                        ...publicCutReportQuery,
+                        contentId: { $in: timelineContentIds },
+                      },
+                    },
+                    {
+                      $sort: {
+                        sourcePublishedAt: -1,
+                        createdAt: -1,
+                        reportId: 1,
+                      },
+                    },
+                    {
+                      $group: {
+                        _id: "$contentId",
+                        reports: { $push: "$$ROOT" },
+                      },
+                    },
+                    {
+                      $project: {
+                        reports: {
+                          $slice: [
+                            "$reports",
+                            FANLETTER_NEWS_PUBLIC_CUT_SHARED_VLOG_OPTION_LIMIT,
+                          ],
+                        },
+                      },
+                    },
+                    { $unwind: "$reports" },
+                    { $replaceRoot: { newRoot: "$reports" } },
+                  ])
                   .toArray()
               )
                 .map((report) => createFanletterNewsPublicCutFeedItem(report))

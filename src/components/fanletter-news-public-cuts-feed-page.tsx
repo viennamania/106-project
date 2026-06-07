@@ -111,6 +111,7 @@ const CUT_FEED_RENDER_WINDOW_RADIUS = 0;
 const CUT_FEED_SHARED_JOURNEY_MAX_REPORTS = 3;
 const CUT_FEED_SHARED_DISCOVERY_LIMIT = 3;
 const CUT_FEED_SHARED_TIMELINE_CANDIDATE_LOAD_LIMIT = 6;
+const CUT_FEED_SHARED_TIMELINE_CANDIDATE_LOAD_BUFFER = 1;
 const CUT_FEED_CHROME_HIDE_EVENT = "fanletter-news-cut-feed-chrome-hide";
 const CUT_FEED_VISIBLE_INDEX_CHANGE_EVENT =
   "fanletter-news-cut-feed-visible-index-change";
@@ -8864,11 +8865,21 @@ export function FanletterNewsPublicCutsFeedPage({
     setLoadError(null);
 
     try {
+      const sharedTimelineLoadLimit =
+        shareId && sharedTimelineAnchorReportId
+          ? Math.min(
+              CUT_FEED_SHARED_TIMELINE_CANDIDATE_LOAD_LIMIT,
+              Math.max(
+                1,
+                CUT_FEED_SHARED_JOURNEY_MAX_REPORTS - items.length,
+              ) + CUT_FEED_SHARED_TIMELINE_CANDIDATE_LOAD_BUFFER,
+            )
+          : null;
       const params = new URLSearchParams({
         rotationSeed: feedRotationSeed,
         limit: String(
-          shareId && sharedTimelineAnchorReportId
-            ? CUT_FEED_SHARED_TIMELINE_CANDIDATE_LOAD_LIMIT
+          sharedTimelineLoadLimit
+            ? sharedTimelineLoadLimit
             : isSharedConsumptionEntry
             ? FANLETTER_NEWS_PUBLIC_CUT_SHARED_PAGE_SIZE
             : FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE,

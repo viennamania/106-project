@@ -73,8 +73,20 @@ export async function GET(request: Request) {
       timelineAnchorReportId: creatorTimelineMode ? timelineAnchorReportId : null,
       viewerEmail: session?.email ?? null,
     });
+    const headers = new Headers();
 
-    return Response.json(serializeFanletterNewsPublicCutFeedPage(page));
+    if (creatorTimelineMode && shareId) {
+      headers.set(
+        "Cache-Control",
+        session?.email
+          ? "private, max-age=15, stale-while-revalidate=60"
+          : "public, max-age=15, s-maxage=30, stale-while-revalidate=120",
+      );
+    }
+
+    return Response.json(serializeFanletterNewsPublicCutFeedPage(page), {
+      headers,
+    });
   } catch {
     return jsonError("Failed to load AIAVpark News reporter cuts.", 500);
   }

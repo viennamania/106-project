@@ -9,6 +9,7 @@ import {
   Images,
   MousePointerClick,
   Share2,
+  Sparkles,
   Timer,
   UsersRound,
 } from "lucide-react";
@@ -68,11 +69,21 @@ function getCopy(locale: Locale) {
         noCuts: "표시할 컷 이미지가 없습니다.",
         noMemo: "메모 없음",
         openLink: "공유 링크 열기",
+        partnerSignalBody:
+          "팬이 공유한 4컷이 어떤 장면에서 멈춤, 원본 진입, 다음 소비를 만들었는지 AI 캐릭터 IP 반응 신호로 해석합니다.",
+        partnerSignalTitle: "AI 캐릭터 IP 반응 스냅샷",
         report: "팬 리포트",
+        signalStage: "신호 단계",
+        signalStageCollecting: "수집 중",
+        signalStageLearning: "학습 가능",
+        signalStageValidated: "검증 신호",
         shareId: "공유 ID",
         sourceOpens: "원본 진입",
+        sourceOpenRate: "원본 전환율",
+        strongestCut: "가장 강한 컷",
         timelineLoads: "다음 로드",
         totalDwell: "총 체류",
+        visitorMix: "SNS 게스트 비율",
       }
     : {
         averageDwell: "Avg. dwell",
@@ -108,11 +119,21 @@ function getCopy(locale: Locale) {
         noCuts: "No cut images to show.",
         noMemo: "No note",
         openLink: "Open share link",
+        partnerSignalBody:
+          "Interpret where fan-shared cuts create pauses, source intent, and continued consumption as AI character IP response signals.",
+        partnerSignalTitle: "AI Character IP Signal Snapshot",
         report: "Fan report",
+        signalStage: "Signal stage",
+        signalStageCollecting: "Collecting",
+        signalStageLearning: "Learning-ready",
+        signalStageValidated: "Validated signal",
         shareId: "Share ID",
         sourceOpens: "Source opens",
+        sourceOpenRate: "Source-open rate",
+        strongestCut: "Strongest cut",
         timelineLoads: "Next loads",
         totalDwell: "Total dwell",
+        visitorMix: "SNS guest mix",
       };
 }
 
@@ -154,6 +175,17 @@ function formatDuration(valueMs: number, locale: Locale) {
   return locale === "ko" ? `${formattedMinutes}분` : `${formattedMinutes}m`;
 }
 
+function formatPercent(value: number, locale: Locale) {
+  if (!Number.isFinite(value) || value <= 0) {
+    return "0%";
+  }
+
+  return new Intl.NumberFormat(locale, {
+    maximumFractionDigits: value < 10 ? 1 : 0,
+    style: "percent",
+  }).format(value);
+}
+
 function MetricTile({
   label,
   locale,
@@ -173,6 +205,118 @@ function MetricTile({
       </p>
       <p className="mt-1 text-lg font-black text-white">{displayValue}</p>
     </div>
+  );
+}
+
+function getStrongestCut(
+  detail: FanletterNewsCutShareLinkDetail,
+) {
+  return detail.cuts.reduce<
+    FanletterNewsCutShareLinkDetail["cuts"][number] | null
+  >((strongestCut, cut) => {
+    if (!strongestCut) {
+      return cut;
+    }
+
+    const cutScore =
+      cut.metrics.averageDwellMs * 2 +
+      cut.metrics.totalDwellMs +
+      cut.metrics.cutViews * 250;
+    const strongestScore =
+      strongestCut.metrics.averageDwellMs * 2 +
+      strongestCut.metrics.totalDwellMs +
+      strongestCut.metrics.cutViews * 250;
+
+    return cutScore > strongestScore ? cut : strongestCut;
+  }, null);
+}
+
+function getSignalStage(
+  detail: FanletterNewsCutShareLinkDetail,
+  copy: ReturnType<typeof getCopy>,
+) {
+  if (
+    detail.metrics.eventCount >= 80 ||
+    detail.metrics.dwellEvents >= 12 ||
+    detail.metrics.sourceOpenClicks >= 4
+  ) {
+    return copy.signalStageValidated;
+  }
+
+  if (
+    detail.metrics.eventCount >= 16 ||
+    detail.metrics.dwellEvents >= 4 ||
+    detail.metrics.cutViews >= 8
+  ) {
+    return copy.signalStageLearning;
+  }
+
+  return copy.signalStageCollecting;
+}
+
+function PartnerSignalSummary({
+  copy,
+  detail,
+  locale,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  detail: FanletterNewsCutShareLinkDetail;
+  locale: Locale;
+}) {
+  const strongestCut = getStrongestCut(detail);
+  const sourceOpenRate =
+    detail.metrics.cutViews > 0
+      ? detail.metrics.sourceOpenClicks / detail.metrics.cutViews
+      : 0;
+  const guestRatio =
+    detail.metrics.eventCount > 0
+      ? detail.metrics.guestEvents / detail.metrics.eventCount
+      : 0;
+  const strongestCutLabel = strongestCut
+    ? `${copy.cutLabel(formatNumber(strongestCut.slotNumber, locale))} · ${formatDuration(
+        strongestCut.metrics.averageDwellMs,
+        locale,
+      )}`
+    : "-";
+
+  return (
+    <section className="mt-5 rounded-[1.15rem] border border-[#44f26e]/20 bg-[linear-gradient(135deg,rgba(68,242,110,0.13),rgba(255,255,255,0.055)_38%,rgba(0,0,0,0.18))] p-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)]">
+      <div className="flex items-start gap-3">
+        <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
+          <Sparkles className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-xl font-black leading-tight [word-break:keep-all]">
+            {copy.partnerSignalTitle}
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm font-bold leading-6 text-white/62 [word-break:keep-all]">
+            {copy.partnerSignalBody}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+        <MetricTile
+          label={copy.signalStage}
+          locale={locale}
+          value={getSignalStage(detail, copy)}
+        />
+        <MetricTile
+          label={copy.strongestCut}
+          locale={locale}
+          value={strongestCutLabel}
+        />
+        <MetricTile
+          label={copy.sourceOpenRate}
+          locale={locale}
+          value={formatPercent(sourceOpenRate, locale)}
+        />
+        <MetricTile
+          label={copy.visitorMix}
+          locale={locale}
+          value={formatPercent(guestRatio, locale)}
+        />
+      </div>
+    </section>
   );
 }
 
@@ -486,6 +630,11 @@ export default async function LocalizedFanletterNewsCutShareDetailPage({
                 </div>
               </div>
             </section>
+            <PartnerSignalSummary
+              copy={copy}
+              detail={detail}
+              locale={locale}
+            />
             <CutDwellSummary copy={copy} detail={detail} locale={locale} />
             <section className="mt-7">
               <div className="flex items-start gap-3">
