@@ -516,6 +516,7 @@ function getCharacterChannelHref({
   locale,
   referralCode,
   returnToHref,
+  shareId,
   sourceReportId,
 }: {
   cutSlotNumber: number | null;
@@ -523,6 +524,7 @@ function getCharacterChannelHref({
   locale: Locale;
   referralCode: string;
   returnToHref: string | null;
+  shareId: string | null;
   sourceReportId: string | null;
 }) {
   return setPathSearchParams(
@@ -533,6 +535,7 @@ function getCharacterChannelHref({
     {
       cut: cutSlotNumber ? String(cutSlotNumber) : null,
       returnTo: returnToHref,
+      shareId,
       sourceReportId,
     },
   );
@@ -637,6 +640,7 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
     locale,
     referralCode: normalizedCharacterReferralCode,
     returnToHref: safeReturnToHref,
+    shareId: inheritedShareId,
     sourceReportId: sourceReportId || null,
   });
   const character = data.profile.character;
