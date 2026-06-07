@@ -7740,6 +7740,34 @@ export function FanletterNewsPublicCutsFeedPage({
 
     return false;
   }, [shareId, sharedJourneyFinalSlideIndex]);
+  const lockSharedJourneyFinalStartInPlace = useCallback(() => {
+    const root = scrollContainerRef.current;
+
+    if (!shareId || !root || sharedJourneyFinalSlideIndex === null) {
+      return false;
+    }
+
+    const finalScrollTop = root.clientHeight * sharedJourneyFinalSlideIndex;
+
+    if (
+      root.scrollTop < finalScrollTop - 1 ||
+      root.scrollTop > finalScrollTop + 1
+    ) {
+      return false;
+    }
+
+    sharedJourneyFinalReachedRef.current = true;
+
+    if (Math.abs(root.scrollTop - finalScrollTop) > 0.5) {
+      root.scrollTo({
+        behavior: "auto",
+        top: finalScrollTop,
+      });
+    }
+
+    setVisibleSlideIndex(sharedJourneyFinalSlideIndex);
+    return true;
+  }, [shareId, sharedJourneyFinalSlideIndex]);
   const getIsSharedTransitionSelectionRequired = useCallback(
     (slideIndex: number) =>
       Boolean(
@@ -8104,9 +8132,11 @@ export function FanletterNewsPublicCutsFeedPage({
         root &&
         shareId &&
         sharedJourneyFinalSlideIndex !== null &&
-        sharedJourneyFinalReachedRef.current &&
         event.deltaY < -CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX &&
-        root.scrollTop <= root.clientHeight * sharedJourneyFinalSlideIndex + 1
+        (lockSharedJourneyFinalStartInPlace() ||
+          (sharedJourneyFinalReachedRef.current &&
+            root.scrollTop <=
+              root.clientHeight * sharedJourneyFinalSlideIndex + 1))
       ) {
         event.preventDefault();
         keepSharedJourneyFinalSlideInPlace();
@@ -8184,6 +8214,7 @@ export function FanletterNewsPublicCutsFeedPage({
       keepSharedJourneyFinalSlideInPlace,
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
+      lockSharedJourneyFinalStartInPlace,
       moveToPreviousSharedLockedSlide,
       shareId,
       sharedJourneyFinalSlideIndex,
@@ -8211,6 +8242,12 @@ export function FanletterNewsPublicCutsFeedPage({
       const root = scrollContainerRef.current;
       const deltaY = startTouchY - currentTouchY;
 
+      if (deltaY < 0 && lockSharedJourneyFinalStartInPlace()) {
+        event.preventDefault();
+        lockedTouchNavigationHandledRef.current = true;
+        return;
+      }
+
       if (Math.abs(deltaY) <= CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX) {
         return;
       }
@@ -8219,8 +8256,8 @@ export function FanletterNewsPublicCutsFeedPage({
         root &&
         shareId &&
         sharedJourneyFinalSlideIndex !== null &&
-        sharedJourneyFinalReachedRef.current &&
         deltaY < 0 &&
+        sharedJourneyFinalReachedRef.current &&
         root.scrollTop <= root.clientHeight * sharedJourneyFinalSlideIndex + 1
       ) {
         event.preventDefault();
@@ -8301,6 +8338,7 @@ export function FanletterNewsPublicCutsFeedPage({
       keepSharedJourneyFinalSlideInPlace,
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
+      lockSharedJourneyFinalStartInPlace,
       moveToPreviousSharedLockedSlide,
       activeSharedLockedSlideIndex,
       shareId,
