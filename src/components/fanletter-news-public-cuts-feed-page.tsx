@@ -7232,6 +7232,11 @@ export function FanletterNewsPublicCutsFeedPage({
   const isSharedTransitionSlideVisible = Boolean(
     shareId && getSharedTransitionForSlideIndex(visibleSlideIndex),
   );
+  const isSharedTransitionSelectionPending = Boolean(
+    shareId &&
+      getSharedTransitionForSlideIndex(visibleSlideIndex) &&
+      !sharedResolvedTransitionSlideIndexesRef.current.has(visibleSlideIndex),
+  );
   const sharedVlogTransitionSlideCount = sharedVlogTransitions.reduce(
     (count) => count + getSharedVlogTransitionSlideCount(),
     0,
@@ -8877,7 +8882,9 @@ export function FanletterNewsPublicCutsFeedPage({
   const scrollContainerClassName = `mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overscroll-contain bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] sm:border-x sm:border-white/10 ${
     isCutFeedScrollLocked ? "scroll-auto" : "scroll-smooth"
   } ${
-    isSourceOverlayScrollLocked || shouldFreezeSharedLockedScroll
+    isSourceOverlayScrollLocked ||
+    shouldFreezeSharedLockedScroll ||
+    isSharedTransitionSelectionPending
       ? "overflow-y-hidden"
       : "overflow-y-auto"
   }`;
