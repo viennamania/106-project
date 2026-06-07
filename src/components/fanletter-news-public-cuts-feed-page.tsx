@@ -339,6 +339,7 @@ function getCopy(locale: Locale) {
         sharedVlogPickerViewedBadge: "보는 중",
         sharedVlogPickerCompletedBadge: "시청 완료",
         sharedVlogPickerEyebrow: "다음 브이로그",
+        sharedVlogPickerOpening: "이어가는 중",
         sharedVlogPickerReportCount: (count: string) => `팬 리포트 ${count}개`,
         sharedVlogPickerReports: "팬 리포트",
         sharedVlogPickerReasonCompleted: "이미 확인한 관점",
@@ -644,6 +645,7 @@ function getCopy(locale: Locale) {
         sharedVlogPickerViewedBadge: "Watching",
         sharedVlogPickerCompletedBadge: "Viewed",
         sharedVlogPickerEyebrow: "Next vlog",
+        sharedVlogPickerOpening: "Opening",
         sharedVlogPickerReportCount: (count: string) => `${count} fan reports`,
         sharedVlogPickerReports: "Fan reports",
         sharedVlogPickerReasonCompleted: "Already viewed angle",
@@ -6038,6 +6040,17 @@ function SharedCharacterVlogPickerSlide({
   const displayedOptions = options.slice(0, 6);
   const isSingleOption = displayedOptions.length === 1;
   const optionCountLabel = formatNumber(displayedOptions.length, locale);
+  const [pendingSelectionReportId, setPendingSelectionReportId] = useState<
+    string | null
+  >(null);
+  const pendingSelectionClearTimerRef = useRef<number | null>(null);
+  const effectivePendingSelectionReportId =
+    pendingSelectionReportId &&
+    displayedOptions.some(
+      (option) => option.report.reportId === pendingSelectionReportId,
+    )
+      ? pendingSelectionReportId
+      : null;
   const backgroundImageUrl =
     completedItem.report.coverImageUrl || completedItem.leadCut.imageUrl;
   const completedCuts =
@@ -6085,6 +6098,15 @@ function SharedCharacterVlogPickerSlide({
   const sharedRecapEventCountLabel = formatNumber(
     sharedCutRecap?.eventCount ?? 0,
     locale,
+  );
+
+  useEffect(
+    () => () => {
+      if (pendingSelectionClearTimerRef.current !== null) {
+        window.clearTimeout(pendingSelectionClearTimerRef.current);
+      }
+    },
+    [],
   );
 
   return (
@@ -6351,22 +6373,32 @@ function SharedCharacterVlogPickerSlide({
           >
             {displayedOptions.map((option) => {
               const optionReportId = option.report.reportId;
+              const isOpening =
+                effectivePendingSelectionReportId === optionReportId;
+              const isSelectionLocked =
+                effectivePendingSelectionReportId !== null;
               const isDefault = optionReportId === defaultReportId;
               const isCompleted = completedReportIds.has(optionReportId);
               const isViewed = viewedReportIds.has(optionReportId);
-              const statusLabel = isCompleted
+              const statusLabel = isOpening
+                ? copy.sharedVlogPickerOpening
+                : isCompleted
                 ? copy.sharedVlogPickerCompletedBadge
                 : isViewed
                   ? copy.sharedVlogPickerViewedBadge
                   : isDefault
                     ? copy.sharedVlogPickerDefaultBadge
                     : null;
-              const statusClassName = isCompleted
+              const statusClassName = isOpening
+                ? "bg-[#44f26e] text-[#111510]"
+                : isCompleted
                 ? "bg-white text-[#111510]"
                 : isViewed
                   ? "border border-[#44f26e]/48 bg-[#44f26e]/16 text-[#9bffad]"
                   : "bg-[#44f26e] text-[#111510]";
-              const cardStateClassName = isCompleted
+              const cardStateClassName = isOpening
+                ? "border-[#44f26e] bg-[#102014]/88 ring-2 ring-[#44f26e]/28"
+                : isCompleted
                 ? "border-[#44f26e]/62 bg-[#102014]/76"
                 : isViewed
                   ? "border-[#44f26e]/42 bg-black/68"
@@ -6388,9 +6420,29 @@ function SharedCharacterVlogPickerSlide({
               return (
                 <button
                   aria-label={`${option.report.reporterName} ${option.report.title} ${copy.sharedVlogPickerCta}`}
-                  className={`group flex min-h-0 flex-col rounded-[0.72rem] border p-1 text-left shadow-[0_14px_34px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28 ${cardStateClassName}`}
+                  className={`group flex min-h-0 flex-col rounded-[0.72rem] border p-1 text-left shadow-[0_14px_34px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-[#44f26e]/60 hover:bg-black/70 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28 disabled:cursor-wait disabled:hover:bg-black/56 ${cardStateClassName}`}
+                  disabled={isSelectionLocked}
                   key={`${optionReportId}:vlog-option`}
-                  onClick={() => onSelect(option)}
+                  onClick={() => {
+                    if (pendingSelectionClearTimerRef.current !== null) {
+                      window.clearTimeout(pendingSelectionClearTimerRef.current);
+                    }
+                    flushSync(() => {
+                      setPendingSelectionReportId(optionReportId);
+                    });
+                    pendingSelectionClearTimerRef.current = window.setTimeout(
+                      () => {
+                        setPendingSelectionReportId((currentReportId) =>
+                          currentReportId === optionReportId
+                            ? null
+                            : currentReportId,
+                        );
+                        pendingSelectionClearTimerRef.current = null;
+                      },
+                      2500,
+                    );
+                    window.setTimeout(() => onSelect(option), 40);
+                  }}
                   type="button"
                 >
                   <span className="relative block aspect-[9/16] w-full overflow-hidden rounded-[0.58rem] bg-white/10">
@@ -6398,6 +6450,7 @@ function SharedCharacterVlogPickerSlide({
                       alt=""
                       className="object-cover"
                       fill
+                      loading={isDefault ? "eager" : "lazy"}
                       sizes="(min-width: 640px) 130px, 31vw"
                       src={option.leadCut.imageUrl}
                       unoptimized={shouldBypassFanletterImageOptimization(
@@ -6410,6 +6463,14 @@ function SharedCharacterVlogPickerSlide({
                         className={`absolute right-1 top-1 rounded-full px-1.5 py-0.5 text-[0.44rem] font-black leading-none ${statusClassName}`}
                       >
                         {statusLabel}
+                      </span>
+                    ) : null}
+                    {isOpening ? (
+                      <span className="absolute inset-0 z-10 flex items-center justify-center bg-black/44 backdrop-blur-[1px]">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#44f26e] px-2.5 py-1.5 text-[0.56rem] font-black text-[#111510] shadow-[0_14px_34px_rgba(68,242,110,0.22)]">
+                          <Loader2 className="size-3 animate-spin" />
+                          {copy.sharedVlogPickerOpening}
+                        </span>
                       </span>
                     ) : null}
                     <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/88 via-black/44 to-transparent px-1.5 pb-1.5 pt-5">
