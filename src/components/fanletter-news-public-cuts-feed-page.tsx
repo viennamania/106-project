@@ -5517,11 +5517,13 @@ function FeedSlide({
 function SharedCutDwellRecapSlide({
   completedItems,
   entryCutSlotNumber = null,
+  isNestedFinalSlot = false,
   locale,
   sharedCutRecap = null,
 }: {
   completedItems: SerializedFanletterNewsPublicCutFeedItem[];
   entryCutSlotNumber?: number | null;
+  isNestedFinalSlot?: boolean;
   locale: Locale;
   sharedCutRecap?: SerializedFanletterNewsPublicCutShareRecap | null;
 }) {
@@ -5619,7 +5621,9 @@ function SharedCutDwellRecapSlide({
   return (
     <section
       aria-label={copy.sharedCutRecapHeadline}
-      className="relative h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+0.9rem)] text-white"
+      className={`relative h-[var(--fanletter-cut-feed-vh,100dvh)] overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+0.8rem)] pt-[calc(env(safe-area-inset-top)+0.9rem)] text-white ${
+        isNestedFinalSlot ? "" : "snap-start snap-always"
+      }`}
       data-shared-cut-recap
       data-shared-character-intro
     >
@@ -6285,6 +6289,7 @@ function SharedJourneyEndSlide({
   characterHref,
   connectHref,
   discoveryItems,
+  isNestedFinalSlot = false,
   isDiscoveryLoading,
   journeyItems,
   locale,
@@ -6296,6 +6301,7 @@ function SharedJourneyEndSlide({
   characterHref: string;
   connectHref: string;
   discoveryItems: SerializedFanletterNewsPublicCutFeedItemBase[];
+  isNestedFinalSlot?: boolean;
   isDiscoveryLoading: boolean;
   journeyItems: SerializedFanletterNewsPublicCutFeedItem[];
   locale: Locale;
@@ -6436,7 +6442,9 @@ function SharedJourneyEndSlide({
   return (
     <section
       aria-label={copy.sharedEndTitle(characterName)}
-      className="relative flex min-h-[var(--fanletter-cut-feed-vh,100dvh)] snap-start snap-always overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+1.2rem)] text-white"
+      className={`relative flex min-h-[var(--fanletter-cut-feed-vh,100dvh)] overflow-hidden bg-[#050706] px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+1.2rem)] text-white ${
+        isNestedFinalSlot ? "" : "snap-start snap-always"
+      }`}
       data-shared-journey-end
     >
       {backgroundImageUrl ? (
@@ -7013,6 +7021,7 @@ export function FanletterNewsPublicCutsFeedPage({
   const sharedResolvedTransitionSlideIndexesRef = useRef<Set<number>>(
     new Set(),
   );
+  const sharedJourneyFinalReachedRef = useRef(false);
   const cutFeedHomeHref = buildPathWithReferral(
     `/${locale}/fanletter/news/cuts`,
     referralCode,
@@ -7301,7 +7310,10 @@ export function FanletterNewsPublicCutsFeedPage({
     (count) => count + getSharedVlogTransitionSlideCount(),
     0,
   );
-  const sharedJourneyEndSlideCount = shouldShowSharedJourneyEndSlide ? 2 : 0;
+  const sharedJourneyEndSlideCount = shouldShowSharedJourneyEndSlide ? 1 : 0;
+  const sharedJourneyFinalSlideIndex = shouldShowSharedJourneyEndSlide
+    ? feedItems.length + sharedVlogTransitionSlideCount
+    : null;
   const virtualSlideCount =
     feedItems.length +
     sharedVlogTransitionSlideCount +
@@ -7590,6 +7602,34 @@ export function FanletterNewsPublicCutsFeedPage({
     },
     [shareId, sharedMinimumSlideIndex],
   );
+  const keepSharedJourneyFinalSlideInPlace = useCallback(() => {
+    const root = scrollContainerRef.current;
+
+    if (!shareId || !root || sharedJourneyFinalSlideIndex === null) {
+      return false;
+    }
+
+    const finalScrollTop = root.clientHeight * sharedJourneyFinalSlideIndex;
+
+    if (root.scrollTop >= finalScrollTop - 1) {
+      sharedJourneyFinalReachedRef.current = true;
+    }
+
+    if (!sharedJourneyFinalReachedRef.current) {
+      return false;
+    }
+
+    if (root.scrollTop < finalScrollTop - 1) {
+      root.scrollTo({
+        behavior: "auto",
+        top: finalScrollTop,
+      });
+      setVisibleSlideIndex(sharedJourneyFinalSlideIndex);
+      return true;
+    }
+
+    return false;
+  }, [shareId, sharedJourneyFinalSlideIndex]);
   const getIsSharedTransitionSelectionRequired = useCallback(
     (slideIndex: number) =>
       Boolean(
@@ -7703,6 +7743,7 @@ export function FanletterNewsPublicCutsFeedPage({
       setVisibleSlideIndex(0);
       setSharedMinimumSlideIndex(0);
       sharedResolvedTransitionSlideIndexesRef.current = new Set();
+      sharedJourneyFinalReachedRef.current = false;
     }
   }, [shareId, sharedConsumedStorageKey, sharedViewedStorageKey]);
   useEffect(() => {
@@ -7952,6 +7993,19 @@ export function FanletterNewsPublicCutsFeedPage({
       if (
         root &&
         shareId &&
+        sharedJourneyFinalSlideIndex !== null &&
+        sharedJourneyFinalReachedRef.current &&
+        event.deltaY < -CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX &&
+        root.scrollTop <= root.clientHeight * sharedJourneyFinalSlideIndex + 1
+      ) {
+        event.preventDefault();
+        keepSharedJourneyFinalSlideInPlace();
+        return;
+      }
+
+      if (
+        root &&
+        shareId &&
         sharedMinimumSlideIndex > 0 &&
         event.deltaY < -CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX &&
         root.scrollTop <= root.clientHeight * sharedMinimumSlideIndex + 1
@@ -8017,10 +8071,12 @@ export function FanletterNewsPublicCutsFeedPage({
       activeSharedLockedSlideIndex,
       getIsSharedTransitionSelectionRequired,
       isSharedEntryScrollLocked,
+      keepSharedJourneyFinalSlideInPlace,
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
       moveToPreviousSharedLockedSlide,
       shareId,
+      sharedJourneyFinalSlideIndex,
       sharedMinimumSlideIndex,
       visibleSlideIndex,
     ],
@@ -8046,6 +8102,20 @@ export function FanletterNewsPublicCutsFeedPage({
       const deltaY = startTouchY - currentTouchY;
 
       if (Math.abs(deltaY) <= CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX) {
+        return;
+      }
+
+      if (
+        root &&
+        shareId &&
+        sharedJourneyFinalSlideIndex !== null &&
+        sharedJourneyFinalReachedRef.current &&
+        deltaY < 0 &&
+        root.scrollTop <= root.clientHeight * sharedJourneyFinalSlideIndex + 1
+      ) {
+        event.preventDefault();
+        lockedTouchNavigationHandledRef.current = true;
+        keepSharedJourneyFinalSlideInPlace();
         return;
       }
 
@@ -8118,11 +8188,13 @@ export function FanletterNewsPublicCutsFeedPage({
     [
       getIsSharedTransitionSelectionRequired,
       isSharedEntryScrollLocked,
+      keepSharedJourneyFinalSlideInPlace,
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
       moveToPreviousSharedLockedSlide,
       activeSharedLockedSlideIndex,
       shareId,
+      sharedJourneyFinalSlideIndex,
       sharedMinimumSlideIndex,
       visibleSlideIndex,
     ],
@@ -8135,6 +8207,10 @@ export function FanletterNewsPublicCutsFeedPage({
     const root = scrollContainerRef.current;
 
     if (!root) {
+      return;
+    }
+
+    if (keepSharedJourneyFinalSlideInPlace()) {
       return;
     }
 
@@ -8286,6 +8362,7 @@ export function FanletterNewsPublicCutsFeedPage({
     hideFeedChromeImmediately,
     isSharedEntryScrollLocked,
     feedItems,
+    keepSharedJourneyFinalSlideInPlace,
     keepSharedMinimumSlideInPlace,
     sourceViewSwipeGuideDismissed,
     swipeGuideTarget,
@@ -9294,10 +9371,14 @@ export function FanletterNewsPublicCutsFeedPage({
           return <Fragment key={item.report.reportId}>{feedSlide}</Fragment>;
         })}
         {shouldShowSharedJourneyEndSlide ? (
-          <>
+          <section
+            className="snap-start snap-always bg-[#050706]"
+            data-shared-journey-final
+          >
             <SharedCutDwellRecapSlide
               completedItems={feedItems}
               entryCutSlotNumber={initialCutSlotNumber}
+              isNestedFinalSlot
               locale={locale}
               sharedCutRecap={sharedCutRecap}
             />
@@ -9305,6 +9386,7 @@ export function FanletterNewsPublicCutsFeedPage({
               characterHref={sharedEntryCharacterHref}
               connectHref={sharedEndConnectHref}
               discoveryItems={sharedDiscoveryItems}
+              isNestedFinalSlot
               isDiscoveryLoading={isSharedDiscoveryLoading}
               journeyItems={feedItems}
               locale={locale}
@@ -9313,7 +9395,7 @@ export function FanletterNewsPublicCutsFeedPage({
               returnToHref={cutFeedHomeHref}
               shareId={shareId}
             />
-          </>
+          </section>
         ) : (
           <section
             className="flex min-h-[48dvh] snap-start items-center justify-center px-4 py-10 text-center"
