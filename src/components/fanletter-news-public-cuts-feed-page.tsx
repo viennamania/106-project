@@ -309,9 +309,13 @@ function getCopy(locale: Locale) {
         sharedCutRecapCollectingMetric: "측정 중",
         sharedCutRecapCollectingRank: "측정",
         sharedCutRecapCollectingTitle: "반응 엔진 준비 중",
-        sharedCutRecapCollectionBody:
-          "이미지 위에 체류와 조회 신호를 겹쳐, 어떤 장면이 관심을 만들었는지 보여줍니다.",
-        sharedCutRecapCollectionTitle: "12컷 반응 컬렉션",
+        sharedCutRecapCandidateCuts: "후보 컷",
+        sharedCutRecapCollectionBody: (
+          viewedCount: string,
+          candidateCount: string,
+        ) =>
+          `후보 ${candidateCount}컷 중 실제로 지나온 ${viewedCount}컷만 세로 이미지로 모았습니다.`,
+        sharedCutRecapCollectionTitle: "오늘 본 컷 컬렉션",
         sharedCutRecapDwellEvents: (count: string) => `${count}회`,
         sharedCutRecapDwellTitle: "컷별 체류",
         sharedCutRecapEngineTitle: "컷별 체류 분석 엔진",
@@ -326,6 +330,7 @@ function getCopy(locale: Locale) {
         sharedCutRecapTitle: (count: string) => `${count}컷 확인 완료`,
         sharedCutRecapTopCutTitle: "가장 오래 본 컷",
         sharedCutRecapTotalActions: "전체 행동",
+        sharedCutRecapViewedCuts: "실제 본 컷",
         sharedVlogPickerBody:
           "사진을 보고 팬 리포트 하나를 골라 이어보세요.",
         sharedVlogPickerCta: "이 리포트 보기",
@@ -608,9 +613,13 @@ function getCopy(locale: Locale) {
         sharedCutRecapCollectingMetric: "Measuring",
         sharedCutRecapCollectingRank: "Signal",
         sharedCutRecapCollectingTitle: "Reaction engine warming up",
-        sharedCutRecapCollectionBody:
-          "Dwell and view signals are layered on the images to show which scenes created attention.",
-        sharedCutRecapCollectionTitle: "12-cut reaction collection",
+        sharedCutRecapCandidateCuts: "Candidate cuts",
+        sharedCutRecapCollectionBody: (
+          viewedCount: string,
+          candidateCount: string,
+        ) =>
+          `From ${candidateCount} candidate cuts, this shows the ${viewedCount} cuts actually viewed in portrait frames.`,
+        sharedCutRecapCollectionTitle: "Viewed cut collection",
         sharedCutRecapDwellEvents: (count: string) => `${count} views`,
         sharedCutRecapDwellTitle: "Dwell by cut",
         sharedCutRecapEngineTitle: "Cut dwell analytics engine",
@@ -625,6 +634,7 @@ function getCopy(locale: Locale) {
         sharedCutRecapTitle: (count: string) => `${count} cuts viewed`,
         sharedCutRecapTopCutTitle: "Most watched cut",
         sharedCutRecapTotalActions: "All actions",
+        sharedCutRecapViewedCuts: "Viewed cuts",
         sharedVlogPickerBody:
           "Choose one fan report from the cut images to continue.",
         sharedVlogPickerCta: "View this report",
@@ -5608,12 +5618,14 @@ function FeedSlide({
 }
 
 function SharedCutDwellRecapSlide({
+  candidateCutCount = null,
   completedItems,
   entryCutSlotNumber = null,
   isNestedFinalSlot = false,
   locale,
   sharedCutRecap = null,
 }: {
+  candidateCutCount?: number | null;
   completedItems: SerializedFanletterNewsPublicCutFeedItem[];
   entryCutSlotNumber?: number | null;
   isNestedFinalSlot?: boolean;
@@ -5632,6 +5644,14 @@ function SharedCutDwellRecapSlide({
     0,
   );
   const recapCutCountLabel = formatNumber(recapCutCount, locale);
+  const normalizedCandidateCutCount = Math.max(
+    candidateCutCount ?? recapCutCount,
+    recapCutCount,
+  );
+  const candidateCutCountLabel = formatNumber(
+    normalizedCandidateCutCount,
+    locale,
+  );
   const normalizedEntryCutSlotNumber =
     normalizeFanletterNewsPublicCutSlotNumber(
       entryCutSlotNumber ? String(entryCutSlotNumber) : null,
@@ -5779,8 +5799,23 @@ function SharedCutDwellRecapSlide({
                   {copy.sharedCutRecapCollectionTitle}
                 </p>
                 <p className="mt-0.5 line-clamp-1 text-[0.58rem] font-bold leading-3 text-white/46 [word-break:keep-all]">
-                  {copy.sharedCutRecapCollectionBody}
+                  {copy.sharedCutRecapCollectionBody(
+                    recapCutCountLabel,
+                    candidateCutCountLabel,
+                  )}
                 </p>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#44f26e]/12 px-2 py-1 text-[0.5rem] font-black text-[#9bffad]">
+                    {copy.sharedCutRecapViewedCuts}
+                    <span className="text-white/82">{recapCutCountLabel}</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-white/8 px-2 py-1 text-[0.5rem] font-black text-white/56">
+                    {copy.sharedCutRecapCandidateCuts}
+                    <span className="text-white/78">
+                      {candidateCutCountLabel}
+                    </span>
+                  </span>
+                </div>
               </div>
               {topRecapDwellRow ? (
                 <span className="shrink-0 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/12 px-2 py-1 text-right text-[0.52rem] font-black text-[#9bffad]">
@@ -5831,7 +5866,7 @@ function SharedCutDwellRecapSlide({
                     }`}
                     key={`shared-journey-collection:${row.reportIndex}:${row.cutSlotNumber}`}
                   >
-                    <span className="relative block aspect-[4/5] overflow-hidden rounded-[0.58rem] bg-white/8 ring-1 ring-white/10">
+                    <span className="relative block aspect-[9/16] overflow-hidden rounded-[0.58rem] bg-white/8 ring-1 ring-white/10">
                       <Image
                         alt={slotLabel}
                         className="object-cover"
@@ -6905,7 +6940,9 @@ type CutFeedSwipeGuideTarget = {
   reason: "entry" | "sourceView";
 };
 
-function getPublicCutItemCutCount(item: SerializedFanletterNewsPublicCutFeedItem) {
+function getPublicCutItemCutCount(
+  item: SerializedFanletterNewsPublicCutFeedItemBase,
+) {
   return Math.max(item.cuts.length, 1);
 }
 
@@ -7336,6 +7373,25 @@ export function FanletterNewsPublicCutsFeedPage({
       ];
     });
   }, [feedItems, shouldShowSharedTimelineTransitions]);
+  const sharedJourneyCandidateCutCount = useMemo(() => {
+    if (!shareId || feedItems.length <= 0) {
+      return null;
+    }
+
+    const entryCutCount = Math.min(getPublicCutItemCutCount(feedItems[0]), 4);
+    const transitionCandidateCutCount = sharedVlogTransitions.reduce(
+      (totalCount, transition) =>
+        totalCount +
+        transition.options.reduce(
+          (optionCount, option) =>
+            optionCount + Math.min(getPublicCutItemCutCount(option), 4),
+          0,
+        ),
+      0,
+    );
+
+    return entryCutCount + transitionCandidateCutCount;
+  }, [feedItems, shareId, sharedVlogTransitions]);
   const getSharedTransitionCountBeforeItemIndex = useCallback(
     (itemIndex: number) =>
       sharedVlogTransitions.reduce(
@@ -9698,6 +9754,7 @@ export function FanletterNewsPublicCutsFeedPage({
             data-shared-journey-final
           >
             <SharedCutDwellRecapSlide
+              candidateCutCount={sharedJourneyCandidateCutCount}
               completedItems={feedItems}
               entryCutSlotNumber={initialCutSlotNumber}
               isNestedFinalSlot
