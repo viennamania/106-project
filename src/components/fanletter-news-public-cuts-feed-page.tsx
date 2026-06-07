@@ -298,6 +298,9 @@ function getCopy(locale: Locale) {
         sharedEntryMiniGuide: "공유된 4컷 리포트 · 좌우로 넘겨 보기",
         sharedTimelineBadge: (name: string) => `${name} 타임라인`,
         sharedTimelineNext: "다음 브이로그",
+        sharedTimelineLoadingBody:
+          "먼저 4컷을 좌우로 확인하면, 준비된 리포트로 자연스럽게 이어집니다.",
+        sharedTimelineLoadingTitle: "다음 컷 흐름 준비 중",
         sharedCutRecapBody: (name: string) =>
           `${name} 흐름에서 사람들이 어느 컷에 오래 머물렀는지 전체 여정으로 정리했어요.`,
         sharedCutRecapCollectingBody: (name: string) =>
@@ -594,6 +597,9 @@ function getCopy(locale: Locale) {
         sharedEntryMiniGuide: "Shared 4-cut report · swipe sideways",
         sharedTimelineBadge: (name: string) => `${name}'s timeline`,
         sharedTimelineNext: "Next vlog",
+        sharedTimelineLoadingBody:
+          "Swipe through the 4 cuts first, then the prepared report will continue naturally.",
+        sharedTimelineLoadingTitle: "Preparing the next cut flow",
         sharedCutRecapBody: (name: string) =>
           `See which ${name} cuts held people's attention across this shared journey.`,
         sharedCutRecapCollectingBody: (name: string) =>
@@ -7293,7 +7299,9 @@ export function FanletterNewsPublicCutsFeedPage({
   const shouldShowSharedJourneyEndSlide = Boolean(
     shareId &&
       feedItems.length > 0 &&
-      (feedItems.length >= CUT_FEED_SHARED_JOURNEY_MAX_REPORTS || !hasMore),
+      (feedItems.length >= CUT_FEED_SHARED_JOURNEY_MAX_REPORTS ||
+        !hasMore ||
+        Boolean(loadError)),
   );
   const shouldShowSharedTimelineTransitions = Boolean(
     shareId && feedItems[0]?.report.creatorReferralCode,
@@ -8562,11 +8570,17 @@ export function FanletterNewsPublicCutsFeedPage({
         shareId && sharedTimelineAnchorReportId
           ? rankSharedTimelineItems(data.items)
           : data.items;
+      const existingReportIds = new Set(
+        items.map((item) => item.report.reportId),
+      );
+      const hasNewItems = nextItems.some(
+        (item) => !existingReportIds.has(item.report.reportId),
+      );
 
       setItems((currentItems) =>
         mergePublicCutItems(currentItems, nextItems),
       );
-      setHasMore(data.hasMore);
+      setHasMore(shareId && !hasNewItems ? false : data.hasMore);
       setNextOffset(data.nextOffset);
     } catch {
       setLoadError(copy.loadError);
@@ -8590,6 +8604,28 @@ export function FanletterNewsPublicCutsFeedPage({
     sharedTimelineAnchorReportId,
     shareId,
     activeFeedIndex,
+  ]);
+  useEffect(() => {
+    if (
+      !shareId ||
+      !sharedTimelineAnchorReportId ||
+      shouldShowSharedJourneyEndSlide ||
+      !hasMore ||
+      isLoadingMore ||
+      items.length >= CUT_FEED_SHARED_JOURNEY_MAX_REPORTS
+    ) {
+      return;
+    }
+
+    void loadMore();
+  }, [
+    hasMore,
+    isLoadingMore,
+    items.length,
+    loadMore,
+    shareId,
+    sharedTimelineAnchorReportId,
+    shouldShowSharedJourneyEndSlide,
   ]);
   useEffect(() => {
     const activeSharedTimelineItem = feedItems[activeFeedIndex] ?? null;
@@ -9503,27 +9539,77 @@ export function FanletterNewsPublicCutsFeedPage({
             className="flex min-h-[48dvh] snap-start items-center justify-center px-4 py-10 text-center"
             ref={loadMoreRef}
           >
-            <div className="max-w-sm rounded-2xl border border-white/12 bg-white/8 p-5 shadow-2xl backdrop-blur-xl">
-              <Images className="mx-auto size-8 text-[#44f26e]" />
-              <p className="mt-3 text-sm font-black text-white">
-                {isLoadingMore
-                  ? copy.loadingMore
-                  : loadError
-                    ? copy.loadError
-                    : hasMore
-                      ? copy.loadingMore
-                      : copy.noMore}
-              </p>
-              {loadError ? (
-                <button
-                  className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-[#44f26e] px-4 text-xs font-black text-[#111510]"
-                  onClick={() => void loadMore()}
-                  type="button"
-                >
-                  {copy.loadMore}
-                </button>
-              ) : null}
-            </div>
+            {shareId ? (
+              <div className="w-full max-w-sm rounded-[1.35rem] border border-[#44f26e]/18 bg-black/56 p-4 text-left shadow-[0_22px_62px_rgba(0,0,0,0.36)] backdrop-blur-xl">
+                <div className="flex items-start gap-3">
+                  <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/14 text-[#44f26e]">
+                    {isLoadingMore || hasMore ? (
+                      <Loader2 className="size-5 animate-spin" />
+                    ) : (
+                      <Images className="size-5" />
+                    )}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="break-words text-sm font-black leading-tight text-white [word-break:keep-all]">
+                      {loadError
+                        ? copy.loadError
+                        : hasMore
+                          ? copy.sharedTimelineLoadingTitle
+                          : copy.noMore}
+                    </p>
+                    <p className="mt-1 break-words text-xs font-bold leading-5 text-white/58 [word-break:keep-all]">
+                      {hasMore && !loadError
+                        ? copy.sharedTimelineLoadingBody
+                        : copy.sharedEndOtherEmpty}
+                    </p>
+                  </div>
+                </div>
+                {hasMore && !loadError ? (
+                  <div className="mt-4 grid grid-cols-3 gap-2">
+                    {Array.from({ length: 3 }, (_, index) => (
+                      <span
+                        aria-hidden="true"
+                        className="block aspect-[3/4] overflow-hidden rounded-[0.9rem] border border-white/8 bg-white/[0.055]"
+                        key={`shared-load-skeleton:${index}`}
+                      >
+                        <span className="block h-full w-full bg-[linear-gradient(135deg,rgba(68,242,110,0.16),rgba(255,255,255,0.07)_42%,rgba(255,255,255,0.02))]" />
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {loadError ? (
+                  <button
+                    className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-full bg-[#44f26e] px-4 text-xs font-black text-[#111510]"
+                    onClick={() => void loadMore()}
+                    type="button"
+                  >
+                    {copy.loadMore}
+                  </button>
+                ) : null}
+              </div>
+            ) : (
+              <div className="max-w-sm rounded-2xl border border-white/12 bg-white/8 p-5 shadow-2xl backdrop-blur-xl">
+                <Images className="mx-auto size-8 text-[#44f26e]" />
+                <p className="mt-3 text-sm font-black text-white">
+                  {isLoadingMore
+                    ? copy.loadingMore
+                    : loadError
+                      ? copy.loadError
+                      : hasMore
+                        ? copy.loadingMore
+                        : copy.noMore}
+                </p>
+                {loadError ? (
+                  <button
+                    className="mt-4 inline-flex h-10 items-center justify-center rounded-full bg-[#44f26e] px-4 text-xs font-black text-[#111510]"
+                    onClick={() => void loadMore()}
+                    type="button"
+                  >
+                    {copy.loadMore}
+                  </button>
+                ) : null}
+              </div>
+            )}
           </section>
         )}
       </div>
