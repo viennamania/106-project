@@ -263,14 +263,21 @@ function getVlogContentHref({
   contentId,
   effectiveReferralCode,
   locale,
+  returnToHref,
 }: {
   contentId: string;
   effectiveReferralCode: string | null;
   locale: Locale;
+  returnToHref?: string | null;
 }) {
-  return buildPathWithReferral(
-    `/${locale}/fanletter/content/${contentId}`,
-    effectiveReferralCode,
+  return setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/content/${contentId}`,
+      effectiveReferralCode,
+    ),
+    {
+      returnTo: returnToHref,
+    },
   );
 }
 
@@ -294,6 +301,7 @@ function getSourceCutNewsHref({
   effectiveReferralCode,
   locale,
   reportId,
+  returnToHref,
   shareId,
 }: {
   contentId: string;
@@ -301,6 +309,7 @@ function getSourceCutNewsHref({
   effectiveReferralCode: string | null;
   locale: Locale;
   reportId: string;
+  returnToHref?: string | null;
   shareId: string | null;
 }) {
   return setPathSearchParams(
@@ -310,6 +319,7 @@ function getSourceCutNewsHref({
     ),
     {
       cut: cutSlotNumber ? String(cutSlotNumber) : null,
+      returnTo: returnToHref,
       shareId,
       source: contentId,
     },
@@ -477,11 +487,15 @@ function getCutNewsHref({
   effectiveReferralCode,
   locale,
   reportId,
+  returnToHref,
+  shareId,
 }: {
   cutSlotNumber: number | null;
   effectiveReferralCode: string | null;
   locale: Locale;
   reportId: string;
+  returnToHref?: string | null;
+  shareId?: string | null;
 }) {
   return setPathSearchParams(
     buildPathWithReferral(
@@ -490,6 +504,8 @@ function getCutNewsHref({
     ),
     {
       cut: cutSlotNumber ? String(cutSlotNumber) : null,
+      returnTo: returnToHref,
+      shareId,
     },
   );
 }
@@ -699,6 +715,7 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
               effectiveReferralCode,
               locale,
               reportId: report.reportId,
+              returnToHref: characterChannelHref,
               shareId: inheritedShareId,
             }),
             item,
@@ -1230,6 +1247,8 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                     effectiveReferralCode,
                     locale,
                     reportId: primaryRelatedReport.reportId,
+                    returnToHref: characterChannelHref,
+                    shareId: inheritedShareId,
                   });
 
                   return (
@@ -1280,6 +1299,8 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                     effectiveReferralCode,
                     locale,
                     reportId: report.reportId,
+                    returnToHref: characterChannelHref,
+                    shareId: inheritedShareId,
                   });
                   const reportImageUrls =
                     getFanletterNewsReportPreviewImageUrls(report);
@@ -1360,6 +1381,7 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                     contentId: featuredVlog.contentId,
                     effectiveReferralCode,
                     locale,
+                    returnToHref: characterChannelHref,
                   });
 
                   return (
@@ -1403,6 +1425,7 @@ export default async function LocalizedFanletterNewsCutCharacterChannelPage({
                           contentId: item.contentId,
                           effectiveReferralCode,
                           locale,
+                          returnToHref: characterChannelHref,
                         })}
                         key={item.contentId}
                       >
