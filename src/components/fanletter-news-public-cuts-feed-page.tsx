@@ -5069,6 +5069,8 @@ function FeedSlide({
         >
           {carouselCuts.map(({ cut, key, realIndex }) => {
             const slotNumber = cut.slotNumber.toString().padStart(2, "0");
+            const shouldLoadCutImageEagerly =
+              isActive && realIndex === activeCutIndex;
 
             return (
               <div
@@ -5083,7 +5085,8 @@ function FeedSlide({
                       : "object-cover brightness-[1.14] contrast-[1.02] saturate-[1.1]"
                   }
                   fill
-                  priority={isActive && realIndex === activeCutIndex}
+                  loading={shouldLoadCutImageEagerly ? "eager" : "lazy"}
+                  priority={shouldLoadCutImageEagerly}
                   sizes="(min-width: 640px) 430px, 100vw"
                   src={cut.imageUrl}
                   unoptimized={shouldBypassFanletterImageOptimization(cut.imageUrl)}
