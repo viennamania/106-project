@@ -7471,11 +7471,6 @@ export function FanletterNewsPublicCutsFeedPage({
   const isSharedTransitionSlideVisible = Boolean(
     shareId && getSharedTransitionForSlideIndex(visibleSlideIndex),
   );
-  const isSharedTransitionSelectionPending = Boolean(
-    shareId &&
-      getSharedTransitionForSlideIndex(visibleSlideIndex) &&
-      !sharedResolvedTransitionSlideIndexesRef.current.has(visibleSlideIndex),
-  );
   const sharedVlogTransitionSlideCount = sharedVlogTransitions.reduce(
     (count) => count + getSharedVlogTransitionSlideCount(),
     0,
@@ -7713,9 +7708,15 @@ export function FanletterNewsPublicCutsFeedPage({
           return;
         }
 
+        const targetScrollTop = root.clientHeight * slideIndex;
+
+        if (Math.abs(root.scrollTop - targetScrollTop) <= 1) {
+          return;
+        }
+
         root.scrollTo({
-          behavior: "smooth",
-          top: root.clientHeight * slideIndex,
+          behavior: "auto",
+          top: targetScrollTop,
         });
       });
     },
@@ -8270,6 +8271,16 @@ export function FanletterNewsPublicCutsFeedPage({
 	        Math.abs(event.deltaY) > CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX &&
 	        getIsSharedTransitionSelectionRequired(visibleSlideIndex)
 	      ) {
+        if (
+          root &&
+          event.deltaY > 0 &&
+          root.scrollTop <
+            root.clientHeight * visibleSlideIndex -
+              CUT_FEED_SHARED_SLIDE_START_LOCK_TOLERANCE_PX
+        ) {
+          return;
+        }
+
 	        event.preventDefault();
 	        if (root) {
 	          root.scrollTo({
@@ -8400,6 +8411,16 @@ export function FanletterNewsPublicCutsFeedPage({
 	      if (
 	        getIsSharedTransitionSelectionRequired(visibleSlideIndex)
 	      ) {
+        if (
+          root &&
+          deltaY > 0 &&
+          root.scrollTop <
+            root.clientHeight * visibleSlideIndex -
+              CUT_FEED_SHARED_SLIDE_START_LOCK_TOLERANCE_PX
+        ) {
+          return;
+        }
+
 	        event.preventDefault();
 	        lockedTouchNavigationHandledRef.current = true;
 	        if (root) {
@@ -8609,8 +8630,14 @@ export function FanletterNewsPublicCutsFeedPage({
     });
     if (getIsSharedTransitionSelectionRequired(visibleSlideIndex)) {
       const currentTransitionScrollTop = root.clientHeight * visibleSlideIndex;
+      const transitionScrollDistance =
+        root.scrollTop - currentTransitionScrollTop;
 
-      if (Math.abs(root.scrollTop - currentTransitionScrollTop) <= 1) {
+      if (Math.abs(transitionScrollDistance) <= 1) {
+        return;
+      }
+
+      if (transitionScrollDistance < 0) {
         return;
       }
 
@@ -9396,8 +9423,7 @@ export function FanletterNewsPublicCutsFeedPage({
     isCutFeedScrollLocked ? "scroll-auto" : "scroll-smooth"
   } ${
     isSourceOverlayScrollLocked ||
-    shouldFreezeSharedLockedScroll ||
-    isSharedTransitionSelectionPending
+    shouldFreezeSharedLockedScroll
       ? "overflow-y-hidden"
       : "overflow-y-auto"
   }`;
