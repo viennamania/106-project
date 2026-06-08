@@ -338,7 +338,7 @@ function getCopy(locale: Locale) {
         sharedCutRecapInsight: (name: string) =>
           `공유 링크에서 ${name} 컷 반응을 장면 단위로 추적합니다.`,
         sharedCutRecapNextGuide:
-          "오늘 본 컷 반응을 확인했어요.",
+          "아래로 넘겨 오늘의 공유 흐름 마무리 보기",
         sharedCutRecapRank: (rank: string) => `${rank}위`,
         sharedCutRecapTitle: (count: string) => `${count}컷 확인 완료`,
         sharedCutRecapTopCutTitle: "가장 오래 본 컷",
@@ -658,7 +658,7 @@ function getCopy(locale: Locale) {
         sharedCutRecapInsight: (name: string) =>
           `This shared link tracks ${name}'s cut reactions scene by scene.`,
         sharedCutRecapNextGuide:
-          "You reviewed the cut reactions from this flow.",
+          "Scroll down to finish today's share flow.",
         sharedCutRecapRank: (rank: string) => `#${rank}`,
         sharedCutRecapTitle: (count: string) => `${count} cuts viewed`,
         sharedCutRecapTopCutTitle: "Most watched cut",
@@ -6137,12 +6137,20 @@ function SharedCutDwellRecapSlide({
             </p>
           </div>
         </div>
-        <div className="mx-auto mt-5 flex min-h-14 w-full max-w-[22rem] items-center justify-center gap-2 rounded-full border border-white/16 bg-black/54 px-5 text-center text-sm font-black text-white shadow-[0_16px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl">
-          <CheckCircle2 className="size-5 shrink-0 text-[#44f26e]" />
+        <button
+          className="mx-auto mt-5 flex min-h-14 w-full max-w-[22rem] items-center justify-center gap-2 rounded-full border border-white/16 bg-black/54 px-5 text-center text-sm font-black text-white shadow-[0_16px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl transition hover:border-[#44f26e]/40 hover:bg-[#44f26e]/12 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/22"
+          onClick={() => {
+            document
+              .querySelector("[data-shared-journey-end]")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+          type="button"
+        >
+          <ChevronDown className="size-5 shrink-0 text-[#44f26e]" />
           <span className="min-w-0 [word-break:keep-all]">
             {copy.sharedCutRecapNextGuide}
           </span>
-        </div>
+        </button>
       </div>
     </section>
   );
