@@ -135,6 +135,8 @@ const CUT_FEED_SHARED_CONSUMED_STORAGE_PREFIX =
   "fanletter-news-cut-feed-shared-consumed";
 const CUT_FEED_SHARED_VIEWED_STORAGE_PREFIX =
   "fanletter-news-cut-feed-shared-viewed";
+const CUT_FEED_SHARED_JOURNEY_ITEMS_STORAGE_PREFIX =
+  "fanletter-news-cut-feed-shared-journey-items";
 
 type CutFeedViewportStyle = CSSProperties & {
   "--fanletter-cut-feed-vh"?: string;
@@ -986,6 +988,122 @@ function getSharedViewedStorageKey(shareId: string | null) {
     CUT_FEED_SHARED_VIEWED_STORAGE_PREFIX,
     shareId,
   );
+}
+
+function getSharedJourneyItemsStorageKey(shareId: string | null) {
+  return getSharedReportIdsStorageKey(
+    CUT_FEED_SHARED_JOURNEY_ITEMS_STORAGE_PREFIX,
+    shareId,
+  );
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object");
+}
+
+function isSharedStoredJourneyItem(
+  value: unknown,
+): value is SerializedFanletterNewsPublicCutFeedItem {
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  const report = value.report;
+  const leadCut = value.leadCut;
+  const cuts = value.cuts;
+
+  return (
+    isObjectRecord(report) &&
+    typeof report.reportId === "string" &&
+    isObjectRecord(leadCut) &&
+    typeof leadCut.imageUrl === "string" &&
+    typeof leadCut.slotNumber === "number" &&
+    Array.isArray(cuts)
+  );
+}
+
+function readSharedStoredJourneyItems(storageKey: string | null) {
+  if (!storageKey || typeof window === "undefined") {
+    return [] satisfies SerializedFanletterNewsPublicCutFeedItem[];
+  }
+
+  try {
+    const parsedValue = JSON.parse(
+      window.sessionStorage.getItem(storageKey) ?? "[]",
+    ) as unknown;
+
+    if (!Array.isArray(parsedValue)) {
+      return [] satisfies SerializedFanletterNewsPublicCutFeedItem[];
+    }
+
+    const seenReportIds = new Set<string>();
+    const items: SerializedFanletterNewsPublicCutFeedItem[] = [];
+
+    for (const item of parsedValue) {
+      if (!isSharedStoredJourneyItem(item)) {
+        continue;
+      }
+
+      const reportId = item.report.reportId.trim();
+
+      if (!reportId || seenReportIds.has(reportId)) {
+        continue;
+      }
+
+      seenReportIds.add(reportId);
+      items.push(item);
+
+      if (items.length >= CUT_FEED_SHARED_JOURNEY_MAX_REPORTS) {
+        break;
+      }
+    }
+
+    return items;
+  } catch {
+    return [] satisfies SerializedFanletterNewsPublicCutFeedItem[];
+  }
+}
+
+function writeSharedStoredJourneyItems(
+  storageKey: string | null,
+  items: SerializedFanletterNewsPublicCutFeedItem[],
+) {
+  if (!storageKey || typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(
+      storageKey,
+      JSON.stringify(items.slice(0, CUT_FEED_SHARED_JOURNEY_MAX_REPORTS)),
+    );
+  } catch {
+    // Session persistence only improves final recap accuracy; rendering can fall back to URL state.
+  }
+}
+
+function appendSharedStoredJourneyItem(
+  currentItems: SerializedFanletterNewsPublicCutFeedItem[],
+  item: SerializedFanletterNewsPublicCutFeedItem,
+  reset = false,
+) {
+  const reportId = item.report.reportId.trim();
+
+  if (!reportId) {
+    return currentItems.slice(0, CUT_FEED_SHARED_JOURNEY_MAX_REPORTS);
+  }
+
+  const baseItems = reset ? [] : currentItems;
+
+  if (
+    baseItems.some(
+      (currentItem) => currentItem.report.reportId.trim() === reportId,
+    )
+  ) {
+    return baseItems.slice(0, CUT_FEED_SHARED_JOURNEY_MAX_REPORTS);
+  }
+
+  return [...baseItems, item].slice(0, CUT_FEED_SHARED_JOURNEY_MAX_REPORTS);
 }
 
 function readSharedStoredReportIds(storageKey: string | null) {
@@ -7766,6 +7884,9 @@ export function FanletterNewsPublicCutsFeedPage({
   >(
     () => new Set(),
   );
+  const [sharedSessionJourneyItems, setSharedSessionJourneyItems] = useState<
+    SerializedFanletterNewsPublicCutFeedItem[]
+  >([]);
   const [sharedMinimumSlideIndex, setSharedMinimumSlideIndex] = useState(0);
   const [sharedDiscoveryItems, setSharedDiscoveryItems] = useState<
     SerializedFanletterNewsPublicCutFeedItemBase[]
@@ -8211,6 +8332,43 @@ export function FanletterNewsPublicCutsFeedPage({
     : null;
   const sharedConsumedStorageKey = getSharedConsumedStorageKey(shareId);
   const sharedViewedStorageKey = getSharedViewedStorageKey(shareId);
+  const sharedJourneyItemsStorageKey =
+    getSharedJourneyItemsStorageKey(shareId);
+  const expectedSharedJourneyItemCount = Math.min(
+    Math.max(sharedJourneyStep, 1),
+    CUT_FEED_SHARED_JOURNEY_MAX_REPORTS,
+  );
+  const sharedSessionJourneyCompleteItems = useMemo(
+    () =>
+      resumeSharedJourneyEnd &&
+      sharedSessionJourneyItems.length >= expectedSharedJourneyItemCount
+        ? sharedSessionJourneyItems.slice(0, expectedSharedJourneyItemCount)
+        : [],
+    [
+      expectedSharedJourneyItemCount,
+      resumeSharedJourneyEnd,
+      sharedSessionJourneyItems,
+    ],
+  );
+  const sharedJourneyRecapItems = useMemo(
+    () =>
+      sharedSessionJourneyCompleteItems.length > 0
+        ? sharedSessionJourneyCompleteItems
+        : feedItems,
+    [feedItems, sharedSessionJourneyCompleteItems],
+  );
+  const sharedJourneyRecapCandidateCutCount = useMemo(
+    () =>
+      Math.max(
+        sharedJourneyCandidateCutCount ?? 0,
+        sharedJourneyRecapItems.reduce(
+          (totalCount, item) =>
+            totalCount + Math.min(getPublicCutItemCutCount(item), 4),
+          0,
+        ),
+      ),
+    [sharedJourneyCandidateCutCount, sharedJourneyRecapItems],
+  );
   const viewerReporterReferralCode = normalizeReferralCode(
     memberSession.member?.referralCode,
   );
@@ -8603,6 +8761,9 @@ export function FanletterNewsPublicCutsFeedPage({
       readSharedConsumedReportIds(sharedConsumedStorageKey),
     );
     setSharedViewedReportIds(readSharedViewedReportIds(sharedViewedStorageKey));
+    setSharedSessionJourneyItems(
+      readSharedStoredJourneyItems(sharedJourneyItemsStorageKey),
+    );
 
     if (shareId) {
       setVisibleSlideIndex(0);
@@ -8611,7 +8772,44 @@ export function FanletterNewsPublicCutsFeedPage({
       sharedJourneyFinalReachedRef.current = false;
       resumeSharedJourneyEndAppliedRef.current = false;
     }
-  }, [shareId, sharedConsumedStorageKey, sharedViewedStorageKey]);
+  }, [
+    shareId,
+    sharedConsumedStorageKey,
+    sharedJourneyItemsStorageKey,
+    sharedViewedStorageKey,
+  ]);
+  useEffect(() => {
+    if (!shareId || resumeSharedJourneyEnd) {
+      return;
+    }
+
+    const currentItem = feedItems[0];
+
+    if (!currentItem) {
+      return;
+    }
+
+    const shouldResetJourney =
+      sharedJourneyStep <= 1 && sharedJourneyReportIds.length <= 1;
+
+    setSharedSessionJourneyItems((currentItems) => {
+      const nextItems = appendSharedStoredJourneyItem(
+        currentItems,
+        currentItem,
+        shouldResetJourney,
+      );
+
+      writeSharedStoredJourneyItems(sharedJourneyItemsStorageKey, nextItems);
+      return nextItems;
+    });
+  }, [
+    feedItems,
+    resumeSharedJourneyEnd,
+    shareId,
+    sharedJourneyItemsStorageKey,
+    sharedJourneyReportIds.length,
+    sharedJourneyStep,
+  ]);
   useEffect(() => {
     if (
       !resumeSharedJourneyEnd ||
@@ -8622,10 +8820,10 @@ export function FanletterNewsPublicCutsFeedPage({
       return;
     }
 
-    const reportIds = feedItems
+    const reportIds = sharedJourneyRecapItems
       .map((item) => item.report.reportId.trim())
       .filter(Boolean);
-    const consumedReportIds = feedItems
+    const consumedReportIds = sharedJourneyRecapItems
       .filter((item) => getPublicCutItemCutCount(item) > 1)
       .map((item) => item.report.reportId.trim())
       .filter(Boolean);
@@ -8697,12 +8895,12 @@ export function FanletterNewsPublicCutsFeedPage({
       }
     };
   }, [
-    feedItems,
     getSharedTransitionSlideIndex,
     resumeSharedJourneyEnd,
     shareId,
     sharedConsumedStorageKey,
     sharedJourneyFinalSlideIndex,
+    sharedJourneyRecapItems,
     sharedViewedStorageKey,
     sharedVlogTransitions,
   ]);
@@ -10593,8 +10791,8 @@ export function FanletterNewsPublicCutsFeedPage({
             data-shared-journey-final
           >
             <SharedCutDwellRecapSlide
-              candidateCutCount={sharedJourneyCandidateCutCount}
-              completedItems={feedItems}
+              candidateCutCount={sharedJourneyRecapCandidateCutCount}
+              completedItems={sharedJourneyRecapItems}
               entryCutSlotNumber={initialCutSlotNumber}
               isNestedFinalSlot
               locale={locale}
@@ -10607,7 +10805,7 @@ export function FanletterNewsPublicCutsFeedPage({
               discoveryItems={sharedDiscoveryItems}
               isNestedFinalSlot
               isDiscoveryLoading={isSharedDiscoveryLoading}
-              journeyItems={feedItems}
+              journeyItems={sharedJourneyRecapItems}
               locale={locale}
               onNavigationStart={startNavigation}
               referralCode={referralCode}
