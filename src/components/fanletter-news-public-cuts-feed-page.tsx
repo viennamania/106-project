@@ -365,16 +365,16 @@ function getCopy(locale: Locale) {
         sharedVlogPickerSingleTitle: "추천 팬 리포트로 이어보기",
         sharedVlogPickerTitle: "다음 브이로그의 팬 리포트 선택",
         sharedEndBody: (name: string) =>
-          `${name}의 오늘 컷 흐름을 확인했어요. 계속 보거나, 새 리포트 알림을 받고 다른 AI 캐릭터도 둘러보세요.`,
+          `${name}의 오늘 컷 흐름을 확인했어요. 같은 캐릭터의 다음 브이로그로 이어보거나, 보고 싶은 다음 장면을 남겨보세요.`,
         sharedEndContinue: (name: string) => `${name} 계속 보기`,
         sharedEndCutsMetric: "본 컷",
         sharedEndEyebrow: "오늘의 공유 흐름",
-        sharedEndNotify: "새 리포트 알림 받기",
+        sharedEndNotify: "새 리포트 소식 받기",
         sharedEndOtherBody:
           "공유 링크 밖에도 새 브이로그와 팬 리포트가 이어집니다.",
         sharedEndOtherBrowse: "AI 캐릭터 둘러보기",
         sharedEndOtherEmpty: "AI 캐릭터 탐색으로 이어갈 수 있어요",
-        sharedEndOtherLoading: "추천 캐릭터 준비 중",
+        sharedEndOtherLoading: "추천이 늦으면 바로 둘러보세요",
         sharedEndOtherTitle: "다른 AI 캐릭터도 활동 중이에요",
         sharedEndReportsMetric: "본 리포트",
         sharedEndRequestBody: (name: string) =>
@@ -384,7 +384,7 @@ function getCopy(locale: Locale) {
         sharedEndRequestEyebrow: "팬이 만드는 다음 브이로그",
         sharedEndRequestPlaceholder:
           "예: 바닷가에서 팬 질문에 답하는 브이로그를 보고 싶어요",
-        sharedEndRequestSubmit: "다음 브이로그 요청 남기기",
+        sharedEndRequestSubmit: "보고 싶은 장면 보내기",
         sharedEndRequestSubmitting: "요청 남기는 중",
         sharedEndRequestSuccess: "요청이 전달됐어요. 이 요청은 캐릭터의 다음 브이로그 소재로 쌓입니다.",
         sharedEndRequestTitle: "다음에 보고 싶은 장면",
@@ -685,16 +685,16 @@ function getCopy(locale: Locale) {
         sharedVlogPickerSingleTitle: "Continue with the recommended report",
         sharedVlogPickerTitle: "Choose a fan report for the next vlog",
         sharedEndBody: (name: string) =>
-          `You finished today's ${name} cut flow. Keep watching, get notified about new reports, or discover other AI characters.`,
+          `You finished today's ${name} cut flow. Continue into the same character's next vlog, or leave the next scene you want to see.`,
         sharedEndContinue: (name: string) => `Keep watching ${name}`,
         sharedEndCutsMetric: "Cuts viewed",
         sharedEndEyebrow: "Today's shared flow",
-        sharedEndNotify: "Get new report alerts",
+        sharedEndNotify: "Get new report updates",
         sharedEndOtherBody:
           "More source vlogs and fan reports continue beyond this shared link.",
         sharedEndOtherBrowse: "Browse AI characters",
         sharedEndOtherEmpty: "You can continue into AI character discovery.",
-        sharedEndOtherLoading: "Preparing character picks",
+        sharedEndOtherLoading: "If picks are slow, browse now",
         sharedEndOtherTitle: "Other AI characters are active too",
         sharedEndReportsMetric: "Reports viewed",
         sharedEndRequestBody: (name: string) =>
@@ -704,7 +704,7 @@ function getCopy(locale: Locale) {
         sharedEndRequestEyebrow: "Fans shape the next vlog",
         sharedEndRequestPlaceholder:
           "Example: I want a beach vlog answering fan questions",
-        sharedEndRequestSubmit: "Leave next vlog request",
+        sharedEndRequestSubmit: "Send scene idea",
         sharedEndRequestSubmitting: "Saving request",
         sharedEndRequestSuccess:
           "Request sent. It now becomes a signal for this character's next vlog.",
@@ -6686,6 +6686,8 @@ function SharedJourneyEndSlide({
   const [fanRequestError, setFanRequestError] = useState<string | null>(null);
   const [fanRequestStatus, setFanRequestStatus] =
     useState<SharedEndFanRequestStatus>("idle");
+  const [endShareState, setEndShareState] = useState<ShareState>("idle");
+  const endShareFeedbackTimeoutRef = useRef<number | null>(null);
   const primaryItem = journeyItems[0] ?? null;
   const latestJourneyItem = journeyItems[journeyItems.length - 1] ?? primaryItem;
   const characterName = primaryItem?.report.creatorName ?? copy.serviceCharacters;
@@ -6716,7 +6718,6 @@ function SharedJourneyEndSlide({
     ),
     locale,
   );
-  const shareLabel = copy.sharedEndShare;
   const sharedEndReturnToHref = primaryItem
     ? setPathSearchParams(
         buildPathWithReferral(
@@ -6751,13 +6752,6 @@ function SharedJourneyEndSlide({
     ),
     sharedEndActionParams,
   );
-  const shareActionHref = setPathSearchParams(
-    buildPathWithReferral(
-      `/${locale}/fanletter/news/cuts/actions/share`,
-      referralCode,
-    ),
-    sharedEndActionParams,
-  );
   const charactersActionHref = setPathSearchParams(
     buildPathWithReferral(
       `/${locale}/fanletter/news/cuts/actions/characters`,
@@ -6769,6 +6763,41 @@ function SharedJourneyEndSlide({
     fanRequestStatus === "loading"
       ? copy.sharedEndRequestSubmitting
       : copy.sharedEndRequestSubmit;
+  const canSubmitFanRequest =
+    fanRequestBody.trim().length > 0 && fanRequestStatus !== "loading";
+  const endShareLabel =
+    endShareState === "copied"
+      ? copy.shareCopied
+      : endShareState === "error"
+        ? copy.shareError
+        : endShareState === "sharing"
+          ? copy.shareSharing
+          : copy.sharedEndShare;
+
+  const showEndShareFeedback = useCallback((nextState: Exclude<ShareState, "sharing">) => {
+    if (endShareFeedbackTimeoutRef.current !== null) {
+      window.clearTimeout(endShareFeedbackTimeoutRef.current);
+      endShareFeedbackTimeoutRef.current = null;
+    }
+
+    setEndShareState(nextState);
+
+    if (nextState === "copied" || nextState === "error") {
+      endShareFeedbackTimeoutRef.current = window.setTimeout(() => {
+        setEndShareState("idle");
+        endShareFeedbackTimeoutRef.current = null;
+      }, 2200);
+    }
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (endShareFeedbackTimeoutRef.current !== null) {
+        window.clearTimeout(endShareFeedbackTimeoutRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     router.prefetch(characterHref);
@@ -6776,7 +6805,6 @@ function SharedJourneyEndSlide({
     router.prefetch(connectHref);
     router.prefetch(continueActionHref);
     router.prefetch(alertsActionHref);
-    router.prefetch(shareActionHref);
     router.prefetch(charactersActionHref);
   }, [
     alertsActionHref,
@@ -6786,7 +6814,71 @@ function SharedJourneyEndSlide({
     connectHref,
     continueActionHref,
     router,
-    shareActionHref,
+  ]);
+
+  const handleEndShare = useCallback(async () => {
+    if (endShareState === "sharing") {
+      return;
+    }
+
+    setEndShareState("sharing");
+
+    let nextState: Exclude<ShareState, "sharing"> = "idle";
+
+    try {
+      const shareUrl = new URL(
+        sharedEndReturnToHref,
+        window.location.origin,
+      ).toString();
+
+      trackFunnelEvent("share_click", {
+        contentId: latestJourneyItem?.report.contentId ?? null,
+        metadata: {
+          characterName,
+          journeyReportCount: journeyItems.length,
+          reportId: latestJourneyItem?.report.reportId ?? null,
+          source: "fanletter-news-cut-shared-end",
+        },
+        referralCode,
+        shareId,
+        targetHref: shareUrl,
+      });
+
+      if (typeof navigator.share === "function") {
+        try {
+          await navigator.share({
+            text: copy.sharedEndBody(characterName),
+            title: `${characterName} · AIAVpark News`,
+            url: shareUrl,
+          });
+        } catch (error) {
+          if (isShareAbortError(error)) {
+            nextState = "idle";
+            return;
+          }
+
+          nextState = (await copyToClipboard(shareUrl)) ? "copied" : "error";
+        }
+
+        return;
+      }
+
+      nextState = (await copyToClipboard(shareUrl)) ? "copied" : "error";
+    } catch {
+      nextState = "error";
+    } finally {
+      showEndShareFeedback(nextState);
+    }
+  }, [
+    characterName,
+    copy,
+    endShareState,
+    journeyItems.length,
+    latestJourneyItem,
+    referralCode,
+    shareId,
+    sharedEndReturnToHref,
+    showEndShareFeedback,
   ]);
 
   const handleFanRequestSubmit = useCallback(
@@ -6977,8 +7069,56 @@ function SharedJourneyEndSlide({
               </div>
             </div>
 
+            <div className="mt-5 grid gap-2">
+              <Link
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-base font-black !text-[#111510] shadow-[0_18px_44px_rgba(68,242,110,0.24)] transition hover:bg-[#65ff86] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28"
+                href={continueActionHref}
+                onClick={() => {
+                  onNavigationStart({
+                    href: continueActionHref,
+                    label: copy.navigationPending.character(characterName),
+                  });
+                }}
+              >
+                <Sparkles className="size-5" />
+                {copy.sharedEndContinue(characterName)}
+              </Link>
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 text-xs font-black !text-white/82 backdrop-blur-xl transition hover:border-[#44f26e]/40 hover:!text-[#9bffad] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
+                  href={alertsActionHref}
+                  onClick={() => {
+                    onNavigationStart({
+                      href: alertsActionHref,
+                      label: copy.navigationPending.destination(
+                        copy.sharedEndNotify,
+                      ),
+                    });
+                  }}
+                >
+                  <Check className="size-4 text-[#44f26e]" />
+                  {copy.sharedEndNotify}
+                </Link>
+                <button
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 text-xs font-black text-white/82 backdrop-blur-xl transition hover:border-[#44f26e]/40 hover:text-[#9bffad] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20 disabled:cursor-wait disabled:opacity-72"
+                  disabled={endShareState === "sharing"}
+                  onClick={() => void handleEndShare()}
+                  type="button"
+                >
+                  {endShareState === "sharing" ? (
+                    <Loader2 className="size-4 animate-spin text-[#44f26e]" />
+                  ) : endShareState === "copied" ? (
+                    <CheckCircle2 className="size-4 text-[#44f26e]" />
+                  ) : (
+                    <Share2 className="size-4 text-[#44f26e]" />
+                  )}
+                  <span className="truncate">{endShareLabel}</span>
+                </button>
+              </div>
+            </div>
+
             <form
-              className="mt-5 rounded-[1.05rem] border border-[#44f26e]/18 bg-black/50 p-3 shadow-[0_18px_48px_rgba(0,0,0,0.28)] backdrop-blur-xl"
+              className="mt-3 rounded-[1.05rem] border border-[#44f26e]/18 bg-black/44 p-3 shadow-[0_18px_48px_rgba(0,0,0,0.24)] backdrop-blur-xl"
               onSubmit={(event) => void handleFanRequestSubmit(event)}
             >
               <p className="text-[0.62rem] font-black uppercase tracking-[0.15em] text-[#9bffad]">
@@ -7016,8 +7156,12 @@ function SharedJourneyEndSlide({
                     </p>
                   ) : null}
                   <button
-                    className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 text-sm font-black text-[#111510] shadow-[0_16px_38px_rgba(68,242,110,0.2)] transition hover:bg-[#65ff86] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/28 disabled:cursor-wait disabled:opacity-72"
-                    disabled={fanRequestStatus === "loading"}
+                    className={`mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-4 text-sm font-black shadow-[0_16px_38px_rgba(68,242,110,0.14)] transition focus:outline-none focus:ring-4 focus:ring-[#44f26e]/24 disabled:cursor-not-allowed disabled:opacity-55 ${
+                      canSubmitFanRequest
+                        ? "bg-[#44f26e] text-[#111510] hover:bg-[#65ff86]"
+                        : "border border-white/10 bg-white/[0.055] text-white/38"
+                    }`}
+                    disabled={!canSubmitFanRequest}
                     type="submit"
                   >
                     {fanRequestStatus === "loading" ? (
@@ -7030,52 +7174,6 @@ function SharedJourneyEndSlide({
                 </>
               )}
             </form>
-
-            <div className="mt-3 grid gap-2">
-              <Link
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-4 text-sm font-black !text-[#9bffad] transition hover:border-[#44f26e]/48 hover:bg-[#44f26e]/18 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
-                href={continueActionHref}
-                onClick={() => {
-                  onNavigationStart({
-                    href: continueActionHref,
-                    label: copy.navigationPending.character(characterName),
-                  });
-                }}
-              >
-                <Sparkles className="size-4" />
-                {copy.sharedEndContinue(characterName)}
-              </Link>
-              <div className="grid grid-cols-2 gap-2">
-                <Link
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 text-xs font-black !text-white/82 backdrop-blur-xl transition hover:border-[#44f26e]/40 hover:!text-[#9bffad] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
-                  href={alertsActionHref}
-                  onClick={() => {
-                    onNavigationStart({
-                      href: alertsActionHref,
-                      label: copy.navigationPending.destination(
-                        copy.sharedEndNotify,
-                      ),
-                    });
-                  }}
-                >
-                  <Check className="size-4 text-[#44f26e]" />
-                  {copy.sharedEndNotify}
-                </Link>
-                <Link
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 text-xs font-black !text-white/82 backdrop-blur-xl transition hover:border-[#44f26e]/40 hover:!text-[#9bffad] focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
-                  href={shareActionHref}
-                  onClick={() => {
-                    onNavigationStart({
-                      href: shareActionHref,
-                      label: copy.navigationPending.destination(shareLabel),
-                    });
-                  }}
-                >
-                  <Share2 className="size-4 text-[#44f26e]" />
-                  <span className="truncate">{shareLabel}</span>
-                </Link>
-              </div>
-            </div>
           </div>
         </div>
 
