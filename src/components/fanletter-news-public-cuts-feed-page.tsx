@@ -10401,6 +10401,8 @@ export function FanletterNewsPublicCutsFeedPage({
   const returnToShortLabel = isReturnToSharedNextPicker
     ? copy.returnToPicker
     : copy.returnToBrief;
+  const returnToButtonHref =
+    returnToHref && !shouldShowSharedJourneyEndSlide ? returnToHref : null;
   const roleShortcutSectionClassName = `pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+4.25rem)] z-30 w-full max-w-[430px] -translate-x-1/2 px-3 transition-[opacity,transform,visibility] duration-500 ease-out ${
     isRoleShortcutVisible
       ? "visible translate-y-0 opacity-100"
@@ -10442,14 +10444,14 @@ export function FanletterNewsPublicCutsFeedPage({
     >
       <header className={headerClassName}>
         <div className="mx-auto flex items-center gap-2">
-          {returnToHref ? (
+          {returnToButtonHref ? (
             <Link
               aria-label={returnToA11yLabel}
               className={returnToButtonClassName}
-              href={returnToHref}
+              href={returnToButtonHref}
               onClick={() => {
                 startNavigation({
-                  href: returnToHref,
+                  href: returnToButtonHref,
                   label: copy.navigationPending.destination(
                     returnToNavigationLabel,
                   ),
