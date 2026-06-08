@@ -10084,7 +10084,7 @@ export function FanletterNewsPublicCutsFeedPage({
                 {copy.returnToBrief}
               </span>
             </Link>
-          ) : visibleItem ? (
+          ) : visibleItem && !shareId ? (
             <div className={headerReporterClassName}>
               <CutFeedHeaderReporterChip
                 avatarImageUrl={visibleItem.report.reporterAvatarImageUrl}
