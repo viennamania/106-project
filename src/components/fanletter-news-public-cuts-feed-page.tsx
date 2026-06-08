@@ -8554,6 +8554,25 @@ export function FanletterNewsPublicCutsFeedPage({
     setVisibleSlideIndex(activeSharedLockedSlideIndex);
     return true;
   }, [activeSharedLockedSlideIndex, isSharedEntryScrollLocked]);
+  const keepSharedTransitionSelectionSlideInPlace = useCallback(() => {
+    const root = scrollContainerRef.current;
+
+    if (
+      !root ||
+      !getIsSharedTransitionSelectionRequired(visibleSlideIndex)
+    ) {
+      return false;
+    }
+
+    const transitionScrollTop = root.clientHeight * visibleSlideIndex;
+
+    if (Math.abs(root.scrollTop - transitionScrollTop) > 0.5) {
+      root.scrollTop = transitionScrollTop;
+    }
+
+    setVisibleSlideIndex(visibleSlideIndex);
+    return true;
+  }, [getIsSharedTransitionSelectionRequired, visibleSlideIndex]);
   const moveToPreviousSharedLockedSlide = useCallback(() => {
     const root = scrollContainerRef.current;
 
@@ -8629,27 +8648,11 @@ export function FanletterNewsPublicCutsFeedPage({
         return;
       }
 
-	      if (
-	        Math.abs(event.deltaY) > CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX &&
-	        getIsSharedTransitionSelectionRequired(visibleSlideIndex)
-	      ) {
-        if (
-          root &&
-          event.deltaY > 0 &&
-          root.scrollTop <
-            root.clientHeight * visibleSlideIndex -
-              CUT_FEED_SHARED_SLIDE_START_LOCK_TOLERANCE_PX
-        ) {
-          return;
-        }
-
-	        event.preventDefault();
-	        if (root) {
-	          root.scrollTo({
-            behavior: "auto",
-            top: root.clientHeight * visibleSlideIndex,
-          });
-        }
+      if (
+        Math.abs(event.deltaY) > CUT_FEED_LOCKED_SCROLL_BLOCK_THRESHOLD_PX &&
+        keepSharedTransitionSelectionSlideInPlace()
+      ) {
+        event.preventDefault();
         return;
       }
 
@@ -8693,18 +8696,17 @@ export function FanletterNewsPublicCutsFeedPage({
     },
     [
       activeSharedLockedSlideIndex,
-      getIsSharedTransitionSelectionRequired,
       isSharedEntryScrollLocked,
       keepSharedJourneyFinalSlideInPlace,
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
+      keepSharedTransitionSelectionSlideInPlace,
       lockSharedJourneyFinalStartInPlace,
       lockSharedCurrentSlideStartInPlace,
       moveToPreviousSharedLockedSlide,
       shareId,
       sharedJourneyFinalSlideIndex,
       sharedMinimumSlideIndex,
-      visibleSlideIndex,
     ],
   );
   const handleFeedTouchStart = useCallback(
@@ -8770,27 +8772,9 @@ export function FanletterNewsPublicCutsFeedPage({
         return;
       }
 
-	      if (
-	        getIsSharedTransitionSelectionRequired(visibleSlideIndex)
-	      ) {
-        if (
-          root &&
-          deltaY > 0 &&
-          root.scrollTop <
-            root.clientHeight * visibleSlideIndex -
-              CUT_FEED_SHARED_SLIDE_START_LOCK_TOLERANCE_PX
-        ) {
-          return;
-        }
-
-	        event.preventDefault();
-	        lockedTouchNavigationHandledRef.current = true;
-	        if (root) {
-          root.scrollTo({
-            behavior: "auto",
-            top: root.clientHeight * visibleSlideIndex,
-          });
-        }
+      if (keepSharedTransitionSelectionSlideInPlace()) {
+        event.preventDefault();
+        lockedTouchNavigationHandledRef.current = true;
         return;
       }
 
@@ -8834,11 +8818,11 @@ export function FanletterNewsPublicCutsFeedPage({
       }
     },
     [
-      getIsSharedTransitionSelectionRequired,
       isSharedEntryScrollLocked,
       keepSharedJourneyFinalSlideInPlace,
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
+      keepSharedTransitionSelectionSlideInPlace,
       lockSharedJourneyFinalStartInPlace,
       lockSharedCurrentSlideStartInPlace,
       moveToPreviousSharedLockedSlide,
@@ -8846,7 +8830,6 @@ export function FanletterNewsPublicCutsFeedPage({
       shareId,
       sharedJourneyFinalSlideIndex,
       sharedMinimumSlideIndex,
-      visibleSlideIndex,
     ],
   );
   const handleFeedTouchEnd = useCallback(() => {
@@ -8887,6 +8870,19 @@ export function FanletterNewsPublicCutsFeedPage({
 
       const deltaX = startTouch.x - currentTouch.clientX;
       const deltaY = startTouch.y - currentTouch.clientY;
+      const isVerticalPull =
+        Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 1;
+
+      if (
+        isVerticalPull &&
+        keepSharedTransitionSelectionSlideInPlace()
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+        lockedTouchNavigationHandledRef.current = true;
+        return;
+      }
+
       const isPreviousSlidePull =
         deltaY < 0 &&
         Math.abs(deltaY) > Math.abs(deltaX) &&
@@ -8932,7 +8928,12 @@ export function FanletterNewsPublicCutsFeedPage({
         capture: true,
       });
     };
-  }, [lockSharedCurrentSlideStartInPlace, shareId, sourceOverlayOpenSlideIndex]);
+  }, [
+    keepSharedTransitionSelectionSlideInPlace,
+    lockSharedCurrentSlideStartInPlace,
+    shareId,
+    sourceOverlayOpenSlideIndex,
+  ]);
   const handleFeedScroll = useCallback(() => {
     const root = scrollContainerRef.current;
 
@@ -8990,24 +8991,7 @@ export function FanletterNewsPublicCutsFeedPage({
       itemCount: virtualSlideCount,
       root,
     });
-    if (getIsSharedTransitionSelectionRequired(visibleSlideIndex)) {
-      const currentTransitionScrollTop = root.clientHeight * visibleSlideIndex;
-      const transitionScrollDistance =
-        root.scrollTop - currentTransitionScrollTop;
-
-      if (Math.abs(transitionScrollDistance) <= 1) {
-        return;
-      }
-
-      if (transitionScrollDistance < 0) {
-        return;
-      }
-
-      root.scrollTo({
-        behavior: "auto",
-        top: currentTransitionScrollTop,
-      });
-      setVisibleSlideIndex(visibleSlideIndex);
+    if (keepSharedTransitionSelectionSlideInPlace()) {
       return;
     }
     const skippedSharedTransitionSlideIndex =
@@ -9093,13 +9077,13 @@ export function FanletterNewsPublicCutsFeedPage({
   }, [
     dismissSwipeGuide,
     activeSharedLockedSlideIndex,
-    getIsSharedTransitionSelectionRequired,
     getSkippedSharedTransitionSlideIndex,
     hideFeedChromeImmediately,
     isSharedEntryScrollLocked,
     feedItems,
     keepSharedJourneyFinalSlideInPlace,
     keepSharedMinimumSlideInPlace,
+    keepSharedTransitionSelectionSlideInPlace,
     sourceViewSwipeGuideDismissed,
     swipeGuideTarget,
     visibleSlideIndex,
