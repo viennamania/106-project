@@ -14,6 +14,7 @@ import {
   useSyncExternalStore,
   type CSSProperties,
   type FormEvent,
+  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
   type TouchEvent as ReactTouchEvent,
   type WheelEvent as ReactWheelEvent,
@@ -5049,6 +5050,26 @@ function FeedSlide({
     openSourceOverlay,
     sourceContentId,
   ]);
+  const stopSharedSourceCompletionCtaPropagation = useCallback(
+    (event: ReactPointerEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+    },
+    [],
+  );
+  const stopSharedSourceCompletionCtaTouchPropagation = useCallback(
+    (event: ReactTouchEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+    },
+    [],
+  );
+  const handleSharedSourceCompletionCtaClick = useCallback(
+    (event: ReactMouseEvent<HTMLButtonElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      handleSourceRailClick();
+    },
+    [handleSourceRailClick],
+  );
   const sourceRailProgressPercent =
     sourceRevealState.threshold > 0
       ? Math.min(
@@ -5701,7 +5722,11 @@ function FeedSlide({
                 aria-label={sharedSourceCompletionCtaTitle}
                 className="group flex min-h-[4.7rem] w-full items-center gap-3 rounded-[1.2rem] border border-[#44f26e]/34 bg-black/72 px-3.5 py-3 text-left text-white shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:border-[#44f26e]/62 hover:bg-black/82 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/26"
                 data-shared-source-cta="ready"
-                onClick={handleSourceRailClick}
+                onClick={handleSharedSourceCompletionCtaClick}
+                onPointerDown={stopSharedSourceCompletionCtaPropagation}
+                onPointerUp={stopSharedSourceCompletionCtaPropagation}
+                onTouchEnd={stopSharedSourceCompletionCtaTouchPropagation}
+                onTouchStart={stopSharedSourceCompletionCtaTouchPropagation}
                 type="button"
               >
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#101510] shadow-[0_10px_24px_rgba(68,242,110,0.18)]">
