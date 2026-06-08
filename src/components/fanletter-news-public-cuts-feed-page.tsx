@@ -8167,9 +8167,13 @@ export function FanletterNewsPublicCutsFeedPage({
       : null;
   const isSharedEntryScrollLocked = activeSharedLockedSlideIndex !== null;
   const isSourceOverlayScrollLocked = sourceOverlayOpenSlideIndex !== null;
+  const shouldLockRoutedSharedTimelineScroll = shouldUseRoutedSharedTimeline;
   const isCutFeedScrollLocked =
-    isSharedEntryScrollLocked || isSourceOverlayScrollLocked;
-  const shouldFreezeSharedLockedScroll = isSharedEntryScrollLocked;
+    isSharedEntryScrollLocked ||
+    isSourceOverlayScrollLocked ||
+    shouldLockRoutedSharedTimelineScroll;
+  const shouldFreezeSharedLockedScroll =
+    isSharedEntryScrollLocked || shouldLockRoutedSharedTimelineScroll;
   const shouldShowHeaderCount = !isSharedConsumptionEntry;
   const shouldShowServiceMenuButton =
     !isCutFeedScrollLocked &&
@@ -8925,6 +8929,25 @@ export function FanletterNewsPublicCutsFeedPage({
     setVisibleSlideIndex(visibleSlideIndex);
     return true;
   }, [getIsSharedTransitionSelectionRequired, visibleSlideIndex]);
+  const keepRoutedSharedTimelineSlideInPlace = useCallback(() => {
+    const root = scrollContainerRef.current;
+
+    if (!root || !shouldLockRoutedSharedTimelineScroll) {
+      return false;
+    }
+
+    const lockedScrollTop = root.clientHeight * visibleSlideIndex;
+
+    if (Math.abs(root.scrollTop - lockedScrollTop) > 0.5) {
+      root.scrollTo({
+        behavior: "auto",
+        top: lockedScrollTop,
+      });
+    }
+
+    setVisibleSlideIndex(visibleSlideIndex);
+    return true;
+  }, [shouldLockRoutedSharedTimelineScroll, visibleSlideIndex]);
   const moveToPreviousSharedLockedSlide = useCallback(() => {
     const root = scrollContainerRef.current;
 
@@ -8967,6 +8990,11 @@ export function FanletterNewsPublicCutsFeedPage({
   const handleFeedWheel = useCallback(
     (event: ReactWheelEvent<HTMLDivElement>) => {
       const root = scrollContainerRef.current;
+
+      if (keepRoutedSharedTimelineSlideInPlace()) {
+        event.preventDefault();
+        return;
+      }
 
       if (event.deltaY < 0 && lockSharedCurrentSlideStartInPlace()) {
         event.preventDefault();
@@ -9052,6 +9080,7 @@ export function FanletterNewsPublicCutsFeedPage({
       keepSharedJourneyFinalSlideInPlace,
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
+      keepRoutedSharedTimelineSlideInPlace,
       keepSharedTransitionSelectionSlideInPlace,
       lockSharedJourneyFinalStartInPlace,
       lockSharedCurrentSlideStartInPlace,
@@ -9080,6 +9109,12 @@ export function FanletterNewsPublicCutsFeedPage({
 
       const root = scrollContainerRef.current;
       const deltaY = startTouchY - currentTouchY;
+
+      if (Math.abs(deltaY) > 1 && keepRoutedSharedTimelineSlideInPlace()) {
+        event.preventDefault();
+        lockedTouchNavigationHandledRef.current = true;
+        return;
+      }
 
       if (deltaY < 0 && lockSharedCurrentSlideStartInPlace()) {
         event.preventDefault();
@@ -9174,6 +9209,7 @@ export function FanletterNewsPublicCutsFeedPage({
       keepSharedJourneyFinalSlideInPlace,
       keepSharedLockedSlideInPlace,
       keepSharedMinimumSlideInPlace,
+      keepRoutedSharedTimelineSlideInPlace,
       keepSharedTransitionSelectionSlideInPlace,
       lockSharedJourneyFinalStartInPlace,
       lockSharedCurrentSlideStartInPlace,
@@ -9229,6 +9265,14 @@ export function FanletterNewsPublicCutsFeedPage({
       const isSharedScrollGuideGesture = Boolean(
         targetElement?.closest("[data-shared-scroll-guide]"),
       );
+
+      if (isVerticalPull && shouldLockRoutedSharedTimelineScroll) {
+        event.preventDefault();
+        event.stopPropagation();
+        lockedTouchNavigationHandledRef.current = true;
+        keepRoutedSharedTimelineSlideInPlace();
+        return;
+      }
 
       if (isVerticalPull && isSharedScrollGuideGesture) {
         event.preventDefault();
@@ -9294,9 +9338,11 @@ export function FanletterNewsPublicCutsFeedPage({
       });
     };
   }, [
+    keepRoutedSharedTimelineSlideInPlace,
     keepSharedTransitionSelectionSlideInPlace,
     lockSharedCurrentSlideStartInPlace,
     shareId,
+    shouldLockRoutedSharedTimelineScroll,
     sourceOverlayOpenSlideIndex,
   ]);
   const handleFeedScroll = useCallback(() => {
@@ -9314,7 +9360,11 @@ export function FanletterNewsPublicCutsFeedPage({
       return;
     }
 
-	    if (isSharedEntryScrollLocked) {
+    if (keepRoutedSharedTimelineSlideInPlace()) {
+      return;
+    }
+
+    if (isSharedEntryScrollLocked) {
       const lockedScrollTop =
         activeSharedLockedSlideIndex !== null
           ? root.clientHeight * activeSharedLockedSlideIndex
@@ -9448,6 +9498,7 @@ export function FanletterNewsPublicCutsFeedPage({
     feedItems,
     keepSharedJourneyFinalSlideInPlace,
     keepSharedMinimumSlideInPlace,
+    keepRoutedSharedTimelineSlideInPlace,
     keepSharedTransitionSelectionSlideInPlace,
     sourceViewSwipeGuideDismissed,
     swipeGuideTarget,
@@ -10160,6 +10211,8 @@ export function FanletterNewsPublicCutsFeedPage({
     activeSlideIndex + renderWindowRadius,
   );
   const scrollContainerClassName = `mx-auto h-full w-full max-w-[430px] snap-y snap-mandatory overscroll-none bg-black shadow-[0_0_56px_rgba(0,0,0,0.38)] sm:border-x sm:border-white/10 ${
+    shouldLockRoutedSharedTimelineScroll ? "touch-pan-x" : ""
+  } ${
     isCutFeedScrollLocked ? "scroll-auto" : "scroll-smooth"
   } ${
     isSourceOverlayScrollLocked ||
