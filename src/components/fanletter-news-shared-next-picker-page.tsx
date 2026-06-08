@@ -243,11 +243,25 @@ export function FanletterNewsSharedNextPickerPage({
       step: String(journeyStep),
     },
   );
+  const nextPickerReturnHref = setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/${completedItem.report.reportId}/next`,
+      referralCode,
+    ),
+    {
+      [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(
+        initialCutSlotNumber ?? completedItem.leadCut.slotNumber,
+      ),
+      returnTo: returnToHref,
+      shareId,
+      step: String(journeyStep),
+    },
+  );
   const characterHref = getCharacterHref({
     completedItem,
     locale,
     referralCode,
-    returnToHref,
+    returnToHref: nextPickerReturnHref,
   });
 
   useEffect(() => {
@@ -261,7 +275,7 @@ export function FanletterNewsSharedNextPickerPage({
           locale,
           option,
           referralCode,
-          returnToHref,
+          returnToHref: nextPickerReturnHref,
           shareId,
         }),
       );
@@ -273,7 +287,7 @@ export function FanletterNewsSharedNextPickerPage({
     locale,
     options,
     referralCode,
-    returnToHref,
+    nextPickerReturnHref,
     router,
     shareId,
   ]);
@@ -374,7 +388,7 @@ export function FanletterNewsSharedNextPickerPage({
                   locale,
                   option,
                   referralCode,
-                  returnToHref,
+                  returnToHref: nextPickerReturnHref,
                   shareId,
                 });
                 const title = getFanletterNewsBareArticleDisplayTitle(

@@ -236,6 +236,9 @@ function getCopy(locale: Locale) {
         returnToBrief: "브리프",
         returnToBriefA11y: "플랫폼 브리프로 돌아가기",
         returnToBriefFull: "플랫폼 브리프로 돌아가기",
+        returnToPicker: "선택",
+        returnToPickerA11y: "리포트 선택으로 돌아가기",
+        returnToPickerFull: "리포트 선택으로 돌아가기",
         retry: "다시 시도",
         serviceCharacters: "AI 캐릭터",
         serviceCharactersHint: "캐릭터 채널",
@@ -556,6 +559,9 @@ function getCopy(locale: Locale) {
         returnToBrief: "Brief",
         returnToBriefA11y: "Back to platform brief",
         returnToBriefFull: "Back to brief",
+        returnToPicker: "Picker",
+        returnToPickerA11y: "Back to report picker",
+        returnToPickerFull: "Back to report picker",
         retry: "Retry",
         serviceCharacters: "AI Characters",
         serviceCharactersHint: "Character channels",
@@ -2591,6 +2597,8 @@ type SourceOverlayCopy = Pick<
   | "voteSaving"
   | "returnToBriefA11y"
   | "returnToBriefFull"
+  | "returnToPickerA11y"
+  | "returnToPickerFull"
 >;
 
 function isFanletterNewsPublicCutSourceLoadResponse(
@@ -2732,6 +2740,18 @@ function SourceVlogFeedOverlay({
   const shouldShowSourceOverlayCloseButton = !shouldUseSharedEntryPreviewCopy;
   const sourceOverlayReturnToHref =
     returnToHref && !shouldUseSharedEntryPreviewCopy ? returnToHref : null;
+  const isSourceOverlayReturnToSharedNextPicker = Boolean(
+    sourceOverlayReturnToHref?.includes("/fanletter/news/cuts/") &&
+      sourceOverlayReturnToHref.includes("/next"),
+  );
+  const sourceOverlayReturnToA11yLabel =
+    isSourceOverlayReturnToSharedNextPicker
+      ? copy.returnToPickerA11y
+      : copy.returnToBriefA11y;
+  const sourceOverlayReturnToLabel =
+    isSourceOverlayReturnToSharedNextPicker
+      ? copy.returnToPickerFull
+      : copy.returnToBriefFull;
   const sourceOverlayCloseLabel = isSharedSourceOverlay
     ? copy.sharedSourcePreviewContinueCta
     : copy.sourceOverlayClose;
@@ -2880,21 +2900,21 @@ function SourceVlogFeedOverlay({
           ) : null}
           {sourceOverlayReturnToHref ? (
             <Link
-              aria-label={copy.returnToBriefA11y}
+              aria-label={sourceOverlayReturnToA11yLabel}
               className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-white/12 bg-white/10 px-3 text-[0.68rem] font-black !text-white shadow-[0_12px_30px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:bg-white hover:!text-[#111510]"
               href={sourceOverlayReturnToHref}
               onClick={() => {
                 onNavigate?.({
                   href: sourceOverlayReturnToHref,
                   label: copy.navigationPending.destination(
-                    copy.returnToBriefFull,
+                    sourceOverlayReturnToLabel,
                   ),
                 });
               }}
             >
               <ArrowLeft className="size-3.5" />
               <span className="max-w-[6.2rem] truncate">
-                {copy.returnToBriefFull}
+                {sourceOverlayReturnToLabel}
               </span>
             </Link>
           ) : null}
@@ -10024,6 +10044,19 @@ export function FanletterNewsPublicCutsFeedPage({
       ? "gap-2 border-white/18 bg-white/12 px-3"
       : "gap-1.5 border-white/16 bg-black/42 px-3"
   }`;
+  const isReturnToSharedNextPicker = Boolean(
+    returnToHref?.includes("/fanletter/news/cuts/") &&
+      returnToHref.includes("/next"),
+  );
+  const returnToA11yLabel = isReturnToSharedNextPicker
+    ? copy.returnToPickerA11y
+    : copy.returnToBriefA11y;
+  const returnToNavigationLabel = isReturnToSharedNextPicker
+    ? copy.returnToPickerFull
+    : copy.returnToBriefFull;
+  const returnToShortLabel = isReturnToSharedNextPicker
+    ? copy.returnToPicker
+    : copy.returnToBrief;
   const roleShortcutSectionClassName = `pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+4.25rem)] z-30 w-full max-w-[430px] -translate-x-1/2 px-3 transition-[opacity,transform,visibility] duration-500 ease-out ${
     isRoleShortcutVisible
       ? "visible translate-y-0 opacity-100"
@@ -10065,13 +10098,15 @@ export function FanletterNewsPublicCutsFeedPage({
         <div className="mx-auto flex items-center gap-2">
           {returnToHref ? (
             <Link
-              aria-label={copy.returnToBriefA11y}
+              aria-label={returnToA11yLabel}
               className={returnToButtonClassName}
               href={returnToHref}
               onClick={() => {
                 startNavigation({
                   href: returnToHref,
-                  label: copy.navigationPending.destination(copy.returnToBriefFull),
+                  label: copy.navigationPending.destination(
+                    returnToNavigationLabel,
+                  ),
                 });
               }}
             >
@@ -10081,7 +10116,7 @@ export function FanletterNewsPublicCutsFeedPage({
                   isCutFeedHeaderExpanded ? "opacity-100" : "opacity-0"
                 }`}
               >
-                {copy.returnToBrief}
+                {returnToShortLabel}
               </span>
             </Link>
           ) : visibleItem && !shareId ? (
