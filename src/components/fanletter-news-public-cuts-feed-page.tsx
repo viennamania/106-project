@@ -60,6 +60,9 @@ import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive
 import { useMemberSession } from "@/components/member-session-provider";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
+  appendFanletterNewsPublicCutJourneyReportId,
+  encodeFanletterNewsPublicCutJourneyReportIds,
+  FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_PARAM,
   FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM,
   FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE,
   FANLETTER_NEWS_PUBLIC_CUT_SHARED_PAGE_SIZE,
@@ -3259,6 +3262,7 @@ function FeedSlide({
   referralCode,
   returnToHref = null,
   shareId,
+  sharedJourneyReportIds = [],
   sharedJourneyStep = 1,
   showSwipeGuide = false,
   viewerEmail = null,
@@ -3290,6 +3294,7 @@ function FeedSlide({
   referralCode: string | null;
   returnToHref?: string | null;
   shareId: string | null;
+  sharedJourneyReportIds?: string[];
   sharedJourneyStep?: number;
   showSwipeGuide?: boolean;
   viewerEmail?: string | null;
@@ -3613,6 +3618,14 @@ function FeedSlide({
   const shouldOpenSharedJourneyEnd =
     Boolean(shareId) &&
     sharedJourneyStep >= CUT_FEED_SHARED_JOURNEY_MAX_REPORTS;
+  const sharedTimelineJourneyParam = shareId
+    ? encodeFanletterNewsPublicCutJourneyReportIds(
+        appendFanletterNewsPublicCutJourneyReportId(
+          sharedJourneyReportIds,
+          report.reportId,
+        ),
+      )
+    : null;
   const sharedTimelineNextTitle = shouldOpenSharedJourneyEnd
     ? copy.sharedJourneyEndGuideTitle
     : copy.sharedScrollGuideTitle(report.creatorName);
@@ -3630,6 +3643,7 @@ function FeedSlide({
         {
           [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(activeCutSlotNumber),
           end: shouldOpenSharedJourneyEnd ? "1" : null,
+          [FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_PARAM]: sharedTimelineJourneyParam,
           returnTo: cutFeedReturnHref,
           shareId,
           step: String(Math.max(1, sharedJourneyStep)),
@@ -7694,6 +7708,7 @@ export function FanletterNewsPublicCutsFeedPage({
   returnToHref = null,
   shareId,
   sharedCutRecap = null,
+  sharedJourneyReportIds = [],
   sharedJourneyStep = 1,
   sourceContentId = null,
   viewerEmail = null,
@@ -7711,6 +7726,7 @@ export function FanletterNewsPublicCutsFeedPage({
   returnToHref?: string | null;
   shareId: string | null;
   sharedCutRecap?: SerializedFanletterNewsPublicCutShareRecap | null;
+  sharedJourneyReportIds?: string[];
   sharedJourneyStep?: number;
   sourceContentId?: string | null;
   viewerEmail?: string | null;
@@ -10521,6 +10537,7 @@ export function FanletterNewsPublicCutsFeedPage({
               referralCode={referralCode}
               returnToHref={returnToHref}
               shareId={shareId}
+              sharedJourneyReportIds={sharedJourneyReportIds}
               sharedJourneyStep={sharedJourneyStep}
               showSwipeGuide={swipeGuideTarget?.index === index}
               viewerEmail={viewerEmail}

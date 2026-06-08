@@ -10,7 +10,9 @@ export const FANLETTER_NEWS_PUBLIC_CUT_PAGE_SIZE = 12;
 export const FANLETTER_NEWS_PUBLIC_CUT_SHARED_PAGE_SIZE = 4;
 export const FANLETTER_NEWS_PUBLIC_CUT_MAX_PAGE_SIZE = 24;
 export const FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM = "cut";
+export const FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_PARAM = "journey";
 export const FANLETTER_NEWS_PUBLIC_CUT_MAX_SLOTS = 4;
+export const FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_MAX_REPORTS = 3;
 
 export function normalizeFanletterNewsPublicCutSlotNumber(value: unknown) {
   const candidate = typeof value === "string" ? value.trim() : "";
@@ -25,6 +27,63 @@ export function normalizeFanletterNewsPublicCutSlotNumber(value: unknown) {
   }
 
   return parsed;
+}
+
+export function readFanletterNewsPublicCutJourneyReportIds(value: unknown) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+  const rawText = typeof rawValue === "string" ? rawValue.trim() : "";
+
+  if (!rawText) {
+    return [];
+  }
+
+  const seenReportIds = new Set<string>();
+  const reportIds: string[] = [];
+
+  rawText
+    .split(",")
+    .map((reportId) => reportId.trim().slice(0, 128))
+    .filter(Boolean)
+    .forEach((reportId) => {
+      if (
+        seenReportIds.has(reportId) ||
+        reportIds.length >= FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_MAX_REPORTS
+      ) {
+        return;
+      }
+
+      seenReportIds.add(reportId);
+      reportIds.push(reportId);
+    });
+
+  return reportIds;
+}
+
+export function appendFanletterNewsPublicCutJourneyReportId(
+  reportIds: readonly string[],
+  reportId: string,
+) {
+  const normalizedReportId = reportId.trim().slice(0, 128);
+  const nextReportIds = [...reportIds];
+
+  if (
+    normalizedReportId &&
+    !nextReportIds.includes(normalizedReportId) &&
+    nextReportIds.length < FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_MAX_REPORTS
+  ) {
+    nextReportIds.push(normalizedReportId);
+  }
+
+  return nextReportIds.slice(0, FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_MAX_REPORTS);
+}
+
+export function encodeFanletterNewsPublicCutJourneyReportIds(
+  reportIds: readonly string[],
+) {
+  const normalizedReportIds =
+    readFanletterNewsPublicCutJourneyReportIds(reportIds.join(","));
+
+  return normalizedReportIds.length > 0 ? normalizedReportIds.join(",") : null;
 }
 
 export type SerializedFanletterNewsPublicCut = {

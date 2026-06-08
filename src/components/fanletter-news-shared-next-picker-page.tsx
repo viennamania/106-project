@@ -16,6 +16,9 @@ import {
 
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
+  appendFanletterNewsPublicCutJourneyReportId,
+  encodeFanletterNewsPublicCutJourneyReportIds,
+  FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_PARAM,
   FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM,
   type SerializedFanletterNewsPublicCutFeedItem,
   type SerializedFanletterNewsPublicCutFeedItemBase,
@@ -30,6 +33,7 @@ import {
 type FanletterNewsSharedNextPickerPageProps = {
   completedItem: SerializedFanletterNewsPublicCutFeedItem;
   initialCutSlotNumber: number | null;
+  journeyReportIds: string[];
   journeyStep: number;
   locale: Locale;
   referralCode: string | null;
@@ -178,6 +182,7 @@ function getCharacterHref({
 
 function getReportHref({
   journeyStep,
+  journeyReportIds,
   locale,
   option,
   referralCode,
@@ -185,6 +190,7 @@ function getReportHref({
   shareId,
 }: {
   journeyStep: number;
+  journeyReportIds: string[];
   locale: Locale;
   option: SerializedFanletterNewsPublicCutFeedItemBase;
   referralCode: string | null;
@@ -200,6 +206,13 @@ function getReportHref({
       [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(
         option.leadCut.slotNumber,
       ),
+      [FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_PARAM]:
+        encodeFanletterNewsPublicCutJourneyReportIds(
+          appendFanletterNewsPublicCutJourneyReportId(
+            journeyReportIds,
+            option.report.reportId,
+          ),
+        ),
       returnTo: returnToHref,
       shareId,
       step: String(journeyStep + 1),
@@ -210,6 +223,7 @@ function getReportHref({
 export function FanletterNewsSharedNextPickerPage({
   completedItem,
   initialCutSlotNumber,
+  journeyReportIds,
   journeyStep,
   locale,
   referralCode,
@@ -240,6 +254,8 @@ export function FanletterNewsSharedNextPickerPage({
         initialCutSlotNumber ?? completedItem.leadCut.slotNumber,
       ),
       shareId,
+      [FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_PARAM]:
+        encodeFanletterNewsPublicCutJourneyReportIds(journeyReportIds),
       step: String(journeyStep),
     },
   );
@@ -254,6 +270,8 @@ export function FanletterNewsSharedNextPickerPage({
       ),
       returnTo: returnToHref,
       shareId,
+      [FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_PARAM]:
+        encodeFanletterNewsPublicCutJourneyReportIds(journeyReportIds),
       step: String(journeyStep),
     },
   );
@@ -272,6 +290,7 @@ export function FanletterNewsSharedNextPickerPage({
       router.prefetch(
         getReportHref({
           journeyStep,
+          journeyReportIds,
           locale,
           option,
           referralCode,
@@ -283,6 +302,7 @@ export function FanletterNewsSharedNextPickerPage({
   }, [
     characterHref,
     currentReportHref,
+    journeyReportIds,
     journeyStep,
     locale,
     options,
@@ -385,6 +405,7 @@ export function FanletterNewsSharedNextPickerPage({
               {options.map((option, optionIndex) => {
                 const href = getReportHref({
                   journeyStep,
+                  journeyReportIds,
                   locale,
                   option,
                   referralCode,

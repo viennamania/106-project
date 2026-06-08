@@ -10,7 +10,10 @@ import {
   serializeFanletterNewsPublicCutFeedItems,
 } from "@/lib/fanletter-news-public-cuts";
 import {
+  appendFanletterNewsPublicCutJourneyReportId,
+  FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_PARAM,
   normalizeFanletterNewsPublicCutSlotNumber,
+  readFanletterNewsPublicCutJourneyReportIds,
 } from "@/lib/fanletter-news-public-cuts-shared";
 import { getFanletterNewsReportById } from "@/lib/fanletter-news-report-service";
 import {
@@ -27,6 +30,7 @@ const SHARED_NEXT_TIMELINE_LIMIT = 6;
 
 type FanletterNewsSharedNextSearchParams = {
   cut?: string | string[];
+  journey?: string | string[];
   ref?: string | string[];
   returnTo?: string | string[];
   shareId?: string | string[];
@@ -121,6 +125,12 @@ export default async function LocalizedFanletterNewsSharedNextPage({
   const journeyStep = readSharedJourneyStep(
     readFirstSearchParam(query.step) ?? null,
   );
+  const journeyReportIds = appendFanletterNewsPublicCutJourneyReportId(
+    readFanletterNewsPublicCutJourneyReportIds(
+      readFirstSearchParam(query[FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_PARAM]),
+    ),
+    reportId,
+  );
   const session = await readMemberServerSession();
   const report = await getFanletterNewsReportById(reportId);
 
@@ -170,6 +180,7 @@ export default async function LocalizedFanletterNewsSharedNextPage({
     <FanletterNewsSharedNextPickerPage
       completedItem={serializeFanletterNewsPublicCutFeedItem(completedItem)}
       initialCutSlotNumber={initialCutSlotNumber}
+      journeyReportIds={journeyReportIds}
       journeyStep={journeyStep}
       locale={locale}
       referralCode={referralCode}

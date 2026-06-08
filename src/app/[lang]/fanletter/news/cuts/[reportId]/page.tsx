@@ -9,9 +9,12 @@ import {
   serializeFanletterNewsPublicCutFeedItems,
 } from "@/lib/fanletter-news-public-cuts";
 import {
+  appendFanletterNewsPublicCutJourneyReportId,
   FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
+  FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_PARAM,
   FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM,
   normalizeFanletterNewsPublicCutSlotNumber,
+  readFanletterNewsPublicCutJourneyReportIds,
 } from "@/lib/fanletter-news-public-cuts-shared";
 import { buildFanletterOgVersionToken } from "@/lib/fanletter-og";
 import { getFanletterNewsCutSharePublicRecap } from "@/lib/fanletter-news-cut-share-links";
@@ -32,6 +35,7 @@ import { normalizeShareId } from "@/lib/share-tracking";
 type FanletterNewsCutDetailSearchParams = {
   cut?: string | string[];
   end?: string | string[];
+  journey?: string | string[];
   ref?: string | string[];
   returnTo?: string | string[];
   shareId?: string | string[];
@@ -259,6 +263,15 @@ export default async function LocalizedFanletterNewsCutDetailPage({
     notFound();
   }
 
+  const sharedJourneyReportIds = shareId
+    ? appendFanletterNewsPublicCutJourneyReportId(
+        readFanletterNewsPublicCutJourneyReportIds(
+          readFirstSearchParam(query[FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_PARAM]),
+        ),
+        report.reportId,
+      )
+    : [];
+
   const feedPage = await getFanletterNewsPublicCutFeedPage({
     excludeReportIds: [report.reportId],
     limit: FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
@@ -270,6 +283,45 @@ export default async function LocalizedFanletterNewsCutDetailPage({
     targetReport: report,
     viewerEmail: session?.email ?? null,
   });
+  const sharedJourneyItems =
+    shareId && resumeSharedJourneyEnd && sharedJourneyReportIds.length > 0
+      ? (
+          await Promise.all(
+            sharedJourneyReportIds.map(async (journeyReportId) => {
+              const journeyReport =
+                journeyReportId === report.reportId
+                  ? report
+                  : await getFanletterNewsReportById(journeyReportId);
+
+              if (
+                !journeyReport ||
+                journeyReport.locale !== locale ||
+                !createFanletterNewsPublicCutFeedItem(journeyReport)
+              ) {
+                return null;
+              }
+
+              const journeyFeedPage = await getFanletterNewsPublicCutFeedPage({
+                limit: 1,
+                locale,
+                referralCode,
+                rotationSeed: feedRotationSeed,
+                shareId,
+                targetOnly: true,
+                targetReport: journeyReport,
+                viewerEmail: session?.email ?? null,
+              });
+
+              return journeyFeedPage.items[0] ?? null;
+            }),
+          )
+        ).filter(
+          (item): item is NonNullable<(typeof feedPage.items)[number]> =>
+            Boolean(item),
+        )
+      : [];
+  const resolvedFeedItems =
+    sharedJourneyItems.length > 0 ? sharedJourneyItems : feedPage.items;
   const sharedCutRecap = shareId
     ? await getFanletterNewsCutSharePublicRecap({
         reportId: report.reportId,
@@ -282,16 +334,17 @@ export default async function LocalizedFanletterNewsCutDetailPage({
       dictionary={getDictionary(locale)}
       excludeReportId={report.reportId}
       feedRotationSeed={feedRotationSeed}
-      hasMore={feedPage.hasMore}
+      hasMore={sharedJourneyItems.length > 0 ? false : feedPage.hasMore}
       initialCutSlotNumber={initialCutSlotNumber}
-      items={serializeFanletterNewsPublicCutFeedItems(feedPage.items)}
+      items={serializeFanletterNewsPublicCutFeedItems(resolvedFeedItems)}
       locale={locale}
-      nextOffset={feedPage.nextOffset}
+      nextOffset={sharedJourneyItems.length > 0 ? resolvedFeedItems.length : feedPage.nextOffset}
       referralCode={referralCode}
       returnToHref={returnToHref}
       resumeSharedJourneyEnd={resumeSharedJourneyEnd}
       shareId={shareId}
       sharedCutRecap={sharedCutRecap}
+      sharedJourneyReportIds={sharedJourneyReportIds}
       sharedJourneyStep={sharedJourneyStep}
       sourceContentId={initialSourceContentId}
       viewerEmail={session?.email ?? null}
