@@ -3475,14 +3475,26 @@ function FeedSlide({
   )}/${formatNumber(sourceRevealState.threshold, locale)}`;
   const reporterPublishedAtLabel = publishedAt ?? "-";
   const activeCutSlotNumber = cuts[activeCutIndex]?.slotNumber ?? 1;
-  const hasViewedAllCuts = cutCount <= 1 || viewedCutIndexes.size >= cutCount;
-  const hasReachedSharedSourceGate = hasViewedAllCuts;
+  const hasReachedLastSharedCutProgress = Boolean(
+    shareId && index === 0 && activeCutProgressIndex >= cutCount - 1,
+  );
+  const hasViewedAllCuts =
+    cutCount <= 1 ||
+    viewedCutIndexes.size >= cutCount ||
+    hasReachedLastSharedCutProgress;
+  const hasCompletedSharedEntryFromParent = Boolean(
+    shareId && !isSharedConsumptionGateActive,
+  );
+  const hasReachedSharedSourceGate =
+    hasViewedAllCuts || hasCompletedSharedEntryFromParent;
   const requiresSharedSourceConsumption = Boolean(
     shareId && index === 0 && sharedJourneyStep <= 1,
   );
   const hasCompletedSharedConsumptionGate =
     hasReachedSharedSourceGate &&
-    (!requiresSharedSourceConsumption || hasEnteredSourceOverlay);
+    (!requiresSharedSourceConsumption ||
+      hasEnteredSourceOverlay ||
+      hasCompletedSharedEntryFromParent);
   const isSharedSourceActionGateActive = Boolean(
     isSharedConsumptionGateActive && cutCount > 1,
   );
@@ -3660,6 +3672,19 @@ function FeedSlide({
       return nextIndexes;
     });
   }, [activeCutIndex]);
+
+  const markCutIndexViewed = useCallback((cutIndex: number) => {
+    setViewedCutIndexes((currentIndexes) => {
+      if (currentIndexes.has(cutIndex)) {
+        return currentIndexes;
+      }
+
+      const nextIndexes = new Set(currentIndexes);
+
+      nextIndexes.add(cutIndex);
+      return nextIndexes;
+    });
+  }, []);
 
   const completeSharedEntryConsumptionGate = useCallback(() => {
     if (
@@ -4724,6 +4749,7 @@ function FeedSlide({
       const shouldAnimateAdjacent =
         cutCount > 1 && Math.abs(normalizedNextIndex - activeCutIndex) <= 1;
 
+      markCutIndexViewed(normalizedNextIndex);
       setIsCutTrackTransitionEnabled(shouldAnimateAdjacent);
       setActiveCutIndex(normalizedNextIndex);
       setTrackCutIndex(
@@ -4734,7 +4760,12 @@ function FeedSlide({
         enableCutTrackTransitionOnNextFrame();
       }
     },
-    [activeCutIndex, cutCount, enableCutTrackTransitionOnNextFrame],
+    [
+      activeCutIndex,
+      cutCount,
+      enableCutTrackTransitionOnNextFrame,
+      markCutIndexViewed,
+    ],
   );
   useEffect(() => {
     if (sourceOverlayOpen) {
@@ -4800,6 +4831,7 @@ function FeedSlide({
 
     const nextIndex = getCutIndexForProgressIndex(activeCutProgressIndex - 1);
 
+    markCutIndexViewed(nextIndex);
     setIsCutTrackTransitionEnabled(true);
     setActiveCutIndex(nextIndex);
     setTrackCutIndex(
@@ -4812,6 +4844,7 @@ function FeedSlide({
     activeCutProgressIndex,
     cutCount,
     getCutIndexForProgressIndex,
+    markCutIndexViewed,
   ]);
   const goToNextCut = useCallback(() => {
     pendingCutDwellExitReasonRef.current = "horizontal_swipe";
@@ -4822,6 +4855,7 @@ function FeedSlide({
 
     const nextIndex = getCutIndexForProgressIndex(activeCutProgressIndex + 1);
 
+    markCutIndexViewed(nextIndex);
     setIsCutTrackTransitionEnabled(true);
     setActiveCutIndex(nextIndex);
     setTrackCutIndex(
@@ -4834,6 +4868,7 @@ function FeedSlide({
     activeCutProgressIndex,
     cutCount,
     getCutIndexForProgressIndex,
+    markCutIndexViewed,
   ]);
   const handlePointerEnd = useCallback(
     (event: ReactPointerEvent<HTMLElement>) => {
