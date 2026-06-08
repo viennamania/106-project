@@ -5076,6 +5076,31 @@ function FeedSlide({
     },
     [handleSourceRailClick],
   );
+  const stopSharedScrollGuidePointerPropagation = useCallback(
+    (event: ReactPointerEvent<HTMLAnchorElement>) => {
+      event.stopPropagation();
+    },
+    [],
+  );
+  const stopSharedScrollGuideMousePropagation = useCallback(
+    (event: ReactMouseEvent<HTMLAnchorElement>) => {
+      event.stopPropagation();
+    },
+    [],
+  );
+  const stopSharedScrollGuideTouchPropagation = useCallback(
+    (event: ReactTouchEvent<HTMLAnchorElement>) => {
+      event.stopPropagation();
+    },
+    [],
+  );
+  const blockSharedScrollGuideTouchMove = useCallback(
+    (event: ReactTouchEvent<HTMLAnchorElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    [],
+  );
   const sourceRailProgressPercent =
     sourceRevealState.threshold > 0
       ? Math.min(
@@ -5762,10 +5787,11 @@ function FeedSlide({
             <Link
               aria-label={sharedTimelineNextTitle}
               aria-live="polite"
-              className="mx-auto mt-3 flex min-h-11 w-full max-w-[21rem] items-center justify-center gap-2 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/12 px-4 text-center text-white shadow-[0_14px_38px_rgba(0,0,0,0.26)] backdrop-blur-xl transition hover:border-[#44f26e]/52 hover:bg-[#44f26e]/18 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/22"
+              className="mx-auto mt-3 flex min-h-11 w-full max-w-[21rem] touch-none select-none items-center justify-center gap-2 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/12 px-4 text-center text-white shadow-[0_14px_38px_rgba(0,0,0,0.26)] backdrop-blur-xl transition hover:border-[#44f26e]/52 hover:bg-[#44f26e]/18 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/22"
               data-shared-scroll-guide
               href={sharedTimelineNextHref}
-              onClick={() => {
+              onClick={(event) => {
+                event.stopPropagation();
                 startNavigation({
                   href: sharedTimelineNextHref,
                   label: copy.navigationPending.destination(
@@ -5773,6 +5799,13 @@ function FeedSlide({
                   ),
                 });
               }}
+              onMouseDown={stopSharedScrollGuideMousePropagation}
+              onMouseUp={stopSharedScrollGuideMousePropagation}
+              onPointerDown={stopSharedScrollGuidePointerPropagation}
+              onPointerUp={stopSharedScrollGuidePointerPropagation}
+              onTouchEnd={stopSharedScrollGuideTouchPropagation}
+              onTouchMove={blockSharedScrollGuideTouchMove}
+              onTouchStart={stopSharedScrollGuideTouchPropagation}
             >
               <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/14 text-[#44f26e]">
                 <ArrowRight className="size-4" />
@@ -9191,6 +9224,19 @@ export function FanletterNewsPublicCutsFeedPage({
       const deltaY = startTouch.y - currentTouch.clientY;
       const isVerticalPull =
         Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 1;
+      const targetElement =
+        event.target instanceof Element ? event.target : null;
+      const isSharedScrollGuideGesture = Boolean(
+        targetElement?.closest("[data-shared-scroll-guide]"),
+      );
+
+      if (isVerticalPull && isSharedScrollGuideGesture) {
+        event.preventDefault();
+        event.stopPropagation();
+        lockedTouchNavigationHandledRef.current = true;
+        lockSharedCurrentSlideStartInPlace();
+        return;
+      }
 
       if (
         isVerticalPull &&
