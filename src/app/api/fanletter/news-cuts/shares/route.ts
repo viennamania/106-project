@@ -1,5 +1,6 @@
 import {
   createFanletterNewsCutShareId,
+  createFanletterNewsCutShareCampaignSnapshot,
   createFanletterNewsCutShareLink,
   normalizeFanletterNewsCutShareMemo,
 } from "@/lib/fanletter-news-cut-share-links";
@@ -113,7 +114,13 @@ export async function POST(request: Request) {
         { projection: { referralCode: 1 } },
       )
     : null;
+  const campaignSnapshot =
+    await createFanletterNewsCutShareCampaignSnapshot({
+      anchorReport: report,
+    });
   const shareLink = await createFanletterNewsCutShareLink({
+    campaignReportIds: campaignSnapshot.campaignReportIds,
+    campaignReports: campaignSnapshot.campaignReports,
     contentId: report.contentId || null,
     creatorReferralCode: report.creatorReferralCode ?? null,
     cutSlotNumber,

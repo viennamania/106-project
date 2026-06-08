@@ -2,26 +2,45 @@ import "server-only";
 
 import { randomUUID } from "node:crypto";
 
+import type { FanletterNewsReportDocument } from "@/lib/content";
 import type { FunnelEventName } from "@/lib/funnel";
 import {
   getFanletterFanRequestsCollection,
+  getContentSocialActionsCollection,
   getFanletterNewsCutShareLinksCollection,
   getFanletterNewsReportsCollection,
   getFunnelEventsCollection,
 } from "@/lib/mongodb";
-import { normalizeEmail } from "@/lib/member";
+import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
 import {
   getPublicCutsFromReport,
   type FanletterNewsPublicCut,
 } from "@/lib/fanletter-news-public-cuts";
 import type { SerializedFanletterNewsPublicCutShareRecap } from "@/lib/fanletter-news-public-cuts-shared";
-import { normalizeReferralCode } from "@/lib/member";
 import { normalizeShareId } from "@/lib/share-tracking";
 
 export const FANLETTER_NEWS_CUT_SHARE_MEMO_LIMIT = 120;
 export const FANLETTER_NEWS_CUT_SHARE_DASHBOARD_LIMIT = 50;
+export const FANLETTER_NEWS_CUT_SHARE_CAMPAIGN_VERSION = 1;
+export const FANLETTER_NEWS_CUT_SHARE_CAMPAIGN_REPORT_LIMIT = 3;
+
+export type FanletterNewsCutShareCampaignReport = {
+  contentId: string | null;
+  coverImageUrl: string | null;
+  creatorName: string | null;
+  creatorReferralCode: string | null;
+  cuts: FanletterNewsPublicCut[];
+  reportId: string;
+  reporterName: string | null;
+  reporterReferralCode: string | null;
+  title: string | null;
+};
 
 export type FanletterNewsCutShareLinkDocument = {
+  campaignReportIds?: string[];
+  campaignReports?: FanletterNewsCutShareCampaignReport[];
+  campaignSelectedAt?: Date;
+  campaignVersion?: number;
   contentId: string | null;
   createdAt: Date;
   creatorReferralCode: string | null;
@@ -94,6 +113,7 @@ export type FanletterNewsCutShareLinkFanRequest = {
 };
 
 export type FanletterNewsCutShareLinkDetail = FanletterNewsCutShareLinkDashboardItem & {
+  campaignReports: FanletterNewsCutShareCampaignReport[];
   cuts: FanletterNewsCutShareLinkCutDetail[];
   creatorName: string | null;
   coverImageUrl: string | null;
@@ -101,6 +121,8 @@ export type FanletterNewsCutShareLinkDetail = FanletterNewsCutShareLinkDashboard
 };
 
 type CreateFanletterNewsCutShareLinkInput = {
+  campaignReportIds?: string[];
+  campaignReports?: FanletterNewsCutShareCampaignReport[];
   contentId: string | null;
   creatorReferralCode: string | null;
   cutSlotNumber: number;
@@ -142,6 +164,13 @@ type RawCutViewMetricsRow = {
   cutViews?: number;
 };
 
+type CampaignSocialMetricRow = {
+  _id: string;
+  likedCount?: number;
+  savedCount?: number;
+  sourceRevealCount?: number;
+};
+
 export function createFanletterNewsCutShareId() {
   return `newscut_${Date.now().toString(36)}_${randomUUID()
     .replace(/-/g, "")
@@ -159,7 +188,303 @@ export function normalizeFanletterNewsCutShareMemo(value: unknown) {
     .slice(0, FANLETTER_NEWS_CUT_SHARE_MEMO_LIMIT);
 }
 
+function normalizeCampaignReportIds(reportIds: readonly string[]) {
+  return [
+    ...new Set(
+      reportIds
+        .map((reportId) => reportId.trim().slice(0, 128))
+        .filter(Boolean),
+    ),
+  ].slice(0, FANLETTER_NEWS_CUT_SHARE_CAMPAIGN_REPORT_LIMIT);
+}
+
+function createCampaignReportSnapshot(
+  report: FanletterNewsReportDocument,
+): FanletterNewsCutShareCampaignReport | null {
+  const cuts = getPublicCutsFromReport(report);
+
+  if (cuts.length === 0) {
+    return null;
+  }
+
+  return {
+    contentId: report.contentId?.trim() || null,
+    coverImageUrl: report.coverImageUrl ?? null,
+    creatorName: report.creatorName ?? null,
+    creatorReferralCode: normalizeReferralCode(report.creatorReferralCode),
+    cuts,
+    reportId: report.reportId,
+    reporterName: report.reporterName ?? null,
+    reporterReferralCode: normalizeReferralCode(report.reporterReferralCode),
+    title: report.title ?? null,
+  };
+}
+
+function getReportContentKey(report: FanletterNewsReportDocument) {
+  return report.contentId?.trim() || report.reportId;
+}
+
+function scoreCampaignCandidateReport({
+  report,
+  socialMetrics,
+}: {
+  report: FanletterNewsReportDocument;
+  socialMetrics: CampaignSocialMetricRow | null;
+}) {
+  const cuts = getPublicCutsFromReport(report);
+  const sourcePublishedAtTime =
+    report.sourcePublishedAt?.getTime() ?? report.createdAt.getTime();
+  const sourceRevealCount = socialMetrics?.sourceRevealCount ?? 0;
+  const likedCount = socialMetrics?.likedCount ?? 0;
+  const savedCount = socialMetrics?.savedCount ?? 0;
+
+  return (
+    cuts.length * 90 +
+    sourceRevealCount * 120 +
+    likedCount * 28 +
+    savedCount * 22 +
+    (report.coverImageUrl ? 24 : 0) +
+    (Number.isFinite(sourcePublishedAtTime)
+      ? sourcePublishedAtTime / 1_000_000
+      : 0)
+  );
+}
+
+async function selectCampaignCandidateReports({
+  anchorReport,
+  excludeReportIds,
+  preferSameCreator,
+  remainingLimit,
+}: {
+  anchorReport: FanletterNewsReportDocument;
+  excludeReportIds: Set<string>;
+  preferSameCreator: boolean;
+  remainingLimit: number;
+}) {
+  if (remainingLimit <= 0) {
+    return [];
+  }
+
+  const creatorReferralCode = normalizeReferralCode(
+    anchorReport.creatorReferralCode,
+  );
+  const reportsCollection = await getFanletterNewsReportsCollection();
+  const anchorContentId = anchorReport.contentId?.trim();
+  const candidates = await reportsCollection
+    .find({
+      locale: anchorReport.locale,
+      reportId: { $nin: Array.from(excludeReportIds) },
+      ...(preferSameCreator && creatorReferralCode
+        ? { creatorReferralCode }
+        : {}),
+      ...(preferSameCreator && anchorContentId
+        ? { contentId: { $ne: anchorContentId } }
+        : {}),
+      $or: [
+        {
+          teaserImages: {
+            $elemMatch: {
+              imageUrl: { $regex: /\S/ },
+              source: "reporter_cropped",
+            },
+          },
+        },
+        {
+          teaserImageUrls: {
+            $elemMatch: { $regex: /\S/ },
+          },
+        },
+      ],
+      status: "published",
+    })
+    .sort({ sourcePublishedAt: -1, createdAt: -1, reportId: 1 })
+    .limit(72)
+    .toArray();
+  const contentIds = [
+    ...new Set(
+      candidates
+        .map((report) => report.contentId?.trim())
+        .filter((contentId): contentId is string => Boolean(contentId)),
+    ),
+  ];
+  const socialMetricRows =
+    contentIds.length > 0
+      ? await (await getContentSocialActionsCollection())
+          .aggregate<CampaignSocialMetricRow>([
+            { $match: { contentId: { $in: contentIds } } },
+            {
+              $group: {
+                _id: "$contentId",
+                likedCount: {
+                  $sum: { $cond: [{ $eq: ["$liked", true] }, 1, 0] },
+                },
+                savedCount: {
+                  $sum: { $cond: [{ $eq: ["$saved", true] }, 1, 0] },
+                },
+                sourceRevealCount: {
+                  $sum: {
+                    $cond: [
+                      { $eq: ["$sourceRevealRequested", true] },
+                      1,
+                      0,
+                    ],
+                  },
+                },
+              },
+            },
+          ])
+          .toArray()
+      : [];
+  const socialMetricsByContentId = new Map(
+    socialMetricRows.map((row) => [row._id, row]),
+  );
+  const bestByContent = new Map<
+    string,
+    { report: FanletterNewsReportDocument; score: number }
+  >();
+
+  for (const report of candidates) {
+    if (excludeReportIds.has(report.reportId)) {
+      continue;
+    }
+
+    const cuts = getPublicCutsFromReport(report);
+
+    if (cuts.length === 0) {
+      continue;
+    }
+
+    const contentKey = getReportContentKey(report);
+    const socialMetrics = report.contentId
+      ? socialMetricsByContentId.get(report.contentId) ?? null
+      : null;
+    const score = scoreCampaignCandidateReport({
+      report,
+      socialMetrics,
+    });
+    const current = bestByContent.get(contentKey);
+
+    if (!current || score > current.score) {
+      bestByContent.set(contentKey, { report, score });
+    }
+  }
+
+  return Array.from(bestByContent.values())
+    .sort((left, right) => {
+      const scoreDelta = right.score - left.score;
+
+      if (scoreDelta !== 0) {
+        return scoreDelta;
+      }
+
+      return (
+        (right.report.sourcePublishedAt?.getTime() ??
+          right.report.createdAt.getTime()) -
+        (left.report.sourcePublishedAt?.getTime() ??
+          left.report.createdAt.getTime())
+      );
+    })
+    .slice(0, remainingLimit)
+    .map((candidate) => candidate.report);
+}
+
+export async function createFanletterNewsCutShareCampaignSnapshot({
+  anchorReport,
+}: {
+  anchorReport: FanletterNewsReportDocument;
+}) {
+  const anchorSnapshot = createCampaignReportSnapshot(anchorReport);
+
+  if (!anchorSnapshot) {
+    return {
+      campaignReportIds: [anchorReport.reportId],
+      campaignReports: [] as FanletterNewsCutShareCampaignReport[],
+    };
+  }
+
+  const campaignReports: FanletterNewsCutShareCampaignReport[] = [
+    anchorSnapshot,
+  ];
+  const excludeReportIds = new Set([anchorReport.reportId]);
+  const sameCreatorReports = await selectCampaignCandidateReports({
+    anchorReport,
+    excludeReportIds,
+    preferSameCreator: true,
+    remainingLimit:
+      FANLETTER_NEWS_CUT_SHARE_CAMPAIGN_REPORT_LIMIT - campaignReports.length,
+  });
+
+  for (const report of sameCreatorReports) {
+    const snapshot = createCampaignReportSnapshot(report);
+
+    if (!snapshot || excludeReportIds.has(snapshot.reportId)) {
+      continue;
+    }
+
+    excludeReportIds.add(snapshot.reportId);
+    campaignReports.push(snapshot);
+  }
+
+  if (campaignReports.length < FANLETTER_NEWS_CUT_SHARE_CAMPAIGN_REPORT_LIMIT) {
+    const fallbackReports = await selectCampaignCandidateReports({
+      anchorReport,
+      excludeReportIds,
+      preferSameCreator: false,
+      remainingLimit:
+        FANLETTER_NEWS_CUT_SHARE_CAMPAIGN_REPORT_LIMIT -
+        campaignReports.length,
+    });
+
+    for (const report of fallbackReports) {
+      const snapshot = createCampaignReportSnapshot(report);
+
+      if (!snapshot || excludeReportIds.has(snapshot.reportId)) {
+        continue;
+      }
+
+      excludeReportIds.add(snapshot.reportId);
+      campaignReports.push(snapshot);
+    }
+  }
+
+  return {
+    campaignReportIds: normalizeCampaignReportIds(
+      campaignReports.map((report) => report.reportId),
+    ),
+    campaignReports,
+  };
+}
+
+export async function getFanletterNewsCutShareCampaignReportIds({
+  shareId,
+}: {
+  shareId: string | null;
+}) {
+  const normalizedShareId = normalizeShareId(shareId);
+
+  if (!normalizedShareId) {
+    return [];
+  }
+
+  const link = await (await getFanletterNewsCutShareLinksCollection()).findOne(
+    { shareId: normalizedShareId },
+    { projection: { campaignReportIds: 1, reportId: 1 } },
+  );
+
+  if (!link) {
+    return [];
+  }
+
+  const campaignReportIds = normalizeCampaignReportIds(
+    Array.isArray(link.campaignReportIds) ? link.campaignReportIds : [],
+  );
+
+  return campaignReportIds.length > 1 ? campaignReportIds : [];
+}
+
 export async function createFanletterNewsCutShareLink({
+  campaignReportIds = [],
+  campaignReports = [],
   contentId,
   creatorReferralCode,
   cutSlotNumber,
@@ -184,6 +509,14 @@ export async function createFanletterNewsCutShareLink({
 
   const now = new Date();
   const document: FanletterNewsCutShareLinkDocument = {
+    ...(campaignReports.length > 0
+      ? {
+          campaignReportIds: normalizeCampaignReportIds(campaignReportIds),
+          campaignReports,
+          campaignSelectedAt: now,
+          campaignVersion: FANLETTER_NEWS_CUT_SHARE_CAMPAIGN_VERSION,
+        }
+      : {}),
     contentId: contentId?.trim() || null,
     createdAt: now,
     creatorReferralCode: normalizeReferralCode(creatorReferralCode),
@@ -698,8 +1031,27 @@ export async function getFanletterNewsCutShareLinkDetail({
   const totalMetrics = createEmptyShareLinkMetrics(cutDwell);
   const metrics = metricRows[0];
   const cuts = report ? getPublicCutsFromReport(report) : [];
+  const campaignReports =
+    Array.isArray(link.campaignReports) && link.campaignReports.length > 0
+      ? link.campaignReports
+      : cuts.length > 0
+        ? [
+            {
+              contentId: link.contentId,
+              coverImageUrl: report?.coverImageUrl ?? null,
+              creatorName: report?.creatorName ?? null,
+              creatorReferralCode: link.creatorReferralCode,
+              cuts,
+              reportId: link.reportId,
+              reporterName: report?.reporterName ?? null,
+              reporterReferralCode: link.reporterReferralCode,
+              title: report?.title ?? null,
+            },
+          ]
+        : [];
 
   return {
+    campaignReports,
     contentId: link.contentId,
     coverImageUrl: report?.coverImageUrl ?? null,
     createdAt: link.createdAt.toISOString(),

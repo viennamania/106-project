@@ -35,6 +35,7 @@ import {
 } from "@/lib/fanletter-news-source-reveal";
 import {
   FANLETTER_NEWS_PUBLIC_CUT_INITIAL_PAGE_SIZE,
+  FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_MAX_REPORTS,
   FANLETTER_NEWS_PUBLIC_CUT_MAX_PAGE_SIZE,
   type FanletterNewsPublicCutFeedLoadResponse,
   type SerializedFanletterNewsPublicCutFeedItem,
@@ -1048,6 +1049,71 @@ async function hydrateFanletterNewsPublicCutFeedItems(
     await hydrateFanletterNewsPublicCutFeedItemsReportSlots(sourceRevealItems);
 
   return hydrateFanletterNewsPublicCutFeedItemsProfileImages(reportSlotItems);
+}
+
+export async function getFanletterNewsPublicCutFeedItemsByReportIds({
+  locale,
+  reportIds,
+  viewerEmail = null,
+}: {
+  locale: Locale;
+  reportIds: readonly string[];
+  viewerEmail?: string | null;
+}) {
+  const normalizedReportIds = [
+    ...new Set(
+      reportIds
+        .map((reportId) => reportId.trim().slice(0, 128))
+        .filter(Boolean),
+    ),
+  ].slice(0, FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_MAX_REPORTS);
+
+  if (normalizedReportIds.length === 0) {
+    return [];
+  }
+
+  const reports = await (await getFanletterNewsReportsCollection())
+    .find({
+      locale,
+      reportId: { $in: normalizedReportIds },
+      $or: [
+        {
+          teaserImages: {
+            $elemMatch: {
+              imageUrl: { $regex: /\S/ },
+              source: "reporter_cropped",
+            },
+          },
+        },
+        {
+          teaserImageUrls: {
+            $elemMatch: { $regex: /\S/ },
+          },
+        },
+      ],
+      status: "published",
+    })
+    .toArray();
+  const reportsById = new Map(
+    reports.map((report) => [report.reportId, report]),
+  );
+  const items: FanletterNewsPublicCutFeedItem[] = [];
+
+  for (const reportId of normalizedReportIds) {
+    const report = reportsById.get(reportId);
+
+    if (!report) {
+      continue;
+    }
+
+    const item = createFanletterNewsPublicCutFeedItem(report);
+
+    if (item) {
+      items.push(item);
+    }
+  }
+
+  return hydrateFanletterNewsPublicCutFeedItems(items, viewerEmail);
 }
 
 function serializeFanletterNewsPublicCutFeedItemBase(

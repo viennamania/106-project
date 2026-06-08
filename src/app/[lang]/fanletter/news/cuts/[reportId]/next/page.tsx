@@ -5,10 +5,12 @@ import { FanletterNewsSharedNextPickerPage } from "@/components/fanletter-news-s
 import {
   createFanletterNewsPublicCutFeedItem,
   createFanletterNewsPublicCutFeedRotationSeed,
+  getFanletterNewsPublicCutFeedItemsByReportIds,
   getFanletterNewsPublicCutFeedPage,
   serializeFanletterNewsPublicCutFeedItem,
   serializeFanletterNewsPublicCutFeedItems,
 } from "@/lib/fanletter-news-public-cuts";
+import { getFanletterNewsCutShareCampaignReportIds } from "@/lib/fanletter-news-cut-share-links";
 import {
   appendFanletterNewsPublicCutJourneyReportId,
   FANLETTER_NEWS_PUBLIC_CUT_JOURNEY_PARAM,
@@ -155,23 +157,46 @@ export default async function LocalizedFanletterNewsSharedNextPage({
       step: journeyStep,
     });
 
-  const timelinePage = report.creatorReferralCode
-    ? await getFanletterNewsPublicCutFeedPage({
-        excludeReportIds: [report.reportId],
-        focusCreatorReferralCode: report.creatorReferralCode,
-        limit: SHARED_NEXT_TIMELINE_LIMIT,
+  const campaignReportIds = shareId
+    ? await getFanletterNewsCutShareCampaignReportIds({ shareId })
+    : [];
+  const campaignAnchorIndex = campaignReportIds.indexOf(report.reportId);
+  const campaignNextReportId =
+    campaignAnchorIndex >= 0
+      ? campaignReportIds[campaignAnchorIndex + 1] ?? null
+      : null;
+  const campaignNextItems = campaignNextReportId
+    ? await getFanletterNewsPublicCutFeedItemsByReportIds({
         locale,
-        referralCode,
-        rotationSeed: createFanletterNewsPublicCutFeedRotationSeed(),
-        shareId,
-        timelineAnchorReportId: report.reportId,
+        reportIds: [campaignNextReportId],
         viewerEmail: session?.email ?? null,
       })
-    : {
-        hasMore: false,
-        items: [],
-        nextOffset: 0,
-      };
+    : [];
+  const useCampaignTimeline = campaignAnchorIndex >= 0;
+  const timelinePage =
+    useCampaignTimeline
+      ? {
+          hasMore: false,
+          items: campaignNextItems,
+          nextOffset: campaignNextItems.length,
+        }
+      : report.creatorReferralCode
+        ? await getFanletterNewsPublicCutFeedPage({
+            excludeReportIds: [report.reportId],
+            focusCreatorReferralCode: report.creatorReferralCode,
+            limit: SHARED_NEXT_TIMELINE_LIMIT,
+            locale,
+            referralCode,
+            rotationSeed: createFanletterNewsPublicCutFeedRotationSeed(),
+            shareId,
+            timelineAnchorReportId: report.reportId,
+            viewerEmail: session?.email ?? null,
+          })
+        : {
+            hasMore: false,
+            items: [],
+            nextOffset: 0,
+          };
   const [targetItem = null] = serializeFanletterNewsPublicCutFeedItems(
     timelinePage.items,
   );

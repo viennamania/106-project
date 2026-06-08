@@ -40,6 +40,11 @@ function getCopy(locale: Locale) {
         back: "공유 링크 목록",
         copiedCut: "공유 진입 컷",
         createdAt: "생성",
+        campaignCutCollection: "공유 캠페인 컷 컬렉션",
+        campaignCutCollectionBody:
+          "이 공유 링크가 방문자에게 순서대로 보여주도록 고정한 브이로그 리포트들의 모든 컷입니다.",
+        campaignCutCount: (count: string) => `${count}컷`,
+        campaignReportBadge: (index: string) => `${index}번째 브이로그`,
         cutDwell: "컷별 체류",
         cutDwellBody:
           "공유 링크 방문자가 각 이미지 컷에서 얼마나 오래 머물렀는지 평균 체류와 기록 수로 비교합니다.",
@@ -98,6 +103,11 @@ function getCopy(locale: Locale) {
         back: "Share link list",
         copiedCut: "Shared entry cut",
         createdAt: "Created",
+        campaignCutCollection: "Share Campaign Cut Collection",
+        campaignCutCollectionBody:
+          "All cuts from the fixed vlog reports this share link shows to visitors in order.",
+        campaignCutCount: (count: string) => `${count} cuts`,
+        campaignReportBadge: (index: string) => `Vlog ${index}`,
         cutDwell: "Dwell by cut",
         cutDwellBody:
           "Compare how long share-link visitors stayed on each image cut by average dwell and records.",
@@ -557,6 +567,105 @@ function CutDwellSummary({
   );
 }
 
+function CampaignCutCollection({
+  copy,
+  detail,
+  locale,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  detail: FanletterNewsCutShareLinkDetail;
+  locale: Locale;
+}) {
+  const reports = detail.campaignReports.filter(
+    (report) => report.cuts.length > 0,
+  );
+  const cutCount = reports.reduce(
+    (sum, report) => sum + report.cuts.length,
+    0,
+  );
+
+  if (reports.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="mt-7">
+      <div className="flex items-start gap-3">
+        <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
+          <Images className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[0.68rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+            {copy.campaignCutCount(formatNumber(cutCount, locale))}
+          </p>
+          <h2 className="mt-1 text-xl font-black leading-tight [word-break:keep-all]">
+            {copy.campaignCutCollection}
+          </h2>
+          <p className="mt-1 max-w-2xl text-sm font-bold leading-6 text-white/58 [word-break:keep-all]">
+            {copy.campaignCutCollectionBody}
+          </p>
+        </div>
+      </div>
+      <div className="mt-4 space-y-5">
+        {reports.map((report, reportIndex) => (
+          <article
+            className="rounded-[1.15rem] border border-white/12 bg-[#090d0a] p-3 shadow-[0_18px_54px_rgba(0,0,0,0.24)]"
+            key={`${detail.shareId}:campaign:${report.reportId}`}
+          >
+            <div className="flex items-center justify-between gap-3 px-1 pb-3">
+              <div className="min-w-0">
+                <p className="text-[0.66rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                  {copy.campaignReportBadge(
+                    formatNumber(reportIndex + 1, locale),
+                  )}
+                </p>
+                <h3 className="mt-1 truncate text-base font-black text-white">
+                  {report.title ?? report.reportId}
+                </h3>
+              </div>
+              <span className="shrink-0 rounded-full border border-[#44f26e]/32 bg-[#44f26e]/12 px-2.5 py-1 text-[0.66rem] font-black text-[#9bffad]">
+                {copy.campaignCutCount(
+                  formatNumber(report.cuts.length, locale),
+                )}
+              </span>
+            </div>
+            <div className="grid grid-cols-4 gap-2">
+              {report.cuts.map((cut) => {
+                const slotLabel = copy.cutLabel(
+                  formatNumber(cut.slotNumber, locale),
+                );
+
+                return (
+                  <div
+                    className="relative aspect-[9/16] overflow-hidden rounded-[0.85rem] border border-white/12 bg-black"
+                    key={`${report.reportId}:campaign-cut:${cut.slotNumber}`}
+                  >
+                    <Image
+                      alt={slotLabel}
+                      className="object-cover"
+                      fill
+                      sizes="(min-width: 768px) 160px, 24vw"
+                      src={cut.imageUrl}
+                      unoptimized={shouldBypassFanletterImageOptimization(
+                        cut.imageUrl,
+                      )}
+                    />
+                    <div className="absolute inset-x-0 top-0 bg-gradient-to-b from-black/76 to-transparent p-2">
+                      <span className="rounded-full bg-black/62 px-2 py-0.5 text-[0.58rem] font-black text-white/82">
+                        {slotLabel}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -727,6 +836,11 @@ export default async function LocalizedFanletterNewsCutShareDetailPage({
               locale={locale}
             />
             <CutDwellSummary copy={copy} detail={detail} locale={locale} />
+            <CampaignCutCollection
+              copy={copy}
+              detail={detail}
+              locale={locale}
+            />
             <section className="mt-7">
               <div className="flex items-start gap-3">
                 <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
