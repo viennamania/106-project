@@ -306,6 +306,9 @@ function getCopy(locale: Locale) {
           "AI 캐릭터 IP 소개와 다음 팬 리포트 선택 화면으로 이동합니다.",
         sharedScrollGuideTitle: (name: string) =>
           `${name} 타임라인 보기`,
+        sharedJourneyEndGuideBody:
+          "오늘 본 4컷 흐름과 다음 행동을 정리한 마지막 화면으로 이동합니다.",
+        sharedJourneyEndGuideTitle: "오늘 본 흐름 정리 보기",
         sharedEntryMiniGuide: "공유된 4컷 리포트 · 좌우로 넘겨 보기",
         sharedTimelineBadge: (name: string) => `${name} 타임라인`,
         sharedTimelineNext: "다음 브이로그",
@@ -623,6 +626,9 @@ function getCopy(locale: Locale) {
           "Open the AI character IP intro and choose the next fan report.",
         sharedScrollGuideTitle: (name: string) =>
           `Open ${name}'s timeline`,
+        sharedJourneyEndGuideBody:
+          "Open the final recap with the cuts you watched and next actions.",
+        sharedJourneyEndGuideTitle: "Open today's flow recap",
         sharedEntryMiniGuide: "Shared 4-cut report · swipe sideways",
         sharedTimelineBadge: (name: string) => `${name}'s timeline`,
         sharedTimelineNext: "Next vlog",
@@ -3471,7 +3477,9 @@ function FeedSlide({
   const activeCutSlotNumber = cuts[activeCutIndex]?.slotNumber ?? 1;
   const hasViewedAllCuts = cutCount <= 1 || viewedCutIndexes.size >= cutCount;
   const hasReachedSharedSourceGate = hasViewedAllCuts;
-  const requiresSharedSourceConsumption = Boolean(shareId && index === 0);
+  const requiresSharedSourceConsumption = Boolean(
+    shareId && index === 0 && sharedJourneyStep <= 1,
+  );
   const hasCompletedSharedConsumptionGate =
     hasReachedSharedSourceGate &&
     (!requiresSharedSourceConsumption || hasEnteredSourceOverlay);
@@ -3552,14 +3560,26 @@ function FeedSlide({
     reportId: report.reportId,
     returnToHref: cutFeedReturnHref,
   });
+  const shouldOpenSharedJourneyEnd =
+    Boolean(shareId) &&
+    sharedJourneyStep >= CUT_FEED_SHARED_JOURNEY_MAX_REPORTS;
+  const sharedTimelineNextTitle = shouldOpenSharedJourneyEnd
+    ? copy.sharedJourneyEndGuideTitle
+    : copy.sharedScrollGuideTitle(report.creatorName);
+  const sharedTimelineNextBody = shouldOpenSharedJourneyEnd
+    ? copy.sharedJourneyEndGuideBody
+    : copy.sharedScrollGuideBody;
   const sharedTimelineNextHref = shareId
     ? setPathSearchParams(
         buildPathWithReferral(
-          `/${locale}/fanletter/news/cuts/${report.reportId}/next`,
+          shouldOpenSharedJourneyEnd
+            ? `/${locale}/fanletter/news/cuts/${report.reportId}`
+            : `/${locale}/fanletter/news/cuts/${report.reportId}/next`,
           referralCode,
         ),
         {
           [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(activeCutSlotNumber),
+          end: shouldOpenSharedJourneyEnd ? "1" : null,
           returnTo: cutFeedReturnHref,
           shareId,
           step: String(Math.max(1, sharedJourneyStep)),
@@ -5619,7 +5639,7 @@ function FeedSlide({
           ) : null}
           {showSharedScrollGuide && sharedTimelineNextHref ? (
             <Link
-              aria-label={copy.sharedScrollGuideTitle(report.creatorName)}
+              aria-label={sharedTimelineNextTitle}
               aria-live="polite"
               className="mx-auto mt-3 flex min-h-11 w-full max-w-[21rem] items-center justify-center gap-2 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/12 px-4 text-center text-white shadow-[0_14px_38px_rgba(0,0,0,0.26)] backdrop-blur-xl transition hover:border-[#44f26e]/52 hover:bg-[#44f26e]/18 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/22"
               data-shared-scroll-guide
@@ -5628,7 +5648,7 @@ function FeedSlide({
                 startNavigation({
                   href: sharedTimelineNextHref,
                   label: copy.navigationPending.destination(
-                    copy.sharedScrollGuideTitle(report.creatorName),
+                    sharedTimelineNextTitle,
                   ),
                 });
               }}
@@ -5637,8 +5657,9 @@ function FeedSlide({
                 <ArrowRight className="size-4" />
               </span>
               <span className="min-w-0 break-words text-[0.78rem] font-black leading-tight [word-break:keep-all]">
-                {copy.sharedScrollGuideTitle(report.creatorName)}
+                {sharedTimelineNextTitle}
               </span>
+              <span className="sr-only">{sharedTimelineNextBody}</span>
             </Link>
           ) : null}
           {showSharedEntryMiniGuide ? (
@@ -6600,6 +6621,7 @@ function SharedJourneyEndSlide({
   referralCode,
   returnToHref,
   shareId,
+  sharedJourneyStep = 1,
 }: {
   characterHref: string;
   charactersHref: string;
@@ -6613,6 +6635,7 @@ function SharedJourneyEndSlide({
   referralCode: string | null;
   returnToHref: string;
   shareId: string | null;
+  sharedJourneyStep?: number;
 }) {
   const copy = getCopy(locale);
   const router = useRouter();
@@ -6635,12 +6658,18 @@ function SharedJourneyEndSlide({
     discoveryItems[0]?.report.creatorAvatarImageUrl ||
     discoveryItems[0]?.leadCut.imageUrl ||
     "";
-  const reportCountLabel = formatNumber(journeyItems.length, locale);
+  const reportCountLabel = formatNumber(
+    Math.max(journeyItems.length, sharedJourneyStep),
+    locale,
+  );
   const cutCountLabel = formatNumber(
-    journeyItems.reduce(
-      (totalCount, item) =>
-        totalCount + Math.min(getPublicCutItemCutCount(item), 4),
-      0,
+    Math.max(
+      journeyItems.reduce(
+        (totalCount, item) =>
+          totalCount + Math.min(getPublicCutItemCutCount(item), 4),
+        0,
+      ),
+      sharedJourneyStep * 4,
     ),
     locale,
   );
@@ -7665,7 +7694,8 @@ export function FanletterNewsPublicCutsFeedPage({
     shareId &&
       !shouldUseRoutedSharedTimeline &&
       feedItems.length > 0 &&
-      (feedItems.length >= CUT_FEED_SHARED_JOURNEY_MAX_REPORTS ||
+      (resumeSharedJourneyEnd ||
+        feedItems.length >= CUT_FEED_SHARED_JOURNEY_MAX_REPORTS ||
         !hasMore ||
         Boolean(loadError)),
   );
@@ -10196,6 +10226,7 @@ export function FanletterNewsPublicCutsFeedPage({
               referralCode={referralCode}
               returnToHref={cutFeedHomeHref}
               shareId={shareId}
+              sharedJourneyStep={sharedJourneyStep}
             />
           </section>
         ) : (
