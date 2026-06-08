@@ -2729,7 +2729,9 @@ function SourceVlogFeedOverlay({
   const shouldHidePaidSourceActions = Boolean(
     isSharedSourceOverlay && source?.accessState === "paid_locked",
   );
-  const shouldShowSourceOverlayCloseButton = true;
+  const shouldShowSourceOverlayCloseButton = !shouldUseSharedEntryPreviewCopy;
+  const sourceOverlayReturnToHref =
+    returnToHref && !shouldUseSharedEntryPreviewCopy ? returnToHref : null;
   const sourceOverlayCloseLabel = isSharedSourceOverlay
     ? copy.sharedSourcePreviewContinueCta
     : copy.sourceOverlayClose;
@@ -2876,14 +2878,14 @@ function SourceVlogFeedOverlay({
               )}
             </button>
           ) : null}
-          {returnToHref ? (
+          {sourceOverlayReturnToHref ? (
             <Link
               aria-label={copy.returnToBriefA11y}
               className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-white/12 bg-white/10 px-3 text-[0.68rem] font-black !text-white shadow-[0_12px_30px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:bg-white hover:!text-[#111510]"
-              href={returnToHref}
+              href={sourceOverlayReturnToHref}
               onClick={() => {
                 onNavigate?.({
-                  href: returnToHref,
+                  href: sourceOverlayReturnToHref,
                   label: copy.navigationPending.destination(
                     copy.returnToBriefFull,
                   ),
@@ -3520,6 +3522,21 @@ function FeedSlide({
       !sourceOverlayOpen,
   );
   const isSharedTimelineSlide = Boolean(shareId && index > 0);
+  const shouldShowReporterMeta = Boolean(
+    !shareId || isSharedTimelineSlide || hasCompletedSharedConsumptionGate,
+  );
+  const shouldLinkReporterMeta = !shareId;
+  const shouldShowViewerReportMeta = Boolean(
+    !shareId && !isSharedTimelineSlide && isViewerReport,
+  );
+  const shouldShowPublishedAtMeta = Boolean(
+    !shareId && !isSharedTimelineSlide && publishedAt,
+  );
+  const shouldShowReportMetaRow = Boolean(
+    shouldShowReporterMeta ||
+      shouldShowViewerReportMeta ||
+      shouldShowPublishedAtMeta,
+  );
   const shouldShowCharacterProfileButton = Boolean(
     !isSharedTimelineSlide && !(shareId && index === 0),
   );
@@ -5524,35 +5541,51 @@ function FeedSlide({
                 {report.dek}
               </p>
             ) : null}
-            <div
-              className={`mt-2 flex flex-wrap items-center gap-2 font-bold drop-shadow-[0_2px_10px_rgba(0,0,0,0.72)] ${
-                isSharedTimelineSlide
-                  ? "text-[0.68rem] text-white/66"
-                  : "text-[0.72rem] text-white/72"
-              }`}
-            >
-              <Link
-                className={`inline-flex items-center rounded-full border border-white/14 bg-black/28 !text-white/82 transition hover:border-[#44f26e]/42 hover:bg-[#44f26e]/16 hover:!text-[#9bffad] ${
-                  isSharedTimelineSlide ? "px-2.5 py-1" : "px-2 py-0.5"
+            {shouldShowReportMetaRow ? (
+              <div
+                className={`mt-2 flex flex-wrap items-center gap-2 font-bold drop-shadow-[0_2px_10px_rgba(0,0,0,0.72)] ${
+                  isSharedTimelineSlide
+                    ? "text-[0.68rem] text-white/66"
+                    : "text-[0.72rem] text-white/72"
                 }`}
-                href={reporterHref}
-                onClick={() => {
-                  startNavigation({
-                    href: reporterHref,
-                    label: copy.navigationPending.reporter(report.reporterName),
-                  });
-                }}
               >
-                {report.reporterName}
-              </Link>
-              {!isSharedTimelineSlide && isViewerReport ? (
-                <span className="inline-flex items-center gap-1 rounded-full border border-[#44f26e]/34 bg-[#44f26e]/18 px-2 py-0.5 text-[0.62rem] font-black text-[#9bffad]">
-                  <Check className="size-3 stroke-[3]" />
-                  {copy.myReportBadge}
-                </span>
-              ) : null}
-              {!isSharedTimelineSlide && publishedAt ? <span>{publishedAt}</span> : null}
-            </div>
+                {shouldShowReporterMeta ? (
+                  shouldLinkReporterMeta ? (
+                    <Link
+                      className={`inline-flex items-center rounded-full border border-white/14 bg-black/28 !text-white/82 transition hover:border-[#44f26e]/42 hover:bg-[#44f26e]/16 hover:!text-[#9bffad] ${
+                        isSharedTimelineSlide ? "px-2.5 py-1" : "px-2 py-0.5"
+                      }`}
+                      href={reporterHref}
+                      onClick={() => {
+                        startNavigation({
+                          href: reporterHref,
+                          label: copy.navigationPending.reporter(
+                            report.reporterName,
+                          ),
+                        });
+                      }}
+                    >
+                      {report.reporterName}
+                    </Link>
+                  ) : (
+                    <span
+                      className={`inline-flex items-center rounded-full border border-white/14 bg-black/28 text-white/82 ${
+                        isSharedTimelineSlide ? "px-2.5 py-1" : "px-2 py-0.5"
+                      }`}
+                    >
+                      {report.reporterName}
+                    </span>
+                  )
+                ) : null}
+                {shouldShowViewerReportMeta ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[#44f26e]/34 bg-[#44f26e]/18 px-2 py-0.5 text-[0.62rem] font-black text-[#9bffad]">
+                    <Check className="size-3 stroke-[3]" />
+                    {copy.myReportBadge}
+                  </span>
+                ) : null}
+                {shouldShowPublishedAtMeta ? <span>{publishedAt}</span> : null}
+              </div>
+            ) : null}
             {isReporterComposerCtaVisible && sourceContentId ? (
               <div className="mt-3 flex max-w-full flex-wrap gap-2">
                 {isViewerReport ? (
