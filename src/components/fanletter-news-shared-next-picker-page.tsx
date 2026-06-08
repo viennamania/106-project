@@ -343,29 +343,29 @@ export function FanletterNewsSharedNextPickerPage({
           </div>
         </div>
       ) : null}
-      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-[430px] flex-col px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)]">
+      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-[430px] flex-col px-4 pb-[calc(env(safe-area-inset-bottom)+0.85rem)] pt-[calc(env(safe-area-inset-top)+0.75rem)]">
         <header className="flex items-center justify-between gap-3">
           <Link
-            className="inline-flex h-10 items-center gap-2 rounded-full border border-white/12 bg-black/46 px-3 text-xs font-black !text-white shadow-[0_12px_32px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-[#44f26e]/40"
+            className="inline-flex h-9 items-center gap-2 rounded-full border border-white/12 bg-black/46 px-3 text-[0.72rem] font-black !text-white shadow-[0_12px_32px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-[#44f26e]/40"
             href={currentReportHref}
           >
             <ArrowLeft className="size-4" />
             {copy.back}
           </Link>
-          <span className="inline-flex h-10 items-center gap-1.5 rounded-full border border-[#44f26e]/20 bg-[#44f26e]/12 px-3 text-xs font-black text-[#9bffad]">
+          <span className="inline-flex h-9 items-center gap-1.5 rounded-full border border-[#44f26e]/20 bg-[#44f26e]/12 px-3 text-[0.72rem] font-black text-[#9bffad]">
             <CheckCircle2 className="size-4" />
             {stepLabel}
           </span>
         </header>
 
-        <section className="mt-8">
+        <section className="mt-5">
           <div className="flex items-center gap-3">
-            <span className="relative block size-16 shrink-0 overflow-hidden rounded-[1.1rem] border border-[#44f26e]/42 bg-white/8">
+            <span className="relative block size-[3.25rem] shrink-0 overflow-hidden rounded-[0.95rem] border border-[#44f26e]/42 bg-white/8">
               <Image
                 alt={characterName}
                 className="object-cover"
                 fill
-                sizes="64px"
+                sizes="52px"
                 src={characterImageUrl}
                 unoptimized={shouldBypassFanletterImageOptimization(
                   characterImageUrl,
@@ -373,32 +373,32 @@ export function FanletterNewsSharedNextPickerPage({
               />
             </span>
             <div className="min-w-0">
-              <p className="text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
+              <p className="text-[0.58rem] font-black uppercase tracking-[0.16em] text-[#9bffad]">
                 {copy.eyebrow}
               </p>
-              <h1 className="mt-1 break-words text-[2rem] font-black leading-[1.02] tracking-normal [word-break:keep-all]">
+              <h1 className="mt-0.5 break-words text-[1.5rem] font-black leading-[1.02] tracking-normal [word-break:keep-all]">
                 {copy.introTitle(characterName)}
               </h1>
             </div>
           </div>
-          <p className="mt-4 break-words text-sm font-bold leading-6 text-white/68 [word-break:keep-all]">
+          <p className="mt-2 line-clamp-2 break-words text-[0.78rem] font-bold leading-5 text-white/62 [word-break:keep-all]">
             {copy.introBody(characterName)}
           </p>
         </section>
 
         {options.length > 0 ? (
-          <section className="mt-6 min-h-0 flex-1">
-            <div className="mb-3 flex items-end justify-between gap-3">
+          <section className="mt-4 min-h-0 flex-1">
+            <div className="mb-2 flex items-end justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[0.7rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                <p className="text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#9bffad]">
                   {copy.optionCount(optionCountLabel)}
                 </p>
-                <h2 className="mt-1 break-words text-[1.55rem] font-black leading-[1.05] tracking-normal [word-break:keep-all]">
+                <h2 className="mt-0.5 break-words text-[1.32rem] font-black leading-[1.05] tracking-normal [word-break:keep-all]">
                   {copy.title}
                 </h2>
               </div>
-              <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_18px_44px_rgba(68,242,110,0.18)]">
-                <Video className="size-5" />
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_18px_44px_rgba(68,242,110,0.18)]">
+                <Video className="size-[1.125rem]" />
               </span>
             </div>
             <div className="grid grid-cols-3 gap-2">
@@ -421,12 +421,12 @@ export function FanletterNewsSharedNextPickerPage({
                 return (
                   <Link
                     aria-label={`${title} ${copy.optionCta}`}
-                    className="group relative min-h-[16.5rem] overflow-hidden rounded-[1rem] border border-white/12 bg-black/66 text-left shadow-[0_20px_52px_rgba(0,0,0,0.32)] transition hover:-translate-y-0.5 hover:border-[#44f26e]/44 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/22"
+                    className="group relative min-h-[13.35rem] overflow-hidden rounded-[0.9rem] border border-white/12 bg-black/66 text-left shadow-[0_20px_52px_rgba(0,0,0,0.32)] transition hover:-translate-y-0.5 hover:border-[#44f26e]/44 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/22"
                     href={href}
                     key={option.report.reportId}
                     onClick={() => setPendingHref(href)}
                   >
-                    <span className="absolute inset-x-0 top-0 block h-[11.4rem] overflow-hidden rounded-t-[1rem] bg-white/8">
+                    <span className="absolute inset-x-0 top-0 block h-[10.25rem] overflow-hidden rounded-t-[0.9rem] bg-white/8">
                       <Image
                         alt={title}
                         className="object-cover transition duration-500 group-hover:scale-[1.03]"
@@ -439,24 +439,24 @@ export function FanletterNewsSharedNextPickerPage({
                       />
                       <span className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/10 to-transparent" />
                       {isRecommended ? (
-                        <span className="absolute right-2 top-2 rounded-full bg-[#44f26e] px-2 py-1 text-[0.58rem] font-black text-[#111510]">
+                        <span className="absolute right-1.5 top-1.5 rounded-full bg-[#44f26e] px-1.5 py-0.5 text-[0.54rem] font-black text-[#111510]">
                           {copy.recommended}
                         </span>
                       ) : null}
                     </span>
-                    <span className="absolute inset-x-0 bottom-0 block p-2.5">
-                      <span className="block truncate text-[0.62rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
+                    <span className="absolute inset-x-0 bottom-0 block p-2">
+                      <span className="block truncate text-[0.56rem] font-black uppercase tracking-[0.1em] text-[#9bffad]">
                         {option.report.reporterName}
                       </span>
-                      <span className="mt-1 line-clamp-2 break-words text-[0.78rem] font-black leading-tight text-white [word-break:keep-all]">
+                      <span className="mt-0.5 line-clamp-1 break-words text-[0.68rem] font-black leading-tight text-white [word-break:keep-all]">
                         {title}
                       </span>
-                      <span className="mt-2 flex items-center justify-between gap-2 text-[0.68rem] font-black text-white/62">
+                      <span className="mt-1.5 flex items-center justify-between gap-2 text-[0.62rem] font-black text-white/54">
                         <span className="inline-flex items-center gap-1 text-[#9bffad]">
-                          <HeartHandshake className="size-3.5" />
+                          <HeartHandshake className="size-3" />
                           {Math.min(cutCount, 6)}/6
                         </span>
-                        <span className="truncate">
+                        <span className="max-w-[3.25rem] truncate">
                           {option.sourceReveal.unlocked
                             ? copy.sourceUnlocked
                             : copy.optionBadge}
