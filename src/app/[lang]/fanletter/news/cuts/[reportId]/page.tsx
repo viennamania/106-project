@@ -36,6 +36,7 @@ type FanletterNewsCutDetailSearchParams = {
   returnTo?: string | string[];
   shareId?: string | string[];
   source?: string | string[];
+  step?: string | string[];
 };
 
 function getCopy(locale: Locale) {
@@ -124,6 +125,16 @@ function getFanletterNewsCutOgImagePath({
   }
 
   return `/api/og/fanletter-news/cut?${searchParams.toString()}`;
+}
+
+function readSharedJourneyStep(value: string | null) {
+  const parsed = value ? Number.parseInt(value, 10) : 1;
+
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return 1;
+  }
+
+  return Math.min(parsed, 12);
 }
 
 export async function generateMetadata({
@@ -233,6 +244,9 @@ export default async function LocalizedFanletterNewsCutDetailPage({
   const initialSourceContentId =
     readFirstSearchParam(query.source)?.trim() || null;
   const resumeSharedJourneyEnd = readFirstSearchParam(query.end) === "1";
+  const sharedJourneyStep = readSharedJourneyStep(
+    readFirstSearchParam(query.step) ?? null,
+  );
   const session = await readMemberServerSession();
   const feedRotationSeed = createFanletterNewsPublicCutFeedRotationSeed();
   const report = await getFanletterNewsReportById(reportId);
@@ -278,6 +292,7 @@ export default async function LocalizedFanletterNewsCutDetailPage({
       resumeSharedJourneyEnd={resumeSharedJourneyEnd}
       shareId={shareId}
       sharedCutRecap={sharedCutRecap}
+      sharedJourneyStep={sharedJourneyStep}
       sourceContentId={initialSourceContentId}
       viewerEmail={session?.email ?? null}
     />

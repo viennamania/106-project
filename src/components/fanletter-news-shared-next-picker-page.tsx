@@ -1,0 +1,460 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  HeartHandshake,
+  Loader2,
+  Sparkles,
+  Video,
+} from "lucide-react";
+
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
+import {
+  FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM,
+  type SerializedFanletterNewsPublicCutFeedItem,
+  type SerializedFanletterNewsPublicCutFeedItemBase,
+} from "@/lib/fanletter-news-public-cuts-shared";
+import { getFanletterNewsBareArticleDisplayTitle } from "@/lib/fanletter-news-related";
+import type { Locale } from "@/lib/i18n";
+import {
+  buildPathWithReferral,
+  setPathSearchParams,
+} from "@/lib/landing-branding";
+
+type FanletterNewsSharedNextPickerPageProps = {
+  completedItem: SerializedFanletterNewsPublicCutFeedItem;
+  initialCutSlotNumber: number | null;
+  journeyStep: number;
+  locale: Locale;
+  referralCode: string | null;
+  returnToHref: string;
+  shareId: string | null;
+  targetItem: SerializedFanletterNewsPublicCutFeedItem | null;
+};
+
+function getCopy(locale: Locale) {
+  return locale === "ko"
+    ? {
+        back: "방금 본 4컷으로",
+        emptyBody:
+          "이 캐릭터의 다음 브이로그 후보를 준비하지 못했습니다. 캐릭터 피드에서 이어서 볼 수 있어요.",
+        emptyCta: "캐릭터 피드 보기",
+        emptyTitle: "다음 팬 리포트 준비 중",
+        eyebrow: "AI CHARACTER IP",
+        introBody: (name: string) =>
+          `방금 본 4컷은 ${name} 캐릭터 IP에서 이어집니다. 다음 브이로그의 팬 리포트를 사진으로 골라 이어보세요.`,
+        introTitle: (name: string) => `${name} 타임라인`,
+        loading: "다음 리포트로 이동 중",
+        optionBadge: "6/6",
+        optionCta: "이 리포트 보기",
+        optionCount: (count: string) => `팬 리포트 ${count}개`,
+        recommended: "추천",
+        sourceUnlocked: "원본 언락됨",
+        step: (step: string) => `${step}번째 흐름`,
+        title: "다음 브이로그의 팬 리포트 선택",
+        viewed: "방금 본 캐릭터",
+      }
+    : {
+        back: "Back to the 4 cuts",
+        emptyBody:
+          "The next vlog candidates for this character are not ready yet. Continue from the character feed.",
+        emptyCta: "Open character feed",
+        emptyTitle: "Preparing next fan reports",
+        eyebrow: "AI CHARACTER IP",
+        introBody: (name: string) =>
+          `The cuts you just saw belong to ${name}'s character IP. Choose the next fan report by its image.`,
+        introTitle: (name: string) => `${name}'s timeline`,
+        loading: "Opening next report",
+        optionBadge: "6/6",
+        optionCta: "View this report",
+        optionCount: (count: string) => `${count} fan reports`,
+        recommended: "Recommended",
+        sourceUnlocked: "Source unlocked",
+        step: (step: string) => `Flow ${step}`,
+        title: "Choose a fan report for the next vlog",
+        viewed: "Current character",
+      };
+}
+
+function formatNumber(value: number, locale: Locale) {
+  return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US").format(
+    value,
+  );
+}
+
+function getPublicCutItemCutCount(
+  item: SerializedFanletterNewsPublicCutFeedItemBase,
+) {
+  return Math.max(item.cuts.length, item.leadCut ? 1 : 0);
+}
+
+function getNextReportOptions(
+  item: SerializedFanletterNewsPublicCutFeedItem | null,
+) {
+  if (!item) {
+    return [];
+  }
+
+  const candidates: SerializedFanletterNewsPublicCutFeedItemBase[] =
+    item.vlogReportOptions?.length ? item.vlogReportOptions : [item];
+  const seenReportIds = new Set<string>();
+  const options = candidates.filter((option) => {
+    const reportId = option.report.reportId.trim();
+
+    if (!reportId || seenReportIds.has(reportId)) {
+      return false;
+    }
+
+    seenReportIds.add(reportId);
+    return true;
+  });
+
+  if (!seenReportIds.has(item.report.reportId)) {
+    options.unshift(item);
+  }
+
+  const defaultOptionIndex = options.findIndex(
+    (option) => option.report.reportId === item.report.reportId,
+  );
+
+  if (defaultOptionIndex > 0) {
+    const [defaultOption] = options.splice(defaultOptionIndex, 1);
+
+    options.unshift(defaultOption);
+  }
+
+  const [defaultOption, ...remainingOptions] = options;
+  const rankedRemainingOptions = remainingOptions.sort((left, right) => {
+    const getOptionScore = (
+      option: SerializedFanletterNewsPublicCutFeedItemBase,
+    ) => {
+      const publishedAtTime = option.report.sourcePublishedAt
+        ? Date.parse(option.report.sourcePublishedAt)
+        : Date.parse(option.report.createdAt);
+
+      return (
+        (option.sourceReveal.unlocked ? 1_000_000 : 0) +
+        option.sourceReveal.count * 1_000 +
+        (Number.isFinite(publishedAtTime) ? publishedAtTime / 1_000_000 : 0)
+      );
+    };
+
+    return getOptionScore(right) - getOptionScore(left);
+  });
+
+  return (defaultOption
+    ? [defaultOption, ...rankedRemainingOptions]
+    : rankedRemainingOptions
+  ).slice(0, 6);
+}
+
+function getCharacterHref({
+  completedItem,
+  locale,
+  referralCode,
+  returnToHref,
+}: {
+  completedItem: SerializedFanletterNewsPublicCutFeedItem;
+  locale: Locale;
+  referralCode: string | null;
+  returnToHref: string;
+}) {
+  const characterReferralCode = completedItem.report.creatorReferralCode;
+  const path = characterReferralCode
+    ? `/${locale}/fanletter/news/cuts/characters/${characterReferralCode}`
+    : `/${locale}/fanletter/news/cuts/characters`;
+
+  return setPathSearchParams(buildPathWithReferral(path, referralCode), {
+    returnTo: returnToHref,
+    sourceReportId: completedItem.report.reportId,
+  });
+}
+
+function getReportHref({
+  journeyStep,
+  locale,
+  option,
+  referralCode,
+  returnToHref,
+  shareId,
+}: {
+  journeyStep: number;
+  locale: Locale;
+  option: SerializedFanletterNewsPublicCutFeedItemBase;
+  referralCode: string | null;
+  returnToHref: string;
+  shareId: string | null;
+}) {
+  return setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/${option.report.reportId}`,
+      referralCode,
+    ),
+    {
+      [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(
+        option.leadCut.slotNumber,
+      ),
+      returnTo: returnToHref,
+      shareId,
+      step: String(journeyStep + 1),
+    },
+  );
+}
+
+export function FanletterNewsSharedNextPickerPage({
+  completedItem,
+  initialCutSlotNumber,
+  journeyStep,
+  locale,
+  referralCode,
+  returnToHref,
+  shareId,
+  targetItem,
+}: FanletterNewsSharedNextPickerPageProps) {
+  const copy = getCopy(locale);
+  const router = useRouter();
+  const options = useMemo(() => getNextReportOptions(targetItem), [targetItem]);
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const characterName = completedItem.report.creatorName;
+  const backgroundImageUrl =
+    completedItem.report.coverImageUrl || completedItem.leadCut.imageUrl;
+  const characterImageUrl =
+    completedItem.report.creatorAvatarImageUrl ||
+    completedItem.report.coverImageUrl ||
+    completedItem.leadCut.imageUrl;
+  const optionCountLabel = formatNumber(options.length, locale);
+  const stepLabel = copy.step(formatNumber(journeyStep, locale));
+  const currentReportHref = setPathSearchParams(
+    buildPathWithReferral(
+      `/${locale}/fanletter/news/cuts/${completedItem.report.reportId}`,
+      referralCode,
+    ),
+    {
+      [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(
+        initialCutSlotNumber ?? completedItem.leadCut.slotNumber,
+      ),
+      shareId,
+      step: String(journeyStep),
+    },
+  );
+  const characterHref = getCharacterHref({
+    completedItem,
+    locale,
+    referralCode,
+    returnToHref,
+  });
+
+  useEffect(() => {
+    router.prefetch(currentReportHref);
+    router.prefetch(characterHref);
+
+    for (const option of options) {
+      router.prefetch(
+        getReportHref({
+          journeyStep,
+          locale,
+          option,
+          referralCode,
+          returnToHref,
+          shareId,
+        }),
+      );
+    }
+  }, [
+    characterHref,
+    currentReportHref,
+    journeyStep,
+    locale,
+    options,
+    referralCode,
+    returnToHref,
+    router,
+    shareId,
+  ]);
+
+  return (
+    <main className="min-h-dvh bg-[#050706] text-white">
+      <div className="fixed inset-0">
+        <Image
+          alt=""
+          className="object-cover opacity-34 blur-[2px] saturate-[1.08]"
+          fill
+          priority
+          sizes="100vw"
+          src={backgroundImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(backgroundImageUrl)}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,6,4,0.54),rgba(3,6,4,0.86)_42%,rgba(3,6,4,0.98))]" />
+      </div>
+      {pendingHref ? (
+        <div
+          aria-live="polite"
+          className="fixed inset-x-0 top-0 z-40 mx-auto max-w-[430px] px-4 pt-[calc(env(safe-area-inset-top)+0.75rem)]"
+          role="status"
+        >
+          <div className="rounded-full border border-[#44f26e]/24 bg-black/74 px-4 py-3 text-xs font-black text-white shadow-[0_18px_52px_rgba(0,0,0,0.36)] backdrop-blur-xl">
+            <span className="inline-flex items-center gap-2">
+              <Loader2 className="size-4 animate-spin text-[#44f26e]" />
+              {copy.loading}
+            </span>
+            <span className="mt-2 block h-1 overflow-hidden rounded-full bg-white/12">
+              <span className="block h-full w-1/2 animate-pulse rounded-full bg-[#44f26e]" />
+            </span>
+          </div>
+        </div>
+      ) : null}
+      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-[430px] flex-col px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)]">
+        <header className="flex items-center justify-between gap-3">
+          <Link
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-white/12 bg-black/46 px-3 text-xs font-black !text-white shadow-[0_12px_32px_rgba(0,0,0,0.28)] backdrop-blur-xl transition hover:border-[#44f26e]/40"
+            href={currentReportHref}
+          >
+            <ArrowLeft className="size-4" />
+            {copy.back}
+          </Link>
+          <span className="inline-flex h-10 items-center gap-1.5 rounded-full border border-[#44f26e]/20 bg-[#44f26e]/12 px-3 text-xs font-black text-[#9bffad]">
+            <CheckCircle2 className="size-4" />
+            {stepLabel}
+          </span>
+        </header>
+
+        <section className="mt-8">
+          <div className="flex items-center gap-3">
+            <span className="relative block size-16 shrink-0 overflow-hidden rounded-[1.1rem] border border-[#44f26e]/42 bg-white/8">
+              <Image
+                alt={characterName}
+                className="object-cover"
+                fill
+                sizes="64px"
+                src={characterImageUrl}
+                unoptimized={shouldBypassFanletterImageOptimization(
+                  characterImageUrl,
+                )}
+              />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[0.68rem] font-black uppercase tracking-[0.18em] text-[#9bffad]">
+                {copy.eyebrow}
+              </p>
+              <h1 className="mt-1 break-words text-[2rem] font-black leading-[1.02] tracking-normal [word-break:keep-all]">
+                {copy.introTitle(characterName)}
+              </h1>
+            </div>
+          </div>
+          <p className="mt-4 break-words text-sm font-bold leading-6 text-white/68 [word-break:keep-all]">
+            {copy.introBody(characterName)}
+          </p>
+        </section>
+
+        {options.length > 0 ? (
+          <section className="mt-6 min-h-0 flex-1">
+            <div className="mb-3 flex items-end justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[0.7rem] font-black uppercase tracking-[0.14em] text-[#9bffad]">
+                  {copy.optionCount(optionCountLabel)}
+                </p>
+                <h2 className="mt-1 break-words text-[1.55rem] font-black leading-[1.05] tracking-normal [word-break:keep-all]">
+                  {copy.title}
+                </h2>
+              </div>
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_18px_44px_rgba(68,242,110,0.18)]">
+                <Video className="size-5" />
+              </span>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {options.map((option, optionIndex) => {
+                const href = getReportHref({
+                  journeyStep,
+                  locale,
+                  option,
+                  referralCode,
+                  returnToHref,
+                  shareId,
+                });
+                const title = getFanletterNewsBareArticleDisplayTitle(
+                  option.report.title,
+                );
+                const cutCount = getPublicCutItemCutCount(option);
+                const isRecommended = optionIndex === 0;
+
+                return (
+                  <Link
+                    aria-label={`${title} ${copy.optionCta}`}
+                    className="group relative min-h-[16.5rem] overflow-hidden rounded-[1rem] border border-white/12 bg-black/66 text-left shadow-[0_20px_52px_rgba(0,0,0,0.32)] transition hover:-translate-y-0.5 hover:border-[#44f26e]/44 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/22"
+                    href={href}
+                    key={option.report.reportId}
+                    onClick={() => setPendingHref(href)}
+                  >
+                    <span className="absolute inset-x-0 top-0 block h-[11.4rem] overflow-hidden rounded-t-[1rem] bg-white/8">
+                      <Image
+                        alt={title}
+                        className="object-cover transition duration-500 group-hover:scale-[1.03]"
+                        fill
+                        sizes="(min-width: 640px) 138px, 31vw"
+                        src={option.leadCut.imageUrl}
+                        unoptimized={shouldBypassFanletterImageOptimization(
+                          option.leadCut.imageUrl,
+                        )}
+                      />
+                      <span className="absolute inset-0 bg-gradient-to-t from-black/72 via-black/10 to-transparent" />
+                      {isRecommended ? (
+                        <span className="absolute right-2 top-2 rounded-full bg-[#44f26e] px-2 py-1 text-[0.58rem] font-black text-[#111510]">
+                          {copy.recommended}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="absolute inset-x-0 bottom-0 block p-2.5">
+                      <span className="block truncate text-[0.62rem] font-black uppercase tracking-[0.12em] text-[#9bffad]">
+                        {option.report.reporterName}
+                      </span>
+                      <span className="mt-1 line-clamp-2 break-words text-[0.78rem] font-black leading-tight text-white [word-break:keep-all]">
+                        {title}
+                      </span>
+                      <span className="mt-2 flex items-center justify-between gap-2 text-[0.68rem] font-black text-white/62">
+                        <span className="inline-flex items-center gap-1 text-[#9bffad]">
+                          <HeartHandshake className="size-3.5" />
+                          {Math.min(cutCount, 6)}/6
+                        </span>
+                        <span className="truncate">
+                          {option.sourceReveal.unlocked
+                            ? copy.sourceUnlocked
+                            : copy.optionBadge}
+                        </span>
+                      </span>
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        ) : (
+          <section className="mt-8 rounded-[1.5rem] border border-white/12 bg-black/62 p-5 shadow-[0_24px_70px_rgba(0,0,0,0.36)] backdrop-blur-xl">
+            <span className="flex size-12 items-center justify-center rounded-full bg-[#44f26e] text-[#111510]">
+              <Sparkles className="size-5" />
+            </span>
+            <h2 className="mt-4 break-words text-[1.6rem] font-black leading-tight [word-break:keep-all]">
+              {copy.emptyTitle}
+            </h2>
+            <p className="mt-3 break-words text-sm font-bold leading-6 text-white/66 [word-break:keep-all]">
+              {copy.emptyBody}
+            </p>
+            <Link
+              className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-black !text-[#111510] transition hover:bg-[#65ff86]"
+              href={characterHref}
+              onClick={() => setPendingHref(characterHref)}
+            >
+              {copy.emptyCta}
+              <ArrowRight className="size-4" />
+            </Link>
+          </section>
+        )}
+      </div>
+    </main>
+  );
+}

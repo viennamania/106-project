@@ -303,9 +303,9 @@ function getCopy(locale: Locale) {
           "프리뷰를 본 뒤 돌아가면, 같은 캐릭터의 다음 컷으로 이어집니다.",
         sharedSourcePreviewPanelTitle: "원본 프리뷰 확인 중",
         sharedScrollGuideBody:
-          "지금부터 아래로 스크롤할 수 있어요. AI 캐릭터 IP를 먼저 소개한 뒤, 같은 캐릭터의 다른 컷으로 이어집니다.",
+          "AI 캐릭터 IP 소개와 다음 팬 리포트 선택 화면으로 이동합니다.",
         sharedScrollGuideTitle: (name: string) =>
-          `아래로 넘겨 ${name} 타임라인 보기`,
+          `${name} 타임라인 보기`,
         sharedEntryMiniGuide: "공유된 4컷 리포트 · 좌우로 넘겨 보기",
         sharedTimelineBadge: (name: string) => `${name} 타임라인`,
         sharedTimelineNext: "다음 브이로그",
@@ -620,9 +620,9 @@ function getCopy(locale: Locale) {
           "After this preview, go back to continue into the next cuts from this character.",
         sharedSourcePreviewPanelTitle: "Source preview in progress",
         sharedScrollGuideBody:
-          "You can scroll down now. The next screen introduces the AI character IP behind this vlog, then keeps the feed focused on that character.",
+          "Open the AI character IP intro and choose the next fan report.",
         sharedScrollGuideTitle: (name: string) =>
-          `Swipe down for ${name}'s timeline`,
+          `Open ${name}'s timeline`,
         sharedEntryMiniGuide: "Shared 4-cut report · swipe sideways",
         sharedTimelineBadge: (name: string) => `${name}'s timeline`,
         sharedTimelineNext: "Next vlog",
@@ -3230,6 +3230,7 @@ function FeedSlide({
   referralCode,
   returnToHref = null,
   shareId,
+  sharedJourneyStep = 1,
   showSwipeGuide = false,
   viewerEmail = null,
 }: {
@@ -3260,6 +3261,7 @@ function FeedSlide({
   referralCode: string | null;
   returnToHref?: string | null;
   shareId: string | null;
+  sharedJourneyStep?: number;
   showSwipeGuide?: boolean;
   viewerEmail?: string | null;
 }) {
@@ -3550,6 +3552,20 @@ function FeedSlide({
     reportId: report.reportId,
     returnToHref: cutFeedReturnHref,
   });
+  const sharedTimelineNextHref = shareId
+    ? setPathSearchParams(
+        buildPathWithReferral(
+          `/${locale}/fanletter/news/cuts/${report.reportId}/next`,
+          referralCode,
+        ),
+        {
+          [FANLETTER_NEWS_PUBLIC_CUT_QUERY_PARAM]: String(activeCutSlotNumber),
+          returnTo: cutFeedReturnHref,
+          shareId,
+          step: String(Math.max(1, sharedJourneyStep)),
+        },
+      )
+    : null;
   const sharePreviewImageKind = "activeCut";
   const shareTitle = copy.shareTitle(title);
   const shareSummary = copy.shareSummary(title, report.reporterName);
@@ -5601,20 +5617,29 @@ function FeedSlide({
               </button>
             </div>
           ) : null}
-          {showSharedScrollGuide ? (
-            <div
+          {showSharedScrollGuide && sharedTimelineNextHref ? (
+            <Link
+              aria-label={copy.sharedScrollGuideTitle(report.creatorName)}
               aria-live="polite"
-              className="pointer-events-none mx-auto mt-3 flex min-h-11 w-full max-w-[21rem] items-center justify-center gap-2 rounded-full border border-white/14 bg-black/52 px-4 text-center text-white shadow-[0_14px_38px_rgba(0,0,0,0.26)] backdrop-blur-xl"
+              className="mx-auto mt-3 flex min-h-11 w-full max-w-[21rem] items-center justify-center gap-2 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/12 px-4 text-center text-white shadow-[0_14px_38px_rgba(0,0,0,0.26)] backdrop-blur-xl transition hover:border-[#44f26e]/52 hover:bg-[#44f26e]/18 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/22"
               data-shared-scroll-guide
-              role="status"
+              href={sharedTimelineNextHref}
+              onClick={() => {
+                startNavigation({
+                  href: sharedTimelineNextHref,
+                  label: copy.navigationPending.destination(
+                    copy.sharedScrollGuideTitle(report.creatorName),
+                  ),
+                });
+              }}
             >
               <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/14 text-[#44f26e]">
-                <ChevronDown className="size-4" />
+                <ArrowRight className="size-4" />
               </span>
               <span className="min-w-0 break-words text-[0.78rem] font-black leading-tight [word-break:keep-all]">
                 {copy.sharedScrollGuideTitle(report.creatorName)}
               </span>
-            </div>
+            </Link>
           ) : null}
           {showSharedEntryMiniGuide ? (
             <button
@@ -7380,6 +7405,7 @@ export function FanletterNewsPublicCutsFeedPage({
   returnToHref = null,
   shareId,
   sharedCutRecap = null,
+  sharedJourneyStep = 1,
   sourceContentId = null,
   viewerEmail = null,
 }: {
@@ -7396,6 +7422,7 @@ export function FanletterNewsPublicCutsFeedPage({
   returnToHref?: string | null;
   shareId: string | null;
   sharedCutRecap?: SerializedFanletterNewsPublicCutShareRecap | null;
+  sharedJourneyStep?: number;
   sourceContentId?: string | null;
   viewerEmail?: string | null;
 }) {
@@ -7631,15 +7658,21 @@ export function FanletterNewsPublicCutsFeedPage({
         : items,
     [items, shareId],
   );
+  const shouldUseRoutedSharedTimeline = Boolean(
+    shareId && !resumeSharedJourneyEnd,
+  );
   const shouldShowSharedJourneyEndSlide = Boolean(
     shareId &&
+      !shouldUseRoutedSharedTimeline &&
       feedItems.length > 0 &&
       (feedItems.length >= CUT_FEED_SHARED_JOURNEY_MAX_REPORTS ||
         !hasMore ||
         Boolean(loadError)),
   );
   const shouldShowSharedTimelineTransitions = Boolean(
-    shareId && feedItems[0]?.report.creatorReferralCode,
+    shareId &&
+      !shouldUseRoutedSharedTimeline &&
+      feedItems[0]?.report.creatorReferralCode,
   );
   const sharedVlogTransitions = useMemo<SharedVlogTransition[]>(() => {
     if (!shouldShowSharedTimelineTransitions) {
@@ -10088,6 +10121,7 @@ export function FanletterNewsPublicCutsFeedPage({
               referralCode={referralCode}
               returnToHref={returnToHref}
               shareId={shareId}
+              sharedJourneyStep={sharedJourneyStep}
               showSwipeGuide={swipeGuideTarget?.index === index}
               viewerEmail={viewerEmail}
             />
@@ -10136,7 +10170,7 @@ export function FanletterNewsPublicCutsFeedPage({
 
           return <Fragment key={item.report.reportId}>{feedSlide}</Fragment>;
         })}
-        {shouldShowSharedJourneyEndSlide ? (
+        {shouldUseRoutedSharedTimeline ? null : shouldShowSharedJourneyEndSlide ? (
           <section
             className="snap-start snap-always overflow-visible bg-[#050706]"
             data-shared-journey-final
