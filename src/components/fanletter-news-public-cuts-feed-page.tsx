@@ -8511,23 +8511,52 @@ export function FanletterNewsPublicCutsFeedPage({
         getSharedTransitionSlideIndex(transition),
       ),
     );
-    sharedJourneyFinalReachedRef.current = true;
-    setSharedMinimumSlideIndex(sharedJourneyFinalSlideIndex);
-    setVisibleSlideIndex(sharedJourneyFinalSlideIndex);
-    resumeSharedJourneyEndAppliedRef.current = true;
+    let frameId: number | null = null;
+    let timeoutId: number | null = null;
+    let attemptCount = 0;
 
-    window.requestAnimationFrame(() => {
+    const applyFinalSlideResume = () => {
       const root = scrollContainerRef.current;
 
-      if (!root) {
+      if (!root || root.clientHeight <= 0) {
+        if (attemptCount < 8) {
+          attemptCount += 1;
+          frameId = window.requestAnimationFrame(applyFinalSlideResume);
+        }
+
         return;
       }
 
+      const finalScrollTop = root.clientHeight * sharedJourneyFinalSlideIndex;
+
       root.scrollTo({
         behavior: "auto",
-        top: root.clientHeight * sharedJourneyFinalSlideIndex,
+        top: finalScrollTop,
       });
-    });
+
+      if (Math.abs(root.scrollTop - finalScrollTop) > 1 && attemptCount < 8) {
+        attemptCount += 1;
+        timeoutId = window.setTimeout(applyFinalSlideResume, 40);
+        return;
+      }
+
+      sharedJourneyFinalReachedRef.current = true;
+      setSharedMinimumSlideIndex(sharedJourneyFinalSlideIndex);
+      setVisibleSlideIndex(sharedJourneyFinalSlideIndex);
+      resumeSharedJourneyEndAppliedRef.current = true;
+    };
+
+    frameId = window.requestAnimationFrame(applyFinalSlideResume);
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
   }, [
     feedItems,
     getSharedTransitionSlideIndex,
