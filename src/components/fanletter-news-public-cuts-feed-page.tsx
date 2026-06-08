@@ -5062,6 +5062,12 @@ function FeedSlide({
     },
     [],
   );
+  const stopSharedSourceCompletionCtaMousePropagation = useCallback(
+    (event: ReactMouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+    },
+    [],
+  );
   const handleSharedSourceCompletionCtaClick = useCallback(
     (event: ReactMouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
@@ -5723,6 +5729,8 @@ function FeedSlide({
                 className="group flex min-h-[4.7rem] w-full items-center gap-3 rounded-[1.2rem] border border-[#44f26e]/34 bg-black/72 px-3.5 py-3 text-left text-white shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:border-[#44f26e]/62 hover:bg-black/82 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/26"
                 data-shared-source-cta="ready"
                 onClick={handleSharedSourceCompletionCtaClick}
+                onMouseDown={stopSharedSourceCompletionCtaMousePropagation}
+                onMouseUp={stopSharedSourceCompletionCtaMousePropagation}
                 onPointerDown={stopSharedSourceCompletionCtaPropagation}
                 onPointerUp={stopSharedSourceCompletionCtaPropagation}
                 onTouchEnd={stopSharedSourceCompletionCtaTouchPropagation}
