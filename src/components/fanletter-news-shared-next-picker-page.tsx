@@ -59,6 +59,11 @@ function getCopy(locale: Locale) {
         optionCta: "이 리포트 보기",
         optionCount: (count: string) => `팬 리포트 ${count}개`,
         recommended: "추천",
+        singleBody:
+          "이번 공유 흐름은 다음 리포트가 하나로 정해져 있어요. 사진을 확인하고 바로 다음 4컷으로 이어보세요.",
+        singleCount: "추천 리포트 1개",
+        singleCta: "다음 4컷으로 이어보기",
+        singleTitle: "다음 리포트로 바로 이어보기",
         sourceUnlocked: "원본 언락됨",
         step: (step: string) => `${step}번째 흐름`,
         title: "다음 브이로그의 팬 리포트 선택",
@@ -79,6 +84,11 @@ function getCopy(locale: Locale) {
         optionCta: "View this report",
         optionCount: (count: string) => `${count} fan reports`,
         recommended: "Recommended",
+        singleBody:
+          "This share flow has one next report ready. Preview the image and continue straight to the next 4 cuts.",
+        singleCount: "1 recommended report",
+        singleCta: "Continue to next 4 cuts",
+        singleTitle: "Continue to the next report",
         sourceUnlocked: "Source unlocked",
         step: (step: string) => `Flow ${step}`,
         title: "Choose a fan report for the next vlog",
@@ -235,6 +245,7 @@ export function FanletterNewsSharedNextPickerPage({
   const router = useRouter();
   const options = useMemo(() => getNextReportOptions(targetItem), [targetItem]);
   const [pendingHref, setPendingHref] = useState<string | null>(null);
+  const isSingleOption = options.length === 1;
   const characterName = completedItem.report.creatorName;
   const backgroundImageUrl =
     completedItem.report.coverImageUrl || completedItem.leadCut.imageUrl;
@@ -391,17 +402,30 @@ export function FanletterNewsSharedNextPickerPage({
             <div className="mb-2 flex items-end justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[0.62rem] font-black uppercase tracking-[0.13em] text-[#9bffad]">
-                  {copy.optionCount(optionCountLabel)}
+                  {isSingleOption
+                    ? copy.singleCount
+                    : copy.optionCount(optionCountLabel)}
                 </p>
                 <h2 className="mt-0.5 break-words text-[1.32rem] font-black leading-[1.05] tracking-normal [word-break:keep-all]">
-                  {copy.title}
+                  {isSingleOption ? copy.singleTitle : copy.title}
                 </h2>
+                {isSingleOption ? (
+                  <p className="mt-1 line-clamp-2 break-words text-[0.72rem] font-bold leading-5 text-white/56 [word-break:keep-all]">
+                    {copy.singleBody}
+                  </p>
+                ) : null}
               </div>
               <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_18px_44px_rgba(68,242,110,0.18)]">
                 <Video className="size-[1.125rem]" />
               </span>
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div
+              className={
+                isSingleOption
+                  ? "grid gap-3"
+                  : "grid grid-cols-3 gap-2"
+              }
+            >
               {options.map((option, optionIndex) => {
                 const href = getReportHref({
                   journeyStep,
@@ -421,12 +445,22 @@ export function FanletterNewsSharedNextPickerPage({
                 return (
                   <Link
                     aria-label={`${title} ${copy.optionCta}`}
-                    className="group relative min-h-[13.35rem] overflow-hidden rounded-[0.9rem] border border-white/12 bg-black/66 text-left shadow-[0_20px_52px_rgba(0,0,0,0.32)] transition hover:-translate-y-0.5 hover:border-[#44f26e]/44 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/22"
+                    className={
+                      isSingleOption
+                        ? "group grid min-h-[12.75rem] grid-cols-[8.9rem_minmax(0,1fr)] overflow-hidden rounded-[1.15rem] border border-[#44f26e]/24 bg-black/66 text-left shadow-[0_22px_62px_rgba(0,0,0,0.34)] transition hover:border-[#44f26e]/48 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/22"
+                        : "group relative min-h-[13.35rem] overflow-hidden rounded-[0.9rem] border border-white/12 bg-black/66 text-left shadow-[0_20px_52px_rgba(0,0,0,0.32)] transition hover:-translate-y-0.5 hover:border-[#44f26e]/44 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/22"
+                    }
                     href={href}
                     key={option.report.reportId}
                     onClick={() => setPendingHref(href)}
                   >
-                    <span className="absolute inset-x-0 top-0 block h-[10.25rem] overflow-hidden rounded-t-[0.9rem] bg-white/8">
+                    <span
+                      className={
+                        isSingleOption
+                          ? "relative block min-h-[12.75rem] overflow-hidden bg-white/8"
+                          : "absolute inset-x-0 top-0 block h-[10.25rem] overflow-hidden rounded-t-[0.9rem] bg-white/8"
+                      }
+                    >
                       <Image
                         alt={title}
                         className="object-cover transition duration-500 group-hover:scale-[1.03]"
@@ -444,14 +478,27 @@ export function FanletterNewsSharedNextPickerPage({
                         </span>
                       ) : null}
                     </span>
-                    <span className="absolute inset-x-0 bottom-0 block p-2">
+                    <span
+                      className={
+                        isSingleOption
+                          ? "flex min-w-0 flex-col justify-between p-3"
+                          : "absolute inset-x-0 bottom-0 block p-2"
+                      }
+                    >
+                      <span className="min-w-0">
                       <span className="block truncate text-[0.56rem] font-black uppercase tracking-[0.1em] text-[#9bffad]">
                         {option.report.reporterName}
                       </span>
-                      <span className="mt-0.5 line-clamp-1 break-words text-[0.68rem] font-black leading-tight text-white [word-break:keep-all]">
+                      <span
+                        className={
+                          isSingleOption
+                            ? "mt-1 line-clamp-3 break-words text-[0.92rem] font-black leading-tight text-white [word-break:keep-all]"
+                            : "mt-0.5 line-clamp-1 break-words text-[0.68rem] font-black leading-tight text-white [word-break:keep-all]"
+                        }
+                      >
                         {title}
                       </span>
-                      <span className="mt-1.5 flex items-center justify-between gap-2 text-[0.62rem] font-black text-white/54">
+                      <span className="mt-2 flex items-center justify-between gap-2 text-[0.62rem] font-black text-white/54">
                         <span className="inline-flex items-center gap-1 text-[#9bffad]">
                           <HeartHandshake className="size-3" />
                           {Math.min(cutCount, 6)}/6
@@ -462,6 +509,13 @@ export function FanletterNewsSharedNextPickerPage({
                             : copy.optionBadge}
                         </span>
                       </span>
+                      </span>
+                      {isSingleOption ? (
+                        <span className="mt-3 inline-flex h-10 items-center justify-center gap-1.5 rounded-full bg-[#44f26e] px-3 text-[0.72rem] font-black text-[#111510]">
+                          {copy.singleCta}
+                          <ArrowRight className="size-3.5" />
+                        </span>
+                      ) : null}
                     </span>
                   </Link>
                 );
