@@ -83,10 +83,15 @@ function getCopy(locale: Locale) {
         brand: "브랜드",
         brief: "캠페인 브리프",
         campaignGoal: "캠페인 목표",
+        campaignLink: "캠페인 링크",
+        campaignReady: "캠페인 링크 생성됨",
+        campaignReadyBody:
+          "이 링크를 광고주, 팬 기자 4컷, 상품 페이지 CTA에 바로 연결할 수 있습니다.",
         category: "카테고리",
         characterMatch: "캐릭터 매칭",
         clickEvent: "상품 보기",
         copied: "공유링크를 복사했습니다.",
+        copyFailed: "공유링크 복사에 실패했습니다.",
         copyLink: "링크 복사",
         createFailed: "캠페인 요청에 실패했습니다.",
         cutViews: "컷 조회",
@@ -126,6 +131,7 @@ function getCopy(locale: Locale) {
         testActivate: "테스트 승인",
         unverified: "미검증",
         verified: "검증됨",
+        viewCampaign: "공유 페이지 보기",
       }
     : {
         activate: "Activate",
@@ -137,10 +143,15 @@ function getCopy(locale: Locale) {
         brand: "Brand",
         brief: "Campaign Brief",
         campaignGoal: "Campaign Goal",
+        campaignLink: "Campaign Link",
+        campaignReady: "Campaign link ready",
+        campaignReadyBody:
+          "Use this link for advertiser sharing, fan reporter 4-cuts, and product CTA traffic.",
         category: "Category",
         characterMatch: "Character Match",
         clickEvent: "View Product",
         copied: "Share link copied.",
+        copyFailed: "Failed to copy share link.",
         copyLink: "Copy Link",
         createFailed: "Campaign request failed.",
         cutViews: "Cut Views",
@@ -180,6 +191,7 @@ function getCopy(locale: Locale) {
         testActivate: "Test Activate",
         unverified: "Unverified",
         verified: "Verified",
+        viewCampaign: "View Share Page",
       };
 }
 
@@ -232,6 +244,7 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
   const [form, setForm] = useState<CampaignFormState>(defaultForm);
   const [campaign, setCampaign] = useState<FanletterCampaignRecord | null>(null);
   const [campaigns, setCampaigns] = useState<FanletterCampaignRecord[]>([]);
+  const [origin, setOrigin] = useState("");
   const [placementLoading, setPlacementLoading] = useState(false);
   const [placementUrl, setPlacementUrl] = useState("");
   const [statusCounts, setStatusCounts] = useState<
@@ -239,6 +252,8 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
   >({});
   const [loadStatus, setLoadStatus] = useState<LoadStatus>("idle");
   const [toast, setToast] = useState<string>("");
+  const placementSectionRef = useRef<HTMLElement | null>(null);
+  const resultCardRef = useRef<HTMLElement | null>(null);
   const toastTimeoutRef = useRef<number | null>(null);
 
   const selectedCharacter = useMemo(
@@ -255,6 +270,12 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
       .replace(/[^a-z0-9가-힣]+/g, "-")
       .replace(/^-+|-+$/g, "");
   const shareHref = getCampaignShareHref(locale, shareSlug);
+  const campaignShareHref = campaign
+    ? getCampaignShareHref(locale, campaign.shareSlug)
+    : shareHref;
+  const displayShareHref = origin
+    ? new URL(campaignShareHref, origin).toString()
+    : campaignShareHref;
   const progressCount = campaign?.progressCount ?? 0;
   const shareTarget = getTargetNumber(draft?.analysis.shareTarget ?? "500 클릭");
   const progressPercent = Math.min(
@@ -270,6 +291,29 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
     setToast(message);
     toastTimeoutRef.current = window.setTimeout(() => setToast(""), 2400);
   }, []);
+
+  const getAbsoluteShareUrl = useCallback(
+    (targetShareSlug: string) => {
+      const targetHref = getCampaignShareHref(locale, targetShareSlug);
+
+      if (typeof window === "undefined") {
+        return targetHref;
+      }
+
+      return new URL(targetHref, window.location.origin).toString();
+    },
+    [locale],
+  );
+
+  const copyCampaignShareLink = useCallback(
+    (targetShareSlug: string) => {
+      navigator.clipboard
+        .writeText(getAbsoluteShareUrl(targetShareSlug))
+        .then(() => showToast(copy.copied))
+        .catch(() => showToast(copy.copyFailed));
+    },
+    [copy.copied, copy.copyFailed, getAbsoluteShareUrl, showToast],
+  );
 
   const updateForm = useCallback(
     <Key extends keyof CampaignFormState>(key: Key, value: CampaignFormState[Key]) => {
@@ -351,6 +395,12 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
       await loadCampaigns();
       setLoadStatus("ready");
       showToast(copy.saved);
+      window.setTimeout(() => {
+        resultCardRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 0);
       return submitted.campaign;
     } catch (error) {
       setLoadStatus("error");
@@ -495,6 +545,12 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
         selectedCharacterId: nextCampaign.characterId,
       });
       showToast(copy.load);
+      window.setTimeout(() => {
+        resultCardRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }, 0);
     },
     [copy.load, showToast],
   );
@@ -553,6 +609,10 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
     };
   }, [copy.createFailed, loadCampaigns, showToast]);
 
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+
   return (
     <main className="min-h-screen bg-[#050806] text-white">
       <section className="border-b border-white/10 bg-[#08100b]">
@@ -594,6 +654,66 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
               <MetricCard label={copy.queueActive} value={statusCounts.active ?? 0} />
             </div>
           </div>
+
+          {campaign ? (
+            <section
+              className="scroll-mt-4 rounded-lg border border-[#44f26e]/35 bg-[#0f2116] p-4 shadow-2xl shadow-[#44f26e]/5"
+              ref={resultCardRef}
+            >
+              <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
+                <div className="min-w-0">
+                  <div className="inline-flex items-center gap-2 rounded-lg border border-[#44f26e]/30 bg-[#44f26e]/10 px-3 py-2 text-xs font-black text-[#44f26e]">
+                    <CheckCircle2 className="size-4" />
+                    {copy.campaignReady}
+                  </div>
+                  <h2 className="mt-3 text-2xl font-black">
+                    {campaign.selectedCharacter.name}의 {campaign.questName}
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-white/65">
+                    {copy.campaignReadyBody}
+                  </p>
+                  <Link
+                    className="mt-3 flex min-h-11 min-w-0 items-center gap-2 rounded-lg border border-white/15 bg-black/25 px-3 text-sm font-bold text-white/75 transition hover:border-[#44f26e]/60 hover:text-white"
+                    href={campaignShareHref}
+                  >
+                    <Link2 className="size-4 shrink-0 text-[#44f26e]" />
+                    <span className="shrink-0 text-white/45">{copy.campaignLink}</span>
+                    <span className="truncate">{displayShareHref}</span>
+                  </Link>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[28rem]">
+                  <button
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#44f26e] bg-[#44f26e] px-3 text-sm font-black text-black transition hover:bg-[#7dff98]"
+                    type="button"
+                    onClick={() => copyCampaignShareLink(campaign.shareSlug)}
+                  >
+                    <Clipboard className="size-4" />
+                    {copy.copyLink}
+                  </button>
+                  <Link
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-white/15 bg-white px-3 text-sm font-black text-black transition hover:bg-white/85"
+                    href={campaignShareHref}
+                  >
+                    <ExternalLink className="size-4" />
+                    {copy.viewCampaign}
+                  </Link>
+                  <button
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-white/15 bg-black/25 px-3 text-sm font-black text-white/80 transition hover:border-white/30 hover:text-white"
+                    type="button"
+                    onClick={() =>
+                      placementSectionRef.current?.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start",
+                      })
+                    }
+                  >
+                    <Newspaper className="size-4" />
+                    {copy.attachPlacement}
+                  </button>
+                </div>
+              </div>
+            </section>
+          ) : null}
         </div>
       </section>
 
@@ -884,21 +1004,17 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
                   <button
                     className="inline-flex min-h-10 min-w-0 items-center gap-2 rounded-lg border border-white/15 px-3 text-sm font-black text-white/75 transition hover:border-white/30 hover:text-white"
                     type="button"
-                    onClick={() =>
-                      navigator.clipboard
-                        .writeText(new URL(shareHref, window.location.origin).toString())
-                        .then(() => showToast(copy.copied))
-                    }
+                    onClick={() => copyCampaignShareLink(shareSlug)}
                   >
                     <Clipboard className="size-4 shrink-0" />
                     {copy.copyLink}
                   </button>
                   <Link
                     className="inline-flex min-h-10 min-w-0 items-center gap-2 rounded-lg border border-white/15 px-3 text-sm font-black text-white/75 transition hover:border-white/30 hover:text-white"
-                    href={shareHref}
+                    href={campaignShareHref}
                   >
                     <ExternalLink className="size-4 shrink-0" />
-                    <span className="truncate">{shareHref}</span>
+                    <span className="truncate">{displayShareHref}</span>
                   </Link>
                 </div>
               </div>
@@ -906,7 +1022,10 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
           </article>
         </section>
 
-        <section className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+        <section
+          className="scroll-mt-4 rounded-lg border border-white/10 bg-white/[0.04] p-4"
+          ref={placementSectionRef}
+        >
           <div className="grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">
             <div>
               <SectionTitle
@@ -1052,6 +1171,12 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
                     <QueueButton onClick={() => loadCampaign(item)}>
                       {copy.load}
                     </QueueButton>
+                    <QueueButton onClick={() => copyCampaignShareLink(item.shareSlug)}>
+                      {copy.copyLink}
+                    </QueueButton>
+                    <QueueLink href={getCampaignShareHref(locale, item.shareSlug)}>
+                      {copy.viewCampaign}
+                    </QueueLink>
                     {item.status !== "active" && item.status !== "rejected" ? (
                       <QueueButton
                         tone="primary"
@@ -1222,5 +1347,17 @@ function QueueButton({
       {tone === "danger" ? <XCircle className="size-4" /> : null}
       {children}
     </button>
+  );
+}
+
+function QueueLink({ children, href }: { children: ReactNode; href: string }) {
+  return (
+    <Link
+      className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-white/15 bg-black/25 px-3 text-sm font-black text-white/80 transition hover:border-white/30 hover:text-white"
+      href={href}
+    >
+      <ExternalLink className="size-4" />
+      {children}
+    </Link>
   );
 }
