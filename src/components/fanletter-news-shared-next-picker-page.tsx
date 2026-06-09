@@ -52,21 +52,19 @@ function getCopy(locale: Locale) {
         emptyTitle: "다음 팬 리포트 준비 중",
         eyebrow: "AI CHARACTER IP",
         introBody: (name: string) =>
-          `방금 본 4컷은 ${name} 캐릭터 IP에서 이어집니다. 다음 브이로그의 팬 리포트를 사진으로 골라 이어보세요.`,
+          `${name}의 다음 4컷으로 이어집니다.`,
         introTitle: (name: string) => `${name} 타임라인`,
         loading: "다음 리포트로 이동 중",
         optionBadge: "6/6",
         optionCta: "이 리포트 보기",
-        optionCount: (count: string) => `팬 리포트 ${count}개`,
+        optionCount: (count: string) => `후보 ${count}개`,
         recommended: "추천",
-        singleBody:
-          "이번 공유 흐름은 다음 리포트가 하나로 정해져 있어요. 사진을 확인하고 바로 다음 4컷으로 이어보세요.",
-        singleCount: "추천 리포트 1개",
-        singleCta: "다음 4컷으로 이어보기",
-        singleTitle: "다음 리포트로 바로 이어보기",
+        singleCount: "추천 1개",
+        singleCta: "이어보기",
+        singleTitle: "다음 4컷",
         sourceUnlocked: "원본 언락됨",
         step: (step: string) => `${step}번째 흐름`,
-        title: "다음 브이로그의 팬 리포트 선택",
+        title: "다음 4컷 선택",
         viewed: "방금 본 캐릭터",
       }
     : {
@@ -77,21 +75,19 @@ function getCopy(locale: Locale) {
         emptyTitle: "Preparing next fan reports",
         eyebrow: "AI CHARACTER IP",
         introBody: (name: string) =>
-          `The cuts you just saw belong to ${name}'s character IP. Choose the next fan report by its image.`,
+          `Continue to ${name}'s next 4 cuts.`,
         introTitle: (name: string) => `${name}'s timeline`,
         loading: "Opening next report",
         optionBadge: "6/6",
         optionCta: "View this report",
-        optionCount: (count: string) => `${count} fan reports`,
+        optionCount: (count: string) => `${count} options`,
         recommended: "Recommended",
-        singleBody:
-          "This share flow has one next report ready. Preview the image and continue straight to the next 4 cuts.",
-        singleCount: "1 recommended report",
-        singleCta: "Continue to next 4 cuts",
-        singleTitle: "Continue to the next report",
+        singleCount: "1 pick",
+        singleCta: "Continue",
+        singleTitle: "Next 4 cuts",
         sourceUnlocked: "Source unlocked",
         step: (step: string) => `Flow ${step}`,
-        title: "Choose a fan report for the next vlog",
+        title: "Choose next 4 cuts",
         viewed: "Current character",
       };
 }
@@ -392,9 +388,11 @@ export function FanletterNewsSharedNextPickerPage({
               </h1>
             </div>
           </div>
-          <p className="mt-2 line-clamp-2 break-words text-[0.78rem] font-bold leading-5 text-white/62 [word-break:keep-all]">
-            {copy.introBody(characterName)}
-          </p>
+          {!isSingleOption ? (
+            <p className="mt-2 line-clamp-1 break-words text-[0.74rem] font-bold leading-5 text-white/56 [word-break:keep-all]">
+              {copy.introBody(characterName)}
+            </p>
+          ) : null}
         </section>
 
         {options.length > 0 ? (
@@ -409,11 +407,6 @@ export function FanletterNewsSharedNextPickerPage({
                 <h2 className="mt-0.5 break-words text-[1.32rem] font-black leading-[1.05] tracking-normal [word-break:keep-all]">
                   {isSingleOption ? copy.singleTitle : copy.title}
                 </h2>
-                {isSingleOption ? (
-                  <p className="mt-1 line-clamp-2 break-words text-[0.72rem] font-bold leading-5 text-white/56 [word-break:keep-all]">
-                    {copy.singleBody}
-                  </p>
-                ) : null}
               </div>
               <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-[#111510] shadow-[0_18px_44px_rgba(68,242,110,0.18)]">
                 <Video className="size-[1.125rem]" />
