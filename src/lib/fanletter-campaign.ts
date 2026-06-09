@@ -186,6 +186,33 @@ export type FanletterCampaignPlacementRecord = Omit<
   updatedAt: string;
 };
 
+export type FanletterCampaignNewsCutMetric = {
+  averageDwellMs: number;
+  cutViews: number;
+  dwellEvents: number;
+  maxDwellMs: number;
+  totalDwellMs: number;
+};
+
+export type FanletterCampaignNewsCut = {
+  imageUrl: string;
+  metrics: FanletterCampaignNewsCutMetric;
+  slotNumber: number;
+  source: string;
+  sourceImageUrl: string | null;
+};
+
+export type FanletterCampaignNewsCutRecap = {
+  coverImageUrl: string | null;
+  cuts: FanletterCampaignNewsCut[];
+  eventCount: number;
+  reportId: string;
+  reportTitle: string | null;
+  reporterName: string | null;
+  shareId: string;
+  targetHref: string;
+};
+
 export type FanletterCampaignRecord = Omit<
   FanletterCampaignDocument,
   "approvedAt" | "createdAt" | "placements" | "publishedAt" | "updatedAt"

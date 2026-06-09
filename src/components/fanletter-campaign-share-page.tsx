@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -14,8 +15,10 @@ import { useMemo, useState } from "react";
 
 import {
   fanletterCampaignStatusLabels,
+  type FanletterCampaignNewsCutRecap,
   type FanletterCampaignRecord,
 } from "@/lib/fanletter-campaign";
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import type { Locale } from "@/lib/i18n";
 
 function getCopy(locale: Locale) {
@@ -23,11 +26,16 @@ function getCopy(locale: Locale) {
     ? {
         back: "FanLetter",
         click: "상품 보기",
+        cut: "컷",
         cutViews: "컷 조회",
+        eventCount: "전체 이벤트",
         inactive: "공유링크 준비 중",
-        openPlacement: "4컷 보기",
+        openPlacement: "원본 보기",
+        placementBody:
+          "팬 기자가 고른 4컷을 캠페인 안에서 바로 보고 상품으로 이어갑니다.",
         placementTitle: "팬 기자 4컷",
         progress: "목표 진행률",
+        reporter: "팬 기자",
         share: "공유하기",
         sourceClicks: "소스 클릭",
         sponsor: "광고 · AI 캐릭터 콘텐츠",
@@ -36,11 +44,16 @@ function getCopy(locale: Locale) {
     : {
         back: "FanLetter",
         click: "View Product",
+        cut: "Cut",
         cutViews: "Cut Views",
+        eventCount: "Total Events",
         inactive: "Share link pending",
-        openPlacement: "Open 4-Cut",
+        openPlacement: "Original",
+        placementBody:
+          "Review the fan reporter's selected 4 cuts inside the campaign, then continue to the product.",
         placementTitle: "Fan Reporter 4-Cut",
         progress: "Goal Progress",
+        reporter: "Fan Reporter",
         share: "Share",
         sourceClicks: "Source Clicks",
         sponsor: "Ad · AI character content",
@@ -74,12 +87,26 @@ function getTargetNumber(value: string) {
   return Number.isFinite(parsed) ? parsed : 500;
 }
 
+function getNewsCutHref(targetHref: string, slotNumber: number) {
+  try {
+    const url = new URL(targetHref, "https://www.net402.ai");
+
+    url.searchParams.set("cut", String(slotNumber));
+
+    return url.toString();
+  } catch {
+    return targetHref;
+  }
+}
+
 export function FanletterCampaignSharePage({
   campaign: initialCampaign,
   locale,
+  newsCutRecaps = [],
 }: {
   campaign: FanletterCampaignRecord;
   locale: Locale;
+  newsCutRecaps?: FanletterCampaignNewsCutRecap[];
 }) {
   const copy = getCopy(locale);
   const [campaign, setCampaign] = useState(initialCampaign);
@@ -202,8 +229,112 @@ export function FanletterCampaignSharePage({
             </p>
           </div>
 
-          {campaign.placements.length ? (
-            <div className="mt-4 rounded-lg border border-white/10 bg-black/25 p-4">
+          {newsCutRecaps.length ? (
+            <section className="mt-6 border-t border-white/10 pt-5">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-[#44f26e]">
+                    <Newspaper className="size-4" />
+                    {copy.placementTitle}
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-white/62">
+                    {copy.placementBody}
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-right text-xs font-bold text-white/55">
+                  <span>{copy.cutViews}</span>
+                  <strong className="text-white">
+                    {formatNumber(
+                      newsCutRecaps.reduce(
+                        (total, recap) =>
+                          total +
+                          recap.cuts.reduce(
+                            (cutTotal, cut) => cutTotal + cut.metrics.cutViews,
+                            0,
+                          ),
+                        0,
+                      ),
+                      locale,
+                    )}
+                  </strong>
+                  <span>{copy.eventCount}</span>
+                  <strong className="text-white">
+                    {formatNumber(
+                      newsCutRecaps.reduce(
+                        (total, recap) => total + recap.eventCount,
+                        0,
+                      ),
+                      locale,
+                    )}
+                  </strong>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-4">
+                {newsCutRecaps.map((recap) => (
+                  <article className="grid gap-3" key={recap.shareId}>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <h2 className="truncate text-base font-black">
+                          {recap.reportTitle ?? recap.reportId}
+                        </h2>
+                        <p className="mt-1 text-xs font-bold text-white/50">
+                          {copy.reporter} {recap.reporterName ?? "-"}
+                        </p>
+                      </div>
+                      <a
+                        className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-white/15 px-3 text-xs font-black text-white/75 transition hover:border-white/30 hover:text-white"
+                        href={recap.targetHref}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        {copy.openPlacement}
+                        <ExternalLink className="size-3.5" />
+                      </a>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                      {recap.cuts.map((cut) => (
+                        <a
+                          className="group overflow-hidden rounded-lg border border-white/10 bg-black/30 text-white transition hover:border-[#44f26e]/60"
+                          href={getNewsCutHref(recap.targetHref, cut.slotNumber)}
+                          key={`${recap.shareId}:${cut.slotNumber}`}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          <div className="relative aspect-[3/4] overflow-hidden bg-[#101912]">
+                            <Image
+                              alt={`${copy.placementTitle} ${copy.cut} ${cut.slotNumber}`}
+                              className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
+                              fill
+                              sizes="(min-width: 640px) 9rem, 45vw"
+                              src={cut.imageUrl}
+                              unoptimized={shouldBypassFanletterImageOptimization(
+                                cut.imageUrl,
+                              )}
+                            />
+                            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 to-transparent p-2">
+                              <span className="inline-flex rounded-md bg-black/65 px-2 py-1 text-xs font-black">
+                                {copy.cut} {cut.slotNumber}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="grid gap-1 p-2 text-xs font-bold text-white/58">
+                            <span>
+                              {copy.cutViews}{" "}
+                              <strong className="text-white">
+                                {formatNumber(cut.metrics.cutViews, locale)}
+                              </strong>
+                            </span>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          ) : campaign.placements.length ? (
+            <section className="mt-6 border-t border-white/10 pt-5">
               <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-[#44f26e]">
                 <Newspaper className="size-4" />
                 {copy.placementTitle}
@@ -211,7 +342,7 @@ export function FanletterCampaignSharePage({
               <div className="mt-3 grid gap-2">
                 {campaign.placements.map((placement) => (
                   <a
-                    className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3 text-white transition hover:border-[#44f26e]/50"
+                    className="grid gap-3 rounded-lg border border-white/10 bg-black/25 p-3 text-white transition hover:border-[#44f26e]/50"
                     href={placement.shareUrl || placement.targetHref || "#"}
                     key={placement.placementId}
                     rel="noreferrer"
@@ -241,7 +372,7 @@ export function FanletterCampaignSharePage({
                   </a>
                 ))}
               </div>
-            </div>
+            </section>
           ) : null}
 
           <div className="mt-6 rounded-lg border border-white/10 bg-black/25 p-4">

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { FanletterCampaignSharePage } from "@/components/fanletter-campaign-share-page";
 import { getFanletterCampaignByShareSlug } from "@/lib/fanletter-campaign-service";
+import { getFanletterNewsCutSharePublicCampaignRecap } from "@/lib/fanletter-news-cut-share-links";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 
 export async function generateMetadata({
@@ -50,10 +51,22 @@ export default async function LocalizedFanletterCampaignSharePage({
     notFound();
   }
 
+  const newsCutRecaps = (
+    await Promise.all(
+      campaign.placements.map((placement) =>
+        getFanletterNewsCutSharePublicCampaignRecap({
+          reportId: placement.reportId,
+          shareId: placement.shareId,
+        }),
+      ),
+    )
+  ).filter((recap): recap is NonNullable<typeof recap> => Boolean(recap));
+
   return (
     <FanletterCampaignSharePage
       campaign={campaign}
       locale={lang as Locale}
+      newsCutRecaps={newsCutRecaps}
     />
   );
 }

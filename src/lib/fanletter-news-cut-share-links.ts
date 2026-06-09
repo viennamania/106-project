@@ -16,6 +16,7 @@ import {
   getPublicCutsFromReport,
   type FanletterNewsPublicCut,
 } from "@/lib/fanletter-news-public-cuts";
+import type { FanletterCampaignNewsCutRecap } from "@/lib/fanletter-campaign";
 import type { SerializedFanletterNewsPublicCutShareRecap } from "@/lib/fanletter-news-public-cuts-shared";
 import { normalizeShareId } from "@/lib/share-tracking";
 
@@ -1268,5 +1269,100 @@ export async function getFanletterNewsCutSharePublicRecap({
     }),
     eventCount: metricRows[0]?.eventCount ?? 0,
     shareId: link.shareId,
+  };
+}
+
+export async function getFanletterNewsCutSharePublicCampaignRecap({
+  reportId,
+  shareId,
+}: {
+  reportId?: string | null;
+  shareId: string | null;
+}): Promise<FanletterCampaignNewsCutRecap | null> {
+  const normalizedShareId = normalizeShareId(shareId);
+  const normalizedReportId = reportId?.trim() || null;
+
+  if (!normalizedShareId) {
+    return null;
+  }
+
+  const shareLinksCollection = await getFanletterNewsCutShareLinksCollection();
+  const link = await shareLinksCollection.findOne(
+    {
+      shareId: normalizedShareId,
+      ...(normalizedReportId ? { reportId: normalizedReportId } : {}),
+    },
+    {
+      projection: {
+        reportId: 1,
+        shareId: 1,
+        targetHref: 1,
+      },
+    },
+  );
+
+  if (!link) {
+    return null;
+  }
+
+  const [recap, report] = await Promise.all([
+    getFanletterNewsCutSharePublicRecap({
+      reportId: link.reportId,
+      shareId: link.shareId,
+    }),
+    getFanletterNewsReportsCollection().then((collection) =>
+      collection.findOne(
+        { reportId: link.reportId },
+        {
+          projection: {
+            coverImageUrl: 1,
+            reportId: 1,
+            reporterName: 1,
+            teaserImages: 1,
+            teaserImageUrls: 1,
+            title: 1,
+          },
+        },
+      ),
+    ),
+  ]);
+  const cuts = report ? getPublicCutsFromReport(report) : [];
+
+  if (cuts.length === 0) {
+    return null;
+  }
+
+  const metricsBySlot = new Map(
+    (recap?.cuts ?? []).map((cutMetric) => [
+      cutMetric.cutSlotNumber,
+      cutMetric,
+    ]),
+  );
+
+  return {
+    coverImageUrl: report?.coverImageUrl ?? null,
+    cuts: cuts.map((cut) => {
+      const metrics = metricsBySlot.get(cut.slotNumber);
+
+      return {
+        imageUrl: cut.imageUrl,
+        metrics: {
+          averageDwellMs: metrics?.averageDwellMs ?? 0,
+          cutViews: metrics?.cutViews ?? 0,
+          dwellEvents: metrics?.dwellEvents ?? 0,
+          maxDwellMs: metrics?.maxDwellMs ?? 0,
+          totalDwellMs: metrics?.totalDwellMs ?? 0,
+        },
+        slotNumber: cut.slotNumber,
+        source: cut.source,
+        sourceImageUrl: cut.sourceImageUrl,
+      };
+    }),
+    eventCount: recap?.eventCount ?? 0,
+    reportId: link.reportId,
+    reportTitle: report?.title ?? null,
+    reporterName: report?.reporterName ?? null,
+    shareId: link.shareId,
+    targetHref: link.targetHref,
   };
 }
