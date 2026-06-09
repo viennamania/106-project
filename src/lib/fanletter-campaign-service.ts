@@ -22,19 +22,29 @@ import {
   type FanletterCampaignEventRecord,
   type FanletterCampaignEventType,
   type FanletterCampaignGoal,
+  type FanletterCampaignPlacementAttachRequest,
+  type FanletterCampaignPlacementDocument,
+  type FanletterCampaignPlacementMetrics,
+  type FanletterCampaignPlacementRecord,
   type FanletterCampaignProduct,
   type FanletterCampaignRecord,
   type FanletterCampaignReport,
   type FanletterCampaignStatus,
   type FanletterCampaignsResponse,
 } from "@/lib/fanletter-campaign";
+import type { FunnelEventName } from "@/lib/funnel";
 import {
   getFanletterCampaignEventsCollection,
   getFanletterCampaignsCollection,
+  getFanletterNewsCutShareLinksCollection,
+  getFunnelEventsCollection,
 } from "@/lib/mongodb";
+import { normalizeShareId } from "@/lib/share-tracking";
 
 const DEFAULT_ADVERTISER_ID = "adv_demo";
 const CAMPAIGN_PAGE_SIZE_MAX = 60;
+const PLACEMENT_LABEL_LIMIT = 80;
+const PLACEMENT_SHARE_URL_LIMIT = 600;
 
 type CategoryProfile = {
   audience: string;
@@ -119,6 +129,22 @@ function trimToLength(value: string | null | undefined, limit: number) {
   const normalized = collapseWhitespace(value);
 
   return normalized ? normalized.slice(0, limit) : "";
+}
+
+function getDateValue(value: Date | string | null | undefined, fallback: Date) {
+  if (value instanceof Date && Number.isFinite(value.getTime())) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = new Date(value);
+
+    if (Number.isFinite(parsed.getTime())) {
+      return parsed;
+    }
+  }
+
+  return fallback;
 }
 
 function normalizeCategory(
@@ -289,6 +315,160 @@ function serializeEvent(
   };
 }
 
+function normalizePlacement(
+  placement: FanletterCampaignPlacementDocument,
+): FanletterCampaignPlacementDocument | null {
+  const shareId = normalizeShareId(placement.shareId);
+
+  if (!shareId) {
+    return null;
+  }
+
+  const now = new Date();
+
+  return {
+    channel: "fanletter_news_cut",
+    contentId: trimToLength(placement.contentId, 120) || null,
+    createdAt: getDateValue(placement.createdAt, now),
+    creatorReferralCode: trimToLength(placement.creatorReferralCode, 120) || null,
+    cutSlotNumber:
+      typeof placement.cutSlotNumber === "number" &&
+      Number.isFinite(placement.cutSlotNumber)
+        ? Math.max(1, Math.floor(placement.cutSlotNumber))
+        : null,
+    label: trimToLength(placement.label, PLACEMENT_LABEL_LIMIT) || "팬 기자 4컷",
+    placementId:
+      trimToLength(placement.placementId, 120) || `fcp_${randomUUID()}`,
+    reportId: trimToLength(placement.reportId, 140) || null,
+    reporterReferralCode:
+      trimToLength(placement.reporterReferralCode, 120) || null,
+    shareId,
+    shareUrl: trimToLength(placement.shareUrl, PLACEMENT_SHARE_URL_LIMIT),
+    targetHref: trimToLength(placement.targetHref, PLACEMENT_SHARE_URL_LIMIT) || null,
+    updatedAt: getDateValue(placement.updatedAt, now),
+    verificationStatus:
+      placement.verificationStatus === "verified" ? "verified" : "unverified",
+  };
+}
+
+function normalizePlacements(
+  placements: FanletterCampaignDocument["placements"],
+) {
+  if (!Array.isArray(placements)) {
+    return [];
+  }
+
+  return placements
+    .map((placement) => normalizePlacement(placement))
+    .filter((placement): placement is FanletterCampaignPlacementDocument =>
+      Boolean(placement),
+    );
+}
+
+function getEmptyPlacementMetrics(): FanletterCampaignPlacementMetrics {
+  return {
+    cutViews: 0,
+    eventCount: 0,
+    lastEventAt: null,
+    loadMoreEvents: 0,
+    sourceOpenClicks: 0,
+  };
+}
+
+async function getPlacementMetricsByShareId(shareIds: string[]) {
+  const normalizedShareIds = [
+    ...new Set(
+      shareIds
+        .map((shareId) => normalizeShareId(shareId))
+        .filter((shareId): shareId is string => Boolean(shareId)),
+    ),
+  ];
+
+  if (normalizedShareIds.length === 0) {
+    return new Map<string, FanletterCampaignPlacementMetrics>();
+  }
+
+  const rows = await (await getFunnelEventsCollection())
+    .aggregate<{
+      _id: string;
+      cutViews?: number;
+      eventCount?: number;
+      lastEventAt?: Date | null;
+      loadMoreEvents?: number;
+      sourceOpenClicks?: number;
+    }>([
+      {
+        $match: {
+          name: {
+            $in: [
+              "fanletter_news_cut_view",
+              "fanletter_news_cut_dwell",
+              "fanletter_news_cut_feed_load_more",
+              "fanletter_news_source_open_click",
+            ] satisfies FunnelEventName[],
+          },
+          shareId: { $in: normalizedShareIds },
+        },
+      },
+      {
+        $group: {
+          _id: "$shareId",
+          cutViews: {
+            $sum: {
+              $cond: [{ $eq: ["$name", "fanletter_news_cut_view"] }, 1, 0],
+            },
+          },
+          eventCount: { $sum: 1 },
+          lastEventAt: { $max: "$createdAt" },
+          loadMoreEvents: {
+            $sum: {
+              $cond: [
+                { $eq: ["$name", "fanletter_news_cut_feed_load_more"] },
+                1,
+                0,
+              ],
+            },
+          },
+          sourceOpenClicks: {
+            $sum: {
+              $cond: [
+                { $eq: ["$name", "fanletter_news_source_open_click"] },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ])
+    .toArray();
+
+  return new Map(
+    rows.map((row) => [
+      row._id,
+      {
+        cutViews: row.cutViews ?? 0,
+        eventCount: row.eventCount ?? 0,
+        lastEventAt: row.lastEventAt?.toISOString() ?? null,
+        loadMoreEvents: row.loadMoreEvents ?? 0,
+        sourceOpenClicks: row.sourceOpenClicks ?? 0,
+      },
+    ]),
+  );
+}
+
+function serializePlacement(
+  placement: FanletterCampaignPlacementDocument,
+  metrics: FanletterCampaignPlacementMetrics,
+): FanletterCampaignPlacementRecord {
+  return {
+    ...placement,
+    createdAt: placement.createdAt.toISOString(),
+    metrics,
+    updatedAt: placement.updatedAt.toISOString(),
+  };
+}
+
 function aggregateEvents(events: FanletterCampaignEventDocument[]) {
   return events.reduce<FanletterCampaignReport>(
     (report, event) => {
@@ -316,6 +496,10 @@ async function serializeCampaign(
     .sort({ createdAt: -1 })
     .limit(100)
     .toArray();
+  const placements = normalizePlacements(campaign.placements);
+  const placementMetricsByShareId = await getPlacementMetricsByShareId(
+    placements.map((placement) => placement.shareId),
+  );
   const report = aggregateEvents(events);
 
   return {
@@ -323,6 +507,13 @@ async function serializeCampaign(
     approvedAt: campaign.approvedAt?.toISOString() ?? null,
     createdAt: campaign.createdAt.toISOString(),
     events: events.map(serializeEvent),
+    placements: placements.map((placement) =>
+      serializePlacement(
+        placement,
+        placementMetricsByShareId.get(placement.shareId) ??
+          getEmptyPlacementMetrics(),
+      ),
+    ),
     progressCount: report.progressCount,
     publishedAt: campaign.publishedAt?.toISOString() ?? null,
     report,
@@ -456,6 +647,7 @@ export async function createFanletterCampaign(
     campaignId: `fc_${randomUUID()}`,
     characterId: draft.selectedCharacter.id,
     createdAt: now,
+    placements: [],
     publishedAt: null,
     shareSlug: await createUniqueShareSlug(draft.shareSlug),
     status: "draft",
@@ -562,6 +754,151 @@ export async function submitFanletterCampaignForReview(campaignId?: string | nul
   return updateFanletterCampaignStatus({
     campaignId,
     status: "pending_admin",
+  });
+}
+
+function parseNewsCutPlacementInput(body: FanletterCampaignPlacementAttachRequest) {
+  const directShareId = normalizeShareId(body.shareId);
+  const rawShareUrl = trimToLength(body.shareUrl, PLACEMENT_SHARE_URL_LIMIT);
+
+  if (directShareId) {
+    return {
+      cutSlotNumber: null,
+      reportId: null,
+      shareId: directShareId,
+      shareUrl: rawShareUrl,
+    };
+  }
+
+  if (!rawShareUrl) {
+    throw new Error("shareUrl or shareId is required.");
+  }
+
+  let parsedUrl: URL;
+
+  try {
+    parsedUrl = new URL(rawShareUrl);
+  } catch {
+    try {
+      parsedUrl = new URL(rawShareUrl, "https://aiavpark.local");
+    } catch {
+      throw new Error("Invalid news cut share URL.");
+    }
+  }
+
+  const shareId = normalizeShareId(parsedUrl.searchParams.get("shareId"));
+  const pathSegments = parsedUrl.pathname
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+  const cutsSegmentIndex = pathSegments.findIndex(
+    (segment, index) => segment === "cuts" && pathSegments[index - 1] === "news",
+  );
+  const reportId =
+    cutsSegmentIndex >= 0 ? pathSegments[cutsSegmentIndex + 1] ?? null : null;
+  const rawCutSlotNumber = Number.parseInt(
+    parsedUrl.searchParams.get("cut") ?? "",
+    10,
+  );
+
+  if (!shareId) {
+    throw new Error("news cut shareId is required.");
+  }
+
+  return {
+    cutSlotNumber: Number.isFinite(rawCutSlotNumber)
+      ? Math.max(1, rawCutSlotNumber)
+      : null,
+    reportId: reportId ? decodeURIComponent(reportId).slice(0, 140) : null,
+    shareId,
+    shareUrl: rawShareUrl,
+  };
+}
+
+export async function attachFanletterCampaignNewsCutPlacement({
+  body,
+  campaignId,
+}: {
+  body: FanletterCampaignPlacementAttachRequest;
+  campaignId?: string | null;
+}) {
+  const normalizedCampaignId = trimToLength(campaignId, 120);
+
+  if (!normalizedCampaignId) {
+    throw new Error("campaignId is required.");
+  }
+
+  if (body.channel && body.channel !== "fanletter_news_cut") {
+    throw new Error("Unsupported campaign placement channel.");
+  }
+
+  const parsedPlacement = parseNewsCutPlacementInput(body);
+  const campaignsCollection = await getFanletterCampaignsCollection();
+  const campaign = await campaignsCollection.findOne({
+    campaignId: normalizedCampaignId,
+  });
+
+  if (!campaign) {
+    throw new Error("Campaign not found.");
+  }
+
+  const shareLink = await (
+    await getFanletterNewsCutShareLinksCollection()
+  ).findOne({ shareId: parsedPlacement.shareId });
+  const now = new Date();
+  const existingPlacements = normalizePlacements(campaign.placements);
+  const currentPlacement = existingPlacements.find(
+    (placement) => placement.shareId === parsedPlacement.shareId,
+  );
+  const label =
+    trimToLength(body.label, PLACEMENT_LABEL_LIMIT) ||
+    (shareLink?.reportId
+      ? `팬 기자 4컷 · ${shareLink.reportId}`
+      : "팬 기자 4컷 공유링크");
+  const shareUrl =
+    parsedPlacement.shareUrl ||
+    shareLink?.targetHref ||
+    `/ko/fanletter/news/cuts/${parsedPlacement.reportId ?? ""}?shareId=${
+      parsedPlacement.shareId
+    }`;
+  const nextPlacement: FanletterCampaignPlacementDocument = {
+    channel: "fanletter_news_cut",
+    contentId: shareLink?.contentId ?? null,
+    createdAt: currentPlacement?.createdAt ?? now,
+    creatorReferralCode: shareLink?.creatorReferralCode ?? null,
+    cutSlotNumber:
+      shareLink?.cutSlotNumber ?? parsedPlacement.cutSlotNumber ?? null,
+    label,
+    placementId: currentPlacement?.placementId ?? `fcp_${randomUUID()}`,
+    reportId: shareLink?.reportId ?? parsedPlacement.reportId ?? null,
+    reporterReferralCode: shareLink?.reporterReferralCode ?? null,
+    shareId: parsedPlacement.shareId,
+    shareUrl,
+    targetHref: shareLink?.targetHref ?? shareUrl,
+    updatedAt: now,
+    verificationStatus: shareLink ? "verified" : "unverified",
+  };
+  const nextPlacements = [
+    nextPlacement,
+    ...existingPlacements.filter(
+      (placement) => placement.shareId !== nextPlacement.shareId,
+    ),
+  ].slice(0, 12);
+
+  await campaignsCollection.updateOne(
+    { campaignId: normalizedCampaignId },
+    {
+      $set: {
+        placements: nextPlacements,
+        updatedAt: now,
+      },
+    },
+  );
+
+  return serializeCampaign({
+    ...campaign,
+    placements: nextPlacements,
+    updatedAt: now,
   });
 }
 

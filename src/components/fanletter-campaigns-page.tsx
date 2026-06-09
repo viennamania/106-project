@@ -7,9 +7,11 @@ import {
   CheckCircle2,
   Clipboard,
   ExternalLink,
+  Link2,
   Loader2,
   Megaphone,
   MousePointerClick,
+  Newspaper,
   PackageSearch,
   RefreshCw,
   Send,
@@ -75,6 +77,7 @@ function getCopy(locale: Locale) {
         activate: "활성화",
         active: "활성",
         analyze: "상품 분석",
+        attachPlacement: "4컷 연결",
         back: "FanLetter 홈",
         benefit: "혜택",
         brand: "브랜드",
@@ -86,6 +89,7 @@ function getCopy(locale: Locale) {
         copied: "공유링크를 복사했습니다.",
         copyLink: "링크 복사",
         createFailed: "캠페인 요청에 실패했습니다.",
+        cutViews: "컷 조회",
         emptyQueue: "저장된 캠페인이 없습니다.",
         heroBody:
           "상품 URL을 AI 캐릭터 성장 캠페인으로 전환하고, 승인 큐와 공유 성과를 같은 화면에서 확인합니다.",
@@ -93,7 +97,14 @@ function getCopy(locale: Locale) {
         heroTitle: "상품 URL로 캐릭터 캠페인 만들기",
         load: "불러오기",
         loading: "캠페인 데이터를 확인하는 중입니다.",
+        noPlacements: "연결된 팬 기자 4컷이 없습니다.",
         operations: "운영 큐",
+        placementBody:
+          "기존 팬 기자 뉴스컷 공유 URL을 이 캠페인에 붙여서 유입과 클릭 성과를 함께 봅니다.",
+        placementLinked: "뉴스컷 공유링크를 연결했습니다.",
+        placements: "연결 4컷",
+        placementTitle: "팬 기자 4컷 연결",
+        placementUrl: "뉴스컷 공유 URL 또는 shareId",
         price: "가격",
         product: "상품명",
         productCard: "상품 카드",
@@ -109,14 +120,18 @@ function getCopy(locale: Locale) {
         select: "선택",
         shareEvent: "공유하기",
         sharePreview: "공유링크 미리보기",
+        sourceClicks: "소스 클릭",
         submit: "승인 요청",
         target: "공유 목표",
         testActivate: "테스트 승인",
+        unverified: "미검증",
+        verified: "검증됨",
       }
     : {
         activate: "Activate",
         active: "Active",
         analyze: "Analyze Product",
+        attachPlacement: "Attach 4-Cut",
         back: "FanLetter Home",
         benefit: "Benefit",
         brand: "Brand",
@@ -128,6 +143,7 @@ function getCopy(locale: Locale) {
         copied: "Share link copied.",
         copyLink: "Copy Link",
         createFailed: "Campaign request failed.",
+        cutViews: "Cut Views",
         emptyQueue: "No saved campaigns yet.",
         heroBody:
           "Turn a product URL into an AI character growth campaign, then review approval and share performance in one workspace.",
@@ -135,7 +151,14 @@ function getCopy(locale: Locale) {
         heroTitle: "Create character campaigns from product URLs",
         load: "Load",
         loading: "Checking campaign data.",
+        noPlacements: "No fan reporter 4-cut placements linked yet.",
         operations: "Operations Queue",
+        placementBody:
+          "Attach an existing fan reporter news cut share URL to this campaign and review traffic with campaign performance.",
+        placementLinked: "News cut share link attached.",
+        placements: "4-Cut Links",
+        placementTitle: "Fan Reporter 4-Cut Link",
+        placementUrl: "News cut share URL or shareId",
         price: "Price",
         product: "Product",
         productCard: "Product Card",
@@ -151,9 +174,12 @@ function getCopy(locale: Locale) {
         select: "Select",
         shareEvent: "Share",
         sharePreview: "Share Link Preview",
+        sourceClicks: "Source Clicks",
         submit: "Submit Review",
         target: "Share Target",
         testActivate: "Test Activate",
+        unverified: "Unverified",
+        verified: "Verified",
       };
 }
 
@@ -206,6 +232,8 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
   const [form, setForm] = useState<CampaignFormState>(defaultForm);
   const [campaign, setCampaign] = useState<FanletterCampaignRecord | null>(null);
   const [campaigns, setCampaigns] = useState<FanletterCampaignRecord[]>([]);
+  const [placementLoading, setPlacementLoading] = useState(false);
+  const [placementUrl, setPlacementUrl] = useState("");
   const [statusCounts, setStatusCounts] = useState<
     FanletterCampaignsResponse["statusCounts"]
   >({});
@@ -382,6 +410,61 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
     },
     [campaign, copy.clickEvent, copy.createFailed, copy.shareEvent, copy.submit, loadCampaigns, showToast],
   );
+
+  const attachPlacement = useCallback(async () => {
+    const normalizedPlacementUrl = placementUrl.trim();
+
+    if (!normalizedPlacementUrl) {
+      showToast(copy.placementUrl);
+      return;
+    }
+
+    setPlacementLoading(true);
+
+    try {
+      const targetCampaign = campaign ?? (await submitCampaign());
+
+      if (!targetCampaign) {
+        return;
+      }
+
+      const response = await fetch(
+        `/api/fanletter/campaigns/${targetCampaign.campaignId}/placements`,
+        {
+          body: JSON.stringify({
+            channel: "fanletter_news_cut",
+            shareUrl: normalizedPlacementUrl,
+          }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+        },
+      );
+      const data = await readApiJson<{ campaign: FanletterCampaignRecord }>(
+        response,
+        copy.createFailed,
+      );
+
+      setCampaign(data.campaign);
+      await loadCampaigns();
+      setPlacementUrl("");
+      setLoadStatus("ready");
+      showToast(copy.placementLinked);
+    } catch (error) {
+      setLoadStatus("error");
+      showToast(error instanceof Error ? error.message : copy.createFailed);
+    } finally {
+      setPlacementLoading(false);
+    }
+  }, [
+    campaign,
+    copy.createFailed,
+    copy.placementLinked,
+    copy.placementUrl,
+    loadCampaigns,
+    placementUrl,
+    showToast,
+    submitCampaign,
+  ]);
 
   const loadCampaign = useCallback(
     (nextCampaign: FanletterCampaignRecord) => {
@@ -824,6 +907,112 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
         </section>
 
         <section className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
+          <div className="grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">
+            <div>
+              <SectionTitle
+                icon={Newspaper}
+                label="Placement"
+                title={copy.placementTitle}
+              />
+              <p className="text-sm leading-6 text-white/65">{copy.placementBody}</p>
+              <div className="mt-4 grid gap-2">
+                <label className="grid gap-2">
+                  <span className="text-xs font-bold text-white/60">
+                    {copy.placementUrl}
+                  </span>
+                  <input
+                    className="min-h-11 rounded-lg border border-white/15 bg-black/30 px-3 text-sm text-white outline-none transition focus:border-[#44f26e]"
+                    placeholder="https://www.net402.ai/ko/fanletter/news/cuts/..."
+                    type="text"
+                    value={placementUrl}
+                    onChange={(event) => setPlacementUrl(event.target.value)}
+                  />
+                </label>
+                <div>
+                  <ActionButton
+                    icon={Link2}
+                    loading={placementLoading}
+                    type="button"
+                    onClick={attachPlacement}
+                  >
+                    {copy.attachPlacement}
+                  </ActionButton>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-3">
+              {campaign?.placements.length ? (
+                campaign.placements.map((placement) => (
+                  <article
+                    className="rounded-lg border border-white/10 bg-black/25 p-3"
+                    key={placement.placementId}
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="text-base font-black">
+                            {placement.label}
+                          </h3>
+                          <span
+                            className={`rounded-md border px-2 py-1 text-xs font-black ${
+                              placement.verificationStatus === "verified"
+                                ? "border-[#44f26e]/30 bg-[#44f26e]/10 text-[#44f26e]"
+                                : "border-[#ffb84d]/30 bg-[#ffb84d]/10 text-[#ffb84d]"
+                            }`}
+                          >
+                            {placement.verificationStatus === "verified"
+                              ? copy.verified
+                              : copy.unverified}
+                          </span>
+                        </div>
+                        <p className="mt-1 break-all text-xs font-bold text-white/45">
+                          {placement.shareId}
+                        </p>
+                        <p className="mt-1 text-sm text-white/55">
+                          {placement.reportId ?? "-"} · Cut{" "}
+                          {placement.cutSlotNumber ?? "-"}
+                        </p>
+                      </div>
+                      <a
+                        className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-white/15 px-3 text-sm font-black text-white/75 transition hover:border-white/30 hover:text-white"
+                        href={placement.shareUrl || placement.targetHref || "#"}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        <ExternalLink className="size-4" />
+                        {copy.load}
+                      </a>
+                    </div>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                      <InfoTile
+                        label={copy.cutViews}
+                        value={formatNumber(placement.metrics.cutViews, locale)}
+                      />
+                      <InfoTile
+                        label={copy.sourceClicks}
+                        value={formatNumber(
+                          placement.metrics.sourceOpenClicks,
+                          locale,
+                        )}
+                      />
+                      <InfoTile
+                        label="Events"
+                        value={formatNumber(placement.metrics.eventCount, locale)}
+                      />
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <p className="rounded-lg border border-dashed border-white/15 p-4 text-sm font-bold text-white/55">
+                  {copy.noPlacements}
+                </p>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
           <SectionTitle icon={Megaphone} label="Operations" title={copy.operations} />
           {campaigns.length === 0 ? (
             <p className="rounded-lg border border-dashed border-white/15 p-4 text-sm font-bold text-white/55">
@@ -845,7 +1034,7 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
                       {formatDate(item.updatedAt, locale)}
                     </p>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div className="grid gap-2 text-sm sm:grid-cols-3">
                     <InfoTile
                       label="Status"
                       value={fanletterCampaignStatusLabels[item.status]}
@@ -853,6 +1042,10 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
                     <InfoTile
                       label="Events"
                       value={formatNumber(item.report.total, locale)}
+                    />
+                    <InfoTile
+                      label={copy.placements}
+                      value={formatNumber(item.placements.length, locale)}
                     />
                   </div>
                   <div className="flex flex-wrap gap-2 lg:justify-end">

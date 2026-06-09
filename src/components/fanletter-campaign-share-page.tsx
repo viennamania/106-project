@@ -6,6 +6,7 @@ import {
   ExternalLink,
   Loader2,
   MousePointerClick,
+  Newspaper,
   Share2,
   Sparkles,
 } from "lucide-react";
@@ -22,18 +23,26 @@ function getCopy(locale: Locale) {
     ? {
         back: "FanLetter",
         click: "상품 보기",
+        cutViews: "컷 조회",
         inactive: "공유링크 준비 중",
+        openPlacement: "4컷 보기",
+        placementTitle: "팬 기자 4컷",
         progress: "목표 진행률",
         share: "공유하기",
+        sourceClicks: "소스 클릭",
         sponsor: "광고 · AI 캐릭터 콘텐츠",
         updated: "참여가 기록되었습니다.",
       }
     : {
         back: "FanLetter",
         click: "View Product",
+        cutViews: "Cut Views",
         inactive: "Share link pending",
+        openPlacement: "Open 4-Cut",
+        placementTitle: "Fan Reporter 4-Cut",
         progress: "Goal Progress",
         share: "Share",
+        sourceClicks: "Source Clicks",
         sponsor: "Ad · AI character content",
         updated: "Engagement recorded.",
       };
@@ -192,6 +201,48 @@ export function FanletterCampaignSharePage({
               {campaign.product.price} · {campaign.product.benefit}
             </p>
           </div>
+
+          {campaign.placements.length ? (
+            <div className="mt-4 rounded-lg border border-white/10 bg-black/25 p-4">
+              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-[#44f26e]">
+                <Newspaper className="size-4" />
+                {copy.placementTitle}
+              </div>
+              <div className="mt-3 grid gap-2">
+                {campaign.placements.map((placement) => (
+                  <a
+                    className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3 text-white transition hover:border-[#44f26e]/50"
+                    href={placement.shareUrl || placement.targetHref || "#"}
+                    key={placement.placementId}
+                    rel="noreferrer"
+                    target="_blank"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <strong className="text-sm">{placement.label}</strong>
+                      <span className="inline-flex items-center gap-1 text-xs font-black text-white/65">
+                        {copy.openPlacement}
+                        <ExternalLink className="size-3" />
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 text-xs font-bold text-white/60 sm:grid-cols-3">
+                      <span>
+                        {copy.cutViews}{" "}
+                        {formatNumber(placement.metrics.cutViews, locale)}
+                      </span>
+                      <span>
+                        {copy.sourceClicks}{" "}
+                        {formatNumber(
+                          placement.metrics.sourceOpenClicks,
+                          locale,
+                        )}
+                      </span>
+                      <span>Cut {placement.cutSlotNumber ?? "-"}</span>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <div className="mt-6 rounded-lg border border-white/10 bg-black/25 p-4">
             <div className="flex items-center justify-between gap-3 text-sm font-bold text-white/70">

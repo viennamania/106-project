@@ -1306,6 +1306,7 @@ export async function getFanletterCampaignsCollection() {
         collection.createIndex({ advertiserId: 1, updatedAt: -1 }),
         collection.createIndex({ status: 1, updatedAt: -1 }),
         collection.createIndex({ characterId: 1, status: 1, updatedAt: -1 }),
+        collection.createIndex({ "placements.shareId": 1, updatedAt: -1 }),
       ]);
 
       return collection;

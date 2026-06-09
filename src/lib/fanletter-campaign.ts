@@ -35,6 +35,15 @@ export const fanletterCampaignEventTypes = [
   "signup",
 ] as const;
 
+export const fanletterCampaignPlacementChannels = [
+  "fanletter_news_cut",
+] as const;
+
+export const fanletterCampaignPlacementVerificationStatuses = [
+  "verified",
+  "unverified",
+] as const;
+
 export type FanletterCampaignCategory =
   (typeof fanletterCampaignCategories)[number];
 export type FanletterCampaignGoal = (typeof fanletterCampaignGoals)[number];
@@ -42,6 +51,10 @@ export type FanletterCampaignStatus =
   (typeof fanletterCampaignStatuses)[number];
 export type FanletterCampaignEventType =
   (typeof fanletterCampaignEventTypes)[number];
+export type FanletterCampaignPlacementChannel =
+  (typeof fanletterCampaignPlacementChannels)[number];
+export type FanletterCampaignPlacementVerificationStatus =
+  (typeof fanletterCampaignPlacementVerificationStatuses)[number];
 
 export type FanletterCampaignCharacter = {
   baseScore: number;
@@ -99,12 +112,30 @@ export type FanletterCampaignDraft = {
   shareSlug: string;
 };
 
+export type FanletterCampaignPlacementDocument = {
+  channel: FanletterCampaignPlacementChannel;
+  contentId: string | null;
+  createdAt: Date;
+  creatorReferralCode: string | null;
+  cutSlotNumber: number | null;
+  label: string;
+  placementId: string;
+  reportId: string | null;
+  reporterReferralCode: string | null;
+  shareId: string;
+  shareUrl: string;
+  targetHref: string | null;
+  updatedAt: Date;
+  verificationStatus: FanletterCampaignPlacementVerificationStatus;
+};
+
 export type FanletterCampaignDocument = FanletterCampaignDraft & {
   advertiserId: string;
   approvedAt: Date | null;
   campaignId: string;
   characterId: string;
   createdAt: Date;
+  placements?: FanletterCampaignPlacementDocument[];
   publishedAt: Date | null;
   status: FanletterCampaignStatus;
   updatedAt: Date;
@@ -138,13 +169,31 @@ export type FanletterCampaignEventRecord = {
   source: string;
 };
 
+export type FanletterCampaignPlacementMetrics = {
+  cutViews: number;
+  eventCount: number;
+  lastEventAt: string | null;
+  loadMoreEvents: number;
+  sourceOpenClicks: number;
+};
+
+export type FanletterCampaignPlacementRecord = Omit<
+  FanletterCampaignPlacementDocument,
+  "createdAt" | "updatedAt"
+> & {
+  createdAt: string;
+  metrics: FanletterCampaignPlacementMetrics;
+  updatedAt: string;
+};
+
 export type FanletterCampaignRecord = Omit<
   FanletterCampaignDocument,
-  "approvedAt" | "createdAt" | "publishedAt" | "updatedAt"
+  "approvedAt" | "createdAt" | "placements" | "publishedAt" | "updatedAt"
 > & {
   approvedAt: string | null;
   createdAt: string;
   events: FanletterCampaignEventRecord[];
+  placements: FanletterCampaignPlacementRecord[];
   progressCount: number;
   publishedAt: string | null;
   report: FanletterCampaignReport;
@@ -177,6 +226,13 @@ export type FanletterCampaignEventCreateRequest = {
   eventType?: string | null;
   eventValue?: number | string | null;
   source?: string | null;
+};
+
+export type FanletterCampaignPlacementAttachRequest = {
+  channel?: string | null;
+  label?: string | null;
+  shareId?: string | null;
+  shareUrl?: string | null;
 };
 
 export type FanletterCampaignsResponse = {
