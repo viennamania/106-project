@@ -55,6 +55,10 @@ import type {
 import type { FanletterNewsPlatformInquiryDocument } from "@/lib/fanletter-news-platform-inquiry";
 import type { FanletterNewsCutShareLinkDocument } from "@/lib/fanletter-news-cut-share-links";
 import type { FunnelEventDocument } from "@/lib/funnel";
+import type {
+  FanletterCampaignDocument,
+  FanletterCampaignEventDocument,
+} from "@/lib/fanletter-campaign";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
@@ -154,6 +158,12 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoFanletterNewsCutShareLinksCollectionPromise?: Promise<
     Collection<FanletterNewsCutShareLinkDocument>
+  >;
+  mongoFanletterCampaignsCollectionPromise?: Promise<
+    Collection<FanletterCampaignDocument>
+  >;
+  mongoFanletterCampaignEventsCollectionPromise?: Promise<
+    Collection<FanletterCampaignEventDocument>
   >;
   mongoCreatorAutomationProfilesCollectionPromise?: Promise<
     Collection<CreatorAutomationProfileDocument>
@@ -1276,6 +1286,59 @@ export async function getFanletterNewsCutShareLinksCollection() {
   }
 
   return globalForMongo.mongoFanletterNewsCutShareLinksCollectionPromise;
+}
+
+export async function getFanletterCampaignsCollection() {
+  if (!globalForMongo.mongoFanletterCampaignsCollectionPromise) {
+    globalForMongo.mongoFanletterCampaignsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_FANLETTER_CAMPAIGNS_COLLECTION ??
+        "fanletterCampaigns";
+      const collection = client
+        .db(dbName)
+        .collection<FanletterCampaignDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ campaignId: 1 }, { unique: true }),
+        collection.createIndex({ shareSlug: 1 }, { unique: true }),
+        collection.createIndex({ advertiserId: 1, updatedAt: -1 }),
+        collection.createIndex({ status: 1, updatedAt: -1 }),
+        collection.createIndex({ characterId: 1, status: 1, updatedAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoFanletterCampaignsCollectionPromise;
+}
+
+export async function getFanletterCampaignEventsCollection() {
+  if (!globalForMongo.mongoFanletterCampaignEventsCollectionPromise) {
+    globalForMongo.mongoFanletterCampaignEventsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_FANLETTER_CAMPAIGN_EVENTS_COLLECTION ??
+        "fanletterCampaignEvents";
+      const collection = client
+        .db(dbName)
+        .collection<FanletterCampaignEventDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ eventId: 1 }, { unique: true }),
+        collection.createIndex({ campaignId: 1, createdAt: -1 }),
+        collection.createIndex({ characterId: 1, createdAt: -1 }),
+        collection.createIndex({ eventType: 1, createdAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoFanletterCampaignEventsCollectionPromise;
 }
 
 export async function getFanletterNewsPlatformInquiriesCollection() {
