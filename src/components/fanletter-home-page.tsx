@@ -9,6 +9,7 @@ import {
   Crown,
   FileText,
   LockKeyhole,
+  Megaphone,
   MessageCircle,
   MessageCircleHeart,
   Network,
@@ -48,6 +49,7 @@ type FanletterCopy = {
   };
   brandSuffix: string;
   cta: {
+    campaign: string;
     creator: string;
     fan: string;
     login: string;
@@ -109,6 +111,7 @@ type FanletterCopy = {
     title: string;
   };
   nav: {
+    campaigns: string;
     creators: string;
     faq: string;
     features: string;
@@ -200,6 +203,7 @@ const koCopy: FanletterCopy = {
   },
   brandSuffix: "AI 캐릭터 브이로그",
   cta: {
+    campaign: "캠페인 스튜디오",
     creator: "캐릭터 채널 시작",
     fan: "브이로그 피드 보기",
     login: "계정 연결",
@@ -309,6 +313,7 @@ const koCopy: FanletterCopy = {
     title: "공개된 AI 캐릭터 브이로그로 팬이 바로 확인합니다.",
   },
   nav: {
+    campaigns: "캠페인",
     creators: "캐릭터",
     faq: "FAQ",
     features: "기능",
@@ -414,6 +419,7 @@ const enCopy: FanletterCopy = {
   },
   brandSuffix: "AI Character Vlogger",
   cta: {
+    campaign: "Campaign Studio",
     creator: "Start AI character channel",
     fan: "Explore vlog feed",
     login: "Connect account",
@@ -523,6 +529,7 @@ const enCopy: FanletterCopy = {
     title: "Real public AI character vlogs make the fan experience tangible.",
   },
   nav: {
+    campaigns: "Campaigns",
     creators: "Characters",
     faq: "FAQ",
     features: "Features",
@@ -1517,6 +1524,10 @@ export function FanletterHomePage({
     `/${locale}/fanletter/studio`,
     referralCode,
   );
+  const campaignsHref = buildPathWithReferral(
+    `/${locale}/fanletter/campaigns`,
+    referralCode,
+  );
   const reportsHref = buildPathWithReferral(
     `/${locale}/fanletter/reports`,
     referralCode,
@@ -1621,6 +1632,7 @@ export function FanletterHomePage({
       ? {
           activate: "계정 상태",
           aiContent: "AI 캐릭터 브이로그",
+          campaignStudio: "캠페인 스튜디오",
           creatorGrowth: "팬 관계 성장",
           feed: "브이로그 피드",
           help: "도움말",
@@ -1634,6 +1646,7 @@ export function FanletterHomePage({
       : {
           activate: "Account status",
           aiContent: "AI character vlogs",
+          campaignStudio: "Campaign studio",
           creatorGrowth: "Fan relationship growth",
           feed: "Vlog feed",
           help: "Help",
@@ -1648,12 +1661,14 @@ export function FanletterHomePage({
     locale === "ko"
       ? {
           activate: "계정",
+          campaigns: "캠페인",
           feed: "피드",
           reports: "리포트",
           studio: "스튜디오",
         }
       : {
           activate: "Account",
+          campaigns: "Campaigns",
           feed: "Feed",
           reports: "Reports",
           studio: "Studio",
@@ -1838,6 +1853,7 @@ export function FanletterHomePage({
               <a href="#creators">{copy.nav.creators}</a>
               <Link href={reportsHref}>{copy.nav.reports}</Link>
               <Link href={studioHref}>{copy.nav.studio}</Link>
+              <Link href={campaignsHref}>{copy.nav.campaigns}</Link>
               <a href="#faq">{copy.nav.faq}</a>
             </nav>
 
@@ -1949,6 +1965,13 @@ export function FanletterHomePage({
                   href={feedHref}
                 >
                   {copy.cta.fan}
+                </Link>
+                <Link
+                  className="inline-flex h-12 items-center gap-2 rounded-full border border-[#44f26e]/45 bg-[#44f26e]/10 px-5 text-sm font-semibold !text-[#baffc7] backdrop-blur-md transition hover:border-[#44f26e] hover:bg-[#44f26e]/18 sm:h-[3.25rem] sm:px-6"
+                  href={campaignsHref}
+                >
+                  <Megaphone className="size-4" />
+                  {copy.cta.campaign}
                 </Link>
               </div>
               <div className="mt-6 hidden max-w-2xl sm:mt-8 sm:block">
@@ -2738,12 +2761,18 @@ export function FanletterHomePage({
             </div>
           </div>
           <div className="sm:hidden">
-            <div className="grid grid-cols-4 gap-2 text-center text-[0.78rem] font-semibold text-black/70">
+            <div className="grid grid-cols-2 gap-2 text-center text-[0.78rem] font-semibold text-black/70">
               <Link
                 className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
                 href={studioHref}
               >
                 {mobileFooterLabels.studio}
+              </Link>
+              <Link
+                className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                href={campaignsHref}
+              >
+                {mobileFooterLabels.campaigns}
               </Link>
               <Link
                 className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
@@ -2785,6 +2814,9 @@ export function FanletterHomePage({
               <div className="mt-4 space-y-2">
                 <Link className="block" href={studioHref}>
                   {footerLabels.studio}
+                </Link>
+                <Link className="block" href={campaignsHref}>
+                  {footerLabels.campaignStudio}
                 </Link>
                 <Link className="block" href={feedHref}>
                   {footerLabels.feed}
