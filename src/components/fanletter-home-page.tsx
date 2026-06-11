@@ -1553,6 +1553,8 @@ export function FanletterHomePage({
     `/${locale}/fanletter/onboarding`,
     referralCode,
   );
+  const founderClubHref = "#founder-club";
+  const topGrowingStarsHref = "#top-growing-ai-stars";
   const creatorHref = onboardingHref;
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
@@ -1691,26 +1693,38 @@ export function FanletterHomePage({
           studio: "Studio",
         };
   const mobileAnnouncementCta = locale === "ko" ? "시작하기" : "Start";
+  const founderClubCtaLabels =
+    locale === "ko"
+      ? {
+          discover: "AI Star 발견하기",
+          founder: "Founder로 참여하기",
+          loop: "성장 루프 보기",
+        }
+      : {
+          discover: "Discover AI Stars",
+          founder: "Join as Founder",
+          loop: "View growth loop",
+        };
   const mobileQuickLinks =
     locale === "ko"
       ? [
+          {
+            body: "AI Star",
+            href: topGrowingStarsHref,
+            Icon: Bot,
+            label: "발견",
+          },
+          {
+            body: "Founder",
+            href: founderClubHref,
+            Icon: Crown,
+            label: "참여",
+          },
           {
             body: "무료 공개",
             href: feedHref,
             Icon: Clapperboard,
             label: "피드",
-          },
-          {
-            body: "1 USDT",
-            href: "#fan-only-paid",
-            Icon: LockKeyhole,
-            label: "팬 전용",
-          },
-          {
-            body: "구매 콘텐츠",
-            href: purchasesHref,
-            Icon: WalletCards,
-            label: "구매함",
           },
           {
             body: "작성 리포트",
@@ -1721,22 +1735,22 @@ export function FanletterHomePage({
         ]
       : [
           {
+            body: "AI Star",
+            href: topGrowingStarsHref,
+            Icon: Bot,
+            label: "Discover",
+          },
+          {
+            body: "Founder",
+            href: founderClubHref,
+            Icon: Crown,
+            label: "Join",
+          },
+          {
             body: "Free public",
             href: feedHref,
             Icon: Clapperboard,
             label: "Feed",
-          },
-          {
-            body: "1 USDT",
-            href: "#fan-only-paid",
-            Icon: LockKeyhole,
-            label: "Fan-only",
-          },
-          {
-            body: "Purchased",
-            href: purchasesHref,
-            Icon: WalletCards,
-            label: "Library",
           },
           {
             body: "Created reports",
@@ -1973,22 +1987,22 @@ export function FanletterHomePage({
               >
                 <Link
                   className="inline-flex h-12 items-center justify-center rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:h-[3.25rem] sm:px-7"
-                  href={creatorHref}
+                  href={topGrowingStarsHref}
                 >
-                  {copy.cta.creator}
+                  {founderClubCtaLabels.discover}
                 </Link>
                 <Link
                   className="inline-flex h-12 items-center justify-center rounded-full border border-white/22 bg-black/34 px-5 text-sm font-semibold !text-white backdrop-blur-md transition hover:border-white/42 sm:h-[3.25rem] sm:px-7"
-                  href={feedHref}
+                  href={founderClubHref}
                 >
-                  {copy.cta.fan}
+                  {founderClubCtaLabels.founder}
                 </Link>
                 <Link
                   className="inline-flex h-12 items-center gap-2 rounded-full border border-[#44f26e]/45 bg-[#44f26e]/10 px-5 text-sm font-semibold !text-[#baffc7] backdrop-blur-md transition hover:border-[#44f26e] hover:bg-[#44f26e]/18 sm:h-[3.25rem] sm:px-6"
-                  href={campaignsHref}
+                  href={founderClubHref}
                 >
                   <Megaphone className="size-4" />
-                  {copy.cta.campaign}
+                  {founderClubCtaLabels.loop}
                 </Link>
               </div>
               <div className="mt-6 hidden max-w-2xl sm:mt-8 sm:block">
@@ -2143,6 +2157,15 @@ export function FanletterHomePage({
         </div>
       </section>
 
+      <FounderClubV2HomeSections
+        locale={locale}
+        creatorUnlock={founderClubCreatorUnlock}
+        memberPortfolio={founderClubMemberPortfolio}
+        scoutShareLoop={founderClubScoutShareLoop}
+        selectedStarId={founderClubSelectedStarId}
+        stars={founderClubStars}
+      />
+
       <section className="border-b border-white/8 bg-[#07100b] px-4 py-12 text-white sm:px-6 sm:py-16 lg:px-8">
         <div className="mx-auto grid max-w-[92rem] gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-center">
           <ScrollReveal className="max-w-4xl">
@@ -2202,15 +2225,6 @@ export function FanletterHomePage({
           </div>
         </div>
       </section>
-
-      <FounderClubV2HomeSections
-        locale={locale}
-        creatorUnlock={founderClubCreatorUnlock}
-        memberPortfolio={founderClubMemberPortfolio}
-        scoutShareLoop={founderClubScoutShareLoop}
-        selectedStarId={founderClubSelectedStarId}
-        stars={founderClubStars}
-      />
 
       <section className="border-b border-white/8 bg-[#f6f8f4] px-4 py-14 text-black sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-[92rem]">

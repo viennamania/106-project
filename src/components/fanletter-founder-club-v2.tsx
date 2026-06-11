@@ -144,7 +144,7 @@ function AIStarPortrait({
   return (
     <div
       aria-label={`${star.name} portrait`}
-      className="relative aspect-square overflow-hidden rounded-lg border border-white/22 shadow-[inset_0_1px_0_rgba(255,255,255,0.34),0_18px_34px_rgba(88,28,135,0.22)]"
+      className="relative aspect-[4/3] overflow-hidden rounded-lg border border-white/22 shadow-[inset_0_1px_0_rgba(255,255,255,0.34),0_18px_34px_rgba(88,28,135,0.22)] sm:aspect-square"
       role="img"
       style={{
         background: `radial-gradient(circle at 30% 18%, rgba(255,255,255,0.9), transparent 18%), radial-gradient(circle at 70% 22%, ${star.accentSecondary}, transparent 22%), linear-gradient(145deg, ${star.accentColor}, #31105f 68%, #12041f)`,
@@ -193,7 +193,7 @@ export function AIStarCard({
   return (
     <article
       className={joinClasses(
-        "group flex h-full flex-col overflow-hidden rounded-lg border bg-[#1a082f] p-3 text-white shadow-[0_24px_70px_rgba(88,28,135,0.24)] ring-1 transition hover:-translate-y-0.5 hover:border-fuchsia-200",
+        "group flex h-full min-w-[82vw] max-w-[22rem] snap-start flex-col overflow-hidden rounded-lg border bg-[#1a082f] p-3 text-white shadow-[0_24px_70px_rgba(88,28,135,0.24)] ring-1 transition hover:-translate-y-0.5 hover:border-fuchsia-200 md:min-w-0 md:max-w-none",
         isSelected
           ? "border-cyan-200 ring-cyan-200/70"
           : "border-fuchsia-300/50 ring-fuchsia-400/22",
@@ -282,7 +282,7 @@ export function TopGrowingStars({
         </div>
       </div>
 
-      <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="-mx-4 mt-6 flex snap-x gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-4">
         {stars.map((star) => (
           <AIStarCard
             copy={copy}
@@ -980,7 +980,7 @@ export function FounderClubV2HomeSections({
 
   return (
     <section
-      className="border-b border-violet-200 bg-[#f8f7ff] px-4 py-16 text-black sm:px-6 sm:py-20 lg:px-8"
+      className="border-b border-violet-200 bg-[#f8f7ff] px-4 py-10 text-black sm:px-6 sm:py-20 lg:px-8"
       id="founder-club"
     >
       <div className="mx-auto max-w-[92rem]">

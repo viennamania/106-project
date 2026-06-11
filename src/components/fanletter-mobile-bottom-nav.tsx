@@ -4,9 +4,9 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
   Clapperboard,
+  Crown,
   House,
   LayoutDashboard,
-  Newspaper,
   Plus,
 } from "lucide-react";
 import { useSyncExternalStore, type ComponentType } from "react";
@@ -20,7 +20,7 @@ type FanletterNavItem = {
   activePaths: string[];
   href: string;
   icon: ComponentType<{ className?: string }>;
-  key: "home" | "feed" | "create" | "reports" | "studio";
+  key: "home" | "feed" | "create" | "founder" | "studio";
   label: string;
   primary?: boolean;
 };
@@ -106,17 +106,17 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       ? {
           create: "만들기",
           feed: "피드",
+          founder: "Founder",
           home: "홈",
           label: "AIAVpark 주요 메뉴",
-          reports: "리포트",
           studio: "스튜디오",
         }
       : {
           create: "Create",
           feed: "Feed",
+          founder: "Founder",
           home: "Home",
           label: "AIAVpark navigation",
-          reports: "Reports",
           studio: "Studio",
         };
   const buildHref = (path: string) => buildPathWithReferral(path, referralCode);
@@ -152,11 +152,11 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       primary: true,
     },
     {
-      activePaths: [`${basePath}/reports`],
-      href: buildHref(`${basePath}/reports`),
-      icon: Newspaper,
-      key: "reports",
-      label: copy.reports,
+      activePaths: [],
+      href: buildHref(`${basePath}#founder-club`),
+      icon: Crown,
+      key: "founder",
+      label: copy.founder,
     },
     {
       activePaths: [`${basePath}/studio`, `${basePath}/channels`],
