@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { FanletterStarDetailPage } from "@/components/fanletter-star-detail-page";
 import {
   getFanletterFounderClubHomeStars,
+  getFanletterFounderClubStarScoutShareLoop,
   getFanletterFounderClubStarDetail,
 } from "@/lib/fanletter-founder-club-service";
 import {
@@ -11,6 +12,7 @@ import {
   readFanletterReferralCode,
 } from "@/lib/fanletter-routing";
 import { hasLocale, type Locale } from "@/lib/i18n";
+import { readMemberServerSession } from "@/lib/member-server-session";
 import {
   fanletterV2Mock,
   getFanletterV2LocalizedText,
@@ -152,14 +154,24 @@ export default async function FanletterStarLandingPage({
 
   const { relatedStars, star } = await resolveFanletterStarDetail(starId);
   const referralCode = readFanletterReferralCode(query.ref);
+  const memberSession = await readMemberServerSession();
 
   if (star) {
+    const viewerScoutShareLoop =
+      await getFanletterFounderClubStarScoutShareLoop({
+        email: memberSession?.email ?? null,
+        locale: lang,
+        starId: star.id,
+      });
+
     return (
       <FanletterStarDetailPage
+        isAuthenticated={Boolean(memberSession?.email)}
         inboundReferralCode={referralCode}
         locale={lang}
         relatedStars={relatedStars}
         star={star}
+        viewerScoutShareLoop={viewerScoutShareLoop}
       />
     );
   }

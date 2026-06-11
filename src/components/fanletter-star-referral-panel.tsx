@@ -139,7 +139,9 @@ export function FanletterStarReferralPanel({
   joinHref,
   loop,
 }: FanletterStarReferralPanelProps) {
-  const [isGenerated, setIsGenerated] = useState(Boolean(inboundReferralCode));
+  const [isGenerated, setIsGenerated] = useState(
+    Boolean(inboundReferralCode) || Boolean(loop.isLiveData),
+  );
   const visibleReferralCode = inboundReferralCode ?? loop.referralCode;
   const visibleShareLink = useMemo(() => {
     if (!inboundReferralCode) {
@@ -155,6 +157,24 @@ export function FanletterStarReferralPanel({
       return loop.shareLink;
     }
   }, [inboundReferralCode, loop.shareLink]);
+  const platformLinks = useMemo(() => {
+    if (!inboundReferralCode && loop.sharePlatformLinks?.length) {
+      return loop.sharePlatformLinks.map((platformLink) => ({
+        href: platformLink.href,
+        label: platformLink.label,
+      }));
+    }
+
+    return loop.sharePlatforms.map((platform) => ({
+      href: buildPlatformHref(platform, visibleShareLink),
+      label: platform,
+    }));
+  }, [
+    inboundReferralCode,
+    loop.sharePlatformLinks,
+    loop.sharePlatforms,
+    visibleShareLink,
+  ]);
   const displaySourceMember = getDisplayMemberName(loop.sourceMember, copy);
   const displayTargetMember = getDisplayMemberName(loop.targetMember, copy);
   const displayUniverse = getDisplayUniverseName(loop.selectedUniverse, copy);
@@ -272,15 +292,15 @@ export function FanletterStarReferralPanel({
                 copyLabel={copy.actions.copyLink}
                 text={visibleShareLink}
               />
-              {loop.sharePlatforms.map((platform) => (
+              {platformLinks.map((platformLink) => (
                 <a
                   className="inline-flex h-11 items-center justify-center rounded-full border border-black/8 bg-white px-4 text-sm font-semibold text-black/68 transition hover:border-[#7c3aed]/40 hover:text-[#5b21b6]"
-                  href={buildPlatformHref(platform, visibleShareLink)}
-                  key={platform}
+                  href={platformLink.href}
+                  key={platformLink.label}
                   rel="noreferrer"
                   target="_blank"
                 >
-                  {platform}
+                  {platformLink.label}
                 </a>
               ))}
             </div>

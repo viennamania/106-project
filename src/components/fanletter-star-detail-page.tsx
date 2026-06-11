@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -24,6 +25,16 @@ import {
   type ScoutShareLoopData,
 } from "@/mock/fanletterV2";
 import type { Locale } from "@/lib/i18n";
+
+type StarDetailViewerState = "founder" | "guest" | "member";
+
+type StarPrimaryAction = {
+  helper: string;
+  href: string;
+  label: string;
+  status: string;
+  variant: "connect" | "join" | "share";
+};
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US").format(
@@ -125,15 +136,38 @@ function buildJoinHref({
   star,
 }: {
   locale: Locale;
-  referralCode: string;
+  referralCode?: string | null;
   star: AIStar;
 }) {
   const params = new URLSearchParams({
-    ref: referralCode,
     star: star.id,
   });
 
+  if (referralCode) {
+    params.set("ref", referralCode);
+  }
+
   return `/${locale}/fanletter/onboarding?${params.toString()}`;
+}
+
+function buildConnectHref({
+  locale,
+  referralCode,
+  returnToHref,
+}: {
+  locale: Locale;
+  referralCode?: string | null;
+  returnToHref: string;
+}) {
+  const params = new URLSearchParams({
+    returnTo: returnToHref,
+  });
+
+  if (referralCode) {
+    params.set("ref", referralCode);
+  }
+
+  return `/${locale}/fanletter/connect?${params.toString()}`;
 }
 
 function buildMockScoutLoop({
@@ -159,6 +193,92 @@ function buildMockScoutLoop({
   };
 }
 
+function getStarDetailViewerState({
+  isAuthenticated,
+  viewerScoutShareLoop,
+}: {
+  isAuthenticated: boolean;
+  viewerScoutShareLoop?: ScoutShareLoopData | null;
+}): StarDetailViewerState {
+  if (viewerScoutShareLoop) {
+    return "founder";
+  }
+
+  return isAuthenticated ? "member" : "guest";
+}
+
+function getPrimaryAction({
+  connectHref,
+  copy,
+  joinHref,
+  viewerState,
+}: {
+  connectHref: string;
+  copy: ReturnType<typeof getFanletterV2Copy>;
+  joinHref: string;
+  viewerState: StarDetailViewerState;
+}): StarPrimaryAction {
+  const isKorean = isKoreanCopy(copy);
+
+  if (viewerState === "founder") {
+    return {
+      helper: isKorean
+        ? "이미 이 AI 스타의 파운더입니다. 내 링크로 새 파운더를 초대하세요."
+        : "You are already a Founder for this AI Star. Invite new Founders with your link.",
+      href: "#referral-builder",
+      label: isKorean ? "내 추천 링크 공유" : "Share my Founder link",
+      status: isKorean ? "파운더 인증됨" : "Founder active",
+      variant: "share",
+    };
+  }
+
+  if (viewerState === "member") {
+    return {
+      helper: isKorean
+        ? "계정은 연결되어 있습니다. 이 AI 스타 유니버스에 파운더로 참여하세요."
+        : "Your account is connected. Join this AI Star universe as a Founder.",
+      href: joinHref,
+      label: copy.actions.joinAsFounder,
+      status: isKorean ? "파운더 참여 가능" : "Ready to join",
+      variant: "join",
+    };
+  }
+
+  return {
+    helper: isKorean
+      ? "계정을 연결하면 이 AI 스타의 파운더 참여와 추천 보상을 이어갈 수 있습니다."
+      : "Connect your account to join this AI Star and keep referral attribution.",
+    href: connectHref,
+    label: isKorean ? "계정 연결하고 참여" : "Connect to join",
+    status: isKorean ? "계정 연결 필요" : "Connect account",
+    variant: "connect",
+  };
+}
+
+function StarActionLink({
+  action,
+  className,
+  children,
+}: {
+  action: StarPrimaryAction;
+  children?: ReactNode;
+  className: string;
+}) {
+  if (action.href.startsWith("#")) {
+    return (
+      <a className={className} href={action.href}>
+        {children ?? action.label}
+      </a>
+    );
+  }
+
+  return (
+    <Link className={className} href={action.href}>
+      {children ?? action.label}
+    </Link>
+  );
+}
+
 function MetricTile({
   label,
   value,
@@ -179,14 +299,14 @@ function MetricTile({
 }
 
 function StarFounderMobilePanel({
+  action,
   copy,
-  joinHref,
   loop,
   referralCode,
   star,
 }: {
+  action: StarPrimaryAction;
   copy: ReturnType<typeof getFanletterV2Copy>;
-  joinHref: string;
   loop: ScoutShareLoopData;
   referralCode: string;
   star: AIStar;
@@ -293,7 +413,7 @@ function StarFounderMobilePanel({
       <div className="mt-3 rounded-lg border border-black/8 bg-[#fafafa] px-3 py-2">
         <div className="flex items-center justify-between gap-3">
           <span className="text-[0.68rem] font-semibold text-black/48">
-            {copy.labels.referralCode}
+            {action.status}
           </span>
           <span className="truncate font-mono text-sm font-semibold text-[#5b21b6]">
             {referralCode}
@@ -302,13 +422,13 @@ function StarFounderMobilePanel({
       </div>
 
       <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
-        <Link
+        <StarActionLink
+          action={action}
           className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)]"
-          href={joinHref}
         >
-          {copy.actions.joinAsFounder}
+          {action.label}
           <ArrowRight className="size-4" />
-        </Link>
+        </StarActionLink>
         <a
           aria-label={copy.actions.createMockReferral}
           className="inline-flex size-12 items-center justify-center rounded-full border border-violet-200 bg-violet-50 text-[#6d28d9]"
@@ -479,27 +599,51 @@ function SpawnedStarsSection({
 }
 
 export function FanletterStarDetailPage({
+  isAuthenticated = false,
   inboundReferralCode,
   locale,
   relatedStars,
   star,
+  viewerScoutShareLoop,
 }: {
+  isAuthenticated?: boolean;
   inboundReferralCode?: string | null;
   locale: Locale;
   relatedStars: AIStar[];
   star: AIStar;
+  viewerScoutShareLoop?: ScoutShareLoopData | null;
 }) {
   const copy = getFanletterV2Copy(locale);
-  const referralCode = inboundReferralCode ?? buildReferralCode(star);
-  const loop = buildMockScoutLoop({
+  const viewerState = getStarDetailViewerState({
+    isAuthenticated,
+    viewerScoutShareLoop,
+  });
+  const fallbackReferralCode = inboundReferralCode ?? buildReferralCode(star);
+  const fallbackLoop = buildMockScoutLoop({
     locale,
-    referralCode,
+    referralCode: fallbackReferralCode,
     star,
   });
+  const loop = viewerScoutShareLoop ?? fallbackLoop;
+  const effectiveInboundReferralCode = viewerScoutShareLoop
+    ? null
+    : inboundReferralCode;
+  const referralCode = effectiveInboundReferralCode ?? loop.referralCode;
   const joinHref = buildJoinHref({
     locale,
     referralCode,
     star,
+  });
+  const connectHref = buildConnectHref({
+    locale,
+    referralCode,
+    returnToHref: joinHref,
+  });
+  const primaryAction = getPrimaryAction({
+    connectHref,
+    copy,
+    joinHref,
+    viewerState,
   });
   const isKorean = isKoreanCopy(copy);
   const displayStarName = getDisplayStarName(star.name, copy);
@@ -546,11 +690,26 @@ export function FanletterStarDetailPage({
               <p className="mt-5 hidden max-w-2xl text-base font-medium leading-7 text-black/64 sm:block sm:text-lg">
                 {copy.starDetail.heroBody}
               </p>
+              <div className="mt-4 hidden max-w-2xl rounded-lg border border-violet-200 bg-white/80 p-3 shadow-[0_14px_34px_rgba(88,28,135,0.08)] sm:block">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-[#5b21b6]">
+                      {primaryAction.status}
+                    </p>
+                    <p className="mt-1 text-sm font-medium leading-5 text-black/58">
+                      {primaryAction.helper}
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-black/8 bg-[#fafafa] px-3 py-1 font-mono text-xs font-semibold text-[#5b21b6]">
+                    {referralCode}
+                  </span>
+                </div>
+              </div>
 
               <div className="mt-5 sm:hidden">
                 <StarFounderMobilePanel
+                  action={primaryAction}
                   copy={copy}
-                  joinHref={joinHref}
                   loop={loop}
                   referralCode={referralCode}
                   star={star}
@@ -573,19 +732,21 @@ export function FanletterStarDetailPage({
               </div>
 
               <div className="mt-6 hidden flex-col gap-2 sm:flex sm:flex-row">
-                <Link
+                <StarActionLink
+                  action={primaryAction}
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9]"
-                  href={joinHref}
                 >
-                  {copy.actions.joinAsFounder}
+                  {primaryAction.label}
                   <ArrowRight className="size-4" />
-                </Link>
-                <a
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-violet-200 bg-white px-5 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-50"
-                  href="#referral-builder"
-                >
-                  {copy.actions.createMockReferral}
-                </a>
+                </StarActionLink>
+                {primaryAction.variant !== "share" ? (
+                  <a
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-violet-200 bg-white px-5 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-50"
+                    href="#referral-builder"
+                  >
+                    {copy.actions.createMockReferral}
+                  </a>
+                ) : null}
               </div>
             </div>
 
@@ -600,7 +761,7 @@ export function FanletterStarDetailPage({
         <div className="mx-auto grid max-w-[92rem] gap-4 xl:grid-cols-[1.05fr_0.95fr]">
           <FanletterStarReferralPanel
             copy={copy}
-            inboundReferralCode={inboundReferralCode}
+            inboundReferralCode={effectiveInboundReferralCode}
             joinHref={joinHref}
             loop={loop}
           />

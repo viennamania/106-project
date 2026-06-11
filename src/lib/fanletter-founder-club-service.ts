@@ -1031,6 +1031,93 @@ export async function getFanletterFounderClubScoutShareLoop({
   };
 }
 
+export async function getFanletterFounderClubStarScoutShareLoop({
+  email,
+  locale,
+  starId: starIdInput,
+}: {
+  email?: string | null;
+  locale: Locale;
+  starId: string;
+}): Promise<ScoutShareLoopData | null> {
+  const memberEmail = normalizeEmail(email ?? "");
+  const starId = normalizeFanletterStarId(starIdInput);
+
+  if (!memberEmail || !starId) {
+    return null;
+  }
+
+  const [membersCollection, membershipsCollection, starsCollection] =
+    await Promise.all([
+      getMembersCollection(),
+      getFanletterStarFounderMembershipsCollection(),
+      getFanletterStarsCollection(),
+    ]);
+  const [member, membership, star] = await Promise.all([
+    membersCollection.findOne(
+      { email: memberEmail },
+      { projection: { email: 1, publicProfile: 1, referralCode: 1 } },
+    ),
+    membershipsCollection.findOne({ memberEmail, starId }),
+    starsCollection.findOne({
+      starId,
+      status: { $ne: "archived" },
+    }),
+  ]);
+
+  if (!member || !membership || !star) {
+    return null;
+  }
+
+  const attribution = await getOrCreateFanletterStarReferralCode({
+    memberEmail,
+    memberReferralCode: member.referralCode,
+    starId,
+  });
+
+  if (!attribution) {
+    return null;
+  }
+
+  const sourceMember = compactText(
+    member.publicProfile?.displayName,
+    member.email.split("@")[0] || "Member",
+  );
+  const starName = compactText(star.characterName, star.displayName);
+  const selectedUniverse = getUniverseName(star);
+
+  return {
+    isLiveData: true,
+    referralCode: attribution.code,
+    rewards: {
+      cp: SCOUT_SIGNUP_CP_REWARD,
+      creatorProgressPercent: SCOUT_SIGNUP_CREATOR_PROGRESS_REWARD,
+      influenceScore: SCOUT_SIGNUP_INFLUENCE_REWARD,
+    },
+    selectedUniverse,
+    shareLink: buildScoutShareLink({
+      code: attribution.code,
+      locale,
+      starId,
+    }),
+    sharePlatformLinks: SCOUT_SHARE_PLATFORMS.map((platform) => ({
+      href: buildScoutShareTrackingHref({
+        code: attribution.code,
+        locale,
+        platform,
+        starId,
+      }),
+      label: platform,
+      platform,
+    })),
+    sharePlatforms: SCOUT_SHARE_PLATFORMS,
+    sourceMember,
+    starId,
+    starName,
+    targetMember: "New member",
+  };
+}
+
 export async function getFanletterFounderClubMemberPortfolio(
   email?: string | null,
 ): Promise<MemberPortfolio | null> {
