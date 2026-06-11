@@ -534,6 +534,35 @@ export async function applyFanletterStarReferralForCompletedMember(
     return false;
   }
 
+  return ensureFanletterStarFounderMembershipForCompletedMember({
+    attribution,
+    member,
+    starId: targetStarId,
+    updateMemberAttribution: true,
+  });
+}
+
+export async function ensureFanletterStarFounderMembershipForCompletedMember({
+  attribution = null,
+  member,
+  starId,
+  updateMemberAttribution = false,
+}: {
+  attribution?: FanletterStarReferralAttribution | null;
+  member: MemberDocument;
+  starId?: string | null;
+  updateMemberAttribution?: boolean;
+}) {
+  if (member.status !== "completed") {
+    return false;
+  }
+
+  const targetStarId = attribution?.starId ?? normalizeFanletterStarId(starId);
+
+  if (!targetStarId || attribution?.memberEmail === member.email) {
+    return false;
+  }
+
   const now = new Date();
   const joinedAt = member.registrationCompletedAt ?? now;
   const targetMemberReferralCode = normalizeReferralCode(member.referralCode);
@@ -590,8 +619,9 @@ export async function applyFanletterStarReferralForCompletedMember(
     },
     { upsert: true },
   );
+  const createdTargetMembership = targetMembershipResult.upsertedCount > 0;
 
-  if (attribution) {
+  if (attribution && createdTargetMembership) {
     await referralCodesCollection.updateOne(
       { code: attribution.code, starId: attribution.starId },
       {
@@ -603,7 +633,7 @@ export async function applyFanletterStarReferralForCompletedMember(
     );
   }
 
-  if (targetMembershipResult.upsertedCount > 0) {
+  if (createdTargetMembership) {
     await starsCollection.updateOne(
       { starId: targetStarId },
       [
@@ -621,6 +651,10 @@ export async function applyFanletterStarReferralForCompletedMember(
   }
 
   if (!attribution) {
+    if (!updateMemberAttribution) {
+      return true;
+    }
+
     await membersCollection.updateOne(
       { email: member.email },
       {
@@ -638,106 +672,114 @@ export async function applyFanletterStarReferralForCompletedMember(
     return true;
   }
 
-  const edgeId = `star-referral:${attribution.starId}:${member.email}`;
-  const edgeResult = await referralEdgesCollection.updateOne(
-    {
-      edgeId,
-    },
-    {
-      $setOnInsert: {
-        createdAt: joinedAt,
+  if (createdTargetMembership) {
+    const edgeId = `star-referral:${attribution.starId}:${member.email}`;
+    const edgeResult = await referralEdgesCollection.updateOne(
+      {
         edgeId,
-        referralCode: attribution.code,
-        shareId: null,
-        source: "member_signup",
-        sourceMemberEmail: attribution.memberEmail,
-        sourceMemberReferralCode: attribution.memberReferralCode,
-        starId: attribution.starId,
-        targetMemberEmail: member.email,
-        targetMemberReferralCode,
-        updatedAt: now,
-      },
-    },
-    { upsert: true },
-  );
-  const ledgerSourceId = `star-referral-reward:${attribution.starId}:${attribution.memberEmail}:${member.email}`;
-  const ledgerResult = await influenceLedgerCollection.updateOne(
-    {
-      sourceId: ledgerSourceId,
-    },
-    {
-      $setOnInsert: {
-        cpDelta: SCOUT_SIGNUP_CP_REWARD,
-        createdAt: now,
-        creatorProgressDelta: SCOUT_SIGNUP_CREATOR_PROGRESS_REWARD,
-        influenceDelta: SCOUT_SIGNUP_INFLUENCE_REWARD,
-        memo: "AI Star referral signup reward",
-        recipientMemberEmail: attribution.memberEmail,
-        source: "member_signup",
-        sourceId: ledgerSourceId,
-        sourceMemberEmail: attribution.memberEmail,
-        starId: attribution.starId,
-        targetMemberEmail: member.email,
-      },
-    },
-    { upsert: true },
-  );
-
-  if (edgeResult.upsertedCount > 0 && ledgerResult.upsertedCount > 0) {
-    await membershipsCollection.updateOne(
-      {
-        memberEmail: attribution.memberEmail,
-        starId: attribution.starId,
       },
       {
-        $inc: {
-          cpBalance: SCOUT_SIGNUP_CP_REWARD,
-          creatorProgressPercent: SCOUT_SIGNUP_CREATOR_PROGRESS_REWARD,
-          influenceScore: SCOUT_SIGNUP_INFLUENCE_REWARD,
-        },
-        $set: {
-          updatedAt: now,
-        },
         $setOnInsert: {
-          createdAt: now,
-          joinedAt: now,
-          joinedViaCode: null,
-          joinedViaMemberEmail: null,
-          joinedViaMemberReferralCode: null,
-          joinedViaShareId: null,
-          memberReferralCode: attribution.memberReferralCode,
-          role: "founder",
+          createdAt: joinedAt,
+          edgeId,
+          referralCode: attribution.code,
+          shareId: null,
           source: "member_signup",
+          sourceMemberEmail: attribution.memberEmail,
+          sourceMemberReferralCode: attribution.memberReferralCode,
+          starId: attribution.starId,
+          targetMemberEmail: member.email,
+          targetMemberReferralCode,
+          updatedAt: now,
         },
       },
       { upsert: true },
     );
-    await membershipsCollection.updateOne(
+    const ledgerSourceId = `star-referral-reward:${attribution.starId}:${attribution.memberEmail}:${member.email}`;
+    const ledgerResult = await influenceLedgerCollection.updateOne(
       {
-        memberEmail: attribution.memberEmail,
-        starId: attribution.starId,
+        sourceId: ledgerSourceId,
       },
       {
-        $min: {
-          creatorProgressPercent: 100,
+        $setOnInsert: {
+          cpDelta: SCOUT_SIGNUP_CP_REWARD,
+          createdAt: now,
+          creatorProgressDelta: SCOUT_SIGNUP_CREATOR_PROGRESS_REWARD,
+          influenceDelta: SCOUT_SIGNUP_INFLUENCE_REWARD,
+          memo: "AI Star referral signup reward",
+          recipientMemberEmail: attribution.memberEmail,
+          source: "member_signup",
+          sourceId: ledgerSourceId,
+          sourceMemberEmail: attribution.memberEmail,
+          starId: attribution.starId,
+          targetMemberEmail: member.email,
         },
       },
+      { upsert: true },
     );
+
+    if (edgeResult.upsertedCount > 0 && ledgerResult.upsertedCount > 0) {
+      await membershipsCollection.updateOne(
+        {
+          memberEmail: attribution.memberEmail,
+          starId: attribution.starId,
+        },
+        {
+          $inc: {
+            cpBalance: SCOUT_SIGNUP_CP_REWARD,
+            creatorProgressPercent: SCOUT_SIGNUP_CREATOR_PROGRESS_REWARD,
+            influenceScore: SCOUT_SIGNUP_INFLUENCE_REWARD,
+          },
+          $set: {
+            updatedAt: now,
+          },
+          $setOnInsert: {
+            createdAt: now,
+            joinedAt: now,
+            joinedViaCode: null,
+            joinedViaMemberEmail: null,
+            joinedViaMemberReferralCode: null,
+            joinedViaShareId: null,
+            memberReferralCode: attribution.memberReferralCode,
+            role: "founder",
+            source: "member_signup",
+          },
+        },
+        { upsert: true },
+      );
+      await membershipsCollection.updateOne(
+        {
+          memberEmail: attribution.memberEmail,
+          starId: attribution.starId,
+        },
+        {
+          $min: {
+            creatorProgressPercent: 100,
+          },
+        },
+      );
+    }
   }
 
   await membersCollection.updateOne(
     { email: member.email },
-    {
-      $set: {
-        fanletterStarReferralAppliedAt: now,
-        fanletterStarReferralCode: attribution.code,
-        fanletterStarReferralSourceMemberEmail: attribution.memberEmail,
-        fanletterStarReferralSourceMemberReferralCode:
-          attribution.memberReferralCode,
-        fanletterStarReferralStarId: attribution.starId,
-        updatedAt: now,
-      },
-    },
+    updateMemberAttribution
+      ? {
+          $set: {
+            fanletterStarReferralAppliedAt: now,
+            fanletterStarReferralCode: attribution.code,
+            fanletterStarReferralSourceMemberEmail: attribution.memberEmail,
+            fanletterStarReferralSourceMemberReferralCode:
+              attribution.memberReferralCode,
+            fanletterStarReferralStarId: attribution.starId,
+            updatedAt: now,
+          },
+        }
+      : {
+          $set: {
+            updatedAt: now,
+          },
+        },
   );
 
   return true;

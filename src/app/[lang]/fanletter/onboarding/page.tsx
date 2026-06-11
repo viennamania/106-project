@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterOnboardingPage } from "@/components/fanletter-subpages";
-import { getFanletterFounderClubStarDetail } from "@/lib/fanletter-founder-club-service";
+import {
+  getFanletterFounderClubStarDetail,
+  getFanletterFounderClubStarScoutShareLoop,
+} from "@/lib/fanletter-founder-club-service";
 import {
   buildFanletterOgImagePath,
   FANLETTER_OG_IMAGE_SIZE,
@@ -15,6 +18,7 @@ import {
 } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
+import { readMemberServerSession } from "@/lib/member-server-session";
 import { getFanletterV2MockStar } from "@/mock/fanletterV2";
 
 type FanletterOnboardingSearchParams = {
@@ -103,6 +107,14 @@ export default async function LocalizedFanletterOnboardingPage({
   const founderClubStar =
     getFanletterV2MockStar(founderClubStarId) ??
     (await getFanletterFounderClubStarDetail(founderClubStarId));
+  const memberSession = await readMemberServerSession();
+  const viewerScoutShareLoop = founderClubStar
+    ? await getFanletterFounderClubStarScoutShareLoop({
+        email: memberSession?.email ?? null,
+        locale,
+        starId: founderClubStar.id,
+      })
+    : null;
 
   return (
     <FanletterOnboardingPage
@@ -110,6 +122,7 @@ export default async function LocalizedFanletterOnboardingPage({
       locale={locale}
       referralCode={readFanletterReferralCode(query.ref)}
       returnToHref={normalizeFanletterReturnToPath(query.returnTo, locale)}
+      viewerScoutShareLoop={viewerScoutShareLoop}
     />
   );
 }

@@ -4,7 +4,7 @@ import { ArrowRight, BadgeCheck, Bot, UserRound } from "lucide-react";
 
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import type { Locale } from "@/lib/i18n";
-import type { AIStar } from "@/mock/fanletterV2";
+import type { AIStar, ScoutShareLoopData } from "@/mock/fanletterV2";
 
 function getCopy(locale: Locale) {
   if (locale === "ko") {
@@ -12,6 +12,9 @@ function getCopy(locale: Locale) {
       aiStarBadge: "AI 스타",
       body:
         "이 가입은 아래 AI 스타 유니버스의 파운더 참여로 귀속됩니다. 실결제 없이 추천 흐름만 미리 보여줍니다.",
+      completedBody:
+        "이미 이 AI 스타 유니버스의 Founder입니다. 내 추천 링크로 새 Founder를 초대하면 CP와 영향력이 누적됩니다.",
+      completedTitle: "Founder 가입 완료",
       founderBadge: "파운더",
       founderClubLabel: "파운더 클럽 2.0",
       growth: "성장률",
@@ -19,6 +22,7 @@ function getCopy(locale: Locale) {
       memberLabel: "신규 회원",
       openSlots: "잔여 슬롯",
       referralCode: "추천 코드",
+      shareCta: "내 추천 링크 공유",
       starScore: "스타 점수",
       title: "파운더 참여 귀속",
       universeCta: "유니버스 보기",
@@ -29,6 +33,9 @@ function getCopy(locale: Locale) {
     aiStarBadge: "AI STAR",
     body:
       "This signup is attributed to the AI Star Universe below as a Founder join. It previews the mock referral flow without real payment.",
+    completedBody:
+      "You are already a Founder in this AI Star Universe. Invite new Founders with your link to grow CP and influence.",
+    completedTitle: "Founder join complete",
     founderBadge: "FOUNDER",
     founderClubLabel: "Founder Club 2.0",
     growth: "Growth",
@@ -36,6 +43,7 @@ function getCopy(locale: Locale) {
     memberLabel: "New Member",
     openSlots: "Open Slots",
     referralCode: "Referral Code",
+    shareCta: "Share my Founder link",
     starScore: "Star Score",
     title: "Founder join attribution",
     universeCta: "View Universe",
@@ -61,13 +69,21 @@ export function FanletterFounderAttributionCard({
   locale,
   referralCode,
   star,
+  viewerScoutShareLoop = null,
 }: {
   locale: Locale;
   referralCode: string | null;
   star: AIStar;
+  viewerScoutShareLoop?: ScoutShareLoopData | null;
 }) {
   const copy = getCopy(locale);
   const universeName = getDisplayUniverseName(star.universeName, locale);
+  const isFounder = Boolean(viewerScoutShareLoop);
+  const visibleReferralCode =
+    viewerScoutShareLoop?.referralCode ?? referralCode ?? null;
+  const universeHref = `/${locale}/fanletter/${star.id}${
+    visibleReferralCode ? `?ref=${encodeURIComponent(visibleReferralCode)}` : ""
+  }`;
 
   return (
     <article className="mx-auto mb-8 max-w-6xl overflow-hidden rounded-lg border border-violet-200 bg-white shadow-[0_24px_70px_rgba(88,28,135,0.14)]">
@@ -149,10 +165,10 @@ export function FanletterFounderAttributionCard({
                 {copy.founderClubLabel}
               </p>
               <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
-                {copy.title}
+                {isFounder ? copy.completedTitle : copy.title}
               </h2>
               <p className="mt-2 text-sm font-medium leading-6 text-black/62">
-                {copy.body}
+                {isFounder ? copy.completedBody : copy.body}
               </p>
             </div>
           </div>
@@ -187,24 +203,39 @@ export function FanletterFounderAttributionCard({
             </div>
           </div>
 
-          {referralCode ? (
+          {visibleReferralCode ? (
             <div className="mt-4 rounded-lg border border-black/8 bg-[#f6f8f4] p-3">
               <p className="text-xs font-semibold uppercase text-black/48">
                 {copy.referralCode}
               </p>
               <p className="mt-1 font-mono text-sm font-semibold text-[#5b21b6]">
-                {referralCode}
+                {visibleReferralCode}
               </p>
+              {viewerScoutShareLoop?.shareLink ? (
+                <p className="mt-2 break-all font-mono text-[0.68rem] font-semibold leading-4 text-black/48">
+                  {viewerScoutShareLoop.shareLink}
+                </p>
+              ) : null}
             </div>
           ) : null}
 
-          <Link
-            className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(124,58,237,0.18)] transition hover:bg-[#6d28d9]"
-            href={`/${locale}/fanletter/${star.id}${referralCode ? `?ref=${encodeURIComponent(referralCode)}` : ""}`}
-          >
-            {copy.universeCta}
-            <ArrowRight className="size-4" />
-          </Link>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+            <Link
+              className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(124,58,237,0.18)] transition hover:bg-[#6d28d9]"
+              href={isFounder ? `${universeHref}#referral-builder` : universeHref}
+            >
+              {isFounder ? copy.shareCta : copy.universeCta}
+              <ArrowRight className="size-4" />
+            </Link>
+            {isFounder ? (
+              <Link
+                className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-100"
+                href={universeHref}
+              >
+                {copy.universeCta}
+              </Link>
+            ) : null}
+          </div>
         </div>
       </div>
     </article>

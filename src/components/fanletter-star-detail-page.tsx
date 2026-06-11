@@ -210,12 +210,10 @@ function getStarDetailViewerState({
 function getPrimaryAction({
   connectHref,
   copy,
-  joinHref,
   viewerState,
 }: {
   connectHref: string;
   copy: ReturnType<typeof getFanletterV2Copy>;
-  joinHref: string;
   viewerState: StarDetailViewerState;
 }): StarPrimaryAction {
   const isKorean = isKoreanCopy(copy);
@@ -235,12 +233,12 @@ function getPrimaryAction({
   if (viewerState === "member") {
     return {
       helper: isKorean
-        ? "계정은 연결되어 있습니다. 이 AI 스타 유니버스에 파운더로 참여하세요."
-        : "Your account is connected. Join this AI Star universe as a Founder.",
-      href: joinHref,
-      label: copy.actions.joinAsFounder,
-      status: isKorean ? "파운더 참여 가능" : "Ready to join",
-      variant: "join",
+        ? "계정은 연결되어 있습니다. Founder 상태를 확인하면 이 AI 스타 유니버스 참여가 완료됩니다."
+        : "Your account is connected. Confirm Founder status to complete this AI Star universe join.",
+      href: connectHref,
+      label: isKorean ? "Founder 상태 확인" : "Confirm Founder status",
+      status: isKorean ? "계정 연결됨" : "Account connected",
+      variant: "connect",
     };
   }
 
@@ -642,7 +640,6 @@ export function FanletterStarDetailPage({
   const primaryAction = getPrimaryAction({
     connectHref,
     copy,
-    joinHref,
     viewerState,
   });
   const isKorean = isKoreanCopy(copy);
@@ -762,8 +759,10 @@ export function FanletterStarDetailPage({
           <FanletterStarReferralPanel
             copy={copy}
             inboundReferralCode={effectiveInboundReferralCode}
-            joinHref={joinHref}
+            joinHref={primaryAction.href}
             loop={loop}
+            primaryActionHref={primaryAction.href}
+            primaryActionLabel={primaryAction.label}
           />
           <div className="grid gap-4">
             <HumanFounderSlots copy={copy} star={star} />

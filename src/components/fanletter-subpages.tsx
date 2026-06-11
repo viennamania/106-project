@@ -86,7 +86,7 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { cn } from "@/lib/utils";
-import type { AIStar } from "@/mock/fanletterV2";
+import type { AIStar, ScoutShareLoopData } from "@/mock/fanletterV2";
 
 type FanletterSubpageCopy = {
   actions: {
@@ -10212,11 +10212,13 @@ export function FanletterOnboardingPage({
   locale,
   referralCode,
   returnToHref = null,
+  viewerScoutShareLoop = null,
 }: {
   founderClubStar?: AIStar | null;
   locale: Locale;
   referralCode: string | null;
   returnToHref?: string | null;
+  viewerScoutShareLoop?: ScoutShareLoopData | null;
 }) {
   const founderClubStarId = founderClubStar?.id ?? null;
   const onboardingBaseHref = buildPathWithReferral(
@@ -10445,6 +10447,7 @@ export function FanletterOnboardingPage({
             locale={locale}
             referralCode={referralCode}
             star={founderClubStar}
+            viewerScoutShareLoop={viewerScoutShareLoop}
           />
         ) : null}
 

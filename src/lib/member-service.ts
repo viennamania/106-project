@@ -59,6 +59,7 @@ import { withMemberServiceSuspensionStatus } from "@/lib/member-suspension";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import {
   applyFanletterStarReferralForCompletedMember,
+  ensureFanletterStarFounderMembershipForCompletedMember,
   resolveFanletterStarReferralCode,
 } from "@/lib/fanletter-founder-club-service";
 import { eth_blockNumber, eth_getBlockByNumber, eth_getLogs, getRpcClient } from "thirdweb/rpc";
@@ -1863,6 +1864,14 @@ export async function syncMemberRegistration(
       collection,
       member: await getFreshMemberOrThrow(collection, email),
     });
+
+    if (fanletterStarReferralStarId) {
+      await ensureFanletterStarFounderMembershipForCompletedMember({
+        attribution: fanletterStarReferralAttribution,
+        member: nextMember,
+        starId: fanletterStarReferralStarId,
+      });
+    }
 
     return {
       justCompleted: false,

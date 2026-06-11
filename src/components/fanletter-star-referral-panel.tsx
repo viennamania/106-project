@@ -19,6 +19,8 @@ type FanletterStarReferralPanelProps = {
   inboundReferralCode?: string | null;
   joinHref: string;
   loop: ScoutShareLoopData;
+  primaryActionHref?: string | null;
+  primaryActionLabel?: string | null;
 };
 
 function buildPlatformHref(platform: string, shareLink: string) {
@@ -138,6 +140,8 @@ export function FanletterStarReferralPanel({
   inboundReferralCode,
   joinHref,
   loop,
+  primaryActionHref,
+  primaryActionLabel,
 }: FanletterStarReferralPanelProps) {
   const [isGenerated, setIsGenerated] = useState(
     Boolean(inboundReferralCode) || Boolean(loop.isLiveData),
@@ -193,6 +197,15 @@ export function FanletterStarReferralPanel({
       universe: displayUniverse,
     }),
   ];
+  const actionHref = primaryActionHref ?? joinHref;
+  const fallbackActionLabel = actionHref.includes("/fanletter/connect")
+    ? isKoreanCopy(copy)
+      ? "Founder 상태 확인"
+      : "Confirm Founder status"
+    : copy.actions.joinAsFounder;
+  const actionLabel = primaryActionLabel ?? fallbackActionLabel;
+  const actionClassName =
+    "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#69f98a]";
 
   return (
     <article
@@ -339,12 +352,20 @@ export function FanletterStarReferralPanel({
       </div>
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-        <Link
-          className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#69f98a]"
-          href={joinHref}
-        >
-          {copy.actions.joinAsFounder}
-        </Link>
+        {actionHref.startsWith("#") || actionHref.startsWith("http") ? (
+          <a
+            className={actionClassName}
+            href={actionHref}
+            rel={actionHref.startsWith("http") ? "noreferrer" : undefined}
+            target={actionHref.startsWith("http") ? "_blank" : undefined}
+          >
+            {actionLabel}
+          </a>
+        ) : (
+          <Link className={actionClassName} href={actionHref}>
+            {actionLabel}
+          </Link>
+        )}
         <p className="hidden rounded-lg border border-black/8 bg-white px-3 py-2 text-xs font-semibold leading-5 text-black/52 sm:block sm:max-w-xs">
           {copy.starDetail.mockNotice}
         </p>
