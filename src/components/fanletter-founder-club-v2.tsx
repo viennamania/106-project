@@ -25,6 +25,7 @@ import {
   type FounderRole,
   type HumanFounderSlot,
   type MemberPortfolio as MemberPortfolioData,
+  type ScoutShareLoopData,
   type SpawnedAIStar,
 } from "@/mock/fanletterV2";
 import type { Locale } from "@/lib/i18n";
@@ -324,18 +325,29 @@ export function GrowthLoopDiagram({
 
 export function ScoutShareLoop({
   copy,
+  loop: liveLoop,
 }: {
   copy: FanletterV2Copy;
+  loop?: ScoutShareLoopData | null;
 }) {
-  const loop = fanletterV2Mock.scoutShareLoop;
+  const loop: ScoutShareLoopData = liveLoop ?? fanletterV2Mock.scoutShareLoop;
+  const selectUniverseText = loop.isLiveData
+    ? `selects ${loop.selectedUniverse}`
+    : copy.scoutShareLoop.selectUniverse;
+  const founderJoinText = loop.isLiveData
+    ? `${loop.targetMember} becomes Founder in ${loop.selectedUniverse}`
+    : copy.scoutShareLoop.memberBBecomesFounder;
   const flowItems = [
     loop.sourceMember,
-    copy.scoutShareLoop.selectUniverse,
+    selectUniverseText,
     `${copy.labels.referralCode}: ${loop.referralCode}`,
     copy.scoutShareLoop.shareToSns,
     `${loop.targetMember} joins`,
-    copy.scoutShareLoop.memberBBecomesFounder,
+    founderJoinText,
   ];
+  const platformLinksByName = new Map(
+    (loop.sharePlatformLinks ?? []).map((item) => [item.platform, item]),
+  );
 
   return (
     <article className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
@@ -347,6 +359,11 @@ export function ScoutShareLoop({
           <p className="text-sm font-semibold text-[#6d28d9]">
             {copy.labels.scoutShareLoop}
           </p>
+          {loop.isLiveData ? (
+            <span className="mt-2 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[0.64rem] font-semibold text-emerald-800">
+              {copy.scoutShareLoop.liveDataLabel}
+            </span>
+          ) : null}
           <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
             {copy.scoutShareLoop.title}
           </h2>
@@ -381,14 +398,32 @@ export function ScoutShareLoop({
           {loop.shareLink}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
-          {loop.sharePlatforms.map((platform) => (
-            <span
-              className="rounded-full border border-black/8 bg-white px-3 py-1 text-xs font-semibold text-black/68"
-              key={platform}
-            >
-              {platform}
-            </span>
-          ))}
+          {loop.sharePlatforms.map((platform) => {
+            const platformLink = platformLinksByName.get(platform);
+
+            if (platformLink) {
+              return (
+                <a
+                  className="rounded-full border border-black/8 bg-white px-3 py-1 text-xs font-semibold text-black/68 transition hover:border-[#7c3aed]/40 hover:text-[#5b21b6]"
+                  href={platformLink.href}
+                  key={platform}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {platformLink.label}
+                </a>
+              );
+            }
+
+            return (
+              <span
+                className="rounded-full border border-black/8 bg-white px-3 py-1 text-xs font-semibold text-black/68"
+                key={platform}
+              >
+                {platform}
+              </span>
+            );
+          })}
         </div>
       </div>
 
@@ -883,10 +918,12 @@ function CreatorPath({
 export function FounderClubV2HomeSections({
   locale,
   memberPortfolio,
+  scoutShareLoop,
   stars: liveStars,
 }: {
   locale: Locale;
   memberPortfolio?: MemberPortfolioData | null;
+  scoutShareLoop?: ScoutShareLoopData | null;
   stars?: AIStar[] | null;
 }) {
   const copy = getFanletterV2Copy(locale);
@@ -946,7 +983,7 @@ export function FounderClubV2HomeSections({
         <GrowthLoopDiagram copy={copy} />
 
         <div className="mt-12 grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
-          <ScoutShareLoop copy={copy} />
+          <ScoutShareLoop copy={copy} loop={scoutShareLoop} />
           <div className="grid gap-4">
             <MemberPortfolio
               copy={copy}

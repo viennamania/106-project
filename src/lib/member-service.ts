@@ -3,6 +3,8 @@ import "server-only";
 import { randomInt } from "node:crypto";
 
 import {
+  getFanletterStarReferralEdgesCollection,
+  getFanletterStarsCollection,
   getMembersCollection,
   getReferralPlacementSlotsCollection,
   getReferralRewardsCollection,
@@ -54,6 +56,10 @@ import {
 } from "@/lib/points-service";
 import { emitCompletedMemberNotifications } from "@/lib/notifications-service";
 import { withMemberServiceSuspensionStatus } from "@/lib/member-suspension";
+import {
+  applyFanletterStarReferralForCompletedMember,
+  resolveFanletterStarReferralCode,
+} from "@/lib/fanletter-founder-club-service";
 import { eth_blockNumber, eth_getBlockByNumber, eth_getLogs, getRpcClient } from "thirdweb/rpc";
 import { getWalletBalance } from "thirdweb/wallets";
 
@@ -683,6 +689,8 @@ async function finalizeCompletedMember({
     collection,
     member: nextMember,
   });
+
+  await applyFanletterStarReferralForCompletedMember(nextMember);
 
   return nextMember;
 }
@@ -1609,6 +1617,36 @@ export async function getIncomingReferralState(
     return null;
   }
 
+  const fanletterStarReferralAttribution =
+    await resolveFanletterStarReferralCode(referredByCode);
+
+  if (fanletterStarReferralAttribution) {
+    const [starsCollection, referralEdgesCollection] = await Promise.all([
+      getFanletterStarsCollection(),
+      getFanletterStarReferralEdgesCollection(),
+    ]);
+    const [star, signupCount] = await Promise.all([
+      starsCollection.findOne({
+        starId: fanletterStarReferralAttribution.starId,
+      }),
+      referralEdgesCollection.countDocuments({
+        referralCode: fanletterStarReferralAttribution.code,
+        sourceMemberEmail: fanletterStarReferralAttribution.memberEmail,
+        starId: fanletterStarReferralAttribution.starId,
+      }),
+    ]);
+    const founderCount = star?.founderCount ?? 0;
+    const openSlotCount = star?.openSlotCount ?? 0;
+    const limit = Math.max(1, founderCount + openSlotCount);
+
+    return {
+      code: fanletterStarReferralAttribution.code,
+      signupCount,
+      limit,
+      status: openSlotCount <= 0 ? "full" : "available",
+    };
+  }
+
   const collection = await getMembersCollection();
   const referrer = await collection.findOne({
     referralCode: referredByCode,
@@ -1734,6 +1772,10 @@ export async function syncMemberRegistration(
 
   getProjectWallet();
 
+  const fanletterStarReferralAttribution =
+    await resolveFanletterStarReferralCode(referredByCode);
+  const memberReferralCode =
+    fanletterStarReferralAttribution === null ? referredByCode : null;
   const collection = await getMembersCollection();
   const now = new Date();
   const existingMember = await collection.findOne({ email });
@@ -1744,7 +1786,9 @@ export async function syncMemberRegistration(
     ? getSponsorEmail(existingMember)
     : null;
   const effectiveSponsorReferralCode =
-    existingMember?.referralCode === referredByCode ? null : referredByCode;
+    existingMember?.referralCode === memberReferralCode
+      ? null
+      : memberReferralCode;
 
   if (existingMember?.status === "completed") {
     await collection.updateOne(
@@ -1797,7 +1841,7 @@ export async function syncMemberRegistration(
       ? incomingReferralState.code
       : null);
   const shouldApplyDefaultSponsor =
-    !existingSponsorReferralCode && !referredByCode;
+    !existingSponsorReferralCode && !memberReferralCode && !fanletterStarReferralAttribution;
   const sponsor = sponsorReferralCodeForSync
     ? await resolveSponsor({
         email,
@@ -1840,6 +1884,24 @@ export async function syncMemberRegistration(
         fanletterShareSponsorSlug:
           existingMember?.fanletterShareSponsorSlug ??
           fanletterShareAttribution?.sponsorSlug ??
+          null,
+        fanletterStarReferralAppliedAt:
+          existingMember?.fanletterStarReferralAppliedAt ?? null,
+        fanletterStarReferralCode:
+          existingMember?.fanletterStarReferralCode ??
+          fanletterStarReferralAttribution?.code ??
+          null,
+        fanletterStarReferralSourceMemberEmail:
+          existingMember?.fanletterStarReferralSourceMemberEmail ??
+          fanletterStarReferralAttribution?.memberEmail ??
+          null,
+        fanletterStarReferralSourceMemberReferralCode:
+          existingMember?.fanletterStarReferralSourceMemberReferralCode ??
+          fanletterStarReferralAttribution?.memberReferralCode ??
+          null,
+        fanletterStarReferralStarId:
+          existingMember?.fanletterStarReferralStarId ??
+          fanletterStarReferralAttribution?.starId ??
           null,
         lastConnectedAt: now,
         lastWalletAddress: normalizedWalletAddress,

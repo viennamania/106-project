@@ -8,24 +8,36 @@ import type {
   HumanFounderSlot,
   LocalizedText,
   MemberPortfolio,
+  ScoutShareLoopData,
 } from "@/mock/fanletterV2";
+import type { Locale } from "@/lib/i18n";
 import type {
   FanletterStarDocument,
   FanletterStarFounderMembershipDocument,
+  FanletterStarReferralCodeDocument,
 } from "@/lib/fanletter-founder-club";
 import {
+  getFanletterStarReferralCodesCollection,
   getFanletterStarInfluenceLedgerCollection,
   getFanletterStarFounderMembershipsCollection,
   getFanletterStarReferralEdgesCollection,
   getFanletterStarsCollection,
   getMembersCollection,
 } from "@/lib/mongodb";
-import { normalizeEmail } from "@/lib/member";
+import {
+  normalizeEmail,
+  normalizeReferralCode,
+  type MemberDocument,
+} from "@/lib/member";
 
 const HOME_STAR_LIMIT = 4;
 const FOUNDER_SLOT_LIMIT = 4;
 const DEFAULT_FOUNDER_SLOT_TOTAL = 150;
 const MEMBER_PORTFOLIO_ROLE_LIMIT = 12;
+const SCOUT_SIGNUP_CP_REWARD = 100;
+const SCOUT_SIGNUP_CREATOR_PROGRESS_REWARD = 2;
+const SCOUT_SIGNUP_INFLUENCE_REWARD = 5;
+const SCOUT_SHARE_PLATFORMS = ["Kakao", "Instagram", "X", "TikTok"] as const;
 const founderRoleRank: Record<Exclude<FounderRole, "member">, number> = {
   creator: 0,
   mentor: 1,
@@ -41,6 +53,22 @@ const starAccentPairs = [
   ["#14b8a6", "#a78bfa"],
   ["#f43f5e", "#38bdf8"],
 ] as const;
+
+export type FanletterStarReferralAttribution = {
+  code: string;
+  memberEmail: string;
+  memberReferralCode: string | null;
+  starId: string;
+};
+
+function isDuplicateKeyError(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === 11000
+  );
+}
 
 function hashText(value: string) {
   let hash = 0;
@@ -92,6 +120,70 @@ function getSpecialtyText(star: FanletterStarDocument): LocalizedText {
 
 function getUniverseName(star: FanletterStarDocument) {
   return `${star.characterName} Universe`;
+}
+
+function getReferralCodeToken(value: string | null | undefined, fallback: string) {
+  const token = value?.replace(/[^a-zA-Z0-9가-힣]/g, "").toUpperCase();
+
+  return token?.slice(0, 8) || fallback;
+}
+
+function buildStarReferralCodeCandidate({
+  attempt,
+  memberEmail,
+  memberReferralCode,
+  star,
+}: {
+  attempt: number;
+  memberEmail: string;
+  memberReferralCode?: string | null;
+  star: FanletterStarDocument;
+}) {
+  const starToken = getReferralCodeToken(
+    star.characterName || star.displayName || star.starId,
+    "STAR",
+  );
+  const memberToken = getReferralCodeToken(
+    memberReferralCode ?? memberEmail.split("@")[0],
+    "MEMBER",
+  ).slice(0, 5);
+
+  return `${starToken}-${memberToken}-${String(attempt).padStart(3, "0")}`;
+}
+
+function getConfiguredAppUrl() {
+  return process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://www.net402.ai";
+}
+
+function buildScoutShareLink({
+  code,
+  locale,
+}: {
+  code: string;
+  locale: Locale;
+}) {
+  const url = new URL(`/${locale}/fanletter`, getConfiguredAppUrl());
+  url.searchParams.set("ref", code);
+
+  return url.toString();
+}
+
+function buildScoutShareTrackingHref({
+  code,
+  locale,
+  platform,
+}: {
+  code: string;
+  locale: Locale;
+  platform: string;
+}) {
+  const searchParams = new URLSearchParams({
+    locale,
+    platform,
+    ref: code,
+  });
+
+  return `/api/fanletter/founder-club/share?${searchParams.toString()}`;
 }
 
 function getDisplayGrowthPercent(star: FanletterStarDocument) {
@@ -185,6 +277,348 @@ function serializeStar({
   };
 }
 
+function serializeStarReferralAttribution(
+  referralCode: FanletterStarReferralCodeDocument,
+): FanletterStarReferralAttribution {
+  return {
+    code: referralCode.code,
+    memberEmail: referralCode.memberEmail,
+    memberReferralCode: referralCode.memberReferralCode ?? null,
+    starId: referralCode.starId,
+  };
+}
+
+export async function resolveFanletterStarReferralCode(
+  codeInput?: string | null,
+): Promise<FanletterStarReferralAttribution | null> {
+  const code = normalizeReferralCode(codeInput);
+
+  if (!code) {
+    return null;
+  }
+
+  const referralCodesCollection =
+    await getFanletterStarReferralCodesCollection();
+  const referralCode = await referralCodesCollection.findOne(
+    {
+      code,
+      status: "active",
+    },
+    {
+      sort: {
+        lastUsedAt: -1,
+        updatedAt: -1,
+      },
+    },
+  );
+
+  return referralCode ? serializeStarReferralAttribution(referralCode) : null;
+}
+
+export async function getOrCreateFanletterStarReferralCode({
+  memberEmail: memberEmailInput,
+  memberReferralCode: memberReferralCodeInput,
+  starId,
+}: {
+  memberEmail: string;
+  memberReferralCode?: string | null;
+  starId: string;
+}): Promise<FanletterStarReferralAttribution | null> {
+  const memberEmail = normalizeEmail(memberEmailInput ?? "");
+  const memberReferralCode = normalizeReferralCode(memberReferralCodeInput);
+
+  if (!memberEmail || !starId) {
+    return null;
+  }
+
+  const [referralCodesCollection, starsCollection, membershipsCollection] =
+    await Promise.all([
+      getFanletterStarReferralCodesCollection(),
+      getFanletterStarsCollection(),
+      getFanletterStarFounderMembershipsCollection(),
+    ]);
+  const existingReferralCode = await referralCodesCollection.findOne({
+    memberEmail,
+    starId,
+  });
+
+  if (existingReferralCode) {
+    return serializeStarReferralAttribution(existingReferralCode);
+  }
+
+  const [star, membership] = await Promise.all([
+    starsCollection.findOne({ starId }),
+    membershipsCollection.findOne({ memberEmail, starId }),
+  ]);
+
+  if (!star || !membership) {
+    return null;
+  }
+
+  const now = new Date();
+
+  for (let attempt = 1; attempt <= 12; attempt += 1) {
+    const code = buildStarReferralCodeCandidate({
+      attempt,
+      memberEmail,
+      memberReferralCode,
+      star,
+    });
+    const activeCodeWithSameValue = await referralCodesCollection.findOne({
+      code,
+      status: "active",
+    });
+
+    if (activeCodeWithSameValue) {
+      continue;
+    }
+
+    try {
+      await referralCodesCollection.updateOne(
+        { memberEmail, starId },
+        {
+          $setOnInsert: {
+            code,
+            createdAt: now,
+            disabledAt: null,
+            lastUsedAt: null,
+            memberEmail,
+            memberReferralCode,
+            source: "member_signup",
+            starId,
+            status: "active",
+            updatedAt: now,
+          },
+        },
+        { upsert: true },
+      );
+
+      const referralCode = await referralCodesCollection.findOne({
+        memberEmail,
+        starId,
+      });
+
+      return referralCode ? serializeStarReferralAttribution(referralCode) : null;
+    } catch (error) {
+      if (isDuplicateKeyError(error)) {
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  return null;
+}
+
+export async function applyFanletterStarReferralForCompletedMember(
+  member: MemberDocument,
+) {
+  if (member.status !== "completed" || member.fanletterStarReferralAppliedAt) {
+    return false;
+  }
+
+  let attribution: FanletterStarReferralAttribution | null = null;
+
+  if (
+    member.fanletterStarReferralCode &&
+    member.fanletterStarReferralSourceMemberEmail &&
+    member.fanletterStarReferralStarId
+  ) {
+    attribution = {
+      code: member.fanletterStarReferralCode,
+      memberEmail: member.fanletterStarReferralSourceMemberEmail,
+      memberReferralCode:
+        member.fanletterStarReferralSourceMemberReferralCode ?? null,
+      starId: member.fanletterStarReferralStarId,
+    };
+  } else {
+    attribution = await resolveFanletterStarReferralCode(
+      member.fanletterStarReferralCode,
+    );
+  }
+
+  if (!attribution || attribution.memberEmail === member.email) {
+    return false;
+  }
+
+  const now = new Date();
+  const joinedAt = member.registrationCompletedAt ?? now;
+  const targetMemberReferralCode = normalizeReferralCode(member.referralCode);
+  const [
+    membersCollection,
+    membershipsCollection,
+    referralEdgesCollection,
+    influenceLedgerCollection,
+    referralCodesCollection,
+    starsCollection,
+  ] = await Promise.all([
+    getMembersCollection(),
+    getFanletterStarFounderMembershipsCollection(),
+    getFanletterStarReferralEdgesCollection(),
+    getFanletterStarInfluenceLedgerCollection(),
+    getFanletterStarReferralCodesCollection(),
+    getFanletterStarsCollection(),
+  ]);
+  const targetMembershipResult = await membershipsCollection.updateOne(
+    {
+      memberEmail: member.email,
+      starId: attribution.starId,
+    },
+    {
+      $set: {
+        memberReferralCode: targetMemberReferralCode,
+        updatedAt: now,
+      },
+      $setOnInsert: {
+        cpBalance: 0,
+        createdAt: joinedAt,
+        creatorProgressPercent: 0,
+        influenceScore: 0,
+        joinedAt,
+        joinedViaCode: attribution.code,
+        joinedViaMemberEmail: attribution.memberEmail,
+        joinedViaMemberReferralCode: attribution.memberReferralCode,
+        joinedViaShareId: null,
+        role: "founder",
+        source: "member_signup",
+      },
+    },
+    { upsert: true },
+  );
+
+  await referralCodesCollection.updateOne(
+    { code: attribution.code, starId: attribution.starId },
+    {
+      $set: {
+        lastUsedAt: now,
+        updatedAt: now,
+      },
+    },
+  );
+
+  if (targetMembershipResult.upsertedCount > 0) {
+    await starsCollection.updateOne(
+      { starId: attribution.starId },
+      [
+        {
+          $set: {
+            founderCount: { $add: ["$founderCount", 1] },
+            openSlotCount: {
+              $max: [0, { $subtract: ["$openSlotCount", 1] }],
+            },
+            updatedAt: now,
+          },
+        },
+      ],
+    );
+  }
+
+  const edgeId = `star-referral:${attribution.starId}:${member.email}`;
+  const edgeResult = await referralEdgesCollection.updateOne(
+    {
+      edgeId,
+    },
+    {
+      $setOnInsert: {
+        createdAt: joinedAt,
+        edgeId,
+        referralCode: attribution.code,
+        shareId: null,
+        source: "member_signup",
+        sourceMemberEmail: attribution.memberEmail,
+        sourceMemberReferralCode: attribution.memberReferralCode,
+        starId: attribution.starId,
+        targetMemberEmail: member.email,
+        targetMemberReferralCode,
+        updatedAt: now,
+      },
+    },
+    { upsert: true },
+  );
+  const ledgerSourceId = `star-referral-reward:${attribution.starId}:${attribution.memberEmail}:${member.email}`;
+  const ledgerResult = await influenceLedgerCollection.updateOne(
+    {
+      sourceId: ledgerSourceId,
+    },
+    {
+      $setOnInsert: {
+        cpDelta: SCOUT_SIGNUP_CP_REWARD,
+        createdAt: now,
+        creatorProgressDelta: SCOUT_SIGNUP_CREATOR_PROGRESS_REWARD,
+        influenceDelta: SCOUT_SIGNUP_INFLUENCE_REWARD,
+        memo: "AI Star referral signup reward",
+        recipientMemberEmail: attribution.memberEmail,
+        source: "member_signup",
+        sourceId: ledgerSourceId,
+        sourceMemberEmail: attribution.memberEmail,
+        starId: attribution.starId,
+        targetMemberEmail: member.email,
+      },
+    },
+    { upsert: true },
+  );
+
+  if (edgeResult.upsertedCount > 0 && ledgerResult.upsertedCount > 0) {
+    await membershipsCollection.updateOne(
+      {
+        memberEmail: attribution.memberEmail,
+        starId: attribution.starId,
+      },
+      {
+        $inc: {
+          cpBalance: SCOUT_SIGNUP_CP_REWARD,
+          creatorProgressPercent: SCOUT_SIGNUP_CREATOR_PROGRESS_REWARD,
+          influenceScore: SCOUT_SIGNUP_INFLUENCE_REWARD,
+        },
+        $set: {
+          updatedAt: now,
+        },
+        $setOnInsert: {
+          createdAt: now,
+          joinedAt: now,
+          joinedViaCode: null,
+          joinedViaMemberEmail: null,
+          joinedViaMemberReferralCode: null,
+          joinedViaShareId: null,
+          memberReferralCode: attribution.memberReferralCode,
+          role: "founder",
+          source: "member_signup",
+        },
+      },
+      { upsert: true },
+    );
+    await membershipsCollection.updateOne(
+      {
+        memberEmail: attribution.memberEmail,
+        starId: attribution.starId,
+      },
+      {
+        $min: {
+          creatorProgressPercent: 100,
+        },
+      },
+    );
+  }
+
+  await membersCollection.updateOne(
+    { email: member.email },
+    {
+      $set: {
+        fanletterStarReferralAppliedAt: now,
+        fanletterStarReferralCode: attribution.code,
+        fanletterStarReferralSourceMemberEmail: attribution.memberEmail,
+        fanletterStarReferralSourceMemberReferralCode:
+          attribution.memberReferralCode,
+        fanletterStarReferralStarId: attribution.starId,
+        updatedAt: now,
+      },
+    },
+  );
+
+  return true;
+}
+
 export async function getFanletterFounderClubHomeStars(options?: {
   limit?: number;
 }) {
@@ -260,6 +694,107 @@ export async function getFanletterFounderClubHomeStars(options?: {
       star,
     }),
   );
+}
+
+export async function getFanletterFounderClubScoutShareLoop({
+  email,
+  locale,
+}: {
+  email?: string | null;
+  locale: Locale;
+}): Promise<ScoutShareLoopData | null> {
+  const memberEmail = normalizeEmail(email ?? "");
+
+  if (!memberEmail) {
+    return null;
+  }
+
+  const [membersCollection, membershipsCollection, starsCollection] =
+    await Promise.all([
+      getMembersCollection(),
+      getFanletterStarFounderMembershipsCollection(),
+      getFanletterStarsCollection(),
+    ]);
+  const [member, memberships] = await Promise.all([
+    membersCollection.findOne(
+      { email: memberEmail },
+      { projection: { email: 1, publicProfile: 1, referralCode: 1 } },
+    ),
+    membershipsCollection.find({ memberEmail }).toArray(),
+  ]);
+
+  if (!member || memberships.length === 0) {
+    return null;
+  }
+
+  const sortedMemberships = sortMembershipsForPortfolio(memberships);
+  const starIds = [...new Set(sortedMemberships.map((item) => item.starId))];
+  const stars = await starsCollection
+    .find({
+      starId: { $in: starIds },
+      status: { $ne: "archived" },
+    })
+    .toArray();
+  const starsById = new Map(stars.map((star) => [star.starId, star]));
+  const selectedMembership = sortedMemberships.find((membership) =>
+    starsById.has(membership.starId),
+  );
+
+  if (!selectedMembership) {
+    return null;
+  }
+
+  const selectedStar = starsById.get(selectedMembership.starId);
+
+  if (!selectedStar) {
+    return null;
+  }
+
+  const attribution = await getOrCreateFanletterStarReferralCode({
+    memberEmail,
+    memberReferralCode: member.referralCode,
+    starId: selectedStar.starId,
+  });
+
+  if (!attribution) {
+    return null;
+  }
+
+  const sourceMember = compactText(
+    member.publicProfile?.displayName,
+    member.email.split("@")[0] || "Member",
+  );
+  const starName = compactText(selectedStar.characterName, selectedStar.displayName);
+  const selectedUniverse = getUniverseName(selectedStar);
+
+  return {
+    isLiveData: true,
+    referralCode: attribution.code,
+    rewards: {
+      cp: SCOUT_SIGNUP_CP_REWARD,
+      creatorProgressPercent: SCOUT_SIGNUP_CREATOR_PROGRESS_REWARD,
+      influenceScore: SCOUT_SIGNUP_INFLUENCE_REWARD,
+    },
+    selectedUniverse,
+    shareLink: buildScoutShareLink({
+      code: attribution.code,
+      locale,
+    }),
+    sharePlatformLinks: SCOUT_SHARE_PLATFORMS.map((platform) => ({
+      href: buildScoutShareTrackingHref({
+        code: attribution.code,
+        locale,
+        platform,
+      }),
+      label: platform,
+      platform,
+    })),
+    sharePlatforms: SCOUT_SHARE_PLATFORMS,
+    sourceMember,
+    starId: selectedStar.starId,
+    starName,
+    targetMember: "New member",
+  };
 }
 
 export async function getFanletterFounderClubMemberPortfolio(

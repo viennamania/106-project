@@ -9,6 +9,7 @@ import {
 import {
   getFanletterFounderClubHomeStars,
   getFanletterFounderClubMemberPortfolio,
+  getFanletterFounderClubScoutShareLoop,
 } from "@/lib/fanletter-founder-club-service";
 import { getFanletterCreatorPageData } from "@/lib/fanletter-content-service";
 import { getFanletterLandingData } from "@/lib/fanletter-landing-service";
@@ -146,6 +147,7 @@ export default async function FanletterRoutePage({
     shareCreatorData,
     founderClubStars,
     founderClubMemberPortfolio,
+    founderClubScoutShareLoop,
   ] = await Promise.all([
     getFanletterLandingData(locale, includeNsfw),
     shouldLoadShareContext && shareCreatorReferralCode
@@ -153,6 +155,10 @@ export default async function FanletterRoutePage({
       : Promise.resolve(null),
     getFanletterFounderClubHomeStars(),
     getFanletterFounderClubMemberPortfolio(memberSession?.email ?? null),
+    getFanletterFounderClubScoutShareLoop({
+      email: memberSession?.email ?? null,
+      locale,
+    }),
   ]);
   const shareContextReferralCode =
     referralCode ?? shareCreatorData?.profile.referralCode ?? null;
@@ -207,6 +213,7 @@ export default async function FanletterRoutePage({
       featuredPaidVideos={landingData.featuredPaidVideos}
       featuredVideos={landingData.featuredVideos}
       founderClubMemberPortfolio={founderClubMemberPortfolio}
+      founderClubScoutShareLoop={founderClubScoutShareLoop}
       founderClubStars={founderClubStars}
       hiddenNsfwCount={landingData.hiddenNsfwCount}
       locale={locale}

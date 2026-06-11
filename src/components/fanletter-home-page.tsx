@@ -37,7 +37,11 @@ import type {
   FanletterLiveStats,
 } from "@/lib/fanletter-landing-service";
 import type { Locale } from "@/lib/i18n";
-import type { AIStar, MemberPortfolio } from "@/mock/fanletterV2";
+import type {
+  AIStar,
+  MemberPortfolio,
+  ScoutShareLoopData,
+} from "@/mock/fanletterV2";
 import { getFanletterNsfwCopy } from "@/lib/fanletter-nsfw";
 import {
   buildPathWithReferral,
@@ -1500,6 +1504,7 @@ export function FanletterHomePage({
   featuredPaidVideos,
   featuredVideos,
   founderClubMemberPortfolio,
+  founderClubScoutShareLoop,
   founderClubStars,
   hiddenNsfwCount,
   locale,
@@ -1511,6 +1516,7 @@ export function FanletterHomePage({
   featuredPaidVideos: FanletterFeaturedVideo[];
   featuredVideos: FanletterFeaturedVideo[];
   founderClubMemberPortfolio?: MemberPortfolio | null;
+  founderClubScoutShareLoop?: ScoutShareLoopData | null;
   founderClubStars?: AIStar[] | null;
   hiddenNsfwCount: number;
   locale: Locale;
@@ -2195,6 +2201,7 @@ export function FanletterHomePage({
       <FounderClubV2HomeSections
         locale={locale}
         memberPortfolio={founderClubMemberPortfolio}
+        scoutShareLoop={founderClubScoutShareLoop}
         stars={founderClubStars}
       />
 

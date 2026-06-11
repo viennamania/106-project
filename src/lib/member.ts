@@ -40,6 +40,11 @@ export type MemberRecord = {
   fanletterShareRewardPoints: number | null;
   fanletterShareRewardRecipientEmail: string | null;
   fanletterShareSponsorSlug: string | null;
+  fanletterStarReferralAppliedAt: string | null;
+  fanletterStarReferralCode: string | null;
+  fanletterStarReferralSourceMemberEmail: string | null;
+  fanletterStarReferralSourceMemberReferralCode: string | null;
+  fanletterStarReferralStarId: string | null;
   lastConnectedAt: string;
   lastWalletAddress: string;
   locale: string;
@@ -221,6 +226,11 @@ export type MemberDocument = {
   fanletterShareRewardPoints?: number | null;
   fanletterShareRewardRecipientEmail?: string | null;
   fanletterShareSponsorSlug?: string | null;
+  fanletterStarReferralAppliedAt?: Date | null;
+  fanletterStarReferralCode?: string | null;
+  fanletterStarReferralSourceMemberEmail?: string | null;
+  fanletterStarReferralSourceMemberReferralCode?: string | null;
+  fanletterStarReferralStarId?: string | null;
   lastConnectedAt: Date;
   lastWalletAddress: string;
   landingBranding?: LandingBrandingDocument | null;
@@ -307,6 +317,14 @@ export function serializeMember(member: MemberDocument): MemberRecord {
     fanletterShareRewardRecipientEmail:
       member.fanletterShareRewardRecipientEmail ?? null,
     fanletterShareSponsorSlug: member.fanletterShareSponsorSlug ?? null,
+    fanletterStarReferralAppliedAt:
+      member.fanletterStarReferralAppliedAt?.toISOString() ?? null,
+    fanletterStarReferralCode: member.fanletterStarReferralCode ?? null,
+    fanletterStarReferralSourceMemberEmail:
+      member.fanletterStarReferralSourceMemberEmail ?? null,
+    fanletterStarReferralSourceMemberReferralCode:
+      member.fanletterStarReferralSourceMemberReferralCode ?? null,
+    fanletterStarReferralStarId: member.fanletterStarReferralStarId ?? null,
     lastConnectedAt: member.lastConnectedAt.toISOString(),
     lastWalletAddress: member.lastWalletAddress,
     locale: member.locale,

@@ -73,6 +73,28 @@ export type MemberPortfolio = {
   successfulInvites: number;
 };
 
+export type ScoutShareLoopData = {
+  isLiveData?: boolean;
+  referralCode: string;
+  rewards: {
+    cp: number;
+    creatorProgressPercent: number;
+    influenceScore: number;
+  };
+  selectedUniverse: string;
+  shareLink: string;
+  sharePlatformLinks?: readonly {
+    href: string;
+    label: string;
+    platform: string;
+  }[];
+  sharePlatforms: readonly string[];
+  sourceMember: string;
+  starId?: string;
+  starName?: string;
+  targetMember: string;
+};
+
 export type CreatorUnlockCondition = {
   current: number | string;
   id: string;
@@ -279,7 +301,7 @@ export const fanletterV2Mock = {
     sharePlatforms: ["Kakao", "Instagram", "X", "TikTok"],
     sourceMember: "Member A",
     targetMember: "Member B",
-  },
+  } satisfies ScoutShareLoopData,
 } as const;
 
 export type FanletterV2Copy = {
@@ -342,6 +364,7 @@ export type FanletterV2Copy = {
   roles: Record<FounderRole, string>;
   scoutShareLoop: {
     body: string;
+    liveDataLabel: string;
     memberBBecomesFounder: string;
     rewardsTitle: string;
     selectUniverse: string;
@@ -454,6 +477,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     scoutShareLoop: {
       body:
         "Member A scouts Minseo Universe, creates a referral code, shares it on SNS, and earns growth credit when Member B joins.",
+      liveDataLabel: "Live referral link",
       memberBBecomesFounder: "Member B becomes Founder in Minseo Universe",
       rewardsTitle: "Member A earns",
       selectUniverse: "selects Minseo Universe",
@@ -566,6 +590,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     scoutShareLoop: {
       body:
         "Member AがMinseo Universeを選び、紹介コードを作成し、SNSで共有します。Member Bが参加すると成長クレジットを獲得します。",
+      liveDataLabel: "Live referral link",
       memberBBecomesFounder: "Member B becomes Founder in Minseo Universe",
       rewardsTitle: "Member A earns",
       selectUniverse: "selects Minseo Universe",
@@ -678,6 +703,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     scoutShareLoop: {
       body:
         "Member A가 Minseo Universe를 선택하고 referral code를 만든 뒤 SNS에 공유합니다. Member B가 가입하면 성장 보상이 쌓입니다.",
+      liveDataLabel: "Live referral link",
       memberBBecomesFounder: "Member B becomes Founder in Minseo Universe",
       rewardsTitle: "Member A earns",
       selectUniverse: "selects Minseo Universe",
