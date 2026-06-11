@@ -21,6 +21,7 @@ import {
   getFanletterV2Copy,
   getFanletterV2LocalizedText,
   type AIStar,
+  type AIStarStatus,
   type CreatorUnlockData,
   type FanletterV2Copy,
   type FounderRole,
@@ -114,6 +115,27 @@ function getDisplayUniverseName(name: string, copy: FanletterV2Copy) {
   };
 
   return replacements[name] ?? name.replace(/\bUniverse\b/g, "유니버스");
+}
+
+function getDisplayStarStatus(
+  status: AIStarStatus | null | undefined,
+  copy: FanletterV2Copy,
+) {
+  if (!status) {
+    return null;
+  }
+
+  if (isKoreanCopy(copy)) {
+    const replacements: Record<AIStarStatus, string> = {
+      active: "활성",
+      archived: "보관",
+      draft: "준비 중",
+    };
+
+    return replacements[status];
+  }
+
+  return status;
 }
 
 export function StarScoreBadge({
@@ -574,6 +596,7 @@ export function MemberPortfolio({
   );
   const memberInitials =
     portfolio.memberInitials ?? getPortfolioInitials(portfolio.memberName);
+  const ownedStars = portfolio.ownedStars ?? [];
   const isDraftPrimaryStar = portfolio.primaryStarStatus === "draft";
   const portfolioCta =
     portfolio.isLiveData && portfolio.primaryStarId
@@ -665,6 +688,7 @@ export function MemberPortfolio({
               star?.universeName ??
               `${item.starId} Universe`;
             const displayUniverseName = getDisplayUniverseName(universeName, copy);
+            const displayStatus = getDisplayStarStatus(item.starStatus, copy);
 
             return (
               <div
@@ -677,7 +701,7 @@ export function MemberPortfolio({
                   </p>
                   <p className="truncate text-xs font-medium text-black/48">
                     {displayUniverseName}
-                    {item.starStatus ? ` · ${item.starStatus}` : ""}
+                    {displayStatus ? ` · ${displayStatus}` : ""}
                   </p>
                 </div>
                 <FounderRoleBadge copy={copy} role={item.role} />
@@ -689,6 +713,104 @@ export function MemberPortfolio({
             {copy.memberPortfolio.emptyRoles}
           </div>
         )}
+      </div>
+
+      <div className="mt-5 rounded-lg border border-black/8 bg-white p-3">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-semibold text-[#6d28d9]">
+              {copy.labels.ownedAiStars}
+            </p>
+            <h3 className="mt-1 text-base font-semibold text-black">
+              {copy.memberPortfolio.ownedStarsTitle}
+            </h3>
+          </div>
+          <p className="text-xs font-medium leading-5 text-black/54 sm:max-w-sm sm:text-right">
+            {copy.memberPortfolio.ownedStarsBody}
+          </p>
+        </div>
+
+        <div className="-mx-3 mt-3 flex snap-x gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0">
+          {ownedStars.length > 0 ? (
+            ownedStars.map((ownedStar) => {
+              const star = starsById.get(ownedStar.id);
+              const accentColor = star?.accentColor ?? "#7c3aed";
+              const accentSecondary = star?.accentSecondary ?? "#22d3ee";
+              const initials =
+                star?.portraitInitials ?? getPortfolioInitials(ownedStar.name);
+              const displayUniverse = getDisplayUniverseName(
+                ownedStar.universeName ?? `${ownedStar.name} Universe`,
+                copy,
+              );
+              const displaySourceUniverse = ownedStar.sourceUniverseName
+                ? getDisplayUniverseName(ownedStar.sourceUniverseName, copy)
+                : null;
+              const displayStatus = getDisplayStarStatus(
+                ownedStar.status,
+                copy,
+              );
+
+              return (
+                <div
+                  className="min-w-[16rem] snap-start rounded-lg border border-fuchsia-200/70 p-3 text-white shadow-[0_16px_34px_rgba(88,28,135,0.14)] sm:min-w-0"
+                  key={ownedStar.id}
+                  style={{
+                    background: `linear-gradient(145deg, ${accentColor}, #21103d 72%)`,
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span
+                        className="flex size-12 shrink-0 items-center justify-center rounded-lg border border-white/18 text-sm font-semibold"
+                        style={{
+                          background: `linear-gradient(145deg, ${accentSecondary}, rgba(255,255,255,0.16))`,
+                        }}
+                      >
+                        {initials}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[0.66rem] font-semibold text-fuchsia-100">
+                          {copy.labels.aiStarBadge}
+                        </p>
+                        <p className="truncate text-lg font-semibold">
+                          {ownedStar.name}
+                        </p>
+                        <p className="truncate text-xs font-medium text-white/60">
+                          {displayUniverse}
+                        </p>
+                      </div>
+                    </div>
+                    {displayStatus ? (
+                      <span className="shrink-0 rounded-full bg-white/14 px-2 py-1 text-[0.62rem] font-semibold text-white/82">
+                        {displayStatus}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-3 grid gap-2 text-xs font-semibold text-white/72">
+                    {displaySourceUniverse ? (
+                      <p className="truncate">
+                        {copy.labels.sourceUniverse}: {displaySourceUniverse}
+                      </p>
+                    ) : null}
+                    {ownedStar.createdByUnlock ? (
+                      <p className="truncate">
+                        {copy.labels.createdByUnlock}
+                        {ownedStar.launchCostUsdt
+                          ? ` · ${ownedStar.launchCostUsdt} USDT`
+                          : ""}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="min-w-full rounded-lg border border-dashed border-black/12 bg-zinc-50 px-3 py-4 text-sm font-semibold text-black/48 sm:col-span-2">
+              {copy.memberPortfolio.emptyOwnedStars}
+            </div>
+          )}
+        </div>
       </div>
 
       {portfolioCta ? (
@@ -729,6 +851,8 @@ export function CreatorUnlockCard({
     directInvites: copy.creatorUnlock.directInvites,
     scoutScore: copy.creatorUnlock.scoutScore,
   };
+  const launchPreview = unlock.launchPreview;
+  const launchHref = `/${locale}/fanletter/profile/character?mode=founder-club-launch`;
 
   return (
     <article
@@ -801,6 +925,52 @@ export function CreatorUnlockCard({
             {unlock.createCostUsdt} USDT
           </span>
         </div>
+
+        {launchPreview ? (
+          <div className="mt-4 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-semibold text-[#5b21b6]">
+                    {copy.creatorUnlock.launchPreviewTitle}
+                  </p>
+                  <span className="rounded-full border border-violet-200 bg-white px-2.5 py-1 text-[0.64rem] font-semibold text-[#5b21b6]">
+                    {launchPreview.status === "mock_ready"
+                      ? copy.creatorUnlock.mockReadyLabel
+                      : copy.creatorUnlock.lockedLabel}
+                  </span>
+                </div>
+                <p className="mt-2 text-lg font-semibold leading-tight text-black">
+                  {launchPreview.newStarName}
+                </p>
+                <p className="mt-1 text-sm font-medium leading-5 text-black/58">
+                  {copy.labels.sourceUniverse}:{" "}
+                  {getDisplayUniverseName(
+                    launchPreview.sourceUniverseName,
+                    copy,
+                  )}
+                </p>
+                <p className="mt-2 text-sm font-medium leading-5 text-black/58">
+                  {copy.creatorUnlock.launchPreviewBody}
+                </p>
+              </div>
+
+              {unlock.unlocked ? (
+                <Link
+                  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+                  href={launchHref}
+                >
+                  {copy.creatorUnlock.createAiStarCta}
+                  <ArrowRight className="size-4" />
+                </Link>
+              ) : (
+                <span className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-zinc-200 px-4 text-sm font-semibold text-zinc-500">
+                  {copy.creatorUnlock.lockedLabel}
+                </span>
+              )}
+            </div>
+          </div>
+        ) : null}
       </div>
     </article>
   );
@@ -815,6 +985,10 @@ function SpawnedStarCard({
   locale: Locale;
   star: SpawnedAIStar;
 }) {
+  const displaySourceUniverse = star.sourceUniverseName
+    ? getDisplayUniverseName(star.sourceUniverseName, copy)
+    : null;
+
   return (
     <div
       className="rounded-lg border border-fuchsia-200/70 p-3 text-white shadow-[0_16px_34px_rgba(88,28,135,0.16)]"
@@ -844,6 +1018,23 @@ function SpawnedStarCard({
           {copy.labels.starScore} {star.starScore}
         </span>
       </div>
+      {star.createdByUnlock || displaySourceUniverse ? (
+        <div className="mt-3 rounded-lg border border-white/12 bg-white/8 p-2 text-[0.68rem] font-semibold leading-4 text-white/72">
+          {displaySourceUniverse ? (
+            <p className="truncate">
+              {copy.labels.sourceUniverse}: {displaySourceUniverse}
+            </p>
+          ) : null}
+          {star.createdByUnlock ? (
+            <p className="truncate">
+              {copy.labels.createdByUnlock}
+              {star.createdByMemberName
+                ? ` · ${getDisplayMemberName(star.createdByMemberName, copy)}`
+                : ""}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   );
 }

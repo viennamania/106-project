@@ -26,10 +26,12 @@ export type FanletterStarDocument = {
   backfilledAt?: Date | null;
   categoryLabel: string | null;
   characterName: string;
+  createdByUnlock?: boolean;
   createdAt: Date;
   displayName: string;
   founderCount: number;
   growthPercent: number;
+  launchCostUsdt?: number | null;
   legacyCreatorReferralCode: string | null;
   legacyPersonaId: string | null;
   openSlotCount: number;
@@ -37,6 +39,7 @@ export type FanletterStarDocument = {
   ownerReferralCode: string | null;
   portraitImageUrl: string | null;
   source: FanletterFounderClubBackfillSource;
+  spawnedFromStarId?: string | null;
   starId: string;
   starScore: number;
   status: FanletterStarStatus;

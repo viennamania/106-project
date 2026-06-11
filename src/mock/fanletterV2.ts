@@ -21,11 +21,16 @@ export type HumanFounderSlot = {
 export type SpawnedAIStar = {
   accentColor: string;
   accentSecondary: string;
+  createdByMemberName?: string;
+  createdByUnlock?: boolean;
   founderCount: number;
   growthPercent: number;
   id: string;
+  launchCostUsdt?: number;
   name: string;
   portraitInitials: string;
+  sourceUniverseName?: string;
+  spawnedFromStarId?: string;
   specialty: LocalizedText;
   starScore: number;
 };
@@ -58,6 +63,17 @@ export type MemberPortfolioRole = {
   universeName?: string;
 };
 
+export type MemberOwnedAIStar = {
+  createdByUnlock?: boolean;
+  id: string;
+  launchCostUsdt?: number;
+  name: string;
+  sourceUniverseName?: string | null;
+  spawnedFromStarId?: string | null;
+  status?: AIStarStatus | null;
+  universeName?: string;
+};
+
 export type MemberPortfolio = {
   cpBalance: number;
   creatorEligibilityPercent: number;
@@ -68,6 +84,7 @@ export type MemberPortfolio = {
   primaryStarId?: string | null;
   primaryStarName?: string | null;
   primaryStarStatus?: AIStarStatus | null;
+  ownedStars: MemberOwnedAIStar[];
   roles: MemberPortfolioRole[];
   scoutScore: number;
   successfulInvites: number;
@@ -106,6 +123,12 @@ export type CreatorUnlockData = {
   conditions: CreatorUnlockCondition[];
   createCostUsdt: number;
   isLiveData?: boolean;
+  launchPreview?: {
+    newStarName: string;
+    ownerName: string;
+    sourceUniverseName: string;
+    status: "mock_ready" | "locked";
+  };
   unlocked: boolean;
 };
 
@@ -135,11 +158,16 @@ export const fanletterV2Mock = {
         {
           accentColor: "#a855f7",
           accentSecondary: "#2dd4bf",
+          createdByMemberName: "Member A",
+          createdByUnlock: true,
           founderCount: 14,
           growthPercent: 9,
           id: "ria",
+          launchCostUsdt: 10,
           name: "Ria",
           portraitInitials: "RI",
+          sourceUniverseName: "Minseo Universe",
+          spawnedFromStarId: "minseo",
           specialty: {
             en: "Weekend Golf Rookie",
             ja: "週末ゴルフルーキー",
@@ -280,6 +308,12 @@ export const fanletterV2Mock = {
       { current: "completed", id: "activityMission", met: true, target: "completed" },
     ],
     createCostUsdt: 10,
+    launchPreview: {
+      newStarName: "Ria",
+      ownerName: "Member A",
+      sourceUniverseName: "Minseo Universe",
+      status: "mock_ready",
+    },
     unlocked: true,
   } satisfies CreatorUnlockData,
   memberPortfolio: {
@@ -287,6 +321,28 @@ export const fanletterV2Mock = {
     creatorEligibilityPercent: 86,
     directInvites: 27,
     memberName: "Member A",
+    ownedStars: [
+      {
+        createdByUnlock: true,
+        id: "seoyeon",
+        launchCostUsdt: 10,
+        name: "Seoyeon",
+        sourceUniverseName: "Minseo Universe",
+        spawnedFromStarId: "minseo",
+        status: "active",
+        universeName: "Seoyeon Universe",
+      },
+      {
+        createdByUnlock: true,
+        id: "ria",
+        launchCostUsdt: 10,
+        name: "Ria",
+        sourceUniverseName: "Minseo Universe",
+        spawnedFromStarId: "minseo",
+        status: "draft",
+        universeName: "Ria Universe",
+      },
+    ],
     roles: [
       { role: "mentor", starId: "minseo" },
       { role: "partner", starId: "yoonseo" },
@@ -315,6 +371,7 @@ export type FanletterV2Copy = {
   actions: {
     copied: string;
     copyLink: string;
+    createAiStar: string;
     createMockReferral: string;
     joinAsFounder: string;
     openDiscovery: string;
@@ -333,10 +390,14 @@ export type FanletterV2Copy = {
     activityMission: string;
     body: string;
     cp: string;
+    createAiStarCta: string;
     directInvites: string;
+    launchPreviewBody: string;
+    launchPreviewTitle: string;
     liveDataLabel: string;
     lockedLabel: string;
     mockPaymentNotice: string;
+    mockReadyLabel: string;
     scoutScore: string;
     title: string;
     unlockedLabel: string;
@@ -357,6 +418,7 @@ export type FanletterV2Copy = {
     cpBalance: string;
     creatorEligibility: string;
     directInvites: string;
+    createdByUnlock: string;
     founderClub: string;
     founderCount: string;
     growth: string;
@@ -364,10 +426,12 @@ export type FanletterV2Copy = {
     influenceScore: string;
     memberPortfolio: string;
     openSlots: string;
+    ownedAiStars: string;
     referralCode: string;
     scoutScore: string;
     scoutShareLoop: string;
     selectedAiStar: string;
+    sourceUniverse: string;
     spawnedStars: string;
     starScore: string;
     successfulInvites: string;
@@ -379,6 +443,9 @@ export type FanletterV2Copy = {
     emptyRoles: string;
     liveDataLabel: string;
     manageStarCta: string;
+    emptyOwnedStars: string;
+    ownedStarsBody: string;
+    ownedStarsTitle: string;
     setupStarCta: string;
     title: string;
   };
@@ -428,6 +495,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     actions: {
       copied: "Copied",
       copyLink: "Copy link",
+      createAiStar: "Create new AI Star",
       createMockReferral: "Create mock referral code",
       joinAsFounder: "Join as Founder",
       openDiscovery: "Back to Discovery",
@@ -457,11 +525,16 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       activityMission: "Activity mission completed",
       body: "Creator status is unlocked when the scout, invitation, CP, and activity requirements are met.",
       cp: "CP >= 5,000",
+      createAiStarCta: "Create new AI Star",
       directInvites: "Direct Invites >= 20",
+      launchPreviewBody:
+        "The member can launch another AI Star from the source Universe. This version keeps the 10 USDT step as a mock activation.",
+      launchPreviewTitle: "Mock AI Star launch",
       liveDataLabel: "Live unlock status",
       lockedLabel: "Locked",
       mockPaymentNotice:
         "Creator launch is previewed at 10 USDT. Checkout opens in a later release.",
+      mockReadyLabel: "Mock ready",
       scoutScore: "Scout Score >= 80",
       title: "Creator Unlock",
       unlockedLabel: "Creator Unlock",
@@ -491,6 +564,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       creatorProgress: "Creator Progress",
       cpBalance: "CP Balance",
       creatorEligibility: "Creator Eligibility",
+      createdByUnlock: "Created by unlock",
       directInvites: "Direct Invites",
       founderClub: "Founder Club",
       founderCount: "Founder Count",
@@ -499,10 +573,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       influenceScore: "Influence Score",
       memberPortfolio: "Member Portfolio",
       openSlots: "Open Slots",
+      ownedAiStars: "Owned AI Stars",
       referralCode: "Referral Code",
       scoutScore: "Scout Score",
       scoutShareLoop: "Scout Share Loop",
       selectedAiStar: "Selected AI Star",
+      sourceUniverse: "Source Universe",
       spawnedStars: "Spawned Stars",
       starScore: "Star Score",
       successfulInvites: "Successful Invites",
@@ -518,6 +594,11 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "No AI Star roles are connected to this member yet.",
       liveDataLabel: "Live member data",
       manageStarCta: "Manage my AI Star",
+      emptyOwnedStars:
+        "No AI Stars have been created by this member yet.",
+      ownedStarsBody:
+        "A Creator can own multiple AI Stars. Each new Star keeps its source Universe for attribution.",
+      ownedStarsTitle: "AI Stars created by this member",
       setupStarCta: "Set up my AI Star",
       title: "Member Founder Portfolio",
     },
@@ -580,6 +661,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     actions: {
       copied: "Copied",
       copyLink: "Copy link",
+      createAiStar: "新しいAI Starを作成",
       createMockReferral: "Mock referral codeを作成",
       joinAsFounder: "Founderとして参加",
       openDiscovery: "Discoveryへ戻る",
@@ -610,11 +692,16 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       body:
         "Scout、招待、CP、活動ミッションの条件を満たすとCreatorステータスが開きます。",
       cp: "CP >= 5,000",
+      createAiStarCta: "新しいAI Starを作成",
       directInvites: "Direct Invites >= 20",
+      launchPreviewBody:
+        "メンバーは元のUniverseから別のAI Starをローンチできます。このバージョンでは10 USDTステップをモック有効化として扱います。",
+      launchPreviewTitle: "Mock AI Star launch",
       liveDataLabel: "Live unlock status",
       lockedLabel: "Locked",
       mockPaymentNotice:
         "Creatorローンチは10 USDTのプレビューとして表示します。Checkoutは今後のリリースで開きます。",
+      mockReadyLabel: "Mock ready",
       scoutScore: "Scout Score >= 80",
       title: "Creator Unlock",
       unlockedLabel: "Creator Unlock",
@@ -644,6 +731,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       creatorProgress: "Creator Progress",
       cpBalance: "CP Balance",
       creatorEligibility: "Creator Eligibility",
+      createdByUnlock: "Created by unlock",
       directInvites: "Direct Invites",
       founderClub: "Founder Club",
       founderCount: "Founder Count",
@@ -652,10 +740,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       influenceScore: "Influence Score",
       memberPortfolio: "Member Portfolio",
       openSlots: "Open Slots",
+      ownedAiStars: "Owned AI Stars",
       referralCode: "Referral Code",
       scoutScore: "Scout Score",
       scoutShareLoop: "Scout Share Loop",
       selectedAiStar: "Selected AI Star",
+      sourceUniverse: "Source Universe",
       spawnedStars: "Spawned Stars",
       starScore: "Star Score",
       successfulInvites: "Successful Invites",
@@ -670,6 +760,11 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "このMemberに接続されたAI Star roleはまだありません。",
       liveDataLabel: "Live member data",
       manageStarCta: "自分のAI Starを管理",
+      emptyOwnedStars:
+        "このメンバーが作成したAI Starはまだありません。",
+      ownedStarsBody:
+        "Creatorは複数のAI Starを所有できます。新しいStarには元のUniverseを記録します。",
+      ownedStarsTitle: "このメンバーが作成したAI Star",
       setupStarCta: "自分のAI Starを設定",
       title: "Member Founder Portfolio",
     },
@@ -732,6 +827,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     actions: {
       copied: "복사됨",
       copyLink: "링크 복사",
+      createAiStar: "새 AI 스타 만들기",
       createMockReferral: "추천 코드 미리 만들기",
       joinAsFounder: "파운더로 참여하기",
       openDiscovery: "AI 스타 발견으로 돌아가기",
@@ -762,11 +858,16 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       body:
         "스카우트 점수, 직접 초대, CP, 활동 미션 조건을 만족하면 크리에이터 권한이 열립니다.",
       cp: "CP >= 5,000",
+      createAiStarCta: "새 AI 스타 만들기",
       directInvites: "직접 초대 20명 이상",
+      launchPreviewBody:
+        "멤버는 성장시킨 원천 유니버스에서 또 다른 AI 스타를 시작할 수 있습니다. 이번 버전에서는 10 USDT 단계를 미리보기 활성화로만 표시합니다.",
+      launchPreviewTitle: "새 AI 스타 출시 미리보기",
       liveDataLabel: "실시간 해금 상태",
       lockedLabel: "잠금",
       mockPaymentNotice:
         "크리에이터 출시는 10 USDT 조건 미리보기로만 표시됩니다. 결제 화면은 이후 릴리스에서 연결됩니다.",
+      mockReadyLabel: "미리보기 준비",
       scoutScore: "스카우트 점수 80 이상",
       title: "크리에이터 해금",
       unlockedLabel: "크리에이터 해금",
@@ -796,6 +897,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       creatorProgress: "크리에이터 진행률",
       cpBalance: "CP 잔액",
       creatorEligibility: "크리에이터 가능성",
+      createdByUnlock: "해금으로 생성",
       directInvites: "직접 초대",
       founderClub: "파운더 클럽",
       founderCount: "파운더 수",
@@ -804,10 +906,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       influenceScore: "영향력 점수",
       memberPortfolio: "멤버 포트폴리오",
       openSlots: "잔여 슬롯",
+      ownedAiStars: "내가 만든 AI 스타",
       referralCode: "추천 코드",
       scoutScore: "스카우트 점수",
       scoutShareLoop: "스카우트 공유 루프",
       selectedAiStar: "선택된 AI 스타",
+      sourceUniverse: "원천 유니버스",
       spawnedStars: "파생 AI 스타",
       starScore: "스타 점수",
       successfulInvites: "성공 초대",
@@ -822,6 +926,11 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "아직 이 멤버에 연결된 AI 스타 역할이 없습니다.",
       liveDataLabel: "실시간 멤버 데이터",
       manageStarCta: "내 AI 스타 관리하기",
+      emptyOwnedStars:
+        "아직 이 멤버가 만든 AI 스타가 없습니다.",
+      ownedStarsBody:
+        "크리에이터는 여러 AI 스타를 소유할 수 있습니다. 새 스타에는 어떤 유니버스에서 성장해 생성됐는지 기록합니다.",
+      ownedStarsTitle: "이 멤버가 만든 AI 스타",
       setupStarCta: "내 AI 스타 설정하기",
       title: "멤버 파운더 포트폴리오",
     },

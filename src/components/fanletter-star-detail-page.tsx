@@ -38,6 +38,29 @@ function buildReferralCode(star: AIStar) {
   return `${(starToken || "STAR").slice(0, 12)}-A-001`;
 }
 
+function isKoreanCopy(copy: ReturnType<typeof getFanletterV2Copy>) {
+  return copy.labels.humanMember === "일반 멤버";
+}
+
+function getDisplayUniverseName(
+  name: string,
+  copy: ReturnType<typeof getFanletterV2Copy>,
+) {
+  if (!isKoreanCopy(copy)) {
+    return name;
+  }
+
+  const replacements: Record<string, string> = {
+    "Harin Universe": "하린 유니버스",
+    "Minseo Universe": "민서 유니버스",
+    "Ria Universe": "리아 유니버스",
+    "Seoyeon Universe": "서연 유니버스",
+    "Yoonseo Universe": "윤서 유니버스",
+  };
+
+  return replacements[name] ?? name.replace(/\bUniverse\b/g, "유니버스");
+}
+
 function buildShareLink({
   locale,
   referralCode,
@@ -195,49 +218,67 @@ function SpawnedStarsSection({
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        {star.spawnedStars.map((spawnedStar) => (
-          <Link
-            className="rounded-lg border border-fuchsia-200/70 p-3 text-white shadow-[0_16px_34px_rgba(88,28,135,0.16)] transition hover:-translate-y-0.5"
-            href={`/${locale}/fanletter/${spawnedStar.id}`}
-            key={spawnedStar.id}
-            style={{
-              background: `linear-gradient(145deg, ${spawnedStar.accentColor}, #21103d 72%)`,
-            }}
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className="flex size-12 items-center justify-center rounded-lg border border-white/18 text-sm font-semibold"
-                style={{
-                  background: `linear-gradient(145deg, ${spawnedStar.accentSecondary}, rgba(255,255,255,0.16))`,
-                }}
-              >
-                {spawnedStar.portraitInitials}
-              </span>
-              <div className="min-w-0">
-                <p className="text-[0.66rem] font-semibold text-fuchsia-100">
-                  {copy.labels.aiStarBadge}
-                </p>
-                <p className="truncate text-lg font-semibold">
-                  {spawnedStar.name}
-                </p>
-                <p className="truncate text-xs font-medium text-white/60">
-                  {getFanletterV2LocalizedText(
-                    spawnedStar.specialty,
-                    locale,
-                  )}
-                </p>
+        {star.spawnedStars.map((spawnedStar) => {
+          const sourceUniverseName = spawnedStar.sourceUniverseName
+            ? getDisplayUniverseName(spawnedStar.sourceUniverseName, copy)
+            : null;
+
+          return (
+            <Link
+              className="rounded-lg border border-fuchsia-200/70 p-3 text-white shadow-[0_16px_34px_rgba(88,28,135,0.16)] transition hover:-translate-y-0.5"
+              href={`/${locale}/fanletter/${spawnedStar.id}`}
+              key={spawnedStar.id}
+              style={{
+                background: `linear-gradient(145deg, ${spawnedStar.accentColor}, #21103d 72%)`,
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="flex size-12 items-center justify-center rounded-lg border border-white/18 text-sm font-semibold"
+                  style={{
+                    background: `linear-gradient(145deg, ${spawnedStar.accentSecondary}, rgba(255,255,255,0.16))`,
+                  }}
+                >
+                  {spawnedStar.portraitInitials}
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[0.66rem] font-semibold text-fuchsia-100">
+                    {copy.labels.aiStarBadge}
+                  </p>
+                  <p className="truncate text-lg font-semibold">
+                    {spawnedStar.name}
+                  </p>
+                  <p className="truncate text-xs font-medium text-white/60">
+                    {getFanletterV2LocalizedText(
+                      spawnedStar.specialty,
+                      locale,
+                    )}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="mt-3 flex items-center justify-between gap-2 text-xs font-semibold text-white/70">
-              <span>
-                {copy.labels.starScore} {spawnedStar.starScore}
-              </span>
-              <span>
-                +{spawnedStar.growthPercent}% {copy.labels.growth}
-              </span>
-            </div>
-          </Link>
-        ))}
+              <div className="mt-3 flex items-center justify-between gap-2 text-xs font-semibold text-white/70">
+                <span>
+                  {copy.labels.starScore} {spawnedStar.starScore}
+                </span>
+                <span>
+                  +{spawnedStar.growthPercent}% {copy.labels.growth}
+                </span>
+              </div>
+              {spawnedStar.createdByUnlock || sourceUniverseName ? (
+                <div className="mt-3 rounded-lg border border-white/12 bg-white/8 p-2 text-[0.68rem] font-semibold leading-4 text-white/72">
+                  {sourceUniverseName ? (
+                    <p className="truncate">
+                      {copy.labels.sourceUniverse}: {sourceUniverseName}
+                    </p>
+                  ) : null}
+                  {spawnedStar.createdByUnlock ? (
+                    <p className="truncate">{copy.labels.createdByUnlock}</p>
+                  ) : null}
+                </div>
+              ) : null}
+            </Link>
+          );
+        })}
       </div>
     </article>
   );

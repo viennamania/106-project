@@ -301,8 +301,7 @@ function serializeStar({
 
 function serializeSpawnedStar(star: FanletterStarDocument): SpawnedAIStar {
   const [accentColor, accentSecondary] = getAccentPair(star.starId);
-
-  return {
+  const spawnedStar: SpawnedAIStar = {
     accentColor,
     accentSecondary,
     founderCount: star.founderCount,
@@ -313,6 +312,56 @@ function serializeSpawnedStar(star: FanletterStarDocument): SpawnedAIStar {
     specialty: getSpecialtyText(star),
     starScore: star.starScore,
   };
+
+  if (star.createdByUnlock) {
+    spawnedStar.createdByUnlock = true;
+  }
+
+  if (star.launchCostUsdt && star.launchCostUsdt > 0) {
+    spawnedStar.launchCostUsdt = star.launchCostUsdt;
+  }
+
+  if (star.spawnedFromStarId) {
+    spawnedStar.spawnedFromStarId = star.spawnedFromStarId;
+  }
+
+  return spawnedStar;
+}
+
+function serializeOwnedStar({
+  sourceStarsById,
+  star,
+}: {
+  sourceStarsById: Map<string, FanletterStarDocument>;
+  star: FanletterStarDocument;
+}): MemberPortfolio["ownedStars"][number] {
+  const ownedStar: MemberPortfolio["ownedStars"][number] = {
+    id: star.starId,
+    name: compactText(star.characterName, star.displayName),
+    status: star.status,
+    universeName: getUniverseName(star),
+  };
+  const sourceStar = star.spawnedFromStarId
+    ? sourceStarsById.get(star.spawnedFromStarId)
+    : null;
+
+  if (star.createdByUnlock) {
+    ownedStar.createdByUnlock = true;
+  }
+
+  if (star.launchCostUsdt && star.launchCostUsdt > 0) {
+    ownedStar.launchCostUsdt = star.launchCostUsdt;
+  }
+
+  if (star.spawnedFromStarId) {
+    ownedStar.spawnedFromStarId = star.spawnedFromStarId;
+  }
+
+  if (sourceStar) {
+    ownedStar.sourceUniverseName = getUniverseName(sourceStar);
+  }
+
+  return ownedStar;
 }
 
 function serializeStarReferralAttribution(
@@ -1053,11 +1102,48 @@ export async function getFanletterFounderClubMemberPortfolio(
   const sortedMemberships = sortMembershipsForPortfolio(memberships);
   const starIds = [...new Set(sortedMemberships.map((item) => item.starId))];
   const starsCollection = await getFanletterStarsCollection();
-  const stars =
+  const [stars, ownedStarRows] = await Promise.all([
     starIds.length > 0
-      ? await starsCollection.find({ starId: { $in: starIds } }).toArray()
-      : [];
+      ? starsCollection.find({ starId: { $in: starIds } }).toArray()
+      : Promise.resolve([]),
+    starsCollection
+      .find({
+        ownerEmail: memberEmail,
+        status: { $ne: "archived" },
+      })
+      .sort({
+        createdByUnlock: -1,
+        updatedAt: -1,
+      })
+      .limit(8)
+      .toArray(),
+  ]);
   const starsById = new Map(stars.map((star) => [star.starId, star]));
+  const sourceStarIds = [
+    ...new Set(
+      ownedStarRows
+        .map((star) => star.spawnedFromStarId)
+        .filter((starId): starId is string => Boolean(starId)),
+    ),
+  ];
+  const sourceStars =
+    sourceStarIds.length > 0
+      ? await starsCollection
+          .find({ starId: { $in: sourceStarIds } })
+          .toArray()
+      : [];
+  const sourceStarsById = new Map(
+    [...stars, ...ownedStarRows, ...sourceStars].map((star) => [
+      star.starId,
+      star,
+    ]),
+  );
+  const ownedStars = ownedStarRows.map((star) =>
+    serializeOwnedStar({
+      sourceStarsById,
+      star,
+    }),
+  );
   const ledger = ledgerTotals[0] ?? {
     cpDelta: 0,
     creatorProgressDelta: 0,
@@ -1135,6 +1221,7 @@ export async function getFanletterFounderClubMemberPortfolio(
     isLiveData: true,
     memberInitials: getInitials(memberName),
     memberName,
+    ownedStars,
     primaryStarId: primaryStar?.starId ?? primaryMembership?.starId ?? null,
     primaryStarName: primaryStar
       ? compactText(primaryStar.characterName, primaryStar.displayName)
@@ -1206,11 +1293,31 @@ export async function getFanletterFounderClubCreatorUnlock(
       target: "completed",
     },
   ];
+  const unlocked = conditions.every((condition) => condition.met);
+  const primaryRole = portfolio?.roles.find(
+    (role) => role.starId === portfolio.primaryStarId,
+  );
+  const sourceUniverseName =
+    primaryRole?.universeName ??
+    (portfolio?.primaryStarName
+      ? `${portfolio.primaryStarName} Universe`
+      : "Founder Club Universe");
 
-  return {
+  const unlockData: CreatorUnlockData = {
     conditions,
     createCostUsdt: 10,
     isLiveData: true,
-    unlocked: conditions.every((condition) => condition.met),
+    unlocked,
   };
+
+  if (portfolio) {
+    unlockData.launchPreview = {
+      newStarName: `${portfolio.memberName} Next AI Star`,
+      ownerName: portfolio.memberName,
+      sourceUniverseName,
+      status: unlocked ? "mock_ready" : "locked",
+    };
+  }
+
+  return unlockData;
 }
