@@ -1,3 +1,4 @@
+import Image from "next/image";
 import {
   ArrowRight,
   BadgeCheck,
@@ -13,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
   fanletterV2Mock,
   getFanletterV2Copy,
@@ -117,7 +119,11 @@ function AIStarPortrait({
 }: {
   star: Pick<
     AIStar,
-    "accentColor" | "accentSecondary" | "name" | "portraitInitials"
+    | "accentColor"
+    | "accentSecondary"
+    | "name"
+    | "portraitImageUrl"
+    | "portraitInitials"
   >;
 }) {
   return (
@@ -129,10 +135,28 @@ function AIStarPortrait({
         background: `radial-gradient(circle at 30% 18%, rgba(255,255,255,0.9), transparent 18%), radial-gradient(circle at 70% 22%, ${star.accentSecondary}, transparent 22%), linear-gradient(145deg, ${star.accentColor}, #31105f 68%, #12041f)`,
       }}
     >
-      <div className="absolute inset-x-4 bottom-4 top-10 rounded-t-full bg-white/18 backdrop-blur-[2px]" />
-      <div className="absolute bottom-5 left-1/2 flex size-20 -translate-x-1/2 items-center justify-center rounded-full border border-white/28 bg-black/28 text-2xl font-semibold text-white shadow-[0_16px_34px_rgba(0,0,0,0.22)]">
-        {star.portraitInitials}
-      </div>
+      {star.portraitImageUrl ? (
+        <>
+          <Image
+            alt={`${star.name} portrait`}
+            className="object-cover"
+            fill
+            sizes="(min-width: 1280px) 20vw, (min-width: 768px) 42vw, 92vw"
+            src={star.portraitImageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(
+              star.portraitImageUrl,
+            )}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#12041f]/76 via-transparent to-white/10" />
+        </>
+      ) : (
+        <>
+          <div className="absolute inset-x-4 bottom-4 top-10 rounded-t-full bg-white/18 backdrop-blur-[2px]" />
+          <div className="absolute bottom-5 left-1/2 flex size-20 -translate-x-1/2 items-center justify-center rounded-full border border-white/28 bg-black/28 text-2xl font-semibold text-white shadow-[0_16px_34px_rgba(0,0,0,0.22)]">
+            {star.portraitInitials}
+          </div>
+        </>
+      )}
       <div className="absolute left-3 top-3 rounded-full bg-white/18 px-2.5 py-1 text-[0.62rem] font-semibold text-white backdrop-blur">
         AI STAR
       </div>
@@ -614,8 +638,21 @@ function UniverseMiniStar({
         background: `linear-gradient(150deg, ${star.accentColor}, #271045 68%, #12041f)`,
       }}
     >
-      <div className="mx-auto flex size-16 items-center justify-center rounded-full border border-white/20 bg-white/14 text-lg font-semibold">
-        {star.portraitInitials}
+      <div className="relative mx-auto flex size-16 items-center justify-center overflow-hidden rounded-full border border-white/20 bg-white/14 text-lg font-semibold">
+        {star.portraitImageUrl ? (
+          <Image
+            alt={`${star.name} portrait`}
+            className="object-cover"
+            fill
+            sizes="4rem"
+            src={star.portraitImageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(
+              star.portraitImageUrl,
+            )}
+          />
+        ) : (
+          star.portraitInitials
+        )}
       </div>
       <p className="mt-3 text-center text-[0.66rem] font-semibold text-fuchsia-100">
         {copy.labels.aiStarBadge}
@@ -775,10 +812,22 @@ function CreatorPath({
   );
 }
 
-export function FounderClubV2HomeSections({ locale }: { locale: Locale }) {
+export function FounderClubV2HomeSections({
+  locale,
+  stars: liveStars,
+}: {
+  locale: Locale;
+  stars?: AIStar[] | null;
+}) {
   const copy = getFanletterV2Copy(locale);
-  const stars = [...fanletterV2Mock.aiStars].sort(
-    (left, right) => right.growthPercent - left.growthPercent,
+  const stars = [
+    ...(liveStars && liveStars.length > 0
+      ? liveStars
+      : fanletterV2Mock.aiStars),
+  ].sort(
+    (left, right) =>
+      right.growthPercent - left.growthPercent ||
+      right.starScore - left.starScore,
   );
 
   return (

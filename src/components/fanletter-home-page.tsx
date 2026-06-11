@@ -37,6 +37,7 @@ import type {
   FanletterLiveStats,
 } from "@/lib/fanletter-landing-service";
 import type { Locale } from "@/lib/i18n";
+import type { AIStar } from "@/mock/fanletterV2";
 import { getFanletterNsfwCopy } from "@/lib/fanletter-nsfw";
 import {
   buildPathWithReferral,
@@ -1498,6 +1499,7 @@ function FanletterPaidSpotlightSection({
 export function FanletterHomePage({
   featuredPaidVideos,
   featuredVideos,
+  founderClubStars,
   hiddenNsfwCount,
   locale,
   liveStats,
@@ -1507,6 +1509,7 @@ export function FanletterHomePage({
 }: {
   featuredPaidVideos: FanletterFeaturedVideo[];
   featuredVideos: FanletterFeaturedVideo[];
+  founderClubStars?: AIStar[] | null;
   hiddenNsfwCount: number;
   locale: Locale;
   liveStats: FanletterLiveStats;
@@ -2187,7 +2190,7 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <FounderClubV2HomeSections locale={locale} />
+      <FounderClubV2HomeSections locale={locale} stars={founderClubStars} />
 
       <section className="border-b border-white/8 bg-[#f6f8f4] px-4 py-14 text-black sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-[92rem]">

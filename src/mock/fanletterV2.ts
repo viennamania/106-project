@@ -41,6 +41,7 @@ export type AIStar = {
     open: number;
     total: number;
   };
+  portraitImageUrl?: string | null;
   portraitInitials: string;
   specialty: LocalizedText;
   spawnedStars: SpawnedAIStar[];
