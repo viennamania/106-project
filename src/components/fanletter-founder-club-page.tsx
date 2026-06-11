@@ -1,13 +1,25 @@
+"use client";
+
 import Link from "next/link";
 import {
   ArrowLeft,
   ArrowRight,
+  BadgeCheck,
   Crown,
   Link2,
   Sparkles,
 } from "lucide-react";
+import { useMemo } from "react";
 
 import { CopyTextButton } from "@/components/copy-text-button";
+import {
+  toMemberOwnedAIStar,
+  useFanletterCreatorMockLaunches,
+} from "@/components/fanletter-creator-mock-launch-state";
+import {
+  type FanletterFounderMockMembership,
+  useFanletterFounderMockMemberships,
+} from "@/components/fanletter-founder-mock-state";
 import {
   FounderRoleBadge,
   HumanMemberAvatar,
@@ -18,6 +30,7 @@ import {
   fanletterV2Mock,
   getFanletterV2Copy,
   type AIStar,
+  type MemberOwnedAIStar,
   type MemberPortfolio as MemberPortfolioData,
   type MemberPortfolioRole,
   type ScoutShareLoopData,
@@ -25,6 +38,7 @@ import {
 
 type FounderClubRoleShare = {
   loop: ScoutShareLoopData | null;
+  mockMembership?: FanletterFounderMockMembership | null;
   role: MemberPortfolioRole;
 };
 
@@ -51,6 +65,13 @@ function getCopy(locale: Locale) {
       heroTitle: "내 파운더 클럽",
       liveLabel: "라이브 데이터",
       mockLabel: "예시 데이터",
+      mockLaunchBody:
+        "Creator Unlock에서 만든 mock AI 스타 draft가 이 브라우저 포트폴리오에 반영되었습니다.",
+      mockLaunchTitle: "Mock AI 스타 draft 반영됨",
+      mockMembershipBody:
+        "이 브라우저에서 저장된 Founder 참여 내역입니다. 실제 결제/DB 반영 전까지 v2.0 흐름을 미리 확인합니다.",
+      mockMembershipCta: "유니버스 보기",
+      mockMembershipTitle: "Mock Founder 참여 반영됨",
       referralCode: "추천 코드",
       shareLink: "공유 링크",
       shareSectionBody:
@@ -78,8 +99,15 @@ function getCopy(locale: Locale) {
     heroTitle: "My Founder Club",
     liveLabel: "Live data",
     mockLabel: "Mock data",
-    referralCode: "Referral Code",
-    shareLink: "Share Link",
+    mockLaunchBody:
+      "Mock AI Star drafts created from Creator Unlock are reflected in this browser portfolio.",
+    mockLaunchTitle: "Mock AI Star drafts reflected",
+    mockMembershipBody:
+        "Founder joins saved in this browser are reflected here while the v2.0 flow remains mock-only before real payment and DB writes.",
+      mockMembershipCta: "View Universe",
+      mockMembershipTitle: "Mock Founder join reflected",
+      referralCode: "Referral Code",
+      shareLink: "Share Link",
     shareSectionBody:
       "Each AI Star referral link attributes the new Founder join to that universe.",
     shareSectionEyebrow: "Referral Manager",
@@ -108,6 +136,39 @@ function buildFallbackShareLoop(
   };
 }
 
+function buildMockReferralCode(starId: string, starName?: string | null) {
+  const token = (starName || starId)
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .toUpperCase();
+
+  return `${(token || "STAR").slice(0, 12)}-A-001`;
+}
+
+function buildMockShareLoop({
+  locale,
+  membership,
+  role,
+}: {
+  locale: Locale;
+  membership: FanletterFounderMockMembership;
+  role: MemberPortfolioRole;
+}): ScoutShareLoopData {
+  const referralCode =
+    membership.referralCode ?? buildMockReferralCode(role.starId, role.starName);
+  const shareLink = `https://www.net402.ai/${locale}/fanletter/${encodeURIComponent(
+    role.starId,
+  )}?ref=${encodeURIComponent(referralCode)}`;
+
+  return {
+    ...fanletterV2Mock.scoutShareLoop,
+    referralCode,
+    selectedUniverse: role.universeName ?? `${role.starName ?? role.starId} Universe`,
+    shareLink,
+    starId: role.starId,
+    starName: role.starName ?? role.starId,
+  };
+}
+
 function buildFallbackPlatformHref(platform: string, shareLink: string) {
   if (platform === "X") {
     const url = new URL("https://twitter.com/intent/tweet");
@@ -128,7 +189,13 @@ function FounderRoleShareCard({
 }) {
   const copy = getCopy(locale);
   const v2Copy = getFanletterV2Copy(locale);
-  const loop = roleShare.loop ?? buildFallbackShareLoop(roleShare.role);
+  const loop = roleShare.mockMembership
+    ? buildMockShareLoop({
+        locale,
+        membership: roleShare.mockMembership,
+        role: roleShare.role,
+      })
+    : roleShare.loop ?? buildFallbackShareLoop(roleShare.role);
   const starName = roleShare.role.starName ?? roleShare.role.starId;
   const universeName = roleShare.role.universeName ?? `${starName} Universe`;
   const universeHref = `/${locale}/fanletter/${roleShare.role.starId}${
@@ -161,7 +228,15 @@ function FounderRoleShareCard({
             {universeName}
           </p>
         </div>
-        <FounderRoleBadge copy={v2Copy} role={roleShare.role.role} />
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          {roleShare.mockMembership ? (
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[0.62rem] font-semibold text-emerald-800">
+              <BadgeCheck className="size-3.5" />
+              {isKorean(locale) ? "참여 완료" : "Joined"}
+            </span>
+          ) : null}
+          <FounderRoleBadge copy={v2Copy} role={roleShare.role.role} />
+        </div>
       </div>
 
       {loop ? (
@@ -218,6 +293,133 @@ function FounderRoleShareCard({
   );
 }
 
+function MockFounderMembershipSummary({
+  locale,
+  memberships,
+  stars,
+}: {
+  locale: Locale;
+  memberships: FanletterFounderMockMembership[];
+  stars: AIStar[];
+}) {
+  if (memberships.length === 0) {
+    return null;
+  }
+
+  const copy = getCopy(locale);
+  const starsById = new Map(
+    [...stars, ...fanletterV2Mock.aiStars].map((star) => [star.id, star]),
+  );
+
+  return (
+    <section className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 shadow-[0_18px_44px_rgba(16,185,129,0.1)] sm:p-5">
+      <div className="flex items-start gap-3">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-700">
+          <BadgeCheck className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold leading-tight">
+            {copy.mockMembershipTitle}
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-emerald-900/72">
+            {copy.mockMembershipBody}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        {memberships.map((membership) => {
+          const star = starsById.get(membership.starId);
+          const starName = star?.name ?? membership.starId;
+          const referralCode =
+            membership.referralCode ??
+            buildMockReferralCode(membership.starId, starName);
+          const universeHref = `/${locale}/fanletter/${membership.starId}?ref=${encodeURIComponent(
+            referralCode,
+          )}&founder=joined`;
+
+          return (
+            <Link
+              className="flex min-h-20 items-center justify-between gap-3 rounded-lg border border-emerald-200 bg-white p-3 text-emerald-950 transition hover:border-emerald-300 hover:bg-emerald-50"
+              href={universeHref}
+              key={membership.starId}
+            >
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-semibold">
+                  {starName}
+                </span>
+                <span className="mt-1 block truncate font-mono text-xs font-semibold text-emerald-800">
+                  {referralCode}
+                </span>
+                <span className="mt-2 inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[0.62rem] font-semibold text-emerald-800">
+                  CP +100 · Influence +5 · Creator +2%
+                </span>
+              </span>
+              <span className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full bg-emerald-700 px-3 text-xs font-semibold text-white">
+                {copy.mockMembershipCta}
+                <ArrowRight className="size-3.5" />
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function MockCreatorLaunchSummary({
+  launches,
+  locale,
+}: {
+  launches: MemberOwnedAIStar[];
+  locale: Locale;
+}) {
+  if (launches.length === 0) {
+    return null;
+  }
+
+  const copy = getCopy(locale);
+
+  return (
+    <section className="mt-4 rounded-lg border border-fuchsia-200 bg-[#faf5ff] p-4 text-[#3b0764] shadow-[0_18px_44px_rgba(168,85,247,0.1)] sm:p-5">
+      <div className="flex items-start gap-3">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-white text-[#7c3aed]">
+          <Sparkles className="size-5" />
+        </span>
+        <div className="min-w-0">
+          <h2 className="text-xl font-semibold leading-tight">
+            {copy.mockLaunchTitle}
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-[#3b0764]/70">
+            {copy.mockLaunchBody}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+        {launches.map((launch) => (
+          <div
+            className="flex min-h-20 items-center justify-between gap-3 rounded-lg border border-fuchsia-200 bg-white p-3"
+            key={launch.id}
+          >
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold">
+                {launch.name}
+              </span>
+              <span className="mt-1 block truncate text-xs font-semibold text-[#7c3aed]">
+                {launch.sourceUniverseName}
+              </span>
+            </span>
+            <span className="inline-flex h-8 shrink-0 items-center rounded-full bg-[#7c3aed] px-3 text-xs font-semibold text-white">
+              {launch.launchCostUsdt ?? 10} USDT
+            </span>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function FanletterFounderClubPage({
   locale,
   portfolio: livePortfolio,
@@ -231,8 +433,68 @@ export function FanletterFounderClubPage({
 }) {
   const copy = getCopy(locale);
   const v2Copy = getFanletterV2Copy(locale);
-  const portfolio: MemberPortfolioData =
+  const basePortfolio: MemberPortfolioData =
     livePortfolio ?? fanletterV2Mock.memberPortfolio;
+  const mockMembershipsByStarId = useFanletterFounderMockMemberships();
+  const mockLaunchesById = useFanletterCreatorMockLaunches();
+  const mockOwnedStars = useMemo(
+    () => Object.values(mockLaunchesById).map(toMemberOwnedAIStar),
+    [mockLaunchesById],
+  );
+  const mockMemberships = useMemo(
+    () => Object.values(mockMembershipsByStarId),
+    [mockMembershipsByStarId],
+  );
+  const starsById = useMemo(
+    () =>
+      new Map(
+        [...stars, ...fanletterV2Mock.aiStars].map((star) => [star.id, star]),
+      ),
+    [stars],
+  );
+  const portfolio: MemberPortfolioData = useMemo(() => {
+    if (mockMemberships.length === 0 && mockOwnedStars.length === 0) {
+      return basePortfolio;
+    }
+
+    const existingRoleStarIds = new Set(
+      basePortfolio.roles.map((role) => role.starId),
+    );
+    const mockRoles = mockMemberships
+      .filter((membership) => !existingRoleStarIds.has(membership.starId))
+      .map<MemberPortfolioRole>((membership) => {
+        const star = starsById.get(membership.starId);
+
+        return {
+          role: "founder",
+          starId: membership.starId,
+          starName: star?.name ?? membership.starId,
+          universeName: star?.universeName ?? `${membership.starId} Universe`,
+        };
+      });
+    const existingOwnedStarIds = new Set(
+      basePortfolio.ownedStars.map((star) => star.id),
+    );
+    const nextOwnedStars = [
+      ...mockOwnedStars.filter((star) => !existingOwnedStarIds.has(star.id)),
+      ...basePortfolio.ownedStars,
+    ];
+
+    return {
+      ...basePortfolio,
+      cpBalance: basePortfolio.cpBalance + mockMemberships.length * 100,
+      creatorEligibilityPercent: Math.min(
+        100,
+        basePortfolio.creatorEligibilityPercent + mockMemberships.length * 2,
+      ),
+      isLiveData: basePortfolio.isLiveData,
+      ownedStars: nextOwnedStars,
+      roles: [...basePortfolio.roles, ...mockRoles],
+      scoutScore: Math.min(100, basePortfolio.scoutScore + mockMemberships.length * 5),
+      successfulInvites:
+        basePortfolio.successfulInvites + mockMemberships.length,
+    };
+  }, [basePortfolio, mockMemberships, mockOwnedStars, starsById]);
   const memberInitials =
     portfolio.memberInitials ??
     portfolio.memberName
@@ -240,13 +502,49 @@ export function FanletterFounderClubPage({
       .trim()
       .slice(0, 2)
       .toUpperCase();
-  const roleShares =
-    liveRoleShares && liveRoleShares.length > 0
-      ? liveRoleShares
-      : portfolio.roles.map((role) => ({
+  const roleShares = useMemo(() => {
+    const baseRoleShares: FounderClubRoleShare[] =
+      liveRoleShares && liveRoleShares.length > 0
+        ? liveRoleShares
+        : portfolio.roles.map((role) => ({
+            loop: null,
+            role,
+          }));
+    const baseRoleShareStarIds = new Set(
+      baseRoleShares.map((roleShare) => roleShare.role.starId),
+    );
+    const patchedRoleShares = baseRoleShares.map((roleShare) => ({
+      ...roleShare,
+      mockMembership:
+        mockMembershipsByStarId[roleShare.role.starId] ??
+        roleShare.mockMembership ??
+        null,
+    }));
+    const appendedRoleShares = mockMemberships
+      .filter((membership) => !baseRoleShareStarIds.has(membership.starId))
+      .map<FounderClubRoleShare>((membership) => {
+        const star = starsById.get(membership.starId);
+
+        return {
           loop: null,
-          role,
-        }));
+          mockMembership: membership,
+          role: {
+            role: "founder",
+            starId: membership.starId,
+            starName: star?.name ?? membership.starId,
+            universeName: star?.universeName ?? `${membership.starId} Universe`,
+          },
+        };
+      });
+
+    return [...patchedRoleShares, ...appendedRoleShares];
+  }, [
+    liveRoleShares,
+    mockMemberships,
+    mockMembershipsByStarId,
+    portfolio.roles,
+    starsById,
+  ]);
   const metricItems = [
     {
       label: copy.metrics.scout,
@@ -328,6 +626,13 @@ export function FanletterFounderClubPage({
             </div>
           </div>
         </section>
+
+        <MockFounderMembershipSummary
+          locale={locale}
+          memberships={mockMemberships}
+          stars={stars}
+        />
+        <MockCreatorLaunchSummary launches={mockOwnedStars} locale={locale} />
 
         <section className="mt-4 grid gap-4 xl:grid-cols-[1fr_1fr]">
           <div className="min-w-0">

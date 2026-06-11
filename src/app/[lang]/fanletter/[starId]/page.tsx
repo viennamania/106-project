@@ -18,11 +18,70 @@ import {
   getFanletterV2LocalizedText,
   getFanletterV2MockStar,
   type AIStar,
+  type ScoutShareLoopData,
 } from "@/mock/fanletterV2";
 
 type FanletterStarLandingSearchParams = {
+  founder?: string | string[];
   ref?: string | string[];
 };
+
+function readMockFounderJoined(rawValue?: string | string[]) {
+  const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
+
+  return value === "joined" || value === "1" || value === "true";
+}
+
+function buildMockReferralCode(star: AIStar) {
+  const starToken =
+    star.name.replace(/[^a-zA-Z0-9]/g, "").toUpperCase() ||
+    star.id.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
+  return `${(starToken || "STAR").slice(0, 12)}-A-001`;
+}
+
+function buildMockFounderShareLink({
+  locale,
+  referralCode,
+  star,
+}: {
+  locale: Locale;
+  referralCode: string;
+  star: AIStar;
+}) {
+  const url = new URL(
+    `/${locale}/fanletter/${encodeURIComponent(star.id)}`,
+    "https://www.net402.ai",
+  );
+  url.searchParams.set("ref", referralCode);
+
+  return url.toString();
+}
+
+function buildMockFounderScoutShareLoop({
+  locale,
+  referralCode,
+  star,
+}: {
+  locale: Locale;
+  referralCode: string | null;
+  star: AIStar;
+}): ScoutShareLoopData {
+  const effectiveReferralCode = referralCode ?? buildMockReferralCode(star);
+
+  return {
+    ...fanletterV2Mock.scoutShareLoop,
+    referralCode: effectiveReferralCode,
+    selectedUniverse: star.universeName,
+    shareLink: buildMockFounderShareLink({
+      locale,
+      referralCode: effectiveReferralCode,
+      star,
+    }),
+    starId: star.id,
+    starName: star.name,
+  };
+}
 
 function buildFanletterStarRedirectHref({
   locale,
@@ -154,15 +213,25 @@ export default async function FanletterStarLandingPage({
 
   const { relatedStars, star } = await resolveFanletterStarDetail(starId);
   const referralCode = readFanletterReferralCode(query.ref);
+  const isMockFounderJoined = readMockFounderJoined(query.founder);
   const memberSession = await readMemberServerSession();
 
   if (star) {
-    const viewerScoutShareLoop =
+    const liveViewerScoutShareLoop =
       await getFanletterFounderClubStarScoutShareLoop({
         email: memberSession?.email ?? null,
         locale: lang,
         starId: star.id,
       });
+    const viewerScoutShareLoop =
+      liveViewerScoutShareLoop ??
+      (isMockFounderJoined
+        ? buildMockFounderScoutShareLoop({
+            locale: lang,
+            referralCode,
+            star,
+          })
+        : null);
 
     return (
       <FanletterStarDetailPage

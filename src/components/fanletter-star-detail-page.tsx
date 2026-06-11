@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -11,11 +13,16 @@ import {
 } from "lucide-react";
 
 import {
+  type FanletterCreatorMockLaunch,
+  useFanletterCreatorMockLaunches,
+} from "@/components/fanletter-creator-mock-launch-state";
+import {
   AIStarCard,
   FounderRoleBadge,
   FounderUniversePreview,
   HumanMemberAvatar,
 } from "@/components/fanletter-founder-club-v2";
+import { FanletterFounderMockStatusBanner } from "@/components/fanletter-founder-mock-state";
 import { FanletterStarReferralPanel } from "@/components/fanletter-star-referral-panel";
 import {
   fanletterV2Mock,
@@ -23,6 +30,7 @@ import {
   getFanletterV2LocalizedText,
   type AIStar,
   type ScoutShareLoopData,
+  type SpawnedAIStar,
 } from "@/mock/fanletterV2";
 import type { Locale } from "@/lib/i18n";
 
@@ -40,6 +48,48 @@ function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US").format(
     value,
   );
+}
+
+function getPortraitInitials(name: string) {
+  const normalized = name
+    .replace(/[^a-zA-Z0-9가-힣\s]/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+
+  if (!normalized) {
+    return "AI";
+  }
+
+  const parts = normalized.split(" ");
+
+  return (parts.length > 1 ? parts[0][0] + parts[1][0] : normalized.slice(0, 2))
+    .toUpperCase();
+}
+
+function toMockSpawnedStar(
+  launch: FanletterCreatorMockLaunch,
+  sourceStar: AIStar,
+): SpawnedAIStar {
+  return {
+    accentColor: "#a855f7",
+    accentSecondary: "#67e8f9",
+    createdByMemberName: launch.ownerName,
+    createdByUnlock: true,
+    founderCount: 0,
+    growthPercent: 0,
+    id: launch.id,
+    launchCostUsdt: launch.launchCostUsdt,
+    name: launch.name,
+    portraitInitials: getPortraitInitials(launch.name),
+    sourceUniverseName: launch.sourceUniverseName ?? sourceStar.universeName,
+    spawnedFromStarId: launch.spawnedFromStarId ?? sourceStar.id,
+    specialty: {
+      en: "Creator Launch Draft",
+      ja: "Creator Launch Draft",
+      ko: "크리에이터 출시 draft",
+    },
+    starScore: 50,
+  };
 }
 
 function buildReferralCode(star: AIStar) {
@@ -639,6 +689,30 @@ export function FanletterStarDetailPage({
   viewerScoutShareLoop?: ScoutShareLoopData | null;
 }) {
   const copy = getFanletterV2Copy(locale);
+  const mockLaunchesById = useFanletterCreatorMockLaunches();
+  const displayStar = useMemo(() => {
+    const existingSpawnedStarIds = new Set(
+      star.spawnedStars.map((spawnedStar) => spawnedStar.id),
+    );
+    const mockSpawnedStars = Object.values(mockLaunchesById)
+      .filter(
+        (launch) =>
+          launch.spawnedFromStarId === star.id ||
+          (!launch.spawnedFromStarId &&
+            launch.sourceUniverseName === star.universeName),
+      )
+      .map((launch) => toMockSpawnedStar(launch, star))
+      .filter((spawnedStar) => !existingSpawnedStarIds.has(spawnedStar.id));
+
+    if (mockSpawnedStars.length === 0) {
+      return star;
+    }
+
+    return {
+      ...star,
+      spawnedStars: [...mockSpawnedStars, ...star.spawnedStars],
+    };
+  }, [mockLaunchesById, star]);
   const viewerState = getStarDetailViewerState({
     isAuthenticated,
     viewerScoutShareLoop,
@@ -740,6 +814,13 @@ export function FanletterStarDetailPage({
                 />
               </div>
 
+              <FanletterFounderMockStatusBanner
+                className="mt-4 max-w-2xl lg:mx-0"
+                locale={locale}
+                starId={star.id}
+                starName={displayStarName}
+              />
+
               <div className="mt-6 hidden gap-2 sm:grid sm:grid-cols-3">
                 <MetricTile
                   label={copy.labels.starScore}
@@ -790,15 +871,20 @@ export function FanletterStarDetailPage({
             loop={loop}
             primaryActionHref={primaryAction.href}
             primaryActionLabel={primaryAction.label}
+            starId={star.id}
           />
           <div className="grid gap-4">
             <HumanFounderSlots copy={copy} star={star} />
-            <SpawnedStarsSection copy={copy} locale={locale} star={star} />
+            <SpawnedStarsSection copy={copy} locale={locale} star={displayStar} />
           </div>
         </div>
 
         <div className="mx-auto max-w-[92rem]">
-          <FounderUniversePreview copy={copy} locale={locale} stars={[star]} />
+          <FounderUniversePreview
+            copy={copy}
+            locale={locale}
+            stars={[displayStar]}
+          />
         </div>
 
         <div className="mx-auto mt-12 max-w-[92rem]">

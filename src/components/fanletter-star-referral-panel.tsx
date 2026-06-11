@@ -12,6 +12,7 @@ import {
 import { useMemo, useState } from "react";
 
 import { CopyTextButton } from "@/components/copy-text-button";
+import { useFanletterFounderMockMembership } from "@/components/fanletter-founder-mock-state";
 import type { FanletterV2Copy, ScoutShareLoopData } from "@/mock/fanletterV2";
 
 type FanletterStarReferralPanelProps = {
@@ -21,6 +22,7 @@ type FanletterStarReferralPanelProps = {
   loop: ScoutShareLoopData;
   primaryActionHref?: string | null;
   primaryActionLabel?: string | null;
+  starId?: string | null;
 };
 
 function buildPlatformHref(platform: string, shareLink: string) {
@@ -142,27 +144,44 @@ export function FanletterStarReferralPanel({
   loop,
   primaryActionHref,
   primaryActionLabel,
+  starId,
 }: FanletterStarReferralPanelProps) {
+  const mockFounderMembership = useFanletterFounderMockMembership(
+    starId ?? null,
+  );
+  const isMockFounder = Boolean(mockFounderMembership);
   const [isGenerated, setIsGenerated] = useState(
     Boolean(inboundReferralCode) || Boolean(loop.isLiveData),
   );
-  const visibleReferralCode = inboundReferralCode ?? loop.referralCode;
+  const isReferralGenerated = isGenerated || isMockFounder;
+
+  const visibleReferralCode =
+    mockFounderMembership?.referralCode ?? inboundReferralCode ?? loop.referralCode;
   const visibleShareLink = useMemo(() => {
-    if (!inboundReferralCode) {
+    if (!inboundReferralCode && !mockFounderMembership?.referralCode) {
       return loop.shareLink;
     }
 
     try {
       const url = new URL(loop.shareLink);
-      url.searchParams.set("ref", inboundReferralCode);
+      url.searchParams.set("ref", visibleReferralCode);
 
       return url.toString();
     } catch {
       return loop.shareLink;
     }
-  }, [inboundReferralCode, loop.shareLink]);
+  }, [
+    inboundReferralCode,
+    loop.shareLink,
+    mockFounderMembership?.referralCode,
+    visibleReferralCode,
+  ]);
   const platformLinks = useMemo(() => {
-    if (!inboundReferralCode && loop.sharePlatformLinks?.length) {
+    if (
+      !inboundReferralCode &&
+      !mockFounderMembership &&
+      loop.sharePlatformLinks?.length
+    ) {
       return loop.sharePlatformLinks.map((platformLink) => ({
         href: platformLink.href,
         label: platformLink.label,
@@ -175,6 +194,7 @@ export function FanletterStarReferralPanel({
     }));
   }, [
     inboundReferralCode,
+    mockFounderMembership,
     loop.sharePlatformLinks,
     loop.sharePlatforms,
     visibleShareLink,
@@ -197,13 +217,17 @@ export function FanletterStarReferralPanel({
       universe: displayUniverse,
     }),
   ];
-  const actionHref = primaryActionHref ?? joinHref;
+  const actionHref = isMockFounder ? "#referral-builder" : primaryActionHref ?? joinHref;
   const fallbackActionLabel = actionHref.includes("/fanletter/connect")
     ? isKoreanCopy(copy)
       ? "Founder 상태 확인"
       : "Confirm Founder status"
     : copy.actions.joinAsFounder;
-  const actionLabel = primaryActionLabel ?? fallbackActionLabel;
+  const actionLabel = isMockFounder
+    ? isKoreanCopy(copy)
+      ? "내 추천 링크 공유"
+      : "Share my Founder link"
+    : primaryActionLabel ?? fallbackActionLabel;
   const actionClassName =
     "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#69f98a]";
 
@@ -229,7 +253,21 @@ export function FanletterStarReferralPanel({
         </div>
       </div>
 
-      {inboundReferralCode ? (
+      {isMockFounder ? (
+        <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+          <div className="flex items-center gap-2 text-sm font-semibold text-emerald-900">
+            <CheckCircle2 className="size-4" />
+            {isKoreanCopy(copy)
+              ? "Founder 참여 완료"
+              : "Founder join complete"}
+          </div>
+          <p className="mt-2 hidden text-sm font-medium leading-5 text-emerald-900/72 sm:block">
+            {isKoreanCopy(copy)
+              ? "이 브라우저에 저장된 mock Founder 상태입니다. 내 추천 링크로 새 Founder를 초대할 수 있습니다."
+              : "This browser has mock Founder status saved. Invite new Founders with your referral link."}
+          </p>
+        </div>
+      ) : inboundReferralCode ? (
         <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
           <div className="flex items-center gap-2 text-sm font-semibold text-emerald-900">
             <CheckCircle2 className="size-4" />
@@ -268,12 +306,12 @@ export function FanletterStarReferralPanel({
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase text-black/48">
-              {isGenerated
+              {isReferralGenerated
                 ? copy.starDetail.referralReady
                 : copy.labels.referralCode}
             </p>
             <p className="mt-1 break-all font-mono text-lg font-semibold text-black">
-              {isGenerated
+              {isReferralGenerated
                 ? visibleReferralCode
                 : isKoreanCopy(copy)
                   ? "생성 전"
@@ -290,7 +328,7 @@ export function FanletterStarReferralPanel({
           </button>
         </div>
 
-        {isGenerated ? (
+        {isReferralGenerated ? (
           <div className="mt-4">
             <p className="text-xs font-semibold uppercase text-black/48">
               {copy.actions.shareLink}

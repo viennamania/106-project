@@ -40,6 +40,10 @@ import { FanletterContentDetailCtaGroup } from "@/components/fanletter-content-d
 import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
 import { FanletterFanRequestPresetLink } from "@/components/fanletter-fan-request-preset-link";
 import { FanletterFounderAttributionCard } from "@/components/fanletter-founder-attribution-card";
+import {
+  FanletterFounderMockJoinLink,
+  FanletterFounderMockStatusBanner,
+} from "@/components/fanletter-founder-mock-state";
 import { FanletterHashScroller } from "@/components/fanletter-hash-scroller";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
@@ -10207,6 +10211,41 @@ export function FanletterContentDetailPage({
   );
 }
 
+function getFounderOnboardingStarName(name: string, locale: Locale) {
+  if (locale !== "ko") {
+    return name;
+  }
+
+  const replacements: Record<string, string> = {
+    Harin: "하린",
+    Lumi: "루미",
+    Minseo: "민서",
+    Mira: "미라",
+    Noa: "노아",
+    Ria: "리아",
+    Seoyeon: "서연",
+    Yoonseo: "윤서",
+  };
+
+  return replacements[name] ?? name;
+}
+
+function getFounderOnboardingUniverseName(name: string, locale: Locale) {
+  if (locale !== "ko") {
+    return name;
+  }
+
+  const replacements: Record<string, string> = {
+    "Harin Universe": "하린 유니버스",
+    "Minseo Universe": "민서 유니버스",
+    "Ria Universe": "리아 유니버스",
+    "Seoyeon Universe": "서연 유니버스",
+    "Yoonseo Universe": "윤서 유니버스",
+  };
+
+  return replacements[name] ?? name.replace(/\bUniverse\b/g, "유니버스");
+}
+
 export function FanletterOnboardingPage({
   founderClubStar = null,
   locale,
@@ -10221,6 +10260,31 @@ export function FanletterOnboardingPage({
   viewerScoutShareLoop?: ScoutShareLoopData | null;
 }) {
   const founderClubStarId = founderClubStar?.id ?? null;
+  const isFounderClubOnboarding = Boolean(founderClubStar);
+  const founderStarName = founderClubStar
+    ? getFounderOnboardingStarName(founderClubStar.name, locale)
+    : null;
+  const founderUniverseName = founderClubStar
+    ? getFounderOnboardingUniverseName(founderClubStar.universeName, locale)
+    : null;
+  const founderUniverseHref = founderClubStar
+    ? setPathSearchParams(`/${locale}/fanletter/${founderClubStar.id}`, {
+        ref: referralCode,
+      })
+    : null;
+  const founderJoinedUniverseHref = founderUniverseHref
+    ? setPathSearchParams(founderUniverseHref, {
+        founder: "joined",
+      })
+    : null;
+  const founderJoinedReturnHref = returnToHref
+    ? setPathSearchParams(returnToHref, {
+        founder: "joined",
+      })
+    : null;
+  const founderReferralBuilderHref = founderJoinedUniverseHref
+    ? `${founderJoinedUniverseHref}#referral-builder`
+    : null;
   const onboardingBaseHref = buildPathWithReferral(
     `/${locale}/fanletter/onboarding`,
     referralCode,
@@ -10229,6 +10293,8 @@ export function FanletterOnboardingPage({
     onboardingBaseHref,
     { returnTo: returnToHref, star: founderClubStarId },
   );
+  const founderJoinCompleteHref =
+    founderJoinedReturnHref ?? founderJoinedUniverseHref ?? onboardingHref;
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
@@ -10250,8 +10316,128 @@ export function FanletterOnboardingPage({
     buildPathWithReferral(`/${locale}/activate`, referralCode),
     { returnTo: onboardingHref },
   );
+  const founderClubHref = buildPathWithReferral(
+    `/${locale}/fanletter/founder-club`,
+    referralCode,
+  );
   const labels =
-    locale === "ko"
+    isFounderClubOnboarding && founderStarName && founderUniverseName
+      ? locale === "ko"
+        ? {
+            accountState:
+              "이 Founder 참여는 선택한 AI 스타 유니버스 기준으로 귀속됩니다. 실제 결제는 아직 진행하지 않습니다.",
+            asideBody:
+              "계정 연결 후 Founder 귀속을 확인하고, 스타 상세에서 추천 링크를 만들어 공유합니다.",
+            asideTitle: "Founder 참여 준비",
+            completeBody:
+              "계정 연결, Founder 귀속 확인, 추천 링크 공유까지 이어지면 CP와 영향력 적립 흐름을 확인할 수 있습니다.",
+            completeTitle: "Founder 참여 체크리스트",
+            description: `${founderUniverseName} Founder 참여, 추천 코드 생성, SNS 공유까지 한 흐름으로 이어가세요.`,
+            eyebrow: "Founder Club 온보딩",
+            feedCta: "Founder Club 보기",
+            helper:
+              "Founder Club에서 내 역할, 추천 링크, CP, 영향력, Creator 진행률을 관리합니다.",
+            homeCta: "유니버스 보기",
+            primaryCta: "계정 연결하고 참여",
+            progress: "Founder 진행",
+            readyValue: "3단계",
+            returnBody:
+              "스타 상세로 돌아가 추천 코드 생성과 SNS 공유 루프를 이어갈 수 있습니다.",
+            returnCta: "유니버스로 돌아가기",
+            secondaryCta: "유니버스 먼저 보기",
+            title: `${founderStarName} Founder로 참여하기`,
+            steps: [
+              {
+                badge: "계정",
+                body:
+                  "이메일 계정을 연결해 Founder 역할과 추천 보상이 같은 계정에 저장되도록 합니다.",
+                cta: "계정 연결하기",
+                href: connectHref,
+                Icon: User,
+                meta: "01 · 계정",
+                title: "AIAVpark 계정 연결",
+              },
+              {
+                badge: "Founder",
+                body: `${founderUniverseName}에 Founder로 귀속되는지 확인합니다. 새 결제 없이 mock 흐름으로 먼저 검증합니다.`,
+                cta: "Founder 귀속 확인",
+                href: founderJoinCompleteHref,
+                Icon: Crown,
+                meta: "02 · Founder",
+                title: "Founder 참여 확인",
+              },
+              {
+                badge: "공유",
+                body:
+                  "스타 상세에서 내 추천 코드를 만들고 Kakao, Instagram, X, TikTok 공유 링크를 확인합니다.",
+                cta: "추천 링크 만들기",
+                href:
+                  founderReferralBuilderHref ??
+                  founderJoinCompleteHref,
+                Icon: Sparkles,
+                meta: "03 · 공유",
+                title: "추천 코드 생성",
+              },
+            ],
+          }
+        : {
+            accountState:
+              "This Founder join is attributed to the selected AI Star Universe. Real payment is still deferred.",
+            asideBody:
+              "Connect the account, confirm Founder attribution, then create and share the referral link from the Star detail page.",
+            asideTitle: "Founder join setup",
+            completeBody:
+              "After account connection, Founder attribution, and referral sharing, the CP and influence reward flow is ready to preview.",
+            completeTitle: "Founder join checklist",
+            description: `Continue through ${founderUniverseName} Founder join, referral code creation, and SNS sharing.`,
+            eyebrow: "Founder Club Onboarding",
+            feedCta: "View Founder Club",
+            helper:
+              "Manage your roles, referral links, CP, influence, and Creator progress in Founder Club.",
+            homeCta: "View Universe",
+            primaryCta: "Connect and join",
+            progress: "Founder progress",
+            readyValue: "3 steps",
+            returnBody:
+              "Return to the Star detail page to continue referral code creation and SNS sharing.",
+            returnCta: "Back to Universe",
+            secondaryCta: "View Universe first",
+            title: `Join ${founderStarName} as Founder`,
+            steps: [
+              {
+                badge: "Account",
+                body:
+                  "Connect email so the Founder role and referral rewards stay attached to one account.",
+                cta: "Connect account",
+                href: connectHref,
+                Icon: User,
+                meta: "01 · Account",
+                title: "Connect AIAVpark account",
+              },
+              {
+                badge: "Founder",
+                body: `Confirm Founder attribution in ${founderUniverseName}. This release previews the flow without a new payment.`,
+                cta: "Confirm Founder attribution",
+                href: founderJoinCompleteHref,
+                Icon: Crown,
+                meta: "02 · Founder",
+                title: "Confirm Founder join",
+              },
+              {
+                badge: "Share",
+                body:
+                  "Create your referral code from the Star detail page and share it to Kakao, Instagram, X, or TikTok.",
+                cta: "Create referral link",
+                href:
+                  founderReferralBuilderHref ??
+                  founderJoinCompleteHref,
+                Icon: Sparkles,
+                meta: "03 · Share",
+                title: "Create referral code",
+              },
+            ],
+          }
+      : locale === "ko"
       ? {
           accountState: "연결된 AIAVpark 계정을 기준으로 시작 상태를 확인합니다.",
           asideBody:
@@ -10368,8 +10554,61 @@ export function FanletterOnboardingPage({
       <div className="mt-5 space-y-3">
         {labels.steps.map((step, index) => {
           const Icon = step.Icon;
+          const stepSummary = (
+            <>
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
+                <Icon className="size-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#7c3aed]">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="mt-1 block truncate text-sm font-semibold text-[#12041f]">
+                  {step.title}
+                </span>
+                <span className="mt-2 block">
+                  {isFounderClubOnboarding ? (
+                    <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-black/5 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-black/52">
+                      <ArrowRight className="size-3.5" />
+                      {"badge" in step
+                        ? step.badge
+                        : step.meta.split("·")[1]?.trim() ?? step.title}
+                    </span>
+                  ) : index <= 2 ? (
+                    <FanletterSetupStepBadge
+                      locale={locale}
+                      surface="light"
+                      stepIndex={index}
+                    />
+                  ) : null}
+                </span>
+              </span>
+              <ArrowRight className="size-4 shrink-0 text-black/32" />
+            </>
+          );
 
-          return (
+          return isFounderClubOnboarding && founderClubStar ? (
+            index > 0 ? (
+              <FanletterFounderMockJoinLink
+                className="flex items-center gap-3 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3 transition hover:border-violet-300 hover:bg-violet-50"
+                href={step.href}
+                key={step.title}
+                locale={locale}
+                referralCode={referralCode}
+                starId={founderClubStar.id}
+              >
+                {stepSummary}
+              </FanletterFounderMockJoinLink>
+            ) : (
+              <Link
+                className="flex items-center gap-3 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3 transition hover:border-violet-300 hover:bg-violet-50"
+                href={step.href}
+                key={step.title}
+              >
+                {stepSummary}
+              </Link>
+            )
+          ) : (
             <FanletterSetupStepNavLink
               activateHref={activateHref}
               className="flex items-center gap-3 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3 transition hover:border-violet-300 hover:bg-violet-50"
@@ -10382,27 +10621,7 @@ export function FanletterOnboardingPage({
               stepIndex={index}
               studioHref={studioHref}
             >
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
-                <Icon className="size-5" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#7c3aed]">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <span className="mt-1 block truncate text-sm font-semibold text-[#12041f]">
-                  {step.title}
-                </span>
-                {index <= 2 ? (
-                  <span className="mt-2 block">
-                    <FanletterSetupStepBadge
-                      locale={locale}
-                      surface="light"
-                      stepIndex={index}
-                    />
-                  </span>
-                ) : null}
-              </span>
-              <ArrowRight className="size-4 shrink-0 text-black/32" />
+              {stepSummary}
             </FanletterSetupStepNavLink>
           );
         })}
@@ -10414,24 +10633,46 @@ export function FanletterOnboardingPage({
     <FanletterSetupStatusProvider>
       <FanletterShell
         actions={
-          <FanletterSetupHeroActions
-            activateHref={activateHref}
-            connectHref={connectHref}
-            createHref={createHref}
-            locale={locale}
-            onboardingHref={onboardingHref}
-            profileHref={profileHref}
-            studioHref={studioHref}
-            surface="light"
-            variant="onboarding"
-          />
+          isFounderClubOnboarding ? (
+            <>
+              <Link
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9]"
+                href={connectHref}
+              >
+                {labels.primaryCta}
+                <ArrowRight className="size-4" />
+              </Link>
+              <Link
+                className="inline-flex h-12 items-center justify-center rounded-full border border-violet-200 bg-white px-5 text-sm font-semibold !text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-50"
+                href={founderUniverseHref ?? onboardingHref}
+              >
+                {labels.secondaryCta}
+              </Link>
+            </>
+          ) : (
+            <FanletterSetupHeroActions
+              activateHref={activateHref}
+              connectHref={connectHref}
+              createHref={createHref}
+              locale={locale}
+              onboardingHref={onboardingHref}
+              profileHref={profileHref}
+              studioHref={studioHref}
+              surface="light"
+              variant="onboarding"
+            />
+          )
         }
         aside={heroAside}
         description={
-          <FanletterSetupHeroDescription
-            defaultText={labels.description}
-            locale={locale}
-          />
+          isFounderClubOnboarding ? (
+            labels.description
+          ) : (
+            <FanletterSetupHeroDescription
+              defaultText={labels.description}
+              locale={locale}
+            />
+          )
         }
         eyebrow={labels.eyebrow}
         currentSection="start"
@@ -10443,12 +10684,20 @@ export function FanletterOnboardingPage({
       >
       <section className="bg-[#fbfaff] px-4 py-10 text-black sm:px-6 sm:py-16 lg:px-8">
         {founderClubStar ? (
-          <FanletterFounderAttributionCard
-            locale={locale}
-            referralCode={referralCode}
-            star={founderClubStar}
-            viewerScoutShareLoop={viewerScoutShareLoop}
-          />
+          <>
+            <FanletterFounderAttributionCard
+              locale={locale}
+              referralCode={referralCode}
+              star={founderClubStar}
+              viewerScoutShareLoop={viewerScoutShareLoop}
+            />
+            <FanletterFounderMockStatusBanner
+              className="mb-8"
+              locale={locale}
+              starId={founderClubStar.id}
+              starName={founderStarName ?? founderClubStar.name}
+            />
+          </>
         ) : null}
 
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
@@ -10462,12 +10711,52 @@ export function FanletterOnboardingPage({
             <p className="mt-4 text-sm font-medium leading-6 text-black/62">
               {labels.completeBody}
             </p>
-            <FanletterSetupProgressTiles items={progressItems} locale={locale} />
+            {isFounderClubOnboarding ? (
+              <div className="mt-6 grid grid-cols-3 gap-2">
+                {labels.steps.map((step, index) => (
+                  <div
+                    className="rounded-lg border border-violet-100 bg-[#f8f7ff] p-3"
+                    key={step.title}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xl font-semibold leading-none">
+                        {String(index + 1).padStart(2, "0")}
+                      </p>
+                      <ArrowRight className="size-3.5 shrink-0 opacity-55" />
+                    </div>
+                    <p className="mt-2 truncate text-[0.56rem] font-semibold uppercase tracking-[0.1em] text-black/52">
+                      {"badge" in step
+                        ? step.badge
+                        : step.meta.split("·")[1]?.trim() ?? step.title}
+                    </p>
+                    <p className="mt-2 text-[0.68rem] font-semibold leading-none text-[#5b21b6]">
+                      {index === 0
+                        ? locale === "ko"
+                          ? "필수"
+                          : "Required"
+                        : index === 1
+                          ? locale === "ko"
+                            ? "귀속"
+                            : "Attribute"
+                          : locale === "ko"
+                            ? "공유"
+                            : "Share"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <FanletterSetupProgressTiles items={progressItems} locale={locale} />
+            )}
             <p className="mt-5 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3 text-xs font-medium leading-5 text-black/58">
-              <FanletterSetupStatusNote
-                defaultText={labels.accountState}
-                locale={locale}
-              />
+              {isFounderClubOnboarding ? (
+                labels.accountState
+              ) : (
+                <FanletterSetupStatusNote
+                  defaultText={labels.accountState}
+                  locale={locale}
+                />
+              )}
             </p>
           </aside>
 
@@ -10489,7 +10778,13 @@ export function FanletterOnboardingPage({
                         <span className="rounded-full bg-violet-100 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#5b21b6]">
                           {step.meta}
                         </span>
-                        {index <= 2 ? (
+                        {isFounderClubOnboarding ? (
+                          <span className="inline-flex rounded-full bg-black/5 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-black/52">
+                            {"badge" in step
+                              ? step.badge
+                              : step.meta.split("·")[1]?.trim() ?? step.title}
+                          </span>
+                        ) : index <= 2 ? (
                           <FanletterSetupStepBadge
                             locale={locale}
                             stepIndex={index}
@@ -10503,17 +10798,40 @@ export function FanletterOnboardingPage({
                         title={step.title}
                       />
                     </div>
-                    <FanletterSetupStepAction
-                      activateHref={activateHref}
-                      connectHref={connectHref}
-                      createHref={createHref}
-                      defaultLabel={step.cta}
-                      locale={locale}
-                      onboardingHref={onboardingHref}
-                      profileHref={profileHref}
-                      stepIndex={index}
-                      studioHref={studioHref}
-                    />
+                    {isFounderClubOnboarding && founderClubStar ? (
+                      index > 0 ? (
+                        <FanletterFounderMockJoinLink
+                          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82 sm:w-fit"
+                          href={step.href}
+                          locale={locale}
+                          referralCode={referralCode}
+                          starId={founderClubStar.id}
+                        >
+                          {step.cta}
+                          <ArrowRight className="size-4" />
+                        </FanletterFounderMockJoinLink>
+                      ) : (
+                        <Link
+                          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82 sm:w-fit"
+                          href={step.href}
+                        >
+                          {step.cta}
+                          <ArrowRight className="size-4" />
+                        </Link>
+                      )
+                    ) : (
+                      <FanletterSetupStepAction
+                        activateHref={activateHref}
+                        connectHref={connectHref}
+                        createHref={createHref}
+                        defaultLabel={step.cta}
+                        locale={locale}
+                        onboardingHref={onboardingHref}
+                        profileHref={profileHref}
+                        stepIndex={index}
+                        studioHref={studioHref}
+                      />
+                    )}
                   </div>
                 </article>
               );
@@ -10529,7 +10847,7 @@ export function FanletterOnboardingPage({
         >
           <Link
             className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-black/10 bg-white p-5 text-black shadow-[0_18px_42px_rgba(8,18,12,0.05)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(8,18,12,0.08)]"
-            href={studioHref}
+            href={isFounderClubOnboarding ? founderUniverseHref ?? studioHref : studioHref}
           >
             <span>
               <span className="flex size-11 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
@@ -10546,7 +10864,7 @@ export function FanletterOnboardingPage({
           </Link>
           <Link
             className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-violet-200 bg-white p-5 !text-[#12041f] shadow-[0_18px_42px_rgba(88,28,135,0.08)] transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-[0_24px_52px_rgba(88,28,135,0.12)]"
-            href={feedHref}
+            href={isFounderClubOnboarding ? founderClubHref : feedHref}
           >
             <span>
               <span className="flex size-11 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800">
@@ -10562,10 +10880,32 @@ export function FanletterOnboardingPage({
             <ArrowRight className="size-5 shrink-0 text-[#7c3aed]" />
           </Link>
           {returnToHref ? (
-            <Link
-              className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-[#7c3aed] bg-[#7c3aed] p-5 !text-white shadow-[0_18px_42px_rgba(124,58,237,0.2)] transition hover:-translate-y-0.5 hover:bg-[#6d28d9] hover:shadow-[0_24px_52px_rgba(124,58,237,0.24)]"
-              href={returnToHref}
-            >
+            isFounderClubOnboarding && founderClubStar ? (
+              <FanletterFounderMockJoinLink
+                className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-[#7c3aed] bg-[#7c3aed] p-5 !text-white shadow-[0_18px_42px_rgba(124,58,237,0.2)] transition hover:-translate-y-0.5 hover:bg-[#6d28d9] hover:shadow-[0_24px_52px_rgba(124,58,237,0.24)]"
+                href={founderJoinCompleteHref}
+                locale={locale}
+                referralCode={referralCode}
+                starId={founderClubStar.id}
+              >
+                <span>
+                  <span className="flex size-11 items-center justify-center rounded-lg bg-white/18 text-white">
+                    <ArrowLeft className="size-5" />
+                  </span>
+                  <span className="mt-4 block text-2xl font-semibold leading-tight">
+                    {labels.returnCta}
+                  </span>
+                  <span className="mt-2 block text-sm font-medium leading-6 text-white/72">
+                    {labels.returnBody}
+                  </span>
+                </span>
+                <ArrowRight className="size-5 shrink-0" />
+              </FanletterFounderMockJoinLink>
+            ) : (
+              <Link
+                className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-[#7c3aed] bg-[#7c3aed] p-5 !text-white shadow-[0_18px_42px_rgba(124,58,237,0.2)] transition hover:-translate-y-0.5 hover:bg-[#6d28d9] hover:shadow-[0_24px_52px_rgba(124,58,237,0.24)]"
+                href={returnToHref}
+              >
               <span>
                 <span className="flex size-11 items-center justify-center rounded-lg bg-white/18 text-white">
                   <ArrowLeft className="size-5" />
@@ -10578,7 +10918,8 @@ export function FanletterOnboardingPage({
                 </span>
               </span>
               <ArrowRight className="size-5 shrink-0" />
-            </Link>
+              </Link>
+            )
           ) : null}
         </div>
       </section>
