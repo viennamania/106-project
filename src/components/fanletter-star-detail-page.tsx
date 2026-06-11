@@ -130,6 +130,28 @@ function buildShareLink({
   return url.toString();
 }
 
+function buildStarDetailHref({
+  locale,
+  referralCode,
+  star,
+}: {
+  locale: Locale;
+  referralCode?: string | null;
+  star: AIStar;
+}) {
+  const params = new URLSearchParams();
+
+  if (referralCode) {
+    params.set("ref", referralCode);
+  }
+
+  const search = params.toString();
+
+  return `/${locale}/fanletter/${encodeURIComponent(star.id)}${
+    search ? `?${search}` : ""
+  }`;
+}
+
 function buildJoinHref({
   locale,
   referralCode,
@@ -140,6 +162,11 @@ function buildJoinHref({
   star: AIStar;
 }) {
   const params = new URLSearchParams({
+    returnTo: buildStarDetailHref({
+      locale,
+      referralCode,
+      star,
+    }),
     star: star.id,
   });
 

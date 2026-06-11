@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
+import { setPathSearchParams } from "@/lib/landing-branding";
 import {
   fanletterV2Mock,
   getFanletterV2Copy,
@@ -269,12 +270,14 @@ function AIStarPortrait({
 export function AIStarCard({
   copy,
   detailHref,
+  founderHref,
   isSelected = false,
   locale,
   star,
 }: {
   copy: FanletterV2Copy;
   detailHref?: string;
+  founderHref?: string;
   isSelected?: boolean;
   locale: Locale;
   star: AIStar;
@@ -339,27 +342,71 @@ export function AIStarCard({
           </div>
         </div>
         {detailHref ? (
-          <Link
-            className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold !text-[#4c1d95] transition hover:bg-fuchsia-50"
-            href={detailHref}
-          >
-            {copy.actions.viewUniverse}
-            <ArrowRight className="size-4" />
-          </Link>
+          <div className="mt-4 grid gap-2 sm:grid-cols-2">
+            <Link
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold !text-[#4c1d95] transition hover:bg-fuchsia-50"
+              href={detailHref}
+            >
+              {copy.actions.viewUniverse}
+              <ArrowRight className="size-4" />
+            </Link>
+            {founderHref ? (
+              <Link
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-white/18 bg-white/12 px-4 text-sm font-semibold !text-white transition hover:bg-white/18"
+                href={founderHref}
+              >
+                {copy.actions.joinAsFounder}
+              </Link>
+            ) : null}
+          </div>
         ) : null}
       </div>
     </article>
   );
 }
 
+function getStarDetailHref({
+  locale,
+  referralCode,
+  starId,
+}: {
+  locale: Locale;
+  referralCode?: string | null;
+  starId: string;
+}) {
+  return setPathSearchParams(`/${locale}/fanletter/${encodeURIComponent(starId)}`, {
+    ref: referralCode,
+  });
+}
+
+function getStarFounderOnboardingHref({
+  detailHref,
+  locale,
+  referralCode,
+  starId,
+}: {
+  detailHref: string;
+  locale: Locale;
+  referralCode?: string | null;
+  starId: string;
+}) {
+  return setPathSearchParams(`/${locale}/fanletter/onboarding`, {
+    ref: referralCode,
+    returnTo: detailHref,
+    star: starId,
+  });
+}
+
 export function TopGrowingStars({
   copy,
   locale,
+  referralCode,
   selectedStarId,
   stars,
 }: {
   copy: FanletterV2Copy;
   locale: Locale;
+  referralCode?: string | null;
   selectedStarId?: string | null;
   stars: AIStar[];
 }) {
@@ -383,16 +430,32 @@ export function TopGrowingStars({
       </div>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {stars.map((star) => (
-          <AIStarCard
-            copy={copy}
-            detailHref={`/${locale}/fanletter/${star.id}`}
-            isSelected={star.id === selectedStarId}
-            key={star.id}
-            locale={locale}
-            star={star}
-          />
-        ))}
+        {stars.map((star) => {
+          const starReferralCode =
+            selectedStarId === star.id ? referralCode : null;
+          const detailHref = getStarDetailHref({
+            locale,
+            referralCode: starReferralCode,
+            starId: star.id,
+          });
+
+          return (
+            <AIStarCard
+              copy={copy}
+              detailHref={detailHref}
+              founderHref={getStarFounderOnboardingHref({
+                detailHref,
+                locale,
+                referralCode: starReferralCode,
+                starId: star.id,
+              })}
+              isSelected={star.id === selectedStarId}
+              key={star.id}
+              locale={locale}
+              star={star}
+            />
+          );
+        })}
       </div>
     </section>
   );
@@ -1264,6 +1327,7 @@ export function FounderClubV2HomeSections({
   creatorUnlock,
   locale,
   memberPortfolio,
+  referralCode,
   scoutShareLoop,
   selectedStarId,
   stars: liveStars,
@@ -1271,6 +1335,7 @@ export function FounderClubV2HomeSections({
   creatorUnlock?: CreatorUnlockData | null;
   locale: Locale;
   memberPortfolio?: MemberPortfolioData | null;
+  referralCode?: string | null;
   scoutShareLoop?: ScoutShareLoopData | null;
   selectedStarId?: string | null;
   stars?: AIStar[] | null;
@@ -1341,6 +1406,7 @@ export function FounderClubV2HomeSections({
         <TopGrowingStars
           copy={copy}
           locale={locale}
+          referralCode={referralCode}
           selectedStarId={selectedStarId}
           stars={stars}
         />

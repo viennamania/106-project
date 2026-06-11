@@ -2447,6 +2447,7 @@ export function FanletterHomePage({
         locale={locale}
         creatorUnlock={founderClubCreatorUnlock}
         memberPortfolio={founderClubMemberPortfolio}
+        referralCode={referralCode}
         scoutShareLoop={founderClubScoutShareLoop}
         selectedStarId={founderClubSelectedStarId}
         stars={founderClubStars}
