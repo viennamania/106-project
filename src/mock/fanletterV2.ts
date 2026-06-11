@@ -691,7 +691,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       activityMission: "Activity mission completed",
       body:
         "Scout、招待、CP、活動ミッションの条件を満たすとCreatorステータスが開きます。",
-      cp: "CP >= 5,000",
+      cp: "CP 5,000以上",
       createAiStarCta: "新しいAI Starを作成",
       directInvites: "Direct Invites >= 20",
       launchPreviewBody:
@@ -857,7 +857,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       activityMission: "활동 미션 완료",
       body:
         "스카우트 점수, 직접 초대, CP, 활동 미션 조건을 만족하면 크리에이터 권한이 열립니다.",
-      cp: "CP >= 5,000",
+      cp: "CP 5,000 이상",
       createAiStarCta: "새 AI 스타 만들기",
       directInvites: "직접 초대 20명 이상",
       launchPreviewBody:

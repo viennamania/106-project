@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 45 920;
+  font-display: swap;
+  src: url("/fonts/pretendardvariable.woff2") format("woff2-variations");
+}
+
 :root {
   --background: #f6f2eb;
   --foreground: #0f172a;
@@ -10,6 +18,14 @@
   --accent: #2563eb;
   --accent-soft: rgba(37, 99, 235, 0.12);
   --accent-secondary: #0f766e;
+  --font-fanletter-ko:
+    "Pretendard",
+    var(--font-noto-sans-kr),
+    "Apple SD Gothic Neo",
+    "Malgun Gothic",
+    "맑은 고딕",
+    system-ui,
+    sans-serif;
 }
 
 @theme inline {
@@ -57,6 +73,16 @@ body::before {
     linear-gradient(90deg, rgba(15, 23, 42, 0.03) 1px, transparent 1px);
   background-size: 22px 22px;
   mask-image: radial-gradient(circle at center, black, transparent 80%);
+}
+
+.fanletter-v2-surface {
+  font-family: var(--font-fanletter-ko);
+  font-feature-settings: "kern";
+  text-rendering: optimizeLegibility;
+}
+
+.fanletter-v2-surface :where(button, input, select, textarea) {
+  font-family: inherit;
 }
 
 a {

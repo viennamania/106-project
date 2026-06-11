@@ -117,6 +117,25 @@ function getDisplayUniverseName(name: string, copy: FanletterV2Copy) {
   return replacements[name] ?? name.replace(/\bUniverse\b/g, "유니버스");
 }
 
+function getDisplayStarName(name: string, copy: FanletterV2Copy) {
+  if (!isKoreanCopy(copy)) {
+    return name;
+  }
+
+  const replacements: Record<string, string> = {
+    Harin: "하린",
+    Lumi: "루미",
+    Minseo: "민서",
+    Mira: "미라",
+    Noa: "노아",
+    Ria: "리아",
+    Seoyeon: "서연",
+    Yoonseo: "윤서",
+  };
+
+  return replacements[name] ?? name.replace(/\bNext AI Star\b/g, "새 AI 스타");
+}
+
 function getDisplayStarStatus(
   status: AIStarStatus | null | undefined,
   copy: FanletterV2Copy,
@@ -260,6 +279,8 @@ export function AIStarCard({
   locale: Locale;
   star: AIStar;
 }) {
+  const displayStarName = getDisplayStarName(star.name, copy);
+
   return (
     <article
       className={joinClasses(
@@ -286,7 +307,7 @@ export function AIStarCard({
           <StarScoreBadge copy={copy} score={star.starScore} />
         </div>
         <h3 className="mt-4 text-2xl font-semibold leading-tight tracking-normal">
-          {star.name}
+          {displayStarName}
         </h3>
         <p className="mt-1 text-sm font-medium text-white/70">
           {getFanletterV2LocalizedText(star.specialty, locale)}
@@ -319,7 +340,7 @@ export function AIStarCard({
         </div>
         {detailHref ? (
           <Link
-            className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-[#4c1d95] transition hover:bg-fuchsia-50"
+            className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold !text-[#4c1d95] transition hover:bg-fuchsia-50"
             href={detailHref}
           >
             {copy.actions.viewUniverse}
@@ -545,30 +566,30 @@ export function ScoutShareLoop({
         </div>
       </div>
 
-      <div className="mt-5 rounded-lg bg-[#12041f] p-4 text-white">
-        <p className="text-sm font-semibold text-fuchsia-100">
+      <div className="mt-5 rounded-lg border border-violet-100 bg-[#fbfaff] p-4 text-[#12041f]">
+        <p className="text-sm font-semibold text-[#6d28d9]">
           {copy.scoutShareLoop.rewardsTitle}
         </p>
         <div className="mt-3 grid grid-cols-3 gap-2">
-          <div className="rounded-lg border border-white/12 bg-white/10 p-3">
+          <div className="rounded-lg border border-violet-100 bg-white p-3 shadow-[0_10px_24px_rgba(88,28,135,0.06)]">
             <p className="text-xl font-semibold">+{loop.rewards.cp}</p>
-            <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
+            <p className="mt-1 text-[0.64rem] font-semibold text-black/48">
               CP
             </p>
           </div>
-          <div className="rounded-lg border border-white/12 bg-white/10 p-3">
+          <div className="rounded-lg border border-violet-100 bg-white p-3 shadow-[0_10px_24px_rgba(88,28,135,0.06)]">
             <p className="text-xl font-semibold">
               +{loop.rewards.influenceScore}
             </p>
-            <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
+            <p className="mt-1 text-[0.64rem] font-semibold text-black/48">
               {copy.labels.influenceScore}
             </p>
           </div>
-          <div className="rounded-lg border border-white/12 bg-white/10 p-3">
+          <div className="rounded-lg border border-violet-100 bg-white p-3 shadow-[0_10px_24px_rgba(88,28,135,0.06)]">
             <p className="text-xl font-semibold">
               +{loop.rewards.creatorProgressPercent}%
             </p>
-            <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
+            <p className="mt-1 text-[0.64rem] font-semibold text-black/48">
               {copy.labels.creatorProgress}
             </p>
           </div>
@@ -636,7 +657,7 @@ export function MemberPortfolio({
   ];
 
   return (
-    <article className="min-w-0 rounded-lg border border-black/10 bg-[#f6f8f4] p-4 shadow-[0_18px_44px_rgba(8,18,12,0.06)] sm:p-5">
+    <article className="min-w-0 rounded-lg border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
       <div className="flex items-start gap-3">
         <HumanMemberAvatar
           member={{ initials: memberInitials, name: portfolio.memberName }}
@@ -682,7 +703,10 @@ export function MemberPortfolio({
         {portfolio.roles.length > 0 ? (
           portfolio.roles.map((item) => {
             const star = starsById.get(item.starId);
-            const starName = item.starName ?? star?.name ?? item.starId;
+            const starName = getDisplayStarName(
+              item.starName ?? star?.name ?? item.starId,
+              copy,
+            );
             const universeName =
               item.universeName ??
               star?.universeName ??
@@ -738,6 +762,7 @@ export function MemberPortfolio({
               const accentSecondary = star?.accentSecondary ?? "#22d3ee";
               const initials =
                 star?.portraitInitials ?? getPortfolioInitials(ownedStar.name);
+              const displayStarName = getDisplayStarName(ownedStar.name, copy);
               const displayUniverse = getDisplayUniverseName(
                 ownedStar.universeName ?? `${ownedStar.name} Universe`,
                 copy,
@@ -773,7 +798,7 @@ export function MemberPortfolio({
                           {copy.labels.aiStarBadge}
                         </p>
                         <p className="truncate text-lg font-semibold">
-                          {ownedStar.name}
+                          {displayStarName}
                         </p>
                         <p className="truncate text-xs font-medium text-white/60">
                           {displayUniverse}
@@ -857,20 +882,20 @@ export function CreatorUnlockCard({
 
   return (
     <article
-      className="min-w-0 scroll-mt-24 rounded-lg border border-[#7c3aed]/30 bg-[#12041f] p-4 text-white shadow-[0_24px_70px_rgba(88,28,135,0.22)] sm:p-5"
+      className="min-w-0 scroll-mt-24 rounded-lg border border-violet-200 bg-white p-4 text-[#12041f] shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5"
       id="creator-unlock"
     >
       <div className="flex items-start gap-3">
-        <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-white text-[#5b21b6]">
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white shadow-[0_14px_30px_rgba(124,58,237,0.18)]">
           <Crown className="size-6" />
         </span>
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-sm font-semibold text-fuchsia-100">
+            <p className="text-sm font-semibold text-[#6d28d9]">
               {copy.creatorUnlock.unlockedLabel}
             </p>
             {unlock.isLiveData ? (
-              <span className="rounded-full border border-fuchsia-200/30 bg-white/10 px-2.5 py-1 text-[0.64rem] font-semibold text-fuchsia-50">
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[0.64rem] font-semibold text-emerald-800">
                 {copy.creatorUnlock.liveDataLabel}
               </span>
             ) : null}
@@ -878,7 +903,7 @@ export function CreatorUnlockCard({
           <h2 className="text-2xl font-semibold leading-tight tracking-normal">
             {copy.creatorUnlock.title}
           </h2>
-          <p className="mt-2 text-sm font-medium leading-6 text-white/64">
+          <p className="mt-2 text-sm font-medium leading-6 text-black/62">
             {copy.creatorUnlock.body}
           </p>
         </div>
@@ -887,30 +912,32 @@ export function CreatorUnlockCard({
       <div className="-mx-4 mt-5 flex snap-x gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0">
         {unlock.conditions.map((condition) => (
           <div
-            className="flex min-w-[14rem] snap-start items-center gap-3 rounded-lg border border-white/12 bg-white/8 p-3 sm:min-w-0"
+            className="flex min-w-[14rem] snap-start items-center gap-3 rounded-lg border border-violet-100 bg-[#fbfaff] p-3 sm:min-w-0"
             key={condition.id}
           >
             <CheckCircle2
               className={joinClasses(
                 "size-5 shrink-0",
-                condition.met ? "text-[#44f26e]" : "text-white/36",
+                condition.met ? "text-emerald-500" : "text-black/24",
               )}
             />
-            <span className="min-w-0 flex-1 text-sm font-semibold text-white">
+            <span className="min-w-0 flex-1 text-sm font-semibold text-[#12041f]">
               {labelsById[condition.id] ?? condition.id}
             </span>
-            <span className="text-xs font-semibold text-white/54">
+            <span className="text-xs font-semibold text-black/48">
               {typeof condition.current === "number"
                 ? formatNumber(condition.current, locale)
                 : isKoreanCopy(copy) && condition.current === "completed"
                   ? "완료"
+                  : isKoreanCopy(copy) && condition.current === "pending"
+                    ? "대기"
                 : condition.current}
             </span>
           </div>
         ))}
       </div>
 
-      <div className="mt-5 rounded-lg bg-white p-4 text-black">
+      <div className="mt-5 rounded-lg border border-violet-100 bg-[#fbfaff] p-4 text-black">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-[#5b21b6]">
@@ -922,7 +949,7 @@ export function CreatorUnlockCard({
               {copy.creatorUnlock.mockPaymentNotice}
             </p>
           </div>
-          <span className="inline-flex h-10 shrink-0 items-center rounded-full bg-black px-4 text-sm font-semibold text-white">
+          <span className="inline-flex h-10 shrink-0 items-center rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white">
             {unlock.createCostUsdt} USDT
           </span>
         </div>
@@ -942,7 +969,7 @@ export function CreatorUnlockCard({
                   </span>
                 </div>
                 <p className="mt-2 text-lg font-semibold leading-tight text-black">
-                  {launchPreview.newStarName}
+                  {getDisplayStarName(launchPreview.newStarName, copy)}
                 </p>
                 <p className="mt-1 text-sm font-medium leading-5 text-black/58">
                   {copy.labels.sourceUniverse}:{" "}
@@ -960,7 +987,7 @@ export function CreatorUnlockCard({
                 className={joinClasses(
                   "inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition",
                   unlock.unlocked
-                    ? "bg-black text-white hover:bg-zinc-800"
+                    ? "bg-[#7c3aed] text-white hover:bg-[#6d28d9]"
                     : "bg-zinc-200 text-zinc-600 hover:bg-zinc-300",
                 )}
                 href={launchHref}
@@ -988,6 +1015,7 @@ function SpawnedStarCard({
   const displaySourceUniverse = star.sourceUniverseName
     ? getDisplayUniverseName(star.sourceUniverseName, copy)
     : null;
+  const displayStarName = getDisplayStarName(star.name, copy);
 
   return (
     <div
@@ -1006,7 +1034,7 @@ function SpawnedStarCard({
           {star.portraitInitials}
         </span>
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold">{star.name}</p>
+          <p className="truncate text-sm font-semibold">{displayStarName}</p>
           <p className="truncate text-[0.68rem] font-medium text-white/60">
             {getFanletterV2LocalizedText(star.specialty, locale)}
           </p>
@@ -1046,6 +1074,8 @@ function UniverseMiniStar({
   copy: FanletterV2Copy;
   star: AIStar;
 }) {
+  const displayStarName = getDisplayStarName(star.name, copy);
+
   return (
     <div
       className="rounded-lg border border-fuchsia-200 p-3 text-white shadow-[0_18px_40px_rgba(88,28,135,0.18)]"
@@ -1073,7 +1103,7 @@ function UniverseMiniStar({
         {copy.labels.aiStarBadge}
       </p>
       <p className="mt-1 text-center text-lg font-semibold leading-tight">
-        {star.name}
+        {displayStarName}
       </p>
       <p className="mt-1 text-center text-xs font-medium text-white/60">
         {copy.labels.starScore} {star.starScore}
@@ -1185,15 +1215,15 @@ function CreatorPath({
 }) {
   return (
     <article
-      className="min-w-0 scroll-mt-24 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_44px_rgba(8,18,12,0.06)] sm:p-5"
+      className="min-w-0 scroll-mt-24 rounded-lg border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5"
       id="creator-path"
     >
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
           <Rocket className="size-5" />
         </span>
         <div>
-          <p className="text-sm font-semibold text-black/50">
+          <p className="text-sm font-semibold text-[#6d28d9]">
             {copy.creatorPath.title}
           </p>
           <h2 className="text-2xl font-semibold leading-tight tracking-normal text-black">
@@ -1207,11 +1237,11 @@ function CreatorPath({
       <div className="-mx-4 mt-5 flex snap-x gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0">
         {copy.creatorPath.steps.map((step, index) => (
           <div
-            className="min-w-[15.5rem] snap-start rounded-lg border border-black/8 bg-[#f6f8f4] p-3 sm:min-w-0"
+            className="min-w-[15.5rem] snap-start rounded-lg border border-violet-100 bg-[#fbfaff] p-3 sm:min-w-0"
             key={step.title}
           >
             <div className="flex items-start gap-3">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-black text-xs font-semibold text-white">
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#ede9fe] text-xs font-semibold text-[#6d28d9]">
                 {index + 1}
               </span>
               <div>
@@ -1336,7 +1366,7 @@ export function FounderClubV2HomeSections({
                 {copy.creatorUnlock.mockPaymentNotice}
               </p>
             </div>
-            <span className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white">
+            <span className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold text-white">
               {copy.creatorUnlock.unlockedLabel}
               <ArrowRight className="size-4" />
             </span>

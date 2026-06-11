@@ -1869,7 +1869,7 @@ export function FanletterHomePage({
     : null;
 
   return (
-    <main className="min-h-screen bg-[#fbfaff] text-black">
+    <main className="fanletter-v2-surface min-h-screen bg-[#fbfaff] text-black">
       <section className="relative min-h-[100svh] overflow-hidden border-b border-violet-200 bg-[#fbfaff] sm:min-h-[92svh]">
         {!hasHeroVideoSlides ? (
           <div
