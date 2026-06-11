@@ -371,7 +371,7 @@ export function ScoutShareLoop({
   );
 
   return (
-    <article className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+    <article className="min-w-0 rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
       <div className="flex items-start gap-3">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
           <Share2 className="size-5" />
@@ -394,13 +394,16 @@ export function ScoutShareLoop({
         </div>
       </div>
 
-      <div className="mt-5 grid gap-2">
+      <div className="-mx-4 mt-5 flex snap-x gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:overflow-visible md:px-0 md:pb-0">
         {flowItems.map((item, index) => (
-          <div className="flex items-center gap-2" key={`${item}-${index}`}>
+          <div
+            className="flex min-w-[13.5rem] snap-start flex-col gap-3 rounded-lg border border-black/8 bg-[#f8f7ff] p-3 md:min-w-0 md:flex-row md:items-center md:gap-2 md:border-0 md:bg-transparent md:p-0"
+            key={`${item}-${index}`}
+          >
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#ede9fe] text-xs font-semibold text-[#6d28d9]">
               {index + 1}
             </span>
-            <div className="min-h-11 flex-1 rounded-lg border border-black/8 bg-[#f8f7ff] px-3 py-2 text-sm font-semibold text-[#26113d]">
+            <div className="flex-1 text-sm font-semibold leading-5 text-[#26113d] md:min-h-11 md:rounded-lg md:border md:border-black/8 md:bg-[#f8f7ff] md:px-3 md:py-2">
               {item}
             </div>
           </div>
@@ -415,17 +418,17 @@ export function ScoutShareLoop({
         <p className="mt-2 font-mono text-sm font-semibold text-black">
           {loop.referralCode}
         </p>
-        <p className="mt-3 break-all rounded-lg bg-white px-3 py-2 font-mono text-xs font-semibold text-[#5b21b6]">
+        <p className="mt-3 truncate rounded-lg bg-white px-3 py-2 font-mono text-xs font-semibold text-[#5b21b6] sm:break-all sm:whitespace-normal">
           {loop.shareLink}
         </p>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="-mx-3 mt-3 flex gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
           {loop.sharePlatforms.map((platform) => {
             const platformLink = platformLinksByName.get(platform);
 
             if (platformLink) {
               return (
                 <a
-                  className="rounded-full border border-black/8 bg-white px-3 py-1 text-xs font-semibold text-black/68 transition hover:border-[#7c3aed]/40 hover:text-[#5b21b6]"
+                  className="shrink-0 rounded-full border border-black/8 bg-white px-3 py-1 text-xs font-semibold text-black/68 transition hover:border-[#7c3aed]/40 hover:text-[#5b21b6]"
                   href={platformLink.href}
                   key={platform}
                   rel="noreferrer"
@@ -438,7 +441,7 @@ export function ScoutShareLoop({
 
             return (
               <span
-                className="rounded-full border border-black/8 bg-white px-3 py-1 text-xs font-semibold text-black/68"
+                className="shrink-0 rounded-full border border-black/8 bg-white px-3 py-1 text-xs font-semibold text-black/68"
                 key={platform}
               >
                 {platform}
@@ -538,7 +541,7 @@ export function MemberPortfolio({
   ];
 
   return (
-    <article className="rounded-lg border border-black/10 bg-[#f6f8f4] p-4 shadow-[0_18px_44px_rgba(8,18,12,0.06)] sm:p-5">
+    <article className="min-w-0 rounded-lg border border-black/10 bg-[#f6f8f4] p-4 shadow-[0_18px_44px_rgba(8,18,12,0.06)] sm:p-5">
       <div className="flex items-start gap-3">
         <HumanMemberAvatar
           member={{ initials: memberInitials, name: portfolio.memberName }}
@@ -564,9 +567,12 @@ export function MemberPortfolio({
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5">
+      <div className="-mx-4 mt-5 flex snap-x gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0 sm:pb-0">
         {metrics.map((metric) => (
-          <div className="rounded-lg border border-black/8 bg-white p-3" key={metric.label}>
+          <div
+            className="min-w-[8.5rem] snap-start rounded-lg border border-black/8 bg-white p-3 sm:min-w-0"
+            key={metric.label}
+          >
             <p className="text-xl font-semibold leading-none text-black">
               {metric.value}
             </p>
@@ -577,7 +583,7 @@ export function MemberPortfolio({
         ))}
       </div>
 
-      <div className="mt-5 grid gap-2">
+      <div className="-mx-4 mt-5 flex snap-x gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0">
         {portfolio.roles.length > 0 ? (
           portfolio.roles.map((item) => {
             const star = starsById.get(item.starId);
@@ -589,7 +595,7 @@ export function MemberPortfolio({
 
             return (
               <div
-                className="flex min-h-14 items-center justify-between gap-3 rounded-lg border border-black/8 bg-white px-3 py-2"
+                className="flex min-h-14 min-w-[14rem] snap-start items-center justify-between gap-3 rounded-lg border border-black/8 bg-white px-3 py-2 sm:min-w-0"
                 key={item.starId}
               >
                 <div className="min-w-0">
@@ -606,7 +612,7 @@ export function MemberPortfolio({
             );
           })
         ) : (
-          <div className="rounded-lg border border-dashed border-black/12 bg-white px-3 py-4 text-sm font-semibold text-black/48">
+          <div className="min-w-full rounded-lg border border-dashed border-black/12 bg-white px-3 py-4 text-sm font-semibold text-black/48">
             {copy.memberPortfolio.emptyRoles}
           </div>
         )}
@@ -652,7 +658,7 @@ export function CreatorUnlockCard({
   };
 
   return (
-    <article className="rounded-lg border border-[#7c3aed]/30 bg-[#12041f] p-4 text-white shadow-[0_24px_70px_rgba(88,28,135,0.22)] sm:p-5">
+    <article className="min-w-0 rounded-lg border border-[#7c3aed]/30 bg-[#12041f] p-4 text-white shadow-[0_24px_70px_rgba(88,28,135,0.22)] sm:p-5">
       <div className="flex items-start gap-3">
         <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-white text-[#5b21b6]">
           <Crown className="size-6" />
@@ -677,10 +683,10 @@ export function CreatorUnlockCard({
         </div>
       </div>
 
-      <div className="mt-5 grid gap-2">
+      <div className="-mx-4 mt-5 flex snap-x gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0">
         {unlock.conditions.map((condition) => (
           <div
-            className="flex items-center gap-3 rounded-lg border border-white/12 bg-white/8 p-3"
+            className="flex min-w-[14rem] snap-start items-center gap-3 rounded-lg border border-white/12 bg-white/8 p-3 sm:min-w-0"
             key={condition.id}
           >
             <CheckCircle2
@@ -909,7 +915,7 @@ function CreatorPath({
   copy: FanletterV2Copy;
 }) {
   return (
-    <article className="rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_44px_rgba(8,18,12,0.06)] sm:p-5">
+    <article className="min-w-0 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_44px_rgba(8,18,12,0.06)] sm:p-5">
       <div className="flex items-start gap-3">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
           <Rocket className="size-5" />
@@ -926,10 +932,10 @@ function CreatorPath({
           </p>
         </div>
       </div>
-      <div className="mt-5 grid gap-2">
+      <div className="-mx-4 mt-5 flex snap-x gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0">
         {copy.creatorPath.steps.map((step, index) => (
           <div
-            className="rounded-lg border border-black/8 bg-[#f6f8f4] p-3"
+            className="min-w-[15.5rem] snap-start rounded-lg border border-black/8 bg-[#f6f8f4] p-3 sm:min-w-0"
             key={step.title}
           >
             <div className="flex items-start gap-3">
@@ -1030,7 +1036,7 @@ export function FounderClubV2HomeSections({
 
         <div className="mt-12 grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
           <ScoutShareLoop copy={copy} loop={scoutShareLoop} />
-          <div className="grid gap-4">
+          <div className="grid min-w-0 gap-4">
             <MemberPortfolio
               copy={copy}
               locale={locale}
