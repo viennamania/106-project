@@ -33,6 +33,11 @@ import {
   type MemberDocument,
 } from "@/lib/member";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
+import {
+  buildFanletterFounderUniverseCpPoolDistribution,
+  resolveFanletterFounderUniverseUplinePath,
+  type FanletterFounderUniverseCpPoolDistribution,
+} from "@/lib/fanletter-founder-universe";
 
 const HOME_STAR_LIMIT = 4;
 const FOUNDER_SLOT_LIMIT = 4;
@@ -45,9 +50,12 @@ const SCOUT_SIGNUP_INFLUENCE_REWARD = 5;
 const SCOUT_SHARE_PLATFORMS = ["Kakao", "Instagram", "X", "TikTok"] as const;
 const founderRoleRank: Record<Exclude<FounderRole, "member">, number> = {
   creator: 0,
-  mentor: 1,
-  partner: 2,
-  founder: 3,
+  genesis_founder: 1,
+  founder: 2,
+  mentor: 3,
+  producer: 4,
+  partner: 5,
+  legend: 6,
 };
 
 const starAccentPairs = [
@@ -1563,6 +1571,7 @@ export type FanletterFounderClubCreatorLaunchDraftInput = {
 
 export type FanletterFounderClubCreatorLaunchDraftResult =
   | {
+      cpPool: FanletterFounderUniverseCpPoolDistribution;
       sourceStar: FanletterStarDocument;
       star: FanletterStarDocument;
       status: "created" | "existing";
@@ -1675,6 +1684,130 @@ async function ensureCreatorLaunchOwnerMembership({
   );
 }
 
+async function getFanletterFounderUniverseCreatorEmail(
+  sourceStar: FanletterStarDocument,
+) {
+  const ownerEmail = normalizeEmail(sourceStar.ownerEmail ?? "");
+
+  if (ownerEmail) {
+    return ownerEmail;
+  }
+
+  const membershipsCollection =
+    await getFanletterStarFounderMembershipsCollection();
+  const creatorMembership = await membershipsCollection.findOne(
+    {
+      role: "creator",
+      starId: sourceStar.starId,
+    },
+    {
+      projection: {
+        memberEmail: 1,
+      },
+      sort: {
+        joinedAt: 1,
+      },
+    },
+  );
+
+  return normalizeEmail(creatorMembership?.memberEmail ?? "");
+}
+
+export async function previewFanletterFounderUniverseCreatorLaunchCpPool({
+  launchCreatorEmail,
+  launchStarId,
+  sourceStar,
+}: {
+  launchCreatorEmail: string;
+  launchStarId: string;
+  sourceStar: FanletterStarDocument;
+}): Promise<FanletterFounderUniverseCpPoolDistribution> {
+  const [creatorEmail, referralEdgesCollection] = await Promise.all([
+    getFanletterFounderUniverseCreatorEmail(sourceStar),
+    getFanletterStarReferralEdgesCollection(),
+  ]);
+  const referralEdges = await referralEdgesCollection
+    .find(
+      {
+        starId: sourceStar.starId,
+      },
+      {
+        projection: {
+          sourceMemberEmail: 1,
+          targetMemberEmail: 1,
+        },
+      },
+    )
+    .sort({
+      createdAt: 1,
+    })
+    .toArray();
+  const upline = resolveFanletterFounderUniverseUplinePath({
+    creatorEmail,
+    launchCreatorEmail,
+    referralEdges,
+  });
+
+  return buildFanletterFounderUniverseCpPoolDistribution({
+    launchCreatorEmail,
+    launchStarId,
+    rootResolved: upline.rootResolved,
+    sourceStarId: sourceStar.starId,
+    uplinePath: upline.path,
+  });
+}
+
+export async function recordFanletterFounderUniverseCreatorLaunchCpPool({
+  createdAt,
+  distribution,
+}: {
+  createdAt?: Date | null;
+  distribution: FanletterFounderUniverseCpPoolDistribution;
+}) {
+  const now =
+    createdAt instanceof Date && !Number.isNaN(createdAt.getTime())
+      ? createdAt
+      : new Date();
+  const influenceLedgerCollection =
+    await getFanletterStarInfluenceLedgerCollection();
+  const allocatedItems = distribution.items.filter(
+    (item) => item.allocated && item.recipientMemberEmail && item.sourceId,
+  );
+  let insertedCount = 0;
+
+  for (const item of allocatedItems) {
+    const result = await influenceLedgerCollection.updateOne(
+      {
+        sourceId: item.sourceId ?? "",
+      },
+      {
+        $setOnInsert: {
+          cpDelta: item.cp,
+          createdAt: now,
+          creatorProgressDelta: 0,
+          influenceDelta: 0,
+          memo: `Creator launch CP Pool reward: ${item.role}`,
+          recipientMemberEmail: item.recipientMemberEmail ?? "",
+          source: "creator_unlock",
+          sourceId: item.sourceId ?? "",
+          sourceMemberEmail: distribution.launchCreatorEmail,
+          starId: distribution.sourceStarId,
+          targetMemberEmail: distribution.launchCreatorEmail,
+        },
+      },
+      { upsert: true },
+    );
+
+    insertedCount += result.upsertedCount;
+  }
+
+  return {
+    distribution,
+    insertedCount,
+    skippedCount: allocatedItems.length - insertedCount,
+  };
+}
+
 export async function createFanletterFounderClubCreatorLaunchDraft(
   input: FanletterFounderClubCreatorLaunchDraftInput,
 ): Promise<FanletterFounderClubCreatorLaunchDraftResult> {
@@ -1772,8 +1905,15 @@ export async function createFanletterFounderClubCreatorLaunchDraft(
           now,
           starId,
         });
+        const cpPool =
+          await previewFanletterFounderUniverseCreatorLaunchCpPool({
+            launchCreatorEmail: memberEmail,
+            launchStarId: existingStar.starId,
+            sourceStar,
+          });
 
         return {
+          cpPool,
           sourceStar,
           star: existingStar,
           status: "existing",
@@ -1815,8 +1955,15 @@ export async function createFanletterFounderClubCreatorLaunchDraft(
         now,
         starId,
       });
+      const cpPool =
+        await previewFanletterFounderUniverseCreatorLaunchCpPool({
+          launchCreatorEmail: memberEmail,
+          launchStarId: draftStar.starId,
+          sourceStar,
+        });
 
       return {
+        cpPool,
         sourceStar,
         star: draftStar,
         status: "created",

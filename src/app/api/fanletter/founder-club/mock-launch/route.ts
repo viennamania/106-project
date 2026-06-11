@@ -1,5 +1,9 @@
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { readMemberServerSession } from "@/lib/member-server-session";
+import {
+  buildFanletterFounderUniverseCpPoolDistribution,
+  resolveFanletterFounderUniverseUplinePath,
+} from "@/lib/fanletter-founder-universe";
 import { fanletterV2Mock, type SpawnedAIStar } from "@/mock/fanletterV2";
 
 type MockLaunchRequestBody = {
@@ -56,6 +60,42 @@ function getSampleLaunchDefaults() {
   };
 }
 
+function buildMockCpPool({
+  launchStarId,
+  sourceStarId,
+}: {
+  launchStarId: string;
+  sourceStarId: string;
+}) {
+  const launchCreatorEmail = "member-a@mock.fanletter";
+  const upline = resolveFanletterFounderUniverseUplinePath({
+    creatorEmail: "creator@mock.fanletter",
+    launchCreatorEmail,
+    referralEdges: [
+      {
+        sourceMemberEmail: "creator@mock.fanletter",
+        targetMemberEmail: "genesis-founder@mock.fanletter",
+      },
+      {
+        sourceMemberEmail: "genesis-founder@mock.fanletter",
+        targetMemberEmail: "founder@mock.fanletter",
+      },
+      {
+        sourceMemberEmail: "founder@mock.fanletter",
+        targetMemberEmail: launchCreatorEmail,
+      },
+    ],
+  });
+
+  return buildFanletterFounderUniverseCpPoolDistribution({
+    launchCreatorEmail,
+    launchStarId,
+    rootResolved: upline.rootResolved,
+    sourceStarId,
+    uplinePath: upline.path,
+  });
+}
+
 export async function POST(request: Request) {
   let body: MockLaunchRequestBody;
 
@@ -80,6 +120,10 @@ export async function POST(request: Request) {
   const id = `mock-${slugify(name)}-${slugify(sourceStarId)}`;
 
   return Response.json({
+    cpPool: buildMockCpPool({
+      launchStarId: id,
+      sourceStarId,
+    }),
     launch: {
       createdAt: new Date().toISOString(),
       createdByUnlock: true,

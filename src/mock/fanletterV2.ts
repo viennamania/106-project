@@ -1,13 +1,9 @@
 import type { Locale } from "@/lib/i18n";
+import type { FanletterFounderUniverseRole } from "@/lib/fanletter-founder-universe";
 
 type FanletterV2CopyLocale = "ko" | "en" | "ja";
 
-export type FounderRole =
-  | "member"
-  | "founder"
-  | "mentor"
-  | "partner"
-  | "creator";
+export type FounderRole = "member" | FanletterFounderUniverseRole;
 
 export type LocalizedText = Record<FanletterV2CopyLocale, string>;
 export type AIStarStatus = "active" | "archived" | "draft";
@@ -605,9 +601,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     roles: {
       creator: "CREATOR",
       founder: "FOUNDER",
+      genesis_founder: "GENESIS FOUNDER",
+      legend: "LEGEND",
       member: "MEMBER",
       mentor: "MENTOR",
       partner: "PARTNER",
+      producer: "PRODUCER",
     },
     scoutShareLoop: {
       body:
@@ -771,9 +770,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     roles: {
       creator: "CREATOR",
       founder: "FOUNDER",
+      genesis_founder: "GENESIS FOUNDER",
+      legend: "LEGEND",
       member: "MEMBER",
       mentor: "MENTOR",
       partner: "PARTNER",
+      producer: "PRODUCER",
     },
     scoutShareLoop: {
       body:
@@ -937,9 +939,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     roles: {
       creator: "크리에이터",
       founder: "파운더",
+      genesis_founder: "제네시스 파운더",
+      legend: "레전드",
       member: "멤버",
       mentor: "멘토",
       partner: "파트너",
+      producer: "프로듀서",
     },
     scoutShareLoop: {
       body:

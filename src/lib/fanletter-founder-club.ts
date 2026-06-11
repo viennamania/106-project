@@ -1,9 +1,6 @@
-export const fanletterFounderRoles = [
-  "founder",
-  "mentor",
-  "partner",
-  "creator",
-] as const;
+import { fanletterFounderUniverseRoles } from "@/lib/fanletter-founder-universe";
+
+export const fanletterFounderRoles = fanletterFounderUniverseRoles;
 
 export const fanletterFounderClubBackfillSources = [
   "creator_unlock",

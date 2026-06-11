@@ -59,12 +59,24 @@ function getRoleTone(role: FounderRole) {
     return "border-emerald-200 bg-emerald-50 text-emerald-800";
   }
 
+  if (role === "genesis_founder") {
+    return "border-lime-200 bg-lime-50 text-lime-800";
+  }
+
   if (role === "mentor") {
     return "border-sky-200 bg-sky-50 text-sky-800";
   }
 
+  if (role === "producer") {
+    return "border-violet-200 bg-violet-50 text-violet-800";
+  }
+
   if (role === "partner") {
     return "border-amber-200 bg-amber-50 text-amber-800";
+  }
+
+  if (role === "legend") {
+    return "border-zinc-400 bg-zinc-100 text-zinc-900";
   }
 
   if (role === "founder") {

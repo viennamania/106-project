@@ -6,6 +6,10 @@ import {
   getFanletterFounderClubApiMode,
   getFanletterFounderClubRuntimeState,
 } from "@/lib/fanletter-founder-club-runtime";
+import {
+  buildFanletterFounderUniverseCpPoolDistribution,
+  resolveFanletterFounderUniverseUplinePath,
+} from "@/lib/fanletter-founder-universe";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { readMemberServerSession } from "@/lib/member-server-session";
@@ -74,6 +78,42 @@ function getSampleLaunchDefaults() {
   };
 }
 
+function buildPreviewCpPool({
+  launchStarId,
+  sourceStarId,
+}: {
+  launchStarId: string;
+  sourceStarId: string;
+}) {
+  const launchCreatorEmail = "member-a@mock.fanletter";
+  const upline = resolveFanletterFounderUniverseUplinePath({
+    creatorEmail: "creator@mock.fanletter",
+    launchCreatorEmail,
+    referralEdges: [
+      {
+        sourceMemberEmail: "creator@mock.fanletter",
+        targetMemberEmail: "genesis-founder@mock.fanletter",
+      },
+      {
+        sourceMemberEmail: "genesis-founder@mock.fanletter",
+        targetMemberEmail: "founder@mock.fanletter",
+      },
+      {
+        sourceMemberEmail: "founder@mock.fanletter",
+        targetMemberEmail: launchCreatorEmail,
+      },
+    ],
+  });
+
+  return buildFanletterFounderUniverseCpPoolDistribution({
+    launchCreatorEmail,
+    launchStarId,
+    rootResolved: upline.rootResolved,
+    sourceStarId,
+    uplinePath: upline.path,
+  });
+}
+
 function buildPreviewLaunchResponse({
   launchCostUsdt,
   locale,
@@ -91,11 +131,17 @@ function buildPreviewLaunchResponse({
   sourceStarId: string;
   sourceUniverseName: string;
 }) {
+  const launchId = `mock-${slugify(name)}-${slugify(sourceStarId)}`;
+
   return {
+    cpPool: buildPreviewCpPool({
+      launchStarId: launchId,
+      sourceStarId,
+    }),
     launch: {
       createdAt: new Date().toISOString(),
       createdByUnlock: true,
-      id: `mock-${slugify(name)}-${slugify(sourceStarId)}`,
+      id: launchId,
       launchCostUsdt,
       name,
       ownerName,
@@ -198,6 +244,7 @@ export async function POST(request: Request) {
   const unlock = await getFanletterFounderClubCreatorUnlock(session.email);
 
   return Response.json({
+    cpPool: launchResult.cpPool,
     launch: {
       createdAt: launchResult.star.createdAt.toISOString(),
       createdByUnlock: true,
