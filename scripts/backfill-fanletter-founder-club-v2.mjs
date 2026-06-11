@@ -27,7 +27,24 @@ const fanletterNewsReportsCollectionName =
 const fanletterNewsCutShareLinksCollectionName =
   process.env.MONGODB_FANLETTER_NEWS_CUT_SHARE_LINKS_COLLECTION ??
   "fanletterNewsCutShareLinks";
+const fanletterStarsCollectionName =
+  process.env.MONGODB_FANLETTER_STARS_COLLECTION ?? "fanletterStars";
+const fanletterStarReferralCodesCollectionName =
+  process.env.MONGODB_FANLETTER_STAR_REFERRAL_CODES_COLLECTION ??
+  "fanletterStarReferralCodes";
+const fanletterStarFounderMembershipsCollectionName =
+  process.env.MONGODB_FANLETTER_STAR_FOUNDER_MEMBERSHIPS_COLLECTION ??
+  "fanletterStarFounderMemberships";
 
+const writeChanges = ["1", "true", "yes"].includes(
+  (process.env.FANLETTER_FOUNDER_CLUB_BACKFILL_WRITE ?? "")
+    .trim()
+    .toLowerCase(),
+);
+const defaultFounderSlotLimit = readPositiveInteger(
+  process.env.FANLETTER_FOUNDER_CLUB_DEFAULT_SLOT_LIMIT,
+  150,
+);
 const sampleLimit = readPositiveInteger(
   process.env.FANLETTER_FOUNDER_CLUB_BACKFILL_SAMPLE_LIMIT,
   DEFAULT_SAMPLE_LIMIT,
@@ -88,8 +105,44 @@ function toIsoStringOrNull(value) {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+function toDateOrFallback(value, fallback) {
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (!value) {
+    return fallback;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? fallback : date;
+}
+
+function getMemberJoinedAt(member, fallback = new Date()) {
+  return toDateOrFallback(
+    member.registrationCompletedAt,
+    toDateOrFallback(member.createdAt, fallback),
+  );
+}
+
 function getLegacyStarId(creatorReferralCode) {
   return `legacy-star-${creatorReferralCode.toLowerCase()}`;
+}
+
+function getInitialStarScore(star) {
+  if (star.proposedStatus === "draft") {
+    return 0;
+  }
+
+  const weightedScore =
+    35 +
+    star.sourceCounts.contentPosts * 0.08 +
+    star.sourceCounts.newsReports * 0.06 +
+    star.sourceCounts.fanRequests * 0.35 +
+    star.sourceCounts.follows * 1.2 +
+    star.sourceCounts.newsCutShareLinks * 0.5;
+
+  return Math.max(0, Math.min(100, Math.round(weightedScore)));
 }
 
 function createEmptySourceCounts() {
@@ -98,6 +151,7 @@ function createEmptySourceCounts() {
     creatorProfiles: 0,
     fanRequests: 0,
     follows: 0,
+    memberOwnedStars: 0,
     newsCutShareLinks: 0,
     newsReports: 0,
     shareSignupAttributions: 0,
@@ -118,6 +172,10 @@ function getOrCreateStar(starsByReferralCode, creatorReferralCode) {
       displayName: null,
       legacyCreatorReferralCode: normalizedCode,
       legacyPersonaId: null,
+      ownerEmail: null,
+      ownerReferralCode: normalizedCode,
+      portraitImageUrl: null,
+      proposedStatus: "draft",
       sourceCounts: createEmptySourceCounts(),
       starId: getLegacyStarId(normalizedCode),
     });
@@ -147,6 +205,10 @@ function summarizeStar(star) {
     displayName: star.displayName,
     legacyCreatorReferralCode: star.legacyCreatorReferralCode,
     legacyPersonaId: star.legacyPersonaId,
+    ownerEmail: star.ownerEmail,
+    ownerReferralCode: star.ownerReferralCode,
+    portraitImageUrl: star.portraitImageUrl,
+    proposedStatus: star.proposedStatus,
     sourceCounts: star.sourceCounts,
     starId: star.starId,
     totalSourceRows: getStarActivityScore(star),
@@ -179,6 +241,141 @@ function addTargetCreatorFilter(match, fieldName) {
   };
 }
 
+function getTargetReferralCodeMatch(fieldName) {
+  return addTargetCreatorFilter(makeFieldTypeMatch(fieldName), fieldName);
+}
+
+function getMemberOwnedStarName(member) {
+  const displayName =
+    member.publicProfile?.displayName?.trim() ||
+    member.email?.split("@")[0]?.trim() ||
+    "Founder";
+
+  return `${displayName} Starter AI Star`;
+}
+
+function summarizeMemberOwnedCreatorMembership(member, starsByReferralCode) {
+  const memberReferralCode = normalizeReferralCode(member.referralCode);
+  const star = memberReferralCode
+    ? starsByReferralCode.get(memberReferralCode)
+    : null;
+
+  return {
+    joinedAt: toIsoStringOrNull(
+      member.registrationCompletedAt ?? member.createdAt,
+    ),
+    memberEmail: normalizeEmail(member.email) || null,
+    memberReferralCode,
+    role: "creator",
+    source: "member_signup",
+    starId: memberReferralCode ? getLegacyStarId(memberReferralCode) : null,
+    starStatus: star?.proposedStatus ?? "draft",
+  };
+}
+
+function getBackfillSourceForStar(star) {
+  return star.sourceCounts.creatorProfiles > 0
+    ? "creator_profile"
+    : "member_signup";
+}
+
+function getMemberOwnedStarCandidates(completedMemberRows, starsByReferralCode) {
+  return completedMemberRows
+    .map((member) => {
+      const memberReferralCode = normalizeReferralCode(member.referralCode);
+      const memberEmail = normalizeEmail(member.email);
+      const star = memberReferralCode
+        ? starsByReferralCode.get(memberReferralCode)
+        : null;
+
+      if (!memberReferralCode || !memberEmail || !star) {
+        return null;
+      }
+
+      return {
+        member,
+        memberEmail,
+        memberReferralCode,
+        star,
+      };
+    })
+    .filter(Boolean);
+}
+
+function buildStarDocument(candidate, now) {
+  const { member, memberEmail, memberReferralCode, star } = candidate;
+  const joinedAt = getMemberJoinedAt(member, now);
+  const source = getBackfillSourceForStar(star);
+
+  return {
+    backfilledAt: now,
+    categoryLabel: null,
+    characterName:
+      star.characterName || getMemberOwnedStarName(member) || "Starter AI Star",
+    createdAt: joinedAt,
+    displayName:
+      star.displayName ||
+      member.publicProfile?.displayName?.trim() ||
+      memberEmail.split("@")[0] ||
+      "Founder",
+    founderCount: 1,
+    growthPercent: 0,
+    legacyCreatorReferralCode: memberReferralCode,
+    legacyPersonaId: star.legacyPersonaId ?? null,
+    openSlotCount: Math.max(0, defaultFounderSlotLimit - 1),
+    ownerEmail: star.ownerEmail ?? memberEmail,
+    ownerReferralCode: memberReferralCode,
+    portraitImageUrl: star.portraitImageUrl ?? null,
+    source,
+    starId: star.starId,
+    starScore: getInitialStarScore(star),
+    status: star.proposedStatus,
+    updatedAt: now,
+  };
+}
+
+function buildCreatorMembershipDocument(candidate, now) {
+  const { member, memberEmail, memberReferralCode, star } = candidate;
+  const joinedAt = getMemberJoinedAt(member, now);
+
+  return {
+    backfilledAt: now,
+    cpBalance: 0,
+    createdAt: joinedAt,
+    creatorProgressPercent: 100,
+    influenceScore: 0,
+    joinedAt,
+    joinedViaCode: null,
+    joinedViaMemberEmail: null,
+    joinedViaMemberReferralCode: null,
+    joinedViaShareId: null,
+    memberEmail,
+    memberReferralCode,
+    role: "creator",
+    source: "member_signup",
+    starId: star.starId,
+    updatedAt: now,
+  };
+}
+
+function buildCreatorReferralCodeDocument(candidate, now) {
+  const { member, memberEmail, memberReferralCode, star } = candidate;
+  const joinedAt = getMemberJoinedAt(member, now);
+
+  return {
+    code: memberReferralCode,
+    createdAt: joinedAt,
+    disabledAt: null,
+    lastUsedAt: null,
+    memberEmail,
+    memberReferralCode,
+    source: "member_signup",
+    starId: star.starId,
+    status: "active",
+    updatedAt: now,
+  };
+}
+
 async function aggregateCountByReferralCode({
   collection,
   fieldName,
@@ -204,6 +401,127 @@ async function aggregateCountByReferralCode({
       { $sort: { count: -1, _id: 1 } },
     ])
     .toArray();
+}
+
+async function ensureFounderClubIndexes({
+  founderMemberships,
+  referralCodes,
+  stars,
+}) {
+  await Promise.all([
+    stars.createIndex({ starId: 1 }, { unique: true }),
+    stars.createIndex(
+      { legacyCreatorReferralCode: 1 },
+      {
+        unique: true,
+        partialFilterExpression: {
+          legacyCreatorReferralCode: { $type: "string" },
+        },
+      },
+    ),
+    stars.createIndex({ ownerEmail: 1, status: 1, updatedAt: -1 }),
+    stars.createIndex({ status: 1, starScore: -1, updatedAt: -1 }),
+    referralCodes.createIndex({ starId: 1, code: 1 }, { unique: true }),
+    referralCodes.createIndex(
+      { starId: 1, memberEmail: 1 },
+      { unique: true },
+    ),
+    referralCodes.createIndex({ memberEmail: 1, status: 1, updatedAt: -1 }),
+    referralCodes.createIndex({ code: 1, status: 1 }),
+    founderMemberships.createIndex(
+      { starId: 1, memberEmail: 1 },
+      { unique: true },
+    ),
+    founderMemberships.createIndex({ memberEmail: 1, role: 1, updatedAt: -1 }),
+    founderMemberships.createIndex({ starId: 1, role: 1, influenceScore: -1 }),
+    founderMemberships.createIndex({ starId: 1, joinedAt: -1 }),
+  ]);
+}
+
+function summarizeBulkWriteResult(result) {
+  return {
+    inserted: result.insertedCount ?? 0,
+    matched: result.matchedCount ?? 0,
+    modified: result.modifiedCount ?? 0,
+    upserted: result.upsertedCount ?? 0,
+  };
+}
+
+async function applyMemberOwnedStarBackfill({ collections, candidates, now }) {
+  const { founderMemberships, referralCodes, stars } = collections;
+
+  await ensureFounderClubIndexes(collections);
+
+  if (candidates.length === 0) {
+    return {
+      creatorMemberships: summarizeBulkWriteResult({}),
+      referralCodes: summarizeBulkWriteResult({}),
+      stars: summarizeBulkWriteResult({}),
+    };
+  }
+
+  const [starResult, membershipResult, referralCodeResult] = await Promise.all([
+    stars.bulkWrite(
+      candidates.map((candidate) => {
+        const document = buildStarDocument(candidate, now);
+
+        return {
+          updateOne: {
+            filter: { starId: document.starId },
+            update: {
+              $setOnInsert: document,
+            },
+            upsert: true,
+          },
+        };
+      }),
+      { ordered: false },
+    ),
+    founderMemberships.bulkWrite(
+      candidates.map((candidate) => {
+        const document = buildCreatorMembershipDocument(candidate, now);
+
+        return {
+          updateOne: {
+            filter: {
+              memberEmail: document.memberEmail,
+              starId: document.starId,
+            },
+            update: {
+              $setOnInsert: document,
+            },
+            upsert: true,
+          },
+        };
+      }),
+      { ordered: false },
+    ),
+    referralCodes.bulkWrite(
+      candidates.map((candidate) => {
+        const document = buildCreatorReferralCodeDocument(candidate, now);
+
+        return {
+          updateOne: {
+            filter: {
+              memberEmail: document.memberEmail,
+              starId: document.starId,
+            },
+            update: {
+              $setOnInsert: document,
+            },
+            upsert: true,
+          },
+        };
+      }),
+      { ordered: false },
+    ),
+  ]);
+
+  return {
+    creatorMemberships: summarizeBulkWriteResult(membershipResult),
+    referralCodes: summarizeBulkWriteResult(referralCodeResult),
+    stars: summarizeBulkWriteResult(starResult),
+  };
 }
 
 function summarizeCountRows(rows) {
@@ -272,9 +590,17 @@ try {
   const fanletterNewsCutShareLinks = db.collection(
     fanletterNewsCutShareLinksCollectionName,
   );
+  const fanletterStars = db.collection(fanletterStarsCollectionName);
+  const fanletterStarReferralCodes = db.collection(
+    fanletterStarReferralCodesCollectionName,
+  );
+  const fanletterStarFounderMemberships = db.collection(
+    fanletterStarFounderMembershipsCollectionName,
+  );
   const starsByReferralCode = new Map();
 
   const [
+    completedMemberRows,
     creatorProfileRows,
     contentPostRows,
     followRows,
@@ -283,10 +609,30 @@ try {
     shareLinkRows,
     shareSignupAttributionRows,
   ] = await Promise.all([
+    members
+      .find(
+        {
+          status: "completed",
+          ...getTargetReferralCodeMatch("referralCode"),
+        },
+        {
+          projection: {
+            _id: 0,
+            createdAt: 1,
+            email: 1,
+            publicProfile: 1,
+            referralCode: 1,
+            registrationCompletedAt: 1,
+          },
+        },
+      )
+      .sort({ registrationCompletedAt: 1, createdAt: 1, email: 1 })
+      .toArray(),
     creatorProfiles
       .find(addTargetCreatorFilter(makeFieldTypeMatch("referralCode"), "referralCode"), {
         projection: {
           _id: 0,
+          avatarImageUrl: 1,
           "characterPersona.id": 1,
           "characterPersona.name": 1,
           displayName: 1,
@@ -325,6 +671,28 @@ try {
     }),
   ]);
 
+  for (const member of completedMemberRows) {
+    const star = getOrCreateStar(starsByReferralCode, member.referralCode);
+
+    if (!star) {
+      continue;
+    }
+
+    const memberEmail = normalizeEmail(member.email);
+
+    star.characterName = star.characterName ?? getMemberOwnedStarName(member);
+    star.creatorEmail = star.creatorEmail ?? memberEmail;
+    star.displayName =
+      star.displayName ??
+      member.publicProfile?.displayName?.trim() ??
+      member.email?.split("@")[0]?.trim() ??
+      null;
+    star.ownerEmail = star.ownerEmail ?? memberEmail;
+    star.ownerReferralCode =
+      star.ownerReferralCode ?? normalizeReferralCode(member.referralCode);
+    star.sourceCounts.memberOwnedStars += 1;
+  }
+
   for (const profile of creatorProfileRows) {
     const star = getOrCreateStar(starsByReferralCode, profile.referralCode);
 
@@ -336,6 +704,11 @@ try {
     star.creatorEmail = normalizeEmail(profile.email) || null;
     star.displayName = profile.displayName?.trim() || null;
     star.legacyPersonaId = profile.characterPersona?.id?.trim() || null;
+    star.ownerEmail = star.ownerEmail ?? normalizeEmail(profile.email) ?? null;
+    star.ownerReferralCode =
+      star.ownerReferralCode ?? normalizeReferralCode(profile.referralCode);
+    star.portraitImageUrl = profile.avatarImageUrl?.trim() || null;
+    star.proposedStatus = "active";
     star.sourceCounts.creatorProfiles += 1;
   }
 
@@ -367,6 +740,32 @@ try {
       row.count,
     );
   }
+
+  for (const star of starsByReferralCode.values()) {
+    if (
+      star.sourceCounts.creatorProfiles > 0 ||
+      star.sourceCounts.contentPosts > 0 ||
+      star.sourceCounts.newsReports > 0
+    ) {
+      star.proposedStatus = "active";
+    }
+  }
+
+  const memberOwnedStarCandidates = getMemberOwnedStarCandidates(
+    completedMemberRows,
+    starsByReferralCode,
+  );
+  const writeResult = writeChanges
+    ? await applyMemberOwnedStarBackfill({
+        candidates: memberOwnedStarCandidates,
+        collections: {
+          founderMemberships: fanletterStarFounderMemberships,
+          referralCodes: fanletterStarReferralCodes,
+          stars: fanletterStars,
+        },
+        now: new Date(),
+      })
+    : null;
 
   const highConfidenceEdges = await members
     .aggregate([
@@ -468,7 +867,6 @@ try {
         },
       },
       { $sort: { count: -1, _id: 1 } },
-      { $limit: topLimit },
     ])
     .toArray();
 
@@ -532,7 +930,7 @@ try {
   }
 
   const report = {
-    backfillMode: "dry-run-read-only",
+    backfillMode: writeChanges ? "write" : "dry-run-read-only",
     collectionNames: {
       contentPosts: contentPostsCollectionName,
       creatorProfiles: creatorProfilesCollectionName,
@@ -540,20 +938,36 @@ try {
       fanletterFanRequests: fanletterFanRequestsCollectionName,
       fanletterNewsCutShareLinks: fanletterNewsCutShareLinksCollectionName,
       fanletterNewsReports: fanletterNewsReportsCollectionName,
+      fanletterStarFounderMemberships:
+        fanletterStarFounderMembershipsCollectionName,
+      fanletterStarReferralCodes: fanletterStarReferralCodesCollectionName,
+      fanletterStars: fanletterStarsCollectionName,
       members: membersCollectionName,
     },
     counts: {
       candidateStars: starsByReferralCode.size,
+      completedMembersWithReferralCode: completedMemberRows.length,
       highConfidenceReferralEdges: highConfidenceEdges.length,
       legacyReferralOnlyGroups: legacyReferralOnlyRows.length,
+      memberOwnedCreatorMemberships: completedMemberRows.length,
+      memberOwnedDraftStars: [...starsByReferralCode.values()].filter(
+        (star) => star.proposedStatus === "draft",
+      ).length,
+      memberOwnedReferralCodes: memberOwnedStarCandidates.length,
+      memberOwnedStarsToUpsert: memberOwnedStarCandidates.length,
       mediumAttributionsWithoutShareLink:
         mediumAttributionsWithoutShareLink.length,
       profileBackedStars: creatorProfileRows.length,
     },
     notes: [
       "High confidence edges have a completed member signup, fanletterShareId, matching news cut share link, share owner, and creator referral code.",
+      "Member-owned star backfill creates one AI Star candidate per completed member referralCode and makes that member the creator of that star.",
+      "Member-owned stars without an existing creator profile or published content should start as draft so incomplete AI Stars do not enter public discovery.",
       "Medium attributions identify the AI Star through fanletterShareCreatorReferralCode but do not resolve the scout/share owner from fanletterNewsCutShareLinks.",
       "Legacy referral-only members should stay in the existing member referral tree unless product policy assigns them to a default/global AI Star.",
+      writeChanges
+        ? "Write mode only upserts new Founder Club collections and does not modify legacy member referral, placement, reward, or payment collections."
+        : "Set FANLETTER_FOUNDER_CLUB_BACKFILL_WRITE=1 to upsert member-owned stars, creator memberships, and star-scoped referral codes.",
     ],
     proposedCollections: [
       {
@@ -591,6 +1005,11 @@ try {
       mediumAttributionsWithoutShareLink: mediumAttributionsWithoutShareLink
         .slice(0, sampleLimit)
         .map(summarizeMediumAttribution),
+      memberOwnedCreatorMemberships: completedMemberRows
+        .slice(0, sampleLimit)
+        .map((member) =>
+          summarizeMemberOwnedCreatorMembership(member, starsByReferralCode),
+        ),
     },
     topBySource: {
       contentPosts: summarizeCountRows(contentPostRows),
@@ -604,13 +1023,16 @@ try {
         }))
         .sort(sortRowsByCount)
         .slice(0, topLimit),
-      legacyReferralOnly: legacyReferralOnlyRows.map(summarizeLegacyReferral),
+      legacyReferralOnly: legacyReferralOnlyRows
+        .slice(0, topLimit)
+        .map(summarizeLegacyReferral),
       newsCutShareLinks: summarizeCountRows(shareLinkRows),
       newsReports: summarizeCountRows(newsReportRows),
       possibleFollowMemberships: summarizeCountRows(followMembershipRows),
       possibleRequestMemberships: summarizeCountRows(requestMembershipRows),
       shareSignupAttributions: summarizeCountRows(shareSignupAttributionRows),
     },
+    writeResult,
   };
 
   console.log(JSON.stringify(report, null, 2));

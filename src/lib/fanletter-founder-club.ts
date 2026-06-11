@@ -9,6 +9,7 @@ export const fanletterFounderClubBackfillSources = [
   "creator_profile",
   "fan_request",
   "follow",
+  "member_signup",
   "news_cut_share",
   "share_signup_attribution",
   "manual",
@@ -18,7 +19,7 @@ export type FanletterFounderRole = (typeof fanletterFounderRoles)[number];
 export type FanletterFounderClubBackfillSource =
   (typeof fanletterFounderClubBackfillSources)[number];
 
-export type FanletterStarStatus = "active" | "archived";
+export type FanletterStarStatus = "active" | "archived" | "draft";
 export type FanletterStarReferralCodeStatus = "active" | "disabled";
 
 export type FanletterStarDocument = {
