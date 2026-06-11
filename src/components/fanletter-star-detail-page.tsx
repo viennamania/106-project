@@ -793,7 +793,7 @@ export function FanletterStarDetailPage({
             </Link>
           </div>
 
-          <div className="-mx-4 mt-5 flex snap-x gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0">
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
             {relatedStars.map((relatedStar) => (
               <AIStarCard
                 copy={copy}

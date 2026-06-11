@@ -284,7 +284,7 @@ export function AIStarCard({
   return (
     <article
       className={joinClasses(
-        "group flex h-full min-w-[82vw] max-w-[22rem] snap-start flex-col overflow-hidden rounded-lg border bg-[#1a082f] p-3 text-white shadow-[0_24px_70px_rgba(88,28,135,0.24)] ring-1 transition hover:-translate-y-0.5 hover:border-fuchsia-200 md:min-w-0 md:max-w-none",
+        "group flex h-full min-w-0 w-full flex-col overflow-hidden rounded-lg border bg-[#1a082f] p-3 text-white shadow-[0_24px_70px_rgba(88,28,135,0.24)] ring-1 transition hover:-translate-y-0.5 hover:border-fuchsia-200",
         isSelected
           ? "border-cyan-200 ring-cyan-200/70"
           : "border-fuchsia-300/50 ring-fuchsia-400/22",
@@ -382,7 +382,7 @@ export function TopGrowingStars({
         </div>
       </div>
 
-      <div className="-mx-4 mt-6 flex snap-x gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-2 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-4">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {stars.map((star) => (
           <AIStarCard
             copy={copy}
@@ -419,10 +419,10 @@ export function GrowthLoopDiagram({
         </div>
       </div>
 
-      <div className="-mx-4 mt-6 flex snap-x gap-2 overflow-x-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-8">
+      <div className="mt-6 grid grid-cols-2 gap-2 md:grid-cols-4 xl:grid-cols-8">
         {copy.growthLoop.steps.map((step, index) => (
           <div
-            className="relative min-h-28 min-w-[10.25rem] snap-start rounded-lg border border-violet-100 bg-[#fbfaff] p-3 md:min-w-0"
+            className="relative min-h-28 rounded-lg border border-violet-100 bg-[#fbfaff] p-3"
             key={step}
           >
             <div className="flex items-center justify-between gap-2">
@@ -509,10 +509,10 @@ export function ScoutShareLoop({
         </div>
       </div>
 
-      <div className="-mx-4 mt-5 flex snap-x gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:overflow-visible md:px-0 md:pb-0">
+      <div className="mt-5 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
         {flowItems.map((item, index) => (
           <div
-            className="flex min-w-[13.5rem] snap-start flex-col gap-3 rounded-lg border border-black/8 bg-[#f8f7ff] p-3 md:min-w-0 md:flex-row md:items-center md:gap-2 md:border-0 md:bg-transparent md:p-0"
+            className="flex min-w-0 flex-col gap-3 rounded-lg border border-black/8 bg-[#f8f7ff] p-3 md:flex-row md:items-center md:gap-2 md:border-0 md:bg-transparent md:p-0"
             key={`${item}-${index}`}
           >
             <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#ede9fe] text-xs font-semibold text-[#6d28d9]">
@@ -533,10 +533,10 @@ export function ScoutShareLoop({
         <p className="mt-2 font-mono text-sm font-semibold text-black">
           {loop.referralCode}
         </p>
-        <p className="mt-3 truncate rounded-lg bg-white px-3 py-2 font-mono text-xs font-semibold text-[#5b21b6] sm:break-all sm:whitespace-normal">
+        <p className="mt-3 break-all rounded-lg bg-white px-3 py-2 font-mono text-xs font-semibold text-[#5b21b6]">
           {loop.shareLink}
         </p>
-        <div className="-mx-3 mt-3 flex gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+        <div className="mt-3 flex flex-wrap gap-2">
           {loop.sharePlatforms.map((platform) => {
             const platformLink = platformLinksByName.get(platform);
 
@@ -683,10 +683,10 @@ export function MemberPortfolio({
         </div>
       </div>
 
-      <div className="-mx-4 mt-5 flex snap-x gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-0 sm:pb-0">
+      <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5">
         {metrics.map((metric) => (
           <div
-            className="min-w-[8.5rem] snap-start rounded-lg border border-black/8 bg-white p-3 sm:min-w-0"
+            className="min-w-0 rounded-lg border border-black/8 bg-white p-3"
             key={metric.label}
           >
             <p className="text-xl font-semibold leading-none text-black">
@@ -699,7 +699,7 @@ export function MemberPortfolio({
         ))}
       </div>
 
-      <div className="-mx-4 mt-5 flex snap-x gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0">
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">
         {portfolio.roles.length > 0 ? (
           portfolio.roles.map((item) => {
             const star = starsById.get(item.starId);
@@ -716,7 +716,7 @@ export function MemberPortfolio({
 
             return (
               <div
-                className="flex min-h-14 min-w-[14rem] snap-start items-center justify-between gap-3 rounded-lg border border-black/8 bg-white px-3 py-2 sm:min-w-0"
+                className="flex min-h-14 min-w-0 items-center justify-between gap-3 rounded-lg border border-black/8 bg-white px-3 py-2"
                 key={item.starId}
               >
                 <div className="min-w-0">
@@ -909,10 +909,10 @@ export function CreatorUnlockCard({
         </div>
       </div>
 
-      <div className="-mx-4 mt-5 flex snap-x gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0">
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">
         {unlock.conditions.map((condition) => (
           <div
-            className="flex min-w-[14rem] snap-start items-center gap-3 rounded-lg border border-violet-100 bg-[#fbfaff] p-3 sm:min-w-0"
+            className="flex min-w-0 items-center gap-3 rounded-lg border border-violet-100 bg-[#fbfaff] p-3"
             key={condition.id}
           >
             <CheckCircle2
@@ -1234,10 +1234,10 @@ function CreatorPath({
           </p>
         </div>
       </div>
-      <div className="-mx-4 mt-5 flex snap-x gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0">
+      <div className="mt-5 grid gap-2 sm:grid-cols-3">
         {copy.creatorPath.steps.map((step, index) => (
           <div
-            className="min-w-[15.5rem] snap-start rounded-lg border border-violet-100 bg-[#fbfaff] p-3 sm:min-w-0"
+            className="min-w-0 rounded-lg border border-violet-100 bg-[#fbfaff] p-3"
             key={step.title}
           >
             <div className="flex items-start gap-3">

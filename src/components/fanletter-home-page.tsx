@@ -760,7 +760,7 @@ function MobileFounderLoopVisual({
       };
 
   return (
-    <div className="mt-5 max-w-[22rem] overflow-hidden rounded-[1.65rem] border border-violet-100 bg-white/88 p-3 shadow-[0_22px_56px_rgba(88,28,135,0.13)] backdrop-blur-xl sm:hidden">
+    <div className="mt-5 w-full max-w-none overflow-hidden rounded-[1.4rem] border border-violet-100 bg-white/88 p-3 shadow-[0_22px_56px_rgba(88,28,135,0.13)] backdrop-blur-xl sm:hidden">
       <div className="flex items-center justify-between gap-3 px-1">
         <span className="text-[0.68rem] font-semibold text-[#6d28d9]">
           {labels.loop}
@@ -770,7 +770,7 @@ function MobileFounderLoopVisual({
         </span>
       </div>
 
-      <div className="mt-3 grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-stretch gap-2">
+      <div className="mt-3 grid grid-cols-[minmax(0,1fr)_1.55rem_minmax(0,1fr)] items-stretch gap-2">
         <div className="relative min-h-[8.3rem] overflow-hidden rounded-[1.1rem] border border-violet-300 bg-[linear-gradient(145deg,#7c3aed_0%,#a855f7_52%,#22d3ee_100%)] p-3 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.36),0_16px_34px_rgba(124,58,237,0.2)]">
           <div className="flex items-center justify-between gap-2">
             <span className="rounded-full bg-white/18 px-2 py-1 text-[0.58rem] font-semibold">
@@ -811,9 +811,9 @@ function MobileFounderLoopVisual({
         </div>
 
         <div className="flex flex-col items-center justify-center gap-2 text-[#7c3aed]">
-          <ArrowRight className="size-5" />
+          <ArrowRight className="size-4" />
           <span className="h-10 w-px bg-violet-200" />
-          <ArrowRight className="size-5 rotate-90" />
+          <ArrowRight className="size-4 rotate-90" />
         </div>
 
         <div className="min-h-[8.3rem] rounded-[1.1rem] border border-zinc-200 bg-zinc-50 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.82)]">
@@ -849,7 +849,7 @@ function MobileFounderLoopVisual({
         </div>
       </div>
 
-      <div className="mt-2 grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-stretch gap-2">
+      <div className="mt-2 grid grid-cols-[minmax(0,1fr)_1.55rem_minmax(0,1fr)] items-stretch gap-2">
         <div className="rounded-[1.1rem] border border-violet-100 bg-[#fbfaff] p-3">
           <div className="flex items-center gap-2">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-zinc-300 bg-zinc-100 text-sm font-semibold text-zinc-600">
@@ -867,7 +867,7 @@ function MobileFounderLoopVisual({
         </div>
 
         <div className="flex items-center justify-center text-[#7c3aed]">
-          <ArrowRight className="size-5" />
+          <ArrowRight className="size-4" />
         </div>
 
         <div className="rounded-[1.1rem] border border-emerald-100 bg-emerald-50 p-3">
@@ -2074,7 +2074,7 @@ export function FanletterHomePage({
 
   return (
     <main className="fanletter-v2-surface min-h-screen bg-[#fbfaff] text-black">
-      <section className="relative min-h-[100svh] overflow-hidden border-b border-violet-200 bg-[#fbfaff] sm:min-h-[92svh]">
+      <section className="relative overflow-hidden border-b border-violet-200 bg-[#fbfaff] sm:min-h-[92svh]">
         <div className="absolute inset-0 bg-[linear-gradient(180deg,#ffffff_0%,#fbfaff_56%,#f2edff_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(124,58,237,0.08)_0_1px,transparent_1px_32px)] opacity-70 sm:hidden" />
         {!hasHeroVideoSlides ? (
@@ -2096,7 +2096,7 @@ export function FanletterHomePage({
         <div className="absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.5)_0%,rgba(255,255,255,0.66)_40%,rgba(251,250,255,0.94)_76%,#fbfaff_100%)] sm:block lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.9)_38%,rgba(255,255,255,0.48)_68%,rgba(251,250,255,0.76)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 hidden h-44 bg-[linear-gradient(180deg,rgba(251,250,255,0)_0%,#fbfaff_100%)] lg:block" />
 
-        <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-[calc(6.8rem+env(safe-area-inset-bottom))] pt-3 sm:min-h-[92svh] sm:px-6 sm:pb-6 lg:px-8">
+        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col px-4 pb-[calc(5.8rem+env(safe-area-inset-bottom))] pt-3 sm:min-h-[92svh] sm:px-6 sm:pb-6 lg:px-8">
           <div className="hidden items-center justify-between gap-3 rounded-full border border-violet-200 bg-white/82 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-black/64 shadow-[0_14px_34px_rgba(88,28,135,0.1)] backdrop-blur-xl sm:flex sm:bg-white/72 sm:py-2 sm:text-xs sm:shadow-none">
             <div className="flex min-w-0 items-center gap-2">
               <Sparkles className="size-3.5 shrink-0 text-[#7c3aed]" />
@@ -2242,7 +2242,7 @@ export function FanletterHomePage({
             </ScrollReveal>
           ) : null}
 
-          <div className="grid flex-1 content-center gap-5 pb-8 pt-[1.7rem] sm:content-center sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
+          <div className="grid flex-1 content-start gap-5 pb-8 pt-10 sm:content-center sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
             <ScrollReveal className="max-w-[58rem]" delay={80} y={18}>
               <p className="inline-flex rounded-full border border-violet-200 bg-white/82 px-3 py-1 text-[0.68rem] font-semibold text-[#6d28d9] shadow-[0_10px_24px_rgba(88,28,135,0.08)] backdrop-blur-md sm:bg-transparent sm:px-0 sm:shadow-none sm:uppercase sm:tracking-[0.28em]">
                 {locale === "ko" ? "파운더 클럽 2.0" : copy.hero.eyebrow}
@@ -2284,11 +2284,13 @@ export function FanletterHomePage({
                   {founderClubCtaLabels.loop}
                 </Link>
               </div>
-              <MobileFounderLoopVisual
-                locale={locale}
-                loop={founderClubScoutShareLoop ?? null}
-                star={mobileHeroLoopStar}
-              />
+              <div className="w-full max-w-[27rem] sm:hidden">
+                <MobileFounderLoopVisual
+                  locale={locale}
+                  loop={founderClubScoutShareLoop ?? null}
+                  star={mobileHeroLoopStar}
+                />
+              </div>
               <div className="mt-6 hidden max-w-2xl sm:mt-8 sm:block">
                 <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-black/46">
                   {copy.platformTrust.eyebrow}
