@@ -1732,6 +1732,10 @@ export function FanletterHomePage({
     referralCode,
   );
   const founderClubHref = "#founder-club";
+  const founderClubPageHref = buildPathWithReferral(
+    `/${locale}/fanletter/founder-club`,
+    referralCode,
+  );
   const creatorUnlockHref = buildPathWithReferral(
     `/${locale}/fanletter/creator-unlock`,
     referralCode,
@@ -3061,7 +3065,7 @@ export function FanletterHomePage({
               </Link>
               <Link
                 className="inline-flex h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 text-center text-sm font-semibold !text-black sm:px-5"
-                href={founderClubHref}
+                href={founderClubPageHref}
               >
                 {footerLabels.founderClub}
               </Link>
@@ -3089,7 +3093,7 @@ export function FanletterHomePage({
               </Link>
               <Link
                 className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
-                href={founderClubHref}
+                href={founderClubPageHref}
               >
                 {mobileFooterLabels.founder}
               </Link>
@@ -3140,9 +3144,12 @@ export function FanletterHomePage({
                 <a className="flex min-h-9 items-center" href={topGrowingStarsHref}>
                   {footerLabels.discovery}
                 </a>
-                <a className="flex min-h-9 items-center" href={founderClubHref}>
+                <Link
+                  className="flex min-h-9 items-center"
+                  href={founderClubPageHref}
+                >
                   {footerLabels.founderClub}
-                </a>
+                </Link>
                 <a className="flex min-h-9 items-center" href={scoutShareLoopHref}>
                   {footerLabels.scoutLoop}
                 </a>
