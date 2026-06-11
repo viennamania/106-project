@@ -4,8 +4,10 @@ import Link from "next/link";
 import {
   ArrowLeft,
   ArrowRight,
+  Bot,
   CheckCircle2,
   CircleAlert,
+  Crown,
   Loader2,
   LogOut,
   Mail,
@@ -46,6 +48,7 @@ import {
   getThirdwebUserEmail,
   useThirdwebConnectionState,
 } from "@/lib/thirdweb-client";
+import type { AIStar } from "@/mock/fanletterV2";
 
 type FanletterConnectStatus = "error" | "idle" | "ready" | "syncing";
 
@@ -75,6 +78,11 @@ type FanletterConnectReturnTarget = {
   cta: string;
   kind: FanletterConnectReturnKind;
   label: string;
+};
+
+type FanletterConnectStarContext = {
+  starName: string;
+  universeName: string;
 };
 
 const FANLETTER_CONNECT_DISCONNECTED_GRACE_MS = 4500;
@@ -198,8 +206,11 @@ function getCopy(locale: Locale) {
 function getContextCopy(
   locale: Locale,
   returnTarget: FanletterConnectReturnTarget,
+  starContext?: FanletterConnectStarContext | null,
 ) {
   const isContentReturn = returnTarget.kind === "content";
+  const isFounderOnboarding =
+    returnTarget.kind === "onboarding" && Boolean(starContext);
 
   if (locale === "ko") {
     if (isContentReturn) {
@@ -226,6 +237,29 @@ function getContextCopy(
         returnTitle: "보던 콘텐츠",
         steps: ["이메일 로그인", "구매 계정 저장", "콘텐츠로 복귀"],
         title: "팬 전용 콘텐츠를 열기 위해 계정을 연결하세요.",
+      };
+    }
+
+    if (isFounderOnboarding && starContext) {
+      return {
+        accountBody: `계정 연결이 확인되면 ${starContext.universeName} Founder 참여가 이 계정에 저장되고, 내 추천 링크를 만들 수 있습니다.`,
+        completedBody: `계정 연결이 확인되었습니다. ${starContext.universeName} Founder 온보딩으로 돌아가 추천 링크 생성을 이어가세요.`,
+        connectBody: `이메일로 AIAVpark 계정을 연결하면 ${starContext.starName} Founder 역할, 추천 코드, CP와 영향력 기록이 같은 계정에 저장됩니다.`,
+        helper: `${starContext.universeName} Founder 상태를 이 계정 기준으로 확인합니다.`,
+        onboardingBody:
+          "Founder 참여가 확인되면 추천 코드 생성, SNS 공유, CP와 영향력 누적 흐름으로 이어집니다.",
+        onboardingCta: "Founder 온보딩 보기",
+        onboardingTitle: `${starContext.starName} Founder 온보딩`,
+        paymentBody:
+          "계정 연결은 저장되었습니다. 실제 결제 없이 Founder 흐름을 먼저 확인하고, 수익·리워드 기능이 필요할 때 10 USDT 활성화를 진행합니다.",
+        primary: "Founder 온보딩 계속하기",
+        readinessBody:
+          "먼저 이메일 계정을 연결해 Founder 역할을 저장하고, 실제 결제는 필요한 기능에서만 진행합니다.",
+        returnBody: `${starContext.universeName} Founder 참여 확인으로 돌아갈 수 있습니다.`,
+        returnCta: "Founder 온보딩으로 돌아가기",
+        returnTitle: `${starContext.starName} 유니버스`,
+        steps: ["이메일 로그인", "Founder 귀속 저장", "추천 링크 생성"],
+        title: `${starContext.starName} Founder 상태를 확인하세요.`,
       };
     }
 
@@ -286,6 +320,29 @@ function getContextCopy(
     };
   }
 
+  if (isFounderOnboarding && starContext) {
+    return {
+      accountBody: `After account connection, your Founder join for ${starContext.universeName} is saved to this account and your referral link can be created.`,
+      completedBody: `Your account connection is ready. Return to ${starContext.universeName} Founder onboarding to continue referral setup.`,
+      connectBody: `Connect with email so the ${starContext.starName} Founder role, referral code, CP, and influence records stay attached to one account.`,
+      helper: `AIAVpark checks ${starContext.universeName} Founder status for this account.`,
+      onboardingBody:
+        "Once Founder status is confirmed, continue into referral code creation, SNS sharing, CP, and influence growth.",
+      onboardingCta: "View Founder onboarding",
+      onboardingTitle: `${starContext.starName} Founder onboarding`,
+      paymentBody:
+        "Your account connection is saved. Preview the Founder flow first; 10 USDT activation can happen later when revenue or rewards features require it.",
+      primary: "Continue Founder onboarding",
+      readinessBody:
+        "Connect email first to save the Founder role. Real payment stays deferred until a paid feature requires it.",
+      returnBody: `You can return to ${starContext.universeName} Founder confirmation.`,
+      returnCta: "Back to Founder onboarding",
+      returnTitle: `${starContext.starName} Universe`,
+      steps: ["Email login", "Founder attribution saved", "Referral link ready"],
+      title: `Confirm ${starContext.starName} Founder status.`,
+    };
+  }
+
   return {
     accountBody:
       "Account connection is the first AIAVpark step. After connecting, return to where you came from or continue in the onboarding checklist.",
@@ -342,6 +399,55 @@ function readFanletterStarIdFromReturnPath(returnToHref: string) {
   } catch {
     return null;
   }
+}
+
+function getDisplayStarName(name: string, locale: Locale) {
+  if (locale !== "ko") {
+    return name;
+  }
+
+  const replacements: Record<string, string> = {
+    Harin: "하린",
+    Lumi: "루미",
+    Minseo: "민서",
+    Mira: "미라",
+    Noa: "노아",
+    Ria: "리아",
+    Seoyeon: "서연",
+    Yoonseo: "윤서",
+  };
+
+  return replacements[name] ?? name;
+}
+
+function getDisplayUniverseName(name: string, locale: Locale) {
+  if (locale !== "ko") {
+    return name;
+  }
+
+  const replacements: Record<string, string> = {
+    "Harin Universe": "하린 유니버스",
+    "Minseo Universe": "민서 유니버스",
+    "Ria Universe": "리아 유니버스",
+    "Seoyeon Universe": "서연 유니버스",
+    "Yoonseo Universe": "윤서 유니버스",
+  };
+
+  return replacements[name] ?? name.replace(/\bUniverse\b/g, "유니버스");
+}
+
+function getStarContext(
+  star: AIStar | null | undefined,
+  locale: Locale,
+): FanletterConnectStarContext | null {
+  if (!star) {
+    return null;
+  }
+
+  return {
+    starName: getDisplayStarName(star.name, locale),
+    universeName: getDisplayUniverseName(star.universeName, locale),
+  };
 }
 
 function isMemberWalletKnown(member: MemberRecord, walletAddress: string) {
@@ -591,11 +697,13 @@ function StepStatus({
 
 export function FanletterConnectPage({
   dictionary,
+  founderClubStar = null,
   locale,
   referralCode,
   returnToHref,
 }: {
   dictionary: Dictionary;
+  founderClubStar?: AIStar | null;
   locale: Locale;
   referralCode: string | null;
   returnToHref: string;
@@ -635,7 +743,8 @@ export function FanletterConnectPage({
     referralCode,
   );
   const returnTarget = getReturnTarget(returnToHref, locale);
-  const contextCopy = getContextCopy(locale, returnTarget);
+  const starContext = getStarContext(founderClubStar, locale);
+  const contextCopy = getContextCopy(locale, returnTarget, starContext);
   const isReturnToOnboarding = returnTarget.kind === "onboarding";
   const backLabel = returnTarget.backLabel;
   const onboardingHref = isReturnToOnboarding
@@ -978,6 +1087,33 @@ export function FanletterConnectPage({
                   </p>
                 </div>
               </div>
+
+              {starContext ? (
+                <div className="mt-4 rounded-lg border border-violet-300/30 bg-violet-300/10 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
+                        <Bot className="size-5" />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-violet-100">
+                          <Crown className="size-3.5" />
+                          AI STAR FOUNDER
+                        </p>
+                        <p className="mt-1 truncate text-base font-semibold text-white">
+                          {starContext.universeName}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="shrink-0 rounded-full border border-white/14 bg-white/10 px-2.5 py-1 text-[0.62rem] font-semibold text-white/76">
+                      {starContext.starName}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-xs font-medium leading-5 text-white/58">
+                    {contextCopy.helper}
+                  </p>
+                </div>
+              ) : null}
 
               {syncState.error ? (
                 <div className="mt-4 rounded-lg border border-red-300/20 bg-red-500/12 p-3 text-sm font-medium leading-6 text-red-100">

@@ -7,8 +7,10 @@ import {
   FANLETTER_OG_IMAGE_SIZE,
   getFanletterOgAlt,
 } from "@/lib/fanletter-og";
+import { getFanletterFounderClubStarDetail } from "@/lib/fanletter-founder-club-service";
 import {
   getSafeFanletterReturnTo,
+  normalizeFanletterStarId,
   readFanletterReferralCode,
 } from "@/lib/fanletter-routing";
 import { defaultLocale, getDictionary, hasLocale, type Locale } from "@/lib/i18n";
@@ -16,6 +18,7 @@ import {
   buildPathWithReferral,
   setPathSearchParams,
 } from "@/lib/landing-branding";
+import { getFanletterV2MockStar } from "@/mock/fanletterV2";
 
 type FanletterConnectSearchParams = {
   ref?: string | string[];
@@ -51,6 +54,16 @@ function getFanletterConnectMetadataCopy(locale: Locale, returnToHref: string) {
           "Complete AIAVpark account connection and readiness confirmation, then return where you left off.",
         title: "AIAVpark Account Connect",
       };
+}
+
+function readFanletterStarIdFromReturnTo(returnToHref: string) {
+  try {
+    const url = new URL(returnToHref, "https://www.net402.ai");
+
+    return normalizeFanletterStarId(url.searchParams.get("star"));
+  } catch {
+    return null;
+  }
 }
 
 export async function generateMetadata({
@@ -134,17 +147,24 @@ export default async function LocalizedFanletterConnectPage({
 
   const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
+  const returnToHref = getSafeFanletterReturnTo({
+    locale,
+    referralCode,
+    returnTo: query.returnTo,
+  });
+  const founderClubStarId = readFanletterStarIdFromReturnTo(returnToHref);
+  const founderClubStar = founderClubStarId
+    ? getFanletterV2MockStar(founderClubStarId) ??
+      (await getFanletterFounderClubStarDetail(founderClubStarId))
+    : null;
 
   return (
     <FanletterConnectPage
       dictionary={getDictionary(locale)}
+      founderClubStar={founderClubStar}
       locale={locale}
       referralCode={referralCode}
-      returnToHref={getSafeFanletterReturnTo({
-        locale,
-        referralCode,
-        returnTo: query.returnTo,
-      })}
+      returnToHref={returnToHref}
     />
   );
 }
