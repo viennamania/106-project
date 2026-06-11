@@ -10,6 +10,7 @@ import type {
   LocalizedText,
   MemberPortfolio,
   ScoutShareLoopData,
+  SpawnedAIStar,
 } from "@/mock/fanletterV2";
 import type { Locale } from "@/lib/i18n";
 import type {
@@ -36,6 +37,7 @@ const HOME_STAR_LIMIT = 4;
 const FOUNDER_SLOT_LIMIT = 4;
 const DEFAULT_FOUNDER_SLOT_TOTAL = 150;
 const MEMBER_PORTFOLIO_ROLE_LIMIT = 12;
+const SPAWNED_STAR_LIMIT = 3;
 const SCOUT_SIGNUP_CP_REWARD = 100;
 const SCOUT_SIGNUP_CREATOR_PROGRESS_REWARD = 2;
 const SCOUT_SIGNUP_INFLUENCE_REWARD = 5;
@@ -245,9 +247,11 @@ function serializeFounderSlots({
 
 function serializeStar({
   founderSlots,
+  spawnedStars = [],
   star,
 }: {
   founderSlots: HumanFounderSlot[];
+  spawnedStars?: SpawnedAIStar[];
   star: FanletterStarDocument;
 }): AIStar {
   const [accentColor, accentSecondary] = getAccentPair(star.starId);
@@ -273,9 +277,25 @@ function serializeStar({
     portraitImageUrl: star.portraitImageUrl,
     portraitInitials: getInitials(star.characterName || star.displayName),
     specialty: getSpecialtyText(star),
-    spawnedStars: [],
+    spawnedStars,
     starScore: star.starScore,
     universeName: getUniverseName(star),
+  };
+}
+
+function serializeSpawnedStar(star: FanletterStarDocument): SpawnedAIStar {
+  const [accentColor, accentSecondary] = getAccentPair(star.starId);
+
+  return {
+    accentColor,
+    accentSecondary,
+    founderCount: star.founderCount,
+    growthPercent: getDisplayGrowthPercent(star),
+    id: star.starId,
+    name: compactText(star.characterName, star.displayName),
+    portraitInitials: getInitials(star.characterName || star.displayName),
+    specialty: getSpecialtyText(star),
+    starScore: star.starScore,
   };
 }
 
@@ -680,11 +700,66 @@ export async function getFanletterFounderClubHomeStars(options?: {
     string,
     FanletterStarFounderMembershipDocument[]
   >();
+  const membershipsByMemberEmail = new Map<
+    string,
+    FanletterStarFounderMembershipDocument[]
+  >();
 
   for (const membership of memberships) {
     const list = membershipsByStarId.get(membership.starId) ?? [];
     list.push(membership);
     membershipsByStarId.set(membership.starId, list);
+
+    const memberList = membershipsByMemberEmail.get(membership.memberEmail) ?? [];
+    memberList.push(membership);
+    membershipsByMemberEmail.set(membership.memberEmail, memberList);
+  }
+  const founderMemberEmails = [...membershipsByMemberEmail.keys()];
+  const spawnedStarCandidates =
+    founderMemberEmails.length > 0
+      ? await starsCollection
+          .find({
+            ownerEmail: { $in: founderMemberEmails },
+            starId: { $nin: starIds },
+            status: { $ne: "archived" },
+          })
+          .sort({
+            growthPercent: -1,
+            starScore: -1,
+            founderCount: -1,
+            updatedAt: -1,
+          })
+          .limit(limit * SPAWNED_STAR_LIMIT * 2)
+          .toArray()
+      : [];
+  const spawnedStarsByParentStarId = new Map<string, SpawnedAIStar[]>();
+
+  for (const spawnedStar of spawnedStarCandidates) {
+    if (!spawnedStar.ownerEmail) {
+      continue;
+    }
+
+    const parentMemberships =
+      membershipsByMemberEmail.get(spawnedStar.ownerEmail) ?? [];
+
+    for (const parentMembership of parentMemberships) {
+      if (parentMembership.starId === spawnedStar.starId) {
+        continue;
+      }
+
+      const list =
+        spawnedStarsByParentStarId.get(parentMembership.starId) ?? [];
+
+      if (
+        list.length >= SPAWNED_STAR_LIMIT ||
+        list.some((item) => item.id === spawnedStar.starId)
+      ) {
+        continue;
+      }
+
+      list.push(serializeSpawnedStar(spawnedStar));
+      spawnedStarsByParentStarId.set(parentMembership.starId, list);
+    }
   }
 
   return stars.map((star) =>
@@ -693,6 +768,7 @@ export async function getFanletterFounderClubHomeStars(options?: {
         memberNamesByEmail,
         memberships: membershipsByStarId.get(star.starId) ?? [],
       }),
+      spawnedStars: spawnedStarsByParentStarId.get(star.starId) ?? [],
       star,
     }),
   );
