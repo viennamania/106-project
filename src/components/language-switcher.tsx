@@ -12,7 +12,7 @@ import {
 } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-type LanguageSwitcherVariant = "default" | "fanletter";
+type LanguageSwitcherVariant = "default" | "fanletter" | "fanletterLight";
 
 export function LanguageSwitcher({
   className,
@@ -39,6 +39,14 @@ export function LanguageSwitcher({
             "border border-[#44f26e]/28 bg-[#06120b]/88 text-white shadow-[0_14px_30px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:min-w-[142px] sm:w-auto",
           select: "text-white",
         }
+      : variant === "fanletterLight"
+        ? {
+            chevron: "text-[#7c3aed]",
+            icon: "text-[#7c3aed]",
+            root:
+              "border border-violet-200 bg-white/90 text-[#3b126a] shadow-[0_12px_30px_rgba(88,28,135,0.1)] backdrop-blur-xl sm:min-w-[142px] sm:w-auto",
+            select: "text-[#3b126a]",
+          }
       : {
           chevron: "text-slate-500",
           icon: "text-slate-500",

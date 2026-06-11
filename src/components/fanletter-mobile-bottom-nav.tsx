@@ -26,7 +26,7 @@ type FanletterNavItem = {
 };
 
 const fanletterMobileNavHeightClass =
-  "h-[calc(5.1rem+env(safe-area-inset-bottom))]";
+  "h-[calc(4.85rem+env(safe-area-inset-bottom))]";
 
 function subscribeToHydration() {
   return () => {};
@@ -163,11 +163,11 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     <>
       <div
         aria-hidden="true"
-        className={cn("bg-[#030504] sm:hidden", fanletterMobileNavHeightClass)}
+        className={cn("bg-[#fbfaff] sm:hidden", fanletterMobileNavHeightClass)}
       />
       <nav
         aria-label={copy.label}
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#030504]/94 px-2 pb-[calc(env(safe-area-inset-bottom)+0.45rem)] pt-2 text-white shadow-[0_-18px_46px_rgba(0,0,0,0.28)] backdrop-blur-xl sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-violet-100 bg-white/92 px-2 pb-[calc(env(safe-area-inset-bottom)+0.45rem)] pt-2 text-[#12041f] shadow-[0_-16px_42px_rgba(88,28,135,0.14)] backdrop-blur-xl sm:hidden"
       >
         <div className="mx-auto grid max-w-md grid-cols-5 items-end gap-1">
           {items.map((item) => {
@@ -178,9 +178,9 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
               <Link
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex h-14 min-w-0 flex-col items-center justify-end gap-1 rounded-lg px-1 pb-1 text-[0.64rem] font-semibold text-white/52 transition hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e]",
-                  active && "text-white",
-                  item.primary && "relative -mt-3 text-white",
+                  "flex h-14 min-w-0 flex-col items-center justify-end gap-1 rounded-lg px-1 pb-1 text-[0.64rem] font-semibold text-black/46 transition hover:text-[#5b21b6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7c3aed]",
+                  active && "text-[#5b21b6]",
+                  item.primary && "relative -mt-3 text-[#5b21b6]",
                 )}
                 href={item.href}
                 key={item.key}
@@ -188,12 +188,12 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
                 <span
                   className={cn(
                     "inline-flex size-8 shrink-0 items-center justify-center rounded-full transition",
-                    active && !item.primary && "bg-white/10 text-[#44f26e]",
+                    active && !item.primary && "bg-violet-50 text-[#7c3aed]",
                     item.primary &&
-                      "size-12 bg-[#44f26e] text-black shadow-[0_14px_34px_rgba(68,242,110,0.22)]",
+                      "size-12 bg-[#7c3aed] text-white shadow-[0_14px_34px_rgba(124,58,237,0.24)]",
                     active &&
                       item.primary &&
-                      "ring-2 ring-[#44f26e]/34 ring-offset-2 ring-offset-[#030504]",
+                      "ring-2 ring-violet-300/70 ring-offset-2 ring-offset-white",
                   )}
                 >
                   <Icon className={item.primary ? "size-6" : "size-5"} />

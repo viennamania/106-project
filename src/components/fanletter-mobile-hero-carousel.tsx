@@ -173,14 +173,14 @@ export function FanletterHeroBackgroundCarousel({
       {showMobilePreviews && playableSlides.length > 1 ? (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute right-3 top-[calc(env(safe-area-inset-top)+14.5rem)] z-[2] flex flex-col gap-1.5 sm:hidden"
+          className="pointer-events-none absolute right-3 top-[calc(env(safe-area-inset-top)+13.25rem)] z-[2] flex flex-col gap-1.5 sm:hidden"
         >
           {playableSlides.slice(0, 4).map((slide, index) => (
             <span
-              className={`block size-10 overflow-hidden rounded-lg border bg-[#07100b] bg-cover bg-center shadow-[0_10px_26px_rgba(0,0,0,0.36)] transition ${
+              className={`block size-9 overflow-hidden rounded-lg border bg-white/72 bg-cover bg-center shadow-[0_10px_26px_rgba(88,28,135,0.18)] backdrop-blur transition ${
                 index === activeIndex
-                  ? "border-[#44f26e] opacity-100 ring-2 ring-[#44f26e]/26"
-                  : "border-white/18 opacity-58"
+                  ? "border-white opacity-100 ring-2 ring-violet-400/42"
+                  : "border-white/62 opacity-62"
               }`}
               key={`${slide.videoUrl}:${index}`}
               style={

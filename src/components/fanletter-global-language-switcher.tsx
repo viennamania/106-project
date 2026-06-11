@@ -50,21 +50,27 @@ export function FanletterGlobalLanguageSwitcher({
   className,
   compact = false,
   locale,
+  surface = "dark",
   tight = false,
 }: {
   className?: string;
   compact?: boolean;
   locale: Locale;
+  surface?: "dark" | "light";
   tight?: boolean;
 }) {
   const copy = copyByLocale[locale] ?? copyByLocale.ko;
+  const isLightSurface = surface === "light";
 
   return (
     <div className={className}>
       <div
         className={cn(
-          "inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border border-[#44f26e]/28 bg-[#44f26e]/10 shadow-[0_18px_42px_rgba(0,0,0,0.2)] backdrop-blur-xl",
-          tight ? "p-0.5" : "p-1",
+          "inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border backdrop-blur-xl",
+          isLightSurface
+            ? "border-violet-200 bg-white/76 shadow-[0_14px_34px_rgba(88,28,135,0.1)]"
+            : "border-[#44f26e]/28 bg-[#44f26e]/10 shadow-[0_18px_42px_rgba(0,0,0,0.2)]",
+          tight || compact ? "p-0.5" : "p-1",
         )}
       >
         <div
@@ -73,14 +79,29 @@ export function FanletterGlobalLanguageSwitcher({
             !tight && (compact ? "xl:flex" : "lg:flex"),
           )}
         >
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#44f26e] text-black">
+          <span
+            className={cn(
+              "flex size-7 shrink-0 items-center justify-center rounded-full",
+              isLightSurface ? "bg-violet-100 text-[#6d28d9]" : "bg-[#44f26e] text-black",
+            )}
+          >
             <Globe2 className="size-4" />
           </span>
           <span className="grid min-w-0 leading-none">
-            <span className="text-[0.56rem] font-semibold uppercase tracking-[0.18em] text-[#8dffa5]">
+            <span
+              className={cn(
+                "text-[0.56rem] font-semibold uppercase tracking-[0.18em]",
+                isLightSurface ? "text-[#7c3aed]" : "text-[#8dffa5]",
+              )}
+            >
               {copy.eyebrow}
             </span>
-            <span className="mt-1 truncate text-[0.7rem] font-semibold text-white/74">
+            <span
+              className={cn(
+                "mt-1 truncate text-[0.7rem] font-semibold",
+                isLightSurface ? "text-black/58" : "text-white/74",
+              )}
+            >
               {copy.detail}
             </span>
           </span>
@@ -88,15 +109,19 @@ export function FanletterGlobalLanguageSwitcher({
 
         <LanguageSwitcher
           className={cn(
-            "h-10 min-w-[7rem] border-[#44f26e]/26 bg-black/35 text-xs shadow-none sm:min-w-[8.5rem]",
-            compact && "min-w-[6.85rem] sm:min-w-[8rem]",
+            "h-10 min-w-[7rem] text-xs shadow-none sm:min-w-[8.5rem]",
+            isLightSurface
+              ? "border-violet-200 bg-white/90 text-[#3b126a]"
+              : "border-[#44f26e]/26 bg-black/35",
+            compact &&
+              "w-[9.35rem] min-w-[9.35rem] max-w-[9.35rem] sm:w-auto sm:min-w-[8rem] sm:max-w-none",
             tight &&
               "h-12 w-[5.85rem] min-w-[5.85rem] max-w-[5.85rem] pl-3 pr-7 text-[0.72rem] sm:h-10 sm:w-auto sm:max-w-none",
           )}
           hideIcon={tight}
           label={copy.label}
           locale={locale}
-          variant="fanletter"
+          variant={isLightSurface ? "fanletterLight" : "fanletter"}
         />
       </div>
     </div>

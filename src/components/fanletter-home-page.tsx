@@ -1882,12 +1882,13 @@ export function FanletterHomePage({
           />
         ) : null}
         <FanletterHeroBackgroundCarousel
+          mobileLayout="immersive"
           randomizeOnMount
           showMobilePreviews
           slides={heroBackgroundSlides}
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.78)_0%,rgba(255,255,255,0.88)_42%,rgba(251,250,255,0.96)_74%,#fbfaff_100%)] lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.9)_38%,rgba(255,255,255,0.48)_68%,rgba(251,250,255,0.76)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.86)_0%,rgba(255,255,255,0.58)_48%,rgba(255,255,255,0.2)_100%)] lg:hidden" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.5)_0%,rgba(255,255,255,0.66)_40%,rgba(251,250,255,0.94)_76%,#fbfaff_100%)] lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.9)_38%,rgba(255,255,255,0.48)_68%,rgba(251,250,255,0.76)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.7)_0%,rgba(255,255,255,0.34)_48%,rgba(255,255,255,0.1)_100%)] lg:hidden" />
         <div className="absolute inset-x-0 bottom-0 hidden h-44 bg-[linear-gradient(180deg,rgba(251,250,255,0)_0%,#fbfaff_100%)] lg:block" />
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-[calc(6.8rem+env(safe-area-inset-bottom))] pt-3 sm:min-h-[92svh] sm:px-6 sm:pb-6 lg:px-8">
@@ -1954,6 +1955,7 @@ export function FanletterHomePage({
               <FanletterGlobalLanguageSwitcher
                 className="hidden sm:inline-flex"
                 locale={locale}
+                surface="light"
               />
               <FanletterAccountStatusLink
                 locale={locale}
@@ -1964,7 +1966,7 @@ export function FanletterHomePage({
           </header>
 
           <div className="mt-4 flex sm:hidden">
-            <FanletterGlobalLanguageSwitcher compact locale={locale} />
+            <FanletterGlobalLanguageSwitcher compact locale={locale} surface="light" />
           </div>
 
           {shareContext && shareContextTrackingMetadata ? (
