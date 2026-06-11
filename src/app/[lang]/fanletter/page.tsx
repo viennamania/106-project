@@ -6,7 +6,10 @@ import {
   FanletterHomePage,
   type FanletterHomeShareContext,
 } from "@/components/fanletter-home-page";
-import { getFanletterFounderClubHomeStars } from "@/lib/fanletter-founder-club-service";
+import {
+  getFanletterFounderClubHomeStars,
+  getFanletterFounderClubMemberPortfolio,
+} from "@/lib/fanletter-founder-club-service";
 import { getFanletterCreatorPageData } from "@/lib/fanletter-content-service";
 import { getFanletterLandingData } from "@/lib/fanletter-landing-service";
 import {
@@ -29,6 +32,7 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
+import { readMemberServerSession } from "@/lib/member-server-session";
 import { normalizeShareId } from "@/lib/share-tracking";
 
 type FanletterHomeSearchParams = {
@@ -130,16 +134,25 @@ export default async function FanletterRoutePage({
   const sponsor = getFanletterPromoSponsor(readFirstSearchParam(query.sponsor));
   const shouldLoadShareContext =
     shareSource === "share" && Boolean(shareCreatorReferralCode);
-  const cookieStore = await cookies();
+  const [cookieStore, memberSession] = await Promise.all([
+    cookies(),
+    readMemberServerSession(),
+  ]);
   const includeNsfw = isFanletterNsfwOptedIn(
     cookieStore.get(FANLETTER_NSFW_OPT_IN_COOKIE)?.value,
   );
-  const [landingData, shareCreatorData, founderClubStars] = await Promise.all([
+  const [
+    landingData,
+    shareCreatorData,
+    founderClubStars,
+    founderClubMemberPortfolio,
+  ] = await Promise.all([
     getFanletterLandingData(locale, includeNsfw),
     shouldLoadShareContext && shareCreatorReferralCode
       ? getFanletterCreatorPageData(locale, shareCreatorReferralCode, null)
       : Promise.resolve(null),
     getFanletterFounderClubHomeStars(),
+    getFanletterFounderClubMemberPortfolio(memberSession?.email ?? null),
   ]);
   const shareContextReferralCode =
     referralCode ?? shareCreatorData?.profile.referralCode ?? null;
@@ -193,6 +206,7 @@ export default async function FanletterRoutePage({
     <FanletterHomePage
       featuredPaidVideos={landingData.featuredPaidVideos}
       featuredVideos={landingData.featuredVideos}
+      founderClubMemberPortfolio={founderClubMemberPortfolio}
       founderClubStars={founderClubStars}
       hiddenNsfwCount={landingData.hiddenNsfwCount}
       locale={locale}

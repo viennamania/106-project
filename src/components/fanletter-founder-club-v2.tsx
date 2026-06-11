@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
   ArrowRight,
   BadgeCheck,
@@ -23,6 +24,7 @@ import {
   type FanletterV2Copy,
   type FounderRole,
   type HumanFounderSlot,
+  type MemberPortfolio as MemberPortfolioData,
   type SpawnedAIStar,
 } from "@/mock/fanletterV2";
 import type { Locale } from "@/lib/i18n";
@@ -35,6 +37,17 @@ function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US").format(
     value,
   );
+}
+
+function getPortfolioInitials(value: string) {
+  const normalized = value.replace(/[^a-zA-Z0-9가-힣\s]/g, " ").trim();
+  const words = normalized.split(/\s+/).filter(Boolean);
+
+  if (words.length >= 2) {
+    return `${words[0][0] ?? ""}${words[1][0] ?? ""}`.toUpperCase();
+  }
+
+  return (words[0] ?? value).slice(0, 2).toUpperCase();
 }
 
 function getRoleTone(role: FounderRole) {
@@ -415,14 +428,36 @@ export function ScoutShareLoop({
 export function MemberPortfolio({
   copy,
   locale,
+  portfolio: livePortfolio,
+  stars = fanletterV2Mock.aiStars,
 }: {
   copy: FanletterV2Copy;
   locale: Locale;
+  portfolio?: MemberPortfolioData | null;
+  stars?: AIStar[];
 }) {
-  const portfolio = fanletterV2Mock.memberPortfolio;
+  const portfolio: MemberPortfolioData =
+    livePortfolio ?? fanletterV2Mock.memberPortfolio;
   const starsById = new Map(
-    fanletterV2Mock.aiStars.map((star) => [star.id, star]),
+    [...stars, ...fanletterV2Mock.aiStars].map((star) => [star.id, star]),
   );
+  const memberInitials =
+    portfolio.memberInitials ?? getPortfolioInitials(portfolio.memberName);
+  const isDraftPrimaryStar = portfolio.primaryStarStatus === "draft";
+  const portfolioCta =
+    portfolio.isLiveData && portfolio.primaryStarId
+      ? {
+          body: isDraftPrimaryStar
+            ? copy.memberPortfolio.draftHint
+            : copy.memberPortfolio.activeHint,
+          href: isDraftPrimaryStar
+            ? `/${locale}/fanletter/profile/character`
+            : `/${locale}/fanletter/studio`,
+          label: isDraftPrimaryStar
+            ? copy.memberPortfolio.setupStarCta
+            : copy.memberPortfolio.manageStarCta,
+        }
+      : null;
   const metrics = [
     {
       label: copy.labels.scoutScore,
@@ -450,13 +485,20 @@ export function MemberPortfolio({
     <article className="rounded-lg border border-black/10 bg-[#f6f8f4] p-4 shadow-[0_18px_44px_rgba(8,18,12,0.06)] sm:p-5">
       <div className="flex items-start gap-3">
         <HumanMemberAvatar
-          member={{ initials: "A", name: portfolio.memberName }}
+          member={{ initials: memberInitials, name: portfolio.memberName }}
           size="lg"
         />
         <div>
-          <p className="text-sm font-semibold text-black/50">
-            {copy.labels.memberPortfolio}
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold text-black/50">
+              {copy.labels.memberPortfolio}
+            </p>
+            {portfolio.isLiveData ? (
+              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[0.64rem] font-semibold text-emerald-800">
+                {copy.memberPortfolio.liveDataLabel}
+              </span>
+            ) : null}
+          </div>
           <h2 className="text-2xl font-semibold leading-tight tracking-normal text-black">
             {copy.memberPortfolio.title}
           </h2>
@@ -480,31 +522,57 @@ export function MemberPortfolio({
       </div>
 
       <div className="mt-5 grid gap-2">
-        {portfolio.roles.map((item) => {
-          const star = starsById.get(item.starId);
+        {portfolio.roles.length > 0 ? (
+          portfolio.roles.map((item) => {
+            const star = starsById.get(item.starId);
+            const starName = item.starName ?? star?.name ?? item.starId;
+            const universeName =
+              item.universeName ??
+              star?.universeName ??
+              `${item.starId} Universe`;
 
-          if (!star) {
-            return null;
-          }
-
-          return (
-            <div
-              className="flex min-h-14 items-center justify-between gap-3 rounded-lg border border-black/8 bg-white px-3 py-2"
-              key={item.starId}
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-black">
-                  {star.name}
-                </p>
-                <p className="text-xs font-medium text-black/48">
-                  {star.universeName}
-                </p>
+            return (
+              <div
+                className="flex min-h-14 items-center justify-between gap-3 rounded-lg border border-black/8 bg-white px-3 py-2"
+                key={item.starId}
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-black">
+                    {starName}
+                  </p>
+                  <p className="truncate text-xs font-medium text-black/48">
+                    {universeName}
+                    {item.starStatus ? ` · ${item.starStatus}` : ""}
+                  </p>
+                </div>
+                <FounderRoleBadge copy={copy} role={item.role} />
               </div>
-              <FounderRoleBadge copy={copy} role={item.role} />
-            </div>
-          );
-        })}
+            );
+          })
+        ) : (
+          <div className="rounded-lg border border-dashed border-black/12 bg-white px-3 py-4 text-sm font-semibold text-black/48">
+            {copy.memberPortfolio.emptyRoles}
+          </div>
+        )}
       </div>
+
+      {portfolioCta ? (
+        <div className="mt-5 rounded-lg border border-black/8 bg-white p-3">
+          <p className="text-sm font-semibold text-black">
+            {portfolio.primaryStarName ?? portfolio.memberName}
+          </p>
+          <p className="mt-1 text-sm font-medium leading-5 text-black/58">
+            {portfolioCta.body}
+          </p>
+          <Link
+            className="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+            href={portfolioCta.href}
+          >
+            {portfolioCta.label}
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+      ) : null}
     </article>
   );
 }
@@ -814,9 +882,11 @@ function CreatorPath({
 
 export function FounderClubV2HomeSections({
   locale,
+  memberPortfolio,
   stars: liveStars,
 }: {
   locale: Locale;
+  memberPortfolio?: MemberPortfolioData | null;
   stars?: AIStar[] | null;
 }) {
   const copy = getFanletterV2Copy(locale);
@@ -878,7 +948,12 @@ export function FounderClubV2HomeSections({
         <div className="mt-12 grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
           <ScoutShareLoop copy={copy} />
           <div className="grid gap-4">
-            <MemberPortfolio copy={copy} locale={locale} />
+            <MemberPortfolio
+              copy={copy}
+              locale={locale}
+              portfolio={memberPortfolio}
+              stars={stars}
+            />
             <CreatorUnlockCard copy={copy} />
             <CreatorPath copy={copy} />
           </div>

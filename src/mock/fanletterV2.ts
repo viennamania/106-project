@@ -10,6 +10,7 @@ export type FounderRole =
   | "creator";
 
 export type LocalizedText = Record<FanletterV2CopyLocale, string>;
+export type AIStarStatus = "active" | "archived" | "draft";
 
 export type HumanFounderSlot = {
   initials: string;
@@ -52,13 +53,21 @@ export type AIStar = {
 export type MemberPortfolioRole = {
   role: Exclude<FounderRole, "member">;
   starId: string;
+  starName?: string;
+  starStatus?: AIStarStatus | null;
+  universeName?: string;
 };
 
 export type MemberPortfolio = {
   cpBalance: number;
   creatorEligibilityPercent: number;
   directInvites: number;
+  isLiveData?: boolean;
+  memberInitials?: string;
   memberName: string;
+  primaryStarId?: string | null;
+  primaryStarName?: string | null;
+  primaryStarStatus?: AIStarStatus | null;
   roles: MemberPortfolioRole[];
   scoutScore: number;
   successfulInvites: number;
@@ -321,7 +330,13 @@ export type FanletterV2Copy = {
     successfulInvites: string;
   };
   memberPortfolio: {
+    activeHint: string;
     body: string;
+    draftHint: string;
+    emptyRoles: string;
+    liveDataLabel: string;
+    manageStarCta: string;
+    setupStarCta: string;
     title: string;
   };
   roles: Record<FounderRole, string>;
@@ -416,8 +431,17 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       successfulInvites: "Successful Invites",
     },
     memberPortfolio: {
+      activeHint:
+        "Your Founder Club AI Star is active. Manage content and growth from the studio.",
       body:
         "A single human member can hold a different role in each AI Star universe.",
+      draftHint:
+        "A Founder Club AI Star has been prepared for this account. Complete the character profile to activate it.",
+      emptyRoles:
+        "No AI Star roles are connected to this member yet.",
+      liveDataLabel: "Live member data",
+      manageStarCta: "Manage my AI Star",
+      setupStarCta: "Set up my AI Star",
       title: "Member Founder Portfolio",
     },
     roles: {
@@ -520,7 +544,16 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       successfulInvites: "Successful Invites",
     },
     memberPortfolio: {
+      activeHint:
+        "Founder ClubのAI Starは有効です。Studioでコンテンツと成長を管理できます。",
       body: "1人のHuman MemberがAI Starごとに異なる役割を持てます。",
+      draftHint:
+        "このアカウント用のFounder Club AI Starが用意されています。Character profileを完成させると有効化できます。",
+      emptyRoles:
+        "このMemberに接続されたAI Star roleはまだありません。",
+      liveDataLabel: "Live member data",
+      manageStarCta: "自分のAI Starを管理",
+      setupStarCta: "自分のAI Starを設定",
       title: "Member Founder Portfolio",
     },
     roles: {
@@ -623,7 +656,16 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       successfulInvites: "Successful Invites",
     },
     memberPortfolio: {
+      activeHint:
+        "Founder Club AI Star가 활성화되어 있습니다. Studio에서 콘텐츠와 성장을 관리할 수 있습니다.",
       body: "한 명의 human member가 AI Star마다 서로 다른 역할을 가질 수 있습니다.",
+      draftHint:
+        "이 계정에 Founder Club AI Star가 준비되어 있습니다. Character profile을 완성하면 활성화할 수 있습니다.",
+      emptyRoles:
+        "아직 이 member에 연결된 AI Star role이 없습니다.",
+      liveDataLabel: "Live member data",
+      manageStarCta: "내 AI Star 관리하기",
+      setupStarCta: "내 AI Star 설정하기",
       title: "Member Founder Portfolio",
     },
     roles: {

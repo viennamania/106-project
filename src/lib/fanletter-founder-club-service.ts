@@ -7,20 +7,31 @@ import type {
   FounderRole,
   HumanFounderSlot,
   LocalizedText,
+  MemberPortfolio,
 } from "@/mock/fanletterV2";
 import type {
   FanletterStarDocument,
   FanletterStarFounderMembershipDocument,
 } from "@/lib/fanletter-founder-club";
 import {
+  getFanletterStarInfluenceLedgerCollection,
   getFanletterStarFounderMembershipsCollection,
+  getFanletterStarReferralEdgesCollection,
   getFanletterStarsCollection,
   getMembersCollection,
 } from "@/lib/mongodb";
+import { normalizeEmail } from "@/lib/member";
 
 const HOME_STAR_LIMIT = 4;
 const FOUNDER_SLOT_LIMIT = 4;
 const DEFAULT_FOUNDER_SLOT_TOTAL = 150;
+const MEMBER_PORTFOLIO_ROLE_LIMIT = 12;
+const founderRoleRank: Record<Exclude<FounderRole, "member">, number> = {
+  creator: 0,
+  mentor: 1,
+  partner: 2,
+  founder: 3,
+};
 
 const starAccentPairs = [
   ["#8b5cf6", "#22d3ee"],
@@ -104,6 +115,19 @@ function toFounderRole(
   role: FanletterStarFounderMembershipDocument["role"],
 ): Exclude<FounderRole, "member"> {
   return role;
+}
+
+function sortMembershipsForPortfolio(
+  memberships: FanletterStarFounderMembershipDocument[],
+) {
+  return [...memberships].sort(
+    (left, right) =>
+      founderRoleRank[toFounderRole(left.role)] -
+        founderRoleRank[toFounderRole(right.role)] ||
+      right.influenceScore - left.influenceScore ||
+      right.creatorProgressPercent - left.creatorProgressPercent ||
+      right.joinedAt.getTime() - left.joinedAt.getTime(),
+  );
 }
 
 function serializeFounderSlots({
@@ -236,4 +260,168 @@ export async function getFanletterFounderClubHomeStars(options?: {
       star,
     }),
   );
+}
+
+export async function getFanletterFounderClubMemberPortfolio(
+  email?: string | null,
+): Promise<MemberPortfolio | null> {
+  const memberEmail = normalizeEmail(email ?? "");
+
+  if (!memberEmail) {
+    return null;
+  }
+
+  const [
+    membersCollection,
+    membershipsCollection,
+    referralEdgesCollection,
+    influenceLedgerCollection,
+  ] = await Promise.all([
+    getMembersCollection(),
+    getFanletterStarFounderMembershipsCollection(),
+    getFanletterStarReferralEdgesCollection(),
+    getFanletterStarInfluenceLedgerCollection(),
+  ]);
+  const [
+    member,
+    memberships,
+    directInvites,
+    successfulInvites,
+    ledgerTotals,
+  ] = await Promise.all([
+    membersCollection.findOne(
+      { email: memberEmail },
+      { projection: { email: 1, publicProfile: 1 } },
+    ),
+    membershipsCollection
+      .find({ memberEmail })
+      .sort({
+        role: 1,
+        influenceScore: -1,
+        updatedAt: -1,
+      })
+      .toArray(),
+    referralEdgesCollection.countDocuments({
+      sourceMemberEmail: memberEmail,
+    }),
+    referralEdgesCollection.countDocuments({
+      sourceMemberEmail: memberEmail,
+      targetMemberEmail: { $ne: memberEmail },
+    }),
+    influenceLedgerCollection
+      .aggregate<{
+        cpDelta: number;
+        creatorProgressDelta: number;
+        influenceDelta: number;
+      }>([
+        { $match: { recipientMemberEmail: memberEmail } },
+        {
+          $group: {
+            _id: null,
+            cpDelta: { $sum: "$cpDelta" },
+            creatorProgressDelta: { $sum: "$creatorProgressDelta" },
+            influenceDelta: { $sum: "$influenceDelta" },
+          },
+        },
+      ])
+      .toArray(),
+  ]);
+  const memberName = compactText(
+    member?.publicProfile?.displayName,
+    memberEmail.split("@")[0] || "Member",
+  );
+  const sortedMemberships = sortMembershipsForPortfolio(memberships);
+  const starIds = [...new Set(sortedMemberships.map((item) => item.starId))];
+  const starsCollection = await getFanletterStarsCollection();
+  const stars =
+    starIds.length > 0
+      ? await starsCollection.find({ starId: { $in: starIds } }).toArray()
+      : [];
+  const starsById = new Map(stars.map((star) => [star.starId, star]));
+  const ledger = ledgerTotals[0] ?? {
+    cpDelta: 0,
+    creatorProgressDelta: 0,
+    influenceDelta: 0,
+  };
+  const membershipCpBalance = memberships.reduce(
+    (sum, membership) => sum + membership.cpBalance,
+    0,
+  );
+  const hasCreatorRole = memberships.some(
+    (membership) => membership.role === "creator",
+  );
+  const membershipInfluenceScore = memberships.reduce(
+    (max, membership) => Math.max(max, membership.influenceScore),
+    0,
+  );
+  const membershipCreatorProgress = memberships.reduce(
+    (max, membership) => Math.max(max, membership.creatorProgressPercent),
+    0,
+  );
+  const cpBalance = Math.max(
+    0,
+    Math.round(membershipCpBalance + ledger.cpDelta),
+  );
+  const scoutScore = Math.min(
+    100,
+    Math.max(
+      membershipInfluenceScore,
+      Math.round(successfulInvites * 5 + ledger.influenceDelta),
+      hasCreatorRole ? 80 : 0,
+    ),
+  );
+  const creatorEligibilityPercent = Math.min(
+    100,
+    Math.max(
+      membershipCreatorProgress,
+      hasCreatorRole ? 100 : 0,
+      Math.round(
+        scoutScore * 0.65 + Math.min(cpBalance / 5000, 1) * 25 +
+          Math.min(directInvites / 20, 1) * 10 +
+          ledger.creatorProgressDelta,
+      ),
+    ),
+  );
+  const primaryMembership =
+    sortedMemberships.find((membership) => membership.role === "creator") ??
+    sortedMemberships[0] ??
+    null;
+  const primaryStar = primaryMembership
+    ? starsById.get(primaryMembership.starId) ?? null
+    : null;
+  const roles = sortedMemberships
+    .slice(0, MEMBER_PORTFOLIO_ROLE_LIMIT)
+    .map((membership) => {
+      const star = starsById.get(membership.starId);
+      const starStatus = star?.status ?? null;
+
+      return {
+        role: toFounderRole(membership.role),
+        starId: membership.starId,
+        starName: star
+          ? compactText(star.characterName, star.displayName)
+          : membership.starId,
+        starStatus,
+        universeName: star
+          ? getUniverseName(star)
+          : `${membership.starId} Universe`,
+      };
+    });
+
+  return {
+    cpBalance,
+    creatorEligibilityPercent,
+    directInvites,
+    isLiveData: true,
+    memberInitials: getInitials(memberName),
+    memberName,
+    primaryStarId: primaryStar?.starId ?? primaryMembership?.starId ?? null,
+    primaryStarName: primaryStar
+      ? compactText(primaryStar.characterName, primaryStar.displayName)
+      : null,
+    primaryStarStatus: primaryStar?.status ?? null,
+    roles,
+    scoutScore,
+    successfulInvites,
+  };
 }
