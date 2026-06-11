@@ -1387,6 +1387,7 @@ export async function getFanletterStarsCollection() {
           },
         ),
         collection.createIndex({ ownerEmail: 1, status: 1, updatedAt: -1 }),
+        collection.createIndex({ spawnedFromStarId: 1, status: 1, updatedAt: -1 }),
         collection.createIndex({ status: 1, starScore: -1, updatedAt: -1 }),
       ]);
 

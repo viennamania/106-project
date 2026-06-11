@@ -6,6 +6,7 @@ export const fanletterFounderRoles = [
 ] as const;
 
 export const fanletterFounderClubBackfillSources = [
+  "creator_unlock",
   "creator_profile",
   "fan_request",
   "follow",

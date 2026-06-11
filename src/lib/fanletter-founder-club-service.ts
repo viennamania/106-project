@@ -299,7 +299,13 @@ function serializeStar({
   };
 }
 
-function serializeSpawnedStar(star: FanletterStarDocument): SpawnedAIStar {
+function serializeSpawnedStar({
+  sourceStar,
+  star,
+}: {
+  sourceStar?: FanletterStarDocument | null;
+  star: FanletterStarDocument;
+}): SpawnedAIStar {
   const [accentColor, accentSecondary] = getAccentPair(star.starId);
   const spawnedStar: SpawnedAIStar = {
     accentColor,
@@ -323,6 +329,10 @@ function serializeSpawnedStar(star: FanletterStarDocument): SpawnedAIStar {
 
   if (star.spawnedFromStarId) {
     spawnedStar.spawnedFromStarId = star.spawnedFromStarId;
+  }
+
+  if (sourceStar) {
+    spawnedStar.sourceUniverseName = getUniverseName(sourceStar);
   }
 
   return spawnedStar;
@@ -871,27 +881,70 @@ export async function getFanletterFounderClubHomeStars(options?: {
     membershipsByMemberEmail.set(membership.memberEmail, memberList);
   }
   const founderMemberEmails = [...membershipsByMemberEmail.keys()];
-  const spawnedStarCandidates =
-    founderMemberEmails.length > 0
-      ? await starsCollection
-          .find({
-            ownerEmail: { $in: founderMemberEmails },
-            starId: { $nin: starIds },
-            status: { $ne: "archived" },
-          })
-          .sort({
-            growthPercent: -1,
-            starScore: -1,
-            founderCount: -1,
-            updatedAt: -1,
-          })
-          .limit(limit * SPAWNED_STAR_LIMIT * 2)
-          .toArray()
-      : [];
+  const spawnedStarFilters: Filter<FanletterStarDocument>[] = [
+    {
+      spawnedFromStarId: { $in: starIds },
+    },
+  ];
+
+  if (founderMemberEmails.length > 0) {
+    spawnedStarFilters.push({
+      ownerEmail: { $in: founderMemberEmails },
+      $or: [
+        { spawnedFromStarId: null },
+        { spawnedFromStarId: { $exists: false } },
+      ],
+    });
+  }
+
+  const spawnedStarCandidates = await starsCollection
+    .find({
+      $or: spawnedStarFilters,
+      starId: { $nin: starIds },
+      status: { $ne: "archived" },
+    })
+    .sort({
+      createdByUnlock: -1,
+      growthPercent: -1,
+      starScore: -1,
+      founderCount: -1,
+      updatedAt: -1,
+    })
+    .limit(limit * SPAWNED_STAR_LIMIT * 2)
+    .toArray();
   const spawnedStarsByParentStarId = new Map<string, SpawnedAIStar[]>();
+  const starsById = new Map(stars.map((star) => [star.starId, star]));
+
+  function pushSpawnedStar(parentStarId: string, spawnedStar: FanletterStarDocument) {
+    const list = spawnedStarsByParentStarId.get(parentStarId) ?? [];
+
+    if (
+      list.length >= SPAWNED_STAR_LIMIT ||
+      list.some((item) => item.id === spawnedStar.starId)
+    ) {
+      return;
+    }
+
+    list.push(
+      serializeSpawnedStar({
+        sourceStar: starsById.get(parentStarId),
+        star: spawnedStar,
+      }),
+    );
+    spawnedStarsByParentStarId.set(parentStarId, list);
+  }
 
   for (const spawnedStar of spawnedStarCandidates) {
-    if (!spawnedStar.ownerEmail) {
+    const explicitParentStarId = normalizeFanletterStarId(
+      spawnedStar.spawnedFromStarId,
+    );
+
+    if (explicitParentStarId && starsById.has(explicitParentStarId)) {
+      pushSpawnedStar(explicitParentStarId, spawnedStar);
+      continue;
+    }
+
+    if (spawnedStar.spawnedFromStarId || !spawnedStar.ownerEmail) {
       continue;
     }
 
@@ -903,18 +956,7 @@ export async function getFanletterFounderClubHomeStars(options?: {
         continue;
       }
 
-      const list =
-        spawnedStarsByParentStarId.get(parentMembership.starId) ?? [];
-
-      if (
-        list.length >= SPAWNED_STAR_LIMIT ||
-        list.some((item) => item.id === spawnedStar.starId)
-      ) {
-        continue;
-      }
-
-      list.push(serializeSpawnedStar(spawnedStar));
-      spawnedStarsByParentStarId.set(parentMembership.starId, list);
+      pushSpawnedStar(parentMembership.starId, spawnedStar);
     }
   }
 
@@ -979,30 +1021,49 @@ export async function getFanletterFounderClubStarDetail(
       compactText(member.publicProfile?.displayName, member.email.split("@")[0]),
     ]),
   );
-  const spawnedStars =
-    memberEmails.length > 0
-      ? await starsCollection
-          .find({
-            ownerEmail: { $in: memberEmails },
-            starId: { $ne: starId },
-            status: { $ne: "archived" },
-          })
-          .sort({
-            growthPercent: -1,
-            starScore: -1,
-            founderCount: -1,
-            updatedAt: -1,
-          })
-          .limit(SPAWNED_STAR_LIMIT)
-          .toArray()
-      : [];
+  const spawnedStarFilters: Filter<FanletterStarDocument>[] = [
+    {
+      spawnedFromStarId: starId,
+    },
+  ];
+
+  if (memberEmails.length > 0) {
+    spawnedStarFilters.push({
+      ownerEmail: { $in: memberEmails },
+      $or: [
+        { spawnedFromStarId: null },
+        { spawnedFromStarId: { $exists: false } },
+      ],
+    });
+  }
+
+  const spawnedStars = await starsCollection
+    .find({
+      $or: spawnedStarFilters,
+      starId: { $ne: starId },
+      status: { $ne: "archived" },
+    })
+    .sort({
+      createdByUnlock: -1,
+      growthPercent: -1,
+      starScore: -1,
+      founderCount: -1,
+      updatedAt: -1,
+    })
+    .limit(SPAWNED_STAR_LIMIT)
+    .toArray();
 
   return serializeStar({
     founderSlots: serializeFounderSlots({
       memberNamesByEmail,
       memberships,
     }),
-    spawnedStars: spawnedStars.map(serializeSpawnedStar),
+    spawnedStars: spawnedStars.map((spawnedStar) =>
+      serializeSpawnedStar({
+        sourceStar: star,
+        star: spawnedStar,
+      }),
+    ),
     star,
   });
 }
@@ -1486,4 +1547,293 @@ export async function getFanletterFounderClubCreatorUnlock(
   }
 
   return unlockData;
+}
+
+export type FanletterFounderClubCreatorLaunchDraftInput = {
+  categoryLabel?: string | null;
+  createdAt?: Date | null;
+  launchCostUsdt?: number | null;
+  memberEmail: string;
+  memberReferralCode?: string | null;
+  name: string;
+  portraitImageUrl?: string | null;
+  requireUnlocked?: boolean;
+  sourceStarId: string;
+};
+
+export type FanletterFounderClubCreatorLaunchDraftResult =
+  | {
+      sourceStar: FanletterStarDocument;
+      star: FanletterStarDocument;
+      status: "created" | "existing";
+      unlock: CreatorUnlockData | null;
+    }
+  | {
+      reason: string;
+      status: "invalid" | "locked";
+      unlock?: CreatorUnlockData | null;
+    };
+
+function normalizeCreatorLaunchName(value: string | null | undefined) {
+  return value?.replace(/\s+/g, " ").trim().slice(0, 64) ?? "";
+}
+
+function normalizeOptionalCreatorLaunchText(
+  value: string | null | undefined,
+  maxLength: number,
+) {
+  const normalized = value?.replace(/\s+/g, " ").trim();
+
+  return normalized ? normalized.slice(0, maxLength) : null;
+}
+
+function normalizeCreatorLaunchCost(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : 10;
+}
+
+function getCreatorLaunchStarIdToken(value: string, fallback: string) {
+  const token = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 36);
+
+  return token || fallback;
+}
+
+function buildCreatorLaunchStarIdCandidate({
+  attempt,
+  memberEmail,
+  name,
+  sourceStarId,
+}: {
+  attempt: number;
+  memberEmail: string;
+  name: string;
+  sourceStarId: string;
+}) {
+  const ownerToken = getCreatorLaunchStarIdToken(
+    memberEmail.split("@")[0] ?? "",
+    "member",
+  ).slice(0, 24);
+  const sourceToken = getCreatorLaunchStarIdToken(sourceStarId, "source").slice(
+    0,
+    24,
+  );
+  const nameToken = getCreatorLaunchStarIdToken(name, "ai-star").slice(0, 36);
+  const base = `creator-star-${ownerToken}-${sourceToken}-${nameToken}`.slice(
+    0,
+    116,
+  );
+
+  return attempt === 1 ? base : `${base}-${attempt}`;
+}
+
+async function ensureCreatorLaunchOwnerMembership({
+  memberEmail,
+  memberReferralCode,
+  now,
+  starId,
+}: {
+  memberEmail: string;
+  memberReferralCode: string | null;
+  now: Date;
+  starId: string;
+}) {
+  const membershipsCollection =
+    await getFanletterStarFounderMembershipsCollection();
+
+  await membershipsCollection.updateOne(
+    {
+      memberEmail,
+      starId,
+    },
+    {
+      $max: {
+        creatorProgressPercent: 100,
+        influenceScore: 80,
+      },
+      $set: {
+        memberReferralCode,
+        role: "creator",
+        updatedAt: now,
+      },
+      $setOnInsert: {
+        cpBalance: 0,
+        createdAt: now,
+        joinedAt: now,
+        joinedViaCode: null,
+        joinedViaMemberEmail: null,
+        joinedViaMemberReferralCode: null,
+        joinedViaShareId: null,
+        source: "creator_unlock",
+      },
+    },
+    { upsert: true },
+  );
+}
+
+export async function createFanletterFounderClubCreatorLaunchDraft(
+  input: FanletterFounderClubCreatorLaunchDraftInput,
+): Promise<FanletterFounderClubCreatorLaunchDraftResult> {
+  const memberEmail = normalizeEmail(input.memberEmail);
+  const sourceStarId = normalizeFanletterStarId(input.sourceStarId);
+  const name = normalizeCreatorLaunchName(input.name);
+
+  if (!memberEmail || !sourceStarId || !name) {
+    return {
+      reason: "invalid_creator_launch_input",
+      status: "invalid",
+    };
+  }
+
+  const [membersCollection, starsCollection] = await Promise.all([
+    getMembersCollection(),
+    getFanletterStarsCollection(),
+  ]);
+  const [member, sourceStar] = await Promise.all([
+    membersCollection.findOne(
+      {
+        email: memberEmail,
+        status: "completed",
+      },
+      {
+        projection: {
+          email: 1,
+          referralCode: 1,
+        },
+      },
+    ),
+    starsCollection.findOne({
+      starId: sourceStarId,
+      status: { $ne: "archived" },
+    }),
+  ]);
+
+  if (!member) {
+    return {
+      reason: "completed_member_not_found",
+      status: "invalid",
+    };
+  }
+
+  if (!sourceStar) {
+    return {
+      reason: "source_ai_star_not_found",
+      status: "invalid",
+    };
+  }
+
+  const unlock = await getFanletterFounderClubCreatorUnlock(memberEmail);
+
+  if (input.requireUnlocked !== false && !unlock?.unlocked) {
+    return {
+      reason: "creator_unlock_conditions_not_met",
+      status: "locked",
+      unlock,
+    };
+  }
+
+  const now =
+    input.createdAt instanceof Date && !Number.isNaN(input.createdAt.getTime())
+      ? input.createdAt
+      : new Date();
+  const memberReferralCode = normalizeReferralCode(
+    input.memberReferralCode ?? member.referralCode,
+  );
+  const categoryLabel =
+    normalizeOptionalCreatorLaunchText(input.categoryLabel, 96) ??
+    "Creator Launch Draft";
+  const portraitImageUrl = normalizeOptionalCreatorLaunchText(
+    input.portraitImageUrl,
+    500,
+  );
+  const launchCostUsdt = normalizeCreatorLaunchCost(input.launchCostUsdt);
+
+  for (let attempt = 1; attempt <= 12; attempt += 1) {
+    const starId = buildCreatorLaunchStarIdCandidate({
+      attempt,
+      memberEmail,
+      name,
+      sourceStarId,
+    });
+    const existingStar = await starsCollection.findOne({ starId });
+
+    if (existingStar) {
+      if (
+        existingStar.ownerEmail === memberEmail &&
+        existingStar.spawnedFromStarId === sourceStar.starId
+      ) {
+        await ensureCreatorLaunchOwnerMembership({
+          memberEmail,
+          memberReferralCode,
+          now,
+          starId,
+        });
+
+        return {
+          sourceStar,
+          star: existingStar,
+          status: "existing",
+          unlock,
+        };
+      }
+
+      continue;
+    }
+
+    const draftStar: FanletterStarDocument = {
+      categoryLabel,
+      characterName: name,
+      createdAt: now,
+      createdByUnlock: true,
+      displayName: name,
+      founderCount: 1,
+      growthPercent: 0,
+      launchCostUsdt,
+      legacyCreatorReferralCode: null,
+      legacyPersonaId: null,
+      openSlotCount: Math.max(0, DEFAULT_FOUNDER_SLOT_TOTAL - 1),
+      ownerEmail: memberEmail,
+      ownerReferralCode: memberReferralCode,
+      portraitImageUrl,
+      source: "creator_unlock",
+      spawnedFromStarId: sourceStar.starId,
+      starId,
+      starScore: 50,
+      status: "draft",
+      updatedAt: now,
+    };
+
+    try {
+      await starsCollection.insertOne(draftStar);
+      await ensureCreatorLaunchOwnerMembership({
+        memberEmail,
+        memberReferralCode,
+        now,
+        starId,
+      });
+
+      return {
+        sourceStar,
+        star: draftStar,
+        status: "created",
+        unlock,
+      };
+    } catch (error) {
+      if (isDuplicateKeyError(error)) {
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  return {
+    reason: "creator_launch_star_id_conflict",
+    status: "invalid",
+    unlock,
+  };
 }
