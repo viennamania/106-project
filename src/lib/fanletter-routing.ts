@@ -12,6 +12,20 @@ export function readFanletterReferralCode(rawValue?: FanletterSearchParamValue) 
   return normalizeReferralCode(readFirstSearchParam(rawValue));
 }
 
+export function normalizeFanletterStarId(rawValue?: string | null) {
+  const value = rawValue?.trim();
+
+  if (!value || value.length > 128) {
+    return null;
+  }
+
+  return /^[a-zA-Z0-9][a-zA-Z0-9_-]*$/.test(value) ? value : null;
+}
+
+export function readFanletterStarId(rawValue?: FanletterSearchParamValue) {
+  return normalizeFanletterStarId(readFirstSearchParam(rawValue));
+}
+
 export function normalizeFanletterReturnToPath(
   rawValue: FanletterSearchParamValue,
   locale: Locale,

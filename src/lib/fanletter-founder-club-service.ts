@@ -32,6 +32,7 @@ import {
   normalizeReferralCode,
   type MemberDocument,
 } from "@/lib/member";
+import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 
 const HOME_STAR_LIMIT = 4;
 const FOUNDER_SLOT_LIMIT = 4;
@@ -162,11 +163,19 @@ function getConfiguredAppUrl() {
 function buildScoutShareLink({
   code,
   locale,
+  starId,
 }: {
   code: string;
   locale: Locale;
+  starId?: string | null;
 }) {
-  const url = new URL(`/${locale}/fanletter`, getConfiguredAppUrl());
+  const normalizedStarId = normalizeFanletterStarId(starId);
+  const url = new URL(
+    normalizedStarId
+      ? `/${locale}/fanletter/${encodeURIComponent(normalizedStarId)}`
+      : `/${locale}/fanletter`,
+    getConfiguredAppUrl(),
+  );
   url.searchParams.set("ref", code);
 
   return url.toString();
@@ -176,16 +185,23 @@ function buildScoutShareTrackingHref({
   code,
   locale,
   platform,
+  starId,
 }: {
   code: string;
   locale: Locale;
   platform: string;
+  starId?: string | null;
 }) {
   const searchParams = new URLSearchParams({
     locale,
     platform,
     ref: code,
   });
+  const normalizedStarId = normalizeFanletterStarId(starId);
+
+  if (normalizedStarId) {
+    searchParams.set("star", normalizedStarId);
+  }
 
   return `/api/fanletter/founder-club/share?${searchParams.toString()}`;
 }
@@ -643,13 +659,15 @@ export async function applyFanletterStarReferralForCompletedMember(
 
 export async function getFanletterFounderClubHomeStars(options?: {
   limit?: number;
+  selectedStarId?: string | null;
 }) {
   const limit = Math.max(1, Math.min(options?.limit ?? HOME_STAR_LIMIT, 12));
+  const selectedStarId = normalizeFanletterStarId(options?.selectedStarId);
   const starsCollection = await getFanletterStarsCollection();
   const starFilter: Filter<FanletterStarDocument> = {
     status: "active",
   };
-  const stars = await starsCollection
+  const topStars = await starsCollection
     .find(starFilter)
     .sort({
       growthPercent: -1,
@@ -659,6 +677,16 @@ export async function getFanletterFounderClubHomeStars(options?: {
     })
     .limit(limit)
     .toArray();
+  const selectedStar =
+    selectedStarId && !topStars.some((star) => star.starId === selectedStarId)
+      ? await starsCollection.findOne({
+          starId: selectedStarId,
+          status: { $ne: "archived" },
+        })
+      : null;
+  const stars = selectedStar
+    ? [selectedStar, ...topStars].slice(0, limit)
+    : topStars;
 
   if (stars.length === 0) {
     return [];
@@ -857,12 +885,14 @@ export async function getFanletterFounderClubScoutShareLoop({
     shareLink: buildScoutShareLink({
       code: attribution.code,
       locale,
+      starId: selectedStar.starId,
     }),
     sharePlatformLinks: SCOUT_SHARE_PLATFORMS.map((platform) => ({
       href: buildScoutShareTrackingHref({
         code: attribution.code,
         locale,
         platform,
+        starId: selectedStar.starId,
       }),
       label: platform,
       platform,

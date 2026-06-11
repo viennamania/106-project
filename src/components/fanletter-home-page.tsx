@@ -1508,6 +1508,7 @@ export function FanletterHomePage({
   founderClubMemberPortfolio,
   founderClubScoutShareLoop,
   founderClubStars,
+  founderClubSelectedStarId,
   hiddenNsfwCount,
   locale,
   liveStats,
@@ -1520,6 +1521,7 @@ export function FanletterHomePage({
   founderClubCreatorUnlock?: CreatorUnlockData | null;
   founderClubMemberPortfolio?: MemberPortfolio | null;
   founderClubScoutShareLoop?: ScoutShareLoopData | null;
+  founderClubSelectedStarId?: string | null;
   founderClubStars?: AIStar[] | null;
   hiddenNsfwCount: number;
   locale: Locale;
@@ -2206,6 +2208,7 @@ export function FanletterHomePage({
         creatorUnlock={founderClubCreatorUnlock}
         memberPortfolio={founderClubMemberPortfolio}
         scoutShareLoop={founderClubScoutShareLoop}
+        selectedStarId={founderClubSelectedStarId}
         stars={founderClubStars}
       />
 

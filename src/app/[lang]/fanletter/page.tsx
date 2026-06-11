@@ -26,6 +26,7 @@ import {
 } from "@/lib/fanletter-nsfw";
 import {
   readFanletterReferralCode,
+  readFanletterStarId,
   readFirstSearchParam,
 } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
@@ -43,6 +44,7 @@ type FanletterHomeSearchParams = {
   ref?: string | string[];
   shareId?: string | string[];
   sponsor?: string | string[];
+  star?: string | string[];
 };
 
 function getFanletterMeta(locale: Locale) {
@@ -128,6 +130,7 @@ export default async function FanletterRoutePage({
   }
   const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
+  const founderClubStarId = readFanletterStarId(query.star);
   const shareSource = readFirstSearchParam(query.from)?.trim().toLowerCase();
   const shareCreatorReferralCode = normalizeReferralCode(
     readFirstSearchParam(query.creator),
@@ -155,7 +158,9 @@ export default async function FanletterRoutePage({
     shouldLoadShareContext && shareCreatorReferralCode
       ? getFanletterCreatorPageData(locale, shareCreatorReferralCode, null)
       : Promise.resolve(null),
-    getFanletterFounderClubHomeStars(),
+    getFanletterFounderClubHomeStars({
+      selectedStarId: founderClubStarId,
+    }),
     getFanletterFounderClubMemberPortfolio(memberSession?.email ?? null),
     getFanletterFounderClubScoutShareLoop({
       email: memberSession?.email ?? null,
@@ -218,6 +223,7 @@ export default async function FanletterRoutePage({
       founderClubCreatorUnlock={founderClubCreatorUnlock}
       founderClubMemberPortfolio={founderClubMemberPortfolio}
       founderClubScoutShareLoop={founderClubScoutShareLoop}
+      founderClubSelectedStarId={founderClubStarId}
       founderClubStars={founderClubStars}
       hiddenNsfwCount={landingData.hiddenNsfwCount}
       locale={locale}

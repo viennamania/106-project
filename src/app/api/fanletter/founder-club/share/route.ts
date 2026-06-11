@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { resolveFanletterStarReferralCode } from "@/lib/fanletter-founder-club-service";
+import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { getFunnelEventsCollection } from "@/lib/mongodb";
 import { normalizeReferralCode } from "@/lib/member";
 import { readMemberServerSession } from "@/lib/member-server-session";
@@ -31,11 +32,19 @@ function getConfiguredAppUrl() {
 function buildFounderClubShareUrl({
   code,
   locale,
+  starId,
 }: {
   code: string;
   locale: Locale;
+  starId?: string | null;
 }) {
-  const url = new URL(`/${locale}/fanletter`, getConfiguredAppUrl());
+  const normalizedStarId = normalizeFanletterStarId(starId);
+  const url = new URL(
+    normalizedStarId
+      ? `/${locale}/fanletter/${encodeURIComponent(normalizedStarId)}`
+      : `/${locale}/fanletter`,
+    getConfiguredAppUrl(),
+  );
   url.searchParams.set("ref", code);
 
   return url.toString();
@@ -63,6 +72,9 @@ export async function GET(request: Request) {
   const referralCode = normalizeReferralCode(requestUrl.searchParams.get("ref"));
   const platform = normalizePlatform(requestUrl.searchParams.get("platform"));
   const locale = normalizeLocale(requestUrl.searchParams.get("locale"));
+  const requestedStarId = normalizeFanletterStarId(
+    requestUrl.searchParams.get("star"),
+  );
 
   if (!referralCode) {
     return Response.redirect(new URL(`/${locale}/fanletter`, requestUrl.origin));
@@ -72,6 +84,7 @@ export async function GET(request: Request) {
   const shareUrl = buildFounderClubShareUrl({
     code: referralCode,
     locale,
+    starId: attribution?.starId ?? requestedStarId,
   });
 
   if (attribution) {

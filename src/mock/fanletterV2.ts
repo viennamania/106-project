@@ -356,6 +356,7 @@ export type FanletterV2Copy = {
     referralCode: string;
     scoutScore: string;
     scoutShareLoop: string;
+    selectedAiStar: string;
     spawnedStars: string;
     starScore: string;
     successfulInvites: string;
@@ -460,6 +461,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       referralCode: "Referral Code",
       scoutScore: "Scout Score",
       scoutShareLoop: "Scout Share Loop",
+      selectedAiStar: "Selected AI Star",
       spawnedStars: "Spawned Stars",
       starScore: "Star Score",
       successfulInvites: "Successful Invites",
@@ -576,6 +578,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       referralCode: "Referral Code",
       scoutScore: "Scout Score",
       scoutShareLoop: "Scout Share Loop",
+      selectedAiStar: "Selected AI Star",
       spawnedStars: "Spawned Stars",
       starScore: "Star Score",
       successfulInvites: "Successful Invites",
@@ -691,6 +694,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       referralCode: "Referral Code",
       scoutScore: "Scout Score",
       scoutShareLoop: "Scout Share Loop",
+      selectedAiStar: "선택된 AI Star",
       spawnedStars: "Spawned Stars",
       starScore: "Star Score",
       successfulInvites: "Successful Invites",

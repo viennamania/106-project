@@ -181,16 +181,23 @@ function AIStarPortrait({
 
 export function AIStarCard({
   copy,
+  isSelected = false,
   locale,
   star,
 }: {
   copy: FanletterV2Copy;
+  isSelected?: boolean;
   locale: Locale;
   star: AIStar;
 }) {
   return (
     <article
-      className="group flex h-full flex-col overflow-hidden rounded-lg border border-fuchsia-300/50 bg-[#1a082f] p-3 text-white shadow-[0_24px_70px_rgba(88,28,135,0.24)] ring-1 ring-fuchsia-400/22 transition hover:-translate-y-0.5 hover:border-fuchsia-200"
+      className={joinClasses(
+        "group flex h-full flex-col overflow-hidden rounded-lg border bg-[#1a082f] p-3 text-white shadow-[0_24px_70px_rgba(88,28,135,0.24)] ring-1 transition hover:-translate-y-0.5 hover:border-fuchsia-200",
+        isSelected
+          ? "border-cyan-200 ring-cyan-200/70"
+          : "border-fuchsia-300/50 ring-fuchsia-400/22",
+      )}
       style={{
         background: `linear-gradient(160deg, ${star.accentColor} 0%, #301052 34%, #12041f 100%)`,
       }}
@@ -201,6 +208,11 @@ export function AIStarCard({
           <span className="rounded-full bg-white px-3 py-1 text-[0.68rem] font-semibold text-[#4c1d95]">
             {copy.labels.aiStarBadge}
           </span>
+          {isSelected ? (
+            <span className="rounded-full border border-cyan-100/70 bg-cyan-100 px-3 py-1 text-[0.68rem] font-semibold text-cyan-950">
+              {copy.labels.selectedAiStar}
+            </span>
+          ) : null}
           <StarScoreBadge copy={copy} score={star.starScore} />
         </div>
         <h3 className="mt-4 text-2xl font-semibold leading-tight tracking-normal">
@@ -243,10 +255,12 @@ export function AIStarCard({
 export function TopGrowingStars({
   copy,
   locale,
+  selectedStarId,
   stars,
 }: {
   copy: FanletterV2Copy;
   locale: Locale;
+  selectedStarId?: string | null;
   stars: AIStar[];
 }) {
   return (
@@ -270,7 +284,13 @@ export function TopGrowingStars({
 
       <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {stars.map((star) => (
-          <AIStarCard copy={copy} key={star.id} locale={locale} star={star} />
+          <AIStarCard
+            copy={copy}
+            isSelected={star.id === selectedStarId}
+            key={star.id}
+            locale={locale}
+            star={star}
+          />
         ))}
       </div>
     </section>
@@ -937,12 +957,14 @@ export function FounderClubV2HomeSections({
   locale,
   memberPortfolio,
   scoutShareLoop,
+  selectedStarId,
   stars: liveStars,
 }: {
   creatorUnlock?: CreatorUnlockData | null;
   locale: Locale;
   memberPortfolio?: MemberPortfolioData | null;
   scoutShareLoop?: ScoutShareLoopData | null;
+  selectedStarId?: string | null;
   stars?: AIStar[] | null;
 }) {
   const copy = getFanletterV2Copy(locale);
@@ -998,7 +1020,12 @@ export function FounderClubV2HomeSections({
           </div>
         </div>
 
-        <TopGrowingStars copy={copy} locale={locale} stars={stars} />
+        <TopGrowingStars
+          copy={copy}
+          locale={locale}
+          selectedStarId={selectedStarId}
+          stars={stars}
+        />
         <GrowthLoopDiagram copy={copy} />
 
         <div className="mt-12 grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
