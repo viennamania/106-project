@@ -851,8 +851,9 @@ export function CreatorUnlockCard({
     directInvites: copy.creatorUnlock.directInvites,
     scoutScore: copy.creatorUnlock.scoutScore,
   };
-  const launchPreview = unlock.launchPreview;
-  const launchHref = `/${locale}/fanletter/profile/character?mode=founder-club-launch`;
+  const launchPreview =
+    unlock.launchPreview ?? fanletterV2Mock.creatorUnlock.launchPreview;
+  const launchHref = `/${locale}/fanletter/creator-unlock`;
 
   return (
     <article
@@ -955,19 +956,18 @@ export function CreatorUnlockCard({
                 </p>
               </div>
 
-              {unlock.unlocked ? (
-                <Link
-                  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
-                  href={launchHref}
-                >
-                  {copy.creatorUnlock.createAiStarCta}
-                  <ArrowRight className="size-4" />
-                </Link>
-              ) : (
-                <span className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-zinc-200 px-4 text-sm font-semibold text-zinc-500">
-                  {copy.creatorUnlock.lockedLabel}
-                </span>
-              )}
+              <Link
+                className={joinClasses(
+                  "inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition",
+                  unlock.unlocked
+                    ? "bg-black text-white hover:bg-zinc-800"
+                    : "bg-zinc-200 text-zinc-600 hover:bg-zinc-300",
+                )}
+                href={launchHref}
+              >
+                {copy.creatorUnlock.createAiStarCta}
+                <ArrowRight className="size-4" />
+              </Link>
             </div>
           </div>
         ) : null}

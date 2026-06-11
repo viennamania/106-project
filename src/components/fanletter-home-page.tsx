@@ -1554,7 +1554,10 @@ export function FanletterHomePage({
     referralCode,
   );
   const founderClubHref = "#founder-club";
-  const creatorUnlockHref = "#creator-unlock";
+  const creatorUnlockHref = buildPathWithReferral(
+    `/${locale}/fanletter/creator-unlock`,
+    referralCode,
+  );
   const creatorPathHref = "#creator-path";
   const scoutShareLoopHref = "#scout-share-loop";
   const topGrowingStarsHref = "#top-growing-ai-stars";
