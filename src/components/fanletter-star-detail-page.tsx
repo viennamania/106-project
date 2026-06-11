@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Bot,
   Crown,
+  GitBranch,
   ShieldCheck,
   Share2,
   Users,
@@ -812,6 +813,13 @@ export function FanletterStarDetailPage({
                   referralCode={referralCode}
                   star={star}
                 />
+                <Link
+                  className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-violet-200 bg-white px-4 text-sm font-semibold text-[#5b21b6] shadow-[0_12px_26px_rgba(88,28,135,0.08)]"
+                  href={`/${locale}/fanletter/${encodeURIComponent(star.id)}/universe`}
+                >
+                  <GitBranch className="size-4" />
+                  {isKorean ? "유니버스 탐색" : "Explore Universe"}
+                </Link>
               </div>
 
               <FanletterFounderMockStatusBanner
@@ -852,6 +860,13 @@ export function FanletterStarDetailPage({
                     {copy.actions.createMockReferral}
                   </a>
                 ) : null}
+                <Link
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-violet-200 bg-white px-5 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-50"
+                  href={`/${locale}/fanletter/${encodeURIComponent(star.id)}/universe`}
+                >
+                  <GitBranch className="size-4" />
+                  {isKorean ? "유니버스 탐색" : "Explore Universe"}
+                </Link>
               </div>
             </div>
 
