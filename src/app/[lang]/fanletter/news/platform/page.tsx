@@ -3796,7 +3796,6 @@ export default async function FanletterNewsPlatformPage({
         {hasHeroVideoSlides ? (
           <FanletterHeroBackgroundCarousel
             mobileLayout="immersive"
-            randomizeOnMount
             slides={heroSlides}
           />
         ) : (

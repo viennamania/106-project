@@ -79,6 +79,7 @@ export type SyncMemberRequest = {
   chainId: number;
   chainName: string;
   email: string;
+  fanletterStarId?: string | null;
   locale: string;
   fanletterShareAttribution?: FanletterShareAttribution | null;
   syncMode?: "full" | "light";

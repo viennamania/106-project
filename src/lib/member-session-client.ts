@@ -56,6 +56,7 @@ function getMemberSyncRequestKey(input: SyncMemberRequest) {
     fanletterShareId: input.fanletterShareAttribution?.shareId?.trim() ?? "",
     fanletterShareSponsorSlug:
       input.fanletterShareAttribution?.sponsorSlug?.trim() ?? "",
+    fanletterStarId: input.fanletterStarId?.trim() ?? "",
     locale: input.locale?.trim() ?? "",
     referredByCode: input.referredByCode?.trim() ?? "",
     syncMode: input.syncMode ?? "full",

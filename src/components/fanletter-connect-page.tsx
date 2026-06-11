@@ -33,6 +33,7 @@ import {
   buildPathWithReferral,
   setPathSearchParams,
 } from "@/lib/landing-branding";
+import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { readFanletterShareAttributionFromReturnPath } from "@/lib/fanletter-share-attribution";
 import type { MemberRecord } from "@/lib/member";
 import { syncServerMemberRegistration } from "@/lib/member-session-client";
@@ -333,6 +334,16 @@ function normalizeAddress(address?: string | null) {
   return address?.trim().toLowerCase() ?? "";
 }
 
+function readFanletterStarIdFromReturnPath(returnToHref: string) {
+  try {
+    const url = new URL(returnToHref, "https://www.net402.ai");
+
+    return normalizeFanletterStarId(url.searchParams.get("star"));
+  } catch {
+    return null;
+  }
+}
+
 function isMemberWalletKnown(member: MemberRecord, walletAddress: string) {
   const normalizedWalletAddress = normalizeAddress(walletAddress);
 
@@ -606,6 +617,10 @@ export function FanletterConnectPage({
     () => readFanletterShareAttributionFromReturnPath(returnToHref),
     [returnToHref],
   );
+  const fanletterStarId = useMemo(
+    () => readFanletterStarIdFromReturnPath(returnToHref),
+    [returnToHref],
+  );
   const accountAddress = account?.address ?? null;
   const connection = useThirdwebConnectionState({
     accountAddress,
@@ -721,6 +736,7 @@ export function FanletterConnectPage({
           chainName: chain.name ?? "BSC",
           email,
           fanletterShareAttribution,
+          fanletterStarId,
           locale,
           referredByCode: referralCode,
           syncMode: "light",
@@ -784,6 +800,7 @@ export function FanletterConnectPage({
     dictionary.member.errors.missingEmail,
     dictionary.member.errors.syncFailed,
     fanletterShareAttribution,
+    fanletterStarId,
     locale,
     referralCode,
     syncNonce,

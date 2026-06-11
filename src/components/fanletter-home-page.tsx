@@ -2086,7 +2086,6 @@ export function FanletterHomePage({
         <div className="hidden sm:block">
           <FanletterHeroBackgroundCarousel
             mobileLayout="immersive"
-            randomizeOnMount
             slides={heroBackgroundSlides}
           />
         </div>

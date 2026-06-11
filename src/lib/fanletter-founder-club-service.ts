@@ -506,6 +506,9 @@ export async function applyFanletterStarReferralForCompletedMember(
   }
 
   let attribution: FanletterStarReferralAttribution | null = null;
+  const directStarId = normalizeFanletterStarId(
+    member.fanletterStarReferralStarId,
+  );
 
   if (
     member.fanletterStarReferralCode &&
@@ -525,7 +528,9 @@ export async function applyFanletterStarReferralForCompletedMember(
     );
   }
 
-  if (!attribution || attribution.memberEmail === member.email) {
+  const targetStarId = attribution?.starId ?? directStarId;
+
+  if (!targetStarId || attribution?.memberEmail === member.email) {
     return false;
   }
 
@@ -547,10 +552,22 @@ export async function applyFanletterStarReferralForCompletedMember(
     getFanletterStarReferralCodesCollection(),
     getFanletterStarsCollection(),
   ]);
+
+  if (!attribution) {
+    const star = await starsCollection.findOne({
+      starId: targetStarId,
+      status: { $ne: "archived" },
+    });
+
+    if (!star) {
+      return false;
+    }
+  }
+
   const targetMembershipResult = await membershipsCollection.updateOne(
     {
       memberEmail: member.email,
-      starId: attribution.starId,
+      starId: targetStarId,
     },
     {
       $set: {
@@ -563,9 +580,9 @@ export async function applyFanletterStarReferralForCompletedMember(
         creatorProgressPercent: 0,
         influenceScore: 0,
         joinedAt,
-        joinedViaCode: attribution.code,
-        joinedViaMemberEmail: attribution.memberEmail,
-        joinedViaMemberReferralCode: attribution.memberReferralCode,
+        joinedViaCode: attribution?.code ?? null,
+        joinedViaMemberEmail: attribution?.memberEmail ?? null,
+        joinedViaMemberReferralCode: attribution?.memberReferralCode ?? null,
         joinedViaShareId: null,
         role: "founder",
         source: "member_signup",
@@ -574,19 +591,21 @@ export async function applyFanletterStarReferralForCompletedMember(
     { upsert: true },
   );
 
-  await referralCodesCollection.updateOne(
-    { code: attribution.code, starId: attribution.starId },
-    {
-      $set: {
-        lastUsedAt: now,
-        updatedAt: now,
+  if (attribution) {
+    await referralCodesCollection.updateOne(
+      { code: attribution.code, starId: attribution.starId },
+      {
+        $set: {
+          lastUsedAt: now,
+          updatedAt: now,
+        },
       },
-    },
-  );
+    );
+  }
 
   if (targetMembershipResult.upsertedCount > 0) {
     await starsCollection.updateOne(
-      { starId: attribution.starId },
+      { starId: targetStarId },
       [
         {
           $set: {
@@ -599,6 +618,24 @@ export async function applyFanletterStarReferralForCompletedMember(
         },
       ],
     );
+  }
+
+  if (!attribution) {
+    await membersCollection.updateOne(
+      { email: member.email },
+      {
+        $set: {
+          fanletterStarReferralAppliedAt: now,
+          fanletterStarReferralCode: null,
+          fanletterStarReferralSourceMemberEmail: null,
+          fanletterStarReferralSourceMemberReferralCode: null,
+          fanletterStarReferralStarId: targetStarId,
+          updatedAt: now,
+        },
+      },
+    );
+
+    return true;
   }
 
   const edgeId = `star-referral:${attribution.starId}:${member.email}`;

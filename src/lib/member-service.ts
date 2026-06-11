@@ -56,6 +56,7 @@ import {
 } from "@/lib/points-service";
 import { emitCompletedMemberNotifications } from "@/lib/notifications-service";
 import { withMemberServiceSuspensionStatus } from "@/lib/member-suspension";
+import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import {
   applyFanletterStarReferralForCompletedMember,
   resolveFanletterStarReferralCode,
@@ -1737,6 +1738,27 @@ export async function syncReferralRewardsForCompletedNetwork(
   }
 }
 
+async function resolveFanletterStarIdForSignup(starId: string | null) {
+  if (!starId) {
+    return null;
+  }
+
+  const collection = await getFanletterStarsCollection();
+  const star = await collection.findOne(
+    {
+      starId,
+      status: { $ne: "archived" },
+    },
+    {
+      projection: {
+        starId: 1,
+      },
+    },
+  );
+
+  return star?.starId ?? null;
+}
+
 export async function syncMemberRegistration(
   input: SyncMemberRequest,
 ): Promise<SyncMemberResponse> {
@@ -1751,6 +1773,9 @@ export async function syncMemberRegistration(
   const referredByCode = normalizeReferralCode(input.referredByCode);
   const fanletterShareAttribution = normalizeFanletterShareAttribution(
     input.fanletterShareAttribution,
+  );
+  const requestedFanletterStarId = normalizeFanletterStarId(
+    input.fanletterStarId,
   );
   const syncMode = input.syncMode === "light" ? "light" : "full";
 
@@ -1774,6 +1799,23 @@ export async function syncMemberRegistration(
 
   const fanletterStarReferralAttribution =
     await resolveFanletterStarReferralCode(referredByCode);
+  const directFanletterStarId =
+    !fanletterStarReferralAttribution && requestedFanletterStarId
+      ? await resolveFanletterStarIdForSignup(requestedFanletterStarId)
+      : null;
+  const fanletterStarReferralStarId =
+    fanletterStarReferralAttribution?.starId ?? directFanletterStarId;
+  const incomingFanletterStarReferralFields = fanletterStarReferralStarId
+    ? {
+        fanletterStarReferralCode:
+          fanletterStarReferralAttribution?.code ?? null,
+        fanletterStarReferralSourceMemberEmail:
+          fanletterStarReferralAttribution?.memberEmail ?? null,
+        fanletterStarReferralSourceMemberReferralCode:
+          fanletterStarReferralAttribution?.memberReferralCode ?? null,
+        fanletterStarReferralStarId,
+      }
+    : null;
   const memberReferralCode =
     fanletterStarReferralAttribution === null ? referredByCode : null;
   const collection = await getMembersCollection();
@@ -1791,6 +1833,11 @@ export async function syncMemberRegistration(
       : memberReferralCode;
 
   if (existingMember?.status === "completed") {
+    const shouldAttachFanletterStarReferral =
+      incomingFanletterStarReferralFields !== null &&
+      !existingMember.fanletterStarReferralAppliedAt &&
+      !existingMember.fanletterStarReferralStarId;
+
     await collection.updateOne(
       { email },
       {
@@ -1803,6 +1850,10 @@ export async function syncMemberRegistration(
           lastConnectedAt: now,
           lastWalletAddress: normalizedWalletAddress,
           locale,
+          ...(shouldAttachFanletterStarReferral &&
+          incomingFanletterStarReferralFields
+            ? incomingFanletterStarReferralFields
+            : {}),
           updatedAt: now,
         },
       },
@@ -1841,7 +1892,9 @@ export async function syncMemberRegistration(
       ? incomingReferralState.code
       : null);
   const shouldApplyDefaultSponsor =
-    !existingSponsorReferralCode && !memberReferralCode && !fanletterStarReferralAttribution;
+    !existingSponsorReferralCode &&
+    !memberReferralCode &&
+    !fanletterStarReferralAttribution;
   const sponsor = sponsorReferralCodeForSync
     ? await resolveSponsor({
         email,
@@ -1901,7 +1954,7 @@ export async function syncMemberRegistration(
           null,
         fanletterStarReferralStarId:
           existingMember?.fanletterStarReferralStarId ??
-          fanletterStarReferralAttribution?.starId ??
+          fanletterStarReferralStarId ??
           null,
         lastConnectedAt: now,
         lastWalletAddress: normalizedWalletAddress,
