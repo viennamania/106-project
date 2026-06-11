@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2, Share2, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Crown,
+  Link2,
+  Share2,
+  Sparkles,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { CopyTextButton } from "@/components/copy-text-button";
@@ -68,6 +75,64 @@ function getDisplayUniverseName(name: string, copy: FanletterV2Copy) {
   return replacements[name] ?? name.replace(/\bUniverse\b/g, "유니버스");
 }
 
+function MobileReferralFlow({
+  copy,
+  referralCode,
+  rewards,
+  sourceMember,
+}: {
+  copy: FanletterV2Copy;
+  referralCode: string;
+  rewards: ScoutShareLoopData["rewards"];
+  sourceMember: string;
+}) {
+  return (
+    <div className="mt-5 sm:hidden">
+      <div className="grid grid-cols-[1fr_1.25rem_1fr_1.25rem_1fr] items-stretch gap-1.5">
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-2.5">
+          <span className="flex size-8 items-center justify-center rounded-full bg-zinc-100 text-zinc-700">
+            <Crown className="size-4" />
+          </span>
+          <p className="mt-2 text-[0.62rem] font-semibold text-black/48">
+            {copy.roles.founder}
+          </p>
+          <p className="truncate text-sm font-semibold text-black">
+            {sourceMember}
+          </p>
+        </div>
+        <div className="flex items-center justify-center">
+          <ArrowRight className="size-4 text-[#7c3aed]" />
+        </div>
+        <div className="rounded-lg border border-violet-200 bg-[#f7f2ff] p-2.5">
+          <span className="flex size-8 items-center justify-center rounded-full bg-white text-[#6d28d9]">
+            <Link2 className="size-4" />
+          </span>
+          <p className="mt-2 text-[0.62rem] font-semibold text-black/48">
+            {copy.labels.referralCode}
+          </p>
+          <p className="truncate font-mono text-[0.72rem] font-semibold text-[#5b21b6]">
+            {referralCode}
+          </p>
+        </div>
+        <div className="flex items-center justify-center">
+          <ArrowRight className="size-4 text-[#7c3aed]" />
+        </div>
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5">
+          <span className="flex size-8 items-center justify-center rounded-full bg-white text-emerald-700">
+            <Sparkles className="size-4" />
+          </span>
+          <p className="mt-2 text-[0.62rem] font-semibold text-black/48">
+            {copy.starDetail.rewardsTitle}
+          </p>
+          <p className="text-sm font-semibold text-emerald-900">
+            +{rewards.cp} CP
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function FanletterStarReferralPanel({
   copy,
   inboundReferralCode,
@@ -122,10 +187,10 @@ export function FanletterStarReferralPanel({
           <p className="text-sm font-semibold text-[#6d28d9]">
             {copy.labels.scoutShareLoop}
           </p>
-          <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
+          <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f] [word-break:keep-all]">
             {copy.starDetail.referralTitle}
           </h2>
-          <p className="mt-2 text-sm font-medium leading-6 text-black/62">
+          <p className="mt-2 hidden text-sm font-medium leading-6 text-black/62 sm:block">
             {copy.starDetail.referralBody}
           </p>
         </div>
@@ -137,13 +202,20 @@ export function FanletterStarReferralPanel({
             <CheckCircle2 className="size-4" />
             {copy.starDetail.inboundRefTitle}
           </div>
-          <p className="mt-2 text-sm font-medium leading-5 text-emerald-900/72">
+          <p className="mt-2 hidden text-sm font-medium leading-5 text-emerald-900/72 sm:block">
             {copy.starDetail.inboundRefBody}
           </p>
         </div>
       ) : null}
 
-      <div className="mt-5 grid gap-2">
+      <MobileReferralFlow
+        copy={copy}
+        referralCode={visibleReferralCode}
+        rewards={loop.rewards}
+        sourceMember={displaySourceMember}
+      />
+
+      <div className="mt-5 hidden gap-2 sm:grid">
         {flowItems.map((item, index) => (
           <div
             className="flex min-h-12 items-center gap-3 rounded-lg border border-black/8 bg-[#f8f7ff] px-3 py-2"
@@ -167,7 +239,7 @@ export function FanletterStarReferralPanel({
                 ? copy.starDetail.referralReady
                 : copy.labels.referralCode}
             </p>
-            <p className="mt-1 font-mono text-lg font-semibold text-black">
+            <p className="mt-1 break-all font-mono text-lg font-semibold text-black">
               {isGenerated
                 ? visibleReferralCode
                 : isKoreanCopy(copy)
@@ -190,7 +262,7 @@ export function FanletterStarReferralPanel({
             <p className="text-xs font-semibold uppercase text-black/48">
               {copy.actions.shareLink}
             </p>
-            <p className="mt-2 overflow-hidden text-ellipsis rounded-lg bg-white px-3 py-2 font-mono text-xs font-semibold text-[#5b21b6]">
+            <p className="mt-2 break-all rounded-lg bg-white px-3 py-2 font-mono text-[0.7rem] font-semibold leading-4 text-[#5b21b6] sm:text-xs">
               {visibleShareLink}
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
@@ -253,7 +325,7 @@ export function FanletterStarReferralPanel({
         >
           {copy.actions.joinAsFounder}
         </Link>
-        <p className="rounded-lg border border-black/8 bg-white px-3 py-2 text-xs font-semibold leading-5 text-black/52 sm:max-w-xs">
+        <p className="hidden rounded-lg border border-black/8 bg-white px-3 py-2 text-xs font-semibold leading-5 text-black/52 sm:block sm:max-w-xs">
           {copy.starDetail.mockNotice}
         </p>
       </div>

@@ -5,6 +5,7 @@ import {
   Bot,
   Crown,
   ShieldCheck,
+  Share2,
   Users,
 } from "lucide-react";
 
@@ -59,6 +60,45 @@ function getDisplayUniverseName(
   };
 
   return replacements[name] ?? name.replace(/\bUniverse\b/g, "유니버스");
+}
+
+function getDisplayStarName(
+  name: string,
+  copy: ReturnType<typeof getFanletterV2Copy>,
+) {
+  if (!isKoreanCopy(copy)) {
+    return name;
+  }
+
+  const replacements: Record<string, string> = {
+    Harin: "하린",
+    Lumi: "루미",
+    Minseo: "민서",
+    Mira: "미라",
+    Noa: "노아",
+    Ria: "리아",
+    Seoyeon: "서연",
+    Yoonseo: "윤서",
+  };
+
+  return replacements[name] ?? name;
+}
+
+function getDisplayMemberName(
+  name: string,
+  copy: ReturnType<typeof getFanletterV2Copy>,
+) {
+  if (!isKoreanCopy(copy)) {
+    return name;
+  }
+
+  const replacements: Record<string, string> = {
+    "Member A": "회원 A",
+    "Member B": "회원 B",
+    "New member": "신규 회원",
+  };
+
+  return replacements[name.trim()] ?? name;
 }
 
 function buildShareLink({
@@ -138,6 +178,149 @@ function MetricTile({
   );
 }
 
+function StarFounderMobilePanel({
+  copy,
+  joinHref,
+  loop,
+  referralCode,
+  star,
+}: {
+  copy: ReturnType<typeof getFanletterV2Copy>;
+  joinHref: string;
+  loop: ScoutShareLoopData;
+  referralCode: string;
+  star: AIStar;
+}) {
+  const founderMember = {
+    initials: "A",
+    name: getDisplayMemberName(loop.sourceMember, copy),
+  };
+  const displayStarName = getDisplayStarName(star.name, copy);
+  const mobileAIStarBadgeLabel = isKoreanCopy(copy)
+    ? "AI스타"
+    : copy.labels.aiStarBadge;
+  const portraitBackground = star.portraitImageUrl
+    ? `linear-gradient(180deg, rgba(18,4,31,0.04), rgba(18,4,31,0.72)), url("${star.portraitImageUrl}")`
+    : `radial-gradient(circle at 30% 18%, rgba(255,255,255,0.86), transparent 18%), radial-gradient(circle at 72% 22%, ${star.accentSecondary}, transparent 24%), linear-gradient(145deg, ${star.accentColor}, #31105f 64%, #12041f)`;
+
+  return (
+    <div className="rounded-lg border border-violet-200 bg-white p-3 shadow-[0_22px_54px_rgba(88,28,135,0.12)]">
+      <div className="grid grid-cols-[1fr_1.75rem_0.8fr] items-stretch gap-2">
+        <div
+          className="relative min-h-44 overflow-hidden rounded-lg border border-fuchsia-200 bg-cover bg-center p-3 text-white"
+          style={{
+            background: portraitBackground,
+            backgroundPosition: "center",
+            backgroundSize: "cover",
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-t from-[#12041f]/82 via-transparent to-white/10" />
+          <div className="relative z-10 flex min-w-0 items-center justify-between gap-1.5">
+            <span
+              aria-label={copy.labels.aiStarBadge}
+              className="shrink-0 whitespace-nowrap rounded-full bg-white px-2 py-1 text-[0.58rem] font-semibold leading-none text-[#5b21b6]"
+            >
+              {mobileAIStarBadgeLabel}
+            </span>
+            <span
+              aria-label={`${copy.labels.starScore} ${star.starScore}`}
+              className="shrink-0 rounded-full border border-white/18 bg-white/16 px-2 py-1 text-[0.58rem] font-semibold leading-none backdrop-blur"
+            >
+              {star.starScore}
+            </span>
+          </div>
+          {!star.portraitImageUrl ? (
+            <div className="absolute inset-x-6 bottom-12 top-12 rounded-t-full bg-white/16 backdrop-blur-[2px]" />
+          ) : null}
+          <div className="relative z-10 flex min-h-32 flex-col justify-end">
+            <div className="flex size-14 items-center justify-center rounded-full border border-white/28 bg-black/24 text-lg font-semibold shadow-[0_14px_30px_rgba(0,0,0,0.22)]">
+              {star.portraitInitials}
+            </div>
+            <p className="mt-2 text-xl font-semibold leading-none">
+              {displayStarName}
+            </p>
+            <p className="mt-1 text-[0.7rem] font-semibold text-white/72">
+              +{star.growthPercent}% {copy.labels.growth}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-center">
+          <ArrowRight className="size-5 text-[#7c3aed]" />
+        </div>
+
+        <div className="flex min-h-44 flex-col justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+          <div>
+            <p className="text-[0.62rem] font-semibold uppercase text-zinc-500">
+              {copy.labels.humanMember}
+            </p>
+            <div className="mt-3">
+              <HumanMemberAvatar member={founderMember} size="lg" />
+            </div>
+            <p className="mt-2 text-sm font-semibold text-zinc-950">
+              {founderMember.name}
+            </p>
+          </div>
+          <FounderRoleBadge copy={copy} role="founder" />
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        <div className="rounded-lg bg-[#f7f2ff] p-2">
+          <p className="text-lg font-semibold leading-none">
+            +{loop.rewards.cp}
+          </p>
+          <p className="mt-1 text-[0.62rem] font-semibold text-black/48">CP</p>
+        </div>
+        <div className="rounded-lg bg-[#eefcf4] p-2">
+          <p className="text-lg font-semibold leading-none">
+            +{loop.rewards.influenceScore}
+          </p>
+          <p className="mt-1 text-[0.62rem] font-semibold text-black/48">
+            {copy.labels.influenceScore}
+          </p>
+        </div>
+        <div className="rounded-lg bg-[#fff7ed] p-2">
+          <p className="text-lg font-semibold leading-none">
+            +{loop.rewards.creatorProgressPercent}%
+          </p>
+          <p className="mt-1 text-[0.62rem] font-semibold text-black/48">
+            {copy.labels.creatorProgress}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-lg border border-black/8 bg-[#fafafa] px-3 py-2">
+        <div className="flex items-center justify-between gap-3">
+          <span className="text-[0.68rem] font-semibold text-black/48">
+            {copy.labels.referralCode}
+          </span>
+          <span className="truncate font-mono text-sm font-semibold text-[#5b21b6]">
+            {referralCode}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+        <Link
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)]"
+          href={joinHref}
+        >
+          {copy.actions.joinAsFounder}
+          <ArrowRight className="size-4" />
+        </Link>
+        <a
+          aria-label={copy.actions.createMockReferral}
+          className="inline-flex size-12 items-center justify-center rounded-full border border-violet-200 bg-violet-50 text-[#6d28d9]"
+          href="#referral-builder"
+        >
+          <Share2 className="size-5" />
+        </a>
+      </div>
+    </div>
+  );
+}
+
 function HumanFounderSlots({
   copy,
   star,
@@ -165,25 +348,32 @@ function HumanFounderSlots({
       </div>
 
       <div className="mt-5 grid gap-2 sm:grid-cols-2">
-        {star.founderSlots.map((slot) => (
-          <div
-            className="flex min-h-16 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3"
-            key={`${slot.name}-${slot.role}`}
-          >
-            <div className="flex min-w-0 items-center gap-3">
-              <HumanMemberAvatar member={slot} size="md" />
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-zinc-900">
-                  {slot.name}
-                </p>
-                <p className="text-xs font-medium text-zinc-500">
-                  {copy.labels.humanMember}
-                </p>
+        {star.founderSlots.map((slot) => {
+          const displaySlot = {
+            ...slot,
+            name: getDisplayMemberName(slot.name, copy),
+          };
+
+          return (
+            <div
+              className="flex min-h-16 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3"
+              key={`${slot.name}-${slot.role}`}
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <HumanMemberAvatar member={displaySlot} size="md" />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-zinc-900">
+                    {displaySlot.name}
+                  </p>
+                  <p className="text-xs font-medium text-zinc-500">
+                    {copy.labels.humanMember}
+                  </p>
+                </div>
               </div>
+              <FounderRoleBadge copy={copy} role={slot.role} />
             </div>
-            <FounderRoleBadge copy={copy} role={slot.role} />
-          </div>
-        ))}
+          );
+        })}
       </div>
     </article>
   );
@@ -222,6 +412,10 @@ function SpawnedStarsSection({
           const sourceUniverseName = spawnedStar.sourceUniverseName
             ? getDisplayUniverseName(spawnedStar.sourceUniverseName, copy)
             : null;
+          const displaySpawnedStarName = getDisplayStarName(
+            spawnedStar.name,
+            copy,
+          );
 
           return (
             <Link
@@ -246,7 +440,7 @@ function SpawnedStarsSection({
                     {copy.labels.aiStarBadge}
                   </p>
                   <p className="truncate text-lg font-semibold">
-                    {spawnedStar.name}
+                    {displaySpawnedStarName}
                   </p>
                   <p className="truncate text-xs font-medium text-white/60">
                     {getFanletterV2LocalizedText(
@@ -307,11 +501,13 @@ export function FanletterStarDetailPage({
     referralCode,
     star,
   });
+  const isKorean = isKoreanCopy(copy);
+  const displayStarName = getDisplayStarName(star.name, copy);
 
   return (
     <main className="min-h-screen bg-[#fbfaff] pb-28 text-black">
       <section
-        className="overflow-hidden border-b border-violet-200 bg-[#fbfaff] px-4 pb-10 pt-6 text-black sm:px-6 sm:pb-16 lg:px-8"
+        className="overflow-hidden border-b border-violet-200 bg-[#fbfaff] px-4 pb-8 pt-5 text-black sm:px-6 sm:pb-16 sm:pt-6 lg:px-8"
         style={{
           background: `radial-gradient(circle at 12% 8%, ${star.accentColor}1f, transparent 34%), radial-gradient(circle at 84% 10%, ${star.accentSecondary}24, transparent 30%), linear-gradient(180deg, #ffffff 0%, #fbfaff 58%, #f3efff 100%)`,
         }}
@@ -325,7 +521,11 @@ export function FanletterStarDetailPage({
               <ArrowLeft className="size-4" />
               {copy.actions.openDiscovery}
             </Link>
-            <span className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-sm font-semibold text-emerald-800">
+            <span className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-sm font-semibold text-emerald-800 sm:hidden">
+              <ShieldCheck className="size-4" />
+              {isKorean ? "미리보기" : "Mock"}
+            </span>
+            <span className="hidden h-10 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-sm font-semibold text-emerald-800 sm:inline-flex">
               <ShieldCheck className="size-4" />
               {copy.starDetail.mockNotice}
             </span>
@@ -337,17 +537,27 @@ export function FanletterStarDetailPage({
                 <Crown className="size-4" />
                 {copy.starDetail.heroEyebrow}
               </div>
-              <h1 className="mt-5 max-w-4xl text-[3.2rem] font-semibold leading-[0.98] tracking-normal [word-break:keep-all] sm:text-[5rem]">
-                {star.name}
+              <h1 className="mt-4 max-w-4xl text-[2.55rem] font-semibold leading-[0.98] tracking-normal [word-break:keep-all] sm:mt-5 sm:text-[5rem]">
+                {displayStarName}
                 <span className="block text-[#6d28d9]">
                   {copy.starDetail.universeTitle}
                 </span>
               </h1>
-              <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-black/64 sm:text-lg">
+              <p className="mt-5 hidden max-w-2xl text-base font-medium leading-7 text-black/64 sm:block sm:text-lg">
                 {copy.starDetail.heroBody}
               </p>
 
-              <div className="mt-6 grid gap-2 sm:grid-cols-3">
+              <div className="mt-5 sm:hidden">
+                <StarFounderMobilePanel
+                  copy={copy}
+                  joinHref={joinHref}
+                  loop={loop}
+                  referralCode={referralCode}
+                  star={star}
+                />
+              </div>
+
+              <div className="mt-6 hidden gap-2 sm:grid sm:grid-cols-3">
                 <MetricTile
                   label={copy.labels.starScore}
                   value={String(star.starScore)}
@@ -362,7 +572,7 @@ export function FanletterStarDetailPage({
                 />
               </div>
 
-              <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+              <div className="mt-6 hidden flex-col gap-2 sm:flex sm:flex-row">
                 <Link
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9]"
                   href={joinHref}
@@ -379,7 +589,9 @@ export function FanletterStarDetailPage({
               </div>
             </div>
 
-            <AIStarCard copy={copy} isSelected locale={locale} star={star} />
+            <div className="hidden lg:block">
+              <AIStarCard copy={copy} isSelected locale={locale} star={star} />
+            </div>
           </div>
         </div>
       </section>
