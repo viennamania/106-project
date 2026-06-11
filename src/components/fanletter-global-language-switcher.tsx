@@ -16,7 +16,7 @@ const copyByLocale: Record<
 > = {
   ko: {
     detail: `${supportedLocales.length}개 언어 지원`,
-    eyebrow: "GLOBAL SERVICE",
+    eyebrow: "글로벌 서비스",
     label: "AIAVpark 언어 선택",
   },
   en: {

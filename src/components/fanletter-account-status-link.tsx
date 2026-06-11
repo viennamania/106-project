@@ -18,6 +18,7 @@ import {
 } from "@/lib/landing-branding";
 
 type AccountStatusTone = "connected" | "muted" | "warning";
+type AccountStatusSurface = "dark" | "light";
 
 type AccountStatusView = {
   Icon: ComponentType<{ className?: string }>;
@@ -38,6 +39,7 @@ type FanletterAccountStatusLinkProps = {
   hideIdentity?: boolean;
   locale: Locale;
   referralCode: string | null;
+  surface?: AccountStatusSurface;
 };
 
 const CONNECTION_RESOLVE_GRACE_MS = 3000;
@@ -96,7 +98,22 @@ function getCurrentHref({
   return `${currentPathname}${search ? `?${search}` : ""}`;
 }
 
-function getToneClassName(tone: AccountStatusTone) {
+function getToneClassName(
+  tone: AccountStatusTone,
+  surface: AccountStatusSurface = "dark",
+) {
+  if (surface === "light") {
+    if (tone === "connected") {
+      return "border-emerald-200 bg-emerald-50 !text-emerald-800 shadow-[0_12px_28px_rgba(16,185,129,0.1)] hover:border-emerald-300 hover:bg-emerald-100";
+    }
+
+    if (tone === "warning") {
+      return "border-amber-200 bg-amber-50 !text-amber-800 hover:border-amber-300 hover:bg-amber-100";
+    }
+
+    return "border-violet-200 bg-white/84 !text-[#5b21b6] shadow-[0_12px_28px_rgba(88,28,135,0.08)] hover:border-violet-300 hover:bg-violet-50";
+  }
+
   if (tone === "connected") {
     return "border-[#44f26e]/70 bg-[#44f26e] !text-black shadow-[0_12px_28px_rgba(68,242,110,0.16)] hover:bg-[#67ff88]";
   }
@@ -114,6 +131,7 @@ function FanletterAccountStatusLinkFallback({
   compactOnMobile = true,
   locale,
   referralCode,
+  surface = "dark",
 }: FanletterAccountStatusLinkProps) {
   const copy = getCopy(locale);
   const href =
@@ -124,7 +142,7 @@ function FanletterAccountStatusLinkFallback({
     <Link
       className={joinClasses(
         "inline-flex h-11 max-w-[14rem] shrink-0 items-center justify-center gap-2 rounded-full border px-3 text-sm font-semibold transition sm:h-10 sm:px-4",
-        getToneClassName("muted"),
+        getToneClassName("muted", surface),
         className,
       )}
       href={href}
@@ -147,6 +165,7 @@ function FanletterAccountStatusLinkInner({
   hideIdentity = false,
   locale,
   referralCode,
+  surface = "dark",
 }: FanletterAccountStatusLinkProps) {
   const accountStatus = useFanletterAccountStatus({
     disconnectedResolveGraceMs: CONNECTION_RESOLVE_GRACE_MS,
@@ -251,7 +270,7 @@ function FanletterAccountStatusLinkInner({
     <Link
       className={joinClasses(
         "inline-flex h-11 max-w-[14rem] shrink-0 items-center justify-center gap-2 rounded-full border px-3 text-sm font-semibold transition sm:h-10 sm:px-4",
-        getToneClassName(view.tone),
+        getToneClassName(view.tone, surface),
         className,
       )}
       href={view.href}

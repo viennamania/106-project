@@ -25,6 +25,49 @@ function buildPlatformHref(platform: string, shareLink: string) {
   return shareLink;
 }
 
+function isKoreanCopy(copy: FanletterV2Copy) {
+  return copy.labels.humanMember === "일반 멤버";
+}
+
+function formatCopyTemplate(
+  template: string,
+  values: Record<string, string>,
+) {
+  return Object.entries(values).reduce(
+    (result, [key, value]) => result.replaceAll(`{${key}}`, value),
+    template,
+  );
+}
+
+function getDisplayMemberName(name: string, copy: FanletterV2Copy) {
+  if (!isKoreanCopy(copy)) {
+    return name;
+  }
+
+  const replacements: Record<string, string> = {
+    "Member A": "회원 A",
+    "Member B": "회원 B",
+    "New member": "신규 회원",
+  };
+
+  return replacements[name.trim()] ?? name;
+}
+
+function getDisplayUniverseName(name: string, copy: FanletterV2Copy) {
+  if (!isKoreanCopy(copy)) {
+    return name;
+  }
+
+  const replacements: Record<string, string> = {
+    "Harin Universe": "하린 유니버스",
+    "Minseo Universe": "민서 유니버스",
+    "Seoyeon Universe": "서연 유니버스",
+    "Yoonseo Universe": "윤서 유니버스",
+  };
+
+  return replacements[name] ?? name.replace(/\bUniverse\b/g, "유니버스");
+}
+
 export function FanletterStarReferralPanel({
   copy,
   inboundReferralCode,
@@ -47,6 +90,24 @@ export function FanletterStarReferralPanel({
       return loop.shareLink;
     }
   }, [inboundReferralCode, loop.shareLink]);
+  const displaySourceMember = getDisplayMemberName(loop.sourceMember, copy);
+  const displayTargetMember = getDisplayMemberName(loop.targetMember, copy);
+  const displayUniverse = getDisplayUniverseName(loop.selectedUniverse, copy);
+  const flowItems = [
+    displaySourceMember,
+    formatCopyTemplate(copy.scoutShareLoop.selectUniverseTemplate, {
+      universe: displayUniverse,
+    }),
+    `${copy.labels.referralCode}: ${visibleReferralCode}`,
+    copy.scoutShareLoop.shareToSns,
+    formatCopyTemplate(copy.scoutShareLoop.memberJoinsTemplate, {
+      member: displayTargetMember,
+    }),
+    formatCopyTemplate(copy.scoutShareLoop.memberBecomesFounderTemplate, {
+      member: displayTargetMember,
+      universe: displayUniverse,
+    }),
+  ];
 
   return (
     <article
@@ -83,14 +144,7 @@ export function FanletterStarReferralPanel({
       ) : null}
 
       <div className="mt-5 grid gap-2">
-        {[
-          loop.sourceMember,
-          loop.selectedUniverse,
-          `${copy.labels.referralCode}: ${visibleReferralCode}`,
-          copy.scoutShareLoop.shareToSns,
-          `${loop.targetMember} joins`,
-          `${loop.targetMember} becomes Founder in ${loop.selectedUniverse}`,
-        ].map((item, index) => (
+        {flowItems.map((item, index) => (
           <div
             className="flex min-h-12 items-center gap-3 rounded-lg border border-black/8 bg-[#f8f7ff] px-3 py-2"
             key={`${item}-${index}`}
@@ -114,7 +168,11 @@ export function FanletterStarReferralPanel({
                 : copy.labels.referralCode}
             </p>
             <p className="mt-1 font-mono text-lg font-semibold text-black">
-              {isGenerated ? visibleReferralCode : "MOCK-READY"}
+              {isGenerated
+                ? visibleReferralCode
+                : isKoreanCopy(copy)
+                  ? "생성 전"
+                  : "MOCK-READY"}
             </p>
           </div>
           <button
@@ -182,7 +240,7 @@ export function FanletterStarReferralPanel({
               +{loop.rewards.creatorProgressPercent}%
             </p>
             <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
-              Creator
+              {copy.labels.creatorProgress}
             </p>
           </div>
         </div>

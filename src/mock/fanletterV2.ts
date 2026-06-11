@@ -129,7 +129,7 @@ export const fanletterV2Mock = {
       specialty: {
         en: "Golf Lifestyle Star",
         ja: "ゴルフライフスタイルスター",
-        ko: "Golf Lifestyle Star",
+        ko: "골프 라이프스타일 스타",
       },
       spawnedStars: [
         {
@@ -143,7 +143,7 @@ export const fanletterV2Mock = {
           specialty: {
             en: "Weekend Golf Rookie",
             ja: "週末ゴルフルーキー",
-            ko: "Weekend Golf Rookie",
+            ko: "주말 골프 루키",
           },
           starScore: 54,
         },
@@ -169,7 +169,7 @@ export const fanletterV2Mock = {
       specialty: {
         en: "Fashion & Beauty Star",
         ja: "ファッション・ビューティースター",
-        ko: "Fashion & Beauty Star",
+        ko: "패션·뷰티 스타",
       },
       spawnedStars: [
         {
@@ -183,7 +183,7 @@ export const fanletterV2Mock = {
           specialty: {
             en: "Runway Makeup Star",
             ja: "ランウェイメイクスター",
-            ko: "Runway Makeup Star",
+            ko: "런웨이 메이크업 스타",
           },
           starScore: 58,
         },
@@ -209,7 +209,7 @@ export const fanletterV2Mock = {
       specialty: {
         en: "Travel & Vlog Star",
         ja: "旅・Vlogスター",
-        ko: "Travel & Vlog Star",
+        ko: "여행·브이로그 스타",
       },
       spawnedStars: [
         {
@@ -223,7 +223,7 @@ export const fanletterV2Mock = {
           specialty: {
             en: "City Walk Vlogger",
             ja: "シティウォークVlogger",
-            ko: "City Walk Vlogger",
+            ko: "도시 산책 브이로그 스타",
           },
           starScore: 51,
         },
@@ -249,7 +249,7 @@ export const fanletterV2Mock = {
       specialty: {
         en: "Story & Writing Star",
         ja: "ストーリー・ライティングスター",
-        ko: "Story & Writing Star",
+        ko: "스토리·글쓰기 스타",
       },
       spawnedStars: [
         {
@@ -263,7 +263,7 @@ export const fanletterV2Mock = {
           specialty: {
             en: "Micro Fiction Star",
             ja: "短編フィクションスター",
-            ko: "Micro Fiction Star",
+            ko: "마이크로 픽션 스타",
           },
           starScore: 48,
         },
@@ -353,12 +353,14 @@ export type FanletterV2Copy = {
   labels: {
     aiStarBadge: string;
     aiStarDiscovery: string;
+    creatorProgress: string;
     cpBalance: string;
     creatorEligibility: string;
     directInvites: string;
     founderClub: string;
     founderCount: string;
     growth: string;
+    humanMember: string;
     influenceScore: string;
     memberPortfolio: string;
     openSlots: string;
@@ -384,9 +386,12 @@ export type FanletterV2Copy = {
   scoutShareLoop: {
     body: string;
     liveDataLabel: string;
+    memberBecomesFounderTemplate: string;
+    memberJoinsTemplate: string;
     memberBBecomesFounder: string;
     rewardsTitle: string;
     selectUniverse: string;
+    selectUniverseTemplate: string;
     shareToSns: string;
     title: string;
   };
@@ -483,12 +488,14 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     labels: {
       aiStarBadge: "AI STAR",
       aiStarDiscovery: "AI Star Discovery",
+      creatorProgress: "Creator Progress",
       cpBalance: "CP Balance",
       creatorEligibility: "Creator Eligibility",
       directInvites: "Direct Invites",
       founderClub: "Founder Club",
       founderCount: "Founder Count",
       growth: "Growth",
+      humanMember: "Human Member",
       influenceScore: "Influence Score",
       memberPortfolio: "Member Portfolio",
       openSlots: "Open Slots",
@@ -525,9 +532,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       body:
         "Member A scouts Minseo Universe, creates a referral code, shares it on SNS, and earns growth credit when Member B joins.",
       liveDataLabel: "Live referral link",
+      memberBecomesFounderTemplate: "{member} becomes Founder in {universe}",
+      memberJoinsTemplate: "{member} joins",
       memberBBecomesFounder: "Member B becomes Founder in Minseo Universe",
       rewardsTitle: "Member A earns",
       selectUniverse: "selects Minseo Universe",
+      selectUniverseTemplate: "selects {universe}",
       shareToSns: "shares to SNS",
       title: "Invite & Grow Flow",
     },
@@ -631,12 +641,14 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     labels: {
       aiStarBadge: "AI STAR",
       aiStarDiscovery: "AI Star Discovery",
+      creatorProgress: "Creator Progress",
       cpBalance: "CP Balance",
       creatorEligibility: "Creator Eligibility",
       directInvites: "Direct Invites",
       founderClub: "Founder Club",
       founderCount: "Founder Count",
       growth: "Growth",
+      humanMember: "Human Member",
       influenceScore: "Influence Score",
       memberPortfolio: "Member Portfolio",
       openSlots: "Open Slots",
@@ -672,9 +684,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       body:
         "Member AがMinseo Universeを選び、紹介コードを作成し、SNSで共有します。Member Bが参加すると成長クレジットを獲得します。",
       liveDataLabel: "Live referral link",
+      memberBecomesFounderTemplate: "{member} becomes Founder in {universe}",
+      memberJoinsTemplate: "{member} joins",
       memberBBecomesFounder: "Member B becomes Founder in Minseo Universe",
       rewardsTitle: "Member A earns",
       selectUniverse: "selects Minseo Universe",
+      selectUniverseTemplate: "selects {universe}",
       shareToSns: "shares to SNS",
       title: "Invite & Grow Flow",
     },
@@ -717,147 +732,152 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     actions: {
       copied: "복사됨",
       copyLink: "링크 복사",
-      createMockReferral: "Mock referral code 생성",
-      joinAsFounder: "Founder로 참여하기",
-      openDiscovery: "Discovery로 돌아가기",
+      createMockReferral: "추천 코드 미리 만들기",
+      joinAsFounder: "파운더로 참여하기",
+      openDiscovery: "AI 스타 발견으로 돌아가기",
       shareLink: "공유 링크",
-      viewUniverse: "Universe 보기",
+      viewUniverse: "유니버스 보기",
     },
     creatorPath: {
       body:
-        "첫 버전에서는 unlock 상태만 보여줍니다. 실제 결제 플로우를 연결하기 전까지 새 AI Star 생성은 mock 액션입니다.",
+        "첫 버전에서는 해금 상태만 보여줍니다. 실제 결제 플로우를 연결하기 전까지 새 AI 스타 생성은 미리보기 액션입니다.",
       steps: [
         {
-          body: "기존 AI Star Universe에 새 Founder를 초대하고 성장 신호를 만듭니다.",
-          title: "Scout 성장",
+          body: "기존 AI 스타 유니버스에 새 파운더를 초대하고 성장 신호를 만듭니다.",
+          title: "스카우트 성장",
         },
         {
-          body: "추천 코드로 가입이 발생하면 CP와 Influence Score를 얻습니다.",
-          title: "Founder 영향력",
+          body: "추천 코드로 가입이 발생하면 CP와 영향력 점수를 얻습니다.",
+          title: "파운더 영향력",
         },
         {
-          body: "Creator를 unlock한 뒤 10 USDT mock 조건으로 새 AI Star를 launch합니다.",
-          title: "Creator launch",
+          body: "크리에이터 권한을 해금한 뒤 10 USDT 미리보기 조건으로 새 AI 스타를 시작합니다.",
+          title: "크리에이터 출시",
         },
       ],
-      title: "Creator Path",
+      title: "크리에이터 성장 경로",
     },
     creatorUnlock: {
-      activityMission: "Activity mission completed",
+      activityMission: "활동 미션 완료",
       body:
-        "Scout Score, Direct Invites, CP, Activity mission 조건을 만족하면 Creator 권한이 열립니다.",
+        "스카우트 점수, 직접 초대, CP, 활동 미션 조건을 만족하면 크리에이터 권한이 열립니다.",
       cp: "CP >= 5,000",
-      directInvites: "Direct Invites >= 20",
-      liveDataLabel: "Live unlock status",
-      lockedLabel: "Locked",
+      directInvites: "직접 초대 20명 이상",
+      liveDataLabel: "실시간 해금 상태",
+      lockedLabel: "잠금",
       mockPaymentNotice:
-        "Creator launch는 10 USDT eligibility preview로 표시됩니다. Checkout은 이후 릴리스에서 열립니다.",
-      scoutScore: "Scout Score >= 80",
-      title: "Creator Unlock",
-      unlockedLabel: "Creator Unlock",
+        "크리에이터 출시는 10 USDT 조건 미리보기로만 표시됩니다. 결제 화면은 이후 릴리스에서 연결됩니다.",
+      scoutScore: "스카우트 점수 80 이상",
+      title: "크리에이터 해금",
+      unlockedLabel: "크리에이터 해금",
     },
     founderClub: {
       body:
-        "FanLetter는 AI 캐릭터 콘텐츠 플랫폼을 넘어 AI Star Discovery, Founder, Scout, Creator 성장 플랫폼으로 진화합니다.",
-      eyebrow: "Founder Club 2.0",
-      title: "AI 스타를 발견하고, Founder가 되고, Creator로 성장하세요",
+        "FanLetter는 AI 캐릭터 콘텐츠 플랫폼을 넘어 AI 스타 발견, 파운더, 스카우트, 크리에이터 성장 플랫폼으로 진화합니다.",
+      eyebrow: "파운더 클럽 2.0",
+      title: "AI 스타를 발견하고, 파운더가 되고, 크리에이터로 성장하세요",
     },
     growthLoop: {
       steps: [
-        "AI Star Discovery",
-        "Join as Founder",
-        "Create referral code",
-        "Share SNS link",
-        "New member joins",
-        "Earn CP + Influence Score",
-        "Unlock Creator",
-        "Launch new AI Star",
+        "AI 스타 발견",
+        "파운더로 참여",
+        "추천 코드 생성",
+        "SNS 공유 링크 발행",
+        "신규 회원 가입",
+        "CP + 영향력 점수 획득",
+        "크리에이터 해금",
+        "새 AI 스타 출시",
       ],
-      title: "Founder Club 2.0 Growth Loop",
+      title: "파운더 클럽 2.0 성장 루프",
     },
     labels: {
-      aiStarBadge: "AI STAR",
-      aiStarDiscovery: "AI Star Discovery",
-      cpBalance: "CP Balance",
-      creatorEligibility: "Creator Eligibility",
-      directInvites: "Direct Invites",
-      founderClub: "Founder Club",
-      founderCount: "Founder Count",
-      growth: "Growth",
-      influenceScore: "Influence Score",
-      memberPortfolio: "Member Portfolio",
-      openSlots: "Open Slots",
-      referralCode: "Referral Code",
-      scoutScore: "Scout Score",
-      scoutShareLoop: "Scout Share Loop",
-      selectedAiStar: "선택된 AI Star",
-      spawnedStars: "Spawned Stars",
-      starScore: "Star Score",
-      successfulInvites: "Successful Invites",
+      aiStarBadge: "AI 스타",
+      aiStarDiscovery: "AI 스타 발견",
+      creatorProgress: "크리에이터 진행률",
+      cpBalance: "CP 잔액",
+      creatorEligibility: "크리에이터 가능성",
+      directInvites: "직접 초대",
+      founderClub: "파운더 클럽",
+      founderCount: "파운더 수",
+      growth: "성장률",
+      humanMember: "일반 멤버",
+      influenceScore: "영향력 점수",
+      memberPortfolio: "멤버 포트폴리오",
+      openSlots: "잔여 슬롯",
+      referralCode: "추천 코드",
+      scoutScore: "스카우트 점수",
+      scoutShareLoop: "스카우트 공유 루프",
+      selectedAiStar: "선택된 AI 스타",
+      spawnedStars: "파생 AI 스타",
+      starScore: "스타 점수",
+      successfulInvites: "성공 초대",
     },
     memberPortfolio: {
       activeHint:
-        "Founder Club AI Star가 활성화되어 있습니다. Studio에서 콘텐츠와 성장을 관리할 수 있습니다.",
-      body: "한 명의 human member가 AI Star마다 서로 다른 역할을 가질 수 있습니다.",
+        "파운더 클럽 AI 스타가 활성화되어 있습니다. 스튜디오에서 콘텐츠와 성장을 관리할 수 있습니다.",
+      body: "한 명의 멤버가 AI 스타마다 서로 다른 역할을 가질 수 있습니다.",
       draftHint:
-        "이 계정에 Founder Club AI Star가 준비되어 있습니다. Character profile을 완성하면 활성화할 수 있습니다.",
+        "이 계정에 파운더 클럽 AI 스타가 준비되어 있습니다. 캐릭터 프로필을 완성하면 활성화할 수 있습니다.",
       emptyRoles:
-        "아직 이 member에 연결된 AI Star role이 없습니다.",
-      liveDataLabel: "Live member data",
-      manageStarCta: "내 AI Star 관리하기",
-      setupStarCta: "내 AI Star 설정하기",
-      title: "Member Founder Portfolio",
+        "아직 이 멤버에 연결된 AI 스타 역할이 없습니다.",
+      liveDataLabel: "실시간 멤버 데이터",
+      manageStarCta: "내 AI 스타 관리하기",
+      setupStarCta: "내 AI 스타 설정하기",
+      title: "멤버 파운더 포트폴리오",
     },
     roles: {
-      creator: "CREATOR",
-      founder: "FOUNDER",
-      member: "MEMBER",
-      mentor: "MENTOR",
-      partner: "PARTNER",
+      creator: "크리에이터",
+      founder: "파운더",
+      member: "멤버",
+      mentor: "멘토",
+      partner: "파트너",
     },
     scoutShareLoop: {
       body:
-        "Member A가 Minseo Universe를 선택하고 referral code를 만든 뒤 SNS에 공유합니다. Member B가 가입하면 성장 보상이 쌓입니다.",
-      liveDataLabel: "Live referral link",
-      memberBBecomesFounder: "Member B becomes Founder in Minseo Universe",
-      rewardsTitle: "Member A earns",
-      selectUniverse: "selects Minseo Universe",
-      shareToSns: "shares to SNS",
-      title: "Invite & Grow Flow",
+        "회원 A가 민서 유니버스를 선택하고 추천 코드를 만든 뒤 SNS에 공유합니다. 회원 B가 가입하면 성장 보상이 쌓입니다.",
+      liveDataLabel: "실시간 추천 링크",
+      memberBecomesFounderTemplate: "{member}가 {universe}의 파운더가 됨",
+      memberJoinsTemplate: "{member} 가입",
+      memberBBecomesFounder: "회원 B가 민서 유니버스의 파운더가 됨",
+      rewardsTitle: "회원 A 보상",
+      selectUniverse: "민서 유니버스 선택",
+      selectUniverseTemplate: "{universe} 선택",
+      shareToSns: "SNS에 공유",
+      title: "초대와 성장 흐름",
     },
     starDetail: {
       founderSlotsBody:
-        "Human member는 중립 gray avatar와 role badge로 표시합니다. AI Star portrait를 human member에 재사용하지 않습니다.",
-      founderSlotsTitle: "Human Founder slots",
+        "일반 멤버는 중립적인 회색 아바타와 역할 배지로 표시합니다. AI 스타 초상 이미지를 일반 멤버에 재사용하지 않습니다.",
+      founderSlotsTitle: "일반 파운더 슬롯",
       heroBody:
-        "이 Universe 페이지는 AI Star Discovery에서 Founder 참여, mock referral 생성, SNS 공유, Creator progress까지 이어지는 전환 흐름입니다.",
-      heroEyebrow: "AI Star Universe",
+        "이 유니버스 페이지는 AI 스타 발견에서 파운더 참여, 추천 코드 미리 생성, SNS 공유, 크리에이터 진행률까지 이어지는 전환 흐름입니다.",
+      heroEyebrow: "AI 스타 유니버스",
       inboundRefBody:
-        "이 방문자는 Founder referral로 들어왔습니다. 실제 가입 플로우에서는 이 AI Star Universe에 가입 이벤트가 귀속됩니다.",
-      inboundRefTitle: "Referral detected",
+        "이 방문자는 파운더 추천 링크로 들어왔습니다. 실제 가입 플로우에서는 이 AI 스타 유니버스에 가입 이벤트가 귀속됩니다.",
+      inboundRefTitle: "추천 링크 감지",
       mockNotice:
-        "Mock only: 이 화면에서는 실결제나 영구 referral 변경을 실행하지 않습니다.",
+        "미리보기 전용: 이 화면에서는 실결제나 영구 추천 구조 변경을 실행하지 않습니다.",
       referralBody:
-        "Mock code를 만들고 SNS link를 공유한 뒤, Member B가 가입했을 때 Member A가 얻는 보상을 미리 보여줍니다.",
-      referralReady: "Mock referral ready",
-      referralTitle: "Founder referral builder",
-      rewardsTitle: "Mock reward preview",
+        "추천 코드를 미리 만들고 SNS 링크를 공유한 뒤, 회원 B가 가입했을 때 회원 A가 얻는 보상을 보여줍니다.",
+      referralReady: "추천 코드 준비 완료",
+      referralTitle: "파운더 추천 코드 생성",
+      rewardsTitle: "보상 미리보기",
       spawnedBody:
-        "Spawned Star는 별도 AI Star card로 표시해 중심 AI Star와 같은 purple AI STAR 체계를 유지합니다.",
-      spawnedTitle: "Spawned AI Stars",
-      universeTitle: "Founder Universe",
+        "파생 스타는 별도 AI 스타 카드로 표시해 중심 AI 스타와 같은 보라색 AI 스타 체계를 유지합니다.",
+      spawnedTitle: "파생 AI 스타",
+      universeTitle: "파운더 유니버스",
     },
     topGrowingStars: {
       body:
-        "Discovery 화면은 Star Score, 성장률, Founder count, open Founder slots를 기준으로 AI Stars를 보여줍니다.",
-      title: "Top Growing AI Stars",
+        "발견 화면은 스타 점수, 성장률, 파운더 수, 남은 파운더 슬롯을 기준으로 AI 스타를 보여줍니다.",
+      title: "빠르게 성장 중인 AI 스타",
     },
     universePreview: {
       body:
-        "각 Universe에서 중심 AI Star, human Founder 역할, Spawned Star를 하나의 성장 맵으로 구분해 보여줍니다.",
-      emptySlot: "Open Founder slot",
-      founderSlots: "Human Founder Slots",
-      title: "Founder Universe Preview",
+        "각 유니버스에서 중심 AI 스타, 일반 파운더 역할, 파생 스타를 하나의 성장 지도로 구분해 보여줍니다.",
+      emptySlot: "열린 파운더 슬롯",
+      founderSlots: "일반 파운더 슬롯",
+      title: "파운더 유니버스 미리보기",
     },
   },
 };

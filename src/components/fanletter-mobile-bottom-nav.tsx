@@ -105,10 +105,10 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     locale === "ko"
       ? {
           discover: "발견",
-          founder: "Founder",
+          founder: "파운더",
           home: "홈",
           label: "AIAVpark 주요 메뉴",
-          scout: "Scout",
+          scout: "스카우트",
           studio: "스튜디오",
         }
       : {

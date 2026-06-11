@@ -205,8 +205,8 @@ export type FanletterHomeShareContext = {
 
 const koCopy: FanletterCopy = {
   announcement: {
-    label: "Founder Club 2.0 성장 루프",
-    prize: "AI Star Discovery → Founder → Creator",
+    label: "파운더 클럽 2.0 성장 루프",
+    prize: "AI 스타 발견 → 파운더 → 크리에이터",
   },
   brandSuffix: "AI 캐릭터 브이로그",
   cta: {
@@ -272,7 +272,7 @@ const koCopy: FanletterCopy = {
     ],
   },
   footer: {
-    title: "AI Star를 발견하고 Founder 영향력을 키우는 성장 루프.",
+    title: "AI 스타를 발견하고 파운더 영향력을 키우는 성장 루프.",
   },
   growthModel: {
     body:
@@ -301,9 +301,9 @@ const koCopy: FanletterCopy = {
   },
   hero: {
     eyebrow: "FANLETTER",
-    title: "AI 스타를 발견하고, Founder가 되고, Creator로 성장하세요",
+    title: "AI 스타를 발견하고, 파운더가 되고, 크리에이터로 성장하세요",
     description:
-      "FanLetter는 AI 캐릭터 콘텐츠 플랫폼을 넘어 AI Star Discovery, Founder, Scout, Creator 성장 플랫폼으로 진화합니다.",
+      "FanLetter는 AI 캐릭터 콘텐츠 플랫폼을 넘어 AI 스타 발견, 파운더, 스카우트, 크리에이터 성장 플랫폼으로 진화합니다.",
   },
   liveStats: {
     content: "공개 브이로그",
@@ -320,13 +320,13 @@ const koCopy: FanletterCopy = {
     title: "공개된 AI 캐릭터 브이로그로 팬이 바로 확인합니다.",
   },
   nav: {
-    campaigns: "Scout",
-    creators: "Creator",
+    campaigns: "스카우트",
+    creators: "크리에이터",
     faq: "FAQ",
-    features: "Discovery",
-    paid: "Founder Club",
-    reports: "Portfolio",
-    studio: "Studio",
+    features: "발견",
+    paid: "파운더 클럽",
+    reports: "포트폴리오",
+    studio: "스튜디오",
   },
   paidSpotlight: {
     badge: "팬 전용 · 1 USDT",
@@ -1653,27 +1653,27 @@ export function FanletterHomePage({
     locale === "ko"
       ? {
           activate: "계정 상태",
-          aiContent: "AI Star Discovery",
+          aiContent: "AI 스타 발견",
           campaignStudio: "캠페인 스튜디오",
-          creatorUnlock: "Creator Unlock",
+          creatorUnlock: "크리에이터 해금",
           creatorGrowth: "팬 관계 성장",
-          creatorPath: "Creator Path",
-          discovery: "AI Star Discovery",
+          creatorPath: "크리에이터 성장 경로",
+          discovery: "AI 스타 발견",
           existingFeatures: "기존 기능",
           feed: "브이로그 피드",
-          founderClub: "Founder Club",
-          founderUniverse: "Founder Universe",
+          founderClub: "파운더 클럽",
+          founderUniverse: "파운더 유니버스",
           help: "도움말",
           mobileFirst: "모바일 우선",
           network: "네트워크",
-          noRealPayment: "실결제 전 mock",
+          noRealPayment: "실결제 전 미리보기",
           operations: "운영 도구",
           reports: "내 리포트",
-          scoutLoop: "Scout Share Loop",
+          scoutLoop: "스카우트 공유 루프",
           studio: "브이로그 스튜디오",
           trust: "신뢰",
           usdtReady: "USDT 결제",
-          v2Loop: "Founder Club 2.0",
+          v2Loop: "파운더 클럽 2.0",
         }
       : {
           activate: "Account status",
@@ -1703,10 +1703,10 @@ export function FanletterHomePage({
     locale === "ko"
       ? {
           activate: "계정",
-          creator: "Creator",
-          discovery: "Discovery",
-          founder: "Founder",
-          scout: "Scout",
+          creator: "크리에이터",
+          discovery: "발견",
+          founder: "파운더",
+          scout: "스카우트",
           studio: "스튜디오",
         }
       : {
@@ -1721,10 +1721,10 @@ export function FanletterHomePage({
   const founderClubCtaLabels =
     locale === "ko"
       ? {
-          creator: "Creator Unlock",
-          discover: "AI Star 발견하기",
-          founder: "Founder로 참여하기",
-          loop: "Scout 공유 루프",
+          creator: "크리에이터 해금",
+          discover: "AI 스타 발견하기",
+          founder: "파운더로 참여하기",
+          loop: "스카우트 공유 루프",
         }
       : {
           creator: "Creator Unlock",
@@ -1736,28 +1736,28 @@ export function FanletterHomePage({
     locale === "ko"
       ? [
           {
-            body: "AI Star",
+            body: "AI 스타",
             href: topGrowingStarsHref,
             Icon: Bot,
             label: "발견",
           },
           {
-            body: "Founder",
+            body: "파운더",
             href: founderClubHref,
             Icon: Crown,
             label: "참여",
           },
           {
-            body: "Share",
+            body: "공유",
             href: scoutShareLoopHref,
             Icon: Network,
-            label: "Scout",
+            label: "스카우트",
           },
           {
-            body: "Unlock",
+            body: "해금",
             href: creatorUnlockHref,
             Icon: ChartNoAxesCombined,
-            label: "Creator",
+            label: "크리에이터",
           },
         ]
       : [
@@ -1866,15 +1866,15 @@ export function FanletterHomePage({
     : null;
 
   return (
-    <main className="min-h-screen bg-[#030504] text-white">
-      <section className="relative min-h-[100svh] overflow-hidden border-b border-white/10 sm:min-h-[92svh]">
+    <main className="min-h-screen bg-[#fbfaff] text-black">
+      <section className="relative min-h-[100svh] overflow-hidden border-b border-violet-200 bg-[#fbfaff] sm:min-h-[92svh]">
         {!hasHeroVideoSlides ? (
           <div
-            className="absolute inset-0 bg-cover bg-center opacity-[0.44] lg:opacity-[0.28]"
+            className="absolute inset-0 bg-cover bg-center opacity-[0.22] lg:opacity-[0.16]"
             style={{
               backgroundImage: heroVideo?.coverImageUrl
                 ? `url(${heroVideo.coverImageUrl})`
-                : "radial-gradient(circle at 22% 18%, rgba(68, 242, 110, 0.2), transparent 34%), linear-gradient(135deg, #07150d 0%, #030504 54%, #112418 100%)",
+                : "radial-gradient(circle at 22% 18%, rgba(124, 58, 237, 0.22), transparent 34%), radial-gradient(circle at 78% 20%, rgba(68, 242, 110, 0.2), transparent 30%), linear-gradient(135deg, #ffffff 0%, #fbfaff 58%, #f3efff 100%)",
             }}
           />
         ) : null}
@@ -1883,18 +1883,18 @@ export function FanletterHomePage({
           showMobilePreviews
           slides={heroBackgroundSlides}
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(3,5,4,0.1)_0%,rgba(3,5,4,0.18)_30%,rgba(3,5,4,0.72)_54%,rgba(3,5,4,0.96)_76%,#030504_100%)] lg:bg-[linear-gradient(90deg,rgba(3,5,4,0.96)_0%,rgba(3,5,4,0.82)_36%,rgba(3,5,4,0.34)_66%,rgba(3,5,4,0.62)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,5,4,0.62)_0%,rgba(3,5,4,0.24)_44%,rgba(3,5,4,0.06)_100%)] lg:hidden" />
-        <div className="absolute inset-x-0 bottom-0 hidden h-44 bg-[linear-gradient(180deg,rgba(3,5,4,0)_0%,#030504_100%)] lg:block" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.78)_0%,rgba(255,255,255,0.88)_42%,rgba(251,250,255,0.96)_74%,#fbfaff_100%)] lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.9)_38%,rgba(255,255,255,0.48)_68%,rgba(251,250,255,0.76)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.86)_0%,rgba(255,255,255,0.58)_48%,rgba(255,255,255,0.2)_100%)] lg:hidden" />
+        <div className="absolute inset-x-0 bottom-0 hidden h-44 bg-[linear-gradient(180deg,rgba(251,250,255,0)_0%,#fbfaff_100%)] lg:block" />
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-[calc(6.8rem+env(safe-area-inset-bottom))] pt-3 sm:min-h-[92svh] sm:px-6 sm:pb-6 lg:px-8">
-          <div className="flex items-center justify-between gap-3 rounded-full border border-white/10 bg-black/54 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-white/78 shadow-[0_14px_34px_rgba(0,0,0,0.24)] backdrop-blur-xl sm:bg-black/42 sm:py-2 sm:text-xs sm:shadow-none">
+          <div className="flex items-center justify-between gap-3 rounded-full border border-violet-200 bg-white/82 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-black/64 shadow-[0_14px_34px_rgba(88,28,135,0.1)] backdrop-blur-xl sm:bg-white/72 sm:py-2 sm:text-xs sm:shadow-none">
             <div className="flex min-w-0 items-center gap-2">
-              <Sparkles className="size-3.5 shrink-0 text-[#44f26e]" />
+              <Sparkles className="size-3.5 shrink-0 text-[#7c3aed]" />
               <span className="truncate">{copy.announcement.label}</span>
             </div>
             <Link
-              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-3 text-[0.68rem] font-semibold !text-[#44f26e] transition hover:bg-[#44f26e]/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e] sm:min-h-0 sm:border-0 sm:bg-transparent sm:px-0 sm:text-xs sm:hover:bg-transparent"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-violet-200 bg-violet-50 px-3 text-[0.68rem] font-semibold !text-[#6d28d9] transition hover:bg-violet-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7c3aed] sm:min-h-0 sm:border-0 sm:bg-transparent sm:px-0 sm:text-xs sm:hover:bg-transparent"
               href={founderClubHref}
             >
               <span className="sm:hidden">{mobileAnnouncementCta}</span>
@@ -1908,39 +1908,39 @@ export function FanletterHomePage({
               <span className="text-xl font-semibold tracking-tight">AIAVpark</span>
             </Link>
 
-            <nav className="hidden items-center gap-1.5 text-xs font-semibold text-white/82 md:flex lg:gap-2 lg:text-sm">
+            <nav className="hidden items-center gap-1.5 text-xs font-semibold text-black/62 md:flex lg:gap-2 lg:text-sm">
               <a
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-white/10 hover:text-white"
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-violet-50 hover:text-[#5b21b6]"
                 href={topGrowingStarsHref}
               >
                 {copy.nav.features}
               </a>
               <a
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-white/10 hover:text-white"
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-violet-50 hover:text-[#5b21b6]"
                 href={founderClubHref}
               >
                 {copy.nav.paid}
               </a>
               <a
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-white/10 hover:text-white"
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-violet-50 hover:text-[#5b21b6]"
                 href={scoutShareLoopHref}
               >
                 {copy.nav.campaigns}
               </a>
               <a
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-white/10 hover:text-white"
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-violet-50 hover:text-[#5b21b6]"
                 href={creatorUnlockHref}
               >
                 {copy.nav.creators}
               </a>
               <Link
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-white/10 hover:text-white"
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-violet-50 hover:text-[#5b21b6]"
                 href={reportsHref}
               >
                 {copy.nav.reports}
               </Link>
               <Link
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-white/10 hover:text-white"
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-violet-50 hover:text-[#5b21b6]"
                 href={studioHref}
               >
                 {copy.nav.studio}
@@ -1955,6 +1955,7 @@ export function FanletterHomePage({
               <FanletterAccountStatusLink
                 locale={locale}
                 referralCode={referralCode}
+                surface="light"
               />
             </div>
           </header>
@@ -1965,7 +1966,7 @@ export function FanletterHomePage({
 
           {shareContext && shareContextTrackingMetadata ? (
             <ScrollReveal className="mt-4 max-w-3xl" delay={60} y={12}>
-              <div className="flex flex-col gap-3 rounded-lg border border-[#44f26e]/24 bg-black/46 p-3 shadow-[0_16px_44px_rgba(0,0,0,0.2)] backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:p-4">
+              <div className="flex flex-col gap-3 rounded-lg border border-emerald-200 bg-white/86 p-3 shadow-[0_16px_44px_rgba(16,185,129,0.1)] backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:p-4">
                 <div className="flex min-w-0 items-start gap-3">
                   {shareContext.avatarImageUrl ? (
                     <Image
@@ -1981,20 +1982,20 @@ export function FanletterHomePage({
                     </span>
                   )}
                   <div className="min-w-0">
-                    <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
+                    <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-emerald-700">
                       {shareContextLabels.eyebrow}
                     </p>
-                    <p className="mt-1 break-words text-base font-semibold leading-5 text-white [word-break:keep-all] sm:text-lg">
+                    <p className="mt-1 break-words text-base font-semibold leading-5 text-[#12041f] [word-break:keep-all] sm:text-lg">
                       {shareContextLabels.title(shareContext.channelName)}
                     </p>
-                    <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-white/58 sm:text-sm">
+                    <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-black/58 sm:text-sm">
                       {shareContextLabels.body}
                     </p>
                   </div>
                 </div>
                 <div className="grid gap-2 sm:w-56 sm:shrink-0">
                   <FanletterTrackedLink
-                    className="inline-flex h-10 items-center justify-center rounded-full bg-[#44f26e] px-4 text-xs font-semibold !text-black transition hover:bg-[#67ff88] sm:text-sm"
+                    className="inline-flex h-10 items-center justify-center rounded-full bg-[#7c3aed] px-4 text-xs font-semibold !text-white transition hover:bg-[#6d28d9] sm:text-sm"
                     eventName="promo_share_to_creator_channel"
                     href={shareContext.channelHref}
                     metadata={{
@@ -2007,7 +2008,7 @@ export function FanletterHomePage({
                     {shareContextLabels.channel}
                   </FanletterTrackedLink>
                   <FanletterTrackedLink
-                    className="inline-flex h-10 items-center justify-center rounded-full border border-white/16 bg-white/8 px-4 text-xs font-semibold !text-white transition hover:bg-white/12 sm:text-sm"
+                    className="inline-flex h-10 items-center justify-center rounded-full border border-violet-200 bg-violet-50 px-4 text-xs font-semibold !text-[#5b21b6] transition hover:bg-violet-100 sm:text-sm"
                     eventName="promo_share_to_onboarding"
                     href={shareContext.onboardingHref}
                     metadata={{
@@ -2019,7 +2020,7 @@ export function FanletterHomePage({
                   >
                     {shareContextLabels.start}
                   </FanletterTrackedLink>
-                  <p className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-[0.62rem] font-medium leading-4 text-white/44">
+                  <p className="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-[0.62rem] font-medium leading-4 text-emerald-800/70">
                     {shareContextLabels.rewardDisclosure}
                   </p>
                 </div>
@@ -2029,13 +2030,13 @@ export function FanletterHomePage({
 
           <div className="grid flex-1 content-end gap-5 pb-9 pt-[4.5rem] sm:content-center sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
             <ScrollReveal className="max-w-[58rem]" delay={80} y={18}>
-              <p className="hidden text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e] sm:block">
+              <p className="hidden text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#7c3aed] sm:block">
                 {copy.hero.eyebrow}
               </p>
-              <h1 className="max-w-[21.5rem] text-[2rem] font-semibold leading-[1.08] tracking-normal text-white drop-shadow-[0_8px_26px_rgba(0,0,0,0.72)] [text-wrap:balance] [word-break:keep-all] sm:mt-4 sm:max-w-[58rem] sm:text-[3.2rem] lg:text-[3.65rem] xl:text-[4rem]">
+              <h1 className="max-w-[21.5rem] text-[2rem] font-semibold leading-[1.08] tracking-normal text-[#12041f] [text-wrap:balance] [word-break:keep-all] sm:mt-4 sm:max-w-[58rem] sm:text-[3.2rem] lg:text-[3.65rem] xl:text-[4rem]">
                 {copy.hero.title}
               </h1>
-              <p className="mt-4 max-w-[21.5rem] text-sm font-medium leading-6 text-white/84 drop-shadow-[0_4px_18px_rgba(0,0,0,0.72)] [word-break:keep-all] sm:mt-6 sm:max-w-2xl sm:text-lg sm:leading-7 sm:text-white/80">
+              <p className="mt-4 max-w-[21.5rem] text-sm font-medium leading-6 text-black/68 [word-break:keep-all] sm:mt-6 sm:max-w-2xl sm:text-lg sm:leading-7 sm:text-black/64">
                 {copy.hero.description}
               </p>
               <div
@@ -2045,19 +2046,19 @@ export function FanletterHomePage({
                 )}
               >
                 <Link
-                  className="inline-flex h-12 items-center justify-center rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#67ff88] sm:h-[3.25rem] sm:px-7"
+                  className="inline-flex h-12 items-center justify-center rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9] sm:h-[3.25rem] sm:px-7"
                   href={topGrowingStarsHref}
                 >
                   {founderClubCtaLabels.discover}
                 </Link>
                 <Link
-                  className="inline-flex h-12 items-center justify-center rounded-full border border-white/22 bg-black/34 px-5 text-sm font-semibold !text-white backdrop-blur-md transition hover:border-white/42 sm:h-[3.25rem] sm:px-7"
+                  className="inline-flex h-12 items-center justify-center rounded-full border border-violet-200 bg-white/82 px-5 text-sm font-semibold !text-[#5b21b6] backdrop-blur-md transition hover:border-violet-300 hover:bg-violet-50 sm:h-[3.25rem] sm:px-7"
                   href={founderClubHref}
                 >
                   {founderClubCtaLabels.founder}
                 </Link>
                 <Link
-                  className="inline-flex h-12 items-center gap-2 rounded-full border border-[#44f26e]/45 bg-[#44f26e]/10 px-5 text-sm font-semibold !text-[#baffc7] backdrop-blur-md transition hover:border-[#44f26e] hover:bg-[#44f26e]/18 sm:h-[3.25rem] sm:px-6"
+                  className="inline-flex h-12 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 text-sm font-semibold !text-emerald-800 backdrop-blur-md transition hover:border-emerald-300 hover:bg-emerald-100 sm:h-[3.25rem] sm:px-6"
                   href={scoutShareLoopHref}
                 >
                   <Megaphone className="size-4" />
@@ -2065,13 +2066,13 @@ export function FanletterHomePage({
                 </Link>
               </div>
               <div className="mt-6 hidden max-w-2xl sm:mt-8 sm:block">
-                <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-white/56">
+                <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-black/46">
                   {copy.platformTrust.eyebrow}
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-1.5 sm:gap-2">
                   {platformBrandLogos.map((platform) => (
                     <span
-                      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.08] px-2 text-[0.62rem] font-semibold text-white/78 backdrop-blur-md sm:h-10 sm:gap-2 sm:px-2.5 sm:pr-3 sm:text-[0.72rem]"
+                      className="inline-flex h-9 items-center gap-1.5 rounded-full border border-violet-100 bg-white/78 px-2 text-[0.62rem] font-semibold text-black/64 shadow-[0_10px_24px_rgba(88,28,135,0.08)] backdrop-blur-md sm:h-10 sm:gap-2 sm:px-2.5 sm:pr-3 sm:text-[0.72rem]"
                       key={platform.label}
                     >
                       <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-white p-1 sm:size-7">
@@ -2094,13 +2095,13 @@ export function FanletterHomePage({
               {desktopHeroSlides.length > 0 ? (
                 <FanletterDesktopHeroCardCarousel slides={desktopHeroSlides} />
               ) : (
-                <div className="relative mx-auto aspect-[9/16] w-full max-w-[22rem] overflow-hidden rounded-lg border border-white/14 bg-[radial-gradient(circle_at_50%_8%,rgba(68,242,110,0.16),transparent_34%),linear-gradient(180deg,#07160d_0%,#030504_100%)] p-5 shadow-[0_34px_90px_rgba(0,0,0,0.42)]">
+                <div className="relative mx-auto aspect-[9/16] w-full max-w-[22rem] overflow-hidden rounded-lg border border-violet-200 bg-[radial-gradient(circle_at_50%_8%,rgba(124,58,237,0.14),transparent_34%),linear-gradient(180deg,#ffffff_0%,#f3efff_100%)] p-5 shadow-[0_34px_90px_rgba(88,28,135,0.16)]">
                   <div className="flex h-full flex-col justify-between">
                     <div>
-                      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+                      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#7c3aed]">
                         {locale === "ko" ? "빠른 시작" : "Quick start"}
                       </p>
-                      <h2 className="mt-3 text-3xl font-semibold leading-[1.02] tracking-normal text-white [word-break:keep-all]">
+                      <h2 className="mt-3 text-3xl font-semibold leading-[1.02] tracking-normal text-[#12041f] [word-break:keep-all]">
                         {locale === "ko"
                           ? "3단계로 캐릭터 채널을 준비합니다."
                           : "Prepare a character channel in 3 steps."}
@@ -2112,21 +2113,21 @@ export function FanletterHomePage({
 
                         return (
                           <div
-                            className="rounded-lg border border-white/10 bg-white/[0.055] p-3"
+                            className="rounded-lg border border-violet-100 bg-white p-3 shadow-[0_12px_26px_rgba(88,28,135,0.08)]"
                             key={step.title}
                           >
                             <div className="flex items-start gap-3">
-                              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
                                 <Icon className="size-5" />
                               </span>
                               <span className="min-w-0">
-                                <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#44f26e]">
+                                <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#7c3aed]">
                                   {step.label}
                                 </span>
-                                <span className="mt-1 block text-sm font-semibold text-white">
+                                <span className="mt-1 block text-sm font-semibold text-[#12041f]">
                                   {step.title}
                                 </span>
-                                <span className="mt-1 block text-xs font-medium leading-5 text-white/52">
+                                <span className="mt-1 block text-xs font-medium leading-5 text-black/54">
                                   {step.body}
                                 </span>
                               </span>
@@ -2142,18 +2143,18 @@ export function FanletterHomePage({
               <div className="grid grid-cols-3 gap-2">
                 {heroStats.map((stat, index) => (
                   <ScrollReveal
-                    className="rounded-lg border border-white/12 bg-black/46 p-3 backdrop-blur-md"
+                    className="rounded-lg border border-violet-100 bg-white/82 p-3 shadow-[0_14px_28px_rgba(88,28,135,0.08)] backdrop-blur-md"
                     delay={140 + index * 90}
                     key={stat.label}
                   >
-                    <p className="text-2xl font-semibold leading-none text-white">
+                    <p className="text-2xl font-semibold leading-none text-[#12041f]">
                       <AnimatedNumber
                         format={stat.format}
                         locale={locale}
                         value={stat.value}
                       />
                     </p>
-                    <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/54">
+                    <p className="mt-2 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-black/48">
                       {stat.label}
                     </p>
                   </ScrollReveal>
@@ -2164,18 +2165,18 @@ export function FanletterHomePage({
             <div className="hidden grid-cols-3 gap-1.5 self-start lg:hidden">
               {heroStats.map((stat, index) => (
                 <ScrollReveal
-                  className="rounded-lg border border-white/14 bg-black/42 px-2.5 py-2.5 shadow-[0_14px_28px_rgba(0,0,0,0.22)] backdrop-blur-md sm:p-4"
+                  className="rounded-lg border border-violet-100 bg-white/82 px-2.5 py-2.5 shadow-[0_14px_28px_rgba(88,28,135,0.08)] backdrop-blur-md sm:p-4"
                   delay={120 + index * 80}
                   key={stat.label}
                 >
-                  <p className="text-xl font-semibold leading-none text-white sm:text-3xl">
+                  <p className="text-xl font-semibold leading-none text-[#12041f] sm:text-3xl">
                     <AnimatedNumber
                       format={stat.format}
                       locale={locale}
                       value={stat.value}
                     />
                   </p>
-                  <p className="mt-1.5 text-[0.56rem] font-semibold uppercase leading-tight tracking-[0.08em] text-white/54 sm:text-[0.68rem] sm:tracking-[0.16em]">
+                  <p className="mt-1.5 text-[0.56rem] font-semibold uppercase leading-tight tracking-[0.08em] text-black/48 sm:text-[0.68rem] sm:tracking-[0.16em]">
                     {stat.label}
                   </p>
                 </ScrollReveal>
@@ -2185,28 +2186,28 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <section className="border-b border-white/8 bg-[#030504] px-4 py-3 sm:hidden">
+      <section className="border-b border-violet-100 bg-[#fbfaff] px-4 py-3 sm:hidden">
         <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
           {mobileQuickLinks.map((item) => {
             const Icon = item.Icon;
 
             return (
               <Link
-                className="flex min-h-[5.35rem] flex-col justify-between rounded-lg border border-white/10 bg-white/[0.06] p-2 text-white shadow-[0_14px_32px_rgba(0,0,0,0.18)]"
+                className="flex min-h-[5.35rem] flex-col justify-between rounded-lg border border-violet-100 bg-white p-2 text-[#12041f] shadow-[0_14px_32px_rgba(88,28,135,0.08)]"
                 href={item.href}
                 key={item.label}
               >
                 <span className="flex items-center justify-between gap-1">
-                  <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
                     <Icon className="size-3.5" />
                   </span>
-                  <ArrowRight className="size-3.5 text-white/42" />
+                  <ArrowRight className="size-3.5 text-black/28" />
                 </span>
                 <span className="min-w-0">
                   <span className="block text-[0.76rem] font-semibold leading-tight [word-break:keep-all]">
                     {item.label}
                   </span>
-                  <span className="mt-1 block text-[0.58rem] font-semibold uppercase leading-tight tracking-[0.04em] text-white/48 [overflow-wrap:anywhere]">
+                  <span className="mt-1 block text-[0.58rem] font-semibold uppercase leading-tight tracking-[0.04em] text-black/46 [overflow-wrap:anywhere]">
                     {item.body}
                   </span>
                 </span>

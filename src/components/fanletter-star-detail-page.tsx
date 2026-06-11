@@ -104,9 +104,11 @@ function MetricTile({
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-white/14 bg-white/10 p-3">
-      <p className="text-2xl font-semibold leading-none text-white">{value}</p>
-      <p className="mt-2 text-[0.68rem] font-semibold uppercase text-white/54">
+    <div className="rounded-lg border border-violet-200 bg-white p-3 shadow-[0_14px_32px_rgba(88,28,135,0.08)]">
+      <p className="text-2xl font-semibold leading-none text-[#12041f]">
+        {value}
+      </p>
+      <p className="mt-2 text-[0.68rem] font-semibold uppercase text-black/48">
         {label}
       </p>
     </div>
@@ -152,7 +154,7 @@ function HumanFounderSlots({
                   {slot.name}
                 </p>
                 <p className="text-xs font-medium text-zinc-500">
-                  Human Member
+                  {copy.labels.humanMember}
                 </p>
               </div>
             </div>
@@ -266,23 +268,23 @@ export function FanletterStarDetailPage({
   });
 
   return (
-    <main className="min-h-screen bg-[#f8f7ff] pb-28 text-black">
+    <main className="min-h-screen bg-[#fbfaff] pb-28 text-black">
       <section
-        className="overflow-hidden bg-[#12041f] px-4 pb-10 pt-6 text-white sm:px-6 sm:pb-16 lg:px-8"
+        className="overflow-hidden border-b border-violet-200 bg-[#fbfaff] px-4 pb-10 pt-6 text-black sm:px-6 sm:pb-16 lg:px-8"
         style={{
-          background: `radial-gradient(circle at 12% 15%, ${star.accentColor}66, transparent 32%), radial-gradient(circle at 86% 20%, ${star.accentSecondary}55, transparent 28%), linear-gradient(145deg, #12041f, #231038 68%, #07020d)`,
+          background: `radial-gradient(circle at 12% 8%, ${star.accentColor}1f, transparent 34%), radial-gradient(circle at 84% 10%, ${star.accentSecondary}24, transparent 30%), linear-gradient(180deg, #ffffff 0%, #fbfaff 58%, #f3efff 100%)`,
         }}
       >
         <div className="mx-auto max-w-[92rem]">
           <div className="flex items-center justify-between gap-3">
             <Link
-              className="inline-flex h-10 items-center gap-2 rounded-full border border-white/14 bg-white/10 px-3 text-sm font-semibold text-white transition hover:bg-white/14"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-violet-200 bg-white px-3 text-sm font-semibold text-[#5b21b6] shadow-[0_12px_28px_rgba(88,28,135,0.08)] transition hover:border-violet-300 hover:bg-violet-50"
               href={`/${locale}/fanletter#top-growing-ai-stars`}
             >
               <ArrowLeft className="size-4" />
               {copy.actions.openDiscovery}
             </Link>
-            <span className="inline-flex h-10 items-center gap-2 rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-3 text-sm font-semibold text-[#baffc7]">
+            <span className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-sm font-semibold text-emerald-800">
               <ShieldCheck className="size-4" />
               {copy.starDetail.mockNotice}
             </span>
@@ -290,17 +292,17 @@ export function FanletterStarDetailPage({
 
           <div className="mt-8 grid gap-7 lg:grid-cols-[1fr_24rem] lg:items-end">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/18 bg-white/10 px-3 py-1 text-sm font-semibold text-fuchsia-100">
+              <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-3 py-1 text-sm font-semibold text-[#6d28d9] shadow-[0_10px_24px_rgba(88,28,135,0.08)]">
                 <Crown className="size-4" />
                 {copy.starDetail.heroEyebrow}
               </div>
               <h1 className="mt-5 max-w-4xl text-[3.2rem] font-semibold leading-[0.98] tracking-normal [word-break:keep-all] sm:text-[5rem]">
                 {star.name}
-                <span className="block text-white/58">
+                <span className="block text-[#6d28d9]">
                   {copy.starDetail.universeTitle}
                 </span>
               </h1>
-              <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 sm:text-lg">
+              <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-black/64 sm:text-lg">
                 {copy.starDetail.heroBody}
               </p>
 
@@ -321,14 +323,14 @@ export function FanletterStarDetailPage({
 
               <div className="mt-6 flex flex-col gap-2 sm:flex-row">
                 <Link
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold text-black transition hover:bg-[#69f98a]"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9]"
                   href={joinHref}
                 >
                   {copy.actions.joinAsFounder}
                   <ArrowRight className="size-4" />
                 </Link>
                 <a
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/18 bg-white/10 px-5 text-sm font-semibold text-white transition hover:bg-white/14"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-violet-200 bg-white px-5 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-50"
                   href="#referral-builder"
                 >
                   {copy.actions.createMockReferral}

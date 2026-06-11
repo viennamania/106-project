@@ -9,17 +9,19 @@ import type { AIStar } from "@/mock/fanletterV2";
 function getCopy(locale: Locale) {
   if (locale === "ko") {
     return {
-      aiStarBadge: "AI STAR",
+      aiStarBadge: "AI 스타",
       body:
-        "이 가입은 아래 AI Star Universe의 Founder 참여로 귀속됩니다. 실결제 없이 mock referral 흐름만 표시합니다.",
-      founderBadge: "FOUNDER",
-      growth: "Growth",
-      memberLabel: "New Member",
-      openSlots: "Open Slots",
-      referralCode: "Referral Code",
-      starScore: "Star Score",
-      title: "Founder 참여 귀속",
-      universeCta: "Universe 보기",
+        "이 가입은 아래 AI 스타 유니버스의 파운더 참여로 귀속됩니다. 실결제 없이 추천 흐름만 미리 보여줍니다.",
+      founderBadge: "파운더",
+      founderClubLabel: "파운더 클럽 2.0",
+      growth: "성장률",
+      memberBadge: "멤버",
+      memberLabel: "신규 회원",
+      openSlots: "잔여 슬롯",
+      referralCode: "추천 코드",
+      starScore: "스타 점수",
+      title: "파운더 참여 귀속",
+      universeCta: "유니버스 보기",
     };
   }
 
@@ -28,7 +30,9 @@ function getCopy(locale: Locale) {
     body:
       "This signup is attributed to the AI Star Universe below as a Founder join. It previews the mock referral flow without real payment.",
     founderBadge: "FOUNDER",
+    founderClubLabel: "Founder Club 2.0",
     growth: "Growth",
+    memberBadge: "MEMBER",
     memberLabel: "New Member",
     openSlots: "Open Slots",
     referralCode: "Referral Code",
@@ -36,6 +40,21 @@ function getCopy(locale: Locale) {
     title: "Founder join attribution",
     universeCta: "View Universe",
   };
+}
+
+function getDisplayUniverseName(value: string, locale: Locale) {
+  if (locale !== "ko") {
+    return value;
+  }
+
+  const replacements: Record<string, string> = {
+    "Harin Universe": "하린 유니버스",
+    "Minseo Universe": "민서 유니버스",
+    "Seoyeon Universe": "서연 유니버스",
+    "Yoonseo Universe": "윤서 유니버스",
+  };
+
+  return replacements[value] ?? value.replace(/\bUniverse\b/g, "유니버스");
 }
 
 export function FanletterFounderAttributionCard({
@@ -48,6 +67,7 @@ export function FanletterFounderAttributionCard({
   star: AIStar;
 }) {
   const copy = getCopy(locale);
+  const universeName = getDisplayUniverseName(star.universeName, locale);
 
   return (
     <article className="mx-auto mb-8 max-w-6xl overflow-hidden rounded-lg border border-violet-200 bg-white shadow-[0_24px_70px_rgba(88,28,135,0.14)]">
@@ -95,7 +115,7 @@ export function FanletterFounderAttributionCard({
                 {star.name}
               </h2>
               <p className="mt-1 text-sm font-semibold text-white/62">
-                {star.universeName}
+                {universeName}
               </p>
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <div className="rounded-lg border border-white/12 bg-white/10 p-3">
@@ -126,7 +146,7 @@ export function FanletterFounderAttributionCard({
             </span>
             <div>
               <p className="text-sm font-semibold text-[#6d28d9]">
-                Founder Club 2.0
+                {copy.founderClubLabel}
               </p>
               <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
                 {copy.title}
@@ -146,7 +166,9 @@ export function FanletterFounderAttributionCard({
                 <p className="text-sm font-semibold text-zinc-900">
                   {copy.memberLabel}
                 </p>
-                <p className="text-xs font-semibold text-zinc-500">MEMBER</p>
+                <p className="text-xs font-semibold text-zinc-500">
+                  {copy.memberBadge}
+                </p>
               </div>
             </div>
             <ArrowRight className="mx-auto hidden size-5 text-[#7c3aed] sm:block" />
@@ -156,7 +178,7 @@ export function FanletterFounderAttributionCard({
               </span>
               <div>
                 <p className="text-sm font-semibold text-zinc-900">
-                  {star.universeName}
+                  {universeName}
                 </p>
                 <p className="text-xs font-semibold text-zinc-500">
                   {copy.founderBadge}
@@ -177,7 +199,7 @@ export function FanletterFounderAttributionCard({
           ) : null}
 
           <Link
-            className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+            className="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(124,58,237,0.18)] transition hover:bg-[#6d28d9]"
             href={`/${locale}/fanletter/${star.id}${referralCode ? `?ref=${encodeURIComponent(referralCode)}` : ""}`}
           >
             {copy.universeCta}

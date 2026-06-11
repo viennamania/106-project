@@ -974,6 +974,7 @@ function FanletterShell({
   locale,
   referralCode,
   showStartAction = true,
+  tone = "dark",
   title,
   titleClassName,
 }: {
@@ -996,6 +997,7 @@ function FanletterShell({
   locale: Locale;
   referralCode: string | null;
   showStartAction?: boolean;
+  tone?: "dark" | "light";
   title: string;
   titleClassName?: string;
 }) {
@@ -1040,13 +1042,22 @@ function FanletterShell({
       ),
   );
   const isStartSection = currentSection === "start";
+  const isLightTone = tone === "light";
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#030504] text-white">
+    <main
+      className={cn(
+        "min-h-screen overflow-x-hidden",
+        isLightTone ? "bg-[#fbfaff] text-black" : "bg-[#030504] text-white",
+      )}
+    >
       <FanletterHashScroller />
       <section
         className={cn(
-          "relative overflow-hidden border-b border-white/10 px-4 pb-10 pt-3 sm:px-6 lg:px-8",
+          "relative overflow-hidden px-4 pb-10 pt-3 sm:px-6 lg:px-8",
+          isLightTone
+            ? "border-b border-violet-200 bg-[#fbfaff]"
+            : "border-b border-white/10",
           heroSectionClassName,
         )}
       >
@@ -1064,16 +1075,31 @@ function FanletterShell({
               </span>
             </Link>
 
-            <nav className="hidden min-w-0 items-center gap-5 text-sm font-semibold text-white/74 lg:flex xl:gap-7">
+            <nav
+              className={cn(
+                "hidden min-w-0 items-center gap-5 text-sm font-semibold lg:flex xl:gap-7",
+                isLightTone ? "text-black/62" : "text-white/74",
+              )}
+            >
               {visibleNavItems.map((item) => {
                 const active = item.section === currentSection;
 
                 return (
                   <Link
                     aria-current={active ? "page" : undefined}
-                    className={`inline-flex min-h-9 items-center rounded-full px-2.5 whitespace-nowrap transition hover:bg-white/10 hover:text-white ${
-                      active ? "text-white" : "text-white/68"
-                    }`}
+                    className={cn(
+                      "inline-flex min-h-9 items-center whitespace-nowrap rounded-full px-2.5 transition",
+                      isLightTone
+                        ? "hover:bg-violet-50 hover:text-[#5b21b6]"
+                        : "hover:bg-white/10 hover:text-white",
+                      active
+                        ? isLightTone
+                          ? "text-[#12041f]"
+                          : "text-white"
+                        : isLightTone
+                          ? "text-black/58"
+                          : "text-white/68",
+                    )}
                     href={item.href}
                     key={item.section}
                   >
@@ -1104,10 +1130,16 @@ function FanletterShell({
                 hideIdentity={isStartSection}
                 locale={locale}
                 referralCode={referralCode}
+                surface={isLightTone ? "light" : "dark"}
               />
               {isStartSection || !showStartAction ? null : (
                 <Link
-                  className="hidden h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 lg:inline-flex"
+                  className={cn(
+                    "hidden h-10 items-center justify-center rounded-full border px-4 text-sm font-semibold transition lg:inline-flex",
+                    isLightTone
+                      ? "border-violet-200 bg-white !text-[#5b21b6] hover:border-violet-300 hover:bg-violet-50"
+                      : "border-white/16 !text-white hover:border-white/36",
+                  )}
                   href={startHref}
                 >
                   {copy.actions.start}
@@ -1124,13 +1156,21 @@ function FanletterShell({
             }`}
           >
             <div className={cn("min-w-0", heroContentClassName)}>
-              <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
+              <p
+                className={cn(
+                  "text-[0.72rem] font-semibold uppercase tracking-[0.28em]",
+                  isLightTone ? "text-[#7c3aed]" : "text-[#44f26e]",
+                )}
+              >
                 {eyebrow}
               </p>
               <h1
                 className={
                   titleClassName ??
-                  "mt-4 max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]"
+                  cn(
+                    "mt-4 max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-normal [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]",
+                    isLightTone ? "text-[#12041f]" : "text-white",
+                  )
                 }
               >
                 {title}
@@ -1138,7 +1178,8 @@ function FanletterShell({
               {description ? (
                 <p
                   className={cn(
-                    "mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg",
+                    "mt-5 max-w-2xl text-base font-medium leading-7 [word-break:keep-all] sm:text-lg",
+                    isLightTone ? "text-black/64" : "text-white/68",
                     descriptionClassName,
                   )}
                 >
@@ -10308,15 +10349,17 @@ export function FanletterOnboardingPage({
     title: step.title,
   }));
   const heroAside = (
-    <div className="rounded-lg border border-white/12 bg-white/[0.055] p-4 shadow-[0_28px_80px_rgba(0,0,0,0.28)] backdrop-blur-md sm:p-5">
+    <div className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_28px_80px_rgba(88,28,135,0.12)] backdrop-blur-md sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-white">{labels.asideTitle}</p>
-          <p className="mt-1 text-xs font-medium leading-5 text-white/52">
+          <p className="text-sm font-semibold text-[#12041f]">
+            {labels.asideTitle}
+          </p>
+          <p className="mt-1 text-xs font-medium leading-5 text-black/54">
             {labels.asideBody}
           </p>
         </div>
-        <span className="shrink-0 whitespace-nowrap rounded-full bg-[#44f26e] px-3 py-1 text-[0.66rem] font-semibold uppercase text-black">
+        <span className="shrink-0 whitespace-nowrap rounded-full bg-violet-100 px-3 py-1 text-[0.66rem] font-semibold uppercase text-[#5b21b6]">
           {labels.readyValue}
         </span>
       </div>
@@ -10327,7 +10370,7 @@ export function FanletterOnboardingPage({
           return (
             <FanletterSetupStepNavLink
               activateHref={activateHref}
-              className="flex items-center gap-3 rounded-lg border border-white/10 bg-black/34 p-3 transition hover:border-[#44f26e]/54 hover:bg-black/48"
+              className="flex items-center gap-3 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3 transition hover:border-violet-300 hover:bg-violet-50"
               connectHref={connectHref}
               createHref={createHref}
               key={step.title}
@@ -10337,27 +10380,27 @@ export function FanletterOnboardingPage({
               stepIndex={index}
               studioHref={studioHref}
             >
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
                 <Icon className="size-5" />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#44f26e]">
+                <span className="block text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-[#7c3aed]">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <span className="mt-1 block truncate text-sm font-semibold text-white">
+                <span className="mt-1 block truncate text-sm font-semibold text-[#12041f]">
                   {step.title}
                 </span>
                 {index <= 2 ? (
                   <span className="mt-2 block">
                     <FanletterSetupStepBadge
                       locale={locale}
-                      surface="dark"
+                      surface="light"
                       stepIndex={index}
                     />
                   </span>
                 ) : null}
               </span>
-              <ArrowRight className="size-4 shrink-0 text-white/42" />
+              <ArrowRight className="size-4 shrink-0 text-black/32" />
             </FanletterSetupStepNavLink>
           );
         })}
@@ -10377,7 +10420,7 @@ export function FanletterOnboardingPage({
             onboardingHref={onboardingHref}
             profileHref={profileHref}
             studioHref={studioHref}
-            surface="dark"
+            surface="light"
             variant="onboarding"
           />
         }
@@ -10393,9 +10436,10 @@ export function FanletterOnboardingPage({
         locale={locale}
         referralCode={referralCode}
         title={labels.title}
-        titleClassName="mt-4 max-w-4xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]"
+        tone="light"
+        titleClassName="mt-4 max-w-4xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-[#12041f] [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]"
       >
-      <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-16 lg:px-8">
+      <section className="bg-[#fbfaff] px-4 py-10 text-black sm:px-6 sm:py-16 lg:px-8">
         {founderClubStar ? (
           <FanletterFounderAttributionCard
             locale={locale}
@@ -10405,18 +10449,18 @@ export function FanletterOnboardingPage({
         ) : null}
 
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
-          <aside className="rounded-lg border border-black/10 bg-[#07100b] p-5 text-white shadow-[0_22px_60px_rgba(8,18,12,0.18)] sm:p-6 lg:sticky lg:top-6">
-            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
+          <aside className="rounded-lg border border-violet-200 bg-white p-5 text-[#12041f] shadow-[0_22px_60px_rgba(88,28,135,0.1)] sm:p-6 lg:sticky lg:top-6">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#7c3aed]">
               {labels.progress}
             </p>
             <h2 className="mt-4 text-[2rem] font-semibold leading-[1.05] tracking-normal [word-break:keep-all] sm:text-[2.35rem]">
               {labels.completeTitle}
             </h2>
-            <p className="mt-4 text-sm font-medium leading-6 text-white/62">
+            <p className="mt-4 text-sm font-medium leading-6 text-black/62">
               {labels.completeBody}
             </p>
             <FanletterSetupProgressTiles items={progressItems} locale={locale} />
-            <p className="mt-5 rounded-lg border border-white/10 bg-white/[0.055] p-3 text-xs font-medium leading-5 text-white/58">
+            <p className="mt-5 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3 text-xs font-medium leading-5 text-black/58">
               <FanletterSetupStatusNote
                 defaultText={labels.accountState}
                 locale={locale}
@@ -10434,12 +10478,12 @@ export function FanletterOnboardingPage({
                   key={step.title}
                 >
                   <div className="grid gap-4 sm:grid-cols-[4rem_1fr_auto] sm:items-center">
-                    <span className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+                    <span className="flex size-14 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
                       <Icon className="size-7" />
                     </span>
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full bg-black px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white">
+                        <span className="rounded-full bg-violet-100 px-2.5 py-1 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-[#5b21b6]">
                           {step.meta}
                         </span>
                         {index <= 2 ? (
@@ -10485,7 +10529,7 @@ export function FanletterOnboardingPage({
             href={studioHref}
           >
             <span>
-              <span className="flex size-11 items-center justify-center rounded-lg bg-black text-white">
+              <span className="flex size-11 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
                 <Rocket className="size-5" />
               </span>
               <span className="mt-4 block text-2xl font-semibold leading-tight">
@@ -10498,35 +10542,35 @@ export function FanletterOnboardingPage({
             <ArrowRight className="size-5 shrink-0" />
           </Link>
           <Link
-            className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-black/10 bg-[#07100b] p-5 !text-white shadow-[0_18px_42px_rgba(8,18,12,0.14)] transition hover:-translate-y-0.5 hover:shadow-[0_24px_52px_rgba(8,18,12,0.18)]"
+            className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-violet-200 bg-white p-5 !text-[#12041f] shadow-[0_18px_42px_rgba(88,28,135,0.08)] transition hover:-translate-y-0.5 hover:border-violet-300 hover:shadow-[0_24px_52px_rgba(88,28,135,0.12)]"
             href={feedHref}
           >
             <span>
-              <span className="flex size-11 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+              <span className="flex size-11 items-center justify-center rounded-lg bg-emerald-100 text-emerald-800">
                 <MessageCircleHeart className="size-5" />
               </span>
               <span className="mt-4 block text-2xl font-semibold leading-tight">
                 {labels.feedCta}
               </span>
-              <span className="mt-2 block text-sm font-medium leading-6 text-white/56">
+              <span className="mt-2 block text-sm font-medium leading-6 text-black/54">
                 {labels.completeBody}
               </span>
             </span>
-            <ArrowRight className="size-5 shrink-0 text-[#44f26e]" />
+            <ArrowRight className="size-5 shrink-0 text-[#7c3aed]" />
           </Link>
           {returnToHref ? (
             <Link
-              className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-[#44f26e]/34 bg-[#44f26e] p-5 !text-black shadow-[0_18px_42px_rgba(68,242,110,0.16)] transition hover:-translate-y-0.5 hover:bg-[#67ff88] hover:shadow-[0_24px_52px_rgba(68,242,110,0.2)]"
+              className="flex min-h-[9rem] items-end justify-between gap-4 rounded-lg border border-[#7c3aed] bg-[#7c3aed] p-5 !text-white shadow-[0_18px_42px_rgba(124,58,237,0.2)] transition hover:-translate-y-0.5 hover:bg-[#6d28d9] hover:shadow-[0_24px_52px_rgba(124,58,237,0.24)]"
               href={returnToHref}
             >
               <span>
-                <span className="flex size-11 items-center justify-center rounded-lg bg-black text-white">
+                <span className="flex size-11 items-center justify-center rounded-lg bg-white/18 text-white">
                   <ArrowLeft className="size-5" />
                 </span>
                 <span className="mt-4 block text-2xl font-semibold leading-tight">
                   {labels.returnCta}
                 </span>
-                <span className="mt-2 block text-sm font-medium leading-6 text-black/58">
+                <span className="mt-2 block text-sm font-medium leading-6 text-white/72">
                   {labels.returnBody}
                 </span>
               </span>

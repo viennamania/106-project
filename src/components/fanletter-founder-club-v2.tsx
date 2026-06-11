@@ -72,6 +72,50 @@ function getRoleTone(role: FounderRole) {
   return "border-zinc-200 bg-zinc-50 text-zinc-600";
 }
 
+function isKoreanCopy(copy: FanletterV2Copy) {
+  return copy.labels.humanMember === "일반 멤버";
+}
+
+function formatCopyTemplate(
+  template: string,
+  values: Record<string, string>,
+) {
+  return Object.entries(values).reduce(
+    (result, [key, value]) => result.replaceAll(`{${key}}`, value),
+    template,
+  );
+}
+
+function getDisplayMemberName(name: string, copy: FanletterV2Copy) {
+  if (!isKoreanCopy(copy)) {
+    return name;
+  }
+
+  const normalized = name.trim();
+  const replacements: Record<string, string> = {
+    "Member A": "회원 A",
+    "Member B": "회원 B",
+    "New member": "신규 회원",
+  };
+
+  return replacements[normalized] ?? normalized;
+}
+
+function getDisplayUniverseName(name: string, copy: FanletterV2Copy) {
+  if (!isKoreanCopy(copy)) {
+    return name;
+  }
+
+  const replacements: Record<string, string> = {
+    "Harin Universe": "하린 유니버스",
+    "Minseo Universe": "민서 유니버스",
+    "Seoyeon Universe": "서연 유니버스",
+    "Yoonseo Universe": "윤서 유니버스",
+  };
+
+  return replacements[name] ?? name.replace(/\bUniverse\b/g, "유니버스");
+}
+
 export function StarScoreBadge({
   copy,
   score,
@@ -130,8 +174,10 @@ export function HumanMemberAvatar({
 }
 
 function AIStarPortrait({
+  badgeLabel,
   star,
 }: {
+  badgeLabel: string;
   star: Pick<
     AIStar,
     | "accentColor"
@@ -173,7 +219,7 @@ function AIStarPortrait({
         </>
       )}
       <div className="absolute left-3 top-3 rounded-full bg-white/18 px-2.5 py-1 text-[0.62rem] font-semibold text-white backdrop-blur">
-        AI STAR
+        {badgeLabel}
       </div>
     </div>
   );
@@ -204,7 +250,7 @@ export function AIStarCard({
         background: `linear-gradient(160deg, ${star.accentColor} 0%, #301052 34%, #12041f 100%)`,
       }}
     >
-      <AIStarPortrait star={star} />
+      <AIStarPortrait badgeLabel={copy.labels.aiStarBadge} star={star} />
       <div className="flex flex-1 flex-col pt-4">
         <div className="flex flex-wrap items-center gap-2">
           <span className="rounded-full bg-white px-3 py-1 text-[0.68rem] font-semibold text-[#4c1d95]">
@@ -364,18 +410,29 @@ export function ScoutShareLoop({
   loop?: ScoutShareLoopData | null;
 }) {
   const loop: ScoutShareLoopData = liveLoop ?? fanletterV2Mock.scoutShareLoop;
+  const displaySourceMember = getDisplayMemberName(loop.sourceMember, copy);
+  const displayTargetMember = getDisplayMemberName(loop.targetMember, copy);
+  const displayUniverse = getDisplayUniverseName(loop.selectedUniverse, copy);
   const selectUniverseText = loop.isLiveData
-    ? `selects ${loop.selectedUniverse}`
+    ? formatCopyTemplate(copy.scoutShareLoop.selectUniverseTemplate, {
+        universe: displayUniverse,
+      })
     : copy.scoutShareLoop.selectUniverse;
+  const memberJoinsText = formatCopyTemplate(copy.scoutShareLoop.memberJoinsTemplate, {
+    member: displayTargetMember,
+  });
   const founderJoinText = loop.isLiveData
-    ? `${loop.targetMember} becomes Founder in ${loop.selectedUniverse}`
+    ? formatCopyTemplate(copy.scoutShareLoop.memberBecomesFounderTemplate, {
+        member: displayTargetMember,
+        universe: displayUniverse,
+      })
     : copy.scoutShareLoop.memberBBecomesFounder;
   const flowItems = [
-    loop.sourceMember,
+    displaySourceMember,
     selectUniverseText,
     `${copy.labels.referralCode}: ${loop.referralCode}`,
     copy.scoutShareLoop.shareToSns,
-    `${loop.targetMember} joins`,
+    memberJoinsText,
     founderJoinText,
   ];
   const platformLinksByName = new Map(
@@ -490,7 +547,7 @@ export function ScoutShareLoop({
               +{loop.rewards.creatorProgressPercent}%
             </p>
             <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
-              Creator
+              {copy.labels.creatorProgress}
             </p>
           </div>
         </div>
@@ -607,6 +664,7 @@ export function MemberPortfolio({
               item.universeName ??
               star?.universeName ??
               `${item.starId} Universe`;
+            const displayUniverseName = getDisplayUniverseName(universeName, copy);
 
             return (
               <div
@@ -618,7 +676,7 @@ export function MemberPortfolio({
                     {starName}
                   </p>
                   <p className="truncate text-xs font-medium text-black/48">
-                    {universeName}
+                    {displayUniverseName}
                     {item.starStatus ? ` · ${item.starStatus}` : ""}
                   </p>
                 </div>
@@ -719,6 +777,8 @@ export function CreatorUnlockCard({
             <span className="text-xs font-semibold text-white/54">
               {typeof condition.current === "number"
                 ? formatNumber(condition.current, locale)
+                : isKoreanCopy(copy) && condition.current === "completed"
+                  ? "완료"
                 : condition.current}
             </span>
           </div>
@@ -843,7 +903,7 @@ function FounderSlot({
       <HumanMemberAvatar member={slot} size="sm" />
       <div className="min-w-0">
         <p className="truncate text-xs font-semibold text-zinc-800">
-          {slot.name}
+          {getDisplayMemberName(slot.name, copy)}
         </p>
         <FounderRoleBadge copy={copy} role={slot.role} />
       </div>
