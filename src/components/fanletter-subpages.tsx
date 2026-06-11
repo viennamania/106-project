@@ -39,6 +39,7 @@ import {
 import { FanletterContentDetailCtaGroup } from "@/components/fanletter-content-detail-cta-group";
 import { FanletterFanRequestForm } from "@/components/fanletter-fan-request-form";
 import { FanletterFanRequestPresetLink } from "@/components/fanletter-fan-request-preset-link";
+import { FanletterFounderAttributionCard } from "@/components/fanletter-founder-attribution-card";
 import { FanletterHashScroller } from "@/components/fanletter-hash-scroller";
 import { FanletterFollowButton } from "@/components/fanletter-follow-button";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
@@ -85,6 +86,7 @@ import {
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { cn } from "@/lib/utils";
+import type { AIStar } from "@/mock/fanletterV2";
 
 type FanletterSubpageCopy = {
   actions: {
@@ -1069,7 +1071,7 @@ function FanletterShell({
                 return (
                   <Link
                     aria-current={active ? "page" : undefined}
-                    className={`whitespace-nowrap transition hover:text-white ${
+                    className={`inline-flex min-h-9 items-center rounded-full px-2.5 whitespace-nowrap transition hover:bg-white/10 hover:text-white ${
                       active ? "text-white" : "text-white/68"
                     }`}
                     href={item.href}
@@ -10165,21 +10167,24 @@ export function FanletterContentDetailPage({
 }
 
 export function FanletterOnboardingPage({
+  founderClubStar = null,
   locale,
   referralCode,
   returnToHref = null,
 }: {
+  founderClubStar?: AIStar | null;
   locale: Locale;
   referralCode: string | null;
   returnToHref?: string | null;
 }) {
+  const founderClubStarId = founderClubStar?.id ?? null;
   const onboardingBaseHref = buildPathWithReferral(
     `/${locale}/fanletter/onboarding`,
     referralCode,
   );
   const onboardingHref = setPathSearchParams(
     onboardingBaseHref,
-    { returnTo: returnToHref },
+    { returnTo: returnToHref, star: founderClubStarId },
   );
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
   const connectHref = setPathSearchParams(
@@ -10391,6 +10396,14 @@ export function FanletterOnboardingPage({
         titleClassName="mt-4 max-w-4xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]"
       >
       <section className="bg-[#f6f8f4] px-4 py-10 text-black sm:px-6 sm:py-16 lg:px-8">
+        {founderClubStar ? (
+          <FanletterFounderAttributionCard
+            locale={locale}
+            referralCode={referralCode}
+            star={founderClubStar}
+          />
+        ) : null}
+
         <div className="mx-auto grid max-w-6xl gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
           <aside className="rounded-lg border border-black/10 bg-[#07100b] p-5 text-white shadow-[0_22px_60px_rgba(8,18,12,0.18)] sm:p-6 lg:sticky lg:top-6">
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">

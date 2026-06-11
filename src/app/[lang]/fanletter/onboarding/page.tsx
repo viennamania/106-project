@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterOnboardingPage } from "@/components/fanletter-subpages";
+import { getFanletterFounderClubStarDetail } from "@/lib/fanletter-founder-club-service";
 import {
   buildFanletterOgImagePath,
   FANLETTER_OG_IMAGE_SIZE,
@@ -10,13 +11,16 @@ import {
 import {
   normalizeFanletterReturnToPath,
   readFanletterReferralCode,
+  readFanletterStarId,
 } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { buildPathWithReferral } from "@/lib/landing-branding";
+import { getFanletterV2MockStar } from "@/mock/fanletterV2";
 
 type FanletterOnboardingSearchParams = {
   ref?: string | string[];
   returnTo?: string | string[];
+  star?: string | string[];
 };
 
 export async function generateMetadata({
@@ -95,9 +99,14 @@ export default async function LocalizedFanletterOnboardingPage({
     notFound();
   }
   const locale = lang as Locale;
+  const founderClubStarId = readFanletterStarId(query.star);
+  const founderClubStar =
+    getFanletterV2MockStar(founderClubStarId) ??
+    (await getFanletterFounderClubStarDetail(founderClubStarId));
 
   return (
     <FanletterOnboardingPage
+      founderClubStar={founderClubStar}
       locale={locale}
       referralCode={readFanletterReferralCode(query.ref)}
       returnToHref={normalizeFanletterReturnToPath(query.returnTo, locale)}
