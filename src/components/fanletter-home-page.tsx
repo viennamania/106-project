@@ -39,6 +39,7 @@ import type {
 import type { Locale } from "@/lib/i18n";
 import type {
   AIStar,
+  CreatorUnlockData,
   MemberPortfolio,
   ScoutShareLoopData,
 } from "@/mock/fanletterV2";
@@ -1503,6 +1504,7 @@ function FanletterPaidSpotlightSection({
 export function FanletterHomePage({
   featuredPaidVideos,
   featuredVideos,
+  founderClubCreatorUnlock,
   founderClubMemberPortfolio,
   founderClubScoutShareLoop,
   founderClubStars,
@@ -1515,6 +1517,7 @@ export function FanletterHomePage({
 }: {
   featuredPaidVideos: FanletterFeaturedVideo[];
   featuredVideos: FanletterFeaturedVideo[];
+  founderClubCreatorUnlock?: CreatorUnlockData | null;
   founderClubMemberPortfolio?: MemberPortfolio | null;
   founderClubScoutShareLoop?: ScoutShareLoopData | null;
   founderClubStars?: AIStar[] | null;
@@ -2200,6 +2203,7 @@ export function FanletterHomePage({
 
       <FounderClubV2HomeSections
         locale={locale}
+        creatorUnlock={founderClubCreatorUnlock}
         memberPortfolio={founderClubMemberPortfolio}
         scoutShareLoop={founderClubScoutShareLoop}
         stars={founderClubStars}

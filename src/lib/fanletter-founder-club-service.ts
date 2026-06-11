@@ -4,6 +4,7 @@ import type { Filter } from "mongodb";
 
 import type {
   AIStar,
+  CreatorUnlockData,
   FounderRole,
   HumanFounderSlot,
   LocalizedText,
@@ -22,6 +23,7 @@ import {
   getFanletterStarFounderMembershipsCollection,
   getFanletterStarReferralEdgesCollection,
   getFanletterStarsCollection,
+  getActivityProfilesCollection,
   getMembersCollection,
 } from "@/lib/mongodb";
 import {
@@ -958,5 +960,74 @@ export async function getFanletterFounderClubMemberPortfolio(
     roles,
     scoutScore,
     successfulInvites,
+  };
+}
+
+export async function getFanletterFounderClubCreatorUnlock(
+  email?: string | null,
+): Promise<CreatorUnlockData | null> {
+  const memberEmail = normalizeEmail(email ?? "");
+
+  if (!memberEmail) {
+    return null;
+  }
+
+  const [portfolio, activityProfile] = await Promise.all([
+    getFanletterFounderClubMemberPortfolio(memberEmail),
+    getActivityProfilesCollection().then((collection) =>
+      collection.findOne(
+        { memberEmail },
+        {
+          projection: {
+            lastCheckInDateKey: 1,
+            lifetimeActivityPoints: 1,
+            spendableActivityPoints: 1,
+            streakDays: 1,
+          },
+        },
+      ),
+    ),
+  ]);
+  const scoutScore = portfolio?.scoutScore ?? 0;
+  const directInvites = portfolio?.directInvites ?? 0;
+  const cpBalance = portfolio?.cpBalance ?? 0;
+  const activityMissionCompleted = Boolean(
+    activityProfile?.lastCheckInDateKey ||
+      (activityProfile?.lifetimeActivityPoints ?? 0) > 0 ||
+      (activityProfile?.spendableActivityPoints ?? 0) > 0 ||
+      (activityProfile?.streakDays ?? 0) > 0,
+  );
+  const conditions = [
+    {
+      current: scoutScore,
+      id: "scoutScore",
+      met: scoutScore >= 80,
+      target: 80,
+    },
+    {
+      current: directInvites,
+      id: "directInvites",
+      met: directInvites >= 20,
+      target: 20,
+    },
+    {
+      current: cpBalance,
+      id: "cp",
+      met: cpBalance >= 5000,
+      target: 5000,
+    },
+    {
+      current: activityMissionCompleted ? "completed" : "pending",
+      id: "activityMission",
+      met: activityMissionCompleted,
+      target: "completed",
+    },
+  ];
+
+  return {
+    conditions,
+    createCostUsdt: 10,
+    isLiveData: true,
+    unlocked: conditions.every((condition) => condition.met),
   };
 }

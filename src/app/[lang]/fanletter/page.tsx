@@ -7,6 +7,7 @@ import {
   type FanletterHomeShareContext,
 } from "@/components/fanletter-home-page";
 import {
+  getFanletterFounderClubCreatorUnlock,
   getFanletterFounderClubHomeStars,
   getFanletterFounderClubMemberPortfolio,
   getFanletterFounderClubScoutShareLoop,
@@ -148,6 +149,7 @@ export default async function FanletterRoutePage({
     founderClubStars,
     founderClubMemberPortfolio,
     founderClubScoutShareLoop,
+    founderClubCreatorUnlock,
   ] = await Promise.all([
     getFanletterLandingData(locale, includeNsfw),
     shouldLoadShareContext && shareCreatorReferralCode
@@ -159,6 +161,7 @@ export default async function FanletterRoutePage({
       email: memberSession?.email ?? null,
       locale,
     }),
+    getFanletterFounderClubCreatorUnlock(memberSession?.email ?? null),
   ]);
   const shareContextReferralCode =
     referralCode ?? shareCreatorData?.profile.referralCode ?? null;
@@ -212,6 +215,7 @@ export default async function FanletterRoutePage({
     <FanletterHomePage
       featuredPaidVideos={landingData.featuredPaidVideos}
       featuredVideos={landingData.featuredVideos}
+      founderClubCreatorUnlock={founderClubCreatorUnlock}
       founderClubMemberPortfolio={founderClubMemberPortfolio}
       founderClubScoutShareLoop={founderClubScoutShareLoop}
       founderClubStars={founderClubStars}

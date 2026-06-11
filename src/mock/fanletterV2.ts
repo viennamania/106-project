@@ -102,6 +102,13 @@ export type CreatorUnlockCondition = {
   target: number | string;
 };
 
+export type CreatorUnlockData = {
+  conditions: CreatorUnlockCondition[];
+  createCostUsdt: number;
+  isLiveData?: boolean;
+  unlocked: boolean;
+};
+
 export const fanletterV2Mock = {
   aiStars: [
     {
@@ -271,10 +278,10 @@ export const fanletterV2Mock = {
       { current: 27, id: "directInvites", met: true, target: 20 },
       { current: 6800, id: "cp", met: true, target: 5000 },
       { current: "completed", id: "activityMission", met: true, target: "completed" },
-    ] satisfies CreatorUnlockCondition[],
+    ],
     createCostUsdt: 10,
     unlocked: true,
-  },
+  } satisfies CreatorUnlockData,
   memberPortfolio: {
     cpBalance: 6800,
     creatorEligibilityPercent: 86,
@@ -318,6 +325,8 @@ export type FanletterV2Copy = {
     body: string;
     cp: string;
     directInvites: string;
+    liveDataLabel: string;
+    lockedLabel: string;
     mockPaymentNotice: string;
     scoutScore: string;
     title: string;
@@ -409,6 +418,8 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       body: "Creator status is unlocked when the scout, invitation, CP, and activity requirements are met.",
       cp: "CP >= 5,000",
       directInvites: "Direct Invites >= 20",
+      liveDataLabel: "Live unlock status",
+      lockedLabel: "Locked",
       mockPaymentNotice:
         "Creator launch is previewed at 10 USDT. Checkout opens in a later release.",
       scoutScore: "Scout Score >= 80",
@@ -523,6 +534,8 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "Scout、招待、CP、活動ミッションの条件を満たすとCreatorステータスが開きます。",
       cp: "CP >= 5,000",
       directInvites: "Direct Invites >= 20",
+      liveDataLabel: "Live unlock status",
+      lockedLabel: "Locked",
       mockPaymentNotice:
         "Creatorローンチは10 USDTのプレビューとして表示します。Checkoutは今後のリリースで開きます。",
       scoutScore: "Scout Score >= 80",
@@ -636,6 +649,8 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "Scout Score, Direct Invites, CP, Activity mission 조건을 만족하면 Creator 권한이 열립니다.",
       cp: "CP >= 5,000",
       directInvites: "Direct Invites >= 20",
+      liveDataLabel: "Live unlock status",
+      lockedLabel: "Locked",
       mockPaymentNotice:
         "Creator launch는 10 USDT eligibility preview로 표시됩니다. Checkout은 이후 릴리스에서 열립니다.",
       scoutScore: "Scout Score >= 80",

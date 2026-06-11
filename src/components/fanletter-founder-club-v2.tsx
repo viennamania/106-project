@@ -21,6 +21,7 @@ import {
   getFanletterV2Copy,
   getFanletterV2LocalizedText,
   type AIStar,
+  type CreatorUnlockData,
   type FanletterV2Copy,
   type FounderRole,
   type HumanFounderSlot,
@@ -614,10 +615,15 @@ export function MemberPortfolio({
 
 export function CreatorUnlockCard({
   copy,
+  locale,
+  unlock: liveUnlock,
 }: {
   copy: FanletterV2Copy;
+  locale: Locale;
+  unlock?: CreatorUnlockData | null;
 }) {
-  const unlock = fanletterV2Mock.creatorUnlock;
+  const unlock: CreatorUnlockData =
+    liveUnlock ?? fanletterV2Mock.creatorUnlock;
   const labelsById: Record<string, string> = {
     activityMission: copy.creatorUnlock.activityMission,
     cp: copy.creatorUnlock.cp,
@@ -632,9 +638,16 @@ export function CreatorUnlockCard({
           <Crown className="size-6" />
         </span>
         <div>
-          <p className="text-sm font-semibold text-fuchsia-100">
-            {copy.creatorUnlock.unlockedLabel}
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-sm font-semibold text-fuchsia-100">
+              {copy.creatorUnlock.unlockedLabel}
+            </p>
+            {unlock.isLiveData ? (
+              <span className="rounded-full border border-fuchsia-200/30 bg-white/10 px-2.5 py-1 text-[0.64rem] font-semibold text-fuchsia-50">
+                {copy.creatorUnlock.liveDataLabel}
+              </span>
+            ) : null}
+          </div>
           <h2 className="text-2xl font-semibold leading-tight tracking-normal">
             {copy.creatorUnlock.title}
           </h2>
@@ -660,7 +673,9 @@ export function CreatorUnlockCard({
               {labelsById[condition.id] ?? condition.id}
             </span>
             <span className="text-xs font-semibold text-white/54">
-              {String(condition.current)}
+              {typeof condition.current === "number"
+                ? formatNumber(condition.current, locale)
+                : condition.current}
             </span>
           </div>
         ))}
@@ -670,7 +685,9 @@ export function CreatorUnlockCard({
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-[#5b21b6]">
-              {unlock.unlocked ? copy.creatorUnlock.unlockedLabel : "Locked"}
+              {unlock.unlocked
+                ? copy.creatorUnlock.unlockedLabel
+                : copy.creatorUnlock.lockedLabel}
             </p>
             <p className="mt-1 text-sm font-medium leading-5 text-black/62">
               {copy.creatorUnlock.mockPaymentNotice}
@@ -916,11 +933,13 @@ function CreatorPath({
 }
 
 export function FounderClubV2HomeSections({
+  creatorUnlock,
   locale,
   memberPortfolio,
   scoutShareLoop,
   stars: liveStars,
 }: {
+  creatorUnlock?: CreatorUnlockData | null;
   locale: Locale;
   memberPortfolio?: MemberPortfolioData | null;
   scoutShareLoop?: ScoutShareLoopData | null;
@@ -991,7 +1010,11 @@ export function FounderClubV2HomeSections({
               portfolio={memberPortfolio}
               stars={stars}
             />
-            <CreatorUnlockCard copy={copy} />
+            <CreatorUnlockCard
+              copy={copy}
+              locale={locale}
+              unlock={creatorUnlock}
+            />
             <CreatorPath copy={copy} />
           </div>
         </div>
