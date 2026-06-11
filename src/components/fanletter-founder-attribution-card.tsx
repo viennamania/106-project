@@ -1,7 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, Bot, UserRound } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Bot,
+  Link2,
+  Sparkles,
+  UserRound,
+} from "lucide-react";
 
+import { CopyTextButton } from "@/components/copy-text-button";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import type { Locale } from "@/lib/i18n";
 import type { AIStar, ScoutShareLoopData } from "@/mock/fanletterV2";
@@ -22,10 +30,18 @@ function getCopy(locale: Locale) {
       memberLabel: "신규 회원",
       openSlots: "잔여 슬롯",
       referralCode: "추천 코드",
+      shareLink: "공유 링크",
+      sharePlatforms: "SNS 공유",
       shareCta: "내 추천 링크 공유",
       starScore: "스타 점수",
       title: "파운더 참여 귀속",
       universeCta: "유니버스 보기",
+      rewards: {
+        cp: "CP",
+        creatorProgress: "Creator 진행률",
+        influence: "영향력",
+        title: "적립 보상",
+      },
     };
   }
 
@@ -43,10 +59,18 @@ function getCopy(locale: Locale) {
     memberLabel: "New Member",
     openSlots: "Open Slots",
     referralCode: "Referral Code",
+    shareLink: "Share Link",
+    sharePlatforms: "SNS Share",
     shareCta: "Share my Founder link",
     starScore: "Star Score",
     title: "Founder join attribution",
     universeCta: "View Universe",
+    rewards: {
+      cp: "CP",
+      creatorProgress: "Creator Progress",
+      influence: "Influence",
+      title: "Earned Rewards",
+    },
   };
 }
 
@@ -65,6 +89,17 @@ function getDisplayUniverseName(value: string, locale: Locale) {
   return replacements[value] ?? value.replace(/\bUniverse\b/g, "유니버스");
 }
 
+function buildFallbackPlatformHref(platform: string, shareLink: string) {
+  if (platform === "X") {
+    const url = new URL("https://twitter.com/intent/tweet");
+    url.searchParams.set("url", shareLink);
+
+    return url.toString();
+  }
+
+  return shareLink;
+}
+
 export function FanletterFounderAttributionCard({
   locale,
   referralCode,
@@ -81,6 +116,18 @@ export function FanletterFounderAttributionCard({
   const isFounder = Boolean(viewerScoutShareLoop);
   const visibleReferralCode =
     viewerScoutShareLoop?.referralCode ?? referralCode ?? null;
+  const shareLink = viewerScoutShareLoop?.shareLink ?? null;
+  const platformLinks =
+    viewerScoutShareLoop?.sharePlatformLinks?.map((platformLink) => ({
+      href: platformLink.href,
+      label: platformLink.label,
+    })) ??
+    (shareLink && viewerScoutShareLoop
+      ? viewerScoutShareLoop.sharePlatforms.map((platform) => ({
+          href: buildFallbackPlatformHref(platform, shareLink),
+          label: platform,
+        }))
+      : []);
   const universeHref = `/${locale}/fanletter/${star.id}${
     visibleReferralCode ? `?ref=${encodeURIComponent(visibleReferralCode)}` : ""
   }`;
@@ -211,11 +258,71 @@ export function FanletterFounderAttributionCard({
               <p className="mt-1 font-mono text-sm font-semibold text-[#5b21b6]">
                 {visibleReferralCode}
               </p>
-              {viewerScoutShareLoop?.shareLink ? (
-                <p className="mt-2 break-all font-mono text-[0.68rem] font-semibold leading-4 text-black/48">
-                  {viewerScoutShareLoop.shareLink}
-                </p>
+              {shareLink ? (
+                <div className="mt-3 rounded-lg border border-black/8 bg-white p-3">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase text-black/48">
+                    <Link2 className="size-3.5" />
+                    {copy.shareLink}
+                  </div>
+                  <p className="mt-2 break-all font-mono text-[0.68rem] font-semibold leading-4 text-[#5b21b6]">
+                    {shareLink}
+                  </p>
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                    <CopyTextButton
+                      className="h-10 border-black/10 text-sm font-semibold"
+                      copiedLabel={locale === "ko" ? "복사됨" : "Copied"}
+                      copyLabel={locale === "ko" ? "링크 복사" : "Copy link"}
+                      text={shareLink}
+                    />
+                    {platformLinks.map((platformLink) => (
+                      <a
+                        className="inline-flex h-10 items-center justify-center rounded-full border border-violet-200 bg-violet-50 px-4 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-100"
+                        href={platformLink.href}
+                        key={platformLink.label}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        {platformLink.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
               ) : null}
+            </div>
+          ) : null}
+
+          {viewerScoutShareLoop ? (
+            <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-emerald-900">
+                <Sparkles className="size-4" />
+                {copy.rewards.title}
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <div className="rounded-lg border border-emerald-200 bg-white p-3">
+                  <p className="text-lg font-semibold text-emerald-950">
+                    +{viewerScoutShareLoop.rewards.cp}
+                  </p>
+                  <p className="mt-1 text-[0.62rem] font-semibold text-emerald-900/56">
+                    {copy.rewards.cp}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-emerald-200 bg-white p-3">
+                  <p className="text-lg font-semibold text-emerald-950">
+                    +{viewerScoutShareLoop.rewards.influenceScore}
+                  </p>
+                  <p className="mt-1 text-[0.62rem] font-semibold text-emerald-900/56">
+                    {copy.rewards.influence}
+                  </p>
+                </div>
+                <div className="rounded-lg border border-emerald-200 bg-white p-3">
+                  <p className="text-lg font-semibold text-emerald-950">
+                    +{viewerScoutShareLoop.rewards.creatorProgressPercent}%
+                  </p>
+                  <p className="mt-1 text-[0.62rem] font-semibold text-emerald-900/56">
+                    {copy.rewards.creatorProgress}
+                  </p>
+                </div>
+              </div>
             </div>
           ) : null}
 
