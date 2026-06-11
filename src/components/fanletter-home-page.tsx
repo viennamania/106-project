@@ -1866,7 +1866,10 @@ export function FanletterHomePage({
               <Sparkles className="size-3.5 shrink-0 text-[#44f26e]" />
               <span className="truncate">{copy.announcement.label}</span>
             </div>
-            <Link className="shrink-0 text-[#44f26e]" href={creatorHref}>
+            <Link
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-3 text-[0.68rem] font-semibold !text-[#44f26e] transition hover:bg-[#44f26e]/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e] sm:min-h-0 sm:border-0 sm:bg-transparent sm:px-0 sm:text-xs sm:hover:bg-transparent"
+              href={creatorHref}
+            >
               <span className="sm:hidden">{mobileAnnouncementCta}</span>
               <span className="hidden sm:inline">{copy.announcement.prize}</span>
             </Link>
