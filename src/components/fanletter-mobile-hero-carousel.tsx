@@ -16,7 +16,7 @@ type HeroSlidesOptions = {
 
 const SLIDE_INTERVAL_MS = 7000;
 const DEFAULT_MAX_SLIDES = 3;
-const MOBILE_BACKGROUND_MAX_SLIDES = 5;
+const MOBILE_BACKGROUND_MAX_SLIDES = 3;
 
 function getRandomSlideIndex(length: number) {
   if (length < 2) {
@@ -109,6 +109,26 @@ function useHeroSlides(
   };
 }
 
+function useDesktopViewport() {
+  const [isDesktopViewport, setIsDesktopViewport] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 1024px)");
+    const syncDesktopViewport = () => {
+      setIsDesktopViewport(mediaQuery.matches);
+    };
+
+    syncDesktopViewport();
+    mediaQuery.addEventListener("change", syncDesktopViewport);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncDesktopViewport);
+    };
+  }, []);
+
+  return isDesktopViewport;
+}
+
 export function FanletterHeroBackgroundCarousel({
   mobileLayout = "full",
   randomizeOnMount = false,
@@ -177,6 +197,20 @@ export function FanletterHeroBackgroundCarousel({
 }
 
 export function FanletterDesktopHeroCardCarousel({
+  slides,
+}: {
+  slides: FanletterHeroSlide[];
+}) {
+  const isDesktopViewport = useDesktopViewport();
+
+  if (!isDesktopViewport) {
+    return null;
+  }
+
+  return <FanletterDesktopHeroCardCarouselInner slides={slides} />;
+}
+
+function FanletterDesktopHeroCardCarouselInner({
   slides,
 }: {
   slides: FanletterHeroSlide[];

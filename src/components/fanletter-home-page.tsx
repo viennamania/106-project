@@ -23,6 +23,7 @@ import {
   FanletterHeroBackgroundCarousel,
 } from "@/components/fanletter-mobile-hero-carousel";
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
+import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FounderClubV2HomeSections } from "@/components/fanletter-founder-club-v2";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
@@ -2300,27 +2301,17 @@ export function FanletterHomePage({
                             />
                           ) : null}
                           {video.coverImageUrl ? (
-                            <video
-                              aria-hidden="true"
-                              autoPlay
+                            <FanletterAutoplayVideo
+                              ariaHidden
                               className="absolute inset-0 h-full w-full object-cover object-center opacity-95 transition duration-500 group-hover:scale-[1.02] group-hover:brightness-110"
-                              loop
-                              muted
-                              playsInline
                               poster={video.coverImageUrl}
-                              preload="metadata"
                               src={video.videoUrl}
                             />
                           ) : (
                             <>
-                              <video
-                                aria-hidden="true"
-                                autoPlay
+                              <FanletterAutoplayVideo
+                                ariaHidden
                                 className="absolute inset-0 h-full w-full object-cover object-center opacity-95 transition duration-500 group-hover:scale-[1.02] group-hover:brightness-110"
-                                loop
-                                muted
-                                playsInline
-                                preload="metadata"
                                 src={video.videoUrl}
                               />
                               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(68,242,110,0.18),transparent_36%)]" />
@@ -2712,14 +2703,9 @@ export function FanletterHomePage({
                           }}
                         />
                       ) : (
-                        <video
-                          aria-hidden="true"
-                          autoPlay
+                        <FanletterAutoplayVideo
+                          ariaHidden
                           className="absolute inset-0 h-full w-full object-cover opacity-92 transition duration-500 group-hover:scale-[1.03]"
-                          loop
-                          muted
-                          playsInline
-                          preload="metadata"
                           src={video.videoUrl}
                         />
                       )}

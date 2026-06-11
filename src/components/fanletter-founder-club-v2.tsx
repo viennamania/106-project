@@ -318,10 +318,10 @@ export function GrowthLoopDiagram({
         </div>
       </div>
 
-      <div className="mt-6 grid gap-2 md:grid-cols-4 xl:grid-cols-8">
+      <div className="-mx-4 mt-6 flex snap-x gap-2 overflow-x-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0 md:pb-0 xl:grid-cols-8">
         {copy.growthLoop.steps.map((step, index) => (
           <div
-            className="relative min-h-28 rounded-lg border border-violet-100 bg-[#fbfaff] p-3"
+            className="relative min-h-28 min-w-[10.25rem] snap-start rounded-lg border border-violet-100 bg-[#fbfaff] p-3 md:min-w-0"
             key={step}
           >
             <div className="flex items-center justify-between gap-2">
@@ -850,10 +850,10 @@ export function FounderUniversePreview({
         </p>
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+      <div className="-mx-4 mt-6 flex snap-x gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:grid lg:grid-cols-2 lg:overflow-visible lg:px-0 lg:pb-0">
         {stars.map((star) => (
           <article
-            className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)]"
+            className="min-w-[86vw] max-w-[24rem] snap-start rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] lg:min-w-0 lg:max-w-none"
             key={star.id}
           >
             <div className="grid gap-3 sm:grid-cols-[1fr_9rem_1fr] sm:items-center">
