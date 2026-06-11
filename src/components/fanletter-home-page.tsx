@@ -24,6 +24,7 @@ import {
 } from "@/components/fanletter-mobile-hero-carousel";
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
+import { FounderClubV2HomeSections } from "@/components/fanletter-founder-club-v2";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
@@ -294,9 +295,9 @@ const koCopy: FanletterCopy = {
   },
   hero: {
     eyebrow: "FANLETTER",
-    title: "팬이 키우고 함께 벌어가는 AI 캐릭터 채널.",
+    title: "AI 스타를 발견하고, Founder가 되고, Creator로 성장하세요",
     description:
-      "팬의 요청, 댓글, 저장, 결제 신호가 AI 캐릭터의 성장 단계와 다음 장면을 만들고, 팬 전용 콘텐츠 수익은 참여 팬과 공유되는 성장 모델로 확장됩니다.",
+      "FanLetter는 AI 캐릭터 콘텐츠 플랫폼을 넘어 AI Star Discovery, Founder, Scout, Creator 성장 플랫폼으로 진화합니다.",
   },
   liveStats: {
     content: "공개 브이로그",
@@ -510,9 +511,9 @@ const enCopy: FanletterCopy = {
   },
   hero: {
     eyebrow: "FANLETTER",
-    title: "An AI character channel fans grow and share.",
+    title: "Discover AI Stars, become a Founder, and grow into a Creator.",
     description:
-      "Fan requests, comments, saves, and unlocks shape the character's growth stage and next scenes, while fan-only content revenue can expand into a shared growth model.",
+      "FanLetter is evolving from an AI character content platform into an AI Star Discovery, Founder, Scout, and Creator growth platform.",
   },
   liveStats: {
     content: "public vlogs",
@@ -2185,6 +2186,8 @@ export function FanletterHomePage({
           </div>
         </div>
       </section>
+
+      <FounderClubV2HomeSections locale={locale} />
 
       <section className="border-b border-white/8 bg-[#f6f8f4] px-4 py-14 text-black sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
