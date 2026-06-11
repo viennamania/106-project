@@ -32,7 +32,7 @@ type StoredFounderMockMemberships = Record<
 
 type FanletterFounderMockJoinResponse = {
   membership: FanletterFounderMockMembership;
-  mode: "mock";
+  mode: "mock" | "preview";
   next: {
     founderClubHref: string;
     universeHref: string;
@@ -179,9 +179,10 @@ async function requestFanletterFounderMockJoin({
   referralCode?: string | null;
   starId: string;
 }) {
-  const response = await fetch("/api/fanletter/founder-club/mock-join", {
+  const response = await fetch("/api/fanletter/founder-club/join", {
     body: JSON.stringify({
       locale,
+      mode: "preview",
       referralCode,
       starId,
     }),

@@ -30,7 +30,7 @@ type StoredCreatorMockLaunches = Record<string, FanletterCreatorMockLaunch>;
 
 type FanletterCreatorMockLaunchResponse = {
   launch: FanletterCreatorMockLaunch;
-  mode: "mock";
+  mode: "mock" | "preview";
   next: {
     creatorUnlockHref: string;
     founderClubHref: string;
@@ -204,10 +204,11 @@ async function requestFanletterCreatorMockLaunch({
   sourceStarId?: string | null;
   sourceUniverseName: string;
 }) {
-  const response = await fetch("/api/fanletter/founder-club/mock-launch", {
+  const response = await fetch("/api/fanletter/founder-club/creator-launch", {
     body: JSON.stringify({
       launchCostUsdt,
       locale,
+      mode: "preview",
       name,
       ownerName,
       sourceStarId,
