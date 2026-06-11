@@ -739,7 +739,7 @@ export function MemberPortfolio({
         )}
       </div>
 
-      <div className="mt-5 rounded-lg border border-black/8 bg-white p-3">
+      <div className="mt-5 hidden rounded-lg border border-black/8 bg-white p-3 sm:block">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-semibold text-[#6d28d9]">
@@ -1142,7 +1142,7 @@ export function FounderUniversePreview({
   stars: AIStar[];
 }) {
   return (
-    <section className="mt-12">
+    <section className="mt-12 hidden sm:block">
       <div className="max-w-3xl">
         <p className="text-sm font-semibold text-[#6d28d9]">
           {copy.labels.founderClub}
@@ -1299,14 +1299,24 @@ export function FounderClubV2HomeSections({
               {copy.founderClub.eyebrow}
             </div>
             <h2 className="mt-5 max-w-4xl text-[2.45rem] font-semibold leading-[1.02] tracking-normal text-[#12041f] [word-break:keep-all] sm:text-[4rem]">
-              {copy.founderClub.title}
+              <span className="sm:hidden">
+                {isKoreanCopy(copy)
+                  ? "성장 중인 AI 스타를 먼저 고르세요"
+                  : "Pick an AI Star to grow first"}
+              </span>
+              <span className="hidden sm:inline">{copy.founderClub.title}</span>
             </h2>
             <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-black/62 sm:text-lg">
-              {copy.founderClub.body}
+              <span className="sm:hidden">
+                {isKoreanCopy(copy)
+                  ? "홈에서는 발견, 파운더 참여, 스카우트 보상, 크리에이터 해금만 빠르게 보여줍니다."
+                  : "The mobile home keeps the discovery, Founder, Scout reward, and Creator unlock path focused."}
+              </span>
+              <span className="hidden sm:inline">{copy.founderClub.body}</span>
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="hidden gap-3 sm:grid sm:grid-cols-3">
             <div className="rounded-lg border border-violet-200 bg-white p-4">
               <Bot className="size-6 text-[#7c3aed]" />
               <p className="mt-4 text-sm font-semibold text-black">
@@ -1336,7 +1346,7 @@ export function FounderClubV2HomeSections({
         />
         <GrowthLoopDiagram copy={copy} />
 
-        <div className="mt-12 grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+        <div className="mt-10 grid gap-4 sm:mt-12 xl:grid-cols-[1.05fr_0.95fr]">
           <ScoutShareLoop copy={copy} loop={scoutShareLoop} />
           <div className="grid min-w-0 gap-4">
             <MemberPortfolio
@@ -1356,7 +1366,7 @@ export function FounderClubV2HomeSections({
 
         <FounderUniversePreview copy={copy} locale={locale} stars={stars} />
 
-        <div className="mt-10 rounded-lg border border-violet-200 bg-white p-4 sm:p-5">
+        <div className="mt-10 hidden rounded-lg border border-violet-200 bg-white p-4 sm:block sm:p-5">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
               <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">

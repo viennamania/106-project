@@ -714,6 +714,184 @@ function getPaidSignalBadge(video: FanletterFeaturedVideo, locale: Locale) {
   return locale === "ko" ? "새 팬 전용" : "New fan-only";
 }
 
+function MobileFounderLoopVisual({
+  locale,
+  loop,
+  star,
+}: {
+  locale: Locale;
+  loop: ScoutShareLoopData | null;
+  star: AIStar | null;
+}) {
+  const isKo = locale === "ko";
+  const starName = star?.name ?? (isKo ? "민서" : "Minseo");
+  const starScore = star?.starScore ?? 82;
+  const growthPercent = star?.growthPercent ?? 42;
+  const referralCode = loop?.referralCode ?? "MINSEO-A-001";
+  const cpReward = loop?.rewards.cp ?? 100;
+  const influenceReward = loop?.rewards.influenceScore ?? 5;
+  const creatorProgress = loop?.rewards.creatorProgressPercent ?? 2;
+  const memberInitial = loop?.sourceMember?.trim().charAt(0).toUpperCase() || "A";
+  const targetInitial = loop?.targetMember?.trim().charAt(0).toUpperCase() || "B";
+  const labels = isKo
+    ? {
+        aiStar: "AI STAR",
+        creator: "크리에이터",
+        discover: "발견",
+        founder: "파운더",
+        joined: "신규 파운더",
+        loop: "발견 → 초대 → 보상",
+        member: "MEMBER",
+        reward: "보상",
+        scout: "SNS 공유",
+        score: "Star Score",
+      }
+    : {
+        aiStar: "AI STAR",
+        creator: "Creator",
+        discover: "Discover",
+        founder: "Founder",
+        joined: "New Founder",
+        loop: "Discover → Invite → Reward",
+        member: "MEMBER",
+        reward: "Reward",
+        scout: "SNS Share",
+        score: "Star Score",
+      };
+
+  return (
+    <div className="mt-5 max-w-[22rem] overflow-hidden rounded-[1.65rem] border border-violet-100 bg-white/88 p-3 shadow-[0_22px_56px_rgba(88,28,135,0.13)] backdrop-blur-xl sm:hidden">
+      <div className="flex items-center justify-between gap-3 px-1">
+        <span className="text-[0.68rem] font-semibold text-[#6d28d9]">
+          {labels.loop}
+        </span>
+        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[0.66rem] font-semibold text-emerald-700">
+          +{growthPercent}%
+        </span>
+      </div>
+
+      <div className="mt-3 grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-stretch gap-2">
+        <div className="relative min-h-[8.3rem] overflow-hidden rounded-[1.1rem] border border-violet-300 bg-[linear-gradient(145deg,#7c3aed_0%,#a855f7_52%,#22d3ee_100%)] p-3 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.36),0_16px_34px_rgba(124,58,237,0.2)]">
+          <div className="flex items-center justify-between gap-2">
+            <span className="rounded-full bg-white/18 px-2 py-1 text-[0.58rem] font-semibold">
+              {labels.aiStar}
+            </span>
+            <Sparkles className="size-4 text-white" />
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <span className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/34 bg-white/16 text-base font-semibold shadow-[0_10px_26px_rgba(0,0,0,0.16)]">
+              {star?.portraitImageUrl ? (
+                <Image
+                  alt={starName}
+                  className="h-full w-full object-cover"
+                  height={48}
+                  src={star.portraitImageUrl}
+                  unoptimized
+                  width={48}
+                />
+              ) : (
+                star?.portraitInitials ?? starName.slice(0, 2).toUpperCase()
+              )}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold">
+                {starName}
+              </span>
+              <span className="mt-1 block text-[0.66rem] font-medium text-white/74">
+                {labels.score} {starScore}
+              </span>
+            </span>
+          </div>
+          <div className="absolute bottom-3 left-3 right-3 h-1.5 overflow-hidden rounded-full bg-white/20">
+            <span
+              className="block h-full rounded-full bg-white"
+              style={{ width: `${Math.min(100, starScore)}%` }}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center gap-2 text-[#7c3aed]">
+          <ArrowRight className="size-5" />
+          <span className="h-10 w-px bg-violet-200" />
+          <ArrowRight className="size-5 rotate-90" />
+        </div>
+
+        <div className="min-h-[8.3rem] rounded-[1.1rem] border border-zinc-200 bg-zinc-50 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.82)]">
+          <div className="flex items-center justify-between gap-2">
+            <span className="rounded-full bg-white px-2 py-1 text-[0.58rem] font-semibold text-zinc-600">
+              {labels.member}
+            </span>
+            <Crown className="size-4 text-zinc-500" />
+          </div>
+          <div className="mt-3 flex items-center gap-2">
+            <span className="flex size-12 shrink-0 items-center justify-center rounded-full border border-zinc-300 bg-zinc-100 text-base font-semibold text-zinc-600">
+              {memberInitial}
+            </span>
+            <span className="min-w-0">
+              <span className="block text-sm font-semibold text-[#12041f]">
+                {labels.founder}
+              </span>
+              <span className="mt-1 block truncate text-[0.66rem] font-semibold text-[#6d28d9]">
+                {referralCode}
+              </span>
+            </span>
+          </div>
+          <div className="mt-3 grid grid-cols-4 gap-1">
+            {["K", "IG", "X", "TT"].map((platform) => (
+              <span
+                className="flex h-6 items-center justify-center rounded-full bg-white text-[0.56rem] font-semibold text-zinc-500"
+                key={platform}
+              >
+                {platform}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-2 grid grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)] items-stretch gap-2">
+        <div className="rounded-[1.1rem] border border-violet-100 bg-[#fbfaff] p-3">
+          <div className="flex items-center gap-2">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-zinc-300 bg-zinc-100 text-sm font-semibold text-zinc-600">
+              {targetInitial}
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[0.66rem] font-semibold text-black/44">
+                {labels.scout}
+              </span>
+              <span className="block truncate text-sm font-semibold text-[#12041f]">
+                {labels.joined}
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-center text-[#7c3aed]">
+          <ArrowRight className="size-5" />
+        </div>
+
+        <div className="rounded-[1.1rem] border border-emerald-100 bg-emerald-50 p-3">
+          <span className="block text-[0.66rem] font-semibold text-emerald-700">
+            {labels.reward}
+          </span>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            <span className="rounded-full bg-white px-2 py-1 text-[0.64rem] font-semibold text-emerald-800">
+              CP +{cpReward}
+            </span>
+            <span className="rounded-full bg-white px-2 py-1 text-[0.64rem] font-semibold text-emerald-800">
+              +{influenceReward}
+            </span>
+            <span className="rounded-full bg-white px-2 py-1 text-[0.64rem] font-semibold text-emerald-800">
+              {labels.creator} +{creatorProgress}%
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
 function getPaidCardMetricItems(
   video: FanletterFeaturedVideo,
   copy: FanletterCopy,
@@ -1578,6 +1756,14 @@ export function FanletterHomePage({
   const hasHeroVideoSlides = heroBackgroundSlides.some((slide) =>
     slide.videoUrl.trim(),
   );
+  const mobileHeroLoopStar =
+    founderClubStars?.find(
+      (star) =>
+        star.id === founderClubSelectedStarId ||
+        star.id === founderClubScoutShareLoop?.starId,
+    ) ??
+    founderClubStars?.[0] ??
+    null;
   const heroStats = [
     {
       format: "compact" as const,
@@ -1721,6 +1907,20 @@ export function FanletterHomePage({
           studio: "Studio",
         };
   const mobileAnnouncementCta = locale === "ko" ? "2.0 보기" : "View 2.0";
+  const mobileHeroCopy =
+    locale === "ko"
+      ? {
+          primary: "AI 스타 발견하기",
+          secondary: "파운더로 참여하기",
+          title: "다음 AI 스타를 먼저 발견하세요",
+          description: "발견 → 파운더 → 스카우트 → 크리에이터",
+        }
+      : {
+          primary: "Discover AI Stars",
+          secondary: "Join as Founder",
+          title: "Discover the next AI Star first",
+          description: "Discover → Founder → Scout → Creator",
+        };
   const founderClubCtaLabels =
     locale === "ko"
       ? {
@@ -1787,8 +1987,8 @@ export function FanletterHomePage({
             href: creatorUnlockHref,
             Icon: ChartNoAxesCombined,
             label: "Creator",
-          },
-        ];
+        },
+      ];
   const heroSetupSteps =
     locale === "ko"
       ? [
@@ -1871,9 +2071,11 @@ export function FanletterHomePage({
   return (
     <main className="fanletter-v2-surface min-h-screen bg-[#fbfaff] text-black">
       <section className="relative min-h-[100svh] overflow-hidden border-b border-violet-200 bg-[#fbfaff] sm:min-h-[92svh]">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,#ffffff_0%,#fbfaff_56%,#f2edff_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(124,58,237,0.08)_0_1px,transparent_1px_32px)] opacity-70 sm:hidden" />
         {!hasHeroVideoSlides ? (
           <div
-            className="absolute inset-0 bg-cover bg-center opacity-[0.22] lg:opacity-[0.16]"
+            className="absolute inset-0 hidden bg-cover bg-center opacity-[0.22] sm:block lg:opacity-[0.16]"
             style={{
               backgroundImage: heroVideo?.coverImageUrl
                 ? `url(${heroVideo.coverImageUrl})`
@@ -1881,18 +2083,18 @@ export function FanletterHomePage({
             }}
           />
         ) : null}
-        <FanletterHeroBackgroundCarousel
-          mobileLayout="immersive"
-          randomizeOnMount
-          showMobilePreviews
-          slides={heroBackgroundSlides}
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.5)_0%,rgba(255,255,255,0.66)_40%,rgba(251,250,255,0.94)_76%,#fbfaff_100%)] lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.9)_38%,rgba(255,255,255,0.48)_68%,rgba(251,250,255,0.76)_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(255,255,255,0.7)_0%,rgba(255,255,255,0.34)_48%,rgba(255,255,255,0.1)_100%)] lg:hidden" />
+        <div className="hidden sm:block">
+          <FanletterHeroBackgroundCarousel
+            mobileLayout="immersive"
+            randomizeOnMount
+            slides={heroBackgroundSlides}
+          />
+        </div>
+        <div className="absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.5)_0%,rgba(255,255,255,0.66)_40%,rgba(251,250,255,0.94)_76%,#fbfaff_100%)] sm:block lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.9)_38%,rgba(255,255,255,0.48)_68%,rgba(251,250,255,0.76)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 hidden h-44 bg-[linear-gradient(180deg,rgba(251,250,255,0)_0%,#fbfaff_100%)] lg:block" />
 
         <div className="relative z-10 mx-auto flex min-h-[100svh] w-full max-w-7xl flex-col px-4 pb-[calc(6.8rem+env(safe-area-inset-bottom))] pt-3 sm:min-h-[92svh] sm:px-6 sm:pb-6 lg:px-8">
-          <div className="flex items-center justify-between gap-3 rounded-full border border-violet-200 bg-white/82 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-black/64 shadow-[0_14px_34px_rgba(88,28,135,0.1)] backdrop-blur-xl sm:bg-white/72 sm:py-2 sm:text-xs sm:shadow-none">
+          <div className="hidden items-center justify-between gap-3 rounded-full border border-violet-200 bg-white/82 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-black/64 shadow-[0_14px_34px_rgba(88,28,135,0.1)] backdrop-blur-xl sm:flex sm:bg-white/72 sm:py-2 sm:text-xs sm:shadow-none">
             <div className="flex min-w-0 items-center gap-2">
               <Sparkles className="size-3.5 shrink-0 text-[#7c3aed]" />
               <span className="truncate">{copy.announcement.label}</span>
@@ -1906,7 +2108,7 @@ export function FanletterHomePage({
             </Link>
           </div>
 
-          <header className="mt-4 flex items-center justify-between gap-4">
+          <header className="mt-3 flex items-center justify-between gap-2 sm:mt-4 sm:gap-4">
             <Link className="flex items-center gap-2" href={homeHref}>
               <FanletterBrandMark className="size-9" />
               <span className="text-xl font-semibold tracking-tight">AIAVpark</span>
@@ -1951,23 +2153,27 @@ export function FanletterHomePage({
               </Link>
             </nav>
 
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
+              <FanletterGlobalLanguageSwitcher
+                className="inline-flex sm:hidden"
+                compact
+                locale={locale}
+                surface="light"
+                tight
+              />
               <FanletterGlobalLanguageSwitcher
                 className="hidden sm:inline-flex"
                 locale={locale}
                 surface="light"
               />
               <FanletterAccountStatusLink
+                className="max-w-[6.8rem] sm:max-w-[14rem]"
                 locale={locale}
                 referralCode={referralCode}
                 surface="light"
               />
             </div>
           </header>
-
-          <div className="mt-4 flex sm:hidden">
-            <FanletterGlobalLanguageSwitcher compact locale={locale} surface="light" />
-          </div>
 
           {shareContext && shareContextTrackingMetadata ? (
             <ScrollReveal className="mt-4 max-w-3xl" delay={60} y={12}>
@@ -2033,43 +2239,53 @@ export function FanletterHomePage({
             </ScrollReveal>
           ) : null}
 
-          <div className="grid flex-1 content-end gap-5 pb-9 pt-[4.5rem] sm:content-center sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
+          <div className="grid flex-1 content-center gap-5 pb-8 pt-[1.7rem] sm:content-center sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
             <ScrollReveal className="max-w-[58rem]" delay={80} y={18}>
-              <p className="hidden text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#7c3aed] sm:block">
-                {copy.hero.eyebrow}
+              <p className="inline-flex rounded-full border border-violet-200 bg-white/82 px-3 py-1 text-[0.68rem] font-semibold text-[#6d28d9] shadow-[0_10px_24px_rgba(88,28,135,0.08)] backdrop-blur-md sm:bg-transparent sm:px-0 sm:shadow-none sm:uppercase sm:tracking-[0.28em]">
+                {locale === "ko" ? "파운더 클럽 2.0" : copy.hero.eyebrow}
               </p>
-              <h1 className="max-w-[21.5rem] text-[2rem] font-semibold leading-[1.08] tracking-normal text-[#12041f] [text-wrap:balance] [word-break:keep-all] sm:mt-4 sm:max-w-[58rem] sm:text-[3.2rem] lg:text-[3.65rem] xl:text-[4rem]">
-                {copy.hero.title}
+              <h1 className="mt-4 max-w-[22rem] text-[2.35rem] font-semibold leading-[1.02] tracking-normal text-[#12041f] [text-wrap:balance] [word-break:keep-all] sm:max-w-[58rem] sm:text-[3.2rem] lg:text-[3.65rem] xl:text-[4rem]">
+                <span className="sm:hidden">{mobileHeroCopy.title}</span>
+                <span className="hidden sm:inline">{copy.hero.title}</span>
               </h1>
-              <p className="mt-4 max-w-[21.5rem] text-sm font-medium leading-6 text-black/68 [word-break:keep-all] sm:mt-6 sm:max-w-2xl sm:text-lg sm:leading-7 sm:text-black/64">
+              <p className="mt-4 hidden max-w-2xl text-lg font-medium leading-7 text-black/64 [word-break:keep-all] sm:mt-6 sm:block">
                 {copy.hero.description}
               </p>
+              <div className="mt-3 inline-flex max-w-full rounded-full border border-violet-100 bg-white/82 px-3 py-2 text-[0.72rem] font-semibold text-black/58 shadow-[0_10px_24px_rgba(88,28,135,0.08)] sm:hidden">
+                {mobileHeroCopy.description}
+              </div>
               <div
                 className={joinClasses(
-                  "mt-6 flex-wrap gap-2.5 sm:mt-8 sm:flex sm:gap-3",
-                  shareContext ? "hidden" : "flex",
+                  "mt-5 max-w-[22rem] gap-2.5 sm:mt-8 sm:max-w-none sm:flex-wrap sm:gap-3",
+                  shareContext ? "hidden" : "grid sm:flex",
                 )}
               >
                 <Link
                   className="inline-flex h-12 items-center justify-center rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9] sm:h-[3.25rem] sm:px-7"
                   href={topGrowingStarsHref}
                 >
-                  {founderClubCtaLabels.discover}
+                  <span className="sm:hidden">{mobileHeroCopy.primary}</span>
+                  <span className="hidden sm:inline">{founderClubCtaLabels.discover}</span>
                 </Link>
                 <Link
-                  className="inline-flex h-12 items-center justify-center rounded-full border border-violet-200 bg-white/82 px-5 text-sm font-semibold !text-[#5b21b6] backdrop-blur-md transition hover:border-violet-300 hover:bg-violet-50 sm:h-[3.25rem] sm:px-7"
+                  className="hidden h-11 items-center justify-center gap-2 rounded-full border border-violet-200 bg-white/84 px-5 text-sm font-semibold !text-[#5b21b6] backdrop-blur-md transition hover:border-violet-300 hover:bg-violet-50 sm:inline-flex sm:h-[3.25rem] sm:px-7"
                   href={founderClubHref}
                 >
                   {founderClubCtaLabels.founder}
                 </Link>
                 <Link
-                  className="inline-flex h-12 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 text-sm font-semibold !text-emerald-800 backdrop-blur-md transition hover:border-emerald-300 hover:bg-emerald-100 sm:h-[3.25rem] sm:px-6"
+                  className="hidden h-12 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 text-sm font-semibold !text-emerald-800 backdrop-blur-md transition hover:border-emerald-300 hover:bg-emerald-100 sm:inline-flex sm:h-[3.25rem] sm:px-6"
                   href={scoutShareLoopHref}
                 >
                   <Megaphone className="size-4" />
                   {founderClubCtaLabels.loop}
                 </Link>
               </div>
+              <MobileFounderLoopVisual
+                locale={locale}
+                loop={founderClubScoutShareLoop ?? null}
+                star={mobileHeroLoopStar}
+              />
               <div className="mt-6 hidden max-w-2xl sm:mt-8 sm:block">
                 <p className="text-[0.66rem] font-semibold uppercase tracking-[0.2em] text-black/46">
                   {copy.platformTrust.eyebrow}
@@ -2191,7 +2407,7 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <section className="border-b border-violet-100 bg-[#fbfaff] px-4 py-3 sm:hidden">
+      <section className="hidden">
         <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
           {mobileQuickLinks.map((item) => {
             const Icon = item.Icon;
@@ -2231,7 +2447,7 @@ export function FanletterHomePage({
         stars={founderClubStars}
       />
 
-      <section className="border-b border-white/8 bg-[#07100b] px-4 py-12 text-white sm:px-6 sm:py-16 lg:px-8">
+      <section className="hidden border-b border-white/8 bg-[#07100b] px-4 py-12 text-white sm:block sm:px-6 sm:py-16 lg:px-8">
         <div className="mx-auto grid max-w-[92rem] gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-center">
           <ScrollReveal className="max-w-4xl">
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
@@ -2291,7 +2507,7 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <section className="border-b border-white/8 bg-[#f6f8f4] px-4 py-14 text-black sm:px-6 sm:py-20 lg:px-8">
+      <section className="hidden border-b border-white/8 bg-[#f6f8f4] px-4 py-14 text-black sm:block sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <ScrollReveal className="max-w-3xl">
@@ -2437,7 +2653,7 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <section className="border-b border-white/8 bg-black px-4 py-16 sm:px-6 sm:py-22 lg:px-8">
+      <section className="hidden border-b border-white/8 bg-black px-4 py-16 sm:block sm:px-6 sm:py-22 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
           <div className="grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
             <ScrollReveal>
@@ -2499,7 +2715,7 @@ export function FanletterHomePage({
       </section>
 
       <section
-        className="border-b border-white/8 bg-[#050806] px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
+        className="hidden border-b border-white/8 bg-[#050806] px-4 py-16 sm:block sm:px-6 sm:py-20 lg:px-8"
         id="features"
       >
         <div className="mx-auto max-w-[92rem]">
@@ -2564,33 +2780,35 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <FanletterNsfwExampleSection
-        copy={copy}
-        hiddenNsfwCount={hiddenNsfwCount}
-        locale={locale}
-        nsfwOptInEnabled={nsfwOptInEnabled}
-      />
+      <div className="hidden sm:block">
+        <FanletterNsfwExampleSection
+          copy={copy}
+          hiddenNsfwCount={hiddenNsfwCount}
+          locale={locale}
+          nsfwOptInEnabled={nsfwOptInEnabled}
+        />
 
-      <FanletterPaidPreviewRail
-        copy={copy}
-        featuredPaidVideos={featuredPaidVideos}
-        homeHref={homeHref}
-        locale={locale}
-        nsfwOptInEnabled={nsfwOptInEnabled}
-        referralCode={referralCode}
-      />
+        <FanletterPaidPreviewRail
+          copy={copy}
+          featuredPaidVideos={featuredPaidVideos}
+          homeHref={homeHref}
+          locale={locale}
+          nsfwOptInEnabled={nsfwOptInEnabled}
+          referralCode={referralCode}
+        />
 
-      <FanletterPaidSpotlightSection
-        copy={copy}
-        featuredPaidVideos={featuredPaidVideos}
-        homeHref={homeHref}
-        locale={locale}
-        nsfwOptInEnabled={nsfwOptInEnabled}
-        purchasesHref={purchasesHref}
-        referralCode={referralCode}
-      />
+        <FanletterPaidSpotlightSection
+          copy={copy}
+          featuredPaidVideos={featuredPaidVideos}
+          homeHref={homeHref}
+          locale={locale}
+          nsfwOptInEnabled={nsfwOptInEnabled}
+          purchasesHref={purchasesHref}
+          referralCode={referralCode}
+        />
+      </div>
 
-      <section className="border-b border-white/8 bg-[#f6f8f4] px-4 py-16 text-black sm:px-6 sm:py-20 lg:px-8">
+      <section className="hidden border-b border-white/8 bg-[#f6f8f4] px-4 py-16 text-black sm:block sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
           <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
             <ScrollReveal>
@@ -2645,7 +2863,7 @@ export function FanletterHomePage({
       </section>
 
       <section
-        className="bg-black px-4 py-16 sm:px-6 sm:py-24 lg:px-8"
+        className="hidden bg-black px-4 py-16 sm:block sm:px-6 sm:py-24 lg:px-8"
         id="creators"
       >
         <div className="mx-auto grid max-w-[92rem] gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
@@ -2711,7 +2929,7 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <section className="border-y border-white/8 bg-[#2f3f2e] px-4 py-16 text-white sm:px-6 sm:py-20 lg:px-8">
+      <section className="hidden border-y border-white/8 bg-[#2f3f2e] px-4 py-16 text-white sm:block sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto grid max-w-[92rem] gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
           <ScrollReveal>
             <h2 className="max-w-4xl text-[2.7rem] font-semibold leading-[0.95] tracking-normal [word-break:keep-all] sm:text-[4.6rem]">
@@ -2803,7 +3021,7 @@ export function FanletterHomePage({
       </section>
 
       <section
-        className="grid gap-10 bg-black px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[0.9fr_1.1fr] lg:px-8"
+        className="hidden gap-10 bg-black px-4 py-16 sm:grid sm:px-6 sm:py-24 lg:grid-cols-[0.9fr_1.1fr] lg:px-8"
         id="faq"
       >
         <h2 className="text-[4rem] font-semibold leading-none tracking-normal text-white sm:text-[7rem]">

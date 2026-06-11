@@ -116,7 +116,7 @@ export function FanletterGlobalLanguageSwitcher({
             compact &&
               "w-[9.35rem] min-w-[9.35rem] max-w-[9.35rem] sm:w-auto sm:min-w-[8rem] sm:max-w-none",
             tight &&
-              "h-12 w-[5.85rem] min-w-[5.85rem] max-w-[5.85rem] pl-3 pr-7 text-[0.72rem] sm:h-10 sm:w-auto sm:max-w-none",
+              "!h-10 !w-[5.7rem] !min-w-[5.7rem] !max-w-[5.7rem] !pl-3 !pr-7 !text-[0.72rem] sm:!h-10 sm:!w-auto sm:!max-w-none",
           )}
           hideIcon={tight}
           label={copy.label}
