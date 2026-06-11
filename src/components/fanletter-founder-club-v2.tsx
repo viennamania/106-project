@@ -181,11 +181,13 @@ function AIStarPortrait({
 
 export function AIStarCard({
   copy,
+  detailHref,
   isSelected = false,
   locale,
   star,
 }: {
   copy: FanletterV2Copy;
+  detailHref?: string;
   isSelected?: boolean;
   locale: Locale;
   star: AIStar;
@@ -247,6 +249,15 @@ export function AIStarCard({
             </p>
           </div>
         </div>
+        {detailHref ? (
+          <Link
+            className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-[#4c1d95] transition hover:bg-fuchsia-50"
+            href={detailHref}
+          >
+            {copy.actions.viewUniverse}
+            <ArrowRight className="size-4" />
+          </Link>
+        ) : null}
       </div>
     </article>
   );
@@ -286,6 +297,7 @@ export function TopGrowingStars({
         {stars.map((star) => (
           <AIStarCard
             copy={copy}
+            detailHref={`/${locale}/fanletter/${star.id}`}
             isSelected={star.id === selectedStarId}
             key={star.id}
             locale={locale}

@@ -312,6 +312,15 @@ export const fanletterV2Mock = {
 } as const;
 
 export type FanletterV2Copy = {
+  actions: {
+    copied: string;
+    copyLink: string;
+    createMockReferral: string;
+    joinAsFounder: string;
+    openDiscovery: string;
+    shareLink: string;
+    viewUniverse: string;
+  };
   creatorPath: {
     body: string;
     steps: Array<{
@@ -381,6 +390,22 @@ export type FanletterV2Copy = {
     shareToSns: string;
     title: string;
   };
+  starDetail: {
+    founderSlotsBody: string;
+    founderSlotsTitle: string;
+    heroBody: string;
+    heroEyebrow: string;
+    inboundRefBody: string;
+    inboundRefTitle: string;
+    mockNotice: string;
+    referralBody: string;
+    referralReady: string;
+    referralTitle: string;
+    rewardsTitle: string;
+    spawnedBody: string;
+    spawnedTitle: string;
+    universeTitle: string;
+  };
   topGrowingStars: {
     body: string;
     title: string;
@@ -395,6 +420,15 @@ export type FanletterV2Copy = {
 
 const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = {
   en: {
+    actions: {
+      copied: "Copied",
+      copyLink: "Copy link",
+      createMockReferral: "Create mock referral code",
+      joinAsFounder: "Join as Founder",
+      openDiscovery: "Back to Discovery",
+      shareLink: "Share link",
+      viewUniverse: "View Universe",
+    },
     creatorPath: {
       body:
         "The first version shows the unlock state only. Creating a new AI Star is a mock action until the real payment flow is added.",
@@ -497,6 +531,28 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       shareToSns: "shares to SNS",
       title: "Invite & Grow Flow",
     },
+    starDetail: {
+      founderSlotsBody:
+        "Human members use neutral gray avatars and role badges. They never reuse AI Star portraits.",
+      founderSlotsTitle: "Human Founder slots",
+      heroBody:
+        "This Universe page connects AI Star discovery to Founder join, mock referral creation, SNS sharing, and Creator progress.",
+      heroEyebrow: "AI Star Universe",
+      inboundRefBody:
+        "This visitor entered through a Founder referral. In the live flow, the join event will attach to this AI Star Universe.",
+      inboundRefTitle: "Referral detected",
+      mockNotice:
+        "Mock only: no real payment or permanent referral mutation runs from this screen.",
+      referralBody:
+        "Create a mock code, share the SNS link, and preview the reward that Member A earns when Member B joins.",
+      referralReady: "Mock referral ready",
+      referralTitle: "Founder referral builder",
+      rewardsTitle: "Mock reward preview",
+      spawnedBody:
+        "Spawned Stars are displayed as separate AI Star cards with their own purple AI STAR treatment.",
+      spawnedTitle: "Spawned AI Stars",
+      universeTitle: "Founder Universe",
+    },
     topGrowingStars: {
       body:
         "The discovery surface ranks AI Stars by Star Score, growth speed, founder count, and open Founder slots.",
@@ -511,6 +567,15 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
   },
   ja: {
+    actions: {
+      copied: "Copied",
+      copyLink: "Copy link",
+      createMockReferral: "Mock referral codeを作成",
+      joinAsFounder: "Founderとして参加",
+      openDiscovery: "Discoveryへ戻る",
+      shareLink: "Share link",
+      viewUniverse: "Universeを見る",
+    },
     creatorPath: {
       body:
         "最初のバージョンではアンロック状態だけを表示します。実決済を接続するまでは新しいAI Star作成はモックです。",
@@ -613,6 +678,28 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       shareToSns: "shares to SNS",
       title: "Invite & Grow Flow",
     },
+    starDetail: {
+      founderSlotsBody:
+        "Human memberはニュートラルなグレーアバターとrole badgeで表示します。AI Starのportraitは再利用しません。",
+      founderSlotsTitle: "Human Founder slots",
+      heroBody:
+        "このUniverseページではAI Star Discovery、Founder参加、mock referral作成、SNS共有、Creator progressを接続します。",
+      heroEyebrow: "AI Star Universe",
+      inboundRefBody:
+        "このvisitorはFounder referral経由で流入しました。Live flowでは参加イベントがこのAI Star Universeに紐づきます。",
+      inboundRefTitle: "Referral detected",
+      mockNotice:
+        "Mock only: この画面から実決済や永続的なreferral変更は実行しません。",
+      referralBody:
+        "Mock codeを作成し、SNS linkを共有し、Member B参加時にMember Aが得るrewardをプレビューします。",
+      referralReady: "Mock referral ready",
+      referralTitle: "Founder referral builder",
+      rewardsTitle: "Mock reward preview",
+      spawnedBody:
+        "Spawned Starは独立したAI Star cardとして、紫のAI STAR表示で区別します。",
+      spawnedTitle: "Spawned AI Stars",
+      universeTitle: "Founder Universe",
+    },
     topGrowingStars: {
       body:
         "Discovery画面ではStar Score、成長率、Founder数、空きFounder枠でAI Starを並べます。",
@@ -627,6 +714,15 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
   },
   ko: {
+    actions: {
+      copied: "복사됨",
+      copyLink: "링크 복사",
+      createMockReferral: "Mock referral code 생성",
+      joinAsFounder: "Founder로 참여하기",
+      openDiscovery: "Discovery로 돌아가기",
+      shareLink: "공유 링크",
+      viewUniverse: "Universe 보기",
+    },
     creatorPath: {
       body:
         "첫 버전에서는 unlock 상태만 보여줍니다. 실제 결제 플로우를 연결하기 전까지 새 AI Star 생성은 mock 액션입니다.",
@@ -729,6 +825,28 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       shareToSns: "shares to SNS",
       title: "Invite & Grow Flow",
     },
+    starDetail: {
+      founderSlotsBody:
+        "Human member는 중립 gray avatar와 role badge로 표시합니다. AI Star portrait를 human member에 재사용하지 않습니다.",
+      founderSlotsTitle: "Human Founder slots",
+      heroBody:
+        "이 Universe 페이지는 AI Star Discovery에서 Founder 참여, mock referral 생성, SNS 공유, Creator progress까지 이어지는 전환 흐름입니다.",
+      heroEyebrow: "AI Star Universe",
+      inboundRefBody:
+        "이 방문자는 Founder referral로 들어왔습니다. 실제 가입 플로우에서는 이 AI Star Universe에 가입 이벤트가 귀속됩니다.",
+      inboundRefTitle: "Referral detected",
+      mockNotice:
+        "Mock only: 이 화면에서는 실결제나 영구 referral 변경을 실행하지 않습니다.",
+      referralBody:
+        "Mock code를 만들고 SNS link를 공유한 뒤, Member B가 가입했을 때 Member A가 얻는 보상을 미리 보여줍니다.",
+      referralReady: "Mock referral ready",
+      referralTitle: "Founder referral builder",
+      rewardsTitle: "Mock reward preview",
+      spawnedBody:
+        "Spawned Star는 별도 AI Star card로 표시해 중심 AI Star와 같은 purple AI STAR 체계를 유지합니다.",
+      spawnedTitle: "Spawned AI Stars",
+      universeTitle: "Founder Universe",
+    },
     topGrowingStars: {
       body:
         "Discovery 화면은 Star Score, 성장률, Founder count, open Founder slots를 기준으로 AI Stars를 보여줍니다.",
@@ -761,4 +879,10 @@ export function getFanletterV2LocalizedText(
   }
 
   return value.en;
+}
+
+export function getFanletterV2MockStar(starId: string | null | undefined) {
+  return (
+    fanletterV2Mock.aiStars.find((star) => star.id === starId) ?? null
+  );
 }

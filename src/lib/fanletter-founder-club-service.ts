@@ -802,6 +802,83 @@ export async function getFanletterFounderClubHomeStars(options?: {
   );
 }
 
+export async function getFanletterFounderClubStarDetail(
+  starIdInput?: string | null,
+) {
+  const starId = normalizeFanletterStarId(starIdInput);
+
+  if (!starId) {
+    return null;
+  }
+
+  const [starsCollection, membershipsCollection] = await Promise.all([
+    getFanletterStarsCollection(),
+    getFanletterStarFounderMembershipsCollection(),
+  ]);
+  const star = await starsCollection.findOne({
+    starId,
+    status: { $ne: "archived" },
+  });
+
+  if (!star) {
+    return null;
+  }
+
+  const memberships = await membershipsCollection
+    .find({ starId })
+    .sort({
+      role: 1,
+      influenceScore: -1,
+      joinedAt: 1,
+    })
+    .toArray();
+  const memberEmails = [
+    ...new Set(memberships.map((membership) => membership.memberEmail)),
+  ];
+  const membersCollection = await getMembersCollection();
+  const members =
+    memberEmails.length > 0
+      ? await membersCollection
+          .find(
+            { email: { $in: memberEmails } },
+            { projection: { email: 1, publicProfile: 1 } },
+          )
+          .toArray()
+      : [];
+  const memberNamesByEmail = new Map(
+    members.map((member) => [
+      member.email,
+      compactText(member.publicProfile?.displayName, member.email.split("@")[0]),
+    ]),
+  );
+  const spawnedStars =
+    memberEmails.length > 0
+      ? await starsCollection
+          .find({
+            ownerEmail: { $in: memberEmails },
+            starId: { $ne: starId },
+            status: { $ne: "archived" },
+          })
+          .sort({
+            growthPercent: -1,
+            starScore: -1,
+            founderCount: -1,
+            updatedAt: -1,
+          })
+          .limit(SPAWNED_STAR_LIMIT)
+          .toArray()
+      : [];
+
+  return serializeStar({
+    founderSlots: serializeFounderSlots({
+      memberNamesByEmail,
+      memberships,
+    }),
+    spawnedStars: spawnedStars.map(serializeSpawnedStar),
+    star,
+  });
+}
+
 export async function getFanletterFounderClubScoutShareLoop({
   email,
   locale,
