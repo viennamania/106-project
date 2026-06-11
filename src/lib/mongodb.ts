@@ -59,6 +59,13 @@ import type {
   FanletterCampaignDocument,
   FanletterCampaignEventDocument,
 } from "@/lib/fanletter-campaign";
+import type {
+  FanletterStarDocument,
+  FanletterStarFounderMembershipDocument,
+  FanletterStarInfluenceLedgerDocument,
+  FanletterStarReferralCodeDocument,
+  FanletterStarReferralEdgeDocument,
+} from "@/lib/fanletter-founder-club";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
@@ -164,6 +171,21 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoFanletterCampaignEventsCollectionPromise?: Promise<
     Collection<FanletterCampaignEventDocument>
+  >;
+  mongoFanletterStarsCollectionPromise?: Promise<
+    Collection<FanletterStarDocument>
+  >;
+  mongoFanletterStarReferralCodesCollectionPromise?: Promise<
+    Collection<FanletterStarReferralCodeDocument>
+  >;
+  mongoFanletterStarFounderMembershipsCollectionPromise?: Promise<
+    Collection<FanletterStarFounderMembershipDocument>
+  >;
+  mongoFanletterStarReferralEdgesCollectionPromise?: Promise<
+    Collection<FanletterStarReferralEdgeDocument>
+  >;
+  mongoFanletterStarInfluenceLedgerCollectionPromise?: Promise<
+    Collection<FanletterStarInfluenceLedgerDocument>
   >;
   mongoCreatorAutomationProfilesCollectionPromise?: Promise<
     Collection<CreatorAutomationProfileDocument>
@@ -1340,6 +1362,157 @@ export async function getFanletterCampaignEventsCollection() {
   }
 
   return globalForMongo.mongoFanletterCampaignEventsCollectionPromise;
+}
+
+export async function getFanletterStarsCollection() {
+  if (!globalForMongo.mongoFanletterStarsCollectionPromise) {
+    globalForMongo.mongoFanletterStarsCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_FANLETTER_STARS_COLLECTION ?? "fanletterStars";
+      const collection = client
+        .db(dbName)
+        .collection<FanletterStarDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ starId: 1 }, { unique: true }),
+        collection.createIndex(
+          { legacyCreatorReferralCode: 1 },
+          {
+            unique: true,
+            partialFilterExpression: {
+              legacyCreatorReferralCode: { $type: "string" },
+            },
+          },
+        ),
+        collection.createIndex({ ownerEmail: 1, status: 1, updatedAt: -1 }),
+        collection.createIndex({ status: 1, starScore: -1, updatedAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoFanletterStarsCollectionPromise;
+}
+
+export async function getFanletterStarReferralCodesCollection() {
+  if (!globalForMongo.mongoFanletterStarReferralCodesCollectionPromise) {
+    globalForMongo.mongoFanletterStarReferralCodesCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_FANLETTER_STAR_REFERRAL_CODES_COLLECTION ??
+        "fanletterStarReferralCodes";
+      const collection = client
+        .db(dbName)
+        .collection<FanletterStarReferralCodeDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ starId: 1, code: 1 }, { unique: true }),
+        collection.createIndex({ starId: 1, memberEmail: 1 }, { unique: true }),
+        collection.createIndex({ memberEmail: 1, status: 1, updatedAt: -1 }),
+        collection.createIndex({ code: 1, status: 1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoFanletterStarReferralCodesCollectionPromise;
+}
+
+export async function getFanletterStarFounderMembershipsCollection() {
+  if (!globalForMongo.mongoFanletterStarFounderMembershipsCollectionPromise) {
+    globalForMongo.mongoFanletterStarFounderMembershipsCollectionPromise =
+      (async () => {
+        const { dbName } = getMongoConfig();
+        const client = await getMongoClient();
+        const collectionName =
+          process.env.MONGODB_FANLETTER_STAR_FOUNDER_MEMBERSHIPS_COLLECTION ??
+          "fanletterStarFounderMemberships";
+        const collection = client
+          .db(dbName)
+          .collection<FanletterStarFounderMembershipDocument>(collectionName);
+
+        await Promise.all([
+          collection.createIndex({ starId: 1, memberEmail: 1 }, { unique: true }),
+          collection.createIndex({ memberEmail: 1, role: 1, updatedAt: -1 }),
+          collection.createIndex({ starId: 1, role: 1, influenceScore: -1 }),
+          collection.createIndex({ starId: 1, joinedAt: -1 }),
+        ]);
+
+        return collection;
+      })();
+  }
+
+  return globalForMongo.mongoFanletterStarFounderMembershipsCollectionPromise;
+}
+
+export async function getFanletterStarReferralEdgesCollection() {
+  if (!globalForMongo.mongoFanletterStarReferralEdgesCollectionPromise) {
+    globalForMongo.mongoFanletterStarReferralEdgesCollectionPromise = (async () => {
+      const { dbName } = getMongoConfig();
+      const client = await getMongoClient();
+      const collectionName =
+        process.env.MONGODB_FANLETTER_STAR_REFERRAL_EDGES_COLLECTION ??
+        "fanletterStarReferralEdges";
+      const collection = client
+        .db(dbName)
+        .collection<FanletterStarReferralEdgeDocument>(collectionName);
+
+      await Promise.all([
+        collection.createIndex({ edgeId: 1 }, { unique: true }),
+        collection.createIndex(
+          { starId: 1, targetMemberEmail: 1 },
+          { unique: true },
+        ),
+        collection.createIndex(
+          { starId: 1, shareId: 1, targetMemberEmail: 1 },
+          {
+            unique: true,
+            partialFilterExpression: {
+              shareId: { $type: "string" },
+            },
+          },
+        ),
+        collection.createIndex({ sourceMemberEmail: 1, createdAt: -1 }),
+        collection.createIndex({ starId: 1, createdAt: -1 }),
+      ]);
+
+      return collection;
+    })();
+  }
+
+  return globalForMongo.mongoFanletterStarReferralEdgesCollectionPromise;
+}
+
+export async function getFanletterStarInfluenceLedgerCollection() {
+  if (!globalForMongo.mongoFanletterStarInfluenceLedgerCollectionPromise) {
+    globalForMongo.mongoFanletterStarInfluenceLedgerCollectionPromise =
+      (async () => {
+        const { dbName } = getMongoConfig();
+        const client = await getMongoClient();
+        const collectionName =
+          process.env.MONGODB_FANLETTER_STAR_INFLUENCE_LEDGER_COLLECTION ??
+          "fanletterStarInfluenceLedger";
+        const collection = client
+          .db(dbName)
+          .collection<FanletterStarInfluenceLedgerDocument>(collectionName);
+
+        await Promise.all([
+          collection.createIndex({ sourceId: 1 }, { unique: true }),
+          collection.createIndex({ starId: 1, recipientMemberEmail: 1 }),
+          collection.createIndex({ recipientMemberEmail: 1, createdAt: -1 }),
+          collection.createIndex({ starId: 1, createdAt: -1 }),
+        ]);
+
+        return collection;
+      })();
+  }
+
+  return globalForMongo.mongoFanletterStarInfluenceLedgerCollectionPromise;
 }
 
 export async function getFanletterNewsPlatformInquiriesCollection() {

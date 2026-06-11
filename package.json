@@ -23,6 +23,7 @@
     "fanletter:video-previews:backfill": "node scripts/backfill-content-video-previews.mjs",
     "fanletter:paid-covers:backfill": "node scripts/backfill-paid-video-covers.mjs",
     "fanletter:paid-covers:backfill:remote": "node scripts/trigger-backfill-paid-video-covers.mjs",
+    "fanletter:founder-club:backfill:audit": "node scripts/backfill-fanletter-founder-club-v2.mjs",
     "fanletter:reporter-incentives:backfill": "node scripts/backfill-fanletter-news-reporter-incentives.mjs",
     "fanletter:report-teasers:backfill": "node scripts/backfill-fanletter-news-report-teasers.mjs",
     "reconcile:pending": "node scripts/trigger-reconcile-signups.mjs",
