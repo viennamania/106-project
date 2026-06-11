@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import {
-  Clapperboard,
+  Bot,
   Crown,
   House,
   LayoutDashboard,
-  Plus,
+  Share2,
 } from "lucide-react";
 import { useSyncExternalStore, type ComponentType } from "react";
 
@@ -20,7 +20,7 @@ type FanletterNavItem = {
   activePaths: string[];
   href: string;
   icon: ComponentType<{ className?: string }>;
-  key: "home" | "feed" | "create" | "founder" | "studio";
+  key: "home" | "discover" | "founder" | "scout" | "studio";
   label: string;
   primary?: boolean;
 };
@@ -104,19 +104,19 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
   const copy =
     locale === "ko"
       ? {
-          create: "만들기",
-          feed: "피드",
+          discover: "발견",
           founder: "Founder",
           home: "홈",
           label: "AIAVpark 주요 메뉴",
+          scout: "Scout",
           studio: "스튜디오",
         }
       : {
-          create: "Create",
-          feed: "Feed",
+          discover: "Discover",
           founder: "Founder",
           home: "Home",
           label: "AIAVpark navigation",
+          scout: "Scout",
           studio: "Studio",
         };
   const buildHref = (path: string) => buildPathWithReferral(path, referralCode);
@@ -129,27 +129,11 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       label: copy.home,
     },
     {
-      activePaths: [
-        `${basePath}/feed`,
-        `${basePath}/characters`,
-        `${basePath}/content`,
-        `${basePath}/creator`,
-        `${basePath}/following`,
-        `${basePath}/purchases`,
-        `${basePath}/requests`,
-      ],
-      href: buildHref(`${basePath}/feed`),
-      icon: Clapperboard,
-      key: "feed",
-      label: copy.feed,
-    },
-    {
-      activePaths: [`${basePath}/create`],
-      href: buildHref(`${basePath}/create`),
-      icon: Plus,
-      key: "create",
-      label: copy.create,
-      primary: true,
+      activePaths: [],
+      href: buildHref(`${basePath}#top-growing-ai-stars`),
+      icon: Bot,
+      key: "discover",
+      label: copy.discover,
     },
     {
       activePaths: [],
@@ -157,6 +141,14 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       icon: Crown,
       key: "founder",
       label: copy.founder,
+      primary: true,
+    },
+    {
+      activePaths: [],
+      href: buildHref(`${basePath}#scout-share-loop`),
+      icon: Share2,
+      key: "scout",
+      label: copy.scout,
     },
     {
       activePaths: [`${basePath}/studio`, `${basePath}/channels`],

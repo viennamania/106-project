@@ -371,7 +371,10 @@ export function ScoutShareLoop({
   );
 
   return (
-    <article className="min-w-0 rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+    <article
+      className="min-w-0 scroll-mt-24 rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5"
+      id="scout-share-loop"
+    >
       <div className="flex items-start gap-3">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
           <Share2 className="size-5" />
@@ -658,7 +661,10 @@ export function CreatorUnlockCard({
   };
 
   return (
-    <article className="min-w-0 rounded-lg border border-[#7c3aed]/30 bg-[#12041f] p-4 text-white shadow-[0_24px_70px_rgba(88,28,135,0.22)] sm:p-5">
+    <article
+      className="min-w-0 scroll-mt-24 rounded-lg border border-[#7c3aed]/30 bg-[#12041f] p-4 text-white shadow-[0_24px_70px_rgba(88,28,135,0.22)] sm:p-5"
+      id="creator-unlock"
+    >
       <div className="flex items-start gap-3">
         <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-white text-[#5b21b6]">
           <Crown className="size-6" />
@@ -915,7 +921,10 @@ function CreatorPath({
   copy: FanletterV2Copy;
 }) {
   return (
-    <article className="min-w-0 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_44px_rgba(8,18,12,0.06)] sm:p-5">
+    <article
+      className="min-w-0 scroll-mt-24 rounded-lg border border-black/10 bg-white p-4 shadow-[0_18px_44px_rgba(8,18,12,0.06)] sm:p-5"
+      id="creator-path"
+    >
       <div className="flex items-start gap-3">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
           <Rocket className="size-5" />

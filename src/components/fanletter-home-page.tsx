@@ -7,7 +7,6 @@ import {
   ChartNoAxesCombined,
   Clapperboard,
   Crown,
-  FileText,
   LockKeyhole,
   Megaphone,
   MessageCircle,
@@ -206,8 +205,8 @@ export type FanletterHomeShareContext = {
 
 const koCopy: FanletterCopy = {
   announcement: {
-    label: "팬이 키우는 AI 캐릭터 성장 모델",
-    prize: "콘텐츠 수익을 팬 참여와 연결",
+    label: "Founder Club 2.0 성장 루프",
+    prize: "AI Star Discovery → Founder → Creator",
   },
   brandSuffix: "AI 캐릭터 브이로그",
   cta: {
@@ -273,7 +272,7 @@ const koCopy: FanletterCopy = {
     ],
   },
   footer: {
-    title: "팬이 키우고 함께 벌어가는 AI 캐릭터 채널.",
+    title: "AI Star를 발견하고 Founder 영향력을 키우는 성장 루프.",
   },
   growthModel: {
     body:
@@ -321,13 +320,13 @@ const koCopy: FanletterCopy = {
     title: "공개된 AI 캐릭터 브이로그로 팬이 바로 확인합니다.",
   },
   nav: {
-    campaigns: "캠페인",
-    creators: "캐릭터",
+    campaigns: "Scout",
+    creators: "Creator",
     faq: "FAQ",
-    features: "기능",
-    paid: "팬 전용",
-    reports: "내 리포트",
-    studio: "스튜디오",
+    features: "Discovery",
+    paid: "Founder Club",
+    reports: "Portfolio",
+    studio: "Studio",
   },
   paidSpotlight: {
     badge: "팬 전용 · 1 USDT",
@@ -422,8 +421,8 @@ const koCopy: FanletterCopy = {
 
 const enCopy: FanletterCopy = {
   announcement: {
-    label: "Fan-powered AI character growth model",
-    prize: "Connect content revenue to fan participation",
+    label: "Founder Club 2.0 growth loop",
+    prize: "AI Star Discovery → Founder → Creator",
   },
   brandSuffix: "AI Character Vlogger",
   cta: {
@@ -489,7 +488,7 @@ const enCopy: FanletterCopy = {
     ],
   },
   footer: {
-    title: "Build an AI character channel fans grow and share.",
+    title: "Discover AI Stars and grow Founder influence.",
   },
   growthModel: {
     body:
@@ -1555,6 +1554,9 @@ export function FanletterHomePage({
     referralCode,
   );
   const founderClubHref = "#founder-club";
+  const creatorUnlockHref = "#creator-unlock";
+  const creatorPathHref = "#creator-path";
+  const scoutShareLoopHref = "#scout-share-loop";
   const topGrowingStarsHref = "#top-growing-ai-stars";
   const creatorHref = onboardingHref;
   const connectHref = setPathSearchParams(
@@ -1651,60 +1653,84 @@ export function FanletterHomePage({
     locale === "ko"
       ? {
           activate: "계정 상태",
-          aiContent: "AI 캐릭터 브이로그",
+          aiContent: "AI Star Discovery",
           campaignStudio: "캠페인 스튜디오",
+          creatorUnlock: "Creator Unlock",
           creatorGrowth: "팬 관계 성장",
+          creatorPath: "Creator Path",
+          discovery: "AI Star Discovery",
+          existingFeatures: "기존 기능",
           feed: "브이로그 피드",
+          founderClub: "Founder Club",
+          founderUniverse: "Founder Universe",
           help: "도움말",
           mobileFirst: "모바일 우선",
           network: "네트워크",
+          noRealPayment: "실결제 전 mock",
+          operations: "운영 도구",
           reports: "내 리포트",
+          scoutLoop: "Scout Share Loop",
           studio: "브이로그 스튜디오",
           trust: "신뢰",
           usdtReady: "USDT 결제",
+          v2Loop: "Founder Club 2.0",
         }
       : {
           activate: "Account status",
-          aiContent: "AI character vlogs",
+          aiContent: "AI Star Discovery",
           campaignStudio: "Campaign studio",
+          creatorUnlock: "Creator Unlock",
           creatorGrowth: "Fan relationship growth",
+          creatorPath: "Creator Path",
+          discovery: "AI Star Discovery",
+          existingFeatures: "Features",
           feed: "Vlog feed",
+          founderClub: "Founder Club",
+          founderUniverse: "Founder Universe",
           help: "Help",
           mobileFirst: "Mobile first",
           network: "Network",
+          noRealPayment: "Mock before payment",
+          operations: "Operating tools",
           reports: "My reports",
+          scoutLoop: "Scout Share Loop",
           studio: "Vlog studio",
           trust: "Trust",
           usdtReady: "USDT ready",
+          v2Loop: "Founder Club 2.0",
         };
   const mobileFooterLabels =
     locale === "ko"
       ? {
           activate: "계정",
-          campaigns: "캠페인",
-          feed: "피드",
-          reports: "리포트",
+          creator: "Creator",
+          discovery: "Discovery",
+          founder: "Founder",
+          scout: "Scout",
           studio: "스튜디오",
         }
       : {
           activate: "Account",
-          campaigns: "Campaigns",
-          feed: "Feed",
-          reports: "Reports",
+          creator: "Creator",
+          discovery: "Discovery",
+          founder: "Founder",
+          scout: "Scout",
           studio: "Studio",
         };
-  const mobileAnnouncementCta = locale === "ko" ? "시작하기" : "Start";
+  const mobileAnnouncementCta = locale === "ko" ? "2.0 보기" : "View 2.0";
   const founderClubCtaLabels =
     locale === "ko"
       ? {
+          creator: "Creator Unlock",
           discover: "AI Star 발견하기",
           founder: "Founder로 참여하기",
-          loop: "성장 루프 보기",
+          loop: "Scout 공유 루프",
         }
       : {
+          creator: "Creator Unlock",
           discover: "Discover AI Stars",
           founder: "Join as Founder",
-          loop: "View growth loop",
+          loop: "Scout share loop",
         };
   const mobileQuickLinks =
     locale === "ko"
@@ -1722,16 +1748,16 @@ export function FanletterHomePage({
             label: "참여",
           },
           {
-            body: "무료 공개",
-            href: feedHref,
-            Icon: Clapperboard,
-            label: "피드",
+            body: "Share",
+            href: scoutShareLoopHref,
+            Icon: Network,
+            label: "Scout",
           },
           {
-            body: "작성 리포트",
-            href: reportsHref,
-            Icon: FileText,
-            label: "리포트",
+            body: "Unlock",
+            href: creatorUnlockHref,
+            Icon: ChartNoAxesCombined,
+            label: "Creator",
           },
         ]
       : [
@@ -1748,16 +1774,16 @@ export function FanletterHomePage({
             label: "Join",
           },
           {
-            body: "Free public",
-            href: feedHref,
-            Icon: Clapperboard,
-            label: "Feed",
+            body: "Share",
+            href: scoutShareLoopHref,
+            Icon: Network,
+            label: "Scout",
           },
           {
-            body: "Created reports",
-            href: reportsHref,
-            Icon: FileText,
-            label: "Reports",
+            body: "Unlock",
+            href: creatorUnlockHref,
+            Icon: ChartNoAxesCombined,
+            label: "Creator",
           },
         ];
   const heroSetupSteps =
@@ -1869,7 +1895,7 @@ export function FanletterHomePage({
             </div>
             <Link
               className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-[#44f26e]/24 bg-[#44f26e]/12 px-3 text-[0.68rem] font-semibold !text-[#44f26e] transition hover:bg-[#44f26e]/18 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e] sm:min-h-0 sm:border-0 sm:bg-transparent sm:px-0 sm:text-xs sm:hover:bg-transparent"
-              href={creatorHref}
+              href={founderClubHref}
             >
               <span className="sm:hidden">{mobileAnnouncementCta}</span>
               <span className="hidden sm:inline">{copy.announcement.prize}</span>
@@ -1882,14 +1908,43 @@ export function FanletterHomePage({
               <span className="text-xl font-semibold tracking-tight">AIAVpark</span>
             </Link>
 
-            <nav className="hidden items-center gap-4 text-xs font-semibold text-white/82 md:flex lg:gap-6 lg:text-sm">
-              <a href="#features">{copy.nav.features}</a>
-              <a href="#fan-only-paid">{copy.nav.paid}</a>
-              <a href="#creators">{copy.nav.creators}</a>
-              <Link href={reportsHref}>{copy.nav.reports}</Link>
-              <Link href={studioHref}>{copy.nav.studio}</Link>
-              <Link href={campaignsHref}>{copy.nav.campaigns}</Link>
-              <a href="#faq">{copy.nav.faq}</a>
+            <nav className="hidden items-center gap-1.5 text-xs font-semibold text-white/82 md:flex lg:gap-2 lg:text-sm">
+              <a
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-white/10 hover:text-white"
+                href={topGrowingStarsHref}
+              >
+                {copy.nav.features}
+              </a>
+              <a
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-white/10 hover:text-white"
+                href={founderClubHref}
+              >
+                {copy.nav.paid}
+              </a>
+              <a
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-white/10 hover:text-white"
+                href={scoutShareLoopHref}
+              >
+                {copy.nav.campaigns}
+              </a>
+              <a
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-white/10 hover:text-white"
+                href={creatorUnlockHref}
+              >
+                {copy.nav.creators}
+              </a>
+              <Link
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-white/10 hover:text-white"
+                href={reportsHref}
+              >
+                {copy.nav.reports}
+              </Link>
+              <Link
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-white/10 hover:text-white"
+                href={studioHref}
+              >
+                {copy.nav.studio}
+              </Link>
             </nav>
 
             <div className="flex items-center gap-2">
@@ -2003,7 +2058,7 @@ export function FanletterHomePage({
                 </Link>
                 <Link
                   className="inline-flex h-12 items-center gap-2 rounded-full border border-[#44f26e]/45 bg-[#44f26e]/10 px-5 text-sm font-semibold !text-[#baffc7] backdrop-blur-md transition hover:border-[#44f26e] hover:bg-[#44f26e]/18 sm:h-[3.25rem] sm:px-6"
-                  href={founderClubHref}
+                  href={scoutShareLoopHref}
                 >
                   <Megaphone className="size-4" />
                   {founderClubCtaLabels.loop}
@@ -2777,46 +2832,64 @@ export function FanletterHomePage({
             <div className="mt-6 grid grid-cols-2 gap-2 sm:mt-7 sm:flex sm:flex-wrap sm:gap-3">
               <Link
                 className="inline-flex h-11 min-w-0 items-center justify-center rounded-lg bg-[#44f26e] px-3 text-center text-sm font-semibold !text-black sm:px-5"
-                href={creatorHref}
+                href={topGrowingStarsHref}
               >
-                {copy.cta.creator}
+                {footerLabels.discovery}
               </Link>
               <Link
                 className="inline-flex h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 text-center text-sm font-semibold !text-black sm:px-5"
-                href={feedHref}
+                href={founderClubHref}
               >
-                {copy.cta.fan}
+                {footerLabels.founderClub}
+              </Link>
+              <Link
+                className="inline-flex h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 text-center text-sm font-semibold !text-black sm:px-5"
+                href={scoutShareLoopHref}
+              >
+                {footerLabels.scoutLoop}
+              </Link>
+              <Link
+                className="inline-flex h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 text-center text-sm font-semibold !text-black sm:px-5"
+                href={creatorUnlockHref}
+              >
+                {footerLabels.creatorUnlock}
               </Link>
             </div>
           </div>
           <div className="sm:hidden">
             <div className="grid grid-cols-2 gap-2 text-center text-[0.78rem] font-semibold text-black/70">
               <Link
-                className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                href={topGrowingStarsHref}
+              >
+                {mobileFooterLabels.discovery}
+              </Link>
+              <Link
+                className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                href={founderClubHref}
+              >
+                {mobileFooterLabels.founder}
+              </Link>
+              <Link
+                className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                href={scoutShareLoopHref}
+              >
+                {mobileFooterLabels.scout}
+              </Link>
+              <Link
+                className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                href={creatorUnlockHref}
+              >
+                {mobileFooterLabels.creator}
+              </Link>
+              <Link
+                className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
                 href={studioHref}
               >
                 {mobileFooterLabels.studio}
               </Link>
               <Link
-                className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
-                href={campaignsHref}
-              >
-                {mobileFooterLabels.campaigns}
-              </Link>
-              <Link
-                className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
-                href={feedHref}
-              >
-                {mobileFooterLabels.feed}
-              </Link>
-              <Link
-                className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
-                href={reportsHref}
-              >
-                {mobileFooterLabels.reports}
-              </Link>
-              <Link
-                className="inline-flex h-10 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
                 href={connectHref}
               >
                 {mobileFooterLabels.activate}
@@ -2829,7 +2902,7 @@ export function FanletterHomePage({
               </div>
               <div className="flex min-h-10 items-center gap-2">
                 <BadgeDollarSign className="size-4 shrink-0" />
-                <span>{footerLabels.usdtReady}</span>
+                <span>{footerLabels.noRealPayment}</span>
               </div>
               <div className="flex min-h-10 items-center gap-2">
                 <ChartNoAxesCombined className="size-4 shrink-0" />
@@ -2839,21 +2912,41 @@ export function FanletterHomePage({
           </div>
           <div className="hidden grid-cols-2 gap-6 text-sm font-semibold text-black/62 sm:grid sm:grid-cols-4">
             <div>
-              <p className="text-black">AIAVpark</p>
+              <p className="text-black">{footerLabels.v2Loop}</p>
               <div className="mt-4 space-y-2">
-                <Link className="block" href={studioHref}>
+                <a className="flex min-h-9 items-center" href={topGrowingStarsHref}>
+                  {footerLabels.discovery}
+                </a>
+                <a className="flex min-h-9 items-center" href={founderClubHref}>
+                  {footerLabels.founderClub}
+                </a>
+                <a className="flex min-h-9 items-center" href={scoutShareLoopHref}>
+                  {footerLabels.scoutLoop}
+                </a>
+                <a className="flex min-h-9 items-center" href={creatorUnlockHref}>
+                  {footerLabels.creatorUnlock}
+                </a>
+                <a className="flex min-h-9 items-center" href={creatorPathHref}>
+                  {footerLabels.creatorPath}
+                </a>
+              </div>
+            </div>
+            <div>
+              <p className="text-black">{footerLabels.operations}</p>
+              <div className="mt-4 space-y-2">
+                <Link className="flex min-h-9 items-center" href={studioHref}>
                   {footerLabels.studio}
                 </Link>
-                <Link className="block" href={campaignsHref}>
+                <Link className="flex min-h-9 items-center" href={campaignsHref}>
                   {footerLabels.campaignStudio}
                 </Link>
-                <Link className="block" href={feedHref}>
+                <Link className="flex min-h-9 items-center" href={feedHref}>
                   {footerLabels.feed}
                 </Link>
-                <Link className="block" href={reportsHref}>
+                <Link className="flex min-h-9 items-center" href={reportsHref}>
                   {footerLabels.reports}
                 </Link>
-                <Link className="block" href={connectHref}>
+                <Link className="flex min-h-9 items-center" href={connectHref}>
                   {footerLabels.activate}
                 </Link>
               </div>
@@ -2861,18 +2954,13 @@ export function FanletterHomePage({
             <div>
               <p className="text-black">{copy.nav.features}</p>
               <div className="mt-4 space-y-2">
-                <a className="block" href="#features">
+                <a className="flex min-h-9 items-center" href={topGrowingStarsHref}>
                   {footerLabels.aiContent}
                 </a>
-                <a className="block" href="#creators">
-                  {footerLabels.network}
+                <a className="flex min-h-9 items-center" href="#features">
+                  {footerLabels.existingFeatures}
                 </a>
-              </div>
-            </div>
-            <div>
-              <p className="text-black">{copy.nav.faq}</p>
-              <div className="mt-4 space-y-2">
-                <a className="block" href="#faq">
+                <a className="flex min-h-9 items-center" href="#faq">
                   {footerLabels.help}
                 </a>
               </div>
@@ -2885,7 +2973,7 @@ export function FanletterHomePage({
               </div>
               <div className="mt-3 flex items-center gap-2">
                 <BadgeDollarSign className="size-4" />
-                <span>{footerLabels.usdtReady}</span>
+                <span>{footerLabels.noRealPayment}</span>
               </div>
               <div className="mt-3 flex items-center gap-2">
                 <ChartNoAxesCombined className="size-4" />
