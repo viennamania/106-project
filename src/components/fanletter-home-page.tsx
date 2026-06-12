@@ -1740,6 +1740,10 @@ export function FanletterHomePage({
     `/${locale}/fanletter/creator-unlock`,
     referralCode,
   );
+  const aiStarGenealogyHref = buildPathWithReferral(
+    `/${locale}/fanletter/ai-star-genealogy`,
+    referralCode,
+  );
   const creatorPathHref = "#creator-path";
   const scoutShareLoopHref = "#scout-share-loop";
   const topGrowingStarsHref = "#top-growing-ai-stars";
@@ -1931,12 +1935,14 @@ export function FanletterHomePage({
           creator: "크리에이터 해금",
           discover: "AI 스타 발견하기",
           founder: "파운더로 참여하기",
+          genealogy: "AI 스타 계보",
           loop: "스카우트 공유 루프",
         }
       : {
           creator: "Creator Unlock",
           discover: "Discover AI Stars",
           founder: "Join as Founder",
+          genealogy: "AI Star Genealogy",
           loop: "Scout share loop",
         };
   const mobileQuickLinks =
@@ -1959,6 +1965,12 @@ export function FanletterHomePage({
             href: scoutShareLoopHref,
             Icon: Network,
             label: "스카우트",
+          },
+          {
+            body: "계보",
+            href: aiStarGenealogyHref,
+            Icon: Network,
+            label: "맵",
           },
           {
             body: "해금",
@@ -1985,6 +1997,12 @@ export function FanletterHomePage({
             href: scoutShareLoopHref,
             Icon: Network,
             label: "Scout",
+          },
+          {
+            body: "Map",
+            href: aiStarGenealogyHref,
+            Icon: Network,
+            label: "Genealogy",
           },
           {
             body: "Unlock",
@@ -2283,6 +2301,13 @@ export function FanletterHomePage({
                   <Megaphone className="size-4" />
                   {founderClubCtaLabels.loop}
                 </Link>
+                <Link
+                  className="hidden h-12 items-center gap-2 rounded-full border border-violet-200 bg-white/84 px-5 text-sm font-semibold !text-[#5b21b6] backdrop-blur-md transition hover:border-violet-300 hover:bg-violet-50 sm:inline-flex sm:h-[3.25rem] sm:px-6"
+                  href={aiStarGenealogyHref}
+                >
+                  <Network className="size-4" />
+                  {founderClubCtaLabels.genealogy}
+                </Link>
               </div>
               <div className="w-full max-w-[27rem] sm:hidden">
                 <MobileFounderLoopVisual
@@ -2413,7 +2438,7 @@ export function FanletterHomePage({
       </section>
 
       <section className="hidden">
-        <div className="mx-auto grid max-w-md grid-cols-4 gap-2">
+        <div className="mx-auto grid max-w-lg grid-cols-5 gap-2">
           {mobileQuickLinks.map((item) => {
             const Icon = item.Icon;
 

@@ -271,10 +271,12 @@ function serializeFounderSlots({
 
 function serializeStar({
   founderSlots,
+  parentStar = null,
   spawnedStars = [],
   star,
 }: {
   founderSlots: HumanFounderSlot[];
+  parentStar?: SpawnedAIStar | null;
   spawnedStars?: SpawnedAIStar[];
   star: FanletterStarDocument;
 }): AIStar {
@@ -298,6 +300,7 @@ function serializeStar({
       open: openSlotCount,
       total: Math.max(founderSlotTotal, founderCount + openSlotCount),
     },
+    parentStar,
     portraitImageUrl: star.portraitImageUrl,
     portraitInitials: getInitials(star.characterName || star.displayName),
     specialty: getSpecialtyText(star),
@@ -1045,27 +1048,41 @@ export async function getFanletterFounderClubStarDetail(
     });
   }
 
-  const spawnedStars = await starsCollection
-    .find({
-      $or: spawnedStarFilters,
-      starId: { $ne: starId },
-      status: { $ne: "archived" },
-    })
-    .sort({
-      createdByUnlock: -1,
-      growthPercent: -1,
-      starScore: -1,
-      founderCount: -1,
-      updatedAt: -1,
-    })
-    .limit(SPAWNED_STAR_LIMIT)
-    .toArray();
+  const parentStarId = normalizeFanletterStarId(star.spawnedFromStarId);
+  const [spawnedStars, parentStar] = await Promise.all([
+    starsCollection
+      .find({
+        $or: spawnedStarFilters,
+        starId: { $ne: starId },
+        status: { $ne: "archived" },
+      })
+      .sort({
+        createdByUnlock: -1,
+        growthPercent: -1,
+        starScore: -1,
+        founderCount: -1,
+        updatedAt: -1,
+      })
+      .limit(SPAWNED_STAR_LIMIT)
+      .toArray(),
+    parentStarId
+      ? starsCollection.findOne({
+          starId: parentStarId,
+          status: { $ne: "archived" },
+        })
+      : Promise.resolve(null),
+  ]);
 
   return serializeStar({
     founderSlots: serializeFounderSlots({
       memberNamesByEmail,
       memberships,
     }),
+    parentStar: parentStar
+      ? serializeSpawnedStar({
+          star: parentStar,
+        })
+      : null,
     spawnedStars: spawnedStars.map((spawnedStar) =>
       serializeSpawnedStar({
         sourceStar: star,

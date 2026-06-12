@@ -8,6 +8,7 @@ import {
   Bot,
   Crown,
   GitBranch,
+  Network,
   ShieldCheck,
   Share2,
   Users,
@@ -674,6 +675,165 @@ function SpawnedStarsSection({
   );
 }
 
+function AIStarGenealogySection({
+  copy,
+  locale,
+  star,
+}: {
+  copy: ReturnType<typeof getFanletterV2Copy>;
+  locale: Locale;
+  star: AIStar;
+}) {
+  const isKorean = isKoreanCopy(copy);
+  const parentStar = star.parentStar ?? null;
+  const firstSpawnedStar = star.spawnedStars[0] ?? null;
+
+  if (!parentStar && !firstSpawnedStar) {
+    return null;
+  }
+
+  const labels = isKorean
+    ? {
+        body:
+          "이 AI 스타가 어느 Universe에서 탄생했고, 다음 AI 스타를 어떻게 확장하는지 보여줍니다.",
+        current: "현재 AI 스타",
+        map: "전체 계보 맵",
+        parent: "Parent AI Star",
+        spawned: "Spawned AI Star",
+        title: "AI 스타 계보",
+      }
+    : {
+        body:
+          "See where this AI Star was born and how it expands into the next AI Stars.",
+        current: "Current AI Star",
+        map: "Full genealogy map",
+        parent: "Parent AI Star",
+        spawned: "Spawned AI Star",
+        title: "AI Star Genealogy",
+      };
+  const currentStarAsNode: SpawnedAIStar = {
+    accentColor: star.accentColor,
+    accentSecondary: star.accentSecondary,
+    founderCount: star.founderCount,
+    growthPercent: star.growthPercent,
+    id: star.id,
+    name: star.name,
+    portraitInitials: star.portraitInitials,
+    specialty: star.specialty,
+    starScore: star.starScore,
+  };
+  const cards = [
+    parentStar
+      ? {
+          badge: labels.parent,
+          href: `/${locale}/fanletter/${encodeURIComponent(parentStar.id)}`,
+          node: parentStar,
+          tone: "from-[#4f46e5] to-[#7c3aed]",
+        }
+      : null,
+    {
+      badge: labels.current,
+      href: `/${locale}/fanletter/${encodeURIComponent(star.id)}`,
+      node: currentStarAsNode,
+      tone: "from-[#7c3aed] to-[#22d3ee]",
+    },
+    firstSpawnedStar
+      ? {
+          badge: labels.spawned,
+          href: `/${locale}/fanletter/${encodeURIComponent(firstSpawnedStar.id)}`,
+          node: firstSpawnedStar,
+          tone: "from-[#a855f7] to-[#ec4899]",
+        }
+      : null,
+  ].filter(
+    (
+      item,
+    ): item is {
+      badge: string;
+      href: string;
+      node: SpawnedAIStar;
+      tone: string;
+    } => item !== null,
+  );
+
+  return (
+    <article className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#5b21b6] text-white">
+            <GitBranch className="size-5" />
+          </span>
+          <div>
+            <p className="text-sm font-semibold text-[#6d28d9]">
+              {copy.labels.aiStarBadge}
+            </p>
+            <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
+              {labels.title}
+            </h2>
+            <p className="mt-2 text-sm font-medium leading-6 text-black/62">
+              {labels.body}
+            </p>
+          </div>
+        </div>
+        <Link
+          className="hidden h-10 shrink-0 items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-100 sm:inline-flex"
+          href={`/${locale}/fanletter/ai-star-genealogy`}
+        >
+          {labels.map}
+          <ArrowRight className="size-4" />
+        </Link>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto_1fr_auto_1fr] sm:items-stretch">
+        {cards.map((item, index) => (
+          <div
+            className="contents"
+            key={`${item.node.id}-${item.badge}`}
+          >
+            {index > 0 ? (
+              <div className="hidden items-center justify-center text-[#7c3aed] sm:flex">
+                <ArrowRight className="size-5" />
+              </div>
+            ) : null}
+            <Link
+              className={`rounded-lg bg-gradient-to-br ${item.tone} p-3 text-white shadow-[0_16px_34px_rgba(88,28,135,0.18)] transition hover:-translate-y-0.5`}
+              href={item.href}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="rounded-full bg-white/18 px-2 py-1 text-[0.58rem] font-semibold">
+                  {item.badge}
+                </span>
+                <Bot className="size-4 text-white/82" />
+              </div>
+              <div className="mt-4 flex items-center gap-3">
+                <span className="flex size-12 shrink-0 items-center justify-center rounded-full border border-white/25 bg-white/16 text-sm font-semibold">
+                  {item.node.portraitInitials}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-lg font-semibold">
+                    {getDisplayStarName(item.node.name, copy)}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold text-white/70">
+                    {copy.labels.starScore} {item.node.starScore}
+                  </p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      <Link
+        className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-100 sm:hidden"
+        href={`/${locale}/fanletter/ai-star-genealogy`}
+      >
+        {labels.map}
+        <ArrowRight className="size-4" />
+      </Link>
+    </article>
+  );
+}
+
 export function FanletterStarDetailPage({
   isAuthenticated = false,
   inboundReferralCode,
@@ -820,6 +980,13 @@ export function FanletterStarDetailPage({
                   <GitBranch className="size-4" />
                   {isKorean ? "유니버스 탐색" : "Explore Universe"}
                 </Link>
+                <Link
+                  className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800 shadow-[0_12px_26px_rgba(16,185,129,0.08)]"
+                  href={`/${locale}/fanletter/ai-star-genealogy`}
+                >
+                  <Network className="size-4" />
+                  {isKorean ? "AI 스타 계보" : "AI Star Genealogy"}
+                </Link>
               </div>
 
               <FanletterFounderMockStatusBanner
@@ -867,6 +1034,13 @@ export function FanletterStarDetailPage({
                   <GitBranch className="size-4" />
                   {isKorean ? "유니버스 탐색" : "Explore Universe"}
                 </Link>
+                <Link
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 text-sm font-semibold text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-100"
+                  href={`/${locale}/fanletter/ai-star-genealogy`}
+                >
+                  <Network className="size-4" />
+                  {isKorean ? "AI 스타 계보" : "AI Star Genealogy"}
+                </Link>
               </div>
             </div>
 
@@ -889,6 +1063,11 @@ export function FanletterStarDetailPage({
             starId={star.id}
           />
           <div className="grid gap-4">
+            <AIStarGenealogySection
+              copy={copy}
+              locale={locale}
+              star={displayStar}
+            />
             <HumanFounderSlots copy={copy} star={star} />
             <SpawnedStarsSection copy={copy} locale={locale} star={displayStar} />
           </div>

@@ -1001,14 +1001,22 @@ export function FanletterFounderUniverseInvestorPage({
 
         <footer className="mt-5 flex min-h-14 items-center justify-between rounded-full bg-gradient-to-r from-[#4f46e5] to-[#6d5dfc] px-7 text-white shadow-[0_18px_44px_rgba(79,70,229,0.24)]">
           <p className="text-lg font-semibold">{copy.footer}</p>
-          <Link
-            className="inline-flex h-10 items-center rounded-full bg-white px-4 text-sm font-semibold text-[#4338ca]"
-            href={`/${locale}/fanletter/${encodeURIComponent(
-              universe.star.id,
-            )}/universe`}
-          >
-            {copy.explore}
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              className="inline-flex h-10 items-center rounded-full bg-white px-4 text-sm font-semibold text-[#4338ca]"
+              href={`/${locale}/fanletter/ai-star-genealogy`}
+            >
+              {locale === "ko" ? "AI 스타 계보" : "AI Star Genealogy"}
+            </Link>
+            <Link
+              className="inline-flex h-10 items-center rounded-full bg-white/16 px-4 text-sm font-semibold text-white ring-1 ring-white/28"
+              href={`/${locale}/fanletter/${encodeURIComponent(
+                universe.star.id,
+              )}/universe`}
+            >
+              {copy.explore}
+            </Link>
+          </div>
         </footer>
       </div>
     </main>
