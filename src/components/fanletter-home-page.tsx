@@ -952,13 +952,18 @@ function FanletterProductHomeDashboard({
     seenPreviewAuthors.add(key);
     return true;
   });
-  const previewVideoList = (
-    uniqueAuthorPreviewVideos.length >= 2
-      ? uniqueAuthorPreviewVideos
-      : availablePreviewVideos
-  )
-    .filter((video) => video.videoUrl.trim() || video.coverImageUrl)
-    .slice(0, 5);
+  const previewVideoList =
+    uniqueAuthorPreviewVideos.length >= 3
+      ? uniqueAuthorPreviewVideos.slice(0, 3)
+      : [
+          ...uniqueAuthorPreviewVideos,
+          ...availablePreviewVideos.filter(
+            (video) =>
+              !uniqueAuthorPreviewVideos.some(
+                (uniqueVideo) => uniqueVideo.contentId === video.contentId,
+              ),
+          ),
+        ].slice(0, 3);
   const portfolioStats = [
     {
       label: isKo ? "스카우트 점수" : "Scout Score",
@@ -1070,7 +1075,7 @@ function FanletterProductHomeDashboard({
       label: productCopy.creator,
     },
   ];
-  const previewSlides = previewVideoList
+  const livePreviewSlides = previewVideoList
     .filter((video) => video.videoUrl.trim())
     .map((video) => ({
       authorAvatarImageUrl: video.authorAvatarImageUrl,
@@ -1088,6 +1093,41 @@ function FanletterProductHomeDashboard({
       title: video.title,
       videoUrl: video.videoUrl,
     }));
+  const previewSlideAuthorNames = new Set(
+    livePreviewSlides.map((slide) => slide.authorName),
+  );
+  const mockBackfillPreviewSlides = topStars
+    .filter((star) => !previewSlideAuthorNames.has(star.name))
+    .map((star, index) => {
+      const sourceVideo =
+        previewVideoList[index % Math.max(previewVideoList.length, 1)];
+
+      if (!sourceVideo?.videoUrl.trim()) {
+        return null;
+      }
+
+      return {
+        authorAvatarImageUrl:
+          star.portraitImageUrl ?? sourceVideo.authorAvatarImageUrl,
+        authorName: star.name,
+        badgeLabel: productCopy.videoPreview,
+        coverImageUrl: sourceVideo.coverImageUrl,
+        ctaLabel: productCopy.watchPreview,
+        href: `/${locale}/fanletter/${encodeURIComponent(star.id)}`,
+        signalLabel: isKo
+          ? `+${star.growthPercent}% 성장`
+          : `+${star.growthPercent}% growth`,
+        title: isKo
+          ? `${star.name} 브이로그 프리뷰`
+          : `${star.name} vlog preview`,
+        videoUrl: sourceVideo.videoUrl,
+      };
+    })
+    .filter((slide): slide is NonNullable<typeof slide> => Boolean(slide));
+  const previewSlides = [
+    ...livePreviewSlides,
+    ...mockBackfillPreviewSlides,
+  ].slice(0, 3);
 
   return (
     <section className="grid flex-1 content-start gap-5 pb-8 pt-6 sm:gap-6 sm:py-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] lg:items-start">
@@ -1180,10 +1220,10 @@ function FanletterProductHomeDashboard({
                 </Link>
               </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div className="-mx-1 mt-4 flex snap-x gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {topStars.map((star) => (
                   <Link
-                    className="group overflow-hidden rounded-[1.05rem] border border-violet-100 bg-white shadow-[0_12px_30px_rgba(88,28,135,0.07)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(88,28,135,0.12)]"
+                    className="group min-w-[13.75rem] snap-start overflow-hidden rounded-[1.05rem] border border-violet-100 bg-white shadow-[0_12px_30px_rgba(88,28,135,0.07)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(88,28,135,0.12)] lg:min-w-[14.5rem]"
                     href={`/${locale}/fanletter/${encodeURIComponent(star.id)}`}
                     key={star.id}
                   >
@@ -1193,10 +1233,10 @@ function FanletterProductHomeDashboard({
                         background: `linear-gradient(90deg, ${star.accentColor}, ${star.accentSecondary})`,
                       }}
                     />
-                    <div className="p-3">
+                    <div className="p-3.5">
                       <div className="flex items-center gap-3">
                         <span
-                          className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-cover bg-center text-sm font-semibold text-white shadow-[0_12px_24px_rgba(88,28,135,0.14)]"
+                          className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-cover bg-center text-sm font-semibold text-white shadow-[0_12px_24px_rgba(88,28,135,0.14)]"
                           style={
                             star.portraitImageUrl
                               ? { backgroundImage: `url(${star.portraitImageUrl})` }
@@ -1223,13 +1263,13 @@ function FanletterProductHomeDashboard({
                           [productCopy.open, star.openSlots.open],
                         ].map(([label, value]) => (
                           <span
-                            className="rounded-xl bg-slate-50 px-2 py-2"
+                            className="min-w-0 rounded-xl bg-slate-50 px-2 py-2"
                             key={label}
                           >
                             <span className="block text-sm font-semibold text-[#12041f]">
                               {value}
                             </span>
-                            <span className="mt-0.5 block text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                            <span className="mt-0.5 block truncate whitespace-nowrap text-[0.58rem] font-semibold tracking-normal text-slate-400">
                               {label}
                             </span>
                           </span>
@@ -2816,7 +2856,7 @@ export function FanletterHomePage({
             liveStats={liveStats}
             locale={locale}
             memberPortfolio={founderClubMemberPortfolio}
-            previewVideos={featuredVideos}
+            previewVideos={[...featuredVideos, ...featuredPaidVideos]}
             referralCode={referralCode}
             scoutShareLoop={founderClubScoutShareLoop}
             scoutShareLoopHref={scoutShareLoopHref}

@@ -290,7 +290,7 @@ export function FanletterVlogPreviewCarousel({
 }) {
   const { activeIndex, activeSlide, playableSlides, setActiveIndex } =
     useHeroSlides(slides, {
-      maxSlides: 5,
+      maxSlides: 3,
     });
 
   if (!activeSlide || playableSlides.length === 0) {
