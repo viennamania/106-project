@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { CheckCircle2 } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Crown,
+  GitBranch,
+  Share2,
+  Sparkles,
+} from "lucide-react";
 import {
   useCallback,
   useEffect,
@@ -19,6 +26,7 @@ const FANLETTER_FOUNDER_MOCK_MEMBERSHIP_EVENT =
 
 export type FanletterFounderMockMembership = {
   joinedAt: string;
+  joinMode?: "live" | "mock" | "preview";
   joinState?: "created" | "existing";
   placement?: FanletterFounderMockPlacement | null;
   referralCode: string | null;
@@ -94,6 +102,10 @@ function isMembership(value: unknown): value is FanletterFounderMockMembership {
 
   return (
     typeof candidate.joinedAt === "string" &&
+    (candidate.joinMode === undefined ||
+      candidate.joinMode === "live" ||
+      candidate.joinMode === "mock" ||
+      candidate.joinMode === "preview") &&
     (candidate.joinState === undefined ||
       candidate.joinState === "created" ||
       candidate.joinState === "existing") &&
@@ -176,6 +188,7 @@ export function getFanletterFounderMockMemberships() {
 
 export function recordFanletterFounderMockMembership({
   joinedAt,
+  joinMode,
   joinState,
   placement,
   referralCode,
@@ -183,6 +196,7 @@ export function recordFanletterFounderMockMembership({
   starId,
 }: {
   joinedAt?: string | null;
+  joinMode?: FanletterFounderMockMembership["joinMode"];
   joinState?: FanletterFounderMockMembership["joinState"];
   placement?: FanletterFounderMockPlacement | null;
   referralCode?: string | null;
@@ -198,6 +212,7 @@ export function recordFanletterFounderMockMembership({
   const existingMembership = memberships[starId] ?? null;
   const membership: FanletterFounderMockMembership = {
     joinedAt: existingMembership?.joinedAt ?? joinedAt ?? new Date().toISOString(),
+    joinMode: joinMode ?? existingMembership?.joinMode,
     joinState: joinState ?? existingMembership?.joinState,
     placement: placement ?? existingMembership?.placement ?? null,
     referralCode:
@@ -448,6 +463,7 @@ export function FanletterFounderJoinLink({
       async function recordJoinResponse(response: FanletterFounderMockJoinResponse) {
         recordFanletterFounderMockMembership({
           joinedAt: response.membership.joinedAt,
+          joinMode: response.mode,
           joinState: response.membership.joinState,
           placement: response.placement,
           referralCode: response.membership.referralCode,
@@ -594,6 +610,55 @@ function getEstimatedDepthPrefix(locale: Locale) {
   return "Est. ";
 }
 
+function getJoinStatusLabel(
+  membership: FanletterFounderMockMembership,
+  locale: Locale,
+) {
+  if (membership.joinMode === "live") {
+    return locale === "ko"
+      ? "Founder 활성"
+      : locale === "ja"
+        ? "Founder有効"
+        : "Founder active";
+  }
+
+  return locale === "ko"
+    ? "Preview 저장"
+    : locale === "ja"
+      ? "Preview保存"
+      : "Preview saved";
+}
+
+function getPlacementFallbackLabel(locale: Locale) {
+  return locale === "ko"
+    ? "배치 확인 전"
+    : locale === "ja"
+      ? "配置確認前"
+      : "Placement pending";
+}
+
+function getParentFallbackLabel({
+  locale,
+  placement,
+}: {
+  locale: Locale;
+  placement: FanletterFounderMockPlacement | null;
+}) {
+  if (placement?.rootResolved) {
+    return locale === "ko"
+      ? "AI 스타 Creator"
+      : locale === "ja"
+        ? "AI Star Creator"
+        : "AI Star Creator";
+  }
+
+  return locale === "ko"
+    ? "확인 중"
+    : locale === "ja"
+      ? "確認中"
+      : "Checking";
+}
+
 export function FanletterFounderMockStatusBanner({
   className,
   locale,
@@ -621,16 +686,23 @@ export function FanletterFounderMockStatusBanner({
   ).format(new Date(membership.joinedAt));
   const title =
     locale === "ko"
-      ? `${starName} Founder 참여 완료`
+      ? `${starName} Founder 배치 완료`
       : locale === "ja"
-        ? `${starName} Founder参加完了`
-        : `${starName} Founder join complete`;
+        ? `${starName} Founder配置完了`
+        : `${starName} Founder placement complete`;
+  const isLiveJoin = membership.joinMode === "live";
   const body =
     locale === "ko"
-      ? "이 브라우저에서 mock Founder 참여 상태가 저장되었습니다. 추천 링크 공유와 Creator 진행률 미리보기를 계속 확인할 수 있습니다."
+      ? isLiveJoin
+        ? "Founder 참여가 완료되었습니다. 내 네트워크 위치와 추천 코드를 확인하고 다음 Founder를 초대하세요."
+        : "이 브라우저에서 Founder 참여 미리보기가 저장되었습니다. 네트워크 위치와 추천 링크 흐름을 계속 확인할 수 있습니다."
       : locale === "ja"
-        ? "このブラウザにmock Founder参加状態を保存しました。紹介リンク共有とCreator進捗のプレビューを続けられます。"
-        : "Mock Founder status is saved in this browser. Continue previewing referral sharing and Creator progress.";
+        ? isLiveJoin
+          ? "Founder参加が完了しました。ネットワーク上の位置と紹介コードを確認し、次のFounderを招待してください。"
+          : "このブラウザにFounder参加プレビューを保存しました。配置と紹介リンクの流れを確認できます。"
+        : isLiveJoin
+          ? "Founder join is complete. Review your network position and invite the next Founder."
+          : "Founder join preview is saved in this browser. Continue reviewing placement and referral flow.";
   const codeLabel =
     locale === "ko" ? "추천 코드" : locale === "ja" ? "紹介コード" : "Referral";
   const dateLabel =
@@ -646,6 +718,13 @@ export function FanletterFounderMockStatusBanner({
     placement?.role ?? null,
     locale,
   );
+  const placementValue = placementDepthLabel
+    ? `${placementDepthLabel}${placementRoleLabel ? ` / ${placementRoleLabel}` : ""}`
+    : getPlacementFallbackLabel(locale);
+  const parentValue = placement?.parentMemberEmail
+    ? getMemberHandle(placement.parentMemberEmail)
+    : getParentFallbackLabel({ locale, placement });
+  const statusLabel = getJoinStatusLabel(membership, locale);
   const networkLabel =
     locale === "ko"
       ? "파운더 네트워크"
@@ -654,47 +733,183 @@ export function FanletterFounderMockStatusBanner({
         : "Founder Network";
   const parentLabel =
     locale === "ko" ? "상위 멤버" : locale === "ja" ? "上位メンバー" : "Parent";
+  const referralMetricLabel =
+    locale === "ko" ? "내 추천 코드" : locale === "ja" ? "紹介コード" : "Referral";
+  const nextRewardLabel =
+    locale === "ko" ? "다음 초대 보상" : locale === "ja" ? "次の招待報酬" : "Next invite";
+  const nextRewardValue =
+    locale === "ko"
+      ? "CP +100 / 영향력 +5"
+      : locale === "ja"
+        ? "CP +100 / 影響力 +5"
+        : "CP +100 / Influence +5";
+  const universeHref = `/${locale}/fanletter/${encodeURIComponent(
+    starId,
+  )}/universe`;
+  const starHref = `/${locale}/fanletter/${encodeURIComponent(starId)}${
+    membership.referralCode
+      ? `?ref=${encodeURIComponent(membership.referralCode)}`
+      : ""
+  }`;
+  const shareHref = `${starHref}#referral-builder`;
+  const creatorUnlockHref = `/${locale}/fanletter/creator-unlock`;
+  const flowLabels =
+    locale === "ko"
+      ? ["AI 스타", "내 Founder 위치", "추천 공유"]
+      : locale === "ja"
+        ? ["AI Star", "自分のFounder位置", "紹介共有"]
+        : ["AI Star", "My Founder slot", "Share referral"];
+  const actionLabels =
+    locale === "ko"
+      ? {
+          creator: "Creator 진행률",
+          network: "네트워크 보기",
+          share: "추천 링크 공유",
+        }
+      : locale === "ja"
+        ? {
+            creator: "Creator進捗",
+            network: "Networkを見る",
+            share: "紹介リンク共有",
+          }
+        : {
+            creator: "Creator progress",
+            network: "View network",
+            share: "Share referral",
+          };
+  const metricItems = [
+    {
+      icon: Crown,
+      label: networkLabel,
+      value: placementValue,
+    },
+    {
+      icon: GitBranch,
+      label: parentLabel,
+      value: parentValue,
+    },
+    {
+      icon: Share2,
+      label: referralMetricLabel,
+      mono: true,
+      value: membership.referralCode ?? "-",
+    },
+    {
+      icon: Sparkles,
+      label: nextRewardLabel,
+      value: nextRewardValue,
+    },
+  ];
 
   return (
     <div
       className={[
-        "mx-auto max-w-6xl rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 shadow-[0_18px_44px_rgba(16,185,129,0.12)]",
+        "mx-auto max-w-6xl overflow-hidden rounded-[1.35rem] border border-violet-100 bg-white text-[#12041f] shadow-[0_24px_70px_rgba(88,28,135,0.12)]",
         className,
       ]
         .filter(Boolean)
         .join(" ")}
     >
-      <div className="flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-700">
-          <CheckCircle2 className="size-5" />
-        </span>
+      <div className="grid gap-5 p-4 sm:p-5 lg:grid-cols-[1fr_auto] lg:items-start">
         <div className="min-w-0">
-          <p className="text-base font-semibold leading-tight">{title}</p>
-          <p className="mt-1 text-sm font-medium leading-5 text-emerald-900/72">
-            {body}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {membership.referralCode ? (
-              <span className="rounded-full bg-white px-3 py-1 font-mono text-xs font-semibold text-emerald-900">
-                {codeLabel}: {membership.referralCode}
-              </span>
-            ) : null}
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-900">
+          <div className="flex items-start gap-3">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+              <CheckCircle2 className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-base font-semibold leading-tight sm:text-lg">
+                  {title}
+                </p>
+                <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-emerald-700">
+                  {statusLabel}
+                </span>
+              </div>
+              <p className="mt-1 max-w-2xl text-sm font-medium leading-5 text-black/58">
+                {body}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            {metricItems.map((item) => {
+              const Icon = item.icon;
+
+              return (
+                <div
+                  className="min-w-0 rounded-2xl border border-violet-100 bg-[#fbfaff] p-3"
+                  key={item.label}
+                >
+                  <div className="flex items-center gap-2 text-[0.72rem] font-semibold text-[#6d5a7f]">
+                    <Icon className="size-3.5 shrink-0 text-[#7c3aed]" />
+                    <span className="truncate">{item.label}</span>
+                  </div>
+                  <p
+                    className={[
+                      "mt-2 truncate text-sm font-semibold text-[#12041f]",
+                      item.mono ? "font-mono" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
+                    {item.value}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <span className="rounded-full border border-violet-100 bg-white px-3 py-1 text-xs font-semibold text-[#5b21b6]">
               {dateLabel}: {joinedAtLabel}
             </span>
-            {placementDepthLabel ? (
-              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-900">
-                {networkLabel}: {placementDepthLabel}
-                {placementRoleLabel ? ` · ${placementRoleLabel}` : ""}
-              </span>
-            ) : null}
-            {placement?.parentMemberEmail ? (
-              <span className="rounded-full bg-white px-3 py-1 font-mono text-xs font-semibold text-emerald-900">
-                {parentLabel}: {getMemberHandle(placement.parentMemberEmail)}
+            {membership.referralCode ? (
+              <span className="rounded-full border border-violet-100 bg-white px-3 py-1 font-mono text-xs font-semibold text-[#5b21b6]">
+                {codeLabel}: {membership.referralCode}
               </span>
             ) : null}
           </div>
         </div>
+
+        <div className="grid min-w-[13rem] gap-2 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-emerald-50 p-3">
+          {flowLabels.map((label, index) => (
+            <div className="flex items-center gap-2" key={label}>
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-xs font-semibold text-[#7c3aed] shadow-sm">
+                {index + 1}
+              </span>
+              <span className="text-sm font-semibold text-[#12041f]">
+                {label}
+              </span>
+              {index < flowLabels.length - 1 ? (
+                <ArrowRight className="ml-auto size-4 text-[#7c3aed]" />
+              ) : null}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2 border-t border-violet-100 bg-[#fbfaff] p-4 sm:flex-row sm:p-5">
+        <Link
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(124,58,237,0.2)] transition hover:bg-[#6d28d9]"
+          href={universeHref}
+        >
+          <GitBranch className="size-4" />
+          {actionLabels.network}
+        </Link>
+        <Link
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-violet-200 bg-white px-4 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-50"
+          href={shareHref}
+        >
+          <Share2 className="size-4" />
+          {actionLabels.share}
+        </Link>
+        <Link
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-100"
+          href={creatorUnlockHref}
+        >
+          <Sparkles className="size-4" />
+          {actionLabels.creator}
+        </Link>
       </div>
     </div>
   );
