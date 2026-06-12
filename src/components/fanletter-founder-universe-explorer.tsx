@@ -262,6 +262,98 @@ function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+const unsafeMemberDisplayNamePatterns = [
+  /adult/i,
+  /boob/i,
+  /fuck/i,
+  /hand\s*job/i,
+  /hentai/i,
+  /nude/i,
+  /nsfw/i,
+  /porn/i,
+  /sex/i,
+  /\b69\b/i,
+  /69/i,
+] as const;
+
+function isUnsafeMemberDisplayName(value: string | null | undefined) {
+  const text = value?.trim();
+
+  return Boolean(
+    text && unsafeMemberDisplayNamePatterns.some((pattern) => pattern.test(text)),
+  );
+}
+
+function getSafeMemberFallback({
+  memberId,
+  memberReferralCode,
+  nodeId,
+  starReferralCode,
+}: Pick<
+  FanletterFounderUniverseExplorerNode,
+  "memberId" | "memberReferralCode" | "nodeId" | "starReferralCode"
+>) {
+  const token = (memberReferralCode ?? starReferralCode ?? memberId ?? nodeId)
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(-4)
+    .toUpperCase();
+
+  return `Member ${token || "USER"}`;
+}
+
+function sanitizeFounderUniverseData(
+  universe: FanletterFounderUniverseExplorerData,
+): FanletterFounderUniverseExplorerData {
+  const safeLabelByNodeId = new Map<string, string>();
+  const nodes = universe.nodes.map((node) => {
+    const safeLabel = isUnsafeMemberDisplayName(node.label)
+      ? getSafeMemberFallback(node)
+      : node.label;
+    const safeMemberId = isUnsafeMemberDisplayName(node.memberId)
+      ? getSafeMemberFallback(node)
+      : node.memberId;
+
+    safeLabelByNodeId.set(node.nodeId, safeLabel);
+
+    return {
+      ...node,
+      initials: safeLabel === node.label ? node.initials : safeLabel.slice(0, 2),
+      label: safeLabel,
+      memberId: safeMemberId,
+      searchText: [
+        safeMemberId,
+        safeLabel,
+        node.memberReferralCode,
+        node.starReferralCode,
+        node.role,
+        node.source,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase(),
+    };
+  });
+  const spawnedStars = universe.spawnedStars.map((spawnedStar) => {
+    if (!isUnsafeMemberDisplayName(spawnedStar.creatorLabel)) {
+      return spawnedStar;
+    }
+
+    return {
+      ...spawnedStar,
+      creatorLabel:
+        (spawnedStar.creatorNodeId
+          ? safeLabelByNodeId.get(spawnedStar.creatorNodeId)
+          : null) ?? "Member",
+    };
+  });
+
+  return {
+    ...universe,
+    nodes,
+    spawnedStars,
+  };
+}
+
 const universeDepthColors: Record<
   number,
   { bg: string; border: string; fill: string; text: string }
@@ -1601,22 +1693,28 @@ export function FanletterFounderUniverseExplorer({
   universe: FanletterFounderUniverseExplorerData;
 }) {
   const copy = getExplorerCopy(locale);
+  const displayUniverse = useMemo(
+    () => sanitizeFounderUniverseData(universe),
+    [universe],
+  );
   const [selectedDepth, setSelectedDepth] =
     useState<ExplorerDepthFilter>("all");
   const [query, setQuery] = useState("");
   const creatorNode =
-    universe.nodes.find((node) => node.isCreator) ?? universe.nodes[0] ?? null;
+    displayUniverse.nodes.find((node) => node.isCreator) ??
+    displayUniverse.nodes[0] ??
+    null;
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(
     creatorNode?.nodeId ?? null,
   );
   const normalizedQuery = query.trim().toLowerCase();
   const nodesById = useMemo(
-    () => new Map(universe.nodes.map((node) => [node.nodeId, node])),
-    [universe.nodes],
+    () => new Map(displayUniverse.nodes.map((node) => [node.nodeId, node])),
+    [displayUniverse.nodes],
   );
   const filteredNodes = useMemo(
     () =>
-      universe.nodes.filter((node) => {
+      displayUniverse.nodes.filter((node) => {
         const matchesDepth =
           selectedDepth === "all" ? true : node.depth === selectedDepth;
         const matchesQuery = normalizedQuery
@@ -1625,7 +1723,7 @@ export function FanletterFounderUniverseExplorer({
 
         return matchesDepth && matchesQuery;
       }),
-    [normalizedQuery, selectedDepth, universe.nodes],
+    [displayUniverse.nodes, normalizedQuery, selectedDepth],
   );
   const selectedNode = selectedNodeId ? nodesById.get(selectedNodeId) ?? null : null;
   const selectedChildNodes =
@@ -1645,14 +1743,14 @@ export function FanletterFounderUniverseExplorer({
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
               className="inline-flex h-10 items-center gap-2 rounded-lg border border-violet-100 bg-white px-3 text-sm font-semibold text-[#6d28d9] shadow-[0_10px_24px_rgba(88,28,135,0.06)]"
-              href={`/${locale}/fanletter/${encodeURIComponent(universe.star.id)}`}
+              href={`/${locale}/fanletter/${encodeURIComponent(displayUniverse.star.id)}`}
             >
               <ArrowLeft className="size-4" />
               {copy.back}
             </Link>
             <span className="inline-flex h-10 items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 text-sm font-semibold text-emerald-700">
               <GitBranch className="size-4" />
-              {formatNumber(universe.totals.edgeCount, locale)} {copy.edge}
+              {formatNumber(displayUniverse.totals.edgeCount, locale)} {copy.edge}
             </span>
           </div>
 
@@ -1661,7 +1759,7 @@ export function FanletterFounderUniverseExplorer({
           <FounderStarHero
             creatorNode={creatorNode}
             locale={locale}
-            universe={universe}
+            universe={displayUniverse}
           />
 
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
@@ -1672,13 +1770,13 @@ export function FanletterFounderUniverseExplorer({
                 onSelectNode={setSelectedNodeId}
                 selectedDepth={selectedDepth}
                 selectedNodeId={selectedNodeId}
-                universe={universe}
+                universe={displayUniverse}
               />
 
               <UniverseExpansionMap
                 locale={locale}
                 onSelectNode={setSelectedNodeId}
-                universe={universe}
+                universe={displayUniverse}
               />
 
               <div className="rounded-[1.35rem] border border-slate-100 bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,0.07)] sm:p-5">
@@ -1689,7 +1787,7 @@ export function FanletterFounderUniverseExplorer({
                     </p>
                     <p className="mt-1 text-xs font-semibold text-slate-400">
                       {formatNumber(filteredNodes.length, locale)} /{" "}
-                      {formatNumber(universe.nodes.length, locale)}
+                      {formatNumber(displayUniverse.nodes.length, locale)}
                     </p>
                   </div>
                   <label className="relative block sm:w-80">
@@ -1731,7 +1829,7 @@ export function FanletterFounderUniverseExplorer({
                 node={selectedNode}
                 onSelectNode={setSelectedNodeId}
               />
-              <MonthlyCpRewardCard locale={locale} universe={universe} />
+              <MonthlyCpRewardCard locale={locale} universe={displayUniverse} />
             </div>
           </div>
         </div>

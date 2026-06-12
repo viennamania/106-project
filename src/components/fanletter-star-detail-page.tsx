@@ -56,6 +56,10 @@ function formatNumber(value: number, locale: Locale) {
   );
 }
 
+function joinClasses(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
+
 function getPortraitInitials(name: string) {
   const normalized = name
     .replace(/[^a-zA-Z0-9가-힣\s]/g, " ")
@@ -399,6 +403,86 @@ function MetricTile({
       <p className="mt-2 text-[0.68rem] font-semibold uppercase text-black/48">
         {label}
       </p>
+    </div>
+  );
+}
+
+function FounderJoinFlowHint({
+  copy,
+  viewerState,
+}: {
+  copy: ReturnType<typeof getFanletterV2Copy>;
+  viewerState: StarDetailViewerState;
+}) {
+  const isKorean = isKoreanCopy(copy);
+  const labels =
+    isKorean
+      ? {
+          active: "현재 단계",
+          done: "완료",
+          steps: [
+            "계정 연결",
+            "Founder 참여",
+            "추천 링크 생성",
+            "초대 보상 적립",
+          ],
+          title: "참여 흐름",
+          waiting: "다음",
+        }
+      : {
+          active: "Current",
+          done: "Done",
+          steps: [
+            "Connect account",
+            "Join Founder",
+            "Create referral link",
+            "Earn invite rewards",
+          ],
+          title: "Join Flow",
+          waiting: "Next",
+        };
+  const activeIndex =
+    viewerState === "guest" ? 0 : viewerState === "member" ? 1 : 2;
+
+  return (
+    <div className="mt-4 rounded-lg border border-violet-200 bg-white/82 p-3 shadow-[0_14px_34px_rgba(88,28,135,0.08)]">
+      <p className="text-xs font-semibold text-[#6d28d9]">{labels.title}</p>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {labels.steps.map((step, index) => {
+          const isDone = index < activeIndex;
+          const isActive = index === activeIndex;
+
+          return (
+            <div
+              className={joinClasses(
+                "min-w-0 rounded-lg border px-3 py-2",
+                isActive
+                  ? "border-[#7c3aed] bg-violet-50"
+                  : isDone
+                    ? "border-emerald-200 bg-emerald-50"
+                    : "border-slate-200 bg-white",
+              )}
+              key={step}
+            >
+              <p
+                className={joinClasses(
+                  "text-[0.62rem] font-semibold",
+                  isActive
+                    ? "text-[#6d28d9]"
+                    : isDone
+                      ? "text-emerald-700"
+                      : "text-slate-400",
+                )}
+              >
+                {isDone ? labels.done : isActive ? labels.active : labels.waiting}
+              </p>
+              <p className="mt-1 truncate text-xs font-semibold text-[#12041f]">
+                {step}
+              </p>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -1006,6 +1090,12 @@ export function FanletterStarDetailPage({
                   </span>
                 </div>
               </div>
+              <div className="hidden max-w-2xl sm:block">
+                <FounderJoinFlowHint
+                  copy={copy}
+                  viewerState={viewerState}
+                />
+              </div>
 
               <div className="mt-5 sm:hidden">
                 <StarFounderMobilePanel
@@ -1016,6 +1106,10 @@ export function FanletterStarDetailPage({
                   loop={loop}
                   referralCode={referralCode}
                   star={star}
+                />
+                <FounderJoinFlowHint
+                  copy={copy}
+                  viewerState={viewerState}
                 />
                 <Link
                   className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-violet-200 bg-white px-4 text-sm font-semibold text-[#5b21b6] shadow-[0_12px_26px_rgba(88,28,135,0.08)]"

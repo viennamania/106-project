@@ -1011,6 +1011,8 @@ function FanletterProductHomeDashboard({
         shareCode: "추천 코드",
         subhead:
           "AI 스타를 발견하고, 스타 유니버스에 참여하고, 초대 성과로 크리에이터 권한을 여는 제품형 홈입니다.",
+        starCardFlow: "상세에서 Founder 참여",
+        swipeHint: "좌우로 밀어 더 보기",
         today: "오늘 할 일",
         topGrowingTitle: "성장 중인 AI 스타",
         unlocked: "활성화",
@@ -1040,6 +1042,8 @@ function FanletterProductHomeDashboard({
         shareCode: "Referral Code",
         subhead:
           "A product home for discovering AI Stars, joining Star Universes, and unlocking Creator status through invite performance.",
+        starCardFlow: "Detail → Founder join",
+        swipeHint: "Swipe to see more",
         today: "Today",
         topGrowingTitle: "Top Growing AI Stars",
         unlocked: "Unlocked",
@@ -1223,13 +1227,23 @@ function FanletterProductHomeDashboard({
                   <ArrowRight className="size-3.5" />
                 </Link>
               </div>
+              <p className="mt-3 text-[0.66rem] font-semibold text-slate-400 lg:hidden">
+                {productCopy.swipeHint}
+              </p>
 
               <div className="relative -mx-1 mt-4 min-w-0 max-w-full overflow-hidden">
-                <div className="flex max-w-full snap-x gap-3 overflow-x-auto overscroll-x-contain px-1 pb-2 pr-10 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [touch-action:pan-x] [&::-webkit-scrollbar]:hidden">
+                <div
+                  aria-label={productCopy.topGrowingTitle}
+                  className="flex max-w-full snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-1 pb-2 pr-10 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [touch-action:pan-x] [&::-webkit-scrollbar]:hidden"
+                  data-fanletter-top-stars-scroller
+                >
                   {topStars.map((star) => (
                     <Link
                       className="group w-[13.75rem] max-w-[calc(100vw-5rem)] shrink-0 snap-start overflow-hidden rounded-[1.05rem] border border-violet-100 bg-white shadow-[0_12px_30px_rgba(88,28,135,0.07)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(88,28,135,0.12)] lg:w-[14.5rem]"
-                      href={`/${locale}/fanletter/${encodeURIComponent(star.id)}`}
+                      href={buildPathWithReferral(
+                        `/${locale}/fanletter/${encodeURIComponent(star.id)}`,
+                        referralCode,
+                      )}
                       key={star.id}
                     >
                       <div
@@ -1279,6 +1293,10 @@ function FanletterProductHomeDashboard({
                               </span>
                             </span>
                           ))}
+                        </div>
+                        <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-violet-50 px-3 py-2 text-[0.66rem] font-semibold text-[#6d28d9]">
+                          <span className="truncate">{productCopy.starCardFlow}</span>
+                          <ArrowRight className="size-3.5 shrink-0" />
                         </div>
                       </div>
                     </Link>

@@ -122,6 +122,28 @@ function compactText(value: string | null | undefined, fallback: string) {
   return text || fallback;
 }
 
+const unsafeMemberDisplayNamePatterns = [
+  /adult/i,
+  /boob/i,
+  /fuck/i,
+  /hand\s*job/i,
+  /hentai/i,
+  /nude/i,
+  /nsfw/i,
+  /porn/i,
+  /sex/i,
+  /\b69\b/i,
+  /69/i,
+] as const;
+
+function isUnsafeMemberDisplayName(value: string | null | undefined) {
+  const text = value?.trim();
+
+  return Boolean(
+    text && unsafeMemberDisplayNamePatterns.some((pattern) => pattern.test(text)),
+  );
+}
+
 function getInitials(value: string) {
   const normalized = value.replace(/[^a-zA-Z0-9가-힣\s]/g, " ").trim();
   const words = normalized.split(/\s+/).filter(Boolean);
@@ -349,8 +371,11 @@ function serializeFounderSlots({
   memberNamesByEmail: Map<string, string>;
 }): HumanFounderSlot[] {
   return memberships.slice(0, FOUNDER_SLOT_LIMIT).map((membership) => {
-    const fallbackName = membership.memberEmail.split("@")[0] || "Member";
-    const name = memberNamesByEmail.get(membership.memberEmail) ?? fallbackName;
+    const fallbackName = membership.memberReferralCode
+      ? `Member ${membership.memberReferralCode.slice(-4)}`
+      : membership.memberEmail.split("@")[0] || "Member";
+    const rawName = memberNamesByEmail.get(membership.memberEmail) ?? fallbackName;
+    const name = isUnsafeMemberDisplayName(rawName) ? fallbackName : rawName;
 
     return {
       initials: getInitials(name),
@@ -358,6 +383,61 @@ function serializeFounderSlots({
       role: toFounderRole(membership.role),
     };
   });
+}
+
+const previewFounderSlotNames = [
+  "Ari",
+  "Bora",
+  "Dain",
+  "Haru",
+  "Mina",
+  "Rin",
+] as const;
+
+const previewFounderSlotRoles: Array<Exclude<FounderRole, "member">> = [
+  "genesis_founder",
+  "founder",
+  "mentor",
+  "producer",
+  "partner",
+  "founder",
+];
+
+function enrichFounderSlotsForPreview({
+  founderSlots,
+  star,
+}: {
+  founderSlots: HumanFounderSlot[];
+  star: FanletterStarDocument;
+}) {
+  if (founderSlots.length >= FOUNDER_SLOT_LIMIT) {
+    return founderSlots;
+  }
+
+  const usedNames = new Set(founderSlots.map((slot) => slot.name));
+  const enrichedSlots = [...founderSlots];
+
+  for (let index = 0; enrichedSlots.length < FOUNDER_SLOT_LIMIT; index += 1) {
+    const seed = hashText(`${star.starId}:${index}`);
+    const baseName = previewFounderSlotNames[seed % previewFounderSlotNames.length];
+    const name = `${baseName} ${String(index + 1).padStart(2, "0")}`;
+
+    if (usedNames.has(name)) {
+      continue;
+    }
+
+    usedNames.add(name);
+    enrichedSlots.push({
+      initials: getInitials(name),
+      name,
+      role:
+        previewFounderSlotRoles[
+          enrichedSlots.length % previewFounderSlotRoles.length
+        ] ?? "founder",
+    });
+  }
+
+  return enrichedSlots;
 }
 
 function serializeStar({
@@ -385,7 +465,10 @@ function serializeStar({
     accentColor,
     accentSecondary,
     founderCount,
-    founderSlots,
+    founderSlots: enrichFounderSlotsForPreview({
+      founderSlots,
+      star,
+    }),
     growthPercent: getDisplayGrowthPercent(star),
     id: star.starId,
     name: compactText(star.characterName, star.displayName),

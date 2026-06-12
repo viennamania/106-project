@@ -12,6 +12,7 @@ import type {
   FanletterFounderUniverseExplorerData,
   FanletterFounderUniverseExplorerEdge,
   FanletterFounderUniverseExplorerNode,
+  FanletterFounderUniverseExplorerSpawnedStar,
 } from "@/lib/fanletter-founder-universe-explorer";
 import {
   type FanletterStarDocument,
@@ -62,6 +63,28 @@ function compactText(value: string | null | undefined, fallback: string) {
   return text || fallback;
 }
 
+const unsafeMemberDisplayNamePatterns = [
+  /adult/i,
+  /boob/i,
+  /fuck/i,
+  /hand\s*job/i,
+  /hentai/i,
+  /nude/i,
+  /nsfw/i,
+  /porn/i,
+  /sex/i,
+  /\b69\b/i,
+  /69/i,
+] as const;
+
+function isUnsafeMemberDisplayName(value: string | null | undefined) {
+  const text = value?.trim();
+
+  return Boolean(
+    text && unsafeMemberDisplayNamePatterns.some((pattern) => pattern.test(text)),
+  );
+}
+
 function getInitials(value: string) {
   const normalized = value.replace(/[^a-zA-Z0-9가-힣\s]/g, " ").trim();
   const words = normalized.split(/\s+/).filter(Boolean);
@@ -94,7 +117,7 @@ function getMemberLabel({
 }) {
   const publicName = member?.publicProfile?.displayName;
 
-  if (publicName?.trim()) {
+  if (publicName?.trim() && !isUnsafeMemberDisplayName(publicName)) {
     return compactText(publicName, "Member");
   }
 
@@ -116,7 +139,7 @@ function getMemberId({
 }) {
   const localPart = normalizeEmail(email).split("@")[0]?.trim();
 
-  if (localPart) {
+  if (localPart && !isUnsafeMemberDisplayName(localPart)) {
     return localPart;
   }
 
@@ -206,6 +229,261 @@ function buildDepthAndParentMaps({
     childrenByEmail,
     depthByEmail,
     parentByEmail,
+  };
+}
+
+const previewUniverseNodeTargets: Record<number, number> = {
+  0: 1,
+  1: 6,
+  2: 12,
+  3: 18,
+};
+
+const previewMemberNames = [
+  "Ari",
+  "Bora",
+  "Dain",
+  "Eun",
+  "Haru",
+  "Ian",
+  "Jin",
+  "Kai",
+  "Lina",
+  "Mina",
+  "Nari",
+  "Rin",
+] as const;
+
+const previewSpawnedStarNames = ["Nova", "Lina", "Mira"] as const;
+
+function getPreviewDate(starId: string, depth: number, index: number) {
+  const date = new Date(Date.UTC(2026, 0, 1));
+  date.setUTCDate(
+    date.getUTCDate() + (hashText(`${starId}:${depth}:${index}`) % 120),
+  );
+
+  return date.toISOString();
+}
+
+function getPreviewReferralCode({
+  depth,
+  index,
+  star,
+}: {
+  depth: number;
+  index: number;
+  star: FanletterStarDocument;
+}) {
+  const starToken = compactText(star.characterName, star.displayName)
+    .replace(/[^a-zA-Z0-9가-힣]/g, "")
+    .toUpperCase()
+    .slice(0, 8);
+
+  return `${starToken || "STAR"}-P${depth}${String(index + 1).padStart(2, "0")}`;
+}
+
+function buildPreviewFounderUniverseNode({
+  depth,
+  index,
+  parentNodeId,
+  star,
+}: {
+  depth: number;
+  index: number;
+  parentNodeId: string | null;
+  star: FanletterStarDocument;
+}): FanletterFounderUniverseExplorerNode {
+  const tier = getFanletterFounderUniverseTier(depth);
+  const nameSeed = hashText(`${star.starId}:${depth}:${index}`);
+  const baseName = previewMemberNames[nameSeed % previewMemberNames.length];
+  const label =
+    depth === 0
+      ? compactText(star.ownerEmail?.split("@")[0], "Creator")
+      : `${baseName} ${String(index + 1).padStart(2, "0")}`;
+  const memberId =
+    depth === 0
+      ? compactText(star.ownerEmail?.split("@")[0], "creator")
+      : `${star.starId.slice(-4).toUpperCase()}-${depth}${String(index + 1).padStart(2, "0")}`;
+  const memberReferralCode = getPreviewReferralCode({ depth, index, star });
+  const email =
+    depth === 0 && star.ownerEmail
+      ? normalizeEmail(star.ownerEmail)
+      : `preview-${star.starId}-${depth}-${index}@fanletter.local`;
+  const role = tier?.role ?? "legend";
+  const searchText = [
+    memberId,
+    label,
+    memberReferralCode,
+    role,
+    "preview_backfill",
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return {
+    childNodeIds: [],
+    depth,
+    directChildrenCount: 0,
+    initials: getInitials(label),
+    isCreator: depth === 0,
+    joinedAt: getPreviewDate(star.starId, depth, index),
+    label,
+    memberId,
+    memberReferralCode,
+    nodeId: getStableNodeId(email),
+    parentNodeId,
+    role,
+    searchText,
+    source: "preview_backfill",
+    starReferralCode: memberReferralCode,
+  };
+}
+
+function enrichFounderUniverseExplorerPreview({
+  edges,
+  nodes,
+  spawnedStars,
+  star,
+}: {
+  edges: FanletterFounderUniverseExplorerEdge[];
+  nodes: FanletterFounderUniverseExplorerNode[];
+  spawnedStars: FanletterFounderUniverseExplorerSpawnedStar[];
+  star: FanletterStarDocument;
+}) {
+  const nodesById = new Map(
+    nodes.map((node) => [
+      node.nodeId,
+      {
+        ...node,
+        childNodeIds: [...node.childNodeIds],
+      },
+    ]),
+  );
+  const nextEdges = [...edges];
+  const nodesByDepth = new Map<number, FanletterFounderUniverseExplorerNode[]>();
+
+  function rebuildDepthIndex() {
+    nodesByDepth.clear();
+
+    for (const node of nodesById.values()) {
+      const list = nodesByDepth.get(node.depth) ?? [];
+      list.push(node);
+      nodesByDepth.set(node.depth, list);
+    }
+  }
+
+  rebuildDepthIndex();
+
+  if ((nodesByDepth.get(0)?.length ?? 0) === 0) {
+    const rootNode = buildPreviewFounderUniverseNode({
+      depth: 0,
+      index: 0,
+      parentNodeId: null,
+      star,
+    });
+    nodesById.set(rootNode.nodeId, rootNode);
+    rebuildDepthIndex();
+  }
+
+  for (const [depthText, targetCount] of Object.entries(
+    previewUniverseNodeTargets,
+  )) {
+    const depth = Number(depthText);
+
+    if (depth === 0) {
+      continue;
+    }
+
+    let currentNodes = nodesByDepth.get(depth) ?? [];
+    const parentNodes = nodesByDepth.get(depth - 1) ?? [];
+
+    if (parentNodes.length === 0) {
+      continue;
+    }
+
+    while (currentNodes.length < targetCount) {
+      const index = currentNodes.length;
+      const parentNode = parentNodes[index % parentNodes.length];
+      const previewNode = buildPreviewFounderUniverseNode({
+        depth,
+        index,
+        parentNodeId: parentNode?.nodeId ?? null,
+        star,
+      });
+
+      if (nodesById.has(previewNode.nodeId)) {
+        break;
+      }
+
+      nodesById.set(previewNode.nodeId, previewNode);
+
+      if (parentNode) {
+        parentNode.childNodeIds.push(previewNode.nodeId);
+        parentNode.directChildrenCount = parentNode.childNodeIds.length;
+        nextEdges.push({
+          sourceNodeId: parentNode.nodeId,
+          targetNodeId: previewNode.nodeId,
+        });
+      }
+
+      rebuildDepthIndex();
+      currentNodes = nodesByDepth.get(depth) ?? [];
+    }
+  }
+
+  const enrichedNodes = Array.from(nodesById.values()).sort(
+    (left, right) =>
+      left.depth - right.depth ||
+      left.role.localeCompare(right.role) ||
+      left.label.localeCompare(right.label),
+  );
+  const spawnedById = new Map(
+    spawnedStars.map((spawnedStar) => [spawnedStar.id, spawnedStar]),
+  );
+  const creatorCandidates = enrichedNodes.filter(
+    (node) => node.depth > 0 && node.depth <= 3,
+  );
+
+  for (
+    let index = 0;
+    spawnedById.size < 3 && index < previewSpawnedStarNames.length;
+    index += 1
+  ) {
+    const creatorNode =
+      creatorCandidates[index % Math.max(creatorCandidates.length, 1)] ??
+      enrichedNodes.find((node) => node.isCreator) ??
+      enrichedNodes[0] ??
+      null;
+    const spawnedName = `${previewSpawnedStarNames[index]} ${compactText(
+      star.characterName,
+      star.displayName,
+    )}`;
+    const spawnedId = `preview-${star.starId}-${previewSpawnedStarNames[
+      index
+    ].toLowerCase()}`;
+
+    spawnedById.set(spawnedId, {
+      createdAt: getPreviewDate(star.starId, 7, index),
+      creatorDepth: creatorNode?.depth ?? null,
+      creatorLabel: creatorNode?.label ?? null,
+      creatorNodeId: creatorNode?.nodeId ?? null,
+      creatorRole: creatorNode?.role ?? null,
+      directSpawnedStars: index === 0 ? 2 : 0,
+      growthPercent: 8 + index * 3,
+      id: spawnedId,
+      name: spawnedName,
+      ownerLabel: "Creator",
+      portraitImageUrl: null,
+      starScore: 50 + index * 4,
+      status: "draft",
+    });
+  }
+
+  return {
+    edges: nextEdges,
+    nodes: enrichedNodes,
+    spawnedStars: Array.from(spawnedById.values()),
   };
 }
 
@@ -460,9 +738,56 @@ export async function getFanletterFounderUniverseExplorer(
         left.role.localeCompare(right.role) ||
         left.label.localeCompare(right.label),
     );
+  const serializedSpawnedStars = spawnedStars.map((spawnedStar) => {
+    const ownerEmail = normalizeEmail(spawnedStar.ownerEmail ?? "");
+    const ownerMembership = ownerEmail
+      ? membershipByEmail.get(ownerEmail) ?? null
+      : null;
+    const ownerNodeId = ownerEmail ? nodeIdByEmail.get(ownerEmail) ?? null : null;
+    const ownerProfile = ownerEmail
+      ? memberProfileByEmail.get(ownerEmail) ?? null
+      : null;
+    const ownerReferralCode =
+      normalizeReferralCode(ownerMembership?.memberReferralCode) ??
+      normalizeReferralCode(ownerProfile?.referralCode);
+    const creatorDepth =
+      ownerEmail && depthByEmail.has(ownerEmail)
+        ? depthByEmail.get(ownerEmail) ?? null
+        : ownerMembership
+          ? getMembershipRoleDepth(ownerMembership.role)
+          : null;
+
+    return {
+      createdAt: toIsoStringOrNull(spawnedStar.createdAt),
+      creatorDepth,
+      creatorLabel: ownerEmail
+        ? getMemberLabel({
+            member: ownerProfile,
+            memberReferralCode: ownerReferralCode,
+            nodeId: ownerNodeId ?? getStableNodeId(ownerEmail),
+          })
+        : null,
+      creatorNodeId: ownerNodeId,
+      creatorRole: ownerMembership?.role ?? null,
+      directSpawnedStars: spawnedChildCountByStarId.get(spawnedStar.starId) ?? 0,
+      growthPercent: spawnedStar.growthPercent,
+      id: spawnedStar.starId,
+      name: spawnedStar.characterName || spawnedStar.displayName,
+      ownerLabel: ownerEmail ? "Creator" : null,
+      portraitImageUrl: spawnedStar.portraitImageUrl ?? null,
+      starScore: spawnedStar.starScore,
+      status: spawnedStar.status,
+    };
+  });
+  const enrichedUniverse = enrichFounderUniverseExplorerPreview({
+    edges,
+    nodes,
+    spawnedStars: serializedSpawnedStars,
+    star,
+  });
   const nodeCountByDepth = new Map<number, number>();
 
-  for (const node of nodes) {
+  for (const node of enrichedUniverse.nodes) {
     nodeCountByDepth.set(node.depth, (nodeCountByDepth.get(node.depth) ?? 0) + 1);
   }
 
@@ -473,50 +798,10 @@ export async function getFanletterFounderUniverseExplorer(
   );
 
   return {
-    edges,
+    edges: enrichedUniverse.edges,
     generatedAt: new Date().toISOString(),
-    nodes,
-    spawnedStars: spawnedStars.map((spawnedStar) => {
-      const ownerEmail = normalizeEmail(spawnedStar.ownerEmail ?? "");
-      const ownerMembership = ownerEmail
-        ? membershipByEmail.get(ownerEmail) ?? null
-        : null;
-      const ownerNodeId = ownerEmail ? nodeIdByEmail.get(ownerEmail) ?? null : null;
-      const ownerProfile = ownerEmail
-        ? memberProfileByEmail.get(ownerEmail) ?? null
-        : null;
-      const ownerReferralCode =
-        normalizeReferralCode(ownerMembership?.memberReferralCode) ??
-        normalizeReferralCode(ownerProfile?.referralCode);
-      const creatorDepth =
-        ownerEmail && depthByEmail.has(ownerEmail)
-          ? depthByEmail.get(ownerEmail) ?? null
-          : ownerMembership
-            ? getMembershipRoleDepth(ownerMembership.role)
-            : null;
-
-      return {
-        createdAt: toIsoStringOrNull(spawnedStar.createdAt),
-        creatorDepth,
-        creatorLabel: ownerEmail
-          ? getMemberLabel({
-              member: ownerProfile,
-              memberReferralCode: ownerReferralCode,
-              nodeId: ownerNodeId ?? getStableNodeId(ownerEmail),
-            })
-          : null,
-        creatorNodeId: ownerNodeId,
-        creatorRole: ownerMembership?.role ?? null,
-        directSpawnedStars: spawnedChildCountByStarId.get(spawnedStar.starId) ?? 0,
-        growthPercent: spawnedStar.growthPercent,
-        id: spawnedStar.starId,
-        name: spawnedStar.characterName || spawnedStar.displayName,
-        ownerLabel: ownerEmail ? "Creator" : null,
-        portraitImageUrl: spawnedStar.portraitImageUrl ?? null,
-        starScore: spawnedStar.starScore,
-        status: spawnedStar.status,
-      };
-    }),
+    nodes: enrichedUniverse.nodes,
+    spawnedStars: enrichedUniverse.spawnedStars,
     star: {
       accentColor,
       accentSecondary,
@@ -546,12 +831,12 @@ export async function getFanletterFounderUniverseExplorer(
     }),
     totals: {
       activeReferralCodes: referralCodes.length,
-      edgeCount: edges.length,
-      maxDepth: Math.max(0, ...nodes.map((node) => node.depth)),
+      edgeCount: enrichedUniverse.edges.length,
+      maxDepth: Math.max(0, ...enrichedUniverse.nodes.map((node) => node.depth)),
       rootResolved: Boolean(creatorEmail && depthByEmail.has(creatorEmail)),
-      spawnedStars: spawnedStars.length,
+      spawnedStars: enrichedUniverse.spawnedStars.length,
       totalCapacity,
-      totalMembers: nodes.length,
+      totalMembers: enrichedUniverse.nodes.length,
     },
   };
 }

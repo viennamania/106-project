@@ -1012,6 +1012,104 @@ function AccountConnectionNotice({
   );
 }
 
+function CreatorUnlockStateStrip({
+  isPreviewMode,
+  locale,
+  requiresSourceUniverse,
+  selectedSourceOption,
+  unlock,
+}: {
+  isPreviewMode: boolean;
+  locale: Locale;
+  requiresSourceUniverse: boolean;
+  selectedSourceOption: SourceUniverseOption | null;
+  unlock: CreatorUnlockData;
+}) {
+  const labels =
+    locale === "ko"
+      ? {
+          account: "계정 상태",
+          action: "다음 행동",
+          connect: "계정 연결 후 실데이터 확인",
+          live: "실데이터",
+          locked: "조건 채우기",
+          ready: "생성 미리보기 가능",
+          sample: "샘플 미리보기",
+          source: "창업 출처",
+          sourceMissing: "참여한 스타 유니버스 필요",
+        }
+      : {
+          account: "Account State",
+          action: "Next Action",
+          connect: "Connect to view live data",
+          live: "Live data",
+          locked: "Complete conditions",
+          ready: "Launch preview ready",
+          sample: "Sample preview",
+          source: "Launch Source",
+          sourceMissing: "Star Universe required",
+        };
+  const items = [
+    {
+      label: labels.account,
+      tone: isPreviewMode ? "amber" : "emerald",
+      value: isPreviewMode ? labels.sample : labels.live,
+    },
+    {
+      label: labels.source,
+      tone: requiresSourceUniverse ? "amber" : "violet",
+      value: requiresSourceUniverse
+        ? labels.sourceMissing
+        : selectedSourceOption?.universeName
+          ? getDisplayUniverseName(selectedSourceOption.universeName, locale)
+          : labels.sourceMissing,
+    },
+    {
+      label: labels.action,
+      tone: unlock.unlocked && !isPreviewMode && !requiresSourceUniverse
+        ? "emerald"
+        : "violet",
+      value: isPreviewMode
+        ? labels.connect
+        : requiresSourceUniverse
+          ? labels.sourceMissing
+          : unlock.unlocked
+            ? labels.ready
+            : labels.locked,
+    },
+  ];
+
+  return (
+    <section className="mt-4 grid gap-2 sm:grid-cols-3">
+      {items.map((item) => (
+        <div
+          className={joinClasses(
+            "min-w-0 rounded-lg border bg-white px-3 py-3 shadow-[0_12px_28px_rgba(88,28,135,0.06)]",
+            item.tone === "emerald" && "border-emerald-200",
+            item.tone === "amber" && "border-amber-200",
+            item.tone === "violet" && "border-violet-200",
+          )}
+          key={item.label}
+        >
+          <p
+            className={joinClasses(
+              "text-[0.66rem] font-semibold uppercase tracking-[0.08em]",
+              item.tone === "emerald" && "text-emerald-700",
+              item.tone === "amber" && "text-amber-700",
+              item.tone === "violet" && "text-[#6d28d9]",
+            )}
+          >
+            {item.label}
+          </p>
+          <p className="mt-1 truncate text-sm font-semibold text-[#12041f]">
+            {item.value}
+          </p>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export function FanletterCreatorUnlockPage({
   creatorUnlock,
   isSignedIn = false,
@@ -1191,6 +1289,14 @@ export function FanletterCreatorUnlockPage({
         {isPreviewMode ? (
           <AccountConnectionNotice connectHref={connectHref} copy={copy} />
         ) : null}
+
+        <CreatorUnlockStateStrip
+          isPreviewMode={isPreviewMode}
+          locale={locale}
+          requiresSourceUniverse={requiresSourceUniverse}
+          selectedSourceOption={selectedSourceOption}
+          unlock={unlock}
+        />
 
         <MockFounderRewardSummary
           locale={locale}
