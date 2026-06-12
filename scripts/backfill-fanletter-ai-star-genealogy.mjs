@@ -152,6 +152,12 @@ function getCreatorEmail({ membershipsByStarId, star }) {
   return normalizeEmail(creatorMembership?.memberEmail);
 }
 
+function isMemberSignupBackfillStar(star) {
+  const name = getStarName(star).toLowerCase();
+
+  return star.source === "member_signup" || name.includes("starter ai star");
+}
+
 function resolveUplinePath({
   creatorEmail,
   launchCreatorEmail,
@@ -274,7 +280,8 @@ function chooseParentCandidate({
 
       return parentCreatedAt === 0 || candidateCreatedAt === 0
         ? true
-        : parentCreatedAt <= candidateCreatedAt;
+        : parentCreatedAt <= candidateCreatedAt ||
+            isMemberSignupBackfillStar(parentStar);
     })
     .map((membership) => {
       const parentStarId = normalizeStarId(membership.starId);
@@ -282,6 +289,7 @@ function chooseParentCandidate({
       const roleDepth = ROLE_DEPTH.get(membership.role) ?? 6;
       const childCount = childCounts.get(parentStarId) ?? 0;
       const statusScore = parentStar?.status === "active" ? 25 : 0;
+      const backfilledRootScore = isMemberSignupBackfillStar(parentStar) ? 12 : 0;
       const influenceScore =
         Number.isFinite(membership.influenceScore) ? membership.influenceScore : 0;
       const founderScore = Math.min(parentStar?.founderCount ?? 0, 120) / 6;
@@ -297,6 +305,7 @@ function chooseParentCandidate({
         score:
           (6 - roleDepth) * 80 +
           statusScore +
+          backfilledRootScore +
           influenceScore +
           founderScore +
           starScore -
@@ -512,7 +521,7 @@ try {
         {
           $set: {
             genealogyBackfilledAt: now,
-            genealogyBackfillMethod: "owner_membership_balanced",
+            genealogyBackfillMethod: "owner_membership_balanced_legacy_root",
             spawnedFromStarId: assignment.parentStar.starId,
             updatedAt: now,
           },
@@ -528,7 +537,7 @@ try {
           {
             $set: {
               genealogyBackfilledAt: now,
-              genealogyBackfillMethod: "owner_membership_balanced",
+              genealogyBackfillMethod: "owner_membership_balanced_legacy_root",
               spawnedFromStarId: assignment.parentStar.starId,
               updatedAt: now,
             },
