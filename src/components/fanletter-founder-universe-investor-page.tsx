@@ -5,6 +5,7 @@ import {
   Banknote,
   Check,
   Coins,
+  Crown,
   Gift,
   MessageCircle,
   Play,
@@ -73,7 +74,12 @@ function getInvestorCopy(locale: Locale) {
       paymentSubtitle: "실결제 연동 전 모델 검증",
       sourceTitle: "Universe 구조",
       spawnedTitle: "Universe 확장",
-      spawnedSubtitle: "Creator가 배출한 AI 스타들",
+      spawnedSubtitle: "Creator가 배출하거나 배출할 AI 스타 확장 흐름",
+      spawnedCreatedBy: "창업 회원",
+      spawnedFounder: "Founder",
+      spawnedLiveBadge: "LIVE spawned",
+      spawnedPreviewBadge: "확장 예시",
+      spawnedPreviewNote: "실제 spawned 0개 · live Universe 데이터 기반",
       cpPoolTitle: "CP 보상 풀 생성 및 분배",
       cpPoolBody:
         "신규 AI 스타 생성 시 CP Pool이 생성되어 상위 네트워크 기여도에 따라 분배",
@@ -83,6 +89,9 @@ function getInvestorCopy(locale: Locale) {
       footer:
         "FanLetter는 AI 스타와 Founder가 함께 성장하는 새로운 경제 생태계를 만들어갑니다.",
       explore: "탐색 화면",
+      directChildren: "직접 초대",
+      memberId: "회원 ID",
+      representativeMember: "대표 회원",
       topUniverses: "Top Universe",
     };
   }
@@ -119,7 +128,12 @@ function getInvestorCopy(locale: Locale) {
     paymentSubtitle: "Model validation before real payment",
     sourceTitle: "Universe Structure",
     spawnedTitle: "Universe Expansion",
-    spawnedSubtitle: "AI Stars launched by Creators",
+    spawnedSubtitle: "AI Stars launched or projected from Creators",
+    spawnedCreatedBy: "Creator member",
+    spawnedFounder: "Founder",
+    spawnedLiveBadge: "LIVE spawned",
+    spawnedPreviewBadge: "Expansion preview",
+    spawnedPreviewNote: "No live spawned stars yet · based on live Universe data",
     cpPoolTitle: "CP Pool Generation and Distribution",
     cpPoolBody:
       "When a new AI Star launches, a CP Pool is generated and distributed to the upline network by contribution.",
@@ -129,6 +143,9 @@ function getInvestorCopy(locale: Locale) {
     footer:
       "FanLetter is building a new economy where AI Stars and Founders grow together.",
     explore: "Explorer",
+    directChildren: "Direct invites",
+    memberId: "Member ID",
+    representativeMember: "Representative Member",
     topUniverses: "Top Universe",
   };
 }
@@ -245,6 +262,120 @@ function GraphicArrow() {
   );
 }
 
+type InvestorUniverseNode =
+  FanletterFounderUniverseInvestorSnapshot["selectedUniverse"]["nodes"][number];
+
+function MemberAvatarStack({
+  nodes,
+  total,
+}: {
+  nodes: InvestorUniverseNode[];
+  total: number;
+}) {
+  if (total === 0) {
+    return (
+      <div className="flex h-9 items-center justify-end text-xs font-semibold text-slate-300">
+        -
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-w-0 items-center justify-end">
+      <div className="flex -space-x-1.5">
+        {nodes.slice(0, 4).map((node) => (
+          <HumanMemberAvatar
+            key={node.nodeId}
+            member={{
+              initials: node.initials,
+              name: node.memberId,
+            }}
+            size="sm"
+          />
+        ))}
+      </div>
+      {total > 4 ? (
+        <span className="ml-2 text-xs font-semibold text-violet-300">...</span>
+      ) : null}
+    </div>
+  );
+}
+
+function CreatorMemberChip({
+  copy,
+  node,
+  starName,
+}: {
+  copy: ReturnType<typeof getFanletterV2Copy>;
+  node: InvestorUniverseNode;
+  starName: string;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-2 py-1 shadow-[0_8px_18px_rgba(245,158,11,0.08)]">
+      <HumanMemberAvatar
+        member={{
+          initials: node.initials,
+          name: node.memberId,
+        }}
+        size="sm"
+      />
+      <div className="min-w-0 text-left">
+        <p className="truncate text-xs font-semibold text-[#151735]">
+          {node.memberId}
+        </p>
+        <p className="truncate text-[0.58rem] font-semibold text-amber-700">
+          {starName} {copy.roles.creator}
+        </p>
+      </div>
+      <Crown className="size-3.5 shrink-0 text-amber-500" />
+    </div>
+  );
+}
+
+function HighlightMemberProfile({
+  copy,
+  locale,
+  node,
+  roleCopy,
+}: {
+  copy: InvestorCopy;
+  locale: Locale;
+  node: InvestorUniverseNode;
+  roleCopy: ReturnType<typeof getFanletterV2Copy>;
+}) {
+  return (
+    <div className="ml-14 mt-2 flex items-center gap-3">
+      <div className="h-px w-8 border-t border-dashed border-[#6d5dfc]" />
+      <div className="flex min-w-0 flex-1 items-center gap-3 rounded-lg border border-violet-200 bg-violet-50/90 px-3 py-2 shadow-[0_12px_28px_rgba(88,28,135,0.08)]">
+        <HumanMemberAvatar
+          member={{
+            initials: node.initials,
+            name: node.memberId,
+          }}
+          size="md"
+        />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-[#4338ca]">
+            {node.memberId}
+          </p>
+          <p className="truncate text-[0.66rem] font-semibold text-slate-500">
+            {copy.memberId} · {node.label}
+          </p>
+        </div>
+        <div className="shrink-0 text-right">
+          <FounderRoleBadge
+            copy={roleCopy}
+            role={node.role as FounderRole}
+          />
+          <p className="mt-1 text-[0.58rem] font-semibold text-slate-400">
+            {copy.directChildren} {formatNumber(node.directChildrenCount, locale)}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TierStructure({
   locale,
   snapshot,
@@ -253,57 +384,107 @@ function TierStructure({
   snapshot: FanletterFounderUniverseInvestorSnapshot;
 }) {
   const copy = getFanletterV2Copy(locale);
+  const investorCopy = getInvestorCopy(locale);
+  const nodesByDepth = new Map<number, InvestorUniverseNode[]>();
+
+  for (const node of snapshot.selectedUniverse.nodes) {
+    const nodes = nodesByDepth.get(node.depth) ?? [];
+    nodes.push(node);
+    nodesByDepth.set(node.depth, nodes);
+  }
+
+  const sourceStarName = snapshot.selectedUniverse.star.name;
+  const creatorNode =
+    snapshot.selectedUniverse.nodes.find((node) => node.isCreator) ??
+    snapshot.selectedUniverse.nodes.find((node) => node.depth === 0) ??
+    null;
+  const highlightedNode =
+    snapshot.launchMember?.nodeId
+      ? snapshot.selectedUniverse.nodes.find(
+          (node) => node.nodeId === snapshot.launchMember?.nodeId,
+        ) ?? null
+      : null;
 
   return (
     <section className="rounded-lg border border-violet-100 bg-white/88 p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
       <h2 className="text-xl font-semibold text-[#4338ca]">
-        1. {getInvestorCopy(locale).sourceTitle}
+        1. {sourceStarName} {investorCopy.sourceTitle}
       </h2>
       <div className="mt-5 grid gap-3">
         {snapshot.tiers.map((tier) => {
           const isActive = tier.memberCount > 0;
+          const tierNodes = nodesByDepth.get(tier.depth) ?? [];
+          const tierHighlightedNode =
+            highlightedNode?.depth === tier.depth ? highlightedNode : null;
 
           return (
-            <div
-              className="grid min-h-14 grid-cols-[3rem_1fr_5rem] items-center gap-3 rounded-lg border border-slate-100 bg-white px-3 shadow-[0_8px_22px_rgba(15,23,42,0.04)]"
-              key={tier.depth}
-            >
+            <div key={tier.depth}>
               <div
-                className={`flex size-9 items-center justify-center border text-sm font-semibold [clip-path:polygon(25%_6%,75%_6%,100%_50%,75%_94%,25%_94%,0_50%)] ${roleColors[tier.role]}`}
+                className={`grid min-h-14 grid-cols-[2.7rem_1fr_4rem_9.5rem] items-center gap-3 rounded-lg border px-3 shadow-[0_8px_22px_rgba(15,23,42,0.04)] ${
+                  tierHighlightedNode
+                    ? "border-violet-200 bg-violet-50/70"
+                    : "border-slate-100 bg-white"
+                }`}
               >
-                {tier.depth}
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="truncate text-sm font-semibold text-[#151735]">
-                    {getRoleText(tier.role, copy)}
-                  </span>
-                  {tier.cpPoolReward > 0 ? (
-                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[0.62rem] font-semibold text-emerald-700">
-                      +{tier.cpPoolReward} CP
+                <div
+                  className={`flex size-9 items-center justify-center border text-sm font-semibold [clip-path:polygon(25%_6%,75%_6%,100%_50%,75%_94%,25%_94%,0_50%)] ${roleColors[tier.role]}`}
+                >
+                  {tier.depth}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-sm font-semibold text-[#151735]">
+                      {getRoleText(tier.role, copy)}
                     </span>
-                  ) : null}
+                    {tier.cpPoolReward > 0 ? (
+                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[0.62rem] font-semibold text-emerald-700">
+                        +{tier.cpPoolReward} CP
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className="h-full rounded-full bg-[#7c3aed]"
+                      style={{
+                        width: `${Math.max(
+                          isActive ? 4 : 0,
+                          Math.min(100, (tier.memberCount / tier.capacity) * 100),
+                        )}%`,
+                      }}
+                    />
+                  </div>
                 </div>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
-                  <div
-                    className="h-full rounded-full bg-[#7c3aed]"
-                    style={{
-                      width: `${Math.max(
-                        isActive ? 4 : 0,
-                        Math.min(100, (tier.memberCount / tier.capacity) * 100),
-                      )}%`,
-                    }}
-                  />
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-[#151735]">
+                    {formatNumber(tier.memberCount, locale)}명
+                  </p>
+                  <p className="text-[0.62rem] font-semibold text-slate-400">
+                    / {formatNumber(tier.capacity, locale)}
+                  </p>
+                </div>
+                <div className="min-w-0">
+                  {tier.depth === 0 && creatorNode ? (
+                    <CreatorMemberChip
+                      copy={copy}
+                      node={creatorNode}
+                      starName={sourceStarName}
+                    />
+                  ) : (
+                    <MemberAvatarStack
+                      nodes={tierNodes}
+                      total={tier.memberCount}
+                    />
+                  )}
                 </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-semibold text-[#151735]">
-                  {formatNumber(tier.memberCount, locale)}명
-                </p>
-                <p className="text-[0.62rem] font-semibold text-slate-400">
-                  / {formatNumber(tier.capacity, locale)}
-                </p>
-              </div>
+              {tierHighlightedNode ? (
+                <HighlightMemberProfile
+                  copy={investorCopy}
+                  locale={locale}
+                  node={tierHighlightedNode}
+                  roleCopy={copy}
+                />
+              ) : null}
             </div>
           );
         })}
@@ -381,7 +562,7 @@ function LaunchFlow({
             <HumanMemberAvatar
               member={{
                 initials: launchMember.initials,
-                name: launchMember.label,
+                name: launchMember.memberId,
               }}
               size="lg"
             />
@@ -390,7 +571,10 @@ function LaunchFlow({
                 2. {copy.memberCreates}
               </p>
               <p className="mt-1 truncate text-lg font-semibold text-[#151735]">
-                {launchMember.label}
+                {launchMember.memberId}
+              </p>
+              <p className="mt-0.5 truncate text-xs font-semibold text-slate-400">
+                {copy.memberId} · {launchMember.label}
               </p>
               <div className="mt-2 flex items-center gap-2">
                 <FounderRoleBadge
@@ -586,18 +770,30 @@ function SpawnedStarsPanel({
   locale: Locale;
   snapshot: FanletterFounderUniverseInvestorSnapshot;
 }) {
-  const spawnedStars = snapshot.selectedUniverse.spawnedStars.slice(0, 4);
+  const expansionStars = snapshot.expansionStars.slice(0, 4);
   const sourceStar = snapshot.selectedUniverse.star;
+  const isPreviewMode =
+    expansionStars.length > 0 &&
+    expansionStars.every((star) => star.source === "live_projection");
 
   return (
     <section className="rounded-lg border border-violet-100 bg-white/88 p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
-      <h2 className="text-xl font-semibold text-[#4338ca]">
-        8. {copy.spawnedTitle}
-      </h2>
-      <p className="mt-2 text-sm font-medium text-slate-500">
-        {copy.spawnedSubtitle}
-      </p>
-      <div className="mt-6 flex items-center gap-4 overflow-hidden">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold text-[#4338ca]">
+            8. {copy.spawnedTitle}
+          </h2>
+          <p className="mt-2 text-sm font-medium text-slate-500">
+            {copy.spawnedSubtitle}
+          </p>
+        </div>
+        {isPreviewMode ? (
+          <span className="shrink-0 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[0.62rem] font-semibold text-amber-700">
+            {copy.spawnedPreviewNote}
+          </span>
+        ) : null}
+      </div>
+      <div className="mt-6 flex items-stretch gap-4 overflow-hidden">
         <div className="text-center">
           <AIStarPortrait
             imageUrl={sourceStar.portraitImageUrl}
@@ -609,14 +805,25 @@ function SpawnedStarsPanel({
             {sourceStar.name}
           </p>
         </div>
-        {spawnedStars.length > 0 ? (
-          spawnedStars.map((star) => (
-            <div className="flex items-center gap-4" key={star.id}>
+        {expansionStars.length > 0 ? (
+          expansionStars.map((star) => (
+            <div className="flex items-center gap-4" key={`${star.source}-${star.id}`}>
               <span className="text-2xl font-semibold text-violet-300">→</span>
               <Link
-                className="text-center"
+                className="relative min-w-36 rounded-lg border border-violet-100 bg-white p-3 text-center shadow-[0_12px_28px_rgba(88,28,135,0.06)]"
                 href={`/${locale}/fanletter/${encodeURIComponent(star.id)}/universe`}
               >
+                <span
+                  className={`absolute right-2 top-2 rounded-full px-2 py-0.5 text-[0.56rem] font-semibold ${
+                    star.source === "live_spawned"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-amber-50 text-amber-700"
+                  }`}
+                >
+                  {star.source === "live_spawned"
+                    ? copy.spawnedLiveBadge
+                    : copy.spawnedPreviewBadge}
+                </span>
                 <AIStarPortrait
                   imageUrl={star.portraitImageUrl}
                   initials={star.name.slice(0, 2).toUpperCase()}
@@ -625,6 +832,46 @@ function SpawnedStarsPanel({
                 />
                 <p className="mt-2 max-w-24 truncate text-sm font-semibold text-[#151735]">
                   {star.name}
+                </p>
+                <div className="mt-2 grid grid-cols-2 gap-1">
+                  <div className="rounded-md bg-violet-50 px-1.5 py-1">
+                    <p className="text-xs font-semibold text-[#4338ca]">
+                      {star.starScore}
+                    </p>
+                    <p className="text-[0.54rem] font-semibold text-slate-400">
+                      Score
+                    </p>
+                  </div>
+                  <div className="rounded-md bg-emerald-50 px-1.5 py-1">
+                    <p className="text-xs font-semibold text-emerald-700">
+                      +{star.growthPercent}%
+                    </p>
+                    <p className="text-[0.54rem] font-semibold text-slate-400">
+                      Growth
+                    </p>
+                  </div>
+                </div>
+                {star.creatorMemberId ? (
+                  <div className="mt-2 flex items-center gap-2 rounded-lg bg-slate-50 px-2 py-1.5">
+                    <HumanMemberAvatar
+                      member={{
+                        initials: star.creatorInitials ?? star.creatorMemberId.slice(0, 2).toUpperCase(),
+                        name: star.creatorMemberId,
+                      }}
+                      size="sm"
+                    />
+                    <div className="min-w-0 text-left">
+                      <p className="truncate text-[0.62rem] font-semibold text-slate-400">
+                        {copy.spawnedCreatedBy}
+                      </p>
+                      <p className="truncate text-xs font-semibold text-[#151735]">
+                        {star.creatorMemberId}
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+                <p className="mt-2 rounded-full bg-violet-50 px-2 py-1 text-[0.62rem] font-semibold text-[#6d28d9]">
+                  {formatNumber(star.founderCount, locale)} {copy.spawnedFounder}
                 </p>
               </Link>
             </div>
@@ -637,11 +884,11 @@ function SpawnedStarsPanel({
             </div>
           </div>
         )}
-        {snapshot.global.spawnedStars > spawnedStars.length ? (
+        {snapshot.global.spawnedStars > expansionStars.length ? (
           <div className="flex items-center gap-4">
             <span className="text-2xl font-semibold text-violet-300">→</span>
             <div className="flex size-20 items-center justify-center rounded-full border border-dashed border-violet-300 bg-white text-sm font-semibold text-[#6d28d9]">
-              +{formatNumber(snapshot.global.spawnedStars - spawnedStars.length, locale)}
+              +{formatNumber(snapshot.global.spawnedStars - expansionStars.length, locale)}
             </div>
           </div>
         ) : null}

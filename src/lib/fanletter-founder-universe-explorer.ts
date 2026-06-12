@@ -25,6 +25,7 @@ export type FanletterFounderUniverseExplorerNode = {
   isCreator: boolean;
   joinedAt: string | null;
   label: string;
+  memberId: string;
   memberReferralCode: string | null;
   nodeId: string;
   parentNodeId: string | null;

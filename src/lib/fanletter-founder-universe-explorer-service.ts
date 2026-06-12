@@ -105,6 +105,28 @@ function getMemberLabel({
   return `Member ${nodeId.slice(-4).toUpperCase()}`;
 }
 
+function getMemberId({
+  email,
+  memberReferralCode,
+  nodeId,
+}: {
+  email: string;
+  memberReferralCode: string | null;
+  nodeId: string;
+}) {
+  const localPart = normalizeEmail(email).split("@")[0]?.trim();
+
+  if (localPart) {
+    return localPart;
+  }
+
+  if (memberReferralCode) {
+    return memberReferralCode;
+  }
+
+  return nodeId.replace(/^member-/, "").slice(0, 8).toUpperCase();
+}
+
 function getMembershipRoleDepth(role: FanletterFounderUniverseRole) {
   return getFanletterFounderUniverseTierByRole(role)?.depth ?? null;
 }
@@ -397,6 +419,11 @@ export async function getFanletterFounderUniverseExplorer(
         memberReferralCode,
         nodeId,
       });
+      const memberId = getMemberId({
+        email,
+        memberReferralCode,
+        nodeId,
+      });
 
       return {
         childNodeIds,
@@ -406,11 +433,13 @@ export async function getFanletterFounderUniverseExplorer(
         isCreator: role === "creator" || email === creatorEmail,
         joinedAt: toIsoStringOrNull(membership.joinedAt),
         label,
+        memberId,
         memberReferralCode,
         nodeId,
         parentNodeId: parentEmail ? nodeIdByEmail.get(parentEmail) ?? null : null,
         role,
         searchText: [
+          memberId,
           label,
           memberReferralCode,
           starReferralCode,

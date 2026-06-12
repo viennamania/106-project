@@ -35,9 +35,23 @@ export type FanletterFounderUniverseInvestorDistribution = {
   role: FanletterFounderUniverseRole;
 };
 
+export type FanletterFounderUniverseInvestorExpansionStar = {
+  creatorInitials: string | null;
+  creatorMemberId: string | null;
+  creatorRole: FanletterFounderUniverseRole | null;
+  founderCount: number;
+  growthPercent: number;
+  id: string;
+  name: string;
+  portraitImageUrl: string | null;
+  source: "live_projection" | "live_spawned";
+  starScore: number;
+};
+
 export type FanletterFounderUniverseInvestorTopUniverse = {
   founderCount: number;
   growthPercent: number;
+  portraitImageUrl: string | null;
   starId: string;
   starName: string;
   starScore: number;
@@ -47,6 +61,7 @@ export type FanletterFounderUniverseInvestorTopUniverse = {
 export type FanletterFounderUniverseInvestorSnapshot = {
   cpDistribution: FanletterFounderUniverseInvestorDistribution[];
   generatedAt: string;
+  expansionStars: FanletterFounderUniverseInvestorExpansionStar[];
   global: {
     activeReferralCodes: number;
     activeStars: number;
@@ -64,6 +79,8 @@ export type FanletterFounderUniverseInvestorSnapshot = {
     directChildrenCount: number;
     initials: string;
     label: string;
+    memberId: string;
+    nodeId: string;
     role: FanletterFounderUniverseRole;
     starReferralCode: string | null;
   } | null;
@@ -131,6 +148,74 @@ function buildCpDistribution({
         role: tier.role,
       };
     });
+}
+
+function buildExpansionStars({
+  launchMember,
+  topUniverses,
+  universe,
+}: {
+  launchMember: FanletterFounderUniverseExplorerNode | null;
+  topUniverses: FanletterFounderUniverseInvestorTopUniverse[];
+  universe: FanletterFounderUniverseExplorerData;
+}): FanletterFounderUniverseInvestorExpansionStar[] {
+  if (universe.spawnedStars.length > 0) {
+    return universe.spawnedStars.slice(0, 4).map((star) => {
+      const creatorNode = star.creatorNodeId
+        ? universe.nodes.find((node) => node.nodeId === star.creatorNodeId) ?? null
+        : null;
+
+      return {
+        creatorInitials: creatorNode?.initials ?? null,
+        creatorMemberId: creatorNode?.memberId ?? star.creatorLabel,
+        creatorRole: star.creatorRole,
+        founderCount: star.directSpawnedStars,
+        growthPercent: star.growthPercent,
+        id: star.id,
+        name: star.name,
+        portraitImageUrl: star.portraitImageUrl,
+        source: "live_spawned",
+        starScore: star.starScore,
+      };
+    });
+  }
+
+  const candidateNodes = [
+    launchMember,
+    ...universe.nodes
+      .filter((node) => !node.isCreator && node.depth > 0)
+      .sort(
+        (left, right) =>
+          right.directChildrenCount - left.directChildrenCount ||
+          left.depth - right.depth ||
+          left.memberId.localeCompare(right.memberId),
+      ),
+  ].filter(
+    (node, index, nodes): node is FanletterFounderUniverseExplorerNode =>
+      Boolean(node) &&
+      nodes.findIndex((candidate) => candidate?.nodeId === node?.nodeId) === index,
+  );
+  const previewUniverses = topUniverses
+    .filter((star) => star.starId !== universe.star.id)
+    .slice(0, 4);
+
+  return previewUniverses.map((star, index) => {
+    const creatorNode =
+      candidateNodes[index % Math.max(1, candidateNodes.length)] ?? null;
+
+    return {
+      creatorInitials: creatorNode?.initials ?? null,
+      creatorMemberId: creatorNode?.memberId ?? null,
+      creatorRole: creatorNode?.role ?? null,
+      founderCount: star.founderCount,
+      growthPercent: star.growthPercent,
+      id: star.starId,
+      name: star.starName,
+      portraitImageUrl: star.portraitImageUrl,
+      source: "live_projection",
+      starScore: star.starScore,
+    };
+  });
 }
 
 async function findLargestLiveUniverse() {
@@ -211,6 +296,7 @@ async function getTopUniverses(): Promise<
               characterName: 1,
               displayName: 1,
               growthPercent: 1,
+              portraitImageUrl: 1,
               starId: 1,
               starScore: 1,
               status: 1,
@@ -232,6 +318,7 @@ async function getTopUniverses(): Promise<
       return {
         founderCount: row.memberCount,
         growthPercent: star.growthPercent,
+        portraitImageUrl: star.portraitImageUrl ?? null,
         starId: star.starId,
         starName: star.characterName || star.displayName,
         starScore: star.starScore,
@@ -373,6 +460,11 @@ export async function getFanletterFounderUniverseInvestorSnapshot({
       launchMember,
       universe: investorUniverse,
     }),
+    expansionStars: buildExpansionStars({
+      launchMember,
+      topUniverses,
+      universe: investorUniverse,
+    }),
     generatedAt: new Date().toISOString(),
     global,
     launchMember: launchMember
@@ -381,6 +473,8 @@ export async function getFanletterFounderUniverseInvestorSnapshot({
           directChildrenCount: launchMember.directChildrenCount,
           initials: launchMember.initials,
           label: launchMember.label,
+          memberId: launchMember.memberId,
+          nodeId: launchMember.nodeId,
           role: launchMember.role,
           starReferralCode: launchMember.starReferralCode,
         }
