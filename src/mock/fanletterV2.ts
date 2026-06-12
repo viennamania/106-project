@@ -501,7 +501,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       joinAsFounder: "Join as Founder",
       openDiscovery: "Back to Discovery",
       shareLink: "Share link",
-      viewUniverse: "View Universe",
+      viewUniverse: "View Star Universe",
     },
     creatorPath: {
       body:
@@ -579,7 +579,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       scoutScore: "Scout Score",
       scoutShareLoop: "Scout Share Loop",
       selectedAiStar: "Selected AI Star",
-      sourceUniverse: "Source Universe",
+      sourceUniverse: "Source Star Universe",
       spawnedStars: "Spawned Stars",
       starScore: "Star Score",
       successfulInvites: "Successful Invites",
@@ -632,9 +632,9 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       founderSlotsTitle: "Human Founder slots",
       heroBody:
         "This Universe page connects AI Star discovery to Founder join, mock referral creation, SNS sharing, and Creator progress.",
-      heroEyebrow: "AI Star Universe",
+      heroEyebrow: "Star Universe",
       inboundRefBody:
-        "This visitor entered through a Founder referral. In the live flow, the join event will attach to this AI Star Universe.",
+        "This visitor entered through a Founder referral. In the live flow, the join event will attach to this Star Universe.",
       inboundRefTitle: "Referral detected",
       mockNotice:
         "Mock only: no real payment or permanent referral mutation runs from this screen.",
@@ -646,7 +646,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       spawnedBody:
         "Spawned Stars are displayed as separate AI Star cards with their own purple AI STAR treatment.",
       spawnedTitle: "Spawned AI Stars",
-      universeTitle: "Founder Universe",
+      universeTitle: "Founder Network",
     },
     topGrowingStars: {
       body:
@@ -655,10 +655,10 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     universePreview: {
       body:
-        "Each Universe separates the center AI Star, human Founder roles, and spawned Stars into one growth map.",
+        "Each Star Universe separates the center AI Star, human Founder roles, and spawned Stars into one growth map.",
       emptySlot: "Open Founder slot",
       founderSlots: "Human Founder Slots",
-      title: "Founder Universe Preview",
+      title: "Founder Network Preview",
     },
   },
   ja: {
@@ -670,14 +670,14 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       joinAsFounder: "Founderとして参加",
       openDiscovery: "Discoveryへ戻る",
       shareLink: "Share link",
-      viewUniverse: "Universeを見る",
+      viewUniverse: "Star Universeを見る",
     },
     creatorPath: {
       body:
         "最初のバージョンではアンロック状態だけを表示します。実決済を接続するまでは新しいAI Star作成はモックです。",
       steps: [
         {
-          body: "既存のAI Star Universeに新しいFounderを招待します。",
+          body: "既存のStar Universeに新しいFounderを招待します。",
           title: "Scout成長",
         },
         {
@@ -699,7 +699,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       createAiStarCta: "新しいAI Starを作成",
       directInvites: "Direct Invites >= 20",
       launchPreviewBody:
-        "メンバーは元のUniverseから別のAI Starをローンチできます。このバージョンでは10 USDTステップをモック有効化として扱います。",
+        "メンバーは元のStar Universeから別のAI Starをローンチできます。このバージョンでは10 USDTステップをモック有効化として扱います。",
       launchPreviewTitle: "Mock AI Star launch",
       liveDataLabel: "Live unlock status",
       lockedLabel: "Locked",
@@ -749,7 +749,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       scoutScore: "Scout Score",
       scoutShareLoop: "Scout Share Loop",
       selectedAiStar: "Selected AI Star",
-      sourceUniverse: "Source Universe",
+      sourceUniverse: "Source Star Universe",
       spawnedStars: "Spawned Stars",
       starScore: "Star Score",
       successfulInvites: "Successful Invites",
@@ -767,7 +767,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       emptyOwnedStars:
         "このメンバーが作成したAI Starはまだありません。",
       ownedStarsBody:
-        "Creatorは複数のAI Starを所有できます。新しいStarには元のUniverseを記録します。",
+        "Creatorは複数のAI Starを所有できます。新しいStarには元のStar Universeを記録します。",
       ownedStarsTitle: "このメンバーが作成したAI Star",
       setupStarCta: "自分のAI Starを設定",
       title: "Member Founder Portfolio",
@@ -800,10 +800,10 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "Human memberはニュートラルなグレーアバターとrole badgeで表示します。AI Starのportraitは再利用しません。",
       founderSlotsTitle: "Human Founder slots",
       heroBody:
-        "このUniverseページではAI Star Discovery、Founder参加、mock referral作成、SNS共有、Creator progressを接続します。",
-      heroEyebrow: "AI Star Universe",
+        "このStar UniverseページではAI Star Discovery、Founder参加、mock referral作成、SNS共有、Creator progressを接続します。",
+      heroEyebrow: "Star Universe",
       inboundRefBody:
-        "このvisitorはFounder referral経由で流入しました。Live flowでは参加イベントがこのAI Star Universeに紐づきます。",
+        "このvisitorはFounder referral経由で流入しました。Live flowでは参加イベントがこのStar Universeに紐づきます。",
       inboundRefTitle: "Referral detected",
       mockNotice:
         "Mock only: この画面から実決済や永続的なreferral変更は実行しません。",
@@ -815,7 +815,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       spawnedBody:
         "Spawned Starは独立したAI Star cardとして、紫のAI STAR表示で区別します。",
       spawnedTitle: "Spawned AI Stars",
-      universeTitle: "Founder Universe",
+      universeTitle: "Founder Network",
     },
     topGrowingStars: {
       body:
@@ -824,10 +824,10 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     universePreview: {
       body:
-        "各Universeで中心のAI Star、Human Founderの役割、Spawned Starを1つの成長マップとして分けて表示します。",
+        "各Star Universeで中心のAI Star、Human Founderの役割、Spawned Starを1つの成長マップとして分けて表示します。",
       emptySlot: "Open Founder slot",
       founderSlots: "Human Founder Slots",
-      title: "Founder Universe Preview",
+      title: "Founder Network Preview",
     },
   },
   ko: {
@@ -839,14 +839,14 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       joinAsFounder: "파운더로 참여하기",
       openDiscovery: "AI 스타 발견으로 돌아가기",
       shareLink: "공유 링크",
-      viewUniverse: "유니버스 보기",
+      viewUniverse: "스타 유니버스 보기",
     },
     creatorPath: {
       body:
         "첫 버전에서는 권한 상태만 보여줍니다. 실제 결제 플로우를 연결하기 전까지 새 AI 스타 생성은 미리보기 액션입니다.",
       steps: [
         {
-          body: "기존 AI 스타 유니버스에 새 파운더를 초대하고 성장 신호를 만듭니다.",
+          body: "기존 스타 유니버스에 새 파운더를 초대하고 성장 신호를 만듭니다.",
           title: "스카우트 성장",
         },
         {
@@ -868,7 +868,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       createAiStarCta: "새 AI 스타 만들기",
       directInvites: "직접 초대 20명 이상",
       launchPreviewBody:
-        "멤버는 성장시킨 원천 유니버스에서 또 다른 AI 스타를 시작할 수 있습니다. 이번 버전에서는 10 USDT 단계를 미리보기 활성화로만 표시합니다.",
+        "멤버는 성장시킨 원천 스타 유니버스에서 또 다른 AI 스타를 시작할 수 있습니다. 이번 버전에서는 10 USDT 단계를 미리보기 활성화로만 표시합니다.",
       launchPreviewTitle: "새 AI 스타 출시 미리보기",
       liveDataLabel: "실시간 권한 상태",
       lockedLabel: "잠금",
@@ -918,7 +918,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       scoutScore: "스카우트 점수",
       scoutShareLoop: "스카우트 공유 루프",
       selectedAiStar: "선택된 AI 스타",
-      sourceUniverse: "원천 유니버스",
+      sourceUniverse: "원천 스타 유니버스",
       spawnedStars: "파생 AI 스타",
       starScore: "스타 점수",
       successfulInvites: "성공 초대",
@@ -936,7 +936,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       emptyOwnedStars:
         "아직 이 멤버가 만든 AI 스타가 없습니다.",
       ownedStarsBody:
-        "크리에이터는 여러 AI 스타를 소유할 수 있습니다. 새 스타에는 어떤 유니버스에서 성장해 생성됐는지 기록합니다.",
+        "크리에이터는 여러 AI 스타를 소유할 수 있습니다. 새 스타에는 어떤 스타 유니버스에서 성장해 생성됐는지 기록합니다.",
       ownedStarsTitle: "이 멤버가 만든 AI 스타",
       setupStarCta: "내 AI 스타 설정하기",
       title: "멤버 파운더 포트폴리오",
@@ -969,10 +969,10 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "일반 멤버는 중립적인 회색 아바타와 역할 배지로 표시합니다. AI 스타 초상 이미지를 일반 멤버에 재사용하지 않습니다.",
       founderSlotsTitle: "일반 파운더 슬롯",
       heroBody:
-        "이 유니버스 페이지는 AI 스타 발견에서 파운더 참여, 추천 코드 미리 생성, SNS 공유, 크리에이터 진행률까지 이어지는 전환 흐름입니다.",
-      heroEyebrow: "AI 스타 유니버스",
+        "이 스타 유니버스 페이지는 AI 스타 발견에서 파운더 참여, 추천 코드 미리 생성, SNS 공유, 크리에이터 진행률까지 이어지는 전환 흐름입니다.",
+      heroEyebrow: "스타 유니버스",
       inboundRefBody:
-        "이 방문자는 파운더 추천 링크로 들어왔습니다. 실제 가입 플로우에서는 이 AI 스타 유니버스에 가입 이벤트가 귀속됩니다.",
+        "이 방문자는 파운더 추천 링크로 들어왔습니다. 실제 가입 플로우에서는 이 스타 유니버스에 가입 이벤트가 귀속됩니다.",
       inboundRefTitle: "추천 링크 감지",
       mockNotice:
         "미리보기 전용: 이 화면에서는 실결제나 영구 추천 구조 변경을 실행하지 않습니다.",
@@ -984,7 +984,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       spawnedBody:
         "파생 스타는 별도 AI 스타 카드로 표시해 중심 AI 스타와 같은 보라색 AI 스타 체계를 유지합니다.",
       spawnedTitle: "파생 AI 스타",
-      universeTitle: "파운더 유니버스",
+      universeTitle: "파운더 네트워크",
     },
     topGrowingStars: {
       body:
@@ -993,10 +993,10 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     universePreview: {
       body:
-        "각 유니버스에서 중심 AI 스타, 일반 파운더 역할, 파생 스타를 하나의 성장 지도로 구분해 보여줍니다.",
+        "각 스타 유니버스에서 중심 AI 스타, 일반 파운더 역할, 파생 스타를 하나의 성장 지도로 구분해 보여줍니다.",
       emptySlot: "열린 파운더 슬롯",
       founderSlots: "일반 파운더 슬롯",
-      title: "파운더 유니버스 미리보기",
+      title: "파운더 네트워크 미리보기",
     },
   },
 };

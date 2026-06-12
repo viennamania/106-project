@@ -53,7 +53,7 @@ function getGenealogyCopy(locale: Locale) {
     edgeCount: "Links",
     generated: "Live genealogy",
     heroSubtitle:
-      "AI Star parent-child lineage and CP Pool rewards are connected from existing Founder Universe data.",
+      "AI Star parent-child lineage and CP Pool rewards are connected from existing Founder Network data.",
     heroTitle: "AI Star Genealogy Map",
     lineage: "Featured Lineage",
     owner: "Creator ID",
@@ -64,7 +64,7 @@ function getGenealogyCopy(locale: Locale) {
     starScore: "Star Score",
     topParents: "Expansion Hubs",
     totalStars: "Total AI Stars",
-    viewUniverse: "View Universe",
+    viewUniverse: "View Star Universe",
   };
 }
 

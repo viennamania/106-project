@@ -19,9 +19,9 @@ function getCopy(locale: Locale) {
     return {
       aiStarBadge: "AI 스타",
       body:
-        "이 가입은 아래 AI 스타 유니버스의 파운더 참여로 귀속됩니다. 실결제 없이 추천 흐름만 미리 보여줍니다.",
+        "이 가입은 아래 스타 유니버스의 파운더 참여로 귀속됩니다. 실결제 없이 추천 흐름만 미리 보여줍니다.",
       completedBody:
-        "이미 이 AI 스타 유니버스의 Founder입니다. 내 추천 링크로 새 Founder를 초대하면 CP와 영향력이 누적됩니다.",
+        "이미 이 스타 유니버스의 Founder입니다. 내 추천 링크로 새 Founder를 초대하면 CP와 영향력이 누적됩니다.",
       completedTitle: "Founder 가입 완료",
       founderBadge: "파운더",
       founderClubLabel: "파운더 클럽 2.0",
@@ -35,7 +35,7 @@ function getCopy(locale: Locale) {
       shareCta: "내 추천 링크 공유",
       starScore: "스타 점수",
       title: "파운더 참여 귀속",
-      universeCta: "유니버스 보기",
+      universeCta: "스타 유니버스 보기",
       rewards: {
         cp: "CP",
         creatorProgress: "Creator 진행률",
@@ -48,9 +48,9 @@ function getCopy(locale: Locale) {
   return {
     aiStarBadge: "AI STAR",
     body:
-      "This signup is attributed to the AI Star Universe below as a Founder join. It previews the mock referral flow without real payment.",
+      "This signup is attributed to the Star Universe below as a Founder join. It previews the mock referral flow without real payment.",
     completedBody:
-      "You are already a Founder in this AI Star Universe. Invite new Founders with your link to grow CP and influence.",
+      "You are already a Founder in this Star Universe. Invite new Founders with your link to grow CP and influence.",
     completedTitle: "Founder join complete",
     founderBadge: "FOUNDER",
     founderClubLabel: "Founder Club 2.0",
@@ -64,7 +64,7 @@ function getCopy(locale: Locale) {
     shareCta: "Share my Founder link",
     starScore: "Star Score",
     title: "Founder join attribution",
-    universeCta: "View Universe",
+    universeCta: "View Star Universe",
     rewards: {
       cp: "CP",
       creatorProgress: "Creator Progress",

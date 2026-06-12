@@ -136,11 +136,11 @@ function getLaunchPageCopy(locale: Locale) {
       launchedTitle: "Mock AI Star draft created",
       nextPortfolio: "Portfolio reflection",
       noSourceBody:
-        "A new AI Star needs an existing Universe as its launch source. Join an AI Star as a Founder or create your own AI Star Universe first, then return here.",
+        "A new AI Star needs an existing Star Universe as its launch source. Join an AI Star as a Founder or create your own Star Universe first, then return here.",
       noSourcePrimary: "Discover AI Stars",
       noSourceSecondary: "View Founder Club",
-      noSourceSubmit: "Source Universe required",
-      noSourceTitle: "No launch source Universe yet",
+      noSourceSubmit: "Source Star Universe required",
+      noSourceTitle: "No launch source Star Universe yet",
       owner: "Owner member",
       preview: "AI Star card preview",
       roleInUniverse: "My role",
@@ -153,13 +153,13 @@ function getLaunchPageCopy(locale: Locale) {
       rewardBody:
         "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
       sourceSelectBody:
-        "The AI Star is the launch source Universe, and My role is your position inside that Universe. The CP Pool is distributed to the selected Universe upline.",
-      sourceSelectTitle: "Select launch source Universe",
+        "The AI Star is the launch source Star Universe, and My role is your position inside its Founder Network. The CP Pool is distributed to the selected Star Universe upline.",
+      sourceSelectTitle: "Select launch source Star Universe",
       sourcePool: "CP Pool basis",
-      source: "Source Universe",
+      source: "Source Star Universe",
       steps: [
         "Meet Creator conditions",
-        "Select source Universe",
+        "Select source Star Universe",
         "Preview 10 USDT condition",
         "Reflect in owned AI Stars",
       ],
@@ -186,16 +186,16 @@ function getLaunchPageCopy(locale: Locale) {
     mockNotice:
       "No real payment or permanent write runs here. This preview checks the launch structure and portfolio reflection.",
     name: "AI Star name",
-    launchedBody:
-      "Mock AI Star drafts saved in this browser are reflected in the portfolio.",
-    launchedTitle: "Mock AI Star draft created",
-    nextPortfolio: "Portfolio reflection",
-    noSourceBody:
-      "A new AI Star needs an existing Universe as its launch source. Join an AI Star as a Founder or create your own AI Star Universe first, then return here.",
-    noSourcePrimary: "Discover AI Stars",
-    noSourceSecondary: "View Founder Club",
-    noSourceSubmit: "Source Universe required",
-    noSourceTitle: "No launch source Universe yet",
+  launchedBody:
+    "Mock AI Star drafts saved in this browser are reflected in the portfolio.",
+  launchedTitle: "Mock AI Star draft created",
+  nextPortfolio: "Portfolio reflection",
+  noSourceBody:
+    "A new AI Star needs an existing Star Universe as its launch source. Join an AI Star as a Founder or create your own Star Universe first, then return here.",
+  noSourcePrimary: "Discover AI Stars",
+  noSourceSecondary: "View Founder Club",
+  noSourceSubmit: "Source Star Universe required",
+  noSourceTitle: "No launch source Star Universe yet",
     owner: "Owner member",
     preview: "AI Star card preview",
     roleInUniverse: "My role",
@@ -205,19 +205,19 @@ function getLaunchPageCopy(locale: Locale) {
     rewardCreator: "Creator Progress",
     rewardInfluence: "Influence",
     rewardTitle: "Founder join rewards applied",
-    rewardBody:
-      "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
-    sourceSelectBody:
-      "The AI Star is the launch source Universe, and My role is your position inside that Universe. The CP Pool is distributed to the selected Universe upline.",
-    sourceSelectTitle: "Select launch source Universe",
-    sourcePool: "CP Pool basis",
-    source: "Source Universe",
-    steps: [
-      "Meet Creator conditions",
-      "Select source Universe",
-      "Preview 10 USDT condition",
-      "Reflect in owned AI Stars",
-    ],
+  rewardBody:
+    "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
+  sourceSelectBody:
+    "The AI Star is the launch source Star Universe, and My role is your position inside its Founder Network. The CP Pool is distributed to the selected Star Universe upline.",
+  sourceSelectTitle: "Select launch source Star Universe",
+  sourcePool: "CP Pool basis",
+  source: "Source Star Universe",
+  steps: [
+    "Meet Creator conditions",
+    "Select source Star Universe",
+    "Preview 10 USDT condition",
+    "Reflect in owned AI Stars",
+  ],
     submit: "Mock launch ready",
     subtitle: "Before real payment",
   };

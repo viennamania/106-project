@@ -317,7 +317,7 @@ function getPrimaryAction({
   if (viewerState === "member") {
     return {
       helper: isKorean
-        ? "계정은 연결되어 있습니다. 클릭하면 이 AI 스타 유니버스에 Founder로 저장하고 내 추천 링크를 생성합니다."
+        ? "계정은 연결되어 있습니다. 클릭하면 이 스타 유니버스에 Founder로 저장하고 내 추천 링크를 생성합니다."
         : "Your account is connected. Join this AI Star universe and create your referral link.",
       href: joinHref,
       label: isKorean ? "Founder 참여 확정" : "Confirm Founder join",

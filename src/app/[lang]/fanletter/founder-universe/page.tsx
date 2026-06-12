@@ -10,15 +10,15 @@ function getFounderUniverseInvestorMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "FanLetter Founder Universe AI 스타 인큐베이터 모델을 라이브 데이터로 보여주는 투자자용 인포그래픽입니다.",
-      title: "Founder Universe 인포그래픽 | FanLetter",
+        "FanLetter 파운더 네트워크 기반 AI 스타 인큐베이터 모델을 라이브 데이터로 보여주는 투자자용 인포그래픽입니다.",
+      title: "파운더 네트워크 인포그래픽 | FanLetter",
     };
   }
 
   return {
     description:
-      "An investor-facing live-data infographic for the FanLetter Founder Universe AI Star incubation model.",
-    title: "Founder Universe Infographic | FanLetter",
+      "An investor-facing live-data infographic for the FanLetter Founder Network AI Star incubation model.",
+    title: "Founder Network Infographic | FanLetter",
   };
 }
 

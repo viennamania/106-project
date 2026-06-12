@@ -22,14 +22,20 @@ export async function generateMetadata({
 
   if (!universe) {
     return {
-      title: "Founder Universe | FanLetter",
+      title: "Founder Network | FanLetter",
     };
   }
 
   const starName =
     universe.star.name?.trim() || universe.star.displayName?.trim() || "AI Star";
-  const title = `${starName} Founder Universe Explorer`;
-  const description = `${starName} AI Star Founder Universe with ${universe.totals.totalMembers} members and ${universe.totals.edgeCount} referral edges.`;
+  const title =
+    locale === "ko"
+      ? `${starName} 파운더 네트워크 탐색`
+      : `${starName} Founder Network Explorer`;
+  const description =
+    locale === "ko"
+      ? `${starName} 스타 유니버스의 파운더 네트워크입니다. 멤버 ${universe.totals.totalMembers}명과 추천 연결 ${universe.totals.edgeCount}개를 보여줍니다.`
+      : `${starName} Star Universe founder network with ${universe.totals.totalMembers} members and ${universe.totals.edgeCount} referral edges.`;
 
   return {
     title,
