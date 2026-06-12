@@ -6,6 +6,8 @@ import { getFanletterFounderUniverseExplorer } from "@/lib/fanletter-founder-uni
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { hasLocale } from "@/lib/i18n";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {
@@ -24,8 +26,10 @@ export async function generateMetadata({
     };
   }
 
-  const title = `${universe.star.displayName} Founder Universe Explorer`;
-  const description = `${universe.star.displayName} AI Star Founder Universe with ${universe.totals.totalMembers} members and ${universe.totals.edgeCount} referral edges.`;
+  const starName =
+    universe.star.name?.trim() || universe.star.displayName?.trim() || "AI Star";
+  const title = `${starName} Founder Universe Explorer`;
+  const description = `${starName} AI Star Founder Universe with ${universe.totals.totalMembers} members and ${universe.totals.edgeCount} referral edges.`;
 
   return {
     title,

@@ -1007,7 +1007,10 @@ export function FanletterStarDetailPage({
                 />
                 <MetricTile
                   label={copy.labels.openSlots}
-                  value={`${star.openSlots.open}/${star.openSlots.total}`}
+                  value={`${formatNumber(
+                    star.openSlots.open,
+                    locale,
+                  )}/${formatNumber(star.openSlots.total, locale)}`}
                 />
               </div>
 

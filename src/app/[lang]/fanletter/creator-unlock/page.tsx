@@ -15,8 +15,8 @@ function getCreatorUnlockMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "Founder Club 2.0에서 크리에이터 해금 후 새 AI 스타를 출시하는 10 USDT 미리보기 흐름입니다.",
-      title: "크리에이터 해금 | FanLetter Founder Club 2.0",
+        "Founder Club 2.0에서 크리에이터 권한 활성화 후 새 AI 스타를 출시하는 10 USDT 미리보기 흐름입니다.",
+      title: "크리에이터 권한 활성화 | FanLetter Founder Club 2.0",
     };
   }
 

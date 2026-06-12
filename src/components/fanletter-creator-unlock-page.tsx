@@ -64,8 +64,8 @@ function getLaunchPageCopy(locale: Locale) {
       draft: "준비 중",
       fieldsTitle: "새 AI 스타 생성 미리보기",
       heroBody:
-        "크리에이터 해금 이후 여러 AI 스타를 만들 수 있는 흐름을 실제 결제 없이 먼저 검증합니다.",
-      heroEyebrow: "크리에이터 해금",
+        "크리에이터 권한 활성화 이후 여러 AI 스타를 만들 수 있는 흐름을 실제 결제 없이 먼저 검증합니다.",
+      heroEyebrow: "크리에이터 권한 활성화",
       heroTitle: "Founder가 성장하면 새 AI 스타를 출시합니다",
       loginCta: "계정 연결하고 내 데이터 보기",
       loginNoticeBody:

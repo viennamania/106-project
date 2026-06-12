@@ -843,7 +843,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     creatorPath: {
       body:
-        "첫 버전에서는 해금 상태만 보여줍니다. 실제 결제 플로우를 연결하기 전까지 새 AI 스타 생성은 미리보기 액션입니다.",
+        "첫 버전에서는 권한 상태만 보여줍니다. 실제 결제 플로우를 연결하기 전까지 새 AI 스타 생성은 미리보기 액션입니다.",
       steps: [
         {
           body: "기존 AI 스타 유니버스에 새 파운더를 초대하고 성장 신호를 만듭니다.",
@@ -854,7 +854,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
           title: "파운더 영향력",
         },
         {
-          body: "크리에이터 권한을 해금한 뒤 10 USDT 미리보기 조건으로 새 AI 스타를 시작합니다.",
+          body: "크리에이터 권한을 활성화한 뒤 10 USDT 미리보기 조건으로 새 AI 스타를 시작합니다.",
           title: "크리에이터 출시",
         },
       ],
@@ -870,14 +870,14 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       launchPreviewBody:
         "멤버는 성장시킨 원천 유니버스에서 또 다른 AI 스타를 시작할 수 있습니다. 이번 버전에서는 10 USDT 단계를 미리보기 활성화로만 표시합니다.",
       launchPreviewTitle: "새 AI 스타 출시 미리보기",
-      liveDataLabel: "실시간 해금 상태",
+      liveDataLabel: "실시간 권한 상태",
       lockedLabel: "잠금",
       mockPaymentNotice:
         "크리에이터 출시는 10 USDT 조건 미리보기로만 표시됩니다. 결제 화면은 이후 릴리스에서 연결됩니다.",
       mockReadyLabel: "미리보기 준비",
       scoutScore: "스카우트 점수 80 이상",
-      title: "크리에이터 해금",
-      unlockedLabel: "크리에이터 해금",
+      title: "크리에이터 권한 활성화",
+      unlockedLabel: "크리에이터 권한 활성화",
     },
     founderClub: {
       body:
@@ -893,7 +893,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "SNS 공유 링크 발행",
         "신규 회원 가입",
         "CP + 영향력 점수 획득",
-        "크리에이터 해금",
+        "크리에이터 권한 활성화",
         "새 AI 스타 출시",
       ],
       title: "파운더 클럽 2.0 성장 루프",
@@ -904,7 +904,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       creatorProgress: "크리에이터 진행률",
       cpBalance: "CP 잔액",
       creatorEligibility: "크리에이터 가능성",
-      createdByUnlock: "해금으로 생성",
+      createdByUnlock: "권한 활성화로 생성",
       directInvites: "직접 초대",
       founderClub: "파운더 클럽",
       founderCount: "파운더 수",

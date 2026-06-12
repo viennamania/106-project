@@ -295,6 +295,11 @@ export function AIStarCard({
   star: AIStar;
 }) {
   const displayStarName = getDisplayStarName(star.name, copy);
+  const founderCountLabel = formatNumber(star.founderCount, locale);
+  const openSlotsLabel = `${formatNumber(
+    star.openSlots.open,
+    locale,
+  )}/${formatNumber(star.openSlots.total, locale)}`;
 
   return (
     <article
@@ -338,15 +343,15 @@ export function AIStarCard({
           </div>
           <div className="rounded-lg border border-white/14 bg-white/10 p-2">
             <p className="text-xl font-semibold leading-none">
-              {star.founderCount}
+              {founderCountLabel}
             </p>
             <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
               {copy.labels.founderCount}
             </p>
           </div>
           <div className="rounded-lg border border-white/14 bg-white/10 p-2">
-            <p className="text-xl font-semibold leading-none">
-              {star.openSlots.open}/{star.openSlots.total}
+            <p className="text-[0.82rem] font-semibold leading-none tabular-nums sm:text-sm">
+              {openSlotsLabel}
             </p>
             <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
               {copy.labels.openSlots}
@@ -1187,6 +1192,9 @@ function UniverseMiniStar({
   );
 }
 
+const founderUniversePreviewSlotCount = 6;
+const founderUniverseTierCapacities = [6, 36, 216, 1296, 7776, 46656];
+
 function FounderSlot({
   copy,
   slot,
@@ -1207,6 +1215,52 @@ function FounderSlot({
   );
 }
 
+function FounderSlotPlaceholder({
+  copy,
+  index,
+}: {
+  copy: FanletterV2Copy;
+  index: number;
+}) {
+  return (
+    <div className="flex min-h-16 items-center gap-2 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-2">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-xs font-semibold text-zinc-400">
+        {index}
+      </div>
+      <div className="min-w-0">
+        <p className="truncate text-xs font-semibold text-zinc-500">
+          {copy.universePreview.emptySlot}
+        </p>
+        <span className="mt-1 inline-flex rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[0.6rem] font-semibold text-zinc-400">
+          SLOT
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function FounderUniverseTierRail({ locale }: { locale: Locale }) {
+  return (
+    <div className="mt-4 rounded-lg border border-violet-100 bg-violet-50/60 p-3">
+      <div className="grid grid-cols-6 gap-1.5">
+        {founderUniverseTierCapacities.map((capacity, index) => (
+          <div
+            className="rounded-md border border-white bg-white/80 px-1.5 py-2 text-center shadow-[0_8px_18px_rgba(88,28,135,0.06)]"
+            key={capacity}
+          >
+            <p className="text-[0.58rem] font-semibold text-violet-500">
+              L{index + 1}
+            </p>
+            <p className="mt-1 text-[0.66rem] font-semibold leading-none text-zinc-800 tabular-nums">
+              {formatNumber(capacity, locale)}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function FounderUniversePreview({
   copy,
   locale,
@@ -1217,7 +1271,7 @@ export function FounderUniversePreview({
   stars: AIStar[];
 }) {
   return (
-    <section className="mt-12 hidden sm:block">
+    <section className="mt-12">
       <div className="max-w-3xl">
         <p className="text-sm font-semibold text-[#6d28d9]">
           {copy.labels.founderClub}
@@ -1231,53 +1285,78 @@ export function FounderUniversePreview({
       </div>
 
       <div className="-mx-4 mt-6 flex snap-x gap-3 overflow-x-auto px-4 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:grid lg:grid-cols-2 lg:overflow-visible lg:px-0 lg:pb-0">
-        {stars.map((star) => (
-          <article
-            className="min-w-[86vw] max-w-[24rem] snap-start rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] lg:min-w-0 lg:max-w-none"
-            key={star.id}
-          >
-            <div className="grid gap-3 sm:grid-cols-[1fr_9rem_1fr] sm:items-center">
-              <div className="grid gap-2">
-                {star.founderSlots.slice(0, 2).map((slot) => (
-                  <FounderSlot
-                    copy={copy}
-                    key={`${star.id}-${slot.name}`}
-                    slot={slot}
-                  />
-                ))}
-              </div>
-              <UniverseMiniStar copy={copy} star={star} />
-              <div className="grid gap-2">
-                {star.founderSlots.slice(2, 4).map((slot) => (
-                  <FounderSlot
-                    copy={copy}
-                    key={`${star.id}-${slot.name}`}
-                    slot={slot}
-                  />
-                ))}
-              </div>
-            </div>
+        {stars.map((star) => {
+          const previewSlots = Array.from(
+            { length: founderUniversePreviewSlotCount },
+            (_, index) => star.founderSlots[index] ?? null,
+          );
 
-            <div className="mt-4">
-              <p className="text-xs font-semibold text-black/48">
-                {copy.labels.spawnedStars}
-              </p>
-              <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                {star.spawnedStars.map((spawnedStar) => (
-                  <SpawnedStarCard
-                    copy={copy}
-                    key={spawnedStar.id}
-                    locale={locale}
-                    star={spawnedStar}
-                  />
-                ))}
-                <div className="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-3 text-sm font-semibold text-zinc-500">
-                  {copy.universePreview.emptySlot}
+          return (
+            <article
+              className="min-w-[86vw] max-w-[24rem] snap-start rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] lg:min-w-0 lg:max-w-none"
+              key={star.id}
+            >
+              <div className="grid gap-3 sm:grid-cols-[1fr_9rem_1fr] sm:items-center">
+                <div className="grid gap-2">
+                  {previewSlots.slice(0, 3).map((slot, index) =>
+                    slot ? (
+                      <FounderSlot
+                        copy={copy}
+                        key={`${star.id}-${slot.name}-${index}`}
+                        slot={slot}
+                      />
+                    ) : (
+                      <FounderSlotPlaceholder
+                        copy={copy}
+                        index={index + 1}
+                        key={`${star.id}-empty-left-${index}`}
+                      />
+                    ),
+                  )}
+                </div>
+                <UniverseMiniStar copy={copy} star={star} />
+                <div className="grid gap-2">
+                  {previewSlots.slice(3, 6).map((slot, index) =>
+                    slot ? (
+                      <FounderSlot
+                        copy={copy}
+                        key={`${star.id}-${slot.name}-${index + 3}`}
+                        slot={slot}
+                      />
+                    ) : (
+                      <FounderSlotPlaceholder
+                        copy={copy}
+                        index={index + 4}
+                        key={`${star.id}-empty-right-${index}`}
+                      />
+                    ),
+                  )}
                 </div>
               </div>
-            </div>
-          </article>
-        ))}
+
+              <FounderUniverseTierRail locale={locale} />
+
+              <div className="mt-4">
+                <p className="text-xs font-semibold text-black/48">
+                  {copy.labels.spawnedStars}
+                </p>
+                <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                  {star.spawnedStars.map((spawnedStar) => (
+                    <SpawnedStarCard
+                      copy={copy}
+                      key={spawnedStar.id}
+                      locale={locale}
+                      star={spawnedStar}
+                    />
+                  ))}
+                  <div className="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-3 text-sm font-semibold text-zinc-500">
+                    {copy.universePreview.emptySlot}
+                  </div>
+                </div>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
@@ -1386,7 +1465,7 @@ export function FounderClubV2HomeSections({
             <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-black/62 sm:text-lg">
               <span className="sm:hidden">
                 {isKoreanCopy(copy)
-                  ? "홈에서는 발견, 파운더 참여, 스카우트 보상, 크리에이터 해금만 빠르게 보여줍니다."
+                  ? "홈에서는 발견, 파운더 참여, 스카우트 보상, 크리에이터 권한 활성화만 빠르게 보여줍니다."
                   : "The mobile home keeps the discovery, Founder, Scout reward, and Creator unlock path focused."}
               </span>
               <span className="hidden sm:inline">{copy.founderClub.body}</span>

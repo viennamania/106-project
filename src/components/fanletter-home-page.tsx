@@ -1852,7 +1852,7 @@ export function FanletterHomePage({
           activate: "계정 상태",
           aiContent: "AI 스타 발견",
           campaignStudio: "캠페인 스튜디오",
-          creatorUnlock: "크리에이터 해금",
+          creatorUnlock: "권한 활성화",
           creatorGrowth: "팬 관계 성장",
           creatorPath: "크리에이터 성장 경로",
           discovery: "AI 스타 발견",
@@ -1932,7 +1932,7 @@ export function FanletterHomePage({
   const founderClubCtaLabels =
     locale === "ko"
       ? {
-          creator: "크리에이터 해금",
+          creator: "권한 활성화",
           discover: "AI 스타 발견하기",
           founder: "파운더로 참여하기",
           genealogy: "AI 스타 계보",
@@ -1973,7 +1973,7 @@ export function FanletterHomePage({
             label: "맵",
           },
           {
-            body: "해금",
+            body: "활성화",
             href: creatorUnlockHref,
             Icon: ChartNoAxesCombined,
             label: "크리에이터",

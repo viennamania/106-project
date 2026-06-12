@@ -36,13 +36,19 @@ import {
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import {
   buildFanletterFounderUniverseCpPoolDistribution,
+  fanletterFounderUniverseTiers,
   resolveFanletterFounderUniverseUplinePath,
   type FanletterFounderUniverseCpPoolDistribution,
 } from "@/lib/fanletter-founder-universe";
 
 const HOME_STAR_LIMIT = 4;
-const FOUNDER_SLOT_LIMIT = 4;
+const FOUNDER_SLOT_LIMIT = 6;
 const DEFAULT_FOUNDER_SLOT_TOTAL = 150;
+const FOUNDER_UNIVERSE_TOTAL_CAPACITY =
+  fanletterFounderUniverseTiers.reduce(
+    (total, tier) => total + tier.capacity,
+    0,
+  );
 const MEMBER_PORTFOLIO_ROLE_LIMIT = 12;
 const SPAWNED_STAR_LIMIT = 3;
 const SCOUT_SIGNUP_CP_REWARD = 100;
@@ -236,15 +242,48 @@ function getDisplayGrowthPercent(star: FanletterStarDocument) {
   return Math.max(8, Math.min(49, Math.round(star.starScore / 2)));
 }
 
-function getFounderSlotTotal(star: FanletterStarDocument) {
-  const explicitTotal = star.founderCount + star.openSlotCount;
-  return explicitTotal > 0 ? explicitTotal : DEFAULT_FOUNDER_SLOT_TOTAL;
-}
-
 function toFounderRole(
   role: FanletterStarFounderMembershipDocument["role"],
 ): Exclude<FounderRole, "member"> {
   return role;
+}
+
+function getFounderUniverseSlotCounts({
+  fallbackFounderCount,
+  fallbackOpenSlotCount,
+  memberships,
+}: {
+  fallbackFounderCount: number;
+  fallbackOpenSlotCount: number;
+  memberships?: FanletterStarFounderMembershipDocument[];
+}) {
+  if (!memberships) {
+    const fallbackFounderTotal = Math.max(0, fallbackFounderCount);
+    const fallbackTotal = fallbackFounderCount + fallbackOpenSlotCount;
+    const totalSlots =
+      fallbackTotal > 0 ? fallbackTotal : DEFAULT_FOUNDER_SLOT_TOTAL;
+
+    return {
+      founderCount: fallbackFounderTotal,
+      openSlotCount: Math.max(0, totalSlots - fallbackFounderTotal),
+      totalSlots,
+    };
+  }
+
+  const universeMemberCount = memberships.length;
+  const hasCreator = memberships.some(
+    (membership) => toFounderRole(membership.role) === "creator",
+  );
+  const creatorCount = hasCreator ? 1 : 0;
+
+  return {
+    founderCount: Math.max(0, universeMemberCount - creatorCount),
+    openSlotCount: Math.max(
+      0,
+      FOUNDER_UNIVERSE_TOTAL_CAPACITY - universeMemberCount,
+    ),
+    totalSlots: FOUNDER_UNIVERSE_TOTAL_CAPACITY,
+  };
 }
 
 function sortMembershipsForPortfolio(
@@ -281,22 +320,24 @@ function serializeFounderSlots({
 
 function serializeStar({
   founderSlots,
+  memberships,
   parentStar = null,
   spawnedStars = [],
   star,
 }: {
   founderSlots: HumanFounderSlot[];
+  memberships?: FanletterStarFounderMembershipDocument[];
   parentStar?: SpawnedAIStar | null;
   spawnedStars?: SpawnedAIStar[];
   star: FanletterStarDocument;
 }): AIStar {
   const [accentColor, accentSecondary] = getAccentPair(star.starId);
-  const founderSlotTotal = getFounderSlotTotal(star);
-  const founderCount = Math.max(star.founderCount, founderSlots.length);
-  const openSlotCount =
-    star.openSlotCount > 0
-      ? star.openSlotCount
-      : Math.max(0, founderSlotTotal - founderCount);
+  const { founderCount, openSlotCount, totalSlots } =
+    getFounderUniverseSlotCounts({
+      fallbackFounderCount: star.founderCount,
+      fallbackOpenSlotCount: star.openSlotCount,
+      memberships,
+    });
 
   return {
     accentColor,
@@ -308,7 +349,7 @@ function serializeStar({
     name: compactText(star.characterName, star.displayName),
     openSlots: {
       open: openSlotCount,
-      total: Math.max(founderSlotTotal, founderCount + openSlotCount),
+      total: totalSlots,
     },
     parentStar,
     portraitImageUrl: star.portraitImageUrl,
@@ -1200,16 +1241,19 @@ export async function getFanletterFounderClubHomeStars(options?: {
     }
   }
 
-  return stars.map((star) =>
-    serializeStar({
+  return stars.map((star) => {
+    const memberships = membershipsByStarId.get(star.starId) ?? [];
+
+    return serializeStar({
       founderSlots: serializeFounderSlots({
         memberNamesByEmail,
-        memberships: membershipsByStarId.get(star.starId) ?? [],
+        memberships,
       }),
+      memberships,
       spawnedStars: spawnedStarsByParentStarId.get(star.starId) ?? [],
       star,
-    }),
-  );
+    });
+  });
 }
 
 export async function getFanletterFounderClubStarDetail(
@@ -1307,6 +1351,7 @@ export async function getFanletterFounderClubStarDetail(
       memberNamesByEmail,
       memberships,
     }),
+    memberships,
     parentStar: parentStar
       ? serializeSpawnedStar({
           star: parentStar,
