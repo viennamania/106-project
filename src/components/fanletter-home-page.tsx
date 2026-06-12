@@ -20,6 +20,7 @@ import {
 import {
   FanletterDesktopHeroCardCarousel,
   FanletterHeroBackgroundCarousel,
+  FanletterVlogPreviewCarousel,
 } from "@/components/fanletter-mobile-hero-carousel";
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
@@ -37,11 +38,12 @@ import type {
   FanletterLiveStats,
 } from "@/lib/fanletter-landing-service";
 import type { Locale } from "@/lib/i18n";
-import type {
-  AIStar,
-  CreatorUnlockData,
-  MemberPortfolio,
-  ScoutShareLoopData,
+import {
+  getFanletterV2LocalizedText,
+  type AIStar,
+  type CreatorUnlockData,
+  type MemberPortfolio,
+  type ScoutShareLoopData,
 } from "@/mock/fanletterV2";
 import { getFanletterNsfwCopy } from "@/lib/fanletter-nsfw";
 import {
@@ -889,6 +891,550 @@ function MobileFounderLoopVisual({
       </div>
 
     </div>
+  );
+}
+
+function FanletterProductHomeDashboard({
+  aiStarGenealogyHref,
+  connectHref,
+  copy,
+  creatorUnlock,
+  creatorUnlockHref,
+  founderClubHref,
+  liveStats,
+  locale,
+  memberPortfolio,
+  previewVideos,
+  referralCode,
+  scoutShareLoop,
+  scoutShareLoopHref,
+  stars,
+  topGrowingStarsHref,
+}: {
+  aiStarGenealogyHref: string;
+  connectHref: string;
+  copy: FanletterCopy;
+  creatorUnlock?: CreatorUnlockData | null;
+  creatorUnlockHref: string;
+  founderClubHref: string;
+  liveStats: FanletterLiveStats;
+  locale: Locale;
+  memberPortfolio?: MemberPortfolio | null;
+  previewVideos?: FanletterFeaturedVideo[] | null;
+  referralCode: string | null;
+  scoutShareLoop?: ScoutShareLoopData | null;
+  scoutShareLoopHref: string;
+  stars?: AIStar[] | null;
+  topGrowingStarsHref: string;
+}) {
+  const isKo = locale === "ko";
+  const starList = stars ?? [];
+  const primaryStar =
+    starList.find((star) => star.id === scoutShareLoop?.starId) ??
+    starList[0] ??
+    null;
+  const topStars = starList.slice(0, 3);
+  const availablePreviewVideos = (previewVideos ?? []).filter(
+    (video) => video.videoUrl.trim() || video.coverImageUrl,
+  );
+  const seenPreviewAuthors = new Set<string>();
+  const uniqueAuthorPreviewVideos = availablePreviewVideos.filter((video) => {
+    const key =
+      video.authorReferralCode ??
+      video.authorAvatarImageUrl ??
+      video.authorName ??
+      video.contentId;
+
+    if (seenPreviewAuthors.has(key)) {
+      return false;
+    }
+
+    seenPreviewAuthors.add(key);
+    return true;
+  });
+  const previewVideoList = (
+    uniqueAuthorPreviewVideos.length >= 2
+      ? uniqueAuthorPreviewVideos
+      : availablePreviewVideos
+  )
+    .filter((video) => video.videoUrl.trim() || video.coverImageUrl)
+    .slice(0, 5);
+  const portfolioStats = [
+    {
+      label: isKo ? "스카우트 점수" : "Scout Score",
+      value: memberPortfolio?.scoutScore ?? 0,
+      suffix: "",
+    },
+    {
+      label: isKo ? "직접 초대" : "Direct Invites",
+      value: memberPortfolio?.directInvites ?? 0,
+      suffix: isKo ? "명" : "",
+    },
+    {
+      label: "CP",
+      value: memberPortfolio?.cpBalance ?? 0,
+      suffix: "",
+    },
+    {
+      label: isKo ? "Creator 가능성" : "Creator Eligibility",
+      value: memberPortfolio?.creatorEligibilityPercent ?? 0,
+      suffix: "%",
+    },
+  ];
+  const productCopy = isKo
+    ? {
+        connect: "계정 연결",
+        creator: "크리에이터 권한",
+        creatorReady: "AI 스타 창업 준비 완료",
+        discovery: "AI 스타 발견",
+        founder: "파운더",
+        founderUniverse: "파운더 유니버스",
+        growth: "성장",
+        headline: "파운더 클럽 OS",
+        join: "파운더 참여",
+        locked: "조건 확인",
+        loop: "발견 → 초대 → 보상 → 창업",
+        open: "빈 슬롯",
+        portfolio: "내 성장 상태",
+        primaryCta: "AI 스타 발견하기",
+        reward: "이번 공유 보상",
+        scout: "스카우트 공유",
+        score: "스타 점수",
+        shareCode: "추천 코드",
+        subhead:
+          "AI 스타를 발견하고, 유니버스에 참여하고, 초대 성과로 크리에이터 권한을 여는 제품형 홈입니다.",
+        today: "오늘 할 일",
+        topGrowingTitle: "성장 중인 AI 스타",
+        unlocked: "활성화",
+        universeMap: "유니버스 맵",
+        videoPreview: "브이로그 프리뷰",
+        videoSignal: "콘텐츠 반응",
+        watchPreview: "프리뷰 보기",
+      }
+    : {
+        connect: "Connect Account",
+        creator: "Creator Unlock",
+        creatorReady: "AI Star launch ready",
+        discovery: "AI Star Discovery",
+        founder: "Founder",
+        founderUniverse: "Founder Universe",
+        growth: "Growth",
+        headline: "Founder Club OS",
+        join: "Join Founder",
+        locked: "Locked",
+        loop: "Discover → Invite → Reward → Launch",
+        open: "Open",
+        portfolio: "My Growth Status",
+        primaryCta: "Discover AI Stars",
+        reward: "Share Reward",
+        scout: "Scout Share",
+        score: "Score",
+        shareCode: "Referral Code",
+        subhead:
+          "A product home for discovering AI Stars, joining Universes, and unlocking Creator status through invite performance.",
+        today: "Today",
+        topGrowingTitle: "Top Growing AI Stars",
+        unlocked: "Unlocked",
+        universeMap: "Universe Map",
+        videoPreview: "Vlog Preview",
+        videoSignal: "Content Signal",
+        watchPreview: "Watch Preview",
+      };
+  const actionItems = [
+    {
+      body: isKo ? "성장 중인 AI 스타 선택" : "Pick a growing AI Star",
+      href: topGrowingStarsHref,
+      Icon: Bot,
+      label: productCopy.discovery,
+    },
+    {
+      body: isKo ? "유니버스 슬롯 확인" : "Check Universe slots",
+      href: founderClubHref,
+      Icon: Crown,
+      label: productCopy.join,
+    },
+    {
+      body: scoutShareLoop?.referralCode ?? "MINSEO-A-001",
+      href: scoutShareLoopHref,
+      Icon: Megaphone,
+      label: productCopy.scout,
+    },
+    {
+      body: creatorUnlock?.unlocked
+        ? productCopy.creatorReady
+        : isKo
+          ? "조건 확인"
+          : "Check conditions",
+      href: creatorUnlockHref,
+      Icon: ChartNoAxesCombined,
+      label: productCopy.creator,
+    },
+  ];
+  const previewSlides = previewVideoList
+    .filter((video) => video.videoUrl.trim())
+    .map((video) => ({
+      authorAvatarImageUrl: video.authorAvatarImageUrl,
+      authorName: video.authorName,
+      badgeLabel: productCopy.videoPreview,
+      coverImageUrl: video.coverImageUrl,
+      ctaLabel: productCopy.watchPreview,
+      href: buildPathWithReferral(
+        `/${locale}/fanletter/content/${video.contentId}`,
+        referralCode,
+      ),
+      signalLabel: isKo
+        ? `${formatMetric(video.social.commentCount, locale)} 댓글`
+        : `${formatMetric(video.social.commentCount, locale)} comments`,
+      title: video.title,
+      videoUrl: video.videoUrl,
+    }));
+
+  return (
+    <section className="grid flex-1 content-start gap-5 pb-8 pt-6 sm:gap-6 sm:py-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] lg:items-start">
+      <div className="grid gap-4">
+        <div>
+          <div className="rounded-[1.45rem] border border-violet-100 bg-white/90 p-4 shadow-[0_24px_70px_rgba(88,28,135,0.12)] backdrop-blur-xl sm:p-5">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,16rem)] lg:items-stretch">
+              <div className="flex min-w-0 flex-col gap-4">
+                <div className="min-w-0">
+                  <p className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-[0.68rem] font-semibold text-[#6d28d9]">
+                    {productCopy.loop}
+                  </p>
+                  <h1 className="mt-3 max-w-2xl text-[2.25rem] font-semibold leading-[1.02] tracking-normal text-[#12041f] [word-break:keep-all] sm:text-[3.2rem]">
+                    {productCopy.headline}
+                  </h1>
+                  <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-black/58 [word-break:keep-all] sm:text-base">
+                    {productCopy.subhead}
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:flex sm:flex-wrap">
+                  <Link
+                    className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.24)] transition hover:bg-[#6d28d9]"
+                    href={topGrowingStarsHref}
+                  >
+                    {productCopy.primaryCta}
+                    <ArrowRight className="size-4" />
+                  </Link>
+                  <Link
+                    className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white px-5 text-sm font-semibold !text-[#6d28d9] shadow-[0_12px_26px_rgba(88,28,135,0.08)] transition hover:bg-violet-50"
+                    href={connectHref}
+                  >
+                    <ShieldCheck className="size-4" />
+                    {productCopy.connect}
+                  </Link>
+                </div>
+              </div>
+
+              {previewSlides.length > 0 ? (
+                <FanletterVlogPreviewCarousel slides={previewSlides} />
+              ) : null}
+            </div>
+
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {actionItems.map((item) => {
+                const Icon = item.Icon;
+
+                return (
+                  <Link
+                    className="group rounded-[1.05rem] border border-slate-100 bg-slate-50/70 p-3 transition hover:-translate-y-0.5 hover:border-violet-200 hover:bg-white hover:shadow-[0_16px_34px_rgba(88,28,135,0.1)]"
+                    href={item.href}
+                    key={item.label}
+                  >
+                    <span className="flex items-start justify-between gap-3">
+                      <span className="flex size-10 items-center justify-center rounded-xl bg-white text-[#7c3aed] shadow-[0_10px_22px_rgba(88,28,135,0.08)]">
+                        <Icon className="size-5" />
+                      </span>
+                      <ArrowRight className="size-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-[#7c3aed]" />
+                    </span>
+                    <span className="mt-3 block text-sm font-semibold text-[#12041f]">
+                      {item.label}
+                    </span>
+                    <span className="mt-1 block truncate text-xs font-semibold text-slate-500">
+                      {item.body}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+          <ScrollReveal delay={140} y={16}>
+            <div className="rounded-[1.35rem] border border-violet-100 bg-white/88 p-4 shadow-[0_22px_56px_rgba(88,28,135,0.1)] backdrop-blur-xl">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[#6d28d9]">
+                    {productCopy.discovery}
+                  </p>
+                  <h2 className="mt-1 text-lg font-semibold text-[#12041f]">
+                    {productCopy.topGrowingTitle}
+                  </h2>
+                </div>
+                <Link
+                  className="inline-flex h-9 items-center gap-1 rounded-full border border-violet-100 bg-violet-50 px-3 text-xs font-semibold !text-[#6d28d9]"
+                  href={topGrowingStarsHref}
+                >
+                  {copy.nav.features}
+                  <ArrowRight className="size-3.5" />
+                </Link>
+              </div>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {topStars.map((star) => (
+                  <Link
+                    className="group overflow-hidden rounded-[1.05rem] border border-violet-100 bg-white shadow-[0_12px_30px_rgba(88,28,135,0.07)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(88,28,135,0.12)]"
+                    href={`/${locale}/fanletter/${encodeURIComponent(star.id)}`}
+                    key={star.id}
+                  >
+                    <div
+                      className="h-1.5"
+                      style={{
+                        background: `linear-gradient(90deg, ${star.accentColor}, ${star.accentSecondary})`,
+                      }}
+                    />
+                    <div className="p-3">
+                      <div className="flex items-center gap-3">
+                        <span
+                          className="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-cover bg-center text-sm font-semibold text-white shadow-[0_12px_24px_rgba(88,28,135,0.14)]"
+                          style={
+                            star.portraitImageUrl
+                              ? { backgroundImage: `url(${star.portraitImageUrl})` }
+                              : {
+                                  background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
+                                }
+                          }
+                        >
+                          {star.portraitImageUrl ? null : star.portraitInitials}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-base font-semibold text-[#12041f]">
+                            {star.name}
+                          </span>
+                          <span className="mt-1 block truncate text-xs font-semibold text-slate-500">
+                            {getFanletterV2LocalizedText(star.specialty, locale)}
+                          </span>
+                        </span>
+                      </div>
+                      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                        {[
+                          [productCopy.score, star.starScore],
+                          [productCopy.growth, `+${star.growthPercent}%`],
+                          [productCopy.open, star.openSlots.open],
+                        ].map(([label, value]) => (
+                          <span
+                            className="rounded-xl bg-slate-50 px-2 py-2"
+                            key={label}
+                          >
+                            <span className="block text-sm font-semibold text-[#12041f]">
+                              {value}
+                            </span>
+                            <span className="mt-0.5 block text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                              {label}
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </ScrollReveal>
+
+          <ScrollReveal delay={180} y={16}>
+            <div className="rounded-[1.35rem] border border-violet-100 bg-white/88 p-4 shadow-[0_22px_56px_rgba(88,28,135,0.1)] backdrop-blur-xl">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold text-[#12041f]">
+                  {productCopy.portfolio}
+                </p>
+                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[0.68rem] font-semibold text-emerald-700">
+                  {creatorUnlock?.unlocked
+                    ? productCopy.unlocked
+                    : productCopy.locked}
+                </span>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {portfolioStats.map((stat) => (
+                  <div className="rounded-xl bg-slate-50 p-3" key={stat.label}>
+                    <p className="text-lg font-semibold text-[#12041f]">
+                      {formatMetric(stat.value, locale)}
+                      {stat.suffix}
+                    </p>
+                    <p className="mt-1 text-[0.66rem] font-semibold text-slate-500">
+                      {stat.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <Link
+                className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 text-sm font-semibold !text-[#6d28d9]"
+                href={creatorUnlockHref}
+              >
+                {productCopy.creator}
+                <ArrowRight className="size-4" />
+              </Link>
+            </div>
+          </ScrollReveal>
+        </div>
+      </div>
+
+      <div className="grid gap-4">
+        <ScrollReveal delay={120} y={16}>
+          <div className="rounded-[1.45rem] border border-violet-100 bg-white/90 p-4 shadow-[0_24px_70px_rgba(88,28,135,0.12)] backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-[#12041f]">
+                {productCopy.founderUniverse}
+              </p>
+              <Link
+                className="inline-flex h-8 items-center gap-1 rounded-full bg-slate-50 px-3 text-xs font-semibold !text-slate-600"
+                href={aiStarGenealogyHref}
+              >
+                {productCopy.universeMap}
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+
+            <div className="mt-4 grid gap-4">
+              <div className="relative mx-auto aspect-square w-full max-w-[18rem] rounded-full bg-[radial-gradient(circle,#ffffff_0%,#ffffff_36%,#f7f3ff_100%)]">
+                {[1, 2, 3, 4].map((ring) => (
+                  <span
+                    className="absolute rounded-full border border-dashed border-violet-200"
+                    key={ring}
+                    style={{
+                      inset: `${ring * 9}%`,
+                    }}
+                  />
+                ))}
+                {primaryStar ? (
+                  <span
+                    className="absolute left-1/2 top-1/2 flex size-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center overflow-hidden rounded-[1.35rem] bg-cover bg-center text-lg font-semibold text-white shadow-[0_18px_42px_rgba(124,58,237,0.2)]"
+                    style={
+                      primaryStar.portraitImageUrl
+                        ? { backgroundImage: `url(${primaryStar.portraitImageUrl})` }
+                        : {
+                            background: `linear-gradient(145deg, ${primaryStar.accentColor}, ${primaryStar.accentSecondary})`,
+                          }
+                    }
+                  >
+                    {primaryStar.portraitImageUrl
+                      ? null
+                      : primaryStar.portraitInitials}
+                  </span>
+                ) : null}
+                {[0, 1, 2, 3, 4, 5].map((index) => {
+                  const angle = -90 + index * 60;
+                  const radians = (angle * Math.PI) / 180;
+                  const x = 50 + Math.cos(radians) * 39;
+                  const y = 50 + Math.sin(radians) * 39;
+
+                  return (
+                    <span
+                      className="absolute flex size-8 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-[0.68rem] font-semibold text-slate-500"
+                      key={index}
+                      style={{
+                        left: `${x}%`,
+                        top: `${y}%`,
+                        transform: "translate(-50%, -50%)",
+                      }}
+                    >
+                      {index + 1}
+                    </span>
+                  );
+                })}
+              </div>
+
+              <div>
+                <p className="text-xl font-semibold text-[#12041f]">
+                  {primaryStar?.name ?? "AI Star"}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-slate-500">
+                  {primaryStar?.universeName ?? productCopy.founderUniverse}
+                </p>
+                <div className="mt-4 grid grid-cols-3 gap-2">
+                  {[
+                    [productCopy.founder, primaryStar?.founderCount ?? 0],
+                    [productCopy.open, primaryStar?.openSlots.open ?? 0],
+                    [productCopy.score, primaryStar?.starScore ?? 0],
+                  ].map(([label, value]) => (
+                    <span className="rounded-xl bg-slate-50 p-3 text-center" key={label}>
+                      <span className="block text-lg font-semibold text-[#12041f]">
+                        {value}
+                      </span>
+                      <span className="text-[0.64rem] font-semibold text-slate-400">
+                        {label}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal delay={200} y={16}>
+          <div className="rounded-[1.35rem] border border-emerald-100 bg-emerald-50/78 p-4 shadow-[0_18px_46px_rgba(16,185,129,0.1)]">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-emerald-900">
+                {productCopy.scout}
+              </p>
+              <span className="rounded-full bg-white px-2.5 py-1 text-[0.66rem] font-semibold text-emerald-800">
+                {productCopy.reward}
+              </span>
+            </div>
+            <p className="mt-3 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-emerald-700">
+              {productCopy.shareCode}
+            </p>
+            <p className="mt-1 truncate text-lg font-semibold text-[#12041f]">
+              {scoutShareLoop?.referralCode ?? "MINSEO-A-001"}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {["Kakao", "Instagram", "X", "TikTok"].map((platform) => (
+                <span
+                  className="rounded-full bg-white px-2.5 py-1 text-[0.66rem] font-semibold text-emerald-800"
+                  key={platform}
+                >
+                  {platform}
+                </span>
+              ))}
+            </div>
+            <Link
+              className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 text-sm font-semibold !text-white"
+              href={scoutShareLoopHref}
+            >
+              {productCopy.scout}
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+        </ScrollReveal>
+
+        <ScrollReveal delay={240} y={16}>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              [copy.liveStats.videos, liveStats.publicVideoCount],
+              [copy.liveStats.creators, liveStats.activeCreatorCount],
+              [copy.liveStats.sales, liveStats.confirmedSalesCount],
+            ].map(([label, value]) => (
+              <div
+                className="rounded-2xl border border-violet-100 bg-white/82 p-3 text-center shadow-[0_12px_30px_rgba(88,28,135,0.07)]"
+                key={label}
+              >
+                <p className="text-lg font-semibold text-[#12041f]">
+                  <AnimatedNumber
+                    format="compact"
+                    locale={locale}
+                    value={Number(value)}
+                  />
+                </p>
+                <p className="mt-1 text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                  {label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </ScrollReveal>
+      </div>
+    </section>
   );
 }
 
@@ -2260,7 +2806,25 @@ export function FanletterHomePage({
             </ScrollReveal>
           ) : null}
 
-          <div className="grid flex-1 content-start gap-5 pb-8 pt-10 sm:content-center sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
+          <FanletterProductHomeDashboard
+            aiStarGenealogyHref={aiStarGenealogyHref}
+            connectHref={connectHref}
+            copy={copy}
+            creatorUnlock={founderClubCreatorUnlock}
+            creatorUnlockHref={creatorUnlockHref}
+            founderClubHref={founderClubHref}
+            liveStats={liveStats}
+            locale={locale}
+            memberPortfolio={founderClubMemberPortfolio}
+            previewVideos={featuredVideos}
+            referralCode={referralCode}
+            scoutShareLoop={founderClubScoutShareLoop}
+            scoutShareLoopHref={scoutShareLoopHref}
+            stars={founderClubStars}
+            topGrowingStarsHref={topGrowingStarsHref}
+          />
+
+          <div className="hidden flex-1 content-start gap-5 pb-8 pt-10 sm:content-center sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
             <ScrollReveal className="max-w-[58rem]" delay={80} y={18}>
               <p className="inline-flex rounded-full border border-violet-200 bg-white/82 px-3 py-1 text-[0.68rem] font-semibold text-[#6d28d9] shadow-[0_10px_24px_rgba(88,28,135,0.08)] backdrop-blur-md sm:bg-transparent sm:px-0 sm:shadow-none sm:uppercase sm:tracking-[0.28em]">
                 {locale === "ko" ? "파운더 클럽 2.0" : copy.hero.eyebrow}

@@ -9,6 +9,14 @@ type FanletterHeroSlide = {
   videoUrl: string;
 };
 
+export type FanletterVlogPreviewSlide = FanletterHeroSlide & {
+  authorAvatarImageUrl: string | null;
+  badgeLabel: string;
+  ctaLabel: string;
+  href: string;
+  signalLabel: string;
+};
+
 type HeroSlidesOptions = {
   maxSlides?: number;
   randomizeOnMount?: boolean;
@@ -35,8 +43,12 @@ function getRandomSlideIndex(length: number) {
   return Math.floor(Math.random() * length);
 }
 
-function useHeroSlides(
-  slides: FanletterHeroSlide[],
+function getAuthorInitial(name: string) {
+  return name.trim().slice(0, 1).toUpperCase() || "A";
+}
+
+function useHeroSlides<T extends FanletterHeroSlide>(
+  slides: T[],
   options: HeroSlidesOptions = {},
 ) {
   const {
@@ -106,6 +118,7 @@ function useHeroSlides(
     activeSlide:
       playableSlides[resolvedActiveIndex] ?? playableSlides[0] ?? null,
     playableSlides,
+    setActiveIndex,
   };
 }
 
@@ -264,6 +277,135 @@ function FanletterDesktopHeroCardCarouselInner({
       ) : (
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_22%,rgba(68,242,110,0.22),transparent_34%),linear-gradient(160deg,#07100b,#030504)]" />
       )}
+    </div>
+  );
+}
+
+export function FanletterVlogPreviewCarousel({
+  className,
+  slides,
+}: {
+  className?: string;
+  slides: FanletterVlogPreviewSlide[];
+}) {
+  const { activeIndex, activeSlide, playableSlides, setActiveIndex } =
+    useHeroSlides(slides, {
+      maxSlides: 5,
+    });
+
+  if (!activeSlide || playableSlides.length === 0) {
+    return null;
+  }
+
+  const activeProfileImageUrl =
+    activeSlide.authorAvatarImageUrl ?? activeSlide.coverImageUrl;
+
+  return (
+    <div
+      className={[
+        "group relative min-h-[16rem] overflow-hidden rounded-[1.15rem] bg-[#12041f] shadow-[0_22px_54px_rgba(20,4,31,0.18)]",
+        className,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <a className="absolute inset-0" href={activeSlide.href}>
+        {activeSlide.coverImageUrl ? (
+          <div
+            className="absolute inset-0 scale-105 bg-cover bg-center opacity-45 blur-xl"
+            style={{ backgroundImage: `url(${activeSlide.coverImageUrl})` }}
+          />
+        ) : null}
+        <video
+          aria-hidden="true"
+          autoPlay
+          className="absolute inset-0 h-full w-full object-cover opacity-95 transition duration-500 group-hover:scale-[1.03]"
+          key={activeSlide.videoUrl}
+          loop
+          muted
+          playsInline
+          poster={activeSlide.coverImageUrl ?? undefined}
+          preload="metadata"
+          src={activeSlide.videoUrl}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(18,4,31,0.04)_0%,rgba(18,4,31,0.16)_38%,rgba(18,4,31,0.9)_100%)]" />
+        <div className="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-white/92 px-2.5 py-1 text-[0.62rem] font-semibold text-[#6d28d9] shadow-[0_10px_22px_rgba(18,4,31,0.16)]">
+          {activeSlide.badgeLabel}
+        </div>
+        <div className="absolute right-3 top-3 rounded-full bg-black/36 px-2.5 py-1 text-[0.62rem] font-semibold text-white/86 backdrop-blur">
+          {activeIndex + 1}/{playableSlides.length}
+        </div>
+        <div className="absolute left-3 top-12 flex items-center gap-2 rounded-2xl border border-white/24 bg-black/28 p-1.5 pr-3 shadow-[0_16px_34px_rgba(0,0,0,0.22)] backdrop-blur-md">
+          <span
+            className="flex size-14 shrink-0 items-center justify-center rounded-[1.05rem] border border-white/54 bg-white/18 bg-cover bg-center text-base font-semibold text-white ring-2 ring-white/18"
+            style={
+              activeProfileImageUrl
+                ? { backgroundImage: `url(${activeProfileImageUrl})` }
+                : undefined
+            }
+          >
+            {activeProfileImageUrl
+              ? null
+              : getAuthorInitial(activeSlide.authorName)}
+          </span>
+          <span className="min-w-0">
+            <span className="block text-[0.58rem] font-bold uppercase tracking-[0.12em] text-[#44f26e]">
+              AI STAR
+            </span>
+            <span className="block max-w-24 truncate text-xs font-semibold text-white">
+              {activeSlide.authorName}
+            </span>
+          </span>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 p-3">
+          <p className="truncate text-[0.68rem] font-semibold text-white/70">
+            {activeSlide.authorName}
+          </p>
+          <h2 className="mt-1 line-clamp-2 text-lg font-semibold leading-tight text-white">
+            {activeSlide.title}
+          </h2>
+          <div className="mt-3 flex items-center justify-between gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/14 px-2.5 py-1 text-[0.62rem] font-semibold text-white backdrop-blur">
+              {activeSlide.signalLabel}
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#44f26e] px-2.5 py-1 text-[0.62rem] font-semibold text-[#07100b]">
+              {activeSlide.ctaLabel}
+            </span>
+          </div>
+        </div>
+      </a>
+
+      {playableSlides.length > 1 ? (
+        <div
+          aria-label="AI Star preview queue"
+          className="absolute right-3 top-12 z-[2] flex flex-col gap-1.5"
+        >
+          {playableSlides.map((slide, index) => (
+            <button
+              aria-label={slide.authorName}
+              className={`size-9 overflow-hidden rounded-xl border bg-white/16 bg-cover bg-center text-[0.62rem] font-semibold text-white shadow-[0_10px_24px_rgba(0,0,0,0.18)] transition ${
+                index === activeIndex
+                  ? "border-white opacity-100 ring-2 ring-[#44f26e]"
+                  : "border-white/32 opacity-62 hover:opacity-100"
+              }`}
+              key={`${slide.videoUrl}:${index}`}
+              onClick={() => setActiveIndex(index)}
+              style={
+                slide.authorAvatarImageUrl
+                  ? { backgroundImage: `url(${slide.authorAvatarImageUrl})` }
+                  : slide.coverImageUrl
+                    ? { backgroundImage: `url(${slide.coverImageUrl})` }
+                    : undefined
+              }
+              type="button"
+            >
+              {slide.authorAvatarImageUrl || slide.coverImageUrl
+                ? null
+                : getAuthorInitial(slide.authorName)}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
