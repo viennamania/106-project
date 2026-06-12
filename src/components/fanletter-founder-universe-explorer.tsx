@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { type CSSProperties, useMemo, useState } from "react";
 import {
+  type LucideIcon,
   ArrowLeft,
   ArrowRight,
   Bell,
@@ -305,6 +306,64 @@ const universeDepthColors: Record<
   },
 };
 
+const universeLegendHexStyles: Record<
+  number,
+  { accent: string; glow: string; surface: string; tint: string }
+> = {
+  0: {
+    accent: "#7c3aed",
+    glow: "rgba(124, 58, 237, 0.2)",
+    surface: "#fbf7ff",
+    tint: "#f1e9ff",
+  },
+  1: {
+    accent: "#d97706",
+    glow: "rgba(245, 158, 11, 0.18)",
+    surface: "#fffaf0",
+    tint: "#fff3cf",
+  },
+  2: {
+    accent: "#2563eb",
+    glow: "rgba(59, 130, 246, 0.18)",
+    surface: "#f3f8ff",
+    tint: "#e3efff",
+  },
+  3: {
+    accent: "#059669",
+    glow: "rgba(16, 185, 129, 0.18)",
+    surface: "#f0fdf8",
+    tint: "#dcfce7",
+  },
+  4: {
+    accent: "#ea580c",
+    glow: "rgba(249, 115, 22, 0.18)",
+    surface: "#fff7ed",
+    tint: "#ffedd5",
+  },
+  5: {
+    accent: "#0891b2",
+    glow: "rgba(6, 182, 212, 0.18)",
+    surface: "#ecfeff",
+    tint: "#cffafe",
+  },
+  6: {
+    accent: "#475569",
+    glow: "rgba(100, 116, 139, 0.16)",
+    surface: "#f8fafc",
+    tint: "#eef2f7",
+  },
+};
+
+const universeTierIconByRole: Record<Exclude<FounderRole, "member">, LucideIcon> = {
+  creator: Sparkles,
+  founder: Users,
+  genesis_founder: ShieldCheck,
+  legend: Star,
+  mentor: Network,
+  partner: Heart,
+  producer: Rocket,
+};
+
 const visibleUniverseDotsByDepth: Record<number, number> = {
   1: 6,
   2: 12,
@@ -316,6 +375,10 @@ const visibleUniverseDotsByDepth: Record<number, number> = {
 
 function formatOrbitPercent(value: number) {
   return `${Number(value.toFixed(4))}%`;
+}
+
+function getUniverseOrbitRadius(depth: number) {
+  return 19.7 + depth * 4.3;
 }
 
 function getMonthEndLabel(value: string, locale: Locale) {
@@ -639,6 +702,11 @@ function UniverseRoleLegend({
       {tiers.map((tier) => {
         const colors = universeDepthColors[tier.depth] ?? universeDepthColors[6];
         const active = selectedDepth === tier.depth;
+        const hexStyle =
+          universeLegendHexStyles[tier.depth] ?? universeLegendHexStyles[6];
+        const TierIcon =
+          universeTierIconByRole[tier.role as Exclude<FounderRole, "member">] ??
+          Sparkles;
         const subtitle =
           dashboardCopy.tierSubtitles[
             tier.role as keyof typeof dashboardCopy.tierSubtitles
@@ -647,24 +715,45 @@ function UniverseRoleLegend({
         return (
           <button
             className={joinClasses(
-              "grid grid-cols-[2.4rem_1fr] gap-3 rounded-xl border p-2 text-left transition",
+              "group grid min-h-[4.7rem] grid-cols-[3.6rem_1fr] items-center gap-3 rounded-[1.15rem] border px-2.5 py-2 text-left transition duration-300",
               active
-                ? "border-violet-200 bg-violet-50 shadow-[0_12px_24px_rgba(124,58,237,0.08)]"
-                : "border-transparent hover:border-slate-100 hover:bg-slate-50",
+                ? "scale-[1.01] border-slate-100 bg-[#f8fafc] shadow-[0_14px_30px_rgba(15,23,42,0.06)]"
+                : "border-transparent hover:-translate-y-0.5 hover:border-slate-100 hover:bg-slate-50/80",
             )}
             key={tier.depth}
             onClick={() => onSelectDepth(tier.depth)}
             type="button"
           >
             <span
-              className={joinClasses(
-                "flex size-9 items-center justify-center border text-sm font-semibold shadow-[0_8px_18px_rgba(15,23,42,0.06)] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]",
-                colors.bg,
-                colors.border,
-                colors.text,
-              )}
+              className="relative flex size-12 items-center justify-center transition duration-300 group-hover:scale-105 [filter:drop-shadow(0_10px_18px_var(--hex-glow))]"
+              style={
+                {
+                  "--hex-accent": hexStyle.accent,
+                  "--hex-glow": hexStyle.glow,
+                  "--hex-surface": hexStyle.surface,
+                  "--hex-tint": hexStyle.tint,
+                } as CSSProperties
+              }
             >
-              {tier.depth}
+              <span
+                className={joinClasses(
+                  "absolute inset-[-0.35rem] rounded-full bg-[var(--hex-accent)] opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-[0.18]",
+                  active ? "opacity-[0.18] animate-pulse" : "",
+                )}
+              />
+              <span className="absolute inset-0 bg-[var(--hex-accent)] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]" />
+              <span className="absolute inset-[2px] bg-[linear-gradient(145deg,var(--hex-tint),var(--hex-surface)_62%,#ffffff)] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]" />
+              <span className="absolute left-[0.62rem] top-[0.54rem] z-10 h-2 w-2 rounded-full bg-white/85 shadow-[0_0_10px_rgba(255,255,255,0.95)]" />
+              <TierIcon
+                aria-hidden="true"
+                className="relative z-10 size-[1.05rem] transition duration-300 group-hover:rotate-[-8deg]"
+                style={{ color: hexStyle.accent }}
+              />
+              <span
+                className="absolute -bottom-1 -right-1 z-20 flex size-5 items-center justify-center rounded-full border border-white bg-[var(--hex-accent)] text-[0.68rem] font-semibold text-white shadow-[0_7px_14px_var(--hex-glow)]"
+              >
+                {tier.depth}
+              </span>
             </span>
             <span className="min-w-0 self-center">
               <span className="flex min-w-0 items-center justify-between gap-2">
@@ -731,7 +820,7 @@ function FounderUniverseOrbitMap({
   );
   const depthBadgePositions = [6, 5, 4, 3, 2].map((depth) => ({
     depth,
-    top: 50 - (9.5 + depth * 6.4),
+    top: 50 - getUniverseOrbitRadius(depth),
   }));
   const capacityLabels: Array<{
     depth: number;
@@ -754,26 +843,21 @@ function FounderUniverseOrbitMap({
         viewBox="0 0 100 100"
       >
         {[1, 2, 3, 4, 5, 6].map((depth) => {
-          const radius = 9.5 + depth * 6.4;
+          const radius = getUniverseOrbitRadius(depth);
           const colors = universeDepthColors[depth] ?? universeDepthColors[6];
-          const points = Array.from({ length: 6 }, (_, index) => {
-            const angle = -90 + index * 60;
-            const radians = (angle * Math.PI) / 180;
-
-            return `${50 + Math.cos(radians) * radius},${
-              50 + Math.sin(radians) * radius
-            }`;
-          }).join(" ");
 
           return (
-            <polygon
+            <circle
               className={joinClasses("opacity-55", colors.text)}
+              cx="50"
+              cy="50"
               fill="none"
-              key={`hex-ring-${depth}`}
-              points={points}
+              key={`orbit-ring-${depth}`}
+              r={radius}
               stroke="currentColor"
-              strokeDasharray="1.2 1.2"
-              strokeWidth="0.34"
+              strokeDasharray="1.1 1.35"
+              strokeLinecap="round"
+              strokeWidth="0.42"
             />
           );
         })}
@@ -820,7 +904,7 @@ function FounderUniverseOrbitMap({
         const visibleSlots = visibleUniverseDotsByDepth[depth] ?? depth * 6;
         const nodes = nodesByDepth.get(depth) ?? [];
         const colors = universeDepthColors[depth] ?? universeDepthColors[6];
-        const radius = 9.5 + depth * 6.4;
+        const radius = getUniverseOrbitRadius(depth);
 
         return Array.from({ length: visibleSlots }, (_, index) => {
           const angle = -90 + (360 / visibleSlots) * index;
@@ -834,10 +918,13 @@ function FounderUniverseOrbitMap({
             <button
               aria-label={node?.label ?? `L${depth} slot ${index + 1}`}
               className={joinClasses(
-                "absolute flex items-center justify-center border text-[0.6rem] font-semibold shadow-[0_8px_18px_rgba(15,23,42,0.08)] ring-2 ring-white/80 transition hover:brightness-105 [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]",
-                node ? colors.fill : "bg-white",
-                node ? colors.border : "border-slate-200",
-                node ? "text-white" : "text-slate-300",
+                "absolute flex items-center justify-center border text-[0.6rem] font-semibold transition [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]",
+                node
+                  ? "shadow-[0_8px_18px_rgba(15,23,42,0.08)] ring-2 ring-white/80 hover:brightness-105"
+                  : "pointer-events-none bg-transparent opacity-30 shadow-none ring-0",
+                node ? colors.fill : "border-white/55",
+                node ? colors.border : "text-transparent",
+                node ? "text-white" : "",
                 selected ? "z-20 ring-4 ring-[#7c3aed]/18" : "z-10",
               )}
               disabled={!node}
@@ -864,34 +951,41 @@ function FounderUniverseOrbitMap({
         });
       })}
 
-      <div
-        className="absolute left-1/2 top-1/2 z-30 w-[8.8rem] -translate-x-1/2 -translate-y-1/2 border border-violet-100 bg-white p-3.5 text-center shadow-[0_18px_44px_rgba(88,28,135,0.16)] [clip-path:polygon(8%_0,92%_0,100%_50%,92%_100%,8%_100%,0_50%)] sm:w-[9.4rem] sm:p-4"
-      >
-        <div
-          className="mx-auto size-16 overflow-hidden rounded-full border-2 border-[#7c3aed] bg-cover bg-center"
-          style={
-            universe.star.portraitImageUrl
-              ? { backgroundImage: `url(${universe.star.portraitImageUrl})` }
-              : {
-                  background: `linear-gradient(145deg, ${universe.star.accentColor}, ${universe.star.accentSecondary})`,
-                }
-          }
-        >
-          {universe.star.portraitImageUrl ? null : (
-            <span className="flex h-full items-center justify-center text-lg font-semibold text-white">
-              {universe.star.initials}
-            </span>
-          )}
+      <div className="absolute left-1/2 top-1/2 z-40 size-[4.35rem] -translate-x-1/2 -translate-y-1/2 sm:size-[4.65rem]">
+        <span className="absolute inset-[-0.55rem] rounded-full bg-violet-400/18 blur-xl" />
+        <span className="absolute inset-[-0.22rem] bg-white/86 shadow-[0_10px_24px_rgba(124,58,237,0.16)] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]" />
+        <div className="relative h-full w-full bg-[linear-gradient(145deg,#8b5cf6,#6d28d9_45%,#38bdf8)] p-[3px] shadow-[0_14px_30px_rgba(124,58,237,0.24)] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]">
+          <div
+            className="flex h-full w-full items-center justify-center bg-cover bg-center text-lg font-semibold text-white [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]"
+            style={
+              universe.star.portraitImageUrl
+                ? { backgroundImage: `url(${universe.star.portraitImageUrl})` }
+                : {
+                    background: `linear-gradient(145deg, ${universe.star.accentColor}, ${universe.star.accentSecondary})`,
+                  }
+            }
+          >
+            {universe.star.portraitImageUrl ? null : universe.star.initials}
+          </div>
         </div>
-        <p className="mt-2 truncate text-base font-semibold text-[#111827]">
+      </div>
+
+      <div className="absolute left-1/2 top-[calc(50%+2.45rem)] z-30 w-[9.4rem] -translate-x-1/2 overflow-hidden rounded-2xl border border-violet-100/80 bg-white/94 text-center shadow-[0_16px_38px_rgba(88,28,135,0.12)] backdrop-blur sm:top-[calc(50%+2.6rem)] sm:w-[10rem]">
+        <span className="block h-1 bg-[linear-gradient(90deg,#8b5cf6,#38bdf8)]" />
+        <div className="px-3 pb-3 pt-2.5">
+          <span className="mx-auto inline-flex h-5 items-center rounded-full bg-violet-50 px-2 text-[0.58rem] font-semibold tracking-[0.08em] text-[#7c3aed]">
+            AI STAR
+          </span>
+          <p className="mt-1.5 truncate text-[0.95rem] font-semibold text-[#111827] sm:text-base">
           {starName}
-        </p>
-        <p className="mt-1 text-xs font-medium text-slate-500">
-          {v2Copy.roles.creator}
-        </p>
-        <p className="mt-1 truncate text-xs font-semibold text-slate-600">
-          {creatorNode?.label ?? "Wayne"}
-        </p>
+          </p>
+          <p className="mt-0.5 whitespace-nowrap text-[0.68rem] font-semibold text-slate-500 sm:text-[0.72rem]">
+            {v2Copy.roles.creator}
+          </p>
+          <p className="mx-auto mt-1 max-w-full truncate rounded-full bg-slate-50 px-2 py-1 text-[0.65rem] font-semibold text-slate-600 sm:text-[0.68rem]">
+            {creatorNode?.label ?? "Wayne"}
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -993,17 +1087,31 @@ function FounderUniverseDashboardPanel({
           />
           <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
             {universe.tiers.map((tier) => {
-              const colors = universeDepthColors[tier.depth] ?? universeDepthColors[6];
+              const hexStyle =
+                universeLegendHexStyles[tier.depth] ?? universeLegendHexStyles[6];
+              const TierIcon =
+                universeTierIconByRole[
+                  tier.role as Exclude<FounderRole, "member">
+                ] ?? Sparkles;
               const v2Copy = getFanletterV2Copy(locale);
 
               return (
                 <button
-                  className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600"
+                  className="group inline-flex items-center gap-2 rounded-full px-1.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
                   key={tier.depth}
                   onClick={() => onSelectDepth(tier.depth)}
                   type="button"
                 >
-                  <span className={joinClasses("size-3 rounded-full", colors.fill)} />
+                  <span
+                    className="inline-flex size-5 items-center justify-center rounded-full border bg-white transition group-hover:scale-110"
+                    style={{
+                      borderColor: hexStyle.accent,
+                      boxShadow: `0 6px 12px ${hexStyle.glow}`,
+                      color: hexStyle.accent,
+                    }}
+                  >
+                    <TierIcon aria-hidden="true" className="size-3" />
+                  </span>
                   {tier.depth} {v2Copy.roles[tier.role]}
                 </button>
               );
