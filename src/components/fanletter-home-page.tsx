@@ -28,6 +28,7 @@ import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FounderClubV2HomeSections } from "@/components/fanletter-founder-club-v2";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
+import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import {
   AnimatedNumber,
@@ -1055,7 +1056,7 @@ function FanletterProductHomeDashboard({
       label: productCopy.discovery,
     },
     {
-      body: isKo ? "유니버스 슬롯 확인" : "Check Universe slots",
+      body: isKo ? "파운더 네트워크 확인" : "Check Founder Network",
       href: founderClubHref,
       Icon: Crown,
       label: productCopy.join,
@@ -1149,6 +1150,7 @@ function FanletterProductHomeDashboard({
                     {productCopy.subhead}
                   </p>
                 </div>
+                <FanletterTerminologyGuide locale={locale} variant="compact" />
                 <div className="grid min-w-0 gap-3 sm:flex sm:flex-wrap">
                   <Link
                     className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.24)] transition hover:bg-[#6d28d9] sm:w-auto sm:shrink-0"

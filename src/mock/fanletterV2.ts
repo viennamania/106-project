@@ -529,7 +529,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       createAiStarCta: "Create new AI Star",
       directInvites: "Direct Invites >= 20",
       launchPreviewBody:
-        "The member can launch another AI Star from the source Universe. This version keeps the 10 USDT step as a mock activation.",
+        "The member can launch another AI Star from the source Star Universe. This version keeps the 10 USDT step as a mock activation.",
       launchPreviewTitle: "Mock AI Star launch",
       liveDataLabel: "Live unlock status",
       lockedLabel: "Locked",
@@ -598,7 +598,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       emptyOwnedStars:
         "No AI Stars have been created by this member yet.",
       ownedStarsBody:
-        "A Creator can own multiple AI Stars. Each new Star keeps its source Universe for attribution.",
+        "A Creator can own multiple AI Stars. Each new Star keeps its source Star Universe for attribution.",
       ownedStarsTitle: "AI Stars created by this member",
       setupStarCta: "Set up my AI Star",
       title: "Member Founder Portfolio",
@@ -631,7 +631,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "Human members use neutral gray avatars and role badges. They never reuse AI Star portraits.",
       founderSlotsTitle: "Human Founder slots",
       heroBody:
-        "This Universe page connects AI Star discovery to Founder join, mock referral creation, SNS sharing, and Creator progress.",
+        "This Star Universe page connects AI Star discovery to Founder join, mock referral creation, SNS sharing, and Creator progress.",
       heroEyebrow: "Star Universe",
       inboundRefBody:
         "This visitor entered through a Founder referral. In the live flow, the join event will attach to this Star Universe.",

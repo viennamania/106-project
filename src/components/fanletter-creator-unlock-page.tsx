@@ -19,6 +19,7 @@ import {
   toMemberOwnedAIStar,
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
+import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import { useFanletterFounderMockMemberships } from "@/components/fanletter-founder-mock-state";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
@@ -80,14 +81,14 @@ function getLaunchPageCopy(locale: Locale) {
       launchedTitle: "Mock AI 스타 draft 생성됨",
       nextPortfolio: "생성 후 포트폴리오 반영",
       noSourceBody:
-        "새 AI 스타는 기존 Universe의 성과를 출처로 삼아야 합니다. 먼저 AI 스타를 발견해 Founder로 참여하거나, 내 AI 스타 Universe를 만든 뒤 다시 진행하세요.",
+        "새 AI 스타는 기존 스타 유니버스의 성과를 출처로 삼아야 합니다. 먼저 AI 스타를 발견해 파운더로 참여하거나, 내 스타 유니버스를 만든 뒤 다시 진행하세요.",
       noSourcePrimary: "AI 스타 발견하기",
-      noSourceSecondary: "Founder Club 보기",
-      noSourceSubmit: "출처 Universe 필요",
-      noSourceTitle: "창업 출처 Universe가 아직 없습니다",
+      noSourceSecondary: "파운더 클럽 보기",
+      noSourceSubmit: "출처 스타 유니버스 필요",
+      noSourceTitle: "창업 출처 스타 유니버스가 아직 없습니다",
       owner: "소유 멤버",
       preview: "AI 스타 카드 미리보기",
-      roleInUniverse: "내 역할",
+      roleInUniverse: "네트워크 내 역할",
       sampleData: "샘플 데이터",
       sampleOwner: "샘플 멤버",
       rewardCp: "CP",
@@ -97,13 +98,13 @@ function getLaunchPageCopy(locale: Locale) {
       rewardBody:
         "이 브라우저의 mock Founder 참여 내역을 Creator Unlock 조건에 반영했습니다.",
       sourceSelectBody:
-        "AI 스타는 창업 출처 Universe이고, 내 역할은 그 Universe 안에서 내가 가진 위치입니다. CP Pool은 선택한 Universe의 상위 계층에 분배됩니다.",
-      sourceSelectTitle: "창업 출처 Universe 선택",
+        "AI 스타는 창업 출처 스타 유니버스이고, 내 역할은 그 안의 파운더 네트워크에서 가진 위치입니다. CP Pool은 선택한 스타 유니버스의 상위 계층에 분배됩니다.",
+      sourceSelectTitle: "창업 출처 스타 유니버스 선택",
       sourcePool: "CP Pool 분배 기준",
-      source: "원천 유니버스",
+      source: "출처 스타 유니버스",
       steps: [
         "크리에이터 조건 충족",
-        "원천 유니버스 선택",
+        "출처 스타 유니버스 선택",
         "10 USDT 조건 미리보기",
         "내가 만든 AI 스타에 반영",
       ],
@@ -641,6 +642,12 @@ function SourceUniverseSelector({
         </div>
       </div>
 
+      <FanletterTerminologyGuide
+        className="mt-4"
+        locale={locale}
+        variant="compact"
+      />
+
       <div className="mt-5 grid gap-2 sm:grid-cols-2">
         {options.map((option) => {
           const isSelected = option.starId === selectedStarId;
@@ -733,6 +740,11 @@ function SourceUniverseEmptyState({
           </Link>
         </div>
       </div>
+      <FanletterTerminologyGuide
+        className="mt-4"
+        locale={locale}
+        variant="compact"
+      />
     </section>
   );
 }

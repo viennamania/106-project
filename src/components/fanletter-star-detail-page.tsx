@@ -29,6 +29,7 @@ import {
   FanletterFounderMockStatusBanner,
 } from "@/components/fanletter-founder-mock-state";
 import { FanletterStarReferralPanel } from "@/components/fanletter-star-referral-panel";
+import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import {
   fanletterV2Mock,
   getFanletterV2Copy,
@@ -729,7 +730,7 @@ function AIStarGenealogySection({
   const labels = isKorean
     ? {
         body:
-          "이 AI 스타가 어느 Universe에서 탄생했고, 다음 AI 스타를 어떻게 확장하는지 보여줍니다.",
+          "이 AI 스타가 어느 스타 유니버스에서 탄생했고, 다음 AI 스타로 어떻게 확장되는지 보여줍니다.",
         current: "현재 AI 스타",
         map: "전체 계보 맵",
         parent: "Parent AI Star",
@@ -985,6 +986,11 @@ export function FanletterStarDetailPage({
               <p className="mt-5 hidden max-w-2xl text-base font-medium leading-7 text-black/64 sm:block sm:text-lg">
                 {copy.starDetail.heroBody}
               </p>
+              <FanletterTerminologyGuide
+                className="mt-4 hidden max-w-2xl sm:block"
+                locale={locale}
+                variant="compact"
+              />
               <div className="mt-4 hidden max-w-2xl rounded-lg border border-violet-200 bg-white/80 p-3 shadow-[0_14px_34px_rgba(88,28,135,0.08)] sm:block">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
@@ -1016,7 +1022,7 @@ export function FanletterStarDetailPage({
                   href={`/${locale}/fanletter/${encodeURIComponent(star.id)}/universe`}
                 >
                   <GitBranch className="size-4" />
-                  {isKorean ? "유니버스 탐색" : "Explore Universe"}
+                  {isKorean ? "파운더 네트워크 탐색" : "Explore Founder Network"}
                 </Link>
                 <Link
                   className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800 shadow-[0_12px_26px_rgba(16,185,129,0.08)]"
@@ -1076,7 +1082,7 @@ export function FanletterStarDetailPage({
                   href={`/${locale}/fanletter/${encodeURIComponent(star.id)}/universe`}
                 >
                   <GitBranch className="size-4" />
-                  {isKorean ? "유니버스 탐색" : "Explore Universe"}
+                  {isKorean ? "파운더 네트워크 탐색" : "Explore Founder Network"}
                 </Link>
                 <Link
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 text-sm font-semibold text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-100"
