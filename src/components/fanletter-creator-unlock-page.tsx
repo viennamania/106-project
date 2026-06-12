@@ -8,9 +8,10 @@ import {
   CheckCircle2,
   CircleDollarSign,
   Crown,
+  GitBranch,
   Sparkles,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import {
   FanletterCreatorMockLaunchButton,
@@ -20,6 +21,7 @@ import {
 import { useFanletterFounderMockMemberships } from "@/components/fanletter-founder-mock-state";
 import {
   CreatorUnlockCard,
+  FounderRoleBadge,
   HumanMemberAvatar,
   MemberPortfolio,
 } from "@/components/fanletter-founder-club-v2";
@@ -78,6 +80,9 @@ function getLaunchPageCopy(locale: Locale) {
       rewardTitle: "Founder 참여 보상 반영",
       rewardBody:
         "이 브라우저의 mock Founder 참여 내역을 Creator Unlock 조건에 반영했습니다.",
+      sourceSelectBody:
+        "새 AI 스타가 어느 기존 Universe의 성과로 탄생하는지 선택합니다. CP Pool은 선택한 Universe의 상위 계층에 분배됩니다.",
+      sourceSelectTitle: "창업 출처 Universe 선택",
       source: "원천 유니버스",
       steps: [
         "크리에이터 조건 충족",
@@ -117,6 +122,9 @@ function getLaunchPageCopy(locale: Locale) {
       rewardTitle: "Founder join rewards applied",
       rewardBody:
         "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
+      sourceSelectBody:
+        "Choose which existing Universe this new AI Star is launched from. The CP Pool is distributed to the selected Universe upline.",
+      sourceSelectTitle: "Select launch source Universe",
       source: "Source Universe",
       steps: [
         "Meet Creator conditions",
@@ -155,6 +163,9 @@ function getLaunchPageCopy(locale: Locale) {
     rewardTitle: "Founder join rewards applied",
     rewardBody:
       "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
+    sourceSelectBody:
+      "Choose which existing Universe this new AI Star is launched from. The CP Pool is distributed to the selected Universe upline.",
+    sourceSelectTitle: "Select launch source Universe",
     source: "Source Universe",
     steps: [
       "Meet Creator conditions",
@@ -196,6 +207,67 @@ function formatNumber(value: number, locale: Locale) {
 
 function getMockStarById(starId: string) {
   return fanletterV2Mock.aiStars.find((star) => star.id === starId) ?? null;
+}
+
+type SourceUniverseOption = {
+  role: MemberPortfolioRole["role"];
+  starId: string;
+  starName: string;
+  starStatus?: MemberPortfolioRole["starStatus"];
+  universeName: string;
+};
+
+function getSourceUniverseOptions(portfolio: MemberPortfolioData) {
+  const optionsByStarId = new Map<string, SourceUniverseOption>();
+
+  for (const role of portfolio.roles) {
+    if (!role.starId) {
+      continue;
+    }
+
+    optionsByStarId.set(role.starId, {
+      role: role.role,
+      starId: role.starId,
+      starName: role.starName ?? role.universeName ?? role.starId,
+      starStatus: role.starStatus,
+      universeName:
+        role.universeName ??
+        (role.starName ? `${role.starName} Universe` : `${role.starId} Universe`),
+    });
+  }
+
+  for (const ownedStar of portfolio.ownedStars) {
+    if (!ownedStar.id || optionsByStarId.has(ownedStar.id)) {
+      continue;
+    }
+
+    optionsByStarId.set(ownedStar.id, {
+      role: "creator",
+      starId: ownedStar.id,
+      starName: ownedStar.name,
+      starStatus: ownedStar.status,
+      universeName: ownedStar.universeName ?? `${ownedStar.name} Universe`,
+    });
+  }
+
+  return Array.from(optionsByStarId.values());
+}
+
+function getDefaultSourceStarId({
+  latestMembershipStarId,
+  options,
+  primaryStarId,
+}: {
+  latestMembershipStarId?: string | null;
+  options: SourceUniverseOption[];
+  primaryStarId?: string | null;
+}) {
+  return (
+    options.find((option) => option.starId === latestMembershipStarId)?.starId ??
+    options.find((option) => option.starId === primaryStarId)?.starId ??
+    options[0]?.starId ??
+    null
+  );
 }
 
 function applyMockFounderRewardsToPortfolio({
@@ -378,10 +450,12 @@ function MockFounderRewardSummary({
 function getLaunchPreview({
   locale,
   portfolio,
+  sourceOption,
   unlock,
 }: {
   locale: Locale;
   portfolio: MemberPortfolioData;
+  sourceOption?: SourceUniverseOption | null;
   unlock: CreatorUnlockData;
 }) {
   const sampleStar = getSampleSpawnedStar();
@@ -389,6 +463,7 @@ function getLaunchPreview({
   const name = launchPreview?.newStarName ?? sampleStar.name;
   const ownerName = launchPreview?.ownerName ?? portfolio.memberName;
   const sourceUniverseName =
+    sourceOption?.universeName ??
     launchPreview?.sourceUniverseName ??
     sampleStar.sourceUniverseName ??
     portfolio.roles[0]?.universeName ??
@@ -399,7 +474,8 @@ function getLaunchPreview({
     launchCostUsdt: unlock.createCostUsdt,
     name,
     sourceUniverseName,
-    spawnedFromStarId: sampleStar.spawnedFromStarId ?? null,
+    spawnedFromStarId:
+      sourceOption?.starId ?? sampleStar.spawnedFromStarId ?? null,
     status: "draft",
     universeName: `${name} Universe`,
   };
@@ -415,6 +491,102 @@ function getLaunchPreview({
     sourceUniverseName,
     starScore: sampleStar.starScore,
   };
+}
+
+function getSelectedText(locale: Locale) {
+  if (locale === "ko") {
+    return "선택됨";
+  }
+
+  if (locale === "ja") {
+    return "選択中";
+  }
+
+  return "Selected";
+}
+
+function SourceUniverseSelector({
+  copy,
+  locale,
+  onSelect,
+  options,
+  selectedStarId,
+}: {
+  copy: ReturnType<typeof getLaunchPageCopy>;
+  locale: Locale;
+  onSelect: (starId: string) => void;
+  options: SourceUniverseOption[];
+  selectedStarId: string | null;
+}) {
+  const v2Copy = getFanletterV2Copy(locale);
+
+  if (options.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+      <div className="flex items-start gap-3">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
+          <GitBranch className="size-5" />
+        </span>
+        <div>
+          <p className="text-sm font-semibold text-[#6d28d9]">
+            {copy.source}
+          </p>
+          <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
+            {copy.sourceSelectTitle}
+          </h2>
+          <p className="mt-2 text-sm font-medium leading-6 text-black/62">
+            {copy.sourceSelectBody}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+        {options.map((option) => {
+          const isSelected = option.starId === selectedStarId;
+
+          return (
+            <button
+              className={joinClasses(
+                "min-h-32 rounded-lg border p-3 text-left transition",
+                isSelected
+                  ? "border-[#7c3aed] bg-[#f5f0ff] ring-2 ring-[#7c3aed]/12"
+                  : "border-black/8 bg-[#fbfaff] hover:border-violet-300",
+              )}
+              key={option.starId}
+              onClick={() => onSelect(option.starId)}
+              type="button"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <span className="inline-flex h-7 items-center rounded-full bg-[#7c3aed] px-2.5 text-[0.66rem] font-semibold text-white">
+                  AI STAR
+                </span>
+                {isSelected ? (
+                  <span className="inline-flex h-7 items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 text-[0.66rem] font-semibold text-emerald-800">
+                    {getSelectedText(locale)}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-4 truncate text-lg font-semibold text-[#12041f]">
+                {option.starName}
+              </p>
+              <p className="mt-1 truncate text-xs font-semibold text-black/46">
+                {getDisplayUniverseName(option.universeName, locale)}
+              </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <FounderRoleBadge copy={v2Copy} role={option.role} />
+                <span className="inline-flex h-7 items-center rounded-full border border-violet-100 bg-white px-2 text-[0.66rem] font-semibold text-[#6d28d9]">
+                  CP Pool
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
 }
 
 function FieldPreview({
@@ -682,6 +854,23 @@ export function FanletterCreatorUnlockPage({
       }),
     [basePortfolio, membershipStarIds, mockOwnedStars],
   );
+  const sourceOptions = useMemo(
+    () => getSourceUniverseOptions(portfolio),
+    [portfolio],
+  );
+  const [selectedSourceStarId, setSelectedSourceStarId] = useState<string | null>(
+    null,
+  );
+  const defaultSourceStarId = getDefaultSourceStarId({
+    latestMembershipStarId,
+    options: sourceOptions,
+    primaryStarId: portfolio.primaryStarId,
+  });
+  const activeSourceStarId = selectedSourceStarId ?? defaultSourceStarId;
+  const selectedSourceOption =
+    sourceOptions.find((option) => option.starId === activeSourceStarId) ??
+    sourceOptions[0] ??
+    null;
   const baseUnlock: CreatorUnlockData =
     creatorUnlock ?? fanletterV2Mock.creatorUnlock;
   const unlock = useMemo(
@@ -697,6 +886,7 @@ export function FanletterCreatorUnlockPage({
   const launchPreview = getLaunchPreview({
     locale,
     portfolio,
+    sourceOption: selectedSourceOption,
     unlock,
   });
   const sourceUniverseName = getDisplayUniverseName(
@@ -782,6 +972,13 @@ export function FanletterCreatorUnlockPage({
               locale={locale}
               unlock={unlock}
             />
+            <SourceUniverseSelector
+              copy={copy}
+              locale={locale}
+              onSelect={setSelectedSourceStarId}
+              options={sourceOptions}
+              selectedStarId={selectedSourceOption?.starId ?? null}
+            />
             <section className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
               <div className="flex items-start gap-3">
                 <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
@@ -825,7 +1022,7 @@ export function FanletterCreatorUnlockPage({
                   name={launchPreview.name}
                   ownerName={launchPreview.ownerName}
                   sourceStarId={
-                    latestMembershipStarId ??
+                    selectedSourceOption?.starId ??
                     launchPreview.ownedPreview.spawnedFromStarId
                   }
                   sourceUniverseName={launchPreview.sourceUniverseName}

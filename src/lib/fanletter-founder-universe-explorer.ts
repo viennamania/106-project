@@ -49,9 +49,18 @@ export type FanletterFounderUniverseExplorerTier = {
 };
 
 export type FanletterFounderUniverseExplorerSpawnedStar = {
+  createdAt: string | null;
+  creatorDepth: number | null;
+  creatorLabel: string | null;
+  creatorNodeId: string | null;
+  creatorRole: FanletterFounderUniverseRole | null;
+  directSpawnedStars: number;
+  growthPercent: number;
   id: string;
   name: string;
   ownerLabel: string | null;
+  portraitImageUrl: string | null;
+  starScore: number;
   status: AIStarStatus;
 };
 

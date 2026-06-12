@@ -245,20 +245,49 @@ export async function getFanletterFounderUniverseExplorer(
           {
             projection: {
               characterName: 1,
+              createdAt: 1,
+              displayName: 1,
+              founderCount: 1,
+              growthPercent: 1,
               ownerEmail: 1,
+              portraitImageUrl: 1,
+              starScore: 1,
               starId: 1,
               status: 1,
             },
           },
         )
         .sort({ createdAt: -1 })
-        .limit(12)
+        .limit(24)
         .toArray(),
     ]);
 
   if (!star) {
     return null;
   }
+
+  const spawnedStarIds = spawnedStars.map((spawnedStar) => spawnedStar.starId);
+  const spawnedChildCountRows = spawnedStarIds.length
+    ? await starsCollection
+        .aggregate<{ _id: string; count: number }>([
+          {
+            $match: {
+              spawnedFromStarId: { $in: spawnedStarIds },
+              status: { $ne: "archived" },
+            },
+          },
+          {
+            $group: {
+              _id: "$spawnedFromStarId",
+              count: { $sum: 1 },
+            },
+          },
+        ])
+        .toArray()
+    : [];
+  const spawnedChildCountByStarId = new Map(
+    spawnedChildCountRows.map((row) => [row._id, row.count]),
+  );
 
   const creatorEmail = getCreatorEmail({ memberships, star });
   const {
@@ -288,6 +317,9 @@ export async function getFanletterFounderUniverseExplorer(
         normalizeEmail(edge.sourceMemberEmail),
         normalizeEmail(edge.targetMemberEmail),
       ]),
+      ...spawnedStars.map((spawnedStar) =>
+        normalizeEmail(spawnedStar.ownerEmail ?? ""),
+      ),
     ]),
   ].filter(Boolean);
   const memberProfiles = memberEmails.length
@@ -415,12 +447,47 @@ export async function getFanletterFounderUniverseExplorer(
     edges,
     generatedAt: new Date().toISOString(),
     nodes,
-    spawnedStars: spawnedStars.map((spawnedStar) => ({
-      id: spawnedStar.starId,
-      name: spawnedStar.characterName,
-      ownerLabel: spawnedStar.ownerEmail ? "Creator" : null,
-      status: spawnedStar.status,
-    })),
+    spawnedStars: spawnedStars.map((spawnedStar) => {
+      const ownerEmail = normalizeEmail(spawnedStar.ownerEmail ?? "");
+      const ownerMembership = ownerEmail
+        ? membershipByEmail.get(ownerEmail) ?? null
+        : null;
+      const ownerNodeId = ownerEmail ? nodeIdByEmail.get(ownerEmail) ?? null : null;
+      const ownerProfile = ownerEmail
+        ? memberProfileByEmail.get(ownerEmail) ?? null
+        : null;
+      const ownerReferralCode =
+        normalizeReferralCode(ownerMembership?.memberReferralCode) ??
+        normalizeReferralCode(ownerProfile?.referralCode);
+      const creatorDepth =
+        ownerEmail && depthByEmail.has(ownerEmail)
+          ? depthByEmail.get(ownerEmail) ?? null
+          : ownerMembership
+            ? getMembershipRoleDepth(ownerMembership.role)
+            : null;
+
+      return {
+        createdAt: toIsoStringOrNull(spawnedStar.createdAt),
+        creatorDepth,
+        creatorLabel: ownerEmail
+          ? getMemberLabel({
+              member: ownerProfile,
+              memberReferralCode: ownerReferralCode,
+              nodeId: ownerNodeId ?? getStableNodeId(ownerEmail),
+            })
+          : null,
+        creatorNodeId: ownerNodeId,
+        creatorRole: ownerMembership?.role ?? null,
+        directSpawnedStars: spawnedChildCountByStarId.get(spawnedStar.starId) ?? 0,
+        growthPercent: spawnedStar.growthPercent,
+        id: spawnedStar.starId,
+        name: spawnedStar.characterName || spawnedStar.displayName,
+        ownerLabel: ownerEmail ? "Creator" : null,
+        portraitImageUrl: spawnedStar.portraitImageUrl ?? null,
+        starScore: spawnedStar.starScore,
+        status: spawnedStar.status,
+      };
+    }),
     star: {
       accentColor,
       accentSecondary,

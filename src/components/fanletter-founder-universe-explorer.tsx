@@ -4,10 +4,13 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
   Bot,
   ChevronRight,
   CircleDot,
+  ExternalLink,
   GitBranch,
+  Rocket,
   Search,
   Sparkles,
   Users,
@@ -20,6 +23,7 @@ import {
 import type {
   FanletterFounderUniverseExplorerData,
   FanletterFounderUniverseExplorerNode,
+  FanletterFounderUniverseExplorerSpawnedStar,
   FanletterFounderUniverseExplorerTier,
 } from "@/lib/fanletter-founder-universe-explorer";
 import type { Locale } from "@/lib/i18n";
@@ -39,9 +43,13 @@ const explorerCopy = {
     cpPool: "CP Pool",
     edge: "Edges",
     empty: "No members match this filter.",
+    expansion: "Universe Expansion",
     founderUniverse: "Founder Universe",
+    generatedBy: "Launched by",
     member: "Member",
     members: "Members",
+    newUniverse: "New Universe",
+    noSpawned: "No spawned AI Stars yet.",
     open: "Open",
     overview: "Overview",
     referral: "Referral",
@@ -58,9 +66,13 @@ const explorerCopy = {
     cpPool: "CP Pool",
     edge: "Edges",
     empty: "条件に合うメンバーがいません。",
+    expansion: "Universe Expansion",
     founderUniverse: "Founder Universe",
+    generatedBy: "生成者",
     member: "Member",
     members: "Members",
+    newUniverse: "New Universe",
+    noSpawned: "まだ派生AIスターはありません。",
     open: "Open",
     overview: "概要",
     referral: "Referral",
@@ -77,9 +89,13 @@ const explorerCopy = {
     cpPool: "CP Pool",
     edge: "연결",
     empty: "조건에 맞는 멤버가 없습니다.",
+    expansion: "유니버스 확장",
     founderUniverse: "파운더 유니버스",
+    generatedBy: "배출 멤버",
     member: "멤버",
     members: "멤버",
+    newUniverse: "새 유니버스",
+    noSpawned: "아직 파생 AI 스타가 없습니다.",
     open: "열림",
     overview: "요약",
     referral: "추천",
@@ -258,6 +274,230 @@ function UniverseTierInfographic({
         );
       })}
     </div>
+  );
+}
+
+function getStatusLabel(
+  status: FanletterFounderUniverseExplorerSpawnedStar["status"],
+  locale: Locale,
+) {
+  if (locale === "ko") {
+    return status === "active" ? "활성" : status === "draft" ? "초안" : "보관";
+  }
+
+  if (locale === "ja") {
+    return status === "active" ? "公開" : status === "draft" ? "下書き" : "保存";
+  }
+
+  return status === "active" ? "Active" : status === "draft" ? "Draft" : "Archived";
+}
+
+function SpawnedStarCard({
+  locale,
+  onSelectNode,
+  spawnedStar,
+}: {
+  locale: Locale;
+  onSelectNode: (nodeId: string) => void;
+  spawnedStar: FanletterFounderUniverseExplorerSpawnedStar;
+}) {
+  const copy = getExplorerCopy(locale);
+  const v2Copy = getFanletterV2Copy(locale);
+  const createdAt = formatDate(spawnedStar.createdAt, locale);
+
+  return (
+    <div className="grid gap-3 rounded-lg border border-violet-100 bg-white p-3 shadow-[0_12px_30px_rgba(88,28,135,0.06)]">
+      <Link
+        className="group relative overflow-hidden rounded-lg border border-violet-300 bg-gradient-to-br from-[#7c3aed] via-[#a855f7] to-[#38bdf8] p-3 text-white shadow-[0_18px_42px_rgba(124,58,237,0.18)]"
+        href={`/${locale}/fanletter/${encodeURIComponent(spawnedStar.id)}/universe`}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <span className="inline-flex h-7 items-center rounded-full bg-white/22 px-2.5 text-[0.66rem] font-semibold backdrop-blur">
+            AI STAR
+          </span>
+          <ExternalLink className="size-4 text-white/82 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        </div>
+        <div className="mt-5 flex items-center gap-3">
+          <div
+            className="flex size-16 shrink-0 items-center justify-center rounded-full border border-white/42 bg-white/16 bg-cover bg-center text-lg font-semibold"
+            style={
+              spawnedStar.portraitImageUrl
+                ? { backgroundImage: `url(${spawnedStar.portraitImageUrl})` }
+                : undefined
+            }
+          >
+            {spawnedStar.portraitImageUrl ? null : spawnedStar.name.slice(0, 2)}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-xl font-semibold tracking-normal">
+              {spawnedStar.name}
+            </p>
+            <p className="mt-1 text-xs font-semibold text-white/72">
+              {copy.newUniverse}
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+          <div className="rounded-lg bg-white/14 p-2">
+            <p className="text-base font-semibold">{spawnedStar.starScore}</p>
+            <p className="mt-1 text-[0.6rem] font-semibold text-white/66">
+              Score
+            </p>
+          </div>
+          <div className="rounded-lg bg-white/14 p-2">
+            <p className="text-base font-semibold">
+              +{spawnedStar.growthPercent}%
+            </p>
+            <p className="mt-1 text-[0.6rem] font-semibold text-white/66">
+              Growth
+            </p>
+          </div>
+          <div className="rounded-lg bg-white/14 p-2">
+            <p className="text-base font-semibold">
+              {formatNumber(spawnedStar.directSpawnedStars, locale)}
+            </p>
+            <p className="mt-1 text-[0.6rem] font-semibold text-white/66">
+              Spawn
+            </p>
+          </div>
+        </div>
+      </Link>
+
+      <div className="rounded-lg border border-black/8 bg-zinc-50 p-3">
+        <div className="flex items-start gap-3">
+          <HumanMemberAvatar
+            member={{
+              initials: spawnedStar.creatorLabel?.slice(0, 2) ?? "M",
+              name: spawnedStar.creatorLabel ?? copy.member,
+            }}
+            size="sm"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.66rem] font-semibold text-black/42">
+              {copy.generatedBy}
+            </p>
+            <p className="mt-1 truncate text-sm font-semibold text-[#12041f]">
+              {spawnedStar.creatorLabel ?? copy.member}
+            </p>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              {spawnedStar.creatorRole ? (
+                <FounderRoleBadge
+                  copy={v2Copy}
+                  role={spawnedStar.creatorRole as FounderRole}
+                />
+              ) : null}
+              {spawnedStar.creatorDepth !== null ? (
+                <span className="inline-flex h-6 items-center rounded-full bg-white px-2 text-[0.64rem] font-semibold text-black/45">
+                  L{spawnedStar.creatorDepth}
+                </span>
+              ) : null}
+              <span className="inline-flex h-6 items-center rounded-full bg-white px-2 text-[0.64rem] font-semibold text-black/45">
+                {getStatusLabel(spawnedStar.status, locale)}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="mt-3 flex items-center justify-between gap-2 border-t border-black/6 pt-2">
+          <span className="text-[0.66rem] font-semibold text-black/42">
+            {createdAt || spawnedStar.id}
+          </span>
+          {spawnedStar.creatorNodeId ? (
+            <button
+              className="inline-flex h-8 items-center rounded-full border border-violet-100 bg-white px-2.5 text-xs font-semibold text-[#6d28d9]"
+              onClick={() => onSelectNode(spawnedStar.creatorNodeId ?? "")}
+              type="button"
+            >
+              Node
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UniverseExpansionMap({
+  locale,
+  onSelectNode,
+  universe,
+}: {
+  locale: Locale;
+  onSelectNode: (nodeId: string) => void;
+  universe: FanletterFounderUniverseExplorerData;
+}) {
+  const copy = getExplorerCopy(locale);
+
+  return (
+    <section className="rounded-lg border border-violet-100 bg-white/78 p-3 shadow-[0_14px_36px_rgba(88,28,135,0.06)] backdrop-blur">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-2">
+          <Rocket className="size-5 text-[#6d28d9]" />
+          <div>
+            <p className="text-sm font-semibold text-[#6d28d9]">
+              {copy.expansion}
+            </p>
+            <p className="mt-1 text-xs font-semibold text-black/42">
+              {formatNumber(universe.spawnedStars.length, locale)}{" "}
+              {copy.spawned}
+            </p>
+          </div>
+        </div>
+        <span className="inline-flex h-9 items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-800">
+          CP Pool 1,000
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
+        <div className="rounded-lg border border-violet-200 bg-violet-50 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex h-7 items-center rounded-full bg-white px-2.5 text-[0.66rem] font-semibold text-[#6d28d9]">
+              SOURCE
+            </span>
+            <Sparkles className="size-4 text-[#7c3aed]" />
+          </div>
+          <div className="mt-5 flex items-center gap-3">
+            <div className="flex size-14 items-center justify-center rounded-full border border-violet-200 bg-white text-base font-semibold text-[#6d28d9]">
+              {universe.star.initials}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-lg font-semibold text-[#12041f]">
+                {universe.star.displayName || universe.star.name}
+              </p>
+              <p className="mt-1 text-xs font-semibold text-black/45">
+                {copy.founderUniverse}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#6d28d9]">
+            <span>Source</span>
+            <ArrowRight className="size-4 lg:rotate-0 rotate-90" />
+            <span>{copy.spawned}</span>
+          </div>
+        </div>
+
+        {universe.spawnedStars.length > 0 ? (
+          <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
+            {universe.spawnedStars.map((spawnedStar) => (
+              <SpawnedStarCard
+                key={spawnedStar.id}
+                locale={locale}
+                onSelectNode={onSelectNode}
+                spawnedStar={spawnedStar}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="flex min-h-52 items-center justify-center rounded-lg border border-dashed border-violet-200 bg-white p-6 text-center">
+            <div>
+              <Rocket className="mx-auto size-8 text-violet-300" />
+              <p className="mt-3 text-sm font-semibold text-black/48">
+                {copy.noSpawned}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
@@ -544,6 +784,12 @@ export function FanletterFounderUniverseExplorer({
       <section className="px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
         <div className="mx-auto grid max-w-[92rem] gap-5 xl:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="grid gap-5">
+            <UniverseExpansionMap
+              locale={locale}
+              onSelectNode={setSelectedNodeId}
+              universe={universe}
+            />
+
             <div className="rounded-lg border border-violet-100 bg-white/72 p-3 shadow-[0_12px_34px_rgba(88,28,135,0.06)] backdrop-blur">
               <div className="flex items-center gap-2">
                 <Bot className="size-5 text-[#6d28d9]" />
