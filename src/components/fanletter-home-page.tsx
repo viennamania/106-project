@@ -935,7 +935,9 @@ function FanletterProductHomeDashboard({
     null;
   const topStars = starList.slice(0, 3);
   const availablePreviewVideos = (previewVideos ?? []).filter(
-    (video) => video.videoUrl.trim() || video.coverImageUrl,
+    (video) =>
+      video.contentMaturityRating !== "nsfw" &&
+      (video.videoUrl.trim() || video.coverImageUrl),
   );
   const seenPreviewAuthors = new Set<string>();
   const uniqueAuthorPreviewVideos = availablePreviewVideos.filter((video) => {
@@ -1130,37 +1132,37 @@ function FanletterProductHomeDashboard({
   ].slice(0, 3);
 
   return (
-    <section className="grid flex-1 content-start gap-5 pb-8 pt-6 sm:gap-6 sm:py-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] lg:items-start">
-      <div className="grid gap-4">
+    <section className="grid min-w-0 flex-1 content-start gap-5 overflow-x-hidden pb-8 pt-6 sm:gap-6 sm:py-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] lg:items-start">
+      <div className="grid min-w-0 gap-4">
         <div>
-          <div className="rounded-[1.45rem] border border-violet-100 bg-white/90 p-4 shadow-[0_24px_70px_rgba(88,28,135,0.12)] backdrop-blur-xl sm:p-5">
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,16rem)] lg:items-stretch">
+          <div className="min-w-0 overflow-hidden rounded-[1.45rem] border border-violet-100 bg-white/90 p-4 shadow-[0_24px_70px_rgba(88,28,135,0.12)] backdrop-blur-xl sm:p-5">
+            <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,16rem)] lg:items-stretch">
               <div className="flex min-w-0 flex-col gap-4">
                 <div className="min-w-0">
-                  <p className="inline-flex rounded-full bg-violet-50 px-3 py-1 text-[0.68rem] font-semibold text-[#6d28d9]">
+                  <p className="inline-flex max-w-full rounded-full bg-violet-50 px-3 py-1 text-[0.68rem] font-semibold text-[#6d28d9]">
                     {productCopy.loop}
                   </p>
                   <h1 className="mt-3 max-w-2xl text-[2.25rem] font-semibold leading-[1.02] tracking-normal text-[#12041f] [word-break:keep-all] sm:text-[3.2rem]">
                     {productCopy.headline}
                   </h1>
-                  <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-black/58 [word-break:keep-all] sm:text-base">
+                  <p className="mt-3 max-w-2xl break-words text-sm font-medium leading-6 text-black/58 [overflow-wrap:anywhere] sm:text-base sm:[word-break:keep-all]">
                     {productCopy.subhead}
                   </p>
                 </div>
-                <div className="grid gap-3 sm:flex sm:flex-wrap">
+                <div className="grid min-w-0 gap-3 sm:flex sm:flex-wrap">
                   <Link
-                    className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.24)] transition hover:bg-[#6d28d9]"
+                    className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.24)] transition hover:bg-[#6d28d9] sm:w-auto sm:shrink-0"
                     href={topGrowingStarsHref}
                   >
-                    {productCopy.primaryCta}
+                    <span className="truncate">{productCopy.primaryCta}</span>
                     <ArrowRight className="size-4" />
                   </Link>
                   <Link
-                    className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white px-5 text-sm font-semibold !text-[#6d28d9] shadow-[0_12px_26px_rgba(88,28,135,0.08)] transition hover:bg-violet-50"
+                    className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white px-5 text-sm font-semibold !text-[#6d28d9] shadow-[0_12px_26px_rgba(88,28,135,0.08)] transition hover:bg-violet-50 sm:w-auto sm:shrink-0"
                     href={connectHref}
                   >
                     <ShieldCheck className="size-4" />
-                    {productCopy.connect}
+                    <span className="truncate">{productCopy.connect}</span>
                   </Link>
                 </div>
               </div>
@@ -2338,8 +2340,14 @@ export function FanletterHomePage({
     buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
     { returnTo: onboardingHref },
   );
-  const heroVideo = featuredVideos[0] ?? null;
-  const heroSlides = featuredVideos.slice(0, 5).map((video) => ({
+  const nonNsfwFeaturedVideos = featuredVideos.filter(
+    (video) => video.contentMaturityRating !== "nsfw",
+  );
+  const nonNsfwFeaturedPaidVideos = featuredPaidVideos.filter(
+    (video) => video.contentMaturityRating !== "nsfw",
+  );
+  const heroVideo = nonNsfwFeaturedVideos[0] ?? null;
+  const heroSlides = nonNsfwFeaturedVideos.slice(0, 5).map((video) => ({
     authorName: video.authorName,
     coverImageUrl: video.coverImageUrl,
     title: video.title,
@@ -2431,7 +2439,7 @@ export function FanletterHomePage({
       value: liveStats.totalSalesUsdt,
     },
   ];
-  const nicheVideos = featuredVideos.slice(0, 3);
+  const nicheVideos = nonNsfwFeaturedVideos.slice(0, 3);
   const footerLabels =
     locale === "ko"
       ? {
@@ -2677,7 +2685,7 @@ export function FanletterHomePage({
     : null;
 
   return (
-    <main className="fanletter-v2-surface min-h-screen bg-[#fbfaff] text-black">
+    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#fbfaff] text-black">
       <section className="relative overflow-hidden border-b border-violet-200 bg-[#fbfaff] sm:min-h-[92svh]">
         <div className="absolute inset-0 bg-[linear-gradient(180deg,#ffffff_0%,#fbfaff_56%,#f2edff_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(124,58,237,0.08)_0_1px,transparent_1px_32px)] opacity-70 sm:hidden" />
@@ -2856,7 +2864,10 @@ export function FanletterHomePage({
             liveStats={liveStats}
             locale={locale}
             memberPortfolio={founderClubMemberPortfolio}
-            previewVideos={[...featuredVideos, ...featuredPaidVideos]}
+            previewVideos={[
+              ...nonNsfwFeaturedVideos,
+              ...nonNsfwFeaturedPaidVideos,
+            ]}
             referralCode={referralCode}
             scoutShareLoop={founderClubScoutShareLoop}
             scoutShareLoopHref={scoutShareLoopHref}

@@ -26,6 +26,7 @@
     "fanletter:founder-club:backfill:audit": "node scripts/backfill-fanletter-founder-club-v2.mjs",
     "fanletter:ai-star-genealogy:backfill": "node scripts/backfill-fanletter-ai-star-genealogy.mjs",
     "fanletter:ai-star-profiles:backfill": "node scripts/backfill-fanletter-ai-star-profiles.mjs",
+    "fanletter:founder-universe:enrich": "node scripts/enrich-fanletter-founder-universe-participation.mjs",
     "fanletter:founder-universe:backfill": "node scripts/backfill-fanletter-founder-universe-placement.mjs",
     "fanletter:reporter-incentives:backfill": "node scripts/backfill-fanletter-news-reporter-incentives.mjs",
     "fanletter:report-teasers:backfill": "node scripts/backfill-fanletter-news-report-teasers.mjs",
