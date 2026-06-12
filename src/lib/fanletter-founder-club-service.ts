@@ -359,6 +359,8 @@ function serializeOwnedStar({
   const ownedStar: MemberPortfolio["ownedStars"][number] = {
     id: star.starId,
     name: compactText(star.characterName, star.displayName),
+    portraitImageUrl: star.portraitImageUrl,
+    portraitInitials: getInitials(star.characterName || star.displayName),
     status: star.status,
     universeName: getUniverseName(star),
   };
@@ -1454,6 +1456,10 @@ export async function getFanletterFounderClubMemberPortfolio(
       const starStatus = star?.status ?? null;
 
       return {
+        portraitImageUrl: star?.portraitImageUrl ?? null,
+        portraitInitials: star
+          ? getInitials(star.characterName || star.displayName)
+          : getInitials(membership.starId),
         role: toFounderRole(membership.role),
         starId: membership.starId,
         starName: star

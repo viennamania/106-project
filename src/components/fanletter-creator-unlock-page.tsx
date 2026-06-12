@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -19,6 +20,7 @@ import {
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
 import { useFanletterFounderMockMemberships } from "@/components/fanletter-founder-mock-state";
+import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import {
   CreatorUnlockCard,
   FounderRoleBadge,
@@ -29,6 +31,7 @@ import {
   fanletterV2Mock,
   getFanletterV2Copy,
   getFanletterV2LocalizedText,
+  type AIStar,
   type CreatorUnlockData,
   type MemberOwnedAIStar,
   type MemberPortfolio as MemberPortfolioData,
@@ -74,6 +77,7 @@ function getLaunchPageCopy(locale: Locale) {
       nextPortfolio: "생성 후 포트폴리오 반영",
       owner: "소유 멤버",
       preview: "AI 스타 카드 미리보기",
+      roleInUniverse: "내 역할",
       rewardCp: "CP",
       rewardCreator: "Creator 진행률",
       rewardInfluence: "영향력",
@@ -81,8 +85,9 @@ function getLaunchPageCopy(locale: Locale) {
       rewardBody:
         "이 브라우저의 mock Founder 참여 내역을 Creator Unlock 조건에 반영했습니다.",
       sourceSelectBody:
-        "새 AI 스타가 어느 기존 Universe의 성과로 탄생하는지 선택합니다. CP Pool은 선택한 Universe의 상위 계층에 분배됩니다.",
+        "AI 스타는 창업 출처 Universe이고, 내 역할은 그 Universe 안에서 내가 가진 위치입니다. CP Pool은 선택한 Universe의 상위 계층에 분배됩니다.",
       sourceSelectTitle: "창업 출처 Universe 선택",
+      sourcePool: "CP Pool 분배 기준",
       source: "원천 유니버스",
       steps: [
         "크리에이터 조건 충족",
@@ -116,6 +121,7 @@ function getLaunchPageCopy(locale: Locale) {
       nextPortfolio: "Portfolio reflection",
       owner: "Owner member",
       preview: "AI Star card preview",
+      roleInUniverse: "My role",
       rewardCp: "CP",
       rewardCreator: "Creator Progress",
       rewardInfluence: "Influence",
@@ -123,8 +129,9 @@ function getLaunchPageCopy(locale: Locale) {
       rewardBody:
         "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
       sourceSelectBody:
-        "Choose which existing Universe this new AI Star is launched from. The CP Pool is distributed to the selected Universe upline.",
+        "The AI Star is the launch source Universe, and My role is your position inside that Universe. The CP Pool is distributed to the selected Universe upline.",
       sourceSelectTitle: "Select launch source Universe",
+      sourcePool: "CP Pool basis",
       source: "Source Universe",
       steps: [
         "Meet Creator conditions",
@@ -157,6 +164,7 @@ function getLaunchPageCopy(locale: Locale) {
     nextPortfolio: "Portfolio reflection",
     owner: "Owner member",
     preview: "AI Star card preview",
+    roleInUniverse: "My role",
     rewardCp: "CP",
     rewardCreator: "Creator Progress",
     rewardInfluence: "Influence",
@@ -164,8 +172,9 @@ function getLaunchPageCopy(locale: Locale) {
     rewardBody:
       "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
     sourceSelectBody:
-      "Choose which existing Universe this new AI Star is launched from. The CP Pool is distributed to the selected Universe upline.",
+      "The AI Star is the launch source Universe, and My role is your position inside that Universe. The CP Pool is distributed to the selected Universe upline.",
     sourceSelectTitle: "Select launch source Universe",
+    sourcePool: "CP Pool basis",
     source: "Source Universe",
     steps: [
       "Meet Creator conditions",
@@ -205,11 +214,15 @@ function formatNumber(value: number, locale: Locale) {
   );
 }
 
-function getMockStarById(starId: string) {
-  return fanletterV2Mock.aiStars.find((star) => star.id === starId) ?? null;
+function getMockStarById(starId: string): AIStar | null {
+  const star = fanletterV2Mock.aiStars.find((item) => item.id === starId);
+
+  return (star ?? null) as AIStar | null;
 }
 
 type SourceUniverseOption = {
+  portraitImageUrl?: string | null;
+  portraitInitials: string;
   role: MemberPortfolioRole["role"];
   starId: string;
   starName: string;
@@ -225,14 +238,22 @@ function getSourceUniverseOptions(portfolio: MemberPortfolioData) {
       continue;
     }
 
+    const mockStar = getMockStarById(role.starId);
+    const starName =
+      role.starName ?? mockStar?.name ?? role.universeName ?? role.starId;
+
     optionsByStarId.set(role.starId, {
+      portraitImageUrl: role.portraitImageUrl ?? mockStar?.portraitImageUrl,
+      portraitInitials:
+        role.portraitInitials ?? mockStar?.portraitInitials ?? getInitials(starName),
       role: role.role,
       starId: role.starId,
-      starName: role.starName ?? role.universeName ?? role.starId,
+      starName,
       starStatus: role.starStatus,
       universeName:
         role.universeName ??
-        (role.starName ? `${role.starName} Universe` : `${role.starId} Universe`),
+        mockStar?.universeName ??
+        (starName ? `${starName} Universe` : `${role.starId} Universe`),
     });
   }
 
@@ -242,6 +263,8 @@ function getSourceUniverseOptions(portfolio: MemberPortfolioData) {
     }
 
     optionsByStarId.set(ownedStar.id, {
+      portraitImageUrl: ownedStar.portraitImageUrl,
+      portraitInitials: ownedStar.portraitInitials ?? getInitials(ownedStar.name),
       role: "creator",
       starId: ownedStar.id,
       starName: ownedStar.name,
@@ -291,6 +314,8 @@ function applyMockFounderRewardsToPortfolio({
       const star = getMockStarById(starId);
 
       return {
+        portraitImageUrl: star?.portraitImageUrl,
+        portraitInitials: star?.portraitInitials ?? getInitials(star?.name ?? starId),
         role: "founder",
         starId,
         starName: star?.name ?? starId,
@@ -505,6 +530,37 @@ function getSelectedText(locale: Locale) {
   return "Selected";
 }
 
+function SourceUniverseAIStarPortrait({
+  option,
+}: {
+  option: SourceUniverseOption;
+}) {
+  return (
+    <div className="relative size-20 shrink-0 overflow-hidden rounded-lg border-2 border-[#8b5cf6] bg-[linear-gradient(145deg,#a855f7,#6d28d9_48%,#22d3ee)] text-white shadow-[0_14px_30px_rgba(124,58,237,0.2)]">
+      {option.portraitImageUrl ? (
+        <Image
+          alt={`${option.starName} AI Star profile`}
+          className="object-cover"
+          fill
+          sizes="5rem"
+          src={option.portraitImageUrl}
+          unoptimized={shouldBypassFanletterImageOptimization(
+            option.portraitImageUrl,
+          )}
+        />
+      ) : (
+        <div className="flex h-full items-center justify-center text-xl font-semibold">
+          {option.portraitInitials}
+        </div>
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-[#12041f]/58 via-transparent to-white/8" />
+      <span className="absolute left-1.5 top-1.5 rounded-full bg-white/20 px-1.5 py-0.5 text-[0.52rem] font-semibold backdrop-blur">
+        AI STAR
+      </span>
+    </div>
+  );
+}
+
 function SourceUniverseSelector({
   copy,
   locale,
@@ -550,7 +606,7 @@ function SourceUniverseSelector({
           return (
             <button
               className={joinClasses(
-                "min-h-32 rounded-lg border p-3 text-left transition",
+                "relative min-h-32 rounded-lg border p-3 text-left transition",
                 isSelected
                   ? "border-[#7c3aed] bg-[#f5f0ff] ring-2 ring-[#7c3aed]/12"
                   : "border-black/8 bg-[#fbfaff] hover:border-violet-300",
@@ -559,27 +615,32 @@ function SourceUniverseSelector({
               onClick={() => onSelect(option.starId)}
               type="button"
             >
-              <div className="flex items-start justify-between gap-3">
-                <span className="inline-flex h-7 items-center rounded-full bg-[#7c3aed] px-2.5 text-[0.66rem] font-semibold text-white">
-                  AI STAR
-                </span>
+              <div className="flex items-start gap-3">
+                <SourceUniverseAIStarPortrait option={option} />
+                <div className="min-w-0 flex-1 pr-16 pt-0.5">
+                  <p className="truncate text-lg font-semibold text-[#12041f]">
+                    {option.starName}
+                  </p>
+                  <p className="mt-1 truncate text-xs font-semibold text-black/46">
+                    {getDisplayUniverseName(option.universeName, locale)}
+                  </p>
+                  <div className="mt-3">
+                    <p className="mb-1 text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-black/38">
+                      {copy.roleInUniverse}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <FounderRoleBadge copy={v2Copy} role={option.role} />
+                      <span className="inline-flex h-7 items-center rounded-full border border-violet-100 bg-white px-2 text-[0.66rem] font-semibold text-[#6d28d9]">
+                        {copy.sourcePool}
+                      </span>
+                    </div>
+                  </div>
+                </div>
                 {isSelected ? (
-                  <span className="inline-flex h-7 items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 text-[0.66rem] font-semibold text-emerald-800">
+                  <span className="absolute right-3 top-3 inline-flex h-7 items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 text-[0.66rem] font-semibold text-emerald-800">
                     {getSelectedText(locale)}
                   </span>
                 ) : null}
-              </div>
-              <p className="mt-4 truncate text-lg font-semibold text-[#12041f]">
-                {option.starName}
-              </p>
-              <p className="mt-1 truncate text-xs font-semibold text-black/46">
-                {getDisplayUniverseName(option.universeName, locale)}
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <FounderRoleBadge copy={v2Copy} role={option.role} />
-                <span className="inline-flex h-7 items-center rounded-full border border-violet-100 bg-white px-2 text-[0.66rem] font-semibold text-[#6d28d9]">
-                  CP Pool
-                </span>
               </div>
             </button>
           );

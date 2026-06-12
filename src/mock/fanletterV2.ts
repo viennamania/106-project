@@ -53,6 +53,8 @@ export type AIStar = {
 };
 
 export type MemberPortfolioRole = {
+  portraitImageUrl?: string | null;
+  portraitInitials?: string | null;
   role: Exclude<FounderRole, "member">;
   starId: string;
   starName?: string;
@@ -65,6 +67,8 @@ export type MemberOwnedAIStar = {
   id: string;
   launchCostUsdt?: number;
   name: string;
+  portraitImageUrl?: string | null;
+  portraitInitials?: string | null;
   sourceUniverseName?: string | null;
   spawnedFromStarId?: string | null;
   status?: AIStarStatus | null;
