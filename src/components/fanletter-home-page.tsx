@@ -1224,64 +1224,74 @@ function FanletterProductHomeDashboard({
                 </Link>
               </div>
 
-              <div className="-mx-1 mt-4 flex max-w-full snap-x gap-3 overflow-x-auto overscroll-x-contain px-1 pb-2 [scrollbar-width:none] [touch-action:pan-x] [&::-webkit-scrollbar]:hidden">
-                {topStars.map((star) => (
-                  <Link
-                    className="group w-[13.75rem] max-w-[calc(100vw-5rem)] shrink-0 snap-start overflow-hidden rounded-[1.05rem] border border-violet-100 bg-white shadow-[0_12px_30px_rgba(88,28,135,0.07)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(88,28,135,0.12)] lg:w-[14.5rem]"
-                    href={`/${locale}/fanletter/${encodeURIComponent(star.id)}`}
-                    key={star.id}
-                  >
-                    <div
-                      className="h-1.5"
-                      style={{
-                        background: `linear-gradient(90deg, ${star.accentColor}, ${star.accentSecondary})`,
-                      }}
-                    />
-                    <div className="p-3.5">
-                      <div className="flex items-center gap-3">
-                        <span
-                          className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-cover bg-center text-sm font-semibold text-white shadow-[0_12px_24px_rgba(88,28,135,0.14)]"
-                          style={
-                            star.portraitImageUrl
-                              ? { backgroundImage: `url(${star.portraitImageUrl})` }
-                              : {
-                                  background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
-                                }
-                          }
-                        >
-                          {star.portraitImageUrl ? null : star.portraitInitials}
-                        </span>
-                        <span className="min-w-0">
-                          <span className="block truncate text-base font-semibold text-[#12041f]">
-                            {star.name}
-                          </span>
-                          <span className="mt-1 block truncate text-xs font-semibold text-slate-500">
-                            {getFanletterV2LocalizedText(star.specialty, locale)}
-                          </span>
-                        </span>
-                      </div>
-                      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-                        {[
-                          [productCopy.score, star.starScore],
-                          [productCopy.growth, `+${star.growthPercent}%`],
-                          [productCopy.open, star.openSlots.open],
-                        ].map(([label, value]) => (
+              <div className="relative -mx-1 mt-4 min-w-0 max-w-full overflow-hidden">
+                <div className="flex max-w-full snap-x gap-3 overflow-x-auto overscroll-x-contain px-1 pb-2 pr-10 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [touch-action:pan-x] [&::-webkit-scrollbar]:hidden">
+                  {topStars.map((star) => (
+                    <Link
+                      className="group w-[13.75rem] max-w-[calc(100vw-5rem)] shrink-0 snap-start overflow-hidden rounded-[1.05rem] border border-violet-100 bg-white shadow-[0_12px_30px_rgba(88,28,135,0.07)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(88,28,135,0.12)] lg:w-[14.5rem]"
+                      href={`/${locale}/fanletter/${encodeURIComponent(star.id)}`}
+                      key={star.id}
+                    >
+                      <div
+                        className="h-1.5"
+                        style={{
+                          background: `linear-gradient(90deg, ${star.accentColor}, ${star.accentSecondary})`,
+                        }}
+                      />
+                      <div className="p-3.5">
+                        <div className="flex items-center gap-3">
                           <span
-                            className="min-w-0 rounded-xl bg-slate-50 px-2 py-2"
-                            key={label}
+                            className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-cover bg-center text-sm font-semibold text-white shadow-[0_12px_24px_rgba(88,28,135,0.14)]"
+                            style={
+                              star.portraitImageUrl
+                                ? { backgroundImage: `url(${star.portraitImageUrl})` }
+                                : {
+                                    background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
+                                  }
+                            }
                           >
-                            <span className="block truncate text-sm font-semibold text-[#12041f]">
-                              {value}
+                            {star.portraitImageUrl ? null : star.portraitInitials}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate text-base font-semibold text-[#12041f]">
+                              {star.name}
                             </span>
-                            <span className="mt-0.5 block truncate whitespace-nowrap text-[0.58rem] font-semibold tracking-normal text-slate-400">
-                              {label}
+                            <span className="mt-1 block truncate text-xs font-semibold text-slate-500">
+                              {getFanletterV2LocalizedText(star.specialty, locale)}
                             </span>
                           </span>
-                        ))}
+                        </div>
+                        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                          {[
+                            [productCopy.score, star.starScore],
+                            [productCopy.growth, `+${star.growthPercent}%`],
+                            [productCopy.open, star.openSlots.open],
+                          ].map(([label, value]) => (
+                            <span
+                              className="min-w-0 rounded-xl bg-slate-50 px-2 py-2"
+                              key={label}
+                            >
+                              <span className="block truncate text-sm font-semibold text-[#12041f]">
+                                {value}
+                              </span>
+                              <span className="mt-0.5 block truncate whitespace-nowrap text-[0.58rem] font-semibold tracking-normal text-slate-400">
+                                {label}
+                              </span>
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  ))}
+                </div>
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-y-0 right-0 flex w-14 items-center justify-end bg-gradient-to-l from-white via-white/88 to-white/0 pr-1 lg:hidden"
+                >
+                  <span className="flex size-9 items-center justify-center rounded-full border border-violet-100 bg-white/95 text-[#7c3aed] shadow-[0_12px_26px_rgba(88,28,135,0.14)]">
+                    <ArrowRight className="size-4" />
+                  </span>
+                </div>
               </div>
             </div>
           </ScrollReveal>
