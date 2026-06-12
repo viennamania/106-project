@@ -232,6 +232,8 @@ export type MemberDocument = {
   fanletterStarReferralSourceMemberEmail?: string | null;
   fanletterStarReferralSourceMemberReferralCode?: string | null;
   fanletterStarReferralStarId?: string | null;
+  fanletterStarterStarId?: string | null;
+  fanletterStarterUniverseEnsuredAt?: Date | null;
   lastConnectedAt: Date;
   lastWalletAddress: string;
   landingBranding?: LandingBrandingDocument | null;

@@ -67,6 +67,10 @@ function getLaunchPageCopy(locale: Locale) {
         "크리에이터 해금 이후 여러 AI 스타를 만들 수 있는 흐름을 실제 결제 없이 먼저 검증합니다.",
       heroEyebrow: "크리에이터 해금",
       heroTitle: "Founder가 성장하면 새 AI 스타를 출시합니다",
+      loginCta: "계정 연결하고 내 데이터 보기",
+      loginNoticeBody:
+        "지금 화면은 샘플 데이터입니다. 이메일 계정을 연결하면 내 Founder 역할, CP, 초대 성과, 생성 가능한 AI 스타가 실제 데이터로 바뀝니다.",
+      loginNoticeTitle: "내 Creator Unlock 상태를 보려면 계정 연결이 필요합니다",
       mockActivation: "미리보기 활성화",
       mockNotice:
         "실결제와 영구 저장은 아직 실행하지 않습니다. 이 화면은 생성 전 구조와 포트폴리오 반영 방식을 확인하는 미리보기입니다.",
@@ -75,9 +79,17 @@ function getLaunchPageCopy(locale: Locale) {
         "브라우저에 저장된 mock AI 스타 draft가 포트폴리오에 반영되었습니다.",
       launchedTitle: "Mock AI 스타 draft 생성됨",
       nextPortfolio: "생성 후 포트폴리오 반영",
+      noSourceBody:
+        "새 AI 스타는 기존 Universe의 성과를 출처로 삼아야 합니다. 먼저 AI 스타를 발견해 Founder로 참여하거나, 내 AI 스타 Universe를 만든 뒤 다시 진행하세요.",
+      noSourcePrimary: "AI 스타 발견하기",
+      noSourceSecondary: "Founder Club 보기",
+      noSourceSubmit: "출처 Universe 필요",
+      noSourceTitle: "창업 출처 Universe가 아직 없습니다",
       owner: "소유 멤버",
       preview: "AI 스타 카드 미리보기",
       roleInUniverse: "내 역할",
+      sampleData: "샘플 데이터",
+      sampleOwner: "샘플 멤버",
       rewardCp: "CP",
       rewardCreator: "Creator 진행률",
       rewardInfluence: "영향력",
@@ -111,6 +123,10 @@ function getLaunchPageCopy(locale: Locale) {
         "After Creator Unlock, the member can validate a multi-AI-Star launch flow before real checkout.",
       heroEyebrow: "Creator Unlock",
       heroTitle: "Founders grow into Creators who launch new AI Stars",
+      loginCta: "Connect account to view my data",
+      loginNoticeBody:
+        "This screen is sample data. Connect your email account to switch to your Founder roles, CP, invites, and launchable AI Stars.",
+      loginNoticeTitle: "Connect an account to view your Creator Unlock status",
       mockActivation: "Mock activation",
       mockNotice:
         "No real payment or permanent write runs here. This preview checks the launch structure and portfolio reflection.",
@@ -119,9 +135,17 @@ function getLaunchPageCopy(locale: Locale) {
         "Mock AI Star drafts saved in this browser are reflected in the portfolio.",
       launchedTitle: "Mock AI Star draft created",
       nextPortfolio: "Portfolio reflection",
+      noSourceBody:
+        "A new AI Star needs an existing Universe as its launch source. Join an AI Star as a Founder or create your own AI Star Universe first, then return here.",
+      noSourcePrimary: "Discover AI Stars",
+      noSourceSecondary: "View Founder Club",
+      noSourceSubmit: "Source Universe required",
+      noSourceTitle: "No launch source Universe yet",
       owner: "Owner member",
       preview: "AI Star card preview",
       roleInUniverse: "My role",
+      sampleData: "Sample data",
+      sampleOwner: "Sample member",
       rewardCp: "CP",
       rewardCreator: "Creator Progress",
       rewardInfluence: "Influence",
@@ -154,6 +178,10 @@ function getLaunchPageCopy(locale: Locale) {
       "After Creator Unlock, the member can validate a multi-AI-Star launch flow before real checkout.",
     heroEyebrow: "Creator Unlock",
     heroTitle: "Founders grow into Creators who launch new AI Stars",
+    loginCta: "Connect account to view my data",
+    loginNoticeBody:
+      "This screen is sample data. Connect your email account to switch to your Founder roles, CP, invites, and launchable AI Stars.",
+    loginNoticeTitle: "Connect an account to view your Creator Unlock status",
     mockActivation: "Mock activation",
     mockNotice:
       "No real payment or permanent write runs here. This preview checks the launch structure and portfolio reflection.",
@@ -162,9 +190,17 @@ function getLaunchPageCopy(locale: Locale) {
       "Mock AI Star drafts saved in this browser are reflected in the portfolio.",
     launchedTitle: "Mock AI Star draft created",
     nextPortfolio: "Portfolio reflection",
+    noSourceBody:
+      "A new AI Star needs an existing Universe as its launch source. Join an AI Star as a Founder or create your own AI Star Universe first, then return here.",
+    noSourcePrimary: "Discover AI Stars",
+    noSourceSecondary: "View Founder Club",
+    noSourceSubmit: "Source Universe required",
+    noSourceTitle: "No launch source Universe yet",
     owner: "Owner member",
     preview: "AI Star card preview",
     roleInUniverse: "My role",
+    sampleData: "Sample data",
+    sampleOwner: "Sample member",
     rewardCp: "CP",
     rewardCreator: "Creator Progress",
     rewardInfluence: "Influence",
@@ -202,6 +238,12 @@ function getDisplayUniverseName(name: string, locale: Locale) {
   };
 
   return replacements[name] ?? name.replace(/\bUniverse\b/g, "유니버스");
+}
+
+function getCreatorUnlockConnectHref(locale: Locale) {
+  return `/${locale}/fanletter/connect?returnTo=${encodeURIComponent(
+    `/${locale}/fanletter/creator-unlock`,
+  )}`;
 }
 
 function getSampleSpawnedStar(): SpawnedAIStar {
@@ -650,6 +692,51 @@ function SourceUniverseSelector({
   );
 }
 
+function SourceUniverseEmptyState({
+  copy,
+  locale,
+}: {
+  copy: ReturnType<typeof getLaunchPageCopy>;
+  locale: Locale;
+}) {
+  return (
+    <section className="rounded-lg border border-amber-200 bg-white p-4 shadow-[0_18px_44px_rgba(245,158,11,0.08)] sm:p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+            <GitBranch className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-amber-700">
+              {copy.source}
+            </p>
+            <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
+              {copy.noSourceTitle}
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-black/62">
+              {copy.noSourceBody}
+            </p>
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-col gap-2 sm:min-w-44">
+          <Link
+            className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
+            href={`/${locale}/fanletter#top-growing-ai-stars`}
+          >
+            {copy.noSourcePrimary}
+          </Link>
+          <Link
+            className="inline-flex min-h-10 items-center justify-center rounded-full border border-violet-200 bg-white px-4 text-sm font-semibold text-[#5b21b6] transition hover:bg-violet-50"
+            href={`/${locale}/fanletter#founder-club`}
+          >
+            {copy.noSourceSecondary}
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FieldPreview({
   label,
   value,
@@ -876,17 +963,58 @@ function MockLaunchSavedSummary({
   );
 }
 
+function AccountConnectionNotice({
+  connectHref,
+  copy,
+}: {
+  connectHref: string;
+  copy: ReturnType<typeof getLaunchPageCopy>;
+}) {
+  return (
+    <section className="mt-6 rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
+            <BadgeCheck className="size-5" />
+          </span>
+          <div className="min-w-0">
+            <span className="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
+              {copy.sampleData}
+            </span>
+            <h2 className="mt-2 text-xl font-semibold leading-tight text-[#12041f]">
+              {copy.loginNoticeTitle}
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-black/62">
+              {copy.loginNoticeBody}
+            </p>
+          </div>
+        </div>
+        <Link
+          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[#7c3aed] px-5 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
+          href={connectHref}
+        >
+          {copy.loginCta}
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 export function FanletterCreatorUnlockPage({
   creatorUnlock,
+  isSignedIn = false,
   locale,
   memberPortfolio,
 }: {
   creatorUnlock?: CreatorUnlockData | null;
+  isSignedIn?: boolean;
   locale: Locale;
   memberPortfolio?: MemberPortfolioData | null;
 }) {
   const v2Copy = getFanletterV2Copy(locale);
   const copy = getLaunchPageCopy(locale);
+  const connectHref = getCreatorUnlockConnectHref(locale);
+  const isPreviewMode = !isSignedIn;
   const mockMembershipsByStarId = useFanletterFounderMockMemberships();
   const mockLaunchesById = useFanletterCreatorMockLaunches();
   const mockOwnedStars = useMemo(
@@ -904,16 +1032,27 @@ export function FanletterCreatorUnlockPage({
       )[0]?.starId ?? null,
     [mockMembershipsByStarId],
   );
+  const effectiveMembershipStarIds = useMemo(
+    () => (isPreviewMode ? [] : membershipStarIds),
+    [isPreviewMode, membershipStarIds],
+  );
+  const effectiveLatestMembershipStarId = isPreviewMode
+    ? null
+    : latestMembershipStarId;
+  const effectiveMockOwnedStars = useMemo(
+    () => (isPreviewMode ? [] : mockOwnedStars),
+    [isPreviewMode, mockOwnedStars],
+  );
   const basePortfolio: MemberPortfolioData =
     memberPortfolio ?? fanletterV2Mock.memberPortfolio;
   const portfolio = useMemo(
     () =>
       applyMockFounderRewardsToPortfolio({
-        membershipStarIds,
-        mockOwnedStars,
+        membershipStarIds: effectiveMembershipStarIds,
+        mockOwnedStars: effectiveMockOwnedStars,
         portfolio: basePortfolio,
       }),
-    [basePortfolio, membershipStarIds, mockOwnedStars],
+    [basePortfolio, effectiveMembershipStarIds, effectiveMockOwnedStars],
   );
   const sourceOptions = useMemo(
     () => getSourceUniverseOptions(portfolio),
@@ -923,7 +1062,7 @@ export function FanletterCreatorUnlockPage({
     null,
   );
   const defaultSourceStarId = getDefaultSourceStarId({
-    latestMembershipStarId,
+    latestMembershipStarId: effectiveLatestMembershipStarId,
     options: sourceOptions,
     primaryStarId: portfolio.primaryStarId,
   });
@@ -932,17 +1071,23 @@ export function FanletterCreatorUnlockPage({
     sourceOptions.find((option) => option.starId === activeSourceStarId) ??
     sourceOptions[0] ??
     null;
+  const requiresSourceUniverse = isSignedIn && !selectedSourceOption;
   const baseUnlock: CreatorUnlockData =
     creatorUnlock ?? fanletterV2Mock.creatorUnlock;
   const unlock = useMemo(
     () =>
       applyMockFounderRewardsToUnlock({
-        latestMembershipStarId,
-        membershipStarIds,
+        latestMembershipStarId: effectiveLatestMembershipStarId,
+        membershipStarIds: effectiveMembershipStarIds,
         portfolio,
         unlock: baseUnlock,
       }),
-    [baseUnlock, latestMembershipStarId, membershipStarIds, portfolio],
+    [
+      baseUnlock,
+      effectiveLatestMembershipStarId,
+      effectiveMembershipStarIds,
+      portfolio,
+    ],
   );
   const launchPreview = getLaunchPreview({
     locale,
@@ -954,6 +1099,9 @@ export function FanletterCreatorUnlockPage({
     launchPreview.sourceUniverseName,
     locale,
   );
+  const displaySourceUniverseName = requiresSourceUniverse
+    ? copy.noSourceSubmit
+    : sourceUniverseName;
   const memberInitials =
     portfolio.memberInitials ?? getInitials(portfolio.memberName);
 
@@ -996,11 +1144,18 @@ export function FanletterCreatorUnlockPage({
               />
               <div>
                 <p className="text-sm font-semibold text-black/48">
-                  {copy.owner}
+                  {isPreviewMode ? copy.sampleOwner : copy.owner}
                 </p>
-                <p className="text-2xl font-semibold text-black">
-                  {portfolio.memberName}
-                </p>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  <p className="text-2xl font-semibold text-black">
+                    {portfolio.memberName}
+                  </p>
+                  {isPreviewMode ? (
+                    <span className="inline-flex h-7 items-center rounded-full border border-amber-200 bg-amber-50 px-2.5 text-xs font-semibold text-amber-800">
+                      {copy.sampleData}
+                    </span>
+                  ) : null}
+                </div>
               </div>
             </div>
             <div className="mt-5 grid grid-cols-4 gap-2">
@@ -1021,9 +1176,13 @@ export function FanletterCreatorUnlockPage({
           </div>
         </section>
 
+        {isPreviewMode ? (
+          <AccountConnectionNotice connectHref={connectHref} copy={copy} />
+        ) : null}
+
         <MockFounderRewardSummary
           locale={locale}
-          membershipCount={membershipStarIds.length}
+          membershipCount={effectiveMembershipStarIds.length}
         />
 
         <section className="mt-8 grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
@@ -1033,13 +1192,17 @@ export function FanletterCreatorUnlockPage({
               locale={locale}
               unlock={unlock}
             />
-            <SourceUniverseSelector
-              copy={copy}
-              locale={locale}
-              onSelect={setSelectedSourceStarId}
-              options={sourceOptions}
-              selectedStarId={selectedSourceOption?.starId ?? null}
-            />
+            {requiresSourceUniverse ? (
+              <SourceUniverseEmptyState copy={copy} locale={locale} />
+            ) : (
+              <SourceUniverseSelector
+                copy={copy}
+                locale={locale}
+                onSelect={setSelectedSourceStarId}
+                options={sourceOptions}
+                selectedStarId={selectedSourceOption?.starId ?? null}
+              />
+            )}
             <section className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
               <div className="flex items-start gap-3">
                 <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
@@ -1061,7 +1224,10 @@ export function FanletterCreatorUnlockPage({
               <div className="mt-5 grid gap-2 sm:grid-cols-2">
                 <FieldPreview label={copy.name} value={launchPreview.name} />
                 <FieldPreview label={copy.category} value={launchPreview.category} />
-                <FieldPreview label={copy.source} value={sourceUniverseName} />
+                <FieldPreview
+                  label={copy.source}
+                  value={displaySourceUniverseName}
+                />
                 <FieldPreview
                   label={copy.cost}
                   value={`${unlock.createCostUsdt} USDT · ${copy.mockActivation}`}
@@ -1071,23 +1237,39 @@ export function FanletterCreatorUnlockPage({
               <div className="mt-5 flex flex-col gap-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-2 text-sm font-semibold text-emerald-800">
                   <CircleDollarSign className="size-5" />
-                  {copy.submit}
+                  {requiresSourceUniverse ? copy.noSourceSubmit : copy.submit}
                 </div>
                 <span className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white">
                   {unlock.createCostUsdt} USDT
                 </span>
-                <FanletterCreatorMockLaunchButton
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9] disabled:cursor-wait disabled:opacity-70"
-                  launchCostUsdt={unlock.createCostUsdt}
-                  locale={locale}
-                  name={launchPreview.name}
-                  ownerName={launchPreview.ownerName}
-                  sourceStarId={
-                    selectedSourceOption?.starId ??
-                    launchPreview.ownedPreview.spawnedFromStarId
-                  }
-                  sourceUniverseName={launchPreview.sourceUniverseName}
-                />
+                {requiresSourceUniverse ? (
+                  <Link
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
+                    href={`/${locale}/fanletter#top-growing-ai-stars`}
+                  >
+                    {copy.noSourcePrimary}
+                  </Link>
+                ) : isPreviewMode ? (
+                  <Link
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
+                    href={connectHref}
+                  >
+                    {copy.loginCta}
+                  </Link>
+                ) : (
+                  <FanletterCreatorMockLaunchButton
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9] disabled:cursor-wait disabled:opacity-70"
+                    launchCostUsdt={unlock.createCostUsdt}
+                    locale={locale}
+                    name={launchPreview.name}
+                    ownerName={launchPreview.ownerName}
+                    sourceStarId={
+                      selectedSourceOption?.starId ??
+                      launchPreview.ownedPreview.spawnedFromStarId
+                    }
+                    sourceUniverseName={launchPreview.sourceUniverseName}
+                  />
+                )}
               </div>
             </section>
           </div>
@@ -1113,7 +1295,7 @@ export function FanletterCreatorUnlockPage({
                 copy={copy}
                 initials={launchPreview.initials}
                 name={launchPreview.name}
-                sourceUniverseName={sourceUniverseName}
+                sourceUniverseName={displaySourceUniverseName}
                 starScoreLabel={v2Copy.labels.starScore}
                 starScore={launchPreview.starScore}
                 unlockCost={unlock.createCostUsdt}
@@ -1127,7 +1309,7 @@ export function FanletterCreatorUnlockPage({
               previewStar={launchPreview.ownedPreview}
             />
             <MockLaunchSavedSummary
-              launches={mockOwnedStars}
+              launches={effectiveMockOwnedStars}
               locale={locale}
             />
           </div>

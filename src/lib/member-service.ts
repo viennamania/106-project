@@ -59,6 +59,7 @@ import { withMemberServiceSuspensionStatus } from "@/lib/member-suspension";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import {
   applyFanletterStarReferralForCompletedMember,
+  ensureFanletterMemberStarterUniverseForCompletedMember,
   ensureFanletterStarFounderMembershipForCompletedMember,
   resolveFanletterStarReferralCode,
 } from "@/lib/fanletter-founder-club-service";
@@ -692,6 +693,7 @@ async function finalizeCompletedMember({
     member: nextMember,
   });
 
+  await ensureFanletterMemberStarterUniverseForCompletedMember(nextMember);
   await applyFanletterStarReferralForCompletedMember(nextMember);
 
   return nextMember;

@@ -2,6 +2,7 @@ import "server-only";
 
 import type { MemberStatus } from "@/lib/member";
 import { normalizeEmail } from "@/lib/member";
+import { ensureFanletterMemberStarterUniverseForCompletedMember } from "@/lib/fanletter-founder-club-service";
 import {
   readMemberServerSession,
   setMemberServerSessionCookie,
@@ -103,6 +104,7 @@ export async function validateMemberWalletOwner({
     email: normalizedEmail,
     walletAddress: normalizedWalletAddress,
   });
+  await ensureFanletterMemberStarterUniverseForCompletedMember(member);
 
   return {
     error: null,

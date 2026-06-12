@@ -9,6 +9,8 @@ import {
 import { hasLocale, type Locale } from "@/lib/i18n";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
+export const dynamic = "force-dynamic";
+
 function getCreatorUnlockMeta(locale: Locale) {
   if (locale === "ko") {
     return {
@@ -84,6 +86,7 @@ export default async function FanletterCreatorUnlockRoutePage({
   return (
     <FanletterCreatorUnlockPage
       creatorUnlock={creatorUnlock}
+      isSignedIn={Boolean(memberSession?.email)}
       locale={locale}
       memberPortfolio={memberPortfolio}
     />

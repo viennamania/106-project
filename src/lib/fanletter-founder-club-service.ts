@@ -18,6 +18,7 @@ import type {
   FanletterStarFounderMembershipDocument,
   FanletterStarReferralCodeDocument,
 } from "@/lib/fanletter-founder-club";
+import { getLegacyFanletterStarId } from "@/lib/fanletter-founder-club";
 import {
   getFanletterStarReferralCodesCollection,
   getFanletterStarInfluenceLedgerCollection,
@@ -133,6 +134,15 @@ function getSpecialtyText(star: FanletterStarDocument): LocalizedText {
 
 function getUniverseName(star: FanletterStarDocument) {
   return `${star.characterName} Universe`;
+}
+
+function getMemberStarterAIStarName(member: MemberDocument) {
+  const displayName = compactText(
+    member.publicProfile?.displayName,
+    member.email.split("@")[0] || "Founder",
+  );
+
+  return `${displayName} Starter AI Star`;
 }
 
 function getReferralCodeToken(value: string | null | undefined, fallback: string) {
@@ -563,6 +573,223 @@ export async function applyFanletterStarReferralForCompletedMember(
     starId: targetStarId,
     updateMemberAttribution: true,
   });
+}
+
+export async function ensureFanletterMemberStarterUniverseForCompletedMember(
+  member: MemberDocument,
+) {
+  if (member.status !== "completed") {
+    return false;
+  }
+
+  const memberEmail = normalizeEmail(member.email);
+  const memberReferralCode = normalizeReferralCode(member.referralCode);
+
+  if (!memberEmail || !memberReferralCode) {
+    return false;
+  }
+
+  if (
+    member.fanletterStarterUniverseEnsuredAt &&
+    member.fanletterStarterStarId
+  ) {
+    return true;
+  }
+
+  const now = new Date();
+  const joinedAt = member.registrationCompletedAt ?? member.createdAt ?? now;
+  const defaultStarId = getLegacyFanletterStarId(memberReferralCode);
+  const [
+    membersCollection,
+    membershipsCollection,
+    referralCodesCollection,
+    starsCollection,
+  ] = await Promise.all([
+    getMembersCollection(),
+    getFanletterStarFounderMembershipsCollection(),
+    getFanletterStarReferralCodesCollection(),
+    getFanletterStarsCollection(),
+  ]);
+  const existingStar = await starsCollection.findOne({
+    $or: [
+      { starId: defaultStarId },
+      { legacyCreatorReferralCode: memberReferralCode },
+    ],
+  });
+
+  if (
+    existingStar?.ownerEmail &&
+    normalizeEmail(existingStar.ownerEmail) !== memberEmail
+  ) {
+    return false;
+  }
+
+  const starId = existingStar?.starId ?? defaultStarId;
+  const starName = existingStar?.characterName || getMemberStarterAIStarName(member);
+  const displayName =
+    existingStar?.displayName ||
+    compactText(member.publicProfile?.displayName, memberEmail.split("@")[0]);
+
+  await starsCollection.updateOne(
+    { starId },
+    {
+      $setOnInsert: {
+        backfilledAt: now,
+        categoryLabel: null,
+        characterName: starName,
+        createdAt: joinedAt,
+        displayName,
+        founderCount: 1,
+        growthPercent: 0,
+        legacyCreatorReferralCode: memberReferralCode,
+        legacyPersonaId: null,
+        openSlotCount: Math.max(0, DEFAULT_FOUNDER_SLOT_TOTAL - 1),
+        ownerEmail: memberEmail,
+        ownerReferralCode: memberReferralCode,
+        portraitImageUrl: null,
+        source: "member_signup",
+        starId,
+        starScore: 0,
+        status: "draft",
+        updatedAt: now,
+      } satisfies FanletterStarDocument,
+    },
+    { upsert: true },
+  );
+  await starsCollection.updateOne(
+    {
+      starId,
+      $or: [{ ownerEmail: null }, { ownerEmail: { $exists: false } }],
+    },
+    {
+      $set: {
+        ownerEmail: memberEmail,
+        ownerReferralCode: memberReferralCode,
+        updatedAt: now,
+      },
+    },
+  );
+  await starsCollection.updateOne(
+    {
+      starId,
+      $or: [
+        { legacyCreatorReferralCode: null },
+        { legacyCreatorReferralCode: { $exists: false } },
+      ],
+    },
+    {
+      $set: {
+        legacyCreatorReferralCode: memberReferralCode,
+        updatedAt: now,
+      },
+    },
+  );
+
+  await membershipsCollection.updateOne(
+    {
+      memberEmail,
+      starId,
+    },
+    {
+      $max: {
+        creatorProgressPercent: 100,
+      },
+      $set: {
+        memberReferralCode,
+        role: "creator",
+        updatedAt: now,
+      },
+      $setOnInsert: {
+        backfilledAt: now,
+        cpBalance: 0,
+        createdAt: joinedAt,
+        influenceScore: 0,
+        joinedAt,
+        joinedViaCode: null,
+        joinedViaMemberEmail: null,
+        joinedViaMemberReferralCode: null,
+        joinedViaShareId: null,
+        source: "member_signup",
+      },
+    },
+    { upsert: true },
+  );
+  await starsCollection.updateOne(
+    { starId },
+    [
+      {
+        $set: {
+          founderCount: { $max: ["$founderCount", 1] },
+          openSlotCount: {
+            $max: [
+              0,
+              {
+                $cond: [
+                  { $lte: ["$founderCount", 0] },
+                  { $subtract: [DEFAULT_FOUNDER_SLOT_TOTAL, 1] },
+                  "$openSlotCount",
+                ],
+              },
+            ],
+          },
+          updatedAt: now,
+        },
+      },
+    ],
+  );
+  await referralCodesCollection.updateOne(
+    {
+      memberEmail,
+      starId,
+    },
+    {
+      $setOnInsert: {
+        code: memberReferralCode,
+        createdAt: joinedAt,
+        disabledAt: null,
+        lastUsedAt: null,
+        memberEmail,
+        memberReferralCode,
+        source: "member_signup",
+        starId,
+        status: "active",
+        updatedAt: now,
+      },
+    },
+    { upsert: true },
+  );
+  await membersCollection.updateOne(
+    { email: memberEmail },
+    {
+      $set: {
+        fanletterStarterStarId: starId,
+        fanletterStarterUniverseEnsuredAt: now,
+        updatedAt: now,
+      },
+    },
+  );
+
+  return true;
+}
+
+export async function ensureFanletterMemberStarterUniverseForEmail(
+  email?: string | null,
+) {
+  const memberEmail = normalizeEmail(email ?? "");
+
+  if (!memberEmail) {
+    return false;
+  }
+
+  const membersCollection = await getMembersCollection();
+  const member = await membersCollection.findOne({
+    email: memberEmail,
+    status: "completed",
+  });
+
+  return member
+    ? ensureFanletterMemberStarterUniverseForCompletedMember(member)
+    : false;
 }
 
 export async function ensureFanletterStarFounderMembershipForCompletedMember({
@@ -1293,6 +1520,8 @@ export async function getFanletterFounderClubMemberPortfolio(
   if (!memberEmail) {
     return null;
   }
+
+  await ensureFanletterMemberStarterUniverseForEmail(memberEmail);
 
   const [
     membersCollection,
