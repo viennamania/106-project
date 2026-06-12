@@ -30,6 +30,7 @@ import {
   FounderRoleBadge,
   HumanMemberAvatar,
 } from "@/components/fanletter-founder-club-v2";
+import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import type {
   FanletterFounderUniverseExplorerData,
   FanletterFounderUniverseExplorerNode,
@@ -56,6 +57,7 @@ const explorerCopy = {
     expansion: "Star Universe Expansion",
     founderUniverse: "Founder Network",
     generatedBy: "Launched by",
+    source: "Source Star Universe",
     member: "Member",
     members: "Members",
     newUniverse: "New Star Universe",
@@ -79,6 +81,7 @@ const explorerCopy = {
     expansion: "Star Universe Expansion",
     founderUniverse: "Founder Network",
     generatedBy: "生成者",
+    source: "Source Star Universe",
     member: "Member",
     members: "Members",
     newUniverse: "New Star Universe",
@@ -102,6 +105,7 @@ const explorerCopy = {
     expansion: "스타 유니버스 확장",
     founderUniverse: "파운더 네트워크",
     generatedBy: "배출 멤버",
+    source: "출처 스타 유니버스",
     member: "멤버",
     members: "멤버",
     newUniverse: "새 스타 유니버스",
@@ -130,9 +134,9 @@ function getDashboardCopy(locale: Locale) {
       allView: "전체 보기",
       contribution: "기여도",
       cpRewardThisMonth: "이번 달 보상 포인트",
-      directFounder: "직속 Founder",
+      directFounder: "직속 파운더",
       fanGrowth: "팬 증가",
-      founderClub: "Founder Club",
+      founderClub: "파운더 클럽",
       graphLegend: {
         active: "활성",
         direct: "나의 직속",
@@ -163,7 +167,7 @@ function getDashboardCopy(locale: Locale) {
         "홈",
         "AI 스타 데뷔",
         "성장 센터",
-        "Founder Club",
+        "파운더 클럽",
         "AI 스타관",
         "내 AI 스타",
         "AI 스타 마켓",
@@ -405,6 +409,7 @@ function FounderDashboardSidebar({
   selectedNode: FanletterFounderUniverseExplorerNode | null;
 }) {
   const dashboardCopy = getDashboardCopy(locale);
+  const v2Copy = getFanletterV2Copy(locale);
   const navIcons = [Home, Sparkles, Gauge, Network, Star, Users, ShieldCheck];
   const activityItems = [
     { icon: Users, label: dashboardCopy.myActivity },
@@ -485,15 +490,15 @@ function FounderDashboardSidebar({
                 {selectedNode?.label ?? "Wayne"}
               </p>
               <span className="mt-1 inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[0.62rem] font-semibold text-[#6d28d9]">
-                Creator
+                {v2Copy.roles.creator}
               </span>
             </div>
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-semibold text-slate-500">
-            <span>Genesis 2</span>
-            <span>Founder 7</span>
-            <span>Mentor 13</span>
-            <span>Producer 28</span>
+            <span>{v2Copy.roles.genesis_founder} 2</span>
+            <span>{v2Copy.roles.founder} 7</span>
+            <span>{v2Copy.roles.mentor} 13</span>
+            <span>{v2Copy.roles.producer} 28</span>
           </div>
         </div>
         <div className="flex items-center justify-between rounded-lg border border-violet-100 bg-white p-3 shadow-[0_14px_28px_rgba(88,28,135,0.07)]">
@@ -568,6 +573,7 @@ function FounderStarHero({
 }) {
   const copy = getExplorerCopy(locale);
   const dashboardCopy = getDashboardCopy(locale);
+  const v2Copy = getFanletterV2Copy(locale);
   const monthlyViews = Math.max(12_000, universe.totals.edgeCount * 821);
   const fanGrowth = Math.max(24, universe.totals.activeReferralCodes * 3);
   const starName = getUniverseStarName(universe.star);
@@ -605,7 +611,7 @@ function FounderStarHero({
               </span>
             </div>
             <p className="mt-3 text-base font-semibold text-[#111827]">
-              Creator{" "}
+              {v2Copy.roles.creator}{" "}
               <span className="ml-3 font-medium text-slate-600">
                 {creatorNode?.label ?? "Wayne"}
               </span>
@@ -613,7 +619,7 @@ function FounderStarHero({
             <p className="mt-6 max-w-md text-sm font-medium leading-6 text-slate-500">
               {starName}
               {locale === "ko"
-                ? "는 Founder와 함께 성장하는 AI 스타입니다."
+                ? "는 파운더와 함께 성장하는 AI 스타입니다."
                 : " is an AI Star growing with Founders."}
             </p>
             <div className="mt-5 grid gap-2 sm:grid-cols-3">
@@ -622,7 +628,9 @@ function FounderStarHero({
                 <p className="mt-2 text-xl font-semibold text-[#111827]">
                   {formatNumber(universe.star.founderCount, locale)}
                 </p>
-                <p className="text-xs font-semibold text-slate-500">Founder</p>
+                <p className="text-xs font-semibold text-slate-500">
+                  {locale === "ko" ? "파운더" : "Founder"}
+                </p>
               </div>
               <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
                 <Users className="size-4 text-blue-500" />
@@ -1466,25 +1474,25 @@ function UniverseExpansionMap({
         <div className="rounded-lg border border-violet-200 bg-violet-50 p-3">
           <div className="flex items-center justify-between gap-3">
             <span className="inline-flex h-7 items-center rounded-full bg-white px-2.5 text-[0.66rem] font-semibold text-[#6d28d9]">
-              SOURCE
+              {copy.source}
             </span>
             <Sparkles className="size-4 text-[#7c3aed]" />
           </div>
           <div className="mt-5 flex items-center gap-3">
             <div className="flex size-14 items-center justify-center rounded-full border border-violet-200 bg-white text-base font-semibold text-[#6d28d9]">
               {universe.star.initials}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-lg font-semibold text-[#12041f]">
-                  {starName}
-                </p>
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-lg font-semibold text-[#12041f]">
+                {starName}
+              </p>
               <p className="mt-1 text-xs font-semibold text-black/45">
                 {copy.founderUniverse}
               </p>
             </div>
           </div>
           <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#6d28d9]">
-            <span>Source</span>
+            <span>{copy.source}</span>
             <ArrowRight className="size-4 lg:rotate-0 rotate-90" />
             <span>{copy.spawned}</span>
           </div>
@@ -1647,6 +1655,8 @@ export function FanletterFounderUniverseExplorer({
               {formatNumber(universe.totals.edgeCount, locale)} {copy.edge}
             </span>
           </div>
+
+          <FanletterTerminologyGuide locale={locale} variant="compact" />
 
           <FounderStarHero
             creatorNode={creatorNode}

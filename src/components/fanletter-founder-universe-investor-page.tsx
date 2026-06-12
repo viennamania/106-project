@@ -20,6 +20,7 @@ import {
   FounderRoleBadge,
   HumanMemberAvatar,
 } from "@/components/fanletter-founder-club-v2";
+import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import {
   fanletterFounderUniverseCpPoolTotal,
   type FanletterFounderUniverseRole,
@@ -45,7 +46,7 @@ function getInvestorCopy(locale: Locale) {
     return {
       benefits: [
         "AI 스타 탄생 기여 → CP 획득",
-        "Universe 성장 기여 → 추가 CP",
+        "스타 유니버스 성장 기여 → 추가 CP",
         "CP로 보상과 권한 사용 가능",
         "더 많은 AI 스타 탄생 → 더 큰 보상 기회",
       ],
@@ -62,7 +63,7 @@ function getInvestorCopy(locale: Locale) {
       generated: "Live data",
       globalTitle: "플랫폼 라이브 지표",
       heroSubtitle:
-        "AI 스타의 탄생부터 성장까지, Founder와 함께 만드는 가치 생태계",
+        "AI 스타의 탄생부터 성장까지, 파운더와 함께 만드는 가치 생태계",
       heroTitle: "파운더 네트워크 AI 스타 인큐베이터 모델",
       modelPill1: "현금 분배 NO",
       modelPill1Body: "모든 보상은 CP로 지급",
@@ -76,7 +77,7 @@ function getInvestorCopy(locale: Locale) {
       spawnedTitle: "스타 유니버스 확장",
       spawnedSubtitle: "Creator가 배출하거나 배출할 AI 스타 확장 흐름",
       spawnedCreatedBy: "창업 회원",
-      spawnedFounder: "Founder",
+      spawnedFounder: "파운더",
       spawnedLiveBadge: "LIVE spawned",
       spawnedPreviewBadge: "확장 예시",
       spawnedPreviewNote: "실제 spawned 0개 · live 스타 유니버스 데이터 기반",
@@ -87,19 +88,31 @@ function getInvestorCopy(locale: Locale) {
       memberCreates: "회원이 새로운 AI 스타를 창업",
       more: "더보기",
       footer:
-        "FanLetter는 AI 스타와 Founder가 함께 성장하는 새로운 경제 생태계를 만들어갑니다.",
-      explore: "탐색 화면",
+        "FanLetter는 AI 스타와 파운더가 함께 성장하는 새로운 경제 생태계를 만들어갑니다.",
+      explore: "파운더 네트워크 탐색",
       directChildren: "직접 초대",
       memberId: "회원 ID",
+      metricActiveCodes: "활성 추천 코드",
+      metricAiStars: "AI 스타",
+      metricCpLedger: "CP 원장",
+      metricMemberships: "참여 멤버십",
+      metricReferralEdges: "추천 연결",
+      metricStarUniverses: "스타 유니버스",
       representativeMember: "대표 회원",
-      topUniverses: "Top Star Universe",
+      sourceAiStar: "출처 AI 스타",
+      starScore: "스타 점수",
+      growth: "성장",
+      founderCount: "파운더",
+      allocatedCp: "분배 완료",
+      cpPoolGenerated: "CP Pool 생성",
+      topUniverses: "Top 스타 유니버스",
     };
   }
 
   return {
     benefits: [
       "Contribute to AI Star launch → earn CP",
-      "Grow a Universe → earn additional CP",
+      "Grow a Star Universe → earn additional CP",
       "Use CP for rewards and privileges",
       "More AI Stars → more reward opportunities",
     ],
@@ -145,9 +158,25 @@ function getInvestorCopy(locale: Locale) {
     explore: "Explorer",
     directChildren: "Direct invites",
     memberId: "Member ID",
+    metricActiveCodes: "Active Codes",
+    metricAiStars: "AI Stars",
+    metricCpLedger: "CP Ledger",
+    metricMemberships: "Memberships",
+    metricReferralEdges: "Referral Edges",
+    metricStarUniverses: "Star Universes",
     representativeMember: "Representative Member",
+    sourceAiStar: "Source AI Star",
+    starScore: "Star Score",
+    growth: "Growth",
+    founderCount: "Founder",
+    allocatedCp: "allocated",
+    cpPoolGenerated: "CP Pool Generated",
     topUniverses: "Top Universe",
   };
+}
+
+function getStarUniverseLabel(starName: string, locale: Locale) {
+  return locale === "ko" ? `${starName} 스타 유니버스` : `${starName} Star Universe`;
 }
 
 function formatNumber(value: number, locale: Locale) {
@@ -513,7 +542,7 @@ function LaunchFlow({
     <section className="rounded-lg border border-violet-100 bg-white/72 p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
       <div className="rounded-lg border border-violet-200 bg-gradient-to-b from-white to-violet-50 p-4 text-center">
         <p className="text-sm font-semibold text-[#4338ca]">
-          SOURCE AI STAR
+          {copy.sourceAiStar}
         </p>
         <div className="mt-4 flex justify-center">
           <AIStarPortrait
@@ -532,7 +561,7 @@ function LaunchFlow({
               {sourceStar.starScore}
             </p>
             <p className="text-[0.58rem] font-semibold text-slate-400">
-              Score
+              {copy.starScore}
             </p>
           </div>
           <div className="rounded-lg bg-white px-2 py-2">
@@ -540,7 +569,7 @@ function LaunchFlow({
               +{sourceStar.growthPercent}%
             </p>
             <p className="text-[0.58rem] font-semibold text-slate-400">
-              Growth
+              {copy.growth}
             </p>
           </div>
           <div className="rounded-lg bg-white px-2 py-2">
@@ -548,7 +577,7 @@ function LaunchFlow({
               {formatNumber(sourceStar.founderCount, locale)}
             </p>
             <p className="text-[0.58rem] font-semibold text-slate-400">
-              Founder
+              {copy.founderCount}
             </p>
           </div>
         </div>
@@ -613,11 +642,11 @@ function LaunchFlow({
           {newStarName}
         </p>
         <p className="mt-1 text-sm font-medium text-slate-500">
-          AI Star Creator
+          {v2Copy.roles.creator}
         </p>
         <div className="mt-3 rounded-lg border border-violet-100 bg-white p-3">
           <p className="text-sm font-semibold text-[#151735]">
-            {newStarName} Universe
+            {getStarUniverseLabel(newStarName, locale)}
           </p>
           <div className="mt-3 flex justify-center gap-1.5">
             {[0, 1, 2, 3, 4, 5, 6].map((depth) => (
@@ -661,13 +690,13 @@ function CpPoolPanel({
         <div className="flex min-h-56 flex-col items-center justify-center rounded-lg border border-violet-100 bg-gradient-to-b from-violet-50 to-white p-5 text-center">
           <Coins className="size-12 text-[#6d28d9]" />
           <p className="mt-3 text-sm font-semibold text-[#4338ca]">
-            CP Pool Generated
+            {copy.cpPoolGenerated}
           </p>
           <p className="mt-1 text-5xl font-semibold text-[#5b21b6]">
             {formatNumber(fanletterFounderUniverseCpPoolTotal, locale)} CP
           </p>
           <p className="mt-2 text-xs font-semibold text-slate-400">
-            allocated {formatNumber(allocatedCp, locale)} CP
+            {copy.allocatedCp} {formatNumber(allocatedCp, locale)} CP
           </p>
         </div>
 
@@ -922,6 +951,11 @@ export function FanletterFounderUniverseInvestorPage({
             <p className="mt-3 text-lg font-medium text-slate-500">
               {copy.heroSubtitle}
             </p>
+            <FanletterTerminologyGuide
+              className="mt-4 max-w-3xl"
+              locale={locale}
+              variant="compact"
+            />
           </div>
           <div className="grid grid-cols-3 gap-3">
             <ModelPill
@@ -944,27 +978,27 @@ export function FanletterFounderUniverseInvestorPage({
 
         <section className="mt-5 grid grid-cols-6 gap-3">
           <MetricCard
-            label="AI Stars"
+            label={copy.metricAiStars}
             value={formatNumber(snapshot.global.totalStars, locale)}
           />
           <MetricCard
-            label="Universes"
+            label={copy.metricStarUniverses}
             value={formatNumber(snapshot.global.universeCount, locale)}
           />
           <MetricCard
-            label="Memberships"
+            label={copy.metricMemberships}
             value={formatNumber(snapshot.global.totalMemberships, locale)}
           />
           <MetricCard
-            label="Referral Edges"
+            label={copy.metricReferralEdges}
             value={formatNumber(snapshot.global.referralEdges, locale)}
           />
           <MetricCard
-            label="Active Codes"
+            label={copy.metricActiveCodes}
             value={formatNumber(snapshot.global.activeReferralCodes, locale)}
           />
           <MetricCard
-            label="CP Ledger"
+            label={copy.metricCpLedger}
             value={formatNumber(snapshot.global.totalCpDistributed, locale)}
           />
         </section>

@@ -36,9 +36,13 @@ import {
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import {
   buildFanletterFounderUniverseCpPoolDistribution,
+  fanletterFounderUniverseMaxDepth,
   fanletterFounderUniverseTiers,
+  getFanletterFounderUniverseTier,
+  getFanletterFounderUniverseTierByRole,
   resolveFanletterFounderUniverseUplinePath,
   type FanletterFounderUniverseCpPoolDistribution,
+  type FanletterFounderUniverseRole,
 } from "@/lib/fanletter-founder-universe";
 
 const HOME_STAR_LIMIT = 4;
@@ -79,6 +83,15 @@ export type FanletterStarReferralAttribution = {
   memberEmail: string;
   memberReferralCode: string | null;
   starId: string;
+};
+
+export type FanletterFounderJoinPlacement = {
+  depth: number | null;
+  parentMemberEmail: string | null;
+  role: FanletterFounderUniverseRole | null;
+  rootResolved: boolean;
+  source: "computed" | "direct" | "preview";
+  uplineMemberEmails: string[];
 };
 
 function isDuplicateKeyError(error: unknown) {
@@ -149,6 +162,35 @@ function getMemberStarterAIStarName(member: MemberDocument) {
   );
 
   return `${displayName} Starter AI Star`;
+}
+
+function buildFallbackFounderPlacement({
+  memberEmail,
+  membership,
+  source = "direct",
+}: {
+  memberEmail: string;
+  membership: FanletterStarFounderMembershipDocument | null;
+  source?: FanletterFounderJoinPlacement["source"];
+}): FanletterFounderJoinPlacement {
+  const fallbackTier = membership
+    ? getFanletterFounderUniverseTierByRole(membership.role)
+    : null;
+  const parentMemberEmail = normalizeEmail(
+    membership?.joinedViaMemberEmail ?? "",
+  );
+
+  return {
+    depth: fallbackTier?.depth ?? null,
+    parentMemberEmail: parentMemberEmail || null,
+    role: membership?.role ?? fallbackTier?.role ?? null,
+    rootResolved: false,
+    source,
+    uplineMemberEmails: [
+      ...(parentMemberEmail ? [parentMemberEmail] : []),
+      normalizeEmail(memberEmail),
+    ].filter(Boolean),
+  };
 }
 
 function getReferralCodeToken(value: string | null | undefined, fallback: string) {
@@ -570,6 +612,156 @@ export async function getOrCreateFanletterStarReferralCode({
   }
 
   return null;
+}
+
+export async function getFanletterFounderJoinPlacement({
+  memberEmail: memberEmailInput,
+  starId: starIdInput,
+}: {
+  memberEmail: string;
+  starId: string;
+}): Promise<FanletterFounderJoinPlacement> {
+  const memberEmail = normalizeEmail(memberEmailInput);
+  const starId = normalizeFanletterStarId(starIdInput);
+
+  if (!memberEmail || !starId) {
+    return {
+      depth: null,
+      parentMemberEmail: null,
+      role: null,
+      rootResolved: false,
+      source: "direct",
+      uplineMemberEmails: [],
+    };
+  }
+
+  const [starsCollection, membershipsCollection, referralEdgesCollection] =
+    await Promise.all([
+      getFanletterStarsCollection(),
+      getFanletterStarFounderMembershipsCollection(),
+      getFanletterStarReferralEdgesCollection(),
+    ]);
+  const [star, membership] = await Promise.all([
+    starsCollection.findOne({
+      starId,
+      status: { $ne: "archived" },
+    }),
+    membershipsCollection.findOne({
+      memberEmail,
+      starId,
+    }),
+  ]);
+
+  if (!star || !membership) {
+    return buildFallbackFounderPlacement({
+      memberEmail,
+      membership,
+    });
+  }
+
+  let creatorEmail = normalizeEmail(star.ownerEmail ?? "");
+
+  if (!creatorEmail) {
+    const creatorMembership = await membershipsCollection.findOne(
+      {
+        role: "creator",
+        starId,
+      },
+      {
+        projection: {
+          memberEmail: 1,
+        },
+      },
+    );
+    creatorEmail = normalizeEmail(creatorMembership?.memberEmail ?? "");
+  }
+
+  if (creatorEmail && memberEmail === creatorEmail) {
+    return {
+      depth: 0,
+      parentMemberEmail: null,
+      role: "creator",
+      rootResolved: true,
+      source: "computed",
+      uplineMemberEmails: [creatorEmail],
+    };
+  }
+
+  if (creatorEmail) {
+    const upwardPath: string[] = [];
+    const visited = new Set<string>();
+    let currentEmail = memberEmail;
+
+    for (
+      let depth = 0;
+      depth <= fanletterFounderUniverseMaxDepth;
+      depth += 1
+    ) {
+      if (!currentEmail || visited.has(currentEmail)) {
+        break;
+      }
+
+      visited.add(currentEmail);
+      upwardPath.push(currentEmail);
+
+      if (currentEmail === creatorEmail) {
+        const rootToMemberPath = [...upwardPath].reverse();
+        const targetDepth = rootToMemberPath.length - 1;
+        const tier = getFanletterFounderUniverseTier(targetDepth);
+        const parentMemberEmail =
+          rootToMemberPath.length > 1
+            ? rootToMemberPath[rootToMemberPath.length - 2] ?? null
+            : null;
+
+        return {
+          depth: tier?.depth ?? null,
+          parentMemberEmail,
+          role: tier?.role ?? null,
+          rootResolved: true,
+          source: "computed",
+          uplineMemberEmails: rootToMemberPath,
+        };
+      }
+
+      const parentEdge = await referralEdgesCollection.findOne(
+        {
+          starId,
+          targetMemberEmail: currentEmail,
+        },
+        {
+          projection: {
+            sourceMemberEmail: 1,
+          },
+          sort: {
+            createdAt: 1,
+          },
+        },
+      );
+      currentEmail = normalizeEmail(parentEdge?.sourceMemberEmail ?? "");
+    }
+  }
+
+  if (
+    creatorEmail &&
+    !normalizeEmail(membership.joinedViaMemberEmail ?? "") &&
+    membership.role !== "creator"
+  ) {
+    const genesisTier = getFanletterFounderUniverseTier(1);
+
+    return {
+      depth: genesisTier?.depth ?? 1,
+      parentMemberEmail: creatorEmail,
+      role: genesisTier?.role ?? "genesis_founder",
+      rootResolved: true,
+      source: "direct",
+      uplineMemberEmails: [creatorEmail, memberEmail],
+    };
+  }
+
+  return buildFallbackFounderPlacement({
+    memberEmail,
+    membership,
+  });
 }
 
 export async function applyFanletterStarReferralForCompletedMember(

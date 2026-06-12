@@ -20,6 +20,7 @@ const FANLETTER_FOUNDER_MOCK_MEMBERSHIP_EVENT =
 export type FanletterFounderMockMembership = {
   joinedAt: string;
   joinState?: "created" | "existing";
+  placement?: FanletterFounderMockPlacement | null;
   referralCode: string | null;
   source: "direct" | "referral";
   starId: string;
@@ -31,6 +32,15 @@ type StoredFounderMockMemberships = Record<
   FanletterFounderMockMembership
 >;
 
+type FanletterFounderMockPlacement = {
+  depth: number | null;
+  parentMemberEmail: string | null;
+  role: string | null;
+  rootResolved: boolean;
+  source: "computed" | "direct" | "preview";
+  uplineMemberEmails: string[];
+};
+
 type FanletterFounderMockJoinResponse = {
   membership: FanletterFounderMockMembership;
   mode: "live" | "mock" | "preview";
@@ -38,6 +48,7 @@ type FanletterFounderMockJoinResponse = {
     founderClubHref: string;
     universeHref: string;
   };
+  placement?: FanletterFounderMockPlacement | null;
   runtime?: {
     blockedReasons?: string[];
   };
@@ -53,6 +64,27 @@ type FanletterFounderMockJoinResponse = {
   };
 };
 
+function isPlacement(value: unknown): value is FanletterFounderMockPlacement {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Partial<FanletterFounderMockPlacement>;
+
+  return (
+    (typeof candidate.depth === "number" || candidate.depth === null) &&
+    (typeof candidate.parentMemberEmail === "string" ||
+      candidate.parentMemberEmail === null) &&
+    (typeof candidate.role === "string" || candidate.role === null) &&
+    typeof candidate.rootResolved === "boolean" &&
+    (candidate.source === "computed" ||
+      candidate.source === "direct" ||
+      candidate.source === "preview") &&
+    Array.isArray(candidate.uplineMemberEmails) &&
+    candidate.uplineMemberEmails.every((email) => typeof email === "string")
+  );
+}
+
 function isMembership(value: unknown): value is FanletterFounderMockMembership {
   if (!value || typeof value !== "object") {
     return false;
@@ -65,6 +97,9 @@ function isMembership(value: unknown): value is FanletterFounderMockMembership {
     (candidate.joinState === undefined ||
       candidate.joinState === "created" ||
       candidate.joinState === "existing") &&
+    (candidate.placement === undefined ||
+      candidate.placement === null ||
+      isPlacement(candidate.placement)) &&
     (typeof candidate.referralCode === "string" ||
       candidate.referralCode === null) &&
     (candidate.source === "direct" || candidate.source === "referral") &&
@@ -142,12 +177,14 @@ export function getFanletterFounderMockMemberships() {
 export function recordFanletterFounderMockMembership({
   joinedAt,
   joinState,
+  placement,
   referralCode,
   source,
   starId,
 }: {
   joinedAt?: string | null;
   joinState?: FanletterFounderMockMembership["joinState"];
+  placement?: FanletterFounderMockPlacement | null;
   referralCode?: string | null;
   source?: FanletterFounderMockMembership["source"];
   starId: string;
@@ -162,6 +199,7 @@ export function recordFanletterFounderMockMembership({
   const membership: FanletterFounderMockMembership = {
     joinedAt: existingMembership?.joinedAt ?? joinedAt ?? new Date().toISOString(),
     joinState: joinState ?? existingMembership?.joinState,
+    placement: placement ?? existingMembership?.placement ?? null,
     referralCode:
       normalizedReferralCode ?? existingMembership?.referralCode ?? null,
     source:
@@ -411,6 +449,7 @@ export function FanletterFounderJoinLink({
         recordFanletterFounderMockMembership({
           joinedAt: response.membership.joinedAt,
           joinState: response.membership.joinState,
+          placement: response.placement,
           referralCode: response.membership.referralCode,
           source: response.membership.source,
           starId: response.membership.starId,
@@ -497,6 +536,64 @@ export function FanletterFounderMockJoinLink(
   return <FanletterFounderJoinLink {...props} mode="preview" />;
 }
 
+function getPlacementRoleLabel(role: string | null, locale: Locale) {
+  const roleLabels: Record<string, Partial<Record<Locale, string>>> = {
+    creator: {
+      en: "Creator",
+      ja: "クリエイター",
+      ko: "크리에이터",
+    },
+    founder: {
+      en: "Founder",
+      ja: "Founder",
+      ko: "파운더",
+    },
+    genesis_founder: {
+      en: "Genesis Founder",
+      ja: "Genesis Founder",
+      ko: "제네시스 파운더",
+    },
+    legend: {
+      en: "Legend",
+      ja: "Legend",
+      ko: "레전드",
+    },
+    mentor: {
+      en: "Mentor",
+      ja: "Mentor",
+      ko: "멘토",
+    },
+    partner: {
+      en: "Partner",
+      ja: "Partner",
+      ko: "파트너",
+    },
+    producer: {
+      en: "Producer",
+      ja: "Producer",
+      ko: "프로듀서",
+    },
+  };
+
+  return role ? roleLabels[role]?.[locale] ?? roleLabels[role]?.en ?? role : null;
+}
+
+function getMemberHandle(email: string) {
+  return email.split("@")[0]?.trim() || email;
+}
+
+function getEstimatedDepthPrefix(locale: Locale) {
+  if (locale === "ko") {
+    return "예상 ";
+  }
+
+  if (locale === "ja") {
+    return "予想 ";
+  }
+
+  return "Est. ";
+}
+
 export function FanletterFounderMockStatusBanner({
   className,
   locale,
@@ -538,6 +635,25 @@ export function FanletterFounderMockStatusBanner({
     locale === "ko" ? "추천 코드" : locale === "ja" ? "紹介コード" : "Referral";
   const dateLabel =
     locale === "ko" ? "참여일" : locale === "ja" ? "参加日" : "Joined";
+  const placement = membership.placement ?? null;
+  const placementDepthLabel =
+    placement && placement.depth !== null
+      ? `${placement.rootResolved ? "" : getEstimatedDepthPrefix(locale)}L${
+          placement.depth
+        }`
+      : null;
+  const placementRoleLabel = getPlacementRoleLabel(
+    placement?.role ?? null,
+    locale,
+  );
+  const networkLabel =
+    locale === "ko"
+      ? "파운더 네트워크"
+      : locale === "ja"
+        ? "Founder Network"
+        : "Founder Network";
+  const parentLabel =
+    locale === "ko" ? "상위 멤버" : locale === "ja" ? "上位メンバー" : "Parent";
 
   return (
     <div
@@ -566,6 +682,17 @@ export function FanletterFounderMockStatusBanner({
             <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-900">
               {dateLabel}: {joinedAtLabel}
             </span>
+            {placementDepthLabel ? (
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-emerald-900">
+                {networkLabel}: {placementDepthLabel}
+                {placementRoleLabel ? ` · ${placementRoleLabel}` : ""}
+              </span>
+            ) : null}
+            {placement?.parentMemberEmail ? (
+              <span className="rounded-full bg-white px-3 py-1 font-mono text-xs font-semibold text-emerald-900">
+                {parentLabel}: {getMemberHandle(placement.parentMemberEmail)}
+              </span>
+            ) : null}
           </div>
         </div>
       </div>

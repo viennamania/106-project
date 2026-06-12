@@ -1,6 +1,7 @@
 import {
   ensureFanletterStarFounderMembershipForCompletedMember,
   getFanletterFounderClubStarDetail,
+  getFanletterFounderJoinPlacement,
   getOrCreateFanletterStarReferralCode,
   resolveFanletterStarReferralCode,
 } from "@/lib/fanletter-founder-club-service";
@@ -119,6 +120,14 @@ function buildPreviewResponse({
         referralCode,
         starId: star.id,
       }),
+    },
+    placement: {
+      depth: requestedReferralCode ? 2 : 1,
+      parentMemberEmail: null,
+      role: requestedReferralCode ? "founder" : "genesis_founder",
+      rootResolved: false,
+      source: "preview",
+      uplineMemberEmails: [],
     },
     rewards: {
       cp: 100,
@@ -259,6 +268,10 @@ export async function POST(request: Request) {
   });
   const referralCode =
     referralAttribution?.code ?? requestedReferralCode ?? buildPreviewReferralCode(liveStar);
+  const placement = await getFanletterFounderJoinPlacement({
+    memberEmail: member.email,
+    starId: liveStar.id,
+  });
 
   return Response.json({
     membership: {
@@ -283,6 +296,7 @@ export async function POST(request: Request) {
         starId: liveStar.id,
       }),
     },
+    placement,
     rewards: attribution
       ? {
           cp: 100,
