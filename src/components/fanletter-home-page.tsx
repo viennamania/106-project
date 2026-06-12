@@ -1203,20 +1203,20 @@ function FanletterProductHomeDashboard({
           </div>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-          <ScrollReveal delay={140} y={16}>
-            <div className="rounded-[1.35rem] border border-violet-100 bg-white/88 p-4 shadow-[0_22px_56px_rgba(88,28,135,0.1)] backdrop-blur-xl">
+        <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_18rem]">
+          <ScrollReveal className="min-w-0 max-w-full overflow-hidden" delay={140} y={16}>
+            <div className="min-w-0 max-w-full overflow-hidden rounded-[1.35rem] border border-violet-100 bg-white/88 p-4 shadow-[0_22px_56px_rgba(88,28,135,0.1)] backdrop-blur-xl">
               <div className="flex items-center justify-between gap-3">
-                <div>
+                <div className="min-w-0">
                   <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[#6d28d9]">
                     {productCopy.discovery}
                   </p>
-                  <h2 className="mt-1 text-lg font-semibold text-[#12041f]">
+                  <h2 className="mt-1 break-words text-lg font-semibold text-[#12041f] [word-break:keep-all]">
                     {productCopy.topGrowingTitle}
                   </h2>
                 </div>
                 <Link
-                  className="inline-flex h-9 items-center gap-1 rounded-full border border-violet-100 bg-violet-50 px-3 text-xs font-semibold !text-[#6d28d9]"
+                  className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-violet-100 bg-violet-50 px-3 text-xs font-semibold !text-[#6d28d9]"
                   href={topGrowingStarsHref}
                 >
                   {copy.nav.features}
@@ -1224,10 +1224,10 @@ function FanletterProductHomeDashboard({
                 </Link>
               </div>
 
-              <div className="-mx-1 mt-4 flex snap-x gap-3 overflow-x-auto px-1 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="-mx-1 mt-4 flex max-w-full snap-x gap-3 overflow-x-auto overscroll-x-contain px-1 pb-2 [scrollbar-width:none] [touch-action:pan-x] [&::-webkit-scrollbar]:hidden">
                 {topStars.map((star) => (
                   <Link
-                    className="group min-w-[13.75rem] snap-start overflow-hidden rounded-[1.05rem] border border-violet-100 bg-white shadow-[0_12px_30px_rgba(88,28,135,0.07)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(88,28,135,0.12)] lg:min-w-[14.5rem]"
+                    className="group w-[13.75rem] max-w-[calc(100vw-5rem)] shrink-0 snap-start overflow-hidden rounded-[1.05rem] border border-violet-100 bg-white shadow-[0_12px_30px_rgba(88,28,135,0.07)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(88,28,135,0.12)] lg:w-[14.5rem]"
                     href={`/${locale}/fanletter/${encodeURIComponent(star.id)}`}
                     key={star.id}
                   >
@@ -1270,7 +1270,7 @@ function FanletterProductHomeDashboard({
                             className="min-w-0 rounded-xl bg-slate-50 px-2 py-2"
                             key={label}
                           >
-                            <span className="block text-sm font-semibold text-[#12041f]">
+                            <span className="block truncate text-sm font-semibold text-[#12041f]">
                               {value}
                             </span>
                             <span className="mt-0.5 block truncate whitespace-nowrap text-[0.58rem] font-semibold tracking-normal text-slate-400">
@@ -1286,10 +1286,10 @@ function FanletterProductHomeDashboard({
             </div>
           </ScrollReveal>
 
-          <ScrollReveal delay={180} y={16}>
-            <div className="rounded-[1.35rem] border border-violet-100 bg-white/88 p-4 shadow-[0_22px_56px_rgba(88,28,135,0.1)] backdrop-blur-xl">
+          <ScrollReveal className="min-w-0 max-w-full overflow-hidden" delay={180} y={16}>
+            <div className="min-w-0 max-w-full overflow-hidden rounded-[1.35rem] border border-violet-100 bg-white/88 p-4 shadow-[0_22px_56px_rgba(88,28,135,0.1)] backdrop-blur-xl">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-[#12041f]">
+                <p className="min-w-0 truncate text-sm font-semibold text-[#12041f]">
                   {productCopy.portfolio}
                 </p>
                 <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[0.68rem] font-semibold text-emerald-700">
@@ -1298,25 +1298,25 @@ function FanletterProductHomeDashboard({
                     : productCopy.locked}
                 </span>
               </div>
-              <div className="mt-4 grid grid-cols-2 gap-2">
+              <div className="mt-4 grid min-w-0 grid-cols-1 gap-2 min-[360px]:grid-cols-2">
                 {portfolioStats.map((stat) => (
-                  <div className="rounded-xl bg-slate-50 p-3" key={stat.label}>
-                    <p className="text-lg font-semibold text-[#12041f]">
+                  <div className="min-w-0 rounded-xl bg-slate-50 p-3" key={stat.label}>
+                    <p className="truncate text-lg font-semibold text-[#12041f]">
                       {formatMetric(stat.value, locale)}
                       {stat.suffix}
                     </p>
-                    <p className="mt-1 text-[0.66rem] font-semibold text-slate-500">
+                    <p className="mt-1 truncate text-[0.66rem] font-semibold text-slate-500">
                       {stat.label}
                     </p>
                   </div>
                 ))}
               </div>
               <Link
-                className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 text-sm font-semibold !text-[#6d28d9]"
+                className="mt-4 inline-flex h-10 min-w-0 w-full items-center justify-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 text-sm font-semibold !text-[#6d28d9]"
                 href={creatorUnlockHref}
               >
-                {productCopy.creator}
-                <ArrowRight className="size-4" />
+                <span className="truncate">{productCopy.creator}</span>
+                <ArrowRight className="size-4 shrink-0" />
               </Link>
             </div>
           </ScrollReveal>
