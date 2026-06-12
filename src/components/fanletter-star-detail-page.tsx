@@ -24,7 +24,10 @@ import {
   FounderUniversePreview,
   HumanMemberAvatar,
 } from "@/components/fanletter-founder-club-v2";
-import { FanletterFounderMockStatusBanner } from "@/components/fanletter-founder-mock-state";
+import {
+  FanletterFounderJoinLink,
+  FanletterFounderMockStatusBanner,
+} from "@/components/fanletter-founder-mock-state";
 import { FanletterStarReferralPanel } from "@/components/fanletter-star-referral-panel";
 import {
   fanletterV2Mock,
@@ -289,10 +292,12 @@ function getStarDetailViewerState({
 function getPrimaryAction({
   connectHref,
   copy,
+  joinHref,
   viewerState,
 }: {
   connectHref: string;
   copy: ReturnType<typeof getFanletterV2Copy>;
+  joinHref: string;
   viewerState: StarDetailViewerState;
 }): StarPrimaryAction {
   const isKorean = isKoreanCopy(copy);
@@ -312,12 +317,12 @@ function getPrimaryAction({
   if (viewerState === "member") {
     return {
       helper: isKorean
-        ? "계정은 연결되어 있습니다. Founder 상태를 확인하면 이 AI 스타 유니버스 참여가 완료됩니다."
-        : "Your account is connected. Confirm Founder status to complete this AI Star universe join.",
-      href: connectHref,
-      label: isKorean ? "Founder 상태 확인" : "Confirm Founder status",
+        ? "계정은 연결되어 있습니다. 클릭하면 이 AI 스타 유니버스에 Founder로 저장하고 내 추천 링크를 생성합니다."
+        : "Your account is connected. Join this AI Star universe and create your referral link.",
+      href: joinHref,
+      label: isKorean ? "Founder 참여 확정" : "Confirm Founder join",
       status: isKorean ? "계정 연결됨" : "Account connected",
-      variant: "connect",
+      variant: "join",
     };
   }
 
@@ -336,16 +341,38 @@ function StarActionLink({
   action,
   className,
   children,
+  locale,
+  referralCode,
+  starId,
 }: {
   action: StarPrimaryAction;
   children?: ReactNode;
   className: string;
+  locale: Locale;
+  referralCode?: string | null;
+  starId: string;
 }) {
   if (action.href.startsWith("#")) {
     return (
       <a className={className} href={action.href}>
         {children ?? action.label}
       </a>
+    );
+  }
+
+  if (action.variant === "join") {
+    return (
+      <FanletterFounderJoinLink
+        className={className}
+        href={action.href}
+        locale={locale}
+        mode="live"
+        referralCode={referralCode}
+        starId={starId}
+        useResponseUniverseHref
+      >
+        {children ?? action.label}
+      </FanletterFounderJoinLink>
     );
   }
 
@@ -378,12 +405,16 @@ function MetricTile({
 function StarFounderMobilePanel({
   action,
   copy,
+  joinReferralCode,
+  locale,
   loop,
   referralCode,
   star,
 }: {
   action: StarPrimaryAction;
   copy: ReturnType<typeof getFanletterV2Copy>;
+  joinReferralCode?: string | null;
+  locale: Locale;
   loop: ScoutShareLoopData;
   referralCode: string;
   star: AIStar;
@@ -502,6 +533,9 @@ function StarFounderMobilePanel({
         <StarActionLink
           action={action}
           className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)]"
+          locale={locale}
+          referralCode={joinReferralCode}
+          starId={star.id}
         >
           {action.label}
           <ArrowRight className="size-4" />
@@ -888,20 +922,22 @@ export function FanletterStarDetailPage({
   const effectiveInboundReferralCode = viewerScoutShareLoop
     ? null
     : inboundReferralCode;
+  const joinReferralCode = effectiveInboundReferralCode;
   const referralCode = effectiveInboundReferralCode ?? loop.referralCode;
   const joinHref = buildJoinHref({
     locale,
-    referralCode,
+    referralCode: joinReferralCode,
     star,
   });
   const connectHref = buildConnectHref({
     locale,
-    referralCode,
+    referralCode: joinReferralCode,
     returnToHref: joinHref,
   });
   const primaryAction = getPrimaryAction({
     connectHref,
     copy,
+    joinHref,
     viewerState,
   });
   const isKorean = isKoreanCopy(copy);
@@ -969,6 +1005,8 @@ export function FanletterStarDetailPage({
                 <StarFounderMobilePanel
                   action={primaryAction}
                   copy={copy}
+                  joinReferralCode={joinReferralCode}
+                  locale={locale}
                   loop={loop}
                   referralCode={referralCode}
                   star={star}
@@ -1018,6 +1056,9 @@ export function FanletterStarDetailPage({
                 <StarActionLink
                   action={primaryAction}
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9]"
+                  locale={locale}
+                  referralCode={joinReferralCode}
+                  starId={star.id}
                 >
                   {primaryAction.label}
                   <ArrowRight className="size-4" />
@@ -1060,9 +1101,12 @@ export function FanletterStarDetailPage({
             copy={copy}
             inboundReferralCode={effectiveInboundReferralCode}
             joinHref={primaryAction.href}
+            joinReferralCode={joinReferralCode}
+            locale={locale}
             loop={loop}
             primaryActionHref={primaryAction.href}
             primaryActionLabel={primaryAction.label}
+            primaryActionVariant={primaryAction.variant}
             starId={star.id}
           />
           <div className="grid gap-4">

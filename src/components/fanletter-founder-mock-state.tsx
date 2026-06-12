@@ -19,6 +19,7 @@ const FANLETTER_FOUNDER_MOCK_MEMBERSHIP_EVENT =
 
 export type FanletterFounderMockMembership = {
   joinedAt: string;
+  joinState?: "created" | "existing";
   referralCode: string | null;
   source: "direct" | "referral";
   starId: string;
@@ -32,10 +33,13 @@ type StoredFounderMockMemberships = Record<
 
 type FanletterFounderMockJoinResponse = {
   membership: FanletterFounderMockMembership;
-  mode: "mock" | "preview";
+  mode: "live" | "mock" | "preview";
   next: {
     founderClubHref: string;
     universeHref: string;
+  };
+  runtime?: {
+    blockedReasons?: string[];
   };
   rewards: {
     cp: number;
@@ -58,6 +62,9 @@ function isMembership(value: unknown): value is FanletterFounderMockMembership {
 
   return (
     typeof candidate.joinedAt === "string" &&
+    (candidate.joinState === undefined ||
+      candidate.joinState === "created" ||
+      candidate.joinState === "existing") &&
     (typeof candidate.referralCode === "string" ||
       candidate.referralCode === null) &&
     (candidate.source === "direct" || candidate.source === "referral") &&
@@ -134,11 +141,13 @@ export function getFanletterFounderMockMemberships() {
 
 export function recordFanletterFounderMockMembership({
   joinedAt,
+  joinState,
   referralCode,
   source,
   starId,
 }: {
   joinedAt?: string | null;
+  joinState?: FanletterFounderMockMembership["joinState"];
   referralCode?: string | null;
   source?: FanletterFounderMockMembership["source"];
   starId: string;
@@ -152,6 +161,7 @@ export function recordFanletterFounderMockMembership({
   const existingMembership = memberships[starId] ?? null;
   const membership: FanletterFounderMockMembership = {
     joinedAt: existingMembership?.joinedAt ?? joinedAt ?? new Date().toISOString(),
+    joinState: joinState ?? existingMembership?.joinState,
     referralCode:
       normalizedReferralCode ?? existingMembership?.referralCode ?? null,
     source:
@@ -170,19 +180,84 @@ export function recordFanletterFounderMockMembership({
   return membership;
 }
 
-async function requestFanletterFounderMockJoin({
+type FanletterFounderJoinMode = "live" | "preview";
+
+class FanletterFounderJoinRequestError extends Error {
+  data: unknown;
+  status: number;
+
+  constructor({
+    data,
+    message,
+    status,
+  }: {
+    data: unknown;
+    message: string;
+    status: number;
+  }) {
+    super(message);
+    this.name = "FanletterFounderJoinRequestError";
+    this.data = data;
+    this.status = status;
+  }
+}
+
+function isLiveModeDisabledError(error: unknown) {
+  if (!(error instanceof FanletterFounderJoinRequestError)) {
+    return false;
+  }
+
+  if (error.status !== 409) {
+    return false;
+  }
+
+  const data = error.data as
+    | { runtime?: { blockedReasons?: string[] } }
+    | null
+    | undefined;
+
+  return Boolean(
+    data?.runtime?.blockedReasons?.includes("founder_join_live_flag_disabled"),
+  );
+}
+
+function resolveLocalUniverseHref({
+  fallbackHref,
+  response,
+  useResponseUniverseHref,
+}: {
+  fallbackHref: string;
+  response: FanletterFounderMockJoinResponse;
+  useResponseUniverseHref: boolean;
+}) {
+  if (!useResponseUniverseHref) {
+    return fallbackHref;
+  }
+
+  try {
+    const url = new URL(response.next.universeHref);
+
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return response.next.universeHref || fallbackHref;
+  }
+}
+
+async function requestFanletterFounderJoin({
   locale,
+  mode,
   referralCode,
   starId,
 }: {
   locale: Locale;
+  mode: FanletterFounderJoinMode;
   referralCode?: string | null;
   starId: string;
 }) {
   const response = await fetch("/api/fanletter/founder-club/join", {
     body: JSON.stringify({
       locale,
-      mode: "preview",
+      mode,
       referralCode,
       starId,
     }),
@@ -198,11 +273,14 @@ async function requestFanletterFounderMockJoin({
     | null;
 
   if (!response.ok || !data || !("membership" in data)) {
-    throw new Error(
-      data && "error" in data && data.error
-        ? data.error
-        : "Failed to preview Founder join.",
-    );
+    throw new FanletterFounderJoinRequestError({
+      data,
+      message:
+        data && "error" in data && data.error
+          ? data.error
+          : "Failed to process Founder join.",
+      status: response.status,
+    });
   }
 
   return data;
@@ -292,20 +370,24 @@ export function useFanletterFounderMockMemberships() {
   return memberships;
 }
 
-export function FanletterFounderMockJoinLink({
+export function FanletterFounderJoinLink({
   children,
   className,
   href,
   locale,
+  mode = "live",
   referralCode,
   starId,
+  useResponseUniverseHref = false,
 }: {
   children: ReactNode;
   className?: string;
   href: string;
   locale: Locale;
+  mode?: FanletterFounderJoinMode;
   referralCode?: string | null;
   starId: string;
+  useResponseUniverseHref?: boolean;
 }) {
   const handleClick = useCallback(
     (event: ReactMouseEvent<HTMLAnchorElement>) => {
@@ -325,21 +407,66 @@ export function FanletterFounderMockJoinLink({
 
       const nextHref = event.currentTarget.href;
 
-      async function completeMockJoin() {
+      async function recordJoinResponse(response: FanletterFounderMockJoinResponse) {
+        recordFanletterFounderMockMembership({
+          joinedAt: response.membership.joinedAt,
+          joinState: response.membership.joinState,
+          referralCode: response.membership.referralCode,
+          source: response.membership.source,
+          starId: response.membership.starId,
+        });
+
+        window.location.assign(
+          resolveLocalUniverseHref({
+            fallbackHref: nextHref,
+            response,
+            useResponseUniverseHref,
+          }),
+        );
+      }
+
+      async function completeJoin() {
         try {
-          const preview = await requestFanletterFounderMockJoin({
+          const response = await requestFanletterFounderJoin({
             locale,
+            mode,
             referralCode,
             starId,
           });
 
-          recordFanletterFounderMockMembership({
-            joinedAt: preview.membership.joinedAt,
-            referralCode: preview.membership.referralCode,
-            source: preview.membership.source,
-            starId: preview.membership.starId,
-          });
-        } catch {
+          await recordJoinResponse(response);
+          return;
+        } catch (error) {
+          if (
+            mode === "live" &&
+            error instanceof FanletterFounderJoinRequestError &&
+            error.status === 401
+          ) {
+            window.location.assign(nextHref);
+            return;
+          }
+
+          if (mode === "live" && isLiveModeDisabledError(error)) {
+            const preview = await requestFanletterFounderJoin({
+              locale,
+              mode: "preview",
+              referralCode,
+              starId,
+            });
+
+            await recordJoinResponse(preview);
+            return;
+          }
+
+          if (mode === "live") {
+            window.alert(
+              error instanceof Error
+                ? error.message
+                : "Founder join could not be completed.",
+            );
+            return;
+          }
+
           recordFanletterFounderMockMembership({
             referralCode,
             starId,
@@ -349,9 +476,9 @@ export function FanletterFounderMockJoinLink({
         window.location.assign(nextHref);
       }
 
-      void completeMockJoin();
+      void completeJoin();
     },
-    [locale, referralCode, starId],
+    [locale, mode, referralCode, starId, useResponseUniverseHref],
   );
 
   return (
@@ -359,6 +486,15 @@ export function FanletterFounderMockJoinLink({
       {children}
     </Link>
   );
+}
+
+export function FanletterFounderMockJoinLink(
+  props: Omit<
+    Parameters<typeof FanletterFounderJoinLink>[0],
+    "mode" | "useResponseUniverseHref"
+  >,
+) {
+  return <FanletterFounderJoinLink {...props} mode="preview" />;
 }
 
 export function FanletterFounderMockStatusBanner({

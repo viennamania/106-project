@@ -12,7 +12,10 @@ import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { normalizeReferralCode } from "@/lib/member";
 import { readMemberServerSession } from "@/lib/member-server-session";
-import { getMembersCollection } from "@/lib/mongodb";
+import {
+  getFanletterStarFounderMembershipsCollection,
+  getMembersCollection,
+} from "@/lib/mongodb";
 import {
   getFanletterV2MockStar,
   type AIStar,
@@ -71,6 +74,14 @@ function buildUniverseHref({
   url.searchParams.set("founder", "joined");
 
   return url.toString();
+}
+
+function toIsoDate(value: unknown) {
+  return value instanceof Date
+    ? value.toISOString()
+    : typeof value === "string"
+      ? value
+      : new Date().toISOString();
 }
 
 async function resolvePreviewStar(starId: string) {
@@ -193,18 +204,47 @@ export async function POST(request: Request) {
     ? await resolveFanletterStarReferralCode(requestedReferralCode)
     : null;
 
+  if (requestedReferralCode && !attribution) {
+    return jsonError("Referral code is not active for an AI Star Universe.", 404, {
+      runtime,
+    });
+  }
+
   if (attribution && attribution.starId !== liveStar.id) {
     return jsonError("Referral code does not match this AI Star.", 409, {
       runtime,
     });
   }
 
-  const joined = await ensureFanletterStarFounderMembershipForCompletedMember({
-    attribution,
-    member,
-    starId: liveStar.id,
-    updateMemberAttribution: true,
-  });
+  const membershipsCollection =
+    await getFanletterStarFounderMembershipsCollection();
+  const existingMembership = await membershipsCollection.findOne(
+    {
+      memberEmail: member.email,
+      starId: liveStar.id,
+    },
+    {
+      projection: {
+        joinedAt: 1,
+        joinedViaCode: 1,
+      },
+    },
+  );
+
+  if (!existingMembership && attribution?.memberEmail === member.email) {
+    return jsonError("Members cannot join with their own referral code.", 409, {
+      runtime,
+    });
+  }
+
+  const joined = existingMembership
+    ? true
+    : await ensureFanletterStarFounderMembershipForCompletedMember({
+        attribution,
+        member,
+        starId: liveStar.id,
+        updateMemberAttribution: true,
+      });
 
   if (!joined) {
     return jsonError("Founder membership could not be created.", 409, {
@@ -222,9 +262,13 @@ export async function POST(request: Request) {
 
   return Response.json({
     membership: {
-      joinedAt: new Date().toISOString(),
+      joinedAt: existingMembership
+        ? toIsoDate(existingMembership.joinedAt)
+        : new Date().toISOString(),
+      joinState: existingMembership ? "existing" : "created",
       referralCode,
-      source: attribution ? "referral" : "direct",
+      source:
+        attribution || existingMembership?.joinedViaCode ? "referral" : "direct",
       starId: liveStar.id,
       status: "founder",
     },

@@ -12,16 +12,23 @@ import {
 import { useMemo, useState } from "react";
 
 import { CopyTextButton } from "@/components/copy-text-button";
-import { useFanletterFounderMockMembership } from "@/components/fanletter-founder-mock-state";
+import {
+  FanletterFounderJoinLink,
+  useFanletterFounderMockMembership,
+} from "@/components/fanletter-founder-mock-state";
+import type { Locale } from "@/lib/i18n";
 import type { FanletterV2Copy, ScoutShareLoopData } from "@/mock/fanletterV2";
 
 type FanletterStarReferralPanelProps = {
   copy: FanletterV2Copy;
   inboundReferralCode?: string | null;
   joinHref: string;
+  joinReferralCode?: string | null;
+  locale: Locale;
   loop: ScoutShareLoopData;
   primaryActionHref?: string | null;
   primaryActionLabel?: string | null;
+  primaryActionVariant?: "connect" | "join" | "share";
   starId?: string | null;
 };
 
@@ -141,9 +148,12 @@ export function FanletterStarReferralPanel({
   copy,
   inboundReferralCode,
   joinHref,
+  joinReferralCode,
+  locale,
   loop,
   primaryActionHref,
   primaryActionLabel,
+  primaryActionVariant,
   starId,
 }: FanletterStarReferralPanelProps) {
   const mockFounderMembership = useFanletterFounderMockMembership(
@@ -230,6 +240,8 @@ export function FanletterStarReferralPanel({
     : primaryActionLabel ?? fallbackActionLabel;
   const actionClassName =
     "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#69f98a]";
+  const shouldUseFounderJoinAction =
+    primaryActionVariant === "join" && Boolean(starId);
 
   return (
     <article
@@ -390,7 +402,19 @@ export function FanletterStarReferralPanel({
       </div>
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-        {actionHref.startsWith("#") || actionHref.startsWith("http") ? (
+        {shouldUseFounderJoinAction && starId ? (
+          <FanletterFounderJoinLink
+            className={actionClassName}
+            href={actionHref}
+            locale={locale}
+            mode="live"
+            referralCode={joinReferralCode}
+            starId={starId}
+            useResponseUniverseHref
+          >
+            {actionLabel}
+          </FanletterFounderJoinLink>
+        ) : actionHref.startsWith("#") || actionHref.startsWith("http") ? (
           <a
             className={actionClassName}
             href={actionHref}
