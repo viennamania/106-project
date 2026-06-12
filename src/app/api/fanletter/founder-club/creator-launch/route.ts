@@ -1,6 +1,7 @@
 import {
   createFanletterFounderClubCreatorLaunchDraft,
   getFanletterFounderClubCreatorUnlock,
+  recordFanletterFounderUniverseCreatorLaunchCpPool,
 } from "@/lib/fanletter-founder-club-service";
 import {
   getFanletterFounderClubApiMode,
@@ -241,10 +242,24 @@ export async function POST(request: Request) {
     });
   }
 
+  const cpPoolLedger = await recordFanletterFounderUniverseCreatorLaunchCpPool({
+    createdAt: launchResult.star.createdAt,
+    distribution: launchResult.cpPool,
+  });
   const unlock = await getFanletterFounderClubCreatorUnlock(session.email);
 
   return Response.json({
     cpPool: launchResult.cpPool,
+    cpPoolLedger: {
+      insertedCount: cpPoolLedger.insertedCount,
+      skippedCount: cpPoolLedger.skippedCount,
+      status:
+        cpPoolLedger.insertedCount > 0
+          ? "recorded"
+          : cpPoolLedger.skippedCount > 0
+            ? "already_recorded"
+            : "no_allocated_recipients",
+    },
     launch: {
       createdAt: launchResult.star.createdAt.toISOString(),
       createdByUnlock: true,
