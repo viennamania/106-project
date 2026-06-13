@@ -187,6 +187,35 @@ function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Local
   return labels[type];
 }
 
+function getEventSourceLabel(
+  source: AgentRankReputationEvent["source"],
+  locale: Locale,
+) {
+  if (locale !== "ko") {
+    const labels: Record<AgentRankReputationEvent["source"], string> = {
+      fanletter_funnel_event: "FanLetter Interaction",
+      fanletter_star: "AI Star Registry",
+      fanletter_star_founder_membership: "Founder Network",
+      fanletter_star_influence_ledger: "CP Ledger",
+      fanletter_star_referral_code: "Referral Code",
+      fanletter_star_referral_edge: "Referral Graph",
+    };
+
+    return labels[source];
+  }
+
+  const labels: Record<AgentRankReputationEvent["source"], string> = {
+    fanletter_funnel_event: "FanLetter 행동 신호",
+    fanletter_star: "AI 스타 레지스트리",
+    fanletter_star_founder_membership: "파운더 네트워크",
+    fanletter_star_influence_ledger: "CP 원장",
+    fanletter_star_referral_code: "추천 코드",
+    fanletter_star_referral_edge: "추천 그래프",
+  };
+
+  return labels[source];
+}
+
 function MetricTile({
   label,
   value,
@@ -496,6 +525,10 @@ function EventFactoryPanel({
         <div className="mt-4 grid gap-3">
           {events.slice(0, 8).map((event) => {
             const Icon = eventIconMap[event.type];
+            const intent =
+              typeof event.context.intent === "string"
+                ? event.context.intent
+                : null;
 
             return (
               <div
@@ -513,6 +546,16 @@ function EventFactoryPanel({
                     <p className="shrink-0 text-xs font-semibold text-slate-400">
                       {formatDateTime(event.occurredAt, locale)}
                     </p>
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <span className="rounded-full bg-violet-50 px-2 py-1 text-[0.68rem] font-semibold text-[#6d28d9]">
+                      {getEventSourceLabel(event.source, locale)}
+                    </span>
+                    {intent ? (
+                      <span className="rounded-full bg-white px-2 py-1 text-[0.68rem] font-semibold text-slate-500">
+                        {intent}
+                      </span>
+                    ) : null}
                   </div>
                   <p className="mt-1 truncate font-mono text-xs font-semibold text-[#6d28d9]">
                     {event.sourceId}
