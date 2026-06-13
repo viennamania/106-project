@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 
-import { normalizeAgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
+import { inferAgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
 import {
   type FunnelEventMetadata,
   isFunnelEventName,
@@ -85,27 +85,44 @@ export async function POST(request: Request) {
     : null;
   const collection = await getFunnelEventsCollection();
   const now = new Date();
+  const contentId = readNullableString("contentId" in body ? body.contentId : null);
+  const metadata = readMetadata("metadata" in body ? body.metadata : null);
+  const path = readNullableString("path" in body ? body.path : null);
+  const referralCode = normalizeReferralCode(
+    readNullableString("referralCode" in body ? body.referralCode : null),
+  );
+  const shareId = normalizeShareId(
+    readNullableString("shareId" in body ? body.shareId : null),
+  );
+  const targetHref = readNullableString(
+    "targetHref" in body ? body.targetHref : null,
+  );
 
   await collection.insertOne({
-    agentRank: normalizeAgentRankInteractionSignal(
+    agentRank: inferAgentRankInteractionSignal(
       "agentRank" in body ? body.agentRank : null,
+      {
+        contentId,
+        eventName: name,
+        metadata,
+        path,
+        referralCode,
+        shareId,
+        targetHref,
+      },
     ),
-    contentId: readNullableString("contentId" in body ? body.contentId : null),
+    contentId,
     createdAt: now,
     eventId: randomUUID(),
     memberEmail,
     memberWalletAddress,
-    metadata: readMetadata("metadata" in body ? body.metadata : null),
+    metadata,
     name,
-    path: readNullableString("path" in body ? body.path : null),
+    path,
     referer: headerStore.get("referer"),
-    referralCode: normalizeReferralCode(
-      readNullableString("referralCode" in body ? body.referralCode : null),
-    ),
-    shareId: normalizeShareId(
-      readNullableString("shareId" in body ? body.shareId : null),
-    ),
-    targetHref: readNullableString("targetHref" in body ? body.targetHref : null),
+    referralCode,
+    shareId,
+    targetHref,
     userAgent: headerStore.get("user-agent"),
     viewerType: memberEmail ? "member" : "guest",
     viewport: readViewport("viewport" in body ? body.viewport : null),
