@@ -24,6 +24,7 @@
     "fanletter:paid-covers:backfill": "node scripts/backfill-paid-video-covers.mjs",
     "fanletter:paid-covers:backfill:remote": "node scripts/trigger-backfill-paid-video-covers.mjs",
     "fanletter:founder-club:backfill:audit": "node scripts/backfill-fanletter-founder-club-v2.mjs",
+    "fanletter:founder-join:case:audit": "node scripts/audit-fanletter-founder-join-case.mjs",
     "fanletter:founder-join:readiness": "node scripts/audit-fanletter-founder-join-readiness.mjs",
     "fanletter:ai-star-genealogy:backfill": "node scripts/backfill-fanletter-ai-star-genealogy.mjs",
     "fanletter:ai-star-profiles:backfill": "node scripts/backfill-fanletter-ai-star-profiles.mjs",
