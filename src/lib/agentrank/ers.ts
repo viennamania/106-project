@@ -6,6 +6,10 @@ import {
   type FanletterAgentRankReputationEventFeed,
   type GetFanletterAgentRankReputationEventsOptions,
 } from "@/lib/agentrank/reputation-events";
+import {
+  calculateAgentRankScoreAggregate,
+  type AgentRankScoreAggregate,
+} from "@/lib/agentrank/score";
 
 export type AgentRankErsComponentKey =
   | "revenue"
@@ -57,6 +61,7 @@ export type FanletterAgentRankInvestorSnapshot = {
     mission: "FanLetter indexes economic trust.";
     phase: "FanLetter is Phase 1 of AgentRank.";
   };
+  scoreAggregate: AgentRankScoreAggregate;
 };
 
 function clampScore(value: number, maxScore: number) {
@@ -238,6 +243,11 @@ export async function getFanletterAgentRankInvestorSnapshot(
     includeTypes: options.includeTypes,
   });
   const ers = calculateAgentRankEconomicReputationScore(eventFeed);
+  const scoreAggregate = calculateAgentRankScoreAggregate({
+    feed: eventFeed,
+    memberEmail: options.memberEmail,
+    starId: options.starId,
+  });
   const generatedAt = new Date().toISOString();
 
   return {
@@ -249,5 +259,6 @@ export async function getFanletterAgentRankInvestorSnapshot(
       mission: "FanLetter indexes economic trust.",
       phase: "FanLetter is Phase 1 of AgentRank.",
     },
+    scoreAggregate,
   };
 }

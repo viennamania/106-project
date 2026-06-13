@@ -32,6 +32,10 @@ import type {
   FanletterAgentRankInvestorSnapshot,
 } from "@/lib/agentrank/ers";
 import type { AgentRankReputationEvent } from "@/lib/agentrank/reputation-events";
+import type {
+  AgentRankScoreAggregate,
+  AgentRankScoreDimensionKey,
+} from "@/lib/agentrank/score";
 import type { Locale } from "@/lib/i18n";
 
 type AgentRankCopy = ReturnType<typeof getAgentRankCopy>;
@@ -56,6 +60,15 @@ const eventIconMap = {
   referral_converted: GitBranch,
   universe_growth: Orbit,
 } satisfies Record<AgentRankReputationEvent["type"], typeof Eye>;
+
+const scoreDimensionIconMap = {
+  creator: Rocket,
+  discovery: Eye,
+  economic: Coins,
+  network: Network,
+  riskPenalty: ShieldAlert,
+  trust: ShieldCheck,
+} satisfies Record<AgentRankScoreDimensionKey, typeof Coins>;
 
 function getAgentRankCopy(locale: Locale) {
   if (locale === "ko") {
@@ -113,7 +126,12 @@ function getAgentRankCopy(locale: Locale) {
       reputationInfrastructure: "Reputation Infrastructure",
       roadmap: "장기 로드맵",
       score: "AgentRank Score",
+      scoreAggregator: "AgentRank Score Aggregator",
+      scoreAggregatorBody:
+        "Reputation Event를 Founder Network, 경제 활동, Creator Journey, AI 스타 발견, Lineage Trust 차원으로 집계합니다.",
+      scoreConfidence: "집계 신뢰도",
       trustLayerMissing: "AI Agent 경제에는 Trust Layer가 필요합니다.",
+      topContributors: "상위 기여자",
       useCases: "Use Cases",
       viewEventsApi: "Event Ledger",
       viewFounderUniverse: "Founder Network",
@@ -193,7 +211,12 @@ function getAgentRankCopy(locale: Locale) {
     reputationInfrastructure: "Reputation Infrastructure",
     roadmap: "Long-term Roadmap",
     score: "AgentRank Score",
+    scoreAggregator: "AgentRank Score Aggregator",
+    scoreAggregatorBody:
+      "Aggregates Reputation Events into Founder Network, Economic Activity, Creator Journey, AI Star Discovery, and Lineage Trust dimensions.",
+    scoreConfidence: "Score Confidence",
     trustLayerMissing: "The AI Agent economy needs a trust layer.",
+    topContributors: "Top Contributors",
     useCases: "Use Cases",
     viewEventsApi: "Event Ledger",
     viewFounderUniverse: "Founder Network",
@@ -354,6 +377,32 @@ function getCoverageGapLabel(gap: string, locale: Locale) {
   }
 
   return gap;
+}
+
+function getScoreDimensionLabel(
+  key: AgentRankScoreDimensionKey,
+  locale: Locale,
+) {
+  const labels: Record<AgentRankScoreDimensionKey, string> =
+    locale === "ko"
+      ? {
+          creator: "크리에이터 여정",
+          discovery: "AI 스타 발견",
+          economic: "경제 활동",
+          network: "파운더 네트워크",
+          riskPenalty: "위험 패널티",
+          trust: "리니지 신뢰",
+        }
+      : {
+          creator: "Creator Journey",
+          discovery: "AI Star Discovery",
+          economic: "Economic Activity",
+          network: "Founder Network",
+          riskPenalty: "Risk Penalty",
+          trust: "Lineage Trust",
+        };
+
+  return labels[key];
 }
 
 function MetricTile({
@@ -654,6 +703,191 @@ function AgentRankCoveragePanel({
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AgentRankScoreAggregatorPanel({
+  copy,
+  locale,
+  scoreAggregate,
+}: {
+  copy: AgentRankCopy;
+  locale: Locale;
+  scoreAggregate: AgentRankScoreAggregate;
+}) {
+  const scorePercent = Math.round(
+    (scoreAggregate.score / scoreAggregate.maxScore) * 100,
+  );
+  const readinessItems = [
+    {
+      active: scoreAggregate.readiness.reputationLedgerReady,
+      label: "Ledger",
+    },
+    {
+      active: scoreAggregate.readiness.oracleReady,
+      label: `Oracle ${scoreAggregate.readiness.oracleReadyPercent}%`,
+    },
+    {
+      active: scoreAggregate.readiness.x402Ready,
+      label: "x402",
+    },
+    {
+      active: scoreAggregate.readiness.a2aReady,
+      label: "A2A",
+    },
+  ];
+
+  return (
+    <section className="agentrank-flow-card overflow-hidden rounded-lg border border-violet-100 bg-white shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
+      <div className="grid gap-5 p-5 xl:grid-cols-[0.92fr_1.08fr]">
+        <div className="rounded-lg bg-gradient-to-br from-[#11132d] via-[#312e81] to-[#6d28d9] p-5 text-white">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold uppercase text-white/70">
+                {copy.scoreAggregator}
+              </p>
+              <h2 className="mt-2 text-4xl font-semibold">
+                {scoreAggregate.score}
+                <span className="text-lg font-semibold text-white/60">
+                  / {formatNumber(scoreAggregate.maxScore, locale)}
+                </span>
+              </h2>
+            </div>
+            <div className="rounded-lg bg-white/12 px-4 py-3 text-right ring-1 ring-white/10">
+              <p className="text-xs font-semibold uppercase text-white/60">
+                {copy.scoreConfidence}
+              </p>
+              <p className="mt-1 text-2xl font-semibold">
+                {scoreAggregate.confidence}%
+              </p>
+            </div>
+          </div>
+          <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/12">
+            <div
+              className="agentrank-score-bar h-full rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-white"
+              style={{ width: `${scorePercent}%` }}
+            />
+          </div>
+          <p className="mt-4 text-sm font-medium leading-6 text-white/74">
+            {copy.scoreAggregatorBody}
+          </p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {readinessItems.map((item) => (
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold ring-1 ${
+                  item.active
+                    ? "bg-emerald-300/18 text-emerald-100 ring-emerald-200/25"
+                    : "bg-white/8 text-white/58 ring-white/10"
+                }`}
+                key={item.label}
+              >
+                {item.active ? (
+                  <BadgeCheck className="size-3.5" />
+                ) : (
+                  <ShieldCheck className="size-3.5" />
+                )}
+                {item.label}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-3">
+          {scoreAggregate.dimensions.map((dimension) => {
+            const Icon = scoreDimensionIconMap[dimension.key];
+            const isPenalty = dimension.key === "riskPenalty";
+            const dimensionPercent = Math.round(
+              (dimension.score / Math.max(1, dimension.maxScore)) * 100,
+            );
+
+            return (
+              <div
+                className="rounded-lg border border-slate-100 bg-[#f8f9ff] p-4"
+                key={dimension.key}
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div
+                      className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${
+                        isPenalty
+                          ? "bg-red-50 text-red-600"
+                          : "bg-white text-[#6d28d9]"
+                      }`}
+                    >
+                      <Icon className="size-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[#11132d]">
+                        {getScoreDimensionLabel(dimension.key, locale)}
+                      </p>
+                      <p className="mt-0.5 text-xs font-medium text-slate-500">
+                        raw {formatNumber(dimension.rawValue, locale)}
+                      </p>
+                    </div>
+                  </div>
+                  <p
+                    className={`shrink-0 text-xl font-semibold ${
+                      isPenalty ? "text-red-600" : "text-[#4338ca]"
+                    }`}
+                  >
+                    {isPenalty ? "-" : "+"}
+                    {formatNumber(dimension.score, locale)}
+                  </p>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
+                  <div
+                    className={`h-full rounded-full ${
+                      isPenalty
+                        ? "bg-gradient-to-r from-red-500 to-orange-400"
+                        : "agentrank-score-bar bg-gradient-to-r from-[#6d28d9] via-[#2563eb] to-[#16a34a]"
+                    }`}
+                    style={{ width: `${dimensionPercent}%` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid gap-4 border-t border-violet-100 bg-violet-50/40 p-5 xl:grid-cols-[1fr_0.9fr]">
+        <div>
+          <p className="text-sm font-semibold uppercase text-[#6d28d9]">
+            {copy.formula}
+          </p>
+          <p className="mt-2 text-sm font-medium leading-6 text-[#4c1d95]">
+            {scoreAggregate.formula}
+          </p>
+        </div>
+        <div>
+          <p className="text-sm font-semibold uppercase text-[#6d28d9]">
+            {copy.topContributors}
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+            {scoreAggregate.topContributors.slice(0, 4).map((contributor) => (
+              <div
+                className="flex items-center justify-between gap-3 rounded-lg border border-violet-100 bg-white px-3 py-2"
+                key={`${contributor.actorType}:${contributor.actorId}`}
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-[#11132d]">
+                    {contributor.label ?? contributor.actorId}
+                  </p>
+                  <p className="text-xs font-semibold text-slate-500">
+                    {contributor.actorType}
+                    {contributor.role ? ` · ${contributor.role}` : ""} ·{" "}
+                    {formatNumber(contributor.eventCount, locale)} events
+                  </p>
+                </div>
+                <p className="shrink-0 text-sm font-semibold text-[#6d28d9]">
+                  {formatNumber(contributor.contributionScore, locale)}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -1331,7 +1565,7 @@ export function FanletterAgentRankPage({
   starId?: string | null;
 }) {
   const copy = getAgentRankCopy(locale);
-  const { ers, eventFeed } = snapshot;
+  const { ers, eventFeed, scoreAggregate } = snapshot;
   const coverage = buildAgentRankCoverageSnapshot(eventFeed, ers.readiness);
   const metrics = [
     {
@@ -1427,6 +1661,14 @@ export function FanletterAgentRankPage({
             />
           ))}
         </section>
+
+        <div className="mt-5">
+          <AgentRankScoreAggregatorPanel
+            copy={copy}
+            locale={locale}
+            scoreAggregate={scoreAggregate}
+          />
+        </div>
 
         <div className="mt-5">
           <AgentRankCoveragePanel
