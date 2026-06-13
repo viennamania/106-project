@@ -115,7 +115,7 @@ function getAgentRankCopy(locale: Locale) {
       score: "AgentRank Score",
       trustLayerMissing: "AI Agent 경제에는 Trust Layer가 필요합니다.",
       useCases: "Use Cases",
-      viewEventsApi: "Event API",
+      viewEventsApi: "Event Ledger",
       viewFounderUniverse: "Founder Network",
       viewHome: "FanLetter 홈",
       whyMatters:
@@ -195,7 +195,7 @@ function getAgentRankCopy(locale: Locale) {
     score: "AgentRank Score",
     trustLayerMissing: "The AI Agent economy needs a trust layer.",
     useCases: "Use Cases",
-    viewEventsApi: "Event API",
+    viewEventsApi: "Event Ledger",
     viewFounderUniverse: "Founder Network",
     viewHome: "FanLetter Home",
     whyMatters:
@@ -1583,7 +1583,9 @@ export function FanletterAgentRankPage({
                   }}
                   className="inline-flex h-10 items-center rounded-full bg-white/12 px-4 text-sm font-semibold text-white ring-1 ring-white/20"
                   eventName="content_open"
-                  href="/api/fanletter/agentrank/events"
+                  href={`/${locale}/fanletter/agentrank/events${
+                    starId ? `?starId=${encodeURIComponent(starId)}` : ""
+                  }`}
                 >
                   {copy.viewEventsApi}
                 </FanletterTrackedLink>
