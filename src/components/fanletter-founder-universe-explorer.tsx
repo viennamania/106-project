@@ -30,7 +30,9 @@ import {
   FounderRoleBadge,
   HumanMemberAvatar,
 } from "@/components/fanletter-founder-club-v2";
+import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import type {
   FanletterFounderUniverseExplorerData,
   FanletterFounderUniverseExplorerNode,
@@ -1485,14 +1487,25 @@ function AgentRankUniverseCard({
             {copy.reputationEvents}
           </p>
         </div>
-        <Link
+        <FanletterTrackedLink
+          agentRank={{
+            eventType: "content_engaged",
+            intent: "founder_universe_agentrank_card_open",
+            source: "fanletter_founder_universe",
+            starId: universe.star.id,
+          }}
           className="inline-flex h-8 shrink-0 items-center rounded-full bg-violet-50 px-2.5 text-xs font-semibold text-[#6d28d9]"
+          eventName="content_open"
           href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
             universe.star.id,
           )}`}
+          metadata={{
+            placement: "founder_universe_agentrank_sidebar_card",
+            starName: universe.star.displayName || universe.star.name,
+          }}
         >
           {copy.viewAgentRank}
-        </Link>
+        </FanletterTrackedLink>
       </div>
 
       <div className="mt-5 rounded-xl bg-gradient-to-br from-[#11132d] via-[#4338ca] to-[#7c3aed] p-4 text-white">
@@ -1650,15 +1663,26 @@ function AgentRankSignalStrip({
           </div>
         </div>
 
-        <Link
+        <FanletterTrackedLink
+          agentRank={{
+            eventType: "content_engaged",
+            intent: "founder_universe_agentrank_strip_open",
+            source: "fanletter_founder_universe",
+            starId: universe.star.id,
+          }}
           className="flex min-h-16 items-center justify-between gap-3 border-t border-violet-100 bg-gradient-to-br from-violet-50 to-emerald-50 px-4 py-4 text-sm font-semibold text-[#6d28d9] lg:border-l lg:border-t-0 lg:px-5"
+          eventName="content_open"
           href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
             universe.star.id,
           )}`}
+          metadata={{
+            placement: "founder_universe_agentrank_signal_strip",
+            starName: universe.star.displayName || universe.star.name,
+          }}
         >
           <span>{copy.viewAgentRank}</span>
           <ChevronRight className="size-4 shrink-0" />
-        </Link>
+        </FanletterTrackedLink>
       </div>
     </section>
   );
@@ -1682,10 +1706,14 @@ function getStatusLabel(
 function SpawnedStarCard({
   locale,
   onSelectNode,
+  sourceStarId,
+  sourceStarName,
   spawnedStar,
 }: {
   locale: Locale;
   onSelectNode: (nodeId: string) => void;
+  sourceStarId: string;
+  sourceStarName: string;
   spawnedStar: FanletterFounderUniverseExplorerSpawnedStar;
 }) {
   const copy = getExplorerCopy(locale);
@@ -1694,9 +1722,22 @@ function SpawnedStarCard({
 
   return (
     <div className="grid gap-3 rounded-lg border border-violet-100 bg-white p-3 shadow-[0_12px_30px_rgba(88,28,135,0.06)]">
-      <Link
+      <FanletterTrackedLink
+        agentRank={{
+          eventType: "ai_star_spawned",
+          intent: "spawned_star_universe_open",
+          source: "fanletter_founder_universe",
+          starId: spawnedStar.id,
+        }}
         className="group relative overflow-hidden rounded-lg border border-violet-300 bg-gradient-to-br from-[#7c3aed] via-[#a855f7] to-[#38bdf8] p-3 text-white shadow-[0_18px_42px_rgba(124,58,237,0.18)]"
+        eventName="content_open"
         href={`/${locale}/fanletter/${encodeURIComponent(spawnedStar.id)}/universe`}
+        metadata={{
+          placement: "founder_universe_spawned_star_card",
+          sourceStarId,
+          sourceStarName,
+          spawnedStarName: spawnedStar.name,
+        }}
       >
         <div className="flex items-start justify-between gap-3">
           <span className="inline-flex h-7 items-center rounded-full bg-white/22 px-2.5 text-[0.66rem] font-semibold backdrop-blur">
@@ -1748,7 +1789,7 @@ function SpawnedStarCard({
             </p>
           </div>
         </div>
-      </Link>
+      </FanletterTrackedLink>
 
       <div className="rounded-lg border border-black/8 bg-zinc-50 p-3">
         <div className="flex items-start gap-3">
@@ -1791,7 +1832,24 @@ function SpawnedStarCard({
           {spawnedStar.creatorNodeId ? (
             <button
               className="inline-flex h-8 items-center rounded-full border border-violet-100 bg-white px-2.5 text-xs font-semibold text-[#6d28d9]"
-              onClick={() => onSelectNode(spawnedStar.creatorNodeId ?? "")}
+              onClick={() => {
+                onSelectNode(spawnedStar.creatorNodeId ?? "");
+                trackFunnelEvent("content_open", {
+                  agentRank: {
+                    eventType: "universe_growth",
+                    intent: "spawned_star_creator_node_selected",
+                    source: "fanletter_founder_universe",
+                    starId: sourceStarId,
+                  },
+                  metadata: {
+                    creatorDepth: spawnedStar.creatorDepth,
+                    creatorRole: spawnedStar.creatorRole,
+                    placement: "founder_universe_spawned_star_creator_node",
+                    spawnedStarId: spawnedStar.id,
+                    spawnedStarName: spawnedStar.name,
+                  },
+                });
+              }}
               type="button"
             >
               Node
@@ -1870,6 +1928,8 @@ function UniverseExpansionMap({
                 key={spawnedStar.id}
                 locale={locale}
                 onSelectNode={onSelectNode}
+                sourceStarId={universe.star.id}
+                sourceStarName={starName}
                 spawnedStar={spawnedStar}
               />
             ))}

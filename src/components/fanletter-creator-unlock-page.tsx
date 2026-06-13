@@ -19,9 +19,11 @@ import {
   toMemberOwnedAIStar,
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
+import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import { useFanletterFounderMockMemberships } from "@/components/fanletter-founder-mock-state";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import {
   CreatorUnlockCard,
   FounderRoleBadge,
@@ -661,7 +663,24 @@ function SourceUniverseSelector({
                   : "border-black/8 bg-[#fbfaff] hover:border-violet-300",
               )}
               key={option.starId}
-              onClick={() => onSelect(option.starId)}
+              onClick={() => {
+                onSelect(option.starId);
+                trackFunnelEvent("signup_cta_click", {
+                  agentRank: {
+                    eventType: "content_engaged",
+                    intent: "source_universe_selected",
+                    source: "fanletter_creator_unlock",
+                    starId: option.starId,
+                  },
+                  metadata: {
+                    placement: "creator_unlock_source_universe_selector",
+                    roleInUniverse: option.role,
+                    sourceUniverseName: option.universeName,
+                    starName: option.starName,
+                  },
+                  targetHref: `/${locale}/fanletter/creator-unlock`,
+                });
+              }}
               type="button"
             >
               <div className="flex items-start gap-3">
@@ -726,18 +745,36 @@ function SourceUniverseEmptyState({
           </div>
         </div>
         <div className="flex shrink-0 flex-col gap-2 sm:min-w-44">
-          <Link
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "ai_star_discovered",
+              intent: "creator_unlock_no_source_discovery",
+              source: "fanletter_creator_unlock",
+            }}
             className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
+            eventName="signup_cta_click"
             href={`/${locale}/fanletter#top-growing-ai-stars`}
+            metadata={{
+              placement: "creator_unlock_no_source_primary",
+            }}
           >
             {copy.noSourcePrimary}
-          </Link>
-          <Link
+          </FanletterTrackedLink>
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "content_engaged",
+              intent: "creator_unlock_no_source_founder_club",
+              source: "fanletter_creator_unlock",
+            }}
             className="inline-flex min-h-10 items-center justify-center rounded-full border border-violet-200 bg-white px-4 text-sm font-semibold text-[#5b21b6] transition hover:bg-violet-50"
+            eventName="content_open"
             href={`/${locale}/fanletter#founder-club`}
+            metadata={{
+              placement: "creator_unlock_no_source_secondary",
+            }}
           >
             {copy.noSourceSecondary}
-          </Link>
+          </FanletterTrackedLink>
         </div>
       </div>
       <FanletterTerminologyGuide
@@ -1001,12 +1038,21 @@ function AccountConnectionNotice({
             </p>
           </div>
         </div>
-        <Link
+        <FanletterTrackedLink
+          agentRank={{
+            eventType: "creator_unlocked",
+            intent: "creator_unlock_connect",
+            source: "fanletter_creator_unlock",
+          }}
           className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[#7c3aed] px-5 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
+          eventName="signup_cta_click"
           href={connectHref}
+          metadata={{
+            placement: "creator_unlock_account_connection_notice",
+          }}
         >
           {copy.loginCta}
-        </Link>
+        </FanletterTrackedLink>
       </div>
     </section>
   );
@@ -1361,21 +1407,51 @@ export function FanletterCreatorUnlockPage({
                   {unlock.createCostUsdt} USDT
                 </span>
                 {requiresSourceUniverse ? (
-                  <Link
+                  <FanletterTrackedLink
+                    agentRank={{
+                      eventType: "ai_star_discovered",
+                      intent: "creator_unlock_missing_source_discovery",
+                      source: "fanletter_creator_unlock",
+                    }}
                     className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
+                    eventName="signup_cta_click"
                     href={`/${locale}/fanletter#top-growing-ai-stars`}
+                    metadata={{
+                      placement: "creator_unlock_launch_missing_source",
+                    }}
                   >
                     {copy.noSourcePrimary}
-                  </Link>
+                  </FanletterTrackedLink>
                 ) : isPreviewMode ? (
-                  <Link
+                  <FanletterTrackedLink
+                    agentRank={{
+                      eventType: "creator_unlocked",
+                      intent: "creator_unlock_preview_connect",
+                      source: "fanletter_creator_unlock",
+                      starId:
+                        selectedSourceOption?.starId ??
+                        launchPreview.ownedPreview.spawnedFromStarId,
+                    }}
                     className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
+                    eventName="signup_cta_click"
                     href={connectHref}
+                    metadata={{
+                      placement: "creator_unlock_launch_preview_connect",
+                      sourceUniverseName: launchPreview.sourceUniverseName,
+                    }}
                   >
                     {copy.loginCta}
-                  </Link>
+                  </FanletterTrackedLink>
                 ) : (
                   <FanletterCreatorMockLaunchButton
+                    agentRank={{
+                      eventType: "ai_star_spawned",
+                      intent: "mock_ai_star_launch_completed",
+                      source: "fanletter_creator_unlock",
+                      starId:
+                        selectedSourceOption?.starId ??
+                        launchPreview.ownedPreview.spawnedFromStarId,
+                    }}
                     className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9] disabled:cursor-wait disabled:opacity-70"
                     launchCostUsdt={unlock.createCostUsdt}
                     locale={locale}
@@ -1386,6 +1462,11 @@ export function FanletterCreatorUnlockPage({
                       launchPreview.ownedPreview.spawnedFromStarId
                     }
                     sourceUniverseName={launchPreview.sourceUniverseName}
+                    trackingMetadata={{
+                      launchCostUsdt: unlock.createCostUsdt,
+                      placement: "creator_unlock_mock_launch_button",
+                      sourceUniverseName: launchPreview.sourceUniverseName,
+                    }}
                   />
                 )}
               </div>

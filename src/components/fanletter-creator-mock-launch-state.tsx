@@ -13,6 +13,9 @@ import {
 } from "react";
 
 import type { Locale } from "@/lib/i18n";
+import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
+import type { FunnelEventMetadata } from "@/lib/funnel";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { MemberOwnedAIStar } from "@/mock/fanletterV2";
 
 const FANLETTER_CREATOR_MOCK_LAUNCHES_STORAGE_KEY =
@@ -261,6 +264,7 @@ function getButtonCopy(locale: Locale, state: "done" | "idle" | "loading") {
 }
 
 export function FanletterCreatorMockLaunchButton({
+  agentRank,
   children,
   className,
   launchCostUsdt,
@@ -268,9 +272,11 @@ export function FanletterCreatorMockLaunchButton({
   name,
   onLaunch,
   ownerName,
+  trackingMetadata,
   sourceStarId,
   sourceUniverseName,
 }: {
+  agentRank?: AgentRankInteractionSignal | null;
   children?: ReactNode;
   className?: string;
   launchCostUsdt: number;
@@ -278,6 +284,7 @@ export function FanletterCreatorMockLaunchButton({
   name: string;
   onLaunch?: (launch: FanletterCreatorMockLaunch) => void;
   ownerName: string;
+  trackingMetadata?: FunnelEventMetadata;
   sourceStarId?: string | null;
   sourceUniverseName: string;
 }) {
@@ -301,6 +308,19 @@ export function FanletterCreatorMockLaunchButton({
       });
 
       recordFanletterCreatorMockLaunch(preview.launch);
+      trackFunnelEvent("signup_cta_click", {
+        agentRank,
+        metadata: {
+          launchMode: preview.mode,
+          launchPaymentStatus: preview.payment.status,
+          launchSourceUniverseName: preview.launch.sourceUniverseName ?? null,
+          launchStarName: preview.launch.name,
+          ...trackingMetadata,
+        },
+        targetHref: `/${locale}/fanletter/${encodeURIComponent(
+          preview.launch.id,
+        )}/universe`,
+      });
       onLaunch?.(preview.launch);
       setState("done");
     } catch {
@@ -315,6 +335,8 @@ export function FanletterCreatorMockLaunchButton({
     sourceStarId,
     sourceUniverseName,
     state,
+    agentRank,
+    trackingMetadata,
   ]);
 
   const Icon =
