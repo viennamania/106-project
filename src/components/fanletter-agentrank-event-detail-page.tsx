@@ -41,6 +41,8 @@ function getCopy(locale: Locale) {
       eventLineage: "Event Lineage",
       eventLineageBody:
         "같은 AI 스타, 멤버, 추천 코드, Universe로 이어진 이벤트를 전후 흐름으로 보여줍니다.",
+      graphBody:
+        "액터, 이벤트, 대상, 주변 Reputation Event를 하나의 거래 그래프로 연결합니다.",
       linkedEvents: "연결 이벤트",
       noRelatedEvents: "연결된 주변 이벤트가 아직 충분하지 않습니다.",
       rawJson: "Raw Event JSON",
@@ -74,6 +76,8 @@ function getCopy(locale: Locale) {
     eventLineage: "Event Lineage",
     eventLineageBody:
       "Shows nearby events connected by the same AI Star, member, referral code, or Universe.",
+    graphBody:
+      "Connects the actor, event, object, and nearby Reputation Events into one transaction graph.",
     linkedEvents: "linked events",
     noRelatedEvents: "There are not enough related surrounding events yet.",
     rawJson: "Raw Event JSON",
@@ -382,6 +386,222 @@ function LineageColumn({
   );
 }
 
+function truncateGraphLabel(value: string, maxLength = 18) {
+  return value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
+}
+
+function getNodeLabel(actor: AgentRankReputationEvent["actor"] | null) {
+  return truncateGraphLabel(getActorLabel(actor), 20);
+}
+
+function getRelatedGraphPosition(index: number) {
+  const positions = [
+    { x: 245, y: 72 },
+    { x: 515, y: 72 },
+    { x: 210, y: 250 },
+    { x: 550, y: 250 },
+    { x: 380, y: 52 },
+    { x: 380, y: 278 },
+  ];
+
+  return positions[index % positions.length];
+}
+
+function GraphNode({
+  accent = "#7c3aed",
+  label,
+  sublabel,
+  variant = "light",
+  x,
+  y,
+}: {
+  accent?: string;
+  label: string;
+  sublabel: string;
+  variant?: "current" | "light";
+  x: number;
+  y: number;
+}) {
+  const isCurrent = variant === "current";
+
+  return (
+    <g>
+      <circle
+        cx={x}
+        cy={y}
+        fill={isCurrent ? "url(#currentNodeGradient)" : "#ffffff"}
+        r={isCurrent ? 45 : 37}
+        stroke={accent}
+        strokeWidth={isCurrent ? 3 : 2}
+      />
+      <text
+        fill={isCurrent ? "#ffffff" : "#11132d"}
+        fontSize={isCurrent ? 13 : 12}
+        fontWeight="700"
+        textAnchor="middle"
+        x={x}
+        y={y - 3}
+      >
+        {label}
+      </text>
+      <text
+        fill={isCurrent ? "rgba(255,255,255,0.72)" : "#64748b"}
+        fontSize="10"
+        fontWeight="600"
+        textAnchor="middle"
+        x={x}
+        y={y + 13}
+      >
+        {sublabel}
+      </text>
+    </g>
+  );
+}
+
+function AgentTransactionGraph({
+  event,
+  locale,
+  relatedEvents,
+}: {
+  event: AgentRankReputationEvent;
+  locale: Locale;
+  relatedEvents: AgentRankReputationEvent[];
+}) {
+  const relatedGraphEvents = relatedEvents.slice(0, 6);
+  const actorLabel = getNodeLabel(event.actor);
+  const objectLabel = getNodeLabel(event.object ?? null);
+  const sourceLabel = truncateGraphLabel(event.source.replace("fanletter_", ""), 19);
+  const currentLabel = truncateGraphLabel(getEventTypeLabel(event.type, locale), 18);
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-violet-100 bg-white">
+      <div className="overflow-x-auto">
+        <svg
+          aria-label="Agent Transaction Graph"
+          className="min-w-[48rem]"
+          role="img"
+          viewBox="0 0 760 330"
+        >
+          <defs>
+            <linearGradient id="currentNodeGradient" x1="0" x2="1" y1="0" y2="1">
+              <stop offset="0%" stopColor="#11132d" />
+              <stop offset="55%" stopColor="#4338ca" />
+              <stop offset="100%" stopColor="#7c3aed" />
+            </linearGradient>
+            <marker
+              id="graphArrow"
+              markerHeight="8"
+              markerWidth="8"
+              orient="auto"
+              refX="7"
+              refY="4"
+            >
+              <path d="M0,0 L8,4 L0,8 Z" fill="#8b5cf6" />
+            </marker>
+            <filter id="nodeShadow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow
+                dx="0"
+                dy="10"
+                floodColor="#4c1d95"
+                floodOpacity="0.12"
+                stdDeviation="10"
+              />
+            </filter>
+          </defs>
+
+          <rect fill="#fbfaff" height="330" rx="20" width="760" />
+          <path
+            d="M148 165 C210 150 280 150 334 162"
+            fill="none"
+            markerEnd="url(#graphArrow)"
+            stroke="#8b5cf6"
+            strokeLinecap="round"
+            strokeWidth="3"
+          />
+          <path
+            d="M426 162 C480 150 550 150 612 165"
+            fill="none"
+            markerEnd="url(#graphArrow)"
+            stroke="#8b5cf6"
+            strokeLinecap="round"
+            strokeWidth="3"
+          />
+          <path
+            d="M380 205 C380 232 380 252 380 276"
+            fill="none"
+            markerEnd="url(#graphArrow)"
+            stroke="#a78bfa"
+            strokeDasharray="7 8"
+            strokeLinecap="round"
+            strokeWidth="2.5"
+          />
+
+          {relatedGraphEvents.map((relatedEvent, index) => {
+            const position = getRelatedGraphPosition(index);
+
+            return (
+              <g key={relatedEvent.eventId}>
+                <path
+                  d={`M380 165 C${(380 + position.x) / 2} ${(165 + position.y) / 2 - 22} ${
+                    position.x
+                  } ${position.y}`}
+                  fill="none"
+                  stroke="#c4b5fd"
+                  strokeDasharray="5 8"
+                  strokeLinecap="round"
+                  strokeWidth="1.8"
+                />
+                <GraphNode
+                  accent="#c4b5fd"
+                  label={truncateGraphLabel(
+                    getEventTypeLabel(relatedEvent.type, locale),
+                    13,
+                  )}
+                  sublabel={formatNumber(getImpactTotal(relatedEvent), locale)}
+                  x={position.x}
+                  y={position.y}
+                />
+              </g>
+            );
+          })}
+
+          <g filter="url(#nodeShadow)">
+            <GraphNode
+              accent="#22c55e"
+              label={actorLabel}
+              sublabel={event.actor.type}
+              x={110}
+              y={165}
+            />
+            <GraphNode
+              accent="#7c3aed"
+              label={currentLabel}
+              sublabel={formatNumber(getImpactTotal(event), locale)}
+              variant="current"
+              x={380}
+              y={165}
+            />
+            <GraphNode
+              accent="#06b6d4"
+              label={objectLabel}
+              sublabel={event.object?.type ?? "object"}
+              x={650}
+              y={165}
+            />
+            <GraphNode
+              accent="#f59e0b"
+              label={sourceLabel}
+              sublabel="source"
+              x={380}
+              y={286}
+            />
+          </g>
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 export function FanletterAgentRankEventDetailPage({
   event,
   locale,
@@ -498,6 +718,30 @@ export function FanletterAgentRankEventDetailPage({
               events={lineage.downstream}
               locale={locale}
               title={copy.downstream}
+            />
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+                <Network className="size-4" />
+                {copy.agentGraph}
+              </p>
+              <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+                {copy.graphBody}
+              </p>
+            </div>
+            <span className="rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-500">
+              AgentRank v0
+            </span>
+          </div>
+          <div className="mt-5">
+            <AgentTransactionGraph
+              event={event}
+              locale={locale}
+              relatedEvents={relatedEvents}
             />
           </div>
         </section>
