@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowLeft,
+  ArrowRight,
   BadgeCheck,
   Bot,
   Database,
@@ -17,6 +18,7 @@ import type { Locale } from "@/lib/i18n";
 type FanletterAgentRankEventDetailPageProps = {
   event: AgentRankReputationEvent;
   locale: Locale;
+  relatedEvents?: AgentRankReputationEvent[];
 };
 
 function getCopy(locale: Locale) {
@@ -34,6 +36,13 @@ function getCopy(locale: Locale) {
       object: "대상",
       oracle: "Oracle 준비",
       pending: "대기",
+      currentEvent: "현재 이벤트",
+      downstream: "이후 신호",
+      eventLineage: "Event Lineage",
+      eventLineageBody:
+        "같은 AI 스타, 멤버, 추천 코드, Universe로 이어진 이벤트를 전후 흐름으로 보여줍니다.",
+      linkedEvents: "연결 이벤트",
+      noRelatedEvents: "연결된 주변 이벤트가 아직 충분하지 않습니다.",
       rawJson: "Raw Event JSON",
       ready: "준비됨",
       readiness: "AgentRank 호환성",
@@ -41,6 +50,7 @@ function getCopy(locale: Locale) {
       source: "소스",
       sourceId: "소스 ID",
       title: "Reputation Event 상세 추적",
+      upstream: "이전 신호",
       viewAgentRank: "AgentRank 보기",
       x402: "x402 경제",
     };
@@ -59,6 +69,13 @@ function getCopy(locale: Locale) {
     object: "Object",
     oracle: "Oracle-ready",
     pending: "Pending",
+    currentEvent: "Current Event",
+    downstream: "Downstream Signals",
+    eventLineage: "Event Lineage",
+    eventLineageBody:
+      "Shows nearby events connected by the same AI Star, member, referral code, or Universe.",
+    linkedEvents: "linked events",
+    noRelatedEvents: "There are not enough related surrounding events yet.",
     rawJson: "Raw Event JSON",
     ready: "Ready",
     readiness: "AgentRank Compatibility",
@@ -66,6 +83,7 @@ function getCopy(locale: Locale) {
     source: "Source",
     sourceId: "Source ID",
     title: "Reputation Event Trace",
+    upstream: "Upstream Signals",
     viewAgentRank: "View AgentRank",
     x402: "x402 Economy",
   };
@@ -229,9 +247,145 @@ function ReadinessCard({
   );
 }
 
+function getEventTimestamp(event: AgentRankReputationEvent) {
+  const timestamp = new Date(event.occurredAt).getTime();
+
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function buildLineageGroups(
+  event: AgentRankReputationEvent,
+  relatedEvents: AgentRankReputationEvent[],
+) {
+  const currentTimestamp = getEventTimestamp(event);
+  const upstream = relatedEvents
+    .filter((candidate) => getEventTimestamp(candidate) <= currentTimestamp)
+    .sort((left, right) => getEventTimestamp(right) - getEventTimestamp(left))
+    .slice(0, 3);
+  const downstream = relatedEvents
+    .filter((candidate) => getEventTimestamp(candidate) > currentTimestamp)
+    .sort((left, right) => getEventTimestamp(left) - getEventTimestamp(right))
+    .slice(0, 3);
+
+  return {
+    downstream,
+    upstream,
+  };
+}
+
+function EventLineageNode({
+  event,
+  isCurrent = false,
+  locale,
+}: {
+  event: AgentRankReputationEvent;
+  isCurrent?: boolean;
+  locale: Locale;
+}) {
+  const starId = event.starId ?? event.object?.id ?? null;
+  const params = new URLSearchParams();
+  const content = (
+    <>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-[#11132d]">
+            {getEventTypeLabel(event.type, locale)}
+          </p>
+          <p className="mt-1 truncate text-[0.68rem] font-semibold text-slate-400">
+            {formatDate(event.occurredAt, locale)}
+          </p>
+        </div>
+        <span
+          className={`shrink-0 rounded-full px-2 py-0.5 text-[0.65rem] font-semibold ${
+            isCurrent
+              ? "bg-white/18 text-white"
+              : "bg-violet-50 text-[#6d28d9]"
+          }`}
+        >
+          {formatNumber(getImpactTotal(event), locale)}
+        </span>
+      </div>
+      <p
+        className={`mt-3 truncate font-mono text-[0.68rem] font-semibold ${
+          isCurrent ? "text-white/70" : "text-slate-500"
+        }`}
+      >
+        {event.eventId}
+      </p>
+      <p
+        className={`mt-1 truncate text-[0.68rem] font-semibold ${
+          isCurrent ? "text-white/70" : "text-slate-400"
+        }`}
+      >
+        {getActorLabel(event.actor)} → {getActorLabel(event.object ?? null)}
+      </p>
+    </>
+  );
+
+  if (starId) {
+    params.set("starId", starId);
+  }
+
+  if (isCurrent) {
+    return (
+      <div className="rounded-lg bg-gradient-to-br from-[#11132d] via-[#4338ca] to-[#7c3aed] p-4 text-white shadow-[0_18px_44px_rgba(88,28,135,0.16)]">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link
+      className="block rounded-lg border border-slate-100 bg-white p-4 transition hover:border-violet-200 hover:shadow-[0_16px_36px_rgba(88,28,135,0.08)]"
+      href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
+        event.eventId,
+      )}${params.size ? `?${params.toString()}` : ""}`}
+    >
+      {content}
+    </Link>
+  );
+}
+
+function LineageColumn({
+  emptyLabel,
+  events,
+  isCurrent = false,
+  locale,
+  title,
+}: {
+  emptyLabel: string;
+  events: AgentRankReputationEvent[];
+  isCurrent?: boolean;
+  locale: Locale;
+  title: string;
+}) {
+  return (
+    <div className="min-w-0 rounded-lg border border-slate-100 bg-slate-50 p-3">
+      <p className="text-xs font-semibold uppercase text-slate-400">{title}</p>
+      <div className="mt-3 grid gap-2">
+        {events.length ? (
+          events.map((lineageEvent) => (
+            <EventLineageNode
+              event={lineageEvent}
+              isCurrent={isCurrent}
+              key={lineageEvent.eventId}
+              locale={locale}
+            />
+          ))
+        ) : (
+          <div className="rounded-lg border border-dashed border-slate-200 bg-white p-4 text-sm font-semibold text-slate-400">
+            {emptyLabel}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function FanletterAgentRankEventDetailPage({
   event,
   locale,
+  relatedEvents = [],
 }: FanletterAgentRankEventDetailPageProps) {
   const copy = getCopy(locale);
   const starId = event.starId ?? event.object?.id ?? null;
@@ -246,6 +400,7 @@ export function FanletterAgentRankEventDetailPage({
   const contextEntries = Object.entries(event.context).filter(
     ([, value]) => value !== null && value !== "",
   );
+  const lineage = buildLineageGroups(event, relatedEvents);
 
   if (starId) {
     ledgerParams.set("starId", starId);
@@ -301,6 +456,51 @@ export function FanletterAgentRankEventDetailPage({
             </div>
           </div>
         </header>
+
+        <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+                <GitBranch className="size-4" />
+                {copy.eventLineage}
+              </p>
+              <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+                {copy.eventLineageBody}
+              </p>
+            </div>
+            <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
+              {formatNumber(relatedEvents.length, locale)} {copy.linkedEvents}
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_2rem_minmax(0,1.15fr)_2rem_minmax(0,1fr)] lg:items-center">
+            <LineageColumn
+              emptyLabel={copy.noRelatedEvents}
+              events={lineage.upstream}
+              locale={locale}
+              title={copy.upstream}
+            />
+            <div className="hidden justify-center text-[#6d28d9] lg:flex">
+              <ArrowRight className="size-5" />
+            </div>
+            <LineageColumn
+              emptyLabel={copy.noRelatedEvents}
+              events={[event]}
+              isCurrent
+              locale={locale}
+              title={copy.currentEvent}
+            />
+            <div className="hidden justify-center text-[#6d28d9] lg:flex">
+              <ArrowRight className="size-5" />
+            </div>
+            <LineageColumn
+              emptyLabel={copy.noRelatedEvents}
+              events={lineage.downstream}
+              locale={locale}
+              title={copy.downstream}
+            />
+          </div>
+        </section>
 
         <section className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
           <article className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">

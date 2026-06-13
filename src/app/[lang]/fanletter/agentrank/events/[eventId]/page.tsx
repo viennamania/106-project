@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterAgentRankEventDetailPage } from "@/components/fanletter-agentrank-event-detail-page";
-import { getFanletterAgentRankReputationEventById } from "@/lib/agentrank/reputation-events";
+import {
+  getFanletterAgentRankReputationEventFeed,
+  type AgentRankReputationEvent,
+} from "@/lib/agentrank/reputation-events";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { hasLocale, type Locale } from "@/lib/i18n";
 
@@ -27,6 +30,40 @@ function normalizeMemberEmail(value?: string | string[]) {
   const normalized = readFirstParam(value)?.trim().toLowerCase();
 
   return normalized || null;
+}
+
+function getTraceKeys(event: AgentRankReputationEvent) {
+  return new Set(
+    [
+      event.starId,
+      event.actor.id,
+      event.object?.id,
+      event.subject?.id,
+      event.context.universeId,
+      event.context.referralCode,
+    ]
+      .filter((value): value is string => typeof value === "string")
+      .map((value) => value.toLowerCase()),
+  );
+}
+
+function isRelatedTraceEvent(
+  candidate: AgentRankReputationEvent,
+  target: AgentRankReputationEvent,
+) {
+  if (candidate.eventId === target.eventId) {
+    return false;
+  }
+
+  const targetKeys = getTraceKeys(target);
+
+  for (const candidateKey of getTraceKeys(candidate)) {
+    if (targetKeys.has(candidateKey)) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function getEventDetailMeta(locale: Locale) {
@@ -100,14 +137,26 @@ export default async function FanletterAgentRankEventDetailRoute({
   const locale = lang as Locale;
   const starId = normalizeFanletterStarId(readFirstParam(query.starId) ?? null);
   const memberEmail = normalizeMemberEmail(query.memberEmail);
-  const event = await getFanletterAgentRankReputationEventById(eventId, {
+  const feed = await getFanletterAgentRankReputationEventFeed({
+    limit: 250,
     memberEmail,
     starId,
   });
+  const event = feed.events.find((candidate) => candidate.eventId === eventId);
 
   if (!event) {
     notFound();
   }
 
-  return <FanletterAgentRankEventDetailPage event={event} locale={locale} />;
+  const relatedEvents = feed.events
+    .filter((candidate) => isRelatedTraceEvent(candidate, event))
+    .slice(0, 24);
+
+  return (
+    <FanletterAgentRankEventDetailPage
+      event={event}
+      locale={locale}
+      relatedEvents={relatedEvents}
+    />
+  );
 }
