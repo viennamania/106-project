@@ -952,3 +952,23 @@ export async function getFanletterAgentRankReputationEventFeed(
     },
   };
 }
+
+export async function getFanletterAgentRankReputationEventById(
+  eventId: string,
+  options: Omit<GetFanletterAgentRankReputationEventsOptions, "limit"> = {},
+) {
+  const normalizedEventId = eventId.trim();
+
+  if (!normalizedEventId) {
+    return null;
+  }
+
+  const feed = await getFanletterAgentRankReputationEventFeed({
+    ...options,
+    limit: 250,
+  });
+
+  return (
+    feed.events.find((event) => event.eventId === normalizedEventId) ?? null
+  );
+}

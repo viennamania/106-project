@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowLeft,
+  ArrowRight,
   AlertTriangle,
   BadgeCheck,
   Bot,
@@ -89,6 +90,7 @@ function getLedgerCopy(locale: Locale) {
       needs: "보강 필요",
       oracleNeeds: "Oracle 보강 항목",
       oracleReady: "오라클 준비",
+      openEvent: "상세 추적",
       ready: "준비됨",
       schema: "스키마",
       schemaReady: "스키마 준비",
@@ -130,6 +132,7 @@ function getLedgerCopy(locale: Locale) {
     needs: "Needs data",
     oracleNeeds: "Oracle gaps",
     oracleReady: "Oracle-ready",
+    openEvent: "Trace Event",
     ready: "Ready",
     schema: "Schema",
     schemaReady: "Schema-ready",
@@ -336,6 +339,7 @@ function EventCard({
 }) {
   const copy = getLedgerCopy(locale);
   const Icon = eventIconMap[event.type];
+  const detailParams = new URLSearchParams();
   const impactTotal =
     typeof event.context.reputationImpactTotal === "number"
       ? event.context.reputationImpactTotal
@@ -344,6 +348,10 @@ function EventCard({
         event.reputationSignals.economicWeight +
         event.reputationSignals.networkWeight;
   const oracleGaps = getOracleReadinessGaps(event, locale);
+
+  if (event.starId) {
+    detailParams.set("starId", event.starId);
+  }
 
   return (
     <article className="rounded-lg border border-slate-100 bg-white p-4 shadow-[0_16px_38px_rgba(15,23,42,0.05)]">
@@ -417,6 +425,15 @@ function EventCard({
         <span>{event.context.universeId ?? event.starId ?? "-"}</span>
         <span className="text-slate-300">/</span>
         <span>{event.eventId.slice(0, 20)}</span>
+        <Link
+          className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white"
+          href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
+            event.eventId,
+          )}${detailParams.size ? `?${detailParams.toString()}` : ""}`}
+        >
+          {copy.openEvent}
+          <ArrowRight className="size-3.5" />
+        </Link>
       </div>
 
       <details className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
