@@ -20,6 +20,11 @@ import {
   WalletCards,
 } from "lucide-react";
 
+import {
+  buildAgentRankCoverageSnapshot,
+  type AgentRankCoverageSnapshot,
+} from "@/lib/agentrank/coverage";
+import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
 import type {
   AgentRankEconomicReputationScore,
   AgentRankErsComponent,
@@ -65,6 +70,18 @@ function getAgentRankCopy(locale: Locale) {
       agentStack: "AI Agent Trust Stack",
       cleanEvents: "Clean Economic Events",
       collectVerify: "Collect · Verify · Enrich · Store · Connect",
+      coverage: {
+        covered: "수집됨",
+        eventCoverage: "이벤트 타입 커버리지",
+        gaps: "우선 보강 신호",
+        interactionCoverage: "CTA 소스 커버리지",
+        missing: "대기",
+        oracleCoverage: "오라클 준비율",
+        phase1Quality: "Phase 1 데이터 품질",
+        subtitle:
+          "FanLetter 행동이 AgentRank 평판 이벤트로 얼마나 안정적으로 쌓이는지 점검합니다.",
+        title: "AgentRank Event Quality",
+      },
       dataLayer: "MiZi 데이터/검증 레이어",
       economicActivity: "평판은 경제 활동에서 만들어집니다",
       ers: "Economic Reputation Score",
@@ -132,6 +149,18 @@ function getAgentRankCopy(locale: Locale) {
     agentStack: "AI Agent Trust Stack",
     cleanEvents: "Clean Economic Events",
     collectVerify: "Collect · Verify · Enrich · Store · Connect",
+    coverage: {
+      covered: "Covered",
+      eventCoverage: "Event Type Coverage",
+      gaps: "Priority Gaps",
+      interactionCoverage: "CTA Source Coverage",
+      missing: "Pending",
+      oracleCoverage: "Oracle-ready Coverage",
+      phase1Quality: "Phase 1 Data Quality",
+      subtitle:
+        "Checks how reliably FanLetter actions are becoming AgentRank reputation events.",
+      title: "AgentRank Event Quality",
+    },
     dataLayer: "MiZi Data & Verification Layer",
     economicActivity: "Reputation is built from economic activity",
     ers: "Economic Reputation Score",
@@ -255,6 +284,75 @@ function getEventSourceLabel(
   return labels[source];
 }
 
+function getInteractionSourceLabel(
+  source: AgentRankInteractionSource,
+  locale: Locale,
+) {
+  const labels: Record<AgentRankInteractionSource, string> =
+    locale === "ko"
+      ? {
+          fanletter_agentrank: "AgentRank 페이지",
+          fanletter_bridge: "연결/온보딩",
+          fanletter_content: "콘텐츠/브이로그",
+          fanletter_creator_unlock: "크리에이터 권한",
+          fanletter_founder_universe: "파운더 네트워크",
+          fanletter_home: "FanLetter 홈",
+          fanletter_news: "뉴스/리포트",
+          fanletter_star_detail: "AI 스타 상세",
+        }
+      : {
+          fanletter_agentrank: "AgentRank Page",
+          fanletter_bridge: "Connect / Onboarding",
+          fanletter_content: "Content / Vlog",
+          fanletter_creator_unlock: "Creator Unlock",
+          fanletter_founder_universe: "Founder Network",
+          fanletter_home: "FanLetter Home",
+          fanletter_news: "News / Reports",
+          fanletter_star_detail: "AI Star Detail",
+        };
+
+  return labels[source];
+}
+
+function getCoverageGapLabel(gap: string, locale: Locale) {
+  const [kind, value] = gap.split(":");
+
+  if (kind === "missing_event") {
+    return locale === "ko"
+      ? `이벤트 미수집: ${getEventTypeLabel(
+          value as AgentRankReputationEvent["type"],
+          locale,
+        )}`
+      : `Missing event: ${value.replaceAll("_", " ")}`;
+  }
+
+  if (kind === "missing_source") {
+    return locale === "ko"
+      ? `CTA 소스 미수집: ${getInteractionSourceLabel(
+          value as AgentRankInteractionSource,
+          locale,
+        )}`
+      : `Missing CTA source: ${getInteractionSourceLabel(
+          value as AgentRankInteractionSource,
+          locale,
+        )}`;
+  }
+
+  if (gap === "pending:x402_economy") {
+    return locale === "ko"
+      ? "x402 결제 이벤트 연결 예정"
+      : "x402 payment events pending";
+  }
+
+  if (gap === "pending:a2a_usage") {
+    return locale === "ko"
+      ? "A2A 호출 이벤트 연결 예정"
+      : "A2A call events pending";
+  }
+
+  return gap;
+}
+
 function MetricTile({
   label,
   style,
@@ -364,6 +462,195 @@ function IconMiniTile({
         {label}
       </p>
     </div>
+  );
+}
+
+function CoverageProgress({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <div className="rounded-lg border border-violet-100 bg-white p-4 shadow-[0_14px_34px_rgba(88,28,135,0.05)]">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-semibold text-[#11132d]">{label}</p>
+        <p className="text-2xl font-semibold text-[#6d28d9]">{value}%</p>
+      </div>
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-violet-100">
+        <div
+          className="agentrank-score-bar h-full rounded-full bg-gradient-to-r from-[#6d28d9] via-[#2563eb] to-[#16a34a]"
+          style={{ width: `${value}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function AgentRankCoveragePanel({
+  copy,
+  coverage,
+  locale,
+}: {
+  copy: AgentRankCopy;
+  coverage: AgentRankCoverageSnapshot;
+  locale: Locale;
+}) {
+  const layerClass = {
+    creator: "border-pink-100 bg-pink-50/70 text-pink-700",
+    discovery: "border-blue-100 bg-blue-50/70 text-blue-700",
+    economy: "border-emerald-100 bg-emerald-50/70 text-emerald-700",
+    network: "border-violet-100 bg-violet-50/70 text-[#6d28d9]",
+  } satisfies Record<
+    AgentRankCoverageSnapshot["eventTypes"][number]["layer"],
+    string
+  >;
+
+  return (
+    <section className="agentrank-flow-card rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
+      <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+        <div>
+          <p className="text-sm font-semibold uppercase text-[#6d28d9]">
+            {copy.coverage.title}
+          </p>
+          <h2 className="mt-1 text-3xl font-semibold text-[#11132d]">
+            {copy.coverage.phase1Quality} · {coverage.phase1QualityScore}%
+          </h2>
+          <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
+            {copy.coverage.subtitle}
+          </p>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+            <CoverageProgress
+              label={copy.coverage.eventCoverage}
+              value={coverage.eventTypeCoveragePercent}
+            />
+            <CoverageProgress
+              label={copy.coverage.interactionCoverage}
+              value={coverage.interactionSourceCoveragePercent}
+            />
+            <CoverageProgress
+              label={copy.coverage.oracleCoverage}
+              value={coverage.oracleCoveragePercent}
+            />
+          </div>
+          <div className="mt-5 rounded-lg border border-dashed border-violet-200 bg-violet-50 p-4">
+            <p className="text-sm font-semibold text-[#4c1d95]">
+              {copy.coverage.gaps}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {coverage.gaps.map((gap) => (
+                <span
+                  className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#6d28d9] ring-1 ring-violet-100"
+                  key={gap}
+                >
+                  {getCoverageGapLabel(gap, locale)}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold uppercase text-[#6d28d9]">
+                {copy.coverage.eventCoverage}
+              </p>
+              <p className="text-xs font-semibold text-slate-500">
+                {coverage.totals.coveredEventTypes}/
+                {coverage.totals.eventTypes}
+              </p>
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {coverage.eventTypes.map((item) => {
+                const Icon = eventIconMap[item.type];
+
+                return (
+                  <div
+                    className={`min-w-0 rounded-lg border p-3 ${
+                      item.covered
+                        ? layerClass[item.layer]
+                        : "border-slate-100 bg-slate-50 text-slate-400"
+                    }`}
+                    key={item.type}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white shadow-[0_10px_24px_rgba(15,23,42,0.05)]">
+                          <Icon className="size-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-[#11132d]">
+                            {getEventTypeLabel(item.type, locale)}
+                          </p>
+                          <p className="text-xs font-semibold text-slate-500">
+                            {item.count} events
+                          </p>
+                        </div>
+                      </div>
+                      {item.covered ? (
+                        <BadgeCheck className="size-5 shrink-0 text-emerald-600" />
+                      ) : (
+                        <ShieldCheck className="size-5 shrink-0 text-slate-300" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold uppercase text-[#6d28d9]">
+                {copy.coverage.interactionCoverage}
+              </p>
+              <p className="text-xs font-semibold text-slate-500">
+                {coverage.totals.coveredInteractionSources}/
+                {coverage.totals.interactionSources}
+              </p>
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+              {coverage.sources.map((source) => (
+                <div
+                  className={`rounded-lg border px-3 py-3 ${
+                    source.covered
+                      ? "border-emerald-100 bg-emerald-50/70"
+                      : "border-slate-100 bg-slate-50"
+                  }`}
+                  key={source.source}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="min-w-0 truncate text-sm font-semibold text-[#11132d]">
+                      {getInteractionSourceLabel(source.source, locale)}
+                    </p>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-[0.68rem] font-semibold ${
+                        source.covered
+                          ? "bg-white text-emerald-700"
+                          : "bg-white text-slate-400"
+                      }`}
+                    >
+                      {source.count}
+                    </span>
+                  </div>
+                  <p
+                    className={`mt-2 text-xs font-semibold ${
+                      source.covered ? "text-emerald-700" : "text-slate-400"
+                    }`}
+                  >
+                    {source.covered
+                      ? copy.coverage.covered
+                      : copy.coverage.missing}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -1036,6 +1323,7 @@ export function FanletterAgentRankPage({
 }) {
   const copy = getAgentRankCopy(locale);
   const { ers, eventFeed } = snapshot;
+  const coverage = buildAgentRankCoverageSnapshot(eventFeed, ers.readiness);
   const metrics = [
     {
       label: copy.metrics.events,
@@ -1129,6 +1417,14 @@ export function FanletterAgentRankPage({
             />
           ))}
         </section>
+
+        <div className="mt-5">
+          <AgentRankCoveragePanel
+            copy={copy}
+            coverage={coverage}
+            locale={locale}
+          />
+        </div>
 
         <div className="mt-5">
           <TrustProblemPanel copy={copy} />
