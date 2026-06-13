@@ -106,6 +106,7 @@ function buildPreviewResponse({
     membership: {
       joinedAt: new Date().toISOString(),
       referralCode,
+      role: requestedReferralCode ? "founder" : "genesis_founder",
       source: requestedReferralCode ? "referral" : "direct",
       starId: star.id,
       status: "founder",
@@ -236,6 +237,7 @@ export async function POST(request: Request) {
       projection: {
         joinedAt: 1,
         joinedViaCode: 1,
+        role: 1,
       },
     },
   );
@@ -272,6 +274,17 @@ export async function POST(request: Request) {
     memberEmail: member.email,
     starId: liveStar.id,
   });
+  const nextMembership = await membershipsCollection.findOne(
+    {
+      memberEmail: member.email,
+      starId: liveStar.id,
+    },
+    {
+      projection: {
+        role: 1,
+      },
+    },
+  );
 
   return Response.json({
     membership: {
@@ -280,6 +293,7 @@ export async function POST(request: Request) {
         : new Date().toISOString(),
       joinState: existingMembership ? "existing" : "created",
       referralCode,
+      role: nextMembership?.role ?? existingMembership?.role ?? placement.role,
       source:
         attribution || existingMembership?.joinedViaCode ? "referral" : "direct",
       starId: liveStar.id,

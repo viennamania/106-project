@@ -30,6 +30,7 @@ export type FanletterFounderMockMembership = {
   joinState?: "created" | "existing";
   placement?: FanletterFounderMockPlacement | null;
   referralCode: string | null;
+  role?: string | null;
   source: "direct" | "referral";
   starId: string;
   status: "founder";
@@ -114,6 +115,9 @@ function isMembership(value: unknown): value is FanletterFounderMockMembership {
       isPlacement(candidate.placement)) &&
     (typeof candidate.referralCode === "string" ||
       candidate.referralCode === null) &&
+    (candidate.role === undefined ||
+      typeof candidate.role === "string" ||
+      candidate.role === null) &&
     (candidate.source === "direct" || candidate.source === "referral") &&
     typeof candidate.starId === "string" &&
     candidate.status === "founder"
@@ -192,6 +196,7 @@ export function recordFanletterFounderMockMembership({
   joinState,
   placement,
   referralCode,
+  role,
   source,
   starId,
 }: {
@@ -200,6 +205,7 @@ export function recordFanletterFounderMockMembership({
   joinState?: FanletterFounderMockMembership["joinState"];
   placement?: FanletterFounderMockPlacement | null;
   referralCode?: string | null;
+  role?: string | null;
   source?: FanletterFounderMockMembership["source"];
   starId: string;
 }) {
@@ -217,6 +223,7 @@ export function recordFanletterFounderMockMembership({
     placement: placement ?? existingMembership?.placement ?? null,
     referralCode:
       normalizedReferralCode ?? existingMembership?.referralCode ?? null,
+    role: role ?? existingMembership?.role ?? placement?.role ?? null,
     source:
       source ??
       (normalizedReferralCode || existingMembership?.source === "referral"
@@ -467,6 +474,7 @@ export function FanletterFounderJoinLink({
           joinState: response.membership.joinState,
           placement: response.placement,
           referralCode: response.membership.referralCode,
+          role: response.membership.role,
           source: response.membership.source,
           starId: response.membership.starId,
         });

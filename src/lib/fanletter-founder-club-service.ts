@@ -847,6 +847,76 @@ export async function getFanletterFounderJoinPlacement({
   });
 }
 
+function getFanletterFounderUniverseRoleAfterDepth(depth: number) {
+  const targetDepth = Math.max(
+    1,
+    Math.min(depth, fanletterFounderUniverseMaxDepth),
+  );
+
+  return getFanletterFounderUniverseTier(targetDepth)?.role ?? "legend";
+}
+
+function getFanletterFounderUniverseNextRole(
+  role: FanletterFounderUniverseRole | null | undefined,
+) {
+  if (!role) {
+    return getFanletterFounderUniverseRoleAfterDepth(2);
+  }
+
+  const parentTier = getFanletterFounderUniverseTierByRole(role);
+
+  if (!parentTier) {
+    return getFanletterFounderUniverseRoleAfterDepth(2);
+  }
+
+  return getFanletterFounderUniverseRoleAfterDepth(parentTier.depth + 1);
+}
+
+async function resolveFanletterFounderJoinMembershipRoles({
+  attribution,
+  starId,
+}: {
+  attribution?: FanletterStarReferralAttribution | null;
+  starId: string;
+}) {
+  const genesisRole = getFanletterFounderUniverseRoleAfterDepth(1);
+
+  if (!attribution) {
+    return {
+      sourceRole: null,
+      targetRole: genesisRole,
+    };
+  }
+
+  const sourcePlacement = await getFanletterFounderJoinPlacement({
+    memberEmail: attribution.memberEmail,
+    starId,
+  });
+  let sourceRole = sourcePlacement.role;
+
+  if (!sourceRole) {
+    const membershipsCollection =
+      await getFanletterStarFounderMembershipsCollection();
+    const sourceMembership = await membershipsCollection.findOne(
+      {
+        memberEmail: attribution.memberEmail,
+        starId,
+      },
+      {
+        projection: {
+          role: 1,
+        },
+      },
+    );
+    sourceRole = sourceMembership?.role ?? null;
+  }
+
+  return {
+    sourceRole,
+    targetRole: getFanletterFounderUniverseNextRole(sourceRole),
+  };
+}
+
 export async function applyFanletterStarReferralForCompletedMember(
   member: MemberDocument,
 ) {
@@ -1159,6 +1229,12 @@ export async function ensureFanletterStarFounderMembershipForCompletedMember({
     }
   }
 
+  const { sourceRole: attributionSourceRole, targetRole } =
+    await resolveFanletterFounderJoinMembershipRoles({
+      attribution,
+      starId: targetStarId,
+    });
+
   const targetMembershipResult = await membershipsCollection.updateOne(
     {
       memberEmail: member.email,
@@ -1179,7 +1255,7 @@ export async function ensureFanletterStarFounderMembershipForCompletedMember({
         joinedViaMemberEmail: attribution?.memberEmail ?? null,
         joinedViaMemberReferralCode: attribution?.memberReferralCode ?? null,
         joinedViaShareId: null,
-        role: "founder",
+        role: targetRole,
         source: "member_signup",
       },
     },
@@ -1307,7 +1383,7 @@ export async function ensureFanletterStarFounderMembershipForCompletedMember({
             joinedViaMemberReferralCode: null,
             joinedViaShareId: null,
             memberReferralCode: attribution.memberReferralCode,
-            role: "founder",
+            role: attributionSourceRole ?? "founder",
             source: "member_signup",
           },
         },
