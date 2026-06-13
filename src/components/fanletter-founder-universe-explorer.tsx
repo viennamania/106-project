@@ -109,6 +109,7 @@ const explorerCopy = {
     trustScore: "AgentRank ERS",
     title: "Founder Network Explorer",
     viewAgentRank: "View AgentRank",
+    viewLedger: "Event Ledger",
   },
   ja: {
     all: "すべて",
@@ -136,6 +137,7 @@ const explorerCopy = {
     trustScore: "AgentRank ERS",
     title: "Founder Network Explorer",
     viewAgentRank: "AgentRankを見る",
+    viewLedger: "Event Ledger",
   },
   ko: {
     all: "전체",
@@ -163,6 +165,7 @@ const explorerCopy = {
     trustScore: "AgentRank ERS",
     title: "파운더 네트워크 탐색",
     viewAgentRank: "AgentRank 보기",
+    viewLedger: "이벤트 원장",
   },
 } as const;
 
@@ -1488,25 +1491,47 @@ function AgentRankUniverseCard({
             {copy.reputationEvents}
           </p>
         </div>
-        <FanletterTrackedLink
-          agentRank={{
-            eventType: "content_engaged",
-            intent: "founder_universe_agentrank_card_open",
-            source: "fanletter_founder_universe",
-            starId: universe.star.id,
-          }}
-          className="inline-flex h-8 shrink-0 items-center rounded-full bg-violet-50 px-2.5 text-xs font-semibold text-[#6d28d9]"
-          eventName="content_open"
-          href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
-            universe.star.id,
-          )}`}
-          metadata={{
-            placement: "founder_universe_agentrank_sidebar_card",
-            starName: universe.star.displayName || universe.star.name,
-          }}
-        >
-          {copy.viewAgentRank}
-        </FanletterTrackedLink>
+        <div className="flex shrink-0 flex-wrap justify-end gap-2">
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "content_engaged",
+              intent: "founder_universe_agentrank_card_open",
+              source: "fanletter_founder_universe",
+              starId: universe.star.id,
+            }}
+            className="inline-flex h-8 items-center rounded-full bg-violet-50 px-2.5 text-xs font-semibold text-[#6d28d9]"
+            eventName="content_open"
+            href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
+              universe.star.id,
+            )}`}
+            metadata={{
+              placement: "founder_universe_agentrank_sidebar_card",
+              starName: universe.star.displayName || universe.star.name,
+            }}
+          >
+            {copy.viewAgentRank}
+          </FanletterTrackedLink>
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "content_engaged",
+              intent: "founder_universe_event_ledger_open",
+              source: "fanletter_founder_universe",
+              starId: universe.star.id,
+            }}
+            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-white px-2.5 text-xs font-semibold text-[#5b21b6]"
+            eventName="content_open"
+            href={`/${locale}/fanletter/agentrank/events?starId=${encodeURIComponent(
+              universe.star.id,
+            )}`}
+            metadata={{
+              placement: "founder_universe_agentrank_sidebar_ledger",
+              starName: universe.star.displayName || universe.star.name,
+            }}
+          >
+            <ExternalLink className="size-3" />
+            {copy.viewLedger}
+          </FanletterTrackedLink>
+        </div>
       </div>
 
       <div className="mt-5 rounded-xl bg-gradient-to-br from-[#11132d] via-[#4338ca] to-[#7c3aed] p-4 text-white">
@@ -1664,26 +1689,48 @@ function AgentRankSignalStrip({
           </div>
         </div>
 
-        <FanletterTrackedLink
-          agentRank={{
-            eventType: "content_engaged",
-            intent: "founder_universe_agentrank_strip_open",
-            source: "fanletter_founder_universe",
-            starId: universe.star.id,
-          }}
-          className="flex min-h-16 items-center justify-between gap-3 border-t border-violet-100 bg-gradient-to-br from-violet-50 to-emerald-50 px-4 py-4 text-sm font-semibold text-[#6d28d9] lg:border-l lg:border-t-0 lg:px-5"
-          eventName="content_open"
-          href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
-            universe.star.id,
-          )}`}
-          metadata={{
-            placement: "founder_universe_agentrank_signal_strip",
-            starName: universe.star.displayName || universe.star.name,
-          }}
-        >
-          <span>{copy.viewAgentRank}</span>
-          <ChevronRight className="size-4 shrink-0" />
-        </FanletterTrackedLink>
+        <div className="grid gap-2 border-t border-violet-100 bg-gradient-to-br from-violet-50 to-emerald-50 px-4 py-4 text-sm font-semibold lg:border-l lg:border-t-0 lg:px-5">
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "content_engaged",
+              intent: "founder_universe_agentrank_strip_open",
+              source: "fanletter_founder_universe",
+              starId: universe.star.id,
+            }}
+            className="flex min-h-10 items-center justify-between gap-3 rounded-lg bg-white/70 px-3 text-[#6d28d9]"
+            eventName="content_open"
+            href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
+              universe.star.id,
+            )}`}
+            metadata={{
+              placement: "founder_universe_agentrank_signal_strip",
+              starName: universe.star.displayName || universe.star.name,
+            }}
+          >
+            <span>{copy.viewAgentRank}</span>
+            <ChevronRight className="size-4 shrink-0" />
+          </FanletterTrackedLink>
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "content_engaged",
+              intent: "founder_universe_event_ledger_strip_open",
+              source: "fanletter_founder_universe",
+              starId: universe.star.id,
+            }}
+            className="flex min-h-10 items-center justify-between gap-3 rounded-lg border border-violet-100 bg-white px-3 text-[#5b21b6]"
+            eventName="content_open"
+            href={`/${locale}/fanletter/agentrank/events?starId=${encodeURIComponent(
+              universe.star.id,
+            )}`}
+            metadata={{
+              placement: "founder_universe_agentrank_signal_strip_ledger",
+              starName: universe.star.displayName || universe.star.name,
+            }}
+          >
+            <span>{copy.viewLedger}</span>
+            <ExternalLink className="size-3.5 shrink-0" />
+          </FanletterTrackedLink>
+        </div>
       </div>
     </section>
   );

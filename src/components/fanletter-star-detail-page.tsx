@@ -7,6 +7,7 @@ import {
   ArrowRight,
   Bot,
   Crown,
+  Database,
   GitBranch,
   Network,
   ShieldCheck,
@@ -535,6 +536,7 @@ function StarAgentRankJoinSignal({
         edges: "네트워크",
         events: "평판 이벤트",
         join: "Founder 참여",
+        ledger: "이벤트 원장",
         referral: "추천 코드",
         reward: "CP 보상",
         title: "이 참여가 AgentRank 신호가 됩니다",
@@ -544,6 +546,7 @@ function StarAgentRankJoinSignal({
         edges: "Network",
         events: "Reputation Events",
         join: "Founder Join",
+        ledger: "Event Ledger",
         referral: "Referral Code",
         reward: "CP Reward",
         title: "This join becomes an AgentRank signal",
@@ -564,15 +567,26 @@ function StarAgentRankJoinSignal({
             {labels.title}
           </h2>
         </div>
-        <Link
-          className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-full bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9]"
-          href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
-            star.id,
-          )}`}
-        >
-          {labels.cta}
-          <ArrowRight className="size-3.5" />
-        </Link>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Link
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9]"
+            href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
+              star.id,
+            )}`}
+          >
+            {labels.cta}
+            <ArrowRight className="size-3.5" />
+          </Link>
+          <Link
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white px-3 text-xs font-semibold text-[#5b21b6]"
+            href={`/${locale}/fanletter/agentrank/events?starId=${encodeURIComponent(
+              star.id,
+            )}`}
+          >
+            <Database className="size-3.5" />
+            {labels.ledger}
+          </Link>
+        </div>
       </div>
 
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-violet-50">
