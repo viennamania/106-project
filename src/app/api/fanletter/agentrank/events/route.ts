@@ -1,6 +1,7 @@
 import {
   agentRankReputationEventTypes,
   getFanletterAgentRankReputationEventFeed,
+  type AgentRankReputationEvent,
   type AgentRankReputationEventType,
 } from "@/lib/agentrank/reputation-events";
 
@@ -30,6 +31,82 @@ function parseIncludeTypes(value: string | null) {
   return types.length ? types : undefined;
 }
 
+function escapeCsvValue(value: string | number | boolean | null | undefined) {
+  const normalized = value == null ? "" : String(value);
+
+  if (!/[",\n\r]/.test(normalized)) {
+    return normalized;
+  }
+
+  return `"${normalized.replaceAll('"', '""')}"`;
+}
+
+function getImpactTotal(event: AgentRankReputationEvent) {
+  return (
+    event.reputationSignals.creatorWeight +
+    event.reputationSignals.discoveryWeight +
+    event.reputationSignals.economicWeight +
+    event.reputationSignals.networkWeight
+  );
+}
+
+function serializeEventFeedCsv(events: AgentRankReputationEvent[]) {
+  const headers = [
+    "eventId",
+    "occurredAt",
+    "type",
+    "starId",
+    "actorType",
+    "actorId",
+    "actorRole",
+    "objectType",
+    "objectId",
+    "source",
+    "sourceId",
+    "intent",
+    "cpDelta",
+    "influenceDelta",
+    "creatorProgressDelta",
+    "networkWeight",
+    "economicWeight",
+    "creatorWeight",
+    "discoveryWeight",
+    "impactTotal",
+    "oracleReady",
+    "x402Ready",
+    "schemaVersion",
+  ];
+  const rows = events.map((event) => [
+    event.eventId,
+    event.occurredAt,
+    event.type,
+    event.starId,
+    event.actor.type,
+    event.actor.id,
+    event.actor.role,
+    event.object?.type,
+    event.object?.id,
+    event.source,
+    event.sourceId,
+    event.context.intent,
+    event.economicLayer.cpDelta,
+    event.economicLayer.influenceDelta,
+    event.economicLayer.creatorProgressDelta,
+    event.reputationSignals.networkWeight,
+    event.reputationSignals.economicWeight,
+    event.reputationSignals.creatorWeight,
+    event.reputationSignals.discoveryWeight,
+    getImpactTotal(event).toFixed(2),
+    event.reputationSignals.oracleReady,
+    event.economicLayer.x402Ready,
+    event.schemaVersion,
+  ]);
+
+  return [headers, ...rows]
+    .map((row) => row.map(escapeCsvValue).join(","))
+    .join("\n");
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
 
@@ -40,6 +117,18 @@ export async function GET(request: Request) {
       memberEmail: normalizeParam(url.searchParams.get("memberEmail")),
       starId: normalizeParam(url.searchParams.get("starId")),
     });
+
+    if (url.searchParams.get("format") === "csv") {
+      const csv = serializeEventFeedCsv(feed.events);
+      const filename = `fanletter-agentrank-events-${Date.now()}.csv`;
+
+      return new Response(csv, {
+        headers: {
+          "content-disposition": `attachment; filename="${filename}"`,
+          "content-type": "text/csv; charset=utf-8",
+        },
+      });
+    }
 
     return Response.json(feed);
   } catch (error) {

@@ -1,11 +1,13 @@
 import Link from "next/link";
 import {
   ArrowLeft,
+  AlertTriangle,
   BadgeCheck,
   Bot,
   Clock3,
   Coins,
   Database,
+  Download,
   GitBranch,
   Network,
   Search,
@@ -66,9 +68,12 @@ function getLedgerCopy(locale: Locale) {
       api: "API 원본",
       back: "AgentRank로 돌아가기",
       cp: "CP",
+      csv: "CSV 내보내기",
+      details: "이벤트 상세",
       empty:
         "조건에 맞는 Reputation Event가 없습니다. 다른 스타, 멤버, 이벤트 타입으로 확인하세요.",
       event: "이벤트",
+      eventId: "이벤트 ID",
       applyFilters: "필터 적용",
       clearFilters: "필터 초기화",
       filterByType: "이벤트 타입 필터",
@@ -81,10 +86,14 @@ function getLedgerCopy(locale: Locale) {
       impact: "평판 영향",
       member: "멤버",
       networkEdges: "네트워크 엣지",
+      needs: "보강 필요",
+      oracleNeeds: "Oracle 보강 항목",
       oracleReady: "오라클 준비",
+      ready: "준비됨",
       schema: "스키마",
       schemaReady: "스키마 준비",
       source: "소스",
+      sourceId: "소스 ID",
       star: "AI 스타",
       limit: "표시 개수",
       totalEvents: "이벤트",
@@ -100,9 +109,12 @@ function getLedgerCopy(locale: Locale) {
     api: "Raw API",
     back: "Back to AgentRank",
     cp: "CP",
+    csv: "Export CSV",
+    details: "Event Details",
     empty:
       "No matching Reputation Events. Try another Star, member, or event type.",
     event: "Event",
+    eventId: "Event ID",
     applyFilters: "Apply filters",
     clearFilters: "Reset filters",
     filterByType: "Filter by event type",
@@ -115,10 +127,14 @@ function getLedgerCopy(locale: Locale) {
     impact: "Reputation Impact",
     member: "Member",
     networkEdges: "Network Edges",
+    needs: "Needs data",
+    oracleNeeds: "Oracle gaps",
     oracleReady: "Oracle-ready",
+    ready: "Ready",
     schema: "Schema",
     schemaReady: "Schema-ready",
     source: "Source",
+    sourceId: "Source ID",
     star: "AI Star",
     limit: "Limit",
     totalEvents: "Events",
@@ -191,6 +207,79 @@ function getObjectLabel(event: AgentRankReputationEvent) {
   return event.object?.label ?? event.object?.id ?? event.starId ?? "-";
 }
 
+function isValidIsoDate(value: string) {
+  return !Number.isNaN(new Date(value).getTime());
+}
+
+function getOracleReadinessGaps(
+  event: AgentRankReputationEvent,
+  locale: Locale,
+) {
+  const labels =
+    locale === "ko"
+      ? {
+          actor: "액터 ID",
+          source: "소스 ID",
+          star: "AI 스타 ID",
+          time: "발생 시각",
+          upstream: "상위 검증 신호",
+        }
+      : {
+          actor: "Actor ID",
+          source: "Source ID",
+          star: "AI Star ID",
+          time: "Timestamp",
+          upstream: "Upstream verification signal",
+        };
+  const gaps: string[] = [];
+
+  if (!event.sourceId) {
+    gaps.push(labels.source);
+  }
+
+  if (!isValidIsoDate(event.occurredAt)) {
+    gaps.push(labels.time);
+  }
+
+  if (!event.actor.id || event.actor.id.startsWith("unknown-")) {
+    gaps.push(labels.actor);
+  }
+
+  if (!event.starId && event.object?.type !== "ai_star") {
+    gaps.push(labels.star);
+  }
+
+  if (!event.reputationSignals.oracleReady && gaps.length === 0) {
+    gaps.push(labels.upstream);
+  }
+
+  return gaps;
+}
+
+function ReadinessPill({
+  gaps,
+  label,
+}: {
+  gaps: string[];
+  label: string;
+}) {
+  const isReady = gaps.length === 0;
+  const Icon = isReady ? BadgeCheck : AlertTriangle;
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 ${
+        isReady
+          ? "border-emerald-100 bg-emerald-50 text-emerald-700"
+          : "border-amber-100 bg-amber-50 text-amber-700"
+      }`}
+    >
+      <Icon className="size-3.5" />
+      {label}
+    </span>
+  );
+}
+
 function buildLedgerHref({
   filters,
   locale,
@@ -254,6 +343,7 @@ function EventCard({
         event.reputationSignals.discoveryWeight +
         event.reputationSignals.economicWeight +
         event.reputationSignals.networkWeight;
+  const oracleGaps = getOracleReadinessGaps(event, locale);
 
   return (
     <article className="rounded-lg border border-slate-100 bg-white p-4 shadow-[0_16px_38px_rgba(15,23,42,0.05)]">
@@ -314,12 +404,65 @@ function EventCard({
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 text-xs font-semibold text-slate-500">
+        <ReadinessPill
+          gaps={oracleGaps}
+          label={
+            oracleGaps.length === 0
+              ? `${copy.oracleReady} ${copy.ready}`
+              : `${copy.oracleReady} ${copy.needs}`
+          }
+        />
         <span>{formatDate(event.occurredAt, locale)}</span>
         <span className="text-slate-300">/</span>
         <span>{event.context.universeId ?? event.starId ?? "-"}</span>
         <span className="text-slate-300">/</span>
         <span>{event.eventId.slice(0, 20)}</span>
       </div>
+
+      <details className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
+        <summary className="cursor-pointer text-[#5b21b6]">
+          {copy.details}
+        </summary>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="min-w-0">
+            <p className="uppercase text-slate-400">{copy.eventId}</p>
+            <p className="mt-1 break-all font-mono text-[0.68rem] text-slate-700">
+              {event.eventId}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="uppercase text-slate-400">{copy.sourceId}</p>
+            <p className="mt-1 break-all font-mono text-[0.68rem] text-slate-700">
+              {event.sourceId}
+            </p>
+          </div>
+          <div>
+            <p className="uppercase text-slate-400">{copy.source}</p>
+            <p className="mt-1 text-slate-700">{event.source}</p>
+          </div>
+          <div>
+            <p className="uppercase text-slate-400">{copy.oracleNeeds}</p>
+            <p className="mt-1 text-slate-700">
+              {oracleGaps.length ? oracleGaps.join(", ") : copy.ready}
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-4">
+          {[
+            ["Network", event.reputationSignals.networkWeight],
+            ["Economic", event.reputationSignals.economicWeight],
+            ["Creator", event.reputationSignals.creatorWeight],
+            ["Discovery", event.reputationSignals.discoveryWeight],
+          ].map(([label, value]) => (
+            <div className="rounded-md bg-white px-2.5 py-2" key={label}>
+              <p className="text-slate-400">{label}</p>
+              <p className="mt-1 text-sm text-[#11132d]">
+                {Number(value).toFixed(2)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </details>
     </article>
   );
 }
@@ -345,6 +488,8 @@ export function FanletterAgentRankLedgerPage({
   }
 
   apiParams.set("limit", String(filters.limit));
+  const csvParams = new URLSearchParams(apiParams);
+  csvParams.set("format", "csv");
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
@@ -362,13 +507,22 @@ export function FanletterAgentRankLedgerPage({
               <ArrowLeft className="size-4" />
               {copy.back}
             </Link>
-            <Link
-              className="inline-flex h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold text-white"
-              href={`/api/fanletter/agentrank/events?${apiParams.toString()}`}
-            >
-              <Database className="size-4" />
-              {copy.api}
-            </Link>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                className="inline-flex h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold text-white"
+                href={`/api/fanletter/agentrank/events?${apiParams.toString()}`}
+              >
+                <Database className="size-4" />
+                {copy.api}
+              </Link>
+              <Link
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800"
+                href={`/api/fanletter/agentrank/events?${csvParams.toString()}`}
+              >
+                <Download className="size-4" />
+                {copy.csv}
+              </Link>
+            </div>
           </div>
 
           <div className="mt-7 grid gap-5 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
