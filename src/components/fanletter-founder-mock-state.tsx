@@ -17,6 +17,9 @@ import {
   type ReactNode,
 } from "react";
 
+import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
+import type { FunnelEventMetadata } from "@/lib/funnel";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { Locale } from "@/lib/i18n";
 
 const FANLETTER_FOUNDER_MOCK_MEMBERSHIPS_STORAGE_KEY =
@@ -431,6 +434,7 @@ export function useFanletterFounderMockMemberships() {
 }
 
 export function FanletterFounderJoinLink({
+  agentRank,
   children,
   className,
   href,
@@ -438,8 +442,10 @@ export function FanletterFounderJoinLink({
   mode = "live",
   referralCode,
   starId,
+  trackingMetadata,
   useResponseUniverseHref = false,
 }: {
+  agentRank?: AgentRankInteractionSignal | null;
   children: ReactNode;
   className?: string;
   href: string;
@@ -447,6 +453,7 @@ export function FanletterFounderJoinLink({
   mode?: FanletterFounderJoinMode;
   referralCode?: string | null;
   starId: string;
+  trackingMetadata?: FunnelEventMetadata;
   useResponseUniverseHref?: boolean;
 }) {
   const handleClick = useCallback(
@@ -468,6 +475,12 @@ export function FanletterFounderJoinLink({
       const nextHref = event.currentTarget.href;
 
       async function recordJoinResponse(response: FanletterFounderMockJoinResponse) {
+        const universeHref = resolveLocalUniverseHref({
+          fallbackHref: nextHref,
+          response,
+          useResponseUniverseHref,
+        });
+
         recordFanletterFounderMockMembership({
           joinedAt: response.membership.joinedAt,
           joinMode: response.mode,
@@ -479,13 +492,21 @@ export function FanletterFounderJoinLink({
           starId: response.membership.starId,
         });
 
-        window.location.assign(
-          resolveLocalUniverseHref({
-            fallbackHref: nextHref,
-            response,
-            useResponseUniverseHref,
-          }),
-        );
+        trackFunnelEvent("signup_cta_click", {
+          agentRank,
+          metadata: {
+            ...trackingMetadata,
+            founderJoinMode: response.mode,
+            founderJoinState: response.membership.joinState ?? null,
+            founderPlacementDepth: response.placement?.depth ?? null,
+            founderPlacementRole: response.placement?.role ?? null,
+            founderPlacementSource: response.placement?.source ?? null,
+          },
+          referralCode: response.membership.referralCode ?? referralCode,
+          targetHref: universeHref,
+        });
+
+        window.location.assign(universeHref);
       }
 
       async function completeJoin() {
@@ -534,6 +555,15 @@ export function FanletterFounderJoinLink({
             referralCode,
             starId,
           });
+          trackFunnelEvent("signup_cta_click", {
+            agentRank,
+            metadata: {
+              ...trackingMetadata,
+              founderJoinMode: "local_mock",
+            },
+            referralCode,
+            targetHref: nextHref,
+          });
         }
 
         window.location.assign(nextHref);
@@ -541,7 +571,15 @@ export function FanletterFounderJoinLink({
 
       void completeJoin();
     },
-    [locale, mode, referralCode, starId, useResponseUniverseHref],
+    [
+      agentRank,
+      locale,
+      mode,
+      referralCode,
+      starId,
+      trackingMetadata,
+      useResponseUniverseHref,
+    ],
   );
 
   return (

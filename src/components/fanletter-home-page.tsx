@@ -984,13 +984,22 @@ function FanletterAgentRankHomeCard({
         ))}
       </div>
 
-      <Link
+      <FanletterTrackedLink
+        agentRank={{
+          eventType: "content_engaged",
+          intent: "agentrank_preview_open",
+          source: "fanletter_home",
+        }}
         className="mt-4 inline-flex h-10 min-w-0 w-full items-center justify-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 text-sm font-semibold !text-[#6d28d9]"
+        eventName="content_open"
         href={href}
+        metadata={{
+          placement: "fanletter_home_agentrank_card",
+        }}
       >
         <span className="truncate">{copy.cta}</span>
         <ArrowRight className="size-4 shrink-0" />
-      </Link>
+      </FanletterTrackedLink>
     </div>
   );
 }
@@ -1260,13 +1269,24 @@ function FanletterProductHomeDashboard({
                 </div>
                 <FanletterTerminologyGuide locale={locale} variant="compact" />
                 <div className="grid min-w-0 gap-3 sm:flex sm:flex-wrap">
-                  <Link
+                  <FanletterTrackedLink
+                    agentRank={{
+                      eventType: "ai_star_discovered",
+                      intent: "home_primary_discovery",
+                      source: "fanletter_home",
+                      starId: primaryStar?.id ?? null,
+                    }}
                     className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.24)] transition hover:bg-[#6d28d9] sm:w-auto sm:shrink-0"
+                    eventName="signup_cta_click"
                     href={topGrowingStarsHref}
+                    metadata={{
+                      placement: "fanletter_product_home_primary_discovery",
+                    }}
+                    referralCode={referralCode}
                   >
                     <span className="truncate">{productCopy.primaryCta}</span>
                     <ArrowRight className="size-4" />
-                  </Link>
+                  </FanletterTrackedLink>
                   <Link
                     className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white px-5 text-sm font-semibold !text-[#6d28d9] shadow-[0_12px_26px_rgba(88,28,135,0.08)] transition hover:bg-violet-50 sm:w-auto sm:shrink-0"
                     href={connectHref}
@@ -1342,13 +1362,25 @@ function FanletterProductHomeDashboard({
                   data-fanletter-top-stars-scroller
                 >
                   {topStars.map((star) => (
-                    <Link
+                    <FanletterTrackedLink
+                      agentRank={{
+                        eventType: "ai_star_discovered",
+                        intent: "top_growing_star_open",
+                        source: "fanletter_home",
+                        starId: star.id,
+                      }}
                       className="group w-[13.75rem] max-w-[calc(100vw-5rem)] shrink-0 snap-start overflow-hidden rounded-[1.05rem] border border-violet-100 bg-white shadow-[0_12px_30px_rgba(88,28,135,0.07)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(88,28,135,0.12)] lg:w-[14.5rem]"
+                      eventName="content_open"
                       href={buildPathWithReferral(
                         `/${locale}/fanletter/${encodeURIComponent(star.id)}`,
                         referralCode,
                       )}
                       key={star.id}
+                      metadata={{
+                        placement: "fanletter_top_growing_ai_star",
+                        starName: star.name,
+                      }}
+                      referralCode={referralCode}
                     >
                       <div
                         className="h-1.5"
@@ -1403,7 +1435,7 @@ function FanletterProductHomeDashboard({
                           <ArrowRight className="size-3.5 shrink-0" />
                         </div>
                       </div>
-                    </Link>
+                    </FanletterTrackedLink>
                   ))}
                 </div>
                 <div

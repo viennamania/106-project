@@ -2,8 +2,10 @@ import type {
   FunnelEventMetadata,
   FunnelEventName,
 } from "@/lib/funnel";
+import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
 
 type FunnelEventPayload = {
+  agentRank?: AgentRankInteractionSignal | null;
   contentId?: string | null;
   metadata?: FunnelEventMetadata;
   path?: string | null;

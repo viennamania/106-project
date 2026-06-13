@@ -7,12 +7,14 @@ import type {
   FunnelEventMetadata,
   FunnelEventName,
 } from "@/lib/funnel";
+import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 
 type FanletterTrackedLinkProps = Omit<
   ComponentProps<typeof Link>,
   "href" | "onClick"
 > & {
+  agentRank?: AgentRankInteractionSignal | null;
   contentId?: string | null;
   eventName: FunnelEventName;
   href: string;
@@ -23,6 +25,7 @@ type FanletterTrackedLinkProps = Omit<
 };
 
 export function FanletterTrackedLink({
+  agentRank,
   contentId,
   eventName,
   href,
@@ -38,6 +41,7 @@ export function FanletterTrackedLink({
       href={href}
       onClick={(event) => {
         trackFunnelEvent(eventName, {
+          agentRank,
           contentId,
           metadata,
           referralCode,

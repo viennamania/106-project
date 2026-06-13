@@ -1,3 +1,5 @@
+import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
+
 export const funnelEventNames = [
   "bridge_view",
   "content_open",
@@ -30,6 +32,7 @@ export type FunnelEventMetadata = Record<
 >;
 
 export type FunnelEventDocument = {
+  agentRank?: AgentRankInteractionSignal | null;
   contentId?: string | null;
   createdAt: Date;
   eventId: string;

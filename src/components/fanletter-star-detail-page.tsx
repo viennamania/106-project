@@ -30,7 +30,10 @@ import {
 } from "@/components/fanletter-founder-mock-state";
 import { FanletterStarReferralPanel } from "@/components/fanletter-star-referral-panel";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
+import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
 import type { FanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
+import type { FunnelEventMetadata } from "@/lib/funnel";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import {
   fanletterV2Mock,
   getFanletterV2Copy,
@@ -345,22 +348,39 @@ function getPrimaryAction({
 
 function StarActionLink({
   action,
+  agentRank,
   className,
   children,
   locale,
   referralCode,
   starId,
+  trackingMetadata,
 }: {
   action: StarPrimaryAction;
+  agentRank?: AgentRankInteractionSignal | null;
   children?: ReactNode;
   className: string;
   locale: Locale;
   referralCode?: string | null;
   starId: string;
+  trackingMetadata?: FunnelEventMetadata;
 }) {
+  function trackActionIntent(targetHref: string) {
+    trackFunnelEvent("signup_cta_click", {
+      agentRank,
+      metadata: trackingMetadata,
+      referralCode,
+      targetHref,
+    });
+  }
+
   if (action.href.startsWith("#")) {
     return (
-      <a className={className} href={action.href}>
+      <a
+        className={className}
+        href={action.href}
+        onClick={() => trackActionIntent(action.href)}
+      >
         {children ?? action.label}
       </a>
     );
@@ -370,11 +390,13 @@ function StarActionLink({
     return (
       <FanletterFounderJoinLink
         className={className}
+        agentRank={agentRank}
         href={action.href}
         locale={locale}
         mode="live"
         referralCode={referralCode}
         starId={starId}
+        trackingMetadata={trackingMetadata}
         useResponseUniverseHref
       >
         {children ?? action.label}
@@ -383,7 +405,11 @@ function StarActionLink({
   }
 
   return (
-    <Link className={className} href={action.href}>
+    <Link
+      className={className}
+      href={action.href}
+      onClick={() => trackActionIntent(action.href)}
+    >
       {children ?? action.label}
     </Link>
   );
@@ -597,6 +623,8 @@ function StarFounderMobilePanel({
   loop,
   referralCode,
   star,
+  trackingAgentRank,
+  trackingMetadata,
 }: {
   action: StarPrimaryAction;
   copy: ReturnType<typeof getFanletterV2Copy>;
@@ -605,6 +633,8 @@ function StarFounderMobilePanel({
   loop: ScoutShareLoopData;
   referralCode: string;
   star: AIStar;
+  trackingAgentRank?: AgentRankInteractionSignal | null;
+  trackingMetadata?: FunnelEventMetadata;
 }) {
   const founderMember = {
     initials: "A",
@@ -719,10 +749,12 @@ function StarFounderMobilePanel({
       <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
         <StarActionLink
           action={action}
+          agentRank={trackingAgentRank}
           className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)]"
           locale={locale}
           referralCode={joinReferralCode}
           starId={star.id}
+          trackingMetadata={trackingMetadata}
         >
           {action.label}
           <ArrowRight className="size-4" />
@@ -1131,6 +1163,25 @@ export function FanletterStarDetailPage({
   });
   const isKorean = isKoreanCopy(copy);
   const displayStarName = getDisplayStarName(star.name, copy);
+  const primaryActionAgentRank = {
+    eventType:
+      primaryAction.variant === "share"
+        ? "referral_code_created"
+        : "founder_joined",
+    intent:
+      primaryAction.variant === "share"
+        ? "founder_referral_share"
+        : primaryAction.variant === "connect"
+          ? "connect_to_founder_join"
+          : "founder_join_confirm",
+    source: "fanletter_star_detail",
+    starId: star.id,
+  } satisfies AgentRankInteractionSignal;
+  const primaryActionTrackingMetadata = {
+    placement: "fanletter_star_detail_primary_action",
+    starName: star.name,
+    viewerState,
+  } satisfies FunnelEventMetadata;
 
   return (
     <main className="min-h-screen bg-[#fbfaff] pb-28 text-black">
@@ -1217,6 +1268,8 @@ export function FanletterStarDetailPage({
                   loop={loop}
                   referralCode={referralCode}
                   star={star}
+                  trackingAgentRank={primaryActionAgentRank}
+                  trackingMetadata={primaryActionTrackingMetadata}
                 />
                 <FounderJoinFlowHint
                   copy={copy}
@@ -1271,10 +1324,12 @@ export function FanletterStarDetailPage({
               <div className="mt-6 hidden flex-col gap-2 sm:flex sm:flex-row">
                 <StarActionLink
                   action={primaryAction}
+                  agentRank={primaryActionAgentRank}
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9]"
                   locale={locale}
                   referralCode={joinReferralCode}
                   starId={star.id}
+                  trackingMetadata={primaryActionTrackingMetadata}
                 >
                   {primaryAction.label}
                   <ArrowRight className="size-4" />

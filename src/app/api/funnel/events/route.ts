@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 
+import { normalizeAgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
 import {
   type FunnelEventMetadata,
   isFunnelEventName,
@@ -86,6 +87,9 @@ export async function POST(request: Request) {
   const now = new Date();
 
   await collection.insertOne({
+    agentRank: normalizeAgentRankInteractionSignal(
+      "agentRank" in body ? body.agentRank : null,
+    ),
     contentId: readNullableString("contentId" in body ? body.contentId : null),
     createdAt: now,
     eventId: randomUUID(),
