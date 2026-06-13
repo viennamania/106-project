@@ -48,6 +48,14 @@ import {
 
 type ExplorerDepthFilter = "all" | number;
 
+type FounderUniverseAgentRankScoreDimensionKey =
+  | "creator"
+  | "discovery"
+  | "economic"
+  | "network"
+  | "riskPenalty"
+  | "trust";
+
 type FounderUniverseAgentRankSnapshot = {
   ers: {
     formula: string;
@@ -68,6 +76,38 @@ type FounderUniverseAgentRankSnapshot = {
       uniqueMembers: number;
       uniqueStars: number;
     };
+  };
+  scoreAggregate?: {
+    confidence: number;
+    dimensions: Array<{
+      key: FounderUniverseAgentRankScoreDimensionKey;
+      maxScore: number;
+      rawValue: number;
+      score: number;
+    }>;
+    formula: string;
+    maxScore: number;
+    readiness: {
+      oracleReadyPercent: number;
+      schemaReadyPercent: number;
+    };
+    score: number;
+    summary: {
+      eventCount: number;
+      founderJoins: number;
+      referralConversions: number;
+      riskEvents: number;
+      spawnedStars: number;
+      uniqueMembers: number;
+    };
+    topContributors: Array<{
+      actorId: string;
+      actorType: string;
+      contributionScore: number;
+      eventCount: number;
+      label?: string | null;
+      role?: string | null;
+    }>;
   };
   eventFeed: {
     events: Array<{
@@ -93,6 +133,7 @@ const explorerCopy = {
     empty: "No members match this filter.",
     expansion: "Star Universe Expansion",
     founderUniverse: "Founder Network",
+    founderJoins: "Founder Joins",
     generatedBy: "Launched by",
     source: "Source Star Universe",
     member: "Member",
@@ -105,8 +146,10 @@ const explorerCopy = {
     reputationEvents: "Reputation Events",
     search: "Search role or referral code",
     selected: "Selected node",
+    scoreBreakdown: "Score Breakdown",
+    scoreConfidence: "Confidence",
     spawned: "Spawned Stars",
-    trustScore: "AgentRank ERS",
+    trustScore: "AgentRank Score",
     title: "Founder Network Explorer",
     viewAgentRank: "View AgentRank",
     viewLedger: "Event Ledger",
@@ -121,6 +164,7 @@ const explorerCopy = {
     empty: "条件に合うメンバーがいません。",
     expansion: "Star Universe Expansion",
     founderUniverse: "Founder Network",
+    founderJoins: "Founder Joins",
     generatedBy: "生成者",
     source: "Source Star Universe",
     member: "Member",
@@ -133,8 +177,10 @@ const explorerCopy = {
     reputationEvents: "Reputation Events",
     search: "RoleまたはReferral codeを検索",
     selected: "選択ノード",
+    scoreBreakdown: "Score Breakdown",
+    scoreConfidence: "Confidence",
     spawned: "Spawned Stars",
-    trustScore: "AgentRank ERS",
+    trustScore: "AgentRank Score",
     title: "Founder Network Explorer",
     viewAgentRank: "AgentRankを見る",
     viewLedger: "Event Ledger",
@@ -149,6 +195,7 @@ const explorerCopy = {
     empty: "조건에 맞는 멤버가 없습니다.",
     expansion: "스타 유니버스 확장",
     founderUniverse: "파운더 네트워크",
+    founderJoins: "파운더 참여",
     generatedBy: "배출 멤버",
     source: "출처 스타 유니버스",
     member: "멤버",
@@ -161,8 +208,10 @@ const explorerCopy = {
     reputationEvents: "평판 이벤트",
     search: "역할 또는 추천 코드 검색",
     selected: "선택 노드",
+    scoreBreakdown: "점수 구성",
+    scoreConfidence: "집계 신뢰도",
     spawned: "파생 AI 스타",
-    trustScore: "AgentRank ERS",
+    trustScore: "AgentRank 점수",
     title: "파운더 네트워크 탐색",
     viewAgentRank: "AgentRank 보기",
     viewLedger: "이벤트 원장",
@@ -1460,6 +1509,47 @@ function getAgentRankEventLabel(type: string, locale: Locale) {
   return labels[type] ?? type.replaceAll("_", " ");
 }
 
+function getAgentRankScoreDimensionLabel(
+  key: FounderUniverseAgentRankScoreDimensionKey,
+  locale: Locale,
+) {
+  const labels: Record<FounderUniverseAgentRankScoreDimensionKey, string> =
+    locale === "ko"
+      ? {
+          creator: "크리에이터",
+          discovery: "발견",
+          economic: "경제",
+          network: "네트워크",
+          riskPenalty: "위험",
+          trust: "신뢰",
+        }
+      : {
+          creator: "Creator",
+          discovery: "Discovery",
+          economic: "Economic",
+          network: "Network",
+          riskPenalty: "Risk",
+          trust: "Trust",
+        };
+
+  return labels[key];
+}
+
+function getAgentRankScoreDimensionClass(
+  key: FounderUniverseAgentRankScoreDimensionKey,
+) {
+  const classMap: Record<FounderUniverseAgentRankScoreDimensionKey, string> = {
+    creator: "bg-pink-50 text-pink-700 ring-pink-100",
+    discovery: "bg-blue-50 text-blue-700 ring-blue-100",
+    economic: "bg-emerald-50 text-emerald-700 ring-emerald-100",
+    network: "bg-violet-50 text-[#6d28d9] ring-violet-100",
+    riskPenalty: "bg-red-50 text-red-700 ring-red-100",
+    trust: "bg-slate-100 text-slate-700 ring-slate-200",
+  };
+
+  return classMap[key];
+}
+
 function AgentRankUniverseCard({
   agentRank,
   locale,
@@ -1474,10 +1564,17 @@ function AgentRankUniverseCard({
   }
 
   const copy = getExplorerCopy(locale);
+  const scoreAggregate = agentRank.scoreAggregate ?? null;
+  const displayScore = scoreAggregate?.score ?? agentRank.ers.score;
+  const displayMaxScore = scoreAggregate?.maxScore ?? agentRank.ers.maxScore;
   const scorePercent = Math.round(
-    (agentRank.ers.score / Math.max(1, agentRank.ers.maxScore)) * 100,
+    (displayScore / Math.max(1, displayMaxScore)) * 100,
   );
   const latestEvents = agentRank.eventFeed.events.slice(0, 3);
+  const dimensionHighlights =
+    scoreAggregate?.dimensions
+      .filter((dimension) => dimension.key !== "riskPenalty")
+      .slice(0, 4) ?? [];
 
   return (
     <aside className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
@@ -1537,13 +1634,15 @@ function AgentRankUniverseCard({
       <div className="mt-5 rounded-xl bg-gradient-to-br from-[#11132d] via-[#4338ca] to-[#7c3aed] p-4 text-white">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase text-white/60">ERS</p>
+            <p className="text-xs font-semibold uppercase text-white/60">
+              AgentRank
+            </p>
             <p className="mt-1 text-4xl font-semibold">
-              {agentRank.ers.score}
+              {displayScore}
             </p>
           </div>
           <p className="pb-1 text-sm font-semibold text-white/70">
-            / {formatNumber(agentRank.ers.maxScore, locale)}
+            / {formatNumber(displayMaxScore, locale)}
           </p>
         </div>
         <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/16">
@@ -1552,7 +1651,60 @@ function AgentRankUniverseCard({
             style={{ width: `${scorePercent}%` }}
           />
         </div>
+        {scoreAggregate ? (
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-lg bg-white/10 px-3 py-2">
+            <span className="text-xs font-semibold text-white/62">
+              {copy.scoreConfidence}
+            </span>
+            <span className="text-sm font-semibold text-white">
+              {scoreAggregate.confidence}%
+            </span>
+          </div>
+        ) : null}
       </div>
+
+      {dimensionHighlights.length > 0 ? (
+        <div className="mt-4 rounded-xl border border-violet-100 bg-violet-50/50 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold text-[#6d28d9]">
+              {copy.scoreBreakdown}
+            </p>
+            <p className="text-[0.65rem] font-semibold text-slate-400">
+              v0
+            </p>
+          </div>
+          <div className="mt-3 grid gap-2">
+            {dimensionHighlights.map((dimension) => {
+              const dimensionPercent = Math.round(
+                (dimension.score / Math.max(1, dimension.maxScore)) * 100,
+              );
+
+              return (
+                <div key={dimension.key}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={`rounded-full px-2 py-1 text-[0.65rem] font-semibold ring-1 ${getAgentRankScoreDimensionClass(
+                        dimension.key,
+                      )}`}
+                    >
+                      {getAgentRankScoreDimensionLabel(dimension.key, locale)}
+                    </span>
+                    <span className="text-xs font-semibold text-[#111827]">
+                      {formatNumber(dimension.score, locale)}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#22c55e]"
+                      style={{ width: `${dimensionPercent}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         <div className="rounded-lg bg-slate-50 p-3">
@@ -1623,9 +1775,16 @@ function AgentRankSignalStrip({
   }
 
   const copy = getExplorerCopy(locale);
+  const scoreAggregate = agentRank.scoreAggregate ?? null;
+  const displayScore = scoreAggregate?.score ?? agentRank.ers.score;
+  const displayMaxScore = scoreAggregate?.maxScore ?? agentRank.ers.maxScore;
   const scorePercent = Math.round(
-    (agentRank.ers.score / Math.max(1, agentRank.ers.maxScore)) * 100,
+    (displayScore / Math.max(1, displayMaxScore)) * 100,
   );
+  const compactDimensions =
+    scoreAggregate?.dimensions
+      .filter((dimension) => dimension.key !== "riskPenalty")
+      .slice(0, 3) ?? [];
 
   return (
     <section className="overflow-hidden rounded-[1.35rem] border border-violet-100 bg-white shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
@@ -1638,10 +1797,10 @@ function AgentRankSignalStrip({
             </p>
             <div className="mt-2 flex min-w-0 flex-wrap items-end gap-x-3 gap-y-1">
               <p className="text-3xl font-semibold leading-none text-[#111827]">
-                {agentRank.ers.score}
+                {displayScore}
               </p>
               <p className="pb-0.5 text-sm font-semibold text-slate-400">
-                / {formatNumber(agentRank.ers.maxScore, locale)}
+                / {formatNumber(displayMaxScore, locale)}
               </p>
               <p className="w-full text-xs font-semibold text-slate-500 sm:w-auto">
                 {copy.reputationEvents}{" "}
@@ -1660,32 +1819,56 @@ function AgentRankSignalStrip({
             <div className="mt-2 grid grid-cols-3 gap-2 text-center">
               <div className="rounded-lg bg-slate-50 px-2 py-2">
                 <p className="text-sm font-semibold text-[#111827]">
-                  {formatNumber(agentRank.ers.summary.networkEdges, locale)}
+                  {scoreAggregate
+                    ? `${scoreAggregate.confidence}%`
+                    : formatNumber(agentRank.ers.summary.networkEdges, locale)}
                 </p>
                 <p className="mt-0.5 text-[0.65rem] font-semibold text-slate-400">
-                  {copy.edge}
+                  {scoreAggregate ? copy.scoreConfidence : copy.edge}
                 </p>
               </div>
               <div className="rounded-lg bg-slate-50 px-2 py-2">
                 <p className="text-sm font-semibold text-[#111827]">
-                  {formatNumber(agentRank.ers.summary.cpTotal, locale)}
+                  {scoreAggregate
+                    ? formatNumber(
+                        scoreAggregate.summary.founderJoins,
+                        locale,
+                      )
+                    : formatNumber(agentRank.ers.summary.cpTotal, locale)}
                 </p>
                 <p className="mt-0.5 text-[0.65rem] font-semibold text-slate-400">
-                  CP
+                  {scoreAggregate ? copy.founderJoins : "CP"}
                 </p>
               </div>
               <div className="rounded-lg bg-slate-50 px-2 py-2">
                 <p className="text-sm font-semibold text-[#111827]">
-                  {formatNumber(
-                    agentRank.ers.summary.oracleReadyEvents,
-                    locale,
-                  )}
+                  {scoreAggregate
+                    ? `${scoreAggregate.readiness.oracleReadyPercent}%`
+                    : formatNumber(
+                        agentRank.ers.summary.oracleReadyEvents,
+                        locale,
+                      )}
                 </p>
                 <p className="mt-0.5 text-[0.65rem] font-semibold text-slate-400">
                   Oracle
                 </p>
               </div>
             </div>
+            {compactDimensions.length > 0 ? (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {compactDimensions.map((dimension) => (
+                  <span
+                    className={`rounded-full px-2 py-1 text-[0.65rem] font-semibold ring-1 ${getAgentRankScoreDimensionClass(
+                      dimension.key,
+                    )}`}
+                    key={dimension.key}
+                  >
+                    {getAgentRankScoreDimensionLabel(dimension.key, locale)}{" "}
+                    {formatNumber(dimension.score, locale)}
+                  </span>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
 
