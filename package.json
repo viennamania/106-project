@@ -33,6 +33,7 @@
     "fanletter:founder-universe:backfill": "node scripts/backfill-fanletter-founder-universe-placement.mjs",
     "fanletter:founder-universe:roles:reconcile": "node scripts/reconcile-fanletter-founder-universe-roles.mjs",
     "fanletter:agentrank:funnel:audit": "node scripts/audit-fanletter-agentrank-funnel-events.mjs",
+    "fanletter:agentrank:funnel:backfill": "node scripts/backfill-fanletter-agentrank-funnel-events.mjs",
     "fanletter:reporter-incentives:backfill": "node scripts/backfill-fanletter-news-reporter-incentives.mjs",
     "fanletter:report-teasers:backfill": "node scripts/backfill-fanletter-news-report-teasers.mjs",
     "reconcile:pending": "node scripts/trigger-reconcile-signups.mjs",
