@@ -34,6 +34,7 @@ import {
   AnimatedNumber,
   ScrollReveal,
 } from "@/components/fanletter-home-motion";
+import type { FanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import type {
   FanletterFeaturedVideo,
   FanletterLiveStats,
@@ -895,7 +896,108 @@ function MobileFounderLoopVisual({
   );
 }
 
+function FanletterAgentRankHomeCard({
+  href,
+  locale,
+  snapshot,
+}: {
+  href: string;
+  locale: Locale;
+  snapshot?: FanletterAgentRankInvestorSnapshot | null;
+}) {
+  if (!snapshot) {
+    return null;
+  }
+
+  const isKo = locale === "ko";
+  const copy = isKo
+    ? {
+        body: "발견, 참여, 초대, CP 보상이 AgentRank 평판 이벤트로 쌓입니다.",
+        cta: "AgentRank 보기",
+        events: "평판 이벤트",
+        network: "네트워크",
+        title: "Reputation Event Factory",
+      }
+    : {
+        body:
+          "Discovery, joins, invites, and CP rewards are recorded as AgentRank reputation events.",
+        cta: "View AgentRank",
+        events: "Reputation Events",
+        network: "Network",
+        title: "Reputation Event Factory",
+      };
+  const scorePercent = Math.round(
+    (snapshot.ers.score / Math.max(1, snapshot.ers.maxScore)) * 100,
+  );
+  const metrics = [
+    {
+      label: copy.events,
+      value: snapshot.ers.summary.eventCount,
+    },
+    {
+      label: copy.network,
+      value: snapshot.ers.summary.networkEdges,
+    },
+    {
+      label: "CP",
+      value: snapshot.ers.summary.cpTotal,
+    },
+  ];
+
+  return (
+    <div className="rounded-[1.35rem] border border-violet-100 bg-white/88 p-4 shadow-[0_22px_56px_rgba(88,28,135,0.1)] backdrop-blur-xl">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-[#6d28d9]">
+            <ShieldCheck className="size-4 shrink-0" />
+            AgentRank ERS
+          </p>
+          <h2 className="mt-2 break-words text-base font-semibold text-[#12041f] [word-break:keep-all]">
+            {copy.title}
+          </h2>
+          <p className="mt-1 text-xs font-medium leading-5 text-slate-500 [word-break:keep-all]">
+            {copy.body}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full bg-violet-50 px-3 py-1.5 text-sm font-semibold text-[#6d28d9]">
+          {snapshot.ers.score}
+        </span>
+      </div>
+
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-violet-50">
+        <span
+          className="block h-full rounded-full bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#22c55e]"
+          style={{ width: `${scorePercent}%` }}
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        {metrics.map((metric) => (
+          <div className="min-w-0 rounded-xl bg-slate-50 p-2.5" key={metric.label}>
+            <p className="truncate text-sm font-semibold text-[#12041f]">
+              {formatMetric(metric.value, locale)}
+            </p>
+            <p className="mt-1 truncate text-[0.58rem] font-semibold text-slate-400">
+              {metric.label}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <Link
+        className="mt-4 inline-flex h-10 min-w-0 w-full items-center justify-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 text-sm font-semibold !text-[#6d28d9]"
+        href={href}
+      >
+        <span className="truncate">{copy.cta}</span>
+        <ArrowRight className="size-4 shrink-0" />
+      </Link>
+    </div>
+  );
+}
+
 function FanletterProductHomeDashboard({
+  agentRankHref,
+  agentRankSnapshot,
   aiStarGenealogyHref,
   connectHref,
   copy,
@@ -912,6 +1014,8 @@ function FanletterProductHomeDashboard({
   stars,
   topGrowingStarsHref,
 }: {
+  agentRankHref: string;
+  agentRankSnapshot?: FanletterAgentRankInvestorSnapshot | null;
   aiStarGenealogyHref: string;
   connectHref: string;
   copy: FanletterCopy;
@@ -1478,6 +1582,14 @@ function FanletterProductHomeDashboard({
               <ArrowRight className="size-4" />
             </Link>
           </div>
+        </ScrollReveal>
+
+        <ScrollReveal delay={220} y={16}>
+          <FanletterAgentRankHomeCard
+            href={agentRankHref}
+            locale={locale}
+            snapshot={agentRankSnapshot}
+          />
         </ScrollReveal>
 
         <ScrollReveal delay={240} y={16}>
@@ -2298,6 +2410,7 @@ function FanletterPaidSpotlightSection({
 }
 
 export function FanletterHomePage({
+  agentRankSnapshot,
   featuredPaidVideos,
   featuredVideos,
   founderClubCreatorUnlock,
@@ -2312,6 +2425,7 @@ export function FanletterHomePage({
   referralCode,
   shareContext,
 }: {
+  agentRankSnapshot?: FanletterAgentRankInvestorSnapshot | null;
   featuredPaidVideos: FanletterFeaturedVideo[];
   featuredVideos: FanletterFeaturedVideo[];
   founderClubCreatorUnlock?: CreatorUnlockData | null;
@@ -2360,6 +2474,10 @@ export function FanletterHomePage({
   );
   const aiStarGenealogyHref = buildPathWithReferral(
     `/${locale}/fanletter/ai-star-genealogy`,
+    referralCode,
+  );
+  const agentRankHref = buildPathWithReferral(
+    `/${locale}/fanletter/agentrank`,
     referralCode,
   );
   const creatorPathHref = "#creator-path";
@@ -2885,6 +3003,8 @@ export function FanletterHomePage({
           ) : null}
 
           <FanletterProductHomeDashboard
+            agentRankHref={agentRankHref}
+            agentRankSnapshot={agentRankSnapshot}
             aiStarGenealogyHref={aiStarGenealogyHref}
             connectHref={connectHref}
             copy={copy}

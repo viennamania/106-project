@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { FanletterStarDetailPage } from "@/components/fanletter-star-detail-page";
+import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import {
   getFanletterFounderClubHomeStars,
   getFanletterFounderClubStarScoutShareLoop,
@@ -223,12 +224,21 @@ export default async function FanletterStarLandingPage({
   const memberSession = await readMemberServerSession();
 
   if (star) {
-    const liveViewerScoutShareLoop =
-      await getFanletterFounderClubStarScoutShareLoop({
+    const [liveViewerScoutShareLoop, agentRankSnapshot] = await Promise.all([
+      getFanletterFounderClubStarScoutShareLoop({
         email: memberSession?.email ?? null,
         locale: lang,
         starId: star.id,
-      });
+      }),
+      getFanletterAgentRankInvestorSnapshot({
+        limit: 80,
+        starId: star.id,
+      }).catch((error) => {
+        console.error("Failed to load FanLetter star AgentRank snapshot", error);
+
+        return null;
+      }),
+    ]);
     const viewerScoutShareLoop =
       liveViewerScoutShareLoop ??
       (isMockFounderJoined
@@ -241,6 +251,7 @@ export default async function FanletterStarLandingPage({
 
     return (
       <FanletterStarDetailPage
+        agentRankSnapshot={agentRankSnapshot}
         isAuthenticated={Boolean(memberSession?.email)}
         inboundReferralCode={referralCode}
         locale={lang}

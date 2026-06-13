@@ -45,6 +45,40 @@ import {
 
 type ExplorerDepthFilter = "all" | number;
 
+type FounderUniverseAgentRankSnapshot = {
+  ers: {
+    formula: string;
+    maxScore: number;
+    readiness: {
+      a2aReady: boolean;
+      oracleReady: boolean;
+      reputationLedgerReady: boolean;
+      x402Ready: boolean;
+    };
+    score: number;
+    summary: {
+      cpTotal: number;
+      eventCount: number;
+      networkEdges: number;
+      oracleReadyEvents: number;
+      spawnedStars: number;
+      uniqueMembers: number;
+      uniqueStars: number;
+    };
+  };
+  eventFeed: {
+    events: Array<{
+      economicLayer: {
+        cpDelta?: number;
+      };
+      eventId: string;
+      occurredAt: string;
+      source: string;
+      type: string;
+    }>;
+  };
+};
+
 const explorerCopy = {
   en: {
     all: "All",
@@ -65,10 +99,13 @@ const explorerCopy = {
     open: "Open",
     overview: "Overview",
     referral: "Referral",
+    reputationEvents: "Reputation Events",
     search: "Search role or referral code",
     selected: "Selected node",
     spawned: "Spawned Stars",
+    trustScore: "AgentRank ERS",
     title: "Founder Network Explorer",
+    viewAgentRank: "View AgentRank",
   },
   ja: {
     all: "すべて",
@@ -89,10 +126,13 @@ const explorerCopy = {
     open: "Open",
     overview: "概要",
     referral: "Referral",
+    reputationEvents: "Reputation Events",
     search: "RoleまたはReferral codeを検索",
     selected: "選択ノード",
     spawned: "Spawned Stars",
+    trustScore: "AgentRank ERS",
     title: "Founder Network Explorer",
+    viewAgentRank: "AgentRankを見る",
   },
   ko: {
     all: "전체",
@@ -113,10 +153,13 @@ const explorerCopy = {
     open: "열림",
     overview: "요약",
     referral: "추천",
+    reputationEvents: "평판 이벤트",
     search: "역할 또는 추천 코드 검색",
     selected: "선택 노드",
     spawned: "파생 AI 스타",
+    trustScore: "AgentRank ERS",
     title: "파운더 네트워크 탐색",
+    viewAgentRank: "AgentRank 보기",
   },
 } as const;
 
@@ -1391,6 +1434,236 @@ function MonthlyCpRewardCard({
   );
 }
 
+function getAgentRankEventLabel(type: string, locale: Locale) {
+  if (locale !== "ko") {
+    return type.replaceAll("_", " ");
+  }
+
+  const labels: Record<string, string> = {
+    ai_star_discovered: "AI 스타 발견",
+    ai_star_spawned: "AI 스타 창업",
+    content_engaged: "콘텐츠 반응",
+    cp_earned: "CP 보상",
+    creator_unlocked: "크리에이터 권한",
+    founder_joined: "파운더 참여",
+    referral_code_created: "추천 코드",
+    referral_converted: "추천 전환",
+    universe_growth: "유니버스 성장",
+  };
+
+  return labels[type] ?? type.replaceAll("_", " ");
+}
+
+function AgentRankUniverseCard({
+  agentRank,
+  locale,
+  universe,
+}: {
+  agentRank?: FounderUniverseAgentRankSnapshot | null;
+  locale: Locale;
+  universe: FanletterFounderUniverseExplorerData;
+}) {
+  if (!agentRank) {
+    return null;
+  }
+
+  const copy = getExplorerCopy(locale);
+  const scorePercent = Math.round(
+    (agentRank.ers.score / Math.max(1, agentRank.ers.maxScore)) * 100,
+  );
+  const latestEvents = agentRank.eventFeed.events.slice(0, 3);
+
+  return (
+    <aside className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="inline-flex items-center gap-2 text-sm font-semibold text-[#6d28d9]">
+            <Sparkles className="size-4" />
+            {copy.trustScore}
+          </p>
+          <p className="mt-1 text-xs font-semibold text-slate-400">
+            {copy.reputationEvents}
+          </p>
+        </div>
+        <Link
+          className="inline-flex h-8 shrink-0 items-center rounded-full bg-violet-50 px-2.5 text-xs font-semibold text-[#6d28d9]"
+          href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
+            universe.star.id,
+          )}`}
+        >
+          {copy.viewAgentRank}
+        </Link>
+      </div>
+
+      <div className="mt-5 rounded-xl bg-gradient-to-br from-[#11132d] via-[#4338ca] to-[#7c3aed] p-4 text-white">
+        <div className="flex items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase text-white/60">ERS</p>
+            <p className="mt-1 text-4xl font-semibold">
+              {agentRank.ers.score}
+            </p>
+          </div>
+          <p className="pb-1 text-sm font-semibold text-white/70">
+            / {formatNumber(agentRank.ers.maxScore, locale)}
+          </p>
+        </div>
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/16">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-emerald-300 to-cyan-300"
+            style={{ width: `${scorePercent}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <div className="rounded-lg bg-slate-50 p-3">
+          <p className="text-xs font-semibold text-slate-400">
+            {copy.reputationEvents}
+          </p>
+          <p className="mt-1 text-xl font-semibold text-[#111827]">
+            {formatNumber(agentRank.ers.summary.eventCount, locale)}
+          </p>
+        </div>
+        <div className="rounded-lg bg-slate-50 p-3">
+          <p className="text-xs font-semibold text-slate-400">CP</p>
+          <p className="mt-1 text-xl font-semibold text-[#111827]">
+            {formatNumber(agentRank.ers.summary.cpTotal, locale)}
+          </p>
+        </div>
+        <div className="rounded-lg bg-slate-50 p-3">
+          <p className="text-xs font-semibold text-slate-400">{copy.edge}</p>
+          <p className="mt-1 text-xl font-semibold text-[#111827]">
+            {formatNumber(agentRank.ers.summary.networkEdges, locale)}
+          </p>
+        </div>
+        <div className="rounded-lg bg-slate-50 p-3">
+          <p className="text-xs font-semibold text-slate-400">Oracle</p>
+          <p className="mt-1 text-xl font-semibold text-[#111827]">
+            {formatNumber(agentRank.ers.summary.oracleReadyEvents, locale)}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-2">
+        {latestEvents.map((event) => (
+          <div
+            className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-white px-3 py-2"
+            key={event.eventId}
+          >
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold text-[#111827]">
+                {getAgentRankEventLabel(event.type, locale)}
+              </p>
+              <p className="mt-0.5 truncate text-[0.65rem] font-semibold text-slate-400">
+                {event.source}
+              </p>
+            </div>
+            {event.economicLayer.cpDelta ? (
+              <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[0.65rem] font-semibold text-emerald-700">
+                CP +{formatNumber(event.economicLayer.cpDelta, locale)}
+              </span>
+            ) : null}
+          </div>
+        ))}
+      </div>
+    </aside>
+  );
+}
+
+function AgentRankSignalStrip({
+  agentRank,
+  locale,
+  universe,
+}: {
+  agentRank?: FounderUniverseAgentRankSnapshot | null;
+  locale: Locale;
+  universe: FanletterFounderUniverseExplorerData;
+}) {
+  if (!agentRank) {
+    return null;
+  }
+
+  const copy = getExplorerCopy(locale);
+  const scorePercent = Math.round(
+    (agentRank.ers.score / Math.max(1, agentRank.ers.maxScore)) * 100,
+  );
+
+  return (
+    <section className="overflow-hidden rounded-[1.35rem] border border-violet-100 bg-white shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="flex min-w-0 flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-2 text-sm font-semibold text-[#6d28d9]">
+              <ShieldCheck className="size-4" />
+              {copy.trustScore}
+            </p>
+            <div className="mt-2 flex min-w-0 flex-wrap items-end gap-x-3 gap-y-1">
+              <p className="text-3xl font-semibold leading-none text-[#111827]">
+                {agentRank.ers.score}
+              </p>
+              <p className="pb-0.5 text-sm font-semibold text-slate-400">
+                / {formatNumber(agentRank.ers.maxScore, locale)}
+              </p>
+              <p className="w-full text-xs font-semibold text-slate-500 sm:w-auto">
+                {copy.reputationEvents}{" "}
+                {formatNumber(agentRank.ers.summary.eventCount, locale)}
+              </p>
+            </div>
+          </div>
+
+          <div className="min-w-0 flex-1 lg:max-w-sm">
+            <div className="h-2 overflow-hidden rounded-full bg-violet-50">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#22c55e]"
+                style={{ width: `${scorePercent}%` }}
+              />
+            </div>
+            <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-lg bg-slate-50 px-2 py-2">
+                <p className="text-sm font-semibold text-[#111827]">
+                  {formatNumber(agentRank.ers.summary.networkEdges, locale)}
+                </p>
+                <p className="mt-0.5 text-[0.65rem] font-semibold text-slate-400">
+                  {copy.edge}
+                </p>
+              </div>
+              <div className="rounded-lg bg-slate-50 px-2 py-2">
+                <p className="text-sm font-semibold text-[#111827]">
+                  {formatNumber(agentRank.ers.summary.cpTotal, locale)}
+                </p>
+                <p className="mt-0.5 text-[0.65rem] font-semibold text-slate-400">
+                  CP
+                </p>
+              </div>
+              <div className="rounded-lg bg-slate-50 px-2 py-2">
+                <p className="text-sm font-semibold text-[#111827]">
+                  {formatNumber(
+                    agentRank.ers.summary.oracleReadyEvents,
+                    locale,
+                  )}
+                </p>
+                <p className="mt-0.5 text-[0.65rem] font-semibold text-slate-400">
+                  Oracle
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Link
+          className="flex min-h-16 items-center justify-between gap-3 border-t border-violet-100 bg-gradient-to-br from-violet-50 to-emerald-50 px-4 py-4 text-sm font-semibold text-[#6d28d9] lg:border-l lg:border-t-0 lg:px-5"
+          href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
+            universe.star.id,
+          )}`}
+        >
+          <span>{copy.viewAgentRank}</span>
+          <ChevronRight className="size-4 shrink-0" />
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 function getStatusLabel(
   status: FanletterFounderUniverseExplorerSpawnedStar["status"],
   locale: Locale,
@@ -1686,9 +1959,11 @@ function MemberNodeCard({
 }
 
 export function FanletterFounderUniverseExplorer({
+  agentRank,
   locale,
   universe,
 }: {
+  agentRank?: FounderUniverseAgentRankSnapshot | null;
   locale: Locale;
   universe: FanletterFounderUniverseExplorerData;
 }) {
@@ -1762,6 +2037,12 @@ export function FanletterFounderUniverseExplorer({
             universe={displayUniverse}
           />
 
+          <AgentRankSignalStrip
+            agentRank={agentRank}
+            locale={locale}
+            universe={displayUniverse}
+          />
+
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="grid gap-5">
               <FounderUniverseDashboardPanel
@@ -1828,6 +2109,11 @@ export function FanletterFounderUniverseExplorer({
                 locale={locale}
                 node={selectedNode}
                 onSelectNode={setSelectedNodeId}
+              />
+              <AgentRankUniverseCard
+                agentRank={agentRank}
+                locale={locale}
+                universe={displayUniverse}
               />
               <MonthlyCpRewardCard locale={locale} universe={displayUniverse} />
             </div>

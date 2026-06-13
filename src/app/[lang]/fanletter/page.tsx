@@ -6,6 +6,7 @@ import {
   FanletterHomePage,
   type FanletterHomeShareContext,
 } from "@/components/fanletter-home-page";
+import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import {
   getFanletterFounderClubCreatorUnlock,
   getFanletterFounderClubHomeStars,
@@ -153,6 +154,7 @@ export default async function FanletterRoutePage({
     founderClubMemberPortfolio,
     founderClubScoutShareLoop,
     founderClubCreatorUnlock,
+    agentRankSnapshot,
   ] = await Promise.all([
     getFanletterLandingData(locale, includeNsfw),
     shouldLoadShareContext && shareCreatorReferralCode
@@ -167,6 +169,11 @@ export default async function FanletterRoutePage({
       locale,
     }),
     getFanletterFounderClubCreatorUnlock(memberSession?.email ?? null),
+    getFanletterAgentRankInvestorSnapshot({ limit: 80 }).catch((error) => {
+      console.error("Failed to load FanLetter AgentRank snapshot", error);
+
+      return null;
+    }),
   ]);
   const shareContextReferralCode =
     referralCode ?? shareCreatorData?.profile.referralCode ?? null;
@@ -218,6 +225,7 @@ export default async function FanletterRoutePage({
 
   return (
     <FanletterHomePage
+      agentRankSnapshot={agentRankSnapshot}
       featuredPaidVideos={landingData.featuredPaidVideos}
       featuredVideos={landingData.featuredVideos}
       founderClubCreatorUnlock={founderClubCreatorUnlock}

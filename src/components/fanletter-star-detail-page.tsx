@@ -30,6 +30,7 @@ import {
 } from "@/components/fanletter-founder-mock-state";
 import { FanletterStarReferralPanel } from "@/components/fanletter-star-referral-panel";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
+import type { FanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import {
   fanletterV2Mock,
   getFanletterV2Copy,
@@ -484,6 +485,107 @@ function FounderJoinFlowHint({
         })}
       </div>
     </div>
+  );
+}
+
+function StarAgentRankJoinSignal({
+  locale,
+  snapshot,
+  star,
+}: {
+  locale: Locale;
+  snapshot?: FanletterAgentRankInvestorSnapshot | null;
+  star: AIStar;
+}) {
+  if (!snapshot) {
+    return null;
+  }
+
+  const isKorean = locale === "ko";
+  const labels = isKorean
+    ? {
+        cta: "AgentRank 보기",
+        edges: "네트워크",
+        events: "평판 이벤트",
+        join: "Founder 참여",
+        referral: "추천 코드",
+        reward: "CP 보상",
+        title: "이 참여가 AgentRank 신호가 됩니다",
+      }
+    : {
+        cta: "View AgentRank",
+        edges: "Network",
+        events: "Reputation Events",
+        join: "Founder Join",
+        referral: "Referral Code",
+        reward: "CP Reward",
+        title: "This join becomes an AgentRank signal",
+      };
+  const scorePercent = Math.round(
+    (snapshot.ers.score / Math.max(1, snapshot.ers.maxScore)) * 100,
+  );
+
+  return (
+    <article className="mt-4 max-w-2xl rounded-lg border border-violet-200 bg-white/84 p-3 shadow-[0_14px_34px_rgba(88,28,135,0.08)]">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-2 text-xs font-semibold text-[#6d28d9]">
+            <ShieldCheck className="size-4 shrink-0" />
+            AgentRank ERS {snapshot.ers.score}
+          </p>
+          <h2 className="mt-1 break-words text-sm font-semibold text-[#12041f] [word-break:keep-all]">
+            {labels.title}
+          </h2>
+        </div>
+        <Link
+          className="inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-full bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9]"
+          href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
+            star.id,
+          )}`}
+        >
+          {labels.cta}
+          <ArrowRight className="size-3.5" />
+        </Link>
+      </div>
+
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-violet-50">
+        <span
+          className="block h-full rounded-full bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#22c55e]"
+          style={{ width: `${scorePercent}%` }}
+        />
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {[
+          [labels.events, snapshot.ers.summary.eventCount],
+          [labels.edges, snapshot.ers.summary.networkEdges],
+          ["CP", snapshot.ers.summary.cpTotal],
+        ].map(([label, value]) => (
+          <span
+            className="min-w-0 rounded-lg bg-slate-50 px-2 py-2 text-center"
+            key={label}
+          >
+            <span className="block truncate text-sm font-semibold text-[#12041f]">
+              {formatNumber(Number(value), locale)}
+            </span>
+            <span className="mt-0.5 block truncate text-[0.58rem] font-semibold text-slate-400">
+              {label}
+            </span>
+          </span>
+        ))}
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {[labels.join, labels.referral, labels.reward].map((eventLabel) => (
+          <span
+            className="rounded-full border border-violet-100 bg-white px-2.5 py-1 text-[0.66rem] font-semibold text-[#6d28d9]"
+            key={eventLabel}
+          >
+            {eventLabel}
+          </span>
+        ))}
+      </div>
+    </article>
   );
 }
 
@@ -954,6 +1056,7 @@ function AIStarGenealogySection({
 }
 
 export function FanletterStarDetailPage({
+  agentRankSnapshot,
   isAuthenticated = false,
   inboundReferralCode,
   locale,
@@ -961,6 +1064,7 @@ export function FanletterStarDetailPage({
   star,
   viewerScoutShareLoop,
 }: {
+  agentRankSnapshot?: FanletterAgentRankInvestorSnapshot | null;
   isAuthenticated?: boolean;
   inboundReferralCode?: string | null;
   locale: Locale;
@@ -1096,6 +1200,13 @@ export function FanletterStarDetailPage({
                   viewerState={viewerState}
                 />
               </div>
+              <div className="hidden sm:block">
+                <StarAgentRankJoinSignal
+                  locale={locale}
+                  snapshot={agentRankSnapshot}
+                  star={star}
+                />
+              </div>
 
               <div className="mt-5 sm:hidden">
                 <StarFounderMobilePanel
@@ -1110,6 +1221,11 @@ export function FanletterStarDetailPage({
                 <FounderJoinFlowHint
                   copy={copy}
                   viewerState={viewerState}
+                />
+                <StarAgentRankJoinSignal
+                  locale={locale}
+                  snapshot={agentRankSnapshot}
+                  star={star}
                 />
                 <Link
                   className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-violet-200 bg-white px-4 text-sm font-semibold text-[#5b21b6] shadow-[0_12px_26px_rgba(88,28,135,0.08)]"

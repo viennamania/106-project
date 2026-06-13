@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterFounderUniverseExplorer } from "@/components/fanletter-founder-universe-explorer";
+import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import { getFanletterFounderUniverseExplorer } from "@/lib/fanletter-founder-universe-explorer-service";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { hasLocale } from "@/lib/i18n";
@@ -75,11 +76,23 @@ export default async function FanletterFounderUniverseExplorerRoute({
     notFound();
   }
 
-  const universe = await getFanletterFounderUniverseExplorer(starId);
+  const [universe, agentRank] = await Promise.all([
+    getFanletterFounderUniverseExplorer(starId),
+    getFanletterAgentRankInvestorSnapshot({
+      limit: 80,
+      starId,
+    }),
+  ]);
 
   if (!universe) {
     notFound();
   }
 
-  return <FanletterFounderUniverseExplorer locale={lang} universe={universe} />;
+  return (
+    <FanletterFounderUniverseExplorer
+      agentRank={agentRank}
+      locale={lang}
+      universe={universe}
+    />
+  );
 }
