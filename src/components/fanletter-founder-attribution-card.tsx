@@ -19,7 +19,10 @@ function getCopy(locale: Locale) {
     return {
       aiStarBadge: "AI 스타",
       body:
-        "이 가입은 아래 스타 유니버스의 파운더 참여로 귀속됩니다. 실결제 없이 추천 흐름만 미리 보여줍니다.",
+        "계정 연결 후 이 가입은 아래 스타 유니버스의 Founder 참여로 저장됩니다. 실제 결제는 진행하지 않습니다.",
+      connectedBody:
+        "계정 연결이 확인되었습니다. Founder 참여를 확정하면 이 스타 유니버스의 멤버십과 추천 코드가 저장됩니다.",
+      connectedTitle: "Founder 참여 확정 대기",
       completedBody:
         "이미 이 스타 유니버스의 Founder입니다. 내 추천 링크로 새 Founder를 초대하면 CP와 영향력이 누적됩니다.",
       completedTitle: "Founder 가입 완료",
@@ -48,7 +51,10 @@ function getCopy(locale: Locale) {
   return {
     aiStarBadge: "AI STAR",
     body:
-      "This signup is attributed to the Star Universe below as a Founder join. It previews the mock referral flow without real payment.",
+      "After account connection, this signup is saved as a Founder join in the Star Universe below. No real payment is processed.",
+    connectedBody:
+      "Your account is connected. Confirm Founder join to save membership and referral code for this Star Universe.",
+    connectedTitle: "Founder join pending",
     completedBody:
       "You are already a Founder in this Star Universe. Invite new Founders with your link to grow CP and influence.",
     completedTitle: "Founder join complete",
@@ -101,11 +107,13 @@ function buildFallbackPlatformHref(platform: string, shareLink: string) {
 }
 
 export function FanletterFounderAttributionCard({
+  isAuthenticated = false,
   locale,
   referralCode,
   star,
   viewerScoutShareLoop = null,
 }: {
+  isAuthenticated?: boolean;
   locale: Locale;
   referralCode: string | null;
   star: AIStar;
@@ -114,6 +122,16 @@ export function FanletterFounderAttributionCard({
   const copy = getCopy(locale);
   const universeName = getDisplayUniverseName(star.universeName, locale);
   const isFounder = Boolean(viewerScoutShareLoop);
+  const statusTitle = isFounder
+    ? copy.completedTitle
+    : isAuthenticated
+      ? copy.connectedTitle
+      : copy.title;
+  const statusBody = isFounder
+    ? copy.completedBody
+    : isAuthenticated
+      ? copy.connectedBody
+      : copy.body;
   const visibleReferralCode =
     viewerScoutShareLoop?.referralCode ?? referralCode ?? null;
   const shareLink = viewerScoutShareLoop?.shareLink ?? null;
@@ -212,10 +230,10 @@ export function FanletterFounderAttributionCard({
                 {copy.founderClubLabel}
               </p>
               <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
-                {isFounder ? copy.completedTitle : copy.title}
+                {statusTitle}
               </h2>
               <p className="mt-2 text-sm font-medium leading-6 text-black/62">
-                {isFounder ? copy.completedBody : copy.body}
+                {statusBody}
               </p>
             </div>
           </div>

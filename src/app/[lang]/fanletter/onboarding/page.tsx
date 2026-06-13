@@ -119,6 +119,7 @@ export default async function LocalizedFanletterOnboardingPage({
   return (
     <FanletterOnboardingPage
       founderClubStar={founderClubStar}
+      isAuthenticated={Boolean(memberSession?.email)}
       locale={locale}
       referralCode={readFanletterReferralCode(query.ref)}
       returnToHref={normalizeFanletterReturnToPath(query.returnTo, locale)}
