@@ -5,6 +5,7 @@ import {
   getOrCreateFanletterStarReferralCode,
   resolveFanletterStarReferralCode,
 } from "@/lib/fanletter-founder-club-service";
+import { tryRecordFanletterAgentRankServerEvent } from "@/lib/agentrank/server-events";
 import {
   getFanletterFounderClubApiMode,
   getFanletterFounderClubRuntimeState,
@@ -285,17 +286,62 @@ export async function POST(request: Request) {
       },
     },
   );
+  const joinedViaReferral = Boolean(attribution || existingMembership?.joinedViaCode);
+  const joinState = existingMembership ? "existing" : "created";
+  const rewards = attribution
+    ? {
+        cp: 100,
+        creatorProgressPercent: 2,
+        influenceScore: 5,
+      }
+    : {
+        cp: 0,
+        creatorProgressPercent: 0,
+        influenceScore: 0,
+      };
+
+  await tryRecordFanletterAgentRankServerEvent({
+    agentRank: {
+      eventType: joinedViaReferral ? "referral_converted" : "founder_joined",
+      intent: "founder_join_api_completed",
+      source: "fanletter_bridge",
+      starId: liveStar.id,
+    },
+    eventName: "fanletter_founder_join_completed",
+    memberEmail: member.email,
+    memberWalletAddress: session.walletAddress ?? null,
+    metadata: {
+      cpDelta: rewards.cp,
+      creatorProgressDelta: rewards.creatorProgressPercent,
+      founderPlacementDepth: placement.depth,
+      founderPlacementRole: placement.role,
+      founderPlacementSource: placement.source,
+      influenceDelta: rewards.influenceScore,
+      joinedViaReferral,
+      joinState,
+      page: "fanletter_founder_join_api",
+      role: nextMembership?.role ?? existingMembership?.role ?? placement.role,
+      sourceStarName: liveStar.name,
+    },
+    path: `/${locale}/fanletter/${encodeURIComponent(liveStar.id)}`,
+    referralCode,
+    targetHref: buildUniverseHref({
+      locale,
+      referralCode,
+      starId: liveStar.id,
+    }),
+  });
 
   return Response.json({
     membership: {
       joinedAt: existingMembership
         ? toIsoDate(existingMembership.joinedAt)
         : new Date().toISOString(),
-      joinState: existingMembership ? "existing" : "created",
+      joinState,
       referralCode,
       role: nextMembership?.role ?? existingMembership?.role ?? placement.role,
       source:
-        attribution || existingMembership?.joinedViaCode ? "referral" : "direct",
+        joinedViaReferral ? "referral" : "direct",
       starId: liveStar.id,
       status: "founder",
     },
@@ -311,17 +357,7 @@ export async function POST(request: Request) {
       }),
     },
     placement,
-    rewards: attribution
-      ? {
-          cp: 100,
-          creatorProgressPercent: 2,
-          influenceScore: 5,
-        }
-      : {
-          cp: 0,
-          creatorProgressPercent: 0,
-          influenceScore: 0,
-        },
+    rewards,
     runtime,
     star: {
       id: liveStar.id,

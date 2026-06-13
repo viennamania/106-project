@@ -3,6 +3,7 @@ import {
   getFanletterFounderClubCreatorUnlock,
   recordFanletterFounderUniverseCreatorLaunchCpPool,
 } from "@/lib/fanletter-founder-club-service";
+import { tryRecordFanletterAgentRankServerEvent } from "@/lib/agentrank/server-events";
 import {
   getFanletterFounderClubApiMode,
   getFanletterFounderClubRuntimeState,
@@ -247,6 +248,46 @@ export async function POST(request: Request) {
     distribution: launchResult.cpPool,
   });
   const unlock = await getFanletterFounderClubCreatorUnlock(session.email);
+  const universeHref = `/${locale}/fanletter/${encodeURIComponent(
+    launchResult.star.starId,
+  )}`;
+  const paymentStatus = runtime.testPaymentBypassEnabled
+    ? "test_bypass"
+    : "verified";
+
+  await tryRecordFanletterAgentRankServerEvent({
+    agentRank: {
+      eventType:
+        launchResult.status === "created" ? "ai_star_spawned" : "content_engaged",
+      intent:
+        launchResult.status === "created"
+          ? "creator_launch_api_created"
+          : "creator_launch_api_existing",
+      source: "fanletter_creator_unlock",
+      starId: launchResult.star.starId,
+    },
+    eventName: "fanletter_creator_launch_completed",
+    memberEmail: session.email,
+    memberWalletAddress: session.walletAddress ?? null,
+    metadata: {
+      allocatedCp: launchResult.cpPool.allocatedCp,
+      cpDelta: launchResult.cpPool.cpPoolTotal,
+      cpPoolLedgerInsertedCount: cpPoolLedger.insertedCount,
+      cpPoolLedgerSkippedCount: cpPoolLedger.skippedCount,
+      cpPoolTotal: launchResult.cpPool.cpPoolTotal,
+      launchCostUsdt,
+      launchState: launchResult.status,
+      page: "fanletter_creator_launch_api",
+      paymentStatus,
+      sourceStarId: launchResult.sourceStar.starId,
+      sourceStarName: launchResult.sourceStar.characterName,
+      spawnedStarId: launchResult.star.starId,
+      spawnedStarName: launchResult.star.characterName,
+      unallocatedCp: launchResult.cpPool.unallocatedCp,
+    },
+    path: `/${locale}/fanletter/creator-unlock`,
+    targetHref: universeHref,
+  });
 
   return Response.json({
     cpPool: launchResult.cpPool,
@@ -276,13 +317,11 @@ export async function POST(request: Request) {
     next: {
       creatorUnlockHref: `/${locale}/fanletter/creator-unlock`,
       founderClubHref: `/${locale}/fanletter/founder-club`,
-      universeHref: `/${locale}/fanletter/${encodeURIComponent(
-        launchResult.star.starId,
-      )}`,
+      universeHref,
     },
     payment: {
       amountUsdt: launchCostUsdt,
-      status: runtime.testPaymentBypassEnabled ? "test_bypass" : "verified",
+      status: paymentStatus,
     },
     runtime,
     status: launchResult.status,

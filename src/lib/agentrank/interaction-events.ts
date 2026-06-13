@@ -196,6 +196,14 @@ function inferEventType(
 ): AgentRankInteractionEventType | null {
   const route = `${input.path ?? ""} ${input.targetHref ?? ""}`;
 
+  if (input.eventName === "fanletter_founder_join_completed") {
+    return input.referralCode ? "referral_converted" : "founder_joined";
+  }
+
+  if (input.eventName === "fanletter_creator_launch_completed") {
+    return "ai_star_spawned";
+  }
+
   if (input.eventName === "signup_cta_click") {
     if (route.includes("/fanletter/creator-unlock")) {
       return "creator_unlocked";
