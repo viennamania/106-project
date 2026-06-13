@@ -525,3 +525,146 @@ a {
     animation: none !important;
   }
 }
+
+@keyframes agentrank-card-enter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+    filter: blur(8px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes agentrank-node-signal {
+  0%,
+  100% {
+    box-shadow:
+      0 10px 24px rgba(67, 56, 202, 0.16),
+      0 0 0 0 rgba(124, 58, 237, 0);
+  }
+
+  50% {
+    box-shadow:
+      0 14px 34px rgba(67, 56, 202, 0.22),
+      0 0 0 10px rgba(124, 58, 237, 0.1);
+  }
+}
+
+@keyframes agentrank-line-signal {
+  0%,
+  100% {
+    opacity: 0.42;
+    filter: saturate(0.86);
+  }
+
+  50% {
+    opacity: 1;
+    filter: saturate(1.25);
+  }
+}
+
+@keyframes agentrank-soft-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+
+  50% {
+    transform: translate3d(0, -7px, 0);
+  }
+}
+
+@keyframes agentrank-score-fill {
+  0% {
+    transform: translate3d(-18%, 0, 0) scaleX(0.72);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes agentrank-sheen {
+  0% {
+    transform: translate3d(-120%, 0, 0);
+  }
+
+  100% {
+    transform: translate3d(120%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .agentrank-flow-card {
+    animation: agentrank-card-enter 680ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: var(--agentrank-delay, 0ms);
+  }
+
+  .agentrank-graph-node {
+    animation: agentrank-node-signal 2.8s ease-in-out infinite;
+    animation-delay: var(--agentrank-delay, 0ms);
+    will-change: box-shadow;
+  }
+
+  .agentrank-graph-line {
+    animation: agentrank-line-signal 2.6s ease-in-out infinite;
+    animation-delay: var(--agentrank-delay, 0ms);
+    will-change: opacity, filter;
+  }
+
+  .agentrank-soft-float {
+    animation: agentrank-soft-float 4.2s ease-in-out infinite;
+  }
+
+  .agentrank-score-bar {
+    animation: agentrank-score-fill 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform-origin: left center;
+  }
+
+  .agentrank-stage-card::before,
+  .agentrank-dark-card::before {
+    animation: agentrank-sheen 4.8s ease-in-out infinite;
+  }
+}
+
+.agentrank-stage-card,
+.agentrank-dark-card {
+  isolation: isolate;
+}
+
+.agentrank-stage-card::before,
+.agentrank-dark-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.18) 42%,
+    rgba(255, 255, 255, 0.58) 50%,
+    rgba(255, 255, 255, 0.16) 58%,
+    transparent 100%
+  );
+  transform: translate3d(-120%, 0, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agentrank-flow-card,
+  .agentrank-graph-node,
+  .agentrank-graph-line,
+  .agentrank-soft-float,
+  .agentrank-score-bar,
+  .agentrank-stage-card::before,
+  .agentrank-dark-card::before {
+    animation: none;
+    filter: none;
+  }
+}

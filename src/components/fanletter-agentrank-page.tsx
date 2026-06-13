@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import {
   ArrowRight,
   BadgeCheck,
@@ -257,13 +257,18 @@ function getEventSourceLabel(
 
 function MetricTile({
   label,
+  style,
   value,
 }: {
   label: string;
+  style?: CSSProperties;
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-violet-100 bg-white px-4 py-3 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+    <div
+      className="agentrank-flow-card rounded-lg border border-violet-100 bg-white px-4 py-3 shadow-[0_18px_44px_rgba(88,28,135,0.06)]"
+      style={style}
+    >
       <p className="text-[0.68rem] font-semibold uppercase text-slate-400">
         {label}
       </p>
@@ -301,9 +306,10 @@ function MiniConnectionGraph({
     <div className="relative h-36 overflow-hidden rounded-lg border border-slate-100 bg-white">
       {lines.map((line, index) => (
         <span
-          className={`absolute h-0.5 rounded-full ${lineClass}`}
+          className={`agentrank-graph-line absolute h-0.5 rounded-full ${lineClass}`}
           key={`${line.left}-${line.top}-${index}`}
           style={{
+            animationDelay: `${index * 160}ms`,
             left: line.left,
             top: line.top,
             transform: `rotate(${line.rotate}deg)`,
@@ -313,9 +319,13 @@ function MiniConnectionGraph({
       ))}
       {nodes.map((node, index) => (
         <span
-          className={`absolute flex size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full text-xs font-semibold ring-8 ${nodeClass}`}
+          className={`agentrank-graph-node absolute flex size-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full text-xs font-semibold ring-8 ${nodeClass}`}
           key={`${node.left}-${node.top}-${index}`}
-          style={{ left: node.left, top: node.top }}
+          style={{
+            animationDelay: `${index * 180}ms`,
+            left: node.left,
+            top: node.top,
+          }}
         >
           {isWeb ? index + 1 : <Bot className="size-4" />}
         </span>
@@ -345,7 +355,7 @@ function IconMiniTile({
 
   return (
     <div
-      className={`min-w-0 rounded-lg border px-3 py-3 text-center ${toneClass}`}
+      className={`agentrank-flow-card min-w-0 rounded-lg border px-3 py-3 text-center ${toneClass}`}
     >
       <div className="mx-auto flex size-9 items-center justify-center rounded-lg bg-white shadow-[0_10px_24px_rgba(15,23,42,0.06)]">
         {icon}
@@ -360,7 +370,7 @@ function IconMiniTile({
 function TrustProblemPanel({ copy }: { copy: AgentRankCopy }) {
   return (
     <section className="grid gap-4 xl:grid-cols-[1fr_auto_1fr]">
-      <div className="rounded-lg border border-blue-100 bg-white p-5 shadow-[0_18px_44px_rgba(37,99,235,0.07)]">
+      <div className="agentrank-flow-card rounded-lg border border-blue-100 bg-white p-5 shadow-[0_18px_44px_rgba(37,99,235,0.07)]">
         <div className="inline-flex rounded-full bg-blue-700 px-3 py-1 text-xs font-semibold text-white">
           1998 · GOOGLE SOLVED THE WEB TRUST PROBLEM
         </div>
@@ -373,7 +383,7 @@ function TrustProblemPanel({ copy }: { copy: AgentRankCopy }) {
           </div>
           <MiniConnectionGraph variant="web" />
           <div className="rounded-lg border border-blue-100 bg-blue-50 p-4 text-center">
-            <div className="mx-auto flex size-12 items-center justify-center rounded-lg bg-white text-blue-700 shadow-[0_12px_26px_rgba(37,99,235,0.12)]">
+            <div className="agentrank-soft-float mx-auto flex size-12 items-center justify-center rounded-lg bg-white text-blue-700 shadow-[0_12px_26px_rgba(37,99,235,0.12)]">
               <Sparkles className="size-6" />
             </div>
             <p className="mt-3 text-xl font-semibold text-blue-800">
@@ -390,12 +400,12 @@ function TrustProblemPanel({ copy }: { copy: AgentRankCopy }) {
       </div>
 
       <div className="flex items-center justify-center">
-        <span className="flex size-16 items-center justify-center rounded-full bg-[#151735] text-xl font-semibold text-white shadow-[0_18px_44px_rgba(15,23,42,0.18)]">
+        <span className="agentrank-soft-float flex size-16 items-center justify-center rounded-full bg-[#151735] text-xl font-semibold text-white shadow-[0_18px_44px_rgba(15,23,42,0.18)]">
           VS
         </span>
       </div>
 
-      <div className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.08)]">
+      <div className="agentrank-flow-card rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.08)]">
         <div className="inline-flex rounded-full bg-[#6d28d9] px-3 py-1 text-xs font-semibold text-white">
           2026+ · AI AGENTS FACE THE SAME TRUST PROBLEM
         </div>
@@ -477,7 +487,10 @@ function ProductPathPanel({
         </h2>
       </div>
       <div className="mt-5 grid gap-4 xl:grid-cols-3">
-        <div className="relative min-w-0 overflow-hidden rounded-lg border border-pink-100 bg-pink-50/35 p-5">
+        <div
+          className="agentrank-flow-card agentrank-stage-card relative min-w-0 overflow-hidden rounded-lg border border-pink-100 bg-pink-50/35 p-5"
+          style={{ animationDelay: "80ms" }}
+        >
           <ArrowRight className="absolute -right-4 top-1/2 hidden size-8 -translate-y-1/2 text-pink-400 xl:block" />
           <div className="flex items-start justify-between gap-3">
             <div>
@@ -510,7 +523,10 @@ function ProductPathPanel({
           </div>
         </div>
 
-        <div className="relative min-w-0 overflow-hidden rounded-lg border border-blue-100 bg-blue-50/35 p-5">
+        <div
+          className="agentrank-flow-card agentrank-stage-card relative min-w-0 overflow-hidden rounded-lg border border-blue-100 bg-blue-50/35 p-5"
+          style={{ animationDelay: "160ms" }}
+        >
           <ArrowRight className="absolute -right-4 top-1/2 hidden size-8 -translate-y-1/2 text-blue-400 xl:block" />
           <div className="text-center">
             <p className="text-sm font-semibold uppercase text-blue-700">
@@ -527,7 +543,7 @@ function ProductPathPanel({
             <div className="rounded-lg border border-blue-100 bg-white p-3 text-center text-xs font-semibold text-blue-700">
               Who is the best person for this job?
             </div>
-            <div className="mx-auto flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-[0_18px_44px_rgba(37,99,235,0.22)]">
+            <div className="agentrank-soft-float mx-auto flex size-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 text-white shadow-[0_18px_44px_rgba(37,99,235,0.22)]">
               <Bot className="size-11" />
             </div>
             <div className="rounded-lg border border-blue-100 bg-white p-3 text-center text-xs font-semibold text-blue-700">
@@ -555,7 +571,10 @@ function ProductPathPanel({
           </div>
         </div>
 
-        <div className="min-w-0 overflow-hidden rounded-lg border border-violet-100 bg-violet-50/40 p-5">
+        <div
+          className="agentrank-flow-card agentrank-stage-card relative min-w-0 overflow-hidden rounded-lg border border-violet-100 bg-violet-50/40 p-5"
+          style={{ animationDelay: "240ms" }}
+        >
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold uppercase text-[#6d28d9]">
@@ -579,7 +598,7 @@ function ProductPathPanel({
             <div className="mt-3">
               <MiniConnectionGraph variant="agent" />
             </div>
-            <div className="mx-auto -mt-8 flex w-fit min-w-24 justify-center rounded-lg bg-gradient-to-br from-[#6d28d9] to-[#4338ca] px-5 py-3 text-3xl font-semibold text-white shadow-[0_16px_34px_rgba(88,28,135,0.22)]">
+            <div className="agentrank-soft-float mx-auto -mt-8 flex w-fit min-w-24 justify-center rounded-lg bg-gradient-to-br from-[#6d28d9] to-[#4338ca] px-5 py-3 text-3xl font-semibold text-white shadow-[0_16px_34px_rgba(88,28,135,0.22)]">
               {ers.score}
             </div>
           </div>
@@ -616,7 +635,7 @@ function ErsScorePanel({
   const scorePercent = Math.round((ers.score / ers.maxScore) * 100);
 
   return (
-    <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
+    <section className="agentrank-flow-card rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold uppercase text-[#6d28d9]">
@@ -626,7 +645,7 @@ function ErsScorePanel({
             {copy.score}
           </h2>
         </div>
-        <div className="rounded-lg bg-gradient-to-br from-[#6d28d9] to-[#2563eb] px-5 py-4 text-right text-white shadow-[0_18px_44px_rgba(88,28,135,0.25)]">
+        <div className="agentrank-soft-float rounded-lg bg-gradient-to-br from-[#6d28d9] to-[#2563eb] px-5 py-4 text-right text-white shadow-[0_18px_44px_rgba(88,28,135,0.25)]">
           <p className="text-sm font-semibold text-white/76">ERS</p>
           <p className="text-5xl font-semibold">{ers.score}</p>
           <p className="text-sm font-semibold text-white/76">
@@ -636,7 +655,7 @@ function ErsScorePanel({
       </div>
       <div className="mt-5 h-3 overflow-hidden rounded-full bg-violet-100">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-[#6d28d9] via-[#2563eb] to-[#16a34a]"
+          className="agentrank-score-bar h-full rounded-full bg-gradient-to-r from-[#6d28d9] via-[#2563eb] to-[#16a34a]"
           style={{ width: `${scorePercent}%` }}
         />
       </div>
@@ -733,7 +752,7 @@ function EconomicActivityPanel({
 
   return (
     <section className="grid gap-5 xl:grid-cols-[1.12fr_0.88fr]">
-      <div className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
+      <div className="agentrank-flow-card rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
         <p className="text-sm font-semibold uppercase text-[#6d28d9]">
           {copy.formula}
         </p>
@@ -759,7 +778,10 @@ function EconomicActivityPanel({
         </div>
       </div>
 
-      <div className="rounded-lg border border-emerald-100 bg-white p-5 shadow-[0_18px_44px_rgba(16,185,129,0.08)]">
+      <div
+        className="agentrank-flow-card rounded-lg border border-emerald-100 bg-white p-5 shadow-[0_18px_44px_rgba(16,185,129,0.08)]"
+        style={{ animationDelay: "100ms" }}
+      >
         <p className="text-sm font-semibold uppercase text-emerald-700">
           {copy.economicActivity}
         </p>
@@ -775,7 +797,10 @@ function EconomicActivityPanel({
         </div>
       </div>
 
-      <div className="rounded-lg border border-blue-100 bg-white p-5 shadow-[0_18px_44px_rgba(37,99,235,0.07)]">
+      <div
+        className="agentrank-flow-card rounded-lg border border-blue-100 bg-white p-5 shadow-[0_18px_44px_rgba(37,99,235,0.07)]"
+        style={{ animationDelay: "180ms" }}
+      >
         <p className="text-sm font-semibold uppercase text-blue-700">
           {copy.miziEquals}
         </p>
@@ -799,7 +824,10 @@ function EconomicActivityPanel({
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">
-        <div className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
+        <div
+          className="agentrank-flow-card rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]"
+          style={{ animationDelay: "260ms" }}
+        >
           <p className="text-sm font-semibold uppercase text-[#6d28d9]">
             {copy.useCases}
           </p>
@@ -814,7 +842,10 @@ function EconomicActivityPanel({
             ))}
           </div>
         </div>
-        <div className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
+        <div
+          className="agentrank-flow-card rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]"
+          style={{ animationDelay: "340ms" }}
+        >
           <p className="text-sm font-semibold uppercase text-[#6d28d9]">
             {copy.futureBuild}
           </p>
@@ -872,7 +903,7 @@ function EventFactoryPanel({
 
   return (
     <section className="grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
-      <div className="rounded-lg border border-pink-100 bg-white p-5 shadow-[0_18px_44px_rgba(219,39,119,0.07)]">
+      <div className="agentrank-flow-card rounded-lg border border-pink-100 bg-white p-5 shadow-[0_18px_44px_rgba(219,39,119,0.07)]">
         <p className="text-sm font-semibold uppercase text-pink-600">
           {copy.eventFactory}
         </p>
@@ -902,7 +933,10 @@ function EventFactoryPanel({
         </div>
       </div>
 
-      <div className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
+      <div
+        className="agentrank-flow-card rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]"
+        style={{ animationDelay: "120ms" }}
+      >
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold uppercase text-[#6d28d9]">
@@ -1033,9 +1067,9 @@ export function FanletterAgentRankPage({
   ];
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-5 py-5 text-[#11132d]">
+    <main className="fanletter-agentrank-page min-h-screen overflow-x-hidden bg-[#f8f9ff] px-5 py-5 text-[#11132d]">
       <div className="mx-auto max-w-[1500px]">
-        <header className="grid gap-5 rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+        <header className="agentrank-flow-card grid gap-5 rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-sm font-semibold text-[#6d28d9]">
               <Sparkles className="size-4" />
@@ -1057,7 +1091,7 @@ export function FanletterAgentRankPage({
               <ReadinessPill active={ers.readiness.a2aReady} label={`${copy.a2a} pending`} />
             </div>
           </div>
-          <div className="rounded-[1.25rem] bg-gradient-to-br from-[#11132d] via-[#312e81] to-[#6d28d9] p-5 text-white shadow-[0_24px_70px_rgba(88,28,135,0.24)]">
+          <div className="agentrank-stage-card relative overflow-hidden rounded-[1.25rem] bg-gradient-to-br from-[#11132d] via-[#312e81] to-[#6d28d9] p-5 text-white shadow-[0_24px_70px_rgba(88,28,135,0.24)]">
             <p className="text-sm font-semibold uppercase text-white/70">
               {snapshot.positioning.phase}
             </p>
@@ -1086,11 +1120,12 @@ export function FanletterAgentRankPage({
         </header>
 
         <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-          {metrics.map((metric) => (
+          {metrics.map((metric, index) => (
             <MetricTile
               key={metric.label}
               label={metric.label}
               value={metric.value}
+              style={{ animationDelay: `${index * 45}ms` }}
             />
           ))}
         </section>
@@ -1145,12 +1180,13 @@ export function FanletterAgentRankPage({
           />
         </div>
 
-        <footer className="mt-5 overflow-hidden rounded-lg bg-[#080c2a] text-white shadow-[0_24px_70px_rgba(8,12,42,0.24)]">
+        <footer className="agentrank-flow-card mt-5 overflow-hidden rounded-lg bg-[#080c2a] text-white shadow-[0_24px_70px_rgba(8,12,42,0.24)]">
           <div className="grid gap-4 border-b border-white/10 p-5 lg:grid-cols-3">
             {copy.bottomStatements.map((statement, index) => (
               <div
-                className="flex items-center gap-3 rounded-lg bg-white/5 p-4 ring-1 ring-white/10"
+                className="agentrank-dark-card relative flex items-center gap-3 overflow-hidden rounded-lg bg-white/5 p-4 ring-1 ring-white/10"
                 key={statement}
+                style={{ animationDelay: `${index * 120}ms` }}
               >
                 <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-white text-[#4338ca]">
                   {index === 0 ? (
@@ -1183,7 +1219,10 @@ export function FanletterAgentRankPage({
                 title: "AgentRank",
               },
             ].map((item) => (
-              <div className="rounded-lg bg-white/5 p-4 ring-1 ring-white/10" key={item.title}>
+              <div
+                className="agentrank-dark-card relative overflow-hidden rounded-lg bg-white/5 p-4 ring-1 ring-white/10"
+                key={item.title}
+              >
                 <div className="flex items-center gap-2 text-violet-200">
                   {item.icon}
                   <p className="text-xl font-semibold text-white">
