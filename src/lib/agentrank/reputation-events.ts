@@ -15,7 +15,9 @@ import {
   getFanletterStarReferralCodesCollection,
   getFanletterStarReferralEdgesCollection,
   getFanletterStarsCollection,
+  getFunnelEventsCollection,
 } from "@/lib/mongodb";
+import type { FunnelEventDocument } from "@/lib/funnel";
 
 export const agentRankReputationEventTypes = [
   "ai_star_discovered",
@@ -33,6 +35,7 @@ export type AgentRankReputationEventType =
   (typeof agentRankReputationEventTypes)[number];
 
 export type AgentRankReputationEventSource =
+  | "fanletter_funnel_event"
   | "fanletter_star"
   | "fanletter_star_founder_membership"
   | "fanletter_star_referral_code"
@@ -587,6 +590,71 @@ function buildInfluenceLedgerEvents({
   });
 }
 
+function buildFunnelInteractionEvents({
+  funnelEvents,
+  includeTypes,
+  starsById,
+}: {
+  funnelEvents: FunnelEventDocument[];
+  includeTypes: Set<AgentRankReputationEventType> | null;
+  starsById: StarLookup;
+}) {
+  const events: AgentRankReputationEvent[] = [];
+
+  for (const funnelEvent of funnelEvents) {
+    const signal = funnelEvent.agentRank;
+
+    if (!signal || !isIncludedType(signal.eventType, includeTypes)) {
+      continue;
+    }
+
+    const starId = normalizeId(signal.starId);
+    const star = starId ? starsById.get(starId) : null;
+    const actor = funnelEvent.memberEmail
+      ? buildMemberActor(funnelEvent.memberEmail)
+      : {
+          id: "anonymous-fanletter-visitor",
+          label: "Guest",
+          type: "member" as const,
+        };
+    const metadataContext = funnelEvent.metadata ?? {};
+
+    events.push(
+      buildEvent({
+        actor,
+        context: {
+          contentId: funnelEvent.contentId ?? null,
+          funnelEventName: funnelEvent.name,
+          intent: signal.intent,
+          path: funnelEvent.path ?? null,
+          referralCode: funnelEvent.referralCode ?? null,
+          shareId: funnelEvent.shareId ?? null,
+          source: signal.source,
+          targetHref: funnelEvent.targetHref ?? null,
+          viewportHeight: funnelEvent.viewport?.height ?? null,
+          viewportWidth: funnelEvent.viewport?.width ?? null,
+          ...metadataContext,
+        },
+        object: starId ? buildStarActor(starId, star) : null,
+        occurredAt: funnelEvent.createdAt,
+        source: "fanletter_funnel_event",
+        sourceId: `fanletter-funnel:${funnelEvent.eventId}`,
+        starId,
+        subject: funnelEvent.contentId
+          ? {
+              id: `content:${funnelEvent.contentId}`,
+              label: funnelEvent.contentId,
+              type: "platform" as const,
+            }
+          : null,
+        type: signal.eventType,
+      }),
+    );
+  }
+
+  return events;
+}
+
 function summarizeEvents(events: AgentRankReputationEvent[]) {
   const byType: Partial<Record<AgentRankReputationEventType, number>> = {};
   const memberIds = new Set<string>();
@@ -675,12 +743,14 @@ export async function getFanletterAgentRankReputationEventFeed(
     referralCodesCollection,
     referralEdgesCollection,
     influenceLedgerCollection,
+    funnelEventsCollection,
   ] = await Promise.all([
     getFanletterStarsCollection(),
     getFanletterStarFounderMembershipsCollection(),
     getFanletterStarReferralCodesCollection(),
     getFanletterStarReferralEdgesCollection(),
     getFanletterStarInfluenceLedgerCollection(),
+    getFunnelEventsCollection(),
   ]);
   const starFilter: Record<string, unknown> = {
     status: { $ne: "archived" },
@@ -696,12 +766,16 @@ export async function getFanletterAgentRankReputationEventFeed(
   const referralCodeFilter: Record<string, unknown> = {};
   const referralEdgeFilter: Record<string, unknown> = {};
   const ledgerFilter: Record<string, unknown> = {};
+  const funnelEventFilter: Record<string, unknown> = {
+    agentRank: { $exists: true, $ne: null },
+  };
 
   if (starId) {
     membershipFilter.starId = starId;
     referralCodeFilter.starId = starId;
     referralEdgeFilter.starId = starId;
     ledgerFilter.starId = starId;
+    funnelEventFilter["agentRank.starId"] = starId;
   }
 
   if (memberEmail) {
@@ -716,9 +790,23 @@ export async function getFanletterAgentRankReputationEventFeed(
       { sourceMemberEmail: memberEmail },
       { targetMemberEmail: memberEmail },
     ];
+    funnelEventFilter.memberEmail = memberEmail;
   }
 
-  const [stars, memberships, referralCodes, referralEdges, ledgerRows] =
+  if (includeTypes) {
+    funnelEventFilter["agentRank.eventType"] = {
+      $in: [...includeTypes],
+    };
+  }
+
+  const [
+    stars,
+    memberships,
+    referralCodes,
+    referralEdges,
+    ledgerRows,
+    funnelEvents,
+  ] =
     await Promise.all([
       starsCollection
         .find(starFilter)
@@ -745,6 +833,11 @@ export async function getFanletterAgentRankReputationEventFeed(
         .sort({ createdAt: -1 })
         .limit(limit)
         .toArray(),
+      funnelEventsCollection
+        .find(funnelEventFilter)
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .toArray(),
     ]);
   const starsById = new Map(stars.map((star) => [star.starId, star]));
   const missingStarIds = new Set(
@@ -753,6 +846,9 @@ export async function getFanletterAgentRankReputationEventFeed(
       ...referralCodes.map((referralCode) => referralCode.starId),
       ...referralEdges.map((edge) => edge.starId),
       ...ledgerRows.map((row) => row.starId),
+      ...funnelEvents
+        .map((event) => normalizeId(event.agentRank?.starId))
+        .filter(Boolean),
     ].filter((relatedStarId) => relatedStarId && !starsById.has(relatedStarId)),
   );
 
@@ -791,6 +887,11 @@ export async function getFanletterAgentRankReputationEventFeed(
     ...buildInfluenceLedgerEvents({
       includeTypes,
       ledgerRows,
+      starsById,
+    }),
+    ...buildFunnelInteractionEvents({
+      funnelEvents,
+      includeTypes,
       starsById,
     }),
   ]
