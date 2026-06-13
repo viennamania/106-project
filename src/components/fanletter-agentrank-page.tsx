@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { CSSProperties, ReactNode } from "react";
 import {
   ArrowRight,
@@ -25,6 +24,8 @@ import {
   type AgentRankCoverageSnapshot,
 } from "@/lib/agentrank/coverage";
 import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
+import { FanletterAgentRankTracker } from "@/components/fanletter-agentrank-tracker";
+import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type {
   AgentRankEconomicReputationScore,
   AgentRankErsComponent,
@@ -1317,9 +1318,11 @@ function ReadinessPill({
 export function FanletterAgentRankPage({
   locale,
   snapshot,
+  starId,
 }: {
   locale: Locale;
   snapshot: FanletterAgentRankInvestorSnapshot;
+  starId?: string | null;
 }) {
   const copy = getAgentRankCopy(locale);
   const { ers, eventFeed } = snapshot;
@@ -1356,6 +1359,7 @@ export function FanletterAgentRankPage({
 
   return (
     <main className="fanletter-agentrank-page min-h-screen overflow-x-hidden bg-[#f8f9ff] px-5 py-5 text-[#11132d]">
+      <FanletterAgentRankTracker starId={starId} />
       <div className="mx-auto max-w-[1500px]">
         <header className="agentrank-flow-card grid gap-5 rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
@@ -1538,24 +1542,45 @@ export function FanletterAgentRankPage({
                 From trust to economy.
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
-                <Link
+                <FanletterTrackedLink
+                  agentRank={{
+                    eventType: "content_engaged",
+                    intent: "agentrank_footer_home",
+                    source: "fanletter_agentrank",
+                    starId: starId ?? null,
+                  }}
                   className="inline-flex h-10 items-center rounded-full bg-white px-4 text-sm font-semibold text-[#4338ca]"
+                  eventName="content_open"
                   href={`/${locale}/fanletter`}
                 >
                   {copy.viewHome}
-                </Link>
-                <Link
+                </FanletterTrackedLink>
+                <FanletterTrackedLink
+                  agentRank={{
+                    eventType: "content_engaged",
+                    intent: "agentrank_footer_founder_network",
+                    source: "fanletter_agentrank",
+                    starId: starId ?? null,
+                  }}
                   className="inline-flex h-10 items-center rounded-full bg-white/12 px-4 text-sm font-semibold text-white ring-1 ring-white/20"
+                  eventName="content_open"
                   href={`/${locale}/fanletter/founder-universe`}
                 >
                   {copy.viewFounderUniverse}
-                </Link>
-                <Link
+                </FanletterTrackedLink>
+                <FanletterTrackedLink
+                  agentRank={{
+                    eventType: "content_engaged",
+                    intent: "agentrank_footer_event_api",
+                    source: "fanletter_agentrank",
+                    starId: starId ?? null,
+                  }}
                   className="inline-flex h-10 items-center rounded-full bg-white/12 px-4 text-sm font-semibold text-white ring-1 ring-white/20"
+                  eventName="content_open"
                   href="/api/fanletter/agentrank/events"
                 >
                   {copy.viewEventsApi}
-                </Link>
+                </FanletterTrackedLink>
               </div>
             </div>
           </div>

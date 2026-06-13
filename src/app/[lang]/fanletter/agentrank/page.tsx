@@ -87,5 +87,11 @@ export default async function FanletterAgentRankRoute({
     starId,
   });
 
-  return <FanletterAgentRankPage locale={locale} snapshot={snapshot} />;
+  return (
+    <FanletterAgentRankPage
+      locale={locale}
+      snapshot={snapshot}
+      starId={starId}
+    />
+  );
 }
