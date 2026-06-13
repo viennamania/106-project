@@ -8,7 +8,9 @@ import {
   Database,
   GitBranch,
   Network,
+  Search,
   ShieldCheck,
+  SlidersHorizontal,
   Sparkles,
   Users,
 } from "lucide-react";
@@ -67,7 +69,10 @@ function getLedgerCopy(locale: Locale) {
       empty:
         "조건에 맞는 Reputation Event가 없습니다. 다른 스타, 멤버, 이벤트 타입으로 확인하세요.",
       event: "이벤트",
+      applyFilters: "필터 적용",
+      clearFilters: "필터 초기화",
       filterByType: "이벤트 타입 필터",
+      filters: "Ledger 필터",
       generated: "생성 시각",
       heroBody:
         "FanLetter에서 발생한 발견, 파운더 참여, 추천, CP, 크리에이터 생성 이벤트가 AgentRank v1 스키마로 정규화되는지 확인합니다.",
@@ -75,10 +80,13 @@ function getLedgerCopy(locale: Locale) {
       heroTitle: "Reputation Event Ledger",
       impact: "평판 영향",
       member: "멤버",
+      networkEdges: "네트워크 엣지",
       oracleReady: "오라클 준비",
       schema: "스키마",
+      schemaReady: "스키마 준비",
       source: "소스",
       star: "AI 스타",
+      limit: "표시 개수",
       totalEvents: "이벤트",
       uniqueMembers: "멤버",
       uniqueStars: "AI 스타",
@@ -95,7 +103,10 @@ function getLedgerCopy(locale: Locale) {
     empty:
       "No matching Reputation Events. Try another Star, member, or event type.",
     event: "Event",
+    applyFilters: "Apply filters",
+    clearFilters: "Reset filters",
     filterByType: "Filter by event type",
+    filters: "Ledger filters",
     generated: "Generated",
     heroBody:
       "Inspect how FanLetter discovery, founder, referral, CP, and creator launch actions normalize into the AgentRank v1 schema.",
@@ -103,10 +114,13 @@ function getLedgerCopy(locale: Locale) {
     heroTitle: "Reputation Event Ledger",
     impact: "Reputation Impact",
     member: "Member",
+    networkEdges: "Network Edges",
     oracleReady: "Oracle-ready",
     schema: "Schema",
+    schemaReady: "Schema-ready",
     source: "Source",
     star: "AI Star",
+    limit: "Limit",
     totalEvents: "Events",
     uniqueMembers: "Members",
     uniqueStars: "AI Stars",
@@ -116,6 +130,15 @@ function getLedgerCopy(locale: Locale) {
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale).format(value);
+}
+
+function formatPercent(value: number, total: number, locale: Locale) {
+  const percent = total > 0 ? Math.round((value / total) * 100) : 0;
+
+  return new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 0,
+    style: "percent",
+  }).format(percent / 100);
 }
 
 function formatDate(value: string, locale: Locale) {
@@ -376,6 +399,97 @@ export function FanletterAgentRankLedgerPage({
             </div>
           </div>
         </header>
+
+        <section className="rounded-lg border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+          <div className="flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+            <SlidersHorizontal className="size-4" />
+            {copy.filters}
+          </div>
+          <form
+            action={`/${locale}/fanletter/agentrank/events`}
+            className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_9rem_auto_auto]"
+          >
+            {filters.type ? (
+              <input name="type" type="hidden" value={filters.type} />
+            ) : null}
+            <label className="min-w-0">
+              <span className="text-xs font-semibold uppercase text-slate-400">
+                {copy.star}
+              </span>
+              <input
+                className="mt-1 h-11 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-[#11132d] outline-none transition focus:border-violet-300 focus:bg-white"
+                defaultValue={filters.starId ?? ""}
+                name="starId"
+                placeholder="legacy-star-t7v7bayl"
+              />
+            </label>
+            <label className="min-w-0">
+              <span className="text-xs font-semibold uppercase text-slate-400">
+                {copy.member}
+              </span>
+              <input
+                className="mt-1 h-11 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-[#11132d] outline-none transition focus:border-violet-300 focus:bg-white"
+                defaultValue={filters.memberEmail ?? ""}
+                name="memberEmail"
+                placeholder="member@example.com"
+                type="email"
+              />
+            </label>
+            <label className="min-w-0">
+              <span className="text-xs font-semibold uppercase text-slate-400">
+                {copy.limit}
+              </span>
+              <input
+                className="mt-1 h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-[#11132d] outline-none transition focus:border-violet-300 focus:bg-white"
+                defaultValue={filters.limit}
+                max={200}
+                min={10}
+                name="limit"
+                type="number"
+              />
+            </label>
+            <button
+              className="inline-flex h-11 items-center justify-center gap-2 self-end rounded-lg bg-[#6d28d9] px-4 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(109,40,217,0.18)]"
+              type="submit"
+            >
+              <Search className="size-4" />
+              {copy.applyFilters}
+            </button>
+            <Link
+              className="inline-flex h-11 items-center justify-center self-end rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600"
+              href={`/${locale}/fanletter/agentrank/events`}
+            >
+              {copy.clearFilters}
+            </Link>
+          </form>
+        </section>
+
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricTile
+            label={copy.schemaReady}
+            value={formatPercent(
+              feed.summary.schemaReadyEvents,
+              feed.summary.totalEvents,
+              locale,
+            )}
+          />
+          <MetricTile
+            label={copy.oracleReady}
+            value={formatPercent(
+              feed.summary.oracleReadyEvents,
+              feed.summary.totalEvents,
+              locale,
+            )}
+          />
+          <MetricTile
+            label={copy.networkEdges}
+            value={formatNumber(feed.summary.networkEdges, locale)}
+          />
+          <MetricTile
+            label={copy.cp}
+            value={formatNumber(feed.summary.cpTotal, locale)}
+          />
+        </section>
 
         <section className="rounded-lg border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
