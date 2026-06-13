@@ -28,6 +28,7 @@ import {
   FanletterFounderJoinLink,
   FanletterFounderMockStatusBanner,
 } from "@/components/fanletter-founder-mock-state";
+import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterStarReferralPanel } from "@/components/fanletter-star-referral-panel";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
@@ -1185,6 +1186,24 @@ export function FanletterStarDetailPage({
 
   return (
     <main className="min-h-screen bg-[#fbfaff] pb-28 text-black">
+      <FanletterReputationTracker
+        agentRank={{
+          eventType: "ai_star_discovered",
+          intent: "fanletter_star_detail_view",
+          source: "fanletter_star_detail",
+          starId: star.id,
+        }}
+        metadata={{
+          founderCount: star.founderCount,
+          growthPercent: star.growthPercent,
+          openSlots: star.openSlots.open,
+          page: "fanletter_star_detail",
+          starName: star.name,
+          starScore: star.starScore,
+          viewerState,
+        }}
+        referralCode={referralCode}
+      />
       <section
         className="overflow-hidden border-b border-violet-200 bg-[#fbfaff] px-4 pb-8 pt-5 text-black sm:px-6 sm:pb-16 sm:pt-6 lg:px-8"
         style={{

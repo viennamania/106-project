@@ -2,6 +2,7 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 
+import { agentRankReputationEventSchemaVersion } from "@/lib/agentrank/event-schema";
 import type {
   FanletterStarDocument,
   FanletterStarFounderMembershipDocument,
@@ -78,6 +79,7 @@ export type AgentRankReputationEvent = {
   phase: "fanletter_phase_1";
   product: "fanletter";
   reputationSignals: AgentRankReputationSignals;
+  schemaVersion: typeof agentRankReputationEventSchemaVersion;
   source: AgentRankReputationEventSource;
   sourceId: string;
   starId?: string | null;
@@ -96,6 +98,7 @@ export type AgentRankReputationEventSummary = {
   networkEdges: number;
   networkWeightTotal: number;
   oracleReadyEvents: number;
+  schemaReadyEvents: number;
   totalEvents: number;
   uniqueMembers: number;
   uniqueStars: number;
@@ -141,6 +144,7 @@ type EventBuildInput = {
   | "phase"
   | "product"
   | "reputationSignals"
+  | "schemaVersion"
   | "source"
   | "sourceId"
   | "starId"
@@ -321,6 +325,7 @@ function buildEvent(input: EventBuildInput): AgentRankReputationEvent {
       networkWeight,
       oracleReady: Boolean(input.sourceId && input.occurredAt),
     },
+    schemaVersion: agentRankReputationEventSchemaVersion,
     source: input.source,
     sourceId: input.sourceId,
     starId: input.starId ?? null,
@@ -608,7 +613,9 @@ function buildFunnelInteractionEvents({
       continue;
     }
 
-    const starId = normalizeId(signal.starId);
+    const reputationEvent = funnelEvent.reputationEvent ?? null;
+    const eventType = reputationEvent?.eventType ?? signal.eventType;
+    const starId = normalizeId(reputationEvent?.targetStarId ?? signal.starId);
     const star = starId ? starsById.get(starId) : null;
     const actor = funnelEvent.memberEmail
       ? buildMemberActor(funnelEvent.memberEmail)
@@ -623,17 +630,41 @@ function buildFunnelInteractionEvents({
       buildEvent({
         actor,
         context: {
+          ...metadataContext,
           contentId: funnelEvent.contentId ?? null,
           funnelEventName: funnelEvent.name,
-          intent: signal.intent,
+          intent: reputationEvent?.intent ?? signal.intent,
           path: funnelEvent.path ?? null,
           referralCode: funnelEvent.referralCode ?? null,
+          reputationImpactCreator:
+            reputationEvent?.reputationImpact.creator ?? null,
+          reputationImpactDiscovery:
+            reputationEvent?.reputationImpact.discovery ?? null,
+          reputationImpactEconomy:
+            reputationEvent?.reputationImpact.economy ?? null,
+          reputationImpactNetwork:
+            reputationEvent?.reputationImpact.network ?? null,
+          reputationImpactTotal: reputationEvent?.reputationImpact.total ?? null,
+          reputationImpactTrust: reputationEvent?.reputationImpact.trust ?? null,
+          schemaVersion:
+            reputationEvent?.schemaVersion ??
+            agentRankReputationEventSchemaVersion,
           shareId: funnelEvent.shareId ?? null,
-          source: signal.source,
+          source: reputationEvent?.source ?? signal.source,
           targetHref: funnelEvent.targetHref ?? null,
+          universeId: reputationEvent?.universeId ?? null,
           viewportHeight: funnelEvent.viewport?.height ?? null,
           viewportWidth: funnelEvent.viewport?.width ?? null,
-          ...metadataContext,
+          ...(reputationEvent
+            ? {
+                actorMemberId: reputationEvent.actorMemberId,
+                actorWalletAddress: reputationEvent.actorWalletAddress,
+                cpDelta: reputationEvent.cpDelta,
+                creatorProgressDelta: reputationEvent.creatorProgressDelta,
+                influenceDelta: reputationEvent.influenceDelta,
+                viewerType: reputationEvent.viewerType,
+              }
+            : {}),
         },
         object: starId ? buildStarActor(starId, star) : null,
         occurredAt: funnelEvent.createdAt,
@@ -647,7 +678,7 @@ function buildFunnelInteractionEvents({
               type: "platform" as const,
             }
           : null,
-        type: signal.eventType,
+        type: eventType,
       }),
     );
   }
@@ -667,6 +698,7 @@ function summarizeEvents(events: AgentRankReputationEvent[]) {
   let networkEdges = 0;
   let networkWeightTotal = 0;
   let oracleReadyEvents = 0;
+  let schemaReadyEvents = 0;
 
   for (const event of events) {
     byType[event.type] = (byType[event.type] ?? 0) + 1;
@@ -683,6 +715,10 @@ function summarizeEvents(events: AgentRankReputationEvent[]) {
 
     if (event.reputationSignals.oracleReady) {
       oracleReadyEvents += 1;
+    }
+
+    if (event.schemaVersion === agentRankReputationEventSchemaVersion) {
+      schemaReadyEvents += 1;
     }
 
     for (const actor of [event.actor, event.object, event.subject]) {
@@ -711,6 +747,7 @@ function summarizeEvents(events: AgentRankReputationEvent[]) {
     networkEdges,
     networkWeightTotal,
     oracleReadyEvents,
+    schemaReadyEvents,
     totalEvents: events.length,
     uniqueMembers: memberIds.size,
     uniqueStars: starIds.size,

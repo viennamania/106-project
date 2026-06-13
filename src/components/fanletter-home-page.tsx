@@ -28,6 +28,7 @@ import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FounderClubV2HomeSections } from "@/components/fanletter-founder-club-v2";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
+import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import {
@@ -2546,6 +2547,8 @@ export function FanletterHomePage({
     ) ??
     founderClubStars?.[0] ??
     null;
+  const homeTrackingStarId =
+    mobileHeroLoopStar?.id ?? founderClubSelectedStarId ?? null;
   const heroStats = [
     {
       format: "compact" as const,
@@ -2866,6 +2869,21 @@ export function FanletterHomePage({
 
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#fbfaff] text-black">
+      <FanletterReputationTracker
+        agentRank={{
+          eventType: "ai_star_discovered",
+          intent: "fanletter_home_discovery_view",
+          source: "fanletter_home",
+          starId: homeTrackingStarId,
+        }}
+        metadata={{
+          featuredVideoCount: nonNsfwFeaturedVideos.length,
+          founderClubStarCount: founderClubStars?.length ?? 0,
+          page: "fanletter_home",
+          referralAttached: Boolean(referralCode),
+        }}
+        referralCode={referralCode}
+      />
       <section className="relative overflow-hidden border-b border-violet-200 bg-[#fbfaff] sm:min-h-[92svh]">
         <div className="absolute inset-0 bg-[linear-gradient(180deg,#ffffff_0%,#fbfaff_56%,#f2edff_100%)]" />
         <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(124,58,237,0.08)_0_1px,transparent_1px_32px)] opacity-70 sm:hidden" />

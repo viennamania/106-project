@@ -29,6 +29,7 @@ export type AgentRankCoverageSnapshot = {
   interactionSourceCoveragePercent: number;
   oracleCoveragePercent: number;
   phase1QualityScore: number;
+  schemaCoveragePercent: number;
   sources: AgentRankCoverageSourceItem[];
   totals: {
     coveredEventTypes: number;
@@ -36,6 +37,7 @@ export type AgentRankCoverageSnapshot = {
     eventTypes: number;
     interactionSources: number;
     oracleReadyEvents: number;
+    schemaReadyEvents: number;
     totalEvents: number;
   };
 };
@@ -116,6 +118,10 @@ export function buildAgentRankCoverageSnapshot(
     feed.summary.oracleReadyEvents,
     feed.summary.totalEvents,
   );
+  const schemaCoveragePercent = percent(
+    feed.summary.schemaReadyEvents,
+    feed.summary.totalEvents,
+  );
   const missingEventTypes = eventTypes
     .filter((item) => !item.covered)
     .map((item) => item.type);
@@ -138,9 +144,10 @@ export function buildAgentRankCoverageSnapshot(
   const futureReadinessBonus =
     (readiness.x402Ready ? 5 : 0) + (readiness.a2aReady ? 5 : 0);
   const phase1QualityScore = Math.round(
-    eventTypeCoveragePercent * 0.5 +
-      interactionSourceCoveragePercent * 0.25 +
-      oracleCoveragePercent * 0.25 +
+    eventTypeCoveragePercent * 0.4 +
+      interactionSourceCoveragePercent * 0.2 +
+      oracleCoveragePercent * 0.2 +
+      schemaCoveragePercent * 0.2 +
       futureReadinessBonus,
   );
 
@@ -151,6 +158,7 @@ export function buildAgentRankCoverageSnapshot(
     interactionSourceCoveragePercent,
     oracleCoveragePercent,
     phase1QualityScore: Math.max(0, Math.min(100, phase1QualityScore)),
+    schemaCoveragePercent,
     sources,
     totals: {
       coveredEventTypes,
@@ -158,6 +166,7 @@ export function buildAgentRankCoverageSnapshot(
       eventTypes: eventTypes.length,
       interactionSources: sources.length,
       oracleReadyEvents: feed.summary.oracleReadyEvents,
+      schemaReadyEvents: feed.summary.schemaReadyEvents,
       totalEvents: feed.summary.totalEvents,
     },
   };

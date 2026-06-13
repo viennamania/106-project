@@ -1,4 +1,5 @@
 import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
+import type { AgentRankReputationEventDraft } from "@/lib/agentrank/event-schema";
 
 export const funnelEventNames = [
   "bridge_view",
@@ -43,6 +44,7 @@ export type FunnelEventDocument = {
   path?: string | null;
   referer?: string | null;
   referralCode?: string | null;
+  reputationEvent?: AgentRankReputationEventDraft | null;
   shareId?: string | null;
   targetHref?: string | null;
   userAgent?: string | null;

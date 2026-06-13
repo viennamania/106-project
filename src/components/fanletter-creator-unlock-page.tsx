@@ -19,6 +19,7 @@ import {
   toMemberOwnedAIStar,
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
+import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import { useFanletterFounderMockMemberships } from "@/components/fanletter-founder-mock-state";
@@ -1263,6 +1264,27 @@ export function FanletterCreatorUnlockPage({
 
   return (
     <main className="min-h-screen bg-[#fbfaff] px-4 py-5 text-black sm:px-6 lg:px-8">
+      <FanletterReputationTracker
+        agentRank={{
+          eventType: unlock.unlocked ? "creator_unlocked" : "content_engaged",
+          intent: unlock.unlocked
+            ? "creator_unlock_ready_view"
+            : "creator_unlock_progress_view",
+          source: "fanletter_creator_unlock",
+          starId: selectedSourceOption?.starId ?? portfolio.primaryStarId,
+        }}
+        metadata={{
+          completedConditionCount: unlock.conditions.filter(
+            (condition) => condition.met,
+          ).length,
+          createCostUsdt: unlock.createCostUsdt,
+          isSignedIn,
+          page: "fanletter_creator_unlock",
+          requiresSourceUniverse,
+          sourceUniverseName: displaySourceUniverseName,
+          unlocked: unlock.unlocked,
+        }}
+      />
       <div className="mx-auto max-w-[92rem]">
         <div className="flex items-center justify-between gap-3">
           <Link

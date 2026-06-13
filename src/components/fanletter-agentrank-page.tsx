@@ -79,6 +79,7 @@ function getAgentRankCopy(locale: Locale) {
         missing: "대기",
         oracleCoverage: "오라클 준비율",
         phase1Quality: "Phase 1 데이터 품질",
+        schemaCoverage: "AgentRank 스키마 준비율",
         subtitle:
           "FanLetter 행동이 AgentRank 평판 이벤트로 얼마나 안정적으로 쌓이는지 점검합니다.",
         title: "AgentRank Event Quality",
@@ -158,6 +159,7 @@ function getAgentRankCopy(locale: Locale) {
       missing: "Pending",
       oracleCoverage: "Oracle-ready Coverage",
       phase1Quality: "Phase 1 Data Quality",
+      schemaCoverage: "AgentRank Schema Coverage",
       subtitle:
         "Checks how reliably FanLetter actions are becoming AgentRank reputation events.",
       title: "AgentRank Event Quality",
@@ -521,7 +523,7 @@ function AgentRankCoveragePanel({
           <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
             {copy.coverage.subtitle}
           </p>
-          <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
             <CoverageProgress
               label={copy.coverage.eventCoverage}
               value={coverage.eventTypeCoveragePercent}
@@ -533,6 +535,10 @@ function AgentRankCoveragePanel({
             <CoverageProgress
               label={copy.coverage.oracleCoverage}
               value={coverage.oracleCoveragePercent}
+            />
+            <CoverageProgress
+              label={copy.coverage.schemaCoverage}
+              value={coverage.schemaCoveragePercent}
             />
           </div>
           <div className="mt-5 rounded-lg border border-dashed border-violet-200 bg-violet-50 p-4">

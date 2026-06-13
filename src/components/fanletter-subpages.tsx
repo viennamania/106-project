@@ -49,6 +49,7 @@ import { FanletterFollowButton } from "@/components/fanletter-follow-button";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterPaidUnlockPanel } from "@/components/fanletter-paid-unlock-panel";
+import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterRequestStatusPanel } from "@/components/fanletter-request-status-panel";
 import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive-media-frame";
 import { FanletterScrollReveal } from "@/components/fanletter-scroll-reveal";
@@ -10691,6 +10692,29 @@ export function FanletterOnboardingPage({
 
   return (
     <FanletterSetupStatusProvider>
+      <FanletterReputationTracker
+        agentRank={{
+          eventType:
+            referralCode && founderClubStarId
+              ? "referral_converted"
+              : "content_engaged",
+          intent: isFounderClubOnboarding
+            ? "fanletter_founder_onboarding_view"
+            : "fanletter_onboarding_view",
+          source: "fanletter_bridge",
+          starId: founderClubStarId,
+        }}
+        eventName="bridge_view"
+        metadata={{
+          hasConnectedAccount,
+          isFounderClubOnboarding,
+          isFounderJoined,
+          page: "fanletter_onboarding",
+          returnToAttached: Boolean(returnToHref),
+        }}
+        referralCode={referralCode}
+        targetHref={returnToHref}
+      />
       <FanletterShell
         actions={
           isFounderClubOnboarding ? (

@@ -30,6 +30,7 @@ import {
   FounderRoleBadge,
   HumanMemberAvatar,
 } from "@/components/fanletter-founder-club-v2";
+import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import { trackFunnelEvent } from "@/lib/funnel-client";
@@ -2070,6 +2071,21 @@ export function FanletterFounderUniverseExplorer({
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] text-[#111827] xl:flex">
+      <FanletterReputationTracker
+        agentRank={{
+          eventType: "universe_growth",
+          intent: "founder_universe_explorer_view",
+          source: "fanletter_founder_universe",
+          starId: displayUniverse.star.id,
+        }}
+        metadata={{
+          edgeCount: displayUniverse.totals.edgeCount,
+          page: "fanletter_founder_universe",
+          spawnedStarCount: displayUniverse.spawnedStars.length,
+          starName: displayUniverse.star.name,
+          totalMembers: displayUniverse.totals.totalMembers,
+        }}
+      />
       <FounderDashboardSidebar locale={locale} selectedNode={creatorNode} />
       <div className="min-w-0 flex-1">
         <FounderDashboardTopbar locale={locale} selectedNode={creatorNode} />

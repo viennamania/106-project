@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 
+import { buildAgentRankReputationEventDraft } from "@/lib/agentrank/event-schema";
 import { inferAgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
 import {
   type FunnelEventMetadata,
@@ -97,20 +98,37 @@ export async function POST(request: Request) {
   const targetHref = readNullableString(
     "targetHref" in body ? body.targetHref : null,
   );
-
-  await collection.insertOne({
-    agentRank: inferAgentRankInteractionSignal(
-      "agentRank" in body ? body.agentRank : null,
-      {
+  const agentRank = inferAgentRankInteractionSignal(
+    "agentRank" in body ? body.agentRank : null,
+    {
+      contentId,
+      eventName: name,
+      metadata,
+      path,
+      referralCode,
+      shareId,
+      targetHref,
+    },
+  );
+  const viewerType = memberEmail ? "member" : "guest";
+  const reputationEvent = agentRank
+    ? buildAgentRankReputationEventDraft({
+        agentRank,
         contentId,
         eventName: name,
+        memberEmail,
+        memberWalletAddress,
         metadata,
         path,
         referralCode,
         shareId,
         targetHref,
-      },
-    ),
+        viewerType,
+      })
+    : null;
+
+  await collection.insertOne({
+    agentRank,
     contentId,
     createdAt: now,
     eventId: randomUUID(),
@@ -121,10 +139,11 @@ export async function POST(request: Request) {
     path,
     referer: headerStore.get("referer"),
     referralCode,
+    reputationEvent,
     shareId,
     targetHref,
     userAgent: headerStore.get("user-agent"),
-    viewerType: memberEmail ? "member" : "guest",
+    viewerType,
     viewport: readViewport("viewport" in body ? body.viewport : null),
   });
 
