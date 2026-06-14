@@ -7,6 +7,7 @@ import {
   getFanletterFounderClubCreatorUnlock,
   getFanletterFounderClubMemberPortfolio,
 } from "@/lib/fanletter-founder-club-service";
+import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
@@ -34,6 +35,21 @@ function getCreatorUnlockMeta(locale: Locale) {
       "Preview the Founder Club 2.0 Creator Unlock flow for launching a new AI Star before real checkout.",
     title: "Creator Unlock | FanLetter Founder Club 2.0",
   };
+}
+
+type CreatorUnlockSearchParams = {
+  coverageAction?: string | string[];
+  starId?: string | string[];
+};
+
+function readFirstParam(value?: string | string[]) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function normalizeCoverageAction(value?: string | string[]) {
+  const normalized = readFirstParam(value)?.trim();
+
+  return normalized ? normalized.slice(0, 96) : null;
 }
 
 export async function generateMetadata({
@@ -68,16 +84,22 @@ export async function generateMetadata({
 
 export default async function FanletterCreatorUnlockRoutePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<CreatorUnlockSearchParams>;
 }) {
-  const { lang } = await params;
+  const [{ lang }, query] = await Promise.all([params, searchParams]);
 
   if (!hasLocale(lang)) {
     notFound();
   }
 
   const locale = lang as Locale;
+  const coverageAction = normalizeCoverageAction(query.coverageAction);
+  const coverageStarId = normalizeFanletterStarId(
+    readFirstParam(query.starId) ?? null,
+  );
   const memberSession = await readMemberServerSession();
   const memberEmail = memberSession?.email ?? null;
   const [memberPortfolio, founderContribution] = await Promise.all([
@@ -95,6 +117,14 @@ export default async function FanletterCreatorUnlockRoutePage({
     <FanletterCreatorUnlockPage
       creatorUnlock={creatorUnlock}
       founderContribution={founderContribution}
+      coverageAction={
+        coverageAction
+          ? {
+              action: coverageAction,
+              starId: coverageStarId,
+            }
+          : null
+      }
       isSignedIn={Boolean(memberSession?.email)}
       locale={locale}
       memberPortfolio={memberPortfolio}
