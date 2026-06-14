@@ -131,7 +131,7 @@ function getAgentRankCopy(locale: Locale) {
       score: "AgentRank Score",
       scoreAggregator: "AgentRank Score Aggregator",
       scoreAggregatorBody:
-        "Reputation Event를 Founder Network, 경제 활동, Creator Journey, AI 스타 발견, Lineage Trust 차원으로 집계합니다.",
+        "Reputation Event를 Founder Network, 경제 활동, Creator Journey, AI 스타 발견, Lineage Trust, 감사 품질 차원으로 집계합니다.",
       scoreConfidence: "집계 신뢰도",
       trustLayerMissing: "AI Agent 경제에는 Trust Layer가 필요합니다.",
       topContributors: "상위 기여자",
@@ -150,11 +150,13 @@ function getAgentRankCopy(locale: Locale) {
       ],
       futureBuild: "우리가 만드는 미래",
       metrics: {
+        audit: "감사 준비",
         cp: "CP 생성",
         events: "이벤트",
         members: "멤버",
         network: "네트워크 연결",
         oracle: "오라클 준비",
+        quality: "이벤트 품질",
         stars: "AI 스타",
       },
     };
@@ -216,7 +218,7 @@ function getAgentRankCopy(locale: Locale) {
     score: "AgentRank Score",
     scoreAggregator: "AgentRank Score Aggregator",
     scoreAggregatorBody:
-      "Aggregates Reputation Events into Founder Network, Economic Activity, Creator Journey, AI Star Discovery, and Lineage Trust dimensions.",
+      "Aggregates Reputation Events into Founder Network, Economic Activity, Creator Journey, AI Star Discovery, Lineage Trust, and audit quality.",
     scoreConfidence: "Score Confidence",
     trustLayerMissing: "The AI Agent economy needs a trust layer.",
     topContributors: "Top Contributors",
@@ -235,11 +237,13 @@ function getAgentRankCopy(locale: Locale) {
     ],
     futureBuild: "The Future We Build",
     metrics: {
+      audit: "Audit Ready",
       cp: "CP Generated",
       events: "Events",
       members: "Members",
       network: "Network Edges",
       oracle: "Oracle Ready",
+      quality: "Event Quality",
       stars: "AI Stars",
     },
   };
@@ -736,6 +740,14 @@ function AgentRankScoreAggregatorPanel({
     {
       active: scoreAggregate.readiness.oracleReady,
       label: `Oracle ${scoreAggregate.readiness.oracleReadyPercent}%`,
+    },
+    {
+      active: scoreAggregate.readiness.auditReady,
+      label: `Audit ${scoreAggregate.readiness.auditReadyPercent}%`,
+    },
+    {
+      active: scoreAggregate.readiness.eventQualityPercent >= 80,
+      label: `Quality ${scoreAggregate.readiness.eventQualityPercent}%`,
     },
     {
       active: scoreAggregate.readiness.x402Ready,
@@ -1600,6 +1612,17 @@ export function FanletterAgentRankPage({
         ers.summary.eventCount,
         locale,
       )}`,
+    },
+    {
+      label: copy.metrics.audit,
+      value: `${formatNumber(scoreAggregate.summary.auditReadyEvents, locale)}/${formatNumber(
+        scoreAggregate.summary.eventCount,
+        locale,
+      )}`,
+    },
+    {
+      label: copy.metrics.quality,
+      value: `${formatNumber(scoreAggregate.summary.averageQualityScore, locale)}%`,
     },
   ];
 

@@ -48,6 +48,9 @@ export type AgentRankScoreAggregate = {
   maxScore: 1000;
   readiness: {
     a2aReady: boolean;
+    auditReady: boolean;
+    auditReadyPercent: number;
+    eventQualityPercent: number;
     oracleReady: boolean;
     oracleReadyPercent: number;
     reputationLedgerReady: boolean;
@@ -65,6 +68,9 @@ export type AgentRankScoreAggregate = {
   source: "fanletter_phase_1_score_aggregator";
   summary: {
     a2aEvents: number;
+    auditGapEvents: number;
+    auditReadyEvents: number;
+    averageQualityScore: number;
     contentEngagements: number;
     cpTotal: number;
     creatorProgressTotal: number;
@@ -139,6 +145,9 @@ export type GetFanletterAgentRankFounderContributionOptions = {
 
 type ScoreAccumulator = {
   a2aEvents: number;
+  auditGapEvents: number;
+  auditQualityTotal: number;
+  auditReadyEvents: number;
   contentEngagements: number;
   cpTotal: number;
   creatorProgressTotal: number;
@@ -196,6 +205,20 @@ function getImpactTotal(event: AgentRankReputationEvent) {
     event.reputationSignals.economicWeight +
     event.reputationSignals.networkWeight +
     getContextNumber(event, "reputationImpactTrust")
+  );
+}
+
+function getEventAuditQuality(event: AgentRankReputationEvent) {
+  const qualityScore = event.audit?.qualityScore;
+
+  return typeof qualityScore === "number" && Number.isFinite(qualityScore)
+    ? Math.max(0, Math.min(100, qualityScore))
+    : 0;
+}
+
+function isEventAuditReady(event: AgentRankReputationEvent) {
+  return (
+    event.audit?.status === "audit_ready" && getEventAuditQuality(event) >= 90
   );
 }
 
@@ -290,6 +313,9 @@ function matchesUniverse(
 function buildAccumulator(events: AgentRankReputationEvent[]) {
   const accumulator: ScoreAccumulator = {
     a2aEvents: 0,
+    auditGapEvents: 0,
+    auditQualityTotal: 0,
+    auditReadyEvents: 0,
     contentEngagements: 0,
     cpTotal: 0,
     creatorProgressTotal: 0,
@@ -321,8 +347,11 @@ function buildAccumulator(events: AgentRankReputationEvent[]) {
     const cpDelta = event.economicLayer.cpDelta ?? 0;
     const influenceDelta = event.economicLayer.influenceDelta ?? 0;
     const creatorProgressDelta = event.economicLayer.creatorProgressDelta ?? 0;
+    const auditQuality = getEventAuditQuality(event);
+    const auditReady = isEventAuditReady(event);
 
     accumulator.cpTotal += cpDelta;
+    accumulator.auditQualityTotal += auditQuality;
     accumulator.creatorProgressTotal += creatorProgressDelta;
     accumulator.influenceTotal += influenceDelta;
     accumulator.launchRevenueUsdt += getContextNumber(event, "launchCostUsdt");
@@ -367,6 +396,12 @@ function buildAccumulator(events: AgentRankReputationEvent[]) {
 
     if (event.reputationSignals.oracleReady) {
       accumulator.oracleReadyEvents += 1;
+    }
+
+    if (auditReady) {
+      accumulator.auditReadyEvents += 1;
+    } else {
+      accumulator.auditGapEvents += 1;
     }
 
     if (event.schemaVersion === agentRankReputationEventSchemaVersion) {
@@ -427,8 +462,9 @@ function buildTopContributors(events: AgentRankReputationEvent[]) {
       existing.impactTotal += getImpactTotal(event);
       existing.cpDelta += event.economicLayer.cpDelta ?? 0;
       existing.influenceDelta += event.economicLayer.influenceDelta ?? 0;
+      const qualityFactor = 0.5 + getEventAuditQuality(event) / 200;
       existing.contributionScore = clampScore(
-        existing.impactTotal * 18 +
+        existing.impactTotal * 18 * qualityFactor +
           existing.eventCount * 3 +
           Math.max(0, existing.cpDelta) / 20 +
           Math.max(0, existing.influenceDelta) * 2,
@@ -475,6 +511,12 @@ export function calculateAgentRankScoreAggregate({
   );
   const schemaReadyPercent = Math.round(
     (accumulator.schemaReadyEvents / eventCount) * 100,
+  );
+  const auditReadyPercent = Math.round(
+    (accumulator.auditReadyEvents / eventCount) * 100,
+  );
+  const eventQualityPercent = Math.round(
+    accumulator.auditQualityTotal / eventCount,
   );
   const networkDimension = buildDimension({
     description:
@@ -532,30 +574,34 @@ export function calculateAgentRankScoreAggregate({
   });
   const trustDimension = buildDimension({
     description:
-      "Oracle-ready events, schema completeness, unique participants, and traceable lineage.",
+      "Oracle-ready events, schema completeness, audit quality, unique participants, and traceable lineage.",
     key: "trust",
     label: "Lineage Trust",
     maxScore: 220,
     rawValue:
       accumulator.oracleReadyEvents +
       accumulator.schemaReadyEvents +
+      accumulator.auditReadyEvents +
+      eventQualityPercent / 10 +
       accumulator.uniqueMembers.size +
       accumulator.uniqueStars.size,
     score:
-      oracleReadyPercent * 0.9 +
-      schemaReadyPercent * 0.55 +
+      oracleReadyPercent * 0.7 +
+      schemaReadyPercent * 0.45 +
+      auditReadyPercent * 0.35 +
+      eventQualityPercent * 0.25 +
       accumulator.uniqueMembers.size * 2.4 +
       accumulator.uniqueStars.size * 5 +
       accumulator.trustWeightTotal * 12,
   });
   const riskDimension = buildDimension({
     description:
-      "Penalty for missing source IDs, non-oracle-ready events, or schema gaps.",
+      "Penalty for missing source IDs, non-oracle-ready events, schema gaps, or weak audit evidence.",
     key: "riskPenalty",
     label: "Risk Penalty",
     maxScore: 100,
-    rawValue: accumulator.riskEvents,
-    score: accumulator.riskEvents * 8,
+    rawValue: accumulator.riskEvents + accumulator.auditGapEvents,
+    score: accumulator.riskEvents * 7 + accumulator.auditGapEvents * 3,
   });
   const positiveScore =
     networkDimension.score +
@@ -565,9 +611,11 @@ export function calculateAgentRankScoreAggregate({
     trustDimension.score;
   const score = clampScore(positiveScore - riskDimension.score, 1000);
   const confidence = clampScore(
-    schemaReadyPercent * 0.45 +
-      oracleReadyPercent * 0.35 +
-      Math.min(100, accumulator.eventCount * 2) * 0.2,
+    schemaReadyPercent * 0.32 +
+      oracleReadyPercent * 0.28 +
+      auditReadyPercent * 0.18 +
+      eventQualityPercent * 0.12 +
+      Math.min(100, accumulator.eventCount * 2) * 0.1,
     100,
   );
 
@@ -588,6 +636,11 @@ export function calculateAgentRankScoreAggregate({
     maxScore: 1000,
     readiness: {
       a2aReady: accumulator.a2aEvents > 0,
+      auditReady:
+        accumulator.eventCount > 0 &&
+        accumulator.auditReadyEvents === accumulator.eventCount,
+      auditReadyPercent,
+      eventQualityPercent,
       oracleReady:
         accumulator.eventCount > 0 &&
         accumulator.oracleReadyEvents === accumulator.eventCount,
@@ -607,6 +660,9 @@ export function calculateAgentRankScoreAggregate({
     source: "fanletter_phase_1_score_aggregator",
     summary: {
       a2aEvents: accumulator.a2aEvents,
+      auditGapEvents: accumulator.auditGapEvents,
+      auditReadyEvents: accumulator.auditReadyEvents,
+      averageQualityScore: eventQualityPercent,
       contentEngagements: accumulator.contentEngagements,
       cpTotal: accumulator.cpTotal,
       creatorProgressTotal: accumulator.creatorProgressTotal,
