@@ -82,6 +82,7 @@ function getLedgerCopy(locale: Locale) {
       cp: "CP",
       csv: "CSV 내보내기",
       details: "이벤트 상세",
+      evidencePacket: "Evidence Packet",
       empty:
         "조건에 맞는 Reputation Event가 없습니다. 다른 스타, 멤버, 이벤트 타입으로 확인하세요.",
       event: "이벤트",
@@ -104,6 +105,8 @@ function getLedgerCopy(locale: Locale) {
       oracleNeeds: "Oracle 보강 항목",
       oracleReady: "오라클 준비",
       openEvent: "상세 추적",
+      packetPartial: "Packet 부분 준비",
+      packetReady: "Packet 준비",
       quality: "품질 점수",
       ready: "준비됨",
       schema: "스키마",
@@ -130,6 +133,7 @@ function getLedgerCopy(locale: Locale) {
     cp: "CP",
     csv: "Export CSV",
     details: "Event Details",
+    evidencePacket: "Evidence Packet",
     empty:
       "No matching Reputation Events. Try another Star, member, or event type.",
     event: "Event",
@@ -152,6 +156,8 @@ function getLedgerCopy(locale: Locale) {
     oracleNeeds: "Oracle gaps",
     oracleReady: "Oracle-ready",
     openEvent: "Trace Event",
+    packetPartial: "Packet partial",
+    packetReady: "Packet ready",
     quality: "Quality Score",
     ready: "Ready",
     schema: "Schema",
@@ -471,6 +477,9 @@ function EventCard({
   const copy = getLedgerCopy(locale);
   const Icon = eventIconMap[event.type];
   const detailParams = new URLSearchParams();
+  const evidencePacketParams = new URLSearchParams({
+    download: "1",
+  });
   const scoreSignals = getLedgerScoreSignals(event);
   const impactTotal =
     typeof event.context.reputationImpactTotal === "number"
@@ -482,9 +491,16 @@ function EventCard({
   const oracleGaps = getOracleReadinessGaps(event, locale);
   const audit = getEventAudit(event);
   const auditGaps = audit.gaps.map((gap) => getAuditGapLabel(gap, locale));
+  const isPacketReady =
+    event.reputationSignals.oracleReady && audit.status === "audit_ready";
+  const packetStarId = event.starId ?? event.object?.id ?? null;
 
   if (event.starId) {
     detailParams.set("starId", event.starId);
+  }
+
+  if (packetStarId) {
+    evidencePacketParams.set("starId", packetStarId);
   }
 
   return (
@@ -590,13 +606,32 @@ function EventCard({
           <ShieldCheck className="size-3.5" />
           {getAuditStatusLabel(audit.status, locale)}
         </span>
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 ${
+            isPacketReady
+              ? "border-cyan-100 bg-cyan-50 text-cyan-700"
+              : "border-slate-100 bg-slate-50 text-slate-600"
+          }`}
+        >
+          <Database className="size-3.5" />
+          {isPacketReady ? copy.packetReady : copy.packetPartial}
+        </span>
         <span>{formatDate(event.occurredAt, locale)}</span>
         <span className="text-slate-300">/</span>
         <span>{event.context.universeId ?? event.starId ?? "-"}</span>
         <span className="text-slate-300">/</span>
         <span>{event.eventId.slice(0, 20)}</span>
+        <a
+          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9]"
+          href={`/api/fanletter/agentrank/events/${encodeURIComponent(
+            event.eventId,
+          )}/evidence?${evidencePacketParams.toString()}`}
+        >
+          <Download className="size-3.5" />
+          {copy.evidencePacket}
+        </a>
         <Link
-          className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white"
+          className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white max-sm:ml-0"
           href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
             event.eventId,
           )}${detailParams.size ? `?${detailParams.toString()}` : ""}`}
@@ -690,6 +725,12 @@ export function FanletterAgentRankLedgerPage({
       : feed.events.filter(
           (event) => getEventAudit(event).status === "audit_ready",
         ).length;
+  const packetReadyEvents = feed.events.filter((event) => {
+    return (
+      event.reputationSignals.oracleReady &&
+      getEventAudit(event).status === "audit_ready"
+    );
+  }).length;
 
   if (filters.starId) {
     apiParams.set("starId", filters.starId);
@@ -711,7 +752,7 @@ export function FanletterAgentRankLedgerPage({
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
-      <div className="mx-auto grid max-w-[92rem] gap-5">
+      <div className="mx-auto flex w-full min-w-0 max-w-[92rem] flex-col gap-5">
         <header className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
@@ -843,7 +884,7 @@ export function FanletterAgentRankLedgerPage({
           </form>
         </section>
 
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
           <MetricTile
             label={copy.schemaReady}
             value={formatPercent(
@@ -859,6 +900,10 @@ export function FanletterAgentRankLedgerPage({
               feed.summary.totalEvents,
               locale,
             )}
+          />
+          <MetricTile
+            label={copy.evidencePacket}
+            value={formatPercent(packetReadyEvents, feed.summary.totalEvents, locale)}
           />
           <MetricTile
             label={copy.auditReady}
