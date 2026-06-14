@@ -50,6 +50,7 @@ function getCopy(locale: Locale) {
       eventScopeMismatch:
         "현재 이벤트는 선택한 이벤트 범위 밖에 있습니다. Linked Evidence만 선택 범위로 제한된 패킷입니다.",
       eventScopeOutside: "범위 밖",
+      graphReady: "Graph 준비",
       heroBody:
         "단일 Reputation Event가 AgentRank Oracle로 전달될 때 필요한 원본, 스키마, 감사 해시, 연결 이벤트를 사람이 검토할 수 있게 정리한 증거 패킷입니다.",
       heroEyebrow: "AgentRank Oracle Packet",
@@ -59,6 +60,9 @@ function getCopy(locale: Locale) {
       linkedEvidenceBody:
         "같은 AI 스타, 멤버, 추천 코드, Universe로 연결된 주변 이벤트 해시입니다.",
       object: "대상",
+      oracleManifest: "Oracle Manifest",
+      oracleReady: "Oracle 준비",
+      impactReady: "Impact 준비",
       packetHash: "Packet Hash",
       packetVersion: "Packet Version",
       productEvent: "제품 이벤트",
@@ -67,6 +71,7 @@ function getCopy(locale: Locale) {
       recordType: "Record Type",
       relatedStarScope: "관련 AI 스타 범위",
       schema: "Schema",
+      scoreImpact: "Score Impact",
       scopeAll: "전체 이벤트",
       scopeMock: "Mock 커버리지",
       scopeProduct: "운영 이벤트",
@@ -75,6 +80,7 @@ function getCopy(locale: Locale) {
       trace: "검증 흐름",
       verifierNote:
         "검증자는 Event Evidence Hash와 Linked Evidence를 canonical JSON으로 다시 해시해 Evidence Root를 재현할 수 있습니다.",
+      x402Ready: "x402 준비",
     };
   }
 
@@ -93,6 +99,7 @@ function getCopy(locale: Locale) {
     eventScopeMismatch:
       "This event is outside the selected event scope. Only linked evidence is limited to the selected scope.",
     eventScopeOutside: "Out of scope",
+    graphReady: "Graph-ready",
     heroBody:
       "A human-readable evidence packet showing the source record, schema, audit hash, and linked events required to pass one Reputation Event into the AgentRank Oracle.",
     heroEyebrow: "AgentRank Oracle Packet",
@@ -102,6 +109,9 @@ function getCopy(locale: Locale) {
     linkedEvidenceBody:
       "Nearby event hashes connected by the same AI Star, member, referral code, or Universe.",
     object: "Object",
+    oracleManifest: "Oracle Manifest",
+    oracleReady: "Oracle-ready",
+    impactReady: "Impact-ready",
     packetHash: "Packet Hash",
     packetVersion: "Packet Version",
     productEvent: "Product Event",
@@ -110,6 +120,7 @@ function getCopy(locale: Locale) {
     recordType: "Record Type",
     relatedStarScope: "Related AI Star Scope",
     schema: "Schema",
+    scoreImpact: "Score Impact",
     scopeAll: "All Events",
     scopeMock: "Mock Coverage",
     scopeProduct: "Product Events",
@@ -118,6 +129,7 @@ function getCopy(locale: Locale) {
     trace: "Verification Flow",
     verifierNote:
       "A verifier can reproduce the Evidence Root by hashing the Event Evidence Hash and Linked Evidence from the canonical JSON payload.",
+    x402Ready: "x402-ready",
   };
 }
 
@@ -443,6 +455,121 @@ export function FanletterAgentRankEvidencePacketPage({
               label={copy.linkedEvidence}
               tone="slate"
             />
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+                <BadgeCheck className="size-4" />
+                {copy.oracleManifest}
+              </p>
+              <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+                {copy.heroBody}
+              </p>
+            </div>
+            <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
+              {copy.scoreImpact}{" "}
+              {formatNumber(packet.oracleManifest.scoreImpact.total, locale)}
+            </span>
+          </div>
+          <div className="mt-5 grid gap-3 lg:grid-cols-3">
+            <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+              <p className="text-xs font-semibold uppercase text-slate-400">
+                {copy.scoreImpact}
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold">
+                <span className="rounded-md bg-white px-3 py-2 text-blue-700">
+                  Network{" "}
+                  {formatNumber(packet.oracleManifest.scoreImpact.network, locale)}
+                </span>
+                <span className="rounded-md bg-white px-3 py-2 text-emerald-700">
+                  Economic{" "}
+                  {formatNumber(packet.oracleManifest.scoreImpact.economic, locale)}
+                </span>
+                <span className="rounded-md bg-white px-3 py-2 text-[#6d28d9]">
+                  Creator{" "}
+                  {formatNumber(packet.oracleManifest.scoreImpact.creator, locale)}
+                </span>
+                <span className="rounded-md bg-white px-3 py-2 text-fuchsia-700">
+                  Discovery{" "}
+                  {formatNumber(
+                    packet.oracleManifest.scoreImpact.discovery,
+                    locale,
+                  )}
+                </span>
+              </div>
+            </div>
+            <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-4">
+              <p className="text-xs font-semibold uppercase text-emerald-700">
+                {copy.oracleReady}
+              </p>
+              <div className="mt-3 grid gap-2 text-sm font-semibold text-[#11132d]">
+                <span className="rounded-md bg-white/80 px-3 py-2">
+                  {copy.oracleReady}:{" "}
+                  {packet.oracleManifest.readiness.oracleReady
+                    ? copy.ready
+                    : packet.oracleManifest.readiness.auditStatus}
+                </span>
+                <span className="rounded-md bg-white/80 px-3 py-2">
+                  {copy.quality}:{" "}
+                  {formatNumber(
+                    packet.oracleManifest.readiness.qualityScore,
+                    locale,
+                  )}
+                  /100
+                </span>
+                <span className="rounded-md bg-white/80 px-3 py-2">
+                  {copy.x402Ready}:{" "}
+                  {packet.oracleManifest.readiness.x402Ready
+                    ? copy.ready
+                    : packet.oracleManifest.readiness.auditStatus}
+                </span>
+              </div>
+            </div>
+            <div className="rounded-lg border border-violet-100 bg-violet-50 p-4">
+              <p className="text-xs font-semibold uppercase text-[#6d28d9]">
+                {copy.relatedStarScope}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {packet.oracleManifest.graph.relatedStarScope.length ? (
+                  packet.oracleManifest.graph.relatedStarScope.map(
+                    (relatedStarId) => (
+                      <span
+                        className="rounded-full bg-white px-2.5 py-1 font-mono text-[0.68rem] font-semibold text-[#6d28d9] ring-1 ring-violet-100"
+                        key={relatedStarId}
+                      >
+                        {relatedStarId}
+                      </span>
+                    ),
+                  )
+                ) : (
+                  <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-500">
+                    -
+                  </span>
+                )}
+              </div>
+              <div className="mt-3 grid gap-2 text-sm font-semibold text-[#11132d]">
+                <span className="rounded-md bg-white/80 px-3 py-2">
+                  {copy.graphReady}:{" "}
+                  {packet.oracleManifest.graph.graphReady
+                    ? copy.ready
+                    : packet.oracleManifest.readiness.auditStatus}
+                </span>
+                <span className="rounded-md bg-white/80 px-3 py-2">
+                  {copy.impactReady}:{" "}
+                  {packet.oracleManifest.graph.impactReady
+                    ? copy.ready
+                    : packet.oracleManifest.readiness.auditStatus}
+                </span>
+                <span className="rounded-md bg-white/80 px-3 py-2">
+                  {copy.linkedEvidence}:{" "}
+                  {packet.oracleManifest.graph.linkedEventCount} /{" "}
+                  {packet.oracleManifest.graph.relatedEventCount}
+                </span>
+              </div>
+            </div>
           </div>
         </section>
 

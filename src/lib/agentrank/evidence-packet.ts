@@ -9,6 +9,7 @@ import {
   getFanletterAgentRankReputationEventFeed,
   type AgentRankReputationEvent,
 } from "@/lib/agentrank/reputation-events";
+import { getAgentRankRelatedStarScope } from "@/lib/agentrank/related-star-scope";
 
 export type AgentRankEventEvidencePacket = ReturnType<
   typeof buildAgentRankEventEvidencePacket
@@ -73,6 +74,14 @@ export function buildAgentRankEventEvidencePacket(
   relatedEvents: AgentRankReputationEvent[],
 ) {
   const linkedEvents = relatedEvents.slice(0, 12);
+  const relatedStarScope = getAgentRankRelatedStarScope(event);
+  const scoreImpactTotal =
+    typeof event.context.reputationImpactTotal === "number"
+      ? event.context.reputationImpactTotal
+      : event.reputationSignals.networkWeight +
+        event.reputationSignals.economicWeight +
+        event.reputationSignals.creatorWeight +
+        event.reputationSignals.discoveryWeight;
   const relatedEvidenceHashes = linkedEvents.map(
     (relatedEvent) => relatedEvent.audit.evidenceHash,
   );
@@ -130,6 +139,28 @@ export function buildAgentRankEventEvidencePacket(
       hashAlgorithm: "sha256",
     },
     issuedAt,
+    oracleManifest: {
+      graph: {
+        graphReady: event.audit.graphReady,
+        impactReady: event.audit.impactReady,
+        linkedEventCount: linkedEvents.length,
+        relatedEventCount: relatedEvents.length,
+        relatedStarScope,
+      },
+      readiness: {
+        auditStatus: event.audit.status,
+        oracleReady: event.reputationSignals.oracleReady,
+        qualityScore: event.audit.qualityScore,
+        x402Ready: event.economicLayer.x402Ready,
+      },
+      scoreImpact: {
+        creator: event.reputationSignals.creatorWeight,
+        discovery: event.reputationSignals.discoveryWeight,
+        economic: event.reputationSignals.economicWeight,
+        network: event.reputationSignals.networkWeight,
+        total: scoreImpactTotal,
+      },
+    },
     packetVersion: "agentrank.event_evidence_packet.v0",
     recordType: "agentrank.reputation_event_evidence",
   };
