@@ -16,7 +16,29 @@ export type AgentRankBackfillSample = {
   starId?: string | null;
 };
 
+export type AgentRankBackfillActionPlanItem = {
+  description: string;
+  estimatedRecords: number;
+  eventTypes: Array<
+    | "ai_star_discovered"
+    | "cp_earned"
+    | "cp_pool_generated"
+    | "founder_joined"
+    | "referral_code_created"
+    | "referral_converted"
+    | "source_universe_selected"
+  >;
+  gap: string;
+  id: string;
+  priority: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  runMode: "dry_run" | "script_ready" | "manual_review";
+  script?: string;
+  targetCoverage: keyof AgentRankBackfillReadinessSnapshot["coverage"];
+  title: string;
+};
+
 export type AgentRankBackfillReadinessSnapshot = {
+  actionPlan: AgentRankBackfillActionPlanItem[];
   convertibleEvents: {
     aiStarDiscovered: number;
     cpEarned: number;
@@ -112,6 +134,112 @@ function buildGaps({
   }
 
   return gaps;
+}
+
+function buildActionPlan({
+  gaps,
+  totals,
+}: {
+  gaps: string[];
+  totals: AgentRankBackfillReadinessSnapshot["totals"];
+}) {
+  const plans: Record<string, AgentRankBackfillActionPlanItem> = {
+    "missing:member_founder_universe": {
+      description:
+        "Attach completed members to an AI Star Founder Universe using referral context, existing memberships, or a platform starter universe fallback.",
+      estimatedRecords: totals.membersMissingFounderUniverse,
+      eventTypes: ["founder_joined", "source_universe_selected"],
+      gap: "missing:member_founder_universe",
+      id: "backfill-member-founder-universe",
+      priority: 1,
+      runMode: "script_ready",
+      script: "pnpm fanletter:founder-universe:backfill",
+      targetCoverage: "memberFounderUniverseCoveragePercent",
+      title: "Member Founder Universe placement",
+    },
+    "missing:member_starter_star": {
+      description:
+        "Derive each completed member's starter AI Star from referral joins, first founder membership, creator-owned star, or fallback starter star.",
+      estimatedRecords: totals.membersMissingStarterStar,
+      eventTypes: ["ai_star_discovered", "founder_joined"],
+      gap: "missing:member_starter_star",
+      id: "backfill-member-starter-star",
+      priority: 2,
+      runMode: "script_ready",
+      script: "pnpm fanletter:ai-star-genealogy:backfill",
+      targetCoverage: "memberStarterStarCoveragePercent",
+      title: "Member starter AI Star assignment",
+    },
+    "missing:star_creator_membership": {
+      description:
+        "Ensure every active AI Star has exactly one creator membership so launch lineage can produce Creator Journey and CP Pool events.",
+      estimatedRecords: totals.starsMissingCreatorMembership,
+      eventTypes: ["source_universe_selected", "cp_pool_generated"],
+      gap: "missing:star_creator_membership",
+      id: "backfill-star-creator-membership",
+      priority: 3,
+      runMode: "script_ready",
+      script: "pnpm fanletter:founder-universe:roles:reconcile",
+      targetCoverage: "creatorRoleCoveragePercent",
+      title: "AI Star creator membership reconciliation",
+    },
+    "missing:legacy_referral_edges": {
+      description:
+        "Convert legacy member-level referral fields into AI Star scoped referral edges while preserving original sponsor evidence.",
+      estimatedRecords: Math.max(0, totals.legacyReferralMembers - totals.referralEdges),
+      eventTypes: ["referral_code_created", "referral_converted"],
+      gap: "missing:legacy_referral_edges",
+      id: "backfill-legacy-referral-edges",
+      priority: 4,
+      runMode: "script_ready",
+      script: "pnpm fanletter:founder-club:backfill:audit",
+      targetCoverage: "legacyReferralEdgeCoveragePercent",
+      title: "Legacy referral edge conversion",
+    },
+    "missing:cp_influence_ledger": {
+      description:
+        "Generate CP and Influence ledger rows for Founder Universe actions so AgentRank can read economic contribution signals.",
+      estimatedRecords: totals.totalMemberships,
+      eventTypes: ["cp_earned", "cp_pool_generated"],
+      gap: "missing:cp_influence_ledger",
+      id: "backfill-cp-influence-ledger",
+      priority: 5,
+      runMode: "script_ready",
+      script: "pnpm referral-rewards:reconcile",
+      targetCoverage: "memberFounderUniverseCoveragePercent",
+      title: "CP and Influence ledger reconciliation",
+    },
+    "missing:star_owner": {
+      description:
+        "Resolve missing AI Star owner records before using creator lineage for source-universe and spawned-star reputation events.",
+      estimatedRecords: totals.starsMissingOwner,
+      eventTypes: ["source_universe_selected"],
+      gap: "missing:star_owner",
+      id: "backfill-star-owner",
+      priority: 6,
+      runMode: "manual_review",
+      targetCoverage: "starOwnerCoveragePercent",
+      title: "AI Star owner identity repair",
+    },
+    "missing:star_portrait": {
+      description:
+        "Attach safe AI Star profile portraits so investor and member-facing universe maps can distinguish AI Stars from human members.",
+      estimatedRecords: totals.starsMissingPortrait,
+      eventTypes: ["ai_star_discovered"],
+      gap: "missing:star_portrait",
+      id: "backfill-star-portrait",
+      priority: 7,
+      runMode: "script_ready",
+      script: "pnpm fanletter:ai-star-profiles:backfill",
+      targetCoverage: "starPortraitCoveragePercent",
+      title: "AI Star profile portrait enrichment",
+    },
+  };
+
+  return gaps
+    .map((gap) => plans[gap])
+    .filter((plan): plan is AgentRankBackfillActionPlanItem => Boolean(plan))
+    .sort((a, b) => a.priority - b.priority);
 }
 
 export async function getAgentRankBackfillReadinessSnapshot(): Promise<AgentRankBackfillReadinessSnapshot> {
@@ -391,7 +519,10 @@ export async function getAgentRankBackfillReadinessSnapshot(): Promise<AgentRank
     totalMemberships,
   };
 
+  const gaps = buildGaps(totals);
+
   return {
+    actionPlan: buildActionPlan({ gaps, totals }),
     convertibleEvents: {
       aiStarDiscovered: activeStars,
       cpEarned: influenceLedgerRows,
@@ -401,7 +532,7 @@ export async function getAgentRankBackfillReadinessSnapshot(): Promise<AgentRank
       referralConverted: referralEdges,
     },
     coverage,
-    gaps: buildGaps(totals),
+    gaps,
     phase: "fanletter_phase_1",
     readinessScore: Math.max(0, Math.min(100, readinessScore)),
     recordType: "agentrank.backfill_readiness.v1",

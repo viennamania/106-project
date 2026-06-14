@@ -89,6 +89,9 @@ function getCoverageAuditCopy(locale: Locale) {
       agentRank: "AgentRank",
       api: "JSON API",
       backToAgentRank: "AgentRank 보기",
+      backfillActionPlan: "Backfill 실행 계획",
+      backfillActionPlanBody:
+        "현재 gap을 AgentRank Reputation Event로 전환하기 위한 dry-run 실행 순서입니다.",
       backfillConvertibleEvents: "전환 가능 이벤트",
       backfillDryRun: "Dry-run",
       backfillGaps: "Backfill 보강 항목",
@@ -111,6 +114,10 @@ function getCoverageAuditCopy(locale: Locale) {
       actionStatusConfirmed: "확인됨",
       actionStatusDeferred: "보류",
       actionStatusPending: "대기",
+      actionEstimatedRecords: "예상 대상",
+      actionEventTypes: "생성 이벤트",
+      actionPriority: "우선순위",
+      actionRunMode: "실행 모드",
       contractCoverage: "Contract 유효성",
       contractInvalidEvents: "보강 필요 이벤트",
       contractReadyEvents: "계약 유효 이벤트",
@@ -166,6 +173,9 @@ function getCoverageAuditCopy(locale: Locale) {
     agentRank: "AgentRank",
     api: "JSON API",
       backToAgentRank: "View AgentRank",
+    backfillActionPlan: "Backfill Action Plan",
+    backfillActionPlanBody:
+      "Dry-run execution order for turning current gaps into AgentRank Reputation Events.",
     backfillConvertibleEvents: "Convertible Events",
     backfillDryRun: "Dry-run",
     backfillGaps: "Backfill Gaps",
@@ -188,6 +198,10 @@ function getCoverageAuditCopy(locale: Locale) {
     actionStatusConfirmed: "Confirmed",
     actionStatusDeferred: "Deferred",
     actionStatusPending: "Pending",
+    actionEstimatedRecords: "Estimated Records",
+    actionEventTypes: "Event Types",
+    actionPriority: "Priority",
+    actionRunMode: "Run Mode",
     contractCoverage: "Contract Validity",
     contractInvalidEvents: "Events Needing Enrichment",
     contractReadyEvents: "Contract-valid Events",
@@ -464,6 +478,81 @@ function getBackfillGapLabel(gap: string, locale: Locale) {
   };
 
   return labels[gap] ?? gap;
+}
+
+function getBackfillRunModeLabel(
+  runMode: AgentRankBackfillReadinessSnapshot["actionPlan"][number]["runMode"],
+  locale: Locale,
+) {
+  const labels: Record<
+    AgentRankBackfillReadinessSnapshot["actionPlan"][number]["runMode"],
+    string
+  > =
+    locale === "ko"
+      ? {
+          dry_run: "Dry-run",
+          manual_review: "수동 검토",
+          script_ready: "스크립트 준비",
+        }
+      : {
+          dry_run: "Dry-run",
+          manual_review: "Manual Review",
+          script_ready: "Script Ready",
+        };
+
+  return labels[runMode];
+}
+
+function getBackfillActionPlanText(
+  item: AgentRankBackfillReadinessSnapshot["actionPlan"][number],
+  locale: Locale,
+) {
+  if (locale !== "ko") {
+    return {
+      description: item.description,
+      title: item.title,
+    };
+  }
+
+  const labels: Record<string, { description: string; title: string }> = {
+    "backfill-cp-influence-ledger": {
+      description:
+        "Founder Universe 행동에 대한 CP/Influence 원장을 생성해 AgentRank가 경제 기여 신호를 읽을 수 있게 합니다.",
+      title: "CP/Influence 원장 정합성",
+    },
+    "backfill-legacy-referral-edges": {
+      description:
+        "기존 회원 기준 추천 필드를 AI 스타 기준 추천 엣지로 전환하고 원본 sponsor 증거를 보존합니다.",
+      title: "기존 추천 엣지 전환",
+    },
+    "backfill-member-founder-universe": {
+      description:
+        "가입 완료 회원을 추천 맥락, 기존 멤버십, 플랫폼 시작 유니버스 기준으로 Founder Universe에 연결합니다.",
+      title: "회원 Founder Universe 배치",
+    },
+    "backfill-member-starter-star": {
+      description:
+        "추천 가입, 첫 파운더 멤버십, 소유 AI 스타, 기본 시작 스타 순서로 회원의 시작 AI 스타를 결정합니다.",
+      title: "회원 시작 AI 스타 지정",
+    },
+    "backfill-star-creator-membership": {
+      description:
+        "모든 활성 AI 스타가 Creator 멤버십을 갖도록 정합성을 맞춰 Creator Journey와 CP Pool 이벤트를 만들 수 있게 합니다.",
+      title: "AI 스타 Creator 멤버십 정합성",
+    },
+    "backfill-star-owner": {
+      description:
+        "Creator lineage와 spawned-star 이벤트에 사용될 AI 스타 소유자 정보를 보강합니다.",
+      title: "AI 스타 소유자 정보 보강",
+    },
+    "backfill-star-portrait": {
+      description:
+        "AI 스타와 사람 멤버가 명확히 구분되도록 안전한 AI 스타 프로필 이미지를 연결합니다.",
+      title: "AI 스타 프로필 이미지 보강",
+    },
+  };
+
+  return labels[item.id] ?? { description: item.description, title: item.title };
 }
 
 function buildQuery(scope: CoverageAuditScope, extra?: Record<string, string>) {
@@ -1366,6 +1455,79 @@ function BackfillReadinessPanel({
               )}
             </div>
           </div>
+
+          {backfill.actionPlan.length > 0 ? (
+            <div className="rounded-xl border border-violet-100 bg-white p-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-[#11132d]">
+                    {copy.backfillActionPlan}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
+                    {copy.backfillActionPlanBody}
+                  </p>
+                </div>
+                <span className="w-fit rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9] ring-1 ring-violet-100">
+                  {locale === "ko"
+                    ? `${backfill.actionPlan.length}단계`
+                    : `${backfill.actionPlan.length} steps`}
+                </span>
+              </div>
+              <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                {backfill.actionPlan.map((item) => {
+                  const actionText = getBackfillActionPlanText(item, locale);
+
+                  return (
+                    <div
+                      className="rounded-xl border border-slate-100 bg-slate-50 p-4"
+                      key={item.id}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[0.68rem] font-semibold uppercase text-[#6d28d9]">
+                            {copy.actionPriority} {item.priority}
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-[#11132d]">
+                            {actionText.title}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[0.68rem] font-semibold text-emerald-700 ring-1 ring-emerald-100">
+                          {getBackfillRunModeLabel(item.runMode, locale)}
+                        </span>
+                      </div>
+                      <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">
+                        {actionText.description}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <span className="rounded-full bg-white px-2.5 py-1 text-[0.68rem] font-semibold text-slate-600 ring-1 ring-slate-100">
+                          {copy.actionEstimatedRecords}:{" "}
+                          {formatNumber(item.estimatedRecords, locale)}
+                        </span>
+                        <span className="rounded-full bg-white px-2.5 py-1 text-[0.68rem] font-semibold text-[#6d28d9] ring-1 ring-violet-100">
+                          {getBackfillCoverageLabel(item.targetCoverage, locale)}
+                        </span>
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {item.eventTypes.map((eventType) => (
+                          <span
+                            className="rounded-full bg-violet-50 px-2 py-1 text-[0.65rem] font-semibold text-[#6d28d9]"
+                            key={`${item.id}-${eventType}`}
+                          >
+                            {eventType}
+                          </span>
+                        ))}
+                      </div>
+                      {item.script ? (
+                        <p className="mt-3 break-all rounded-lg bg-white px-3 py-2 font-mono text-[0.68rem] font-semibold text-slate-500 ring-1 ring-slate-100">
+                          {item.script}
+                        </p>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
 
           {backfill.samples.length > 0 ? (
             <div className="rounded-xl border border-slate-100 bg-white p-4">

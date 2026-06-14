@@ -223,6 +223,15 @@ function serializeCoverageCsv(
       false,
       "",
     ]),
+    ...backfill.actionPlan.map((item) => [
+      "backfill_action_plan",
+      item.id,
+      item.title,
+      item.estimatedRecords,
+      item.priority,
+      item.runMode,
+      item.eventTypes.join("|"),
+    ]),
     ...coverage.eventTypes.map((eventType) => [
       "event_type",
       eventType.type,
