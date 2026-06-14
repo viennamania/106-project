@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 
 import { FanletterAgentRankLedgerPage } from "@/components/fanletter-agentrank-ledger-page";
 import {
+  normalizeAgentRankCoverageAction,
+  readFirstSearchParam,
+} from "@/lib/agentrank/coverage-action";
+import {
   agentRankReputationEventTypes,
   getFanletterAgentRankReputationEventFeed,
   type AgentRankReputationEventType,
@@ -13,6 +17,7 @@ import { hasLocale, type Locale } from "@/lib/i18n";
 export const dynamic = "force-dynamic";
 
 type AgentRankLedgerSearchParams = {
+  coverageAction?: string | string[];
   limit?: string | string[];
   memberEmail?: string | string[];
   starId?: string | string[];
@@ -20,7 +25,7 @@ type AgentRankLedgerSearchParams = {
 };
 
 function readFirstParam(value?: string | string[]) {
-  return Array.isArray(value) ? value[0] : value;
+  return readFirstSearchParam(value);
 }
 
 function normalizeLimit(value?: string | string[]) {
@@ -110,6 +115,7 @@ export default async function FanletterAgentRankLedgerRoute({
   const memberEmail = normalizeMemberEmail(query.memberEmail);
   const type = normalizeEventType(query.type);
   const limit = normalizeLimit(query.limit);
+  const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
   const feed = await getFanletterAgentRankReputationEventFeed({
     includeTypes: type ? [type] : undefined,
     limit,
@@ -119,6 +125,15 @@ export default async function FanletterAgentRankLedgerRoute({
 
   return (
     <FanletterAgentRankLedgerPage
+      coverageAction={
+        coverageAction
+          ? {
+              action: coverageAction,
+              memberEmail,
+              starId,
+            }
+          : null
+      }
       feed={feed}
       filters={{
         limit,

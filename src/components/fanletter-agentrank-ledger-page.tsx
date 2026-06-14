@@ -24,9 +24,12 @@ import {
   type AgentRankReputationEventType,
   type FanletterAgentRankReputationEventFeed,
 } from "@/lib/agentrank/reputation-events";
+import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
+import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import type { Locale } from "@/lib/i18n";
 
 type FanletterAgentRankLedgerPageProps = {
+  coverageAction?: AgentRankCoverageActionContext | null;
   feed: FanletterAgentRankReputationEventFeed;
   filters: {
     limit: number;
@@ -704,6 +707,7 @@ function EventCard({
 }
 
 export function FanletterAgentRankLedgerPage({
+  coverageAction = null,
   feed,
   filters,
   locale,
@@ -822,6 +826,13 @@ export function FanletterAgentRankLedgerPage({
           </div>
         </header>
 
+        {coverageAction ? (
+          <FanletterAgentRankCoverageActionNotice
+            action={coverageAction}
+            locale={locale}
+          />
+        ) : null}
+
         <section className="rounded-lg border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
           <div className="flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
             <SlidersHorizontal className="size-4" />
@@ -831,6 +842,13 @@ export function FanletterAgentRankLedgerPage({
             action={`/${locale}/fanletter/agentrank/events`}
             className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_9rem_auto_auto]"
           >
+            {coverageAction ? (
+              <input
+                name="coverageAction"
+                type="hidden"
+                value={coverageAction.action}
+              />
+            ) : null}
             {filters.type ? (
               <input name="type" type="hidden" value={filters.type} />
             ) : null}
