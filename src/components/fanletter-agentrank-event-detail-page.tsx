@@ -898,6 +898,7 @@ function EventLineageNode({
   locale: Locale;
 }) {
   const starId = event.starId ?? event.object?.id ?? null;
+  const relatedStarScope = getAgentRankRelatedStarScope(event);
   const params = new URLSearchParams();
   const content = (
     <>
@@ -927,6 +928,33 @@ function EventLineageNode({
       >
         {event.eventId}
       </p>
+      {relatedStarScope.length ? (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {relatedStarScope.slice(0, 2).map((relatedStarId) => (
+            <span
+              className={`rounded-full px-2 py-0.5 font-mono text-[0.62rem] font-semibold ring-1 ${
+                isCurrent
+                  ? "bg-white/12 text-white/78 ring-white/15"
+                  : "bg-violet-50 text-[#6d28d9] ring-violet-100"
+              }`}
+              key={relatedStarId}
+            >
+              {relatedStarId}
+            </span>
+          ))}
+          {relatedStarScope.length > 2 ? (
+            <span
+              className={`rounded-full px-2 py-0.5 text-[0.62rem] font-semibold ring-1 ${
+                isCurrent
+                  ? "bg-white/12 text-white/78 ring-white/15"
+                  : "bg-slate-50 text-slate-500 ring-slate-100"
+              }`}
+            >
+              +{relatedStarScope.length - 2}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       <p
         className={`mt-1 truncate text-[0.68rem] font-semibold ${
           isCurrent ? "text-white/70" : "text-slate-400"
