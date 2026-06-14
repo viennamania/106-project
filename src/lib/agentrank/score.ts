@@ -85,12 +85,56 @@ export type AgentRankScoreAggregate = {
   topContributors: AgentRankScoreContributor[];
 };
 
+export type AgentRankFounderContributionUniverse = {
+  confidence: number;
+  cpTotal: number;
+  creatorProgressTotal: number;
+  dimensions: AgentRankScoreDimension[];
+  eventCount: number;
+  founderJoins: number;
+  influenceTotal: number;
+  latestEventAt: string | null;
+  readiness: AgentRankScoreAggregate["readiness"];
+  referralConversions: number;
+  role: string | null;
+  score: number;
+  starId: string;
+  starName: string;
+  universeId: string;
+};
+
+export type AgentRankFounderContributionAggregate = {
+  agentRankVersion: "agentrank.v0";
+  confidence: number;
+  generatedAt: string;
+  maxScore: 1000;
+  memberEmail: string;
+  scoreVersion: "agentrank.founder_contribution.v0";
+  source: "fanletter_phase_1_contribution_aggregator";
+  summary: {
+    cpTotal: number;
+    eventCount: number;
+    influenceTotal: number;
+    sourceUniverseCount: number;
+    totalFounderJoins: number;
+    totalReferralConversions: number;
+  };
+  totalScore: number;
+  universes: AgentRankFounderContributionUniverse[];
+};
+
 export type GetFanletterAgentRankScoreOptions = {
   includeTypes?: AgentRankReputationEventType[];
   limit?: number;
   memberEmail?: string | null;
   starId?: string | null;
   universeId?: string | null;
+};
+
+export type GetFanletterAgentRankFounderContributionOptions = {
+  includeTypes?: AgentRankReputationEventType[];
+  limit?: number;
+  memberEmail?: string | null;
 };
 
 type ScoreAccumulator = {
@@ -157,6 +201,53 @@ function getImpactTotal(event: AgentRankReputationEvent) {
 
 function actorContributionKey(actor: AgentRankActor) {
   return `${actor.type}:${actor.id}`;
+}
+
+function getEventStarActor(event: AgentRankReputationEvent) {
+  return [event.object, event.subject, event.actor].find(
+    (actor): actor is AgentRankActor => actor?.type === "ai_star",
+  );
+}
+
+function getEventStarId(event: AgentRankReputationEvent) {
+  return normalizeId(event.starId) ?? normalizeId(getEventStarActor(event)?.id);
+}
+
+function getEventStarName(event: AgentRankReputationEvent, starId: string) {
+  const starActor = getEventStarActor(event);
+
+  return starActor?.label?.trim() || starActor?.id || starId;
+}
+
+function getMemberRoleForEvent(
+  event: AgentRankReputationEvent,
+  memberEmail: string,
+) {
+  const normalizedMemberEmail = normalizeId(memberEmail);
+
+  if (!normalizedMemberEmail) {
+    return null;
+  }
+
+  const memberActor = [event.actor, event.subject, event.object].find(
+    (actor) =>
+      actor?.type === "member" && normalizeId(actor.id) === normalizedMemberEmail,
+  );
+
+  if (memberActor?.role) {
+    return memberActor.role;
+  }
+
+  if (
+    event.type === "ai_star_spawned" ||
+    event.type === "creator_unlocked" ||
+    (event.type === "ai_star_discovered" &&
+      normalizeId(String(event.context.ownerEmail ?? "")) === normalizedMemberEmail)
+  ) {
+    return "creator";
+  }
+
+  return null;
 }
 
 function buildDimension({
@@ -552,6 +643,157 @@ export async function getFanletterAgentRankScoreAggregate(
     memberEmail: options.memberEmail,
     starId: options.starId,
     universeId: options.universeId,
+  });
+}
+
+export function calculateAgentRankFounderContributionAggregate({
+  feed,
+  memberEmail,
+}: {
+  feed: FanletterAgentRankReputationEventFeed;
+  memberEmail: string;
+}): AgentRankFounderContributionAggregate {
+  const normalizedMemberEmail = normalizeId(memberEmail) ?? "";
+  const eventsByStarId = new Map<
+    string,
+    {
+      events: AgentRankReputationEvent[];
+      role: string | null;
+      starName: string;
+    }
+  >();
+
+  for (const event of feed.events) {
+    const starId = getEventStarId(event);
+
+    if (!starId) {
+      continue;
+    }
+
+    const existing =
+      eventsByStarId.get(starId) ??
+      ({
+        events: [],
+        role: null,
+        starName: getEventStarName(event, starId),
+      } satisfies {
+        events: AgentRankReputationEvent[];
+        role: string | null;
+        starName: string;
+      });
+    const role = getMemberRoleForEvent(event, normalizedMemberEmail);
+
+    existing.events.push(event);
+    existing.starName = existing.starName || getEventStarName(event, starId);
+    existing.role = existing.role ?? role;
+    eventsByStarId.set(starId, existing);
+  }
+
+  const universes = [...eventsByStarId.entries()]
+    .map(([starId, group]) => {
+      const scoreAggregate = calculateAgentRankScoreAggregate({
+        feed: {
+          ...feed,
+          events: group.events,
+        },
+        memberEmail: normalizedMemberEmail,
+        starId,
+        universeId: `fanletter-star-universe:${starId}`,
+      });
+      const latestEventAt =
+        group.events
+          .map((event) => event.occurredAt)
+          .sort((left, right) => right.localeCompare(left))[0] ?? null;
+
+      return {
+        confidence: scoreAggregate.confidence,
+        cpTotal: scoreAggregate.summary.cpTotal,
+        creatorProgressTotal: scoreAggregate.summary.creatorProgressTotal,
+        dimensions: scoreAggregate.dimensions,
+        eventCount: scoreAggregate.summary.eventCount,
+        founderJoins: scoreAggregate.summary.founderJoins,
+        influenceTotal: scoreAggregate.summary.influenceTotal,
+        latestEventAt,
+        readiness: scoreAggregate.readiness,
+        referralConversions: scoreAggregate.summary.referralConversions,
+        role: group.role,
+        score: scoreAggregate.score,
+        starId,
+        starName: group.starName,
+        universeId: `fanletter-star-universe:${starId}`,
+      } satisfies AgentRankFounderContributionUniverse;
+    })
+    .sort((left, right) => {
+      return (
+        right.score - left.score ||
+        right.eventCount - left.eventCount ||
+        left.starName.localeCompare(right.starName)
+      );
+    });
+  const totalScore = clampScore(
+    universes.reduce((sum, universe) => sum + universe.score * 0.42, 0),
+    1000,
+  );
+  const eventCount = universes.reduce(
+    (sum, universe) => sum + universe.eventCount,
+    0,
+  );
+  const confidence = clampScore(
+    universes.length === 0
+      ? 0
+      : universes.reduce((sum, universe) => sum + universe.confidence, 0) /
+          universes.length,
+    100,
+  );
+
+  return {
+    agentRankVersion: "agentrank.v0",
+    confidence,
+    generatedAt: feed.generatedAt,
+    maxScore: 1000,
+    memberEmail: normalizedMemberEmail,
+    scoreVersion: "agentrank.founder_contribution.v0",
+    source: "fanletter_phase_1_contribution_aggregator",
+    summary: {
+      cpTotal: universes.reduce((sum, universe) => sum + universe.cpTotal, 0),
+      eventCount,
+      influenceTotal: universes.reduce(
+        (sum, universe) => sum + universe.influenceTotal,
+        0,
+      ),
+      sourceUniverseCount: universes.length,
+      totalFounderJoins: universes.reduce(
+        (sum, universe) => sum + universe.founderJoins,
+        0,
+      ),
+      totalReferralConversions: universes.reduce(
+        (sum, universe) => sum + universe.referralConversions,
+        0,
+      ),
+    },
+    totalScore,
+    universes,
+  };
+}
+
+export async function getFanletterAgentRankFounderContribution(
+  options: GetFanletterAgentRankFounderContributionOptions = {},
+) {
+  const memberEmail = normalizeId(options.memberEmail);
+
+  if (!memberEmail) {
+    return null;
+  }
+
+  const feed = await getFanletterAgentRankReputationEventFeed({
+    includeTypes: options.includeTypes,
+    limit: normalizeLimit(options.limit ?? 250),
+    memberEmail,
+  });
+
+  return calculateAgentRankFounderContributionAggregate({
+    feed,
+    memberEmail,
   });
 }
 

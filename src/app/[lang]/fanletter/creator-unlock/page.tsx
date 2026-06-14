@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterCreatorUnlockPage } from "@/components/fanletter-creator-unlock-page";
+import { getFanletterAgentRankFounderContribution } from "@/lib/agentrank/score";
 import {
   getFanletterFounderClubCreatorUnlock,
   getFanletterFounderClubMemberPortfolio,
@@ -78,14 +79,19 @@ export default async function FanletterCreatorUnlockRoutePage({
 
   const locale = lang as Locale;
   const memberSession = await readMemberServerSession();
-  const [memberPortfolio, creatorUnlock] = await Promise.all([
+  const [memberPortfolio, creatorUnlock, founderContribution] = await Promise.all([
     getFanletterFounderClubMemberPortfolio(memberSession?.email ?? null),
     getFanletterFounderClubCreatorUnlock(memberSession?.email ?? null),
+    getFanletterAgentRankFounderContribution({
+      limit: 250,
+      memberEmail: memberSession?.email ?? null,
+    }),
   ]);
 
   return (
     <FanletterCreatorUnlockPage
       creatorUnlock={creatorUnlock}
+      founderContribution={founderContribution}
       isSignedIn={Boolean(memberSession?.email)}
       locale={locale}
       memberPortfolio={memberPortfolio}

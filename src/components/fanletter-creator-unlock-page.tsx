@@ -31,6 +31,7 @@ import {
   HumanMemberAvatar,
   MemberPortfolio,
 } from "@/components/fanletter-founder-club-v2";
+import type { AgentRankFounderContributionAggregate } from "@/lib/agentrank/score";
 import {
   fanletterV2Mock,
   getFanletterV2Copy,
@@ -67,6 +68,12 @@ function getLaunchPageCopy(locale: Locale) {
       cost: "10 USDT 미리보기",
       draft: "준비 중",
       fieldsTitle: "새 AI 스타 생성 미리보기",
+      founderContribution: "Founder Contribution",
+      founderContributionBody:
+        "내 파운더 활동이 어느 스타 유니버스에서 AgentRank 신뢰로 쌓였는지 보여줍니다.",
+      contributionScore: "기여 점수",
+      contributionConfidence: "신뢰도",
+      contributionEvents: "이벤트",
       heroBody:
         "크리에이터 권한 활성화 이후 여러 AI 스타를 만들 수 있는 흐름을 실제 결제 없이 먼저 검증합니다.",
       heroEyebrow: "크리에이터 권한 활성화",
@@ -123,6 +130,12 @@ function getLaunchPageCopy(locale: Locale) {
       cost: "10 USDT preview",
       draft: "Draft",
       fieldsTitle: "New AI Star launch preview",
+      founderContribution: "Founder Contribution",
+      founderContributionBody:
+        "Shows which Star Universes are accumulating your Founder activity as AgentRank trust.",
+      contributionScore: "Contribution Score",
+      contributionConfidence: "Confidence",
+      contributionEvents: "Events",
       heroBody:
         "After Creator Unlock, the member can validate a multi-AI-Star launch flow before real checkout.",
       heroEyebrow: "Creator Unlock",
@@ -178,6 +191,12 @@ function getLaunchPageCopy(locale: Locale) {
     cost: "10 USDT preview",
     draft: "Draft",
     fieldsTitle: "New AI Star launch preview",
+    founderContribution: "Founder Contribution",
+    founderContributionBody:
+      "Shows which Star Universes are accumulating your Founder activity as AgentRank trust.",
+    contributionScore: "Contribution Score",
+    contributionConfidence: "Confidence",
+    contributionEvents: "Events",
     heroBody:
       "After Creator Unlock, the member can validate a multi-AI-Star launch flow before real checkout.",
     heroEyebrow: "Creator Unlock",
@@ -267,6 +286,7 @@ function getMockStarById(starId: string): AIStar | null {
 }
 
 type SourceUniverseOption = {
+  contribution?: AgentRankFounderContributionAggregate["universes"][number] | null;
   portraitImageUrl?: string | null;
   portraitInitials: string;
   role: MemberPortfolioRole["role"];
@@ -276,8 +296,17 @@ type SourceUniverseOption = {
   universeName: string;
 };
 
-function getSourceUniverseOptions(portfolio: MemberPortfolioData) {
+function getSourceUniverseOptions(
+  portfolio: MemberPortfolioData,
+  founderContribution?: AgentRankFounderContributionAggregate | null,
+) {
   const optionsByStarId = new Map<string, SourceUniverseOption>();
+  const contributionByStarId = new Map(
+    founderContribution?.universes.map((universe) => [
+      universe.starId,
+      universe,
+    ]) ?? [],
+  );
 
   for (const role of portfolio.roles) {
     if (!role.starId) {
@@ -292,6 +321,7 @@ function getSourceUniverseOptions(portfolio: MemberPortfolioData) {
       portraitImageUrl: role.portraitImageUrl ?? mockStar?.portraitImageUrl,
       portraitInitials:
         role.portraitInitials ?? mockStar?.portraitInitials ?? getInitials(starName),
+      contribution: contributionByStarId.get(role.starId) ?? null,
       role: role.role,
       starId: role.starId,
       starName,
@@ -309,6 +339,7 @@ function getSourceUniverseOptions(portfolio: MemberPortfolioData) {
     }
 
     optionsByStarId.set(ownedStar.id, {
+      contribution: contributionByStarId.get(ownedStar.id) ?? null,
       portraitImageUrl: ownedStar.portraitImageUrl,
       portraitInitials: ownedStar.portraitInitials ?? getInitials(ownedStar.name),
       role: "creator",
@@ -316,6 +347,21 @@ function getSourceUniverseOptions(portfolio: MemberPortfolioData) {
       starName: ownedStar.name,
       starStatus: ownedStar.status,
       universeName: ownedStar.universeName ?? `${ownedStar.name} Universe`,
+    });
+  }
+
+  for (const contribution of contributionByStarId.values()) {
+    if (optionsByStarId.has(contribution.starId)) {
+      continue;
+    }
+
+    optionsByStarId.set(contribution.starId, {
+      contribution,
+      portraitInitials: getInitials(contribution.starName),
+      role: "founder",
+      starId: contribution.starId,
+      starName: contribution.starName,
+      universeName: `${contribution.starName} Universe`,
     });
   }
 
@@ -627,7 +673,7 @@ function SourceUniverseSelector({
   }
 
   return (
-    <section className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+    <section className="w-full min-w-0 rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
       <div className="flex items-start gap-3">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
           <GitBranch className="size-5" />
@@ -651,14 +697,14 @@ function SourceUniverseSelector({
         variant="compact"
       />
 
-      <div className="mt-5 grid gap-2 sm:grid-cols-2">
+      <div className="mt-5 grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
         {options.map((option) => {
           const isSelected = option.starId === selectedStarId;
 
           return (
             <button
               className={joinClasses(
-                "relative min-h-32 rounded-lg border p-3 text-left transition",
+                "relative min-h-32 min-w-0 rounded-lg border p-3 text-left transition",
                 isSelected
                   ? "border-[#7c3aed] bg-[#f5f0ff] ring-2 ring-[#7c3aed]/12"
                   : "border-black/8 bg-[#fbfaff] hover:border-violet-300",
@@ -684,7 +730,7 @@ function SourceUniverseSelector({
               }}
               type="button"
             >
-              <div className="flex items-start gap-3">
+              <div className="flex min-w-0 items-start gap-3">
                 <SourceUniverseAIStarPortrait option={option} />
                 <div className="min-w-0 flex-1 pr-16 pt-0.5">
                   <p className="truncate text-lg font-semibold text-[#12041f]">
@@ -704,6 +750,34 @@ function SourceUniverseSelector({
                       </span>
                     </div>
                   </div>
+                  {option.contribution ? (
+                    <div className="mt-3 grid min-w-0 grid-cols-3 gap-1.5">
+                      <div className="rounded-lg bg-white px-2 py-2">
+                        <p className="text-sm font-semibold text-[#12041f]">
+                          {formatNumber(option.contribution.score, locale)}
+                        </p>
+                        <p className="mt-0.5 text-[0.56rem] font-semibold text-black/40">
+                          {copy.contributionScore}
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-white px-2 py-2">
+                        <p className="text-sm font-semibold text-[#12041f]">
+                          {option.contribution.confidence}%
+                        </p>
+                        <p className="mt-0.5 text-[0.56rem] font-semibold text-black/40">
+                          {copy.contributionConfidence}
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-white px-2 py-2">
+                        <p className="text-sm font-semibold text-[#12041f]">
+                          {formatNumber(option.contribution.eventCount, locale)}
+                        </p>
+                        <p className="mt-0.5 text-[0.56rem] font-semibold text-black/40">
+                          {copy.contributionEvents}
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
                 {isSelected ? (
                   <span className="absolute right-3 top-3 inline-flex h-7 items-center rounded-full border border-emerald-200 bg-emerald-50 px-2.5 text-[0.66rem] font-semibold text-emerald-800">
@@ -783,6 +857,116 @@ function SourceUniverseEmptyState({
         locale={locale}
         variant="compact"
       />
+    </section>
+  );
+}
+
+function FounderContributionPanel({
+  contribution,
+  copy,
+  locale,
+}: {
+  contribution?: AgentRankFounderContributionAggregate | null;
+  copy: ReturnType<typeof getLaunchPageCopy>;
+  locale: Locale;
+}) {
+  if (!contribution || contribution.universes.length === 0) {
+    return null;
+  }
+
+  const scorePercent = Math.round(
+    (contribution.totalScore / Math.max(1, contribution.maxScore)) * 100,
+  );
+  const topUniverses = contribution.universes.slice(0, 3);
+
+  return (
+    <section className="mt-4 overflow-hidden rounded-lg border border-violet-200 bg-white shadow-[0_18px_44px_rgba(88,28,135,0.08)]">
+      <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[0.85fr_1.15fr]">
+        <div className="rounded-lg bg-gradient-to-br from-[#12041f] via-[#4c1d95] to-[#7c3aed] p-4 text-white">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-white/68">
+                {copy.founderContribution}
+              </p>
+              <p className="mt-2 text-4xl font-semibold">
+                {formatNumber(contribution.totalScore, locale)}
+              </p>
+            </div>
+            <span className="rounded-full bg-white/14 px-3 py-1 text-xs font-semibold text-white">
+              AgentRank v0
+            </span>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/16">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-cyan-300 to-white"
+              style={{ width: `${scorePercent}%` }}
+            />
+          </div>
+          <p className="mt-3 text-sm font-medium leading-6 text-white/70">
+            {copy.founderContributionBody}
+          </p>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="rounded-lg bg-white/10 p-2">
+              <p className="text-lg font-semibold">
+                {formatNumber(contribution.summary.sourceUniverseCount, locale)}
+              </p>
+              <p className="text-[0.62rem] font-semibold text-white/56">
+                Universe
+              </p>
+            </div>
+            <div className="rounded-lg bg-white/10 p-2">
+              <p className="text-lg font-semibold">
+                {formatNumber(contribution.summary.eventCount, locale)}
+              </p>
+              <p className="text-[0.62rem] font-semibold text-white/56">
+                {copy.contributionEvents}
+              </p>
+            </div>
+            <div className="rounded-lg bg-white/10 p-2">
+              <p className="text-lg font-semibold">{contribution.confidence}%</p>
+              <p className="text-[0.62rem] font-semibold text-white/56">
+                {copy.contributionConfidence}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid content-start gap-2">
+          {topUniverses.map((universe) => (
+            <div
+              className="rounded-lg border border-violet-100 bg-[#fbfaff] p-3"
+              key={universe.universeId}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-[#12041f]">
+                    {universe.starName}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold text-black/46">
+                    {universe.role ?? "founder"} ·{" "}
+                    {formatNumber(universe.eventCount, locale)}{" "}
+                    {copy.contributionEvents}
+                  </p>
+                </div>
+                <p className="shrink-0 text-xl font-semibold text-[#6d28d9]">
+                  {formatNumber(universe.score, locale)}
+                </p>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <span className="rounded-lg bg-white px-2 py-2 text-xs font-semibold text-[#12041f]">
+                  CP {formatNumber(universe.cpTotal, locale)}
+                </span>
+                <span className="rounded-lg bg-white px-2 py-2 text-xs font-semibold text-[#12041f]">
+                  Invite {formatNumber(universe.referralConversions, locale)}
+                </span>
+                <span className="rounded-lg bg-white px-2 py-2 text-xs font-semibold text-[#12041f]">
+                  Oracle {universe.readiness.oracleReadyPercent}%
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }
@@ -1127,7 +1311,7 @@ function CreatorUnlockStateStrip({
   ];
 
   return (
-    <section className="mt-4 grid gap-2 sm:grid-cols-3">
+    <section className="mt-4 grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-3">
       {items.map((item) => (
         <div
           className={joinClasses(
@@ -1159,11 +1343,13 @@ function CreatorUnlockStateStrip({
 
 export function FanletterCreatorUnlockPage({
   creatorUnlock,
+  founderContribution,
   isSignedIn = false,
   locale,
   memberPortfolio,
 }: {
   creatorUnlock?: CreatorUnlockData | null;
+  founderContribution?: AgentRankFounderContributionAggregate | null;
   isSignedIn?: boolean;
   locale: Locale;
   memberPortfolio?: MemberPortfolioData | null;
@@ -1212,8 +1398,8 @@ export function FanletterCreatorUnlockPage({
     [basePortfolio, effectiveMembershipStarIds, effectiveMockOwnedStars],
   );
   const sourceOptions = useMemo(
-    () => getSourceUniverseOptions(portfolio),
-    [portfolio],
+    () => getSourceUniverseOptions(portfolio, founderContribution),
+    [founderContribution, portfolio],
   );
   const [selectedSourceStarId, setSelectedSourceStarId] = useState<string | null>(
     null,
@@ -1263,7 +1449,7 @@ export function FanletterCreatorUnlockPage({
     portfolio.memberInitials ?? getInitials(portfolio.memberName);
 
   return (
-    <main className="min-h-screen bg-[#fbfaff] px-4 py-5 text-black sm:px-6 lg:px-8">
+    <main className="min-h-screen overflow-x-hidden bg-[#fbfaff] px-4 py-5 text-black sm:px-6 lg:px-8">
       <FanletterReputationTracker
         agentRank={{
           eventType: unlock.unlocked ? "creator_unlocked" : "content_engaged",
@@ -1285,7 +1471,7 @@ export function FanletterCreatorUnlockPage({
           unlocked: unlock.unlocked,
         }}
       />
-      <div className="mx-auto max-w-[92rem]">
+      <div className="mx-auto w-full min-w-0 max-w-[92rem]">
         <div className="flex items-center justify-between gap-3">
           <Link
             className="inline-flex min-h-10 items-center gap-2 rounded-full border border-violet-200 bg-white px-4 text-sm font-semibold text-[#5b21b6] transition hover:bg-violet-50"
@@ -1300,7 +1486,7 @@ export function FanletterCreatorUnlockPage({
           </span>
         </div>
 
-        <section className="mt-6 grid gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
+        <section className="mt-6 grid w-full min-w-0 gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-3 py-1 text-sm font-semibold text-[#6d28d9]">
               <Crown className="size-4" />
@@ -1314,7 +1500,7 @@ export function FanletterCreatorUnlockPage({
             </p>
           </div>
 
-          <div className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+          <div className="w-full min-w-0 rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
             <div className="flex items-center gap-3">
               <HumanMemberAvatar
                 member={{ initials: memberInitials, name: portfolio.memberName }}
@@ -1336,7 +1522,7 @@ export function FanletterCreatorUnlockPage({
                 </div>
               </div>
             </div>
-            <div className="mt-5 grid grid-cols-4 gap-2">
+            <div className="mt-5 grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4">
               {copy.steps.map((step, index) => (
                 <div
                   className="rounded-lg border border-violet-100 bg-[#f8f7ff] p-2"
@@ -1366,12 +1552,18 @@ export function FanletterCreatorUnlockPage({
           unlock={unlock}
         />
 
+        <FounderContributionPanel
+          contribution={isPreviewMode ? null : founderContribution}
+          copy={copy}
+          locale={locale}
+        />
+
         <MockFounderRewardSummary
           locale={locale}
           membershipCount={effectiveMembershipStarIds.length}
         />
 
-        <section className="mt-8 grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+        <section className="mt-8 grid w-full min-w-0 gap-4 xl:grid-cols-[0.9fr_1.1fr]">
           <div className="grid min-w-0 gap-4">
             <CreatorUnlockCard
               copy={v2Copy}
@@ -1389,7 +1581,7 @@ export function FanletterCreatorUnlockPage({
                 selectedStarId={selectedSourceOption?.starId ?? null}
               />
             )}
-            <section className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+            <section className="w-full min-w-0 rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
               <div className="flex items-start gap-3">
                 <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
                   <Sparkles className="size-5" />
@@ -1407,7 +1599,7 @@ export function FanletterCreatorUnlockPage({
                 </div>
               </div>
 
-              <div className="mt-5 grid gap-2 sm:grid-cols-2">
+              <div className="mt-5 grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
                 <FieldPreview label={copy.name} value={launchPreview.name} />
                 <FieldPreview label={copy.category} value={launchPreview.category} />
                 <FieldPreview
