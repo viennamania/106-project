@@ -477,9 +477,7 @@ function EventCard({
   const copy = getLedgerCopy(locale);
   const Icon = eventIconMap[event.type];
   const detailParams = new URLSearchParams();
-  const evidencePacketParams = new URLSearchParams({
-    download: "1",
-  });
+  const evidencePacketParams = new URLSearchParams();
   const scoreSignals = getLedgerScoreSignals(event);
   const impactTotal =
     typeof event.context.reputationImpactTotal === "number"
@@ -621,15 +619,19 @@ function EventCard({
         <span>{event.context.universeId ?? event.starId ?? "-"}</span>
         <span className="text-slate-300">/</span>
         <span>{event.eventId.slice(0, 20)}</span>
-        <a
+        <Link
           className="inline-flex h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9]"
-          href={`/api/fanletter/agentrank/events/${encodeURIComponent(
+          href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
             event.eventId,
-          )}/evidence?${evidencePacketParams.toString()}`}
+          )}/evidence${
+            evidencePacketParams.size
+              ? `?${evidencePacketParams.toString()}`
+              : ""
+          }`}
         >
           <Download className="size-3.5" />
           {copy.evidencePacket}
-        </a>
+        </Link>
         <Link
           className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white max-sm:ml-0"
           href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(

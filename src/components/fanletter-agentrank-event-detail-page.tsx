@@ -58,7 +58,7 @@ function getCopy(locale: Locale) {
       eventLineage: "Event Lineage",
       eventLineageBody:
         "같은 AI 스타, 멤버, 추천 코드, Universe로 이어진 이벤트를 전후 흐름으로 보여줍니다.",
-      downloadEvidencePacket: "증거 패킷 다운로드",
+      viewEvidencePacket: "증거 패킷 보기",
       economicFlow: "Economic Flow",
       economicFlowBody:
         "Creator Launch에서 발생한 x402 의도, CP Pool 생성, 상위 네트워크 분배를 하나의 거래 흐름으로 추적합니다.",
@@ -124,7 +124,7 @@ function getCopy(locale: Locale) {
     eventLineage: "Event Lineage",
     eventLineageBody:
       "Shows nearby events connected by the same AI Star, member, referral code, or Universe.",
-    downloadEvidencePacket: "Download Evidence Packet",
+    viewEvidencePacket: "View Evidence Packet",
     economicFlow: "Economic Flow",
     economicFlowBody:
       "Traces x402 intent, CP Pool generation, and upline distribution from a Creator Launch as one transaction flow.",
@@ -1072,9 +1072,7 @@ function OracleEvidenceTracePanel({
   const audit = getEventAudit(event);
   const linkedEvidence = relatedEvents.slice(0, 5);
   const sourceTrace = `${event.source} · ${event.sourceId}`;
-  const evidencePacketParams = new URLSearchParams({
-    download: "1",
-  });
+  const evidencePacketParams = new URLSearchParams();
   const packetStarId = event.starId ?? event.object?.id ?? null;
   const packetState = event.reputationSignals.oracleReady
     ? copy.ready
@@ -1106,15 +1104,19 @@ function OracleEvidenceTracePanel({
           >
             {copy.oraclePacketCandidate} · {packetState}
           </span>
-          <a
+          <Link
             className="inline-flex h-9 items-center gap-2 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white transition hover:bg-[#2f235f]"
-            href={`/api/fanletter/agentrank/events/${encodeURIComponent(
+            href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
               event.eventId,
-            )}/evidence?${evidencePacketParams.toString()}`}
+            )}/evidence${
+              evidencePacketParams.size
+                ? `?${evidencePacketParams.toString()}`
+                : ""
+            }`}
           >
             <FileCheck2 className="size-3.5" />
-            {copy.downloadEvidencePacket}
-          </a>
+            {copy.viewEvidencePacket}
+          </Link>
         </div>
       </div>
 
