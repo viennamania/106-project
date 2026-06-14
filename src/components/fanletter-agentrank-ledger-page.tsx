@@ -123,6 +123,11 @@ function getLedgerCopy(locale: Locale) {
       eventScope: "이벤트 범위",
       evidenceHash: "증거 해시",
       applyFilters: "필터 적용",
+      actionCoverage: "제품 행동 커버리지",
+      actionCoverageBody:
+        "FanLetter 핵심 행동이 AgentRank Reputation Event로 누락 없이 들어오는지 점검합니다.",
+      actionMissing: "수집 대기",
+      actionReady: "수집됨",
       clearFilters: "필터 초기화",
       filterByType: "이벤트 타입 필터",
       filters: "Ledger 필터",
@@ -135,9 +140,17 @@ function getLedgerCopy(locale: Locale) {
       heroTitle: "Reputation Event Ledger",
       impact: "평판 영향",
       impactReady: "영향 준비",
+      investorDemo: "Investor Demo Mode",
+      investorDemoBody:
+        "선택한 AI 스타의 이벤트, 보상, 검증 상태를 투자자 데모에서 바로 설명할 수 있는 운영 지표로 묶습니다.",
+      ledgerReviewQueue: "Event Review Queue",
+      ledgerReviewQueueBody:
+        "오라클 보강, Packet 후보, 고기여 이벤트, 품질 낮은 이벤트를 작업 큐처럼 분류합니다.",
+      lowQualityEvents: "품질 점검",
       member: "멤버",
       networkEdges: "네트워크 엣지",
       needs: "보강 필요",
+      nextAction: "다음 액션",
       ndjson: "NDJSON 스트림",
       oracleNeeds: "Oracle 보강 항목",
       oracleReady: "오라클 준비",
@@ -147,6 +160,9 @@ function getLedgerCopy(locale: Locale) {
       quality: "품질 점수",
       rankContribution: "AgentRank 기여도",
       ready: "준비됨",
+      reviewHighImpact: "고기여 검토",
+      reviewNeedsOracle: "오라클 보강",
+      reviewPacketReady: "Packet 후보",
       readinessAll: "전체 준비도",
       readinessFilter: "준비도 필터",
       readinessNeedsOracle: "Oracle 보강 필요",
@@ -197,9 +213,14 @@ function getLedgerCopy(locale: Locale) {
     eventId: "Event ID",
     eventScope: "Event scope",
     evidenceHash: "Evidence Hash",
-    applyFilters: "Apply filters",
-    clearFilters: "Reset filters",
-    filterByType: "Filter by event type",
+      applyFilters: "Apply filters",
+      actionCoverage: "Product Action Coverage",
+      actionCoverageBody:
+        "Checks whether core FanLetter actions are entering AgentRank as Reputation Events.",
+      actionMissing: "Pending",
+      actionReady: "Covered",
+      clearFilters: "Reset filters",
+      filterByType: "Filter by event type",
     filters: "Ledger filters",
     generated: "Generated",
     graphScope: "Graph Scope",
@@ -209,20 +230,31 @@ function getLedgerCopy(locale: Locale) {
     heroEyebrow: "AgentRank Ledger",
     heroTitle: "Reputation Event Ledger",
     impact: "Reputation Impact",
-    impactReady: "Impact-ready",
-    member: "Member",
-    networkEdges: "Network Edges",
-    needs: "Needs data",
-    ndjson: "NDJSON Stream",
+      impactReady: "Impact-ready",
+      investorDemo: "Investor Demo Mode",
+      investorDemoBody:
+        "Packages the selected AI Star's events, rewards, and verification state into operator metrics for investor demos.",
+      ledgerReviewQueue: "Event Review Queue",
+      ledgerReviewQueueBody:
+        "Groups Oracle gaps, packet candidates, high-impact events, and low-quality events as an operational review queue.",
+      lowQualityEvents: "Quality Review",
+      member: "Member",
+      networkEdges: "Network Edges",
+      needs: "Needs data",
+      nextAction: "Next action",
+      ndjson: "NDJSON Stream",
     oracleNeeds: "Oracle gaps",
     oracleReady: "Oracle-ready",
     openEvent: "Trace Event",
     packetPartial: "Packet partial",
     packetReady: "Packet ready",
     quality: "Quality Score",
-    rankContribution: "AgentRank Contribution",
-    ready: "Ready",
-    readinessAll: "All readiness",
+      rankContribution: "AgentRank Contribution",
+      ready: "Ready",
+      reviewHighImpact: "High-impact Review",
+      reviewNeedsOracle: "Oracle Gaps",
+      reviewPacketReady: "Packet Candidates",
+      readinessAll: "All readiness",
     readinessFilter: "Readiness filter",
     readinessNeedsOracle: "Needs Oracle",
     readinessOracleReady: "Oracle-ready",
@@ -590,6 +622,250 @@ function buildLedgerHref({
   return `/${locale}/fanletter/agentrank/events${query ? `?${query}` : ""}`;
 }
 
+function buildEventDetailHref({
+  event,
+  locale,
+}: {
+  event: AgentRankReputationEvent;
+  locale: Locale;
+}) {
+  const params = new URLSearchParams();
+  const starId = event.starId ?? event.object?.id ?? null;
+
+  if (starId) {
+    params.set("starId", starId);
+  }
+
+  return `/${locale}/fanletter/agentrank/events/${encodeURIComponent(
+    event.eventId,
+  )}${params.size ? `?${params.toString()}` : ""}`;
+}
+
+function getReviewNextAction(event: AgentRankReputationEvent, locale: Locale) {
+  const audit = getEventAudit(event);
+  const gapLabel = audit.gaps
+    .slice(0, 2)
+    .map((gap) => getAuditGapLabel(gap, locale))
+    .join(", ");
+
+  if (gapLabel) {
+    return locale === "ko"
+      ? `${gapLabel} 보강`
+      : `Enrich ${gapLabel}`;
+  }
+
+  if (!event.reputationSignals.oracleReady) {
+    return locale === "ko"
+      ? "Oracle upstream 신호 확인"
+      : "Verify Oracle upstream signal";
+  }
+
+  if (!event.audit.graphReady) {
+    return locale === "ko"
+      ? "거래 그래프 엣지 연결"
+      : "Connect transaction graph edge";
+  }
+
+  if (!event.audit.impactReady) {
+    return locale === "ko"
+      ? "점수 영향 신호 확인"
+      : "Verify score impact signal";
+  }
+
+  return locale === "ko"
+    ? "Oracle Packet 후보 검토"
+    : "Review Oracle Packet candidate";
+}
+
+function buildReviewQueue(events: AgentRankReputationEvent[], locale: Locale) {
+  const byImpact = [...events].sort((left, right) => {
+    const impactDelta =
+      getLedgerScoreSignals(right).reduce((sum, signal) => sum + signal.value, 0) -
+      getLedgerScoreSignals(left).reduce((sum, signal) => sum + signal.value, 0);
+
+    return impactDelta || getEventTimestamp(right) - getEventTimestamp(left);
+  });
+  const byQuality = [...events].sort((left, right) => {
+    return (
+      getEventAudit(left).qualityScore - getEventAudit(right).qualityScore ||
+      getEventTimestamp(right) - getEventTimestamp(left)
+    );
+  });
+  const needsOracle = events.filter((event) => {
+    const audit = getEventAudit(event);
+
+    return (
+      !event.reputationSignals.oracleReady ||
+      audit.status !== "audit_ready" ||
+      audit.gaps.length > 0 ||
+      !event.audit.graphReady ||
+      !event.audit.impactReady
+    );
+  });
+  const packetReady = events.filter((event) => {
+    return (
+      event.reputationSignals.oracleReady &&
+      getEventAudit(event).status === "audit_ready"
+    );
+  });
+
+  return [
+    {
+      Icon: AlertTriangle,
+      body:
+        locale === "ko"
+          ? "오라클/그래프/영향 신호를 먼저 보강해야 하는 이벤트"
+          : "Events requiring Oracle, graph, or impact enrichment",
+      events: byQuality.filter((event) => needsOracle.includes(event)).slice(0, 3),
+      key: "needs_oracle",
+      label:
+        locale === "ko" ? "오라클 보강 큐" : "Oracle gap queue",
+      tone: "border-amber-100 bg-amber-50/80 text-amber-800",
+      total: needsOracle.length,
+    },
+    {
+      Icon: Database,
+      body:
+        locale === "ko"
+          ? "Oracle Packet 후보로 바로 설명 가능한 이벤트"
+          : "Events ready to explain as Oracle Packet candidates",
+      events: byImpact.filter((event) => packetReady.includes(event)).slice(0, 3),
+      key: "packet_ready",
+      label:
+        locale === "ko" ? "Packet 후보 큐" : "Packet candidate queue",
+      tone: "border-cyan-100 bg-cyan-50/80 text-cyan-800",
+      total: packetReady.length,
+    },
+    {
+      Icon: Sparkles,
+      body:
+        locale === "ko"
+          ? "AgentRank 점수에 가장 크게 기여하는 이벤트"
+          : "Events with the strongest AgentRank score contribution",
+      events: byImpact.slice(0, 3),
+      key: "high_impact",
+      label:
+        locale === "ko" ? "고기여 검토 큐" : "High-impact review queue",
+      tone: "border-violet-100 bg-violet-50/80 text-[#6d28d9]",
+      total: byImpact.filter(
+        (event) =>
+          getLedgerScoreSignals(event).reduce(
+            (sum, signal) => sum + signal.value,
+            0,
+          ) >= 2,
+      ).length,
+    },
+    {
+      Icon: SlidersHorizontal,
+      body:
+        locale === "ko"
+          ? "품질 점수 또는 필수 필드 기준으로 점검할 이벤트"
+          : "Events to review by quality score or required fields",
+      events: byQuality.slice(0, 3),
+      key: "quality_review",
+      label:
+        locale === "ko" ? "품질 점검 큐" : "Quality review queue",
+      tone: "border-slate-100 bg-slate-50 text-slate-700",
+      total: byQuality.filter((event) => getEventAudit(event).qualityScore < 90)
+        .length,
+    },
+  ];
+}
+
+function buildActionCoverage(events: AgentRankReputationEvent[], locale: Locale) {
+  const hasEventType = (type: AgentRankReputationEventType) =>
+    events.some((event) => event.type === type);
+  const hasIntent = (patterns: string[]) =>
+    events.some((event) => {
+      const haystack = [
+        event.source,
+        event.sourceId,
+        event.context.intent,
+        event.context.source,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return patterns.some((pattern) => haystack.includes(pattern));
+    });
+
+  const labels =
+    locale === "ko"
+      ? {
+          creator: "크리에이터 언락/생성",
+          discovery: "AI 스타 발견",
+          founder: "파운더 참여",
+          payment: "x402 Mock 결제",
+          referral: "추천 코드/전환",
+          starDetail: "AI 스타 상세/콘텐츠",
+        }
+      : {
+          creator: "Creator unlock/spawn",
+          discovery: "AI Star discovery",
+          founder: "Founder join",
+          payment: "x402 mock payment",
+          referral: "Referral code/conversion",
+          starDetail: "AI Star detail/content",
+        };
+
+  return [
+    {
+      covered: hasEventType("ai_star_discovered"),
+      eventType: "ai_star_discovered" as const,
+      label: labels.discovery,
+    },
+    {
+      covered:
+        hasEventType("content_engaged") &&
+        hasIntent(["star_detail", "profile", "vlog", "content", "home"]),
+      eventType: "content_engaged" as const,
+      label: labels.starDetail,
+    },
+    {
+      covered: hasEventType("founder_joined"),
+      eventType: "founder_joined" as const,
+      label: labels.founder,
+    },
+    {
+      covered:
+        hasEventType("referral_code_created") ||
+        hasEventType("referral_converted"),
+      eventType: "referral_converted" as const,
+      label: labels.referral,
+    },
+    {
+      covered:
+        hasEventType("creator_unlock_evaluated") ||
+        hasEventType("creator_unlocked") ||
+        hasEventType("ai_star_spawned"),
+      eventType: "creator_unlocked" as const,
+      label: labels.creator,
+    },
+    {
+      covered:
+        hasEventType("x402_mock_payment_intent") ||
+        hasEventType("cp_pool_generated"),
+      eventType: "x402_mock_payment_intent" as const,
+      label: labels.payment,
+    },
+  ];
+}
+
+function sumContextNumber(events: AgentRankReputationEvent[], key: string) {
+  return events.reduce((sum, event) => {
+    const value = event.context[key];
+
+    return sum + (typeof value === "number" && Number.isFinite(value) ? value : 0);
+  }, 0);
+}
+
+function getEventTimestamp(event: AgentRankReputationEvent) {
+  const timestamp = new Date(event.occurredAt).getTime();
+
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
 function MetricTile({
   label,
   value,
@@ -602,6 +878,283 @@ function MetricTile({
       <p className="text-xs font-semibold uppercase text-slate-400">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-[#11132d]">{value}</p>
     </div>
+  );
+}
+
+function ReviewQueuePanel({
+  filters,
+  locale,
+  queue,
+}: {
+  filters: FanletterAgentRankLedgerPageProps["filters"];
+  locale: Locale;
+  queue: ReturnType<typeof buildReviewQueue>;
+}) {
+  const copy = getLedgerCopy(locale);
+
+  return (
+    <section className="rounded-lg border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+            <AlertTriangle className="size-4" />
+            {copy.ledgerReviewQueue}
+          </p>
+          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+            {copy.ledgerReviewQueueBody}
+          </p>
+        </div>
+        <Link
+          className="inline-flex h-9 items-center gap-2 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white"
+          href={buildLedgerHref({
+            filters,
+            locale,
+            readiness: "needs_oracle",
+            sort: "quality_asc",
+            type: null,
+          })}
+        >
+          {copy.reviewNeedsOracle}
+          <ArrowRight className="size-3.5" />
+        </Link>
+      </div>
+
+      <div className="mt-4 grid gap-3 xl:grid-cols-4">
+        {queue.map(({ Icon, body, events, key, label, tone, total }) => (
+          <article className={`rounded-lg border p-3 ${tone}`} key={key}>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="inline-flex items-center gap-2 text-sm font-semibold">
+                  <Icon className="size-4 shrink-0" />
+                  {label}
+                </p>
+                <p className="mt-1 text-xs font-medium leading-5 text-slate-600">
+                  {body}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-[#11132d]">
+                {formatNumber(total, locale)}
+              </span>
+            </div>
+            <div className="mt-3 grid gap-2">
+              {events.length ? (
+                events.map((event) => (
+                  <Link
+                    className="block rounded-lg bg-white/78 px-3 py-2 text-sm transition hover:bg-white"
+                    href={buildEventDetailHref({ event, locale })}
+                    key={event.eventId}
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="min-w-0 truncate font-semibold text-[#11132d]">
+                        {getEventTypeLabel(event.type, locale)}
+                      </span>
+                      <span className="shrink-0 font-mono text-xs font-semibold text-[#6d28d9]">
+                        {getLedgerScoreSignals(event)
+                          .reduce((sum, signal) => sum + signal.value, 0)
+                          .toFixed(1)}
+                      </span>
+                    </div>
+                    <p className="mt-1 truncate text-xs font-semibold text-slate-500">
+                      {copy.nextAction}: {getReviewNextAction(event, locale)}
+                    </p>
+                  </Link>
+                ))
+              ) : (
+                <p className="rounded-lg bg-white/70 px-3 py-2 text-xs font-semibold text-slate-500">
+                  {copy.ready}
+                </p>
+              )}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ActionCoveragePanel({
+  actions,
+  filters,
+  locale,
+}: {
+  actions: ReturnType<typeof buildActionCoverage>;
+  filters: FanletterAgentRankLedgerPageProps["filters"];
+  locale: Locale;
+}) {
+  const copy = getLedgerCopy(locale);
+  const coveredCount = actions.filter((action) => action.covered).length;
+
+  return (
+    <section className="rounded-lg border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+            <BadgeCheck className="size-4" />
+            {copy.actionCoverage}
+          </p>
+          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+            {copy.actionCoverageBody}
+          </p>
+        </div>
+        <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
+          {formatNumber(coveredCount, locale)}/{formatNumber(actions.length, locale)}
+        </span>
+      </div>
+      <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-6">
+        {actions.map((action) => (
+          <Link
+            className={`rounded-lg border p-3 transition hover:shadow-[0_14px_30px_rgba(88,28,135,0.08)] ${
+              action.covered
+                ? "border-emerald-100 bg-emerald-50/80"
+                : "border-amber-100 bg-amber-50/80"
+            }`}
+            href={buildLedgerHref({
+              filters,
+              locale,
+              type: action.eventType,
+            })}
+            key={action.label}
+          >
+            <div className="flex items-center justify-between gap-2">
+              <p className="min-w-0 truncate text-sm font-semibold text-[#11132d]">
+                {action.label}
+              </p>
+              {action.covered ? (
+                <BadgeCheck className="size-4 shrink-0 text-emerald-600" />
+              ) : (
+                <AlertTriangle className="size-4 shrink-0 text-amber-600" />
+              )}
+            </div>
+            <p
+              className={`mt-2 text-xs font-semibold ${
+                action.covered ? "text-emerald-700" : "text-amber-700"
+              }`}
+            >
+              {action.covered ? copy.actionReady : copy.actionMissing}
+            </p>
+          </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function InvestorDemoPanel({
+  apiHref,
+  csvHref,
+  feed,
+  filters,
+  locale,
+  ndjsonHref,
+}: {
+  apiHref: string;
+  csvHref: string;
+  feed: FanletterAgentRankReputationEventFeed;
+  filters: FanletterAgentRankLedgerPageProps["filters"];
+  locale: Locale;
+  ndjsonHref: string;
+}) {
+  const copy = getLedgerCopy(locale);
+  const starLabel = filters.starId ?? (locale === "ko" ? "전체 AI 스타" : "All AI Stars");
+  const readyPercent = formatPercent(
+    feed.summary.oracleReadyEvents,
+    feed.summary.totalEvents,
+    locale,
+  );
+  const steps = [
+    {
+      Icon: Bot,
+      label: "FanLetter",
+      value: formatNumber(feed.summary.totalEvents, locale),
+    },
+    {
+      Icon: AlertTriangle,
+      label: "Review Queue",
+      value: formatNumber(
+        feed.events.filter((event) => !event.reputationSignals.oracleReady)
+          .length,
+        locale,
+      ),
+    },
+    {
+      Icon: Database,
+      label: "Oracle Packet",
+      value: readyPercent,
+    },
+    {
+      Icon: Sparkles,
+      label: "AgentRank",
+      value: formatNumber(sumContextNumber(feed.events, "cpPoolTotal"), locale),
+    },
+  ];
+
+  return (
+    <section className="overflow-hidden rounded-lg border border-violet-100 bg-white shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+      <div className="grid gap-0 lg:grid-cols-[1fr_24rem]">
+        <div className="p-5">
+          <p className="text-sm font-semibold uppercase text-[#6d28d9]">
+            {copy.investorDemo}
+          </p>
+          <h2 className="mt-2 break-words text-3xl font-semibold text-[#11132d]">
+            {starLabel}
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+            {copy.investorDemoBody}
+          </p>
+          <div className="mt-5 grid gap-3 md:grid-cols-[1fr_2rem_1fr_2rem_1fr_2rem_1fr] md:items-center">
+            {steps.map(({ Icon, label, value }, index) => (
+              <div className="contents" key={label}>
+                <div
+                  className="rounded-lg border border-violet-100 bg-violet-50/70 p-3"
+                >
+                  <Icon className="size-5 text-[#6d28d9]" />
+                  <p className="mt-2 text-xs font-semibold uppercase text-slate-400">
+                    {label}
+                  </p>
+                  <p className="mt-1 text-xl font-semibold text-[#11132d]">
+                    {value}
+                  </p>
+                </div>
+                {index < steps.length - 1 ? (
+                  <div className="hidden justify-center text-[#6d28d9] md:flex">
+                    <ArrowRight className="size-5" />
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="grid content-center gap-3 border-t border-violet-100 bg-gradient-to-br from-[#11132d] via-[#4338ca] to-[#7c3aed] p-5 text-white lg:border-l lg:border-t-0">
+          <MetricTile
+            label={copy.oracleReady}
+            value={readyPercent}
+          />
+          <div className="grid gap-2">
+            <Link
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-white px-3 text-sm font-semibold text-[#4338ca]"
+              href={apiHref}
+            >
+              <Database className="size-4" />
+              {copy.api}
+            </Link>
+            <Link
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-white/12 px-3 text-sm font-semibold text-white ring-1 ring-white/15"
+              href={csvHref}
+            >
+              <Download className="size-4" />
+              {copy.csv}
+            </Link>
+            <Link
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-white/12 px-3 text-sm font-semibold text-white ring-1 ring-white/15"
+              href={ndjsonHref}
+            >
+              <Database className="size-4" />
+              {copy.ndjson}
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -1007,6 +1560,11 @@ export function FanletterAgentRankLedgerPage({
   csvParams.set("format", "csv");
   const ndjsonParams = new URLSearchParams(apiParams);
   ndjsonParams.set("format", "ndjson");
+  const apiHref = `/api/fanletter/agentrank/events?${apiParams.toString()}`;
+  const csvHref = `/api/fanletter/agentrank/events?${csvParams.toString()}`;
+  const ndjsonHref = `/api/fanletter/agentrank/events?${ndjsonParams.toString()}`;
+  const reviewQueue = buildReviewQueue(feed.events, locale);
+  const actionCoverage = buildActionCoverage(feed.events, locale);
   const scopeOptions: Array<{
     count: number;
     label: string;
@@ -1094,21 +1652,21 @@ export function FanletterAgentRankLedgerPage({
             <div className="flex flex-wrap gap-2">
               <Link
                 className="inline-flex h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold text-white"
-                href={`/api/fanletter/agentrank/events?${apiParams.toString()}`}
+                href={apiHref}
               >
                 <Database className="size-4" />
                 {copy.api}
               </Link>
               <Link
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800"
-                href={`/api/fanletter/agentrank/events?${csvParams.toString()}`}
+                href={csvHref}
               >
                 <Download className="size-4" />
                 {copy.csv}
               </Link>
               <Link
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-4 text-sm font-semibold text-cyan-800"
-                href={`/api/fanletter/agentrank/events?${ndjsonParams.toString()}`}
+                href={ndjsonHref}
               >
                 <Database className="size-4" />
                 {copy.ndjson}
@@ -1159,6 +1717,27 @@ export function FanletterAgentRankLedgerPage({
             locale={locale}
           />
         ) : null}
+
+        <InvestorDemoPanel
+          apiHref={apiHref}
+          csvHref={csvHref}
+          feed={feed}
+          filters={filters}
+          locale={locale}
+          ndjsonHref={ndjsonHref}
+        />
+
+        <ReviewQueuePanel
+          filters={filters}
+          locale={locale}
+          queue={reviewQueue}
+        />
+
+        <ActionCoveragePanel
+          actions={actionCoverage}
+          filters={filters}
+          locale={locale}
+        />
 
         <section className="rounded-lg border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
           <div className="flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">

@@ -55,6 +55,11 @@ function getCopy(locale: Locale) {
       eventScopeMismatch:
         "현재 이벤트는 선택한 이벤트 범위 밖에 있습니다. 연결 이벤트와 증거 패킷 컨텍스트만 선택 범위로 제한됩니다.",
       eventScopeOutside: "범위 밖",
+      cleanEvent: "Clean Event",
+      rawEvent: "Raw Event",
+      verificationRail: "AgentRank 검증 레일",
+      verificationRailBody:
+        "원본 행동이 정규화된 이벤트, 점수 영향, Oracle Packet 후보로 변환되는 과정을 한 줄로 확인합니다.",
       formula: "ERS 반영 공식",
       heroBody:
         "FanLetter에서 발생한 단일 Reputation Event가 AgentRank 점수, Oracle 준비 상태, 향후 x402 경제 그래프로 어떻게 연결되는지 추적합니다.",
@@ -135,6 +140,11 @@ function getCopy(locale: Locale) {
       eventScopeMismatch:
         "This event is outside the selected event scope. Related events and evidence packet context are limited to the selected scope.",
       eventScopeOutside: "Out of scope",
+    cleanEvent: "Clean Event",
+    rawEvent: "Raw Event",
+    verificationRail: "AgentRank Verification Rail",
+    verificationRailBody:
+      "Shows how a raw product action becomes a clean event, score impact, and Oracle Packet candidate.",
     formula: "ERS Impact Formula",
     heroBody:
       "Trace how one FanLetter Reputation Event contributes to AgentRank scoring, Oracle readiness, and the future x402 economy graph.",
@@ -648,6 +658,108 @@ function ScoreImpactPanel({
         })}
       </div>
     </article>
+  );
+}
+
+function VerificationRailStep({
+  Icon,
+  body,
+  label,
+  tone = "violet",
+  value,
+}: {
+  Icon: typeof Database;
+  body: string;
+  label: string;
+  tone?: "cyan" | "emerald" | "slate" | "violet";
+  value: string;
+}) {
+  const toneClass = {
+    cyan: "border-cyan-100 bg-cyan-50 text-cyan-700",
+    emerald: "border-emerald-100 bg-emerald-50 text-emerald-700",
+    slate: "border-slate-100 bg-slate-50 text-slate-700",
+    violet: "border-violet-100 bg-violet-50 text-[#6d28d9]",
+  }[tone];
+
+  return (
+    <div className={`min-w-0 rounded-lg border p-4 ${toneClass}`}>
+      <div className="flex items-center gap-2">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/80">
+          <Icon className="size-4" />
+        </span>
+        <p className="text-xs font-semibold uppercase">{label}</p>
+      </div>
+      <p className="mt-3 break-words text-base font-semibold leading-tight text-[#11132d]">
+        {value}
+      </p>
+      <p className="mt-2 break-words text-xs font-semibold leading-5 text-slate-500">
+        {body}
+      </p>
+    </div>
+  );
+}
+
+function VerificationRailPanel({
+  copy,
+  event,
+  locale,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  event: AgentRankReputationEvent;
+  locale: Locale;
+}) {
+  const audit = getEventAudit(event);
+  const impact = getImpactTotal(event);
+  const packetState =
+    event.reputationSignals.oracleReady && audit.status === "audit_ready"
+      ? copy.ready
+      : copy.pending;
+
+  return (
+    <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+      <div>
+        <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+          <FileCheck2 className="size-4" />
+          {copy.verificationRail}
+        </p>
+        <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+          {copy.verificationRailBody}
+        </p>
+      </div>
+
+      <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)_2rem_minmax(0,1fr)_2rem_minmax(0,1fr)] lg:items-stretch">
+        <VerificationRailStep
+          Icon={Database}
+          body={event.sourceId}
+          label={copy.rawEvent}
+          tone="slate"
+          value={event.source}
+        />
+        <EconomicFlowArrow />
+        <VerificationRailStep
+          Icon={FileCheck2}
+          body={`${event.schemaVersion} · ${event.agentRankVersion}`}
+          label={copy.cleanEvent}
+          tone="cyan"
+          value={getEventTypeLabel(event.type, locale)}
+        />
+        <EconomicFlowArrow />
+        <VerificationRailStep
+          Icon={Gauge}
+          body={`${copy.quality} ${formatNumber(audit.qualityScore, locale)}/100`}
+          label={copy.scoreImpact}
+          value={formatNumber(impact, locale)}
+        />
+        <EconomicFlowArrow />
+        <VerificationRailStep
+          Icon={ShieldCheck}
+          body={truncateEvidenceHash(audit.evidenceHash, 14, 10)}
+          label={copy.oraclePacketCandidate}
+          tone="emerald"
+          value={packetState}
+        />
+      </div>
+    </section>
   );
 }
 
@@ -1647,6 +1759,8 @@ export function FanletterAgentRankEventDetailPage({
             </div>
           ) : null}
         </section>
+
+        <VerificationRailPanel copy={copy} event={event} locale={locale} />
 
         <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
           <div className="flex flex-wrap items-start justify-between gap-3">
