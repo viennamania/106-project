@@ -78,6 +78,7 @@ import {
   type FanletterNewsSourceRevealState,
 } from "@/lib/fanletter-news-source-reveal";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
+import { getLegacyFanletterStarId } from "@/lib/fanletter-founder-club";
 import {
   FANLETTER_NSFW_OPT_IN_COOKIE,
   isFanletterNsfwOptedIn,
@@ -98,7 +99,11 @@ import {
   type FanletterRelatedNewsSort,
   shouldBlurFanletterNewsReport as shouldBlurReport,
 } from "@/lib/fanletter-news-related";
-import { readFanletterReferralCode } from "@/lib/fanletter-routing";
+import { normalizeAgentRankCoverageAction } from "@/lib/agentrank/coverage-action";
+import {
+  readFanletterReferralCode,
+  readFanletterStarId,
+} from "@/lib/fanletter-routing";
 import {
   defaultLocale,
   hasLocale,
@@ -113,10 +118,12 @@ import { normalizeReferralCode } from "@/lib/member";
 import { buildWalletUnlockHref } from "@/lib/wallet-unlock";
 
 type FanletterNewsReportSearchParams = {
+  coverageAction?: string | string[];
   ref?: string | string[];
   relatedOffset?: string | string[];
   relatedLimit?: string | string[];
   relatedSort?: string | string[];
+  starId?: string | string[];
 };
 
 type SourceVlogRevealGateState = FanletterNewsSourceRevealState & {
@@ -4194,6 +4201,11 @@ export default async function LocalizedFanletterNewsReportPage({
   const creatorReferralCode = normalizeReferralCode(
     sourceContent?.authorReferralCode ?? report.creatorReferralCode,
   );
+  const creatorStarId = creatorReferralCode
+    ? getLegacyFanletterStarId(creatorReferralCode)
+    : null;
+  const trackingStarId = readFanletterStarId(query.starId) ?? creatorStarId;
+  const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
   const isViewerReporterOwner = Boolean(
     isViewerLoggedIn &&
       viewerReferralCode &&
@@ -4743,7 +4755,11 @@ export default async function LocalizedFanletterNewsReportPage({
           reportId: report.reportId,
           reporterReferralCode: report.reporterReferralCode,
           source: "fanletter-news-detail",
+          starId: trackingStarId,
+          coverageAction,
+          coverageActionStarId: trackingStarId,
           sourceRevealUnlocked: sourceReveal?.unlocked ?? null,
+          sourceStarId: trackingStarId,
           viewerCanAccessSource: sourceContent?.canViewerAccess ?? null,
         }}
         referralCode={referralCode}

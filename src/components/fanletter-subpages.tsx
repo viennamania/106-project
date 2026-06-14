@@ -9473,19 +9473,23 @@ function FanletterNsfwContentGate({
 
 export function FanletterContentDetailPage({
   content,
+  coverageAction = null,
   locale,
   newsReports = [],
   newsReportCount = newsReports.length,
   referralCode,
   returnToHref,
+  trackingStarId = null,
   viewerReporterReferralCode = null,
 }: {
   content: FanletterPublicContentDetail;
+  coverageAction?: string | null;
   locale: Locale;
   newsReportCount?: number;
   newsReports?: FanletterContentNewsReportItem[];
   referralCode: string | null;
   returnToHref: string | null;
+  trackingStarId?: string | null;
   viewerReporterReferralCode?: string | null;
 }) {
   const copy = getCopy(locale);
@@ -9757,6 +9761,27 @@ export function FanletterContentDetailPage({
 
   return (
     <main className="min-h-screen bg-[#030504] pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
+      <FanletterReputationTracker
+        agentRank={{
+          eventType: "content_engaged",
+          intent: "fanletter_content_view",
+          source: "fanletter_content",
+          starId: trackingStarId,
+        }}
+        contentId={content.contentId}
+        metadata={{
+          authorReferralCode: content.authorReferralCode,
+          contentMaturityRating: content.contentMaturityRating,
+          contentPriceType: content.priceType,
+          coverageAction,
+          coverageActionStarId: trackingStarId,
+          mediaType: content.mediaType,
+          page: "fanletter_content_detail",
+          sourceStarId: trackingStarId,
+          title: content.title,
+        }}
+        referralCode={effectiveReferralCode}
+      />
       <section className="px-4 pb-8 pt-3 sm:px-6 sm:pb-8 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <FanletterTabTopBar

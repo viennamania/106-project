@@ -2444,6 +2444,8 @@ function FanletterPaidSpotlightSection({
 
 export function FanletterHomePage({
   agentRankSnapshot,
+  agentRankTrackingStarId,
+  coverageAction,
   featuredPaidVideos,
   featuredVideos,
   founderClubCreatorUnlock,
@@ -2459,6 +2461,8 @@ export function FanletterHomePage({
   shareContext,
 }: {
   agentRankSnapshot?: FanletterAgentRankInvestorSnapshot | null;
+  agentRankTrackingStarId?: string | null;
+  coverageAction?: string | null;
   featuredPaidVideos: FanletterFeaturedVideo[];
   featuredVideos: FanletterFeaturedVideo[];
   founderClubCreatorUnlock?: CreatorUnlockData | null;
@@ -2548,7 +2552,10 @@ export function FanletterHomePage({
     founderClubStars?.[0] ??
     null;
   const homeTrackingStarId =
-    mobileHeroLoopStar?.id ?? founderClubSelectedStarId ?? null;
+    agentRankTrackingStarId ??
+    mobileHeroLoopStar?.id ??
+    founderClubSelectedStarId ??
+    null;
   const heroStats = [
     {
       format: "compact" as const,
@@ -2880,6 +2887,8 @@ export function FanletterHomePage({
           featuredVideoCount: nonNsfwFeaturedVideos.length,
           founderClubStarCount: founderClubStars?.length ?? 0,
           page: "fanletter_home",
+          coverageAction: coverageAction ?? null,
+          coverageActionStarId: agentRankTrackingStarId ?? null,
           referralAttached: Boolean(referralCode),
         }}
         referralCode={referralCode}

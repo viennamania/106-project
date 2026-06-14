@@ -12,6 +12,8 @@ import {
   getSafeFanletterReturnTo,
   normalizeFanletterStarId,
   readFanletterReferralCode,
+  readFanletterStarId,
+  readFirstSearchParam,
 } from "@/lib/fanletter-routing";
 import { defaultLocale, getDictionary, hasLocale, type Locale } from "@/lib/i18n";
 import {
@@ -21,8 +23,11 @@ import {
 import { getFanletterV2MockStar } from "@/mock/fanletterV2";
 
 type FanletterConnectSearchParams = {
+  coverageAction?: string | string[];
   ref?: string | string[];
   returnTo?: string | string[];
+  star?: string | string[];
+  starId?: string | string[];
 };
 
 function getFanletterConnectMetadataCopy(locale: Locale, returnToHref: string) {
@@ -60,7 +65,10 @@ function readFanletterStarIdFromReturnTo(returnToHref: string) {
   try {
     const url = new URL(returnToHref, "https://www.net402.ai");
 
-    return normalizeFanletterStarId(url.searchParams.get("star"));
+    return (
+      normalizeFanletterStarId(url.searchParams.get("starId")) ??
+      normalizeFanletterStarId(url.searchParams.get("star"))
+    );
   } catch {
     return null;
   }
@@ -152,7 +160,11 @@ export default async function LocalizedFanletterConnectPage({
     referralCode,
     returnTo: query.returnTo,
   });
-  const founderClubStarId = readFanletterStarIdFromReturnTo(returnToHref);
+  const coverageAction = readFirstSearchParam(query.coverageAction)?.trim() ?? null;
+  const founderClubStarId =
+    readFanletterStarId(query.starId) ??
+    readFanletterStarId(query.star) ??
+    readFanletterStarIdFromReturnTo(returnToHref);
   const founderClubStar = founderClubStarId
     ? getFanletterV2MockStar(founderClubStarId) ??
       (await getFanletterFounderClubStarDetail(founderClubStarId))
@@ -161,10 +173,12 @@ export default async function LocalizedFanletterConnectPage({
   return (
     <FanletterConnectPage
       dictionary={getDictionary(locale)}
+      coverageAction={coverageAction}
       founderClubStar={founderClubStar}
       locale={locale}
       referralCode={referralCode}
       returnToHref={returnToHref}
+      trackingStarId={founderClubStarId}
     />
   );
 }

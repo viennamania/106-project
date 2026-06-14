@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import { FanletterNewsVlogsPage } from "@/components/fanletter-news-vlog-pages";
+import { normalizeAgentRankCoverageAction } from "@/lib/agentrank/coverage-action";
 import {
   fanletterFeedSortOptions,
   getFanletterFeedPageData,
@@ -21,17 +22,20 @@ import {
 import {
   getSafeFanletterReturnTo,
   readFanletterReferralCode,
+  readFanletterStarId,
   readFirstSearchParam,
 } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { setPathSearchParams } from "@/lib/landing-branding";
 
 type FanletterNewsVlogsSearchParams = {
+  coverageAction?: string | string[];
   page?: string | string[];
   q?: string | string[];
   ref?: string | string[];
   returnTo?: string | string[];
   sort?: string | string[];
+  starId?: string | string[];
 };
 
 function readVlogsSort(rawValue?: string | string[]): FanletterFeedSort {
@@ -157,10 +161,12 @@ export default async function LocalizedFanletterNewsVlogsPage({
 
   return (
     <FanletterNewsVlogsPage
+      coverageAction={normalizeAgentRankCoverageAction(query.coverageAction)}
       data={data}
       locale={locale}
       referralCode={referralCode}
       returnToHref={returnToHref}
+      trackingStarId={readFanletterStarId(query.starId)}
     />
   );
 }

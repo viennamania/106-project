@@ -1501,6 +1501,13 @@ export function FanletterCreatorUnlockPage({
     unlock.conditions.find((condition) => condition.id === id)?.met ?? false;
   const getConditionTarget = (id: string) =>
     unlock.conditions.find((condition) => condition.id === id)?.target ?? null;
+  const trackingSourceStarId =
+    coverageAction?.starId ??
+    selectedSourceOption?.starId ??
+    portfolio.primaryStarId;
+  const shouldTrackCoverageMockPaymentIntent =
+    coverageAction?.action === "x402_mock_payment_intent" ||
+    coverageAction?.action === "x402_economy";
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#fbfaff] px-4 py-5 text-black sm:px-6 lg:px-8">
@@ -1511,7 +1518,7 @@ export function FanletterCreatorUnlockPage({
             ? "creator_unlock_evaluation_passed"
             : "creator_unlock_evaluation_pending",
           source: "fanletter_creator_unlock",
-          starId: selectedSourceOption?.starId ?? portfolio.primaryStarId,
+          starId: trackingSourceStarId,
         }}
         eventName="fanletter_creator_unlock_evaluated"
         metadata={{
@@ -1560,7 +1567,7 @@ export function FanletterCreatorUnlockPage({
           scoutScoreCurrent: Number(getConditionCurrent("scoutScore") ?? 0),
           scoutScoreMet: getConditionMet("scoutScore"),
           scoutScoreTarget: Number(getConditionTarget("scoutScore") ?? 0),
-          sourceStarId: selectedSourceOption?.starId ?? portfolio.primaryStarId,
+          sourceStarId: trackingSourceStarId,
           sourceUniverseId: selectedSourceOption?.starId
             ? `fanletter-star-universe:${selectedSourceOption.starId}`
             : null,
@@ -1569,6 +1576,59 @@ export function FanletterCreatorUnlockPage({
           unlocked: unlock.unlocked,
         }}
       />
+      {shouldTrackCoverageMockPaymentIntent ? (
+        <FanletterReputationTracker
+          agentRank={{
+            eventType: "x402_mock_payment_intent",
+            intent: "coverage_mock_x402_payment_intent",
+            source: "fanletter_creator_unlock",
+            starId: trackingSourceStarId,
+          }}
+          eventName="fanletter_x402_mock_payment_intent"
+          metadata={{
+            amountUsdt: unlock.createCostUsdt,
+            checkoutMode: "mock_coverage",
+            coverageAction: coverageAction?.action ?? null,
+            coverageActionStarId: coverageAction?.starId ?? null,
+            currency: "USDT",
+            mockPaymentIntent: true,
+            page: "fanletter_creator_unlock",
+            paymentStatus: "mock_intent",
+            sourceStarId: trackingSourceStarId,
+            sourceUniverseId: trackingSourceStarId
+              ? `fanletter-star-universe:${trackingSourceStarId}`
+              : null,
+            sourceUniverseName: displaySourceUniverseName,
+            x402Ready: true,
+          }}
+          targetHref={`/${locale}/fanletter/creator-unlock`}
+        />
+      ) : null}
+      {unlock.unlocked ? (
+        <FanletterReputationTracker
+          agentRank={{
+            eventType: "creator_unlocked",
+            intent: "creator_unlock_page_ready",
+            source: "fanletter_creator_unlock",
+            starId: trackingSourceStarId,
+          }}
+          eventName="fanletter_creator_unlocked"
+          metadata={{
+            completedConditionCount,
+            createCostUsdt: unlock.createCostUsdt,
+            creatorUnlockReady: true,
+            page: "fanletter_creator_unlock",
+            requiresSourceUniverse,
+            sourceStarId: trackingSourceStarId,
+            sourceUniverseId: trackingSourceStarId
+              ? `fanletter-star-universe:${trackingSourceStarId}`
+              : null,
+            sourceUniverseName: displaySourceUniverseName,
+            totalConditionCount: unlock.conditions.length,
+          }}
+          targetHref={`/${locale}/fanletter/creator-unlock`}
+        />
+      ) : null}
       <div className="mx-auto w-full min-w-0 max-w-[92rem]">
         <div className="flex items-center justify-between gap-3">
           <Link

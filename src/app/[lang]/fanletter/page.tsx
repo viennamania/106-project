@@ -40,12 +40,14 @@ import { readMemberServerSession } from "@/lib/member-server-session";
 import { normalizeShareId } from "@/lib/share-tracking";
 
 type FanletterHomeSearchParams = {
+  coverageAction?: string | string[];
   creator?: string | string[];
   from?: string | string[];
   ref?: string | string[];
   shareId?: string | string[];
   sponsor?: string | string[];
   star?: string | string[];
+  starId?: string | string[];
 };
 
 function getFanletterMeta(locale: Locale) {
@@ -132,6 +134,8 @@ export default async function FanletterRoutePage({
   const locale = lang as Locale;
   const referralCode = readFanletterReferralCode(query.ref);
   const founderClubStarId = readFanletterStarId(query.star);
+  const coverageAction = readFirstSearchParam(query.coverageAction)?.trim() ?? null;
+  const coverageStarId = readFanletterStarId(query.starId) ?? founderClubStarId;
   const shareSource = readFirstSearchParam(query.from)?.trim().toLowerCase();
   const shareCreatorReferralCode = normalizeReferralCode(
     readFirstSearchParam(query.creator),
@@ -233,6 +237,8 @@ export default async function FanletterRoutePage({
       founderClubScoutShareLoop={founderClubScoutShareLoop}
       founderClubSelectedStarId={founderClubStarId}
       founderClubStars={founderClubStars}
+      agentRankTrackingStarId={coverageStarId}
+      coverageAction={coverageAction}
       hiddenNsfwCount={landingData.hiddenNsfwCount}
       locale={locale}
       liveStats={landingData.liveStats}

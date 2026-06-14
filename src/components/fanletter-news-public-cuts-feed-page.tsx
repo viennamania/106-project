@@ -59,6 +59,7 @@ import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive-media-frame";
 import { useMemberSession } from "@/components/member-session-provider";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
+import { getLegacyFanletterStarId } from "@/lib/fanletter-founder-club";
 import {
   appendFanletterNewsPublicCutJourneyReportId,
   encodeFanletterNewsPublicCutJourneyReportIds,
@@ -4186,6 +4187,10 @@ function FeedSlide({
     }
 
     trackedCutViewKeyRef.current = viewKey;
+    const creatorStarId = report.creatorReferralCode
+      ? getLegacyFanletterStarId(report.creatorReferralCode)
+      : null;
+
     trackFunnelEvent("fanletter_news_cut_view", {
       contentId: report.contentId,
       metadata: {
@@ -4197,9 +4202,11 @@ function FeedSlide({
         reportId: report.reportId,
         reporterReferralCode: report.reporterReferralCode,
         source: "fanletter-news-cut-feed",
+        starId: creatorStarId,
         sourceRevealCount: sourceRevealState.count,
         sourceRevealThreshold: sourceRevealState.threshold,
         sourceRevealUnlocked: sourceRevealState.unlocked,
+        sourceStarId: creatorStarId,
       },
       referralCode,
       shareId,

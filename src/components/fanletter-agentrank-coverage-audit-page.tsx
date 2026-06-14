@@ -426,7 +426,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
     const sourceRoutes: Partial<Record<AgentRankInteractionSource, string>> = {
       fanletter_agentrank: `/${locale}/fanletter/agentrank?${scopedQuery}`,
       fanletter_bridge: `/${locale}/fanletter/connect?${scopedQuery}`,
-      fanletter_content: `/${locale}/fanletter/${scopedStarId}?${scopedQuery}`,
+      fanletter_content: `/${locale}/fanletter/news/vlogs?${scopedQuery}`,
       fanletter_creator_unlock: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
       fanletter_founder_universe: `/${locale}/fanletter/${scopedStarId}/universe?${scopedQuery}`,
       fanletter_home: `/${locale}/fanletter?${scopedQuery}`,

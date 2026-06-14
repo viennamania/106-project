@@ -216,6 +216,10 @@ function inferEventType(
     return "creator_unlock_evaluated";
   }
 
+  if (input.eventName === "fanletter_creator_unlocked") {
+    return "creator_unlocked";
+  }
+
   if (input.eventName === "fanletter_source_universe_selected") {
     return "source_universe_selected";
   }

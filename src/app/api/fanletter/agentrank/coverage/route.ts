@@ -1,5 +1,12 @@
 import { buildAgentRankCoverageSnapshot } from "@/lib/agentrank/coverage";
 import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
+import {
+  getFanletterAgentRankReputationEventFeed,
+  summarizeAgentRankReputationEvents,
+  type AgentRankReputationEvent,
+  type AgentRankReputationEventType,
+  type FanletterAgentRankReputationEventFeed,
+} from "@/lib/agentrank/reputation-events";
 
 function normalizeParam(value: string | null) {
   return value?.trim() || null;
@@ -99,6 +106,66 @@ function serializeCoverageCsv(
   ]);
 }
 
+function mergeReputationEventFeeds(
+  baseFeed: FanletterAgentRankReputationEventFeed,
+  probeFeeds: FanletterAgentRankReputationEventFeed[],
+) {
+  const eventById = new Map<string, AgentRankReputationEvent>();
+
+  for (const event of [
+    ...baseFeed.events,
+    ...probeFeeds.flatMap((feed) => feed.events),
+  ]) {
+    eventById.set(event.eventId, event);
+  }
+
+  const events = [...eventById.values()].sort((left, right) => {
+    const timeDelta =
+      new Date(right.occurredAt).getTime() -
+      new Date(left.occurredAt).getTime();
+
+    return timeDelta || left.eventId.localeCompare(right.eventId);
+  });
+
+  return {
+    ...baseFeed,
+    events,
+    summary: {
+      ...summarizeAgentRankReputationEvents(events),
+      generatedAt: baseFeed.summary.generatedAt,
+    },
+  } satisfies FanletterAgentRankReputationEventFeed;
+}
+
+async function buildCoverageEventFeed({
+  baseFeed,
+  missingTypes,
+  memberEmail,
+  starId,
+}: {
+  baseFeed: FanletterAgentRankReputationEventFeed;
+  memberEmail: string | null;
+  missingTypes: AgentRankReputationEventType[];
+  starId: string | null;
+}) {
+  if (missingTypes.length === 0) {
+    return baseFeed;
+  }
+
+  const probeFeeds = await Promise.all(
+    missingTypes.map((type) =>
+      getFanletterAgentRankReputationEventFeed({
+        includeTypes: [type],
+        limit: 1,
+        memberEmail,
+        starId,
+      }),
+    ),
+  );
+
+  return mergeReputationEventFeeds(baseFeed, probeFeeds);
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const limit = normalizeLimit(url.searchParams.get("limit"));
@@ -111,8 +178,20 @@ export async function GET(request: Request) {
       memberEmail,
       starId,
     });
-    const coverage = buildAgentRankCoverageSnapshot(
+    const preliminaryCoverage = buildAgentRankCoverageSnapshot(
       snapshot.eventFeed,
+      snapshot.ers.readiness,
+    );
+    const coverageEventFeed = await buildCoverageEventFeed({
+      baseFeed: snapshot.eventFeed,
+      memberEmail,
+      missingTypes: preliminaryCoverage.eventTypes
+        .filter((eventType) => !eventType.covered)
+        .map((eventType) => eventType.type),
+      starId,
+    });
+    const coverage = buildAgentRankCoverageSnapshot(
+      coverageEventFeed,
       snapshot.ers.readiness,
     );
     const payload = {

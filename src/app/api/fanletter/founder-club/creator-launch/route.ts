@@ -257,6 +257,62 @@ export async function POST(request: Request) {
   const paymentStatus = runtime.testPaymentBypassEnabled
     ? "test_bypass"
     : "verified";
+  const unlockConditionCount = unlock?.conditions.length ?? 0;
+  const unlockCompletedConditionCount =
+    unlock?.conditions.filter((condition) => condition.met).length ?? 0;
+
+  if (unlock?.unlocked) {
+    await tryRecordFanletterAgentRankServerEvent({
+      agentRank: {
+        eventType: "creator_unlocked",
+        intent: "creator_launch_api_unlock_verified",
+        source: "fanletter_creator_unlock",
+        starId: launchResult.sourceStar.starId,
+      },
+      eventName: "fanletter_creator_unlocked",
+      memberEmail: session.email,
+      memberWalletAddress: session.walletAddress ?? null,
+      metadata: {
+        completedConditionCount: unlockCompletedConditionCount,
+        createCostUsdt: launchCostUsdt,
+        creatorUnlockVerified: true,
+        page: "fanletter_creator_launch_api",
+        sourceStarId: launchResult.sourceStar.starId,
+        sourceStarName: launchResult.sourceStar.characterName,
+        totalConditionCount: unlockConditionCount,
+      },
+      path: `/${locale}/fanletter/creator-unlock`,
+      targetHref: sourceUniverseHref,
+    });
+  }
+
+  await tryRecordFanletterAgentRankServerEvent({
+    agentRank: {
+      eventType: "x402_mock_payment_intent",
+      intent: "creator_launch_api_mock_payment_intent",
+      source: "fanletter_creator_unlock",
+      starId: launchResult.sourceStar.starId,
+    },
+    eventName: "fanletter_x402_mock_payment_intent",
+    memberEmail: session.email,
+    memberWalletAddress: session.walletAddress ?? null,
+    metadata: {
+      amountUsdt: launchCostUsdt,
+      checkoutMode: "mock",
+      currency: "USDT",
+      launchState: launchResult.status,
+      mockPaymentIntent: true,
+      page: "fanletter_creator_launch_api",
+      paymentStatus,
+      sourceStarId: launchResult.sourceStar.starId,
+      sourceStarName: launchResult.sourceStar.characterName,
+      spawnedStarId: launchResult.star.starId,
+      spawnedStarName: launchResult.star.characterName,
+      x402Ready: true,
+    },
+    path: `/${locale}/fanletter/creator-unlock`,
+    targetHref: sourceUniverseHref,
+  });
 
   await tryRecordFanletterAgentRankServerEvent({
     agentRank: {
@@ -291,6 +347,36 @@ export async function POST(request: Request) {
     path: `/${locale}/fanletter/creator-unlock`,
     targetHref: universeHref,
   });
+
+  if (launchResult.status === "created") {
+    await tryRecordFanletterAgentRankServerEvent({
+      agentRank: {
+        eventType: "ai_star_spawned",
+        intent: "creator_launch_source_universe_spawned",
+        source: "fanletter_creator_unlock",
+        starId: launchResult.sourceStar.starId,
+      },
+      eventName: "fanletter_creator_launch_completed",
+      memberEmail: session.email,
+      memberWalletAddress: session.walletAddress ?? null,
+      metadata: {
+        allocatedCp: launchResult.cpPool.allocatedCp,
+        cpPoolGenerated: true,
+        cpPoolTotal: launchResult.cpPool.cpPoolTotal,
+        launchCostUsdt,
+        launchState: launchResult.status,
+        page: "fanletter_creator_launch_api_source_universe",
+        paymentStatus,
+        sourceStarId: launchResult.sourceStar.starId,
+        sourceStarName: launchResult.sourceStar.characterName,
+        spawnedStarId: launchResult.star.starId,
+        spawnedStarName: launchResult.star.characterName,
+        unallocatedCp: launchResult.cpPool.unallocatedCp,
+      },
+      path: `/${locale}/fanletter/creator-unlock`,
+      targetHref: sourceUniverseHref,
+    });
+  }
 
   await tryRecordFanletterAgentRankServerEvent({
     agentRank: {

@@ -28,6 +28,7 @@ import {
   FanletterPaidUnlockPanel,
   FanletterPaidUnlockTrigger,
 } from "@/components/fanletter-paid-unlock-panel";
+import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterResponsiveMediaFrame } from "@/components/fanletter-responsive-media-frame";
 import {
   CONTENT_PAID_USDT_AMOUNT,
@@ -1085,15 +1086,19 @@ function Pagination({
 }
 
 export function FanletterNewsVlogsPage({
+  coverageAction = null,
   data,
   locale,
   referralCode,
   returnToHref,
+  trackingStarId = null,
 }: {
+  coverageAction?: string | null;
   data: FanletterFeedPageData;
   locale: Locale;
   referralCode: string | null;
   returnToHref: string;
+  trackingStarId?: string | null;
 }) {
   const copy = getCopy(locale);
   const effectiveReferralCode = referralCode ?? data.referralCode;
@@ -1165,6 +1170,24 @@ export function FanletterNewsVlogsPage({
 
   return (
     <main className="min-h-screen bg-[#eef1ec] pb-14 text-[#111510]">
+      <FanletterReputationTracker
+        agentRank={{
+          eventType: "content_engaged",
+          intent: "fanletter_vlog_archive_view",
+          source: "fanletter_content",
+          starId: trackingStarId,
+        }}
+        metadata={{
+          coverageAction,
+          coverageActionStarId: trackingStarId,
+          fanOnlyPreviewCount: data.fanOnlyPreviewItems.length,
+          itemCount: data.items.length,
+          page: "fanletter_news_vlogs",
+          sourceStarId: trackingStarId,
+          totalCount: data.filters.totalCount,
+        }}
+        referralCode={effectiveReferralCode}
+      />
       <NewsShellHeader
         copy={copy}
         homeHref={homeHref}

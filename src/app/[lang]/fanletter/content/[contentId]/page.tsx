@@ -11,10 +11,13 @@ import {
   getFanletterNewsReportsForContent,
   getFanletterNewsReporterMemberByEmail,
 } from "@/lib/fanletter-news-report-service";
+import { normalizeAgentRankCoverageAction } from "@/lib/agentrank/coverage-action";
 import {
   normalizeFanletterReturnToPath,
   readFanletterReferralCode,
+  readFanletterStarId,
 } from "@/lib/fanletter-routing";
+import { getLegacyFanletterStarId } from "@/lib/fanletter-founder-club";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { readMemberServerSession } from "@/lib/member-server-session";
 import {
@@ -23,8 +26,10 @@ import {
 } from "@/lib/fanletter-nsfw";
 
 type FanletterContentSearchParams = {
+  coverageAction?: string | string[];
   ref?: string | string[];
   returnTo?: string | string[];
+  starId?: string | string[];
 };
 
 export async function generateMetadata({
@@ -120,10 +125,15 @@ export default async function LocalizedFanletterContentDetailPage({
   }
 
   const viewerReporterReferralCode = viewerReporterMember?.referralCode ?? null;
+  const authorStarId = content.authorReferralCode
+    ? getLegacyFanletterStarId(content.authorReferralCode)
+    : null;
+  const trackingStarId = readFanletterStarId(query.starId) ?? authorStarId;
 
   return (
     <FanletterContentDetailPage
       content={content}
+      coverageAction={normalizeAgentRankCoverageAction(query.coverageAction)}
       locale={locale}
       newsReportCount={newsReportResult.reportCount}
       newsReports={newsReportResult.reports.map((report) => ({
@@ -140,6 +150,7 @@ export default async function LocalizedFanletterContentDetailPage({
       }))}
       referralCode={readFanletterReferralCode(query.ref)}
       returnToHref={normalizeFanletterReturnToPath(query.returnTo, locale)}
+      trackingStarId={trackingStarId}
       viewerReporterReferralCode={viewerReporterReferralCode}
     />
   );

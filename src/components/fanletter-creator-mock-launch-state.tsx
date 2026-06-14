@@ -316,7 +316,7 @@ export function FanletterCreatorMockLaunchButton({
           paymentStatus: "mock_intent",
           sourceStarId: sourceStarId ?? null,
           sourceUniverseName,
-          x402Ready: false,
+          x402Ready: true,
         },
         targetHref: `/${locale}/fanletter/creator-unlock`,
       });

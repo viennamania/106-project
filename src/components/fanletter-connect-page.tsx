@@ -29,6 +29,7 @@ import {
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
+import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { useMemberSession } from "@/components/member-session-provider";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import {
@@ -696,17 +697,21 @@ function StepStatus({
 }
 
 export function FanletterConnectPage({
+  coverageAction = null,
   dictionary,
   founderClubStar = null,
   locale,
   referralCode,
   returnToHref,
+  trackingStarId = null,
 }: {
+  coverageAction?: string | null;
   dictionary: Dictionary;
   founderClubStar?: AIStar | null;
   locale: Locale;
   referralCode: string | null;
   returnToHref: string;
+  trackingStarId?: string | null;
 }) {
   const account = useActiveAccount();
   const wallet = useActiveWallet();
@@ -729,6 +734,7 @@ export function FanletterConnectPage({
     () => readFanletterStarIdFromReturnPath(returnToHref),
     [returnToHref],
   );
+  const trackedStarId = trackingStarId ?? fanletterStarId;
   const accountAddress = account?.address ?? null;
   const connection = useThirdwebConnectionState({
     accountAddress,
@@ -993,6 +999,25 @@ export function FanletterConnectPage({
 
   return (
     <main className="min-h-screen bg-[#030504] text-white">
+      <FanletterReputationTracker
+        agentRank={{
+          eventType: "content_engaged",
+          intent: "fanletter_bridge_view",
+          source: "fanletter_bridge",
+          starId: trackedStarId,
+        }}
+        eventName="bridge_view"
+        metadata={{
+          coverageAction,
+          coverageActionStarId: trackingStarId,
+          page: "fanletter_connect",
+          referralAttached: Boolean(referralCode),
+          returnKind: returnTarget.kind,
+          sourceStarId: trackedStarId,
+        }}
+        referralCode={referralCode}
+        targetHref={returnToHref}
+      />
       <EmailLoginDialog
         dictionary={dictionary}
         guideDescription={copy.loginGuideDescription}

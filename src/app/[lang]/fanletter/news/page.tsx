@@ -22,7 +22,9 @@ import {
 } from "lucide-react";
 
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
+import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterServiceBridge } from "@/components/fanletter-service-bridge";
+import { normalizeAgentRankCoverageAction } from "@/lib/agentrank/coverage-action";
 import type { FanletterNewsReportDocument } from "@/lib/content";
 import {
   getFanletterNewsReporterProfile,
@@ -51,6 +53,7 @@ import {
   isFanletterNewsCutFeedReturnPath,
   normalizeFanletterReturnToPath,
   readFanletterReferralCode,
+  readFanletterStarId,
 } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import {
@@ -59,9 +62,11 @@ import {
 } from "@/lib/landing-branding";
 
 type FanletterNewsHomeSearchParams = {
+  coverageAction?: string | string[];
   ref?: string | string[];
   reporter?: string | string[];
   returnTo?: string | string[];
+  starId?: string | string[];
 };
 
 type ReporterStat = {
@@ -2845,6 +2850,8 @@ export default async function LocalizedFanletterNewsHomePage({
   const locale = lang as Locale;
   const copy = getCopy(locale);
   const referralCode = readFanletterReferralCode(query.ref);
+  const trackingStarId = readFanletterStarId(query.starId);
+  const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
   const activeReporterReferralCode = readFanletterReferralCode(query.reporter);
   const returnToHref = normalizeFanletterReturnToPath(query.returnTo, locale);
   const returnToLabel = isFanletterNewsCutFeedReturnPath(returnToHref, locale)
@@ -3020,6 +3027,22 @@ export default async function LocalizedFanletterNewsHomePage({
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] pb-[calc(6.5rem+env(safe-area-inset-bottom))] text-[#111510] md:pb-0">
+      <FanletterReputationTracker
+        agentRank={{
+          eventType: "content_engaged",
+          intent: "fanletter_news_home_view",
+          source: "fanletter_news",
+          starId: trackingStarId,
+        }}
+        metadata={{
+          coverageAction,
+          coverageActionStarId: trackingStarId,
+          page: "fanletter_news_home",
+          reporterReferralCode: activeReporterReferralCode,
+          sourceStarId: trackingStarId,
+        }}
+        referralCode={referralCode}
+      />
       <NewsMasthead
         charactersHref={charactersHref}
         copy={copy}

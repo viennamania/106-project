@@ -968,7 +968,9 @@ function buildFunnelInteractionEvents({
   return events;
 }
 
-function summarizeEvents(events: AgentRankReputationEvent[]) {
+export function summarizeAgentRankReputationEvents(
+  events: AgentRankReputationEvent[],
+) {
   const byType: Partial<Record<AgentRankReputationEventType, number>> = {};
   const memberIds = new Set<string>();
   const starIds = new Set<string>();
@@ -1087,7 +1089,10 @@ export async function getFanletterAgentRankReputationEventFeed(
   };
 
   if (starId) {
-    starFilter.starId = starId;
+    starFilter.$or = [
+      { starId },
+      { spawnedFromStarId: starId },
+    ];
   } else if (memberEmail) {
     starFilter.ownerEmail = memberEmail;
   }
@@ -1245,7 +1250,7 @@ export async function getFanletterAgentRankReputationEventFeed(
     generatedAt,
     roadmap: [...defaultRoadmap],
     summary: {
-      ...summarizeEvents(events),
+      ...summarizeAgentRankReputationEvents(events),
       generatedAt,
     },
   };
