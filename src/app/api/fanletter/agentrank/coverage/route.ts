@@ -31,7 +31,15 @@ function escapeCsvValue(value: string | number | boolean | null | undefined) {
 function serializeRowsCsv(
   rows: Array<Array<string | number | boolean | null | undefined>>,
 ) {
-  return rows.map((row) => row.map(escapeCsvValue).join(",")).join("\n");
+  const columnCount = Math.max(0, ...rows.map((row) => row.length));
+
+  return rows
+    .map((row) =>
+      Array.from({ length: columnCount }, (_, index) =>
+        escapeCsvValue(row[index]),
+      ).join(","),
+    )
+    .join("\n");
 }
 
 function serializeCoverageCsv(
@@ -42,7 +50,18 @@ function serializeCoverageCsv(
   },
 ) {
   return serializeRowsCsv([
-    ["section", "key", "label", "value", "total", "covered", "layer"],
+    [
+      "section",
+      "key",
+      "label",
+      "value",
+      "total",
+      "covered",
+      "layer",
+      "safetyLevel",
+      "script",
+      "writeCommand",
+    ],
     [
       "scope",
       "eventScope",
@@ -231,6 +250,9 @@ function serializeCoverageCsv(
       item.priority,
       item.runMode,
       item.eventTypes.join("|"),
+      item.safetyLevel,
+      item.script ?? "",
+      item.writeCommand ?? "",
     ]),
     ...coverage.eventTypes.map((eventType) => [
       "event_type",

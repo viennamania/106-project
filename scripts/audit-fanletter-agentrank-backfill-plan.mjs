@@ -136,9 +136,12 @@ function buildActionPlan({ gaps, packageScripts, totals }) {
       id: "backfill-member-founder-universe",
       priority: 1,
       runMode: "script_ready",
+      safetyLevel: "write_gated",
       script: "pnpm fanletter:founder-universe:backfill",
       targetCoverage: "memberFounderUniverseCoveragePercent",
       title: "Member Founder Universe placement",
+      writeCommand:
+        "FANLETTER_FOUNDER_UNIVERSE_BACKFILL_WRITE=1 pnpm fanletter:founder-universe:backfill",
     },
     "missing:member_starter_star": {
       description:
@@ -149,9 +152,12 @@ function buildActionPlan({ gaps, packageScripts, totals }) {
       id: "backfill-member-starter-star",
       priority: 2,
       runMode: "script_ready",
+      safetyLevel: "write_gated",
       script: "pnpm fanletter:member-starter-stars:backfill",
       targetCoverage: "memberStarterStarCoveragePercent",
       title: "Member starter AI Star assignment",
+      writeCommand:
+        "FANLETTER_MEMBER_STARTER_STARS_BACKFILL_WRITE=1 pnpm fanletter:member-starter-stars:backfill",
     },
     "missing:star_creator_membership": {
       description:
@@ -162,9 +168,12 @@ function buildActionPlan({ gaps, packageScripts, totals }) {
       id: "backfill-star-creator-membership",
       priority: 3,
       runMode: "script_ready",
+      safetyLevel: "write_gated",
       script: "pnpm fanletter:founder-universe:roles:reconcile",
       targetCoverage: "creatorRoleCoveragePercent",
       title: "AI Star creator membership reconciliation",
+      writeCommand:
+        "FANLETTER_FOUNDER_UNIVERSE_ROLE_RECONCILE_WRITE=1 pnpm fanletter:founder-universe:roles:reconcile",
     },
     "missing:legacy_referral_edges": {
       description:
@@ -178,9 +187,12 @@ function buildActionPlan({ gaps, packageScripts, totals }) {
       id: "backfill-legacy-referral-edges",
       priority: 4,
       runMode: "script_ready",
+      safetyLevel: "write_gated",
       script: "pnpm fanletter:founder-club:backfill:audit",
       targetCoverage: "legacyReferralEdgeCoveragePercent",
       title: "Legacy referral edge conversion",
+      writeCommand:
+        "FANLETTER_FOUNDER_CLUB_BACKFILL_WRITE=1 pnpm fanletter:founder-club:backfill:audit",
     },
     "missing:cp_influence_ledger": {
       description:
@@ -191,9 +203,12 @@ function buildActionPlan({ gaps, packageScripts, totals }) {
       id: "backfill-cp-influence-ledger",
       priority: 5,
       runMode: "script_ready",
+      safetyLevel: "write_gated",
       script: "pnpm referral-rewards:reconcile",
       targetCoverage: "memberFounderUniverseCoveragePercent",
       title: "CP and Influence ledger reconciliation",
+      writeCommand:
+        "REFERRAL_REWARDS_RECONCILE_WRITE=1 pnpm referral-rewards:reconcile",
     },
     "missing:star_owner": {
       description:
@@ -204,6 +219,7 @@ function buildActionPlan({ gaps, packageScripts, totals }) {
       id: "backfill-star-owner",
       priority: 6,
       runMode: "manual_review",
+      safetyLevel: "manual_review",
       targetCoverage: "starOwnerCoveragePercent",
       title: "AI Star owner identity repair",
     },
@@ -216,9 +232,11 @@ function buildActionPlan({ gaps, packageScripts, totals }) {
       id: "backfill-star-portrait",
       priority: 7,
       runMode: "script_ready",
+      safetyLevel: "write_gated",
       script: "pnpm fanletter:ai-star-profiles:backfill",
       targetCoverage: "starPortraitCoveragePercent",
       title: "AI Star profile portrait enrichment",
+      writeCommand: "pnpm fanletter:ai-star-profiles:backfill -- --write",
     },
   };
 
@@ -485,8 +503,10 @@ function printHumanReport(snapshot) {
       estimatedRecords: formatNumber(item.estimatedRecords),
       eventTypes: item.eventTypes.join(", "),
       priority: item.priority,
+      safetyLevel: item.safetyLevel,
       scriptStatus: item.scriptStatus,
       title: item.title,
+      writeCommand: item.writeCommand ?? "manual review",
     })),
   );
   console.log("");

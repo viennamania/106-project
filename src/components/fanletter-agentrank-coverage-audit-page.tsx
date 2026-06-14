@@ -118,6 +118,9 @@ function getCoverageAuditCopy(locale: Locale) {
       actionEventTypes: "생성 이벤트",
       actionPriority: "우선순위",
       actionRunMode: "실행 모드",
+      actionSafetyLevel: "안전 단계",
+      actionScript: "Dry-run 명령",
+      actionWriteCommand: "Write 명령",
       contractCoverage: "Contract 유효성",
       contractInvalidEvents: "보강 필요 이벤트",
       contractReadyEvents: "계약 유효 이벤트",
@@ -172,7 +175,7 @@ function getCoverageAuditCopy(locale: Locale) {
   return {
     agentRank: "AgentRank",
     api: "JSON API",
-      backToAgentRank: "View AgentRank",
+    backToAgentRank: "View AgentRank",
     backfillActionPlan: "Backfill Action Plan",
     backfillActionPlanBody:
       "Dry-run execution order for turning current gaps into AgentRank Reputation Events.",
@@ -202,6 +205,9 @@ function getCoverageAuditCopy(locale: Locale) {
     actionEventTypes: "Event Types",
     actionPriority: "Priority",
     actionRunMode: "Run Mode",
+    actionSafetyLevel: "Safety Level",
+    actionScript: "Dry-run Command",
+    actionWriteCommand: "Write Command",
     contractCoverage: "Contract Validity",
     contractInvalidEvents: "Events Needing Enrichment",
     contractReadyEvents: "Contract-valid Events",
@@ -215,9 +221,9 @@ function getCoverageAuditCopy(locale: Locale) {
     coverageCompleteBody:
       "For this scope, required Reputation Event types, CTA sources, x402 mock intent, and A2A readiness signals are all present in the ledger.",
     coverageCompleteTitle: "Phase 1 Event Factory Coverage Complete",
-      csv: "Export CSV",
-      economicTrustInputs: "Economic Trust Inputs",
-      eventCoverage: "Event Type Coverage",
+    csv: "Export CSV",
+    economicTrustInputs: "Economic Trust Inputs",
+    eventCoverage: "Event Type Coverage",
       eventFactory: "Reputation Event Factory",
       eventFactoryBody:
         "The production line that turns FanLetter Phase 1 product behavior into AgentRank-readable economic trust events.",
@@ -501,6 +507,29 @@ function getBackfillRunModeLabel(
         };
 
   return labels[runMode];
+}
+
+function getBackfillSafetyLevelLabel(
+  safetyLevel: AgentRankBackfillReadinessSnapshot["actionPlan"][number]["safetyLevel"],
+  locale: Locale,
+) {
+  const labels: Record<
+    AgentRankBackfillReadinessSnapshot["actionPlan"][number]["safetyLevel"],
+    string
+  > =
+    locale === "ko"
+      ? {
+          manual_review: "수동 검토",
+          read_only: "읽기 전용",
+          write_gated: "Write 잠금",
+        }
+      : {
+          manual_review: "Manual Review",
+          read_only: "Read-only",
+          write_gated: "Write-gated",
+        };
+
+  return labels[safetyLevel];
 }
 
 function getBackfillActionPlanText(
@@ -1506,6 +1535,10 @@ function BackfillReadinessPanel({
                         <span className="rounded-full bg-white px-2.5 py-1 text-[0.68rem] font-semibold text-[#6d28d9] ring-1 ring-violet-100">
                           {getBackfillCoverageLabel(item.targetCoverage, locale)}
                         </span>
+                        <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[0.68rem] font-semibold text-amber-700 ring-1 ring-amber-100">
+                          {copy.actionSafetyLevel}:{" "}
+                          {getBackfillSafetyLevelLabel(item.safetyLevel, locale)}
+                        </span>
                       </div>
                       <div className="mt-3 flex flex-wrap gap-1.5">
                         {item.eventTypes.map((eventType) => (
@@ -1518,9 +1551,24 @@ function BackfillReadinessPanel({
                         ))}
                       </div>
                       {item.script ? (
-                        <p className="mt-3 break-all rounded-lg bg-white px-3 py-2 font-mono text-[0.68rem] font-semibold text-slate-500 ring-1 ring-slate-100">
-                          {item.script}
-                        </p>
+                        <div className="mt-3 rounded-lg bg-white p-3 ring-1 ring-slate-100">
+                          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.08em] text-slate-400">
+                            {copy.actionScript}
+                          </p>
+                          <p className="mt-1 break-all font-mono text-[0.68rem] font-semibold text-slate-600">
+                            {item.script}
+                          </p>
+                        </div>
+                      ) : null}
+                      {item.writeCommand ? (
+                        <div className="mt-2 rounded-lg bg-amber-50 p-3 ring-1 ring-amber-100">
+                          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.08em] text-amber-600">
+                            {copy.actionWriteCommand}
+                          </p>
+                          <p className="mt-1 break-all font-mono text-[0.68rem] font-semibold text-amber-800">
+                            {item.writeCommand}
+                          </p>
+                        </div>
                       ) : null}
                     </div>
                   );
