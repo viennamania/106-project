@@ -147,6 +147,10 @@ function getAgentRankCopy(locale: Locale) {
       oracleEvidence: "Oracle Evidence Chain",
       oracleEvidenceBody:
         "AgentRank Oracle Packet에 포함되는 이벤트 증거 해시, 감사 상태, 스키마 준비도를 체인으로 보여줍니다.",
+      quickLedger: "원장 빠른 검증",
+      ledgerHighImpact: "고기여 이벤트",
+      ledgerNeedsOracle: "오라클 보강",
+      ledgerOracleReady: "오라클 준비",
       evidenceHash: "증거 해시",
       evidenceEvents: "증거 이벤트",
       trustLayerMissing: "AI Agent 경제에는 Trust Layer가 필요합니다.",
@@ -250,6 +254,10 @@ function getAgentRankCopy(locale: Locale) {
     oracleEvidence: "Oracle Evidence Chain",
     oracleEvidenceBody:
       "Visualizes the event evidence hashes, audit state, and schema readiness included in the AgentRank Oracle Packet.",
+    quickLedger: "Quick Ledger Review",
+    ledgerHighImpact: "High-impact Events",
+    ledgerNeedsOracle: "Oracle Gaps",
+    ledgerOracleReady: "Oracle-ready",
     evidenceHash: "Evidence Hash",
     evidenceEvents: "Evidence Events",
     trustLayerMissing: "The AI Agent economy needs a trust layer.",
@@ -857,6 +865,21 @@ function AgentRankScoreAggregatorPanel({
     includeMock: "true",
     limit: "120",
   });
+  const highImpactLedgerParams = new URLSearchParams({
+    limit: "40",
+    readiness: "packet_ready",
+    sort: "impact_desc",
+  });
+  const oracleReadyLedgerParams = new URLSearchParams({
+    limit: "40",
+    readiness: "oracle_ready",
+    sort: "quality_desc",
+  });
+  const needsOracleLedgerParams = new URLSearchParams({
+    limit: "40",
+    readiness: "needs_oracle",
+    sort: "quality_asc",
+  });
   const readinessItems = [
     {
       active: scoreAggregate.readiness.reputationLedgerReady,
@@ -888,7 +911,41 @@ function AgentRankScoreAggregatorPanel({
     scoreCsvParams.set("starId", starId);
     coverageScoreParams.set("starId", starId);
     oraclePacketParams.set("starId", starId);
+    highImpactLedgerParams.set("starId", starId);
+    oracleReadyLedgerParams.set("starId", starId);
+    needsOracleLedgerParams.set("starId", starId);
   }
+
+  const ledgerQuickLinks = [
+    {
+      href: `/${locale}/fanletter/agentrank/events?${highImpactLedgerParams.toString()}`,
+      Icon: Database,
+      intent: "agentrank_high_impact_ledger_open",
+      label: copy.ledgerHighImpact,
+      tone: "bg-white/12 text-white ring-white/15",
+      value: formatNumber(
+        scoreAggregate.dimensions.find((dimension) => dimension.key === "economic")
+          ?.score ?? scoreAggregate.score,
+        locale,
+      ),
+    },
+    {
+      href: `/${locale}/fanletter/agentrank/events?${oracleReadyLedgerParams.toString()}`,
+      Icon: ShieldCheck,
+      intent: "agentrank_oracle_ready_ledger_open",
+      label: copy.ledgerOracleReady,
+      tone: "bg-emerald-300/18 text-emerald-100 ring-emerald-200/25",
+      value: `${scoreAggregate.readiness.oracleReadyPercent}%`,
+    },
+    {
+      href: `/${locale}/fanletter/agentrank/events?${needsOracleLedgerParams.toString()}`,
+      Icon: ShieldAlert,
+      intent: "agentrank_oracle_gap_ledger_open",
+      label: copy.ledgerNeedsOracle,
+      tone: "bg-amber-300/14 text-amber-100 ring-amber-200/25",
+      value: `${100 - scoreAggregate.readiness.oracleReadyPercent}%`,
+    },
+  ];
 
   return (
     <section className="agentrank-flow-card overflow-hidden rounded-lg border border-violet-100 bg-white shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
@@ -1003,6 +1060,40 @@ function AgentRankScoreAggregatorPanel({
                 {item.label}
               </span>
             ))}
+          </div>
+          <div className="mt-5 rounded-lg bg-white/10 p-3 ring-1 ring-white/10">
+            <p className="text-xs font-semibold uppercase text-white/58">
+              {copy.quickLedger}
+            </p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-3 xl:grid-cols-1">
+              {ledgerQuickLinks.map(({ Icon, href, intent, label, tone, value }) => (
+                <FanletterTrackedLink
+                  agentRank={{
+                    eventType: "content_engaged",
+                    intent,
+                    source: "fanletter_agentrank",
+                    starId: starId ?? null,
+                  }}
+                  className={`flex min-h-11 items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs font-semibold ring-1 transition hover:bg-white hover:text-[#4338ca] ${tone}`}
+                  eventName="content_open"
+                  href={href}
+                  key={intent}
+                  metadata={{
+                    agentRankLedgerFilter: intent,
+                    starId: starId ?? null,
+                  }}
+                >
+                  <span className="inline-flex min-w-0 items-center gap-2">
+                    <Icon className="size-3.5 shrink-0" />
+                    <span className="truncate">{label}</span>
+                  </span>
+                  <span className="inline-flex shrink-0 items-center gap-1">
+                    {value}
+                    <ArrowRight className="size-3.5" />
+                  </span>
+                </FanletterTrackedLink>
+              ))}
+            </div>
           </div>
         </div>
 

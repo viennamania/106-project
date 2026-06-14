@@ -156,6 +156,8 @@ const explorerCopy = {
     viewAgentRank: "View AgentRank",
     viewCoverage: "Coverage Audit",
     viewEvidencePacket: "Evidence Packet",
+    viewLedgerGaps: "Oracle Gaps",
+    viewLedgerHighImpact: "High-impact Ledger",
     viewLedger: "Event Ledger",
   },
   ja: {
@@ -189,6 +191,8 @@ const explorerCopy = {
     viewAgentRank: "AgentRankを見る",
     viewCoverage: "Coverage Audit",
     viewEvidencePacket: "Evidence Packet",
+    viewLedgerGaps: "Oracle Gaps",
+    viewLedgerHighImpact: "High-impact Ledger",
     viewLedger: "Event Ledger",
   },
   ko: {
@@ -222,6 +226,8 @@ const explorerCopy = {
     viewAgentRank: "AgentRank 보기",
     viewCoverage: "커버리지 감사",
     viewEvidencePacket: "증거 패킷",
+    viewLedgerGaps: "오라클 보강",
+    viewLedgerHighImpact: "고기여 원장",
     viewLedger: "이벤트 원장",
   },
 } as const;
@@ -1586,6 +1592,8 @@ function AgentRankUniverseCard({
   const latestEvent = latestEvents[0] ?? null;
   const encodedStarId = encodeURIComponent(universe.star.id);
   const coverageAuditHref = `/${locale}/fanletter/agentrank/coverage?starId=${encodedStarId}&limit=120`;
+  const highImpactLedgerHref = `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40&readiness=packet_ready&sort=impact_desc`;
+  const oracleGapLedgerHref = `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40&readiness=needs_oracle&sort=quality_asc`;
   const latestEvidenceHref = latestEvent
     ? `/${locale}/fanletter/agentrank/events/${encodeURIComponent(
         latestEvent.eventId,
@@ -1629,20 +1637,38 @@ function AgentRankUniverseCard({
           <FanletterTrackedLink
             agentRank={{
               eventType: "content_engaged",
-              intent: "founder_universe_event_ledger_open",
+              intent: "founder_universe_high_impact_ledger_open",
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
             className="inline-flex h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-white px-2.5 text-xs font-semibold text-[#5b21b6]"
             eventName="content_open"
-            href={`/${locale}/fanletter/agentrank/events?starId=${encodedStarId}`}
+            href={highImpactLedgerHref}
             metadata={{
-              placement: "founder_universe_agentrank_sidebar_ledger",
+              placement: "founder_universe_agentrank_sidebar_high_impact_ledger",
               starName: universe.star.displayName || universe.star.name,
             }}
           >
             <ExternalLink className="size-3" />
-            {copy.viewLedger}
+            {copy.viewLedgerHighImpact}
+          </FanletterTrackedLink>
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "content_engaged",
+              intent: "founder_universe_oracle_gap_ledger_open",
+              source: "fanletter_founder_universe",
+              starId: universe.star.id,
+            }}
+            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-2.5 text-xs font-semibold text-amber-700"
+            eventName="content_open"
+            href={oracleGapLedgerHref}
+            metadata={{
+              placement: "founder_universe_agentrank_sidebar_oracle_gap_ledger",
+              starName: universe.star.displayName || universe.star.name,
+            }}
+          >
+            <ShieldCheck className="size-3" />
+            {copy.viewLedgerGaps}
           </FanletterTrackedLink>
           <FanletterTrackedLink
             agentRank={{
@@ -1855,6 +1881,8 @@ function AgentRankSignalStrip({
   const latestEvent = agentRank.eventFeed.events[0] ?? null;
   const encodedStarId = encodeURIComponent(universe.star.id);
   const coverageAuditHref = `/${locale}/fanletter/agentrank/coverage?starId=${encodedStarId}&limit=120`;
+  const highImpactLedgerHref = `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40&readiness=packet_ready&sort=impact_desc`;
+  const oracleGapLedgerHref = `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40&readiness=needs_oracle&sort=quality_asc`;
   const latestEvidenceHref = latestEvent
     ? `/${locale}/fanletter/agentrank/events/${encodeURIComponent(
         latestEvent.eventId,
@@ -1973,20 +2001,38 @@ function AgentRankSignalStrip({
           <FanletterTrackedLink
             agentRank={{
               eventType: "content_engaged",
-              intent: "founder_universe_event_ledger_strip_open",
+              intent: "founder_universe_high_impact_ledger_strip_open",
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
             className="flex min-h-10 items-center justify-between gap-3 rounded-lg border border-violet-100 bg-white px-3 text-[#5b21b6]"
             eventName="content_open"
-            href={`/${locale}/fanletter/agentrank/events?starId=${encodedStarId}`}
+            href={highImpactLedgerHref}
             metadata={{
-              placement: "founder_universe_agentrank_signal_strip_ledger",
+              placement: "founder_universe_agentrank_signal_strip_high_impact_ledger",
               starName: universe.star.displayName || universe.star.name,
             }}
           >
-            <span>{copy.viewLedger}</span>
+            <span>{copy.viewLedgerHighImpact}</span>
             <ExternalLink className="size-3.5 shrink-0" />
+          </FanletterTrackedLink>
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "content_engaged",
+              intent: "founder_universe_oracle_gap_ledger_strip_open",
+              source: "fanletter_founder_universe",
+              starId: universe.star.id,
+            }}
+            className="flex min-h-10 items-center justify-between gap-3 rounded-lg border border-amber-100 bg-white px-3 text-amber-700"
+            eventName="content_open"
+            href={oracleGapLedgerHref}
+            metadata={{
+              placement: "founder_universe_agentrank_signal_strip_oracle_gap_ledger",
+              starName: universe.star.displayName || universe.star.name,
+            }}
+          >
+            <span>{copy.viewLedgerGaps}</span>
+            <ShieldCheck className="size-3.5 shrink-0" />
           </FanletterTrackedLink>
           <FanletterTrackedLink
             agentRank={{
