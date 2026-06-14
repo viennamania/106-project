@@ -152,6 +152,8 @@ const explorerCopy = {
     trustScore: "AgentRank Score",
     title: "Founder Network Explorer",
     viewAgentRank: "View AgentRank",
+    viewCoverage: "Coverage Audit",
+    viewEvidencePacket: "Evidence Packet",
     viewLedger: "Event Ledger",
   },
   ja: {
@@ -183,6 +185,8 @@ const explorerCopy = {
     trustScore: "AgentRank Score",
     title: "Founder Network Explorer",
     viewAgentRank: "AgentRankを見る",
+    viewCoverage: "Coverage Audit",
+    viewEvidencePacket: "Evidence Packet",
     viewLedger: "Event Ledger",
   },
   ko: {
@@ -214,6 +218,8 @@ const explorerCopy = {
     trustScore: "AgentRank 점수",
     title: "파운더 네트워크 탐색",
     viewAgentRank: "AgentRank 보기",
+    viewCoverage: "커버리지 감사",
+    viewEvidencePacket: "증거 패킷",
     viewLedger: "이벤트 원장",
   },
 } as const;
@@ -1575,6 +1581,14 @@ function AgentRankUniverseCard({
     (displayScore / Math.max(1, displayMaxScore)) * 100,
   );
   const latestEvents = agentRank.eventFeed.events.slice(0, 3);
+  const latestEvent = latestEvents[0] ?? null;
+  const encodedStarId = encodeURIComponent(universe.star.id);
+  const coverageAuditHref = `/api/fanletter/agentrank/coverage?starId=${encodedStarId}&limit=120`;
+  const latestEvidenceHref = latestEvent
+    ? `/${locale}/fanletter/agentrank/events/${encodeURIComponent(
+        latestEvent.eventId,
+      )}/evidence?starId=${encodedStarId}`
+    : null;
   const dimensionHighlights =
     scoreAggregate?.dimensions
       .filter((dimension) => dimension.key !== "riskPenalty")
@@ -1602,9 +1616,7 @@ function AgentRankUniverseCard({
             }}
             className="inline-flex h-8 items-center rounded-full bg-violet-50 px-2.5 text-xs font-semibold text-[#6d28d9]"
             eventName="content_open"
-            href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
-              universe.star.id,
-            )}`}
+            href={`/${locale}/fanletter/agentrank?starId=${encodedStarId}`}
             metadata={{
               placement: "founder_universe_agentrank_sidebar_card",
               starName: universe.star.displayName || universe.star.name,
@@ -1621,9 +1633,7 @@ function AgentRankUniverseCard({
             }}
             className="inline-flex h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-white px-2.5 text-xs font-semibold text-[#5b21b6]"
             eventName="content_open"
-            href={`/${locale}/fanletter/agentrank/events?starId=${encodeURIComponent(
-              universe.star.id,
-            )}`}
+            href={`/${locale}/fanletter/agentrank/events?starId=${encodedStarId}`}
             metadata={{
               placement: "founder_universe_agentrank_sidebar_ledger",
               starName: universe.star.displayName || universe.star.name,
@@ -1632,6 +1642,45 @@ function AgentRankUniverseCard({
             <ExternalLink className="size-3" />
             {copy.viewLedger}
           </FanletterTrackedLink>
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "content_engaged",
+              intent: "founder_universe_coverage_audit_open",
+              source: "fanletter_founder_universe",
+              starId: universe.star.id,
+            }}
+            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-700"
+            eventName="content_open"
+            href={coverageAuditHref}
+            metadata={{
+              placement: "founder_universe_agentrank_sidebar_coverage",
+              starName: universe.star.displayName || universe.star.name,
+            }}
+          >
+            <Gauge className="size-3" />
+            {copy.viewCoverage}
+          </FanletterTrackedLink>
+          {latestEvidenceHref ? (
+            <FanletterTrackedLink
+              agentRank={{
+                eventType: "content_engaged",
+                intent: "founder_universe_evidence_packet_open",
+                source: "fanletter_founder_universe",
+                starId: universe.star.id,
+              }}
+              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700"
+              eventName="content_open"
+              href={latestEvidenceHref}
+              metadata={{
+                eventId: latestEvent?.eventId,
+                placement: "founder_universe_agentrank_sidebar_evidence",
+                starName: universe.star.displayName || universe.star.name,
+              }}
+            >
+              <ShieldCheck className="size-3" />
+              {copy.viewEvidencePacket}
+            </FanletterTrackedLink>
+          ) : null}
         </div>
       </div>
 
@@ -1741,9 +1790,25 @@ function AgentRankUniverseCard({
 
       <div className="mt-4 grid gap-2">
         {latestEvents.map((event) => (
-          <div
-            className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-white px-3 py-2"
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "content_engaged",
+              intent: "founder_universe_latest_event_evidence_open",
+              source: "fanletter_founder_universe",
+              starId: universe.star.id,
+            }}
+            className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-white px-3 py-2 transition hover:border-violet-100 hover:bg-violet-50"
+            eventName="content_open"
+            href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
+              event.eventId,
+            )}/evidence?starId=${encodedStarId}`}
             key={event.eventId}
+            metadata={{
+              eventId: event.eventId,
+              eventType: event.type,
+              placement: "founder_universe_latest_event_evidence_row",
+              starName: universe.star.displayName || universe.star.name,
+            }}
           >
             <div className="min-w-0">
               <p className="truncate text-xs font-semibold text-[#111827]">
@@ -1758,7 +1823,7 @@ function AgentRankUniverseCard({
                 CP +{formatNumber(event.economicLayer.cpDelta, locale)}
               </span>
             ) : null}
-          </div>
+          </FanletterTrackedLink>
         ))}
       </div>
     </aside>
@@ -1785,6 +1850,14 @@ function AgentRankSignalStrip({
   const scorePercent = Math.round(
     (displayScore / Math.max(1, displayMaxScore)) * 100,
   );
+  const latestEvent = agentRank.eventFeed.events[0] ?? null;
+  const encodedStarId = encodeURIComponent(universe.star.id);
+  const coverageAuditHref = `/api/fanletter/agentrank/coverage?starId=${encodedStarId}&limit=120`;
+  const latestEvidenceHref = latestEvent
+    ? `/${locale}/fanletter/agentrank/events/${encodeURIComponent(
+        latestEvent.eventId,
+      )}/evidence?starId=${encodedStarId}`
+    : null;
   const compactDimensions =
     scoreAggregate?.dimensions
       .filter((dimension) => dimension.key !== "riskPenalty")
@@ -1886,9 +1959,7 @@ function AgentRankSignalStrip({
             }}
             className="flex min-h-10 items-center justify-between gap-3 rounded-lg bg-white/70 px-3 text-[#6d28d9]"
             eventName="content_open"
-            href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
-              universe.star.id,
-            )}`}
+            href={`/${locale}/fanletter/agentrank?starId=${encodedStarId}`}
             metadata={{
               placement: "founder_universe_agentrank_signal_strip",
               starName: universe.star.displayName || universe.star.name,
@@ -1906,9 +1977,7 @@ function AgentRankSignalStrip({
             }}
             className="flex min-h-10 items-center justify-between gap-3 rounded-lg border border-violet-100 bg-white px-3 text-[#5b21b6]"
             eventName="content_open"
-            href={`/${locale}/fanletter/agentrank/events?starId=${encodeURIComponent(
-              universe.star.id,
-            )}`}
+            href={`/${locale}/fanletter/agentrank/events?starId=${encodedStarId}`}
             metadata={{
               placement: "founder_universe_agentrank_signal_strip_ledger",
               starName: universe.star.displayName || universe.star.name,
@@ -1917,6 +1986,45 @@ function AgentRankSignalStrip({
             <span>{copy.viewLedger}</span>
             <ExternalLink className="size-3.5 shrink-0" />
           </FanletterTrackedLink>
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "content_engaged",
+              intent: "founder_universe_coverage_audit_strip_open",
+              source: "fanletter_founder_universe",
+              starId: universe.star.id,
+            }}
+            className="flex min-h-10 items-center justify-between gap-3 rounded-lg border border-emerald-100 bg-white px-3 text-emerald-700"
+            eventName="content_open"
+            href={coverageAuditHref}
+            metadata={{
+              placement: "founder_universe_agentrank_signal_strip_coverage",
+              starName: universe.star.displayName || universe.star.name,
+            }}
+          >
+            <span>{copy.viewCoverage}</span>
+            <Gauge className="size-3.5 shrink-0" />
+          </FanletterTrackedLink>
+          {latestEvidenceHref ? (
+            <FanletterTrackedLink
+              agentRank={{
+                eventType: "content_engaged",
+                intent: "founder_universe_evidence_packet_strip_open",
+                source: "fanletter_founder_universe",
+                starId: universe.star.id,
+              }}
+              className="flex min-h-10 items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 text-slate-700"
+              eventName="content_open"
+              href={latestEvidenceHref}
+              metadata={{
+                eventId: latestEvent?.eventId,
+                placement: "founder_universe_agentrank_signal_strip_evidence",
+                starName: universe.star.displayName || universe.star.name,
+              }}
+            >
+              <span>{copy.viewEvidencePacket}</span>
+              <ShieldCheck className="size-3.5 shrink-0" />
+            </FanletterTrackedLink>
+          ) : null}
         </div>
       </div>
     </section>
