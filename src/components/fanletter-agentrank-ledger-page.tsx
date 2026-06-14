@@ -119,11 +119,14 @@ function getLedgerCopy(locale: Locale) {
       filterByType: "이벤트 타입 필터",
       filters: "Ledger 필터",
       generated: "생성 시각",
+      graphScope: "그래프 범위",
+      graphReady: "그래프 준비",
       heroBody:
         "FanLetter에서 발생한 발견, 파운더 참여, 추천, CP, 크리에이터 생성 이벤트가 AgentRank v1 스키마로 정규화되는지 확인합니다.",
       heroEyebrow: "AgentRank Ledger",
       heroTitle: "Reputation Event Ledger",
       impact: "평판 영향",
+      impactReady: "영향 준비",
       member: "멤버",
       networkEdges: "네트워크 엣지",
       needs: "보강 필요",
@@ -134,6 +137,7 @@ function getLedgerCopy(locale: Locale) {
       packetPartial: "Packet 부분 준비",
       packetReady: "Packet 준비",
       quality: "품질 점수",
+      rankContribution: "AgentRank 기여도",
       ready: "준비됨",
       relatedStarScope: "관련 AI 스타",
       schema: "스키마",
@@ -179,11 +183,14 @@ function getLedgerCopy(locale: Locale) {
     filterByType: "Filter by event type",
     filters: "Ledger filters",
     generated: "Generated",
+    graphScope: "Graph Scope",
+    graphReady: "Graph-ready",
     heroBody:
       "Inspect how FanLetter discovery, founder, referral, CP, and creator launch actions normalize into the AgentRank v1 schema.",
     heroEyebrow: "AgentRank Ledger",
     heroTitle: "Reputation Event Ledger",
     impact: "Reputation Impact",
+    impactReady: "Impact-ready",
     member: "Member",
     networkEdges: "Network Edges",
     needs: "Needs data",
@@ -194,6 +201,7 @@ function getLedgerCopy(locale: Locale) {
     packetPartial: "Packet partial",
     packetReady: "Packet ready",
     quality: "Quality Score",
+    rankContribution: "AgentRank Contribution",
     ready: "Ready",
     relatedStarScope: "Related AI Stars",
     schema: "Schema",
@@ -436,8 +444,43 @@ function getLedgerScoreSignals(event: AgentRankReputationEvent) {
     .sort(
       (left, right) =>
         right.value - left.value || left.label.localeCompare(right.label),
-    )
-    .slice(0, 3);
+    );
+}
+
+function ScoreContributionBar({
+  signals,
+}: {
+  signals: ReturnType<typeof getLedgerScoreSignals>;
+}) {
+  const total = signals.reduce((sum, signal) => sum + signal.value, 0);
+
+  if (total <= 0) {
+    return <div className="h-2 rounded-full bg-slate-100" />;
+  }
+
+  return (
+    <div className="flex h-2 overflow-hidden rounded-full bg-slate-100">
+      {signals.map((signal) => {
+        const width = Math.max(7, Math.round((signal.value / total) * 100));
+        const colorClass =
+          signal.label === "Network"
+            ? "bg-blue-500"
+            : signal.label === "Economic"
+              ? "bg-emerald-500"
+              : signal.label === "Creator"
+                ? "bg-violet-500"
+                : "bg-fuchsia-500";
+
+        return (
+          <span
+            className={colorClass}
+            key={signal.label}
+            style={{ width: `${width}%` }}
+          />
+        );
+      })}
+    </div>
+  );
 }
 
 function ReadinessPill({
@@ -548,6 +591,11 @@ function EventCard({
   const packetStarId = event.starId ?? event.object?.id ?? null;
   const relatedStarScope = getAgentRankRelatedStarScope(event);
   const universeLabel = String(event.context.universeId ?? event.starId ?? "-");
+  const graphReadyLabel = event.audit.graphReady ? copy.ready : copy.needs;
+  const impactReadyLabel = event.audit.impactReady ? copy.ready : copy.needs;
+  const oraclePacketLabel = isPacketReady
+    ? copy.packetReady
+    : copy.packetPartial;
 
   if (event.starId) {
     detailParams.set("starId", event.starId);
@@ -683,6 +731,45 @@ function EventCard({
           ))}
         </div>
       ) : null}
+
+      <div className="mt-3 grid gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="min-w-0">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase text-slate-400">
+              {copy.rankContribution}
+            </p>
+            <p className="font-mono text-sm font-semibold text-[#11132d]">
+              {impactTotal.toFixed(1)}
+            </p>
+          </div>
+          <div className="mt-2">
+            <ScoreContributionBar signals={scoreSignals} />
+          </div>
+        </div>
+        <div className="min-w-0 rounded-md bg-white px-3 py-2 ring-1 ring-slate-100">
+          <p className="text-xs font-semibold uppercase text-slate-400">
+            {copy.oracleReady}
+          </p>
+          <p className="mt-1 truncate text-sm font-semibold text-[#11132d]">
+            {oraclePacketLabel}
+          </p>
+          <p className="mt-1 text-xs font-semibold text-slate-500">
+            {copy.quality} {audit.qualityScore}/100
+          </p>
+        </div>
+        <div className="min-w-0 rounded-md bg-white px-3 py-2 ring-1 ring-slate-100">
+          <p className="text-xs font-semibold uppercase text-slate-400">
+            {copy.graphScope}
+          </p>
+          <p className="mt-1 truncate text-sm font-semibold text-[#11132d]">
+            {relatedStarScope.length} {copy.uniqueStars}
+          </p>
+          <p className="mt-1 text-xs font-semibold text-slate-500">
+            {copy.graphReady} {graphReadyLabel} · {copy.impactReady}{" "}
+            {impactReadyLabel}
+          </p>
+        </div>
+      </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
         <ReadinessPill
