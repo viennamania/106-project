@@ -839,6 +839,9 @@ function AgentRankScoreAggregatorPanel({
   const scorePercent = Math.round(
     (scoreAggregate.score / scoreAggregate.maxScore) * 100,
   );
+  const scoreScopeLabel = scoreAggregate.eventScope.includeMockEvents
+    ? copy.scoreScopeCoverage
+    : copy.scoreScopeOperational;
   const scoreCsvParams = new URLSearchParams({
     format: "csv",
     limit: "120",
@@ -915,7 +918,7 @@ function AgentRankScoreAggregatorPanel({
           <div className="mt-4 flex flex-wrap gap-2">
             <span className="inline-flex h-9 items-center gap-2 rounded-full bg-emerald-300/18 px-3 text-xs font-semibold text-emerald-100 ring-1 ring-emerald-200/25">
               <ShieldCheck className="size-3.5" />
-              {copy.scoreScopeOperational}
+              {scoreScopeLabel}
             </span>
             {scoreAggregate.eventScope.excludedMockEvents > 0 ? (
               <span className="inline-flex h-9 items-center gap-2 rounded-full bg-amber-300/14 px-3 text-xs font-semibold text-amber-100 ring-1 ring-amber-200/25">

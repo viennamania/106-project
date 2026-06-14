@@ -85,6 +85,8 @@ export default async function FanletterAgentRankRoute({
       ? query.memberEmail.trim().toLowerCase()
       : null;
   const snapshot = await getFanletterAgentRankInvestorSnapshot({
+    coverageProbe: true,
+    includeMockEvents: true,
     limit: 120,
     memberEmail,
     starId,

@@ -1,6 +1,9 @@
 import "server-only";
 
+import { buildAgentRankCoverageEventFeed } from "@/lib/agentrank/coverage-event-feed";
+import { agentRankInteractionSources } from "@/lib/agentrank/interaction-events";
 import {
+  agentRankReputationEventTypes,
   getFanletterAgentRankReputationEventFeed,
   type AgentRankReputationEvent,
   type FanletterAgentRankReputationEventFeed,
@@ -72,6 +75,7 @@ export type FanletterAgentRankInvestorSnapshot = {
 
 export type GetFanletterAgentRankInvestorSnapshotOptions =
   GetFanletterAgentRankReputationEventsOptions & {
+    coverageProbe?: boolean;
     includeMockEvents?: boolean;
   };
 
@@ -265,12 +269,27 @@ export function calculateAgentRankEconomicReputationScore(
 export async function getFanletterAgentRankInvestorSnapshot(
   options: GetFanletterAgentRankInvestorSnapshotOptions = {},
 ): Promise<FanletterAgentRankInvestorSnapshot> {
-  const eventFeed = await getFanletterAgentRankReputationEventFeed({
+  const baseEventFeed = await getFanletterAgentRankReputationEventFeed({
     limit: options.limit ?? 120,
     memberEmail: options.memberEmail,
     starId: options.starId,
     includeTypes: options.includeTypes,
   });
+  const eventFeed = options.coverageProbe
+    ? await buildAgentRankCoverageEventFeed({
+        baseFeed: baseEventFeed,
+        memberEmail: options.memberEmail ?? null,
+        missingSources: agentRankInteractionSources.filter((source) => {
+          return !baseEventFeed.events.some(
+            (event) => event.context.source === source,
+          );
+        }),
+        missingTypes: (options.includeTypes ?? agentRankReputationEventTypes).filter(
+          (type) => (baseEventFeed.summary.byType[type] ?? 0) === 0,
+        ),
+        starId: options.starId ?? null,
+      })
+    : baseEventFeed;
   const includeMockEvents = options.includeMockEvents === true;
   const scoreFeed = filterAgentRankReputationEventFeedForScoring(eventFeed, {
     includeMockEvents,
