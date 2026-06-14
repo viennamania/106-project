@@ -7,10 +7,14 @@ import {
   Download,
   FileCheck2,
   Fingerprint,
+  Gauge,
   GitBranch,
   Network,
   ShieldCheck,
+  Sparkles,
+  TrendingUp,
   TriangleAlert,
+  WalletCards,
 } from "lucide-react";
 
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
@@ -45,6 +49,7 @@ function getCopy(locale: Locale) {
       evidence: "증거",
       evidenceRoot: "Evidence Root",
       event: "Reputation Event",
+      eventContribution: "이벤트 기여도",
       eventHash: "Event Evidence Hash",
       eventScope: "이벤트 범위",
       eventScopeMismatch:
@@ -59,6 +64,9 @@ function getCopy(locale: Locale) {
       linkedEvidence: "Linked Evidence",
       linkedEvidenceBody:
         "같은 AI 스타, 멤버, 추천 코드, Universe로 연결된 주변 이벤트 해시입니다.",
+      dominantSignal: "주요 기여 신호",
+      includedInPacket: "패킷 포함",
+      notReady: "대기",
       object: "대상",
       oracleManifest: "Oracle Manifest",
       oracleReady: "Oracle 준비",
@@ -72,6 +80,7 @@ function getCopy(locale: Locale) {
       relatedStarScope: "관련 AI 스타 범위",
       schema: "Schema",
       scoreImpact: "Score Impact",
+      scoreFormula: "Network + Economic + Creator + Discovery",
       scopeAll: "전체 이벤트",
       scopeMock: "Mock 커버리지",
       scopeProduct: "운영 이벤트",
@@ -94,6 +103,7 @@ function getCopy(locale: Locale) {
     evidence: "Evidence",
     evidenceRoot: "Evidence Root",
     event: "Reputation Event",
+    eventContribution: "Event Contribution",
     eventHash: "Event Evidence Hash",
     eventScope: "Event Scope",
     eventScopeMismatch:
@@ -108,6 +118,9 @@ function getCopy(locale: Locale) {
     linkedEvidence: "Linked Evidence",
     linkedEvidenceBody:
       "Nearby event hashes connected by the same AI Star, member, referral code, or Universe.",
+    dominantSignal: "Dominant Signal",
+    includedInPacket: "Included in packet",
+    notReady: "Pending",
     object: "Object",
     oracleManifest: "Oracle Manifest",
     oracleReady: "Oracle-ready",
@@ -121,6 +134,7 @@ function getCopy(locale: Locale) {
     relatedStarScope: "Related AI Star Scope",
     schema: "Schema",
     scoreImpact: "Score Impact",
+    scoreFormula: "Network + Economic + Creator + Discovery",
     scopeAll: "All Events",
     scopeMock: "Mock Coverage",
     scopeProduct: "Product Events",
@@ -264,6 +278,130 @@ function InfoTile({
       <p className="mt-2 break-words text-sm font-semibold leading-5 text-[#11132d]">
         {value}
       </p>
+    </div>
+  );
+}
+
+function getScoreImpactDimensions(
+  packet: AgentRankEventEvidencePacket,
+  locale: Locale,
+) {
+  const impact = packet.oracleManifest.scoreImpact;
+  const labels =
+    locale === "ko"
+      ? {
+          creator: "Creator Journey",
+          discovery: "AI Star Discovery",
+          economic: "Economic Activity",
+          network: "Founder Network",
+        }
+      : {
+          creator: "Creator Journey",
+          discovery: "AI Star Discovery",
+          economic: "Economic Activity",
+          network: "Founder Network",
+        };
+
+  return [
+    {
+      Icon: Network,
+      barClass: "bg-blue-500",
+      label: labels.network,
+      textClass: "text-blue-700",
+      value: impact.network,
+    },
+    {
+      Icon: WalletCards,
+      barClass: "bg-emerald-500",
+      label: labels.economic,
+      textClass: "text-emerald-700",
+      value: impact.economic,
+    },
+    {
+      Icon: Sparkles,
+      barClass: "bg-violet-500",
+      label: labels.creator,
+      textClass: "text-[#6d28d9]",
+      value: impact.creator,
+    },
+    {
+      Icon: TrendingUp,
+      barClass: "bg-fuchsia-500",
+      label: labels.discovery,
+      textClass: "text-fuchsia-700",
+      value: impact.discovery,
+    },
+  ].sort((left, right) => right.value - left.value);
+}
+
+function ScoreImpactManifestCard({
+  copy,
+  locale,
+  packet,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  locale: Locale;
+  packet: AgentRankEventEvidencePacket;
+}) {
+  const dimensions = getScoreImpactDimensions(packet, locale);
+  const dominant = dimensions[0];
+  const maxValue = Math.max(1, ...dimensions.map((dimension) => dimension.value));
+  const total = packet.oracleManifest.scoreImpact.total;
+
+  return (
+    <div className="rounded-lg border border-violet-100 bg-gradient-to-br from-[#11132d] via-[#312e81] to-[#7c3aed] p-4 text-white">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase text-white/65">
+            <Gauge className="size-4" />
+            {copy.eventContribution}
+          </p>
+          <p className="mt-2 text-4xl font-semibold">
+            {formatNumber(total, locale)}
+          </p>
+        </div>
+        <span className="rounded-full bg-white/12 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/15">
+          {copy.includedInPacket}
+        </span>
+      </div>
+
+      <div className="mt-4 rounded-lg bg-white/10 p-3 ring-1 ring-white/10">
+        <p className="text-xs font-semibold uppercase text-white/55">
+          {copy.dominantSignal}
+        </p>
+        <p className="mt-1 text-lg font-semibold">{dominant.label}</p>
+        <p className="mt-1 text-xs font-semibold text-white/55">
+          {copy.scoreFormula}
+        </p>
+      </div>
+
+      <div className="mt-4 grid gap-3">
+        {dimensions.map((dimension) => {
+          const Icon = dimension.Icon;
+          const width = Math.max(
+            4,
+            Math.round((dimension.value / maxValue) * 100),
+          );
+
+          return (
+            <div key={dimension.label}>
+              <div className="flex items-center justify-between gap-3 text-xs font-semibold">
+                <span className="inline-flex items-center gap-2 text-white/75">
+                  <Icon className="size-3.5" />
+                  {dimension.label}
+                </span>
+                <span>{formatNumber(dimension.value, locale)}</span>
+              </div>
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-white/12">
+                <div
+                  className={`h-full rounded-full ${dimension.barClass}`}
+                  style={{ width: `${width}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -474,33 +612,12 @@ export function FanletterAgentRankEvidencePacketPage({
               {formatNumber(packet.oracleManifest.scoreImpact.total, locale)}
             </span>
           </div>
-          <div className="mt-5 grid gap-3 lg:grid-cols-3">
-            <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
-              <p className="text-xs font-semibold uppercase text-slate-400">
-                {copy.scoreImpact}
-              </p>
-              <div className="mt-3 grid grid-cols-2 gap-2 text-sm font-semibold">
-                <span className="rounded-md bg-white px-3 py-2 text-blue-700">
-                  Network{" "}
-                  {formatNumber(packet.oracleManifest.scoreImpact.network, locale)}
-                </span>
-                <span className="rounded-md bg-white px-3 py-2 text-emerald-700">
-                  Economic{" "}
-                  {formatNumber(packet.oracleManifest.scoreImpact.economic, locale)}
-                </span>
-                <span className="rounded-md bg-white px-3 py-2 text-[#6d28d9]">
-                  Creator{" "}
-                  {formatNumber(packet.oracleManifest.scoreImpact.creator, locale)}
-                </span>
-                <span className="rounded-md bg-white px-3 py-2 text-fuchsia-700">
-                  Discovery{" "}
-                  {formatNumber(
-                    packet.oracleManifest.scoreImpact.discovery,
-                    locale,
-                  )}
-                </span>
-              </div>
-            </div>
+          <div className="mt-5 grid gap-3 lg:grid-cols-[1.15fr_0.9fr_0.9fr]">
+            <ScoreImpactManifestCard
+              copy={copy}
+              locale={locale}
+              packet={packet}
+            />
             <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-4">
               <p className="text-xs font-semibold uppercase text-emerald-700">
                 {copy.oracleReady}
@@ -524,7 +641,7 @@ export function FanletterAgentRankEvidencePacketPage({
                   {copy.x402Ready}:{" "}
                   {packet.oracleManifest.readiness.x402Ready
                     ? copy.ready
-                    : packet.oracleManifest.readiness.auditStatus}
+                    : copy.notReady}
                 </span>
               </div>
             </div>
