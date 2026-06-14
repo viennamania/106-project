@@ -108,6 +108,13 @@ const baseImpactByType = {
     network: 1.2,
     trust: 0.8,
   },
+  x402_mock_payment_intent: {
+    creator: 0.5,
+    discovery: 0,
+    economy: 1.5,
+    network: 0.2,
+    trust: 0.7,
+  },
   founder_joined: {
     creator: 0,
     discovery: 0.2,

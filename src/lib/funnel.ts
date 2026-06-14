@@ -15,6 +15,7 @@ export const funnelEventNames = [
   "fanletter_news_report_view",
   "fanletter_news_source_open_click",
   "fanletter_source_universe_selected",
+  "fanletter_x402_mock_payment_intent",
   "feed_view_public",
   "paid_unlock_click",
   "promo_share_to_creator_channel",

@@ -135,6 +135,7 @@ function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Local
           referral_converted: "추천 전환",
           source_universe_selected: "출처 유니버스 선택",
           universe_growth: "유니버스 성장",
+          x402_mock_payment_intent: "x402 결제 의도",
         }
       : {
           ai_star_discovered: "AI Star Discovered",
@@ -148,6 +149,7 @@ function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Local
           referral_converted: "Referral Converted",
           source_universe_selected: "Source Universe Selected",
           universe_growth: "Universe Growth",
+          x402_mock_payment_intent: "x402 Mock Payment Intent",
         };
 
   return labels[type];

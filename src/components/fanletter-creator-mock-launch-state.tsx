@@ -298,6 +298,28 @@ export function FanletterCreatorMockLaunchButton({
     setState("loading");
 
     try {
+      trackFunnelEvent("fanletter_x402_mock_payment_intent", {
+        agentRank: {
+          eventType: "x402_mock_payment_intent",
+          intent: "creator_launch_mock_payment_intent",
+          source: "fanletter_creator_unlock",
+          starId: sourceStarId ?? agentRank?.starId ?? null,
+        },
+        metadata: {
+          ...trackingMetadata,
+          amountUsdt: launchCostUsdt,
+          checkoutMode: "mock",
+          currency: "USDT",
+          launchStarName: name,
+          mockPaymentIntent: true,
+          ownerName,
+          paymentStatus: "mock_intent",
+          sourceStarId: sourceStarId ?? null,
+          sourceUniverseName,
+          x402Ready: false,
+        },
+        targetHref: `/${locale}/fanletter/creator-unlock`,
+      });
       const preview = await requestFanletterCreatorMockLaunch({
         launchCostUsdt,
         locale,

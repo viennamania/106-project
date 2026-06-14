@@ -49,6 +49,8 @@ const eventTone = {
   referral_converted: "border-indigo-100 bg-indigo-50 text-indigo-700",
   source_universe_selected: "border-teal-100 bg-teal-50 text-teal-700",
   universe_growth: "border-amber-100 bg-amber-50 text-amber-700",
+  x402_mock_payment_intent:
+    "border-emerald-100 bg-emerald-50 text-emerald-700",
 } satisfies Record<AgentRankReputationEventType, string>;
 
 const eventIconMap = {
@@ -63,6 +65,7 @@ const eventIconMap = {
   referral_converted: GitBranch,
   source_universe_selected: ShieldCheck,
   universe_growth: Database,
+  x402_mock_payment_intent: Coins,
 } satisfies Record<AgentRankReputationEventType, typeof Bot>;
 
 function getLedgerCopy(locale: Locale) {
@@ -192,6 +195,7 @@ function getEventTypeLabel(type: AgentRankReputationEventType, locale: Locale) {
           referral_converted: "추천 전환",
           source_universe_selected: "출처 유니버스 선택",
           universe_growth: "유니버스 성장",
+          x402_mock_payment_intent: "x402 결제 의도",
         }
       : {
           ai_star_discovered: "AI Star Discovered",
@@ -205,6 +209,7 @@ function getEventTypeLabel(type: AgentRankReputationEventType, locale: Locale) {
           referral_converted: "Referral Converted",
           source_universe_selected: "Source Universe Selected",
           universe_growth: "Universe Growth",
+          x402_mock_payment_intent: "x402 Mock Payment Intent",
         };
 
   return labels[type];

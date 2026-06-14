@@ -7,6 +7,7 @@ export const agentRankInteractionEventTypes = [
   "creator_unlock_evaluated",
   "creator_unlocked",
   "source_universe_selected",
+  "x402_mock_payment_intent",
   "ai_star_spawned",
   "content_engaged",
   "universe_growth",
@@ -212,6 +213,10 @@ function inferEventType(
 
   if (input.eventName === "fanletter_source_universe_selected") {
     return "source_universe_selected";
+  }
+
+  if (input.eventName === "fanletter_x402_mock_payment_intent") {
+    return "x402_mock_payment_intent";
   }
 
   if (input.eventName === "signup_cta_click") {

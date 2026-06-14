@@ -54,6 +54,7 @@ const eventLayerMap = {
   referral_converted: "network",
   source_universe_selected: "network",
   universe_growth: "network",
+  x402_mock_payment_intent: "economy",
 } satisfies Record<AgentRankReputationEventType, AgentRankCoverageEventItem["layer"]>;
 
 function percent(value: number, total: number) {

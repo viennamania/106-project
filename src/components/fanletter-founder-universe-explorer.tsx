@@ -1506,6 +1506,7 @@ function getAgentRankEventLabel(type: string, locale: Locale) {
     referral_converted: "추천 전환",
     source_universe_selected: "출처 유니버스 선택",
     universe_growth: "유니버스 성장",
+    x402_mock_payment_intent: "x402 결제 의도",
   };
 
   return labels[type] ?? type.replaceAll("_", " ");

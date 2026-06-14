@@ -61,6 +61,7 @@ const eventIconMap = {
   referral_converted: GitBranch,
   source_universe_selected: ShieldCheck,
   universe_growth: Orbit,
+  x402_mock_payment_intent: WalletCards,
 } satisfies Record<AgentRankReputationEvent["type"], typeof Eye>;
 
 const scoreDimensionIconMap = {
@@ -280,6 +281,7 @@ function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Local
     referral_converted: "추천 전환",
     source_universe_selected: "출처 유니버스 선택",
     universe_growth: "유니버스 성장",
+    x402_mock_payment_intent: "x402 결제 의도",
   };
 
   return labels[type];
