@@ -30,6 +30,7 @@ import {
   isAgentRankCoverageMockEvent,
   type AgentRankEventMockScope,
 } from "@/lib/agentrank/mock-events";
+import { getAgentRankRelatedStarScope } from "@/lib/agentrank/related-star-scope";
 import type { Locale } from "@/lib/i18n";
 
 type FanletterAgentRankLedgerPageProps = {
@@ -298,40 +299,6 @@ function getObjectLabel(event: AgentRankReputationEvent) {
   return event.object?.label ?? event.object?.id ?? event.starId ?? "-";
 }
 
-function readContextString(event: AgentRankReputationEvent, key: string) {
-  const value = event.context[key];
-
-  if (typeof value === "string" && value.trim()) {
-    return value.trim();
-  }
-
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return String(value);
-  }
-
-  return null;
-}
-
-function getRelatedStarScope(event: AgentRankReputationEvent) {
-  const values = [
-    event.starId,
-    event.object?.type === "ai_star" ? event.object.id : null,
-    event.subject?.type === "ai_star" ? event.subject.id : null,
-    readContextString(event, "sourceStarId"),
-    readContextString(event, "spawnedStarId"),
-    readContextString(event, "targetStarId"),
-    readContextString(event, "coverageActionStarId"),
-    readContextString(event, "relatedStarIds"),
-  ];
-  const starIds = values
-    .filter((value): value is string => Boolean(value))
-    .flatMap((value) => value.split(","))
-    .map((value) => value.trim().toLowerCase())
-    .filter(Boolean);
-
-  return [...new Set(starIds)];
-}
-
 function isValidIsoDate(value: string) {
   return !Number.isNaN(new Date(value).getTime());
 }
@@ -579,7 +546,7 @@ function EventCard({
   const isPacketReady =
     event.reputationSignals.oracleReady && audit.status === "audit_ready";
   const packetStarId = event.starId ?? event.object?.id ?? null;
-  const relatedStarScope = getRelatedStarScope(event);
+  const relatedStarScope = getAgentRankRelatedStarScope(event);
   const universeLabel = String(event.context.universeId ?? event.starId ?? "-");
 
   if (event.starId) {
