@@ -154,6 +154,7 @@ function getCoverageAuditCopy(locale: Locale) {
       noCriticalGaps: "현재 핵심 갭이 없습니다.",
       noContractIssues: "현재 필수 필드 누락이 없습니다.",
       oracleCoverage: "오라클 준비율",
+      oraclePacket: "Oracle Packet",
       oracleReady: "오라클",
       phase1Quality: "Phase 1 데이터 품질",
       priorityActionPlan: "우선 수집 액션",
@@ -162,6 +163,7 @@ function getCoverageAuditCopy(locale: Locale) {
       scopeMock: "Mock 커버리지",
       scopeProduct: "운영 이벤트",
       scope: "감사 범위",
+      scoreApi: "Score API",
       subtitle:
         "FanLetter에서 발생한 발견, 파운더 참여, 초대, CP, 창업 이벤트가 AgentRank 평판 데이터로 충분히 쌓이고 있는지 점검합니다.",
       targetLayer: "대상 레이어",
@@ -241,7 +243,8 @@ function getCoverageAuditCopy(locale: Locale) {
     noCriticalGaps: "No critical gaps at the moment.",
     noContractIssues: "No required-field gaps at the moment.",
     oracleCoverage: "Oracle-ready Coverage",
-      oracleReady: "Oracle",
+    oraclePacket: "Oracle Packet",
+    oracleReady: "Oracle",
     phase1Quality: "Phase 1 Data Quality",
     priorityActionPlan: "Priority Collection Actions",
     schemaCoverage: "Schema Coverage",
@@ -249,6 +252,7 @@ function getCoverageAuditCopy(locale: Locale) {
     scopeMock: "Mock coverage",
     scopeProduct: "Product events",
     scope: "Audit Scope",
+    scoreApi: "Score API",
     subtitle:
       "Audits whether FanLetter discovery, founder, invite, CP, and creator events are becoming sufficient AgentRank reputation data.",
     targetLayer: "Target Layer",
@@ -1726,6 +1730,15 @@ export function FanletterAgentRankCoverageAuditPage({
   const copy = getCoverageAuditCopy(locale);
   const apiQuery = buildQuery(scope);
   const csvQuery = buildQuery(scope, { format: "csv" });
+  const scoreQuery = buildQuery(scope, {
+    coverageProbe: "true",
+    includeMock: "true",
+  });
+  const oracleQuery = buildQuery(scope, {
+    coverageProbe: "true",
+    format: "oracle",
+    includeMock: "true",
+  });
   const pageQuery = buildQuery(scope);
   const coverageActionQuery = coverageAction
     ? `&coverageAction=${encodeURIComponent(coverageAction)}`
@@ -1804,6 +1817,20 @@ export function FanletterAgentRankCoverageAuditPage({
               >
                 <Download className="size-4" />
                 {copy.csv}
+              </a>
+              <a
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 text-sm font-semibold text-indigo-700"
+                href={`/api/fanletter/agentrank/score?${scoreQuery}`}
+              >
+                <Database className="size-4" />
+                {copy.scoreApi}
+              </a>
+              <a
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-violet-200 bg-[#11132d] px-4 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(88,28,135,0.18)]"
+                href={`/api/fanletter/agentrank/score?${oracleQuery}`}
+              >
+                <ShieldCheck className="size-4" />
+                {copy.oraclePacket}
               </a>
             </div>
           </div>
