@@ -30,9 +30,11 @@ import {
   FounderRoleBadge,
   HumanMemberAvatar,
 } from "@/components/fanletter-founder-club-v2";
+import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
+import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import type {
   FanletterFounderUniverseExplorerData,
@@ -2363,10 +2365,12 @@ function MemberNodeCard({
 
 export function FanletterFounderUniverseExplorer({
   agentRank,
+  coverageAction = null,
   locale,
   universe,
 }: {
   agentRank?: FounderUniverseAgentRankSnapshot | null;
+  coverageAction?: AgentRankCoverageActionContext | null;
   locale: Locale;
   universe: FanletterFounderUniverseExplorerData;
 }) {
@@ -2423,6 +2427,9 @@ export function FanletterFounderUniverseExplorer({
         metadata={{
           edgeCount: displayUniverse.totals.edgeCount,
           page: "fanletter_founder_universe",
+          coverageAction: coverageAction?.action ?? null,
+          coverageActionMemberEmail: coverageAction?.memberEmail ?? null,
+          coverageActionStarId: coverageAction?.starId ?? null,
           spawnedStarCount: displayUniverse.spawnedStars.length,
           starName: displayUniverse.star.name,
           totalMembers: displayUniverse.totals.totalMembers,
@@ -2446,6 +2453,13 @@ export function FanletterFounderUniverseExplorer({
               {formatNumber(displayUniverse.totals.edgeCount, locale)} {copy.edge}
             </span>
           </div>
+
+          {coverageAction ? (
+            <FanletterAgentRankCoverageActionNotice
+              action={coverageAction}
+              locale={locale}
+            />
+          ) : null}
 
           <FanletterTerminologyGuide locale={locale} variant="compact" />
 

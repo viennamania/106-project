@@ -2,12 +2,22 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterFounderUniverseExplorer } from "@/components/fanletter-founder-universe-explorer";
+import {
+  normalizeAgentRankCoverageAction,
+  readFirstSearchParam,
+} from "@/lib/agentrank/coverage-action";
 import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import { getFanletterFounderUniverseExplorer } from "@/lib/fanletter-founder-universe-explorer-service";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { hasLocale } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
+
+type FanletterFounderUniverseSearchParams = {
+  coverageAction?: string | string[];
+  memberEmail?: string | string[];
+  starId?: string | string[];
+};
 
 export async function generateMetadata({
   params,
@@ -61,10 +71,15 @@ export async function generateMetadata({
 
 export default async function FanletterFounderUniverseExplorerRoute({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string; starId: string }>;
+  searchParams: Promise<FanletterFounderUniverseSearchParams>;
 }) {
-  const { lang, starId: rawStarId } = await params;
+  const [{ lang, starId: rawStarId }, query] = await Promise.all([
+    params,
+    searchParams,
+  ]);
 
   if (!hasLocale(lang)) {
     notFound();
@@ -75,6 +90,13 @@ export default async function FanletterFounderUniverseExplorerRoute({
   if (!starId) {
     notFound();
   }
+
+  const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
+  const coverageStarId =
+    normalizeFanletterStarId(readFirstSearchParam(query.starId) ?? null) ??
+    starId;
+  const coverageMemberEmail =
+    readFirstSearchParam(query.memberEmail)?.trim().slice(0, 160) || null;
 
   const [universe, agentRank] = await Promise.all([
     getFanletterFounderUniverseExplorer(starId),
@@ -91,6 +113,15 @@ export default async function FanletterFounderUniverseExplorerRoute({
   return (
     <FanletterFounderUniverseExplorer
       agentRank={agentRank}
+      coverageAction={
+        coverageAction
+          ? {
+              action: coverageAction,
+              memberEmail: coverageMemberEmail,
+              starId: coverageStarId,
+            }
+          : null
+      }
       locale={lang}
       universe={universe}
     />

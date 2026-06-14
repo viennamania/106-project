@@ -19,6 +19,7 @@ import {
   toMemberOwnedAIStar,
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
+import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
@@ -32,6 +33,7 @@ import {
   MemberPortfolio,
 } from "@/components/fanletter-founder-club-v2";
 import type { AgentRankFounderContributionAggregate } from "@/lib/agentrank/score";
+import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import {
   fanletterV2Mock,
   getFanletterV2Copy,
@@ -76,9 +78,6 @@ function getLaunchPageCopy(locale: Locale) {
       contributionEvents: "이벤트",
       contributionAudit: "감사 준비",
       contributionQuality: "품질",
-      coverageActionBack: "Coverage Audit으로 돌아가기",
-      coverageActionEyebrow: "AgentRank 수집 액션",
-      coverageActionScope: "감사 대상 스타",
       heroBody:
         "크리에이터 권한 활성화 이후 여러 AI 스타를 만들 수 있는 흐름을 실제 결제 없이 먼저 검증합니다.",
       heroEyebrow: "크리에이터 권한 활성화",
@@ -143,9 +142,6 @@ function getLaunchPageCopy(locale: Locale) {
       contributionEvents: "Events",
       contributionAudit: "Audit",
       contributionQuality: "Quality",
-      coverageActionBack: "Back to Coverage Audit",
-      coverageActionEyebrow: "AgentRank Collection Action",
-      coverageActionScope: "Audit target star",
       heroBody:
         "After Creator Unlock, the member can validate a multi-AI-Star launch flow before real checkout.",
       heroEyebrow: "Creator Unlock",
@@ -209,9 +205,6 @@ function getLaunchPageCopy(locale: Locale) {
     contributionEvents: "Events",
     contributionAudit: "Audit",
     contributionQuality: "Quality",
-    coverageActionBack: "Back to Coverage Audit",
-    coverageActionEyebrow: "AgentRank Collection Action",
-    coverageActionScope: "Audit target star",
     heroBody:
       "After Creator Unlock, the member can validate a multi-AI-Star launch flow before real checkout.",
     heroEyebrow: "Creator Unlock",
@@ -310,150 +303,6 @@ type SourceUniverseOption = {
   starStatus?: MemberPortfolioRole["starStatus"];
   universeName: string;
 };
-
-type CreatorUnlockCoverageActionContext = {
-  action: string;
-  starId?: string | null;
-};
-
-function getCoverageActionMessage(
-  action: string,
-  locale: Locale,
-) {
-  const koMessages: Record<string, { body: string; title: string }> = {
-    ai_star_spawned: {
-      body:
-        "새 AI 스타 생성 mock을 완료하면 AgentRank의 Creator Journey와 스타 유니버스 확장 신호가 채워집니다.",
-      title: "AI 스타 창업 이벤트 수집",
-    },
-    creator_unlock_evaluated: {
-      body:
-        "크리에이터 권한 조건 평가가 AgentRank 이벤트로 남는지 확인합니다. 조건/품질/감사 준비율이 함께 기록됩니다.",
-      title: "크리에이터 권한 평가 수집",
-    },
-    creator_unlocked: {
-      body:
-        "조건을 충족한 멤버가 크리에이터 권한으로 전환되는 신호를 수집합니다.",
-      title: "크리에이터 권한 전환 수집",
-    },
-    source_universe_selected: {
-      body:
-        "새 AI 스타가 어느 스타 유니버스 성과에서 탄생하는지 출처를 고정해 리니지 신뢰를 강화합니다.",
-      title: "출처 스타 유니버스 선택 수집",
-    },
-    x402_economy: {
-      body:
-        "실결제 전까지 10 USDT 창업 의도와 CP Pool 생성을 mock 경제 이벤트로 연결합니다.",
-      title: "x402 경제 이벤트 준비",
-    },
-    x402_mock_payment_intent: {
-      body:
-        "실결제 전까지 10 USDT 창업 의도를 mock 결제 이벤트로 수집합니다.",
-      title: "x402 결제 의도 수집",
-    },
-  };
-  const enMessages: Record<string, { body: string; title: string }> = {
-    ai_star_spawned: {
-      body:
-        "Completing a mock AI Star launch fills Creator Journey and Star Universe expansion signals for AgentRank.",
-      title: "Collect AI Star Spawn Event",
-    },
-    creator_unlock_evaluated: {
-      body:
-        "Verify that creator eligibility checks become AgentRank events with condition, quality, and audit-readiness data.",
-      title: "Collect Creator Unlock Evaluation",
-    },
-    creator_unlocked: {
-      body:
-        "Collect the conversion signal when an eligible member becomes a Creator.",
-      title: "Collect Creator Unlock Conversion",
-    },
-    source_universe_selected: {
-      body:
-        "Lock which Star Universe produced the new AI Star to strengthen lineage trust.",
-      title: "Collect Source Star Universe Selection",
-    },
-    x402_economy: {
-      body:
-        "Connect mock 10 USDT launch intent and CP Pool creation before real payments.",
-      title: "Prepare x402 Economy Event",
-    },
-    x402_mock_payment_intent: {
-      body:
-        "Collect mock 10 USDT launch intent before real payment integration.",
-      title: "Collect x402 Payment Intent",
-    },
-  };
-  const messages = locale === "ko" ? koMessages : enMessages;
-
-  return (
-    messages[action] ?? {
-      body:
-        locale === "ko"
-          ? "Coverage Audit에서 선택한 누락 신호를 채우기 위해 이 제품 흐름을 확인합니다."
-          : "Review this product flow to fill the missing signal selected from Coverage Audit.",
-      title:
-        locale === "ko"
-          ? "AgentRank 누락 신호 수집"
-          : "Collect Missing AgentRank Signal",
-    }
-  );
-}
-
-function CoverageActionNotice({
-  action,
-  copy,
-  locale,
-}: {
-  action: CreatorUnlockCoverageActionContext;
-  copy: ReturnType<typeof getLaunchPageCopy>;
-  locale: Locale;
-}) {
-  const message = getCoverageActionMessage(action.action, locale);
-  const coverageParams = new URLSearchParams({
-    coverageAction: action.action,
-    limit: "120",
-  });
-
-  if (action.starId) {
-    coverageParams.set("starId", action.starId);
-  }
-
-  return (
-    <section className="mt-5 rounded-[1.1rem] border border-violet-200 bg-gradient-to-br from-violet-50 via-white to-emerald-50 p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0">
-          <p className="inline-flex items-center gap-2 text-sm font-semibold text-[#6d28d9]">
-            <GitBranch className="size-4" />
-            {copy.coverageActionEyebrow}
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
-            {message.title}
-          </h2>
-          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-black/62">
-            {message.body}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
-            <span className="rounded-full bg-white px-3 py-1.5 text-[#6d28d9] ring-1 ring-violet-100">
-              coverageAction: {action.action}
-            </span>
-            {action.starId ? (
-              <span className="rounded-full bg-white px-3 py-1.5 text-emerald-700 ring-1 ring-emerald-100">
-                {copy.coverageActionScope}: {action.starId}
-              </span>
-            ) : null}
-          </div>
-        </div>
-        <Link
-          className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
-          href={`/${locale}/fanletter/agentrank/coverage?${coverageParams.toString()}`}
-        >
-          {copy.coverageActionBack}
-        </Link>
-      </div>
-    </section>
-  );
-}
 
 function getSourceUniverseOptions(
   portfolio: MemberPortfolioData,
@@ -1540,7 +1389,7 @@ export function FanletterCreatorUnlockPage({
   memberPortfolio,
 }: {
   creatorUnlock?: CreatorUnlockData | null;
-  coverageAction?: CreatorUnlockCoverageActionContext | null;
+  coverageAction?: AgentRankCoverageActionContext | null;
   founderContribution?: AgentRankFounderContributionAggregate | null;
   isSignedIn?: boolean;
   locale: Locale;
@@ -1786,9 +1635,9 @@ export function FanletterCreatorUnlockPage({
         </section>
 
         {coverageAction ? (
-          <CoverageActionNotice
+          <FanletterAgentRankCoverageActionNotice
             action={coverageAction}
-            copy={copy}
+            className="mt-5"
             locale={locale}
           />
         ) : null}

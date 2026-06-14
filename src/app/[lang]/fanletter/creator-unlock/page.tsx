@@ -4,6 +4,10 @@ import { notFound } from "next/navigation";
 import { FanletterCreatorUnlockPage } from "@/components/fanletter-creator-unlock-page";
 import { getFanletterAgentRankFounderContribution } from "@/lib/agentrank/score";
 import {
+  normalizeAgentRankCoverageAction,
+  readFirstSearchParam,
+} from "@/lib/agentrank/coverage-action";
+import {
   getFanletterFounderClubCreatorUnlock,
   getFanletterFounderClubMemberPortfolio,
 } from "@/lib/fanletter-founder-club-service";
@@ -41,16 +45,6 @@ type CreatorUnlockSearchParams = {
   coverageAction?: string | string[];
   starId?: string | string[];
 };
-
-function readFirstParam(value?: string | string[]) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
-function normalizeCoverageAction(value?: string | string[]) {
-  const normalized = readFirstParam(value)?.trim();
-
-  return normalized ? normalized.slice(0, 96) : null;
-}
 
 export async function generateMetadata({
   params,
@@ -96,9 +90,9 @@ export default async function FanletterCreatorUnlockRoutePage({
   }
 
   const locale = lang as Locale;
-  const coverageAction = normalizeCoverageAction(query.coverageAction);
+  const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
   const coverageStarId = normalizeFanletterStarId(
-    readFirstParam(query.starId) ?? null,
+    readFirstSearchParam(query.starId) ?? null,
   );
   const memberSession = await readMemberServerSession();
   const memberEmail = memberSession?.email ?? null;

@@ -19,6 +19,7 @@ import {
   type FanletterCreatorMockLaunch,
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
+import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import {
   AIStarCard,
   FounderRoleBadge,
@@ -32,6 +33,7 @@ import {
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterStarReferralPanel } from "@/components/fanletter-star-referral-panel";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
+import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
 import type { FanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import type { FunnelEventMetadata } from "@/lib/funnel";
@@ -1104,6 +1106,7 @@ function AIStarGenealogySection({
 
 export function FanletterStarDetailPage({
   agentRankSnapshot,
+  coverageAction = null,
   isAuthenticated = false,
   inboundReferralCode,
   locale,
@@ -1112,6 +1115,7 @@ export function FanletterStarDetailPage({
   viewerScoutShareLoop,
 }: {
   agentRankSnapshot?: FanletterAgentRankInvestorSnapshot | null;
+  coverageAction?: AgentRankCoverageActionContext | null;
   isAuthenticated?: boolean;
   inboundReferralCode?: string | null;
   locale: Locale;
@@ -1212,6 +1216,8 @@ export function FanletterStarDetailPage({
           growthPercent: star.growthPercent,
           openSlots: star.openSlots.open,
           page: "fanletter_star_detail",
+          coverageAction: coverageAction?.action ?? null,
+          coverageActionStarId: coverageAction?.starId ?? null,
           starName: star.name,
           starScore: star.starScore,
           viewerState,
@@ -1242,6 +1248,14 @@ export function FanletterStarDetailPage({
               {copy.starDetail.mockNotice}
             </span>
           </div>
+
+          {coverageAction ? (
+            <FanletterAgentRankCoverageActionNotice
+              action={coverageAction}
+              className="mt-5"
+              locale={locale}
+            />
+          ) : null}
 
           <div className="mt-8 grid gap-7 lg:grid-cols-[1fr_24rem] lg:items-end">
             <div>

@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { FanletterStarDetailPage } from "@/components/fanletter-star-detail-page";
+import {
+  normalizeAgentRankCoverageAction,
+  readFirstSearchParam,
+} from "@/lib/agentrank/coverage-action";
 import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import {
   getFanletterFounderClubHomeStars,
@@ -23,8 +27,10 @@ import {
 } from "@/mock/fanletterV2";
 
 type FanletterStarLandingSearchParams = {
+  coverageAction?: string | string[];
   founder?: string | string[];
   ref?: string | string[];
+  starId?: string | string[];
 };
 
 function readMockFounderJoined(rawValue?: string | string[]) {
@@ -221,6 +227,10 @@ export default async function FanletterStarLandingPage({
   const { relatedStars, star } = await resolveFanletterStarDetail(starId);
   const referralCode = readFanletterReferralCode(query.ref);
   const isMockFounderJoined = readMockFounderJoined(query.founder);
+  const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
+  const coverageStarId =
+    normalizeFanletterStarId(readFirstSearchParam(query.starId) ?? null) ??
+    starId;
   const memberSession = await readMemberServerSession();
 
   if (star) {
@@ -252,6 +262,14 @@ export default async function FanletterStarLandingPage({
     return (
       <FanletterStarDetailPage
         agentRankSnapshot={agentRankSnapshot}
+        coverageAction={
+          coverageAction
+            ? {
+                action: coverageAction,
+                starId: coverageStarId,
+              }
+            : null
+        }
         isAuthenticated={Boolean(memberSession?.email)}
         inboundReferralCode={referralCode}
         locale={lang}
