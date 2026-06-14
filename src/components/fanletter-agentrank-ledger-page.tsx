@@ -134,6 +134,7 @@ function getLedgerCopy(locale: Locale) {
       packetReady: "Packet 준비",
       quality: "품질 점수",
       ready: "준비됨",
+      relatedStarScope: "관련 AI 스타",
       schema: "스키마",
       schemaReady: "스키마 준비",
       scoreSignals: "점수 신호",
@@ -193,6 +194,7 @@ function getLedgerCopy(locale: Locale) {
     packetReady: "Packet ready",
     quality: "Quality Score",
     ready: "Ready",
+    relatedStarScope: "Related AI Stars",
     schema: "Schema",
     schemaReady: "Schema-ready",
     scoreSignals: "Score Signals",
@@ -294,6 +296,40 @@ function getActorLabel(actor: AgentRankReputationEvent["actor"]) {
 
 function getObjectLabel(event: AgentRankReputationEvent) {
   return event.object?.label ?? event.object?.id ?? event.starId ?? "-";
+}
+
+function readContextString(event: AgentRankReputationEvent, key: string) {
+  const value = event.context[key];
+
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return null;
+}
+
+function getRelatedStarScope(event: AgentRankReputationEvent) {
+  const values = [
+    event.starId,
+    event.object?.type === "ai_star" ? event.object.id : null,
+    event.subject?.type === "ai_star" ? event.subject.id : null,
+    readContextString(event, "sourceStarId"),
+    readContextString(event, "spawnedStarId"),
+    readContextString(event, "targetStarId"),
+    readContextString(event, "coverageActionStarId"),
+    readContextString(event, "relatedStarIds"),
+  ];
+  const starIds = values
+    .filter((value): value is string => Boolean(value))
+    .flatMap((value) => value.split(","))
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+
+  return [...new Set(starIds)];
 }
 
 function isValidIsoDate(value: string) {
@@ -543,6 +579,8 @@ function EventCard({
   const isPacketReady =
     event.reputationSignals.oracleReady && audit.status === "audit_ready";
   const packetStarId = event.starId ?? event.object?.id ?? null;
+  const relatedStarScope = getRelatedStarScope(event);
+  const universeLabel = String(event.context.universeId ?? event.starId ?? "-");
 
   if (event.starId) {
     detailParams.set("starId", event.starId);
@@ -662,6 +700,23 @@ function EventCard({
         )}
       </div>
 
+      {relatedStarScope.length ? (
+        <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-violet-100 bg-violet-50/70 px-3 py-2 text-xs font-semibold">
+          <span className="inline-flex items-center gap-1.5 text-[#6d28d9]">
+            <Bot className="size-3.5" />
+            {copy.relatedStarScope}
+          </span>
+          {relatedStarScope.map((relatedStarId) => (
+            <span
+              className="rounded-full bg-white px-2.5 py-1 font-mono text-[0.68rem] text-[#6d28d9] ring-1 ring-violet-100"
+              key={relatedStarId}
+            >
+              {relatedStarId}
+            </span>
+          ))}
+        </div>
+      ) : null}
+
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
         <ReadinessPill
           gaps={oracleGaps}
@@ -697,11 +752,17 @@ function EventCard({
             {copy.coverageMockNote}
           </span>
         ) : null}
-        <span>{formatDate(event.occurredAt, locale)}</span>
-        <span className="text-slate-300">/</span>
-        <span>{event.context.universeId ?? event.starId ?? "-"}</span>
-        <span className="text-slate-300">/</span>
-        <span>{event.eventId.slice(0, 20)}</span>
+        <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-slate-500 ring-1 ring-slate-100">
+          <Clock3 className="size-3.5" />
+          {formatDate(event.occurredAt, locale)}
+        </span>
+        <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-slate-500 ring-1 ring-slate-100">
+          <Network className="size-3.5 shrink-0" />
+          <span className="min-w-0 break-all">{universeLabel}</span>
+        </span>
+        <span className="inline-flex max-w-full items-center rounded-full bg-slate-50 px-2.5 py-1 font-mono text-[0.68rem] text-slate-500 ring-1 ring-slate-100">
+          {event.eventId.slice(0, 20)}
+        </span>
         <Link
           className="inline-flex h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9]"
           href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
