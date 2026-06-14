@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 
 import { FanletterAgentRankEvidencePacketPage } from "@/components/fanletter-agentrank-evidence-packet-page";
 import {
+  normalizeAgentRankCoverageAction,
+  readFirstSearchParam,
+} from "@/lib/agentrank/coverage-action";
+import {
   getAgentRankEventEvidencePacket,
   normalizeAgentRankEventId,
 } from "@/lib/agentrank/evidence-packet";
@@ -12,12 +16,13 @@ import { hasLocale, type Locale } from "@/lib/i18n";
 export const dynamic = "force-dynamic";
 
 type AgentRankEvidenceSearchParams = {
+  coverageAction?: string | string[];
   memberEmail?: string | string[];
   starId?: string | string[];
 };
 
 function readFirstParam(value?: string | string[]) {
-  return Array.isArray(value) ? value[0] : value;
+  return readFirstSearchParam(value);
 }
 
 function normalizeMemberEmail(value?: string | string[]) {
@@ -97,6 +102,7 @@ export default async function FanletterAgentRankEvidencePacketRoute({
   const locale = lang as Locale;
   const starId = normalizeFanletterStarId(readFirstParam(query.starId) ?? null);
   const memberEmail = normalizeMemberEmail(query.memberEmail);
+  const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
   const result = await getAgentRankEventEvidencePacket({
     eventId,
     memberEmail,
@@ -109,6 +115,15 @@ export default async function FanletterAgentRankEvidencePacketRoute({
 
   return (
     <FanletterAgentRankEvidencePacketPage
+      coverageAction={
+        coverageAction
+          ? {
+              action: coverageAction,
+              memberEmail,
+              starId: result.event.starId ?? starId,
+            }
+          : null
+      }
       event={result.event}
       locale={locale}
       packet={result.packet}

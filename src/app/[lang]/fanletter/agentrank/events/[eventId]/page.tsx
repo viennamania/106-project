@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 
 import { FanletterAgentRankEventDetailPage } from "@/components/fanletter-agentrank-event-detail-page";
 import {
+  normalizeAgentRankCoverageAction,
+  readFirstSearchParam,
+} from "@/lib/agentrank/coverage-action";
+import {
   getFanletterAgentRankReputationEventFeed,
   type AgentRankReputationEvent,
 } from "@/lib/agentrank/reputation-events";
@@ -12,12 +16,13 @@ import { hasLocale, type Locale } from "@/lib/i18n";
 export const dynamic = "force-dynamic";
 
 type AgentRankEventDetailSearchParams = {
+  coverageAction?: string | string[];
   memberEmail?: string | string[];
   starId?: string | string[];
 };
 
 function readFirstParam(value?: string | string[]) {
-  return Array.isArray(value) ? value[0] : value;
+  return readFirstSearchParam(value);
 }
 
 function normalizeEventId(value: string) {
@@ -137,6 +142,7 @@ export default async function FanletterAgentRankEventDetailRoute({
   const locale = lang as Locale;
   const starId = normalizeFanletterStarId(readFirstParam(query.starId) ?? null);
   const memberEmail = normalizeMemberEmail(query.memberEmail);
+  const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
   const feed = await getFanletterAgentRankReputationEventFeed({
     limit: 250,
     memberEmail,
@@ -154,6 +160,15 @@ export default async function FanletterAgentRankEventDetailRoute({
 
   return (
     <FanletterAgentRankEventDetailPage
+      coverageAction={
+        coverageAction
+          ? {
+              action: coverageAction,
+              memberEmail,
+              starId: event.starId ?? starId,
+            }
+          : null
+      }
       event={event}
       locale={locale}
       relatedEvents={relatedEvents}

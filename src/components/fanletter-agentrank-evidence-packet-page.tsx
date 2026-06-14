@@ -12,11 +12,14 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import type { AgentRankEventEvidencePacket } from "@/lib/agentrank/evidence-packet";
+import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import type { AgentRankReputationEvent } from "@/lib/agentrank/reputation-events";
 import type { Locale } from "@/lib/i18n";
 
 type FanletterAgentRankEvidencePacketPageProps = {
+  coverageAction?: AgentRankCoverageActionContext | null;
   event: AgentRankReputationEvent;
   locale: Locale;
   packet: AgentRankEventEvidencePacket;
@@ -211,6 +214,7 @@ function InfoTile({
 }
 
 export function FanletterAgentRankEvidencePacketPage({
+  coverageAction = null,
   event,
   locale,
   packet,
@@ -228,6 +232,16 @@ export function FanletterAgentRankEvidencePacketPage({
     ledgerParams.set("starId", starId);
     eventParams.set("starId", starId);
     downloadParams.set("starId", starId);
+  }
+
+  if (coverageAction) {
+    ledgerParams.set("coverageAction", coverageAction.action);
+    eventParams.set("coverageAction", coverageAction.action);
+
+    if (coverageAction.memberEmail) {
+      ledgerParams.set("memberEmail", coverageAction.memberEmail);
+      eventParams.set("memberEmail", coverageAction.memberEmail);
+    }
   }
 
   return (
@@ -288,6 +302,13 @@ export function FanletterAgentRankEvidencePacketPage({
             </div>
           </div>
         </header>
+
+        {coverageAction ? (
+          <FanletterAgentRankCoverageActionNotice
+            action={coverageAction}
+            locale={locale}
+          />
+        ) : null}
 
         <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
           <div className="flex flex-wrap items-start justify-between gap-3">

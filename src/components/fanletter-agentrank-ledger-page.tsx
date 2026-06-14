@@ -471,9 +471,11 @@ function MetricTile({
 }
 
 function EventCard({
+  coverageAction,
   event,
   locale,
 }: {
+  coverageAction?: AgentRankCoverageActionContext | null;
   event: AgentRankReputationEvent;
   locale: Locale;
 }) {
@@ -502,6 +504,16 @@ function EventCard({
 
   if (packetStarId) {
     evidencePacketParams.set("starId", packetStarId);
+  }
+
+  if (coverageAction) {
+    detailParams.set("coverageAction", coverageAction.action);
+    evidencePacketParams.set("coverageAction", coverageAction.action);
+
+    if (coverageAction.memberEmail) {
+      detailParams.set("memberEmail", coverageAction.memberEmail);
+      evidencePacketParams.set("memberEmail", coverageAction.memberEmail);
+    }
   }
 
   return (
@@ -1002,7 +1014,12 @@ export function FanletterAgentRankLedgerPage({
         <section className="grid gap-4">
           {feed.events.length > 0 ? (
             feed.events.map((event) => (
-              <EventCard event={event} key={event.eventId} locale={locale} />
+              <EventCard
+                coverageAction={coverageAction}
+                event={event}
+                key={event.eventId}
+                locale={locale}
+              />
             ))
           ) : (
             <div className="rounded-lg border border-dashed border-slate-200 bg-white p-8 text-center">

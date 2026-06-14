@@ -18,10 +18,13 @@ import {
   WalletCards,
 } from "lucide-react";
 
+import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
+import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import type { AgentRankReputationEvent } from "@/lib/agentrank/reputation-events";
 import type { Locale } from "@/lib/i18n";
 
 type FanletterAgentRankEventDetailPageProps = {
+  coverageAction?: AgentRankCoverageActionContext | null;
   event: AgentRankReputationEvent;
   locale: Locale;
   relatedEvents?: AgentRankReputationEvent[];
@@ -1059,11 +1062,13 @@ function OracleTraceStep({
 }
 
 function OracleEvidenceTracePanel({
+  coverageAction,
   copy,
   event,
   locale,
   relatedEvents,
 }: {
+  coverageAction?: AgentRankCoverageActionContext | null;
   copy: ReturnType<typeof getCopy>;
   event: AgentRankReputationEvent;
   locale: Locale;
@@ -1080,6 +1085,14 @@ function OracleEvidenceTracePanel({
 
   if (packetStarId) {
     evidencePacketParams.set("starId", packetStarId);
+  }
+
+  if (coverageAction) {
+    evidencePacketParams.set("coverageAction", coverageAction.action);
+
+    if (coverageAction.memberEmail) {
+      evidencePacketParams.set("memberEmail", coverageAction.memberEmail);
+    }
   }
 
   return (
@@ -1180,6 +1193,14 @@ function OracleEvidenceTracePanel({
 
                 if (relatedStarId) {
                   params.set("starId", relatedStarId);
+                }
+
+                if (coverageAction) {
+                  params.set("coverageAction", coverageAction.action);
+
+                  if (coverageAction.memberEmail) {
+                    params.set("memberEmail", coverageAction.memberEmail);
+                  }
                 }
 
                 return (
@@ -1356,6 +1377,7 @@ function AgentTransactionGraph({
 }
 
 export function FanletterAgentRankEventDetailPage({
+  coverageAction = null,
   event,
   locale,
   relatedEvents = [],
@@ -1372,6 +1394,14 @@ export function FanletterAgentRankEventDetailPage({
 
   if (starId) {
     ledgerParams.set("starId", starId);
+  }
+
+  if (coverageAction) {
+    ledgerParams.set("coverageAction", coverageAction.action);
+
+    if (coverageAction.memberEmail) {
+      ledgerParams.set("memberEmail", coverageAction.memberEmail);
+    }
   }
 
   return (
@@ -1424,6 +1454,13 @@ export function FanletterAgentRankEventDetailPage({
             </div>
           </div>
         </header>
+
+        {coverageAction ? (
+          <FanletterAgentRankCoverageActionNotice
+            action={coverageAction}
+            locale={locale}
+          />
+        ) : null}
 
         <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
           <div className="flex flex-wrap items-start justify-between gap-3">
@@ -1497,6 +1534,7 @@ export function FanletterAgentRankEventDetailPage({
         <EconomicFlowPanel copy={copy} event={event} locale={locale} />
 
         <OracleEvidenceTracePanel
+          coverageAction={coverageAction}
           copy={copy}
           event={event}
           locale={locale}
