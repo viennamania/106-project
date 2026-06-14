@@ -261,6 +261,31 @@ export async function POST(request: Request) {
   const unlockCompletedConditionCount =
     unlock?.conditions.filter((condition) => condition.met).length ?? 0;
 
+  await tryRecordFanletterAgentRankServerEvent({
+    agentRank: {
+      eventType: "source_universe_selected",
+      intent: "creator_launch_api_source_universe_selected",
+      source: "fanletter_creator_unlock",
+      starId: launchResult.sourceStar.starId,
+    },
+    eventName: "fanletter_source_universe_selected",
+    memberEmail: session.email,
+    memberWalletAddress: session.walletAddress ?? null,
+    metadata: {
+      launchCostUsdt,
+      launchState: launchResult.status,
+      page: "fanletter_creator_launch_api",
+      sourceStarId: launchResult.sourceStar.starId,
+      sourceStarName: launchResult.sourceStar.characterName,
+      sourceUniverseId: `fanletter-star-universe:${launchResult.sourceStar.starId}`,
+      sourceUniverseName: `${launchResult.sourceStar.characterName} Universe`,
+      spawnedStarId: launchResult.star.starId,
+      spawnedStarName: launchResult.star.characterName,
+    },
+    path: `/${locale}/fanletter/creator-unlock`,
+    targetHref: sourceUniverseHref,
+  });
+
   if (unlock?.unlocked) {
     await tryRecordFanletterAgentRankServerEvent({
       agentRank: {

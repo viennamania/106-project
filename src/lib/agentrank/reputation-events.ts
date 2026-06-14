@@ -212,6 +212,23 @@ function toSafeNumber(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
+function readContextStringValue(value: unknown) {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function readContextStarId(
+  context: Record<string, unknown> | null | undefined,
+  key: string,
+) {
+  return normalizeId(readContextStringValue(context?.[key]));
+}
+
+function uniqueNormalizedIds(values: Array<string | null | undefined>) {
+  return [
+    ...new Set(values.map((value) => normalizeId(value)).filter(Boolean)),
+  ];
+}
+
 function buildEventId(parts: unknown[]) {
   return `agentrank_${createHash("sha256")
     .update(JSON.stringify(parts))
@@ -897,8 +914,26 @@ function buildFunnelInteractionEvents({
 
     const reputationEvent = funnelEvent.reputationEvent ?? null;
     const eventType = reputationEvent?.eventType ?? signal.eventType;
-    const starId = normalizeId(reputationEvent?.targetStarId ?? signal.starId);
+    const metadataContext = funnelEvent.metadata ?? {};
+    const sourceStarId = readContextStarId(metadataContext, "sourceStarId");
+    const spawnedStarId = readContextStarId(metadataContext, "spawnedStarId");
+    const metadataStarId = readContextStarId(metadataContext, "starId");
+    const relatedStarIds = uniqueNormalizedIds([
+      ...(reputationEvent?.relatedStarIds ?? []),
+      reputationEvent?.targetStarId,
+      signal.starId,
+      metadataStarId,
+      sourceStarId,
+      spawnedStarId,
+    ]);
+    const starId =
+      normalizeId(reputationEvent?.targetStarId ?? signal.starId) ||
+      sourceStarId ||
+      spawnedStarId ||
+      metadataStarId;
     const star = starId ? starsById.get(starId) : null;
+    const sourceStar = sourceStarId ? starsById.get(sourceStarId) : null;
+    const spawnedStar = spawnedStarId ? starsById.get(spawnedStarId) : null;
     const actor = funnelEvent.memberEmail
       ? buildMemberActor(funnelEvent.memberEmail)
       : {
@@ -906,7 +941,26 @@ function buildFunnelInteractionEvents({
           label: "Guest",
           type: "member" as const,
         };
-    const metadataContext = funnelEvent.metadata ?? {};
+    const isCreatorLaunchEvent =
+      eventType === "ai_star_spawned" ||
+      eventType === "cp_pool_generated" ||
+      eventType === "x402_mock_payment_intent";
+    const object =
+      isCreatorLaunchEvent && sourceStarId
+        ? buildStarActor(sourceStarId, sourceStar)
+        : starId
+          ? buildStarActor(starId, star)
+          : null;
+    const subject =
+      isCreatorLaunchEvent && spawnedStarId
+        ? buildStarActor(spawnedStarId, spawnedStar)
+        : funnelEvent.contentId
+          ? {
+              id: `content:${funnelEvent.contentId}`,
+              label: funnelEvent.contentId,
+              type: "platform" as const,
+            }
+          : null;
 
     events.push(
       buildEvent({
@@ -928,6 +982,7 @@ function buildFunnelInteractionEvents({
             reputationEvent?.reputationImpact.network ?? null,
           reputationImpactTotal: reputationEvent?.reputationImpact.total ?? null,
           reputationImpactTrust: reputationEvent?.reputationImpact.trust ?? null,
+          relatedStarIds: relatedStarIds.join(","),
           schemaVersion:
             reputationEvent?.schemaVersion ??
             agentRankReputationEventSchemaVersion,
@@ -948,18 +1003,12 @@ function buildFunnelInteractionEvents({
               }
             : {}),
         },
-        object: starId ? buildStarActor(starId, star) : null,
+        object,
         occurredAt: funnelEvent.createdAt,
         source: "fanletter_funnel_event",
         sourceId: `fanletter-funnel:${funnelEvent.eventId}`,
         starId,
-        subject: funnelEvent.contentId
-          ? {
-              id: `content:${funnelEvent.contentId}`,
-              label: funnelEvent.contentId,
-              type: "platform" as const,
-            }
-          : null,
+        subject,
         type: eventType,
       }),
     );
@@ -1062,6 +1111,20 @@ function buildIncludeTypesSet(includeTypes?: AgentRankReputationEventType[]) {
   return requestedTypes.length ? new Set(requestedTypes) : null;
 }
 
+function getFunnelEventRelatedStarIds(event: FunnelEventDocument) {
+  const metadata = event.metadata ?? {};
+
+  return uniqueNormalizedIds([
+    event.agentRank?.starId,
+    event.reputationEvent?.targetStarId,
+    ...(event.reputationEvent?.relatedStarIds ?? []),
+    readContextStringValue(metadata.starId),
+    readContextStringValue(metadata.sourceStarId),
+    readContextStringValue(metadata.spawnedStarId),
+    readContextStringValue(metadata.coverageActionStarId),
+  ]);
+}
+
 export async function getFanletterAgentRankReputationEventFeed(
   options: GetFanletterAgentRankReputationEventsOptions = {},
 ): Promise<FanletterAgentRankReputationEventFeed> {
@@ -1110,7 +1173,15 @@ export async function getFanletterAgentRankReputationEventFeed(
     referralCodeFilter.starId = starId;
     referralEdgeFilter.starId = starId;
     ledgerFilter.starId = starId;
-    funnelEventFilter["agentRank.starId"] = starId;
+    funnelEventFilter.$or = [
+      { "agentRank.starId": starId },
+      { "reputationEvent.targetStarId": starId },
+      { "reputationEvent.relatedStarIds": starId },
+      { "metadata.starId": starId },
+      { "metadata.sourceStarId": starId },
+      { "metadata.spawnedStarId": starId },
+      { "metadata.coverageActionStarId": starId },
+    ];
   }
 
   if (memberEmail) {
@@ -1186,9 +1257,7 @@ export async function getFanletterAgentRankReputationEventFeed(
         .filter((relatedStarId): relatedStarId is string =>
           Boolean(relatedStarId),
         ),
-      ...funnelEvents
-        .map((event) => normalizeId(event.agentRank?.starId))
-        .filter(Boolean),
+      ...funnelEvents.flatMap(getFunnelEventRelatedStarIds),
     ].filter((relatedStarId) => relatedStarId && !starsById.has(relatedStarId)),
   );
 

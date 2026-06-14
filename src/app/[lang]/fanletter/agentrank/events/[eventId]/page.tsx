@@ -49,11 +49,17 @@ function getTraceKeys(event: AgentRankReputationEvent) {
       event.actor.id,
       event.object?.id,
       event.subject?.id,
+      event.context.sourceStarId,
+      event.context.spawnedStarId,
+      event.context.targetStarId,
       event.context.universeId,
       event.context.referralCode,
+      event.context.relatedStarIds,
     ]
       .filter((value): value is string => typeof value === "string")
-      .map((value) => value.toLowerCase()),
+      .flatMap((value) => value.split(","))
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean),
   );
 }
 

@@ -35,6 +35,7 @@ export type AgentRankReputationEventDraft = {
   path: string | null;
   referralCode: string | null;
   reputationImpact: AgentRankReputationImpact;
+  relatedStarIds: string[];
   schemaVersion: typeof agentRankReputationEventSchemaVersion;
   shareId: string | null;
   source: AgentRankInteractionSource;
@@ -167,6 +168,23 @@ function normalizeStarId(value: string | null | undefined) {
   return normalizeString(value, 128)?.toLowerCase() ?? null;
 }
 
+function readMetadataStarId(
+  metadata: AgentRankEventMetadata | undefined,
+  key: string,
+) {
+  const value = metadata?.[key];
+
+  return typeof value === "string" ? normalizeStarId(value) : null;
+}
+
+function uniqueStarIds(values: Array<string | null | undefined>) {
+  const starIds = values
+    .map((value) => normalizeStarId(value))
+    .filter((value): value is string => Boolean(value));
+
+  return [...new Set(starIds)];
+}
+
 function readNumber(
   metadata: AgentRankEventMetadata | undefined,
   ...keys: string[]
@@ -247,6 +265,13 @@ export function buildAgentRankReputationEventDraft({
   viewerType,
 }: BuildAgentRankReputationEventDraftInput): AgentRankReputationEventDraft {
   const targetStarId = normalizeStarId(agentRank.starId);
+  const relatedStarIds = uniqueStarIds([
+    targetStarId,
+    readMetadataStarId(metadata, "starId"),
+    readMetadataStarId(metadata, "sourceStarId"),
+    readMetadataStarId(metadata, "spawnedStarId"),
+    readMetadataStarId(metadata, "coverageActionStarId"),
+  ]);
 
   return {
     actorMemberId: normalizeMemberId(memberEmail),
@@ -274,6 +299,7 @@ export function buildAgentRankReputationEventDraft({
       metadata,
       targetStarId,
     }),
+    relatedStarIds,
     schemaVersion: agentRankReputationEventSchemaVersion,
     shareId: normalizeString(shareId, 96),
     source: agentRank.source,
