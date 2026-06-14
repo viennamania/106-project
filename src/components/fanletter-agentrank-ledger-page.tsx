@@ -42,10 +42,12 @@ const eventTone = {
   ai_star_spawned: "border-pink-100 bg-pink-50 text-pink-700",
   content_engaged: "border-slate-100 bg-slate-50 text-slate-700",
   cp_earned: "border-emerald-100 bg-emerald-50 text-emerald-700",
+  creator_unlock_evaluated: "border-purple-100 bg-purple-50 text-purple-700",
   creator_unlocked: "border-fuchsia-100 bg-fuchsia-50 text-fuchsia-700",
   founder_joined: "border-violet-100 bg-violet-50 text-[#6d28d9]",
   referral_code_created: "border-cyan-100 bg-cyan-50 text-cyan-700",
   referral_converted: "border-indigo-100 bg-indigo-50 text-indigo-700",
+  source_universe_selected: "border-teal-100 bg-teal-50 text-teal-700",
   universe_growth: "border-amber-100 bg-amber-50 text-amber-700",
 } satisfies Record<AgentRankReputationEventType, string>;
 
@@ -54,10 +56,12 @@ const eventIconMap = {
   ai_star_spawned: Sparkles,
   content_engaged: Clock3,
   cp_earned: Coins,
+  creator_unlock_evaluated: SlidersHorizontal,
   creator_unlocked: BadgeCheck,
   founder_joined: Users,
   referral_code_created: Network,
   referral_converted: GitBranch,
+  source_universe_selected: ShieldCheck,
   universe_growth: Database,
 } satisfies Record<AgentRankReputationEventType, typeof Bot>;
 
@@ -181,10 +185,12 @@ function getEventTypeLabel(type: AgentRankReputationEventType, locale: Locale) {
           ai_star_spawned: "AI 스타 생성",
           content_engaged: "콘텐츠 참여",
           cp_earned: "CP 획득",
+          creator_unlock_evaluated: "권한 평가",
           creator_unlocked: "크리에이터 권한",
           founder_joined: "파운더 참여",
           referral_code_created: "추천 코드 생성",
           referral_converted: "추천 전환",
+          source_universe_selected: "출처 유니버스 선택",
           universe_growth: "유니버스 성장",
         }
       : {
@@ -192,10 +198,12 @@ function getEventTypeLabel(type: AgentRankReputationEventType, locale: Locale) {
           ai_star_spawned: "AI Star Spawned",
           content_engaged: "Content Engaged",
           cp_earned: "CP Earned",
+          creator_unlock_evaluated: "Creator Unlock Evaluated",
           creator_unlocked: "Creator Unlocked",
           founder_joined: "Founder Joined",
           referral_code_created: "Referral Code Created",
           referral_converted: "Referral Converted",
+          source_universe_selected: "Source Universe Selected",
           universe_growth: "Universe Growth",
         };
 

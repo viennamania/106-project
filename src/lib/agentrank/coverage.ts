@@ -47,10 +47,12 @@ const eventLayerMap = {
   ai_star_spawned: "creator",
   content_engaged: "discovery",
   cp_earned: "economy",
+  creator_unlock_evaluated: "creator",
   creator_unlocked: "creator",
   founder_joined: "network",
   referral_code_created: "network",
   referral_converted: "network",
+  source_universe_selected: "network",
   universe_growth: "network",
 } satisfies Record<AgentRankReputationEventType, AgentRankCoverageEventItem["layer"]>;
 

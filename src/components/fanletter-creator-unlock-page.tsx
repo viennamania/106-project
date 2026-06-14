@@ -712,16 +712,20 @@ function SourceUniverseSelector({
               key={option.starId}
               onClick={() => {
                 onSelect(option.starId);
-                trackFunnelEvent("signup_cta_click", {
+                trackFunnelEvent("fanletter_source_universe_selected", {
                   agentRank: {
-                    eventType: "content_engaged",
+                    eventType: "source_universe_selected",
                     intent: "source_universe_selected",
                     source: "fanletter_creator_unlock",
                     starId: option.starId,
                   },
                   metadata: {
+                    contributionConfidence: option.contribution?.confidence ?? null,
+                    contributionEventCount: option.contribution?.eventCount ?? null,
+                    contributionScore: option.contribution?.score ?? null,
                     placement: "creator_unlock_source_universe_selector",
                     roleInUniverse: option.role,
+                    sourceUniverseId: `fanletter-star-universe:${option.starId}`,
                     sourceUniverseName: option.universeName,
                     starName: option.starName,
                   },
@@ -1447,27 +1451,64 @@ export function FanletterCreatorUnlockPage({
     : sourceUniverseName;
   const memberInitials =
     portfolio.memberInitials ?? getInitials(portfolio.memberName);
+  const completedConditionCount = unlock.conditions.filter(
+    (condition) => condition.met,
+  ).length;
+  const getConditionCurrent = (id: string) =>
+    unlock.conditions.find((condition) => condition.id === id)?.current ?? null;
+  const getConditionMet = (id: string) =>
+    unlock.conditions.find((condition) => condition.id === id)?.met ?? false;
+  const getConditionTarget = (id: string) =>
+    unlock.conditions.find((condition) => condition.id === id)?.target ?? null;
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#fbfaff] px-4 py-5 text-black sm:px-6 lg:px-8">
       <FanletterReputationTracker
         agentRank={{
-          eventType: unlock.unlocked ? "creator_unlocked" : "content_engaged",
+          eventType: "creator_unlock_evaluated",
           intent: unlock.unlocked
-            ? "creator_unlock_ready_view"
-            : "creator_unlock_progress_view",
+            ? "creator_unlock_evaluation_passed"
+            : "creator_unlock_evaluation_pending",
           source: "fanletter_creator_unlock",
           starId: selectedSourceOption?.starId ?? portfolio.primaryStarId,
         }}
+        eventName="fanletter_creator_unlock_evaluated"
         metadata={{
-          completedConditionCount: unlock.conditions.filter(
-            (condition) => condition.met,
-          ).length,
+          activityMissionCurrent: String(
+            getConditionCurrent("activityMission") ?? "pending",
+          ),
+          activityMissionMet: getConditionMet("activityMission"),
+          activityMissionTarget: String(
+            getConditionTarget("activityMission") ?? "completed",
+          ),
+          completedConditionCount,
           createCostUsdt: unlock.createCostUsdt,
+          creatorUnlockEvaluated: true,
+          cpCurrent: Number(getConditionCurrent("cp") ?? 0),
+          cpMet: getConditionMet("cp"),
+          cpTarget: Number(getConditionTarget("cp") ?? 0),
+          directInvitesCurrent: Number(getConditionCurrent("directInvites") ?? 0),
+          directInvitesMet: getConditionMet("directInvites"),
+          directInvitesTarget: Number(getConditionTarget("directInvites") ?? 0),
+          founderContributionCurrent: Number(
+            getConditionCurrent("founderContributionScore") ?? 0,
+          ),
+          founderContributionMet: getConditionMet("founderContributionScore"),
+          founderContributionTarget: Number(
+            getConditionTarget("founderContributionScore") ?? 0,
+          ),
           isSignedIn,
           page: "fanletter_creator_unlock",
           requiresSourceUniverse,
+          scoutScoreCurrent: Number(getConditionCurrent("scoutScore") ?? 0),
+          scoutScoreMet: getConditionMet("scoutScore"),
+          scoutScoreTarget: Number(getConditionTarget("scoutScore") ?? 0),
+          sourceStarId: selectedSourceOption?.starId ?? portfolio.primaryStarId,
+          sourceUniverseId: selectedSourceOption?.starId
+            ? `fanletter-star-universe:${selectedSourceOption.starId}`
+            : null,
           sourceUniverseName: displaySourceUniverseName,
+          totalConditionCount: unlock.conditions.length,
           unlocked: unlock.unlocked,
         }}
       />

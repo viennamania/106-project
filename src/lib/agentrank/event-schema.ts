@@ -87,11 +87,25 @@ const baseImpactByType = {
     network: 0.5,
     trust: 0.6,
   },
+  creator_unlock_evaluated: {
+    creator: 0.8,
+    discovery: 0,
+    economy: 0.2,
+    network: 0.6,
+    trust: 0.7,
+  },
   creator_unlocked: {
     creator: 2,
     discovery: 0,
     economy: 0.4,
     network: 0.8,
+    trust: 0.8,
+  },
+  source_universe_selected: {
+    creator: 0.7,
+    discovery: 0,
+    economy: 0.2,
+    network: 1.2,
     trust: 0.8,
   },
   founder_joined: {

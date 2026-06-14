@@ -26,7 +26,9 @@ export const agentRankReputationEventTypes = [
   "referral_code_created",
   "referral_converted",
   "cp_earned",
+  "creator_unlock_evaluated",
   "creator_unlocked",
+  "source_universe_selected",
   "ai_star_spawned",
   "content_engaged",
   "universe_growth",
@@ -253,12 +255,26 @@ function getTypeSignalDefaults(type: AgentRankReputationEventType) {
         economicWeight: 1,
         networkWeight: 0.5,
       };
+    case "creator_unlock_evaluated":
+      return {
+        creatorWeight: 0.8,
+        discoveryWeight: 0,
+        economicWeight: 0.2,
+        networkWeight: 0.6,
+      };
     case "creator_unlocked":
       return {
         creatorWeight: 2,
         discoveryWeight: 0,
         economicWeight: 0.4,
         networkWeight: 0.8,
+      };
+    case "source_universe_selected":
+      return {
+        creatorWeight: 0.7,
+        discoveryWeight: 0,
+        economicWeight: 0.2,
+        networkWeight: 1.2,
       };
     case "ai_star_spawned":
       return {

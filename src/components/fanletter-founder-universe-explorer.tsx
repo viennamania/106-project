@@ -1499,10 +1499,12 @@ function getAgentRankEventLabel(type: string, locale: Locale) {
     ai_star_spawned: "AI 스타 창업",
     content_engaged: "콘텐츠 반응",
     cp_earned: "CP 보상",
+    creator_unlock_evaluated: "권한 평가",
     creator_unlocked: "크리에이터 권한",
     founder_joined: "파운더 참여",
     referral_code_created: "추천 코드",
     referral_converted: "추천 전환",
+    source_universe_selected: "출처 유니버스 선택",
     universe_growth: "유니버스 성장",
   };
 

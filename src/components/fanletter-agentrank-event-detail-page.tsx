@@ -128,10 +128,12 @@ function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Local
           ai_star_spawned: "AI 스타 생성",
           content_engaged: "콘텐츠 참여",
           cp_earned: "CP 획득",
+          creator_unlock_evaluated: "권한 평가",
           creator_unlocked: "크리에이터 권한",
           founder_joined: "파운더 참여",
           referral_code_created: "추천 코드 생성",
           referral_converted: "추천 전환",
+          source_universe_selected: "출처 유니버스 선택",
           universe_growth: "유니버스 성장",
         }
       : {
@@ -139,10 +141,12 @@ function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Local
           ai_star_spawned: "AI Star Spawned",
           content_engaged: "Content Engaged",
           cp_earned: "CP Earned",
+          creator_unlock_evaluated: "Creator Unlock Evaluated",
           creator_unlocked: "Creator Unlocked",
           founder_joined: "Founder Joined",
           referral_code_created: "Referral Code Created",
           referral_converted: "Referral Converted",
+          source_universe_selected: "Source Universe Selected",
           universe_growth: "Universe Growth",
         };
 
