@@ -820,20 +820,36 @@ function AgentRankScoreAggregatorPanel({
             </div>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
-            <a
+            <FanletterTrackedLink
+              agentRank={{
+                eventType: "content_engaged",
+                intent: "agentrank_score_csv_export",
+                source: "fanletter_agentrank",
+                starId: starId ?? null,
+              }}
               className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-3 text-xs font-semibold text-[#4338ca]"
+              eventName="content_open"
               href={`/api/fanletter/agentrank/score?${scoreCsvParams.toString()}`}
+              metadata={{ agentRankExport: "score_csv" }}
             >
               <Download className="size-3.5" />
               {copy.scoreCsv}
-            </a>
-            <a
+            </FanletterTrackedLink>
+            <FanletterTrackedLink
+              agentRank={{
+                eventType: "content_engaged",
+                intent: "agentrank_oracle_packet_export",
+                source: "fanletter_agentrank",
+                starId: starId ?? null,
+              }}
               className="inline-flex h-9 items-center gap-2 rounded-full bg-white/12 px-3 text-xs font-semibold text-white ring-1 ring-white/15"
+              eventName="content_open"
               href={`/api/fanletter/agentrank/score?${oraclePacketParams.toString()}`}
+              metadata={{ agentRankExport: "oracle_packet" }}
             >
               <ShieldCheck className="size-3.5" />
               {copy.oraclePacket}
-            </a>
+            </FanletterTrackedLink>
           </div>
           <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/12">
             <div
