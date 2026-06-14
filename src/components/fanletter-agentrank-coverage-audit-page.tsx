@@ -39,6 +39,16 @@ type CoverageAuditScope = {
 };
 
 type CoverageCopy = ReturnType<typeof getCoverageAuditCopy>;
+type CoverageActionStatus = "confirmed" | "deferred" | "pending";
+type CoverageActionProjection = {
+  after: string;
+  before: string;
+  confidence: string;
+  delta: string;
+  kind: string;
+  metricLabel: string;
+  status: CoverageActionStatus;
+};
 
 const eventIconMap = {
   ai_star_discovered: Eye,
@@ -79,6 +89,10 @@ function getCoverageAuditCopy(locale: Locale) {
       actionImpactReadiness: "준비 신호",
       actionImpactSource: "CTA 소스",
       actionExpectedDelta: "예상 개선",
+      actionStatus: "검증 상태",
+      actionStatusConfirmed: "확인됨",
+      actionStatusDeferred: "보류",
+      actionStatusPending: "대기",
       covered: "수집됨",
       csv: "CSV 내보내기",
       eventCoverage: "이벤트 타입 커버리지",
@@ -118,6 +132,10 @@ function getCoverageAuditCopy(locale: Locale) {
     actionImpactReadiness: "Readiness Signal",
     actionImpactSource: "CTA Source",
     actionExpectedDelta: "Expected Delta",
+    actionStatus: "Verification Status",
+    actionStatusConfirmed: "Confirmed",
+    actionStatusDeferred: "Deferred",
+    actionStatusPending: "Pending",
     covered: "Covered",
     csv: "Export CSV",
     eventCoverage: "Event Type Coverage",
@@ -494,7 +512,7 @@ function getCoverageActionProjection({
   action: string | null | undefined;
   coverage: AgentRankCoverageSnapshot;
   locale: Locale;
-}) {
+}): CoverageActionProjection | null {
   if (!action) {
     return null;
   }
@@ -535,6 +553,7 @@ function getCoverageActionProjection({
             : "+1 event",
       kind: locale === "ko" ? "이벤트 타입" : "Event Type",
       metricLabel: getEventTypeLabel(eventItem.type, locale),
+      status: eventItem.covered ? "confirmed" : "pending",
     };
   }
 
@@ -574,12 +593,16 @@ function getCoverageActionProjection({
             : "+1 source event",
       kind: locale === "ko" ? "CTA 소스" : "CTA Source",
       metricLabel: getInteractionSourceLabel(sourceItem.source, locale),
+      status: sourceItem.covered ? "confirmed" : "pending",
     };
   }
 
   if (action === "x402_economy" || action === "a2a_usage") {
-    const projectedScore = Math.min(100, coverage.phase1QualityScore + 5);
     const isX402 = action === "x402_economy";
+    const isReady = isX402 ? coverage.readiness.x402Ready : coverage.readiness.a2aReady;
+    const projectedScore = isReady
+      ? coverage.phase1QualityScore
+      : Math.min(100, coverage.phase1QualityScore + 5);
 
     return {
       after: `${projectedScore}/100`,
@@ -595,6 +618,7 @@ function getCoverageActionProjection({
       delta: "+5",
       kind: locale === "ko" ? "준비 신호" : "Readiness Signal",
       metricLabel: isX402 ? "x402 Economy" : "A2A Usage",
+      status: isReady ? "confirmed" : isX402 ? "pending" : "deferred",
     };
   }
 
@@ -611,6 +635,34 @@ function getCoverageActionProjection({
     delta: locale === "ko" ? "+1 추적 신호" : "+1 tracked signal",
     kind: "AgentRank",
     metricLabel: action,
+    status: "pending",
+  };
+}
+
+function getCoverageActionStatusMeta(
+  copy: CoverageCopy,
+  status: CoverageActionStatus,
+) {
+  if (status === "confirmed") {
+    return {
+      Icon: BadgeCheck,
+      className: "border-emerald-100 bg-emerald-50 text-emerald-700",
+      label: copy.actionStatusConfirmed,
+    };
+  }
+
+  if (status === "deferred") {
+    return {
+      Icon: ShieldAlert,
+      className: "border-amber-100 bg-amber-50 text-amber-700",
+      label: copy.actionStatusDeferred,
+    };
+  }
+
+  return {
+    Icon: ShieldAlert,
+    className: "border-slate-100 bg-slate-50 text-slate-600",
+    label: copy.actionStatusPending,
   };
 }
 
@@ -634,6 +686,9 @@ function CoverageActionImpactPanel({
     return null;
   }
 
+  const status = getCoverageActionStatusMeta(copy, projection.status);
+  const StatusIcon = status.Icon;
+
   return (
     <section className="mt-5 rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_20px_60px_rgba(88,28,135,0.06)]">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -649,9 +704,17 @@ function CoverageActionImpactPanel({
             {copy.actionImpactBody}
           </p>
         </div>
-        <span className="inline-flex min-h-9 shrink-0 items-center rounded-full bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9] ring-1 ring-violet-100">
-          coverageAction: {coverageAction}
-        </span>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <span
+            className={`inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold ${status.className}`}
+          >
+            <StatusIcon className="size-3.5" />
+            {copy.actionStatus}: {status.label}
+          </span>
+          <span className="inline-flex min-h-9 items-center rounded-full bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9] ring-1 ring-violet-100">
+            coverageAction: {coverageAction}
+          </span>
+        </div>
       </div>
 
       <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto_1fr_0.7fr] md:items-stretch">
@@ -1028,8 +1091,16 @@ export function FanletterAgentRankCoverageAuditPage({
                         </div>
                         {projection ? (
                           <div className="mt-3 grid gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
-                            <span className="text-emerald-700/70">
-                              {copy.actionExpectedDelta}
+                            <span className="flex items-center justify-between gap-2 text-emerald-700/70">
+                              <span>{copy.actionExpectedDelta}</span>
+                              <span>
+                                {
+                                  getCoverageActionStatusMeta(
+                                    copy,
+                                    projection.status,
+                                  ).label
+                                }
+                              </span>
                             </span>
                             <span className="flex min-w-0 items-center gap-2">
                               <span className="truncate">

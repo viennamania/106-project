@@ -29,6 +29,10 @@ export type AgentRankCoverageSnapshot = {
   interactionSourceCoveragePercent: number;
   oracleCoveragePercent: number;
   phase1QualityScore: number;
+  readiness: Pick<
+    AgentRankEconomicReputationScore["readiness"],
+    "a2aReady" | "x402Ready"
+  >;
   schemaCoveragePercent: number;
   sources: AgentRankCoverageSourceItem[];
   totals: {
@@ -162,6 +166,10 @@ export function buildAgentRankCoverageSnapshot(
     interactionSourceCoveragePercent,
     oracleCoveragePercent,
     phase1QualityScore: Math.max(0, Math.min(100, phase1QualityScore)),
+    readiness: {
+      a2aReady: readiness.a2aReady,
+      x402Ready: readiness.x402Ready,
+    },
     schemaCoveragePercent,
     sources,
     totals: {
