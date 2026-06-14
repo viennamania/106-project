@@ -115,7 +115,13 @@ export type ScoutShareLoopData = {
 
 export type CreatorUnlockCondition = {
   current: number | string;
-  id: string;
+  id:
+    | "activityMission"
+    | "cp"
+    | "directInvites"
+    | "founderContributionScore"
+    | "scoutScore"
+    | string;
   met: boolean;
   target: number | string;
 };
@@ -406,6 +412,7 @@ export const fanletterV2Mock = {
       { current: 86, id: "scoutScore", met: true, target: 80 },
       { current: 27, id: "directInvites", met: true, target: 20 },
       { current: 6800, id: "cp", met: true, target: 5000 },
+      { current: 564, id: "founderContributionScore", met: true, target: 500 },
       { current: "completed", id: "activityMission", met: true, target: "completed" },
     ],
     createCostUsdt: 10,
@@ -493,6 +500,7 @@ export type FanletterV2Copy = {
     cp: string;
     createAiStarCta: string;
     directInvites: string;
+    founderContributionScore: string;
     launchPreviewBody: string;
     launchPreviewTitle: string;
     liveDataLabel: string;
@@ -624,10 +632,12 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     creatorUnlock: {
       activityMission: "Activity mission completed",
-      body: "Creator status is unlocked when the scout, invitation, CP, and activity requirements are met.",
+      body:
+        "Creator status is unlocked when scout, invitation, CP, Founder Contribution, and activity requirements are met.",
       cp: "CP >= 5,000",
       createAiStarCta: "Create new AI Star",
       directInvites: "Direct Invites >= 20",
+      founderContributionScore: "Founder Contribution Score >= 500",
       launchPreviewBody:
         "The member can launch another AI Star from the source Star Universe. This version keeps the 10 USDT step as a mock activation.",
       launchPreviewTitle: "Mock AI Star launch",
@@ -794,10 +804,11 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     creatorUnlock: {
       activityMission: "Activity mission completed",
       body:
-        "Scout、招待、CP、活動ミッションの条件を満たすとCreatorステータスが開きます。",
+        "Scout、招待、CP、Founder Contribution、活動ミッションの条件を満たすとCreatorステータスが開きます。",
       cp: "CP 5,000以上",
       createAiStarCta: "新しいAI Starを作成",
-      directInvites: "Direct Invites >= 20",
+      directInvites: "直接招待 20人以上",
+      founderContributionScore: "Founder Contribution Score 500以上",
       launchPreviewBody:
         "メンバーは元のStar Universeから別のAI Starをローンチできます。このバージョンでは10 USDTステップをモック有効化として扱います。",
       launchPreviewTitle: "Mock AI Star launch",
@@ -963,10 +974,11 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     creatorUnlock: {
       activityMission: "활동 미션 완료",
       body:
-        "스카우트 점수, 직접 초대, CP, 활동 미션 조건을 만족하면 크리에이터 권한이 열립니다.",
+        "스카우트 점수, 직접 초대, CP, 파운더 기여 점수, 활동 미션 조건을 만족하면 크리에이터 권한이 열립니다.",
       cp: "CP 5,000 이상",
       createAiStarCta: "새 AI 스타 만들기",
       directInvites: "직접 초대 20명 이상",
+      founderContributionScore: "파운더 기여 점수 500 이상",
       launchPreviewBody:
         "멤버는 성장시킨 원천 스타 유니버스에서 또 다른 AI 스타를 시작할 수 있습니다. 이번 버전에서는 10 USDT 단계를 미리보기 활성화로만 표시합니다.",
       launchPreviewTitle: "새 AI 스타 출시 미리보기",

@@ -44,6 +44,10 @@ import {
   type FanletterFounderUniverseCpPoolDistribution,
   type FanletterFounderUniverseRole,
 } from "@/lib/fanletter-founder-universe";
+import {
+  getFanletterAgentRankFounderContribution,
+  type AgentRankFounderContributionAggregate,
+} from "@/lib/agentrank/score";
 
 const HOME_STAR_LIMIT = 4;
 const FOUNDER_SLOT_LIMIT = 6;
@@ -59,6 +63,7 @@ const SCOUT_SIGNUP_CP_REWARD = 100;
 const SCOUT_SIGNUP_CREATOR_PROGRESS_REWARD = 2;
 const SCOUT_SIGNUP_INFLUENCE_REWARD = 5;
 const SCOUT_SHARE_PLATFORMS = ["Kakao", "Instagram", "X", "TikTok"] as const;
+const FOUNDER_CONTRIBUTION_UNLOCK_SCORE = 500;
 const founderRoleRank: Record<Exclude<FounderRole, "member">, number> = {
   creator: 0,
   genesis_founder: 1,
@@ -2118,6 +2123,9 @@ export async function getFanletterFounderClubMemberPortfolio(
 
 export async function getFanletterFounderClubCreatorUnlock(
   email?: string | null,
+  options?: {
+    founderContribution?: AgentRankFounderContributionAggregate | null;
+  },
 ): Promise<CreatorUnlockData | null> {
   const memberEmail = normalizeEmail(email ?? "");
 
@@ -2125,7 +2133,7 @@ export async function getFanletterFounderClubCreatorUnlock(
     return null;
   }
 
-  const [portfolio, activityProfile] = await Promise.all([
+  const [portfolio, activityProfile, founderContribution] = await Promise.all([
     getFanletterFounderClubMemberPortfolio(memberEmail),
     getActivityProfilesCollection().then((collection) =>
       collection.findOne(
@@ -2140,10 +2148,17 @@ export async function getFanletterFounderClubCreatorUnlock(
         },
       ),
     ),
+    options && "founderContribution" in options
+      ? Promise.resolve(options.founderContribution ?? null)
+      : getFanletterAgentRankFounderContribution({
+          limit: 250,
+          memberEmail,
+        }),
   ]);
   const scoutScore = portfolio?.scoutScore ?? 0;
   const directInvites = portfolio?.directInvites ?? 0;
   const cpBalance = portfolio?.cpBalance ?? 0;
+  const founderContributionScore = founderContribution?.totalScore ?? 0;
   const activityMissionCompleted = Boolean(
     activityProfile?.lastCheckInDateKey ||
       (activityProfile?.lifetimeActivityPoints ?? 0) > 0 ||
@@ -2168,6 +2183,12 @@ export async function getFanletterFounderClubCreatorUnlock(
       id: "cp",
       met: cpBalance >= 5000,
       target: 5000,
+    },
+    {
+      current: founderContributionScore,
+      id: "founderContributionScore",
+      met: founderContributionScore >= FOUNDER_CONTRIBUTION_UNLOCK_SCORE,
+      target: FOUNDER_CONTRIBUTION_UNLOCK_SCORE,
     },
     {
       current: activityMissionCompleted ? "completed" : "pending",

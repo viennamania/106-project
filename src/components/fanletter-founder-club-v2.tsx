@@ -954,6 +954,7 @@ export function CreatorUnlockCard({
     activityMission: copy.creatorUnlock.activityMission,
     cp: copy.creatorUnlock.cp,
     directInvites: copy.creatorUnlock.directInvites,
+    founderContributionScore: copy.creatorUnlock.founderContributionScore,
     scoutScore: copy.creatorUnlock.scoutScore,
   };
   const launchPreview =

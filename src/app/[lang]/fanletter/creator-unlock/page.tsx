@@ -79,14 +79,17 @@ export default async function FanletterCreatorUnlockRoutePage({
 
   const locale = lang as Locale;
   const memberSession = await readMemberServerSession();
-  const [memberPortfolio, creatorUnlock, founderContribution] = await Promise.all([
-    getFanletterFounderClubMemberPortfolio(memberSession?.email ?? null),
-    getFanletterFounderClubCreatorUnlock(memberSession?.email ?? null),
+  const memberEmail = memberSession?.email ?? null;
+  const [memberPortfolio, founderContribution] = await Promise.all([
+    getFanletterFounderClubMemberPortfolio(memberEmail),
     getFanletterAgentRankFounderContribution({
       limit: 250,
-      memberEmail: memberSession?.email ?? null,
+      memberEmail,
     }),
   ]);
+  const creatorUnlock = await getFanletterFounderClubCreatorUnlock(memberEmail, {
+    founderContribution,
+  });
 
   return (
     <FanletterCreatorUnlockPage
