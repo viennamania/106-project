@@ -1,3 +1,4 @@
+import { getAgentRankBackfillReadinessSnapshot } from "@/lib/agentrank/backfill-readiness";
 import { buildAgentRankCoverageSnapshot } from "@/lib/agentrank/coverage";
 import { buildAgentRankCoverageEventFeed } from "@/lib/agentrank/coverage-event-feed";
 import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
@@ -35,6 +36,7 @@ function serializeRowsCsv(
 
 function serializeCoverageCsv(
   coverage: ReturnType<typeof buildAgentRankCoverageSnapshot>,
+  backfill: Awaited<ReturnType<typeof getAgentRankBackfillReadinessSnapshot>>,
   eventScope: ReturnType<typeof summarizeAgentRankEventMockScope> & {
     scope: string;
   },
@@ -67,6 +69,15 @@ function serializeCoverageCsv(
       eventScope.totalEvents,
       "",
       "",
+    ],
+    [
+      "summary",
+      "backfillReadinessScore",
+      "Backfill Readiness",
+      backfill.readinessScore,
+      100,
+      "",
+      backfill.recordType,
     ],
     [
       "summary",
@@ -167,6 +178,51 @@ function serializeCoverageCsv(
       false,
       issue.missingFields.join("|"),
     ]),
+    [
+      "backfill",
+      "recordType",
+      "Backfill Readiness",
+      backfill.recordType,
+      "",
+      backfill.readinessScore,
+      backfill.phase,
+    ],
+    ...Object.entries(backfill.coverage).map(([key, value]) => [
+      "backfill_coverage",
+      key,
+      key,
+      value,
+      100,
+      "",
+      "",
+    ]),
+    ...Object.entries(backfill.convertibleEvents).map(([key, value]) => [
+      "backfill_convertible_event",
+      key,
+      key,
+      value,
+      "",
+      "",
+      "",
+    ]),
+    ...Object.entries(backfill.totals).map(([key, value]) => [
+      "backfill_total",
+      key,
+      key,
+      value,
+      "",
+      "",
+      "",
+    ]),
+    ...backfill.gaps.map((gap) => [
+      "backfill_gap",
+      gap,
+      gap,
+      "",
+      "",
+      false,
+      "",
+    ]),
     ...coverage.eventTypes.map((eventType) => [
       "event_type",
       eventType.type,
@@ -204,6 +260,7 @@ export async function GET(request: Request) {
       memberEmail,
       starId,
     });
+    const backfill = await getAgentRankBackfillReadinessSnapshot();
     const baseEventFeed = filterAgentRankReputationEventFeedByMockScope(
       snapshot.eventFeed,
       eventScope,
@@ -232,6 +289,7 @@ export async function GET(request: Request) {
       coverageEventFeed.events,
     );
     const payload = {
+      backfill,
       coverage,
       eventScope: {
         raw: summarizeAgentRankEventMockScope(snapshot.eventFeed.events),
@@ -250,6 +308,8 @@ export async function GET(request: Request) {
     };
     const headers = {
       "x-agentrank-coverage-quality": String(coverage.phase1QualityScore),
+      "x-agentrank-backfill-readiness": String(backfill.readinessScore),
+      "x-agentrank-backfill-record-type": backfill.recordType,
       "x-agentrank-contract-record-type": coverage.contract.recordType,
       "x-agentrank-contract-risk-events": String(coverage.contract.riskEvents),
       "x-agentrank-contract-validity": String(
@@ -272,7 +332,7 @@ export async function GET(request: Request) {
     };
 
     if (url.searchParams.get("format") === "csv") {
-      const csv = serializeCoverageCsv(coverage, {
+      const csv = serializeCoverageCsv(coverage, backfill, {
         ...scopedEventSummary,
         scope: eventScope,
       });

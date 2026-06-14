@@ -25,6 +25,7 @@ import type {
   AgentRankCoverageEventItem,
   AgentRankCoverageSourceItem,
 } from "@/lib/agentrank/coverage";
+import type { AgentRankBackfillReadinessSnapshot } from "@/lib/agentrank/backfill-readiness";
 import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
 import type {
   AgentRankReputationEvent,
@@ -88,6 +89,14 @@ function getCoverageAuditCopy(locale: Locale) {
       agentRank: "AgentRank",
       api: "JSON API",
       backToAgentRank: "AgentRank 보기",
+      backfillConvertibleEvents: "전환 가능 이벤트",
+      backfillDryRun: "Dry-run",
+      backfillGaps: "Backfill 보강 항목",
+      backfillReadiness: "Backfill 준비도",
+      backfillReadinessBody:
+        "기존 회원 추천 구조, AI 스타, 파운더 멤버십, 추천 엣지, CP 원장을 AgentRank 이벤트로 전환할 수 있는지 점검합니다.",
+      backfillSamples: "샘플 이슈",
+      aiStars: "AI 스타",
       actionAfter: "완료 후",
       actionBefore: "현재",
       actionConfidence: "감사 기준",
@@ -131,6 +140,7 @@ function getCoverageAuditCopy(locale: Locale) {
       interactionCoverage: "CTA 소스 커버리지",
       latestEvents: "최근 감사 이벤트",
       missing: "대기",
+      members: "회원",
       noCriticalGaps: "현재 핵심 갭이 없습니다.",
       noContractIssues: "현재 필수 필드 누락이 없습니다.",
       oracleCoverage: "오라클 준비율",
@@ -155,7 +165,15 @@ function getCoverageAuditCopy(locale: Locale) {
   return {
     agentRank: "AgentRank",
     api: "JSON API",
-    backToAgentRank: "View AgentRank",
+      backToAgentRank: "View AgentRank",
+    backfillConvertibleEvents: "Convertible Events",
+    backfillDryRun: "Dry-run",
+    backfillGaps: "Backfill Gaps",
+    backfillReadiness: "Backfill Readiness",
+    backfillReadinessBody:
+      "Audits whether existing member referrals, AI Stars, founder memberships, referral edges, and CP ledgers can be converted into AgentRank events.",
+    backfillSamples: "Sample Issues",
+    aiStars: "AI Stars",
     actionAfter: "After",
     actionBefore: "Current",
     actionConfidence: "Audit basis",
@@ -198,6 +216,7 @@ function getCoverageAuditCopy(locale: Locale) {
       generated: "Generated",
       interactionCoverage: "CTA Source Coverage",
     latestEvents: "Latest Audit Events",
+    members: "Members",
     missing: "Pending",
     noCriticalGaps: "No critical gaps at the moment.",
     noContractIssues: "No required-field gaps at the moment.",
@@ -369,6 +388,82 @@ function getContractFieldLabel(
   };
 
   return labels[field];
+}
+
+function getBackfillCoverageLabel(
+  key: keyof AgentRankBackfillReadinessSnapshot["coverage"],
+  locale: Locale,
+) {
+  const labels: Record<
+    keyof AgentRankBackfillReadinessSnapshot["coverage"],
+    string
+  > =
+    locale === "ko"
+      ? {
+          creatorRoleCoveragePercent: "AI 스타 Creator 연결",
+          legacyReferralEdgeCoveragePercent: "기존 추천 엣지 전환",
+          memberFounderUniverseCoveragePercent: "회원 Founder Universe",
+          memberStarterStarCoveragePercent: "회원 시작 AI 스타",
+          starOwnerCoveragePercent: "AI 스타 소유자",
+          starPortraitCoveragePercent: "AI 스타 프로필",
+        }
+      : {
+          creatorRoleCoveragePercent: "AI Star Creator Link",
+          legacyReferralEdgeCoveragePercent: "Legacy Referral Edge",
+          memberFounderUniverseCoveragePercent: "Member Founder Universe",
+          memberStarterStarCoveragePercent: "Member Starter AI Star",
+          starOwnerCoveragePercent: "AI Star Owner",
+          starPortraitCoveragePercent: "AI Star Profile",
+        };
+
+  return labels[key];
+}
+
+function getBackfillConvertibleEventLabel(
+  key: keyof AgentRankBackfillReadinessSnapshot["convertibleEvents"],
+  locale: Locale,
+) {
+  const labels: Record<
+    keyof AgentRankBackfillReadinessSnapshot["convertibleEvents"],
+    string
+  > =
+    locale === "ko"
+      ? {
+          aiStarDiscovered: "AI 스타 발견",
+          cpEarned: "CP 보상",
+          cpPoolGenerated: "CP Pool 생성",
+          founderJoined: "파운더 참여",
+          referralCodeCreated: "추천 코드 생성",
+          referralConverted: "추천 전환",
+        }
+      : {
+          aiStarDiscovered: "AI Star Discovered",
+          cpEarned: "CP Earned",
+          cpPoolGenerated: "CP Pool Generated",
+          founderJoined: "Founder Joined",
+          referralCodeCreated: "Referral Code Created",
+          referralConverted: "Referral Converted",
+        };
+
+  return labels[key];
+}
+
+function getBackfillGapLabel(gap: string, locale: Locale) {
+  if (locale !== "ko") {
+    return gap.replaceAll("_", " ").replace("missing:", "Missing ");
+  }
+
+  const labels: Record<string, string> = {
+    "missing:cp_influence_ledger": "CP/Influence 원장 보강 필요",
+    "missing:legacy_referral_edges": "기존 추천 엣지 보강 필요",
+    "missing:member_founder_universe": "회원 Founder Universe 연결 필요",
+    "missing:member_starter_star": "회원 시작 AI 스타 연결 필요",
+    "missing:star_creator_membership": "AI 스타 Creator 멤버십 필요",
+    "missing:star_owner": "AI 스타 소유자 정보 필요",
+    "missing:star_portrait": "AI 스타 프로필 이미지 필요",
+  };
+
+  return labels[gap] ?? gap;
 }
 
 function buildQuery(scope: CoverageAuditScope, extra?: Record<string, string>) {
@@ -1132,6 +1227,179 @@ function ContractValidationPanel({
   );
 }
 
+function BackfillReadinessPanel({
+  backfill,
+  locale,
+}: {
+  backfill: AgentRankBackfillReadinessSnapshot;
+  locale: Locale;
+}) {
+  const copy = getCoverageAuditCopy(locale);
+  const coverageEntries = Object.entries(backfill.coverage) as Array<
+    [keyof AgentRankBackfillReadinessSnapshot["coverage"], number]
+  >;
+  const convertibleEntries = Object.entries(backfill.convertibleEvents) as Array<
+    [keyof AgentRankBackfillReadinessSnapshot["convertibleEvents"], number]
+  >;
+
+  return (
+    <section className="mt-5 rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_20px_60px_rgba(88,28,135,0.06)]">
+      <div className="grid gap-5 xl:grid-cols-[0.75fr_1.25fr]">
+        <div className="rounded-[1.15rem] bg-gradient-to-br from-[#11132d] via-[#312e81] to-[#7c3aed] p-5 text-white">
+          <div className="flex items-center justify-between gap-3">
+            <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-white/75">
+              <Database className="size-4" />
+              {copy.backfillReadiness}
+            </p>
+            <span className="rounded-full bg-white/12 px-3 py-1 text-xs font-semibold text-white">
+              {copy.backfillDryRun}
+            </span>
+          </div>
+          <div className="mt-5 flex items-end gap-3">
+            <p className="text-6xl font-semibold">
+              {backfill.readinessScore}
+            </p>
+            <p className="pb-2 text-lg font-semibold text-white/60">/ 100</p>
+          </div>
+          <div className="mt-5 h-2 overflow-hidden rounded-full bg-white/15">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-emerald-300 to-cyan-300"
+              style={{ width: `${backfill.readinessScore}%` }}
+            />
+          </div>
+          <p className="mt-4 text-sm font-medium leading-6 text-white/72">
+            {copy.backfillReadinessBody}
+          </p>
+          <div className="mt-5 grid grid-cols-2 gap-2">
+            <div className="rounded-xl bg-white/10 p-3">
+              <p className="text-xs font-semibold uppercase text-white/55">
+                {copy.members}
+              </p>
+              <p className="mt-1 text-xl font-semibold">
+                {formatNumber(backfill.totals.completedMembers, locale)}
+              </p>
+            </div>
+            <div className="rounded-xl bg-white/10 p-3">
+              <p className="text-xs font-semibold uppercase text-white/55">
+                {copy.aiStars}
+              </p>
+              <p className="mt-1 text-xl font-semibold">
+                {formatNumber(backfill.totals.activeStars, locale)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4">
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-semibold uppercase text-[#6d28d9]">
+                {copy.backfillReadiness}
+              </p>
+              <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9] ring-1 ring-violet-100">
+                {backfill.recordType}
+              </span>
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {coverageEntries.map(([key, value]) => (
+                <div
+                  className="rounded-xl border border-slate-100 bg-slate-50 p-3"
+                  key={key}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-[#11132d]">
+                      {getBackfillCoverageLabel(key, locale)}
+                    </p>
+                    <p className="text-sm font-semibold text-[#6d28d9]">
+                      {value}%
+                    </p>
+                  </div>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-[#7c3aed] to-[#16a34a]"
+                      style={{ width: `${value}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid gap-3 lg:grid-cols-[1fr_0.85fr]">
+            <div className="rounded-xl border border-violet-100 bg-violet-50/60 p-4">
+              <p className="text-sm font-semibold text-[#4c1d95]">
+                {copy.backfillConvertibleEvents}
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                {convertibleEntries.map(([key, value]) => (
+                  <div className="rounded-lg bg-white px-3 py-2" key={key}>
+                    <p className="text-[0.68rem] font-semibold uppercase text-slate-400">
+                      {getBackfillConvertibleEventLabel(key, locale)}
+                    </p>
+                    <p className="mt-1 text-lg font-semibold text-[#11132d]">
+                      {formatNumber(value, locale)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+              <p className="text-sm font-semibold text-[#11132d]">
+                {copy.backfillGaps}
+              </p>
+              {backfill.gaps.length > 0 ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {backfill.gaps.map((gap) => (
+                    <span
+                      className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-100"
+                      key={gap}
+                    >
+                      {getBackfillGapLabel(gap, locale)}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
+                  {copy.coverageCompleteTitle}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {backfill.samples.length > 0 ? (
+            <div className="rounded-xl border border-slate-100 bg-white p-4">
+              <p className="text-sm font-semibold text-[#11132d]">
+                {copy.backfillSamples}
+              </p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {backfill.samples.map((sample, index) => (
+                  <div
+                    className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2"
+                    key={`${sample.issue}-${sample.email ?? sample.starId}-${index}`}
+                  >
+                    <p className="truncate text-xs font-semibold text-amber-700">
+                      {getBackfillGapLabel(sample.issue, locale)}
+                    </p>
+                    <p className="mt-1 truncate text-sm font-semibold text-[#11132d]">
+                      {sample.email ?? sample.starId ?? "-"}
+                    </p>
+                    {sample.referralCode || sample.starId ? (
+                      <p className="mt-1 truncate text-xs font-semibold text-slate-400">
+                        {sample.referralCode ?? sample.starId}
+                      </p>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function EventTypeCoverageCard({
   item,
   locale,
@@ -1215,6 +1483,7 @@ function SourceCoverageCard({
 }
 
 export function FanletterAgentRankCoverageAuditPage({
+  backfill,
   coverage,
   coverageAction,
   eventFeed,
@@ -1223,6 +1492,7 @@ export function FanletterAgentRankCoverageAuditPage({
   locale,
   scope,
 }: {
+  backfill: AgentRankBackfillReadinessSnapshot;
   coverage: AgentRankCoverageSnapshot;
   coverageAction?: string | null;
   eventFeed: FanletterAgentRankReputationEventFeed;
@@ -1375,7 +1645,7 @@ export function FanletterAgentRankCoverageAuditPage({
               </div>
             </div>
           </div>
-          <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+          <div className="mt-5 grid gap-2 sm:grid-cols-3">
             {scopeOptions.map((option) => {
               const isActive = eventScope.scope === option.scope;
               const nextQuery = buildQuery(
@@ -1390,7 +1660,7 @@ export function FanletterAgentRankCoverageAuditPage({
 
               return (
                 <Link
-                  className={`inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-semibold ${
+                  className={`inline-flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-full px-3 text-center text-sm font-semibold ${
                     isActive
                       ? "bg-[#11132d] text-white"
                       : "border border-violet-100 bg-white text-slate-600"
@@ -1440,6 +1710,8 @@ export function FanletterAgentRankCoverageAuditPage({
         <EventFactoryManifestPanel coverage={coverage} locale={locale} />
 
         <ContractValidationPanel coverage={coverage} locale={locale} />
+
+        <BackfillReadinessPanel backfill={backfill} locale={locale} />
 
         <CoverageActionImpactPanel
           coverage={coverage}

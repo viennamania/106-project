@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterAgentRankPage } from "@/components/fanletter-agentrank-page";
+import { getAgentRankBackfillReadinessSnapshot } from "@/lib/agentrank/backfill-readiness";
 import { buildAgentRankCoverageSnapshot } from "@/lib/agentrank/coverage";
 import { buildAgentRankCoverageEventFeed } from "@/lib/agentrank/coverage-event-feed";
 import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
@@ -104,9 +105,11 @@ export default async function FanletterAgentRankRoute({
     coverageEventFeed,
     snapshot.ers.readiness,
   );
+  const backfill = await getAgentRankBackfillReadinessSnapshot();
 
   return (
     <FanletterAgentRankPage
+      backfill={backfill}
       coverage={coverage}
       locale={locale}
       snapshot={snapshot}

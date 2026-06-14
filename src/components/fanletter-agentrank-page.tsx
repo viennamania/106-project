@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 import type { AgentRankCoverageSnapshot } from "@/lib/agentrank/coverage";
+import type { AgentRankBackfillReadinessSnapshot } from "@/lib/agentrank/backfill-readiness";
 import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
 import { FanletterAgentRankTracker } from "@/components/fanletter-agentrank-tracker";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
@@ -90,6 +91,7 @@ function getAgentRankCopy(locale: Locale) {
       coverage: {
         api: "Coverage API",
         auditPage: "감사 페이지",
+        backfillReadiness: "Backfill 준비도",
         contractCoverage: "Contract 유효성",
         csv: "Coverage CSV",
         covered: "수집됨",
@@ -192,6 +194,7 @@ function getAgentRankCopy(locale: Locale) {
     coverage: {
       api: "Coverage API",
       auditPage: "Audit Page",
+      backfillReadiness: "Backfill Readiness",
       contractCoverage: "Contract Validity",
       csv: "Coverage CSV",
       covered: "Covered",
@@ -603,11 +606,13 @@ function CoverageProgress({
 }
 
 function AgentRankCoveragePanel({
+  backfill,
   copy,
   coverage,
   locale,
   starId,
 }: {
+  backfill: AgentRankBackfillReadinessSnapshot;
   copy: AgentRankCopy;
   coverage: AgentRankCoverageSnapshot;
   locale: Locale;
@@ -694,6 +699,10 @@ function AgentRankCoveragePanel({
             <CoverageProgress
               label={copy.coverage.contractCoverage}
               value={coverage.contractValidationPercent}
+            />
+            <CoverageProgress
+              label={copy.coverage.backfillReadiness}
+              value={backfill.readinessScore}
             />
           </div>
           <div className="mt-5 rounded-lg border border-dashed border-violet-200 bg-violet-50 p-4">
@@ -1793,7 +1802,7 @@ function EventFactoryPanel({
 
   return (
     <section className="grid gap-5 xl:grid-cols-[0.92fr_1.08fr]">
-      <div className="agentrank-flow-card rounded-lg border border-pink-100 bg-white p-5 shadow-[0_18px_44px_rgba(219,39,119,0.07)]">
+      <div className="agentrank-flow-card min-w-0 rounded-lg border border-pink-100 bg-white p-5 shadow-[0_18px_44px_rgba(219,39,119,0.07)]">
         <p className="text-sm font-semibold uppercase text-pink-600">
           {copy.eventFactory}
         </p>
@@ -1839,11 +1848,11 @@ function EventFactoryPanel({
                 ? factoryCompatibleLabel
                 : factoryNeedsDataLabel}
             </span>
-            <span className="rounded-full bg-white px-3 py-1.5 text-[0.68rem] font-semibold text-[#6d28d9] ring-1 ring-violet-100">
+            <span className="max-w-full break-all rounded-full bg-white px-3 py-1.5 text-[0.68rem] font-semibold text-[#6d28d9] ring-1 ring-violet-100">
               {manifest.recordType}
             </span>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {manifest.layers.map((layer) => (
               <div className="rounded-lg bg-white p-3" key={layer.layer}>
                 <div className="flex items-center justify-between gap-2">
@@ -1866,7 +1875,7 @@ function EventFactoryPanel({
       </div>
 
       <div
-        className="agentrank-flow-card rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]"
+        className="agentrank-flow-card min-w-0 rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]"
         style={{ animationDelay: "120ms" }}
       >
         <div className="flex items-center justify-between gap-3">
@@ -1897,11 +1906,11 @@ function EventFactoryPanel({
                   <Icon className="size-5" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                     <p className="font-semibold text-[#11132d]">
                       {getEventTypeLabel(event.type, locale)}
                     </p>
-                    <p className="shrink-0 text-xs font-semibold text-slate-400">
+                    <p className="text-xs font-semibold text-slate-400 sm:shrink-0">
                       {formatDateTime(event.occurredAt, locale)}
                     </p>
                   </div>
@@ -1910,16 +1919,16 @@ function EventFactoryPanel({
                       {getEventSourceLabel(event.source, locale)}
                     </span>
                     {intent ? (
-                      <span className="rounded-full bg-white px-2 py-1 text-[0.68rem] font-semibold text-slate-500">
+                      <span className="max-w-full break-all rounded-full bg-white px-2 py-1 text-[0.68rem] font-semibold text-slate-500">
                         {intent}
                       </span>
                     ) : null}
                   </div>
-                  <p className="mt-1 truncate font-mono text-xs font-semibold text-[#6d28d9]">
+                  <p className="mt-1 break-all font-mono text-xs font-semibold text-[#6d28d9]">
                     {event.sourceId}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-white px-2 py-1 text-[0.68rem] font-semibold text-slate-600">
+                    <span className="max-w-full break-all rounded-full bg-white px-2 py-1 text-[0.68rem] font-semibold text-slate-600">
                       {event.actor.type}: {event.actor.id}
                     </span>
                     {event.economicLayer.cpDelta ? (
@@ -1960,11 +1969,13 @@ function ReadinessPill({
 }
 
 export function FanletterAgentRankPage({
+  backfill,
   coverage,
   locale,
   snapshot,
   starId,
 }: {
+  backfill: AgentRankBackfillReadinessSnapshot;
   coverage: AgentRankCoverageSnapshot;
   locale: Locale;
   snapshot: FanletterAgentRankInvestorSnapshot;
@@ -2102,6 +2113,7 @@ export function FanletterAgentRankPage({
 
         <div className="mt-5">
           <AgentRankCoveragePanel
+            backfill={backfill}
             copy={copy}
             coverage={coverage}
             locale={locale}
