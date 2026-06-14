@@ -4,6 +4,8 @@ import {
   type FanletterAgentRankReputationEventFeed,
 } from "@/lib/agentrank/reputation-events";
 
+export type AgentRankEventMockScope = "all" | "mock" | "product";
+
 export function isAgentRankCoverageMockEvent(
   event: AgentRankReputationEvent,
 ) {
@@ -23,6 +25,53 @@ export function countAgentRankCoverageMockEvents(
   events: AgentRankReputationEvent[],
 ) {
   return events.filter(isAgentRankCoverageMockEvent).length;
+}
+
+export function normalizeAgentRankEventMockScope(
+  value: string | null | undefined,
+): AgentRankEventMockScope {
+  return value === "mock" || value === "product" ? value : "all";
+}
+
+export function summarizeAgentRankEventMockScope(
+  events: AgentRankReputationEvent[],
+) {
+  const mockEvents = countAgentRankCoverageMockEvents(events);
+  const totalEvents = events.length;
+
+  return {
+    mockEvents,
+    productEvents: totalEvents - mockEvents,
+    totalEvents,
+  };
+}
+
+export function filterAgentRankReputationEventFeedByMockScope(
+  feed: FanletterAgentRankReputationEventFeed,
+  scope: AgentRankEventMockScope,
+) {
+  if (scope === "all") {
+    return feed;
+  }
+
+  const events = feed.events.filter((event) => {
+    const isMock = isAgentRankCoverageMockEvent(event);
+
+    return scope === "mock" ? isMock : !isMock;
+  });
+
+  if (events.length === feed.events.length) {
+    return feed;
+  }
+
+  return {
+    ...feed,
+    events,
+    summary: {
+      ...summarizeAgentRankReputationEvents(events),
+      generatedAt: feed.summary.generatedAt,
+    },
+  } satisfies FanletterAgentRankReputationEventFeed;
 }
 
 export function filterAgentRankReputationEventFeedForScoring(

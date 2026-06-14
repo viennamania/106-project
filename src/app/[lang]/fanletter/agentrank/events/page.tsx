@@ -11,6 +11,11 @@ import {
   getFanletterAgentRankReputationEventFeed,
   type AgentRankReputationEventType,
 } from "@/lib/agentrank/reputation-events";
+import {
+  filterAgentRankReputationEventFeedByMockScope,
+  normalizeAgentRankEventMockScope,
+  summarizeAgentRankEventMockScope,
+} from "@/lib/agentrank/mock-events";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { hasLocale, type Locale } from "@/lib/i18n";
 
@@ -20,6 +25,7 @@ type AgentRankLedgerSearchParams = {
   coverageAction?: string | string[];
   limit?: string | string[];
   memberEmail?: string | string[];
+  scope?: string | string[];
   starId?: string | string[];
   type?: string | string[];
 };
@@ -115,13 +121,20 @@ export default async function FanletterAgentRankLedgerRoute({
   const memberEmail = normalizeMemberEmail(query.memberEmail);
   const type = normalizeEventType(query.type);
   const limit = normalizeLimit(query.limit);
+  const eventScope = normalizeAgentRankEventMockScope(
+    readFirstParam(query.scope),
+  );
   const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
-  const feed = await getFanletterAgentRankReputationEventFeed({
+  const rawFeed = await getFanletterAgentRankReputationEventFeed({
     includeTypes: type ? [type] : undefined,
     limit,
     memberEmail,
     starId,
   });
+  const feed = filterAgentRankReputationEventFeedByMockScope(
+    rawFeed,
+    eventScope,
+  );
 
   return (
     <FanletterAgentRankLedgerPage
@@ -134,10 +147,16 @@ export default async function FanletterAgentRankLedgerRoute({
             }
           : null
       }
+      eventScope={{
+        raw: summarizeAgentRankEventMockScope(rawFeed.events),
+        scope: eventScope,
+        scoped: summarizeAgentRankEventMockScope(feed.events),
+      }}
       feed={feed}
       filters={{
         limit,
         memberEmail,
+        scope: eventScope,
         starId,
         type,
       }}

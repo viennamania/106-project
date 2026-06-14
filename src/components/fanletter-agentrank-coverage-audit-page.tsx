@@ -30,9 +30,11 @@ import type {
   AgentRankReputationEvent,
   FanletterAgentRankReputationEventFeed,
 } from "@/lib/agentrank/reputation-events";
+import type { AgentRankEventMockScope } from "@/lib/agentrank/mock-events";
 import type { Locale } from "@/lib/i18n";
 
 type CoverageAuditScope = {
+  eventScope: AgentRankEventMockScope;
   limit: number;
   memberEmail?: string | null;
   starId?: string | null;
@@ -100,6 +102,7 @@ function getCoverageAuditCopy(locale: Locale) {
       csv: "CSV 내보내기",
       eventCoverage: "이벤트 타입 커버리지",
       eventLedger: "이벤트 원장",
+      eventScope: "이벤트 범위",
       gaps: "우선 보강 신호",
       generated: "생성 시간",
       interactionCoverage: "CTA 소스 커버리지",
@@ -110,6 +113,9 @@ function getCoverageAuditCopy(locale: Locale) {
       phase1Quality: "Phase 1 데이터 품질",
       priorityActionPlan: "우선 수집 액션",
       schemaCoverage: "스키마 준비율",
+      scopeAll: "전체 이벤트",
+      scopeMock: "Mock 커버리지",
+      scopeProduct: "운영 이벤트",
       scope: "감사 범위",
       subtitle:
         "FanLetter에서 발생한 발견, 파운더 참여, 초대, CP, 창업 이벤트가 AgentRank 평판 데이터로 충분히 쌓이고 있는지 점검합니다.",
@@ -146,6 +152,7 @@ function getCoverageAuditCopy(locale: Locale) {
     csv: "Export CSV",
     eventCoverage: "Event Type Coverage",
     eventLedger: "Event Ledger",
+    eventScope: "Event Scope",
     gaps: "Priority Gaps",
     generated: "Generated",
     interactionCoverage: "CTA Source Coverage",
@@ -156,6 +163,9 @@ function getCoverageAuditCopy(locale: Locale) {
     phase1Quality: "Phase 1 Data Quality",
     priorityActionPlan: "Priority Collection Actions",
     schemaCoverage: "Schema Coverage",
+    scopeAll: "All events",
+    scopeMock: "Mock coverage",
+    scopeProduct: "Product events",
     scope: "Audit Scope",
     subtitle:
       "Audits whether FanLetter discovery, founder, invite, CP, and creator events are becoming sufficient AgentRank reputation data.",
@@ -299,6 +309,10 @@ function buildQuery(scope: CoverageAuditScope, extra?: Record<string, string>) {
     limit: String(scope.limit),
     ...extra,
   });
+
+  if (scope.eventScope !== "all") {
+    params.set("scope", scope.eventScope);
+  }
 
   if (scope.starId) {
     params.set("starId", scope.starId);
@@ -874,6 +888,7 @@ export function FanletterAgentRankCoverageAuditPage({
   coverage,
   coverageAction,
   eventFeed,
+  eventScope,
   generatedAt,
   locale,
   scope,
@@ -881,6 +896,19 @@ export function FanletterAgentRankCoverageAuditPage({
   coverage: AgentRankCoverageSnapshot;
   coverageAction?: string | null;
   eventFeed: FanletterAgentRankReputationEventFeed;
+  eventScope: {
+    raw: {
+      mockEvents: number;
+      productEvents: number;
+      totalEvents: number;
+    };
+    scope: AgentRankEventMockScope;
+    scoped: {
+      mockEvents: number;
+      productEvents: number;
+      totalEvents: number;
+    };
+  };
   generatedAt: string;
   locale: Locale;
   scope: CoverageAuditScope;
@@ -899,6 +927,27 @@ export function FanletterAgentRankCoverageAuditPage({
   const gapActions = coverage.gaps.map((gap) =>
     getGapAction(gap, locale, scope),
   );
+  const scopeOptions: Array<{
+    count: number;
+    label: string;
+    scope: AgentRankEventMockScope;
+  }> = [
+    {
+      count: eventScope.raw.totalEvents,
+      label: copy.scopeAll,
+      scope: "all",
+    },
+    {
+      count: eventScope.raw.productEvents,
+      label: copy.scopeProduct,
+      scope: "product",
+    },
+    {
+      count: eventScope.raw.mockEvents,
+      label: copy.scopeMock,
+      scope: "mock",
+    },
+  ];
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6">
@@ -974,7 +1023,8 @@ export function FanletterAgentRankCoverageAuditPage({
                 </p>
                 <p className="mt-1 text-sm font-semibold text-[#11132d]">
                   starId: {scope.starId || "all"} · member:{" "}
-                  {scope.memberEmail || "all"} · limit {scope.limit}
+                  {scope.memberEmail || "all"} · {copy.eventScope}:{" "}
+                  {scope.eventScope} · limit {scope.limit}
                 </p>
               </div>
               <div>
@@ -994,6 +1044,43 @@ export function FanletterAgentRankCoverageAuditPage({
                 </p>
               </div>
             </div>
+          </div>
+          <div className="mt-5 flex gap-2 overflow-x-auto pb-1">
+            {scopeOptions.map((option) => {
+              const isActive = eventScope.scope === option.scope;
+              const nextQuery = buildQuery(
+                {
+                  ...scope,
+                  eventScope: option.scope,
+                },
+                coverageAction
+                  ? { coverageAction: coverageAction }
+                  : undefined,
+              );
+
+              return (
+                <Link
+                  className={`inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-semibold ${
+                    isActive
+                      ? "bg-[#11132d] text-white"
+                      : "border border-violet-100 bg-white text-slate-600"
+                  }`}
+                  href={`/${locale}/fanletter/agentrank/coverage?${nextQuery}`}
+                  key={option.scope}
+                >
+                  {option.label}
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs ${
+                      isActive
+                        ? "bg-white/18 text-white"
+                        : "bg-violet-50 text-[#6d28d9]"
+                    }`}
+                  >
+                    {formatNumber(option.count, locale)}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </header>
 

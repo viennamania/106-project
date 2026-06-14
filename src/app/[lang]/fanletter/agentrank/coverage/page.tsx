@@ -9,6 +9,11 @@ import {
 import { buildAgentRankCoverageSnapshot } from "@/lib/agentrank/coverage";
 import { buildAgentRankCoverageEventFeed } from "@/lib/agentrank/coverage-event-feed";
 import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
+import {
+  filterAgentRankReputationEventFeedByMockScope,
+  normalizeAgentRankEventMockScope,
+  summarizeAgentRankEventMockScope,
+} from "@/lib/agentrank/mock-events";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { hasLocale, type Locale } from "@/lib/i18n";
 
@@ -18,6 +23,7 @@ type CoverageAuditSearchParams = {
   coverageAction?: string | string[];
   limit?: string | string[];
   memberEmail?: string | string[];
+  scope?: string | string[];
   starId?: string | string[];
 };
 
@@ -100,24 +106,35 @@ export default async function FanletterAgentRankCoverageAuditRoute({
   const starId = normalizeFanletterStarId(readFirstParam(query.starId) ?? null);
   const memberEmail = normalizeMemberEmail(query.memberEmail);
   const limit = normalizeLimit(query.limit);
+  const eventScope = normalizeAgentRankEventMockScope(
+    readFirstParam(query.scope),
+  );
   const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
   const snapshot = await getFanletterAgentRankInvestorSnapshot({
     limit,
     memberEmail,
     starId,
   });
-  const preliminaryCoverage = buildAgentRankCoverageSnapshot(
+  const baseEventFeed = filterAgentRankReputationEventFeedByMockScope(
     snapshot.eventFeed,
+    eventScope,
+  );
+  const preliminaryCoverage = buildAgentRankCoverageSnapshot(
+    baseEventFeed,
     snapshot.ers.readiness,
   );
-  const coverageEventFeed = await buildAgentRankCoverageEventFeed({
-    baseFeed: snapshot.eventFeed,
+  const rawCoverageEventFeed = await buildAgentRankCoverageEventFeed({
+    baseFeed: baseEventFeed,
     memberEmail,
     missingTypes: preliminaryCoverage.eventTypes
       .filter((eventType) => !eventType.covered)
       .map((eventType) => eventType.type),
     starId,
   });
+  const coverageEventFeed = filterAgentRankReputationEventFeedByMockScope(
+    rawCoverageEventFeed,
+    eventScope,
+  );
   const coverage = buildAgentRankCoverageSnapshot(
     coverageEventFeed,
     snapshot.ers.readiness,
@@ -128,11 +145,17 @@ export default async function FanletterAgentRankCoverageAuditRoute({
       coverage={coverage}
       coverageAction={coverageAction}
       eventFeed={coverageEventFeed}
+      eventScope={{
+        raw: summarizeAgentRankEventMockScope(snapshot.eventFeed.events),
+        scope: eventScope,
+        scoped: summarizeAgentRankEventMockScope(coverageEventFeed.events),
+      }}
       generatedAt={snapshot.generatedAt}
       locale={locale}
       scope={{
         limit,
         memberEmail,
+        eventScope,
         starId,
       }}
     />

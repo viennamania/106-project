@@ -4,6 +4,11 @@ import {
   type AgentRankReputationEvent,
   type AgentRankReputationEventType,
 } from "@/lib/agentrank/reputation-events";
+import {
+  filterAgentRankReputationEventFeedByMockScope,
+  normalizeAgentRankEventMockScope,
+  summarizeAgentRankEventMockScope,
+} from "@/lib/agentrank/mock-events";
 
 function normalizeParam(value: string | null) {
   return value?.trim() || null;
@@ -235,12 +240,25 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
 
   try {
-    const feed = await getFanletterAgentRankReputationEventFeed({
+    const scope = normalizeAgentRankEventMockScope(
+      url.searchParams.get("scope"),
+    );
+    const rawFeed = await getFanletterAgentRankReputationEventFeed({
       includeTypes: parseIncludeTypes(url.searchParams.get("types")),
       limit: normalizeLimit(url.searchParams.get("limit")),
       memberEmail: normalizeParam(url.searchParams.get("memberEmail")),
       starId: normalizeParam(url.searchParams.get("starId")),
     });
+    const feed = filterAgentRankReputationEventFeedByMockScope(rawFeed, scope);
+    const rawScope = summarizeAgentRankEventMockScope(rawFeed.events);
+    const scopedScope = summarizeAgentRankEventMockScope(feed.events);
+    const scopeHeaders = {
+      "x-agentrank-event-scope": scope,
+      "x-agentrank-mock-events": String(scopedScope.mockEvents),
+      "x-agentrank-product-events": String(scopedScope.productEvents),
+      "x-agentrank-raw-mock-events": String(rawScope.mockEvents),
+      "x-agentrank-raw-product-events": String(rawScope.productEvents),
+    };
 
     if (url.searchParams.get("format") === "csv") {
       const csv = serializeEventFeedCsv(feed.events);
@@ -251,6 +269,7 @@ export async function GET(request: Request) {
           "content-disposition": `attachment; filename="${filename}"`,
           "content-type": "text/csv; charset=utf-8",
           ...getEventFeedHeaders(feed.events),
+          ...scopeHeaders,
         },
       });
     }
@@ -264,12 +283,23 @@ export async function GET(request: Request) {
           "content-disposition": `attachment; filename="${filename}"`,
           "content-type": "application/x-ndjson; charset=utf-8",
           ...getEventFeedHeaders(feed.events),
+          ...scopeHeaders,
         },
       });
     }
 
-    return Response.json(feed, {
-      headers: getEventFeedHeaders(feed.events),
+    return Response.json({
+      ...feed,
+      eventScope: {
+        raw: rawScope,
+        scope,
+        scoped: scopedScope,
+      },
+    }, {
+      headers: {
+        ...getEventFeedHeaders(feed.events),
+        ...scopeHeaders,
+      },
     });
   } catch (error) {
     console.error("AgentRank event feed failed", error);

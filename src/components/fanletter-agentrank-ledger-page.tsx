@@ -26,14 +26,32 @@ import {
 } from "@/lib/agentrank/reputation-events";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
+import {
+  isAgentRankCoverageMockEvent,
+  type AgentRankEventMockScope,
+} from "@/lib/agentrank/mock-events";
 import type { Locale } from "@/lib/i18n";
 
 type FanletterAgentRankLedgerPageProps = {
   coverageAction?: AgentRankCoverageActionContext | null;
+  eventScope: {
+    raw: {
+      mockEvents: number;
+      productEvents: number;
+      totalEvents: number;
+    };
+    scope: AgentRankEventMockScope;
+    scoped: {
+      mockEvents: number;
+      productEvents: number;
+      totalEvents: number;
+    };
+  };
   feed: FanletterAgentRankReputationEventFeed;
   filters: {
     limit: number;
     memberEmail: string | null;
+    scope: AgentRankEventMockScope;
     starId: string | null;
     type: AgentRankReputationEventType | null;
   };
@@ -93,6 +111,7 @@ function getLedgerCopy(locale: Locale) {
         "조건에 맞는 Reputation Event가 없습니다. 다른 스타, 멤버, 이벤트 타입으로 확인하세요.",
       event: "이벤트",
       eventId: "이벤트 ID",
+      eventScope: "이벤트 범위",
       evidenceHash: "증거 해시",
       applyFilters: "필터 적용",
       clearFilters: "필터 초기화",
@@ -118,6 +137,9 @@ function getLedgerCopy(locale: Locale) {
       schema: "스키마",
       schemaReady: "스키마 준비",
       scoreSignals: "점수 신호",
+      scopeAll: "전체 이벤트",
+      scopeMock: "Mock 커버리지",
+      scopeProduct: "운영 이벤트",
       source: "소스",
       sourceId: "소스 ID",
       star: "AI 스타",
@@ -148,6 +170,7 @@ function getLedgerCopy(locale: Locale) {
       "No matching Reputation Events. Try another Star, member, or event type.",
     event: "Event",
     eventId: "Event ID",
+    eventScope: "Event scope",
     evidenceHash: "Evidence Hash",
     applyFilters: "Apply filters",
     clearFilters: "Reset filters",
@@ -173,6 +196,9 @@ function getLedgerCopy(locale: Locale) {
     schema: "Schema",
     schemaReady: "Schema-ready",
     scoreSignals: "Score Signals",
+    scopeAll: "All events",
+    scopeMock: "Mock coverage",
+    scopeProduct: "Product events",
     source: "Source",
     sourceId: "Source ID",
     star: "AI Star",
@@ -186,13 +212,7 @@ function getLedgerCopy(locale: Locale) {
 }
 
 function isCoverageMockEvent(event: AgentRankReputationEvent) {
-  return (
-    event.type === "x402_mock_payment_intent" ||
-    event.context.coverageMockCreatorUnlocked === true ||
-    event.context.mockPaymentIntent === true ||
-    event.context.checkoutMode === "mock_coverage" ||
-    event.context.a2aMockUsage === true
-  );
+  return isAgentRankCoverageMockEvent(event);
 }
 
 function toFiniteNumber(value: number | null | undefined) {
@@ -444,13 +464,16 @@ function ReadinessPill({
 function buildLedgerHref({
   filters,
   locale,
+  scope,
   type,
 }: {
   filters: FanletterAgentRankLedgerPageProps["filters"];
   locale: Locale;
+  scope?: AgentRankEventMockScope;
   type: AgentRankReputationEventType | null;
 }) {
   const params = new URLSearchParams();
+  const nextScope = scope ?? filters.scope;
 
   if (filters.starId) {
     params.set("starId", filters.starId);
@@ -462,6 +485,10 @@ function buildLedgerHref({
 
   if (type) {
     params.set("type", type);
+  }
+
+  if (nextScope !== "all") {
+    params.set("scope", nextScope);
   }
 
   if (filters.limit !== 120) {
@@ -761,6 +788,7 @@ function EventCard({
 
 export function FanletterAgentRankLedgerPage({
   coverageAction = null,
+  eventScope,
   feed,
   filters,
   locale,
@@ -803,11 +831,36 @@ export function FanletterAgentRankLedgerPage({
     apiParams.set("types", filters.type);
   }
 
+  if (filters.scope !== "all") {
+    apiParams.set("scope", filters.scope);
+  }
+
   apiParams.set("limit", String(filters.limit));
   const csvParams = new URLSearchParams(apiParams);
   csvParams.set("format", "csv");
   const ndjsonParams = new URLSearchParams(apiParams);
   ndjsonParams.set("format", "ndjson");
+  const scopeOptions: Array<{
+    count: number;
+    label: string;
+    scope: AgentRankEventMockScope;
+  }> = [
+    {
+      count: eventScope.raw.totalEvents,
+      label: copy.scopeAll,
+      scope: "all",
+    },
+    {
+      count: eventScope.raw.productEvents,
+      label: copy.scopeProduct,
+      scope: "product",
+    },
+    {
+      count: eventScope.raw.mockEvents,
+      label: copy.scopeMock,
+      scope: "mock",
+    },
+  ];
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
@@ -862,10 +915,18 @@ export function FanletterAgentRankLedgerPage({
                 {copy.heroBody}
               </p>
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
               <MetricTile
                 label={copy.totalEvents}
                 value={formatNumber(feed.summary.totalEvents, locale)}
+              />
+              <MetricTile
+                label={copy.scopeProduct}
+                value={formatNumber(eventScope.raw.productEvents, locale)}
+              />
+              <MetricTile
+                label={copy.scopeMock}
+                value={formatNumber(eventScope.raw.mockEvents, locale)}
               />
               <MetricTile
                 label={copy.uniqueMembers}
@@ -893,7 +954,7 @@ export function FanletterAgentRankLedgerPage({
           </div>
           <form
             action={`/${locale}/fanletter/agentrank/events`}
-            className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_9rem_auto_auto]"
+            className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_9rem_11rem_auto_auto]"
           >
             {coverageAction ? (
               <input
@@ -941,6 +1002,20 @@ export function FanletterAgentRankLedgerPage({
                 type="number"
               />
             </label>
+            <label className="min-w-0">
+              <span className="text-xs font-semibold uppercase text-slate-400">
+                {copy.eventScope}
+              </span>
+              <select
+                className="mt-1 h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-[#11132d] outline-none transition focus:border-violet-300 focus:bg-white"
+                defaultValue={filters.scope}
+                name="scope"
+              >
+                <option value="all">{copy.scopeAll}</option>
+                <option value="product">{copy.scopeProduct}</option>
+                <option value="mock">{copy.scopeMock}</option>
+              </select>
+            </label>
             <button
               className="inline-flex h-11 items-center justify-center gap-2 self-end rounded-lg bg-[#6d28d9] px-4 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(109,40,217,0.18)]"
               type="submit"
@@ -955,6 +1030,39 @@ export function FanletterAgentRankLedgerPage({
               {copy.clearFilters}
             </Link>
           </form>
+          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+            {scopeOptions.map((option) => {
+              const isActive = filters.scope === option.scope;
+
+              return (
+                <Link
+                  className={`inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-semibold ${
+                    isActive
+                      ? "bg-[#11132d] text-white"
+                      : "border border-slate-200 bg-white text-slate-600"
+                  }`}
+                  href={buildLedgerHref({
+                    filters,
+                    locale,
+                    scope: option.scope,
+                    type: filters.type,
+                  })}
+                  key={option.scope}
+                >
+                  {option.label}
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs ${
+                      isActive
+                        ? "bg-white/18 text-white"
+                        : "bg-slate-50 text-slate-500"
+                    }`}
+                  >
+                    {formatNumber(option.count, locale)}
+                  </span>
+                </Link>
+              );
+            })}
+          </div>
         </section>
 
         <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-7">

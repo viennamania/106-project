@@ -1,6 +1,11 @@
 import { buildAgentRankCoverageSnapshot } from "@/lib/agentrank/coverage";
 import { buildAgentRankCoverageEventFeed } from "@/lib/agentrank/coverage-event-feed";
 import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
+import {
+  filterAgentRankReputationEventFeedByMockScope,
+  normalizeAgentRankEventMockScope,
+  summarizeAgentRankEventMockScope,
+} from "@/lib/agentrank/mock-events";
 
 function normalizeParam(value: string | null) {
   return value?.trim() || null;
@@ -30,9 +35,39 @@ function serializeRowsCsv(
 
 function serializeCoverageCsv(
   coverage: ReturnType<typeof buildAgentRankCoverageSnapshot>,
+  eventScope: ReturnType<typeof summarizeAgentRankEventMockScope> & {
+    scope: string;
+  },
 ) {
   return serializeRowsCsv([
     ["section", "key", "label", "value", "total", "covered", "layer"],
+    [
+      "scope",
+      "eventScope",
+      "Event Scope",
+      eventScope.scope,
+      "",
+      "",
+      "",
+    ],
+    [
+      "scope",
+      "productEvents",
+      "Product Events",
+      eventScope.productEvents,
+      eventScope.totalEvents,
+      "",
+      "",
+    ],
+    [
+      "scope",
+      "mockEvents",
+      "Mock Coverage Events",
+      eventScope.mockEvents,
+      eventScope.totalEvents,
+      "",
+      "",
+    ],
     [
       "summary",
       "phase1QualityScore",
@@ -104,6 +139,9 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const limit = normalizeLimit(url.searchParams.get("limit"));
   const memberEmail = normalizeParam(url.searchParams.get("memberEmail"));
+  const eventScope = normalizeAgentRankEventMockScope(
+    url.searchParams.get("scope"),
+  );
   const starId = normalizeParam(url.searchParams.get("starId"));
 
   try {
@@ -112,27 +150,44 @@ export async function GET(request: Request) {
       memberEmail,
       starId,
     });
-    const preliminaryCoverage = buildAgentRankCoverageSnapshot(
+    const baseEventFeed = filterAgentRankReputationEventFeedByMockScope(
       snapshot.eventFeed,
+      eventScope,
+    );
+    const preliminaryCoverage = buildAgentRankCoverageSnapshot(
+      baseEventFeed,
       snapshot.ers.readiness,
     );
-    const coverageEventFeed = await buildAgentRankCoverageEventFeed({
-      baseFeed: snapshot.eventFeed,
+    const rawCoverageEventFeed = await buildAgentRankCoverageEventFeed({
+      baseFeed: baseEventFeed,
       memberEmail,
       missingTypes: preliminaryCoverage.eventTypes
         .filter((eventType) => !eventType.covered)
         .map((eventType) => eventType.type),
       starId,
     });
+    const coverageEventFeed = filterAgentRankReputationEventFeedByMockScope(
+      rawCoverageEventFeed,
+      eventScope,
+    );
     const coverage = buildAgentRankCoverageSnapshot(
       coverageEventFeed,
       snapshot.ers.readiness,
     );
+    const scopedEventSummary = summarizeAgentRankEventMockScope(
+      coverageEventFeed.events,
+    );
     const payload = {
       coverage,
+      eventScope: {
+        raw: summarizeAgentRankEventMockScope(snapshot.eventFeed.events),
+        scope: eventScope,
+        scoped: scopedEventSummary,
+      },
       generatedAt: snapshot.generatedAt,
       recordType: "agentrank.coverage_audit",
       scope: {
+        eventScope,
         limit: limit ?? 120,
         memberEmail,
         starId,
@@ -141,9 +196,12 @@ export async function GET(request: Request) {
     };
     const headers = {
       "x-agentrank-coverage-quality": String(coverage.phase1QualityScore),
+      "x-agentrank-event-scope": eventScope,
       "x-agentrank-event-type-coverage": String(
         coverage.eventTypeCoveragePercent,
       ),
+      "x-agentrank-mock-events": String(scopedEventSummary.mockEvents),
+      "x-agentrank-product-events": String(scopedEventSummary.productEvents),
       "x-agentrank-record-type": payload.recordType,
       "x-agentrank-source-coverage": String(
         coverage.interactionSourceCoveragePercent,
@@ -151,7 +209,10 @@ export async function GET(request: Request) {
     };
 
     if (url.searchParams.get("format") === "csv") {
-      const csv = serializeCoverageCsv(coverage);
+      const csv = serializeCoverageCsv(coverage, {
+        ...scopedEventSummary,
+        scope: eventScope,
+      });
       const filename = `fanletter-agentrank-coverage-${Date.now()}.csv`;
 
       return new Response(csv, {
