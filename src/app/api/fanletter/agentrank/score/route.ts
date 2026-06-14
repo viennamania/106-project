@@ -1,10 +1,10 @@
 import { sha256AgentRankPayload } from "@/lib/agentrank/integrity";
 import {
-  getFanletterAgentRankReputationEventFeed,
   type AgentRankReputationEvent,
 } from "@/lib/agentrank/reputation-events";
 import { filterAgentRankReputationEventFeedForScoring } from "@/lib/agentrank/mock-events";
 import {
+  getFanletterAgentRankScoreEventFeed,
   getFanletterAgentRankScoreAggregate,
   parseAgentRankScoreTypes,
   type AgentRankScoreAggregate,
@@ -267,9 +267,11 @@ export async function GET(request: Request) {
   const starId = normalizeParam(url.searchParams.get("starId"));
   const universeId = normalizeParam(url.searchParams.get("universeId"));
   const includeMockEvents = normalizeBoolean(url.searchParams.get("includeMock"));
+  const coverageProbe = normalizeBoolean(url.searchParams.get("coverageProbe"));
 
   try {
     const score = await getFanletterAgentRankScoreAggregate({
+      coverageProbe,
       includeMockEvents,
       includeTypes,
       limit,
@@ -291,7 +293,8 @@ export async function GET(request: Request) {
     }
 
     if (url.searchParams.get("format") === "oracle") {
-      const feed = await getFanletterAgentRankReputationEventFeed({
+      const feed = await getFanletterAgentRankScoreEventFeed({
+        coverageProbe,
         includeTypes,
         limit,
         memberEmail,

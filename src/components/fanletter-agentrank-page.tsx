@@ -844,11 +844,14 @@ function AgentRankScoreAggregatorPanel({
     limit: "120",
   });
   const coverageScoreParams = new URLSearchParams({
+    coverageProbe: "true",
     includeMock: "true",
     limit: "120",
   });
   const oraclePacketParams = new URLSearchParams({
+    coverageProbe: "true",
     format: "oracle",
+    includeMock: "true",
     limit: "120",
   });
   const readinessItems = [

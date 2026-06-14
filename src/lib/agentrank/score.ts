@@ -1,6 +1,8 @@
 import "server-only";
 
+import { buildAgentRankCoverageEventFeed } from "@/lib/agentrank/coverage-event-feed";
 import { agentRankReputationEventSchemaVersion } from "@/lib/agentrank/event-schema";
+import { agentRankInteractionSources } from "@/lib/agentrank/interaction-events";
 import {
   agentRankReputationEventTypes,
   getFanletterAgentRankReputationEventFeed,
@@ -141,6 +143,7 @@ export type AgentRankFounderContributionAggregate = {
 };
 
 export type GetFanletterAgentRankScoreOptions = {
+  coverageProbe?: boolean;
   includeTypes?: AgentRankReputationEventType[];
   includeMockEvents?: boolean;
   limit?: number;
@@ -720,15 +723,36 @@ export function calculateAgentRankScoreAggregate({
   };
 }
 
-export async function getFanletterAgentRankScoreAggregate(
+export async function getFanletterAgentRankScoreEventFeed(
   options: GetFanletterAgentRankScoreOptions = {},
 ) {
-  const feed = await getFanletterAgentRankReputationEventFeed({
+  const baseFeed = await getFanletterAgentRankReputationEventFeed({
     includeTypes: options.includeTypes,
     limit: normalizeLimit(options.limit),
     memberEmail: options.memberEmail,
     starId: options.starId,
   });
+  const feed = options.coverageProbe
+    ? await buildAgentRankCoverageEventFeed({
+        baseFeed,
+        memberEmail: options.memberEmail ?? null,
+        missingSources: agentRankInteractionSources.filter((source) => {
+          return !baseFeed.events.some((event) => event.context.source === source);
+        }),
+        missingTypes: (options.includeTypes ?? agentRankReputationEventTypes).filter(
+          (type) => (baseFeed.summary.byType[type] ?? 0) === 0,
+        ),
+        starId: normalizeId(options.starId),
+      })
+    : baseFeed;
+
+  return feed;
+}
+
+export async function getFanletterAgentRankScoreAggregate(
+  options: GetFanletterAgentRankScoreOptions = {},
+) {
+  const feed = await getFanletterAgentRankScoreEventFeed(options);
   const includeMockEvents = options.includeMockEvents === true;
   const scoreFeed = filterAgentRankReputationEventFeedForScoring(feed, {
     includeMockEvents,
