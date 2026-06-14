@@ -64,6 +64,7 @@ function getCopy(locale: Locale) {
       quality: "품질",
       ready: "검증 가능",
       recordType: "Record Type",
+      relatedStarScope: "관련 AI 스타 범위",
       schema: "Schema",
       scopeAll: "전체 이벤트",
       scopeMock: "Mock 커버리지",
@@ -106,6 +107,7 @@ function getCopy(locale: Locale) {
     quality: "Quality",
     ready: "Verifiable",
     recordType: "Record Type",
+    relatedStarScope: "Related AI Star Scope",
     schema: "Schema",
     scopeAll: "All Events",
     scopeMock: "Mock Coverage",
@@ -143,6 +145,40 @@ function getActorLabel(actor: AgentRankReputationEvent["actor"] | null) {
   }
 
   return actor.label ?? actor.id;
+}
+
+function readContextString(event: AgentRankReputationEvent, key: string) {
+  const value = event.context[key];
+
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return null;
+}
+
+function getRelatedStarScope(event: AgentRankReputationEvent) {
+  const values = [
+    event.starId,
+    event.object?.type === "ai_star" ? event.object.id : null,
+    event.subject?.type === "ai_star" ? event.subject.id : null,
+    readContextString(event, "sourceStarId"),
+    readContextString(event, "spawnedStarId"),
+    readContextString(event, "targetStarId"),
+    readContextString(event, "coverageActionStarId"),
+    readContextString(event, "relatedStarIds"),
+  ];
+  const starIds = values
+    .filter((value): value is string => Boolean(value))
+    .flatMap((value) => value.split(","))
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+
+  return [...new Set(starIds)];
 }
 
 function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Locale) {
@@ -271,6 +307,7 @@ export function FanletterAgentRankEvidencePacketPage({
   const isCoverageMock = isAgentRankCoverageMockEvent(event);
   const eventInScope = isAgentRankEventIncludedInMockScope(event, eventScope);
   const eventScopeLabel = getEventScopeLabel(eventScope, copy);
+  const relatedStarScope = getRelatedStarScope(event);
 
   if (starId) {
     ledgerParams.set("starId", starId);
@@ -364,6 +401,21 @@ export function FanletterAgentRankEvidencePacketPage({
                 <p className="mt-3 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold leading-6 text-amber-800">
                   {copy.eventScopeOutside} · {copy.eventScopeMismatch}
                 </p>
+              ) : null}
+              {relatedStarScope.length ? (
+                <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-violet-100 bg-violet-50 px-3 py-2">
+                  <span className="text-xs font-semibold uppercase text-[#6d28d9]">
+                    {copy.relatedStarScope}
+                  </span>
+                  {relatedStarScope.map((relatedStarId) => (
+                    <span
+                      className="rounded-full bg-white px-2.5 py-1 font-mono text-[0.68rem] font-semibold text-[#6d28d9]"
+                      key={relatedStarId}
+                    >
+                      {relatedStarId}
+                    </span>
+                  ))}
+                </div>
               ) : null}
             </div>
             <div className="rounded-lg bg-gradient-to-br from-[#11132d] via-[#4338ca] to-[#7c3aed] p-5 text-white">

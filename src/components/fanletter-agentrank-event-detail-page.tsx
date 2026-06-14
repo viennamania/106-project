@@ -69,6 +69,7 @@ function getCopy(locale: Locale) {
       productEventBody:
         "실제 사용자 행동, 콘텐츠 참여, Universe 참여, 또는 운영 데이터에서 생성된 Reputation Event입니다.",
       quality: "품질 점수",
+      relatedStarScope: "관련 AI 스타 범위",
       riskPenalty: "Risk Penalty",
       currentEvent: "현재 이벤트",
       eventWeight: "Event Weight",
@@ -148,6 +149,7 @@ function getCopy(locale: Locale) {
     productEventBody:
       "Generated from real user behavior, content engagement, Universe participation, or production operational data.",
     quality: "Quality Score",
+    relatedStarScope: "Related AI Star Scope",
     riskPenalty: "Risk Penalty",
     currentEvent: "Current Event",
     eventWeight: "Event Weight",
@@ -438,6 +440,26 @@ function readContextString(event: AgentRankReputationEvent, key: string) {
   }
 
   return null;
+}
+
+function getRelatedStarScope(event: AgentRankReputationEvent) {
+  const values = [
+    event.starId,
+    event.object?.type === "ai_star" ? event.object.id : null,
+    event.subject?.type === "ai_star" ? event.subject.id : null,
+    readContextString(event, "sourceStarId"),
+    readContextString(event, "spawnedStarId"),
+    readContextString(event, "targetStarId"),
+    readContextString(event, "coverageActionStarId"),
+    readContextString(event, "relatedStarIds"),
+  ];
+  const starIds = values
+    .filter((value): value is string => Boolean(value))
+    .flatMap((value) => value.split(","))
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+
+  return [...new Set(starIds)];
 }
 
 function getScoreImpactRows(
@@ -1465,6 +1487,7 @@ export function FanletterAgentRankEventDetailPage({
   const isCoverageMock = isCoverageMockEvent(event);
   const eventInScope = isAgentRankEventIncludedInMockScope(event, eventScope);
   const eventScopeLabel = getEventScopeLabel(eventScope, copy);
+  const relatedStarScope = getRelatedStarScope(event);
   const eventClassification = isCoverageMock
     ? {
         body: copy.coverageMockBody,
@@ -1598,6 +1621,21 @@ export function FanletterAgentRankEventDetailPage({
             <p className="mt-3 rounded-lg bg-white/70 px-3 py-2 text-sm font-semibold leading-6 text-amber-900">
               {copy.eventScopeMismatch}
             </p>
+          ) : null}
+          {relatedStarScope.length ? (
+            <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg bg-white/70 px-3 py-2">
+              <span className="text-xs font-semibold uppercase text-slate-500">
+                {copy.relatedStarScope}
+              </span>
+              {relatedStarScope.map((relatedStarId) => (
+                <span
+                  className="rounded-full bg-violet-50 px-2.5 py-1 font-mono text-[0.68rem] font-semibold text-[#6d28d9]"
+                  key={relatedStarId}
+                >
+                  {relatedStarId}
+                </span>
+              ))}
+            </div>
           ) : null}
         </section>
 
