@@ -83,6 +83,9 @@ function getLedgerCopy(locale: Locale) {
       auditReady: "감사 준비",
       back: "AgentRank로 돌아가기",
       cp: "CP",
+      coverageMock: "커버리지 Mock",
+      coverageMockNote:
+        "커버리지 확인용 이벤트입니다. 실제 결제/권한 부여와 분리됩니다.",
       csv: "CSV 내보내기",
       details: "이벤트 상세",
       evidencePacket: "Evidence Packet",
@@ -119,6 +122,7 @@ function getLedgerCopy(locale: Locale) {
       sourceId: "소스 ID",
       star: "AI 스타",
       limit: "표시 개수",
+      productEvent: "제품 이벤트",
       totalEvents: "이벤트",
       uniqueMembers: "멤버",
       uniqueStars: "AI 스타",
@@ -134,6 +138,9 @@ function getLedgerCopy(locale: Locale) {
     auditReady: "Audit-ready",
     back: "Back to AgentRank",
     cp: "CP",
+    coverageMock: "Coverage Mock",
+    coverageMockNote:
+      "Audit coverage event. Separated from live payment or entitlement state.",
     csv: "Export CSV",
     details: "Event Details",
     evidencePacket: "Evidence Packet",
@@ -170,11 +177,22 @@ function getLedgerCopy(locale: Locale) {
     sourceId: "Source ID",
     star: "AI Star",
     limit: "Limit",
+    productEvent: "Product Event",
     totalEvents: "Events",
     uniqueMembers: "Members",
     uniqueStars: "AI Stars",
     viewAll: "View all",
   };
+}
+
+function isCoverageMockEvent(event: AgentRankReputationEvent) {
+  return (
+    event.type === "x402_mock_payment_intent" ||
+    event.context.coverageMockCreatorUnlocked === true ||
+    event.context.mockPaymentIntent === true ||
+    event.context.checkoutMode === "mock_coverage" ||
+    event.context.a2aMockUsage === true
+  );
 }
 
 function toFiniteNumber(value: number | null | undefined) {
@@ -494,6 +512,7 @@ function EventCard({
   const oracleGaps = getOracleReadinessGaps(event, locale);
   const audit = getEventAudit(event);
   const auditGaps = audit.gaps.map((gap) => getAuditGapLabel(gap, locale));
+  const isCoverageMock = isCoverageMockEvent(event);
   const isPacketReady =
     event.reputationSignals.oracleReady && audit.status === "audit_ready";
   const packetStarId = event.starId ?? event.object?.id ?? null;
@@ -534,9 +553,25 @@ function EventCard({
             </p>
           </div>
         </div>
-        <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
-          {event.context.source ?? event.source}
-        </span>
+        <div className="flex flex-wrap justify-end gap-2">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${
+              isCoverageMock
+                ? "border-amber-100 bg-amber-50 text-amber-700"
+                : "border-emerald-100 bg-emerald-50 text-emerald-700"
+            }`}
+          >
+            {isCoverageMock ? (
+              <AlertTriangle className="size-3.5" />
+            ) : (
+              <ShieldCheck className="size-3.5" />
+            )}
+            {isCoverageMock ? copy.coverageMock : copy.productEvent}
+          </span>
+          <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
+            {event.context.source ?? event.source}
+          </span>
+        </div>
       </div>
 
       <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-5">
@@ -629,6 +664,12 @@ function EventCard({
           <Database className="size-3.5" />
           {isPacketReady ? copy.packetReady : copy.packetPartial}
         </span>
+        {isCoverageMock ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-amber-700">
+            <AlertTriangle className="size-3.5" />
+            {copy.coverageMockNote}
+          </span>
+        ) : null}
         <span>{formatDate(event.occurredAt, locale)}</span>
         <span className="text-slate-300">/</span>
         <span>{event.context.universeId ?? event.starId ?? "-"}</span>

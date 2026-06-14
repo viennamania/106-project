@@ -7,6 +7,7 @@ import {
   readFirstSearchParam,
 } from "@/lib/agentrank/coverage-action";
 import { buildAgentRankCoverageSnapshot } from "@/lib/agentrank/coverage";
+import { buildAgentRankCoverageEventFeed } from "@/lib/agentrank/coverage-event-feed";
 import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { hasLocale, type Locale } from "@/lib/i18n";
@@ -105,8 +106,20 @@ export default async function FanletterAgentRankCoverageAuditRoute({
     memberEmail,
     starId,
   });
-  const coverage = buildAgentRankCoverageSnapshot(
+  const preliminaryCoverage = buildAgentRankCoverageSnapshot(
     snapshot.eventFeed,
+    snapshot.ers.readiness,
+  );
+  const coverageEventFeed = await buildAgentRankCoverageEventFeed({
+    baseFeed: snapshot.eventFeed,
+    memberEmail,
+    missingTypes: preliminaryCoverage.eventTypes
+      .filter((eventType) => !eventType.covered)
+      .map((eventType) => eventType.type),
+    starId,
+  });
+  const coverage = buildAgentRankCoverageSnapshot(
+    coverageEventFeed,
     snapshot.ers.readiness,
   );
 
@@ -114,7 +127,7 @@ export default async function FanletterAgentRankCoverageAuditRoute({
     <FanletterAgentRankCoverageAuditPage
       coverage={coverage}
       coverageAction={coverageAction}
-      eventFeed={snapshot.eventFeed}
+      eventFeed={coverageEventFeed}
       generatedAt={snapshot.generatedAt}
       locale={locale}
       scope={{
