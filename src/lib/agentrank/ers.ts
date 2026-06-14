@@ -42,6 +42,8 @@ export type AgentRankEconomicReputationScore = {
   score: number;
   source: "fanletter_phase_1_adapter";
   summary: {
+    cpPoolGeneratedEvents: number;
+    cpPoolGeneratedTotal: number;
     cpTotal: number;
     eventCount: number;
     networkEdges: number;
@@ -231,6 +233,8 @@ export function calculateAgentRankEconomicReputationScore(
     score,
     source: "fanletter_phase_1_adapter",
     summary: {
+      cpPoolGeneratedEvents,
+      cpPoolGeneratedTotal,
       cpTotal: summary.cpTotal,
       eventCount: summary.totalEvents,
       networkEdges: summary.networkEdges,

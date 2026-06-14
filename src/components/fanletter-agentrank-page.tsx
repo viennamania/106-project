@@ -152,7 +152,8 @@ function getAgentRankCopy(locale: Locale) {
       futureBuild: "우리가 만드는 미래",
       metrics: {
         audit: "감사 준비",
-        cp: "CP 생성",
+        cp: "CP 보상",
+        cpPool: "CP Pool",
         events: "이벤트",
         members: "멤버",
         network: "네트워크 연결",
@@ -239,7 +240,8 @@ function getAgentRankCopy(locale: Locale) {
     futureBuild: "The Future We Build",
     metrics: {
       audit: "Audit Ready",
-      cp: "CP Generated",
+      cp: "CP Rewards",
+      cpPool: "CP Pool",
       events: "Events",
       members: "Members",
       network: "Network Edges",
@@ -1597,6 +1599,10 @@ export function FanletterAgentRankPage({
       value: formatNumber(ers.summary.cpTotal, locale),
     },
     {
+      label: copy.metrics.cpPool,
+      value: formatNumber(ers.summary.cpPoolGeneratedTotal, locale),
+    },
+    {
       label: copy.metrics.members,
       value: formatNumber(ers.summary.uniqueMembers, locale),
     },
@@ -1682,7 +1688,7 @@ export function FanletterAgentRankPage({
           </div>
         </header>
 
-        <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
+        <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-9">
           {metrics.map((metric, index) => (
             <MetricTile
               key={metric.label}
