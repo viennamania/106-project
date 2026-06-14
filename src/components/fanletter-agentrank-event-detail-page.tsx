@@ -45,9 +45,22 @@ function getCopy(locale: Locale) {
       eventLineage: "Event Lineage",
       eventLineageBody:
         "같은 AI 스타, 멤버, 추천 코드, Universe로 이어진 이벤트를 전후 흐름으로 보여줍니다.",
+      economicFlow: "Economic Flow",
+      economicFlowBody:
+        "Creator Launch에서 발생한 x402 의도, CP Pool 생성, 상위 네트워크 분배를 하나의 거래 흐름으로 추적합니다.",
       graphBody:
         "액터, 이벤트, 대상, 주변 Reputation Event를 하나의 거래 그래프로 연결합니다.",
       linkedEvents: "연결 이벤트",
+      allocated: "분배됨",
+      cpPool: "CP Pool",
+      creator: "Creator",
+      launchCost: "Launch Cost",
+      paymentIntent: "x402 의도",
+      recipients: "수령자",
+      roleBands: "보상 계층",
+      sourceUniverse: "Source Universe",
+      spawnedStar: "Spawned Star",
+      unallocated: "미분배",
       noRelatedEvents: "연결된 주변 이벤트가 아직 충분하지 않습니다.",
       rawJson: "Raw Event JSON",
       ready: "준비됨",
@@ -84,9 +97,22 @@ function getCopy(locale: Locale) {
     eventLineage: "Event Lineage",
     eventLineageBody:
       "Shows nearby events connected by the same AI Star, member, referral code, or Universe.",
+    economicFlow: "Economic Flow",
+    economicFlowBody:
+      "Traces x402 intent, CP Pool generation, and upline distribution from a Creator Launch as one transaction flow.",
     graphBody:
       "Connects the actor, event, object, and nearby Reputation Events into one transaction graph.",
     linkedEvents: "linked events",
+    allocated: "Allocated",
+    cpPool: "CP Pool",
+    creator: "Creator",
+    launchCost: "Launch Cost",
+    paymentIntent: "x402 Intent",
+    recipients: "Recipients",
+    roleBands: "Reward Bands",
+    sourceUniverse: "Source Universe",
+    spawnedStar: "Spawned Star",
+    unallocated: "Unallocated",
     noRelatedEvents: "There are not enough related surrounding events yet.",
     rawJson: "Raw Event JSON",
     ready: "Ready",
@@ -303,6 +329,200 @@ function SignalTile({
         {formatNumber(value, locale)}
       </p>
     </div>
+  );
+}
+
+function readContextNumber(event: AgentRankReputationEvent, key: string) {
+  const value = event.context[key];
+
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function readContextString(event: AgentRankReputationEvent, key: string) {
+  const value = event.context[key];
+
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return null;
+}
+
+function EconomicFlowStep({
+  Icon,
+  label,
+  tone = "violet",
+  value,
+}: {
+  Icon: typeof WalletCards;
+  label: string;
+  tone?: "cyan" | "emerald" | "slate" | "violet";
+  value: string;
+}) {
+  const toneClass = {
+    cyan: "border-cyan-100 bg-cyan-50 text-cyan-700",
+    emerald: "border-emerald-100 bg-emerald-50 text-emerald-700",
+    slate: "border-slate-100 bg-slate-50 text-slate-700",
+    violet: "border-violet-100 bg-violet-50 text-[#6d28d9]",
+  }[tone];
+
+  return (
+    <div className={`min-w-0 rounded-lg border p-4 ${toneClass}`}>
+      <div className="flex items-center gap-2">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white/80">
+          <Icon className="size-4" />
+        </span>
+        <p className="text-xs font-semibold uppercase">{label}</p>
+      </div>
+      <p className="mt-3 break-words text-lg font-semibold leading-tight text-[#11132d]">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function EconomicFlowArrow() {
+  return (
+    <div className="flex items-center justify-center text-[#7c3aed] max-lg:rotate-90">
+      <ArrowRight className="size-5" />
+    </div>
+  );
+}
+
+function EconomicFlowPanel({
+  copy,
+  event,
+  locale,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  event: AgentRankReputationEvent;
+  locale: Locale;
+}) {
+  const cpPoolTotal = readContextNumber(event, "cpPoolTotal");
+  const allocatedCp = readContextNumber(event, "allocatedCp");
+  const unallocatedCp = readContextNumber(event, "unallocatedCp");
+  const recipientCount = readContextNumber(event, "recipientCount");
+  const launchCostUsdt = readContextNumber(event, "launchCostUsdt");
+  const hasEconomicFlow =
+    event.type === "cp_pool_generated" ||
+    event.type === "x402_mock_payment_intent" ||
+    event.type === "ai_star_spawned" ||
+    cpPoolTotal !== null ||
+    launchCostUsdt !== null;
+
+  if (!hasEconomicFlow) {
+    return null;
+  }
+
+  const creator =
+    readContextString(event, "launchCreatorEmail") ?? getActorLabel(event.actor);
+  const sourceUniverse =
+    event.object?.label ??
+    readContextString(event, "sourceStarName") ??
+    readContextString(event, "sourceStarId") ??
+    event.starId ??
+    "-";
+  const spawnedStar =
+    event.subject?.label ??
+    readContextString(event, "spawnedStarName") ??
+    readContextString(event, "spawnedStarId") ??
+    "-";
+  const paymentStatus = readContextString(event, "paymentStatus") ?? "mock";
+  const roleBands = readContextString(event, "roles");
+  const cpPoolValue =
+    cpPoolTotal !== null
+      ? `${formatNumber(cpPoolTotal, locale)} CP`
+      : allocatedCp !== null
+        ? `${formatNumber(allocatedCp, locale)} CP`
+        : "-";
+
+  return (
+    <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+            <WalletCards className="size-4" />
+            {copy.economicFlow}
+          </p>
+          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+            {copy.economicFlowBody}
+          </p>
+        </div>
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+            event.economicLayer.x402Ready
+              ? "bg-emerald-50 text-emerald-700"
+              : "bg-amber-50 text-amber-700"
+          }`}
+        >
+          {copy.paymentIntent} · {paymentStatus}
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_2rem_minmax(0,1fr)_2rem_minmax(0,1fr)_2rem_minmax(0,1fr)] lg:items-stretch">
+        <EconomicFlowStep
+          Icon={Bot}
+          label={copy.creator}
+          value={creator}
+        />
+        <EconomicFlowArrow />
+        <EconomicFlowStep
+          Icon={Database}
+          label={copy.sourceUniverse}
+          tone="cyan"
+          value={sourceUniverse}
+        />
+        <EconomicFlowArrow />
+        <EconomicFlowStep
+          Icon={WalletCards}
+          label={copy.cpPool}
+          tone="emerald"
+          value={cpPoolValue}
+        />
+        <EconomicFlowArrow />
+        <EconomicFlowStep
+          Icon={GitBranch}
+          label={copy.spawnedStar}
+          tone="slate"
+          value={spawnedStar}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <SignalTile
+          label={copy.allocated}
+          locale={locale}
+          value={allocatedCp ?? 0}
+        />
+        <SignalTile
+          label={copy.unallocated}
+          locale={locale}
+          value={unallocatedCp ?? 0}
+        />
+        <SignalTile
+          label={copy.recipients}
+          locale={locale}
+          value={recipientCount ?? 0}
+        />
+        <SignalTile
+          label={copy.launchCost}
+          locale={locale}
+          value={launchCostUsdt ?? 0}
+        />
+        <div className="rounded-lg border border-violet-100 bg-white p-4">
+          <p className="text-xs font-semibold uppercase text-slate-400">
+            {copy.roleBands}
+          </p>
+          <p className="mt-2 break-words text-sm font-semibold leading-6 text-[#11132d]">
+            {roleBands || "-"}
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -836,6 +1056,8 @@ export function FanletterAgentRankEventDetailPage({
             />
           </div>
         </section>
+
+        <EconomicFlowPanel copy={copy} event={event} locale={locale} />
 
         <section className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
           <article className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
