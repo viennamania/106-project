@@ -22,9 +22,26 @@ export type AgentRankCoverageSourceItem = {
   source: AgentRankInteractionSource;
 };
 
+export type AgentRankCoverageFactoryLayer = {
+  coveragePercent: number;
+  coveredEventTypes: number;
+  eventTypes: number;
+  layer: AgentRankCoverageEventItem["layer"];
+  missingEventTypes: AgentRankReputationEventType[];
+  oracleReadyEvents: number;
+  totalEvents: number;
+};
+
 export type AgentRankCoverageSnapshot = {
   eventTypeCoveragePercent: number;
   eventTypes: AgentRankCoverageEventItem[];
+  factoryManifest: {
+    agentRankCompatible: boolean;
+    economicTrustInputs: AgentRankCoverageEventItem["layer"][];
+    layers: AgentRankCoverageFactoryLayer[];
+    phase: "fanletter_phase_1";
+    recordType: "agentrank.reputation_event_factory.v1";
+  };
   gaps: string[];
   interactionSourceCoveragePercent: number;
   oracleCoveragePercent: number;
@@ -61,6 +78,13 @@ const eventLayerMap = {
   universe_growth: "network",
   x402_mock_payment_intent: "economy",
 } satisfies Record<AgentRankReputationEventType, AgentRankCoverageEventItem["layer"]>;
+
+const factoryLayerOrder = [
+  "discovery",
+  "network",
+  "creator",
+  "economy",
+] satisfies AgentRankCoverageEventItem["layer"][];
 
 function percent(value: number, total: number) {
   if (total <= 0) {
@@ -114,6 +138,30 @@ export function buildAgentRankCoverageSnapshot(
   });
   const coveredEventTypes = eventTypes.filter((item) => item.covered).length;
   const coveredInteractionSources = sources.filter((item) => item.covered).length;
+  const factoryLayers = factoryLayerOrder.map((layer) => {
+    const layerEventTypes = eventTypes.filter((item) => item.layer === layer);
+    const layerEventTypeNames = layerEventTypes.map((item) => item.type);
+    const layerEvents = feed.events.filter((event) =>
+      layerEventTypeNames.includes(event.type),
+    );
+    const layerCoveredEventTypes = layerEventTypes.filter(
+      (item) => item.covered,
+    ).length;
+
+    return {
+      coveragePercent: percent(layerCoveredEventTypes, layerEventTypes.length),
+      coveredEventTypes: layerCoveredEventTypes,
+      eventTypes: layerEventTypes.length,
+      layer,
+      missingEventTypes: layerEventTypes
+        .filter((item) => !item.covered)
+        .map((item) => item.type),
+      oracleReadyEvents: layerEvents.filter(
+        (event) => event.reputationSignals.oracleReady,
+      ).length,
+      totalEvents: layerEvents.length,
+    };
+  });
   const eventTypeCoveragePercent = percent(
     coveredEventTypes,
     eventTypes.length,
@@ -162,6 +210,16 @@ export function buildAgentRankCoverageSnapshot(
   return {
     eventTypeCoveragePercent,
     eventTypes,
+    factoryManifest: {
+      agentRankCompatible:
+        schemaCoveragePercent >= 90 &&
+        oracleCoveragePercent >= 50 &&
+        coveredEventTypes >= Math.ceil(eventTypes.length * 0.7),
+      economicTrustInputs: [...factoryLayerOrder],
+      layers: factoryLayers,
+      phase: "fanletter_phase_1",
+      recordType: "agentrank.reputation_event_factory.v1",
+    },
     gaps: gaps.slice(0, 10),
     interactionSourceCoveragePercent,
     oracleCoveragePercent,

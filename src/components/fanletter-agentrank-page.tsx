@@ -379,6 +379,27 @@ function getInteractionSourceLabel(
   return labels[source];
 }
 
+function getFactoryLayerLabel(
+  layer: AgentRankCoverageSnapshot["factoryManifest"]["layers"][number]["layer"],
+  locale: Locale,
+) {
+  if (locale !== "ko") {
+    return layer;
+  }
+
+  const labels: Record<
+    AgentRankCoverageSnapshot["factoryManifest"]["layers"][number]["layer"],
+    string
+  > = {
+    creator: "크리에이터",
+    discovery: "발견",
+    economy: "경제",
+    network: "네트워크",
+  };
+
+  return labels[layer];
+}
+
 function getCoverageGapLabel(gap: string, locale: Locale) {
   const [kind, value] = gap.split(":");
 
@@ -1723,13 +1744,20 @@ function EconomicActivityPanel({
 
 function EventFactoryPanel({
   copy,
+  coverage,
   events,
   locale,
 }: {
   copy: AgentRankCopy;
+  coverage: AgentRankCoverageSnapshot;
   events: AgentRankReputationEvent[];
   locale: Locale;
 }) {
+  const manifest = coverage.factoryManifest;
+  const factoryCompatibleLabel =
+    locale === "ko" ? "AgentRank 호환" : "AgentRank Compatible";
+  const factoryNeedsDataLabel =
+    locale === "ko" ? "추가 데이터 필요" : "Needs More Data";
   const factoryItems = [
     {
       icon: <Eye className="size-5" />,
@@ -1786,6 +1814,48 @@ function EventFactoryPanel({
         </div>
         <div className="mt-5 rounded-lg bg-gradient-to-r from-pink-500 to-fuchsia-500 px-4 py-3 text-center text-sm font-semibold text-white">
           {copy.cleanEvents}
+        </div>
+        <div className="mt-4 rounded-lg border border-violet-100 bg-violet-50/70 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span
+              className={`inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold ${
+                manifest.agentRankCompatible
+                  ? "border-emerald-100 bg-white text-emerald-700"
+                  : "border-amber-100 bg-white text-amber-700"
+              }`}
+            >
+              {manifest.agentRankCompatible ? (
+                <BadgeCheck className="size-3.5" />
+              ) : (
+                <ShieldAlert className="size-3.5" />
+              )}
+              {manifest.agentRankCompatible
+                ? factoryCompatibleLabel
+                : factoryNeedsDataLabel}
+            </span>
+            <span className="rounded-full bg-white px-3 py-1.5 text-[0.68rem] font-semibold text-[#6d28d9] ring-1 ring-violet-100">
+              {manifest.recordType}
+            </span>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {manifest.layers.map((layer) => (
+              <div className="rounded-lg bg-white p-3" key={layer.layer}>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-xs font-semibold text-[#11132d]">
+                    {getFactoryLayerLabel(layer.layer, locale)}
+                  </p>
+                  <p className="text-xs font-semibold text-[#6d28d9]">
+                    {layer.coveragePercent}%
+                  </p>
+                </div>
+                <p className="mt-1 text-[0.68rem] font-semibold text-slate-400">
+                  {formatNumber(layer.totalEvents, locale)}{" "}
+                  {copy.metrics.events} · {formatNumber(layer.oracleReadyEvents, locale)}{" "}
+                  {copy.metrics.oracle}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -2077,6 +2147,7 @@ export function FanletterAgentRankPage({
 
         <div className="mt-5">
           <EventFactoryPanel
+            coverage={coverage}
             copy={copy}
             events={eventFeed.events}
             locale={locale}

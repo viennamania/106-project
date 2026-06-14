@@ -75,6 +75,13 @@ const layerClass = {
   network: "border-violet-100 bg-violet-50/80 text-[#6d28d9]",
 } satisfies Record<AgentRankCoverageEventItem["layer"], string>;
 
+const factoryLayerIconMap = {
+  creator: Rocket,
+  discovery: Eye,
+  economy: WalletCards,
+  network: Network,
+} satisfies Record<AgentRankCoverageEventItem["layer"], typeof Eye>;
+
 function getCoverageAuditCopy(locale: Locale) {
   if (locale === "ko") {
     return {
@@ -100,9 +107,16 @@ function getCoverageAuditCopy(locale: Locale) {
         "이 범위에서는 필수 Reputation Event 타입, CTA 출처, x402 mock 의도, A2A 준비 신호가 모두 원장에 기록되었습니다.",
       coverageCompleteTitle: "Phase 1 이벤트 팩토리 커버리지 완료",
       csv: "CSV 내보내기",
+      economicTrustInputs: "경제 신뢰 입력",
       eventCoverage: "이벤트 타입 커버리지",
+      eventFactory: "Reputation Event Factory",
+      eventFactoryBody:
+        "FanLetter Phase 1의 제품 행동이 AgentRank가 읽을 수 있는 경제 신뢰 이벤트로 변환되는 생산 라인입니다.",
       eventLedger: "이벤트 원장",
       eventScope: "이벤트 범위",
+      events: "이벤트",
+      factoryCompatible: "AgentRank 호환",
+      factoryNeedsMoreData: "추가 데이터 필요",
       gaps: "우선 보강 신호",
       generated: "생성 시간",
       interactionCoverage: "CTA 소스 커버리지",
@@ -110,6 +124,7 @@ function getCoverageAuditCopy(locale: Locale) {
       missing: "대기",
       noCriticalGaps: "현재 핵심 갭이 없습니다.",
       oracleCoverage: "오라클 준비율",
+      oracleReady: "오라클",
       phase1Quality: "Phase 1 데이터 품질",
       priorityActionPlan: "우선 수집 액션",
       schemaCoverage: "스키마 준비율",
@@ -149,17 +164,25 @@ function getCoverageAuditCopy(locale: Locale) {
     coverageCompleteBody:
       "For this scope, required Reputation Event types, CTA sources, x402 mock intent, and A2A readiness signals are all present in the ledger.",
     coverageCompleteTitle: "Phase 1 Event Factory Coverage Complete",
-    csv: "Export CSV",
-    eventCoverage: "Event Type Coverage",
-    eventLedger: "Event Ledger",
-    eventScope: "Event Scope",
-    gaps: "Priority Gaps",
-    generated: "Generated",
-    interactionCoverage: "CTA Source Coverage",
+      csv: "Export CSV",
+      economicTrustInputs: "Economic Trust Inputs",
+      eventCoverage: "Event Type Coverage",
+      eventFactory: "Reputation Event Factory",
+      eventFactoryBody:
+        "The production line that turns FanLetter Phase 1 product behavior into AgentRank-readable economic trust events.",
+      eventLedger: "Event Ledger",
+      eventScope: "Event Scope",
+      events: "Events",
+      factoryCompatible: "AgentRank Compatible",
+      factoryNeedsMoreData: "Needs More Data",
+      gaps: "Priority Gaps",
+      generated: "Generated",
+      interactionCoverage: "CTA Source Coverage",
     latestEvents: "Latest Audit Events",
     missing: "Pending",
-    noCriticalGaps: "No critical gaps at the moment.",
-    oracleCoverage: "Oracle-ready Coverage",
+      noCriticalGaps: "No critical gaps at the moment.",
+      oracleCoverage: "Oracle-ready Coverage",
+      oracleReady: "Oracle",
     phase1Quality: "Phase 1 Data Quality",
     priorityActionPlan: "Priority Collection Actions",
     schemaCoverage: "Schema Coverage",
@@ -802,6 +825,123 @@ function CoverageMetric({
   );
 }
 
+function EventFactoryManifestPanel({
+  coverage,
+  locale,
+}: {
+  coverage: AgentRankCoverageSnapshot;
+  locale: Locale;
+}) {
+  const copy = getCoverageAuditCopy(locale);
+  const manifest = coverage.factoryManifest;
+
+  return (
+    <section className="mt-5 rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_20px_60px_rgba(88,28,135,0.06)]">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+            <Sparkles className="size-4" />
+            {copy.eventFactory}
+          </p>
+          <p className="mt-2 max-w-4xl text-sm font-medium leading-6 text-slate-500">
+            {copy.eventFactoryBody}
+          </p>
+        </div>
+        <span
+          className={`inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold ${
+            manifest.agentRankCompatible
+              ? "border-emerald-100 bg-emerald-50 text-emerald-700"
+              : "border-amber-100 bg-amber-50 text-amber-700"
+          }`}
+        >
+          {manifest.agentRankCompatible ? (
+            <BadgeCheck className="size-4" />
+          ) : (
+            <ShieldAlert className="size-4" />
+          )}
+          {manifest.agentRankCompatible
+            ? copy.factoryCompatible
+            : copy.factoryNeedsMoreData}
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {manifest.layers.map((layer) => {
+          const Icon = factoryLayerIconMap[layer.layer];
+
+          return (
+            <div
+              className="overflow-hidden rounded-[1rem] border border-slate-100 bg-slate-50"
+              key={layer.layer}
+            >
+              <div className={`h-1.5 ${layerClass[layer.layer]}`} />
+              <div className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[#11132d]">
+                      {getLayerLabel(layer.layer, locale)}
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-slate-400">
+                      {layer.coveredEventTypes}/{layer.eventTypes} ·{" "}
+                      {layer.coveragePercent}%
+                    </p>
+                  </div>
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#6d28d9] shadow-[0_10px_24px_rgba(15,23,42,0.06)]">
+                    <Icon className="size-5" />
+                  </span>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <div className="rounded-xl bg-white px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase text-slate-400">
+                      {copy.events}
+                    </p>
+                    <p className="mt-1 text-lg font-semibold text-[#11132d]">
+                      {formatNumber(layer.totalEvents, locale)}
+                    </p>
+                  </div>
+                  <div className="rounded-xl bg-white px-3 py-2">
+                    <p className="text-[11px] font-semibold uppercase text-slate-400">
+                      {copy.oracleReady}
+                    </p>
+                    <p className="mt-1 text-lg font-semibold text-[#11132d]">
+                      {formatNumber(layer.oracleReadyEvents, locale)}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#7c3aed] to-[#16a34a]"
+                    style={{ width: `${layer.coveragePercent}%` }}
+                  />
+                </div>
+                <p className="mt-3 min-h-10 text-xs font-medium leading-5 text-slate-500">
+                  {layer.missingEventTypes.length > 0
+                    ? `${copy.gaps}: ${layer.missingEventTypes
+                        .map((type) => getEventTypeLabel(type, locale))
+                        .join(", ")}`
+                    : copy.coverageCompleteTitle}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <span className="inline-flex min-h-9 items-center rounded-full bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9] ring-1 ring-violet-100">
+          {manifest.recordType}
+        </span>
+        <span className="inline-flex min-h-9 items-center rounded-full bg-slate-50 px-3 text-xs font-semibold text-slate-500 ring-1 ring-slate-100">
+          {copy.economicTrustInputs}:{" "}
+          {manifest.economicTrustInputs
+            .map((layer) => getLayerLabel(layer, locale))
+            .join(" · ")}
+        </span>
+      </div>
+    </section>
+  );
+}
+
 function EventTypeCoverageCard({
   item,
   locale,
@@ -1102,6 +1242,8 @@ export function FanletterAgentRankCoverageAuditPage({
             value={coverage.schemaCoveragePercent}
           />
         </section>
+
+        <EventFactoryManifestPanel coverage={coverage} locale={locale} />
 
         <CoverageActionImpactPanel
           coverage={coverage}

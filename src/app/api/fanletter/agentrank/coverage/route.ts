@@ -113,6 +113,24 @@ function serializeCoverageCsv(
       `${coverage.totals.schemaReadyEvents}/${coverage.totals.totalEvents}`,
       "",
     ],
+    [
+      "factory",
+      "recordType",
+      "Factory Manifest",
+      coverage.factoryManifest.recordType,
+      "",
+      coverage.factoryManifest.agentRankCompatible,
+      coverage.factoryManifest.phase,
+    ],
+    ...coverage.factoryManifest.layers.map((layer) => [
+      "factory_layer",
+      layer.layer,
+      layer.layer,
+      layer.totalEvents,
+      layer.eventTypes,
+      `${layer.coveredEventTypes}/${layer.eventTypes}`,
+      layer.missingEventTypes.join("|"),
+    ]),
     ...coverage.eventTypes.map((eventType) => [
       "event_type",
       eventType.type,
@@ -200,6 +218,10 @@ export async function GET(request: Request) {
       "x-agentrank-event-type-coverage": String(
         coverage.eventTypeCoveragePercent,
       ),
+      "x-agentrank-factory-compatible": String(
+        coverage.factoryManifest.agentRankCompatible,
+      ),
+      "x-agentrank-factory-record-type": coverage.factoryManifest.recordType,
       "x-agentrank-mock-events": String(scopedEventSummary.mockEvents),
       "x-agentrank-product-events": String(scopedEventSummary.productEvents),
       "x-agentrank-record-type": payload.recordType,
