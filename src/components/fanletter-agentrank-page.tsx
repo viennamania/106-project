@@ -92,6 +92,7 @@ function getAgentRankCopy(locale: Locale) {
       collectVerify: "Collect · Verify · Enrich · Store · Connect",
       coverage: {
         api: "Coverage API",
+        auditPage: "감사 페이지",
         csv: "Coverage CSV",
         covered: "수집됨",
         eventCoverage: "이벤트 타입 커버리지",
@@ -189,6 +190,7 @@ function getAgentRankCopy(locale: Locale) {
     collectVerify: "Collect · Verify · Enrich · Store · Connect",
     coverage: {
       api: "Coverage API",
+      auditPage: "Audit Page",
       csv: "Coverage CSV",
       covered: "Covered",
       eventCoverage: "Event Type Coverage",
@@ -588,6 +590,7 @@ function AgentRankCoveragePanel({
   const coverageParams = new URLSearchParams({
     limit: "120",
   });
+  const coveragePageParams = new URLSearchParams(coverageParams);
   const coverageCsvParams = new URLSearchParams(coverageParams);
   const layerClass = {
     creator: "border-pink-100 bg-pink-50/70 text-pink-700",
@@ -601,6 +604,7 @@ function AgentRankCoveragePanel({
 
   if (starId) {
     coverageParams.set("starId", starId);
+    coveragePageParams.set("starId", starId);
     coverageCsvParams.set("starId", starId);
   }
 
@@ -615,6 +619,13 @@ function AgentRankCoveragePanel({
               {copy.coverage.title}
             </p>
             <div className="flex flex-wrap gap-2">
+              <a
+                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-white px-3 text-xs font-semibold text-[#5b21b6]"
+                href={`/${locale}/fanletter/agentrank/coverage?${coveragePageParams.toString()}`}
+              >
+                <ShieldCheck className="size-3.5" />
+                {copy.coverage.auditPage}
+              </a>
               <a
                 className="inline-flex h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9]"
                 href={`/api/fanletter/agentrank/coverage?${coverageParams.toString()}`}

@@ -1583,7 +1583,7 @@ function AgentRankUniverseCard({
   const latestEvents = agentRank.eventFeed.events.slice(0, 3);
   const latestEvent = latestEvents[0] ?? null;
   const encodedStarId = encodeURIComponent(universe.star.id);
-  const coverageAuditHref = `/api/fanletter/agentrank/coverage?starId=${encodedStarId}&limit=120`;
+  const coverageAuditHref = `/${locale}/fanletter/agentrank/coverage?starId=${encodedStarId}&limit=120`;
   const latestEvidenceHref = latestEvent
     ? `/${locale}/fanletter/agentrank/events/${encodeURIComponent(
         latestEvent.eventId,
@@ -1852,7 +1852,7 @@ function AgentRankSignalStrip({
   );
   const latestEvent = agentRank.eventFeed.events[0] ?? null;
   const encodedStarId = encodeURIComponent(universe.star.id);
-  const coverageAuditHref = `/api/fanletter/agentrank/coverage?starId=${encodedStarId}&limit=120`;
+  const coverageAuditHref = `/${locale}/fanletter/agentrank/coverage?starId=${encodedStarId}&limit=120`;
   const latestEvidenceHref = latestEvent
     ? `/${locale}/fanletter/agentrank/events/${encodeURIComponent(
         latestEvent.eventId,
