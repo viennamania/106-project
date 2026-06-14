@@ -40,6 +40,9 @@ function getCopy(locale: Locale) {
       evidenceHash: "증거 해시",
       back: "이벤트 원장",
       context: "Context",
+      coverageMockBody:
+        "이 이벤트는 커버리지 확인을 위해 생성된 mock Reputation Event입니다. 실제 결제, 실제 권한 부여, 운영 보상 상태와 분리해서 봅니다.",
+      coverageMockEvent: "커버리지 Mock 이벤트",
       eventId: "이벤트 ID",
       formula: "ERS 반영 공식",
       heroBody:
@@ -52,6 +55,9 @@ function getCopy(locale: Locale) {
         "이 이벤트가 AgentRank Oracle로 전달될 때 필요한 원본 소스, 스키마, 감사 해시, 연결 이벤트 증거를 하나의 검증 흐름으로 묶습니다.",
       oraclePacketCandidate: "Oracle Packet 후보",
       pending: "대기",
+      productEvent: "제품 이벤트",
+      productEventBody:
+        "실제 사용자 행동, 콘텐츠 참여, Universe 참여, 또는 운영 데이터에서 생성된 Reputation Event입니다.",
       quality: "품질 점수",
       riskPenalty: "Risk Penalty",
       currentEvent: "현재 이벤트",
@@ -106,6 +112,9 @@ function getCopy(locale: Locale) {
     evidenceHash: "Evidence Hash",
     back: "Event Ledger",
     context: "Context",
+    coverageMockBody:
+      "This is a mock Reputation Event generated for coverage verification. Treat it separately from live payments, entitlement grants, and production rewards.",
+    coverageMockEvent: "Coverage Mock Event",
     eventId: "Event ID",
     formula: "ERS Impact Formula",
     heroBody:
@@ -118,6 +127,9 @@ function getCopy(locale: Locale) {
       "Groups the source record, schema, audit hash, and related event evidence required to pass this event into the AgentRank Oracle.",
     oraclePacketCandidate: "Oracle Packet Candidate",
     pending: "Pending",
+    productEvent: "Product Event",
+    productEventBody:
+      "Generated from real user behavior, content engagement, Universe participation, or production operational data.",
     quality: "Quality Score",
     riskPenalty: "Risk Penalty",
     currentEvent: "Current Event",
@@ -162,6 +174,16 @@ function getCopy(locale: Locale) {
     viewAgentRank: "View AgentRank",
     x402: "x402 Economy",
   };
+}
+
+function isCoverageMockEvent(event: AgentRankReputationEvent) {
+  return (
+    event.type === "x402_mock_payment_intent" ||
+    event.context.coverageMockCreatorUnlocked === true ||
+    event.context.mockPaymentIntent === true ||
+    event.context.checkoutMode === "mock_coverage" ||
+    event.context.a2aMockUsage === true
+  );
 }
 
 function formatDate(value: string, locale: Locale) {
@@ -1391,6 +1413,23 @@ export function FanletterAgentRankEventDetailPage({
     ([, value]) => value !== null && value !== "",
   );
   const lineage = buildLineageGroups(event, relatedEvents);
+  const isCoverageMock = isCoverageMockEvent(event);
+  const eventClassification = isCoverageMock
+    ? {
+        body: copy.coverageMockBody,
+        Icon: TriangleAlert,
+        label: copy.coverageMockEvent,
+        tone:
+          "border-amber-100 bg-amber-50 text-amber-800 ring-amber-100",
+      }
+    : {
+        body: copy.productEventBody,
+        Icon: ShieldCheck,
+        label: copy.productEvent,
+        tone:
+          "border-emerald-100 bg-emerald-50 text-emerald-800 ring-emerald-100",
+      };
+  const EventClassificationIcon = eventClassification.Icon;
 
   if (starId) {
     ledgerParams.set("starId", starId);
@@ -1431,8 +1470,14 @@ export function FanletterAgentRankEventDetailPage({
 
           <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-end">
             <div>
-              <p className="text-sm font-semibold uppercase text-[#6d28d9]">
+              <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
                 {copy.heroEyebrow}
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-semibold normal-case ring-1 ${eventClassification.tone}`}
+                >
+                  <EventClassificationIcon className="size-3.5" />
+                  {eventClassification.label}
+                </span>
               </p>
               <h1 className="mt-2 text-4xl font-semibold leading-tight text-[#11132d] sm:text-5xl">
                 {copy.title}
@@ -1461,6 +1506,29 @@ export function FanletterAgentRankEventDetailPage({
             locale={locale}
           />
         ) : null}
+
+        <section
+          className={`rounded-lg border p-4 shadow-[0_18px_44px_rgba(88,28,135,0.05)] ${eventClassification.tone}`}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex min-w-0 gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/80 shadow-sm">
+                <EventClassificationIcon className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold uppercase">
+                  {eventClassification.label}
+                </p>
+                <p className="mt-1 max-w-4xl text-sm font-medium leading-6 text-slate-600">
+                  {eventClassification.body}
+                </p>
+              </div>
+            </div>
+            <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-[#11132d]">
+              {event.context.intent ?? event.type}
+            </span>
+          </div>
+        </section>
 
         <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
           <div className="flex flex-wrap items-start justify-between gap-3">
