@@ -1,4 +1,8 @@
 import {
+  getFanletterAgentRankReputationEventFeed,
+  type AgentRankReputationEvent,
+} from "@/lib/agentrank/reputation-events";
+import {
   getFanletterAgentRankScoreAggregate,
   parseAgentRankScoreTypes,
   type AgentRankScoreAggregate,
@@ -110,7 +114,12 @@ function serializeAgentRankScoreCsv(score: AgentRankScoreAggregate) {
   return serializeRowsCsv(overviewRows);
 }
 
-function buildAgentRankOraclePacket(score: AgentRankScoreAggregate) {
+function buildAgentRankOraclePacket(
+  score: AgentRankScoreAggregate,
+  events: AgentRankReputationEvent[],
+) {
+  const evidenceEvents = events.slice(0, 24);
+
   return {
     agentRankVersion: score.agentRankVersion,
     attestations: {
@@ -129,6 +138,22 @@ function buildAgentRankOraclePacket(score: AgentRankScoreAggregate) {
       score: dimension.score,
     })),
     generatedAt: score.generatedAt,
+    evidence: {
+      eventCount: events.length,
+      evidenceHashes: evidenceEvents.map((event) => event.audit.evidenceHash),
+      latestEventAt: events[0]?.occurredAt ?? null,
+      sampleEvents: evidenceEvents.map((event) => ({
+        auditStatus: event.audit.status,
+        eventId: event.eventId,
+        evidenceHash: event.audit.evidenceHash,
+        occurredAt: event.occurredAt,
+        oracleReady: event.reputationSignals.oracleReady,
+        qualityScore: event.audit.qualityScore,
+        schemaVersion: event.schemaVersion,
+        sourceId: event.sourceId,
+        type: event.type,
+      })),
+    },
     issuedAt: new Date().toISOString(),
     packetVersion: "agentrank.oracle_packet.v0",
     readiness: score.readiness,
@@ -167,14 +192,19 @@ function buildAgentRankOraclePacket(score: AgentRankScoreAggregate) {
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const includeTypes = parseAgentRankScoreTypes(url.searchParams.get("types"));
+  const limit = normalizeLimit(url.searchParams.get("limit"));
+  const memberEmail = normalizeParam(url.searchParams.get("memberEmail"));
+  const starId = normalizeParam(url.searchParams.get("starId"));
+  const universeId = normalizeParam(url.searchParams.get("universeId"));
 
   try {
     const score = await getFanletterAgentRankScoreAggregate({
-      includeTypes: parseAgentRankScoreTypes(url.searchParams.get("types")),
-      limit: normalizeLimit(url.searchParams.get("limit")),
-      memberEmail: normalizeParam(url.searchParams.get("memberEmail")),
-      starId: normalizeParam(url.searchParams.get("starId")),
-      universeId: normalizeParam(url.searchParams.get("universeId")),
+      includeTypes,
+      limit,
+      memberEmail,
+      starId,
+      universeId,
     });
 
     if (url.searchParams.get("format") === "csv") {
@@ -190,7 +220,13 @@ export async function GET(request: Request) {
     }
 
     if (url.searchParams.get("format") === "oracle") {
-      const packet = buildAgentRankOraclePacket(score);
+      const feed = await getFanletterAgentRankReputationEventFeed({
+        includeTypes,
+        limit,
+        memberEmail,
+        starId,
+      });
+      const packet = buildAgentRankOraclePacket(score, feed.events);
       const filename = `fanletter-agentrank-oracle-${Date.now()}.json`;
 
       return Response.json(packet, {
