@@ -461,10 +461,17 @@ function buildEventAudit({
 }
 
 function buildEvent(input: EventBuildInput): AgentRankReputationEvent {
-  const cpDelta = toSafeNumber(input.context.cpDelta);
-  const cpPoolTotal = toSafeNumber(input.context.cpPoolTotal);
-  const influenceDelta = toSafeNumber(input.context.influenceDelta);
-  const creatorProgressDelta = toSafeNumber(input.context.creatorProgressDelta);
+  const normalizedStarId = normalizeId(input.starId);
+  const context: AgentRankReputationEvent["context"] = {
+    ...input.context,
+    universeId:
+      readContextStringValue(input.context.universeId) ??
+      (normalizedStarId ? `fanletter-star-universe:${normalizedStarId}` : null),
+  };
+  const cpDelta = toSafeNumber(context.cpDelta);
+  const cpPoolTotal = toSafeNumber(context.cpPoolTotal);
+  const influenceDelta = toSafeNumber(context.influenceDelta);
+  const creatorProgressDelta = toSafeNumber(context.creatorProgressDelta);
   const defaults = getTypeSignalDefaults(input.type);
   const economicWeight =
     defaults.economicWeight +
@@ -479,7 +486,7 @@ function buildEvent(input: EventBuildInput): AgentRankReputationEvent {
     defaults.creatorWeight + Math.max(0, creatorProgressDelta) / 10;
   const discoveryWeight =
     defaults.discoveryWeight +
-    Math.max(0, toSafeNumber(input.context.growthPercent)) / 100;
+    Math.max(0, toSafeNumber(context.growthPercent)) / 100;
   const economicLayer = {
     cpDelta,
     creatorProgressDelta,
@@ -488,7 +495,7 @@ function buildEvent(input: EventBuildInput): AgentRankReputationEvent {
     x402Ready:
       input.type === "x402_mock_payment_intent" ||
       input.type === "cp_pool_generated" ||
-      input.context.x402Ready === true,
+      context.x402Ready === true,
   };
   const occurredAt = toIsoDate(input.occurredAt);
   const reputationSignals = {
@@ -504,7 +511,7 @@ function buildEvent(input: EventBuildInput): AgentRankReputationEvent {
     agentRankVersion: "agentrank.v0",
     audit: buildEventAudit({
       actor: input.actor,
-      context: input.context,
+      context,
       economicLayer,
       object: input.object ?? null,
       occurredAt,
@@ -512,11 +519,11 @@ function buildEvent(input: EventBuildInput): AgentRankReputationEvent {
       schemaVersion: agentRankReputationEventSchemaVersion,
       source: input.source,
       sourceId: input.sourceId,
-      starId: input.starId ?? null,
+      starId: normalizedStarId || null,
       subject: input.subject ?? null,
       type: input.type,
     }),
-    context: input.context,
+    context,
     economicLayer,
     eventId: buildEventId([input.source, input.sourceId, input.type]),
     object: input.object ?? null,
@@ -527,7 +534,7 @@ function buildEvent(input: EventBuildInput): AgentRankReputationEvent {
     schemaVersion: agentRankReputationEventSchemaVersion,
     source: input.source,
     sourceId: input.sourceId,
-    starId: input.starId ?? null,
+    starId: normalizedStarId || null,
     subject: input.subject ?? null,
     type: input.type,
   };
@@ -610,6 +617,7 @@ function buildStarEvents({
             starScore: star.starScore,
           },
           occurredAt: star.updatedAt,
+          object: starActor,
           source: "fanletter_star",
           sourceId: `fanletter-star-growth:${star.starId}`,
           starId: star.starId,

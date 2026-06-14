@@ -90,6 +90,7 @@ function getAgentRankCopy(locale: Locale) {
       coverage: {
         api: "Coverage API",
         auditPage: "감사 페이지",
+        contractCoverage: "Contract 유효성",
         csv: "Coverage CSV",
         covered: "수집됨",
         eventCoverage: "이벤트 타입 커버리지",
@@ -191,6 +192,7 @@ function getAgentRankCopy(locale: Locale) {
     coverage: {
       api: "Coverage API",
       auditPage: "Audit Page",
+      contractCoverage: "Contract Validity",
       csv: "Coverage CSV",
       covered: "Covered",
       eventCoverage: "Event Type Coverage",
@@ -688,6 +690,10 @@ function AgentRankCoveragePanel({
             <CoverageProgress
               label={copy.coverage.schemaCoverage}
               value={coverage.schemaCoveragePercent}
+            />
+            <CoverageProgress
+              label={copy.coverage.contractCoverage}
+              value={coverage.contractValidationPercent}
             />
           </div>
           <div className="mt-5 rounded-lg border border-dashed border-violet-200 bg-violet-50 p-4">

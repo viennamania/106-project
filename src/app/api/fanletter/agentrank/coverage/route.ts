@@ -70,6 +70,15 @@ function serializeCoverageCsv(
     ],
     [
       "summary",
+      "contractValidationPercent",
+      "Contract Validity",
+      coverage.contractValidationPercent,
+      100,
+      `${coverage.contract.contractReadyEvents}/${coverage.contract.totalEvents}`,
+      "",
+    ],
+    [
+      "summary",
       "phase1QualityScore",
       "Phase 1 Data Quality",
       coverage.phase1QualityScore,
@@ -130,6 +139,33 @@ function serializeCoverageCsv(
       layer.eventTypes,
       `${layer.coveredEventTypes}/${layer.eventTypes}`,
       layer.missingEventTypes.join("|"),
+    ]),
+    [
+      "contract",
+      "recordType",
+      "Event Contract",
+      coverage.contract.recordType,
+      coverage.contract.totalEvents,
+      `${coverage.contract.contractReadyEvents}/${coverage.contract.totalEvents}`,
+      coverage.contract.requiredFields.join("|"),
+    ],
+    ...coverage.contract.requiredFields.map((field) => [
+      "contract_missing_field",
+      field,
+      field,
+      coverage.contract.missingFieldCounts[field],
+      coverage.contract.totalEvents,
+      coverage.contract.missingFieldCounts[field] === 0,
+      "",
+    ]),
+    ...coverage.contract.issues.map((issue) => [
+      "contract_issue",
+      issue.eventId,
+      issue.type,
+      issue.risk,
+      issue.source,
+      false,
+      issue.missingFields.join("|"),
     ]),
     ...coverage.eventTypes.map((eventType) => [
       "event_type",
@@ -214,6 +250,11 @@ export async function GET(request: Request) {
     };
     const headers = {
       "x-agentrank-coverage-quality": String(coverage.phase1QualityScore),
+      "x-agentrank-contract-record-type": coverage.contract.recordType,
+      "x-agentrank-contract-risk-events": String(coverage.contract.riskEvents),
+      "x-agentrank-contract-validity": String(
+        coverage.contractValidationPercent,
+      ),
       "x-agentrank-event-scope": eventScope,
       "x-agentrank-event-type-coverage": String(
         coverage.eventTypeCoveragePercent,

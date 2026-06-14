@@ -1,5 +1,7 @@
 import "server-only";
 
+import { buildAgentRankContractSnapshot } from "@/lib/agentrank/contract";
+import type { AgentRankContractSnapshot } from "@/lib/agentrank/contract";
 import { agentRankInteractionSources } from "@/lib/agentrank/interaction-events";
 import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
 import type { AgentRankEconomicReputationScore } from "@/lib/agentrank/ers";
@@ -33,6 +35,8 @@ export type AgentRankCoverageFactoryLayer = {
 };
 
 export type AgentRankCoverageSnapshot = {
+  contract: AgentRankContractSnapshot;
+  contractValidationPercent: number;
   eventTypeCoveragePercent: number;
   eventTypes: AgentRankCoverageEventItem[];
   factoryManifest: {
@@ -115,6 +119,7 @@ export function buildAgentRankCoverageSnapshot(
       type,
     };
   });
+  const contract = buildAgentRankContractSnapshot(feed.events);
   const sourceCounts = new Map<AgentRankInteractionSource, number>();
 
   for (const event of feed.events) {
@@ -200,14 +205,17 @@ export function buildAgentRankCoverageSnapshot(
   const futureReadinessBonus =
     (readiness.x402Ready ? 5 : 0) + (readiness.a2aReady ? 5 : 0);
   const phase1QualityScore = Math.round(
-    eventTypeCoveragePercent * 0.4 +
-      interactionSourceCoveragePercent * 0.2 +
+    eventTypeCoveragePercent * 0.28 +
+      interactionSourceCoveragePercent * 0.17 +
       oracleCoveragePercent * 0.2 +
-      schemaCoveragePercent * 0.2 +
+      schemaCoveragePercent * 0.15 +
+      contract.validationPercent * 0.2 +
       futureReadinessBonus,
   );
 
   return {
+    contract,
+    contractValidationPercent: contract.validationPercent,
     eventTypeCoveragePercent,
     eventTypes,
     factoryManifest: {

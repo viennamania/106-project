@@ -102,6 +102,15 @@ function getCoverageAuditCopy(locale: Locale) {
       actionStatusConfirmed: "확인됨",
       actionStatusDeferred: "보류",
       actionStatusPending: "대기",
+      contractCoverage: "Contract 유효성",
+      contractInvalidEvents: "보강 필요 이벤트",
+      contractReadyEvents: "계약 유효 이벤트",
+      contractRecord: "Contract Record",
+      contractRequiredFields: "필수 필드",
+      contractRiskEvents: "위험 이벤트",
+      contractValidation: "Reputation Event Contract",
+      contractValidationBody:
+        "AgentRank Oracle로 넘기기 전에 각 이벤트가 actor, object, starId, universeId, source, schemaVersion, evidenceHash를 갖추었는지 검증합니다.",
       covered: "수집됨",
       coverageCompleteBody:
         "이 범위에서는 필수 Reputation Event 타입, CTA 출처, x402 mock 의도, A2A 준비 신호가 모두 원장에 기록되었습니다.",
@@ -123,6 +132,7 @@ function getCoverageAuditCopy(locale: Locale) {
       latestEvents: "최근 감사 이벤트",
       missing: "대기",
       noCriticalGaps: "현재 핵심 갭이 없습니다.",
+      noContractIssues: "현재 필수 필드 누락이 없습니다.",
       oracleCoverage: "오라클 준비율",
       oracleReady: "오라클",
       phase1Quality: "Phase 1 데이터 품질",
@@ -160,6 +170,15 @@ function getCoverageAuditCopy(locale: Locale) {
     actionStatusConfirmed: "Confirmed",
     actionStatusDeferred: "Deferred",
     actionStatusPending: "Pending",
+    contractCoverage: "Contract Validity",
+    contractInvalidEvents: "Events Needing Enrichment",
+    contractReadyEvents: "Contract-valid Events",
+    contractRecord: "Contract Record",
+    contractRequiredFields: "Required Fields",
+    contractRiskEvents: "Risk Events",
+    contractValidation: "Reputation Event Contract",
+    contractValidationBody:
+      "Validates that each event has actor, object, starId, universeId, source, schemaVersion, and evidenceHash before it can be passed to the AgentRank Oracle.",
     covered: "Covered",
     coverageCompleteBody:
       "For this scope, required Reputation Event types, CTA sources, x402 mock intent, and A2A readiness signals are all present in the ledger.",
@@ -180,8 +199,9 @@ function getCoverageAuditCopy(locale: Locale) {
       interactionCoverage: "CTA Source Coverage",
     latestEvents: "Latest Audit Events",
     missing: "Pending",
-      noCriticalGaps: "No critical gaps at the moment.",
-      oracleCoverage: "Oracle-ready Coverage",
+    noCriticalGaps: "No critical gaps at the moment.",
+    noContractIssues: "No required-field gaps at the moment.",
+    oracleCoverage: "Oracle-ready Coverage",
       oracleReady: "Oracle",
     phase1Quality: "Phase 1 Data Quality",
     priorityActionPlan: "Priority Collection Actions",
@@ -325,6 +345,30 @@ function getLayerLabel(layer: AgentRankCoverageEventItem["layer"], locale: Local
   };
 
   return labels[layer];
+}
+
+function getContractFieldLabel(
+  field: AgentRankCoverageSnapshot["contract"]["requiredFields"][number],
+  locale: Locale,
+) {
+  if (locale !== "ko") {
+    return field;
+  }
+
+  const labels: Record<
+    AgentRankCoverageSnapshot["contract"]["requiredFields"][number],
+    string
+  > = {
+    actor: "행위자",
+    evidenceHash: "증거 해시",
+    object: "대상",
+    schemaVersion: "스키마",
+    source: "출처",
+    starId: "AI 스타",
+    universeId: "유니버스",
+  };
+
+  return labels[field];
 }
 
 function buildQuery(scope: CoverageAuditScope, extra?: Record<string, string>) {
@@ -942,6 +986,152 @@ function EventFactoryManifestPanel({
   );
 }
 
+function ContractValidationPanel({
+  coverage,
+  locale,
+}: {
+  coverage: AgentRankCoverageSnapshot;
+  locale: Locale;
+}) {
+  const copy = getCoverageAuditCopy(locale);
+  const contract = coverage.contract;
+  const issuePreview = contract.issues.slice(0, 6);
+
+  return (
+    <section className="mt-5 rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_20px_60px_rgba(88,28,135,0.06)]">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+            <ShieldCheck className="size-4" />
+            {copy.contractValidation}
+          </p>
+          <p className="mt-2 max-w-4xl text-sm font-medium leading-6 text-slate-500">
+            {copy.contractValidationBody}
+          </p>
+        </div>
+        <div className="grid shrink-0 grid-cols-3 gap-2 text-center">
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2">
+            <p className="text-[0.68rem] font-semibold uppercase text-emerald-700/70">
+              {copy.contractReadyEvents}
+            </p>
+            <p className="mt-1 text-lg font-semibold text-emerald-800">
+              {formatNumber(contract.contractReadyEvents, locale)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-amber-100 bg-amber-50 px-3 py-2">
+            <p className="text-[0.68rem] font-semibold uppercase text-amber-700/70">
+              {copy.contractInvalidEvents}
+            </p>
+            <p className="mt-1 text-lg font-semibold text-amber-800">
+              {formatNumber(contract.invalidEvents, locale)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-rose-100 bg-rose-50 px-3 py-2">
+            <p className="text-[0.68rem] font-semibold uppercase text-rose-700/70">
+              {copy.contractRiskEvents}
+            </p>
+            <p className="mt-1 text-lg font-semibold text-rose-800">
+              {formatNumber(contract.riskEvents, locale)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-4 xl:grid-cols-[0.8fr_1.2fr]">
+        <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-[#11132d]">
+              {copy.contractRequiredFields}
+            </p>
+            <span className="rounded-full bg-white px-2 py-1 text-xs font-semibold text-[#6d28d9] ring-1 ring-violet-100">
+              {coverage.contractValidationPercent}%
+            </span>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            {contract.requiredFields.map((field) => {
+              const missingCount = contract.missingFieldCounts[field];
+
+              return (
+                <div
+                  className={`rounded-lg border px-3 py-2 ${
+                    missingCount === 0
+                      ? "border-emerald-100 bg-white text-emerald-700"
+                      : "border-amber-100 bg-amber-50 text-amber-800"
+                  }`}
+                  key={field}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold">
+                      {getContractFieldLabel(field, locale)}
+                    </p>
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[0.68rem] font-semibold ring-1 ring-black/5">
+                      {formatNumber(missingCount, locale)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-slate-500 ring-1 ring-slate-100">
+            {copy.contractRecord}: {contract.recordType}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+          <p className="text-sm font-semibold text-[#11132d]">
+            {copy.contractRiskEvents}
+          </p>
+          {issuePreview.length > 0 ? (
+            <div className="mt-3 grid gap-2">
+              {issuePreview.map((issue) => (
+                <div
+                  className="rounded-lg border border-white bg-white px-3 py-2 shadow-[0_10px_24px_rgba(15,23,42,0.04)]"
+                  key={issue.eventId}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-[#11132d]">
+                      {getEventTypeLabel(issue.type, locale)}
+                    </p>
+                    <span
+                      className={`rounded-full px-2 py-1 text-[0.68rem] font-semibold ${
+                        issue.risk === "critical"
+                          ? "bg-rose-50 text-rose-700"
+                          : "bg-amber-50 text-amber-700"
+                      }`}
+                    >
+                      {issue.risk}
+                    </span>
+                  </div>
+                  <p className="mt-1 truncate font-mono text-xs font-semibold text-slate-400">
+                    {issue.eventId}
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {issue.missingFields.map((field) => (
+                      <span
+                        className="rounded-full bg-slate-50 px-2 py-1 text-[0.68rem] font-semibold text-slate-500"
+                        key={field}
+                      >
+                        {getContractFieldLabel(field, locale)}
+                      </span>
+                    ))}
+                    <span className="rounded-full bg-violet-50 px-2 py-1 text-[0.68rem] font-semibold text-[#6d28d9]">
+                      {formatDateTime(issue.occurredAt, locale)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-3 rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+              {copy.noContractIssues}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function EventTypeCoverageCard({
   item,
   locale,
@@ -1224,7 +1414,7 @@ export function FanletterAgentRankCoverageAuditPage({
           </div>
         </header>
 
-        <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <CoverageMetric
             label={copy.eventCoverage}
             value={coverage.eventTypeCoveragePercent}
@@ -1241,9 +1431,15 @@ export function FanletterAgentRankCoverageAuditPage({
             label={copy.schemaCoverage}
             value={coverage.schemaCoveragePercent}
           />
+          <CoverageMetric
+            label={copy.contractCoverage}
+            value={coverage.contractValidationPercent}
+          />
         </section>
 
         <EventFactoryManifestPanel coverage={coverage} locale={locale} />
+
+        <ContractValidationPanel coverage={coverage} locale={locale} />
 
         <CoverageActionImpactPanel
           coverage={coverage}
