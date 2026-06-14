@@ -136,6 +136,9 @@ function getAgentRankCopy(locale: Locale) {
       scoreAggregatorBody:
         "Reputation Event를 Founder Network, 경제 활동, Creator Journey, AI 스타 발견, Lineage Trust, 감사 품질 차원으로 집계합니다.",
       scoreConfidence: "집계 신뢰도",
+      scoreScopeCoverage: "커버리지 포함 점수",
+      scoreScopeMockExcluded: "Mock 이벤트 제외",
+      scoreScopeOperational: "운영 점수",
       scoreCsv: "Score CSV",
       oraclePacket: "Oracle Packet",
       oracleEvidence: "Oracle Evidence Chain",
@@ -234,6 +237,9 @@ function getAgentRankCopy(locale: Locale) {
     scoreAggregatorBody:
       "Aggregates Reputation Events into Founder Network, Economic Activity, Creator Journey, AI Star Discovery, Lineage Trust, and audit quality.",
     scoreConfidence: "Score Confidence",
+    scoreScopeCoverage: "Coverage-including score",
+    scoreScopeMockExcluded: "Mock events excluded",
+    scoreScopeOperational: "Operational Score",
     scoreCsv: "Score CSV",
     oraclePacket: "Oracle Packet",
     oracleEvidence: "Oracle Evidence Chain",
@@ -801,6 +807,10 @@ function AgentRankScoreAggregatorPanel({
     format: "csv",
     limit: "120",
   });
+  const coverageScoreParams = new URLSearchParams({
+    includeMock: "true",
+    limit: "120",
+  });
   const oraclePacketParams = new URLSearchParams({
     format: "oracle",
     limit: "120",
@@ -834,6 +844,7 @@ function AgentRankScoreAggregatorPanel({
 
   if (starId) {
     scoreCsvParams.set("starId", starId);
+    coverageScoreParams.set("starId", starId);
     oraclePacketParams.set("starId", starId);
   }
 
@@ -863,6 +874,20 @@ function AgentRankScoreAggregatorPanel({
             </div>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
+            <span className="inline-flex h-9 items-center gap-2 rounded-full bg-emerald-300/18 px-3 text-xs font-semibold text-emerald-100 ring-1 ring-emerald-200/25">
+              <ShieldCheck className="size-3.5" />
+              {copy.scoreScopeOperational}
+            </span>
+            {scoreAggregate.eventScope.excludedMockEvents > 0 ? (
+              <span className="inline-flex h-9 items-center gap-2 rounded-full bg-amber-300/14 px-3 text-xs font-semibold text-amber-100 ring-1 ring-amber-200/25">
+                <ShieldAlert className="size-3.5" />
+                {copy.scoreScopeMockExcluded} ·{" "}
+                {formatNumber(
+                  scoreAggregate.eventScope.excludedMockEvents,
+                  locale,
+                )}
+              </span>
+            ) : null}
             <FanletterTrackedLink
               agentRank={{
                 eventType: "content_engaged",
@@ -877,6 +902,21 @@ function AgentRankScoreAggregatorPanel({
             >
               <Download className="size-3.5" />
               {copy.scoreCsv}
+            </FanletterTrackedLink>
+            <FanletterTrackedLink
+              agentRank={{
+                eventType: "content_engaged",
+                intent: "agentrank_coverage_score_api_open",
+                source: "fanletter_agentrank",
+                starId: starId ?? null,
+              }}
+              className="inline-flex h-9 items-center gap-2 rounded-full bg-white/12 px-3 text-xs font-semibold text-white ring-1 ring-white/15"
+              eventName="content_open"
+              href={`/api/fanletter/agentrank/score?${coverageScoreParams.toString()}`}
+              metadata={{ agentRankExport: "coverage_score_json" }}
+            >
+              <Database className="size-3.5" />
+              {copy.scoreScopeCoverage}
             </FanletterTrackedLink>
             <FanletterTrackedLink
               agentRank={{

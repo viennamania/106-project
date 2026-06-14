@@ -9,6 +9,10 @@ import {
   type AgentRankReputationEventType,
   type FanletterAgentRankReputationEventFeed,
 } from "@/lib/agentrank/reputation-events";
+import {
+  countAgentRankCoverageMockEvents,
+  filterAgentRankReputationEventFeedForScoring,
+} from "@/lib/agentrank/mock-events";
 
 export type AgentRankScoreDimensionKey =
   | "network"
@@ -43,6 +47,11 @@ export type AgentRankScoreAggregate = {
   agentRankVersion: "agentrank.v0";
   confidence: number;
   dimensions: AgentRankScoreDimension[];
+  eventScope: {
+    excludedMockEvents: number;
+    includeMockEvents: boolean;
+    scoringMode: "coverage_including_mock" | "product_events";
+  };
   formula: string;
   generatedAt: string;
   maxScore: 1000;
@@ -133,6 +142,7 @@ export type AgentRankFounderContributionAggregate = {
 
 export type GetFanletterAgentRankScoreOptions = {
   includeTypes?: AgentRankReputationEventType[];
+  includeMockEvents?: boolean;
   limit?: number;
   memberEmail?: string | null;
   starId?: string | null;
@@ -141,6 +151,7 @@ export type GetFanletterAgentRankScoreOptions = {
 
 export type GetFanletterAgentRankFounderContributionOptions = {
   includeTypes?: AgentRankReputationEventType[];
+  includeMockEvents?: boolean;
   limit?: number;
   memberEmail?: string | null;
 };
@@ -500,11 +511,13 @@ function buildTopContributors(events: AgentRankReputationEvent[]) {
 }
 
 export function calculateAgentRankScoreAggregate({
+  eventScope,
   feed,
   memberEmail,
   starId,
   universeId,
 }: {
+  eventScope?: AgentRankScoreAggregate["eventScope"];
   feed: FanletterAgentRankReputationEventFeed;
   memberEmail?: string | null;
   starId?: string | null;
@@ -645,6 +658,12 @@ export function calculateAgentRankScoreAggregate({
       trustDimension,
       riskDimension,
     ],
+    eventScope:
+      eventScope ?? {
+        excludedMockEvents: 0,
+        includeMockEvents: true,
+        scoringMode: "coverage_including_mock",
+      },
     formula:
       "AgentRank Score = Founder Network + Economic Activity + Creator Journey + AI Star Discovery + Lineage Trust - Risk Penalty",
     generatedAt: feed.generatedAt,
@@ -710,9 +729,22 @@ export async function getFanletterAgentRankScoreAggregate(
     memberEmail: options.memberEmail,
     starId: options.starId,
   });
+  const includeMockEvents = options.includeMockEvents === true;
+  const scoreFeed = filterAgentRankReputationEventFeedForScoring(feed, {
+    includeMockEvents,
+  });
 
   return calculateAgentRankScoreAggregate({
-    feed,
+    eventScope: {
+      excludedMockEvents: includeMockEvents
+        ? 0
+        : countAgentRankCoverageMockEvents(feed.events),
+      includeMockEvents,
+      scoringMode: includeMockEvents
+        ? "coverage_including_mock"
+        : "product_events",
+    },
+    feed: scoreFeed,
     memberEmail: options.memberEmail,
     starId: options.starId,
     universeId: options.universeId,
@@ -721,9 +753,11 @@ export async function getFanletterAgentRankScoreAggregate(
 
 export function calculateAgentRankFounderContributionAggregate({
   feed,
+  includeMockEvents = false,
   memberEmail,
 }: {
   feed: FanletterAgentRankReputationEventFeed;
+  includeMockEvents?: boolean;
   memberEmail: string;
 }): AgentRankFounderContributionAggregate {
   const normalizedMemberEmail = normalizeId(memberEmail) ?? "";
@@ -765,6 +799,13 @@ export function calculateAgentRankFounderContributionAggregate({
   const universes = [...eventsByStarId.entries()]
     .map(([starId, group]) => {
       const scoreAggregate = calculateAgentRankScoreAggregate({
+        eventScope: {
+          excludedMockEvents: 0,
+          includeMockEvents,
+          scoringMode: includeMockEvents
+            ? "coverage_including_mock"
+            : "product_events",
+        },
         feed: {
           ...feed,
           events: group.events,
@@ -863,9 +904,13 @@ export async function getFanletterAgentRankFounderContribution(
     limit: normalizeLimit(options.limit ?? 250),
     memberEmail,
   });
+  const contributionFeed = filterAgentRankReputationEventFeedForScoring(feed, {
+    includeMockEvents: options.includeMockEvents === true,
+  });
 
   return calculateAgentRankFounderContributionAggregate({
-    feed,
+    feed: contributionFeed,
+    includeMockEvents: options.includeMockEvents === true,
     memberEmail,
   });
 }

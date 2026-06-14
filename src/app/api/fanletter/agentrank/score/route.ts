@@ -3,6 +3,7 @@ import {
   getFanletterAgentRankReputationEventFeed,
   type AgentRankReputationEvent,
 } from "@/lib/agentrank/reputation-events";
+import { filterAgentRankReputationEventFeedForScoring } from "@/lib/agentrank/mock-events";
 import {
   getFanletterAgentRankScoreAggregate,
   parseAgentRankScoreTypes,
@@ -17,6 +18,10 @@ function normalizeLimit(value: string | null) {
   const parsed = Number(value);
 
   return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function normalizeBoolean(value: string | null) {
+  return value === "1" || value === "true" || value === "yes";
 }
 
 function escapeCsvValue(value: string | number | boolean | null | undefined) {
@@ -40,6 +45,22 @@ function serializeAgentRankScoreCsv(score: AgentRankScoreAggregate) {
     ["section", "key", "label", "value", "maxValue", "description"],
     ["overview", "score", "AgentRank Score", score.score, score.maxScore, score.formula],
     ["overview", "confidence", "Score Confidence", score.confidence, 100, ""],
+    [
+      "overview",
+      "scoringMode",
+      "Scoring Mode",
+      score.eventScope.scoringMode,
+      "",
+      "",
+    ],
+    [
+      "overview",
+      "excludedMockEvents",
+      "Excluded Mock Events",
+      score.eventScope.excludedMockEvents,
+      "",
+      "",
+    ],
     [
       "readiness",
       "schemaReadyPercent",
@@ -139,6 +160,7 @@ function buildAgentRankOraclePacket(
     summary: {
       cpPoolGeneratedTotal: score.summary.cpPoolGeneratedTotal,
       cpTotal: score.summary.cpTotal,
+      excludedMockEvents: score.eventScope.excludedMockEvents,
       eventCount: score.summary.eventCount,
       founderJoins: score.summary.founderJoins,
       networkEdges: score.summary.networkEdges,
@@ -195,6 +217,7 @@ function buildAgentRankOraclePacket(
     packetVersion: "agentrank.oracle_packet.v0",
     readiness: score.readiness,
     roadmap: score.roadmap,
+    eventScope: score.eventScope,
     score: {
       confidence: score.confidence,
       formula: score.formula,
@@ -207,6 +230,7 @@ function buildAgentRankOraclePacket(
     summary: {
       cpPoolGeneratedTotal: score.summary.cpPoolGeneratedTotal,
       cpTotal: score.summary.cpTotal,
+      excludedMockEvents: score.eventScope.excludedMockEvents,
       eventCount: score.summary.eventCount,
       founderJoins: score.summary.founderJoins,
       networkEdges: score.summary.networkEdges,
@@ -242,9 +266,11 @@ export async function GET(request: Request) {
   const memberEmail = normalizeParam(url.searchParams.get("memberEmail"));
   const starId = normalizeParam(url.searchParams.get("starId"));
   const universeId = normalizeParam(url.searchParams.get("universeId"));
+  const includeMockEvents = normalizeBoolean(url.searchParams.get("includeMock"));
 
   try {
     const score = await getFanletterAgentRankScoreAggregate({
+      includeMockEvents,
       includeTypes,
       limit,
       memberEmail,
@@ -271,7 +297,10 @@ export async function GET(request: Request) {
         memberEmail,
         starId,
       });
-      const packet = buildAgentRankOraclePacket(score, feed.events);
+      const scoreFeed = filterAgentRankReputationEventFeedForScoring(feed, {
+        includeMockEvents,
+      });
+      const packet = buildAgentRankOraclePacket(score, scoreFeed.events);
       const filename = `fanletter-agentrank-oracle-${Date.now()}.json`;
 
       return Response.json(packet, {

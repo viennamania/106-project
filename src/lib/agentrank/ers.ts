@@ -7,6 +7,10 @@ import {
   type GetFanletterAgentRankReputationEventsOptions,
 } from "@/lib/agentrank/reputation-events";
 import {
+  countAgentRankCoverageMockEvents,
+  filterAgentRankReputationEventFeedForScoring,
+} from "@/lib/agentrank/mock-events";
+import {
   calculateAgentRankScoreAggregate,
   type AgentRankScoreAggregate,
 } from "@/lib/agentrank/score";
@@ -65,6 +69,11 @@ export type FanletterAgentRankInvestorSnapshot = {
   };
   scoreAggregate: AgentRankScoreAggregate;
 };
+
+export type GetFanletterAgentRankInvestorSnapshotOptions =
+  GetFanletterAgentRankReputationEventsOptions & {
+    includeMockEvents?: boolean;
+  };
 
 function clampScore(value: number, maxScore: number) {
   return Math.max(0, Math.min(maxScore, Math.round(value)));
@@ -254,7 +263,7 @@ export function calculateAgentRankEconomicReputationScore(
 }
 
 export async function getFanletterAgentRankInvestorSnapshot(
-  options: GetFanletterAgentRankReputationEventsOptions = {},
+  options: GetFanletterAgentRankInvestorSnapshotOptions = {},
 ): Promise<FanletterAgentRankInvestorSnapshot> {
   const eventFeed = await getFanletterAgentRankReputationEventFeed({
     limit: options.limit ?? 120,
@@ -262,9 +271,22 @@ export async function getFanletterAgentRankInvestorSnapshot(
     starId: options.starId,
     includeTypes: options.includeTypes,
   });
-  const ers = calculateAgentRankEconomicReputationScore(eventFeed);
+  const includeMockEvents = options.includeMockEvents === true;
+  const scoreFeed = filterAgentRankReputationEventFeedForScoring(eventFeed, {
+    includeMockEvents,
+  });
+  const ers = calculateAgentRankEconomicReputationScore(scoreFeed);
   const scoreAggregate = calculateAgentRankScoreAggregate({
-    feed: eventFeed,
+    eventScope: {
+      excludedMockEvents: includeMockEvents
+        ? 0
+        : countAgentRankCoverageMockEvents(eventFeed.events),
+      includeMockEvents,
+      scoringMode: includeMockEvents
+        ? "coverage_including_mock"
+        : "product_events",
+    },
+    feed: scoreFeed,
     memberEmail: options.memberEmail,
     starId: options.starId,
   });
