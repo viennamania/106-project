@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  ArrowRight,
   BadgeCheck,
   Bot,
   Coins,
@@ -77,14 +78,19 @@ function getCoverageAuditCopy(locale: Locale) {
       interactionCoverage: "CTA 소스 커버리지",
       latestEvents: "최근 감사 이벤트",
       missing: "대기",
+      noCriticalGaps: "현재 핵심 갭이 없습니다.",
       oracleCoverage: "오라클 준비율",
       phase1Quality: "Phase 1 데이터 품질",
+      priorityActionPlan: "우선 수집 액션",
       schemaCoverage: "스키마 준비율",
       scope: "감사 범위",
       subtitle:
         "FanLetter에서 발생한 발견, 파운더 참여, 초대, CP, 창업 이벤트가 AgentRank 평판 데이터로 충분히 쌓이고 있는지 점검합니다.",
+      targetLayer: "대상 레이어",
       title: "Coverage Audit",
       totalEvents: "전체 이벤트",
+      triggerEvent: "생성 이벤트",
+      viewAction: "진행",
     };
   }
 
@@ -101,14 +107,19 @@ function getCoverageAuditCopy(locale: Locale) {
     interactionCoverage: "CTA Source Coverage",
     latestEvents: "Latest Audit Events",
     missing: "Pending",
+    noCriticalGaps: "No critical gaps at the moment.",
     oracleCoverage: "Oracle-ready Coverage",
     phase1Quality: "Phase 1 Data Quality",
+    priorityActionPlan: "Priority Collection Actions",
     schemaCoverage: "Schema Coverage",
     scope: "Audit Scope",
     subtitle:
       "Audits whether FanLetter discovery, founder, invite, CP, and creator events are becoming sufficient AgentRank reputation data.",
+    targetLayer: "Target Layer",
     title: "Coverage Audit",
     totalEvents: "Total Events",
+    triggerEvent: "Trigger Event",
+    viewAction: "Open",
   };
 }
 
@@ -256,6 +267,192 @@ function buildQuery(scope: CoverageAuditScope, extra?: Record<string, string>) {
   return params.toString();
 }
 
+function getScopedStarId(scope: CoverageAuditScope) {
+  return scope.starId || "minseo";
+}
+
+function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
+  const [kind, value] = gap.split(":");
+  const scopedStarId = encodeURIComponent(getScopedStarId(scope));
+  const scopedQuery = buildQuery(scope, { coverageAction: value || kind });
+
+  if (kind === "missing_event") {
+    const eventType = value as AgentRankReputationEvent["type"];
+
+    const eventActions: Partial<
+      Record<
+        AgentRankReputationEvent["type"],
+        {
+          description: string;
+          href: string;
+          layer: string;
+          trigger: string;
+        }
+      >
+    > =
+      locale === "ko"
+        ? {
+            ai_star_spawned: {
+              description:
+                "크리에이터가 출처 스타 유니버스를 선택하고 새 AI 스타를 생성하는 흐름을 실행합니다.",
+              href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
+              layer: "Creator Journey",
+              trigger: "AI 스타 창업",
+            },
+            creator_unlock_evaluated: {
+              description:
+                "크리에이터 권한 조건 평가를 기록해 창업 가능성 신호를 만듭니다.",
+              href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
+              layer: "Creator Journey",
+              trigger: "권한 평가",
+            },
+            creator_unlocked: {
+              description:
+                "조건을 충족한 멤버의 크리에이터 권한 전환 이벤트를 수집합니다.",
+              href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
+              layer: "Creator Journey",
+              trigger: "크리에이터 권한",
+            },
+            source_universe_selected: {
+              description:
+                "새 AI 스타가 어느 스타 유니버스 성과에서 탄생했는지 출처를 고정합니다.",
+              href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
+              layer: "Founder Network",
+              trigger: "출처 유니버스 선택",
+            },
+            x402_mock_payment_intent: {
+              description:
+                "실결제 전 단계의 10 USDT 창업 의도 이벤트를 mock으로 수집합니다.",
+              href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
+              layer: "x402 Economy",
+              trigger: "x402 결제 의도",
+            },
+          }
+        : {
+            ai_star_spawned: {
+              description:
+                "Run the flow where a creator selects a source Star Universe and launches a new AI Star.",
+              href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
+              layer: "Creator Journey",
+              trigger: "AI Star Spawned",
+            },
+            creator_unlock_evaluated: {
+              description:
+                "Record creator eligibility checks as early creator journey signals.",
+              href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
+              layer: "Creator Journey",
+              trigger: "Creator Unlock Evaluated",
+            },
+            creator_unlocked: {
+              description:
+                "Collect the conversion event when an eligible member unlocks creator status.",
+              href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
+              layer: "Creator Journey",
+              trigger: "Creator Unlocked",
+            },
+            source_universe_selected: {
+              description:
+                "Lock which Star Universe produced the new AI Star launch outcome.",
+              href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
+              layer: "Founder Network",
+              trigger: "Source Universe Selected",
+            },
+            x402_mock_payment_intent: {
+              description:
+                "Collect a mock 10 USDT launch intent before real payment integration.",
+              href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
+              layer: "x402 Economy",
+              trigger: "x402 Payment Intent",
+            },
+          };
+    const action = eventActions[eventType] ?? {
+      description:
+        locale === "ko"
+          ? "해당 이벤트가 발생하는 제품 흐름을 열고 사용자 행동 신호를 수집합니다."
+          : "Open the product flow that can generate this missing event signal.",
+      href: `/${locale}/fanletter/${scopedStarId}?${scopedQuery}`,
+      layer: locale === "ko" ? "평판 이벤트" : "Reputation Event",
+      trigger: getEventTypeLabel(eventType, locale),
+    };
+
+    return {
+      key: gap,
+      label: getCoverageGapLabel(gap, locale),
+      ...action,
+    };
+  }
+
+  if (kind === "missing_source") {
+    const source = value as AgentRankInteractionSource;
+    const sourceRoutes: Partial<Record<AgentRankInteractionSource, string>> = {
+      fanletter_agentrank: `/${locale}/fanletter/agentrank?${scopedQuery}`,
+      fanletter_bridge: `/${locale}/fanletter/connect?${scopedQuery}`,
+      fanletter_content: `/${locale}/fanletter/${scopedStarId}?${scopedQuery}`,
+      fanletter_creator_unlock: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
+      fanletter_founder_universe: `/${locale}/fanletter/${scopedStarId}/universe?${scopedQuery}`,
+      fanletter_home: `/${locale}/fanletter?${scopedQuery}`,
+      fanletter_news: `/${locale}/fanletter/news?${scopedQuery}`,
+      fanletter_star_detail: `/${locale}/fanletter/${scopedStarId}?${scopedQuery}`,
+    };
+
+    return {
+      key: gap,
+      label: getCoverageGapLabel(gap, locale),
+      description:
+        locale === "ko"
+          ? "해당 CTA 출처에서 AgentRank 추적 이벤트가 실제로 쌓이는지 확인합니다."
+          : "Verify that this CTA source is producing AgentRank tracking events.",
+      href: sourceRoutes[source] ?? `/${locale}/fanletter/agentrank?${scopedQuery}`,
+      layer: locale === "ko" ? "CTA 소스" : "CTA Source",
+      trigger: getInteractionSourceLabel(source, locale),
+    };
+  }
+
+  if (gap === "pending:x402_economy") {
+    return {
+      key: gap,
+      label: getCoverageGapLabel(gap, locale),
+      description:
+        locale === "ko"
+          ? "실결제 전까지 창업 결제 의도와 CP Pool 생성을 mock 이벤트로 연결합니다."
+          : "Connect mock launch payment intent and CP Pool generation before real payments.",
+      href: `/${locale}/fanletter/creator-unlock?${buildQuery(scope, {
+        coverageAction: "x402_economy",
+      })}`,
+      layer: "x402 Economy",
+      trigger: locale === "ko" ? "mock 결제 의도" : "Mock Payment Intent",
+    };
+  }
+
+  if (gap === "pending:a2a_usage") {
+    return {
+      key: gap,
+      label: getCoverageGapLabel(gap, locale),
+      description:
+        locale === "ko"
+          ? "현재는 Phase 1 데이터로 보류하고, 추후 Agent 호출 이벤트 스키마와 연결합니다."
+          : "Keep this as a Phase 1 placeholder until agent-call event schema is connected.",
+      href: `/${locale}/fanletter/agentrank/events?${buildQuery(scope, {
+        coverageAction: "a2a_usage",
+      })}`,
+      layer: "A2A Usage",
+      trigger: locale === "ko" ? "Agent 호출 이벤트" : "Agent Call Event",
+    };
+  }
+
+  return {
+    key: gap,
+    label: getCoverageGapLabel(gap, locale),
+    description:
+      locale === "ko"
+        ? "이 갭을 채울 수 있는 제품 흐름과 이벤트 스키마를 확인합니다."
+        : "Review the product flow and event schema needed to fill this gap.",
+    href: `/${locale}/fanletter/agentrank?${scopedQuery}`,
+    layer: "AgentRank",
+    trigger: gap,
+  };
+}
+
 function CoverageMetric({
   label,
   value,
@@ -379,6 +576,9 @@ export function FanletterAgentRankCoverageAuditPage({
   const csvQuery = buildQuery(scope, { format: "csv" });
   const pageQuery = buildQuery(scope);
   const latestEvents = eventFeed.events.slice(0, 6);
+  const gapActions = coverage.gaps.map((gap) =>
+    getGapAction(gap, locale, scope),
+  );
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6">
@@ -523,18 +723,57 @@ export function FanletterAgentRankCoverageAuditPage({
           <aside className="grid content-start gap-5">
             <div className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_20px_60px_rgba(88,28,135,0.06)]">
               <p className="text-sm font-semibold uppercase text-[#6d28d9]">
-                {copy.gaps}
+                {copy.priorityActionPlan}
               </p>
-              <div className="mt-4 grid gap-2">
-                {coverage.gaps.map((gap) => (
-                  <div
-                    className="rounded-xl border border-dashed border-violet-200 bg-violet-50 px-3 py-2 text-sm font-semibold text-[#4c1d95]"
-                    key={gap}
-                  >
-                    {getCoverageGapLabel(gap, locale)}
-                  </div>
-                ))}
-              </div>
+              {gapActions.length > 0 ? (
+                <div className="mt-4 grid gap-3">
+                  {gapActions.map((action) => (
+                    <Link
+                      className="group block rounded-xl border border-violet-100 bg-violet-50/70 p-3 transition hover:-translate-y-0.5 hover:border-violet-200 hover:bg-white hover:shadow-[0_14px_34px_rgba(88,28,135,0.08)]"
+                      href={action.href}
+                      key={action.key}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-[#4c1d95]">
+                            {action.label}
+                          </p>
+                          <p className="mt-2 text-xs font-medium leading-5 text-slate-600">
+                            {action.description}
+                          </p>
+                        </div>
+                        <ArrowRight className="mt-1 size-4 shrink-0 text-[#7c3aed] transition group-hover:translate-x-0.5" />
+                      </div>
+                      <div className="mt-3 grid gap-2 text-xs font-semibold sm:grid-cols-2 xl:grid-cols-1">
+                        <div className="rounded-lg bg-white px-3 py-2 text-slate-500">
+                          <span className="text-slate-400">
+                            {copy.targetLayer}
+                          </span>
+                          <span className="mt-1 block truncate text-[#11132d]">
+                            {action.layer}
+                          </span>
+                        </div>
+                        <div className="rounded-lg bg-white px-3 py-2 text-slate-500">
+                          <span className="text-slate-400">
+                            {copy.triggerEvent}
+                          </span>
+                          <span className="mt-1 block truncate text-[#11132d]">
+                            {action.trigger}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-white px-3 text-xs font-semibold text-[#6d28d9] ring-1 ring-violet-100">
+                        {copy.viewAction}
+                        <ArrowRight className="size-3.5" />
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-3 text-sm font-semibold text-emerald-700">
+                  {copy.noCriticalGaps}
+                </div>
+              )}
             </div>
 
             <div className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_20px_60px_rgba(88,28,135,0.06)]">
