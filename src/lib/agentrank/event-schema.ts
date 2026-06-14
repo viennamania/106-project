@@ -87,6 +87,13 @@ const baseImpactByType = {
     network: 0.5,
     trust: 0.6,
   },
+  cp_pool_generated: {
+    creator: 0.7,
+    discovery: 0,
+    economy: 1.8,
+    network: 1,
+    trust: 0.9,
+  },
   creator_unlock_evaluated: {
     creator: 0.8,
     discovery: 0,
@@ -194,6 +201,10 @@ function buildReputationImpact({
 }) {
   const base = baseImpactByType[eventType];
   const cpDelta = Math.abs(readNumber(metadata, "cpDelta", "rewardCpDelta"));
+  const cpPoolTotal = Math.max(
+    0,
+    readNumber(metadata, "cpPoolTotal", "allocatedCp", "cpPoolGenerated"),
+  );
   const influenceDelta = Math.abs(
     readNumber(metadata, "influenceDelta", "influenceScoreDelta"),
   );
@@ -208,7 +219,7 @@ function buildReputationImpact({
   const hasTargetStar = targetStarId ? 0.2 : 0;
   const creator = roundImpact(base.creator + creatorProgressDelta / 10);
   const discovery = roundImpact(base.discovery + growthPercent / 100);
-  const economy = roundImpact(base.economy + cpDelta / 100);
+  const economy = roundImpact(base.economy + cpDelta / 100 + cpPoolTotal / 250);
   const network = roundImpact(base.network + influenceDelta / 10);
   const trust = roundImpact(base.trust + hasTargetStar);
 

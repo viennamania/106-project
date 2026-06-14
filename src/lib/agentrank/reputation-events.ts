@@ -3,6 +3,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 import { agentRankReputationEventSchemaVersion } from "@/lib/agentrank/event-schema";
+import { fanletterFounderUniverseCpPoolTotal } from "@/lib/fanletter-founder-universe";
 import type {
   FanletterStarDocument,
   FanletterStarFounderMembershipDocument,
@@ -26,6 +27,7 @@ export const agentRankReputationEventTypes = [
   "referral_code_created",
   "referral_converted",
   "cp_earned",
+  "cp_pool_generated",
   "creator_unlock_evaluated",
   "creator_unlocked",
   "source_universe_selected",
@@ -245,6 +247,22 @@ function buildStarActor(starId: string, star?: FanletterStarDocument | null) {
   };
 }
 
+function parseCreatorLaunchCpPoolSourceId(sourceId: string | null | undefined) {
+  const [prefix, sourceStarId, launchStarId, role, recipientMemberEmail] =
+    sourceId?.split(":") ?? [];
+
+  if (prefix !== "creator-launch-cp-pool" || !sourceStarId || !launchStarId) {
+    return null;
+  }
+
+  return {
+    launchStarId: normalizeId(launchStarId),
+    recipientMemberEmail: normalizeEmail(recipientMemberEmail),
+    role: role ?? null,
+    sourceStarId: normalizeId(sourceStarId),
+  };
+}
+
 function getTypeSignalDefaults(type: AgentRankReputationEventType) {
   switch (type) {
     case "ai_star_discovered":
@@ -281,6 +299,13 @@ function getTypeSignalDefaults(type: AgentRankReputationEventType) {
         discoveryWeight: 0,
         economicWeight: 1,
         networkWeight: 0.5,
+      };
+    case "cp_pool_generated":
+      return {
+        creatorWeight: 0.7,
+        discoveryWeight: 0,
+        economicWeight: 1.8,
+        networkWeight: 1,
       };
     case "creator_unlock_evaluated":
       return {
@@ -420,11 +445,14 @@ function buildEventAudit({
 
 function buildEvent(input: EventBuildInput): AgentRankReputationEvent {
   const cpDelta = toSafeNumber(input.context.cpDelta);
+  const cpPoolTotal = toSafeNumber(input.context.cpPoolTotal);
   const influenceDelta = toSafeNumber(input.context.influenceDelta);
   const creatorProgressDelta = toSafeNumber(input.context.creatorProgressDelta);
   const defaults = getTypeSignalDefaults(input.type);
   const economicWeight =
-    defaults.economicWeight + Math.max(0, Math.abs(cpDelta)) / 100;
+    defaults.economicWeight +
+    Math.max(0, Math.abs(cpDelta)) / 100 +
+    (input.type === "cp_pool_generated" ? Math.max(0, cpPoolTotal) / 250 : 0);
   const networkWeight =
     defaults.networkWeight +
     (input.type === "referral_converted" || input.type === "founder_joined"
@@ -440,7 +468,10 @@ function buildEvent(input: EventBuildInput): AgentRankReputationEvent {
     creatorProgressDelta,
     currency: "CP" as const,
     influenceDelta,
-    x402Ready: false,
+    x402Ready:
+      input.type === "x402_mock_payment_intent" ||
+      input.type === "cp_pool_generated" ||
+      input.context.x402Ready === true,
   };
   const occurredAt = toIsoDate(input.occurredAt);
   const reputationSignals = {
@@ -717,33 +748,133 @@ function buildInfluenceLedgerEvents({
   ledgerRows: FanletterStarInfluenceLedgerDocument[];
   starsById: StarLookup;
 }) {
-  if (!isIncludedType("cp_earned", includeTypes)) {
-    return [];
+  const events: AgentRankReputationEvent[] = [];
+
+  if (isIncludedType("cp_pool_generated", includeTypes)) {
+    const poolRowsByKey = new Map<
+      string,
+      {
+        allocatedCp: number;
+        createdAt: Date | null;
+        launchCreatorEmail: string | null;
+        launchStarId: string;
+        recipientCount: number;
+        roles: Set<string>;
+        sourceStarId: string;
+      }
+    >();
+
+    for (const row of ledgerRows) {
+      const parsed = parseCreatorLaunchCpPoolSourceId(row.sourceId);
+
+      if (!parsed) {
+        continue;
+      }
+
+      const key = `creator-launch-cp-pool:${parsed.sourceStarId}:${parsed.launchStarId}`;
+      const existing =
+        poolRowsByKey.get(key) ??
+        ({
+          allocatedCp: 0,
+          createdAt: null,
+          launchCreatorEmail: normalizeEmail(row.sourceMemberEmail),
+          launchStarId: parsed.launchStarId,
+          recipientCount: 0,
+          roles: new Set<string>(),
+          sourceStarId: parsed.sourceStarId,
+        } satisfies {
+          allocatedCp: number;
+          createdAt: Date | null;
+          launchCreatorEmail: string | null;
+          launchStarId: string;
+          recipientCount: number;
+          roles: Set<string>;
+          sourceStarId: string;
+        });
+
+      existing.allocatedCp += Math.max(0, toSafeNumber(row.cpDelta));
+      existing.createdAt =
+        existing.createdAt &&
+        existing.createdAt.getTime() <= row.createdAt.getTime()
+          ? existing.createdAt
+          : row.createdAt;
+      existing.launchCreatorEmail ||= normalizeEmail(row.sourceMemberEmail);
+      existing.recipientCount += 1;
+
+      if (parsed.role) {
+        existing.roles.add(parsed.role);
+      }
+
+      poolRowsByKey.set(key, existing);
+    }
+
+    for (const [sourceId, pool] of poolRowsByKey) {
+      const sourceStar = starsById.get(pool.sourceStarId);
+      const launchStar = starsById.get(pool.launchStarId);
+
+      events.push(
+        buildEvent({
+          actor: pool.launchCreatorEmail
+            ? buildMemberActor(pool.launchCreatorEmail, "creator")
+            : { id: "unknown-creator", type: "member" },
+          context: {
+            allocatedCp: pool.allocatedCp,
+            cpPoolTotal: fanletterFounderUniverseCpPoolTotal,
+            launchCreatorEmail: pool.launchCreatorEmail,
+            recipientCount: pool.recipientCount,
+            roles: [...pool.roles].join(","),
+            source: "creator_unlock",
+            sourceStarId: pool.sourceStarId,
+            spawnedStarId: pool.launchStarId,
+            unallocatedCp: Math.max(
+              0,
+              fanletterFounderUniverseCpPoolTotal - pool.allocatedCp,
+            ),
+            x402Ready: true,
+          },
+          object: buildStarActor(pool.sourceStarId, sourceStar),
+          occurredAt: pool.createdAt,
+          source: "fanletter_star_influence_ledger",
+          sourceId,
+          starId: pool.sourceStarId,
+          subject: buildStarActor(pool.launchStarId, launchStar),
+          type: "cp_pool_generated",
+        }),
+      );
+    }
   }
 
-  return ledgerRows.map((row) => {
-    const star = starsById.get(row.starId);
+  if (isIncludedType("cp_earned", includeTypes)) {
+    for (const row of ledgerRows) {
+      const star = starsById.get(row.starId);
 
-    return buildEvent({
-      actor: buildMemberActor(row.recipientMemberEmail),
-      context: {
-        cpDelta: row.cpDelta,
-        creatorProgressDelta: row.creatorProgressDelta,
-        influenceDelta: row.influenceDelta,
-        memo: row.memo,
-        source: row.source,
-        sourceMemberEmail: row.sourceMemberEmail,
-        targetMemberEmail: row.targetMemberEmail,
-      },
-      object: buildStarActor(row.starId, star),
-      occurredAt: row.createdAt,
-      source: "fanletter_star_influence_ledger",
-      sourceId: row.sourceId,
-      starId: row.starId,
-      subject: row.targetMemberEmail ? buildMemberActor(row.targetMemberEmail) : null,
-      type: "cp_earned",
-    });
-  });
+      events.push(
+        buildEvent({
+          actor: buildMemberActor(row.recipientMemberEmail),
+          context: {
+            cpDelta: row.cpDelta,
+            creatorProgressDelta: row.creatorProgressDelta,
+            influenceDelta: row.influenceDelta,
+            memo: row.memo,
+            source: row.source,
+            sourceMemberEmail: row.sourceMemberEmail,
+            targetMemberEmail: row.targetMemberEmail,
+          },
+          object: buildStarActor(row.starId, star),
+          occurredAt: row.createdAt,
+          source: "fanletter_star_influence_ledger",
+          sourceId: row.sourceId,
+          starId: row.starId,
+          subject: row.targetMemberEmail
+            ? buildMemberActor(row.targetMemberEmail)
+            : null,
+          type: "cp_earned",
+        }),
+      );
+    }
+  }
+
+  return events;
 }
 
 function buildFunnelInteractionEvents({
@@ -1045,6 +1176,11 @@ export async function getFanletterAgentRankReputationEventFeed(
       ...referralCodes.map((referralCode) => referralCode.starId),
       ...referralEdges.map((edge) => edge.starId),
       ...ledgerRows.map((row) => row.starId),
+      ...ledgerRows
+        .map((row) => parseCreatorLaunchCpPoolSourceId(row.sourceId)?.launchStarId)
+        .filter((relatedStarId): relatedStarId is string =>
+          Boolean(relatedStarId),
+        ),
       ...funnelEvents
         .map((event) => normalizeId(event.agentRank?.starId))
         .filter(Boolean),

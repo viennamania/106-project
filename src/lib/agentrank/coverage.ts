@@ -47,6 +47,7 @@ const eventLayerMap = {
   ai_star_spawned: "creator",
   content_engaged: "discovery",
   cp_earned: "economy",
+  cp_pool_generated: "economy",
   creator_unlock_evaluated: "creator",
   creator_unlocked: "creator",
   founder_joined: "network",

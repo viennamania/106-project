@@ -126,11 +126,16 @@ export function calculateAgentRankEconomicReputationScore(
 ): AgentRankEconomicReputationScore {
   const { events, summary } = feed;
   const spawnedStars = countEvents(events, "ai_star_spawned");
+  const cpPoolGeneratedEvents = countEvents(events, "cp_pool_generated");
   const founderJoins = countEvents(events, "founder_joined");
   const referralConversions = countEvents(events, "referral_converted");
   const repeatedMembers = getRepeatedMemberSignals(events);
   const launchRevenueUsdt = sumContextNumber(events, "launchCostUsdt");
+  const cpPoolGeneratedTotal = sumContextNumber(events, "cpPoolTotal");
   const cpTotal = Math.max(0, summary.cpTotal);
+  const x402ReadyEvents = events.filter(
+    (event) => event.economicLayer.x402Ready,
+  ).length;
   const riskEvents = events.filter((event) => {
     return !event.reputationSignals.oracleReady || event.sourceId.length === 0;
   }).length;
@@ -140,8 +145,12 @@ export function calculateAgentRankEconomicReputationScore(
     key: "revenue",
     label: "Revenue",
     maxScore: 220,
-    rawValue: cpTotal + launchRevenueUsdt * 100,
-    score: cpTotal / 18 + launchRevenueUsdt * 8,
+    rawValue: cpTotal + cpPoolGeneratedTotal + launchRevenueUsdt * 100,
+    score:
+      cpTotal / 18 +
+      cpPoolGeneratedTotal / 35 +
+      cpPoolGeneratedEvents * 10 +
+      launchRevenueUsdt * 8,
   });
   const customerComponent = buildComponent({
     description:
@@ -217,7 +226,7 @@ export function calculateAgentRankEconomicReputationScore(
       a2aReady: false,
       oracleReady: summary.oracleReadyEvents === summary.totalEvents,
       reputationLedgerReady: summary.totalEvents > 0,
-      x402Ready: false,
+      x402Ready: x402ReadyEvents > 0,
     },
     score,
     source: "fanletter_phase_1_adapter",

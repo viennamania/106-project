@@ -1499,6 +1499,7 @@ function getAgentRankEventLabel(type: string, locale: Locale) {
     ai_star_spawned: "AI 스타 창업",
     content_engaged: "콘텐츠 반응",
     cp_earned: "CP 보상",
+    cp_pool_generated: "CP Pool 생성",
     creator_unlock_evaluated: "권한 평가",
     creator_unlocked: "크리에이터 권한",
     founder_joined: "파운더 참여",

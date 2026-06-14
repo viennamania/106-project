@@ -72,6 +72,8 @@ export type AgentRankScoreAggregate = {
     auditReadyEvents: number;
     averageQualityScore: number;
     contentEngagements: number;
+    cpPoolGeneratedEvents: number;
+    cpPoolGeneratedTotal: number;
     cpTotal: number;
     creatorProgressTotal: number;
     creatorUnlocks: number;
@@ -149,6 +151,8 @@ type ScoreAccumulator = {
   auditQualityTotal: number;
   auditReadyEvents: number;
   contentEngagements: number;
+  cpPoolGeneratedEvents: number;
+  cpPoolGeneratedTotal: number;
   cpTotal: number;
   creatorProgressTotal: number;
   creatorUnlocks: number;
@@ -317,6 +321,8 @@ function buildAccumulator(events: AgentRankReputationEvent[]) {
     auditQualityTotal: 0,
     auditReadyEvents: 0,
     contentEngagements: 0,
+    cpPoolGeneratedEvents: 0,
+    cpPoolGeneratedTotal: 0,
     cpTotal: 0,
     creatorProgressTotal: 0,
     creatorUnlocks: 0,
@@ -351,6 +357,10 @@ function buildAccumulator(events: AgentRankReputationEvent[]) {
     const auditReady = isEventAuditReady(event);
 
     accumulator.cpTotal += cpDelta;
+    if (event.type === "cp_pool_generated") {
+      accumulator.cpPoolGeneratedEvents += 1;
+      accumulator.cpPoolGeneratedTotal += getContextNumber(event, "cpPoolTotal");
+    }
     accumulator.auditQualityTotal += auditQuality;
     accumulator.creatorProgressTotal += creatorProgressDelta;
     accumulator.influenceTotal += influenceDelta;
@@ -537,10 +547,15 @@ export function calculateAgentRankScoreAggregate({
     key: "economic",
     label: "Economic Activity",
     maxScore: 200,
-    rawValue: accumulator.cpTotal + accumulator.launchRevenueUsdt * 100,
+    rawValue:
+      accumulator.cpTotal +
+      accumulator.cpPoolGeneratedTotal +
+      accumulator.launchRevenueUsdt * 100,
     score:
       accumulator.weightTotals.economic * 24 +
       Math.max(0, accumulator.cpTotal) / 18 +
+      Math.max(0, accumulator.cpPoolGeneratedTotal) / 35 +
+      accumulator.cpPoolGeneratedEvents * 10 +
       accumulator.launchRevenueUsdt * 8 +
       accumulator.x402ReadyEvents * 18,
   });
@@ -664,6 +679,8 @@ export function calculateAgentRankScoreAggregate({
       auditReadyEvents: accumulator.auditReadyEvents,
       averageQualityScore: eventQualityPercent,
       contentEngagements: accumulator.contentEngagements,
+      cpPoolGeneratedEvents: accumulator.cpPoolGeneratedEvents,
+      cpPoolGeneratedTotal: accumulator.cpPoolGeneratedTotal,
       cpTotal: accumulator.cpTotal,
       creatorProgressTotal: accumulator.creatorProgressTotal,
       creatorUnlocks: accumulator.creatorUnlocks,

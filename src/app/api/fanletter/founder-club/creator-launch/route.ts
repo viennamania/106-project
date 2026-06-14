@@ -251,6 +251,9 @@ export async function POST(request: Request) {
   const universeHref = `/${locale}/fanletter/${encodeURIComponent(
     launchResult.star.starId,
   )}`;
+  const sourceUniverseHref = `/${locale}/fanletter/${encodeURIComponent(
+    launchResult.sourceStar.starId,
+  )}/universe`;
   const paymentStatus = runtime.testPaymentBypassEnabled
     ? "test_bypass"
     : "verified";
@@ -271,9 +274,9 @@ export async function POST(request: Request) {
     memberWalletAddress: session.walletAddress ?? null,
     metadata: {
       allocatedCp: launchResult.cpPool.allocatedCp,
-      cpDelta: launchResult.cpPool.cpPoolTotal,
       cpPoolLedgerInsertedCount: cpPoolLedger.insertedCount,
       cpPoolLedgerSkippedCount: cpPoolLedger.skippedCount,
+      cpPoolGenerated: true,
       cpPoolTotal: launchResult.cpPool.cpPoolTotal,
       launchCostUsdt,
       launchState: launchResult.status,
@@ -287,6 +290,38 @@ export async function POST(request: Request) {
     },
     path: `/${locale}/fanletter/creator-unlock`,
     targetHref: universeHref,
+  });
+
+  await tryRecordFanletterAgentRankServerEvent({
+    agentRank: {
+      eventType: "cp_pool_generated",
+      intent: "creator_launch_cp_pool_generated",
+      source: "fanletter_creator_unlock",
+      starId: launchResult.sourceStar.starId,
+    },
+    eventName: "fanletter_cp_pool_generated",
+    memberEmail: session.email,
+    memberWalletAddress: session.walletAddress ?? null,
+    metadata: {
+      allocatedCp: launchResult.cpPool.allocatedCp,
+      cpPoolLedgerInsertedCount: cpPoolLedger.insertedCount,
+      cpPoolLedgerSkippedCount: cpPoolLedger.skippedCount,
+      cpPoolTotal: launchResult.cpPool.cpPoolTotal,
+      launchCostUsdt,
+      launchState: launchResult.status,
+      page: "fanletter_creator_launch_api",
+      paymentStatus,
+      recipientCount: launchResult.cpPool.items.filter((item) => item.allocated)
+        .length,
+      sourceStarId: launchResult.sourceStar.starId,
+      sourceStarName: launchResult.sourceStar.characterName,
+      spawnedStarId: launchResult.star.starId,
+      spawnedStarName: launchResult.star.characterName,
+      unallocatedCp: launchResult.cpPool.unallocatedCp,
+      x402Ready: true,
+    },
+    path: `/${locale}/fanletter/creator-unlock`,
+    targetHref: sourceUniverseHref,
   });
 
   return Response.json({

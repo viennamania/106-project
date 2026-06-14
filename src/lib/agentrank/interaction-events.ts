@@ -4,6 +4,7 @@ export const agentRankInteractionEventTypes = [
   "referral_code_created",
   "referral_converted",
   "cp_earned",
+  "cp_pool_generated",
   "creator_unlock_evaluated",
   "creator_unlocked",
   "source_universe_selected",
@@ -205,6 +206,10 @@ function inferEventType(
 
   if (input.eventName === "fanletter_creator_launch_completed") {
     return "ai_star_spawned";
+  }
+
+  if (input.eventName === "fanletter_cp_pool_generated") {
+    return "cp_pool_generated";
   }
 
   if (input.eventName === "fanletter_creator_unlock_evaluated") {
