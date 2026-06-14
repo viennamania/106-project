@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import {
   getFanletterAgentRankReputationEventFeed,
   type AgentRankReputationEvent,
@@ -32,6 +34,25 @@ function serializeRowsCsv(
   rows: Array<Array<string | number | boolean | null | undefined>>,
 ) {
   return rows.map((row) => row.map(escapeCsvValue).join(",")).join("\n");
+}
+
+function stableStringify(value: unknown): string {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value);
+  }
+
+  if (Array.isArray(value)) {
+    return `[${value.map(stableStringify).join(",")}]`;
+  }
+
+  return `{${Object.entries(value)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, child]) => `${JSON.stringify(key)}:${stableStringify(child)}`)
+    .join(",")}}`;
+}
+
+function sha256(value: unknown) {
+  return createHash("sha256").update(stableStringify(value)).digest("hex");
 }
 
 function serializeAgentRankScoreCsv(score: AgentRankScoreAggregate) {
@@ -119,8 +140,39 @@ function buildAgentRankOraclePacket(
   events: AgentRankReputationEvent[],
 ) {
   const evidenceEvents = events.slice(0, 24);
+  const evidenceHashes = evidenceEvents.map((event) => event.audit.evidenceHash);
+  const evidenceRootPayload = {
+    dimensions: score.dimensions.map((dimension) => ({
+      key: dimension.key,
+      maxScore: dimension.maxScore,
+      rawValue: dimension.rawValue,
+      score: dimension.score,
+    })),
+    evidenceHashes,
+    scope: score.scope,
+    score: {
+      confidence: score.confidence,
+      maxScore: score.maxScore,
+      value: score.score,
+    },
+    scoreVersion: score.scoreVersion,
+    summary: {
+      cpPoolGeneratedTotal: score.summary.cpPoolGeneratedTotal,
+      cpTotal: score.summary.cpTotal,
+      eventCount: score.summary.eventCount,
+      founderJoins: score.summary.founderJoins,
+      networkEdges: score.summary.networkEdges,
+      referralConversions: score.summary.referralConversions,
+      spawnedStars: score.summary.spawnedStars,
+      uniqueMembers: score.summary.uniqueMembers,
+      uniqueStars: score.summary.uniqueStars,
+      x402ReadyEvents: score.summary.x402ReadyEvents,
+    },
+  };
+  const evidenceRoot = sha256(evidenceRootPayload);
+  const issuedAt = new Date().toISOString();
 
-  return {
+  const packet = {
     agentRankVersion: score.agentRankVersion,
     attestations: {
       a2aReady: score.readiness.a2aReady,
@@ -140,7 +192,7 @@ function buildAgentRankOraclePacket(
     generatedAt: score.generatedAt,
     evidence: {
       eventCount: events.length,
-      evidenceHashes: evidenceEvents.map((event) => event.audit.evidenceHash),
+      evidenceHashes,
       latestEventAt: events[0]?.occurredAt ?? null,
       sampleEvents: evidenceEvents.map((event) => ({
         auditStatus: event.audit.status,
@@ -154,7 +206,12 @@ function buildAgentRankOraclePacket(
         type: event.type,
       })),
     },
-    issuedAt: new Date().toISOString(),
+    integrity: {
+      canonicalization: "json-stable-v0",
+      evidenceRoot,
+      hashAlgorithm: "sha256",
+    },
+    issuedAt,
     packetVersion: "agentrank.oracle_packet.v0",
     readiness: score.readiness,
     roadmap: score.roadmap,
@@ -187,6 +244,14 @@ function buildAgentRankOraclePacket(
       label: contributor.label,
       role: contributor.role,
     })),
+  };
+
+  return {
+    ...packet,
+    integrity: {
+      ...packet.integrity,
+      packetHash: sha256(packet),
+    },
   };
 }
 
