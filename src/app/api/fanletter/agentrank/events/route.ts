@@ -50,6 +50,52 @@ function getImpactTotal(event: AgentRankReputationEvent) {
   );
 }
 
+function getContextNumber(event: AgentRankReputationEvent, key: string) {
+  const value = event.context[key];
+
+  return typeof value === "number" && Number.isFinite(value) ? value : "";
+}
+
+function getContextString(event: AgentRankReputationEvent, key: string) {
+  const value = event.context[key];
+
+  if (typeof value === "string" && value.trim()) {
+    return value.trim();
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return "";
+}
+
+function getScoreSignals(event: AgentRankReputationEvent) {
+  return [
+    {
+      label: "Founder Network",
+      value: event.reputationSignals.networkWeight,
+    },
+    {
+      label: "Economic Activity",
+      value: event.reputationSignals.economicWeight,
+    },
+    {
+      label: "Creator Journey",
+      value: event.reputationSignals.creatorWeight,
+    },
+    {
+      label: "AI Star Discovery",
+      value: event.reputationSignals.discoveryWeight,
+    },
+  ]
+    .filter((signal) => signal.value > 0)
+    .sort(
+      (left, right) =>
+        right.value - left.value || left.label.localeCompare(right.label),
+    );
+}
+
 function getEventAudit(event: AgentRankReputationEvent) {
   const qualityScore =
     typeof event.audit?.qualityScore === "number" &&
@@ -88,8 +134,21 @@ function serializeEventFeedCsv(events: AgentRankReputationEvent[]) {
     "creatorWeight",
     "discoveryWeight",
     "impactTotal",
+    "primaryScoreSignal",
+    "scoreSignals",
     "oracleReady",
     "x402Ready",
+    "paymentStatus",
+    "cpPoolTotal",
+    "allocatedCp",
+    "unallocatedCp",
+    "recipientCount",
+    "launchCostUsdt",
+    "sourceUniverseId",
+    "sourceStarId",
+    "sourceStarName",
+    "spawnedStarId",
+    "spawnedStarName",
     "schemaVersion",
     "auditStatus",
     "qualityScore",
@@ -98,6 +157,7 @@ function serializeEventFeedCsv(events: AgentRankReputationEvent[]) {
   ];
   const rows = events.map((event) => {
     const audit = getEventAudit(event);
+    const scoreSignals = getScoreSignals(event);
 
     return [
       event.eventId,
@@ -120,8 +180,23 @@ function serializeEventFeedCsv(events: AgentRankReputationEvent[]) {
       event.reputationSignals.creatorWeight,
       event.reputationSignals.discoveryWeight,
       getImpactTotal(event).toFixed(2),
+      scoreSignals[0]?.label ?? "",
+      scoreSignals
+        .map((signal) => `${signal.label}:${signal.value.toFixed(2)}`)
+        .join("|"),
       event.reputationSignals.oracleReady,
       event.economicLayer.x402Ready,
+      getContextString(event, "paymentStatus"),
+      getContextNumber(event, "cpPoolTotal"),
+      getContextNumber(event, "allocatedCp"),
+      getContextNumber(event, "unallocatedCp"),
+      getContextNumber(event, "recipientCount"),
+      getContextNumber(event, "launchCostUsdt"),
+      getContextString(event, "universeId"),
+      getContextString(event, "sourceStarId"),
+      getContextString(event, "sourceStarName"),
+      getContextString(event, "spawnedStarId"),
+      getContextString(event, "spawnedStarName"),
       event.schemaVersion,
       audit.status,
       audit.qualityScore,
