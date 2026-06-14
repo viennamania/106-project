@@ -74,6 +74,8 @@ function getLaunchPageCopy(locale: Locale) {
       contributionScore: "기여 점수",
       contributionConfidence: "신뢰도",
       contributionEvents: "이벤트",
+      contributionAudit: "감사 준비",
+      contributionQuality: "품질",
       heroBody:
         "크리에이터 권한 활성화 이후 여러 AI 스타를 만들 수 있는 흐름을 실제 결제 없이 먼저 검증합니다.",
       heroEyebrow: "크리에이터 권한 활성화",
@@ -136,6 +138,8 @@ function getLaunchPageCopy(locale: Locale) {
       contributionScore: "Contribution Score",
       contributionConfidence: "Confidence",
       contributionEvents: "Events",
+      contributionAudit: "Audit",
+      contributionQuality: "Quality",
       heroBody:
         "After Creator Unlock, the member can validate a multi-AI-Star launch flow before real checkout.",
       heroEyebrow: "Creator Unlock",
@@ -197,6 +201,8 @@ function getLaunchPageCopy(locale: Locale) {
     contributionScore: "Contribution Score",
     contributionConfidence: "Confidence",
     contributionEvents: "Events",
+    contributionAudit: "Audit",
+    contributionQuality: "Quality",
     heroBody:
       "After Creator Unlock, the member can validate a multi-AI-Star launch flow before real checkout.",
     heroEyebrow: "Creator Unlock",
@@ -721,7 +727,11 @@ function SourceUniverseSelector({
                   },
                   metadata: {
                     contributionConfidence: option.contribution?.confidence ?? null,
+                    contributionAuditReadyPercent:
+                      option.contribution?.readiness.auditReadyPercent ?? null,
                     contributionEventCount: option.contribution?.eventCount ?? null,
+                    contributionEventQualityPercent:
+                      option.contribution?.readiness.eventQualityPercent ?? null,
                     contributionScore: option.contribution?.score ?? null,
                     placement: "creator_unlock_source_universe_selector",
                     roleInUniverse: option.role,
@@ -755,7 +765,7 @@ function SourceUniverseSelector({
                     </div>
                   </div>
                   {option.contribution ? (
-                    <div className="mt-3 grid min-w-0 grid-cols-3 gap-1.5">
+                    <div className="mt-3 grid min-w-0 grid-cols-2 gap-1.5 sm:grid-cols-5">
                       <div className="rounded-lg bg-white px-2 py-2">
                         <p className="text-sm font-semibold text-[#12041f]">
                           {formatNumber(option.contribution.score, locale)}
@@ -778,6 +788,22 @@ function SourceUniverseSelector({
                         </p>
                         <p className="mt-0.5 text-[0.56rem] font-semibold text-black/40">
                           {copy.contributionEvents}
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-white px-2 py-2">
+                        <p className="text-sm font-semibold text-[#12041f]">
+                          {option.contribution.readiness.auditReadyPercent}%
+                        </p>
+                        <p className="mt-0.5 text-[0.56rem] font-semibold text-black/40">
+                          {copy.contributionAudit}
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-white px-2 py-2">
+                        <p className="text-sm font-semibold text-[#12041f]">
+                          {option.contribution.readiness.eventQualityPercent}%
+                        </p>
+                        <p className="mt-0.5 text-[0.56rem] font-semibold text-black/40">
+                          {copy.contributionQuality}
                         </p>
                       </div>
                     </div>
@@ -956,7 +982,7 @@ function FounderContributionPanel({
                   {formatNumber(universe.score, locale)}
                 </p>
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2">
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
                 <span className="rounded-lg bg-white px-2 py-2 text-xs font-semibold text-[#12041f]">
                   CP {formatNumber(universe.cpTotal, locale)}
                 </span>
@@ -965,6 +991,13 @@ function FounderContributionPanel({
                 </span>
                 <span className="rounded-lg bg-white px-2 py-2 text-xs font-semibold text-[#12041f]">
                   Oracle {universe.readiness.oracleReadyPercent}%
+                </span>
+                <span className="rounded-lg bg-white px-2 py-2 text-xs font-semibold text-[#12041f]">
+                  {copy.contributionAudit} {universe.readiness.auditReadyPercent}%
+                </span>
+                <span className="rounded-lg bg-white px-2 py-2 text-xs font-semibold text-[#12041f]">
+                  {copy.contributionQuality}{" "}
+                  {universe.readiness.eventQualityPercent}%
                 </span>
               </div>
             </div>
@@ -1496,6 +1529,20 @@ export function FanletterCreatorUnlockPage({
           founderContributionMet: getConditionMet("founderContributionScore"),
           founderContributionTarget: Number(
             getConditionTarget("founderContributionScore") ?? 0,
+          ),
+          agentRankAuditReadyCurrent: Number(
+            getConditionCurrent("agentRankAuditReady") ?? 0,
+          ),
+          agentRankAuditReadyMet: getConditionMet("agentRankAuditReady"),
+          agentRankAuditReadyTarget: Number(
+            getConditionTarget("agentRankAuditReady") ?? 0,
+          ),
+          agentRankEventQualityCurrent: Number(
+            getConditionCurrent("agentRankEventQuality") ?? 0,
+          ),
+          agentRankEventQualityMet: getConditionMet("agentRankEventQuality"),
+          agentRankEventQualityTarget: Number(
+            getConditionTarget("agentRankEventQuality") ?? 0,
           ),
           isSignedIn,
           page: "fanletter_creator_unlock",

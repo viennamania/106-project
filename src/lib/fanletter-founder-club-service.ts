@@ -64,6 +64,8 @@ const SCOUT_SIGNUP_CREATOR_PROGRESS_REWARD = 2;
 const SCOUT_SIGNUP_INFLUENCE_REWARD = 5;
 const SCOUT_SHARE_PLATFORMS = ["Kakao", "Instagram", "X", "TikTok"] as const;
 const FOUNDER_CONTRIBUTION_UNLOCK_SCORE = 500;
+const AGENTRANK_AUDIT_UNLOCK_PERCENT = 80;
+const AGENTRANK_EVENT_QUALITY_UNLOCK_SCORE = 80;
 const founderRoleRank: Record<Exclude<FounderRole, "member">, number> = {
   creator: 0,
   genesis_founder: 1,
@@ -2159,6 +2161,22 @@ export async function getFanletterFounderClubCreatorUnlock(
   const directInvites = portfolio?.directInvites ?? 0;
   const cpBalance = portfolio?.cpBalance ?? 0;
   const founderContributionScore = founderContribution?.totalScore ?? 0;
+  const agentRankAuditReadyPercent = founderContribution?.universes.length
+    ? Math.round(
+        founderContribution.universes.reduce(
+          (sum, universe) => sum + universe.readiness.auditReadyPercent,
+          0,
+        ) / founderContribution.universes.length,
+      )
+    : 0;
+  const agentRankEventQualityScore = founderContribution?.universes.length
+    ? Math.round(
+        founderContribution.universes.reduce(
+          (sum, universe) => sum + universe.readiness.eventQualityPercent,
+          0,
+        ) / founderContribution.universes.length,
+      )
+    : 0;
   const activityMissionCompleted = Boolean(
     activityProfile?.lastCheckInDateKey ||
       (activityProfile?.lifetimeActivityPoints ?? 0) > 0 ||
@@ -2189,6 +2207,19 @@ export async function getFanletterFounderClubCreatorUnlock(
       id: "founderContributionScore",
       met: founderContributionScore >= FOUNDER_CONTRIBUTION_UNLOCK_SCORE,
       target: FOUNDER_CONTRIBUTION_UNLOCK_SCORE,
+    },
+    {
+      current: agentRankAuditReadyPercent,
+      id: "agentRankAuditReady",
+      met: agentRankAuditReadyPercent >= AGENTRANK_AUDIT_UNLOCK_PERCENT,
+      target: AGENTRANK_AUDIT_UNLOCK_PERCENT,
+    },
+    {
+      current: agentRankEventQualityScore,
+      id: "agentRankEventQuality",
+      met:
+        agentRankEventQualityScore >= AGENTRANK_EVENT_QUALITY_UNLOCK_SCORE,
+      target: AGENTRANK_EVENT_QUALITY_UNLOCK_SCORE,
     },
     {
       current: activityMissionCompleted ? "completed" : "pending",

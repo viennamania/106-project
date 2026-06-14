@@ -952,6 +952,8 @@ export function CreatorUnlockCard({
     liveUnlock ?? fanletterV2Mock.creatorUnlock;
   const labelsById: Record<string, string> = {
     activityMission: copy.creatorUnlock.activityMission,
+    agentRankAuditReady: copy.creatorUnlock.agentRankAuditReady,
+    agentRankEventQuality: copy.creatorUnlock.agentRankEventQuality,
     cp: copy.creatorUnlock.cp,
     directInvites: copy.creatorUnlock.directInvites,
     founderContributionScore: copy.creatorUnlock.founderContributionScore,

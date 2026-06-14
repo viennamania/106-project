@@ -117,6 +117,8 @@ export type CreatorUnlockCondition = {
   current: number | string;
   id:
     | "activityMission"
+    | "agentRankAuditReady"
+    | "agentRankEventQuality"
     | "cp"
     | "directInvites"
     | "founderContributionScore"
@@ -413,6 +415,8 @@ export const fanletterV2Mock = {
       { current: 27, id: "directInvites", met: true, target: 20 },
       { current: 6800, id: "cp", met: true, target: 5000 },
       { current: 564, id: "founderContributionScore", met: true, target: 500 },
+      { current: 100, id: "agentRankAuditReady", met: true, target: 80 },
+      { current: 100, id: "agentRankEventQuality", met: true, target: 80 },
       { current: "completed", id: "activityMission", met: true, target: "completed" },
     ],
     createCostUsdt: 10,
@@ -496,6 +500,8 @@ export type FanletterV2Copy = {
   };
   creatorUnlock: {
     activityMission: string;
+    agentRankAuditReady: string;
+    agentRankEventQuality: string;
     body: string;
     cp: string;
     createAiStarCta: string;
@@ -632,8 +638,10 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     creatorUnlock: {
       activityMission: "Activity mission completed",
+      agentRankAuditReady: "AgentRank Audit-ready >= 80%",
+      agentRankEventQuality: "Event Quality >= 80",
       body:
-        "Creator status is unlocked when scout, invitation, CP, Founder Contribution, and activity requirements are met.",
+        "Creator status is unlocked when scout, invitation, CP, Founder Contribution, AgentRank audit quality, and activity requirements are met.",
       cp: "CP >= 5,000",
       createAiStarCta: "Create new AI Star",
       directInvites: "Direct Invites >= 20",
@@ -803,8 +811,10 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     creatorUnlock: {
       activityMission: "Activity mission completed",
+      agentRankAuditReady: "AgentRank Audit-ready 80%以上",
+      agentRankEventQuality: "Event Quality 80以上",
       body:
-        "Scout、招待、CP、Founder Contribution、活動ミッションの条件を満たすとCreatorステータスが開きます。",
+        "Scout、招待、CP、Founder Contribution、AgentRank監査品質、活動ミッションの条件を満たすとCreatorステータスが開きます。",
       cp: "CP 5,000以上",
       createAiStarCta: "新しいAI Starを作成",
       directInvites: "直接招待 20人以上",
@@ -973,8 +983,10 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     },
     creatorUnlock: {
       activityMission: "활동 미션 완료",
+      agentRankAuditReady: "AgentRank 감사 준비 80% 이상",
+      agentRankEventQuality: "이벤트 품질 80점 이상",
       body:
-        "스카우트 점수, 직접 초대, CP, 파운더 기여 점수, 활동 미션 조건을 만족하면 크리에이터 권한이 열립니다.",
+        "스카우트 점수, 직접 초대, CP, 파운더 기여 점수, AgentRank 감사 품질, 활동 미션 조건을 만족하면 크리에이터 권한이 열립니다.",
       cp: "CP 5,000 이상",
       createAiStarCta: "새 AI 스타 만들기",
       directInvites: "직접 초대 20명 이상",
