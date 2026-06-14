@@ -100,6 +100,7 @@ function getLedgerCopy(locale: Locale) {
       member: "멤버",
       networkEdges: "네트워크 엣지",
       needs: "보강 필요",
+      ndjson: "NDJSON 스트림",
       oracleNeeds: "Oracle 보강 항목",
       oracleReady: "오라클 준비",
       openEvent: "상세 추적",
@@ -147,6 +148,7 @@ function getLedgerCopy(locale: Locale) {
     member: "Member",
     networkEdges: "Network Edges",
     needs: "Needs data",
+    ndjson: "NDJSON Stream",
     oracleNeeds: "Oracle gaps",
     oracleReady: "Oracle-ready",
     openEvent: "Trace Event",
@@ -704,6 +706,8 @@ export function FanletterAgentRankLedgerPage({
   apiParams.set("limit", String(filters.limit));
   const csvParams = new URLSearchParams(apiParams);
   csvParams.set("format", "csv");
+  const ndjsonParams = new URLSearchParams(apiParams);
+  ndjsonParams.set("format", "ndjson");
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
@@ -735,6 +739,13 @@ export function FanletterAgentRankLedgerPage({
               >
                 <Download className="size-4" />
                 {copy.csv}
+              </Link>
+              <Link
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-4 text-sm font-semibold text-cyan-800"
+                href={`/api/fanletter/agentrank/events?${ndjsonParams.toString()}`}
+              >
+                <Database className="size-4" />
+                {copy.ndjson}
               </Link>
             </div>
           </div>

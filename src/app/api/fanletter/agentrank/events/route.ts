@@ -210,6 +210,18 @@ function serializeEventFeedCsv(events: AgentRankReputationEvent[]) {
     .join("\n");
 }
 
+function serializeEventFeedNdjson(events: AgentRankReputationEvent[]) {
+  return `${events
+    .map((event, index) =>
+      JSON.stringify({
+        event,
+        recordType: "agentrank.reputation_event",
+        sequence: index + 1,
+      }),
+    )
+    .join("\n")}\n`;
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
 
@@ -229,6 +241,18 @@ export async function GET(request: Request) {
         headers: {
           "content-disposition": `attachment; filename="${filename}"`,
           "content-type": "text/csv; charset=utf-8",
+        },
+      });
+    }
+
+    if (url.searchParams.get("format") === "ndjson") {
+      const ndjson = serializeEventFeedNdjson(feed.events);
+      const filename = `fanletter-agentrank-events-${Date.now()}.ndjson`;
+
+      return new Response(ndjson, {
+        headers: {
+          "content-disposition": `attachment; filename="${filename}"`,
+          "content-type": "application/x-ndjson; charset=utf-8",
         },
       });
     }
