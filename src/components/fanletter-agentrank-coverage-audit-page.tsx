@@ -94,6 +94,9 @@ function getCoverageAuditCopy(locale: Locale) {
       actionStatusDeferred: "보류",
       actionStatusPending: "대기",
       covered: "수집됨",
+      coverageCompleteBody:
+        "이 범위에서는 필수 Reputation Event 타입, CTA 출처, x402 mock 의도, A2A 준비 신호가 모두 원장에 기록되었습니다.",
+      coverageCompleteTitle: "Phase 1 이벤트 팩토리 커버리지 완료",
       csv: "CSV 내보내기",
       eventCoverage: "이벤트 타입 커버리지",
       eventLedger: "이벤트 원장",
@@ -137,6 +140,9 @@ function getCoverageAuditCopy(locale: Locale) {
     actionStatusDeferred: "Deferred",
     actionStatusPending: "Pending",
     covered: "Covered",
+    coverageCompleteBody:
+      "For this scope, required Reputation Event types, CTA sources, x402 mock intent, and A2A readiness signals are all present in the ledger.",
+    coverageCompleteTitle: "Phase 1 Event Factory Coverage Complete",
     csv: "Export CSV",
     eventCoverage: "Event Type Coverage",
     eventLedger: "Event Ledger",
@@ -1122,8 +1128,43 @@ export function FanletterAgentRankCoverageAuditPage({
                   })}
                 </div>
               ) : (
-                <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-3 text-sm font-semibold text-emerald-700">
-                  {copy.noCriticalGaps}
+                <div className="mt-4 overflow-hidden rounded-xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-violet-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                      <ShieldCheck className="size-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-emerald-800">
+                        {copy.coverageCompleteTitle}
+                      </p>
+                      <p className="mt-2 text-xs font-medium leading-5 text-slate-600">
+                        {copy.coverageCompleteBody}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 grid gap-2">
+                    <Link
+                      className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white transition hover:bg-[#2f2458]"
+                      href={`/${locale}/fanletter/agentrank?${pageQuery}`}
+                    >
+                      <Bot className="size-3.5" />
+                      {copy.backToAgentRank}
+                    </Link>
+                    <Link
+                      className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white px-3 text-xs font-semibold text-[#6d28d9] transition hover:bg-violet-50"
+                      href={`/${locale}/fanletter/agentrank/events?${actionPageQuery}`}
+                    >
+                      <Database className="size-3.5" />
+                      {copy.eventLedger}
+                    </Link>
+                    <a
+                      className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-emerald-100 bg-white px-3 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-50"
+                      href={`/api/fanletter/agentrank/coverage?${apiQuery}`}
+                    >
+                      <FileJson className="size-3.5" />
+                      {copy.api}
+                    </a>
+                  </div>
                 </div>
               )}
             </div>
