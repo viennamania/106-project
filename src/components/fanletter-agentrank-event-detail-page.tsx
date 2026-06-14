@@ -58,6 +58,7 @@ function getCopy(locale: Locale) {
       eventLineage: "Event Lineage",
       eventLineageBody:
         "같은 AI 스타, 멤버, 추천 코드, Universe로 이어진 이벤트를 전후 흐름으로 보여줍니다.",
+      downloadEvidencePacket: "증거 패킷 다운로드",
       economicFlow: "Economic Flow",
       economicFlowBody:
         "Creator Launch에서 발생한 x402 의도, CP Pool 생성, 상위 네트워크 분배를 하나의 거래 흐름으로 추적합니다.",
@@ -123,6 +124,7 @@ function getCopy(locale: Locale) {
     eventLineage: "Event Lineage",
     eventLineageBody:
       "Shows nearby events connected by the same AI Star, member, referral code, or Universe.",
+    downloadEvidencePacket: "Download Evidence Packet",
     economicFlow: "Economic Flow",
     economicFlowBody:
       "Traces x402 intent, CP Pool generation, and upline distribution from a Creator Launch as one transaction flow.",
@@ -1070,9 +1072,17 @@ function OracleEvidenceTracePanel({
   const audit = getEventAudit(event);
   const linkedEvidence = relatedEvents.slice(0, 5);
   const sourceTrace = `${event.source} · ${event.sourceId}`;
+  const evidencePacketParams = new URLSearchParams({
+    download: "1",
+  });
+  const packetStarId = event.starId ?? event.object?.id ?? null;
   const packetState = event.reputationSignals.oracleReady
     ? copy.ready
     : copy.pending;
+
+  if (packetStarId) {
+    evidencePacketParams.set("starId", packetStarId);
+  }
 
   return (
     <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
@@ -1086,15 +1096,26 @@ function OracleEvidenceTracePanel({
             {copy.oracleEvidenceTraceBody}
           </p>
         </div>
-        <span
-          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-            event.reputationSignals.oracleReady
-              ? "bg-emerald-50 text-emerald-700"
-              : "bg-amber-50 text-amber-700"
-          }`}
-        >
-          {copy.oraclePacketCandidate} · {packetState}
-        </span>
+        <div className="flex flex-wrap items-center gap-2">
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              event.reputationSignals.oracleReady
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-amber-50 text-amber-700"
+            }`}
+          >
+            {copy.oraclePacketCandidate} · {packetState}
+          </span>
+          <a
+            className="inline-flex h-9 items-center gap-2 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white transition hover:bg-[#2f235f]"
+            href={`/api/fanletter/agentrank/events/${encodeURIComponent(
+              event.eventId,
+            )}/evidence?${evidencePacketParams.toString()}`}
+          >
+            <FileCheck2 className="size-3.5" />
+            {copy.downloadEvidencePacket}
+          </a>
+        </div>
       </div>
 
       <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
