@@ -107,6 +107,7 @@ function getLedgerCopy(locale: Locale) {
       ready: "준비됨",
       schema: "스키마",
       schemaReady: "스키마 준비",
+      scoreSignals: "점수 신호",
       source: "소스",
       sourceId: "소스 ID",
       star: "AI 스타",
@@ -153,6 +154,7 @@ function getLedgerCopy(locale: Locale) {
     ready: "Ready",
     schema: "Schema",
     schemaReady: "Schema-ready",
+    scoreSignals: "Score Signals",
     source: "Source",
     sourceId: "Source ID",
     star: "AI Star",
@@ -355,6 +357,37 @@ function getEventAudit(event: AgentRankReputationEvent) {
   >;
 }
 
+function getLedgerScoreSignals(event: AgentRankReputationEvent) {
+  return [
+    {
+      label: "Network",
+      tone: "bg-blue-50 text-blue-700 ring-blue-100",
+      value: event.reputationSignals.networkWeight,
+    },
+    {
+      label: "Economic",
+      tone: "bg-emerald-50 text-emerald-700 ring-emerald-100",
+      value: event.reputationSignals.economicWeight,
+    },
+    {
+      label: "Creator",
+      tone: "bg-violet-50 text-[#6d28d9] ring-violet-100",
+      value: event.reputationSignals.creatorWeight,
+    },
+    {
+      label: "Discovery",
+      tone: "bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-100",
+      value: event.reputationSignals.discoveryWeight,
+    },
+  ]
+    .filter((signal) => signal.value > 0)
+    .sort(
+      (left, right) =>
+        right.value - left.value || left.label.localeCompare(right.label),
+    )
+    .slice(0, 3);
+}
+
 function ReadinessPill({
   gaps,
   label,
@@ -436,6 +469,7 @@ function EventCard({
   const copy = getLedgerCopy(locale);
   const Icon = eventIconMap[event.type];
   const detailParams = new URLSearchParams();
+  const scoreSignals = getLedgerScoreSignals(event);
   const impactTotal =
     typeof event.context.reputationImpactTotal === "number"
       ? event.context.reputationImpactTotal
@@ -517,7 +551,25 @@ function EventCard({
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 text-xs font-semibold text-slate-500">
+      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 text-xs font-semibold">
+        <span className="text-slate-400">{copy.scoreSignals}</span>
+        {scoreSignals.length ? (
+          scoreSignals.map((signal) => (
+            <span
+              className={`rounded-full px-2.5 py-1 ring-1 ${signal.tone}`}
+              key={signal.label}
+            >
+              {signal.label} {signal.value.toFixed(1)}
+            </span>
+          ))
+        ) : (
+          <span className="rounded-full bg-slate-50 px-2.5 py-1 text-slate-500 ring-1 ring-slate-100">
+            -
+          </span>
+        )}
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
         <ReadinessPill
           gaps={oracleGaps}
           label={
