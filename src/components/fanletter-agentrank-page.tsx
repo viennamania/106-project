@@ -136,6 +136,7 @@ function getAgentRankCopy(locale: Locale) {
         "Reputation Event를 Founder Network, 경제 활동, Creator Journey, AI 스타 발견, Lineage Trust, 감사 품질 차원으로 집계합니다.",
       scoreConfidence: "집계 신뢰도",
       scoreCsv: "Score CSV",
+      oraclePacket: "Oracle Packet",
       trustLayerMissing: "AI Agent 경제에는 Trust Layer가 필요합니다.",
       topContributors: "상위 기여자",
       useCases: "Use Cases",
@@ -225,6 +226,7 @@ function getAgentRankCopy(locale: Locale) {
       "Aggregates Reputation Events into Founder Network, Economic Activity, Creator Journey, AI Star Discovery, Lineage Trust, and audit quality.",
     scoreConfidence: "Score Confidence",
     scoreCsv: "Score CSV",
+    oraclePacket: "Oracle Packet",
     trustLayerMissing: "The AI Agent economy needs a trust layer.",
     topContributors: "Top Contributors",
     useCases: "Use Cases",
@@ -745,6 +747,10 @@ function AgentRankScoreAggregatorPanel({
     format: "csv",
     limit: "120",
   });
+  const oraclePacketParams = new URLSearchParams({
+    format: "oracle",
+    limit: "120",
+  });
   const readinessItems = [
     {
       active: scoreAggregate.readiness.reputationLedgerReady,
@@ -774,6 +780,7 @@ function AgentRankScoreAggregatorPanel({
 
   if (starId) {
     scoreCsvParams.set("starId", starId);
+    oraclePacketParams.set("starId", starId);
   }
 
   return (
@@ -808,6 +815,13 @@ function AgentRankScoreAggregatorPanel({
             >
               <Download className="size-3.5" />
               {copy.scoreCsv}
+            </a>
+            <a
+              className="inline-flex h-9 items-center gap-2 rounded-full bg-white/12 px-3 text-xs font-semibold text-white ring-1 ring-white/15"
+              href={`/api/fanletter/agentrank/score?${oraclePacketParams.toString()}`}
+            >
+              <ShieldCheck className="size-3.5" />
+              {copy.oraclePacket}
             </a>
           </div>
           <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/12">

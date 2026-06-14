@@ -110,6 +110,61 @@ function serializeAgentRankScoreCsv(score: AgentRankScoreAggregate) {
   return serializeRowsCsv(overviewRows);
 }
 
+function buildAgentRankOraclePacket(score: AgentRankScoreAggregate) {
+  return {
+    agentRankVersion: score.agentRankVersion,
+    attestations: {
+      a2aReady: score.readiness.a2aReady,
+      auditReady: score.readiness.auditReady,
+      oracleReady: score.readiness.oracleReady,
+      reputationLedgerReady: score.readiness.reputationLedgerReady,
+      schemaReadyPercent: score.readiness.schemaReadyPercent,
+      x402Ready: score.readiness.x402Ready,
+    },
+    dimensions: score.dimensions.map((dimension) => ({
+      key: dimension.key,
+      label: dimension.label,
+      maxScore: dimension.maxScore,
+      rawValue: dimension.rawValue,
+      score: dimension.score,
+    })),
+    generatedAt: score.generatedAt,
+    issuedAt: new Date().toISOString(),
+    packetVersion: "agentrank.oracle_packet.v0",
+    readiness: score.readiness,
+    roadmap: score.roadmap,
+    score: {
+      confidence: score.confidence,
+      formula: score.formula,
+      maxScore: score.maxScore,
+      value: score.score,
+    },
+    scope: score.scope,
+    scoreVersion: score.scoreVersion,
+    source: score.source,
+    summary: {
+      cpPoolGeneratedTotal: score.summary.cpPoolGeneratedTotal,
+      cpTotal: score.summary.cpTotal,
+      eventCount: score.summary.eventCount,
+      founderJoins: score.summary.founderJoins,
+      networkEdges: score.summary.networkEdges,
+      referralConversions: score.summary.referralConversions,
+      spawnedStars: score.summary.spawnedStars,
+      uniqueMembers: score.summary.uniqueMembers,
+      uniqueStars: score.summary.uniqueStars,
+      x402ReadyEvents: score.summary.x402ReadyEvents,
+    },
+    topContributors: score.topContributors.map((contributor) => ({
+      actorId: contributor.actorId,
+      actorType: contributor.actorType,
+      contributionScore: contributor.contributionScore,
+      eventCount: contributor.eventCount,
+      label: contributor.label,
+      role: contributor.role,
+    })),
+  };
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
 
@@ -130,6 +185,17 @@ export async function GET(request: Request) {
         headers: {
           "content-disposition": `attachment; filename="${filename}"`,
           "content-type": "text/csv; charset=utf-8",
+        },
+      });
+    }
+
+    if (url.searchParams.get("format") === "oracle") {
+      const packet = buildAgentRankOraclePacket(score);
+      const filename = `fanletter-agentrank-oracle-${Date.now()}.json`;
+
+      return Response.json(packet, {
+        headers: {
+          "content-disposition": `attachment; filename="${filename}"`,
         },
       });
     }
