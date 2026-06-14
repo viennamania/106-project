@@ -1046,8 +1046,15 @@ function OracleEvidenceChainPanel({
               const eventDetailParams = new URLSearchParams(detailParams);
 
               return (
-                <a
+                <FanletterTrackedLink
+                  agentRank={{
+                    eventType: "content_engaged",
+                    intent: "agentrank_oracle_evidence_open",
+                    source: "fanletter_agentrank",
+                    starId: event.starId ?? starId ?? null,
+                  }}
                   className="group relative min-w-0 rounded-lg border border-slate-100 bg-[#f8f9ff] p-4 transition hover:border-cyan-200 hover:bg-cyan-50/40"
+                  eventName="content_open"
                   href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
                     event.eventId,
                   )}${
@@ -1056,6 +1063,11 @@ function OracleEvidenceChainPanel({
                       : ""
                   }`}
                   key={event.eventId}
+                  metadata={{
+                    agentRankEvidenceHash: event.audit.evidenceHash,
+                    agentRankEventId: event.eventId,
+                    agentRankEventType: event.type,
+                  }}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white text-cyan-700 shadow-[0_10px_24px_rgba(15,23,42,0.05)]">
@@ -1102,7 +1114,7 @@ function OracleEvidenceChainPanel({
                       Q{event.audit.qualityScore}
                     </span>
                   </div>
-                </a>
+                </FanletterTrackedLink>
               );
             })}
           </div>
