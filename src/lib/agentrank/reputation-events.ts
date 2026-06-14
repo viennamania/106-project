@@ -71,9 +71,24 @@ export type AgentRankReputationSignals = {
   oracleReady: boolean;
 };
 
+export type AgentRankAuditStatus =
+  | "audit_ready"
+  | "needs_enrichment"
+  | "partial";
+
+export type AgentRankReputationEventAudit = {
+  evidenceHash: string;
+  gaps: string[];
+  graphReady: boolean;
+  impactReady: boolean;
+  qualityScore: number;
+  status: AgentRankAuditStatus;
+};
+
 export type AgentRankReputationEvent = {
   actor: AgentRankActor;
   agentRankVersion: "agentrank.v0";
+  audit: AgentRankReputationEventAudit;
   context: Record<string, string | number | boolean | null>;
   economicLayer: AgentRankEconomicLayer;
   eventId: string;
@@ -100,6 +115,8 @@ export type AgentRankReputationEventSummary = {
   influenceTotal: number;
   networkEdges: number;
   networkWeightTotal: number;
+  auditReadyEvents: number;
+  averageQualityScore: number;
   oracleReadyEvents: number;
   schemaReadyEvents: number;
   totalEvents: number;
@@ -141,6 +158,7 @@ type EventBuildInput = {
 } & Omit<
   AgentRankReputationEvent,
   | "agentRankVersion"
+  | "audit"
   | "eventId"
   | "economicLayer"
   | "occurredAt"
@@ -197,6 +215,14 @@ function buildEventId(parts: unknown[]) {
     .update(JSON.stringify(parts))
     .digest("hex")
     .slice(0, 32)}`;
+}
+
+function buildEvidenceHash(parts: unknown[]) {
+  return createHash("sha256").update(JSON.stringify(parts)).digest("hex");
+}
+
+function isValidIsoDate(value: string) {
+  return !Number.isNaN(new Date(value).getTime());
 }
 
 function getStarName(star: FanletterStarDocument | null | undefined) {
@@ -308,6 +334,90 @@ function getTypeSignalDefaults(type: AgentRankReputationEventType) {
   }
 }
 
+function buildEventAudit({
+  actor,
+  context,
+  economicLayer,
+  object,
+  occurredAt,
+  reputationSignals,
+  schemaVersion,
+  source,
+  sourceId,
+  starId,
+  subject,
+  type,
+}: {
+  actor: AgentRankActor;
+  context: AgentRankReputationEvent["context"];
+  economicLayer: AgentRankEconomicLayer;
+  object?: AgentRankActor | null;
+  occurredAt: string;
+  reputationSignals: AgentRankReputationSignals;
+  schemaVersion: typeof agentRankReputationEventSchemaVersion;
+  source: AgentRankReputationEventSource;
+  sourceId: string;
+  starId?: string | null;
+  subject?: AgentRankActor | null;
+  type: AgentRankReputationEventType;
+}): AgentRankReputationEventAudit {
+  const impactTotal =
+    reputationSignals.creatorWeight +
+    reputationSignals.discoveryWeight +
+    reputationSignals.economicWeight +
+    reputationSignals.networkWeight;
+  const actorReady = Boolean(actor.id && !actor.id.startsWith("unknown-"));
+  const sourceReady = Boolean(sourceId);
+  const timeReady = isValidIsoDate(occurredAt);
+  const starReady = Boolean(
+    starId || object?.type === "ai_star" || subject?.type === "ai_star",
+  );
+  const graphReady = Boolean(
+    actorReady && (object?.id || subject?.id || starId),
+  );
+  const impactReady = impactTotal > 0;
+  const checks = [
+    ["source_id", sourceReady],
+    ["timestamp", timeReady],
+    ["actor_id", actorReady],
+    ["star_id", starReady],
+    ["graph_edge", graphReady],
+    ["impact_signal", impactReady],
+  ] as const;
+  const gaps = checks
+    .filter(([, isReady]) => !isReady)
+    .map(([gap]) => gap);
+  const readyCount = checks.length - gaps.length;
+  const qualityScore = Math.round((readyCount / checks.length) * 100);
+
+  return {
+    evidenceHash: buildEvidenceHash([
+      schemaVersion,
+      source,
+      sourceId,
+      type,
+      actor,
+      object,
+      subject,
+      starId,
+      occurredAt,
+      context,
+      economicLayer,
+      reputationSignals,
+    ]),
+    gaps,
+    graphReady,
+    impactReady,
+    qualityScore,
+    status:
+      gaps.length === 0
+        ? "audit_ready"
+        : qualityScore >= 67
+          ? "partial"
+          : "needs_enrichment",
+  };
+}
+
 function buildEvent(input: EventBuildInput): AgentRankReputationEvent {
   const cpDelta = toSafeNumber(input.context.cpDelta);
   const influenceDelta = toSafeNumber(input.context.influenceDelta);
@@ -325,30 +435,47 @@ function buildEvent(input: EventBuildInput): AgentRankReputationEvent {
   const discoveryWeight =
     defaults.discoveryWeight +
     Math.max(0, toSafeNumber(input.context.growthPercent)) / 100;
+  const economicLayer = {
+    cpDelta,
+    creatorProgressDelta,
+    currency: "CP" as const,
+    influenceDelta,
+    x402Ready: false,
+  };
+  const occurredAt = toIsoDate(input.occurredAt);
+  const reputationSignals = {
+    creatorWeight,
+    discoveryWeight,
+    economicWeight,
+    networkWeight,
+    oracleReady: Boolean(input.sourceId && input.occurredAt),
+  };
 
   return {
     actor: input.actor,
     agentRankVersion: "agentrank.v0",
+    audit: buildEventAudit({
+      actor: input.actor,
+      context: input.context,
+      economicLayer,
+      object: input.object ?? null,
+      occurredAt,
+      reputationSignals,
+      schemaVersion: agentRankReputationEventSchemaVersion,
+      source: input.source,
+      sourceId: input.sourceId,
+      starId: input.starId ?? null,
+      subject: input.subject ?? null,
+      type: input.type,
+    }),
     context: input.context,
-    economicLayer: {
-      cpDelta,
-      creatorProgressDelta,
-      currency: "CP",
-      influenceDelta,
-      x402Ready: false,
-    },
+    economicLayer,
     eventId: buildEventId([input.source, input.sourceId, input.type]),
     object: input.object ?? null,
-    occurredAt: toIsoDate(input.occurredAt),
+    occurredAt,
     phase: "fanletter_phase_1",
     product: "fanletter",
-    reputationSignals: {
-      creatorWeight,
-      discoveryWeight,
-      economicWeight,
-      networkWeight,
-      oracleReady: Boolean(input.sourceId && input.occurredAt),
-    },
+    reputationSignals,
     schemaVersion: agentRankReputationEventSchemaVersion,
     source: input.source,
     sourceId: input.sourceId,
@@ -721,6 +848,8 @@ function summarizeEvents(events: AgentRankReputationEvent[]) {
   let influenceTotal = 0;
   let networkEdges = 0;
   let networkWeightTotal = 0;
+  let auditQualityTotal = 0;
+  let auditReadyEvents = 0;
   let oracleReadyEvents = 0;
   let schemaReadyEvents = 0;
 
@@ -732,6 +861,11 @@ function summarizeEvents(events: AgentRankReputationEvent[]) {
     discoveryWeightTotal += event.reputationSignals.discoveryWeight;
     economicWeightTotal += event.reputationSignals.economicWeight;
     networkWeightTotal += event.reputationSignals.networkWeight;
+    auditQualityTotal += event.audit.qualityScore;
+
+    if (event.audit.status === "audit_ready") {
+      auditReadyEvents += 1;
+    }
 
     if (event.type === "referral_converted") {
       networkEdges += 1;
@@ -770,6 +904,10 @@ function summarizeEvents(events: AgentRankReputationEvent[]) {
     influenceTotal,
     networkEdges,
     networkWeightTotal,
+    auditReadyEvents,
+    averageQualityScore: events.length
+      ? Math.round(auditQualityTotal / events.length)
+      : 0,
     oracleReadyEvents,
     schemaReadyEvents,
     totalEvents: events.length,

@@ -26,6 +26,9 @@ function getCopy(locale: Locale) {
     return {
       actor: "액터",
       agentGraph: "Agent Transaction Graph",
+      audit: "AgentRank 감사",
+      auditGaps: "보강 항목",
+      evidenceHash: "증거 해시",
       back: "이벤트 원장",
       context: "Context",
       eventId: "이벤트 ID",
@@ -36,6 +39,7 @@ function getCopy(locale: Locale) {
       object: "대상",
       oracle: "Oracle 준비",
       pending: "대기",
+      quality: "품질 점수",
       currentEvent: "현재 이벤트",
       downstream: "이후 신호",
       eventLineage: "Event Lineage",
@@ -61,6 +65,9 @@ function getCopy(locale: Locale) {
   return {
     actor: "Actor",
     agentGraph: "Agent Transaction Graph",
+    audit: "AgentRank Audit",
+    auditGaps: "Audit gaps",
+    evidenceHash: "Evidence Hash",
     back: "Event Ledger",
     context: "Context",
     eventId: "Event ID",
@@ -71,6 +78,7 @@ function getCopy(locale: Locale) {
     object: "Object",
     oracle: "Oracle-ready",
     pending: "Pending",
+    quality: "Quality Score",
     currentEvent: "Current Event",
     downstream: "Downstream Signals",
     eventLineage: "Event Lineage",
@@ -106,10 +114,14 @@ function formatDate(value: string, locale: Locale) {
   }).format(date);
 }
 
-function formatNumber(value: number, locale: Locale) {
+function toFiniteNumber(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function formatNumber(value: number | null | undefined, locale: Locale) {
   return new Intl.NumberFormat(locale, {
     maximumFractionDigits: 2,
-  }).format(value);
+  }).format(toFiniteNumber(value));
 }
 
 function getActorLabel(actor: AgentRankReputationEvent["actor"] | null) {
@@ -164,8 +176,73 @@ function getImpactTotal(event: AgentRankReputationEvent) {
   );
 }
 
+function getAuditGapLabel(gap: string, locale: Locale) {
+  const labels =
+    locale === "ko"
+      ? {
+          actor_id: "액터 ID",
+          graph_edge: "그래프 엣지",
+          impact_signal: "평판 영향",
+          source_id: "소스 ID",
+          star_id: "AI 스타 ID",
+          timestamp: "발생 시각",
+        }
+      : {
+          actor_id: "Actor ID",
+          graph_edge: "Graph edge",
+          impact_signal: "Impact signal",
+          source_id: "Source ID",
+          star_id: "AI Star ID",
+          timestamp: "Timestamp",
+        };
+
+  return labels[gap as keyof typeof labels] ?? gap;
+}
+
+function getAuditStatusLabel(
+  status: AgentRankReputationEvent["audit"]["status"],
+  locale: Locale,
+) {
+  const labels =
+    locale === "ko"
+      ? {
+          audit_ready: "감사 준비",
+          needs_enrichment: "보강 필요",
+          partial: "부분 준비",
+        }
+      : {
+          audit_ready: "Audit-ready",
+          needs_enrichment: "Needs enrichment",
+          partial: "Partial",
+        };
+
+  return labels[status];
+}
+
+function getEventAudit(event: AgentRankReputationEvent) {
+  const audit = event.audit;
+  const qualityScore = toFiniteNumber(audit?.qualityScore);
+  const gaps = Array.isArray(audit?.gaps) ? audit.gaps : [];
+
+  return {
+    evidenceHash: audit?.evidenceHash ?? event.eventId.replace(/^agentrank_/, ""),
+    gaps,
+    qualityScore,
+    status:
+      audit?.status ??
+      (gaps.length === 0 && qualityScore >= 90 ? "audit_ready" : "partial"),
+  } satisfies Pick<
+    AgentRankReputationEvent["audit"],
+    "evidenceHash" | "gaps" | "qualityScore" | "status"
+  >;
+}
+
 function getReadinessItems(event: AgentRankReputationEvent, locale: Locale) {
   const copy = getCopy(locale);
+  const audit = getEventAudit(event);
+  const auditGapLabel = audit.gaps.length
+    ? audit.gaps.map((gap) => getAuditGapLabel(gap, locale)).join(", ")
+    : copy.ready;
 
   return [
     {
@@ -175,6 +252,11 @@ function getReadinessItems(event: AgentRankReputationEvent, locale: Locale) {
           : "Normalized into AgentRank v1 event schema",
       isReady: true,
       label: copy.schema,
+    },
+    {
+      body: `${copy.quality} ${audit.qualityScore}/100 · ${auditGapLabel}`,
+      isReady: audit.status === "audit_ready",
+      label: copy.audit,
     },
     {
       body:
@@ -614,6 +696,7 @@ export function FanletterAgentRankEventDetailPage({
   relatedEvents = [],
 }: FanletterAgentRankEventDetailPageProps) {
   const copy = getCopy(locale);
+  const audit = getEventAudit(event);
   const starId = event.starId ?? event.object?.id ?? null;
   const ledgerParams = new URLSearchParams();
   const impactTotal = getImpactTotal(event);
@@ -775,6 +858,13 @@ export function FanletterAgentRankEventDetailPage({
                 [copy.sourceId, event.sourceId],
                 [copy.source, event.source],
                 ["Occurred", formatDate(event.occurredAt, locale)],
+                [
+                  copy.audit,
+                  `${getAuditStatusLabel(audit.status, locale)} · ${
+                    audit.qualityScore
+                  }/100`,
+                ],
+                [copy.evidenceHash, audit.evidenceHash],
                 [copy.actor, `${getActorLabel(event.actor)} (${event.actor.type})`],
                 [
                   copy.object,
@@ -821,6 +911,14 @@ export function FanletterAgentRankEventDetailPage({
                 </p>
                 <p className="mt-1 break-all text-sm font-semibold text-[#11132d]">
                   {getActorLabel(event.object ?? null)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs font-semibold uppercase text-slate-400">
+                  {copy.evidenceHash}
+                </p>
+                <p className="mt-1 break-all font-mono text-[0.68rem] font-semibold text-slate-600">
+                  {audit.evidenceHash}
                 </p>
               </div>
             </div>

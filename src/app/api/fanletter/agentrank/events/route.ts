@@ -50,6 +50,22 @@ function getImpactTotal(event: AgentRankReputationEvent) {
   );
 }
 
+function getEventAudit(event: AgentRankReputationEvent) {
+  const qualityScore =
+    typeof event.audit?.qualityScore === "number" &&
+    Number.isFinite(event.audit.qualityScore)
+      ? event.audit.qualityScore
+      : 0;
+  const gaps = Array.isArray(event.audit?.gaps) ? event.audit.gaps : [];
+
+  return {
+    evidenceHash: event.audit?.evidenceHash ?? event.eventId.replace(/^agentrank_/, ""),
+    gaps,
+    qualityScore,
+    status: event.audit?.status ?? "partial",
+  };
+}
+
 function serializeEventFeedCsv(events: AgentRankReputationEvent[]) {
   const headers = [
     "eventId",
@@ -75,32 +91,44 @@ function serializeEventFeedCsv(events: AgentRankReputationEvent[]) {
     "oracleReady",
     "x402Ready",
     "schemaVersion",
+    "auditStatus",
+    "qualityScore",
+    "evidenceHash",
+    "auditGaps",
   ];
-  const rows = events.map((event) => [
-    event.eventId,
-    event.occurredAt,
-    event.type,
-    event.starId,
-    event.actor.type,
-    event.actor.id,
-    event.actor.role,
-    event.object?.type,
-    event.object?.id,
-    event.source,
-    event.sourceId,
-    event.context.intent,
-    event.economicLayer.cpDelta,
-    event.economicLayer.influenceDelta,
-    event.economicLayer.creatorProgressDelta,
-    event.reputationSignals.networkWeight,
-    event.reputationSignals.economicWeight,
-    event.reputationSignals.creatorWeight,
-    event.reputationSignals.discoveryWeight,
-    getImpactTotal(event).toFixed(2),
-    event.reputationSignals.oracleReady,
-    event.economicLayer.x402Ready,
-    event.schemaVersion,
-  ]);
+  const rows = events.map((event) => {
+    const audit = getEventAudit(event);
+
+    return [
+      event.eventId,
+      event.occurredAt,
+      event.type,
+      event.starId,
+      event.actor.type,
+      event.actor.id,
+      event.actor.role,
+      event.object?.type,
+      event.object?.id,
+      event.source,
+      event.sourceId,
+      event.context.intent,
+      event.economicLayer.cpDelta,
+      event.economicLayer.influenceDelta,
+      event.economicLayer.creatorProgressDelta,
+      event.reputationSignals.networkWeight,
+      event.reputationSignals.economicWeight,
+      event.reputationSignals.creatorWeight,
+      event.reputationSignals.discoveryWeight,
+      getImpactTotal(event).toFixed(2),
+      event.reputationSignals.oracleReady,
+      event.economicLayer.x402Ready,
+      event.schemaVersion,
+      audit.status,
+      audit.qualityScore,
+      audit.evidenceHash,
+      audit.gaps.join("|"),
+    ];
+  });
 
   return [headers, ...rows]
     .map((row) => row.map(escapeCsvValue).join(","))

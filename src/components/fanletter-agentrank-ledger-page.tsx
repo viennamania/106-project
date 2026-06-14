@@ -74,6 +74,8 @@ function getLedgerCopy(locale: Locale) {
       actor: "액터",
       all: "전체",
       api: "API 원본",
+      audit: "감사 상태",
+      auditReady: "감사 준비",
       back: "AgentRank로 돌아가기",
       cp: "CP",
       csv: "CSV 내보내기",
@@ -82,6 +84,7 @@ function getLedgerCopy(locale: Locale) {
         "조건에 맞는 Reputation Event가 없습니다. 다른 스타, 멤버, 이벤트 타입으로 확인하세요.",
       event: "이벤트",
       eventId: "이벤트 ID",
+      evidenceHash: "증거 해시",
       applyFilters: "필터 적용",
       clearFilters: "필터 초기화",
       filterByType: "이벤트 타입 필터",
@@ -98,6 +101,7 @@ function getLedgerCopy(locale: Locale) {
       oracleNeeds: "Oracle 보강 항목",
       oracleReady: "오라클 준비",
       openEvent: "상세 추적",
+      quality: "품질 점수",
       ready: "준비됨",
       schema: "스키마",
       schemaReady: "스키마 준비",
@@ -116,6 +120,8 @@ function getLedgerCopy(locale: Locale) {
     actor: "Actor",
     all: "All",
     api: "Raw API",
+    audit: "Audit Status",
+    auditReady: "Audit-ready",
     back: "Back to AgentRank",
     cp: "CP",
     csv: "Export CSV",
@@ -124,6 +130,7 @@ function getLedgerCopy(locale: Locale) {
       "No matching Reputation Events. Try another Star, member, or event type.",
     event: "Event",
     eventId: "Event ID",
+    evidenceHash: "Evidence Hash",
     applyFilters: "Apply filters",
     clearFilters: "Reset filters",
     filterByType: "Filter by event type",
@@ -140,6 +147,7 @@ function getLedgerCopy(locale: Locale) {
     oracleNeeds: "Oracle gaps",
     oracleReady: "Oracle-ready",
     openEvent: "Trace Event",
+    quality: "Quality Score",
     ready: "Ready",
     schema: "Schema",
     schemaReady: "Schema-ready",
@@ -154,12 +162,22 @@ function getLedgerCopy(locale: Locale) {
   };
 }
 
-function formatNumber(value: number, locale: Locale) {
-  return new Intl.NumberFormat(locale).format(value);
+function toFiniteNumber(value: number | null | undefined) {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
-function formatPercent(value: number, total: number, locale: Locale) {
-  const percent = total > 0 ? Math.round((value / total) * 100) : 0;
+function formatNumber(value: number | null | undefined, locale: Locale) {
+  return new Intl.NumberFormat(locale).format(toFiniteNumber(value));
+}
+
+function formatPercent(
+  value: number | null | undefined,
+  total: number | null | undefined,
+  locale: Locale,
+) {
+  const safeTotal = toFiniteNumber(total);
+  const safeValue = toFiniteNumber(value);
+  const percent = safeTotal > 0 ? Math.round((safeValue / safeTotal) * 100) : 0;
 
   return new Intl.NumberFormat(locale, {
     maximumFractionDigits: 0,
@@ -272,6 +290,67 @@ function getOracleReadinessGaps(
   return gaps;
 }
 
+function getAuditGapLabel(gap: string, locale: Locale) {
+  const labels =
+    locale === "ko"
+      ? {
+          actor_id: "액터 ID",
+          graph_edge: "그래프 엣지",
+          impact_signal: "평판 영향",
+          source_id: "소스 ID",
+          star_id: "AI 스타 ID",
+          timestamp: "발생 시각",
+        }
+      : {
+          actor_id: "Actor ID",
+          graph_edge: "Graph edge",
+          impact_signal: "Impact signal",
+          source_id: "Source ID",
+          star_id: "AI Star ID",
+          timestamp: "Timestamp",
+        };
+
+  return labels[gap as keyof typeof labels] ?? gap;
+}
+
+function getAuditStatusLabel(
+  status: AgentRankReputationEvent["audit"]["status"],
+  locale: Locale,
+) {
+  const labels =
+    locale === "ko"
+      ? {
+          audit_ready: "감사 준비",
+          needs_enrichment: "보강 필요",
+          partial: "부분 준비",
+        }
+      : {
+          audit_ready: "Audit-ready",
+          needs_enrichment: "Needs enrichment",
+          partial: "Partial",
+        };
+
+  return labels[status];
+}
+
+function getEventAudit(event: AgentRankReputationEvent) {
+  const audit = event.audit;
+  const qualityScore = toFiniteNumber(audit?.qualityScore);
+  const gaps = Array.isArray(audit?.gaps) ? audit.gaps : [];
+
+  return {
+    evidenceHash: audit?.evidenceHash ?? event.eventId.replace(/^agentrank_/, ""),
+    gaps,
+    qualityScore,
+    status:
+      audit?.status ??
+      (gaps.length === 0 && qualityScore >= 90 ? "audit_ready" : "partial"),
+  } satisfies Pick<
+    AgentRankReputationEvent["audit"],
+    "evidenceHash" | "gaps" | "qualityScore" | "status"
+  >;
+}
+
 function ReadinessPill({
   gaps,
   label,
@@ -361,6 +440,8 @@ function EventCard({
         event.reputationSignals.economicWeight +
         event.reputationSignals.networkWeight;
   const oracleGaps = getOracleReadinessGaps(event, locale);
+  const audit = getEventAudit(event);
+  const auditGaps = audit.gaps.map((gap) => getAuditGapLabel(gap, locale));
 
   if (event.starId) {
     detailParams.set("starId", event.starId);
@@ -389,7 +470,7 @@ function EventCard({
         </span>
       </div>
 
-      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-5">
         <div>
           <p className="text-xs font-semibold uppercase text-slate-400">
             {copy.actor}
@@ -422,6 +503,14 @@ function EventCard({
             {event.schemaVersion}
           </p>
         </div>
+        <div>
+          <p className="text-xs font-semibold uppercase text-slate-400">
+            {copy.quality}
+          </p>
+          <p className="mt-1 font-semibold text-slate-700">
+            {audit.qualityScore}/100
+          </p>
+        </div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 text-xs font-semibold text-slate-500">
@@ -433,6 +522,16 @@ function EventCard({
               : `${copy.oracleReady} ${copy.needs}`
           }
         />
+        <span
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 ${
+            audit.status === "audit_ready"
+              ? "border-violet-100 bg-violet-50 text-[#6d28d9]"
+              : "border-amber-100 bg-amber-50 text-amber-700"
+          }`}
+        >
+          <ShieldCheck className="size-3.5" />
+          {getAuditStatusLabel(audit.status, locale)}
+        </span>
         <span>{formatDate(event.occurredAt, locale)}</span>
         <span className="text-slate-300">/</span>
         <span>{event.context.universeId ?? event.starId ?? "-"}</span>
@@ -453,7 +552,7 @@ function EventCard({
         <summary className="cursor-pointer text-[#5b21b6]">
           {copy.details}
         </summary>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
           <div className="min-w-0">
             <p className="uppercase text-slate-400">{copy.eventId}</p>
             <p className="mt-1 break-all font-mono text-[0.68rem] text-slate-700">
@@ -474,6 +573,18 @@ function EventCard({
             <p className="uppercase text-slate-400">{copy.oracleNeeds}</p>
             <p className="mt-1 text-slate-700">
               {oracleGaps.length ? oracleGaps.join(", ") : copy.ready}
+            </p>
+          </div>
+          <div className="min-w-0">
+            <p className="uppercase text-slate-400">{copy.evidenceHash}</p>
+            <p className="mt-1 break-all font-mono text-[0.68rem] text-slate-700">
+              {audit.evidenceHash}
+            </p>
+          </div>
+          <div>
+            <p className="uppercase text-slate-400">{copy.audit}</p>
+            <p className="mt-1 text-slate-700">
+              {auditGaps.length ? auditGaps.join(", ") : copy.ready}
             </p>
           </div>
         </div>
@@ -504,6 +615,23 @@ export function FanletterAgentRankLedgerPage({
 }: FanletterAgentRankLedgerPageProps) {
   const copy = getLedgerCopy(locale);
   const apiParams = new URLSearchParams();
+  const averageQualityScore =
+    typeof feed.summary.averageQualityScore === "number"
+      ? feed.summary.averageQualityScore
+      : feed.events.length
+        ? Math.round(
+            feed.events.reduce(
+              (sum, event) => sum + getEventAudit(event).qualityScore,
+              0,
+            ) / feed.events.length,
+          )
+        : 0;
+  const auditReadyEvents =
+    typeof feed.summary.auditReadyEvents === "number"
+      ? feed.summary.auditReadyEvents
+      : feed.events.filter(
+          (event) => getEventAudit(event).status === "audit_ready",
+        ).length;
 
   if (filters.starId) {
     apiParams.set("starId", filters.starId);
@@ -648,7 +776,7 @@ export function FanletterAgentRankLedgerPage({
           </form>
         </section>
 
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
           <MetricTile
             label={copy.schemaReady}
             value={formatPercent(
@@ -664,6 +792,18 @@ export function FanletterAgentRankLedgerPage({
               feed.summary.totalEvents,
               locale,
             )}
+          />
+          <MetricTile
+            label={copy.auditReady}
+            value={formatPercent(
+              auditReadyEvents,
+              feed.summary.totalEvents,
+              locale,
+            )}
+          />
+          <MetricTile
+            label={copy.quality}
+            value={`${formatNumber(averageQualityScore, locale)}/100`}
           />
           <MetricTile
             label={copy.networkEdges}
