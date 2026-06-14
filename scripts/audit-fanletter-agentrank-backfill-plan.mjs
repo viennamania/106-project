@@ -149,7 +149,7 @@ function buildActionPlan({ gaps, packageScripts, totals }) {
       id: "backfill-member-starter-star",
       priority: 2,
       runMode: "script_ready",
-      script: "pnpm fanletter:ai-star-genealogy:backfill",
+      script: "pnpm fanletter:member-starter-stars:backfill",
       targetCoverage: "memberStarterStarCoveragePercent",
       title: "Member starter AI Star assignment",
     },
