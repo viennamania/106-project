@@ -6,6 +6,7 @@ import {
   Brain,
   Coins,
   Database,
+  Download,
   Eye,
   GitBranch,
   Heart,
@@ -134,6 +135,7 @@ function getAgentRankCopy(locale: Locale) {
       scoreAggregatorBody:
         "Reputation Event를 Founder Network, 경제 활동, Creator Journey, AI 스타 발견, Lineage Trust, 감사 품질 차원으로 집계합니다.",
       scoreConfidence: "집계 신뢰도",
+      scoreCsv: "Score CSV",
       trustLayerMissing: "AI Agent 경제에는 Trust Layer가 필요합니다.",
       topContributors: "상위 기여자",
       useCases: "Use Cases",
@@ -222,6 +224,7 @@ function getAgentRankCopy(locale: Locale) {
     scoreAggregatorBody:
       "Aggregates Reputation Events into Founder Network, Economic Activity, Creator Journey, AI Star Discovery, Lineage Trust, and audit quality.",
     scoreConfidence: "Score Confidence",
+    scoreCsv: "Score CSV",
     trustLayerMissing: "The AI Agent economy needs a trust layer.",
     topContributors: "Top Contributors",
     useCases: "Use Cases",
@@ -728,14 +731,20 @@ function AgentRankScoreAggregatorPanel({
   copy,
   locale,
   scoreAggregate,
+  starId,
 }: {
   copy: AgentRankCopy;
   locale: Locale;
   scoreAggregate: AgentRankScoreAggregate;
+  starId?: string | null;
 }) {
   const scorePercent = Math.round(
     (scoreAggregate.score / scoreAggregate.maxScore) * 100,
   );
+  const scoreCsvParams = new URLSearchParams({
+    format: "csv",
+    limit: "120",
+  });
   const readinessItems = [
     {
       active: scoreAggregate.readiness.reputationLedgerReady,
@@ -763,6 +772,10 @@ function AgentRankScoreAggregatorPanel({
     },
   ];
 
+  if (starId) {
+    scoreCsvParams.set("starId", starId);
+  }
+
   return (
     <section className="agentrank-flow-card overflow-hidden rounded-lg border border-violet-100 bg-white shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
       <div className="grid gap-5 p-5 xl:grid-cols-[0.92fr_1.08fr]">
@@ -787,6 +800,15 @@ function AgentRankScoreAggregatorPanel({
                 {scoreAggregate.confidence}%
               </p>
             </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <a
+              className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-3 text-xs font-semibold text-[#4338ca]"
+              href={`/api/fanletter/agentrank/score?${scoreCsvParams.toString()}`}
+            >
+              <Download className="size-3.5" />
+              {copy.scoreCsv}
+            </a>
           </div>
           <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/12">
             <div
@@ -1704,6 +1726,7 @@ export function FanletterAgentRankPage({
             copy={copy}
             locale={locale}
             scoreAggregate={scoreAggregate}
+            starId={starId}
           />
         </div>
 
