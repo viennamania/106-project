@@ -9,6 +9,11 @@ import {
   normalizeAgentRankEventMockScope,
   summarizeAgentRankEventMockScope,
 } from "@/lib/agentrank/mock-events";
+import {
+  applyAgentRankEventLedgerControls,
+  normalizeAgentRankEventLedgerReadinessFilter,
+  normalizeAgentRankEventLedgerSort,
+} from "@/lib/agentrank/event-feed-controls";
 
 function normalizeParam(value: string | null) {
   return value?.trim() || null;
@@ -243,21 +248,40 @@ export async function GET(request: Request) {
     const scope = normalizeAgentRankEventMockScope(
       url.searchParams.get("scope"),
     );
+    const readiness = normalizeAgentRankEventLedgerReadinessFilter(
+      url.searchParams.get("readiness"),
+    );
+    const sort = normalizeAgentRankEventLedgerSort(
+      url.searchParams.get("sort"),
+    );
+    const limit = normalizeLimit(url.searchParams.get("limit"));
+    const candidateLimit =
+      readiness !== "all" || sort !== "latest" ? 200 : limit;
     const rawFeed = await getFanletterAgentRankReputationEventFeed({
       includeTypes: parseIncludeTypes(url.searchParams.get("types")),
-      limit: normalizeLimit(url.searchParams.get("limit")),
+      limit: candidateLimit,
       memberEmail: normalizeParam(url.searchParams.get("memberEmail")),
       starId: normalizeParam(url.searchParams.get("starId")),
     });
-    const feed = filterAgentRankReputationEventFeedByMockScope(rawFeed, scope);
+    const scopedFeed = filterAgentRankReputationEventFeedByMockScope(
+      rawFeed,
+      scope,
+    );
+    const feed = applyAgentRankEventLedgerControls(scopedFeed, {
+      limit,
+      readiness,
+      sort,
+    });
     const rawScope = summarizeAgentRankEventMockScope(rawFeed.events);
-    const scopedScope = summarizeAgentRankEventMockScope(feed.events);
+    const scopedScope = summarizeAgentRankEventMockScope(scopedFeed.events);
     const scopeHeaders = {
       "x-agentrank-event-scope": scope,
       "x-agentrank-mock-events": String(scopedScope.mockEvents),
       "x-agentrank-product-events": String(scopedScope.productEvents),
       "x-agentrank-raw-mock-events": String(rawScope.mockEvents),
       "x-agentrank-raw-product-events": String(rawScope.productEvents),
+      "x-agentrank-readiness-filter": readiness,
+      "x-agentrank-sort": sort,
     };
 
     if (url.searchParams.get("format") === "csv") {
@@ -292,8 +316,10 @@ export async function GET(request: Request) {
       ...feed,
       eventScope: {
         raw: rawScope,
+        readiness,
         scope,
         scoped: scopedScope,
+        sort,
       },
     }, {
       headers: {

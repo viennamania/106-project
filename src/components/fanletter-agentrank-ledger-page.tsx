@@ -30,6 +30,10 @@ import {
   isAgentRankCoverageMockEvent,
   type AgentRankEventMockScope,
 } from "@/lib/agentrank/mock-events";
+import type {
+  AgentRankEventLedgerReadinessFilter,
+  AgentRankEventLedgerSort,
+} from "@/lib/agentrank/event-feed-controls";
 import { getAgentRankRelatedStarScope } from "@/lib/agentrank/related-star-scope";
 import type { Locale } from "@/lib/i18n";
 
@@ -41,18 +45,22 @@ type FanletterAgentRankLedgerPageProps = {
       productEvents: number;
       totalEvents: number;
     };
+    readiness: AgentRankEventLedgerReadinessFilter;
     scope: AgentRankEventMockScope;
     scoped: {
       mockEvents: number;
       productEvents: number;
       totalEvents: number;
     };
+    sort: AgentRankEventLedgerSort;
   };
   feed: FanletterAgentRankReputationEventFeed;
   filters: {
     limit: number;
     memberEmail: string | null;
+    readiness: AgentRankEventLedgerReadinessFilter;
     scope: AgentRankEventMockScope;
+    sort: AgentRankEventLedgerSort;
     starId: string | null;
     type: AgentRankReputationEventType | null;
   };
@@ -139,6 +147,12 @@ function getLedgerCopy(locale: Locale) {
       quality: "품질 점수",
       rankContribution: "AgentRank 기여도",
       ready: "준비됨",
+      readinessAll: "전체 준비도",
+      readinessFilter: "준비도 필터",
+      readinessNeedsOracle: "Oracle 보강 필요",
+      readinessOracleReady: "Oracle 준비",
+      readinessPacketPartial: "Packet 부분 준비",
+      readinessPacketReady: "Packet 준비",
       relatedStarScope: "관련 AI 스타",
       schema: "스키마",
       schemaReady: "스키마 준비",
@@ -146,6 +160,11 @@ function getLedgerCopy(locale: Locale) {
       scopeAll: "전체 이벤트",
       scopeMock: "Mock 커버리지",
       scopeProduct: "운영 이벤트",
+      sort: "정렬",
+      sortImpactDesc: "기여도 높은 순",
+      sortLatest: "최신순",
+      sortQualityAsc: "품질 낮은 순",
+      sortQualityDesc: "품질 높은 순",
       source: "소스",
       sourceId: "소스 ID",
       star: "AI 스타",
@@ -203,6 +222,12 @@ function getLedgerCopy(locale: Locale) {
     quality: "Quality Score",
     rankContribution: "AgentRank Contribution",
     ready: "Ready",
+    readinessAll: "All readiness",
+    readinessFilter: "Readiness filter",
+    readinessNeedsOracle: "Needs Oracle",
+    readinessOracleReady: "Oracle-ready",
+    readinessPacketPartial: "Packet partial",
+    readinessPacketReady: "Packet ready",
     relatedStarScope: "Related AI Stars",
     schema: "Schema",
     schemaReady: "Schema-ready",
@@ -210,6 +235,11 @@ function getLedgerCopy(locale: Locale) {
     scopeAll: "All events",
     scopeMock: "Mock coverage",
     scopeProduct: "Product events",
+    sort: "Sort",
+    sortImpactDesc: "Highest contribution",
+    sortLatest: "Latest",
+    sortQualityAsc: "Lowest quality",
+    sortQualityDesc: "Highest quality",
     source: "Source",
     sourceId: "Source ID",
     star: "AI Star",
@@ -510,16 +540,22 @@ function ReadinessPill({
 function buildLedgerHref({
   filters,
   locale,
+  readiness,
   scope,
+  sort,
   type,
 }: {
   filters: FanletterAgentRankLedgerPageProps["filters"];
   locale: Locale;
+  readiness?: AgentRankEventLedgerReadinessFilter;
   scope?: AgentRankEventMockScope;
+  sort?: AgentRankEventLedgerSort;
   type: AgentRankReputationEventType | null;
 }) {
   const params = new URLSearchParams();
   const nextScope = scope ?? filters.scope;
+  const nextReadiness = readiness ?? filters.readiness;
+  const nextSort = sort ?? filters.sort;
 
   if (filters.starId) {
     params.set("starId", filters.starId);
@@ -535,6 +571,14 @@ function buildLedgerHref({
 
   if (nextScope !== "all") {
     params.set("scope", nextScope);
+  }
+
+  if (nextReadiness !== "all") {
+    params.set("readiness", nextReadiness);
+  }
+
+  if (nextSort !== "latest") {
+    params.set("sort", nextSort);
   }
 
   if (filters.limit !== 120) {
@@ -950,6 +994,14 @@ export function FanletterAgentRankLedgerPage({
     apiParams.set("scope", filters.scope);
   }
 
+  if (filters.readiness !== "all") {
+    apiParams.set("readiness", filters.readiness);
+  }
+
+  if (filters.sort !== "latest") {
+    apiParams.set("sort", filters.sort);
+  }
+
   apiParams.set("limit", String(filters.limit));
   const csvParams = new URLSearchParams(apiParams);
   csvParams.set("format", "csv");
@@ -974,6 +1026,52 @@ export function FanletterAgentRankLedgerPage({
       count: eventScope.raw.mockEvents,
       label: copy.scopeMock,
       scope: "mock",
+    },
+  ];
+  const readinessOptions: Array<{
+    label: string;
+    readiness: AgentRankEventLedgerReadinessFilter;
+  }> = [
+    {
+      label: copy.readinessAll,
+      readiness: "all",
+    },
+    {
+      label: copy.readinessNeedsOracle,
+      readiness: "needs_oracle",
+    },
+    {
+      label: copy.readinessOracleReady,
+      readiness: "oracle_ready",
+    },
+    {
+      label: copy.readinessPacketPartial,
+      readiness: "packet_partial",
+    },
+    {
+      label: copy.readinessPacketReady,
+      readiness: "packet_ready",
+    },
+  ];
+  const sortOptions: Array<{
+    label: string;
+    sort: AgentRankEventLedgerSort;
+  }> = [
+    {
+      label: copy.sortLatest,
+      sort: "latest",
+    },
+    {
+      label: copy.sortImpactDesc,
+      sort: "impact_desc",
+    },
+    {
+      label: copy.sortQualityAsc,
+      sort: "quality_asc",
+    },
+    {
+      label: copy.sortQualityDesc,
+      sort: "quality_desc",
     },
   ];
 
@@ -1069,7 +1167,7 @@ export function FanletterAgentRankLedgerPage({
           </div>
           <form
             action={`/${locale}/fanletter/agentrank/events`}
-            className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_9rem_11rem_auto_auto]"
+            className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_9rem_11rem_12rem_12rem_auto_auto]"
           >
             {coverageAction ? (
               <input
@@ -1131,6 +1229,41 @@ export function FanletterAgentRankLedgerPage({
                 <option value="mock">{copy.scopeMock}</option>
               </select>
             </label>
+            <label className="min-w-0">
+              <span className="text-xs font-semibold uppercase text-slate-400">
+                {copy.readinessFilter}
+              </span>
+              <select
+                className="mt-1 h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-[#11132d] outline-none transition focus:border-violet-300 focus:bg-white"
+                defaultValue={filters.readiness}
+                name="readiness"
+              >
+                <option value="all">{copy.readinessAll}</option>
+                <option value="oracle_ready">{copy.readinessOracleReady}</option>
+                <option value="needs_oracle">
+                  {copy.readinessNeedsOracle}
+                </option>
+                <option value="packet_ready">{copy.readinessPacketReady}</option>
+                <option value="packet_partial">
+                  {copy.readinessPacketPartial}
+                </option>
+              </select>
+            </label>
+            <label className="min-w-0">
+              <span className="text-xs font-semibold uppercase text-slate-400">
+                {copy.sort}
+              </span>
+              <select
+                className="mt-1 h-11 w-full rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-[#11132d] outline-none transition focus:border-violet-300 focus:bg-white"
+                defaultValue={filters.sort}
+                name="sort"
+              >
+                <option value="latest">{copy.sortLatest}</option>
+                <option value="impact_desc">{copy.sortImpactDesc}</option>
+                <option value="quality_asc">{copy.sortQualityAsc}</option>
+                <option value="quality_desc">{copy.sortQualityDesc}</option>
+              </select>
+            </label>
             <button
               className="inline-flex h-11 items-center justify-center gap-2 self-end rounded-lg bg-[#6d28d9] px-4 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(109,40,217,0.18)]"
               type="submit"
@@ -1174,6 +1307,54 @@ export function FanletterAgentRankLedgerPage({
                   >
                     {formatNumber(option.count, locale)}
                   </span>
+                </Link>
+              );
+            })}
+          </div>
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+            {readinessOptions.map((option) => {
+              const isActive = filters.readiness === option.readiness;
+
+              return (
+                <Link
+                  className={`inline-flex h-10 shrink-0 items-center rounded-full px-3 text-sm font-semibold ${
+                    isActive
+                      ? "bg-emerald-600 text-white"
+                      : "border border-emerald-100 bg-emerald-50 text-emerald-700"
+                  }`}
+                  href={buildLedgerHref({
+                    filters,
+                    locale,
+                    readiness: option.readiness,
+                    type: filters.type,
+                  })}
+                  key={option.readiness}
+                >
+                  {option.label}
+                </Link>
+              );
+            })}
+          </div>
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+            {sortOptions.map((option) => {
+              const isActive = filters.sort === option.sort;
+
+              return (
+                <Link
+                  className={`inline-flex h-10 shrink-0 items-center rounded-full px-3 text-sm font-semibold ${
+                    isActive
+                      ? "bg-[#6d28d9] text-white"
+                      : "border border-violet-100 bg-violet-50 text-[#6d28d9]"
+                  }`}
+                  href={buildLedgerHref({
+                    filters,
+                    locale,
+                    sort: option.sort,
+                    type: filters.type,
+                  })}
+                  key={option.sort}
+                >
+                  {option.label}
                 </Link>
               );
             })}

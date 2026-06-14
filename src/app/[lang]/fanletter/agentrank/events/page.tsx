@@ -16,6 +16,11 @@ import {
   normalizeAgentRankEventMockScope,
   summarizeAgentRankEventMockScope,
 } from "@/lib/agentrank/mock-events";
+import {
+  applyAgentRankEventLedgerControls,
+  normalizeAgentRankEventLedgerReadinessFilter,
+  normalizeAgentRankEventLedgerSort,
+} from "@/lib/agentrank/event-feed-controls";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { hasLocale, type Locale } from "@/lib/i18n";
 
@@ -25,7 +30,9 @@ type AgentRankLedgerSearchParams = {
   coverageAction?: string | string[];
   limit?: string | string[];
   memberEmail?: string | string[];
+  readiness?: string | string[];
   scope?: string | string[];
+  sort?: string | string[];
   starId?: string | string[];
   type?: string | string[];
 };
@@ -124,17 +131,27 @@ export default async function FanletterAgentRankLedgerRoute({
   const eventScope = normalizeAgentRankEventMockScope(
     readFirstParam(query.scope),
   );
+  const readiness = normalizeAgentRankEventLedgerReadinessFilter(
+    readFirstParam(query.readiness),
+  );
+  const sort = normalizeAgentRankEventLedgerSort(readFirstParam(query.sort));
+  const candidateLimit = readiness !== "all" || sort !== "latest" ? 200 : limit;
   const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
   const rawFeed = await getFanletterAgentRankReputationEventFeed({
     includeTypes: type ? [type] : undefined,
-    limit,
+    limit: candidateLimit,
     memberEmail,
     starId,
   });
-  const feed = filterAgentRankReputationEventFeedByMockScope(
+  const scopedFeed = filterAgentRankReputationEventFeedByMockScope(
     rawFeed,
     eventScope,
   );
+  const feed = applyAgentRankEventLedgerControls(scopedFeed, {
+    limit,
+    readiness,
+    sort,
+  });
 
   return (
     <FanletterAgentRankLedgerPage
@@ -149,14 +166,18 @@ export default async function FanletterAgentRankLedgerRoute({
       }
       eventScope={{
         raw: summarizeAgentRankEventMockScope(rawFeed.events),
+        readiness,
         scope: eventScope,
-        scoped: summarizeAgentRankEventMockScope(feed.events),
+        scoped: summarizeAgentRankEventMockScope(scopedFeed.events),
+        sort,
       }}
       feed={feed}
       filters={{
         limit,
         memberEmail,
+        readiness,
         scope: eventScope,
+        sort,
         starId,
         type,
       }}
