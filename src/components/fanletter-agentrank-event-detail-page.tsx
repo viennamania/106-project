@@ -6,8 +6,11 @@ import {
   Bot,
   Database,
   GitBranch,
+  Gauge,
   Network,
   ShieldCheck,
+  Sparkles,
+  TrendingUp,
   TriangleAlert,
   WalletCards,
 } from "lucide-react";
@@ -40,14 +43,20 @@ function getCopy(locale: Locale) {
       oracle: "Oracle 준비",
       pending: "대기",
       quality: "품질 점수",
+      riskPenalty: "Risk Penalty",
       currentEvent: "현재 이벤트",
+      eventWeight: "Event Weight",
       downstream: "이후 신호",
+      trustSignal: "Lineage Trust",
       eventLineage: "Event Lineage",
       eventLineageBody:
         "같은 AI 스타, 멤버, 추천 코드, Universe로 이어진 이벤트를 전후 흐름으로 보여줍니다.",
       economicFlow: "Economic Flow",
       economicFlowBody:
         "Creator Launch에서 발생한 x402 의도, CP Pool 생성, 상위 네트워크 분배를 하나의 거래 흐름으로 추적합니다.",
+      scoreImpact: "AgentRank Score Impact",
+      scoreImpactBody:
+        "이벤트를 AgentRank ERS 차원으로 해석해 어떤 경제 평판 신호가 강화되는지 보여줍니다.",
       graphBody:
         "액터, 이벤트, 대상, 주변 Reputation Event를 하나의 거래 그래프로 연결합니다.",
       linkedEvents: "연결 이벤트",
@@ -92,14 +101,20 @@ function getCopy(locale: Locale) {
     oracle: "Oracle-ready",
     pending: "Pending",
     quality: "Quality Score",
+    riskPenalty: "Risk Penalty",
     currentEvent: "Current Event",
+    eventWeight: "Event Weight",
     downstream: "Downstream Signals",
+    trustSignal: "Lineage Trust",
     eventLineage: "Event Lineage",
     eventLineageBody:
       "Shows nearby events connected by the same AI Star, member, referral code, or Universe.",
     economicFlow: "Economic Flow",
     economicFlowBody:
       "Traces x402 intent, CP Pool generation, and upline distribution from a Creator Launch as one transaction flow.",
+    scoreImpact: "AgentRank Score Impact",
+    scoreImpactBody:
+      "Maps this event into AgentRank ERS dimensions so the strengthened economic reputation signals are easy to inspect.",
     graphBody:
       "Connects the actor, event, object, and nearby Reputation Events into one transaction graph.",
     linkedEvents: "linked events",
@@ -350,6 +365,214 @@ function readContextString(event: AgentRankReputationEvent, key: string) {
   }
 
   return null;
+}
+
+function getScoreImpactRows(
+  event: AgentRankReputationEvent,
+  locale: Locale,
+) {
+  const audit = getEventAudit(event);
+  const cpDelta = event.economicLayer.cpDelta ?? 0;
+  const creatorProgressDelta = event.economicLayer.creatorProgressDelta ?? 0;
+  const cpPoolTotal = readContextNumber(event, "cpPoolTotal") ?? 0;
+  const launchCostUsdt = readContextNumber(event, "launchCostUsdt") ?? 0;
+  const trustContext = readContextNumber(event, "reputationImpactTrust") ?? 0;
+  const riskFlags =
+    audit.gaps.length +
+    (event.reputationSignals.oracleReady ? 0 : 1) +
+    (event.audit.graphReady ? 0 : 1) +
+    (event.audit.impactReady ? 0 : 1);
+  const labels =
+    locale === "ko"
+      ? {
+          creator:
+            "크리에이터 권한, 새 AI 스타 생성, Creator Progress 신호",
+          discovery: "AI 스타 발견, 콘텐츠 참여, 신규 스타 노출 신호",
+          economic: "CP 이동, CP Pool, x402 의도, 창업 비용 신호",
+          network: "파운더 참여, 추천 전환, 네트워크 엣지 신호",
+          risk: "보강 항목, Oracle 미준비, 그래프/영향 신호 누락",
+          trust: "증거 품질, Oracle 준비, 스키마/계보 신뢰 신호",
+        }
+      : {
+          creator:
+            "Creator unlocks, spawned AI Stars, and Creator Progress signals",
+          discovery: "AI Star discovery, content engagement, and star exposure",
+          economic: "CP movement, CP Pool, x402 intent, and launch cost signals",
+          network: "Founder joins, referral conversions, and network edges",
+          risk: "Audit gaps, Oracle gaps, and missing graph/impact signals",
+          trust: "Evidence quality, Oracle readiness, schema, and lineage trust",
+        };
+
+  return [
+    {
+      Icon: Network,
+      description: labels.network,
+      label: "Founder Network",
+      tone: "bg-blue-50 text-blue-700 ring-blue-100",
+      value:
+        event.reputationSignals.networkWeight +
+        (event.type === "founder_joined" ? 0.4 : 0) +
+        (event.type === "referral_converted" ? 0.8 : 0),
+    },
+    {
+      Icon: WalletCards,
+      description: labels.economic,
+      label: "Economic Activity",
+      tone: "bg-emerald-50 text-emerald-700 ring-emerald-100",
+      value:
+        event.reputationSignals.economicWeight +
+        Math.max(0, cpDelta) / 100 +
+        Math.max(0, cpPoolTotal) / 1000 +
+        launchCostUsdt / 10 +
+        (event.economicLayer.x402Ready ? 0.6 : 0),
+    },
+    {
+      Icon: Sparkles,
+      description: labels.creator,
+      label: "Creator Journey",
+      tone: "bg-violet-50 text-[#6d28d9] ring-violet-100",
+      value:
+        event.reputationSignals.creatorWeight +
+        Math.max(0, creatorProgressDelta) / 20 +
+        (event.type === "creator_unlocked" ? 0.8 : 0) +
+        (event.type === "ai_star_spawned" ? 1 : 0),
+    },
+    {
+      Icon: TrendingUp,
+      description: labels.discovery,
+      label: "AI Star Discovery",
+      tone: "bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-100",
+      value:
+        event.reputationSignals.discoveryWeight +
+        (event.type === "ai_star_discovered" ? 0.5 : 0) +
+        (event.type === "content_engaged" ? 0.4 : 0),
+    },
+    {
+      Icon: ShieldCheck,
+      description: labels.trust,
+      label: locale === "ko" ? "Lineage Trust" : "Lineage Trust",
+      tone: "bg-cyan-50 text-cyan-700 ring-cyan-100",
+      value:
+        (event.reputationSignals.oracleReady ? 0.8 : 0) +
+        audit.qualityScore / 100 +
+        Math.max(0, trustContext),
+    },
+    {
+      Icon: TriangleAlert,
+      description: labels.risk,
+      isRisk: true,
+      label: locale === "ko" ? "Risk Penalty" : "Risk Penalty",
+      tone: "bg-red-50 text-red-700 ring-red-100",
+      value: riskFlags,
+    },
+  ].map((row) => ({
+    ...row,
+    value: Math.max(0, Math.round(row.value * 10) / 10),
+  }));
+}
+
+function ScoreImpactPanel({
+  copy,
+  event,
+  locale,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  event: AgentRankReputationEvent;
+  locale: Locale;
+}) {
+  const rows = getScoreImpactRows(event, locale);
+  const positiveRows = rows.filter((row) => !row.isRisk);
+  const positiveTotal = positiveRows.reduce((sum, row) => sum + row.value, 0);
+  const riskTotal = rows
+    .filter((row) => row.isRisk)
+    .reduce((sum, row) => sum + row.value, 0);
+  const netWeight = Math.max(0, Math.round((positiveTotal - riskTotal) * 10) / 10);
+  const maxValue = Math.max(1, ...rows.map((row) => row.value));
+
+  return (
+    <article className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+            <Gauge className="size-4" />
+            {copy.scoreImpact}
+          </p>
+          <p className="mt-2 max-w-xl text-sm font-medium leading-6 text-slate-500">
+            {copy.scoreImpactBody}
+          </p>
+        </div>
+        <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
+          {copy.eventWeight} {formatNumber(netWeight, locale)}
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <SignalTile
+          label={copy.eventWeight}
+          locale={locale}
+          value={netWeight}
+        />
+        <SignalTile
+          label={copy.quality}
+          locale={locale}
+          value={getEventAudit(event).qualityScore}
+        />
+        <SignalTile
+          label={copy.riskPenalty}
+          locale={locale}
+          value={riskTotal}
+        />
+      </div>
+
+      <div className="mt-4 grid gap-3">
+        {rows.map((row) => {
+          const width = Math.max(4, Math.round((row.value / maxValue) * 100));
+          const Icon = row.Icon;
+
+          return (
+            <div
+              className="rounded-lg border border-slate-100 bg-slate-50 p-3"
+              key={row.label}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 gap-3">
+                  <span
+                    className={`flex size-9 shrink-0 items-center justify-center rounded-lg ring-1 ${row.tone}`}
+                  >
+                    <Icon className="size-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-[#11132d]">{row.label}</p>
+                    <p className="mt-1 text-sm font-medium leading-5 text-slate-500">
+                      {row.description}
+                    </p>
+                  </div>
+                </div>
+                <p
+                  className={`shrink-0 text-lg font-semibold ${
+                    row.isRisk ? "text-red-600" : "text-[#6d28d9]"
+                  }`}
+                >
+                  {row.isRisk ? "-" : "+"}
+                  {formatNumber(row.value, locale)}
+                </p>
+              </div>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
+                <div
+                  className={`h-full rounded-full ${
+                    row.isRisk
+                      ? "bg-gradient-to-r from-red-400 to-rose-500"
+                      : "bg-gradient-to-r from-[#7c3aed] to-[#22d3ee]"
+                  }`}
+                  style={{ width: `${width}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </article>
+  );
 }
 
 function EconomicFlowStep({
@@ -922,12 +1145,6 @@ export function FanletterAgentRankEventDetailPage({
   const starId = event.starId ?? event.object?.id ?? null;
   const ledgerParams = new URLSearchParams();
   const impactTotal = getImpactTotal(event);
-  const signalRows = [
-    ["Network", event.reputationSignals.networkWeight],
-    ["Economic", event.reputationSignals.economicWeight],
-    ["Creator", event.reputationSignals.creatorWeight],
-    ["Discovery", event.reputationSignals.discoveryWeight],
-  ] as const;
   const contextEntries = Object.entries(event.context).filter(
     ([, value]) => value !== null && value !== "",
   );
@@ -1150,21 +1367,7 @@ export function FanletterAgentRankEventDetailPage({
         </section>
 
         <section className="grid gap-4 xl:grid-cols-[1fr_1fr]">
-          <article className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
-            <p className="text-sm font-semibold uppercase text-[#6d28d9]">
-              {copy.formula}
-            </p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-4">
-              {signalRows.map(([label, value]) => (
-                <SignalTile
-                  key={label}
-                  label={label}
-                  locale={locale}
-                  value={value}
-                />
-              ))}
-            </div>
-          </article>
+          <ScoreImpactPanel copy={copy} event={event} locale={locale} />
 
           <article className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
             <p className="text-sm font-semibold uppercase text-[#6d28d9]">
