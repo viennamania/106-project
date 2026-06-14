@@ -222,6 +222,15 @@ function serializeEventFeedNdjson(events: AgentRankReputationEvent[]) {
     .join("\n")}\n`;
 }
 
+function getEventFeedHeaders(events: AgentRankReputationEvent[]) {
+  return {
+    "x-agentrank-record-count": String(events.length),
+    "x-agentrank-record-type": "agentrank.reputation_event",
+    "x-agentrank-schema-version":
+      events[0]?.schemaVersion ?? "agentrank.reputation_event.v1",
+  };
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
 
@@ -241,6 +250,7 @@ export async function GET(request: Request) {
         headers: {
           "content-disposition": `attachment; filename="${filename}"`,
           "content-type": "text/csv; charset=utf-8",
+          ...getEventFeedHeaders(feed.events),
         },
       });
     }
@@ -253,11 +263,14 @@ export async function GET(request: Request) {
         headers: {
           "content-disposition": `attachment; filename="${filename}"`,
           "content-type": "application/x-ndjson; charset=utf-8",
+          ...getEventFeedHeaders(feed.events),
         },
       });
     }
 
-    return Response.json(feed);
+    return Response.json(feed, {
+      headers: getEventFeedHeaders(feed.events),
+    });
   } catch (error) {
     console.error("AgentRank event feed failed", error);
 
