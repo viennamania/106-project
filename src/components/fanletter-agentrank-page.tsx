@@ -91,6 +91,8 @@ function getAgentRankCopy(locale: Locale) {
       cleanEvents: "Clean Economic Events",
       collectVerify: "Collect · Verify · Enrich · Store · Connect",
       coverage: {
+        api: "Coverage API",
+        csv: "Coverage CSV",
         covered: "수집됨",
         eventCoverage: "이벤트 타입 커버리지",
         gaps: "우선 보강 신호",
@@ -186,6 +188,8 @@ function getAgentRankCopy(locale: Locale) {
     cleanEvents: "Clean Economic Events",
     collectVerify: "Collect · Verify · Enrich · Store · Connect",
     coverage: {
+      api: "Coverage API",
+      csv: "Coverage CSV",
       covered: "Covered",
       eventCoverage: "Event Type Coverage",
       gaps: "Priority Gaps",
@@ -574,11 +578,17 @@ function AgentRankCoveragePanel({
   copy,
   coverage,
   locale,
+  starId,
 }: {
   copy: AgentRankCopy;
   coverage: AgentRankCoverageSnapshot;
   locale: Locale;
+  starId?: string | null;
 }) {
+  const coverageParams = new URLSearchParams({
+    limit: "120",
+  });
+  const coverageCsvParams = new URLSearchParams(coverageParams);
   const layerClass = {
     creator: "border-pink-100 bg-pink-50/70 text-pink-700",
     discovery: "border-blue-100 bg-blue-50/70 text-blue-700",
@@ -589,13 +599,38 @@ function AgentRankCoveragePanel({
     string
   >;
 
+  if (starId) {
+    coverageParams.set("starId", starId);
+    coverageCsvParams.set("starId", starId);
+  }
+
+  coverageCsvParams.set("format", "csv");
+
   return (
     <section className="agentrank-flow-card rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
       <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <div>
-          <p className="text-sm font-semibold uppercase text-[#6d28d9]">
-            {copy.coverage.title}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-sm font-semibold uppercase text-[#6d28d9]">
+              {copy.coverage.title}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <a
+                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9]"
+                href={`/api/fanletter/agentrank/coverage?${coverageParams.toString()}`}
+              >
+                <Database className="size-3.5" />
+                {copy.coverage.api}
+              </a>
+              <a
+                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700"
+                href={`/api/fanletter/agentrank/coverage?${coverageCsvParams.toString()}`}
+              >
+                <Download className="size-3.5" />
+                {copy.coverage.csv}
+              </a>
+            </div>
+          </div>
           <h2 className="mt-1 text-3xl font-semibold text-[#11132d]">
             {copy.coverage.phase1Quality} · {coverage.phase1QualityScore}%
           </h2>
@@ -1945,6 +1980,7 @@ export function FanletterAgentRankPage({
             copy={copy}
             coverage={coverage}
             locale={locale}
+            starId={starId}
           />
         </div>
 
