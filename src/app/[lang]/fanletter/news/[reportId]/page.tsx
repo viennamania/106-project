@@ -3102,6 +3102,10 @@ function resolveSourceVlogPreviewVideoUrl(
   sourceContent: FanletterPublicContentDetail | null,
   fallbackVideoUrl: string | null,
 ) {
+  if (sourceContent?.contentMaturityRating === "nsfw") {
+    return null;
+  }
+
   return (
     normalizeOptionalVideoUrl(sourceContent?.sourcePreviewVideoUrl) ??
     normalizeOptionalVideoUrl(fallbackVideoUrl)
@@ -3592,9 +3596,10 @@ function SourceVlogEmbed({
     ? pickTimelinePreviewFrames(sourceSceneFrames)
     : [];
   const hasEmbeddedVideo = Boolean(sourceVideoUrl);
-  const sourceStandalonePreviewVideoUrl = normalizeOptionalVideoUrl(
-    sourceContent?.sourcePreviewVideoUrl,
-  );
+  const sourceStandalonePreviewVideoUrl =
+    sourceContent?.contentMaturityRating === "nsfw"
+      ? null
+      : normalizeOptionalVideoUrl(sourceContent?.sourcePreviewVideoUrl);
   const sourceDisplayTitle = getFanletterNewsSourceDisplayTitle(
     sourceContent?.title ?? accessLabel,
     locale,
