@@ -5,8 +5,11 @@ import {
   BadgeCheck,
   Bot,
   Database,
+  FileCheck2,
+  Fingerprint,
   GitBranch,
   Gauge,
+  Link2,
   Network,
   ShieldCheck,
   Sparkles,
@@ -41,6 +44,10 @@ function getCopy(locale: Locale) {
       heroEyebrow: "AgentRank Evidence",
       object: "대상",
       oracle: "Oracle 준비",
+      oracleEvidenceTrace: "Oracle Evidence Trace",
+      oracleEvidenceTraceBody:
+        "이 이벤트가 AgentRank Oracle로 전달될 때 필요한 원본 소스, 스키마, 감사 해시, 연결 이벤트 증거를 하나의 검증 흐름으로 묶습니다.",
+      oraclePacketCandidate: "Oracle Packet 후보",
       pending: "대기",
       quality: "품질 점수",
       riskPenalty: "Risk Penalty",
@@ -77,8 +84,11 @@ function getCopy(locale: Locale) {
       schema: "스키마",
       source: "소스",
       sourceId: "소스 ID",
+      sourceTrace: "소스 추적",
       title: "Reputation Event 상세 추적",
       upstream: "이전 신호",
+      linkedEvidence: "연결 증거",
+      verificationRoute: "검증 경로",
       viewAgentRank: "AgentRank 보기",
       x402: "x402 경제",
     };
@@ -99,6 +109,10 @@ function getCopy(locale: Locale) {
     heroEyebrow: "AgentRank Evidence",
     object: "Object",
     oracle: "Oracle-ready",
+    oracleEvidenceTrace: "Oracle Evidence Trace",
+    oracleEvidenceTraceBody:
+      "Groups the source record, schema, audit hash, and related event evidence required to pass this event into the AgentRank Oracle.",
+    oraclePacketCandidate: "Oracle Packet Candidate",
     pending: "Pending",
     quality: "Quality Score",
     riskPenalty: "Risk Penalty",
@@ -135,8 +149,11 @@ function getCopy(locale: Locale) {
     schema: "Schema",
     source: "Source",
     sourceId: "Source ID",
+    sourceTrace: "Source Trace",
     title: "Reputation Event Trace",
     upstream: "Upstream Signals",
+    linkedEvidence: "Linked Evidence",
+    verificationRoute: "Verification Route",
     viewAgentRank: "View AgentRank",
     x402: "x402 Economy",
   };
@@ -927,6 +944,14 @@ function getNodeLabel(actor: AgentRankReputationEvent["actor"] | null) {
   return truncateGraphLabel(getActorLabel(actor), 20);
 }
 
+function truncateEvidenceHash(value: string, start = 12, end = 8) {
+  if (value.length <= start + end + 1) {
+    return value;
+  }
+
+  return `${value.slice(0, start)}…${value.slice(-end)}`;
+}
+
 function getRelatedGraphPosition(index: number) {
   const positions = [
     { x: 245, y: 72 },
@@ -988,6 +1013,178 @@ function GraphNode({
         {sublabel}
       </text>
     </g>
+  );
+}
+
+function OracleTraceStep({
+  Icon,
+  body,
+  label,
+  state,
+  tone = "violet",
+}: {
+  Icon: typeof ShieldCheck;
+  body: string;
+  label: string;
+  state: string;
+  tone?: "cyan" | "emerald" | "slate" | "violet";
+}) {
+  const toneClass = {
+    cyan: "border-cyan-100 bg-cyan-50 text-cyan-700",
+    emerald: "border-emerald-100 bg-emerald-50 text-emerald-700",
+    slate: "border-slate-100 bg-slate-50 text-slate-600",
+    violet: "border-violet-100 bg-violet-50 text-[#6d28d9]",
+  }[tone];
+
+  return (
+    <div className={`min-w-0 rounded-lg border p-4 ${toneClass}`}>
+      <div className="flex items-start gap-3">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white/80 shadow-sm">
+          <Icon className="size-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase">{label}</p>
+          <p className="mt-2 break-words text-sm font-semibold leading-5 text-[#11132d]">
+            {body}
+          </p>
+        </div>
+      </div>
+      <p className="mt-3 inline-flex rounded-full bg-white/75 px-2.5 py-1 text-[0.68rem] font-semibold">
+        {state}
+      </p>
+    </div>
+  );
+}
+
+function OracleEvidenceTracePanel({
+  copy,
+  event,
+  locale,
+  relatedEvents,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  event: AgentRankReputationEvent;
+  locale: Locale;
+  relatedEvents: AgentRankReputationEvent[];
+}) {
+  const audit = getEventAudit(event);
+  const linkedEvidence = relatedEvents.slice(0, 5);
+  const sourceTrace = `${event.source} · ${event.sourceId}`;
+  const packetState = event.reputationSignals.oracleReady
+    ? copy.ready
+    : copy.pending;
+
+  return (
+    <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+            <FileCheck2 className="size-4" />
+            {copy.oracleEvidenceTrace}
+          </p>
+          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+            {copy.oracleEvidenceTraceBody}
+          </p>
+        </div>
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+            event.reputationSignals.oracleReady
+              ? "bg-emerald-50 text-emerald-700"
+              : "bg-amber-50 text-amber-700"
+          }`}
+        >
+          {copy.oraclePacketCandidate} · {packetState}
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <OracleTraceStep
+          Icon={Database}
+          body={sourceTrace}
+          label={copy.sourceTrace}
+          state={copy.sourceId}
+        />
+        <OracleTraceStep
+          Icon={ShieldCheck}
+          body={event.schemaVersion}
+          label={copy.schema}
+          state={event.agentRankVersion}
+          tone="cyan"
+        />
+        <OracleTraceStep
+          Icon={Fingerprint}
+          body={truncateEvidenceHash(audit.evidenceHash, 16, 10)}
+          label={copy.evidenceHash}
+          state={`${getAuditStatusLabel(audit.status, locale)} · ${
+            audit.qualityScore
+          }/100`}
+          tone="emerald"
+        />
+        <OracleTraceStep
+          Icon={Network}
+          body={`${formatNumber(linkedEvidence.length, locale)} ${
+            copy.linkedEvents
+          }`}
+          label={copy.linkedEvidence}
+          state={copy.verificationRoute}
+          tone="slate"
+        />
+      </div>
+
+      <div className="mt-5 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+          <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase text-slate-500">
+            <Fingerprint className="size-3.5" />
+            {copy.evidenceHash}
+          </p>
+          <p className="mt-3 break-all font-mono text-xs font-semibold leading-6 text-[#11132d]">
+            {audit.evidenceHash}
+          </p>
+        </div>
+
+        <div className="rounded-lg border border-slate-100 bg-slate-50 p-4">
+          <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase text-slate-500">
+            <Link2 className="size-3.5" />
+            {copy.linkedEvidence}
+          </p>
+          <div className="mt-3 grid gap-2">
+            {linkedEvidence.length ? (
+              linkedEvidence.map((relatedEvent) => {
+                const relatedAudit = getEventAudit(relatedEvent);
+                const params = new URLSearchParams();
+                const relatedStarId =
+                  relatedEvent.starId ?? relatedEvent.object?.id ?? null;
+
+                if (relatedStarId) {
+                  params.set("starId", relatedStarId);
+                }
+
+                return (
+                  <Link
+                    className="grid min-w-0 gap-2 rounded-lg bg-white px-3 py-2 text-sm transition hover:text-[#6d28d9] sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1fr)]"
+                    href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
+                      relatedEvent.eventId,
+                    )}${params.size ? `?${params.toString()}` : ""}`}
+                    key={relatedEvent.eventId}
+                  >
+                    <span className="min-w-0 truncate font-semibold text-[#11132d]">
+                      {getEventTypeLabel(relatedEvent.type, locale)}
+                    </span>
+                    <span className="min-w-0 break-all font-mono text-[0.68rem] font-semibold text-slate-500">
+                      {truncateEvidenceHash(relatedAudit.evidenceHash, 14, 8)}
+                    </span>
+                  </Link>
+                );
+              })
+            ) : (
+              <p className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-400">
+                {copy.noRelatedEvents}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -1156,7 +1353,7 @@ export function FanletterAgentRankEventDetailPage({
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
-      <div className="mx-auto grid max-w-[86rem] gap-5">
+      <div className="mx-auto flex w-full min-w-0 max-w-[86rem] flex-col gap-5">
         <header className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
@@ -1275,6 +1472,13 @@ export function FanletterAgentRankEventDetailPage({
         </section>
 
         <EconomicFlowPanel copy={copy} event={event} locale={locale} />
+
+        <OracleEvidenceTracePanel
+          copy={copy}
+          event={event}
+          locale={locale}
+          relatedEvents={relatedEvents}
+        />
 
         <section className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
           <article className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
