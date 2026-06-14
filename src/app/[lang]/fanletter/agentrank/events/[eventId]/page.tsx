@@ -7,6 +7,10 @@ import {
   readFirstSearchParam,
 } from "@/lib/agentrank/coverage-action";
 import {
+  filterAgentRankReputationEventFeedByMockScope,
+  normalizeAgentRankEventMockScope,
+} from "@/lib/agentrank/mock-events";
+import {
   getFanletterAgentRankReputationEventFeed,
   type AgentRankReputationEvent,
 } from "@/lib/agentrank/reputation-events";
@@ -18,6 +22,7 @@ export const dynamic = "force-dynamic";
 type AgentRankEventDetailSearchParams = {
   coverageAction?: string | string[];
   memberEmail?: string | string[];
+  scope?: string | string[];
   starId?: string | string[];
 };
 
@@ -143,6 +148,9 @@ export default async function FanletterAgentRankEventDetailRoute({
   const starId = normalizeFanletterStarId(readFirstParam(query.starId) ?? null);
   const memberEmail = normalizeMemberEmail(query.memberEmail);
   const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
+  const eventScope = normalizeAgentRankEventMockScope(
+    readFirstParam(query.scope),
+  );
   const feed = await getFanletterAgentRankReputationEventFeed({
     limit: 250,
     memberEmail,
@@ -154,7 +162,11 @@ export default async function FanletterAgentRankEventDetailRoute({
     notFound();
   }
 
-  const relatedEvents = feed.events
+  const scopedFeed = filterAgentRankReputationEventFeedByMockScope(
+    feed,
+    eventScope,
+  );
+  const relatedEvents = scopedFeed.events
     .filter((candidate) => isRelatedTraceEvent(candidate, event))
     .slice(0, 24);
 
@@ -170,6 +182,7 @@ export default async function FanletterAgentRankEventDetailRoute({
           : null
       }
       event={event}
+      eventScope={eventScope}
       locale={locale}
       relatedEvents={relatedEvents}
     />

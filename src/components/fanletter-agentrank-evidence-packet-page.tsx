@@ -10,17 +10,24 @@ import {
   GitBranch,
   Network,
   ShieldCheck,
+  TriangleAlert,
 } from "lucide-react";
 
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import type { AgentRankEventEvidencePacket } from "@/lib/agentrank/evidence-packet";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
+import {
+  isAgentRankEventIncludedInMockScope,
+  isAgentRankCoverageMockEvent,
+  type AgentRankEventMockScope,
+} from "@/lib/agentrank/mock-events";
 import type { AgentRankReputationEvent } from "@/lib/agentrank/reputation-events";
 import type { Locale } from "@/lib/i18n";
 
 type FanletterAgentRankEvidencePacketPageProps = {
   coverageAction?: AgentRankCoverageActionContext | null;
   event: AgentRankReputationEvent;
+  eventScope?: AgentRankEventMockScope;
   locale: Locale;
   packet: AgentRankEventEvidencePacket;
 };
@@ -32,11 +39,16 @@ function getCopy(locale: Locale) {
       backToEvent: "이벤트 상세",
       backToLedger: "이벤트 원장",
       canonical: "Canonical JSON",
+      coverageMockEvent: "커버리지 Mock 이벤트",
       downloadJson: "JSON 다운로드",
       evidence: "증거",
       evidenceRoot: "Evidence Root",
       event: "Reputation Event",
       eventHash: "Event Evidence Hash",
+      eventScope: "이벤트 범위",
+      eventScopeMismatch:
+        "현재 이벤트는 선택한 이벤트 범위 밖에 있습니다. Linked Evidence만 선택 범위로 제한된 패킷입니다.",
+      eventScopeOutside: "범위 밖",
       heroBody:
         "단일 Reputation Event가 AgentRank Oracle로 전달될 때 필요한 원본, 스키마, 감사 해시, 연결 이벤트를 사람이 검토할 수 있게 정리한 증거 패킷입니다.",
       heroEyebrow: "AgentRank Oracle Packet",
@@ -48,10 +60,14 @@ function getCopy(locale: Locale) {
       object: "대상",
       packetHash: "Packet Hash",
       packetVersion: "Packet Version",
+      productEvent: "제품 이벤트",
       quality: "품질",
       ready: "검증 가능",
       recordType: "Record Type",
       schema: "Schema",
+      scopeAll: "전체 이벤트",
+      scopeMock: "Mock 커버리지",
+      scopeProduct: "운영 이벤트",
       source: "Source",
       sourceId: "Source ID",
       trace: "검증 흐름",
@@ -65,11 +81,16 @@ function getCopy(locale: Locale) {
     backToEvent: "Event Detail",
     backToLedger: "Event Ledger",
     canonical: "Canonical JSON",
+    coverageMockEvent: "Coverage Mock Event",
     downloadJson: "Download JSON",
     evidence: "Evidence",
     evidenceRoot: "Evidence Root",
     event: "Reputation Event",
     eventHash: "Event Evidence Hash",
+    eventScope: "Event Scope",
+    eventScopeMismatch:
+      "This event is outside the selected event scope. Only linked evidence is limited to the selected scope.",
+    eventScopeOutside: "Out of scope",
     heroBody:
       "A human-readable evidence packet showing the source record, schema, audit hash, and linked events required to pass one Reputation Event into the AgentRank Oracle.",
     heroEyebrow: "AgentRank Oracle Packet",
@@ -81,10 +102,14 @@ function getCopy(locale: Locale) {
     object: "Object",
     packetHash: "Packet Hash",
     packetVersion: "Packet Version",
+    productEvent: "Product Event",
     quality: "Quality",
     ready: "Verifiable",
     recordType: "Record Type",
     schema: "Schema",
+    scopeAll: "All Events",
+    scopeMock: "Mock Coverage",
+    scopeProduct: "Product Events",
     source: "Source",
     sourceId: "Source ID",
     trace: "Verification Flow",
@@ -165,6 +190,21 @@ function truncateHash(value: string, start = 14, end = 10) {
   return `${value.slice(0, start)}...${value.slice(-end)}`;
 }
 
+function getEventScopeLabel(
+  scope: AgentRankEventMockScope,
+  copy: ReturnType<typeof getCopy>,
+) {
+  if (scope === "mock") {
+    return copy.scopeMock;
+  }
+
+  if (scope === "product") {
+    return copy.scopeProduct;
+  }
+
+  return copy.scopeAll;
+}
+
 function TraceStep({
   Icon,
   body,
@@ -216,6 +256,7 @@ function InfoTile({
 export function FanletterAgentRankEvidencePacketPage({
   coverageAction = null,
   event,
+  eventScope = "all",
   locale,
   packet,
 }: FanletterAgentRankEvidencePacketPageProps) {
@@ -227,6 +268,9 @@ export function FanletterAgentRankEvidencePacketPage({
   });
   const starId = event.starId ?? event.object?.id ?? null;
   const linkedEvents = packet.evidence.linkedEvents;
+  const isCoverageMock = isAgentRankCoverageMockEvent(event);
+  const eventInScope = isAgentRankEventIncludedInMockScope(event, eventScope);
+  const eventScopeLabel = getEventScopeLabel(eventScope, copy);
 
   if (starId) {
     ledgerParams.set("starId", starId);
@@ -234,13 +278,21 @@ export function FanletterAgentRankEvidencePacketPage({
     downloadParams.set("starId", starId);
   }
 
+  if (eventScope !== "all") {
+    ledgerParams.set("scope", eventScope);
+    eventParams.set("scope", eventScope);
+    downloadParams.set("scope", eventScope);
+  }
+
   if (coverageAction) {
     ledgerParams.set("coverageAction", coverageAction.action);
     eventParams.set("coverageAction", coverageAction.action);
+    downloadParams.set("coverageAction", coverageAction.action);
 
     if (coverageAction.memberEmail) {
       ledgerParams.set("memberEmail", coverageAction.memberEmail);
       eventParams.set("memberEmail", coverageAction.memberEmail);
+      downloadParams.set("memberEmail", coverageAction.memberEmail);
     }
   }
 
@@ -282,8 +334,25 @@ export function FanletterAgentRankEvidencePacketPage({
 
           <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-end">
             <div className="min-w-0">
-              <p className="text-sm font-semibold uppercase text-[#6d28d9]">
+              <p className="inline-flex flex-wrap items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
                 {copy.heroEyebrow}
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-semibold normal-case ring-1 ${
+                    isCoverageMock
+                      ? "border-amber-100 bg-amber-50 text-amber-800 ring-amber-100"
+                      : "border-emerald-100 bg-emerald-50 text-emerald-800 ring-emerald-100"
+                  }`}
+                >
+                  {isCoverageMock ? (
+                    <TriangleAlert className="size-3.5" />
+                  ) : (
+                    <ShieldCheck className="size-3.5" />
+                  )}
+                  {isCoverageMock ? copy.coverageMockEvent : copy.productEvent}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-100 bg-violet-50 px-2.5 py-1 text-[0.68rem] font-semibold normal-case text-[#6d28d9] ring-1 ring-violet-100">
+                  {copy.eventScope}: {eventScopeLabel}
+                </span>
               </p>
               <h1 className="mt-2 text-4xl font-semibold leading-tight text-[#11132d] sm:text-5xl">
                 {copy.heroTitle}
@@ -291,6 +360,11 @@ export function FanletterAgentRankEvidencePacketPage({
               <p className="mt-4 max-w-3xl text-base font-medium leading-7 text-slate-600">
                 {copy.heroBody}
               </p>
+              {!eventInScope ? (
+                <p className="mt-3 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold leading-6 text-amber-800">
+                  {copy.eventScopeOutside} · {copy.eventScopeMismatch}
+                </p>
+              ) : null}
             </div>
             <div className="rounded-lg bg-gradient-to-br from-[#11132d] via-[#4338ca] to-[#7c3aed] p-5 text-white">
               <p className="text-xs font-semibold uppercase text-white/60">
@@ -410,6 +484,18 @@ export function FanletterAgentRankEvidencePacketPage({
 
               if (starId) {
                 params.set("starId", starId);
+              }
+
+              if (eventScope !== "all") {
+                params.set("scope", eventScope);
+              }
+
+              if (coverageAction) {
+                params.set("coverageAction", coverageAction.action);
+
+                if (coverageAction.memberEmail) {
+                  params.set("memberEmail", coverageAction.memberEmail);
+                }
               }
 
               return (

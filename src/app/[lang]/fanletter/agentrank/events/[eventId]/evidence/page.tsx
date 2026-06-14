@@ -10,6 +10,7 @@ import {
   getAgentRankEventEvidencePacket,
   normalizeAgentRankEventId,
 } from "@/lib/agentrank/evidence-packet";
+import { normalizeAgentRankEventMockScope } from "@/lib/agentrank/mock-events";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { hasLocale, type Locale } from "@/lib/i18n";
 
@@ -18,6 +19,7 @@ export const dynamic = "force-dynamic";
 type AgentRankEvidenceSearchParams = {
   coverageAction?: string | string[];
   memberEmail?: string | string[];
+  scope?: string | string[];
   starId?: string | string[];
 };
 
@@ -103,8 +105,12 @@ export default async function FanletterAgentRankEvidencePacketRoute({
   const starId = normalizeFanletterStarId(readFirstParam(query.starId) ?? null);
   const memberEmail = normalizeMemberEmail(query.memberEmail);
   const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
+  const eventScope = normalizeAgentRankEventMockScope(
+    readFirstParam(query.scope),
+  );
   const result = await getAgentRankEventEvidencePacket({
     eventId,
+    eventScope,
     memberEmail,
     starId,
   });
@@ -125,6 +131,7 @@ export default async function FanletterAgentRankEvidencePacketRoute({
           : null
       }
       event={result.event}
+      eventScope={eventScope}
       locale={locale}
       packet={result.packet}
     />

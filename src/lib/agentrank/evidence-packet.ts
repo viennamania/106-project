@@ -2,6 +2,10 @@ import "server-only";
 
 import { sha256AgentRankPayload } from "@/lib/agentrank/integrity";
 import {
+  filterAgentRankReputationEventFeedByMockScope,
+  type AgentRankEventMockScope,
+} from "@/lib/agentrank/mock-events";
+import {
   getFanletterAgentRankReputationEventFeed,
   type AgentRankReputationEvent,
 } from "@/lib/agentrank/reputation-events";
@@ -12,6 +16,7 @@ export type AgentRankEventEvidencePacket = ReturnType<
 
 type GetAgentRankEventEvidencePacketOptions = {
   eventId: string;
+  eventScope?: AgentRankEventMockScope;
   limit?: number;
   memberEmail?: string | null;
   starId?: string | null;
@@ -134,6 +139,7 @@ export function buildAgentRankEventEvidencePacket(
 
 export async function getAgentRankEventEvidencePacket({
   eventId,
+  eventScope = "all",
   limit = 250,
   memberEmail,
   starId,
@@ -149,14 +155,18 @@ export async function getAgentRankEventEvidencePacket({
     return null;
   }
 
-  const relatedEvents = feed.events.filter((candidate) =>
+  const scopedFeed = filterAgentRankReputationEventFeedByMockScope(
+    feed,
+    eventScope,
+  );
+  const relatedEvents = scopedFeed.events.filter((candidate) =>
     isAgentRankRelatedTraceEvent(candidate, event),
   );
   const packet = buildAgentRankEventEvidencePacket(event, relatedEvents);
 
   return {
     event,
-    feed,
+    feed: scopedFeed,
     packet,
     relatedEvents,
   };

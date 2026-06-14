@@ -33,6 +33,19 @@ export function normalizeAgentRankEventMockScope(
   return value === "mock" || value === "product" ? value : "all";
 }
 
+export function isAgentRankEventIncludedInMockScope(
+  event: AgentRankReputationEvent,
+  scope: AgentRankEventMockScope,
+) {
+  if (scope === "all") {
+    return true;
+  }
+
+  const isMock = isAgentRankCoverageMockEvent(event);
+
+  return scope === "mock" ? isMock : !isMock;
+}
+
 export function summarizeAgentRankEventMockScope(
   events: AgentRankReputationEvent[],
 ) {
@@ -55,9 +68,7 @@ export function filterAgentRankReputationEventFeedByMockScope(
   }
 
   const events = feed.events.filter((event) => {
-    const isMock = isAgentRankCoverageMockEvent(event);
-
-    return scope === "mock" ? isMock : !isMock;
+    return isAgentRankEventIncludedInMockScope(event, scope);
   });
 
   if (events.length === feed.events.length) {

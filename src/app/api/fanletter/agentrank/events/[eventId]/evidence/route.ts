@@ -2,6 +2,11 @@ import {
   getAgentRankEventEvidencePacket,
   normalizeAgentRankEventId,
 } from "@/lib/agentrank/evidence-packet";
+import {
+  isAgentRankEventIncludedInMockScope,
+  isAgentRankCoverageMockEvent,
+  normalizeAgentRankEventMockScope,
+} from "@/lib/agentrank/mock-events";
 
 type EventEvidenceParams = {
   eventId: string;
@@ -31,8 +36,12 @@ export async function GET(
   }
 
   try {
+    const eventScope = normalizeAgentRankEventMockScope(
+      url.searchParams.get("scope"),
+    );
     const result = await getAgentRankEventEvidencePacket({
       eventId,
+      eventScope,
       memberEmail: normalizeParam(url.searchParams.get("memberEmail")),
       starId: normalizeParam(url.searchParams.get("starId")),
     });
@@ -53,6 +62,13 @@ export async function GET(
       "content-type": "application/json; charset=utf-8",
       "x-agentrank-evidence-root": packet.integrity.evidenceRoot,
       "x-agentrank-event-id": event.eventId,
+      "x-agentrank-event-in-scope": String(
+        isAgentRankEventIncludedInMockScope(event, eventScope),
+      ),
+      "x-agentrank-event-provenance": isAgentRankCoverageMockEvent(event)
+        ? "mock_coverage"
+        : "product_event",
+      "x-agentrank-event-scope": eventScope,
       "x-agentrank-packet-hash": packet.integrity.packetHash,
       "x-agentrank-record-type": packet.recordType,
       "x-agentrank-schema-version": event.schemaVersion,

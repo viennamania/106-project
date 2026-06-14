@@ -20,12 +20,18 @@ import {
 
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
+import {
+  isAgentRankEventIncludedInMockScope,
+  isAgentRankCoverageMockEvent,
+  type AgentRankEventMockScope,
+} from "@/lib/agentrank/mock-events";
 import type { AgentRankReputationEvent } from "@/lib/agentrank/reputation-events";
 import type { Locale } from "@/lib/i18n";
 
 type FanletterAgentRankEventDetailPageProps = {
   coverageAction?: AgentRankCoverageActionContext | null;
   event: AgentRankReputationEvent;
+  eventScope?: AgentRankEventMockScope;
   locale: Locale;
   relatedEvents?: AgentRankReputationEvent[];
 };
@@ -44,6 +50,10 @@ function getCopy(locale: Locale) {
         "이 이벤트는 커버리지 확인을 위해 생성된 mock Reputation Event입니다. 실제 결제, 실제 권한 부여, 운영 보상 상태와 분리해서 봅니다.",
       coverageMockEvent: "커버리지 Mock 이벤트",
       eventId: "이벤트 ID",
+      eventScope: "이벤트 범위",
+      eventScopeMismatch:
+        "현재 이벤트는 선택한 이벤트 범위 밖에 있습니다. 연결 이벤트와 증거 패킷 컨텍스트만 선택 범위로 제한됩니다.",
+      eventScopeOutside: "범위 밖",
       formula: "ERS 반영 공식",
       heroBody:
         "FanLetter에서 발생한 단일 Reputation Event가 AgentRank 점수, Oracle 준비 상태, 향후 x402 경제 그래프로 어떻게 연결되는지 추적합니다.",
@@ -92,6 +102,9 @@ function getCopy(locale: Locale) {
       ready: "준비됨",
       readiness: "AgentRank 호환성",
       schema: "스키마",
+      scopeAll: "전체 이벤트",
+      scopeMock: "Mock 커버리지",
+      scopeProduct: "운영 이벤트",
       source: "소스",
       sourceId: "소스 ID",
       sourceTrace: "소스 추적",
@@ -116,6 +129,10 @@ function getCopy(locale: Locale) {
       "This is a mock Reputation Event generated for coverage verification. Treat it separately from live payments, entitlement grants, and production rewards.",
     coverageMockEvent: "Coverage Mock Event",
     eventId: "Event ID",
+      eventScope: "Event Scope",
+      eventScopeMismatch:
+        "This event is outside the selected event scope. Related events and evidence packet context are limited to the selected scope.",
+      eventScopeOutside: "Out of scope",
     formula: "ERS Impact Formula",
     heroBody:
       "Trace how one FanLetter Reputation Event contributes to AgentRank scoring, Oracle readiness, and the future x402 economy graph.",
@@ -164,6 +181,9 @@ function getCopy(locale: Locale) {
     ready: "Ready",
     readiness: "AgentRank Compatibility",
     schema: "Schema",
+    scopeAll: "All Events",
+    scopeMock: "Mock Coverage",
+    scopeProduct: "Product Events",
     source: "Source",
     sourceId: "Source ID",
     sourceTrace: "Source Trace",
@@ -177,13 +197,22 @@ function getCopy(locale: Locale) {
 }
 
 function isCoverageMockEvent(event: AgentRankReputationEvent) {
-  return (
-    event.type === "x402_mock_payment_intent" ||
-    event.context.coverageMockCreatorUnlocked === true ||
-    event.context.mockPaymentIntent === true ||
-    event.context.checkoutMode === "mock_coverage" ||
-    event.context.a2aMockUsage === true
-  );
+  return isAgentRankCoverageMockEvent(event);
+}
+
+function getEventScopeLabel(
+  scope: AgentRankEventMockScope,
+  copy: ReturnType<typeof getCopy>,
+) {
+  if (scope === "mock") {
+    return copy.scopeMock;
+  }
+
+  if (scope === "product") {
+    return copy.scopeProduct;
+  }
+
+  return copy.scopeAll;
 }
 
 function formatDate(value: string, locale: Locale) {
@@ -856,10 +885,12 @@ function buildLineageGroups(
 
 function EventLineageNode({
   event,
+  eventScope = "all",
   isCurrent = false,
   locale,
 }: {
   event: AgentRankReputationEvent;
+  eventScope?: AgentRankEventMockScope;
   isCurrent?: boolean;
   locale: Locale;
 }) {
@@ -907,6 +938,10 @@ function EventLineageNode({
     params.set("starId", starId);
   }
 
+  if (eventScope !== "all") {
+    params.set("scope", eventScope);
+  }
+
   if (isCurrent) {
     return (
       <div className="rounded-lg bg-gradient-to-br from-[#11132d] via-[#4338ca] to-[#7c3aed] p-4 text-white shadow-[0_18px_44px_rgba(88,28,135,0.16)]">
@@ -930,12 +965,14 @@ function EventLineageNode({
 function LineageColumn({
   emptyLabel,
   events,
+  eventScope = "all",
   isCurrent = false,
   locale,
   title,
 }: {
   emptyLabel: string;
   events: AgentRankReputationEvent[];
+  eventScope?: AgentRankEventMockScope;
   isCurrent?: boolean;
   locale: Locale;
   title: string;
@@ -948,6 +985,7 @@ function LineageColumn({
           events.map((lineageEvent) => (
             <EventLineageNode
               event={lineageEvent}
+              eventScope={eventScope}
               isCurrent={isCurrent}
               key={lineageEvent.eventId}
               locale={locale}
@@ -1087,12 +1125,14 @@ function OracleEvidenceTracePanel({
   coverageAction,
   copy,
   event,
+  eventScope = "all",
   locale,
   relatedEvents,
 }: {
   coverageAction?: AgentRankCoverageActionContext | null;
   copy: ReturnType<typeof getCopy>;
   event: AgentRankReputationEvent;
+  eventScope?: AgentRankEventMockScope;
   locale: Locale;
   relatedEvents: AgentRankReputationEvent[];
 }) {
@@ -1107,6 +1147,10 @@ function OracleEvidenceTracePanel({
 
   if (packetStarId) {
     evidencePacketParams.set("starId", packetStarId);
+  }
+
+  if (eventScope !== "all") {
+    evidencePacketParams.set("scope", eventScope);
   }
 
   if (coverageAction) {
@@ -1215,6 +1259,10 @@ function OracleEvidenceTracePanel({
 
                 if (relatedStarId) {
                   params.set("starId", relatedStarId);
+                }
+
+                if (eventScope !== "all") {
+                  params.set("scope", eventScope);
                 }
 
                 if (coverageAction) {
@@ -1401,6 +1449,7 @@ function AgentTransactionGraph({
 export function FanletterAgentRankEventDetailPage({
   coverageAction = null,
   event,
+  eventScope = "all",
   locale,
   relatedEvents = [],
 }: FanletterAgentRankEventDetailPageProps) {
@@ -1414,6 +1463,8 @@ export function FanletterAgentRankEventDetailPage({
   );
   const lineage = buildLineageGroups(event, relatedEvents);
   const isCoverageMock = isCoverageMockEvent(event);
+  const eventInScope = isAgentRankEventIncludedInMockScope(event, eventScope);
+  const eventScopeLabel = getEventScopeLabel(eventScope, copy);
   const eventClassification = isCoverageMock
     ? {
         body: copy.coverageMockBody,
@@ -1433,6 +1484,10 @@ export function FanletterAgentRankEventDetailPage({
 
   if (starId) {
     ledgerParams.set("starId", starId);
+  }
+
+  if (eventScope !== "all") {
+    ledgerParams.set("scope", eventScope);
   }
 
   if (coverageAction) {
@@ -1470,13 +1525,16 @@ export function FanletterAgentRankEventDetailPage({
 
           <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-end">
             <div>
-              <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+              <p className="inline-flex flex-wrap items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
                 {copy.heroEyebrow}
                 <span
                   className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[0.68rem] font-semibold normal-case ring-1 ${eventClassification.tone}`}
                 >
                   <EventClassificationIcon className="size-3.5" />
                   {eventClassification.label}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-violet-100 bg-violet-50 px-2.5 py-1 text-[0.68rem] font-semibold normal-case text-[#6d28d9] ring-1 ring-violet-100">
+                  {copy.eventScope}: {eventScopeLabel}
                 </span>
               </p>
               <h1 className="mt-2 text-4xl font-semibold leading-tight text-[#11132d] sm:text-5xl">
@@ -1527,7 +1585,20 @@ export function FanletterAgentRankEventDetailPage({
             <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-[#11132d]">
               {event.context.intent ?? event.type}
             </span>
+            <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-semibold text-[#11132d]">
+              {copy.eventScope} · {eventScopeLabel}
+            </span>
+            {!eventInScope ? (
+              <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+                {copy.eventScopeOutside}
+              </span>
+            ) : null}
           </div>
+          {!eventInScope ? (
+            <p className="mt-3 rounded-lg bg-white/70 px-3 py-2 text-sm font-semibold leading-6 text-amber-900">
+              {copy.eventScopeMismatch}
+            </p>
+          ) : null}
         </section>
 
         <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
@@ -1550,6 +1621,7 @@ export function FanletterAgentRankEventDetailPage({
             <LineageColumn
               emptyLabel={copy.noRelatedEvents}
               events={lineage.upstream}
+              eventScope={eventScope}
               locale={locale}
               title={copy.upstream}
             />
@@ -1559,6 +1631,7 @@ export function FanletterAgentRankEventDetailPage({
             <LineageColumn
               emptyLabel={copy.noRelatedEvents}
               events={[event]}
+              eventScope={eventScope}
               isCurrent
               locale={locale}
               title={copy.currentEvent}
@@ -1569,6 +1642,7 @@ export function FanletterAgentRankEventDetailPage({
             <LineageColumn
               emptyLabel={copy.noRelatedEvents}
               events={lineage.downstream}
+              eventScope={eventScope}
               locale={locale}
               title={copy.downstream}
             />
@@ -1605,6 +1679,7 @@ export function FanletterAgentRankEventDetailPage({
           coverageAction={coverageAction}
           copy={copy}
           event={event}
+          eventScope={eventScope}
           locale={locale}
           relatedEvents={relatedEvents}
         />
