@@ -1,7 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, GitBranch } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  Database,
+  GitBranch,
+  LoaderCircle,
+  RefreshCw,
+  ShieldAlert,
+} from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import type { Locale } from "@/lib/i18n";
@@ -15,16 +24,36 @@ function getCoverageActionLabels(locale: Locale) {
     return {
       back: "Coverage Audit으로 돌아가기",
       eyebrow: "AgentRank 수집 액션",
+      ledger: "원장 보기",
+      refresh: "상태 새로고침",
+      status: "실행 상태",
+      statusConfirmed: "확인됨",
+      statusDeferred: "보류",
+      statusError: "상태 확인 실패",
+      statusLoading: "원장 확인 중",
+      statusPending: "대기",
+      statusSubtitle: "AgentRank 원장 기준",
       memberScope: "감사 대상 멤버",
       starScope: "감사 대상 스타",
+      totalEvents: "이벤트",
     };
   }
 
   return {
     back: "Back to Coverage Audit",
     eyebrow: "AgentRank Collection Action",
+    ledger: "Open Ledger",
+    refresh: "Refresh Status",
+    status: "Execution Status",
+    statusConfirmed: "Confirmed",
+    statusDeferred: "Deferred",
+    statusError: "Status check failed",
+    statusLoading: "Checking ledger",
+    statusPending: "Pending",
+    statusSubtitle: "Based on AgentRank ledger",
     memberScope: "Audit target member",
     starScope: "Audit target star",
+    totalEvents: "events",
   };
 }
 
@@ -279,6 +308,237 @@ function getCoverageActionMessage(action: string, locale: Locale) {
   );
 }
 
+type CoverageApiPayload = {
+  coverage?: {
+    eventTypes?: Array<{
+      count?: number;
+      covered?: boolean;
+      type?: string;
+    }>;
+    readiness?: {
+      a2aReady?: boolean;
+      x402Ready?: boolean;
+    };
+    sources?: Array<{
+      count?: number;
+      covered?: boolean;
+      source?: string;
+    }>;
+    totals?: {
+      totalEvents?: number;
+    };
+  };
+};
+
+type CoverageActionStatus = "confirmed" | "deferred" | "pending";
+
+type CoverageActionLiveStatus = {
+  count: number | null;
+  status: CoverageActionStatus;
+};
+
+function buildCoverageParams(action: AgentRankCoverageActionContext) {
+  const params = new URLSearchParams({
+    coverageAction: action.action,
+    limit: "120",
+  });
+
+  if (action.starId) {
+    params.set("starId", action.starId);
+  }
+
+  if (action.memberEmail) {
+    params.set("memberEmail", action.memberEmail);
+  }
+
+  return params;
+}
+
+function getCoverageActionLiveStatus(
+  action: string,
+  coverage?: CoverageApiPayload["coverage"],
+): CoverageActionLiveStatus {
+  const eventItem = coverage?.eventTypes?.find((item) => item.type === action);
+
+  if (eventItem) {
+    return {
+      count: eventItem.count ?? 0,
+      status: eventItem.covered ? "confirmed" : "pending",
+    };
+  }
+
+  const sourceItem = coverage?.sources?.find((item) => item.source === action);
+
+  if (sourceItem) {
+    return {
+      count: sourceItem.count ?? 0,
+      status: sourceItem.covered ? "confirmed" : "pending",
+    };
+  }
+
+  if (action === "x402_economy") {
+    return {
+      count: null,
+      status: coverage?.readiness?.x402Ready ? "confirmed" : "pending",
+    };
+  }
+
+  if (action === "a2a_usage") {
+    return {
+      count: null,
+      status: coverage?.readiness?.a2aReady ? "confirmed" : "deferred",
+    };
+  }
+
+  return {
+    count: null,
+    status: "pending",
+  };
+}
+
+function getStatusMeta(
+  labels: ReturnType<typeof getCoverageActionLabels>,
+  status: CoverageActionStatus,
+) {
+  if (status === "confirmed") {
+    return {
+      Icon: BadgeCheck,
+      className: "border-emerald-200 bg-emerald-50 text-emerald-800",
+      label: labels.statusConfirmed,
+    };
+  }
+
+  if (status === "deferred") {
+    return {
+      Icon: ShieldAlert,
+      className: "border-amber-200 bg-amber-50 text-amber-800",
+      label: labels.statusDeferred,
+    };
+  }
+
+  return {
+    Icon: ShieldAlert,
+    className: "border-slate-200 bg-slate-50 text-slate-700",
+    label: labels.statusPending,
+  };
+}
+
+function FanletterAgentRankCoverageActionLiveStatus({
+  action,
+  locale,
+}: {
+  action: AgentRankCoverageActionContext;
+  locale: Locale;
+}) {
+  const labels = getCoverageActionLabels(locale);
+  const params = useMemo(() => buildCoverageParams(action), [action]);
+  const coverageHref = `/${locale}/fanletter/agentrank/coverage?${params.toString()}`;
+  const ledgerHref = `/${locale}/fanletter/agentrank/events?${params.toString()}`;
+  const [payload, setPayload] = useState<CoverageApiPayload | null>(null);
+  const [status, setStatus] = useState<"error" | "idle" | "loading">("idle");
+
+  const loadStatus = useCallback(async () => {
+    setStatus("loading");
+
+    try {
+      const response = await fetch(
+        `/api/fanletter/agentrank/coverage?${params.toString()}`,
+        {
+          cache: "no-store",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Coverage status failed");
+      }
+
+      setPayload((await response.json()) as CoverageApiPayload);
+      setStatus("idle");
+    } catch {
+      setStatus("error");
+    }
+  }, [params]);
+
+  useEffect(() => {
+    void loadStatus();
+  }, [loadStatus]);
+
+  const liveStatus = getCoverageActionLiveStatus(
+    action.action,
+    payload?.coverage,
+  );
+  const statusMeta = getStatusMeta(labels, liveStatus.status);
+  const StatusIcon =
+    status === "loading" ? LoaderCircle : statusMeta.Icon;
+  const statusLabel =
+    status === "loading"
+      ? labels.statusLoading
+      : status === "error"
+        ? labels.statusError
+        : statusMeta.label;
+
+  return (
+    <div className="grid min-w-0 gap-3 rounded-[1rem] border border-violet-100 bg-white/72 p-3 shadow-[0_14px_34px_rgba(88,28,135,0.06)] sm:grid-cols-[1fr_auto] sm:items-center">
+      <div className="min-w-0">
+        <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">
+          {labels.statusSubtitle}
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span
+            className={joinClasses(
+              "inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold",
+              status === "loading"
+                ? "border-violet-100 bg-violet-50 text-[#6d28d9]"
+                : status === "error"
+                  ? "border-rose-100 bg-rose-50 text-rose-700"
+                  : statusMeta.className,
+            )}
+          >
+            <StatusIcon
+              className={joinClasses(
+                "size-3.5",
+                status === "loading" && "animate-spin",
+              )}
+            />
+            {labels.status}: {statusLabel}
+          </span>
+          {liveStatus.count != null ? (
+            <span className="inline-flex min-h-8 items-center rounded-full border border-slate-100 bg-white px-3 text-xs font-semibold text-slate-600">
+              {liveStatus.count.toLocaleString(locale)} {labels.totalEvents}
+            </span>
+          ) : null}
+        </div>
+      </div>
+      <div className="flex min-w-0 flex-wrap gap-2">
+        <button
+          className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white px-3 text-xs font-semibold text-[#6d28d9] transition hover:bg-violet-50"
+          onClick={() => {
+            void loadStatus();
+          }}
+          type="button"
+        >
+          <RefreshCw className="size-3.5" />
+          {labels.refresh}
+        </button>
+        <Link
+          className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white transition hover:bg-[#2f2458]"
+          href={ledgerHref}
+        >
+          <Database className="size-3.5" />
+          {labels.ledger}
+        </Link>
+        <Link
+          className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-3 text-xs font-semibold text-white transition hover:bg-[#6d28d9]"
+          href={coverageHref}
+        >
+          {labels.back}
+          <ArrowRight className="size-3.5" />
+        </Link>
+      </div>
+    </div>
+  );
+}
+
 export function FanletterAgentRankCoverageActionNotice({
   action,
   className,
@@ -290,18 +550,6 @@ export function FanletterAgentRankCoverageActionNotice({
 }) {
   const labels = getCoverageActionLabels(locale);
   const message = getCoverageActionMessage(action.action, locale);
-  const coverageParams = new URLSearchParams({
-    coverageAction: action.action,
-    limit: "120",
-  });
-
-  if (action.starId) {
-    coverageParams.set("starId", action.starId);
-  }
-
-  if (action.memberEmail) {
-    coverageParams.set("memberEmail", action.memberEmail);
-  }
 
   return (
     <section
@@ -338,13 +586,12 @@ export function FanletterAgentRankCoverageActionNotice({
             ) : null}
           </div>
         </div>
-        <Link
-          className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
-          href={`/${locale}/fanletter/agentrank/coverage?${coverageParams.toString()}`}
-        >
-          {labels.back}
-          <ArrowRight className="size-4" />
-        </Link>
+      </div>
+      <div className="mt-4">
+        <FanletterAgentRankCoverageActionLiveStatus
+          action={action}
+          locale={locale}
+        />
       </div>
     </section>
   );

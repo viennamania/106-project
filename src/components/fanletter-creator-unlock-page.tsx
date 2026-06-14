@@ -663,12 +663,14 @@ function SourceUniverseAIStarPortrait({
 
 function SourceUniverseSelector({
   copy,
+  coverageAction,
   locale,
   onSelect,
   options,
   selectedStarId,
 }: {
   copy: ReturnType<typeof getLaunchPageCopy>;
+  coverageAction?: AgentRankCoverageActionContext | null;
   locale: Locale;
   onSelect: (starId: string) => void;
   options: SourceUniverseOption[];
@@ -735,6 +737,8 @@ function SourceUniverseSelector({
                     contributionEventQualityPercent:
                       option.contribution?.readiness.eventQualityPercent ?? null,
                     contributionScore: option.contribution?.score ?? null,
+                    coverageAction: coverageAction?.action ?? null,
+                    coverageActionStarId: coverageAction?.starId ?? null,
                     placement: "creator_unlock_source_universe_selector",
                     roleInUniverse: option.role,
                     sourceUniverseId: `fanletter-star-universe:${option.starId}`,
@@ -1677,6 +1681,7 @@ export function FanletterCreatorUnlockPage({
             ) : (
               <SourceUniverseSelector
                 copy={copy}
+                coverageAction={coverageAction}
                 locale={locale}
                 onSelect={setSelectedSourceStarId}
                 options={sourceOptions}
@@ -1779,6 +1784,8 @@ export function FanletterCreatorUnlockPage({
                     }
                     sourceUniverseName={launchPreview.sourceUniverseName}
                     trackingMetadata={{
+                      coverageAction: coverageAction?.action ?? null,
+                      coverageActionStarId: coverageAction?.starId ?? null,
                       launchCostUsdt: unlock.createCostUsdt,
                       placement: "creator_unlock_mock_launch_button",
                       sourceUniverseName: launchPreview.sourceUniverseName,
