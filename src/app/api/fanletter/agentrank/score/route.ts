@@ -1,5 +1,4 @@
-import { createHash } from "node:crypto";
-
+import { sha256AgentRankPayload } from "@/lib/agentrank/integrity";
 import {
   getFanletterAgentRankReputationEventFeed,
   type AgentRankReputationEvent,
@@ -34,25 +33,6 @@ function serializeRowsCsv(
   rows: Array<Array<string | number | boolean | null | undefined>>,
 ) {
   return rows.map((row) => row.map(escapeCsvValue).join(",")).join("\n");
-}
-
-function stableStringify(value: unknown): string {
-  if (value === null || typeof value !== "object") {
-    return JSON.stringify(value);
-  }
-
-  if (Array.isArray(value)) {
-    return `[${value.map(stableStringify).join(",")}]`;
-  }
-
-  return `{${Object.entries(value)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, child]) => `${JSON.stringify(key)}:${stableStringify(child)}`)
-    .join(",")}}`;
-}
-
-function sha256(value: unknown) {
-  return createHash("sha256").update(stableStringify(value)).digest("hex");
 }
 
 function serializeAgentRankScoreCsv(score: AgentRankScoreAggregate) {
@@ -169,7 +149,7 @@ function buildAgentRankOraclePacket(
       x402ReadyEvents: score.summary.x402ReadyEvents,
     },
   };
-  const evidenceRoot = sha256(evidenceRootPayload);
+  const evidenceRoot = sha256AgentRankPayload(evidenceRootPayload);
   const issuedAt = new Date().toISOString();
 
   const packet = {
@@ -250,7 +230,7 @@ function buildAgentRankOraclePacket(
     ...packet,
     integrity: {
       ...packet.integrity,
-      packetHash: sha256(packet),
+      packetHash: sha256AgentRankPayload(packet),
     },
   };
 }
