@@ -3,6 +3,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 
 import { agentRankReputationEventSchemaVersion } from "@/lib/agentrank/event-schema";
+import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
 import { fanletterFounderUniverseCpPoolTotal } from "@/lib/fanletter-founder-universe";
 import type {
   FanletterStarDocument,
@@ -141,6 +142,7 @@ export type FanletterAgentRankReputationEventFeed = {
 };
 
 export type GetFanletterAgentRankReputationEventsOptions = {
+  includeSources?: AgentRankInteractionSource[];
   includeTypes?: AgentRankReputationEventType[];
   limit?: number;
   memberEmail?: string | null;
@@ -1119,6 +1121,14 @@ function buildIncludeTypesSet(includeTypes?: AgentRankReputationEventType[]) {
   return requestedTypes.length ? new Set(requestedTypes) : null;
 }
 
+function buildIncludeSourcesSet(includeSources?: AgentRankInteractionSource[]) {
+  if (!includeSources?.length) {
+    return null;
+  }
+
+  return new Set(includeSources);
+}
+
 function getFunnelEventRelatedStarIds(event: FunnelEventDocument) {
   const metadata = event.metadata ?? {};
 
@@ -1139,6 +1149,7 @@ export async function getFanletterAgentRankReputationEventFeed(
   const starId = normalizeId(options.starId);
   const memberEmail = normalizeEmail(options.memberEmail);
   const limit = normalizeLimit(options.limit);
+  const includeSources = buildIncludeSourcesSet(options.includeSources);
   const includeTypes = buildIncludeTypesSet(options.includeTypes);
   const [
     starsCollection,
@@ -1213,6 +1224,12 @@ export async function getFanletterAgentRankReputationEventFeed(
     };
   }
 
+  if (includeSources) {
+    funnelEventFilter["agentRank.source"] = {
+      $in: [...includeSources],
+    };
+  }
+
   const [
     stars,
     memberships,
@@ -1281,7 +1298,7 @@ export async function getFanletterAgentRankReputationEventFeed(
     }
   }
 
-  const events = [
+  const allEvents = [
     ...buildStarEvents({
       includeTypes,
       stars,
@@ -1311,7 +1328,18 @@ export async function getFanletterAgentRankReputationEventFeed(
       includeTypes,
       starsById,
     }),
-  ]
+  ];
+  const events = (includeSources
+    ? allEvents.filter((event) => {
+        const source = event.context.source;
+
+        return (
+          typeof source === "string" &&
+          includeSources.has(source as AgentRankInteractionSource)
+        );
+      })
+    : allEvents
+  )
     .sort((left, right) => {
       const timeDelta =
         new Date(right.occurredAt).getTime() -

@@ -7,6 +7,7 @@ import {
   type AgentRankReputationEventType,
   type FanletterAgentRankReputationEventFeed,
 } from "@/lib/agentrank/reputation-events";
+import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
 
 export function mergeAgentRankCoverageEventFeeds(
   baseFeed: FanletterAgentRankReputationEventFeed,
@@ -41,28 +42,42 @@ export function mergeAgentRankCoverageEventFeeds(
 
 export async function buildAgentRankCoverageEventFeed({
   baseFeed,
+  missingSources,
   missingTypes,
   memberEmail,
   starId,
 }: {
   baseFeed: FanletterAgentRankReputationEventFeed;
+  missingSources?: AgentRankInteractionSource[];
   memberEmail: string | null;
   missingTypes: AgentRankReputationEventType[];
   starId: string | null;
 }) {
-  if (missingTypes.length === 0) {
+  const sourceProbes = missingSources ?? [];
+
+  if (missingTypes.length === 0 && sourceProbes.length === 0) {
     return baseFeed;
   }
 
   const probeFeeds = await Promise.all(
-    missingTypes.map((type) =>
-      getFanletterAgentRankReputationEventFeed({
-        includeTypes: [type],
-        limit: 1,
-        memberEmail,
-        starId,
-      }),
-    ),
+    [
+      ...missingTypes.map((type) =>
+        getFanletterAgentRankReputationEventFeed({
+          includeTypes: [type],
+          limit: 1,
+          memberEmail,
+          starId,
+        }),
+      ),
+      ...sourceProbes.map((source) =>
+        getFanletterAgentRankReputationEventFeed({
+          includeSources: [source],
+          limit: 1,
+          memberEmail,
+          starId,
+        }),
+      ),
+    ],
   );
 
   return mergeAgentRankCoverageEventFeeds(baseFeed, probeFeeds);

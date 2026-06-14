@@ -96,6 +96,9 @@ export default async function FanletterAgentRankRoute({
   const coverageEventFeed = await buildAgentRankCoverageEventFeed({
     baseFeed: snapshot.eventFeed,
     memberEmail,
+    missingSources: preliminaryCoverage.sources
+      .filter((source) => !source.covered)
+      .map((source) => source.source),
     missingTypes: preliminaryCoverage.eventTypes
       .filter((eventType) => !eventType.covered)
       .map((eventType) => eventType.type),

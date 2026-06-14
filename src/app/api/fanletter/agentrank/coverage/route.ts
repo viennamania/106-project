@@ -303,6 +303,9 @@ export async function GET(request: Request) {
     const rawCoverageEventFeed = await buildAgentRankCoverageEventFeed({
       baseFeed: baseEventFeed,
       memberEmail,
+      missingSources: preliminaryCoverage.sources
+        .filter((source) => !source.covered)
+        .map((source) => source.source),
       missingTypes: preliminaryCoverage.eventTypes
         .filter((eventType) => !eventType.covered)
         .map((eventType) => eventType.type),
