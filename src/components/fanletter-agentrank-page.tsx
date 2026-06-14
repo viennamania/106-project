@@ -21,10 +21,7 @@ import {
   WalletCards,
 } from "lucide-react";
 
-import {
-  buildAgentRankCoverageSnapshot,
-  type AgentRankCoverageSnapshot,
-} from "@/lib/agentrank/coverage";
+import type { AgentRankCoverageSnapshot } from "@/lib/agentrank/coverage";
 import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
 import { FanletterAgentRankTracker } from "@/components/fanletter-agentrank-tracker";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
@@ -1847,17 +1844,18 @@ function ReadinessPill({
 }
 
 export function FanletterAgentRankPage({
+  coverage,
   locale,
   snapshot,
   starId,
 }: {
+  coverage: AgentRankCoverageSnapshot;
   locale: Locale;
   snapshot: FanletterAgentRankInvestorSnapshot;
   starId?: string | null;
 }) {
   const copy = getAgentRankCopy(locale);
   const { ers, eventFeed, scoreAggregate } = snapshot;
-  const coverage = buildAgentRankCoverageSnapshot(eventFeed, ers.readiness);
   const metrics = [
     {
       label: copy.metrics.events,
