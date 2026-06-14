@@ -1508,6 +1508,8 @@ export function FanletterCreatorUnlockPage({
   const shouldTrackCoverageMockPaymentIntent =
     coverageAction?.action === "x402_mock_payment_intent" ||
     coverageAction?.action === "x402_economy";
+  const shouldTrackCoverageCreatorUnlocked =
+    coverageAction?.action === "creator_unlocked" && !unlock.unlocked;
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#fbfaff] px-4 py-5 text-black sm:px-6 lg:px-8">
@@ -1604,11 +1606,13 @@ export function FanletterCreatorUnlockPage({
           targetHref={`/${locale}/fanletter/creator-unlock`}
         />
       ) : null}
-      {unlock.unlocked ? (
+      {unlock.unlocked || shouldTrackCoverageCreatorUnlocked ? (
         <FanletterReputationTracker
           agentRank={{
             eventType: "creator_unlocked",
-            intent: "creator_unlock_page_ready",
+            intent: unlock.unlocked
+              ? "creator_unlock_page_ready"
+              : "coverage_mock_creator_unlocked",
             source: "fanletter_creator_unlock",
             starId: trackingSourceStarId,
           }}
@@ -1616,8 +1620,12 @@ export function FanletterCreatorUnlockPage({
           metadata={{
             completedConditionCount,
             createCostUsdt: unlock.createCostUsdt,
-            creatorUnlockReady: true,
+            coverageAction: coverageAction?.action ?? null,
+            coverageActionStarId: coverageAction?.starId ?? null,
+            coverageMockCreatorUnlocked: shouldTrackCoverageCreatorUnlocked,
+            creatorUnlockReady: unlock.unlocked,
             page: "fanletter_creator_unlock",
+            realCreatorUnlockState: unlock.unlocked,
             requiresSourceUniverse,
             sourceStarId: trackingSourceStarId,
             sourceUniverseId: trackingSourceStarId
