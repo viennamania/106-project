@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterAgentRankCoverageAuditPage } from "@/components/fanletter-agentrank-coverage-audit-page";
+import {
+  normalizeAgentRankCoverageAction,
+  readFirstSearchParam,
+} from "@/lib/agentrank/coverage-action";
 import { buildAgentRankCoverageSnapshot } from "@/lib/agentrank/coverage";
 import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
@@ -10,13 +14,14 @@ import { hasLocale, type Locale } from "@/lib/i18n";
 export const dynamic = "force-dynamic";
 
 type CoverageAuditSearchParams = {
+  coverageAction?: string | string[];
   limit?: string | string[];
   memberEmail?: string | string[];
   starId?: string | string[];
 };
 
 function readFirstParam(value?: string | string[]) {
-  return Array.isArray(value) ? value[0] : value;
+  return readFirstSearchParam(value);
 }
 
 function normalizeLimit(value?: string | string[]) {
@@ -94,6 +99,7 @@ export default async function FanletterAgentRankCoverageAuditRoute({
   const starId = normalizeFanletterStarId(readFirstParam(query.starId) ?? null);
   const memberEmail = normalizeMemberEmail(query.memberEmail);
   const limit = normalizeLimit(query.limit);
+  const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
   const snapshot = await getFanletterAgentRankInvestorSnapshot({
     limit,
     memberEmail,
@@ -107,6 +113,7 @@ export default async function FanletterAgentRankCoverageAuditRoute({
   return (
     <FanletterAgentRankCoverageAuditPage
       coverage={coverage}
+      coverageAction={coverageAction}
       eventFeed={snapshot.eventFeed}
       generatedAt={snapshot.generatedAt}
       locale={locale}

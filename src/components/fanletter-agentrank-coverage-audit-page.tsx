@@ -69,6 +69,16 @@ function getCoverageAuditCopy(locale: Locale) {
       agentRank: "AgentRank",
       api: "JSON API",
       backToAgentRank: "AgentRank 보기",
+      actionAfter: "완료 후",
+      actionBefore: "현재",
+      actionConfidence: "감사 기준",
+      actionImpact: "액션 실행 전후",
+      actionImpactBody:
+        "Coverage Audit에서 선택한 액션이 현재 원장 기준으로 어떤 커버리지와 Reputation Event를 채워야 하는지 계산합니다.",
+      actionImpactEvent: "이벤트 타입",
+      actionImpactReadiness: "준비 신호",
+      actionImpactSource: "CTA 소스",
+      actionExpectedDelta: "예상 개선",
       covered: "수집됨",
       csv: "CSV 내보내기",
       eventCoverage: "이벤트 타입 커버리지",
@@ -98,6 +108,16 @@ function getCoverageAuditCopy(locale: Locale) {
     agentRank: "AgentRank",
     api: "JSON API",
     backToAgentRank: "View AgentRank",
+    actionAfter: "After",
+    actionBefore: "Current",
+    actionConfidence: "Audit basis",
+    actionImpact: "Action Impact",
+    actionImpactBody:
+      "Calculates which coverage and Reputation Event signal the selected Coverage Audit action should fill from the current ledger.",
+    actionImpactEvent: "Event Type",
+    actionImpactReadiness: "Readiness Signal",
+    actionImpactSource: "CTA Source",
+    actionExpectedDelta: "Expected Delta",
     covered: "Covered",
     csv: "Export CSV",
     eventCoverage: "Event Type Coverage",
@@ -376,6 +396,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
     };
 
     return {
+      coverageAction: value || kind,
       key: gap,
       label: getCoverageGapLabel(gap, locale),
       ...action,
@@ -396,6 +417,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
     };
 
     return {
+      coverageAction: value || kind,
       key: gap,
       label: getCoverageGapLabel(gap, locale),
       description:
@@ -410,6 +432,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
 
   if (gap === "pending:x402_economy") {
     return {
+      coverageAction: "x402_economy",
       key: gap,
       label: getCoverageGapLabel(gap, locale),
       description:
@@ -426,6 +449,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
 
   if (gap === "pending:a2a_usage") {
     return {
+      coverageAction: "a2a_usage",
       key: gap,
       label: getCoverageGapLabel(gap, locale),
       description:
@@ -441,6 +465,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
   }
 
   return {
+    coverageAction: value || kind || gap,
     key: gap,
     label: getCoverageGapLabel(gap, locale),
     description:
@@ -451,6 +476,224 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
     layer: "AgentRank",
     trigger: gap,
   };
+}
+
+function percent(value: number, total: number) {
+  if (total <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(100, Math.round((value / total) * 100)));
+}
+
+function getCoverageActionProjection({
+  action,
+  coverage,
+  locale,
+}: {
+  action: string | null | undefined;
+  coverage: AgentRankCoverageSnapshot;
+  locale: Locale;
+}) {
+  if (!action) {
+    return null;
+  }
+
+  const eventItem = coverage.eventTypes.find((item) => item.type === action);
+
+  if (eventItem) {
+    const addedCoverage = eventItem.covered ? 0 : 1;
+    const projectedCoveredEventTypes = Math.min(
+      coverage.totals.eventTypes,
+      coverage.totals.coveredEventTypes + addedCoverage,
+    );
+    const projectedCoveragePercent = percent(
+      projectedCoveredEventTypes,
+      coverage.totals.eventTypes,
+    );
+    const deltaPercent = Math.max(
+      0,
+      projectedCoveragePercent - coverage.eventTypeCoveragePercent,
+    );
+
+    return {
+      after: `${formatNumber(eventItem.count + 1, locale)} events · ${projectedCoveragePercent}%`,
+      before: `${formatNumber(eventItem.count, locale)} events · ${coverage.eventTypeCoveragePercent}%`,
+      confidence:
+        locale === "ko"
+          ? eventItem.covered
+            ? "이미 수집된 이벤트 타입입니다. 추가 실행은 발생 수를 늘립니다."
+            : "미수집 이벤트 타입입니다. 1회 수집 시 이벤트 타입 커버리지가 올라갑니다."
+          : eventItem.covered
+            ? "This event type is already covered. Another run increases the event count."
+            : "This event type is missing. One successful run improves event-type coverage.",
+      delta:
+        deltaPercent > 0
+          ? `+${deltaPercent}%p`
+          : locale === "ko"
+            ? "+1 이벤트"
+            : "+1 event",
+      kind: locale === "ko" ? "이벤트 타입" : "Event Type",
+      metricLabel: getEventTypeLabel(eventItem.type, locale),
+    };
+  }
+
+  const sourceItem = coverage.sources.find((item) => item.source === action);
+
+  if (sourceItem) {
+    const addedCoverage = sourceItem.covered ? 0 : 1;
+    const projectedCoveredSources = Math.min(
+      coverage.totals.interactionSources,
+      coverage.totals.coveredInteractionSources + addedCoverage,
+    );
+    const projectedCoveragePercent = percent(
+      projectedCoveredSources,
+      coverage.totals.interactionSources,
+    );
+    const deltaPercent = Math.max(
+      0,
+      projectedCoveragePercent - coverage.interactionSourceCoveragePercent,
+    );
+
+    return {
+      after: `${formatNumber(sourceItem.count + 1, locale)} events · ${projectedCoveragePercent}%`,
+      before: `${formatNumber(sourceItem.count, locale)} events · ${coverage.interactionSourceCoveragePercent}%`,
+      confidence:
+        locale === "ko"
+          ? sourceItem.covered
+            ? "이미 추적되는 CTA 소스입니다. 추가 실행은 소스 이벤트 수를 늘립니다."
+            : "미수집 CTA 소스입니다. 1회 추적 시 CTA 소스 커버리지가 올라갑니다."
+          : sourceItem.covered
+            ? "This CTA source is already covered. Another run increases the source event count."
+            : "This CTA source is missing. One tracked run improves source coverage.",
+      delta:
+        deltaPercent > 0
+          ? `+${deltaPercent}%p`
+          : locale === "ko"
+            ? "+1 소스 이벤트"
+            : "+1 source event",
+      kind: locale === "ko" ? "CTA 소스" : "CTA Source",
+      metricLabel: getInteractionSourceLabel(sourceItem.source, locale),
+    };
+  }
+
+  if (action === "x402_economy" || action === "a2a_usage") {
+    const projectedScore = Math.min(100, coverage.phase1QualityScore + 5);
+    const isX402 = action === "x402_economy";
+
+    return {
+      after: `${projectedScore}/100`,
+      before: `${coverage.phase1QualityScore}/100`,
+      confidence:
+        locale === "ko"
+          ? isX402
+            ? "실결제 전 mock 결제 의도와 CP Pool 생성 흐름을 연결하면 x402 준비 신호가 채워집니다."
+            : "Phase 1에서는 보류 상태이며, 추후 Agent 호출 이벤트 스키마 연결 시 준비 신호가 채워집니다."
+          : isX402
+            ? "Connecting mock payment intent and CP Pool generation fills the x402 readiness signal before real payment."
+            : "This stays pending in Phase 1 until the agent-call event schema is connected.",
+      delta: "+5",
+      kind: locale === "ko" ? "준비 신호" : "Readiness Signal",
+      metricLabel: isX402 ? "x402 Economy" : "A2A Usage",
+    };
+  }
+
+  return {
+    after:
+      locale === "ko"
+        ? `${coverage.phase1QualityScore}/100 + 추적 이벤트`
+        : `${coverage.phase1QualityScore}/100 + tracked event`,
+    before: `${coverage.phase1QualityScore}/100`,
+    confidence:
+      locale === "ko"
+        ? "이 액션은 현재 제품 흐름의 추적 이벤트 발생 여부를 확인하는 감사 기준입니다."
+        : "This action audits whether the current product flow produces a tracked event.",
+    delta: locale === "ko" ? "+1 추적 신호" : "+1 tracked signal",
+    kind: "AgentRank",
+    metricLabel: action,
+  };
+}
+
+function CoverageActionImpactPanel({
+  coverage,
+  coverageAction,
+  locale,
+}: {
+  coverage: AgentRankCoverageSnapshot;
+  coverageAction: string | null | undefined;
+  locale: Locale;
+}) {
+  const copy = getCoverageAuditCopy(locale);
+  const projection = getCoverageActionProjection({
+    action: coverageAction,
+    coverage,
+    locale,
+  });
+
+  if (!projection) {
+    return null;
+  }
+
+  return (
+    <section className="mt-5 rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_20px_60px_rgba(88,28,135,0.06)]">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+            <Rocket className="size-4" />
+            {copy.actionImpact}
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold leading-tight text-[#11132d]">
+            {projection.metricLabel}
+          </h2>
+          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+            {copy.actionImpactBody}
+          </p>
+        </div>
+        <span className="inline-flex min-h-9 shrink-0 items-center rounded-full bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9] ring-1 ring-violet-100">
+          coverageAction: {coverageAction}
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto_1fr_0.7fr] md:items-stretch">
+        <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+          <p className="text-xs font-semibold uppercase text-slate-400">
+            {copy.actionBefore}
+          </p>
+          <p className="mt-2 text-xl font-semibold text-[#11132d]">
+            {projection.before}
+          </p>
+        </div>
+        <div className="flex items-center justify-center text-[#7c3aed]">
+          <ArrowRight className="size-5" />
+        </div>
+        <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+          <p className="text-xs font-semibold uppercase text-emerald-700/70">
+            {copy.actionAfter}
+          </p>
+          <p className="mt-2 text-xl font-semibold text-emerald-800">
+            {projection.after}
+          </p>
+        </div>
+        <div className="rounded-xl border border-violet-100 bg-violet-50 p-4">
+          <p className="text-xs font-semibold uppercase text-[#6d28d9]/70">
+            {copy.actionExpectedDelta}
+          </p>
+          <p className="mt-2 text-2xl font-semibold text-[#6d28d9]">
+            {projection.delta}
+          </p>
+          <p className="mt-1 text-xs font-semibold text-slate-500">
+            {projection.kind}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-xl border border-slate-100 bg-white px-4 py-3 text-sm font-semibold leading-6 text-slate-600">
+        <span className="text-[#6d28d9]">{copy.actionConfidence}</span>
+        <span className="mx-2 text-slate-300">/</span>
+        {projection.confidence}
+      </div>
+    </section>
+  );
 }
 
 function CoverageMetric({
@@ -560,12 +803,14 @@ function SourceCoverageCard({
 
 export function FanletterAgentRankCoverageAuditPage({
   coverage,
+  coverageAction,
   eventFeed,
   generatedAt,
   locale,
   scope,
 }: {
   coverage: AgentRankCoverageSnapshot;
+  coverageAction?: string | null;
   eventFeed: FanletterAgentRankReputationEventFeed;
   generatedAt: string;
   locale: Locale;
@@ -575,6 +820,12 @@ export function FanletterAgentRankCoverageAuditPage({
   const apiQuery = buildQuery(scope);
   const csvQuery = buildQuery(scope, { format: "csv" });
   const pageQuery = buildQuery(scope);
+  const coverageActionQuery = coverageAction
+    ? `&coverageAction=${encodeURIComponent(coverageAction)}`
+    : "";
+  const actionPageQuery = coverageAction
+    ? `${pageQuery}${coverageActionQuery}`
+    : pageQuery;
   const latestEvents = eventFeed.events.slice(0, 6);
   const gapActions = coverage.gaps.map((gap) =>
     getGapAction(gap, locale, scope),
@@ -607,7 +858,7 @@ export function FanletterAgentRankCoverageAuditPage({
               </Link>
               <Link
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 text-sm font-semibold text-[#5b21b6]"
-                href={`/${locale}/fanletter/agentrank/events?${pageQuery}`}
+                href={`/${locale}/fanletter/agentrank/events?${actionPageQuery}`}
               >
                 <Database className="size-4" />
                 {copy.eventLedger}
@@ -696,6 +947,12 @@ export function FanletterAgentRankCoverageAuditPage({
           />
         </section>
 
+        <CoverageActionImpactPanel
+          coverage={coverage}
+          coverageAction={coverageAction}
+          locale={locale}
+        />
+
         <section className="mt-5 grid gap-5 xl:grid-cols-[1fr_24rem]">
           <div className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_20px_60px_rgba(88,28,135,0.06)]">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -727,47 +984,71 @@ export function FanletterAgentRankCoverageAuditPage({
               </p>
               {gapActions.length > 0 ? (
                 <div className="mt-4 grid gap-3">
-                  {gapActions.map((action) => (
-                    <Link
-                      className="group block rounded-xl border border-violet-100 bg-violet-50/70 p-3 transition hover:-translate-y-0.5 hover:border-violet-200 hover:bg-white hover:shadow-[0_14px_34px_rgba(88,28,135,0.08)]"
-                      href={action.href}
-                      key={action.key}
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold text-[#4c1d95]">
-                            {action.label}
-                          </p>
-                          <p className="mt-2 text-xs font-medium leading-5 text-slate-600">
-                            {action.description}
-                          </p>
+                  {gapActions.map((action) => {
+                    const projection = getCoverageActionProjection({
+                      action: action.coverageAction,
+                      coverage,
+                      locale,
+                    });
+
+                    return (
+                      <Link
+                        className="group block rounded-xl border border-violet-100 bg-violet-50/70 p-3 transition hover:-translate-y-0.5 hover:border-violet-200 hover:bg-white hover:shadow-[0_14px_34px_rgba(88,28,135,0.08)]"
+                        href={action.href}
+                        key={action.key}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-[#4c1d95]">
+                              {action.label}
+                            </p>
+                            <p className="mt-2 text-xs font-medium leading-5 text-slate-600">
+                              {action.description}
+                            </p>
+                          </div>
+                          <ArrowRight className="mt-1 size-4 shrink-0 text-[#7c3aed] transition group-hover:translate-x-0.5" />
                         </div>
-                        <ArrowRight className="mt-1 size-4 shrink-0 text-[#7c3aed] transition group-hover:translate-x-0.5" />
-                      </div>
-                      <div className="mt-3 grid gap-2 text-xs font-semibold sm:grid-cols-2 xl:grid-cols-1">
-                        <div className="rounded-lg bg-white px-3 py-2 text-slate-500">
-                          <span className="text-slate-400">
-                            {copy.targetLayer}
-                          </span>
-                          <span className="mt-1 block truncate text-[#11132d]">
-                            {action.layer}
-                          </span>
+                        <div className="mt-3 grid gap-2 text-xs font-semibold sm:grid-cols-2 xl:grid-cols-1">
+                          <div className="rounded-lg bg-white px-3 py-2 text-slate-500">
+                            <span className="text-slate-400">
+                              {copy.targetLayer}
+                            </span>
+                            <span className="mt-1 block truncate text-[#11132d]">
+                              {action.layer}
+                            </span>
+                          </div>
+                          <div className="rounded-lg bg-white px-3 py-2 text-slate-500">
+                            <span className="text-slate-400">
+                              {copy.triggerEvent}
+                            </span>
+                            <span className="mt-1 block truncate text-[#11132d]">
+                              {action.trigger}
+                            </span>
+                          </div>
                         </div>
-                        <div className="rounded-lg bg-white px-3 py-2 text-slate-500">
-                          <span className="text-slate-400">
-                            {copy.triggerEvent}
-                          </span>
-                          <span className="mt-1 block truncate text-[#11132d]">
-                            {action.trigger}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-white px-3 text-xs font-semibold text-[#6d28d9] ring-1 ring-violet-100">
-                        {copy.viewAction}
-                        <ArrowRight className="size-3.5" />
-                      </span>
-                    </Link>
-                  ))}
+                        {projection ? (
+                          <div className="mt-3 grid gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-800">
+                            <span className="text-emerald-700/70">
+                              {copy.actionExpectedDelta}
+                            </span>
+                            <span className="flex min-w-0 items-center gap-2">
+                              <span className="truncate">
+                                {projection.before}
+                              </span>
+                              <ArrowRight className="size-3.5 shrink-0" />
+                              <span className="truncate">
+                                {projection.after}
+                              </span>
+                            </span>
+                          </div>
+                        ) : null}
+                        <span className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-white px-3 text-xs font-semibold text-[#6d28d9] ring-1 ring-violet-100">
+                          {copy.viewAction}
+                          <ArrowRight className="size-3.5" />
+                        </span>
+                      </Link>
+                    );
+                  })}
                 </div>
               ) : (
                 <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-3 text-sm font-semibold text-emerald-700">
@@ -784,7 +1065,7 @@ export function FanletterAgentRankCoverageAuditPage({
                 {latestEvents.map((event) => (
                   <Link
                     className="block rounded-xl border border-slate-100 bg-slate-50 p-3 transition hover:border-violet-100 hover:bg-violet-50"
-                    href={`/${locale}/fanletter/agentrank/events/${event.eventId}/evidence?${pageQuery}`}
+                    href={`/${locale}/fanletter/agentrank/events/${event.eventId}/evidence?${actionPageQuery}`}
                     key={event.eventId}
                   >
                     <p className="truncate text-sm font-semibold text-[#11132d]">
