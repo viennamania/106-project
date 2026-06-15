@@ -20,6 +20,7 @@ import {
   WalletCards,
 } from "lucide-react";
 
+import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import type {
   AgentRankCoverageSnapshot,
   AgentRankCoverageEventItem,
@@ -1775,6 +1776,89 @@ export function FanletterAgentRankCoverageAuditPage({
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6">
       <div className="mx-auto max-w-[1400px]">
+        <FanletterActionGuide
+          className="mb-5"
+          currentLabel={
+            locale === "ko" ? "운영자 커버리지 감사" : "Ops coverage audit"
+          }
+          metrics={[
+            {
+              label: copy.phase1Quality,
+              value: `${coverage.phase1QualityScore}/100`,
+            },
+            {
+              label: copy.gaps,
+              value: formatNumber(coverage.gaps.length, locale),
+            },
+          ]}
+          primaryAction={{
+            agentRank: {
+              eventType: "creator_unlock_evaluated",
+              intent: "agentrank_coverage_action_guide_plan",
+              source: "fanletter_agentrank",
+              starId: scope.starId ?? null,
+            },
+            eventName: "content_open",
+            href: "#coverage-action-plan",
+            label:
+              locale === "ko"
+                ? "우선 보강 액션 보기"
+                : "View priority actions",
+            metadata: {
+              placement: "agentrank_coverage_action_guide_primary",
+              coverageAction: coverageAction ?? null,
+              eventScope: scope.eventScope,
+            },
+          }}
+          reputationEventLabel={
+            locale === "ko" ? "Coverage Event Factory" : "Coverage Event Factory"
+          }
+          secondaryActions={[
+            {
+              agentRank: {
+                eventType: "universe_growth",
+                intent: "agentrank_coverage_action_guide_ledger",
+                source: "fanletter_agentrank",
+                starId: scope.starId ?? null,
+              },
+              eventName: "content_open",
+              href: `/${locale}/fanletter/agentrank/events?${actionPageQuery}`,
+              label: copy.eventLedger,
+              metadata: {
+                placement: "agentrank_coverage_action_guide_ledger",
+                eventScope: scope.eventScope,
+              },
+            },
+          ]}
+          steps={[
+            {
+              label: locale === "ko" ? "행동 수집" : "Collect actions",
+              status: "done",
+            },
+            {
+              label: locale === "ko" ? "커버리지 점검" : "Audit coverage",
+              status: "active",
+            },
+            {
+              label: locale === "ko" ? "갭 보강" : "Fill gaps",
+              status: coverage.gaps.length > 0 ? "active" : "done",
+            },
+            {
+              label: "Oracle Packet",
+              status: coverage.gaps.length > 0 ? "next" : "active",
+            },
+          ]}
+          subtitle={
+            locale === "ko"
+              ? "누락된 이벤트 타입과 CTA 소스를 먼저 보강해 AgentRank로 보낼 수 있는 데이터 품질을 맞춥니다."
+              : "Fill missing event types and CTA sources first so AgentRank can consume the data."
+          }
+          title={
+            locale === "ko"
+              ? "다음 행동: 커버리지 갭 보강"
+              : "Next action: fill coverage gaps"
+          }
+        />
         <header className="rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] lg:p-7">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
@@ -1789,7 +1873,7 @@ export function FanletterAgentRankCoverageAuditPage({
                 {copy.subtitle}
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="hidden flex-wrap gap-2 sm:flex">
               <Link
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-violet-100 bg-white px-4 text-sm font-semibold text-[#6d28d9]"
                 href={`/${locale}/fanletter/agentrank?${pageQuery}`}
@@ -1980,7 +2064,7 @@ export function FanletterAgentRankCoverageAuditPage({
             </div>
           </div>
 
-          <aside className="grid content-start gap-5">
+          <aside className="grid content-start gap-5" id="coverage-action-plan">
             <div className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_20px_60px_rgba(88,28,135,0.06)]">
               <p className="text-sm font-semibold uppercase text-[#6d28d9]">
                 {copy.priorityActionPlan}

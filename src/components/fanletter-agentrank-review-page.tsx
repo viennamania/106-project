@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankReviewActions } from "@/components/fanletter-agentrank-review-actions";
 import type { AgentRankEventMockScope } from "@/lib/agentrank/mock-events";
 import type { AgentRankReputationEventType } from "@/lib/agentrank/reputation-events";
@@ -498,6 +499,75 @@ export function FanletterAgentRankReviewPage({
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full min-w-0 max-w-[92rem] flex-col gap-5">
+        <FanletterActionGuide
+          currentLabel={copy.accessBadge}
+          metrics={[
+            {
+              label: copy.summaryNeedsOracle,
+              value: formatNumber(reviewQueue.summary.needsOracleEvents, locale),
+            },
+            {
+              label: copy.summaryPacketReady,
+              value: formatNumber(reviewQueue.summary.packetReadyEvents, locale),
+            },
+          ]}
+          primaryAction={{
+            agentRank: {
+              eventType: "creator_unlock_evaluated",
+              intent: "agentrank_review_action_guide_queue",
+              source: "fanletter_agentrank",
+              starId: filters.starId,
+            },
+            eventName: "content_open",
+            href: "#review-queue-buckets",
+            label:
+              locale === "ko" ? "검토 버킷 보기" : "Review event buckets",
+            metadata: {
+              placement: "agentrank_review_action_guide_primary",
+              scope: filters.scope,
+            },
+          }}
+          reputationEventLabel={
+            locale === "ko" ? "Review Receipt mock" : "Review receipt mock"
+          }
+          secondaryActions={[
+            {
+              agentRank: {
+                eventType: "universe_growth",
+                intent: "agentrank_review_action_guide_ledger",
+                source: "fanletter_agentrank",
+                starId: filters.starId,
+              },
+              eventName: "content_open",
+              href: ledgerHref,
+              label: copy.eventLedger,
+              metadata: {
+                placement: "agentrank_review_action_guide_ledger",
+                scope: filters.scope,
+              },
+            },
+          ]}
+          steps={[
+            { label: copy.reviewFlowSteps[0], status: "done" },
+            { label: copy.reviewFlowSteps[1], status: "active" },
+            {
+              label: copy.reviewFlowSteps[2],
+              status:
+                reviewQueue.summary.packetReadyEvents > 0 ? "active" : "next",
+            },
+            { label: copy.reviewFlowSteps[3], status: "next" },
+          ]}
+          subtitle={
+            locale === "ko"
+              ? "오라클 보강, Packet 후보, 고기여 이벤트를 먼저 분류합니다. 액션은 현재 mock receipt로만 남습니다."
+              : "Prioritize oracle enrichment, packet candidates, and high-impact events. Actions only create mock receipts."
+          }
+          title={
+            locale === "ko"
+              ? "다음 행동: 보강할 이벤트 검토"
+              : "Next action: review events to enrich"
+          }
+        />
         <header className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
@@ -507,7 +577,7 @@ export function FanletterAgentRankReviewPage({
               <ArrowLeft className="size-4" />
               {copy.back}
             </Link>
-            <div className="flex flex-wrap gap-2">
+            <div className="hidden flex-wrap gap-2 sm:flex">
               <Link
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-violet-100 bg-white px-4 text-sm font-semibold text-[#6d28d9]"
                 href={ledgerHref}
@@ -789,7 +859,7 @@ export function FanletterAgentRankReviewPage({
           </div>
         </section>
 
-        <section className="grid gap-4 xl:grid-cols-4">
+        <section className="grid gap-4 xl:grid-cols-4" id="review-queue-buckets">
           {reviewQueue.queues.map((bucket) => {
             const { Icon, body, label, tone } = getQueuePresentation(
               bucket.category,

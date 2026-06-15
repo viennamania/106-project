@@ -18,6 +18,7 @@ import {
   WalletCards,
 } from "lucide-react";
 
+import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import {
@@ -1641,23 +1642,124 @@ export function FanletterAgentRankEventDetailPage({
       ledgerParams.set("memberEmail", coverageAction.memberEmail);
     }
   }
+  const evidenceParams = new URLSearchParams();
+
+  if (starId) {
+    evidenceParams.set("starId", starId);
+  }
+
+  if (eventScope !== "all") {
+    evidenceParams.set("scope", eventScope);
+  }
+
+  if (coverageAction) {
+    evidenceParams.set("coverageAction", coverageAction.action);
+
+    if (coverageAction.memberEmail) {
+      evidenceParams.set("memberEmail", coverageAction.memberEmail);
+    }
+  }
+
+  const evidenceHref = `/${locale}/fanletter/agentrank/events/${encodeURIComponent(
+    event.eventId,
+  )}/evidence${evidenceParams.size ? `?${evidenceParams.toString()}` : ""}`;
+  const ledgerHref = `/${locale}/fanletter/agentrank/events${
+    ledgerParams.size ? `?${ledgerParams.toString()}` : ""
+  }`;
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full min-w-0 max-w-[86rem] flex-col gap-5">
+        <FanletterActionGuide
+          currentLabel={
+            locale === "ko" ? "이벤트 상세 감사" : "Event detail audit"
+          }
+          metrics={[
+            {
+              label: copy.quality,
+              value: `${audit.qualityScore}/100`,
+            },
+            {
+              label: copy.scoreImpact,
+              value: formatNumber(impactTotal, locale),
+            },
+          ]}
+          primaryAction={{
+            agentRank: {
+              eventType: "content_engaged",
+              intent: "agentrank_event_detail_action_guide_evidence",
+              source: "fanletter_agentrank",
+              starId,
+            },
+            eventName: "content_open",
+            href: evidenceHref,
+            label: copy.viewEvidencePacket,
+            metadata: {
+              eventId: event.eventId,
+              eventType: event.type,
+              placement: "agentrank_event_detail_action_guide_primary",
+            },
+          }}
+          reputationEventLabel={
+            locale === "ko" ? "Evidence Packet 후보" : "Evidence Packet candidate"
+          }
+          secondaryActions={[
+            {
+              agentRank: {
+                eventType: "universe_growth",
+                intent: "agentrank_event_detail_action_guide_ledger",
+                source: "fanletter_agentrank",
+                starId,
+              },
+              eventName: "content_open",
+              href: ledgerHref,
+              label: copy.back,
+              metadata: {
+                eventId: event.eventId,
+                placement: "agentrank_event_detail_action_guide_ledger",
+              },
+            },
+          ]}
+          steps={[
+            {
+              label: locale === "ko" ? "이벤트 선택" : "Select event",
+              status: "done",
+            },
+            {
+              label: locale === "ko" ? "품질 감사" : "Quality audit",
+              status: audit.gaps.length > 0 ? "active" : "done",
+            },
+            {
+              label: locale === "ko" ? "증거 패킷" : "Evidence packet",
+              status: "active",
+            },
+            {
+              label: "AgentRank Oracle",
+              status: event.reputationSignals.oracleReady ? "active" : "next",
+            },
+          ]}
+          subtitle={
+            locale === "ko"
+              ? "이 이벤트가 어떤 증거와 연결되어 AgentRank Oracle 후보가 되는지 확인합니다."
+              : "Inspect the evidence that makes this event an AgentRank Oracle candidate."
+          }
+          title={
+            locale === "ko"
+              ? "다음 행동: 증거 패킷 확인"
+              : "Next action: inspect the evidence packet"
+          }
+        />
         <header className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
               className="inline-flex h-10 items-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 text-sm font-semibold text-[#6d28d9]"
-              href={`/${locale}/fanletter/agentrank/events${
-                ledgerParams.size ? `?${ledgerParams.toString()}` : ""
-              }`}
+              href={ledgerHref}
             >
               <ArrowLeft className="size-4" />
               {copy.back}
             </Link>
             <Link
-              className="inline-flex h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold text-white"
+              className="hidden h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold text-white sm:inline-flex"
               href={`/${locale}/fanletter/agentrank${
                 starId ? `?starId=${encodeURIComponent(starId)}` : ""
               }`}

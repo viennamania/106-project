@@ -99,6 +99,9 @@ export function FanletterActionGuide({
           {reputationEventLabel}
         </span>
       </div>
+      <span className="mt-2 inline-flex max-w-full rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 sm:hidden">
+        <span className="truncate">{reputationEventLabel}</span>
+      </span>
 
       <div className="mt-3 grid min-w-0 gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
         <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">

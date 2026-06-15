@@ -30,6 +30,7 @@ import {
   FounderRoleBadge,
   HumanMemberAvatar,
 } from "@/components/fanletter-founder-club-v2";
+import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
@@ -1641,7 +1642,7 @@ function AgentRankUniverseCard({
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
-            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-white px-2.5 text-xs font-semibold text-[#5b21b6]"
+            className="hidden h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-white px-2.5 text-xs font-semibold text-[#5b21b6] sm:inline-flex"
             eventName="content_open"
             href={highImpactLedgerHref}
             metadata={{
@@ -1659,7 +1660,7 @@ function AgentRankUniverseCard({
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
-            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-2.5 text-xs font-semibold text-amber-700"
+            className="hidden h-8 items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-2.5 text-xs font-semibold text-amber-700 sm:inline-flex"
             eventName="content_open"
             href={oracleGapLedgerHref}
             metadata={{
@@ -1677,7 +1678,7 @@ function AgentRankUniverseCard({
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
-            className="inline-flex h-8 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-700"
+            className="hidden h-8 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-700 sm:inline-flex"
             eventName="content_open"
             href={coverageAuditHref}
             metadata={{
@@ -1696,7 +1697,7 @@ function AgentRankUniverseCard({
                 source: "fanletter_founder_universe",
                 starId: universe.star.id,
               }}
-              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700"
+              className="hidden h-8 items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 text-xs font-semibold text-slate-700 sm:inline-flex"
               eventName="content_open"
               href={latestEvidenceHref}
               metadata={{
@@ -2005,7 +2006,7 @@ function AgentRankSignalStrip({
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
-            className="flex min-h-10 items-center justify-between gap-3 rounded-lg border border-violet-100 bg-white px-3 text-[#5b21b6]"
+            className="hidden min-h-10 items-center justify-between gap-3 rounded-lg border border-violet-100 bg-white px-3 text-[#5b21b6] sm:flex"
             eventName="content_open"
             href={highImpactLedgerHref}
             metadata={{
@@ -2023,7 +2024,7 @@ function AgentRankSignalStrip({
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
-            className="flex min-h-10 items-center justify-between gap-3 rounded-lg border border-amber-100 bg-white px-3 text-amber-700"
+            className="hidden min-h-10 items-center justify-between gap-3 rounded-lg border border-amber-100 bg-white px-3 text-amber-700 sm:flex"
             eventName="content_open"
             href={oracleGapLedgerHref}
             metadata={{
@@ -2041,7 +2042,7 @@ function AgentRankSignalStrip({
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
-            className="flex min-h-10 items-center justify-between gap-3 rounded-lg border border-emerald-100 bg-white px-3 text-emerald-700"
+            className="hidden min-h-10 items-center justify-between gap-3 rounded-lg border border-emerald-100 bg-white px-3 text-emerald-700 sm:flex"
             eventName="content_open"
             href={coverageAuditHref}
             metadata={{
@@ -2060,7 +2061,7 @@ function AgentRankSignalStrip({
                 source: "fanletter_founder_universe",
                 starId: universe.star.id,
               }}
-              className="flex min-h-10 items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 text-slate-700"
+              className="hidden min-h-10 items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 text-slate-700 sm:flex"
               eventName="content_open"
               href={latestEvidenceHref}
               metadata={{
@@ -2460,6 +2461,13 @@ export function FanletterFounderUniverseExplorer({
       .filter(
         (node): node is FanletterFounderUniverseExplorerNode => node !== undefined,
       ) ?? [];
+  const v2Copy = getFanletterV2Copy(locale);
+  const starName = getUniverseStarName(displayUniverse.star);
+  const selectedRoleLabel = selectedNode
+    ? v2Copy.roles[selectedNode.role]
+    : v2Copy.roles.creator;
+  const encodedStarId = encodeURIComponent(displayUniverse.star.id);
+  const founderUniverseLedgerHref = `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40&readiness=packet_ready&sort=impact_desc`;
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] text-[#111827] xl:flex">
@@ -2507,6 +2515,97 @@ export function FanletterFounderUniverseExplorer({
             />
           ) : null}
 
+          <FanletterActionGuide
+            currentLabel={
+              locale === "ko"
+                ? `${starName} 파운더 네트워크`
+                : `${starName} Founder Network`
+            }
+            metrics={[
+              {
+                label: locale === "ko" ? "내 등급" : "My tier",
+                value: selectedRoleLabel,
+              },
+              {
+                label: locale === "ko" ? "네트워크" : "Network",
+                value: formatNumber(displayUniverse.totals.totalMembers, locale),
+              },
+            ]}
+            primaryAction={{
+              agentRank: {
+                eventType: "universe_growth",
+                intent: "founder_universe_action_guide_map",
+                source: "fanletter_founder_universe",
+                starId: displayUniverse.star.id,
+              },
+              eventName: "content_open",
+              href: "#founder-network-map",
+              label:
+                locale === "ko"
+                  ? "내 네트워크 맵 보기"
+                  : "View my network map",
+              metadata: {
+                placement: "founder_universe_action_guide_primary",
+                selectedNodeId: selectedNode?.nodeId ?? null,
+                starName,
+              },
+            }}
+            reputationEventLabel={
+              locale === "ko"
+                ? "Universe Growth 이벤트"
+                : "Universe Growth event"
+            }
+            secondaryActions={[
+              {
+                agentRank: {
+                  eventType: "content_engaged",
+                  intent: "founder_universe_action_guide_ledger",
+                  source: "fanletter_founder_universe",
+                  starId: displayUniverse.star.id,
+                },
+                eventName: "content_open",
+                href: founderUniverseLedgerHref,
+                label:
+                  locale === "ko"
+                    ? "AgentRank 이벤트 보기"
+                    : "View AgentRank events",
+                metadata: {
+                  placement: "founder_universe_action_guide_ledger",
+                  starName,
+                },
+              },
+            ]}
+            steps={[
+              {
+                label: locale === "ko" ? "AI 스타" : "AI Star",
+                status: "done",
+              },
+              {
+                label: locale === "ko" ? "6단계 네트워크" : "6-tier network",
+                status: "active",
+              },
+              {
+                label: locale === "ko" ? "CP 분배" : "CP distribution",
+                status:
+                  displayUniverse.totals.spawnedStars > 0 ? "done" : "next",
+              },
+              {
+                label: "AgentRank",
+                status: agentRank ? "active" : "next",
+              },
+            ]}
+            subtitle={
+              locale === "ko"
+                ? "선택한 멤버의 위치와 하위 네트워크를 확인하고, 성장 신호를 AgentRank 이벤트로 추적합니다."
+                : "Inspect the selected member position and downstream network, then track growth as AgentRank events."
+            }
+            title={
+              locale === "ko"
+                ? "다음 행동: 내 네트워크 위치 확인"
+                : "Next action: inspect my network position"
+            }
+          />
+
           <FanletterTerminologyGuide locale={locale} variant="compact" />
 
           <FounderStarHero
@@ -2523,14 +2622,16 @@ export function FanletterFounderUniverseExplorer({
 
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="grid gap-5">
-              <FounderUniverseDashboardPanel
-                locale={locale}
-                onSelectDepth={setSelectedDepth}
-                onSelectNode={setSelectedNodeId}
-                selectedDepth={selectedDepth}
-                selectedNodeId={selectedNodeId}
-                universe={displayUniverse}
-              />
+              <div id="founder-network-map">
+                <FounderUniverseDashboardPanel
+                  locale={locale}
+                  onSelectDepth={setSelectedDepth}
+                  onSelectNode={setSelectedNodeId}
+                  selectedDepth={selectedDepth}
+                  selectedNodeId={selectedNodeId}
+                  universe={displayUniverse}
+                />
+              </div>
 
               <UniverseExpansionMap
                 locale={locale}
