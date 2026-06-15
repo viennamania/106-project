@@ -19,6 +19,7 @@ import {
   type FanletterCreatorMockLaunch,
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
+import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import {
   AIStarCard,
@@ -1201,6 +1202,66 @@ export function FanletterStarDetailPage({
     starName: star.name,
     viewerState,
   } satisfies FunnelEventMetadata;
+  const encodedStarId = encodeURIComponent(star.id);
+  const starDetailGuidePrimaryHref =
+    primaryAction.variant === "share" ? "#referral-builder" : "#star-next-action";
+  const starDetailGuideSteps =
+    viewerState === "founder"
+      ? [
+          {
+            label: isKorean ? "AI 스타 발견" : "Discover",
+            status: "done" as const,
+          },
+          {
+            label: isKorean ? "Founder 참여" : "Join",
+            status: "done" as const,
+          },
+          {
+            label: isKorean ? "추천 공유" : "Share",
+            status: "active" as const,
+          },
+          {
+            label: "AgentRank",
+            status: "next" as const,
+          },
+        ]
+      : viewerState === "member"
+        ? [
+            {
+              label: isKorean ? "AI 스타 발견" : "Discover",
+              status: "done" as const,
+            },
+            {
+              label: isKorean ? "Founder 참여" : "Join",
+              status: "active" as const,
+            },
+            {
+              label: isKorean ? "추천 공유" : "Share",
+              status: "next" as const,
+            },
+            {
+              label: "AgentRank",
+              status: "next" as const,
+            },
+          ]
+        : [
+            {
+              label: isKorean ? "AI 스타 발견" : "Discover",
+              status: "done" as const,
+            },
+            {
+              label: isKorean ? "계정 연결" : "Connect",
+              status: "active" as const,
+            },
+            {
+              label: isKorean ? "Founder 참여" : "Join",
+              status: "next" as const,
+            },
+            {
+              label: "AgentRank",
+              status: "next" as const,
+            },
+          ];
 
   return (
     <main className="min-h-screen bg-[#fbfaff] pb-28 text-black">
@@ -1257,6 +1318,76 @@ export function FanletterStarDetailPage({
             />
           ) : null}
 
+          <FanletterActionGuide
+            className="mt-5"
+            currentLabel={
+              isKorean
+                ? `${displayStarName} 스타 네트워크`
+                : `${displayStarName} Star Network`
+            }
+            metrics={[
+              {
+                label: copy.labels.starScore,
+                value: String(star.starScore),
+              },
+              {
+                label: copy.labels.openSlots,
+                value: `${formatNumber(star.openSlots.open, locale)}/${formatNumber(
+                  star.openSlots.total,
+                  locale,
+                )}`,
+              },
+            ]}
+            primaryAction={{
+              agentRank: {
+                ...primaryActionAgentRank,
+                intent: `${primaryActionAgentRank.intent}_guide`,
+              },
+              href: starDetailGuidePrimaryHref,
+              label: primaryAction.label,
+              metadata: {
+                ...primaryActionTrackingMetadata,
+                placement: "fanletter_star_detail_action_guide_primary",
+              },
+              referralCode: joinReferralCode,
+            }}
+            reputationEventLabel={
+              primaryAction.variant === "share"
+                ? isKorean
+                  ? "추천 공유 이벤트"
+                  : "Referral share event"
+                : isKorean
+                  ? "Founder 참여 이벤트"
+                  : "Founder join event"
+            }
+            secondaryActions={[
+              {
+                agentRank: {
+                  eventType: "universe_growth",
+                  intent: "star_detail_open_founder_network",
+                  source: "fanletter_star_detail",
+                  starId: star.id,
+                },
+                href: `/${locale}/fanletter/${encodedStarId}/universe`,
+                label: isKorean
+                  ? "파운더 네트워크 보기"
+                  : "View Founder Network",
+                metadata: {
+                  placement: "fanletter_star_detail_action_guide_universe",
+                  starName: star.name,
+                },
+                referralCode,
+              },
+            ]}
+            steps={starDetailGuideSteps}
+            subtitle={primaryAction.helper}
+            title={
+              isKorean
+                ? `다음 행동: ${primaryAction.label}`
+                : `Next action: ${primaryAction.label}`
+            }
+          />
+
           <div className="mt-8 grid gap-7 lg:grid-cols-[1fr_24rem] lg:items-end">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-3 py-1 text-sm font-semibold text-[#6d28d9] shadow-[0_10px_24px_rgba(88,28,135,0.08)]">
@@ -1306,6 +1437,8 @@ export function FanletterStarDetailPage({
                 />
               </div>
 
+              <div className="scroll-mt-24" id="star-next-action" />
+
               <div className="mt-5 sm:hidden">
                 <StarFounderMobilePanel
                   action={primaryAction}
@@ -1317,10 +1450,6 @@ export function FanletterStarDetailPage({
                   star={star}
                   trackingAgentRank={primaryActionAgentRank}
                   trackingMetadata={primaryActionTrackingMetadata}
-                />
-                <FounderJoinFlowHint
-                  copy={copy}
-                  viewerState={viewerState}
                 />
                 <StarAgentRankJoinSignal
                   locale={locale}

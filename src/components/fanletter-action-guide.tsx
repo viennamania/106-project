@@ -74,6 +74,7 @@ export function FanletterActionGuide({
   title,
 }: FanletterActionGuideProps) {
   const visibleSecondaryActions = secondaryActions.slice(0, 2);
+  const shouldHideSecondaryOnMobile = Boolean(primaryAction);
 
   return (
     <section
@@ -91,7 +92,7 @@ export function FanletterActionGuide({
           <h2 className="mt-2 break-words text-xl font-semibold leading-tight text-[#12041f] [word-break:keep-all] sm:text-2xl">
             {title}
           </h2>
-          <p className="mt-1 max-w-2xl text-sm font-medium leading-5 text-black/58 [word-break:keep-all]">
+          <p className="mt-1 hidden max-w-2xl text-sm font-medium leading-5 text-black/58 [word-break:keep-all] sm:block">
             {subtitle}
           </p>
         </div>
@@ -162,7 +163,12 @@ export function FanletterActionGuide({
           {visibleSecondaryActions.map((action) =>
             renderAction(
               action,
-              "inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white px-4 text-sm font-semibold text-[#5b21b6] transition hover:bg-violet-50 sm:w-auto",
+              joinClasses(
+                "h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white px-4 text-sm font-semibold text-[#5b21b6] transition hover:bg-violet-50 sm:w-auto",
+                shouldHideSecondaryOnMobile
+                  ? "hidden sm:inline-flex"
+                  : "inline-flex",
+              ),
               action.label,
             ),
           )}
