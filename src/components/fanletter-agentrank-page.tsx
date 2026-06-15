@@ -2080,6 +2080,96 @@ function ReadinessPill({
   );
 }
 
+function AgentRankMobileStatusCard({
+  copy,
+  ledgerHref,
+  locale,
+  scoreAggregate,
+  starId,
+}: {
+  copy: AgentRankCopy;
+  ledgerHref: string;
+  locale: Locale;
+  scoreAggregate: AgentRankScoreAggregate;
+  starId?: string | null;
+}) {
+  const isKo = locale === "ko";
+  const scorePercent = Math.round(
+    (scoreAggregate.score / Math.max(1, scoreAggregate.maxScore)) * 100,
+  );
+
+  return (
+    <section className="mt-5 rounded-[1.25rem] border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:hidden">
+      <p className="inline-flex max-w-full items-center gap-2 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
+        <Brain className="size-3.5 shrink-0" />
+        <span className="truncate">
+          {isKo ? "현재 위치: AgentRank 점수" : "Now: AgentRank score"}
+        </span>
+      </p>
+      <div className="mt-4 flex items-end justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-slate-500">{copy.score}</p>
+          <p className="mt-1 text-4xl font-semibold leading-none text-[#11132d]">
+            {formatNumber(scoreAggregate.score, locale)}
+          </p>
+        </div>
+        <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+          {copy.scoreConfidence} {scoreAggregate.confidence}%
+        </span>
+      </div>
+      <div className="mt-4 overflow-hidden rounded-full bg-slate-100">
+        <div
+          className="h-2 rounded-full bg-gradient-to-r from-[#7c3aed] via-[#2563eb] to-[#16a34a]"
+          style={{ width: `${Math.min(100, Math.max(0, scorePercent))}%` }}
+        />
+      </div>
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="rounded-lg bg-violet-50 px-3 py-2">
+          <p className="truncate text-[0.62rem] font-semibold uppercase text-[#6d28d9]/70">
+            {copy.metrics.events}
+          </p>
+          <p className="mt-1 truncate text-lg font-semibold text-[#5b21b6]">
+            {formatNumber(scoreAggregate.summary.eventCount, locale)}
+          </p>
+        </div>
+        <div className="rounded-lg bg-emerald-50 px-3 py-2">
+          <p className="truncate text-[0.62rem] font-semibold uppercase text-emerald-700/70">
+            {copy.metrics.oracle}
+          </p>
+          <p className="mt-1 truncate text-lg font-semibold text-emerald-800">
+            {scoreAggregate.readiness.oracleReadyPercent}%
+          </p>
+        </div>
+        <div className="rounded-lg bg-slate-50 px-3 py-2">
+          <p className="truncate text-[0.62rem] font-semibold uppercase text-slate-400">
+            {copy.metrics.quality}
+          </p>
+          <p className="mt-1 truncate text-lg font-semibold text-[#11132d]">
+            {scoreAggregate.readiness.eventQualityPercent}%
+          </p>
+        </div>
+      </div>
+      <FanletterTrackedLink
+        agentRank={{
+          eventType: "universe_growth",
+          intent: "agentrank_mobile_status_open_ledger",
+          source: "fanletter_agentrank",
+          starId: starId ?? null,
+        }}
+        className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#6d28d9] px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(109,40,217,0.2)]"
+        eventName="signup_cta_click"
+        href={ledgerHref}
+        metadata={{
+          placement: "agentrank_mobile_status_primary",
+        }}
+      >
+        {isKo ? "평판 이벤트 장부 보기" : "Open reputation ledger"}
+        <ArrowRight className="size-4 shrink-0" />
+      </FanletterTrackedLink>
+    </section>
+  );
+}
+
 export function FanletterAgentRankPage({
   backfill,
   coverage,
@@ -2233,7 +2323,14 @@ export function FanletterAgentRankPage({
               : "Next action: verify the event ledger"
           }
         />
-        <header className="agentrank-flow-card mt-5 grid gap-5 rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+        <AgentRankMobileStatusCard
+          copy={copy}
+          ledgerHref={ledgerHref}
+          locale={locale}
+          scoreAggregate={scoreAggregate}
+          starId={starId}
+        />
+        <header className="agentrank-flow-card mt-5 hidden gap-5 rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] sm:grid lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-sm font-semibold text-[#6d28d9]">
               <Sparkles className="size-4" />
