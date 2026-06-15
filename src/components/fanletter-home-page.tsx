@@ -1222,11 +1222,11 @@ function FanletterProductHomeDashboard({
     <section className="grid min-w-0 flex-1 content-start gap-5 overflow-x-hidden pb-8 pt-6 sm:gap-6 sm:py-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] lg:items-start">
       <div className="grid min-w-0 gap-4">
         <div>
-          <div className="min-w-0 overflow-hidden rounded-[1.45rem] border border-violet-100 bg-white/90 p-4 shadow-[0_24px_70px_rgba(88,28,135,0.12)] backdrop-blur-xl sm:p-5">
+          <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_20px_50px_rgba(15,23,42,0.07)] sm:p-5">
             <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,16rem)] lg:items-stretch">
               <div className="flex min-w-0 flex-col gap-4">
                 <div className="min-w-0">
-                  <p className="inline-flex max-w-full rounded-full bg-violet-50 px-3 py-1 text-[0.68rem] font-semibold text-[#6d28d9]">
+                  <p className="inline-flex max-w-full rounded-full bg-slate-50 px-3 py-1 text-[0.68rem] font-semibold text-slate-700 ring-1 ring-slate-200/80">
                     {productCopy.loop}
                   </p>
                   <h1 className="mt-3 max-w-2xl text-[2.25rem] font-semibold leading-[1.02] tracking-normal text-[#12041f] [word-break:keep-all] sm:text-[3.2rem]">
@@ -1309,10 +1309,10 @@ function FanletterProductHomeDashboard({
 
         <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_18rem]">
           <ScrollReveal className="min-w-0 max-w-full overflow-hidden" delay={140} y={16}>
-            <div className="min-w-0 max-w-full overflow-hidden rounded-[1.35rem] border border-violet-100 bg-white/88 p-4 shadow-[0_22px_56px_rgba(88,28,135,0.1)] backdrop-blur-xl">
+            <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[#6d28d9]">
+                  <p className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-slate-500">
                     {productCopy.discovery}
                   </p>
                   <h2 className="mt-1 break-words text-lg font-semibold text-[#12041f] [word-break:keep-all]">
@@ -1320,7 +1320,7 @@ function FanletterProductHomeDashboard({
                   </h2>
                 </div>
                 <Link
-                  className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-violet-100 bg-violet-50 px-3 text-xs font-semibold !text-[#6d28d9]"
+                  className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-semibold !text-slate-700"
                   href={topGrowingStarsHref}
                 >
                   {copy.nav.features}
@@ -1345,7 +1345,7 @@ function FanletterProductHomeDashboard({
                         source: "fanletter_home",
                         starId: star.id,
                       }}
-                      className="group w-[13.75rem] max-w-[calc(100vw-5rem)] shrink-0 snap-start overflow-hidden rounded-[1.05rem] border border-violet-100 bg-white shadow-[0_12px_30px_rgba(88,28,135,0.07)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(88,28,135,0.12)] lg:w-[14.5rem]"
+                      className="group w-[12.9rem] max-w-[calc(100vw-4.75rem)] shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.1)] min-[390px]:w-[13.75rem] lg:w-[14.5rem]"
                       eventName="content_open"
                       href={buildPathWithReferral(
                         `/${locale}/fanletter/${encodeURIComponent(star.id)}`,
@@ -1406,7 +1406,7 @@ function FanletterProductHomeDashboard({
                             </span>
                           ))}
                         </div>
-                        <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-violet-50 px-3 py-2 text-[0.66rem] font-semibold text-[#6d28d9]">
+                        <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2 text-[0.66rem] font-semibold text-slate-700">
                           <span className="truncate">{productCopy.starCardFlow}</span>
                           <ArrowRight className="size-3.5 shrink-0" />
                         </div>
@@ -1416,9 +1416,9 @@ function FanletterProductHomeDashboard({
                 </div>
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-y-0 right-0 flex w-14 items-center justify-end bg-gradient-to-l from-white via-white/88 to-white/0 pr-1 lg:hidden"
+                  className="pointer-events-none absolute inset-y-0 right-0 flex w-10 items-center justify-end bg-gradient-to-l from-white via-white/80 to-white/0 pr-1 lg:hidden"
                 >
-                  <span className="flex size-9 items-center justify-center rounded-full border border-violet-100 bg-white/95 text-[#7c3aed] shadow-[0_12px_26px_rgba(88,28,135,0.14)]">
+                  <span className="flex size-8 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-700 shadow-[0_10px_22px_rgba(15,23,42,0.12)]">
                     <ArrowRight className="size-4" />
                   </span>
                 </div>
@@ -1427,7 +1427,7 @@ function FanletterProductHomeDashboard({
           </ScrollReveal>
 
           <ScrollReveal className="min-w-0 max-w-full overflow-hidden" delay={180} y={16}>
-            <div className="min-w-0 max-w-full overflow-hidden rounded-[1.35rem] border border-violet-100 bg-white/88 p-4 shadow-[0_22px_56px_rgba(88,28,135,0.1)] backdrop-blur-xl">
+            <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
               <div className="flex items-center justify-between gap-3">
                 <p className="min-w-0 truncate text-sm font-semibold text-[#12041f]">
                   {productCopy.portfolio}
@@ -1452,7 +1452,7 @@ function FanletterProductHomeDashboard({
                 ))}
               </div>
               <Link
-                className="mt-4 inline-flex h-10 min-w-0 w-full items-center justify-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 text-sm font-semibold !text-[#6d28d9]"
+                className="mt-4 inline-flex h-10 min-w-0 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 text-sm font-semibold !text-slate-700"
                 href={creatorUnlockHref}
               >
                 <span className="truncate">{productCopy.creator}</span>
@@ -1465,7 +1465,7 @@ function FanletterProductHomeDashboard({
 
       <div className="grid gap-4">
         <ScrollReveal delay={120} y={16}>
-          <div className="rounded-[1.45rem] border border-violet-100 bg-white/90 p-4 shadow-[0_24px_70px_rgba(88,28,135,0.12)] backdrop-blur-xl">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-[#12041f]">
                 {productCopy.founderUniverse}
@@ -1480,10 +1480,10 @@ function FanletterProductHomeDashboard({
             </div>
 
             <div className="mt-4 grid gap-4">
-              <div className="relative mx-auto aspect-square w-full max-w-[18rem] rounded-full bg-[radial-gradient(circle,#ffffff_0%,#ffffff_36%,#f7f3ff_100%)]">
+              <div className="relative mx-auto aspect-square w-full max-w-[18rem] rounded-full bg-[radial-gradient(circle,#ffffff_0%,#ffffff_36%,#f8fafc_100%)]">
                 {[1, 2, 3, 4].map((ring) => (
                   <span
-                    className="absolute rounded-full border border-dashed border-violet-200"
+                    className="absolute rounded-full border border-dashed border-slate-200"
                     key={ring}
                     style={{
                       inset: `${ring * 9}%`,
