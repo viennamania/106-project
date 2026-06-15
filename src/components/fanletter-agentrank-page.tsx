@@ -151,6 +151,7 @@ function getAgentRankCopy(locale: Locale) {
       ledgerHighImpact: "고기여 이벤트",
       ledgerNeedsOracle: "오라클 보강",
       ledgerOracleReady: "오라클 준비",
+      reviewQueue: "Review Queue",
       evidenceHash: "증거 해시",
       evidenceEvents: "증거 이벤트",
       trustLayerMissing: "AI Agent 경제에는 Trust Layer가 필요합니다.",
@@ -258,6 +259,7 @@ function getAgentRankCopy(locale: Locale) {
     ledgerHighImpact: "High-impact Events",
     ledgerNeedsOracle: "Oracle Gaps",
     ledgerOracleReady: "Oracle-ready",
+    reviewQueue: "Review Queue",
     evidenceHash: "Evidence Hash",
     evidenceEvents: "Evidence Events",
     trustLayerMissing: "The AI Agent economy needs a trust layer.",
@@ -880,6 +882,9 @@ function AgentRankScoreAggregatorPanel({
     readiness: "needs_oracle",
     sort: "quality_asc",
   });
+  const reviewQueueParams = new URLSearchParams({
+    limit: "120",
+  });
   const readinessItems = [
     {
       active: scoreAggregate.readiness.reputationLedgerReady,
@@ -914,6 +919,7 @@ function AgentRankScoreAggregatorPanel({
     highImpactLedgerParams.set("starId", starId);
     oracleReadyLedgerParams.set("starId", starId);
     needsOracleLedgerParams.set("starId", starId);
+    reviewQueueParams.set("starId", starId);
   }
 
   const ledgerQuickLinks = [
@@ -944,6 +950,14 @@ function AgentRankScoreAggregatorPanel({
       label: copy.ledgerNeedsOracle,
       tone: "bg-amber-300/14 text-amber-100 ring-amber-200/25",
       value: `${100 - scoreAggregate.readiness.oracleReadyPercent}%`,
+    },
+    {
+      href: `/${locale}/fanletter/agentrank/review?${reviewQueueParams.toString()}`,
+      Icon: Brain,
+      intent: "agentrank_review_queue_open",
+      label: copy.reviewQueue,
+      tone: "bg-fuchsia-300/14 text-fuchsia-100 ring-fuchsia-200/25",
+      value: `${scoreAggregate.readiness.eventQualityPercent}%`,
     },
   ];
 

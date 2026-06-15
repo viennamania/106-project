@@ -30,6 +30,13 @@ import {
   isAgentRankCoverageMockEvent,
   type AgentRankEventMockScope,
 } from "@/lib/agentrank/mock-events";
+import {
+  buildAgentRankReviewQueueSnapshot,
+  type AgentRankReviewQueueCategory,
+  type AgentRankProductActionCoverageItem,
+  type AgentRankReviewQueueItem,
+  type AgentRankReviewQueueSnapshot,
+} from "@/lib/agentrank/review-queue";
 import type {
   AgentRankEventLedgerReadinessFilter,
   AgentRankEventLedgerSort,
@@ -641,215 +648,131 @@ function buildEventDetailHref({
   )}${params.size ? `?${params.toString()}` : ""}`;
 }
 
-function getReviewNextAction(event: AgentRankReputationEvent, locale: Locale) {
-  const audit = getEventAudit(event);
-  const gapLabel = audit.gaps
-    .slice(0, 2)
-    .map((gap) => getAuditGapLabel(gap, locale))
-    .join(", ");
-
-  if (gapLabel) {
-    return locale === "ko"
-      ? `${gapLabel} 보강`
-      : `Enrich ${gapLabel}`;
-  }
-
-  if (!event.reputationSignals.oracleReady) {
-    return locale === "ko"
-      ? "Oracle upstream 신호 확인"
-      : "Verify Oracle upstream signal";
-  }
-
-  if (!event.audit.graphReady) {
-    return locale === "ko"
-      ? "거래 그래프 엣지 연결"
-      : "Connect transaction graph edge";
-  }
-
-  if (!event.audit.impactReady) {
-    return locale === "ko"
-      ? "점수 영향 신호 확인"
-      : "Verify score impact signal";
-  }
-
-  return locale === "ko"
-    ? "Oracle Packet 후보 검토"
-    : "Review Oracle Packet candidate";
-}
-
-function buildReviewQueue(events: AgentRankReputationEvent[], locale: Locale) {
-  const byImpact = [...events].sort((left, right) => {
-    const impactDelta =
-      getLedgerScoreSignals(right).reduce((sum, signal) => sum + signal.value, 0) -
-      getLedgerScoreSignals(left).reduce((sum, signal) => sum + signal.value, 0);
-
-    return impactDelta || getEventTimestamp(right) - getEventTimestamp(left);
-  });
-  const byQuality = [...events].sort((left, right) => {
-    return (
-      getEventAudit(left).qualityScore - getEventAudit(right).qualityScore ||
-      getEventTimestamp(right) - getEventTimestamp(left)
-    );
-  });
-  const needsOracle = events.filter((event) => {
-    const audit = getEventAudit(event);
-
-    return (
-      !event.reputationSignals.oracleReady ||
-      audit.status !== "audit_ready" ||
-      audit.gaps.length > 0 ||
-      !event.audit.graphReady ||
-      !event.audit.impactReady
-    );
-  });
-  const packetReady = events.filter((event) => {
-    return (
-      event.reputationSignals.oracleReady &&
-      getEventAudit(event).status === "audit_ready"
-    );
-  });
-
-  return [
-    {
-      Icon: AlertTriangle,
-      body:
-        locale === "ko"
-          ? "오라클/그래프/영향 신호를 먼저 보강해야 하는 이벤트"
-          : "Events requiring Oracle, graph, or impact enrichment",
-      events: byQuality.filter((event) => needsOracle.includes(event)).slice(0, 3),
-      key: "needs_oracle",
-      label:
-        locale === "ko" ? "오라클 보강 큐" : "Oracle gap queue",
-      tone: "border-amber-100 bg-amber-50/80 text-amber-800",
-      total: needsOracle.length,
-    },
-    {
-      Icon: Database,
-      body:
-        locale === "ko"
-          ? "Oracle Packet 후보로 바로 설명 가능한 이벤트"
-          : "Events ready to explain as Oracle Packet candidates",
-      events: byImpact.filter((event) => packetReady.includes(event)).slice(0, 3),
-      key: "packet_ready",
-      label:
-        locale === "ko" ? "Packet 후보 큐" : "Packet candidate queue",
-      tone: "border-cyan-100 bg-cyan-50/80 text-cyan-800",
-      total: packetReady.length,
-    },
-    {
-      Icon: Sparkles,
-      body:
-        locale === "ko"
-          ? "AgentRank 점수에 가장 크게 기여하는 이벤트"
-          : "Events with the strongest AgentRank score contribution",
-      events: byImpact.slice(0, 3),
-      key: "high_impact",
-      label:
-        locale === "ko" ? "고기여 검토 큐" : "High-impact review queue",
-      tone: "border-violet-100 bg-violet-50/80 text-[#6d28d9]",
-      total: byImpact.filter(
-        (event) =>
-          getLedgerScoreSignals(event).reduce(
-            (sum, signal) => sum + signal.value,
-            0,
-          ) >= 2,
-      ).length,
-    },
-    {
-      Icon: SlidersHorizontal,
-      body:
-        locale === "ko"
-          ? "품질 점수 또는 필수 필드 기준으로 점검할 이벤트"
-          : "Events to review by quality score or required fields",
-      events: byQuality.slice(0, 3),
-      key: "quality_review",
-      label:
-        locale === "ko" ? "품질 점검 큐" : "Quality review queue",
-      tone: "border-slate-100 bg-slate-50 text-slate-700",
-      total: byQuality.filter((event) => getEventAudit(event).qualityScore < 90)
-        .length,
-    },
-  ];
-}
-
-function buildActionCoverage(events: AgentRankReputationEvent[], locale: Locale) {
-  const hasEventType = (type: AgentRankReputationEventType) =>
-    events.some((event) => event.type === type);
-  const hasIntent = (patterns: string[]) =>
-    events.some((event) => {
-      const haystack = [
-        event.source,
-        event.sourceId,
-        event.context.intent,
-        event.context.source,
-      ]
-        .filter(Boolean)
-        .join(" ")
-        .toLowerCase();
-
-      return patterns.some((pattern) => haystack.includes(pattern));
-    });
-
+function getReviewQueuePresentation(
+  category: AgentRankReviewQueueCategory,
+  locale: Locale,
+) {
   const labels =
     locale === "ko"
       ? {
-          creator: "크리에이터 언락/생성",
-          discovery: "AI 스타 발견",
-          founder: "파운더 참여",
-          payment: "x402 Mock 결제",
-          referral: "추천 코드/전환",
-          starDetail: "AI 스타 상세/콘텐츠",
+          high_impact: {
+            body: "AgentRank 점수 기여가 큰 이벤트를 먼저 검토합니다.",
+            label: "고기여 검토",
+          },
+          needs_oracle: {
+            body: "Oracle, 그래프, 감사, 영향 신호가 부족한 이벤트입니다.",
+            label: "오라클 보강",
+          },
+          packet_ready: {
+            body: "Evidence Packet으로 묶어 Oracle에 전달할 수 있는 후보입니다.",
+            label: "Packet 후보",
+          },
+          quality_review: {
+            body: "품질 점수나 필수 필드가 낮아 운영 점검이 필요합니다.",
+            label: "품질 점검",
+          },
         }
       : {
-          creator: "Creator unlock/spawn",
-          discovery: "AI Star discovery",
-          founder: "Founder join",
-          payment: "x402 mock payment",
-          referral: "Referral code/conversion",
-          starDetail: "AI Star detail/content",
+          high_impact: {
+            body: "Prioritize events with the strongest AgentRank score impact.",
+            label: "High-impact Review",
+          },
+          needs_oracle: {
+            body: "Events missing Oracle, graph, audit, or impact signals.",
+            label: "Oracle Gaps",
+          },
+          packet_ready: {
+            body: "Candidates ready to package for the Reputation Oracle.",
+            label: "Packet Candidates",
+          },
+          quality_review: {
+            body: "Events needing operator checks for quality or required fields.",
+            label: "Quality Review",
+          },
         };
+  const presentation = {
+    high_impact: {
+      Icon: Sparkles,
+      tone: "border-blue-100 bg-blue-50/80",
+    },
+    needs_oracle: {
+      Icon: AlertTriangle,
+      tone: "border-amber-100 bg-amber-50/80",
+    },
+    packet_ready: {
+      Icon: ShieldCheck,
+      tone: "border-emerald-100 bg-emerald-50/80",
+    },
+    quality_review: {
+      Icon: SlidersHorizontal,
+      tone: "border-fuchsia-100 bg-fuchsia-50/80",
+    },
+  } satisfies Record<
+    AgentRankReviewQueueCategory,
+    {
+      Icon: typeof AlertTriangle;
+      tone: string;
+    }
+  >;
 
-  return [
-    {
-      covered: hasEventType("ai_star_discovered"),
-      eventType: "ai_star_discovered" as const,
-      label: labels.discovery,
-    },
-    {
-      covered:
-        hasEventType("content_engaged") &&
-        hasIntent(["star_detail", "profile", "vlog", "content", "home"]),
-      eventType: "content_engaged" as const,
-      label: labels.starDetail,
-    },
-    {
-      covered: hasEventType("founder_joined"),
-      eventType: "founder_joined" as const,
-      label: labels.founder,
-    },
-    {
-      covered:
-        hasEventType("referral_code_created") ||
-        hasEventType("referral_converted"),
-      eventType: "referral_converted" as const,
-      label: labels.referral,
-    },
-    {
-      covered:
-        hasEventType("creator_unlock_evaluated") ||
-        hasEventType("creator_unlocked") ||
-        hasEventType("ai_star_spawned"),
-      eventType: "creator_unlocked" as const,
-      label: labels.creator,
-    },
-    {
-      covered:
-        hasEventType("x402_mock_payment_intent") ||
-        hasEventType("cp_pool_generated"),
-      eventType: "x402_mock_payment_intent" as const,
-      label: labels.payment,
-    },
-  ];
+  return {
+    ...labels[category],
+    ...presentation[category],
+  };
+}
+
+function getReviewQueueActionLabel(
+  item: AgentRankReviewQueueItem,
+  locale: Locale,
+) {
+  if (locale !== "ko") {
+    return item.actionLabel;
+  }
+
+  if (item.auditGaps.length > 0) {
+    return `보강: ${item.auditGaps
+      .slice(0, 2)
+      .map((gap) => getAuditGapLabel(gap, locale))
+      .join(", ")}`;
+  }
+
+  if (item.reasonCodes.includes("oracle_gap")) {
+    return "상위 Oracle 신호 검증";
+  }
+
+  if (item.reasonCodes.includes("graph_gap")) {
+    return "거래 그래프 엣지 연결";
+  }
+
+  if (item.reasonCodes.includes("impact_gap")) {
+    return "점수 영향 신호 검증";
+  }
+
+  if (item.reasonCodes.includes("low_quality")) {
+    return "낮은 품질 점수 점검";
+  }
+
+  return "Oracle Packet 후보 검토";
+}
+
+function getActionCoverageLabel(
+  action: AgentRankProductActionCoverageItem,
+  locale: Locale,
+) {
+  if (locale !== "ko") {
+    return action.label;
+  }
+
+  const labels = {
+    creator: "크리에이터 권한/AI 스타 생성",
+    discovery: "AI 스타 발견",
+    founder: "파운더 참여",
+    payment: "x402 Mock/CP Pool",
+    referral: "추천 코드/전환",
+    star_detail: "AI 스타 상세/콘텐츠",
+  } satisfies Record<AgentRankProductActionCoverageItem["key"], string>;
+
+  return labels[action.key];
 }
 
 function sumContextNumber(events: AgentRankReputationEvent[], key: string) {
@@ -858,12 +781,6 @@ function sumContextNumber(events: AgentRankReputationEvent[], key: string) {
 
     return sum + (typeof value === "number" && Number.isFinite(value) ? value : 0);
   }, 0);
-}
-
-function getEventTimestamp(event: AgentRankReputationEvent) {
-  const timestamp = new Date(event.occurredAt).getTime();
-
-  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 function MetricTile({
@@ -888,7 +805,7 @@ function ReviewQueuePanel({
 }: {
   filters: FanletterAgentRankLedgerPageProps["filters"];
   locale: Locale;
-  queue: ReturnType<typeof buildReviewQueue>;
+  queue: AgentRankReviewQueueSnapshot["queues"];
 }) {
   const copy = getLedgerCopy(locale);
 
@@ -920,53 +837,61 @@ function ReviewQueuePanel({
       </div>
 
       <div className="mt-4 grid gap-3 xl:grid-cols-4">
-        {queue.map(({ Icon, body, events, key, label, tone, total }) => (
-          <article className={`rounded-lg border p-3 ${tone}`} key={key}>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="inline-flex items-center gap-2 text-sm font-semibold">
-                  <Icon className="size-4 shrink-0" />
-                  {label}
-                </p>
-                <p className="mt-1 text-xs font-medium leading-5 text-slate-600">
-                  {body}
-                </p>
+        {queue.map((bucket) => {
+          const { Icon, body, label, tone } = getReviewQueuePresentation(
+            bucket.category,
+            locale,
+          );
+
+          return (
+            <article
+              className={`rounded-lg border p-3 ${tone}`}
+              key={bucket.category}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="inline-flex items-center gap-2 text-sm font-semibold">
+                    <Icon className="size-4 shrink-0" />
+                    {label}
+                  </p>
+                  <p className="mt-1 text-xs font-medium leading-5 text-slate-600">
+                    {body}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-[#11132d]">
+                  {formatNumber(bucket.total, locale)}
+                </span>
               </div>
-              <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-[#11132d]">
-                {formatNumber(total, locale)}
-              </span>
-            </div>
-            <div className="mt-3 grid gap-2">
-              {events.length ? (
-                events.map((event) => (
-                  <Link
-                    className="block rounded-lg bg-white/78 px-3 py-2 text-sm transition hover:bg-white"
-                    href={buildEventDetailHref({ event, locale })}
-                    key={event.eventId}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="min-w-0 truncate font-semibold text-[#11132d]">
-                        {getEventTypeLabel(event.type, locale)}
-                      </span>
-                      <span className="shrink-0 font-mono text-xs font-semibold text-[#6d28d9]">
-                        {getLedgerScoreSignals(event)
-                          .reduce((sum, signal) => sum + signal.value, 0)
-                          .toFixed(1)}
-                      </span>
-                    </div>
-                    <p className="mt-1 truncate text-xs font-semibold text-slate-500">
-                      {copy.nextAction}: {getReviewNextAction(event, locale)}
-                    </p>
-                  </Link>
-                ))
-              ) : (
-                <p className="rounded-lg bg-white/70 px-3 py-2 text-xs font-semibold text-slate-500">
-                  {copy.ready}
-                </p>
-              )}
-            </div>
-          </article>
-        ))}
+              <div className="mt-3 grid gap-2">
+                {bucket.events.length ? (
+                  bucket.events.map((item) => (
+                    <Link
+                      className="block rounded-lg bg-white/78 px-3 py-2 text-sm transition hover:bg-white"
+                      href={buildEventDetailHref({ event: item.event, locale })}
+                      key={item.event.eventId}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="min-w-0 truncate font-semibold text-[#11132d]">
+                          {getEventTypeLabel(item.event.type, locale)}
+                        </span>
+                        <span className="shrink-0 font-mono text-xs font-semibold text-[#6d28d9]">
+                          {item.impactTotal.toFixed(1)}
+                        </span>
+                      </div>
+                      <p className="mt-1 truncate text-xs font-semibold text-slate-500">
+                        {copy.nextAction}: {getReviewQueueActionLabel(item, locale)}
+                      </p>
+                    </Link>
+                  ))
+                ) : (
+                  <p className="rounded-lg bg-white/70 px-3 py-2 text-xs font-semibold text-slate-500">
+                    {copy.ready}
+                  </p>
+                )}
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );
@@ -977,7 +902,7 @@ function ActionCoveragePanel({
   filters,
   locale,
 }: {
-  actions: ReturnType<typeof buildActionCoverage>;
+  actions: AgentRankProductActionCoverageItem[];
   filters: FanletterAgentRankLedgerPageProps["filters"];
   locale: Locale;
 }) {
@@ -1017,7 +942,7 @@ function ActionCoveragePanel({
           >
             <div className="flex items-center justify-between gap-2">
               <p className="min-w-0 truncate text-sm font-semibold text-[#11132d]">
-                {action.label}
+                {getActionCoverageLabel(action, locale)}
               </p>
               {action.covered ? (
                 <BadgeCheck className="size-4 shrink-0 text-emerald-600" />
@@ -1563,8 +1488,10 @@ export function FanletterAgentRankLedgerPage({
   const apiHref = `/api/fanletter/agentrank/events?${apiParams.toString()}`;
   const csvHref = `/api/fanletter/agentrank/events?${csvParams.toString()}`;
   const ndjsonHref = `/api/fanletter/agentrank/events?${ndjsonParams.toString()}`;
-  const reviewQueue = buildReviewQueue(feed.events, locale);
-  const actionCoverage = buildActionCoverage(feed.events, locale);
+  const reviewHref = `/${locale}/fanletter/agentrank/review?${apiParams.toString()}`;
+  const reviewSnapshot = buildAgentRankReviewQueueSnapshot(feed.events);
+  const reviewQueue = reviewSnapshot.queues;
+  const actionCoverage = reviewSnapshot.actionCoverage;
   const scopeOptions: Array<{
     count: number;
     label: string;
@@ -1650,6 +1577,13 @@ export function FanletterAgentRankLedgerPage({
               {copy.back}
             </Link>
             <div className="flex flex-wrap gap-2">
+              <Link
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 text-sm font-semibold text-[#6d28d9]"
+                href={reviewHref}
+              >
+                <AlertTriangle className="size-4" />
+                {copy.ledgerReviewQueue}
+              </Link>
               <Link
                 className="inline-flex h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold text-white"
                 href={apiHref}
