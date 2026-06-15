@@ -817,15 +817,21 @@ function getActionClassName({
   tone?: "success";
 }) {
   const base =
-    "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold transition sm:w-fit";
+    "h-12 w-full items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold transition sm:w-fit";
+  const display = isPrimary ? "inline-flex" : "hidden sm:inline-flex";
 
   if (tone === "success") {
-    return joinClasses(base, "bg-[#44f26e] !text-black hover:bg-[#67ff88]");
+    return joinClasses(
+      base,
+      display,
+      "bg-[#44f26e] !text-black hover:bg-[#67ff88]",
+    );
   }
 
   if (surface === "light") {
     return joinClasses(
       base,
+      display,
       "sm:min-w-[12rem]",
       isPrimary
         ? "bg-black !text-white hover:bg-black/82"
@@ -835,6 +841,7 @@ function getActionClassName({
 
   return joinClasses(
     base,
+    display,
     isPrimary
       ? "bg-[#44f26e] !text-black hover:bg-[#67ff88]"
       : "border border-white/18 bg-white/8 !text-white hover:bg-white/12",

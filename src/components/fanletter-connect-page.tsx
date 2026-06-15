@@ -696,6 +696,64 @@ function StepStatus({
   );
 }
 
+function ConnectMobileSignpost({
+  currentLabel,
+  locale,
+  nextLabel,
+  reputationLabel,
+}: {
+  currentLabel: string;
+  locale: Locale;
+  nextLabel: string;
+  reputationLabel: string;
+}) {
+  const copy =
+    locale === "ko"
+      ? {
+          current: "현재 위치",
+          event: "AgentRank 이벤트",
+          next: "다음 행동",
+        }
+      : {
+          current: "Current location",
+          event: "AgentRank event",
+          next: "Next action",
+        };
+
+  return (
+    <section className="mt-5 rounded-[1.15rem] border border-white/12 bg-white/[0.055] p-3.5 shadow-[0_18px_52px_rgba(0,0,0,0.28)] sm:hidden">
+      <div className="grid gap-2">
+        {[
+          {
+            label: copy.current,
+            value: currentLabel,
+          },
+          {
+            label: copy.next,
+            value: nextLabel,
+          },
+          {
+            label: copy.event,
+            value: reputationLabel,
+          },
+        ].map((item) => (
+          <div
+            className="rounded-lg border border-white/10 bg-black/28 px-3 py-2"
+            key={item.label}
+          >
+            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-white/40">
+              {item.label}
+            </p>
+            <p className="mt-1 break-words text-sm font-semibold leading-tight text-white [word-break:keep-all]">
+              {item.value}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 export function FanletterConnectPage({
   coverageAction = null,
   dictionary,
@@ -1069,6 +1127,23 @@ export function FanletterConnectPage({
             <FanletterGlobalLanguageSwitcher compact locale={locale} />
           </div>
 
+          <ConnectMobileSignpost
+            currentLabel={returnTarget.label}
+            locale={locale}
+            nextLabel={
+              memberIsCompleted || memberNeedsPayment
+                ? contextCopy.primary
+                : connection.isConnected
+                  ? copy.reconnect
+                  : copy.connect
+            }
+            reputationLabel={
+              starContext
+                ? `${starContext.starName} Founder attribution`
+                : "fanletter_bridge_view"
+            }
+          />
+
           <div className="grid gap-5 pb-8 pt-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(22rem,0.78fr)] lg:items-start lg:gap-8 lg:pb-14 lg:pt-20">
             <div className="order-1 min-w-0">
               <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
@@ -1077,7 +1152,7 @@ export function FanletterConnectPage({
               <h1 className="mt-4 text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
                 {contextCopy.title}
               </h1>
-              <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
+              <p className="mt-5 hidden max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:block sm:text-lg">
                 {contextCopy.accountBody}
               </p>
               <div className="mt-8 hidden gap-2 lg:grid lg:grid-cols-3">
@@ -1225,7 +1300,7 @@ export function FanletterConnectPage({
                       {contextCopy.primary}
                       <ArrowRight className="size-4" />
                     </Link>
-                    <div className="grid gap-2 sm:grid-cols-3">
+                    <div className="hidden gap-2 sm:grid sm:grid-cols-3">
                       <Link
                         className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
                         href={studioHref}
@@ -1256,7 +1331,7 @@ export function FanletterConnectPage({
                       <ArrowRight className="size-4" />
                     </Link>
                     <Link
-                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12"
+                      className="hidden h-11 w-full items-center justify-center gap-2 rounded-full border border-white/16 bg-white/8 px-5 text-sm font-semibold !text-white transition hover:bg-white/12 sm:inline-flex"
                       href={activateHref}
                     >
                       {copy.paymentCta}
@@ -1282,7 +1357,7 @@ export function FanletterConnectPage({
 
                 {connection.isConnected ? (
                   <button
-                    className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-black/28 px-5 text-sm font-semibold text-white/70 transition hover:bg-black/42 hover:text-white"
+                    className="hidden h-11 w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-black/28 px-5 text-sm font-semibold text-white/70 transition hover:bg-black/42 hover:text-white sm:inline-flex"
                     onClick={handleDisconnect}
                     type="button"
                   >
@@ -1297,13 +1372,13 @@ export function FanletterConnectPage({
               {renderStepStatuses()}
             </div>
             {renderReturnActionCards(
-              `order-4 grid gap-3 lg:hidden ${
+              `order-4 hidden gap-3 sm:grid lg:hidden ${
                 isReturnToOnboarding ? "" : "sm:grid-cols-2"
               }`,
             )}
           </div>
 
-          <div className="grid gap-3 border-t border-white/10 pt-6 md:grid-cols-3">
+          <div className="hidden gap-3 border-t border-white/10 pt-6 md:grid md:grid-cols-3">
             {[
               {
                 Icon: Mail,

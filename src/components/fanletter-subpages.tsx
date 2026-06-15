@@ -27,7 +27,7 @@ import {
   Video,
   type LucideIcon,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
@@ -10671,44 +10671,48 @@ export function FanletterOnboardingPage({
             </>
           );
 
-          return isFounderClubOnboarding && founderClubStar ? (
-            index > 0 && !isFounderJoined && hasConnectedAccount ? (
-              <FanletterFounderJoinLink
-                className="flex items-center gap-3 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3 transition hover:border-violet-300 hover:bg-violet-50"
-                href={step.href}
-                key={step.title}
-                locale={locale}
-                mode="live"
-                referralCode={referralCode}
-                starId={founderClubStar.id}
-                useResponseUniverseHref={index === 1}
-              >
+          return (
+            <Fragment key={step.title}>
+              <div className="flex items-center gap-3 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3 sm:hidden">
                 {stepSummary}
-              </FanletterFounderJoinLink>
-            ) : (
-              <Link
-                className="flex items-center gap-3 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3 transition hover:border-violet-300 hover:bg-violet-50"
-                href={getFounderStepHref(index, step.href)}
-                key={step.title}
-              >
-                {stepSummary}
-              </Link>
-            )
-          ) : (
-            <FanletterSetupStepNavLink
-              activateHref={activateHref}
-              className="flex items-center gap-3 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3 transition hover:border-violet-300 hover:bg-violet-50"
-              connectHref={connectHref}
-              createHref={createHref}
-              key={step.title}
-              locale={locale}
-              onboardingHref={onboardingHref}
-              profileHref={profileHref}
-              stepIndex={index}
-              studioHref={studioHref}
-            >
-              {stepSummary}
-            </FanletterSetupStepNavLink>
+              </div>
+              {isFounderClubOnboarding && founderClubStar ? (
+                index > 0 && !isFounderJoined && hasConnectedAccount ? (
+                  <FanletterFounderJoinLink
+                    className="hidden items-center gap-3 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3 transition hover:border-violet-300 hover:bg-violet-50 sm:flex"
+                    href={step.href}
+                    locale={locale}
+                    mode="live"
+                    referralCode={referralCode}
+                    starId={founderClubStar.id}
+                    useResponseUniverseHref={index === 1}
+                  >
+                    {stepSummary}
+                  </FanletterFounderJoinLink>
+                ) : (
+                  <Link
+                    className="hidden items-center gap-3 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3 transition hover:border-violet-300 hover:bg-violet-50 sm:flex"
+                    href={getFounderStepHref(index, step.href)}
+                  >
+                    {stepSummary}
+                  </Link>
+                )
+              ) : (
+                <FanletterSetupStepNavLink
+                  activateHref={activateHref}
+                  className="hidden items-center gap-3 rounded-lg border border-violet-100 bg-[#f8f7ff] p-3 transition hover:border-violet-300 hover:bg-violet-50 sm:flex"
+                  connectHref={connectHref}
+                  createHref={createHref}
+                  locale={locale}
+                  onboardingHref={onboardingHref}
+                  profileHref={profileHref}
+                  stepIndex={index}
+                  studioHref={studioHref}
+                >
+                  {stepSummary}
+                </FanletterSetupStepNavLink>
+              )}
+            </Fragment>
           );
         })}
       </div>
@@ -10746,7 +10750,7 @@ export function FanletterOnboardingPage({
             <>
               {founderPrimaryAction?.mode === "join" && founderClubStar ? (
                 <FanletterFounderJoinLink
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9]"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9] sm:w-auto"
                   href={founderPrimaryAction.href}
                   locale={locale}
                   mode="live"
@@ -10759,7 +10763,7 @@ export function FanletterOnboardingPage({
                 </FanletterFounderJoinLink>
               ) : (
                 <Link
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9]"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9] sm:w-auto"
                   href={founderPrimaryAction?.href ?? connectHref}
                 >
                   {founderPrimaryAction?.label ?? labels.primaryCta}
@@ -10767,7 +10771,7 @@ export function FanletterOnboardingPage({
                 </Link>
               )}
               <Link
-                className="inline-flex h-12 items-center justify-center rounded-full border border-violet-200 bg-white px-5 text-sm font-semibold !text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-50"
+                className="hidden h-12 items-center justify-center rounded-full border border-violet-200 bg-white px-5 text-sm font-semibold !text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-50 sm:inline-flex"
                 href={founderUniverseHref ?? onboardingHref}
               >
                 {labels.secondaryCta}
