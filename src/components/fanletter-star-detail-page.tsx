@@ -9,7 +9,6 @@ import {
   Crown,
   Database,
   GitBranch,
-  Network,
   ShieldCheck,
   Share2,
   Users,
@@ -1503,27 +1502,12 @@ export function FanletterStarDetailPage({
                   {primaryAction.label}
                   <ArrowRight className="size-4" />
                 </StarActionLink>
-                {primaryAction.variant !== "share" ? (
-                  <a
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
-                    href="#referral-builder"
-                  >
-                    {copy.actions.createMockReferral}
-                  </a>
-                ) : null}
                 <Link
                   className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
                   href={`/${locale}/fanletter/${encodeURIComponent(star.id)}/universe`}
                 >
                   <GitBranch className="size-4" />
                   {isKorean ? "파운더 네트워크 탐색" : "Explore Founder Network"}
-                </Link>
-                <Link
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 text-sm font-semibold text-emerald-800 transition hover:border-emerald-300 hover:bg-emerald-100"
-                  href={`/${locale}/fanletter/ai-star-genealogy`}
-                >
-                  <Network className="size-4" />
-                  {isKorean ? "AI 스타 계보" : "AI Star Genealogy"}
                 </Link>
               </div>
             </div>

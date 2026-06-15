@@ -2170,6 +2170,76 @@ function AgentRankMobileStatusCard({
   );
 }
 
+function AgentRankAudienceSplit({
+  auditReadyCount,
+  eventCount,
+  locale,
+}: {
+  auditReadyCount: number;
+  eventCount: number;
+  locale: Locale;
+}) {
+  const isKo = locale === "ko";
+  const cards = [
+    {
+      Icon: Users,
+      badge: isKo ? "사용자 화면" : "User view",
+      body: isKo
+        ? "AI 스타 발견, 파운더 참여, 추천 공유가 평판 이벤트를 만듭니다."
+        : "Discovery, founder joins, and referral shares create reputation events.",
+      metric: formatNumber(eventCount, locale),
+      metricLabel: isKo ? "수집 이벤트" : "events collected",
+      title: isKo ? "행동을 만든다" : "Creates actions",
+    },
+    {
+      Icon: Database,
+      badge: isKo ? "투자자 화면" : "Investor view",
+      body: isKo
+        ? "이벤트 장부, 증거 패킷, 점수 집계로 네트워크 신뢰를 검증합니다."
+        : "The ledger, evidence packets, and scores verify network trust.",
+      metric: formatNumber(auditReadyCount, locale),
+      metricLabel: isKo ? "검증 가능 이벤트" : "audit-ready events",
+      title: isKo ? "신뢰를 검증한다" : "Verifies trust",
+    },
+  ];
+
+  return (
+    <section className="mt-4 grid gap-3 sm:grid-cols-2">
+      {cards.map(({ Icon, badge, body, metric, metricLabel, title }) => (
+        <div
+          className="min-w-0 rounded-[1.15rem] border border-zinc-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.05)]"
+          key={badge}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <span className="inline-flex rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.68rem] font-semibold text-zinc-700">
+                {badge}
+              </span>
+              <h2 className="mt-2 text-lg font-semibold leading-tight text-zinc-950">
+                {title}
+              </h2>
+            </div>
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-white">
+              <Icon className="size-4" />
+            </span>
+          </div>
+          <p className="mt-2 text-sm font-medium leading-5 text-zinc-600 [word-break:keep-all]">
+            {body}
+          </p>
+          <div className="mt-4 flex items-end justify-between gap-3 border-t border-zinc-100 pt-3">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-400">
+              {metricLabel}
+            </span>
+            <span className="text-2xl font-semibold leading-none text-zinc-950">
+              {metric}
+            </span>
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export function FanletterAgentRankPage({
   backfill,
   coverage,
@@ -2322,6 +2392,11 @@ export function FanletterAgentRankPage({
               ? "다음 행동: 이벤트 장부 검증"
               : "Next action: verify the event ledger"
           }
+        />
+        <AgentRankAudienceSplit
+          auditReadyCount={scoreAggregate.summary.auditReadyEvents}
+          eventCount={ers.summary.eventCount}
+          locale={locale}
         />
         <AgentRankMobileStatusCard
           copy={copy}

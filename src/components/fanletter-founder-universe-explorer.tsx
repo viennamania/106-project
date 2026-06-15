@@ -2835,6 +2835,17 @@ export function FanletterFounderUniverseExplorer({
             }
           />
 
+          <div id="founder-network-map">
+            <FounderUniverseDashboardPanel
+              locale={locale}
+              onSelectDepth={setSelectedDepth}
+              onSelectNode={setSelectedNodeId}
+              selectedDepth={selectedDepth}
+              selectedNodeId={selectedNodeId}
+              universe={displayUniverse}
+            />
+          </div>
+
           <FanletterTerminologyGuide locale={locale} variant="compact" />
 
           <FounderStarHero
@@ -2848,17 +2859,6 @@ export function FanletterFounderUniverseExplorer({
             locale={locale}
             universe={displayUniverse}
           />
-
-          <div id="founder-network-map">
-            <FounderUniverseDashboardPanel
-              locale={locale}
-              onSelectDepth={setSelectedDepth}
-              onSelectNode={setSelectedNodeId}
-              selectedDepth={selectedDepth}
-              selectedNodeId={selectedNodeId}
-              universe={displayUniverse}
-            />
-          </div>
 
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="grid gap-5">

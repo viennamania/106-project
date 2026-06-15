@@ -1,6 +1,12 @@
 "use client";
 
-import { ArrowRight, CheckCircle2, Circle, Sparkles } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Circle,
+  CircleDot,
+  Sparkles,
+} from "lucide-react";
 
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
@@ -73,7 +79,7 @@ export function FanletterActionGuide({
   subtitle,
   title,
 }: FanletterActionGuideProps) {
-  const visibleSecondaryActions = secondaryActions.slice(0, 2);
+  const visibleSecondaryActions = secondaryActions.slice(0, 1);
   const shouldHideSecondaryOnMobile = Boolean(primaryAction);
   const completedStepCount = steps.filter((step) => step.status === "done")
     .length;
@@ -90,30 +96,47 @@ export function FanletterActionGuide({
   return (
     <section
       className={joinClasses(
-        "min-w-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)] sm:p-4",
+        "min-w-0 overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white p-3 shadow-[0_18px_46px_rgba(15,23,42,0.07)] sm:p-4",
         className,
       )}
     >
-      <div className="flex min-w-0 items-start justify-between gap-3">
+      <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
         <div className="min-w-0">
-          <p className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-[0.66rem] font-semibold text-zinc-700 ring-1 ring-zinc-200">
-            <Sparkles className="size-3.5 shrink-0 text-zinc-950" />
-            <span className="truncate">{currentLabel}</span>
-          </p>
-          <h2 className="mt-2 break-words text-xl font-semibold leading-tight text-[#12041f] [word-break:keep-all] sm:text-2xl">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <p className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.66rem] font-semibold text-zinc-700">
+              <CircleDot className="size-3.5 shrink-0 text-zinc-950" />
+              <span className="truncate">{currentLabel}</span>
+            </p>
+            <p className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-zinc-900 bg-zinc-950 px-2.5 py-1 text-[0.66rem] font-semibold text-white">
+              <Sparkles className="size-3.5 shrink-0" />
+              <span className="truncate">{reputationEventLabel}</span>
+            </p>
+          </div>
+          <h2 className="mt-2 break-words text-xl font-semibold leading-tight text-zinc-950 [word-break:keep-all] sm:text-2xl">
             {title}
           </h2>
-          <p className="mt-1 hidden max-w-2xl text-sm font-medium leading-5 text-black/58 [word-break:keep-all] sm:block">
+          <p className="mt-1 hidden max-w-2xl text-sm font-medium leading-5 text-zinc-600 [word-break:keep-all] sm:block">
             {subtitle}
           </p>
         </div>
-        <span className="hidden shrink-0 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 sm:inline-flex">
-          {reputationEventLabel}
-        </span>
+        {metrics.length > 0 ? (
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
+            {metrics.map((metric) => (
+              <div
+                className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2"
+                key={metric.label}
+              >
+                <p className="truncate text-[0.62rem] font-semibold text-zinc-500">
+                  {metric.label}
+                </p>
+                <p className="mt-0.5 truncate text-sm font-semibold text-zinc-950">
+                  {metric.value}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </div>
-      <span className="mt-2 inline-flex max-w-full rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 sm:hidden">
-        <span className="truncate">{reputationEventLabel}</span>
-      </span>
       {steps.length > 0 ? (
         <div className="mt-3">
           <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100">
@@ -125,7 +148,7 @@ export function FanletterActionGuide({
         </div>
       ) : null}
 
-      <div className="mt-3 grid min-w-0 gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+      <div className="mt-3 grid min-w-0 gap-2">
         <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {steps.map((step, index) => {
             const isDone = step.status === "done";
@@ -136,7 +159,7 @@ export function FanletterActionGuide({
                 className={joinClasses(
                   "flex min-w-[5.75rem] shrink-0 items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-semibold",
                   isActive
-                    ? "border-black bg-black text-white"
+                    ? "border-zinc-950 bg-zinc-950 text-white"
                     : isDone
                       ? "border-zinc-200 bg-zinc-50 text-zinc-800"
                       : "border-zinc-200 bg-white text-zinc-500",
@@ -153,24 +176,6 @@ export function FanletterActionGuide({
             );
           })}
         </div>
-
-        {metrics.length > 0 ? (
-          <div className="grid grid-cols-2 gap-2 sm:flex">
-            {metrics.map((metric) => (
-              <div
-                className="min-w-0 rounded-xl border border-slate-100 bg-slate-50/70 px-3 py-2"
-                key={metric.label}
-              >
-                <p className="truncate text-[0.62rem] font-semibold text-slate-500">
-                  {metric.label}
-                </p>
-                <p className="mt-0.5 truncate text-sm font-semibold text-[#12041f]">
-                  {metric.value}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : null}
       </div>
 
       {primaryAction || visibleSecondaryActions.length > 0 ? (
@@ -185,7 +190,7 @@ export function FanletterActionGuide({
             renderAction(
               action,
               joinClasses(
-                "h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 sm:w-auto",
+                "h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-800 transition hover:border-zinc-300 hover:bg-zinc-50 sm:w-auto",
                 shouldHideSecondaryOnMobile
                   ? "hidden sm:inline-flex"
                   : "inline-flex",
