@@ -1492,7 +1492,7 @@ function ProductPathPanel({
       </div>
       <div className="mt-5 grid gap-4 xl:grid-cols-3">
         <div
-          className="agentrank-flow-card agentrank-stage-card relative min-w-0 overflow-hidden rounded-lg border border-pink-100 bg-pink-50/35 p-5"
+          className="agentrank-flow-card agentrank-stage-card relative min-w-0 overflow-visible rounded-lg border border-pink-100 bg-pink-50/35 p-5"
           style={{ animationDelay: "80ms" }}
         >
           <ArrowRight className="absolute -right-4 top-1/2 hidden size-8 -translate-y-1/2 text-pink-400 xl:block" />
@@ -1528,7 +1528,7 @@ function ProductPathPanel({
         </div>
 
         <div
-          className="agentrank-flow-card agentrank-stage-card relative min-w-0 overflow-hidden rounded-lg border border-blue-100 bg-blue-50/35 p-5"
+          className="agentrank-flow-card agentrank-stage-card relative min-w-0 overflow-visible rounded-lg border border-blue-100 bg-blue-50/35 p-5"
           style={{ animationDelay: "160ms" }}
         >
           <ArrowRight className="absolute -right-4 top-1/2 hidden size-8 -translate-y-1/2 text-blue-400 xl:block" />
@@ -1576,7 +1576,7 @@ function ProductPathPanel({
         </div>
 
         <div
-          className="agentrank-flow-card agentrank-stage-card relative min-w-0 overflow-hidden rounded-lg border border-violet-100 bg-violet-50/40 p-5"
+          className="agentrank-flow-card agentrank-stage-card relative min-w-0 overflow-visible rounded-lg border border-violet-100 bg-violet-50/40 p-5"
           style={{ animationDelay: "240ms" }}
         >
           <div className="flex items-start justify-between gap-3">

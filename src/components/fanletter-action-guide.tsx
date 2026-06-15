@@ -1,11 +1,12 @@
 "use client";
 
 import {
+  Activity,
   ArrowRight,
   CheckCircle2,
   Circle,
-  CircleDot,
-  Sparkles,
+  MapPin,
+  MousePointer2,
 } from "lucide-react";
 
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
@@ -94,112 +95,160 @@ export function FanletterActionGuide({
     steps.length > 0
       ? Math.min(100, Math.round((progressStepCount / steps.length) * 100))
       : 0;
+  const isKorean =
+    /[가-힣]/.test(`${currentLabel} ${title} ${subtitle} ${reputationEventLabel}`);
+  const actionTitle = title
+    .replace(/^다음 행동:\s*/u, "")
+    .replace(/^Next action:\s*/iu, "");
+  const guideCopy = isKorean
+    ? {
+        current: "현재 위치",
+        event: "평판 이벤트",
+        next: "다음 행동",
+        signal: "AgentRank 신호",
+        steps: "진행 흐름",
+      }
+    : {
+        current: "Current location",
+        event: "Reputation event",
+        next: "Next action",
+        signal: "AgentRank signal",
+        steps: "Flow",
+      };
 
   return (
     <section
       className={joinClasses(
-        "min-w-0 overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white p-3 shadow-[0_18px_46px_rgba(15,23,42,0.07)] sm:p-4",
+        "min-w-0 overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white text-zinc-950 shadow-[0_14px_40px_rgba(15,23,42,0.055)]",
         className,
       )}
     >
-      <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
-        <div className="min-w-0">
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <p className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.66rem] font-semibold text-zinc-700">
-              <CircleDot className="size-3.5 shrink-0 text-zinc-950" />
-              <span className="truncate">{currentLabel}</span>
-            </p>
-            <p className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-zinc-900 bg-zinc-950 px-2.5 py-1 text-[0.66rem] font-semibold text-white">
-              <Sparkles className="size-3.5 shrink-0" />
-              <span className="truncate">{reputationEventLabel}</span>
-            </p>
-          </div>
+      <div className="grid min-w-0 sm:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)]">
+        <div className="min-w-0 border-b border-zinc-200 p-3.5 sm:border-b-0 sm:border-r sm:p-4">
+          <p className="flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            <MapPin className="size-3.5 shrink-0" />
+            {guideCopy.current}
+          </p>
+          <p className="mt-2 truncate text-sm font-semibold text-zinc-950">
+            {currentLabel}
+          </p>
+          {metrics.length > 0 ? (
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {metrics.slice(0, 2).map((metric) => (
+                <div
+                  className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-2"
+                  key={metric.label}
+                >
+                  <p className="break-words text-[0.6rem] font-semibold leading-tight text-zinc-500 [word-break:keep-all]">
+                    {metric.label}
+                  </p>
+                  <p className="mt-0.5 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+                    {metric.value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="min-w-0 border-b border-zinc-200 p-3.5 sm:border-b-0 sm:p-4">
+          <p className="flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            <MousePointer2 className="size-3.5 shrink-0" />
+            {guideCopy.next}
+          </p>
           <h2 className="mt-2 break-words text-xl font-semibold leading-tight text-zinc-950 [word-break:keep-all] sm:text-2xl">
-            {title}
+            {actionTitle}
           </h2>
-          <p className="mt-1 hidden max-w-2xl text-sm font-medium leading-5 text-zinc-600 [word-break:keep-all] sm:block">
+          <p className="mt-2 hidden max-w-2xl text-sm font-medium leading-5 text-zinc-600 [word-break:keep-all] sm:block">
             {subtitle}
           </p>
         </div>
-        {metrics.length > 0 ? (
-          <div className="grid grid-cols-2 gap-2 sm:flex sm:justify-end">
-            {metrics.map((metric) => (
-              <div
-                className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2"
-                key={metric.label}
-              >
-                <p className="truncate text-[0.62rem] font-semibold text-zinc-500">
-                  {metric.label}
-                </p>
-                <p className="mt-0.5 truncate text-sm font-semibold text-zinc-950">
-                  {metric.value}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : null}
-      </div>
-      {steps.length > 0 ? (
-        <div className="mt-3">
-          <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
-        </div>
-      ) : null}
 
-      <div className="mt-3 grid min-w-0 gap-2">
-        <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {steps.map((step, index) => {
-            const isDone = step.status === "done";
-            const isActive = step.status === "active";
-
-            return (
-              <div
-                className={joinClasses(
-                  "flex min-w-[5.75rem] shrink-0 items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-semibold",
-                  isActive
-                    ? "border-zinc-950 bg-zinc-950 text-white"
-                    : isDone
-                      ? "border-zinc-200 bg-zinc-50 text-zinc-800"
-                      : "border-zinc-200 bg-white text-zinc-500",
-                )}
-                key={`${step.label}-${index}`}
-              >
-                {isDone ? (
-                  <CheckCircle2 className="size-3.5 shrink-0" />
-                ) : (
-                  <Circle className="size-3.5 shrink-0" />
-                )}
-                <span className="truncate">{step.label}</span>
-              </div>
-            );
-          })}
+        <div className="min-w-0 p-3.5 sm:col-span-2 sm:border-t sm:border-zinc-200 sm:p-4">
+          <p className="flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            <Activity className="size-3.5 shrink-0" />
+            {guideCopy.event}
+          </p>
+          <p className="mt-2 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+            {reputationEventLabel}
+          </p>
+          <p className="mt-1 text-xs font-semibold text-zinc-500">
+            {guideCopy.signal}
+          </p>
         </div>
       </div>
 
-      {primaryAction || visibleSecondaryActions.length > 0 ? (
-        <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
-          {primaryAction
-            ? renderAction(
-                primaryAction,
-                "inline-flex min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto sm:px-5",
-              )
-            : null}
-          {visibleSecondaryActions.map((action) =>
-            renderAction(
-              action,
-              joinClasses(
-                "min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-800 transition hover:border-zinc-300 hover:bg-zinc-50 sm:w-auto",
-                shouldHideSecondaryOnMobile
-                  ? "hidden sm:inline-flex"
-                  : "inline-flex",
-              ),
-              action.label,
-            ),
-          )}
+      {steps.length > 0 || primaryAction || visibleSecondaryActions.length > 0 ? (
+        <div className="border-t border-zinc-200 bg-zinc-50/72 p-3.5 sm:p-4">
+          {steps.length > 0 ? (
+            <div className="min-w-0">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                  {guideCopy.steps}
+                </p>
+                <p className="text-[0.68rem] font-semibold text-zinc-700">
+                  {progressPercent}%
+                </p>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-200">
+                <div
+                  className="h-full rounded-full bg-zinc-950"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </div>
+
+              <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {steps.map((step, index) => {
+                  const isDone = step.status === "done";
+                  const isActive = step.status === "active";
+
+                  return (
+                    <div
+                      className={joinClasses(
+                        "flex min-w-[6.25rem] shrink-0 items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-semibold",
+                        isActive
+                          ? "border-zinc-950 bg-zinc-950 text-white"
+                          : isDone
+                            ? "border-zinc-300 bg-white text-zinc-900"
+                            : "border-zinc-200 bg-white text-zinc-500",
+                      )}
+                      key={`${step.label}-${index}`}
+                    >
+                      {isDone ? (
+                        <CheckCircle2 className="size-3.5 shrink-0" />
+                      ) : (
+                        <Circle className="size-3.5 shrink-0" />
+                      )}
+                      <span className="truncate">{step.label}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
+          {primaryAction || visibleSecondaryActions.length > 0 ? (
+            <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
+              {primaryAction
+                ? renderAction(
+                    primaryAction,
+                    "inline-flex min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto sm:px-5",
+                  )
+                : null}
+              {visibleSecondaryActions.map((action) =>
+                renderAction(
+                  action,
+                  joinClasses(
+                    "min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-300 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-900 transition hover:border-zinc-400 hover:bg-zinc-50 sm:w-auto",
+                    shouldHideSecondaryOnMobile
+                      ? "hidden sm:inline-flex"
+                      : "inline-flex",
+                  ),
+                  action.label,
+                ),
+              )}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </section>

@@ -303,16 +303,24 @@ export function FanletterVlogPreviewCarousel({
   return (
     <div
       className={[
-        "group relative min-h-[16rem] overflow-hidden rounded-[1.15rem] bg-[#12041f] shadow-[0_22px_54px_rgba(20,4,31,0.18)]",
+        "group relative min-h-[16rem] min-w-0 max-w-full overflow-hidden rounded-[1.15rem] bg-[#12041f] shadow-[0_22px_54px_rgba(20,4,31,0.18)]",
         className,
       ]
         .filter(Boolean)
         .join(" ")}
     >
-      <a className="absolute inset-0" href={activeSlide.href}>
+      <a
+        aria-label={`${activeSlide.badgeLabel}: ${activeSlide.authorName}`}
+        className="absolute inset-0 z-[1] block min-w-0 max-w-full overflow-hidden"
+        href={activeSlide.href}
+      >
+        <span className="sr-only">
+          {activeSlide.badgeLabel}: {activeSlide.authorName}
+        </span>
+      </a>
         {activeSlide.coverImageUrl ? (
           <div
-            className="absolute inset-0 scale-105 bg-cover bg-center opacity-45 blur-xl"
+            className="absolute inset-0 bg-cover bg-center opacity-45 blur-xl"
             style={{ backgroundImage: `url(${activeSlide.coverImageUrl})` }}
           />
         ) : null}
@@ -373,7 +381,6 @@ export function FanletterVlogPreviewCarousel({
             </span>
           </div>
         </div>
-      </a>
 
       {playableSlides.length > 1 ? (
         <div

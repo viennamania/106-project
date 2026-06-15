@@ -1219,20 +1219,20 @@ function FanletterProductHomeDashboard({
   ].slice(0, 3);
 
   return (
-    <section className="grid min-w-0 flex-1 content-start gap-5 overflow-x-hidden pb-8 pt-6 sm:gap-6 sm:py-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] lg:items-start">
+    <section className="grid min-w-0 flex-1 content-start gap-4 overflow-x-hidden pb-7 pt-4 sm:gap-5 sm:py-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] lg:items-start">
       <div className="grid min-w-0 gap-4">
         <div>
-          <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_20px_50px_rgba(15,23,42,0.07)] sm:p-5">
+          <div className="min-w-0 overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white p-3 shadow-[0_14px_42px_rgba(15,23,42,0.055)] sm:p-4">
             <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,16rem)] lg:items-stretch">
               <div className="flex min-w-0 flex-col gap-4">
                 <div className="min-w-0">
-                  <p className="inline-flex max-w-full rounded-full bg-slate-50 px-3 py-1 text-[0.68rem] font-semibold text-slate-700 ring-1 ring-slate-200/80">
+                  <p className="inline-flex max-w-full rounded-full border border-zinc-200 bg-white px-3 py-1 text-[0.68rem] font-semibold text-zinc-700">
                     {productCopy.loop}
                   </p>
-                  <h1 className="mt-3 max-w-2xl text-[2.25rem] font-semibold leading-[1.02] tracking-normal text-[#12041f] [word-break:keep-all] sm:text-[3.2rem]">
+                  <h1 className="mt-3 max-w-2xl text-[2.05rem] font-semibold leading-[1.03] tracking-normal text-zinc-950 [word-break:keep-all] sm:text-[3rem]">
                     {productCopy.headline}
                   </h1>
-                  <p className="mt-3 max-w-2xl break-words text-sm font-medium leading-6 text-black/58 [overflow-wrap:anywhere] sm:text-base sm:[word-break:keep-all]">
+                  <p className="mt-3 hidden max-w-2xl break-words text-sm font-medium leading-6 text-zinc-600 [overflow-wrap:anywhere] sm:block sm:text-base sm:[word-break:keep-all]">
                     {productCopy.subhead}
                   </p>
                 </div>
@@ -1309,18 +1309,18 @@ function FanletterProductHomeDashboard({
 
         <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_18rem]">
           <ScrollReveal className="min-w-0 max-w-full overflow-hidden" delay={140} y={16}>
-            <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+            <div className="min-w-0 max-w-full overflow-hidden rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_12px_34px_rgba(15,23,42,0.045)]">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  <p className="text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
                     {productCopy.discovery}
                   </p>
-                  <h2 className="mt-1 break-words text-lg font-semibold text-[#12041f] [word-break:keep-all]">
+                  <h2 className="mt-1 break-words text-lg font-semibold text-zinc-950 [word-break:keep-all]">
                     {productCopy.topGrowingTitle}
                   </h2>
                 </div>
                 <Link
-                  className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 text-xs font-semibold !text-slate-700"
+                  className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full border border-zinc-200 bg-white px-3 text-xs font-semibold !text-zinc-800"
                   href={topGrowingStarsHref}
                 >
                   {copy.nav.features}
@@ -1345,7 +1345,7 @@ function FanletterProductHomeDashboard({
                         source: "fanletter_home",
                         starId: star.id,
                       }}
-                      className="group w-[12.9rem] max-w-[calc(100vw-4.75rem)] shrink-0 snap-start overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.1)] min-[390px]:w-[13.75rem] lg:w-[14.5rem]"
+                      className="group w-[12.9rem] max-w-[calc(100vw-4.75rem)] shrink-0 snap-start overflow-hidden rounded-[1.1rem] border border-zinc-200 bg-white shadow-[0_10px_24px_rgba(15,23,42,0.045)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(15,23,42,0.09)] min-[390px]:w-[13.75rem] lg:w-[14.5rem]"
                       eventName="content_open"
                       href={buildPathWithReferral(
                         `/${locale}/fanletter/${encodeURIComponent(star.id)}`,
@@ -1367,7 +1367,7 @@ function FanletterProductHomeDashboard({
                       <div className="p-3.5">
                         <div className="flex items-center gap-3">
                           <span
-                            className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-cover bg-center text-sm font-semibold text-white shadow-[0_12px_24px_rgba(88,28,135,0.14)]"
+                            className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-cover bg-center text-sm font-semibold text-white shadow-[0_12px_24px_rgba(15,23,42,0.12)]"
                             style={
                               star.portraitImageUrl
                                 ? { backgroundImage: `url(${star.portraitImageUrl})` }
@@ -1379,7 +1379,7 @@ function FanletterProductHomeDashboard({
                             {star.portraitImageUrl ? null : star.portraitInitials}
                           </span>
                           <span className="min-w-0">
-                            <span className="block truncate text-base font-semibold text-[#12041f]">
+                            <span className="block truncate text-base font-semibold text-zinc-950">
                               {star.name}
                             </span>
                             <span className="mt-1 block truncate text-xs font-semibold text-slate-500">
@@ -1394,10 +1394,10 @@ function FanletterProductHomeDashboard({
                             [productCopy.open, star.openSlots.open],
                           ].map(([label, value]) => (
                             <span
-                              className="min-w-0 rounded-xl bg-slate-50 px-2 py-2"
+                              className="min-w-0 rounded-xl bg-zinc-50 px-2 py-2"
                               key={label}
                             >
-                              <span className="block truncate text-sm font-semibold text-[#12041f]">
+                              <span className="block truncate text-sm font-semibold text-zinc-950">
                                 {value}
                               </span>
                               <span className="mt-0.5 block truncate whitespace-nowrap text-[0.58rem] font-semibold tracking-normal text-slate-400">
@@ -1406,7 +1406,7 @@ function FanletterProductHomeDashboard({
                             </span>
                           ))}
                         </div>
-                        <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2 text-[0.66rem] font-semibold text-slate-700">
+                        <div className="mt-3 flex items-center justify-between gap-2 rounded-xl bg-zinc-50 px-3 py-2 text-[0.66rem] font-semibold text-zinc-700">
                           <span className="truncate">{productCopy.starCardFlow}</span>
                           <ArrowRight className="size-3.5 shrink-0" />
                         </div>
@@ -1427,7 +1427,7 @@ function FanletterProductHomeDashboard({
           </ScrollReveal>
 
           <ScrollReveal className="min-w-0 max-w-full overflow-hidden" delay={180} y={16}>
-            <div className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+            <div className="min-w-0 max-w-full overflow-hidden rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_12px_34px_rgba(15,23,42,0.045)]">
               <div className="flex items-center justify-between gap-3">
                 <p className="min-w-0 truncate text-sm font-semibold text-[#12041f]">
                   {productCopy.portfolio}
