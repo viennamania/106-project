@@ -1,8 +1,18 @@
+import "server-only";
+
+import { sha256AgentRankPayload } from "@/lib/agentrank/integrity";
+import {
+  isAgentRankCoverageMockEvent,
+  summarizeAgentRankEventMockScope,
+} from "@/lib/agentrank/mock-events";
 import {
   agentRankReputationEventTypes,
+  summarizeAgentRankReputationEvents,
   type AgentRankReputationEvent,
   type AgentRankReputationEventType,
+  type FanletterAgentRankReputationEventFeed,
 } from "@/lib/agentrank/reputation-events";
+import { calculateAgentRankScoreAggregate } from "@/lib/agentrank/score";
 
 export const agentRankReviewQueueCategories = [
   "needs_oracle",
@@ -11,8 +21,27 @@ export const agentRankReviewQueueCategories = [
   "quality_review",
 ] as const;
 
+export const agentRankReviewStatuses = [
+  "pending",
+  "needs_enrichment",
+  "packet_ready",
+  "approved",
+  "rejected",
+] as const;
+
+export const agentRankReviewActions = [
+  "mark_needs_enrichment",
+  "mark_packet_ready",
+  "approve_event",
+  "reject_event",
+] as const;
+
 export type AgentRankReviewQueueCategory =
   (typeof agentRankReviewQueueCategories)[number];
+
+export type AgentRankReviewStatus = (typeof agentRankReviewStatuses)[number];
+
+export type AgentRankReviewAction = (typeof agentRankReviewActions)[number];
 
 export type AgentRankReviewReasonCode =
   | "audit_gap"
@@ -28,8 +57,10 @@ export type AgentRankReviewQueueItem = {
   category: AgentRankReviewQueueCategory;
   event: AgentRankReputationEvent;
   impactTotal: number;
+  provenance: "mock_coverage" | "product_event";
   qualityScore: number;
   reasonCodes: AgentRankReviewReasonCode[];
+  status: AgentRankReviewStatus;
 };
 
 export type AgentRankReviewQueueBucket = {
@@ -53,17 +84,91 @@ export type AgentRankProductActionCoverageItem = {
   label: string;
 };
 
+export type AgentRankActionCoverageGroup = {
+  actions: AgentRankProductActionCoverageItem[];
+  eventCount: number;
+  mockEvents: number;
+  productEvents: number;
+  ready: number;
+  total: number;
+};
+
+export type AgentRankReviewPacketDraft = {
+  candidateEventIds: string[];
+  evidenceHashes: string[];
+  generatedAt: string;
+  packetHash: string;
+  packetId: string;
+  productEvents: number;
+  mockEvents: number;
+  qualityAverage: number;
+  recordType: "agentrank.oracle_packet_draft";
+  readiness: {
+    auditReadyEvents: number;
+    graphReadyEvents: number;
+    impactReadyEvents: number;
+    oracleReadyEvents: number;
+    totalEvents: number;
+  };
+  scoreImpact: {
+    creator: number;
+    discovery: number;
+    economic: number;
+    network: number;
+    total: number;
+  };
+};
+
+export type AgentRankScoreChangeHistoryItem = {
+  deltaIfExcluded: number;
+  eventId: string;
+  eventType: AgentRankReputationEventType;
+  fromScore: number;
+  impactTotal: number;
+  nextStatus: AgentRankReviewStatus;
+  provenance: "mock_coverage" | "product_event";
+  toScoreIfExcluded: number;
+};
+
+export type AgentRankScoreHistory = {
+  coverageScore: number;
+  currentScore: number;
+  generatedAt: string;
+  productOnlyScore: number;
+  recordType: "agentrank.review_score_history";
+  scoreVersion: "agentrank.score.v0";
+  topChanges: AgentRankScoreChangeHistoryItem[];
+};
+
 export type AgentRankReviewQueueSnapshot = {
   actionCoverage: AgentRankProductActionCoverageItem[];
+  coverageBreakdown: {
+    all: AgentRankActionCoverageGroup;
+    mock: AgentRankActionCoverageGroup;
+    product: AgentRankActionCoverageGroup;
+  };
   generatedAt: string;
+  operational: {
+    accessMode: "ops_investor_console";
+    allowedActions: AgentRankReviewAction[];
+    mockActionPersistence: true;
+    statusCounts: Record<AgentRankReviewStatus, number>;
+  };
+  packetDraft: AgentRankReviewPacketDraft;
   queues: AgentRankReviewQueueBucket[];
+  recordType: "agentrank.review_queue_snapshot";
+  reviewItems: AgentRankReviewQueueItem[];
+  scoreHistory: AgentRankScoreHistory;
   summary: {
     actionCoverageReady: number;
     actionCoverageTotal: number;
     highImpactEvents: number;
     lowQualityEvents: number;
+    mockEvents: number;
     needsOracleEvents: number;
     packetReadyEvents: number;
+    productActionCoverageReady: number;
+    productEvents: number;
     totalEvents: number;
   };
 };
@@ -74,6 +179,10 @@ function formatLabel(value: string) {
     .filter(Boolean)
     .map((segment) => `${segment[0]?.toUpperCase() ?? ""}${segment.slice(1)}`)
     .join(" ");
+}
+
+function roundOne(value: number) {
+  return Math.round(value * 10) / 10;
 }
 
 function readContextText(event: AgentRankReputationEvent, keys: string[]) {
@@ -88,6 +197,35 @@ function getEventTimestamp(event: AgentRankReputationEvent) {
   const timestamp = new Date(event.occurredAt).getTime();
 
   return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function buildFeedFromEvents(
+  events: AgentRankReputationEvent[],
+): FanletterAgentRankReputationEventFeed {
+  return {
+    events,
+    generatedAt: new Date().toISOString(),
+    roadmap: [
+      "AI Star Discovery",
+      "Founder Network",
+      "x402 Economy",
+      "Agent Transaction Graph",
+      "AgentRank",
+      "Agent Reputation Oracle",
+    ],
+    summary: summarizeAgentRankReputationEvents(events),
+  };
+}
+
+function getAverageQuality(events: AgentRankReputationEvent[]) {
+  if (events.length === 0) {
+    return 0;
+  }
+
+  return Math.round(
+    events.reduce((sum, event) => sum + getAgentRankReviewAudit(event).qualityScore, 0) /
+      events.length,
+  );
 }
 
 export function getAgentRankEventImpactTotal(event: AgentRankReputationEvent) {
@@ -118,6 +256,8 @@ export function getAgentRankReviewAudit(event: AgentRankReputationEvent) {
 export function isAgentRankReviewPacketReady(event: AgentRankReputationEvent) {
   return (
     event.reputationSignals.oracleReady &&
+    event.audit.graphReady &&
+    event.audit.impactReady &&
     getAgentRankReviewAudit(event).status === "audit_ready"
   );
 }
@@ -155,6 +295,28 @@ export function getAgentRankReviewReasonCodes(
   return Array.from(reasons);
 }
 
+export function getAgentRankReviewStatus(
+  event: AgentRankReputationEvent,
+): AgentRankReviewStatus {
+  const reasonCodes = getAgentRankReviewReasonCodes(event);
+
+  if (
+    reasonCodes.includes("oracle_gap") ||
+    reasonCodes.includes("audit_gap") ||
+    reasonCodes.includes("graph_gap") ||
+    reasonCodes.includes("impact_gap") ||
+    reasonCodes.includes("low_quality")
+  ) {
+    return "needs_enrichment";
+  }
+
+  if (reasonCodes.includes("packet_candidate")) {
+    return "packet_ready";
+  }
+
+  return "pending";
+}
+
 export function getAgentRankReviewNextActionLabel(
   event: AgentRankReputationEvent,
 ) {
@@ -183,22 +345,21 @@ export function getAgentRankReviewNextActionLabel(
   return "Review Oracle Packet candidate";
 }
 
-export function buildAgentRankReviewQueueSnapshot(
-  events: AgentRankReputationEvent[],
-): AgentRankReviewQueueSnapshot {
-  const items = events.map((event) => {
+function buildReviewQueueItems(events: AgentRankReputationEvent[]) {
+  return events.map((event) => {
     const audit = getAgentRankReviewAudit(event);
     const reasonCodes = getAgentRankReviewReasonCodes(event);
-    const category: AgentRankReviewQueueCategory = reasonCodes.includes("oracle_gap") ||
+    const category: AgentRankReviewQueueCategory =
+      reasonCodes.includes("oracle_gap") ||
       reasonCodes.includes("audit_gap") ||
       reasonCodes.includes("graph_gap") ||
       reasonCodes.includes("impact_gap")
-      ? "needs_oracle"
-      : isAgentRankReviewPacketReady(event)
-        ? "packet_ready"
-        : audit.qualityScore < 90
-          ? "quality_review"
-          : "high_impact";
+        ? "needs_oracle"
+        : isAgentRankReviewPacketReady(event)
+          ? "packet_ready"
+          : audit.qualityScore < 90
+            ? "quality_review"
+            : "high_impact";
 
     return {
       actionLabel: getAgentRankReviewNextActionLabel(event),
@@ -206,10 +367,165 @@ export function buildAgentRankReviewQueueSnapshot(
       category,
       event,
       impactTotal: getAgentRankEventImpactTotal(event),
+      provenance: isAgentRankCoverageMockEvent(event)
+        ? "mock_coverage"
+        : "product_event",
       qualityScore: audit.qualityScore,
       reasonCodes,
+      status: getAgentRankReviewStatus(event),
     } satisfies AgentRankReviewQueueItem;
   });
+}
+
+function buildActionCoverageGroup(
+  events: AgentRankReputationEvent[],
+): AgentRankActionCoverageGroup {
+  const actions = buildAgentRankProductActionCoverage(events);
+  const scope = summarizeAgentRankEventMockScope(events);
+
+  return {
+    actions,
+    eventCount: events.length,
+    mockEvents: scope.mockEvents,
+    productEvents: scope.productEvents,
+    ready: actions.filter((item) => item.covered).length,
+    total: actions.length,
+  };
+}
+
+function buildPacketDraft(items: AgentRankReviewQueueItem[]) {
+  const candidates = items
+    .filter((item) => item.status === "packet_ready")
+    .sort((left, right) => {
+      return (
+        right.impactTotal - left.impactTotal ||
+        right.qualityScore - left.qualityScore ||
+        getEventTimestamp(right.event) - getEventTimestamp(left.event)
+      );
+    })
+    .slice(0, 12);
+  const candidateEvents = candidates.map((item) => item.event);
+  const generatedAt = new Date().toISOString();
+  const scoreImpact = candidateEvents.reduce(
+    (total, event) => {
+      total.creator += event.reputationSignals.creatorWeight;
+      total.discovery += event.reputationSignals.discoveryWeight;
+      total.economic += event.reputationSignals.economicWeight;
+      total.network += event.reputationSignals.networkWeight;
+      total.total += getAgentRankEventImpactTotal(event);
+
+      return total;
+    },
+    {
+      creator: 0,
+      discovery: 0,
+      economic: 0,
+      network: 0,
+      total: 0,
+    },
+  );
+  const packetSeed = {
+    candidateEventIds: candidates.map((item) => item.event.eventId),
+    evidenceHashes: candidateEvents.map((event) => event.audit.evidenceHash),
+    generatedAt,
+    recordType: "agentrank.oracle_packet_draft",
+  };
+  const packetHash = sha256AgentRankPayload(packetSeed);
+
+  return {
+    candidateEventIds: packetSeed.candidateEventIds,
+    evidenceHashes: packetSeed.evidenceHashes,
+    generatedAt,
+    packetHash,
+    packetId: `oracle_packet_${packetHash.slice(0, 24)}`,
+    productEvents: candidates.filter((item) => item.provenance === "product_event")
+      .length,
+    mockEvents: candidates.filter((item) => item.provenance === "mock_coverage")
+      .length,
+    qualityAverage: getAverageQuality(candidateEvents),
+    recordType: "agentrank.oracle_packet_draft",
+    readiness: {
+      auditReadyEvents: candidateEvents.filter(
+        (event) => event.audit.status === "audit_ready",
+      ).length,
+      graphReadyEvents: candidateEvents.filter((event) => event.audit.graphReady)
+        .length,
+      impactReadyEvents: candidateEvents.filter((event) => event.audit.impactReady)
+        .length,
+      oracleReadyEvents: candidateEvents.filter(
+        (event) => event.reputationSignals.oracleReady,
+      ).length,
+      totalEvents: candidateEvents.length,
+    },
+    scoreImpact: {
+      creator: roundOne(scoreImpact.creator),
+      discovery: roundOne(scoreImpact.discovery),
+      economic: roundOne(scoreImpact.economic),
+      network: roundOne(scoreImpact.network),
+      total: roundOne(scoreImpact.total),
+    },
+  } satisfies AgentRankReviewPacketDraft;
+}
+
+function getScoreForEvents(events: AgentRankReputationEvent[]) {
+  return calculateAgentRankScoreAggregate({
+    eventScope: {
+      excludedMockEvents: 0,
+      includeMockEvents: true,
+      scoringMode: "coverage_including_mock",
+    },
+    feed: buildFeedFromEvents(events),
+  }).score;
+}
+
+function buildScoreHistory(items: AgentRankReviewQueueItem[]) {
+  const events = items.map((item) => item.event);
+  const productEvents = items
+    .filter((item) => item.provenance === "product_event")
+    .map((item) => item.event);
+  const currentScore = getScoreForEvents(events);
+  const productOnlyScore = getScoreForEvents(productEvents);
+  const topChanges = [...items]
+    .sort((left, right) => {
+      return (
+        right.impactTotal - left.impactTotal ||
+        getEventTimestamp(right.event) - getEventTimestamp(left.event)
+      );
+    })
+    .slice(0, 8)
+    .map((item) => {
+      const toScoreIfExcluded = getScoreForEvents(
+        events.filter((event) => event.eventId !== item.event.eventId),
+      );
+
+      return {
+        deltaIfExcluded: currentScore - toScoreIfExcluded,
+        eventId: item.event.eventId,
+        eventType: item.event.type,
+        fromScore: currentScore,
+        impactTotal: roundOne(item.impactTotal),
+        nextStatus:
+          item.status === "packet_ready" ? "approved" : item.status,
+        provenance: item.provenance,
+        toScoreIfExcluded,
+      } satisfies AgentRankScoreChangeHistoryItem;
+    });
+
+  return {
+    coverageScore: currentScore,
+    currentScore,
+    generatedAt: new Date().toISOString(),
+    productOnlyScore,
+    recordType: "agentrank.review_score_history",
+    scoreVersion: "agentrank.score.v0",
+    topChanges,
+  } satisfies AgentRankScoreHistory;
+}
+
+export function buildAgentRankReviewQueueSnapshot(
+  events: AgentRankReputationEvent[],
+): AgentRankReviewQueueSnapshot {
+  const items = buildReviewQueueItems(events);
   const byImpact = [...items].sort((left, right) => {
     return (
       right.impactTotal - left.impactTotal ||
@@ -232,12 +548,34 @@ export function buildAgentRankReviewQueueSnapshot(
       item.reasonCodes.includes("impact_gap")
     );
   });
-  const packetReady = byImpact.filter((item) =>
-    item.reasonCodes.includes("packet_candidate"),
+  const packetReady = byImpact.filter(
+    (item) => item.status === "packet_ready",
   );
   const highImpact = byImpact.filter((item) => item.impactTotal >= 2);
   const qualityReview = byQuality.filter((item) => item.qualityScore < 90);
-  const actionCoverage = buildAgentRankProductActionCoverage(events);
+  const productEvents = events.filter(
+    (event) => !isAgentRankCoverageMockEvent(event),
+  );
+  const mockEvents = events.filter(isAgentRankCoverageMockEvent);
+  const coverageBreakdown = {
+    all: buildActionCoverageGroup(events),
+    mock: buildActionCoverageGroup(mockEvents),
+    product: buildActionCoverageGroup(productEvents),
+  };
+  const statusCounts = agentRankReviewStatuses.reduce(
+    (counts, status) => {
+      counts[status] = items.filter((item) => item.status === status).length;
+
+      return counts;
+    },
+    {
+      approved: 0,
+      needs_enrichment: 0,
+      packet_ready: 0,
+      pending: 0,
+      rejected: 0,
+    } satisfies Record<AgentRankReviewStatus, number>,
+  );
   const buckets = [
     {
       body: "Events requiring Oracle, graph, audit, or impact enrichment.",
@@ -270,16 +608,30 @@ export function buildAgentRankReviewQueueSnapshot(
   ] satisfies AgentRankReviewQueueBucket[];
 
   return {
-    actionCoverage,
+    actionCoverage: coverageBreakdown.all.actions,
+    coverageBreakdown,
     generatedAt: new Date().toISOString(),
+    operational: {
+      accessMode: "ops_investor_console",
+      allowedActions: [...agentRankReviewActions],
+      mockActionPersistence: true,
+      statusCounts,
+    },
+    packetDraft: buildPacketDraft(items),
     queues: buckets,
+    recordType: "agentrank.review_queue_snapshot",
+    reviewItems: items,
+    scoreHistory: buildScoreHistory(items),
     summary: {
-      actionCoverageReady: actionCoverage.filter((item) => item.covered).length,
-      actionCoverageTotal: actionCoverage.length,
+      actionCoverageReady: coverageBreakdown.all.ready,
+      actionCoverageTotal: coverageBreakdown.all.total,
       highImpactEvents: highImpact.length,
       lowQualityEvents: qualityReview.length,
+      mockEvents: mockEvents.length,
       needsOracleEvents: needsOracle.length,
       packetReadyEvents: packetReady.length,
+      productActionCoverageReady: coverageBreakdown.product.ready,
+      productEvents: productEvents.length,
       totalEvents: events.length,
     },
   };
@@ -356,4 +708,31 @@ export function buildAgentRankProductActionCoverage(
   return items.filter((item) =>
     agentRankReputationEventTypes.includes(item.eventType),
   );
+}
+
+export function normalizeAgentRankReviewAction(
+  value: unknown,
+): AgentRankReviewAction | null {
+  return typeof value === "string" &&
+    agentRankReviewActions.includes(value as AgentRankReviewAction)
+    ? (value as AgentRankReviewAction)
+    : null;
+}
+
+export function getAgentRankReviewStatusForAction(
+  action: AgentRankReviewAction,
+): AgentRankReviewStatus {
+  if (action === "approve_event") {
+    return "approved";
+  }
+
+  if (action === "reject_event") {
+    return "rejected";
+  }
+
+  if (action === "mark_packet_ready") {
+    return "packet_ready";
+  }
+
+  return "needs_enrichment";
 }

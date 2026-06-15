@@ -39,12 +39,7 @@ function getActorLabel(event: AgentRankReputationEvent) {
 function flattenReviewQueueItems(
   snapshot: ReturnType<typeof buildAgentRankReviewQueueSnapshot>,
 ) {
-  return snapshot.queues.flatMap((bucket) =>
-    bucket.events.map((item) => ({
-      ...item,
-      bucketLabel: bucket.label,
-    })),
-  );
+  return snapshot.reviewItems;
 }
 
 function serializeReviewQueueCsv(items: AgentRankReviewQueueItem[]) {
@@ -66,7 +61,9 @@ function serializeReviewQueueCsv(items: AgentRankReviewQueueItem[]) {
     "oracleReady",
     "graphReady",
     "impactReady",
+    "provenance",
     "schemaVersion",
+    "status",
   ];
   const rows = items.map((item) => [
     item.category,
@@ -86,7 +83,9 @@ function serializeReviewQueueCsv(items: AgentRankReviewQueueItem[]) {
     item.event.reputationSignals.oracleReady,
     item.event.audit.graphReady,
     item.event.audit.impactReady,
+    item.provenance,
     item.event.schemaVersion,
+    item.status,
   ]);
 
   return [headers, ...rows]
@@ -103,10 +102,12 @@ function serializeReviewQueueNdjson(items: AgentRankReviewQueueItem[]) {
         category: item.category,
         event: item.event,
         impactTotal: item.impactTotal,
+        provenance: item.provenance,
         qualityScore: item.qualityScore,
         reasonCodes: item.reasonCodes,
         recordType: "agentrank.review_queue_item",
         sequence: index + 1,
+        status: item.status,
       }),
     )
     .join("\n")}\n`;
@@ -128,6 +129,10 @@ function getReviewQueueHeaders(
     "x-agentrank-packet-ready-events": String(
       snapshot.summary.packetReadyEvents,
     ),
+    "x-agentrank-product-action-coverage-ready": String(
+      snapshot.summary.productActionCoverageReady,
+    ),
+    "x-agentrank-product-events": String(snapshot.summary.productEvents),
     "x-agentrank-record-count": String(snapshot.summary.totalEvents),
     "x-agentrank-record-type": "agentrank.review_queue",
   };
@@ -161,6 +166,32 @@ export async function GET(request: Request) {
       "x-agentrank-raw-product-events": String(rawScope.productEvents),
     };
     const items = flattenReviewQueueItems(reviewQueue);
+
+    if (url.searchParams.get("format") === "packet") {
+      return Response.json(reviewQueue.packetDraft, {
+        headers: {
+          "x-agentrank-packet-hash": reviewQueue.packetDraft.packetHash,
+          "x-agentrank-packet-id": reviewQueue.packetDraft.packetId,
+          "x-agentrank-record-type": reviewQueue.packetDraft.recordType,
+          ...scopeHeaders,
+        },
+      });
+    }
+
+    if (url.searchParams.get("format") === "score-history") {
+      return Response.json(reviewQueue.scoreHistory, {
+        headers: {
+          "x-agentrank-record-type": reviewQueue.scoreHistory.recordType,
+          "x-agentrank-score-current": String(
+            reviewQueue.scoreHistory.currentScore,
+          ),
+          "x-agentrank-score-product-only": String(
+            reviewQueue.scoreHistory.productOnlyScore,
+          ),
+          ...scopeHeaders,
+        },
+      });
+    }
 
     if (url.searchParams.get("format") === "csv") {
       const csv = serializeReviewQueueCsv(items);

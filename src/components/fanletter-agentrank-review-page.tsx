@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { FanletterAgentRankReviewActions } from "@/components/fanletter-agentrank-review-actions";
 import type { AgentRankEventMockScope } from "@/lib/agentrank/mock-events";
 import type { AgentRankReputationEventType } from "@/lib/agentrank/reputation-events";
 import type {
@@ -53,11 +54,16 @@ function getReviewCopy(locale: Locale) {
     return {
       actionCoverage: "제품 행동 커버리지",
       actionCoverageBody:
-        "FanLetter Phase 1 행동이 AgentRank Reputation Event로 누락 없이 연결되는지 확인합니다.",
+        "운영 이벤트 기준으로 FanLetter Phase 1 행동이 AgentRank Reputation Event로 누락 없이 연결되는지 확인합니다.",
+      accessBadge: "Ops / Investor Console",
+      accessBody:
+        "이 화면은 일반 사용자 홈이 아니라 운영자와 투자자가 Reputation Event 검증 상태를 확인하는 도구입니다. 액션은 현재 mock receipt로만 기록됩니다.",
       actionMissing: "수집 대기",
       actionReady: "수집됨",
       api: "Review API",
       back: "AgentRank로 돌아가기",
+      candidateEvents: "후보 이벤트",
+      coverageScore: "커버리지 포함 점수",
       csv: "CSV",
       eventLedger: "Event Ledger",
       generated: "생성 시각",
@@ -66,10 +72,16 @@ function getReviewCopy(locale: Locale) {
       heroEyebrow: "AgentRank Operations",
       heroTitle: "Review Queue",
       impact: "기여도",
+      mockBoundary: "Mock / Product 경계",
+      mockCoverage: "Mock 커버리지",
       ndjson: "NDJSON",
       nextAction: "다음 액션",
       openEvent: "이벤트 추적",
+      packetDraft: "Oracle Packet Draft",
+      packetHash: "Packet Hash",
       productEvents: "운영 이벤트",
+      productOnlyCoverage: "운영 이벤트 커버리지",
+      productOnlyScore: "운영 점수",
       quality: "품질",
       rawEvents: "전체 이벤트",
       ready: "준비됨",
@@ -80,22 +92,29 @@ function getReviewCopy(locale: Locale) {
         "Evidence Packet 후보화",
         "AgentRank Oracle 전송",
       ],
+      scoreHistory: "Score 변경 이력",
       scopedEvents: "현재 범위",
       summaryActionCoverage: "행동 커버리지",
       summaryHighImpact: "고기여",
       summaryNeedsOracle: "오라클 보강",
       summaryPacketReady: "Packet 후보",
+      totalScore: "현재 점수",
     };
   }
 
   return {
     actionCoverage: "Product Action Coverage",
     actionCoverageBody:
-      "Checks whether FanLetter Phase 1 actions are entering AgentRank as Reputation Events.",
+      "Checks whether product events are entering AgentRank as Reputation Events.",
+    accessBadge: "Ops / Investor Console",
+    accessBody:
+      "This is an operator and investor tool, not the public user home. Actions currently create mock receipts only.",
     actionMissing: "Pending",
     actionReady: "Covered",
     api: "Review API",
     back: "Back to AgentRank",
+    candidateEvents: "Candidate events",
+    coverageScore: "Coverage score",
     csv: "CSV",
     eventLedger: "Event Ledger",
     generated: "Generated",
@@ -104,10 +123,16 @@ function getReviewCopy(locale: Locale) {
     heroEyebrow: "AgentRank Operations",
     heroTitle: "Review Queue",
     impact: "Impact",
+    mockBoundary: "Mock / Product Boundary",
+    mockCoverage: "Mock coverage",
     ndjson: "NDJSON",
     nextAction: "Next action",
     openEvent: "Trace event",
+    packetDraft: "Oracle Packet Draft",
+    packetHash: "Packet Hash",
     productEvents: "Product events",
+    productOnlyCoverage: "Product event coverage",
+    productOnlyScore: "Product score",
     quality: "Quality",
     rawEvents: "Raw events",
     ready: "Ready",
@@ -118,11 +143,13 @@ function getReviewCopy(locale: Locale) {
       "Package Evidence candidates",
       "Send to AgentRank Oracle",
     ],
+    scoreHistory: "Score Change History",
     scopedEvents: "Current scope",
     summaryActionCoverage: "Action coverage",
     summaryHighImpact: "High impact",
     summaryNeedsOracle: "Oracle gaps",
     summaryPacketReady: "Packet candidates",
+    totalScore: "Current score",
   };
 }
 
@@ -280,6 +307,61 @@ function getReasonLabel(reason: AgentRankReviewReasonCode, locale: Locale) {
   return labels[reason];
 }
 
+function getStatusLabel(
+  status: AgentRankReviewQueueItem["status"],
+  locale: Locale,
+) {
+  const labels =
+    locale === "ko"
+      ? {
+          approved: "승인됨",
+          needs_enrichment: "보강 필요",
+          packet_ready: "Packet 준비",
+          pending: "대기",
+          rejected: "제외됨",
+        }
+      : {
+          approved: "Approved",
+          needs_enrichment: "Needs enrichment",
+          packet_ready: "Packet ready",
+          pending: "Pending",
+          rejected: "Rejected",
+        };
+
+  return labels[status];
+}
+
+function getStatusTone(status: AgentRankReviewQueueItem["status"]) {
+  if (status === "packet_ready") {
+    return "bg-cyan-50 text-cyan-700";
+  }
+
+  if (status === "needs_enrichment") {
+    return "bg-amber-50 text-amber-700";
+  }
+
+  if (status === "approved") {
+    return "bg-emerald-50 text-emerald-700";
+  }
+
+  if (status === "rejected") {
+    return "bg-rose-50 text-rose-700";
+  }
+
+  return "bg-slate-50 text-slate-600";
+}
+
+function getProvenanceLabel(
+  provenance: AgentRankReviewQueueItem["provenance"],
+  locale: Locale,
+) {
+  if (locale === "ko") {
+    return provenance === "mock_coverage" ? "Mock" : "운영";
+  }
+
+  return provenance === "mock_coverage" ? "Mock" : "Product";
+}
+
 function getActionCoverageLabel(
   action: AgentRankProductActionCoverageItem,
   locale: Locale,
@@ -361,6 +443,21 @@ function SummaryTile({
     <div className="rounded-lg border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
       <p className="text-xs font-semibold uppercase text-slate-400">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-[#11132d]">{value}</p>
+    </div>
+  );
+}
+
+function MiniStat({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-lg bg-slate-50/80 p-3">
+      <p className="text-xs font-semibold text-slate-500">{label}</p>
+      <p className="mt-1 text-xl font-semibold text-[#11132d]">{value}</p>
     </div>
   );
 }
@@ -500,6 +597,171 @@ export function FanletterAgentRankReviewPage({
           />
         </section>
 
+        <section className="grid gap-4 lg:grid-cols-[0.92fr_1.08fr]">
+          <article className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+            <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+              <ShieldCheck className="size-4" />
+              {copy.accessBadge}
+            </p>
+            <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
+              {copy.accessBody}
+            </p>
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              <MiniStat
+                label={copy.summaryNeedsOracle}
+                value={formatNumber(
+                  reviewQueue.operational.statusCounts.needs_enrichment,
+                  locale,
+                )}
+              />
+              <MiniStat
+                label={copy.summaryPacketReady}
+                value={formatNumber(
+                  reviewQueue.operational.statusCounts.packet_ready,
+                  locale,
+                )}
+              />
+              <MiniStat
+                label={copy.reviewFlow}
+                value={
+                  reviewQueue.operational.mockActionPersistence ? "Mock" : "Live"
+                }
+              />
+            </div>
+          </article>
+
+          <article className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+            <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
+              <Database className="size-4" />
+              {copy.mockBoundary}
+            </p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <MiniStat
+                label={copy.productEvents}
+                value={formatNumber(reviewQueue.summary.productEvents, locale)}
+              />
+              <MiniStat
+                label={copy.mockCoverage}
+                value={formatNumber(reviewQueue.summary.mockEvents, locale)}
+              />
+              <MiniStat
+                label={copy.productOnlyCoverage}
+                value={`${formatNumber(
+                  reviewQueue.coverageBreakdown.product.ready,
+                  locale,
+                )}/${formatNumber(
+                  reviewQueue.coverageBreakdown.product.total,
+                  locale,
+                )}`}
+              />
+            </div>
+          </article>
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-2">
+          <article className="rounded-lg border border-emerald-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-emerald-700">
+                  <ShieldCheck className="size-4" />
+                  {copy.packetDraft}
+                </p>
+                <p className="mt-2 font-mono text-xs font-semibold text-slate-400">
+                  {reviewQueue.packetDraft.packetId}
+                </p>
+              </div>
+              <Link
+                className="inline-flex h-9 items-center gap-2 rounded-full bg-emerald-50 px-3 text-xs font-semibold text-emerald-800"
+                href={`/api/fanletter/agentrank/review-queue?${new URLSearchParams({
+                  ...Object.fromEntries(params.entries()),
+                  format: "packet",
+                }).toString()}`}
+              >
+                JSON
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <MiniStat
+                label={copy.candidateEvents}
+                value={formatNumber(
+                  reviewQueue.packetDraft.candidateEventIds.length,
+                  locale,
+                )}
+              />
+              <MiniStat
+                label={copy.impact}
+                value={reviewQueue.packetDraft.scoreImpact.total.toFixed(1)}
+              />
+              <MiniStat
+                label={copy.quality}
+                value={formatNumber(reviewQueue.packetDraft.qualityAverage, locale)}
+              />
+            </div>
+            <p className="mt-4 truncate font-mono text-xs font-semibold text-slate-500">
+              {copy.packetHash}: {reviewQueue.packetDraft.packetHash}
+            </p>
+          </article>
+
+          <article className="rounded-lg border border-blue-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-blue-700">
+                  <Sparkles className="size-4" />
+                  {copy.scoreHistory}
+                </p>
+              </div>
+              <Link
+                className="inline-flex h-9 items-center gap-2 rounded-full bg-blue-50 px-3 text-xs font-semibold text-blue-800"
+                href={`/api/fanletter/agentrank/review-queue?${new URLSearchParams({
+                  ...Object.fromEntries(params.entries()),
+                  format: "score-history",
+                }).toString()}`}
+              >
+                JSON
+                <ArrowRight className="size-3.5" />
+              </Link>
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <MiniStat
+                label={copy.totalScore}
+                value={formatNumber(reviewQueue.scoreHistory.currentScore, locale)}
+              />
+              <MiniStat
+                label={copy.productOnlyScore}
+                value={formatNumber(
+                  reviewQueue.scoreHistory.productOnlyScore,
+                  locale,
+                )}
+              />
+              <MiniStat
+                label={copy.coverageScore}
+                value={formatNumber(reviewQueue.scoreHistory.coverageScore, locale)}
+              />
+            </div>
+            <div className="mt-4 grid gap-2">
+              {reviewQueue.scoreHistory.topChanges.slice(0, 3).map((change) => (
+                <Link
+                  className="flex items-center justify-between gap-3 rounded-lg bg-blue-50/70 px-3 py-2 text-sm font-semibold text-[#11132d]"
+                  href={buildEventDetailHref({
+                    eventId: change.eventId,
+                    locale,
+                    starId: filters.starId,
+                  })}
+                  key={change.eventId}
+                >
+                  <span className="min-w-0 truncate">
+                    {getEventTypeLabel(change.eventType, locale)}
+                  </span>
+                  <span className="shrink-0 font-mono text-xs text-blue-700">
+                    -{formatNumber(change.deltaIfExcluded, locale)}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </article>
+        </section>
+
         <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -556,29 +818,42 @@ export function FanletterAgentRankReviewPage({
                 <div className="mt-4 grid gap-2">
                   {bucket.events.length ? (
                     bucket.events.map((item) => (
-                      <Link
+                      <div
                         className="rounded-lg bg-white/82 p-3 text-sm transition hover:bg-white hover:shadow-[0_12px_24px_rgba(88,28,135,0.08)]"
-                        href={buildEventDetailHref({
-                          eventId: item.event.eventId,
-                          locale,
-                          starId: item.event.starId ?? filters.starId,
-                        })}
                         key={item.event.eventId}
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="truncate font-semibold">
-                              {getEventTypeLabel(item.event.type, locale)}
-                            </p>
-                            <p className="mt-1 truncate text-xs font-semibold text-slate-500">
-                              {getReviewActionLabel(item, locale)}
-                            </p>
+                        <Link
+                          href={buildEventDetailHref({
+                            eventId: item.event.eventId,
+                            locale,
+                            starId: item.event.starId ?? filters.starId,
+                          })}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="truncate font-semibold">
+                                {getEventTypeLabel(item.event.type, locale)}
+                              </p>
+                              <p className="mt-1 truncate text-xs font-semibold text-slate-500">
+                                {getReviewActionLabel(item, locale)}
+                              </p>
+                            </div>
+                            <span className="shrink-0 font-mono text-xs font-semibold text-[#6d28d9]">
+                              {item.impactTotal.toFixed(1)}
+                            </span>
                           </div>
-                          <span className="shrink-0 font-mono text-xs font-semibold text-[#6d28d9]">
-                            {item.impactTotal.toFixed(1)}
-                          </span>
-                        </div>
+                        </Link>
                         <div className="mt-3 flex flex-wrap gap-1.5">
+                          <span
+                            className={`rounded-full px-2 py-1 text-[0.68rem] font-semibold ${getStatusTone(
+                              item.status,
+                            )}`}
+                          >
+                            {getStatusLabel(item.status, locale)}
+                          </span>
+                          <span className="rounded-full bg-white px-2 py-1 text-[0.68rem] font-semibold text-slate-500">
+                            {getProvenanceLabel(item.provenance, locale)}
+                          </span>
                           {item.reasonCodes.slice(0, 3).map((reason) => (
                             <span
                               className="rounded-full bg-violet-50 px-2 py-1 text-[0.68rem] font-semibold text-[#6d28d9]"
@@ -592,11 +867,25 @@ export function FanletterAgentRankReviewPage({
                           <span>
                             {copy.quality} {item.qualityScore}
                           </span>
-                          <span>
+                          <Link
+                            href={buildEventDetailHref({
+                              eventId: item.event.eventId,
+                              locale,
+                              starId: item.event.starId ?? filters.starId,
+                            })}
+                          >
                             {copy.openEvent} <ArrowRight className="inline size-3" />
-                          </span>
+                          </Link>
                         </div>
-                      </Link>
+                        <FanletterAgentRankReviewActions
+                          eventId={item.event.eventId}
+                          initialStatus={item.status}
+                          locale={locale}
+                          memberEmail={filters.memberEmail}
+                          scope={filters.scope}
+                          starId={item.event.starId ?? filters.starId}
+                        />
+                      </div>
                     ))
                   ) : (
                     <p className="rounded-lg bg-white/72 px-3 py-2 text-xs font-semibold text-slate-500">
@@ -621,12 +910,29 @@ export function FanletterAgentRankReviewPage({
               </p>
             </div>
             <span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
-              {formatNumber(reviewQueue.summary.actionCoverageReady, locale)}/
-              {formatNumber(reviewQueue.summary.actionCoverageTotal, locale)}
+              {formatNumber(reviewQueue.coverageBreakdown.product.ready, locale)}/
+              {formatNumber(reviewQueue.coverageBreakdown.product.total, locale)}
+            </span>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700">
+              {copy.productOnlyCoverage}:{" "}
+              {formatNumber(reviewQueue.coverageBreakdown.product.ready, locale)}/
+              {formatNumber(reviewQueue.coverageBreakdown.product.total, locale)}
+            </span>
+            <span className="rounded-full bg-violet-50 px-3 py-1 text-[#6d28d9]">
+              {copy.coverageScore}:{" "}
+              {formatNumber(reviewQueue.coverageBreakdown.all.ready, locale)}/
+              {formatNumber(reviewQueue.coverageBreakdown.all.total, locale)}
+            </span>
+            <span className="rounded-full bg-slate-50 px-3 py-1 text-slate-600">
+              {copy.mockCoverage}:{" "}
+              {formatNumber(reviewQueue.coverageBreakdown.mock.ready, locale)}/
+              {formatNumber(reviewQueue.coverageBreakdown.mock.total, locale)}
             </span>
           </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            {reviewQueue.actionCoverage.map((action) => (
+            {reviewQueue.coverageBreakdown.product.actions.map((action) => (
               <Link
                 className={`rounded-lg border p-3 transition hover:shadow-[0_14px_30px_rgba(88,28,135,0.08)] ${
                   action.covered
