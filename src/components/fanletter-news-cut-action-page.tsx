@@ -277,7 +277,7 @@ export function FanletterNewsCutActionPage({
   };
 
   return (
-    <main className="min-h-screen bg-[#050706] text-white">
+    <main className="fanletter-v2-surface min-h-screen bg-[#050706] text-white">
       <div className="mx-auto min-h-screen w-full max-w-[430px] overflow-hidden bg-[radial-gradient(circle_at_50%_0%,rgba(68,242,110,0.2),transparent_34%),linear-gradient(180deg,#0b130d,#050706_48%,#020302)] px-4 pb-[calc(env(safe-area-inset-bottom)+2rem)] pt-[calc(env(safe-area-inset-top)+1rem)] shadow-[0_0_56px_rgba(0,0,0,0.42)] sm:border-x sm:border-white/10">
         <Link
           className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/12 bg-white/8 px-3 text-xs font-black !text-white/82 backdrop-blur-xl"

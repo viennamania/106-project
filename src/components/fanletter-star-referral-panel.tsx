@@ -331,12 +331,14 @@ export function FanletterStarReferralPanel({
             </p>
           </div>
           <button
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+            className="inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight text-white transition hover:bg-zinc-800"
             onClick={() => setIsGenerated(true)}
             type="button"
           >
-            <Sparkles className="size-4" />
-            {copy.actions.createMockReferral}
+            <Sparkles className="size-4 shrink-0" />
+            <span className="min-w-0 whitespace-normal [word-break:keep-all]">
+              {copy.actions.createMockReferral}
+            </span>
           </button>
         </div>
 
@@ -350,14 +352,14 @@ export function FanletterStarReferralPanel({
             </p>
             <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
               <CopyTextButton
-                className="h-11 border-black/10 text-sm font-semibold"
+                className="min-h-11 border-black/10 py-2.5 text-sm font-semibold leading-tight"
                 copiedLabel={copy.actions.copied}
                 copyLabel={copy.actions.copyLink}
                 text={visibleShareLink}
               />
               {platformLinks.map((platformLink) => (
                 <a
-                  className="inline-flex h-11 items-center justify-center rounded-full border border-black/8 bg-white px-4 text-sm font-semibold text-black/68 transition hover:border-[#7c3aed]/40 hover:text-[#5b21b6]"
+                  className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/8 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-black/68 transition hover:border-[#7c3aed]/40 hover:text-[#5b21b6]"
                   href={platformLink.href}
                   key={platformLink.label}
                   rel="noreferrer"

@@ -4678,7 +4678,7 @@ export function FanletterNewsReportComposerPage({
 
   if (displayedSources.length === 0) {
     return (
-      <main className="min-h-screen bg-[#f2f4ef] px-4 py-6 text-[#111510] sm:px-6 lg:px-8">
+      <main className="fanletter-v2-surface min-h-screen bg-[#f2f4ef] px-4 py-6 text-[#111510] sm:px-6 lg:px-8">
         <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
           <section className="border border-dashed border-black/16 bg-white p-8 text-center shadow-[0_18px_46px_rgba(17,21,16,0.06)]">
             <Newspaper className="mx-auto size-10 text-[#16702e]" />

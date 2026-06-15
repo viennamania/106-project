@@ -8290,7 +8290,7 @@ export function FanletterCreatorPromoSharePage({
       : undefined;
 
   return (
-    <main className="min-h-screen bg-[#050806] pb-[calc(5.6rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
+    <main className="fanletter-v2-surface min-h-screen bg-[#050806] pb-[calc(5.6rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#030504]/94 px-3 pb-[calc(env(safe-area-inset-bottom)+0.65rem)] pt-2.5 shadow-[0_-18px_46px_rgba(0,0,0,0.34)] backdrop-blur-xl sm:hidden">
         <div className="mx-auto grid max-w-md grid-cols-2 gap-2">
           <FanletterTrackedLink
@@ -9760,7 +9760,7 @@ export function FanletterContentDetailPage({
         };
 
   return (
-    <main className="min-h-screen bg-[#030504] pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
+    <main className="fanletter-v2-surface min-h-screen bg-[#030504] pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
       <FanletterReputationTracker
         agentRank={{
           eventType: "content_engaged",

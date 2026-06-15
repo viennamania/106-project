@@ -613,7 +613,7 @@ export function FanletterCharacterDirectoryPage({
   ];
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#030504] pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
+    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#030504] pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
       <section className="border-b border-white/10">
         <DirectoryHeader copy={copy} locale={locale} referralCode={referralCode} />
         <div className="mx-auto grid max-w-7xl gap-8 px-4 pb-10 pt-8 sm:px-6 sm:pb-14 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-end lg:px-8">

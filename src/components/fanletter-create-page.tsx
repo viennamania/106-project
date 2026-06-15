@@ -1098,7 +1098,7 @@ function StatusPanel({
   title: string;
 }) {
   return (
-    <main className="min-h-[calc(100svh-5.1rem)] bg-[#030504] px-2 pb-4 pt-[calc(env(safe-area-inset-top)+0.85rem)] text-white sm:min-h-screen sm:px-6 sm:py-6 lg:px-8">
+    <main className="fanletter-v2-surface min-h-[calc(100svh-5.1rem)] bg-[#030504] px-2 pb-4 pt-[calc(env(safe-area-inset-top)+0.85rem)] text-white sm:min-h-screen sm:px-6 sm:py-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <FanletterTabTopBar
           accountActivateHref={accountActivateHref}

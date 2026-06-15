@@ -1673,7 +1673,7 @@ export function FanletterAgentRankLedgerPage({
   ];
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-white px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
+    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full min-w-0 max-w-[92rem] flex-col gap-5">
         <FanletterActionGuide
           currentLabel={

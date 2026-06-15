@@ -683,7 +683,7 @@ export function FanletterSalesPage({
   const pageInfo = dashboard?.pageInfo ?? null;
 
   return (
-    <main className="min-h-screen bg-[#030504] text-white">
+    <main className="fanletter-v2-surface min-h-screen bg-[#030504] text-white">
       <section className="px-4 pb-8 pt-3 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <header className="flex items-center justify-between gap-3">

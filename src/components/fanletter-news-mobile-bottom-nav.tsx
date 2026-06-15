@@ -567,20 +567,20 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
                 </span>
                 <span
                   className={cn(
-                    "block max-w-full truncate text-black/52",
+                    "block max-w-full whitespace-normal text-center leading-tight text-black/52 [word-break:keep-all]",
                     active && "text-[#111510]",
                     item.primary && "text-[#111510]",
                     item.primary &&
                       item.secondaryLabel &&
-                      "flex min-h-[1.05rem] flex-col items-center justify-center leading-none",
+                      "flex min-h-[1.05rem] flex-col items-center justify-center",
                   )}
                 >
                   {item.secondaryLabel ? (
                     <>
-                      <span className="block max-w-full truncate text-[0.64rem]">
+                      <span className="block max-w-full whitespace-normal text-[0.64rem] leading-tight">
                         {item.label}
                       </span>
-                      <span className="mt-0.5 block max-w-full truncate text-[0.48rem] text-black/45">
+                      <span className="mt-0.5 block max-w-full whitespace-normal text-[0.48rem] leading-tight text-black/45">
                         {item.secondaryLabel}
                       </span>
                     </>

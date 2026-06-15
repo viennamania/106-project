@@ -378,7 +378,7 @@ export function ReferralBridgePage({
             </p>
             <div className="mt-5 grid gap-3">
               <button
-                className="inline-flex h-12 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-5 text-sm font-semibold text-slate-950 shadow-[0_20px_45px_rgba(251,191,36,0.28)] transition hover:brightness-[1.03]"
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-amber-200/70 bg-[linear-gradient(135deg,#fef3c7_0%,#fbbf24_100%)] px-5 py-2.5 text-center text-sm font-semibold leading-tight text-slate-950 shadow-[0_20px_45px_rgba(251,191,36,0.28)] transition hover:brightness-[1.03] [word-break:keep-all]"
                 onClick={handleOpenBrowser}
                 type="button"
               >
@@ -390,7 +390,7 @@ export function ReferralBridgePage({
                 {launchState === "opening" ? copy.opening : copy.browserCta}
               </button>
               <button
-                className="inline-flex h-11 items-center justify-center rounded-full border border-white/16 bg-white/10 px-5 text-sm font-semibold text-white/84 transition hover:bg-white/16"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/16 bg-white/10 px-5 py-2.5 text-center text-sm font-semibold leading-tight text-white transition hover:bg-white/16 [word-break:keep-all]"
                 onClick={() => {
                   void handleCopy();
                 }}

@@ -998,7 +998,7 @@ export function FanletterConnectPage({
   }
 
   return (
-    <main className="min-h-screen bg-[#030504] text-white">
+    <main className="fanletter-v2-surface min-h-screen bg-[#030504] text-white">
       <FanletterReputationTracker
         agentRank={{
           eventType: "content_engaged",

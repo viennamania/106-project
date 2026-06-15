@@ -320,7 +320,7 @@ export function FanletterNewsSharedNextPickerPage({
   ]);
 
   return (
-    <main className="min-h-dvh bg-[#050706] text-white">
+    <main className="fanletter-v2-surface min-h-dvh bg-[#050706] text-white">
       <div className="fixed inset-0">
         <Image
           alt=""

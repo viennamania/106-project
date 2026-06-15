@@ -3080,27 +3080,27 @@ export function FanletterHomePage({
                 )}
               >
                 <Link
-                  className="inline-flex h-12 items-center justify-center rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9] sm:h-[3.25rem] sm:px-7"
+                  className="inline-flex min-h-12 items-center justify-center rounded-full bg-[#7c3aed] px-5 py-2.5 text-center text-sm font-semibold leading-tight !text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9] sm:min-h-[3.25rem] sm:px-7"
                   href={topGrowingStarsHref}
                 >
                   <span className="sm:hidden">{mobileHeroCopy.primary}</span>
                   <span className="hidden sm:inline">{founderClubCtaLabels.discover}</span>
                 </Link>
                 <Link
-                  className="hidden h-11 items-center justify-center gap-2 rounded-full border border-violet-200 bg-white/84 px-5 text-sm font-semibold !text-[#5b21b6] backdrop-blur-md transition hover:border-violet-300 hover:bg-violet-50 sm:inline-flex sm:h-[3.25rem] sm:px-7"
+                  className="hidden min-h-11 items-center justify-center gap-2 rounded-full border border-violet-200 bg-white/84 px-5 py-2.5 text-center text-sm font-semibold leading-tight !text-[#5b21b6] backdrop-blur-md transition hover:border-violet-300 hover:bg-violet-50 sm:inline-flex sm:min-h-[3.25rem] sm:px-7"
                   href={founderClubHref}
                 >
                   {founderClubCtaLabels.founder}
                 </Link>
                 <Link
-                  className="hidden h-12 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 text-sm font-semibold !text-emerald-800 backdrop-blur-md transition hover:border-emerald-300 hover:bg-emerald-100 sm:inline-flex sm:h-[3.25rem] sm:px-6"
+                  className="hidden min-h-12 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-center text-sm font-semibold leading-tight !text-emerald-800 backdrop-blur-md transition hover:border-emerald-300 hover:bg-emerald-100 sm:inline-flex sm:min-h-[3.25rem] sm:px-6"
                   href={scoutShareLoopHref}
                 >
                   <Megaphone className="size-4" />
                   {founderClubCtaLabels.loop}
                 </Link>
                 <Link
-                  className="hidden h-12 items-center gap-2 rounded-full border border-violet-200 bg-white/84 px-5 text-sm font-semibold !text-[#5b21b6] backdrop-blur-md transition hover:border-violet-300 hover:bg-violet-50 sm:inline-flex sm:h-[3.25rem] sm:px-6"
+                  className="hidden min-h-12 items-center gap-2 rounded-full border border-violet-200 bg-white/84 px-5 py-2.5 text-center text-sm font-semibold leading-tight !text-[#5b21b6] backdrop-blur-md transition hover:border-violet-300 hover:bg-violet-50 sm:inline-flex sm:min-h-[3.25rem] sm:px-6"
                   href={aiStarGenealogyHref}
                 >
                   <Network className="size-4" />
@@ -3884,25 +3884,25 @@ export function FanletterHomePage({
             </p>
             <div className="mt-6 grid grid-cols-2 gap-2 sm:mt-7 sm:flex sm:flex-wrap sm:gap-3">
               <Link
-                className="inline-flex h-11 min-w-0 items-center justify-center rounded-lg bg-[#44f26e] px-3 text-center text-sm font-semibold !text-black sm:px-5"
+                className="inline-flex min-h-11 min-w-0 items-center justify-center rounded-lg bg-[#44f26e] px-3 py-2.5 text-center text-sm font-semibold leading-tight !text-black [word-break:keep-all] sm:px-5"
                 href={topGrowingStarsHref}
               >
                 {footerLabels.discovery}
               </Link>
               <Link
-                className="inline-flex h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 text-center text-sm font-semibold !text-black sm:px-5"
+                className="inline-flex min-h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 py-2.5 text-center text-sm font-semibold leading-tight !text-black [word-break:keep-all] sm:px-5"
                 href={founderClubPageHref}
               >
                 {footerLabels.founderClub}
               </Link>
               <Link
-                className="inline-flex h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 text-center text-sm font-semibold !text-black sm:px-5"
+                className="inline-flex min-h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 py-2.5 text-center text-sm font-semibold leading-tight !text-black [word-break:keep-all] sm:px-5"
                 href={scoutShareLoopHref}
               >
                 {footerLabels.scoutLoop}
               </Link>
               <Link
-                className="inline-flex h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 text-center text-sm font-semibold !text-black sm:px-5"
+                className="inline-flex min-h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 py-2.5 text-center text-sm font-semibold leading-tight !text-black [word-break:keep-all] sm:px-5"
                 href={creatorUnlockHref}
               >
                 {footerLabels.creatorUnlock}
@@ -3912,37 +3912,37 @@ export function FanletterHomePage({
           <div className="sm:hidden">
             <div className="grid grid-cols-2 gap-2 text-center text-[0.78rem] font-semibold text-black/70">
               <Link
-                className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2 py-2 text-center leading-tight [word-break:keep-all]"
                 href={topGrowingStarsHref}
               >
                 {mobileFooterLabels.discovery}
               </Link>
               <Link
-                className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2 py-2 text-center leading-tight [word-break:keep-all]"
                 href={founderClubPageHref}
               >
                 {mobileFooterLabels.founder}
               </Link>
               <Link
-                className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2 py-2 text-center leading-tight [word-break:keep-all]"
                 href={scoutShareLoopHref}
               >
                 {mobileFooterLabels.scout}
               </Link>
               <Link
-                className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2 py-2 text-center leading-tight [word-break:keep-all]"
                 href={creatorUnlockHref}
               >
                 {mobileFooterLabels.creator}
               </Link>
               <Link
-                className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2 py-2 text-center leading-tight [word-break:keep-all]"
                 href={studioHref}
               >
                 {mobileFooterLabels.studio}
               </Link>
               <Link
-                className="inline-flex h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2 py-2 text-center leading-tight [word-break:keep-all]"
                 href={connectHref}
               >
                 {mobileFooterLabels.activate}

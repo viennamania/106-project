@@ -373,7 +373,7 @@ function StatusPanel({
   title: string;
 }) {
   return (
-    <main className="min-h-screen bg-[#030504] px-4 py-6 text-white sm:px-6 lg:px-8">
+    <main className="fanletter-v2-surface min-h-screen bg-[#030504] px-4 py-6 text-white sm:px-6 lg:px-8">
       <div className="mx-auto flex min-h-[calc(100svh-3rem)] max-w-3xl items-center">
         <section className="w-full rounded-lg border border-white/12 bg-white/[0.055] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.32)] backdrop-blur-md sm:p-8">
           <div className="mb-5 flex justify-end">
@@ -878,7 +878,7 @@ export function FanletterChannelsPage({
   const isLoading = state.status === "idle" || state.status === "loading";
 
   return (
-    <main className="min-h-screen bg-[#030504] text-white">
+    <main className="fanletter-v2-surface min-h-screen bg-[#030504] text-white">
       <section className="border-b border-white/10 px-4 pb-8 pt-[calc(env(safe-area-inset-top)+0.85rem)] sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <header className="flex items-center justify-between gap-3">

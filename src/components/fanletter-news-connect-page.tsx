@@ -813,7 +813,7 @@ export function FanletterNewsConnectPage({
   ));
 
   return (
-    <main className="min-h-screen bg-[#eef1ec] pb-[calc(6.25rem+env(safe-area-inset-bottom))] text-[#111510] sm:pb-0">
+    <main className="fanletter-v2-surface min-h-screen bg-[#eef1ec] pb-[calc(6.25rem+env(safe-area-inset-bottom))] text-[#111510] sm:pb-0">
       <EmailLoginDialog
         dictionary={dictionary}
         guideDescription={copy.loginGuideDescription}

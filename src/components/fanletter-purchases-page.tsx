@@ -896,8 +896,8 @@ export function FanletterPurchasesPage({
     <main
       className={
         isNewsService
-          ? "min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]"
-          : "min-h-screen bg-[#030504] text-white"
+          ? "fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]"
+          : "fanletter-v2-surface min-h-screen bg-[#030504] text-white"
       }
     >
       <section

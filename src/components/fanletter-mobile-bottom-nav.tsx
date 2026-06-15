@@ -198,7 +198,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
                 >
                   <Icon className={item.primary ? "size-6" : "size-5"} />
                 </span>
-                <span className="max-w-full truncate leading-none">
+                <span className="max-w-full whitespace-normal text-center leading-tight [word-break:keep-all]">
                   {item.label}
                 </span>
               </Link>

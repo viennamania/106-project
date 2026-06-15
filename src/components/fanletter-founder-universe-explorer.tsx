@@ -970,22 +970,25 @@ function UniverseRoleLegend({
                 {tier.depth}
               </span>
             </span>
-            <span className="min-w-0 self-center">
-              <span className="flex min-w-0 items-center justify-between gap-2">
-                <span
-                  className={joinClasses("truncate text-sm font-semibold", colors.text)}
-                >
-                  {v2Copy.roles[tier.role]}
-                </span>
+              <span className="min-w-0 self-center">
+                <span className="flex min-w-0 items-center justify-between gap-2">
+                  <span
+                    className={joinClasses(
+                      "min-w-0 whitespace-normal text-sm font-semibold leading-tight [word-break:keep-all]",
+                      colors.text,
+                    )}
+                  >
+                    {v2Copy.roles[tier.role]}
+                  </span>
                 <span className="shrink-0 text-xs font-semibold text-white">
                   {formatNumber(tier.capacity, locale)}
                   {locale === "ko" ? "명" : ""}
                 </span>
               </span>
-              <span className="mt-0.5 block truncate text-[0.72rem] font-medium text-white/52">
-                {subtitle}
+                <span className="mt-0.5 block whitespace-normal text-[0.72rem] font-medium leading-snug text-white/68 [word-break:keep-all]">
+                  {subtitle}
+                </span>
               </span>
-            </span>
           </button>
         );
       })}
@@ -2699,7 +2702,7 @@ export function FanletterFounderUniverseExplorer({
   const founderUniverseLedgerHref = `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40&readiness=packet_ready&sort=impact_desc`;
 
   return (
-    <main className="min-h-screen bg-white text-[#111827] xl:flex">
+    <main className="fanletter-v2-surface min-h-screen bg-white text-[#111827] xl:flex">
       <FanletterReputationTracker
         agentRank={{
           eventType: "universe_growth",

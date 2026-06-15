@@ -62,7 +62,9 @@ function renderAction(
       metadata={action.metadata}
       referralCode={action.referralCode}
     >
-      <span className="truncate">{action.label}</span>
+      <span className="min-w-0 whitespace-normal text-center leading-tight [word-break:keep-all]">
+        {action.label}
+      </span>
       <ArrowRight className="size-4 shrink-0" />
     </FanletterTrackedLink>
   );
@@ -183,14 +185,14 @@ export function FanletterActionGuide({
           {primaryAction
             ? renderAction(
                 primaryAction,
-                "inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto",
+                "inline-flex min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto sm:px-5",
               )
             : null}
           {visibleSecondaryActions.map((action) =>
             renderAction(
               action,
               joinClasses(
-                "h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-800 transition hover:border-zinc-300 hover:bg-zinc-50 sm:w-auto",
+                "min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-800 transition hover:border-zinc-300 hover:bg-zinc-50 sm:w-auto",
                 shouldHideSecondaryOnMobile
                   ? "hidden sm:inline-flex"
                   : "inline-flex",

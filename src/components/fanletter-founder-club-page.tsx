@@ -283,11 +283,11 @@ function FounderRoleShareCard({
       )}
 
       <Link
-        className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
+        className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-black px-4 py-2 text-center text-sm font-semibold leading-tight !text-white transition hover:bg-zinc-800 [word-break:keep-all]"
         href={universeHref}
       >
-        {copy.universeCta}
-        <ArrowRight className="size-4" />
+        <span className="min-w-0 whitespace-normal">{copy.universeCta}</span>
+        <ArrowRight className="size-4 shrink-0" />
       </Link>
     </article>
   );
@@ -565,7 +565,7 @@ export function FanletterFounderClubPage({
   ];
 
   return (
-    <main className="min-h-screen bg-[#fbfaff] px-4 py-5 text-black sm:px-6 lg:px-8">
+    <main className="fanletter-v2-surface min-h-screen bg-[#fbfaff] px-4 py-5 text-black sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <div className="flex items-center justify-between gap-3">
           <Link

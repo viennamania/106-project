@@ -2307,7 +2307,7 @@ export function FanletterAgentRankPage({
   ];
 
   return (
-    <main className="fanletter-agentrank-page min-h-screen overflow-x-hidden bg-white px-5 py-5 text-[#11132d]">
+    <main className="fanletter-v2-surface fanletter-agentrank-page min-h-screen overflow-x-hidden bg-white px-5 py-5 text-[#11132d]">
       <FanletterAgentRankTracker starId={starId} />
       <div className="mx-auto max-w-[1500px]">
         <FanletterActionGuide

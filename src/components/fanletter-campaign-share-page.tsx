@@ -171,7 +171,7 @@ export function FanletterCampaignSharePage({
   }
 
   return (
-    <main className="min-h-screen bg-[#050806] text-white">
+    <main className="fanletter-v2-surface min-h-screen bg-[#050806] text-white">
       <div className="mx-auto grid min-h-screen w-full max-w-6xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[0.82fr_1fr] lg:items-center lg:px-8">
         <section className="flex flex-col gap-5">
           <Link

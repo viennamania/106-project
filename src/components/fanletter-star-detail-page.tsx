@@ -1263,7 +1263,7 @@ export function FanletterStarDetailPage({
           ];
 
   return (
-    <main className="min-h-screen bg-white pb-28 text-black">
+    <main className="fanletter-v2-surface min-h-screen bg-white pb-28 text-black">
       <FanletterReputationTracker
         agentRank={{
           eventType: "ai_star_discovered",
@@ -1493,21 +1493,25 @@ export function FanletterStarDetailPage({
                 <StarActionLink
                   action={primaryAction}
                   agentRank={primaryActionAgentRank}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-zinc-800"
+                  className="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-full bg-black px-5 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-zinc-800"
                   locale={locale}
                   referralCode={joinReferralCode}
                   starId={star.id}
                   trackingMetadata={primaryActionTrackingMetadata}
                 >
-                  {primaryAction.label}
-                  <ArrowRight className="size-4" />
+                  <span className="min-w-0 whitespace-normal [word-break:keep-all]">
+                    {primaryAction.label}
+                  </span>
+                  <ArrowRight className="size-4 shrink-0" />
                 </StarActionLink>
                 <Link
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
+                  className="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
                   href={`/${locale}/fanletter/${encodeURIComponent(star.id)}/universe`}
                 >
-                  <GitBranch className="size-4" />
-                  {isKorean ? "파운더 네트워크 탐색" : "Explore Founder Network"}
+                  <GitBranch className="size-4 shrink-0" />
+                  <span className="min-w-0 whitespace-normal [word-break:keep-all]">
+                    {isKorean ? "파운더 네트워크 탐색" : "Explore Founder Network"}
+                  </span>
                 </Link>
               </div>
             </div>

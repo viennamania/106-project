@@ -1607,7 +1607,7 @@ export function FanletterCreatorUnlockPage({
   );
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-white px-4 py-5 text-black sm:px-6 lg:px-8">
+    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white px-4 py-5 text-black sm:px-6 lg:px-8">
       <FanletterReputationTracker
         agentRank={{
           eventType: "creator_unlock_evaluated",

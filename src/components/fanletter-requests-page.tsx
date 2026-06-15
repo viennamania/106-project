@@ -505,7 +505,7 @@ export function FanletterRequestsPage({
   }, [loadRequests]);
 
   return (
-    <main className="min-h-screen bg-[#030504] text-white">
+    <main className="fanletter-v2-surface min-h-screen bg-[#030504] text-white">
       <section className="border-b border-white/10 px-4 pb-10 pt-3 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl">
           <header className="flex items-center justify-between gap-3">

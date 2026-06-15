@@ -1787,7 +1787,7 @@ export function FanletterAgentRankCoverageAuditPage({
   ];
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6">
+    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6">
       <div className="mx-auto max-w-[1400px]">
         <FanletterActionGuide
           className="mb-5"

@@ -447,7 +447,7 @@ export function FanletterAIStarGenealogyPage({
   const copy = getGenealogyCopy(locale);
 
   return (
-    <main className="min-h-screen overflow-x-auto bg-[#f8f9ff] px-5 py-5 text-[#11132d]">
+    <main className="fanletter-v2-surface min-h-screen overflow-x-auto bg-[#f8f9ff] px-5 py-5 text-[#11132d]">
       <div className="mx-auto min-w-[1180px] max-w-[1500px]">
         <header className="grid gap-5 lg:grid-cols-[1fr_42rem] lg:items-start">
           <div>

@@ -467,7 +467,7 @@ export function FanletterAgentRankEvidencePacketPage({
   )}/evidence?${downloadParams.toString()}`;
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
+    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full min-w-0 max-w-[86rem] flex-col gap-5">
         <header className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
           <div className="flex flex-wrap items-center justify-between gap-2">

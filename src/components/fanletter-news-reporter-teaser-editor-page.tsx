@@ -1350,7 +1350,7 @@ export function FanletterNewsReporterTeaserEditorPage({
   return (
     <>
       {pickerModal}
-      <main className="min-h-screen bg-[#f2f4ef] px-2 pb-[calc(11.25rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+0.75rem)] text-[#111510] sm:px-5 sm:pb-[calc(11.25rem+env(safe-area-inset-bottom))] sm:pt-6 md:pb-28 lg:px-8 lg:py-6">
+      <main className="fanletter-v2-surface min-h-screen bg-[#f2f4ef] px-2 pb-[calc(11.25rem+env(safe-area-inset-bottom))] pt-[calc(env(safe-area-inset-top)+0.75rem)] text-[#111510] sm:px-5 sm:pb-[calc(11.25rem+env(safe-area-inset-bottom))] sm:pt-6 md:pb-28 lg:px-8 lg:py-6">
         <div className="mx-auto max-w-6xl">
           <Link
             className="inline-flex h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-black !text-black/58 transition hover:!text-[#111510]"

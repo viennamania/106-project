@@ -704,7 +704,7 @@ export function FanletterWalletPage({
 
   if (isNewsService) {
     return (
-      <main className="min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]">
+      <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#eef1ec] text-[#111510]">
         <EmailLoginDialog
           dictionary={dictionary}
           onClose={() => {
@@ -1074,7 +1074,7 @@ export function FanletterWalletPage({
   }
 
   return (
-    <main className="min-h-screen bg-[#030504] text-white">
+    <main className="fanletter-v2-surface min-h-screen bg-[#030504] text-white">
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {

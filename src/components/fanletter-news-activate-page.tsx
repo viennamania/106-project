@@ -813,7 +813,7 @@ export function FanletterNewsActivatePage({
   ));
 
   return (
-    <main className="min-h-screen bg-[#eef1ec] pb-4 text-[#111510]">
+    <main className="fanletter-v2-surface min-h-screen bg-[#eef1ec] pb-4 text-[#111510]">
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {

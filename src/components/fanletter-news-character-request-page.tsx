@@ -784,7 +784,7 @@ export function FanletterNewsCharacterRequestPage({
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
+      <main className="fanletter-v2-surface mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-8 lg:px-8">
         <section className="grid gap-5 border-y-2 border-[#111510] bg-white lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
           <div className="relative min-h-[21rem] overflow-hidden bg-[#111510] text-white sm:min-h-[25rem]">
             {avatarImageUrl ? (

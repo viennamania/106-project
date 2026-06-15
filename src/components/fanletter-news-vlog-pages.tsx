@@ -1169,7 +1169,7 @@ export function FanletterNewsVlogsPage({
     currentPage === 1 && !query && data.fanOnlyPreviewItems.length > 0;
 
   return (
-    <main className="min-h-screen bg-[#eef1ec] pb-14 text-[#111510]">
+    <main className="fanletter-v2-surface min-h-screen bg-[#eef1ec] pb-14 text-[#111510]">
       <FanletterReputationTracker
         agentRank={{
           eventType: "content_engaged",
@@ -1552,7 +1552,7 @@ export function FanletterNewsCharacterVlogsPage({
   const pageCount = data.filters.pageCount;
 
   return (
-    <main className="min-h-screen bg-[#eef1ec] pb-14 text-[#111510]">
+    <main className="fanletter-v2-surface min-h-screen bg-[#eef1ec] pb-14 text-[#111510]">
       <NewsShellHeader
         copy={copy}
         homeHref={homeHref}
@@ -2125,7 +2125,7 @@ export function FanletterNewsVlogDetailPage({
   );
 
   return (
-    <main className="min-h-screen bg-[#eef1ec] pb-14 text-[#111510]">
+    <main className="fanletter-v2-surface min-h-screen bg-[#eef1ec] pb-14 text-[#111510]">
       <NewsShellHeader
         copy={copy}
         homeHref={homeHref}

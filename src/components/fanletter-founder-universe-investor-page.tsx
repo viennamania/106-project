@@ -937,7 +937,7 @@ export function FanletterFounderUniverseInvestorPage({
   const universe = snapshot.selectedUniverse;
 
   return (
-    <main className="min-h-screen overflow-x-auto bg-[#f8f9ff] px-5 py-5 text-[#151735]">
+    <main className="fanletter-v2-surface min-h-screen overflow-x-auto bg-[#f8f9ff] px-5 py-5 text-[#151735]">
       <div className="mx-auto min-w-[1180px] max-w-[1500px]">
         <header className="grid gap-5 lg:grid-cols-[1fr_52rem] lg:items-start">
           <div>

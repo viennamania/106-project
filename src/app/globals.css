@@ -85,6 +85,34 @@ body::before {
   font-family: inherit;
 }
 
+@media (max-width: 640px) {
+  .fanletter-v2-surface
+    :where(a, button)[class*="inline-flex"][class*="items-center"][class*="justify-center"][class*="rounded"][class*="px-"][class*=" h-"],
+  .fanletter-agentrank-page
+    :where(a, button)[class*="inline-flex"][class*="items-center"][class*="justify-center"][class*="rounded"][class*="px-"][class*=" h-"] {
+    height: auto !important;
+    max-width: 100%;
+    min-height: 2.5rem;
+    min-width: 0;
+    padding-bottom: 0.5rem;
+    padding-top: 0.5rem;
+    text-align: center;
+    white-space: normal;
+    word-break: keep-all;
+  }
+
+  .fanletter-v2-surface
+    :where(a, button)[class*="inline-flex"][class*="items-center"][class*="justify-center"]
+    > :where(span).truncate,
+  .fanletter-agentrank-page
+    :where(a, button)[class*="inline-flex"][class*="items-center"][class*="justify-center"]
+    > :where(span).truncate {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+}
+
 a {
   color: inherit;
   text-decoration: none;
