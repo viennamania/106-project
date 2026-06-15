@@ -495,6 +495,21 @@ export function FanletterAgentRankReviewPage({
     filters.starId ? `?starId=${encodeURIComponent(filters.starId)}` : ""
   }`;
   const ledgerHref = `/${locale}/fanletter/agentrank/events?${params.toString()}`;
+  const primaryReviewBucket =
+    reviewQueue.queues.find((bucket) => bucket.events.length > 0) ??
+    reviewQueue.queues[0] ??
+    null;
+  const primaryReviewItem = primaryReviewBucket?.events[0] ?? null;
+  const primaryReviewPresentation = primaryReviewBucket
+    ? getQueuePresentation(primaryReviewBucket.category, locale)
+    : null;
+  const primaryReviewHref = primaryReviewItem
+    ? buildEventDetailHref({
+        eventId: primaryReviewItem.event.eventId,
+        locale,
+        starId: primaryReviewItem.event.starId ?? filters.starId,
+      })
+    : ledgerHref;
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
@@ -568,6 +583,60 @@ export function FanletterAgentRankReviewPage({
               : "Next action: review events to enrich"
           }
         />
+        <section className="rounded-[1.25rem] border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.06)] sm:hidden">
+          <p className="inline-flex max-w-full items-center gap-2 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
+            <SlidersHorizontal className="size-3.5 shrink-0" />
+            <span className="truncate">
+              {locale === "ko" ? "현재 위치: Event Review Queue" : "Now: Event Review Queue"}
+            </span>
+          </p>
+          <h2 className="mt-3 text-xl font-semibold leading-tight text-[#11132d] [word-break:keep-all]">
+            {primaryReviewPresentation
+              ? locale === "ko"
+                ? `우선 검토: ${primaryReviewPresentation.label}`
+                : `Review first: ${primaryReviewPresentation.label}`
+              : locale === "ko"
+                ? "검토 대기 이벤트 없음"
+                : "No review events pending"}
+          </h2>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="rounded-lg bg-amber-50 px-3 py-2">
+              <p className="truncate text-[0.62rem] font-semibold uppercase text-amber-700/70">
+                {copy.summaryNeedsOracle}
+              </p>
+              <p className="mt-1 truncate text-lg font-semibold text-amber-800">
+                {formatNumber(reviewQueue.summary.needsOracleEvents, locale)}
+              </p>
+            </div>
+            <div className="rounded-lg bg-emerald-50 px-3 py-2">
+              <p className="truncate text-[0.62rem] font-semibold uppercase text-emerald-700/70">
+                {copy.summaryPacketReady}
+              </p>
+              <p className="mt-1 truncate text-lg font-semibold text-emerald-800">
+                {formatNumber(reviewQueue.summary.packetReadyEvents, locale)}
+              </p>
+            </div>
+            <div className="rounded-lg bg-violet-50 px-3 py-2">
+              <p className="truncate text-[0.62rem] font-semibold uppercase text-[#6d28d9]/70">
+                {copy.impact}
+              </p>
+              <p className="mt-1 truncate text-lg font-semibold text-[#5b21b6]">
+                {primaryReviewItem?.impactTotal.toFixed(1) ?? "0"}
+              </p>
+            </div>
+          </div>
+          <Link
+            className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#6d28d9] px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(109,40,217,0.2)]"
+            href={primaryReviewHref}
+          >
+            {primaryReviewItem
+              ? locale === "ko"
+                ? "이 이벤트 검토"
+                : "Review this event"
+              : copy.eventLedger}
+            <ArrowRight className="size-4 shrink-0" />
+          </Link>
+        </section>
         <header className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
@@ -617,7 +686,7 @@ export function FanletterAgentRankReviewPage({
               <h1 className="mt-2 text-4xl font-semibold leading-tight sm:text-5xl">
                 {copy.heroTitle}
               </h1>
-              <p className="mt-4 max-w-3xl text-base font-medium leading-7 text-slate-600">
+              <p className="mt-4 hidden max-w-3xl text-base font-medium leading-7 text-slate-600 sm:block">
                 {copy.heroBody}
               </p>
               <p className="mt-4 text-xs font-semibold uppercase text-slate-400">
@@ -673,7 +742,7 @@ export function FanletterAgentRankReviewPage({
               <ShieldCheck className="size-4" />
               {copy.accessBadge}
             </p>
-            <p className="mt-3 text-sm font-medium leading-6 text-slate-600">
+            <p className="mt-3 hidden text-sm font-medium leading-6 text-slate-600 sm:block">
               {copy.accessBody}
             </p>
             <div className="mt-4 grid gap-2 sm:grid-cols-3">
