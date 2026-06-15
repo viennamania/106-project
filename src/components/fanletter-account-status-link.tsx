@@ -111,7 +111,7 @@ function getToneClassName(
       return "border-amber-200 bg-amber-50 !text-amber-800 hover:border-amber-300 hover:bg-amber-100";
     }
 
-    return "border-violet-200 bg-white/84 !text-[#5b21b6] shadow-[0_12px_28px_rgba(88,28,135,0.08)] hover:border-violet-300 hover:bg-violet-50";
+    return "border-zinc-200 bg-white/90 !text-zinc-950 shadow-[0_12px_28px_rgba(15,23,42,0.08)] hover:border-zinc-300 hover:bg-zinc-50";
   }
 
   if (tone === "connected") {

@@ -428,7 +428,7 @@ function MetricTile({
   value: string;
 }) {
   return (
-    <div className="rounded-lg border border-violet-200 bg-white p-3 shadow-[0_14px_32px_rgba(88,28,135,0.08)]">
+    <div className="rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_14px_32px_rgba(15,23,42,0.06)]">
       <p className="text-2xl font-semibold leading-none text-[#12041f]">
         {value}
       </p>
@@ -477,8 +477,8 @@ function FounderJoinFlowHint({
     viewerState === "guest" ? 0 : viewerState === "member" ? 1 : 2;
 
   return (
-    <div className="mt-4 rounded-lg border border-violet-200 bg-white/82 p-3 shadow-[0_14px_34px_rgba(88,28,135,0.08)]">
-      <p className="text-xs font-semibold text-[#6d28d9]">{labels.title}</p>
+    <div className="mt-4 rounded-lg border border-zinc-200 bg-white/88 p-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
+      <p className="text-xs font-semibold text-zinc-700">{labels.title}</p>
       <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
         {labels.steps.map((step, index) => {
           const isDone = index < activeIndex;
@@ -489,7 +489,7 @@ function FounderJoinFlowHint({
               className={joinClasses(
                 "min-w-0 rounded-lg border px-3 py-2",
                 isActive
-                  ? "border-[#7c3aed] bg-violet-50"
+                  ? "border-zinc-950 bg-zinc-50"
                   : isDone
                     ? "border-emerald-200 bg-emerald-50"
                     : "border-slate-200 bg-white",
@@ -500,7 +500,7 @@ function FounderJoinFlowHint({
                 className={joinClasses(
                   "text-[0.62rem] font-semibold",
                   isActive
-                    ? "text-[#6d28d9]"
+                    ? "text-zinc-950"
                     : isDone
                       ? "text-emerald-700"
                       : "text-slate-400",
@@ -594,7 +594,7 @@ function StarAgentRankJoinSignal({
 
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
         <span
-          className="block h-full rounded-full bg-gradient-to-r from-[#111827] via-[#4f46e5] to-[#22c55e]"
+          className="block h-full rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
           style={{ width: `${scorePercent}%` }}
         />
       </div>
@@ -667,7 +667,7 @@ function StarFounderMobilePanel({
     : `radial-gradient(circle at 30% 18%, rgba(255,255,255,0.86), transparent 18%), radial-gradient(circle at 72% 22%, ${star.accentSecondary}, transparent 24%), linear-gradient(145deg, ${star.accentColor}, #31105f 64%, #12041f)`;
 
   return (
-    <div className="rounded-lg border border-violet-200 bg-white p-3 shadow-[0_22px_54px_rgba(88,28,135,0.12)]">
+    <div className="rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_22px_54px_rgba(15,23,42,0.08)]">
       <div className="grid grid-cols-[1fr_1.75rem_0.8fr] items-stretch gap-2">
         <div
           className="relative min-h-44 overflow-hidden rounded-lg border border-fuchsia-200 bg-cover bg-center p-3 text-white"
@@ -709,7 +709,7 @@ function StarFounderMobilePanel({
         </div>
 
         <div className="flex items-center justify-center">
-          <ArrowRight className="size-5 text-[#7c3aed]" />
+          <ArrowRight className="size-5 text-zinc-900" />
         </div>
 
         <div className="flex min-h-44 flex-col justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-3">
@@ -758,7 +758,7 @@ function StarFounderMobilePanel({
           <span className="text-[0.68rem] font-semibold text-black/48">
             {action.status}
           </span>
-          <span className="truncate font-mono text-sm font-semibold text-[#5b21b6]">
+          <span className="truncate font-mono text-sm font-semibold text-zinc-700">
             {referralCode}
           </span>
         </div>
@@ -768,7 +768,7 @@ function StarFounderMobilePanel({
         <StarActionLink
           action={action}
           agentRank={trackingAgentRank}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)]"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)]"
           locale={locale}
           referralCode={joinReferralCode}
           starId={star.id}
@@ -779,7 +779,7 @@ function StarFounderMobilePanel({
         </StarActionLink>
         <a
           aria-label={copy.actions.createMockReferral}
-          className="inline-flex size-12 items-center justify-center rounded-full border border-violet-200 bg-violet-50 text-[#6d28d9]"
+          className="inline-flex size-12 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-900"
           href="#referral-builder"
         >
           <Share2 className="size-5" />
@@ -857,13 +857,13 @@ function SpawnedStarsSection({
   star: AIStar;
 }) {
   return (
-    <article className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+    <article className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
           <Bot className="size-5" />
         </span>
         <div>
-          <p className="text-sm font-semibold text-[#6d28d9]">
+          <p className="text-sm font-semibold text-zinc-700">
             {copy.labels.spawnedStars}
           </p>
           <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
@@ -1028,14 +1028,14 @@ function AIStarGenealogySection({
   );
 
   return (
-    <article className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+    <article className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-3">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#5b21b6] text-white">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
             <GitBranch className="size-5" />
           </span>
           <div>
-            <p className="text-sm font-semibold text-[#6d28d9]">
+            <p className="text-sm font-semibold text-zinc-700">
               {copy.labels.aiStarBadge}
             </p>
             <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
@@ -1047,7 +1047,7 @@ function AIStarGenealogySection({
           </div>
         </div>
         <Link
-          className="hidden h-10 shrink-0 items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-100 sm:inline-flex"
+          className="hidden h-10 shrink-0 items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-100 sm:inline-flex"
           href={`/${locale}/fanletter/ai-star-genealogy`}
         >
           {labels.map}
@@ -1062,7 +1062,7 @@ function AIStarGenealogySection({
             key={`${item.node.id}-${item.badge}`}
           >
             {index > 0 ? (
-              <div className="hidden items-center justify-center text-[#7c3aed] sm:flex">
+              <div className="hidden items-center justify-center text-zinc-900 sm:flex">
                 <ArrowRight className="size-5" />
               </div>
             ) : null}
@@ -1095,7 +1095,7 @@ function AIStarGenealogySection({
       </div>
 
       <Link
-        className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-100 sm:hidden"
+        className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-100 sm:hidden"
         href={`/${locale}/fanletter/ai-star-genealogy`}
       >
         {labels.map}
@@ -1264,7 +1264,7 @@ export function FanletterStarDetailPage({
           ];
 
   return (
-    <main className="min-h-screen bg-[#fbfaff] pb-28 text-black">
+    <main className="min-h-screen bg-white pb-28 text-black">
       <FanletterReputationTracker
         agentRank={{
           eventType: "ai_star_discovered",
@@ -1286,15 +1286,15 @@ export function FanletterStarDetailPage({
         referralCode={referralCode}
       />
       <section
-        className="overflow-hidden border-b border-violet-200 bg-[#fbfaff] px-4 pb-8 pt-5 text-black sm:px-6 sm:pb-16 sm:pt-6 lg:px-8"
+        className="overflow-hidden border-b border-zinc-200 bg-white px-4 pb-8 pt-5 text-black sm:px-6 sm:pb-16 sm:pt-6 lg:px-8"
         style={{
-          background: `radial-gradient(circle at 12% 8%, ${star.accentColor}1f, transparent 34%), radial-gradient(circle at 84% 10%, ${star.accentSecondary}24, transparent 30%), linear-gradient(180deg, #ffffff 0%, #fbfaff 58%, #f3efff 100%)`,
+          background: `radial-gradient(circle at 12% 8%, ${star.accentColor}12, transparent 32%), radial-gradient(circle at 84% 10%, rgba(24,24,27,0.08), transparent 30%), linear-gradient(180deg, #ffffff 0%, #ffffff 58%, #f4f4f5 100%)`,
         }}
       >
         <div className="mx-auto max-w-[92rem]">
           <div className="flex items-center justify-between gap-3">
             <Link
-              className="inline-flex h-10 items-center gap-2 rounded-full border border-violet-200 bg-white px-3 text-sm font-semibold text-[#5b21b6] shadow-[0_12px_28px_rgba(88,28,135,0.08)] transition hover:border-violet-300 hover:bg-violet-50"
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-900 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition hover:border-zinc-300 hover:bg-zinc-50"
               href={`/${locale}/fanletter#top-growing-ai-stars`}
             >
               <ArrowLeft className="size-4" />
@@ -1390,13 +1390,13 @@ export function FanletterStarDetailPage({
 
           <div className="mt-8 grid gap-7 lg:grid-cols-[1fr_24rem] lg:items-end">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-3 py-1 text-sm font-semibold text-[#6d28d9] shadow-[0_10px_24px_rgba(88,28,135,0.08)]">
+              <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-sm font-semibold text-zinc-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
                 <Crown className="size-4" />
                 {copy.starDetail.heroEyebrow}
               </div>
               <h1 className="mt-4 max-w-4xl text-[2.55rem] font-semibold leading-[0.98] tracking-normal [word-break:keep-all] sm:mt-5 sm:text-[5rem]">
                 {displayStarName}
-                <span className="block text-[#6d28d9]">
+                <span className="block text-zinc-500">
                   {copy.starDetail.universeTitle}
                 </span>
               </h1>
@@ -1408,17 +1408,17 @@ export function FanletterStarDetailPage({
                 locale={locale}
                 variant="compact"
               />
-              <div className="mt-4 hidden max-w-2xl rounded-lg border border-violet-200 bg-white/80 p-3 shadow-[0_14px_34px_rgba(88,28,135,0.08)] sm:block">
+              <div className="mt-4 hidden max-w-2xl rounded-lg border border-zinc-200 bg-white/88 p-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)] sm:block">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm font-semibold text-[#5b21b6]">
+                    <p className="text-sm font-semibold text-zinc-900">
                       {primaryAction.status}
                     </p>
                     <p className="mt-1 text-sm font-medium leading-5 text-black/58">
                       {primaryAction.helper}
                     </p>
                   </div>
-                  <span className="rounded-full border border-black/8 bg-[#fafafa] px-3 py-1 font-mono text-xs font-semibold text-[#5b21b6]">
+                  <span className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 font-mono text-xs font-semibold text-zinc-700">
                     {referralCode}
                   </span>
                 </div>
@@ -1457,7 +1457,7 @@ export function FanletterStarDetailPage({
                   star={star}
                 />
                 <Link
-                  className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-violet-200 bg-white px-4 text-sm font-semibold text-[#5b21b6] shadow-[0_12px_26px_rgba(88,28,135,0.08)]"
+                  className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 shadow-[0_12px_26px_rgba(15,23,42,0.08)]"
                   href={`/${locale}/fanletter/${encodeURIComponent(star.id)}/universe`}
                 >
                   <GitBranch className="size-4" />
@@ -1494,7 +1494,7 @@ export function FanletterStarDetailPage({
                 <StarActionLink
                   action={primaryAction}
                   agentRank={primaryActionAgentRank}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9]"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-zinc-800"
                   locale={locale}
                   referralCode={joinReferralCode}
                   starId={star.id}
@@ -1505,14 +1505,14 @@ export function FanletterStarDetailPage({
                 </StarActionLink>
                 {primaryAction.variant !== "share" ? (
                   <a
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-violet-200 bg-white px-5 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-50"
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
                     href="#referral-builder"
                   >
                     {copy.actions.createMockReferral}
                   </a>
                 ) : null}
                 <Link
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-violet-200 bg-white px-5 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-50"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
                   href={`/${locale}/fanletter/${encodeURIComponent(star.id)}/universe`}
                 >
                   <GitBranch className="size-4" />

@@ -41,11 +41,11 @@ export function LanguageSwitcher({
         }
       : variant === "fanletterLight"
         ? {
-            chevron: "text-[#7c3aed]",
-            icon: "text-[#7c3aed]",
+            chevron: "text-zinc-700",
+            icon: "text-zinc-700",
             root:
-              "border border-violet-200 bg-white/90 text-[#3b126a] shadow-[0_12px_30px_rgba(88,28,135,0.1)] backdrop-blur-xl sm:min-w-[142px] sm:w-auto",
-            select: "text-[#3b126a]",
+              "border border-zinc-200 bg-white/95 text-zinc-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:min-w-[142px] sm:w-auto",
+            select: "text-zinc-950",
           }
       : {
           chevron: "text-slate-500",

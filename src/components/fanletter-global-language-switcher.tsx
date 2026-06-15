@@ -68,7 +68,7 @@ export function FanletterGlobalLanguageSwitcher({
         className={cn(
           "inline-flex max-w-full min-w-0 items-center gap-1.5 rounded-full border backdrop-blur-xl",
           isLightSurface
-            ? "border-violet-200 bg-white/76 shadow-[0_14px_34px_rgba(88,28,135,0.1)]"
+            ? "border-zinc-200 bg-white/88 shadow-[0_14px_34px_rgba(15,23,42,0.08)]"
             : "border-[#44f26e]/28 bg-[#44f26e]/10 shadow-[0_18px_42px_rgba(0,0,0,0.2)]",
           tight || compact ? "p-0.5" : "p-1",
         )}
@@ -82,7 +82,7 @@ export function FanletterGlobalLanguageSwitcher({
           <span
             className={cn(
               "flex size-7 shrink-0 items-center justify-center rounded-full",
-              isLightSurface ? "bg-violet-100 text-[#6d28d9]" : "bg-[#44f26e] text-black",
+              isLightSurface ? "bg-zinc-100 text-black" : "bg-[#44f26e] text-black",
             )}
           >
             <Globe2 className="size-4" />
@@ -91,7 +91,7 @@ export function FanletterGlobalLanguageSwitcher({
             <span
               className={cn(
                 "text-[0.56rem] font-semibold uppercase tracking-[0.18em]",
-                isLightSurface ? "text-[#7c3aed]" : "text-[#8dffa5]",
+                isLightSurface ? "text-zinc-500" : "text-[#8dffa5]",
               )}
             >
               {copy.eyebrow}
@@ -111,7 +111,7 @@ export function FanletterGlobalLanguageSwitcher({
           className={cn(
             "h-10 min-w-[7rem] text-xs shadow-none sm:min-w-[8.5rem]",
             isLightSurface
-              ? "border-violet-200 bg-white/90 text-[#3b126a]"
+              ? "border-zinc-200 bg-white/95 text-zinc-950"
               : "border-[#44f26e]/26 bg-black/35",
             compact &&
               "w-[9.35rem] min-w-[9.35rem] max-w-[9.35rem] sm:w-auto sm:min-w-[8rem] sm:max-w-none",

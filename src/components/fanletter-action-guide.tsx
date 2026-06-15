@@ -96,8 +96,8 @@ export function FanletterActionGuide({
     >
       <div className="flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-[0.66rem] font-semibold text-slate-700 ring-1 ring-slate-200/80">
-            <Sparkles className="size-3.5 shrink-0 text-[#6d28d9]" />
+          <p className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-white px-2.5 py-1 text-[0.66rem] font-semibold text-zinc-700 ring-1 ring-zinc-200">
+            <Sparkles className="size-3.5 shrink-0 text-zinc-950" />
             <span className="truncate">{currentLabel}</span>
           </p>
           <h2 className="mt-2 break-words text-xl font-semibold leading-tight text-[#12041f] [word-break:keep-all] sm:text-2xl">
@@ -116,9 +116,9 @@ export function FanletterActionGuide({
       </span>
       {steps.length > 0 ? (
         <div className="mt-3">
-          <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+          <div className="h-1.5 overflow-hidden rounded-full bg-zinc-100">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[#111827] via-[#4f46e5] to-[#10b981]"
+              className="h-full rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -136,10 +136,10 @@ export function FanletterActionGuide({
                 className={joinClasses(
                   "flex min-w-[5.75rem] shrink-0 items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-semibold",
                   isActive
-                    ? "border-[#111827]/10 bg-[#111827] text-white"
+                    ? "border-black bg-black text-white"
                     : isDone
-                      ? "border-emerald-100 bg-emerald-50 text-emerald-800"
-                      : "border-slate-200 bg-white text-slate-500",
+                      ? "border-zinc-200 bg-zinc-50 text-zinc-800"
+                      : "border-zinc-200 bg-white text-zinc-500",
                 )}
                 key={`${step.label}-${index}`}
               >
@@ -178,7 +178,7 @@ export function FanletterActionGuide({
           {primaryAction
             ? renderAction(
                 primaryAction,
-                "inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-[#111827] px-5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-[#312e81] sm:w-auto",
+                "inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto",
               )
             : null}
           {visibleSecondaryActions.map((action) =>

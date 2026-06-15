@@ -765,9 +765,9 @@ function MobileFounderLoopVisual({
       };
 
   return (
-    <div className="mt-5 w-full max-w-none overflow-hidden rounded-[1.4rem] border border-violet-100 bg-white/88 p-3 shadow-[0_22px_56px_rgba(88,28,135,0.13)] backdrop-blur-xl sm:hidden">
+    <div className="mt-5 w-full max-w-none overflow-hidden rounded-[1.4rem] border border-zinc-200 bg-white/92 p-3 shadow-[0_22px_56px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:hidden">
       <div className="flex items-center justify-between gap-3 px-1">
-        <span className="text-[0.68rem] font-semibold text-[#6d28d9]">
+        <span className="text-[0.68rem] font-semibold text-zinc-700">
           {labels.loop}
         </span>
         <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[0.66rem] font-semibold text-emerald-700">
@@ -815,9 +815,9 @@ function MobileFounderLoopVisual({
           </div>
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-2 text-[#7c3aed]">
+        <div className="flex flex-col items-center justify-center gap-2 text-zinc-900">
           <ArrowRight className="size-4" />
-          <span className="h-10 w-px bg-violet-200" />
+          <span className="h-10 w-px bg-zinc-200" />
           <ArrowRight className="size-4 rotate-90" />
         </div>
 
@@ -836,7 +836,7 @@ function MobileFounderLoopVisual({
               <span className="block text-sm font-semibold text-[#12041f]">
                 {labels.founder}
               </span>
-              <span className="mt-1 block truncate text-[0.66rem] font-semibold text-[#6d28d9]">
+              <span className="mt-1 block truncate text-[0.66rem] font-semibold text-zinc-700">
                 {referralCode}
               </span>
             </span>
@@ -855,7 +855,7 @@ function MobileFounderLoopVisual({
       </div>
 
       <div className="mt-2 grid grid-cols-[minmax(0,1fr)_1.55rem_minmax(0,1fr)] items-stretch gap-2">
-        <div className="rounded-[1.1rem] border border-violet-100 bg-[#fbfaff] p-3">
+        <div className="rounded-[1.1rem] border border-zinc-200 bg-zinc-50 p-3">
           <div className="flex items-center gap-2">
             <span className="flex size-9 shrink-0 items-center justify-center rounded-full border border-zinc-300 bg-zinc-100 text-sm font-semibold text-zinc-600">
               {targetInitial}
@@ -871,7 +871,7 @@ function MobileFounderLoopVisual({
           </div>
         </div>
 
-        <div className="flex items-center justify-center text-[#7c3aed]">
+        <div className="flex items-center justify-center text-zinc-900">
           <ArrowRight className="size-4" />
         </div>
 
@@ -946,10 +946,10 @@ function FanletterAgentRankHomeCard({
   ];
 
   return (
-    <div className="rounded-[1.35rem] border border-violet-100 bg-white/88 p-4 shadow-[0_22px_56px_rgba(88,28,135,0.1)] backdrop-blur-xl">
+    <div className="rounded-[1.35rem] border border-zinc-200 bg-white/92 p-4 shadow-[0_22px_56px_rgba(15,23,42,0.08)] backdrop-blur-xl">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="inline-flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-[#6d28d9]">
+          <p className="inline-flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-zinc-700">
             <ShieldCheck className="size-4 shrink-0" />
             AgentRank ERS
           </p>
@@ -960,14 +960,14 @@ function FanletterAgentRankHomeCard({
             {copy.body}
           </p>
         </div>
-        <span className="shrink-0 rounded-full bg-violet-50 px-3 py-1.5 text-sm font-semibold text-[#6d28d9]">
+        <span className="shrink-0 rounded-full bg-zinc-100 px-3 py-1.5 text-sm font-semibold text-zinc-900">
           {snapshot.ers.score}
         </span>
       </div>
 
-      <div className="mt-4 h-2 overflow-hidden rounded-full bg-violet-50">
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-zinc-100">
         <span
-          className="block h-full rounded-full bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#22c55e]"
+          className="block h-full rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
           style={{ width: `${scorePercent}%` }}
         />
       </div>
@@ -991,7 +991,7 @@ function FanletterAgentRankHomeCard({
           intent: "agentrank_preview_open",
           source: "fanletter_home",
         }}
-        className="mt-4 inline-flex h-10 min-w-0 w-full items-center justify-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 text-sm font-semibold !text-[#6d28d9]"
+        className="mt-4 inline-flex h-10 min-w-0 w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold !text-zinc-900"
         eventName="content_open"
         href={href}
         metadata={{
@@ -2850,7 +2850,7 @@ export function FanletterHomePage({
     : null;
 
   return (
-    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#fbfaff] text-black">
+    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white text-black">
       <FanletterReputationTracker
         agentRank={{
           eventType: "ai_star_discovered",
@@ -2868,16 +2868,16 @@ export function FanletterHomePage({
         }}
         referralCode={referralCode}
       />
-      <section className="relative overflow-hidden border-b border-violet-200 bg-[#fbfaff] sm:min-h-[92svh]">
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,#ffffff_0%,#fbfaff_56%,#f2edff_100%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(124,58,237,0.08)_0_1px,transparent_1px_32px)] opacity-70 sm:hidden" />
+      <section className="relative overflow-hidden border-b border-zinc-200 bg-white sm:min-h-[92svh]">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,#ffffff_0%,#ffffff_58%,#f4f4f5_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(24,24,27,0.055)_0_1px,transparent_1px_32px)] opacity-60 sm:hidden" />
         {!hasHeroVideoSlides ? (
           <div
             className="absolute inset-0 hidden bg-cover bg-center opacity-[0.22] sm:block lg:opacity-[0.16]"
             style={{
               backgroundImage: heroVideo?.coverImageUrl
                 ? `url(${heroVideo.coverImageUrl})`
-                : "radial-gradient(circle at 22% 18%, rgba(124, 58, 237, 0.22), transparent 34%), radial-gradient(circle at 78% 20%, rgba(68, 242, 110, 0.2), transparent 30%), linear-gradient(135deg, #ffffff 0%, #fbfaff 58%, #f3efff 100%)",
+                : "radial-gradient(circle at 22% 18%, rgba(24,24,27,0.12), transparent 34%), radial-gradient(circle at 78% 20%, rgba(113,113,122,0.14), transparent 30%), linear-gradient(135deg, #ffffff 0%, #fafafa 58%, #f4f4f5 100%)",
             }}
           />
         ) : null}
@@ -2887,17 +2887,17 @@ export function FanletterHomePage({
             slides={heroBackgroundSlides}
           />
         </div>
-        <div className="absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.5)_0%,rgba(255,255,255,0.66)_40%,rgba(251,250,255,0.94)_76%,#fbfaff_100%)] sm:block lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.96)_0%,rgba(255,255,255,0.9)_38%,rgba(255,255,255,0.48)_68%,rgba(251,250,255,0.76)_100%)]" />
-        <div className="absolute inset-x-0 bottom-0 hidden h-44 bg-[linear-gradient(180deg,rgba(251,250,255,0)_0%,#fbfaff_100%)] lg:block" />
+        <div className="absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.52)_0%,rgba(255,255,255,0.72)_40%,rgba(255,255,255,0.94)_76%,#ffffff_100%)] sm:block lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.97)_0%,rgba(255,255,255,0.92)_38%,rgba(255,255,255,0.56)_68%,rgba(250,250,250,0.8)_100%)]" />
+        <div className="absolute inset-x-0 bottom-0 hidden h-44 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,#ffffff_100%)] lg:block" />
 
         <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-col px-4 pb-[calc(5.8rem+env(safe-area-inset-bottom))] pt-3 sm:min-h-[92svh] sm:px-6 sm:pb-6 lg:px-8">
-          <div className="hidden items-center justify-between gap-3 rounded-full border border-violet-200 bg-white/82 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-black/64 shadow-[0_14px_34px_rgba(88,28,135,0.1)] backdrop-blur-xl sm:flex sm:bg-white/72 sm:py-2 sm:text-xs sm:shadow-none">
+          <div className="hidden items-center justify-between gap-3 rounded-full border border-zinc-200 bg-white/86 px-3 py-1.5 text-[0.62rem] font-semibold uppercase text-black/64 shadow-[0_14px_34px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:flex sm:bg-white/76 sm:py-2 sm:text-xs sm:shadow-none">
             <div className="flex min-w-0 items-center gap-2">
-              <Sparkles className="size-3.5 shrink-0 text-[#7c3aed]" />
+              <Sparkles className="size-3.5 shrink-0 text-black" />
               <span className="truncate">{copy.announcement.label}</span>
             </div>
             <Link
-              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-violet-200 bg-violet-50 px-3 text-[0.68rem] font-semibold !text-[#6d28d9] transition hover:bg-violet-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7c3aed] sm:min-h-0 sm:border-0 sm:bg-transparent sm:px-0 sm:text-xs sm:hover:bg-transparent"
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-3 text-[0.68rem] font-semibold !text-black transition hover:bg-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black sm:min-h-0 sm:border-0 sm:bg-transparent sm:px-0 sm:text-xs sm:hover:bg-transparent"
               href={founderClubHref}
             >
               <span className="sm:hidden">{mobileAnnouncementCta}</span>
@@ -2913,37 +2913,37 @@ export function FanletterHomePage({
 
             <nav className="hidden items-center gap-1.5 text-xs font-semibold text-black/62 md:flex lg:gap-2 lg:text-sm">
               <a
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-violet-50 hover:text-[#5b21b6]"
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-zinc-100 hover:text-black"
                 href={topGrowingStarsHref}
               >
                 {copy.nav.features}
               </a>
               <a
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-violet-50 hover:text-[#5b21b6]"
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-zinc-100 hover:text-black"
                 href={founderClubHref}
               >
                 {copy.nav.paid}
               </a>
               <a
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-violet-50 hover:text-[#5b21b6]"
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-zinc-100 hover:text-black"
                 href={scoutShareLoopHref}
               >
                 {copy.nav.campaigns}
               </a>
               <a
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-violet-50 hover:text-[#5b21b6]"
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-zinc-100 hover:text-black"
                 href={creatorUnlockHref}
               >
                 {copy.nav.creators}
               </a>
               <Link
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-violet-50 hover:text-[#5b21b6]"
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-zinc-100 hover:text-black"
                 href={reportsHref}
               >
                 {copy.nav.reports}
               </Link>
               <Link
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-violet-50 hover:text-[#5b21b6]"
+                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-zinc-100 hover:text-black"
                 href={studioHref}
               >
                 {copy.nav.studio}
@@ -3003,7 +3003,7 @@ export function FanletterHomePage({
                 </div>
                 <div className="grid gap-2 sm:w-56 sm:shrink-0">
                   <FanletterTrackedLink
-                    className="inline-flex h-10 items-center justify-center rounded-full bg-[#7c3aed] px-4 text-xs font-semibold !text-white transition hover:bg-[#6d28d9] sm:text-sm"
+                    className="inline-flex h-10 items-center justify-center rounded-full bg-black px-4 text-xs font-semibold !text-white transition hover:bg-zinc-800 sm:text-sm"
                     eventName="promo_share_to_creator_channel"
                     href={shareContext.channelHref}
                     metadata={{
@@ -3016,7 +3016,7 @@ export function FanletterHomePage({
                     {shareContextLabels.channel}
                   </FanletterTrackedLink>
                   <FanletterTrackedLink
-                    className="inline-flex h-10 items-center justify-center rounded-full border border-violet-200 bg-violet-50 px-4 text-xs font-semibold !text-[#5b21b6] transition hover:bg-violet-100 sm:text-sm"
+                    className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 text-xs font-semibold !text-zinc-900 transition hover:bg-zinc-50 sm:text-sm"
                     eventName="promo_share_to_onboarding"
                     href={shareContext.onboardingHref}
                     metadata={{

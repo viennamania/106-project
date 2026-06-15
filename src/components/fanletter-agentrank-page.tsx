@@ -492,7 +492,7 @@ function MetricTile({
 }) {
   return (
     <div
-      className="agentrank-flow-card rounded-lg border border-violet-100 bg-white px-4 py-3 shadow-[0_18px_44px_rgba(88,28,135,0.06)]"
+      className="agentrank-flow-card rounded-lg border border-zinc-200 bg-white px-4 py-3 shadow-[0_18px_44px_rgba(15,23,42,0.06)]"
       style={style}
     >
       <p className="text-[0.68rem] font-semibold uppercase text-slate-400">
@@ -525,8 +525,8 @@ function MiniConnectionGraph({
   const isWeb = variant === "web";
   const nodeClass = isWeb
     ? "bg-blue-600 text-white ring-blue-100"
-    : "bg-violet-600 text-white ring-violet-100";
-  const lineClass = isWeb ? "bg-blue-300/80" : "bg-violet-300/80";
+    : "bg-zinc-900 text-white ring-zinc-200";
+  const lineClass = isWeb ? "bg-blue-300/80" : "bg-zinc-300/80";
 
   return (
     <div className="relative h-36 overflow-hidden rounded-lg border border-slate-100 bg-white">
@@ -576,7 +576,7 @@ function IconMiniTile({
     blue: "border-blue-100 bg-blue-50/70 text-blue-700",
     emerald: "border-emerald-100 bg-emerald-50/70 text-emerald-700",
     pink: "border-pink-100 bg-pink-50/70 text-pink-700",
-    violet: "border-violet-100 bg-violet-50/70 text-[#6d28d9]",
+    violet: "border-zinc-200 bg-zinc-50 text-zinc-700",
   }[tone];
 
   return (
@@ -601,14 +601,14 @@ function CoverageProgress({
   value: number;
 }) {
   return (
-    <div className="rounded-lg border border-violet-100 bg-white p-4 shadow-[0_14px_34px_rgba(88,28,135,0.05)]">
+    <div className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.05)]">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm font-semibold text-[#11132d]">{label}</p>
-        <p className="text-2xl font-semibold text-[#6d28d9]">{value}%</p>
+        <p className="text-2xl font-semibold text-zinc-950">{value}%</p>
       </div>
-      <div className="mt-3 h-2 overflow-hidden rounded-full bg-violet-100">
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-100">
         <div
-          className="agentrank-score-bar h-full rounded-full bg-gradient-to-r from-[#6d28d9] via-[#2563eb] to-[#16a34a]"
+          className="agentrank-score-bar h-full rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
           style={{ width: `${value}%` }}
         />
       </div>
@@ -638,7 +638,7 @@ function AgentRankCoveragePanel({
     creator: "border-pink-100 bg-pink-50/70 text-pink-700",
     discovery: "border-blue-100 bg-blue-50/70 text-blue-700",
     economy: "border-emerald-100 bg-emerald-50/70 text-emerald-700",
-    network: "border-violet-100 bg-violet-50/70 text-[#6d28d9]",
+    network: "border-zinc-200 bg-zinc-50 text-zinc-700",
   } satisfies Record<
     AgentRankCoverageSnapshot["eventTypes"][number]["layer"],
     string
@@ -653,23 +653,23 @@ function AgentRankCoveragePanel({
   coverageCsvParams.set("format", "csv");
 
   return (
-    <section className="agentrank-flow-card rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
+    <section className="agentrank-flow-card rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_18px_44px_rgba(15,23,42,0.07)]">
       <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
         <div>
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-sm font-semibold uppercase text-[#6d28d9]">
+            <p className="text-sm font-semibold uppercase text-zinc-600">
               {copy.coverage.title}
             </p>
             <div className="flex flex-wrap gap-2">
               <a
-                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-white px-3 text-xs font-semibold text-[#5b21b6]"
+                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-900"
                 href={`/${locale}/fanletter/agentrank/coverage?${coveragePageParams.toString()}`}
               >
                 <ShieldCheck className="size-3.5" />
                 {copy.coverage.auditPage}
               </a>
               <a
-                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9]"
+                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-900"
                 href={`/api/fanletter/agentrank/coverage?${coverageParams.toString()}`}
               >
                 <Database className="size-3.5" />
@@ -716,14 +716,14 @@ function AgentRankCoveragePanel({
               value={backfill.readinessScore}
             />
           </div>
-          <div className="mt-5 rounded-lg border border-dashed border-violet-200 bg-violet-50 p-4">
-            <p className="text-sm font-semibold text-[#4c1d95]">
+          <div className="mt-5 rounded-lg border border-dashed border-zinc-300 bg-zinc-50 p-4">
+            <p className="text-sm font-semibold text-zinc-900">
               {copy.coverage.gaps}
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               {coverage.gaps.map((gap) => (
                 <span
-                  className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-[#6d28d9] ring-1 ring-violet-100"
+                  className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700 ring-1 ring-zinc-200"
                   key={gap}
                 >
                   {getCoverageGapLabel(gap, locale)}
@@ -963,9 +963,9 @@ function AgentRankScoreAggregatorPanel({
   ];
 
   return (
-    <section className="agentrank-flow-card overflow-hidden rounded-lg border border-violet-100 bg-white shadow-[0_18px_44px_rgba(88,28,135,0.07)]">
+    <section className="agentrank-flow-card overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_18px_44px_rgba(15,23,42,0.07)]">
       <div className="grid gap-5 p-5 xl:grid-cols-[0.92fr_1.08fr]">
-        <div className="rounded-lg bg-gradient-to-br from-[#11132d] via-[#312e81] to-[#6d28d9] p-5 text-white">
+        <div className="rounded-lg bg-gradient-to-br from-black via-zinc-900 to-zinc-700 p-5 text-white">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold uppercase text-white/70">
@@ -1009,7 +1009,7 @@ function AgentRankScoreAggregatorPanel({
                 source: "fanletter_agentrank",
                 starId: starId ?? null,
               }}
-              className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-3 text-xs font-semibold text-[#4338ca]"
+              className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-3 text-xs font-semibold text-zinc-900"
               eventName="content_open"
               href={`/api/fanletter/agentrank/score?${scoreCsvParams.toString()}`}
               metadata={{ agentRankExport: "score_csv" }}
@@ -1089,7 +1089,7 @@ function AgentRankScoreAggregatorPanel({
                     source: "fanletter_agentrank",
                     starId: starId ?? null,
                   }}
-                  className={`flex min-h-11 items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs font-semibold ring-1 transition hover:bg-white hover:text-[#4338ca] ${tone}`}
+                  className={`flex min-h-11 items-center justify-between gap-3 rounded-lg px-3 py-2 text-xs font-semibold ring-1 transition hover:bg-white hover:text-zinc-900 ${tone}`}
                   eventName="content_open"
                   href={href}
                   key={intent}
@@ -1122,7 +1122,7 @@ function AgentRankScoreAggregatorPanel({
 
             return (
               <div
-                className="rounded-lg border border-slate-100 bg-[#f8f9ff] p-4"
+                className="rounded-lg border border-zinc-200 bg-zinc-50 p-4"
                 key={dimension.key}
               >
                 <div className="flex items-start justify-between gap-4">
@@ -1131,7 +1131,7 @@ function AgentRankScoreAggregatorPanel({
                       className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${
                         isPenalty
                           ? "bg-red-50 text-red-600"
-                          : "bg-white text-[#6d28d9]"
+                          : "bg-white text-zinc-900"
                       }`}
                     >
                       <Icon className="size-5" />
@@ -1147,7 +1147,7 @@ function AgentRankScoreAggregatorPanel({
                   </div>
                   <p
                     className={`shrink-0 text-xl font-semibold ${
-                      isPenalty ? "text-red-600" : "text-[#4338ca]"
+                      isPenalty ? "text-red-600" : "text-zinc-900"
                     }`}
                   >
                     {isPenalty ? "-" : "+"}
@@ -1159,7 +1159,7 @@ function AgentRankScoreAggregatorPanel({
                     className={`h-full rounded-full ${
                       isPenalty
                         ? "bg-gradient-to-r from-red-500 to-orange-400"
-                        : "agentrank-score-bar bg-gradient-to-r from-[#6d28d9] via-[#2563eb] to-[#16a34a]"
+                        : "agentrank-score-bar bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
                     }`}
                     style={{ width: `${dimensionPercent}%` }}
                   />
@@ -1170,23 +1170,23 @@ function AgentRankScoreAggregatorPanel({
         </div>
       </div>
 
-      <div className="grid gap-4 border-t border-violet-100 bg-violet-50/40 p-5 xl:grid-cols-[1fr_0.9fr]">
+      <div className="grid gap-4 border-t border-zinc-200 bg-zinc-50 p-5 xl:grid-cols-[1fr_0.9fr]">
         <div>
-          <p className="text-sm font-semibold uppercase text-[#6d28d9]">
+          <p className="text-sm font-semibold uppercase text-zinc-600">
             {copy.formula}
           </p>
-          <p className="mt-2 text-sm font-medium leading-6 text-[#4c1d95]">
+          <p className="mt-2 text-sm font-medium leading-6 text-zinc-700">
             {scoreAggregate.formula}
           </p>
         </div>
         <div>
-          <p className="text-sm font-semibold uppercase text-[#6d28d9]">
+          <p className="text-sm font-semibold uppercase text-zinc-600">
             {copy.topContributors}
           </p>
           <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
             {scoreAggregate.topContributors.slice(0, 4).map((contributor) => (
               <div
-                className="flex items-center justify-between gap-3 rounded-lg border border-violet-100 bg-white px-3 py-2"
+                className="flex items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white px-3 py-2"
                 key={`${contributor.actorType}:${contributor.actorId}`}
               >
                 <div className="min-w-0">
@@ -1199,7 +1199,7 @@ function AgentRankScoreAggregatorPanel({
                     {formatNumber(contributor.eventCount, locale)} events
                   </p>
                 </div>
-                <p className="shrink-0 text-sm font-semibold text-[#6d28d9]">
+                <p className="shrink-0 text-sm font-semibold text-zinc-900">
                   {formatNumber(contributor.contributionScore, locale)}
                 </p>
               </div>
@@ -1300,7 +1300,7 @@ function OracleEvidenceChainPanel({
                     source: "fanletter_agentrank",
                     starId: event.starId ?? starId ?? null,
                   }}
-                  className="group relative min-w-0 rounded-lg border border-slate-100 bg-[#f8f9ff] p-4 transition hover:border-cyan-200 hover:bg-cyan-50/40"
+                  className="group relative min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-4 transition hover:border-zinc-300 hover:bg-white"
                   eventName="content_open"
                   href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
                     event.eventId,
@@ -1673,7 +1673,7 @@ function ErsScorePanel({
 
           return (
             <div
-              className="rounded-lg border border-slate-100 bg-[#f8f9ff] p-4"
+              className="rounded-lg border border-zinc-200 bg-zinc-50 p-4"
               key={component.key}
             >
               <div className="flex items-start justify-between gap-3">
@@ -1856,7 +1856,7 @@ function EconomicActivityPanel({
           <div className="mt-4 grid grid-cols-2 gap-2">
             {futureItems.map((item) => (
               <div
-                className="rounded-lg border border-slate-100 bg-[#f8f9ff] px-3 py-3 text-sm font-semibold text-[#11132d]"
+                className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-3 text-sm font-semibold text-[#11132d]"
                 key={item}
               >
                 {item}
@@ -2011,7 +2011,7 @@ function EventFactoryPanel({
 
             return (
               <div
-                className="flex items-start gap-3 rounded-lg border border-slate-100 bg-[#f8f9ff] p-3"
+                className="flex items-start gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3"
                 key={event.eventId}
               >
                 <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-white text-[#6d28d9]">
@@ -2099,8 +2099,8 @@ function AgentRankMobileStatusCard({
   );
 
   return (
-    <section className="mt-5 rounded-[1.25rem] border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:hidden">
-      <p className="inline-flex max-w-full items-center gap-2 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
+    <section className="mt-5 rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_16px_36px_rgba(15,23,42,0.08)] sm:hidden">
+      <p className="inline-flex max-w-full items-center gap-2 rounded-full bg-zinc-50 px-3 py-1 text-xs font-semibold text-zinc-700 ring-1 ring-zinc-200">
         <Brain className="size-3.5 shrink-0" />
         <span className="truncate">
           {isKo ? "현재 위치: AgentRank 점수" : "Now: AgentRank score"}
@@ -2119,16 +2119,16 @@ function AgentRankMobileStatusCard({
       </div>
       <div className="mt-4 overflow-hidden rounded-full bg-slate-100">
         <div
-          className="h-2 rounded-full bg-gradient-to-r from-[#7c3aed] via-[#2563eb] to-[#16a34a]"
+          className="h-2 rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
           style={{ width: `${Math.min(100, Math.max(0, scorePercent))}%` }}
         />
       </div>
       <div className="mt-4 grid grid-cols-3 gap-2">
-        <div className="rounded-lg bg-violet-50 px-3 py-2">
-          <p className="truncate text-[0.62rem] font-semibold uppercase text-[#6d28d9]/70">
+        <div className="rounded-lg bg-zinc-50 px-3 py-2">
+          <p className="truncate text-[0.62rem] font-semibold uppercase text-zinc-500">
             {copy.metrics.events}
           </p>
-          <p className="mt-1 truncate text-lg font-semibold text-[#5b21b6]">
+          <p className="mt-1 truncate text-lg font-semibold text-zinc-950">
             {formatNumber(scoreAggregate.summary.eventCount, locale)}
           </p>
         </div>
@@ -2156,7 +2156,7 @@ function AgentRankMobileStatusCard({
           source: "fanletter_agentrank",
           starId: starId ?? null,
         }}
-        className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#6d28d9] px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(109,40,217,0.2)]"
+        className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(15,23,42,0.18)]"
         eventName="signup_cta_click"
         href={ledgerHref}
         metadata={{
@@ -2237,7 +2237,7 @@ export function FanletterAgentRankPage({
   ];
 
   return (
-    <main className="fanletter-agentrank-page min-h-screen overflow-x-hidden bg-[#f8f9ff] px-5 py-5 text-[#11132d]">
+    <main className="fanletter-agentrank-page min-h-screen overflow-x-hidden bg-white px-5 py-5 text-[#11132d]">
       <FanletterAgentRankTracker starId={starId} />
       <div className="mx-auto max-w-[1500px]">
         <FanletterActionGuide
@@ -2330,16 +2330,16 @@ export function FanletterAgentRankPage({
           scoreAggregate={scoreAggregate}
           starId={starId}
         />
-        <header className="agentrank-flow-card mt-5 hidden gap-5 rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] sm:grid lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+        <header className="agentrank-flow-card mt-5 hidden gap-5 rounded-[1.5rem] border border-zinc-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:grid lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-sm font-semibold text-[#6d28d9]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm font-semibold text-zinc-700">
               <Sparkles className="size-4" />
               {copy.generated} · {formatDateTime(snapshot.generatedAt, locale)}
             </div>
             <h1 className="mt-4 text-[3rem] font-semibold leading-[1.02] tracking-normal text-[#11132d] md:text-[4.4rem]">
               {copy.heroTitle}
             </h1>
-            <p className="mt-2 text-2xl font-semibold text-[#4338ca]">
+            <p className="mt-2 text-2xl font-semibold text-zinc-600">
               {copy.heroSubtitle}
             </p>
             <p className="mt-3 max-w-3xl text-lg font-medium leading-8 text-slate-600">
@@ -2352,7 +2352,7 @@ export function FanletterAgentRankPage({
               <ReadinessPill active={ers.readiness.a2aReady} label={`${copy.a2a} pending`} />
             </div>
           </div>
-          <div className="agentrank-stage-card relative overflow-hidden rounded-[1.25rem] bg-gradient-to-br from-[#11132d] via-[#312e81] to-[#6d28d9] p-5 text-white shadow-[0_24px_70px_rgba(88,28,135,0.24)]">
+          <div className="agentrank-stage-card relative overflow-hidden rounded-[1.25rem] bg-gradient-to-br from-black via-zinc-900 to-zinc-700 p-5 text-white shadow-[0_24px_70px_rgba(15,23,42,0.22)]">
             <p className="text-sm font-semibold uppercase text-white/70">
               {snapshot.positioning.phase}
             </p>
@@ -2436,7 +2436,7 @@ export function FanletterAgentRankPage({
             <div className="mt-4 grid gap-3">
               {eventFeed.roadmap.map((step, index) => (
                 <div
-                  className="flex items-center gap-3 rounded-lg border border-slate-100 bg-[#f8f9ff] p-3"
+                  className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3"
                   key={step}
                 >
                   <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white text-sm font-semibold text-[#6d28d9]">
