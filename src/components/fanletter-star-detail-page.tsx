@@ -559,20 +559,20 @@ function StarAgentRankJoinSignal({
   );
 
   return (
-    <article className="mt-4 max-w-2xl rounded-lg border border-violet-200 bg-white/84 p-3 shadow-[0_14px_34px_rgba(88,28,135,0.08)]">
+    <article className="mt-4 max-w-2xl rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <p className="inline-flex items-center gap-2 text-xs font-semibold text-[#6d28d9]">
-            <ShieldCheck className="size-4 shrink-0" />
+          <p className="inline-flex items-center gap-2 text-xs font-semibold text-slate-600">
+            <ShieldCheck className="size-4 shrink-0 text-emerald-600" />
             AgentRank ERS {snapshot.ers.score}
           </p>
           <h2 className="mt-1 break-words text-sm font-semibold text-[#12041f] [word-break:keep-all]">
             {labels.title}
           </h2>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
+        <div className="hidden shrink-0 flex-wrap gap-2 sm:flex">
           <Link
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9]"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-slate-900 px-3 text-xs font-semibold text-white"
             href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
               star.id,
             )}`}
@@ -581,7 +581,7 @@ function StarAgentRankJoinSignal({
             <ArrowRight className="size-3.5" />
           </Link>
           <Link
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white px-3 text-xs font-semibold text-[#5b21b6]"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700"
             href={`/${locale}/fanletter/agentrank/events?starId=${encodeURIComponent(
               star.id,
             )}`}
@@ -592,9 +592,9 @@ function StarAgentRankJoinSignal({
         </div>
       </div>
 
-      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-violet-50">
+      <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
         <span
-          className="block h-full rounded-full bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#22c55e]"
+          className="block h-full rounded-full bg-gradient-to-r from-[#111827] via-[#4f46e5] to-[#22c55e]"
           style={{ width: `${scorePercent}%` }}
         />
       </div>
@@ -622,7 +622,7 @@ function StarAgentRankJoinSignal({
       <div className="mt-3 flex flex-wrap gap-2">
         {[labels.join, labels.referral, labels.reward].map((eventLabel) => (
           <span
-            className="rounded-full border border-violet-100 bg-white px-2.5 py-1 text-[0.66rem] font-semibold text-[#6d28d9]"
+            className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[0.66rem] font-semibold text-slate-700"
             key={eventLabel}
           >
             {eventLabel}
