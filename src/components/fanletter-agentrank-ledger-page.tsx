@@ -828,11 +828,11 @@ function LedgerOperationStatusCard({
   const progressWidth = `${Math.min(100, Math.max(0, packetPercent))}%`;
 
   return (
-    <section className="rounded-[1.25rem] border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="inline-flex max-w-full items-center gap-2 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
-            <Database className="size-3.5 shrink-0" />
+          <p className="inline-flex max-w-full items-center gap-2 rounded-full bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700 ring-1 ring-slate-200">
+            <Database className="size-3.5 shrink-0 text-[#6d28d9]" />
             <span className="truncate">
               {isKo ? "현재 위치: Reputation Event 장부" : "Now: Reputation Event ledger"}
             </span>
@@ -853,7 +853,7 @@ function LedgerOperationStatusCard({
 
       <div className="mt-4 overflow-hidden rounded-full bg-slate-100">
         <div
-          className="h-2 rounded-full bg-gradient-to-r from-[#7c3aed] to-[#22c55e]"
+          className="h-2 rounded-full bg-gradient-to-r from-[#111827] via-[#4f46e5] to-[#22c55e]"
           style={{ width: progressWidth }}
         />
       </div>
@@ -887,7 +887,7 @@ function LedgerOperationStatusCard({
 
       <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">
         <Link
-          className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-[#6d28d9] px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(109,40,217,0.2)]"
+          className="hidden h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-[#111827] px-5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] sm:inline-flex"
           href={reviewHref}
         >
           {copy.ledgerReviewQueue}
