@@ -2838,6 +2838,47 @@ export function FanletterFounderUniverseExplorer({
             }
           />
 
+          <section className="grid min-w-0 gap-2 sm:grid-cols-3">
+            <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_10px_26px_rgba(15,23,42,0.045)]">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                {locale === "ko" ? "선택 AI 스타" : "Selected AI Star"}
+              </p>
+              <p className="mt-1 truncate text-base font-semibold text-zinc-950">
+                {starName}
+              </p>
+              <p className="mt-0.5 truncate text-xs font-semibold text-zinc-500">
+                {displayUniverse.star.id}
+              </p>
+            </div>
+            <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_10px_26px_rgba(15,23,42,0.045)]">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                {locale === "ko" ? "선택 멤버" : "Selected member"}
+              </p>
+              <p className="mt-1 truncate text-base font-semibold text-zinc-950">
+                {selectedNode?.label ?? starName}
+              </p>
+              <p className="mt-0.5 truncate text-xs font-semibold text-zinc-500">
+                {selectedNode?.memberId
+                  ? `ID ${selectedNode.memberId}`
+                  : locale === "ko"
+                    ? "AI 스타 창업자"
+                    : "AI Star creator"}
+              </p>
+            </div>
+            <div className="min-w-0 rounded-lg border border-zinc-950 bg-zinc-950 p-3 text-white shadow-[0_14px_34px_rgba(15,23,42,0.16)]">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white/62">
+                {locale === "ko" ? "다음 확인" : "Next check"}
+              </p>
+              <p className="mt-1 truncate text-base font-semibold">
+                {selectedRoleLabel}
+              </p>
+              <p className="mt-0.5 truncate text-xs font-semibold text-white/62">
+                {formatNumber(selectedNode?.directChildrenCount ?? 0, locale)}{" "}
+                {copy.children}
+              </p>
+            </div>
+          </section>
+
           <div id="founder-network-map">
             <FounderUniverseDashboardPanel
               locale={locale}

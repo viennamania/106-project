@@ -1967,6 +1967,47 @@ export function FanletterAgentRankLedgerPage({
               </Link>
             </form>
           </details>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
+            {[
+              {
+                label: copy.eventScope,
+                value:
+                  scopeOptions.find((option) => option.scope === filters.scope)
+                    ?.label ?? copy.scopeAll,
+              },
+              {
+                label: copy.readinessFilter,
+                value:
+                  readinessOptions.find(
+                    (option) => option.readiness === filters.readiness,
+                  )?.label ?? copy.readinessAll,
+              },
+              {
+                label: copy.sort,
+                value:
+                  sortOptions.find((option) => option.sort === filters.sort)
+                    ?.label ?? copy.sortLatest,
+              },
+              {
+                label: copy.filterByType,
+                value: filters.type
+                  ? getEventTypeLabel(filters.type, locale)
+                  : copy.viewAll,
+              },
+            ].map((item) => (
+              <div
+                className="min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2"
+                key={item.label}
+              >
+                <p className="truncate text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+                  {item.label}
+                </p>
+                <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+                  {item.value}
+                </p>
+              </div>
+            ))}
+          </div>
           <form
             action={`/${locale}/fanletter/agentrank/events`}
             className="mt-4 hidden gap-3 sm:grid lg:grid-cols-[1fr_1fr_9rem_11rem_12rem_12rem_auto_auto]"
@@ -2080,7 +2121,7 @@ export function FanletterAgentRankLedgerPage({
               {copy.clearFilters}
             </Link>
           </form>
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+          <div className="mt-4 hidden gap-2 overflow-x-auto pb-1 sm:flex">
             {scopeOptions.map((option) => {
               const isActive = filters.scope === option.scope;
 
@@ -2113,7 +2154,7 @@ export function FanletterAgentRankLedgerPage({
               );
             })}
           </div>
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+          <div className="mt-3 hidden gap-2 overflow-x-auto pb-1 sm:flex">
             {readinessOptions.map((option) => {
               const isActive = filters.readiness === option.readiness;
 
@@ -2137,7 +2178,7 @@ export function FanletterAgentRankLedgerPage({
               );
             })}
           </div>
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+          <div className="mt-3 hidden gap-2 overflow-x-auto pb-1 sm:flex">
             {sortOptions.map((option) => {
               const isActive = filters.sort === option.sort;
 
@@ -2227,7 +2268,7 @@ export function FanletterAgentRankLedgerPage({
               {copy.viewAll}
             </Link>
           </div>
-          <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+          <div className="mt-4 hidden gap-2 overflow-x-auto pb-1 sm:flex">
             {agentRankReputationEventTypes.map((type) => {
               const isActive = filters.type === type;
               const count = feed.summary.byType[type] ?? 0;

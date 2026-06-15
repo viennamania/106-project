@@ -13,6 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import type { ComponentProps } from "react";
 
 import {
   FanletterCreatorMockLaunchButton,
@@ -47,6 +48,10 @@ import {
   type SpawnedAIStar,
 } from "@/mock/fanletterV2";
 import type { Locale } from "@/lib/i18n";
+
+type CreatorUnlockGuideAction = ComponentProps<
+  typeof FanletterActionGuide
+>["primaryAction"];
 
 function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -1493,6 +1498,89 @@ export function FanletterCreatorUnlockPage({
     coverageAction?.action === "x402_economy";
   const shouldTrackCoverageCreatorUnlocked =
     coverageAction?.action === "creator_unlocked" && !unlock.unlocked;
+  const creatorUnlockNextAction: CreatorUnlockGuideAction = requiresSourceUniverse
+    ? {
+        agentRank: {
+          eventType: "ai_star_discovered" as const,
+          intent: "creator_unlock_find_source_universe",
+          source: "fanletter_creator_unlock",
+          starId: trackingSourceStarId,
+        },
+        href: `/${locale}/fanletter#top-growing-ai-stars`,
+        label: copy.noSourcePrimary,
+        metadata: {
+          placement: "creator_unlock_action_guide_primary",
+          sourceUniverseName: displaySourceUniverseName,
+        },
+      }
+    : isPreviewMode
+      ? {
+          agentRank: {
+            eventType: "creator_unlocked" as const,
+            intent: "creator_unlock_preview_connect",
+            source: "fanletter_creator_unlock",
+            starId: trackingSourceStarId,
+          },
+          href: connectHref,
+          label: copy.loginCta,
+          metadata: {
+            placement: "creator_unlock_action_guide_connect",
+            sourceUniverseName: displaySourceUniverseName,
+          },
+        }
+      : unlock.unlocked
+        ? {
+            agentRank: {
+              eventType: "x402_mock_payment_intent" as const,
+              intent: "creator_unlock_ready_mock_launch",
+              source: "fanletter_creator_unlock",
+              starId: trackingSourceStarId,
+            },
+            href: "#mock-launch-panel",
+            label: locale === "ko" ? "Mock 생성 완료하기" : "Complete mock launch",
+            metadata: {
+              placement: "creator_unlock_action_guide_mock_launch",
+              sourceUniverseName: displaySourceUniverseName,
+            },
+          }
+        : {
+            agentRank: {
+              eventType: "creator_unlock_evaluated" as const,
+              intent: "creator_unlock_review_conditions",
+              source: "fanletter_creator_unlock",
+              starId: trackingSourceStarId,
+            },
+            href: "#creator-unlock-conditions",
+            label: locale === "ko" ? "조건 확인하기" : "Review conditions",
+            metadata: {
+              placement: "creator_unlock_action_guide_conditions",
+              sourceUniverseName: displaySourceUniverseName,
+            },
+          };
+  const creatorUnlockNextTitle = requiresSourceUniverse
+    ? locale === "ko"
+      ? "다음 행동: AI 스타 발견"
+      : "Next action: discover AI Stars"
+    : isPreviewMode
+      ? locale === "ko"
+        ? "다음 행동: 계정 연결"
+        : "Next action: connect account"
+      : unlock.unlocked
+        ? locale === "ko"
+          ? "다음 행동: Mock 생성 완료"
+          : "Next action: complete mock launch"
+        : locale === "ko"
+          ? "다음 행동: 조건 확인"
+          : "Next action: review conditions";
+  const creatorUnlockEventLabel = requiresSourceUniverse
+    ? locale === "ko"
+      ? "AI Star Discovery 이벤트"
+      : "AI Star Discovery event"
+    : unlock.unlocked
+      ? "x402 Mock Payment Intent"
+      : locale === "ko"
+        ? "Creator Unlock 평가 이벤트"
+        : "Creator Unlock evaluation event";
   const creatorUnlockActionGuide = (
     <FanletterActionGuide
       className="mt-5"
@@ -1511,38 +1599,16 @@ export function FanletterCreatorUnlockPage({
             : displaySourceUniverseName,
         },
       ]}
-      primaryAction={{
-        agentRank: {
-          eventType: requiresSourceUniverse
-            ? "ai_star_discovered"
-            : "source_universe_selected",
-          intent: requiresSourceUniverse
-            ? "creator_unlock_find_source_universe"
-            : "creator_unlock_choose_source_universe",
-          source: "fanletter_creator_unlock",
-          starId: trackingSourceStarId,
-        },
-        href: requiresSourceUniverse
-          ? `/${locale}/fanletter#top-growing-ai-stars`
-          : "#source-universe-picker",
-        label: requiresSourceUniverse
-          ? copy.noSourcePrimary
-          : locale === "ko"
-            ? "출처 네트워크 확인"
-            : "Confirm source network",
-        metadata: {
-          placement: "creator_unlock_action_guide_primary",
-          sourceUniverseName: displaySourceUniverseName,
-        },
-      }}
-      reputationEventLabel={
-        locale === "ko" ? "출처 선택 이벤트" : "Source selection event"
-      }
+      primaryAction={creatorUnlockNextAction}
+      reputationEventLabel={creatorUnlockEventLabel}
       secondaryActions={[]}
       steps={[
         {
           label: locale === "ko" ? "조건 확인" : "Check conditions",
-          status: completedConditionCount > 0 ? "done" : "active",
+          status:
+            completedConditionCount >= unlock.conditions.length
+              ? "done"
+              : "active",
         },
         {
           label: locale === "ko" ? "출처 선택" : "Choose source",
@@ -1550,7 +1616,10 @@ export function FanletterCreatorUnlockPage({
         },
         {
           label: locale === "ko" ? "mock 생성" : "Mock launch",
-          status: unlock.unlocked && !requiresSourceUniverse ? "active" : "next",
+          status:
+            unlock.unlocked && !requiresSourceUniverse && !isPreviewMode
+              ? "active"
+              : "next",
         },
         {
           label: "AgentRank",
@@ -1563,9 +1632,7 @@ export function FanletterCreatorUnlockPage({
           : "A new AI Star records the selected Star Network as its launch source, then feeds CP Pool and AgentRank events."
       }
       title={
-        locale === "ko"
-          ? "다음 행동: 출처 네트워크 확정"
-          : "Next action: confirm source network"
+        creatorUnlockNextTitle
       }
     />
   );
@@ -1817,11 +1884,13 @@ export function FanletterCreatorUnlockPage({
 
         <section className="mt-8 grid w-full min-w-0 gap-4 xl:grid-cols-[0.9fr_1.1fr]">
           <div className="grid min-w-0 gap-4">
-            <CreatorUnlockCard
-              copy={v2Copy}
-              locale={locale}
-              unlock={unlock}
-            />
+            <div id="creator-unlock-conditions">
+              <CreatorUnlockCard
+                copy={v2Copy}
+                locale={locale}
+                unlock={unlock}
+              />
+            </div>
             <div id="source-universe-picker">
               {requiresSourceUniverse ? (
                 <SourceUniverseEmptyState copy={copy} locale={locale} />
@@ -1836,7 +1905,10 @@ export function FanletterCreatorUnlockPage({
                 />
               )}
             </div>
-            <section className="w-full min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
+            <section
+              className="w-full min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5"
+              id="mock-launch-panel"
+            >
               <div className="flex items-start gap-3">
                 <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
                   <Sparkles className="size-5" />
