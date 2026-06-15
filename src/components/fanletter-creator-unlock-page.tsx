@@ -684,13 +684,13 @@ function SourceUniverseSelector({
   }
 
   return (
-    <section className="w-full min-w-0 rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+    <section className="w-full min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
           <GitBranch className="size-5" />
         </span>
         <div>
-          <p className="text-sm font-semibold text-[#6d28d9]">
+          <p className="text-sm font-semibold text-zinc-700">
             {copy.source}
           </p>
           <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
@@ -717,8 +717,8 @@ function SourceUniverseSelector({
               className={joinClasses(
                 "relative min-h-32 min-w-0 rounded-lg border p-3 text-left transition",
                 isSelected
-                  ? "border-[#7c3aed] bg-[#f5f0ff] ring-2 ring-[#7c3aed]/12"
-                  : "border-black/8 bg-[#fbfaff] hover:border-violet-300",
+                  ? "border-black bg-zinc-50 ring-2 ring-black/10"
+                  : "border-zinc-200 bg-white hover:border-zinc-400",
               )}
               key={option.starId}
               onClick={() => {
@@ -766,7 +766,7 @@ function SourceUniverseSelector({
                     </p>
                     <div className="flex flex-wrap items-center gap-2">
                       <FounderRoleBadge copy={v2Copy} role={option.role} />
-                      <span className="inline-flex h-7 items-center rounded-full border border-violet-100 bg-white px-2 text-[0.66rem] font-semibold text-[#6d28d9]">
+                      <span className="inline-flex h-7 items-center rounded-full border border-zinc-200 bg-white px-2 text-[0.66rem] font-semibold text-zinc-700">
                         {copy.sourcePool}
                       </span>
                     </div>
@@ -863,7 +863,7 @@ function SourceUniverseEmptyState({
               intent: "creator_unlock_no_source_discovery",
               source: "fanletter_creator_unlock",
             }}
-            className="inline-flex min-h-10 items-center justify-center rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
+            className="inline-flex min-h-10 items-center justify-center rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
             eventName="signup_cta_click"
             href={`/${locale}/fanletter#top-growing-ai-stars`}
             metadata={{
@@ -878,7 +878,7 @@ function SourceUniverseEmptyState({
               intent: "creator_unlock_no_source_founder_club",
               source: "fanletter_creator_unlock",
             }}
-            className="inline-flex min-h-10 items-center justify-center rounded-full border border-violet-200 bg-white px-4 text-sm font-semibold text-[#5b21b6] transition hover:bg-violet-50"
+            className="inline-flex min-h-10 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50"
             eventName="content_open"
             href={`/${locale}/fanletter#founder-club`}
             metadata={{
@@ -917,9 +917,9 @@ function FounderContributionPanel({
   const topUniverses = contribution.universes.slice(0, 3);
 
   return (
-    <section className="mt-4 overflow-hidden rounded-lg border border-violet-200 bg-white shadow-[0_18px_44px_rgba(88,28,135,0.08)]">
+    <section className="mt-4 overflow-hidden rounded-lg border border-zinc-200 bg-white shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
       <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[0.85fr_1.15fr]">
-        <div className="rounded-lg bg-gradient-to-br from-[#12041f] via-[#4c1d95] to-[#7c3aed] p-4 text-white">
+        <div className="rounded-lg bg-gradient-to-br from-black via-zinc-900 to-zinc-700 p-4 text-white">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-white/68">
@@ -971,7 +971,7 @@ function FounderContributionPanel({
         <div className="grid content-start gap-2">
           {topUniverses.map((universe) => (
             <div
-              className="rounded-lg border border-violet-100 bg-[#fbfaff] p-3"
+              className="rounded-lg border border-zinc-200 bg-zinc-50 p-3"
               key={universe.universeId}
             >
               <div className="flex items-start justify-between gap-3">
@@ -985,7 +985,7 @@ function FounderContributionPanel({
                     {copy.contributionEvents}
                   </p>
                 </div>
-                <p className="shrink-0 text-xl font-semibold text-[#6d28d9]">
+                <p className="shrink-0 text-xl font-semibold text-zinc-900">
                   {formatNumber(universe.score, locale)}
                 </p>
               </div>
@@ -1066,7 +1066,7 @@ function LaunchAIStarPreviewCard({
 
       <div className="p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-white px-3 py-1 text-[0.68rem] font-semibold text-[#4c1d95]">
+          <span className="rounded-full bg-white px-3 py-1 text-[0.68rem] font-semibold text-zinc-900">
             {aiStarBadgeLabel}
           </span>
           <span className="rounded-full border border-cyan-100/70 bg-cyan-100 px-3 py-1 text-[0.68rem] font-semibold text-cyan-950">
@@ -1125,13 +1125,13 @@ function PortfolioReflectionPreview({
   ].slice(0, 4);
 
   return (
-    <section className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+    <section className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
           <BadgeCheck className="size-5" />
         </span>
         <div>
-          <p className="text-sm font-semibold text-[#6d28d9]">
+          <p className="text-sm font-semibold text-zinc-700">
             {copy.nextPortfolio}
           </p>
           <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
@@ -1146,8 +1146,8 @@ function PortfolioReflectionPreview({
             className={joinClasses(
               "rounded-lg border p-3",
               index === 0
-                ? "border-fuchsia-200 bg-[#faf5ff]"
-                : "border-black/8 bg-[#f8f7ff]",
+                ? "border-zinc-300 bg-zinc-50"
+                : "border-zinc-200 bg-white",
             )}
             key={`${star.id}-${index}`}
           >
@@ -1168,7 +1168,7 @@ function PortfolioReflectionPreview({
               </span>
             </div>
             {star.sourceUniverseName ? (
-              <p className="mt-3 truncate text-xs font-semibold text-[#6d28d9]">
+              <p className="mt-3 truncate text-xs font-semibold text-zinc-700">
                 {copy.source}:{" "}
                 {getDisplayUniverseName(star.sourceUniverseName, locale)}
               </p>
@@ -1194,19 +1194,19 @@ function MockLaunchSavedSummary({
   const copy = getLaunchPageCopy(locale);
 
   return (
-    <section className="rounded-lg border border-fuchsia-200 bg-[#faf5ff] p-4 text-[#3b0764] shadow-[0_18px_44px_rgba(168,85,247,0.1)] sm:p-5">
+    <section className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-zinc-950 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
       <div className="flex items-start gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-white text-[#7c3aed]">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-900">
           <BadgeCheck className="size-5" />
         </span>
         <div className="min-w-0">
           <h2 className="text-xl font-semibold leading-tight">
             {copy.launchedTitle}
           </h2>
-          <p className="mt-2 text-sm font-medium leading-6 text-[#3b0764]/70">
+          <p className="mt-2 text-sm font-medium leading-6 text-zinc-600">
             {copy.launchedBody}
           </p>
-          <span className="mt-3 inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#6d28d9]">
+          <span className="mt-3 inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-zinc-700">
             AI STAR draft {launches.length}
           </span>
         </div>
@@ -1215,14 +1215,14 @@ function MockLaunchSavedSummary({
       <div className="mt-4 grid gap-2 sm:grid-cols-2">
         {launches.map((launch) => (
           <div
-            className="flex min-h-20 items-center justify-between gap-3 rounded-lg border border-fuchsia-200 bg-white p-3"
+            className="flex min-h-20 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-3"
             key={launch.id}
           >
             <span className="min-w-0">
               <span className="block truncate text-sm font-semibold">
                 {launch.name}
               </span>
-              <span className="mt-1 block truncate text-xs font-semibold text-[#7c3aed]">
+              <span className="mt-1 block truncate text-xs font-semibold text-zinc-700">
                 {getDisplayUniverseName(
                   launch.sourceUniverseName ??
                     launch.universeName ??
@@ -1231,7 +1231,7 @@ function MockLaunchSavedSummary({
                 )}
               </span>
             </span>
-            <span className="inline-flex h-8 shrink-0 items-center rounded-full bg-[#7c3aed] px-3 text-xs font-semibold text-white">
+            <span className="inline-flex h-8 shrink-0 items-center rounded-full bg-black px-3 text-xs font-semibold text-white">
               {launch.launchCostUsdt ?? 10} USDT
             </span>
           </div>
@@ -1249,10 +1249,10 @@ function AccountConnectionNotice({
   copy: ReturnType<typeof getLaunchPageCopy>;
 }) {
   return (
-    <section className="mt-6 rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+    <section className="mt-6 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
-          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
             <BadgeCheck className="size-5" />
           </span>
           <div className="min-w-0">
@@ -1273,7 +1273,7 @@ function AccountConnectionNotice({
             intent: "creator_unlock_connect",
             source: "fanletter_creator_unlock",
           }}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-[#7c3aed] px-5 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-black px-5 text-sm font-semibold text-white transition hover:bg-zinc-800"
           eventName="signup_cta_click"
           href={connectHref}
           metadata={{
@@ -1362,7 +1362,7 @@ function CreatorUnlockStateStrip({
             "min-w-0 rounded-lg border bg-white px-3 py-3 shadow-[0_12px_28px_rgba(88,28,135,0.06)]",
             item.tone === "emerald" && "border-emerald-200",
             item.tone === "amber" && "border-amber-200",
-            item.tone === "violet" && "border-violet-200",
+            item.tone === "violet" && "border-zinc-200",
           )}
           key={item.label}
         >
@@ -1371,7 +1371,7 @@ function CreatorUnlockStateStrip({
               "text-[0.66rem] font-semibold uppercase tracking-[0.08em]",
               item.tone === "emerald" && "text-emerald-700",
               item.tone === "amber" && "text-amber-700",
-              item.tone === "violet" && "text-[#6d28d9]",
+              item.tone === "violet" && "text-zinc-700",
             )}
           >
             {item.label}
@@ -1513,7 +1513,7 @@ export function FanletterCreatorUnlockPage({
     coverageAction?.action === "creator_unlocked" && !unlock.unlocked;
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[#fbfaff] px-4 py-5 text-black sm:px-6 lg:px-8">
+    <main className="min-h-screen overflow-x-hidden bg-white px-4 py-5 text-black sm:px-6 lg:px-8">
       <FanletterReputationTracker
         agentRank={{
           eventType: "creator_unlock_evaluated",
@@ -1641,7 +1641,7 @@ export function FanletterCreatorUnlockPage({
       <div className="mx-auto w-full min-w-0 max-w-[92rem]">
         <div className="flex items-center justify-between gap-3">
           <Link
-            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-violet-200 bg-white px-4 text-sm font-semibold text-[#5b21b6] transition hover:bg-violet-50"
+            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50"
             href={`/${locale}/fanletter#creator-unlock`}
           >
             <ArrowLeft className="size-4" />
@@ -1655,7 +1655,7 @@ export function FanletterCreatorUnlockPage({
 
         <section className="mt-6 grid w-full min-w-0 gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-white px-3 py-1 text-sm font-semibold text-[#6d28d9]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-sm font-semibold text-zinc-900">
               <Crown className="size-4" />
               {copy.heroEyebrow}
             </div>
@@ -1667,7 +1667,7 @@ export function FanletterCreatorUnlockPage({
             </p>
           </div>
 
-          <div className="w-full min-w-0 rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+          <div className="w-full min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
             <div className="flex items-center gap-3">
               <HumanMemberAvatar
                 member={{ initials: memberInitials, name: portfolio.memberName }}
@@ -1692,10 +1692,10 @@ export function FanletterCreatorUnlockPage({
             <div className="mt-5 grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4">
               {copy.steps.map((step, index) => (
                 <div
-                  className="rounded-lg border border-violet-100 bg-[#f8f7ff] p-2"
+                  className="rounded-lg border border-zinc-200 bg-zinc-50 p-2"
                   key={step}
                 >
-                  <p className="text-xs font-semibold text-[#6d28d9]">
+                  <p className="text-xs font-semibold text-zinc-700">
                     {String(index + 1).padStart(2, "0")}
                   </p>
                   <p className="mt-2 text-xs font-semibold leading-4 text-[#26113d]">
@@ -1852,13 +1852,13 @@ export function FanletterCreatorUnlockPage({
                 />
               )}
             </div>
-            <section className="w-full min-w-0 rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+            <section className="w-full min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
               <div className="flex items-start gap-3">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
                   <Sparkles className="size-5" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-[#6d28d9]">
+                  <p className="text-sm font-semibold text-zinc-700">
                     {copy.mockActivation}
                   </p>
                   <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
@@ -1898,7 +1898,7 @@ export function FanletterCreatorUnlockPage({
                       intent: "creator_unlock_missing_source_discovery",
                       source: "fanletter_creator_unlock",
                     }}
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
                     eventName="signup_cta_click"
                     href={`/${locale}/fanletter#top-growing-ai-stars`}
                     metadata={{
@@ -1917,7 +1917,7 @@ export function FanletterCreatorUnlockPage({
                         selectedSourceOption?.starId ??
                         launchPreview.ownedPreview.spawnedFromStarId,
                     }}
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9]"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
                     eventName="signup_cta_click"
                     href={connectHref}
                     metadata={{
@@ -1937,7 +1937,7 @@ export function FanletterCreatorUnlockPage({
                         selectedSourceOption?.starId ??
                         launchPreview.ownedPreview.spawnedFromStarId,
                     }}
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-4 text-sm font-semibold text-white transition hover:bg-[#6d28d9] disabled:cursor-wait disabled:opacity-70"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-70"
                     launchCostUsdt={unlock.createCostUsdt}
                     locale={locale}
                     name={launchPreview.name}
@@ -1961,13 +1961,13 @@ export function FanletterCreatorUnlockPage({
           </div>
 
           <div className="grid min-w-0 gap-4">
-            <section className="rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+            <section className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
               <div className="mb-4 flex items-center gap-3">
-                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">
+                <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
                   <Bot className="size-5" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-[#6d28d9]">
+                  <p className="text-sm font-semibold text-zinc-700">
                     {copy.preview}
                   </p>
                   <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">

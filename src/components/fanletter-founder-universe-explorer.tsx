@@ -625,13 +625,13 @@ function FounderDashboardSidebar({
   ];
 
   return (
-    <aside className="hidden min-h-screen border-r border-violet-100 bg-white px-5 py-7 shadow-[18px_0_45px_rgba(88,28,135,0.04)] xl:flex xl:w-[15.8rem] xl:shrink-0 xl:flex-col">
+    <aside className="hidden min-h-screen border-r border-zinc-200 bg-white px-5 py-7 shadow-[18px_0_45px_rgba(15,23,42,0.04)] xl:flex xl:w-[15.8rem] xl:shrink-0 xl:flex-col">
       <Link
         className="inline-flex items-center gap-1 text-2xl font-semibold tracking-normal text-[#0f1b4d]"
         href={`/${locale}/fanletter`}
       >
         FanLetter
-        <Sparkles className="size-5 fill-[#7c3aed] text-[#7c3aed]" />
+        <Sparkles className="size-5 fill-black text-black" />
       </Link>
 
       <nav className="mt-9 grid gap-1.5">
@@ -644,8 +644,8 @@ function FounderDashboardSidebar({
               className={joinClasses(
                 "flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition",
                 active
-                  ? "bg-violet-100 text-[#6d28d9]"
-                  : "text-slate-600 hover:bg-violet-50 hover:text-[#6d28d9]",
+                  ? "bg-zinc-100 text-zinc-950"
+                  : "text-slate-600 hover:bg-zinc-50 hover:text-zinc-950",
               )}
               href={index === 0 ? `/${locale}/fanletter` : "#"}
               key={item}
@@ -664,14 +664,14 @@ function FounderDashboardSidebar({
         <div className="mt-3 grid gap-1.5">
           {activityItems.map((item) => (
             <button
-              className="flex h-10 items-center gap-3 rounded-lg px-3 text-left text-sm font-semibold text-slate-600 transition hover:bg-violet-50 hover:text-[#6d28d9]"
+              className="flex h-10 items-center gap-3 rounded-lg px-3 text-left text-sm font-semibold text-slate-600 transition hover:bg-zinc-50 hover:text-zinc-950"
               key={item.label}
               type="button"
             >
               <item.icon className="size-4" />
               <span className="min-w-0 flex-1 truncate">{item.label}</span>
               {item.badge ? (
-                <span className="rounded-full bg-[#7c3aed] px-2 py-0.5 text-[0.68rem] text-white">
+                <span className="rounded-full bg-black px-2 py-0.5 text-[0.68rem] text-white">
                   {item.badge}
                 </span>
               ) : null}
@@ -681,7 +681,7 @@ function FounderDashboardSidebar({
       </div>
 
       <div className="mt-auto grid gap-3">
-        <div className="rounded-lg border border-violet-100 bg-white p-3 shadow-[0_14px_28px_rgba(88,28,135,0.07)]">
+        <div className="rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_14px_28px_rgba(15,23,42,0.06)]">
           <div className="flex items-center gap-3">
             <HumanMemberAvatar
               member={{
@@ -694,7 +694,7 @@ function FounderDashboardSidebar({
               <p className="truncate text-sm font-semibold text-[#12041f]">
                 {selectedNode?.label ?? "Wayne"}
               </p>
-              <span className="mt-1 inline-flex rounded-full bg-violet-100 px-2 py-0.5 text-[0.62rem] font-semibold text-[#6d28d9]">
+              <span className="mt-1 inline-flex rounded-full bg-zinc-100 px-2 py-0.5 text-[0.62rem] font-semibold text-zinc-700">
                 {v2Copy.roles.creator}
               </span>
             </div>
@@ -706,13 +706,13 @@ function FounderDashboardSidebar({
             <span>{v2Copy.roles.producer} 28</span>
           </div>
         </div>
-        <div className="flex items-center justify-between rounded-lg border border-violet-100 bg-white p-3 shadow-[0_14px_28px_rgba(88,28,135,0.07)]">
+        <div className="flex items-center justify-between rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_14px_28px_rgba(15,23,42,0.06)]">
           <span className="text-sm font-semibold text-slate-500">
             {dashboardCopy.myCredit}
           </span>
           <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#12041f]">
             10,250 CP
-            <span className="flex size-6 items-center justify-center rounded-full bg-violet-100 text-xs text-[#6d28d9]">
+            <span className="flex size-6 items-center justify-center rounded-full bg-zinc-100 text-xs text-zinc-700">
               C
             </span>
           </span>
@@ -804,7 +804,7 @@ function FounderStarHero({
             )}
           </div>
           <div className="flex min-w-0 flex-col justify-center">
-            <span className="w-fit rounded-full bg-violet-100 px-2.5 py-1 text-[0.68rem] font-semibold text-[#7c3aed]">
+            <span className="w-fit rounded-full bg-zinc-100 px-2.5 py-1 text-[0.68rem] font-semibold text-zinc-700">
               {copy.aiStar}
             </span>
             <div className="mt-3 flex items-center gap-2">
@@ -879,12 +879,12 @@ function FounderStarHero({
             ].map(([label, value]) => (
               <div className="flex items-center justify-between gap-3" key={label}>
                 <span className="font-medium text-slate-500">{label}</span>
-                <span className="font-semibold text-[#6d28d9]">{value}</span>
+                <span className="font-semibold text-zinc-950">{value}</span>
               </div>
             ))}
           </div>
           <Link
-            className="mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#7c3aed] px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(124,58,237,0.22)] transition hover:bg-[#6d28d9]"
+            className="mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-black px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-zinc-800"
             href={`/${locale}/fanletter/${encodeURIComponent(universe.star.id)}`}
           >
             {starName} {dashboardCopy.viewGrowth}
@@ -1418,7 +1418,7 @@ function SelectedDashboardMemberCard({
         </div>
         <div className="mt-2 h-2 rounded-full bg-slate-100">
           <div
-            className="h-full rounded-full bg-[#7c3aed]"
+            className="h-full rounded-full bg-black"
             style={{ width: `${contribution}%` }}
           />
         </div>
@@ -1452,7 +1452,7 @@ function SelectedDashboardMemberCard({
       </div>
 
       <button
-        className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-slate-100 px-4 text-sm font-semibold text-[#111827] transition hover:bg-violet-50 hover:text-[#6d28d9]"
+        className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-slate-100 px-4 text-sm font-semibold text-[#111827] transition hover:bg-zinc-200 hover:text-black"
         onClick={() => onSelectNode(node.nodeId)}
         type="button"
       >
@@ -1561,7 +1561,7 @@ function getAgentRankScoreDimensionClass(
     creator: "bg-pink-50 text-pink-700 ring-pink-100",
     discovery: "bg-blue-50 text-blue-700 ring-blue-100",
     economic: "bg-emerald-50 text-emerald-700 ring-emerald-100",
-    network: "bg-violet-50 text-[#6d28d9] ring-violet-100",
+    network: "bg-zinc-100 text-zinc-700 ring-zinc-200",
     riskPenalty: "bg-red-50 text-red-700 ring-red-100",
     trust: "bg-slate-100 text-slate-700 ring-slate-200",
   };
@@ -1606,10 +1606,10 @@ function AgentRankUniverseCard({
       .slice(0, 4) ?? [];
 
   return (
-    <aside className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
-      <div className="flex items-start justify-between gap-3">
+    <aside className="rounded-[1.35rem] border border-zinc-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="inline-flex items-center gap-2 text-sm font-semibold text-[#6d28d9]">
+          <p className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-700">
             <Sparkles className="size-4" />
             {copy.trustScore}
           </p>
@@ -1617,7 +1617,7 @@ function AgentRankUniverseCard({
             {copy.reputationEvents}
           </p>
         </div>
-        <div className="flex shrink-0 flex-wrap justify-end gap-2">
+        <div className="flex min-w-0 flex-wrap gap-2 sm:justify-end">
           <FanletterTrackedLink
             agentRank={{
               eventType: "content_engaged",
@@ -1625,7 +1625,7 @@ function AgentRankUniverseCard({
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
-            className="inline-flex h-8 items-center rounded-full bg-violet-50 px-2.5 text-xs font-semibold text-[#6d28d9]"
+            className="inline-flex h-8 items-center rounded-full bg-zinc-100 px-2.5 text-xs font-semibold text-zinc-900"
             eventName="content_open"
             href={`/${locale}/fanletter/agentrank?starId=${encodedStarId}`}
             metadata={{
@@ -1642,7 +1642,7 @@ function AgentRankUniverseCard({
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
-            className="hidden h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-white px-2.5 text-xs font-semibold text-[#5b21b6] sm:inline-flex"
+            className="hidden h-8 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-900 sm:inline-flex"
             eventName="content_open"
             href={highImpactLedgerHref}
             metadata={{
@@ -1660,7 +1660,7 @@ function AgentRankUniverseCard({
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
-            className="hidden h-8 items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-2.5 text-xs font-semibold text-amber-700 sm:inline-flex"
+            className="hidden h-8 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-700 sm:inline-flex"
             eventName="content_open"
             href={oracleGapLedgerHref}
             metadata={{
@@ -1678,7 +1678,7 @@ function AgentRankUniverseCard({
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
-            className="hidden h-8 items-center gap-1.5 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-700 sm:inline-flex"
+            className="hidden h-8 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-700 sm:inline-flex"
             eventName="content_open"
             href={coverageAuditHref}
             metadata={{
@@ -1713,7 +1713,7 @@ function AgentRankUniverseCard({
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl bg-gradient-to-br from-[#11132d] via-[#4338ca] to-[#7c3aed] p-4 text-white">
+      <div className="mt-5 rounded-xl bg-gradient-to-br from-black via-zinc-900 to-zinc-700 p-4 text-white">
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase text-white/60">
@@ -1746,9 +1746,9 @@ function AgentRankUniverseCard({
       </div>
 
       {dimensionHighlights.length > 0 ? (
-        <div className="mt-4 rounded-xl border border-violet-100 bg-violet-50/50 p-3">
+        <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-xs font-semibold text-[#6d28d9]">
+            <p className="text-xs font-semibold text-zinc-700">
               {copy.scoreBreakdown}
             </p>
             <p className="text-[0.65rem] font-semibold text-slate-400">
@@ -1777,7 +1777,7 @@ function AgentRankUniverseCard({
                   </div>
                   <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#22c55e]"
+                      className="h-full rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
                       style={{ width: `${dimensionPercent}%` }}
                     />
                   </div>
@@ -1826,7 +1826,7 @@ function AgentRankUniverseCard({
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
-            className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-white px-3 py-2 transition hover:border-violet-100 hover:bg-violet-50"
+            className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-white px-3 py-2 transition hover:border-zinc-300 hover:bg-zinc-50"
             eventName="content_open"
             href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
               event.eventId,
@@ -1895,11 +1895,11 @@ function AgentRankSignalStrip({
       .slice(0, 3) ?? [];
 
   return (
-    <section className="overflow-hidden rounded-[1.35rem] border border-violet-100 bg-white shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
+    <section className="overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
       <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div className="flex min-w-0 flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
-            <p className="inline-flex items-center gap-2 text-sm font-semibold text-[#6d28d9]">
+            <p className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-700">
               <ShieldCheck className="size-4" />
               {copy.trustScore}
             </p>
@@ -1918,9 +1918,9 @@ function AgentRankSignalStrip({
           </div>
 
           <div className="min-w-0 flex-1 lg:max-w-sm">
-            <div className="h-2 overflow-hidden rounded-full bg-violet-50">
+            <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-[#7c3aed] via-[#6366f1] to-[#22c55e]"
+                className="h-full rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
                 style={{ width: `${scorePercent}%` }}
               />
             </div>
@@ -1980,7 +1980,7 @@ function AgentRankSignalStrip({
           </div>
         </div>
 
-        <div className="grid gap-2 border-t border-violet-100 bg-gradient-to-br from-violet-50 to-emerald-50 px-4 py-4 text-sm font-semibold lg:border-l lg:border-t-0 lg:px-5">
+        <div className="grid gap-2 border-t border-zinc-200 bg-zinc-50 px-4 py-4 text-sm font-semibold lg:border-l lg:border-t-0 lg:px-5">
           <FanletterTrackedLink
             agentRank={{
               eventType: "content_engaged",
@@ -1988,7 +1988,7 @@ function AgentRankSignalStrip({
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
-            className="flex min-h-10 items-center justify-between gap-3 rounded-lg bg-white/70 px-3 text-[#6d28d9]"
+            className="flex min-h-10 items-center justify-between gap-3 rounded-lg bg-white px-3 text-zinc-900"
             eventName="content_open"
             href={`/${locale}/fanletter/agentrank?starId=${encodedStarId}`}
             metadata={{
@@ -2006,7 +2006,7 @@ function AgentRankSignalStrip({
               source: "fanletter_founder_universe",
               starId: universe.star.id,
             }}
-            className="hidden min-h-10 items-center justify-between gap-3 rounded-lg border border-violet-100 bg-white px-3 text-[#5b21b6] sm:flex"
+            className="hidden min-h-10 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white px-3 text-zinc-900 sm:flex"
             eventName="content_open"
             href={highImpactLedgerHref}
             metadata={{
@@ -2223,7 +2223,7 @@ function SpawnedStarCard({
           </span>
           {spawnedStar.creatorNodeId ? (
             <button
-              className="inline-flex h-8 items-center rounded-full border border-violet-100 bg-white px-2.5 text-xs font-semibold text-[#6d28d9]"
+              className="inline-flex h-8 items-center rounded-full border border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-900"
               onClick={() => {
                 onSelectNode(spawnedStar.creatorNodeId ?? "");
                 trackFunnelEvent("content_open", {
@@ -2266,12 +2266,12 @@ function UniverseExpansionMap({
   const starName = getUniverseStarName(universe.star);
 
   return (
-    <section className="rounded-lg border border-violet-100 bg-white/78 p-3 shadow-[0_14px_36px_rgba(88,28,135,0.06)] backdrop-blur">
+    <section className="rounded-lg border border-zinc-200 bg-white/90 p-3 shadow-[0_14px_36px_rgba(15,23,42,0.06)] backdrop-blur">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <Rocket className="size-5 text-[#6d28d9]" />
+          <Rocket className="size-5 text-zinc-900" />
           <div>
-            <p className="text-sm font-semibold text-[#6d28d9]">
+            <p className="text-sm font-semibold text-zinc-700">
               {copy.expansion}
             </p>
             <p className="mt-1 text-xs font-semibold text-black/42">
@@ -2286,15 +2286,15 @@ function UniverseExpansionMap({
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-[18rem_minmax(0,1fr)] lg:items-start">
-        <div className="rounded-lg border border-violet-200 bg-violet-50 p-3">
+        <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
           <div className="flex items-center justify-between gap-3">
-            <span className="inline-flex h-7 items-center rounded-full bg-white px-2.5 text-[0.66rem] font-semibold text-[#6d28d9]">
+            <span className="inline-flex h-7 items-center rounded-full bg-white px-2.5 text-[0.66rem] font-semibold text-zinc-700">
               {copy.source}
             </span>
-            <Sparkles className="size-4 text-[#7c3aed]" />
+            <Sparkles className="size-4 text-zinc-900" />
           </div>
           <div className="mt-5 flex items-center gap-3">
-            <div className="flex size-14 items-center justify-center rounded-full border border-violet-200 bg-white text-base font-semibold text-[#6d28d9]">
+            <div className="flex size-14 items-center justify-center rounded-full border border-zinc-200 bg-white text-base font-semibold text-zinc-900">
               {universe.star.initials}
             </div>
             <div className="min-w-0">
@@ -2306,7 +2306,7 @@ function UniverseExpansionMap({
               </p>
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-[#6d28d9]">
+          <div className="mt-4 flex items-center gap-2 text-sm font-semibold text-zinc-700">
             <span>{copy.source}</span>
             <ArrowRight className="size-4 lg:rotate-0 rotate-90" />
             <span>{copy.spawned}</span>
@@ -2327,7 +2327,7 @@ function UniverseExpansionMap({
             ))}
           </div>
         ) : (
-          <div className="flex min-h-52 items-center justify-center rounded-lg border border-dashed border-violet-200 bg-white p-6 text-center">
+          <div className="flex min-h-52 items-center justify-center rounded-lg border border-dashed border-zinc-300 bg-white p-6 text-center">
             <div>
               <Rocket className="mx-auto size-8 text-violet-300" />
               <p className="mt-3 text-sm font-semibold text-black/48">
@@ -2361,8 +2361,8 @@ function MemberNodeCard({
       className={joinClasses(
         "rounded-lg border bg-white p-3 text-left shadow-[0_10px_26px_rgba(88,28,135,0.06)] transition",
         isSelected
-          ? "border-[#7c3aed] ring-2 ring-[#7c3aed]/12"
-          : "border-black/8 hover:border-violet-300",
+          ? "border-black ring-2 ring-black/10"
+          : "border-zinc-200 hover:border-zinc-400",
       )}
       onClick={() => onSelect(node.nodeId)}
       type="button"
@@ -2384,7 +2384,7 @@ function MemberNodeCard({
           </p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {node.starReferralCode ? (
-              <span className="rounded-full bg-violet-50 px-2 py-1 font-mono text-[0.65rem] font-semibold text-[#6d28d9]">
+              <span className="rounded-full bg-zinc-100 px-2 py-1 font-mono text-[0.65rem] font-semibold text-zinc-700">
                 {node.starReferralCode}
               </span>
             ) : null}
@@ -2470,7 +2470,7 @@ export function FanletterFounderUniverseExplorer({
   const founderUniverseLedgerHref = `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40&readiness=packet_ready&sort=impact_desc`;
 
   return (
-    <main className="min-h-screen bg-[#f6f7fb] text-[#111827] xl:flex">
+    <main className="min-h-screen bg-white text-[#111827] xl:flex">
       <FanletterReputationTracker
         agentRank={{
           eventType: "universe_growth",
@@ -2496,7 +2496,7 @@ export function FanletterFounderUniverseExplorer({
         <div className="grid gap-5 px-4 pb-28 sm:px-7 lg:px-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
-              className="inline-flex h-10 items-center gap-2 rounded-lg border border-violet-100 bg-white px-3 text-sm font-semibold text-[#6d28d9] shadow-[0_10px_24px_rgba(88,28,135,0.06)]"
+              className="inline-flex h-10 items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-900 shadow-[0_10px_24px_rgba(15,23,42,0.06)]"
               href={`/${locale}/fanletter/${encodeURIComponent(displayUniverse.star.id)}`}
             >
               <ArrowLeft className="size-4" />
@@ -2653,7 +2653,7 @@ export function FanletterFounderUniverseExplorer({
                   <label className="relative block sm:w-80">
                     <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
                     <input
-                      className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm font-semibold outline-none transition placeholder:text-slate-300 focus:border-[#7c3aed] focus:ring-2 focus:ring-[#7c3aed]/12"
+                      className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm font-semibold outline-none transition placeholder:text-slate-300 focus:border-zinc-500 focus:ring-2 focus:ring-zinc-500/10"
                       onChange={(event) => setQuery(event.target.value)}
                       placeholder={copy.search}
                       type="search"
