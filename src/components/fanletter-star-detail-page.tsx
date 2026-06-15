@@ -1334,13 +1334,6 @@ export function FanletterStarDetailPage({
                   <GitBranch className="size-4" />
                   {isKorean ? "파운더 네트워크 탐색" : "Explore Founder Network"}
                 </Link>
-                <Link
-                  className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800 shadow-[0_12px_26px_rgba(16,185,129,0.08)]"
-                  href={`/${locale}/fanletter/ai-star-genealogy`}
-                >
-                  <Network className="size-4" />
-                  {isKorean ? "AI 스타 계보" : "AI Star Genealogy"}
-                </Link>
               </div>
 
               <FanletterFounderMockStatusBanner

@@ -24,6 +24,7 @@ import {
 import type { AgentRankCoverageSnapshot } from "@/lib/agentrank/coverage";
 import type { AgentRankBackfillReadinessSnapshot } from "@/lib/agentrank/backfill-readiness";
 import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
+import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankTracker } from "@/components/fanletter-agentrank-tracker";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type {
@@ -2094,6 +2095,12 @@ export function FanletterAgentRankPage({
 }) {
   const copy = getAgentRankCopy(locale);
   const { ers, eventFeed, scoreAggregate } = snapshot;
+  const ledgerHref = `/${locale}/fanletter/agentrank/events${
+    starId ? `?starId=${encodeURIComponent(starId)}&limit=40` : "?limit=40"
+  }`;
+  const coverageHref = `/${locale}/fanletter/agentrank/coverage${
+    starId ? `?starId=${encodeURIComponent(starId)}&limit=120` : "?limit=120"
+  }`;
   const metrics = [
     {
       label: copy.metrics.events,
@@ -2143,7 +2150,90 @@ export function FanletterAgentRankPage({
     <main className="fanletter-agentrank-page min-h-screen overflow-x-hidden bg-[#f8f9ff] px-5 py-5 text-[#11132d]">
       <FanletterAgentRankTracker starId={starId} />
       <div className="mx-auto max-w-[1500px]">
-        <header className="agentrank-flow-card grid gap-5 rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+        <FanletterActionGuide
+          currentLabel={
+            locale === "ko"
+              ? "투자자 / 운영자 화면"
+              : "Investor / Ops View"
+          }
+          metrics={[
+            {
+              label: copy.metrics.events,
+              value: formatNumber(ers.summary.eventCount, locale),
+            },
+            {
+              label: copy.metrics.audit,
+              value: `${formatNumber(scoreAggregate.summary.auditReadyEvents, locale)}/${formatNumber(
+                scoreAggregate.summary.eventCount,
+                locale,
+              )}`,
+            },
+          ]}
+          primaryAction={{
+            agentRank: {
+              eventType: "universe_growth",
+              intent: "agentrank_action_guide_event_ledger",
+              source: "fanletter_agentrank",
+              starId: starId ?? null,
+            },
+            href: ledgerHref,
+            label:
+              locale === "ko"
+                ? "평판 이벤트 장부 보기"
+                : "Open reputation ledger",
+            metadata: {
+              placement: "agentrank_action_guide_primary",
+            },
+          }}
+          reputationEventLabel={
+            locale === "ko" ? "AgentRank 집계" : "AgentRank aggregate"
+          }
+          secondaryActions={[
+            {
+              agentRank: {
+                eventType: "creator_unlock_evaluated",
+                intent: "agentrank_action_guide_coverage",
+                source: "fanletter_agentrank",
+                starId: starId ?? null,
+              },
+              href: coverageHref,
+              label:
+                locale === "ko" ? "커버리지 점검" : "Check coverage",
+              metadata: {
+                placement: "agentrank_action_guide_coverage",
+              },
+            },
+          ]}
+          steps={[
+            {
+              label: locale === "ko" ? "FanLetter 행동" : "FanLetter actions",
+              status: "done",
+            },
+            {
+              label: locale === "ko" ? "평판 이벤트" : "Reputation events",
+              status: "active",
+            },
+            {
+              label: locale === "ko" ? "검증 패킷" : "Evidence packets",
+              status: scoreAggregate.summary.auditReadyEvents > 0 ? "done" : "next",
+            },
+            {
+              label: "AgentRank",
+              status: "active",
+            },
+          ]}
+          subtitle={
+            locale === "ko"
+              ? "사용자 행동이 이벤트로 정규화되고, 점수와 검증 가능성으로 이어지는지 보는 화면입니다."
+              : "This view checks whether user actions normalize into events, scores, and verifiable packets."
+          }
+          title={
+            locale === "ko"
+              ? "다음 행동: 이벤트 장부 검증"
+              : "Next action: verify the event ledger"
+          }
+        />
+        <header className="agentrank-flow-card mt-5 grid gap-5 rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-sm font-semibold text-[#6d28d9]">
               <Sparkles className="size-4" />

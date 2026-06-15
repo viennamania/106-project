@@ -24,6 +24,7 @@ import {
   type AgentRankReputationEventType,
   type FanletterAgentRankReputationEventFeed,
 } from "@/lib/agentrank/reputation-events";
+import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import {
@@ -1563,6 +1564,81 @@ export function FanletterAgentRankLedgerPage({
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full min-w-0 max-w-[92rem] flex-col gap-5">
+        <FanletterActionGuide
+          currentLabel={
+            locale === "ko" ? "운영자 장부" : "Ops ledger"
+          }
+          metrics={[
+            {
+              label: locale === "ko" ? "이벤트" : "Events",
+              value: String(feed.summary.totalEvents ?? feed.events.length),
+            },
+            {
+              label: locale === "ko" ? "패킷 준비" : "Packet ready",
+              value: String(packetReadyEvents),
+            },
+          ]}
+          primaryAction={{
+            agentRank: {
+              eventType: "creator_unlock_evaluated",
+              intent: "agentrank_ledger_action_guide_review",
+              source: "fanletter_agentrank",
+              starId: filters.starId,
+            },
+            href: reviewHref,
+            label:
+              locale === "ko" ? "리뷰 큐 열기" : "Open review queue",
+            metadata: {
+              placement: "agentrank_ledger_action_guide_primary",
+            },
+          }}
+          reputationEventLabel={
+            locale === "ko" ? "검증 가능 이벤트" : "Verifiable events"
+          }
+          secondaryActions={[
+            {
+              agentRank: {
+                eventType: "universe_growth",
+                intent: "agentrank_ledger_action_guide_export",
+                source: "fanletter_agentrank",
+                starId: filters.starId,
+              },
+              href: csvHref,
+              label: locale === "ko" ? "CSV 내보내기" : "Export CSV",
+              metadata: {
+                placement: "agentrank_ledger_action_guide_csv",
+              },
+            },
+          ]}
+          steps={[
+            {
+              label: locale === "ko" ? "수집" : "Collect",
+              status: "done",
+            },
+            {
+              label: locale === "ko" ? "정규화" : "Normalize",
+              status: "done",
+            },
+            {
+              label: locale === "ko" ? "검증" : "Review",
+              status: packetReadyEvents > 0 ? "active" : "next",
+            },
+            {
+              label: locale === "ko" ? "오라클 패킷" : "Oracle packet",
+              status: packetReadyEvents > 0 ? "next" : "next",
+            },
+          ]}
+          subtitle={
+            locale === "ko"
+              ? "AgentRank로 보낼 수 있는 이벤트와 보완이 필요한 이벤트를 먼저 확인합니다."
+              : "Review which events are ready for AgentRank and which need evidence."
+          }
+          title={
+            locale === "ko"
+              ? "다음 행동: 검증 큐 확인"
+              : "Next action: review the queue"
+          }
+        />
         <header className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
@@ -1576,7 +1652,7 @@ export function FanletterAgentRankLedgerPage({
               <ArrowLeft className="size-4" />
               {copy.back}
             </Link>
-            <div className="flex flex-wrap gap-2">
+            <div className="hidden flex-wrap gap-2 sm:flex">
               <Link
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 text-sm font-semibold text-[#6d28d9]"
                 href={reviewHref}

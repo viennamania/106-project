@@ -19,6 +19,7 @@ import {
   toMemberOwnedAIStar,
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
+import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
@@ -1718,6 +1719,99 @@ export function FanletterCreatorUnlockPage({
           <AccountConnectionNotice connectHref={connectHref} copy={copy} />
         ) : null}
 
+        <FanletterActionGuide
+          className="mt-5"
+          currentLabel={locale === "ko" ? "Creator Journey" : "Creator Journey"}
+          metrics={[
+            {
+              label: locale === "ko" ? "조건" : "Conditions",
+              value: `${completedConditionCount}/${unlock.conditions.length}`,
+            },
+            {
+              label: locale === "ko" ? "출처" : "Source",
+              value: requiresSourceUniverse
+                ? locale === "ko"
+                  ? "필요"
+                  : "Required"
+                : displaySourceUniverseName,
+            },
+          ]}
+          primaryAction={{
+            agentRank: {
+              eventType: requiresSourceUniverse
+                ? "ai_star_discovered"
+                : "source_universe_selected",
+              intent: requiresSourceUniverse
+                ? "creator_unlock_find_source_universe"
+                : "creator_unlock_choose_source_universe",
+              source: "fanletter_creator_unlock",
+              starId: trackingSourceStarId,
+            },
+            href: requiresSourceUniverse
+              ? `/${locale}/fanletter#top-growing-ai-stars`
+              : "#source-universe-picker",
+            label: requiresSourceUniverse
+              ? copy.noSourcePrimary
+              : locale === "ko"
+                ? "창업 출처 선택하기"
+                : "Choose launch source",
+            metadata: {
+              placement: "creator_unlock_action_guide_primary",
+              sourceUniverseName: displaySourceUniverseName,
+            },
+          }}
+          reputationEventLabel={
+            locale === "ko" ? "출처 선택 이벤트" : "Source selection event"
+          }
+          secondaryActions={[
+            ...(isPreviewMode
+              ? [
+                  {
+                    agentRank: {
+                      eventType: "creator_unlock_evaluated" as const,
+                      intent: "creator_unlock_action_guide_connect",
+                      source: "fanletter_creator_unlock" as const,
+                      starId: trackingSourceStarId,
+                    },
+                    href: connectHref,
+                    label: copy.loginCta,
+                    metadata: {
+                      placement: "creator_unlock_action_guide_connect",
+                    },
+                  },
+                ]
+              : []),
+          ]}
+          steps={[
+            {
+              label: locale === "ko" ? "조건 확인" : "Check conditions",
+              status: completedConditionCount > 0 ? "done" : "active",
+            },
+            {
+              label: locale === "ko" ? "출처 선택" : "Choose source",
+              status: requiresSourceUniverse ? "active" : "done",
+            },
+            {
+              label: locale === "ko" ? "mock 생성" : "Mock launch",
+              status: unlock.unlocked && !requiresSourceUniverse ? "active" : "next",
+            },
+            {
+              label: "AgentRank",
+              status: unlock.unlocked ? "next" : "next",
+            },
+          ]}
+          subtitle={
+            locale === "ko"
+              ? "새 AI 스타는 반드시 어느 스타 네트워크의 성과에서 탄생했는지 남깁니다."
+              : "Every new AI Star records which Star Network produced the launch signal."
+          }
+          title={
+            locale === "ko"
+              ? "다음 행동: 창업 출처 선택"
+              : "Next action: choose launch source"
+          }
+        />
+
         <CreatorUnlockStateStrip
           isPreviewMode={isPreviewMode}
           locale={locale}
@@ -1744,18 +1838,20 @@ export function FanletterCreatorUnlockPage({
               locale={locale}
               unlock={unlock}
             />
-            {requiresSourceUniverse ? (
-              <SourceUniverseEmptyState copy={copy} locale={locale} />
-            ) : (
-              <SourceUniverseSelector
-                copy={copy}
-                coverageAction={coverageAction}
-                locale={locale}
-                onSelect={setSelectedSourceStarId}
-                options={sourceOptions}
-                selectedStarId={selectedSourceOption?.starId ?? null}
-              />
-            )}
+            <div id="source-universe-picker">
+              {requiresSourceUniverse ? (
+                <SourceUniverseEmptyState copy={copy} locale={locale} />
+              ) : (
+                <SourceUniverseSelector
+                  copy={copy}
+                  coverageAction={coverageAction}
+                  locale={locale}
+                  onSelect={setSelectedSourceStarId}
+                  options={sourceOptions}
+                  selectedStarId={selectedSourceOption?.starId ?? null}
+                />
+              )}
+            </div>
             <section className="w-full min-w-0 rounded-lg border border-violet-200 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
               <div className="flex items-start gap-3">
                 <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#7c3aed] text-white">

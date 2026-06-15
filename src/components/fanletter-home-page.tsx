@@ -28,8 +28,8 @@ import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
 import { FounderClubV2HomeSections } from "@/components/fanletter-founder-club-v2";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
+import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
-import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import {
   AnimatedNumber,
@@ -1013,7 +1013,6 @@ function FanletterProductHomeDashboard({
   copy,
   creatorUnlock,
   creatorUnlockHref,
-  founderClubHref,
   liveStats,
   locale,
   memberPortfolio,
@@ -1031,7 +1030,6 @@ function FanletterProductHomeDashboard({
   copy: FanletterCopy;
   creatorUnlock?: CreatorUnlockData | null;
   creatorUnlockHref: string;
-  founderClubHref: string;
   liveStats: FanletterLiveStats;
   locale: Locale;
   memberPortfolio?: MemberPortfolio | null;
@@ -1166,36 +1164,6 @@ function FanletterProductHomeDashboard({
         videoSignal: "Content Signal",
         watchPreview: "Watch Preview",
       };
-  const actionItems = [
-    {
-      body: isKo ? "성장 중인 AI 스타 선택" : "Pick a growing AI Star",
-      href: topGrowingStarsHref,
-      Icon: Bot,
-      label: productCopy.discovery,
-    },
-    {
-      body: isKo ? "파운더 네트워크 확인" : "Check Founder Network",
-      href: founderClubHref,
-      Icon: Crown,
-      label: productCopy.join,
-    },
-    {
-      body: scoutShareLoop?.referralCode ?? "MINSEO-A-001",
-      href: scoutShareLoopHref,
-      Icon: Megaphone,
-      label: productCopy.scout,
-    },
-    {
-      body: creatorUnlock?.unlocked
-        ? productCopy.creatorReady
-        : isKo
-          ? "조건 확인"
-          : "Check conditions",
-      href: creatorUnlockHref,
-      Icon: ChartNoAxesCombined,
-      label: productCopy.creator,
-    },
-  ];
   const livePreviewSlides = previewVideoList
     .filter((video) => video.videoUrl.trim())
     .map((video) => ({
@@ -1268,66 +1236,73 @@ function FanletterProductHomeDashboard({
                     {productCopy.subhead}
                   </p>
                 </div>
-                <FanletterTerminologyGuide locale={locale} variant="compact" />
-                <div className="grid min-w-0 gap-3 sm:flex sm:flex-wrap">
-                  <FanletterTrackedLink
-                    agentRank={{
+                <FanletterActionGuide
+                  currentLabel={productCopy.today}
+                  metrics={[
+                    {
+                      label: productCopy.founder,
+                      value: `${formatMetric(primaryStar?.founderCount ?? 0, locale)}`,
+                    },
+                    {
+                      label: productCopy.open,
+                      value: `${formatMetric(primaryStar?.openSlots.open ?? 0, locale)}`,
+                    },
+                  ]}
+                  primaryAction={{
+                    agentRank: {
                       eventType: "ai_star_discovered",
                       intent: "home_primary_discovery",
                       source: "fanletter_home",
                       starId: primaryStar?.id ?? null,
-                    }}
-                    className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-5 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(124,58,237,0.24)] transition hover:bg-[#6d28d9] sm:w-auto sm:shrink-0"
-                    eventName="signup_cta_click"
-                    href={topGrowingStarsHref}
-                    metadata={{
+                    },
+                    href: topGrowingStarsHref,
+                    label: productCopy.primaryCta,
+                    metadata: {
                       placement: "fanletter_product_home_primary_discovery",
-                    }}
-                    referralCode={referralCode}
-                  >
-                    <span className="truncate">{productCopy.primaryCta}</span>
-                    <ArrowRight className="size-4" />
-                  </FanletterTrackedLink>
-                  <Link
-                    className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-violet-100 bg-white px-5 text-sm font-semibold !text-[#6d28d9] shadow-[0_12px_26px_rgba(88,28,135,0.08)] transition hover:bg-violet-50 sm:w-auto sm:shrink-0"
-                    href={connectHref}
-                  >
-                    <ShieldCheck className="size-4" />
-                    <span className="truncate">{productCopy.connect}</span>
-                  </Link>
-                </div>
+                    },
+                    referralCode,
+                  }}
+                  reputationEventLabel={
+                    isKo ? "평판 이벤트 생성" : "Reputation Event"
+                  }
+                  secondaryActions={[
+                    {
+                      agentRank: {
+                        eventType: "founder_joined",
+                        intent: "home_connect_account",
+                        source: "fanletter_home",
+                        starId: primaryStar?.id ?? null,
+                      },
+                      href: connectHref,
+                      label: productCopy.connect,
+                      metadata: {
+                        placement: "fanletter_product_home_connect",
+                      },
+                      referralCode,
+                    },
+                  ]}
+                  steps={[
+                    { label: productCopy.discovery, status: "active" },
+                    { label: productCopy.join, status: "next" },
+                    { label: productCopy.scout, status: "next" },
+                    { label: productCopy.creator, status: "next" },
+                  ]}
+                  subtitle={
+                    isKo
+                      ? "먼저 성장 중인 AI 스타를 선택하세요. 선택과 참여가 AgentRank 이벤트로 쌓입니다."
+                      : "Start by choosing a growing AI Star. Discovery and joins become AgentRank events."
+                  }
+                  title={
+                    isKo
+                      ? "다음 행동: AI 스타 발견"
+                      : "Next action: discover an AI Star"
+                  }
+                />
               </div>
 
               {previewSlides.length > 0 ? (
                 <FanletterVlogPreviewCarousel slides={previewSlides} />
               ) : null}
-            </div>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {actionItems.map((item) => {
-                const Icon = item.Icon;
-
-                return (
-                  <Link
-                    className="group rounded-[1.05rem] border border-slate-100 bg-slate-50/70 p-3 transition hover:-translate-y-0.5 hover:border-violet-200 hover:bg-white hover:shadow-[0_16px_34px_rgba(88,28,135,0.1)]"
-                    href={item.href}
-                    key={item.label}
-                  >
-                    <span className="flex items-start justify-between gap-3">
-                      <span className="flex size-10 items-center justify-center rounded-xl bg-white text-[#7c3aed] shadow-[0_10px_22px_rgba(88,28,135,0.08)]">
-                        <Icon className="size-5" />
-                      </span>
-                      <ArrowRight className="size-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-[#7c3aed]" />
-                    </span>
-                    <span className="mt-3 block text-sm font-semibold text-[#12041f]">
-                      {item.label}
-                    </span>
-                    <span className="mt-1 block truncate text-xs font-semibold text-slate-500">
-                      {item.body}
-                    </span>
-                  </Link>
-                );
-              })}
             </div>
           </div>
         </div>
@@ -3069,7 +3044,6 @@ export function FanletterHomePage({
             copy={copy}
             creatorUnlock={founderClubCreatorUnlock}
             creatorUnlockHref={creatorUnlockHref}
-            founderClubHref={founderClubHref}
             liveStats={liveStats}
             locale={locale}
             memberPortfolio={founderClubMemberPortfolio}
