@@ -17,6 +17,7 @@ import {
   WalletCards,
 } from "lucide-react";
 
+import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import type { AgentRankEventEvidencePacket } from "@/lib/agentrank/evidence-packet";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
@@ -450,6 +451,16 @@ export function FanletterAgentRankEvidencePacketPage({
     }
   }
 
+  const ledgerHref = `/${locale}/fanletter/agentrank/events${
+    ledgerParams.size ? `?${ledgerParams.toString()}` : ""
+  }`;
+  const eventDetailHref = `/${locale}/fanletter/agentrank/events/${encodeURIComponent(
+    event.eventId,
+  )}${eventParams.size ? `?${eventParams.toString()}` : ""}`;
+  const evidenceDownloadHref = `/api/fanletter/agentrank/events/${encodeURIComponent(
+    event.eventId,
+  )}/evidence?${downloadParams.toString()}`;
+
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full min-w-0 max-w-[86rem] flex-col gap-5">
@@ -458,28 +469,22 @@ export function FanletterAgentRankEvidencePacketPage({
             <div className="flex flex-wrap gap-2">
               <Link
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 text-sm font-semibold text-[#6d28d9]"
-                href={`/${locale}/fanletter/agentrank/events${
-                  ledgerParams.size ? `?${ledgerParams.toString()}` : ""
-                }`}
+                href={ledgerHref}
               >
                 <ArrowLeft className="size-4" />
                 {copy.backToLedger}
               </Link>
               <Link
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600"
-                href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
-                  event.eventId,
-                )}${eventParams.size ? `?${eventParams.toString()}` : ""}`}
+                className="hidden h-10 items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 sm:inline-flex"
+                href={eventDetailHref}
               >
                 <GitBranch className="size-4" />
                 {copy.backToEvent}
               </Link>
             </div>
             <a
-              className="inline-flex h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold text-white"
-              href={`/api/fanletter/agentrank/events/${encodeURIComponent(
-                event.eventId,
-              )}/evidence?${downloadParams.toString()}`}
+              className="hidden h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold text-white sm:inline-flex"
+              href={evidenceDownloadHref}
             >
               <Download className="size-4" />
               {copy.downloadJson}
@@ -511,7 +516,7 @@ export function FanletterAgentRankEvidencePacketPage({
               <h1 className="mt-2 text-4xl font-semibold leading-tight text-[#11132d] sm:text-5xl">
                 {copy.heroTitle}
               </h1>
-              <p className="mt-4 max-w-3xl text-base font-medium leading-7 text-slate-600">
+              <p className="mt-4 hidden max-w-3xl text-base font-medium leading-7 text-slate-600 sm:block">
                 {copy.heroBody}
               </p>
               {!eventInScope ? (
@@ -546,6 +551,84 @@ export function FanletterAgentRankEvidencePacketPage({
           </div>
         </header>
 
+        <FanletterActionGuide
+          currentLabel={
+            locale === "ko"
+              ? "현재 위치: Evidence Packet"
+              : "Now: Evidence Packet"
+          }
+          metrics={[
+            {
+              label: copy.eventContribution,
+              value: formatNumber(
+                packet.oracleManifest.scoreImpact.total,
+                locale,
+              ),
+            },
+            {
+              label: copy.linkedEvidence,
+              value: `${linkedEvents.length}/${packet.evidence.linkedEventCount}`,
+            },
+          ]}
+          primaryAction={{
+            agentRank: {
+              eventType: "universe_growth",
+              intent: "agentrank_evidence_packet_download",
+              source: "fanletter_agentrank",
+              starId,
+            },
+            href: evidenceDownloadHref,
+            label: copy.downloadJson,
+            metadata: {
+              eventId: event.eventId,
+              placement: "agentrank_evidence_packet_action_guide_primary",
+            },
+          }}
+          reputationEventLabel={
+            locale === "ko" ? "Oracle 증거 패킷" : "Oracle evidence packet"
+          }
+          secondaryActions={[
+            {
+              agentRank: {
+                eventType: "universe_growth",
+                intent: "agentrank_evidence_packet_open_event_detail",
+                source: "fanletter_agentrank",
+                starId,
+              },
+              href: eventDetailHref,
+              label: copy.backToEvent,
+              metadata: {
+                eventId: event.eventId,
+                placement: "agentrank_evidence_packet_action_guide_detail",
+              },
+            },
+          ]}
+          steps={[
+            {
+              label: locale === "ko" ? "이벤트 선택" : "Event selected",
+              status: "done",
+            },
+            {
+              label: locale === "ko" ? "증거 해시" : "Evidence hash",
+              status: "active",
+            },
+            {
+              label: locale === "ko" ? "연결 증거" : "Linked evidence",
+              status: linkedEvents.length > 0 ? "done" : "next",
+            },
+            {
+              label: locale === "ko" ? "Oracle 전달" : "Oracle handoff",
+              status: "next",
+            },
+          ]}
+          subtitle={copy.verifierNote}
+          title={
+            locale === "ko"
+              ? "다음 행동: Evidence Root 검증"
+              : "Next action: verify Evidence Root"
+          }
+        />
+
         {coverageAction ? (
           <FanletterAgentRankCoverageActionNotice
             action={coverageAction}
@@ -560,7 +643,7 @@ export function FanletterAgentRankEvidencePacketPage({
                 <ShieldCheck className="size-4" />
                 {copy.trace}
               </p>
-              <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+              <p className="mt-2 hidden max-w-3xl text-sm font-medium leading-6 text-slate-500 sm:block">
                 {copy.verifierNote}
               </p>
             </div>
@@ -603,7 +686,7 @@ export function FanletterAgentRankEvidencePacketPage({
                 <BadgeCheck className="size-4" />
                 {copy.oracleManifest}
               </p>
-              <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+              <p className="mt-2 hidden max-w-3xl text-sm font-medium leading-6 text-slate-500 sm:block">
                 {copy.heroBody}
               </p>
             </div>
