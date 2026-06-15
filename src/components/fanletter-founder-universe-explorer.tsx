@@ -378,6 +378,8 @@ function joinClasses(...classes: Array<string | false | null | undefined>) {
 const unsafeMemberDisplayNamePatterns = [
   /adult/i,
   /boob/i,
+  /chat\s*gpt/i,
+  /chatgpt/i,
   /fuck/i,
   /hand\s*job/i,
   /hentai/i,
@@ -930,8 +932,8 @@ function UniverseRoleLegend({
             className={joinClasses(
               "group grid min-h-[4.7rem] grid-cols-[3.6rem_1fr] items-center gap-3 rounded-[1.15rem] border px-2.5 py-2 text-left transition duration-300",
               active
-                ? "scale-[1.01] border-slate-100 bg-[#f8fafc] shadow-[0_14px_30px_rgba(15,23,42,0.06)]"
-                : "border-transparent hover:-translate-y-0.5 hover:border-slate-100 hover:bg-slate-50/80",
+                ? "scale-[1.01] border-white/14 bg-white/10 shadow-[0_14px_30px_rgba(124,58,237,0.16)]"
+                : "border-transparent hover:-translate-y-0.5 hover:border-white/10 hover:bg-white/[0.06]",
             )}
             key={tier.depth}
             onClick={() => onSelectDepth(tier.depth)}
@@ -950,8 +952,8 @@ function UniverseRoleLegend({
             >
               <span
                 className={joinClasses(
-                  "absolute inset-[-0.35rem] rounded-full bg-[var(--hex-accent)] opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-[0.18]",
-                  active ? "opacity-[0.18] animate-pulse" : "",
+                  "absolute inset-[-0.35rem] rounded-full bg-[var(--hex-accent)] opacity-0 blur-xl transition-opacity duration-300 group-hover:opacity-[0.28]",
+                  active ? "animate-pulse opacity-[0.28]" : "",
                 )}
               />
               <span className="absolute inset-0 bg-[var(--hex-accent)] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]" />
@@ -975,12 +977,12 @@ function UniverseRoleLegend({
                 >
                   {v2Copy.roles[tier.role]}
                 </span>
-                <span className="shrink-0 text-xs font-semibold text-[#111827]">
+                <span className="shrink-0 text-xs font-semibold text-white">
                   {formatNumber(tier.capacity, locale)}
                   {locale === "ko" ? "명" : ""}
                 </span>
               </span>
-              <span className="mt-0.5 block truncate text-[0.72rem] font-medium text-slate-500">
+              <span className="mt-0.5 block truncate text-[0.72rem] font-medium text-white/52">
                 {subtitle}
               </span>
             </span>
@@ -1047,9 +1049,22 @@ function FounderUniverseOrbitMap({
     { depth: 3, right: "20%", top: "75%" },
     { depth: 1, left: "49%", top: "87%" },
   ];
+  const featuredNodes = universe.nodes
+    .filter((node) => !node.isCreator && node.depth > 0)
+    .slice(0, 6);
+  const featuredNodePositions: Array<CSSProperties> = [
+    { left: "8%", top: "14%" },
+    { right: "6%", top: "16%" },
+    { left: "2%", top: "43%" },
+    { right: "1%", top: "45%" },
+    { left: "10%", bottom: "14%" },
+    { right: "8%", bottom: "13%" },
+  ];
 
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[33rem] overflow-hidden rounded-[1.4rem] bg-[radial-gradient(circle,#ffffff_0%,#ffffff_34%,#f8fbff_100%)] lg:max-w-[34rem]">
+    <div className="relative mx-auto aspect-square w-full max-w-[36rem] overflow-hidden rounded-[1.4rem] border border-white/10 bg-[radial-gradient(circle_at_center,rgba(124,58,237,0.24)_0%,rgba(22,12,40,0.96)_38%,#040406_100%)] shadow-[0_30px_90px_rgba(0,0,0,0.42)] lg:max-w-[38rem]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.12)_0%,transparent_24%),linear-gradient(135deg,rgba(255,255,255,0.06),transparent_42%,rgba(124,58,237,0.12))]" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 size-[42%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-violet-300/20 shadow-[0_0_80px_rgba(168,85,247,0.28)]" />
       <svg
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 h-full w-full"
@@ -1061,7 +1076,7 @@ function FounderUniverseOrbitMap({
 
           return (
             <circle
-              className={joinClasses("opacity-55", colors.text)}
+              className={joinClasses("opacity-70 drop-shadow-sm", colors.text)}
               cx="50"
               cy="50"
               fill="none"
@@ -1100,7 +1115,7 @@ function FounderUniverseOrbitMap({
       <div className="pointer-events-none absolute inset-0 z-20 hidden sm:block">
         {capacityLabels.map((label) => (
           <span
-            className="absolute rounded-full bg-white/86 px-2.5 py-1 text-[0.72rem] font-semibold text-slate-500 shadow-[0_8px_18px_rgba(15,23,42,0.06)] backdrop-blur"
+            className="absolute rounded-full border border-white/10 bg-black/48 px-2.5 py-1 text-[0.72rem] font-semibold text-white/70 shadow-[0_8px_22px_rgba(0,0,0,0.22)] backdrop-blur"
             key={`capacity-${label.depth}`}
             style={{
               left: label.left,
@@ -1111,6 +1126,36 @@ function FounderUniverseOrbitMap({
             {tierCapacityByDepth.get(label.depth)}
           </span>
         ))}
+      </div>
+
+      <div className="pointer-events-none absolute inset-0 z-30 hidden lg:block">
+        {featuredNodes.map((node, index) => {
+          const colors = universeDepthColors[node.depth] ?? universeDepthColors[6];
+          const position = featuredNodePositions[index] ?? featuredNodePositions[0];
+
+          return (
+            <button
+              className="pointer-events-auto absolute flex min-w-[8.6rem] items-center gap-2 rounded-xl border border-white/14 bg-[#0c0b12]/82 p-2 text-left shadow-[0_16px_36px_rgba(0,0,0,0.28)] backdrop-blur transition hover:-translate-y-0.5 hover:border-violet-300/50"
+              key={`featured-node-${node.nodeId}`}
+              onClick={() => onSelectNode(node.nodeId)}
+              style={position}
+              type="button"
+            >
+              <HumanMemberAvatar
+                member={{ initials: node.initials, name: node.label }}
+                size="sm"
+              />
+              <span className="min-w-0">
+                <span className="block truncate text-xs font-semibold text-white">
+                  {node.label}
+                </span>
+                <span className={joinClasses("mt-0.5 block text-[0.6rem] font-semibold uppercase", colors.text)}>
+                  {v2Copy.roles[node.role]}
+                </span>
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {[1, 2, 3, 4, 5, 6].flatMap((depth) => {
@@ -1133,12 +1178,12 @@ function FounderUniverseOrbitMap({
               className={joinClasses(
                 "absolute flex items-center justify-center border text-[0.6rem] font-semibold transition [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]",
                 node
-                  ? "shadow-[0_8px_18px_rgba(15,23,42,0.08)] ring-2 ring-white/80 hover:brightness-105"
-                  : "pointer-events-none bg-transparent opacity-30 shadow-none ring-0",
+                  ? "shadow-[0_8px_18px_rgba(0,0,0,0.24)] ring-2 ring-black/40 hover:brightness-110"
+                  : "pointer-events-none bg-white/5 opacity-25 shadow-none ring-0",
                 node ? colors.fill : "border-white/55",
                 node ? colors.border : "text-transparent",
                 node ? "text-white" : "",
-                selected ? "z-20 ring-4 ring-[#7c3aed]/18" : "z-10",
+                selected ? "z-40 ring-4 ring-violet-300/45" : "z-10",
               )}
               disabled={!node}
               key={`${depth}-${index}`}
@@ -1164,10 +1209,11 @@ function FounderUniverseOrbitMap({
         });
       })}
 
-      <div className="absolute left-1/2 top-1/2 z-40 size-[4.35rem] -translate-x-1/2 -translate-y-1/2 sm:size-[4.65rem]">
-        <span className="absolute inset-[-0.55rem] rounded-full bg-violet-400/18 blur-xl" />
-        <span className="absolute inset-[-0.22rem] bg-white/86 shadow-[0_10px_24px_rgba(124,58,237,0.16)] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]" />
-        <div className="relative h-full w-full bg-[linear-gradient(145deg,#8b5cf6,#6d28d9_45%,#38bdf8)] p-[3px] shadow-[0_14px_30px_rgba(124,58,237,0.24)] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]">
+      <div className="absolute left-1/2 top-1/2 z-40 size-[5.6rem] -translate-x-1/2 -translate-y-1/2 sm:size-[7rem]">
+        <span className="absolute inset-[-1.1rem] rounded-full bg-violet-400/22 blur-2xl" />
+        <span className="absolute inset-[-0.6rem] rounded-full border border-violet-200/50 shadow-[0_0_42px_rgba(168,85,247,0.34)]" />
+        <span className="absolute inset-[-0.18rem] bg-white/10 shadow-[0_10px_36px_rgba(124,58,237,0.24)] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]" />
+        <div className="relative h-full w-full bg-[linear-gradient(145deg,#a78bfa,#7c3aed_45%,#38bdf8)] p-[3px] shadow-[0_18px_42px_rgba(124,58,237,0.32)] [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]">
           <div
             className="flex h-full w-full items-center justify-center bg-cover bg-center text-lg font-semibold text-white [clip-path:polygon(25%_6.7%,75%_6.7%,100%_50%,75%_93.3%,25%_93.3%,0_50%)]"
             style={
@@ -1183,19 +1229,19 @@ function FounderUniverseOrbitMap({
         </div>
       </div>
 
-      <div className="absolute left-1/2 top-[calc(50%+2.45rem)] z-30 w-[9.4rem] -translate-x-1/2 overflow-hidden rounded-2xl border border-violet-100/80 bg-white/94 text-center shadow-[0_16px_38px_rgba(88,28,135,0.12)] backdrop-blur sm:top-[calc(50%+2.6rem)] sm:w-[10rem]">
+      <div className="absolute left-1/2 top-[calc(50%+3rem)] z-30 w-[9.7rem] -translate-x-1/2 overflow-hidden rounded-2xl border border-violet-300/24 bg-black/72 text-center shadow-[0_18px_48px_rgba(0,0,0,0.38)] backdrop-blur sm:top-[calc(50%+3.75rem)] sm:w-[10.6rem]">
         <span className="block h-1 bg-[linear-gradient(90deg,#8b5cf6,#38bdf8)]" />
         <div className="px-3 pb-3 pt-2.5">
-          <span className="mx-auto inline-flex h-5 items-center rounded-full bg-violet-50 px-2 text-[0.58rem] font-semibold tracking-[0.08em] text-[#7c3aed]">
+          <span className="mx-auto inline-flex h-5 items-center rounded-full bg-white/10 px-2 text-[0.58rem] font-semibold tracking-[0.08em] text-violet-200">
             AI STAR
           </span>
-          <p className="mt-1.5 truncate text-[0.95rem] font-semibold text-[#111827] sm:text-base">
+          <p className="mt-1.5 truncate text-[0.95rem] font-semibold text-white sm:text-base">
           {starName}
           </p>
-          <p className="mt-0.5 whitespace-nowrap text-[0.68rem] font-semibold text-slate-500 sm:text-[0.72rem]">
+          <p className="mt-0.5 whitespace-nowrap text-[0.68rem] font-semibold text-white/58 sm:text-[0.72rem]">
             {v2Copy.roles.creator}
           </p>
-          <p className="mx-auto mt-1 max-w-full truncate rounded-full bg-slate-50 px-2 py-1 text-[0.65rem] font-semibold text-slate-600 sm:text-[0.68rem]">
+          <p className="mx-auto mt-1 max-w-full truncate rounded-full bg-white/10 px-2 py-1 text-[0.65rem] font-semibold text-white/70 sm:text-[0.68rem]">
             {creatorNode?.label ?? "Wayne"}
           </p>
         </div>
@@ -1208,21 +1254,21 @@ function UniverseStatusLegend({ locale }: { locale: Locale }) {
   const dashboardCopy = getDashboardCopy(locale);
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-slate-500">
+    <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-white/58">
       <span className="inline-flex items-center gap-2">
-        <span className="size-3 rounded-full bg-slate-600" />
+        <span className="size-3 rounded-full bg-white/74" />
         {dashboardCopy.graphLegend.active}
       </span>
       <span className="inline-flex items-center gap-2">
-        <span className="size-3 rounded-full bg-slate-300" />
+        <span className="size-3 rounded-full bg-white/24" />
         {dashboardCopy.graphLegend.inactive}
       </span>
       <span className="inline-flex items-center gap-2">
-        <span className="size-3 rounded-full border-2 border-[#7c3aed] bg-white" />
+        <span className="size-3 rounded-full border-2 border-violet-300 bg-transparent" />
         {dashboardCopy.graphLegend.direct}
       </span>
       <span className="inline-flex items-center gap-2">
-        <span className="h-0 w-6 border-t-2 border-dashed border-[#7c3aed]" />
+        <span className="h-0 w-6 border-t-2 border-dashed border-violet-300" />
         {dashboardCopy.graphLegend.referral}
       </span>
     </div>
@@ -1246,94 +1292,277 @@ function FounderUniverseDashboardPanel({
 }) {
   const copy = getExplorerCopy(locale);
   const dashboardCopy = getDashboardCopy(locale);
+  const v2Copy = getFanletterV2Copy(locale);
   const starName = getUniverseStarName(universe.star);
+  const creatorNode =
+    universe.nodes.find((node) => node.isCreator) ?? universe.nodes[0] ?? null;
+  const totalCpPool = universe.tiers.reduce(
+    (sum, tier) => sum + tier.cpPoolReward,
+    0,
+  );
+  const metricStrip = [
+    {
+      icon: Users,
+      label: locale === "ko" ? "Founders" : "Founders",
+      sublabel: locale === "ko" ? "활동 중" : "active",
+      value: formatNumber(universe.totals.totalMembers, locale),
+    },
+    {
+      icon: Rocket,
+      label: copy.spawned,
+      sublabel: locale === "ko" ? "탄생 완료" : "launched",
+      value: formatNumber(universe.totals.spawnedStars, locale),
+    },
+    {
+      icon: GitBranch,
+      label: copy.reputationEvents,
+      sublabel: locale === "ko" ? "추적 이벤트" : "tracked",
+      value: formatNumber(universe.totals.edgeCount, locale),
+    },
+    {
+      icon: CircleDot,
+      label: copy.cpPool,
+      sublabel: locale === "ko" ? "mock 보상 풀" : "mock pool",
+      value: `${formatNumber(totalCpPool, locale)} CP`,
+    },
+    {
+      icon: ShieldCheck,
+      label: locale === "ko" ? "Open Slots" : "Open Slots",
+      sublabel: locale === "ko" ? "참여 가능" : "available",
+      value: formatNumber(universe.star.openSlots, locale),
+    },
+    {
+      icon: Gauge,
+      label: "AgentRank",
+      sublabel: locale === "ko" ? "호환 구조" : "compatible",
+      value: "Ready",
+    },
+  ];
 
   return (
-    <section className="rounded-[1.35rem] border border-slate-100 bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,0.07)] sm:p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex items-center gap-2">
-          <h2 className="text-xl font-semibold tracking-normal text-[#111827]">
-            {starName} {copy.founderUniverse}
+    <section className="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#050507] p-4 text-white shadow-[0_34px_110px_rgba(0,0,0,0.32)] sm:p-5 lg:p-6">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_28%,rgba(124,58,237,0.24),transparent_36%),radial-gradient(circle_at_12%_10%,rgba(255,255,255,0.12),transparent_22%)]" />
+      <div className="relative z-10 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="inline-flex items-center gap-2 text-sm font-semibold text-violet-200">
+            <Sparkles className="size-4" />
+            FanLetter
+          </p>
+          <h2 className="mt-7 max-w-[14rem] text-4xl font-semibold uppercase leading-none tracking-normal text-white sm:text-5xl">
+            Founder
+            <span className="block bg-[linear-gradient(90deg,#ffffff,#a78bfa)] bg-clip-text text-transparent">
+              Universe
+            </span>
           </h2>
-          <HelpCircle className="size-4 text-slate-400" />
+          <p className="mt-4 max-w-sm text-sm font-medium leading-6 text-white/64">
+            {locale === "ko"
+              ? `모든 파운더 네트워크는 ${starName} 중심으로 모이고, 새 AI 스타를 배출하며 AgentRank 평판 이벤트를 만듭니다.`
+              : `Every founder network gathers around ${starName}, spawns new AI Stars, and creates AgentRank reputation events.`}
+          </p>
         </div>
-        <div className="flex items-start gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex h-10 items-center rounded-full border border-white/12 bg-white/[0.04] px-4 text-xs font-semibold uppercase tracking-[0.16em] text-white/78">
+            Onchain
+            <span className="mx-2 text-white/30">•</span>
+            Open
+            <span className="mx-2 text-white/30">•</span>
+            Fair
+          </span>
           <button
-            className="inline-flex h-10 items-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-600"
+            className="inline-flex h-10 items-center rounded-full border border-white/12 bg-white/[0.06] px-4 text-sm font-semibold text-white transition hover:bg-white/10"
             onClick={() => onSelectDepth("all")}
             type="button"
           >
             {dashboardCopy.allView}
           </button>
-          <span className="grid gap-2">
-            <button
-              aria-label="Zoom in"
-              className="inline-flex size-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-lg font-semibold text-slate-600"
-              type="button"
-            >
-              +
-            </button>
-            <button
-              aria-label="Zoom out"
-              className="inline-flex size-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-lg font-semibold text-slate-600"
-              type="button"
-            >
-              -
-            </button>
-          </span>
         </div>
       </div>
 
-      <div className="mt-5 grid gap-6 lg:grid-cols-[14.25rem_minmax(0,1fr)]">
-        <UniverseRoleLegend
-          locale={locale}
-          onSelectDepth={onSelectDepth}
-          selectedDepth={selectedDepth}
-          tiers={universe.tiers}
-        />
+      <div className="relative z-10 mt-7 grid gap-5 xl:grid-cols-[18rem_minmax(0,1fr)_20rem]">
+        <aside className="grid content-start gap-4">
+          <div className="rounded-2xl border border-violet-300/24 bg-white/[0.04] p-4 shadow-[0_18px_46px_rgba(0,0,0,0.22)] backdrop-blur">
+            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-200">
+              {v2Copy.roles.creator}
+            </span>
+            <div className="mt-4 flex items-center gap-3">
+              <div
+                className="flex size-16 shrink-0 items-center justify-center rounded-full border border-white/20 bg-cover bg-center text-lg font-semibold text-white"
+                style={
+                  universe.star.portraitImageUrl
+                    ? { backgroundImage: `url(${universe.star.portraitImageUrl})` }
+                    : {
+                        background: `linear-gradient(145deg, ${universe.star.accentColor}, ${universe.star.accentSecondary})`,
+                      }
+                }
+              >
+                {universe.star.portraitImageUrl ? null : universe.star.initials}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-2xl font-semibold text-white">
+                  {starName}
+                </p>
+                <p className="mt-1 truncate text-xs font-semibold text-white/52">
+                  {creatorNode?.label ?? "Creator"}
+                </p>
+              </div>
+            </div>
+            <div className="mt-5 grid gap-3 border-t border-white/10 pt-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/52">Star Score</span>
+                <span className="font-semibold text-violet-200">
+                  {universe.star.starScore}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/52">{copy.members}</span>
+                <span className="font-semibold text-white">
+                  {formatNumber(universe.totals.totalMembers, locale)}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-white/52">{copy.spawned}</span>
+                <span className="font-semibold text-white">
+                  {formatNumber(universe.totals.spawnedStars, locale)}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+            <p className="px-1 pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/52">
+              Universe Tiers
+            </p>
+            <UniverseRoleLegend
+              locale={locale}
+              onSelectDepth={onSelectDepth}
+              selectedDepth={selectedDepth}
+              tiers={universe.tiers}
+            />
+          </div>
+        </aside>
+
         <div className="min-w-0">
+          <div className="mb-3 text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-violet-200">
+              Founder Club
+            </p>
+            <p className="mt-1 text-xs font-medium text-white/48">
+              {locale === "ko"
+                ? "중앙 AI 스타와 6단계 파운더 네트워크"
+                : "AI Star core with a 6-tier Founder Network"}
+            </p>
+          </div>
           <FounderUniverseOrbitMap
             locale={locale}
             onSelectNode={onSelectNode}
             selectedNodeId={selectedNodeId}
             universe={universe}
           />
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-4">
-            {universe.tiers.map((tier) => {
-              const hexStyle =
-                universeLegendHexStyles[tier.depth] ?? universeLegendHexStyles[6];
-              const TierIcon =
-                universeTierIconByRole[
-                  tier.role as Exclude<FounderRole, "member">
-                ] ?? Sparkles;
-              const v2Copy = getFanletterV2Copy(locale);
-
-              return (
-                <button
-                  className="group inline-flex items-center gap-2 rounded-full px-1.5 py-1 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
-                  key={tier.depth}
-                  onClick={() => onSelectDepth(tier.depth)}
-                  type="button"
-                >
-                  <span
-                    className="inline-flex size-5 items-center justify-center rounded-full border bg-white transition group-hover:scale-110"
-                    style={{
-                      borderColor: hexStyle.accent,
-                      boxShadow: `0 6px 12px ${hexStyle.glow}`,
-                      color: hexStyle.accent,
-                    }}
-                  >
-                    <TierIcon aria-hidden="true" className="size-3" />
-                  </span>
-                  {tier.depth} {v2Copy.roles[tier.role]}
-                </button>
-              );
-            })}
-          </div>
           <div className="mt-4">
             <UniverseStatusLegend locale={locale} />
           </div>
         </div>
+
+        <aside className="rounded-2xl border border-violet-300/24 bg-white/[0.04] p-4 shadow-[0_18px_46px_rgba(0,0,0,0.22)] backdrop-blur">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-lg font-semibold text-white">{copy.spawned}</p>
+              <p className="mt-1 text-xs font-medium text-white/52">
+                {locale === "ko"
+                  ? `${starName}에서 탄생한 AI 스타`
+                  : `AI Stars spawned from ${starName}`}
+              </p>
+            </div>
+            <Sparkles className="size-4 text-violet-200" />
+          </div>
+
+          <div className="mt-5 grid gap-3">
+            {universe.spawnedStars.length > 0 ? (
+              universe.spawnedStars.slice(0, 3).map((spawnedStar) => (
+                <FanletterTrackedLink
+                  agentRank={{
+                    eventType: "ai_star_spawned",
+                    intent: "founder_universe_showcase_spawned_open",
+                    source: "fanletter_founder_universe",
+                    starId: spawnedStar.id,
+                  }}
+                  className="group grid grid-cols-[5.4rem_minmax(0,1fr)] overflow-hidden rounded-xl border border-white/10 bg-white/[0.045] text-white transition hover:border-violet-300/42 hover:bg-white/[0.07]"
+                  eventName="content_open"
+                  href={`/${locale}/fanletter/${encodeURIComponent(
+                    spawnedStar.id,
+                  )}/universe`}
+                  key={spawnedStar.id}
+                  metadata={{
+                    placement: "founder_universe_showcase_spawned",
+                    sourceStarId: universe.star.id,
+                    spawnedStarName: spawnedStar.name,
+                  }}
+                >
+                  <div
+                    className="min-h-[5.6rem] bg-cover bg-center"
+                    style={
+                      spawnedStar.portraitImageUrl
+                        ? {
+                            backgroundImage: `url(${spawnedStar.portraitImageUrl})`,
+                          }
+                        : {
+                            background: `linear-gradient(145deg, ${universe.star.accentColor}, ${universe.star.accentSecondary})`,
+                          }
+                    }
+                  />
+                  <div className="min-w-0 p-3">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-base font-semibold">
+                        {spawnedStar.name}
+                      </p>
+                      <span className="rounded-full bg-violet-500 px-1.5 py-0.5 text-[0.58rem] font-semibold uppercase">
+                        {getStatusLabel(spawnedStar.status, locale)}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                      <span className="text-white/52">Score</span>
+                      <span className="text-right font-semibold">
+                        {spawnedStar.starScore}
+                      </span>
+                      <span className="text-white/52">Growth</span>
+                      <span className="text-right font-semibold">
+                        +{spawnedStar.growthPercent}%
+                      </span>
+                    </div>
+                  </div>
+                </FanletterTrackedLink>
+              ))
+            ) : (
+              <div className="rounded-xl border border-dashed border-white/14 bg-white/[0.035] p-5 text-center">
+                <Rocket className="mx-auto size-7 text-white/32" />
+                <p className="mt-3 text-sm font-semibold text-white/54">
+                  {copy.noSpawned}
+                </p>
+              </div>
+            )}
+          </div>
+        </aside>
+      </div>
+
+      <div className="relative z-10 mt-5 grid overflow-hidden rounded-2xl border border-violet-300/18 bg-white/[0.045] sm:grid-cols-2 xl:grid-cols-6">
+        {metricStrip.map((metric) => (
+          <div
+            className="flex items-center gap-3 border-white/10 p-4 sm:border-r last:border-r-0"
+            key={metric.label}
+          >
+            <metric.icon className="size-6 shrink-0 text-violet-200" />
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold uppercase tracking-[0.12em] text-white/48">
+                {metric.label}
+              </p>
+              <p className="mt-1 truncate text-2xl font-semibold text-violet-200">
+                {metric.value}
+              </p>
+              <p className="mt-0.5 truncate text-xs font-medium text-white/44">
+                {metric.sublabel}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -2620,19 +2849,19 @@ export function FanletterFounderUniverseExplorer({
             universe={displayUniverse}
           />
 
+          <div id="founder-network-map">
+            <FounderUniverseDashboardPanel
+              locale={locale}
+              onSelectDepth={setSelectedDepth}
+              onSelectNode={setSelectedNodeId}
+              selectedDepth={selectedDepth}
+              selectedNodeId={selectedNodeId}
+              universe={displayUniverse}
+            />
+          </div>
+
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="grid gap-5">
-              <div id="founder-network-map">
-                <FounderUniverseDashboardPanel
-                  locale={locale}
-                  onSelectDepth={setSelectedDepth}
-                  onSelectNode={setSelectedNodeId}
-                  selectedDepth={selectedDepth}
-                  selectedNodeId={selectedNodeId}
-                  universe={displayUniverse}
-                />
-              </div>
-
               <UniverseExpansionMap
                 locale={locale}
                 onSelectNode={setSelectedNodeId}
