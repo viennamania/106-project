@@ -1751,6 +1751,14 @@ export function FanletterAgentRankCoverageAuditPage({
   const gapActions = coverage.gaps.map((gap) =>
     getGapAction(gap, locale, scope),
   );
+  const primaryGapAction = gapActions[0] ?? null;
+  const primaryGapProjection = primaryGapAction
+    ? getCoverageActionProjection({
+        action: primaryGapAction.coverageAction,
+        coverage,
+        locale,
+      })
+    : null;
   const scopeOptions: Array<{
     count: number;
     label: string;
@@ -1859,6 +1867,60 @@ export function FanletterAgentRankCoverageAuditPage({
               : "Next action: fill coverage gaps"
           }
         />
+        <section className="mb-5 rounded-[1.25rem] border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.06)] sm:hidden">
+          <p className="inline-flex max-w-full items-center gap-2 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
+            <ShieldAlert className="size-3.5 shrink-0" />
+            <span className="truncate">
+              {locale === "ko" ? "현재 위치: 커버리지 감사" : "Now: Coverage audit"}
+            </span>
+          </p>
+          <h2 className="mt-3 text-xl font-semibold leading-tight text-[#11132d] [word-break:keep-all]">
+            {primaryGapAction
+              ? locale === "ko"
+                ? `다음 보강: ${primaryGapAction.label}`
+                : `Next gap: ${primaryGapAction.label}`
+              : locale === "ko"
+                ? "커버리지 보강 완료"
+                : "Coverage gaps complete"}
+          </h2>
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="rounded-lg bg-violet-50 px-3 py-2">
+              <p className="truncate text-[0.62rem] font-semibold uppercase text-[#6d28d9]/70">
+                {copy.phase1Quality}
+              </p>
+              <p className="mt-1 truncate text-lg font-semibold text-[#5b21b6]">
+                {coverage.phase1QualityScore}
+              </p>
+            </div>
+            <div className="rounded-lg bg-amber-50 px-3 py-2">
+              <p className="truncate text-[0.62rem] font-semibold uppercase text-amber-700/70">
+                {copy.gaps}
+              </p>
+              <p className="mt-1 truncate text-lg font-semibold text-amber-800">
+                {formatNumber(coverage.gaps.length, locale)}
+              </p>
+            </div>
+            <div className="rounded-lg bg-emerald-50 px-3 py-2">
+              <p className="truncate text-[0.62rem] font-semibold uppercase text-emerald-700/70">
+                {copy.actionExpectedDelta}
+              </p>
+              <p className="mt-1 truncate text-lg font-semibold text-emerald-800">
+                {primaryGapProjection?.delta ?? "+0"}
+              </p>
+            </div>
+          </div>
+          <Link
+            className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#6d28d9] px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(109,40,217,0.2)]"
+            href={primaryGapAction?.href ?? `/${locale}/fanletter/agentrank/events?${actionPageQuery}`}
+          >
+            {primaryGapAction
+              ? locale === "ko"
+                ? "이 보강 액션 실행"
+                : "Run this coverage action"
+              : copy.eventLedger}
+            <ArrowRight className="size-4 shrink-0" />
+          </Link>
+        </section>
         <header className="rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] lg:p-7">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
@@ -1869,7 +1931,7 @@ export function FanletterAgentRankCoverageAuditPage({
               <h1 className="mt-4 text-4xl font-semibold leading-tight tracking-normal text-[#11132d] md:text-6xl">
                 {copy.title}
               </h1>
-              <p className="mt-3 max-w-4xl text-base font-medium leading-7 text-slate-600 md:text-lg">
+              <p className="mt-3 hidden max-w-4xl text-base font-medium leading-7 text-slate-600 sm:block md:text-lg">
                 {copy.subtitle}
               </p>
             </div>
