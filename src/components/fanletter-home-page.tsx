@@ -1009,7 +1009,6 @@ function FanletterProductHomeDashboard({
   agentRankHref,
   agentRankSnapshot,
   aiStarGenealogyHref,
-  connectHref,
   copy,
   creatorUnlock,
   creatorUnlockHref,
@@ -1026,7 +1025,6 @@ function FanletterProductHomeDashboard({
   agentRankHref: string;
   agentRankSnapshot?: FanletterAgentRankInvestorSnapshot | null;
   aiStarGenealogyHref: string;
-  connectHref: string;
   copy: FanletterCopy;
   creatorUnlock?: CreatorUnlockData | null;
   creatorUnlockHref: string;
@@ -1265,22 +1263,7 @@ function FanletterProductHomeDashboard({
                   reputationEventLabel={
                     isKo ? "평판 이벤트 생성" : "Reputation Event"
                   }
-                  secondaryActions={[
-                    {
-                      agentRank: {
-                        eventType: "founder_joined",
-                        intent: "home_connect_account",
-                        source: "fanletter_home",
-                        starId: primaryStar?.id ?? null,
-                      },
-                      href: connectHref,
-                      label: productCopy.connect,
-                      metadata: {
-                        placement: "fanletter_product_home_connect",
-                      },
-                      referralCode,
-                    },
-                  ]}
+                  secondaryActions={[]}
                   steps={[
                     { label: productCopy.discovery, status: "active" },
                     { label: productCopy.join, status: "next" },
@@ -2896,13 +2879,10 @@ export function FanletterHomePage({
               <Sparkles className="size-3.5 shrink-0 text-black" />
               <span className="truncate">{copy.announcement.label}</span>
             </div>
-            <Link
-              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-3 text-[0.68rem] font-semibold !text-black transition hover:bg-zinc-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black sm:min-h-0 sm:border-0 sm:bg-transparent sm:px-0 sm:text-xs sm:hover:bg-transparent"
-              href={founderClubHref}
-            >
+            <span className="inline-flex shrink-0 items-center rounded-full bg-zinc-50 px-3 py-1 text-[0.68rem] font-semibold text-black sm:bg-transparent sm:px-0 sm:py-0 sm:text-xs">
               <span className="sm:hidden">{mobileAnnouncementCta}</span>
               <span className="hidden sm:inline">{copy.announcement.prize}</span>
-            </Link>
+            </span>
           </div>
 
           <header className="mt-3 flex items-center justify-between gap-2 sm:mt-4 sm:gap-4">
@@ -2911,42 +2891,27 @@ export function FanletterHomePage({
               <span className="text-xl font-semibold tracking-tight">AIAVpark</span>
             </Link>
 
-            <nav className="hidden items-center gap-1.5 text-xs font-semibold text-black/62 md:flex lg:gap-2 lg:text-sm">
+            <nav
+              aria-label={locale === "ko" ? "핵심 여정" : "Primary journey"}
+              className="hidden items-center gap-1.5 rounded-full border border-zinc-200 bg-white/72 p-1 text-xs font-semibold text-black/62 md:flex lg:gap-2 lg:text-sm"
+            >
               <a
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-zinc-100 hover:text-black"
+                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={topGrowingStarsHref}
               >
                 {copy.nav.features}
               </a>
               <a
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-zinc-100 hover:text-black"
+                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={founderClubHref}
               >
                 {copy.nav.paid}
               </a>
-              <a
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-zinc-100 hover:text-black"
-                href={scoutShareLoopHref}
-              >
-                {copy.nav.campaigns}
-              </a>
-              <a
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-zinc-100 hover:text-black"
-                href={creatorUnlockHref}
-              >
-                {copy.nav.creators}
-              </a>
               <Link
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-zinc-100 hover:text-black"
-                href={reportsHref}
+                className="inline-flex min-h-8 items-center rounded-full bg-black px-3 !text-white transition hover:bg-zinc-800"
+                href={agentRankHref}
               >
-                {copy.nav.reports}
-              </Link>
-              <Link
-                className="inline-flex min-h-9 items-center rounded-full px-2.5 transition hover:bg-zinc-100 hover:text-black"
-                href={studioHref}
-              >
-                {copy.nav.studio}
+                AgentRank
               </Link>
             </nav>
 
@@ -3040,7 +3005,6 @@ export function FanletterHomePage({
             agentRankHref={agentRankHref}
             agentRankSnapshot={agentRankSnapshot}
             aiStarGenealogyHref={aiStarGenealogyHref}
-            connectHref={connectHref}
             copy={copy}
             creatorUnlock={founderClubCreatorUnlock}
             creatorUnlockHref={creatorUnlockHref}
