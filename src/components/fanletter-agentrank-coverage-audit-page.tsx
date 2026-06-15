@@ -1729,6 +1729,11 @@ export function FanletterAgentRankCoverageAuditPage({
   scope: CoverageAuditScope;
 }) {
   const copy = getCoverageAuditCopy(locale);
+  const scopeLabel = scope.starId
+    ? scope.starId
+    : locale === "ko"
+      ? "전체 AI 스타"
+      : "All AI Stars";
   const apiQuery = buildQuery(scope);
   const csvQuery = buildQuery(scope, { format: "csv" });
   const scoreQuery = buildQuery(scope, {
@@ -1787,7 +1792,9 @@ export function FanletterAgentRankCoverageAuditPage({
         <FanletterActionGuide
           className="mb-5"
           currentLabel={
-            locale === "ko" ? "운영자 커버리지 감사" : "Ops coverage audit"
+            locale === "ko"
+              ? `커버리지 감사 · ${scopeLabel}`
+              : `Coverage audit · ${scopeLabel}`
           }
           metrics={[
             {

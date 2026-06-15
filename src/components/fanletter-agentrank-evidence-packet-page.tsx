@@ -421,6 +421,11 @@ export function FanletterAgentRankEvidencePacketPage({
     download: "1",
   });
   const starId = event.starId ?? event.object?.id ?? null;
+  const scopeLabel = starId
+    ? starId
+    : locale === "ko"
+      ? "AI 스타 미지정"
+      : "No AI Star";
   const linkedEvents = packet.evidence.linkedEvents;
   const isCoverageMock = isAgentRankCoverageMockEvent(event);
   const eventInScope = isAgentRankEventIncludedInMockScope(event, eventScope);
@@ -554,8 +559,8 @@ export function FanletterAgentRankEvidencePacketPage({
         <FanletterActionGuide
           currentLabel={
             locale === "ko"
-              ? "현재 위치: Evidence Packet"
-              : "Now: Evidence Packet"
+              ? `Evidence Packet · ${scopeLabel}`
+              : `Evidence Packet · ${scopeLabel}`
           }
           metrics={[
             {

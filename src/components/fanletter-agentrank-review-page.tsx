@@ -470,6 +470,11 @@ export function FanletterAgentRankReviewPage({
   reviewQueue,
 }: FanletterAgentRankReviewPageProps) {
   const copy = getReviewCopy(locale);
+  const scopeLabel = filters.starId
+    ? filters.starId
+    : locale === "ko"
+      ? "전체 AI 스타"
+      : "All AI Stars";
   const params = new URLSearchParams({
     limit: String(filters.limit),
   });
@@ -515,7 +520,11 @@ export function FanletterAgentRankReviewPage({
     <main className="min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full min-w-0 max-w-[92rem] flex-col gap-5">
         <FanletterActionGuide
-          currentLabel={copy.accessBadge}
+          currentLabel={
+            locale === "ko"
+              ? `리뷰 큐 · ${scopeLabel}`
+              : `Review queue · ${scopeLabel}`
+          }
           metrics={[
             {
               label: copy.summaryNeedsOracle,

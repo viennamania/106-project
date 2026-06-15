@@ -1538,6 +1538,11 @@ export function FanletterAgentRankLedgerPage({
   locale,
 }: FanletterAgentRankLedgerPageProps) {
   const copy = getLedgerCopy(locale);
+  const scopeLabel = filters.starId
+    ? filters.starId
+    : locale === "ko"
+      ? "전체 AI 스타"
+      : "All AI Stars";
   const apiParams = new URLSearchParams();
   const averageQualityScore =
     typeof feed.summary.averageQualityScore === "number"
@@ -1672,7 +1677,9 @@ export function FanletterAgentRankLedgerPage({
       <div className="mx-auto flex w-full min-w-0 max-w-[92rem] flex-col gap-5">
         <FanletterActionGuide
           currentLabel={
-            locale === "ko" ? "운영자 장부" : "Ops ledger"
+            locale === "ko"
+              ? `이벤트 장부 · ${scopeLabel}`
+              : `Event ledger · ${scopeLabel}`
           }
           metrics={[
             {

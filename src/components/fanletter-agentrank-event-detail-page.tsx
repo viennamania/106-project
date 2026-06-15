@@ -1600,6 +1600,11 @@ export function FanletterAgentRankEventDetailPage({
   const copy = getCopy(locale);
   const audit = getEventAudit(event);
   const starId = event.starId ?? event.object?.id ?? null;
+  const scopeLabel = starId
+    ? starId
+    : locale === "ko"
+      ? "AI 스타 미지정"
+      : "No AI Star";
   const ledgerParams = new URLSearchParams();
   const impactTotal = getImpactTotal(event);
   const contextEntries = Object.entries(event.context).filter(
@@ -1672,7 +1677,9 @@ export function FanletterAgentRankEventDetailPage({
       <div className="mx-auto flex w-full min-w-0 max-w-[86rem] flex-col gap-5">
         <FanletterActionGuide
           currentLabel={
-            locale === "ko" ? "이벤트 상세 감사" : "Event detail audit"
+            locale === "ko"
+              ? `이벤트 상세 · ${scopeLabel}`
+              : `Event detail · ${scopeLabel}`
           }
           metrics={[
             {
