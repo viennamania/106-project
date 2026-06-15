@@ -799,6 +799,112 @@ function MetricTile({
   );
 }
 
+function LedgerOperationStatusCard({
+  auditReadyEvents,
+  filters,
+  locale,
+  packetReadyEvents,
+  reviewHref,
+  totalEvents,
+}: {
+  auditReadyEvents: number;
+  filters: FanletterAgentRankLedgerPageProps["filters"];
+  locale: Locale;
+  packetReadyEvents: number;
+  reviewHref: string;
+  totalEvents: number;
+}) {
+  const copy = getLedgerCopy(locale);
+  const isKo = locale === "ko";
+  const packetReadyHref = buildLedgerHref({
+    filters,
+    locale,
+    readiness: "packet_ready",
+    sort: "impact_desc",
+    type: null,
+  });
+  const packetPercent =
+    totalEvents > 0 ? Math.round((packetReadyEvents / totalEvents) * 100) : 0;
+  const progressWidth = `${Math.min(100, Math.max(0, packetPercent))}%`;
+
+  return (
+    <section className="rounded-[1.25rem] border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="inline-flex max-w-full items-center gap-2 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
+            <Database className="size-3.5 shrink-0" />
+            <span className="truncate">
+              {isKo ? "현재 위치: Reputation Event 장부" : "Now: Reputation Event ledger"}
+            </span>
+          </p>
+          <h2 className="mt-3 text-xl font-semibold leading-tight text-[#11132d] [word-break:keep-all] sm:text-2xl">
+            {isKo ? "다음 처리: 리뷰 큐 확인" : "Next action: review the queue"}
+          </h2>
+          <p className="mt-2 hidden max-w-2xl text-sm font-medium leading-6 text-slate-500 sm:block">
+            {isKo
+              ? "이 장부는 FanLetter 행동을 AgentRank가 검증할 수 있는 Reputation Event로 정리합니다."
+              : "This ledger turns FanLetter actions into AgentRank-verifiable Reputation Events."}
+          </p>
+        </div>
+        <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+          {copy.packetReady} {formatNumber(packetReadyEvents, locale)}
+        </span>
+      </div>
+
+      <div className="mt-4 overflow-hidden rounded-full bg-slate-100">
+        <div
+          className="h-2 rounded-full bg-gradient-to-r from-[#7c3aed] to-[#22c55e]"
+          style={{ width: progressWidth }}
+        />
+      </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="min-w-0 rounded-lg bg-slate-50 px-3 py-2">
+          <p className="truncate text-[0.62rem] font-semibold uppercase text-slate-400">
+            {copy.totalEvents}
+          </p>
+          <p className="mt-1 truncate text-lg font-semibold text-[#11132d]">
+            {formatNumber(totalEvents, locale)}
+          </p>
+        </div>
+        <div className="min-w-0 rounded-lg bg-violet-50 px-3 py-2">
+          <p className="truncate text-[0.62rem] font-semibold uppercase text-[#6d28d9]/70">
+            {copy.auditReady}
+          </p>
+          <p className="mt-1 truncate text-lg font-semibold text-[#5b21b6]">
+            {formatNumber(auditReadyEvents, locale)}
+          </p>
+        </div>
+        <div className="min-w-0 rounded-lg bg-emerald-50 px-3 py-2">
+          <p className="truncate text-[0.62rem] font-semibold uppercase text-emerald-700/70">
+            {copy.packetReady}
+          </p>
+          <p className="mt-1 truncate text-lg font-semibold text-emerald-800">
+            {packetPercent}%
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">
+        <Link
+          className="inline-flex h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-[#6d28d9] px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(109,40,217,0.2)]"
+          href={reviewHref}
+        >
+          {copy.ledgerReviewQueue}
+          <ArrowRight className="size-4 shrink-0" />
+        </Link>
+        <Link
+          className="hidden h-11 min-w-0 items-center justify-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800 sm:inline-flex"
+          href={packetReadyHref}
+        >
+          {copy.reviewPacketReady}
+          <ArrowRight className="size-4 shrink-0" />
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 function ReviewQueuePanel({
   filters,
   locale,
@@ -818,7 +924,7 @@ function ReviewQueuePanel({
             <AlertTriangle className="size-4" />
             {copy.ledgerReviewQueue}
           </p>
-          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+          <p className="mt-2 hidden max-w-3xl text-sm font-medium leading-6 text-slate-500 sm:block">
             {copy.ledgerReviewQueueBody}
           </p>
         </div>
@@ -918,7 +1024,7 @@ function ActionCoveragePanel({
             <BadgeCheck className="size-4" />
             {copy.actionCoverage}
           </p>
-          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+          <p className="mt-2 hidden max-w-3xl text-sm font-medium leading-6 text-slate-500 sm:block">
             {copy.actionCoverageBody}
           </p>
         </div>
@@ -1692,7 +1798,7 @@ export function FanletterAgentRankLedgerPage({
               <h1 className="mt-2 text-4xl font-semibold leading-tight text-[#11132d] sm:text-5xl">
                 {copy.heroTitle}
               </h1>
-              <p className="mt-4 max-w-3xl text-base font-medium leading-7 text-slate-600">
+              <p className="mt-4 hidden max-w-3xl text-base font-medium leading-7 text-slate-600 sm:block">
                 {copy.heroBody}
               </p>
             </div>
@@ -1727,6 +1833,15 @@ export function FanletterAgentRankLedgerPage({
             locale={locale}
           />
         ) : null}
+
+        <LedgerOperationStatusCard
+          auditReadyEvents={auditReadyEvents}
+          filters={filters}
+          locale={locale}
+          packetReadyEvents={packetReadyEvents}
+          reviewHref={reviewHref}
+          totalEvents={feed.summary.totalEvents}
+        />
 
         <InvestorDemoPanel
           apiHref={apiHref}
