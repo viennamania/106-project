@@ -249,7 +249,7 @@ function getDashboardCopy(locale: Locale) {
       cpRewardThisMonth: "이번 달 보상 포인트",
       directFounder: "직속 파운더",
       fanGrowth: "팬 증가",
-      founderClub: "파운더 클럽",
+      founderClub: "파운더 네트워크",
       graphLegend: {
         active: "활성",
         direct: "나의 직속",
@@ -280,7 +280,7 @@ function getDashboardCopy(locale: Locale) {
         "홈",
         "AI 스타 데뷔",
         "성장 센터",
-        "파운더 클럽",
+        "파운더 네트워크",
         "AI 스타관",
         "내 AI 스타",
         "AI 스타 마켓",
@@ -299,7 +299,7 @@ function getDashboardCopy(locale: Locale) {
     cpRewardThisMonth: "This Month Reward Points",
     directFounder: "Direct Founders",
     fanGrowth: "Fan Growth",
-    founderClub: "Founder Club",
+    founderClub: "Founder Network",
     graphLegend: {
       active: "Active",
       direct: "My Direct",
@@ -330,7 +330,7 @@ function getDashboardCopy(locale: Locale) {
       "Home",
       "AI Star Debut",
       "Growth Center",
-      "Founder Club",
+      "Founder Network",
       "AI Star Hall",
       "My AI Stars",
       "AI Star Market",
@@ -1351,28 +1351,28 @@ function FounderUniverseDashboardPanel({
             <Sparkles className="size-4" />
             FanLetter
           </p>
-          <h2 className="mt-7 max-w-[14rem] text-4xl font-semibold uppercase leading-none tracking-normal text-white sm:text-5xl">
+          <h2 className="mt-5 max-w-[13rem] text-3xl font-semibold uppercase leading-none tracking-normal text-white sm:mt-7 sm:max-w-[14rem] sm:text-5xl">
             Founder
             <span className="block bg-[linear-gradient(90deg,#ffffff,#a78bfa)] bg-clip-text text-transparent">
               Universe
             </span>
           </h2>
-          <p className="mt-4 max-w-sm text-sm font-medium leading-6 text-white/64">
+          <p className="mt-4 hidden max-w-sm text-sm font-medium leading-6 text-white/64 sm:block">
             {locale === "ko"
               ? `모든 파운더 네트워크는 ${starName} 중심으로 모이고, 새 AI 스타를 배출하며 AgentRank 평판 이벤트를 만듭니다.`
               : `Every founder network gathers around ${starName}, spawns new AI Stars, and creates AgentRank reputation events.`}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex h-10 items-center rounded-full border border-white/12 bg-white/[0.04] px-4 text-xs font-semibold uppercase tracking-[0.16em] text-white/78">
+          <span className="inline-flex h-9 items-center rounded-full border border-white/12 bg-white/[0.04] px-3 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white/78 sm:h-10 sm:px-4 sm:text-xs sm:tracking-[0.16em]">
             Onchain
-            <span className="mx-2 text-white/30">•</span>
+            <span className="mx-1.5 text-white/30 sm:mx-2">•</span>
             Open
-            <span className="mx-2 text-white/30">•</span>
+            <span className="mx-1.5 text-white/30 sm:mx-2">•</span>
             Fair
           </span>
           <button
-            className="inline-flex h-10 items-center rounded-full border border-white/12 bg-white/[0.06] px-4 text-sm font-semibold text-white transition hover:bg-white/10"
+            className="hidden h-10 items-center rounded-full border border-white/12 bg-white/[0.06] px-4 text-sm font-semibold text-white transition hover:bg-white/10 sm:inline-flex"
             onClick={() => onSelectDepth("all")}
             type="button"
           >
@@ -1446,7 +1446,7 @@ function FounderUniverseDashboardPanel({
         <div className="min-w-0">
           <div className="mb-3 text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-violet-200">
-              Founder Club
+              {dashboardCopy.founderClub}
             </p>
             <p className="mt-1 text-xs font-medium text-white/48">
               {locale === "ko"

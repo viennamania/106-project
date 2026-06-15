@@ -1201,9 +1201,25 @@ export function FanletterStarDetailPage({
     starName: star.name,
     viewerState,
   } satisfies FunnelEventMetadata;
-  const encodedStarId = encodeURIComponent(star.id);
   const starDetailGuidePrimaryHref =
     primaryAction.variant === "share" ? "#referral-builder" : "#star-next-action";
+  const starDetailGuidePrimaryLabel =
+    primaryAction.variant === "share"
+      ? isKorean
+        ? "추천 링크 영역 보기"
+        : "Open share link"
+      : isKorean
+        ? "참여 단계 보기"
+        : "View join step";
+  const starDetailGuideAgentRank = {
+    eventType: "content_engaged",
+    intent:
+      primaryAction.variant === "share"
+        ? "star_detail_action_guide_open_referral_builder"
+        : "star_detail_action_guide_open_join_step",
+    source: "fanletter_star_detail",
+    starId: star.id,
+  } satisfies AgentRankInteractionSignal;
   const starDetailGuideSteps =
     viewerState === "founder"
       ? [
@@ -1338,12 +1354,9 @@ export function FanletterStarDetailPage({
               },
             ]}
             primaryAction={{
-              agentRank: {
-                ...primaryActionAgentRank,
-                intent: `${primaryActionAgentRank.intent}_guide`,
-              },
+              agentRank: starDetailGuideAgentRank,
               href: starDetailGuidePrimaryHref,
-              label: primaryAction.label,
+              label: starDetailGuidePrimaryLabel,
               metadata: {
                 ...primaryActionTrackingMetadata,
                 placement: "fanletter_star_detail_action_guide_primary",
@@ -1359,25 +1372,7 @@ export function FanletterStarDetailPage({
                   ? "Founder 참여 이벤트"
                   : "Founder join event"
             }
-            secondaryActions={[
-              {
-                agentRank: {
-                  eventType: "universe_growth",
-                  intent: "star_detail_open_founder_network",
-                  source: "fanletter_star_detail",
-                  starId: star.id,
-                },
-                href: `/${locale}/fanletter/${encodedStarId}/universe`,
-                label: isKorean
-                  ? "파운더 네트워크 보기"
-                  : "View Founder Network",
-                metadata: {
-                  placement: "fanletter_star_detail_action_guide_universe",
-                  starName: star.name,
-                },
-                referralCode,
-              },
-            ]}
+            secondaryActions={[]}
             steps={starDetailGuideSteps}
             subtitle={primaryAction.helper}
             title={
@@ -1455,13 +1450,6 @@ export function FanletterStarDetailPage({
                   snapshot={agentRankSnapshot}
                   star={star}
                 />
-                <Link
-                  className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 shadow-[0_12px_26px_rgba(15,23,42,0.08)]"
-                  href={`/${locale}/fanletter/${encodeURIComponent(star.id)}/universe`}
-                >
-                  <GitBranch className="size-4" />
-                  {isKorean ? "파운더 네트워크 탐색" : "Explore Founder Network"}
-                </Link>
               </div>
 
               <FanletterFounderMockStatusBanner
@@ -1504,15 +1492,6 @@ export function FanletterStarDetailPage({
                   </span>
                   <ArrowRight className="size-4 shrink-0" />
                 </StarActionLink>
-                <Link
-                  className="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
-                  href={`/${locale}/fanletter/${encodeURIComponent(star.id)}/universe`}
-                >
-                  <GitBranch className="size-4 shrink-0" />
-                  <span className="min-w-0 whitespace-normal [word-break:keep-all]">
-                    {isKorean ? "파운더 네트워크 탐색" : "Explore Founder Network"}
-                  </span>
-                </Link>
               </div>
             </div>
 

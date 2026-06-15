@@ -80,9 +80,9 @@ function getLaunchPageCopy(locale: Locale) {
       contributionAudit: "감사 준비",
       contributionQuality: "품질",
       heroBody:
-        "크리에이터 권한 활성화 이후 여러 AI 스타를 만들 수 있는 흐름을 실제 결제 없이 먼저 검증합니다.",
+        "조건, 출처 스타 유니버스, mock 생성 준비 상태만 확인합니다. 실제 결제는 아직 실행하지 않습니다.",
       heroEyebrow: "크리에이터 권한 활성화",
-      heroTitle: "Founder가 성장하면 새 AI 스타를 출시합니다",
+      heroTitle: "크리에이터 권한 상태",
       loginCta: "계정 연결하고 내 데이터 보기",
       loginNoticeBody:
         "지금 화면은 샘플 데이터입니다. 이메일 계정을 연결하면 내 Founder 역할, CP, 초대 성과, 생성 가능한 AI 스타가 실제 데이터로 바뀝니다.",
@@ -117,12 +117,6 @@ function getLaunchPageCopy(locale: Locale) {
       sourceSelectTitle: "창업 출처 스타 유니버스 선택",
       sourcePool: "CP Pool 분배 기준",
       source: "출처 스타 유니버스",
-      steps: [
-        "크리에이터 조건 충족",
-        "출처 스타 유니버스 선택",
-        "10 USDT 조건 미리보기",
-        "내가 만든 AI 스타에 반영",
-      ],
       submit: "Mock 생성 준비 완료",
       subtitle: "실제 결제 전",
     };
@@ -181,12 +175,6 @@ function getLaunchPageCopy(locale: Locale) {
       sourceSelectTitle: "Select launch source Star Universe",
       sourcePool: "CP Pool basis",
       source: "Source Star Universe",
-      steps: [
-        "Meet Creator conditions",
-        "Select source Star Universe",
-        "Preview 10 USDT condition",
-        "Reflect in owned AI Stars",
-      ],
       submit: "Mock launch ready",
       subtitle: "Before real payment",
     };
@@ -207,9 +195,9 @@ function getLaunchPageCopy(locale: Locale) {
     contributionAudit: "Audit",
     contributionQuality: "Quality",
     heroBody:
-      "After Creator Unlock, the member can validate a multi-AI-Star launch flow before real checkout.",
+      "Check conditions, launch source, and mock launch readiness. Real payment is not active yet.",
     heroEyebrow: "Creator Unlock",
-    heroTitle: "Founders grow into Creators who launch new AI Stars",
+    heroTitle: "Creator unlock status",
     loginCta: "Connect account to view my data",
     loginNoticeBody:
       "This screen is sample data. Connect your email account to switch to your Founder roles, CP, invites, and launchable AI Stars.",
@@ -218,16 +206,16 @@ function getLaunchPageCopy(locale: Locale) {
     mockNotice:
       "No real payment or permanent write runs here. This preview checks the launch structure and portfolio reflection.",
     name: "AI Star name",
-  launchedBody:
-    "Mock AI Star drafts saved in this browser are reflected in the portfolio.",
-  launchedTitle: "Mock AI Star draft created",
-  nextPortfolio: "Portfolio reflection",
-  noSourceBody:
-    "A new AI Star needs an existing Star Universe as its launch source. Join an AI Star as a Founder or create your own Star Universe first, then return here.",
-  noSourcePrimary: "Discover AI Stars",
-  noSourceSecondary: "View Founder Club",
-  noSourceSubmit: "Source Star Universe required",
-  noSourceTitle: "No launch source Star Universe yet",
+    launchedBody:
+      "Mock AI Star drafts saved in this browser are reflected in the portfolio.",
+    launchedTitle: "Mock AI Star draft created",
+    nextPortfolio: "Portfolio reflection",
+    noSourceBody:
+      "A new AI Star needs an existing Star Universe as its launch source. Join an AI Star as a Founder or create your own Star Universe first, then return here.",
+    noSourcePrimary: "Discover AI Stars",
+    noSourceSecondary: "View Founder Club",
+    noSourceSubmit: "Source Star Universe required",
+    noSourceTitle: "No launch source Star Universe yet",
     owner: "Owner member",
     preview: "AI Star card preview",
     roleInUniverse: "My role",
@@ -237,19 +225,13 @@ function getLaunchPageCopy(locale: Locale) {
     rewardCreator: "Creator Progress",
     rewardInfluence: "Influence",
     rewardTitle: "Founder join rewards applied",
-  rewardBody:
-    "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
-  sourceSelectBody:
-    "The AI Star is the launch source Star Universe, and My role is your position inside its Founder Network. The CP Pool is distributed to the selected Star Universe upline.",
-  sourceSelectTitle: "Select launch source Star Universe",
-  sourcePool: "CP Pool basis",
-  source: "Source Star Universe",
-  steps: [
-    "Meet Creator conditions",
-    "Select source Star Universe",
-    "Preview 10 USDT condition",
-    "Reflect in owned AI Stars",
-  ],
+    rewardBody:
+      "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
+    sourceSelectBody:
+      "The AI Star is the launch source Star Universe, and My role is your position inside its Founder Network. The CP Pool is distributed to the selected Star Universe upline.",
+    sourceSelectTitle: "Select launch source Star Universe",
+    sourcePool: "CP Pool basis",
+    source: "Source Star Universe",
     submit: "Mock launch ready",
     subtitle: "Before real payment",
   };
@@ -1556,25 +1538,7 @@ export function FanletterCreatorUnlockPage({
       reputationEventLabel={
         locale === "ko" ? "출처 선택 이벤트" : "Source selection event"
       }
-      secondaryActions={[
-        ...(isPreviewMode
-          ? [
-              {
-                agentRank: {
-                  eventType: "creator_unlock_evaluated" as const,
-                  intent: "creator_unlock_action_guide_connect",
-                  source: "fanletter_creator_unlock" as const,
-                  starId: trackingSourceStarId,
-                },
-                href: connectHref,
-                label: copy.loginCta,
-                metadata: {
-                  placement: "creator_unlock_action_guide_connect",
-                },
-              },
-            ]
-          : []),
-      ]}
+      secondaryActions={[]}
       steps={[
         {
           label: locale === "ko" ? "조건 확인" : "Check conditions",
@@ -1749,21 +1713,21 @@ export function FanletterCreatorUnlockPage({
 
         {creatorUnlockActionGuide}
 
-        <section className="mt-6 grid w-full min-w-0 gap-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
+        <section className="mt-6 grid w-full min-w-0 gap-4 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-sm font-semibold text-zinc-900">
               <Crown className="size-4" />
               {copy.heroEyebrow}
             </div>
-            <h1 className="mt-5 max-w-4xl text-[2.55rem] font-semibold leading-[1.02] tracking-normal text-[#12041f] [word-break:keep-all] sm:text-[4.4rem]">
+            <h1 className="mt-4 max-w-4xl text-[2.35rem] font-semibold leading-[1.02] tracking-normal text-[#12041f] [word-break:keep-all] sm:text-[4rem]">
               {copy.heroTitle}
             </h1>
-            <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-black/62 sm:text-lg">
+            <p className="mt-4 hidden max-w-2xl text-base font-medium leading-7 text-black/62 sm:block sm:text-lg">
               {copy.heroBody}
             </p>
           </div>
 
-          <div className="w-full min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
+          <div className="w-full min-w-0 rounded-[1.1rem] border border-zinc-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.055)] sm:p-5">
             <div className="flex items-center gap-3">
               <HumanMemberAvatar
                 member={{ initials: memberInitials, name: portfolio.memberName }}
@@ -1785,17 +1749,34 @@ export function FanletterCreatorUnlockPage({
                 </div>
               </div>
             </div>
-            <div className="mt-5 grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4">
-              {copy.steps.map((step, index) => (
+            <div className="mt-5 grid min-w-0 grid-cols-3 gap-2">
+              {[
+                {
+                  label: locale === "ko" ? "조건" : "Conditions",
+                  value: `${completedConditionCount}/${unlock.conditions.length}`,
+                },
+                {
+                  label: copy.source,
+                  value: requiresSourceUniverse
+                    ? locale === "ko"
+                      ? "필요"
+                      : "Required"
+                    : displaySourceUniverseName,
+                },
+                {
+                  label: copy.cost,
+                  value: `${unlock.createCostUsdt} USDT`,
+                },
+              ].map((item) => (
                 <div
-                  className="rounded-lg border border-zinc-200 bg-zinc-50 p-2"
-                  key={step}
+                  className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3"
+                  key={item.label}
                 >
-                  <p className="text-xs font-semibold text-zinc-700">
-                    {String(index + 1).padStart(2, "0")}
+                  <p className="break-words text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-zinc-500 [word-break:keep-all]">
+                    {item.label}
                   </p>
-                  <p className="mt-2 text-xs font-semibold leading-4 text-[#26113d]">
-                    {step}
+                  <p className="mt-1 break-words text-sm font-semibold leading-tight text-[#12041f] [word-break:keep-all]">
+                    {item.value}
                   </p>
                 </div>
               ))}

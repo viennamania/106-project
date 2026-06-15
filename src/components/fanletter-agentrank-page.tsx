@@ -1009,7 +1009,7 @@ function AgentRankScoreAggregatorPanel({
                 source: "fanletter_agentrank",
                 starId: starId ?? null,
               }}
-              className="inline-flex h-9 items-center gap-2 rounded-full bg-white px-3 text-xs font-semibold text-zinc-900"
+              className="hidden h-9 items-center gap-2 rounded-full bg-white px-3 text-xs font-semibold text-zinc-900 sm:inline-flex"
               eventName="content_open"
               href={`/api/fanletter/agentrank/score?${scoreCsvParams.toString()}`}
               metadata={{ agentRankExport: "score_csv" }}
@@ -1024,7 +1024,7 @@ function AgentRankScoreAggregatorPanel({
                 source: "fanletter_agentrank",
                 starId: starId ?? null,
               }}
-              className="inline-flex h-9 items-center gap-2 rounded-full bg-white/12 px-3 text-xs font-semibold text-white ring-1 ring-white/15"
+              className="hidden h-9 items-center gap-2 rounded-full bg-white/12 px-3 text-xs font-semibold text-white ring-1 ring-white/15 sm:inline-flex"
               eventName="content_open"
               href={`/api/fanletter/agentrank/score?${coverageScoreParams.toString()}`}
               metadata={{ agentRankExport: "coverage_score_json" }}
@@ -1039,7 +1039,7 @@ function AgentRankScoreAggregatorPanel({
                 source: "fanletter_agentrank",
                 starId: starId ?? null,
               }}
-              className="inline-flex h-9 items-center gap-2 rounded-full bg-white/12 px-3 text-xs font-semibold text-white ring-1 ring-white/15"
+              className="hidden h-9 items-center gap-2 rounded-full bg-white/12 px-3 text-xs font-semibold text-white ring-1 ring-white/15 sm:inline-flex"
               eventName="content_open"
               href={`/api/fanletter/agentrank/score?${oraclePacketParams.toString()}`}
               metadata={{ agentRankExport: "oracle_packet" }}
@@ -1076,7 +1076,7 @@ function AgentRankScoreAggregatorPanel({
               </span>
             ))}
           </div>
-          <div className="mt-5 rounded-lg bg-white/10 p-3 ring-1 ring-white/10">
+          <div className="mt-5 hidden rounded-lg bg-white/10 p-3 ring-1 ring-white/10 sm:block">
             <p className="text-xs font-semibold uppercase text-white/58">
               {copy.quickLedger}
             </p>
@@ -2082,21 +2082,40 @@ function ReadinessPill({
 
 function AgentRankMobileStatusCard({
   copy,
-  ledgerHref,
   locale,
   scoreAggregate,
-  starId,
 }: {
   copy: AgentRankCopy;
-  ledgerHref: string;
   locale: Locale;
   scoreAggregate: AgentRankScoreAggregate;
-  starId?: string | null;
 }) {
   const isKo = locale === "ko";
   const scorePercent = Math.round(
     (scoreAggregate.score / Math.max(1, scoreAggregate.maxScore)) * 100,
   );
+  const nextSignal = !scoreAggregate.readiness.oracleReady
+    ? isKo
+      ? "오라클 증거 보강"
+      : "Strengthen oracle evidence"
+    : !scoreAggregate.readiness.auditReady
+      ? isKo
+        ? "감사 준비도 보강"
+        : "Improve audit readiness"
+      : scoreAggregate.readiness.eventQualityPercent < 80
+        ? isKo
+          ? "이벤트 품질 보강"
+          : "Improve event quality"
+        : !scoreAggregate.readiness.x402Ready
+          ? isKo
+            ? "x402 mock 이벤트 연결"
+            : "Connect x402 mock events"
+          : !scoreAggregate.readiness.a2aReady
+            ? isKo
+              ? "A2A 사용 이벤트 연결"
+              : "Connect A2A usage events"
+            : isKo
+              ? "AgentRank 패킷 준비됨"
+              : "AgentRank packet ready";
 
   return (
     <section className="mt-5 rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_16px_36px_rgba(15,23,42,0.08)] sm:hidden">
@@ -2122,6 +2141,14 @@ function AgentRankMobileStatusCard({
           className="h-2 rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
           style={{ width: `${Math.min(100, Math.max(0, scorePercent))}%` }}
         />
+      </div>
+      <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+          {isKo ? "다음 보강 신호" : "Next signal"}
+        </p>
+        <p className="mt-1 text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+          {nextSignal}
+        </p>
       </div>
       <div className="mt-4 grid grid-cols-3 gap-2">
         <div className="rounded-lg bg-zinc-50 px-3 py-2">
@@ -2149,23 +2176,6 @@ function AgentRankMobileStatusCard({
           </p>
         </div>
       </div>
-      <FanletterTrackedLink
-        agentRank={{
-          eventType: "universe_growth",
-          intent: "agentrank_mobile_status_open_ledger",
-          source: "fanletter_agentrank",
-          starId: starId ?? null,
-        }}
-        className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(15,23,42,0.18)]"
-        eventName="signup_cta_click"
-        href={ledgerHref}
-        metadata={{
-          placement: "agentrank_mobile_status_primary",
-        }}
-      >
-        {isKo ? "평판 이벤트 장부 보기" : "Open reputation ledger"}
-        <ArrowRight className="size-4 shrink-0" />
-      </FanletterTrackedLink>
     </section>
   );
 }
@@ -2204,7 +2214,7 @@ function AgentRankAudienceSplit({
   ];
 
   return (
-    <section className="mt-4 grid gap-3 sm:grid-cols-2">
+    <section className="mt-4 hidden gap-3 sm:grid sm:grid-cols-2">
       {cards.map(({ Icon, badge, body, metric, metricLabel, title }) => (
         <div
           className="min-w-0 rounded-[1.15rem] border border-zinc-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.05)]"
@@ -2393,17 +2403,15 @@ export function FanletterAgentRankPage({
               : "Next action: verify the event ledger"
           }
         />
+        <AgentRankMobileStatusCard
+          copy={copy}
+          locale={locale}
+          scoreAggregate={scoreAggregate}
+        />
         <AgentRankAudienceSplit
           auditReadyCount={scoreAggregate.summary.auditReadyEvents}
           eventCount={ers.summary.eventCount}
           locale={locale}
-        />
-        <AgentRankMobileStatusCard
-          copy={copy}
-          ledgerHref={ledgerHref}
-          locale={locale}
-          scoreAggregate={scoreAggregate}
-          starId={starId}
         />
         <header className="agentrank-flow-card mt-5 hidden gap-5 rounded-[1.5rem] border border-zinc-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:grid lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>

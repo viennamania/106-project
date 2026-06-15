@@ -138,6 +138,8 @@ function getLedgerCopy(locale: Locale) {
       actionReady: "수집됨",
       clearFilters: "필터 초기화",
       filterByType: "이벤트 타입 필터",
+      currentFilter: "현재 필터",
+      filterDrawer: "필터 조정",
       filters: "Ledger 필터",
       generated: "생성 시각",
       graphScope: "그래프 범위",
@@ -221,14 +223,16 @@ function getLedgerCopy(locale: Locale) {
     eventId: "Event ID",
     eventScope: "Event scope",
     evidenceHash: "Evidence Hash",
-      applyFilters: "Apply filters",
-      actionCoverage: "Product Action Coverage",
-      actionCoverageBody:
-        "Checks whether core FanLetter actions are entering AgentRank as Reputation Events.",
-      actionMissing: "Pending",
-      actionReady: "Covered",
-      clearFilters: "Reset filters",
-      filterByType: "Filter by event type",
+    applyFilters: "Apply filters",
+    actionCoverage: "Product Action Coverage",
+    actionCoverageBody:
+      "Checks whether core FanLetter actions are entering AgentRank as Reputation Events.",
+    actionMissing: "Pending",
+    actionReady: "Covered",
+    clearFilters: "Reset filters",
+    filterByType: "Filter by event type",
+    currentFilter: "Current filter",
+    filterDrawer: "Adjust filters",
     filters: "Ledger filters",
     generated: "Generated",
     graphScope: "Graph Scope",
@@ -238,31 +242,31 @@ function getLedgerCopy(locale: Locale) {
     heroEyebrow: "AgentRank Ledger",
     heroTitle: "Reputation Event Ledger",
     impact: "Reputation Impact",
-      impactReady: "Impact-ready",
-      investorDemo: "Investor Demo Mode",
-      investorDemoBody:
-        "Packages the selected AI Star's events, rewards, and verification state into operator metrics for investor demos.",
-      ledgerReviewQueue: "Event Review Queue",
-      ledgerReviewQueueBody:
-        "Groups Oracle gaps, packet candidates, high-impact events, and low-quality events as an operational review queue.",
-      lowQualityEvents: "Quality Review",
-      member: "Member",
-      networkEdges: "Network Edges",
-      needs: "Needs data",
-      nextAction: "Next action",
-      ndjson: "NDJSON Stream",
+    impactReady: "Impact-ready",
+    investorDemo: "Investor Demo Mode",
+    investorDemoBody:
+      "Packages the selected AI Star's events, rewards, and verification state into operator metrics for investor demos.",
+    ledgerReviewQueue: "Event Review Queue",
+    ledgerReviewQueueBody:
+      "Groups Oracle gaps, packet candidates, high-impact events, and low-quality events as an operational review queue.",
+    lowQualityEvents: "Quality Review",
+    member: "Member",
+    networkEdges: "Network Edges",
+    needs: "Needs data",
+    nextAction: "Next action",
+    ndjson: "NDJSON Stream",
     oracleNeeds: "Oracle gaps",
     oracleReady: "Oracle-ready",
     openEvent: "Trace Event",
     packetPartial: "Packet partial",
     packetReady: "Packet ready",
     quality: "Quality Score",
-      rankContribution: "AgentRank Contribution",
-      ready: "Ready",
-      reviewHighImpact: "High-impact Review",
-      reviewNeedsOracle: "Oracle Gaps",
-      reviewPacketReady: "Packet Candidates",
-      readinessAll: "All readiness",
+    rankContribution: "AgentRank Contribution",
+    ready: "Ready",
+    reviewHighImpact: "High-impact Review",
+    reviewNeedsOracle: "Oracle Gaps",
+    reviewPacketReady: "Packet Candidates",
+    readinessAll: "All readiness",
     readinessFilter: "Readiness filter",
     readinessNeedsOracle: "Needs Oracle",
     readinessOracleReady: "Oracle-ready",
@@ -826,6 +830,27 @@ function LedgerOperationStatusCard({
   const packetPercent =
     totalEvents > 0 ? Math.round((packetReadyEvents / totalEvents) * 100) : 0;
   const progressWidth = `${Math.min(100, Math.max(0, packetPercent))}%`;
+  const scopeLabel =
+    filters.scope === "product"
+      ? copy.scopeProduct
+      : filters.scope === "mock"
+        ? copy.scopeMock
+        : copy.scopeAll;
+  const readinessLabel =
+    filters.readiness === "needs_oracle"
+      ? copy.readinessNeedsOracle
+      : filters.readiness === "oracle_ready"
+        ? copy.readinessOracleReady
+        : filters.readiness === "packet_partial"
+          ? copy.readinessPacketPartial
+          : filters.readiness === "packet_ready"
+            ? copy.readinessPacketReady
+            : copy.readinessAll;
+  const filterSummary = [
+    filters.starId ?? (isKo ? "전체 AI 스타" : "All AI Stars"),
+    scopeLabel,
+    readinessLabel,
+  ].join(" · ");
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.06)]">
@@ -856,6 +881,15 @@ function LedgerOperationStatusCard({
           className="h-2 rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
           style={{ width: progressWidth }}
         />
+      </div>
+
+      <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+          {copy.currentFilter}
+        </p>
+        <p className="mt-1 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+          {filterSummary}
+        </p>
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2">
@@ -1130,7 +1164,7 @@ function InvestorDemoPanel({
           <h2 className="mt-2 break-words text-3xl font-semibold text-[#11132d]">
             {starLabel}
           </h2>
-          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+          <p className="mt-2 hidden max-w-3xl text-sm font-medium leading-6 text-slate-500 sm:block">
             {copy.investorDemoBody}
           </p>
           <div className="mt-5 grid gap-3 md:grid-cols-[1fr_2rem_1fr_2rem_1fr_2rem_1fr] md:items-center">
@@ -1161,7 +1195,7 @@ function InvestorDemoPanel({
             label={copy.oracleReady}
             value={readyPercent}
           />
-          <div className="grid gap-2">
+          <div className="hidden gap-2 sm:grid">
             <Link
               className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-white px-3 text-sm font-semibold text-zinc-900"
               href={apiHref}
@@ -1708,21 +1742,7 @@ export function FanletterAgentRankLedgerPage({
           reputationEventLabel={
             locale === "ko" ? "검증 가능 이벤트" : "Verifiable events"
           }
-          secondaryActions={[
-            {
-              agentRank: {
-                eventType: "universe_growth",
-                intent: "agentrank_ledger_action_guide_export",
-                source: "fanletter_agentrank",
-                starId: filters.starId,
-              },
-              href: csvHref,
-              label: locale === "ko" ? "CSV 내보내기" : "Export CSV",
-              metadata: {
-                placement: "agentrank_ledger_action_guide_csv",
-              },
-            },
-          ]}
+          secondaryActions={[]}
           steps={[
             {
               label: locale === "ko" ? "수집" : "Collect",
@@ -1765,36 +1785,6 @@ export function FanletterAgentRankLedgerPage({
               <ArrowLeft className="size-4" />
               {copy.back}
             </Link>
-            <div className="hidden flex-wrap gap-2 sm:flex">
-              <Link
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-4 text-sm font-semibold text-zinc-900"
-                href={reviewHref}
-              >
-                <AlertTriangle className="size-4" />
-                {copy.ledgerReviewQueue}
-              </Link>
-              <Link
-                className="inline-flex h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold text-white"
-                href={apiHref}
-              >
-                <Database className="size-4" />
-                {copy.api}
-              </Link>
-              <Link
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800"
-                href={csvHref}
-              >
-                <Download className="size-4" />
-                {copy.csv}
-              </Link>
-              <Link
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-cyan-100 bg-cyan-50 px-4 text-sm font-semibold text-cyan-800"
-                href={ndjsonHref}
-              >
-                <Database className="size-4" />
-                {copy.ndjson}
-              </Link>
-            </div>
           </div>
 
           <div className="mt-7 grid gap-5 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
@@ -1876,9 +1866,110 @@ export function FanletterAgentRankLedgerPage({
             <SlidersHorizontal className="size-4" />
             {copy.filters}
           </div>
+          <details className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-3 sm:hidden">
+            <summary className="cursor-pointer text-sm font-semibold text-zinc-950">
+              {copy.filterDrawer}
+            </summary>
+            <form
+              action={`/${locale}/fanletter/agentrank/events`}
+              className="mt-3 grid gap-3"
+            >
+              {coverageAction ? (
+                <input
+                  name="coverageAction"
+                  type="hidden"
+                  value={coverageAction.action}
+                />
+              ) : null}
+              {filters.type ? (
+                <input name="type" type="hidden" value={filters.type} />
+              ) : null}
+              {filters.memberEmail ? (
+                <input
+                  name="memberEmail"
+                  type="hidden"
+                  value={filters.memberEmail}
+                />
+              ) : null}
+              <input name="limit" type="hidden" value={filters.limit} />
+              <label className="min-w-0">
+                <span className="text-xs font-semibold uppercase text-slate-400">
+                  {copy.star}
+                </span>
+                <input
+                  className="mt-1 h-11 w-full min-w-0 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-[#11132d] outline-none transition focus:border-zinc-400"
+                  defaultValue={filters.starId ?? ""}
+                  name="starId"
+                  placeholder="legacy-star-t7v7bayl"
+                />
+              </label>
+              <label className="min-w-0">
+                <span className="text-xs font-semibold uppercase text-slate-400">
+                  {copy.eventScope}
+                </span>
+                <select
+                  className="mt-1 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-[#11132d] outline-none transition focus:border-zinc-400"
+                  defaultValue={filters.scope}
+                  name="scope"
+                >
+                  <option value="all">{copy.scopeAll}</option>
+                  <option value="product">{copy.scopeProduct}</option>
+                  <option value="mock">{copy.scopeMock}</option>
+                </select>
+              </label>
+              <label className="min-w-0">
+                <span className="text-xs font-semibold uppercase text-slate-400">
+                  {copy.readinessFilter}
+                </span>
+                <select
+                  className="mt-1 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-[#11132d] outline-none transition focus:border-zinc-400"
+                  defaultValue={filters.readiness}
+                  name="readiness"
+                >
+                  <option value="all">{copy.readinessAll}</option>
+                  <option value="oracle_ready">{copy.readinessOracleReady}</option>
+                  <option value="needs_oracle">
+                    {copy.readinessNeedsOracle}
+                  </option>
+                  <option value="packet_ready">{copy.readinessPacketReady}</option>
+                  <option value="packet_partial">
+                    {copy.readinessPacketPartial}
+                  </option>
+                </select>
+              </label>
+              <label className="min-w-0">
+                <span className="text-xs font-semibold uppercase text-slate-400">
+                  {copy.sort}
+                </span>
+                <select
+                  className="mt-1 h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-[#11132d] outline-none transition focus:border-zinc-400"
+                  defaultValue={filters.sort}
+                  name="sort"
+                >
+                  <option value="latest">{copy.sortLatest}</option>
+                  <option value="impact_desc">{copy.sortImpactDesc}</option>
+                  <option value="quality_asc">{copy.sortQualityAsc}</option>
+                  <option value="quality_desc">{copy.sortQualityDesc}</option>
+                </select>
+              </label>
+              <button
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-black px-4 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(15,23,42,0.18)]"
+                type="submit"
+              >
+                <Search className="size-4" />
+                {copy.applyFilters}
+              </button>
+              <Link
+                className="inline-flex h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600"
+                href={`/${locale}/fanletter/agentrank/events`}
+              >
+                {copy.clearFilters}
+              </Link>
+            </form>
+          </details>
           <form
             action={`/${locale}/fanletter/agentrank/events`}
-            className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_9rem_11rem_12rem_12rem_auto_auto]"
+            className="mt-4 hidden gap-3 sm:grid lg:grid-cols-[1fr_1fr_9rem_11rem_12rem_12rem_auto_auto]"
           >
             {coverageAction ? (
               <input

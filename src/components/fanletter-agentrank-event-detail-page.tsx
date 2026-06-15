@@ -723,7 +723,7 @@ function VerificationRailPanel({
           <FileCheck2 className="size-4" />
           {copy.verificationRail}
         </p>
-        <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+        <p className="mt-2 hidden max-w-3xl text-sm font-medium leading-6 text-slate-500 sm:block">
           {copy.verificationRailBody}
         </p>
       </div>
@@ -1590,6 +1590,80 @@ function AgentTransactionGraph({
   );
 }
 
+function EventDetailMobileStatusCard({
+  audit,
+  copy,
+  event,
+  eventClassificationLabel,
+  impactTotal,
+  locale,
+}: {
+  audit: ReturnType<typeof getEventAudit>;
+  copy: ReturnType<typeof getCopy>;
+  event: AgentRankReputationEvent;
+  eventClassificationLabel: string;
+  impactTotal: number;
+  locale: Locale;
+}) {
+  const oracleReady = event.reputationSignals.oracleReady;
+
+  return (
+    <section className="rounded-[1.15rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_14px_40px_rgba(15,23,42,0.055)] sm:hidden">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            {copy.currentEvent}
+          </p>
+          <h2 className="mt-1 truncate text-xl font-semibold">
+            {getEventTypeLabel(event.type, locale)}
+          </h2>
+        </div>
+        <span className="shrink-0 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.68rem] font-semibold text-zinc-700">
+          {eventClassificationLabel}
+        </span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="rounded-lg bg-zinc-50 px-3 py-2">
+          <p className="text-[0.62rem] font-semibold text-zinc-500">
+            {copy.quality}
+          </p>
+          <p className="mt-1 text-lg font-semibold">{audit.qualityScore}</p>
+        </div>
+        <div className="rounded-lg bg-zinc-50 px-3 py-2">
+          <p className="text-[0.62rem] font-semibold text-zinc-500">
+            {copy.eventWeight}
+          </p>
+          <p className="mt-1 text-lg font-semibold">
+            {formatNumber(impactTotal, locale)}
+          </p>
+        </div>
+        <div className="rounded-lg bg-zinc-50 px-3 py-2">
+          <p className="text-[0.62rem] font-semibold text-zinc-500">
+            {copy.oracle}
+          </p>
+          <p
+            className={`mt-1 text-sm font-semibold ${
+              oracleReady ? "text-emerald-700" : "text-amber-700"
+            }`}
+          >
+            {oracleReady ? copy.ready : copy.pending}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">
+        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+          {copy.evidenceHash}
+        </p>
+        <p className="mt-1 break-all font-mono text-[0.68rem] font-semibold text-zinc-700">
+          {truncateEvidenceHash(audit.evidenceHash, 14, 8)}
+        </p>
+      </div>
+    </section>
+  );
+}
+
 export function FanletterAgentRankEventDetailPage({
   coverageAction = null,
   event,
@@ -1710,23 +1784,7 @@ export function FanletterAgentRankEventDetailPage({
           reputationEventLabel={
             locale === "ko" ? "Evidence Packet 후보" : "Evidence Packet candidate"
           }
-          secondaryActions={[
-            {
-              agentRank: {
-                eventType: "universe_growth",
-                intent: "agentrank_event_detail_action_guide_ledger",
-                source: "fanletter_agentrank",
-                starId,
-              },
-              eventName: "content_open",
-              href: ledgerHref,
-              label: copy.back,
-              metadata: {
-                eventId: event.eventId,
-                placement: "agentrank_event_detail_action_guide_ledger",
-              },
-            },
-          ]}
+          secondaryActions={[]}
           steps={[
             {
               label: locale === "ko" ? "이벤트 선택" : "Select event",
@@ -1756,7 +1814,15 @@ export function FanletterAgentRankEventDetailPage({
               : "Next action: inspect the evidence packet"
           }
         />
-        <header className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
+        <EventDetailMobileStatusCard
+          audit={audit}
+          copy={copy}
+          event={event}
+          eventClassificationLabel={eventClassification.label}
+          impactTotal={impactTotal}
+          locale={locale}
+        />
+        <header className="hidden rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] sm:block">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
               className="inline-flex h-10 items-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-4 text-sm font-semibold text-[#6d28d9]"
@@ -1793,7 +1859,7 @@ export function FanletterAgentRankEventDetailPage({
               <h1 className="mt-2 text-4xl font-semibold leading-tight text-[#11132d] sm:text-5xl">
                 {copy.title}
               </h1>
-              <p className="mt-4 max-w-3xl text-base font-medium leading-7 text-slate-600">
+              <p className="mt-4 hidden max-w-3xl text-base font-medium leading-7 text-slate-600 sm:block">
                 {copy.heroBody}
               </p>
             </div>
@@ -1830,7 +1896,7 @@ export function FanletterAgentRankEventDetailPage({
                 <p className="text-sm font-semibold uppercase">
                   {eventClassification.label}
                 </p>
-                <p className="mt-1 max-w-4xl text-sm font-medium leading-6 text-slate-600">
+                <p className="mt-1 hidden max-w-4xl text-sm font-medium leading-6 text-slate-600 sm:block">
                   {eventClassification.body}
                 </p>
               </div>
@@ -1878,7 +1944,7 @@ export function FanletterAgentRankEventDetailPage({
                 <GitBranch className="size-4" />
                 {copy.eventLineage}
               </p>
-              <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+              <p className="mt-2 hidden max-w-3xl text-sm font-medium leading-6 text-slate-500 sm:block">
                 {copy.eventLineageBody}
               </p>
             </div>
@@ -1926,7 +1992,7 @@ export function FanletterAgentRankEventDetailPage({
                 <Network className="size-4" />
                 {copy.agentGraph}
               </p>
-              <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+              <p className="mt-2 hidden max-w-3xl text-sm font-medium leading-6 text-slate-500 sm:block">
                 {copy.graphBody}
               </p>
             </div>
@@ -1955,7 +2021,7 @@ export function FanletterAgentRankEventDetailPage({
         />
 
         <section className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
-          <article className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+          <article className="hidden rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)] sm:block">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <p className="inline-flex items-center gap-2 text-sm font-semibold text-[#6d28d9]">

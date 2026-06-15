@@ -4,7 +4,6 @@ import {
   ArrowRight,
   BadgeCheck,
   Database,
-  Download,
   FileCheck2,
   Fingerprint,
   Gauge,
@@ -407,6 +406,80 @@ function ScoreImpactManifestCard({
   );
 }
 
+function EvidencePacketMobileStatusCard({
+  copy,
+  event,
+  linkedEventCount,
+  locale,
+  packet,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  event: AgentRankReputationEvent;
+  linkedEventCount: number;
+  locale: Locale;
+  packet: AgentRankEventEvidencePacket;
+}) {
+  const readiness = packet.oracleManifest.readiness;
+
+  return (
+    <section className="rounded-[1.15rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_14px_40px_rgba(15,23,42,0.055)] sm:hidden">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            {copy.oracleManifest}
+          </p>
+          <h2 className="mt-1 truncate text-xl font-semibold">
+            {getEventTypeLabel(event.type, locale)}
+          </h2>
+        </div>
+        <span
+          className={`shrink-0 rounded-full px-2.5 py-1 text-[0.68rem] font-semibold ${
+            readiness.oracleReady
+              ? "bg-emerald-50 text-emerald-700"
+              : "bg-amber-50 text-amber-700"
+          }`}
+        >
+          {readiness.oracleReady ? copy.ready : copy.notReady}
+        </span>
+      </div>
+
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="rounded-lg bg-zinc-50 px-3 py-2">
+          <p className="text-[0.62rem] font-semibold text-zinc-500">
+            {copy.quality}
+          </p>
+          <p className="mt-1 text-lg font-semibold">
+            {formatNumber(readiness.qualityScore, locale)}
+          </p>
+        </div>
+        <div className="rounded-lg bg-zinc-50 px-3 py-2">
+          <p className="text-[0.62rem] font-semibold text-zinc-500">
+            {copy.eventContribution}
+          </p>
+          <p className="mt-1 text-lg font-semibold">
+            {formatNumber(packet.oracleManifest.scoreImpact.total, locale)}
+          </p>
+        </div>
+        <div className="rounded-lg bg-zinc-50 px-3 py-2">
+          <p className="text-[0.62rem] font-semibold text-zinc-500">
+            {copy.linkedEvidence}
+          </p>
+          <p className="mt-1 text-lg font-semibold">{linkedEventCount}</p>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">
+        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+          {copy.packetHash}
+        </p>
+        <p className="mt-1 break-all font-mono text-[0.68rem] font-semibold text-zinc-700">
+          {truncateHash(packet.integrity.packetHash, 14, 8)}
+        </p>
+      </div>
+    </section>
+  );
+}
+
 export function FanletterAgentRankEvidencePacketPage({
   coverageAction = null,
   event,
@@ -469,7 +542,76 @@ export function FanletterAgentRankEvidencePacketPage({
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full min-w-0 max-w-[86rem] flex-col gap-5">
-        <header className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
+        <FanletterActionGuide
+          currentLabel={
+            locale === "ko"
+              ? `Evidence Packet · ${scopeLabel}`
+              : `Evidence Packet · ${scopeLabel}`
+          }
+          metrics={[
+            {
+              label: copy.eventContribution,
+              value: formatNumber(
+                packet.oracleManifest.scoreImpact.total,
+                locale,
+              ),
+            },
+            {
+              label: copy.linkedEvidence,
+              value: `${linkedEvents.length}/${packet.evidence.linkedEventCount}`,
+            },
+          ]}
+          primaryAction={{
+            agentRank: {
+              eventType: "universe_growth",
+              intent: "agentrank_evidence_packet_download",
+              source: "fanletter_agentrank",
+              starId,
+            },
+            href: evidenceDownloadHref,
+            label: copy.downloadJson,
+            metadata: {
+              eventId: event.eventId,
+              placement: "agentrank_evidence_packet_action_guide_primary",
+            },
+          }}
+          reputationEventLabel={
+            locale === "ko" ? "Oracle 증거 패킷" : "Oracle evidence packet"
+          }
+          secondaryActions={[]}
+          steps={[
+            {
+              label: locale === "ko" ? "이벤트 선택" : "Event selected",
+              status: "done",
+            },
+            {
+              label: locale === "ko" ? "증거 해시" : "Evidence hash",
+              status: "active",
+            },
+            {
+              label: locale === "ko" ? "연결 증거" : "Linked evidence",
+              status: linkedEvents.length > 0 ? "done" : "next",
+            },
+            {
+              label: locale === "ko" ? "Oracle 전달" : "Oracle handoff",
+              status: "next",
+            },
+          ]}
+          subtitle={copy.verifierNote}
+          title={
+            locale === "ko"
+              ? "다음 행동: Evidence Root 검증"
+              : "Next action: verify Evidence Root"
+          }
+        />
+        <EvidencePacketMobileStatusCard
+          copy={copy}
+          event={event}
+          linkedEventCount={linkedEvents.length}
+          locale={locale}
+          packet={packet}
+        />
+        <header className="hidden rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] sm:block">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap gap-2">
               <Link
@@ -487,13 +629,6 @@ export function FanletterAgentRankEvidencePacketPage({
                 {copy.backToEvent}
               </Link>
             </div>
-            <a
-              className="hidden h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold text-white sm:inline-flex"
-              href={evidenceDownloadHref}
-            >
-              <Download className="size-4" />
-              {copy.downloadJson}
-            </a>
           </div>
 
           <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-end">
@@ -555,84 +690,6 @@ export function FanletterAgentRankEvidencePacketPage({
             </div>
           </div>
         </header>
-
-        <FanletterActionGuide
-          currentLabel={
-            locale === "ko"
-              ? `Evidence Packet · ${scopeLabel}`
-              : `Evidence Packet · ${scopeLabel}`
-          }
-          metrics={[
-            {
-              label: copy.eventContribution,
-              value: formatNumber(
-                packet.oracleManifest.scoreImpact.total,
-                locale,
-              ),
-            },
-            {
-              label: copy.linkedEvidence,
-              value: `${linkedEvents.length}/${packet.evidence.linkedEventCount}`,
-            },
-          ]}
-          primaryAction={{
-            agentRank: {
-              eventType: "universe_growth",
-              intent: "agentrank_evidence_packet_download",
-              source: "fanletter_agentrank",
-              starId,
-            },
-            href: evidenceDownloadHref,
-            label: copy.downloadJson,
-            metadata: {
-              eventId: event.eventId,
-              placement: "agentrank_evidence_packet_action_guide_primary",
-            },
-          }}
-          reputationEventLabel={
-            locale === "ko" ? "Oracle 증거 패킷" : "Oracle evidence packet"
-          }
-          secondaryActions={[
-            {
-              agentRank: {
-                eventType: "universe_growth",
-                intent: "agentrank_evidence_packet_open_event_detail",
-                source: "fanletter_agentrank",
-                starId,
-              },
-              href: eventDetailHref,
-              label: copy.backToEvent,
-              metadata: {
-                eventId: event.eventId,
-                placement: "agentrank_evidence_packet_action_guide_detail",
-              },
-            },
-          ]}
-          steps={[
-            {
-              label: locale === "ko" ? "이벤트 선택" : "Event selected",
-              status: "done",
-            },
-            {
-              label: locale === "ko" ? "증거 해시" : "Evidence hash",
-              status: "active",
-            },
-            {
-              label: locale === "ko" ? "연결 증거" : "Linked evidence",
-              status: linkedEvents.length > 0 ? "done" : "next",
-            },
-            {
-              label: locale === "ko" ? "Oracle 전달" : "Oracle handoff",
-              status: "next",
-            },
-          ]}
-          subtitle={copy.verifierNote}
-          title={
-            locale === "ko"
-              ? "다음 행동: Evidence Root 검증"
-              : "Next action: verify Evidence Root"
-          }
-        />
 
         {coverageAction ? (
           <FanletterAgentRankCoverageActionNotice
@@ -821,7 +878,7 @@ export function FanletterAgentRankEvidencePacketPage({
                 <Network className="size-4" />
                 {copy.linkedEvidence}
               </p>
-              <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+              <p className="mt-2 hidden max-w-3xl text-sm font-medium leading-6 text-slate-500 sm:block">
                 {copy.linkedEvidenceBody}
               </p>
             </div>
@@ -873,7 +930,7 @@ export function FanletterAgentRankEvidencePacketPage({
           </div>
         </section>
 
-        <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
+        <section className="hidden rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)] sm:block">
           <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
             <Database className="size-4" />
             {copy.canonical}
