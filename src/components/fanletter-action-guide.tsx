@@ -8,6 +8,7 @@ import {
   MapPin,
   MousePointer2,
 } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
@@ -37,6 +38,7 @@ type FanletterActionGuideProps = {
   currentLabel: string;
   metrics?: ActionGuideMetric[];
   primaryAction?: ActionGuideAction;
+  primaryActionSlot?: ReactNode;
   reputationEventLabel: string;
   secondaryActions?: ActionGuideAction[];
   steps: ActionGuideStep[];
@@ -76,6 +78,7 @@ export function FanletterActionGuide({
   currentLabel,
   metrics = [],
   primaryAction,
+  primaryActionSlot,
   reputationEventLabel,
   secondaryActions = [],
   steps,
@@ -83,7 +86,7 @@ export function FanletterActionGuide({
   title,
 }: FanletterActionGuideProps) {
   const visibleSecondaryActions = secondaryActions.slice(0, 1);
-  const shouldHideSecondaryOnMobile = Boolean(primaryAction);
+  const shouldHideSecondaryOnMobile = Boolean(primaryAction || primaryActionSlot);
   const completedStepCount = steps.filter((step) => step.status === "done")
     .length;
   const activeStepIndex = steps.findIndex((step) => step.status === "active");
@@ -178,7 +181,10 @@ export function FanletterActionGuide({
         </div>
       </div>
 
-      {steps.length > 0 || primaryAction || visibleSecondaryActions.length > 0 ? (
+      {steps.length > 0 ||
+      primaryAction ||
+      primaryActionSlot ||
+      visibleSecondaryActions.length > 0 ? (
         <div className="border-t border-zinc-200 bg-zinc-50/72 p-3.5 sm:p-4">
           {steps.length > 0 ? (
             <div className="min-w-0">
@@ -197,7 +203,7 @@ export function FanletterActionGuide({
                 />
               </div>
 
-              <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="mt-3 grid min-w-0 grid-cols-2 gap-2 sm:flex sm:overflow-x-auto sm:pb-1 sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden">
                 {steps.map((step, index) => {
                   const isDone = step.status === "done";
                   const isActive = step.status === "active";
@@ -205,7 +211,7 @@ export function FanletterActionGuide({
                   return (
                     <div
                       className={joinClasses(
-                        "flex min-w-[6.25rem] shrink-0 items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-semibold",
+                        "flex min-w-0 items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-semibold sm:min-w-[6.25rem] sm:shrink-0",
                         isActive
                           ? "border-zinc-950 bg-zinc-950 text-white"
                           : isDone
@@ -227,14 +233,15 @@ export function FanletterActionGuide({
             </div>
           ) : null}
 
-          {primaryAction || visibleSecondaryActions.length > 0 ? (
+          {primaryAction || primaryActionSlot || visibleSecondaryActions.length > 0 ? (
             <div className="mt-3 grid gap-2 sm:flex sm:flex-wrap">
-              {primaryAction
+              {primaryActionSlot ??
+                (primaryAction
                 ? renderAction(
                     primaryAction,
                     "inline-flex min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto sm:px-5",
                   )
-                : null}
+                : null)}
               {visibleSecondaryActions.map((action) =>
                 renderAction(
                   action,

@@ -642,6 +642,7 @@ function StarFounderMobilePanel({
   star,
   trackingAgentRank,
   trackingMetadata,
+  showAction = true,
 }: {
   action: StarPrimaryAction;
   copy: ReturnType<typeof getFanletterV2Copy>;
@@ -652,6 +653,7 @@ function StarFounderMobilePanel({
   star: AIStar;
   trackingAgentRank?: AgentRankInteractionSignal | null;
   trackingMetadata?: FunnelEventMetadata;
+  showAction?: boolean;
 }) {
   const founderMember = {
     initials: "A",
@@ -763,27 +765,29 @@ function StarFounderMobilePanel({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
-        <StarActionLink
-          action={action}
-          agentRank={trackingAgentRank}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)]"
-          locale={locale}
-          referralCode={joinReferralCode}
-          starId={star.id}
-          trackingMetadata={trackingMetadata}
-        >
-          {action.label}
-          <ArrowRight className="size-4" />
-        </StarActionLink>
-        <a
-          aria-label={copy.actions.createMockReferral}
-          className="inline-flex size-12 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-900"
-          href="#referral-builder"
-        >
-          <Share2 className="size-5" />
-        </a>
-      </div>
+      {showAction ? (
+        <div className="mt-3 grid grid-cols-[1fr_auto] gap-2">
+          <StarActionLink
+            action={action}
+            agentRank={trackingAgentRank}
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)]"
+            locale={locale}
+            referralCode={joinReferralCode}
+            starId={star.id}
+            trackingMetadata={trackingMetadata}
+          >
+            {action.label}
+            <ArrowRight className="size-4" />
+          </StarActionLink>
+          <a
+            aria-label={copy.actions.createMockReferral}
+            className="inline-flex size-12 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 text-zinc-900"
+            href="#referral-builder"
+          >
+            <Share2 className="size-5" />
+          </a>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -1201,25 +1205,6 @@ export function FanletterStarDetailPage({
     starName: star.name,
     viewerState,
   } satisfies FunnelEventMetadata;
-  const starDetailGuidePrimaryHref =
-    primaryAction.variant === "share" ? "#referral-builder" : "#star-next-action";
-  const starDetailGuidePrimaryLabel =
-    primaryAction.variant === "share"
-      ? isKorean
-        ? "추천 링크 영역 보기"
-        : "Open share link"
-      : isKorean
-        ? "참여 단계 보기"
-        : "View join step";
-  const starDetailGuideAgentRank = {
-    eventType: "content_engaged",
-    intent:
-      primaryAction.variant === "share"
-        ? "star_detail_action_guide_open_referral_builder"
-        : "star_detail_action_guide_open_join_step",
-    source: "fanletter_star_detail",
-    starId: star.id,
-  } satisfies AgentRankInteractionSignal;
   const starDetailGuideSteps =
     viewerState === "founder"
       ? [
@@ -1354,15 +1339,28 @@ export function FanletterStarDetailPage({
               },
             ]}
             primaryAction={{
-              agentRank: starDetailGuideAgentRank,
-              href: starDetailGuidePrimaryHref,
-              label: starDetailGuidePrimaryLabel,
-              metadata: {
-                ...primaryActionTrackingMetadata,
-                placement: "fanletter_star_detail_action_guide_primary",
-              },
-              referralCode: joinReferralCode,
+              href: primaryAction.href,
+              label: primaryAction.label,
             }}
+            primaryActionSlot={
+              <StarActionLink
+                action={primaryAction}
+                agentRank={primaryActionAgentRank}
+                className="inline-flex min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto sm:px-5"
+                locale={locale}
+                referralCode={joinReferralCode}
+                starId={star.id}
+                trackingMetadata={{
+                  ...primaryActionTrackingMetadata,
+                  placement: "fanletter_star_detail_action_guide_primary",
+                }}
+              >
+                <span className="min-w-0 whitespace-normal text-center leading-tight [word-break:keep-all]">
+                  {primaryAction.label}
+                </span>
+                <ArrowRight className="size-4 shrink-0" />
+              </StarActionLink>
+            }
             reputationEventLabel={
               primaryAction.variant === "share"
                 ? isKorean
@@ -1444,6 +1442,7 @@ export function FanletterStarDetailPage({
                   star={star}
                   trackingAgentRank={primaryActionAgentRank}
                   trackingMetadata={primaryActionTrackingMetadata}
+                  showAction={false}
                 />
                 <StarAgentRankJoinSignal
                   locale={locale}
@@ -1477,22 +1476,6 @@ export function FanletterStarDetailPage({
                 />
               </div>
 
-              <div className="mt-6 hidden flex-col gap-2 sm:flex sm:flex-row">
-                <StarActionLink
-                  action={primaryAction}
-                  agentRank={primaryActionAgentRank}
-                  className="inline-flex min-h-12 max-w-full items-center justify-center gap-2 rounded-full bg-black px-5 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-zinc-800"
-                  locale={locale}
-                  referralCode={joinReferralCode}
-                  starId={star.id}
-                  trackingMetadata={primaryActionTrackingMetadata}
-                >
-                  <span className="min-w-0 whitespace-normal [word-break:keep-all]">
-                    {primaryAction.label}
-                  </span>
-                  <ArrowRight className="size-4 shrink-0" />
-                </StarActionLink>
-              </div>
             </div>
 
             <div className="hidden lg:block">
