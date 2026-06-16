@@ -2982,8 +2982,8 @@ export function FanletterFounderUniverseExplorer({
             }
           />
 
-          <section className="grid min-w-0 gap-2 sm:grid-cols-3">
-            <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_10px_26px_rgba(15,23,42,0.045)]">
+          <section className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3">
+            <div className="hidden min-w-0 rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_10px_26px_rgba(15,23,42,0.045)] sm:block">
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
                 {locale === "ko" ? "선택 AI 스타" : "Selected AI Star"}
               </p>
@@ -2994,7 +2994,16 @@ export function FanletterFounderUniverseExplorer({
                 {displayUniverse.star.id}
               </p>
             </div>
-            <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_10px_26px_rgba(15,23,42,0.045)]">
+            <button
+              className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3 text-left shadow-[0_10px_26px_rgba(15,23,42,0.045)] transition hover:border-zinc-400 hover:bg-zinc-50"
+              disabled={!selectedNode}
+              onClick={() => {
+                if (selectedNode) {
+                  handleSelectNode(selectedNode.nodeId);
+                }
+              }}
+              type="button"
+            >
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
                 {locale === "ko" ? "선택 멤버" : "Selected member"}
               </p>
@@ -3008,7 +3017,7 @@ export function FanletterFounderUniverseExplorer({
                     ? "AI 스타 창업자"
                     : "AI Star creator"}
               </p>
-            </div>
+            </button>
             <div className="min-w-0 rounded-lg border border-zinc-950 bg-zinc-950 p-3 text-white shadow-[0_14px_34px_rgba(15,23,42,0.16)]">
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white/62">
                 {locale === "ko" ? "다음 확인" : "Next check"}
@@ -3034,7 +3043,11 @@ export function FanletterFounderUniverseExplorer({
             />
           </div>
 
-          <FanletterTerminologyGuide locale={locale} variant="compact" />
+          <FanletterTerminologyGuide
+            className="hidden sm:block"
+            locale={locale}
+            variant="compact"
+          />
 
           <FounderStarHero
             creatorNode={creatorNode}
