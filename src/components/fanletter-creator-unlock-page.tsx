@@ -87,7 +87,7 @@ function getLaunchPageCopy(locale: Locale) {
       contributionAudit: "감사 준비",
       contributionQuality: "품질",
       heroBody:
-        "조건, 출처 스타 유니버스, mock 생성 준비 상태만 확인합니다. 실제 결제는 아직 실행하지 않습니다.",
+        "조건, 출처 스타 유니버스, 미리보기 생성 준비 상태만 확인합니다. 실제 결제는 아직 실행하지 않습니다.",
       heroEyebrow: "크리에이터 권한 활성화",
       heroTitle: "크리에이터 권한 상태",
       loginCta: "계정 연결하고 내 데이터 보기",
@@ -99,8 +99,8 @@ function getLaunchPageCopy(locale: Locale) {
         "실결제와 영구 저장은 아직 실행하지 않습니다. 이 화면은 생성 전 구조와 포트폴리오 반영 방식을 확인하는 미리보기입니다.",
       name: "AI 스타 이름",
       launchedBody:
-        "브라우저에 저장된 mock AI 스타 draft가 포트폴리오에 반영되었습니다.",
-      launchedTitle: "Mock AI 스타 draft 생성됨",
+        "브라우저에 저장된 미리보기 AI 스타 draft가 포트폴리오에 반영되었습니다.",
+      launchedTitle: "미리보기 AI 스타 draft 생성됨",
       nextPortfolio: "생성 후 포트폴리오 반영",
       noSourceBody:
         "새 AI 스타는 기존 스타 유니버스의 성과를 출처로 삼아야 합니다. 먼저 AI 스타를 발견해 파운더로 참여하거나, 내 스타 유니버스를 만든 뒤 다시 진행하세요.",
@@ -118,13 +118,13 @@ function getLaunchPageCopy(locale: Locale) {
       rewardInfluence: "영향력",
       rewardTitle: "Founder 참여 보상 반영",
       rewardBody:
-        "이 브라우저의 mock Founder 참여 내역을 Creator Unlock 조건에 반영했습니다.",
+        "이 브라우저의 미리보기 Founder 참여 내역을 Creator Unlock 조건에 반영했습니다.",
       sourceSelectBody:
         "AI 스타는 창업 출처 스타 유니버스이고, 내 역할은 그 안의 파운더 네트워크에서 가진 위치입니다. CP Pool은 선택한 스타 유니버스의 상위 계층에 분배됩니다.",
       sourceSelectTitle: "창업 출처 스타 유니버스 선택",
       sourcePool: "CP Pool 분배 기준",
       source: "출처 스타 유니버스",
-      submit: "Mock 생성 준비 완료",
+      submit: "미리보기 생성 준비 완료",
       subtitle: "실제 결제 전",
     };
   }
@@ -342,7 +342,7 @@ function CreatorUnlockConditionsPanel({
       closeLabel={closeLabel}
       description={
         isKorean
-          ? "조건을 충족하면 Creator 권한이 활성화되고, 이후 Mock 생성 행동은 AgentRank 평판 이벤트로 기록됩니다."
+          ? "조건을 충족하면 Creator 권한이 활성화되고, 이후 미리보기 생성 행동은 AgentRank 평판 이벤트로 기록됩니다."
           : "When conditions are met, Creator permission is activated, and mock launch actions become AgentRank reputation events."
       }
       eyebrow="Creator Journey"
@@ -1709,7 +1709,7 @@ export function FanletterCreatorUnlockPage({
               starId: trackingSourceStarId,
             },
             href: "#mock-launch-panel",
-            label: locale === "ko" ? "Mock 생성 완료하기" : "Complete mock launch",
+            label: locale === "ko" ? "미리보기 생성 완료하기" : "Complete mock launch",
             metadata: {
               placement: "creator_unlock_action_guide_mock_launch",
               sourceUniverseName: displaySourceUniverseName,
@@ -1739,7 +1739,7 @@ export function FanletterCreatorUnlockPage({
         : "Next action: connect account"
       : unlock.unlocked
         ? locale === "ko"
-          ? "다음 행동: Mock 생성 완료"
+          ? "다음 행동: 미리보기 생성 완료"
           : "Next action: complete mock launch"
         : locale === "ko"
           ? "다음 행동: 조건 확인"
@@ -1817,7 +1817,7 @@ export function FanletterCreatorUnlockPage({
           status: requiresSourceUniverse ? "active" : "done",
         },
         {
-          label: locale === "ko" ? "mock 생성" : "Mock launch",
+          label: locale === "ko" ? "미리보기 생성" : "Mock launch",
           status:
             unlock.unlocked && !requiresSourceUniverse && !isPreviewMode
               ? "active"
