@@ -20,6 +20,7 @@ import {
 
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
+import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import {
   isAgentRankEventIncludedInMockScope,
@@ -1628,6 +1629,8 @@ function EventDetailMobileStatusCard({
   impactTotal,
   locale,
   nextActionLabel,
+  primaryHref,
+  primaryLabel,
 }: {
   audit: ReturnType<typeof getEventAudit>;
   copy: ReturnType<typeof getCopy>;
@@ -1636,8 +1639,11 @@ function EventDetailMobileStatusCard({
   impactTotal: number;
   locale: Locale;
   nextActionLabel: string;
+  primaryHref: string;
+  primaryLabel: string;
 }) {
   const oracleReady = event.reputationSignals.oracleReady;
+  const starId = event.starId ?? event.object?.id ?? null;
 
   return (
     <section className="rounded-[1.15rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_14px_40px_rgba(15,23,42,0.055)] sm:hidden">
@@ -1692,6 +1698,26 @@ function EventDetailMobileStatusCard({
           {nextActionLabel}
         </p>
       </div>
+
+      <FanletterTrackedLink
+        agentRank={{
+          eventType: "content_engaged",
+          intent: "agentrank_event_detail_mobile_evidence",
+          source: "fanletter_agentrank",
+          starId,
+        }}
+        className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-sm font-semibold !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)]"
+        eventName="content_open"
+        href={primaryHref}
+        metadata={{
+          eventId: event.eventId,
+          eventType: event.type,
+          placement: "agentrank_event_detail_mobile_primary",
+        }}
+      >
+        <span className="min-w-0 truncate">{primaryLabel}</span>
+        <ArrowRight className="size-4 shrink-0" />
+      </FanletterTrackedLink>
 
       <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">
         <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
@@ -1859,71 +1885,73 @@ export function FanletterAgentRankEventDetailPage({
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full min-w-0 max-w-[86rem] flex-col gap-5">
-        <FanletterActionGuide
-          currentLabel={
-            locale === "ko"
-              ? `이벤트 상세 · ${scopeLabel}`
-              : `Event detail · ${scopeLabel}`
-          }
-          metrics={[
-            {
-              label: copy.quality,
-              value: `${audit.qualityScore}/100`,
-            },
-            {
-              label: copy.scoreImpact,
-              value: formatNumber(impactTotal, locale),
-            },
-          ]}
-          primaryAction={{
-            agentRank: {
-              eventType: "content_engaged",
-              intent: "agentrank_event_detail_action_guide_evidence",
-              source: "fanletter_agentrank",
-              starId,
-            },
-            eventName: "content_open",
-            href: evidenceHref,
-            label: copy.viewEvidencePacket,
-            metadata: {
-              eventId: event.eventId,
-              eventType: event.type,
-              placement: "agentrank_event_detail_action_guide_primary",
-            },
-          }}
-          reputationEventLabel={
-            locale === "ko" ? "Evidence Packet 후보" : "Evidence Packet candidate"
-          }
-          secondaryActions={[]}
-          steps={[
-            {
-              label: locale === "ko" ? "이벤트 선택" : "Select event",
-              status: "done",
-            },
-            {
-              label: locale === "ko" ? "품질 감사" : "Quality audit",
-              status: audit.gaps.length > 0 ? "active" : "done",
-            },
-            {
-              label: locale === "ko" ? "증거 패킷" : "Evidence packet",
-              status: "active",
-            },
-            {
-              label: "AgentRank Oracle",
-              status: event.reputationSignals.oracleReady ? "active" : "next",
-            },
-          ]}
-          subtitle={
-            locale === "ko"
-              ? "이 이벤트가 어떤 증거와 연결되어 AgentRank Oracle 후보가 되는지 확인합니다."
-              : "Inspect the evidence that makes this event an AgentRank Oracle candidate."
-          }
-          title={
-            locale === "ko"
-              ? "다음 행동: 증거 패킷 확인"
-              : "Next action: inspect the evidence packet"
-          }
-        />
+        <div className="hidden sm:block">
+          <FanletterActionGuide
+            currentLabel={
+              locale === "ko"
+                ? `이벤트 상세 · ${scopeLabel}`
+                : `Event detail · ${scopeLabel}`
+            }
+            metrics={[
+              {
+                label: copy.quality,
+                value: `${audit.qualityScore}/100`,
+              },
+              {
+                label: copy.scoreImpact,
+                value: formatNumber(impactTotal, locale),
+              },
+            ]}
+            primaryAction={{
+              agentRank: {
+                eventType: "content_engaged",
+                intent: "agentrank_event_detail_action_guide_evidence",
+                source: "fanletter_agentrank",
+                starId,
+              },
+              eventName: "content_open",
+              href: evidenceHref,
+              label: copy.viewEvidencePacket,
+              metadata: {
+                eventId: event.eventId,
+                eventType: event.type,
+                placement: "agentrank_event_detail_action_guide_primary",
+              },
+            }}
+            reputationEventLabel={
+              locale === "ko" ? "Evidence Packet 후보" : "Evidence Packet candidate"
+            }
+            secondaryActions={[]}
+            steps={[
+              {
+                label: locale === "ko" ? "이벤트 선택" : "Select event",
+                status: "done",
+              },
+              {
+                label: locale === "ko" ? "품질 감사" : "Quality audit",
+                status: audit.gaps.length > 0 ? "active" : "done",
+              },
+              {
+                label: locale === "ko" ? "증거 패킷" : "Evidence packet",
+                status: "active",
+              },
+              {
+                label: "AgentRank Oracle",
+                status: event.reputationSignals.oracleReady ? "active" : "next",
+              },
+            ]}
+            subtitle={
+              locale === "ko"
+                ? "이 이벤트가 어떤 증거와 연결되어 AgentRank Oracle 후보가 되는지 확인합니다."
+                : "Inspect the evidence that makes this event an AgentRank Oracle candidate."
+            }
+            title={
+              locale === "ko"
+                ? "다음 행동: 증거 패킷 확인"
+                : "Next action: inspect the evidence packet"
+            }
+          />
+        </div>
         <EventDetailMobileStatusCard
           audit={audit}
           copy={copy}
@@ -1932,6 +1960,8 @@ export function FanletterAgentRankEventDetailPage({
           impactTotal={impactTotal}
           locale={locale}
           nextActionLabel={nextActionLabel}
+          primaryHref={evidenceHref}
+          primaryLabel={copy.viewEvidencePacket}
         />
         <EventDetailSignpostSummary
           audit={audit}
