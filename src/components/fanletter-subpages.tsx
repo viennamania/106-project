@@ -4877,7 +4877,7 @@ function FanletterFanRequestSourceCard({
           eyebrow: "팬 요청",
           flow: ["팬 요청 접수", "브이로그 제작", "다음 요청 가능"],
           lockedCta: "잠금 해제 후 요청",
-          lockedFlow: ["팬 요청 접수", "브이로그 제작", "해금 후 요청"],
+          lockedFlow: ["팬 요청 접수", "브이로그 제작", "권한 활성화 후 요청"],
           lockedResult:
             "팬 요청을 바탕으로 제작된 브이로그입니다. 먼저 필요한 보기 권한과 잠금 해제를 완료하면 다음 장면 요청을 이어갈 수 있습니다.",
           message: "팬 메시지 기반",
