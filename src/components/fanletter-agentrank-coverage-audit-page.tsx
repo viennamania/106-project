@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
+import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type {
   AgentRankCoverageSnapshot,
   AgentRankCoverageEventItem,
@@ -612,6 +613,21 @@ function buildQuery(scope: CoverageAuditScope, extra?: Record<string, string>) {
 
 function getScopedStarId(scope: CoverageAuditScope) {
   return scope.starId || "minseo";
+}
+
+function getCoverageScopeLabel(
+  scope: AgentRankEventMockScope,
+  copy: CoverageCopy,
+) {
+  if (scope === "mock") {
+    return copy.scopeMock;
+  }
+
+  if (scope === "product") {
+    return copy.scopeProduct;
+  }
+
+  return copy.scopeAll;
 }
 
 function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
@@ -1789,91 +1805,93 @@ export function FanletterAgentRankCoverageAuditPage({
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6">
       <div className="mx-auto max-w-[1400px]">
-        <FanletterActionGuide
-          className="mb-5"
-          currentLabel={
-            locale === "ko"
-              ? `커버리지 감사 · ${scopeLabel}`
-              : `Coverage audit · ${scopeLabel}`
-          }
-          metrics={[
-            {
-              label: copy.phase1Quality,
-              value: `${coverage.phase1QualityScore}/100`,
-            },
-            {
-              label: copy.gaps,
-              value: formatNumber(coverage.gaps.length, locale),
-            },
-          ]}
-          primaryAction={{
-            agentRank: {
-              eventType: "creator_unlock_evaluated",
-              intent: "agentrank_coverage_action_guide_plan",
-              source: "fanletter_agentrank",
-              starId: scope.starId ?? null,
-            },
-            eventName: "content_open",
-            href: "#coverage-action-plan",
-            label:
+        <div className="hidden sm:block">
+          <FanletterActionGuide
+            className="mb-5"
+            currentLabel={
               locale === "ko"
-                ? "우선 보강 액션 보기"
-                : "View priority actions",
-            metadata: {
-              placement: "agentrank_coverage_action_guide_primary",
-              coverageAction: coverageAction ?? null,
-              eventScope: scope.eventScope,
-            },
-          }}
-          reputationEventLabel={
-            locale === "ko" ? "Coverage Event Factory" : "Coverage Event Factory"
-          }
-          secondaryActions={[
-            {
+                ? `커버리지 감사 · ${scopeLabel}`
+                : `Coverage audit · ${scopeLabel}`
+            }
+            metrics={[
+              {
+                label: copy.phase1Quality,
+                value: `${coverage.phase1QualityScore}/100`,
+              },
+              {
+                label: copy.gaps,
+                value: formatNumber(coverage.gaps.length, locale),
+              },
+            ]}
+            primaryAction={{
               agentRank: {
-                eventType: "universe_growth",
-                intent: "agentrank_coverage_action_guide_ledger",
+                eventType: "creator_unlock_evaluated",
+                intent: "agentrank_coverage_action_guide_plan",
                 source: "fanletter_agentrank",
                 starId: scope.starId ?? null,
               },
               eventName: "content_open",
-              href: `/${locale}/fanletter/agentrank/events?${actionPageQuery}`,
-              label: copy.eventLedger,
+              href: "#coverage-action-plan",
+              label:
+                locale === "ko"
+                  ? "우선 보강 액션 보기"
+                  : "View priority actions",
               metadata: {
-                placement: "agentrank_coverage_action_guide_ledger",
+                placement: "agentrank_coverage_action_guide_primary",
+                coverageAction: coverageAction ?? null,
                 eventScope: scope.eventScope,
               },
-            },
-          ]}
-          steps={[
-            {
-              label: locale === "ko" ? "행동 수집" : "Collect actions",
-              status: "done",
-            },
-            {
-              label: locale === "ko" ? "커버리지 점검" : "Audit coverage",
-              status: "active",
-            },
-            {
-              label: locale === "ko" ? "갭 보강" : "Fill gaps",
-              status: coverage.gaps.length > 0 ? "active" : "done",
-            },
-            {
-              label: "Oracle Packet",
-              status: coverage.gaps.length > 0 ? "next" : "active",
-            },
-          ]}
-          subtitle={
-            locale === "ko"
-              ? "누락된 이벤트 타입과 CTA 소스를 먼저 보강해 AgentRank로 보낼 수 있는 데이터 품질을 맞춥니다."
-              : "Fill missing event types and CTA sources first so AgentRank can consume the data."
-          }
-          title={
-            locale === "ko"
-              ? "다음 행동: 커버리지 갭 보강"
-              : "Next action: fill coverage gaps"
-          }
-        />
+            }}
+            reputationEventLabel={
+              locale === "ko" ? "Coverage Event Factory" : "Coverage Event Factory"
+            }
+            secondaryActions={[
+              {
+                agentRank: {
+                  eventType: "universe_growth",
+                  intent: "agentrank_coverage_action_guide_ledger",
+                  source: "fanletter_agentrank",
+                  starId: scope.starId ?? null,
+                },
+                eventName: "content_open",
+                href: `/${locale}/fanletter/agentrank/events?${actionPageQuery}`,
+                label: copy.eventLedger,
+                metadata: {
+                  placement: "agentrank_coverage_action_guide_ledger",
+                  eventScope: scope.eventScope,
+                },
+              },
+            ]}
+            steps={[
+              {
+                label: locale === "ko" ? "행동 수집" : "Collect actions",
+                status: "done",
+              },
+              {
+                label: locale === "ko" ? "커버리지 점검" : "Audit coverage",
+                status: "active",
+              },
+              {
+                label: locale === "ko" ? "갭 보강" : "Fill gaps",
+                status: coverage.gaps.length > 0 ? "active" : "done",
+              },
+              {
+                label: "Oracle Packet",
+                status: coverage.gaps.length > 0 ? "next" : "active",
+              },
+            ]}
+            subtitle={
+              locale === "ko"
+                ? "누락된 이벤트 타입과 CTA 소스를 먼저 보강해 AgentRank로 보낼 수 있는 데이터 품질을 맞춥니다."
+                : "Fill missing event types and CTA sources first so AgentRank can consume the data."
+            }
+            title={
+              locale === "ko"
+                ? "다음 행동: 커버리지 갭 보강"
+                : "Next action: fill coverage gaps"
+            }
+          />
+        </div>
         <section className="mb-5 rounded-[1.25rem] border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.06)] sm:hidden">
           <p className="inline-flex max-w-full items-center gap-2 rounded-full bg-violet-50 px-3 py-1 text-xs font-semibold text-[#6d28d9]">
             <ShieldAlert className="size-3.5 shrink-0" />
@@ -1890,6 +1908,9 @@ export function FanletterAgentRankCoverageAuditPage({
                 ? "커버리지 보강 완료"
                 : "Coverage gaps complete"}
           </h2>
+          <p className="mt-2 truncate text-xs font-semibold text-slate-500">
+            {scopeLabel} · {getCoverageScopeLabel(scope.eventScope, copy)}
+          </p>
           <div className="mt-4 grid grid-cols-3 gap-2">
             <div className="rounded-lg bg-violet-50 px-3 py-2">
               <p className="truncate text-[0.62rem] font-semibold uppercase text-[#6d28d9]/70">
@@ -1916,9 +1937,22 @@ export function FanletterAgentRankCoverageAuditPage({
               </p>
             </div>
           </div>
-          <Link
-            className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#6d28d9] px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(109,40,217,0.2)]"
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "creator_unlock_evaluated",
+              intent: "agentrank_coverage_mobile_primary",
+              source: "fanletter_agentrank",
+              starId: scope.starId ?? null,
+            }}
+            className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold !text-white shadow-[0_14px_30px_rgba(15,23,42,0.16)]"
+            eventName="content_open"
             href={primaryGapAction?.href ?? `/${locale}/fanletter/agentrank/events?${actionPageQuery}`}
+            metadata={{
+              coverageAction:
+                primaryGapAction?.coverageAction ?? coverageAction ?? null,
+              eventScope: scope.eventScope,
+              placement: "agentrank_coverage_mobile_primary",
+            }}
           >
             {primaryGapAction
               ? locale === "ko"
@@ -1926,9 +1960,9 @@ export function FanletterAgentRankCoverageAuditPage({
                 : "Run this coverage action"
               : copy.eventLedger}
             <ArrowRight className="size-4 shrink-0" />
-          </Link>
+          </FanletterTrackedLink>
         </section>
-        <header className="rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] lg:p-7">
+        <header className="hidden rounded-[1.5rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] sm:block lg:p-7">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0">
               <p className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-sm font-semibold text-[#6d28d9]">
