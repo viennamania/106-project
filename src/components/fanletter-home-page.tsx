@@ -1394,14 +1394,17 @@ function FanletterProductHomeDashboard({
                             </span>
                           </span>
                         </div>
-                        <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                        <div className="mt-4 grid grid-cols-2 gap-2 text-center sm:grid-cols-3">
                           {[
                             [productCopy.score, star.starScore],
                             [productCopy.growth, `+${star.growthPercent}%`],
                             [productCopy.open, star.openSlots.open],
-                          ].map(([label, value]) => (
+                          ].map(([label, value], metricIndex) => (
                             <span
-                              className="min-w-0 rounded-xl bg-zinc-50 px-2 py-2"
+                              className={joinClasses(
+                                "min-w-0 rounded-xl bg-zinc-50 px-2 py-2",
+                                metricIndex === 2 ? "hidden sm:block" : "",
+                              )}
                               key={label}
                             >
                               <span className="block truncate text-sm font-semibold text-zinc-950">
@@ -1431,11 +1434,11 @@ function FanletterProductHomeDashboard({
                 </div>
               </div>
 
-              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              <div className="mt-3 hidden gap-2 sm:grid sm:grid-cols-3">
                 {homeOutcomeCards.map((item) => (
                   <div
                     className={joinClasses(
-                      "min-w-0 rounded-xl border px-3 py-2.5",
+                      "hidden min-w-0 rounded-xl border px-3 py-2.5 sm:block",
                       item.isStrong
                         ? "border-zinc-950 bg-zinc-950 text-white"
                         : "border-zinc-200 bg-zinc-50 text-zinc-950",
@@ -1480,8 +1483,14 @@ function FanletterProductHomeDashboard({
                 </span>
               </div>
               <div className="mt-4 grid min-w-0 grid-cols-1 gap-2 min-[360px]:grid-cols-2">
-                {portfolioStats.map((stat) => (
-                  <div className="min-w-0 rounded-xl bg-slate-50 p-3" key={stat.label}>
+                {portfolioStats.map((stat, statIndex) => (
+                  <div
+                    className={joinClasses(
+                      "min-w-0 rounded-xl bg-slate-50 p-3",
+                      statIndex > 1 ? "hidden sm:block" : "",
+                    )}
+                    key={stat.label}
+                  >
                     <p className="truncate text-lg font-semibold text-[#12041f]">
                       {formatMetric(stat.value, locale)}
                       {stat.suffix}
@@ -1493,7 +1502,7 @@ function FanletterProductHomeDashboard({
                 ))}
               </div>
               <Link
-                className="mt-4 inline-flex h-10 min-w-0 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 text-sm font-semibold !text-slate-700"
+                className="mt-4 hidden h-10 min-w-0 w-full items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-4 text-sm font-semibold !text-slate-700 sm:inline-flex"
                 href={creatorUnlockHref}
               >
                 <span className="truncate">{productCopy.creator}</span>
@@ -1633,7 +1642,7 @@ function FanletterProductHomeDashboard({
           </div>
         </ScrollReveal>
 
-        <ScrollReveal delay={220} y={16}>
+        <ScrollReveal className="hidden sm:block" delay={220} y={16}>
           <FanletterAgentRankHomeCard
             href={agentRankHref}
             locale={locale}
@@ -1641,7 +1650,7 @@ function FanletterProductHomeDashboard({
           />
         </ScrollReveal>
 
-        <ScrollReveal delay={240} y={16}>
+        <ScrollReveal className="hidden sm:block" delay={240} y={16}>
           <div className="grid grid-cols-3 gap-2">
             {[
               [copy.liveStats.videos, liveStats.publicVideoCount],

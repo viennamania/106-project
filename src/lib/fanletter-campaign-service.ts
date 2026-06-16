@@ -89,7 +89,7 @@ const categoryProfiles: Record<FanletterCampaignCategory, CategoryProfile> = {
     motivation: "소장, 한정판, 팬 참여, 커뮤니티 공유",
     risk: "low",
     summary:
-      "팬덤 참여와 직접 연결됩니다. 공유 목표 달성 시 새 굿즈나 팬전용 장면 해금이 자연스럽습니다.",
+      "팬덤 참여와 직접 연결됩니다. 공유 목표 달성 시 새 굿즈나 팬전용 장면 공개가 자연스럽습니다.",
     type: "Fan Mission",
   },
   health: {
