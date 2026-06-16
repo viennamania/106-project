@@ -515,6 +515,11 @@ export function FanletterAgentRankReviewPage({
         starId: primaryReviewItem.event.starId ?? filters.starId,
       })
     : ledgerHref;
+  const primaryReviewLabel = primaryReviewItem
+    ? locale === "ko"
+      ? "이 이벤트 검토"
+      : "Review this event"
+    : copy.eventLedger;
 
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
@@ -543,11 +548,11 @@ export function FanletterAgentRankReviewPage({
               starId: filters.starId,
             },
             eventName: "content_open",
-            href: "#review-queue-buckets",
-            label:
-              locale === "ko" ? "검토 버킷 보기" : "Review event buckets",
+            href: primaryReviewHref,
+            label: primaryReviewLabel,
             metadata: {
               placement: "agentrank_review_action_guide_primary",
+              reviewCategory: primaryReviewBucket?.category ?? null,
               scope: filters.scope,
             },
           }}
@@ -634,6 +639,17 @@ export function FanletterAgentRankReviewPage({
               </p>
             </div>
           </div>
+          <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+            <p className="text-[0.62rem] font-semibold normal-case tracking-[0.08em] text-emerald-700/75">
+              AgentRank 결과
+            </p>
+            <p className="mt-1 break-words text-sm font-semibold leading-tight text-emerald-950 [word-break:keep-all]">
+              {copy.summaryPacketReady}{" "}
+              {formatNumber(reviewQueue.summary.packetReadyEvents, locale)} ·{" "}
+              {copy.summaryNeedsOracle}{" "}
+              {formatNumber(reviewQueue.summary.needsOracleEvents, locale)}
+            </p>
+          </div>
           <Link
             className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#6d28d9] px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(109,40,217,0.2)]"
             href={primaryReviewHref}
@@ -645,6 +661,54 @@ export function FanletterAgentRankReviewPage({
               : copy.eventLedger}
             <ArrowRight className="size-4 shrink-0" />
           </Link>
+        </section>
+        <section className="hidden grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)_minmax(0,0.9fr)] gap-3 sm:grid">
+          <article className="min-w-0 rounded-[1rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_14px_36px_rgba(15,23,42,0.045)]">
+            <p className="flex items-center gap-1.5 text-[0.68rem] font-semibold normal-case tracking-[0.08em] text-zinc-500">
+              <SlidersHorizontal className="size-3.5 shrink-0" />
+              {locale === "ko" ? "현재 위치" : "Current location"}
+            </p>
+            <p className="mt-2 truncate text-lg font-semibold text-zinc-950">
+              Review Queue
+            </p>
+            <p className="mt-1 truncate text-xs font-semibold text-zinc-500">
+              {scopeLabel}
+            </p>
+          </article>
+          <article className="min-w-0 rounded-[1rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_14px_36px_rgba(15,23,42,0.045)]">
+            <p className="flex items-center gap-1.5 text-[0.68rem] font-semibold normal-case tracking-[0.08em] text-zinc-500">
+              <AlertTriangle className="size-3.5 shrink-0" />
+              {copy.nextAction}
+            </p>
+            <p className="mt-2 truncate text-lg font-semibold text-zinc-950">
+              {primaryReviewPresentation
+                ? primaryReviewPresentation.label
+                : locale === "ko"
+                  ? "대기 이벤트 없음"
+                  : "No pending events"}
+            </p>
+            <p className="mt-1 truncate text-xs font-semibold text-zinc-500">
+              {primaryReviewItem
+                ? getReviewActionLabel(primaryReviewItem, locale)
+                : locale === "ko"
+                  ? "이벤트 원장에서 새 신호를 확인하세요."
+                  : "Check the ledger for new signals."}
+            </p>
+          </article>
+          <article className="min-w-0 rounded-[1rem] border border-emerald-200 bg-emerald-50 p-4 text-emerald-950 shadow-[0_14px_36px_rgba(15,23,42,0.045)]">
+            <p className="flex items-center gap-1.5 text-[0.68rem] font-semibold normal-case tracking-[0.08em] text-emerald-700/75">
+              <BadgeCheck className="size-3.5 shrink-0" />
+              AgentRank 결과
+            </p>
+            <p className="mt-2 truncate text-lg font-semibold">
+              {copy.summaryPacketReady}{" "}
+              {formatNumber(reviewQueue.summary.packetReadyEvents, locale)}
+            </p>
+            <p className="mt-1 truncate text-xs font-semibold text-emerald-800/70">
+              {copy.summaryNeedsOracle}{" "}
+              {formatNumber(reviewQueue.summary.needsOracleEvents, locale)}
+            </p>
+          </article>
         </section>
         <header className="rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)]">
           <div className="flex flex-wrap items-center justify-between gap-3">

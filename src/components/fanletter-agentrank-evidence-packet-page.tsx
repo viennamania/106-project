@@ -69,6 +69,7 @@ function getCopy(locale: Locale) {
       notReady: "대기",
       object: "대상",
       oracleManifest: "Oracle Manifest",
+      oracleResult: "Oracle 결과",
       oracleReady: "Oracle 준비",
       impactReady: "Impact 준비",
       packetHash: "Packet Hash",
@@ -84,6 +85,7 @@ function getCopy(locale: Locale) {
       scopeAll: "전체 이벤트",
       scopeMock: "Mock 커버리지",
       scopeProduct: "운영 이벤트",
+      nextAction: "다음 행동",
       source: "Source",
       sourceId: "Source ID",
       trace: "검증 흐름",
@@ -123,6 +125,7 @@ function getCopy(locale: Locale) {
     notReady: "Pending",
     object: "Object",
     oracleManifest: "Oracle Manifest",
+    oracleResult: "Oracle Result",
     oracleReady: "Oracle-ready",
     impactReady: "Impact-ready",
     packetHash: "Packet Hash",
@@ -138,6 +141,7 @@ function getCopy(locale: Locale) {
     scopeAll: "All Events",
     scopeMock: "Mock Coverage",
     scopeProduct: "Product Events",
+    nextAction: "Next Action",
     source: "Source",
     sourceId: "Source ID",
     trace: "Verification Flow",
@@ -232,6 +236,33 @@ function getEventScopeLabel(
   }
 
   return copy.scopeAll;
+}
+
+function getEvidencePacketNextActionLabel(
+  packet: AgentRankEventEvidencePacket,
+  locale: Locale,
+) {
+  const readiness = packet.oracleManifest.readiness;
+  const graph = packet.oracleManifest.graph;
+  const isKorean = locale === "ko";
+
+  if (!readiness.oracleReady) {
+    return isKorean ? "Oracle 준비 항목 보강" : "Enrich Oracle readiness";
+  }
+
+  if (!graph.graphReady) {
+    return isKorean ? "거래 그래프 연결 확인" : "Review graph links";
+  }
+
+  if (!graph.impactReady) {
+    return isKorean ? "점수 영향 신호 확인" : "Review score impact signal";
+  }
+
+  if (packet.evidence.linkedEvents.length < packet.evidence.linkedEventCount) {
+    return isKorean ? "연결 증거 추가 확인" : "Review remaining linked evidence";
+  }
+
+  return isKorean ? "Oracle 전달 패킷 검토" : "Review Oracle handoff packet";
 }
 
 function TraceStep({
@@ -411,12 +442,14 @@ function EvidencePacketMobileStatusCard({
   event,
   linkedEventCount,
   locale,
+  nextActionLabel,
   packet,
 }: {
   copy: ReturnType<typeof getCopy>;
   event: AgentRankReputationEvent;
   linkedEventCount: number;
   locale: Locale;
+  nextActionLabel: string;
   packet: AgentRankEventEvidencePacket;
 }) {
   const readiness = packet.oracleManifest.readiness;
@@ -468,6 +501,25 @@ function EvidencePacketMobileStatusCard({
         </div>
       </div>
 
+      <div className="mt-3 rounded-lg border border-zinc-950 bg-zinc-950 px-3 py-2 text-white">
+        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/55">
+          {copy.nextAction}
+        </p>
+        <p className="mt-1 break-words text-sm font-semibold leading-tight [word-break:keep-all]">
+          {nextActionLabel}
+        </p>
+      </div>
+
+      <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+        <p className="text-[0.62rem] font-semibold normal-case tracking-[0.08em] text-emerald-700/75">
+          {copy.oracleResult}
+        </p>
+        <p className="mt-1 break-words text-sm font-semibold leading-tight text-emerald-950 [word-break:keep-all]">
+          {readiness.oracleReady ? copy.ready : copy.notReady} ·{" "}
+          {copy.quality} {formatNumber(readiness.qualityScore, locale)}/100
+        </p>
+      </div>
+
       <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">
         <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
           {copy.packetHash}
@@ -476,6 +528,71 @@ function EvidencePacketMobileStatusCard({
           {truncateHash(packet.integrity.packetHash, 14, 8)}
         </p>
       </div>
+    </section>
+  );
+}
+
+function EvidencePacketSignpostSummary({
+  copy,
+  event,
+  locale,
+  nextActionLabel,
+  packet,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  event: AgentRankReputationEvent;
+  locale: Locale;
+  nextActionLabel: string;
+  packet: AgentRankEventEvidencePacket;
+}) {
+  const readiness = packet.oracleManifest.readiness;
+  const summaryItems = [
+    {
+      body: truncateHash(packet.integrity.packetHash, 14, 8),
+      Icon: Fingerprint,
+      label: copy.oracleManifest,
+      value: getEventTypeLabel(event.type, locale),
+    },
+    {
+      body:
+        locale === "ko"
+          ? "검증자가 바로 확인할 다음 단계입니다."
+          : "The next step for verifier review.",
+      Icon: FileCheck2,
+      label: copy.nextAction,
+      value: nextActionLabel,
+    },
+    {
+      body: `${copy.quality} ${formatNumber(readiness.qualityScore, locale)}/100`,
+      Icon: BadgeCheck,
+      label: copy.oracleResult,
+      value: readiness.oracleReady ? copy.ready : copy.notReady,
+    },
+  ];
+
+  return (
+    <section className="hidden grid-cols-3 gap-3 sm:grid">
+      {summaryItems.map((item) => {
+        const Icon = item.Icon;
+
+        return (
+          <article
+            className="min-w-0 rounded-[1rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_14px_36px_rgba(15,23,42,0.045)]"
+            key={item.label}
+          >
+            <p className="flex items-center gap-1.5 text-[0.68rem] font-semibold normal-case tracking-[0.08em] text-zinc-500">
+              <Icon className="size-3.5 shrink-0" />
+              {item.label}
+            </p>
+            <p className="mt-2 truncate text-lg font-semibold text-zinc-950">
+              {item.value}
+            </p>
+            <p className="mt-1 truncate text-xs font-semibold text-zinc-500">
+              {item.body}
+            </p>
+          </article>
+        );
+      })}
     </section>
   );
 }
@@ -504,6 +621,7 @@ export function FanletterAgentRankEvidencePacketPage({
   const eventInScope = isAgentRankEventIncludedInMockScope(event, eventScope);
   const eventScopeLabel = getEventScopeLabel(eventScope, copy);
   const relatedStarScope = getAgentRankRelatedStarScope(event);
+  const nextActionLabel = getEvidencePacketNextActionLabel(packet, locale);
 
   if (starId) {
     ledgerParams.set("starId", starId);
@@ -568,6 +686,7 @@ export function FanletterAgentRankEvidencePacketPage({
               source: "fanletter_agentrank",
               starId,
             },
+            eventName: "content_open",
             href: evidenceDownloadHref,
             label: copy.downloadJson,
             metadata: {
@@ -609,6 +728,14 @@ export function FanletterAgentRankEvidencePacketPage({
           event={event}
           linkedEventCount={linkedEvents.length}
           locale={locale}
+          nextActionLabel={nextActionLabel}
+          packet={packet}
+        />
+        <EvidencePacketSignpostSummary
+          copy={copy}
+          event={event}
+          locale={locale}
+          nextActionLabel={nextActionLabel}
           packet={packet}
         />
         <header className="hidden rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] sm:block">
