@@ -45,8 +45,8 @@ export async function generateMetadata({
       : `${starName} Founder Network Explorer`;
   const description =
     locale === "ko"
-      ? `${starName} 스타 유니버스의 파운더 네트워크입니다. 멤버 ${universe.totals.totalMembers}명과 추천 연결 ${universe.totals.edgeCount}개를 보여줍니다.`
-      : `${starName} Star Universe founder network with ${universe.totals.totalMembers} members and ${universe.totals.edgeCount} referral edges.`;
+      ? `${starName} AI 스타 유니버스 안의 파운더 네트워크입니다. 멤버 ${universe.totals.totalMembers}명과 추천 연결 ${universe.totals.edgeCount}개를 보여줍니다.`
+      : `${starName} AI Star Universe Founder Network with ${universe.totals.totalMembers} members and ${universe.totals.edgeCount} referral edges.`;
 
   return {
     title,

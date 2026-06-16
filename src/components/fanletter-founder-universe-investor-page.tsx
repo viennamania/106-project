@@ -46,7 +46,7 @@ function getInvestorCopy(locale: Locale) {
     return {
       benefits: [
         "AI 스타 탄생 기여 → CP 획득",
-        "스타 유니버스 성장 기여 → 추가 CP",
+        "AI 스타 유니버스 성장 기여 → 추가 CP",
         "CP로 보상과 권한 사용 가능",
         "더 많은 AI 스타 탄생 → 더 큰 보상 기회",
       ],
@@ -69,18 +69,18 @@ function getInvestorCopy(locale: Locale) {
       modelPill1Body: "모든 보상은 CP로 지급",
       modelPill2: "기여도 보상 CP",
       modelPill2Body: "성장과 신규 스타 탄생 기여 보상",
-      modelPill3: "스타 유니버스 확장",
+      modelPill3: "AI 스타 유니버스 확장",
       modelPill3Body: "새 AI 스타가 탄생할수록 가치 확장",
       paymentTitle: "결제 금액은 플랫폼 수익",
       paymentSubtitle: "실결제 연동 전 모델 검증",
       sourceTitle: "파운더 네트워크 구조",
-      spawnedTitle: "스타 유니버스 확장",
+      spawnedTitle: "AI 스타 유니버스 확장",
       spawnedSubtitle: "Creator가 배출하거나 배출할 AI 스타 확장 흐름",
       spawnedCreatedBy: "창업 회원",
       spawnedFounder: "파운더",
       spawnedLiveBadge: "LIVE spawned",
       spawnedPreviewBadge: "확장 예시",
-      spawnedPreviewNote: "실제 spawned 0개 · live 스타 유니버스 데이터 기반",
+      spawnedPreviewNote: "실제 spawned 0개 · live AI 스타 유니버스 데이터 기반",
       cpPoolTitle: "CP 보상 풀 생성 및 분배",
       cpPoolBody:
         "신규 AI 스타 생성 시 CP Pool이 생성되어 상위 네트워크 기여도에 따라 분배",
@@ -97,7 +97,7 @@ function getInvestorCopy(locale: Locale) {
       metricCpLedger: "CP 원장",
       metricMemberships: "참여 멤버십",
       metricReferralEdges: "추천 연결",
-      metricStarUniverses: "스타 유니버스",
+      metricStarUniverses: "AI 스타 유니버스",
       representativeMember: "대표 회원",
       sourceAiStar: "출처 AI 스타",
       starScore: "스타 점수",
@@ -105,14 +105,14 @@ function getInvestorCopy(locale: Locale) {
       founderCount: "파운더",
       allocatedCp: "분배 완료",
       cpPoolGenerated: "CP Pool 생성",
-      topUniverses: "Top 스타 유니버스",
+      topUniverses: "Top AI 스타 유니버스",
     };
   }
 
   return {
     benefits: [
       "Contribute to AI Star launch → earn CP",
-      "Grow a Star Universe → earn additional CP",
+      "Grow an AI Star Universe → earn additional CP",
       "Use CP for rewards and privileges",
       "More AI Stars → more reward opportunities",
     ],
@@ -135,18 +135,18 @@ function getInvestorCopy(locale: Locale) {
     modelPill1Body: "Rewards are paid as CP",
     modelPill2: "Contribution CP",
     modelPill2Body: "Rewarding growth and new AI Star creation",
-    modelPill3: "Star Universe Expansion",
+    modelPill3: "AI Star Universe Expansion",
     modelPill3Body: "More AI Stars expand ecosystem value",
     paymentTitle: "Launch payment is platform revenue",
     paymentSubtitle: "Model validation before real payment",
     sourceTitle: "Founder Network Structure",
-    spawnedTitle: "Star Universe Expansion",
+    spawnedTitle: "AI Star Universe Expansion",
     spawnedSubtitle: "AI Stars launched or projected from Creators",
     spawnedCreatedBy: "Creator member",
     spawnedFounder: "Founder",
     spawnedLiveBadge: "LIVE spawned",
     spawnedPreviewBadge: "Expansion preview",
-    spawnedPreviewNote: "No live spawned stars yet · based on live Star Universe data",
+    spawnedPreviewNote: "No live spawned stars yet · based on live AI Star Universe data",
     cpPoolTitle: "CP Pool Generation and Distribution",
     cpPoolBody:
       "When a new AI Star launches, a CP Pool is generated and distributed to the upline network by contribution.",
@@ -176,7 +176,9 @@ function getInvestorCopy(locale: Locale) {
 }
 
 function getStarUniverseLabel(starName: string, locale: Locale) {
-  return locale === "ko" ? `${starName} 스타 유니버스` : `${starName} Star Universe`;
+  return locale === "ko"
+    ? `${starName} AI 스타 유니버스`
+    : `${starName} AI Star Universe`;
 }
 
 function formatNumber(value: number, locale: Locale) {

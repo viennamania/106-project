@@ -216,7 +216,7 @@ export async function POST(request: Request) {
     : null;
 
   if (requestedReferralCode && !attribution) {
-    return jsonError("Referral code is not active for a Star Universe.", 404, {
+    return jsonError("Referral code is not active for an AI Star Universe.", 404, {
       runtime,
     });
   }

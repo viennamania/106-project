@@ -428,7 +428,7 @@ function getBackfillCoverageLabel(
       ? {
           creatorRoleCoveragePercent: "AI 스타 Creator 연결",
           legacyReferralEdgeCoveragePercent: "기존 추천 엣지 전환",
-          memberFounderUniverseCoveragePercent: "회원 Founder Universe",
+          memberFounderUniverseCoveragePercent: "회원 파운더 네트워크",
           memberStarterStarCoveragePercent: "회원 시작 AI 스타",
           starOwnerCoveragePercent: "AI 스타 소유자",
           starPortraitCoveragePercent: "AI 스타 프로필",
@@ -436,7 +436,7 @@ function getBackfillCoverageLabel(
       : {
           creatorRoleCoveragePercent: "AI Star Creator Link",
           legacyReferralEdgeCoveragePercent: "Legacy Referral Edge",
-          memberFounderUniverseCoveragePercent: "Member Founder Universe",
+          memberFounderUniverseCoveragePercent: "Member Founder Network",
           memberStarterStarCoveragePercent: "Member Starter AI Star",
           starOwnerCoveragePercent: "AI Star Owner",
           starPortraitCoveragePercent: "AI Star Profile",
@@ -482,7 +482,7 @@ function getBackfillGapLabel(gap: string, locale: Locale) {
   const labels: Record<string, string> = {
     "missing:cp_influence_ledger": "CP/Influence 원장 보강 필요",
     "missing:legacy_referral_edges": "기존 추천 엣지 보강 필요",
-    "missing:member_founder_universe": "회원 Founder Universe 연결 필요",
+    "missing:member_founder_universe": "회원 파운더 네트워크 연결 필요",
     "missing:member_starter_star": "회원 시작 AI 스타 연결 필요",
     "missing:star_creator_membership": "AI 스타 Creator 멤버십 필요",
     "missing:star_owner": "AI 스타 소유자 정보 필요",
@@ -552,7 +552,7 @@ function getBackfillActionPlanText(
   const labels: Record<string, { description: string; title: string }> = {
     "backfill-cp-influence-ledger": {
       description:
-        "Founder Universe 행동에 대한 CP/Influence 원장을 생성해 AgentRank가 경제 기여 신호를 읽을 수 있게 합니다.",
+        "파운더 네트워크 행동에 대한 CP/Influence 원장을 생성해 AgentRank가 경제 기여 신호를 읽을 수 있게 합니다.",
       title: "CP/Influence 원장 정합성",
     },
     "backfill-legacy-referral-edges": {
@@ -562,8 +562,8 @@ function getBackfillActionPlanText(
     },
     "backfill-member-founder-universe": {
       description:
-        "가입 완료 회원을 추천 맥락, 기존 멤버십, 플랫폼 시작 유니버스 기준으로 Founder Universe에 연결합니다.",
-      title: "회원 Founder Universe 배치",
+        "가입 완료 회원을 추천 맥락, 기존 멤버십, 플랫폼 시작 AI 스타 유니버스 기준으로 파운더 네트워크에 연결합니다.",
+      title: "회원 파운더 네트워크 배치",
     },
     "backfill-member-starter-star": {
       description:
@@ -653,7 +653,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
         ? {
             ai_star_spawned: {
               description:
-                "크리에이터가 출처 스타 유니버스를 선택하고 새 AI 스타를 생성하는 흐름을 실행합니다.",
+                "크리에이터가 출처 AI 스타 유니버스를 선택하고 새 AI 스타를 생성하는 흐름을 실행합니다.",
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
               layer: "Creator Journey",
               trigger: "AI 스타 창업",
@@ -674,7 +674,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
             },
             source_universe_selected: {
               description:
-                "새 AI 스타가 어느 스타 유니버스 성과에서 탄생했는지 출처를 고정합니다.",
+                "새 AI 스타가 어느 AI 스타 유니버스 성과에서 탄생했는지 출처를 고정합니다.",
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
               layer: "Founder Network",
               trigger: "출처 유니버스 선택",
@@ -690,7 +690,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
         : {
             ai_star_spawned: {
               description:
-                "Run the flow where a creator selects a source Star Universe and launches a new AI Star.",
+                "Run the flow where a creator selects a source AI Star Universe and launches a new AI Star.",
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
               layer: "Creator Journey",
               trigger: "AI Star Spawned",
@@ -711,7 +711,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
             },
             source_universe_selected: {
               description:
-                "Lock which Star Universe produced the new AI Star launch outcome.",
+                "Lock which AI Star Universe produced the new AI Star launch outcome.",
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
               layer: "Founder Network",
               trigger: "Source Universe Selected",

@@ -71,7 +71,7 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     ai_star_spawned: {
       body:
-        "새 AI 스타 생성 mock을 완료하면 Creator Journey와 스타 유니버스 확장 신호가 채워집니다.",
+        "새 AI 스타 생성 mock을 완료하면 Creator Journey와 AI 스타 유니버스 확장 신호가 채워집니다.",
       title: "AI 스타 창업 이벤트 수집",
     },
     content_engaged: {
@@ -86,7 +86,7 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     cp_pool_generated: {
       body:
-        "새 AI 스타 창업 시 생성되는 CP Pool이 상위 스타 유니버스 보상 분배 신호로 남는지 확인합니다.",
+        "새 AI 스타 창업 시 생성되는 CP Pool이 상위 AI 스타 유니버스 보상 분배 신호로 남는지 확인합니다.",
       title: "CP Pool 생성 신호 수집",
     },
     creator_unlock_evaluated: {
@@ -151,18 +151,18 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     referral_converted: {
       body:
-        "초대받은 신규 멤버가 같은 스타 유니버스에 합류하는 전환 신호를 확인합니다.",
+        "초대받은 신규 멤버가 같은 AI 스타 유니버스에 합류하는 전환 신호를 확인합니다.",
       title: "추천 전환 신호 수집",
     },
     source_universe_selected: {
       body:
-        "새 AI 스타가 어느 스타 유니버스 성과에서 탄생하는지 출처를 고정해 리니지 신뢰를 강화합니다.",
-      title: "출처 스타 유니버스 선택 수집",
+        "새 AI 스타가 어느 AI 스타 유니버스 성과에서 탄생하는지 출처를 고정해 리니지 신뢰를 강화합니다.",
+      title: "출처 AI 스타 유니버스 선택 수집",
     },
     universe_growth: {
       body:
         "6단계 파운더 네트워크, 신규 멤버, 파생 스타 확장이 AgentRank 네트워크 성장 신호로 남는지 확인합니다.",
-      title: "스타 유니버스 성장 신호 수집",
+      title: "AI 스타 유니버스 성장 신호 수집",
     },
     x402_economy: {
       body:
@@ -188,7 +188,7 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     ai_star_spawned: {
       body:
-        "Completing a mock AI Star launch fills Creator Journey and Star Universe expansion signals.",
+        "Completing a mock AI Star launch fills Creator Journey and AI Star Universe expansion signals.",
       title: "Collect AI Star Spawn Event",
     },
     content_engaged: {
@@ -203,7 +203,7 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     cp_pool_generated: {
       body:
-        "Verify that CP Pool creation becomes an upstream Star Universe reward distribution signal.",
+        "Verify that CP Pool creation becomes an upstream AI Star Universe reward distribution signal.",
       title: "Collect CP Pool Generation Signal",
     },
     creator_unlock_evaluated: {
@@ -268,18 +268,18 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     referral_converted: {
       body:
-        "Verify the conversion when an invited member joins the same Star Universe.",
+        "Verify the conversion when an invited member joins the same AI Star Universe.",
       title: "Collect Referral Conversion Signal",
     },
     source_universe_selected: {
       body:
-        "Lock which Star Universe produced the new AI Star to strengthen lineage trust.",
-      title: "Collect Source Star Universe Selection",
+        "Lock which AI Star Universe produced the new AI Star to strengthen lineage trust.",
+      title: "Collect Source AI Star Universe Selection",
     },
     universe_growth: {
       body:
         "Verify that six-tier Founder Network growth, new members, and spawned stars become AgentRank network growth signals.",
-      title: "Collect Star Universe Growth Signal",
+      title: "Collect AI Star Universe Growth Signal",
     },
     x402_economy: {
       body:

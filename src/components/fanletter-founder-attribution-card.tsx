@@ -19,12 +19,12 @@ function getCopy(locale: Locale) {
     return {
       aiStarBadge: "AI 스타",
       body:
-        "계정 연결 후 이 가입은 아래 스타 유니버스의 Founder 참여로 저장됩니다. 실제 결제는 진행하지 않습니다.",
+        "계정 연결 후 이 가입은 아래 AI 스타 유니버스의 Founder 참여로 저장됩니다. 실제 결제는 진행하지 않습니다.",
       connectedBody:
-        "계정 연결이 확인되었습니다. Founder 참여를 확정하면 이 스타 유니버스의 멤버십과 추천 코드가 저장됩니다.",
+        "계정 연결이 확인되었습니다. Founder 참여를 확정하면 이 AI 스타 유니버스의 멤버십과 추천 코드가 저장됩니다.",
       connectedTitle: "Founder 참여 확정 대기",
       completedBody:
-        "이미 이 스타 유니버스의 Founder입니다. 내 추천 링크로 새 Founder를 초대하면 CP와 영향력이 누적됩니다.",
+        "이미 이 AI 스타 유니버스의 Founder입니다. 내 추천 링크로 새 Founder를 초대하면 CP와 영향력이 누적됩니다.",
       completedTitle: "Founder 가입 완료",
       founderBadge: "파운더",
       founderClubLabel: "파운더 클럽 2.0",
@@ -38,7 +38,7 @@ function getCopy(locale: Locale) {
       shareCta: "내 추천 링크 공유",
       starScore: "스타 점수",
       title: "파운더 참여 귀속",
-      universeCta: "스타 유니버스 보기",
+      universeCta: "AI 스타 유니버스 보기",
       rewards: {
         cp: "CP",
         creatorProgress: "Creator 진행률",
@@ -51,12 +51,12 @@ function getCopy(locale: Locale) {
   return {
     aiStarBadge: "AI STAR",
     body:
-      "After account connection, this signup is saved as a Founder join in the Star Universe below. No real payment is processed.",
+      "After account connection, this signup is saved as a Founder join in the AI Star Universe below. No real payment is processed.",
     connectedBody:
-      "Your account is connected. Confirm Founder join to save membership and referral code for this Star Universe.",
+      "Your account is connected. Confirm Founder join to save membership and referral code for this AI Star Universe.",
     connectedTitle: "Founder join pending",
     completedBody:
-      "You are already a Founder in this Star Universe. Invite new Founders with your link to grow CP and influence.",
+      "You are already a Founder in this AI Star Universe. Invite new Founders with your link to grow CP and influence.",
     completedTitle: "Founder join complete",
     founderBadge: "FOUNDER",
     founderClubLabel: "Founder Club 2.0",
@@ -70,7 +70,7 @@ function getCopy(locale: Locale) {
     shareCta: "Share my Founder link",
     starScore: "Star Score",
     title: "Founder join attribution",
-    universeCta: "View Star Universe",
+    universeCta: "View AI Star Universe",
     rewards: {
       cp: "CP",
       creatorProgress: "Creator Progress",

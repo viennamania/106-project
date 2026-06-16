@@ -49,13 +49,70 @@ function trimTrailingSlash(pathname: string) {
 }
 
 function isActivePath(pathname: string, basePath: string, item: FanletterNavItem) {
+  const activeByPath = item.activePaths.some((path) => {
+    return pathname === path || pathname.startsWith(`${path}/`);
+  });
+
   if (item.key === "home") {
     return pathname === basePath;
   }
 
-  return item.activePaths.some((path) => {
-    return pathname === path || pathname.startsWith(`${path}/`);
-  });
+  if (activeByPath) {
+    return true;
+  }
+
+  const segments = pathname
+    .slice(basePath.length)
+    .split("/")
+    .filter(Boolean);
+  const firstSegment = segments[0];
+  const reservedSections = new Set([
+    "agentrank",
+    "ai-star-genealogy",
+    "campaigns",
+    "characters",
+    "channels",
+    "connect",
+    "content",
+    "creator",
+    "creator-unlock",
+    "feed",
+    "founder-club",
+    "founder-universe",
+    "news",
+    "onboarding",
+    "share",
+    "start",
+    "studio",
+  ]);
+  const isStarDetailPath =
+    segments.length === 1 &&
+    Boolean(firstSegment) &&
+    !reservedSections.has(firstSegment);
+  const isStarUniversePath =
+    segments.length === 2 &&
+    Boolean(firstSegment) &&
+    !reservedSections.has(firstSegment) &&
+    segments[1] === "universe";
+
+  if (item.key === "discover") {
+    return pathname === `${basePath}/characters` || isStarDetailPath;
+  }
+
+  if (item.key === "founder") {
+    return (
+      pathname === `${basePath}/founder-club` ||
+      pathname === `${basePath}/founder-universe` ||
+      pathname === `${basePath}/creator-unlock` ||
+      isStarUniversePath
+    );
+  }
+
+  if (item.key === "scout") {
+    return pathname === `${basePath}/onboarding` || pathname === `${basePath}/connect`;
+  }
+
+  return false;
 }
 
 function readCreatorReferralCodeFromPathname(pathname: string, basePath: string) {

@@ -80,14 +80,14 @@ function getLaunchPageCopy(locale: Locale) {
       fieldsTitle: "새 AI 스타 생성 미리보기",
       founderContribution: "Founder Contribution",
       founderContributionBody:
-        "내 파운더 활동이 어느 스타 유니버스에서 AgentRank 신뢰로 쌓였는지 보여줍니다.",
+        "내 파운더 활동이 어느 AI 스타 유니버스에서 AgentRank 신뢰로 쌓였는지 보여줍니다.",
       contributionScore: "기여 점수",
       contributionConfidence: "신뢰도",
       contributionEvents: "이벤트",
       contributionAudit: "감사 준비",
       contributionQuality: "품질",
       heroBody:
-        "조건, 출처 스타 유니버스, 미리보기 생성 준비 상태만 확인합니다. 실제 결제는 아직 실행하지 않습니다.",
+        "조건, 출처 AI 스타 유니버스, 미리보기 생성 준비 상태만 확인합니다. 실제 결제는 아직 실행하지 않습니다.",
       heroEyebrow: "크리에이터 권한 활성화",
       heroTitle: "크리에이터 권한 상태",
       loginCta: "계정 연결하고 내 데이터 보기",
@@ -103,11 +103,11 @@ function getLaunchPageCopy(locale: Locale) {
       launchedTitle: "미리보기 AI 스타 draft 생성됨",
       nextPortfolio: "생성 후 포트폴리오 반영",
       noSourceBody:
-        "새 AI 스타는 기존 스타 유니버스의 성과를 출처로 삼아야 합니다. 먼저 AI 스타를 발견해 파운더로 참여하거나, 내 스타 유니버스를 만든 뒤 다시 진행하세요.",
+        "새 AI 스타는 기존 AI 스타 유니버스의 성과를 출처로 삼아야 합니다. 먼저 AI 스타를 발견해 파운더로 참여하거나, 내 AI 스타 유니버스를 만든 뒤 다시 진행하세요.",
       noSourcePrimary: "AI 스타 발견하기",
       noSourceSecondary: "파운더 클럽 보기",
-      noSourceSubmit: "출처 스타 유니버스 필요",
-      noSourceTitle: "창업 출처 스타 유니버스가 아직 없습니다",
+      noSourceSubmit: "출처 AI 스타 유니버스 필요",
+      noSourceTitle: "창업 출처 AI 스타 유니버스가 아직 없습니다",
       owner: "소유 멤버",
       preview: "AI 스타 카드 미리보기",
       roleInUniverse: "네트워크 내 역할",
@@ -120,10 +120,10 @@ function getLaunchPageCopy(locale: Locale) {
       rewardBody:
         "이 브라우저의 미리보기 Founder 참여 내역을 Creator Unlock 조건에 반영했습니다.",
       sourceSelectBody:
-        "AI 스타는 창업 출처 스타 유니버스이고, 내 역할은 그 안의 파운더 네트워크에서 가진 위치입니다. CP Pool은 선택한 스타 유니버스의 상위 계층에 분배됩니다.",
-      sourceSelectTitle: "창업 출처 스타 유니버스 선택",
+        "AI 스타 유니버스는 창업 출처이고, 내 역할은 그 안의 파운더 네트워크에서 가진 위치입니다. CP Pool은 선택한 AI 스타 유니버스의 상위 계층에 분배됩니다.",
+      sourceSelectTitle: "창업 출처 AI 스타 유니버스 선택",
       sourcePool: "CP Pool 분배 기준",
-      source: "출처 스타 유니버스",
+      source: "출처 AI 스타 유니버스",
       submit: "미리보기 생성 준비 완료",
       subtitle: "실제 결제 전",
     };
@@ -138,7 +138,7 @@ function getLaunchPageCopy(locale: Locale) {
       fieldsTitle: "New AI Star launch preview",
       founderContribution: "Founder Contribution",
       founderContributionBody:
-        "Shows which Star Universes are accumulating your Founder activity as AgentRank trust.",
+        "Shows which AI Star Universes are accumulating your Founder activity as AgentRank trust.",
       contributionScore: "Contribution Score",
       contributionConfidence: "Confidence",
       contributionEvents: "Events",
@@ -161,11 +161,11 @@ function getLaunchPageCopy(locale: Locale) {
       launchedTitle: "Mock AI Star draft created",
       nextPortfolio: "Portfolio reflection",
       noSourceBody:
-        "A new AI Star needs an existing Star Universe as its launch source. Join an AI Star as a Founder or create your own Star Universe first, then return here.",
+        "A new AI Star needs an existing AI Star Universe as its launch source. Join an AI Star as a Founder or create your own AI Star Universe first, then return here.",
       noSourcePrimary: "Discover AI Stars",
       noSourceSecondary: "View Founder Club",
-      noSourceSubmit: "Source Star Universe required",
-      noSourceTitle: "No launch source Star Universe yet",
+      noSourceSubmit: "Source AI Star Universe required",
+      noSourceTitle: "No launch source AI Star Universe yet",
       owner: "Owner member",
       preview: "AI Star card preview",
       roleInUniverse: "My role",
@@ -178,10 +178,10 @@ function getLaunchPageCopy(locale: Locale) {
       rewardBody:
         "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
       sourceSelectBody:
-        "The AI Star is the launch source Star Universe, and My role is your position inside its Founder Network. The CP Pool is distributed to the selected Star Universe upline.",
-      sourceSelectTitle: "Select launch source Star Universe",
+        "The AI Star Universe is the launch source, and My role is your position inside its Founder Network. The CP Pool is distributed to the selected AI Star Universe upline.",
+      sourceSelectTitle: "Select launch source AI Star Universe",
       sourcePool: "CP Pool basis",
-      source: "Source Star Universe",
+      source: "Source AI Star Universe",
       submit: "Mock launch ready",
       subtitle: "Before real payment",
     };
@@ -194,8 +194,8 @@ function getLaunchPageCopy(locale: Locale) {
     draft: "Draft",
     fieldsTitle: "New AI Star launch preview",
     founderContribution: "Founder Contribution",
-    founderContributionBody:
-      "Shows which Star Universes are accumulating your Founder activity as AgentRank trust.",
+  founderContributionBody:
+      "Shows which AI Star Universes are accumulating your Founder activity as AgentRank trust.",
     contributionScore: "Contribution Score",
     contributionConfidence: "Confidence",
     contributionEvents: "Events",
@@ -218,11 +218,11 @@ function getLaunchPageCopy(locale: Locale) {
     launchedTitle: "Mock AI Star draft created",
     nextPortfolio: "Portfolio reflection",
     noSourceBody:
-      "A new AI Star needs an existing Star Universe as its launch source. Join an AI Star as a Founder or create your own Star Universe first, then return here.",
+      "A new AI Star needs an existing AI Star Universe as its launch source. Join an AI Star as a Founder or create your own AI Star Universe first, then return here.",
     noSourcePrimary: "Discover AI Stars",
     noSourceSecondary: "View Founder Club",
-    noSourceSubmit: "Source Star Universe required",
-    noSourceTitle: "No launch source Star Universe yet",
+    noSourceSubmit: "Source AI Star Universe required",
+    noSourceTitle: "No launch source AI Star Universe yet",
     owner: "Owner member",
     preview: "AI Star card preview",
     roleInUniverse: "My role",
@@ -235,10 +235,10 @@ function getLaunchPageCopy(locale: Locale) {
     rewardBody:
       "Mock Founder joins saved in this browser are reflected in Creator Unlock conditions.",
     sourceSelectBody:
-      "The AI Star is the launch source Star Universe, and My role is your position inside its Founder Network. The CP Pool is distributed to the selected Star Universe upline.",
-    sourceSelectTitle: "Select launch source Star Universe",
+      "The AI Star Universe is the launch source, and My role is your position inside its Founder Network. The CP Pool is distributed to the selected AI Star Universe upline.",
+    sourceSelectTitle: "Select launch source AI Star Universe",
     sourcePool: "CP Pool basis",
-    source: "Source Star Universe",
+    source: "Source AI Star Universe",
     submit: "Mock launch ready",
     subtitle: "Before real payment",
   };
@@ -1481,7 +1481,7 @@ function CreatorUnlockStateStrip({
           progress: "권한 진행률",
           ready: "생성 미리보기 가능",
           source: "창업 출처",
-          sourceMissing: "참여한 스타 유니버스 필요",
+          sourceMissing: "참여한 AI 스타 유니버스 필요",
         }
       : {
           action: "Next Action",
@@ -1491,7 +1491,7 @@ function CreatorUnlockStateStrip({
           progress: "Activation Progress",
           ready: "Launch preview ready",
           source: "Launch Source",
-          sourceMissing: "Star Universe required",
+          sourceMissing: "AI Star Universe required",
         };
   const items = [
     {

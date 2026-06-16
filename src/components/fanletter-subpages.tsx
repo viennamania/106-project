@@ -10355,7 +10355,7 @@ export function FanletterOnboardingPage({
       ? locale === "ko"
         ? {
             accountState:
-              "이 Founder 참여는 선택한 스타 유니버스 기준으로 귀속됩니다. 실제 결제는 아직 진행하지 않습니다.",
+              "이 Founder 참여는 선택한 AI 스타 유니버스 기준으로 귀속됩니다. 실제 결제는 아직 진행하지 않습니다.",
             asideBody:
               "계정 연결 후 Founder 귀속을 확인하고, 스타 상세에서 추천 링크를 만들어 공유합니다.",
             asideTitle: "Founder 참여 준비",
@@ -10367,14 +10367,14 @@ export function FanletterOnboardingPage({
             feedCta: "Founder Club 보기",
             helper:
               "Founder Club에서 내 역할, 추천 링크, CP, 영향력, Creator 진행률을 관리합니다.",
-            homeCta: "스타 유니버스 보기",
+            homeCta: "AI 스타 유니버스 보기",
             primaryCta: "계정 연결하고 참여",
             progress: "Founder 진행",
             readyValue: "3단계",
             returnBody:
               "스타 상세로 돌아가 추천 코드 생성과 SNS 공유 루프를 이어갈 수 있습니다.",
-            returnCta: "스타 유니버스로 돌아가기",
-            secondaryCta: "스타 유니버스 먼저 보기",
+            returnCta: "AI 스타 유니버스로 돌아가기",
+            secondaryCta: "AI 스타 유니버스 먼저 보기",
             title: `${founderStarName} Founder로 참여하기`,
             steps: [
               {
@@ -10412,7 +10412,7 @@ export function FanletterOnboardingPage({
           }
       : {
             accountState:
-              "This Founder join is attributed to the selected Star Universe. Real payment is still deferred.",
+              "This Founder join is attributed to the selected AI Star Universe. Real payment is still deferred.",
             asideBody:
               "Connect the account, confirm Founder attribution, then create and share the referral link from the Star detail page.",
             asideTitle: "Founder join setup",
@@ -10424,14 +10424,14 @@ export function FanletterOnboardingPage({
             feedCta: "View Founder Club",
             helper:
               "Manage your roles, referral links, CP, influence, and Creator progress in Founder Club.",
-            homeCta: "View Star Universe",
+            homeCta: "View AI Star Universe",
             primaryCta: "Connect and join",
             progress: "Founder progress",
             readyValue: "3 steps",
             returnBody:
               "Return to the Star detail page to continue referral code creation and SNS sharing.",
-            returnCta: "Back to Star Universe",
-            secondaryCta: "View Star Universe first",
+            returnCta: "Back to AI Star Universe",
+            secondaryCta: "View AI Star Universe first",
             title: `Join ${founderStarName} as Founder`,
             steps: [
               {
@@ -10607,13 +10607,13 @@ export function FanletterOnboardingPage({
       ? isFounderJoined
         ? "Founder 참여가 완료되었습니다. 내 추천 링크를 공유하고 파운더 네트워크 확장을 확인하세요."
         : hasConnectedAccount
-          ? "계정 연결이 확인되었습니다. 이제 Founder 참여 확정을 누르면 이 스타 유니버스의 멤버십과 추천 코드가 저장됩니다."
+          ? "계정 연결이 확인되었습니다. 이제 Founder 참여 확정을 누르면 이 AI 스타 유니버스의 멤버십과 추천 코드가 저장됩니다."
           : labels.accountState
       : isFounderClubOnboarding
         ? isFounderJoined
           ? "Founder join is complete. Share your referral link and review the Founder Network expansion."
           : hasConnectedAccount
-            ? "Your account is connected. Confirm Founder join to save membership and referral code for this Star Universe."
+            ? "Your account is connected. Confirm Founder join to save membership and referral code for this AI Star Universe."
             : labels.accountState
         : labels.accountState;
   const progressItems = labels.steps.map((step) => ({

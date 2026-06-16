@@ -36,7 +36,7 @@ const enCopy: TerminologyCopy = {
     {
       body: "Per-AI-Star space",
       Icon: Sparkles,
-      title: "Star Universe",
+      title: "AI Star Universe",
     },
     {
       body: "6-level invite and CP structure",
@@ -62,7 +62,7 @@ const copyByLocale: Partial<Record<Locale, TerminologyCopy>> = {
       {
         body: "Per-AI-Star space",
         Icon: Sparkles,
-        title: "Star Universe",
+        title: "AI Star Universe",
       },
       {
         body: "6-level invite and CP structure",
@@ -83,7 +83,7 @@ const copyByLocale: Partial<Record<Locale, TerminologyCopy>> = {
       {
         body: "AI 스타별 공간",
         Icon: Sparkles,
-        title: "스타 유니버스",
+        title: "AI 스타 유니버스",
       },
       {
         body: "6단계 초대/CP 구조",

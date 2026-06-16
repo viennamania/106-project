@@ -203,7 +203,7 @@ export function calculateAgentRankEconomicReputationScore(
   });
   const lineageComponent = buildComponent({
     description:
-      "Founder Network edges, AI Star lineage, and spawned Star Universe expansion.",
+      "Founder Network edges, AI Star lineage, and spawned AI Star Universe expansion.",
     key: "lineageTrust",
     label: "Lineage Trust",
     maxScore: 230,

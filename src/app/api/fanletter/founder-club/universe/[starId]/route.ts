@@ -31,7 +31,7 @@ export async function GET(
   const universe = await getFanletterFounderUniverseExplorer(starId);
 
   if (!universe) {
-    return jsonError("Star Universe not found.", 404);
+    return jsonError("AI Star Universe not found.", 404);
   }
 
   return Response.json({ universe }, { headers: noStoreHeaders });

@@ -64,7 +64,7 @@ function getGenealogyCopy(locale: Locale) {
     starScore: "Star Score",
     topParents: "Expansion Hubs",
     totalStars: "Total AI Stars",
-    viewUniverse: "View Star Universe",
+    viewUniverse: "View AI Star Universe",
   };
 }
 

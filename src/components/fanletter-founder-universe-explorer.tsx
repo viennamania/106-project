@@ -135,14 +135,14 @@ const explorerCopy = {
     cpPool: "CP Pool",
     edge: "Edges",
     empty: "No members match this filter.",
-    expansion: "Star Universe Expansion",
+    expansion: "AI Star Universe Expansion",
     founderUniverse: "Founder Network",
     founderJoins: "Founder Joins",
     generatedBy: "Launched by",
-    source: "Source Star Universe",
+    source: "Source AI Star Universe",
     member: "Member",
     members: "Members",
-    newUniverse: "New Star Universe",
+    newUniverse: "New AI Star Universe",
     noSpawned: "No spawned AI Stars yet.",
     open: "Open",
     overview: "Overview",
@@ -170,14 +170,14 @@ const explorerCopy = {
     cpPool: "CP Pool",
     edge: "Edges",
     empty: "条件に合うメンバーがいません。",
-    expansion: "Star Universe Expansion",
+    expansion: "AI Star Universe Expansion",
     founderUniverse: "Founder Network",
     founderJoins: "Founder Joins",
     generatedBy: "生成者",
-    source: "Source Star Universe",
+    source: "Source AI Star Universe",
     member: "Member",
     members: "Members",
-    newUniverse: "New Star Universe",
+    newUniverse: "New AI Star Universe",
     noSpawned: "まだ派生AIスターはありません。",
     open: "Open",
     overview: "概要",
@@ -205,14 +205,14 @@ const explorerCopy = {
     cpPool: "CP Pool",
     edge: "연결",
     empty: "조건에 맞는 멤버가 없습니다.",
-    expansion: "스타 유니버스 확장",
+    expansion: "AI 스타 유니버스 확장",
     founderUniverse: "파운더 네트워크",
     founderJoins: "파운더 참여",
     generatedBy: "배출 멤버",
-    source: "출처 스타 유니버스",
+    source: "출처 AI 스타 유니버스",
     member: "멤버",
     members: "멤버",
-    newUniverse: "새 스타 유니버스",
+    newUniverse: "새 AI 스타 유니버스",
     noSpawned: "아직 파생 AI 스타가 없습니다.",
     open: "열림",
     overview: "요약",
@@ -610,15 +610,55 @@ function getMonthEndLabel(value: string, locale: Locale) {
 }
 
 function FounderDashboardSidebar({
+  currentStarId,
   locale,
   selectedNode,
 }: {
+  currentStarId: string;
   locale: Locale;
   selectedNode: FanletterFounderUniverseExplorerNode | null;
 }) {
   const dashboardCopy = getDashboardCopy(locale);
   const v2Copy = getFanletterV2Copy(locale);
-  const navIcons = [Home, Sparkles, Gauge, Network, Star, Users, ShieldCheck];
+  const encodedStarId = encodeURIComponent(currentStarId);
+  const navItems = [
+    {
+      href: `/${locale}/fanletter`,
+      icon: Home,
+      label: dashboardCopy.topNav[0],
+    },
+    {
+      href: `/${locale}/fanletter/creator-unlock?starId=${encodedStarId}`,
+      icon: Sparkles,
+      label: dashboardCopy.topNav[1],
+    },
+    {
+      href: `/${locale}/fanletter/agentrank?starId=${encodedStarId}`,
+      icon: Gauge,
+      label: dashboardCopy.topNav[2],
+    },
+    {
+      active: true,
+      href: `/${locale}/fanletter/${encodedStarId}/universe`,
+      icon: Network,
+      label: dashboardCopy.topNav[3],
+    },
+    {
+      href: `/${locale}/fanletter/characters`,
+      icon: Star,
+      label: dashboardCopy.topNav[4],
+    },
+    {
+      href: `/${locale}/fanletter/founder-club`,
+      icon: Users,
+      label: dashboardCopy.topNav[5],
+    },
+    {
+      href: `/${locale}/fanletter/news/characters`,
+      icon: ShieldCheck,
+      label: dashboardCopy.topNav[6],
+    },
+  ];
   const activityItems = [
     { icon: Users, label: dashboardCopy.myActivity },
     { icon: Gauge, label: dashboardCopy.myInfluence },
@@ -638,23 +678,22 @@ function FounderDashboardSidebar({
       </Link>
 
       <nav className="mt-9 grid gap-1.5">
-        {dashboardCopy.topNav.map((item, index) => {
-          const Icon = navIcons[index] ?? CircleDot;
-          const active = item === dashboardCopy.founderClub;
+        {navItems.map((item) => {
+          const Icon = item.icon;
 
           return (
             <Link
               className={joinClasses(
                 "flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition",
-                active
+                item.active
                   ? "bg-zinc-100 text-zinc-950"
                   : "text-slate-600 hover:bg-zinc-50 hover:text-zinc-950",
               )}
-              href={index === 0 ? `/${locale}/fanletter` : "#"}
-              key={item}
+              href={item.href}
+              key={item.label}
             >
               <Icon className="size-4" />
-              {item}
+              {item.label}
             </Link>
           );
         })}
@@ -767,6 +806,159 @@ function FounderDashboardTopbar({
         </button>
       </div>
     </header>
+  );
+}
+
+function FounderUniverseMobileSignpost({
+  edgeCount,
+  ledgerHref,
+  locale,
+  memberCount,
+  selectedNode,
+  selectedRoleLabel,
+  star,
+  starName,
+}: {
+  edgeCount: number;
+  ledgerHref: string;
+  locale: Locale;
+  memberCount: number;
+  selectedNode: FanletterFounderUniverseExplorerNode | null;
+  selectedRoleLabel: string;
+  star: FanletterFounderUniverseExplorerData["star"];
+  starName: string;
+}) {
+  const isKorean = locale === "ko";
+
+  return (
+    <section className="min-w-0 overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white text-zinc-950 shadow-[0_14px_36px_rgba(15,23,42,0.06)] sm:hidden">
+      <div className="p-3.5">
+        <div className="flex items-start gap-3">
+          <div
+            className="flex size-14 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 bg-cover bg-center text-base font-semibold text-zinc-900"
+            style={
+              star.portraitImageUrl
+                ? { backgroundImage: `url(${star.portraitImageUrl})` }
+                : {
+                    background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
+                  }
+            }
+          >
+            {star.portraitImageUrl ? null : star.initials}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              <Network className="size-3.5" />
+              {isKorean ? "현재 위치" : "Current"}
+            </p>
+            <h2 className="mt-1 truncate text-xl font-semibold tracking-normal">
+              {starName}
+            </h2>
+            <p className="mt-0.5 text-sm font-semibold text-zinc-500">
+              {isKorean ? "파운더 네트워크" : "Founder Network"}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {[
+            {
+              label: isKorean ? "내 등급" : "My tier",
+              value: selectedRoleLabel,
+            },
+            {
+              label: isKorean ? "멤버" : "Members",
+              value: formatNumber(memberCount, locale),
+            },
+            {
+              label: isKorean ? "연결" : "Edges",
+              value: formatNumber(edgeCount, locale),
+            },
+          ].map((metric) => (
+            <div
+              className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-2"
+              key={metric.label}
+            >
+              <p className="truncate text-[0.62rem] font-semibold text-zinc-500">
+                {metric.label}
+              </p>
+              <p className="mt-0.5 truncate text-sm font-semibold text-zinc-950">
+                {metric.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            {isKorean ? "선택 멤버" : "Selected member"}
+          </p>
+          <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+            {selectedNode?.label ?? starName}
+          </p>
+          <p className="mt-0.5 truncate text-xs font-semibold text-zinc-500">
+            {selectedNode?.memberId
+              ? `ID ${selectedNode.memberId}`
+              : isKorean
+                ? "AI 스타 창업자"
+                : "AI Star creator"}
+          </p>
+        </div>
+      </div>
+
+      <div className="border-t border-zinc-200 bg-zinc-50/72 p-3.5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              {isKorean ? "다음 행동" : "Next action"}
+            </p>
+            <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+              {isKorean ? "6단계 위치 확인" : "Inspect 6-tier position"}
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[0.68rem] font-semibold text-zinc-600">
+            {isKorean ? "평판 이벤트" : "Universe Growth"}
+          </span>
+        </div>
+        <FanletterTrackedLink
+          agentRank={{
+            eventType: "universe_growth",
+            intent: "founder_universe_mobile_signpost_map",
+            source: "fanletter_founder_universe",
+            starId: star.id,
+          }}
+          className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-sm font-semibold !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)]"
+          eventName="content_open"
+          href="#founder-network-map"
+          metadata={{
+            placement: "founder_universe_mobile_signpost_primary",
+            selectedNodeId: selectedNode?.nodeId ?? null,
+            starName,
+          }}
+        >
+          {isKorean ? "네트워크 맵 보기" : "View network map"}
+          <ArrowRight className="size-4" />
+        </FanletterTrackedLink>
+        <FanletterTrackedLink
+          agentRank={{
+            eventType: "content_engaged",
+            intent: "founder_universe_mobile_signpost_ledger",
+            source: "fanletter_founder_universe",
+            starId: star.id,
+          }}
+          className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700"
+          eventName="content_open"
+          href={ledgerHref}
+          metadata={{
+            placement: "founder_universe_mobile_signpost_ledger",
+            starName,
+          }}
+        >
+          {isKorean ? "평판 이벤트 확인" : "View reputation events"}
+          <ChevronRight className="size-4" />
+        </FanletterTrackedLink>
+      </div>
+    </section>
   );
 }
 
@@ -1307,7 +1499,7 @@ function FounderUniverseDashboardPanel({
   const metricStrip = [
     {
       icon: Users,
-      label: locale === "ko" ? "Founders" : "Founders",
+      label: locale === "ko" ? "파운더" : "Founders",
       sublabel: locale === "ko" ? "활동 중" : "active",
       value: formatNumber(universe.totals.totalMembers, locale),
     },
@@ -1331,7 +1523,7 @@ function FounderUniverseDashboardPanel({
     },
     {
       icon: ShieldCheck,
-      label: locale === "ko" ? "Open Slots" : "Open Slots",
+      label: locale === "ko" ? "참여 가능 슬롯" : "Open Slots",
       sublabel: locale === "ko" ? "참여 가능" : "available",
       value: formatNumber(universe.star.openSlots, locale),
     },
@@ -1339,7 +1531,7 @@ function FounderUniverseDashboardPanel({
       icon: Gauge,
       label: "AgentRank",
       sublabel: locale === "ko" ? "호환 구조" : "compatible",
-      value: "Ready",
+      value: locale === "ko" ? "준비됨" : "Ready",
     },
   ];
 
@@ -1353,15 +1545,15 @@ function FounderUniverseDashboardPanel({
             FanLetter
           </p>
           <h2 className="mt-5 max-w-[13rem] text-3xl font-semibold uppercase leading-none tracking-normal text-white sm:mt-7 sm:max-w-[14rem] sm:text-5xl">
-            Founder
+            AI Star
             <span className="block bg-[linear-gradient(90deg,#ffffff,#a78bfa)] bg-clip-text text-transparent">
               Universe
             </span>
           </h2>
           <p className="mt-4 hidden max-w-sm text-sm font-medium leading-6 text-white/64 sm:block">
             {locale === "ko"
-              ? `모든 파운더 네트워크는 ${starName} 중심으로 모이고, 새 AI 스타를 배출하며 AgentRank 평판 이벤트를 만듭니다.`
-              : `Every founder network gathers around ${starName}, spawns new AI Stars, and creates AgentRank reputation events.`}
+              ? `${starName}의 AI 스타 유니버스 안에서 파운더 네트워크가 성장하고, 새 AI 스타와 AgentRank 평판 이벤트를 만듭니다.`
+              : `${starName}'s AI Star Universe contains the Founder Network that grows members, spawns AI Stars, and creates AgentRank reputation events.`}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -1386,7 +1578,7 @@ function FounderUniverseDashboardPanel({
         <aside className="grid content-start gap-4">
           <div className="rounded-2xl border border-violet-300/24 bg-white/[0.04] p-4 shadow-[0_18px_46px_rgba(0,0,0,0.22)] backdrop-blur">
             <span className="text-xs font-semibold uppercase tracking-[0.16em] text-violet-200">
-              {v2Copy.roles.creator}
+              {locale === "ko" ? "크리에이터" : v2Copy.roles.creator}
             </span>
             <div className="mt-4 flex items-center gap-3">
               <div
@@ -1433,7 +1625,7 @@ function FounderUniverseDashboardPanel({
           </div>
           <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-3">
             <p className="px-1 pb-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/52">
-              Universe Tiers
+              {locale === "ko" ? "6단계 등급" : "Universe Tiers"}
             </p>
             <UniverseRoleLegend
               locale={locale}
@@ -1451,8 +1643,8 @@ function FounderUniverseDashboardPanel({
             </p>
             <p className="mt-1 text-xs font-medium text-white/48">
               {locale === "ko"
-                ? "중앙 AI 스타와 6단계 파운더 네트워크"
-                : "AI Star core with a 6-tier Founder Network"}
+                ? "AI 스타 유니버스 안의 6단계 파운더 네트워크"
+                : "6-tier Founder Network inside the AI Star Universe"}
             </p>
           </div>
           <FounderUniverseOrbitMap
@@ -2865,7 +3057,11 @@ export function FanletterFounderUniverseExplorer({
           totalMembers: displayUniverse.totals.totalMembers,
         }}
       />
-      <FounderDashboardSidebar locale={locale} selectedNode={creatorNode} />
+      <FounderDashboardSidebar
+        currentStarId={displayUniverse.star.id}
+        locale={locale}
+        selectedNode={creatorNode}
+      />
       <div className="min-w-0 flex-1">
         <FounderDashboardTopbar locale={locale} selectedNode={creatorNode} />
 
@@ -2891,7 +3087,19 @@ export function FanletterFounderUniverseExplorer({
             />
           ) : null}
 
+          <FounderUniverseMobileSignpost
+            edgeCount={displayUniverse.totals.edgeCount}
+            ledgerHref={founderUniverseLedgerHref}
+            locale={locale}
+            memberCount={displayUniverse.totals.totalMembers}
+            selectedNode={selectedNode}
+            selectedRoleLabel={selectedRoleLabel}
+            star={displayUniverse.star}
+            starName={starName}
+          />
+
           <FanletterActionGuide
+            className="hidden sm:block"
             currentLabel={
               locale === "ko"
                 ? `${starName} 파운더 네트워크`
@@ -2982,7 +3190,7 @@ export function FanletterFounderUniverseExplorer({
             }
           />
 
-          <section className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3">
+          <section className="hidden min-w-0 grid-cols-2 gap-2 sm:grid sm:grid-cols-3">
             <div className="hidden min-w-0 rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_10px_26px_rgba(15,23,42,0.045)] sm:block">
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
                 {locale === "ko" ? "선택 AI 스타" : "Selected AI Star"}

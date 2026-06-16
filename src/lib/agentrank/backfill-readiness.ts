@@ -148,7 +148,7 @@ function buildActionPlan({
   const plans: Record<string, AgentRankBackfillActionPlanItem> = {
     "missing:member_founder_universe": {
       description:
-        "Attach completed members to an AI Star Founder Universe using referral context, existing memberships, or a platform starter universe fallback.",
+        "Attach completed members to the Founder Network inside an AI Star Universe using referral context, existing memberships, or a platform starter universe fallback.",
       estimatedRecords: totals.membersMissingFounderUniverse,
       eventTypes: ["founder_joined", "source_universe_selected"],
       gap: "missing:member_founder_universe",
@@ -158,7 +158,7 @@ function buildActionPlan({
       safetyLevel: "write_gated",
       script: "pnpm fanletter:founder-universe:backfill",
       targetCoverage: "memberFounderUniverseCoveragePercent",
-      title: "Member Founder Universe placement",
+      title: "Member Founder Network placement",
       writeCommand:
         "FANLETTER_FOUNDER_UNIVERSE_BACKFILL_WRITE=1 pnpm fanletter:founder-universe:backfill",
     },
@@ -212,7 +212,7 @@ function buildActionPlan({
     },
     "missing:cp_influence_ledger": {
       description:
-        "Generate CP and Influence ledger rows for Founder Universe actions so AgentRank can read economic contribution signals.",
+        "Generate CP and Influence ledger rows for Founder Network actions so AgentRank can read economic contribution signals.",
       estimatedRecords: totals.totalMemberships,
       eventTypes: ["cp_earned", "cp_pool_generated"],
       gap: "missing:cp_influence_ledger",

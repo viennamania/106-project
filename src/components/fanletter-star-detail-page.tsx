@@ -331,8 +331,8 @@ function getPrimaryAction({
   if (viewerState === "member") {
     return {
       helper: isKorean
-        ? "계정은 연결되어 있습니다. 클릭하면 이 스타 유니버스에 Founder로 저장하고 내 추천 링크를 생성합니다."
-        : "Your account is connected. Join this AI Star universe and create your referral link.",
+        ? "계정은 연결되어 있습니다. 클릭하면 이 AI 스타 유니버스의 파운더 네트워크에 Founder로 저장하고 내 추천 링크를 생성합니다."
+        : "Your account is connected. Join this AI Star Universe Founder Network and create your referral link.",
       href: joinHref,
       label: isKorean ? "Founder 참여 확정" : "Confirm Founder join",
       status: isKorean ? "계정 연결됨" : "Account connected",
@@ -1142,7 +1142,7 @@ function AIStarGenealogySection({
   const labels = isKorean
     ? {
         body:
-          "이 AI 스타가 어느 스타 유니버스에서 탄생했고, 다음 AI 스타로 어떻게 확장되는지 보여줍니다.",
+          "이 AI 스타가 어느 AI 스타 유니버스에서 탄생했고, 다음 AI 스타로 어떻게 확장되는지 보여줍니다.",
         current: "현재 AI 스타",
         map: "전체 계보 맵",
         parent: "Parent AI Star",

@@ -174,12 +174,12 @@ export async function generateMetadata({
   const specialty = getFanletterV2LocalizedText(star.specialty, locale);
   const title =
     locale === "ko"
-      ? `${star.name} 스타 유니버스 | 파운더 클럽 2.0`
-      : `${star.name} Star Universe | Founder Club 2.0`;
+      ? `${star.name} AI 스타 유니버스 | 파운더 클럽 2.0`
+      : `${star.name} AI Star Universe | Founder Club 2.0`;
   const description =
     locale === "ko"
-      ? `${star.name} ${specialty} 스타 유니버스입니다. Founder로 참여하고 추천 코드를 만들어 파운더 네트워크 안에서 성장하세요.`
-      : `${star.name} ${specialty} Star Universe. Join as Founder, create a referral code, and grow through the Founder Network.`;
+      ? `${star.name} ${specialty} AI 스타 유니버스입니다. Founder로 참여하고 추천 코드를 만들어 파운더 네트워크 안에서 성장하세요.`
+      : `${star.name} ${specialty} AI Star Universe. Join as Founder, create a referral code, and grow through the Founder Network.`;
 
   return {
     title,
