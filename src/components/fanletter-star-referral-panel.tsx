@@ -5,6 +5,7 @@ import {
   ArrowRight,
   CheckCircle2,
   Crown,
+  GitBranch,
   Link2,
   Share2,
   Sparkles,
@@ -165,6 +166,7 @@ export function FanletterStarReferralPanel({
     Boolean(inboundReferralCode) || Boolean(loop.isLiveData),
   );
   const [isSharePanelOpen, setIsSharePanelOpen] = useState(false);
+  const [isJoinPanelOpen, setIsJoinPanelOpen] = useState(false);
   const isReferralGenerated = isGenerated || isMockFounder;
 
   const visibleReferralCode =
@@ -242,21 +244,41 @@ export function FanletterStarReferralPanel({
     : primaryActionLabel ?? fallbackActionLabel;
   const actionClassName =
     "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#69f98a]";
-  const shouldUseFounderJoinAction =
-    primaryActionVariant === "join" && Boolean(starId);
+  const shouldUseFounderActionPanel =
+    (primaryActionVariant === "join" || primaryActionVariant === "connect") &&
+    Boolean(starId);
+  const isFounderJoinAction = primaryActionVariant === "join";
   const panelLabels = isKoreanCopy(copy)
     ? {
         close: "추천 공유 패널 닫기",
         flow: "공유 흐름",
+        joinClose: "Founder 참여 확인 패널 닫기",
+        joinConfirm: "Founder 참여 확정",
+        joinDescription:
+          "이 AI 스타 기준으로 Founder 참여를 기록하고 추천 링크를 준비합니다.",
+        joinTitle:
+          primaryActionVariant === "connect"
+            ? "Founder 참여 준비"
+            : "Founder 참여 확인",
         open: "공유 옵션 열기",
         reward: "예상 보상",
+        signal: "기록될 평판 이벤트",
         title: "추천 링크 공유",
       }
     : {
         close: "Close referral share panel",
         flow: "Share flow",
+        joinClose: "Close Founder join confirmation panel",
+        joinConfirm: "Confirm Founder join",
+        joinDescription:
+          "Record Founder participation for this AI Star and prepare a referral link.",
+        joinTitle:
+          primaryActionVariant === "connect"
+            ? "Prepare Founder join"
+            : "Confirm Founder join",
         open: "Open share options",
         reward: "Expected reward",
+        signal: "Reputation events",
         title: "Share referral link",
       };
 
@@ -421,18 +443,14 @@ export function FanletterStarReferralPanel({
           >
             {actionLabel}
           </button>
-        ) : shouldUseFounderJoinAction && starId ? (
-          <FanletterFounderJoinLink
+        ) : shouldUseFounderActionPanel && starId ? (
+          <button
             className={actionClassName}
-            href={actionHref}
-            locale={locale}
-            mode="live"
-            referralCode={joinReferralCode}
-            starId={starId}
-            useResponseUniverseHref
+            onClick={() => setIsJoinPanelOpen(true)}
+            type="button"
           >
             {actionLabel}
-          </FanletterFounderJoinLink>
+          </button>
         ) : actionHref.startsWith("#") || actionHref.startsWith("http") ? (
           <a
             className={actionClassName}
@@ -451,6 +469,103 @@ export function FanletterStarReferralPanel({
           {copy.starDetail.mockNotice}
         </p>
       </div>
+
+      {shouldUseFounderActionPanel && starId ? (
+        <FanletterResponsiveActionPanel
+          closeLabel={panelLabels.joinClose}
+          description={panelLabels.joinDescription}
+          eyebrow={displayUniverse}
+          onClose={() => setIsJoinPanelOpen(false)}
+          open={isJoinPanelOpen}
+          title={panelLabels.joinTitle}
+        >
+          <div className="grid gap-4">
+            <section className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                {copy.labels.referralCode}
+              </p>
+              <p className="mt-1 break-all font-mono text-lg font-semibold text-zinc-950">
+                {visibleReferralCode}
+              </p>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {[
+                  copy.labels.aiStarDiscovery,
+                  copy.actions.joinAsFounder,
+                  "AgentRank",
+                ].map((step, index) => (
+                  <div
+                    className="rounded-lg border border-zinc-200 bg-white p-2 text-center"
+                    key={`${step}-${index}-join`}
+                  >
+                    <span className="mx-auto flex size-7 items-center justify-center rounded-full bg-black text-xs font-semibold text-white">
+                      {index + 1}
+                    </span>
+                    <p className="mt-2 text-[0.68rem] font-semibold leading-4 text-zinc-700 [word-break:keep-all]">
+                      {step}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            <section className="rounded-lg border border-zinc-200 bg-white p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                {panelLabels.signal}
+              </p>
+              <div className="mt-3 grid gap-2">
+                {["founder_joined", "referral_code_created"].map(
+                  (eventName) => (
+                    <div
+                      className="flex min-h-11 items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2"
+                      key={eventName}
+                    >
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#ede9fe] text-[#6d28d9]">
+                        <GitBranch className="size-4" />
+                      </span>
+                      <span className="min-w-0 truncate font-mono text-xs font-semibold text-zinc-700">
+                        {eventName}
+                      </span>
+                    </div>
+                  ),
+                )}
+              </div>
+            </section>
+
+            {isFounderJoinAction ? (
+              <FanletterFounderJoinLink
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-3 text-center text-sm font-semibold leading-tight !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800"
+                href={actionHref}
+                locale={locale}
+                mode="live"
+                referralCode={joinReferralCode}
+                starId={starId}
+                useResponseUniverseHref
+              >
+                <Crown className="size-4" />
+                {panelLabels.joinConfirm}
+              </FanletterFounderJoinLink>
+            ) : actionHref.startsWith("http") ? (
+              <a
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-3 text-center text-sm font-semibold leading-tight !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800"
+                href={actionHref}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <Crown className="size-4" />
+                {actionLabel}
+              </a>
+            ) : (
+              <Link
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-3 text-center text-sm font-semibold leading-tight !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800"
+                href={actionHref}
+              >
+                <Crown className="size-4" />
+                {actionLabel}
+              </Link>
+            )}
+          </div>
+        </FanletterResponsiveActionPanel>
+      ) : null}
 
       <FanletterResponsiveActionPanel
         closeLabel={panelLabels.close}
