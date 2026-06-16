@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Loader2,
   Rocket,
+  X,
 } from "lucide-react";
 import {
   useCallback,
@@ -263,6 +264,48 @@ function getButtonCopy(locale: Locale, state: "done" | "idle" | "loading") {
       : "Complete mock launch";
 }
 
+function getConfirmCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      aiStar: "AI 스타",
+      cancel: "취소",
+      close: "Mock 생성 확인 닫기",
+      confirm: "Mock 생성 확정",
+      cost: "비용",
+      event: "AgentRank 이벤트",
+      payment: "실제 결제 없음",
+      source: "출처",
+      title: "10 USDT Mock 생성 확인",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      aiStar: "AI Star",
+      cancel: "キャンセル",
+      close: "Mock作成確認を閉じる",
+      confirm: "Mock作成を確定",
+      cost: "Cost",
+      event: "AgentRank event",
+      payment: "No real payment",
+      source: "Source",
+      title: "Confirm 10 USDT mock launch",
+    };
+  }
+
+  return {
+    aiStar: "AI Star",
+    cancel: "Cancel",
+    close: "Close mock launch confirmation",
+    confirm: "Confirm mock launch",
+    cost: "Cost",
+    event: "AgentRank event",
+    payment: "No real payment",
+    source: "Source",
+    title: "Confirm 10 USDT mock launch",
+  };
+}
+
 export function FanletterCreatorMockLaunchButton({
   agentRank,
   children,
@@ -289,8 +332,25 @@ export function FanletterCreatorMockLaunchButton({
   sourceUniverseName: string;
 }) {
   const [state, setState] = useState<"done" | "idle" | "loading">("idle");
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const confirmCopy = getConfirmCopy(locale);
 
-  const handleClick = useCallback(async () => {
+  useEffect(() => {
+    if (!isConfirmOpen) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsConfirmOpen(false);
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isConfirmOpen]);
+
+  const handleConfirm = useCallback(async () => {
     if (state === "loading") {
       return;
     }
@@ -345,6 +405,7 @@ export function FanletterCreatorMockLaunchButton({
       });
       onLaunch?.(preview.launch);
       setState("done");
+      setIsConfirmOpen(false);
     } catch {
       setState("idle");
     }
@@ -365,21 +426,105 @@ export function FanletterCreatorMockLaunchButton({
     state === "loading" ? Loader2 : state === "done" ? CheckCircle2 : Rocket;
 
   return (
-    <button
-      className={className}
-      disabled={state === "loading"}
-      onClick={handleClick}
-      type="button"
-    >
-      {children ?? getButtonCopy(locale, state)}
-      <Icon
-        className={[
-          "size-4",
-          state === "loading" ? "animate-spin" : null,
-        ]
-          .filter(Boolean)
-          .join(" ")}
-      />
-    </button>
+    <>
+      <button
+        className={className}
+        disabled={state === "loading"}
+        onClick={() => setIsConfirmOpen(true)}
+        type="button"
+      >
+        {children ?? getButtonCopy(locale, state)}
+        <Icon
+          className={[
+            "size-4",
+            state === "loading" ? "animate-spin" : null,
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        />
+      </button>
+
+      {isConfirmOpen ? (
+        <div
+          aria-modal="true"
+          className="fixed inset-0 z-[95] flex items-end justify-center bg-black/42 p-4 backdrop-blur-sm sm:items-center"
+          role="dialog"
+        >
+          <button
+            aria-label={confirmCopy.close}
+            className="absolute inset-0 cursor-default"
+            onClick={() => setIsConfirmOpen(false)}
+            type="button"
+          />
+          <section className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_28px_90px_rgba(15,23,42,0.22)] sm:p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                  {confirmCopy.payment}
+                </p>
+                <h2 className="mt-2 text-xl font-semibold leading-tight">
+                  {confirmCopy.title}
+                </h2>
+              </div>
+              <button
+                aria-label={confirmCopy.close}
+                className="flex size-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-700 transition hover:bg-zinc-50"
+                onClick={() => setIsConfirmOpen(false)}
+                type="button"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="mt-4 grid gap-2">
+              {[
+                [confirmCopy.event, "x402_mock_payment_intent"],
+                [confirmCopy.aiStar, name],
+                [confirmCopy.source, sourceUniverseName],
+                [confirmCopy.cost, `${launchCostUsdt} USDT`],
+              ].map(([label, value]) => (
+                <div
+                  className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2"
+                  key={label}
+                >
+                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                    {label}
+                  </span>
+                  <span className="min-w-0 truncate text-right text-sm font-semibold text-zinc-900">
+                    {value}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <button
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50"
+                onClick={() => setIsConfirmOpen(false)}
+                type="button"
+              >
+                {confirmCopy.cancel}
+              </button>
+              <button
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-70"
+                disabled={state === "loading"}
+                onClick={handleConfirm}
+                type="button"
+              >
+                {state === "loading" ? getButtonCopy(locale, state) : confirmCopy.confirm}
+                <Icon
+                  className={[
+                    "size-4",
+                    state === "loading" ? "animate-spin" : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                />
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+    </>
   );
 }
