@@ -850,7 +850,7 @@ function SourceUniverseEmptyState({
               intent: "creator_unlock_no_source_discovery",
               source: "fanletter_creator_unlock",
             }}
-            className="inline-flex min-h-10 items-center justify-center rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+            className="inline-flex min-h-10 items-center justify-center rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
             eventName="signup_cta_click"
             href={`/${locale}/fanletter#top-growing-ai-stars`}
             metadata={{
@@ -1260,7 +1260,7 @@ function AccountConnectionNotice({
             intent: "creator_unlock_connect",
             source: "fanletter_creator_unlock",
           }}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-black px-5 text-sm font-semibold text-white transition hover:bg-zinc-800"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-black px-5 text-sm font-semibold !text-white transition hover:bg-zinc-800"
           eventName="signup_cta_click"
           href={connectHref}
           metadata={{
@@ -1954,7 +1954,7 @@ export function FanletterCreatorUnlockPage({
                       intent: "creator_unlock_missing_source_discovery",
                       source: "fanletter_creator_unlock",
                     }}
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
                     eventName="signup_cta_click"
                     href={`/${locale}/fanletter#top-growing-ai-stars`}
                     metadata={{
@@ -1973,7 +1973,7 @@ export function FanletterCreatorUnlockPage({
                         selectedSourceOption?.starId ??
                         launchPreview.ownedPreview.spawnedFromStarId,
                     }}
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
                     eventName="signup_cta_click"
                     href={connectHref}
                     metadata={{
@@ -1993,7 +1993,7 @@ export function FanletterCreatorUnlockPage({
                         selectedSourceOption?.starId ??
                         launchPreview.ownedPreview.spawnedFromStarId,
                     }}
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-70"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-70"
                     launchCostUsdt={unlock.createCostUsdt}
                     locale={locale}
                     name={launchPreview.name}

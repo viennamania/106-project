@@ -521,14 +521,14 @@ function FanletterAgentRankCoverageActionLiveStatus({
           {labels.refresh}
         </button>
         <Link
-          className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white transition hover:bg-[#2f2458]"
+          className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#11132d] px-3 text-xs font-semibold !text-white transition hover:bg-[#2f2458]"
           href={ledgerHref}
         >
           <Database className="size-3.5" />
           {labels.ledger}
         </Link>
         <Link
-          className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-3 text-xs font-semibold text-white transition hover:bg-[#6d28d9]"
+          className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#7c3aed] px-3 text-xs font-semibold !text-white transition hover:bg-[#6d28d9]"
           href={coverageHref}
         >
           {labels.back}

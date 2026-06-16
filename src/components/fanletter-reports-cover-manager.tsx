@@ -1697,7 +1697,7 @@ export function FanletterReportsCoverManager({
                           {formatNumber(REPORT_TEASER_IMAGE_LIMIT, locale)}
                         </span>
                         <button
-                          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#111510] px-3 text-xs font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
+                          className="inline-flex h-9 items-center justify-center gap-1.5 rounded-full bg-[#111510] px-3 text-xs font-black !text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
                           disabled={!canSaveTeaserImages}
                           onClick={() => {
                             void saveTeaserImageSelection();
@@ -1821,7 +1821,7 @@ export function FanletterReportsCoverManager({
                               : copy.cropOriginal}
                           </button>
                           <button
-                            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[#111510] px-2 py-2 text-center text-xs font-black leading-4 text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:gap-2 sm:px-3 sm:py-0"
+                            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[#111510] px-2 py-2 text-center text-xs font-black leading-4 !text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:gap-2 sm:px-3 sm:py-0"
                             disabled={!canSaveSelectedCrop}
                             onClick={() => {
                               void updateCroppedCoverImage();

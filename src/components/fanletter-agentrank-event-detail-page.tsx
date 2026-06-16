@@ -1328,7 +1328,7 @@ function OracleEvidenceTracePanel({
             {copy.oraclePacketCandidate} · {packetState}
           </span>
           <Link
-            className="inline-flex h-9 items-center gap-2 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white transition hover:bg-[#2f235f]"
+            className="inline-flex h-9 items-center gap-2 rounded-full bg-[#11132d] px-3 text-xs font-semibold !text-white transition hover:bg-[#2f235f]"
             href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
               event.eventId,
             )}/evidence${
@@ -1832,7 +1832,7 @@ export function FanletterAgentRankEventDetailPage({
               {copy.back}
             </Link>
             <Link
-              className="hidden h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold text-white sm:inline-flex"
+              className="hidden h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold !text-white sm:inline-flex"
               href={`/${locale}/fanletter/agentrank${
                 starId ? `?starId=${encodeURIComponent(starId)}` : ""
               }`}

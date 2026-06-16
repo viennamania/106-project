@@ -671,7 +671,7 @@ export function FanletterRequestsPage({
                   <button
                     className={`h-10 rounded-full px-3 text-sm font-semibold transition ${
                       statusFilter === filter.value
-                        ? "bg-black text-white"
+                        ? "bg-black !text-white"
                         : "border border-black/10 bg-white text-black/62 hover:border-black/24"
                     }`}
                     key={filter.value}
@@ -718,7 +718,7 @@ export function FanletterRequestsPage({
                 {error ?? copy.error}
               </p>
               <button
-                className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white"
+                className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white"
                 onClick={() => {
                   void loadRequests();
                 }}

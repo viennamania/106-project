@@ -3081,7 +3081,7 @@ export function FanletterVlogManagementPage({
                   <Link
                     className={`group min-h-20 min-w-[12.75rem] snap-start rounded-lg border p-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.62)] transition md:min-w-0 ${
                       appliedPrice === item.key
-                        ? "border-black bg-black text-white shadow-none"
+                        ? "border-black bg-black !text-white shadow-none"
                         : "border-black/10 bg-[#f7faf5] text-black hover:border-black/20 hover:bg-white"
                     }`}
                     href={buildManagerHref({
@@ -3172,7 +3172,7 @@ export function FanletterVlogManagementPage({
                   </div>
                 </label>
                 <button
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white transition hover:bg-black/82 md:w-auto"
+                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold !text-white transition hover:bg-black/82 md:w-auto"
                   type="submit"
                 >
                   <Search className="size-4" />
@@ -3495,7 +3495,7 @@ export function FanletterVlogManagementPage({
                 {copy.nsfwModal.close}
               </button>
               <button
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white transition hover:bg-black/82 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold !text-white transition hover:bg-black/82 disabled:cursor-not-allowed disabled:opacity-50"
                 disabled={
                   !canManageActiveMaturity ||
                   !activeMaturityNextRating ||
@@ -3672,7 +3672,7 @@ export function FanletterVlogManagementPage({
                         </div>
                         <div className="grid grid-cols-1 gap-2 sm:flex sm:flex-row lg:shrink-0">
                           <button
-                            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[#111510] px-2 py-2 text-center text-xs font-black leading-4 text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:gap-2 sm:px-3 sm:py-0"
+                            className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-lg bg-[#111510] px-2 py-2 text-center text-xs font-black leading-4 !text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50 sm:h-10 sm:gap-2 sm:px-3 sm:py-0"
                             disabled={Boolean(savingCoverKey)}
                             onClick={() => {
                               void saveCroppedCover();
@@ -4028,7 +4028,7 @@ export function FanletterVlogManagementPage({
                   </div>
                   <div className="mt-4">
                     <button
-                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-50"
                       disabled={!canAddVideoFrames}
                       onClick={() => {
                         void addVideoFrames();
@@ -4537,7 +4537,7 @@ function VlogManagerCard({
                           <button
                             className={`inline-flex h-11 min-w-16 items-center justify-center rounded-full border px-3 text-sm font-semibold transition ${
                               isSelected
-                                ? "border-black bg-black text-white"
+                                ? "border-black bg-black !text-white"
                                 : "border-black/10 bg-white text-black/58 hover:border-black/20"
                             }`}
                             key={durationHours}
@@ -4582,7 +4582,7 @@ function VlogManagerCard({
         <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           {post.status !== "published" ? (
             <button
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-3 text-sm font-semibold text-white transition hover:bg-black/82 disabled:opacity-50 sm:h-10"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-3 text-sm font-semibold !text-white transition hover:bg-black/82 disabled:opacity-50 sm:h-10"
               disabled={isUpdating}
               onClick={onPublish}
               type="button"
@@ -4622,7 +4622,7 @@ function VlogManagerCard({
               isNsfw
                 ? "border border-black/10 bg-white text-black hover:border-black/20 hover:bg-[#f6f8f4]"
                 : canManageNsfw
-                  ? "bg-[#111] text-white hover:bg-black/82"
+                  ? "bg-[#111] !text-white hover:bg-black/82"
                   : "border border-black/10 bg-white text-black/62 hover:border-black/20 hover:bg-[#f6f8f4]"
             }`}
             disabled={isUpdating}

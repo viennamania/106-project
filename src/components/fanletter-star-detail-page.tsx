@@ -571,7 +571,7 @@ function StarAgentRankJoinSignal({
         </div>
         <div className="hidden shrink-0 flex-wrap gap-2 sm:flex">
           <Link
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-slate-900 px-3 text-xs font-semibold text-white"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-slate-900 px-3 text-xs font-semibold !text-white"
             href={`/${locale}/fanletter/agentrank?starId=${encodeURIComponent(
               star.id,
             )}`}
@@ -770,7 +770,7 @@ function StarFounderMobilePanel({
           <StarActionLink
             action={action}
             agentRank={trackingAgentRank}
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)]"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)]"
             locale={locale}
             referralCode={joinReferralCode}
             starId={star.id}
@@ -1262,6 +1262,47 @@ export function FanletterStarDetailPage({
               status: "next" as const,
             },
           ];
+  const primaryReputationEventLabel =
+    primaryAction.variant === "share"
+      ? isKorean
+        ? "추천 공유 이벤트"
+        : "Referral share event"
+      : isKorean
+        ? "Founder 참여 이벤트"
+        : "Founder join event";
+  const viewerStateLabel =
+    viewerState === "founder"
+      ? isKorean
+        ? "파운더"
+        : "Founder"
+      : viewerState === "member"
+        ? isKorean
+          ? "회원"
+          : "Member"
+        : isKorean
+          ? "방문자"
+          : "Guest";
+  const starDetailOutcomeCards = [
+    {
+      label: isKorean ? "현재 위치" : "Current",
+      value: displayStarName,
+      detail: `${viewerStateLabel} · ${copy.labels.starScore} ${star.starScore}`,
+    },
+    {
+      label: isKorean ? "다음 행동" : "Next action",
+      value: primaryAction.label,
+      detail: primaryAction.status,
+    },
+    {
+      label: isKorean ? "평판 이벤트" : "Reputation event",
+      value: primaryReputationEventLabel,
+      detail:
+        primaryAction.variant === "share"
+          ? "referral_code_created"
+          : "founder_joined",
+      isStrong: true,
+    },
+  ];
 
   return (
     <main className="fanletter-v2-surface min-h-screen bg-white pb-28 text-black">
@@ -1346,7 +1387,7 @@ export function FanletterStarDetailPage({
               <StarActionLink
                 action={primaryAction}
                 agentRank={primaryActionAgentRank}
-                className="inline-flex min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto sm:px-5"
+                className="inline-flex min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto sm:px-5"
                 locale={locale}
                 referralCode={joinReferralCode}
                 starId={star.id}
@@ -1362,13 +1403,7 @@ export function FanletterStarDetailPage({
               </StarActionLink>
             }
             reputationEventLabel={
-              primaryAction.variant === "share"
-                ? isKorean
-                  ? "추천 공유 이벤트"
-                  : "Referral share event"
-                : isKorean
-                  ? "Founder 참여 이벤트"
-                  : "Founder join event"
+              primaryReputationEventLabel
             }
             secondaryActions={[]}
             steps={starDetailGuideSteps}
@@ -1380,13 +1415,50 @@ export function FanletterStarDetailPage({
             }
           />
 
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {starDetailOutcomeCards.map((item) => (
+              <div
+                className={joinClasses(
+                  "min-w-0 rounded-xl border px-3 py-2.5 shadow-[0_10px_26px_rgba(15,23,42,0.045)]",
+                  item.isStrong
+                    ? "border-zinc-950 bg-zinc-950 text-white"
+                    : "border-zinc-200 bg-white text-zinc-950",
+                )}
+                key={item.label}
+              >
+                <p
+                  className={joinClasses(
+                    "truncate text-[0.6rem] font-semibold uppercase tracking-[0.12em]",
+                    item.isStrong ? "text-white/58" : "text-zinc-500",
+                  )}
+                >
+                  {item.label}
+                </p>
+                <p className="mt-1 truncate text-sm font-semibold">
+                  {item.value}
+                </p>
+                <p
+                  className={joinClasses(
+                    "mt-0.5 truncate text-[0.68rem] font-semibold",
+                    item.isStrong ? "text-white/58" : "text-zinc-500",
+                  )}
+                >
+                  {item.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+
           <div className="mt-8 grid gap-7 lg:grid-cols-[1fr_24rem] lg:items-end">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-sm font-semibold text-zinc-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)]">
                 <Crown className="size-4" />
                 {copy.starDetail.heroEyebrow}
               </div>
-              <h1 className="mt-4 max-w-4xl text-[2.55rem] font-semibold leading-[0.98] tracking-normal [word-break:keep-all] sm:mt-5 sm:text-[5rem]">
+              <h1
+                aria-label={`${displayStarName} ${copy.starDetail.universeTitle}`}
+                className="mt-4 max-w-4xl text-[2.55rem] font-semibold leading-[0.98] tracking-normal [word-break:keep-all] sm:mt-5 sm:text-[5rem]"
+              >
                 {displayStarName}
                 <span className="block text-zinc-500">
                   {copy.starDetail.universeTitle}

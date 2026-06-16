@@ -361,7 +361,7 @@ export function FanletterResponsiveMediaFrame({
         {requiresNsfwPin && nsfwPinRelockCopy ? (
           <div className="absolute right-3 top-14 z-20 flex justify-end sm:right-4 sm:top-4">
             <button
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/18 bg-black/72 px-3 py-2 text-xs font-black text-white shadow-[0_10px_26px_rgba(0,0,0,0.28)] backdrop-blur transition hover:border-[#44f26e]/44 hover:bg-black/84 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e]"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-white/18 bg-black/72 px-3 py-2 text-xs font-black !text-white shadow-[0_10px_26px_rgba(0,0,0,0.28)] backdrop-blur transition hover:border-[#44f26e]/44 hover:bg-black/84 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#44f26e]"
               onClick={handleNsfwPinRelock}
               type="button"
             >

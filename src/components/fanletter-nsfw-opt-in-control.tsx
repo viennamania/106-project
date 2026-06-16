@@ -151,11 +151,11 @@ export function FanletterNsfwOptInControl({
             compact ? "px-3 text-xs" : "px-4 text-sm",
             enabled
               ? compact
-                ? "bg-[#3b0614] text-white hover:bg-[#4b0b1a]"
+                ? "bg-[#3b0614] !text-white hover:bg-[#4b0b1a]"
                 : "bg-white text-rose-950 hover:bg-rose-50"
               : isDarkTone
                 ? "bg-rose-300 text-rose-950 hover:bg-rose-200"
-                : "bg-black text-white hover:bg-black/82",
+                : "bg-black !text-white hover:bg-black/82",
           )}
           disabled={isPending}
           onClick={() => {

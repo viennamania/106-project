@@ -1446,7 +1446,7 @@ export function FanletterNewsReporterTeaserEditorPage({
                           </div>
                           <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-1.5">
                             <button
-                              className="inline-flex h-10 min-w-0 items-center justify-center gap-1 rounded-md bg-[#111510] px-2 text-[0.7rem] font-black text-white transition hover:bg-black"
+                              className="inline-flex h-10 min-w-0 items-center justify-center gap-1 rounded-md bg-[#111510] px-2 text-[0.7rem] font-black !text-white transition hover:bg-black"
                               onClick={() => {
                                 focusCropEditor(item.id);
                               }}
@@ -1681,7 +1681,7 @@ export function FanletterNewsReporterTeaserEditorPage({
                     </p>
                   ) : null}
                   <button
-                    className="mt-3 hidden h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-55 lg:inline-flex"
+                    className="mt-3 hidden h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-55 lg:inline-flex"
                     disabled={!canSaveAll}
                     onClick={() => {
                       void saveTeaserCuts();
@@ -1703,7 +1703,7 @@ export function FanletterNewsReporterTeaserEditorPage({
 
         <div className="fixed inset-x-0 bottom-[calc(5.35rem+env(safe-area-inset-bottom))] z-50 border-t border-black/10 bg-white/96 px-3 py-3 pb-3 shadow-[0_-16px_44px_rgba(17,21,16,0.14)] backdrop-blur md:bottom-0 md:pb-[calc(env(safe-area-inset-bottom)+0.75rem)] lg:hidden">
           <button
-            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-55"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-55"
             disabled={!canSaveAll}
             onClick={() => {
               void saveTeaserCuts();

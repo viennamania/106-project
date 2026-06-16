@@ -886,7 +886,7 @@ function FounderStarHero({
             ))}
           </div>
           <Link
-            className="mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-black px-4 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-zinc-800"
+            className="mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-black px-4 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-zinc-800"
             href={`/${locale}/fanletter/${encodeURIComponent(universe.star.id)}`}
           >
             {starName} {dashboardCopy.viewGrowth}

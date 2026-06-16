@@ -664,7 +664,7 @@ export function FanletterAgentRankReviewPage({
                 {copy.eventLedger}
               </Link>
               <Link
-                className="inline-flex h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold text-white"
+                className="inline-flex h-10 items-center gap-2 rounded-full bg-[#11132d] px-4 text-sm font-semibold !text-white"
                 href={`/api/fanletter/agentrank/review-queue?${apiParams.toString()}`}
               >
                 <Database className="size-4" />

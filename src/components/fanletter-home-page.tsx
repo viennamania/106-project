@@ -1125,6 +1125,9 @@ function FanletterProductHomeDashboard({
         swipeHint: "좌우로 밀어 더 보기",
         today: "오늘 할 일",
         topGrowingTitle: "성장 중인 AI 스타",
+        actionResult: "선택하면 상세에서 참여",
+        eventResult: "AI Star Discovery 이벤트",
+        resultDetail: "발견 신호가 AgentRank에 기록됩니다.",
         unlocked: "활성화",
         universeMap: "스타 유니버스 맵",
         videoPreview: "브이로그 프리뷰",
@@ -1156,6 +1159,9 @@ function FanletterProductHomeDashboard({
         swipeHint: "Swipe to see more",
         today: "Today",
         topGrowingTitle: "Top Growing AI Stars",
+        actionResult: "Open detail to join",
+        eventResult: "AI Star Discovery event",
+        resultDetail: "Discovery signal is recorded for AgentRank.",
         unlocked: "Unlocked",
         universeMap: "Star Universe Map",
         videoPreview: "Vlog Preview",
@@ -1215,6 +1221,24 @@ function FanletterProductHomeDashboard({
     ...livePreviewSlides,
     ...mockBackfillPreviewSlides,
   ].slice(0, 3);
+  const homeOutcomeCards = [
+    {
+      label: isKo ? "현재 위치" : "Current",
+      value: productCopy.discovery,
+      detail: primaryStar?.name ?? productCopy.topGrowingTitle,
+    },
+    {
+      label: isKo ? "다음 행동" : "Next action",
+      value: productCopy.primaryCta,
+      detail: productCopy.actionResult,
+    },
+    {
+      label: isKo ? "평판 이벤트" : "Reputation event",
+      value: productCopy.eventResult,
+      detail: productCopy.resultDetail,
+      isStrong: true,
+    },
+  ];
 
   return (
     <section className="grid min-w-0 flex-1 content-start gap-4 overflow-x-hidden pb-7 pt-4 sm:gap-5 sm:py-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] lg:items-start">
@@ -1405,6 +1429,40 @@ function FanletterProductHomeDashboard({
                     <ArrowRight className="size-4" />
                   </span>
                 </div>
+              </div>
+
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                {homeOutcomeCards.map((item) => (
+                  <div
+                    className={joinClasses(
+                      "min-w-0 rounded-xl border px-3 py-2.5",
+                      item.isStrong
+                        ? "border-zinc-950 bg-zinc-950 text-white"
+                        : "border-zinc-200 bg-zinc-50 text-zinc-950",
+                    )}
+                    key={item.label}
+                  >
+                    <p
+                      className={joinClasses(
+                        "truncate text-[0.6rem] font-semibold uppercase tracking-[0.12em]",
+                        item.isStrong ? "text-white/58" : "text-zinc-500",
+                      )}
+                    >
+                      {item.label}
+                    </p>
+                    <p className="mt-1 truncate text-sm font-semibold">
+                      {item.value}
+                    </p>
+                    <p
+                      className={joinClasses(
+                        "mt-0.5 truncate text-[0.68rem] font-semibold",
+                        item.isStrong ? "text-white/58" : "text-zinc-500",
+                      )}
+                    >
+                      {item.detail}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           </ScrollReveal>

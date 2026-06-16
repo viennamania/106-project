@@ -955,7 +955,7 @@ export function FanletterNewsCharacterRequestPage({
                               aria-pressed={active}
                               className={`min-h-9 rounded-full border px-3 text-xs font-black transition ${
                                 active
-                                  ? "border-[#111510] bg-[#111510] text-white"
+                                  ? "border-[#111510] bg-[#111510] !text-white"
                                   : "border-black/12 bg-white text-black/58 hover:border-[#16702e] hover:bg-[#ecfff0]"
                               }`}
                               key={option.value}
@@ -1031,7 +1031,7 @@ export function FanletterNewsCharacterRequestPage({
                     className={`mt-0 inline-flex min-h-11 items-center justify-center gap-2 self-end px-4 text-sm font-black transition disabled:cursor-not-allowed sm:mt-7 ${
                       isSubmitDisabled
                         ? "bg-black/8 text-black/34"
-                        : "bg-[#111510] text-white hover:bg-black"
+                        : "bg-[#111510] !text-white hover:bg-black"
                     }`}
                     disabled={isSubmitDisabled}
                     type="submit"

@@ -143,7 +143,7 @@ export function FanletterNewsLogoutButton({
                 {copy.cancel}
               </button>
               <button
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black text-white transition hover:bg-black disabled:cursor-wait disabled:bg-black/62"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-4 text-sm font-black !text-white transition hover:bg-black disabled:cursor-wait disabled:bg-black/62"
                 disabled={isLoggingOut}
                 onClick={handleConfirm}
                 type="button"

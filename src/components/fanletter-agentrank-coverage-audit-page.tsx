@@ -1979,7 +1979,7 @@ export function FanletterAgentRankCoverageAuditPage({
                 {copy.scoreApi}
               </a>
               <a
-                className="inline-flex h-10 items-center gap-2 rounded-full border border-violet-200 bg-[#11132d] px-4 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(88,28,135,0.18)]"
+                className="inline-flex h-10 items-center gap-2 rounded-full border border-violet-200 bg-[#11132d] px-4 text-sm font-semibold !text-white shadow-[0_12px_30px_rgba(88,28,135,0.18)]"
                 href={`/api/fanletter/agentrank/score?${oracleQuery}`}
               >
                 <ShieldCheck className="size-4" />
@@ -2052,7 +2052,7 @@ export function FanletterAgentRankCoverageAuditPage({
                 <Link
                   className={`inline-flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-full px-3 text-center text-sm font-semibold ${
                     isActive
-                      ? "bg-[#11132d] text-white"
+                      ? "bg-[#11132d] !text-white"
                       : "border border-violet-100 bg-white text-slate-600"
                   }`}
                   href={`/${locale}/fanletter/agentrank/coverage?${nextQuery}`}
@@ -2062,7 +2062,7 @@ export function FanletterAgentRankCoverageAuditPage({
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs ${
                       isActive
-                        ? "bg-white/18 text-white"
+                        ? "bg-white/18 !text-white"
                         : "bg-violet-50 text-[#6d28d9]"
                     }`}
                   >
@@ -2231,7 +2231,7 @@ export function FanletterAgentRankCoverageAuditPage({
                   </div>
                   <div className="mt-4 grid gap-2">
                     <Link
-                      className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white transition hover:bg-[#2f2458]"
+                      className="inline-flex min-h-9 items-center justify-center gap-2 rounded-full bg-[#11132d] px-3 text-xs font-semibold !text-white transition hover:bg-[#2f2458]"
                       href={`/${locale}/fanletter/agentrank?${pageQuery}`}
                     >
                       <Bot className="size-3.5" />

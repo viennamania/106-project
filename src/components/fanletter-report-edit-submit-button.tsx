@@ -14,7 +14,7 @@ export function FanletterReportEditSubmitButton({
 
   return (
     <button
-      className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black text-white transition hover:bg-black disabled:cursor-wait disabled:opacity-70"
+      className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black disabled:cursor-wait disabled:opacity-70"
       disabled={pending}
       type="submit"
     >

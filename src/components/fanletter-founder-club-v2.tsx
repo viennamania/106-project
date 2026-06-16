@@ -927,7 +927,7 @@ export function MemberPortfolio({
             {portfolioCta.body}
           </p>
           <Link
-            className="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+            className="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
             href={portfolioCta.href}
           >
             {portfolioCta.label}

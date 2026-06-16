@@ -1006,7 +1006,7 @@ export function FanletterNewsSourceSceneGallery({
             <>
               <button
                 aria-label={copy.previous}
-                className="absolute left-3 top-1/2 z-20 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/14 bg-black/42 text-white backdrop-blur transition hover:bg-black/62 sm:left-5 sm:size-12"
+                className="absolute left-3 top-1/2 z-20 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/14 bg-black/42 !text-white backdrop-blur transition hover:bg-black/62 sm:left-5 sm:size-12"
                 onClick={showPrevious}
                 type="button"
               >
@@ -1014,7 +1014,7 @@ export function FanletterNewsSourceSceneGallery({
               </button>
               <button
                 aria-label={copy.next}
-                className="absolute right-3 top-1/2 z-20 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/14 bg-black/42 text-white backdrop-blur transition hover:bg-black/62 sm:right-5 sm:size-12"
+                className="absolute right-3 top-1/2 z-20 inline-flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/14 bg-black/42 !text-white backdrop-blur transition hover:bg-black/62 sm:right-5 sm:size-12"
                 onClick={showNext}
                 type="button"
               >

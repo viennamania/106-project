@@ -4499,7 +4499,7 @@ export function FanletterNewsReportComposerPage({
           />
         </div>
         <button
-          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black text-white transition hover:bg-black"
+          className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black"
           type="submit"
         >
           <Search className="size-4 text-[#44f26e]" />
@@ -6191,7 +6191,7 @@ export function FanletterNewsReportComposerPage({
                                         <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto] gap-1.5">
                                           <button
                                             aria-label={`${item.slotLabel} ${item.label} ${copy.teaserSelection.editCut}`}
-                                            className="inline-flex h-11 min-w-0 items-center justify-center gap-1 rounded-md bg-[#111510] px-2 text-[0.7rem] font-black text-white transition hover:bg-black"
+                                            className="inline-flex h-11 min-w-0 items-center justify-center gap-1 rounded-md bg-[#111510] px-2 text-[0.7rem] font-black !text-white transition hover:bg-black"
                                             onClick={() => {
                                               focusTeaserCutEditor(item.id);
                                             }}
@@ -6612,7 +6612,7 @@ export function FanletterNewsReportComposerPage({
                               </p>
                             ) : null}
                             <button
-                              className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-55"
+                              className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-55"
                               disabled={!canSaveExistingReportCover}
                               onClick={() => {
                                 void saveExistingReportCoverImage();
@@ -6660,7 +6660,7 @@ export function FanletterNewsReportComposerPage({
                               </p>
                             ) : null}
                             <button
-                              className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-55"
+                              className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#111510] px-5 text-sm font-black !text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-55"
                               disabled={!canSaveExistingReportTeasers}
                               onClick={() => {
                                 void saveExistingReportTeaserCuts();

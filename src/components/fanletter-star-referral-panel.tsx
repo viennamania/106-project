@@ -331,7 +331,7 @@ export function FanletterStarReferralPanel({
             </p>
           </div>
           <button
-            className="inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight text-white transition hover:bg-zinc-800"
+            className="inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white transition hover:bg-zinc-800"
             onClick={() => setIsGenerated(true)}
             type="button"
           >

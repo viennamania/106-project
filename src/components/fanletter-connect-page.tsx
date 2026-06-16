@@ -1357,7 +1357,7 @@ export function FanletterConnectPage({
 
                 {connection.isConnected ? (
                   <button
-                    className="hidden h-11 w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-black/28 px-5 text-sm font-semibold text-white/70 transition hover:bg-black/42 hover:text-white sm:inline-flex"
+                    className="hidden h-11 w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-black/28 px-5 text-sm font-semibold !text-white/70 transition hover:bg-black/42 hover:!text-white sm:inline-flex"
                     onClick={handleDisconnect}
                     type="button"
                   >

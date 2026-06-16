@@ -921,7 +921,7 @@ function LedgerOperationStatusCard({
 
       <div className="mt-4 grid gap-2 sm:flex sm:flex-wrap">
         <Link
-          className="hidden h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-[#111827] px-5 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] sm:inline-flex"
+          className="hidden h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-[#111827] px-5 text-sm font-semibold !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] sm:inline-flex"
           href={reviewHref}
         >
           {copy.ledgerReviewQueue}
@@ -963,7 +963,7 @@ function ReviewQueuePanel({
           </p>
         </div>
         <Link
-          className="inline-flex h-9 items-center gap-2 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white"
+          className="inline-flex h-9 items-center gap-2 rounded-full bg-[#11132d] px-3 text-xs font-semibold !text-white"
           href={buildLedgerHref({
             filters,
             locale,
@@ -1494,7 +1494,7 @@ function EventCard({
           {copy.evidencePacket}
         </Link>
         <Link
-          className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-full bg-[#11132d] px-3 text-xs font-semibold text-white max-sm:ml-0"
+          className="ml-auto inline-flex h-8 items-center gap-1.5 rounded-full bg-[#11132d] px-3 text-xs font-semibold !text-white max-sm:ml-0"
           href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
             event.eventId,
           )}${detailParams.size ? `?${detailParams.toString()}` : ""}`}
@@ -1953,7 +1953,7 @@ export function FanletterAgentRankLedgerPage({
                 </select>
               </label>
               <button
-                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-black px-4 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(15,23,42,0.18)]"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-black px-4 text-sm font-semibold !text-white shadow-[0_14px_34px_rgba(15,23,42,0.18)]"
                 type="submit"
               >
                 <Search className="size-4" />
@@ -2108,7 +2108,7 @@ export function FanletterAgentRankLedgerPage({
               </select>
             </label>
             <button
-              className="inline-flex h-11 items-center justify-center gap-2 self-end rounded-lg bg-black px-4 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(15,23,42,0.18)]"
+              className="inline-flex h-11 items-center justify-center gap-2 self-end rounded-lg bg-black px-4 text-sm font-semibold !text-white shadow-[0_14px_34px_rgba(15,23,42,0.18)]"
               type="submit"
             >
               <Search className="size-4" />
@@ -2129,7 +2129,7 @@ export function FanletterAgentRankLedgerPage({
                 <Link
                   className={`inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-semibold ${
                     isActive
-                      ? "bg-[#11132d] text-white"
+                      ? "bg-[#11132d] !text-white"
                       : "border border-slate-200 bg-white text-slate-600"
                   }`}
                   href={buildLedgerHref({
@@ -2144,7 +2144,7 @@ export function FanletterAgentRankLedgerPage({
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs ${
                       isActive
-                        ? "bg-white/18 text-white"
+                        ? "bg-white/18 !text-white"
                         : "bg-slate-50 text-slate-500"
                     }`}
                   >
@@ -2162,7 +2162,7 @@ export function FanletterAgentRankLedgerPage({
                 <Link
                   className={`inline-flex h-10 shrink-0 items-center rounded-full px-3 text-sm font-semibold ${
                     isActive
-                      ? "bg-emerald-600 text-white"
+                      ? "bg-emerald-600 !text-white"
                       : "border border-emerald-100 bg-emerald-50 text-emerald-700"
                   }`}
                   href={buildLedgerHref({
@@ -2186,7 +2186,7 @@ export function FanletterAgentRankLedgerPage({
                 <Link
                   className={`inline-flex h-10 shrink-0 items-center rounded-full px-3 text-sm font-semibold ${
                     isActive
-                      ? "bg-black text-white"
+                      ? "bg-black !text-white"
                       : "border border-zinc-200 bg-zinc-50 text-zinc-700"
                   }`}
                   href={buildLedgerHref({
@@ -2261,7 +2261,7 @@ export function FanletterAgentRankLedgerPage({
               className={`inline-flex h-9 items-center rounded-full px-3 text-sm font-semibold ${
                 filters.type
                   ? "border border-slate-200 bg-white text-slate-600"
-                  : "bg-black text-white"
+                  : "bg-black !text-white"
               }`}
               href={buildLedgerHref({ filters, locale, type: null })}
             >
@@ -2277,7 +2277,7 @@ export function FanletterAgentRankLedgerPage({
                 <Link
                   className={`inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-semibold ${
                     isActive
-                      ? "bg-black text-white"
+                      ? "bg-black !text-white"
                       : "border border-slate-200 bg-white text-slate-600"
                   }`}
                   href={buildLedgerHref({ filters, locale, type })}
@@ -2287,7 +2287,7 @@ export function FanletterAgentRankLedgerPage({
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs ${
                       isActive
-                        ? "bg-white/18 text-white"
+                        ? "bg-white/18 !text-white"
                         : "bg-slate-50 text-slate-500"
                     }`}
                   >

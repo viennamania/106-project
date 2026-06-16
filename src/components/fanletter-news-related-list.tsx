@@ -928,7 +928,7 @@ export function FanletterNewsRelatedList({
               )}
             </span>
             <button
-              className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-black/12 bg-[#111510] px-3 py-2 text-center text-xs font-black leading-5 text-white transition hover:bg-[#263027] disabled:cursor-not-allowed disabled:bg-[#f5f7f1] disabled:text-black/36 sm:text-sm"
+              className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-full border border-black/12 bg-[#111510] px-3 py-2 text-center text-xs font-black leading-5 !text-white transition hover:bg-[#263027] disabled:cursor-not-allowed disabled:bg-[#f5f7f1] disabled:text-black/36 sm:text-sm"
               disabled={!canGoNext || isLoading}
               onClick={() => {
                 void goToPage(pageIndex + 1);

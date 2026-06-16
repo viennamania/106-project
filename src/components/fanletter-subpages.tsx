@@ -5558,7 +5558,7 @@ function FanletterFeedDiscoveryControls({
         />
       </label>
       <button
-        className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-black px-5 text-sm font-semibold text-white transition hover:bg-black/82"
+        className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-black px-5 text-sm font-semibold !text-white transition hover:bg-black/82"
         type="submit"
       >
         <Search className="size-4" />

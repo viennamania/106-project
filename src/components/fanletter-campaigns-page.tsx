@@ -673,7 +673,7 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
                     {copy.campaignReadyBody}
                   </p>
                   <Link
-                    className="mt-3 flex min-h-11 min-w-0 items-center gap-2 rounded-lg border border-white/15 bg-black/25 px-3 text-sm font-bold text-white/75 transition hover:border-[#44f26e]/60 hover:text-white"
+                    className="mt-3 flex min-h-11 min-w-0 items-center gap-2 rounded-lg border border-white/15 bg-black/25 px-3 text-sm font-bold !text-white/75 transition hover:border-[#44f26e]/60 hover:!text-white"
                     href={campaignShareHref}
                   >
                     <Link2 className="size-4 shrink-0 text-[#44f26e]" />
@@ -698,7 +698,7 @@ export function FanletterCampaignsPage({ locale }: { locale: Locale }) {
                     {copy.viewCampaign}
                   </Link>
                   <button
-                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-white/15 bg-black/25 px-3 text-sm font-black text-white/80 transition hover:border-white/30 hover:text-white"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-white/15 bg-black/25 px-3 text-sm font-black !text-white/80 transition hover:border-white/30 hover:!text-white"
                     type="button"
                     onClick={() =>
                       placementSectionRef.current?.scrollIntoView({
@@ -1339,7 +1339,7 @@ function QueueButton({
           ? "border-[#44f26e] bg-[#44f26e] text-black"
           : tone === "danger"
             ? "border-red-400/40 bg-red-500/10 text-red-100"
-            : "border-white/15 bg-black/25 text-white/80"
+            : "border-white/15 bg-black/25 !text-white/80"
       }`}
       type="button"
       onClick={onClick}
@@ -1353,7 +1353,7 @@ function QueueButton({
 function QueueLink({ children, href }: { children: ReactNode; href: string }) {
   return (
     <Link
-      className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-white/15 bg-black/25 px-3 text-sm font-black text-white/80 transition hover:border-white/30 hover:text-white"
+      className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-white/15 bg-black/25 px-3 text-sm font-black !text-white/80 transition hover:border-white/30 hover:!text-white"
       href={href}
     >
       <ExternalLink className="size-4" />

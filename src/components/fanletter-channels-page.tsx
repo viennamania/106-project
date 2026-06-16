@@ -582,7 +582,7 @@ function PostingPackageCard({
 
           <div className="mt-5 flex flex-col gap-2 sm:flex-row">
             <button
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-black/82"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-black/82"
               onClick={onCopy}
               type="button"
             >

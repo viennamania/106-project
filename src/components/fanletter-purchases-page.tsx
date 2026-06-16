@@ -1140,7 +1140,7 @@ export function FanletterPurchasesPage({
               {nextCursor && visibleItems.length > 0 ? (
                 <div className="mt-8 flex justify-center">
                   <button
-                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-black px-6 text-sm font-semibold text-white transition hover:bg-black/82 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-black px-6 text-sm font-semibold !text-white transition hover:bg-black/82 disabled:cursor-not-allowed disabled:opacity-60"
                     disabled={isLoadingMore}
                     onClick={() => {
                       void loadPurchases({ append: true, cursor: nextCursor });

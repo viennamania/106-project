@@ -5890,7 +5890,7 @@ function FeedSlide({
             <div aria-live="polite" className="mt-3 w-full">
               <button
                 aria-label={sharedSourceCompletionCtaTitle}
-                className="group flex min-h-[4.7rem] w-full items-center gap-3 rounded-[1.2rem] border border-[#44f26e]/34 bg-black/72 px-3.5 py-3 text-left text-white shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:border-[#44f26e]/62 hover:bg-black/82 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/26"
+                className="group flex min-h-[4.7rem] w-full items-center gap-3 rounded-[1.2rem] border border-[#44f26e]/34 bg-black/72 px-3.5 py-3 text-left !text-white shadow-[0_18px_48px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:border-[#44f26e]/62 hover:bg-black/82 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/26"
                 data-shared-source-cta="ready"
                 onClick={handleSharedSourceCompletionCtaClick}
                 onMouseDown={stopSharedSourceCompletionCtaMousePropagation}
@@ -5959,7 +5959,7 @@ function FeedSlide({
             <button
               aria-label={copy.nextCut}
               aria-live="polite"
-              className="mx-auto mt-3 inline-flex max-w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-black/42 px-3.5 py-2 text-center text-[0.68rem] font-black text-white/78 shadow-[0_12px_30px_rgba(0,0,0,0.24)] backdrop-blur-xl transition hover:border-[#44f26e]/38 hover:bg-black/60 hover:text-white focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
+              className="mx-auto mt-3 inline-flex max-w-full items-center justify-center gap-2 rounded-full border border-white/14 bg-black/42 px-3.5 py-2 text-center text-[0.68rem] font-black !text-white/78 shadow-[0_12px_30px_rgba(0,0,0,0.24)] backdrop-blur-xl transition hover:border-[#44f26e]/38 hover:bg-black/60 hover:!text-white focus:outline-none focus:ring-4 focus:ring-[#44f26e]/20"
               data-shared-entry-mini-guide
               onClick={goToNextCut}
               type="button"
@@ -6396,7 +6396,7 @@ function SharedCutDwellRecapSlide({
           </div>
         </div>
         <button
-          className="mx-auto mt-5 flex min-h-14 w-full max-w-[22rem] items-center justify-center gap-2 rounded-full border border-white/16 bg-black/54 px-5 text-center text-sm font-black text-white shadow-[0_16px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl transition hover:border-[#44f26e]/40 hover:bg-[#44f26e]/12 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/22"
+          className="mx-auto mt-5 flex min-h-14 w-full max-w-[22rem] items-center justify-center gap-2 rounded-full border border-white/16 bg-black/54 px-5 text-center text-sm font-black !text-white shadow-[0_16px_44px_rgba(0,0,0,0.32)] backdrop-blur-xl transition hover:border-[#44f26e]/40 hover:bg-[#44f26e]/12 focus:outline-none focus:ring-4 focus:ring-[#44f26e]/22"
           onClick={() => {
             document
               .querySelector("[data-shared-journey-end]")
