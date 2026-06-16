@@ -1019,6 +1019,7 @@ function FanletterProductHomeDashboard({
   referralCode,
   scoutShareLoop,
   scoutShareLoopHref,
+  selectedStarId,
   stars,
   topGrowingStarsHref,
 }: {
@@ -1035,15 +1036,23 @@ function FanletterProductHomeDashboard({
   referralCode: string | null;
   scoutShareLoop?: ScoutShareLoopData | null;
   scoutShareLoopHref: string;
+  selectedStarId?: string | null;
   stars?: AIStar[] | null;
   topGrowingStarsHref: string;
 }) {
   const isKo = locale === "ko";
   const starList = stars ?? [];
   const primaryStar =
+    starList.find((star) => star.id === selectedStarId) ??
     starList.find((star) => star.id === scoutShareLoop?.starId) ??
     starList[0] ??
     null;
+  const primaryStarFounderNetworkHref = primaryStar
+    ? buildPathWithReferral(
+        `/${locale}/fanletter/${encodeURIComponent(primaryStar.id)}/universe`,
+        referralCode,
+      )
+    : aiStarGenealogyHref;
   const topStars = starList.slice(0, 3);
   const availablePreviewVideos = (previewVideos ?? []).filter(
     (video) =>
@@ -1106,6 +1115,7 @@ function FanletterProductHomeDashboard({
         creatorReady: "AI 스타 창업 준비 완료",
         discovery: "AI 스타 발견",
         founder: "파운더",
+        founderNetworkCta: "파운더 네트워크 보기",
         founderUniverse: "파운더 네트워크",
         growth: "성장",
         headline: "AI 스타 발견에서 시작하세요",
@@ -1140,6 +1150,7 @@ function FanletterProductHomeDashboard({
         creatorReady: "AI Star launch ready",
         discovery: "AI Star Discovery",
         founder: "Founder",
+        founderNetworkCta: "View Founder Network",
         founderUniverse: "Founder Network",
         growth: "Growth",
         headline: "Start with AI Star Discovery",
@@ -1522,9 +1533,9 @@ function FanletterProductHomeDashboard({
               </p>
               <Link
                 className="inline-flex h-8 items-center gap-1 rounded-full bg-slate-50 px-3 text-xs font-semibold !text-slate-600"
-                href={aiStarGenealogyHref}
+                href={primaryStarFounderNetworkHref}
               >
-                {productCopy.universeMap}
+                {productCopy.founderNetworkCta}
                 <ArrowRight className="size-3.5" />
               </Link>
             </div>
@@ -3085,6 +3096,7 @@ export function FanletterHomePage({
             referralCode={referralCode}
             scoutShareLoop={founderClubScoutShareLoop}
             scoutShareLoopHref={scoutShareLoopHref}
+            selectedStarId={founderClubSelectedStarId}
             stars={founderClubStars}
             topGrowingStarsHref={topGrowingStarsHref}
           />

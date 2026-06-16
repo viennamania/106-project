@@ -636,6 +636,11 @@ function StarDetailMobileSignpost({
 }) {
   const isKorean = isKoreanCopy(copy);
   const displayStarName = getDisplayStarName(star.name, copy);
+  const founderNetworkHref = `/${locale}/fanletter/${encodeURIComponent(
+    star.id,
+  )}/universe${
+    referralCode ? `?ref=${encodeURIComponent(referralCode)}` : ""
+  }`;
   const viewerStateLabel =
     viewerState === "founder"
       ? isKorean
@@ -754,16 +759,13 @@ function StarDetailMobileSignpost({
           </span>
           <ArrowRight className="size-4 shrink-0" />
         </StarActionLink>
-        <a
+        <Link
           className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700"
-          href="#referral-builder"
+          href={founderNetworkHref}
         >
-          <Share2 className="size-4" />
-          {isKorean ? "추천 코드 확인" : "View referral code"}
-          <span className="max-w-[8rem] truncate font-mono text-[0.66rem] text-zinc-500">
-            {referralCode}
-          </span>
-        </a>
+          <GitBranch className="size-4" />
+          {isKorean ? "파운더 네트워크 보기" : "View Founder Network"}
+        </Link>
       </div>
     </section>
   );
@@ -1499,6 +1501,11 @@ export function FanletterStarDetailPage({
     : inboundReferralCode;
   const joinReferralCode = effectiveInboundReferralCode;
   const referralCode = effectiveInboundReferralCode ?? loop.referralCode;
+  const founderNetworkHref = `/${locale}/fanletter/${encodeURIComponent(
+    star.id,
+  )}/universe${
+    referralCode ? `?ref=${encodeURIComponent(referralCode)}` : ""
+  }`;
   const joinHref = buildJoinHref({
     locale,
     referralCode: joinReferralCode,
@@ -1736,7 +1743,26 @@ export function FanletterStarDetailPage({
             reputationEventLabel={
               primaryReputationEventLabel
             }
-            secondaryActions={[]}
+            secondaryActions={[
+              {
+                agentRank: {
+                  eventType: "universe_growth",
+                  intent: "star_detail_founder_network_open",
+                  source: "fanletter_star_detail",
+                  starId: star.id,
+                },
+                eventName: "content_open",
+                href: founderNetworkHref,
+                label: isKorean
+                  ? "파운더 네트워크 보기"
+                  : "View Founder Network",
+                metadata: {
+                  placement: "fanletter_star_detail_founder_network_secondary",
+                  starName: star.name,
+                },
+                referralCode,
+              },
+            ]}
             steps={starDetailGuideSteps}
             subtitle={primaryAction.helper}
             title={
