@@ -611,6 +611,164 @@ function MetricTile({
   );
 }
 
+function StarDetailMobileSignpost({
+  action,
+  copy,
+  joinReferralCode,
+  locale,
+  primaryReputationEventLabel,
+  referralCode,
+  star,
+  trackingAgentRank,
+  trackingMetadata,
+  viewerState,
+}: {
+  action: StarPrimaryAction;
+  copy: ReturnType<typeof getFanletterV2Copy>;
+  joinReferralCode?: string | null;
+  locale: Locale;
+  primaryReputationEventLabel: string;
+  referralCode: string;
+  star: AIStar;
+  trackingAgentRank?: AgentRankInteractionSignal | null;
+  trackingMetadata?: FunnelEventMetadata;
+  viewerState: StarDetailViewerState;
+}) {
+  const isKorean = isKoreanCopy(copy);
+  const displayStarName = getDisplayStarName(star.name, copy);
+  const viewerStateLabel =
+    viewerState === "founder"
+      ? isKorean
+        ? "파운더"
+        : "Founder"
+      : viewerState === "member"
+        ? isKorean
+          ? "회원"
+          : "Member"
+        : isKorean
+          ? "방문자"
+          : "Guest";
+
+  return (
+    <section className="mt-5 min-w-0 overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white text-zinc-950 shadow-[0_14px_36px_rgba(15,23,42,0.06)] sm:hidden">
+      <div className="p-3.5">
+        <div className="flex items-start gap-3">
+          <div
+            className="flex size-14 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 bg-cover bg-center text-base font-semibold text-zinc-900"
+            style={
+              star.portraitImageUrl
+                ? { backgroundImage: `url(${star.portraitImageUrl})` }
+                : {
+                    background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
+                  }
+            }
+          >
+            {star.portraitImageUrl ? null : star.portraitInitials}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              <Bot className="size-3.5" />
+              {isKorean ? "현재 위치" : "Current"}
+            </p>
+            <h2 className="mt-1 truncate text-xl font-semibold tracking-normal">
+              {displayStarName}
+            </h2>
+            <p className="mt-0.5 text-sm font-semibold text-zinc-500">
+              {isKorean ? "AI 스타 유니버스" : "AI Star Universe"}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {[
+            {
+              label: isKorean ? "내 상태" : "Status",
+              value: viewerStateLabel,
+            },
+            {
+              label: copy.labels.starScore,
+              value: String(star.starScore),
+            },
+            {
+              label: copy.labels.openSlots,
+              value: formatNumber(star.openSlots.open, locale),
+            },
+          ].map((metric) => (
+            <div
+              className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-2"
+              key={metric.label}
+            >
+              <p className="truncate text-[0.62rem] font-semibold text-zinc-500">
+                {metric.label}
+              </p>
+              <p className="mt-0.5 truncate text-sm font-semibold text-zinc-950">
+                {metric.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            {isKorean ? "다음 행동" : "Next action"}
+          </p>
+          <p className="mt-1 text-sm font-semibold leading-5 text-zinc-950 [word-break:keep-all]">
+            {action.label}
+          </p>
+          <p className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
+            {action.helper}
+          </p>
+        </div>
+      </div>
+
+      <div className="border-t border-zinc-200 bg-zinc-50/72 p-3.5">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              {isKorean ? "생성될 신호" : "Signal"}
+            </p>
+            <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+              {primaryReputationEventLabel}
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-white px-2.5 py-1 font-mono text-[0.66rem] font-semibold text-zinc-600">
+            {action.variant === "share"
+              ? "referral_code_created"
+              : "founder_joined"}
+          </span>
+        </div>
+        <StarActionLink
+          action={action}
+          agentRank={trackingAgentRank}
+          className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)]"
+          locale={locale}
+          referralCode={joinReferralCode}
+          starId={star.id}
+          trackingMetadata={{
+            ...trackingMetadata,
+            placement: "fanletter_star_detail_mobile_signpost_primary",
+          }}
+        >
+          <span className="min-w-0 whitespace-normal text-center leading-tight [word-break:keep-all]">
+            {action.label}
+          </span>
+          <ArrowRight className="size-4 shrink-0" />
+        </StarActionLink>
+        <a
+          className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-700"
+          href="#referral-builder"
+        >
+          <Share2 className="size-4" />
+          {isKorean ? "추천 코드 확인" : "View referral code"}
+          <span className="max-w-[8rem] truncate font-mono text-[0.66rem] text-zinc-500">
+            {referralCode}
+          </span>
+        </a>
+      </div>
+    </section>
+  );
+}
+
 function FounderJoinFlowHint({
   copy,
   viewerState,
@@ -1533,11 +1691,11 @@ export function FanletterStarDetailPage({
           ) : null}
 
           <FanletterActionGuide
-            className="mt-5"
+            className="mt-5 hidden sm:block"
             currentLabel={
               isKorean
-                ? `${displayStarName} 스타 네트워크`
-                : `${displayStarName} Star Network`
+                ? `${displayStarName} AI 스타 유니버스`
+                : `${displayStarName} AI Star Universe`
             }
             metrics={[
               {
@@ -1586,6 +1744,19 @@ export function FanletterStarDetailPage({
                 ? `다음 행동: ${primaryAction.label}`
                 : `Next action: ${primaryAction.label}`
             }
+          />
+
+          <StarDetailMobileSignpost
+            action={primaryAction}
+            copy={copy}
+            joinReferralCode={joinReferralCode}
+            locale={locale}
+            primaryReputationEventLabel={primaryReputationEventLabel}
+            referralCode={referralCode}
+            star={star}
+            trackingAgentRank={primaryActionAgentRank}
+            trackingMetadata={primaryActionTrackingMetadata}
+            viewerState={viewerState}
           />
 
           <div className="mt-3 hidden gap-2 sm:grid sm:grid-cols-3">
