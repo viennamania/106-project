@@ -761,6 +761,31 @@ function getReviewQueueActionLabel(
   return "Oracle Packet 후보 검토";
 }
 
+function getLedgerEventNextActionLabel(
+  event: AgentRankReputationEvent,
+  locale: Locale,
+) {
+  const isKorean = locale === "ko";
+
+  if (!event.audit.graphReady) {
+    return isKorean ? "거래 그래프 연결" : "Connect graph links";
+  }
+
+  if (!event.audit.impactReady) {
+    return isKorean ? "점수 영향 확인" : "Review score impact";
+  }
+
+  if (!event.reputationSignals.oracleReady) {
+    return isKorean ? "Oracle 증거 보강" : "Enrich Oracle evidence";
+  }
+
+  if (event.audit.status !== "audit_ready") {
+    return isKorean ? "감사 품질 점검" : "Review audit quality";
+  }
+
+  return isKorean ? "상세 추적 검증" : "Trace event detail";
+}
+
 function getActionCoverageLabel(
   action: AgentRankProductActionCoverageItem,
   locale: Locale,
@@ -1260,6 +1285,7 @@ function EventCard({
   const oraclePacketLabel = isPacketReady
     ? copy.packetReady
     : copy.packetPartial;
+  const nextActionLabel = getLedgerEventNextActionLabel(event, locale);
 
   if (event.starId) {
     detailParams.set("starId", event.starId);
@@ -1327,7 +1353,36 @@ function EventCard({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mt-4 grid gap-2 sm:hidden">
+        <div className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5">
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            {locale === "ko" ? "현재 대상" : "Current target"}
+          </p>
+          <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+            {getObjectLabel(event)}
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="min-w-0 rounded-xl border border-zinc-200 bg-white px-3 py-2.5">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              {copy.nextAction}
+            </p>
+            <p className="mt-1 break-words text-sm font-semibold leading-5 text-zinc-950 [word-break:keep-all]">
+              {nextActionLabel}
+            </p>
+          </div>
+          <div className="min-w-0 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2.5">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-emerald-700/70">
+              {copy.impact}
+            </p>
+            <p className="mt-1 text-xl font-semibold text-emerald-900">
+              {impactTotal.toFixed(1)}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 hidden gap-3 text-sm sm:grid sm:grid-cols-2 lg:grid-cols-5">
         <div>
           <p className="text-xs font-semibold uppercase text-slate-400">
             {copy.actor}
@@ -1386,6 +1441,10 @@ function EventCard({
             -
           </span>
         )}
+        <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-zinc-50 px-2.5 py-1 text-zinc-700 ring-1 ring-zinc-100 sm:hidden">
+          <ArrowRight className="size-3.5 shrink-0" />
+          <span className="min-w-0 truncate">{nextActionLabel}</span>
+        </span>
       </div>
 
       {relatedStarScope.length ? (
@@ -1474,12 +1533,12 @@ function EventCard({
           {isPacketReady ? copy.packetReady : copy.packetPartial}
         </span>
         {isCoverageMock ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-amber-700">
+          <span className="hidden items-center gap-1.5 rounded-full border border-amber-100 bg-amber-50 px-2.5 py-1 text-amber-700 sm:inline-flex">
             <AlertTriangle className="size-3.5" />
             {copy.coverageMockNote}
           </span>
         ) : null}
-        <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-slate-500 ring-1 ring-slate-100">
+        <span className="hidden max-w-full items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 text-slate-500 ring-1 ring-slate-100 sm:inline-flex">
           <Clock3 className="size-3.5" />
           {formatDate(event.occurredAt, locale)}
         </span>
@@ -1487,11 +1546,11 @@ function EventCard({
           <Network className="size-3.5 shrink-0" />
           <span className="min-w-0 break-all">{universeLabel}</span>
         </span>
-        <span className="inline-flex max-w-full items-center rounded-full bg-slate-50 px-2.5 py-1 font-mono text-[0.68rem] text-slate-500 ring-1 ring-slate-100">
+        <span className="hidden max-w-full items-center rounded-full bg-slate-50 px-2.5 py-1 font-mono text-[0.68rem] text-slate-500 ring-1 ring-slate-100 sm:inline-flex">
           {event.eventId.slice(0, 20)}
         </span>
         <Link
-          className="inline-flex h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9]"
+          className="hidden h-8 items-center gap-1.5 rounded-full border border-violet-100 bg-violet-50 px-3 text-xs font-semibold text-[#6d28d9] sm:inline-flex"
           href={evidenceHref}
         >
           <Download className="size-3.5" />
@@ -1776,7 +1835,7 @@ export function FanletterAgentRankLedgerPage({
               : "Next action: review the queue"
           }
         />
-        <header className="rounded-[1.35rem] border border-zinc-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
+        <header className="hidden rounded-[1.35rem] border border-zinc-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:block">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
               className="inline-flex h-10 items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-4 text-sm font-semibold text-zinc-900"
@@ -1844,26 +1903,32 @@ export function FanletterAgentRankLedgerPage({
           totalEvents={feed.summary.totalEvents}
         />
 
-        <InvestorDemoPanel
-          apiHref={apiHref}
-          csvHref={csvHref}
-          feed={feed}
-          filters={filters}
-          locale={locale}
-          ndjsonHref={ndjsonHref}
-        />
+        <div className="hidden sm:block">
+          <InvestorDemoPanel
+            apiHref={apiHref}
+            csvHref={csvHref}
+            feed={feed}
+            filters={filters}
+            locale={locale}
+            ndjsonHref={ndjsonHref}
+          />
+        </div>
 
-        <ReviewQueuePanel
-          filters={filters}
-          locale={locale}
-          queue={reviewQueue}
-        />
+        <div className="hidden sm:block">
+          <ReviewQueuePanel
+            filters={filters}
+            locale={locale}
+            queue={reviewQueue}
+          />
+        </div>
 
-        <ActionCoveragePanel
-          actions={actionCoverage}
-          filters={filters}
-          locale={locale}
-        />
+        <div className="hidden sm:block">
+          <ActionCoveragePanel
+            actions={actionCoverage}
+            filters={filters}
+            locale={locale}
+          />
+        </div>
 
         <section className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
           <div className="flex items-center gap-2 text-sm font-semibold uppercase text-zinc-600">
@@ -2208,7 +2273,7 @@ export function FanletterAgentRankLedgerPage({
           </div>
         </section>
 
-        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-7">
+        <section className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-7">
           <MetricTile
             label={copy.schemaReady}
             value={formatPercent(
@@ -2251,7 +2316,7 @@ export function FanletterAgentRankLedgerPage({
           />
         </section>
 
-        <section className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+        <section className="hidden rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:block">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold uppercase text-zinc-600">
