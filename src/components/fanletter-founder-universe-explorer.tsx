@@ -32,6 +32,7 @@ import {
 } from "@/components/fanletter-founder-club-v2";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
+import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsive-action-panel";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
@@ -1571,16 +1572,18 @@ function FounderUniverseDashboardPanel({
   );
 }
 
-function SelectedDashboardMemberCard({
+function SelectedMemberDetailContent({
   childNodes,
   locale,
   node,
   onSelectNode,
+  showProfileButton = true,
 }: {
   childNodes: FanletterFounderUniverseExplorerNode[];
   locale: Locale;
   node: FanletterFounderUniverseExplorerNode | null;
   onSelectNode: (nodeId: string) => void;
+  showProfileButton?: boolean;
 }) {
   const dashboardCopy = getDashboardCopy(locale);
   const v2Copy = getFanletterV2Copy(locale);
@@ -1593,7 +1596,7 @@ function SelectedDashboardMemberCard({
   const contribution = Math.min(96, 48 + node.directChildrenCount * 8 + node.depth * 3);
 
   return (
-    <aside className="rounded-[1.35rem] border border-slate-100 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.07)]">
+    <div>
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-base font-semibold text-[#111827]">
           {dashboardCopy.selectedMember}
@@ -1683,15 +1686,131 @@ function SelectedDashboardMemberCard({
         </ul>
       </div>
 
-      <button
-        className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-slate-100 px-4 text-sm font-semibold text-[#111827] transition hover:bg-zinc-200 hover:text-black"
-        onClick={() => onSelectNode(node.nodeId)}
-        type="button"
-      >
-        {dashboardCopy.memberProfile}
-        <ChevronRight className="size-4" />
-      </button>
+      {childNodes.length > 0 ? (
+        <div className="mt-6">
+          <p className="text-sm font-semibold text-[#111827]">
+            {dashboardCopy.directFounder}
+          </p>
+          <div className="mt-3 grid gap-2">
+            {childNodes.slice(0, 6).map((childNode) => (
+              <button
+                className="flex min-h-12 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-left transition hover:border-zinc-400 hover:bg-zinc-50"
+                key={childNode.nodeId}
+                onClick={() => onSelectNode(childNode.nodeId)}
+                type="button"
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <HumanMemberAvatar
+                    member={{
+                      initials: childNode.initials,
+                      name: childNode.label,
+                    }}
+                    size="sm"
+                  />
+                  <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-zinc-950">
+                      {childNode.label}
+                    </span>
+                    <span className="block truncate text-xs font-semibold text-zinc-500">
+                      ID {childNode.memberId}
+                    </span>
+                  </span>
+                </span>
+                <span className="shrink-0 rounded-full bg-zinc-100 px-2 py-1 text-[0.68rem] font-semibold text-zinc-700">
+                  L{childNode.depth}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {showProfileButton ? (
+        <button
+          className="mt-6 inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-slate-100 px-4 text-sm font-semibold text-[#111827] transition hover:bg-zinc-200 hover:text-black"
+          onClick={() => onSelectNode(node.nodeId)}
+          type="button"
+        >
+          {dashboardCopy.memberProfile}
+          <ChevronRight className="size-4" />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+function SelectedDashboardMemberCard({
+  childNodes,
+  locale,
+  node,
+  onSelectNode,
+}: {
+  childNodes: FanletterFounderUniverseExplorerNode[];
+  locale: Locale;
+  node: FanletterFounderUniverseExplorerNode | null;
+  onSelectNode: (nodeId: string) => void;
+}) {
+  if (!node) {
+    return null;
+  }
+
+  return (
+    <aside className="rounded-[1.35rem] border border-slate-100 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.07)]">
+      <SelectedMemberDetailContent
+        childNodes={childNodes}
+        locale={locale}
+        node={node}
+        onSelectNode={onSelectNode}
+      />
     </aside>
+  );
+}
+
+function SelectedMemberDetailPanel({
+  childNodes,
+  locale,
+  node,
+  onClose,
+  onSelectNode,
+  open,
+}: {
+  childNodes: FanletterFounderUniverseExplorerNode[];
+  locale: Locale;
+  node: FanletterFounderUniverseExplorerNode | null;
+  onClose: () => void;
+  onSelectNode: (nodeId: string) => void;
+  open: boolean;
+}) {
+  const dashboardCopy = getDashboardCopy(locale);
+  const v2Copy = getFanletterV2Copy(locale);
+  const title = node?.label ?? dashboardCopy.selectedMember;
+  const roleLabel = node ? v2Copy.roles[node.role] : dashboardCopy.selectedMember;
+  const description =
+    locale === "ko"
+      ? "선택한 멤버의 파운더 네트워크 위치, 기여도, 하위 멤버를 확인합니다."
+      : "Review the selected member's Founder Network position, contribution, and downstream members.";
+
+  return (
+    <FanletterResponsiveActionPanel
+      closeLabel={
+        locale === "ko"
+          ? "멤버 상세 패널 닫기"
+          : "Close member detail panel"
+      }
+      description={description}
+      eyebrow={roleLabel}
+      onClose={onClose}
+      open={open && Boolean(node)}
+      title={title}
+    >
+      <SelectedMemberDetailContent
+        childNodes={childNodes}
+        locale={locale}
+        node={node}
+        onSelectNode={onSelectNode}
+        showProfileButton={false}
+      />
+    </FanletterResponsiveActionPanel>
   );
 }
 
@@ -2668,6 +2787,7 @@ export function FanletterFounderUniverseExplorer({
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(
     creatorNode?.nodeId ?? null,
   );
+  const [isMemberPanelOpen, setIsMemberPanelOpen] = useState(false);
   const normalizedQuery = query.trim().toLowerCase();
   const nodesById = useMemo(
     () => new Map(displayUniverse.nodes.map((node) => [node.nodeId, node])),
@@ -2693,6 +2813,30 @@ export function FanletterFounderUniverseExplorer({
       .filter(
         (node): node is FanletterFounderUniverseExplorerNode => node !== undefined,
       ) ?? [];
+  const handleSelectNode = (nodeId: string) => {
+    const nextNode = nodesById.get(nodeId);
+
+    setSelectedNodeId(nodeId);
+    setIsMemberPanelOpen(true);
+
+    if (nextNode) {
+      trackFunnelEvent("content_open", {
+        agentRank: {
+          eventType: "universe_growth",
+          intent: "founder_universe_member_detail_opened",
+          source: "fanletter_founder_universe",
+          starId: displayUniverse.star.id,
+        },
+        metadata: {
+          memberDepth: nextNode.depth,
+          memberId: nextNode.memberId,
+          memberRole: nextNode.role,
+          placement: "founder_universe_member_detail_panel",
+          starName: getUniverseStarName(displayUniverse.star),
+        },
+      });
+    }
+  };
   const v2Copy = getFanletterV2Copy(locale);
   const starName = getUniverseStarName(displayUniverse.star);
   const selectedRoleLabel = selectedNode
@@ -2883,7 +3027,7 @@ export function FanletterFounderUniverseExplorer({
             <FounderUniverseDashboardPanel
               locale={locale}
               onSelectDepth={setSelectedDepth}
-              onSelectNode={setSelectedNodeId}
+              onSelectNode={handleSelectNode}
               selectedDepth={selectedDepth}
               selectedNodeId={selectedNodeId}
               universe={displayUniverse}
@@ -2908,7 +3052,7 @@ export function FanletterFounderUniverseExplorer({
             <div className="grid gap-5">
               <UniverseExpansionMap
                 locale={locale}
-                onSelectNode={setSelectedNodeId}
+                onSelectNode={handleSelectNode}
                 universe={displayUniverse}
               />
 
@@ -2943,7 +3087,7 @@ export function FanletterFounderUniverseExplorer({
                         key={node.nodeId}
                         locale={locale}
                         node={node}
-                        onSelect={setSelectedNodeId}
+                        onSelect={handleSelectNode}
                       />
                     ))
                   ) : (
@@ -2960,7 +3104,7 @@ export function FanletterFounderUniverseExplorer({
                 childNodes={selectedChildNodes}
                 locale={locale}
                 node={selectedNode}
-                onSelectNode={setSelectedNodeId}
+                onSelectNode={handleSelectNode}
               />
               <AgentRankUniverseCard
                 agentRank={agentRank}
@@ -2972,6 +3116,14 @@ export function FanletterFounderUniverseExplorer({
           </div>
         </div>
       </div>
+      <SelectedMemberDetailPanel
+        childNodes={selectedChildNodes}
+        locale={locale}
+        node={selectedNode}
+        onClose={() => setIsMemberPanelOpen(false)}
+        onSelectNode={handleSelectNode}
+        open={isMemberPanelOpen}
+      />
     </main>
   );
 }
