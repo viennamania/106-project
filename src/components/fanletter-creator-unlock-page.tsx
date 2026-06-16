@@ -854,14 +854,14 @@ function SourceUniverseSelector({
           <h2 className="text-2xl font-semibold leading-tight tracking-normal text-[#12041f]">
             {copy.sourceSelectTitle}
           </h2>
-          <p className="mt-2 text-sm font-medium leading-6 text-black/62">
+          <p className="mt-2 hidden text-sm font-medium leading-6 text-black/62 sm:block">
             {copy.sourceSelectBody}
           </p>
         </div>
       </div>
 
       <FanletterTerminologyGuide
-        className="mt-4"
+        className="mt-4 hidden sm:block"
         locale={locale}
         variant="compact"
       />
@@ -1431,7 +1431,7 @@ function AccountConnectionNotice({
             intent: "creator_unlock_connect",
             source: "fanletter_creator_unlock",
           }}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full bg-black px-5 text-sm font-semibold !text-white transition hover:bg-zinc-800"
+          className="hidden min-h-11 shrink-0 items-center justify-center rounded-full bg-black px-5 text-sm font-semibold !text-white transition hover:bg-zinc-800 sm:inline-flex"
           eventName="signup_cta_click"
           href={connectHref}
           metadata={{
@@ -1458,35 +1458,47 @@ function CreatorUnlockStateStrip({
   selectedSourceOption: SourceUniverseOption | null;
   unlock: CreatorUnlockData;
 }) {
+  const completedConditionCount = unlock.conditions.filter(
+    (condition) => condition.met,
+  ).length;
+  const progressPercent =
+    unlock.conditions.length > 0
+      ? Math.round((completedConditionCount / unlock.conditions.length) * 100)
+      : 0;
+  const conditionLabels = getCreatorUnlockConditionLabels(
+    getFanletterV2Copy(locale),
+  );
+  const nextMissingCondition = unlock.conditions.find(
+    (condition) => !condition.met,
+  );
   const labels =
     locale === "ko"
       ? {
-          account: "계정 상태",
           action: "다음 행동",
           connect: "계정 연결 후 실데이터 확인",
-          live: "실데이터",
-          locked: "조건 채우기",
+          locked: "조건 상세 확인",
+          nextCondition: "다음 조건",
+          progress: "권한 진행률",
           ready: "생성 미리보기 가능",
-          sample: "샘플 미리보기",
           source: "창업 출처",
           sourceMissing: "참여한 스타 유니버스 필요",
         }
       : {
-          account: "Account State",
           action: "Next Action",
           connect: "Connect to view live data",
-          live: "Live data",
-          locked: "Complete conditions",
+          locked: "Review conditions",
+          nextCondition: "Next Condition",
+          progress: "Activation Progress",
           ready: "Launch preview ready",
-          sample: "Sample preview",
           source: "Launch Source",
           sourceMissing: "Star Universe required",
         };
   const items = [
     {
-      label: labels.account,
-      tone: isPreviewMode ? "amber" : "emerald",
-      value: isPreviewMode ? labels.sample : labels.live,
+      detail: `${progressPercent}%`,
+      label: labels.progress,
+      tone: unlock.unlocked ? "emerald" : "violet",
+      value: `${completedConditionCount}/${unlock.conditions.length}`,
     },
     {
       label: labels.source,
@@ -1498,7 +1510,10 @@ function CreatorUnlockStateStrip({
           : labels.sourceMissing,
     },
     {
-      label: labels.action,
+      label:
+        !isPreviewMode && !requiresSourceUniverse && nextMissingCondition
+          ? labels.nextCondition
+          : labels.action,
       tone: unlock.unlocked && !isPreviewMode && !requiresSourceUniverse
         ? "emerald"
         : "violet",
@@ -1508,7 +1523,9 @@ function CreatorUnlockStateStrip({
           ? labels.sourceMissing
           : unlock.unlocked
             ? labels.ready
-            : labels.locked,
+            : nextMissingCondition
+              ? conditionLabels[nextMissingCondition.id] ?? labels.locked
+              : labels.locked,
     },
   ];
 
@@ -1534,9 +1551,17 @@ function CreatorUnlockStateStrip({
           >
             {item.label}
           </p>
-          <p className="mt-1 truncate text-sm font-semibold text-[#12041f]">
+          <p className="mt-1 break-words text-sm font-semibold leading-tight text-[#12041f] [word-break:keep-all]">
             {item.value}
           </p>
+          {"detail" in item && item.detail ? (
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100">
+              <div
+                className="h-full rounded-full bg-black"
+                style={{ width: item.detail }}
+              />
+            </div>
+          ) : null}
         </div>
       ))}
     </section>
