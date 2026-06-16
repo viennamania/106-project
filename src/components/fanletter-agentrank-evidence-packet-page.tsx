@@ -18,6 +18,7 @@ import {
 
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
+import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type { AgentRankEventEvidencePacket } from "@/lib/agentrank/evidence-packet";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import {
@@ -444,6 +445,8 @@ function EvidencePacketMobileStatusCard({
   locale,
   nextActionLabel,
   packet,
+  primaryHref,
+  primaryLabel,
 }: {
   copy: ReturnType<typeof getCopy>;
   event: AgentRankReputationEvent;
@@ -451,8 +454,11 @@ function EvidencePacketMobileStatusCard({
   locale: Locale;
   nextActionLabel: string;
   packet: AgentRankEventEvidencePacket;
+  primaryHref: string;
+  primaryLabel: string;
 }) {
   const readiness = packet.oracleManifest.readiness;
+  const starId = event.starId ?? event.object?.id ?? null;
 
   return (
     <section className="rounded-[1.15rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_14px_40px_rgba(15,23,42,0.055)] sm:hidden">
@@ -509,6 +515,26 @@ function EvidencePacketMobileStatusCard({
           {nextActionLabel}
         </p>
       </div>
+
+      <FanletterTrackedLink
+        agentRank={{
+          eventType: "universe_growth",
+          intent: "agentrank_evidence_packet_mobile_download",
+          source: "fanletter_agentrank",
+          starId,
+        }}
+        className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-sm font-semibold !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)]"
+        eventName="content_open"
+        href={primaryHref}
+        metadata={{
+          eventId: event.eventId,
+          eventType: event.type,
+          placement: "agentrank_evidence_packet_mobile_primary",
+        }}
+      >
+        <span className="min-w-0 truncate">{primaryLabel}</span>
+        <ArrowRight className="size-4 shrink-0" />
+      </FanletterTrackedLink>
 
       <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
         <p className="text-[0.62rem] font-semibold normal-case tracking-[0.08em] text-emerald-700/75">
@@ -660,69 +686,71 @@ export function FanletterAgentRankEvidencePacketPage({
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full min-w-0 max-w-[86rem] flex-col gap-5">
-        <FanletterActionGuide
-          currentLabel={
-            locale === "ko"
-              ? `Evidence Packet · ${scopeLabel}`
-              : `Evidence Packet · ${scopeLabel}`
-          }
-          metrics={[
-            {
-              label: copy.eventContribution,
-              value: formatNumber(
-                packet.oracleManifest.scoreImpact.total,
-                locale,
-              ),
-            },
-            {
-              label: copy.linkedEvidence,
-              value: `${linkedEvents.length}/${packet.evidence.linkedEventCount}`,
-            },
-          ]}
-          primaryAction={{
-            agentRank: {
-              eventType: "universe_growth",
-              intent: "agentrank_evidence_packet_download",
-              source: "fanletter_agentrank",
-              starId,
-            },
-            eventName: "content_open",
-            href: evidenceDownloadHref,
-            label: copy.downloadJson,
-            metadata: {
-              eventId: event.eventId,
-              placement: "agentrank_evidence_packet_action_guide_primary",
-            },
-          }}
-          reputationEventLabel={
-            locale === "ko" ? "Oracle 증거 패킷" : "Oracle evidence packet"
-          }
-          secondaryActions={[]}
-          steps={[
-            {
-              label: locale === "ko" ? "이벤트 선택" : "Event selected",
-              status: "done",
-            },
-            {
-              label: locale === "ko" ? "증거 해시" : "Evidence hash",
-              status: "active",
-            },
-            {
-              label: locale === "ko" ? "연결 증거" : "Linked evidence",
-              status: linkedEvents.length > 0 ? "done" : "next",
-            },
-            {
-              label: locale === "ko" ? "Oracle 전달" : "Oracle handoff",
-              status: "next",
-            },
-          ]}
-          subtitle={copy.verifierNote}
-          title={
-            locale === "ko"
-              ? "다음 행동: Evidence Root 검증"
-              : "Next action: verify Evidence Root"
-          }
-        />
+        <div className="hidden sm:block">
+          <FanletterActionGuide
+            currentLabel={
+              locale === "ko"
+                ? `Evidence Packet · ${scopeLabel}`
+                : `Evidence Packet · ${scopeLabel}`
+            }
+            metrics={[
+              {
+                label: copy.eventContribution,
+                value: formatNumber(
+                  packet.oracleManifest.scoreImpact.total,
+                  locale,
+                ),
+              },
+              {
+                label: copy.linkedEvidence,
+                value: `${linkedEvents.length}/${packet.evidence.linkedEventCount}`,
+              },
+            ]}
+            primaryAction={{
+              agentRank: {
+                eventType: "universe_growth",
+                intent: "agentrank_evidence_packet_download",
+                source: "fanletter_agentrank",
+                starId,
+              },
+              eventName: "content_open",
+              href: evidenceDownloadHref,
+              label: copy.downloadJson,
+              metadata: {
+                eventId: event.eventId,
+                placement: "agentrank_evidence_packet_action_guide_primary",
+              },
+            }}
+            reputationEventLabel={
+              locale === "ko" ? "Oracle 증거 패킷" : "Oracle evidence packet"
+            }
+            secondaryActions={[]}
+            steps={[
+              {
+                label: locale === "ko" ? "이벤트 선택" : "Event selected",
+                status: "done",
+              },
+              {
+                label: locale === "ko" ? "증거 해시" : "Evidence hash",
+                status: "active",
+              },
+              {
+                label: locale === "ko" ? "연결 증거" : "Linked evidence",
+                status: linkedEvents.length > 0 ? "done" : "next",
+              },
+              {
+                label: locale === "ko" ? "Oracle 전달" : "Oracle handoff",
+                status: "next",
+              },
+            ]}
+            subtitle={copy.verifierNote}
+            title={
+              locale === "ko"
+                ? "다음 행동: Evidence Root 검증"
+                : "Next action: verify Evidence Root"
+            }
+          />
+        </div>
         <EvidencePacketMobileStatusCard
           copy={copy}
           event={event}
@@ -730,6 +758,8 @@ export function FanletterAgentRankEvidencePacketPage({
           locale={locale}
           nextActionLabel={nextActionLabel}
           packet={packet}
+          primaryHref={evidenceDownloadHref}
+          primaryLabel={copy.downloadJson}
         />
         <EvidencePacketSignpostSummary
           copy={copy}
