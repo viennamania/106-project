@@ -243,10 +243,10 @@ async function requestFanletterCreatorMockLaunch({
 function getButtonCopy(locale: Locale, state: "done" | "idle" | "loading") {
   if (locale === "ko") {
     return state === "loading"
-      ? "Mock 생성 중"
+      ? "미리보기 생성 중"
       : state === "done"
-        ? "Mock 생성 완료"
-        : "Mock 생성 완료하기";
+        ? "미리보기 생성 완료"
+        : "미리보기 생성 완료하기";
   }
 
   if (locale === "ja") {
@@ -268,26 +268,38 @@ function getConfirmCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       aiStar: "AI 스타",
+      body:
+        "이 단계는 실제 결제 없이 10 USDT 생성 의도와 새 AI 스타 draft를 AgentRank 평판 이벤트로 기록합니다.",
       cancel: "취소",
-      close: "Mock 생성 확인 닫기",
-      confirm: "Mock 생성 확정",
-      cost: "비용",
+      close: "미리보기 생성 확인 닫기",
+      confirm: "미리보기 생성 확정",
+      cost: "생성 조건",
       event: "AgentRank 이벤트",
-      payment: "실제 결제 없음",
+      eventValue: "x402 미리보기 결제 의도",
+      next: "생성 후",
+      nextValue: "AI 스타 draft + 포트폴리오 반영",
+      payment: "결제 상태",
+      paymentValue: "실제 결제 없음",
       source: "출처",
-      title: "10 USDT Mock 생성 확인",
+      title: "10 USDT 미리보기 생성 확인",
     };
   }
 
   if (locale === "ja") {
     return {
       aiStar: "AI Star",
+      body:
+        "This step records a 10 USDT creation intent and a new AI Star draft as AgentRank reputation events without real payment.",
       cancel: "キャンセル",
       close: "Mock作成確認を閉じる",
       confirm: "Mock作成を確定",
       cost: "Cost",
       event: "AgentRank event",
+      eventValue: "x402 mock payment intent",
+      next: "After creation",
+      nextValue: "AI Star draft + portfolio update",
       payment: "No real payment",
+      paymentValue: "No real payment",
       source: "Source",
       title: "Confirm 10 USDT mock launch",
     };
@@ -295,12 +307,18 @@ function getConfirmCopy(locale: Locale) {
 
   return {
     aiStar: "AI Star",
+    body:
+      "This step records a 10 USDT creation intent and a new AI Star draft as AgentRank reputation events without real payment.",
     cancel: "Cancel",
     close: "Close mock launch confirmation",
     confirm: "Confirm mock launch",
     cost: "Cost",
     event: "AgentRank event",
+    eventValue: "x402 mock payment intent",
+    next: "After creation",
+    nextValue: "AI Star draft + portfolio update",
     payment: "No real payment",
+    paymentValue: "No real payment",
     source: "Source",
     title: "Confirm 10 USDT mock launch",
   };
@@ -340,6 +358,9 @@ export function FanletterCreatorMockLaunchButton({
       return;
     }
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setIsConfirmOpen(false);
@@ -347,7 +368,10 @@ export function FanletterCreatorMockLaunchButton({
     }
 
     document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [isConfirmOpen]);
 
   const handleConfirm = useCallback(async () => {
@@ -456,15 +480,18 @@ export function FanletterCreatorMockLaunchButton({
             onClick={() => setIsConfirmOpen(false)}
             type="button"
           />
-          <section className="relative z-10 w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_28px_90px_rgba(15,23,42,0.22)] sm:p-5">
+          <section className="relative z-10 max-h-[calc(100svh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_28px_90px_rgba(15,23,42,0.22)] sm:p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                  {confirmCopy.payment}
+                  {confirmCopy.paymentValue}
                 </p>
                 <h2 className="mt-2 text-xl font-semibold leading-tight">
                   {confirmCopy.title}
                 </h2>
+                <p className="mt-2 text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+                  {confirmCopy.body}
+                </p>
               </div>
               <button
                 aria-label={confirmCopy.close}
@@ -478,10 +505,12 @@ export function FanletterCreatorMockLaunchButton({
 
             <div className="mt-4 grid gap-2">
               {[
-                [confirmCopy.event, "x402_mock_payment_intent"],
+                [confirmCopy.payment, confirmCopy.paymentValue],
+                [confirmCopy.event, confirmCopy.eventValue],
                 [confirmCopy.aiStar, name],
                 [confirmCopy.source, sourceUniverseName],
                 [confirmCopy.cost, `${launchCostUsdt} USDT`],
+                [confirmCopy.next, confirmCopy.nextValue],
               ].map(([label, value]) => (
                 <div
                   className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2"
@@ -497,7 +526,7 @@ export function FanletterCreatorMockLaunchButton({
               ))}
             </div>
 
-            <div className="mt-5 grid grid-cols-2 gap-2">
+            <div className="mt-5 grid gap-2 sm:grid-cols-2">
               <button
                 className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-50"
                 onClick={() => setIsConfirmOpen(false)}
