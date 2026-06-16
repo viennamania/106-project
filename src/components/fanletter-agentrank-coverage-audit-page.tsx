@@ -1713,6 +1713,115 @@ function SourceCoverageCard({
   );
 }
 
+function MobileAuditSummary({
+  backfill,
+  coverage,
+  locale,
+}: {
+  backfill: AgentRankBackfillReadinessSnapshot;
+  coverage: AgentRankCoverageSnapshot;
+  locale: Locale;
+}) {
+  const copy = getCoverageAuditCopy(locale);
+  const manifest = coverage.factoryManifest;
+  const contract = coverage.contract;
+  const summaryItems = [
+    {
+      Icon: Sparkles,
+      label: copy.eventFactory,
+      status: manifest.agentRankCompatible
+        ? copy.factoryCompatible
+        : copy.factoryNeedsMoreData,
+      tone: manifest.agentRankCompatible
+        ? "text-emerald-700"
+        : "text-amber-700",
+      value: `${manifest.layers.filter((layer) => layer.coveragePercent === 100).length}/${manifest.layers.length}`,
+      width: Math.round(
+        manifest.layers.reduce((sum, layer) => sum + layer.coveragePercent, 0) /
+          Math.max(1, manifest.layers.length),
+      ),
+    },
+    {
+      Icon: ShieldCheck,
+      label: copy.contractValidation,
+      status:
+        contract.invalidEvents === 0 ? copy.noContractIssues : copy.backfillGaps,
+      tone: contract.invalidEvents === 0 ? "text-emerald-700" : "text-amber-700",
+      value: `${coverage.contractValidationPercent}%`,
+      width: coverage.contractValidationPercent,
+    },
+    {
+      Icon: Database,
+      label: copy.backfillReadiness,
+      status:
+        backfill.gaps.length === 0
+          ? copy.coverageCompleteTitle
+          : getBackfillGapLabel(backfill.gaps[0], locale),
+      tone: backfill.gaps.length === 0 ? "text-emerald-700" : "text-amber-700",
+      value: `${backfill.readinessScore}/100`,
+      width: backfill.readinessScore,
+    },
+  ];
+
+  return (
+    <section className="mt-5 rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.055)] sm:hidden">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+            {locale === "ko" ? "감사 요약" : "Audit summary"}
+          </p>
+          <h2 className="mt-1 text-lg font-semibold text-zinc-950">
+            {locale === "ko" ? "상세 검증 상태" : "Verification status"}
+          </h2>
+        </div>
+        <span className="shrink-0 rounded-full bg-zinc-950 px-3 py-1 text-xs font-semibold text-white">
+          {coverage.phase1QualityScore}/100
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-3">
+        {summaryItems.map((item) => {
+          const Icon = item.Icon;
+
+          return (
+            <article
+              className="rounded-xl border border-zinc-100 bg-zinc-50 px-3 py-3"
+              key={item.label}
+            >
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-950 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
+                  <Icon className="size-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="truncate text-sm font-semibold text-zinc-950">
+                      {item.label}
+                    </p>
+                    <p className="shrink-0 text-sm font-semibold text-zinc-950">
+                      {item.value}
+                    </p>
+                  </div>
+                  <p
+                    className={`mt-1 truncate text-xs font-semibold ${item.tone}`}
+                  >
+                    {item.status}
+                  </p>
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white">
+                    <div
+                      className="h-full rounded-full bg-zinc-950"
+                      style={{ width: `${Math.max(4, item.width)}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export function FanletterAgentRankCoverageAuditPage({
   backfill,
   coverage,
@@ -2131,11 +2240,19 @@ export function FanletterAgentRankCoverageAuditPage({
           />
         </section>
 
-        <EventFactoryManifestPanel coverage={coverage} locale={locale} />
+        <MobileAuditSummary
+          backfill={backfill}
+          coverage={coverage}
+          locale={locale}
+        />
 
-        <ContractValidationPanel coverage={coverage} locale={locale} />
+        <div className="hidden sm:block">
+          <EventFactoryManifestPanel coverage={coverage} locale={locale} />
 
-        <BackfillReadinessPanel backfill={backfill} locale={locale} />
+          <ContractValidationPanel coverage={coverage} locale={locale} />
+
+          <BackfillReadinessPanel backfill={backfill} locale={locale} />
+        </div>
 
         <CoverageActionImpactPanel
           coverage={coverage}
