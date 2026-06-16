@@ -1588,7 +1588,7 @@ export function FanletterStarDetailPage({
             }
           />
 
-          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <div className="mt-3 hidden gap-2 sm:grid sm:grid-cols-3">
             {starDetailOutcomeCards.map((item) => (
               <div
                 className={joinClasses(
@@ -1688,11 +1688,6 @@ export function FanletterStarDetailPage({
                   trackingAgentRank={primaryActionAgentRank}
                   trackingMetadata={primaryActionTrackingMetadata}
                   showAction={false}
-                />
-                <StarAgentRankJoinSignal
-                  locale={locale}
-                  snapshot={agentRankSnapshot}
-                  star={star}
                 />
               </div>
 
