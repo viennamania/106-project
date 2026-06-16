@@ -16,6 +16,7 @@ import {
   FanletterFounderJoinLink,
   useFanletterFounderMockMembership,
 } from "@/components/fanletter-founder-mock-state";
+import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsive-action-panel";
 import type { Locale } from "@/lib/i18n";
 import type { FanletterV2Copy, ScoutShareLoopData } from "@/mock/fanletterV2";
 
@@ -163,6 +164,7 @@ export function FanletterStarReferralPanel({
   const [isGenerated, setIsGenerated] = useState(
     Boolean(inboundReferralCode) || Boolean(loop.isLiveData),
   );
+  const [isSharePanelOpen, setIsSharePanelOpen] = useState(false);
   const isReferralGenerated = isGenerated || isMockFounder;
 
   const visibleReferralCode =
@@ -242,6 +244,21 @@ export function FanletterStarReferralPanel({
     "inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-4 py-3 text-sm font-semibold text-black transition hover:bg-[#69f98a]";
   const shouldUseFounderJoinAction =
     primaryActionVariant === "join" && Boolean(starId);
+  const panelLabels = isKoreanCopy(copy)
+    ? {
+        close: "추천 공유 패널 닫기",
+        flow: "공유 흐름",
+        open: "공유 옵션 열기",
+        reward: "예상 보상",
+        title: "추천 링크 공유",
+      }
+    : {
+        close: "Close referral share panel",
+        flow: "Share flow",
+        open: "Open share options",
+        reward: "Expected reward",
+        title: "Share referral link",
+      };
 
   return (
     <article
@@ -350,25 +367,14 @@ export function FanletterStarReferralPanel({
             <p className="mt-2 break-all rounded-lg bg-white px-3 py-2 font-mono text-[0.7rem] font-semibold leading-4 text-[#5b21b6] sm:text-xs">
               {visibleShareLink}
             </p>
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-              <CopyTextButton
-                className="min-h-11 border-black/10 py-2.5 text-sm font-semibold leading-tight"
-                copiedLabel={copy.actions.copied}
-                copyLabel={copy.actions.copyLink}
-                text={visibleShareLink}
-              />
-              {platformLinks.map((platformLink) => (
-                <a
-                  className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/8 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-black/68 transition hover:border-[#7c3aed]/40 hover:text-[#5b21b6]"
-                  href={platformLink.href}
-                  key={platformLink.label}
-                  rel="noreferrer"
-                  target="_blank"
-                >
-                  {platformLink.label}
-                </a>
-              ))}
-            </div>
+            <button
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#12041f] px-4 py-2.5 text-sm font-semibold !text-white transition hover:bg-[#2a0f42] sm:w-auto"
+              onClick={() => setIsSharePanelOpen(true)}
+              type="button"
+            >
+              <Share2 className="size-4" />
+              {panelLabels.open}
+            </button>
           </div>
         ) : null}
       </div>
@@ -404,7 +410,18 @@ export function FanletterStarReferralPanel({
       </div>
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-        {shouldUseFounderJoinAction && starId ? (
+        {isMockFounder ? (
+          <button
+            className={actionClassName}
+            onClick={() => {
+              setIsGenerated(true);
+              setIsSharePanelOpen(true);
+            }}
+            type="button"
+          >
+            {actionLabel}
+          </button>
+        ) : shouldUseFounderJoinAction && starId ? (
           <FanletterFounderJoinLink
             className={actionClassName}
             href={actionHref}
@@ -434,6 +451,108 @@ export function FanletterStarReferralPanel({
           {copy.starDetail.mockNotice}
         </p>
       </div>
+
+      <FanletterResponsiveActionPanel
+        closeLabel={panelLabels.close}
+        description={copy.starDetail.referralBody}
+        eyebrow={copy.labels.scoutShareLoop}
+        onClose={() => setIsSharePanelOpen(false)}
+        open={isSharePanelOpen}
+        title={panelLabels.title}
+      >
+        <div className="grid gap-4">
+          <section className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              {copy.labels.referralCode}
+            </p>
+            <p className="mt-1 break-all font-mono text-lg font-semibold text-zinc-950">
+              {visibleReferralCode}
+            </p>
+            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              {copy.actions.shareLink}
+            </p>
+            <p className="mt-1 break-all rounded-lg bg-white px-3 py-2 font-mono text-xs font-semibold leading-5 text-[#5b21b6]">
+              {visibleShareLink}
+            </p>
+            <CopyTextButton
+              className="mt-3 min-h-11 w-full border-black/10 py-2.5 text-sm font-semibold leading-tight"
+              copiedLabel={copy.actions.copied}
+              copyLabel={copy.actions.copyLink}
+              text={visibleShareLink}
+            />
+          </section>
+
+          <section>
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              SNS
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              {platformLinks.map((platformLink) => (
+                <a
+                  className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-700 transition hover:border-[#7c3aed]/40 hover:text-[#5b21b6]"
+                  href={platformLink.href}
+                  key={platformLink.label}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  {platformLink.label}
+                </a>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-lg border border-zinc-200 bg-white p-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              {panelLabels.flow}
+            </p>
+            <div className="mt-3 grid gap-2">
+              {flowItems.map((item, index) => (
+                <div
+                  className="flex min-h-11 items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2"
+                  key={`${item}-${index}-panel`}
+                >
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-[#ede9fe] text-xs font-semibold text-[#6d28d9]">
+                    {index + 1}
+                  </span>
+                  <span className="text-sm font-semibold leading-5 text-zinc-900 [word-break:keep-all]">
+                    {item}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="rounded-lg bg-[#12041f] p-4 text-white">
+            <p className="text-sm font-semibold text-fuchsia-100">
+              {panelLabels.reward}
+            </p>
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              <div className="rounded-lg border border-white/12 bg-white/10 p-3">
+                <p className="text-lg font-semibold">+{loop.rewards.cp}</p>
+                <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
+                  CP
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/12 bg-white/10 p-3">
+                <p className="text-lg font-semibold">
+                  +{loop.rewards.influenceScore}
+                </p>
+                <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
+                  {copy.labels.influenceScore}
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/12 bg-white/10 p-3">
+                <p className="text-lg font-semibold">
+                  +{loop.rewards.creatorProgressPercent}%
+                </p>
+                <p className="mt-1 text-[0.64rem] font-semibold text-white/54">
+                  {copy.labels.creatorProgress}
+                </p>
+              </div>
+            </div>
+          </section>
+        </div>
+      </FanletterResponsiveActionPanel>
     </article>
   );
 }

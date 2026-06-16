@@ -23,6 +23,7 @@ import {
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
+import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsive-action-panel";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import { useFanletterFounderMockMemberships } from "@/components/fanletter-founder-mock-state";
@@ -41,6 +42,7 @@ import {
   getFanletterV2Copy,
   getFanletterV2LocalizedText,
   type AIStar,
+  type CreatorUnlockCondition,
   type CreatorUnlockData,
   type MemberOwnedAIStar,
   type MemberPortfolio as MemberPortfolioData,
@@ -272,6 +274,175 @@ function getSampleSpawnedStar(): SpawnedAIStar {
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US").format(
     value,
+  );
+}
+
+function getCreatorUnlockConditionLabels(
+  copy: ReturnType<typeof getFanletterV2Copy>,
+): Record<string, string> {
+  return {
+    activityMission: copy.creatorUnlock.activityMission,
+    agentRankAuditReady: copy.creatorUnlock.agentRankAuditReady,
+    agentRankEventQuality: copy.creatorUnlock.agentRankEventQuality,
+    cp: copy.creatorUnlock.cp,
+    directInvites: copy.creatorUnlock.directInvites,
+    founderContributionScore: copy.creatorUnlock.founderContributionScore,
+    scoutScore: copy.creatorUnlock.scoutScore,
+  };
+}
+
+function formatCreatorUnlockConditionValue(
+  value: CreatorUnlockCondition["current"],
+  locale: Locale,
+) {
+  if (typeof value === "number") {
+    return formatNumber(value, locale);
+  }
+
+  if (locale === "ko" && value === "completed") {
+    return "완료";
+  }
+
+  if (locale === "ko" && value === "pending") {
+    return "대기";
+  }
+
+  return value;
+}
+
+function CreatorUnlockConditionsPanel({
+  completedConditionCount,
+  copy,
+  locale,
+  onClose,
+  open,
+  sourceUniverseName,
+  unlock,
+}: {
+  completedConditionCount: number;
+  copy: ReturnType<typeof getFanletterV2Copy>;
+  locale: Locale;
+  onClose: () => void;
+  open: boolean;
+  sourceUniverseName: string;
+  unlock: CreatorUnlockData;
+}) {
+  const isKorean = locale === "ko";
+  const labelsById = getCreatorUnlockConditionLabels(copy);
+  const progressPercent =
+    unlock.conditions.length > 0
+      ? Math.round((completedConditionCount / unlock.conditions.length) * 100)
+      : 0;
+  const closeLabel = isKorean
+    ? "권한 조건 패널 닫기"
+    : "Close activation conditions panel";
+
+  return (
+    <FanletterResponsiveActionPanel
+      closeLabel={closeLabel}
+      description={
+        isKorean
+          ? "조건을 충족하면 Creator 권한이 활성화되고, 이후 Mock 생성 행동은 AgentRank 평판 이벤트로 기록됩니다."
+          : "When conditions are met, Creator permission is activated, and mock launch actions become AgentRank reputation events."
+      }
+      eyebrow="Creator Journey"
+      onClose={onClose}
+      open={open}
+      title={isKorean ? "권한 활성화 조건" : "Activation conditions"}
+    >
+      <div className="grid gap-4">
+        <section className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                {isKorean ? "진행률" : "Progress"}
+              </p>
+              <p className="mt-1 text-2xl font-semibold text-zinc-950">
+                {completedConditionCount}/{unlock.conditions.length}
+              </p>
+            </div>
+            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-800">
+              {progressPercent}%
+            </span>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-zinc-200">
+            <div
+              className="h-full rounded-full bg-black"
+              style={{ width: `${Math.min(100, Math.max(0, progressPercent))}%` }}
+            />
+          </div>
+        </section>
+
+        <section className="grid gap-2">
+          {unlock.conditions.map((condition) => (
+            <div
+              className="grid gap-2 rounded-lg border border-zinc-200 bg-white p-3"
+              key={condition.id}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold leading-5 text-zinc-950 [word-break:keep-all]">
+                    {labelsById[condition.id] ?? condition.id}
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-zinc-500">
+                    {formatCreatorUnlockConditionValue(condition.current, locale)}
+                    {" / "}
+                    {formatCreatorUnlockConditionValue(condition.target, locale)}
+                  </p>
+                </div>
+                <span
+                  className={joinClasses(
+                    "shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold",
+                    condition.met
+                      ? "bg-emerald-50 text-emerald-800"
+                      : "bg-zinc-100 text-zinc-600",
+                  )}
+                >
+                  {condition.met
+                    ? isKorean
+                      ? "완료"
+                      : "Done"
+                    : isKorean
+                      ? "필요"
+                      : "Needed"}
+                </span>
+              </div>
+            </div>
+          ))}
+        </section>
+
+        <section className="rounded-lg border border-zinc-200 bg-white p-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            AgentRank
+          </p>
+          <div className="mt-3 grid gap-2">
+            {[
+              "creator_unlock_evaluated",
+              "creator_unlocked",
+              "x402_mock_payment_intent",
+              "ai_star_spawned",
+            ].map((eventName, index) => (
+              <div
+                className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2"
+                key={eventName}
+              >
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-black text-xs font-semibold text-white">
+                  {index + 1}
+                </span>
+                <span className="min-w-0 truncate font-mono text-xs font-semibold text-zinc-700">
+                  {eventName}
+                </span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
+            {isKorean
+              ? `${sourceUniverseName}의 성과를 출처로 새 AI 스타 생성 이벤트가 연결됩니다.`
+              : `The new AI Star launch is linked to ${sourceUniverseName} as its source universe.`}
+          </p>
+        </section>
+      </div>
+    </FanletterResponsiveActionPanel>
   );
 }
 
@@ -1437,6 +1608,7 @@ export function FanletterCreatorUnlockPage({
   const [selectedSourceStarId, setSelectedSourceStarId] = useState<string | null>(
     coverageAction?.starId ?? null,
   );
+  const [isConditionsPanelOpen, setIsConditionsPanelOpen] = useState(false);
   const defaultSourceStarId = getDefaultSourceStarId({
     latestMembershipStarId: effectiveLatestMembershipStarId,
     options: sourceOptions,
@@ -1581,6 +1753,25 @@ export function FanletterCreatorUnlockPage({
       : locale === "ko"
         ? "Creator Unlock 평가 이벤트"
         : "Creator Unlock evaluation event";
+  const openConditionsPanel = () => {
+    trackFunnelEvent("fanletter_creator_unlock_evaluated", {
+      agentRank: {
+        eventType: "creator_unlock_evaluated",
+        intent: "creator_unlock_condition_panel_opened",
+        source: "fanletter_creator_unlock",
+        starId: selectedSourceOption?.starId ?? null,
+      },
+      metadata: {
+        completedConditionCount,
+        sourceUniverseName: displaySourceUniverseName,
+        totalConditionCount: unlock.conditions.length,
+        unlocked: unlock.unlocked,
+      },
+    });
+    setIsConditionsPanelOpen(true);
+  };
+  const shouldUseConditionPanelAction =
+    !requiresSourceUniverse && !isPreviewMode && !unlock.unlocked;
   const creatorUnlockActionGuide = (
     <FanletterActionGuide
       className="mt-5"
@@ -1600,6 +1791,17 @@ export function FanletterCreatorUnlockPage({
         },
       ]}
       primaryAction={creatorUnlockNextAction}
+      primaryActionSlot={
+        shouldUseConditionPanelAction ? (
+          <button
+            className="inline-flex min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto sm:px-5"
+            onClick={openConditionsPanel}
+            type="button"
+          >
+            {creatorUnlockNextAction.label}
+          </button>
+        ) : undefined
+      }
       reputationEventLabel={creatorUnlockEventLabel}
       secondaryActions={[]}
       steps={[
@@ -1888,6 +2090,22 @@ export function FanletterCreatorUnlockPage({
               <CreatorUnlockCard
                 copy={v2Copy}
                 locale={locale}
+                unlock={unlock}
+              />
+              <button
+                className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50 sm:w-auto"
+                onClick={openConditionsPanel}
+                type="button"
+              >
+                {locale === "ko" ? "조건 상세 보기" : "View condition details"}
+              </button>
+              <CreatorUnlockConditionsPanel
+                completedConditionCount={completedConditionCount}
+                copy={v2Copy}
+                locale={locale}
+                onClose={() => setIsConditionsPanelOpen(false)}
+                open={isConditionsPanelOpen}
+                sourceUniverseName={displaySourceUniverseName}
                 unlock={unlock}
               />
             </div>
