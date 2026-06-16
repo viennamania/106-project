@@ -43,6 +43,7 @@ function getCopy(locale: Locale) {
     return {
       actor: "액터",
       agentGraph: "Agent Transaction Graph",
+      agentRankResult: "AgentRank 결과",
       audit: "AgentRank 감사",
       auditGaps: "보강 항목",
       evidenceHash: "증거 해시",
@@ -119,6 +120,7 @@ function getCopy(locale: Locale) {
       title: "Reputation Event 상세 추적",
       upstream: "이전 신호",
       linkedEvidence: "연결 증거",
+      nextAction: "다음 행동",
       verificationRoute: "검증 경로",
       viewAgentRank: "AgentRank 보기",
       x402: "x402 경제",
@@ -128,6 +130,7 @@ function getCopy(locale: Locale) {
   return {
     actor: "Actor",
     agentGraph: "Agent Transaction Graph",
+    agentRankResult: "AgentRank Result",
     audit: "AgentRank Audit",
     auditGaps: "Audit gaps",
     evidenceHash: "Evidence Hash",
@@ -204,6 +207,7 @@ function getCopy(locale: Locale) {
     title: "Reputation Event Trace",
     upstream: "Upstream Signals",
     linkedEvidence: "Linked Evidence",
+    nextAction: "Next Action",
     verificationRoute: "Verification Route",
     viewAgentRank: "View AgentRank",
     x402: "x402 Economy",
@@ -347,6 +351,32 @@ function getAuditStatusLabel(
         };
 
   return labels[status];
+}
+
+function getEventDetailNextActionLabel(
+  event: AgentRankReputationEvent,
+  audit: Pick<AgentRankReputationEvent["audit"], "gaps" | "status">,
+  locale: Locale,
+) {
+  const isKorean = locale === "ko";
+
+  if (audit.gaps.length > 0 || audit.status !== "audit_ready") {
+    return isKorean ? "보강 항목 점검" : "Review enrichment gaps";
+  }
+
+  if (!event.audit.graphReady) {
+    return isKorean ? "거래 그래프 연결 확인" : "Review transaction graph links";
+  }
+
+  if (!event.audit.impactReady) {
+    return isKorean ? "점수 영향 신호 확인" : "Review score impact signal";
+  }
+
+  if (!event.reputationSignals.oracleReady) {
+    return isKorean ? "Oracle 증거 보강" : "Enrich Oracle evidence";
+  }
+
+  return isKorean ? "증거 패킷 확인" : "Inspect evidence packet";
 }
 
 function getEventAudit(event: AgentRankReputationEvent) {
@@ -1530,7 +1560,7 @@ function AgentTransactionGraph({
             return (
               <g key={relatedEvent.eventId}>
                 <path
-                  d={`M380 165 C${(380 + position.x) / 2} ${(165 + position.y) / 2 - 22} ${
+                  d={`M380 165 Q${(380 + position.x) / 2} ${(165 + position.y) / 2 - 22} ${
                     position.x
                   } ${position.y}`}
                   fill="none"
@@ -1597,6 +1627,7 @@ function EventDetailMobileStatusCard({
   eventClassificationLabel,
   impactTotal,
   locale,
+  nextActionLabel,
 }: {
   audit: ReturnType<typeof getEventAudit>;
   copy: ReturnType<typeof getCopy>;
@@ -1604,6 +1635,7 @@ function EventDetailMobileStatusCard({
   eventClassificationLabel: string;
   impactTotal: number;
   locale: Locale;
+  nextActionLabel: string;
 }) {
   const oracleReady = event.reputationSignals.oracleReady;
 
@@ -1632,7 +1664,7 @@ function EventDetailMobileStatusCard({
         </div>
         <div className="rounded-lg bg-zinc-50 px-3 py-2">
           <p className="text-[0.62rem] font-semibold text-zinc-500">
-            {copy.eventWeight}
+            {copy.agentRankResult}
           </p>
           <p className="mt-1 text-lg font-semibold">
             {formatNumber(impactTotal, locale)}
@@ -1652,6 +1684,15 @@ function EventDetailMobileStatusCard({
         </div>
       </div>
 
+      <div className="mt-3 rounded-lg border border-zinc-950 bg-zinc-950 px-3 py-2 text-white">
+        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-white/55">
+          {copy.nextAction}
+        </p>
+        <p className="mt-1 break-words text-sm font-semibold leading-tight [word-break:keep-all]">
+          {nextActionLabel}
+        </p>
+      </div>
+
       <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">
         <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
           {copy.evidenceHash}
@@ -1660,6 +1701,74 @@ function EventDetailMobileStatusCard({
           {truncateEvidenceHash(audit.evidenceHash, 14, 8)}
         </p>
       </div>
+    </section>
+  );
+}
+
+function EventDetailSignpostSummary({
+  audit,
+  copy,
+  event,
+  eventClassificationLabel,
+  impactTotal,
+  locale,
+  nextActionLabel,
+}: {
+  audit: ReturnType<typeof getEventAudit>;
+  copy: ReturnType<typeof getCopy>;
+  event: AgentRankReputationEvent;
+  eventClassificationLabel: string;
+  impactTotal: number;
+  locale: Locale;
+  nextActionLabel: string;
+}) {
+  const summaryItems = [
+    {
+      body: eventClassificationLabel,
+      Icon: Fingerprint,
+      label: copy.currentEvent,
+      value: getEventTypeLabel(event.type, locale),
+    },
+    {
+      body:
+        locale === "ko"
+          ? "다음 검증 단계로 이어집니다."
+          : "Leads into the next verification step.",
+      Icon: FileCheck2,
+      label: copy.nextAction,
+      value: nextActionLabel,
+    },
+    {
+      body: `${getAuditStatusLabel(audit.status, locale)} · ${audit.qualityScore}/100`,
+      Icon: BadgeCheck,
+      label: copy.agentRankResult,
+      value: formatNumber(impactTotal, locale),
+    },
+  ];
+
+  return (
+    <section className="hidden grid-cols-3 gap-3 sm:grid">
+      {summaryItems.map((item) => {
+        const Icon = item.Icon;
+
+        return (
+          <article
+            className="min-w-0 rounded-[1rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_14px_36px_rgba(15,23,42,0.045)]"
+            key={item.label}
+          >
+            <p className="flex items-center gap-1.5 text-[0.68rem] font-semibold normal-case tracking-[0.08em] text-zinc-500">
+              <Icon className="size-3.5 shrink-0" />
+              {item.label}
+            </p>
+            <p className="mt-2 truncate text-lg font-semibold text-zinc-950">
+              {item.value}
+            </p>
+            <p className="mt-1 truncate text-xs font-semibold text-zinc-500">
+              {item.body}
+            </p>
+          </article>
+        );
+      })}
     </section>
   );
 }
@@ -1689,6 +1798,7 @@ export function FanletterAgentRankEventDetailPage({
   const eventInScope = isAgentRankEventIncludedInMockScope(event, eventScope);
   const eventScopeLabel = getEventScopeLabel(eventScope, copy);
   const relatedStarScope = getAgentRankRelatedStarScope(event);
+  const nextActionLabel = getEventDetailNextActionLabel(event, audit, locale);
   const eventClassification = isCoverageMock
     ? {
         body: copy.coverageMockBody,
@@ -1821,6 +1931,16 @@ export function FanletterAgentRankEventDetailPage({
           eventClassificationLabel={eventClassification.label}
           impactTotal={impactTotal}
           locale={locale}
+          nextActionLabel={nextActionLabel}
+        />
+        <EventDetailSignpostSummary
+          audit={audit}
+          copy={copy}
+          event={event}
+          eventClassificationLabel={eventClassification.label}
+          impactTotal={impactTotal}
+          locale={locale}
+          nextActionLabel={nextActionLabel}
         />
         <header className="hidden rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] sm:block">
           <div className="flex flex-wrap items-center justify-between gap-3">
