@@ -3,8 +3,9 @@
 // deterministic mock brain (no LLM, no deps) so the loop is testable end-to-end.
 //
 // TODO(phase 1): add LlmStarAgentBrain implemented with the Vercel AI SDK (`ai`)
-// using tool-calling, where the prompt = persona + retrieved memories + signals,
-// and the default model is the latest Claude. The mock brain stays as a cheap
+// + `@ai-sdk/openai` using tool-calling, where the prompt = persona + retrieved
+// memories + signals. Default provider is OpenAI (provider-agnostic — the model
+// line is a one-line swap to A/B Claude/others). The mock brain stays as a cheap
 // offline fallback / test double.
 import type { StarAgentContext, StarAgentDecision } from "./types";
 

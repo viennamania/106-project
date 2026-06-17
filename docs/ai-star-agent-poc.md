@@ -69,10 +69,10 @@ Adopt **Mem0** (or **Zep/Graphiti**) keyed by `starId`: stores fan interactions,
 ## Reputation integration (the differentiator)
 Every agent action emits an AgentRank reputation event with `actor.type = "ai_star"`, so autonomous Star activity flows into the **same** score/coverage/ledger UI already built. New event types may be added (e.g. `ai_star_posted`, `ai_star_responded`) reusing the existing schema + funnel tracking pattern.
 
-## Dependencies to add
-- `ai` (Vercel AI SDK) — provider-agnostic tool-calling in TS. (Or **Mastra** if we want built-in agent/workflow/memory abstractions.)
-- `mem0ai` (or Zep client) — memory layer.
-- LLM provider: default to the latest Claude model via the SDK.
+## Dependencies to add (decided: Vercel AI SDK + Mem0, OpenAI brain)
+- `ai` + `@ai-sdk/openai` (Vercel AI SDK) — provider-agnostic tool-calling in TS. OpenAI is the default brain (reuses the existing OpenAI/Codex key); the provider line is a one-line swap to A/B Claude later.
+- `mem0ai` — memory layer.
+- Env: `OPENAI_API_KEY`, `MEM0_API_KEY` (user-provided; never committed).
 
 ## Phased rollout
 1. **Read-only dry run**: agent *decides + drafts* but never publishes; log decisions + would-be AgentRank events. Validate persona quality.
@@ -83,6 +83,5 @@ Every agent action emits an AgentRank reputation event with `actor.type = "ai_st
 ## Guardrails / open decisions
 - Keep payments **mock-only** until a deliberate go-live decision (matches current rule).
 - One Star, one tool, one cadence first — expand incrementally.
-- Decide: **Vercel AI SDK** (lighter, more DIY) vs **Mastra** (more batteries: agents/memory/workflows). Recommend starting with Vercel AI SDK for minimal surface.
-- Decide memory vendor: Mem0 (simple, popular) vs Zep/Graphiti (temporal graph, stronger reasoning).
+- Stack (decided): **Vercel AI SDK + `@ai-sdk/openai` + Mem0**, with OpenAI as the default brain (provider-agnostic, so Claude can be A/B'd with a one-line model swap).
 - Concurrency with Codex: this is net-new under `src/lib/star-agent/` + one API route + one script — low collision risk with current founder/UI work.
