@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, Noto_Sans_KR, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { PwaServiceWorker } from "@/components/pwa-service-worker";
 import type { ReactNode } from "react";
+import { preconnect, prefetchDNS } from "react-dom";
 
 const configuredAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
 const metadataBase = (() => {
@@ -69,6 +70,16 @@ export default function RootLayout({
 }: Readonly<{
   children: ReactNode;
 }>) {
+  // Resource hints: the thirdweb wallet SDK connects to these origins early in
+  // the page lifecycle (measured first hit ~664ms). Preconnecting runs DNS+TLS
+  // in parallel with the initial JS download, trimming wallet connection
+  // latency on mobile. Emitted on every route since the wallet provider mounts
+  // in the locale layout.
+  preconnect("https://embedded-wallet.thirdweb.com");
+  preconnect("https://api.thirdweb.com", { crossOrigin: "anonymous" });
+  prefetchDNS("https://56.rpc.thirdweb.com");
+  prefetchDNS("https://c.thirdweb.com");
+
   return (
     <html
       lang="ko"
