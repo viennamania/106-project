@@ -355,8 +355,104 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
     referralCode,
   });
   const reporterActionHref = buildHref(`${reportsPath}/new`);
-  const reporterActionLabel = locale === "ko" ? "리포트 작성" : "Report";
-  const vloggerActionLabel = locale === "ko" ? "새 브이로그" : "New Vlog";
+  const newsNavCopyByLocale: Record<
+    Locale,
+    {
+      reportAction: string;
+      newVlog: string;
+      reporterBadge: string;
+      vlogs: string;
+      home: string;
+      characters: string;
+      purchases: string;
+      my: string;
+      navLabel: string;
+      reportTitle: (name: string) => string;
+      vlogTitle: (name: string) => string;
+    }
+  > = {
+    ko: {
+      reportAction: "리포트 작성",
+      newVlog: "새 브이로그",
+      reporterBadge: "기자",
+      vlogs: "브이로그",
+      home: "홈",
+      characters: "AI 캐릭터",
+      purchases: "구매함",
+      my: "마이",
+      navLabel: "AIAVpark News 모바일 메뉴",
+      reportTitle: (name) => `${name} 리포트 작성`,
+      vlogTitle: (name) => `${name} 새 브이로그 제작`,
+    },
+    en: {
+      reportAction: "Report",
+      newVlog: "New Vlog",
+      reporterBadge: "REP",
+      vlogs: "Vlogs",
+      home: "Home",
+      characters: "AI Characters",
+      purchases: "Purchases",
+      my: "My",
+      navLabel: "AIAVpark News mobile navigation",
+      reportTitle: (name) => `Create report as ${name}`,
+      vlogTitle: (name) => `Create new vlog as ${name}`,
+    },
+    ja: {
+      reportAction: "レポート作成",
+      newVlog: "新規Vlog",
+      reporterBadge: "記者",
+      vlogs: "Vlog",
+      home: "ホーム",
+      characters: "AIキャラ",
+      purchases: "購入",
+      my: "マイ",
+      navLabel: "AIAVpark News モバイルメニュー",
+      reportTitle: (name) => `${name}でレポート作成`,
+      vlogTitle: (name) => `${name}で新規Vlog制作`,
+    },
+    zh: {
+      reportAction: "撰写报道",
+      newVlog: "新建Vlog",
+      reporterBadge: "记者",
+      vlogs: "Vlog",
+      home: "首页",
+      characters: "AI角色",
+      purchases: "购买",
+      my: "我的",
+      navLabel: "AIAVpark News 移动菜单",
+      reportTitle: (name) => `以 ${name} 撰写报道`,
+      vlogTitle: (name) => `以 ${name} 制作新Vlog`,
+    },
+    vi: {
+      reportAction: "Viết báo cáo",
+      newVlog: "Vlog mới",
+      reporterBadge: "REP",
+      vlogs: "Vlog",
+      home: "Trang chủ",
+      characters: "Nhân vật AI",
+      purchases: "Đã mua",
+      my: "Của tôi",
+      navLabel: "Menu di động AIAVpark News",
+      reportTitle: (name) => `Viết báo cáo với tư cách ${name}`,
+      vlogTitle: (name) => `Tạo vlog mới với tư cách ${name}`,
+    },
+    id: {
+      reportAction: "Tulis laporan",
+      newVlog: "Vlog baru",
+      reporterBadge: "REP",
+      vlogs: "Vlog",
+      home: "Beranda",
+      characters: "Karakter AI",
+      purchases: "Pembelian",
+      my: "Saya",
+      navLabel: "Menu seluler AIAVpark News",
+      reportTitle: (name) => `Tulis laporan sebagai ${name}`,
+      vlogTitle: (name) => `Buat vlog baru sebagai ${name}`,
+    },
+  };
+  const copy = newsNavCopyByLocale[locale] ?? newsNavCopyByLocale.ko;
+  const reporterActionLabel = copy.reportAction;
+  const vloggerActionLabel = copy.newVlog;
   const actionItem =
     isReporterServicePath
       ? {
@@ -366,16 +462,14 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
           key: "action" as const,
           label: reporterProfile.displayName ?? reporterActionLabel,
           primary: true,
-          profileBadge: locale === "ko" ? "기자" : "REP",
+          profileBadge: copy.reporterBadge,
           profileFallback: getProfileInitial(reporterProfile),
           profileImageUrl: reporterProfile.avatarImageUrl,
           secondaryLabel: reporterProfile.displayName
             ? reporterActionLabel
             : undefined,
           title: reporterProfile.displayName
-            ? locale === "ko"
-              ? `${reporterProfile.displayName} 리포트 작성`
-              : `Create report as ${reporterProfile.displayName}`
+            ? copy.reportTitle(reporterProfile.displayName)
             : undefined,
         }
       : isPublicVlogsServicePath
@@ -384,7 +478,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
             href: publicVlogsHref,
             icon: Video,
             key: "action" as const,
-            label: locale === "ko" ? "브이로그" : "Vlogs",
+            label: copy.vlogs,
             primary: true,
           }
         : rolePreference === "vlogger"
@@ -403,9 +497,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
             ? vloggerActionLabel
             : undefined,
           title: vloggerProfile?.displayName
-            ? locale === "ko"
-              ? `${vloggerProfile.displayName} 새 브이로그 제작`
-              : `Create new vlog as ${vloggerProfile.displayName}`
+            ? copy.vlogTitle(vloggerProfile.displayName)
             : undefined,
         }
       : rolePreference === "reporter"
@@ -417,16 +509,14 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
             key: "action" as const,
             label: reporterProfile.displayName ?? reporterActionLabel,
             primary: isReporterServicePath,
-            profileBadge: locale === "ko" ? "기자" : "REP",
+            profileBadge: copy.reporterBadge,
             profileFallback: getProfileInitial(reporterProfile),
             profileImageUrl: reporterProfile.avatarImageUrl,
             secondaryLabel: reporterProfile.displayName
               ? reporterActionLabel
               : undefined,
             title: reporterProfile.displayName
-              ? locale === "ko"
-                ? `${reporterProfile.displayName} 리포트 작성`
-                : `Create report as ${reporterProfile.displayName}`
+              ? copy.reportTitle(reporterProfile.displayName)
               : undefined,
           }
         : {
@@ -434,7 +524,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
             href: publicVlogsHref,
             icon: Video,
             key: "action" as const,
-            label: locale === "ko" ? "브이로그" : "Vlogs",
+            label: copy.vlogs,
             primary: isPublicVlogsServicePath,
           };
   const items: FanletterNewsMobileNavItem[] = [
@@ -443,14 +533,14 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
       href: buildHref(cutsPath),
       icon: Newspaper,
       key: "news",
-      label: locale === "ko" ? "홈" : "Home",
+      label: copy.home,
     },
     {
       activePath: charactersPath,
       href: buildHref(charactersPath),
       icon: Sparkles,
       key: "characters",
-      label: locale === "ko" ? "AI 캐릭터" : "AI Characters",
+      label: copy.characters,
       primary: isCharactersServicePath,
     },
     actionItem,
@@ -459,7 +549,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
       href: buildHref(purchasesPath),
       icon: BookOpenCheck,
       key: "purchases",
-      label: locale === "ko" ? "구매함" : "Purchases",
+      label: copy.purchases,
       primary: isPurchasesServicePath,
     },
     {
@@ -476,7 +566,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
       href: myHref,
       icon: CircleUserRound,
       key: "my",
-      label: locale === "ko" ? "마이" : "My",
+      label: copy.my,
       primary: isMyServicePath,
     },
   ];
@@ -488,11 +578,7 @@ export function FanletterNewsMobileBottomNav({ locale }: { locale: Locale }) {
         className={cn("md:hidden", fanletterNewsMobileNavHeightClass)}
       />
       <nav
-        aria-label={
-          locale === "ko"
-            ? "AIAVpark News 모바일 메뉴"
-            : "AIAVpark News mobile navigation"
-        }
+        aria-label={copy.navLabel}
         className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[calc(0.55rem+env(safe-area-inset-bottom))] pt-2 text-[#111510] md:hidden"
       >
         <div className="mx-auto grid max-w-md grid-cols-5 items-end gap-0.5 rounded-lg border border-black/10 bg-white/96 p-1 shadow-[0_-10px_34px_rgba(17,21,16,0.14)] backdrop-blur-xl">
