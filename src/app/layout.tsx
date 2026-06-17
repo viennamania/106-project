@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Noto_Sans_KR, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import { PreloadResources } from "@/components/preload-resources";
 import { PwaServiceWorker } from "@/components/pwa-service-worker";
 import type { ReactNode } from "react";
 
@@ -78,7 +77,6 @@ export default function RootLayout({
       className={`${notoSansKr.variable} ${spaceGrotesk.variable} ${ibmPlexMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <PreloadResources />
         {children}
         <PwaServiceWorker />
       </body>
