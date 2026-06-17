@@ -1,13 +1,19 @@
-// AI Star agent "brain" — decision layer (PoC Phase 0).
-// The brain turns context into a decision (which tools to call). Phase 0 ships a
-// deterministic mock brain (no LLM, no deps) so the loop is testable end-to-end.
-//
-// TODO(phase 1): add LlmStarAgentBrain implemented with the Vercel AI SDK (`ai`)
-// + `@ai-sdk/openai` using tool-calling, where the prompt = persona + retrieved
-// memories + signals. Default provider is OpenAI (provider-agnostic — the model
-// line is a one-line swap to A/B Claude/others). The mock brain stays as a cheap
-// offline fallback / test double.
-import type { StarAgentContext, StarAgentDecision } from "./types";
+// AI Star agent "brain" — decision layer.
+// Two implementations:
+//  - mockStarAgentBrain: deterministic, no LLM, for offline tests / fallback.
+//  - createLlmStarAgentBrain(): OpenAI via the Vercel AI SDK (provider-agnostic
+//    — swap the `openai(...)` model line for another provider to A/B). The brain
+//    only DECIDES (returns tool calls); run-star-agent.ts executes them with
+//    dry-run gating, so the LLM never triggers a real side effect directly.
+import { openai } from "@ai-sdk/openai";
+import { generateText, jsonSchema, tool } from "ai";
+
+import type {
+  StarAgentContext,
+  StarAgentDecision,
+  StarAgentToolCall,
+  StarAgentToolName,
+} from "./types";
 
 export interface StarAgentBrain {
   decide(context: StarAgentContext): Promise<StarAgentDecision>;
@@ -54,3 +60,113 @@ export const mockStarAgentBrain: StarAgentBrain = {
     };
   },
 };
+
+// Tool definitions the LLM chooses from. No `execute`: the AI SDK returns the
+// chosen calls instead of running them, so the orchestrator keeps control.
+const emptyObjectSchema = jsonSchema({
+  type: "object",
+  properties: {},
+  additionalProperties: false,
+});
+
+const decisionTools = {
+  generateContent: tool({
+    description: "Generate a new piece of content (vlog/post) for this AI Star.",
+    inputSchema: jsonSchema({
+      type: "object",
+      properties: {
+        brief: { type: "string", description: "Short brief / theme." },
+      },
+      required: ["brief"],
+      additionalProperties: false,
+    }),
+  }),
+  postToFeed: tool({
+    description: "Queue the most recent draft to the feed (passes a review gate).",
+    inputSchema: emptyObjectSchema,
+  }),
+  respondToFan: tool({
+    description: "Draft a reply to a pending fan request in the Star's voice.",
+    inputSchema: jsonSchema({
+      type: "object",
+      properties: {
+        tone: { type: "string", description: "Optional tone hint." },
+      },
+      additionalProperties: false,
+    }),
+  }),
+  x402MockIntent: tool({
+    description: "Create a MOCK-ONLY x402 payment intent. Never moves real funds.",
+    inputSchema: jsonSchema({
+      type: "object",
+      properties: {
+        amountUsdt: { type: "number", description: "Mock amount in USDT." },
+      },
+      required: ["amountUsdt"],
+      additionalProperties: false,
+    }),
+  }),
+  idle: tool({
+    description: "Do nothing this tick (cadence satisfied or nothing to do).",
+    inputSchema: emptyObjectSchema,
+  }),
+};
+
+function buildSystemPrompt(context: StarAgentContext): string {
+  const { persona, memories } = context;
+  const memoryLines = memories.length
+    ? memories.map((m) => `- ${m.text}`).join("\n")
+    : "- (no relevant memories yet)";
+
+  return [
+    `You are the autonomous agent for the AI Star "${persona.displayName}".`,
+    `Voice: ${persona.voice}.`,
+    `Themes: ${persona.themes.join(", ")}.`,
+    `Hard rules (never violate): ${persona.doNots.join("; ")}.`,
+    `Posting cadence: ${persona.postingCadence}. Risk level: ${persona.riskLevel}.`,
+    `Relevant memories:`,
+    memoryLines,
+    `Choose exactly the tool calls that best serve fans this tick. Prefer "idle" when cadence is satisfied.`,
+  ].join("\n");
+}
+
+function buildUserPrompt(context: StarAgentContext): string {
+  const { signals, now } = context;
+  return [
+    `Now: ${now}.`,
+    `Signals — recentPosts: ${signals.recentPosts}, pendingFanRequests: ${signals.pendingFanRequests}, reputationImpactTotal: ${signals.reputationImpactTotal ?? "n/a"}.`,
+    `Decide this tick's action(s).`,
+  ].join("\n");
+}
+
+export function createLlmStarAgentBrain(options?: {
+  model?: string;
+}): StarAgentBrain {
+  const modelId =
+    options?.model ?? process.env.STAR_AGENT_OPENAI_MODEL ?? "gpt-4o";
+
+  return {
+    async decide(context): Promise<StarAgentDecision> {
+      const result = await generateText({
+        model: openai(modelId),
+        system: buildSystemPrompt(context),
+        prompt: buildUserPrompt(context),
+        tools: decisionTools,
+        toolChoice: "required",
+      });
+
+      const toolCalls: StarAgentToolCall[] = result.toolCalls.map((call) => ({
+        tool: call.toolName as StarAgentToolName,
+        args: (call.input ?? {}) as Record<string, unknown>,
+        rationale: "llm",
+      }));
+
+      return {
+        toolCalls: toolCalls.length
+          ? toolCalls
+          : [{ tool: "idle", args: {}, rationale: "no tool chosen" }],
+        note: result.text || `llm decision (${modelId})`,
+      };
+    },
+  };
+}
