@@ -3106,10 +3106,10 @@ export function FanletterHomePage({
               <p className="inline-flex rounded-full border border-violet-200 bg-white/82 px-3 py-1 text-[0.68rem] font-semibold text-[#6d28d9] shadow-[0_10px_24px_rgba(88,28,135,0.08)] backdrop-blur-md sm:bg-transparent sm:px-0 sm:shadow-none sm:uppercase sm:tracking-[0.28em]">
                 {locale === "ko" ? "파운더 클럽 2.0" : copy.hero.eyebrow}
               </p>
-              <h1 className="mt-4 max-w-[22rem] text-[2.35rem] font-semibold leading-[1.02] tracking-normal text-[#12041f] [text-wrap:balance] [word-break:keep-all] sm:max-w-[58rem] sm:text-[3.2rem] lg:text-[3.65rem] xl:text-[4rem]">
+              <h2 className="mt-4 max-w-[22rem] text-[2.35rem] font-semibold leading-[1.02] tracking-normal text-[#12041f] [text-wrap:balance] [word-break:keep-all] sm:max-w-[58rem] sm:text-[3.2rem] lg:text-[3.65rem] xl:text-[4rem]">
                 <span className="sm:hidden">{mobileHeroCopy.title}</span>
                 <span className="hidden sm:inline">{copy.hero.title}</span>
-              </h1>
+              </h2>
               <p className="mt-4 hidden max-w-2xl text-lg font-medium leading-7 text-black/64 [word-break:keep-all] sm:mt-6 sm:block">
                 {copy.hero.description}
               </p>
