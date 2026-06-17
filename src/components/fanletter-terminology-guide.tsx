@@ -46,30 +46,9 @@ const enCopy: TerminologyCopy = {
   ],
 };
 
-const copyByLocale: Partial<Record<Locale, TerminologyCopy>> = {
+const copyByLocale: Record<Locale, TerminologyCopy> = {
   en: {
     ...enCopy,
-  },
-  ja: {
-    eyebrow: "Terminology",
-    title: "Founder Club structure",
-    terms: [
-      {
-        body: "Product layer",
-        Icon: Crown,
-        title: "Founder Club",
-      },
-      {
-        body: "Per-AI-Star space",
-        Icon: Sparkles,
-        title: "AI Star Universe",
-      },
-      {
-        body: "6-level invite and CP structure",
-        Icon: Network,
-        title: "Founder Network",
-      },
-    ],
   },
   ko: {
     eyebrow: "용어 기준",
@@ -89,6 +68,90 @@ const copyByLocale: Partial<Record<Locale, TerminologyCopy>> = {
         body: "6단계 초대/CP 구조",
         Icon: Network,
         title: "파운더 네트워크",
+      },
+    ],
+  },
+  ja: {
+    eyebrow: "用語",
+    title: "ファウンダークラブの構造",
+    terms: [
+      {
+        body: "製品全体",
+        Icon: Crown,
+        title: "ファウンダークラブ",
+      },
+      {
+        body: "AIスターごとの空間",
+        Icon: Sparkles,
+        title: "AIスターユニバース",
+      },
+      {
+        body: "6階層の招待・CP構造",
+        Icon: Network,
+        title: "ファウンダーネットワーク",
+      },
+    ],
+  },
+  zh: {
+    eyebrow: "术语",
+    title: "创始人俱乐部结构",
+    terms: [
+      {
+        body: "整个产品",
+        Icon: Crown,
+        title: "创始人俱乐部",
+      },
+      {
+        body: "每个 AI 明星的空间",
+        Icon: Sparkles,
+        title: "AI 明星宇宙",
+      },
+      {
+        body: "6 级邀请与 CP 结构",
+        Icon: Network,
+        title: "创始人网络",
+      },
+    ],
+  },
+  vi: {
+    eyebrow: "Thuật ngữ",
+    title: "Cấu trúc Founder Club",
+    terms: [
+      {
+        body: "Toàn bộ sản phẩm",
+        Icon: Crown,
+        title: "Founder Club",
+      },
+      {
+        body: "Không gian riêng cho mỗi AI Star",
+        Icon: Sparkles,
+        title: "AI Star Universe",
+      },
+      {
+        body: "Cấu trúc mời 6 cấp và CP",
+        Icon: Network,
+        title: "Founder Network",
+      },
+    ],
+  },
+  id: {
+    eyebrow: "Istilah",
+    title: "Struktur Founder Club",
+    terms: [
+      {
+        body: "Seluruh produk",
+        Icon: Crown,
+        title: "Founder Club",
+      },
+      {
+        body: "Ruang untuk tiap AI Star",
+        Icon: Sparkles,
+        title: "AI Star Universe",
+      },
+      {
+        body: "Struktur undangan 6 tingkat dan CP",
+        Icon: Network,
+        title: "Founder Network",
       },
     ],
   },
