@@ -42,6 +42,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  serverExternalPackages: ["mem0ai", "better-sqlite3", "@google/genai"],
   turbopack: {
     root: __dirname,
   },
