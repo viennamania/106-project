@@ -108,14 +108,14 @@ export function FanletterActionGuide({
         current: "현재 위치",
         event: "평판 이벤트",
         next: "다음 행동",
-        signal: "AgentRank 신호",
+        signal: "평판 기록 신호",
         steps: "진행 흐름",
       }
     : {
         current: "Current location",
         event: "Reputation event",
         next: "Next action",
-        signal: "AgentRank signal",
+        signal: "Reputation signal",
         steps: "Flow",
       };
 

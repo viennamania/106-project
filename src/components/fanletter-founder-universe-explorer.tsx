@@ -1629,8 +1629,8 @@ function FounderUniverseDashboardPanel({
     },
     {
       icon: Gauge,
-      label: "AgentRank",
-      sublabel: locale === "ko" ? "호환 구조" : "compatible",
+      label: locale === "ko" ? "평판 구조" : "Reputation",
+      sublabel: locale === "ko" ? "기록 호환" : "record-ready",
       value: locale === "ko" ? "준비됨" : "Ready",
     },
   ];
@@ -1652,8 +1652,8 @@ function FounderUniverseDashboardPanel({
           </h2>
           <p className="mt-4 hidden max-w-sm text-sm font-medium leading-6 text-white/64 sm:block">
             {locale === "ko"
-              ? `${starName}의 AI 스타 유니버스 안에서 파운더 네트워크가 성장하고, 새 AI 스타와 AgentRank 평판 이벤트를 만듭니다.`
-              : `${starName}'s AI Star Universe contains the Founder Network that grows members, spawns AI Stars, and creates AgentRank reputation events.`}
+              ? `${starName}의 AI 스타 유니버스 안에서 파운더 네트워크가 성장하고, 행동 결과가 평판 기록으로 남습니다.`
+              : `${starName}'s AI Star Universe contains the Founder Network that grows members and records action results.`}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -2502,7 +2502,7 @@ function AgentRankUniverseCard({
   );
 }
 
-function AgentRankSignalStrip({
+function FounderNetworkReputationRecordFlow({
   agentRank,
   locale,
   universe,
@@ -2522,203 +2522,260 @@ function AgentRankSignalStrip({
   const scorePercent = Math.round(
     (displayScore / Math.max(1, displayMaxScore)) * 100,
   );
-  const latestEvent = agentRank.eventFeed.events[0] ?? null;
+  const latestEvents = agentRank.eventFeed.events.slice(0, 3);
+  const latestEvent = latestEvents[0] ?? null;
   const encodedStarId = encodeURIComponent(universe.star.id);
-  const coverageAuditHref = `/${locale}/fanletter/agentrank/coverage?starId=${encodedStarId}&limit=120`;
   const highImpactLedgerHref = `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40&readiness=packet_ready&sort=impact_desc`;
-  const oracleGapLedgerHref = `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40&readiness=needs_oracle&sort=quality_asc`;
   const latestEvidenceHref = latestEvent
     ? `/${locale}/fanletter/agentrank/events/${encodeURIComponent(
         latestEvent.eventId,
       )}/evidence?starId=${encodedStarId}`
     : null;
-  const compactDimensions =
-    scoreAggregate?.dimensions
-      .filter((dimension) => dimension.key !== "riskPenalty")
-      .slice(0, 3) ?? [];
+  const latestCpDelta = latestEvents.reduce(
+    (sum, event) => sum + (event.economicLayer.cpDelta ?? 0),
+    0,
+  );
+  const primaryEventLabel = latestEvent
+    ? getAgentRankEventLabel(latestEvent.type, locale)
+    : locale === "ko"
+      ? "네트워크 성장"
+      : "Network growth";
+  const recordCountLabel = formatNumber(
+    agentRank.ers.summary.eventCount,
+    locale,
+  );
+  const cpChangeLabel =
+    latestCpDelta > 0
+      ? `CP +${formatNumber(latestCpDelta, locale)}`
+      : `${formatNumber(agentRank.ers.summary.cpTotal, locale)} CP`;
+  const flowSteps = [
+    {
+      description:
+        locale === "ko"
+          ? "참여, 추천, 멤버 선택 같은 의미 있는 행동"
+          : "Meaningful actions such as joins, referrals, and member inspection",
+      icon: CircleDot,
+      label: locale === "ko" ? "내 행동" : "My action",
+      value: primaryEventLabel,
+    },
+    {
+      description:
+        locale === "ko"
+          ? "AI 스타 유니버스 안의 성장 기록으로 저장"
+          : "Saved as growth records inside the AI Star Universe",
+      icon: ShieldCheck,
+      label: copy.reputationEvents,
+      value:
+        locale === "ko"
+          ? `${recordCountLabel}건`
+          : `${recordCountLabel} records`,
+    },
+    {
+      description:
+        locale === "ko"
+          ? "CP와 평판 점수에 반영되는 변화"
+          : "Changes reflected in CP and reputation score",
+      icon: Gauge,
+      label: locale === "ko" ? "보상/기여 변화" : "Reward impact",
+      value: cpChangeLabel,
+    },
+  ];
 
   return (
     <section className="overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-      <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <div className="flex min-w-0 flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
+      <div className="border-b border-zinc-200 p-4 sm:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <p className="inline-flex items-center gap-2 text-sm font-semibold text-zinc-700">
               <ShieldCheck className="size-4" />
-              {copy.trustScore}
+              {copy.reputationEvents}
             </p>
-            <div className="mt-2 flex min-w-0 flex-wrap items-end gap-x-3 gap-y-1">
-              <p className="text-3xl font-semibold leading-none text-[#111827]">
-                {displayScore}
-              </p>
-              <p className="pb-0.5 text-sm font-semibold text-slate-400">
-                / {formatNumber(displayMaxScore, locale)}
-              </p>
-              <p className="w-full text-xs font-semibold text-slate-500 sm:w-auto">
-                {copy.reputationEvents}{" "}
-                {formatNumber(agentRank.ers.summary.eventCount, locale)}
-              </p>
-            </div>
+            <h2 className="mt-2 text-2xl font-semibold tracking-normal text-[#111827]">
+              {locale === "ko"
+                ? "내 행동이 기록으로 쌓입니다"
+                : "Your actions become records"}
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-slate-500 [word-break:keep-all]">
+              {locale === "ko"
+                ? "AI 스타 유니버스 안에서 참여와 추천이 발생하면, 파운더 네트워크 성장 기록과 CP 변화로 남습니다."
+                : "When joins and referrals happen inside this AI Star Universe, they become Founder Network growth records and CP changes."}
+            </p>
           </div>
-
-          <div className="min-w-0 flex-1 lg:max-w-sm">
-            <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
-                style={{ width: `${scorePercent}%` }}
-              />
-            </div>
-            <div className="mt-2 grid grid-cols-3 gap-2 text-center">
-              <div className="rounded-lg bg-slate-50 px-2 py-2">
-                <p className="text-sm font-semibold text-[#111827]">
-                  {scoreAggregate
-                    ? `${scoreAggregate.confidence}%`
-                    : formatNumber(agentRank.ers.summary.networkEdges, locale)}
-                </p>
-                <p className="mt-0.5 text-[0.65rem] font-semibold text-slate-400">
-                  {scoreAggregate ? copy.scoreConfidence : copy.edge}
-                </p>
-              </div>
-              <div className="rounded-lg bg-slate-50 px-2 py-2">
-                <p className="text-sm font-semibold text-[#111827]">
-                  {scoreAggregate
-                    ? formatNumber(
-                        scoreAggregate.summary.founderJoins,
-                        locale,
-                      )
-                    : formatNumber(agentRank.ers.summary.cpTotal, locale)}
-                </p>
-                <p className="mt-0.5 text-[0.65rem] font-semibold text-slate-400">
-                  {scoreAggregate ? copy.founderJoins : "CP"}
-                </p>
-              </div>
-              <div className="rounded-lg bg-slate-50 px-2 py-2">
-                <p className="text-sm font-semibold text-[#111827]">
-                  {scoreAggregate
-                    ? `${scoreAggregate.readiness.oracleReadyPercent}%`
-                    : formatNumber(
-                        agentRank.ers.summary.oracleReadyEvents,
-                        locale,
-                      )}
-                </p>
-                <p className="mt-0.5 text-[0.65rem] font-semibold text-slate-400">
-                  Oracle
-                </p>
-              </div>
-            </div>
-            {compactDimensions.length > 0 ? (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {compactDimensions.map((dimension) => (
-                  <span
-                    className={`rounded-full px-2 py-1 text-[0.65rem] font-semibold ring-1 ${getAgentRankScoreDimensionClass(
-                      dimension.key,
-                    )}`}
-                    key={dimension.key}
-                  >
-                    {getAgentRankScoreDimensionLabel(dimension.key, locale)}{" "}
-                    {formatNumber(dimension.score, locale)}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </div>
-
-        <div className="grid gap-2 border-t border-zinc-200 bg-zinc-50 px-4 py-4 text-sm font-semibold lg:border-l lg:border-t-0 lg:px-5">
-          <FanletterTrackedLink
-            agentRank={{
-              eventType: "content_engaged",
-              intent: "founder_universe_agentrank_strip_open",
-              source: "fanletter_founder_universe",
-              starId: universe.star.id,
-            }}
-            className="flex min-h-10 items-center justify-between gap-3 rounded-lg bg-white px-3 text-zinc-900"
-            eventName="content_open"
-            href={`/${locale}/fanletter/agentrank?starId=${encodedStarId}`}
-            metadata={{
-              placement: "founder_universe_agentrank_signal_strip",
-              starName: universe.star.displayName || universe.star.name,
-            }}
-          >
-            <span>{copy.viewAgentRank}</span>
-            <ChevronRight className="size-4 shrink-0" />
-          </FanletterTrackedLink>
-          <FanletterTrackedLink
-            agentRank={{
-              eventType: "content_engaged",
-              intent: "founder_universe_high_impact_ledger_strip_open",
-              source: "fanletter_founder_universe",
-              starId: universe.star.id,
-            }}
-            className="hidden min-h-10 items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white px-3 text-zinc-900 sm:flex"
-            eventName="content_open"
-            href={highImpactLedgerHref}
-            metadata={{
-              placement: "founder_universe_agentrank_signal_strip_high_impact_ledger",
-              starName: universe.star.displayName || universe.star.name,
-            }}
-          >
-            <span>{copy.viewLedgerHighImpact}</span>
-            <ExternalLink className="size-3.5 shrink-0" />
-          </FanletterTrackedLink>
-          <FanletterTrackedLink
-            agentRank={{
-              eventType: "content_engaged",
-              intent: "founder_universe_oracle_gap_ledger_strip_open",
-              source: "fanletter_founder_universe",
-              starId: universe.star.id,
-            }}
-            className="hidden min-h-10 items-center justify-between gap-3 rounded-lg border border-amber-100 bg-white px-3 text-amber-700 sm:flex"
-            eventName="content_open"
-            href={oracleGapLedgerHref}
-            metadata={{
-              placement: "founder_universe_agentrank_signal_strip_oracle_gap_ledger",
-              starName: universe.star.displayName || universe.star.name,
-            }}
-          >
-            <span>{copy.viewLedgerGaps}</span>
-            <ShieldCheck className="size-3.5 shrink-0" />
-          </FanletterTrackedLink>
-          <FanletterTrackedLink
-            agentRank={{
-              eventType: "content_engaged",
-              intent: "founder_universe_coverage_audit_strip_open",
-              source: "fanletter_founder_universe",
-              starId: universe.star.id,
-            }}
-            className="hidden min-h-10 items-center justify-between gap-3 rounded-lg border border-emerald-100 bg-white px-3 text-emerald-700 sm:flex"
-            eventName="content_open"
-            href={coverageAuditHref}
-            metadata={{
-              placement: "founder_universe_agentrank_signal_strip_coverage",
-              starName: universe.star.displayName || universe.star.name,
-            }}
-          >
-            <span>{copy.viewCoverage}</span>
-            <Gauge className="size-3.5 shrink-0" />
-          </FanletterTrackedLink>
-          {latestEvidenceHref ? (
+          <div className="grid gap-2 sm:flex sm:shrink-0">
             <FanletterTrackedLink
               agentRank={{
                 eventType: "content_engaged",
-                intent: "founder_universe_evidence_packet_strip_open",
+                intent: "founder_universe_reputation_record_flow_ledger",
                 source: "fanletter_founder_universe",
                 starId: universe.star.id,
               }}
-              className="hidden min-h-10 items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 text-slate-700 sm:flex"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)]"
               eventName="content_open"
-              href={latestEvidenceHref}
+              href={highImpactLedgerHref}
               metadata={{
-                eventId: latestEvent?.eventId,
-                placement: "founder_universe_agentrank_signal_strip_evidence",
+                placement: "founder_universe_reputation_record_flow_primary",
                 starName: universe.star.displayName || universe.star.name,
               }}
             >
-              <span>{copy.viewEvidencePacket}</span>
-              <ShieldCheck className="size-3.5 shrink-0" />
+              {locale === "ko" ? "평판 기록 보기" : "View records"}
+              <ArrowRight className="size-4" />
             </FanletterTrackedLink>
-          ) : null}
+            {latestEvidenceHref ? (
+              <FanletterTrackedLink
+                agentRank={{
+                  eventType: "content_engaged",
+                  intent: "founder_universe_reputation_record_flow_evidence",
+                  source: "fanletter_founder_universe",
+                  starId: universe.star.id,
+                }}
+                className="hidden min-h-11 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-800 sm:inline-flex"
+                eventName="content_open"
+                href={latestEvidenceHref}
+                metadata={{
+                  eventId: latestEvent?.eventId,
+                  placement: "founder_universe_reputation_record_flow_evidence",
+                  starName: universe.star.displayName || universe.star.name,
+                }}
+              >
+                {copy.viewEvidencePacket}
+              </FanletterTrackedLink>
+            ) : null}
+          </div>
         </div>
       </div>
+
+      <div className="grid gap-4 p-4 sm:p-5 lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="grid gap-3 md:grid-cols-3">
+          {flowSteps.map((step, index) => {
+            const StepIcon = step.icon;
+
+            return (
+              <div
+                className="relative min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 p-3.5"
+                key={step.label}
+              >
+                {index < flowSteps.length - 1 ? (
+                  <span className="absolute -right-2 top-1/2 hidden size-4 -translate-y-1/2 items-center justify-center rounded-full bg-white text-zinc-400 md:flex">
+                    <ChevronRight className="size-4" />
+                  </span>
+                ) : null}
+                <div className="flex items-center justify-between gap-3">
+                  <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-white text-zinc-900 shadow-[0_10px_20px_rgba(15,23,42,0.06)]">
+                    <StepIcon className="size-4" />
+                  </span>
+                  <span className="rounded-full bg-white px-2 py-1 text-[0.65rem] font-semibold text-zinc-500">
+                    {index + 1}
+                  </span>
+                </div>
+                <p className="mt-3 text-xs font-semibold text-zinc-500">
+                  {step.label}
+                </p>
+                <p className="mt-1 truncate text-lg font-semibold text-[#111827]">
+                  {step.value}
+                </p>
+                <p className="mt-1.5 text-xs font-medium leading-5 text-slate-500 [word-break:keep-all]">
+                  {step.description}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="rounded-xl border border-zinc-200 bg-white p-3.5">
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold text-zinc-500">
+                {copy.trustScore}
+              </p>
+              <p className="mt-1 text-3xl font-semibold text-[#111827]">
+                {displayScore}
+              </p>
+            </div>
+            <p className="pb-1 text-sm font-semibold text-slate-400">
+              / {formatNumber(displayMaxScore, locale)}
+            </p>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-zinc-100">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-black via-zinc-700 to-zinc-400"
+              style={{ width: `${scorePercent}%` }}
+            />
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+            <div className="rounded-lg bg-zinc-50 px-2 py-2">
+              <p className="text-sm font-semibold text-[#111827]">
+                {scoreAggregate
+                  ? `${scoreAggregate.confidence}%`
+                  : formatNumber(agentRank.ers.summary.networkEdges, locale)}
+              </p>
+              <p className="mt-0.5 text-[0.65rem] font-semibold text-slate-400">
+                {scoreAggregate ? copy.scoreConfidence : copy.edge}
+              </p>
+            </div>
+            <div className="rounded-lg bg-zinc-50 px-2 py-2">
+              <p className="text-sm font-semibold text-[#111827]">
+                {formatNumber(agentRank.ers.summary.oracleReadyEvents, locale)}
+              </p>
+              <p className="mt-0.5 text-[0.65rem] font-semibold text-slate-400">
+                {locale === "ko" ? "검증 가능" : "Verified"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {latestEvents.length > 0 ? (
+        <div className="border-t border-zinc-200 bg-zinc-50 px-4 py-4 sm:px-5">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-sm font-semibold text-[#111827]">
+              {locale === "ko" ? "최근 평판 기록" : "Recent records"}
+            </p>
+            <span className="text-xs font-semibold text-slate-400">
+              {locale === "ko" ? "행동 결과" : "Action results"}
+            </span>
+          </div>
+          <div className="mt-3 grid gap-2 lg:grid-cols-3">
+            {latestEvents.map((event) => (
+              <FanletterTrackedLink
+                agentRank={{
+                  eventType: "content_engaged",
+                  intent: "founder_universe_reputation_record_row_evidence",
+                  source: "fanletter_founder_universe",
+                  starId: universe.star.id,
+                }}
+                className="flex min-h-16 items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-left transition hover:border-zinc-400 hover:bg-zinc-50"
+                eventName="content_open"
+                href={`/${locale}/fanletter/agentrank/events/${encodeURIComponent(
+                  event.eventId,
+                )}/evidence?starId=${encodedStarId}`}
+                key={event.eventId}
+                metadata={{
+                  eventId: event.eventId,
+                  eventType: event.type,
+                  placement: "founder_universe_reputation_record_row",
+                  starName: universe.star.displayName || universe.star.name,
+                }}
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-[#111827]">
+                    {getAgentRankEventLabel(event.type, locale)}
+                  </span>
+                  <span className="mt-0.5 block truncate text-xs font-semibold text-slate-400">
+                    {event.source}
+                  </span>
+                </span>
+                {event.economicLayer.cpDelta ? (
+                  <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-1 text-[0.68rem] font-semibold text-emerald-700">
+                    CP +{formatNumber(event.economicLayer.cpDelta, locale)}
+                  </span>
+                ) : (
+                  <ChevronRight className="size-4 shrink-0 text-slate-400" />
+                )}
+              </FanletterTrackedLink>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -3366,7 +3423,7 @@ export function FanletterFounderUniverseExplorer({
             universe={displayUniverse}
           />
 
-          <AgentRankSignalStrip
+          <FounderNetworkReputationRecordFlow
             agentRank={agentRank}
             locale={locale}
             universe={displayUniverse}
