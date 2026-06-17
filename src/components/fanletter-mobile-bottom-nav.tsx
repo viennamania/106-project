@@ -158,24 +158,70 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
   const referralCode =
     normalizeReferralCode(searchParams.get("ref")) ??
     readCreatorReferralCodeFromPathname(pathname, basePath);
-  const copy =
-    locale === "ko"
-      ? {
-          discover: "발견",
-          founder: "파운더",
-          home: "홈",
-          label: "AIAVpark 주요 메뉴",
-          scout: "스카우트",
-          studio: "스튜디오",
-        }
-      : {
-          discover: "Discover",
-          founder: "Founder",
-          home: "Home",
-          label: "AIAVpark navigation",
-          scout: "Scout",
-          studio: "Studio",
-        };
+  // i18n pilot: the bottom nav now sources its labels per supported locale
+  // instead of the previous ko/en-only ternary, so ja/zh/vi/id render natively
+  // rather than falling back to English. (Draft translations — pending review.)
+  const navCopy: Record<
+    Locale,
+    {
+      discover: string;
+      founder: string;
+      home: string;
+      label: string;
+      scout: string;
+      studio: string;
+    }
+  > = {
+    ko: {
+      discover: "발견",
+      founder: "파운더",
+      home: "홈",
+      label: "AIAVpark 주요 메뉴",
+      scout: "스카우트",
+      studio: "스튜디오",
+    },
+    en: {
+      discover: "Discover",
+      founder: "Founder",
+      home: "Home",
+      label: "AIAVpark navigation",
+      scout: "Scout",
+      studio: "Studio",
+    },
+    ja: {
+      discover: "発見",
+      founder: "ファウンダー",
+      home: "ホーム",
+      label: "AIAVparkナビゲーション",
+      scout: "スカウト",
+      studio: "スタジオ",
+    },
+    zh: {
+      discover: "发现",
+      founder: "创始人",
+      home: "首页",
+      label: "AIAVpark 导航",
+      scout: "星探",
+      studio: "工作室",
+    },
+    vi: {
+      discover: "Khám phá",
+      founder: "Sáng lập",
+      home: "Trang chủ",
+      label: "Điều hướng AIAVpark",
+      scout: "Tuyển trạch",
+      studio: "Studio",
+    },
+    id: {
+      discover: "Jelajahi",
+      founder: "Pendiri",
+      home: "Beranda",
+      label: "Navigasi AIAVpark",
+      scout: "Pencari",
+      studio: "Studio",
+    },
+  };
+  const copy = navCopy[locale];
   const buildHref = (path: string) => buildPathWithReferral(path, referralCode);
   const items: FanletterNavItem[] = [
     {
