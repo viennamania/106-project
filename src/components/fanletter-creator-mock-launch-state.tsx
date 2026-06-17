@@ -9,6 +9,8 @@ import {
 import {
   useCallback,
   useEffect,
+  useId,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -17,6 +19,7 @@ import type { Locale } from "@/lib/i18n";
 import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-events";
 import type { FunnelEventMetadata } from "@/lib/funnel";
 import { trackFunnelEvent } from "@/lib/funnel-client";
+import { useDialogFocusTrap } from "@/lib/use-dialog-focus-trap";
 import type { MemberOwnedAIStar } from "@/mock/fanletterV2";
 
 const FANLETTER_CREATOR_MOCK_LAUNCHES_STORAGE_KEY =
@@ -352,27 +355,15 @@ export function FanletterCreatorMockLaunchButton({
   const [state, setState] = useState<"done" | "idle" | "loading">("idle");
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const confirmCopy = getConfirmCopy(locale);
+  const confirmTitleId = useId();
+  const confirmPanelRef = useRef<HTMLElement | null>(null);
+  const closeConfirm = useCallback(() => setIsConfirmOpen(false), []);
 
-  useEffect(() => {
-    if (!isConfirmOpen) {
-      return;
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setIsConfirmOpen(false);
-      }
-    }
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isConfirmOpen]);
+  useDialogFocusTrap({
+    containerRef: confirmPanelRef,
+    onClose: closeConfirm,
+    open: isConfirmOpen,
+  });
 
   const handleConfirm = useCallback(async () => {
     if (state === "loading") {
@@ -417,11 +408,11 @@ export function FanletterCreatorMockLaunchButton({
       trackFunnelEvent("signup_cta_click", {
         agentRank,
         metadata: {
+          ...trackingMetadata,
           launchMode: preview.mode,
           launchPaymentStatus: preview.payment.status,
           launchSourceUniverseName: preview.launch.sourceUniverseName ?? null,
           launchStarName: preview.launch.name,
-          ...trackingMetadata,
         },
         targetHref: `/${locale}/fanletter/${encodeURIComponent(
           preview.launch.id,
@@ -470,6 +461,7 @@ export function FanletterCreatorMockLaunchButton({
 
       {isConfirmOpen ? (
         <div
+          aria-labelledby={confirmTitleId}
           aria-modal="true"
           className="fixed inset-0 z-[95] flex items-end justify-center bg-black/42 p-4 backdrop-blur-sm sm:items-center"
           role="dialog"
@@ -477,16 +469,23 @@ export function FanletterCreatorMockLaunchButton({
           <button
             aria-label={confirmCopy.close}
             className="absolute inset-0 cursor-default"
-            onClick={() => setIsConfirmOpen(false)}
+            onClick={closeConfirm}
             type="button"
           />
-          <section className="relative z-10 max-h-[calc(100svh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_28px_90px_rgba(15,23,42,0.22)] sm:p-5">
+          <section
+            className="relative z-10 max-h-[calc(100svh-2rem)] w-full max-w-md overflow-y-auto rounded-2xl border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_28px_90px_rgba(15,23,42,0.22)] focus:outline-none sm:p-5"
+            ref={confirmPanelRef}
+            tabIndex={-1}
+          >
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
                   {confirmCopy.paymentValue}
                 </p>
-                <h2 className="mt-2 text-xl font-semibold leading-tight">
+                <h2
+                  className="mt-2 text-xl font-semibold leading-tight"
+                  id={confirmTitleId}
+                >
                   {confirmCopy.title}
                 </h2>
                 <p className="mt-2 text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">

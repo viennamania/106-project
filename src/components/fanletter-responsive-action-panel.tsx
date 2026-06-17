@@ -1,7 +1,9 @@
 "use client";
 
 import { X } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { useId, useRef, type ReactNode } from "react";
+
+import { useDialogFocusTrap } from "@/lib/use-dialog-focus-trap";
 
 function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -26,27 +28,10 @@ export function FanletterResponsiveActionPanel({
   open: boolean;
   title: string;
 }) {
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
+  const titleId = useId();
+  const panelRef = useRef<HTMLElement | null>(null);
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", onKeyDown);
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", onKeyDown);
-    };
-  }, [onClose, open]);
+  useDialogFocusTrap({ containerRef: panelRef, onClose, open });
 
   if (!open) {
     return null;
@@ -54,6 +39,7 @@ export function FanletterResponsiveActionPanel({
 
   return (
     <div
+      aria-labelledby={titleId}
       aria-modal="true"
       className="fixed inset-0 z-[80] flex items-end justify-center sm:items-stretch sm:justify-end"
       role="dialog"
@@ -66,9 +52,11 @@ export function FanletterResponsiveActionPanel({
       />
       <section
         className={joinClasses(
-          "relative flex max-h-[86svh] w-full max-w-[42rem] flex-col overflow-hidden rounded-t-[1.35rem] border border-zinc-200 bg-white text-zinc-950 shadow-[0_-22px_80px_rgba(15,23,42,0.22)]",
+          "relative flex max-h-[86svh] w-full max-w-[42rem] flex-col overflow-hidden rounded-t-[1.35rem] border border-zinc-200 bg-white text-zinc-950 shadow-[0_-22px_80px_rgba(15,23,42,0.22)] focus:outline-none",
           "sm:h-full sm:max-h-none sm:max-w-[27rem] sm:rounded-none sm:border-y-0 sm:border-r-0 sm:shadow-[0_0_80px_rgba(15,23,42,0.18)]",
         )}
+        ref={panelRef}
+        tabIndex={-1}
       >
         <div className="flex shrink-0 items-start justify-between gap-4 border-b border-zinc-200 px-4 py-4 sm:px-5">
           <div className="min-w-0">
@@ -77,7 +65,10 @@ export function FanletterResponsiveActionPanel({
                 {eyebrow}
               </p>
             ) : null}
-            <h2 className="mt-1 text-xl font-semibold leading-tight tracking-normal [word-break:keep-all]">
+            <h2
+              className="mt-1 text-xl font-semibold leading-tight tracking-normal [word-break:keep-all]"
+              id={titleId}
+            >
               {title}
             </h2>
             {description ? (
