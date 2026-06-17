@@ -36,19 +36,19 @@ const copyByLocale: Record<
     shortLabel: "TOP",
   },
   ja: {
-    label: "Back to top",
+    label: "ページ上部に戻る",
     shortLabel: "TOP",
   },
   zh: {
-    label: "Back to top",
+    label: "返回页面顶部",
     shortLabel: "TOP",
   },
   vi: {
-    label: "Back to top",
+    label: "Lên đầu trang",
     shortLabel: "TOP",
   },
   id: {
-    label: "Back to top",
+    label: "Kembali ke atas",
     shortLabel: "TOP",
   },
 };

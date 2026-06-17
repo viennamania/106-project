@@ -10,25 +10,74 @@ import { clearServerMemberSession } from "@/lib/member-session-client";
 import type { Locale } from "@/lib/i18n";
 
 function getCopy(locale: Locale) {
-  return locale === "ko"
-    ? {
-        cancel: "취소",
-        confirm: "로그아웃",
-        description:
-          "현재 AIAVpark News 계정 연결을 해제합니다. 다시 이용하려면 이메일로 다시 연결하면 됩니다.",
-        eyebrow: "AIAVpark News",
-        pending: "로그아웃 중",
-        title: "로그아웃할까요?",
-      }
-    : {
-        cancel: "Cancel",
-        confirm: "Log out",
-        description:
-          "This disconnects the current AIAVpark News account session. You can reconnect with email anytime.",
-        eyebrow: "AIAVpark News",
-        pending: "Logging out",
-        title: "Log out?",
-      };
+  const byLocale: Record<
+    Locale,
+    {
+      cancel: string;
+      confirm: string;
+      description: string;
+      eyebrow: string;
+      pending: string;
+      title: string;
+    }
+  > = {
+    ko: {
+      cancel: "취소",
+      confirm: "로그아웃",
+      description:
+        "현재 AIAVpark News 계정 연결을 해제합니다. 다시 이용하려면 이메일로 다시 연결하면 됩니다.",
+      eyebrow: "AIAVpark News",
+      pending: "로그아웃 중",
+      title: "로그아웃할까요?",
+    },
+    en: {
+      cancel: "Cancel",
+      confirm: "Log out",
+      description:
+        "This disconnects the current AIAVpark News account session. You can reconnect with email anytime.",
+      eyebrow: "AIAVpark News",
+      pending: "Logging out",
+      title: "Log out?",
+    },
+    ja: {
+      cancel: "キャンセル",
+      confirm: "ログアウト",
+      description:
+        "現在の AIAVpark News アカウント接続を解除します。再度ご利用の際はメールで再接続できます。",
+      eyebrow: "AIAVpark News",
+      pending: "ログアウト中",
+      title: "ログアウトしますか？",
+    },
+    zh: {
+      cancel: "取消",
+      confirm: "退出登录",
+      description:
+        "将断开当前 AIAVpark News 账户连接。需要时可随时用邮箱重新连接。",
+      eyebrow: "AIAVpark News",
+      pending: "退出中",
+      title: "退出登录？",
+    },
+    vi: {
+      cancel: "Hủy",
+      confirm: "Đăng xuất",
+      description:
+        "Ngắt kết nối phiên tài khoản AIAVpark News hiện tại. Bạn có thể kết nối lại bằng email bất cứ lúc nào.",
+      eyebrow: "AIAVpark News",
+      pending: "Đang đăng xuất",
+      title: "Đăng xuất?",
+    },
+    id: {
+      cancel: "Batal",
+      confirm: "Keluar",
+      description:
+        "Memutuskan sesi akun AIAVpark News saat ini. Anda dapat menyambungkan kembali dengan email kapan saja.",
+      eyebrow: "AIAVpark News",
+      pending: "Sedang keluar",
+      title: "Keluar?",
+    },
+  };
+
+  return byLocale[locale] ?? byLocale.ko;
 }
 
 export function FanletterNewsLogoutButton({
