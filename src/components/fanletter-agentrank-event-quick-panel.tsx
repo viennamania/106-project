@@ -127,33 +127,56 @@ export function FanletterAgentRankEventQuickPanel({
         agentRankResult: "AgentRank 결과",
         audit: "감사 상태",
         close: "이벤트 빠른 상세 닫기",
+        connectedCreator: "연결한 Creator",
         eventId: "이벤트 ID",
         events: "평판 신호",
+        handle: "TikTok handle",
         impact: "평판 영향",
         now: "현재 위치",
         nextAction: "다음 행동",
         object: "대상",
         occurredAt: "생성 시각",
+        platform: "플랫폼",
         quick: "빠른 상세",
+        socialChannel: "채널 연결",
         source: "소스",
+        targetAiStar: "대상 AI 스타",
       }
     : {
         actor: "Actor",
         agentRankResult: "AgentRank Result",
         audit: "Audit",
         close: "Close event quick detail",
+        connectedCreator: "Connected Creator",
         eventId: "Event ID",
         events: "Reputation Signals",
+        handle: "TikTok handle",
         impact: "Impact",
         now: "Current Position",
         nextAction: "Next Action",
         object: "Object",
         occurredAt: "Generated",
+        platform: "Platform",
         quick: "Quick detail",
+        socialChannel: "Channel Connection",
         source: "Source",
+        targetAiStar: "Target AI Star",
       };
   const objectLabel =
     event.object?.label ?? event.subject?.label ?? event.starId ?? "-";
+  const socialChannelSummary =
+    event.type === "creator_social_connected"
+      ? {
+          connectedCreator:
+            readContextString(event, "actorMemberName") ?? event.actor.label,
+          handle: readContextString(event, "handle"),
+          platform: readContextString(event, "platform") ?? "tiktok",
+          targetAiStar:
+            readContextString(event, "starName") ??
+            event.object?.label ??
+            event.starId,
+        }
+      : null;
   const signalItems = [
     ["Network", event.reputationSignals.networkWeight],
     ["Economic", event.reputationSignals.economicWeight],
@@ -256,6 +279,36 @@ export function FanletterAgentRankEventQuickPanel({
               </div>
             </div>
           </section>
+
+          {socialChannelSummary ? (
+            <section className="rounded-lg border border-zinc-200 bg-zinc-950 p-3 text-white">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/50">
+                {labels.socialChannel}
+              </p>
+              <p className="mt-2 break-words text-lg font-semibold leading-tight [word-break:keep-all]">
+                {socialChannelSummary.handle ?? "TikTok"}
+              </p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                {[
+                  [labels.platform, socialChannelSummary.platform],
+                  [labels.connectedCreator, socialChannelSummary.connectedCreator],
+                  [labels.targetAiStar, socialChannelSummary.targetAiStar],
+                ].map(([label, value]) => (
+                  <div
+                    className="min-w-0 rounded-lg border border-white/10 bg-white/8 p-2"
+                    key={label}
+                  >
+                    <p className="text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-white/45">
+                      {label}
+                    </p>
+                    <p className="mt-1 truncate text-xs font-semibold text-white">
+                      {value ?? "-"}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <section className="grid gap-2 sm:grid-cols-2">
             {[
