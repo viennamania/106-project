@@ -37,6 +37,8 @@ function getCopy(locale: Locale) {
     return {
       aiStarBadge: "AI STAR",
       closePanel: "TikTok 연결 패널 닫기",
+      conditionComplete: "Creator Journey 조건 완료",
+      conditionReflected: "상단 진행률에 즉시 반영됨",
       connectedBy: "연결한 Creator",
       connectedTitle: "TikTok 채널 연결됨",
       connectComplete: "Mock 연결 완료",
@@ -87,6 +89,8 @@ function getCopy(locale: Locale) {
     return {
       aiStarBadge: "AI STAR",
       closePanel: "TikTok接続パネルを閉じる",
+      conditionComplete: "Creator Journey条件完了",
+      conditionReflected: "上部の進行率に即時反映",
       connectedBy: "接続したCreator",
       connectedTitle: "TikTokチャンネル接続済み",
       connectComplete: "Mock接続を完了",
@@ -138,6 +142,8 @@ function getCopy(locale: Locale) {
   return {
     aiStarBadge: "AI STAR",
     closePanel: "Close TikTok connection panel",
+    conditionComplete: "Creator Journey condition complete",
+    conditionReflected: "Reflected in top progress",
     connectedBy: "Connected Creator",
     connectedTitle: "TikTok channel connected",
     connectComplete: "Complete mock connection",
@@ -502,6 +508,22 @@ export function FanletterAIStarSocialAccountCard({
               {statusLabel}
             </span>
           </div>
+
+          {isConnected ? (
+            <div className="mt-3 flex min-w-0 flex-wrap gap-2">
+              <span className="inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-800">
+                <CheckCircle2 className="size-3.5 shrink-0" />
+                <span className="min-w-0 truncate">
+                  {copy.conditionComplete}
+                </span>
+              </span>
+              <span className="inline-flex min-h-8 max-w-full items-center rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-600">
+                <span className="min-w-0 truncate">
+                  {copy.conditionReflected}
+                </span>
+              </span>
+            </div>
+          ) : null}
 
           <div className="mt-4 grid min-w-0 gap-2 sm:grid-cols-2">
             <div className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3">

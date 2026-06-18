@@ -1480,12 +1480,16 @@ function AccountConnectionNotice({
 }
 
 function CreatorUnlockStateStrip({
+  creatorSocialConnected,
+  creatorSocialHandle,
   isPreviewMode,
   locale,
   requiresSourceUniverse,
   selectedSourceOption,
   unlock,
 }: {
+  creatorSocialConnected: boolean;
+  creatorSocialHandle?: string | null;
   isPreviewMode: boolean;
   locale: Locale;
   requiresSourceUniverse: boolean;
@@ -1512,6 +1516,8 @@ function CreatorUnlockStateStrip({
           connect: "계정 연결 후 실데이터 확인",
           locked: "조건 상세 확인",
           nextCondition: "다음 조건",
+          reputationRecord: "평판 기록",
+          socialComplete: "TikTok 연결 조건 완료",
           progress: "권한 진행률",
           ready: "생성 미리보기 가능",
           source: "창업 출처",
@@ -1522,6 +1528,8 @@ function CreatorUnlockStateStrip({
           connect: "Connect to view live data",
           locked: "Review conditions",
           nextCondition: "Next Condition",
+          reputationRecord: "Reputation Record",
+          socialComplete: "TikTok condition complete",
           progress: "Activation Progress",
           ready: "Launch preview ready",
           source: "Launch Source",
@@ -1564,40 +1572,59 @@ function CreatorUnlockStateStrip({
   ];
 
   return (
-    <section className="mt-4 grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-3">
-      {items.map((item) => (
-        <div
-          className={joinClasses(
-            "min-w-0 rounded-lg border bg-white px-3 py-3 shadow-[0_12px_28px_rgba(88,28,135,0.06)]",
-            item.tone === "emerald" && "border-emerald-200",
-            item.tone === "amber" && "border-amber-200",
-            item.tone === "violet" && "border-zinc-200",
-          )}
-          key={item.label}
-        >
-          <p
+    <section className="mt-4 grid w-full min-w-0 gap-2">
+      <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-3">
+        {items.map((item) => (
+          <div
             className={joinClasses(
-              "text-[0.66rem] font-semibold uppercase tracking-[0.08em]",
-              item.tone === "emerald" && "text-emerald-700",
-              item.tone === "amber" && "text-amber-700",
-              item.tone === "violet" && "text-zinc-700",
+              "min-w-0 rounded-lg border bg-white px-3 py-3 shadow-[0_12px_28px_rgba(88,28,135,0.06)]",
+              item.tone === "emerald" && "border-emerald-200",
+              item.tone === "amber" && "border-amber-200",
+              item.tone === "violet" && "border-zinc-200",
             )}
+            key={item.label}
           >
-            {item.label}
-          </p>
-          <p className="mt-1 break-words text-sm font-semibold leading-tight text-[#12041f] [word-break:keep-all]">
-            {item.value}
-          </p>
-          {"detail" in item && item.detail ? (
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100">
-              <div
-                className="h-full rounded-full bg-black"
-                style={{ width: item.detail }}
-              />
-            </div>
-          ) : null}
+            <p
+              className={joinClasses(
+                "text-[0.66rem] font-semibold uppercase tracking-[0.08em]",
+                item.tone === "emerald" && "text-emerald-700",
+                item.tone === "amber" && "text-amber-700",
+                item.tone === "violet" && "text-zinc-700",
+              )}
+            >
+              {item.label}
+            </p>
+            <p className="mt-1 break-words text-sm font-semibold leading-tight text-[#12041f] [word-break:keep-all]">
+              {item.value}
+            </p>
+            {"detail" in item && item.detail ? (
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100">
+                <div
+                  className="h-full rounded-full bg-black"
+                  style={{ width: item.detail }}
+                />
+              </div>
+            ) : null}
+          </div>
+        ))}
+      </div>
+      {creatorSocialConnected ? (
+        <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-emerald-950 shadow-[0_12px_28px_rgba(16,185,129,0.08)] sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-emerald-700">
+              {labels.reputationRecord}
+            </p>
+            <p className="mt-1 break-words text-sm font-semibold leading-tight [word-break:keep-all]">
+              {labels.socialComplete}
+            </p>
+          </div>
+          <span className="inline-flex min-h-8 max-w-full items-center rounded-full bg-white px-3 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
+            <span className="min-w-0 truncate">
+              {creatorSocialHandle ?? "creator_social_connected"}
+            </span>
+          </span>
         </div>
-      ))}
+      ) : null}
     </section>
   );
 }
@@ -1700,8 +1727,10 @@ export function FanletterCreatorUnlockPage({
     platform: "tiktok",
     starId: socialSourceStarId,
   });
+  const creatorJourneyEffectiveSocialAccount =
+    creatorJourneyLocalSocialAccount ?? creatorJourneySocialAccount.account;
   const creatorJourneySocialConnected = Boolean(
-    creatorJourneyLocalSocialAccount ?? creatorJourneySocialAccount.account,
+    creatorJourneyEffectiveSocialAccount,
   );
   const baseUnlock: CreatorUnlockData =
     creatorUnlock ?? fanletterV2Mock.creatorUnlock;
@@ -2200,6 +2229,8 @@ export function FanletterCreatorUnlockPage({
         ) : null}
 
         <CreatorUnlockStateStrip
+          creatorSocialConnected={creatorJourneySocialConnected}
+          creatorSocialHandle={creatorJourneyEffectiveSocialAccount?.handle}
           isPreviewMode={isPreviewMode}
           locale={locale}
           requiresSourceUniverse={requiresSourceUniverse}

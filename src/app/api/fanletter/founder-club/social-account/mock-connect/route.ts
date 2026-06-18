@@ -156,6 +156,10 @@ export async function POST(request: Request) {
     source,
     starId,
   };
+  const eventPath =
+    source === "fanletter_creator_unlock"
+      ? `/${locale}/fanletter/creator-unlock#tiktok-channel`
+      : `/${locale}/fanletter/${encodeURIComponent(starId)}#tiktok-channel`;
 
   await tryRecordFanletterAgentRankServerEvent({
     agentRank,
@@ -166,6 +170,8 @@ export async function POST(request: Request) {
       actorMemberId: connectedByMemberId,
       actorMemberName: connectedByMemberName,
       actorType: "creator_member",
+      creatorJourneyConditionId: "creatorSocialConnected",
+      creatorJourneyConditionMet: true,
       creatorRoleAtConnection,
       handle: account.handle,
       mockOnly: true,
@@ -176,7 +182,7 @@ export async function POST(request: Request) {
       starName,
       targetType: "ai_star",
     },
-    path: `/${locale}/fanletter/${encodeURIComponent(starId)}#tiktok-channel`,
+    path: eventPath,
     targetHref: account.profileUrl,
     userAgent: request.headers.get("user-agent"),
   });
