@@ -5,6 +5,7 @@ import {
   AtSign,
   BadgeCheck,
   CheckCircle2,
+  Database,
   ExternalLink,
   LockKeyhole,
   ShieldCheck,
@@ -77,6 +78,8 @@ function getCopy(locale: Locale) {
         "회원 개인 계정이 아니라 선택한 AI 스타의 TikTok 채널을 연결합니다.",
       panelTitle: "AI 스타 TikTok 채널 연결",
       primaryCta: "TikTok 연결하기",
+      reputationLedger: "평판 기록 보기",
+      reputationLedgerHint: "AgentRank 원장에서 연결 이벤트 확인",
       roleCreator: "Creator",
       roleOwner: "Owner",
       status: "상태",
@@ -131,6 +134,8 @@ function getCopy(locale: Locale) {
         "個人アカウントではなく、選択したAIスターのTikTokチャンネルを接続します。",
       panelTitle: "AIスターTikTokチャンネル接続",
       primaryCta: "TikTok接続",
+      reputationLedger: "評判記録を見る",
+      reputationLedgerHint: "AgentRank台帳で接続イベントを確認",
       roleCreator: "Creator",
       roleOwner: "Owner",
       status: "状態",
@@ -184,6 +189,8 @@ function getCopy(locale: Locale) {
       "Connect the selected AI Star channel, not a personal member account.",
     panelTitle: "Connect AI Star TikTok channel",
     primaryCta: "Connect TikTok",
+    reputationLedger: "View Reputation Record",
+    reputationLedgerHint: "Check the connection event in AgentRank Ledger",
     roleCreator: "Creator",
     roleOwner: "Owner",
     status: "Status",
@@ -307,6 +314,14 @@ export function FanletterAIStarSocialAccountCard({
           ? `${copy.oauthReadinessBlocked} · ${oauthPreviewBlockedCount} ${copy.oauthReadinessCriteriaUnit}`
           : `${copy.oauthReadinessBlocked} · ${oauthPreviewBlockedCount}${copy.oauthReadinessCriteriaUnit}`
         : copy.oauthReadinessPreview;
+  const reputationLedgerParams = new URLSearchParams({
+    coverageAction: "creator_social_connected",
+    limit: "40",
+    sort: "latest",
+    starId,
+    type: "creator_social_connected",
+  });
+  const reputationLedgerHref = `/${locale}/fanletter/agentrank/events?${reputationLedgerParams.toString()}`;
 
   useEffect(() => {
     if (!isPanelOpen || !social.canConnect) {
@@ -566,41 +581,79 @@ export function FanletterAIStarSocialAccountCard({
               <p className="text-sm font-medium leading-5 text-zinc-600">
                 {account ? copy.eventCreated : copy.connectHelper}
               </p>
+              {account ? (
+                <p className="mt-1 text-xs font-semibold text-emerald-700">
+                  {copy.reputationLedgerHint}
+                </p>
+              ) : null}
               <p className="mt-1 text-xs font-semibold text-zinc-500">
                 creator_social_connected · target: ai_star · platform: tiktok
               </p>
             </div>
             {account ? (
-              <FanletterTrackedLink
-                agentRank={{
-                  eventType: "content_engaged",
-                  intent: "creator_tiktok_channel_opened",
-                  source,
-                  starId,
-                }}
-                className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white transition hover:bg-zinc-800 sm:w-auto"
-                eventName="external_browser_click"
-                href={account.profileUrl}
-                metadata={{
-                  actorMemberId,
-                  actorMemberName,
-                  actorType: "creator_member",
-                  creatorRoleAtConnection: account.creatorRoleAtConnection,
-                  mockOnly: true,
-                  platform: "tiktok",
-                  socialConnectionStatus: account.status,
-                  starId,
-                  starName,
-                  targetType: "ai_star",
-                }}
-                rel="noreferrer"
-                target="_blank"
-              >
-                <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
-                  {copy.openTiktok}
-                </span>
-                <ExternalLink className="size-4 shrink-0" />
-              </FanletterTrackedLink>
+              <div className="grid w-full min-w-0 gap-2 sm:w-auto sm:grid-cols-[minmax(0,1fr)_auto]">
+                <FanletterTrackedLink
+                  agentRank={{
+                    eventType: "content_engaged",
+                    intent: "creator_social_connection_ledger_opened",
+                    source: "fanletter_agentrank",
+                    starId,
+                  }}
+                  className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white transition hover:bg-zinc-800 sm:w-auto"
+                  eventName="content_open"
+                  href={reputationLedgerHref}
+                  metadata={{
+                    actorMemberId,
+                    actorMemberName,
+                    actorType: "creator_member",
+                    creatorJourneyConditionId: "creatorSocialConnected",
+                    creatorJourneyConditionMet: true,
+                    creatorRoleAtConnection: account.creatorRoleAtConnection,
+                    ledgerFilter: "creator_social_connected",
+                    mockOnly: true,
+                    platform: "tiktok",
+                    socialConnectionStatus: account.status,
+                    starId,
+                    starName,
+                    targetType: "ai_star",
+                  }}
+                >
+                  <Database className="size-4 shrink-0" />
+                  <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
+                    {copy.reputationLedger}
+                  </span>
+                </FanletterTrackedLink>
+                <FanletterTrackedLink
+                  agentRank={{
+                    eventType: "content_engaged",
+                    intent: "creator_tiktok_channel_opened",
+                    source,
+                    starId,
+                  }}
+                  className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50 sm:w-auto"
+                  eventName="external_browser_click"
+                  href={account.profileUrl}
+                  metadata={{
+                    actorMemberId,
+                    actorMemberName,
+                    actorType: "creator_member",
+                    creatorRoleAtConnection: account.creatorRoleAtConnection,
+                    mockOnly: true,
+                    platform: "tiktok",
+                    socialConnectionStatus: account.status,
+                    starId,
+                    starName,
+                    targetType: "ai_star",
+                  }}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
+                    {copy.openTiktok}
+                  </span>
+                  <ExternalLink className="size-4 shrink-0" />
+                </FanletterTrackedLink>
+              </div>
             ) : (
               <button
                 className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight text-white transition hover:bg-zinc-800 sm:w-auto"
