@@ -1678,6 +1678,163 @@ function CreatorUnlockStateStrip({
   );
 }
 
+function CreatorJourneyEventPath({
+  hasMockLaunches,
+  isPreviewMode,
+  locale,
+  requiresSourceUniverse,
+  sourceUniverseName,
+  unlock,
+}: {
+  hasMockLaunches: boolean;
+  isPreviewMode: boolean;
+  locale: Locale;
+  requiresSourceUniverse: boolean;
+  sourceUniverseName: string;
+  unlock: CreatorUnlockData;
+}) {
+  const isKorean = locale === "ko";
+  const labels = isKorean
+    ? {
+        active: "현재",
+        done: "완료",
+        next: "다음",
+        source: "출처",
+        subtitle: "선택한 AI 스타 유니버스의 성과가 새 AI 스타 생성 기록으로 이어집니다.",
+        title: "평판 기록 경로",
+      }
+    : {
+        active: "Now",
+        done: "Done",
+        next: "Next",
+        source: "Source",
+        subtitle:
+          "The selected AI Star Universe becomes the source of the new AI Star creation record.",
+        title: "Reputation event path",
+      };
+  const steps = [
+    {
+      body: requiresSourceUniverse
+        ? isKorean
+          ? "AI 스타 유니버스 선택 필요"
+          : "Choose an AI Star Universe"
+        : sourceUniverseName,
+      eventType: "source_universe_selected",
+      icon: GitBranch,
+      label: isKorean ? "출처 선택" : "Source selected",
+      status: requiresSourceUniverse ? "active" : "done",
+    },
+    {
+      body: isKorean ? "조건 충족 후 권한 활성화" : "Activate after conditions",
+      eventType: "creator_unlocked",
+      icon: BadgeCheck,
+      label: isKorean ? "권한 활성화" : "Permission active",
+      status: requiresSourceUniverse
+        ? "next"
+        : unlock.unlocked
+          ? "done"
+          : "active",
+    },
+    {
+      body: isKorean ? "실결제 없이 의도만 기록" : "Mock intent, no real payment",
+      eventType: "x402_mock_payment_intent",
+      icon: CircleDollarSign,
+      label: isKorean ? "10 USDT 미리보기" : "10 USDT preview",
+      status: hasMockLaunches
+        ? "done"
+        : unlock.unlocked && !requiresSourceUniverse && !isPreviewMode
+          ? "active"
+          : "next",
+    },
+    {
+      body: isKorean ? "새 AI 스타 draft 생성" : "Create AI Star draft",
+      eventType: "ai_star_spawned",
+      icon: Sparkles,
+      label: isKorean ? "AI 스타 생성" : "AI Star spawned",
+      status: hasMockLaunches ? "done" : "next",
+    },
+  ] as const;
+
+  return (
+    <section className="mt-4 overflow-hidden rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.055)]">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            AgentRank
+          </p>
+          <h2 className="mt-1 text-xl font-semibold leading-tight text-[#12041f]">
+            {labels.title}
+          </h2>
+          <p className="mt-1 text-sm font-medium leading-5 text-zinc-500 [word-break:keep-all]">
+            {labels.subtitle}
+          </p>
+        </div>
+        <span className="inline-flex min-h-8 max-w-full items-center rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-700">
+          <span className="min-w-0 truncate">
+            {labels.source}: {sourceUniverseName}
+          </span>
+        </span>
+      </div>
+
+      <div className="mt-4 grid min-w-0 gap-2 sm:grid-cols-4">
+        {steps.map((step) => {
+          const Icon = step.icon;
+          const isDone = step.status === "done";
+          const isActive = step.status === "active";
+
+          return (
+            <div
+              className={joinClasses(
+                "min-w-0 rounded-lg border p-3",
+                isDone && "border-emerald-200 bg-emerald-50",
+                isActive && "border-zinc-950 bg-zinc-50",
+                !isDone && !isActive && "border-zinc-200 bg-white",
+              )}
+              key={step.eventType}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <span
+                  className={joinClasses(
+                    "flex size-9 shrink-0 items-center justify-center rounded-lg",
+                    isDone && "bg-emerald-600 text-white",
+                    isActive && "bg-black text-white",
+                    !isDone && !isActive && "bg-zinc-100 text-zinc-500",
+                  )}
+                >
+                  {isDone ? (
+                    <CheckCircle2 className="size-4" />
+                  ) : (
+                    <Icon className="size-4" />
+                  )}
+                </span>
+                <span
+                  className={joinClasses(
+                    "rounded-full px-2 py-0.5 text-[0.62rem] font-semibold",
+                    isDone && "bg-white text-emerald-800",
+                    isActive && "bg-white text-zinc-950",
+                    !isDone && !isActive && "bg-zinc-100 text-zinc-500",
+                  )}
+                >
+                  {isDone ? labels.done : isActive ? labels.active : labels.next}
+                </span>
+              </div>
+              <p className="mt-3 break-words text-sm font-semibold leading-5 text-[#12041f] [word-break:keep-all]">
+                {step.label}
+              </p>
+              <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
+                {step.body}
+              </p>
+              <p className="mt-3 break-words font-mono text-[0.62rem] font-semibold leading-4 text-zinc-500">
+                {step.eventType}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export function FanletterCreatorUnlockPage({
   creatorUnlock,
   coverageAction = null,
@@ -2301,6 +2458,15 @@ export function FanletterCreatorUnlockPage({
           requiresSourceUniverse={requiresSourceUniverse}
           selectedSourceOption={selectedSourceOption}
           socialSourceStarId={socialSourceStarId}
+          unlock={unlock}
+        />
+
+        <CreatorJourneyEventPath
+          hasMockLaunches={effectiveMockOwnedStars.length > 0}
+          isPreviewMode={isPreviewMode}
+          locale={locale}
+          requiresSourceUniverse={requiresSourceUniverse}
+          sourceUniverseName={displaySourceUniverseName}
           unlock={unlock}
         />
 
