@@ -99,6 +99,11 @@ function getCoverageActionMessage(action: string, locale: Locale) {
         "조건을 충족한 멤버가 크리에이터 권한으로 전환되는 순간을 평판 이벤트로 수집합니다.",
       title: "크리에이터 권한 전환 수집",
     },
+    creator_social_connected: {
+      body:
+        "AI 스타별 TikTok 채널을 mock으로 연결하고, 연결한 Creator와 대상 AI 스타를 평판 기록으로 남깁니다.",
+      title: "TikTok 채널 연결 수집",
+    },
     fanletter_agentrank: {
       body:
         "AgentRank 대시보드 진입과 분석 CTA가 평판 감사 흐름의 출처로 기록되는지 확인합니다.",
@@ -215,6 +220,11 @@ function getCoverageActionMessage(action: string, locale: Locale) {
       body:
         "Collect the conversion signal when an eligible member becomes a Creator.",
       title: "Collect Creator Unlock Conversion",
+    },
+    creator_social_connected: {
+      body:
+        "Mock-connect the AI Star TikTok channel and record the connected Creator and target AI Star as a Reputation Event.",
+      title: "Collect TikTok Channel Connection",
     },
     fanletter_agentrank: {
       body:
