@@ -54,6 +54,9 @@ function getCopy(locale: Locale) {
       creatorPermissionTitle: "Creator / Owner 권한 필요",
       creatorOnly: "Creator / Owner 권한 필요",
       eventCreated: "평판 기록 생성됨",
+      flowChannel: "채널 연결",
+      flowCreatorJourney: "조건 반영",
+      flowRecord: "평판 기록",
       handleHelper: "예: @minseo.golf.ai",
       handleLabel: "TikTok handle",
       mockConnectError:
@@ -83,6 +86,7 @@ function getCopy(locale: Locale) {
       reputationLedgerHint: "AgentRank 원장에서 연결 이벤트 확인",
       roleCreator: "Creator",
       roleOwner: "Owner",
+      nextAction: "다음 행동",
       status: "상태",
       storageSource: "저장 출처",
       sourceLocalMock: "브라우저 mock",
@@ -113,6 +117,9 @@ function getCopy(locale: Locale) {
       creatorPermissionTitle: "Creator / Owner権限が必要",
       creatorOnly: "Creator / Owner権限が必要",
       eventCreated: "評判記録作成済み",
+      flowChannel: "チャンネル接続",
+      flowCreatorJourney: "条件反映",
+      flowRecord: "評判記録",
       handleHelper: "例: @minseo.golf.ai",
       handleLabel: "TikTok handle",
       mockConnectError:
@@ -144,6 +151,7 @@ function getCopy(locale: Locale) {
       reputationLedgerHint: "AgentRank台帳で接続イベントを確認",
       roleCreator: "Creator",
       roleOwner: "Owner",
+      nextAction: "次のアクション",
       status: "状態",
       storageSource: "保存元",
       sourceLocalMock: "ブラウザmock",
@@ -173,6 +181,9 @@ function getCopy(locale: Locale) {
     creatorPermissionTitle: "Creator / Owner permission required",
     creatorOnly: "Creator / Owner permission required",
     eventCreated: "Reputation record created",
+    flowChannel: "Channel connected",
+    flowCreatorJourney: "Condition reflected",
+    flowRecord: "Reputation record",
     handleHelper: "Example: @minseo.golf.ai",
     handleLabel: "TikTok handle",
     mockConnectError:
@@ -204,6 +215,7 @@ function getCopy(locale: Locale) {
     reputationLedgerHint: "Check the connection event in AgentRank Ledger",
     roleCreator: "Creator",
     roleOwner: "Owner",
+    nextAction: "Next action",
     status: "Status",
     storageSource: "Storage Source",
     sourceLocalMock: "Browser mock",
@@ -586,6 +598,42 @@ export function FanletterAIStarSocialAccountCard({
             </span>
           </div>
 
+          {isConnected ? (
+            <div className="mt-4 flex min-w-0 flex-wrap items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-2 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
+              {[
+                {
+                  icon: <AtSign className="size-3.5" />,
+                  label: copy.flowChannel,
+                },
+                {
+                  icon: <Database className="size-3.5" />,
+                  label: copy.flowRecord,
+                },
+                {
+                  icon: <BadgeCheck className="size-3.5" />,
+                  label: copy.flowCreatorJourney,
+                },
+              ].map((item, index) => (
+                <div className="flex min-w-0 items-center gap-1.5" key={item.label}>
+                  {index > 0 ? (
+                    <ArrowRight className="size-3.5 shrink-0 text-zinc-300" />
+                  ) : null}
+                  <span
+                    className={joinClasses(
+                      "inline-flex min-h-7 max-w-full items-center gap-1.5 rounded-full px-2.5 text-[0.68rem] font-semibold leading-tight",
+                      index === 1
+                        ? "bg-black text-white"
+                        : "bg-zinc-100 text-zinc-700",
+                    )}
+                  >
+                    {item.icon}
+                    <span className="min-w-0 truncate">{item.label}</span>
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
           <div className="mt-4 grid min-w-0 gap-2 sm:grid-cols-2">
             <div className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
               <p className="text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
@@ -627,6 +675,11 @@ export function FanletterAIStarSocialAccountCard({
 
           <div className="mt-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
+              {account ? (
+                <p className="mb-1 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+                  {copy.nextAction}
+                </p>
+              ) : null}
               <p className="text-sm font-medium leading-5 text-zinc-600">
                 {account ? copy.eventCreated : copy.connectHelper}
               </p>
