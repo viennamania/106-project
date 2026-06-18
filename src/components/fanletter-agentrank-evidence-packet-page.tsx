@@ -18,6 +18,7 @@ import {
 
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
+import { FanletterAgentRankSocialConnectionEvidence } from "@/components/fanletter-agentrank-social-connection-evidence";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type { AgentRankEventEvidencePacket } from "@/lib/agentrank/evidence-packet";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
@@ -769,6 +770,10 @@ export function FanletterAgentRankEvidencePacketPage({
           locale={locale}
           nextActionLabel={nextActionLabel}
           packet={packet}
+        />
+        <FanletterAgentRankSocialConnectionEvidence
+          event={event}
+          locale={locale}
         />
         <header className="hidden rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] sm:block">
           <div className="flex flex-wrap items-center justify-between gap-2">

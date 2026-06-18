@@ -20,6 +20,7 @@ import {
 
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
+import { FanletterAgentRankSocialConnectionEvidence } from "@/components/fanletter-agentrank-social-connection-evidence";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
 import {
@@ -2088,6 +2089,11 @@ export function FanletterAgentRankEventDetailPage({
         </section>
 
         <VerificationRailPanel copy={copy} event={event} locale={locale} />
+
+        <FanletterAgentRankSocialConnectionEvidence
+          event={event}
+          locale={locale}
+        />
 
         <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
           <div className="flex flex-wrap items-start justify-between gap-3">

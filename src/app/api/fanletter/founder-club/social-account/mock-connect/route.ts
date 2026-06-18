@@ -212,6 +212,7 @@ export async function POST(request: Request) {
     memberWalletAddress: session?.walletAddress ?? null,
     metadata: {
       actorMemberId: connectedByMemberId,
+      actorMemberInitials: connectedByMemberInitials,
       actorMemberName: connectedByMemberName,
       actorType: "creator_member",
       creatorJourneyConditionId: "creatorSocialConnected",
@@ -225,7 +226,9 @@ export async function POST(request: Request) {
       platform: account.platform,
       permissionReason: permission.reason,
       permissionSource: permission.source,
+      profileUrl: account.profileUrl,
       socialConnectionStatus: account.status,
+      storageSource: "server",
       starId,
       starName,
       targetType: "ai_star",
