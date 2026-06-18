@@ -19,9 +19,10 @@ import {
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { HumanMemberAvatar } from "@/components/fanletter-founder-club-v2";
 import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
-import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { Locale } from "@/lib/i18n";
 import {
+  buildFanletterSuggestedTikTokHandle,
+  normalizeFanletterTikTokHandle,
   getFanletterAIStarSocialStatusLabel,
   type FanletterAIStarSocialAccount,
   type FanletterAIStarSocialAccountViewModel,
@@ -51,6 +52,9 @@ function getCopy(locale: Locale) {
       eventCreated: "평판 기록 생성됨",
       handleHelper: "예: @minseo.golf.ai",
       handleLabel: "TikTok handle",
+      mockConnectError:
+        "Mock 연결을 완료하지 못했습니다. 입력값과 Creator 권한을 다시 확인해주세요.",
+      mockConnectSaving: "Mock 연결 저장 중",
       mockOnly:
         "실제 TikTok OAuth/API는 아직 실행하지 않습니다. 이 입력은 AgentRank 평판 기록 mock으로만 저장됩니다.",
       manualStatus: "manual / mock",
@@ -86,6 +90,9 @@ function getCopy(locale: Locale) {
       eventCreated: "評判記録作成済み",
       handleHelper: "例: @minseo.golf.ai",
       handleLabel: "TikTok handle",
+      mockConnectError:
+        "Mock接続を完了できませんでした。入力値とCreator権限を確認してください。",
+      mockConnectSaving: "Mock接続を保存中",
       mockOnly:
         "実際のTikTok OAuth/APIはまだ実行しません。この入力はAgentRank評判記録mockとしてのみ保存されます。",
       manualStatus: "manual / mock",
@@ -120,6 +127,9 @@ function getCopy(locale: Locale) {
     eventCreated: "Reputation record created",
     handleHelper: "Example: @minseo.golf.ai",
     handleLabel: "TikTok handle",
+    mockConnectError:
+      "Mock connection could not be completed. Check the handle and Creator permission.",
+    mockConnectSaving: "Saving mock connection",
     mockOnly:
       "Real TikTok OAuth/API is not executed yet. This saves a mock AgentRank Reputation Event only.",
     manualStatus: "manual / mock",
@@ -153,43 +163,15 @@ function formatConnectedAt(value: string, locale: Locale) {
   ).format(date);
 }
 
-function normalizeTikTokHandle(value: string) {
-  const withoutUrl = value
-    .trim()
-    .replace(/^https?:\/\/(www\.)?tiktok\.com\//i, "")
-    .replace(/^@/, "")
-    .replace(/[/?#].*$/, "")
-    .replace(/[^a-zA-Z0-9._-]/g, "")
-    .slice(0, 48);
-
-  return withoutUrl ? `@${withoutUrl}` : "";
-}
-
-function buildTikTokProfileUrl(handle: string) {
-  return `https://www.tiktok.com/${handle}`;
-}
-
-function getSuggestedTikTokHandle({
-  fallbackId,
-  starName,
-}: {
-  fallbackId: string;
-  starName?: string | null;
-}) {
-  const normalizedName = (starName ?? "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ".")
-    .replace(/^\.+|\.+$/g, "")
-    .slice(0, 28);
-  const normalizedFallback = fallbackId
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ".")
-    .replace(/^legacy\.star\./, "")
-    .replace(/^\.+|\.+$/g, "")
-    .slice(0, 28);
-
-  return `@${normalizedName || normalizedFallback || "ai.star"}.ai`;
-}
+type MockSocialAccountConnectResponse =
+  | {
+      account: FanletterAIStarSocialAccount;
+      mode: "mock";
+    }
+  | {
+      error?: string;
+      mode?: "mock";
+    };
 
 export function FanletterAIStarSocialAccountCard({
   className,
@@ -219,6 +201,8 @@ export function FanletterAIStarSocialAccountCard({
   });
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [handleInput, setHandleInput] = useState("");
+  const [connectError, setConnectError] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
   const account = localMockAccount ?? social.account;
   const isConnected = Boolean(account);
   const actorMemberId = account?.connectedByMemberId ?? social.creatorMemberId;
@@ -240,18 +224,20 @@ export function FanletterAIStarSocialAccountCard({
         : copy.creatorOnly;
   const effectiveConnectHref = connectHref ?? "#tiktok-channel";
   const suggestedHandle = useMemo(
-    () => getSuggestedTikTokHandle({ fallbackId: starId, starName }),
+    () => buildFanletterSuggestedTikTokHandle({ fallbackId: starId, starName }),
     [starId, starName],
   );
   const normalizedHandle =
-    normalizeTikTokHandle(handleInput) || normalizeTikTokHandle(suggestedHandle);
+    normalizeFanletterTikTokHandle(handleInput) ||
+    normalizeFanletterTikTokHandle(suggestedHandle);
 
   function handleOpenPanel() {
     setHandleInput(account?.handle ?? suggestedHandle);
+    setConnectError(null);
     setIsPanelOpen(true);
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!social.canConnect) {
@@ -264,43 +250,55 @@ export function FanletterAIStarSocialAccountCard({
       return;
     }
 
-    const nextAccount: FanletterAIStarSocialAccount = {
-      connectedAt: new Date().toISOString(),
-      connectedByMemberId: social.creatorMemberId,
-      connectedByMemberInitials: social.creatorMemberInitials,
-      connectedByMemberName: social.creatorMemberName,
-      creatorRoleAtConnection: social.creatorRole,
-      handle,
-      platform: social.platform,
-      profileUrl: buildTikTokProfileUrl(handle),
-      starId,
-      status: "mock_connected",
-    };
+    setConnectError(null);
+    setIsConnecting(true);
 
-    recordFanletterAIStarMockSocialAccount(nextAccount);
-    trackFunnelEvent("fanletter_creator_social_connected", {
-      agentRank: {
-        eventType: "creator_social_connected",
-        intent: "creator_tiktok_channel_mock_connected",
-        source,
-        starId,
-      },
-      metadata: {
-        actorMemberId: nextAccount.connectedByMemberId,
-        actorMemberName: nextAccount.connectedByMemberName,
-        actorType: "creator_member",
-        creatorRoleAtConnection: nextAccount.creatorRoleAtConnection,
-        handle: nextAccount.handle,
-        mockOnly: true,
-        platform: nextAccount.platform,
-        socialConnectionStatus: nextAccount.status,
-        starId,
-        starName,
-        targetType: "ai_star",
-      },
-      targetHref: nextAccount.profileUrl,
-    });
-    setIsPanelOpen(false);
+    try {
+      const response = await fetch(
+        "/api/fanletter/founder-club/social-account/mock-connect",
+        {
+          body: JSON.stringify({
+            canConnect: social.canConnect,
+            connectedByMemberId: social.creatorMemberId,
+            connectedByMemberInitials: social.creatorMemberInitials,
+            connectedByMemberName: social.creatorMemberName,
+            creatorRoleAtConnection: social.creatorRole,
+            handle,
+            locale,
+            source,
+            starId,
+            starName,
+          }),
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        },
+      );
+      const data = (await response.json().catch(() => null)) as
+        | MockSocialAccountConnectResponse
+        | null;
+
+      if (!response.ok || !data || !("account" in data)) {
+        throw new Error(
+          data && "error" in data && data.error
+            ? data.error
+            : copy.mockConnectError,
+        );
+      }
+
+      recordFanletterAIStarMockSocialAccount(data.account);
+      setIsPanelOpen(false);
+    } catch (error) {
+      setConnectError(
+        error instanceof Error && error.message
+          ? error.message
+          : copy.mockConnectError,
+      );
+    } finally {
+      setIsConnecting(false);
+    }
   }
 
   return (
@@ -561,13 +559,19 @@ export function FanletterAIStarSocialAccountCard({
                 {copy.mockOnly}
               </p>
 
+              {connectError ? (
+                <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold leading-5 text-red-700 [word-break:keep-all]">
+                  {connectError}
+                </p>
+              ) : null}
+
               <button
                 className="inline-flex min-h-12 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
-                disabled={!normalizedHandle}
+                disabled={!normalizedHandle || isConnecting}
                 type="submit"
               >
                 <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
-                  {copy.connectComplete}
+                  {isConnecting ? copy.mockConnectSaving : copy.connectComplete}
                 </span>
                 <BadgeCheck className="size-4 shrink-0" />
               </button>

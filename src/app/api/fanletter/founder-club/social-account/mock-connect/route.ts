@@ -1,0 +1,204 @@
+import { tryRecordFanletterAgentRankServerEvent } from "@/lib/agentrank/server-events";
+import {
+  isAgentRankInteractionSource,
+  type AgentRankInteractionSource,
+} from "@/lib/agentrank/interaction-events";
+import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
+import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
+import { readMemberServerSession } from "@/lib/member-server-session";
+import {
+  buildFanletterAIStarMockSocialAccount,
+  normalizeFanletterTikTokHandle,
+  resolveFanletterAIStarSocialConnectPermission,
+  type FanletterAIStarSocialAccount,
+} from "@/mock/fanletter-social-accounts";
+
+type MockSocialAccountConnectRequestBody = {
+  canConnect?: unknown;
+  connectedByMemberId?: unknown;
+  connectedByMemberInitials?: unknown;
+  connectedByMemberName?: unknown;
+  creatorRoleAtConnection?: unknown;
+  handle?: unknown;
+  locale?: unknown;
+  source?: unknown;
+  starId?: unknown;
+  starName?: unknown;
+};
+
+type MockSocialAccountConnectResponse = {
+  account: FanletterAIStarSocialAccount;
+  agentRank: {
+    eventType: "creator_social_connected";
+    intent: "creator_tiktok_channel_mock_connected";
+    source: AgentRankInteractionSource;
+    starId: string;
+  };
+  mode: "mock";
+  permission: ReturnType<typeof resolveFanletterAIStarSocialConnectPermission>;
+  reputationEvent: {
+    actor: "creator_member";
+    mockOnly: true;
+    platform: "tiktok";
+    target: "ai_star";
+    type: "creator_social_connected";
+  };
+  session: {
+    email: string | null;
+    hasMemberSession: boolean;
+    walletAddress: string | null;
+  };
+};
+
+function jsonError(message: string, status: number, extra?: object) {
+  return Response.json({ error: message, ...(extra ?? {}) }, { status });
+}
+
+function normalizeLocale(value: unknown): Locale {
+  return typeof value === "string" && hasLocale(value) ? value : defaultLocale;
+}
+
+function normalizeText(value: unknown, fallback: string, maxLength: number) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+
+  return (normalized || fallback).slice(0, maxLength);
+}
+
+function normalizeOptionalText(value: unknown, maxLength: number) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+
+  return normalized ? normalized.slice(0, maxLength) : null;
+}
+
+function normalizeCreatorRole(value: unknown) {
+  return value === "creator" || value === "owner" ? value : null;
+}
+
+function normalizeSource(value: unknown): AgentRankInteractionSource {
+  return isAgentRankInteractionSource(value)
+    ? value
+    : "fanletter_star_detail";
+}
+
+function normalizeCanConnect(value: unknown) {
+  return value !== false;
+}
+
+export async function POST(request: Request) {
+  let body: MockSocialAccountConnectRequestBody;
+
+  try {
+    body = (await request.json()) as MockSocialAccountConnectRequestBody;
+  } catch {
+    return jsonError("Invalid mock social account connection request.", 400);
+  }
+
+  const starId = normalizeFanletterStarId(
+    typeof body.starId === "string" ? body.starId : null,
+  );
+
+  if (!starId) {
+    return jsonError("A valid AI Star id is required.", 400);
+  }
+
+  const handle = normalizeFanletterTikTokHandle(
+    typeof body.handle === "string" ? body.handle : "",
+  );
+
+  if (!handle) {
+    return jsonError("A valid TikTok handle is required.", 400);
+  }
+
+  const creatorRoleAtConnection = normalizeCreatorRole(
+    body.creatorRoleAtConnection,
+  );
+  const permission = resolveFanletterAIStarSocialConnectPermission({
+    canConnect: normalizeCanConnect(body.canConnect),
+    creatorRole: creatorRoleAtConnection,
+  });
+
+  if (!permission.allowed || !creatorRoleAtConnection) {
+    return jsonError("Creator or Owner permission is required.", 403, {
+      mode: "mock",
+      permission,
+    });
+  }
+
+  const locale = normalizeLocale(body.locale);
+  const source = normalizeSource(body.source);
+  const starName = normalizeText(body.starName, starId, 80);
+  const connectedByMemberId = normalizeText(
+    body.connectedByMemberId,
+    "mock-creator",
+    96,
+  );
+  const connectedByMemberName = normalizeText(
+    body.connectedByMemberName,
+    "Creator",
+    96,
+  );
+  const connectedByMemberInitials = normalizeOptionalText(
+    body.connectedByMemberInitials,
+    12,
+  );
+  const session = await readMemberServerSession();
+  const account = buildFanletterAIStarMockSocialAccount({
+    connectedByMemberId,
+    connectedByMemberInitials,
+    connectedByMemberName,
+    creatorRoleAtConnection,
+    handle,
+    starId,
+  });
+  const agentRank = {
+    eventType: "creator_social_connected" as const,
+    intent: "creator_tiktok_channel_mock_connected" as const,
+    source,
+    starId,
+  };
+
+  await tryRecordFanletterAgentRankServerEvent({
+    agentRank,
+    eventName: "fanletter_creator_social_connected",
+    memberEmail: session?.email ?? null,
+    memberWalletAddress: session?.walletAddress ?? null,
+    metadata: {
+      actorMemberId: connectedByMemberId,
+      actorMemberName: connectedByMemberName,
+      actorType: "creator_member",
+      creatorRoleAtConnection,
+      handle: account.handle,
+      mockOnly: true,
+      page: "fanletter_social_account_mock_connect_api",
+      platform: account.platform,
+      socialConnectionStatus: account.status,
+      starId,
+      starName,
+      targetType: "ai_star",
+    },
+    path: `/${locale}/fanletter/${encodeURIComponent(starId)}#tiktok-channel`,
+    targetHref: account.profileUrl,
+    userAgent: request.headers.get("user-agent"),
+  });
+
+  const response: MockSocialAccountConnectResponse = {
+    account,
+    agentRank,
+    mode: "mock",
+    permission,
+    reputationEvent: {
+      actor: "creator_member",
+      mockOnly: true,
+      platform: "tiktok",
+      target: "ai_star",
+      type: "creator_social_connected",
+    },
+    session: {
+      email: session?.email ?? null,
+      hasMemberSession: Boolean(session?.email),
+      walletAddress: session?.walletAddress ?? null,
+    },
+  };
+
+  return Response.json(response);
+}

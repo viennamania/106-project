@@ -30,8 +30,16 @@ export type FanletterAIStarSocialAccountViewModel = {
   creatorMemberInitials: string;
   creatorMemberName: string;
   creatorRole: "creator" | "owner";
+  permission: FanletterAIStarSocialConnectPermission;
   platform: FanletterSocialPlatform;
   starId: string;
+};
+
+export type FanletterAIStarSocialConnectPermission = {
+  allowed: boolean;
+  reason: "creator_or_owner_required" | "ok";
+  requiredRoles: ["creator", "owner"];
+  role: "creator" | "owner" | null;
 };
 
 export const fanletterAIStarSocialAccounts: FanletterAIStarSocialAccount[] = [
@@ -84,6 +92,99 @@ function getInitials(value: string) {
   return (words[0] ?? value).slice(0, 2).toUpperCase();
 }
 
+export function normalizeFanletterTikTokHandle(value: string) {
+  const withoutUrl = value
+    .trim()
+    .replace(/^https?:\/\/(www\.)?tiktok\.com\//i, "")
+    .replace(/^@/, "")
+    .replace(/[/?#].*$/, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "")
+    .slice(0, 48);
+
+  return withoutUrl ? `@${withoutUrl}` : "";
+}
+
+export function buildFanletterTikTokProfileUrl(handle: string) {
+  return `https://www.tiktok.com/${handle}`;
+}
+
+export function buildFanletterSuggestedTikTokHandle({
+  fallbackId,
+  starName,
+}: {
+  fallbackId: string;
+  starName?: string | null;
+}) {
+  const normalizedName = (starName ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ".")
+    .replace(/^\.+|\.+$/g, "")
+    .slice(0, 28);
+  const normalizedFallback = fallbackId
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ".")
+    .replace(/^legacy\.star\./, "")
+    .replace(/^\.+|\.+$/g, "")
+    .slice(0, 28);
+
+  return `@${normalizedName || normalizedFallback || "ai.star"}.ai`;
+}
+
+export function resolveFanletterAIStarSocialConnectPermission({
+  canConnect = true,
+  creatorRole,
+}: {
+  canConnect?: boolean;
+  creatorRole?: "creator" | "owner" | null;
+}): FanletterAIStarSocialConnectPermission {
+  const allowedRole = creatorRole === "creator" || creatorRole === "owner";
+  const allowed = Boolean(canConnect && allowedRole);
+
+  return {
+    allowed,
+    reason: allowed ? "ok" : "creator_or_owner_required",
+    requiredRoles: ["creator", "owner"],
+    role: allowedRole ? creatorRole : null,
+  };
+}
+
+export function buildFanletterAIStarMockSocialAccount({
+  connectedAt,
+  connectedByMemberId,
+  connectedByMemberInitials,
+  connectedByMemberName,
+  creatorRoleAtConnection,
+  handle,
+  platform = "tiktok",
+  starId,
+  status = "mock_connected",
+}: {
+  connectedAt?: string | null;
+  connectedByMemberId: string;
+  connectedByMemberInitials?: string | null;
+  connectedByMemberName: string;
+  creatorRoleAtConnection: FanletterAIStarSocialAccount["creatorRoleAtConnection"];
+  handle: string;
+  platform?: FanletterSocialPlatform;
+  starId: string;
+  status?: FanletterAIStarSocialAccountStatus;
+}): FanletterAIStarSocialAccount {
+  const normalizedHandle = normalizeFanletterTikTokHandle(handle);
+
+  return {
+    connectedAt: connectedAt ?? new Date().toISOString(),
+    connectedByMemberId,
+    connectedByMemberInitials,
+    connectedByMemberName,
+    creatorRoleAtConnection,
+    handle: normalizedHandle,
+    platform,
+    profileUrl: buildFanletterTikTokProfileUrl(normalizedHandle),
+    starId,
+    status,
+  };
+}
+
 export function getFanletterAIStarSocialAccount(
   starId: string | null | undefined,
   platform: FanletterSocialPlatform = "tiktok",
@@ -123,15 +224,20 @@ export function buildFanletterAIStarSocialAccountViewModel({
     creatorMemberInitials ??
     account?.connectedByMemberInitials ??
     getInitials(fallbackName);
+  const permission = resolveFanletterAIStarSocialConnectPermission({
+    canConnect,
+    creatorRole,
+  });
 
   return {
     account,
-    canConnect,
+    canConnect: permission.allowed,
     creatorMemberId:
       creatorMemberId ?? account?.connectedByMemberId ?? "mock-creator",
     creatorMemberInitials: fallbackInitials,
     creatorMemberName: fallbackName,
     creatorRole,
+    permission,
     platform,
     starId,
   };
