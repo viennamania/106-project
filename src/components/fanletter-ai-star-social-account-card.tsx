@@ -58,6 +58,13 @@ function getCopy(locale: Locale) {
       mockOnly:
         "실제 TikTok OAuth/API는 아직 실행하지 않습니다. 이 입력은 AgentRank 평판 기록 mock으로만 저장됩니다.",
       manualStatus: "manual / mock",
+      oauthReadinessItems: [
+        "TikTok 앱과 redirect URI 확정",
+        "Login Kit / Display API scope 승인",
+        "서버 토큰 저장·갱신·폐기 준비",
+      ],
+      oauthReadinessNote: "조건이 준비되면 이 mock 연결 버튼을 실제 OAuth로 교체합니다.",
+      oauthReadinessTitle: "실제 OAuth 전환 조건",
       openTiktok: "TikTok 보기",
       panelDescription:
         "회원 개인 계정이 아니라 선택한 AI 스타의 TikTok 채널을 연결합니다.",
@@ -96,6 +103,14 @@ function getCopy(locale: Locale) {
       mockOnly:
         "実際のTikTok OAuth/APIはまだ実行しません。この入力はAgentRank評判記録mockとしてのみ保存されます。",
       manualStatus: "manual / mock",
+      oauthReadinessItems: [
+        "TikTokアプリとredirect URIを確定",
+        "Login Kit / Display API scopeを承認",
+        "サーバートークンの保存・更新・失効を準備",
+      ],
+      oauthReadinessNote:
+        "条件が整ったら、このmock接続ボタンを実際のOAuthに置き換えます。",
+      oauthReadinessTitle: "実OAuth切り替え条件",
       openTiktok: "TikTokを見る",
       panelDescription:
         "個人アカウントではなく、選択したAIスターのTikTokチャンネルを接続します。",
@@ -133,6 +148,14 @@ function getCopy(locale: Locale) {
     mockOnly:
       "Real TikTok OAuth/API is not executed yet. This saves a mock AgentRank Reputation Event only.",
     manualStatus: "manual / mock",
+    oauthReadinessItems: [
+      "Finalize TikTok app and redirect URI",
+      "Approve Login Kit / Display API scopes",
+      "Prepare server token storage, refresh, and revocation",
+    ],
+    oauthReadinessNote:
+      "When these are ready, this mock connection button becomes real OAuth.",
+    oauthReadinessTitle: "Real OAuth Switch Criteria",
     openTiktok: "View TikTok",
     panelDescription:
       "Connect the selected AI Star channel, not a personal member account.",
@@ -558,6 +581,31 @@ export function FanletterAIStarSocialAccountCard({
               <p className="text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
                 {copy.mockOnly}
               </p>
+
+              <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+                <div className="flex items-start gap-2">
+                  <ShieldCheck className="mt-0.5 size-4 shrink-0 text-zinc-700" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-zinc-950">
+                      {copy.oauthReadinessTitle}
+                    </p>
+                    <div className="mt-2 grid gap-1.5">
+                      {copy.oauthReadinessItems.map((item) => (
+                        <p
+                          className="flex min-w-0 items-start gap-2 text-xs font-semibold leading-5 text-zinc-600 [word-break:keep-all]"
+                          key={item}
+                        >
+                          <span className="mt-2 size-1 shrink-0 rounded-full bg-zinc-400" />
+                          <span className="min-w-0">{item}</span>
+                        </p>
+                      ))}
+                    </div>
+                    <p className="mt-2 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
+                      {copy.oauthReadinessNote}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
               {connectError ? (
                 <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold leading-5 text-red-700 [word-break:keep-all]">
