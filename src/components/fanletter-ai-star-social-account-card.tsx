@@ -693,7 +693,7 @@ export function FanletterAIStarSocialAccountCard({
               </p>
             </div>
             {account ? (
-              <div className="grid w-full min-w-0 gap-2 sm:w-auto sm:grid-cols-[minmax(0,1fr)_auto]">
+              <div className="grid w-full min-w-0 gap-2 sm:w-auto sm:shrink-0 sm:grid-cols-[max-content_max-content]">
                 <FanletterTrackedLink
                   agentRank={{
                     eventType: "content_engaged",
@@ -701,7 +701,7 @@ export function FanletterAIStarSocialAccountCard({
                     source: "fanletter_agentrank",
                     starId,
                   }}
-                  className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white transition hover:bg-zinc-800 sm:w-auto"
+                  className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white transition hover:bg-zinc-800 sm:w-auto sm:shrink-0"
                   eventName="content_open"
                   href={reputationLedgerHref}
                   metadata={{
@@ -721,7 +721,7 @@ export function FanletterAIStarSocialAccountCard({
                   }}
                 >
                   <Database className="size-4 shrink-0" />
-                  <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
+                  <span className="min-w-0 whitespace-normal text-center sm:whitespace-nowrap [word-break:keep-all]">
                     {copy.reputationLedger}
                   </span>
                 </FanletterTrackedLink>
@@ -732,7 +732,7 @@ export function FanletterAIStarSocialAccountCard({
                     source,
                     starId,
                   }}
-                  className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50 sm:w-auto"
+                  className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50 sm:w-auto sm:shrink-0"
                   eventName="external_browser_click"
                   href={account.profileUrl}
                   metadata={{

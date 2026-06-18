@@ -117,12 +117,30 @@ type FounderUniverseAgentRankSnapshot = {
   };
   eventFeed: {
     events: Array<{
+      actor: {
+        id: string;
+        label?: string | null;
+        role?: string | null;
+        type: string;
+      };
       economicLayer: {
         cpDelta?: number;
       };
       eventId: string;
+      object?: {
+        id: string;
+        label?: string | null;
+        role?: string | null;
+        type: string;
+      } | null;
       occurredAt: string;
       source: string;
+      subject?: {
+        id: string;
+        label?: string | null;
+        role?: string | null;
+        type: string;
+      } | null;
       type: string;
     }>;
   };
@@ -2073,16 +2091,22 @@ function FounderUniverseDashboardPanel({
 
 function SelectedMemberDetailContent({
   childNodes,
+  ledgerHref,
   locale,
+  memberReputationEvents,
   node,
   onSelectNode,
   showProfileButton = true,
+  starId,
 }: {
   childNodes: FanletterFounderUniverseExplorerNode[];
+  ledgerHref: string;
   locale: Locale;
+  memberReputationEvents: FounderUniverseAgentRankSnapshot["eventFeed"]["events"];
   node: FanletterFounderUniverseExplorerNode | null;
   onSelectNode: (nodeId: string) => void;
   showProfileButton?: boolean;
+  starId: string;
 }) {
   const dashboardCopy = getDashboardCopy(locale);
   const v2Copy = getFanletterV2Copy(locale);
@@ -2157,6 +2181,14 @@ function SelectedMemberDetailContent({
           />
         </div>
       </div>
+
+      <MemberReputationRecords
+        events={memberReputationEvents}
+        ledgerHref={ledgerHref}
+        locale={locale}
+        node={node}
+        starId={starId}
+      />
 
       <div className="mt-6">
         <p className="text-sm font-semibold text-[#111827]">
@@ -2240,14 +2272,20 @@ function SelectedMemberDetailContent({
 
 function SelectedDashboardMemberCard({
   childNodes,
+  ledgerHref,
   locale,
+  memberReputationEvents,
   node,
   onSelectNode,
+  starId,
 }: {
   childNodes: FanletterFounderUniverseExplorerNode[];
+  ledgerHref: string;
   locale: Locale;
+  memberReputationEvents: FounderUniverseAgentRankSnapshot["eventFeed"]["events"];
   node: FanletterFounderUniverseExplorerNode | null;
   onSelectNode: (nodeId: string) => void;
+  starId: string;
 }) {
   if (!node) {
     return null;
@@ -2257,9 +2295,12 @@ function SelectedDashboardMemberCard({
     <aside className="rounded-[1.35rem] border border-slate-100 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.07)]">
       <SelectedMemberDetailContent
         childNodes={childNodes}
+        ledgerHref={ledgerHref}
         locale={locale}
+        memberReputationEvents={memberReputationEvents}
         node={node}
         onSelectNode={onSelectNode}
+        starId={starId}
       />
     </aside>
   );
@@ -2267,18 +2308,24 @@ function SelectedDashboardMemberCard({
 
 function SelectedMemberDetailPanel({
   childNodes,
+  ledgerHref,
   locale,
+  memberReputationEvents,
   node,
   onClose,
   onSelectNode,
   open,
+  starId,
 }: {
   childNodes: FanletterFounderUniverseExplorerNode[];
+  ledgerHref: string;
   locale: Locale;
+  memberReputationEvents: FounderUniverseAgentRankSnapshot["eventFeed"]["events"];
   node: FanletterFounderUniverseExplorerNode | null;
   onClose: () => void;
   onSelectNode: (nodeId: string) => void;
   open: boolean;
+  starId: string;
 }) {
   const dashboardCopy = getDashboardCopy(locale);
   const v2Copy = getFanletterV2Copy(locale);
@@ -2304,10 +2351,13 @@ function SelectedMemberDetailPanel({
     >
       <SelectedMemberDetailContent
         childNodes={childNodes}
+        ledgerHref={ledgerHref}
         locale={locale}
+        memberReputationEvents={memberReputationEvents}
         node={node}
         onSelectNode={onSelectNode}
         showProfileButton={false}
+        starId={starId}
       />
     </FanletterResponsiveActionPanel>
   );
@@ -2354,6 +2404,187 @@ function MonthlyCpRewardCard({
   );
 }
 
+function normalizeReputationIdentity(value: string | null | undefined) {
+  return value
+    ?.trim()
+    .toLowerCase()
+    .replace(/^member\s+/, "")
+    .replace(/[^a-z0-9@._-]/g, "") ?? "";
+}
+
+function isNodeRelatedReputationActor(
+  actor:
+    | {
+        id: string;
+        label?: string | null;
+        role?: string | null;
+        type: string;
+      }
+    | null
+    | undefined,
+  node: FanletterFounderUniverseExplorerNode,
+) {
+  if (!actor || actor.type !== "member") {
+    return false;
+  }
+
+  const actorId = normalizeReputationIdentity(actor.id);
+  const actorLabel = normalizeReputationIdentity(actor.label);
+  const memberId = normalizeReputationIdentity(node.memberId);
+  const memberLabel = normalizeReputationIdentity(node.label);
+
+  return [actorId, actorLabel].some((value) => {
+    if (!value) {
+      return false;
+    }
+
+    return (
+      value === memberId ||
+      value === memberLabel ||
+      (memberId.length > 3 && value.includes(memberId)) ||
+      (memberLabel.length > 3 && value.includes(memberLabel))
+    );
+  });
+}
+
+function getMemberReputationEvents({
+  agentRank,
+  node,
+}: {
+  agentRank?: FounderUniverseAgentRankSnapshot | null;
+  node: FanletterFounderUniverseExplorerNode | null;
+}) {
+  if (!agentRank || !node) {
+    return [];
+  }
+
+  return agentRank.eventFeed.events
+    .filter((event) =>
+      [event.actor, event.subject, event.object].some((actor) =>
+        isNodeRelatedReputationActor(actor, node),
+      ),
+    )
+    .slice(0, 4);
+}
+
+function MemberReputationRecords({
+  events,
+  ledgerHref,
+  locale,
+  node,
+  starId,
+}: {
+  events: FounderUniverseAgentRankSnapshot["eventFeed"]["events"];
+  ledgerHref: string;
+  locale: Locale;
+  node: FanletterFounderUniverseExplorerNode;
+  starId: string;
+}) {
+  const isKorean = locale === "ko";
+  const totalCp = events.reduce(
+    (sum, event) => sum + (event.economicLayer.cpDelta ?? 0),
+    0,
+  );
+
+  return (
+    <section className="mt-6 rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_12px_28px_rgba(15,23,42,0.04)]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#111827]">
+            <ShieldCheck className="size-4" />
+            {isKorean ? "이 멤버의 평판 기록" : "Member reputation records"}
+          </p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-slate-500 [word-break:keep-all]">
+            {isKorean
+              ? "참여, 추천, CP 보상이 AgentRank 기록으로 이어집니다."
+              : "Joins, referrals, and CP rewards become AgentRank records."}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-[0.68rem] font-semibold text-zinc-700">
+          {formatNumber(events.length, locale)}
+          {isKorean ? "건" : ""}
+        </span>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="rounded-lg bg-zinc-50 px-3 py-2">
+          <p className="text-sm font-semibold text-zinc-950">
+            {events.length > 0
+              ? getAgentRankEventLabel(events[0].type, locale)
+              : isKorean
+                ? "기록 대기"
+                : "Waiting"}
+          </p>
+          <p className="mt-0.5 text-[0.62rem] font-semibold text-zinc-500">
+            {isKorean ? "최근 기록" : "Latest"}
+          </p>
+        </div>
+        <div className="rounded-lg bg-zinc-50 px-3 py-2">
+          <p className="text-sm font-semibold text-zinc-950">
+            {totalCp > 0 ? `+${formatNumber(totalCp, locale)}` : "0"} CP
+          </p>
+          <p className="mt-0.5 text-[0.62rem] font-semibold text-zinc-500">
+            {isKorean ? "CP 반영" : "CP impact"}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-2">
+        {events.length > 0 ? (
+          events.map((event) => (
+            <div
+              className="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2"
+              key={event.eventId}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold text-zinc-950">
+                    {getAgentRankEventLabel(event.type, locale)}
+                  </p>
+                  <p className="mt-0.5 truncate text-[0.62rem] font-semibold text-zinc-500">
+                    {formatDate(event.occurredAt, locale)} · {event.source}
+                  </p>
+                </div>
+                {event.economicLayer.cpDelta ? (
+                  <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[0.62rem] font-semibold text-emerald-700">
+                    CP +{formatNumber(event.economicLayer.cpDelta, locale)}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
+            {isKorean
+              ? "아직 이 멤버와 직접 연결된 기록이 없습니다. 하위 멤버 초대나 추천 공유가 발생하면 여기에 표시됩니다."
+              : "No direct records are linked to this member yet. Invites and referral shares will appear here."}
+          </p>
+        )}
+      </div>
+
+      <FanletterTrackedLink
+        agentRank={{
+          eventType: "content_engaged",
+          intent: "founder_network_member_records_opened",
+          source: "fanletter_founder_universe",
+          starId,
+        }}
+        className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-full bg-black px-3 text-xs font-semibold text-white"
+        eventName="content_open"
+        href={ledgerHref}
+        metadata={{
+          memberId: node.memberId,
+          memberRole: node.role,
+          placement: "founder_network_member_reputation_records",
+        }}
+      >
+        {isKorean ? "평판 기록 보기" : "View records"}
+        <ArrowRight className="size-3.5" />
+      </FanletterTrackedLink>
+    </section>
+  );
+}
+
 function getAgentRankEventLabel(type: string, locale: Locale) {
   if (locale !== "ko") {
     return type.replaceAll("_", " ");
@@ -2369,6 +2600,7 @@ function getAgentRankEventLabel(type: string, locale: Locale) {
     creator_unlocked: "크리에이터 권한",
     founder_joined: "파운더 참여",
     referral_code_created: "추천 코드",
+    referral_shared: "추천 공유",
     referral_converted: "추천 전환",
     source_universe_selected: "출처 AI 스타 유니버스 선택",
     universe_growth: "네트워크 성장",
@@ -3369,6 +3601,14 @@ export function FanletterFounderUniverseExplorer({
       .filter(
         (node): node is FanletterFounderUniverseExplorerNode => node !== undefined,
       ) ?? [];
+  const selectedMemberReputationEvents = useMemo(
+    () =>
+      getMemberReputationEvents({
+        agentRank,
+        node: selectedNode,
+      }),
+    [agentRank, selectedNode],
+  );
   const handleSelectNode = (nodeId: string) => {
     const nextNode = nodesById.get(nodeId);
 
@@ -3717,9 +3957,12 @@ export function FanletterFounderUniverseExplorer({
             <div className="grid content-start gap-5">
               <SelectedDashboardMemberCard
                 childNodes={selectedChildNodes}
+                ledgerHref={founderUniverseLedgerHref}
                 locale={locale}
+                memberReputationEvents={selectedMemberReputationEvents}
                 node={selectedNode}
                 onSelectNode={handleSelectNode}
+                starId={displayUniverse.star.id}
               />
               <AgentRankUniverseCard
                 agentRank={agentRank}
@@ -3733,11 +3976,14 @@ export function FanletterFounderUniverseExplorer({
       </div>
       <SelectedMemberDetailPanel
         childNodes={selectedChildNodes}
+        ledgerHref={founderUniverseLedgerHref}
         locale={locale}
+        memberReputationEvents={selectedMemberReputationEvents}
         node={selectedNode}
         onClose={() => setIsMemberPanelOpen(false)}
         onSelectNode={handleSelectNode}
         open={isMemberPanelOpen}
+        starId={displayUniverse.star.id}
       />
     </main>
   );

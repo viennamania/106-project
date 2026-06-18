@@ -114,6 +114,10 @@ const eventIconMap = {
   x402_mock_payment_intent: Coins,
 } satisfies Record<AgentRankReputationEventType, typeof Bot>;
 
+function joinClasses(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
+
 function getLedgerCopy(locale: Locale) {
   if (locale === "ko") {
     return {
@@ -1257,6 +1261,113 @@ function ActionCoveragePanel({
               {action.covered ? copy.actionReady : copy.actionMissing}
             </p>
           </Link>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function LedgerJourneyQuickFilters({
+  feed,
+  filters,
+  locale,
+}: {
+  feed: FanletterAgentRankReputationEventFeed;
+  filters: FanletterAgentRankLedgerPageProps["filters"];
+  locale: Locale;
+}) {
+  const isKorean = locale === "ko";
+  const groups: Array<{
+    label: string;
+    types: AgentRankReputationEventType[];
+  }> = [
+    {
+      label: isKorean ? "파운더 네트워크" : "Founder Network",
+      types: [
+        "founder_joined",
+        "referral_code_created",
+        "referral_shared",
+        "referral_converted",
+        "cp_earned",
+      ],
+    },
+    {
+      label: "Creator Journey",
+      types: [
+        "source_universe_selected",
+        "creator_unlock_evaluated",
+        "creator_social_connected",
+        "creator_unlocked",
+        "x402_mock_payment_intent",
+        "ai_star_spawned",
+      ],
+    },
+  ];
+
+  return (
+    <section className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-semibold uppercase text-zinc-600">
+            {isKorean ? "핵심 흐름 필터" : "Journey filters"}
+          </p>
+          <p className="mt-1 text-sm font-medium leading-5 text-slate-500 [word-break:keep-all]">
+            {isKorean
+              ? "Founder 참여와 Creator 권한 활성화 흐름을 먼저 확인합니다."
+              : "Inspect Founder and Creator event flows first."}
+          </p>
+        </div>
+        <Link
+          className={joinClasses(
+            "inline-flex h-9 shrink-0 items-center rounded-full px-3 text-sm font-semibold",
+            filters.type
+              ? "border border-slate-200 bg-white text-slate-600"
+              : "bg-black !text-white",
+          )}
+          href={buildLedgerHref({ filters, locale, type: null })}
+        >
+          {isKorean ? "전체" : "All"}
+        </Link>
+      </div>
+
+      <div className="mt-4 grid gap-3">
+        {groups.map((group) => (
+          <div className="min-w-0" key={group.label}>
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              {group.label}
+            </p>
+            <div className="mt-2 flex min-w-0 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {group.types.map((type) => {
+                const isActive = filters.type === type;
+                const count = feed.summary.byType[type] ?? 0;
+
+                return (
+                  <Link
+                    className={joinClasses(
+                      "inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-semibold",
+                      isActive
+                        ? "bg-black !text-white"
+                        : "border border-slate-200 bg-white text-slate-600",
+                    )}
+                    href={buildLedgerHref({ filters, locale, type })}
+                    key={type}
+                  >
+                    {getEventTypeLabel(type, locale)}
+                    <span
+                      className={joinClasses(
+                        "rounded-full px-2 py-0.5 text-xs",
+                        isActive
+                          ? "bg-white/18 !text-white"
+                          : "bg-slate-50 text-slate-500",
+                      )}
+                    >
+                      {formatNumber(count, locale)}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         ))}
       </div>
     </section>
@@ -2410,6 +2521,12 @@ export function FanletterAgentRankLedgerPage({
             })}
           </div>
         </section>
+
+        <LedgerJourneyQuickFilters
+          feed={feed}
+          filters={filters}
+          locale={locale}
+        />
 
         <section className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-7">
           <MetricTile

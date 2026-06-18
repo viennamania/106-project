@@ -855,6 +855,166 @@ function FounderJoinFlowHint({
   );
 }
 
+function FounderNextReputationPath({
+  className,
+  copy,
+  referralCode,
+  viewerState,
+}: {
+  className?: string;
+  copy: ReturnType<typeof getFanletterV2Copy>;
+  referralCode: string;
+  viewerState: StarDetailViewerState;
+}) {
+  if (viewerState !== "founder") {
+    return null;
+  }
+
+  const isKorean = isKoreanCopy(copy);
+  const labels = isKorean
+    ? {
+        active: "지금 할 일",
+        done: "완료",
+        next: "다음",
+        subtitle: "내 링크로 새 Founder가 참여하면 보상과 평판 기록이 함께 생성됩니다.",
+        title: "Founder 다음 흐름",
+      }
+    : {
+        active: "Now",
+        done: "Done",
+        next: "Next",
+        subtitle: "When a new Founder joins through your link, rewards and reputation records are created together.",
+        title: "Founder next path",
+      };
+  const steps = [
+    {
+      event: "founder_joined",
+      icon: Crown,
+      label: isKorean ? "Founder 참여 완료" : "Founder joined",
+      state: "done",
+    },
+    {
+      event: "referral_shared",
+      href: "#referral-builder",
+      icon: Share2,
+      label: isKorean ? "추천 공유" : "Share referral",
+      state: "active",
+    },
+    {
+      event: "event_ledger",
+      icon: Database,
+      label: isKorean ? "평판 기록" : "Reputation record",
+      state: "next",
+    },
+    {
+      event: "creator_unlock_evaluated",
+      icon: Bot,
+      label: isKorean ? "Creator Journey" : "Creator Journey",
+      state: "next",
+    },
+  ];
+
+  return (
+    <article
+      className={joinClasses(
+        "mt-4 rounded-2xl border border-zinc-200 bg-white p-3 shadow-[0_14px_34px_rgba(15,23,42,0.06)]",
+        className,
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-semibold text-zinc-500">
+            {labels.title}
+          </p>
+          <p className="mt-1 text-sm font-semibold leading-5 text-zinc-950 [word-break:keep-all]">
+            {labels.subtitle}
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 font-mono text-[0.66rem] font-semibold text-zinc-700">
+          {referralCode}
+        </span>
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-4">
+        {steps.map((step) => {
+          const Icon = step.icon;
+          const isActive = step.state === "active";
+          const isDone = step.state === "done";
+          const statusLabel = isActive
+            ? labels.active
+            : isDone
+              ? labels.done
+              : labels.next;
+          const content = (
+            <div
+              className={joinClasses(
+                "min-h-[7rem] min-w-0 rounded-xl border p-3 transition",
+                isActive
+                  ? "border-zinc-950 bg-zinc-950 text-white shadow-[0_16px_32px_rgba(15,23,42,0.16)]"
+                  : isDone
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+                    : "border-zinc-200 bg-zinc-50 text-zinc-950",
+              )}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span
+                  className={joinClasses(
+                    "inline-flex size-8 shrink-0 items-center justify-center rounded-full",
+                    isActive
+                      ? "bg-white text-zinc-950"
+                      : isDone
+                        ? "bg-white text-emerald-700"
+                        : "bg-white text-zinc-600",
+                  )}
+                >
+                  <Icon className="size-4" />
+                </span>
+                <span
+                  className={joinClasses(
+                    "truncate text-[0.6rem] font-semibold uppercase tracking-[0.12em]",
+                    isActive
+                      ? "text-white/62"
+                      : isDone
+                        ? "text-emerald-700"
+                        : "text-zinc-500",
+                  )}
+                >
+                  {statusLabel}
+                </span>
+              </div>
+              <p className="mt-3 text-sm font-semibold leading-5 [word-break:keep-all]">
+                {step.label}
+              </p>
+              <p
+                className={joinClasses(
+                  "mt-2 break-all font-mono text-[0.62rem] font-semibold leading-4",
+                  isActive
+                    ? "text-white/58"
+                    : isDone
+                      ? "text-emerald-700/70"
+                      : "text-zinc-400",
+                )}
+              >
+                {step.event}
+              </p>
+            </div>
+          );
+
+          return step.href ? (
+            <a className="block min-w-0" href={step.href} key={step.event}>
+              {content}
+            </a>
+          ) : (
+            <div className="min-w-0" key={step.event}>
+              {content}
+            </div>
+          );
+        })}
+      </div>
+    </article>
+  );
+}
+
 function StarAgentRankJoinSignal({
   locale,
   snapshot,
@@ -1870,6 +2030,11 @@ export function FanletterStarDetailPage({
                   copy={copy}
                   viewerState={viewerState}
                 />
+                <FounderNextReputationPath
+                  copy={copy}
+                  referralCode={referralCode}
+                  viewerState={viewerState}
+                />
               </div>
               <div className="hidden sm:block">
                 <StarAgentRankJoinSignal
@@ -1893,6 +2058,11 @@ export function FanletterStarDetailPage({
                   trackingAgentRank={primaryActionAgentRank}
                   trackingMetadata={primaryActionTrackingMetadata}
                   showAction={false}
+                />
+                <FounderNextReputationPath
+                  copy={copy}
+                  referralCode={referralCode}
+                  viewerState={viewerState}
                 />
               </div>
 

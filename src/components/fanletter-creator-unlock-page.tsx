@@ -62,6 +62,7 @@ import type { Locale } from "@/lib/i18n";
 type CreatorUnlockGuideAction = ComponentProps<
   typeof FanletterActionGuide
 >["primaryAction"];
+type CreatorUnlockResolvedGuideAction = NonNullable<CreatorUnlockGuideAction>;
 
 function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
@@ -1678,6 +1679,177 @@ function CreatorUnlockStateStrip({
   );
 }
 
+function CreatorNextActionStatusCard({
+  action,
+  completedConditionCount,
+  isPreviewMode,
+  locale,
+  nextMissingCondition,
+  requiresSourceUniverse,
+  sourceUniverseName,
+  unlock,
+}: {
+  action: CreatorUnlockResolvedGuideAction;
+  completedConditionCount: number;
+  isPreviewMode: boolean;
+  locale: Locale;
+  nextMissingCondition?: CreatorUnlockCondition | null;
+  requiresSourceUniverse: boolean;
+  sourceUniverseName: string;
+  unlock: CreatorUnlockData;
+}) {
+  const isKorean = locale === "ko";
+  const conditionLabels = getCreatorUnlockConditionLabels(
+    getFanletterV2Copy(locale),
+  );
+  const progressPercent =
+    unlock.conditions.length > 0
+      ? Math.round((completedConditionCount / unlock.conditions.length) * 100)
+      : 0;
+  const nextConditionLabel = nextMissingCondition
+    ? conditionLabels[nextMissingCondition.id] ?? nextMissingCondition.id
+    : isKorean
+      ? "모든 조건 완료"
+      : "All conditions complete";
+  const currentValue = nextMissingCondition
+    ? formatCreatorUnlockConditionValue(nextMissingCondition.current, locale)
+    : `${completedConditionCount}/${unlock.conditions.length}`;
+  const targetValue = nextMissingCondition
+    ? formatCreatorUnlockConditionValue(nextMissingCondition.target, locale)
+    : "100%";
+  const eventType =
+    action.agentRank && "eventType" in action.agentRank
+      ? action.agentRank.eventType
+      : unlock.unlocked
+        ? "x402_mock_payment_intent"
+        : "creator_unlock_evaluated";
+  const labels = isKorean
+    ? {
+        body: requiresSourceUniverse
+          ? "먼저 AI 스타를 선택해 창업 출처를 만들어야 Creator Journey가 이어집니다."
+          : isPreviewMode
+            ? "계정을 연결하면 내 Founder 활동과 조건 진행률을 실데이터로 확인합니다."
+            : unlock.unlocked
+              ? "조건이 충족되었습니다. 미리보기 생성 행동은 x402 mock 이벤트로 기록됩니다."
+              : "부족한 조건을 채우면 Creator 권한 활성화 평가 이벤트가 갱신됩니다.",
+        condition: "다음 조건",
+        current: "현재",
+        event: "생성될 평판 기록",
+        source: "창업 출처",
+        target: "목표",
+        title: unlock.unlocked ? "권한 활성화 준비 완료" : "다음 조건부터 처리하세요",
+      }
+    : {
+        body: requiresSourceUniverse
+          ? "Choose an AI Star first so the Creator Journey has a launch source."
+          : isPreviewMode
+            ? "Connect an account to evaluate your live Founder activity and conditions."
+            : unlock.unlocked
+              ? "Conditions are met. The mock launch action records an x402 mock event."
+              : "Complete the missing condition to refresh the Creator permission evaluation event.",
+        condition: "Next condition",
+        current: "Current",
+        event: "Reputation record",
+        source: "Launch source",
+        target: "Target",
+        title: unlock.unlocked ? "Permission activation ready" : "Handle the next condition first",
+      };
+
+  return (
+    <section className="mt-4 grid w-full min-w-0 gap-3 rounded-[1.1rem] border border-zinc-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.055)] lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex h-7 items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-zinc-600">
+            Creator Journey
+          </span>
+          <span className="inline-flex h-7 items-center rounded-full border border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-700">
+            {completedConditionCount}/{unlock.conditions.length} · {progressPercent}%
+          </span>
+        </div>
+        <h2 className="mt-3 break-words text-xl font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+          {labels.title}
+        </h2>
+        <p className="mt-2 max-w-3xl text-sm font-medium leading-5 text-zinc-600 [word-break:keep-all]">
+          {labels.body}
+        </p>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          {[
+            {
+              label: labels.condition,
+              value: nextConditionLabel,
+            },
+            {
+              label: labels.source,
+              value: sourceUniverseName,
+            },
+            {
+              label: labels.event,
+              mono: true,
+              value: eventType,
+            },
+          ].map((item) => (
+            <div
+              className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2"
+              key={item.label}
+            >
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                {item.label}
+              </p>
+              <p
+                className={joinClasses(
+                  "mt-1 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]",
+                  item.mono && "font-mono text-xs",
+                )}
+              >
+                {item.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {[
+            { label: labels.current, value: currentValue },
+            { label: labels.target, value: targetValue },
+          ].map((item) => (
+            <div
+              className="min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2"
+              key={item.label}
+            >
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                {item.label}
+              </p>
+              <p className="mt-1 break-words text-sm font-semibold text-zinc-950">
+                {item.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <FanletterTrackedLink
+        agentRank={action.agentRank}
+        className="inline-flex min-h-12 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-3 text-center text-sm font-semibold leading-tight !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 lg:w-auto lg:shrink-0"
+        eventName="signup_cta_click"
+        href={action.href}
+        metadata={{
+          ...action.metadata,
+          nextConditionId: nextMissingCondition?.id ?? null,
+          placement: "creator_unlock_next_action_status_card",
+          sourceUniverseName,
+        }}
+        referralCode={action.referralCode}
+      >
+        <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
+          {action.label}
+        </span>
+        <ArrowRight className="size-4 shrink-0" />
+      </FanletterTrackedLink>
+    </section>
+  );
+}
+
 function CreatorJourneyEventPath({
   hasMockLaunches,
   isPreviewMode,
@@ -2001,7 +2173,7 @@ export function FanletterCreatorUnlockPage({
     coverageAction?.action === "x402_economy";
   const shouldTrackCoverageCreatorUnlocked =
     coverageAction?.action === "creator_unlocked" && !unlock.unlocked;
-  const creatorUnlockNextAction: CreatorUnlockGuideAction = requiresSourceUniverse
+  const creatorUnlockNextAction: CreatorUnlockResolvedGuideAction = requiresSourceUniverse
     ? {
         agentRank: {
           eventType: "ai_star_discovered" as const,
@@ -2458,6 +2630,17 @@ export function FanletterCreatorUnlockPage({
           requiresSourceUniverse={requiresSourceUniverse}
           selectedSourceOption={selectedSourceOption}
           socialSourceStarId={socialSourceStarId}
+          unlock={unlock}
+        />
+
+        <CreatorNextActionStatusCard
+          action={creatorUnlockNextAction}
+          completedConditionCount={completedConditionCount}
+          isPreviewMode={isPreviewMode}
+          locale={locale}
+          nextMissingCondition={nextMissingCondition}
+          requiresSourceUniverse={requiresSourceUniverse}
+          sourceUniverseName={displaySourceUniverseName}
           unlock={unlock}
         />
 
