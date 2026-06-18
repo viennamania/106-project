@@ -830,6 +830,8 @@ function FounderDashboardTopbar({
 }
 
 function FounderUniverseMobileSignpost({
+  creatorJourneyHref,
+  ledgerHref,
   locale,
   memberCount,
   selectedNode,
@@ -837,6 +839,8 @@ function FounderUniverseMobileSignpost({
   star,
   starName,
 }: {
+  creatorJourneyHref: string;
+  ledgerHref: string;
   locale: Locale;
   memberCount: number;
   selectedNode: FanletterFounderUniverseExplorerNode | null;
@@ -959,6 +963,46 @@ function FounderUniverseMobileSignpost({
           {isKorean ? "내 위치 보기" : "View my position"}
           <ArrowRight className="size-4" />
         </FanletterTrackedLink>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "content_engaged",
+              intent: "founder_universe_mobile_records_open",
+              source: "fanletter_founder_universe",
+              starId: star.id,
+            }}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-center text-xs font-semibold leading-tight text-zinc-800"
+            eventName="content_open"
+            href={ledgerHref}
+            metadata={{
+              placement: "founder_universe_mobile_signpost_ledger",
+              selectedNodeId: selectedNode?.nodeId ?? null,
+              starName,
+            }}
+          >
+            <ShieldCheck className="size-3.5 shrink-0" />
+            {isKorean ? "평판 기록" : "Records"}
+          </FanletterTrackedLink>
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "creator_unlock_evaluated",
+              intent: "founder_universe_mobile_creator_journey_open",
+              source: "fanletter_founder_universe",
+              starId: star.id,
+            }}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-center text-xs font-semibold leading-tight text-zinc-800"
+            eventName="content_open"
+            href={creatorJourneyHref}
+            metadata={{
+              placement: "founder_universe_mobile_signpost_creator",
+              selectedNodeId: selectedNode?.nodeId ?? null,
+              starName,
+            }}
+          >
+            <Sparkles className="size-3.5 shrink-0" />
+            Creator
+          </FanletterTrackedLink>
+        </div>
       </div>
     </section>
   );
@@ -3647,6 +3691,7 @@ export function FanletterFounderUniverseExplorer({
   });
   const encodedStarId = encodeURIComponent(displayUniverse.star.id);
   const founderUniverseLedgerHref = `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40&readiness=packet_ready&sort=impact_desc`;
+  const creatorJourneyHref = `/${locale}/fanletter/creator-unlock?starId=${encodedStarId}`;
 
   return (
     <main className="fanletter-v2-surface min-h-screen bg-white text-[#111827] xl:flex">
@@ -3699,6 +3744,8 @@ export function FanletterFounderUniverseExplorer({
           ) : null}
 
           <FounderUniverseMobileSignpost
+            creatorJourneyHref={creatorJourneyHref}
+            ledgerHref={founderUniverseLedgerHref}
             locale={locale}
             memberCount={displayUniverse.totals.totalMembers}
             selectedNode={selectedNode}

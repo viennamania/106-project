@@ -653,6 +653,39 @@ function AgentRankCoveragePanel({
     AgentRankCoverageSnapshot["eventTypes"][number]["layer"],
     string
   >;
+  const criticalEventTypes = [
+    "ai_star_discovered",
+    "founder_joined",
+    "referral_shared",
+    "creator_unlocked",
+    "x402_mock_payment_intent",
+    "ai_star_spawned",
+  ] satisfies Array<AgentRankReputationEvent["type"]>;
+  const criticalEvents = criticalEventTypes.map((type) => {
+    const coverageItem = coverage.eventTypes.find((item) => item.type === type);
+
+    return {
+      count: coverageItem?.count ?? 0,
+      covered: coverageItem?.covered ?? false,
+      layer: coverageItem?.layer ?? "network",
+      type,
+    };
+  });
+  const criticalCoveredCount = criticalEvents.filter((event) => event.covered).length;
+  const criticalLabels =
+    locale === "ko"
+      ? {
+          progress: "핵심 이벤트",
+          subtitle:
+            "AI 스타 발견부터 Creator Journey와 x402 mock intent까지 Phase 1 평판 이벤트가 살아 있는지 먼저 확인합니다.",
+          title: "FanLetter Phase 1 이벤트 체인",
+        }
+      : {
+          progress: "Core events",
+          subtitle:
+            "Checks whether Phase 1 reputation events are active from discovery through Creator Journey and x402 mock intent.",
+          title: "FanLetter Phase 1 event chain",
+        };
 
   if (starId) {
     coverageParams.set("starId", starId);
@@ -744,6 +777,67 @@ function AgentRankCoveragePanel({
         </div>
 
         <div className="grid gap-4">
+          <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold uppercase text-zinc-600">
+                  {criticalLabels.progress} · {criticalCoveredCount}/
+                  {criticalEvents.length}
+                </p>
+                <h3 className="mt-1 text-lg font-semibold text-zinc-950">
+                  {criticalLabels.title}
+                </h3>
+                <p className="mt-1 text-sm font-medium leading-5 text-zinc-600 [word-break:keep-all]">
+                  {criticalLabels.subtitle}
+                </p>
+              </div>
+              <span
+                className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${
+                  criticalCoveredCount === criticalEvents.length
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-white text-zinc-600 ring-1 ring-zinc-200"
+                }`}
+              >
+                {Math.round((criticalCoveredCount / criticalEvents.length) * 100)}%
+              </span>
+            </div>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {criticalEvents.map((item) => {
+                const Icon = eventIconMap[item.type];
+
+                return (
+                  <div
+                    className={`min-w-0 rounded-lg border px-3 py-2 ${
+                      item.covered
+                        ? layerClass[item.layer]
+                        : "border-slate-100 bg-white text-slate-400"
+                    }`}
+                    key={item.type}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
+                        <Icon className="size-4" />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-xs font-semibold text-zinc-950">
+                          {getEventTypeLabel(item.type, locale)}
+                        </span>
+                        <span className="block text-[0.62rem] font-semibold text-slate-500">
+                          {item.count} events
+                        </span>
+                      </span>
+                      {item.covered ? (
+                        <BadgeCheck className="ml-auto size-4 shrink-0 text-emerald-600" />
+                      ) : (
+                        <ShieldCheck className="ml-auto size-4 shrink-0 text-slate-300" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <div>
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold uppercase text-[#6d28d9]">

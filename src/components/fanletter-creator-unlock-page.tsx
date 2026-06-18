@@ -1445,18 +1445,19 @@ function MockLaunchEventReceiptCard({
   launch,
   launchCount,
   locale,
+  sourceUniverseName,
 }: {
   launch?: FanletterCreatorMockLaunch | MemberOwnedAIStar | null;
   launchCount: number;
   locale: Locale;
+  sourceUniverseName?: string | null;
 }) {
-  if (!launch && launchCount === 0) {
-    return null;
-  }
-
   const isKorean = locale === "ko";
-  const sourceUniverseName = launch?.sourceUniverseName
+  const hasLaunch = Boolean(launch || launchCount > 0);
+  const displaySourceUniverseName = launch?.sourceUniverseName
     ? getDisplayUniverseName(launch.sourceUniverseName, locale)
+    : sourceUniverseName
+      ? getDisplayUniverseName(sourceUniverseName, locale)
     : isKorean
       ? "선택한 AI 스타 유니버스"
       : "Selected AI Star Universe";
@@ -1465,19 +1466,21 @@ function MockLaunchEventReceiptCard({
         amount: "10 USDT mock",
         cpPool: "CP Pool 출처",
         draft: "생성된 draft",
-        event: "생성된 평판 기록",
+        event: hasLaunch ? "생성된 평판 기록" : "생성될 평판 기록",
         payment: "실제 결제 없음",
+        pendingName: "AI 스타 draft 생성 대기",
         source: "창업 출처",
-        title: "미리보기 생성 결과",
+        title: hasLaunch ? "미리보기 생성 결과" : "미리보기 생성 대기",
       }
     : {
         amount: "10 USDT mock",
         cpPool: "CP Pool source",
         draft: "Created draft",
-        event: "Reputation records",
+        event: hasLaunch ? "Reputation records" : "Pending reputation records",
         payment: "No real payment",
+        pendingName: "AI Star draft pending",
         source: "Launch source",
-        title: "Mock launch result",
+        title: hasLaunch ? "Mock launch result" : "Mock launch pending",
       };
 
   return (
@@ -1491,7 +1494,10 @@ function MockLaunchEventReceiptCard({
             {labels.title}
           </p>
           <h2 className="mt-1 break-words text-xl font-semibold leading-tight [word-break:keep-all]">
-            {launch?.name ?? `${labels.draft} ${launchCount}`}
+            {launch?.name ??
+              (hasLaunch
+                ? `${labels.draft} ${launchCount}`
+                : labels.pendingName)}
           </h2>
           <p className="mt-2 text-sm font-medium leading-5 text-zinc-600 [word-break:keep-all]">
             {labels.payment} · {labels.amount}
@@ -1501,8 +1507,8 @@ function MockLaunchEventReceiptCard({
 
       <div className="mt-4 grid gap-2 sm:grid-cols-3">
         {[
-          [labels.source, sourceUniverseName],
-          [labels.cpPool, sourceUniverseName],
+          [labels.source, displaySourceUniverseName],
+          [labels.cpPool, displaySourceUniverseName],
           [labels.draft, `${launchCount}`],
         ].map(([label, value]) => (
           <div
@@ -2940,6 +2946,18 @@ export function FanletterCreatorUnlockPage({
                   />
                 )}
               </div>
+
+              <div className="mt-4">
+                <MockLaunchEventReceiptCard
+                  launch={lastMockLaunch ?? effectiveMockOwnedStars[0] ?? null}
+                  launchCount={Math.max(
+                    effectiveMockOwnedStars.length,
+                    lastMockLaunch ? 1 : 0,
+                  )}
+                  locale={locale}
+                  sourceUniverseName={selectedSourceOption?.universeName ?? null}
+                />
+              </div>
             </section>
           </div>
 
@@ -2979,16 +2997,6 @@ export function FanletterCreatorUnlockPage({
             />
             <MockLaunchSavedSummary
               launches={effectiveMockOwnedStars}
-              locale={locale}
-            />
-            <MockLaunchEventReceiptCard
-              launch={lastMockLaunch ?? effectiveMockOwnedStars[0] ?? null}
-              launchCount={
-                Math.max(
-                  effectiveMockOwnedStars.length,
-                  lastMockLaunch ? 1 : 0,
-                )
-              }
               locale={locale}
             />
           </div>

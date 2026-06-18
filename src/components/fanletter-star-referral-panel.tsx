@@ -5,6 +5,7 @@ import {
   ArrowRight,
   CheckCircle2,
   Crown,
+  Database,
   GitBranch,
   Link2,
   Share2,
@@ -151,20 +152,36 @@ function ReferralShareOutcomeCard({
   copy,
   hasSharedReferral,
   isReferralGenerated,
+  locale,
   rewards,
+  starId,
 }: {
   copy: FanletterV2Copy;
   hasSharedReferral: boolean;
   isReferralGenerated: boolean;
+  locale: Locale;
   rewards: ScoutShareLoopData["rewards"];
+  starId?: string | null;
 }) {
   const isKorean = isKoreanCopy(copy);
+  const encodedStarId = starId ? encodeURIComponent(starId) : null;
+  const ledgerHref = `/${locale}/fanletter/agentrank/events${
+    encodedStarId ? `?starId=${encodedStarId}&limit=40` : ""
+  }`;
+  const creatorHref = `/${locale}/fanletter/creator-unlock${
+    encodedStarId ? `?starId=${encodedStarId}` : ""
+  }`;
   const labels = isKorean
     ? {
         cp: "CP 보상",
         creator: "Creator 진행",
+        creatorCta: "Creator Journey",
         event: "평판 기록",
         influence: "영향력",
+        ledgerCta: "평판 기록 보기",
+        nextBody:
+          "공유 기록은 추천 보상, Creator 진행률, AgentRank 원장으로 이어집니다.",
+        nextTitle: "다음 행동",
         pendingBody:
           "링크를 복사하거나 SNS로 공유하면 referral_shared 기록이 생성됩니다.",
         pendingTitle: "공유 대기",
@@ -175,8 +192,13 @@ function ReferralShareOutcomeCard({
     : {
         cp: "CP reward",
         creator: "Creator progress",
+        creatorCta: "Creator Journey",
         event: "Reputation record",
         influence: "Influence",
+        ledgerCta: "View records",
+        nextBody:
+          "The share record feeds referral rewards, Creator progress, and the AgentRank ledger.",
+        nextTitle: "Next actions",
         pendingBody:
           "Copy the link or share to SNS to create a referral_shared record.",
         pendingTitle: "Share pending",
@@ -251,6 +273,33 @@ function ReferralShareOutcomeCard({
       <p className="mt-3 break-all rounded-lg bg-white/78 px-3 py-2 font-mono text-[0.68rem] font-semibold leading-4 text-zinc-600">
         referral_shared → cp_earned → creator_unlock_evaluated
       </p>
+
+      {hasSharedReferral ? (
+        <div className="mt-3 rounded-lg border border-zinc-200 bg-white p-3">
+          <p className="text-xs font-semibold text-zinc-950">
+            {labels.nextTitle}
+          </p>
+          <p className="mt-1 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
+            {labels.nextBody}
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+            <Link
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-black px-3 py-2 text-center text-xs font-semibold leading-tight !text-white"
+              href={ledgerHref}
+            >
+              <Database className="size-3.5 shrink-0" />
+              {labels.ledgerCta}
+            </Link>
+            <Link
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-2 text-center text-xs font-semibold leading-tight text-zinc-800"
+              href={creatorHref}
+            >
+              <Sparkles className="size-3.5 shrink-0" />
+              {labels.creatorCta}
+            </Link>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -535,7 +584,9 @@ export function FanletterStarReferralPanel({
           copy={copy}
           hasSharedReferral={hasSharedReferral}
           isReferralGenerated={isReferralGenerated}
+          locale={locale}
           rewards={loop.rewards}
+          starId={starId}
         />
       </div>
 
@@ -811,7 +862,9 @@ export function FanletterStarReferralPanel({
             copy={copy}
             hasSharedReferral={hasSharedReferral}
             isReferralGenerated={isReferralGenerated}
+            locale={locale}
             rewards={loop.rewards}
+            starId={starId}
           />
         </div>
       </FanletterResponsiveActionPanel>
