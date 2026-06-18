@@ -28,6 +28,7 @@ import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsiv
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import { useFanletterFounderMockMemberships } from "@/components/fanletter-founder-mock-state";
+import { useFanletterAIStarMockSocialAccount } from "@/components/fanletter-social-account-mock-state";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import {
@@ -287,6 +288,7 @@ function getCreatorUnlockConditionLabels(
     agentRankAuditReady: copy.creatorUnlock.agentRankAuditReady,
     agentRankEventQuality: copy.creatorUnlock.agentRankEventQuality,
     cp: copy.creatorUnlock.cp,
+    creatorSocialConnected: copy.creatorUnlock.creatorSocialConnected,
     directInvites: copy.creatorUnlock.directInvites,
     founderContributionScore: copy.creatorUnlock.founderContributionScore,
     scoutScore: copy.creatorUnlock.scoutScore,
@@ -420,6 +422,7 @@ function CreatorUnlockConditionsPanel({
           <div className="mt-3 grid gap-2">
             {[
               "creator_unlock_evaluated",
+              "creator_social_connected",
               "creator_unlocked",
               "x402_mock_payment_intent",
               "ai_star_spawned",
@@ -674,6 +677,35 @@ function applyMockFounderRewardsToUnlock({
       sourceUniverseName,
       status: "mock_ready",
     },
+    unlocked: conditions.every((condition) => condition.met),
+  };
+}
+
+function applyCreatorSocialConnectionToUnlock({
+  socialConnected,
+  unlock,
+}: {
+  socialConnected: boolean;
+  unlock: CreatorUnlockData;
+}): CreatorUnlockData {
+  const socialCondition: CreatorUnlockCondition = {
+    current: socialConnected ? "completed" : "pending",
+    id: "creatorSocialConnected",
+    met: socialConnected,
+    target: "completed",
+  };
+  const hasSocialCondition = unlock.conditions.some(
+    (condition) => condition.id === socialCondition.id,
+  );
+  const conditions = hasSocialCondition
+    ? unlock.conditions.map((condition) =>
+        condition.id === socialCondition.id ? socialCondition : condition,
+      )
+    : [...unlock.conditions, socialCondition];
+
+  return {
+    ...unlock,
+    conditions,
     unlocked: conditions.every((condition) => condition.met),
   };
 }
@@ -1647,9 +1679,33 @@ export function FanletterCreatorUnlockPage({
     sourceOptions[0] ??
     null;
   const requiresSourceUniverse = isSignedIn && !selectedSourceOption;
+  const memberInitials =
+    portfolio.memberInitials ?? getInitials(portfolio.memberName);
+  const trackingSourceStarId =
+    coverageAction?.starId ??
+    selectedSourceOption?.starId ??
+    portfolio.primaryStarId;
+  const socialSourceStarId =
+    trackingSourceStarId ?? selectedSourceOption?.starId ?? "minseo";
+  const creatorJourneySocialAccount =
+    buildFanletterAIStarSocialAccountViewModel({
+      canConnect: !isPreviewMode,
+      creatorMemberId: `creator:${portfolio.memberName}`,
+      creatorMemberInitials: memberInitials,
+      creatorMemberName: portfolio.memberName,
+      creatorRole: "owner",
+      starId: socialSourceStarId,
+    });
+  const creatorJourneyLocalSocialAccount = useFanletterAIStarMockSocialAccount({
+    platform: "tiktok",
+    starId: socialSourceStarId,
+  });
+  const creatorJourneySocialConnected = Boolean(
+    creatorJourneyLocalSocialAccount ?? creatorJourneySocialAccount.account,
+  );
   const baseUnlock: CreatorUnlockData =
     creatorUnlock ?? fanletterV2Mock.creatorUnlock;
-  const unlock = useMemo(
+  const unlockBeforeSocialCondition = useMemo(
     () =>
       applyMockFounderRewardsToUnlock({
         latestMembershipStarId: effectiveLatestMembershipStarId,
@@ -1664,6 +1720,14 @@ export function FanletterCreatorUnlockPage({
       portfolio,
     ],
   );
+  const unlock = useMemo(
+    () =>
+      applyCreatorSocialConnectionToUnlock({
+        socialConnected: creatorJourneySocialConnected,
+        unlock: unlockBeforeSocialCondition,
+      }),
+    [creatorJourneySocialConnected, unlockBeforeSocialCondition],
+  );
   const launchPreview = getLaunchPreview({
     locale,
     portfolio,
@@ -1677,32 +1741,20 @@ export function FanletterCreatorUnlockPage({
   const displaySourceUniverseName = requiresSourceUniverse
     ? copy.noSourceSubmit
     : sourceUniverseName;
-  const memberInitials =
-    portfolio.memberInitials ?? getInitials(portfolio.memberName);
   const completedConditionCount = unlock.conditions.filter(
     (condition) => condition.met,
   ).length;
+  const nextMissingCondition = unlock.conditions.find(
+    (condition) => !condition.met,
+  );
+  const isCreatorSocialNextAction =
+    !unlock.unlocked && nextMissingCondition?.id === "creatorSocialConnected";
   const getConditionCurrent = (id: string) =>
     unlock.conditions.find((condition) => condition.id === id)?.current ?? null;
   const getConditionMet = (id: string) =>
     unlock.conditions.find((condition) => condition.id === id)?.met ?? false;
   const getConditionTarget = (id: string) =>
     unlock.conditions.find((condition) => condition.id === id)?.target ?? null;
-  const trackingSourceStarId =
-    coverageAction?.starId ??
-    selectedSourceOption?.starId ??
-    portfolio.primaryStarId;
-  const socialSourceStarId =
-    trackingSourceStarId ?? selectedSourceOption?.starId ?? "minseo";
-  const creatorJourneySocialAccount =
-    buildFanletterAIStarSocialAccountViewModel({
-      canConnect: !isPreviewMode && unlock.unlocked,
-      creatorMemberId: `creator:${portfolio.memberName}`,
-      creatorMemberInitials: memberInitials,
-      creatorMemberName: portfolio.memberName,
-      creatorRole: "owner",
-      starId: socialSourceStarId,
-    });
   const shouldTrackCoverageMockPaymentIntent =
     coverageAction?.action === "x402_mock_payment_intent" ||
     coverageAction?.action === "x402_economy";
@@ -1753,6 +1805,21 @@ export function FanletterCreatorUnlockPage({
               sourceUniverseName: displaySourceUniverseName,
             },
           }
+        : isCreatorSocialNextAction
+          ? {
+              agentRank: {
+                eventType: "creator_social_connected" as const,
+                intent: "creator_unlock_connect_tiktok_channel",
+                source: "fanletter_creator_unlock",
+                starId: trackingSourceStarId,
+              },
+              href: "#tiktok-channel",
+              label: locale === "ko" ? "TikTok 연결하기" : "Connect TikTok",
+              metadata: {
+                placement: "creator_unlock_action_guide_tiktok",
+                sourceUniverseName: displaySourceUniverseName,
+              },
+            }
         : {
             agentRank: {
               eventType: "creator_unlock_evaluated" as const,
@@ -1779,6 +1846,10 @@ export function FanletterCreatorUnlockPage({
         ? locale === "ko"
           ? "다음 행동: 미리보기 생성 완료"
           : "Next action: complete mock launch"
+        : isCreatorSocialNextAction
+          ? locale === "ko"
+            ? "다음 행동: TikTok 채널 연결"
+            : "Next action: connect TikTok channel"
         : locale === "ko"
           ? "다음 행동: 조건 확인"
           : "Next action: review conditions";
@@ -1786,6 +1857,10 @@ export function FanletterCreatorUnlockPage({
     ? locale === "ko"
       ? "AI Star Discovery 이벤트"
       : "AI Star Discovery event"
+    : isCreatorSocialNextAction
+      ? locale === "ko"
+        ? "TikTok 채널 연결 이벤트"
+        : "TikTok channel connection event"
     : unlock.unlocked
       ? "x402 Mock Payment Intent"
       : locale === "ko"
@@ -1809,7 +1884,10 @@ export function FanletterCreatorUnlockPage({
     setIsConditionsPanelOpen(true);
   };
   const shouldUseConditionPanelAction =
-    !requiresSourceUniverse && !isPreviewMode && !unlock.unlocked;
+    !requiresSourceUniverse &&
+    !isPreviewMode &&
+    !unlock.unlocked &&
+    !isCreatorSocialNextAction;
   const creatorUnlockActionGuide = (
     <FanletterActionGuide
       className="mt-5"
@@ -1853,6 +1931,16 @@ export function FanletterCreatorUnlockPage({
         {
           label: locale === "ko" ? "출처 선택" : "Choose source",
           status: requiresSourceUniverse ? "active" : "done",
+        },
+        {
+          label: locale === "ko" ? "TikTok 채널" : "TikTok channel",
+          status: creatorJourneySocialConnected
+            ? "done"
+            : unlockBeforeSocialCondition.unlocked &&
+                !requiresSourceUniverse &&
+                !isPreviewMode
+              ? "active"
+              : "next",
         },
         {
           label: locale === "ko" ? "미리보기 생성" : "Mock launch",
@@ -1899,6 +1987,13 @@ export function FanletterCreatorUnlockPage({
           ),
           completedConditionCount,
           createCostUsdt: unlock.createCostUsdt,
+          creatorSocialConnectedCurrent: String(
+            getConditionCurrent("creatorSocialConnected") ?? "pending",
+          ),
+          creatorSocialConnectedMet: getConditionMet("creatorSocialConnected"),
+          creatorSocialConnectedTarget: String(
+            getConditionTarget("creatorSocialConnected") ?? "completed",
+          ),
           creatorUnlockEvaluated: true,
           cpCurrent: Number(getConditionCurrent("cp") ?? 0),
           cpMet: getConditionMet("cp"),
@@ -1936,6 +2031,7 @@ export function FanletterCreatorUnlockPage({
           scoutScoreMet: getConditionMet("scoutScore"),
           scoutScoreTarget: Number(getConditionTarget("scoutScore") ?? 0),
           sourceStarId: trackingSourceStarId,
+          socialChannelStarId: socialSourceStarId,
           sourceUniverseId: selectedSourceOption?.starId
             ? `fanletter-star-universe:${selectedSourceOption.starId}`
             : null,

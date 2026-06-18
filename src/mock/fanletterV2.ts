@@ -505,6 +505,7 @@ export type FanletterV2Copy = {
     body: string;
     cp: string;
     createAiStarCta: string;
+    creatorSocialConnected: string;
     directInvites: string;
     founderContributionScore: string;
     launchPreviewBody: string;
@@ -644,6 +645,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "Creator status is unlocked when scout, invitation, CP, Founder Contribution, AgentRank audit quality, and activity requirements are met.",
       cp: "CP >= 5,000",
       createAiStarCta: "Create new AI Star",
+      creatorSocialConnected: "AI Star TikTok channel connected",
       directInvites: "Direct Invites >= 20",
       founderContributionScore: "Founder Contribution Score >= 500",
       launchPreviewBody:
@@ -817,6 +819,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "Scout、招待、CP、Founder Contribution、AgentRank監査品質、活動ミッションの条件を満たすとCreatorステータスが開きます。",
       cp: "CP 5,000以上",
       createAiStarCta: "新しいAI Starを作成",
+      creatorSocialConnected: "AI Star TikTokチャンネル接続済み",
       directInvites: "直接招待 20人以上",
       founderContributionScore: "Founder Contribution Score 500以上",
       launchPreviewBody:
@@ -989,6 +992,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
         "스카우트 점수, 직접 초대, CP, 파운더 기여 점수, AgentRank 감사 품질, 활동 미션 조건을 만족하면 크리에이터 권한이 열립니다.",
       cp: "CP 5,000 이상",
       createAiStarCta: "새 AI 스타 만들기",
+      creatorSocialConnected: "AI 스타 TikTok 채널 연결",
       directInvites: "직접 초대 20명 이상",
       founderContributionScore: "파운더 기여 점수 500 이상",
       launchPreviewBody:

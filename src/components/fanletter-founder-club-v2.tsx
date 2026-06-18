@@ -955,6 +955,7 @@ export function CreatorUnlockCard({
     agentRankAuditReady: copy.creatorUnlock.agentRankAuditReady,
     agentRankEventQuality: copy.creatorUnlock.agentRankEventQuality,
     cp: copy.creatorUnlock.cp,
+    creatorSocialConnected: copy.creatorUnlock.creatorSocialConnected,
     directInvites: copy.creatorUnlock.directInvites,
     founderContributionScore: copy.creatorUnlock.founderContributionScore,
     scoutScore: copy.creatorUnlock.scoutScore,
