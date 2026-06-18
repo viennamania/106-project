@@ -16,7 +16,7 @@ import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsiv
 import {
   recordFanletterAIStarMockSocialAccount,
   useFanletterAIStarMockSocialAccount,
-  useFanletterAIStarServerSocialAccount,
+  useFanletterAIStarServerSocialAccountState,
 } from "@/components/fanletter-social-account-mock-state";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { HumanMemberAvatar } from "@/components/fanletter-founder-club-v2";
@@ -84,6 +84,11 @@ function getCopy(locale: Locale) {
       roleCreator: "Creator",
       roleOwner: "Owner",
       status: "상태",
+      storageSource: "저장 출처",
+      sourceLocalMock: "브라우저 mock",
+      sourceSample: "기본 mock",
+      sourceServer: "서버 저장됨",
+      sourceSyncing: "서버 확인 중",
       subtitle: "회원 개인 계정이 아니라 AI 스타 채널입니다.",
       tiktok: "TikTok",
     };
@@ -140,6 +145,11 @@ function getCopy(locale: Locale) {
       roleCreator: "Creator",
       roleOwner: "Owner",
       status: "状態",
+      storageSource: "保存元",
+      sourceLocalMock: "ブラウザmock",
+      sourceSample: "基本mock",
+      sourceServer: "サーバー保存済み",
+      sourceSyncing: "サーバー確認中",
       subtitle: "個人アカウントではなくAIスターのチャンネルです。",
       tiktok: "TikTok",
     };
@@ -195,6 +205,11 @@ function getCopy(locale: Locale) {
     roleCreator: "Creator",
     roleOwner: "Owner",
     status: "Status",
+    storageSource: "Storage Source",
+    sourceLocalMock: "Browser mock",
+    sourceSample: "Default mock",
+    sourceServer: "Saved on server",
+    sourceSyncing: "Checking server",
     subtitle: "This is the AI Star channel, not a personal member account.",
     tiktok: "TikTok",
   };
@@ -268,7 +283,7 @@ export function FanletterAIStarSocialAccountCard({
     platform: social.platform,
     starId,
   });
-  const serverAccount = useFanletterAIStarServerSocialAccount({
+  const serverAccountState = useFanletterAIStarServerSocialAccountState({
     platform: social.platform,
     starId,
   });
@@ -279,7 +294,15 @@ export function FanletterAIStarSocialAccountCard({
   const [isOauthPreviewLoading, setIsOauthPreviewLoading] = useState(false);
   const [oauthPreview, setOauthPreview] =
     useState<TikTokOAuthPreviewResponse | null>(null);
+  const serverAccount = serverAccountState.account;
   const account = localMockAccount ?? serverAccount ?? social.account;
+  const accountSource = localMockAccount
+    ? "local"
+    : serverAccount
+      ? "server"
+      : social.account
+        ? "sample"
+        : "none";
   const isConnected = Boolean(account);
   const actorMemberId = account?.connectedByMemberId ?? social.creatorMemberId;
   const actorMemberName =
@@ -298,6 +321,16 @@ export function FanletterAIStarSocialAccountCard({
       : social.canConnect
         ? copy.manualStatus
         : copy.creatorOnly;
+  const storageSourceLabel =
+    serverAccountState.loading && !localMockAccount
+      ? copy.sourceSyncing
+      : accountSource === "local"
+        ? copy.sourceLocalMock
+        : accountSource === "server"
+          ? copy.sourceServer
+          : accountSource === "sample"
+            ? copy.sourceSample
+            : copy.connectRequired;
   const effectiveConnectHref = connectHref ?? "#tiktok-channel";
   const suggestedHandle = useMemo(
     () => buildFanletterSuggestedTikTokHandle({ fallbackId: starId, starName }),
@@ -529,21 +562,29 @@ export function FanletterAIStarSocialAccountCard({
             </span>
           </div>
 
-          {isConnected ? (
-            <div className="mt-3 flex min-w-0 flex-wrap gap-2">
-              <span className="inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-800">
-                <CheckCircle2 className="size-3.5 shrink-0" />
-                <span className="min-w-0 truncate">
-                  {copy.conditionComplete}
+          <div className="mt-3 flex min-w-0 flex-wrap gap-2">
+            {isConnected ? (
+              <>
+                <span className="inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-800">
+                  <CheckCircle2 className="size-3.5 shrink-0" />
+                  <span className="min-w-0 truncate">
+                    {copy.conditionComplete}
+                  </span>
                 </span>
-              </span>
-              <span className="inline-flex min-h-8 max-w-full items-center rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-600">
-                <span className="min-w-0 truncate">
-                  {copy.conditionReflected}
+                <span className="inline-flex min-h-8 max-w-full items-center rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-600">
+                  <span className="min-w-0 truncate">
+                    {copy.conditionReflected}
+                  </span>
                 </span>
+              </>
+            ) : null}
+            <span className="inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-600">
+              <Database className="size-3.5 shrink-0" />
+              <span className="min-w-0 truncate">
+                {copy.storageSource} · {storageSourceLabel}
               </span>
-            </div>
-          ) : null}
+            </span>
+          </div>
 
           <div className="mt-4 grid min-w-0 gap-2 sm:grid-cols-2">
             <div className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
@@ -555,6 +596,9 @@ export function FanletterAIStarSocialAccountCard({
               </p>
               <p className="mt-1 text-xs font-semibold text-zinc-500">
                 {account ? formatConnectedAt(account.connectedAt, locale) : roleLabel}
+              </p>
+              <p className="mt-2 inline-flex min-h-7 max-w-full items-center rounded-full bg-white px-2 text-[0.68rem] font-semibold text-zinc-500 ring-1 ring-zinc-200">
+                <span className="min-w-0 truncate">{storageSourceLabel}</span>
               </p>
             </div>
             <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3">

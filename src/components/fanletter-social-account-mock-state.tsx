@@ -200,16 +200,26 @@ type ServerSocialAccountResponse =
       mode?: "mock";
     };
 
-export function useFanletterAIStarServerSocialAccount({
+export type FanletterAIStarServerSocialAccountState = {
+  account: FanletterAIStarSocialAccount | null;
+  error: boolean;
+  loading: boolean;
+  source: "none" | "server";
+};
+
+export function useFanletterAIStarServerSocialAccountState({
   platform = "tiktok",
   starId,
 }: {
   platform?: FanletterSocialPlatform;
   starId: string;
 }) {
-  const [account, setAccount] = useState<FanletterAIStarSocialAccount | null>(
-    null,
-  );
+  const [state, setState] = useState<FanletterAIStarServerSocialAccountState>({
+    account: null,
+    error: false,
+    loading: true,
+    source: "none",
+  });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -226,7 +236,12 @@ export function useFanletterAIStarServerSocialAccount({
         );
 
         if (!response.ok) {
-          setAccount(null);
+          setState({
+            account: null,
+            error: true,
+            loading: false,
+            source: "none",
+          });
           return;
         }
 
@@ -237,14 +252,27 @@ export function useFanletterAIStarServerSocialAccount({
           data && "account" in data && data.account
             ? data.account
             : null;
+        const account = isAIStarSocialAccount(nextAccount)
+          ? nextAccount
+          : null;
 
-        setAccount(isAIStarSocialAccount(nextAccount) ? nextAccount : null);
+        setState({
+          account,
+          error: false,
+          loading: false,
+          source: account ? "server" : "none",
+        });
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
           return;
         }
 
-        setAccount(null);
+        setState({
+          account: null,
+          error: true,
+          loading: false,
+          source: "none",
+        });
       }
     }
 
@@ -253,5 +281,18 @@ export function useFanletterAIStarServerSocialAccount({
     return () => controller.abort();
   }, [platform, starId]);
 
-  return account;
+  return state;
+}
+
+export function useFanletterAIStarServerSocialAccount({
+  platform = "tiktok",
+  starId,
+}: {
+  platform?: FanletterSocialPlatform;
+  starId: string;
+}) {
+  return useFanletterAIStarServerSocialAccountState({
+    platform,
+    starId,
+  }).account;
 }
