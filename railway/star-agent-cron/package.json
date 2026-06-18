@@ -1,0 +1,12 @@
+{
+  "name": "star-agent-cron",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "node run-star-agent-cron.mjs"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}
