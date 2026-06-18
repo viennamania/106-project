@@ -7,13 +7,18 @@ import {
   tryUpsertFanletterAIStarSocialAccount,
   type FanletterAIStarSocialAccountUpsertResult,
 } from "@/lib/fanletter-ai-star-social-accounts";
+import {
+  getFanletterAIStarSocialConnectPermissionStatus,
+  resolveFanletterAIStarSocialConnectServerPermission,
+  type FanletterAIStarSocialConnectServerPermission,
+} from "@/lib/fanletter-ai-star-social-permissions";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { readMemberServerSession } from "@/lib/member-server-session";
+import { getMembersCollection } from "@/lib/mongodb";
 import {
   buildFanletterAIStarMockSocialAccount,
   normalizeFanletterTikTokHandle,
-  resolveFanletterAIStarSocialConnectPermission,
   type FanletterAIStarSocialAccount,
 } from "@/mock/fanletter-social-accounts";
 
@@ -39,7 +44,7 @@ type MockSocialAccountConnectResponse = {
     starId: string;
   };
   mode: "mock";
-  permission: ReturnType<typeof resolveFanletterAIStarSocialConnectPermission>;
+  permission: FanletterAIStarSocialConnectServerPermission;
   reputationEvent: {
     actor: "creator_member";
     mockOnly: true;
@@ -69,12 +74,6 @@ function normalizeText(value: unknown, fallback: string, maxLength: number) {
   return (normalized || fallback).slice(0, maxLength);
 }
 
-function normalizeOptionalText(value: unknown, maxLength: number) {
-  const normalized = typeof value === "string" ? value.trim() : "";
-
-  return normalized ? normalized.slice(0, maxLength) : null;
-}
-
 function normalizeCreatorRole(value: unknown) {
   return value === "creator" || value === "owner" ? value : null;
 }
@@ -87,6 +86,29 @@ function normalizeSource(value: unknown): AgentRankInteractionSource {
 
 function normalizeCanConnect(value: unknown) {
   return value !== false;
+}
+
+function getInitials(value: string) {
+  const normalized = value.replace(/[^a-zA-Z0-9가-힣\s]/g, " ").trim();
+  const words = normalized.split(/\s+/).filter(Boolean);
+
+  if (words.length >= 2) {
+    return `${words[0][0] ?? ""}${words[1][0] ?? ""}`.toUpperCase();
+  }
+
+  return (words[0] ?? value).slice(0, 2).toUpperCase();
+}
+
+function getMemberDisplayName({
+  email,
+  publicDisplayName,
+}: {
+  email: string;
+  publicDisplayName?: string | null;
+}) {
+  const displayName = publicDisplayName?.replace(/\s+/g, " ").trim();
+
+  return displayName || email.split("@")[0] || "Creator";
 }
 
 export async function POST(request: Request) {
@@ -117,41 +139,50 @@ export async function POST(request: Request) {
   const creatorRoleAtConnection = normalizeCreatorRole(
     body.creatorRoleAtConnection,
   );
-  const permission = resolveFanletterAIStarSocialConnectPermission({
-    canConnect: normalizeCanConnect(body.canConnect),
-    creatorRole: creatorRoleAtConnection,
+  const session = await readMemberServerSession();
+  const permission = await resolveFanletterAIStarSocialConnectServerPermission({
+    memberEmail: session?.email,
+    starId,
   });
 
-  if (!permission.allowed || !creatorRoleAtConnection) {
-    return jsonError("Creator or Owner permission is required.", 403, {
-      mode: "mock",
-      permission,
-    });
+  if (!permission.allowed || !permission.role) {
+    return jsonError(
+      "Creator or Owner permission is required.",
+      getFanletterAIStarSocialConnectPermissionStatus(permission.reason),
+      {
+        mode: "mock",
+        permission,
+      },
+    );
   }
 
   const locale = normalizeLocale(body.locale);
   const source = normalizeSource(body.source);
   const starName = normalizeText(body.starName, starId, 80);
-  const connectedByMemberId = normalizeText(
-    body.connectedByMemberId,
-    "mock-creator",
-    96,
+  const membersCollection = await getMembersCollection();
+  const member = await membersCollection.findOne(
+    { email: session?.email },
+    {
+      projection: {
+        email: 1,
+        publicProfile: 1,
+        referralCode: 1,
+      },
+    },
   );
-  const connectedByMemberName = normalizeText(
-    body.connectedByMemberName,
-    "Creator",
-    96,
-  );
-  const connectedByMemberInitials = normalizeOptionalText(
-    body.connectedByMemberInitials,
-    12,
-  );
-  const session = await readMemberServerSession();
+  const connectedByMemberName = getMemberDisplayName({
+    email: session?.email ?? "creator",
+    publicDisplayName: member?.publicProfile?.displayName,
+  });
+  const connectedByMemberId = member?.referralCode
+    ? `member:${member.referralCode}`
+    : `member:${session?.email?.split("@")[0] ?? "creator"}`;
+  const connectedByMemberInitials = getInitials(connectedByMemberName);
   const account = buildFanletterAIStarMockSocialAccount({
     connectedByMemberId,
     connectedByMemberInitials,
     connectedByMemberName,
-    creatorRoleAtConnection,
+    creatorRoleAtConnection: permission.role,
     handle,
     starId,
   });
@@ -185,11 +216,15 @@ export async function POST(request: Request) {
       actorType: "creator_member",
       creatorJourneyConditionId: "creatorSocialConnected",
       creatorJourneyConditionMet: true,
-      creatorRoleAtConnection,
+      clientCanConnectClaim: normalizeCanConnect(body.canConnect),
+      clientCreatorRoleClaim: creatorRoleAtConnection,
+      creatorRoleAtConnection: permission.role,
       handle: account.handle,
       mockOnly: true,
       page: "fanletter_social_account_mock_connect_api",
       platform: account.platform,
+      permissionReason: permission.reason,
+      permissionSource: permission.source,
       socialConnectionStatus: account.status,
       starId,
       starName,

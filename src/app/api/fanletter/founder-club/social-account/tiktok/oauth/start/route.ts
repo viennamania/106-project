@@ -1,11 +1,14 @@
 import {
   buildFanletterTikTokOAuthPreview,
-  normalizeFanletterTikTokOAuthCanConnect,
-  normalizeFanletterTikTokOAuthCreatorRole,
   normalizeFanletterTikTokOAuthLocale,
   normalizeFanletterTikTokOAuthSource,
   normalizeFanletterTikTokOAuthStarId,
+  type FanletterTikTokOAuthPreview,
 } from "@/lib/fanletter-tiktok-oauth-preview";
+import {
+  resolveFanletterAIStarSocialConnectServerPermission,
+  type FanletterAIStarSocialConnectServerPermission,
+} from "@/lib/fanletter-ai-star-social-permissions";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
 export const dynamic = "force-dynamic";
@@ -29,9 +32,13 @@ function readString(value: unknown) {
 
 function buildPreviewResponse({
   body,
+  creatorRole,
+  canConnect,
   request,
 }: {
   body: TikTokOAuthStartRequestBody;
+  creatorRole: "creator" | "owner" | null;
+  canConnect: boolean;
   request: Request;
 }) {
   const starId = normalizeFanletterTikTokOAuthStarId(body.starId);
@@ -43,8 +50,8 @@ function buildPreviewResponse({
   const locale = normalizeFanletterTikTokOAuthLocale(body.locale);
 
   return buildFanletterTikTokOAuthPreview({
-    canConnect: normalizeFanletterTikTokOAuthCanConnect(body.canConnect),
-    creatorRole: normalizeFanletterTikTokOAuthCreatorRole(body.creatorRole),
+    canConnect,
+    creatorRole,
     locale,
     requestUrl: request.url,
     returnTo: readString(body.returnTo),
@@ -53,8 +60,49 @@ function buildPreviewResponse({
   });
 }
 
+function applyServerPermissionBlockedReason({
+  preview,
+  serverPermission,
+}: {
+  preview: FanletterTikTokOAuthPreview;
+  serverPermission: FanletterAIStarSocialConnectServerPermission;
+}) {
+  if (serverPermission.allowed) {
+    return preview;
+  }
+
+  const blockedReasons = [
+    serverPermission.reason,
+    ...preview.blockedReasons.filter(
+      (reason) =>
+        reason !== serverPermission.reason &&
+        reason !== "creator_or_owner_required",
+    ),
+  ];
+
+  return {
+    ...preview,
+    blockedReasons,
+    liveReady: false,
+  };
+}
+
 export async function GET(request: Request) {
   const searchParams = new URL(request.url).searchParams;
+  const starId = normalizeFanletterTikTokOAuthStarId(searchParams.get("starId"));
+
+  if (!starId) {
+    return jsonError("A valid AI Star id is required.", 400, {
+      mode: "oauth_preview",
+    });
+  }
+
+  const session = await readMemberServerSession();
+  const serverPermission =
+    await resolveFanletterAIStarSocialConnectServerPermission({
+      memberEmail: session?.email,
+      starId,
+    });
   const preview = buildPreviewResponse({
     body: {
       canConnect: searchParams.get("canConnect"),
@@ -62,8 +110,10 @@ export async function GET(request: Request) {
       locale: searchParams.get("locale"),
       returnTo: searchParams.get("returnTo"),
       source: searchParams.get("source"),
-      starId: searchParams.get("starId"),
+      starId,
     },
+    canConnect: serverPermission.allowed,
+    creatorRole: serverPermission.role,
     request,
   });
 
@@ -73,11 +123,10 @@ export async function GET(request: Request) {
     });
   }
 
-  const session = await readMemberServerSession();
-
   return Response.json(
     {
-      ...preview,
+      ...applyServerPermissionBlockedReason({ preview, serverPermission }),
+      serverPermission,
       session: {
         email: session?.email ?? null,
         hasMemberSession: Boolean(session?.email),
@@ -99,7 +148,29 @@ export async function POST(request: Request) {
     });
   }
 
-  const preview = buildPreviewResponse({ body, request });
+  const starId = normalizeFanletterTikTokOAuthStarId(body.starId);
+
+  if (!starId) {
+    return jsonError("A valid AI Star id is required.", 400, {
+      mode: "oauth_preview",
+    });
+  }
+
+  const session = await readMemberServerSession();
+  const serverPermission =
+    await resolveFanletterAIStarSocialConnectServerPermission({
+      memberEmail: session?.email,
+      starId,
+    });
+  const preview = buildPreviewResponse({
+    body: {
+      ...body,
+      starId,
+    },
+    canConnect: serverPermission.allowed,
+    creatorRole: serverPermission.role,
+    request,
+  });
 
   if (!preview) {
     return jsonError("A valid AI Star id is required.", 400, {
@@ -107,11 +178,10 @@ export async function POST(request: Request) {
     });
   }
 
-  const session = await readMemberServerSession();
-
   return Response.json(
     {
-      ...preview,
+      ...applyServerPermissionBlockedReason({ preview, serverPermission }),
+      serverPermission,
       session: {
         email: session?.email ?? null,
         hasMemberSession: Boolean(session?.email),
