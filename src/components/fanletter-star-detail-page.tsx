@@ -349,7 +349,7 @@ function getPrimaryAction({
       ? "계정을 연결하면 이 AI 스타의 파운더 참여와 추천 보상을 이어갈 수 있습니다."
       : "Connect your account to join this AI Star and keep referral attribution.",
     href: connectHref,
-    label: isKorean ? "계정 연결하고 참여" : "Connect to join",
+    label: isKorean ? "계정 연결" : "Connect account",
     status: isKorean ? "계정 연결 필요" : "Connect account",
     variant: "connect",
   };

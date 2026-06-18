@@ -10368,7 +10368,7 @@ export function FanletterOnboardingPage({
             helper:
               "Founder Club에서 내 역할, 추천 링크, CP, 영향력, Creator 진행률을 관리합니다.",
             homeCta: "AI 스타 유니버스 보기",
-            primaryCta: "계정 연결하고 참여",
+            primaryCta: "계정 연결",
             progress: "Founder 진행",
             readyValue: "3단계",
             returnBody:
