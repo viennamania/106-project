@@ -29,7 +29,11 @@ import type {
   AgentRankCoverageSourceItem,
 } from "@/lib/agentrank/coverage";
 import type { AgentRankBackfillReadinessSnapshot } from "@/lib/agentrank/backfill-readiness";
-import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
+import {
+  isAgentRankInteractionEventType,
+  type AgentRankInteractionEventType,
+  type AgentRankInteractionSource,
+} from "@/lib/agentrank/interaction-events";
 import type {
   AgentRankReputationEvent,
   FanletterAgentRankReputationEventFeed,
@@ -303,8 +307,8 @@ function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Local
     founder_joined: "파운더 참여",
     referral_code_created: "추천 코드 생성",
     referral_converted: "추천 전환",
-    source_universe_selected: "출처 유니버스 선택",
-    universe_growth: "유니버스 성장",
+    source_universe_selected: "출처 AI 스타 유니버스 선택",
+    universe_growth: "AI 스타 유니버스 성장",
     x402_mock_payment_intent: "x402 결제 의도",
   };
 
@@ -618,6 +622,20 @@ function getScopedStarId(scope: CoverageAuditScope) {
   return scope.starId || "minseo";
 }
 
+function getCoverageActionTrackingEventType(
+  action: string | null | undefined,
+): AgentRankInteractionEventType {
+  if (isAgentRankInteractionEventType(action)) {
+    return action;
+  }
+
+  if (action === "x402_economy") {
+    return "x402_mock_payment_intent";
+  }
+
+  return "content_engaged";
+}
+
 function getCoverageScopeLabel(
   scope: AgentRankEventMockScope,
   copy: CoverageCopy,
@@ -687,7 +705,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
                 "새 AI 스타가 어느 AI 스타 유니버스 성과에서 탄생했는지 출처를 고정합니다.",
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
               layer: "Founder Network",
-              trigger: "출처 유니버스 선택",
+              trigger: "출처 AI 스타 유니버스 선택",
             },
             x402_mock_payment_intent: {
               description:
@@ -1906,6 +1924,9 @@ export function FanletterAgentRankCoverageAuditPage({
         locale,
       })
     : null;
+  const primaryGapTrackingEventType = getCoverageActionTrackingEventType(
+    primaryGapAction?.coverageAction ?? coverageAction,
+  );
   const scopeOptions: Array<{
     count: number;
     label: string;
@@ -1951,21 +1972,29 @@ export function FanletterAgentRankCoverageAuditPage({
             ]}
             primaryAction={{
               agentRank: {
-                eventType: "creator_unlock_evaluated",
-                intent: "agentrank_coverage_action_guide_plan",
+                eventType: primaryGapTrackingEventType,
+                intent: primaryGapAction
+                  ? "agentrank_coverage_primary_gap_opened"
+                  : "agentrank_coverage_action_guide_ledger",
                 source: "fanletter_agentrank",
                 starId: scope.starId ?? null,
               },
               eventName: "content_open",
-              href: "#coverage-action-plan",
+              href:
+                primaryGapAction?.href ??
+                `/${locale}/fanletter/agentrank/events?${actionPageQuery}`,
               label:
-                locale === "ko"
-                  ? "우선 보강 액션 보기"
-                  : "View priority actions",
+                primaryGapAction
+                  ? locale === "ko"
+                    ? `${primaryGapAction.trigger} 실행`
+                    : `Run ${primaryGapAction.trigger}`
+                  : copy.eventLedger,
               metadata: {
                 placement: "agentrank_coverage_action_guide_primary",
-                coverageAction: coverageAction ?? null,
+                coverageAction:
+                  primaryGapAction?.coverageAction ?? coverageAction ?? null,
                 eventScope: scope.eventScope,
+                gapKey: primaryGapAction?.key ?? null,
               },
             }}
             reputationEventLabel={
@@ -2007,14 +2036,20 @@ export function FanletterAgentRankCoverageAuditPage({
               },
             ]}
             subtitle={
-              locale === "ko"
-                ? "누락된 이벤트 타입과 CTA 소스를 먼저 보강해 AgentRank로 보낼 수 있는 데이터 품질을 맞춥니다."
-                : "Fill missing event types and CTA sources first so AgentRank can consume the data."
+              primaryGapAction
+                ? primaryGapAction.description
+                : locale === "ko"
+                  ? "이 범위의 커버리지 갭은 닫혔습니다. 원장에서 증거와 Oracle Packet을 확인하세요."
+                  : "Coverage gaps are closed for this scope. Review evidence and Oracle Packet in the ledger."
             }
             title={
-              locale === "ko"
-                ? "다음 행동: 커버리지 갭 보강"
-                : "Next action: fill coverage gaps"
+              primaryGapAction
+                ? locale === "ko"
+                  ? `다음 행동: ${primaryGapAction.label}`
+                  : `Next action: ${primaryGapAction.label}`
+                : locale === "ko"
+                  ? "다음 행동: 평판 기록 검증"
+                  : "Next action: verify reputation records"
             }
           />
         </div>
@@ -2037,6 +2072,19 @@ export function FanletterAgentRankCoverageAuditPage({
           <p className="mt-2 truncate text-xs font-semibold text-slate-500">
             {scopeLabel} · {getCoverageScopeLabel(scope.eventScope, copy)}
           </p>
+          {primaryGapAction ? (
+            <div className="mt-3 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2">
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                {locale === "ko" ? "생성될 평판 기록" : "Reputation record"}
+              </p>
+              <p className="mt-1 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+                {primaryGapAction.trigger}
+              </p>
+              <p className="mt-1 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
+                {primaryGapAction.description}
+              </p>
+            </div>
+          ) : null}
           <div className="mt-4 grid grid-cols-3 gap-2">
             <div className="rounded-lg bg-violet-50 px-3 py-2">
               <p className="truncate text-[0.62rem] font-semibold uppercase text-[#6d28d9]/70">
@@ -2065,7 +2113,7 @@ export function FanletterAgentRankCoverageAuditPage({
           </div>
           <FanletterTrackedLink
             agentRank={{
-              eventType: "creator_unlock_evaluated",
+              eventType: primaryGapTrackingEventType,
               intent: "agentrank_coverage_mobile_primary",
               source: "fanletter_agentrank",
               starId: scope.starId ?? null,
@@ -2077,6 +2125,7 @@ export function FanletterAgentRankCoverageAuditPage({
               coverageAction:
                 primaryGapAction?.coverageAction ?? coverageAction ?? null,
               eventScope: scope.eventScope,
+              gapKey: primaryGapAction?.key ?? null,
               placement: "agentrank_coverage_mobile_primary",
             }}
           >

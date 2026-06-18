@@ -243,24 +243,24 @@ function getContextCopy(
 
     if (isFounderOnboarding && starContext) {
       return {
-        accountBody: `계정 연결이 확인되면 ${starContext.universeName} Founder 참여가 이 계정에 저장되고, 내 추천 링크를 만들 수 있습니다.`,
-        completedBody: `계정 연결이 확인되었습니다. ${starContext.universeName} Founder 온보딩으로 돌아가 추천 링크 생성을 이어가세요.`,
-        connectBody: `이메일로 AIAVpark 계정을 연결하면 ${starContext.starName} Founder 역할, 추천 코드, CP와 영향력 기록이 같은 계정에 저장됩니다.`,
-        helper: `${starContext.universeName} Founder 상태를 이 계정 기준으로 확인합니다.`,
+        accountBody: `계정 연결이 확인되면 ${starContext.universeName}의 파운더 네트워크 참여가 이 계정에 저장되고, 내 추천 링크를 만들 수 있습니다.`,
+        completedBody: `계정 연결이 확인되었습니다. 이제 ${starContext.universeName} 파운더 참여를 확정하고 추천 링크 생성을 이어가세요.`,
+        connectBody: `이메일로 AIAVpark 계정을 연결하면 ${starContext.starName} Founder 역할, 추천 코드, CP와 평판 기록이 같은 계정에 저장됩니다.`,
+        helper: `${starContext.universeName}의 파운더 네트워크 참여 상태를 이 계정 기준으로 확인합니다.`,
         onboardingBody:
-          "Founder 참여가 확인되면 추천 코드 생성, SNS 공유, CP와 영향력 누적 흐름으로 이어집니다.",
-        onboardingCta: "Founder 온보딩 보기",
-        onboardingTitle: `${starContext.starName} Founder 온보딩`,
+          "Founder 참여가 확인되면 추천 코드 생성, SNS 공유, CP와 평판 기록 흐름으로 이어집니다.",
+        onboardingCta: "Founder 참여 계속",
+        onboardingTitle: `${starContext.starName} 파운더 네트워크`,
         paymentBody:
-          "계정 연결은 저장되었습니다. 실제 결제 없이 Founder 흐름을 먼저 확인하고, 수익·리워드 기능이 필요할 때 10 USDT 활성화를 진행합니다.",
-        primary: "Founder 온보딩 계속하기",
+          "계정 연결은 저장되었습니다. 실제 결제 없이 Founder 참여 흐름을 먼저 확인하고, 수익·리워드 기능이 필요할 때 10 USDT 활성화를 진행합니다.",
+        primary: "Founder 참여 계속",
         readinessBody:
           "먼저 이메일 계정을 연결해 Founder 역할을 저장하고, 실제 결제는 필요한 기능에서만 진행합니다.",
-        returnBody: `${starContext.universeName} Founder 참여 확인으로 돌아갈 수 있습니다.`,
-        returnCta: "Founder 온보딩으로 돌아가기",
-        returnTitle: `${starContext.starName} 유니버스`,
-        steps: ["이메일 로그인", "Founder 귀속 저장", "추천 링크 생성"],
-        title: `${starContext.starName} Founder 상태를 확인하세요.`,
+        returnBody: `${starContext.universeName} 파운더 네트워크 참여 확인으로 돌아갈 수 있습니다.`,
+        returnCta: "Founder 참여로 돌아가기",
+        returnTitle: `${starContext.starName} AI 스타 유니버스`,
+        steps: ["계정 연결", "Founder 참여", "평판 기록"],
+        title: `${starContext.starName} Founder 참여를 이어가세요.`,
       };
     }
 
@@ -323,24 +323,24 @@ function getContextCopy(
 
   if (isFounderOnboarding && starContext) {
     return {
-      accountBody: `After account connection, your Founder join for ${starContext.universeName} is saved to this account and your referral link can be created.`,
-      completedBody: `Your account connection is ready. Return to ${starContext.universeName} Founder onboarding to continue referral setup.`,
-      connectBody: `Connect with email so the ${starContext.starName} Founder role, referral code, CP, and influence records stay attached to one account.`,
-      helper: `AIAVpark checks ${starContext.universeName} Founder status for this account.`,
+      accountBody: `After account connection, your Founder Network participation in ${starContext.universeName} is saved to this account and your referral link can be created.`,
+      completedBody: `Your account connection is ready. Continue Founder participation in ${starContext.universeName} and create the referral link.`,
+      connectBody: `Connect with email so the ${starContext.starName} Founder role, referral code, CP, and reputation records stay attached to one account.`,
+      helper: `AIAVpark checks Founder Network participation in ${starContext.universeName} for this account.`,
       onboardingBody:
-        "Once Founder status is confirmed, continue into referral code creation, SNS sharing, CP, and influence growth.",
-      onboardingCta: "View Founder onboarding",
-      onboardingTitle: `${starContext.starName} Founder onboarding`,
+        "Once Founder participation is confirmed, continue into referral code creation, SNS sharing, CP, and reputation records.",
+      onboardingCta: "Continue Founder join",
+      onboardingTitle: `${starContext.starName} Founder Network`,
       paymentBody:
-        "Your account connection is saved. Preview the Founder flow first; 10 USDT activation can happen later when revenue or rewards features require it.",
-      primary: "Continue Founder onboarding",
+        "Your account connection is saved. Preview Founder participation first; 10 USDT activation can happen later when revenue or rewards features require it.",
+      primary: "Continue Founder join",
       readinessBody:
         "Connect email first to save the Founder role. Real payment stays deferred until a paid feature requires it.",
-      returnBody: `You can return to ${starContext.universeName} Founder confirmation.`,
-      returnCta: "Back to Founder onboarding",
-      returnTitle: `${starContext.starName} Universe`,
-      steps: ["Email login", "Founder attribution saved", "Referral link ready"],
-      title: `Confirm ${starContext.starName} Founder status.`,
+      returnBody: `You can return to ${starContext.universeName} Founder Network confirmation.`,
+      returnCta: "Back to Founder join",
+      returnTitle: `${starContext.starName} AI Star Universe`,
+      steps: ["Account connected", "Founder joined", "Reputation record"],
+      title: `Continue ${starContext.starName} Founder participation.`,
     };
   }
 
@@ -754,6 +754,63 @@ function ConnectMobileSignpost({
   );
 }
 
+function FounderBridgeEventCard({
+  locale,
+  starName,
+  universeName,
+}: {
+  locale: Locale;
+  starName: string;
+  universeName: string;
+}) {
+  const copy =
+    locale === "ko"
+      ? {
+          body: `${universeName}의 Founder 참여가 확정되면 추천 코드와 CP 흐름이 평판 기록으로 이어집니다.`,
+          eyebrow: "AgentRank 브릿지",
+          flow: "계정 연결 → Founder 참여 → 평판 기록",
+          title: `${starName} 참여 기록 준비`,
+        }
+      : {
+          body: `When Founder participation in ${universeName} is confirmed, referral code and CP activity become reputation records.`,
+          eyebrow: "AgentRank bridge",
+          flow: "Account → Founder join → Reputation record",
+          title: `${starName} participation record ready`,
+        };
+
+  return (
+    <div className="mt-4 rounded-lg border border-[#44f26e]/18 bg-[#44f26e]/8 p-3">
+      <div className="flex items-start gap-3">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#44f26e] text-black">
+          <Sparkles className="size-4" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-[#9bffad]">
+            {copy.eyebrow}
+          </p>
+          <p className="mt-1 text-sm font-semibold leading-5 text-white [word-break:keep-all]">
+            {copy.title}
+          </p>
+          <p className="mt-2 text-xs font-medium leading-5 text-white/58 [word-break:keep-all]">
+            {copy.body}
+          </p>
+        </div>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <span className="rounded-full border border-white/10 bg-black/28 px-2.5 py-1 text-[0.68rem] font-semibold text-white/78">
+          {copy.flow}
+        </span>
+        <span className="rounded-full border border-[#44f26e]/20 bg-[#44f26e]/10 px-2.5 py-1 text-[0.68rem] font-semibold text-[#b9ffc8]">
+          founder_joined
+        </span>
+        <span className="rounded-full border border-white/10 bg-black/24 px-2.5 py-1 text-[0.68rem] font-semibold text-white/62">
+          referral_code_created
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function FanletterConnectPage({
   coverageAction = null,
   dictionary,
@@ -810,6 +867,7 @@ export function FanletterConnectPage({
   const starContext = getStarContext(founderClubStar, locale);
   const contextCopy = getContextCopy(locale, returnTarget, starContext);
   const isReturnToOnboarding = returnTarget.kind === "onboarding";
+  const isFounderBridge = isReturnToOnboarding && Boolean(starContext);
   const backLabel = returnTarget.backLabel;
   const onboardingHref = isReturnToOnboarding
     ? returnToHref
@@ -1069,6 +1127,10 @@ export function FanletterConnectPage({
           coverageAction,
           coverageActionStarId: trackingStarId,
           page: "fanletter_connect",
+          bridgeTargetEvent: isFounderBridge ? "founder_joined" : null,
+          bridgeTargetFollowupEvent: isFounderBridge
+            ? "referral_code_created"
+            : null,
           referralAttached: Boolean(referralCode),
           returnKind: returnTarget.kind,
           sourceStarId: trackedStarId,
@@ -1139,7 +1201,9 @@ export function FanletterConnectPage({
             }
             reputationLabel={
               starContext
-                ? `${starContext.starName} Founder attribution`
+                ? locale === "ko"
+                  ? `${starContext.starName} Founder 참여 기록`
+                  : `${starContext.starName} Founder participation`
                 : "fanletter_bridge_view"
             }
           />
@@ -1213,6 +1277,14 @@ export function FanletterConnectPage({
                     {contextCopy.helper}
                   </p>
                 </div>
+              ) : null}
+
+              {isFounderBridge && starContext ? (
+                <FounderBridgeEventCard
+                  locale={locale}
+                  starName={starContext.starName}
+                  universeName={starContext.universeName}
+                />
               ) : null}
 
               {syncState.error ? (
