@@ -37,6 +37,12 @@ function readContextString(event: AgentRankReputationEvent, key: string) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+function readContextBoolean(event: AgentRankReputationEvent, key: string) {
+  const value = event.context[key];
+
+  return typeof value === "boolean" ? value : null;
+}
+
 function getEventTypeLabel(event: AgentRankReputationEvent, locale: Locale) {
   const labels =
     locale === "ko"
@@ -78,6 +84,15 @@ function getEventTypeLabel(event: AgentRankReputationEvent, locale: Locale) {
 
 function getNextActionLabel(event: AgentRankReputationEvent, locale: Locale) {
   const isKorean = locale === "ko";
+
+  if (
+    event.type === "creator_social_connected" &&
+    readContextBoolean(event, "creatorJourneyConditionMet")
+  ) {
+    return isKorean
+      ? "Creator Journey에서 미리보기 생성 진행"
+      : "Continue to mock launch in Creator Journey";
+  }
 
   if (!event.audit.graphReady) {
     return isKorean ? "거래 그래프 연결 확인" : "Review transaction graph links";
@@ -128,6 +143,8 @@ export function FanletterAgentRankEventQuickPanel({
         audit: "감사 상태",
         close: "이벤트 빠른 상세 닫기",
         connectedCreator: "연결한 Creator",
+        condition: "Creator Journey 조건",
+        conditionComplete: "조건 완료",
         eventId: "이벤트 ID",
         events: "평판 신호",
         handle: "TikTok handle",
@@ -148,6 +165,8 @@ export function FanletterAgentRankEventQuickPanel({
         audit: "Audit",
         close: "Close event quick detail",
         connectedCreator: "Connected Creator",
+        condition: "Creator Journey Condition",
+        conditionComplete: "Condition complete",
         eventId: "Event ID",
         events: "Reputation Signals",
         handle: "TikTok handle",
@@ -169,6 +188,11 @@ export function FanletterAgentRankEventQuickPanel({
       ? {
           connectedCreator:
             readContextString(event, "actorMemberName") ?? event.actor.label,
+          conditionId:
+            readContextString(event, "creatorJourneyConditionId") ??
+            "creatorSocialConnected",
+          conditionMet:
+            readContextBoolean(event, "creatorJourneyConditionMet") ?? false,
           handle: readContextString(event, "handle"),
           platform: readContextString(event, "platform") ?? "tiktok",
           targetAiStar:
@@ -288,8 +312,17 @@ export function FanletterAgentRankEventQuickPanel({
               <p className="mt-2 break-words text-lg font-semibold leading-tight [word-break:keep-all]">
                 {socialChannelSummary.handle ?? "TikTok"}
               </p>
-              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+              <div className="mt-3 inline-flex max-w-full items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1.5 text-xs font-semibold text-emerald-100">
+                <BadgeCheck className="size-3.5 shrink-0" />
+                <span className="min-w-0 truncate">
+                  {socialChannelSummary.conditionMet
+                    ? labels.conditionComplete
+                    : labels.condition}
+                </span>
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                 {[
+                  [labels.condition, socialChannelSummary.conditionId],
                   [labels.platform, socialChannelSummary.platform],
                   [labels.connectedCreator, socialChannelSummary.connectedCreator],
                   [labels.targetAiStar, socialChannelSummary.targetAiStar],
