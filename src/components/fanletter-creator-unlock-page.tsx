@@ -4,11 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowLeft,
+  ArrowRight,
   BadgeCheck,
   Bot,
   CheckCircle2,
   CircleDollarSign,
   Crown,
+  Database,
   GitBranch,
   Sparkles,
 } from "lucide-react";
@@ -1487,16 +1489,22 @@ function CreatorUnlockStateStrip({
   creatorSocialHandle,
   isPreviewMode,
   locale,
+  nextActionTitle,
+  reputationLedgerHref,
   requiresSourceUniverse,
   selectedSourceOption,
+  socialSourceStarId,
   unlock,
 }: {
   creatorSocialConnected: boolean;
   creatorSocialHandle?: string | null;
   isPreviewMode: boolean;
   locale: Locale;
+  nextActionTitle: string;
+  reputationLedgerHref: string;
   requiresSourceUniverse: boolean;
   selectedSourceOption: SourceUniverseOption | null;
+  socialSourceStarId: string;
   unlock: CreatorUnlockData;
 }) {
   const completedConditionCount = unlock.conditions.filter(
@@ -1519,8 +1527,10 @@ function CreatorUnlockStateStrip({
           connect: "계정 연결 후 실데이터 확인",
           locked: "조건 상세 확인",
           nextCondition: "다음 조건",
+          recordCreated: "평판 기록 생성됨",
           reputationRecord: "평판 기록",
           socialComplete: "TikTok 연결 조건 완료",
+          viewRecord: "평판 기록 보기",
           progress: "권한 진행률",
           ready: "생성 미리보기 가능",
           source: "창업 출처",
@@ -1531,8 +1541,10 @@ function CreatorUnlockStateStrip({
           connect: "Connect to view live data",
           locked: "Review conditions",
           nextCondition: "Next Condition",
+          recordCreated: "Reputation Record Created",
           reputationRecord: "Reputation Record",
           socialComplete: "TikTok condition complete",
+          viewRecord: "View record",
           progress: "Activation Progress",
           ready: "Launch preview ready",
           source: "Launch Source",
@@ -1612,20 +1624,54 @@ function CreatorUnlockStateStrip({
         ))}
       </div>
       {creatorSocialConnected ? (
-        <div className="flex min-w-0 flex-col gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-emerald-950 shadow-[0_12px_28px_rgba(16,185,129,0.08)] sm:flex-row sm:items-center sm:justify-between">
+        <div className="grid min-w-0 gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-emerald-950 shadow-[0_12px_28px_rgba(16,185,129,0.08)] lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-center">
           <div className="min-w-0">
-            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-emerald-700">
-              {labels.reputationRecord}
+            <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-emerald-700">
+              <CheckCircle2 className="size-3.5" />
+              {labels.recordCreated}
             </p>
             <p className="mt-1 break-words text-sm font-semibold leading-tight [word-break:keep-all]">
               {labels.socialComplete}
             </p>
-          </div>
-          <span className="inline-flex min-h-8 max-w-full items-center rounded-full bg-white px-3 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
-            <span className="min-w-0 truncate">
-              {creatorSocialHandle ?? "creator_social_connected"}
+            <span className="mt-2 inline-flex min-h-7 max-w-full items-center rounded-full bg-white px-2.5 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-200">
+              <span className="min-w-0 truncate">
+                {creatorSocialHandle ?? "creator_social_connected"}
+              </span>
             </span>
-          </span>
+          </div>
+          <div className="min-w-0 rounded-lg border border-emerald-200 bg-white/72 px-3 py-2">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-emerald-700">
+              {labels.action}
+            </p>
+            <p className="mt-1 break-words text-sm font-semibold leading-tight text-emerald-950 [word-break:keep-all]">
+              {nextActionTitle.replace(/^(다음 행동|Next action):\s*/i, "")}
+            </p>
+          </div>
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "content_engaged",
+              intent: "creator_unlock_social_connection_ledger_opened",
+              source: "fanletter_creator_unlock",
+              starId: socialSourceStarId,
+            }}
+            className="inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2 text-center text-sm font-semibold leading-tight !text-white transition hover:bg-zinc-800 lg:w-auto"
+            eventName="content_open"
+            href={reputationLedgerHref}
+            metadata={{
+              creatorJourneyConditionId: "creatorSocialConnected",
+              creatorJourneyConditionMet: true,
+              ledgerFilter: "creator_social_connected",
+              placement: "creator_unlock_state_strip_social_ledger",
+              socialHandle: creatorSocialHandle ?? null,
+              socialSourceStarId,
+            }}
+          >
+            <Database className="size-4 shrink-0" />
+            <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
+              {labels.viewRecord}
+            </span>
+            <ArrowRight className="size-4 shrink-0" />
+          </FanletterTrackedLink>
         </div>
       ) : null}
     </section>
@@ -1904,6 +1950,14 @@ export function FanletterCreatorUnlockPage({
       : locale === "ko"
         ? "Creator Unlock 평가 이벤트"
         : "Creator Unlock evaluation event";
+  const creatorSocialLedgerParams = new URLSearchParams({
+    coverageAction: "creator_social_connected",
+    limit: "40",
+    sort: "latest",
+    starId: socialSourceStarId,
+    type: "creator_social_connected",
+  });
+  const creatorSocialLedgerHref = `/${locale}/fanletter/agentrank/events?${creatorSocialLedgerParams.toString()}`;
   const openConditionsPanel = () => {
     trackFunnelEvent("fanletter_creator_unlock_evaluated", {
       agentRank: {
@@ -2242,8 +2296,11 @@ export function FanletterCreatorUnlockPage({
           creatorSocialHandle={creatorJourneyEffectiveSocialAccount?.handle}
           isPreviewMode={isPreviewMode}
           locale={locale}
+          nextActionTitle={creatorUnlockNextTitle}
+          reputationLedgerHref={creatorSocialLedgerHref}
           requiresSourceUniverse={requiresSourceUniverse}
           selectedSourceOption={selectedSourceOption}
+          socialSourceStarId={socialSourceStarId}
           unlock={unlock}
         />
 
