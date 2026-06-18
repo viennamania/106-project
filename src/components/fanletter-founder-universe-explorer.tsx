@@ -1023,6 +1023,192 @@ function FounderNetworkTierStructureCard({
   );
 }
 
+function FounderNetworkPositionPath({
+  agentRank,
+  childNodes,
+  locale,
+  nodesById,
+  onSelectNode,
+  selectedNode,
+}: {
+  agentRank?: FounderUniverseAgentRankSnapshot | null;
+  childNodes: FanletterFounderUniverseExplorerNode[];
+  locale: Locale;
+  nodesById: Map<string, FanletterFounderUniverseExplorerNode>;
+  onSelectNode: (nodeId: string) => void;
+  selectedNode: FanletterFounderUniverseExplorerNode | null;
+}) {
+  const isKorean = locale === "ko";
+  const v2Copy = getFanletterV2Copy(locale);
+
+  if (!selectedNode) {
+    return null;
+  }
+
+  const upstreamNodes: FanletterFounderUniverseExplorerNode[] = [];
+  let cursor: FanletterFounderUniverseExplorerNode | null = selectedNode;
+
+  while (cursor?.parentNodeId) {
+    const parentNode: FanletterFounderUniverseExplorerNode | null =
+      nodesById.get(cursor.parentNodeId) ?? null;
+
+    if (!parentNode) {
+      break;
+    }
+
+    upstreamNodes.push(parentNode);
+    cursor = parentNode;
+  }
+
+  const pathNodes = [...upstreamNodes.reverse(), selectedNode].slice(-4);
+  const visibleChildNodes = childNodes.slice(0, 3);
+  const hiddenChildCount = Math.max(0, childNodes.length - visibleChildNodes.length);
+  const latestEvent = agentRank?.eventFeed.events[0] ?? null;
+  const cpDelta = latestEvent?.economicLayer.cpDelta ?? 0;
+  const latestEventLabel = latestEvent
+    ? getAgentRankEventLabel(latestEvent.type, locale)
+    : isKorean
+      ? "네트워크 성장"
+      : "Network growth";
+
+  return (
+    <section className="grid min-w-0 gap-2 rounded-[1.15rem] border border-zinc-200 bg-white p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.06)] sm:grid-cols-[1fr_1fr_1fr] sm:p-4">
+      <div className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+        <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+          <CircleDot className="size-3.5" />
+          {isKorean ? "보고 있는 위치" : "Viewing position"}
+        </p>
+        <div className="mt-3 flex items-center gap-3">
+          <HumanMemberAvatar
+            member={{
+              initials: selectedNode.initials,
+              name: selectedNode.label,
+            }}
+            size="sm"
+          />
+          <div className="min-w-0">
+            <p className="truncate text-base font-semibold text-zinc-950">
+              {selectedNode.label}
+            </p>
+            <p className="mt-0.5 truncate text-xs font-semibold text-zinc-500">
+              {v2Copy.roles[selectedNode.role]} · L{selectedNode.depth}
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 flex min-w-0 flex-wrap items-center gap-1.5">
+          {pathNodes.map((pathNode, index) => (
+            <span
+              className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2 py-1 text-[0.66rem] font-semibold text-zinc-700"
+              key={pathNode.nodeId}
+            >
+              <span className="max-w-[5.5rem] truncate">{pathNode.label}</span>
+              {index < pathNodes.length - 1 ? (
+                <ChevronRight className="size-3 shrink-0 text-zinc-400" />
+              ) : null}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="min-w-0 rounded-lg border border-zinc-200 bg-white p-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              <Users className="size-3.5" />
+              {isKorean ? "하위 1단계" : "First downstream"}
+            </p>
+            <p className="mt-1 text-lg font-semibold text-zinc-950">
+              {formatNumber(selectedNode.directChildrenCount, locale)}
+              {isKorean ? "명" : ""}
+            </p>
+          </div>
+          <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[0.66rem] font-semibold text-zinc-600">
+            {isKorean ? "직속" : "Direct"}
+          </span>
+        </div>
+        <div className="mt-3 grid gap-1.5">
+          {visibleChildNodes.length > 0 ? (
+            visibleChildNodes.map((childNode) => (
+              <button
+                className="flex min-h-10 min-w-0 items-center justify-between gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-2 text-left transition hover:border-zinc-400 hover:bg-white"
+                key={childNode.nodeId}
+                onClick={() => onSelectNode(childNode.nodeId)}
+                type="button"
+              >
+                <span className="flex min-w-0 items-center gap-2">
+                  <HumanMemberAvatar
+                    member={{
+                      initials: childNode.initials,
+                      name: childNode.label,
+                    }}
+                    size="sm"
+                  />
+                  <span className="min-w-0">
+                    <span className="block truncate text-xs font-semibold text-zinc-950">
+                      {childNode.label}
+                    </span>
+                    <span className="block truncate text-[0.62rem] font-semibold text-zinc-500">
+                      {v2Copy.roles[childNode.role]}
+                    </span>
+                  </span>
+                </span>
+                <ChevronRight className="size-3.5 shrink-0 text-zinc-400" />
+              </button>
+            ))
+          ) : (
+            <p className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-semibold text-zinc-500">
+              {isKorean
+                ? "아직 직속 하위 멤버가 없습니다."
+                : "No direct downstream members yet."}
+            </p>
+          )}
+          {hiddenChildCount > 0 ? (
+            <p className="text-xs font-semibold text-zinc-500">
+              +{formatNumber(hiddenChildCount, locale)}{" "}
+              {isKorean ? "명 더 있음" : "more"}
+            </p>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="min-w-0 rounded-lg border border-zinc-950 bg-zinc-950 p-3 text-white">
+        <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-white/58">
+          <ShieldCheck className="size-3.5" />
+          {isKorean ? "평판 결과" : "Reputation result"}
+        </p>
+        <p className="mt-2 break-words text-base font-semibold leading-5 [word-break:keep-all]">
+          {latestEventLabel}
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="rounded-lg bg-white/8 px-2.5 py-2">
+            <p className="text-sm font-semibold">
+              {formatNumber(agentRank?.ers.summary.eventCount ?? 0, locale)}
+            </p>
+            <p className="mt-0.5 text-[0.62rem] font-semibold text-white/50">
+              {isKorean ? "기록" : "Records"}
+            </p>
+          </div>
+          <div className="rounded-lg bg-white/8 px-2.5 py-2">
+            <p className="text-sm font-semibold">
+              {cpDelta > 0
+                ? `+${formatNumber(cpDelta, locale)}`
+                : formatNumber(agentRank?.ers.summary.cpTotal ?? 0, locale)}
+            </p>
+            <p className="mt-0.5 text-[0.62rem] font-semibold text-white/50">
+              CP
+            </p>
+          </div>
+        </div>
+        <p className="mt-3 rounded-lg bg-white/8 px-3 py-2 text-xs font-semibold leading-5 text-white/62 [word-break:keep-all]">
+          {isKorean
+            ? "자세한 기록은 아래 평판 기록 영역에서 확인합니다."
+            : "Detailed records are available in the reputation section below."}
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function FounderStarHero({
   creatorNode,
   locale,
@@ -3265,6 +3451,15 @@ export function FanletterFounderUniverseExplorer({
           <FounderNetworkTierStructureCard
             locale={locale}
             tiers={displayUniverse.tiers}
+          />
+
+          <FounderNetworkPositionPath
+            agentRank={agentRank}
+            childNodes={selectedChildNodes}
+            locale={locale}
+            nodesById={nodesById}
+            onSelectNode={handleSelectNode}
+            selectedNode={selectedNode}
           />
 
           <FanletterAIStarSocialAccountCard
