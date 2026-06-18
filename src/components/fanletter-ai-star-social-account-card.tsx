@@ -9,7 +9,7 @@ import {
   LockKeyhole,
   ShieldCheck,
 } from "lucide-react";
-import { useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 
 import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsive-action-panel";
 import {
@@ -63,8 +63,12 @@ function getCopy(locale: Locale) {
         "Login Kit / Display API scope 승인",
         "서버 토큰 저장·갱신·폐기 준비",
       ],
+      oauthReadinessChecking: "OAuth 상태 확인 중",
+      oauthReadinessBlocked: "실제 OAuth 대기 중",
+      oauthReadinessCriteriaUnit: "개 조건 대기",
       oauthReadinessNote: "조건이 준비되면 이 mock 연결 버튼을 실제 OAuth로 교체합니다.",
       oauthReadinessPreview: "서버 OAuth start/callback route는 preview 상태로 준비됨",
+      oauthReadinessReady: "실제 OAuth 전환 가능",
       oauthReadinessTitle: "실제 OAuth 전환 조건",
       openTiktok: "TikTok 보기",
       panelDescription:
@@ -109,10 +113,14 @@ function getCopy(locale: Locale) {
         "Login Kit / Display API scopeを承認",
         "サーバートークンの保存・更新・失効を準備",
       ],
+      oauthReadinessChecking: "OAuth状態を確認中",
+      oauthReadinessBlocked: "実OAuth待機中",
+      oauthReadinessCriteriaUnit: "件の条件待ち",
       oauthReadinessNote:
         "条件が整ったら、このmock接続ボタンを実際のOAuthに置き換えます。",
       oauthReadinessPreview:
         "サーバーOAuth start/callback routeはpreview状態で準備済み",
+      oauthReadinessReady: "実OAuthへ切り替え可能",
       oauthReadinessTitle: "実OAuth切り替え条件",
       openTiktok: "TikTokを見る",
       panelDescription:
@@ -156,10 +164,14 @@ function getCopy(locale: Locale) {
       "Approve Login Kit / Display API scopes",
       "Prepare server token storage, refresh, and revocation",
     ],
+    oauthReadinessChecking: "Checking OAuth status",
+    oauthReadinessBlocked: "Real OAuth waiting",
+    oauthReadinessCriteriaUnit: "criteria pending",
     oauthReadinessNote:
       "When these are ready, this mock connection button becomes real OAuth.",
     oauthReadinessPreview:
       "Server OAuth start/callback routes are ready in preview mode",
+    oauthReadinessReady: "Ready for real OAuth",
     oauthReadinessTitle: "Real OAuth Switch Criteria",
     openTiktok: "View TikTok",
     panelDescription:
@@ -201,6 +213,21 @@ type MockSocialAccountConnectResponse =
       mode?: "mock";
     };
 
+type TikTokOAuthPreviewResponse =
+  | {
+      blockedReasons: string[];
+      liveReady: boolean;
+      mode: "oauth_preview";
+      oauth: {
+        redirectUri: string;
+        willRedirect: false;
+      };
+    }
+  | {
+      error?: string;
+      mode?: "oauth_preview";
+    };
+
 export function FanletterAIStarSocialAccountCard({
   className,
   connectHref,
@@ -231,6 +258,9 @@ export function FanletterAIStarSocialAccountCard({
   const [handleInput, setHandleInput] = useState("");
   const [connectError, setConnectError] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isOauthPreviewLoading, setIsOauthPreviewLoading] = useState(false);
+  const [oauthPreview, setOauthPreview] =
+    useState<TikTokOAuthPreviewResponse | null>(null);
   const account = localMockAccount ?? social.account;
   const isConnected = Boolean(account);
   const actorMemberId = account?.connectedByMemberId ?? social.creatorMemberId;
@@ -258,6 +288,81 @@ export function FanletterAIStarSocialAccountCard({
   const normalizedHandle =
     normalizeFanletterTikTokHandle(handleInput) ||
     normalizeFanletterTikTokHandle(suggestedHandle);
+  const oauthPreviewBlockedCount =
+    oauthPreview && "blockedReasons" in oauthPreview
+      ? oauthPreview.blockedReasons.length
+      : 0;
+  const oauthPreviewStatusLabel = isOauthPreviewLoading
+    ? copy.oauthReadinessChecking
+    : oauthPreview && "liveReady" in oauthPreview && oauthPreview.liveReady
+      ? copy.oauthReadinessReady
+      : oauthPreviewBlockedCount > 0
+        ? locale === "en"
+          ? `${copy.oauthReadinessBlocked} · ${oauthPreviewBlockedCount} ${copy.oauthReadinessCriteriaUnit}`
+          : `${copy.oauthReadinessBlocked} · ${oauthPreviewBlockedCount}${copy.oauthReadinessCriteriaUnit}`
+        : copy.oauthReadinessPreview;
+
+  useEffect(() => {
+    if (!isPanelOpen || !social.canConnect) {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function loadOAuthPreview() {
+      setIsOauthPreviewLoading(true);
+
+      try {
+        const response = await fetch(
+          "/api/fanletter/founder-club/social-account/tiktok/oauth/start",
+          {
+            body: JSON.stringify({
+              canConnect: social.canConnect,
+              creatorRole: social.creatorRole,
+              locale,
+              returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}`,
+              source,
+              starId,
+            }),
+            cache: "no-store",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "POST",
+            signal: controller.signal,
+          },
+        );
+        const data = (await response.json().catch(() => null)) as
+          | TikTokOAuthPreviewResponse
+          | null;
+
+        if (data) {
+          setOauthPreview(data);
+        }
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
+        setOauthPreview(null);
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsOauthPreviewLoading(false);
+        }
+      }
+    }
+
+    void loadOAuthPreview();
+
+    return () => controller.abort();
+  }, [
+    isPanelOpen,
+    locale,
+    social.canConnect,
+    social.creatorRole,
+    source,
+    starId,
+  ]);
 
   function handleOpenPanel() {
     setHandleInput(account?.handle ?? suggestedHandle);
@@ -605,8 +710,17 @@ export function FanletterAIStarSocialAccountCard({
                         </p>
                       ))}
                     </div>
-                    <p className="mt-3 inline-flex min-h-8 max-w-full items-center rounded-full border border-zinc-200 bg-white px-2.5 text-xs font-semibold leading-5 text-zinc-700 [word-break:keep-all]">
-                      {copy.oauthReadinessPreview}
+                    <p
+                      className={joinClasses(
+                        "mt-3 inline-flex min-h-8 max-w-full items-center rounded-full border bg-white px-2.5 text-xs font-semibold leading-5 [word-break:keep-all]",
+                        oauthPreview &&
+                          "liveReady" in oauthPreview &&
+                          oauthPreview.liveReady
+                          ? "border-emerald-200 text-emerald-800"
+                          : "border-zinc-200 text-zinc-700",
+                      )}
+                    >
+                      {oauthPreviewStatusLabel}
                     </p>
                     <p className="mt-2 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
                       {copy.oauthReadinessNote}
