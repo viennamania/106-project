@@ -78,6 +78,7 @@ const eventLayerMap = {
   creator_social_connected: "creator",
   founder_joined: "network",
   referral_code_created: "network",
+  referral_shared: "network",
   referral_converted: "network",
   source_universe_selected: "network",
   universe_growth: "network",

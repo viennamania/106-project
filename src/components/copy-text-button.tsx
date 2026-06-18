@@ -11,11 +11,13 @@ export function CopyTextButton({
   className,
   copiedLabel,
   copyLabel,
+  onCopied,
   text,
 }: {
   className?: string;
   copiedLabel: string;
   copyLabel: string;
+  onCopied?: () => void;
   text: string;
 }) {
   const [copied, setCopied] = useState(false);
@@ -38,6 +40,7 @@ export function CopyTextButton({
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
+      onCopied?.();
     } catch {
       setCopied(false);
     }

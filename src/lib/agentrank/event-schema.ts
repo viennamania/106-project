@@ -144,6 +144,13 @@ const baseImpactByType = {
     network: 0.4,
     trust: 0.3,
   },
+  referral_shared: {
+    creator: 0,
+    discovery: 0.3,
+    economy: 0,
+    network: 0.7,
+    trust: 0.4,
+  },
   referral_converted: {
     creator: 0,
     discovery: 0.4,

@@ -151,8 +151,13 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     referral_code_created: {
       body:
-        "추천 코드 생성과 SNS 공유 링크가 Founder Network 리니지의 시작점으로 기록되는지 확인합니다.",
+        "추천 코드 생성이 Founder Network 리니지의 시작점으로 기록되는지 확인합니다.",
       title: "추천 코드 생성 신호 수집",
+    },
+    referral_shared: {
+      body:
+        "추천 링크 복사와 SNS 공유가 별도 평판 기록으로 남아 초대 행동의 증거가 되는지 확인합니다.",
+      title: "추천 링크 공유 신호 수집",
     },
     referral_converted: {
       body:
@@ -273,8 +278,13 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     referral_code_created: {
       body:
-        "Verify that referral code creation and SNS share links are recorded as Founder Network lineage starts.",
+        "Verify that referral code creation is recorded as the Founder Network lineage start.",
       title: "Collect Referral Code Signal",
+    },
+    referral_shared: {
+      body:
+        "Verify that referral link copy and SNS sharing are recorded as evidence of invite actions.",
+      title: "Collect Referral Share Signal",
     },
     referral_converted: {
       body:

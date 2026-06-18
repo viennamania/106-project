@@ -104,6 +104,12 @@ export async function GET(request: Request) {
         sourceMemberEmail: attribution.memberEmail,
         starId: attribution.starId,
       },
+      agentRank: {
+        eventType: "referral_shared",
+        intent: "founder_referral_shared",
+        source: "fanletter_star_detail",
+        starId: attribution.starId,
+      },
       name: "share_click",
       path: requestUrl.pathname,
       referer: request.headers.get("referer"),

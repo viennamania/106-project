@@ -681,10 +681,11 @@ export function buildAgentRankProductActionCoverage(
     {
       covered:
         hasEventType("referral_code_created") ||
+        hasEventType("referral_shared") ||
         hasEventType("referral_converted"),
       eventType: "referral_converted",
       key: "referral",
-      label: "Referral Code / Conversion",
+      label: "Referral Code / Share / Conversion",
     },
     {
       covered:

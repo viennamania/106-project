@@ -26,6 +26,7 @@ export const agentRankReputationEventTypes = [
   "ai_star_discovered",
   "founder_joined",
   "referral_code_created",
+  "referral_shared",
   "referral_converted",
   "cp_earned",
   "cp_pool_generated",
@@ -305,6 +306,13 @@ function getTypeSignalDefaults(type: AgentRankReputationEventType) {
         discoveryWeight: 0.2,
         economicWeight: 0,
         networkWeight: 0.4,
+      };
+    case "referral_shared":
+      return {
+        creatorWeight: 0,
+        discoveryWeight: 0.3,
+        economicWeight: 0,
+        networkWeight: 0.7,
       };
     case "referral_converted":
       return {

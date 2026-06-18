@@ -2,6 +2,7 @@ export const agentRankInteractionEventTypes = [
   "ai_star_discovered",
   "founder_joined",
   "referral_code_created",
+  "referral_shared",
   "referral_converted",
   "cp_earned",
   "cp_pool_generated",
@@ -254,7 +255,7 @@ function inferEventType(
     input.eventName === "share_click" ||
     input.eventName.startsWith("promo_share_to_")
   ) {
-    return "referral_code_created";
+    return "referral_shared";
   }
 
   if (input.eventName === "bridge_view") {

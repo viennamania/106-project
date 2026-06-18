@@ -25,6 +25,7 @@ export type AgentRankBackfillActionPlanItem = {
     | "cp_pool_generated"
     | "founder_joined"
     | "referral_code_created"
+    | "referral_shared"
     | "referral_converted"
     | "source_universe_selected"
   >;
@@ -198,7 +199,11 @@ function buildActionPlan({
       description:
         "Convert legacy member-level referral fields into AI Star scoped referral edges while preserving original sponsor evidence.",
       estimatedRecords: Math.max(0, totals.legacyReferralMembers - totals.referralEdges),
-      eventTypes: ["referral_code_created", "referral_converted"],
+      eventTypes: [
+        "referral_code_created",
+        "referral_shared",
+        "referral_converted",
+      ],
       gap: "missing:legacy_referral_edges",
       id: "backfill-legacy-referral-edges",
       priority: 4,

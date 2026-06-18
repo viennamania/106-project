@@ -280,6 +280,7 @@ function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Local
           creator_social_connected: "TikTok 채널 연결",
           founder_joined: "파운더 참여",
           referral_code_created: "추천 코드 생성",
+          referral_shared: "추천 링크 공유",
           referral_converted: "추천 전환",
           source_universe_selected: "출처 유니버스 선택",
           universe_growth: "유니버스 성장",
@@ -296,6 +297,7 @@ function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Local
           creator_social_connected: "Creator Social Connected",
           founder_joined: "Founder Joined",
           referral_code_created: "Referral Code Created",
+          referral_shared: "Referral Shared",
           referral_converted: "Referral Converted",
           source_universe_selected: "Source Universe Selected",
           universe_growth: "Universe Growth",
@@ -533,6 +535,7 @@ function getScoreImpactRows(
       value:
         event.reputationSignals.networkWeight +
         (event.type === "founder_joined" ? 0.4 : 0) +
+        (event.type === "referral_shared" ? 0.5 : 0) +
         (event.type === "referral_converted" ? 0.8 : 0),
     },
     {

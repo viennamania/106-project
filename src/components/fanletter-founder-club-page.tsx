@@ -26,6 +26,7 @@ import {
   MemberPortfolio,
 } from "@/components/fanletter-founder-club-v2";
 import type { Locale } from "@/lib/i18n";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import {
   fanletterV2Mock,
   getFanletterV2Copy,
@@ -212,6 +213,31 @@ function FounderRoleShareCard({
           label: platform,
         }))
       : []);
+  const referralCode = loop?.referralCode ?? null;
+  const trackReferralShare = ({
+    platform,
+    targetHref,
+  }: {
+    platform: string;
+    targetHref: string;
+  }) => {
+    trackFunnelEvent("share_click", {
+      agentRank: {
+        eventType: "referral_shared",
+        intent: "founder_referral_shared",
+        source: "fanletter_star_detail",
+        starId: roleShare.role.starId,
+      },
+      metadata: {
+        platform,
+        source: "founder_club_role_share",
+        sourceStarId: roleShare.role.starId,
+        starId: roleShare.role.starId,
+      },
+      referralCode,
+      targetHref,
+    });
+  };
 
   return (
     <article className="rounded-lg border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)]">
@@ -260,6 +286,12 @@ function FounderRoleShareCard({
                 className="h-10 border-black/10 text-sm font-semibold"
                 copiedLabel={isKorean(locale) ? "복사됨" : "Copied"}
                 copyLabel={isKorean(locale) ? "링크 복사" : "Copy link"}
+                onCopied={() => {
+                  trackReferralShare({
+                    platform: "copy",
+                    targetHref: loop.shareLink,
+                  });
+                }}
                 text={loop.shareLink}
               />
               {platformLinks.map((platformLink) => (
@@ -267,6 +299,12 @@ function FounderRoleShareCard({
                   className="inline-flex h-10 items-center justify-center rounded-full border border-violet-200 bg-violet-50 px-4 text-sm font-semibold text-[#5b21b6] transition hover:border-violet-300 hover:bg-violet-100"
                   href={platformLink.href}
                   key={platformLink.label}
+                  onClick={() => {
+                    trackReferralShare({
+                      platform: platformLink.label,
+                      targetHref: platformLink.href,
+                    });
+                  }}
                   rel="noreferrer"
                   target="_blank"
                 >
