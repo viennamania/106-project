@@ -24,9 +24,14 @@ import type {
   StarAgentTickResult,
 } from "./types";
 
+const STAR_AGENT_MAX_ACTIONS = Math.max(
+  1,
+  Number(process.env.STAR_AGENT_MAX_ACTIONS) || 2,
+);
+
 function defaultBrain(): StarAgentBrain {
   return process.env.OPENAI_API_KEY?.trim()
-    ? createLlmStarAgentBrain()
+    ? createLlmStarAgentBrain({ maxActions: STAR_AGENT_MAX_ACTIONS })
     : mockStarAgentBrain;
 }
 
@@ -59,7 +64,12 @@ export async function runStarAgentTick(
   const brain = options.brain ?? defaultBrain();
 
   const context = await loadStarAgentContext(starId);
-  const decision = await brain.decide(context);
+  const rawDecision = await brain.decide(context);
+  // Hard cap, in case the LLM ignores the prompt's max-actions instruction.
+  const decision: typeof rawDecision = {
+    ...rawDecision,
+    toolCalls: rawDecision.toolCalls.slice(0, STAR_AGENT_MAX_ACTIONS),
+  };
 
   const toolResults = await Promise.all(
     decision.toolCalls.map((call) =>

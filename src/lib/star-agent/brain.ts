@@ -112,7 +112,10 @@ const decisionTools = {
   }),
 };
 
-function buildSystemPrompt(context: StarAgentContext): string {
+function buildSystemPrompt(
+  context: StarAgentContext,
+  maxActions: number,
+): string {
   const { persona, memories } = context;
   const memoryLines = memories.length
     ? memories.map((m) => `- ${m.text}`).join("\n")
@@ -126,7 +129,7 @@ function buildSystemPrompt(context: StarAgentContext): string {
     `Posting cadence: ${persona.postingCadence}. Risk level: ${persona.riskLevel}.`,
     `Relevant memories:`,
     memoryLines,
-    `Choose exactly the tool calls that best serve fans this tick. Prefer "idle" when cadence is satisfied.`,
+    `Respect the posting cadence and do not over-post. Choose AT MOST ${maxActions} tool call(s) this tick, and prefer fewer. If the cadence is already satisfied or there is nothing worth doing, choose only "idle".`,
   ].join("\n");
 }
 
@@ -141,15 +144,17 @@ function buildUserPrompt(context: StarAgentContext): string {
 
 export function createLlmStarAgentBrain(options?: {
   model?: string;
+  maxActions?: number;
 }): StarAgentBrain {
   const modelId =
     options?.model ?? process.env.STAR_AGENT_OPENAI_MODEL ?? "gpt-4o";
+  const maxActions = Math.max(1, options?.maxActions ?? 2);
 
   return {
     async decide(context): Promise<StarAgentDecision> {
       const result = await generateText({
         model: openai(modelId),
-        system: buildSystemPrompt(context),
+        system: buildSystemPrompt(context, maxActions),
         prompt: buildUserPrompt(context),
         tools: decisionTools,
         toolChoice: "required",
