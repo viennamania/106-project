@@ -66,6 +66,7 @@ import type {
   FanletterStarReferralCodeDocument,
   FanletterStarReferralEdgeDocument,
 } from "@/lib/fanletter-founder-club";
+import type { FanletterAIStarSocialAccountDocument } from "@/lib/fanletter-ai-star-social-accounts";
 
 const globalForMongo = globalThis as typeof globalThis & {
   mongoClientPromise?: Promise<MongoClient>;
@@ -186,6 +187,9 @@ const globalForMongo = globalThis as typeof globalThis & {
   >;
   mongoFanletterStarInfluenceLedgerCollectionPromise?: Promise<
     Collection<FanletterStarInfluenceLedgerDocument>
+  >;
+  mongoFanletterAIStarSocialAccountsCollectionPromise?: Promise<
+    Collection<FanletterAIStarSocialAccountDocument>
   >;
   mongoCreatorAutomationProfilesCollectionPromise?: Promise<
     Collection<CreatorAutomationProfileDocument>
@@ -1514,6 +1518,41 @@ export async function getFanletterStarInfluenceLedgerCollection() {
   }
 
   return globalForMongo.mongoFanletterStarInfluenceLedgerCollectionPromise;
+}
+
+export async function getFanletterAIStarSocialAccountsCollection() {
+  if (!globalForMongo.mongoFanletterAIStarSocialAccountsCollectionPromise) {
+    globalForMongo.mongoFanletterAIStarSocialAccountsCollectionPromise =
+      (async () => {
+        const { dbName } = getMongoConfig();
+        const client = await getMongoClient();
+        const collectionName =
+          process.env.MONGODB_FANLETTER_AI_STAR_SOCIAL_ACCOUNTS_COLLECTION ??
+          "fanletterAIStarSocialAccounts";
+        const collection = client
+          .db(dbName)
+          .collection<FanletterAIStarSocialAccountDocument>(collectionName);
+
+        await Promise.all([
+          collection.createIndex({ accountKey: 1 }, { unique: true }),
+          collection.createIndex({ starId: 1, platform: 1 }, { unique: true }),
+          collection.createIndex({ starId: 1, status: 1, updatedAt: -1 }),
+          collection.createIndex({ source: 1, updatedAt: -1 }),
+          collection.createIndex(
+            { connectedByMemberEmail: 1, updatedAt: -1 },
+            {
+              partialFilterExpression: {
+                connectedByMemberEmail: { $type: "string" },
+              },
+            },
+          ),
+        ]);
+
+        return collection;
+      })();
+  }
+
+  return globalForMongo.mongoFanletterAIStarSocialAccountsCollectionPromise;
 }
 
 export async function getFanletterNewsPlatformInquiriesCollection() {

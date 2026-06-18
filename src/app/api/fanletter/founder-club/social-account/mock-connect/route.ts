@@ -3,6 +3,10 @@ import {
   isAgentRankInteractionSource,
   type AgentRankInteractionSource,
 } from "@/lib/agentrank/interaction-events";
+import {
+  tryUpsertFanletterAIStarSocialAccount,
+  type FanletterAIStarSocialAccountUpsertResult,
+} from "@/lib/fanletter-ai-star-social-accounts";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { defaultLocale, hasLocale, type Locale } from "@/lib/i18n";
 import { readMemberServerSession } from "@/lib/member-server-session";
@@ -43,6 +47,7 @@ type MockSocialAccountConnectResponse = {
     target: "ai_star";
     type: "creator_social_connected";
   };
+  serverAccount: FanletterAIStarSocialAccountUpsertResult | null;
   session: {
     email: string | null;
     hasMemberSession: boolean;
@@ -160,6 +165,14 @@ export async function POST(request: Request) {
     source === "fanletter_creator_unlock"
       ? `/${locale}/fanletter/creator-unlock#tiktok-channel`
       : `/${locale}/fanletter/${encodeURIComponent(starId)}#tiktok-channel`;
+  const serverAccount = await tryUpsertFanletterAIStarSocialAccount({
+    account,
+    connectedByMemberEmail: session?.email ?? null,
+    connectedByMemberWalletAddress: session?.walletAddress ?? null,
+    eventPath,
+    source,
+    starName,
+  });
 
   await tryRecordFanletterAgentRankServerEvent({
     agentRank,
@@ -199,6 +212,7 @@ export async function POST(request: Request) {
       target: "ai_star",
       type: "creator_social_connected",
     },
+    serverAccount,
     session: {
       email: session?.email ?? null,
       hasMemberSession: Boolean(session?.email),
