@@ -4,6 +4,7 @@ import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-eve
 import { getFanletterAIStarSocialAccountsCollection } from "@/lib/mongodb";
 import type {
   FanletterAIStarSocialAccount,
+  FanletterAIStarSocialAccountStatus,
   FanletterSocialPlatform,
 } from "@/mock/fanletter-social-accounts";
 
@@ -43,6 +44,50 @@ function toDate(value: string) {
   const date = new Date(value);
 
   return Number.isNaN(date.getTime()) ? new Date() : date;
+}
+
+function toIsoString(value: Date | string) {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  const date = new Date(value);
+
+  return Number.isNaN(date.getTime()) ? new Date().toISOString() : date.toISOString();
+}
+
+function isFanletterSocialPlatform(value: string): value is FanletterSocialPlatform {
+  return value === "tiktok";
+}
+
+function isFanletterAIStarSocialAccountStatus(
+  value: string,
+): value is FanletterAIStarSocialAccountStatus {
+  return value === "mock_connected" || value === "pending" || value === "verified";
+}
+
+function toFanletterAIStarSocialAccount(
+  document: FanletterAIStarSocialAccountDocument,
+): FanletterAIStarSocialAccount | null {
+  if (
+    !isFanletterSocialPlatform(document.platform) ||
+    !isFanletterAIStarSocialAccountStatus(document.status)
+  ) {
+    return null;
+  }
+
+  return {
+    connectedAt: toIsoString(document.connectedAt),
+    connectedByMemberId: document.connectedByMemberId,
+    connectedByMemberInitials: document.connectedByMemberInitials ?? null,
+    connectedByMemberName: document.connectedByMemberName,
+    creatorRoleAtConnection: document.creatorRoleAtConnection,
+    handle: document.handle,
+    platform: document.platform,
+    profileUrl: document.profileUrl,
+    starId: document.starId,
+    status: document.status,
+  };
 }
 
 export async function upsertFanletterAIStarSocialAccount({
@@ -104,6 +149,37 @@ export async function upsertFanletterAIStarSocialAccount({
     saved: true,
     upserted: Boolean(result.upsertedId),
   };
+}
+
+export async function getFanletterAIStarStoredSocialAccount({
+  platform = "tiktok",
+  starId,
+}: {
+  platform?: FanletterSocialPlatform;
+  starId: string;
+}) {
+  const collection = await getFanletterAIStarSocialAccountsCollection();
+  const document = await collection.findOne({
+    accountKey: getAccountKey(starId, platform),
+  });
+
+  return document ? toFanletterAIStarSocialAccount(document) : null;
+}
+
+export async function tryGetFanletterAIStarStoredSocialAccount(
+  input: Parameters<typeof getFanletterAIStarStoredSocialAccount>[0],
+) {
+  try {
+    return await getFanletterAIStarStoredSocialAccount(input);
+  } catch (error) {
+    console.warn("FanLetter AI Star social account could not be read", {
+      error,
+      platform: input.platform ?? "tiktok",
+      starId: input.starId,
+    });
+
+    return null;
+  }
 }
 
 export async function tryUpsertFanletterAIStarSocialAccount(

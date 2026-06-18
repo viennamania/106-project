@@ -187,3 +187,71 @@ export function useFanletterAIStarMockSocialAccount({
 
   return account;
 }
+
+type ServerSocialAccountResponse =
+  | {
+      account: FanletterAIStarSocialAccount | null;
+      mode: "mock";
+      source?: "none" | "server";
+    }
+  | {
+      account?: null;
+      error?: string;
+      mode?: "mock";
+    };
+
+export function useFanletterAIStarServerSocialAccount({
+  platform = "tiktok",
+  starId,
+}: {
+  platform?: FanletterSocialPlatform;
+  starId: string;
+}) {
+  const [account, setAccount] = useState<FanletterAIStarSocialAccount | null>(
+    null,
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const params = new URLSearchParams({ platform, starId });
+
+    async function loadServerAccount() {
+      try {
+        const response = await fetch(
+          `/api/fanletter/founder-club/social-account?${params.toString()}`,
+          {
+            cache: "no-store",
+            signal: controller.signal,
+          },
+        );
+
+        if (!response.ok) {
+          setAccount(null);
+          return;
+        }
+
+        const data = (await response.json().catch(() => null)) as
+          | ServerSocialAccountResponse
+          | null;
+        const nextAccount =
+          data && "account" in data && data.account
+            ? data.account
+            : null;
+
+        setAccount(isAIStarSocialAccount(nextAccount) ? nextAccount : null);
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
+        setAccount(null);
+      }
+    }
+
+    void loadServerAccount();
+
+    return () => controller.abort();
+  }, [platform, starId]);
+
+  return account;
+}

@@ -28,7 +28,10 @@ import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsiv
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import { useFanletterFounderMockMemberships } from "@/components/fanletter-founder-mock-state";
-import { useFanletterAIStarMockSocialAccount } from "@/components/fanletter-social-account-mock-state";
+import {
+  useFanletterAIStarMockSocialAccount,
+  useFanletterAIStarServerSocialAccount,
+} from "@/components/fanletter-social-account-mock-state";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import {
@@ -1727,8 +1730,14 @@ export function FanletterCreatorUnlockPage({
     platform: "tiktok",
     starId: socialSourceStarId,
   });
+  const creatorJourneyServerSocialAccount = useFanletterAIStarServerSocialAccount({
+    platform: "tiktok",
+    starId: socialSourceStarId,
+  });
   const creatorJourneyEffectiveSocialAccount =
-    creatorJourneyLocalSocialAccount ?? creatorJourneySocialAccount.account;
+    creatorJourneyLocalSocialAccount ??
+    creatorJourneyServerSocialAccount ??
+    creatorJourneySocialAccount.account;
   const creatorJourneySocialConnected = Boolean(
     creatorJourneyEffectiveSocialAccount,
   );

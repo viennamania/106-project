@@ -16,6 +16,7 @@ import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsiv
 import {
   recordFanletterAIStarMockSocialAccount,
   useFanletterAIStarMockSocialAccount,
+  useFanletterAIStarServerSocialAccount,
 } from "@/components/fanletter-social-account-mock-state";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { HumanMemberAvatar } from "@/components/fanletter-founder-club-v2";
@@ -267,6 +268,10 @@ export function FanletterAIStarSocialAccountCard({
     platform: social.platform,
     starId,
   });
+  const serverAccount = useFanletterAIStarServerSocialAccount({
+    platform: social.platform,
+    starId,
+  });
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [handleInput, setHandleInput] = useState("");
   const [connectError, setConnectError] = useState<string | null>(null);
@@ -274,7 +279,7 @@ export function FanletterAIStarSocialAccountCard({
   const [isOauthPreviewLoading, setIsOauthPreviewLoading] = useState(false);
   const [oauthPreview, setOauthPreview] =
     useState<TikTokOAuthPreviewResponse | null>(null);
-  const account = localMockAccount ?? social.account;
+  const account = localMockAccount ?? serverAccount ?? social.account;
   const isConnected = Boolean(account);
   const actorMemberId = account?.connectedByMemberId ?? social.creatorMemberId;
   const actorMemberName =
