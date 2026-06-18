@@ -64,6 +64,7 @@ function getCopy(locale: Locale) {
         "서버 토큰 저장·갱신·폐기 준비",
       ],
       oauthReadinessNote: "조건이 준비되면 이 mock 연결 버튼을 실제 OAuth로 교체합니다.",
+      oauthReadinessPreview: "서버 OAuth start/callback route는 preview 상태로 준비됨",
       oauthReadinessTitle: "실제 OAuth 전환 조건",
       openTiktok: "TikTok 보기",
       panelDescription:
@@ -110,6 +111,8 @@ function getCopy(locale: Locale) {
       ],
       oauthReadinessNote:
         "条件が整ったら、このmock接続ボタンを実際のOAuthに置き換えます。",
+      oauthReadinessPreview:
+        "サーバーOAuth start/callback routeはpreview状態で準備済み",
       oauthReadinessTitle: "実OAuth切り替え条件",
       openTiktok: "TikTokを見る",
       panelDescription:
@@ -155,6 +158,8 @@ function getCopy(locale: Locale) {
     ],
     oauthReadinessNote:
       "When these are ready, this mock connection button becomes real OAuth.",
+    oauthReadinessPreview:
+      "Server OAuth start/callback routes are ready in preview mode",
     oauthReadinessTitle: "Real OAuth Switch Criteria",
     openTiktok: "View TikTok",
     panelDescription:
@@ -600,6 +605,9 @@ export function FanletterAIStarSocialAccountCard({
                         </p>
                       ))}
                     </div>
+                    <p className="mt-3 inline-flex min-h-8 max-w-full items-center rounded-full border border-zinc-200 bg-white px-2.5 text-xs font-semibold leading-5 text-zinc-700 [word-break:keep-all]">
+                      {copy.oauthReadinessPreview}
+                    </p>
                     <p className="mt-2 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
                       {copy.oauthReadinessNote}
                     </p>
