@@ -33,7 +33,10 @@ import type {
   AgentRankErsComponent,
   FanletterAgentRankInvestorSnapshot,
 } from "@/lib/agentrank/ers";
-import type { AgentRankReputationEvent } from "@/lib/agentrank/reputation-events";
+import type {
+  AgentRankReputationEvent,
+  FanletterAgentRankReputationEventFeed,
+} from "@/lib/agentrank/reputation-events";
 import type {
   AgentRankScoreAggregate,
   AgentRankScoreDimensionKey,
@@ -151,6 +154,7 @@ function getAgentRankCopy(locale: Locale) {
       oracleEvidenceBody:
         "AgentRank Oracle Packet에 포함되는 이벤트 증거 해시, 감사 상태, 스키마 준비도를 체인으로 보여줍니다.",
       quickLedger: "원장 빠른 검증",
+      ledgerCreatorSocial: "TikTok 연결",
       ledgerHighImpact: "고기여 이벤트",
       ledgerNeedsOracle: "오라클 보강",
       ledgerOracleReady: "오라클 준비",
@@ -259,6 +263,7 @@ function getAgentRankCopy(locale: Locale) {
     oracleEvidenceBody:
       "Visualizes the event evidence hashes, audit state, and schema readiness included in the AgentRank Oracle Packet.",
     quickLedger: "Quick Ledger Review",
+    ledgerCreatorSocial: "TikTok Connections",
     ledgerHighImpact: "High-impact Events",
     ledgerNeedsOracle: "Oracle Gaps",
     ledgerOracleReady: "Oracle-ready",
@@ -841,11 +846,13 @@ function AgentRankCoveragePanel({
 
 function AgentRankScoreAggregatorPanel({
   copy,
+  eventFeed,
   locale,
   scoreAggregate,
   starId,
 }: {
   copy: AgentRankCopy;
+  eventFeed: FanletterAgentRankReputationEventFeed;
   locale: Locale;
   scoreAggregate: AgentRankScoreAggregate;
   starId?: string | null;
@@ -875,6 +882,12 @@ function AgentRankScoreAggregatorPanel({
     limit: "40",
     readiness: "packet_ready",
     sort: "impact_desc",
+  });
+  const creatorSocialLedgerParams = new URLSearchParams({
+    coverageAction: "creator_social_connected",
+    limit: "40",
+    sort: "latest",
+    type: "creator_social_connected",
   });
   const oracleReadyLedgerParams = new URLSearchParams({
     limit: "40",
@@ -921,6 +934,7 @@ function AgentRankScoreAggregatorPanel({
     coverageScoreParams.set("starId", starId);
     oraclePacketParams.set("starId", starId);
     highImpactLedgerParams.set("starId", starId);
+    creatorSocialLedgerParams.set("starId", starId);
     oracleReadyLedgerParams.set("starId", starId);
     needsOracleLedgerParams.set("starId", starId);
     reviewQueueParams.set("starId", starId);
@@ -936,6 +950,17 @@ function AgentRankScoreAggregatorPanel({
       value: formatNumber(
         scoreAggregate.dimensions.find((dimension) => dimension.key === "economic")
           ?.score ?? scoreAggregate.score,
+        locale,
+      ),
+    },
+    {
+      href: `/${locale}/fanletter/agentrank/events?${creatorSocialLedgerParams.toString()}`,
+      Icon: AtSign,
+      intent: "agentrank_creator_social_ledger_open",
+      label: copy.ledgerCreatorSocial,
+      tone: "bg-cyan-300/14 text-cyan-100 ring-cyan-200/25",
+      value: formatNumber(
+        eventFeed.summary.byType.creator_social_connected ?? 0,
         locale,
       ),
     },
@@ -2480,6 +2505,7 @@ export function FanletterAgentRankPage({
         <div className="mt-5">
           <AgentRankScoreAggregatorPanel
             copy={copy}
+            eventFeed={eventFeed}
             locale={locale}
             scoreAggregate={scoreAggregate}
             starId={starId}

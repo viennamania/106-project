@@ -675,6 +675,13 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
               layer: "Creator Journey",
               trigger: "크리에이터 권한",
             },
+            creator_social_connected: {
+              description:
+                "AI 스타별 TikTok 채널을 mock으로 연결하고 Creator의 평판 기록을 생성합니다.",
+              href: `/${locale}/fanletter/${scopedStarId}?${scopedQuery}#tiktok-channel`,
+              layer: "Creator Journey",
+              trigger: "TikTok 채널 연결",
+            },
             source_universe_selected: {
               description:
                 "새 AI 스타가 어느 AI 스타 유니버스 성과에서 탄생했는지 출처를 고정합니다.",
@@ -711,6 +718,13 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
               layer: "Creator Journey",
               trigger: "Creator Unlocked",
+            },
+            creator_social_connected: {
+              description:
+                "Mock-connect the AI Star TikTok channel and create a Creator reputation record.",
+              href: `/${locale}/fanletter/${scopedStarId}?${scopedQuery}#tiktok-channel`,
+              layer: "Creator Journey",
+              trigger: "TikTok Channel Connected",
             },
             source_universe_selected: {
               description:
