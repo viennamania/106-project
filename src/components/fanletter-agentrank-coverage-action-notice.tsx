@@ -364,6 +364,27 @@ function buildCoverageParams(action: AgentRankCoverageActionContext) {
   return params;
 }
 
+function getCoverageActionExecutionTarget({
+  action,
+  locale,
+}: {
+  action: AgentRankCoverageActionContext;
+  locale: Locale;
+}) {
+  const params = buildCoverageParams(action);
+
+  if (action.action === "creator_social_connected" && action.starId) {
+    return {
+      href: `/${locale}/fanletter/${encodeURIComponent(
+        action.starId,
+      )}?${params.toString()}#tiktok-channel`,
+      label: locale === "ko" ? "TikTok 연결하기" : "Connect TikTok",
+    };
+  }
+
+  return null;
+}
+
 function getCoverageActionLiveStatus(
   action: string,
   coverage?: CoverageApiPayload["coverage"],
@@ -560,6 +581,7 @@ export function FanletterAgentRankCoverageActionNotice({
 }) {
   const labels = getCoverageActionLabels(locale);
   const message = getCoverageActionMessage(action.action, locale);
+  const executionTarget = getCoverageActionExecutionTarget({ action, locale });
 
   return (
     <section
@@ -596,6 +618,17 @@ export function FanletterAgentRankCoverageActionNotice({
             ) : null}
           </div>
         </div>
+        {executionTarget ? (
+          <Link
+            className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800 lg:w-auto"
+            href={executionTarget.href}
+          >
+            <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
+              {executionTarget.label}
+            </span>
+            <ArrowRight className="size-4 shrink-0" />
+          </Link>
+        ) : null}
       </div>
       <div className="mt-4">
         <FanletterAgentRankCoverageActionLiveStatus
