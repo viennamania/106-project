@@ -808,7 +808,7 @@ function getActionCoverageLabel(
     discovery: "AI 스타 발견",
     founder: "파운더 참여",
     payment: "x402 Mock/CP Pool",
-    referral: "추천 코드/전환",
+    referral: "추천 코드/공유/전환",
     star_detail: "AI 스타 상세/콘텐츠",
   } satisfies Record<AgentRankProductActionCoverageItem["key"], string>;
 
@@ -835,6 +835,129 @@ function MetricTile({
       <p className="text-xs font-semibold uppercase text-slate-400">{label}</p>
       <p className="mt-2 text-2xl font-semibold text-[#11132d]">{value}</p>
     </div>
+  );
+}
+
+function FounderJourneyTimeline({
+  feed,
+  filters,
+  locale,
+}: {
+  feed: FanletterAgentRankReputationEventFeed;
+  filters: FanletterAgentRankLedgerPageProps["filters"];
+  locale: Locale;
+}) {
+  const isKorean = locale === "ko";
+  const steps: Array<{
+    body: string;
+    label: string;
+    type: AgentRankReputationEventType;
+  }> = [
+    {
+      body: isKorean
+        ? "AI 스타 유니버스에 Founder로 참여"
+        : "Join an AI Star Universe as Founder",
+      label: isKorean ? "Founder 참여" : "Founder joined",
+      type: "founder_joined",
+    },
+    {
+      body: isKorean
+        ? "AI 스타별 추천 코드 생성"
+        : "Create an AI Star referral code",
+      label: isKorean ? "추천 코드" : "Referral code",
+      type: "referral_code_created",
+    },
+    {
+      body: isKorean
+        ? "링크 복사 또는 SNS 공유"
+        : "Copy or share the invite link",
+      label: isKorean ? "추천 공유" : "Referral shared",
+      type: "referral_shared",
+    },
+    {
+      body: isKorean
+        ? "초대 멤버가 같은 AI 스타 유니버스에 참여"
+        : "Invited member joins the same AI Star Universe",
+      label: isKorean ? "추천 전환" : "Referral converted",
+      type: "referral_converted",
+    },
+  ];
+  const completedSteps = steps.filter(
+    (step) => (feed.summary.byType[step.type] ?? 0) > 0,
+  ).length;
+
+  return (
+    <section className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold uppercase text-zinc-600">
+            {isKorean ? "Founder Journey" : "Founder Journey"}
+          </p>
+          <h2 className="mt-1 text-2xl font-semibold text-[#11132d]">
+            {isKorean
+              ? "Founder 참여 흐름"
+              : "Founder participation flow"}
+          </h2>
+        </div>
+        <span className="rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs font-semibold text-zinc-700">
+          {completedSteps}/{steps.length}{" "}
+          {isKorean ? "평판 기록" : "records"}
+        </span>
+      </div>
+      <div className="mt-4 grid gap-2 md:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] md:items-stretch">
+        {steps.map((step, index) => {
+          const count = feed.summary.byType[step.type] ?? 0;
+          const isCovered = count > 0;
+
+          return (
+            <div className="contents" key={step.type}>
+              <Link
+                className={`min-w-0 rounded-xl border p-3 transition ${
+                  isCovered
+                    ? "border-emerald-100 bg-emerald-50 text-emerald-950 hover:border-emerald-200"
+                    : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-300"
+                }`}
+                href={buildLedgerHref({
+                  filters,
+                  locale,
+                  type: step.type,
+                })}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <span
+                    className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
+                      isCovered
+                        ? "bg-emerald-600 text-white"
+                        : "bg-white text-zinc-500 ring-1 ring-zinc-200"
+                    }`}
+                  >
+                    {isCovered ? (
+                      <BadgeCheck className="size-4" />
+                    ) : (
+                      <Network className="size-4" />
+                    )}
+                  </span>
+                  <span className="rounded-full bg-white/70 px-2 py-0.5 text-xs font-semibold text-current ring-1 ring-black/5">
+                    {formatNumber(count, locale)}
+                  </span>
+                </div>
+                <p className="mt-3 break-words text-sm font-semibold leading-5 [word-break:keep-all]">
+                  {step.label}
+                </p>
+                <p className="mt-1 text-xs font-medium leading-5 opacity-70 [word-break:keep-all]">
+                  {step.body}
+                </p>
+              </Link>
+              {index < steps.length - 1 ? (
+                <div className="hidden items-center justify-center text-zinc-300 md:flex">
+                  <ArrowRight className="size-5" />
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -1902,6 +2025,12 @@ export function FanletterAgentRankLedgerPage({
             locale={locale}
           />
         ) : null}
+
+        <FounderJourneyTimeline
+          feed={feed}
+          filters={filters}
+          locale={locale}
+        />
 
         <LedgerOperationStatusCard
           auditReadyEvents={auditReadyEvents}
