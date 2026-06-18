@@ -621,6 +621,7 @@ function StarDetailMobileSignpost({
   joinReferralCode,
   locale,
   primaryReputationEventLabel,
+  primaryReputationEventType,
   referralCode,
   star,
   trackingAgentRank,
@@ -632,6 +633,7 @@ function StarDetailMobileSignpost({
   joinReferralCode?: string | null;
   locale: Locale;
   primaryReputationEventLabel: string;
+  primaryReputationEventType: "founder_joined" | "referral_shared";
   referralCode: string;
   star: AIStar;
   trackingAgentRank?: AgentRankInteractionSignal | null;
@@ -741,9 +743,7 @@ function StarDetailMobileSignpost({
             </p>
           </div>
           <span className="shrink-0 rounded-full bg-white px-2.5 py-1 font-mono text-[0.66rem] font-semibold text-zinc-600">
-            {action.variant === "share"
-              ? "referral_code_created"
-              : "founder_joined"}
+            {primaryReputationEventType}
           </span>
         </div>
         <StarActionLink
@@ -1535,11 +1535,10 @@ export function FanletterStarDetailPage({
     creatorRole: "creator",
     starId: star.id,
   });
+  const primaryReputationEventType =
+    primaryAction.variant === "share" ? "referral_shared" : "founder_joined";
   const primaryActionAgentRank = {
-    eventType:
-      primaryAction.variant === "share"
-        ? "referral_code_created"
-        : "founder_joined",
+    eventType: primaryReputationEventType,
     intent:
       primaryAction.variant === "share"
         ? "founder_referral_share"
@@ -1645,10 +1644,7 @@ export function FanletterStarDetailPage({
     {
       label: isKorean ? "평판 이벤트" : "Reputation event",
       value: primaryReputationEventLabel,
-      detail:
-        primaryAction.variant === "share"
-          ? "referral_code_created"
-          : "founder_joined",
+      detail: primaryReputationEventType,
       isStrong: true,
     },
   ];
@@ -1789,6 +1785,7 @@ export function FanletterStarDetailPage({
             joinReferralCode={joinReferralCode}
             locale={locale}
             primaryReputationEventLabel={primaryReputationEventLabel}
+            primaryReputationEventType={primaryReputationEventType}
             referralCode={referralCode}
             star={star}
             trackingAgentRank={primaryActionAgentRank}
