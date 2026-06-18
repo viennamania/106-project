@@ -19,6 +19,7 @@ import {
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
+import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import {
   AIStarCard,
@@ -39,6 +40,9 @@ import type { AgentRankInteractionSignal } from "@/lib/agentrank/interaction-eve
 import type { FanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import type { FunnelEventMetadata } from "@/lib/funnel";
 import { trackFunnelEvent } from "@/lib/funnel-client";
+import {
+  buildFanletterAIStarSocialAccountViewModel,
+} from "@/mock/fanletter-social-accounts";
 import {
   fanletterV2Mock,
   getFanletterV2Copy,
@@ -1524,6 +1528,13 @@ export function FanletterStarDetailPage({
   });
   const isKorean = isKoreanCopy(copy);
   const displayStarName = getDisplayStarName(star.name, copy);
+  const starSocialAccount = buildFanletterAIStarSocialAccountViewModel({
+    creatorMemberId: `creator:${star.id}`,
+    creatorMemberInitials: getPortraitInitials(displayStarName),
+    creatorMemberName: `${displayStarName} Creator`,
+    creatorRole: "creator",
+    starId: star.id,
+  });
   const primaryActionAgentRank = {
     eventType:
       primaryAction.variant === "share"
@@ -1893,6 +1904,20 @@ export function FanletterStarDetailPage({
                 locale={locale}
                 starId={star.id}
                 starName={displayStarName}
+              />
+
+              <FanletterAIStarSocialAccountCard
+                className="mt-4 max-w-2xl lg:mx-0"
+                connectHref={`/${locale}/fanletter/creator-unlock?starId=${encodeURIComponent(
+                  star.id,
+                )}#tiktok-channel`}
+                locale={locale}
+                social={starSocialAccount}
+                source="fanletter_star_detail"
+                starId={star.id}
+                starName={displayStarName}
+                starPortraitImageUrl={star.portraitImageUrl}
+                starPortraitInitials={star.portraitInitials}
               />
 
               <div className="mt-6 hidden gap-2 sm:grid sm:grid-cols-3">

@@ -7,6 +7,7 @@ export const agentRankInteractionEventTypes = [
   "cp_pool_generated",
   "creator_unlock_evaluated",
   "creator_unlocked",
+  "creator_social_connected",
   "source_universe_selected",
   "x402_mock_payment_intent",
   "ai_star_spawned",
@@ -218,6 +219,10 @@ function inferEventType(
 
   if (input.eventName === "fanletter_creator_unlocked") {
     return "creator_unlocked";
+  }
+
+  if (input.eventName === "fanletter_creator_social_connected") {
+    return "creator_social_connected";
   }
 
   if (input.eventName === "fanletter_source_universe_selected") {

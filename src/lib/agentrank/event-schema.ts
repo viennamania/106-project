@@ -109,6 +109,13 @@ const baseImpactByType = {
     network: 0.8,
     trust: 0.8,
   },
+  creator_social_connected: {
+    creator: 1.2,
+    discovery: 0.2,
+    economy: 0.1,
+    network: 0.3,
+    trust: 0.9,
+  },
   source_universe_selected: {
     creator: 0.7,
     discovery: 0,

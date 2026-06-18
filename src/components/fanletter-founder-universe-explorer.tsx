@@ -31,6 +31,7 @@ import {
   HumanMemberAvatar,
 } from "@/components/fanletter-founder-club-v2";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
+import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsive-action-panel";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
@@ -49,6 +50,7 @@ import {
   getFanletterV2Copy,
   type FounderRole,
 } from "@/mock/fanletterV2";
+import { buildFanletterAIStarSocialAccountViewModel } from "@/mock/fanletter-social-accounts";
 
 type ExplorerDepthFilter = "all" | number;
 
@@ -3191,6 +3193,13 @@ export function FanletterFounderUniverseExplorer({
   const selectedRoleLabel = selectedNode
     ? v2Copy.roles[selectedNode.role]
     : v2Copy.roles.creator;
+  const starSocialAccount = buildFanletterAIStarSocialAccountViewModel({
+    creatorMemberId: creatorNode?.memberId ?? `creator:${displayUniverse.star.id}`,
+    creatorMemberInitials: creatorNode?.initials ?? displayUniverse.star.initials,
+    creatorMemberName: creatorNode?.label ?? `${starName} Creator`,
+    creatorRole: "creator",
+    starId: displayUniverse.star.id,
+  });
   const encodedStarId = encodeURIComponent(displayUniverse.star.id);
   const founderUniverseLedgerHref = `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40&readiness=packet_ready&sort=impact_desc`;
 
@@ -3256,6 +3265,17 @@ export function FanletterFounderUniverseExplorer({
           <FounderNetworkTierStructureCard
             locale={locale}
             tiers={displayUniverse.tiers}
+          />
+
+          <FanletterAIStarSocialAccountCard
+            connectHref={`/${locale}/fanletter/creator-unlock?starId=${encodedStarId}#tiktok-channel`}
+            locale={locale}
+            social={starSocialAccount}
+            source="fanletter_founder_universe"
+            starId={displayUniverse.star.id}
+            starName={starName}
+            starPortraitImageUrl={displayUniverse.star.portraitImageUrl}
+            starPortraitInitials={displayUniverse.star.initials}
           />
 
           <FanletterActionGuide

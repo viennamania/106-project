@@ -75,6 +75,7 @@ const eventLayerMap = {
   cp_pool_generated: "economy",
   creator_unlock_evaluated: "creator",
   creator_unlocked: "creator",
+  creator_social_connected: "creator",
   founder_joined: "network",
   referral_code_created: "network",
   referral_converted: "network",

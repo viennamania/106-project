@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import {
   ArrowRight,
+  AtSign,
   BadgeCheck,
   Bot,
   Brain,
@@ -58,6 +59,7 @@ const eventIconMap = {
   cp_pool_generated: Database,
   creator_unlock_evaluated: BadgeCheck,
   creator_unlocked: Sparkles,
+  creator_social_connected: AtSign,
   founder_joined: Users,
   referral_code_created: Network,
   referral_converted: GitBranch,
@@ -325,6 +327,7 @@ function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Local
     cp_pool_generated: "CP Pool 생성",
     creator_unlock_evaluated: "권한 평가",
     creator_unlocked: "크리에이터 권한",
+    creator_social_connected: "TikTok 채널 연결",
     founder_joined: "파운더 참여",
     referral_code_created: "추천 코드 생성",
     referral_converted: "추천 전환",

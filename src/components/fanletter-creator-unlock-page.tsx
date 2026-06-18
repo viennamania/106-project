@@ -21,6 +21,7 @@ import {
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
+import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsive-action-panel";
@@ -49,6 +50,7 @@ import {
   type MemberPortfolioRole,
   type SpawnedAIStar,
 } from "@/mock/fanletterV2";
+import { buildFanletterAIStarSocialAccountViewModel } from "@/mock/fanletter-social-accounts";
 import type { Locale } from "@/lib/i18n";
 
 type CreatorUnlockGuideAction = ComponentProps<
@@ -1690,6 +1692,17 @@ export function FanletterCreatorUnlockPage({
     coverageAction?.starId ??
     selectedSourceOption?.starId ??
     portfolio.primaryStarId;
+  const socialSourceStarId =
+    trackingSourceStarId ?? selectedSourceOption?.starId ?? "minseo";
+  const creatorJourneySocialAccount =
+    buildFanletterAIStarSocialAccountViewModel({
+      canConnect: !isPreviewMode && unlock.unlocked,
+      creatorMemberId: `creator:${portfolio.memberName}`,
+      creatorMemberInitials: memberInitials,
+      creatorMemberName: portfolio.memberName,
+      creatorRole: "owner",
+      starId: socialSourceStarId,
+    });
   const shouldTrackCoverageMockPaymentIntent =
     coverageAction?.action === "x402_mock_payment_intent" ||
     coverageAction?.action === "x402_economy";
@@ -2096,6 +2109,18 @@ export function FanletterCreatorUnlockPage({
           requiresSourceUniverse={requiresSourceUniverse}
           selectedSourceOption={selectedSourceOption}
           unlock={unlock}
+        />
+
+        <FanletterAIStarSocialAccountCard
+          className="mt-5"
+          connectHref="#mock-launch-panel"
+          locale={locale}
+          social={creatorJourneySocialAccount}
+          source="fanletter_creator_unlock"
+          starId={socialSourceStarId}
+          starName={selectedSourceOption?.starName ?? displaySourceUniverseName}
+          starPortraitImageUrl={selectedSourceOption?.portraitImageUrl}
+          starPortraitInitials={selectedSourceOption?.portraitInitials}
         />
 
         <FounderContributionPanel

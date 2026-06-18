@@ -7,6 +7,7 @@ export const funnelEventNames = [
   "external_browser_click",
   "fanletter_cp_pool_generated",
   "fanletter_creator_launch_completed",
+  "fanletter_creator_social_connected",
   "fanletter_creator_unlocked",
   "fanletter_creator_unlock_evaluated",
   "fanletter_founder_join_completed",

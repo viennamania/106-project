@@ -31,6 +31,7 @@ export const agentRankReputationEventTypes = [
   "cp_pool_generated",
   "creator_unlock_evaluated",
   "creator_unlocked",
+  "creator_social_connected",
   "source_universe_selected",
   "x402_mock_payment_intent",
   "ai_star_spawned",
@@ -339,6 +340,13 @@ function getTypeSignalDefaults(type: AgentRankReputationEventType) {
         discoveryWeight: 0,
         economicWeight: 0.4,
         networkWeight: 0.8,
+      };
+    case "creator_social_connected":
+      return {
+        creatorWeight: 1.2,
+        discoveryWeight: 0.2,
+        economicWeight: 0.1,
+        networkWeight: 0.3,
       };
     case "source_universe_selected":
       return {
