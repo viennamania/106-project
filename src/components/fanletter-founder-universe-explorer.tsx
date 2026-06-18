@@ -1096,17 +1096,36 @@ function FounderNetworkPositionPath({
           </div>
         </div>
         <div className="mt-3 flex min-w-0 flex-wrap items-center gap-1.5">
-          {pathNodes.map((pathNode, index) => (
-            <span
-              className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2 py-1 text-[0.66rem] font-semibold text-zinc-700"
-              key={pathNode.nodeId}
-            >
-              <span className="max-w-[5.5rem] truncate">{pathNode.label}</span>
-              {index < pathNodes.length - 1 ? (
-                <ChevronRight className="size-3 shrink-0 text-zinc-400" />
-              ) : null}
-            </span>
-          ))}
+          {pathNodes.map((pathNode, index) => {
+            const isCurrent = pathNode.nodeId === selectedNode.nodeId;
+
+            return (
+              <button
+                className={joinClasses(
+                  "inline-flex max-w-full items-center gap-1.5 rounded-full border px-2 py-1 text-[0.66rem] font-semibold transition",
+                  isCurrent
+                    ? "cursor-default border-zinc-950 bg-zinc-950 text-white"
+                    : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400 hover:bg-zinc-50",
+                )}
+                disabled={isCurrent}
+                key={pathNode.nodeId}
+                onClick={() => onSelectNode(pathNode.nodeId)}
+                type="button"
+              >
+                <span className="max-w-[5.5rem] truncate">
+                  {pathNode.label}
+                </span>
+                {index < pathNodes.length - 1 ? (
+                  <ChevronRight
+                    className={joinClasses(
+                      "size-3 shrink-0",
+                      isCurrent ? "text-white/58" : "text-zinc-400",
+                    )}
+                  />
+                ) : null}
+              </button>
+            );
+          })}
         </div>
       </div>
 
