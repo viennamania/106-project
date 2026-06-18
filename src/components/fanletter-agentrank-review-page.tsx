@@ -191,8 +191,8 @@ function getEventTypeLabel(type: AgentRankReputationEventType, locale: Locale) {
           referral_code_created: "추천 코드 생성",
           referral_shared: "추천 링크 공유",
           referral_converted: "추천 전환",
-          source_universe_selected: "출처 유니버스 선택",
-          universe_growth: "유니버스 성장",
+          source_universe_selected: "출처 AI 스타 선택",
+          universe_growth: "네트워크 성장",
           x402_mock_payment_intent: "x402 결제 의도",
         }
       : {
@@ -208,8 +208,8 @@ function getEventTypeLabel(type: AgentRankReputationEventType, locale: Locale) {
           referral_code_created: "Referral Code Created",
           referral_shared: "Referral Shared",
           referral_converted: "Referral Converted",
-          source_universe_selected: "Source Universe Selected",
-          universe_growth: "Universe Growth",
+          source_universe_selected: "Source AI Star Selected",
+          universe_growth: "Network Growth",
           x402_mock_payment_intent: "x402 Mock Payment Intent",
         };
 

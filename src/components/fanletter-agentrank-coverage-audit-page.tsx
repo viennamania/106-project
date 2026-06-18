@@ -310,7 +310,7 @@ function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Local
     referral_shared: "추천 링크 공유",
     referral_converted: "추천 전환",
     source_universe_selected: "출처 AI 스타 유니버스 선택",
-    universe_growth: "AI 스타 유니버스 성장",
+    universe_growth: "네트워크 성장",
     x402_mock_payment_intent: "x402 결제 의도",
   };
 
@@ -751,7 +751,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
                 "Lock which AI Star Universe produced the new AI Star launch outcome.",
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
               layer: "Founder Network",
-              trigger: "Source Universe Selected",
+              trigger: "Source AI Star Selected",
             },
             x402_mock_payment_intent: {
               description:

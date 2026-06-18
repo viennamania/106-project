@@ -46,7 +46,7 @@ function getInvestorCopy(locale: Locale) {
     return {
       benefits: [
         "AI 스타 탄생 기여 → CP 획득",
-        "AI 스타 유니버스 성장 기여 → 추가 CP",
+        "파운더 네트워크 성장 기여 → 추가 CP",
         "CP로 보상과 권한 사용 가능",
         "더 많은 AI 스타 탄생 → 더 큰 보상 기회",
       ],

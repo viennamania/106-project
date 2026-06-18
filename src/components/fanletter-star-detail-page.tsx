@@ -19,6 +19,7 @@ import {
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
+import { FanletterAgentRankJourneyRail } from "@/components/fanletter-agentrank-journey-rail";
 import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import {
@@ -1951,6 +1952,13 @@ export function FanletterStarDetailPage({
             trackingAgentRank={primaryActionAgentRank}
             trackingMetadata={primaryActionTrackingMetadata}
             viewerState={viewerState}
+          />
+
+          <FanletterAgentRankJourneyRail
+            active="founder"
+            className="mt-3"
+            locale={locale}
+            starId={star.id}
           />
 
           <div className="mt-3 hidden gap-2 sm:grid sm:grid-cols-3">

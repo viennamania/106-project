@@ -18,11 +18,13 @@ import { useMemo, useState } from "react";
 import type { ComponentProps } from "react";
 
 import {
+  type FanletterCreatorMockLaunch,
   FanletterCreatorMockLaunchButton,
   toMemberOwnedAIStar,
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
+import { FanletterAgentRankJourneyRail } from "@/components/fanletter-agentrank-journey-rail";
 import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
@@ -1439,6 +1441,111 @@ function MockLaunchSavedSummary({
   );
 }
 
+function MockLaunchEventReceiptCard({
+  launch,
+  launchCount,
+  locale,
+}: {
+  launch?: FanletterCreatorMockLaunch | MemberOwnedAIStar | null;
+  launchCount: number;
+  locale: Locale;
+}) {
+  if (!launch && launchCount === 0) {
+    return null;
+  }
+
+  const isKorean = locale === "ko";
+  const sourceUniverseName = launch?.sourceUniverseName
+    ? getDisplayUniverseName(launch.sourceUniverseName, locale)
+    : isKorean
+      ? "선택한 AI 스타 유니버스"
+      : "Selected AI Star Universe";
+  const labels = isKorean
+    ? {
+        amount: "10 USDT mock",
+        cpPool: "CP Pool 출처",
+        draft: "생성된 draft",
+        event: "생성된 평판 기록",
+        payment: "실제 결제 없음",
+        source: "창업 출처",
+        title: "미리보기 생성 결과",
+      }
+    : {
+        amount: "10 USDT mock",
+        cpPool: "CP Pool source",
+        draft: "Created draft",
+        event: "Reputation records",
+        payment: "No real payment",
+        source: "Launch source",
+        title: "Mock launch result",
+      };
+
+  return (
+    <section className="rounded-lg border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
+      <div className="flex items-start gap-3">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-black text-white">
+          <RocketIcon />
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-zinc-600">
+            {labels.title}
+          </p>
+          <h2 className="mt-1 break-words text-xl font-semibold leading-tight [word-break:keep-all]">
+            {launch?.name ?? `${labels.draft} ${launchCount}`}
+          </h2>
+          <p className="mt-2 text-sm font-medium leading-5 text-zinc-600 [word-break:keep-all]">
+            {labels.payment} · {labels.amount}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        {[
+          [labels.source, sourceUniverseName],
+          [labels.cpPool, sourceUniverseName],
+          [labels.draft, `${launchCount}`],
+        ].map(([label, value]) => (
+          <div
+            className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2"
+            key={label}
+          >
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+              {label}
+            </p>
+            <p className="mt-1 break-words text-sm font-semibold leading-tight [word-break:keep-all]">
+              {value}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+          {labels.event}
+        </p>
+        <div className="mt-2 grid gap-2 sm:grid-cols-3">
+          {[
+            "x402_mock_payment_intent",
+            "ai_star_spawned",
+            "cp_pool_generated",
+          ].map((eventName) => (
+            <span
+              className="min-w-0 rounded-full border border-zinc-200 bg-white px-3 py-2 text-center font-mono text-[0.66rem] font-semibold text-zinc-700"
+              key={eventName}
+            >
+              {eventName}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function RocketIcon() {
+  return <Sparkles className="size-5" />;
+}
+
 function AccountConnectionNotice({
   connectHref,
   copy,
@@ -2073,6 +2180,8 @@ export function FanletterCreatorUnlockPage({
     coverageAction?.starId ?? null,
   );
   const [isConditionsPanelOpen, setIsConditionsPanelOpen] = useState(false);
+  const [lastMockLaunch, setLastMockLaunch] =
+    useState<FanletterCreatorMockLaunch | null>(null);
   const defaultSourceStarId = getDefaultSourceStarId({
     latestMembershipStarId: effectiveLatestMembershipStarId,
     options: sourceOptions,
@@ -2537,6 +2646,13 @@ export function FanletterCreatorUnlockPage({
 
         {creatorUnlockActionGuide}
 
+        <FanletterAgentRankJourneyRail
+          active="creator"
+          className="mt-4"
+          locale={locale}
+          starId={trackingSourceStarId}
+        />
+
         <section className="mt-6 grid w-full min-w-0 gap-4 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-sm font-semibold text-zinc-900">
@@ -2807,6 +2923,7 @@ export function FanletterCreatorUnlockPage({
                     launchCostUsdt={unlock.createCostUsdt}
                     locale={locale}
                     name={launchPreview.name}
+                    onLaunch={setLastMockLaunch}
                     ownerName={launchPreview.ownerName}
                     sourceStarId={
                       selectedSourceOption?.starId ??
@@ -2862,6 +2979,16 @@ export function FanletterCreatorUnlockPage({
             />
             <MockLaunchSavedSummary
               launches={effectiveMockOwnedStars}
+              locale={locale}
+            />
+            <MockLaunchEventReceiptCard
+              launch={lastMockLaunch ?? effectiveMockOwnedStars[0] ?? null}
+              launchCount={
+                Math.max(
+                  effectiveMockOwnedStars.length,
+                  lastMockLaunch ? 1 : 0,
+                )
+              }
               locale={locale}
             />
           </div>

@@ -19,6 +19,7 @@ import {
 } from "@/components/fanletter-founder-mock-state";
 import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsive-action-panel";
 import type { Locale } from "@/lib/i18n";
+import { trackFunnelEvent } from "@/lib/funnel-client";
 import type { FanletterV2Copy, ScoutShareLoopData } from "@/mock/fanletterV2";
 
 type FanletterStarReferralPanelProps = {
@@ -146,6 +147,114 @@ function MobileReferralFlow({
   );
 }
 
+function ReferralShareOutcomeCard({
+  copy,
+  hasSharedReferral,
+  isReferralGenerated,
+  rewards,
+}: {
+  copy: FanletterV2Copy;
+  hasSharedReferral: boolean;
+  isReferralGenerated: boolean;
+  rewards: ScoutShareLoopData["rewards"];
+}) {
+  const isKorean = isKoreanCopy(copy);
+  const labels = isKorean
+    ? {
+        cp: "CP 보상",
+        creator: "Creator 진행",
+        event: "평판 기록",
+        influence: "영향력",
+        pendingBody:
+          "링크를 복사하거나 SNS로 공유하면 referral_shared 기록이 생성됩니다.",
+        pendingTitle: "공유 대기",
+        readyBody:
+          "새 Founder가 이 링크로 참여하면 CP와 Creator 진행률이 이어집니다.",
+        readyTitle: "추천 공유 기록 생성됨",
+      }
+    : {
+        cp: "CP reward",
+        creator: "Creator progress",
+        event: "Reputation record",
+        influence: "Influence",
+        pendingBody:
+          "Copy the link or share to SNS to create a referral_shared record.",
+        pendingTitle: "Share pending",
+        readyBody:
+          "When a new Founder joins through this link, CP and Creator progress continue.",
+        readyTitle: "Referral share recorded",
+      };
+
+  if (!isReferralGenerated) {
+    return null;
+  }
+
+  return (
+    <section
+      className={`mt-4 rounded-lg border p-3 ${
+        hasSharedReferral
+          ? "border-emerald-200 bg-emerald-50"
+          : "border-zinc-200 bg-white"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p
+            className={`text-xs font-semibold uppercase tracking-[0.1em] ${
+              hasSharedReferral ? "text-emerald-700" : "text-zinc-500"
+            }`}
+          >
+            {labels.event}
+          </p>
+          <h3 className="mt-1 break-words text-base font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+            {hasSharedReferral ? labels.readyTitle : labels.pendingTitle}
+          </h3>
+          <p className="mt-1 text-sm font-medium leading-5 text-zinc-600 [word-break:keep-all]">
+            {hasSharedReferral ? labels.readyBody : labels.pendingBody}
+          </p>
+        </div>
+        <span
+          className={`inline-flex size-9 shrink-0 items-center justify-center rounded-full ${
+            hasSharedReferral
+              ? "bg-emerald-600 text-white"
+              : "bg-zinc-100 text-zinc-500"
+          }`}
+        >
+          {hasSharedReferral ? (
+            <CheckCircle2 className="size-4" />
+          ) : (
+            <Share2 className="size-4" />
+          )}
+        </span>
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-2">
+        {[
+          [labels.cp, `+${rewards.cp}`],
+          [labels.influence, `+${rewards.influenceScore}`],
+          [labels.creator, `+${rewards.creatorProgressPercent}%`],
+        ].map(([label, value]) => (
+          <div
+            className="min-w-0 rounded-lg border border-zinc-200 bg-white px-2.5 py-2"
+            key={label}
+          >
+            <p className="truncate text-sm font-semibold text-zinc-950">
+              {value}
+            </p>
+            <p className="mt-0.5 truncate text-[0.62rem] font-semibold text-zinc-500">
+              {label}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <p className="mt-3 break-all rounded-lg bg-white/78 px-3 py-2 font-mono text-[0.68rem] font-semibold leading-4 text-zinc-600">
+        referral_shared → cp_earned → creator_unlock_evaluated
+      </p>
+    </section>
+  );
+}
+
 export function FanletterStarReferralPanel({
   copy,
   inboundReferralCode,
@@ -165,6 +274,7 @@ export function FanletterStarReferralPanel({
   const [isGenerated, setIsGenerated] = useState(
     Boolean(inboundReferralCode) || Boolean(loop.isLiveData),
   );
+  const [hasSharedReferral, setHasSharedReferral] = useState(false);
   const [isSharePanelOpen, setIsSharePanelOpen] = useState(false);
   const [isJoinPanelOpen, setIsJoinPanelOpen] = useState(false);
   const isReferralGenerated = isGenerated || isMockFounder;
@@ -281,6 +391,27 @@ export function FanletterStarReferralPanel({
         signal: "Reputation events",
         title: "Share referral link",
       };
+  function markReferralShared(platform: string) {
+    setHasSharedReferral(true);
+    trackFunnelEvent("share_click", {
+      agentRank: {
+        eventType: "referral_shared",
+        intent: "founder_referral_shared",
+        source: "fanletter_star_detail",
+        starId: starId ?? null,
+      },
+      metadata: {
+        platform,
+        referralCode: visibleReferralCode,
+        rewardCp: loop.rewards.cp,
+        rewardCreatorProgressPercent: loop.rewards.creatorProgressPercent,
+        rewardInfluenceScore: loop.rewards.influenceScore,
+        selectedUniverse: displayUniverse,
+      },
+      referralCode: visibleReferralCode,
+      targetHref: visibleShareLink,
+    });
+  }
 
   return (
     <article
@@ -399,6 +530,13 @@ export function FanletterStarReferralPanel({
             </button>
           </div>
         ) : null}
+
+        <ReferralShareOutcomeCard
+          copy={copy}
+          hasSharedReferral={hasSharedReferral}
+          isReferralGenerated={isReferralGenerated}
+          rewards={loop.rewards}
+        />
       </div>
 
       <div className="mt-5 rounded-lg bg-[#12041f] p-4 text-white">
@@ -593,6 +731,7 @@ export function FanletterStarReferralPanel({
               className="mt-3 min-h-11 w-full border-black/10 py-2.5 text-sm font-semibold leading-tight"
               copiedLabel={copy.actions.copied}
               copyLabel={copy.actions.copyLink}
+              onCopied={() => markReferralShared("copy")}
               text={visibleShareLink}
             />
           </section>
@@ -607,6 +746,7 @@ export function FanletterStarReferralPanel({
                   className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-700 transition hover:border-[#7c3aed]/40 hover:text-[#5b21b6]"
                   href={platformLink.href}
                   key={platformLink.label}
+                  onClick={() => markReferralShared(platformLink.label)}
                   rel="noreferrer"
                   target="_blank"
                 >
@@ -666,6 +806,13 @@ export function FanletterStarReferralPanel({
               </div>
             </div>
           </section>
+
+          <ReferralShareOutcomeCard
+            copy={copy}
+            hasSharedReferral={hasSharedReferral}
+            isReferralGenerated={isReferralGenerated}
+            rewards={loop.rewards}
+          />
         </div>
       </FanletterResponsiveActionPanel>
     </article>

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
+import { FanletterAgentRankJourneyRail } from "@/components/fanletter-agentrank-journey-rail";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import { FanletterAgentRankSocialConnectionEvidence } from "@/components/fanletter-agentrank-social-connection-evidence";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
@@ -266,6 +267,18 @@ function getActorLabel(actor: AgentRankReputationEvent["actor"] | null) {
   return actor.label ?? actor.id;
 }
 
+function getEventTargetLabel(event: AgentRankReputationEvent) {
+  if (event.object) {
+    return event.object.label ?? event.object.id;
+  }
+
+  if (event.subject) {
+    return event.subject.label ?? event.subject.id;
+  }
+
+  return event.starId ?? "-";
+}
+
 function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Locale) {
   const labels =
     locale === "ko"
@@ -282,8 +295,8 @@ function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Local
           referral_code_created: "추천 코드 생성",
           referral_shared: "추천 링크 공유",
           referral_converted: "추천 전환",
-          source_universe_selected: "출처 유니버스 선택",
-          universe_growth: "유니버스 성장",
+          source_universe_selected: "출처 AI 스타 선택",
+          universe_growth: "네트워크 성장",
           x402_mock_payment_intent: "x402 결제 의도",
         }
       : {
@@ -299,8 +312,8 @@ function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Local
           referral_code_created: "Referral Code Created",
           referral_shared: "Referral Shared",
           referral_converted: "Referral Converted",
-          source_universe_selected: "Source Universe Selected",
-          universe_growth: "Universe Growth",
+          source_universe_selected: "Source AI Star Selected",
+          universe_growth: "Network Growth",
           x402_mock_payment_intent: "x402 Mock Payment Intent",
         };
 
@@ -1737,6 +1750,104 @@ function EventDetailMobileStatusCard({
   );
 }
 
+function EventDetailMobileImpactCard({
+  copy,
+  event,
+  locale,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  event: AgentRankReputationEvent;
+  locale: Locale;
+}) {
+  const rows = getScoreImpactRows(event, locale)
+    .filter((row) => !row.isRisk && row.value > 0)
+    .sort((left, right) => right.value - left.value)
+    .slice(0, 3);
+  const labels =
+    locale === "ko"
+      ? {
+          actor: "액터",
+          event: "이벤트",
+          result: "점수 반영",
+          target: "대상",
+          title: "왜 점수에 반영됐나",
+        }
+      : {
+          actor: "Actor",
+          event: "Event",
+          result: "Score impact",
+          target: "Target",
+          title: "Why this affects score",
+        };
+
+  return (
+    <section className="rounded-[1.15rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_14px_40px_rgba(15,23,42,0.055)] sm:hidden">
+      <p className="text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+        {copy.scoreImpact}
+      </p>
+      <h2 className="mt-1 text-xl font-semibold leading-tight">
+        {labels.title}
+      </h2>
+
+      <div className="mt-4 grid grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-1.5">
+        {[
+          [labels.actor, getActorLabel(event.actor)],
+          [labels.event, getEventTypeLabel(event.type, locale)],
+          [labels.target, getEventTargetLabel(event)],
+        ].map(([label, value], index) => (
+          <div className="contents" key={label}>
+            <div className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-2">
+              <p className="text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                {label}
+              </p>
+              <p className="mt-1 break-words text-xs font-semibold leading-4 text-zinc-950 [word-break:keep-all]">
+                {value}
+              </p>
+            </div>
+            {index < 2 ? (
+              <div className="flex items-center justify-center">
+                <ArrowRight className="size-3.5 text-zinc-400" />
+              </div>
+            ) : null}
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 grid gap-2">
+        {rows.map((row) => {
+          const Icon = row.Icon;
+
+          return (
+            <div
+              className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2"
+              key={row.label}
+            >
+              <span className={`flex size-8 items-center justify-center rounded-full ring-1 ${row.tone}`}>
+                <Icon className="size-4" />
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-semibold text-zinc-950">
+                  {row.label}
+                </span>
+                <span className="mt-0.5 block truncate text-[0.62rem] font-semibold text-zinc-500">
+                  {row.description}
+                </span>
+              </span>
+              <span className="rounded-full bg-black px-2.5 py-1 text-xs font-semibold text-white">
+                +{formatNumber(row.value, locale)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="mt-3 break-all rounded-lg bg-zinc-50 px-3 py-2 font-mono text-[0.66rem] font-semibold leading-4 text-zinc-600">
+        {labels.result}: {event.eventId}
+      </p>
+    </section>
+  );
+}
+
 function EventDetailSignpostSummary({
   audit,
   copy,
@@ -1968,6 +2079,16 @@ export function FanletterAgentRankEventDetailPage({
           nextActionLabel={nextActionLabel}
           primaryHref={evidenceHref}
           primaryLabel={copy.viewEvidencePacket}
+        />
+        <EventDetailMobileImpactCard
+          copy={copy}
+          event={event}
+          locale={locale}
+        />
+        <FanletterAgentRankJourneyRail
+          active="agentrank"
+          locale={locale}
+          starId={starId}
         />
         <EventDetailSignpostSummary
           audit={audit}

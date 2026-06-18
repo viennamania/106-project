@@ -172,7 +172,7 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     universe_growth: {
       body:
         "6단계 파운더 네트워크, 신규 멤버, 파생 스타 확장이 AgentRank 네트워크 성장 신호로 남는지 확인합니다.",
-      title: "AI 스타 유니버스 성장 신호 수집",
+      title: "네트워크 성장 신호 수집",
     },
     x402_economy: {
       body:
@@ -299,7 +299,7 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     universe_growth: {
       body:
         "Verify that six-tier Founder Network growth, new members, and spawned stars become AgentRank network growth signals.",
-      title: "Collect AI Star Universe Growth Signal",
+      title: "Collect Network Growth Signal",
     },
     x402_economy: {
       body:
