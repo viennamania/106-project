@@ -79,6 +79,7 @@ function isActivePath(pathname: string, basePath: string, item: FanletterNavItem
     "feed",
     "founder-club",
     "founder-universe",
+    "growth",
     "news",
     "onboarding",
     "scout",
@@ -253,9 +254,6 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
   };
   const copy = navCopy[locale];
   const buildHref = (path: string) => buildPathWithReferral(path, referralCode);
-  const founderClubFounderHref = buildHref(
-    `${basePath}/founder-club?view=founder#joined-founder-networks`,
-  );
   const founderClubCreatorHref = buildHref(
     `${basePath}/founder-club?view=creator&context=my-ai#owned-ai-stars`,
   );
@@ -281,8 +279,9 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
         `${basePath}/ai-star-genealogy`,
         `${basePath}/founder-club`,
         `${basePath}/creator-unlock`,
+        `${basePath}/growth`,
       ],
-      href: founderClubFounderHref,
+      href: buildHref(`${basePath}/growth`),
       icon: Crown,
       key: "founder",
       label: copy.founder,
