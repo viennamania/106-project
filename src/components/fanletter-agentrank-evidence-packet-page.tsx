@@ -22,6 +22,7 @@ import { FanletterAgentRankSocialConnectionEvidence } from "@/components/fanlett
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type { AgentRankEventEvidencePacket } from "@/lib/agentrank/evidence-packet";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
+import { getAgentRankEventTypeLabel } from "@/lib/agentrank/event-labels";
 import {
   isAgentRankEventIncludedInMockScope,
   isAgentRankCoverageMockEvent,
@@ -44,7 +45,7 @@ function getCopy(locale: Locale) {
     return {
       audit: "감사",
       backToEvent: "이벤트 상세",
-      backToLedger: "이벤트 원장",
+      backToLedger: "평판 기록",
       canonical: "Canonical JSON",
       coverageMockEvent: "커버리지 Mock 이벤트",
       downloadJson: "JSON 다운로드",
@@ -100,7 +101,7 @@ function getCopy(locale: Locale) {
   return {
     audit: "Audit",
     backToEvent: "Event Detail",
-    backToLedger: "Event Ledger",
+    backToLedger: "Reputation Records",
     canonical: "Canonical JSON",
     coverageMockEvent: "Coverage Mock Event",
     downloadJson: "Download JSON",
@@ -181,44 +182,7 @@ function getActorLabel(actor: AgentRankReputationEvent["actor"] | null) {
 }
 
 function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Locale) {
-  const labels =
-    locale === "ko"
-      ? {
-          ai_star_discovered: "AI 스타 발견",
-          ai_star_spawned: "AI 스타 생성",
-          content_engaged: "콘텐츠 참여",
-          cp_earned: "CP 획득",
-          cp_pool_generated: "CP Pool 생성",
-          creator_unlock_evaluated: "권한 평가",
-          creator_unlocked: "크리에이터 권한",
-          creator_social_connected: "TikTok 채널 연결",
-          founder_joined: "파운더 참여",
-          referral_code_created: "추천 코드 생성",
-          referral_shared: "추천 링크 공유",
-          referral_converted: "추천 전환",
-          source_universe_selected: "출처 AI 스타 선택",
-          universe_growth: "네트워크 성장",
-          x402_mock_payment_intent: "x402 결제 의도",
-        }
-      : {
-          ai_star_discovered: "AI Star Discovered",
-          ai_star_spawned: "AI Star Spawned",
-          content_engaged: "Content Engaged",
-          cp_earned: "CP Earned",
-          cp_pool_generated: "CP Pool Generated",
-          creator_unlock_evaluated: "Creator Unlock Evaluated",
-          creator_unlocked: "Creator Unlocked",
-          creator_social_connected: "Creator Social Connected",
-          founder_joined: "Founder Joined",
-          referral_code_created: "Referral Code Created",
-          referral_shared: "Referral Shared",
-          referral_converted: "Referral Converted",
-          source_universe_selected: "Source AI Star Selected",
-          universe_growth: "Network Growth",
-          x402_mock_payment_intent: "x402 Mock Payment Intent",
-        };
-
-  return labels[type];
+  return getAgentRankEventTypeLabel(type, locale);
 }
 
 function truncateHash(value: string, start = 14, end = 10) {

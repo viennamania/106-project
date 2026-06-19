@@ -24,6 +24,7 @@ import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-a
 import { FanletterAgentRankSocialConnectionEvidence } from "@/components/fanletter-agentrank-social-connection-evidence";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type { AgentRankCoverageActionContext } from "@/lib/agentrank/coverage-action";
+import { getAgentRankEventTypeLabel } from "@/lib/agentrank/event-labels";
 import {
   isAgentRankEventIncludedInMockScope,
   isAgentRankCoverageMockEvent,
@@ -50,7 +51,7 @@ function getCopy(locale: Locale) {
       audit: "AgentRank 감사",
       auditGaps: "보강 항목",
       evidenceHash: "증거 해시",
-      back: "이벤트 원장",
+      back: "평판 기록",
       context: "Context",
       coverageMockBody:
         "이 이벤트는 커버리지 확인을 위해 생성된 mock Reputation Event입니다. 실제 결제, 실제 권한 부여, 운영 보상 상태와 분리해서 봅니다.",
@@ -137,7 +138,7 @@ function getCopy(locale: Locale) {
     audit: "AgentRank Audit",
     auditGaps: "Audit gaps",
     evidenceHash: "Evidence Hash",
-    back: "Event Ledger",
+    back: "Reputation Records",
     context: "Context",
     coverageMockBody:
       "This is a mock Reputation Event generated for coverage verification. Treat it separately from live payments, entitlement grants, and production rewards.",
@@ -280,44 +281,7 @@ function getEventTargetLabel(event: AgentRankReputationEvent) {
 }
 
 function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Locale) {
-  const labels =
-    locale === "ko"
-      ? {
-          ai_star_discovered: "AI 스타 발견",
-          ai_star_spawned: "AI 스타 생성",
-          content_engaged: "콘텐츠 참여",
-          cp_earned: "CP 획득",
-          cp_pool_generated: "CP Pool 생성",
-          creator_unlock_evaluated: "권한 평가",
-          creator_unlocked: "크리에이터 권한",
-          creator_social_connected: "TikTok 채널 연결",
-          founder_joined: "파운더 참여",
-          referral_code_created: "추천 코드 생성",
-          referral_shared: "추천 링크 공유",
-          referral_converted: "추천 전환",
-          source_universe_selected: "출처 AI 스타 선택",
-          universe_growth: "네트워크 성장",
-          x402_mock_payment_intent: "x402 결제 의도",
-        }
-      : {
-          ai_star_discovered: "AI Star Discovered",
-          ai_star_spawned: "AI Star Spawned",
-          content_engaged: "Content Engaged",
-          cp_earned: "CP Earned",
-          cp_pool_generated: "CP Pool Generated",
-          creator_unlock_evaluated: "Creator Unlock Evaluated",
-          creator_unlocked: "Creator Unlocked",
-          creator_social_connected: "Creator Social Connected",
-          founder_joined: "Founder Joined",
-          referral_code_created: "Referral Code Created",
-          referral_shared: "Referral Shared",
-          referral_converted: "Referral Converted",
-          source_universe_selected: "Source AI Star Selected",
-          universe_growth: "Network Growth",
-          x402_mock_payment_intent: "x402 Mock Payment Intent",
-        };
-
-  return labels[type];
+  return getAgentRankEventTypeLabel(type, locale);
 }
 
 function getImpactTotal(event: AgentRankReputationEvent) {
@@ -522,7 +486,7 @@ function getScoreImpactRows(
     locale === "ko"
       ? {
           creator:
-            "크리에이터 권한, 새 AI 스타 생성, Creator Progress 신호",
+            "크리에이터 권한 활성화, 새 AI 스타 생성, Creator Progress 신호",
           discovery: "AI 스타 발견, 콘텐츠 참여, 신규 스타 노출 신호",
           economic: "CP 이동, CP Pool, x402 의도, 창업 비용 신호",
           network: "파운더 참여, 추천 전환, 네트워크 엣지 신호",

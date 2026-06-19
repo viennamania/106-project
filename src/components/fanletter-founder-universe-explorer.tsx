@@ -33,6 +33,8 @@ import {
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
+import { getAgentRankEventTypeLabel } from "@/lib/agentrank/event-labels";
+import type { AgentRankReputationEventType } from "@/lib/agentrank/reputation-events";
 import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsive-action-panel";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
@@ -215,7 +217,7 @@ const explorerCopy = {
     viewEvidencePacket: "Evidence Packet",
     viewLedgerGaps: "Oracle Gaps",
     viewLedgerHighImpact: "High-impact Ledger",
-    viewLedger: "Event Ledger",
+    viewLedger: "Reputation Records",
   },
   ko: {
     all: "전체",
@@ -2757,24 +2759,27 @@ function getAgentRankEventLabel(type: string, locale: Locale) {
     return type.replaceAll("_", " ");
   }
 
-  const labels: Record<string, string> = {
-    ai_star_discovered: "AI 스타 발견",
-    ai_star_spawned: "AI 스타 창업",
-    content_engaged: "콘텐츠 반응",
-    cp_earned: "CP 보상",
-    cp_pool_generated: "CP Pool 생성",
-    creator_unlock_evaluated: "권한 평가",
-    creator_unlocked: "크리에이터 권한",
-    founder_joined: "파운더 참여",
-    referral_code_created: "추천 코드",
-    referral_shared: "추천 공유",
-    referral_converted: "추천 전환",
-    source_universe_selected: "출처 AI 스타 유니버스 선택",
-    universe_growth: "네트워크 성장",
-    x402_mock_payment_intent: "x402 결제 의도",
+  const knownEventLabels: Partial<Record<AgentRankReputationEventType, true>> = {
+    ai_star_discovered: true,
+    ai_star_spawned: true,
+    content_engaged: true,
+    cp_earned: true,
+    cp_pool_generated: true,
+    creator_social_connected: true,
+    creator_unlock_evaluated: true,
+    creator_unlocked: true,
+    founder_joined: true,
+    referral_code_created: true,
+    referral_converted: true,
+    referral_shared: true,
+    source_universe_selected: true,
+    universe_growth: true,
+    x402_mock_payment_intent: true,
   };
 
-  return labels[type] ?? type.replaceAll("_", " ");
+  return knownEventLabels[type as AgentRankReputationEventType]
+    ? getAgentRankEventTypeLabel(type as AgentRankReputationEventType, locale)
+    : type.replaceAll("_", " ");
 }
 
 function getAgentRankScoreDimensionLabel(

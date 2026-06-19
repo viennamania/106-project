@@ -29,15 +29,15 @@ function getCreatorUnlockMeta(locale: Locale) {
   if (locale === "ja") {
     return {
       description:
-        "Preview the Founder Club 2.0 Creator Unlock flow for launching a new AI Star before real checkout.",
-      title: "Creator Unlock | FanLetter Founder Club 2.0",
+        "Preview the Founder Club 2.0 Creator Permission Activation flow for launching a new AI Star before real checkout.",
+      title: "Creator Permission Activation | FanLetter Founder Club 2.0",
     };
   }
 
   return {
     description:
-      "Preview the Founder Club 2.0 Creator Unlock flow for launching a new AI Star before real checkout.",
-    title: "Creator Unlock | FanLetter Founder Club 2.0",
+      "Preview the Founder Club 2.0 Creator Permission Activation flow for launching a new AI Star before real checkout.",
+    title: "Creator Permission Activation | FanLetter Founder Club 2.0",
   };
 }
 

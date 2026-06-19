@@ -91,13 +91,13 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     creator_unlock_evaluated: {
       body:
-        "크리에이터 권한 조건 평가가 조건/품질/감사 준비율과 함께 AgentRank 이벤트로 남는지 확인합니다.",
-      title: "크리에이터 권한 평가 수집",
+        "크리에이터 권한 활성화 조건이 품질/감사 준비율과 함께 AgentRank 이벤트로 남는지 확인합니다.",
+      title: "권한 활성화 평가 수집",
     },
     creator_unlocked: {
       body:
-        "조건을 충족한 멤버가 크리에이터 권한으로 전환되는 순간을 평판 이벤트로 수집합니다.",
-      title: "크리에이터 권한 전환 수집",
+        "조건을 충족한 멤버가 크리에이터 권한을 활성화하는 순간을 평판 이벤트로 수집합니다.",
+      title: "크리에이터 권한 활성화 수집",
     },
     creator_social_connected: {
       body:
@@ -121,7 +121,7 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     fanletter_creator_unlock: {
       body:
-        "크리에이터 여정 화면에서 권한 평가, 출처 선택, 창업 mock 이벤트가 생성되는지 확인합니다.",
+        "크리에이터 여정 화면에서 권한 활성화 평가, 출처 선택, 창업 mock 이벤트가 생성되는지 확인합니다.",
       title: "크리에이터 여정 출처 확인",
     },
     fanletter_founder_universe: {
@@ -182,7 +182,7 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     x402_mock_payment_intent: {
       body:
         "실결제 전까지 10 USDT 창업 의도를 mock 결제 이벤트로 수집합니다.",
-      title: "x402 결제 의도 수집",
+      title: "x402 mock 결제 의도 수집",
     },
   };
   const enMessages: Record<string, { body: string; title: string }> = {
@@ -218,13 +218,13 @@ function getCoverageActionMessage(action: string, locale: Locale) {
     },
     creator_unlock_evaluated: {
       body:
-        "Verify that creator eligibility checks become AgentRank events with condition, quality, and audit-readiness data.",
-      title: "Collect Creator Unlock Evaluation",
+        "Verify that creator permission checks become AgentRank events with condition, quality, and audit-readiness data.",
+      title: "Collect Creator Permission Evaluation",
     },
     creator_unlocked: {
       body:
-        "Collect the conversion signal when an eligible member becomes a Creator.",
-      title: "Collect Creator Unlock Conversion",
+        "Collect the conversion signal when an eligible member activates Creator permission.",
+      title: "Collect Creator Permission Activation",
     },
     creator_social_connected: {
       body:

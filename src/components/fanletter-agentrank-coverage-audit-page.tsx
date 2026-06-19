@@ -23,6 +23,7 @@ import {
 
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
+import { getAgentRankEventTypeLabel } from "@/lib/agentrank/event-labels";
 import type {
   AgentRankCoverageSnapshot,
   AgentRankCoverageEventItem,
@@ -238,7 +239,7 @@ function getCoverageAuditCopy(locale: Locale) {
       eventFactory: "Reputation Event Factory",
       eventFactoryBody:
         "The production line that turns FanLetter Phase 1 product behavior into AgentRank-readable economic trust events.",
-      eventLedger: "Event Ledger",
+      eventLedger: "Reputation Records",
       eventScope: "Event Scope",
       events: "Events",
       factoryCompatible: "AgentRank Compatible",
@@ -292,29 +293,7 @@ function formatDateTime(value: string, locale: Locale) {
 }
 
 function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Locale) {
-  if (locale !== "ko") {
-    return type.replaceAll("_", " ");
-  }
-
-  const labels: Record<AgentRankReputationEvent["type"], string> = {
-    ai_star_discovered: "AI 스타 발견",
-    ai_star_spawned: "AI 스타 창업",
-    content_engaged: "콘텐츠 반응",
-    cp_earned: "CP 보상",
-    cp_pool_generated: "CP Pool 생성",
-    creator_unlock_evaluated: "권한 평가",
-    creator_unlocked: "크리에이터 권한",
-    creator_social_connected: "TikTok 채널 연결",
-    founder_joined: "파운더 참여",
-    referral_code_created: "추천 코드 생성",
-    referral_shared: "추천 링크 공유",
-    referral_converted: "추천 전환",
-    source_universe_selected: "출처 AI 스타 유니버스 선택",
-    universe_growth: "네트워크 성장",
-    x402_mock_payment_intent: "x402 결제 의도",
-  };
-
-  return labels[type];
+  return getAgentRankEventTypeLabel(type, locale);
 }
 
 function getInteractionSourceLabel(
@@ -327,7 +306,7 @@ function getInteractionSourceLabel(
           fanletter_agentrank: "AgentRank 페이지",
           fanletter_bridge: "연결/온보딩",
           fanletter_content: "콘텐츠/브이로그",
-          fanletter_creator_unlock: "크리에이터 권한",
+          fanletter_creator_unlock: "권한 활성화",
           fanletter_founder_universe: "파운더 네트워크",
           fanletter_home: "FanLetter 홈",
           fanletter_news: "뉴스/리포트",
@@ -337,7 +316,7 @@ function getInteractionSourceLabel(
           fanletter_agentrank: "AgentRank Page",
           fanletter_bridge: "Connect / Onboarding",
           fanletter_content: "Content / Vlog",
-          fanletter_creator_unlock: "Creator Unlock",
+          fanletter_creator_unlock: "Creator Permission",
           fanletter_founder_universe: "Founder Network",
           fanletter_home: "FanLetter Home",
           fanletter_news: "News / Reports",
@@ -683,17 +662,17 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
             },
             creator_unlock_evaluated: {
               description:
-                "크리에이터 권한 조건 평가를 기록해 창업 가능성 신호를 만듭니다.",
+                "크리에이터 권한 활성화 조건 평가를 기록해 창업 가능성 신호를 만듭니다.",
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
               layer: "Creator Journey",
-              trigger: "권한 평가",
+              trigger: "권한 활성화 평가",
             },
             creator_unlocked: {
               description:
-                "조건을 충족한 멤버의 크리에이터 권한 전환 이벤트를 수집합니다.",
+                "조건을 충족한 멤버의 크리에이터 권한 활성화 이벤트를 수집합니다.",
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
               layer: "Creator Journey",
-              trigger: "크리에이터 권한",
+              trigger: "크리에이터 권한 활성화",
             },
             creator_social_connected: {
               description:
@@ -714,7 +693,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
                 "실결제 전 단계의 10 USDT 창업 의도 이벤트를 mock으로 수집합니다.",
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
               layer: "x402 Economy",
-              trigger: "x402 결제 의도",
+              trigger: "x402 mock 결제 의도",
             },
           }
         : {
@@ -730,14 +709,14 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
                 "Record creator eligibility checks as early creator journey signals.",
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
               layer: "Creator Journey",
-              trigger: "Creator Unlock Evaluated",
+              trigger: "Creator Permission Evaluated",
             },
             creator_unlocked: {
               description:
                 "Collect the conversion event when an eligible member unlocks creator status.",
               href: `/${locale}/fanletter/creator-unlock?${scopedQuery}`,
               layer: "Creator Journey",
-              trigger: "Creator Unlocked",
+              trigger: "Creator Permission Activated",
             },
             creator_social_connected: {
               description:

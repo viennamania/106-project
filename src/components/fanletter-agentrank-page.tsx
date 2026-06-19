@@ -24,6 +24,7 @@ import {
 
 import type { AgentRankCoverageSnapshot } from "@/lib/agentrank/coverage";
 import type { AgentRankBackfillReadinessSnapshot } from "@/lib/agentrank/backfill-readiness";
+import { getAgentRankEventTypeLabel } from "@/lib/agentrank/event-labels";
 import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankTracker } from "@/components/fanletter-agentrank-tracker";
@@ -321,29 +322,7 @@ function formatDateTime(value: string, locale: Locale) {
 }
 
 function getEventTypeLabel(type: AgentRankReputationEvent["type"], locale: Locale) {
-  if (locale !== "ko") {
-    return type.replaceAll("_", " ");
-  }
-
-  const labels: Record<AgentRankReputationEvent["type"], string> = {
-    ai_star_discovered: "AI 스타 발견",
-    ai_star_spawned: "AI 스타 창업",
-    content_engaged: "콘텐츠 반응",
-    cp_earned: "CP 보상",
-    cp_pool_generated: "CP Pool 생성",
-    creator_unlock_evaluated: "권한 평가",
-    creator_unlocked: "크리에이터 권한",
-    creator_social_connected: "TikTok 채널 연결",
-    founder_joined: "파운더 참여",
-    referral_code_created: "추천 코드 생성",
-    referral_shared: "추천 링크 공유",
-    referral_converted: "추천 전환",
-    source_universe_selected: "출처 AI 스타 선택",
-    universe_growth: "네트워크 성장",
-    x402_mock_payment_intent: "x402 결제 의도",
-  };
-
-  return labels[type];
+  return getAgentRankEventTypeLabel(type, locale);
 }
 
 function getEventSourceLabel(
@@ -385,7 +364,7 @@ function getInteractionSourceLabel(
           fanletter_agentrank: "AgentRank 페이지",
           fanletter_bridge: "연결/온보딩",
           fanletter_content: "콘텐츠/브이로그",
-          fanletter_creator_unlock: "크리에이터 권한",
+          fanletter_creator_unlock: "권한 활성화",
           fanletter_founder_universe: "파운더 네트워크",
           fanletter_home: "FanLetter 홈",
           fanletter_news: "뉴스/리포트",
@@ -395,7 +374,7 @@ function getInteractionSourceLabel(
           fanletter_agentrank: "AgentRank Page",
           fanletter_bridge: "Connect / Onboarding",
           fanletter_content: "Content / Vlog",
-          fanletter_creator_unlock: "Creator Unlock",
+          fanletter_creator_unlock: "Creator Permission",
           fanletter_founder_universe: "Founder Network",
           fanletter_home: "FanLetter Home",
           fanletter_news: "News / Reports",
