@@ -692,7 +692,7 @@ export function MemberPortfolio({
 }) {
   const portfolio: MemberPortfolioData =
     livePortfolio ?? fanletterV2Mock.memberPortfolio;
-  const starsById = new Map(
+  const starsById = new Map<string, AIStar>(
     [...stars, ...fanletterV2Mock.aiStars].map((star) => [star.id, star]),
   );
   const memberInitials =
@@ -735,6 +735,37 @@ export function MemberPortfolio({
       value: `${portfolio.creatorEligibilityPercent}%`,
     },
   ];
+  const relationCopy = isKoreanCopy(copy)
+    ? {
+        creatorBadge: "Creator / Owner",
+        creatorBody:
+          "콘텐츠, TikTok 채널, 스튜디오 관리 권한이 있는 AI 스타입니다.",
+        creatorCount: `${formatNumber(ownedStars.length, locale)}개 운영`,
+        creatorEyebrow: "운영 권한",
+        creatorTitle: "내가 운영하는 AI 스타",
+        founderBody:
+          "AI 스타 유니버스 안에서 내가 가진 초대, CP, 파운더 네트워크 역할입니다.",
+        founderCount: `${formatNumber(portfolio.roles.length, locale)}개 참여`,
+        founderEyebrow: "참여 역할",
+        founderTitle: "참여 중인 파운더 네트워크",
+        openStar: "AI 스타 보기",
+        roleLabel: "내 역할",
+      }
+    : {
+        creatorBadge: "Creator / Owner",
+        creatorBody:
+          "AI Stars with content, TikTok channel, and studio management permissions.",
+        creatorCount: `${formatNumber(ownedStars.length, locale)} operated`,
+        creatorEyebrow: "Operating permission",
+        creatorTitle: "AI Stars I operate",
+        founderBody:
+          "Invitation, CP, and Founder Network roles held inside AI Star Universes.",
+        founderCount: `${formatNumber(portfolio.roles.length, locale)} joined`,
+        founderEyebrow: "Participation roles",
+        founderTitle: "Founder Networks I joined",
+        openStar: "View AI Star",
+        roleLabel: "My role",
+      };
 
   return (
     <article className="min-w-0 rounded-lg border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
@@ -779,69 +810,37 @@ export function MemberPortfolio({
         ))}
       </div>
 
-      <div className="mt-5 grid gap-2 sm:grid-cols-2">
-        {portfolio.roles.length > 0 ? (
-          portfolio.roles.map((item) => {
-            const star = starsById.get(item.starId);
-            const starName = getDisplayStarName(
-              item.starName ?? star?.name ?? item.starId,
-              copy,
-            );
-            const universeName =
-              item.universeName ??
-              star?.universeName ??
-              `${item.starId} Universe`;
-            const displayUniverseName = getDisplayUniverseName(universeName, copy);
-            const displayStatus = getDisplayStarStatus(item.starStatus, copy);
-
-            return (
-              <div
-                className="flex min-h-14 min-w-0 items-center justify-between gap-3 rounded-lg border border-black/8 bg-white px-3 py-2"
-                key={item.starId}
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-black">
-                    {starName}
-                  </p>
-                  <p className="truncate text-xs font-medium text-black/48">
-                    {displayUniverseName}
-                    {displayStatus ? ` · ${displayStatus}` : ""}
-                  </p>
-                </div>
-                <FounderRoleBadge copy={copy} role={item.role} />
-              </div>
-            );
-          })
-        ) : (
-          <div className="min-w-full rounded-lg border border-dashed border-black/12 bg-white px-3 py-4 text-sm font-semibold text-black/48">
-            {copy.memberPortfolio.emptyRoles}
-          </div>
-        )}
-      </div>
-
-      <div className="mt-5 hidden rounded-lg border border-black/8 bg-white p-3 sm:block">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+      <section className="mt-5 rounded-lg border border-black/10 bg-zinc-950 p-3 text-white">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-semibold text-[#6d28d9]">
-              {copy.labels.ownedAiStars}
+            <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white/48">
+              <Bot className="size-4" />
+              {relationCopy.creatorEyebrow}
             </p>
-            <h3 className="mt-1 text-base font-semibold text-black">
-              {copy.memberPortfolio.ownedStarsTitle}
+            <h3 className="mt-1 text-lg font-semibold">
+              {relationCopy.creatorTitle}
             </h3>
           </div>
-          <p className="text-xs font-medium leading-5 text-black/54 sm:max-w-sm sm:text-right">
-            {copy.memberPortfolio.ownedStarsBody}
-          </p>
+          <span className="inline-flex w-fit rounded-full border border-white/12 bg-white/8 px-3 py-1 text-xs font-semibold text-white/72">
+            {relationCopy.creatorCount}
+          </span>
         </div>
+        <p className="mt-2 text-sm font-medium leading-5 text-white/56 [word-break:keep-all]">
+          {relationCopy.creatorBody}
+        </p>
 
-        <div className="-mx-3 mt-3 flex snap-x gap-2 overflow-x-auto px-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0">
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {ownedStars.length > 0 ? (
             ownedStars.map((ownedStar) => {
               const star = starsById.get(ownedStar.id);
               const accentColor = star?.accentColor ?? "#7c3aed";
               const accentSecondary = star?.accentSecondary ?? "#22d3ee";
+              const portraitUrl =
+                ownedStar.portraitImageUrl ?? star?.portraitImageUrl ?? null;
               const initials =
-                star?.portraitInitials ?? getPortfolioInitials(ownedStar.name);
+                ownedStar.portraitInitials ??
+                star?.portraitInitials ??
+                getPortfolioInitials(ownedStar.name);
               const displayStarName = getDisplayStarName(ownedStar.name, copy);
               const displayUniverse = getDisplayUniverseName(
                 ownedStar.universeName ?? `${ownedStar.name} Universe`,
@@ -856,43 +855,46 @@ export function MemberPortfolio({
               );
 
               return (
-                <div
-                  className="min-w-[16rem] snap-start rounded-lg border border-fuchsia-200/70 p-3 text-white shadow-[0_16px_34px_rgba(88,28,135,0.14)] sm:min-w-0"
+                <Link
+                  className="group min-w-0 rounded-lg border border-white/12 bg-white/8 p-3 text-white transition hover:border-white/24 hover:bg-white/12"
+                  href={`/${locale}/fanletter/${encodeURIComponent(ownedStar.id)}`}
                   key={ownedStar.id}
-                  style={{
-                    background: `linear-gradient(145deg, ${accentColor}, #21103d 72%)`,
-                  }}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
                       <span
-                        className="flex size-12 shrink-0 items-center justify-center rounded-lg border border-white/18 text-sm font-semibold"
+                        className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-white/18 bg-cover bg-center text-sm font-semibold"
                         style={{
-                          background: `linear-gradient(145deg, ${accentSecondary}, rgba(255,255,255,0.16))`,
+                          background: portraitUrl
+                            ? undefined
+                            : `linear-gradient(145deg, ${accentSecondary}, ${accentColor})`,
+                          backgroundImage: portraitUrl
+                            ? `url(${portraitUrl})`
+                            : undefined,
                         }}
                       >
-                        {initials}
+                        {portraitUrl ? null : initials}
                       </span>
-                      <div className="min-w-0">
-                        <p className="text-[0.66rem] font-semibold text-fuchsia-100">
+                      <span className="min-w-0">
+                        <span className="inline-flex rounded-full bg-white px-2 py-0.5 text-[0.6rem] font-semibold text-black">
                           {copy.labels.aiStarBadge}
-                        </p>
-                        <p className="truncate text-lg font-semibold">
+                        </span>
+                        <span className="mt-1 block truncate text-lg font-semibold">
                           {displayStarName}
-                        </p>
-                        <p className="truncate text-xs font-medium text-white/60">
+                        </span>
+                        <span className="block truncate text-xs font-medium text-white/58">
                           {displayUniverse}
-                        </p>
-                      </div>
+                        </span>
+                      </span>
                     </div>
                     {displayStatus ? (
-                      <span className="shrink-0 rounded-full bg-white/14 px-2 py-1 text-[0.62rem] font-semibold text-white/82">
+                      <span className="shrink-0 rounded-full bg-white/12 px-2 py-1 text-[0.62rem] font-semibold text-white/82">
                         {displayStatus}
                       </span>
                     ) : null}
                   </div>
-
-                  <div className="mt-3 grid gap-2 text-xs font-semibold text-white/72">
+                  <div className="mt-3 grid gap-1 text-xs font-semibold text-white/64">
+                    <p className="truncate">{relationCopy.creatorBadge}</p>
                     {displaySourceUniverse ? (
                       <p className="truncate">
                         {copy.labels.sourceUniverse}: {displaySourceUniverse}
@@ -907,16 +909,90 @@ export function MemberPortfolio({
                       </p>
                     ) : null}
                   </div>
-                </div>
+                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-white/72 transition group-hover:text-white">
+                    {relationCopy.openStar}
+                    <ArrowRight className="size-3.5" />
+                  </span>
+                </Link>
               );
             })
           ) : (
-            <div className="min-w-full rounded-lg border border-dashed border-black/12 bg-zinc-50 px-3 py-4 text-sm font-semibold text-black/48 sm:col-span-2">
+            <div className="rounded-lg border border-dashed border-white/16 bg-white/6 px-3 py-4 text-sm font-semibold text-white/52 sm:col-span-2">
               {copy.memberPortfolio.emptyOwnedStars}
             </div>
           )}
         </div>
-      </div>
+      </section>
+
+      <section className="mt-4 rounded-lg border border-black/10 bg-white p-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-black/40">
+              <Users className="size-4" />
+              {relationCopy.founderEyebrow}
+            </p>
+            <h3 className="mt-1 text-lg font-semibold text-black">
+              {relationCopy.founderTitle}
+            </h3>
+          </div>
+          <span className="inline-flex w-fit rounded-full border border-black/10 bg-zinc-50 px-3 py-1 text-xs font-semibold text-black/58">
+            {relationCopy.founderCount}
+          </span>
+        </div>
+        <p className="mt-2 text-sm font-medium leading-5 text-black/56 [word-break:keep-all]">
+          {relationCopy.founderBody}
+        </p>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          {portfolio.roles.length > 0 ? (
+            portfolio.roles.map((item) => {
+              const star = starsById.get(item.starId);
+              const starName = getDisplayStarName(
+                item.starName ?? star?.name ?? item.starId,
+                copy,
+              );
+              const universeName =
+                item.universeName ??
+                star?.universeName ??
+                `${item.starId} Universe`;
+              const displayUniverseName = getDisplayUniverseName(universeName, copy);
+              const displayStatus = getDisplayStarStatus(item.starStatus, copy);
+
+              return (
+                <Link
+                  className="flex min-h-20 min-w-0 items-center justify-between gap-3 rounded-lg border border-black/8 bg-zinc-50 px-3 py-3 transition hover:border-black/18 hover:bg-white"
+                  href={`/${locale}/fanletter/${encodeURIComponent(item.starId)}/universe`}
+                  key={item.starId}
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <HumanMemberAvatar
+                      member={{ initials: memberInitials, name: portfolio.memberName }}
+                      size="sm"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-[0.64rem] font-semibold uppercase tracking-[0.12em] text-black/36">
+                        {relationCopy.roleLabel}
+                      </p>
+                      <p className="truncate text-sm font-semibold text-black">
+                        {starName}
+                      </p>
+                      <p className="truncate text-xs font-medium text-black/48">
+                        {displayUniverseName}
+                        {displayStatus ? ` · ${displayStatus}` : ""}
+                      </p>
+                    </div>
+                  </div>
+                  <FounderRoleBadge copy={copy} role={item.role} />
+                </Link>
+              );
+            })
+          ) : (
+            <div className="min-w-full rounded-lg border border-dashed border-black/12 bg-zinc-50 px-3 py-4 text-sm font-semibold text-black/48 sm:col-span-2">
+              {copy.memberPortfolio.emptyRoles}
+            </div>
+          )}
+        </div>
+      </section>
 
       {portfolioCta ? (
         <div className="mt-5 rounded-lg border border-black/8 bg-white p-3">

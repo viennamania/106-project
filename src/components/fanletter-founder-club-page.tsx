@@ -60,9 +60,10 @@ function getCopy(locale: Locale) {
       creatorUnlock: "Creator 권한 활성화",
       emptyShare:
         "이 AI 스타의 추천 링크는 파운더 상태 확인 후 생성됩니다.",
-      heroBody: "참여 중인 AI 스타와 추천 흐름을 확인하고 다음 행동을 선택하세요.",
+      heroBody:
+        "내가 운영하는 AI 스타와 참여 중인 파운더 네트워크를 분리해서 확인하고 다음 행동을 선택하세요.",
       heroEyebrow: "Founder Club",
-      heroTitle: "내 파운더 네트워크",
+      heroTitle: "내 FanLetter 포트폴리오",
       liveLabel: "라이브 데이터",
       mockLabel: "예시 데이터",
       mockLaunchBody:
@@ -82,13 +83,16 @@ function getCopy(locale: Locale) {
       universeCta: "AI 스타 유니버스 보기",
       metrics: {
         cp: "CP",
+        creatorStars: "운영 AI 스타",
         eligibility: "크리에이터 진행률",
+        founderNetworks: "참여 네트워크",
         invites: "성공 초대",
         scout: "스카우트 점수",
       },
       signpost: {
-        currentLabel: "현재 위치",
-        currentValue: (count: number) => `${formatNumber(count, locale)}개 AI 스타 참여 중`,
+        currentLabel: "현재 관계",
+        currentValue: (creatorCount: number, founderCount: number) =>
+          `운영 ${formatNumber(creatorCount, locale)}개 · 참여 ${formatNumber(founderCount, locale)}개`,
         eventLabel: "평판 기록",
         eventValue: (hasRoles: boolean) =>
           hasRoles ? "referral_shared" : "founder_joined",
@@ -108,9 +112,9 @@ function getCopy(locale: Locale) {
     emptyShare:
       "This AI Star referral link is created after Founder status is confirmed.",
     heroBody:
-      "Review your AI Star participation, referral flow, and the next action to take.",
+      "Separate the AI Stars you operate from the Founder Networks you participate in, then choose the next action.",
     heroEyebrow: "Founder Club",
-    heroTitle: "My Founder Network",
+    heroTitle: "My FanLetter Portfolio",
     liveLabel: "Live data",
     mockLabel: "Mock data",
     mockLaunchBody:
@@ -130,13 +134,16 @@ function getCopy(locale: Locale) {
     universeCta: "View AI Star Universe",
     metrics: {
       cp: "CP",
+      creatorStars: "Creator AI Stars",
       eligibility: "Creator Progress",
+      founderNetworks: "Founder Networks",
       invites: "Successful Invites",
       scout: "Scout Score",
     },
     signpost: {
-      currentLabel: "Current",
-      currentValue: (count: number) => `${formatNumber(count, locale)} AI Stars joined`,
+      currentLabel: "Current relationships",
+      currentValue: (creatorCount: number, founderCount: number) =>
+        `${formatNumber(creatorCount, locale)} operated · ${formatNumber(founderCount, locale)} joined`,
       eventLabel: "Reputation",
       eventValue: (hasRoles: boolean) =>
         hasRoles ? "referral_shared" : "founder_joined",
@@ -612,6 +619,14 @@ export function FanletterFounderClubPage({
   ]);
   const metricItems = [
     {
+      label: copy.metrics.creatorStars,
+      value: portfolio.ownedStars.length,
+    },
+    {
+      label: copy.metrics.founderNetworks,
+      value: portfolio.roles.length,
+    },
+    {
       label: copy.metrics.scout,
       value: portfolio.scoutScore,
     },
@@ -680,7 +695,10 @@ export function FanletterFounderClubPage({
                     {copy.signpost.currentLabel}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-black">
-                    {copy.signpost.currentValue(portfolio.roles.length)}
+                    {copy.signpost.currentValue(
+                      portfolio.ownedStars.length,
+                      portfolio.roles.length,
+                    )}
                   </p>
                 </div>
                 <div className="rounded-md bg-white px-3 py-3">

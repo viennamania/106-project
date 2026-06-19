@@ -708,7 +708,7 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       activeHint:
         "Your Founder Club AI Star is active. Manage content and growth from the studio.",
       body:
-        "A single human member can hold a different role in each AI Star universe.",
+        "Creator/Owner means the AI Stars this member operates. Founder Network means participation roles inside each AI Star Universe.",
       draftHint:
         "A Founder Club AI Star has been prepared for this account. Complete the character profile to activate it.",
       emptyRoles:
@@ -718,10 +718,10 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       emptyOwnedStars:
         "No AI Stars have been created by this member yet.",
       ownedStarsBody:
-        "A Creator can own multiple AI Stars. Each new Star keeps its source Star Universe for attribution.",
-      ownedStarsTitle: "AI Stars created by this member",
+        "These AI Stars can be managed from the studio. Their source AI Star Universe is kept for reputation attribution.",
+      ownedStarsTitle: "AI Stars this member operates",
       setupStarCta: "Set up my AI Star",
-      title: "Member Founder Portfolio",
+      title: "Member AI Star Portfolio",
     },
     roles: {
       creator: "CREATOR",
@@ -881,7 +881,8 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     memberPortfolio: {
       activeHint:
         "Founder ClubのAI Starは有効です。Studioでコンテンツと成長を管理できます。",
-      body: "1人のHuman MemberがAI Starごとに異なる役割を持てます。",
+      body:
+        "Creator/Ownerはこのメンバーが運営するAI Star、Founder Networkは各AI Star Universe内の参加ロールです。",
       draftHint:
         "このアカウント用のFounder Club AI Starが用意されています。Character profileを完成させると有効化できます。",
       emptyRoles:
@@ -891,10 +892,10 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       emptyOwnedStars:
         "このメンバーが作成したAI Starはまだありません。",
       ownedStarsBody:
-        "Creatorは複数のAI Starを所有できます。新しいStarには元のStar Universeを記録します。",
-      ownedStarsTitle: "このメンバーが作成したAI Star",
+        "これらのAI StarはStudioで管理できます。元になったAI Star Universeは評価帰属のため記録されます。",
+      ownedStarsTitle: "このメンバーが運営するAI Star",
       setupStarCta: "自分のAI Starを設定",
-      title: "Member Founder Portfolio",
+      title: "Member AI Star Portfolio",
     },
     roles: {
       creator: "CREATOR",
@@ -1054,7 +1055,8 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
     memberPortfolio: {
       activeHint:
         "파운더 클럽 AI 스타가 활성화되어 있습니다. 스튜디오에서 콘텐츠와 성장을 관리할 수 있습니다.",
-      body: "한 명의 멤버가 AI 스타마다 서로 다른 역할을 가질 수 있습니다.",
+      body:
+        "Creator/Owner는 이 멤버가 운영하는 AI 스타이고, 파운더 네트워크는 각 AI 스타 유니버스 안에서 가진 참여 역할입니다.",
       draftHint:
         "이 계정에 파운더 클럽 AI 스타가 준비되어 있습니다. 캐릭터 프로필을 완성하면 활성화할 수 있습니다.",
       emptyRoles:
@@ -1064,10 +1066,10 @@ const fanletterV2CopyByLocale: Record<FanletterV2CopyLocale, FanletterV2Copy> = 
       emptyOwnedStars:
         "아직 이 멤버가 만든 AI 스타가 없습니다.",
       ownedStarsBody:
-        "크리에이터는 여러 AI 스타를 소유할 수 있습니다. 새 스타에는 어떤 스타 유니버스에서 성장해 생성됐는지 기록합니다.",
-      ownedStarsTitle: "이 멤버가 만든 AI 스타",
+        "이 AI 스타들은 스튜디오에서 운영할 수 있습니다. 생성 출처 AI 스타 유니버스는 평판 귀속을 위해 남습니다.",
+      ownedStarsTitle: "이 멤버가 운영하는 AI 스타",
       setupStarCta: "내 AI 스타 설정하기",
-      title: "멤버 파운더 포트폴리오",
+      title: "멤버 AI 스타 포트폴리오",
     },
     roles: {
       creator: "크리에이터",
