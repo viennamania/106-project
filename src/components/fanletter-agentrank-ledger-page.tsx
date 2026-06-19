@@ -1300,7 +1300,7 @@ function LedgerJourneyQuickFilters({
             <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
               {group.label}
             </p>
-            <div className="mt-2 flex min-w-0 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="mt-2 flex min-w-0 flex-wrap gap-2">
               {group.types.map((type) => {
                 const isActive = filters.type === type;
                 const count = feed.summary.byType[type] ?? 0;
@@ -1308,7 +1308,7 @@ function LedgerJourneyQuickFilters({
                 return (
                   <Link
                     className={joinClasses(
-                      "inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-semibold",
+                      "inline-flex min-h-10 max-w-full min-w-0 items-center gap-2 rounded-full px-3 text-sm font-semibold",
                       isActive
                         ? "bg-black !text-white"
                         : "border border-slate-200 bg-white text-slate-600",
@@ -1316,10 +1316,12 @@ function LedgerJourneyQuickFilters({
                     href={buildLedgerHref({ filters, locale, type })}
                     key={type}
                   >
-                    {getEventTypeLabel(type, locale)}
+                    <span className="min-w-0 truncate">
+                      {getEventTypeLabel(type, locale)}
+                    </span>
                     <span
                       className={joinClasses(
-                        "rounded-full px-2 py-0.5 text-xs",
+                        "shrink-0 rounded-full px-2 py-0.5 text-xs",
                         isActive
                           ? "bg-white/18 !text-white"
                           : "bg-slate-50 text-slate-500",
@@ -2434,13 +2436,13 @@ export function FanletterAgentRankLedgerPage({
               {copy.clearFilters}
             </Link>
           </form>
-          <div className="mt-4 hidden gap-2 overflow-x-auto pb-1 sm:flex">
+          <div className="mt-4 hidden flex-wrap gap-2 sm:flex">
             {scopeOptions.map((option) => {
               const isActive = filters.scope === option.scope;
 
               return (
                 <Link
-                  className={`inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-semibold ${
+                  className={`inline-flex min-h-10 max-w-full min-w-0 items-center gap-2 rounded-full px-3 text-sm font-semibold ${
                     isActive
                       ? "bg-[#11132d] !text-white"
                       : "border border-slate-200 bg-white text-slate-600"
@@ -2587,14 +2589,14 @@ export function FanletterAgentRankLedgerPage({
               {copy.viewAll}
             </Link>
           </div>
-          <div className="mt-4 hidden gap-2 overflow-x-auto pb-1 sm:flex">
+          <div className="mt-4 hidden flex-wrap gap-2 sm:flex">
             {agentRankReputationEventTypes.map((type) => {
               const isActive = filters.type === type;
               const count = feed.summary.byType[type] ?? 0;
 
               return (
                 <Link
-                  className={`inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-semibold ${
+                  className={`inline-flex min-h-10 max-w-full min-w-0 items-center gap-2 rounded-full px-3 text-sm font-semibold ${
                     isActive
                       ? "bg-black !text-white"
                       : "border border-slate-200 bg-white text-slate-600"
@@ -2602,9 +2604,11 @@ export function FanletterAgentRankLedgerPage({
                   href={buildLedgerHref({ filters, locale, type })}
                   key={type}
                 >
-                  {getEventTypeLabel(type, locale)}
+                  <span className="min-w-0 truncate">
+                    {getEventTypeLabel(type, locale)}
+                  </span>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs ${
+                    className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${
                       isActive
                         ? "bg-white/18 !text-white"
                         : "bg-slate-50 text-slate-500"
