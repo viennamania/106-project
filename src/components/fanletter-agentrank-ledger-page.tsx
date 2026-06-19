@@ -155,9 +155,9 @@ function getLedgerCopy(locale: Locale) {
       graphScope: "그래프 범위",
       graphReady: "그래프 준비",
       heroBody:
-        "FanLetter에서 발생한 발견, 파운더 참여, 추천, CP, 크리에이터 생성 이벤트가 AgentRank v1 스키마로 정규화되는지 확인합니다.",
-      heroEyebrow: "AgentRank Ledger",
-      heroTitle: "Reputation Event Ledger",
+        "AI 스타 발견, Founder 참여, 추천 공유, Creator Journey 행동이 어떤 평판 기록으로 남았는지 확인합니다. 운영자 검증 항목은 아래에서 따로 다룹니다.",
+      heroEyebrow: "평판 기록",
+      heroTitle: "FanLetter 행동 기록",
       impact: "평판 영향",
       impactReady: "영향 준비",
       investorDemo: "Investor Demo Mode",
@@ -248,9 +248,9 @@ function getLedgerCopy(locale: Locale) {
     graphScope: "Graph Scope",
     graphReady: "Graph-ready",
     heroBody:
-      "Inspect how FanLetter discovery, founder, referral, CP, and creator launch actions normalize into the AgentRank v1 schema.",
-    heroEyebrow: "AgentRank Ledger",
-    heroTitle: "Reputation Event Ledger",
+      "Review which AI Star discovery, Founder participation, referral, and Creator Journey actions became reputation records. Operator verification is separated below.",
+    heroEyebrow: "Reputation records",
+    heroTitle: "FanLetter Action Records",
     impact: "Reputation Impact",
     impactReady: "Impact-ready",
     investorDemo: "Investor Demo Mode",
@@ -2094,7 +2094,7 @@ export function FanletterAgentRankLedgerPage({
               status: feed.events.length > 0 ? "next" : "next",
             },
             {
-              label: "AgentRank",
+              label: locale === "ko" ? "검증 준비" : "Verify",
               status: packetReadyEvents > 0 ? "next" : "next",
             },
           ]}

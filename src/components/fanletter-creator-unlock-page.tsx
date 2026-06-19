@@ -66,6 +66,39 @@ type CreatorUnlockGuideAction = ComponentProps<
 >["primaryAction"];
 type CreatorUnlockResolvedGuideAction = NonNullable<CreatorUnlockGuideAction>;
 
+function getCreatorJourneyReputationLabel(
+  eventType: string,
+  locale: Locale,
+) {
+  const isKorean = locale === "ko";
+
+  if (eventType === "creator_social_connected") {
+    return isKorean ? "TikTok 채널 연결 기록" : "TikTok channel connected";
+  }
+
+  if (eventType === "source_universe_selected") {
+    return isKorean ? "출처 AI 스타 선택 기록" : "Source AI Star selected";
+  }
+
+  if (eventType === "creator_unlocked") {
+    return isKorean ? "Creator 권한 활성화 기록" : "Creator permission activated";
+  }
+
+  if (eventType === "x402_mock_payment_intent") {
+    return isKorean ? "10 USDT 미리보기 의도 기록" : "10 USDT mock intent recorded";
+  }
+
+  if (eventType === "ai_star_spawned") {
+    return isKorean ? "새 AI 스타 생성 기록" : "New AI Star spawned";
+  }
+
+  if (eventType === "ai_star_discovered") {
+    return isKorean ? "AI 스타 발견 기록" : "AI Star discovery recorded";
+  }
+
+  return isKorean ? "권한 조건 평가 기록" : "Permission condition evaluated";
+}
+
 function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
@@ -2149,7 +2182,8 @@ function CreatorNextActionStatusCard({
               : "부족한 조건을 채우면 Creator 권한 활성화 평가 이벤트가 갱신됩니다.",
         condition: "다음 조건",
         current: "현재",
-        event: "생성될 평판 기록",
+        event: "평판 기록 결과",
+        eventId: "기술 ID",
         source: "창업 출처",
         target: "목표",
         title: unlock.unlocked ? "권한 활성화 준비 완료" : "다음 조건부터 처리하세요",
@@ -2164,11 +2198,13 @@ function CreatorNextActionStatusCard({
               : "Complete the missing condition to refresh the Creator permission evaluation event.",
         condition: "Next condition",
         current: "Current",
-        event: "Reputation record",
+        event: "Reputation result",
+        eventId: "Technical ID",
         source: "Launch source",
         target: "Target",
         title: unlock.unlocked ? "Permission activation ready" : "Handle the next condition first",
       };
+  const reputationLabel = getCreatorJourneyReputationLabel(eventType, locale);
 
   return (
     <section className="mt-4 grid w-full min-w-0 gap-3 rounded-[1.1rem] border border-zinc-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.055)] lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
@@ -2200,8 +2236,7 @@ function CreatorNextActionStatusCard({
             },
             {
               label: labels.event,
-              mono: true,
-              value: eventType,
+              value: reputationLabel,
             },
           ].map((item) => (
             <div
@@ -2214,7 +2249,6 @@ function CreatorNextActionStatusCard({
               <p
                 className={joinClasses(
                   "mt-1 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]",
-                  item.mono && "font-mono text-xs",
                 )}
               >
                 {item.value}
@@ -2222,6 +2256,10 @@ function CreatorNextActionStatusCard({
             </div>
           ))}
         </div>
+
+        <p className="mt-2 break-all rounded-lg bg-zinc-50 px-3 py-2 font-mono text-[0.62rem] font-semibold leading-4 text-zinc-400">
+          {labels.eventId}: {eventType}
+        </p>
 
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {[
@@ -2288,7 +2326,7 @@ function CreatorJourneyEventPath({
         next: "다음",
         source: "출처",
         subtitle: "선택한 AI 스타 유니버스의 성과가 새 AI 스타 생성 기록으로 이어집니다.",
-        title: "평판 기록 경로",
+        title: "행동이 평판 기록으로 이어지는 흐름",
       }
     : {
         active: "Now",
@@ -2297,7 +2335,7 @@ function CreatorJourneyEventPath({
         source: "Source",
         subtitle:
           "The selected AI Star Universe becomes the source of the new AI Star creation record.",
-        title: "Reputation event path",
+        title: "How actions become reputation records",
       };
   const steps = [
     {
@@ -2347,7 +2385,7 @@ function CreatorJourneyEventPath({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div className="min-w-0">
           <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            AgentRank
+            {isKorean ? "평판 기록" : "Reputation records"}
           </p>
           <h2 className="mt-1 text-xl font-semibold leading-tight text-[#12041f]">
             {labels.title}
@@ -2411,8 +2449,8 @@ function CreatorJourneyEventPath({
               <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
                 {step.body}
               </p>
-              <p className="mt-3 break-words font-mono text-[0.62rem] font-semibold leading-4 text-zinc-500">
-                {step.eventType}
+              <p className="mt-3 break-words text-[0.62rem] font-semibold leading-4 text-zinc-500">
+                {getCreatorJourneyReputationLabel(step.eventType, locale)}
               </p>
             </div>
           );
@@ -2788,14 +2826,14 @@ export function FanletterCreatorUnlockPage({
               : "next",
         },
         {
-          label: "AgentRank",
+          label: locale === "ko" ? "평판 기록" : "Reputation",
           status: unlock.unlocked ? "next" : "next",
         },
       ]}
       subtitle={
         locale === "ko"
-          ? "새 AI 스타는 선택한 AI 스타 유니버스의 성과로 기록되고, 이후 CP Pool과 AgentRank 이벤트로 이어집니다."
-          : "A new AI Star records the selected AI Star Universe as its launch source, then feeds CP Pool and AgentRank events."
+          ? "새 AI 스타는 선택한 AI 스타 유니버스의 성과로 기록되고, 이후 CP Pool과 평판 기록으로 이어집니다."
+          : "A new AI Star records the selected AI Star Universe as its launch source, then feeds CP Pool and reputation records."
       }
       title={
         creatorUnlockNextTitle
