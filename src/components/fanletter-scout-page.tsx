@@ -12,7 +12,6 @@ import type { Locale } from "@/lib/i18n";
 import {
   fanletterV2Mock,
   getFanletterV2Copy,
-  getFanletterV2LocalizedText,
   type AIStar,
   type MemberPortfolio,
   type MemberPortfolioRole,
@@ -124,6 +123,7 @@ function getScoutPageCopy(locale: Locale) {
       scoutSummary: "스카우트 상태",
       selectedStar: "선택 AI 스타",
       starSelector: "AI 스타 선택",
+      starCandidate: "AI 스타",
       universe: "AI 스타 유니버스",
       viewFounderClub: "Founder Club 보기",
       viewUniverse: "AI 스타 유니버스 보기",
@@ -161,6 +161,7 @@ function getScoutPageCopy(locale: Locale) {
     scoutSummary: "Scout status",
     selectedStar: "Selected AI Star",
     starSelector: "Select AI Star",
+    starCandidate: "AI Star",
     universe: "AI Star Universe",
     viewFounderClub: "View Founder Club",
     viewUniverse: "View AI Star Universe",
@@ -238,7 +239,7 @@ export function FanletterScoutPage({
         }))
       : stars.slice(0, 6).map((star) => ({
           id: star.id,
-          meta: getFanletterV2LocalizedText(star.specialty, locale),
+          meta: copy.starCandidate,
           name: star.name,
           universe: formatUniverseName(star.universeName, locale),
         }));
@@ -306,10 +307,7 @@ export function FanletterScoutPage({
                           {selectedStar.name}
                         </h2>
                         <p className="truncate text-sm font-medium text-white/56">
-                          {getFanletterV2LocalizedText(
-                            selectedStar.specialty,
-                            locale,
-                          )}
+                          {copy.starCandidate}
                         </p>
                       </div>
                       <span className="shrink-0 rounded-full border border-white/14 bg-white/10 px-3 py-1 text-xs font-semibold">

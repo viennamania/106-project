@@ -29,6 +29,7 @@ import {
 } from "@/lib/mongodb";
 import { normalizeEmail, normalizeReferralCode } from "@/lib/member";
 import type { MemberDocument } from "@/lib/member";
+import { getFanletterV2MockStar, type AIStar } from "@/mock/fanletterV2";
 
 const starAccentPairs = [
   ["#8b5cf6", "#22d3ee"],
@@ -263,6 +264,55 @@ function getPreviewDate(starId: string, depth: number, index: number) {
   );
 
   return date.toISOString();
+}
+
+function buildMockFanletterStarDocument(star: AIStar): FanletterStarDocument {
+  const now = new Date();
+
+  return {
+    backfilledAt: now,
+    categoryLabel: star.specialty.ko,
+    characterName: star.name,
+    createdAt: now,
+    displayName: star.name,
+    founderCount: star.founderCount,
+    growthPercent: star.growthPercent,
+    legacyCreatorReferralCode: null,
+    legacyPersonaId: null,
+    openSlotCount: star.openSlots.open,
+    ownerEmail: null,
+    ownerReferralCode: null,
+    portraitImageUrl: star.portraitImageUrl ?? null,
+    source: "manual",
+    starId: star.id,
+    starScore: star.starScore,
+    status: "active",
+    updatedAt: now,
+  };
+}
+
+function buildMockSpawnedStars(
+  star: AIStar | null,
+): FanletterFounderUniverseExplorerSpawnedStar[] {
+  if (!star) {
+    return [];
+  }
+
+  return star.spawnedStars.map((spawnedStar, index) => ({
+    createdAt: getPreviewDate(star.id, 8, index),
+    creatorDepth: null,
+    creatorLabel: spawnedStar.createdByMemberName ?? null,
+    creatorNodeId: null,
+    creatorRole: null,
+    directSpawnedStars: 0,
+    growthPercent: spawnedStar.growthPercent,
+    id: spawnedStar.id,
+    name: spawnedStar.name,
+    ownerLabel: spawnedStar.createdByMemberName ?? "Creator",
+    portraitImageUrl: null,
+    starScore: spawnedStar.starScore,
+    status: "draft",
+  }));
 }
 
 function getPreviewReferralCode({
@@ -509,7 +559,7 @@ export async function getFanletterFounderUniverseExplorer(
     getFanletterStarReferralCodesCollection(),
     getMembersCollection(),
   ]);
-  const [star, memberships, referralEdges, referralCodes, spawnedStars] =
+  const [dbStar, memberships, referralEdges, referralCodes, spawnedStars] =
     await Promise.all([
       starsCollection.findOne({
         starId,
@@ -561,6 +611,9 @@ export async function getFanletterFounderUniverseExplorer(
         .limit(24)
         .toArray(),
     ]);
+
+  const mockStar = getFanletterV2MockStar(starId);
+  const star = dbStar ?? (mockStar ? buildMockFanletterStarDocument(mockStar) : null);
 
   if (!star) {
     return null;
@@ -779,10 +832,11 @@ export async function getFanletterFounderUniverseExplorer(
       status: spawnedStar.status,
     };
   });
+  const mockSpawnedStars = dbStar ? [] : buildMockSpawnedStars(mockStar);
   const enrichedUniverse = enrichFounderUniverseExplorerPreview({
     edges,
     nodes,
-    spawnedStars: serializedSpawnedStars,
+    spawnedStars: [...serializedSpawnedStars, ...mockSpawnedStars],
     star,
   });
   const nodeCountByDepth = new Map<number, number>();

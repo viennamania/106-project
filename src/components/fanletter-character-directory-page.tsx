@@ -478,7 +478,7 @@ function CharacterCard({
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#16702e]">
-              AI character channel
+              {copy.labels.aiStarChannel}
             </p>
             <h2 className="mt-1 truncate text-xl font-semibold tracking-normal">
               {item.character.name}
