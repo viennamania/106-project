@@ -119,6 +119,30 @@ function isActivePath(pathname: string, basePath: string, item: FanletterNavItem
   return false;
 }
 
+function resolveFanletterNavActive({
+  basePath,
+  item,
+  pathname,
+  view,
+}: {
+  basePath: string;
+  item: FanletterNavItem;
+  pathname: string;
+  view: string | null;
+}) {
+  const founderClubPath = `${basePath}/founder-club`;
+
+  if (pathname === founderClubPath && item.key === "founder") {
+    return view !== "creator";
+  }
+
+  if (pathname === founderClubPath && item.key === "studio") {
+    return view === "creator";
+  }
+
+  return isActivePath(pathname, basePath, item);
+}
+
 function readCreatorReferralCodeFromPathname(pathname: string, basePath: string) {
   const creatorPrefix = `${basePath}/creator/`;
 
@@ -184,7 +208,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       home: "홈",
       label: "AIAVpark 주요 메뉴",
       scout: "스카우트",
-      studio: "스튜디오",
+      studio: "내 AI",
     },
     en: {
       discover: "Discover",
@@ -192,7 +216,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       home: "Home",
       label: "AIAVpark navigation",
       scout: "Scout",
-      studio: "Studio",
+      studio: "My AI",
     },
     ja: {
       discover: "発見",
@@ -200,7 +224,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       home: "ホーム",
       label: "AIAVparkナビゲーション",
       scout: "スカウト",
-      studio: "スタジオ",
+      studio: "My AI",
     },
     zh: {
       discover: "发现",
@@ -208,7 +232,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       home: "首页",
       label: "AIAVpark 导航",
       scout: "星探",
-      studio: "工作室",
+      studio: "我的 AI",
     },
     vi: {
       discover: "Khám phá",
@@ -216,7 +240,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       home: "Trang chủ",
       label: "Điều hướng AIAVpark",
       scout: "Tuyển trạch",
-      studio: "Studio",
+      studio: "AI của tôi",
     },
     id: {
       discover: "Jelajahi",
@@ -224,11 +248,18 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       home: "Beranda",
       label: "Navigasi AIAVpark",
       scout: "Pencari",
-      studio: "Studio",
+      studio: "AI Saya",
     },
   };
   const copy = navCopy[locale];
   const buildHref = (path: string) => buildPathWithReferral(path, referralCode);
+  const founderClubFounderHref = buildHref(
+    `${basePath}/founder-club?view=founder#joined-founder-networks`,
+  );
+  const founderClubCreatorHref = buildHref(
+    `${basePath}/founder-club?view=creator#owned-ai-stars`,
+  );
+  const currentView = searchParams.get("view");
   const items: FanletterNavItem[] = [
     {
       activePaths: [basePath],
@@ -249,7 +280,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
         `${basePath}/founder-club`,
         `${basePath}/creator-unlock`,
       ],
-      href: buildHref(`${basePath}/founder-club`),
+      href: founderClubFounderHref,
       icon: Crown,
       key: "founder",
       label: copy.founder,
@@ -268,7 +299,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     },
     {
       activePaths: [`${basePath}/studio`, `${basePath}/channels`],
-      href: buildHref(`${basePath}/studio`),
+      href: founderClubCreatorHref,
       icon: LayoutDashboard,
       key: "studio",
       label: copy.studio,
@@ -288,7 +319,12 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
         <div className="mx-auto grid max-w-md grid-cols-5 items-end gap-1">
           {items.map((item) => {
             const Icon = item.icon;
-            const active = isActivePath(pathname, basePath, item);
+            const active = resolveFanletterNavActive({
+              basePath,
+              item,
+              pathname,
+              view: currentView,
+            });
 
             return (
               <Link

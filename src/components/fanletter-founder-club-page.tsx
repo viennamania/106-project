@@ -74,6 +74,10 @@ function getCopy(locale: Locale) {
       mockMembershipCta: "유니버스 보기",
       mockMembershipTitle: "Mock Founder 참여 반영됨",
       referralCode: "추천 코드",
+      relationLinks: {
+        creator: "운영 AI 스타 보기",
+        founder: "참여 네트워크 보기",
+      },
       shareLink: "공유 링크",
       shareSectionBody:
         "AI 스타별 추천 링크를 공유하면 새 파운더 참여가 해당 AI 스타 유니버스에 기록됩니다.",
@@ -125,6 +129,10 @@ function getCopy(locale: Locale) {
       mockMembershipCta: "View Universe",
       mockMembershipTitle: "Mock Founder join reflected",
       referralCode: "Referral Code",
+      relationLinks: {
+        creator: "View operated AI Stars",
+        founder: "View joined networks",
+      },
       shareLink: "Share Link",
     shareSectionBody:
       "Each AI Star referral link records new Founder participation inside that AI Star Universe.",
@@ -759,6 +767,18 @@ export function FanletterFounderClubPage({
             <span className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold text-black/54">
               {copy.terminologyPill}
             </span>
+            <a
+              className="inline-flex min-h-8 items-center rounded-full border border-black/10 bg-black px-3 py-1 text-xs font-semibold !text-white transition hover:bg-zinc-800"
+              href="#owned-ai-stars"
+            >
+              {copy.relationLinks.creator}
+            </a>
+            <a
+              className="inline-flex min-h-8 items-center rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold !text-black/64 transition hover:!text-black"
+              href="#joined-founder-networks"
+            >
+              {copy.relationLinks.founder}
+            </a>
           </div>
         </section>
 

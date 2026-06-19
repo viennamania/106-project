@@ -768,7 +768,10 @@ export function MemberPortfolio({
       };
 
   return (
-    <article className="min-w-0 rounded-lg border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5">
+    <article
+      className="min-w-0 scroll-mt-24 rounded-lg border border-violet-100 bg-white p-4 shadow-[0_18px_44px_rgba(88,28,135,0.08)] sm:p-5"
+      id="relationship-portfolio"
+    >
       <div className="flex items-start gap-3">
         <HumanMemberAvatar
           member={{ initials: memberInitials, name: portfolio.memberName }}
@@ -810,7 +813,10 @@ export function MemberPortfolio({
         ))}
       </div>
 
-      <section className="mt-5 rounded-lg border border-black/10 bg-zinc-950 p-3 text-white">
+      <section
+        className="mt-5 scroll-mt-24 rounded-lg border border-black/10 bg-zinc-950 p-3 text-white"
+        id="owned-ai-stars"
+      >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-white/48">
@@ -924,7 +930,10 @@ export function MemberPortfolio({
         </div>
       </section>
 
-      <section className="mt-4 rounded-lg border border-black/10 bg-white p-3">
+      <section
+        className="mt-4 scroll-mt-24 rounded-lg border border-black/10 bg-white p-3"
+        id="joined-founder-networks"
+      >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-black/40">
