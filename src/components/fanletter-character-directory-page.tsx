@@ -15,6 +15,7 @@ import {
 import type { ReactNode } from "react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
+import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import type {
@@ -89,8 +90,11 @@ function getCopy(locale: Locale) {
           currentValue: "AI 스타 발견",
           eventLabel: "평판 기록",
           eventValue: "ai_star_discovered",
+          flow: ["발견", "스타 선택", "Founder 참여", "평판 기록"],
           nextLabel: "다음 행동",
           nextValue: "스타 선택",
+          subtitle:
+            "AI 스타를 선택하면 AI 스타 유니버스로 이동하고 Founder 참여 흐름이 시작됩니다.",
         },
       }
     : {
@@ -147,8 +151,11 @@ function getCopy(locale: Locale) {
           currentValue: "AI Star Discovery",
           eventLabel: "Reputation",
           eventValue: "ai_star_discovered",
+          flow: ["Discover", "Choose star", "Join Founder", "Reputation"],
           nextLabel: "Next action",
           nextValue: "Choose a star",
+          subtitle:
+            "Choose an AI Star to enter its AI Star Universe and continue into Founder participation.",
         },
       };
 }
@@ -604,6 +611,13 @@ export function FanletterCharacterDirectoryPage({
     `/${locale}/fanletter/feed`,
     referralCode,
   );
+  const primaryItem = data.items[0] ?? null;
+  const primaryStarHref = primaryItem
+    ? buildPathWithReferral(
+        `/${locale}/fanletter/creator/${primaryItem.referralCode}`,
+        referralCode ?? primaryItem.referralCode,
+      )
+    : "#ai-star-results";
   const heroStats = [
     {
       icon: <UsersRound className="size-4" />,
@@ -642,42 +656,50 @@ export function FanletterCharacterDirectoryPage({
             <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
               {copy.hero.body}
             </p>
-            <div className="mt-6 grid gap-2 rounded-lg border border-white/10 bg-white/[0.055] p-2 text-sm font-semibold text-white/72 backdrop-blur sm:grid-cols-3">
-              <div className="rounded-md bg-white/[0.06] px-3 py-3">
-                <p className="text-[0.62rem] uppercase tracking-[0.16em] text-white/42">
-                  {copy.signpost.currentLabel}
-                </p>
-                <p className="mt-1 text-white">{copy.signpost.currentValue}</p>
-              </div>
-              <div className="rounded-md bg-white/[0.06] px-3 py-3">
-                <p className="text-[0.62rem] uppercase tracking-[0.16em] text-white/42">
-                  {copy.signpost.nextLabel}
-                </p>
-                <p className="mt-1 text-white">{copy.signpost.nextValue}</p>
-              </div>
-              <div className="rounded-md bg-[#44f26e] px-3 py-3 text-black">
-                <p className="text-[0.62rem] uppercase tracking-[0.16em] text-black/52">
-                  {copy.signpost.eventLabel}
-                </p>
-                <p className="mt-1 truncate">{copy.signpost.eventValue}</p>
-              </div>
-            </div>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <a
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#70ff91]"
-                href="#ai-star-results"
-              >
-                <Sparkles className="size-4" />
-                {copy.actions.pickStar}
-              </a>
-              <Link
-                className="inline-flex min-h-11 items-center justify-center gap-2 px-2 text-sm font-semibold !text-white/72 transition hover:!text-white"
-                href={feedHref}
-              >
-                <Clapperboard className="size-4" />
-                {copy.actions.feed}
-              </Link>
-            </div>
+            <FanletterActionGuide
+              className="mt-6 border-white/14 bg-white text-black shadow-[0_22px_60px_rgba(0,0,0,0.28)]"
+              currentLabel={copy.signpost.currentValue}
+              metrics={[
+                {
+                  label: copy.stats.totalCharacters,
+                  value: formatNumber(data.stats.activeCharacterCount, locale),
+                },
+                {
+                  label: copy.stats.publicVlogs,
+                  value: formatNumber(data.stats.publicContentCount, locale),
+                },
+              ]}
+              primaryAction={{
+                agentRank: {
+                  eventType: "ai_star_discovered",
+                  intent: "choose_ai_star_from_discovery",
+                  source: "fanletter_home",
+                  starId: primaryItem?.referralCode ?? null,
+                },
+                href: primaryStarHref,
+                label: copy.actions.pickStar,
+                metadata: {
+                  location: "fanletter_character_directory_signpost",
+                  starId: primaryItem?.referralCode ?? null,
+                },
+              }}
+              reputationEventLabel={copy.signpost.eventValue}
+              secondaryActions={[
+                {
+                  href: feedHref,
+                  label: copy.actions.feed,
+                  metadata: {
+                    location: "fanletter_character_directory_signpost",
+                  },
+                },
+              ]}
+              steps={copy.signpost.flow.map((step, index) => ({
+                label: step,
+                status: index === 0 ? "active" : "next",
+              }))}
+              subtitle={copy.signpost.subtitle}
+              title={copy.signpost.nextValue}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
