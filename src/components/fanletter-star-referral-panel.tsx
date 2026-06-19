@@ -11,7 +11,7 @@ import {
   Share2,
   Sparkles,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { CopyTextButton } from "@/components/copy-text-button";
 import {
@@ -327,6 +327,31 @@ export function FanletterStarReferralPanel({
   const [isSharePanelOpen, setIsSharePanelOpen] = useState(false);
   const [isJoinPanelOpen, setIsJoinPanelOpen] = useState(false);
   const isReferralGenerated = isGenerated || isMockFounder;
+
+  useEffect(() => {
+    function handleOpenSharePanel(event: Event) {
+      const detail = (event as CustomEvent<{ starId?: string | null }>).detail;
+
+      if (detail?.starId && starId && detail.starId !== starId) {
+        return;
+      }
+
+      setIsGenerated(true);
+      setIsSharePanelOpen(true);
+    }
+
+    window.addEventListener(
+      "fanletter:open-referral-share-panel",
+      handleOpenSharePanel,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "fanletter:open-referral-share-panel",
+        handleOpenSharePanel,
+      );
+    };
+  }, [starId]);
 
   const visibleReferralCode =
     mockFounderMembership?.referralCode ?? inboundReferralCode ?? loop.referralCode;

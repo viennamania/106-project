@@ -1941,6 +1941,18 @@ export function FanletterAgentRankLedgerPage({
   const csvHref = `/api/fanletter/agentrank/events?${csvParams.toString()}`;
   const ndjsonHref = `/api/fanletter/agentrank/events?${ndjsonParams.toString()}`;
   const reviewHref = `/${locale}/fanletter/agentrank/review?${apiParams.toString()}`;
+  const latestEvent = feed.events[0] ?? null;
+  const latestEventHref = latestEvent
+    ? buildEventDetailHref({
+        event: latestEvent,
+        locale,
+      })
+    : reviewHref;
+  const latestEventLabel = latestEvent
+    ? getEventTypeLabel(latestEvent.type, locale)
+    : locale === "ko"
+      ? "기록 대기"
+      : "No record yet";
   const reviewSnapshot = buildAgentRankReviewQueueSnapshot(feed.events);
   const reviewQueue = reviewSnapshot.queues;
   const actionCoverage = reviewSnapshot.actionCoverage;
@@ -2018,64 +2030,83 @@ export function FanletterAgentRankLedgerPage({
         <FanletterActionGuide
           currentLabel={
             locale === "ko"
-              ? `이벤트 장부 · ${scopeLabel}`
-              : `Event ledger · ${scopeLabel}`
+              ? `평판 기록 · ${scopeLabel}`
+              : `Reputation records · ${scopeLabel}`
           }
           metrics={[
             {
-              label: locale === "ko" ? "이벤트" : "Events",
+              label: locale === "ko" ? "기록 수" : "Records",
               value: String(feed.summary.totalEvents ?? feed.events.length),
             },
             {
-              label: locale === "ko" ? "패킷 준비" : "Packet ready",
-              value: String(packetReadyEvents),
+              label: locale === "ko" ? "최근 기록" : "Latest",
+              value: latestEventLabel,
             },
           ]}
           primaryAction={{
             agentRank: {
-              eventType: "creator_unlock_evaluated",
-              intent: "agentrank_ledger_action_guide_review",
+              eventType: "content_engaged",
+              intent: "agentrank_ledger_recent_record_opened",
               source: "fanletter_agentrank",
               starId: filters.starId,
             },
-            href: reviewHref,
+            eventName: "content_open",
+            href: latestEventHref,
             label:
-              locale === "ko" ? "리뷰 큐 열기" : "Open review queue",
+              locale === "ko" ? "최근 평판 기록 보기" : "View latest record",
             metadata: {
-              placement: "agentrank_ledger_action_guide_primary",
+              latestEventId: latestEvent?.eventId ?? null,
+              latestEventType: latestEvent?.type ?? null,
+              placement: "agentrank_ledger_recent_record_primary",
             },
           }}
           reputationEventLabel={
-            locale === "ko" ? "검증 가능 이벤트" : "Verifiable events"
+            locale === "ko" ? "행동 결과 기록" : "Action result record"
           }
-          secondaryActions={[]}
+          secondaryActions={[
+            {
+              agentRank: {
+                eventType: "creator_unlock_evaluated",
+                intent: "agentrank_ledger_review_queue_opened",
+                source: "fanletter_agentrank",
+                starId: filters.starId,
+              },
+              eventName: "content_open",
+              href: reviewHref,
+              label: locale === "ko" ? "검증 큐" : "Review queue",
+              metadata: {
+                packetReadyEvents,
+                placement: "agentrank_ledger_review_queue_secondary",
+              },
+            },
+          ]}
           steps={[
             {
-              label: locale === "ko" ? "수집" : "Collect",
-              status: "done",
+              label: locale === "ko" ? "행동 발생" : "Action",
+              status: feed.events.length > 0 ? "done" : "active",
             },
             {
-              label: locale === "ko" ? "정규화" : "Normalize",
-              status: "done",
+              label: locale === "ko" ? "평판 기록" : "Record",
+              status: feed.events.length > 0 ? "active" : "next",
             },
             {
-              label: locale === "ko" ? "검증" : "Review",
-              status: packetReadyEvents > 0 ? "active" : "next",
+              label: locale === "ko" ? "보상/기여 반영" : "Score impact",
+              status: feed.events.length > 0 ? "next" : "next",
             },
             {
-              label: locale === "ko" ? "오라클 패킷" : "Oracle packet",
+              label: "AgentRank",
               status: packetReadyEvents > 0 ? "next" : "next",
             },
           ]}
           subtitle={
             locale === "ko"
-              ? "AgentRank로 보낼 수 있는 이벤트와 보완이 필요한 이벤트를 먼저 확인합니다."
-              : "Review which events are ready for AgentRank and which need evidence."
+              ? "AI 스타 발견, Founder 참여, 추천 공유, Creator Journey 행동이 어떤 평판 기록으로 남았는지 먼저 확인합니다."
+              : "Start by checking which AI Star, Founder, referral, and Creator Journey actions became reputation records."
           }
           title={
             locale === "ko"
-              ? "다음 행동: 검증 큐 확인"
-              : "Next action: review the queue"
+              ? "다음 행동: 최근 평판 기록 확인"
+              : "Next action: view the latest record"
           }
         />
         <header className="hidden rounded-[1.35rem] border border-zinc-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:block">

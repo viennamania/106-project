@@ -1016,6 +1016,166 @@ function FounderNextReputationPath({
   );
 }
 
+function FounderJoinResultCard({
+  copy,
+  founderNetworkHref,
+  locale,
+  loop,
+  onOpenSharePanel,
+  referralCode,
+  star,
+}: {
+  copy: ReturnType<typeof getFanletterV2Copy>;
+  founderNetworkHref: string;
+  locale: Locale;
+  loop: ScoutShareLoopData;
+  onOpenSharePanel: () => void;
+  referralCode: string;
+  star: AIStar;
+}) {
+  const isKorean = isKoreanCopy(copy);
+  const displayStarName = getDisplayStarName(star.name, copy);
+  const labels = isKorean
+    ? {
+        body: "추천 코드가 생성되었고, 보상과 평판 기록이 준비되었습니다.",
+        event: "생성된 평판 기록",
+        network: "파운더 네트워크 보기",
+        share: "추천 링크 공유하기",
+        title: "Founder 참여 완료",
+      }
+    : {
+        body: "Your referral code is ready, with rewards and reputation records prepared.",
+        event: "Reputation records",
+        network: "View Founder Network",
+        share: "Share referral link",
+        title: "Founder join complete",
+      };
+  const resultMetrics = [
+    {
+      label: "CP",
+      value: `+${formatNumber(loop.rewards.cp, locale)}`,
+    },
+    {
+      label: copy.labels.influenceScore,
+      value: `+${formatNumber(loop.rewards.influenceScore, locale)}`,
+    },
+    {
+      label: copy.labels.creatorProgress,
+      value: `+${loop.rewards.creatorProgressPercent}%`,
+    },
+  ];
+
+  function trackShareIntent() {
+    trackFunnelEvent("signup_cta_click", {
+      agentRank: {
+        eventType: "referral_shared",
+        intent: "founder_join_result_share",
+        source: "fanletter_star_detail",
+        starId: star.id,
+      },
+      metadata: {
+        placement: "founder_join_result_primary",
+        starName: star.name,
+      },
+      referralCode,
+      targetHref: "#referral-builder",
+    });
+  }
+
+  return (
+    <article className="mt-4 overflow-hidden rounded-2xl border border-zinc-950 bg-zinc-950 text-white shadow-[0_22px_54px_rgba(15,23,42,0.16)]">
+      <div className="grid gap-0 sm:grid-cols-[1fr_auto]">
+        <div className="min-w-0 p-4 sm:p-5">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-zinc-950">
+              <Crown className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-white/55">
+                {displayStarName} · {copy.starDetail.universeTitle}
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold tracking-normal [word-break:keep-all]">
+                {labels.title}
+              </h2>
+              <p className="mt-2 text-sm font-medium leading-6 text-white/66 [word-break:keep-all]">
+                {labels.body}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            {resultMetrics.map((item) => (
+              <div
+                className="min-w-0 rounded-xl border border-white/10 bg-white/[0.06] px-2 py-3 text-center"
+                key={item.label}
+              >
+                <p className="truncate text-base font-semibold leading-none">
+                  {item.value}
+                </p>
+                <p className="mt-1 truncate text-[0.62rem] font-semibold text-white/46">
+                  {item.label}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 rounded-xl border border-white/10 bg-white/[0.06] p-3">
+            <div className="flex min-w-0 items-center justify-between gap-3">
+              <span className="text-[0.7rem] font-semibold text-white/50">
+                {copy.labels.referralCode}
+              </span>
+              <span className="min-w-0 truncate font-mono text-xs font-semibold text-white">
+                {referralCode}
+              </span>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {["founder_joined", "referral_code_created"].map((eventName) => (
+                <span
+                  className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.08] px-2.5 text-[0.66rem] font-semibold text-white/72"
+                  key={eventName}
+                >
+                  <GitBranch className="size-3.5" />
+                  {eventName}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-white/10 p-4 sm:w-72 sm:border-l sm:border-t-0 sm:p-5">
+          <p className="text-xs font-semibold text-white/48">
+            {labels.event}
+          </p>
+          <div className="mt-3 grid gap-2">
+            <button
+              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-4 text-center text-sm font-semibold leading-tight text-zinc-950 transition hover:bg-zinc-100"
+              onClick={() => {
+                trackShareIntent();
+                onOpenSharePanel();
+              }}
+              type="button"
+            >
+              <Share2 className="size-4 shrink-0" />
+              <span className="min-w-0 whitespace-normal [word-break:keep-all]">
+                {labels.share}
+              </span>
+            </button>
+            <Link
+              className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-4 text-center text-sm font-semibold leading-tight text-white transition hover:bg-white/[0.08]"
+              href={founderNetworkHref}
+            >
+              <span className="min-w-0 whitespace-normal [word-break:keep-all]">
+                {labels.network}
+              </span>
+              <ArrowRight className="size-4 shrink-0" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 function StarAgentRankJoinSignal({
   locale,
   snapshot,
@@ -1609,6 +1769,7 @@ function AIStarGenealogySection({
 export function FanletterStarDetailPage({
   agentRankSnapshot,
   coverageAction = null,
+  founderJoinCompleted = false,
   isAuthenticated = false,
   inboundReferralCode,
   locale,
@@ -1618,6 +1779,7 @@ export function FanletterStarDetailPage({
 }: {
   agentRankSnapshot?: FanletterAgentRankInvestorSnapshot | null;
   coverageAction?: AgentRankCoverageActionContext | null;
+  founderJoinCompleted?: boolean;
   isAuthenticated?: boolean;
   inboundReferralCode?: string | null;
   locale: Locale;
@@ -1960,6 +2122,26 @@ export function FanletterStarDetailPage({
             locale={locale}
             starId={star.id}
           />
+
+          {founderJoinCompleted ? (
+            <FounderJoinResultCard
+              copy={copy}
+              founderNetworkHref={founderNetworkHref}
+              locale={locale}
+              loop={loop}
+              onOpenSharePanel={() => {
+                window.dispatchEvent(
+                  new CustomEvent("fanletter:open-referral-share-panel", {
+                    detail: {
+                      starId: star.id,
+                    },
+                  }),
+                );
+              }}
+              referralCode={referralCode}
+              star={star}
+            />
+          ) : null}
 
           <div className="mt-3 hidden gap-2 sm:grid sm:grid-cols-3">
             {starDetailOutcomeCards.map((item) => (

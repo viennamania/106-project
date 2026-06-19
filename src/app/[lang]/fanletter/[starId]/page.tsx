@@ -270,6 +270,7 @@ export default async function FanletterStarLandingPage({
               }
             : null
         }
+        founderJoinCompleted={isMockFounderJoined}
         isAuthenticated={Boolean(memberSession?.email)}
         inboundReferralCode={referralCode}
         locale={lang}

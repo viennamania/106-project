@@ -1030,6 +1030,122 @@ function SourceUniverseSelector({
   );
 }
 
+function SourceUniverseNetworkLinkCard({
+  copy,
+  locale,
+  option,
+}: {
+  copy: ReturnType<typeof getLaunchPageCopy>;
+  locale: Locale;
+  option?: SourceUniverseOption | null;
+}) {
+  if (!option) {
+    return null;
+  }
+
+  const isKorean = locale === "ko";
+  const displayUniverseName = getDisplayUniverseName(
+    option.universeName,
+    locale,
+  );
+  const roleLabel =
+    getFanletterV2Copy(locale).roles[option.role] ??
+    option.role.replace(/_/g, " ");
+  const founderNetworkHref = `/${locale}/fanletter/${encodeURIComponent(
+    option.starId,
+  )}/universe`;
+  const labels = isKorean
+    ? {
+        body: `새 AI 스타는 ${displayUniverseName} 안의 파운더 네트워크 성과를 출처로 기록됩니다.`,
+        cta: "파운더 네트워크 보기",
+        event: "source_universe_selected",
+        role: "내 역할",
+        score: "기여 점수",
+        title: "출처 파운더 네트워크 확인",
+      }
+    : {
+        body: `The new AI Star will be recorded from the Founder Network contribution inside ${displayUniverseName}.`,
+        cta: "View Founder Network",
+        event: "source_universe_selected",
+        role: "My role",
+        score: "Contribution score",
+        title: "Review source Founder Network",
+      };
+
+  return (
+    <section className="mt-5 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.055)] sm:p-5">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            <GitBranch className="size-4" />
+            Creator Journey
+          </p>
+          <h2 className="mt-2 text-xl font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+            {labels.title}
+          </h2>
+          <p className="mt-2 text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+            {labels.body}
+          </p>
+        </div>
+
+        <FanletterTrackedLink
+          agentRank={{
+            eventType: "universe_growth",
+            intent: "creator_unlock_source_founder_network_opened",
+            source: "fanletter_creator_unlock",
+            starId: option.starId,
+          }}
+          className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white transition hover:bg-zinc-800 lg:w-auto lg:shrink-0"
+          eventName="content_open"
+          href={founderNetworkHref}
+          metadata={{
+            placement: "creator_unlock_source_founder_network_link",
+            roleInUniverse: roleLabel,
+            sourceUniverseId: `fanletter-star-universe:${option.starId}`,
+            sourceUniverseName: option.universeName,
+            starName: option.starName,
+          }}
+        >
+          <span className="min-w-0 whitespace-normal [word-break:keep-all]">
+            {labels.cta}
+          </span>
+          <ArrowRight className="size-4 shrink-0" />
+        </FanletterTrackedLink>
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-3">
+        {[
+          [copy.source, displayUniverseName],
+          [labels.role, roleLabel],
+          [
+            labels.score,
+            option.contribution
+              ? formatNumber(option.contribution.score, locale)
+              : "-",
+          ],
+        ].map(([label, value]) => (
+          <div
+            className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2"
+            key={label}
+          >
+            <p className="truncate text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+              {label}
+            </p>
+            <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+              {value}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-3 inline-flex max-w-full items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-600">
+        <Database className="size-3.5 shrink-0" />
+        <span className="min-w-0 truncate">{labels.event}</span>
+      </div>
+    </section>
+  );
+}
+
 function SourceUniverseEmptyState({
   copy,
   locale,
@@ -2764,6 +2880,12 @@ export function FanletterCreatorUnlockPage({
           requiresSourceUniverse={requiresSourceUniverse}
           sourceUniverseName={displaySourceUniverseName}
           unlock={unlock}
+        />
+
+        <SourceUniverseNetworkLinkCard
+          copy={copy}
+          locale={locale}
+          option={requiresSourceUniverse ? null : selectedSourceOption}
         />
 
         <CreatorJourneyEventPath
