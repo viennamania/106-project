@@ -445,6 +445,8 @@ export function FanletterStarReferralPanel({
             ? "Founder 참여 준비"
             : "Founder 참여 확인",
         open: "공유 옵션 열기",
+        primaryActionHint:
+          "Founder 참여와 계정 연결은 상단의 메인 CTA에서 진행합니다.",
         reward: "예상 보상",
         signal: "기록될 평판 이벤트",
         title: "추천 링크 공유",
@@ -461,10 +463,17 @@ export function FanletterStarReferralPanel({
             ? "Prepare Founder join"
             : "Confirm Founder join",
         open: "Open share options",
+        primaryActionHint:
+          "Use the primary CTA above for account connection and Founder join.",
         reward: "Expected reward",
         signal: "Reputation events",
         title: "Share referral link",
       };
+  const shouldShowFooterAction =
+    isMockFounder ||
+    primaryActionVariant === "share" ||
+    actionHref.startsWith("#") ||
+    actionHref.startsWith("http");
   function markReferralShared(platform: string) {
     setHasSharedReferral(true);
     trackFunnelEvent("share_click", {
@@ -646,38 +655,44 @@ export function FanletterStarReferralPanel({
       </div>
 
       <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-        {isMockFounder ? (
-          <button
-            className={actionClassName}
-            onClick={() => {
-              setIsGenerated(true);
-              setIsSharePanelOpen(true);
-            }}
-            type="button"
-          >
-            {actionLabel}
-          </button>
-        ) : shouldUseFounderActionPanel && starId ? (
-          <button
-            className={actionClassName}
-            onClick={() => setIsJoinPanelOpen(true)}
-            type="button"
-          >
-            {actionLabel}
-          </button>
-        ) : actionHref.startsWith("#") || actionHref.startsWith("http") ? (
-          <a
-            className={actionClassName}
-            href={actionHref}
-            rel={actionHref.startsWith("http") ? "noreferrer" : undefined}
-            target={actionHref.startsWith("http") ? "_blank" : undefined}
-          >
-            {actionLabel}
-          </a>
+        {shouldShowFooterAction ? (
+          isMockFounder ? (
+            <button
+              className={actionClassName}
+              onClick={() => {
+                setIsGenerated(true);
+                setIsSharePanelOpen(true);
+              }}
+              type="button"
+            >
+              {actionLabel}
+            </button>
+          ) : shouldUseFounderActionPanel && starId ? (
+            <button
+              className={actionClassName}
+              onClick={() => setIsJoinPanelOpen(true)}
+              type="button"
+            >
+              {actionLabel}
+            </button>
+          ) : actionHref.startsWith("#") || actionHref.startsWith("http") ? (
+            <a
+              className={actionClassName}
+              href={actionHref}
+              rel={actionHref.startsWith("http") ? "noreferrer" : undefined}
+              target={actionHref.startsWith("http") ? "_blank" : undefined}
+            >
+              {actionLabel}
+            </a>
+          ) : (
+            <Link className={actionClassName} href={actionHref}>
+              {actionLabel}
+            </Link>
+          )
         ) : (
-          <Link className={actionClassName} href={actionHref}>
-            {actionLabel}
-          </Link>
+          <div className="flex min-h-11 flex-1 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-center text-xs font-semibold leading-5 text-zinc-600 [word-break:keep-all]">
+            {panelLabels.primaryActionHint}
+          </div>
         )}
         <p className="hidden rounded-lg border border-black/8 bg-white px-3 py-2 text-xs font-semibold leading-5 text-black/52 sm:block sm:max-w-xs">
           {copy.starDetail.mockNotice}
