@@ -465,6 +465,231 @@ function getCoverageGapLabel(gap: string, locale: Locale) {
   return gap;
 }
 
+type AgentRankCoverageGapAction = {
+  coverageAction: string;
+  description: string;
+  eventType: AgentRankReputationEvent["type"];
+  href: string;
+  key: string;
+  label: string;
+  trigger: string;
+};
+
+function buildCoverageActionQuery({
+  coverageAction,
+  starId,
+}: {
+  coverageAction: string;
+  starId?: string | null;
+}) {
+  const params = new URLSearchParams({
+    coverageAction,
+    limit: "120",
+  });
+
+  if (starId) {
+    params.set("starId", starId);
+  }
+
+  return params.toString();
+}
+
+function getCoverageGapAction({
+  gap,
+  locale,
+  starId,
+}: {
+  gap: string;
+  locale: Locale;
+  starId?: string | null;
+}): AgentRankCoverageGapAction {
+  const [kind, value] = gap.split(":");
+  const isKorean = locale === "ko";
+  const action = value || kind || gap;
+  const query = buildCoverageActionQuery({
+    coverageAction: action,
+    starId,
+  });
+  const starDetailHref = starId
+    ? `/${locale}/fanletter/${encodeURIComponent(starId)}?${query}#referral-builder`
+    : `/${locale}/fanletter?${query}#top-growing-ai-stars`;
+  const creatorHref = `/${locale}/fanletter/creator-unlock?${query}`;
+
+  if (kind === "missing_event") {
+    const eventType = value as AgentRankReputationEvent["type"];
+    const creatorEventActions: Partial<
+      Record<
+        AgentRankReputationEvent["type"],
+        {
+          anchor?: string;
+          description: string;
+          trigger: string;
+        }
+      >
+    > = {
+      ai_star_spawned: {
+        anchor: "mock-launch-panel",
+        description: isKorean
+          ? "AI 스타 생성 미리보기에서 창업 출처와 mock 10 USDT 의도를 함께 기록합니다."
+          : "Use the AI Star launch preview to record source selection and mock 10 USDT intent.",
+        trigger: isKorean ? "AI 스타 생성 미리보기" : "AI Star launch preview",
+      },
+      creator_social_connected: {
+        anchor: "tiktok-channel",
+        description: isKorean
+          ? "AI 스타별 TikTok 채널 연결을 mock으로 기록해 Creator Journey 신호를 채웁니다."
+          : "Mock-connect the AI Star TikTok channel to fill the Creator Journey signal.",
+        trigger: isKorean ? "TikTok 채널 연결" : "Connect TikTok channel",
+      },
+      creator_unlock_evaluated: {
+        anchor: "creator-unlock-conditions",
+        description: isKorean
+          ? "Creator 권한 활성화 조건 평가를 기록해 다음 창업 가능성을 보여줍니다."
+          : "Record creator permission evaluation so the next launch path is visible.",
+        trigger: isKorean ? "권한 조건 평가" : "Evaluate creator permissions",
+      },
+      creator_unlocked: {
+        anchor: "creator-unlock-conditions",
+        description: isKorean
+          ? "조건 충족 상태를 확인하고 Creator 권한 활성화 이벤트를 수집합니다."
+          : "Confirm eligibility and collect the creator permission activation event.",
+        trigger: isKorean ? "Creator 권한 활성화" : "Activate creator permissions",
+      },
+      source_universe_selected: {
+        anchor: "source-universe-picker",
+        description: isKorean
+          ? "새 AI 스타가 어느 AI 스타 유니버스 성과에서 탄생하는지 출처를 고정합니다."
+          : "Choose which AI Star Universe produced the new AI Star launch outcome.",
+        trigger: isKorean ? "출처 AI 스타 유니버스 선택" : "Select source AI Star Universe",
+      },
+      x402_mock_payment_intent: {
+        anchor: "mock-launch-panel",
+        description: isKorean
+          ? "실결제 없이 10 USDT 창업 의도와 CP Pool 생성 흐름을 mock으로 기록합니다."
+          : "Record mock 10 USDT launch intent and CP Pool flow without real payment.",
+        trigger: isKorean ? "mock 결제 의도 기록" : "Record mock payment intent",
+      },
+    };
+    const creatorAction = creatorEventActions[eventType];
+
+    if (creatorAction) {
+      return {
+        coverageAction: action,
+        description: creatorAction.description,
+        eventType,
+        href: `${creatorHref}${creatorAction.anchor ? `#${creatorAction.anchor}` : ""}`,
+        key: gap,
+        label: getCoverageGapLabel(gap, locale),
+        trigger: creatorAction.trigger,
+      };
+    }
+
+    if (eventType === "referral_shared") {
+      return {
+        coverageAction: action,
+        description: isKorean
+          ? "AI 스타 상세에서 추천 링크를 공유하면 Founder Network와 Creator Journey가 동시에 갱신됩니다."
+          : "Share a referral link from the AI Star detail page to update Founder Network and Creator Journey signals.",
+        eventType,
+        href: starDetailHref,
+        key: gap,
+        label: getCoverageGapLabel(gap, locale),
+        trigger: isKorean ? "추천 링크 공유" : "Share referral link",
+      };
+    }
+
+    return {
+      coverageAction: action,
+      description: isKorean
+        ? "해당 이벤트가 발생하는 제품 화면으로 이동해 평판 기록을 수집합니다."
+        : "Open the product surface that can create this reputation event.",
+      eventType,
+      href: starDetailHref,
+      key: gap,
+      label: getCoverageGapLabel(gap, locale),
+      trigger: getEventTypeLabel(eventType, locale),
+    };
+  }
+
+  if (kind === "missing_source") {
+    const source = value as AgentRankInteractionSource;
+    const sourceHref: Partial<Record<AgentRankInteractionSource, string>> = {
+      fanletter_agentrank: `/${locale}/fanletter/agentrank?${query}`,
+      fanletter_bridge: `/${locale}/fanletter/connect?${query}`,
+      fanletter_content: `/${locale}/fanletter/news/vlogs?${query}`,
+      fanletter_creator_unlock: creatorHref,
+      fanletter_founder_universe: starId
+        ? `/${locale}/fanletter/${encodeURIComponent(starId)}/universe?${query}`
+        : `/${locale}/fanletter?${query}#founder-network`,
+      fanletter_home: `/${locale}/fanletter?${query}`,
+      fanletter_news: `/${locale}/fanletter/news?${query}`,
+      fanletter_star_detail: starDetailHref,
+    };
+
+    return {
+      coverageAction: action,
+      description: isKorean
+        ? "이 CTA 출처에서 사용자 행동이 AgentRank 평판 기록으로 남는지 확인합니다."
+        : "Verify that this CTA source is producing AgentRank reputation records.",
+      eventType: "content_engaged",
+      href: sourceHref[source] ?? `/${locale}/fanletter/agentrank?${query}`,
+      key: gap,
+      label: getCoverageGapLabel(gap, locale),
+      trigger: getInteractionSourceLabel(source, locale),
+    };
+  }
+
+  if (gap === "pending:x402_economy") {
+    const x402Query = buildCoverageActionQuery({
+      coverageAction: "x402_economy",
+      starId,
+    });
+
+    return {
+      coverageAction: "x402_economy",
+      description: isKorean
+        ? "실제 결제 전까지 mock 결제 의도와 CP Pool 생성 신호를 먼저 수집합니다."
+        : "Collect mock payment intent and CP Pool signals before real payment integration.",
+      eventType: "x402_mock_payment_intent",
+      href: `/${locale}/fanletter/creator-unlock?${x402Query}#mock-launch-panel`,
+      key: gap,
+      label: getCoverageGapLabel(gap, locale),
+      trigger: isKorean ? "mock 결제 의도" : "Mock payment intent",
+    };
+  }
+
+  if (gap === "pending:a2a_usage") {
+    const a2aQuery = buildCoverageActionQuery({
+      coverageAction: "a2a_usage",
+      starId,
+    });
+
+    return {
+      coverageAction: "a2a_usage",
+      description: isKorean
+        ? "Phase 1에서는 Agent 호출 이벤트 스키마 연결 전까지 원장 검증 항목으로 유지합니다."
+        : "Keep this as a ledger review item until Agent call event schema is connected.",
+      eventType: "content_engaged",
+      href: `/${locale}/fanletter/agentrank/events?${a2aQuery}`,
+      key: gap,
+      label: getCoverageGapLabel(gap, locale),
+      trigger: isKorean ? "Agent 호출 준비" : "Agent call readiness",
+    };
+  }
+
+  return {
+    coverageAction: action,
+    description: isKorean
+      ? "이 갭을 채울 수 있는 제품 흐름과 이벤트 스키마를 확인합니다."
+      : "Review the product flow and event schema needed to fill this gap.",
+    eventType: "content_engaged",
+    href: `/${locale}/fanletter/agentrank?${query}`,
+    key: gap,
+    label: getCoverageGapLabel(gap, locale),
+    trigger: gap,
+  };
+}
+
 function getScoreDimensionLabel(
   key: AgentRankScoreDimensionKey,
   locale: Locale,
@@ -675,17 +900,30 @@ function AgentRankCoveragePanel({
   const criticalLabels =
     locale === "ko"
       ? {
+          actionEyebrow: "다음 보강 액션",
+          actionResult: "생성될 평판 기록",
+          actionSubmit: "이 액션 실행",
           progress: "핵심 이벤트",
           subtitle:
             "AI 스타 발견부터 Creator Journey와 x402 mock intent까지 Phase 1 평판 이벤트가 살아 있는지 먼저 확인합니다.",
           title: "FanLetter Phase 1 이벤트 체인",
         }
       : {
+          actionEyebrow: "Next coverage action",
+          actionResult: "Reputation event",
+          actionSubmit: "Run this action",
           progress: "Core events",
           subtitle:
             "Checks whether Phase 1 reputation events are active from discovery through Creator Journey and x402 mock intent.",
           title: "FanLetter Phase 1 event chain",
         };
+  const primaryCoverageAction = coverage.gaps[0]
+    ? getCoverageGapAction({
+        gap: coverage.gaps[0],
+        locale,
+        starId,
+      })
+    : null;
 
   if (starId) {
     coverageParams.set("starId", starId);
@@ -773,6 +1011,49 @@ function AgentRankCoveragePanel({
                 </span>
               ))}
             </div>
+            {primaryCoverageAction ? (
+              <div className="mt-4 rounded-lg border border-zinc-200 bg-white p-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                  {criticalLabels.actionEyebrow}
+                </p>
+                <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <h3 className="break-words text-lg font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+                      {primaryCoverageAction.trigger}
+                    </h3>
+                    <p className="mt-1 text-sm font-medium leading-5 text-zinc-600 [word-break:keep-all]">
+                      {primaryCoverageAction.description}
+                    </p>
+                    <p className="mt-3 inline-flex max-w-full items-center gap-2 rounded-full bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-700 ring-1 ring-zinc-200">
+                      <ShieldCheck className="size-3.5 shrink-0" />
+                      <span className="truncate">
+                        {criticalLabels.actionResult}:{" "}
+                        {getEventTypeLabel(primaryCoverageAction.eventType, locale)}
+                      </span>
+                    </p>
+                  </div>
+                  <FanletterTrackedLink
+                    agentRank={{
+                      eventType: primaryCoverageAction.eventType,
+                      intent: "agentrank_coverage_primary_action_opened",
+                      source: "fanletter_agentrank",
+                      starId: starId ?? null,
+                    }}
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2 text-center text-sm font-semibold leading-tight !text-white transition hover:bg-zinc-800"
+                    eventName="content_open"
+                    href={primaryCoverageAction.href}
+                    metadata={{
+                      coverageAction: primaryCoverageAction.coverageAction,
+                      gapKey: primaryCoverageAction.key,
+                      placement: "agentrank_coverage_primary_action",
+                    }}
+                  >
+                    {criticalLabels.actionSubmit}
+                    <ArrowRight className="size-4 shrink-0" />
+                  </FanletterTrackedLink>
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
 
