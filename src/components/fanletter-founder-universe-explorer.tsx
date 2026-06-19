@@ -657,19 +657,19 @@ function FounderDashboardSidebar({
       href: `/${locale}/fanletter/${encodedStarId}`,
       icon: Star,
       label: isKorean ? "AI 스타 유니버스" : "AI Star Universe",
-      meta: isKorean ? "스타 상세" : "Star detail",
+      meta: isKorean ? "스타 상세로 이동" : "Open star detail",
     },
     {
       href: `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40`,
       icon: Gauge,
       label: isKorean ? "평판 기록" : "Reputation Records",
-      meta: isKorean ? "AgentRank 신호" : "AgentRank signals",
+      meta: isKorean ? "이벤트 원장으로 이동" : "Open event ledger",
     },
     {
       href: `/${locale}/fanletter/creator-unlock?starId=${encodedStarId}`,
       icon: Sparkles,
       label: isKorean ? "Creator Journey" : "Creator Journey",
-      meta: isKorean ? "권한 활성화" : "Permission activation",
+      meta: isKorean ? "권한 활성화로 이동" : "Open permissions",
     },
   ];
 
@@ -709,6 +709,7 @@ function FounderDashboardSidebar({
 
           return (
             <Link
+              aria-current={isActive ? "page" : undefined}
               className={joinClasses(
                 "group flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2 text-sm font-semibold transition",
                 isActive
@@ -728,7 +729,7 @@ function FounderDashboardSidebar({
               >
                 <Icon className="size-4" />
               </span>
-              <span className="min-w-0">
+              <span className="min-w-0 flex-1">
                 <span className="block truncate">{item.label}</span>
                 <span
                   className={joinClasses(
@@ -739,6 +740,13 @@ function FounderDashboardSidebar({
                   {item.meta}
                 </span>
               </span>
+              {isActive ? (
+                <span className="shrink-0 rounded-full bg-white/12 px-2 py-1 text-[0.62rem] font-semibold text-white/80">
+                  {isKorean ? "현재" : "Now"}
+                </span>
+              ) : (
+                <ArrowRight className="size-3.5 shrink-0 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-zinc-700" />
+              )}
             </Link>
           );
         })}
