@@ -15,11 +15,9 @@ import {
   GitBranch,
   HelpCircle,
   Heart,
-  Home,
   Network,
   Rocket,
   Search,
-  Settings,
   ShieldCheck,
   Sparkles,
   Star,
@@ -635,117 +633,123 @@ function FounderDashboardSidebar({
   currentStarId,
   locale,
   selectedNode,
+  starName,
 }: {
   currentStarId: string;
   locale: Locale;
   selectedNode: FanletterFounderUniverseExplorerNode | null;
+  starName: string;
 }) {
+  const isKorean = locale === "ko";
   const dashboardCopy = getDashboardCopy(locale);
   const v2Copy = getFanletterV2Copy(locale);
   const encodedStarId = encodeURIComponent(currentStarId);
-  const navItems = [
+  const selectedRole = selectedNode
+    ? v2Copy.roles[selectedNode.role]
+    : v2Copy.roles.creator;
+  const contextItems = [
     {
-      href: `/${locale}/fanletter`,
-      icon: Home,
-      label: dashboardCopy.topNav[0],
+      href: `/${locale}/fanletter/${encodedStarId}/universe`,
+      icon: Network,
+      label: isKorean ? "파운더 네트워크" : "Founder Network",
+      meta: isKorean ? "현재 화면" : "Current view",
+    },
+    {
+      href: `/${locale}/fanletter/${encodedStarId}`,
+      icon: Star,
+      label: isKorean ? "AI 스타 유니버스" : "AI Star Universe",
+      meta: isKorean ? "스타 상세" : "Star detail",
+    },
+    {
+      href: `/${locale}/fanletter/agentrank/events?starId=${encodedStarId}&limit=40`,
+      icon: Gauge,
+      label: isKorean ? "평판 기록" : "Reputation Records",
+      meta: isKorean ? "AgentRank 신호" : "AgentRank signals",
     },
     {
       href: `/${locale}/fanletter/creator-unlock?starId=${encodedStarId}`,
       icon: Sparkles,
-      label: dashboardCopy.topNav[1],
+      label: isKorean ? "Creator Journey" : "Creator Journey",
+      meta: isKorean ? "권한 활성화" : "Permission activation",
     },
-    {
-      href: `/${locale}/fanletter/agentrank?starId=${encodedStarId}`,
-      icon: Gauge,
-      label: dashboardCopy.topNav[2],
-    },
-    {
-      active: true,
-      href: `/${locale}/fanletter/${encodedStarId}/universe`,
-      icon: Network,
-      label: dashboardCopy.topNav[3],
-    },
-    {
-      href: `/${locale}/fanletter/characters`,
-      icon: Star,
-      label: dashboardCopy.topNav[4],
-    },
-    {
-      href: `/${locale}/fanletter/founder-club`,
-      icon: Users,
-      label: dashboardCopy.topNav[5],
-    },
-    {
-      href: `/${locale}/fanletter/news/characters`,
-      icon: ShieldCheck,
-      label: dashboardCopy.topNav[6],
-    },
-  ];
-  const activityItems = [
-    { icon: Users, label: dashboardCopy.myActivity },
-    { icon: Gauge, label: dashboardCopy.myInfluence },
-    { icon: ShieldCheck, label: dashboardCopy.myContribution },
-    { icon: Bell, label: dashboardCopy.notifications, badge: "12" },
-    { icon: Settings, label: dashboardCopy.settings },
   ];
 
   return (
-    <aside className="hidden min-h-screen border-r border-zinc-200 bg-white px-5 py-7 shadow-[18px_0_45px_rgba(15,23,42,0.04)] xl:flex xl:w-[15.8rem] xl:shrink-0 xl:flex-col">
+    <aside className="hidden min-h-screen border-r border-zinc-200 bg-white px-5 py-7 shadow-[18px_0_45px_rgba(15,23,42,0.04)] xl:flex xl:w-[15rem] xl:shrink-0 xl:flex-col">
       <Link
-        className="inline-flex items-center gap-1 text-2xl font-semibold tracking-normal text-[#0f1b4d]"
+        className="inline-flex items-center gap-1 text-xl font-semibold tracking-normal text-zinc-950"
         href={`/${locale}/fanletter`}
       >
         FanLetter
-        <Sparkles className="size-5 fill-black text-black" />
+        <Sparkles className="size-4 fill-black text-black" />
       </Link>
 
-      <nav className="mt-9 grid gap-1.5">
-        {navItems.map((item) => {
+      <div className="mt-8 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+          {isKorean ? "현재 위치" : "Current Location"}
+        </p>
+        <p className="mt-2 line-clamp-2 text-lg font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+          {starName}
+        </p>
+        <div className="mt-3 grid gap-2 text-xs font-semibold text-zinc-600">
+          <span className="inline-flex items-center gap-2">
+            <Sparkles className="size-3.5 text-zinc-400" />
+            {isKorean ? "AI 스타 유니버스" : "AI Star Universe"}
+          </span>
+          <span className="inline-flex items-center gap-2 text-zinc-950">
+            <Network className="size-3.5 text-zinc-700" />
+            {isKorean ? "파운더 네트워크" : "Founder Network"}
+          </span>
+        </div>
+      </div>
+
+      <nav className="mt-5 grid gap-2" aria-label={dashboardCopy.founderClub}>
+        {contextItems.map((item, index) => {
           const Icon = item.icon;
+          const isActive = index === 0;
 
           return (
             <Link
               className={joinClasses(
-                "flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition",
-                item.active
-                  ? "bg-zinc-100 text-zinc-950"
-                  : "text-slate-600 hover:bg-zinc-50 hover:text-zinc-950",
+                "group flex min-h-14 items-center gap-3 rounded-xl border px-3 py-2 text-sm font-semibold transition",
+                isActive
+                  ? "border-zinc-950 bg-zinc-950 !text-white"
+                  : "border-zinc-200 bg-white !text-zinc-700 hover:border-zinc-300 hover:bg-zinc-50 hover:!text-zinc-950",
               )}
               href={item.href}
               key={item.label}
             >
-              <Icon className="size-4" />
-              {item.label}
+              <span
+                className={joinClasses(
+                  "flex size-9 shrink-0 items-center justify-center rounded-lg",
+                  isActive
+                    ? "bg-white/12 text-white"
+                    : "bg-zinc-100 text-zinc-700 group-hover:bg-white",
+                )}
+              >
+                <Icon className="size-4" />
+              </span>
+              <span className="min-w-0">
+                <span className="block truncate">{item.label}</span>
+                <span
+                  className={joinClasses(
+                    "mt-0.5 block truncate text-[0.68rem] font-semibold",
+                    isActive ? "text-white/58" : "text-zinc-400",
+                  )}
+                >
+                  {item.meta}
+                </span>
+              </span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="mt-10 border-t border-slate-100 pt-6">
-        <p className="px-3 text-xs font-semibold text-slate-400">
-          {dashboardCopy.myActivity}
-        </p>
-        <div className="mt-3 grid gap-1.5">
-          {activityItems.map((item) => (
-            <button
-              className="flex h-10 items-center gap-3 rounded-lg px-3 text-left text-sm font-semibold text-slate-600 transition hover:bg-zinc-50 hover:text-zinc-950"
-              key={item.label}
-              type="button"
-            >
-              <item.icon className="size-4" />
-              <span className="min-w-0 flex-1 truncate">{item.label}</span>
-              {item.badge ? (
-                <span className="rounded-full bg-black px-2 py-0.5 text-[0.68rem] text-white">
-                  {item.badge}
-                </span>
-              ) : null}
-            </button>
-          ))}
-        </div>
-      </div>
-
       <div className="mt-auto grid gap-3">
-        <div className="rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_14px_28px_rgba(15,23,42,0.06)]">
+        <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_14px_28px_rgba(15,23,42,0.06)]">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+            {isKorean ? "보고 있는 멤버" : "Viewing Member"}
+          </p>
           <div className="flex items-center gap-3">
             <HumanMemberAvatar
               member={{
@@ -759,28 +763,28 @@ function FounderDashboardSidebar({
                 {selectedNode?.label ?? "Wayne"}
               </p>
               <span className="mt-1 inline-flex rounded-full bg-zinc-100 px-2 py-0.5 text-[0.62rem] font-semibold text-zinc-700">
-                {v2Copy.roles.creator}
+                {selectedRole}
               </span>
             </div>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-2 text-xs font-semibold text-slate-500">
-            <span>{v2Copy.roles.genesis_founder} 2</span>
-            <span>{v2Copy.roles.founder} 7</span>
-            <span>{v2Copy.roles.mentor} 13</span>
-            <span>{v2Copy.roles.producer} 28</span>
+          <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-semibold text-zinc-500">
+            <span>
+              {isKorean ? "단계" : "Tier"} L{selectedNode?.depth ?? 0}
+            </span>
+            <span>
+              {isKorean ? "직속" : "Direct"}{" "}
+              {selectedNode?.directChildrenCount ?? 0}
+            </span>
           </div>
         </div>
-        <div className="flex items-center justify-between rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_14px_28px_rgba(15,23,42,0.06)]">
-          <span className="text-sm font-semibold text-slate-500">
-            {dashboardCopy.myCredit}
-          </span>
-          <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#12041f]">
-            10,250 CP
-            <span className="flex size-6 items-center justify-center rounded-full bg-zinc-100 text-xs text-zinc-700">
-              C
-            </span>
-          </span>
-        </div>
+        <Link
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
+          href="#founder-network-map"
+        >
+          <Network className="size-4" />
+          {isKorean ? "내 위치 보기" : "View my position"}
+          <ArrowRight className="size-4" />
+        </Link>
       </div>
     </aside>
   );
@@ -3854,6 +3858,7 @@ export function FanletterFounderUniverseExplorer({
         currentStarId={displayUniverse.star.id}
         locale={locale}
         selectedNode={creatorNode}
+        starName={starName}
       />
       <div className="min-w-0 flex-1">
         <FounderDashboardTopbar locale={locale} selectedNode={creatorNode} />
