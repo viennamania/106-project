@@ -830,6 +830,7 @@ function FounderDashboardTopbar({
 }
 
 function FounderUniverseMobileSignpost({
+  creatorNode,
   creatorJourneyHref,
   ledgerHref,
   locale,
@@ -839,6 +840,7 @@ function FounderUniverseMobileSignpost({
   star,
   starName,
 }: {
+  creatorNode: FanletterFounderUniverseExplorerNode | null;
   creatorJourneyHref: string;
   ledgerHref: string;
   locale: Locale;
@@ -895,8 +897,8 @@ function FounderUniverseMobileSignpost({
               value: formatNumber(memberCount, locale),
             },
             {
-              label: isKorean ? "AI 스타 공간" : "AI Star Space",
-              value: isKorean ? "선택됨" : "Selected",
+              label: isKorean ? "운영 주체" : "Operator",
+              value: creatorNode?.label ?? (isKorean ? "Creator" : "Creator"),
             },
           ].map((metric) => (
             <div
@@ -1002,6 +1004,127 @@ function FounderUniverseMobileSignpost({
             <Sparkles className="size-3.5 shrink-0" />
             Creator
           </FanletterTrackedLink>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FounderNetworkRelationshipSummary({
+  agentRank,
+  creatorNode,
+  locale,
+  selectedNode,
+  selectedRoleLabel,
+  star,
+  starName,
+}: {
+  agentRank?: FounderUniverseAgentRankSnapshot | null;
+  creatorNode: FanletterFounderUniverseExplorerNode | null;
+  locale: Locale;
+  selectedNode: FanletterFounderUniverseExplorerNode | null;
+  selectedRoleLabel: string;
+  star: FanletterFounderUniverseExplorerData["star"];
+  starName: string;
+}) {
+  const isKorean = locale === "ko";
+  const v2Copy = getFanletterV2Copy(locale);
+  const latestEvent = agentRank?.eventFeed.events[0] ?? null;
+  const latestEventLabel = latestEvent
+    ? getAgentRankEventLabel(latestEvent.type, locale)
+    : isKorean
+      ? "기록 대기"
+      : "Waiting";
+
+  return (
+    <section className="grid min-w-0 gap-2 rounded-[1.15rem] border border-zinc-200 bg-white p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.055)] sm:grid-cols-3 sm:p-4">
+      <div className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-950 p-3 text-white">
+        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/54">
+          {isKorean ? "AI 스타 유니버스" : "AI Star Universe"}
+        </p>
+        <div className="mt-3 flex min-w-0 items-center gap-3">
+          <div
+            className="flex size-14 shrink-0 items-center justify-center rounded-full border border-white/14 bg-cover bg-center text-sm font-semibold text-white"
+            style={
+              star.portraitImageUrl
+                ? { backgroundImage: `url(${star.portraitImageUrl})` }
+                : {
+                    background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
+                  }
+            }
+          >
+            {star.portraitImageUrl ? null : star.initials}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-base font-semibold">{starName}</p>
+            <p className="mt-0.5 truncate text-xs font-semibold text-white/54">
+              {isKorean ? "AI 스타별 성장 공간" : "Star-specific growth space"}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+              {isKorean ? "Creator / Owner 관계" : "Creator / Owner"}
+            </p>
+            <p className="mt-1 truncate text-base font-semibold text-zinc-950">
+              {creatorNode?.label ?? (isKorean ? "운영자" : "Operator")}
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[0.62rem] font-semibold text-zinc-700 ring-1 ring-zinc-200">
+            {isKorean ? "운영 권한" : "Operate"}
+          </span>
+        </div>
+        <div className="mt-3 flex items-center gap-2">
+          <HumanMemberAvatar
+            member={{
+              initials: creatorNode?.initials ?? "CR",
+              name: creatorNode?.label ?? "Creator",
+            }}
+            size="sm"
+          />
+          <p className="min-w-0 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
+            {isKorean
+              ? "콘텐츠와 채널을 운영하는 사람입니다."
+              : "The person who operates content and channels."}
+          </p>
+        </div>
+      </div>
+
+      <div className="min-w-0 rounded-xl border border-zinc-200 bg-white p-3">
+        <div className="flex min-w-0 items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+              {isKorean ? "파운더 네트워크 관계" : "Founder Network"}
+            </p>
+            <p className="mt-1 truncate text-base font-semibold text-zinc-950">
+              {selectedNode?.label ?? starName}
+            </p>
+          </div>
+          {selectedNode ? (
+            <FounderRoleBadge copy={v2Copy} role={selectedNode.role as FounderRole} />
+          ) : null}
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="rounded-lg bg-zinc-50 px-2.5 py-2">
+            <p className="truncate text-sm font-semibold text-zinc-950">
+              {selectedRoleLabel}
+            </p>
+            <p className="mt-0.5 text-[0.62rem] font-semibold text-zinc-500">
+              {isKorean ? "참여 역할" : "Role"}
+            </p>
+          </div>
+          <div className="rounded-lg bg-zinc-50 px-2.5 py-2">
+            <p className="truncate text-sm font-semibold text-zinc-950">
+              {latestEventLabel}
+            </p>
+            <p className="mt-0.5 text-[0.62rem] font-semibold text-zinc-500">
+              {isKorean ? "평판 기록" : "Record"}
+            </p>
+          </div>
         </div>
       </div>
     </section>
@@ -3744,6 +3867,7 @@ export function FanletterFounderUniverseExplorer({
           ) : null}
 
           <FounderUniverseMobileSignpost
+            creatorNode={creatorNode}
             creatorJourneyHref={creatorJourneyHref}
             ledgerHref={founderUniverseLedgerHref}
             locale={locale}
@@ -3757,6 +3881,16 @@ export function FanletterFounderUniverseExplorer({
           <FounderNetworkTierStructureCard
             locale={locale}
             tiers={displayUniverse.tiers}
+          />
+
+          <FounderNetworkRelationshipSummary
+            agentRank={agentRank}
+            creatorNode={creatorNode}
+            locale={locale}
+            selectedNode={selectedNode}
+            selectedRoleLabel={selectedRoleLabel}
+            star={displayUniverse.star}
+            starName={starName}
           />
 
           <FounderNetworkPositionPath
