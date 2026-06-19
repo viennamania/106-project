@@ -2969,22 +2969,6 @@ export function FanletterAgentRankPage({
               ? "FanLetter 행동 → AgentRank 평판 기록"
               : "FanLetter actions → AgentRank reputation records"
           }
-          secondaryActions={[
-            {
-              agentRank: {
-                eventType: "creator_unlock_evaluated",
-                intent: "agentrank_action_guide_coverage",
-                source: "fanletter_agentrank",
-                starId: starId ?? null,
-              },
-              href: coverageHref,
-              label:
-                locale === "ko" ? "커버리지 점검" : "Check coverage",
-              metadata: {
-                placement: "agentrank_action_guide_coverage",
-              },
-            },
-          ]}
           steps={[
             {
               label: locale === "ko" ? "FanLetter 행동" : "FanLetter actions",
