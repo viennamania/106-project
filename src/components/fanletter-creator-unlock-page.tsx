@@ -1908,6 +1908,192 @@ function CreatorUnlockStateStrip({
   );
 }
 
+function CreatorFounderRelationshipGuide({
+  locale,
+  portfolio,
+  requiresSourceUniverse,
+  selectedSourceOption,
+}: {
+  locale: Locale;
+  portfolio: MemberPortfolioData;
+  requiresSourceUniverse: boolean;
+  selectedSourceOption: SourceUniverseOption | null;
+}) {
+  const isKorean = locale === "ko";
+  const v2Copy = getFanletterV2Copy(locale);
+  const primaryOwnedStar =
+    portfolio.ownedStars.find((star) => star.id === selectedSourceOption?.starId) ??
+    portfolio.ownedStars[0] ??
+    null;
+  const selectedUniverseName =
+    selectedSourceOption && !requiresSourceUniverse
+      ? getDisplayUniverseName(selectedSourceOption.universeName, locale)
+      : isKorean
+        ? "출처 선택 필요"
+        : "Source required";
+  const selectedRoleLabel =
+    selectedSourceOption && !requiresSourceUniverse
+      ? v2Copy.roles[selectedSourceOption.role]
+      : isKorean
+        ? "참여 전"
+        : "Not selected";
+  const labels = isKorean
+    ? {
+        creatorBody: "콘텐츠, TikTok 채널, 스튜디오를 운영하는 AI 스타입니다.",
+        creatorCount: `${formatNumber(portfolio.ownedStars.length, locale)}개 운영`,
+        creatorEmpty: "운영 중인 AI 스타 없음",
+        creatorEyebrow: "Creator / Owner 관계",
+        creatorTitle: "내가 운영하는 AI 스타",
+        founderBody: "선택한 AI 스타 유니버스 안의 6단계 초대/역할/CP 기준입니다.",
+        founderCount: `${formatNumber(portfolio.roles.length, locale)}개 참여`,
+        founderEyebrow: "파운더 네트워크 관계",
+        founderTitle: "창업 출처 역할",
+        memberEyebrow: "현재 위치",
+        memberTitle: "내 Creator Journey 기준",
+        source: "출처",
+        status: "상태",
+      }
+    : {
+        creatorBody: "AI Stars where you operate content, TikTok, and studio tools.",
+        creatorCount: `${formatNumber(portfolio.ownedStars.length, locale)} operated`,
+        creatorEmpty: "No operated AI Stars",
+        creatorEyebrow: "Creator / Owner relationship",
+        creatorTitle: "AI Stars I operate",
+        founderBody:
+          "The 6-tier invite, role, and CP structure inside the selected AI Star Universe.",
+        founderCount: `${formatNumber(portfolio.roles.length, locale)} joined`,
+        founderEyebrow: "Founder Network relationship",
+        founderTitle: "Launch source role",
+        memberEyebrow: "Current position",
+        memberTitle: "My Creator Journey basis",
+        source: "Source",
+        status: "Status",
+      };
+
+  return (
+    <section className="mt-4 grid min-w-0 gap-2 rounded-[1.15rem] border border-zinc-200 bg-white p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.055)] sm:grid-cols-3 sm:p-4">
+      <div className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+          {labels.memberEyebrow}
+        </p>
+        <div className="mt-3 flex min-w-0 items-center gap-3">
+          <HumanMemberAvatar
+            member={{
+              initials: portfolio.memberInitials ?? getInitials(portfolio.memberName),
+              name: portfolio.memberName,
+            }}
+            size="md"
+          />
+          <div className="min-w-0">
+            <p className="truncate text-base font-semibold text-zinc-950">
+              {portfolio.memberName}
+            </p>
+            <p className="mt-0.5 truncate text-xs font-semibold text-zinc-500">
+              {labels.memberTitle}
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="rounded-lg bg-white px-2.5 py-2 ring-1 ring-zinc-200">
+            <p className="truncate text-sm font-semibold text-zinc-950">
+              {labels.creatorCount}
+            </p>
+            <p className="mt-0.5 text-[0.62rem] font-semibold text-zinc-500">
+              Creator
+            </p>
+          </div>
+          <div className="rounded-lg bg-white px-2.5 py-2 ring-1 ring-zinc-200">
+            <p className="truncate text-sm font-semibold text-zinc-950">
+              {labels.founderCount}
+            </p>
+            <p className="mt-0.5 text-[0.62rem] font-semibold text-zinc-500">
+              Founder
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="min-w-0 rounded-xl border border-zinc-950 bg-zinc-950 p-3 text-white">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/54">
+              {labels.creatorEyebrow}
+            </p>
+            <p className="mt-1 truncate text-base font-semibold">
+              {primaryOwnedStar?.name ?? labels.creatorEmpty}
+            </p>
+          </div>
+          <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[0.62rem] font-semibold text-black">
+            AI STAR
+          </span>
+        </div>
+        <div className="mt-3 flex min-w-0 items-center gap-3">
+          <div
+            className="flex size-12 shrink-0 items-center justify-center rounded-full border border-white/14 bg-cover bg-center text-xs font-semibold text-white"
+            style={
+              primaryOwnedStar?.portraitImageUrl
+                ? { backgroundImage: `url(${primaryOwnedStar.portraitImageUrl})` }
+                : primaryOwnedStar
+                  ? {
+                      background:
+                        "linear-gradient(145deg, #111827, #52525b 52%, #a1a1aa)",
+                    }
+                  : undefined
+            }
+          >
+            {primaryOwnedStar?.portraitImageUrl
+              ? null
+              : primaryOwnedStar?.portraitInitials ?? <Bot className="size-4" />}
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">{labels.creatorTitle}</p>
+            <p className="mt-0.5 text-xs font-semibold leading-5 text-white/56 [word-break:keep-all]">
+              {labels.creatorBody}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="min-w-0 rounded-xl border border-zinc-200 bg-white p-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+              {labels.founderEyebrow}
+            </p>
+            <p className="mt-1 truncate text-base font-semibold text-zinc-950">
+              {labels.founderTitle}
+            </p>
+          </div>
+          {selectedSourceOption && !requiresSourceUniverse ? (
+            <FounderRoleBadge copy={v2Copy} role={selectedSourceOption.role} />
+          ) : null}
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="rounded-lg bg-zinc-50 px-2.5 py-2">
+            <p className="truncate text-sm font-semibold text-zinc-950">
+              {selectedUniverseName}
+            </p>
+            <p className="mt-0.5 text-[0.62rem] font-semibold text-zinc-500">
+              {labels.source}
+            </p>
+          </div>
+          <div className="rounded-lg bg-zinc-50 px-2.5 py-2">
+            <p className="truncate text-sm font-semibold text-zinc-950">
+              {selectedRoleLabel}
+            </p>
+            <p className="mt-0.5 text-[0.62rem] font-semibold text-zinc-500">
+              {labels.status}
+            </p>
+          </div>
+        </div>
+        <p className="mt-3 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
+          {labels.founderBody}
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function CreatorNextActionStatusCard({
   action,
   completedConditionCount,
@@ -2608,8 +2794,8 @@ export function FanletterCreatorUnlockPage({
       ]}
       subtitle={
         locale === "ko"
-          ? "새 AI 스타는 선택한 스타 네트워크의 성과로 기록되고, 이후 CP Pool과 AgentRank 이벤트로 이어집니다."
-          : "A new AI Star records the selected Star Network as its launch source, then feeds CP Pool and AgentRank events."
+          ? "새 AI 스타는 선택한 AI 스타 유니버스의 성과로 기록되고, 이후 CP Pool과 AgentRank 이벤트로 이어집니다."
+          : "A new AI Star records the selected AI Star Universe as its launch source, then feeds CP Pool and AgentRank events."
       }
       title={
         creatorUnlockNextTitle
@@ -2869,6 +3055,13 @@ export function FanletterCreatorUnlockPage({
           selectedSourceOption={selectedSourceOption}
           socialSourceStarId={socialSourceStarId}
           unlock={unlock}
+        />
+
+        <CreatorFounderRelationshipGuide
+          locale={locale}
+          portfolio={portfolio}
+          requiresSourceUniverse={requiresSourceUniverse}
+          selectedSourceOption={selectedSourceOption}
         />
 
         <CreatorNextActionStatusCard
