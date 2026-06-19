@@ -28,7 +28,6 @@ import {
   FounderRoleBadge,
   HumanMemberAvatar,
 } from "@/components/fanletter-founder-club-v2";
-import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import { getAgentRankEventTypeLabel } from "@/lib/agentrank/event-labels";
@@ -952,25 +951,6 @@ function FounderUniverseMobileSignpost({
             {isKorean ? "네트워크 성장 이벤트" : "Network growth event"}
           </span>
         </div>
-        <FanletterTrackedLink
-          agentRank={{
-            eventType: "universe_growth",
-            intent: "founder_universe_mobile_signpost_map",
-            source: "fanletter_founder_universe",
-            starId: star.id,
-          }}
-          className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-sm font-semibold !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)]"
-          eventName="content_open"
-          href="#founder-network-map"
-          metadata={{
-            placement: "founder_universe_mobile_signpost_primary",
-            selectedNodeId: selectedNode?.nodeId ?? null,
-            starName,
-          }}
-        >
-          {isKorean ? "내 위치 보기" : "View my position"}
-          <ArrowRight className="size-4" />
-        </FanletterTrackedLink>
         <div className="mt-2 grid grid-cols-2 gap-2">
           <FanletterTrackedLink
             agentRank={{
@@ -3911,7 +3891,7 @@ export function FanletterFounderUniverseExplorer({
                 </p>
               </div>
               <Link
-                className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
+                className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800 xl:hidden"
                 href="#founder-network-map"
               >
                 <Network className="size-4" />
@@ -3972,102 +3952,6 @@ export function FanletterFounderUniverseExplorer({
             starName={starName}
             starPortraitImageUrl={displayUniverse.star.portraitImageUrl}
             starPortraitInitials={displayUniverse.star.initials}
-          />
-
-          <FanletterActionGuide
-            className="hidden sm:block"
-            currentLabel={
-              locale === "ko"
-                ? `${starName} 파운더 네트워크`
-                : `${starName} Founder Network`
-            }
-            metrics={[
-              {
-                label: locale === "ko" ? "내 역할" : "My role",
-                value: selectedRoleLabel,
-              },
-              {
-                label: locale === "ko" ? "네트워크" : "Network",
-                value: formatNumber(displayUniverse.totals.totalMembers, locale),
-              },
-            ]}
-            primaryAction={{
-              agentRank: {
-                eventType: "universe_growth",
-                intent: "founder_universe_action_guide_map",
-                source: "fanletter_founder_universe",
-                starId: displayUniverse.star.id,
-              },
-              eventName: "content_open",
-              href: "#founder-network-map",
-              label:
-                locale === "ko"
-                  ? "내 위치 보기"
-                  : "View my position",
-              metadata: {
-                placement: "founder_universe_action_guide_primary",
-                selectedNodeId: selectedNode?.nodeId ?? null,
-                starName,
-              },
-            }}
-            reputationEventLabel={
-              locale === "ko"
-                ? "네트워크 성장 이벤트"
-                : "Network growth event"
-            }
-            secondaryActions={[
-              {
-                agentRank: {
-                  eventType: "content_engaged",
-                  intent: "founder_universe_action_guide_ledger",
-                  source: "fanletter_founder_universe",
-                  starId: displayUniverse.star.id,
-                },
-                eventName: "content_open",
-                href: founderUniverseLedgerHref,
-                label:
-                  locale === "ko"
-                    ? "평판 기록 보기"
-                    : "View reputation records",
-                metadata: {
-                  placement: "founder_universe_action_guide_ledger",
-                  starName,
-                },
-              },
-            ]}
-            steps={[
-              {
-                label: locale === "ko" ? "AI 스타" : "AI Star",
-                status: "done",
-              },
-              {
-                label: locale === "ko" ? "6단계 네트워크" : "6-tier network",
-                status: "active",
-              },
-              {
-                label: locale === "ko" ? "CP 분배" : "CP distribution",
-                status:
-                  displayUniverse.totals.spawnedStars > 0 ? "done" : "next",
-              },
-              {
-                label: locale === "ko" ? "평판 기록" : "Reputation",
-                status: agentRank ? "active" : "next",
-              },
-            ]}
-            subtitle={
-              locale === "ko"
-                ? "보고 있는 멤버의 위치와 하위 네트워크를 확인하고, 성장 결과를 평판 기록으로 남깁니다."
-                : "Inspect the member position and downstream network, then save growth as reputation records."
-            }
-            title={
-              locale === "ko"
-                ? isViewingOwnNode
-                  ? "다음 행동: 내 하위 네트워크 확인"
-                  : "다음 행동: 내 위치 보기"
-                : isViewingOwnNode
-                  ? "Next action: inspect my downstream"
-                  : "Next action: view my position"
-            }
           />
 
           <section className="hidden min-w-0 grid-cols-2 gap-2 sm:grid sm:grid-cols-3">
