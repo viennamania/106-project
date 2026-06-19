@@ -204,7 +204,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
   > = {
     ko: {
       discover: "발견",
-      founder: "파운더",
+      founder: "성장",
       home: "홈",
       label: "AIAVpark 주요 메뉴",
       scout: "스카우트",
@@ -212,7 +212,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     },
     en: {
       discover: "Discover",
-      founder: "Founder",
+      founder: "Growth",
       home: "Home",
       label: "AIAVpark navigation",
       scout: "Scout",
@@ -220,7 +220,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     },
     ja: {
       discover: "発見",
-      founder: "ファウンダー",
+      founder: "成長",
       home: "ホーム",
       label: "AIAVparkナビゲーション",
       scout: "スカウト",
@@ -228,7 +228,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     },
     zh: {
       discover: "发现",
-      founder: "创始人",
+      founder: "成长",
       home: "首页",
       label: "AIAVpark 导航",
       scout: "星探",
@@ -236,7 +236,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     },
     vi: {
       discover: "Khám phá",
-      founder: "Sáng lập",
+      founder: "Tăng trưởng",
       home: "Trang chủ",
       label: "Điều hướng AIAVpark",
       scout: "Tuyển trạch",
@@ -244,7 +244,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     },
     id: {
       discover: "Jelajahi",
-      founder: "Pendiri",
+      founder: "Growth",
       home: "Beranda",
       label: "Navigasi AIAVpark",
       scout: "Pencari",
@@ -277,6 +277,8 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     },
     {
       activePaths: [
+        `${basePath}/agentrank`,
+        `${basePath}/ai-star-genealogy`,
         `${basePath}/founder-club`,
         `${basePath}/creator-unlock`,
       ],

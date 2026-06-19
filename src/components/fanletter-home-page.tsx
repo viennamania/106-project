@@ -2991,6 +2991,18 @@ export function FanletterHomePage({
               >
                 {copy.nav.paid}
               </a>
+              <a
+                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+                href={scoutShareLoopHref}
+              >
+                {locale === "ko" ? "스카우트" : "Scout"}
+              </a>
+              <Link
+                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
+                href={creatorUnlockHref}
+              >
+                {locale === "ko" ? "Creator" : "Creator"}
+              </Link>
               <Link
                 className="inline-flex min-h-8 items-center rounded-full bg-black px-3 !text-white transition hover:bg-zinc-800"
                 href={agentRankHref}
