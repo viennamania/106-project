@@ -11,11 +11,18 @@ import { hasLocale, type Locale } from "@/lib/i18n";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
 type FounderClubView = "creator" | "founder";
+type FounderClubEntryContext = "default" | "my-ai";
 
 function normalizeFounderClubView(value: string | string[] | undefined) {
   const rawValue = Array.isArray(value) ? value[0] : value;
 
   return rawValue === "creator" ? "creator" : "founder";
+}
+
+function normalizeFounderClubEntryContext(value: string | string[] | undefined) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+
+  return rawValue === "my-ai" ? "my-ai" : "default";
 }
 
 function getFounderClubMeta(locale: Locale) {
@@ -69,7 +76,7 @@ export default async function FanletterFounderClubRoutePage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ view?: string | string[] }>;
+  searchParams: Promise<{ context?: string | string[]; view?: string | string[] }>;
 }) {
   const { lang } = await params;
   const query = await searchParams;
@@ -80,6 +87,8 @@ export default async function FanletterFounderClubRoutePage({
 
   const locale = lang as Locale;
   const initialView: FounderClubView = normalizeFounderClubView(query.view);
+  const entryContext: FounderClubEntryContext =
+    normalizeFounderClubEntryContext(query.context);
   const memberSession = await readMemberServerSession();
   const memberEmail = memberSession?.email ?? null;
   const [portfolio, stars] = await Promise.all([
@@ -102,6 +111,7 @@ export default async function FanletterFounderClubRoutePage({
 
   return (
     <FanletterFounderClubPage
+      entryContext={entryContext}
       initialView={initialView}
       locale={locale}
       portfolio={portfolio}

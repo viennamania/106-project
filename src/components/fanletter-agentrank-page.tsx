@@ -2932,8 +2932,8 @@ export function FanletterAgentRankPage({
         <FanletterActionGuide
           currentLabel={
             locale === "ko"
-              ? "AgentRank 평판 기록"
-              : "AgentRank reputation records"
+              ? "투자자 대시보드 · AgentRank"
+              : "Investor dashboard · AgentRank"
           }
           metrics={[
             {
@@ -2966,8 +2966,8 @@ export function FanletterAgentRankPage({
           }}
           reputationEventLabel={
             locale === "ko"
-              ? "FanLetter 행동 → AgentRank 평판 기록"
-              : "FanLetter actions → AgentRank reputation records"
+              ? "FanLetter 행동 → 평판 기록 → AgentRank 점수"
+              : "FanLetter actions → reputation records → AgentRank score"
           }
           steps={[
             {
@@ -2975,7 +2975,7 @@ export function FanletterAgentRankPage({
               status: "done",
             },
             {
-              label: locale === "ko" ? "평판 이벤트" : "Reputation events",
+              label: locale === "ko" ? "평판 기록" : "Reputation records",
               status: "active",
             },
             {
@@ -2989,8 +2989,8 @@ export function FanletterAgentRankPage({
           ]}
           subtitle={
             locale === "ko"
-              ? "AI 스타 발견, 파운더 참여, 추천 공유가 어떤 평판 기록으로 남았는지 먼저 확인합니다."
-              : "First check which reputation records were created by discovery, founder joins, and referrals."
+              ? "이 화면은 투자자와 운영자가 보는 요약입니다. 실제 행동 내역은 평판 기록에서 검증합니다."
+              : "This is the investor and operator summary. Verify the action history in reputation records."
           }
           title={
             locale === "ko"

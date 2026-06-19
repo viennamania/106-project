@@ -44,6 +44,7 @@ type FounderClubRoleShare = {
 };
 
 type FounderClubView = "creator" | "founder";
+type FounderClubEntryContext = "default" | "my-ai";
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US").format(
@@ -75,6 +76,12 @@ function getCopy(locale: Locale) {
         "이 브라우저에서 저장된 Founder 참여 내역입니다. 실제 결제/DB 반영 전까지 v2.0 흐름을 미리 확인합니다.",
       mockMembershipCta: "유니버스 보기",
       mockMembershipTitle: "Mock Founder 참여 반영됨",
+      myAiEntry: {
+        body:
+          "하단 내 AI에서 들어온 운영 화면입니다. TikTok, 콘텐츠, 평판 기록 상태를 먼저 확인하세요.",
+        pill: "내 AI 진입",
+        title: "운영 AI 스타 관리",
+      },
       referralCode: "추천 코드",
       relationLinks: {
         creator: "운영 AI 스타 보기",
@@ -149,6 +156,12 @@ function getCopy(locale: Locale) {
         "Founder joins saved in this browser are reflected here while the v2.0 flow remains mock-only before real payment and DB writes.",
       mockMembershipCta: "View Universe",
       mockMembershipTitle: "Mock Founder join reflected",
+      myAiEntry: {
+        body:
+          "You entered from My AI. Review TikTok, content, and reputation record status first.",
+        pill: "My AI entry",
+        title: "Manage operated AI Stars",
+      },
       referralCode: "Referral Code",
       relationLinks: {
         creator: "View operated AI Stars",
@@ -541,12 +554,14 @@ function MockCreatorLaunchSummary({
 }
 
 export function FanletterFounderClubPage({
+  entryContext = "default",
   initialView = "founder",
   locale,
   portfolio: livePortfolio,
   roleShares: liveRoleShares,
   stars = fanletterV2Mock.aiStars,
 }: {
+  entryContext?: FounderClubEntryContext;
   initialView?: FounderClubView;
   locale: Locale;
   portfolio?: MemberPortfolioData | null;
@@ -696,13 +711,14 @@ export function FanletterFounderClubPage({
   const hasFounderRoles = roleShares.length > 0;
   const activeView: FounderClubView =
     initialView === "creator" ? "creator" : "founder";
+  const isMyAiEntry = entryContext === "my-ai" || activeView === "creator";
   const primaryActionHref = activeView === "creator"
     ? "#owned-ai-stars"
     : hasFounderRoles
     ? "#referral-manager"
     : `/${locale}/fanletter/characters`;
   const creatorJourneyHref = `/${locale}/fanletter/creator-unlock`;
-  const creatorViewHref = `/${locale}/fanletter/founder-club?view=creator#owned-ai-stars`;
+  const creatorViewHref = `/${locale}/fanletter/founder-club?view=creator&context=my-ai#owned-ai-stars`;
   const founderViewHref = `/${locale}/fanletter/founder-club?view=founder#joined-founder-networks`;
   const viewTabs = [
     {
@@ -751,15 +767,15 @@ export function FanletterFounderClubPage({
                 />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-black/52">
-                    {copy.heroEyebrow}
+                    {isMyAiEntry ? copy.myAiEntry.pill : copy.heroEyebrow}
                   </p>
                   <h1 className="text-[2.35rem] font-semibold leading-none tracking-normal text-black [word-break:keep-all] sm:text-[4rem]">
-                    {copy.heroTitle}
+                    {isMyAiEntry ? copy.myAiEntry.title : copy.heroTitle}
                   </h1>
                 </div>
               </div>
               <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-black/58">
-                {copy.heroBody}
+                {isMyAiEntry ? copy.myAiEntry.body : copy.heroBody}
               </p>
               <div className="mt-5 rounded-lg border border-black/10 bg-[#f7f7f4] p-2">
                 <p className="px-2 pb-2 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-black/36">
@@ -875,6 +891,11 @@ export function FanletterFounderClubPage({
             <span className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold text-black/54">
               {copy.terminologyPill}
             </span>
+            {isMyAiEntry ? (
+              <span className="inline-flex rounded-full border border-black bg-black px-3 py-1 text-xs font-semibold text-white">
+                {copy.myAiEntry.pill}
+              </span>
+            ) : null}
           </div>
         </section>
 

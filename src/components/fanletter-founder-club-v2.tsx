@@ -748,6 +748,7 @@ export function MemberPortfolio({
         creatorEyebrow: "운영 권한",
         creatorTitle: "내가 운영하는 AI 스타",
         contentReady: "콘텐츠 준비",
+        contentSurface: "콘텐츠",
         founderBody:
           "AI 스타 유니버스 안에서 내가 가진 초대, CP, 파운더 네트워크 역할입니다.",
         founderCount: `${formatNumber(portfolio.roles.length, locale)}개 참여`,
@@ -769,6 +770,7 @@ export function MemberPortfolio({
         creatorEyebrow: "Operating permission",
         creatorTitle: "AI Stars I operate",
         contentReady: "Content ready",
+        contentSurface: "Content",
         founderBody:
           "Invitation, CP, and Founder Network roles held inside AI Star Universes.",
         founderCount: `${formatNumber(portfolio.roles.length, locale)} joined`,
@@ -885,10 +887,16 @@ export function MemberPortfolio({
                   })
                 : null;
               const primaryHref = socialAccount
-                ? `/${locale}/fanletter/${encodeURIComponent(ownedStar.id)}`
-                : `/${locale}/fanletter/creator-unlock?starId=${encodeURIComponent(
-                    ownedStar.id,
-                  )}#tiktok-channel`;
+                ? setPathSearchParams(
+                    `/${locale}/fanletter/${encodeURIComponent(ownedStar.id)}`,
+                    { from: "my-ai" },
+                  )
+                : setPathSearchParams(
+                    `/${locale}/fanletter/creator-unlock?starId=${encodeURIComponent(
+                      ownedStar.id,
+                    )}#tiktok-channel`,
+                    { from: "my-ai" },
+                  );
               const primaryLabel = socialAccount
                 ? relationCopy.openStar
                 : relationCopy.socialConnectCta;
@@ -973,7 +981,7 @@ export function MemberPortfolio({
                     </span>
                     <span className="min-w-0 rounded-md bg-white/8 px-2 py-2">
                       <span className="block truncate text-[0.62rem] font-semibold text-white/42">
-                        Studio
+                        {relationCopy.contentSurface}
                       </span>
                       <span className="mt-1 block truncate text-xs font-semibold text-white">
                         {relationCopy.contentReady}

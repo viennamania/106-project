@@ -257,7 +257,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     `${basePath}/founder-club?view=founder#joined-founder-networks`,
   );
   const founderClubCreatorHref = buildHref(
-    `${basePath}/founder-club?view=creator#owned-ai-stars`,
+    `${basePath}/founder-club?view=creator&context=my-ai#owned-ai-stars`,
   );
   const currentView = searchParams.get("view");
   const items: FanletterNavItem[] = [
