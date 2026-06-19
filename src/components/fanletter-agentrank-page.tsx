@@ -2619,7 +2619,7 @@ function AgentRankAudienceSplit({
   ];
 
   return (
-    <section className="mt-4 grid gap-2 sm:grid-cols-2 sm:gap-3">
+    <section className="mt-4 hidden gap-2 sm:grid sm:grid-cols-2 sm:gap-3">
       {cards.map(({ Icon, badge, body, metric, metricLabel, title }) => (
         <div
           className="min-w-0 rounded-[1.15rem] border border-zinc-200 bg-white p-3 shadow-[0_14px_34px_rgba(15,23,42,0.05)] sm:p-4"
