@@ -119,7 +119,7 @@ function getAgentRankCopy(locale: Locale) {
       eventFactory: "Reputation Event Factory",
       eventFactoryBody:
         "FanLetter의 발견, 참여, 초대, 창업, CP 보상이 AgentRank 이벤트 원천이 됩니다.",
-      eventTimeline: "최근 Reputation Events",
+      eventTimeline: "최근 평판 기록",
       fanletter: "FanLetter",
       fanletterBody:
         "AI 스타 발견과 파운더 네트워크로 소비자 행동 데이터를 생성합니다.",
@@ -165,7 +165,7 @@ function getAgentRankCopy(locale: Locale) {
       trustLayerMissing: "AI Agent 경제에는 Trust Layer가 필요합니다.",
       topContributors: "상위 기여자",
       useCases: "Use Cases",
-      viewEventsApi: "Event Ledger",
+      viewEventsApi: "평판 기록 보기",
       viewFounderUniverse: "파운더 네트워크",
       viewHome: "FanLetter 홈",
       whyMatters:
@@ -182,7 +182,7 @@ function getAgentRankCopy(locale: Locale) {
         audit: "감사 준비",
         cp: "CP 보상",
         cpPool: "CP Pool",
-        events: "이벤트",
+        events: "평판 기록",
         members: "멤버",
         network: "네트워크 연결",
         oracle: "오라클 준비",
@@ -228,7 +228,7 @@ function getAgentRankCopy(locale: Locale) {
     eventFactory: "Reputation Event Factory",
     eventFactoryBody:
       "Discovery, joins, invites, creator launches, and CP rewards become AgentRank event sources.",
-    eventTimeline: "Latest Reputation Events",
+    eventTimeline: "Latest reputation records",
     fanletter: "FanLetter",
     fanletterBody:
       "Generates consumer behavior data through AI Star Discovery and Founder Network activity.",
@@ -274,7 +274,7 @@ function getAgentRankCopy(locale: Locale) {
     trustLayerMissing: "The AI Agent economy needs a trust layer.",
     topContributors: "Top Contributors",
     useCases: "Use Cases",
-    viewEventsApi: "Event Ledger",
+    viewEventsApi: "View reputation records",
     viewFounderUniverse: "Founder Network",
     viewHome: "FanLetter Home",
     whyMatters:
@@ -291,7 +291,7 @@ function getAgentRankCopy(locale: Locale) {
       audit: "Audit Ready",
       cp: "CP Rewards",
       cpPool: "CP Pool",
-      events: "Events",
+      events: "Records",
       members: "Members",
       network: "Network Edges",
       oracle: "Oracle Ready",
@@ -2983,7 +2983,7 @@ export function FanletterAgentRankPage({
               status: scoreAggregate.summary.auditReadyEvents > 0 ? "done" : "next",
             },
             {
-              label: "AgentRank",
+              label: locale === "ko" ? "점수 반영" : "Score",
               status: "active",
             },
           ]}
