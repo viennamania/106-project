@@ -2655,6 +2655,207 @@ function AgentRankAudienceSplit({
   );
 }
 
+function AgentRankUserPathPanel({
+  eventCount,
+  founderNetworkHref,
+  ledgerHref,
+  locale,
+  score,
+  starId,
+}: {
+  eventCount: number;
+  founderNetworkHref: string;
+  ledgerHref: string;
+  locale: Locale;
+  score: number;
+  starId?: string | null;
+}) {
+  const isKo = locale === "ko";
+  const steps = [
+    {
+      Icon: Eye,
+      label: isKo ? "AI 스타 발견" : "Discover AI Stars",
+      value: isKo ? "행동 시작" : "Start action",
+    },
+    {
+      Icon: Users,
+      label: isKo ? "파운더 네트워크" : "Founder Network",
+      value: isKo ? "참여/추천" : "Join / refer",
+    },
+    {
+      Icon: ShieldCheck,
+      label: isKo ? "평판 기록" : "Reputation records",
+      value: formatNumber(eventCount, locale),
+    },
+    {
+      Icon: Brain,
+      label: "AgentRank",
+      value: formatNumber(score, locale),
+    },
+  ];
+
+  return (
+    <section className="mt-4 overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white shadow-[0_14px_36px_rgba(15,23,42,0.06)]">
+      <div className="p-3.5 sm:p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              {isKo ? "사용자 흐름" : "User flow"}
+            </p>
+            <h2 className="mt-1 text-xl font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+              {isKo
+                ? "내 행동이 평판 기록으로 쌓입니다"
+                : "Your actions become reputation records"}
+            </h2>
+          </div>
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "content_engaged",
+              intent: "agentrank_user_path_ledger_open",
+              source: "fanletter_agentrank",
+              starId: starId ?? null,
+            }}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto"
+            eventName="content_open"
+            href={ledgerHref}
+            metadata={{
+              placement: "agentrank_user_path_primary",
+            }}
+          >
+            {isKo ? "평판 기록 보기" : "View records"}
+            <ArrowRight className="size-4 shrink-0" />
+          </FanletterTrackedLink>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {steps.map(({ Icon, label, value }, index) => (
+            <div
+              className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3"
+              key={label}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-white text-zinc-950 shadow-[0_8px_18px_rgba(15,23,42,0.05)]">
+                  <Icon className="size-4" />
+                </span>
+                <span className="text-xs font-semibold text-zinc-400">
+                  {index + 1}
+                </span>
+              </div>
+              <p className="mt-3 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+                {label}
+              </p>
+              <p className="mt-1 break-words text-xs font-semibold leading-tight text-zinc-500 [word-break:keep-all]">
+                {value}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="border-t border-zinc-200 bg-zinc-50 px-3.5 py-3 sm:px-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-semibold leading-5 text-zinc-700 [word-break:keep-all]">
+            {isKo
+              ? "파운더 네트워크에서 참여와 추천이 발생하면 AgentRank 신호가 채워집니다."
+              : "Founder Network joins and referrals fill AgentRank signals."}
+          </p>
+          <FanletterTrackedLink
+            agentRank={{
+              eventType: "universe_growth",
+              intent: "agentrank_user_path_founder_network_open",
+              source: "fanletter_agentrank",
+              starId: starId ?? null,
+            }}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-center text-xs font-semibold leading-tight text-zinc-900 transition hover:border-zinc-400 hover:bg-zinc-50 [word-break:keep-all]"
+            eventName="content_open"
+            href={founderNetworkHref}
+            metadata={{
+              placement: "agentrank_user_path_founder_network",
+            }}
+          >
+            {isKo ? "파운더 네트워크" : "Founder Network"}
+            <ArrowRight className="size-3.5 shrink-0" />
+          </FanletterTrackedLink>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function AgentRankInvestorSectionIntro({
+  copy,
+  coverageHref,
+  coverageQuality,
+  eventCount,
+  locale,
+  score,
+  starId,
+}: {
+  copy: AgentRankCopy;
+  coverageHref: string;
+  coverageQuality: number;
+  eventCount: number;
+  locale: Locale;
+  score: number;
+  starId?: string | null;
+}) {
+  const isKo = locale === "ko";
+
+  return (
+    <div className="rounded-[1.15rem] border border-zinc-200 bg-zinc-950 p-4 text-white shadow-[0_18px_46px_rgba(15,23,42,0.18)]">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="min-w-0">
+          <p
+            className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-white/55"
+            id="agentrank-investor-section-title"
+          >
+            {isKo ? "투자자 / 운영자 검증 영역" : "Investor / operator verification"}
+          </p>
+          <h2 className="mt-1 text-2xl font-semibold leading-tight [word-break:keep-all]">
+            {isKo
+              ? "여기부터는 이벤트 품질과 검증 가능성을 봅니다"
+              : "From here, inspect event quality and verifiability"}
+          </h2>
+        </div>
+        <div className="grid grid-cols-3 gap-2 lg:min-w-[22rem]">
+          {[
+            { label: copy.metrics.events, value: formatNumber(eventCount, locale) },
+            { label: copy.score, value: formatNumber(score, locale) },
+            { label: copy.metrics.quality, value: `${coverageQuality}%` },
+          ].map((metric) => (
+            <div
+              className="min-w-0 rounded-lg bg-white/8 px-3 py-2 ring-1 ring-white/10"
+              key={metric.label}
+            >
+              <p className="truncate text-[0.62rem] font-semibold text-white/50">
+                {metric.label}
+              </p>
+              <p className="mt-1 truncate text-sm font-semibold">{metric.value}</p>
+            </div>
+          ))}
+        </div>
+        <FanletterTrackedLink
+          agentRank={{
+            eventType: "creator_unlock_evaluated",
+            intent: "agentrank_investor_coverage_open",
+            source: "fanletter_agentrank",
+            starId: starId ?? null,
+          }}
+          className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full bg-white px-4 py-2 text-center text-sm font-semibold leading-tight text-zinc-950 transition hover:bg-zinc-100 [word-break:keep-all]"
+          eventName="content_open"
+          href={coverageHref}
+          metadata={{
+            placement: "agentrank_investor_section_coverage",
+          }}
+        >
+          {isKo ? "커버리지 점검" : "Check coverage"}
+          <ArrowRight className="size-4 shrink-0" />
+        </FanletterTrackedLink>
+      </div>
+    </div>
+  );
+}
+
 export function FanletterAgentRankPage({
   backfill,
   coverage,
@@ -2731,8 +2932,8 @@ export function FanletterAgentRankPage({
         <FanletterActionGuide
           currentLabel={
             locale === "ko"
-              ? "AgentRank 검증 대시보드"
-              : "AgentRank Verification Dashboard"
+              ? "AgentRank 평판 기록"
+              : "AgentRank reputation records"
           }
           metrics={[
             {
@@ -2757,14 +2958,16 @@ export function FanletterAgentRankPage({
             href: ledgerHref,
             label:
               locale === "ko"
-                ? "평판 이벤트 장부 보기"
-                : "Open reputation ledger",
+                ? "내 평판 기록 보기"
+                : "View my records",
             metadata: {
               placement: "agentrank_action_guide_primary",
             },
           }}
           reputationEventLabel={
-            locale === "ko" ? "AgentRank 집계" : "AgentRank aggregate"
+            locale === "ko"
+              ? "FanLetter 행동 → AgentRank 평판 기록"
+              : "FanLetter actions → AgentRank reputation records"
           }
           secondaryActions={[
             {
@@ -2802,13 +3005,13 @@ export function FanletterAgentRankPage({
           ]}
           subtitle={
             locale === "ko"
-              ? "사용자 행동이 이벤트로 정규화되고, 점수와 검증 가능성으로 이어지는지 보는 화면입니다."
-              : "This view checks whether user actions normalize into events, scores, and verifiable packets."
+              ? "AI 스타 발견, 파운더 참여, 추천 공유가 어떤 평판 기록으로 남았는지 먼저 확인합니다."
+              : "First check which reputation records were created by discovery, founder joins, and referrals."
           }
           title={
             locale === "ko"
-              ? "다음 행동: 이벤트 장부 검증"
-              : "Next action: verify the event ledger"
+              ? "다음 행동: 내 평판 기록 보기"
+              : "Next action: view my records"
           }
         />
         <AgentRankMobileStatusCard
@@ -2821,6 +3024,29 @@ export function FanletterAgentRankPage({
           eventCount={ers.summary.eventCount}
           locale={locale}
         />
+        <AgentRankUserPathPanel
+          eventCount={ers.summary.eventCount}
+          founderNetworkHref={founderNetworkHref}
+          ledgerHref={ledgerHref}
+          locale={locale}
+          score={scoreAggregate.score}
+          starId={starId}
+        />
+
+        <section
+          aria-labelledby="agentrank-investor-section-title"
+          className="mt-5 hidden sm:block"
+        >
+          <AgentRankInvestorSectionIntro
+            copy={copy}
+            coverageHref={coverageHref}
+            coverageQuality={coverage.phase1QualityScore}
+            eventCount={ers.summary.eventCount}
+            locale={locale}
+            score={scoreAggregate.score}
+            starId={starId}
+          />
+
         <header className="agentrank-flow-card mt-5 hidden gap-5 rounded-[1.5rem] border border-zinc-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:grid lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm font-semibold text-zinc-700">
@@ -3069,6 +3295,7 @@ export function FanletterAgentRankPage({
             </div>
           </div>
         </footer>
+        </section>
       </div>
     </main>
   );
