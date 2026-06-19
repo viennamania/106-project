@@ -80,6 +80,7 @@ function isActivePath(pathname: string, basePath: string, item: FanletterNavItem
     "founder-club",
     "founder-universe",
     "growth",
+    "my-ai",
     "news",
     "onboarding",
     "scout",
@@ -254,9 +255,7 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
   };
   const copy = navCopy[locale];
   const buildHref = (path: string) => buildPathWithReferral(path, referralCode);
-  const founderClubCreatorHref = buildHref(
-    `${basePath}/founder-club?view=creator&context=my-ai#owned-ai-stars`,
-  );
+  const myAIHref = buildHref(`${basePath}/my-ai`);
   const currentView = searchParams.get("view");
   const items: FanletterNavItem[] = [
     {
@@ -299,8 +298,12 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       label: copy.scout,
     },
     {
-      activePaths: [`${basePath}/studio`, `${basePath}/channels`],
-      href: founderClubCreatorHref,
+      activePaths: [
+        `${basePath}/my-ai`,
+        `${basePath}/studio`,
+        `${basePath}/channels`,
+      ],
+      href: myAIHref,
       icon: LayoutDashboard,
       key: "studio",
       label: copy.studio,
