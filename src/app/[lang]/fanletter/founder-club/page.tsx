@@ -10,6 +10,14 @@ import {
 import { hasLocale, type Locale } from "@/lib/i18n";
 import { readMemberServerSession } from "@/lib/member-server-session";
 
+type FounderClubView = "creator" | "founder";
+
+function normalizeFounderClubView(value: string | string[] | undefined) {
+  const rawValue = Array.isArray(value) ? value[0] : value;
+
+  return rawValue === "creator" ? "creator" : "founder";
+}
+
 function getFounderClubMeta(locale: Locale) {
   if (locale === "ko") {
     return {
@@ -58,16 +66,20 @@ export async function generateMetadata({
 
 export default async function FanletterFounderClubRoutePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>;
+  searchParams: Promise<{ view?: string | string[] }>;
 }) {
   const { lang } = await params;
+  const query = await searchParams;
 
   if (!hasLocale(lang)) {
     notFound();
   }
 
   const locale = lang as Locale;
+  const initialView: FounderClubView = normalizeFounderClubView(query.view);
   const memberSession = await readMemberServerSession();
   const memberEmail = memberSession?.email ?? null;
   const [portfolio, stars] = await Promise.all([
@@ -90,6 +102,7 @@ export default async function FanletterFounderClubRoutePage({
 
   return (
     <FanletterFounderClubPage
+      initialView={initialView}
       locale={locale}
       portfolio={portfolio}
       roleShares={roleShares}

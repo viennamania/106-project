@@ -43,6 +43,8 @@ type FounderClubRoleShare = {
   role: MemberPortfolioRole;
 };
 
+type FounderClubView = "creator" | "founder";
+
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US").format(
     value,
@@ -98,14 +100,33 @@ function getCopy(locale: Locale) {
         currentValue: (creatorCount: number, founderCount: number) =>
           `운영 ${formatNumber(creatorCount, locale)}개 · 참여 ${formatNumber(founderCount, locale)}개`,
         eventLabel: "평판 기록",
-        eventValue: (hasRoles: boolean) =>
-          hasRoles ? "referral_shared" : "founder_joined",
+        eventValue: (hasRoles: boolean, view: FounderClubView) =>
+          view === "creator"
+            ? "creator_unlock_evaluated"
+            : hasRoles
+              ? "referral_shared"
+              : "founder_joined",
         nextLabel: "다음 행동",
-        nextValue: (hasRoles: boolean) =>
-          hasRoles ? "추천 링크 공유" : "AI 스타 선택",
-        primaryCta: (hasRoles: boolean) =>
-          hasRoles ? "추천 링크 공유하기" : "Founder 참여할 AI 스타 선택",
+        nextValue: (hasRoles: boolean, view: FounderClubView) =>
+          view === "creator"
+            ? "운영 AI 스타 확인"
+            : hasRoles
+              ? "추천 링크 공유"
+              : "AI 스타 선택",
+        primaryCta: (hasRoles: boolean, view: FounderClubView) =>
+          view === "creator"
+            ? "운영 AI 스타 보기"
+            : hasRoles
+              ? "추천 링크 공유하기"
+              : "Founder 참여할 AI 스타 선택",
         secondaryCta: "Creator Journey 보기",
+      },
+      viewTabs: {
+        creator: "Creator 관계",
+        creatorHint: "운영 AI 스타",
+        founder: "Founder 관계",
+        founderHint: "참여 네트워크",
+        label: "관계 보기",
       },
     };
   }
@@ -153,14 +174,33 @@ function getCopy(locale: Locale) {
       currentValue: (creatorCount: number, founderCount: number) =>
         `${formatNumber(creatorCount, locale)} operated · ${formatNumber(founderCount, locale)} joined`,
       eventLabel: "Reputation",
-      eventValue: (hasRoles: boolean) =>
-        hasRoles ? "referral_shared" : "founder_joined",
+      eventValue: (hasRoles: boolean, view: FounderClubView) =>
+        view === "creator"
+          ? "creator_unlock_evaluated"
+          : hasRoles
+            ? "referral_shared"
+            : "founder_joined",
       nextLabel: "Next action",
-      nextValue: (hasRoles: boolean) =>
-        hasRoles ? "Share referral link" : "Choose AI Star",
-      primaryCta: (hasRoles: boolean) =>
-        hasRoles ? "Share referral link" : "Choose AI Star to join",
+      nextValue: (hasRoles: boolean, view: FounderClubView) =>
+        view === "creator"
+          ? "Review operated AI Stars"
+          : hasRoles
+            ? "Share referral link"
+            : "Choose AI Star",
+      primaryCta: (hasRoles: boolean, view: FounderClubView) =>
+        view === "creator"
+          ? "View operated AI Stars"
+          : hasRoles
+            ? "Share referral link"
+            : "Choose AI Star to join",
       secondaryCta: "View Creator Journey",
+    },
+    viewTabs: {
+      creator: "Creator relationship",
+      creatorHint: "Operated AI Stars",
+      founder: "Founder relationship",
+      founderHint: "Joined networks",
+      label: "Relationship view",
     },
   };
 }
@@ -501,11 +541,13 @@ function MockCreatorLaunchSummary({
 }
 
 export function FanletterFounderClubPage({
+  initialView = "founder",
   locale,
   portfolio: livePortfolio,
   roleShares: liveRoleShares,
   stars = fanletterV2Mock.aiStars,
 }: {
+  initialView?: FounderClubView;
   locale: Locale;
   portfolio?: MemberPortfolioData | null;
   roleShares?: FounderClubRoleShare[] | null;
@@ -652,10 +694,32 @@ export function FanletterFounderClubPage({
     },
   ];
   const hasFounderRoles = roleShares.length > 0;
-  const primaryActionHref = hasFounderRoles
+  const activeView: FounderClubView =
+    initialView === "creator" ? "creator" : "founder";
+  const primaryActionHref = activeView === "creator"
+    ? "#owned-ai-stars"
+    : hasFounderRoles
     ? "#referral-manager"
     : `/${locale}/fanletter/characters`;
   const creatorJourneyHref = `/${locale}/fanletter/creator-unlock`;
+  const creatorViewHref = `/${locale}/fanletter/founder-club?view=creator#owned-ai-stars`;
+  const founderViewHref = `/${locale}/fanletter/founder-club?view=founder#joined-founder-networks`;
+  const viewTabs = [
+    {
+      active: activeView === "creator",
+      count: portfolio.ownedStars.length,
+      href: creatorViewHref,
+      label: copy.viewTabs.creator,
+      sublabel: copy.viewTabs.creatorHint,
+    },
+    {
+      active: activeView === "founder",
+      count: portfolio.roles.length,
+      href: founderViewHref,
+      label: copy.viewTabs.founder,
+      sublabel: copy.viewTabs.founderHint,
+    },
+  ];
 
   return (
     <main className="fanletter-v2-surface min-h-screen bg-[#f7f7f4] px-4 py-5 text-black sm:px-6 lg:px-8">
@@ -697,7 +761,51 @@ export function FanletterFounderClubPage({
               <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-black/58">
                 {copy.heroBody}
               </p>
-              <div className="mt-5 grid gap-2 rounded-lg border border-black/10 bg-[#f7f7f4] p-2 sm:grid-cols-3">
+              <div className="mt-5 rounded-lg border border-black/10 bg-[#f7f7f4] p-2">
+                <p className="px-2 pb-2 text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-black/36">
+                  {copy.viewTabs.label}
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {viewTabs.map((tab) => (
+                    <Link
+                      aria-current={tab.active ? "page" : undefined}
+                      className={[
+                        "flex min-h-14 items-center justify-between gap-3 rounded-md border px-3 py-2 text-left transition",
+                        tab.active
+                          ? "border-black bg-black !text-white"
+                          : "border-black/8 bg-white !text-black hover:border-black/20",
+                      ].join(" ")}
+                      href={tab.href}
+                      key={tab.href}
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold">
+                          {tab.label}
+                        </span>
+                        <span
+                          className={[
+                            "mt-1 block truncate text-xs font-semibold",
+                            tab.active ? "text-white/56" : "text-black/44",
+                          ].join(" ")}
+                        >
+                          {tab.sublabel}
+                        </span>
+                      </span>
+                      <span
+                        className={[
+                          "inline-flex h-8 shrink-0 items-center rounded-full px-3 text-sm font-semibold",
+                          tab.active
+                            ? "bg-white text-black"
+                            : "bg-[#f7f7f4] text-black/64",
+                        ].join(" ")}
+                      >
+                        {formatNumber(tab.count, locale)}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+              <div className="mt-3 grid gap-2 rounded-lg border border-black/10 bg-[#f7f7f4] p-2 sm:grid-cols-3">
                 <div className="rounded-md bg-white px-3 py-3">
                   <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-black/36">
                     {copy.signpost.currentLabel}
@@ -714,7 +822,7 @@ export function FanletterFounderClubPage({
                     {copy.signpost.nextLabel}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-black">
-                    {copy.signpost.nextValue(hasFounderRoles)}
+                    {copy.signpost.nextValue(hasFounderRoles, activeView)}
                   </p>
                 </div>
                 <div className="rounded-md bg-black px-3 py-3 text-white">
@@ -722,7 +830,7 @@ export function FanletterFounderClubPage({
                     {copy.signpost.eventLabel}
                   </p>
                   <p className="mt-1 truncate font-mono text-sm font-semibold">
-                    {copy.signpost.eventValue(hasFounderRoles)}
+                    {copy.signpost.eventValue(hasFounderRoles, activeView)}
                   </p>
                 </div>
               </div>
@@ -731,7 +839,7 @@ export function FanletterFounderClubPage({
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-black px-5 text-center text-sm font-semibold leading-tight !text-white transition hover:bg-zinc-800"
                   href={primaryActionHref}
                 >
-                  {copy.signpost.primaryCta(hasFounderRoles)}
+                  {copy.signpost.primaryCta(hasFounderRoles, activeView)}
                   <ArrowRight className="size-4 shrink-0" />
                 </a>
                 <Link
@@ -767,18 +875,6 @@ export function FanletterFounderClubPage({
             <span className="inline-flex rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold text-black/54">
               {copy.terminologyPill}
             </span>
-            <a
-              className="inline-flex min-h-8 items-center rounded-full border border-black/10 bg-black px-3 py-1 text-xs font-semibold !text-white transition hover:bg-zinc-800"
-              href="#owned-ai-stars"
-            >
-              {copy.relationLinks.creator}
-            </a>
-            <a
-              className="inline-flex min-h-8 items-center rounded-full border border-black/10 bg-white px-3 py-1 text-xs font-semibold !text-black/64 transition hover:!text-black"
-              href="#joined-founder-networks"
-            >
-              {copy.relationLinks.founder}
-            </a>
           </div>
         </section>
 
