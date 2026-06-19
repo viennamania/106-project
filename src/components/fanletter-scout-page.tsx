@@ -106,10 +106,9 @@ function getScoutPageCopy(locale: Locale) {
       connected: "추천 링크 준비됨",
       connectFirst: "계정 연결 필요",
       eventFlow: "평판 기록 흐름",
-      heroBody:
-        "AI 스타를 선택하고 추천 링크를 공유하면 Founder 참여와 보상 이벤트가 같은 AI 스타 유니버스에 기록됩니다.",
+      heroBody: "AI 스타를 선택하고 추천 링크를 공유하세요. 참여와 보상은 같은 AI 스타 유니버스에 기록됩니다.",
       heroEyebrow: "스카우트 센터",
-      heroTitle: "AI 스타 추천을 한 곳에서 관리",
+      heroTitle: "추천 링크를 공유하세요",
       liveData: "라이브 데이터",
       mockData: "mock 미리보기",
       pendingEvent: "참여 후 기록",
@@ -118,7 +117,9 @@ function getScoutPageCopy(locale: Locale) {
         "아직 이 AI 스타의 파운더 네트워크에 참여하지 않았습니다. 참여 후 추천 링크를 공유할 수 있습니다.",
       primaryConnect: "계정 연결하기",
       primaryJoin: "Founder 참여 후 공유",
-      primaryShare: "추천 링크 공유",
+      primaryShare: "추천 링크 공유하기",
+      reputationEvent: "평판 기록",
+      reputationEventValue: "referral_shared",
       role: "내 역할",
       scoutSummary: "스카우트 상태",
       selectedStar: "선택 AI 스타",
@@ -142,9 +143,9 @@ function getScoutPageCopy(locale: Locale) {
     connectFirst: "Connect account first",
     eventFlow: "Reputation event flow",
     heroBody:
-      "Select an AI Star and share a referral link. Founder joins and rewards stay attached to the same AI Star Universe.",
+      "Choose an AI Star and share its referral link. Joins and rewards stay attached to that AI Star Universe.",
     heroEyebrow: "Scout Center",
-    heroTitle: "Manage AI Star referrals",
+    heroTitle: "Share a referral link",
     liveData: "Live data",
     mockData: "Mock preview",
     pendingEvent: "Recorded after join",
@@ -154,6 +155,8 @@ function getScoutPageCopy(locale: Locale) {
     primaryConnect: "Connect account",
     primaryJoin: "Join Founder, then share",
     primaryShare: "Share referral link",
+    reputationEvent: "Reputation event",
+    reputationEventValue: "referral_shared",
     role: "My role",
     scoutSummary: "Scout status",
     selectedStar: "Selected AI Star",
@@ -315,7 +318,7 @@ export function FanletterScoutPage({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid gap-3 sm:grid-cols-3">
                     <div className="rounded-2xl border border-white/12 bg-white/8 p-4">
                       <p className="text-xs font-semibold text-white/45">
                         {copy.role}
@@ -330,6 +333,14 @@ export function FanletterScoutPage({
                       </p>
                       <p className="mt-1 text-lg font-semibold">
                         {primaryLabel}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-white/12 bg-white p-4 text-black">
+                      <p className="text-xs font-semibold text-black/45">
+                        {copy.reputationEvent}
+                      </p>
+                      <p className="mt-1 truncate font-mono text-sm font-semibold">
+                        {copy.reputationEventValue}
                       </p>
                     </div>
                   </div>

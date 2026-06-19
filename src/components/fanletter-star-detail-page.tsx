@@ -327,8 +327,8 @@ function getPrimaryAction({
         ? "이미 이 AI 스타의 파운더입니다. 내 링크로 새 파운더를 초대하세요."
         : "You are already a Founder for this AI Star. Invite new Founders with your link.",
       href: "#referral-builder",
-      label: isKorean ? "내 추천 링크 공유" : "Share my Founder link",
-      status: isKorean ? "파운더 인증됨" : "Founder active",
+      label: isKorean ? "추천 링크 공유하기" : "Share referral link",
+      status: isKorean ? "파운더 참여 완료" : "Founder active",
       variant: "share",
     };
   }
@@ -339,7 +339,7 @@ function getPrimaryAction({
         ? "계정은 연결되어 있습니다. 클릭하면 이 AI 스타 유니버스의 파운더 네트워크에 Founder로 저장하고 내 추천 링크를 생성합니다."
         : "Your account is connected. Join this AI Star Universe Founder Network and create your referral link.",
       href: joinHref,
-      label: isKorean ? "Founder 참여 확정" : "Confirm Founder join",
+      label: isKorean ? "Founder 참여하기" : "Join Founder",
       status: isKorean ? "계정 연결됨" : "Account connected",
       variant: "join",
     };
@@ -350,7 +350,7 @@ function getPrimaryAction({
       ? "계정을 연결하면 이 AI 스타의 파운더 참여와 추천 보상을 이어갈 수 있습니다."
       : "Connect your account to join this AI Star and keep referral attribution.",
     href: connectHref,
-    label: isKorean ? "계정 연결" : "Connect account",
+    label: isKorean ? "계정 연결하기" : "Connect account",
     status: isKorean ? "계정 연결 필요" : "Connect account",
     variant: "connect",
   };
@@ -386,8 +386,8 @@ function StarActionLink({
         next: "다음 행동",
         steps:
           action.variant === "connect"
-            ? ["AI 스타 발견", "계정 연결", "Founder 참여", "AgentRank"]
-            : ["AI 스타 발견", "Founder 참여", "추천 링크", "AgentRank"],
+            ? ["AI 스타 발견", "계정 연결", "Founder 참여", "평판 기록"]
+            : ["AI 스타 발견", "Founder 참여", "추천 링크", "평판 기록"],
         title: "Founder 참여 확인",
       }
     : {
@@ -398,8 +398,8 @@ function StarActionLink({
         next: "Next action",
         steps:
           action.variant === "connect"
-            ? ["Discover", "Connect", "Join", "AgentRank"]
-            : ["Discover", "Join", "Referral", "AgentRank"],
+            ? ["Discover", "Connect", "Join", "Reputation"]
+            : ["Discover", "Join", "Referral", "Reputation"],
         title: "Confirm Founder join",
       };
   const eventNames =
@@ -1730,7 +1730,7 @@ export function FanletterStarDetailPage({
             status: "active" as const,
           },
           {
-            label: "AgentRank",
+            label: isKorean ? "평판 기록" : "Reputation",
             status: "next" as const,
           },
         ]
@@ -1749,7 +1749,7 @@ export function FanletterStarDetailPage({
               status: "next" as const,
             },
             {
-              label: "AgentRank",
+              label: isKorean ? "평판 기록" : "Reputation",
               status: "next" as const,
             },
           ]
@@ -1767,7 +1767,7 @@ export function FanletterStarDetailPage({
               status: "next" as const,
             },
             {
-              label: "AgentRank",
+              label: isKorean ? "평판 기록" : "Reputation",
               status: "next" as const,
             },
           ];

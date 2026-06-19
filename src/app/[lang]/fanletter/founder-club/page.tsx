@@ -14,15 +14,15 @@ function getFounderClubMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "내 AI 스타 파운더 역할, 추천 링크, CP, 영향력, 크리에이터 진행률을 관리하는 Founder Club 2.0 포트폴리오입니다.",
-      title: "내 파운더 클럽 | FanLetter Founder Club 2.0",
+        "참여 중인 AI 스타 유니버스, 파운더 네트워크 추천 링크, CP와 평판 기록 흐름을 확인하세요.",
+      title: "내 파운더 네트워크 | FanLetter Founder Club",
     };
   }
 
   return {
     description:
-      "Manage your AI Star Founder roles, referral links, CP, influence, and Creator progress in Founder Club 2.0.",
-    title: "My Founder Club | FanLetter Founder Club 2.0",
+      "Review your AI Star Universes, Founder Network referral links, CP, and reputation event flow.",
+    title: "My Founder Network | FanLetter Founder Club",
   };
 }
 

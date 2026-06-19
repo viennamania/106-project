@@ -30,14 +30,14 @@ function getScoutMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "AI 스타별 추천 코드 생성, SNS 공유, Founder 참여 보상과 AgentRank 평판 기록 흐름을 관리합니다.",
+        "AI 스타별 추천 링크를 공유하고 Founder 참여, 보상, 평판 기록 흐름을 확인하세요.",
       title: "스카우트 센터 | FanLetter Founder Club",
     };
   }
 
   return {
     description:
-      "Manage AI Star referral codes, SNS sharing, Founder reward flow, and AgentRank reputation events.",
+      "Share AI Star referral links and review Founder participation, rewards, and reputation event flow.",
     title: "Scout Center | FanLetter Founder Club",
   };
 }
