@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { createHash } from "node:crypto";
 
 import { FanletterFounderUniverseExplorer } from "@/components/fanletter-founder-universe-explorer";
 import {
@@ -10,6 +11,8 @@ import { getFanletterAgentRankInvestorSnapshot } from "@/lib/agentrank/ers";
 import { getFanletterFounderUniverseExplorer } from "@/lib/fanletter-founder-universe-explorer-service";
 import { normalizeFanletterStarId } from "@/lib/fanletter-routing";
 import { hasLocale } from "@/lib/i18n";
+import { normalizeEmail } from "@/lib/member";
+import { readMemberServerSession } from "@/lib/member-server-session";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +21,16 @@ type FanletterFounderUniverseSearchParams = {
   memberEmail?: string | string[];
   starId?: string | string[];
 };
+
+function getViewerNodeId(email?: string | null) {
+  const normalizedEmail = normalizeEmail(email ?? "");
+
+  if (!normalizedEmail) {
+    return null;
+  }
+
+  return `member-${createHash("sha256").update(normalizedEmail).digest("hex").slice(0, 16)}`;
+}
 
 export async function generateMetadata({
   params,
@@ -97,6 +110,8 @@ export default async function FanletterFounderUniverseExplorerRoute({
     starId;
   const coverageMemberEmail =
     readFirstSearchParam(query.memberEmail)?.trim().slice(0, 160) || null;
+  const memberSession = await readMemberServerSession();
+  const viewerNodeId = getViewerNodeId(memberSession?.email);
 
   const [universe, agentRank] = await Promise.all([
     getFanletterFounderUniverseExplorer(starId),
@@ -124,6 +139,7 @@ export default async function FanletterFounderUniverseExplorerRoute({
       }
       locale={lang}
       universe={universe}
+      viewerNodeId={viewerNodeId}
     />
   );
 }

@@ -3721,11 +3721,13 @@ export function FanletterFounderUniverseExplorer({
   coverageAction = null,
   locale,
   universe,
+  viewerNodeId = null,
 }: {
   agentRank?: FounderUniverseAgentRankSnapshot | null;
   coverageAction?: AgentRankCoverageActionContext | null;
   locale: Locale;
   universe: FanletterFounderUniverseExplorerData;
+  viewerNodeId?: string | null;
 }) {
   const copy = getExplorerCopy(locale);
   const displayUniverse = useMemo(
@@ -3739,8 +3741,12 @@ export function FanletterFounderUniverseExplorer({
     displayUniverse.nodes.find((node) => node.isCreator) ??
     displayUniverse.nodes[0] ??
     null;
+  const viewerNode =
+    viewerNodeId
+      ? displayUniverse.nodes.find((node) => node.nodeId === viewerNodeId) ?? null
+      : null;
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(
-    creatorNode?.nodeId ?? null,
+    viewerNode?.nodeId ?? creatorNode?.nodeId ?? null,
   );
   const [isMemberPanelOpen, setIsMemberPanelOpen] = useState(false);
   const normalizedQuery = query.trim().toLowerCase();
@@ -3762,6 +3768,9 @@ export function FanletterFounderUniverseExplorer({
     [displayUniverse.nodes, normalizedQuery, selectedDepth],
   );
   const selectedNode = selectedNodeId ? nodesById.get(selectedNodeId) ?? null : null;
+  const isViewingOwnNode = Boolean(
+    viewerNodeId && selectedNode?.nodeId === viewerNodeId,
+  );
   const selectedChildNodes =
     selectedNode?.childNodeIds
       .map((childNodeId) => nodesById.get(childNodeId))
@@ -3883,8 +3892,12 @@ export function FanletterFounderUniverseExplorer({
                 </p>
                 <p className="mt-1 text-sm font-medium leading-5 text-zinc-500 [word-break:keep-all]">
                   {locale === "ko"
-                    ? "AI 스타 유니버스 안에서 내 역할과 다음 행동을 확인합니다."
-                    : "Review your role and next action inside this AI Star Universe."}
+                    ? viewerNode
+                      ? "로그인한 계정의 역할과 다음 행동을 먼저 보여줍니다."
+                      : "AI 스타 유니버스 안에서 내 역할과 다음 행동을 확인합니다."
+                    : viewerNode
+                      ? "Your signed-in position and next action are shown first."
+                      : "Review your role and next action inside this AI Star Universe."}
                 </p>
               </div>
               <Link
@@ -4038,8 +4051,12 @@ export function FanletterFounderUniverseExplorer({
             }
             title={
               locale === "ko"
-                ? "다음 행동: 내 위치 보기"
-                : "Next action: view my position"
+                ? isViewingOwnNode
+                  ? "다음 행동: 내 하위 네트워크 확인"
+                  : "다음 행동: 내 위치 보기"
+                : isViewingOwnNode
+                  ? "Next action: inspect my downstream"
+                  : "Next action: view my position"
             }
           />
 
@@ -4066,7 +4083,13 @@ export function FanletterFounderUniverseExplorer({
               type="button"
             >
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-                {locale === "ko" ? "보고 있는 멤버" : "Viewing member"}
+                {locale === "ko"
+                  ? isViewingOwnNode
+                    ? "내 위치"
+                    : "보고 있는 멤버"
+                  : isViewingOwnNode
+                    ? "My position"
+                    : "Viewing member"}
               </p>
               <p className="mt-1 truncate text-base font-semibold text-zinc-950">
                 {selectedNode?.label ?? starName}
