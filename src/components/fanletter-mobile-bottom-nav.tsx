@@ -81,6 +81,7 @@ function isActivePath(pathname: string, basePath: string, item: FanletterNavItem
     "founder-universe",
     "news",
     "onboarding",
+    "scout",
     "share",
     "start",
     "studio",
@@ -109,7 +110,11 @@ function isActivePath(pathname: string, basePath: string, item: FanletterNavItem
   }
 
   if (item.key === "scout") {
-    return pathname === `${basePath}/onboarding` || pathname === `${basePath}/connect`;
+    return (
+      pathname === `${basePath}/scout` ||
+      pathname === `${basePath}/onboarding` ||
+      pathname === `${basePath}/connect`
+    );
   }
 
   return false;
@@ -232,23 +237,31 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       label: copy.home,
     },
     {
-      activePaths: [],
-      href: buildHref(`${basePath}#top-growing-ai-stars`),
+      activePaths: [`${basePath}/characters`],
+      href: buildHref(`${basePath}/characters`),
       icon: Bot,
       key: "discover",
       label: copy.discover,
     },
     {
-      activePaths: [],
-      href: buildHref(`${basePath}#founder-club`),
+      activePaths: [
+        `${basePath}/founder-club`,
+        `${basePath}/founder-universe`,
+        `${basePath}/creator-unlock`,
+      ],
+      href: buildHref(`${basePath}/founder-club`),
       icon: Crown,
       key: "founder",
       label: copy.founder,
       primary: true,
     },
     {
-      activePaths: [],
-      href: buildHref(`${basePath}#scout-share-loop`),
+      activePaths: [
+        `${basePath}/scout`,
+        `${basePath}/onboarding`,
+        `${basePath}/connect`,
+      ],
+      href: buildHref(`${basePath}/scout`),
       icon: Share2,
       key: "scout",
       label: copy.scout,
