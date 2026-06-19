@@ -115,7 +115,7 @@ export function FanletterAgentRankJourneyRail({
         <ArrowRight className="size-4 shrink-0 text-zinc-400" />
       </div>
 
-      <div className="mt-3 flex min-w-0 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="mt-3 grid min-w-0 grid-cols-2 gap-2 sm:flex sm:overflow-x-auto sm:pb-1 sm:[scrollbar-width:none] sm:[&::-webkit-scrollbar]:hidden">
         {steps.map((step, index) => {
           const Icon = step.Icon;
           const isActive = step.key === active;
@@ -124,7 +124,7 @@ export function FanletterAgentRankJourneyRail({
           return (
             <Link
               className={joinClasses(
-                "inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border px-3 text-sm font-semibold",
+                "inline-flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-full border px-3 text-center text-xs font-semibold sm:shrink-0 sm:text-sm",
                 isActive
                   ? "border-black bg-black !text-white"
                   : isDone
@@ -139,9 +139,9 @@ export function FanletterAgentRankJourneyRail({
               ) : (
                 <Icon className="size-4 shrink-0" />
               )}
-              <span>{step.label}</span>
+              <span className="min-w-0 truncate">{step.label}</span>
               {isActive ? (
-                <span className="rounded-full bg-white/16 px-2 py-0.5 text-[0.62rem] !text-white">
+                <span className="hidden rounded-full bg-white/16 px-2 py-0.5 text-[0.62rem] !text-white sm:inline-flex">
                   {copy.current}
                 </span>
               ) : null}

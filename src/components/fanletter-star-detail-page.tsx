@@ -648,24 +648,26 @@ function StarViewerRelationshipCard({
   const labels = isKorean
     ? {
         creatorBody: ownedStar
-          ? "이 AI 스타의 콘텐츠와 채널 운영 권한이 있습니다."
+          ? "콘텐츠, TikTok 채널, AI 스타 설정을 관리할 수 있습니다."
           : isAuthenticated
-            ? "이 AI 스타의 Creator/Owner 운영 권한은 없습니다."
-            : "계정 연결 후 Creator/Owner 권한을 확인할 수 있습니다.",
-        creatorLabel: "Creator / Owner 관계",
+            ? "이 AI 스타를 운영하는 Creator 권한은 없습니다."
+            : "계정 연결 후 이 AI 스타의 운영 권한을 확인합니다.",
+        creatorCaption: "AI 스타 채널",
+        creatorLabel: "AI 스타 운영 권한",
         creatorStatus: ownedStar
           ? "운영 가능"
           : isAuthenticated
             ? "운영 권한 없음"
             : "계정 연결 필요",
         founderBody: founderRole
-          ? "이 AI 스타 유니버스의 파운더 네트워크에 참여 중입니다."
+          ? "이 AI 스타 유니버스 안의 6단계 초대/CP 구조에 참여 중입니다."
           : isMockFounder
             ? "이 브라우저에서 mock Founder 참여가 완료된 상태입니다."
             : isAuthenticated
               ? "아직 이 AI 스타의 파운더 네트워크에 참여하지 않았습니다."
               : "계정 연결 후 Founder 참여를 진행할 수 있습니다.",
-        founderLabel: "파운더 네트워크 관계",
+        founderCaption: "회원 참여 역할",
+        founderLabel: "파운더 네트워크 역할",
         founderStatus: founderRole
           ? copy.roles[founderRole.role]
           : isMockFounder
@@ -673,31 +675,36 @@ function StarViewerRelationshipCard({
             : isAuthenticated
               ? "참여 전"
               : "계정 연결 필요",
+        guidance:
+          "Creator는 AI 스타를 운영하는 권한이고, Founder는 이 AI 스타 유니버스 안에서 참여하는 역할입니다.",
         nextActionLabel: "다음 행동",
+        primaryCtaHint: "상단 CTA에서 진행",
         ownerNextAction: "TikTok 채널 관리",
         ownerStatus: "Creator 권한 활성화",
-        title: "이 AI 스타와 나의 관계",
+        title: "권한과 역할",
       }
     : {
         creatorBody: ownedStar
-          ? "You can manage this AI Star's content and channel."
+          ? "You can manage content, TikTok channel, and AI Star settings."
           : isAuthenticated
             ? "You do not have Creator/Owner permission for this AI Star."
             : "Connect your account to check Creator/Owner permission.",
-        creatorLabel: "Creator / Owner relationship",
+        creatorCaption: "AI Star channel",
+        creatorLabel: "AI Star operating permission",
         creatorStatus: ownedStar
           ? "Can operate"
           : isAuthenticated
             ? "No operator permission"
             : "Connect account",
         founderBody: founderRole
-          ? "You participate in this AI Star Universe's Founder Network."
+          ? "You participate in this AI Star Universe's 6-tier invite and CP structure."
           : isMockFounder
             ? "Mock Founder participation is complete in this browser."
             : isAuthenticated
               ? "You have not joined this AI Star's Founder Network yet."
               : "Connect your account to join as Founder.",
-        founderLabel: "Founder Network relationship",
+        founderCaption: "Member participation role",
+        founderLabel: "Founder Network role",
         founderStatus: founderRole
           ? copy.roles[founderRole.role]
           : isMockFounder
@@ -705,10 +712,13 @@ function StarViewerRelationshipCard({
             : isAuthenticated
               ? "Not joined"
               : "Connect account",
+        guidance:
+          "Creator is permission to operate the AI Star. Founder is your participation role inside this AI Star Universe.",
         nextActionLabel: "Next action",
+        primaryCtaHint: "Use the primary CTA above",
         ownerNextAction: "Manage TikTok channel",
         ownerStatus: "Creator permission active",
-        title: "My relationship with this AI Star",
+        title: "Permission and role",
       };
   const relationshipAction: {
     eventType: AgentRankInteractionSignal["eventType"];
@@ -753,13 +763,19 @@ function StarViewerRelationshipCard({
           <p className="mt-0.5 truncate text-xs font-semibold text-zinc-500">
             {getDisplayStarName(star.name, copy)}
           </p>
+          <p className="mt-2 hidden text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all] sm:block">
+            {labels.guidance}
+          </p>
         </div>
       </div>
 
       <div className="grid gap-2 sm:grid-cols-2">
-        <div className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-950 p-3 text-white">
+        <div className="min-w-0 rounded-lg border border-zinc-900 bg-zinc-950 p-3 text-white">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
+              <p className="truncate text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-white/42">
+                {labels.creatorCaption}
+              </p>
               <p className="flex items-center gap-1.5 truncate text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/50">
                 <Bot className="size-3.5 shrink-0" />
                 {labels.creatorLabel}
@@ -768,8 +784,8 @@ function StarViewerRelationshipCard({
                 {labels.creatorStatus}
               </p>
             </div>
-            <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[0.6rem] font-semibold text-black">
-              AI STAR
+            <span className="shrink-0 rounded-full border border-white/16 bg-white px-2 py-1 text-[0.6rem] font-semibold text-black">
+              Creator
             </span>
           </div>
           <p className="mt-2 text-xs font-semibold leading-5 text-white/58 [word-break:keep-all]">
@@ -780,6 +796,9 @@ function StarViewerRelationshipCard({
         <div className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
+              <p className="truncate text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+                {labels.founderCaption}
+              </p>
               <p className="flex items-center gap-1.5 truncate text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
                 <Users className="size-3.5 shrink-0" />
                 {labels.founderLabel}
@@ -790,7 +809,11 @@ function StarViewerRelationshipCard({
             </div>
             {founderRole ? (
               <FounderRoleBadge copy={copy} role={founderRole.role} />
-            ) : null}
+            ) : (
+              <span className="shrink-0 rounded-full border border-zinc-200 bg-white px-2 py-1 text-[0.6rem] font-semibold text-zinc-600">
+                Founder
+              </span>
+            )}
           </div>
           <p className="mt-2 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
             {labels.founderBody}
@@ -811,32 +834,34 @@ function StarViewerRelationshipCard({
               {relationshipAction.eventType}
             </p>
           </div>
-          <Link
-            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
-            href={relationshipAction.href}
-            onClick={() => {
-              trackFunnelEvent("share_click", {
-                agentRank: {
-                  eventType: relationshipAction.eventType,
-                  intent: ownedStar
-                    ? "creator_tiktok_channel_manage"
-                    : "star_relationship_next_action",
-                  source: "fanletter_star_detail",
-                  starId: star.id,
-                },
-                metadata: {
-                  placement: "star_viewer_relationship_card",
-                  relationship: ownedStar
-                    ? "creator_owner"
-                    : viewerState,
-                  starName: star.name,
-                },
-              });
-            }}
-          >
-            {relationshipAction.label}
-            <ArrowRight className="size-4" />
-          </Link>
+          {ownedStar ? (
+            <Link
+              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
+              href={relationshipAction.href}
+              onClick={() => {
+                trackFunnelEvent("share_click", {
+                  agentRank: {
+                    eventType: relationshipAction.eventType,
+                    intent: "creator_tiktok_channel_manage",
+                    source: "fanletter_star_detail",
+                    starId: star.id,
+                  },
+                  metadata: {
+                    placement: "star_viewer_relationship_card",
+                    relationship: "creator_owner",
+                    starName: star.name,
+                  },
+                });
+              }}
+            >
+              {relationshipAction.label}
+              <ArrowRight className="size-4" />
+            </Link>
+          ) : (
+            <span className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-600">
+              {labels.primaryCtaHint}
+            </span>
+          )}
         </div>
       </div>
     </section>
