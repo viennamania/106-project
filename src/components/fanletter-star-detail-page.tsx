@@ -49,6 +49,7 @@ import {
   getFanletterV2Copy,
   getFanletterV2LocalizedText,
   type AIStar,
+  type MemberPortfolio as MemberPortfolioData,
   type ScoutShareLoopData,
   type SpawnedAIStar,
 } from "@/mock/fanletterV2";
@@ -613,6 +614,158 @@ function MetricTile({
         {label}
       </p>
     </div>
+  );
+}
+
+function StarViewerRelationshipCard({
+  copy,
+  isAuthenticated,
+  memberPortfolio,
+  star,
+  viewerState,
+}: {
+  copy: ReturnType<typeof getFanletterV2Copy>;
+  isAuthenticated: boolean;
+  memberPortfolio?: MemberPortfolioData | null;
+  star: AIStar;
+  viewerState: StarDetailViewerState;
+}) {
+  const isKorean = isKoreanCopy(copy);
+  const ownedStar = memberPortfolio?.ownedStars.find((item) => item.id === star.id);
+  const founderRole = memberPortfolio?.roles.find((item) => item.starId === star.id);
+  const isMockFounder = !founderRole && viewerState === "founder";
+  const memberInitials =
+    memberPortfolio?.memberInitials ??
+    (memberPortfolio?.memberName
+      ? getPortraitInitials(memberPortfolio.memberName)
+      : isKorean
+        ? "회원"
+        : "ME");
+  const labels = isKorean
+    ? {
+        creatorBody: ownedStar
+          ? "이 AI 스타의 콘텐츠와 채널 운영 권한이 있습니다."
+          : isAuthenticated
+            ? "이 AI 스타의 Creator/Owner 운영 권한은 없습니다."
+            : "계정 연결 후 Creator/Owner 권한을 확인할 수 있습니다.",
+        creatorLabel: "Creator / Owner 관계",
+        creatorStatus: ownedStar
+          ? "운영 가능"
+          : isAuthenticated
+            ? "운영 권한 없음"
+            : "계정 연결 필요",
+        founderBody: founderRole
+          ? "이 AI 스타 유니버스의 파운더 네트워크에 참여 중입니다."
+          : isMockFounder
+            ? "이 브라우저에서 mock Founder 참여가 완료된 상태입니다."
+            : isAuthenticated
+              ? "아직 이 AI 스타의 파운더 네트워크에 참여하지 않았습니다."
+              : "계정 연결 후 Founder 참여를 진행할 수 있습니다.",
+        founderLabel: "파운더 네트워크 관계",
+        founderStatus: founderRole
+          ? copy.roles[founderRole.role]
+          : isMockFounder
+            ? "파운더"
+            : isAuthenticated
+              ? "참여 전"
+              : "계정 연결 필요",
+        title: "이 AI 스타와 나의 관계",
+      }
+    : {
+        creatorBody: ownedStar
+          ? "You can manage this AI Star's content and channel."
+          : isAuthenticated
+            ? "You do not have Creator/Owner permission for this AI Star."
+            : "Connect your account to check Creator/Owner permission.",
+        creatorLabel: "Creator / Owner relationship",
+        creatorStatus: ownedStar
+          ? "Can operate"
+          : isAuthenticated
+            ? "No operator permission"
+            : "Connect account",
+        founderBody: founderRole
+          ? "You participate in this AI Star Universe's Founder Network."
+          : isMockFounder
+            ? "Mock Founder participation is complete in this browser."
+            : isAuthenticated
+              ? "You have not joined this AI Star's Founder Network yet."
+              : "Connect your account to join as Founder.",
+        founderLabel: "Founder Network relationship",
+        founderStatus: founderRole
+          ? copy.roles[founderRole.role]
+          : isMockFounder
+            ? "Founder"
+            : isAuthenticated
+              ? "Not joined"
+              : "Connect account",
+        title: "My relationship with this AI Star",
+      };
+
+  return (
+    <section className="mt-3 grid gap-2 rounded-[1.15rem] border border-zinc-200 bg-white p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.055)] sm:mt-4 sm:grid-cols-[0.78fr_1.22fr] sm:p-4">
+      <div className="flex min-w-0 items-center gap-3">
+        <HumanMemberAvatar
+          member={{
+            initials: memberInitials,
+            name: memberPortfolio?.memberName ?? labels.title,
+          }}
+          size="md"
+        />
+        <div className="min-w-0">
+          <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+            {isKorean ? "내 관계" : "My relationship"}
+          </p>
+          <h2 className="mt-1 truncate text-lg font-semibold text-zinc-950">
+            {labels.title}
+          </h2>
+          <p className="mt-0.5 truncate text-xs font-semibold text-zinc-500">
+            {getDisplayStarName(star.name, copy)}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-2 sm:grid-cols-2">
+        <div className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-950 p-3 text-white">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="flex items-center gap-1.5 truncate text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/50">
+                <Bot className="size-3.5 shrink-0" />
+                {labels.creatorLabel}
+              </p>
+              <p className="mt-1 truncate text-base font-semibold">
+                {labels.creatorStatus}
+              </p>
+            </div>
+            <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[0.6rem] font-semibold text-black">
+              AI STAR
+            </span>
+          </div>
+          <p className="mt-2 text-xs font-semibold leading-5 text-white/58 [word-break:keep-all]">
+            {labels.creatorBody}
+          </p>
+        </div>
+
+        <div className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="flex items-center gap-1.5 truncate text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                <Users className="size-3.5 shrink-0" />
+                {labels.founderLabel}
+              </p>
+              <p className="mt-1 truncate text-base font-semibold text-zinc-950">
+                {labels.founderStatus}
+              </p>
+            </div>
+            {founderRole ? (
+              <FounderRoleBadge copy={copy} role={founderRole.role} />
+            ) : null}
+          </div>
+          <p className="mt-2 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
+            {labels.founderBody}
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -1773,6 +1926,7 @@ export function FanletterStarDetailPage({
   isAuthenticated = false,
   inboundReferralCode,
   locale,
+  memberPortfolio,
   relatedStars,
   star,
   viewerScoutShareLoop,
@@ -1783,6 +1937,7 @@ export function FanletterStarDetailPage({
   isAuthenticated?: boolean;
   inboundReferralCode?: string | null;
   locale: Locale;
+  memberPortfolio?: MemberPortfolioData | null;
   relatedStars: AIStar[];
   star: AIStar;
   viewerScoutShareLoop?: ScoutShareLoopData | null;
@@ -2113,6 +2268,14 @@ export function FanletterStarDetailPage({
             star={star}
             trackingAgentRank={primaryActionAgentRank}
             trackingMetadata={primaryActionTrackingMetadata}
+            viewerState={viewerState}
+          />
+
+          <StarViewerRelationshipCard
+            copy={copy}
+            isAuthenticated={isAuthenticated}
+            memberPortfolio={memberPortfolio}
+            star={star}
             viewerState={viewerState}
           />
 
