@@ -8,7 +8,9 @@ import {
   Database,
   ExternalLink,
   LockKeyhole,
+  Pencil,
   ShieldCheck,
+  WandSparkles,
 } from "lucide-react";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 
@@ -24,7 +26,9 @@ import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-eve
 import type { Locale } from "@/lib/i18n";
 import {
   buildFanletterSuggestedTikTokHandle,
+  buildFanletterTikTokProfileUrl,
   normalizeFanletterTikTokHandle,
+  validateFanletterTikTokHandle,
   getFanletterAIStarSocialStatusLabel,
   type FanletterAIStarSocialAccount,
   type FanletterAIStarSocialAccountViewModel,
@@ -59,6 +63,10 @@ function getCopy(locale: Locale) {
       flowRecord: "평판 기록",
       handleHelper: "예: @minseo.golf.ai",
       handleLabel: "TikTok handle",
+      handlePreview: "연결될 채널",
+      handleReady: "입력 완료",
+      handleSuggestion: "추천 handle 적용",
+      handleTooShort: "TikTok handle은 최소 2자 이상이어야 합니다.",
       mockConnectError:
         "Mock 연결을 완료하지 못했습니다. 입력값과 Creator 권한을 다시 확인해주세요.",
       mockConnectSaving: "Mock 연결 저장 중",
@@ -82,6 +90,7 @@ function getCopy(locale: Locale) {
         "회원 개인 계정이 아니라 선택한 AI 스타의 TikTok 채널을 연결합니다.",
       panelTitle: "AI 스타 TikTok 채널 연결",
       primaryCta: "TikTok 연결하기",
+      replaceCta: "채널 변경",
       reputationLedger: "평판 기록 보기",
       reputationLedgerHint: "AgentRank 원장에서 연결 이벤트 확인",
       roleCreator: "Creator",
@@ -122,6 +131,10 @@ function getCopy(locale: Locale) {
       flowRecord: "評判記録",
       handleHelper: "例: @minseo.golf.ai",
       handleLabel: "TikTok handle",
+      handlePreview: "接続されるチャンネル",
+      handleReady: "入力完了",
+      handleSuggestion: "おすすめhandleを適用",
+      handleTooShort: "TikTok handleは2文字以上で入力してください。",
       mockConnectError:
         "Mock接続を完了できませんでした。入力値とCreator権限を確認してください。",
       mockConnectSaving: "Mock接続を保存中",
@@ -147,6 +160,7 @@ function getCopy(locale: Locale) {
         "個人アカウントではなく、選択したAIスターのTikTokチャンネルを接続します。",
       panelTitle: "AIスターTikTokチャンネル接続",
       primaryCta: "TikTok接続",
+      replaceCta: "チャンネル変更",
       reputationLedger: "評判記録を見る",
       reputationLedgerHint: "AgentRank台帳で接続イベントを確認",
       roleCreator: "Creator",
@@ -186,6 +200,10 @@ function getCopy(locale: Locale) {
     flowRecord: "Reputation record",
     handleHelper: "Example: @minseo.golf.ai",
     handleLabel: "TikTok handle",
+    handlePreview: "Channel to connect",
+    handleReady: "Ready",
+    handleSuggestion: "Use suggested handle",
+    handleTooShort: "TikTok handle must be at least 2 characters.",
     mockConnectError:
       "Mock connection could not be completed. Check the handle and Creator permission.",
     mockConnectSaving: "Saving mock connection",
@@ -211,6 +229,7 @@ function getCopy(locale: Locale) {
       "Connect the selected AI Star channel, not a personal member account.",
     panelTitle: "Connect AI Star TikTok channel",
     primaryCta: "Connect TikTok",
+    replaceCta: "Change channel",
     reputationLedger: "View Reputation Record",
     reputationLedgerHint: "Check the connection event in AgentRank Ledger",
     roleCreator: "Creator",
@@ -348,9 +367,16 @@ export function FanletterAIStarSocialAccountCard({
     () => buildFanletterSuggestedTikTokHandle({ fallbackId: starId, starName }),
     [starId, starName],
   );
-  const normalizedHandle =
-    normalizeFanletterTikTokHandle(handleInput) ||
-    normalizeFanletterTikTokHandle(suggestedHandle);
+  const handleValidation = validateFanletterTikTokHandle(
+    handleInput || suggestedHandle,
+  );
+  const normalizedHandle = handleValidation.handle;
+  const normalizedSuggestedHandle = normalizeFanletterTikTokHandle(suggestedHandle);
+  const handlePreviewUrl = normalizedHandle
+    ? buildFanletterTikTokProfileUrl(normalizedHandle)
+    : "";
+  const handleValidationMessage =
+    handleValidation.reason === "too_short" ? copy.handleTooShort : null;
   const oauthPreviewBlockedCount =
     oauthPreview && "blockedReasons" in oauthPreview
       ? oauthPreview.blockedReasons.length
@@ -441,6 +467,11 @@ export function FanletterAIStarSocialAccountCard({
     setIsPanelOpen(true);
   }
 
+  function handleUseSuggestedHandle() {
+    setHandleInput(normalizedSuggestedHandle);
+    setConnectError(null);
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -450,7 +481,8 @@ export function FanletterAIStarSocialAccountCard({
 
     const handle = normalizedHandle;
 
-    if (!handle) {
+    if (!handle || !handleValidation.ok) {
+      setConnectError(handleValidationMessage ?? copy.mockConnectError);
       return;
     }
 
@@ -755,6 +787,18 @@ export function FanletterAIStarSocialAccountCard({
                   </span>
                   <ExternalLink className="size-4 shrink-0" />
                 </FanletterTrackedLink>
+                {social.canConnect ? (
+                  <button
+                    className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50 sm:col-span-2 sm:w-auto"
+                    onClick={handleOpenPanel}
+                    type="button"
+                  >
+                    <Pencil className="size-4 shrink-0" />
+                    <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
+                      {copy.replaceCta}
+                    </span>
+                  </button>
+                ) : null}
               </div>
             ) : (
               <button
@@ -818,8 +862,18 @@ export function FanletterAIStarSocialAccountCard({
           {social.canConnect ? (
             <form className="grid min-w-0 gap-4" onSubmit={handleSubmit}>
               <label className="grid min-w-0 gap-2">
-                <span className="text-sm font-semibold text-zinc-800">
-                  {copy.handleLabel}
+                <span className="flex min-w-0 items-center justify-between gap-3">
+                  <span className="text-sm font-semibold text-zinc-800">
+                    {copy.handleLabel}
+                  </span>
+                  <button
+                    className="inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50"
+                    onClick={handleUseSuggestedHandle}
+                    type="button"
+                  >
+                    <WandSparkles className="size-3.5" />
+                    {copy.handleSuggestion}
+                  </button>
                 </span>
                 <input
                   className="min-h-12 w-full min-w-0 rounded-xl border border-zinc-200 bg-white px-3 text-base font-semibold text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-900 focus:ring-4 focus:ring-zinc-950/8"
@@ -827,10 +881,31 @@ export function FanletterAIStarSocialAccountCard({
                   placeholder={copy.handleHelper}
                   value={handleInput}
                 />
-                <span className="text-xs font-semibold text-zinc-500">
-                  {normalizedHandle || suggestedHandle}
+                <span
+                  className={joinClasses(
+                    "text-xs font-semibold",
+                    handleValidation.ok ? "text-emerald-700" : "text-red-700",
+                  )}
+                >
+                  {handleValidation.ok
+                    ? `${copy.handleReady} · ${normalizedHandle}`
+                    : (handleValidationMessage ?? copy.handleHelper)}
                 </span>
               </label>
+
+              <div className="rounded-xl border border-zinc-200 bg-white p-3">
+                <div className="flex min-w-0 items-start gap-2">
+                  <AtSign className="mt-0.5 size-4 shrink-0 text-zinc-700" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-zinc-950">
+                      {copy.handlePreview}
+                    </p>
+                    <p className="mt-1 truncate text-sm font-semibold text-zinc-500">
+                      {handlePreviewUrl || buildFanletterTikTokProfileUrl(normalizedSuggestedHandle)}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
               <div className="rounded-xl border border-zinc-200 bg-white p-3">
                 <div className="flex min-w-0 items-center gap-2">
@@ -914,7 +989,7 @@ export function FanletterAIStarSocialAccountCard({
 
               <button
                 className="inline-flex min-h-12 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
-                disabled={!normalizedHandle || isConnecting}
+                disabled={!handleValidation.ok || isConnecting}
                 type="submit"
               >
                 <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">

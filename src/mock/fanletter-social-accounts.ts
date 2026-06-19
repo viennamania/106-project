@@ -104,6 +104,45 @@ export function normalizeFanletterTikTokHandle(value: string) {
   return withoutUrl ? `@${withoutUrl}` : "";
 }
 
+export function validateFanletterTikTokHandle(value: string) {
+  const normalizedHandle = normalizeFanletterTikTokHandle(value);
+  const username = normalizedHandle.replace(/^@/, "");
+
+  if (!username) {
+    return {
+      handle: "",
+      ok: false,
+      reason: "empty" as const,
+      username,
+    };
+  }
+
+  if (username.length < 2) {
+    return {
+      handle: normalizedHandle,
+      ok: false,
+      reason: "too_short" as const,
+      username,
+    };
+  }
+
+  if (username.length > 48) {
+    return {
+      handle: normalizedHandle,
+      ok: false,
+      reason: "too_long" as const,
+      username,
+    };
+  }
+
+  return {
+    handle: normalizedHandle,
+    ok: true,
+    reason: "ok" as const,
+    username,
+  };
+}
+
 export function buildFanletterTikTokProfileUrl(handle: string) {
   return `https://www.tiktok.com/${handle}`;
 }

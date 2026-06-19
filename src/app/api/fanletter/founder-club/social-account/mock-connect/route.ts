@@ -19,6 +19,7 @@ import { getMembersCollection } from "@/lib/mongodb";
 import {
   buildFanletterAIStarMockSocialAccount,
   normalizeFanletterTikTokHandle,
+  validateFanletterTikTokHandle,
   type FanletterAIStarSocialAccount,
 } from "@/mock/fanletter-social-accounts";
 
@@ -128,12 +129,17 @@ export async function POST(request: Request) {
     return jsonError("A valid AI Star id is required.", 400);
   }
 
-  const handle = normalizeFanletterTikTokHandle(
+  const handleValidation = validateFanletterTikTokHandle(
     typeof body.handle === "string" ? body.handle : "",
   );
+  const handle = normalizeFanletterTikTokHandle(handleValidation.handle);
 
-  if (!handle) {
-    return jsonError("A valid TikTok handle is required.", 400);
+  if (!handleValidation.ok) {
+    return jsonError("A valid TikTok handle is required.", 400, {
+      handle,
+      mode: "mock",
+      reason: handleValidation.reason,
+    });
   }
 
   const creatorRoleAtConnection = normalizeCreatorRole(
