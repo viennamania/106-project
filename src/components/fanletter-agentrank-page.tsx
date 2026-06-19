@@ -166,7 +166,7 @@ function getAgentRankCopy(locale: Locale) {
       topContributors: "상위 기여자",
       useCases: "Use Cases",
       viewEventsApi: "Event Ledger",
-      viewFounderUniverse: "Founder Network",
+      viewFounderUniverse: "파운더 네트워크",
       viewHome: "FanLetter 홈",
       whyMatters:
         "PageRank가 웹 링크를 신뢰로 바꾼 것처럼, AgentRank는 AI Agent의 경제 활동을 신뢰로 바꿉니다.",
@@ -2676,6 +2676,9 @@ export function FanletterAgentRankPage({
   const coverageHref = `/${locale}/fanletter/agentrank/coverage${
     starId ? `?starId=${encodeURIComponent(starId)}&limit=120` : "?limit=120"
   }`;
+  const founderNetworkHref = starId
+    ? `/${locale}/fanletter/${encodeURIComponent(starId)}/universe`
+    : `/${locale}/fanletter/founder-club`;
   const metrics = [
     {
       label: copy.metrics.events,
@@ -3028,7 +3031,7 @@ export function FanletterAgentRankPage({
                     source: "fanletter_agentrank",
                     starId: starId ?? null,
                   }}
-                  className="inline-flex h-10 items-center rounded-full bg-white px-4 text-sm font-semibold text-[#4338ca]"
+                  className="inline-flex min-h-10 items-center justify-center rounded-full bg-white px-4 py-2 text-center text-sm font-semibold leading-tight text-[#4338ca] [word-break:keep-all]"
                   eventName="content_open"
                   href={`/${locale}/fanletter`}
                 >
@@ -3041,9 +3044,9 @@ export function FanletterAgentRankPage({
                     source: "fanletter_agentrank",
                     starId: starId ?? null,
                   }}
-                  className="inline-flex h-10 items-center rounded-full bg-white/12 px-4 text-sm font-semibold text-white ring-1 ring-white/20"
+                  className="inline-flex min-h-10 items-center justify-center rounded-full bg-white/12 px-4 py-2 text-center text-sm font-semibold leading-tight text-white ring-1 ring-white/20 [word-break:keep-all]"
                   eventName="content_open"
-                  href={`/${locale}/fanletter/founder-universe`}
+                  href={founderNetworkHref}
                 >
                   {copy.viewFounderUniverse}
                 </FanletterTrackedLink>
@@ -3054,7 +3057,7 @@ export function FanletterAgentRankPage({
                     source: "fanletter_agentrank",
                     starId: starId ?? null,
                   }}
-                  className="inline-flex h-10 items-center rounded-full bg-white/12 px-4 text-sm font-semibold text-white ring-1 ring-white/20"
+                  className="inline-flex min-h-10 items-center justify-center rounded-full bg-white/12 px-4 py-2 text-center text-sm font-semibold leading-tight text-white ring-1 ring-white/20 [word-break:keep-all]"
                   eventName="content_open"
                   href={`/${locale}/fanletter/agentrank/events${
                     starId ? `?starId=${encodeURIComponent(starId)}` : ""

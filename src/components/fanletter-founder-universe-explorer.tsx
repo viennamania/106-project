@@ -3938,11 +3938,13 @@ export function FanletterFounderUniverseExplorer({
             variant="compact"
           />
 
-          <FounderStarHero
-            creatorNode={creatorNode}
-            locale={locale}
-            universe={displayUniverse}
-          />
+          <div className="hidden sm:block">
+            <FounderStarHero
+              creatorNode={creatorNode}
+              locale={locale}
+              universe={displayUniverse}
+            />
+          </div>
 
           <FounderNetworkReputationRecordFlow
             agentRank={agentRank}
@@ -3952,13 +3954,15 @@ export function FanletterFounderUniverseExplorer({
 
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_20rem]">
             <div className="grid gap-5">
-              <UniverseExpansionMap
-                locale={locale}
-                onSelectNode={handleSelectNode}
-                universe={displayUniverse}
-              />
+              <div className="hidden sm:block">
+                <UniverseExpansionMap
+                  locale={locale}
+                  onSelectNode={handleSelectNode}
+                  universe={displayUniverse}
+                />
+              </div>
 
-              <div className="rounded-[1.35rem] border border-slate-100 bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,0.07)] sm:p-5">
+              <div className="hidden rounded-[1.35rem] border border-slate-100 bg-white p-4 shadow-[0_24px_70px_rgba(15,23,42,0.07)] sm:block sm:p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-base font-semibold text-[#111827]">
@@ -4001,7 +4005,7 @@ export function FanletterFounderUniverseExplorer({
               </div>
             </div>
 
-            <div className="grid content-start gap-5">
+            <div className="hidden content-start gap-5 sm:grid">
               <SelectedDashboardMemberCard
                 childNodes={selectedChildNodes}
                 ledgerHref={founderUniverseLedgerHref}

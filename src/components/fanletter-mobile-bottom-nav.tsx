@@ -103,7 +103,6 @@ function isActivePath(pathname: string, basePath: string, item: FanletterNavItem
   if (item.key === "founder") {
     return (
       pathname === `${basePath}/founder-club` ||
-      pathname === `${basePath}/founder-universe` ||
       pathname === `${basePath}/creator-unlock` ||
       isStarUniversePath
     );
@@ -152,8 +151,10 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     pathname === `${basePath}/share` || pathname.startsWith(`${basePath}/share/`);
   const isStandaloneNewsFlow =
     pathname === `${basePath}/news` || pathname.startsWith(`${basePath}/news/`);
+  const isInvestorInfographicFlow = pathname === `${basePath}/founder-universe`;
 
   if (
+    isInvestorInfographicFlow ||
     isStandaloneNewsFlow ||
     (hasHydrated && (isFocusedStudioFlow || isPromotionalShareFlow))
   ) {
@@ -246,7 +247,6 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
     {
       activePaths: [
         `${basePath}/founder-club`,
-        `${basePath}/founder-universe`,
         `${basePath}/creator-unlock`,
       ],
       href: buildHref(`${basePath}/founder-club`),
