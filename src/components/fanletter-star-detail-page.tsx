@@ -620,13 +620,17 @@ function MetricTile({
 function StarViewerRelationshipCard({
   copy,
   isAuthenticated,
+  locale,
   memberPortfolio,
+  primaryAction,
   star,
   viewerState,
 }: {
   copy: ReturnType<typeof getFanletterV2Copy>;
   isAuthenticated: boolean;
+  locale: Locale;
   memberPortfolio?: MemberPortfolioData | null;
+  primaryAction: StarPrimaryAction;
   star: AIStar;
   viewerState: StarDetailViewerState;
 }) {
@@ -669,6 +673,9 @@ function StarViewerRelationshipCard({
             : isAuthenticated
               ? "참여 전"
               : "계정 연결 필요",
+        nextActionLabel: "다음 행동",
+        ownerNextAction: "TikTok 채널 관리",
+        ownerStatus: "Creator 권한 활성화",
         title: "이 AI 스타와 나의 관계",
       }
     : {
@@ -698,7 +705,32 @@ function StarViewerRelationshipCard({
             : isAuthenticated
               ? "Not joined"
               : "Connect account",
+        nextActionLabel: "Next action",
+        ownerNextAction: "Manage TikTok channel",
+        ownerStatus: "Creator permission active",
         title: "My relationship with this AI Star",
+      };
+  const relationshipAction: {
+    eventType: AgentRankInteractionSignal["eventType"];
+    href: string;
+    label: string;
+    status: string;
+  } = ownedStar
+    ? {
+        eventType: "creator_social_connected",
+        href: `/${locale}/fanletter/creator-unlock?starId=${encodeURIComponent(
+          star.id,
+        )}#tiktok-channel`,
+        label: labels.ownerNextAction,
+        status: labels.ownerStatus,
+      }
+    : {
+        eventType: primaryAction.variant === "share"
+          ? "referral_shared"
+          : "founder_joined",
+        href: primaryAction.href,
+        label: primaryAction.label,
+        status: primaryAction.status,
       };
 
   return (
@@ -763,6 +795,48 @@ function StarViewerRelationshipCard({
           <p className="mt-2 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
             {labels.founderBody}
           </p>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 sm:col-span-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+              {labels.nextActionLabel}
+            </p>
+            <p className="mt-1 truncate text-base font-semibold text-zinc-950">
+              {relationshipAction.status}
+            </p>
+            <p className="mt-1 truncate font-mono text-xs font-semibold text-zinc-500">
+              {relationshipAction.eventType}
+            </p>
+          </div>
+          <Link
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
+            href={relationshipAction.href}
+            onClick={() => {
+              trackFunnelEvent("share_click", {
+                agentRank: {
+                  eventType: relationshipAction.eventType,
+                  intent: ownedStar
+                    ? "creator_tiktok_channel_manage"
+                    : "star_relationship_next_action",
+                  source: "fanletter_star_detail",
+                  starId: star.id,
+                },
+                metadata: {
+                  placement: "star_viewer_relationship_card",
+                  relationship: ownedStar
+                    ? "creator_owner"
+                    : viewerState,
+                  starName: star.name,
+                },
+              });
+            }}
+          >
+            {relationshipAction.label}
+            <ArrowRight className="size-4" />
+          </Link>
         </div>
       </div>
     </section>
@@ -2274,7 +2348,9 @@ export function FanletterStarDetailPage({
           <StarViewerRelationshipCard
             copy={copy}
             isAuthenticated={isAuthenticated}
+            locale={locale}
             memberPortfolio={memberPortfolio}
+            primaryAction={primaryAction}
             star={star}
             viewerState={viewerState}
           />

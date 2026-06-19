@@ -18,6 +18,10 @@ import {
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import { setPathSearchParams } from "@/lib/landing-branding";
 import {
+  getFanletterAIStarSocialAccount,
+  getFanletterAIStarSocialStatusLabel,
+} from "@/mock/fanletter-social-accounts";
+import {
   fanletterV2Mock,
   getFanletterV2Copy,
   getFanletterV2LocalizedText,
@@ -743,13 +747,19 @@ export function MemberPortfolio({
         creatorCount: `${formatNumber(ownedStars.length, locale)}개 운영`,
         creatorEyebrow: "운영 권한",
         creatorTitle: "내가 운영하는 AI 스타",
+        contentReady: "콘텐츠 준비",
         founderBody:
           "AI 스타 유니버스 안에서 내가 가진 초대, CP, 파운더 네트워크 역할입니다.",
         founderCount: `${formatNumber(portfolio.roles.length, locale)}개 참여`,
         founderEyebrow: "참여 역할",
         founderTitle: "참여 중인 파운더 네트워크",
+        reputationCreated: "평판 기록 생성됨",
+        reputationPending: "평판 기록 대기",
         openStar: "AI 스타 보기",
         roleLabel: "내 역할",
+        socialConnected: "TikTok 연결됨",
+        socialConnectRequired: "TikTok 연결 필요",
+        socialConnectCta: "TikTok 연결하기",
       }
     : {
         creatorBadge: "Creator / Owner",
@@ -758,13 +768,19 @@ export function MemberPortfolio({
         creatorCount: `${formatNumber(ownedStars.length, locale)} operated`,
         creatorEyebrow: "Operating permission",
         creatorTitle: "AI Stars I operate",
+        contentReady: "Content ready",
         founderBody:
           "Invitation, CP, and Founder Network roles held inside AI Star Universes.",
         founderCount: `${formatNumber(portfolio.roles.length, locale)} joined`,
         founderEyebrow: "Participation roles",
         founderTitle: "Founder Networks I joined",
+        reputationCreated: "Reputation record created",
+        reputationPending: "Reputation record pending",
         openStar: "View AI Star",
         roleLabel: "My role",
+        socialConnected: "TikTok connected",
+        socialConnectRequired: "TikTok required",
+        socialConnectCta: "Connect TikTok",
       };
 
   return (
@@ -859,11 +875,27 @@ export function MemberPortfolio({
                 ownedStar.status,
                 copy,
               );
+              const socialAccount = getFanletterAIStarSocialAccount(
+                ownedStar.id,
+              );
+              const socialStatusLabel = socialAccount
+                ? getFanletterAIStarSocialStatusLabel({
+                    locale,
+                    status: socialAccount.status,
+                  })
+                : null;
+              const primaryHref = socialAccount
+                ? `/${locale}/fanletter/${encodeURIComponent(ownedStar.id)}`
+                : `/${locale}/fanletter/creator-unlock?starId=${encodeURIComponent(
+                    ownedStar.id,
+                  )}#tiktok-channel`;
+              const primaryLabel = socialAccount
+                ? relationCopy.openStar
+                : relationCopy.socialConnectCta;
 
               return (
-                <Link
+                <article
                   className="group min-w-0 rounded-lg border border-white/12 bg-white/8 p-3 text-white transition hover:border-white/24 hover:bg-white/12"
-                  href={`/${locale}/fanletter/${encodeURIComponent(ownedStar.id)}`}
                   key={ownedStar.id}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -901,6 +933,11 @@ export function MemberPortfolio({
                   </div>
                   <div className="mt-3 grid gap-1 text-xs font-semibold text-white/64">
                     <p className="truncate">{relationCopy.creatorBadge}</p>
+                    <p className="truncate">
+                      {socialAccount
+                        ? `${relationCopy.socialConnected}: ${socialAccount.handle}`
+                        : relationCopy.socialConnectRequired}
+                    </p>
                     {displaySourceUniverse ? (
                       <p className="truncate">
                         {copy.labels.sourceUniverse}: {displaySourceUniverse}
@@ -915,11 +952,42 @@ export function MemberPortfolio({
                       </p>
                     ) : null}
                   </div>
-                  <span className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-white/72 transition group-hover:text-white">
-                    {relationCopy.openStar}
+                  <div className="mt-3 grid grid-cols-3 gap-1.5">
+                    <span className="min-w-0 rounded-md bg-white/8 px-2 py-2">
+                      <span className="block truncate text-[0.62rem] font-semibold text-white/42">
+                        TikTok
+                      </span>
+                      <span className="mt-1 block truncate text-xs font-semibold text-white">
+                        {socialStatusLabel ?? relationCopy.socialConnectRequired}
+                      </span>
+                    </span>
+                    <span className="min-w-0 rounded-md bg-white/8 px-2 py-2">
+                      <span className="block truncate text-[0.62rem] font-semibold text-white/42">
+                        AgentRank
+                      </span>
+                      <span className="mt-1 block truncate text-xs font-semibold text-white">
+                        {socialAccount
+                          ? relationCopy.reputationCreated
+                          : relationCopy.reputationPending}
+                      </span>
+                    </span>
+                    <span className="min-w-0 rounded-md bg-white/8 px-2 py-2">
+                      <span className="block truncate text-[0.62rem] font-semibold text-white/42">
+                        Studio
+                      </span>
+                      <span className="mt-1 block truncate text-xs font-semibold text-white">
+                        {relationCopy.contentReady}
+                      </span>
+                    </span>
+                  </div>
+                  <Link
+                    className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-1 rounded-full bg-white px-3 text-xs font-semibold !text-black transition hover:bg-white/88"
+                    href={primaryHref}
+                  >
+                    {primaryLabel}
                     <ArrowRight className="size-3.5" />
-                  </span>
-                </Link>
+                  </Link>
+                </article>
               );
             })
           ) : (

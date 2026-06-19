@@ -3859,6 +3859,44 @@ export function FanletterFounderUniverseExplorer({
             </span>
           </div>
 
+          <section className="rounded-2xl border border-zinc-200 bg-white p-3 shadow-[0_14px_34px_rgba(15,23,42,0.055)]">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5 text-xs font-semibold text-zinc-500">
+                  <Link
+                    className="rounded-full bg-zinc-100 px-2.5 py-1 !text-zinc-700 transition hover:bg-zinc-200"
+                    href={`/${locale}/fanletter/founder-club?view=founder#joined-founder-networks`}
+                  >
+                    Founder Club
+                  </Link>
+                  <ChevronRight className="size-3.5 text-zinc-300" />
+                  <span className="rounded-full bg-zinc-100 px-2.5 py-1">
+                    {locale === "ko" ? "AI 스타 유니버스" : "AI Star Universe"}
+                  </span>
+                  <ChevronRight className="size-3.5 text-zinc-300" />
+                  <span className="rounded-full bg-zinc-950 px-2.5 py-1 text-white">
+                    {locale === "ko" ? "파운더 네트워크" : "Founder Network"}
+                  </span>
+                </div>
+                <p className="mt-3 truncate text-xl font-semibold text-zinc-950">
+                  {starName}
+                </p>
+                <p className="mt-1 text-sm font-medium leading-5 text-zinc-500 [word-break:keep-all]">
+                  {locale === "ko"
+                    ? "AI 스타 유니버스 안에서 내 역할과 다음 행동을 확인합니다."
+                    : "Review your role and next action inside this AI Star Universe."}
+                </p>
+              </div>
+              <Link
+                className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
+                href="#founder-network-map"
+              >
+                <Network className="size-4" />
+                {locale === "ko" ? "내 위치 보기" : "View my position"}
+              </Link>
+            </div>
+          </section>
+
           {coverageAction ? (
             <FanletterAgentRankCoverageActionNotice
               action={coverageAction}
