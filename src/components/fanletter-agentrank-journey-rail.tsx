@@ -56,7 +56,7 @@ export function FanletterAgentRankJourneyRail({
   }> = [
     {
       Icon: Bot,
-      href: `/${locale}/fanletter#top-growing-ai-stars`,
+      href: `/${locale}/fanletter/characters`,
       key: "discovery",
       label: isKorean ? "AI 스타 발견" : "Discovery",
     },
@@ -64,7 +64,7 @@ export function FanletterAgentRankJourneyRail({
       Icon: Crown,
       href: encodedStarId
         ? `/${locale}/fanletter/${encodedStarId}`
-        : `/${locale}/fanletter#top-growing-ai-stars`,
+        : `/${locale}/fanletter/characters`,
       key: "founder",
       label: isKorean ? "Founder 참여" : "Founder",
     },
@@ -72,7 +72,7 @@ export function FanletterAgentRankJourneyRail({
       Icon: GitBranch,
       href: encodedStarId
         ? `/${locale}/fanletter/${encodedStarId}/universe`
-        : `/${locale}/fanletter#founder-club`,
+        : `/${locale}/fanletter/founder-club`,
       key: "network",
       label: isKorean ? "파운더 네트워크" : "Founder Network",
     },

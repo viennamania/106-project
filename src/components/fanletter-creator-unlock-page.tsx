@@ -1065,7 +1065,7 @@ function SourceUniverseEmptyState({
             }}
             className="inline-flex min-h-10 items-center justify-center rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
             eventName="signup_cta_click"
-            href={`/${locale}/fanletter#top-growing-ai-stars`}
+            href={`/${locale}/fanletter/characters`}
             metadata={{
               placement: "creator_unlock_no_source_primary",
             }}
@@ -1080,7 +1080,7 @@ function SourceUniverseEmptyState({
             }}
             className="inline-flex min-h-10 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50"
             eventName="content_open"
-            href={`/${locale}/fanletter#founder-club`}
+            href={`/${locale}/fanletter/founder-club`}
             metadata={{
               placement: "creator_unlock_no_source_secondary",
             }}
@@ -2296,7 +2296,7 @@ export function FanletterCreatorUnlockPage({
           source: "fanletter_creator_unlock",
           starId: trackingSourceStarId,
         },
-        href: `/${locale}/fanletter#top-growing-ai-stars`,
+        href: `/${locale}/fanletter/characters`,
         label: copy.noSourcePrimary,
         metadata: {
           placement: "creator_unlock_action_guide_primary",
@@ -2888,7 +2888,7 @@ export function FanletterCreatorUnlockPage({
                     }}
                     className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
                     eventName="signup_cta_click"
-                    href={`/${locale}/fanletter#top-growing-ai-stars`}
+                    href={`/${locale}/fanletter/characters`}
                     metadata={{
                       placement: "creator_unlock_launch_missing_source",
                     }}

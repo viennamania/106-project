@@ -512,7 +512,7 @@ function getCoverageGapAction({
   });
   const starDetailHref = starId
     ? `/${locale}/fanletter/${encodeURIComponent(starId)}?${query}#referral-builder`
-    : `/${locale}/fanletter?${query}#top-growing-ai-stars`;
+    : `/${locale}/fanletter/characters?${query}`;
   const creatorHref = `/${locale}/fanletter/creator-unlock?${query}`;
 
   if (kind === "missing_event") {

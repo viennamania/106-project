@@ -37,32 +37,33 @@ function getCopy(locale: Locale) {
   return locale === "ko"
     ? {
         actions: {
-          clear: "전체 캐릭터 보기",
+          clear: "전체 AI 스타 보기",
           feed: "브이로그 피드",
           open: "채널 보기",
           search: "검색",
-          start: "내 캐릭터 만들기",
+          pickStar: "AI 스타 선택하기",
+          start: "내 AI 스타 만들기",
         },
         empty: {
           body:
-            "검색어를 지우거나 다른 캐릭터명, 소개, 추천 키워드로 다시 찾아보세요.",
-          title: "조건에 맞는 AI 캐릭터가 없습니다.",
+            "검색어를 지우거나 다른 AI 스타명, 소개, 추천 키워드로 다시 찾아보세요.",
+          title: "조건에 맞는 AI 스타가 없습니다.",
         },
         hero: {
-          body:
-            "AIAVpark에서 팬 요청과 공개 브이로그, 팬 전용 콘텐츠로 성장 중인 AI 캐릭터 채널을 탐색하세요.",
-          eyebrow: "AI Character Directory",
-          title: "AI 캐릭터 전체 목록",
+          body: "브이로그와 팬 반응으로 성장 중인 AI 스타를 고르고 파운더 참여로 이어가세요.",
+          eyebrow: "AI 스타 발견",
+          title: "먼저 발견할 AI 스타를 선택하세요",
         },
         labels: {
+          aiStarChannel: "AI 스타 채널",
           fanClub: "팬클럽",
           fanOnly: "팬 전용",
           latest: "최신 브이로그",
           level: "Lv.",
           noLatest: "아직 공개된 브이로그가 없습니다.",
           publicVlogs: "공개 브이로그",
-          searchPlaceholder: "캐릭터명, 소개, 코드 검색",
-          totalCharacters: "활성 캐릭터",
+          searchPlaceholder: "AI 스타명, 소개, 코드 검색",
+          totalCharacters: "활성 AI 스타",
         },
         nsfw: {
           disabledBody:
@@ -81,37 +82,47 @@ function getCopy(locale: Locale) {
           fanClub: "팬클럽 멤버",
           fanOnly: "팬 전용 콘텐츠",
           publicVlogs: "공개 브이로그",
-          totalCharacters: "활성 캐릭터",
+          totalCharacters: "활성 AI 스타",
+        },
+        signpost: {
+          currentLabel: "현재 위치",
+          currentValue: "AI 스타 발견",
+          eventLabel: "평판 기록",
+          eventValue: "ai_star_discovered",
+          nextLabel: "다음 행동",
+          nextValue: "스타 선택",
         },
       }
     : {
         actions: {
-          clear: "View all characters",
+          clear: "View all AI Stars",
           feed: "Vlog feed",
           open: "View channel",
           search: "Search",
-          start: "Start my character",
+          pickStar: "Choose an AI Star",
+          start: "Start my AI Star",
         },
         empty: {
           body:
-            "Clear the search or try another character name, intro, or keyword.",
-          title: "No AI characters match this view.",
+            "Clear the search or try another AI Star name, intro, or keyword.",
+          title: "No AI Stars match this view.",
         },
         hero: {
           body:
-            "Browse AI character channels growing through fan requests, public vlogs, and fan-only content inside AIAVpark.",
-          eyebrow: "AI Character Directory",
-          title: "All AI Characters",
+            "Pick an AI Star growing through vlogs and fan reactions, then continue into Founder participation.",
+          eyebrow: "AI Star Discovery",
+          title: "Choose the AI Star you will discover first",
         },
         labels: {
+          aiStarChannel: "AI Star channel",
           fanClub: "Fan club",
           fanOnly: "Fan-only",
           latest: "Latest vlog",
           level: "Lv.",
           noLatest: "No public vlog has been published yet.",
           publicVlogs: "Public vlogs",
-          searchPlaceholder: "Search name, intro, or code",
-          totalCharacters: "Active characters",
+          searchPlaceholder: "Search AI Star name, intro, or code",
+          totalCharacters: "Active AI Stars",
         },
         nsfw: {
           disabledBody:
@@ -129,7 +140,15 @@ function getCopy(locale: Locale) {
           fanClub: "Fan club members",
           fanOnly: "Fan-only posts",
           publicVlogs: "Public vlogs",
-          totalCharacters: "Active characters",
+          totalCharacters: "Active AI Stars",
+        },
+        signpost: {
+          currentLabel: "Current",
+          currentValue: "AI Star Discovery",
+          eventLabel: "Reputation",
+          eventValue: "ai_star_discovered",
+          nextLabel: "Next action",
+          nextValue: "Choose a star",
         },
       };
 }
@@ -585,10 +604,6 @@ export function FanletterCharacterDirectoryPage({
     `/${locale}/fanletter/feed`,
     referralCode,
   );
-  const startHref = buildPathWithReferral(
-    `/${locale}/fanletter/start`,
-    referralCode,
-  );
   const heroStats = [
     {
       icon: <UsersRound className="size-4" />,
@@ -627,20 +642,40 @@ export function FanletterCharacterDirectoryPage({
             <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
               {copy.hero.body}
             </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Link
+            <div className="mt-6 grid gap-2 rounded-lg border border-white/10 bg-white/[0.055] p-2 text-sm font-semibold text-white/72 backdrop-blur sm:grid-cols-3">
+              <div className="rounded-md bg-white/[0.06] px-3 py-3">
+                <p className="text-[0.62rem] uppercase tracking-[0.16em] text-white/42">
+                  {copy.signpost.currentLabel}
+                </p>
+                <p className="mt-1 text-white">{copy.signpost.currentValue}</p>
+              </div>
+              <div className="rounded-md bg-white/[0.06] px-3 py-3">
+                <p className="text-[0.62rem] uppercase tracking-[0.16em] text-white/42">
+                  {copy.signpost.nextLabel}
+                </p>
+                <p className="mt-1 text-white">{copy.signpost.nextValue}</p>
+              </div>
+              <div className="rounded-md bg-[#44f26e] px-3 py-3 text-black">
+                <p className="text-[0.62rem] uppercase tracking-[0.16em] text-black/52">
+                  {copy.signpost.eventLabel}
+                </p>
+                <p className="mt-1 truncate">{copy.signpost.eventValue}</p>
+              </div>
+            </div>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <a
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#44f26e] px-5 text-sm font-semibold !text-black transition hover:bg-[#70ff91]"
+                href="#ai-star-results"
+              >
+                <Sparkles className="size-4" />
+                {copy.actions.pickStar}
+              </a>
+              <Link
+                className="inline-flex min-h-11 items-center justify-center gap-2 px-2 text-sm font-semibold !text-white/72 transition hover:!text-white"
                 href={feedHref}
               >
                 <Clapperboard className="size-4" />
                 {copy.actions.feed}
-              </Link>
-              <Link
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/14 px-5 text-sm font-semibold !text-white transition hover:border-white/34"
-                href={startHref}
-              >
-                <Sparkles className="size-4" />
-                {copy.actions.start}
               </Link>
             </div>
           </div>
@@ -658,7 +693,10 @@ export function FanletterCharacterDirectoryPage({
         </div>
       </section>
 
-      <section className="bg-[#f6f8f4] px-4 py-7 text-black sm:px-6 sm:py-10 lg:px-8">
+      <section
+        className="bg-[#f6f8f4] px-4 py-7 text-black sm:px-6 sm:py-10 lg:px-8"
+        id="ai-star-results"
+      >
         <div className="mx-auto max-w-7xl">
           <DirectoryControls
             copy={copy}

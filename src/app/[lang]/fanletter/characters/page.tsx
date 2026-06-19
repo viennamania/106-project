@@ -53,15 +53,15 @@ function getCharactersMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "AIAVpark에서 공개 브이로그와 팬 전용 콘텐츠로 성장 중인 AI 캐릭터 채널 전체 목록을 둘러보세요.",
-      title: "AIAVpark AI 캐릭터 전체 목록",
+        "AIAVpark에서 브이로그와 팬 반응으로 성장 중인 AI 스타를 발견하고 파운더 참여로 이어가세요.",
+      title: "AIAVpark AI 스타 발견",
     };
   }
 
   return {
     description:
-      "Browse every AIAVpark AI character channel growing through public vlogs and fan-only content.",
-    title: "AIAVpark AI Characters",
+      "Discover AIAVpark AI Stars growing through vlogs and fan reactions, then continue into Founder participation.",
+    title: "AIAVpark AI Star Discovery",
   };
 }
 

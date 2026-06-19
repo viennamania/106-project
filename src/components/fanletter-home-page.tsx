@@ -2536,11 +2536,15 @@ export function FanletterHomePage({
     `/${locale}/fanletter/onboarding`,
     referralCode,
   );
-  const founderClubHref = "#founder-club";
-  const founderClubPageHref = buildPathWithReferral(
+  const topGrowingStarsHref = buildPathWithReferral(
+    `/${locale}/fanletter/characters`,
+    referralCode,
+  );
+  const founderClubHref = buildPathWithReferral(
     `/${locale}/fanletter/founder-club`,
     referralCode,
   );
+  const founderClubPageHref = founderClubHref;
   const creatorUnlockHref = buildPathWithReferral(
     `/${locale}/fanletter/creator-unlock`,
     referralCode,
@@ -2553,9 +2557,11 @@ export function FanletterHomePage({
     `/${locale}/fanletter/agentrank`,
     referralCode,
   );
-  const creatorPathHref = "#creator-path";
-  const scoutShareLoopHref = "#scout-share-loop";
-  const topGrowingStarsHref = "#top-growing-ai-stars";
+  const creatorPathHref = creatorUnlockHref;
+  const scoutShareLoopHref = buildPathWithReferral(
+    `/${locale}/fanletter/scout`,
+    referralCode,
+  );
   const creatorHref = onboardingHref;
   const connectHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),

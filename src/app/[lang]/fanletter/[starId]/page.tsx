@@ -107,7 +107,7 @@ function buildFanletterStarRedirectHref({
     searchParams.set("ref", referralCode);
   }
 
-  return `/${locale}/fanletter?${searchParams.toString()}#founder-club`;
+  return `/${locale}/fanletter/founder-club?${searchParams.toString()}`;
 }
 
 async function resolveFanletterStarDetail(starId: string): Promise<{
