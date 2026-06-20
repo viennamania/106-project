@@ -72,6 +72,7 @@ function getCopy(locale: Locale) {
       tiktokFocusReady:
         "모든 운영 AI 스타의 TikTok 연결이 준비되어 있습니다. 다음은 평판 기록 확인입니다.",
       tiktokFocusTitle: "TikTok 다음 행동",
+      tiktokTestSteps: ["handle 확인", "Mock 연결", "평판 기록 확인"],
       viewReputation: "평판 기록 보기",
       viewUniverse: "AI 스타 유니버스 보기",
     };
@@ -114,6 +115,7 @@ function getCopy(locale: Locale) {
     tiktokFocusReady:
       "All operated AI Stars have TikTok connected. Next, review the reputation records.",
     tiktokFocusTitle: "TikTok Next Action",
+    tiktokTestSteps: ["Confirm handle", "Mock connect", "Review reputation"],
     viewReputation: "View Reputation Records",
     viewUniverse: "View AI Star Universe",
   };
@@ -210,9 +212,12 @@ export function FanletterMyAIPage({
   const primaryHref = primaryStar
     ? primaryAccount
       ? `/${locale}/fanletter/${encodeURIComponent(primaryStar.id)}`
-      : `/${locale}/fanletter/creator-unlock?starId=${encodeURIComponent(
-          primaryStar.id,
-        )}#tiktok-channel`
+      : "#my-ai-tiktok-test"
+    : `/${locale}/fanletter/creator-unlock`;
+  const primarySocialPermissionHref = primaryStar
+    ? `/${locale}/fanletter/creator-unlock?starId=${encodeURIComponent(
+        primaryStar.id,
+      )}#tiktok-channel`
     : `/${locale}/fanletter/creator-unlock`;
   const connectedCount = ownedStars.filter((star) =>
     getFanletterAIStarSocialAccount(star.id),
@@ -301,7 +306,10 @@ export function FanletterMyAIPage({
         />
 
         {primaryStar && primarySocialAccount && primaryStarName ? (
-          <section className="min-w-0 rounded-[1.25rem] border border-zinc-200 bg-zinc-50 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.04)]">
+          <section
+            className="min-w-0 rounded-[1.25rem] border border-zinc-200 bg-zinc-50 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.04)]"
+            id="my-ai-tiktok-test"
+          >
             <div className="mb-3 flex min-w-0 flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
@@ -315,8 +323,21 @@ export function FanletterMyAIPage({
                 </p>
               </div>
             </div>
+            <div className="mb-3 flex min-w-0 flex-wrap gap-2">
+              {copy.tiktokTestSteps.map((step, index) => (
+                <span
+                  className="inline-flex min-h-8 items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700"
+                  key={step}
+                >
+                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-black text-[0.62rem] text-white">
+                    {index + 1}
+                  </span>
+                  {step}
+                </span>
+              ))}
+            </div>
             <FanletterAIStarSocialAccountCard
-              connectHref={primaryHref}
+              connectHref={primarySocialPermissionHref}
               locale={locale}
               social={primarySocialAccount}
               source="fanletter_my_ai"

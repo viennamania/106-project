@@ -201,7 +201,9 @@ export async function POST(request: Request) {
   const eventPath =
     source === "fanletter_creator_unlock"
       ? `/${locale}/fanletter/creator-unlock#tiktok-channel`
-      : `/${locale}/fanletter/${encodeURIComponent(starId)}#tiktok-channel`;
+      : source === "fanletter_my_ai"
+        ? `/${locale}/fanletter/my-ai#my-ai-tiktok-test`
+        : `/${locale}/fanletter/${encodeURIComponent(starId)}#tiktok-channel`;
   const serverAccount = await tryUpsertFanletterAIStarSocialAccount({
     account,
     connectedByMemberEmail: session?.email ?? null,

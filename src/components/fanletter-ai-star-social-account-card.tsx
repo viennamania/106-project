@@ -404,6 +404,12 @@ export function FanletterAIStarSocialAccountCard({
       return;
     }
 
+    if (source === "fanletter_my_ai") {
+      setIsOauthPreviewLoading(false);
+      setOauthPreview(null);
+      return;
+    }
+
     const controller = new AbortController();
 
     async function loadOAuthPreview() {
@@ -487,6 +493,24 @@ export function FanletterAIStarSocialAccountCard({
     }
 
     setConnectError(null);
+
+    if (source === "fanletter_my_ai") {
+      recordFanletterAIStarMockSocialAccount({
+        connectedAt: new Date().toISOString(),
+        connectedByMemberId: social.creatorMemberId,
+        connectedByMemberInitials: social.creatorMemberInitials,
+        connectedByMemberName: social.creatorMemberName,
+        creatorRoleAtConnection: social.creatorRole,
+        handle,
+        platform: social.platform,
+        profileUrl: buildFanletterTikTokProfileUrl(handle),
+        starId,
+        status: "mock_connected",
+      });
+      setIsPanelOpen(false);
+      return;
+    }
+
     setIsConnecting(true);
 
     try {
