@@ -25,6 +25,7 @@ import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { HumanMemberAvatar } from "@/components/fanletter-founder-club-v2";
 import type { AgentRankInteractionSource } from "@/lib/agentrank/interaction-events";
 import type { Locale } from "@/lib/i18n";
+import { fanletterTikTokApiCapabilities } from "@/mock/fanletter-tiktok-api-capabilities";
 import {
   buildFanletterSuggestedTikTokHandle,
   buildFanletterTikTokProfileUrl,
@@ -59,6 +60,30 @@ function getCopy(locale: Locale) {
       creatorPermissionTitle: "Creator / Owner 권한 필요",
       creatorOnly: "Creator / Owner 권한 필요",
       eventCreated: "평판 기록 생성됨",
+      apiCapabilityStatus: {
+        app_review_required: "앱 리뷰 필요",
+        connected_ready: "연결 후 가능",
+        scope_required: "scope 승인 필요",
+      },
+      apiCapabilityTitle: "TikTok API 적용 범위",
+      apiCapabilityItems: {
+        content_publish: {
+          detail: "AIAVpark 브이로그를 TikTok 게시 요청으로 연결합니다.",
+          title: "콘텐츠 게시",
+        },
+        performance_sync: {
+          detail: "조회, 좋아요, 댓글, 공유 수를 Star Score와 평판 기록에 반영합니다.",
+          title: "성과 동기화",
+        },
+        profile_sync: {
+          detail: "프로필, 아바타, 표시 이름을 AI 스타 채널 신원으로 저장합니다.",
+          title: "프로필 검증",
+        },
+        video_library: {
+          detail: "최근 TikTok 영상을 AI 스타 유니버스에 자동 표시합니다.",
+          title: "영상 목록 동기화",
+        },
+      },
       oauthCallbackFailed: "TikTok 승인 실패",
       oauthCallbackFailedBody:
         "TikTok이 권한 동의를 아직 완료 처리하지 않았습니다. Sandbox 등록 직후에는 테스트 사용자 권한 반영이 최대 1시간 지연될 수 있습니다.",
@@ -141,6 +166,30 @@ function getCopy(locale: Locale) {
       creatorPermissionTitle: "Creator / Owner権限が必要",
       creatorOnly: "Creator / Owner権限が必要",
       eventCreated: "評判記録作成済み",
+      apiCapabilityStatus: {
+        app_review_required: "アプリ審査が必要",
+        connected_ready: "接続後に利用可能",
+        scope_required: "scope承認が必要",
+      },
+      apiCapabilityTitle: "TikTok API適用範囲",
+      apiCapabilityItems: {
+        content_publish: {
+          detail: "AIAVparkのVlogをTikTok投稿リクエストにつなげます。",
+          title: "コンテンツ投稿",
+        },
+        performance_sync: {
+          detail: "再生、いいね、コメント、共有数をStar Scoreと評判記録に反映します。",
+          title: "成果同期",
+        },
+        profile_sync: {
+          detail: "プロフィール、アバター、表示名をAIスターチャンネルIDとして保存します。",
+          title: "プロフィール検証",
+        },
+        video_library: {
+          detail: "最近のTikTok動画をAIスターUniverseに自動表示します。",
+          title: "動画一覧同期",
+        },
+      },
       oauthCallbackFailed: "TikTok認証に失敗",
       oauthCallbackFailedBody:
         "TikTokが権限同意をまだ完了処理していません。Sandbox登録直後はテストユーザー権限の反映に最大1時間かかる場合があります。",
@@ -224,6 +273,32 @@ function getCopy(locale: Locale) {
     creatorPermissionTitle: "Creator / Owner permission required",
     creatorOnly: "Creator / Owner permission required",
     eventCreated: "Reputation record created",
+    apiCapabilityStatus: {
+      app_review_required: "App review required",
+      connected_ready: "Ready after connection",
+      scope_required: "Scope approval required",
+    },
+    apiCapabilityTitle: "TikTok API coverage",
+    apiCapabilityItems: {
+      content_publish: {
+        detail: "Connect AIAVpark vlogs to TikTok publish requests.",
+        title: "Content publishing",
+      },
+      performance_sync: {
+        detail:
+          "Use views, likes, comments, and shares in Star Score and Reputation Records.",
+        title: "Performance sync",
+      },
+      profile_sync: {
+        detail:
+          "Save profile, avatar, and display name as the AI Star channel identity.",
+        title: "Profile verification",
+      },
+      video_library: {
+        detail: "Show recent TikTok videos inside the AI Star Universe.",
+        title: "Video library sync",
+      },
+    },
     oauthCallbackFailed: "TikTok authorization failed",
     oauthCallbackFailedBody:
       "TikTok has not completed the scope consent yet. Right after Sandbox registration, target-user permission propagation can take up to 1 hour.",
@@ -840,6 +915,66 @@ export function FanletterAIStarSocialAccountCard({
               ))}
             </div>
           ) : null}
+
+          <div className="mt-4 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+            <div className="flex min-w-0 items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-zinc-950">
+                {copy.apiCapabilityTitle}
+              </p>
+              <span className="inline-flex min-h-7 shrink-0 items-center rounded-full bg-white px-2.5 text-[0.68rem] font-semibold text-zinc-600 ring-1 ring-zinc-200">
+                API
+              </span>
+            </div>
+            <div className="mt-3 grid min-w-0 gap-2">
+              {fanletterTikTokApiCapabilities.map((capability) => {
+                const item = copy.apiCapabilityItems[capability.id];
+                const statusLabel =
+                  copy.apiCapabilityStatus[capability.status];
+
+                return (
+                  <div
+                    className="min-w-0 rounded-lg border border-zinc-200 bg-white p-2.5"
+                    key={capability.id}
+                  >
+                    <div className="flex min-w-0 items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-zinc-950">
+                          {item.title}
+                        </p>
+                        <p className="mt-1 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
+                          {item.detail}
+                        </p>
+                      </div>
+                      <span
+                        className={joinClasses(
+                          "inline-flex min-h-7 shrink-0 items-center rounded-full border px-2 text-[0.64rem] font-semibold",
+                          capability.status === "connected_ready"
+                            ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                            : capability.status === "scope_required"
+                              ? "border-amber-200 bg-amber-50 text-amber-800"
+                              : "border-zinc-200 bg-zinc-50 text-zinc-600",
+                        )}
+                      >
+                        {statusLabel}
+                      </span>
+                    </div>
+                    <div className="mt-2 flex min-w-0 flex-wrap gap-1.5">
+                      <span className="inline-flex min-h-6 max-w-full items-center rounded-full bg-zinc-100 px-2 font-mono text-[0.62rem] font-semibold text-zinc-600">
+                        <span className="min-w-0 truncate">
+                          {capability.endpoint}
+                        </span>
+                      </span>
+                      <span className="inline-flex min-h-6 max-w-full items-center rounded-full bg-zinc-100 px-2 font-mono text-[0.62rem] font-semibold text-zinc-600">
+                        <span className="min-w-0 truncate">
+                          {capability.agentRankEventType}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
           <div className="mt-4 grid min-w-0 gap-2 sm:grid-cols-2">
             <div className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
