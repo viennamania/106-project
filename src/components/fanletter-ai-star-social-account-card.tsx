@@ -90,6 +90,7 @@ function getCopy(locale: Locale) {
         "회원 개인 계정이 아니라 선택한 AI 스타의 TikTok 채널을 연결합니다.",
       panelTitle: "AI 스타 TikTok 채널 연결",
       primaryCta: "TikTok 연결하기",
+      realOAuthCta: "TikTok 승인으로 연결",
       replaceCta: "채널 변경",
       reputationLedger: "평판 기록 보기",
       reputationLedgerHint: "AgentRank 원장에서 연결 이벤트 확인",
@@ -160,6 +161,7 @@ function getCopy(locale: Locale) {
         "個人アカウントではなく、選択したAIスターのTikTokチャンネルを接続します。",
       panelTitle: "AIスターTikTokチャンネル接続",
       primaryCta: "TikTok接続",
+      realOAuthCta: "TikTok認証で接続",
       replaceCta: "チャンネル変更",
       reputationLedger: "評判記録を見る",
       reputationLedgerHint: "AgentRank台帳で接続イベントを確認",
@@ -229,6 +231,7 @@ function getCopy(locale: Locale) {
       "Connect the selected AI Star channel, not a personal member account.",
     panelTitle: "Connect AI Star TikTok channel",
     primaryCta: "Connect TikTok",
+    realOAuthCta: "Connect with TikTok Authorization",
     replaceCta: "Change channel",
     reputationLedger: "View Reputation Record",
     reputationLedgerHint: "Check the connection event in AgentRank Ledger",
@@ -390,6 +393,15 @@ export function FanletterAIStarSocialAccountCard({
           ? `${copy.oauthReadinessBlocked} · ${oauthPreviewBlockedCount} ${copy.oauthReadinessCriteriaUnit}`
           : `${copy.oauthReadinessBlocked} · ${oauthPreviewBlockedCount}${copy.oauthReadinessCriteriaUnit}`
         : copy.oauthReadinessPreview;
+  const liveOAuthStartParams = new URLSearchParams({
+    canConnect: String(social.canConnect),
+    creatorRole: social.creatorRole,
+    locale,
+    returnTo: `/${locale}/fanletter/${encodeURIComponent(starId)}#tiktok-channel`,
+    source,
+    starId,
+  });
+  const liveOAuthStartHref = `/api/fanletter/founder-club/social-account/tiktok/oauth/start?${liveOAuthStartParams.toString()}`;
   const reputationLedgerParams = new URLSearchParams({
     coverageAction: "creator_social_connected",
     limit: "40",
@@ -1001,6 +1013,19 @@ export function FanletterAIStarSocialAccountCard({
                     <p className="mt-2 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
                       {copy.oauthReadinessNote}
                     </p>
+                    {oauthPreview &&
+                    "liveReady" in oauthPreview &&
+                    oauthPreview.liveReady ? (
+                      <a
+                        className="mt-3 inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800 sm:w-auto"
+                        href={liveOAuthStartHref}
+                      >
+                        <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
+                          {copy.realOAuthCta}
+                        </span>
+                        <ExternalLink className="size-4 shrink-0" />
+                      </a>
+                    ) : null}
                   </div>
                 </div>
               </div>

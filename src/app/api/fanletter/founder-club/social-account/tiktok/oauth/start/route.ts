@@ -123,18 +123,23 @@ export async function GET(request: Request) {
     });
   }
 
-  return Response.json(
-    {
-      ...applyServerPermissionBlockedReason({ preview, serverPermission }),
-      serverPermission,
-      session: {
-        email: session?.email ?? null,
-        hasMemberSession: Boolean(session?.email),
-        walletAddress: session?.walletAddress ?? null,
-      },
+  const responseBody = {
+    ...applyServerPermissionBlockedReason({ preview, serverPermission }),
+    serverPermission,
+    session: {
+      email: session?.email ?? null,
+      hasMemberSession: Boolean(session?.email),
+      walletAddress: session?.walletAddress ?? null,
     },
-    { status: preview.permission.allowed ? 200 : 403 },
-  );
+  };
+
+  if (responseBody.liveReady && responseBody.oauth.authorizeUrl) {
+    return Response.redirect(responseBody.oauth.authorizeUrl, 303);
+  }
+
+  return Response.json(responseBody, {
+    status: responseBody.permission.allowed ? 200 : 403,
+  });
 }
 
 export async function POST(request: Request) {

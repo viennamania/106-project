@@ -19,10 +19,18 @@ export type FanletterAIStarSocialAccountDocument = Omit<
   createdAt: Date;
   creatorJourneyConditionId: "creatorSocialConnected";
   creatorJourneyConditionMet: true;
+  expiresAt?: Date | null;
   lastEventPath?: string | null;
   mockOnly: boolean;
-  mode: "mock";
+  mode: "mock" | "oauth";
+  oauthTokenType?: string | null;
+  providerAccountId?: string | null;
+  providerDisplayName?: string | null;
+  providerRawProfile?: Record<string, unknown> | null;
+  providerScope?: string | null;
   reputationEventType: "creator_social_connected";
+  tokenCiphertext?: string | null;
+  tokenRefreshCiphertext?: string | null;
   source: AgentRankInteractionSource;
   starName: string;
   updatedAt: Date;
@@ -95,6 +103,8 @@ export async function upsertFanletterAIStarSocialAccount({
   connectedByMemberEmail = null,
   connectedByMemberWalletAddress = null,
   eventPath = null,
+  mode = "mock",
+  oauth = null,
   source,
   starName,
 }: {
@@ -102,6 +112,17 @@ export async function upsertFanletterAIStarSocialAccount({
   connectedByMemberEmail?: string | null;
   connectedByMemberWalletAddress?: string | null;
   eventPath?: string | null;
+  mode?: "mock" | "oauth";
+  oauth?: {
+    expiresAt?: Date | null;
+    providerAccountId?: string | null;
+    providerDisplayName?: string | null;
+    providerRawProfile?: Record<string, unknown> | null;
+    providerScope?: string | null;
+    tokenCiphertext?: string | null;
+    tokenRefreshCiphertext?: string | null;
+    tokenType?: string | null;
+  } | null;
   source: AgentRankInteractionSource;
   starName: string;
 }): Promise<FanletterAIStarSocialAccountUpsertResult> {
@@ -121,17 +142,25 @@ export async function upsertFanletterAIStarSocialAccount({
         creatorJourneyConditionId: "creatorSocialConnected",
         creatorJourneyConditionMet: true,
         creatorRoleAtConnection: account.creatorRoleAtConnection,
+        expiresAt: oauth?.expiresAt ?? null,
         handle: account.handle,
         lastEventPath: eventPath,
-        mockOnly: true,
-        mode: "mock",
+        mockOnly: mode === "mock",
+        mode,
+        oauthTokenType: oauth?.tokenType ?? null,
         platform: account.platform,
         profileUrl: account.profileUrl,
+        providerAccountId: oauth?.providerAccountId ?? null,
+        providerDisplayName: oauth?.providerDisplayName ?? null,
+        providerRawProfile: oauth?.providerRawProfile ?? null,
+        providerScope: oauth?.providerScope ?? null,
         reputationEventType: "creator_social_connected",
         source,
         starId: account.starId,
         starName,
         status: account.status,
+        tokenCiphertext: oauth?.tokenCiphertext ?? null,
+        tokenRefreshCiphertext: oauth?.tokenRefreshCiphertext ?? null,
         updatedAt: now,
       },
       $setOnInsert: {
