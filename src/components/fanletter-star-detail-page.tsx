@@ -44,6 +44,8 @@ import type { FunnelEventMetadata } from "@/lib/funnel";
 import { trackFunnelEvent } from "@/lib/funnel-client";
 import {
   buildFanletterAIStarSocialAccountViewModel,
+  getFanletterAIStarSocialStatusLabel,
+  type FanletterAIStarSocialAccountViewModel,
 } from "@/mock/fanletter-social-accounts";
 import {
   fanletterV2Mock,
@@ -624,6 +626,7 @@ function StarViewerRelationshipCard({
   locale,
   memberPortfolio,
   primaryAction,
+  social,
   star,
   viewerState,
 }: {
@@ -632,6 +635,7 @@ function StarViewerRelationshipCard({
   locale: Locale;
   memberPortfolio?: MemberPortfolioData | null;
   primaryAction: StarPrimaryAction;
+  social: FanletterAIStarSocialAccountViewModel;
   star: AIStar;
   viewerState: StarDetailViewerState;
 }) {
@@ -682,6 +686,11 @@ function StarViewerRelationshipCard({
         primaryCtaHint: "상단 CTA에서 진행",
         ownerNextAction: "TikTok 채널 관리",
         ownerStatus: "Creator 권한 활성화",
+        tiktokConnected: "TikTok 채널 연결됨",
+        tiktokDetailFallback: "AI 스타 채널 상태 확인",
+        tiktokRequired: "TikTok 연결 필요",
+        tiktokRequiredBody: "AI 스타 운영 권한은 활성화됐고, 이제 TikTok 채널 연결이 다음 단계입니다.",
+        tiktokStatusLabel: "채널 상태",
         title: "권한과 역할",
       }
     : {
@@ -719,23 +728,39 @@ function StarViewerRelationshipCard({
         primaryCtaHint: "Use the primary CTA above",
         ownerNextAction: "Manage TikTok channel",
         ownerStatus: "Creator permission active",
+        tiktokConnected: "TikTok channel connected",
+        tiktokDetailFallback: "Review AI Star channel status",
+        tiktokRequired: "TikTok connection required",
+        tiktokRequiredBody:
+          "AI Star operating permission is active. Connecting TikTok is the next step.",
+        tiktokStatusLabel: "Channel status",
         title: "Permission and role",
       };
+  const tiktokStatus = social.account
+    ? getFanletterAIStarSocialStatusLabel({
+        locale,
+        status: social.account.status,
+      })
+    : labels.tiktokRequired;
+  const tiktokDetail = social.account
+    ? `${social.account.handle} · ${tiktokStatus}`
+    : labels.tiktokRequiredBody;
   const relationshipAction: {
+    detail: string;
     eventType: AgentRankInteractionSignal["eventType"];
     href: string;
     label: string;
     status: string;
   } = ownedStar
     ? {
+        detail: tiktokDetail,
         eventType: "creator_social_connected",
-        href: `/${locale}/fanletter/creator-unlock?starId=${encodeURIComponent(
-          star.id,
-        )}#tiktok-channel`,
-        label: labels.ownerNextAction,
-        status: labels.ownerStatus,
+        href: "#tiktok-channel",
+        label: social.account ? labels.ownerNextAction : labels.tiktokRequired,
+        status: social.account ? labels.tiktokConnected : labels.tiktokRequired,
       }
     : {
+        detail: primaryAction.helper,
         eventType: primaryAction.variant === "share"
           ? "referral_shared"
           : "founder_joined",
@@ -782,7 +807,7 @@ function StarViewerRelationshipCard({
                 {labels.creatorLabel}
               </p>
               <p className="mt-1 truncate text-base font-semibold">
-                {labels.creatorStatus}
+                {ownedStar ? tiktokStatus : labels.creatorStatus}
               </p>
             </div>
             <span className="shrink-0 rounded-full border border-white/16 bg-white px-2 py-1 text-[0.6rem] font-semibold text-black">
@@ -790,7 +815,7 @@ function StarViewerRelationshipCard({
             </span>
           </div>
           <p className="mt-2 text-xs font-semibold leading-5 text-white/58 [word-break:keep-all]">
-            {labels.creatorBody}
+            {ownedStar ? tiktokDetail : labels.creatorBody}
           </p>
         </div>
 
@@ -833,6 +858,9 @@ function StarViewerRelationshipCard({
             </p>
             <p className="mt-1 truncate font-mono text-xs font-semibold text-zinc-500">
               {relationshipAction.eventType}
+            </p>
+            <p className="mt-1 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all] sm:hidden">
+              {relationshipAction.detail}
             </p>
           </div>
           {ownedStar ? (
@@ -2367,6 +2395,7 @@ export function FanletterStarDetailPage({
             locale={locale}
             memberPortfolio={memberPortfolio}
             primaryAction={primaryAction}
+            social={starSocialAccount}
             star={star}
             viewerState={viewerState}
           />
