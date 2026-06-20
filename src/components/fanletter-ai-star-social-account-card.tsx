@@ -142,6 +142,15 @@ function getCopy(locale: Locale) {
       sourceSample: "기본 mock",
       sourceServer: "서버 저장됨",
       sourceSyncing: "서버 확인 중",
+      syncApiCta: "동기화 테스트",
+      syncApiError:
+        "TikTok mock 동기화를 완료하지 못했습니다. 연결 상태와 Creator 권한을 확인해주세요.",
+      syncApiHelper:
+        "연결된 TikTok 채널의 영상/성과를 mock으로 동기화하고 content_engaged 평판 기록을 생성합니다.",
+      syncApiSaving: "동기화 중",
+      syncApiTitle: "영상/성과 동기화",
+      syncResult: "평판 기록 생성됨",
+      syncResultMetrics: "영상 {videos}개 · 조회 {views} · 좋아요 {likes}",
       sandboxMode: "Sandbox 테스트",
       subtitle: "회원 개인 계정이 아니라 AI 스타 채널입니다.",
       tiktok: "TikTok",
@@ -252,6 +261,15 @@ function getCopy(locale: Locale) {
       sourceSample: "基本mock",
       sourceServer: "サーバー保存済み",
       sourceSyncing: "サーバー確認中",
+      syncApiCta: "同期テスト",
+      syncApiError:
+        "TikTok mock同期を完了できませんでした。接続状態とCreator権限を確認してください。",
+      syncApiHelper:
+        "接続済みTikTokチャンネルの動画・成果をmock同期し、content_engaged評判記録を作成します。",
+      syncApiSaving: "同期中",
+      syncApiTitle: "動画・成果同期",
+      syncResult: "評判記録作成済み",
+      syncResultMetrics: "動画{videos}本 · 再生{views} · いいね{likes}",
       sandboxMode: "Sandboxテスト",
       subtitle: "個人アカウントではなくAIスターのチャンネルです。",
       tiktok: "TikTok",
@@ -363,6 +381,15 @@ function getCopy(locale: Locale) {
     sourceSample: "Default mock",
     sourceServer: "Saved on server",
     sourceSyncing: "Checking server",
+    syncApiCta: "Test Sync",
+    syncApiError:
+      "TikTok mock sync could not be completed. Check the connection state and Creator permission.",
+    syncApiHelper:
+      "Mock-sync connected TikTok videos and performance into a content_engaged Reputation Event.",
+    syncApiSaving: "Syncing",
+    syncApiTitle: "Video / Performance Sync",
+    syncResult: "Reputation Record Created",
+    syncResultMetrics: "{videos} videos · {views} views · {likes} likes",
     sandboxMode: "Sandbox test",
     subtitle: "This is the AI Star channel, not a personal member account.",
     tiktok: "TikTok",
@@ -391,6 +418,26 @@ type MockSocialAccountConnectResponse =
   | {
       account: FanletterAIStarSocialAccount;
       mode: "mock";
+    }
+  | {
+      error?: string;
+      mode?: "mock";
+    };
+
+type TikTokMockSyncResponse =
+  | {
+      mode: "mock";
+      snapshot: {
+        capabilityId: string;
+        eventType: "content_engaged";
+        mockOnly: true;
+        syncedAt: string;
+        totals: {
+          likes: number;
+          videos: number;
+          views: number;
+        };
+      };
     }
   | {
       error?: string;
@@ -451,12 +498,17 @@ export function FanletterAIStarSocialAccountCard({
     status: "connected" | "failed";
   } | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isSyncingTikTok, setIsSyncingTikTok] = useState(false);
   const [isOauthPreviewLoading, setIsOauthPreviewLoading] = useState(false);
   const [oauthMode, setOauthMode] = useState<"production" | "sandbox">(
     "production",
   );
   const [oauthPreview, setOauthPreview] =
     useState<TikTokOAuthPreviewResponse | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
+  const [syncSnapshot, setSyncSnapshot] = useState<
+    Extract<TikTokMockSyncResponse, { snapshot: object }>["snapshot"] | null
+  >(null);
   const serverAccount = serverAccountState.account;
   const account = localMockAccount ?? serverAccount ?? social.account;
   const accountSource = localMockAccount
@@ -725,6 +777,52 @@ export function FanletterAIStarSocialAccountCard({
       );
     } finally {
       setIsConnecting(false);
+    }
+  }
+
+  async function handleSyncTikTok() {
+    if (!account || isSyncingTikTok) {
+      return;
+    }
+
+    setIsSyncingTikTok(true);
+    setSyncError(null);
+
+    try {
+      const response = await fetch(
+        "/api/fanletter/founder-club/social-account/tiktok/mock-sync",
+        {
+          body: JSON.stringify({
+            capabilityId: "performance_sync",
+            locale,
+            source,
+            starId,
+            starName,
+          }),
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+        },
+      );
+      const data = (await response.json().catch(() => null)) as
+        | TikTokMockSyncResponse
+        | null;
+
+      if (!response.ok || !data || !("snapshot" in data)) {
+        throw new Error(
+          data && "error" in data && data.error ? data.error : copy.syncApiError,
+        );
+      }
+
+      setSyncSnapshot(data.snapshot);
+    } catch (error) {
+      setSyncError(
+        error instanceof Error && error.message ? error.message : copy.syncApiError,
+      );
+    } finally {
+      setIsSyncingTikTok(false);
     }
   }
 
@@ -1022,6 +1120,64 @@ export function FanletterAIStarSocialAccountCard({
               })}
             </div>
           </div>
+
+          {account ? (
+            <div className="mt-3 grid min-w-0 gap-3 rounded-lg border border-zinc-200 bg-white p-3 sm:grid-cols-[1fr_auto] sm:items-center">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-zinc-950">
+                  {copy.syncApiTitle}
+                </p>
+                <p className="mt-1 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
+                  {copy.syncApiHelper}
+                </p>
+                {syncSnapshot ? (
+                  <p className="mt-2 text-xs font-semibold text-emerald-700">
+                    {copy.syncResult} ·{" "}
+                    {copy.syncResultMetrics
+                      .replace(
+                        "{videos}",
+                        new Intl.NumberFormat().format(
+                          syncSnapshot.totals.videos,
+                        ),
+                      )
+                      .replace(
+                        "{views}",
+                        new Intl.NumberFormat().format(
+                          syncSnapshot.totals.views,
+                        ),
+                      )
+                      .replace(
+                        "{likes}",
+                        new Intl.NumberFormat().format(
+                          syncSnapshot.totals.likes,
+                        ),
+                      )}
+                  </p>
+                ) : null}
+                {syncError ? (
+                  <p className="mt-2 text-xs font-semibold text-rose-700">
+                    {syncError}
+                  </p>
+                ) : null}
+              </div>
+              <button
+                className="inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-zinc-950 px-4 text-sm font-semibold leading-tight text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                disabled={isSyncingTikTok}
+                onClick={handleSyncTikTok}
+                type="button"
+              >
+                <RefreshCw
+                  className={joinClasses(
+                    "size-4 shrink-0",
+                    isSyncingTikTok && "animate-spin",
+                  )}
+                />
+                <span className="min-w-0 truncate">
+                  {isSyncingTikTok ? copy.syncApiSaving : copy.syncApiCta}
+                </span>
+              </button>
+            </div>
+          ) : null}
 
           <div className="mt-4 grid min-w-0 gap-2 sm:grid-cols-2">
             <div className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
