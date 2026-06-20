@@ -494,6 +494,47 @@ function getTikTokOAuthReasonLabel(reason: string | null, locale: Locale) {
   return label?.[locale] ?? label?.en ?? reason;
 }
 
+function buildTikTokOAuthReturnTo({
+  locale,
+  oauthMode,
+  source,
+  starId,
+}: {
+  locale: Locale;
+  oauthMode: "production" | "sandbox";
+  source: AgentRankInteractionSource;
+  starId: string;
+}) {
+  const encodedStarId = encodeURIComponent(starId);
+  const query = new URLSearchParams();
+
+  if (oauthMode === "sandbox") {
+    query.set("tiktokSandbox", "1");
+  }
+
+  if (source === "fanletter_my_ai") {
+    const queryString = query.toString();
+
+    return `/${locale}/fanletter/my-ai${queryString ? `?${queryString}` : ""}#my-ai-tiktok-test`;
+  }
+
+  if (source === "fanletter_creator_unlock") {
+    query.set("starId", starId);
+
+    return `/${locale}/fanletter/creator-unlock?${query.toString()}#tiktok-channel`;
+  }
+
+  if (source === "fanletter_founder_universe") {
+    const queryString = query.toString();
+
+    return `/${locale}/fanletter/${encodedStarId}/universe${queryString ? `?${queryString}` : ""}#tiktok-channel`;
+  }
+
+  const queryString = query.toString();
+
+  return `/${locale}/fanletter/${encodedStarId}${queryString ? `?${queryString}` : ""}#tiktok-channel`;
+}
+
 type MockSocialAccountConnectResponse =
   | {
       account: FanletterAIStarSocialAccount;
@@ -661,15 +702,18 @@ export function FanletterAIStarSocialAccountCard({
     oauthCallbackStatus?.reason ?? null,
     locale,
   );
+  const liveOAuthReturnTo = buildTikTokOAuthReturnTo({
+    locale,
+    oauthMode,
+    source,
+    starId,
+  });
   const liveOAuthStartParams = new URLSearchParams({
     canConnect: String(social.canConnect),
     creatorRole: social.creatorRole,
     locale,
     oauthMode,
-    returnTo:
-      oauthMode === "sandbox"
-        ? `/${locale}/fanletter/${encodeURIComponent(starId)}?tiktokSandbox=1#tiktok-channel`
-        : `/${locale}/fanletter/${encodeURIComponent(starId)}#tiktok-channel`,
+    returnTo: liveOAuthReturnTo,
     source,
     starId,
   });
