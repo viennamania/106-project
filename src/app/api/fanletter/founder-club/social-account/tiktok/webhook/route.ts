@@ -55,14 +55,29 @@ function normalizeEventType(payload: TikTokWebhookPayload) {
 
 function getSignatureHeader(headers: Headers) {
   return (
+    headers.get("tiktok-signature") ??
     headers.get("x-tiktok-signature") ??
-    headers.get("x-tt-signature") ??
-    headers.get("tiktok-signature")
+    headers.get("x-tt-signature")
   );
 }
 
-function normalizeSignature(value: string | null) {
-  return value?.trim().replace(/^sha256=/i, "") ?? "";
+function parseTikTokSignatureHeader(value: string | null) {
+  const parts = new Map<string, string>();
+
+  for (const part of value?.split(",") ?? []) {
+    const [key, ...rawValue] = part.split("=");
+    const normalizedKey = key?.trim();
+    const normalizedValue = rawValue.join("=").trim();
+
+    if (normalizedKey && normalizedValue) {
+      parts.set(normalizedKey, normalizedValue);
+    }
+  }
+
+  return {
+    signature: parts.get("s") ?? "",
+    timestamp: parts.get("t") ?? "",
+  };
 }
 
 function secureCompare(left: string, right: string) {
@@ -83,7 +98,9 @@ function verifyTikTokWebhookSignature({
   rawBody: string;
   request: Request;
 }) {
-  const secret = process.env.TIKTOK_WEBHOOK_SECRET?.trim();
+  const secret =
+    process.env.TIKTOK_WEBHOOK_SECRET?.trim() ??
+    process.env.TIKTOK_CLIENT_SECRET?.trim();
   const dryRun =
     new URL(request.url).searchParams.get("dryRun") === "1" &&
     request.headers.get("x-fanletter-webhook-preview") === "true";
@@ -97,9 +114,18 @@ function verifyTikTokWebhookSignature({
     };
   }
 
-  const providedSignature = normalizeSignature(getSignatureHeader(request.headers));
+  const { signature: providedSignature, timestamp } =
+    parseTikTokSignatureHeader(getSignatureHeader(request.headers));
+
+  if (!providedSignature || !timestamp) {
+    return {
+      ok: false,
+      reason: "tiktok_signature_header_invalid",
+    };
+  }
+
   const expectedSignature = createHmac("sha256", secret)
-    .update(rawBody)
+    .update(`${timestamp}.${rawBody}`)
     .digest("hex");
 
   return {
@@ -188,7 +214,8 @@ export async function POST(request: Request) {
   const eventType = normalizeEventType(payload);
 
   if (!eventType) {
-    return jsonError("Unsupported TikTok webhook event.", 202, {
+    return Response.json({
+      error: "Unsupported TikTok webhook event.",
       ignored: true,
     });
   }
@@ -196,7 +223,8 @@ export async function POST(request: Request) {
   const account = await resolveWebhookSocialAccount(payload);
 
   if (!account) {
-    return jsonError("Connected AI Star TikTok account was not found.", 202, {
+    return Response.json({
+      error: "Connected AI Star TikTok account was not found.",
       eventType,
       ignored: true,
       reason: "social_account_not_found",
