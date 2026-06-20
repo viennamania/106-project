@@ -11,9 +11,11 @@ import {
 } from "lucide-react";
 
 import { FanletterAIStarIdentity } from "@/components/fanletter-ai-star-identity";
+import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import type { Locale } from "@/lib/i18n";
 import {
+  buildFanletterAIStarSocialAccountViewModel,
   getFanletterAIStarSocialAccount,
   getFanletterAIStarSocialStatusLabel,
 } from "@/mock/fanletter-social-accounts";
@@ -65,6 +67,11 @@ function getCopy(locale: Locale) {
       status: "상태",
       steps: ["운영 AI", "TikTok", "콘텐츠", "평판 기록"],
       tiktok: "TikTok",
+      tiktokFocusBody:
+        "AI 스타별 TikTok 채널을 연결하면 Creator Journey 조건과 AgentRank 평판 기록이 함께 채워집니다.",
+      tiktokFocusReady:
+        "모든 운영 AI 스타의 TikTok 연결이 준비되어 있습니다. 다음은 평판 기록 확인입니다.",
+      tiktokFocusTitle: "TikTok 다음 행동",
       viewReputation: "평판 기록 보기",
       viewUniverse: "AI 스타 유니버스 보기",
     };
@@ -102,6 +109,11 @@ function getCopy(locale: Locale) {
     status: "Status",
     steps: ["Operate", "TikTok", "Content", "Reputation"],
     tiktok: "TikTok",
+    tiktokFocusBody:
+      "Connecting an AI Star TikTok channel fills the Creator Journey condition and creates an AgentRank reputation record.",
+    tiktokFocusReady:
+      "All operated AI Stars have TikTok connected. Next, review the reputation records.",
+    tiktokFocusTitle: "TikTok Next Action",
     viewReputation: "View Reputation Records",
     viewUniverse: "View AI Star Universe",
   };
@@ -157,13 +169,43 @@ export function FanletterMyAIPage({
   const copy = getCopy(locale);
   const portfolio: MemberPortfolio = livePortfolio ?? fanletterV2Mock.memberPortfolio;
   const ownedStars = portfolio.ownedStars ?? [];
+  const sortedOwnedStars = [...ownedStars].sort((a, b) => {
+    const aConnected = Boolean(getFanletterAIStarSocialAccount(a.id));
+    const bConnected = Boolean(getFanletterAIStarSocialAccount(b.id));
+
+    if (aConnected === bConnected) {
+      return a.name.localeCompare(b.name);
+    }
+
+    return aConnected ? 1 : -1;
+  });
   const starsById = new Map<string, AIStar>(
     [...stars, ...fanletterV2Mock.aiStars].map((star) => [star.id, star]),
   );
-  const primaryStar = resolvePrimaryStar({ ownedStars });
+  const primaryStar = resolvePrimaryStar({ ownedStars: sortedOwnedStars });
   const primaryFallback = primaryStar ? starsById.get(primaryStar.id) : undefined;
   const primaryAccount = primaryStar
     ? getFanletterAIStarSocialAccount(primaryStar.id)
+    : null;
+  const primaryStarName = primaryStar
+    ? getStarName(primaryStar, primaryFallback)
+    : null;
+  const primaryStarPortraitUrl = primaryStar
+    ? primaryStar.portraitImageUrl ?? primaryFallback?.portraitImageUrl ?? null
+    : null;
+  const primaryStarPortraitInitials = primaryStar
+    ? primaryStar.portraitInitials ?? primaryFallback?.portraitInitials ?? null
+    : null;
+  const primarySocialAccount = primaryStar
+    ? buildFanletterAIStarSocialAccountViewModel({
+        canConnect: true,
+        creatorMemberId: `creator:${primaryStar.id}`,
+        creatorMemberInitials:
+          portfolio.memberInitials ?? primaryStarPortraitInitials ?? "CR",
+        creatorMemberName: portfolio.memberName,
+        creatorRole: "owner",
+        starId: primaryStar.id,
+      })
     : null;
   const primaryHref = primaryStar
     ? primaryAccount
@@ -258,6 +300,34 @@ export function FanletterMyAIPage({
           title={primaryAccount ? copy.nextConnected : copy.nextPending}
         />
 
+        {primaryStar && primarySocialAccount && primaryStarName ? (
+          <section className="min-w-0 rounded-[1.25rem] border border-zinc-200 bg-zinc-50 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.04)]">
+            <div className="mb-3 flex min-w-0 flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                  Creator Journey
+                </p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-normal text-zinc-950">
+                  {copy.tiktokFocusTitle}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+                  {primaryAccount ? copy.tiktokFocusReady : copy.tiktokFocusBody}
+                </p>
+              </div>
+            </div>
+            <FanletterAIStarSocialAccountCard
+              connectHref={primaryHref}
+              locale={locale}
+              social={primarySocialAccount}
+              source="fanletter_creator_unlock"
+              starId={primaryStar.id}
+              starName={primaryStarName}
+              starPortraitImageUrl={primaryStarPortraitUrl}
+              starPortraitInitials={primaryStarPortraitInitials}
+            />
+          </section>
+        ) : null}
+
         <section className="min-w-0 overflow-hidden rounded-[1.4rem] border border-zinc-200 bg-zinc-950 p-4 text-white shadow-[0_24px_60px_rgba(15,23,42,0.16)] sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
@@ -305,7 +375,7 @@ export function FanletterMyAIPage({
 
         {ownedStars.length > 0 ? (
           <section className="grid min-w-0 gap-3 sm:grid-cols-2">
-            {ownedStars.map((ownedStar) => {
+            {sortedOwnedStars.map((ownedStar) => {
               const star = starsById.get(ownedStar.id);
               const account = getFanletterAIStarSocialAccount(ownedStar.id);
               const name = getStarName(ownedStar, star);
