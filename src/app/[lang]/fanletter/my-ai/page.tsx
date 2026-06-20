@@ -3,11 +3,15 @@ import { notFound } from "next/navigation";
 
 import { FanletterMyAIPage } from "@/components/fanletter-my-ai-page";
 import {
+  tryGetFanletterAIStarStoredSocialAccount,
+} from "@/lib/fanletter-ai-star-social-accounts";
+import {
   getFanletterFounderClubHomeStars,
   getFanletterFounderClubMemberPortfolio,
 } from "@/lib/fanletter-founder-club-service";
 import { hasLocale, type Locale } from "@/lib/i18n";
 import { readMemberServerSession } from "@/lib/member-server-session";
+import type { FanletterAIStarSocialAccount } from "@/mock/fanletter-social-accounts";
 
 export const dynamic = "force-dynamic";
 
@@ -75,6 +79,14 @@ export default async function FanletterMyAIRoutePage({
     getFanletterFounderClubMemberPortfolio(memberEmail),
     getFanletterFounderClubHomeStars(),
   ]);
+  const storedSocialAccounts = await Promise.all(
+    (portfolio?.ownedStars ?? []).map((star) =>
+      tryGetFanletterAIStarStoredSocialAccount({
+        platform: "tiktok",
+        starId: star.id,
+      }),
+    ),
+  );
 
   return (
     <FanletterMyAIPage
@@ -82,6 +94,10 @@ export default async function FanletterMyAIRoutePage({
       locale={locale}
       portfolio={portfolio}
       stars={stars}
+      storedSocialAccounts={storedSocialAccounts.filter(
+        (account): account is FanletterAIStarSocialAccount =>
+          Boolean(account),
+      )}
     />
   );
 }

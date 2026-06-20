@@ -18,6 +18,7 @@ import {
   buildFanletterAIStarSocialAccountViewModel,
   getFanletterAIStarSocialAccount,
   getFanletterAIStarSocialStatusLabel,
+  type FanletterAIStarSocialAccount,
 } from "@/mock/fanletter-social-accounts";
 import {
   fanletterV2Mock,
@@ -147,11 +148,13 @@ function getRoleLabel(role: MemberPortfolioRole["role"], locale: Locale) {
 
 function resolvePrimaryStar({
   ownedStars,
+  resolveSocialAccount,
 }: {
   ownedStars: MemberOwnedAIStar[];
+  resolveSocialAccount: (starId: string) => FanletterAIStarSocialAccount | null;
 }) {
   return (
-    ownedStars.find((star) => !getFanletterAIStarSocialAccount(star.id)) ??
+    ownedStars.find((star) => !resolveSocialAccount(star.id)) ??
     ownedStars[0] ??
     null
   );
@@ -162,18 +165,26 @@ export function FanletterMyAIPage({
   locale,
   portfolio: livePortfolio,
   stars = fanletterV2Mock.aiStars,
+  storedSocialAccounts = [],
 }: {
   isSignedIn: boolean;
   locale: Locale;
   portfolio?: MemberPortfolio | null;
   stars?: AIStar[];
+  storedSocialAccounts?: FanletterAIStarSocialAccount[];
 }) {
   const copy = getCopy(locale);
   const portfolio: MemberPortfolio = livePortfolio ?? fanletterV2Mock.memberPortfolio;
   const ownedStars = portfolio.ownedStars ?? [];
+  const storedSocialAccountsByStarId = new Map(
+    storedSocialAccounts.map((account) => [account.starId, account]),
+  );
+  const resolveSocialAccount = (starId: string) =>
+    storedSocialAccountsByStarId.get(starId) ??
+    getFanletterAIStarSocialAccount(starId);
   const sortedOwnedStars = [...ownedStars].sort((a, b) => {
-    const aConnected = Boolean(getFanletterAIStarSocialAccount(a.id));
-    const bConnected = Boolean(getFanletterAIStarSocialAccount(b.id));
+    const aConnected = Boolean(resolveSocialAccount(a.id));
+    const bConnected = Boolean(resolveSocialAccount(b.id));
 
     if (aConnected === bConnected) {
       return a.name.localeCompare(b.name);
@@ -184,10 +195,13 @@ export function FanletterMyAIPage({
   const starsById = new Map<string, AIStar>(
     [...stars, ...fanletterV2Mock.aiStars].map((star) => [star.id, star]),
   );
-  const primaryStar = resolvePrimaryStar({ ownedStars: sortedOwnedStars });
+  const primaryStar = resolvePrimaryStar({
+    ownedStars: sortedOwnedStars,
+    resolveSocialAccount,
+  });
   const primaryFallback = primaryStar ? starsById.get(primaryStar.id) : undefined;
   const primaryAccount = primaryStar
-    ? getFanletterAIStarSocialAccount(primaryStar.id)
+    ? resolveSocialAccount(primaryStar.id)
     : null;
   const primaryStarName = primaryStar
     ? getStarName(primaryStar, primaryFallback)
@@ -200,6 +214,7 @@ export function FanletterMyAIPage({
     : null;
   const primarySocialAccount = primaryStar
     ? buildFanletterAIStarSocialAccountViewModel({
+        account: primaryAccount,
         canConnect: true,
         creatorMemberId: `creator:${primaryStar.id}`,
         creatorMemberInitials:
@@ -220,7 +235,7 @@ export function FanletterMyAIPage({
       )}#tiktok-channel`
     : `/${locale}/fanletter/creator-unlock`;
   const connectedCount = ownedStars.filter((star) =>
-    getFanletterAIStarSocialAccount(star.id),
+    resolveSocialAccount(star.id),
   ).length;
   const currentLabel = primaryStar
     ? `${getStarName(primaryStar, primaryFallback)} · ${getUniverseName(
@@ -398,7 +413,7 @@ export function FanletterMyAIPage({
           <section className="grid min-w-0 gap-3 sm:grid-cols-2">
             {sortedOwnedStars.map((ownedStar) => {
               const star = starsById.get(ownedStar.id);
-              const account = getFanletterAIStarSocialAccount(ownedStar.id);
+              const account = resolveSocialAccount(ownedStar.id);
               const name = getStarName(ownedStar, star);
               const universeName = getUniverseName(ownedStar, star);
               const portraitUrl =

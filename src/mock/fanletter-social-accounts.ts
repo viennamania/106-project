@@ -240,6 +240,7 @@ export function getFanletterAIStarSocialAccount(
 }
 
 export function buildFanletterAIStarSocialAccountViewModel({
+  account: accountOverride,
   canConnect = true,
   creatorMemberId,
   creatorMemberInitials,
@@ -248,6 +249,7 @@ export function buildFanletterAIStarSocialAccountViewModel({
   platform = "tiktok",
   starId,
 }: {
+  account?: FanletterAIStarSocialAccount | null;
   canConnect?: boolean;
   creatorMemberId?: string | null;
   creatorMemberInitials?: string | null;
@@ -256,7 +258,8 @@ export function buildFanletterAIStarSocialAccountViewModel({
   platform?: FanletterSocialPlatform;
   starId: string;
 }): FanletterAIStarSocialAccountViewModel {
-  const account = getFanletterAIStarSocialAccount(starId, platform);
+  const account =
+    accountOverride ?? getFanletterAIStarSocialAccount(starId, platform);
   const fallbackName =
     creatorMemberName ?? account?.connectedByMemberName ?? "Creator";
   const fallbackInitials =
