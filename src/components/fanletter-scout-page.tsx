@@ -7,6 +7,7 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 
+import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterStarReferralPanel } from "@/components/fanletter-star-referral-panel";
 import type { Locale } from "@/lib/i18n";
 import {
@@ -133,6 +134,8 @@ function getScoutPageCopy(locale: Locale) {
         progress: "Creator 진행",
         scout: "스카우트 점수",
       },
+      signpostSubtitle:
+        "추천 링크 공유는 AI 스타 유니버스의 파운더 네트워크 성장과 AgentRank 평판 기록으로 이어집니다.",
       steps: ["추천 링크 생성", "SNS 공유", "Founder 참여", "평판 기록"],
     };
   }
@@ -171,6 +174,8 @@ function getScoutPageCopy(locale: Locale) {
       progress: "Creator progress",
       scout: "Scout score",
     },
+    signpostSubtitle:
+      "Referral sharing grows the selected AI Star Universe's Founder Network and creates AgentRank reputation records.",
     steps: [
       "Create referral link",
       "Share to SNS",
@@ -226,6 +231,15 @@ export function FanletterScoutPage({
       ? copy.primaryJoin
       : copy.primaryConnect;
   const primaryVariant = hasShareLoop ? "share" : isAuthenticated ? "join" : "connect";
+  const progressSteps = copy.steps.map((step, index) => ({
+    label: step,
+    status:
+      hasShareLoop && index === 0
+        ? ("done" as const)
+        : index === (hasShareLoop ? 1 : 0)
+          ? ("active" as const)
+          : ("next" as const),
+  }));
   const selectableRoles =
     portfolio?.roles.length
       ? portfolio.roles.map((role) => ({
@@ -244,9 +258,12 @@ export function FanletterScoutPage({
           universe: formatUniverseName(star.universeName, locale),
         }));
 
+  const pageTitle = copy.heroTitle;
+
   return (
     <main className="min-h-screen bg-white pb-24 text-zinc-950">
       <section className="mx-auto w-full max-w-6xl px-4 py-5 sm:px-6 lg:px-8">
+        <h1 className="sr-only">{pageTitle}</h1>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Link
             className="inline-flex min-h-10 items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold text-zinc-700 shadow-sm transition hover:border-zinc-300 hover:text-black"
@@ -261,7 +278,64 @@ export function FanletterScoutPage({
           </span>
         </div>
 
-        <div className="mt-5 grid gap-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
+        <FanletterActionGuide
+          className="mt-5"
+          currentLabel={`${selectedStar.name} · ${formatUniverseName(
+            selectedStar.universeName,
+            locale,
+          )}`}
+          metrics={[
+            {
+              label: copy.role,
+              value: getRoleLabel(selectedRole?.role, locale),
+            },
+            {
+              label: copy.metrics.invites,
+              value: formatNumber(portfolio?.successfulInvites ?? 0, locale),
+            },
+          ]}
+          primaryAction={{
+            agentRank: {
+              eventType: hasShareLoop
+                ? "referral_shared"
+                : isAuthenticated
+                  ? "founder_joined"
+                  : "founder_joined",
+              intent: hasShareLoop
+                ? "share_scout_referral"
+                : isAuthenticated
+                  ? "join_founder_before_share"
+                  : "connect_account_before_scout",
+              source: "fanletter_home",
+              starId: selectedStar.id,
+            },
+            href: primaryHref,
+            label: primaryLabel,
+            metadata: {
+              location: "fanletter_scout_signpost",
+              primaryAction: primaryVariant,
+              starId: selectedStar.id,
+            },
+          }}
+          reputationEventLabel={
+            hasShareLoop ? copy.reputationEventValue : copy.pendingEvent
+          }
+          secondaryActions={[
+            {
+              href: universeHref,
+              label: copy.viewUniverse,
+              metadata: {
+                location: "fanletter_scout_signpost",
+                starId: selectedStar.id,
+              },
+            },
+          ]}
+          steps={progressSteps}
+          subtitle={copy.signpostSubtitle}
+          title={primaryLabel}
+        />
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
           <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-zinc-950 text-white shadow-[0_24px_80px_rgba(15,23,42,0.12)]">
             <div className="grid min-h-full gap-0 sm:grid-cols-[0.86fr_1fr]">
               <div className="relative min-h-72 bg-zinc-900">
@@ -288,9 +362,9 @@ export function FanletterScoutPage({
                   <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/54">
                     {copy.heroEyebrow}
                   </p>
-                  <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-normal text-white sm:text-4xl">
+                  <p className="mt-3 text-3xl font-semibold leading-tight tracking-normal text-white sm:text-4xl">
                     {copy.heroTitle}
-                  </h1>
+                  </p>
                   <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-white/66">
                     {copy.heroBody}
                   </p>

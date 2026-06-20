@@ -35,6 +35,7 @@ function getCopy(locale: Locale) {
       creatorBody: "조건을 확인하고 TikTok 채널 연결, mock 출시까지 이어갑니다.",
       creatorCta: "권한 활성화 보기",
       creatorReady: "권한 활성화 준비",
+      currentCondition: "지금 필요한 조건",
       discover: "AI 스타 발견",
       discoverBody: "성장할 AI 스타를 먼저 선택하면 Founder 참여가 시작됩니다.",
       discoverCta: "AI 스타 발견하기",
@@ -67,6 +68,7 @@ function getCopy(locale: Locale) {
         founder: "추천 링크 공유하기",
       },
       relationTitle: "내 성장 상태",
+      result: "평판 결과",
       routeLabel: "FanLetter / 성장",
       steps: ["발견", "Founder", "추천", "평판 기록", "Creator"],
       tiktokNeeded: "TikTok 연결 필요",
@@ -80,6 +82,7 @@ function getCopy(locale: Locale) {
       "Review conditions, connect TikTok, and continue into the mock launch flow.",
     creatorCta: "View Permission Activation",
     creatorReady: "Permission activation ready",
+    currentCondition: "Current requirement",
     discover: "AI Star Discovery",
     discoverBody: "Choose a growing AI Star first to start Founder participation.",
     discoverCta: "Discover AI Stars",
@@ -114,6 +117,7 @@ function getCopy(locale: Locale) {
       founder: "Share Referral Link",
     },
     relationTitle: "My Growth Status",
+    result: "Reputation result",
     routeLabel: "FanLetter / Growth",
     steps: ["Discover", "Founder", "Referral", "Reputation", "Creator"],
     tiktokNeeded: "TikTok connection needed",
@@ -263,10 +267,12 @@ export function FanletterGrowthPage({
   const progressSteps = getProgressSteps(copy, primaryAction.status);
   const creatorProgress = `${resolvedPortfolio.creatorEligibilityPercent}%`;
   const primaryStar = resolvedPortfolio.roles[0];
+  const pageTitle = copy.heroTitle;
 
   return (
     <main className="fanletter-v2-surface min-h-screen bg-[#f7f7f4] px-4 py-5 pb-28 text-black sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-5">
+        <h1 className="sr-only">{pageTitle}</h1>
         <div className="flex items-center justify-between gap-3">
           <Link
             className="inline-flex min-h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black/68 transition hover:border-black/20 hover:text-black"
@@ -337,11 +343,32 @@ export function FanletterGrowthPage({
           title={primaryAction.next}
         />
 
+        <section className="grid gap-3 rounded-lg border border-black/10 bg-white p-4 shadow-[0_16px_42px_rgba(15,23,42,0.045)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:p-5">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-black/42">
+              {copy.currentCondition}
+            </p>
+            <h2 className="mt-1 break-words text-2xl font-semibold leading-tight text-black [word-break:keep-all]">
+              {primaryAction.next}
+            </h2>
+            <p className="mt-2 text-sm font-semibold text-black/54 [word-break:keep-all]">
+              {copy.result}: {primaryAction.event}
+            </p>
+          </div>
+          <Link
+            className="inline-flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-sm font-semibold !text-white transition hover:bg-zinc-800"
+            href={primaryAction.href}
+          >
+            <span className="min-w-0 truncate">{primaryAction.label}</span>
+            <ArrowRight className="size-4 shrink-0" />
+          </Link>
+        </section>
+
         <section className="rounded-lg border border-black/10 bg-black p-4 text-white shadow-[0_20px_60px_rgba(15,23,42,0.16)] sm:p-6">
           <p className="text-sm font-semibold text-white/54">{copy.heroEyebrow}</p>
-          <h1 className="mt-2 text-[2.4rem] font-semibold leading-none tracking-normal [word-break:keep-all] sm:text-[4.2rem]">
+          <p className="mt-2 text-[2.4rem] font-semibold leading-none tracking-normal [word-break:keep-all] sm:text-[4.2rem]">
             {copy.heroTitle}
-          </h1>
+          </p>
           <p className="mt-4 max-w-2xl text-base font-medium leading-7 text-white/64 [word-break:keep-all]">
             {copy.heroBody}
           </p>
