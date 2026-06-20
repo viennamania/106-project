@@ -9,6 +9,7 @@ import {
   ExternalLink,
   LockKeyhole,
   Pencil,
+  RefreshCw,
   ShieldCheck,
   WandSparkles,
 } from "lucide-react";
@@ -49,7 +50,7 @@ function getCopy(locale: Locale) {
       connectedTitle: "TikTok 채널 연결됨",
       connectComplete: "Mock 연결 완료",
       connectHelper:
-        "AI 스타별 Creator 채널 연결은 평판 기록으로 남습니다. 실제 TikTok OAuth는 아직 연결하지 않은 mock 단계입니다.",
+        "AI 스타별 Creator 채널 연결은 평판 기록으로 남습니다. TikTok 승인 또는 mock 연결로 테스트할 수 있습니다.",
       connectRequired: "TikTok 연결 필요",
       connectTitle: "AI 스타별 TikTok 채널",
       creatorPermissionBody:
@@ -61,9 +62,13 @@ function getCopy(locale: Locale) {
       oauthCallbackFailed: "TikTok 승인 실패",
       oauthCallbackFailedBody:
         "TikTok이 권한 동의를 아직 완료 처리하지 않았습니다. Sandbox 등록 직후에는 테스트 사용자 권한 반영이 최대 1시간 지연될 수 있습니다.",
+      oauthCallbackNextAction: "다음 행동",
+      oauthCallbackRetryHint:
+        "권한 반영 후 같은 AI 스타 채널로 다시 승인을 시도하세요.",
       oauthCallbackSuccess: "TikTok 승인 완료",
       oauthCallbackSuccessBody:
         "AI 스타 TikTok 채널 연결이 서버 평판 기록으로 저장되었습니다.",
+      oauthModeLabel: "OAuth 모드",
       flowChannel: "채널 연결",
       flowCreatorJourney: "조건 반영",
       flowRecord: "평판 기록",
@@ -100,6 +105,7 @@ function getCopy(locale: Locale) {
       replaceCta: "채널 변경",
       reputationLedger: "평판 기록 보기",
       reputationLedgerHint: "AgentRank 원장에서 연결 이벤트 확인",
+      retryOAuthCta: "다시 승인 시도",
       roleCreator: "Creator",
       roleOwner: "Owner",
       nextAction: "다음 행동",
@@ -109,8 +115,10 @@ function getCopy(locale: Locale) {
       sourceSample: "기본 mock",
       sourceServer: "서버 저장됨",
       sourceSyncing: "서버 확인 중",
+      sandboxMode: "Sandbox 테스트",
       subtitle: "회원 개인 계정이 아니라 AI 스타 채널입니다.",
       tiktok: "TikTok",
+      productionMode: "Production",
     };
   }
 
@@ -124,7 +132,7 @@ function getCopy(locale: Locale) {
       connectedTitle: "TikTokチャンネル接続済み",
       connectComplete: "Mock接続を完了",
       connectHelper:
-        "AIスター別Creatorチャンネル接続は評判記録になります。実際のTikTok OAuthはまだ接続しないmock段階です。",
+        "AIスター別Creatorチャンネル接続は評判記録になります。TikTok認証またはmock接続でテストできます。",
       connectRequired: "TikTok接続が必要",
       connectTitle: "AIスター別TikTokチャンネル",
       creatorPermissionBody:
@@ -136,9 +144,13 @@ function getCopy(locale: Locale) {
       oauthCallbackFailed: "TikTok認証に失敗",
       oauthCallbackFailedBody:
         "TikTokが権限同意をまだ完了処理していません。Sandbox登録直後はテストユーザー権限の反映に最大1時間かかる場合があります。",
+      oauthCallbackNextAction: "次のアクション",
+      oauthCallbackRetryHint:
+        "権限反映後、同じAIスターチャンネルでもう一度認証してください。",
       oauthCallbackSuccess: "TikTok認証完了",
       oauthCallbackSuccessBody:
         "AIスターTikTokチャンネル接続がサーバー評判記録として保存されました。",
+      oauthModeLabel: "OAuthモード",
       flowChannel: "チャンネル接続",
       flowCreatorJourney: "条件反映",
       flowRecord: "評判記録",
@@ -177,6 +189,7 @@ function getCopy(locale: Locale) {
       replaceCta: "チャンネル変更",
       reputationLedger: "評判記録を見る",
       reputationLedgerHint: "AgentRank台帳で接続イベントを確認",
+      retryOAuthCta: "もう一度認証",
       roleCreator: "Creator",
       roleOwner: "Owner",
       nextAction: "次のアクション",
@@ -186,8 +199,10 @@ function getCopy(locale: Locale) {
       sourceSample: "基本mock",
       sourceServer: "サーバー保存済み",
       sourceSyncing: "サーバー確認中",
+      sandboxMode: "Sandboxテスト",
       subtitle: "個人アカウントではなくAIスターのチャンネルです。",
       tiktok: "TikTok",
+      productionMode: "Production",
     };
   }
 
@@ -200,7 +215,7 @@ function getCopy(locale: Locale) {
     connectedTitle: "TikTok channel connected",
     connectComplete: "Complete mock connection",
     connectHelper:
-      "AI Star channel connection becomes a Reputation Event. Real TikTok OAuth is still mocked.",
+      "AI Star channel connection becomes a Reputation Event. You can test it with TikTok authorization or mock connection.",
     connectRequired: "TikTok connection required",
     connectTitle: "AI Star TikTok channel",
     creatorPermissionBody:
@@ -212,9 +227,13 @@ function getCopy(locale: Locale) {
     oauthCallbackFailed: "TikTok authorization failed",
     oauthCallbackFailedBody:
       "TikTok has not completed the scope consent yet. Right after Sandbox registration, target-user permission propagation can take up to 1 hour.",
+    oauthCallbackNextAction: "Next action",
+    oauthCallbackRetryHint:
+      "After permission propagation, retry authorization for the same AI Star channel.",
     oauthCallbackSuccess: "TikTok authorization complete",
     oauthCallbackSuccessBody:
       "The AI Star TikTok channel connection was saved as a server Reputation Event.",
+    oauthModeLabel: "OAuth mode",
     flowChannel: "Channel connected",
     flowCreatorJourney: "Condition reflected",
     flowRecord: "Reputation record",
@@ -253,6 +272,7 @@ function getCopy(locale: Locale) {
     replaceCta: "Change channel",
     reputationLedger: "View Reputation Record",
     reputationLedgerHint: "Check the connection event in AgentRank Ledger",
+    retryOAuthCta: "Try authorization again",
     roleCreator: "Creator",
     roleOwner: "Owner",
     nextAction: "Next action",
@@ -262,8 +282,10 @@ function getCopy(locale: Locale) {
     sourceSample: "Default mock",
     sourceServer: "Saved on server",
     sourceSyncing: "Checking server",
+    sandboxMode: "Sandbox test",
     subtitle: "This is the AI Star channel, not a personal member account.",
     tiktok: "TikTok",
+    productionMode: "Production",
   };
 }
 
@@ -419,6 +441,8 @@ export function FanletterAIStarSocialAccountCard({
           ? `${copy.oauthReadinessBlocked} · ${oauthPreviewBlockedCount} ${copy.oauthReadinessCriteriaUnit}`
           : `${copy.oauthReadinessBlocked} · ${oauthPreviewBlockedCount}${copy.oauthReadinessCriteriaUnit}`
         : copy.oauthReadinessPreview;
+  const oauthModeLabel =
+    oauthMode === "sandbox" ? copy.sandboxMode : copy.productionMode;
   const liveOAuthStartParams = new URLSearchParams({
     canConnect: String(social.canConnect),
     creatorRole: social.creatorRole,
@@ -719,7 +743,7 @@ export function FanletterAIStarSocialAccountCard({
           {oauthCallbackStatus ? (
             <div
               className={joinClasses(
-                "mt-4 rounded-lg border p-3 text-sm leading-5 [word-break:keep-all]",
+                "mt-4 rounded-lg border p-3 text-sm leading-5 shadow-[0_12px_28px_rgba(15,23,42,0.05)] [word-break:keep-all]",
                 oauthCallbackStatus.status === "connected"
                   ? "border-emerald-200 bg-emerald-50 text-emerald-900"
                   : "border-amber-200 bg-amber-50 text-amber-950",
@@ -732,11 +756,16 @@ export function FanletterAIStarSocialAccountCard({
                   <ShieldCheck className="mt-0.5 size-4 shrink-0" />
                 )}
                 <div className="min-w-0">
-                  <p className="font-semibold">
-                    {oauthCallbackStatus.status === "connected"
-                      ? copy.oauthCallbackSuccess
-                      : copy.oauthCallbackFailed}
-                  </p>
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <p className="font-semibold">
+                      {oauthCallbackStatus.status === "connected"
+                        ? copy.oauthCallbackSuccess
+                        : copy.oauthCallbackFailed}
+                    </p>
+                    <span className="inline-flex min-h-6 items-center rounded-full bg-white/75 px-2 text-[0.66rem] font-semibold text-current ring-1 ring-current/10">
+                      {copy.oauthModeLabel}: {oauthModeLabel}
+                    </span>
+                  </div>
                   <p className="mt-1 text-xs font-medium">
                     {oauthCallbackStatus.status === "connected"
                       ? copy.oauthCallbackSuccessBody
@@ -746,6 +775,30 @@ export function FanletterAIStarSocialAccountCard({
                     <p className="mt-2 break-words rounded-md bg-white/70 px-2 py-1 text-[0.68rem] font-semibold text-current">
                       {oauthCallbackStatus.reason}
                     </p>
+                  ) : null}
+                  {oauthCallbackStatus.status === "failed" &&
+                  social.canConnect ? (
+                    <div className="mt-3 flex min-w-0 flex-col gap-2 rounded-md bg-white/70 p-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-[0.66rem] font-semibold uppercase tracking-[0.08em] opacity-70">
+                          {copy.oauthCallbackNextAction}
+                        </p>
+                        <p className="mt-0.5 text-xs font-semibold">
+                          {oauthMode === "sandbox"
+                            ? copy.oauthCallbackRetryHint
+                            : copy.oauthReadinessNote}
+                        </p>
+                      </div>
+                      <a
+                        className="inline-flex min-h-9 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-3 text-xs font-semibold text-white transition hover:bg-zinc-800 sm:w-auto sm:shrink-0"
+                        href={liveOAuthStartHref}
+                      >
+                        <RefreshCw className="size-3.5 shrink-0" />
+                        <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
+                          {copy.retryOAuthCta}
+                        </span>
+                      </a>
+                    </div>
                   ) : null}
                 </div>
               </div>
@@ -1070,9 +1123,16 @@ export function FanletterAIStarSocialAccountCard({
                 <div className="flex items-start gap-2">
                   <ShieldCheck className="mt-0.5 size-4 shrink-0 text-zinc-700" />
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-zinc-950">
-                      {copy.oauthReadinessTitle}
-                    </p>
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <p className="text-sm font-semibold text-zinc-950">
+                        {copy.oauthReadinessTitle}
+                      </p>
+                      <span className="inline-flex min-h-7 max-w-full items-center rounded-full border border-zinc-200 bg-white px-2.5 text-[0.68rem] font-semibold text-zinc-700">
+                        <span className="min-w-0 truncate">
+                          {copy.oauthModeLabel}: {oauthModeLabel}
+                        </span>
+                      </span>
+                    </div>
                     <div className="mt-2 grid gap-1.5">
                       {copy.oauthReadinessItems.map((item) => (
                         <p
