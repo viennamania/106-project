@@ -81,14 +81,26 @@ function parseTikTokSignatureHeader(value: string | null) {
 }
 
 function secureCompare(left: string, right: string) {
-  const leftBuffer = Buffer.from(left, "hex");
-  const rightBuffer = Buffer.from(right, "hex");
+  const leftBuffer = Buffer.from(left);
+  const rightBuffer = Buffer.from(right);
 
   return (
     leftBuffer.length > 0 &&
     leftBuffer.length === rightBuffer.length &&
     timingSafeEqual(leftBuffer, rightBuffer)
   );
+}
+
+function readWebhookSecrets() {
+  return [
+    process.env.TIKTOK_WEBHOOK_SECRET,
+    process.env.TIKTOK_CLIENT_SECRET,
+    process.env.TIKTOK_SANDBOX_WEBHOOK_SECRET,
+    process.env.TIKTOK_SANDBOX_CLIENT_SECRET,
+  ]
+    .flatMap((value) => value?.split(",") ?? [])
+    .map((value) => value.trim())
+    .filter((value, index, values) => value && values.indexOf(value) === index);
 }
 
 function verifyTikTokWebhookSignature({
@@ -98,14 +110,12 @@ function verifyTikTokWebhookSignature({
   rawBody: string;
   request: Request;
 }) {
-  const secret =
-    process.env.TIKTOK_WEBHOOK_SECRET?.trim() ??
-    process.env.TIKTOK_CLIENT_SECRET?.trim();
+  const secrets = readWebhookSecrets();
   const dryRun =
     new URL(request.url).searchParams.get("dryRun") === "1" &&
     request.headers.get("x-fanletter-webhook-preview") === "true";
 
-  if (!secret) {
+  if (!secrets.length) {
     return {
       ok: dryRun,
       reason: dryRun
@@ -124,12 +134,21 @@ function verifyTikTokWebhookSignature({
     };
   }
 
-  const expectedSignature = createHmac("sha256", secret)
-    .update(`${timestamp}.${rawBody}`)
-    .digest("hex");
+  const signedPayload = `${timestamp}.${rawBody}`;
 
   return {
-    ok: secureCompare(providedSignature, expectedSignature),
+    ok: secrets.some((secret) => {
+      const digest = createHmac("sha256", secret).update(signedPayload).digest();
+      const expectedSignatures = [
+        digest.toString("hex"),
+        digest.toString("base64"),
+        digest.toString("base64url"),
+      ];
+
+      return expectedSignatures.some((expectedSignature) =>
+        secureCompare(providedSignature, expectedSignature),
+      );
+    }),
     reason: "signature_mismatch",
   };
 }
@@ -198,6 +217,14 @@ export async function POST(request: Request) {
   const verification = verifyTikTokWebhookSignature({ rawBody, request });
 
   if (!verification.ok) {
+    console.info("[fanletter:tiktok:webhook] signature verification failed", {
+      contentType: request.headers.get("content-type"),
+      hasSignature: Boolean(getSignatureHeader(request.headers)),
+      reason: verification.reason,
+      requestUrl: request.url,
+      userAgent: request.headers.get("user-agent"),
+    });
+
     return jsonError("Invalid TikTok webhook signature.", 401, {
       reason: verification.reason,
     });
