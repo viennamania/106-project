@@ -195,6 +195,28 @@ export async function getFanletterAIStarStoredSocialAccount({
   return document ? toFanletterAIStarSocialAccount(document) : null;
 }
 
+export async function getFanletterAIStarStoredSocialAccountByProviderAccountId({
+  platform = "tiktok",
+  providerAccountId,
+}: {
+  platform?: FanletterSocialPlatform;
+  providerAccountId: string;
+}) {
+  const normalizedProviderAccountId = providerAccountId.trim();
+
+  if (!normalizedProviderAccountId) {
+    return null;
+  }
+
+  const collection = await getFanletterAIStarSocialAccountsCollection();
+  const document = await collection.findOne({
+    platform,
+    providerAccountId: normalizedProviderAccountId,
+  });
+
+  return document ? toFanletterAIStarSocialAccount(document) : null;
+}
+
 export async function tryGetFanletterAIStarStoredSocialAccount(
   input: Parameters<typeof getFanletterAIStarStoredSocialAccount>[0],
 ) {
@@ -206,6 +228,26 @@ export async function tryGetFanletterAIStarStoredSocialAccount(
       platform: input.platform ?? "tiktok",
       starId: input.starId,
     });
+
+    return null;
+  }
+}
+
+export async function tryGetFanletterAIStarStoredSocialAccountByProviderAccountId(
+  input: Parameters<
+    typeof getFanletterAIStarStoredSocialAccountByProviderAccountId
+  >[0],
+) {
+  try {
+    return await getFanletterAIStarStoredSocialAccountByProviderAccountId(input);
+  } catch (error) {
+    console.warn(
+      "FanLetter AI Star social account could not be read by provider id",
+      {
+        error,
+        platform: input.platform ?? "tiktok",
+      },
+    );
 
     return null;
   }

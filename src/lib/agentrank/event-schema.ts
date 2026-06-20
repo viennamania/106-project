@@ -74,6 +74,20 @@ const baseImpactByType = {
     network: 1,
     trust: 1,
   },
+  content_published: {
+    creator: 1,
+    discovery: 0.8,
+    economy: 0.1,
+    network: 0.2,
+    trust: 0.7,
+  },
+  content_publish_failed: {
+    creator: 0.1,
+    discovery: 0,
+    economy: 0,
+    network: 0,
+    trust: 0.1,
+  },
   content_engaged: {
     creator: 0.3,
     discovery: 0.5,
@@ -115,6 +129,13 @@ const baseImpactByType = {
     economy: 0.1,
     network: 0.3,
     trust: 0.9,
+  },
+  creator_social_disconnected: {
+    creator: 0.2,
+    discovery: 0,
+    economy: 0,
+    network: 0.1,
+    trust: 0.2,
   },
   source_universe_selected: {
     creator: 0.7,

@@ -9,9 +9,12 @@ export const agentRankInteractionEventTypes = [
   "creator_unlock_evaluated",
   "creator_unlocked",
   "creator_social_connected",
+  "creator_social_disconnected",
   "source_universe_selected",
   "x402_mock_payment_intent",
   "ai_star_spawned",
+  "content_published",
+  "content_publish_failed",
   "content_engaged",
   "universe_growth",
 ] as const;
@@ -225,6 +228,18 @@ function inferEventType(
 
   if (input.eventName === "fanletter_creator_social_connected") {
     return "creator_social_connected";
+  }
+
+  if (input.eventName === "fanletter_creator_social_disconnected") {
+    return "creator_social_disconnected";
+  }
+
+  if (input.eventName === "fanletter_tiktok_content_published") {
+    return "content_published";
+  }
+
+  if (input.eventName === "fanletter_tiktok_content_publish_failed") {
+    return "content_publish_failed";
   }
 
   if (input.eventName === "fanletter_source_universe_selected") {

@@ -33,9 +33,12 @@ export const agentRankReputationEventTypes = [
   "creator_unlock_evaluated",
   "creator_unlocked",
   "creator_social_connected",
+  "creator_social_disconnected",
   "source_universe_selected",
   "x402_mock_payment_intent",
   "ai_star_spawned",
+  "content_published",
+  "content_publish_failed",
   "content_engaged",
   "universe_growth",
 ] as const;
@@ -356,6 +359,13 @@ function getTypeSignalDefaults(type: AgentRankReputationEventType) {
         economicWeight: 0.1,
         networkWeight: 0.3,
       };
+    case "creator_social_disconnected":
+      return {
+        creatorWeight: 0.2,
+        discoveryWeight: 0,
+        economicWeight: 0,
+        networkWeight: 0.1,
+      };
     case "source_universe_selected":
       return {
         creatorWeight: 0.7,
@@ -383,6 +393,20 @@ function getTypeSignalDefaults(type: AgentRankReputationEventType) {
         discoveryWeight: 0.5,
         economicWeight: 0,
         networkWeight: 0.2,
+      };
+    case "content_published":
+      return {
+        creatorWeight: 1,
+        discoveryWeight: 0.8,
+        economicWeight: 0.1,
+        networkWeight: 0.2,
+      };
+    case "content_publish_failed":
+      return {
+        creatorWeight: 0.1,
+        discoveryWeight: 0,
+        economicWeight: 0,
+        networkWeight: 0,
       };
     case "universe_growth":
       return {
