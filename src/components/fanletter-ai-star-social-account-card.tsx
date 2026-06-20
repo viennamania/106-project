@@ -63,6 +63,7 @@ function getCopy(locale: Locale) {
       apiCapabilityStatus: {
         app_review_required: "앱 리뷰 필요",
         connected_ready: "연결 후 가능",
+        not_available: "자동 수집 전",
         scope_required: "scope 승인 필요",
       },
       apiCapabilityTitle: "TikTok API 적용 범위",
@@ -70,8 +71,14 @@ function getCopy(locale: Locale) {
       apiCoverageHint: "AgentRank 감사 흐름",
       apiCapabilityItems: {
         content_publish: {
-          detail: "AIAVpark 브이로그를 TikTok 게시 요청으로 연결합니다.",
+          detail:
+            "TikTok Content Posting API로 게시한 영상만 status/webhook 평판 기록으로 연결합니다.",
           title: "콘텐츠 게시",
+        },
+        manual_app_posting: {
+          detail:
+            "TikTok 앱에서 직접 올린 영상은 아직 자동으로 AI 스타 평판 기록에 반영되지 않습니다.",
+          title: "수동 앱 포스팅",
         },
         performance_sync: {
           detail: "조회, 좋아요, 댓글, 공유 수를 Star Score와 평판 기록에 반영합니다.",
@@ -154,11 +161,34 @@ function getCopy(locale: Locale) {
       syncApiError:
         "TikTok mock 동기화를 완료하지 못했습니다. 연결 상태와 Creator 권한을 확인해주세요.",
       syncApiHelper:
-        "연결된 TikTok 채널의 영상/성과를 mock으로 동기화하고 content_engaged 평판 기록을 생성합니다.",
+        "현재 버튼은 mock 동기화 테스트입니다. TikTok 앱에서 직접 올린 영상은 아직 자동 수집되지 않습니다.",
       syncApiSaving: "동기화 중",
       syncApiTitle: "영상/성과 동기화",
       syncResult: "평판 기록 생성됨",
       syncResultMetrics: "영상 {videos}개 · 조회 {views} · 좋아요 {likes}",
+      syncRealityItems: [
+        {
+          detail: "creator_social_connected 평판 기록 생성",
+          label: "계정 연결",
+          status: "실제 OAuth",
+        },
+        {
+          detail: "content_engaged 테스트 기록 생성",
+          label: "성과 동기화",
+          status: "mock",
+        },
+        {
+          detail: "Content Posting API 게시물만 webhook/status 수신",
+          label: "게시 연동",
+          status: "리뷰 필요",
+        },
+        {
+          detail: "TikTok 앱에서 직접 올린 영상은 자동 반영 전",
+          label: "수동 포스팅",
+          status: "준비 전",
+        },
+      ],
+      syncRealityTitle: "현재 TikTok 연동 범위",
       sandboxMode: "Sandbox 테스트",
       subtitle: "회원 개인 계정이 아니라 AI 스타 채널입니다.",
       tiktok: "TikTok",
@@ -188,6 +218,7 @@ function getCopy(locale: Locale) {
       apiCapabilityStatus: {
         app_review_required: "アプリ審査が必要",
         connected_ready: "接続後に利用可能",
+        not_available: "自動収集中ではない",
         scope_required: "scope承認が必要",
       },
       apiCapabilityTitle: "TikTok API適用範囲",
@@ -195,8 +226,14 @@ function getCopy(locale: Locale) {
       apiCoverageHint: "AgentRank監査フロー",
       apiCapabilityItems: {
         content_publish: {
-          detail: "AIAVparkのVlogをTikTok投稿リクエストにつなげます。",
+          detail:
+            "TikTok Content Posting APIで投稿した動画だけをstatus/webhook評判記録につなげます。",
           title: "コンテンツ投稿",
+        },
+        manual_app_posting: {
+          detail:
+            "TikTokアプリで直接投稿した動画は、まだAIスター評判記録へ自動反映されません。",
+          title: "手動アプリ投稿",
         },
         performance_sync: {
           detail: "再生、いいね、コメント、共有数をStar Scoreと評判記録に反映します。",
@@ -280,11 +317,34 @@ function getCopy(locale: Locale) {
       syncApiError:
         "TikTok mock同期を完了できませんでした。接続状態とCreator権限を確認してください。",
       syncApiHelper:
-        "接続済みTikTokチャンネルの動画・成果をmock同期し、content_engaged評判記録を作成します。",
+        "このボタンはmock同期テストです。TikTokアプリで直接投稿した動画はまだ自動収集されません。",
       syncApiSaving: "同期中",
       syncApiTitle: "動画・成果同期",
       syncResult: "評判記録作成済み",
       syncResultMetrics: "動画{videos}本 · 再生{views} · いいね{likes}",
+      syncRealityItems: [
+        {
+          detail: "creator_social_connected評判記録を作成",
+          label: "アカウント接続",
+          status: "実OAuth",
+        },
+        {
+          detail: "content_engagedテスト記録を作成",
+          label: "成果同期",
+          status: "mock",
+        },
+        {
+          detail: "Content Posting API投稿のみwebhook/status受信",
+          label: "投稿連携",
+          status: "審査必要",
+        },
+        {
+          detail: "TikTokアプリで直接投稿した動画は自動反映前",
+          label: "手動投稿",
+          status: "準備前",
+        },
+      ],
+      syncRealityTitle: "現在のTikTok連携範囲",
       sandboxMode: "Sandboxテスト",
       subtitle: "個人アカウントではなくAIスターのチャンネルです。",
       tiktok: "TikTok",
@@ -313,6 +373,7 @@ function getCopy(locale: Locale) {
     apiCapabilityStatus: {
       app_review_required: "App review required",
       connected_ready: "Ready after connection",
+      not_available: "Not auto-collected",
       scope_required: "Scope approval required",
     },
     apiCapabilityTitle: "TikTok API coverage",
@@ -320,8 +381,14 @@ function getCopy(locale: Locale) {
     apiCoverageHint: "AgentRank audit flow",
     apiCapabilityItems: {
       content_publish: {
-        detail: "Connect AIAVpark vlogs to TikTok publish requests.",
+        detail:
+          "Only posts created through TikTok Content Posting API can flow into status/webhook Reputation Events.",
         title: "Content publishing",
+      },
+      manual_app_posting: {
+        detail:
+          "Videos posted directly inside the TikTok app are not automatically reflected in AI Star Reputation Records yet.",
+        title: "Manual app posting",
       },
       performance_sync: {
         detail:
@@ -407,11 +474,34 @@ function getCopy(locale: Locale) {
     syncApiError:
       "TikTok mock sync could not be completed. Check the connection state and Creator permission.",
     syncApiHelper:
-      "Mock-sync connected TikTok videos and performance into a content_engaged Reputation Event.",
+      "This button runs a mock sync test. Videos posted directly in the TikTok app are not auto-collected yet.",
     syncApiSaving: "Syncing",
     syncApiTitle: "Video / Performance Sync",
     syncResult: "Reputation Record Created",
     syncResultMetrics: "{videos} videos · {views} views · {likes} likes",
+    syncRealityItems: [
+      {
+        detail: "Creates a creator_social_connected Reputation Record",
+        label: "Account connection",
+        status: "Real OAuth",
+      },
+      {
+        detail: "Creates a content_engaged test record",
+        label: "Performance sync",
+        status: "mock",
+      },
+      {
+        detail: "Only Content Posting API posts can send webhook/status events",
+        label: "Publishing",
+        status: "Review needed",
+      },
+      {
+        detail: "Direct TikTok app posts are not auto-reflected yet",
+        label: "Manual posting",
+        status: "Not ready",
+      },
+    ],
+    syncRealityTitle: "Current TikTok integration scope",
     sandboxMode: "Sandbox test",
     subtitle: "This is the AI Star channel, not a personal member account.",
     tiktok: "TikTok",
@@ -1089,6 +1179,57 @@ export function FanletterAIStarSocialAccountCard({
                   <span className="min-w-0 truncate text-xs font-semibold">
                     {step.label}
                   </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-3 rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
+            <div className="flex min-w-0 items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-zinc-950">
+                {copy.syncRealityTitle}
+              </p>
+              <span className="inline-flex min-h-7 shrink-0 items-center rounded-full bg-zinc-950 px-2.5 text-[0.68rem] font-semibold text-white">
+                API
+              </span>
+            </div>
+            <div className="mt-3 grid min-w-0 gap-2 sm:grid-cols-2">
+              {copy.syncRealityItems.map((item, index) => (
+                <div
+                  className={joinClasses(
+                    "min-w-0 rounded-md border p-2.5",
+                    index === 0
+                      ? isConnected
+                        ? "border-emerald-200 bg-emerald-50"
+                        : "border-zinc-200 bg-zinc-50"
+                      : index === 1
+                        ? "border-zinc-200 bg-zinc-50"
+                        : index === 2
+                          ? "border-amber-200 bg-amber-50"
+                          : "border-zinc-200 bg-zinc-50",
+                  )}
+                  key={item.label}
+                >
+                  <div className="flex min-w-0 items-center justify-between gap-2">
+                    <p className="truncate text-sm font-semibold text-zinc-950">
+                      {item.label}
+                    </p>
+                    <span
+                      className={joinClasses(
+                        "inline-flex min-h-6 shrink-0 items-center rounded-full px-2 text-[0.62rem] font-semibold",
+                        index === 0 && isConnected
+                          ? "bg-emerald-600 text-white"
+                          : index === 2
+                            ? "bg-amber-100 text-amber-900"
+                            : "bg-white text-zinc-600 ring-1 ring-zinc-200",
+                      )}
+                    >
+                      {item.status}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
+                    {item.detail}
+                  </p>
                 </div>
               ))}
             </div>
