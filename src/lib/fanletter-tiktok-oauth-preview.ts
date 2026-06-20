@@ -17,6 +17,7 @@ import {
 } from "@/mock/fanletter-social-accounts";
 
 export type FanletterTikTokOAuthCreatorRole = "creator" | "owner";
+export type FanletterTikTokOAuthMode = "production" | "sandbox";
 
 export type FanletterTikTokOAuthPreview = {
   blockedReasons: string[];
@@ -25,6 +26,7 @@ export type FanletterTikTokOAuthPreview = {
   oauth: {
     authorizeUrl: string | null;
     callbackRoute: string;
+    mode: FanletterTikTokOAuthMode;
     provider: "tiktok";
     redirectUri: string;
     scopePreview: string[];
@@ -60,6 +62,7 @@ type BuildFanletterTikTokOAuthPreviewInput = {
   returnTo?: string | null;
   source: AgentRankInteractionSource;
   starId: string;
+  oauthMode?: FanletterTikTokOAuthMode;
 };
 
 export type FanletterTikTokOAuthStatePayload = {
@@ -71,6 +74,7 @@ export type FanletterTikTokOAuthStatePayload = {
   starId: string;
   stateId: string;
   target: "ai_star";
+  oauthMode?: FanletterTikTokOAuthMode;
 };
 
 const TIKTOK_AUTHORIZATION_URL = "https://www.tiktok.com/v2/auth/authorize/";
@@ -102,6 +106,12 @@ export function normalizeFanletterTikTokOAuthCanConnect(value: unknown) {
   return value !== false && value !== "false";
 }
 
+export function normalizeFanletterTikTokOAuthMode(
+  value: unknown,
+): FanletterTikTokOAuthMode {
+  return value === "sandbox" ? "sandbox" : "production";
+}
+
 export function getFanletterTikTokOAuthAppUrl(requestUrl: string) {
   const configured = process.env.NEXT_PUBLIC_APP_URL?.trim();
 
@@ -116,14 +126,17 @@ export function getFanletterTikTokOAuthAppUrl(requestUrl: string) {
   }
 }
 
-function getTikTokClientKeyConfigured() {
-  return Boolean(
-    process.env.TIKTOK_CLIENT_KEY?.trim() ||
-      process.env.TIKTOK_CLIENT_ID?.trim(),
-  );
+function getTikTokClientKeyConfigured(mode: FanletterTikTokOAuthMode) {
+  return Boolean(getFanletterTikTokClientKey(mode));
 }
 
-export function getFanletterTikTokClientKey() {
+export function getFanletterTikTokClientKey(
+  mode: FanletterTikTokOAuthMode = "production",
+) {
+  if (mode === "sandbox") {
+    return process.env.TIKTOK_SANDBOX_CLIENT_KEY?.trim() || "";
+  }
+
   return (
     process.env.TIKTOK_CLIENT_KEY?.trim() ||
     process.env.TIKTOK_CLIENT_ID?.trim() ||
@@ -131,7 +144,13 @@ export function getFanletterTikTokClientKey() {
   );
 }
 
-export function getFanletterTikTokClientSecret() {
+export function getFanletterTikTokClientSecret(
+  mode: FanletterTikTokOAuthMode = "production",
+) {
+  if (mode === "sandbox") {
+    return process.env.TIKTOK_SANDBOX_CLIENT_SECRET?.trim() || "";
+  }
+
   return process.env.TIKTOK_CLIENT_SECRET?.trim() || "";
 }
 
@@ -206,6 +225,9 @@ export function decodeFanletterTikTokOAuthState(value: string | null) {
       !parsed.returnTo ||
       !parsed.issuedAt ||
       Date.now() - parsed.issuedAt > TIKTOK_OAUTH_STATE_TTL_MS ||
+      (parsed.oauthMode &&
+        normalizeFanletterTikTokOAuthMode(parsed.oauthMode) !==
+          parsed.oauthMode) ||
       typeof parsed.locale !== "string" ||
       !hasLocale(parsed.locale) ||
       typeof parsed.source !== "string" ||
@@ -243,7 +265,9 @@ export function buildFanletterTikTokOAuthPreview({
   returnTo,
   source,
   starId,
+  oauthMode,
 }: BuildFanletterTikTokOAuthPreviewInput): FanletterTikTokOAuthPreview {
+  const mode = normalizeFanletterTikTokOAuthMode(oauthMode);
   const appUrl = getFanletterTikTokOAuthAppUrl(requestUrl);
   const redirectUri = new URL(
     "/api/fanletter/founder-club/social-account/tiktok/oauth/callback",
@@ -255,10 +279,12 @@ export function buildFanletterTikTokOAuthPreview({
     creatorRole,
   });
   const requiredEnvironment = {
-    clientKeyConfigured: getTikTokClientKeyConfigured(),
-    clientSecretConfigured: Boolean(process.env.TIKTOK_CLIENT_SECRET?.trim()),
+    clientKeyConfigured: getTikTokClientKeyConfigured(mode),
+    clientSecretConfigured: Boolean(getFanletterTikTokClientSecret(mode)),
     featureFlagEnabled:
-      process.env.FANLETTER_TIKTOK_OAUTH_ENABLED === "true",
+      mode === "sandbox"
+        ? process.env.FANLETTER_TIKTOK_SANDBOX_ENABLED === "true"
+        : process.env.FANLETTER_TIKTOK_OAUTH_ENABLED === "true",
     tokenStoreReady:
       process.env.FANLETTER_TIKTOK_TOKEN_STORE_READY === "true",
   };
@@ -285,15 +311,20 @@ export function buildFanletterTikTokOAuthPreview({
     starId,
     stateId: `fanletter-tiktok-oauth-preview:${randomUUID()}`,
     target: "ai_star",
+    oauthMode: mode === "sandbox" ? "sandbox" : undefined,
   };
   const scopePreview = ["user.info.basic"];
   const statePreview = encodeFanletterTikTokOAuthState(statePayload);
   const authorizeUrl = new URL(TIKTOK_AUTHORIZATION_URL);
-  authorizeUrl.searchParams.set("client_key", getFanletterTikTokClientKey());
+  authorizeUrl.searchParams.set("client_key", getFanletterTikTokClientKey(mode));
   authorizeUrl.searchParams.set("response_type", "code");
   authorizeUrl.searchParams.set("scope", scopePreview.join(","));
   authorizeUrl.searchParams.set("redirect_uri", redirectUri);
   authorizeUrl.searchParams.set("state", statePreview);
+
+  if (mode === "sandbox") {
+    authorizeUrl.searchParams.set("disable_auto_auth", "1");
+  }
 
   return {
     blockedReasons,
@@ -303,6 +334,7 @@ export function buildFanletterTikTokOAuthPreview({
       authorizeUrl: blockedReasons.length === 0 ? authorizeUrl.toString() : null,
       callbackRoute:
         "/api/fanletter/founder-club/social-account/tiktok/oauth/callback",
+      mode,
       provider: "tiktok",
       redirectUri,
       scopePreview,

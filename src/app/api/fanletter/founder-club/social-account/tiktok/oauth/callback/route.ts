@@ -123,7 +123,11 @@ export async function GET(request: Request) {
       "/api/fanletter/founder-club/social-account/tiktok/oauth/callback",
       origin,
     ).toString();
-    const token = await exchangeFanletterTikTokOAuthCode({ code, redirectUri });
+    const token = await exchangeFanletterTikTokOAuthCode({
+      code,
+      mode: state.oauthMode ?? "production",
+      redirectUri,
+    });
     const profile = await fetchFanletterTikTokOAuthProfile({
       accessToken: token.access_token ?? "",
       fallbackOpenId: token.open_id,
@@ -202,6 +206,7 @@ export async function GET(request: Request) {
         creatorRoleAtConnection: permission.role,
         handle: account.handle,
         mockOnly: false,
+        oauthMode: state.oauthMode ?? "production",
         oauthProviderAccountId: profile.openId,
         oauthTokenStored: Boolean(serverAccount.saved),
         page: "fanletter_social_account_tiktok_oauth_callback",

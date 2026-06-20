@@ -58,6 +58,12 @@ function getCopy(locale: Locale) {
       creatorPermissionTitle: "Creator / Owner 권한 필요",
       creatorOnly: "Creator / Owner 권한 필요",
       eventCreated: "평판 기록 생성됨",
+      oauthCallbackFailed: "TikTok 승인 실패",
+      oauthCallbackFailedBody:
+        "TikTok이 권한 동의를 아직 완료 처리하지 않았습니다. Sandbox 등록 직후에는 테스트 사용자 권한 반영이 최대 1시간 지연될 수 있습니다.",
+      oauthCallbackSuccess: "TikTok 승인 완료",
+      oauthCallbackSuccessBody:
+        "AI 스타 TikTok 채널 연결이 서버 평판 기록으로 저장되었습니다.",
       flowChannel: "채널 연결",
       flowCreatorJourney: "조건 반영",
       flowRecord: "평판 기록",
@@ -127,6 +133,12 @@ function getCopy(locale: Locale) {
       creatorPermissionTitle: "Creator / Owner権限が必要",
       creatorOnly: "Creator / Owner権限が必要",
       eventCreated: "評判記録作成済み",
+      oauthCallbackFailed: "TikTok認証に失敗",
+      oauthCallbackFailedBody:
+        "TikTokが権限同意をまだ完了処理していません。Sandbox登録直後はテストユーザー権限の反映に最大1時間かかる場合があります。",
+      oauthCallbackSuccess: "TikTok認証完了",
+      oauthCallbackSuccessBody:
+        "AIスターTikTokチャンネル接続がサーバー評判記録として保存されました。",
       flowChannel: "チャンネル接続",
       flowCreatorJourney: "条件反映",
       flowRecord: "評判記録",
@@ -197,6 +209,12 @@ function getCopy(locale: Locale) {
     creatorPermissionTitle: "Creator / Owner permission required",
     creatorOnly: "Creator / Owner permission required",
     eventCreated: "Reputation record created",
+    oauthCallbackFailed: "TikTok authorization failed",
+    oauthCallbackFailedBody:
+      "TikTok has not completed the scope consent yet. Right after Sandbox registration, target-user permission propagation can take up to 1 hour.",
+    oauthCallbackSuccess: "TikTok authorization complete",
+    oauthCallbackSuccessBody:
+      "The AI Star TikTok channel connection was saved as a server Reputation Event.",
     flowChannel: "Channel connected",
     flowCreatorJourney: "Condition reflected",
     flowRecord: "Reputation record",
@@ -282,6 +300,7 @@ type TikTokOAuthPreviewResponse =
       liveReady: boolean;
       mode: "oauth_preview";
       oauth: {
+        mode?: "production" | "sandbox";
         redirectUri: string;
         willRedirect: false;
       };
@@ -324,8 +343,15 @@ export function FanletterAIStarSocialAccountCard({
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [handleInput, setHandleInput] = useState("");
   const [connectError, setConnectError] = useState<string | null>(null);
+  const [oauthCallbackStatus, setOauthCallbackStatus] = useState<{
+    reason: string | null;
+    status: "connected" | "failed";
+  } | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isOauthPreviewLoading, setIsOauthPreviewLoading] = useState(false);
+  const [oauthMode, setOauthMode] = useState<"production" | "sandbox">(
+    "production",
+  );
   const [oauthPreview, setOauthPreview] =
     useState<TikTokOAuthPreviewResponse | null>(null);
   const serverAccount = serverAccountState.account;
@@ -397,7 +423,11 @@ export function FanletterAIStarSocialAccountCard({
     canConnect: String(social.canConnect),
     creatorRole: social.creatorRole,
     locale,
-    returnTo: `/${locale}/fanletter/${encodeURIComponent(starId)}#tiktok-channel`,
+    oauthMode,
+    returnTo:
+      oauthMode === "sandbox"
+        ? `/${locale}/fanletter/${encodeURIComponent(starId)}?tiktokSandbox=1#tiktok-channel`
+        : `/${locale}/fanletter/${encodeURIComponent(starId)}#tiktok-channel`,
     source,
     starId,
   });
@@ -410,6 +440,24 @@ export function FanletterAIStarSocialAccountCard({
     type: "creator_social_connected",
   });
   const reputationLedgerHref = `/${locale}/fanletter/agentrank/events?${reputationLedgerParams.toString()}`;
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shouldUseSandbox =
+      params.get("tiktokSandbox") === "1" ||
+      params.get("oauthMode") === "sandbox";
+    const callbackStatus = params.get("tiktok");
+
+    setOauthMode(shouldUseSandbox ? "sandbox" : "production");
+    setOauthCallbackStatus(
+      callbackStatus === "connected" || callbackStatus === "failed"
+        ? {
+            reason: params.get("tiktokReason"),
+            status: callbackStatus,
+          }
+        : null,
+    );
+  }, []);
 
   useEffect(() => {
     if (!isPanelOpen || !social.canConnect) {
@@ -435,6 +483,7 @@ export function FanletterAIStarSocialAccountCard({
               canConnect: social.canConnect,
               creatorRole: social.creatorRole,
               locale,
+              oauthMode,
               returnTo: `${window.location.pathname}${window.location.search}${window.location.hash}`,
               source,
               starId,
@@ -473,6 +522,7 @@ export function FanletterAIStarSocialAccountCard({
   }, [
     isPanelOpen,
     locale,
+    oauthMode,
     social.canConnect,
     social.creatorRole,
     source,
@@ -665,6 +715,42 @@ export function FanletterAIStarSocialAccountCard({
               </span>
             </span>
           </div>
+
+          {oauthCallbackStatus ? (
+            <div
+              className={joinClasses(
+                "mt-4 rounded-lg border p-3 text-sm leading-5 [word-break:keep-all]",
+                oauthCallbackStatus.status === "connected"
+                  ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                  : "border-amber-200 bg-amber-50 text-amber-950",
+              )}
+            >
+              <div className="flex min-w-0 items-start gap-2">
+                {oauthCallbackStatus.status === "connected" ? (
+                  <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
+                ) : (
+                  <ShieldCheck className="mt-0.5 size-4 shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <p className="font-semibold">
+                    {oauthCallbackStatus.status === "connected"
+                      ? copy.oauthCallbackSuccess
+                      : copy.oauthCallbackFailed}
+                  </p>
+                  <p className="mt-1 text-xs font-medium">
+                    {oauthCallbackStatus.status === "connected"
+                      ? copy.oauthCallbackSuccessBody
+                      : copy.oauthCallbackFailedBody}
+                  </p>
+                  {oauthCallbackStatus.reason ? (
+                    <p className="mt-2 break-words rounded-md bg-white/70 px-2 py-1 text-[0.68rem] font-semibold text-current">
+                      {oauthCallbackStatus.reason}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           {isConnected ? (
             <div className="mt-4 flex min-w-0 flex-wrap items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-2 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">

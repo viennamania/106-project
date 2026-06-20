@@ -1,6 +1,7 @@
 import {
   buildFanletterTikTokOAuthPreview,
   normalizeFanletterTikTokOAuthLocale,
+  normalizeFanletterTikTokOAuthMode,
   normalizeFanletterTikTokOAuthSource,
   normalizeFanletterTikTokOAuthStarId,
   type FanletterTikTokOAuthPreview,
@@ -17,6 +18,7 @@ type TikTokOAuthStartRequestBody = {
   canConnect?: unknown;
   creatorRole?: unknown;
   locale?: unknown;
+  oauthMode?: unknown;
   returnTo?: unknown;
   source?: unknown;
   starId?: unknown;
@@ -53,6 +55,7 @@ function buildPreviewResponse({
     canConnect,
     creatorRole,
     locale,
+    oauthMode: normalizeFanletterTikTokOAuthMode(body.oauthMode),
     requestUrl: request.url,
     returnTo: readString(body.returnTo),
     source: normalizeFanletterTikTokOAuthSource(body.source),
@@ -108,6 +111,7 @@ export async function GET(request: Request) {
       canConnect: searchParams.get("canConnect"),
       creatorRole: searchParams.get("creatorRole"),
       locale: searchParams.get("locale"),
+      oauthMode: searchParams.get("oauthMode"),
       returnTo: searchParams.get("returnTo"),
       source: searchParams.get("source"),
       starId,

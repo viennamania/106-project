@@ -5,6 +5,7 @@ import { createCipheriv, createHash, randomBytes } from "node:crypto";
 import {
   getFanletterTikTokClientKey,
   getFanletterTikTokClientSecret,
+  type FanletterTikTokOAuthMode,
 } from "@/lib/fanletter-tiktok-oauth-preview";
 import {
   buildFanletterTikTokProfileUrl,
@@ -87,13 +88,15 @@ export function encryptFanletterTikTokToken(value: string | null | undefined) {
 
 export async function exchangeFanletterTikTokOAuthCode({
   code,
+  mode = "production",
   redirectUri,
 }: {
   code: string;
+  mode?: FanletterTikTokOAuthMode;
   redirectUri: string;
 }) {
-  const clientKey = getFanletterTikTokClientKey();
-  const clientSecret = getFanletterTikTokClientSecret();
+  const clientKey = getFanletterTikTokClientKey(mode);
+  const clientSecret = getFanletterTikTokClientSecret(mode);
 
   if (!clientKey || !clientSecret) {
     throw new Error("TikTok client key/secret is not configured.");
