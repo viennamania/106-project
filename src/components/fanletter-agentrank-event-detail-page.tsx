@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   Bot,
   Database,
+  ExternalLink,
   FileCheck2,
   Fingerprint,
   GitBranch,
@@ -87,6 +88,18 @@ function getCopy(locale: Locale) {
       eventWeight: "Event Weight",
       downstream: "이후 신호",
       trustSignal: "Lineage Trust",
+      tiktokSync: "TikTok 성과 신호",
+      tiktokSyncBody:
+        "AI 스타 TikTok 채널에서 동기화된 영상/성과가 content_engaged 평판 기록으로 들어온 흐름입니다.",
+      tiktokEndpoint: "API endpoint",
+      tiktokCapability: "동기화 범위",
+      tiktokProfile: "TikTok 채널",
+      tiktokVideos: "동기화 영상",
+      tiktokViews: "조회",
+      tiktokLikes: "좋아요",
+      tiktokComments: "댓글",
+      tiktokShares: "공유",
+      tiktokSignalRoute: "TikTok → 콘텐츠 참여 → AgentRank",
       eventLineage: "Event Lineage",
       eventLineageBody:
         "같은 AI 스타, 멤버, 추천 코드, Universe로 이어진 이벤트를 전후 흐름으로 보여줍니다.",
@@ -174,6 +187,18 @@ function getCopy(locale: Locale) {
     eventWeight: "Event Weight",
     downstream: "Downstream Signals",
     trustSignal: "Lineage Trust",
+    tiktokSync: "TikTok Performance Signal",
+    tiktokSyncBody:
+      "Shows how synced AI Star TikTok videos and performance become a content_engaged Reputation Event.",
+    tiktokEndpoint: "API endpoint",
+    tiktokCapability: "Sync scope",
+    tiktokProfile: "TikTok channel",
+    tiktokVideos: "Synced videos",
+    tiktokViews: "Views",
+    tiktokLikes: "Likes",
+    tiktokComments: "Comments",
+    tiktokShares: "Shares",
+    tiktokSignalRoute: "TikTok → Content engagement → AgentRank",
     eventLineage: "Event Lineage",
     eventLineageBody:
       "Shows nearby events connected by the same AI Star, member, referral code, or Universe.",
@@ -465,6 +490,130 @@ function readContextString(event: AgentRankReputationEvent, key: string) {
   }
 
   return null;
+}
+
+function getTikTokSyncSignal(event: AgentRankReputationEvent) {
+  const platform = readContextString(event, "platform");
+  const capability = readContextString(event, "socialApiCapability");
+
+  if (event.type !== "content_engaged" || platform !== "tiktok" || !capability) {
+    return null;
+  }
+
+  return {
+    capability,
+    comments: readContextNumber(event, "comments") ?? 0,
+    endpoint: readContextString(event, "endpoint") ?? "-",
+    likes: readContextNumber(event, "likes") ?? 0,
+    profileUrl: readContextString(event, "profileUrl"),
+    shares: readContextNumber(event, "shares") ?? 0,
+    videos: readContextNumber(event, "syncedVideos") ?? 0,
+    views: readContextNumber(event, "views") ?? 0,
+  };
+}
+
+function TikTokSyncSignalPanel({
+  copy,
+  event,
+  locale,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  event: AgentRankReputationEvent;
+  locale: Locale;
+}) {
+  const signal = getTikTokSyncSignal(event);
+
+  if (!signal) {
+    return null;
+  }
+
+  const metrics = [
+    {
+      label: copy.tiktokVideos,
+      value: signal.videos,
+    },
+    {
+      label: copy.tiktokViews,
+      value: signal.views,
+    },
+    {
+      label: copy.tiktokLikes,
+      value: signal.likes,
+    },
+    {
+      label: copy.tiktokComments,
+      value: signal.comments,
+    },
+    {
+      label: copy.tiktokShares,
+      value: signal.shares,
+    },
+  ];
+
+  return (
+    <section className="rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_18px_44px_rgba(15,23,42,0.05)]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-zinc-950">
+            <TrendingUp className="size-4" />
+            {copy.tiktokSync}
+          </p>
+          <p className="mt-2 max-w-3xl text-sm font-medium leading-6 text-slate-500">
+            {copy.tiktokSyncBody}
+          </p>
+        </div>
+        <span className="inline-flex min-h-8 max-w-full items-center rounded-full bg-zinc-950 px-3 text-xs font-semibold text-white">
+          <span className="min-w-0 truncate">{copy.tiktokSignalRoute}</span>
+        </span>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-5">
+        {metrics.map((metric) => (
+          <div
+            className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3"
+            key={metric.label}
+          >
+            <p className="truncate text-[0.65rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+              {metric.label}
+            </p>
+            <p className="mt-2 truncate text-xl font-semibold text-zinc-950">
+              {formatNumber(metric.value, locale)}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] lg:items-center">
+        <div className="min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2">
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+            {copy.tiktokCapability}
+          </p>
+          <p className="mt-1 truncate font-mono text-sm font-semibold text-zinc-950">
+            {signal.capability}
+          </p>
+        </div>
+        <div className="min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2">
+          <p className="text-[0.65rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+            {copy.tiktokEndpoint}
+          </p>
+          <p className="mt-1 truncate font-mono text-sm font-semibold text-zinc-950">
+            {signal.endpoint}
+          </p>
+        </div>
+        {signal.profileUrl ? (
+          <a
+            className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-950 transition hover:border-zinc-300 hover:bg-zinc-50 lg:w-auto"
+            href={signal.profileUrl}
+            rel="noreferrer"
+            target="_blank"
+          >
+            <ExternalLink className="size-4 shrink-0" />
+            <span className="min-w-0 truncate">{copy.tiktokProfile}</span>
+          </a>
+        ) : null}
+      </div>
+    </section>
+  );
 }
 
 function getScoreImpactRows(
@@ -2182,6 +2331,8 @@ export function FanletterAgentRankEventDetailPage({
           event={event}
           locale={locale}
         />
+
+        <TikTokSyncSignalPanel copy={copy} event={event} locale={locale} />
 
         <section className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
           <div className="flex flex-wrap items-start justify-between gap-3">
