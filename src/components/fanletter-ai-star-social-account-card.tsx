@@ -442,6 +442,11 @@ function getTikTokOAuthReasonLabel(reason: string | null, locale: Locale) {
   }
 
   const labels: Record<string, Partial<Record<Locale, string>> & { en: string }> = {
+    access_denied: {
+      en: "TikTok authorization was cancelled. Start again from this AI Star.",
+      ja: "TikTok認証がキャンセルされました。同じAIスターから再試行してください。",
+      ko: "TikTok 승인이 취소되었습니다. 이 AI 스타에서 다시 시작하세요.",
+    },
     creator_or_owner_required: {
       en: "Creator or Owner permission is required for this AI Star.",
       ja: "このAIスターのCreatorまたはOwner権限が必要です。",
@@ -477,10 +482,25 @@ function getTikTokOAuthReasonLabel(reason: string | null, locale: Locale) {
       ja: "このモードのTikTok client secretが設定されていません。",
       ko: "이 모드의 TikTok client secret이 설정되지 않았습니다.",
     },
+    tiktok_client_config_missing: {
+      en: "TikTok app credentials are not ready on the server.",
+      ja: "サーバー側のTikTokアプリ認証情報が未準備です。",
+      ko: "서버의 TikTok 앱 인증 정보가 아직 준비되지 않았습니다.",
+    },
     tiktok_oauth_failed: {
       en: "TikTok authorization failed. Check target-user registration and retry.",
       ja: "TikTok認証に失敗しました。テストユーザー登録を確認して再試行してください。",
       ko: "TikTok 승인이 실패했습니다. 테스트 사용자 등록을 확인한 뒤 다시 시도하세요.",
+    },
+    tiktok_profile_fetch_failed: {
+      en: "TikTok profile could not be read after authorization. Check the approved scope and retry.",
+      ja: "認証後にTikTokプロフィールを取得できませんでした。承認済みscopeを確認して再試行してください。",
+      ko: "승인 후 TikTok 프로필을 읽지 못했습니다. 승인된 scope를 확인하고 다시 시도하세요.",
+    },
+    tiktok_token_exchange_failed: {
+      en: "TikTok token exchange failed. Confirm the redirect URI and target user, then retry.",
+      ja: "TikTokトークン交換に失敗しました。redirect URIとテストユーザーを確認して再試行してください。",
+      ko: "TikTok 토큰 교환이 실패했습니다. redirect URI와 테스트 사용자를 확인하고 다시 시도하세요.",
     },
     token_store_not_ready: {
       en: "Server token storage is not ready.",

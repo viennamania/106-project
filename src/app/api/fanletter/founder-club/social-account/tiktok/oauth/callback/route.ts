@@ -66,6 +66,25 @@ function getMemberDisplayName({
   return displayName || email.split("@")[0] || "Creator";
 }
 
+function getTikTokOAuthFailureReason(error: unknown) {
+  const message =
+    error instanceof Error ? error.message.toLowerCase() : "";
+
+  if (message.includes("client key") || message.includes("client secret")) {
+    return "tiktok_client_config_missing";
+  }
+
+  if (message.includes("token exchange")) {
+    return "tiktok_token_exchange_failed";
+  }
+
+  if (message.includes("profile fetch")) {
+    return "tiktok_profile_fetch_failed";
+  }
+
+  return "tiktok_oauth_failed";
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const origin = getFanletterTikTokOAuthAppUrl(request.url);
@@ -238,10 +257,7 @@ export async function GET(request: Request) {
     return Response.redirect(
       appendStatus({
         origin,
-        reason:
-          error instanceof Error && error.message
-            ? error.message
-            : "tiktok_oauth_failed",
+        reason: getTikTokOAuthFailureReason(error),
         returnTo: state.returnTo,
         status: "failed",
       }),
