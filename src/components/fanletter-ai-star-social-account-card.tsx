@@ -510,14 +510,15 @@ export function FanletterAIStarSocialAccountCard({
     Extract<TikTokMockSyncResponse, { snapshot: object }>["snapshot"] | null
   >(null);
   const serverAccount = serverAccountState.account;
-  const account = localMockAccount ?? serverAccount ?? social.account;
-  const accountSource = localMockAccount
-    ? "local"
-    : serverAccount
-      ? "server"
+  const account = serverAccount ?? localMockAccount ?? social.account;
+  const accountSource = serverAccount
+    ? "server"
+    : localMockAccount
+      ? "local"
       : social.account
         ? "sample"
         : "none";
+  const canSyncTikTok = accountSource === "server";
   const isConnected = Boolean(account);
   const actorMemberId = account?.connectedByMemberId ?? social.creatorMemberId;
   const actorMemberName =
@@ -713,23 +714,6 @@ export function FanletterAIStarSocialAccountCard({
 
     setConnectError(null);
 
-    if (source === "fanletter_my_ai") {
-      recordFanletterAIStarMockSocialAccount({
-        connectedAt: new Date().toISOString(),
-        connectedByMemberId: social.creatorMemberId,
-        connectedByMemberInitials: social.creatorMemberInitials,
-        connectedByMemberName: social.creatorMemberName,
-        creatorRoleAtConnection: social.creatorRole,
-        handle,
-        platform: social.platform,
-        profileUrl: buildFanletterTikTokProfileUrl(handle),
-        starId,
-        status: "mock_connected",
-      });
-      setIsPanelOpen(false);
-      return;
-    }
-
     setIsConnecting(true);
 
     try {
@@ -768,6 +752,7 @@ export function FanletterAIStarSocialAccountCard({
       }
 
       recordFanletterAIStarMockSocialAccount(data.account);
+      serverAccountState.refresh();
       setIsPanelOpen(false);
     } catch (error) {
       setConnectError(
@@ -781,7 +766,7 @@ export function FanletterAIStarSocialAccountCard({
   }
 
   async function handleSyncTikTok() {
-    if (!account || isSyncingTikTok) {
+    if (!account || !canSyncTikTok || isSyncingTikTok) {
       return;
     }
 
@@ -1121,7 +1106,7 @@ export function FanletterAIStarSocialAccountCard({
             </div>
           </div>
 
-          {account ? (
+          {account && canSyncTikTok ? (
             <div className="mt-3 grid min-w-0 gap-3 rounded-lg border border-zinc-200 bg-white p-3 sm:grid-cols-[1fr_auto] sm:items-center">
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-zinc-950">

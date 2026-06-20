@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import type {
   FanletterAIStarSocialAccount,
@@ -204,6 +204,7 @@ export type FanletterAIStarServerSocialAccountState = {
   account: FanletterAIStarSocialAccount | null;
   error: boolean;
   loading: boolean;
+  refresh: () => void;
   source: "none" | "server";
 };
 
@@ -218,14 +219,26 @@ export function useFanletterAIStarServerSocialAccountState({
     account: null,
     error: false,
     loading: true,
+    refresh: () => {},
     source: "none",
   });
+  const [refreshNonce, setRefreshNonce] = useState(0);
+  const refresh = useCallback(() => {
+    setRefreshNonce((value) => value + 1);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
     const params = new URLSearchParams({ platform, starId });
 
     async function loadServerAccount() {
+      setState((current) => ({
+        ...current,
+        error: false,
+        loading: true,
+        refresh,
+      }));
+
       try {
         const response = await fetch(
           `/api/fanletter/founder-club/social-account?${params.toString()}`,
@@ -240,6 +253,7 @@ export function useFanletterAIStarServerSocialAccountState({
             account: null,
             error: true,
             loading: false,
+            refresh,
             source: "none",
           });
           return;
@@ -260,6 +274,7 @@ export function useFanletterAIStarServerSocialAccountState({
           account,
           error: false,
           loading: false,
+          refresh,
           source: account ? "server" : "none",
         });
       } catch (error) {
@@ -271,6 +286,7 @@ export function useFanletterAIStarServerSocialAccountState({
           account: null,
           error: true,
           loading: false,
+          refresh,
           source: "none",
         });
       }
@@ -279,7 +295,7 @@ export function useFanletterAIStarServerSocialAccountState({
     void loadServerAccount();
 
     return () => controller.abort();
-  }, [platform, starId]);
+  }, [platform, refresh, refreshNonce, starId]);
 
   return state;
 }
