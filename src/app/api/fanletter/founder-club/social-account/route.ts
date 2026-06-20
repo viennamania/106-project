@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       {
         account: null,
         error: "A valid AI Star id is required.",
-        mode: "mock",
+        mode: "server",
       },
       { status: 400 },
     );
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 
   return Response.json({
     account,
-    mode: "mock",
+    mode: "server",
     source: account ? "server" : "none",
   });
 }

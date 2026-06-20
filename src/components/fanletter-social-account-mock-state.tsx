@@ -191,13 +191,13 @@ export function useFanletterAIStarMockSocialAccount({
 type ServerSocialAccountResponse =
   | {
       account: FanletterAIStarSocialAccount | null;
-      mode: "mock";
+      mode: "server";
       source?: "none" | "server";
     }
   | {
       account?: null;
       error?: string;
-      mode?: "mock";
+      mode?: "server";
     };
 
 export type FanletterAIStarServerSocialAccountState = {
