@@ -24,6 +24,7 @@ export const agentRankInteractionSources = [
   "fanletter_content",
   "fanletter_home",
   "fanletter_news",
+  "fanletter_my_ai",
   "fanletter_star_detail",
   "fanletter_founder_universe",
   "fanletter_creator_unlock",

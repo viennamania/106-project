@@ -3130,7 +3130,7 @@ export function FanletterCreatorUnlockPage({
 
         <FanletterAIStarSocialAccountCard
           className="mt-5"
-          connectHref="#mock-launch-panel"
+          connectHref={isPreviewMode ? connectHref : "#creator-unlock-conditions"}
           locale={locale}
           social={creatorJourneySocialAccount}
           source="fanletter_creator_unlock"

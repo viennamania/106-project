@@ -309,6 +309,7 @@ function getInteractionSourceLabel(
           fanletter_creator_unlock: "권한 활성화",
           fanletter_founder_universe: "파운더 네트워크",
           fanletter_home: "FanLetter 홈",
+          fanletter_my_ai: "내 AI",
           fanletter_news: "뉴스/리포트",
           fanletter_star_detail: "AI 스타 상세",
         }
@@ -319,6 +320,7 @@ function getInteractionSourceLabel(
           fanletter_creator_unlock: "Creator Permission",
           fanletter_founder_universe: "Founder Network",
           fanletter_home: "FanLetter Home",
+          fanletter_my_ai: "My AI",
           fanletter_news: "News / Reports",
           fanletter_star_detail: "AI Star Detail",
         };

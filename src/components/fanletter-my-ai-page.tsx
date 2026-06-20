@@ -261,13 +261,13 @@ export function FanletterMyAIPage({
                   intent: primaryAccount
                     ? "view_my_ai_star_universe"
                     : "connect_ai_star_tiktok",
-                  source: "fanletter_home",
+                  source: "fanletter_my_ai",
                   starId: primaryStar.id,
                 }
               : {
                   eventType: "creator_unlock_evaluated",
                   intent: "open_creator_permission_activation",
-                  source: "fanletter_home",
+                  source: "fanletter_my_ai",
                   starId: null,
                 },
             href: primaryHref,
@@ -319,7 +319,7 @@ export function FanletterMyAIPage({
               connectHref={primaryHref}
               locale={locale}
               social={primarySocialAccount}
-              source="fanletter_creator_unlock"
+              source="fanletter_my_ai"
               starId={primaryStar.id}
               starName={primaryStarName}
               starPortraitImageUrl={primaryStarPortraitUrl}
