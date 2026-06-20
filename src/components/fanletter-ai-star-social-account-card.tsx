@@ -138,6 +138,13 @@ function getCopy(locale: Locale) {
       nextAction: "다음 행동",
       status: "상태",
       storageSource: "저장 출처",
+      statusJourneyTitle: "TikTok 연결 상태",
+      statusSteps: {
+        channel: "채널 연결",
+        reputation: "평판 기록",
+        server: "서버 저장",
+        sync: "동기화 가능",
+      },
       sourceLocalMock: "브라우저 mock",
       sourceSample: "기본 mock",
       sourceServer: "서버 저장됨",
@@ -257,6 +264,13 @@ function getCopy(locale: Locale) {
       nextAction: "次のアクション",
       status: "状態",
       storageSource: "保存元",
+      statusJourneyTitle: "TikTok接続状態",
+      statusSteps: {
+        channel: "チャンネル接続",
+        reputation: "評判記録",
+        server: "サーバー保存",
+        sync: "同期可能",
+      },
       sourceLocalMock: "ブラウザmock",
       sourceSample: "基本mock",
       sourceServer: "サーバー保存済み",
@@ -377,6 +391,13 @@ function getCopy(locale: Locale) {
     nextAction: "Next action",
     status: "Status",
     storageSource: "Storage Source",
+    statusJourneyTitle: "TikTok connection state",
+    statusSteps: {
+      channel: "Channel connected",
+      reputation: "Reputation record",
+      server: "Server saved",
+      sync: "Sync ready",
+    },
     sourceLocalMock: "Browser mock",
     sourceSample: "Default mock",
     sourceServer: "Saved on server",
@@ -902,6 +923,54 @@ export function FanletterAIStarSocialAccountCard({
                 {copy.storageSource} · {storageSourceLabel}
               </span>
             </span>
+          </div>
+
+          <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-2.5">
+            <p className="mb-2 text-[0.65rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              {copy.statusJourneyTitle}
+            </p>
+            <div className="grid min-w-0 grid-cols-2 gap-1.5 sm:grid-cols-4">
+              {[
+                {
+                  done: isConnected,
+                  label: copy.statusSteps.channel,
+                },
+                {
+                  done: canSyncTikTok,
+                  label: copy.statusSteps.server,
+                },
+                {
+                  done: canSyncTikTok,
+                  label: copy.statusSteps.sync,
+                },
+                {
+                  done: Boolean(syncSnapshot),
+                  label: copy.statusSteps.reputation,
+                },
+              ].map((step, index) => (
+                <div
+                  className={joinClasses(
+                    "flex min-w-0 items-center gap-2 rounded-md border px-2 py-2",
+                    step.done
+                      ? "border-emerald-200 bg-white text-emerald-800"
+                      : "border-zinc-200 bg-white/70 text-zinc-500",
+                  )}
+                  key={step.label}
+                >
+                  <span
+                    className={joinClasses(
+                      "flex size-5 shrink-0 items-center justify-center rounded-full text-[0.62rem] font-semibold",
+                      step.done ? "bg-emerald-500 text-white" : "bg-zinc-100",
+                    )}
+                  >
+                    {step.done ? <CheckCircle2 className="size-3.5" /> : index + 1}
+                  </span>
+                  <span className="min-w-0 truncate text-xs font-semibold">
+                    {step.label}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
 
           {oauthCallbackStatus ? (
