@@ -66,6 +66,8 @@ function getCopy(locale: Locale) {
         scope_required: "scope 승인 필요",
       },
       apiCapabilityTitle: "TikTok API 적용 범위",
+      apiCoverageCta: "커버리지 확인",
+      apiCoverageHint: "AgentRank 감사 흐름",
       apiCapabilityItems: {
         content_publish: {
           detail: "AIAVpark 브이로그를 TikTok 게시 요청으로 연결합니다.",
@@ -172,6 +174,8 @@ function getCopy(locale: Locale) {
         scope_required: "scope承認が必要",
       },
       apiCapabilityTitle: "TikTok API適用範囲",
+      apiCoverageCta: "カバレッジ確認",
+      apiCoverageHint: "AgentRank監査フロー",
       apiCapabilityItems: {
         content_publish: {
           detail: "AIAVparkのVlogをTikTok投稿リクエストにつなげます。",
@@ -279,6 +283,8 @@ function getCopy(locale: Locale) {
       scope_required: "Scope approval required",
     },
     apiCapabilityTitle: "TikTok API coverage",
+    apiCoverageCta: "Check Coverage",
+    apiCoverageHint: "AgentRank audit flow",
     apiCapabilityItems: {
       content_publish: {
         detail: "Connect AIAVpark vlogs to TikTok publish requests.",
@@ -930,6 +936,13 @@ export function FanletterAIStarSocialAccountCard({
                 const item = copy.apiCapabilityItems[capability.id];
                 const statusLabel =
                   copy.apiCapabilityStatus[capability.status];
+                const coverageParams = new URLSearchParams({
+                  coverageAction: capability.agentRankEventType,
+                  limit: "120",
+                  starId,
+                  tiktokCapability: capability.id,
+                });
+                const coverageHref = `/${locale}/fanletter/agentrank/coverage?${coverageParams.toString()}`;
 
                 return (
                   <div
@@ -970,6 +983,40 @@ export function FanletterAIStarSocialAccountCard({
                         </span>
                       </span>
                     </div>
+                    <FanletterTrackedLink
+                      agentRank={{
+                        eventType: "content_engaged",
+                        intent: "creator_tiktok_api_coverage_opened",
+                        source,
+                        starId,
+                      }}
+                      className="mt-2 inline-flex min-h-8 max-w-full items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 text-[0.68rem] font-semibold text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50"
+                      eventName="content_open"
+                      href={coverageHref}
+                      metadata={{
+                        actorMemberId,
+                        actorMemberName,
+                        actorType: "creator_member",
+                        agentRankEventType: capability.agentRankEventType,
+                        endpoint: capability.endpoint,
+                        platform: "tiktok",
+                        requiredScopes: capability.requiredScopes.join(","),
+                        socialApiCapability: capability.id,
+                        starId,
+                        starName,
+                        status: capability.status,
+                        targetType: "ai_star",
+                      }}
+                    >
+                      <Database className="size-3.5 shrink-0" />
+                      <span className="min-w-0 truncate">
+                        {copy.apiCoverageCta}
+                      </span>
+                      <span className="hidden text-zinc-400 sm:inline">
+                        · {copy.apiCoverageHint}
+                      </span>
+                      <ArrowRight className="size-3.5 shrink-0" />
+                    </FanletterTrackedLink>
                   </div>
                 );
               })}
