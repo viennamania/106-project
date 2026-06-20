@@ -52,8 +52,8 @@ export function FanletterResponsiveActionPanel({
       />
       <section
         className={joinClasses(
-          "relative flex max-h-[86svh] w-full max-w-[42rem] flex-col overflow-hidden rounded-t-[1.35rem] border border-zinc-200 bg-white text-zinc-950 shadow-[0_-22px_80px_rgba(15,23,42,0.22)] focus:outline-none",
-          "sm:h-full sm:max-h-none sm:max-w-[27rem] sm:rounded-none sm:border-y-0 sm:border-r-0 sm:shadow-[0_0_80px_rgba(15,23,42,0.18)]",
+          "relative flex max-h-[86svh] w-[calc(100vw-1rem)] max-w-[42rem] flex-col overflow-hidden rounded-t-[1.35rem] border border-zinc-200 bg-white text-zinc-950 shadow-[0_-22px_80px_rgba(15,23,42,0.22)] focus:outline-none",
+          "sm:h-full sm:max-h-none sm:w-full sm:max-w-[27rem] sm:rounded-none sm:border-y-0 sm:border-r-0 sm:shadow-[0_0_80px_rgba(15,23,42,0.18)]",
         )}
         ref={panelRef}
         tabIndex={-1}

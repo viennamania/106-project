@@ -92,6 +92,7 @@ function applyServerPermissionBlockedReason({
 
 export async function GET(request: Request) {
   const searchParams = new URL(request.url).searchParams;
+  const locale = normalizeFanletterTikTokOAuthLocale(searchParams.get("locale"));
   const starId = normalizeFanletterTikTokOAuthStarId(searchParams.get("starId"));
 
   if (!starId) {
@@ -110,7 +111,7 @@ export async function GET(request: Request) {
     body: {
       canConnect: searchParams.get("canConnect"),
       creatorRole: searchParams.get("creatorRole"),
-      locale: searchParams.get("locale"),
+      locale,
       oauthMode: searchParams.get("oauthMode"),
       returnTo: searchParams.get("returnTo"),
       source: searchParams.get("source"),
@@ -136,6 +137,18 @@ export async function GET(request: Request) {
       walletAddress: session?.walletAddress ?? null,
     },
   };
+
+  if (serverPermission.reason === "member_session_required") {
+    const origin = new URL(request.url).origin;
+    const connectUrl = new URL(`/${locale}/fanletter/connect`, origin);
+    const returnTo = responseBody.request.returnTo;
+
+    connectUrl.searchParams.set("returnTo", returnTo);
+    connectUrl.searchParams.set("starId", starId);
+    connectUrl.searchParams.set("reason", "tiktok_member_session_required");
+
+    return Response.redirect(connectUrl, 303);
+  }
 
   if (responseBody.liveReady && responseBody.oauth.authorizeUrl) {
     return Response.redirect(responseBody.oauth.authorizeUrl, 303);

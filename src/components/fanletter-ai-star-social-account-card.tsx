@@ -49,7 +49,7 @@ function getCopy(locale: Locale) {
       conditionReflected: "상단 진행률에 즉시 반영됨",
       connectedBy: "연결한 Creator",
       connectedTitle: "TikTok 채널 연결됨",
-      connectComplete: "Mock 연결 완료",
+      connectComplete: "수동 mock 저장",
       connectHelper:
         "AI 스타별 Creator 채널 연결은 평판 기록으로 남습니다. TikTok 승인 또는 mock 연결로 테스트할 수 있습니다.",
       connectRequired: "TikTok 연결 필요",
@@ -109,26 +109,27 @@ function getCopy(locale: Locale) {
         "Mock 연결을 완료하지 못했습니다. 입력값과 Creator 권한을 다시 확인해주세요.",
       mockConnectSaving: "Mock 연결 저장 중",
       mockOnly:
-        "실제 TikTok OAuth/API는 아직 실행하지 않습니다. 이 입력은 AgentRank 평판 기록 mock으로만 저장됩니다.",
+        "실제 연결 테스트는 위 TikTok 승인 버튼을 사용하세요. 수동 mock 저장은 OAuth가 막혔을 때 UI와 평판 기록 흐름을 확인하는 백업 테스트입니다.",
       manualStatus: "manual / mock",
       oauthReadinessItems: [
-        "TikTok 앱과 redirect URI 확정",
-        "Login Kit / Display API scope 승인",
+        "TikTok 앱과 redirect URI 검증",
+        "Sandbox 테스트 사용자와 Login Kit scope 준비",
         "서버 토큰 저장·갱신·폐기 준비",
       ],
       oauthReadinessChecking: "OAuth 상태 확인 중",
       oauthReadinessBlocked: "실제 OAuth 대기 중",
       oauthReadinessCriteriaUnit: "개 조건 대기",
-      oauthReadinessNote: "조건이 준비되면 이 mock 연결 버튼을 실제 OAuth로 교체합니다.",
+      oauthReadinessNote:
+        "준비 완료 상태에서는 TikTok 승인 버튼으로 실제 AI 스타 채널 연결을 테스트합니다.",
       oauthReadinessPreview: "서버 OAuth start/callback route는 preview 상태로 준비됨",
-      oauthReadinessReady: "실제 OAuth 전환 가능",
-      oauthReadinessTitle: "실제 OAuth 전환 조건",
+      oauthReadinessReady: "TikTok 승인 테스트 가능",
+      oauthReadinessTitle: "TikTok 실제 연결 테스트",
       openTiktok: "TikTok 보기",
       panelDescription:
         "회원 개인 계정이 아니라 선택한 AI 스타의 TikTok 채널을 연결합니다.",
       panelTitle: "AI 스타 TikTok 채널 연결",
       primaryCta: "TikTok 연결하기",
-      realOAuthCta: "TikTok 승인으로 연결",
+      realOAuthCta: "TikTok으로 실제 연결 테스트",
       replaceCta: "채널 변경",
       reputationLedger: "평판 기록 보기",
       reputationLedgerHint: "AgentRank 원장에서 연결 이벤트 확인",
@@ -173,7 +174,7 @@ function getCopy(locale: Locale) {
       conditionReflected: "上部の進行率に即時反映",
       connectedBy: "接続したCreator",
       connectedTitle: "TikTokチャンネル接続済み",
-      connectComplete: "Mock接続を完了",
+      connectComplete: "手動mock保存",
       connectHelper:
         "AIスター別Creatorチャンネル接続は評判記録になります。TikTok認証またはmock接続でテストできます。",
       connectRequired: "TikTok接続が必要",
@@ -233,28 +234,28 @@ function getCopy(locale: Locale) {
         "Mock接続を完了できませんでした。入力値とCreator権限を確認してください。",
       mockConnectSaving: "Mock接続を保存中",
       mockOnly:
-        "実際のTikTok OAuth/APIはまだ実行しません。この入力はAgentRank評判記録mockとしてのみ保存されます。",
+        "実接続テストは上のTikTok認証ボタンを使用してください。手動mock保存はOAuthが止まった場合のUI・評判記録確認用です。",
       manualStatus: "manual / mock",
       oauthReadinessItems: [
-        "TikTokアプリとredirect URIを確定",
-        "Login Kit / Display API scopeを承認",
+        "TikTokアプリとredirect URIを検証",
+        "SandboxテストユーザーとLogin Kit scopeを準備",
         "サーバートークンの保存・更新・失効を準備",
       ],
       oauthReadinessChecking: "OAuth状態を確認中",
       oauthReadinessBlocked: "実OAuth待機中",
       oauthReadinessCriteriaUnit: "件の条件待ち",
       oauthReadinessNote:
-        "条件が整ったら、このmock接続ボタンを実際のOAuthに置き換えます。",
+        "準備完了状態ではTikTok認証ボタンで実際のAIスターチャンネル接続をテストします。",
       oauthReadinessPreview:
         "サーバーOAuth start/callback routeはpreview状態で準備済み",
-      oauthReadinessReady: "実OAuthへ切り替え可能",
-      oauthReadinessTitle: "実OAuth切り替え条件",
+      oauthReadinessReady: "TikTok認証テスト可能",
+      oauthReadinessTitle: "TikTok実接続テスト",
       openTiktok: "TikTokを見る",
       panelDescription:
         "個人アカウントではなく、選択したAIスターのTikTokチャンネルを接続します。",
       panelTitle: "AIスターTikTokチャンネル接続",
       primaryCta: "TikTok接続",
-      realOAuthCta: "TikTok認証で接続",
+      realOAuthCta: "TikTokで実接続テスト",
       replaceCta: "チャンネル変更",
       reputationLedger: "評判記録を見る",
       reputationLedgerHint: "AgentRank台帳で接続イベントを確認",
@@ -298,7 +299,7 @@ function getCopy(locale: Locale) {
     conditionReflected: "Reflected in top progress",
     connectedBy: "Connected Creator",
     connectedTitle: "TikTok channel connected",
-    connectComplete: "Complete mock connection",
+    connectComplete: "Save manual mock",
     connectHelper:
       "AI Star channel connection becomes a Reputation Event. You can test it with TikTok authorization or mock connection.",
     connectRequired: "TikTok connection required",
@@ -360,28 +361,28 @@ function getCopy(locale: Locale) {
       "Mock connection could not be completed. Check the handle and Creator permission.",
     mockConnectSaving: "Saving mock connection",
     mockOnly:
-      "Real TikTok OAuth/API is not executed yet. This saves a mock AgentRank Reputation Event only.",
+      "Use the TikTok authorization button above for the real connection test. Manual mock save is a backup path for checking UI and Reputation Record flow when OAuth is blocked.",
     manualStatus: "manual / mock",
     oauthReadinessItems: [
-      "Finalize TikTok app and redirect URI",
-      "Approve Login Kit / Display API scopes",
+      "Verify TikTok app and redirect URI",
+      "Prepare Sandbox target user and Login Kit scope",
       "Prepare server token storage, refresh, and revocation",
     ],
     oauthReadinessChecking: "Checking OAuth status",
     oauthReadinessBlocked: "Real OAuth waiting",
     oauthReadinessCriteriaUnit: "criteria pending",
     oauthReadinessNote:
-      "When these are ready, this mock connection button becomes real OAuth.",
+      "When ready, use the TikTok authorization button to test the real AI Star channel connection.",
     oauthReadinessPreview:
       "Server OAuth start/callback routes are ready in preview mode",
-    oauthReadinessReady: "Ready for real OAuth",
-    oauthReadinessTitle: "Real OAuth Switch Criteria",
+    oauthReadinessReady: "TikTok authorization test ready",
+    oauthReadinessTitle: "TikTok Real Connection Test",
     openTiktok: "View TikTok",
     panelDescription:
       "Connect the selected AI Star channel, not a personal member account.",
     panelTitle: "Connect AI Star TikTok channel",
     primaryCta: "Connect TikTok",
-    realOAuthCta: "Connect with TikTok Authorization",
+    realOAuthCta: "Test real connection with TikTok",
     replaceCta: "Change channel",
     reputationLedger: "View Reputation Record",
     reputationLedgerHint: "Check the connection event in AgentRank Ledger",
@@ -433,6 +434,64 @@ function formatConnectedAt(value: string, locale: Locale) {
       year: "numeric",
     },
   ).format(date);
+}
+
+function getTikTokOAuthReasonLabel(reason: string | null, locale: Locale) {
+  if (!reason) {
+    return null;
+  }
+
+  const labels: Record<string, Partial<Record<Locale, string>> & { en: string }> = {
+    creator_or_owner_required: {
+      en: "Creator or Owner permission is required for this AI Star.",
+      ja: "このAIスターのCreatorまたはOwner権限が必要です。",
+      ko: "이 AI 스타의 Creator 또는 Owner 권한이 필요합니다.",
+    },
+    fanletter_tiktok_oauth_preview_mode: {
+      en: "TikTok OAuth feature flag is not enabled for this mode.",
+      ja: "このモードではTikTok OAuth機能が有効化されていません。",
+      ko: "이 모드의 TikTok OAuth 기능 플래그가 아직 켜져 있지 않습니다.",
+    },
+    invalid_oauth_callback: {
+      en: "TikTok returned without a valid authorization code. Try again from the same AI Star.",
+      ja: "TikTokから有効な認証コードが返りませんでした。同じAIスターから再試行してください。",
+      ko: "TikTok 승인 코드가 유효하지 않습니다. 같은 AI 스타에서 다시 시도하세요.",
+    },
+    member_session_required: {
+      en: "Connect your FanLetter account first, then retry TikTok authorization.",
+      ja: "先にFanLetterアカウントを接続してからTikTok認証を再試行してください。",
+      ko: "먼저 FanLetter 계정을 연결한 뒤 TikTok 승인을 다시 시도하세요.",
+    },
+    oauth_state_secret_missing: {
+      en: "OAuth state signing is not configured on the server.",
+      ja: "サーバーのOAuth state署名設定が未完了です。",
+      ko: "서버 OAuth state 서명 설정이 아직 완료되지 않았습니다.",
+    },
+    tiktok_client_key_missing: {
+      en: "TikTok client key is not configured for this mode.",
+      ja: "このモードのTikTok client keyが設定されていません。",
+      ko: "이 모드의 TikTok client key가 설정되지 않았습니다.",
+    },
+    tiktok_client_secret_missing: {
+      en: "TikTok client secret is not configured for this mode.",
+      ja: "このモードのTikTok client secretが設定されていません。",
+      ko: "이 모드의 TikTok client secret이 설정되지 않았습니다.",
+    },
+    tiktok_oauth_failed: {
+      en: "TikTok authorization failed. Check target-user registration and retry.",
+      ja: "TikTok認証に失敗しました。テストユーザー登録を確認して再試行してください。",
+      ko: "TikTok 승인이 실패했습니다. 테스트 사용자 등록을 확인한 뒤 다시 시도하세요.",
+    },
+    token_store_not_ready: {
+      en: "Server token storage is not ready.",
+      ja: "サーバートークン保存がまだ準備できていません。",
+      ko: "서버 토큰 저장소가 아직 준비되지 않았습니다.",
+    },
+  };
+
+  const label = labels[reason];
+
+  return label?.[locale] ?? label?.en ?? reason;
 }
 
 type MockSocialAccountConnectResponse =
@@ -598,6 +657,10 @@ export function FanletterAIStarSocialAccountCard({
         : copy.oauthReadinessPreview;
   const oauthModeLabel =
     oauthMode === "sandbox" ? copy.sandboxMode : copy.productionMode;
+  const oauthCallbackReasonLabel = getTikTokOAuthReasonLabel(
+    oauthCallbackStatus?.reason ?? null,
+    locale,
+  );
   const liveOAuthStartParams = new URLSearchParams({
     canConnect: String(social.canConnect),
     creatorRole: social.creatorRole,
@@ -640,12 +703,6 @@ export function FanletterAIStarSocialAccountCard({
 
   useEffect(() => {
     if (!isPanelOpen || !social.canConnect) {
-      return;
-    }
-
-    if (source === "fanletter_my_ai") {
-      setIsOauthPreviewLoading(false);
-      setOauthPreview(null);
       return;
     }
 
@@ -1004,9 +1061,9 @@ export function FanletterAIStarSocialAccountCard({
                       ? copy.oauthCallbackSuccessBody
                       : copy.oauthCallbackFailedBody}
                   </p>
-                  {oauthCallbackStatus.reason ? (
+                  {oauthCallbackReasonLabel ? (
                     <p className="mt-2 break-words rounded-md bg-white/70 px-2 py-1 text-[0.68rem] font-semibold text-current">
-                      {oauthCallbackStatus.reason}
+                      {oauthCallbackReasonLabel}
                     </p>
                   ) : null}
                   {oauthCallbackStatus.status === "failed" &&
@@ -1215,7 +1272,7 @@ export function FanletterAIStarSocialAccountCard({
                 ) : null}
               </div>
               <button
-                className="inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-zinc-950 px-4 text-sm font-semibold leading-tight text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                className="inline-flex min-h-10 w-full max-w-full min-w-0 box-border items-center justify-center gap-2 rounded-full border border-zinc-200 bg-zinc-950 px-4 text-sm font-semibold leading-tight text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                 disabled={isSyncingTikTok}
                 onClick={handleSyncTikTok}
                 type="button"
@@ -1300,7 +1357,7 @@ export function FanletterAIStarSocialAccountCard({
                     source: "fanletter_agentrank",
                     starId,
                   }}
-                  className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white transition hover:bg-zinc-800 sm:w-auto sm:shrink-0"
+                  className="inline-flex min-h-11 w-full max-w-full min-w-0 box-border items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white transition hover:bg-zinc-800 sm:w-auto sm:shrink-0"
                   eventName="content_open"
                   href={reputationLedgerHref}
                   metadata={{
@@ -1331,7 +1388,7 @@ export function FanletterAIStarSocialAccountCard({
                     source,
                     starId,
                   }}
-                  className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50 sm:w-auto sm:shrink-0"
+                  className="inline-flex min-h-11 w-full max-w-full min-w-0 box-border items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50 sm:w-auto sm:shrink-0"
                   eventName="external_browser_click"
                   href={account.profileUrl}
                   metadata={{
@@ -1356,7 +1413,7 @@ export function FanletterAIStarSocialAccountCard({
                 </FanletterTrackedLink>
                 {social.canConnect ? (
                   <button
-                    className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50 sm:col-span-2 sm:w-auto"
+                    className="inline-flex min-h-11 w-full max-w-full min-w-0 box-border items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50 sm:col-span-2 sm:w-auto"
                     onClick={handleOpenPanel}
                     type="button"
                   >
@@ -1369,7 +1426,7 @@ export function FanletterAIStarSocialAccountCard({
               </div>
             ) : (
               <button
-                className="inline-flex min-h-11 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight text-white transition hover:bg-zinc-800 sm:w-auto"
+                className="inline-flex min-h-11 w-full max-w-full min-w-0 box-border items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight text-white transition hover:bg-zinc-800 sm:w-auto"
                 onClick={handleOpenPanel}
                 type="button"
               >
@@ -1392,7 +1449,7 @@ export function FanletterAIStarSocialAccountCard({
         open={isPanelOpen}
         title={copy.panelTitle}
       >
-        <div className="grid min-w-0 gap-4">
+        <div className="grid w-full max-w-full min-w-0 grid-cols-1 gap-4 overflow-hidden">
           <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
             <div className="flex min-w-0 items-center gap-3">
               <div
@@ -1427,14 +1484,17 @@ export function FanletterAIStarSocialAccountCard({
           </div>
 
           {social.canConnect ? (
-            <form className="grid min-w-0 gap-4" onSubmit={handleSubmit}>
-              <label className="grid min-w-0 gap-2">
-                <span className="flex min-w-0 items-center justify-between gap-3">
+            <form
+              className="grid w-full max-w-full min-w-0 grid-cols-1 gap-4 overflow-hidden"
+              onSubmit={handleSubmit}
+            >
+              <label className="grid w-full max-w-full min-w-0 grid-cols-1 gap-2">
+                <span className="grid min-w-0 gap-2 sm:flex sm:items-center sm:justify-between sm:gap-3">
                   <span className="text-sm font-semibold text-zinc-800">
                     {copy.handleLabel}
                   </span>
                   <button
-                    className="inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50"
+                    className="inline-flex min-h-8 max-w-full shrink-0 items-center justify-center justify-self-start gap-1.5 rounded-full border border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50"
                     onClick={handleUseSuggestedHandle}
                     type="button"
                   >
@@ -1555,7 +1615,7 @@ export function FanletterAIStarSocialAccountCard({
                     "liveReady" in oauthPreview &&
                     oauthPreview.liveReady ? (
                       <a
-                        className="mt-3 inline-flex min-h-10 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800 sm:w-auto"
+                        className="mt-3 inline-flex min-h-10 w-full max-w-full min-w-0 box-border items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800 sm:w-auto"
                         href={liveOAuthStartHref}
                       >
                         <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
@@ -1575,7 +1635,7 @@ export function FanletterAIStarSocialAccountCard({
               ) : null}
 
               <button
-                className="inline-flex min-h-12 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
+                className="inline-flex min-h-12 w-[min(100%,calc(100vw-3rem))] max-w-full min-w-0 box-border items-center justify-center justify-self-stretch gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
                 disabled={!handleValidation.ok || isConnecting}
                 type="submit"
               >
@@ -1604,7 +1664,7 @@ export function FanletterAIStarSocialAccountCard({
               </div>
 
               <a
-                className="inline-flex min-h-12 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
+                className="inline-flex min-h-12 w-full max-w-full min-w-0 box-border items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800"
                 href={effectiveConnectHref}
                 onClick={() => setIsPanelOpen(false)}
               >
