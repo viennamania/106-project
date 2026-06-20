@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -8,8 +7,10 @@ import {
   Link2,
   ShieldCheck,
   Sparkles,
+  UsersRound,
 } from "lucide-react";
 
+import { FanletterAIStarIdentity } from "@/components/fanletter-ai-star-identity";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import type { Locale } from "@/lib/i18n";
 import {
@@ -21,22 +22,13 @@ import {
   type AIStar,
   type MemberOwnedAIStar,
   type MemberPortfolio,
+  type MemberPortfolioRole,
 } from "@/mock/fanletterV2";
 
 function formatNumber(value: number, locale: Locale) {
   return new Intl.NumberFormat(locale === "ko" ? "ko-KR" : "en-US").format(
     value,
   );
-}
-
-function getInitials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
 }
 
 function getCopy(locale: Locale) {
@@ -56,6 +48,9 @@ function getCopy(locale: Locale) {
       emptyTitle: "운영 중인 AI 스타가 없습니다",
       eventConnected: "creator_social_connected 평판 기록 생성",
       eventPending: "TikTok 연결 시 평판 기록 생성",
+      founderNetworks: "참여 중인 파운더 네트워크",
+      founderNetworksBody:
+        "Creator/Owner로 운영하는 AI 스타와 별개로, 각 AI 스타 유니버스 안에서 내가 가진 Founder 역할입니다.",
       heroBody:
         "내 AI는 회원 개인 계정이 아니라 AI 스타별 운영 채널입니다. TikTok 연결, 콘텐츠 준비, 평판 기록을 한 화면에서 확인합니다.",
       heroEyebrow: "내 AI",
@@ -90,6 +85,9 @@ function getCopy(locale: Locale) {
     emptyTitle: "No operated AI Stars yet",
     eventConnected: "creator_social_connected reputation record created",
     eventPending: "TikTok connection will create a reputation record",
+    founderNetworks: "Joined Founder Networks",
+    founderNetworksBody:
+      "Separate from AI Stars you operate as Creator/Owner, these are your Founder roles inside each AI Star Universe.",
     heroBody:
       "My AI is not a personal member account. It is the AI Star-specific operating channel for TikTok, content readiness, and reputation records.",
     heroEyebrow: "My AI",
@@ -117,6 +115,22 @@ function getUniverseName(star: MemberOwnedAIStar, fallback?: AIStar) {
   return star.universeName || fallback?.universeName || `${getStarName(star, fallback)} Universe`;
 }
 
+function getRoleLabel(role: MemberPortfolioRole["role"], locale: Locale) {
+  const isKo = locale === "ko";
+
+  const labels: Record<MemberPortfolioRole["role"], string> = {
+    creator: isKo ? "크리에이터" : "Creator",
+    founder: isKo ? "파운더" : "Founder",
+    genesis_founder: isKo ? "제네시스 파운더" : "Genesis Founder",
+    legend: isKo ? "레전드" : "Legend",
+    mentor: isKo ? "멘토" : "Mentor",
+    partner: isKo ? "파트너" : "Partner",
+    producer: isKo ? "프로듀서" : "Producer",
+  };
+
+  return labels[role];
+}
+
 function resolvePrimaryStar({
   ownedStars,
 }: {
@@ -126,37 +140,6 @@ function resolvePrimaryStar({
     ownedStars.find((star) => !getFanletterAIStarSocialAccount(star.id)) ??
     ownedStars[0] ??
     null
-  );
-}
-
-function AIStarPortrait({
-  accentColor,
-  accentSecondary,
-  initials,
-  name,
-  portraitUrl,
-}: {
-  accentColor: string;
-  accentSecondary: string;
-  initials: string;
-  name: string;
-  portraitUrl?: string | null;
-}) {
-  return (
-    <span
-      className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 text-sm font-semibold text-zinc-950"
-      style={{
-        background: portraitUrl
-          ? undefined
-          : `linear-gradient(145deg, ${accentSecondary}, ${accentColor})`,
-      }}
-    >
-      {portraitUrl ? (
-        <Image alt={name} className="object-cover" fill sizes="64px" src={portraitUrl} />
-      ) : (
-        initials
-      )}
-    </span>
   );
 }
 
@@ -329,10 +312,6 @@ export function FanletterMyAIPage({
               const universeName = getUniverseName(ownedStar, star);
               const portraitUrl =
                 ownedStar.portraitImageUrl ?? star?.portraitImageUrl ?? null;
-              const initials =
-                ownedStar.portraitInitials ??
-                star?.portraitInitials ??
-                getInitials(name);
               const socialStatus = account
                 ? getFanletterAIStarSocialStatusLabel({
                     locale,
@@ -351,32 +330,20 @@ export function FanletterMyAIPage({
                   className="min-w-0 rounded-[1.2rem] border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]"
                   key={ownedStar.id}
                 >
-                  <div className="flex min-w-0 items-start gap-3">
-                    <AIStarPortrait
-                      accentColor={star?.accentColor ?? "#111827"}
-                      accentSecondary={star?.accentSecondary ?? "#71717a"}
-                      initials={initials}
-                      name={name}
-                      portraitUrl={portraitUrl}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex min-w-0 flex-wrap items-center gap-2">
-                        <span className="inline-flex rounded-full bg-zinc-950 px-2.5 py-1 text-[0.62rem] font-semibold text-white">
-                          {copy.aiStar}
-                        </span>
-                        <span className="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[0.62rem] font-semibold text-emerald-800">
-                          {copy.creator}
-                        </span>
-                      </div>
-                      <h2 className="mt-2 truncate text-xl font-semibold">
-                        {name}
-                      </h2>
-                      <p className="truncate text-sm font-medium text-zinc-500">
-                        {universeName}
-                      </p>
-                    </div>
-                  </div>
-
+                  <FanletterAIStarIdentity
+                    accentColor={star?.accentColor ?? "#111827"}
+                    accentSecondary={star?.accentSecondary ?? "#71717a"}
+                    badgeLabel={copy.aiStar}
+                    compact
+                    meta={copy.creator}
+                    name={name}
+                    portraitImageUrl={portraitUrl}
+                    portraitInitials={
+                      ownedStar.portraitInitials ?? star?.portraitInitials
+                    }
+                    statusLabel={account ? copy.connected : copy.nextPending}
+                    universeName={universeName}
+                  />
                   <div className="mt-4 grid grid-cols-2 gap-2">
                     <div className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3">
                       <p className="flex items-center gap-1.5 text-[0.62rem] font-semibold text-zinc-500">
@@ -474,6 +441,62 @@ export function FanletterMyAIPage({
             </Link>
           </section>
         )}
+
+        {portfolio.roles.length > 0 ? (
+          <section className="min-w-0 rounded-[1.2rem] border border-zinc-200 bg-zinc-50 p-4 shadow-[0_18px_44px_rgba(15,23,42,0.04)]">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-white text-zinc-950 ring-1 ring-zinc-200">
+                <UsersRound className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                  Founder Network
+                </p>
+                <h2 className="mt-1 text-2xl font-semibold tracking-normal text-zinc-950">
+                  {copy.founderNetworks}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+                  {copy.founderNetworksBody}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              {portfolio.roles.map((role) => {
+                const star = starsById.get(role.starId);
+                const starName = role.starName ?? star?.name ?? role.starId;
+                const universeName =
+                  role.universeName ?? star?.universeName ?? `${starName} Universe`;
+
+                return (
+                  <Link
+                    className="group flex min-w-0 items-center gap-3 rounded-2xl border border-zinc-200 bg-white p-3 transition hover:border-zinc-300"
+                    href={`/${locale}/fanletter/${encodeURIComponent(
+                      role.starId,
+                    )}/universe`}
+                    key={`${role.starId}-${role.role}`}
+                  >
+                    <span className="flex size-12 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 text-xs font-semibold text-zinc-700">
+                      {portfolio.memberInitials ?? "ME"}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-zinc-950">
+                        {starName}
+                      </span>
+                      <span className="block truncate text-xs font-semibold text-zinc-500">
+                        {universeName}
+                      </span>
+                    </span>
+                    <span className="shrink-0 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.62rem] font-semibold text-zinc-700">
+                      {getRoleLabel(role.role, locale)}
+                    </span>
+                    <ArrowRight className="size-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-950" />
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
       </div>
     </main>
   );

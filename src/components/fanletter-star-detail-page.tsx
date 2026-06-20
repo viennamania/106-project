@@ -18,6 +18,7 @@ import {
   type FanletterCreatorMockLaunch,
   useFanletterCreatorMockLaunches,
 } from "@/components/fanletter-creator-mock-launch-state";
+import { FanletterAIStarIdentity } from "@/components/fanletter-ai-star-identity";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankJourneyRail } from "@/components/fanletter-agentrank-journey-rail";
 import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
@@ -916,32 +917,22 @@ function StarDetailMobileSignpost({
   return (
     <section className="mt-5 min-w-0 overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white text-zinc-950 shadow-[0_14px_36px_rgba(15,23,42,0.06)] sm:hidden">
       <div className="p-3.5">
-        <div className="flex items-start gap-3">
-          <div
-            className="flex size-14 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 bg-cover bg-center text-base font-semibold text-zinc-900"
-            style={
-              star.portraitImageUrl
-                ? { backgroundImage: `url(${star.portraitImageUrl})` }
-                : {
-                    background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
-                  }
-            }
-          >
-            {star.portraitImageUrl ? null : star.portraitInitials}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="inline-flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-              <Bot className="size-3.5" />
-              {isKorean ? "현재 위치" : "Current"}
-            </p>
-            <h2 className="mt-1 truncate text-xl font-semibold tracking-normal">
-              {displayStarName}
-            </h2>
-            <p className="mt-0.5 text-sm font-semibold text-zinc-500">
-              {isKorean ? "AI 스타 유니버스" : "AI Star Universe"}
-            </p>
-          </div>
-        </div>
+        <p className="mb-2 inline-flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+          <Bot className="size-3.5" />
+          {isKorean ? "현재 위치" : "Current"}
+        </p>
+        <FanletterAIStarIdentity
+          accentColor={star.accentColor}
+          accentSecondary={star.accentSecondary}
+          badgeLabel="AI STAR"
+          compact
+          meta={isKorean ? "AI 스타 유니버스" : "AI Star Universe"}
+          name={displayStarName}
+          portraitImageUrl={star.portraitImageUrl}
+          portraitInitials={star.portraitInitials}
+          statusLabel={viewerStateLabel}
+          universeName={getDisplayUniverseName(star.universeName, copy)}
+        />
 
         <div className="mt-4 grid grid-cols-3 gap-2">
           {[

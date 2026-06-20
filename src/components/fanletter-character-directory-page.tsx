@@ -60,6 +60,7 @@ function getCopy(locale: Locale) {
           fanClub: "팬클럽",
           fanOnly: "팬 전용",
           latest: "최신 브이로그",
+          founderPath: "Founder 참여 흐름",
           level: "Lv.",
           noLatest: "아직 공개된 브이로그가 없습니다.",
           publicVlogs: "공개 브이로그",
@@ -122,6 +123,7 @@ function getCopy(locale: Locale) {
           fanClub: "Fan club",
           fanOnly: "Fan-only",
           latest: "Latest vlog",
+          founderPath: "Founder path",
           level: "Lv.",
           noLatest: "No public vlog has been published yet.",
           publicVlogs: "Public vlogs",
@@ -485,13 +487,13 @@ function CharacterCard({
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[0.64rem] font-semibold uppercase tracking-[0.16em] text-[#16702e]">
-              {copy.labels.aiStarChannel}
+              AI STAR
             </p>
             <h2 className="mt-1 truncate text-xl font-semibold tracking-normal">
               {item.character.name}
             </h2>
             <p className="mt-1 truncate text-xs font-semibold text-black/42">
-              {item.referralCode}
+              {copy.labels.founderPath} · {item.referralCode}
             </p>
           </div>
         </div>

@@ -7,6 +7,7 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 
+import { FanletterAIStarIdentity } from "@/components/fanletter-ai-star-identity";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterStarReferralPanel } from "@/components/fanletter-star-referral-panel";
 import type { Locale } from "@/lib/i18n";
@@ -333,6 +334,19 @@ export function FanletterScoutPage({
           steps={progressSteps}
           subtitle={copy.signpostSubtitle}
           title={primaryLabel}
+        />
+
+        <FanletterAIStarIdentity
+          accentColor={selectedStar.accentColor}
+          accentSecondary={selectedStar.accentSecondary}
+          className="mt-4"
+          compact
+          meta={`${copy.role}: ${getRoleLabel(selectedRole?.role, locale)}`}
+          name={selectedStar.name}
+          portraitImageUrl={selectedStar.portraitImageUrl}
+          portraitInitials={selectedStar.portraitInitials}
+          statusLabel={hasShareLoop ? copy.connected : copy.nextAction}
+          universeName={formatUniverseName(selectedStar.universeName, locale)}
         />
 
         <div className="mt-4 grid gap-4 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
