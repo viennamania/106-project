@@ -161,23 +161,34 @@ function getCopy(locale: Locale) {
 
 function StarPortrait({ star }: { star: MemberOwnedAIStar }) {
   const initials = star.portraitInitials ?? getInitials(star.name);
+  const hexClip = {
+    clipPath: "polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%)",
+  };
 
   return (
-    <div className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 text-lg font-semibold text-zinc-700">
-      {star.portraitImageUrl ? (
-        <Image
-          alt=""
-          className="object-cover"
-          fill
-          sizes="64px"
-          src={star.portraitImageUrl}
-          unoptimized={shouldBypassFanletterImageOptimization(
-            star.portraitImageUrl,
-          )}
-        />
-      ) : (
-        initials
-      )}
+    <div
+      className="relative size-[4.35rem] shrink-0 bg-gradient-to-br from-fuchsia-500 via-violet-500 to-cyan-400 p-[2px] shadow-[0_14px_28px_rgba(124,58,237,0.18)]"
+      style={hexClip}
+    >
+      <div
+        className="relative flex size-full items-center justify-center overflow-hidden bg-zinc-100 text-lg font-semibold text-zinc-700"
+        style={hexClip}
+      >
+        {star.portraitImageUrl ? (
+          <Image
+            alt=""
+            className="object-cover"
+            fill
+            sizes="70px"
+            src={star.portraitImageUrl}
+            unoptimized={shouldBypassFanletterImageOptimization(
+              star.portraitImageUrl,
+            )}
+          />
+        ) : (
+          initials
+        )}
+      </div>
     </div>
   );
 }
