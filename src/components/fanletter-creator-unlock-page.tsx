@@ -3324,17 +3324,19 @@ export function FanletterCreatorUnlockPage({
       <div className="mx-auto w-full min-w-0 max-w-[92rem]">
         <div className="flex items-center justify-between gap-3">
           <Link
-            className="inline-flex min-h-10 items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50"
+            className="inline-flex min-h-10 min-w-0 items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50"
             href={view === "hub" ? `/${locale}/fanletter#creator-unlock` : creatorUnlockHubHref}
           >
             <ArrowLeft className="size-4" />
-            {view === "hub"
-              ? copy.back
-              : locale === "ko"
-                ? "Creator Journey"
-                : "Creator Journey"}
+            <span className="min-w-0 truncate">
+              {view === "hub"
+                ? copy.back
+                : locale === "ko"
+                  ? "Creator Journey"
+                  : "Creator Journey"}
+            </span>
           </Link>
-          <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800">
+          <span className="hidden min-h-10 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800 sm:inline-flex">
             <CheckCircle2 className="size-4" />
             {copy.subtitle}
           </span>
