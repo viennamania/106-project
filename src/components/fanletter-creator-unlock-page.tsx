@@ -3598,10 +3598,11 @@ export function FanletterCreatorUnlockPage({
                 <ArrowRight className="size-4" />
               </Link>
               <Link
-                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
+                className="inline-flex min-h-8 items-center justify-center gap-1.5 text-xs font-semibold text-zinc-500 underline-offset-4 transition hover:text-zinc-950 hover:underline"
                 href={creatorSocialLedgerHref}
               >
                 {locale === "ko" ? "평판 기록 보기" : "View records"}
+                <ArrowRight className="size-3.5" />
               </Link>
             </div>
           </div>
