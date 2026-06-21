@@ -131,6 +131,9 @@ function getCopy(locale: Locale) {
       oauthReadinessPreview: "서버 OAuth start/callback route는 preview 상태로 준비됨",
       oauthReadinessReady: "TikTok 승인 테스트 가능",
       oauthReadinessTitle: "TikTok 실제 연결 테스트",
+      oauthRequestClientKey: "요청 client key",
+      oauthRequestRedirectUri: "Redirect URI",
+      oauthRequestTitle: "Sandbox 요청 정보",
       openTiktok: "TikTok 보기",
       panelDescription:
         "회원 개인 계정이 아니라 선택한 AI 스타의 TikTok 채널을 연결합니다.",
@@ -288,6 +291,9 @@ function getCopy(locale: Locale) {
         "サーバーOAuth start/callback routeはpreview状態で準備済み",
       oauthReadinessReady: "TikTok認証テスト可能",
       oauthReadinessTitle: "TikTok実接続テスト",
+      oauthRequestClientKey: "リクエスト client key",
+      oauthRequestRedirectUri: "Redirect URI",
+      oauthRequestTitle: "Sandboxリクエスト情報",
       openTiktok: "TikTokを見る",
       panelDescription:
         "個人アカウントではなく、選択したAIスターのTikTokチャンネルを接続します。",
@@ -446,6 +452,9 @@ function getCopy(locale: Locale) {
       "Server OAuth start/callback routes are ready in preview mode",
     oauthReadinessReady: "TikTok authorization test ready",
     oauthReadinessTitle: "TikTok Real Connection Test",
+    oauthRequestClientKey: "Request client key",
+    oauthRequestRedirectUri: "Redirect URI",
+    oauthRequestTitle: "Sandbox request info",
     openTiktok: "View TikTok",
     panelDescription:
       "Connect the selected AI Star channel, not a personal member account.",
@@ -688,6 +697,7 @@ type TikTokOAuthPreviewResponse =
       liveReady: boolean;
       mode: "oauth_preview";
       oauth: {
+        clientKeyPreview?: string | null;
         mode?: "production" | "sandbox";
         redirectUri: string;
         willRedirect: false;
@@ -1810,6 +1820,33 @@ export function FanletterAIStarSocialAccountCard({
                     <p className="mt-2 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
                       {copy.oauthReadinessNote}
                     </p>
+                    {oauthPreview &&
+                    "oauth" in oauthPreview &&
+                    oauthPreview.oauth ? (
+                      <div className="mt-3 grid min-w-0 gap-2 rounded-2xl border border-zinc-200 bg-zinc-50 p-3">
+                        <p className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-500">
+                          {copy.oauthRequestTitle}
+                        </p>
+                        <div className="grid min-w-0 gap-1.5 text-xs font-semibold leading-5 text-zinc-700">
+                          <p className="grid min-w-0 gap-1 sm:grid-cols-[9rem_minmax(0,1fr)]">
+                            <span className="text-zinc-500">
+                              {copy.oauthRequestClientKey}
+                            </span>
+                            <code className="min-w-0 break-all rounded-lg bg-white px-2 py-1 font-mono text-[0.72rem] text-zinc-900 ring-1 ring-zinc-200">
+                              {oauthPreview.oauth.clientKeyPreview ?? "-"}
+                            </code>
+                          </p>
+                          <p className="grid min-w-0 gap-1 sm:grid-cols-[9rem_minmax(0,1fr)]">
+                            <span className="text-zinc-500">
+                              {copy.oauthRequestRedirectUri}
+                            </span>
+                            <code className="min-w-0 break-all rounded-lg bg-white px-2 py-1 font-mono text-[0.72rem] text-zinc-900 ring-1 ring-zinc-200">
+                              {oauthPreview.oauth.redirectUri}
+                            </code>
+                          </p>
+                        </div>
+                      </div>
+                    ) : null}
                     {oauthPreview &&
                     "liveReady" in oauthPreview &&
                     oauthPreview.liveReady ? (

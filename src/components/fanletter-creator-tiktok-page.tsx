@@ -63,7 +63,7 @@ function getCopy(locale: Locale) {
       nextAction: "다음 행동",
       oauthFailed: "TikTok 승인 실패",
       oauthFailedBody:
-        "승인 또는 토큰 교환이 완료되지 않았습니다. Sandbox 테스트 사용자와 client key 설정을 확인한 뒤 다시 시도하세요.",
+        "승인 또는 토큰 교환이 완료되지 않았습니다. Sandbox 테스트 사용자, 요청 client key, redirect URI가 같은 TikTok 앱 기준인지 확인한 뒤 다시 시도하세요.",
       oauthSuccess: "TikTok 승인 완료",
       oauthSuccessBody:
         "AI 스타 TikTok 채널 연결이 서버에 저장되고 평판 기록 조건에 반영됩니다.",
@@ -187,9 +187,9 @@ function getOAuthReasonLabel(reason: string | null, locale: Locale) {
 
   const labels: Record<string, Partial<Record<Locale, string>> & { en: string }> = {
     non_sandbox_target: {
-      en: "This TikTok account is not a Sandbox target user for the FanLetter app. Use a registered Sandbox username or add this username in the TikTok Developer Portal.",
-      ja: "このTikTokアカウントはFanLetterアプリのSandbox対象ユーザーではありません。登録済みSandboxユーザーを使うか、このユーザー名をTikTok Developer Portalに追加してください。",
-      ko: "현재 TikTok 계정이 FanLetter 앱의 Sandbox Target User가 아닙니다. 등록된 Sandbox username으로 로그인하거나, 이 username을 TikTok Developer Portal에 추가해야 합니다.",
+      en: "TikTok did not recognize this account as a Sandbox target user for the app used by this OAuth request. Confirm the logged-in username and the TikTok client key match the same Developer Portal Sandbox app.",
+      ja: "このOAuthリクエストで使われているアプリのSandbox対象ユーザーとして、TikTokがこのアカウントを認識していません。ログイン中のusernameとTikTok client keyが同じDeveloper Portal Sandboxアプリを指しているか確認してください。",
+      ko: "TikTok이 이 OAuth 요청에 사용된 앱의 Sandbox Target User로 현재 계정을 인식하지 못했습니다. 로그인 username과 요청 client key가 같은 Developer Portal Sandbox 앱 기준인지 확인하세요.",
     },
     tiktok_token_exchange_failed: {
       en: "TikTok token exchange failed. Check redirect URI, client key, and Sandbox target user.",
@@ -197,9 +197,9 @@ function getOAuthReasonLabel(reason: string | null, locale: Locale) {
       ko: "TikTok 토큰 교환이 실패했습니다. redirect URI, client key, Sandbox Target User를 확인하세요.",
     },
     tiktok_oauth_failed: {
-      en: "TikTok authorization failed. In Sandbox mode, confirm that the currently logged-in TikTok username is registered as a Target User for this FanLetter app.",
-      ja: "TikTok認証に失敗しました。Sandboxモードでは、現在ログイン中のTikTokユーザー名がこのFanLetterアプリのTarget Userに登録されているか確認してください。",
-      ko: "TikTok 승인이 실패했습니다. Sandbox 모드에서는 현재 로그인한 TikTok username이 이 FanLetter 앱의 Target User에 등록되어 있는지 확인하세요.",
+      en: "TikTok authorization failed. In Sandbox mode, confirm the logged-in username, client key, and redirect URI all belong to the same FanLetter Developer Portal app.",
+      ja: "TikTok認証に失敗しました。Sandboxモードでは、ログイン中のusername、client key、redirect URIが同じFanLetter Developer Portalアプリに属しているか確認してください。",
+      ko: "TikTok 승인이 실패했습니다. Sandbox 모드에서는 로그인 username, client key, redirect URI가 모두 같은 FanLetter Developer Portal 앱 기준인지 확인하세요.",
     },
     unauthorized_client: {
       en: "TikTok rejected the client key. Check whether the request uses the correct Sandbox or Production app.",

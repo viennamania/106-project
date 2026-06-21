@@ -26,6 +26,7 @@ export type FanletterTikTokOAuthPreview = {
   oauth: {
     authorizeUrl: string | null;
     callbackRoute: string;
+    clientKeyPreview: string | null;
     mode: FanletterTikTokOAuthMode;
     provider: "tiktok";
     redirectUri: string;
@@ -128,6 +129,20 @@ export function getFanletterTikTokOAuthAppUrl(requestUrl: string) {
 
 function getTikTokClientKeyConfigured(mode: FanletterTikTokOAuthMode) {
   return Boolean(getFanletterTikTokClientKey(mode));
+}
+
+function maskTikTokClientKey(value: string) {
+  const normalized = value.trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  if (normalized.length <= 8) {
+    return `${normalized.slice(0, 2)}...${normalized.slice(-2)}`;
+  }
+
+  return `${normalized.slice(0, 4)}...${normalized.slice(-4)}`;
 }
 
 export function getFanletterTikTokClientKey(
@@ -315,8 +330,9 @@ export function buildFanletterTikTokOAuthPreview({
   };
   const scopePreview = ["user.info.basic"];
   const statePreview = encodeFanletterTikTokOAuthState(statePayload);
+  const clientKey = getFanletterTikTokClientKey(mode);
   const authorizeUrl = new URL(TIKTOK_AUTHORIZATION_URL);
-  authorizeUrl.searchParams.set("client_key", getFanletterTikTokClientKey(mode));
+  authorizeUrl.searchParams.set("client_key", clientKey);
   authorizeUrl.searchParams.set("response_type", "code");
   authorizeUrl.searchParams.set("scope", scopePreview.join(","));
   authorizeUrl.searchParams.set("redirect_uri", redirectUri);
@@ -334,6 +350,7 @@ export function buildFanletterTikTokOAuthPreview({
       authorizeUrl: blockedReasons.length === 0 ? authorizeUrl.toString() : null,
       callbackRoute:
         "/api/fanletter/founder-club/social-account/tiktok/oauth/callback",
+      clientKeyPreview: maskTikTokClientKey(clientKey),
       mode,
       provider: "tiktok",
       redirectUri,

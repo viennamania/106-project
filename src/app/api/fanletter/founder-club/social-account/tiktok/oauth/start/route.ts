@@ -55,7 +55,7 @@ function buildPreviewResponse({
     canConnect,
     creatorRole,
     locale,
-    oauthMode: normalizeFanletterTikTokOAuthMode(body.oauthMode),
+    oauthMode: normalizeFanletterTikTokOAuthMode(body.oauthMode ?? "sandbox"),
     requestUrl: request.url,
     returnTo: readString(body.returnTo),
     source: normalizeFanletterTikTokOAuthSource(body.source),
