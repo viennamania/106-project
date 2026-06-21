@@ -2878,6 +2878,9 @@ function CreatorJourneyProductHero({
     "",
   );
   const reputationLabel = getCreatorJourneyReputationLabel(eventType, locale);
+  const heroSubtitle = isKorean
+    ? `${reputationLabel}으로 기록됩니다. 조건, 출처, TikTok, 생성 미리보기를 한 단계씩 진행하세요.`
+    : `This creates ${reputationLabel}. Move through conditions, source, TikTok, and launch preview one step at a time.`;
   const statusLabel = unlock.unlocked
     ? isKorean
       ? "권한 활성화 준비 완료"
@@ -2953,13 +2956,14 @@ function CreatorJourneyProductHero({
             {statusLabel}
           </span>
         </div>
-        <h1 className="mt-4 break-words text-[2.15rem] font-semibold leading-[1.04] tracking-normal text-black [word-break:keep-all] sm:text-[3.5rem]">
-          {isKorean ? "다음 행동만 확인하세요" : "Focus on the next action"}
+        <p className="mt-4 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+          {isKorean ? "다음 행동" : "Next action"}
+        </p>
+        <h1 className="mt-2 break-words text-[2.15rem] font-semibold leading-[1.04] tracking-normal text-black [word-break:keep-all] sm:text-[3.5rem]">
+          {nextActionLabel}
         </h1>
         <p className="mt-3 hidden max-w-2xl text-sm font-medium leading-6 text-zinc-600 sm:block sm:text-base">
-          {isKorean
-            ? "Creator 권한 활성화는 조건 확인, 출처 선택, TikTok 연결, 생성 미리보기 순서로 진행됩니다."
-            : "Creator permission moves through conditions, source selection, TikTok, and launch preview."}
+          {heroSubtitle}
         </p>
 
         <div className="mt-4 grid gap-2 sm:hidden">
@@ -3032,7 +3036,7 @@ function CreatorJourneyProductHero({
           referralCode={action.referralCode}
         >
           <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
-            {action.label}
+            {nextActionLabel}
           </span>
           <ArrowRight className="size-4 shrink-0" />
         </FanletterTrackedLink>
@@ -3107,12 +3111,12 @@ function CreatorJourneyProductHero({
                 >
                   {index + 1}
                 </span>
-                <p className="mt-1 truncate text-[0.68rem] font-semibold">
+                <p className="mt-1 break-words text-[0.68rem] font-semibold leading-tight [word-break:keep-all]">
                   {item.label}
                 </p>
                 <p
                   className={joinClasses(
-                    "mt-0.5 truncate text-[0.58rem] font-semibold",
+                    "mt-0.5 break-words text-[0.58rem] font-semibold leading-tight [word-break:keep-all]",
                     item.active ? "text-white/64" : "text-current/60",
                   )}
                 >
