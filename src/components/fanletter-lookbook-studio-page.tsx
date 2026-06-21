@@ -1,6 +1,16 @@
 "use client";
 
-import { Download, Loader2, Plus, Shirt, Sparkles, Upload, X } from "lucide-react";
+import {
+  Check,
+  Download,
+  Loader2,
+  Plus,
+  Send,
+  Shirt,
+  Sparkles,
+  Upload,
+  X,
+} from "lucide-react";
 import {
   type ReactNode,
   useCallback,
@@ -62,6 +72,11 @@ type LookbookCopy = {
   costLabel: string;
   balanceLabel: string;
   insufficientPoints: string;
+  publish: string;
+  publishing: string;
+  published: string;
+  publishError: string;
+  viewFeed: string;
 };
 
 const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
@@ -104,6 +119,11 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     costLabel: "필요 포인트",
     balanceLabel: "보유 포인트",
     insufficientPoints: "포인트가 부족합니다.",
+    publish: "AI 스타 피드에 게시",
+    publishing: "게시 중…",
+    published: "피드에 게시됨",
+    publishError: "게시에 실패했습니다.",
+    viewFeed: "피드 보기",
   },
   en: {
     title: "AI Star Lookbook Studio",
@@ -145,6 +165,11 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     costLabel: "Cost",
     balanceLabel: "Your points",
     insufficientPoints: "Not enough points.",
+    publish: "Publish to AI star feed",
+    publishing: "Publishing…",
+    published: "Published to feed",
+    publishError: "Failed to publish.",
+    viewFeed: "View feed",
   },
 };
 
@@ -234,6 +259,9 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   );
   const [showStarUrl, setShowStarUrl] = useState(false);
   const [showGarmentUrl, setShowGarmentUrl] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [published, setPublished] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!accountAddress || !email) {
@@ -461,6 +489,8 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
 
     setIsSubmitting(true);
     setImages([]);
+    setPublished(false);
+    setPublishError(null);
 
     try {
       const response = await fetch("/api/fanletter/lookbook", {
@@ -516,6 +546,79 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     resolution,
     sceneBrief,
     starAvatarUrl,
+    starName,
+  ]);
+
+  const handlePublish = useCallback(async () => {
+    if (images.length === 0 || !accountAddress || !email) {
+      return;
+    }
+
+    setPublishError(null);
+    setIsPublishing(true);
+
+    try {
+      const preset = SCENE_PRESETS.find((item) => item.brief === sceneBrief);
+      const sceneLabel = preset
+        ? locale === "en"
+          ? preset.en
+          : preset.ko
+        : "";
+      const name =
+        starName.trim() || (locale === "en" ? "My AI star" : "내 AI 스타");
+      const title = (
+        locale === "en" ? `${name}'s lookbook` : `${name} 룩북`
+      ).slice(0, 100);
+      const body = (
+        locale === "en"
+          ? `A new lookbook from ${name}${sceneLabel ? ` · ${sceneLabel}` : ""}.`
+          : `${name}의 새 룩북이에요${sceneLabel ? ` · ${sceneLabel}` : ""}.`
+      ).slice(0, 400);
+
+      const response = await fetch("/api/content/posts", {
+        body: JSON.stringify({
+          contentImageUrls: images.map((image) => image.url),
+          contentMaturityRating: "general",
+          coverImageUrl: images[0]?.url,
+          email,
+          locale,
+          priceType: "free",
+          status: "published",
+          summary: title,
+          title,
+          body,
+          walletAddress: accountAddress,
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+
+      const data = (await response.json().catch(() => null)) as
+        | { error?: string }
+        | null;
+
+      if (!response.ok) {
+        setPublishError(data?.error ?? copy.publishError);
+        return;
+      }
+
+      setPublished(true);
+    } catch (publishFailure) {
+      setPublishError(
+        publishFailure instanceof Error
+          ? publishFailure.message
+          : copy.publishError,
+      );
+    } finally {
+      setIsPublishing(false);
+    }
+  }, [
+    accountAddress,
+    copy.publishError,
+    email,
+    images,
+    locale,
+    sceneBrief,
     starName,
   ]);
 
@@ -835,6 +938,51 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
                 <p className="px-6 text-xs text-neutral-400">{copy.emptyBody}</p>
               </div>
             )}
+
+            {images.length > 0 && !isSubmitting ? (
+              <div className="mt-3">
+                {published ? (
+                  <div className="flex items-center justify-between rounded-xl border border-[#44f26e]/50 bg-[#f1fdf3] px-3 py-2.5">
+                    <span className="flex items-center gap-1.5 text-sm font-bold text-[#16702e]">
+                      <Check className="h-4 w-4" />
+                      {copy.published}
+                    </span>
+                    <a
+                      className="text-xs font-bold text-[#16702e] underline"
+                      href={`/${locale}/fanletter/feed`}
+                    >
+                      {copy.viewFeed}
+                    </a>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#44f26e] px-4 py-2.5 text-sm font-extrabold text-[#07100b] transition hover:brightness-95 disabled:opacity-50"
+                      disabled={isPublishing}
+                      onClick={handlePublish}
+                      type="button"
+                    >
+                      {isPublishing ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          {copy.publishing}
+                        </>
+                      ) : (
+                        <>
+                          <Send className="h-4 w-4" />
+                          {copy.publish}
+                        </>
+                      )}
+                    </button>
+                    {publishError ? (
+                      <p className="mt-2 text-xs font-semibold text-rose-600">
+                        {publishError}
+                      </p>
+                    ) : null}
+                  </>
+                )}
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
