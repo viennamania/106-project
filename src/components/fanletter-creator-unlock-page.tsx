@@ -2674,6 +2674,11 @@ function CreatorJourneyProductHero({
       : unlock.unlocked
         ? "x402_mock_payment_intent"
         : "creator_unlock_evaluated";
+  const nextActionLabel = action.label.replace(
+    /^(다음 행동|Next action):\s*/i,
+    "",
+  );
+  const reputationLabel = getCreatorJourneyReputationLabel(eventType, locale);
   const statusLabel = unlock.unlocked
     ? isKorean
       ? "권한 활성화 준비 완료"
@@ -2752,11 +2757,50 @@ function CreatorJourneyProductHero({
         <h1 className="mt-4 break-words text-[2.15rem] font-semibold leading-[1.04] tracking-normal text-black [word-break:keep-all] sm:text-[3.5rem]">
           {isKorean ? "다음 행동만 확인하세요" : "Focus on the next action"}
         </h1>
-        <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-zinc-600 sm:text-base">
+        <p className="mt-3 hidden max-w-2xl text-sm font-medium leading-6 text-zinc-600 sm:block sm:text-base">
           {isKorean
             ? "Creator 권한 활성화는 조건 확인, 출처 선택, TikTok 연결, 생성 미리보기 순서로 진행됩니다."
             : "Creator permission moves through conditions, source selection, TikTok, and launch preview."}
         </p>
+
+        <div className="mt-4 grid gap-2 sm:hidden">
+          {[
+            {
+              label: isKorean ? "지금" : "Now",
+              value: statusLabel,
+            },
+            {
+              label: isKorean ? "다음" : "Next",
+              value: nextActionLabel,
+            },
+            {
+              label: isKorean ? "기록" : "Record",
+              value: reputationLabel,
+            },
+          ].map((item, index) => (
+            <div
+              className={joinClasses(
+                "grid min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-2 rounded-lg border px-3 py-2.5",
+                index === 1
+                  ? "border-black bg-black text-white"
+                  : "border-zinc-200 bg-zinc-50 text-zinc-950",
+              )}
+              key={item.label}
+            >
+              <span
+                className={joinClasses(
+                  "text-[0.66rem] font-semibold uppercase tracking-[0.1em]",
+                  index === 1 ? "text-white/58" : "text-zinc-500",
+                )}
+              >
+                {item.label}
+              </span>
+              <span className="min-w-0 break-words text-sm font-semibold leading-tight [word-break:keep-all]">
+                {item.value}
+              </span>
+            </div>
+          ))}
+        </div>
 
         <div className="mt-5 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
           <div className="flex items-center justify-between gap-3">
@@ -2812,7 +2856,7 @@ function CreatorJourneyProductHero({
               },
               {
                 label: isKorean ? "평판 기록" : "Reputation",
-                value: getCreatorJourneyReputationLabel(eventType, locale),
+                value: reputationLabel,
               },
             ].map((item) => (
               <div
