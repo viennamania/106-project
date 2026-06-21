@@ -195,8 +195,6 @@ export async function fetchFanletterTikTokOAuthProfile({
     "union_id",
     "avatar_url",
     "display_name",
-    "profile_deep_link",
-    "username",
   ].join(",");
   const response = await fetch(
     `${TIKTOK_USER_INFO_ENDPOINT}?fields=${encodeURIComponent(fields)}`,
@@ -214,7 +212,19 @@ export async function fetchFanletterTikTokOAuthProfile({
   const openId = user?.open_id || fallbackOpenId || "";
 
   if (!response.ok || !openId) {
-    throw new Error(data?.error?.message || "TikTok profile fetch failed.");
+    throw new FanletterTikTokOAuthProviderError({
+      code: data?.error?.code ?? "tiktok_profile_fetch_failed",
+      description: data?.error?.message ?? null,
+      logId: data?.error?.log_id ?? null,
+      message: [
+        "TikTok profile fetch failed",
+        data?.error?.code,
+        data?.error?.message,
+        data?.error?.log_id ? `log_id:${data.error.log_id}` : null,
+      ]
+        .filter(Boolean)
+        .join(": "),
+    });
   }
 
   const handle =

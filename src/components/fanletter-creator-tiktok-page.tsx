@@ -201,6 +201,11 @@ function getOAuthReasonLabel(reason: string | null, locale: Locale) {
       ja: "TikTok認証に失敗しました。Sandboxモードでは、ログイン中のusername、client key、redirect URIが同じFanLetter Developer Portalアプリに属しているか確認してください。",
       ko: "TikTok 승인이 실패했습니다. Sandbox 모드에서는 로그인 username, client key, redirect URI가 모두 같은 FanLetter Developer Portal 앱 기준인지 확인하세요.",
     },
+    tiktok_scope_not_authorized: {
+      en: "TikTok returned an authorization code, but the approved scope was not enough to read the AI Star channel profile. The app now requests only user.info.basic fields; retry the approval.",
+      ja: "TikTokから認証codeは返りましたが、承認済みscopeではAIスターチャンネルプロフィールを取得できませんでした。現在はuser.info.basicフィールドのみを要求するため、もう一度承認してください。",
+      ko: "TikTok 승인 code는 돌아왔지만 AI 스타 채널 프로필을 읽을 scope가 부족했습니다. 이제 user.info.basic 필드만 요청하도록 조정했으니 다시 승인해보세요.",
+    },
     unauthorized_client: {
       en: "TikTok rejected the client key. Check whether the request uses the correct Sandbox or Production app.",
       ja: "TikTokがclient keyを拒否しました。SandboxまたはProductionアプリが正しいか確認してください。",

@@ -69,11 +69,24 @@ function getMemberDisplayName({
 
 function getTikTokOAuthFailureReason(error: unknown) {
   if (error instanceof FanletterTikTokOAuthProviderError) {
+    const description = error.description?.toLowerCase() ?? "";
+
+    if (
+      description.includes("scope") ||
+      description.includes("authorize")
+    ) {
+      return "tiktok_scope_not_authorized";
+    }
+
     return error.code || "tiktok_token_exchange_failed";
   }
 
   const message =
     error instanceof Error ? error.message.toLowerCase() : "";
+
+  if (message.includes("scope") || message.includes("authorize")) {
+    return "tiktok_scope_not_authorized";
+  }
 
   if (message.includes("non_sandbox_target")) {
     return "non_sandbox_target";

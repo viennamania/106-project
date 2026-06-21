@@ -603,6 +603,11 @@ function getTikTokOAuthReasonLabel(reason: string | null, locale: Locale) {
       ja: "認証後にTikTokプロフィールを取得できませんでした。承認済みscopeを確認して再試行してください。",
       ko: "승인 후 TikTok 프로필을 읽지 못했습니다. 승인된 scope를 확인하고 다시 시도하세요.",
     },
+    tiktok_scope_not_authorized: {
+      en: "TikTok returned a code, but the approved scope was not enough to read the AI Star channel profile. Keep only user.info.basic fields or approve the required scope in the TikTok Developer Portal.",
+      ja: "TikTokからcodeは返りましたが、承認済みscopeではAIスターチャンネルプロフィールを取得できません。user.info.basicの範囲に合わせるか、TikTok Developer Portalで必要なscopeを承認してください。",
+      ko: "TikTok 승인 code는 돌아왔지만 AI 스타 채널 프로필을 읽을 scope가 부족했습니다. user.info.basic 필드만 사용하거나 TikTok Developer Portal에서 필요한 scope를 승인하세요.",
+    },
     tiktok_token_exchange_failed: {
       en: "TikTok token exchange failed. Confirm the redirect URI and target user, then retry.",
       ja: "TikTokトークン交換に失敗しました。redirect URIとテストユーザーを確認して再試行してください。",
