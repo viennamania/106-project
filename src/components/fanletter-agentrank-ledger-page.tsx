@@ -643,15 +643,21 @@ function buildLedgerHref({
 function buildEventDetailHref({
   event,
   locale,
+  view = "user",
 }: {
   event: AgentRankReputationEvent;
   locale: Locale;
+  view?: AgentRankLedgerAudienceView;
 }) {
   const params = new URLSearchParams();
   const starId = event.starId ?? event.object?.id ?? null;
 
   if (starId) {
     params.set("starId", starId);
+  }
+
+  if (view === "ops") {
+    params.set("view", "ops");
   }
 
   return `/${locale}/fanletter/agentrank/events/${encodeURIComponent(
@@ -1162,7 +1168,11 @@ function ReviewQueuePanel({
                   bucket.events.map((item) => (
                     <Link
                       className="block rounded-lg bg-white/78 px-3 py-2 text-sm transition hover:bg-white"
-                      href={buildEventDetailHref({ event: item.event, locale })}
+                      href={buildEventDetailHref({
+                        event: item.event,
+                        locale,
+                        view: "ops",
+                      })}
                       key={item.event.eventId}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -1529,6 +1539,10 @@ function EventCard({
 
   if (event.starId) {
     detailParams.set("starId", event.starId);
+  }
+
+  if (isOpsView) {
+    detailParams.set("view", "ops");
   }
 
   if (packetStarId) {
@@ -1967,6 +1981,7 @@ export function FanletterAgentRankLedgerPage({
     ? buildEventDetailHref({
         event: latestEvent,
         locale,
+        view: filters.view,
       })
     : reviewHref;
   const latestEventLabel = latestEvent

@@ -41,7 +41,10 @@ type FanletterAgentRankEventDetailPageProps = {
   eventScope?: AgentRankEventMockScope;
   locale: Locale;
   relatedEvents?: AgentRankReputationEvent[];
+  view?: AgentRankEventDetailAudienceView;
 };
+
+type AgentRankEventDetailAudienceView = "ops" | "user";
 
 function getCopy(locale: Locale) {
   if (locale === "ko") {
@@ -104,6 +107,14 @@ function getCopy(locale: Locale) {
       eventLineageBody:
         "같은 AI 스타, 멤버, 추천 코드, Universe로 이어진 이벤트를 전후 흐름으로 보여줍니다.",
       viewEvidencePacket: "증거 패킷 보기",
+      inspectEvidencePacket: "증거 패킷 확인",
+      opsView: "운영자 검증",
+      opsViewBody:
+        "Evidence Packet, Oracle 준비 상태, Raw JSON처럼 검증자가 확인할 항목입니다.",
+      userView: "사용자 기록",
+      userViewBody:
+        "이 행동이 어떤 평판 기록과 점수/기여 결과로 이어졌는지 먼저 보여줍니다.",
+      viewRelatedRecords: "관련 평판 기록 보기",
       economicFlow: "Economic Flow",
       economicFlowBody:
         "Creator Launch에서 발생한 x402 의도, CP Pool 생성, 상위 네트워크 분배를 하나의 거래 흐름으로 추적합니다.",
@@ -203,6 +214,14 @@ function getCopy(locale: Locale) {
     eventLineageBody:
       "Shows nearby events connected by the same AI Star, member, referral code, or Universe.",
     viewEvidencePacket: "View Evidence Packet",
+    inspectEvidencePacket: "Inspect Evidence Packet",
+    opsView: "Operator Review",
+    opsViewBody:
+      "Evidence Packet, Oracle readiness, and raw JSON for verification.",
+    userView: "User Record",
+    userViewBody:
+      "Shows how this action became a reputation record and score contribution.",
+    viewRelatedRecords: "View related records",
     economicFlow: "Economic Flow",
     economicFlowBody:
       "Traces x402 intent, CP Pool generation, and upline distribution from a Creator Launch as one transaction flow.",
@@ -2035,8 +2054,10 @@ export function FanletterAgentRankEventDetailPage({
   eventScope = "all",
   locale,
   relatedEvents = [],
+  view = "user",
 }: FanletterAgentRankEventDetailPageProps) {
   const copy = getCopy(locale);
+  const isOpsView = view === "ops";
   const audit = getEventAudit(event);
   const starId = event.starId ?? event.object?.id ?? null;
   const scopeLabel = starId
@@ -2080,6 +2101,10 @@ export function FanletterAgentRankEventDetailPage({
     ledgerParams.set("scope", eventScope);
   }
 
+  if (isOpsView) {
+    ledgerParams.set("view", "ops");
+  }
+
   if (coverageAction) {
     ledgerParams.set("coverageAction", coverageAction.action);
 
@@ -2111,6 +2136,41 @@ export function FanletterAgentRankEventDetailPage({
   const ledgerHref = `/${locale}/fanletter/agentrank/events${
     ledgerParams.size ? `?${ledgerParams.toString()}` : ""
   }`;
+  const detailViewParams = new URLSearchParams();
+
+  if (starId) {
+    detailViewParams.set("starId", starId);
+  }
+
+  if (eventScope !== "all") {
+    detailViewParams.set("scope", eventScope);
+  }
+
+  if (coverageAction) {
+    detailViewParams.set("coverageAction", coverageAction.action);
+
+    if (coverageAction.memberEmail) {
+      detailViewParams.set("memberEmail", coverageAction.memberEmail);
+    }
+  }
+
+  const userDetailParams = new URLSearchParams(detailViewParams);
+  const opsDetailParams = new URLSearchParams(detailViewParams);
+  opsDetailParams.set("view", "ops");
+  const eventDetailBaseHref = `/${locale}/fanletter/agentrank/events/${encodeURIComponent(
+    event.eventId,
+  )}`;
+  const userDetailHref = `${eventDetailBaseHref}${
+    userDetailParams.size ? `?${userDetailParams.toString()}` : ""
+  }`;
+  const opsDetailHref = `${eventDetailBaseHref}?${opsDetailParams.toString()}`;
+  const primaryDetailHref = isOpsView ? evidenceHref : ledgerHref;
+  const primaryDetailLabel = isOpsView
+    ? copy.viewEvidencePacket
+    : copy.viewRelatedRecords;
+  const displayNextActionLabel = isOpsView
+    ? nextActionLabel
+    : copy.viewRelatedRecords;
 
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#f8f9ff] px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
@@ -2135,23 +2195,47 @@ export function FanletterAgentRankEventDetailPage({
             primaryAction={{
               agentRank: {
                 eventType: "content_engaged",
-                intent: "agentrank_event_detail_action_guide_evidence",
+                intent: isOpsView
+                  ? "agentrank_event_detail_action_guide_evidence"
+                  : "agentrank_event_detail_action_guide_related_records",
                 source: "fanletter_agentrank",
                 starId,
               },
               eventName: "content_open",
-              href: evidenceHref,
-              label: copy.viewEvidencePacket,
+              href: primaryDetailHref,
+              label: primaryDetailLabel,
               metadata: {
                 eventId: event.eventId,
                 eventType: event.type,
-                placement: "agentrank_event_detail_action_guide_primary",
+                placement: isOpsView
+                  ? "agentrank_event_detail_action_guide_primary_ops"
+                  : "agentrank_event_detail_action_guide_primary_user",
               },
             }}
             reputationEventLabel={
-              locale === "ko" ? "Evidence Packet 후보" : "Evidence Packet candidate"
+              isOpsView
+                ? locale === "ko"
+                  ? "Evidence Packet 후보"
+                  : "Evidence Packet candidate"
+                : locale === "ko"
+                  ? "행동 결과 기록"
+                  : "Action result record"
             }
-            secondaryActions={[]}
+            secondaryActions={
+              isOpsView
+                ? [
+                    {
+                      href: userDetailHref,
+                      label: copy.userView,
+                    },
+                  ]
+                : [
+                    {
+                      href: opsDetailHref,
+                      label: copy.opsView,
+                    },
+                  ]
+            }
             steps={[
               {
                 label: locale === "ko" ? "이벤트 선택" : "Select event",
@@ -2171,14 +2255,22 @@ export function FanletterAgentRankEventDetailPage({
               },
             ]}
             subtitle={
-              locale === "ko"
-                ? "이 이벤트가 어떤 증거와 연결되어 AgentRank Oracle 후보가 되는지 확인합니다."
-                : "Inspect the evidence that makes this event an AgentRank Oracle candidate."
+              isOpsView
+                ? locale === "ko"
+                  ? "이 이벤트가 어떤 증거와 연결되어 AgentRank Oracle 후보가 되는지 확인합니다."
+                  : "Inspect the evidence that makes this event an AgentRank Oracle candidate."
+                : locale === "ko"
+                  ? "이 행동이 어떤 평판 기록, 점수, 기여 결과로 이어졌는지 먼저 확인합니다."
+                  : "First review the record, score, and contribution created by this action."
             }
             title={
-              locale === "ko"
-                ? "다음 행동: 증거 패킷 확인"
-                : "Next action: inspect the evidence packet"
+              isOpsView
+                ? locale === "ko"
+                  ? "다음 행동: 증거 패킷 확인"
+                  : "Next action: inspect the evidence packet"
+                : locale === "ko"
+                  ? "다음 행동: 관련 평판 기록 보기"
+                  : "Next action: view related records"
             }
           />
         </div>
@@ -2189,9 +2281,9 @@ export function FanletterAgentRankEventDetailPage({
           eventClassificationLabel={eventClassification.label}
           impactTotal={impactTotal}
           locale={locale}
-          nextActionLabel={nextActionLabel}
-          primaryHref={evidenceHref}
-          primaryLabel={copy.viewEvidencePacket}
+          nextActionLabel={displayNextActionLabel}
+          primaryHref={primaryDetailHref}
+          primaryLabel={primaryDetailLabel}
         />
         <EventDetailMobileImpactCard
           copy={copy}
@@ -2210,8 +2302,43 @@ export function FanletterAgentRankEventDetailPage({
           eventClassificationLabel={eventClassification.label}
           impactTotal={impactTotal}
           locale={locale}
-          nextActionLabel={nextActionLabel}
+          nextActionLabel={displayNextActionLabel}
         />
+        <section className="grid gap-3 sm:grid-cols-2">
+          {[
+            {
+              body: copy.userViewBody,
+              href: userDetailHref,
+              isActive: !isOpsView,
+              label: copy.userView,
+            },
+            {
+              body: copy.opsViewBody,
+              href: opsDetailHref,
+              isActive: isOpsView,
+              label: copy.opsView,
+            },
+          ].map((item) => (
+            <Link
+              className={`min-w-0 rounded-[1rem] border p-4 transition ${
+                item.isActive
+                  ? "border-zinc-950 bg-zinc-950 text-white shadow-[0_18px_46px_rgba(15,23,42,0.18)]"
+                  : "border-zinc-200 bg-white text-zinc-950 shadow-[0_14px_36px_rgba(15,23,42,0.045)] hover:border-zinc-300"
+              }`}
+              href={item.href}
+              key={item.label}
+            >
+              <p className="text-sm font-semibold">{item.label}</p>
+              <p
+                className={`mt-1 text-xs font-medium leading-5 [word-break:keep-all] ${
+                  item.isActive ? "text-white/68" : "text-zinc-500"
+                }`}
+              >
+                {item.body}
+              </p>
+            </Link>
+          ))}
+        </section>
         <header className="hidden rounded-[1.35rem] border border-violet-100 bg-white p-5 shadow-[0_24px_70px_rgba(88,28,135,0.08)] sm:block">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
@@ -2325,7 +2452,9 @@ export function FanletterAgentRankEventDetailPage({
           ) : null}
         </section>
 
-        <VerificationRailPanel copy={copy} event={event} locale={locale} />
+        {isOpsView ? (
+          <VerificationRailPanel copy={copy} event={event} locale={locale} />
+        ) : null}
 
         <FanletterAgentRankSocialConnectionEvidence
           event={event}
@@ -2408,15 +2537,18 @@ export function FanletterAgentRankEventDetailPage({
 
         <EconomicFlowPanel copy={copy} event={event} locale={locale} />
 
-        <OracleEvidenceTracePanel
-          coverageAction={coverageAction}
-          copy={copy}
-          event={event}
-          eventScope={eventScope}
-          locale={locale}
-          relatedEvents={relatedEvents}
-        />
+        {isOpsView ? (
+          <OracleEvidenceTracePanel
+            coverageAction={coverageAction}
+            copy={copy}
+            event={event}
+            eventScope={eventScope}
+            locale={locale}
+            relatedEvents={relatedEvents}
+          />
+        ) : null}
 
+        {isOpsView ? (
         <section className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
           <article className="hidden rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)] sm:block">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -2506,10 +2638,12 @@ export function FanletterAgentRankEventDetailPage({
             </div>
           </article>
         </section>
+        ) : null}
 
-        <section className="grid gap-4 xl:grid-cols-[1fr_1fr]">
+        <section className={`grid gap-4 ${isOpsView ? "xl:grid-cols-[1fr_1fr]" : ""}`}>
           <ScoreImpactPanel copy={copy} event={event} locale={locale} />
 
+          {isOpsView ? (
           <article className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
             <p className="text-sm font-semibold uppercase text-[#6d28d9]">
               {copy.readiness}
@@ -2527,8 +2661,10 @@ export function FanletterAgentRankEventDetailPage({
               ))}
             </div>
           </article>
+          ) : null}
         </section>
 
+        {isOpsView ? (
         <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
           <article className="rounded-lg border border-violet-100 bg-white p-5 shadow-[0_18px_44px_rgba(88,28,135,0.06)]">
             <p className="inline-flex items-center gap-2 text-sm font-semibold uppercase text-[#6d28d9]">
@@ -2564,6 +2700,7 @@ export function FanletterAgentRankEventDetailPage({
             </pre>
           </article>
         </section>
+        ) : null}
       </div>
     </main>
   );

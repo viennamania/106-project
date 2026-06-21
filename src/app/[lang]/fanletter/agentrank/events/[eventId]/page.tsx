@@ -24,6 +24,7 @@ type AgentRankEventDetailSearchParams = {
   memberEmail?: string | string[];
   scope?: string | string[];
   starId?: string | string[];
+  view?: string | string[];
 };
 
 function readFirstParam(value?: string | string[]) {
@@ -40,6 +41,10 @@ function normalizeMemberEmail(value?: string | string[]) {
   const normalized = readFirstParam(value)?.trim().toLowerCase();
 
   return normalized || null;
+}
+
+function normalizeDetailView(value?: string | string[]) {
+  return readFirstParam(value) === "ops" ? "ops" : "user";
 }
 
 function getTraceKeys(event: AgentRankReputationEvent) {
@@ -154,6 +159,7 @@ export default async function FanletterAgentRankEventDetailRoute({
   const starId = normalizeFanletterStarId(readFirstParam(query.starId) ?? null);
   const memberEmail = normalizeMemberEmail(query.memberEmail);
   const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
+  const view = normalizeDetailView(query.view);
   const eventScope = normalizeAgentRankEventMockScope(
     readFirstParam(query.scope),
   );
@@ -191,6 +197,7 @@ export default async function FanletterAgentRankEventDetailRoute({
       eventScope={eventScope}
       locale={locale}
       relatedEvents={relatedEvents}
+      view={view}
     />
   );
 }
