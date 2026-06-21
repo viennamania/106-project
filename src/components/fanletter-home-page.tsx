@@ -1131,14 +1131,14 @@ function FanletterProductHomeDashboard({
         shareCode: "추천 코드",
         subhead:
           "오늘 할 일은 하나입니다. 성장 중인 AI 스타를 선택하면 파운더 참여와 평판 이벤트가 시작됩니다.",
-        starCardFlow: "상세에서 Founder 참여",
+        starCardFlow: "상세에서 파운더 참여",
         swipeHint: "좌우로 밀어 더 보기",
         today: "오늘 할 일",
         topGrowingTitle: "성장 중인 AI 스타",
         actionResult: "선택하면 상세에서 참여",
         aiStarBadge: "AI STAR",
-        eventResult: "AI Star Discovery 이벤트",
-        resultDetail: "발견 신호가 AgentRank에 기록됩니다.",
+        eventResult: "평판 기록 생성",
+        resultDetail: "AgentRank에 발견 신호 저장",
         unlocked: "활성화",
         universeMap: "AI 스타 유니버스 맵",
         videoPreview: "브이로그 프리뷰",
@@ -1321,6 +1321,39 @@ function FanletterProductHomeDashboard({
                       : "Next action: discover an AI Star"
                   }
                 />
+                <div className="grid gap-2 min-[380px]:grid-cols-3">
+                  {homeOutcomeCards.map((item) => (
+                    <div
+                      className={joinClasses(
+                        "min-w-0 rounded-2xl border px-3 py-2.5",
+                        item.isStrong
+                          ? "border-zinc-950 bg-zinc-950 text-white"
+                          : "border-zinc-200 bg-zinc-50 text-zinc-950",
+                      )}
+                      key={item.label}
+                    >
+                      <p
+                        className={joinClasses(
+                          "truncate text-[0.58rem] font-semibold uppercase tracking-[0.1em]",
+                          item.isStrong ? "text-white/58" : "text-zinc-500",
+                        )}
+                      >
+                        {item.label}
+                      </p>
+                      <p className="mt-1 truncate text-sm font-semibold">
+                        {item.value}
+                      </p>
+                      <p
+                        className={joinClasses(
+                          "mt-0.5 truncate text-[0.66rem] font-semibold",
+                          item.isStrong ? "text-white/58" : "text-zinc-500",
+                        )}
+                      >
+                        {item.detail}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {previewSlides.length > 0 ? (
@@ -1465,39 +1498,6 @@ function FanletterProductHomeDashboard({
                 </div>
               </div>
 
-              <div className="mt-3 hidden gap-2 sm:grid sm:grid-cols-3">
-                {homeOutcomeCards.map((item) => (
-                  <div
-                    className={joinClasses(
-                      "hidden min-w-0 rounded-xl border px-3 py-2.5 sm:block",
-                      item.isStrong
-                        ? "border-zinc-950 bg-zinc-950 text-white"
-                        : "border-zinc-200 bg-zinc-50 text-zinc-950",
-                    )}
-                    key={item.label}
-                  >
-                    <p
-                      className={joinClasses(
-                        "truncate text-[0.6rem] font-semibold uppercase tracking-[0.12em]",
-                        item.isStrong ? "text-white/58" : "text-zinc-500",
-                      )}
-                    >
-                      {item.label}
-                    </p>
-                    <p className="mt-1 truncate text-sm font-semibold">
-                      {item.value}
-                    </p>
-                    <p
-                      className={joinClasses(
-                        "mt-0.5 truncate text-[0.68rem] font-semibold",
-                        item.isStrong ? "text-white/58" : "text-zinc-500",
-                      )}
-                    >
-                      {item.detail}
-                    </p>
-                  </div>
-                ))}
-              </div>
             </div>
           </ScrollReveal>
 
