@@ -160,15 +160,20 @@ function getCopy(locale: Locale) {
       sourceSample: "기본 mock",
       sourceServer: "서버 저장됨",
       sourceSyncing: "서버 확인 중",
-      syncApiCta: "동기화 테스트",
+      syncApiCta: "최근 영상 가져오기",
       syncApiError:
         "TikTok mock 동기화를 완료하지 못했습니다. 연결 상태와 Creator 권한을 확인해주세요.",
       syncApiHelper:
-        "현재 버튼은 mock 동기화 테스트입니다. TikTok 앱에서 직접 올린 영상은 아직 자동 수집되지 않습니다.",
+        "현재는 mock 영상 목록으로 평판 기록 흐름을 확인합니다. 실제 TikTok video.list scope 승인 후 같은 UI에 최근 영상을 표시합니다.",
       syncApiSaving: "동기화 중",
-      syncApiTitle: "영상/성과 동기화",
+      syncApiTitle: "최근 TikTok 영상",
       syncResult: "평판 기록 생성됨",
       syncResultMetrics: "영상 {videos}개 · 조회 {views} · 좋아요 {likes}",
+      syncVideoComments: "댓글",
+      syncVideoLikes: "좋아요",
+      syncVideoListTitle: "AI 스타 브이로그 프리뷰",
+      syncVideoShares: "공유",
+      syncVideoViews: "조회",
       syncRealityItems: [
         {
           detail: "creator_social_connected 평판 기록 생성",
@@ -320,15 +325,20 @@ function getCopy(locale: Locale) {
       sourceSample: "基本mock",
       sourceServer: "サーバー保存済み",
       sourceSyncing: "サーバー確認中",
-      syncApiCta: "同期テスト",
+      syncApiCta: "最近の動画を取得",
       syncApiError:
         "TikTok mock同期を完了できませんでした。接続状態とCreator権限を確認してください。",
       syncApiHelper:
-        "このボタンはmock同期テストです。TikTokアプリで直接投稿した動画はまだ自動収集されません。",
+        "現在はmock動画一覧で評判記録フローを確認します。TikTok video.list scope承認後は同じUIに最近の動画を表示します。",
       syncApiSaving: "同期中",
-      syncApiTitle: "動画・成果同期",
+      syncApiTitle: "最近のTikTok動画",
       syncResult: "評判記録作成済み",
       syncResultMetrics: "動画{videos}本 · 再生{views} · いいね{likes}",
+      syncVideoComments: "コメント",
+      syncVideoLikes: "いいね",
+      syncVideoListTitle: "AIスターブイログプレビュー",
+      syncVideoShares: "共有",
+      syncVideoViews: "再生",
       syncRealityItems: [
         {
           detail: "creator_social_connected評判記録を作成",
@@ -481,15 +491,20 @@ function getCopy(locale: Locale) {
     sourceSample: "Default mock",
     sourceServer: "Saved on server",
     sourceSyncing: "Checking server",
-    syncApiCta: "Test Sync",
+    syncApiCta: "Fetch Recent Videos",
     syncApiError:
       "TikTok mock sync could not be completed. Check the connection state and Creator permission.",
     syncApiHelper:
-      "This button runs a mock sync test. Videos posted directly in the TikTok app are not auto-collected yet.",
+      "This currently uses a mock video list to test the Reputation Record flow. After TikTok video.list scope approval, the same UI can show recent live videos.",
     syncApiSaving: "Syncing",
-    syncApiTitle: "Video / Performance Sync",
+    syncApiTitle: "Recent TikTok Videos",
     syncResult: "Reputation Record Created",
     syncResultMetrics: "{videos} videos · {views} views · {likes} likes",
+    syncVideoComments: "comments",
+    syncVideoLikes: "likes",
+    syncVideoListTitle: "AI Star vlog preview",
+    syncVideoShares: "shares",
+    syncVideoViews: "views",
     syncRealityItems: [
       {
         detail: "Creates a creator_social_connected Reputation Record",
@@ -535,6 +550,17 @@ function formatConnectedAt(value: string, locale: Locale) {
       year: "numeric",
     },
   ).format(date);
+}
+
+function formatCompactNumber(value: number, locale: Locale) {
+  return new Intl.NumberFormat(
+    locale === "ko" ? "ko-KR" : locale === "ja" ? "ja-JP" : "en-US",
+    {
+      compactDisplay: "short",
+      maximumFractionDigits: 1,
+      notation: "compact",
+    },
+  ).format(value);
 }
 
 function getTikTokOAuthReasonLabel(reason: string | null, locale: Locale) {
@@ -685,10 +711,21 @@ type TikTokMockSyncResponse =
         mockOnly: true;
         syncedAt: string;
         totals: {
+          comments: number;
           likes: number;
+          shares: number;
           videos: number;
           views: number;
         };
+        videos: Array<{
+          comments: number;
+          contentId: string;
+          likes: number;
+          shares: number;
+          title: string;
+          videoUrl: string;
+          views: number;
+        }>;
       };
     }
   | {
@@ -1019,7 +1056,7 @@ export function FanletterAIStarSocialAccountCard({
         "/api/fanletter/founder-club/social-account/tiktok/mock-sync",
         {
           body: JSON.stringify({
-            capabilityId: "performance_sync",
+            capabilityId: "video_library",
             locale,
             source,
             starId,
@@ -1483,6 +1520,75 @@ export function FanletterAIStarSocialAccountCard({
                   <p className="mt-2 text-xs font-semibold text-rose-700">
                     {syncError}
                   </p>
+                ) : null}
+                {syncSnapshot?.videos?.length ? (
+                  <div className="mt-3 min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+                    <p className="text-xs font-bold uppercase tracking-[0.12em] text-zinc-500">
+                      {copy.syncVideoListTitle}
+                    </p>
+                    <div className="mt-2 grid min-w-0 gap-2 md:grid-cols-3">
+                      {syncSnapshot.videos.map((video, index) => (
+                        <FanletterTrackedLink
+                          agentRank={{
+                            eventType: "content_engaged",
+                            intent: "creator_tiktok_synced_video_opened",
+                            source,
+                            starId,
+                          }}
+                          className="group grid min-w-0 gap-2 rounded-lg border border-zinc-200 bg-white p-2.5 text-left transition hover:border-zinc-300 hover:bg-zinc-50"
+                          eventName="content_open"
+                          href={video.videoUrl}
+                          key={video.contentId}
+                          metadata={{
+                            actorMemberId,
+                            actorMemberName,
+                            actorType: "creator_member",
+                            comments: video.comments,
+                            likes: video.likes,
+                            mockOnly: true,
+                            platform: "tiktok",
+                            shares: video.shares,
+                            socialApiCapability: syncSnapshot.capabilityId,
+                            starId,
+                            starName,
+                            targetType: "ai_star",
+                            tiktokVideoId: video.contentId,
+                            views: video.views,
+                          }}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          <div className="flex min-w-0 items-center justify-between gap-2">
+                            <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-black text-xs font-bold text-white">
+                              {index + 1}
+                            </span>
+                            <ExternalLink className="size-3.5 shrink-0 text-zinc-400 transition group-hover:text-zinc-700" />
+                          </div>
+                          <p className="line-clamp-2 min-h-10 text-sm font-semibold leading-5 text-zinc-950 [word-break:keep-all]">
+                            {video.title}
+                          </p>
+                          <div className="grid min-w-0 grid-cols-2 gap-1.5 text-[0.68rem] font-semibold text-zinc-600">
+                            <span className="rounded-md bg-zinc-100 px-2 py-1">
+                              {formatCompactNumber(video.views, locale)}{" "}
+                              {copy.syncVideoViews}
+                            </span>
+                            <span className="rounded-md bg-zinc-100 px-2 py-1">
+                              {formatCompactNumber(video.likes, locale)}{" "}
+                              {copy.syncVideoLikes}
+                            </span>
+                            <span className="rounded-md bg-zinc-100 px-2 py-1">
+                              {formatCompactNumber(video.comments, locale)}{" "}
+                              {copy.syncVideoComments}
+                            </span>
+                            <span className="rounded-md bg-zinc-100 px-2 py-1">
+                              {formatCompactNumber(video.shares, locale)}{" "}
+                              {copy.syncVideoShares}
+                            </span>
+                          </div>
+                        </FanletterTrackedLink>
+                      ))}
+                    </div>
+                  </div>
                 ) : null}
               </div>
               <button
