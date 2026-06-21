@@ -122,30 +122,30 @@ export function FanletterActionGuide({
   return (
     <section
       className={joinClasses(
-        "min-w-0 overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white text-zinc-950 shadow-[0_14px_40px_rgba(15,23,42,0.055)]",
+        "min-w-0 overflow-hidden rounded-[1.25rem] border border-zinc-200 bg-[linear-gradient(180deg,#ffffff_0%,#fbfbfc_100%)] text-zinc-950 shadow-[0_16px_46px_rgba(15,23,42,0.06)]",
         className,
       )}
     >
       <div className="grid min-w-0 sm:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)]">
-        <div className="min-w-0 border-b border-zinc-200 p-3.5 sm:border-b-0 sm:border-r sm:p-4">
-          <p className="flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            <MapPin className="size-3.5 shrink-0" />
+        <div className="min-w-0 border-b border-zinc-200 p-4 sm:border-b-0 sm:border-r sm:p-4">
+          <p className="flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+            <MapPin className="size-3.5 shrink-0 text-zinc-700" />
             {guideCopy.current}
           </p>
-          <p className="mt-2 truncate text-sm font-semibold text-zinc-950">
+          <p className="mt-2 break-words text-base font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
             {currentLabel}
           </p>
           {metrics.length > 0 ? (
             <div className="mt-3 grid grid-cols-2 gap-2">
               {metrics.slice(0, 2).map((metric) => (
                 <div
-                  className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-2"
+                  className="min-w-0 rounded-xl border border-zinc-200 bg-white px-3 py-2.5 shadow-[0_1px_0_rgba(15,23,42,0.03)]"
                   key={metric.label}
                 >
-                  <p className="break-words text-[0.6rem] font-semibold leading-tight text-zinc-500 [word-break:keep-all]">
+                  <p className="break-words text-[0.62rem] font-semibold leading-tight text-zinc-500 [word-break:keep-all]">
                     {metric.label}
                   </p>
-                  <p className="mt-0.5 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+                  <p className="mt-1 break-words text-[0.95rem] font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
                     {metric.value}
                   </p>
                 </div>
@@ -154,12 +154,12 @@ export function FanletterActionGuide({
           ) : null}
         </div>
 
-        <div className="min-w-0 border-b border-zinc-200 p-3.5 sm:border-b-0 sm:p-4">
-          <p className="flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            <MousePointer2 className="size-3.5 shrink-0" />
+        <div className="min-w-0 border-b border-zinc-200 p-4 sm:border-b-0 sm:p-4">
+          <p className="flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+            <MousePointer2 className="size-3.5 shrink-0 text-zinc-700" />
             {guideCopy.next}
           </p>
-          <h2 className="mt-2 break-words text-xl font-semibold leading-tight text-zinc-950 [word-break:keep-all] sm:text-2xl">
+          <h2 className="mt-2 break-words text-[1.35rem] font-semibold leading-tight text-zinc-950 [word-break:keep-all] sm:text-2xl">
             {actionTitle}
           </h2>
           <p className="mt-2 hidden max-w-2xl text-sm font-medium leading-5 text-zinc-600 [word-break:keep-all] sm:block">
@@ -167,12 +167,12 @@ export function FanletterActionGuide({
           </p>
         </div>
 
-        <div className="min-w-0 p-3.5 sm:col-span-2 sm:border-t sm:border-zinc-200 sm:p-4">
-          <p className="flex items-center gap-1.5 text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            <Activity className="size-3.5 shrink-0" />
+        <div className="min-w-0 p-4 sm:col-span-2 sm:border-t sm:border-zinc-200 sm:p-4">
+          <p className="flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+            <Activity className="size-3.5 shrink-0 text-zinc-700" />
             {guideCopy.event}
           </p>
-          <p className="mt-2 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+          <p className="mt-2 break-words text-[0.95rem] font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
             {reputationEventLabel}
           </p>
           <p className="mt-1 text-xs font-semibold text-zinc-500">
@@ -185,11 +185,11 @@ export function FanletterActionGuide({
       primaryAction ||
       primaryActionSlot ||
       visibleSecondaryActions.length > 0 ? (
-        <div className="border-t border-zinc-200 bg-zinc-50/72 p-3.5 sm:p-4">
+        <div className="border-t border-zinc-200 bg-zinc-50/80 p-4 sm:p-4">
           {steps.length > 0 ? (
             <div className="min-w-0">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
                   {guideCopy.steps}
                 </p>
                 <p className="text-[0.68rem] font-semibold text-zinc-700">
@@ -211,7 +211,7 @@ export function FanletterActionGuide({
                   return (
                     <div
                       className={joinClasses(
-                        "flex min-w-0 items-center gap-2 rounded-full border px-2.5 py-1.5 text-xs font-semibold sm:min-w-[6.25rem] sm:shrink-0",
+                        "flex min-h-9 min-w-0 items-center justify-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs font-semibold sm:min-w-[6.7rem] sm:shrink-0",
                         isActive
                           ? "border-zinc-950 bg-zinc-950 text-white"
                           : isDone
@@ -225,7 +225,9 @@ export function FanletterActionGuide({
                       ) : (
                         <Circle className="size-3.5 shrink-0" />
                       )}
-                      <span className="truncate">{step.label}</span>
+                      <span className="min-w-0 whitespace-normal text-center leading-tight [word-break:keep-all]">
+                        {step.label}
+                      </span>
                     </div>
                   );
                 })}
@@ -239,14 +241,14 @@ export function FanletterActionGuide({
                 (primaryAction
                 ? renderAction(
                     primaryAction,
-                    "inline-flex min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto sm:px-5",
+                    "inline-flex min-h-11 w-full max-w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-4 py-2.5 text-center text-sm font-semibold leading-tight !text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)] transition hover:bg-zinc-800 sm:w-auto sm:px-5",
                   )
                 : null)}
               {visibleSecondaryActions.map((action) =>
                 renderAction(
                   action,
                   joinClasses(
-                    "min-h-11 max-w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-300 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-900 transition hover:border-zinc-400 hover:bg-zinc-50 sm:w-auto",
+                    "min-h-11 w-full max-w-full min-w-0 items-center justify-center gap-2 rounded-full border border-zinc-300 bg-white px-4 py-2.5 text-center text-sm font-semibold leading-tight text-zinc-900 transition hover:border-zinc-400 hover:bg-zinc-50 sm:w-auto",
                     shouldHideSecondaryOnMobile
                       ? "hidden sm:inline-flex"
                       : "inline-flex",
