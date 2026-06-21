@@ -314,6 +314,11 @@ export async function generateStarLookbook(
   form.append("size", resolveOpenAiSize(aspectRatio));
   form.append("quality", resolveQuality());
   form.append("n", String(numImages));
+  // Preserve the star's face + the garment's color/print/logo from the inputs.
+  form.append(
+    "input_fidelity",
+    process.env.OPENAI_LOOKBOOK_INPUT_FIDELITY?.trim() || "high",
+  );
 
   for (const image of inputImages) {
     form.append("image[]", image.blob, image.filename);
