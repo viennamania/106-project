@@ -1,7 +1,6 @@
 import "server-only";
 
 import { randomUUID } from "crypto";
-import { createFalClient } from "@fal-ai/client";
 import { put } from "@vercel/blob";
 
 /**
@@ -11,25 +10,25 @@ import { put } from "@vercel/blob";
  * A seller supplies one or more clothing photos; this puts the garment on a
  * chosen AI star and renders a Korean fashion e-commerce lookbook shot.
  *
- * This module is intentionally self-contained (own fal client, own blob upload,
- * own env reads) so it can ship additively without touching the shared content
- * image pipeline. It reuses the same `fal-ai/nano-banana-2/edit` multi-reference
- * model that `content-gallery-image-service.ts` already depends on — the only
- * difference is that the garment must be PRESERVED, not replaced.
+ * Generation uses OpenAI's image EDIT endpoint (`/v1/images/edits`), which
+ * accepts multiple input images + a prompt and composites them. The first image
+ * is the AI star (identity); the rest are the garment(s) to reproduce. We use
+ * OpenAI here because the production OPENAI_API_KEY already powers content cover
+ * generation, whereas the fal multi-image edit models were not accessible to the
+ * production FAL_KEY (403).
  */
 
-const DEFAULT_MODEL = "fal-ai/nano-banana-2/edit";
+const OPENAI_EDITS_ENDPOINT = "https://api.openai.com/v1/images/edits";
 const DEFAULT_ASPECT_RATIO: StarLookbookAspectRatio = "4:5";
-const DEFAULT_RESOLUTION: StarLookbookResolution = "1K";
-const DEFAULT_OUTPUT_FORMAT = "png";
-const DEFAULT_SAFETY_TOLERANCE: FalImageSafetyTolerance = "2";
-const DEFAULT_TIMEOUT_MS = 120_000;
-const DEFAULT_DOWNLOAD_TIMEOUT_MS = 30_000;
+const DEFAULT_QUALITY = "high";
+const DEFAULT_MODEL = "gpt-image-1";
 const MAX_GARMENT_IMAGES = 4;
 const MAX_NUM_IMAGES = 4;
 const SCENE_BRIEF_LIMIT = 600;
 const STAR_NAME_LIMIT = 80;
 const AVATAR_URL_LIMIT = 1_000;
+const DEFAULT_TIMEOUT_MS = 180_000;
+const DEFAULT_DOWNLOAD_TIMEOUT_MS = 30_000;
 
 export type StarLookbookAspectRatio =
   | "auto"
@@ -39,23 +38,15 @@ export type StarLookbookAspectRatio =
   | "2:3"
   | "9:16";
 
+// Kept for API/route compatibility. OpenAI image edits derive size from the
+// aspect ratio rather than a 1K/2K/4K resolution, so this value is accepted but
+// not forwarded to the provider.
 export type StarLookbookResolution = "1K" | "2K" | "4K";
 
-type FalImageSafetyTolerance = "1" | "2" | "3" | "4" | "5" | "6";
-
-type FalNanoBananaEditInput = {
-  aspect_ratio: StarLookbookAspectRatio;
-  image_urls: string[];
-  limit_generations: boolean;
-  num_images: number;
-  output_format: "jpeg" | "png" | "webp";
-  prompt: string;
-  resolution: StarLookbookResolution;
-  safety_tolerance: FalImageSafetyTolerance;
+type OpenAiImageEditResponse = {
+  data?: Array<{ b64_json?: string }>;
+  error?: { message?: string };
 };
-
-type FalImageFile = { content_type?: string; url: string };
-type FalImageOutput = { images?: FalImageFile[] };
 
 export type GenerateStarLookbookInput = {
   /** AI star identity anchor (the first reference image). */
@@ -94,19 +85,26 @@ function clampInt(value: number | undefined, min: number, max: number, fallback:
   return Math.max(min, Math.min(max, Math.round(value)));
 }
 
-function resolveModelName() {
-  // Keep a multi-image (nano-banana family) model: lookbook fitting needs the
-  // star + garment images together. Override with FAL_LOOKBOOK_MODEL if needed,
-  // but only with another multi-image edit model (NOT flux-kontext, single-image).
-  const model = process.env.FAL_LOOKBOOK_MODEL?.trim() || DEFAULT_MODEL;
+function resolveModel() {
+  return process.env.OPENAI_LOOKBOOK_MODEL?.trim() || DEFAULT_MODEL;
+}
 
-  if (!/^[^/\s]+\/[^/\s]+(?:\/[^/\s]+)*$/.test(model)) {
-    throw new Error(
-      "FAL_LOOKBOOK_MODEL must use owner/model or owner/model/path format.",
-    );
+function resolveQuality() {
+  return process.env.OPENAI_LOOKBOOK_QUALITY?.trim() || DEFAULT_QUALITY;
+}
+
+/** Map the requested aspect ratio to an OpenAI image size. */
+function resolveOpenAiSize(aspectRatio: StarLookbookAspectRatio) {
+  if (aspectRatio === "1:1") {
+    return "1024x1024";
   }
 
-  return model;
+  if (aspectRatio === "auto") {
+    return "auto";
+  }
+
+  // 4:5, 3:4, 2:3, 9:16 → portrait
+  return "1024x1536";
 }
 
 function sanitizeBaseName(name: string) {
@@ -120,21 +118,10 @@ function sanitizeBaseName(name: string) {
   return normalized || "star-lookbook";
 }
 
-function resolveFileExtension(contentType: string, sourceUrl: string | null) {
-  if (contentType === "image/png") return ".png";
-  if (contentType === "image/webp") return ".webp";
-  if (contentType === "image/jpeg") return ".jpg";
-
-  if (sourceUrl) {
-    try {
-      const pathname = new URL(sourceUrl).pathname.toLowerCase();
-      if (pathname.endsWith(".png")) return ".png";
-      if (pathname.endsWith(".webp")) return ".webp";
-      if (pathname.endsWith(".jpeg")) return ".jpeg";
-      if (pathname.endsWith(".jpg")) return ".jpg";
-    } catch {}
-  }
-
+function extensionForContentType(contentType: string) {
+  if (contentType.includes("png")) return ".png";
+  if (contentType.includes("webp")) return ".webp";
+  if (contentType.includes("jpeg") || contentType.includes("jpg")) return ".jpg";
   return ".png";
 }
 
@@ -142,8 +129,7 @@ function resolveFileExtension(contentType: string, sourceUrl: string | null) {
  * The garment-preserving fitting prompt — the heart of the lookbook module.
  *
  * The first reference image is the model identity (the AI star); every other
- * reference image is the garment, which must be reproduced exactly. This is the
- * deliberate inverse of the content pipeline's "do not copy the clothing" rule.
+ * reference image is the garment, which must be reproduced exactly.
  */
 function createFittingPrompt({
   garmentCount,
@@ -161,12 +147,12 @@ function createFittingPrompt({
 
   return [
     "Create one photorealistic Korean fashion e-commerce lookbook photo.",
-    "Identity source: use the FIRST reference image only as the model's identity. Preserve the exact same face, facial structure, hairstyle, hair color, skin tone, and body proportions. The model is a single consistent fictional adult.",
-    `Garment source: take the clothing item${plural ? "s" : ""} from the remaining reference image${plural ? "s" : ""} and show ${plural ? "them" : "it"} worn by the model.`,
-    "Reproduce the garment with pixel-level fidelity: keep the exact color, fabric texture, weave, pattern, print, graphics, logos, stitching, buttons, zippers, neckline, collar, sleeve length, hem length, silhouette, and fit. Do not redesign, recolor, restyle, add, or remove any garment detail.",
+    "Identity source: use the FIRST input image only as the model's identity. Preserve the exact same face, facial structure, hairstyle, hair color, skin tone, and body proportions. The model is a single consistent fictional adult.",
+    `Garment source: take the clothing item${plural ? "s" : ""} from the remaining input image${plural ? "s" : ""} and show ${plural ? "them" : "it"} worn by the model.`,
+    "Reproduce the garment with high fidelity: keep the exact color, fabric texture, weave, pattern, print, graphics, logos, stitching, buttons, zippers, neckline, collar, sleeve length, hem length, silhouette, and fit. Do not redesign, recolor, restyle, add, or remove any garment detail.",
     `Scene: ${sceneText}. Natural, flattering full-body or three-quarter pose with the complete outfit clearly visible. Commercial fashion photography quality, sharp focus on the garment, realistic lighting and shadows.`,
     starName ? `The model is the AI star "${starName}".` : "",
-    "Single person only. Realistic human anatomy and proportions. No text overlays, no watermarks, no extra accessories that were not in the garment references.",
+    "Single person only. Realistic human anatomy and proportions. No text overlays, no watermarks.",
   ]
     .filter(Boolean)
     .join("\n");
@@ -195,131 +181,89 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: str
   }
 }
 
-function collectFalImageFiles(output: unknown): FalImageFile[] {
-  if (!output || typeof output !== "object") {
-    return [];
-  }
-
-  const images = (output as FalImageOutput).images;
-
-  if (!Array.isArray(images)) {
-    return [];
-  }
-
-  return images.filter(
-    (image): image is FalImageFile =>
-      Boolean(image) && typeof (image as FalImageFile).url === "string",
-  );
-}
-
-async function uploadLookbookImage({
-  baseName,
-  image,
-  referralCode,
-}: {
-  baseName: string;
-  image: FalImageFile;
-  referralCode: string;
-}): Promise<GeneratedLookbookImage> {
+async function fetchInputImage(
+  url: string,
+  index: number,
+): Promise<{ blob: Blob; filename: string }> {
   const response = await withTimeout(
-    fetch(image.url, { method: "GET" }),
+    fetch(url, { method: "GET" }),
     DEFAULT_DOWNLOAD_TIMEOUT_MS,
-    "lookbook image download",
+    "input image download",
   );
 
   if (!response.ok) {
     throw new Error(
-      `fal returned an unreadable lookbook image URL (${response.status}).`,
+      `Could not read an input image (${response.status}). Make sure the star & garment image URLs are publicly reachable.`,
     );
   }
 
   const blob = await response.blob();
-  const contentType = blob.type || image.content_type || "image/png";
-  const extension = resolveFileExtension(contentType, image.url);
+  const contentType = blob.type || "image/png";
+  const filename = `image-${index}${extensionForContentType(contentType)}`;
+
+  return { blob, filename };
+}
+
+function normalizeOpenAiError(message: string, model: string): Error {
+  const detail = `(model: ${model})`;
+
+  if (/safety|moderation|content policy|rejected/i.test(message)) {
+    return new Error(
+      `OpenAI safety filter rejected the request ${detail}. Try a more neutral scene description.`,
+    );
+  }
+
+  if (/model|not found|does not exist|access|permission|unsupported/i.test(message)) {
+    return new Error(
+      `OpenAI rejected the model ${detail}: ${message}. Set OPENAI_LOOKBOOK_MODEL to an image-edit-capable model the key can use.`,
+    );
+  }
+
+  return new Error(`OpenAI lookbook generation failed ${detail}: ${message}`);
+}
+
+async function uploadLookbookImage({
+  baseName,
+  imageBase64,
+  referralCode,
+}: {
+  baseName: string;
+  imageBase64: string;
+  referralCode: string;
+}): Promise<GeneratedLookbookImage> {
+  const bytes = Buffer.from(imageBase64, "base64");
   const pathname = [
     "fanletter-lookbook",
     referralCode,
-    `${Date.now()}-${baseName}-${randomUUID().slice(0, 8)}${extension}`,
+    `${Date.now()}-${baseName}-${randomUUID().slice(0, 8)}.png`,
   ].join("/");
 
-  const uploaded = await put(pathname, blob, {
-    access: "public",
-    addRandomSuffix: true,
-    cacheControlMaxAge: 60 * 60 * 24 * 365,
-    contentType,
-  });
+  const uploaded = await put(
+    pathname,
+    new Blob([bytes], { type: "image/png" }),
+    {
+      access: "public",
+      addRandomSuffix: true,
+      cacheControlMaxAge: 60 * 60 * 24 * 365,
+      contentType: "image/png",
+    },
+  );
 
   return {
     contentType: uploaded.contentType,
     pathname: uploaded.pathname,
-    sourceUrl: image.url,
+    sourceUrl: null,
     url: uploaded.url,
   };
-}
-
-function getFalErrorStatus(error: unknown): number | null {
-  if (!error || typeof error !== "object") {
-    return null;
-  }
-
-  const candidate = error as {
-    status?: unknown;
-    statusCode?: unknown;
-    response?: { status?: unknown };
-  };
-
-  if (typeof candidate.status === "number") {
-    return candidate.status;
-  }
-
-  if (typeof candidate.statusCode === "number") {
-    return candidate.statusCode;
-  }
-
-  if (typeof candidate.response?.status === "number") {
-    return candidate.response.status;
-  }
-
-  return null;
-}
-
-function normalizeFalGenerationError(
-  error: unknown,
-  context: { model: string; resolution: string },
-): Error {
-  const baseMessage =
-    error instanceof Error ? error.message : "AI lookbook generation failed.";
-  const status = getFalErrorStatus(error);
-  const detail = `(model: ${context.model}, resolution: ${context.resolution}${
-    status ? `, status: ${status}` : ""
-  })`;
-
-  if (
-    status === 401 ||
-    status === 403 ||
-    /forbidden|unauthorized|access denied/i.test(baseMessage)
-  ) {
-    return new Error(
-      `fal denied the lookbook request ${detail}. Check FAL_KEY access to this model/resolution and that the star & garment image URLs are publicly reachable.`,
-    );
-  }
-
-  if (/content policy|content_policy|safety|nsfw/i.test(baseMessage)) {
-    return new Error(
-      `fal safety filter rejected the request ${detail}. Try a more neutral scene description.`,
-    );
-  }
-
-  return new Error(`${baseMessage} ${detail}`);
 }
 
 export async function generateStarLookbook(
   input: GenerateStarLookbookInput,
 ): Promise<GeneratedLookbookImage[]> {
-  const falKey = process.env.FAL_KEY?.trim();
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
 
-  if (!falKey) {
-    throw new Error("FAL_KEY is not configured.");
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY is not configured.");
   }
 
   if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
@@ -349,8 +293,7 @@ export async function generateStarLookbook(
   const sceneBrief = trimToLength(input.sceneBrief, SCENE_BRIEF_LIMIT);
   const numImages = clampInt(input.numImages, 1, MAX_NUM_IMAGES, 1);
   const aspectRatio = input.aspectRatio ?? DEFAULT_ASPECT_RATIO;
-  const resolution = input.resolution ?? DEFAULT_RESOLUTION;
-  const model = resolveModelName();
+  const model = resolveModel();
 
   const prompt = createFittingPrompt({
     garmentCount: garmentImageUrls.length,
@@ -358,45 +301,68 @@ export async function generateStarLookbook(
     starName,
   });
 
-  const modelInput: FalNanoBananaEditInput = {
-    aspect_ratio: aspectRatio,
-    // First image = AI star identity, remaining = garments to preserve.
-    image_urls: [starAvatarUrl, ...garmentImageUrls],
-    limit_generations: true,
-    num_images: numImages,
-    output_format: DEFAULT_OUTPUT_FORMAT,
-    prompt,
-    resolution,
-    safety_tolerance: DEFAULT_SAFETY_TOLERANCE,
-  };
+  // First image = AI star identity, remaining = garments to preserve.
+  const inputImages = await Promise.all(
+    [starAvatarUrl, ...garmentImageUrls].map((url, index) =>
+      fetchInputImage(url, index),
+    ),
+  );
 
-  const fal = createFalClient({ credentials: falKey });
+  const form = new FormData();
+  form.append("model", model);
+  form.append("prompt", prompt);
+  form.append("size", resolveOpenAiSize(aspectRatio));
+  form.append("quality", resolveQuality());
+  form.append("n", String(numImages));
 
-  let result: Awaited<ReturnType<typeof fal.subscribe>>;
-
-  try {
-    result = await fal.subscribe(model, {
-      input: modelInput,
-      logs: true,
-      mode: "polling",
-      pollInterval: 1000,
-      timeout: DEFAULT_TIMEOUT_MS,
-    });
-  } catch (error) {
-    throw normalizeFalGenerationError(error, { model, resolution });
+  for (const image of inputImages) {
+    form.append("image[]", image.blob, image.filename);
   }
 
-  const images = collectFalImageFiles(result.data);
+  let payload: OpenAiImageEditResponse | null;
+
+  try {
+    const response = await withTimeout(
+      fetch(OPENAI_EDITS_ENDPOINT, {
+        body: form,
+        headers: { Authorization: `Bearer ${apiKey}` },
+        method: "POST",
+      }),
+      DEFAULT_TIMEOUT_MS,
+      "OpenAI lookbook generation",
+    );
+
+    payload = (await response
+      .json()
+      .catch(() => null)) as OpenAiImageEditResponse | null;
+
+    if (!response.ok) {
+      throw normalizeOpenAiError(
+        payload?.error?.message || `status ${response.status}`,
+        model,
+      );
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+
+    throw new Error("OpenAI lookbook generation failed.");
+  }
+
+  const images = (payload?.data ?? [])
+    .map((item) => item.b64_json)
+    .filter((value): value is string => Boolean(value));
 
   if (images.length === 0) {
-    throw new Error("fal returned no lookbook images.");
+    throw new Error("OpenAI returned no lookbook images.");
   }
 
   const baseName = sanitizeBaseName(starName || "star-lookbook");
 
   return Promise.all(
-    images.map((image) =>
-      uploadLookbookImage({ baseName, image, referralCode: input.referralCode }),
+    images.map((imageBase64) =>
+      uploadLookbookImage({ baseName, imageBase64, referralCode: input.referralCode }),
     ),
   );
 }

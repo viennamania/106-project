@@ -21,7 +21,7 @@ style-room이 구조적으로 따라올 수 없는 차별점.
 
 | 파일 | 역할 |
 |---|---|
-| `src/lib/star-lookbook-service.ts` | 피팅 엔진. `generateStarLookbook()` — `[스타아바타, ...옷사진]`을 nano-banana-2/edit에 넣고, 옷을 픽셀 단위로 보존하는 프롬프트로 룩북 생성 → Vercel Blob 업로드 |
+| `src/lib/star-lookbook-service.ts` | 피팅 엔진. `generateStarLookbook()` — `[스타아바타, ...옷사진]`을 **OpenAI `/v1/images/edits`(다중 이미지)**에 넣고, 옷을 보존하는 프롬프트로 룩북 생성 → b64 응답 → Vercel Blob 업로드. (모델 `OPENAI_LOOKBOOK_MODEL` 기본 `gpt-image-1`) |
 | `src/app/api/fanletter/lookbook/route.ts` | `POST /api/fanletter/lookbook` — 멤버 지갑 인증 후 서비스 호출 |
 | `src/components/fanletter-lookbook-studio-page.tsx` | 셀러 UI(client). `useActiveAccount`+`useMemberSession`으로 인증. 옷/스타 이미지 **파일 업로드**(기존 `/api/content/posts/upload` 재사용) + **"내 AI 스타 불러오기"**(`GET /api/content/profile`로 avatar/이름 프리필) + URL 직접 입력도 지원. 배경·비율·해상도·장수 입력 → API 호출 → 결과 갤러리(다운로드) |
 | `src/app/[lang]/(thirdweb)/fanletter/studio/lookbook/page.tsx` | 페이지 셸. `(thirdweb)` 그룹 하위(=`MemberSessionProvider`+지갑 사용 가능). 경로: `/{lang}/fanletter/studio/lookbook` |
@@ -30,7 +30,9 @@ style-room이 구조적으로 따라올 수 없는 차별점.
 
 **결제=포인트** (사용자 결정). 기존 포인트 원장 시스템에 통합: `pointLedger`에 `sourceType:"lookbook_generation"` 엔트리. `points.ts` 유니온에 해당 값 1개 추가(유일한 기존파일 수정).
 흐름: 라우트가 **과금(선차감) → 생성 → 실패 시 환불**. 잔액 부족 시 402.
-자립형 코어(자체 fal 클라이언트·blob·env). Codex의 TikTok 코드와 0 충돌(파일 업로드도 기존 업로드 라우트 재사용).
+자립형 코어(자체 OpenAI 호출·blob·env). Codex의 TikTok 코드와 0 충돌(파일 업로드도 기존 업로드 라우트 재사용).
+
+**제공자 전환 이력**: 초기엔 fal `nano-banana-2/edit`(콘텐츠 파이프라인 기본 모델) 재사용. 그러나 라이브 E2E에서 **프로덕션 FAL_KEY가 해당 모델 접근권 없음(403, 1K·2K 동일)** 확인 → 콘텐츠 커버에 이미 쓰이는 **OpenAI 이미지 편집(`/v1/images/edits`)으로 전환**(프로덕션 `OPENAI_API_KEY` 이미 존재). fal보다 의류 디테일 보존은 약할 수 있어, 추후 품질 비교 후 전용 try-on 모델 도입 검토.
 
 ### API 계약
 ```jsonc
