@@ -18,7 +18,6 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsive-action-panel";
 import {
   recordFanletterAIStarMockSocialAccount,
-  useFanletterAIStarMockSocialAccount,
   useFanletterAIStarServerSocialAccountState,
 } from "@/components/fanletter-social-account-mock-state";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
@@ -713,10 +712,6 @@ export function FanletterAIStarSocialAccountCard({
   starPortraitInitials?: string | null;
 }) {
   const copy = getCopy(locale);
-  const localMockAccount = useFanletterAIStarMockSocialAccount({
-    platform: social.platform,
-    starId,
-  });
   const serverAccountState = useFanletterAIStarServerSocialAccountState({
     platform: social.platform,
     starId,
@@ -741,14 +736,8 @@ export function FanletterAIStarSocialAccountCard({
     Extract<TikTokMockSyncResponse, { snapshot: object }>["snapshot"] | null
   >(null);
   const serverAccount = serverAccountState.account;
-  const account = serverAccount ?? localMockAccount ?? social.account;
-  const accountSource = serverAccount
-    ? "server"
-    : localMockAccount
-      ? "local"
-      : social.account
-        ? "sample"
-        : "none";
+  const account = serverAccount;
+  const accountSource = serverAccount ? "server" : "none";
   const canSyncTikTok = accountSource === "server";
   const isConnected = Boolean(account);
   const actorMemberId = account?.connectedByMemberId ?? social.creatorMemberId;
@@ -766,18 +755,14 @@ export function FanletterAIStarSocialAccountCard({
         status: account.status,
       })
       : social.canConnect
-        ? copy.manualStatus
+        ? copy.connectRequired
         : copy.creatorOnly;
   const storageSourceLabel =
-    serverAccountState.loading && !localMockAccount
+    serverAccountState.loading
       ? copy.sourceSyncing
-      : accountSource === "local"
-        ? copy.sourceLocalMock
-        : accountSource === "server"
-          ? copy.sourceServer
-          : accountSource === "sample"
-            ? copy.sourceSample
-            : copy.connectRequired;
+      : accountSource === "server"
+        ? copy.sourceServer
+        : copy.connectRequired;
   const effectiveConnectHref = connectHref ?? "#tiktok-channel";
   const suggestedHandle = useMemo(
     () => buildFanletterSuggestedTikTokHandle({ fallbackId: starId, starName }),

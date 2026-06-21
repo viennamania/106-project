@@ -78,6 +78,14 @@ function toFanletterAIStarSocialAccount(
   document: FanletterAIStarSocialAccountDocument,
 ): FanletterAIStarSocialAccount | null {
   if (
+    document.mockOnly ||
+    document.mode !== "oauth" ||
+    document.status !== "verified"
+  ) {
+    return null;
+  }
+
+  if (
     !isFanletterSocialPlatform(document.platform) ||
     !isFanletterAIStarSocialAccountStatus(document.status)
   ) {

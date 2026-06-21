@@ -33,7 +33,6 @@ import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import { FanletterTerminologyGuide } from "@/components/fanletter-terminology-guide";
 import { useFanletterFounderMockMemberships } from "@/components/fanletter-founder-mock-state";
 import {
-  useFanletterAIStarMockSocialAccount,
   useFanletterAIStarServerSocialAccount,
 } from "@/components/fanletter-social-account-mock-state";
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
@@ -2556,18 +2555,12 @@ export function FanletterCreatorUnlockPage({
       creatorRole: "owner",
       starId: socialSourceStarId,
     });
-  const creatorJourneyLocalSocialAccount = useFanletterAIStarMockSocialAccount({
-    platform: "tiktok",
-    starId: socialSourceStarId,
-  });
   const creatorJourneyServerSocialAccount = useFanletterAIStarServerSocialAccount({
     platform: "tiktok",
     starId: socialSourceStarId,
   });
   const creatorJourneyEffectiveSocialAccount =
-    creatorJourneyLocalSocialAccount ??
-    creatorJourneyServerSocialAccount ??
-    creatorJourneySocialAccount.account;
+    creatorJourneyServerSocialAccount ?? creatorJourneySocialAccount.account;
   const creatorJourneySocialConnected = Boolean(
     creatorJourneyEffectiveSocialAccount,
   );

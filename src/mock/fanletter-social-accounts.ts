@@ -42,44 +42,7 @@ export type FanletterAIStarSocialConnectPermission = {
   role: "creator" | "owner" | null;
 };
 
-export const fanletterAIStarSocialAccounts: FanletterAIStarSocialAccount[] = [
-  {
-    connectedAt: "2026-06-18T02:14:00.000Z",
-    connectedByMemberId: "member-a",
-    connectedByMemberInitials: "A",
-    connectedByMemberName: "Member A",
-    creatorRoleAtConnection: "creator",
-    handle: "@minseo.golf.ai",
-    platform: "tiktok",
-    profileUrl: "https://www.tiktok.com/@minseo.golf.ai",
-    starId: "minseo",
-    status: "mock_connected",
-  },
-  {
-    connectedAt: "2026-06-17T12:40:00.000Z",
-    connectedByMemberId: "member-bayl",
-    connectedByMemberInitials: "BY",
-    connectedByMemberName: "Member BAYL",
-    creatorRoleAtConnection: "creator",
-    handle: "@amin.creator.ai",
-    platform: "tiktok",
-    profileUrl: "https://www.tiktok.com/@amin.creator.ai",
-    starId: "legacy-star-t7v7bayl",
-    status: "verified",
-  },
-  {
-    connectedAt: "2026-06-16T09:25:00.000Z",
-    connectedByMemberId: "member-hpgq",
-    connectedByMemberInitials: "HG",
-    connectedByMemberName: "Member HPGQ",
-    creatorRoleAtConnection: "creator",
-    handle: "@yoonseo.ai.story",
-    platform: "tiktok",
-    profileUrl: "https://www.tiktok.com/@yoonseo.ai.story",
-    starId: "legacy-star-hpgqr7s6",
-    status: "mock_connected",
-  },
-];
+export const fanletterAIStarSocialAccounts: FanletterAIStarSocialAccount[] = [];
 
 function getInitials(value: string) {
   const normalized = value.replace(/[^a-zA-Z0-9가-힣\s]/g, " ").trim();
