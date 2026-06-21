@@ -2236,7 +2236,7 @@ export async function getFanletterFounderClubCreatorUnlock(
     primaryRole?.universeName ??
     (portfolio?.primaryStarName
       ? `${portfolio.primaryStarName} Universe`
-      : "Founder Club Universe");
+      : "AI Star Universe");
 
   const unlockData: CreatorUnlockData = {
     conditions,

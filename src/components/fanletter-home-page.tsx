@@ -1136,6 +1136,7 @@ function FanletterProductHomeDashboard({
         today: "오늘 할 일",
         topGrowingTitle: "성장 중인 AI 스타",
         actionResult: "선택하면 상세에서 참여",
+        aiStarBadge: "AI STAR",
         eventResult: "AI Star Discovery 이벤트",
         resultDetail: "발견 신호가 AgentRank에 기록됩니다.",
         unlocked: "활성화",
@@ -1171,6 +1172,7 @@ function FanletterProductHomeDashboard({
         today: "Today",
         topGrowingTitle: "Top Growing AI Stars",
         actionResult: "Open detail to join",
+        aiStarBadge: "AI STAR",
         eventResult: "AI Star Discovery event",
         resultDetail: "Discovery signal is recorded for AgentRank.",
         unlocked: "Unlocked",
@@ -1250,6 +1252,9 @@ function FanletterProductHomeDashboard({
       isStrong: true,
     },
   ];
+  const aiStarPortraitClip = {
+    clipPath: "polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%)",
+  };
 
   return (
     <section className="grid min-w-0 flex-1 content-start gap-4 overflow-x-hidden pb-7 pt-4 sm:gap-5 sm:py-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] lg:items-start">
@@ -1383,21 +1388,36 @@ function FanletterProductHomeDashboard({
                         }}
                       />
                       <div className="p-3.5">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-start gap-3">
                           <span
-                            className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-[1rem] bg-cover bg-center text-sm font-semibold text-white shadow-[0_12px_24px_rgba(15,23,42,0.12)]"
-                            style={
-                              star.portraitImageUrl
-                                ? { backgroundImage: `url(${star.portraitImageUrl})` }
-                                : {
-                                    background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
-                                  }
-                            }
+                            className="relative flex size-16 shrink-0 items-center justify-center p-[2px] shadow-[0_12px_26px_rgba(124,58,237,0.16)]"
+                            style={{
+                              ...aiStarPortraitClip,
+                              background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
+                            }}
                           >
-                            {star.portraitImageUrl ? null : star.portraitInitials}
+                            <span
+                              className="flex size-full items-center justify-center overflow-hidden bg-cover bg-center text-sm font-semibold text-white"
+                              style={
+                                star.portraitImageUrl
+                                  ? {
+                                      ...aiStarPortraitClip,
+                                      backgroundImage: `url(${star.portraitImageUrl})`,
+                                    }
+                                  : {
+                                      ...aiStarPortraitClip,
+                                      background: `linear-gradient(145deg, ${star.accentColor}, ${star.accentSecondary})`,
+                                    }
+                              }
+                            >
+                              {star.portraitImageUrl ? null : star.portraitInitials}
+                            </span>
                           </span>
                           <span className="min-w-0">
-                            <span className="block truncate text-base font-semibold text-zinc-950">
+                            <span className="inline-flex min-h-6 items-center rounded-full bg-black px-2 text-[0.62rem] font-semibold tracking-[0.08em] text-white">
+                              {productCopy.aiStarBadge}
+                            </span>
+                            <span className="mt-2 block truncate text-base font-semibold text-zinc-950">
                               {star.name}
                             </span>
                             <span className="mt-1 block truncate text-xs font-semibold text-slate-500">
