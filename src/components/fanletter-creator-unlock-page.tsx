@@ -3365,9 +3365,23 @@ export function FanletterCreatorUnlockPage({
           <>
             {creatorUnlockActionGuide}
 
+            <div className="mt-4">
+              <CreatorJourneyStepLinks
+                activeView={view}
+                conditionsHref={conditionsHref}
+                creatorJourneyNextHref={creatorJourneyNextHref}
+                launchHref={launchHref}
+                locale={locale}
+                primaryActionHref={creatorJourneyNextHref}
+                sourceHref={sourceHref}
+                tiktokChannelHref={tiktokChannelHref}
+                unlock={unlock}
+              />
+            </div>
+
             <FanletterAgentRankJourneyRail
               active="creator"
-              className="mt-4"
+              className="mt-4 hidden lg:block"
               locale={locale}
               starId={trackingSourceStarId}
             />
