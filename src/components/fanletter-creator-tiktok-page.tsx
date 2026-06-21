@@ -12,7 +12,6 @@ import {
   Music2,
   ShieldCheck,
 } from "lucide-react";
-import { useState } from "react";
 
 import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
@@ -64,6 +63,7 @@ function getCopy(locale: Locale) {
       oauthFailed: "TikTok 승인 실패",
       oauthFailedBody:
         "승인 또는 토큰 교환이 완료되지 않았습니다. Sandbox 테스트 사용자, 요청 client key, redirect URI가 같은 TikTok 앱 기준인지 확인한 뒤 다시 시도하세요.",
+      oauthFailureChecks: ["Sandbox Target User", "client key", "redirect URI"],
       oauthSuccess: "TikTok 승인 완료",
       oauthSuccessBody:
         "AI 스타 TikTok 채널 연결이 서버에 저장되고 평판 기록 조건에 반영됩니다.",
@@ -103,6 +103,7 @@ function getCopy(locale: Locale) {
       oauthFailed: "TikTok認証に失敗",
       oauthFailedBody:
         "認証またはトークン交換が完了していません。Sandboxテストユーザーとclient key設定を確認して再試行してください。",
+      oauthFailureChecks: ["Sandbox Target User", "client key", "redirect URI"],
       oauthSuccess: "TikTok認証完了",
       oauthSuccessBody:
         "AIスターTikTokチャンネル接続がサーバーに保存され、評判記録条件に反映されます。",
@@ -141,6 +142,7 @@ function getCopy(locale: Locale) {
     oauthFailed: "TikTok authorization failed",
     oauthFailedBody:
       "Authorization or token exchange did not complete. Check Sandbox target user and client key settings, then retry.",
+    oauthFailureChecks: ["Sandbox Target User", "client key", "redirect URI"],
     oauthSuccess: "TikTok authorization complete",
     oauthSuccessBody:
       "The AI Star TikTok channel connection is saved on the server and reflected in the Reputation Record condition.",
@@ -221,11 +223,16 @@ export function FanletterCreatorTikTokPage({
   isSignedIn,
   locale,
   memberPortfolio,
+  oauthCallbackStatus = null,
   selectedStarId,
 }: {
   isSignedIn: boolean;
   locale: Locale;
   memberPortfolio: MemberPortfolioData | null;
+  oauthCallbackStatus?: {
+    reason: string | null;
+    status: "connected" | "failed";
+  } | null;
   selectedStarId?: string | null;
 }) {
   const copy = getCopy(locale);
@@ -252,24 +259,6 @@ export function FanletterCreatorTikTokPage({
     starId: selectedStar?.id ?? "__no-star__",
   });
   const connectedAccount = selectedStar ? serverSocialAccountState.account : null;
-  const [oauthCallbackStatus] = useState<{
-    reason: string | null;
-    status: "connected" | "failed";
-  } | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    const status = params.get("tiktok");
-
-    return status === "connected" || status === "failed"
-      ? {
-          reason: params.get("tiktokReason"),
-          status,
-        }
-      : null;
-  });
   const ledgerHref = selectedStar
     ? `/${locale}/fanletter/agentrank/events?${new URLSearchParams({
         coverageAction: "creator_social_connected",
@@ -300,7 +289,7 @@ export function FanletterCreatorTikTokPage({
   );
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-white px-4 py-5 text-black sm:px-6 lg:px-8">
+    <main className="min-h-screen overflow-x-hidden bg-white px-4 pb-28 pt-5 text-black sm:px-6 sm:pb-8 lg:px-8">
       {selectedStar ? (
         <FanletterReputationTracker
           agentRank={{
@@ -441,6 +430,18 @@ export function FanletterCreatorTikTokPage({
                     </span>
                   ) : null}
                 </p>
+                {oauthCallbackStatus.status === "failed" ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {copy.oauthFailureChecks.map((item) => (
+                      <span
+                        className="inline-flex min-h-8 items-center rounded-full border border-rose-200 bg-white/65 px-3 text-xs font-semibold text-rose-900"
+                        key={item}
+                      >
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
           </section>

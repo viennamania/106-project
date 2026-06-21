@@ -11,6 +11,8 @@ export const dynamic = "force-dynamic";
 
 type CreatorTikTokSearchParams = {
   starId?: string | string[];
+  tiktok?: string | string[];
+  tiktokReason?: string | string[];
 };
 
 function readFirstSearchParam(value?: string | string[]) {
@@ -92,12 +94,21 @@ export default async function FanletterCreatorTikTokRoutePage({
   const selectedStarId = normalizeFanletterStarId(
     readFirstSearchParam(query.starId) ?? null,
   );
+  const tiktokStatus = readFirstSearchParam(query.tiktok);
+  const oauthCallbackStatus =
+    tiktokStatus === "connected" || tiktokStatus === "failed"
+      ? {
+          reason: readFirstSearchParam(query.tiktokReason) ?? null,
+          status: tiktokStatus as "connected" | "failed",
+        }
+      : null;
 
   return (
     <FanletterCreatorTikTokPage
       isSignedIn={Boolean(memberSession?.email)}
       locale={locale}
       memberPortfolio={memberPortfolio}
+      oauthCallbackStatus={oauthCallbackStatus}
       selectedStarId={selectedStarId}
     />
   );
