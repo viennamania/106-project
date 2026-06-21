@@ -3457,18 +3457,20 @@ export function FanletterCreatorUnlockPage({
           <AccountConnectionNotice connectHref={connectHref} copy={copy} />
         ) : null}
 
-        <CreatorUnlockStateStrip
-          creatorSocialConnected={creatorJourneySocialConnected}
-          creatorSocialHandle={creatorJourneyEffectiveSocialAccount?.handle}
-          isPreviewMode={isPreviewMode}
-          locale={locale}
-          nextActionTitle={creatorUnlockNextTitle}
-          reputationLedgerHref={creatorSocialLedgerHref}
-          requiresSourceUniverse={requiresSourceUniverse}
-          selectedSourceOption={selectedSourceOption}
-          socialSourceStarId={socialSourceStarId}
-          unlock={unlock}
-        />
+        {view !== "hub" ? (
+          <CreatorUnlockStateStrip
+            creatorSocialConnected={creatorJourneySocialConnected}
+            creatorSocialHandle={creatorJourneyEffectiveSocialAccount?.handle}
+            isPreviewMode={isPreviewMode}
+            locale={locale}
+            nextActionTitle={creatorUnlockNextTitle}
+            reputationLedgerHref={creatorSocialLedgerHref}
+            requiresSourceUniverse={requiresSourceUniverse}
+            selectedSourceOption={selectedSourceOption}
+            socialSourceStarId={socialSourceStarId}
+            unlock={unlock}
+          />
+        ) : null}
 
         {view !== "hub" ? (
           <>
