@@ -61,8 +61,8 @@ function parseEnum<T extends string>(
 }
 
 export async function POST(request: Request) {
-  if (!process.env.FAL_KEY?.trim()) {
-    return jsonError("FAL_KEY is not configured.", 500);
+  if (!process.env.OPENAI_API_KEY?.trim()) {
+    return jsonError("OPENAI_API_KEY is not configured.", 500);
   }
 
   if (!process.env.BLOB_READ_WRITE_TOKEN?.trim()) {
