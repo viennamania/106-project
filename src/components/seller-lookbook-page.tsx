@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  Coins,
-  Download,
-  Loader2,
-  Plus,
-  Shirt,
-  Sparkles,
-  Upload,
-  X,
-} from "lucide-react";
+import { Coins, Download, Loader2, Shirt, Sparkles, Upload, X } from "lucide-react";
 import {
   type ReactNode,
   useCallback,
@@ -24,6 +15,7 @@ type AspectRatio = "4:5" | "3:4" | "2:3" | "9:16" | "1:1" | "auto";
 type LookbookImage = { url: string; pathname: string; contentType: string };
 type CreditPack = { id: string; credits: number; priceKrw: number; label: string };
 type Workspace = { workspaceId: string; workspaceKey: string };
+type SellerStar = { id: string; name: string; images: string[] };
 
 const STORAGE_KEY = "fanletter_seller_lookbook";
 const ASPECT_OPTIONS: AspectRatio[] = ["4:5", "3:4", "2:3", "9:16", "1:1", "auto"];
@@ -61,7 +53,9 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
   const [workspace, setWorkspace] = useState<Workspace | null>(null);
   const [email, setEmail] = useState("");
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
-  const [modelImageUrl, setModelImageUrl] = useState("");
+  const [stars, setStars] = useState<SellerStar[]>([]);
+  const [selectedStarId, setSelectedStarId] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [garmentText, setGarmentText] = useState("");
   const [sceneBrief, setSceneBrief] = useState("");
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>("4:5");
@@ -83,6 +77,7 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
     [garmentText],
   );
   const cost = numImages;
+  const selectedStar = stars.find((star) => star.id === selectedStarId) ?? null;
 
   useEffect(() => {
     const existing = readWorkspace();
@@ -117,6 +112,26 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
           | { packs?: CreditPack[] }
           | null;
         if (res.ok && Array.isArray(data?.packs)) setPacks(data.packs);
+      } catch {
+        // best-effort
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/seller/stars");
+        const data = (await res.json().catch(() => null)) as
+          | { stars?: SellerStar[] }
+          | null;
+        if (res.ok && Array.isArray(data?.stars)) {
+          setStars(data.stars);
+          if (data.stars[0]) {
+            setSelectedStarId(data.stars[0].id);
+            setSelectedImageIndex(0);
+          }
+        }
       } catch {
         // best-effort
       }
@@ -175,23 +190,6 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
     [],
   );
 
-  const handleModelFile = useCallback(
-    async (file: File | null) => {
-      if (!file) return;
-      setError(null);
-      setIsUploading(true);
-      try {
-        const ws = await ensureWorkspace();
-        setModelImageUrl(await uploadImage(file, ws));
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "업로드 실패");
-      } finally {
-        setIsUploading(false);
-      }
-    },
-    [ensureWorkspace, uploadImage],
-  );
-
   const handleGarmentFiles = useCallback(
     async (files: FileList | null) => {
       if (!files || files.length === 0) return;
@@ -228,8 +226,8 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
 
   const handleGenerate = useCallback(async () => {
     setError(null);
-    if (!modelImageUrl.trim()) {
-      setError(en ? "Add a model image." : "모델 이미지를 올리세요.");
+    if (!selectedStarId) {
+      setError(en ? "Pick an AI star." : "AI 스타를 선택하세요.");
       return;
     }
     if (garmentImageUrls.length === 0) {
@@ -244,10 +242,10 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
         body: JSON.stringify({
           aspectRatio,
           garmentImageUrls,
-          modelImageUrl: modelImageUrl.trim(),
-          modelName: null,
           numImages,
           sceneBrief: sceneBrief.trim() || null,
+          starId: selectedStarId,
+          starImageIndex: selectedImageIndex,
           workspaceId: ws.workspaceId,
           workspaceKey: ws.workspaceKey,
         }),
@@ -273,9 +271,10 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
     en,
     ensureWorkspace,
     garmentImageUrls,
-    modelImageUrl,
     numImages,
     sceneBrief,
+    selectedImageIndex,
+    selectedStarId,
   ]);
 
   const buyCredits = useCallback(
@@ -313,7 +312,7 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
   );
 
   const canSubmit =
-    Boolean(modelImageUrl.trim()) &&
+    Boolean(selectedStarId) &&
     garmentImageUrls.length > 0 &&
     !isSubmitting &&
     !isUploading;
@@ -349,29 +348,79 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
 
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="space-y-5 rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
-          <Field label={en ? "Model image" : "모델 이미지"} hint={en ? "Front-facing model photo (face & body anchor)." : "정면 모델 사진 (얼굴·체형 기준)."}>
-            <input
-              className={FIELD}
-              inputMode="url"
-              onChange={(e) => setModelImageUrl(e.target.value)}
-              placeholder="https://…/model.png"
-              type="url"
-              value={modelImageUrl}
-            />
-            <label className="mt-2 inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-black/10 px-2.5 py-1.5 text-xs font-bold text-neutral-600">
-              {isUploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-              {en ? "Upload model" : "모델 업로드"}
-              <input
-                accept="image/png,image/jpeg,image/webp"
-                className="hidden"
-                disabled={isUploading}
-                onChange={(e) => {
-                  void handleModelFile(e.target.files?.[0] ?? null);
-                  e.target.value = "";
-                }}
-                type="file"
-              />
-            </label>
+          <Field
+            label={en ? "AI star (model)" : "AI 스타 (모델)"}
+            hint={
+              en
+                ? "The model is always a fanletter AI star."
+                : "모델은 항상 fanletter AI 스타입니다."
+            }
+          >
+            {stars.length === 0 ? (
+              <p className="text-xs text-neutral-400">
+                {en ? "Loading AI stars…" : "AI 스타 불러오는 중…"}
+              </p>
+            ) : (
+              <>
+                <div className="flex flex-wrap gap-2.5">
+                  {stars.map((star) => {
+                    const active = selectedStarId === star.id;
+                    return (
+                      <button
+                        className={`h-14 w-14 overflow-hidden rounded-full transition ${
+                          active
+                            ? "ring-2 ring-[#44f26e] ring-offset-2"
+                            : "ring-1 ring-black/10 hover:ring-black/25"
+                        }`}
+                        key={star.id}
+                        onClick={() => {
+                          setSelectedStarId(star.id);
+                          setSelectedImageIndex(0);
+                        }}
+                        title={star.name}
+                        type="button"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          alt={star.name}
+                          className="h-full w-full object-cover"
+                          src={star.images[0]}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedStar && selectedStar.images.length > 1 ? (
+                  <div className="mt-2.5">
+                    <span className="mb-1.5 block text-[11px] font-bold text-neutral-400">
+                      {en ? "Pick a pose" : "포즈 선택"}
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedStar.images.map((url, index) => {
+                        const active = selectedImageIndex === index;
+                        return (
+                          <button
+                            className={`h-16 w-12 overflow-hidden rounded-lg border-2 transition ${
+                              active ? "border-[#44f26e]" : "border-transparent"
+                            }`}
+                            key={url}
+                            onClick={() => setSelectedImageIndex(index)}
+                            type="button"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              alt={`${selectedStar.name} ${index + 1}`}
+                              className="h-full w-full object-cover"
+                              src={url}
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+              </>
+            )}
           </Field>
 
           <Field label={en ? "Garment photos" : "옷 사진"} hint={en ? "Color, print and logos are preserved." : "색·프린트·로고가 그대로 보존됩니다."}>

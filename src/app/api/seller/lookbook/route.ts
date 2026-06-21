@@ -7,6 +7,7 @@ import {
   INSUFFICIENT_SELLER_CREDITS_ERROR,
   refundSellerCredits,
 } from "@/lib/seller-workspace";
+import { resolveSellerStarImage } from "@/lib/seller-stars";
 import { clampLookbookImageCount } from "@/lib/star-lookbook-pricing";
 import {
   generateStarLookbook,
@@ -28,7 +29,8 @@ const ASPECT_RATIOS: StarLookbookAspectRatio[] = [
 type SellerLookbookRequest = {
   workspaceId?: string | null;
   workspaceKey?: string | null;
-  modelImageUrl?: string | null;
+  starId?: string | null;
+  starImageIndex?: number | null;
   garmentImageUrls?: unknown;
   sceneBrief?: string | null;
   modelName?: string | null;
@@ -81,10 +83,15 @@ export async function POST(request: Request) {
     return jsonError("Workspace not found or unauthorized.", 401);
   }
 
-  const modelImageUrl = body?.modelImageUrl?.trim() ?? "";
+  // The model is ALWAYS an AI star — resolve the image server-side from starId
+  // so an arbitrary model image can never be used.
+  const modelImageUrl = await resolveSellerStarImage(
+    body?.starId,
+    typeof body?.starImageIndex === "number" ? body.starImageIndex : 0,
+  );
 
   if (!modelImageUrl) {
-    return jsonError("modelImageUrl is required.", 400);
+    return jsonError("AI 스타를 선택하세요.", 400);
   }
 
   const garmentImageUrls = toStringArray(body?.garmentImageUrls)
