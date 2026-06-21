@@ -540,7 +540,7 @@ export function FanletterCreatorTikTokPage({
               />
             ) : null}
           </section>
-        ) : (
+        ) : isSignedIn ? (
           <section className="mt-5 rounded-[1.2rem] border border-zinc-200 bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.045)]">
             <CheckCircle2 className="size-8 text-zinc-400" />
             <h2 className="mt-4 text-2xl font-semibold text-black">
@@ -557,7 +557,7 @@ export function FanletterCreatorTikTokPage({
               <ArrowRight className="size-4" />
             </Link>
           </section>
-        )}
+        ) : null}
       </div>
     </main>
   );
