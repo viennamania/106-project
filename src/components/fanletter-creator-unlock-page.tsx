@@ -3513,25 +3513,80 @@ export function FanletterCreatorUnlockPage({
         </div>
 
         {view === "hub" ? (
-          <CreatorJourneyProductHero
-            action={{
-              ...creatorUnlockNextAction,
-              href: creatorJourneyNextHref,
-            }}
-            completedConditionCount={completedConditionCount}
-            conditionsHref={conditionsHref}
-            creatorJourneyNextHref={creatorJourneyNextHref}
-            creatorJourneySocialConnected={creatorJourneySocialConnected}
-            displaySourceUniverseName={displaySourceUniverseName}
-            isPreviewMode={isPreviewMode}
-            launchHref={launchHref}
-            locale={locale}
-            nextMissingCondition={nextMissingCondition}
-            requiresSourceUniverse={requiresSourceUniverse}
-            sourceHref={sourceHref}
-            tiktokChannelHref={tiktokChannelHref}
-            unlock={unlock}
-          />
+          <>
+            <CreatorJourneyProductHero
+              action={{
+                ...creatorUnlockNextAction,
+                href: creatorJourneyNextHref,
+              }}
+              completedConditionCount={completedConditionCount}
+              conditionsHref={conditionsHref}
+              creatorJourneyNextHref={creatorJourneyNextHref}
+              creatorJourneySocialConnected={creatorJourneySocialConnected}
+              displaySourceUniverseName={displaySourceUniverseName}
+              isPreviewMode={isPreviewMode}
+              launchHref={launchHref}
+              locale={locale}
+              nextMissingCondition={nextMissingCondition}
+              requiresSourceUniverse={requiresSourceUniverse}
+              sourceHref={sourceHref}
+              tiktokChannelHref={tiktokChannelHref}
+              unlock={unlock}
+            />
+
+            <div className="mt-4 sm:hidden">
+              <CreatorJourneyStepLinks
+                activeView="hub"
+                conditionsHref={conditionsHref}
+                creatorJourneyNextHref={creatorJourneyNextHref}
+                launchHref={launchHref}
+                locale={locale}
+                primaryActionHref={creatorJourneyNextHref}
+                sourceHref={sourceHref}
+                tiktokChannelHref={tiktokChannelHref}
+                unlock={unlock}
+              />
+            </div>
+
+            {creatorJourneySocialConnected ? (
+              <section className="mt-4 rounded-[1.1rem] border border-emerald-200 bg-emerald-50 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.05)] sm:p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">
+                      <CheckCircle2 className="size-4" />
+                      {locale === "ko" ? "TikTok 연결 결과" : "TikTok result"}
+                    </p>
+                    <h2 className="mt-2 text-2xl font-semibold tracking-normal text-emerald-950">
+                      {locale === "ko"
+                        ? "공식 채널 연결 완료"
+                        : "Official channel connected"}
+                    </h2>
+                    <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-emerald-800 [word-break:keep-all]">
+                      {locale === "ko"
+                        ? `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} 채널 연결이 Creator Journey 조건과 평판 기록 흐름에 반영되었습니다.`
+                        : `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} is reflected in Creator Journey conditions and the Reputation Record flow.`}
+                    </p>
+                  </div>
+                  <div className="grid shrink-0 gap-2 sm:w-56">
+                    <Link
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-emerald-950 px-4 text-sm font-semibold text-white transition hover:bg-emerald-900"
+                      href={creatorSocialLedgerHref}
+                    >
+                      {locale === "ko" ? "평판 기록 보기" : "View records"}
+                      <ArrowRight className="size-4" />
+                    </Link>
+                    <Link
+                      className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-emerald-200 bg-white px-4 text-xs font-semibold text-emerald-900"
+                      href={launchHref}
+                    >
+                      {locale === "ko" ? "생성 미리보기" : "Launch preview"}
+                      <ArrowRight className="size-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              </section>
+            ) : null}
+          </>
         ) : (
           <>
             {creatorUnlockActionGuide}

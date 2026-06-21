@@ -351,11 +351,11 @@ function getPrimaryAction({
 
   return {
     helper: isKorean
-      ? "계정을 연결하면 이 AI 스타의 파운더 참여와 추천 보상을 이어갈 수 있습니다."
-      : "Connect your account to join this AI Star and keep referral attribution.",
+      ? "계정을 연결한 뒤 이 AI 스타의 파운더 네트워크 참여와 추천 보상을 이어갑니다."
+      : "Connect your account, then join this AI Star Founder Network and keep referral attribution.",
     href: connectHref,
-    label: isKorean ? "계정 연결하기" : "Connect account",
-    status: isKorean ? "계정 연결 필요" : "Connect account",
+    label: isKorean ? "계정 연결하고 참여" : "Connect and join",
+    status: isKorean ? "Founder 참여 전" : "Founder not joined",
     variant: "connect",
   };
 }

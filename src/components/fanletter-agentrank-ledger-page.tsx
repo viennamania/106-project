@@ -74,9 +74,12 @@ type FanletterAgentRankLedgerPageProps = {
     sort: AgentRankEventLedgerSort;
     starId: string | null;
     type: AgentRankReputationEventType | null;
+    view: AgentRankLedgerAudienceView;
   };
   locale: Locale;
 };
+
+export type AgentRankLedgerAudienceView = "ops" | "user";
 
 const eventTone = {
   ai_star_discovered: "border-blue-100 bg-blue-50 text-blue-700",
@@ -182,6 +185,9 @@ function getLedgerCopy(locale: Locale) {
       oracleNeeds: "Oracle 보강 항목",
       oracleReady: "오라클 준비",
       openEvent: "요약 보기",
+      opsView: "운영자 검증",
+      opsViewBody:
+        "오라클 보강, Evidence Packet, 품질 점검처럼 운영자가 확인할 항목입니다.",
       packetPartial: "Packet 부분 준비",
       packetReady: "Packet 준비",
       quality: "품질 점수",
@@ -216,6 +222,9 @@ function getLedgerCopy(locale: Locale) {
       totalEvents: "이벤트",
       uniqueMembers: "멤버",
       uniqueStars: "AI 스타",
+      userView: "사용자 기록",
+      userViewBody:
+        "내 행동이 어떤 평판 기록과 보상/기여 결과로 이어졌는지 먼저 보여줍니다.",
       viewAll: "전체 보기",
     };
   }
@@ -275,6 +284,9 @@ function getLedgerCopy(locale: Locale) {
     oracleNeeds: "Oracle gaps",
     oracleReady: "Oracle-ready",
     openEvent: "Quick view",
+    opsView: "Operator review",
+    opsViewBody:
+      "Oracle gaps, Evidence Packets, and quality checks for operators.",
     packetPartial: "Packet partial",
     packetReady: "Packet ready",
     quality: "Quality Score",
@@ -309,6 +321,9 @@ function getLedgerCopy(locale: Locale) {
     totalEvents: "Events",
     uniqueMembers: "Members",
     uniqueStars: "AI Stars",
+    userView: "User records",
+    userViewBody:
+      "Shows how user actions became reputation records and score/reward outcomes.",
     viewAll: "View all",
   };
 }
@@ -572,6 +587,7 @@ function buildLedgerHref({
   scope,
   sort,
   type,
+  view,
 }: {
   filters: FanletterAgentRankLedgerPageProps["filters"];
   locale: Locale;
@@ -579,11 +595,13 @@ function buildLedgerHref({
   scope?: AgentRankEventMockScope;
   sort?: AgentRankEventLedgerSort;
   type: AgentRankReputationEventType | null;
+  view?: AgentRankLedgerAudienceView;
 }) {
   const params = new URLSearchParams();
   const nextScope = scope ?? filters.scope;
   const nextReadiness = readiness ?? filters.readiness;
   const nextSort = sort ?? filters.sort;
+  const nextView = view ?? filters.view;
 
   if (filters.starId) {
     params.set("starId", filters.starId);
@@ -607,6 +625,10 @@ function buildLedgerHref({
 
   if (nextSort !== "latest") {
     params.set("sort", nextSort);
+  }
+
+  if (nextView === "ops") {
+    params.set("view", "ops");
   }
 
   if (filters.limit !== 120) {
@@ -1469,10 +1491,12 @@ function EventCard({
   coverageAction,
   event,
   locale,
+  view,
 }: {
   coverageAction?: AgentRankCoverageActionContext | null;
   event: AgentRankReputationEvent;
   locale: Locale;
+  view: AgentRankLedgerAudienceView;
 }) {
   const copy = getLedgerCopy(locale);
   const Icon = eventIconMap[event.type];
@@ -1501,6 +1525,7 @@ function EventCard({
     ? copy.packetReady
     : copy.packetPartial;
   const nextActionLabel = getLedgerEventNextActionLabel(event, locale);
+  const isOpsView = view === "ops";
 
   if (event.starId) {
     detailParams.set("starId", event.starId);
@@ -1640,6 +1665,7 @@ function EventCard({
         </div>
       </div>
 
+      {isOpsView ? (
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 text-xs font-semibold">
         <span className="text-slate-400">{copy.scoreSignals}</span>
         {scoreSignals.length ? (
@@ -1661,8 +1687,25 @@ function EventCard({
           <span className="min-w-0 truncate">{nextActionLabel}</span>
         </span>
       </div>
+      ) : (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 text-xs font-semibold text-slate-500">
+          <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1 ring-1 ring-slate-100">
+            <Clock3 className="size-3.5 shrink-0" />
+            <span className="min-w-0 truncate">{formatDate(event.occurredAt, locale)}</span>
+          </span>
+          <FanletterAgentRankEventQuickPanel
+            buttonLabel={copy.openEvent}
+            detailHref={detailHref}
+            detailLabel={copy.details}
+            event={event}
+            evidenceHref={evidenceHref}
+            evidenceLabel={copy.evidencePacket}
+            locale={locale}
+          />
+        </div>
+      )}
 
-      {relatedStarScope.length ? (
+      {isOpsView && relatedStarScope.length ? (
         <div className="mt-3 flex flex-wrap items-center gap-2 rounded-lg border border-violet-100 bg-violet-50/70 px-3 py-2 text-xs font-semibold">
           <span className="inline-flex items-center gap-1.5 text-[#6d28d9]">
             <Bot className="size-3.5" />
@@ -1679,6 +1722,7 @@ function EventCard({
         </div>
       ) : null}
 
+      {isOpsView ? (
       <div className="mt-3 grid gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)_minmax(0,1fr)]">
         <div className="min-w-0">
           <div className="flex items-center justify-between gap-3">
@@ -1717,7 +1761,9 @@ function EventCard({
           </p>
         </div>
       </div>
+      ) : null}
 
+      {isOpsView ? (
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
         <ReadinessPill
           gaps={oracleGaps}
@@ -1781,7 +1827,9 @@ function EventCard({
           locale={locale}
         />
       </div>
+      ) : null}
 
+      {isOpsView ? (
       <details className="mt-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-600">
         <summary className="cursor-pointer text-[#5b21b6]">
           {copy.details}
@@ -1838,6 +1886,7 @@ function EventCard({
           ))}
         </div>
       </details>
+      ) : null}
     </article>
   );
 }
@@ -1995,6 +2044,19 @@ export function FanletterAgentRankLedgerPage({
       sort: "quality_desc",
     },
   ];
+  const isOpsView = filters.view === "ops";
+  const userViewHref = buildLedgerHref({
+    filters,
+    locale,
+    type: filters.type,
+    view: "user",
+  });
+  const opsViewHref = buildLedgerHref({
+    filters,
+    locale,
+    type: filters.type,
+    view: "ops",
+  });
 
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white px-4 py-5 text-[#11132d] sm:px-6 lg:px-8">
@@ -2035,23 +2097,42 @@ export function FanletterAgentRankLedgerPage({
           reputationEventLabel={
             locale === "ko" ? "행동 결과 기록" : "Action result record"
           }
-          secondaryActions={[
-            {
-              agentRank: {
-                eventType: "creator_unlock_evaluated",
-                intent: "agentrank_ledger_review_queue_opened",
-                source: "fanletter_agentrank",
-                starId: filters.starId,
-              },
-              eventName: "content_open",
-              href: reviewHref,
-              label: locale === "ko" ? "검증 큐" : "Review queue",
-              metadata: {
-                packetReadyEvents,
-                placement: "agentrank_ledger_review_queue_secondary",
-              },
-            },
-          ]}
+          secondaryActions={
+            isOpsView
+              ? [
+                  {
+                    agentRank: {
+                      eventType: "creator_unlock_evaluated",
+                      intent: "agentrank_ledger_review_queue_opened",
+                      source: "fanletter_agentrank",
+                      starId: filters.starId,
+                    },
+                    eventName: "content_open",
+                    href: reviewHref,
+                    label: locale === "ko" ? "검증 큐" : "Review queue",
+                    metadata: {
+                      packetReadyEvents,
+                      placement: "agentrank_ledger_review_queue_secondary",
+                    },
+                  },
+                ]
+              : [
+                  {
+                    agentRank: {
+                      eventType: "creator_unlock_evaluated",
+                      intent: "agentrank_ledger_ops_view_opened",
+                      source: "fanletter_agentrank",
+                      starId: filters.starId,
+                    },
+                    eventName: "content_open",
+                    href: opsViewHref,
+                    label: locale === "ko" ? "운영자 검증 보기" : "Operator review",
+                    metadata: {
+                      placement: "agentrank_ledger_ops_view_secondary",
+                    },
+                  },
+                ]
+          }
           steps={[
             {
               label: locale === "ko" ? "행동 발생" : "Action",
@@ -2116,6 +2197,61 @@ export function FanletterAgentRankLedgerPage({
             </Link>
           </section>
         ) : null}
+        <section className="grid min-w-0 gap-2 sm:grid-cols-2">
+          {[
+            {
+              active: !isOpsView,
+              body: copy.userViewBody,
+              href: userViewHref,
+              Icon: Users,
+              label: copy.userView,
+            },
+            {
+              active: isOpsView,
+              body: copy.opsViewBody,
+              href: opsViewHref,
+              Icon: ShieldCheck,
+              label: copy.opsView,
+            },
+          ].map(({ active, body, href, Icon, label }) => (
+            <Link
+              className={joinClasses(
+                "group flex min-w-0 items-start gap-3 rounded-[1.05rem] border p-4 shadow-[0_14px_34px_rgba(15,23,42,0.055)] transition",
+                active
+                  ? "border-zinc-950 bg-zinc-950 text-white"
+                  : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-300",
+              )}
+              href={href}
+              key={label}
+            >
+              <span
+                className={joinClasses(
+                  "flex size-10 shrink-0 items-center justify-center rounded-lg",
+                  active ? "bg-white text-zinc-950" : "bg-zinc-100 text-zinc-700",
+                )}
+              >
+                <Icon className="size-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-base font-semibold">{label}</span>
+                <span
+                  className={joinClasses(
+                    "mt-1 block break-words text-xs font-semibold leading-5 [word-break:keep-all]",
+                    active ? "text-white/62" : "text-zinc-500",
+                  )}
+                >
+                  {body}
+                </span>
+              </span>
+              <ArrowRight
+                className={joinClasses(
+                  "mt-1 size-4 shrink-0 transition group-hover:translate-x-0.5",
+                  active ? "text-white" : "text-zinc-400",
+                )}
+              />
+            </Link>
+          ))}
+        </section>
         <header className="hidden rounded-[1.35rem] border border-zinc-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:block">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
@@ -2181,15 +2317,18 @@ export function FanletterAgentRankLedgerPage({
           locale={locale}
         />
 
-        <LedgerOperationStatusCard
-          auditReadyEvents={auditReadyEvents}
-          filters={filters}
-          locale={locale}
-          packetReadyEvents={packetReadyEvents}
-          reviewHref={reviewHref}
-          totalEvents={feed.summary.totalEvents}
-        />
+        {isOpsView ? (
+          <LedgerOperationStatusCard
+            auditReadyEvents={auditReadyEvents}
+            filters={filters}
+            locale={locale}
+            packetReadyEvents={packetReadyEvents}
+            reviewHref={reviewHref}
+            totalEvents={feed.summary.totalEvents}
+          />
+        ) : null}
 
+        {isOpsView ? (
         <div className="hidden sm:block">
           <InvestorDemoPanel
             apiHref={apiHref}
@@ -2200,7 +2339,9 @@ export function FanletterAgentRankLedgerPage({
             ndjsonHref={ndjsonHref}
           />
         </div>
+        ) : null}
 
+        {isOpsView ? (
         <div className="hidden sm:block">
           <ReviewQueuePanel
             filters={filters}
@@ -2208,7 +2349,9 @@ export function FanletterAgentRankLedgerPage({
             queue={reviewQueue}
           />
         </div>
+        ) : null}
 
+        {isOpsView ? (
         <div className="hidden sm:block">
           <ActionCoveragePanel
             actions={actionCoverage}
@@ -2216,6 +2359,7 @@ export function FanletterAgentRankLedgerPage({
             locale={locale}
           />
         </div>
+        ) : null}
 
         <section className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
           <div className="flex items-center gap-2 text-sm font-semibold uppercase text-zinc-600">
@@ -2236,6 +2380,9 @@ export function FanletterAgentRankLedgerPage({
                   type="hidden"
                   value={coverageAction.action}
                 />
+              ) : null}
+              {filters.view === "ops" ? (
+                <input name="view" type="hidden" value="ops" />
               ) : null}
               {filters.type ? (
                 <input name="type" type="hidden" value={filters.type} />
@@ -2374,6 +2521,9 @@ export function FanletterAgentRankLedgerPage({
                 type="hidden"
                 value={coverageAction.action}
               />
+            ) : null}
+            {filters.view === "ops" ? (
+              <input name="view" type="hidden" value="ops" />
             ) : null}
             {filters.type ? (
               <input name="type" type="hidden" value={filters.type} />
@@ -2566,6 +2716,7 @@ export function FanletterAgentRankLedgerPage({
           locale={locale}
         />
 
+        {isOpsView ? (
         <section className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-7">
           <MetricTile
             label={copy.schemaReady}
@@ -2608,7 +2759,9 @@ export function FanletterAgentRankLedgerPage({
             value={formatNumber(feed.summary.cpTotal, locale)}
           />
         </section>
+        ) : null}
 
+        {isOpsView ? (
         <section className="hidden rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:block">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -2662,6 +2815,7 @@ export function FanletterAgentRankLedgerPage({
             })}
           </div>
         </section>
+        ) : null}
 
         <section className="grid gap-4">
           {feed.events.length > 0 ? (
@@ -2671,6 +2825,7 @@ export function FanletterAgentRankLedgerPage({
                 event={event}
                 key={event.eventId}
                 locale={locale}
+                view={filters.view}
               />
             ))
           ) : (

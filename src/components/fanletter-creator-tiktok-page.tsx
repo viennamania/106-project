@@ -45,7 +45,9 @@ function getCopy(locale: Locale) {
       aiStarUniverse: "AI 스타 유니버스",
       back: "Creator Journey",
       connectAccount: "계정 연결하기",
+      continueJourney: "Creator Journey 계속",
       connectedEvent: "creator_social_connected 평판 기록",
+      contentSyncReady: "콘텐츠 동기화 준비",
       creatorOnly: "Creator / Owner 권한",
       emptyBody:
         "TikTok 채널은 내가 운영하는 AI 스타에 연결됩니다. 먼저 Creator 권한 활성화 흐름에서 운영할 AI 스타를 준비하세요.",
@@ -70,6 +72,9 @@ function getCopy(locale: Locale) {
       pageTitle: "AI 스타 TikTok 채널",
       recordReady: "평판 기록 생성됨",
       selected: "선택됨",
+      successNextBody:
+        "이제 TikTok 채널 연결 기록을 확인하고, 새 AI 스타 생성 미리보기 또는 콘텐츠 동기화 준비로 이어갈 수 있습니다.",
+      successNextTitle: "다음 단계",
       signInBody:
         "TikTok 채널 연결은 로그인한 Creator/Owner 권한에서만 실행됩니다.",
       signInTitle: "계정 연결 필요",
@@ -85,7 +90,9 @@ function getCopy(locale: Locale) {
       aiStarUniverse: "AI Star Universe",
       back: "Creator Journey",
       connectAccount: "アカウント接続",
+      continueJourney: "Creator Journeyを続ける",
       connectedEvent: "creator_social_connected評判記録",
+      contentSyncReady: "コンテンツ同期準備",
       creatorOnly: "Creator / Owner権限",
       emptyBody:
         "TikTokチャンネルは運営中のAIスターに接続されます。まずCreator Journeyで運営するAIスターを準備してください。",
@@ -110,6 +117,9 @@ function getCopy(locale: Locale) {
       pageTitle: "AIスターTikTokチャンネル",
       recordReady: "評判記録作成済み",
       selected: "選択中",
+      successNextBody:
+        "TikTokチャンネル接続記録を確認し、新しいAIスター作成プレビューまたはコンテンツ同期準備に進めます。",
+      successNextTitle: "次のステップ",
       signInBody:
         "TikTokチャンネル接続はログインしたCreator/Owner権限でのみ実行できます。",
       signInTitle: "アカウント接続が必要",
@@ -124,7 +134,9 @@ function getCopy(locale: Locale) {
     aiStarUniverse: "AI Star Universe",
     back: "Creator Journey",
     connectAccount: "Connect account",
+    continueJourney: "Continue Creator Journey",
     connectedEvent: "creator_social_connected Reputation Record",
+    contentSyncReady: "Content sync ready",
     creatorOnly: "Creator / Owner permission",
     emptyBody:
       "TikTok channels connect to AI Stars you operate. Prepare an AI Star in Creator Journey first.",
@@ -149,6 +161,9 @@ function getCopy(locale: Locale) {
     pageTitle: "AI Star TikTok Channel",
     recordReady: "Reputation Record created",
     selected: "Selected",
+    successNextBody:
+      "Review the TikTok channel connection record, then continue to AI Star launch preview or content sync preparation.",
+    successNextTitle: "Next step",
     signInBody:
       "TikTok channel connection requires a signed-in Creator/Owner account.",
     signInTitle: "Account connection required",
@@ -267,7 +282,7 @@ export function FanletterCreatorTikTokPage({
     : null;
   const serverSocialAccountState = useFanletterAIStarServerSocialAccountState({
     platform: "tiktok",
-    starId: selectedStar?.id ?? "__no-star__",
+    starId: selectedStar?.id ?? null,
   });
   const connectedAccount = selectedStar ? serverSocialAccountState.account : null;
   const ledgerHref = selectedStar
@@ -284,6 +299,11 @@ export function FanletterCreatorTikTokPage({
       selectedStar ? `?starId=${selectedStar.id}` : ""
     }`,
   )}`;
+  const launchHref = selectedStar
+    ? `/${locale}/fanletter/creator-unlock/launch?starId=${encodeURIComponent(
+        selectedStar.id,
+      )}`
+    : `/${locale}/fanletter/creator-unlock/launch`;
   const connectionStatusLabel = serverSocialAccountState.loading
     ? locale === "ko"
       ? "서버 확인 중"
@@ -454,6 +474,60 @@ export function FanletterCreatorTikTokPage({
                   </div>
                 ) : null}
               </div>
+            </div>
+          </section>
+        ) : null}
+
+        {connectedAccount ? (
+          <section className="mt-5 rounded-[1.15rem] border border-emerald-200 bg-emerald-50 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.05)] sm:p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">
+                  <CheckCircle2 className="size-4" />
+                  {copy.successNextTitle}
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold tracking-normal text-emerald-950">
+                  {connectedAccount.handle}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-emerald-800 [word-break:keep-all]">
+                  {copy.successNextBody}
+                </p>
+              </div>
+              <div className="grid shrink-0 gap-2 sm:w-64">
+                <Link
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-emerald-950 px-4 text-sm font-semibold text-white transition hover:bg-emerald-900"
+                  href={ledgerHref}
+                >
+                  {copy.ledger}
+                  <ArrowRight className="size-4" />
+                </Link>
+                <Link
+                  className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-emerald-200 bg-white px-4 text-xs font-semibold text-emerald-900"
+                  href={launchHref}
+                >
+                  {copy.continueJourney}
+                  <ArrowRight className="size-3.5" />
+                </Link>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-2 sm:grid-cols-3">
+              {[
+                [copy.flowChannel, connectedAccount.handle],
+                [copy.flowEvent, copy.recordReady],
+                [copy.flowSync, copy.contentSyncReady],
+              ].map(([label, value]) => (
+                <div
+                  className="min-w-0 rounded-xl border border-emerald-200 bg-white/72 px-3 py-2.5"
+                  key={label}
+                >
+                  <p className="truncate text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-emerald-700/70">
+                    {label}
+                  </p>
+                  <p className="mt-1 truncate text-sm font-semibold text-emerald-950">
+                    {value}
+                  </p>
+                </div>
+              ))}
             </div>
           </section>
         ) : null}

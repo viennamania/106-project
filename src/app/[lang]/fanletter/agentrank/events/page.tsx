@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { FanletterAgentRankLedgerPage } from "@/components/fanletter-agentrank-ledger-page";
+import type { AgentRankLedgerAudienceView } from "@/components/fanletter-agentrank-ledger-page";
 import {
   normalizeAgentRankCoverageAction,
   readFirstSearchParam,
@@ -35,6 +36,7 @@ type AgentRankLedgerSearchParams = {
   sort?: string | string[];
   starId?: string | string[];
   type?: string | string[];
+  view?: string | string[];
 };
 
 function readFirstParam(value?: string | string[]) {
@@ -62,6 +64,12 @@ function normalizeEventType(
     agentRankReputationEventTypes.includes(type as AgentRankReputationEventType)
     ? (type as AgentRankReputationEventType)
     : null;
+}
+
+function normalizeAudienceView(
+  value?: string | string[],
+): AgentRankLedgerAudienceView {
+  return readFirstParam(value) === "ops" ? "ops" : "user";
 }
 
 function getLedgerMeta(locale: Locale) {
@@ -135,6 +143,7 @@ export default async function FanletterAgentRankLedgerRoute({
     readFirstParam(query.readiness),
   );
   const sort = normalizeAgentRankEventLedgerSort(readFirstParam(query.sort));
+  const view = normalizeAudienceView(query.view);
   const candidateLimit = readiness !== "all" || sort !== "latest" ? 200 : limit;
   const coverageAction = normalizeAgentRankCoverageAction(query.coverageAction);
   const rawFeed = await getFanletterAgentRankReputationEventFeed({
@@ -180,6 +189,7 @@ export default async function FanletterAgentRankLedgerRoute({
         sort,
         starId,
         type,
+        view,
       }}
       locale={locale}
     />

@@ -213,12 +213,12 @@ export function useFanletterAIStarServerSocialAccountState({
   starId,
 }: {
   platform?: FanletterSocialPlatform;
-  starId: string;
+  starId?: string | null;
 }) {
   const [state, setState] = useState<FanletterAIStarServerSocialAccountState>({
     account: null,
     error: false,
-    loading: true,
+    loading: Boolean(starId),
     refresh: () => {},
     source: "none",
   });
@@ -228,6 +228,10 @@ export function useFanletterAIStarServerSocialAccountState({
   }, []);
 
   useEffect(() => {
+    if (!starId) {
+      return;
+    }
+
     const controller = new AbortController();
     const params = new URLSearchParams({ platform, starId });
 
@@ -297,6 +301,16 @@ export function useFanletterAIStarServerSocialAccountState({
     return () => controller.abort();
   }, [platform, refresh, refreshNonce, starId]);
 
+  if (!starId) {
+    return {
+      account: null,
+      error: false,
+      loading: false,
+      refresh,
+      source: "none" as const,
+    };
+  }
+
   return state;
 }
 
@@ -305,7 +319,7 @@ export function useFanletterAIStarServerSocialAccount({
   starId,
 }: {
   platform?: FanletterSocialPlatform;
-  starId: string;
+  starId?: string | null;
 }) {
   return useFanletterAIStarServerSocialAccountState({
     platform,
