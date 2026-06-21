@@ -1699,6 +1699,205 @@ function MockLaunchEventReceiptCard({
   );
 }
 
+function LaunchReadinessSignpost({
+  copy,
+  isPreviewMode,
+  launchLedgerHref,
+  launchPreview,
+  locale,
+  primaryHref,
+  requiresSourceUniverse,
+  sourceStarId,
+  sourceUniverseName,
+  unlock,
+}: {
+  copy: ReturnType<typeof getLaunchPageCopy>;
+  isPreviewMode: boolean;
+  launchLedgerHref: string;
+  launchPreview: ReturnType<typeof getLaunchPreview>;
+  locale: Locale;
+  primaryHref: string;
+  requiresSourceUniverse: boolean;
+  sourceStarId?: string | null;
+  sourceUniverseName: string;
+  unlock: CreatorUnlockData;
+}) {
+  const isKorean = locale === "ko";
+  const labels = isKorean
+    ? {
+        body:
+          "선택한 출처 AI 스타 유니버스, 10 USDT mock 의도, 생성될 평판 기록만 확인합니다.",
+        cta: requiresSourceUniverse
+          ? copy.noSourcePrimary
+          : isPreviewMode
+            ? copy.loginCta
+            : "미리보기 생성하기",
+        event: "생성될 평판 기록",
+        result: "생성 결과",
+        source: "출처",
+        stepMock: "10 USDT mock",
+        stepRecord: "평판 기록",
+        stepSource: "출처 선택",
+        title: "생성 전 마지막 확인",
+      }
+    : {
+        body:
+          "Confirm the launch source AI Star Universe, 10 USDT mock intent, and reputation records.",
+        cta: requiresSourceUniverse
+          ? copy.noSourcePrimary
+          : isPreviewMode
+            ? copy.loginCta
+            : "Create preview",
+        event: "Reputation records",
+        result: "Launch result",
+        source: "Source",
+        stepMock: "10 USDT mock",
+        stepRecord: "Reputation",
+        stepSource: "Source",
+        title: "Final check before launch",
+      };
+  const flowSteps = [
+    {
+      Icon: GitBranch,
+      label: labels.stepSource,
+      value: requiresSourceUniverse
+        ? copy.noSourceSubmit
+        : sourceUniverseName,
+    },
+    {
+      Icon: CircleDollarSign,
+      label: labels.stepMock,
+      value: `${unlock.createCostUsdt} USDT`,
+    },
+    {
+      Icon: BadgeCheck,
+      label: labels.stepRecord,
+      value: "x402_mock_payment_intent",
+    },
+  ];
+
+  return (
+    <section className="mt-5 overflow-hidden rounded-[1.2rem] border border-zinc-200 bg-zinc-950 text-white shadow-[0_22px_54px_rgba(15,23,42,0.18)]">
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="min-w-0 p-4 sm:p-5">
+          <div className="flex items-start gap-3">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-white text-black">
+              <Sparkles className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-white/50">
+                {copy.subtitle}
+              </p>
+              <h2 className="mt-1 break-words text-2xl font-semibold leading-tight [word-break:keep-all]">
+                {labels.title}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-white/62 [word-break:keep-all]">
+                {labels.body}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-3">
+            {flowSteps.map((step, index) => {
+              const Icon = step.Icon;
+
+              return (
+                <div
+                  className="min-w-0 rounded-lg border border-white/10 bg-white/[0.06] p-3"
+                  key={step.label}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="flex size-8 items-center justify-center rounded-full bg-white text-black">
+                      <Icon className="size-4" />
+                    </span>
+                    <span className="font-mono text-xs font-semibold text-white/36">
+                      0{index + 1}
+                    </span>
+                  </div>
+                  <p className="mt-3 text-sm font-semibold">{step.label}</p>
+                  <p className="mt-1 break-words text-xs font-semibold leading-4 text-white/54 [word-break:keep-all]">
+                    {step.value}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+            <FanletterTrackedLink
+              agentRank={{
+                eventType: requiresSourceUniverse
+                  ? "ai_star_discovered"
+                  : isPreviewMode
+                    ? "creator_unlocked"
+                    : "x402_mock_payment_intent",
+                intent: requiresSourceUniverse
+                  ? "creator_launch_missing_source"
+                  : isPreviewMode
+                    ? "creator_launch_preview_connect"
+                    : "creator_launch_ready_mock_intent",
+                source: "fanletter_creator_unlock",
+                starId: sourceStarId ?? null,
+              }}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold !text-black transition hover:bg-zinc-100"
+              eventName={
+                requiresSourceUniverse || isPreviewMode
+                  ? "signup_cta_click"
+                  : "fanletter_x402_mock_payment_intent"
+              }
+              href={primaryHref}
+              metadata={{
+                launchStarName: launchPreview.name,
+                mockPaymentIntent: !requiresSourceUniverse && !isPreviewMode,
+                placement: "creator_launch_readiness_primary",
+                sourceUniverseName,
+              }}
+            >
+              {labels.cta}
+              <ArrowRight className="size-4" />
+            </FanletterTrackedLink>
+            <Link
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/12 px-5 text-sm font-semibold text-white/78 transition hover:bg-white/10"
+              href={launchLedgerHref}
+            >
+              {isKorean ? "평판 기록 보기" : "View records"}
+              <ArrowRight className="size-4" />
+            </Link>
+          </div>
+        </div>
+
+        <div className="min-w-0 border-t border-white/10 bg-white/[0.04] p-4 sm:p-5 lg:border-l lg:border-t-0">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-white/44">
+            {labels.result}
+          </p>
+          <p className="mt-2 break-words text-2xl font-semibold leading-tight [word-break:keep-all]">
+            {launchPreview.name}
+          </p>
+          <div className="mt-4 grid gap-2">
+            {[
+              [labels.source, sourceUniverseName],
+              [copy.category, launchPreview.category],
+              [labels.event, "ai_star_spawned"],
+            ].map(([label, value]) => (
+              <div
+                className="min-w-0 rounded-lg bg-white/[0.06] px-3 py-2"
+                key={label}
+              >
+                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-white/38">
+                  {label}
+                </p>
+                <p className="mt-1 break-words text-sm font-semibold text-white/78 [word-break:keep-all]">
+                  {value}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function RocketIcon() {
   return <Sparkles className="size-5" />;
 }
@@ -3220,6 +3419,14 @@ export function FanletterCreatorUnlockPage({
     type: "creator_social_connected",
   });
   const creatorSocialLedgerHref = `/${locale}/fanletter/agentrank/events?${creatorSocialLedgerParams.toString()}`;
+  const launchLedgerParams = new URLSearchParams({
+    coverageAction: "x402_mock_payment_intent",
+    limit: "40",
+    sort: "latest",
+    starId: trackingSourceStarId ?? socialSourceStarId,
+    type: "x402_mock_payment_intent",
+  });
+  const launchLedgerHref = `/${locale}/fanletter/agentrank/events?${launchLedgerParams.toString()}`;
   const openConditionsPanel = () => {
     trackFunnelEvent("fanletter_creator_unlock_evaluated", {
       agentRank: {
@@ -3716,6 +3923,27 @@ export function FanletterCreatorUnlockPage({
 
         {view !== "hub" ? (
           <>
+        {view === "launch" ? (
+        <LaunchReadinessSignpost
+          copy={copy}
+          isPreviewMode={isPreviewMode}
+          launchLedgerHref={launchLedgerHref}
+          launchPreview={launchPreview}
+          locale={locale}
+          primaryHref={
+            requiresSourceUniverse
+              ? `/${locale}/fanletter/characters`
+              : isPreviewMode
+                ? connectHref
+                : "#mock-launch-panel"
+          }
+          requiresSourceUniverse={requiresSourceUniverse}
+          sourceStarId={trackingSourceStarId}
+          sourceUniverseName={displaySourceUniverseName}
+          unlock={unlock}
+        />
+        ) : null}
+
         {view === "source" ? (
         <CreatorFounderRelationshipGuide
           locale={locale}
