@@ -682,10 +682,14 @@ function StarViewerRelationshipCard({
               : "계정 연결 필요",
         guidance:
           "Creator는 AI 스타를 운영하는 권한이고, Founder는 이 AI 스타 유니버스 안에서 참여하는 역할입니다.",
+        founderJoinRecord: "Founder 참여 기록",
         nextActionLabel: "다음 행동",
         ownerNextAction: "TikTok 채널 관리",
         ownerStatus: "Creator 권한 활성화",
+        referralRecord: "추천 공유 기록",
+        recordLabel: "생성될 평판 기록",
         tiktokConnected: "TikTok 채널 연결됨",
+        tiktokConnectedRecord: "TikTok 채널 연결 기록",
         tiktokDetailFallback: "AI 스타 채널 상태 확인",
         tiktokRequired: "TikTok 연결 필요",
         tiktokRequiredBody: "AI 스타 운영 권한은 활성화됐고, 이제 TikTok 채널 연결이 다음 단계입니다.",
@@ -723,10 +727,14 @@ function StarViewerRelationshipCard({
               : "Connect account",
         guidance:
           "Creator is permission to operate the AI Star. Founder is your participation role inside this AI Star Universe.",
+        founderJoinRecord: "Founder join record",
         nextActionLabel: "Next action",
         ownerNextAction: "Manage TikTok channel",
         ownerStatus: "Creator permission active",
+        referralRecord: "Referral share record",
+        recordLabel: "Reputation record",
         tiktokConnected: "TikTok channel connected",
+        tiktokConnectedRecord: "TikTok channel connection record",
         tiktokDetailFallback: "Review AI Star channel status",
         tiktokRequired: "TikTok connection required",
         tiktokRequiredBody:
@@ -766,6 +774,12 @@ function StarViewerRelationshipCard({
         label: primaryAction.label,
         status: primaryAction.status,
       };
+  const relationshipEventLabel =
+    relationshipAction.eventType === "creator_social_connected"
+      ? labels.tiktokConnectedRecord
+      : relationshipAction.eventType === "referral_shared"
+        ? labels.referralRecord
+        : labels.founderJoinRecord;
 
   return (
     <section className="mt-3 grid gap-2 rounded-[1.15rem] border border-zinc-200 bg-white p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.055)] sm:mt-4 sm:grid-cols-[0.78fr_1.22fr] sm:p-4">
@@ -854,8 +868,11 @@ function StarViewerRelationshipCard({
             <p className="mt-1 truncate text-base font-semibold text-zinc-950">
               {relationshipAction.status}
             </p>
-            <p className="mt-1 truncate font-mono text-xs font-semibold text-zinc-500">
-              {relationshipAction.eventType}
+            <p
+              className="mt-1 truncate text-xs font-semibold text-zinc-500"
+              title={relationshipAction.eventType}
+            >
+              {labels.recordLabel}: {relationshipEventLabel}
             </p>
             <p className="mt-1 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all] sm:hidden">
               {relationshipAction.detail}
@@ -1023,14 +1040,17 @@ function StarDetailMobileSignpost({
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
-              {isKorean ? "생성될 신호" : "Signal"}
+              {isKorean ? "생성될 평판 기록" : "Reputation record"}
             </p>
             <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
               {primaryReputationEventLabel}
             </p>
           </div>
-          <span className="shrink-0 rounded-full bg-white px-2.5 py-1 font-mono text-[0.66rem] font-semibold text-zinc-600">
-            {primaryReputationEventType}
+          <span
+            className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[0.66rem] font-semibold text-zinc-600"
+            title={primaryReputationEventType}
+          >
+            {isKorean ? "기록 준비" : "Record ready"}
           </span>
         </div>
         <StarActionLink
@@ -1178,6 +1198,7 @@ function FounderNextReputationPath({
       event: "founder_joined",
       icon: Crown,
       label: isKorean ? "Founder 참여 완료" : "Founder joined",
+      recordLabel: isKorean ? "Founder 참여 기록" : "Founder join record",
       state: "done",
     },
     {
@@ -1185,18 +1206,21 @@ function FounderNextReputationPath({
       href: "#referral-builder",
       icon: Share2,
       label: isKorean ? "추천 공유" : "Share referral",
+      recordLabel: isKorean ? "추천 공유 기록" : "Referral share record",
       state: "active",
     },
     {
       event: "event_ledger",
       icon: Database,
       label: isKorean ? "평판 기록" : "Reputation record",
+      recordLabel: isKorean ? "보상/참여 기록" : "Reward and join record",
       state: "next",
     },
     {
       event: "creator_unlock_evaluated",
       icon: Bot,
       label: isKorean ? "Creator Journey" : "Creator Journey",
+      recordLabel: isKorean ? "권한 조건 점검" : "Permission condition review",
       state: "next",
     },
   ];
@@ -1274,15 +1298,16 @@ function FounderNextReputationPath({
               </p>
               <p
                 className={joinClasses(
-                  "mt-2 break-all font-mono text-[0.62rem] font-semibold leading-4",
+                  "mt-2 text-[0.62rem] font-semibold leading-4 [word-break:keep-all]",
                   isActive
                     ? "text-white/58"
                     : isDone
                       ? "text-emerald-700/70"
                       : "text-zinc-400",
                 )}
+                title={step.event}
               >
-                {step.event}
+                {step.recordLabel}
               </p>
             </div>
           );

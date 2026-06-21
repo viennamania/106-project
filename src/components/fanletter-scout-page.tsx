@@ -120,7 +120,7 @@ function getScoutPageCopy(locale: Locale) {
       primaryJoin: "Founder 참여 후 공유",
       primaryShare: "추천 링크 공유하기",
       reputationEvent: "평판 기록",
-      reputationEventValue: "referral_shared",
+      reputationEventValue: "추천 공유 기록",
       role: "내 역할",
       scoutSummary: "스카우트 상태",
       selectedStar: "선택 AI 스타",
@@ -136,7 +136,7 @@ function getScoutPageCopy(locale: Locale) {
         scout: "스카우트 점수",
       },
       signpostSubtitle:
-        "추천 링크 공유는 AI 스타 유니버스의 파운더 네트워크 성장과 AgentRank 평판 기록으로 이어집니다.",
+        "추천 링크 공유는 AI 스타 유니버스의 파운더 네트워크 성장과 평판 기록으로 이어집니다.",
       steps: ["추천 링크 생성", "SNS 공유", "Founder 참여", "평판 기록"],
     };
   }
@@ -160,7 +160,7 @@ function getScoutPageCopy(locale: Locale) {
     primaryJoin: "Join Founder, then share",
     primaryShare: "Share referral link",
     reputationEvent: "Reputation event",
-    reputationEventValue: "referral_shared",
+    reputationEventValue: "Referral share record",
     role: "My role",
     scoutSummary: "Scout status",
     selectedStar: "Selected AI Star",
@@ -176,7 +176,7 @@ function getScoutPageCopy(locale: Locale) {
       scout: "Scout score",
     },
     signpostSubtitle:
-      "Referral sharing grows the selected AI Star Universe's Founder Network and creates AgentRank reputation records.",
+      "Referral sharing grows the selected AI Star Universe's Founder Network and creates reputation records.",
     steps: [
       "Create referral link",
       "Share to SNS",
@@ -425,7 +425,7 @@ export function FanletterScoutPage({
                       <p className="text-xs font-semibold text-black/45">
                         {copy.reputationEvent}
                       </p>
-                      <p className="mt-1 truncate font-mono text-sm font-semibold">
+                      <p className="mt-1 truncate text-sm font-semibold">
                         {copy.reputationEventValue}
                       </p>
                     </div>

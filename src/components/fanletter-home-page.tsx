@@ -1138,7 +1138,7 @@ function FanletterProductHomeDashboard({
         actionResult: "선택하면 상세에서 참여",
         aiStarBadge: "AI STAR",
         eventResult: "평판 기록 생성",
-        resultDetail: "AgentRank에 발견 신호 저장",
+        resultDetail: "발견 신호가 평판 기록에 저장",
         unlocked: "활성화",
         universeMap: "AI 스타 유니버스 맵",
         videoPreview: "브이로그 프리뷰",
@@ -1174,7 +1174,7 @@ function FanletterProductHomeDashboard({
         actionResult: "Open detail to join",
         aiStarBadge: "AI STAR",
         eventResult: "AI Star Discovery event",
-        resultDetail: "Discovery signal is recorded for AgentRank.",
+        resultDetail: "Discovery signal is saved as a reputation record.",
         unlocked: "Unlocked",
         universeMap: "AI Star Universe Map",
         videoPreview: "Vlog Preview",
@@ -1234,24 +1234,6 @@ function FanletterProductHomeDashboard({
     ...livePreviewSlides,
     ...mockBackfillPreviewSlides,
   ].slice(0, 3);
-  const homeOutcomeCards = [
-    {
-      label: isKo ? "현재 위치" : "Current",
-      value: productCopy.discovery,
-      detail: primaryStar?.name ?? productCopy.topGrowingTitle,
-    },
-    {
-      label: isKo ? "다음 행동" : "Next action",
-      value: productCopy.primaryCta,
-      detail: productCopy.actionResult,
-    },
-    {
-      label: isKo ? "평판 이벤트" : "Reputation event",
-      value: productCopy.eventResult,
-      detail: productCopy.resultDetail,
-      isStrong: true,
-    },
-  ];
   const aiStarPortraitClip = {
     clipPath: "polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%)",
   };
@@ -1312,8 +1294,8 @@ function FanletterProductHomeDashboard({
                   ]}
                   subtitle={
                     isKo
-                      ? "먼저 성장 중인 AI 스타를 선택하세요. 선택과 참여가 AgentRank 이벤트로 쌓입니다."
-                      : "Start by choosing a growing AI Star. Discovery and joins become AgentRank events."
+                      ? "먼저 성장 중인 AI 스타를 선택하세요. 선택과 참여가 평판 기록으로 쌓입니다."
+                      : "Start by choosing a growing AI Star. Discovery and joins become reputation records."
                   }
                   title={
                     isKo
@@ -1321,39 +1303,6 @@ function FanletterProductHomeDashboard({
                       : "Next action: discover an AI Star"
                   }
                 />
-                <div className="grid gap-2 min-[380px]:grid-cols-3">
-                  {homeOutcomeCards.map((item) => (
-                    <div
-                      className={joinClasses(
-                        "min-w-0 rounded-2xl border px-3 py-2.5",
-                        item.isStrong
-                          ? "border-zinc-950 bg-zinc-950 text-white"
-                          : "border-zinc-200 bg-zinc-50 text-zinc-950",
-                      )}
-                      key={item.label}
-                    >
-                      <p
-                        className={joinClasses(
-                          "truncate text-[0.58rem] font-semibold uppercase tracking-[0.1em]",
-                          item.isStrong ? "text-white/58" : "text-zinc-500",
-                        )}
-                      >
-                        {item.label}
-                      </p>
-                      <p className="mt-1 truncate text-sm font-semibold">
-                        {item.value}
-                      </p>
-                      <p
-                        className={joinClasses(
-                          "mt-0.5 truncate text-[0.66rem] font-semibold",
-                          item.isStrong ? "text-white/58" : "text-zinc-500",
-                        )}
-                      >
-                        {item.detail}
-                      </p>
-                    </div>
-                  ))}
-                </div>
               </div>
 
               {previewSlides.length > 0 ? (
@@ -1458,23 +1407,20 @@ function FanletterProductHomeDashboard({
                             </span>
                           </span>
                         </div>
-                        <div className="mt-4 grid grid-cols-2 gap-2 text-center sm:grid-cols-3">
+                        <div className="mt-4 grid grid-cols-3 gap-1.5 text-center sm:gap-2">
                           {[
                             [productCopy.score, star.starScore],
                             [productCopy.growth, `+${star.growthPercent}%`],
                             [productCopy.open, star.openSlots.open],
-                          ].map(([label, value], metricIndex) => (
+                          ].map(([label, value]) => (
                             <span
-                              className={joinClasses(
-                                "min-w-0 rounded-xl bg-zinc-50 px-2 py-2",
-                                metricIndex === 2 ? "hidden sm:block" : "",
-                              )}
+                              className="min-w-0 rounded-xl bg-zinc-50 px-1.5 py-2"
                               key={label}
                             >
                               <span className="block truncate text-sm font-semibold text-zinc-950">
                                 {value}
                               </span>
-                              <span className="mt-0.5 block truncate whitespace-nowrap text-[0.58rem] font-semibold tracking-normal text-slate-400">
+                              <span className="mt-0.5 block break-words text-[0.54rem] font-semibold leading-tight tracking-normal text-slate-400">
                                 {label}
                               </span>
                             </span>

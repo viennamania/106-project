@@ -180,10 +180,10 @@ function ReferralShareOutcomeCard({
         influence: "영향력",
         ledgerCta: "평판 기록 보기",
         nextBody:
-          "공유 기록은 추천 보상, Creator 진행률, AgentRank 원장으로 이어집니다.",
+          "공유 기록은 추천 보상, Creator 진행률, 평판 기록으로 이어집니다.",
         nextTitle: "다음 행동",
         pendingBody:
-          "링크를 복사하거나 SNS로 공유하면 referral_shared 기록이 생성됩니다.",
+          "링크를 복사하거나 SNS로 공유하면 추천 공유 기록이 생성됩니다.",
         pendingTitle: "공유 대기",
         readyBody:
           "새 Founder가 이 링크로 참여하면 CP와 Creator 진행률이 이어집니다.",
@@ -197,10 +197,10 @@ function ReferralShareOutcomeCard({
         influence: "Influence",
         ledgerCta: "View records",
         nextBody:
-          "The share record feeds referral rewards, Creator progress, and the AgentRank ledger.",
+          "The share record feeds referral rewards, Creator progress, and reputation records.",
         nextTitle: "Next actions",
         pendingBody:
-          "Copy the link or share to SNS to create a referral_shared record.",
+          "Copy the link or share to SNS to create a referral share record.",
         pendingTitle: "Share pending",
         readyBody:
           "When a new Founder joins through this link, CP and Creator progress continue.",
@@ -270,8 +270,10 @@ function ReferralShareOutcomeCard({
         ))}
       </div>
 
-      <p className="mt-3 break-all rounded-lg bg-white/78 px-3 py-2 font-mono text-[0.68rem] font-semibold leading-4 text-zinc-600">
-        referral_shared → cp_earned → creator_unlock_evaluated
+      <p className="mt-3 rounded-lg bg-white/78 px-3 py-2 text-[0.68rem] font-semibold leading-4 text-zinc-600 [word-break:keep-all]">
+        {isKorean
+          ? "추천 공유 → CP 보상 → Creator 조건 반영"
+          : "Referral share → CP reward → Creator condition update"}
       </p>
 
       {hasSharedReferral ? (

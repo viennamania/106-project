@@ -68,7 +68,7 @@ function getCopy(locale: Locale) {
       },
       apiCapabilityTitle: "TikTok API 적용 범위",
       apiCoverageCta: "커버리지 확인",
-      apiCoverageHint: "AgentRank 감사 흐름",
+      apiCoverageHint: "평판 기록 점검",
       apiCapabilityItems: {
         content_publish: {
           detail:
@@ -142,7 +142,7 @@ function getCopy(locale: Locale) {
       realOAuthCta: "TikTok으로 실제 연결 테스트",
       replaceCta: "채널 변경",
       reputationLedger: "평판 기록 보기",
-      reputationLedgerHint: "AgentRank 원장에서 연결 이벤트 확인",
+      reputationLedgerHint: "연결 기록을 평판 기록에서 확인",
       retryOAuthCta: "다시 승인 시도",
       roleCreator: "Creator",
       roleOwner: "Owner",
@@ -176,12 +176,12 @@ function getCopy(locale: Locale) {
       syncVideoViews: "조회",
       syncRealityItems: [
         {
-          detail: "creator_social_connected 평판 기록 생성",
+          detail: "TikTok 채널 연결 기록 생성",
           label: "계정 연결",
           status: "실제 OAuth",
         },
         {
-          detail: "content_engaged 테스트 기록 생성",
+          detail: "성과 동기화 테스트 기록 생성",
           label: "성과 동기화",
           status: "mock",
         },
@@ -232,7 +232,7 @@ function getCopy(locale: Locale) {
       },
       apiCapabilityTitle: "TikTok API適用範囲",
       apiCoverageCta: "カバレッジ確認",
-      apiCoverageHint: "AgentRank監査フロー",
+      apiCoverageHint: "評判記録チェック",
       apiCapabilityItems: {
         content_publish: {
           detail:
@@ -307,7 +307,7 @@ function getCopy(locale: Locale) {
       realOAuthCta: "TikTokで実接続テスト",
       replaceCta: "チャンネル変更",
       reputationLedger: "評判記録を見る",
-      reputationLedgerHint: "AgentRank台帳で接続イベントを確認",
+      reputationLedgerHint: "接続イベントを評判記録で確認",
       retryOAuthCta: "もう一度認証",
       roleCreator: "Creator",
       roleOwner: "Owner",
@@ -341,12 +341,12 @@ function getCopy(locale: Locale) {
       syncVideoViews: "再生",
       syncRealityItems: [
         {
-          detail: "creator_social_connected評判記録を作成",
+          detail: "TikTokチャンネル接続記録を作成",
           label: "アカウント接続",
           status: "実OAuth",
         },
         {
-          detail: "content_engagedテスト記録を作成",
+          detail: "成果同期テスト記録を作成",
           label: "成果同期",
           status: "mock",
         },
@@ -396,7 +396,7 @@ function getCopy(locale: Locale) {
     },
     apiCapabilityTitle: "TikTok API coverage",
     apiCoverageCta: "Check Coverage",
-    apiCoverageHint: "AgentRank audit flow",
+    apiCoverageHint: "Reputation record review",
     apiCapabilityItems: {
       content_publish: {
         detail:
@@ -473,7 +473,7 @@ function getCopy(locale: Locale) {
     realOAuthCta: "Test real connection with TikTok",
     replaceCta: "Change channel",
     reputationLedger: "View Reputation Record",
-    reputationLedgerHint: "Check the connection event in AgentRank Ledger",
+    reputationLedgerHint: "Check the connection event in reputation records",
     retryOAuthCta: "Try authorization again",
     roleCreator: "Creator",
     roleOwner: "Owner",
@@ -507,12 +507,12 @@ function getCopy(locale: Locale) {
     syncVideoViews: "views",
     syncRealityItems: [
       {
-        detail: "Creates a creator_social_connected Reputation Record",
+        detail: "Creates a TikTok channel connection record",
         label: "Account connection",
         status: "Real OAuth",
       },
       {
-        detail: "Creates a content_engaged test record",
+        detail: "Creates a performance sync test record",
         label: "Performance sync",
         status: "mock",
       },
@@ -1503,9 +1503,12 @@ export function FanletterAIStarSocialAccountCard({
                           {capability.endpoint}
                         </span>
                       </span>
-                      <span className="inline-flex min-h-6 max-w-full items-center rounded-full bg-zinc-100 px-2 font-mono text-[0.62rem] font-semibold text-zinc-600">
+                      <span
+                        className="inline-flex min-h-6 max-w-full items-center rounded-full bg-zinc-100 px-2 text-[0.62rem] font-semibold text-zinc-600"
+                        title={capability.agentRankEventType}
+                      >
                         <span className="min-w-0 truncate">
-                          {capability.agentRankEventType}
+                          {item.title} · {copy.flowRecord}
                         </span>
                       </span>
                     </div>
@@ -1733,7 +1736,7 @@ export function FanletterAIStarSocialAccountCard({
                 </p>
               ) : null}
               <p className="mt-1 text-xs font-semibold text-zinc-500">
-                creator_social_connected · target: ai_star · platform: tiktok
+                {copy.eventPreview} · {copy.tiktok}
               </p>
             </div>
             {account ? (
@@ -1948,8 +1951,7 @@ export function FanletterAIStarSocialAccountCard({
                   <div className="min-w-0">
                     <p className="font-semibold">{copy.eventPreview}</p>
                     <p className="mt-1 text-xs font-semibold text-emerald-800/78">
-                      creator_social_connected · target: ai_star · platform:
-                      tiktok
+                      {copy.connectedTitle} · {copy.flowRecord}
                     </p>
                   </div>
                 </div>
