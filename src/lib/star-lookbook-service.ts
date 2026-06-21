@@ -20,7 +20,7 @@ import { put } from "@vercel/blob";
 
 const DEFAULT_MODEL = "fal-ai/nano-banana-2/edit";
 const DEFAULT_ASPECT_RATIO: StarLookbookAspectRatio = "4:5";
-const DEFAULT_RESOLUTION: StarLookbookResolution = "2K";
+const DEFAULT_RESOLUTION: StarLookbookResolution = "1K";
 const DEFAULT_OUTPUT_FORMAT = "png";
 const DEFAULT_SAFETY_TOLERANCE: FalImageSafetyTolerance = "2";
 const DEFAULT_TIMEOUT_MS = 120_000;
@@ -95,6 +95,9 @@ function clampInt(value: number | undefined, min: number, max: number, fallback:
 }
 
 function resolveModelName() {
+  // Keep a multi-image (nano-banana family) model: lookbook fitting needs the
+  // star + garment images together. Override with FAL_LOOKBOOK_MODEL if needed,
+  // but only with another multi-image edit model (NOT flux-kontext, single-image).
   const model = process.env.FAL_LOOKBOOK_MODEL?.trim() || DEFAULT_MODEL;
 
   if (!/^[^/\s]+\/[^/\s]+(?:\/[^/\s]+)*$/.test(model)) {
@@ -254,6 +257,62 @@ async function uploadLookbookImage({
   };
 }
 
+function getFalErrorStatus(error: unknown): number | null {
+  if (!error || typeof error !== "object") {
+    return null;
+  }
+
+  const candidate = error as {
+    status?: unknown;
+    statusCode?: unknown;
+    response?: { status?: unknown };
+  };
+
+  if (typeof candidate.status === "number") {
+    return candidate.status;
+  }
+
+  if (typeof candidate.statusCode === "number") {
+    return candidate.statusCode;
+  }
+
+  if (typeof candidate.response?.status === "number") {
+    return candidate.response.status;
+  }
+
+  return null;
+}
+
+function normalizeFalGenerationError(
+  error: unknown,
+  context: { model: string; resolution: string },
+): Error {
+  const baseMessage =
+    error instanceof Error ? error.message : "AI lookbook generation failed.";
+  const status = getFalErrorStatus(error);
+  const detail = `(model: ${context.model}, resolution: ${context.resolution}${
+    status ? `, status: ${status}` : ""
+  })`;
+
+  if (
+    status === 401 ||
+    status === 403 ||
+    /forbidden|unauthorized|access denied/i.test(baseMessage)
+  ) {
+    return new Error(
+      `fal denied the lookbook request ${detail}. Check FAL_KEY access to this model/resolution and that the star & garment image URLs are publicly reachable.`,
+    );
+  }
+
+  if (/content policy|content_policy|safety|nsfw/i.test(baseMessage)) {
+    return new Error(
+      `fal safety filter rejected the request ${detail}. Try a more neutral scene description.`,
+    );
+  }
+
+  return new Error(`${baseMessage} ${detail}`);
+}
+
 export async function generateStarLookbook(
   input: GenerateStarLookbookInput,
 ): Promise<GeneratedLookbookImage[]> {
@@ -312,13 +371,20 @@ export async function generateStarLookbook(
   };
 
   const fal = createFalClient({ credentials: falKey });
-  const result = await fal.subscribe(model, {
-    input: modelInput,
-    logs: true,
-    mode: "polling",
-    pollInterval: 1000,
-    timeout: DEFAULT_TIMEOUT_MS,
-  });
+
+  let result: Awaited<ReturnType<typeof fal.subscribe>>;
+
+  try {
+    result = await fal.subscribe(model, {
+      input: modelInput,
+      logs: true,
+      mode: "polling",
+      pollInterval: 1000,
+      timeout: DEFAULT_TIMEOUT_MS,
+    });
+  } catch (error) {
+    throw normalizeFalGenerationError(error, { model, resolution });
+  }
 
   const images = collectFalImageFiles(result.data);
 
