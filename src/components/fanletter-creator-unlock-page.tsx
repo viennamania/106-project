@@ -3744,21 +3744,6 @@ export function FanletterCreatorUnlockPage({
               tiktokChannelHref={tiktokChannelHref}
               unlock={unlock}
             />
-
-            <div className="mt-4 sm:hidden">
-              <CreatorJourneyStepLinks
-                activeView="hub"
-                conditionsHref={conditionsHref}
-                creatorJourneyNextHref={creatorJourneyNextHref}
-                launchHref={launchHref}
-                locale={locale}
-                primaryActionHref={creatorJourneyNextHref}
-                sourceHref={sourceHref}
-                tiktokChannelHref={tiktokChannelHref}
-                unlock={unlock}
-              />
-            </div>
-
             {creatorJourneySocialConnected ? (
               <section className="mt-4 rounded-[1.1rem] border border-emerald-200 bg-emerald-50 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.05)] sm:p-5">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
