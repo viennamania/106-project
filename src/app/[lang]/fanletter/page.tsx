@@ -90,9 +90,25 @@ async function safeLoadFanletterHomeData<T>(
   label: string,
   promise: Promise<T>,
   fallback: T,
+  timeoutMs = 4500,
 ): Promise<T> {
   try {
-    return await promise;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    const timeoutPromise = new Promise<T>((resolve) => {
+      timeoutId = setTimeout(() => {
+        console.error(
+          `Timed out loading FanLetter home ${label}; using fallback`,
+        );
+        resolve(fallback);
+      }, timeoutMs);
+    });
+    const result = await Promise.race([promise, timeoutPromise]);
+
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+
+    return result;
   } catch (error) {
     console.error(`Failed to load FanLetter home ${label}`, error);
 
