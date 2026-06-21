@@ -56,6 +56,7 @@ type LookbookCopy = {
   costLabel: string;
   balanceLabel: string;
   insufficientPoints: string;
+  scenePresetsLabel: string;
 };
 
 const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
@@ -92,6 +93,7 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     costLabel: "필요 포인트",
     balanceLabel: "보유 포인트",
     insufficientPoints: "포인트가 부족합니다.",
+    scenePresetsLabel: "빠른 배경",
   },
   en: {
     title: "AI Star Lookbook Studio",
@@ -128,8 +130,56 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     costLabel: "Cost",
     balanceLabel: "Your points",
     insufficientPoints: "Not enough points.",
+    scenePresetsLabel: "Quick scenes",
   },
 };
+
+type ScenePreset = { id: string; ko: string; en: string; brief: string };
+
+const SCENE_PRESETS: ScenePreset[] = [
+  {
+    id: "seongsu-cafe",
+    ko: "성수동 카페",
+    en: "Seongsu cafe",
+    brief:
+      "a cozy Seongsu-dong cafe with warm window light, wooden interior, full body",
+  },
+  {
+    id: "hannam-street",
+    ko: "한남동 거리",
+    en: "Hannam street",
+    brief:
+      "a stylish Hannam-dong street with soft daylight and an urban Seoul backdrop, full body",
+  },
+  {
+    id: "minimal-studio",
+    ko: "미니멀 스튜디오",
+    en: "Minimal studio",
+    brief:
+      "a clean minimal studio with a neutral seamless backdrop and soft even lighting, full body",
+  },
+  {
+    id: "han-river",
+    ko: "한강 공원",
+    en: "Han River park",
+    brief:
+      "a Han River park with natural daylight and greenery, relaxed outdoor mood, full body",
+  },
+  {
+    id: "city-night",
+    ko: "도심 야경",
+    en: "City night",
+    brief:
+      "a Seoul city street at night with soft bokeh neon lights, cinematic mood, full body",
+  },
+  {
+    id: "white-home",
+    ko: "화이트 홈",
+    en: "White home",
+    brief:
+      "a bright minimalist home interior with natural window light, lifestyle mood, full body",
+  },
+];
 
 const ASPECT_OPTIONS: LookbookAspectRatio[] = [
   "4:5",
@@ -537,6 +587,33 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
             type="text"
             value={sceneBrief}
           />
+          <div className="mt-2">
+            <span className="mb-1.5 block text-xs font-bold text-neutral-400">
+              {copy.scenePresetsLabel}
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {SCENE_PRESETS.map((preset) => {
+                const active = sceneBrief === preset.brief;
+
+                return (
+                  <button
+                    className={`rounded-full border px-2.5 py-1 text-xs font-bold transition ${
+                      active
+                        ? "border-violet-400 bg-violet-600 text-white"
+                        : "border-neutral-200 bg-white text-neutral-600"
+                    }`}
+                    key={preset.id}
+                    onClick={() =>
+                      setSceneBrief(active ? "" : preset.brief)
+                    }
+                    type="button"
+                  >
+                    {locale === "en" ? preset.en : preset.ko}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </Field>
 
         <div className="grid grid-cols-3 gap-3">
