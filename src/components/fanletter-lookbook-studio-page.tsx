@@ -57,6 +57,7 @@ type LookbookCopy = {
   balanceLabel: string;
   insufficientPoints: string;
   scenePresetsLabel: string;
+  pickStar: string;
 };
 
 const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
@@ -94,6 +95,7 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     balanceLabel: "보유 포인트",
     insufficientPoints: "포인트가 부족합니다.",
     scenePresetsLabel: "빠른 배경",
+    pickStar: "스타 선택",
   },
   en: {
     title: "AI Star Lookbook Studio",
@@ -131,6 +133,7 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     balanceLabel: "Your points",
     insufficientPoints: "Not enough points.",
     scenePresetsLabel: "Quick scenes",
+    pickStar: "Pick a star",
   },
 };
 
@@ -213,6 +216,9 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [images, setImages] = useState<LookbookImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [spendablePoints, setSpendablePoints] = useState<number | null>(null);
+  const [starAvatars, setStarAvatars] = useState<{ url: string; label: string }[]>(
+    [],
+  );
 
   useEffect(() => {
     if (!accountAddress || !email) {
@@ -370,6 +376,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
       const data = (await response.json().catch(() => null)) as {
         profile?: {
           avatarImageUrl?: string | null;
+          avatarImageSet?: Array<{ url?: string | null; label?: string | null }> | null;
           displayName?: string | null;
           characterPersona?: { name?: string | null } | null;
         };
@@ -381,7 +388,17 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
         return;
       }
 
-      setStarAvatarUrl(data.profile.avatarImageUrl);
+      const primaryUrl = data.profile.avatarImageUrl;
+      const candidateUrls = [
+        primaryUrl,
+        ...(data.profile.avatarImageSet ?? []).map((item) => item.url ?? ""),
+      ].filter(Boolean) as string[];
+      const uniqueUrls = Array.from(new Set(candidateUrls));
+
+      setStarAvatars(
+        uniqueUrls.map((url, index) => ({ url, label: `${index + 1}` })),
+      );
+      setStarAvatarUrl(primaryUrl);
       const resolvedName =
         data.profile.characterPersona?.name ?? data.profile.displayName ?? "";
 
@@ -528,6 +545,37 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
               />
             </label>
           </div>
+          {starAvatars.length > 1 ? (
+            <div className="mt-3">
+              <span className="mb-1.5 block text-xs font-bold text-neutral-400">
+                {copy.pickStar}
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {starAvatars.map((avatar) => {
+                  const active = starAvatarUrl === avatar.url;
+
+                  return (
+                    <button
+                      className={`overflow-hidden rounded-xl border-2 transition ${
+                        active ? "border-violet-500" : "border-transparent"
+                      }`}
+                      key={avatar.url}
+                      onClick={() => setStarAvatarUrl(avatar.url)}
+                      title={avatar.label}
+                      type="button"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        alt={`AI star ${avatar.label}`}
+                        className="h-16 w-16 object-cover"
+                        src={avatar.url}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
         </Field>
 
         <Field label={copy.starNameLabel}>

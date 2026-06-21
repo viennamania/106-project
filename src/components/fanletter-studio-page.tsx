@@ -17,6 +17,7 @@ import {
   Share2,
   ShieldAlert,
   ShieldCheck,
+  Shirt,
   Sparkles,
   Upload,
 } from "lucide-react";
@@ -214,6 +215,13 @@ function getCopy(locale: Locale) {
               cta: "팬 요청에서 선택",
               eyebrow: "팬 요청 전용 · 1 USDT",
               title: "팬 요청 답장 유료 업로드",
+            },
+            {
+              body:
+                "옷 사진을 올리면 내 AI 스타가 입은 쇼핑몰 룩북을 만듭니다.",
+              cta: "룩북 만들기",
+              eyebrow: "포인트 · 50P/장",
+              title: "AI 스타 룩북 스튜디오",
             },
           ],
           eyebrow: "Today",
@@ -437,6 +445,13 @@ function getCopy(locale: Locale) {
               cta: "Choose fan request",
               eyebrow: "Fan request only · 1 USDT",
               title: "Paid fan-request reply",
+            },
+            {
+              body:
+                "Upload a garment photo and your AI star wears it in a shop lookbook.",
+              cta: "Make a lookbook",
+              eyebrow: "Points · 50P/image",
+              title: "AI Star Lookbook Studio",
             },
           ],
           eyebrow: "Today",
@@ -988,14 +1003,16 @@ function ContentHubSection({
   createHref,
   directUploadHref,
   fanRequestsHref,
+  lookbookHref,
 }: {
   copy: ReturnType<typeof getCopy>;
   createHref: string;
   directUploadHref: string;
   fanRequestsHref: string;
+  lookbookHref: string;
 }) {
-  const hrefs = [createHref, directUploadHref, fanRequestsHref];
-  const icons = [Sparkles, Upload, BadgeDollarSign];
+  const hrefs = [createHref, directUploadHref, fanRequestsHref, lookbookHref];
+  const icons = [Sparkles, Upload, BadgeDollarSign, Shirt];
 
   return (
     <section className="rounded-lg border border-black/10 bg-white p-3 shadow-[0_18px_42px_rgba(8,18,12,0.06)] ring-1 ring-white/70 sm:p-5">
@@ -1984,6 +2001,10 @@ export function FanletterStudioPage({
     buildPathWithReferral(`/${locale}/fanletter/studio/paid-upload`, referralCode),
     { returnTo: studioHref },
   );
+  const lookbookHref = setPathSearchParams(
+    buildPathWithReferral(`/${locale}/fanletter/studio/lookbook`, referralCode),
+    { returnTo: studioHref },
+  );
   const activateHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/activate`, referralCode),
     { returnTo: studioHref },
@@ -2696,6 +2717,7 @@ export function FanletterStudioPage({
               createHref={createHref}
               directUploadHref={directUploadHref}
               fanRequestsHref={fanRequestsHref}
+              lookbookHref={lookbookHref}
             />
 
             <FanRequestsSection
