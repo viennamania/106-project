@@ -630,7 +630,7 @@ function buildTikTokOAuthReturnTo({
   if (source === "fanletter_creator_unlock") {
     query.set("starId", starId);
 
-    return `/${locale}/fanletter/creator-unlock?${query.toString()}#tiktok-channel`;
+    return `/${locale}/fanletter/creator-unlock/tiktok?${query.toString()}`;
   }
 
   if (source === "fanletter_founder_universe") {

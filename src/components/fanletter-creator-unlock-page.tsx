@@ -25,7 +25,6 @@ import {
 } from "@/components/fanletter-creator-mock-launch-state";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterAgentRankJourneyRail } from "@/components/fanletter-agentrank-journey-rail";
-import { FanletterAIStarSocialAccountCard } from "@/components/fanletter-ai-star-social-account-card";
 import { FanletterAgentRankCoverageActionNotice } from "@/components/fanletter-agentrank-coverage-action-notice";
 import { FanletterReputationTracker } from "@/components/fanletter-reputation-tracker";
 import { FanletterResponsiveActionPanel } from "@/components/fanletter-responsive-action-panel";
@@ -57,7 +56,6 @@ import {
   type MemberPortfolioRole,
   type SpawnedAIStar,
 } from "@/mock/fanletterV2";
-import { buildFanletterAIStarSocialAccountViewModel } from "@/mock/fanletter-social-accounts";
 import type { Locale } from "@/lib/i18n";
 
 type CreatorUnlockGuideAction = ComponentProps<
@@ -2546,21 +2544,14 @@ export function FanletterCreatorUnlockPage({
     portfolio.primaryStarId;
   const socialSourceStarId =
     trackingSourceStarId ?? selectedSourceOption?.starId ?? "minseo";
-  const creatorJourneySocialAccount =
-    buildFanletterAIStarSocialAccountViewModel({
-      canConnect: !isPreviewMode,
-      creatorMemberId: `creator:${portfolio.memberName}`,
-      creatorMemberInitials: memberInitials,
-      creatorMemberName: portfolio.memberName,
-      creatorRole: "owner",
-      starId: socialSourceStarId,
-    });
+  const tiktokChannelHref = `/${locale}/fanletter/creator-unlock/tiktok?starId=${encodeURIComponent(
+    socialSourceStarId,
+  )}`;
   const creatorJourneyServerSocialAccount = useFanletterAIStarServerSocialAccount({
     platform: "tiktok",
     starId: socialSourceStarId,
   });
-  const creatorJourneyEffectiveSocialAccount =
-    creatorJourneyServerSocialAccount ?? creatorJourneySocialAccount.account;
+  const creatorJourneyEffectiveSocialAccount = creatorJourneyServerSocialAccount;
   const creatorJourneySocialConnected = Boolean(
     creatorJourneyEffectiveSocialAccount,
   );
@@ -2674,7 +2665,7 @@ export function FanletterCreatorUnlockPage({
                 source: "fanletter_creator_unlock",
                 starId: trackingSourceStarId,
               },
-              href: "#tiktok-channel",
+              href: tiktokChannelHref,
               label: locale === "ko" ? "TikTok 연결하기" : "Connect TikTok",
               metadata: {
                 placement: "creator_unlock_action_guide_tiktok",
@@ -3121,17 +3112,58 @@ export function FanletterCreatorUnlockPage({
           unlock={unlock}
         />
 
-        <FanletterAIStarSocialAccountCard
-          className="mt-5"
-          connectHref={isPreviewMode ? connectHref : "#creator-unlock-conditions"}
-          locale={locale}
-          social={creatorJourneySocialAccount}
-          source="fanletter_creator_unlock"
-          starId={socialSourceStarId}
-          starName={selectedSourceOption?.starName ?? displaySourceUniverseName}
-          starPortraitImageUrl={selectedSourceOption?.portraitImageUrl}
-          starPortraitInitials={selectedSourceOption?.portraitInitials}
-        />
+        <section
+          className="mt-5 rounded-[1.1rem] border border-zinc-200 bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.045)] sm:p-5"
+          id="tiktok-channel"
+        >
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold text-zinc-700">
+                <Bot className="size-3.5" />
+                {locale === "ko" ? "AI 스타 TikTok 채널" : "AI Star TikTok channel"}
+              </div>
+              <h2 className="mt-3 text-2xl font-semibold tracking-normal text-black">
+                {creatorJourneySocialConnected
+                  ? locale === "ko"
+                    ? "TikTok 연결 완료"
+                    : "TikTok connected"
+                  : locale === "ko"
+                    ? "TikTok 연결은 전용 화면에서 진행"
+                    : "Connect TikTok on a focused page"}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600">
+                {creatorJourneySocialConnected
+                  ? locale === "ko"
+                    ? `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} 채널이 연결되어 평판 기록 조건에 반영되었습니다.`
+                    : `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} is connected and reflected in the Reputation Record condition.`
+                  : locale === "ko"
+                    ? "회원 개인 계정이 아니라 선택한 AI 스타의 공식 TikTok 채널을 연결합니다."
+                    : "This connects the selected AI Star's official TikTok channel, not a personal member account."}
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+              <Link
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white transition hover:bg-zinc-800"
+                href={tiktokChannelHref}
+              >
+                {creatorJourneySocialConnected
+                  ? locale === "ko"
+                    ? "연결 상태 보기"
+                    : "View connection"
+                  : locale === "ko"
+                    ? "TikTok 연결하기"
+                    : "Connect TikTok"}
+                <ArrowRight className="size-4" />
+              </Link>
+              <Link
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50"
+                href={creatorSocialLedgerHref}
+              >
+                {locale === "ko" ? "평판 기록 보기" : "View records"}
+              </Link>
+            </div>
+          </div>
+        </section>
 
         <FounderContributionPanel
           contribution={isPreviewMode ? null : founderContribution}
