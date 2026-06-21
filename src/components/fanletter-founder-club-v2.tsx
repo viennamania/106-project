@@ -892,9 +892,9 @@ export function MemberPortfolio({
                     { from: "my-ai" },
                   )
                 : setPathSearchParams(
-                    `/${locale}/fanletter/creator-unlock?starId=${encodeURIComponent(
+                    `/${locale}/fanletter/creator-unlock/tiktok?starId=${encodeURIComponent(
                       ownedStar.id,
-                    )}#tiktok-channel`,
+                    )}`,
                     { from: "my-ai" },
                   );
               const primaryLabel = socialAccount

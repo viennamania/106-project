@@ -230,9 +230,9 @@ export function FanletterMyAIPage({
       : "#my-ai-tiktok-test"
     : `/${locale}/fanletter/creator-unlock`;
   const primarySocialPermissionHref = primaryStar
-    ? `/${locale}/fanletter/creator-unlock?starId=${encodeURIComponent(
+    ? `/${locale}/fanletter/creator-unlock/tiktok?starId=${encodeURIComponent(
         primaryStar.id,
-      )}#tiktok-channel`
+      )}`
     : `/${locale}/fanletter/creator-unlock`;
   const connectedCount = ownedStars.filter((star) =>
     resolveSocialAccount(star.id),
@@ -427,9 +427,9 @@ export function FanletterMyAIPage({
               const primaryLabel = account ? copy.viewUniverse : copy.connect;
               const primaryActionHref = account
                 ? `/${locale}/fanletter/${encodeURIComponent(ownedStar.id)}/universe`
-                : `/${locale}/fanletter/creator-unlock?starId=${encodeURIComponent(
+                : `/${locale}/fanletter/creator-unlock/tiktok?starId=${encodeURIComponent(
                     ownedStar.id,
-                  )}#tiktok-channel`;
+                  )}`;
 
               return (
                 <article

@@ -89,7 +89,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const origin = getFanletterTikTokOAuthAppUrl(request.url);
   const state = decodeFanletterTikTokOAuthState(url.searchParams.get("state"));
-  const fallbackReturnTo = "/ko/fanletter/creator-unlock#tiktok-channel";
+  const fallbackReturnTo = "/ko/fanletter/creator-unlock/tiktok";
   const returnTo = state?.returnTo ?? fallbackReturnTo;
   const providerError = url.searchParams.get("error");
 

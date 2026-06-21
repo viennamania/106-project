@@ -682,7 +682,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
             creator_social_connected: {
               description:
                 "AI 스타별 TikTok 채널을 mock으로 연결해 Creator Journey 조건과 평판 기록을 함께 채웁니다.",
-              href: `/${locale}/fanletter/creator-unlock?${scopedQuery}#tiktok-channel`,
+              href: `/${locale}/fanletter/creator-unlock/tiktok?${scopedQuery}`,
               layer: "Creator Journey",
               trigger: "TikTok 채널 연결",
             },
@@ -726,7 +726,7 @@ function getGapAction(gap: string, locale: Locale, scope: CoverageAuditScope) {
             creator_social_connected: {
               description:
                 "Mock-connect the AI Star TikTok channel to complete the Creator Journey condition and create a reputation record.",
-              href: `/${locale}/fanletter/creator-unlock?${scopedQuery}#tiktok-channel`,
+              href: `/${locale}/fanletter/creator-unlock/tiktok?${scopedQuery}`,
               layer: "Creator Journey",
               trigger: "TikTok Channel Connected",
             },

@@ -755,7 +755,7 @@ function StarViewerRelationshipCard({
     ? {
         detail: tiktokDetail,
         eventType: "creator_social_connected",
-        href: "#tiktok-channel",
+        href: `/${locale}/fanletter/creator-unlock/tiktok?starId=${encodeURIComponent(star.id)}`,
         label: social.account ? labels.ownerNextAction : labels.tiktokRequired,
         status: social.account ? labels.tiktokConnected : labels.tiktokRequired,
       }
@@ -2549,9 +2549,9 @@ export function FanletterStarDetailPage({
 
               <FanletterAIStarSocialAccountCard
                 className="mt-4 max-w-2xl lg:mx-0"
-                connectHref={`/${locale}/fanletter/creator-unlock?starId=${encodeURIComponent(
+                connectHref={`/${locale}/fanletter/creator-unlock/tiktok?starId=${encodeURIComponent(
                   star.id,
-                )}#tiktok-channel`}
+                )}`}
                 locale={locale}
                 social={starSocialAccount}
                 source="fanletter_star_detail"

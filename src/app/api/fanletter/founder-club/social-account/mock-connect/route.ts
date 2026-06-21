@@ -200,7 +200,7 @@ export async function POST(request: Request) {
   };
   const eventPath =
     source === "fanletter_creator_unlock"
-      ? `/${locale}/fanletter/creator-unlock#tiktok-channel`
+      ? `/${locale}/fanletter/creator-unlock/tiktok?starId=${encodeURIComponent(starId)}`
       : source === "fanletter_my_ai"
         ? `/${locale}/fanletter/my-ai#my-ai-tiktok-test`
         : `/${locale}/fanletter/${encodeURIComponent(starId)}#tiktok-channel`;

@@ -3952,7 +3952,7 @@ export function FanletterFounderUniverseExplorer({
           />
 
           <FanletterAIStarSocialAccountCard
-            connectHref={`/${locale}/fanletter/creator-unlock?starId=${encodedStarId}#tiktok-channel`}
+            connectHref={`/${locale}/fanletter/creator-unlock/tiktok?starId=${encodedStarId}`}
             locale={locale}
             social={starSocialAccount}
             source="fanletter_founder_universe"

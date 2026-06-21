@@ -385,7 +385,7 @@ function getCoverageActionExecutionTarget({
 
   if (action.action === "creator_social_connected" && action.starId) {
     return {
-      href: `/${locale}/fanletter/creator-unlock?${params.toString()}#tiktok-channel`,
+      href: `/${locale}/fanletter/creator-unlock/tiktok?${params.toString()}`,
       label: locale === "ko" ? "TikTok 연결하기" : "Connect TikTok",
     };
   }
