@@ -51,6 +51,7 @@ function getCopy(locale: Locale) {
       emptyTitle: "운영 중인 AI 스타가 없습니다",
       eventConnected: "creator_social_connected 평판 기록 생성",
       eventPending: "TikTok 연결 시 평판 기록 생성",
+      founderRelationCta: "참여 네트워크 보기",
       founderNetworks: "참여 중인 파운더 네트워크",
       founderNetworksBody:
         "Creator/Owner로 운영하는 AI 스타와 별개로, 각 AI 스타 유니버스 안에서 내가 가진 Founder 역할입니다.",
@@ -62,6 +63,7 @@ function getCopy(locale: Locale) {
       mockLaunch: "mock 출시",
       nextConnected: "AI 스타 유니버스 보기",
       nextPending: "TikTok 연결 필요",
+      operatedRelationCta: "운영 AI 관리",
       open: "AI 스타 보기",
       routeLabel: "FanLetter / 내 AI",
       source: "원천 AI 스타 유니버스",
@@ -94,6 +96,7 @@ function getCopy(locale: Locale) {
     emptyTitle: "No operated AI Stars yet",
     eventConnected: "creator_social_connected reputation record created",
     eventPending: "TikTok connection will create a reputation record",
+    founderRelationCta: "View joined networks",
     founderNetworks: "Joined Founder Networks",
     founderNetworksBody:
       "Separate from AI Stars you operate as Creator/Owner, these are your Founder roles inside each AI Star Universe.",
@@ -105,6 +108,7 @@ function getCopy(locale: Locale) {
     mockLaunch: "mock launch",
     nextConnected: "View AI Star Universe",
     nextPending: "TikTok connection needed",
+    operatedRelationCta: "Manage operated AI",
     open: "View AI Star",
     routeLabel: "FanLetter / My AI",
     source: "Source AI Star Universe",
@@ -319,6 +323,64 @@ export function FanletterMyAIPage({
           subtitle={copy.heroBody}
           title={primaryAccount ? copy.nextConnected : copy.nextPending}
         />
+
+        <section className="grid min-w-0 gap-2 sm:grid-cols-2">
+          <Link
+            className="group min-w-0 rounded-[1.05rem] border border-zinc-950 bg-zinc-950 p-4 text-white shadow-[0_18px_44px_rgba(15,23,42,0.12)] transition hover:bg-black"
+            href={primaryStar ? primarySocialPermissionHref : `/${locale}/fanletter/creator-unlock`}
+          >
+            <div className="flex min-w-0 items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white/55">
+                  <Bot className="size-3.5" />
+                  {copy.creator}
+                </p>
+                <h2 className="mt-1 truncate text-xl font-semibold">
+                  {copy.heroTitle}
+                </h2>
+                <p className="mt-2 text-xs font-semibold leading-5 text-white/58 [word-break:keep-all]">
+                  {locale === "ko"
+                    ? "AI 스타 콘텐츠, TikTok 채널, 생성 미리보기를 운영하는 권한입니다."
+                    : "Permission to operate AI Star content, TikTok channels, and launch previews."}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[0.65rem] font-semibold text-black">
+                {formatNumber(ownedStars.length, locale)}
+              </span>
+            </div>
+            <p className="mt-3 inline-flex min-h-9 max-w-full items-center gap-2 rounded-full bg-white px-3 text-xs font-semibold text-zinc-950">
+              <span className="min-w-0 truncate">{copy.operatedRelationCta}</span>
+              <ArrowRight className="size-3.5 shrink-0 transition group-hover:translate-x-0.5" />
+            </p>
+          </Link>
+
+          <Link
+            className="group min-w-0 rounded-[1.05rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_18px_44px_rgba(15,23,42,0.06)] transition hover:border-zinc-300"
+            href={`/${locale}/fanletter/founder-club?view=founder#joined-founder-networks`}
+          >
+            <div className="flex min-w-0 items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                  <UsersRound className="size-3.5" />
+                  Founder Network
+                </p>
+                <h2 className="mt-1 truncate text-xl font-semibold">
+                  {copy.founderNetworks}
+                </h2>
+                <p className="mt-2 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
+                  {copy.founderNetworksBody}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.65rem] font-semibold text-zinc-700">
+                {formatNumber(portfolio.roles.length, locale)}
+              </span>
+            </div>
+            <p className="mt-3 inline-flex min-h-9 max-w-full items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-900">
+              <span className="min-w-0 truncate">{copy.founderRelationCta}</span>
+              <ArrowRight className="size-3.5 shrink-0 transition group-hover:translate-x-0.5" />
+            </p>
+          </Link>
+        </section>
 
         {primaryStar && primarySocialAccount && primaryStarName ? (
           <section

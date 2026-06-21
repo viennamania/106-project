@@ -683,7 +683,6 @@ function StarViewerRelationshipCard({
         guidance:
           "Creator는 AI 스타를 운영하는 권한이고, Founder는 이 AI 스타 유니버스 안에서 참여하는 역할입니다.",
         nextActionLabel: "다음 행동",
-        primaryCtaHint: "상단 CTA에서 진행",
         ownerNextAction: "TikTok 채널 관리",
         ownerStatus: "Creator 권한 활성화",
         tiktokConnected: "TikTok 채널 연결됨",
@@ -725,7 +724,6 @@ function StarViewerRelationshipCard({
         guidance:
           "Creator is permission to operate the AI Star. Founder is your participation role inside this AI Star Universe.",
         nextActionLabel: "Next action",
-        primaryCtaHint: "Use the primary CTA above",
         ownerNextAction: "Manage TikTok channel",
         ownerStatus: "Creator permission active",
         tiktokConnected: "TikTok channel connected",
@@ -887,9 +885,26 @@ function StarViewerRelationshipCard({
               <ArrowRight className="size-4" />
             </Link>
           ) : (
-            <span className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-600">
-              {labels.primaryCtaHint}
-            </span>
+            <StarActionLink
+              action={primaryAction}
+              agentRank={{
+                eventType: relationshipAction.eventType,
+                intent: "star_relationship_founder_action_started",
+                source: "fanletter_star_detail",
+                starId: star.id,
+              }}
+              className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800"
+              locale={locale}
+              starId={star.id}
+              trackingMetadata={{
+                placement: "star_viewer_relationship_founder_action",
+                relationship: "founder_network",
+                starName: star.name,
+              }}
+            >
+              {relationshipAction.label}
+              <ArrowRight className="size-4" />
+            </StarActionLink>
           )}
         </div>
       </div>

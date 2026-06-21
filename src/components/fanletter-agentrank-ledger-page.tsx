@@ -2081,6 +2081,41 @@ export function FanletterAgentRankLedgerPage({
               : "Next action: view the latest record"
           }
         />
+        {latestEvent ? (
+          <section className="rounded-[1.05rem] border border-zinc-200 bg-zinc-950 p-4 text-white shadow-[0_18px_44px_rgba(15,23,42,0.12)] sm:hidden">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white/55">
+              {locale === "ko" ? "최근 행동 결과" : "Latest action result"}
+            </p>
+            <h2 className="mt-1 text-xl font-semibold leading-tight">
+              {latestEventLabel}
+            </h2>
+            <div className="mt-3 grid gap-2">
+              <div className="rounded-lg border border-white/10 bg-white/8 px-3 py-2">
+                <p className="text-[0.62rem] font-semibold text-white/45">
+                  {locale === "ko" ? "대상" : "Target"}
+                </p>
+                <p className="mt-0.5 truncate text-sm font-semibold">
+                  {getObjectLabel(latestEvent)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-white/10 bg-white/8 px-3 py-2">
+                <p className="text-[0.62rem] font-semibold text-white/45">
+                  {locale === "ko" ? "다음 검증" : "Next verification"}
+                </p>
+                <p className="mt-0.5 truncate text-sm font-semibold">
+                  {getLedgerEventNextActionLabel(latestEvent, locale)}
+                </p>
+              </div>
+            </div>
+            <Link
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold !text-zinc-950"
+              href={latestEventHref}
+            >
+              {locale === "ko" ? "평판 기록 상세 보기" : "View record detail"}
+              <ArrowRight className="size-4" />
+            </Link>
+          </section>
+        ) : null}
         <header className="hidden rounded-[1.35rem] border border-zinc-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)] sm:block">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
