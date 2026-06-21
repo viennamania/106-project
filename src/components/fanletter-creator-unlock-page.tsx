@@ -2465,16 +2465,20 @@ function CreatorJourneyEventPath({
 function CreatorJourneyStepLinks({
   activeView,
   conditionsHref,
+  creatorJourneyNextHref,
   launchHref,
   locale,
+  primaryActionHref,
   sourceHref,
   tiktokChannelHref,
   unlock,
 }: {
   activeView: FanletterCreatorUnlockView;
   conditionsHref: string;
+  creatorJourneyNextHref?: string;
   launchHref: string;
   locale: Locale;
+  primaryActionHref?: string;
   sourceHref: string;
   tiktokChannelHref: string;
   unlock: CreatorUnlockData;
@@ -2531,7 +2535,7 @@ function CreatorJourneyStepLinks({
   ];
 
   return (
-    <section className="mt-5 rounded-[1.1rem] border border-zinc-200 bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.045)] sm:p-5">
+    <section className="rounded-[1.1rem] border border-zinc-200 bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.045)] sm:p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
@@ -2549,62 +2553,250 @@ function CreatorJourneyStepLinks({
             : "Each page focuses on one action and one Reputation Record."}
         </p>
       </div>
-      <div className="mt-4 grid gap-2 md:grid-cols-4">
+      <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
         {items.map((item) => {
           const Icon = item.icon;
           const active = item.view === activeView;
+          const next = item.href === creatorJourneyNextHref;
+          const primary = item.href === primaryActionHref;
 
           return (
             <Link
               className={joinClasses(
-                "group flex min-h-32 min-w-0 flex-col justify-between rounded-lg border p-4 transition",
-                active
+                "group flex min-w-0 items-start gap-3 rounded-lg border p-3 transition sm:p-4",
+                active || primary
                   ? "border-black bg-black text-white"
                   : "border-zinc-200 bg-zinc-50 text-zinc-950 hover:border-zinc-300 hover:bg-white",
               )}
               href={item.href}
               key={item.key}
             >
-              <div className="flex items-start justify-between gap-3">
-                <span
-                  className={joinClasses(
-                    "flex size-10 shrink-0 items-center justify-center rounded-lg",
-                    active ? "bg-white text-black" : "bg-white text-zinc-950",
-                  )}
-                >
-                  <Icon className="size-5" />
-                </span>
-                <ArrowRight
-                  className={joinClasses(
-                    "size-4 shrink-0 transition group-hover:translate-x-0.5",
-                    active ? "text-white" : "text-zinc-400",
-                  )}
-                />
-              </div>
-              <div className="mt-4 min-w-0">
-                <p className="break-words text-base font-semibold leading-tight [word-break:keep-all]">
-                  {item.label}
-                </p>
+              <span
+                className={joinClasses(
+                  "flex size-10 shrink-0 items-center justify-center rounded-lg",
+                  active || primary ? "bg-white text-black" : "bg-white text-zinc-950",
+                )}
+              >
+                <Icon className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="break-words text-base font-semibold leading-tight [word-break:keep-all]">
+                    {item.label}
+                  </p>
+                  {next ? (
+                    <span
+                      className={joinClasses(
+                        "shrink-0 rounded-full px-2 py-0.5 text-[0.62rem] font-semibold",
+                        active || primary
+                          ? "bg-white/15 text-white"
+                          : "bg-white text-zinc-700",
+                      )}
+                    >
+                      {isKorean ? "다음" : "Next"}
+                    </span>
+                  ) : null}
+                </div>
                 <p
                   className={joinClasses(
                     "mt-1 break-words text-xs font-medium leading-5 [word-break:keep-all]",
-                    active ? "text-white/70" : "text-zinc-600",
+                    active || primary ? "text-white/70" : "text-zinc-600",
                   )}
                 >
                   {item.body}
                 </p>
                 <p
                   className={joinClasses(
-                    "mt-3 break-all font-mono text-[0.62rem] font-semibold",
-                    active ? "text-white/55" : "text-zinc-400",
+                    "mt-2 break-all font-mono text-[0.62rem] font-semibold",
+                    active || primary ? "text-white/55" : "text-zinc-400",
                   )}
                 >
                   {item.eventType}
                 </p>
               </div>
+              <div className="pt-1">
+                <ArrowRight
+                  className={joinClasses(
+                    "size-4 shrink-0 transition group-hover:translate-x-0.5",
+                    active || primary ? "text-white" : "text-zinc-400",
+                  )}
+                />
+              </div>
             </Link>
           );
         })}
+      </div>
+    </section>
+  );
+}
+
+function CreatorJourneyProductHero({
+  action,
+  completedConditionCount,
+  conditionsHref,
+  creatorJourneyNextHref,
+  displaySourceUniverseName,
+  isPreviewMode,
+  launchHref,
+  locale,
+  nextMissingCondition,
+  requiresSourceUniverse,
+  sourceHref,
+  tiktokChannelHref,
+  unlock,
+}: {
+  action: CreatorUnlockResolvedGuideAction;
+  completedConditionCount: number;
+  conditionsHref: string;
+  creatorJourneyNextHref: string;
+  displaySourceUniverseName: string;
+  isPreviewMode: boolean;
+  launchHref: string;
+  locale: Locale;
+  nextMissingCondition?: CreatorUnlockCondition | null;
+  requiresSourceUniverse: boolean;
+  sourceHref: string;
+  tiktokChannelHref: string;
+  unlock: CreatorUnlockData;
+}) {
+  const isKorean = locale === "ko";
+  const progressPercent =
+    unlock.conditions.length > 0
+      ? Math.round((completedConditionCount / unlock.conditions.length) * 100)
+      : 0;
+  const conditionLabels = getCreatorUnlockConditionLabels(
+    getFanletterV2Copy(locale),
+  );
+  const nextConditionLabel = nextMissingCondition
+    ? conditionLabels[nextMissingCondition.id] ?? nextMissingCondition.id
+    : isKorean
+      ? "모든 조건 완료"
+      : "All conditions complete";
+  const eventType =
+    action.agentRank && "eventType" in action.agentRank
+      ? action.agentRank.eventType
+      : unlock.unlocked
+        ? "x402_mock_payment_intent"
+        : "creator_unlock_evaluated";
+  const statusLabel = unlock.unlocked
+    ? isKorean
+      ? "권한 활성화 준비 완료"
+      : "Permission ready"
+    : isPreviewMode
+      ? isKorean
+        ? "계정 연결 필요"
+        : "Account required"
+      : requiresSourceUniverse
+        ? isKorean
+          ? "출처 AI 스타 필요"
+          : "Source AI Star required"
+        : isKorean
+          ? "권한 활성화 진행 중"
+          : "Permission in progress";
+
+  return (
+    <section className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+      <div className="rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-6">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex min-h-8 items-center rounded-full bg-black px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white">
+            Creator Journey
+          </span>
+          <span className="inline-flex min-h-8 items-center rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-700">
+            {statusLabel}
+          </span>
+        </div>
+        <h1 className="mt-4 break-words text-[2.15rem] font-semibold leading-[1.04] tracking-normal text-black [word-break:keep-all] sm:text-[3.5rem]">
+          {isKorean ? "다음 행동만 확인하세요" : "Focus on the next action"}
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-zinc-600 sm:text-base">
+          {isKorean
+            ? "Creator 권한 활성화는 조건 확인, 출처 선택, TikTok 연결, 생성 미리보기 순서로 진행됩니다."
+            : "Creator permission moves through conditions, source selection, TikTok, and launch preview."}
+        </p>
+
+        <div className="mt-5 rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              {isKorean ? "진행률" : "Progress"}
+            </p>
+            <p className="text-sm font-semibold text-black">
+              {completedConditionCount}/{unlock.conditions.length} · {progressPercent}%
+            </p>
+          </div>
+          <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+            <div
+              className="h-full rounded-full bg-black"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+        </div>
+
+        <FanletterTrackedLink
+          agentRank={action.agentRank}
+          className="mt-5 inline-flex min-h-12 w-full min-w-0 items-center justify-center gap-2 rounded-full bg-black px-5 py-3 text-center text-sm font-semibold leading-tight !text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)] transition hover:bg-zinc-800 sm:w-auto"
+          eventName="signup_cta_click"
+          href={action.href}
+          metadata={{
+            ...action.metadata,
+            nextConditionId: nextMissingCondition?.id ?? null,
+            placement: "creator_unlock_product_hero_primary",
+            sourceUniverseName: displaySourceUniverseName,
+          }}
+          referralCode={action.referralCode}
+        >
+          <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
+            {action.label}
+          </span>
+          <ArrowRight className="size-4 shrink-0" />
+        </FanletterTrackedLink>
+      </div>
+
+      <div className="grid gap-3">
+        <div className="rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.055)] sm:p-5">
+          <p className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-500">
+            {isKorean ? "현재 상태" : "Current state"}
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            {[
+              {
+                label: isKorean ? "다음 조건" : "Next condition",
+                value: nextConditionLabel,
+              },
+              {
+                label: isKorean ? "출처" : "Source",
+                value: displaySourceUniverseName,
+              },
+              {
+                label: isKorean ? "평판 기록" : "Reputation",
+                value: getCreatorJourneyReputationLabel(eventType, locale),
+              },
+            ].map((item) => (
+              <div
+                className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3"
+                key={item.label}
+              >
+                <p className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                  {item.label}
+                </p>
+                <p className="mt-1 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+                  {item.value}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <CreatorJourneyStepLinks
+          activeView="hub"
+          conditionsHref={conditionsHref}
+          creatorJourneyNextHref={creatorJourneyNextHref}
+          launchHref={launchHref}
+          locale={locale}
+          primaryActionHref={action.href}
+          sourceHref={sourceHref}
+          tiktokChannelHref={tiktokChannelHref}
+          unlock={unlock}
+        />
       </div>
     </section>
   );
@@ -2910,6 +3102,14 @@ export function FanletterCreatorUnlockPage({
     !isPreviewMode &&
     !unlock.unlocked &&
     !isCreatorSocialNextAction;
+  const creatorJourneyNextHref =
+    requiresSourceUniverse || isPreviewMode
+      ? creatorUnlockNextAction.href
+      : unlock.unlocked
+        ? launchHref
+        : isCreatorSocialNextAction
+          ? tiktokChannelHref
+          : conditionsHref;
   const creatorUnlockActionGuide = (
     <FanletterActionGuide
       className="mt-5"
@@ -2988,7 +3188,7 @@ export function FanletterCreatorUnlockPage({
   );
 
   return (
-    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white px-4 py-5 text-black sm:px-6 lg:px-8">
+    <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white px-4 pb-28 pt-5 text-black sm:px-6 sm:pb-8 lg:px-8">
       <FanletterReputationTracker
         agentRank={{
           eventType: "creator_unlock_evaluated",
@@ -3140,15 +3340,39 @@ export function FanletterCreatorUnlockPage({
           </span>
         </div>
 
-        {creatorUnlockActionGuide}
+        {view === "hub" ? (
+          <CreatorJourneyProductHero
+            action={{
+              ...creatorUnlockNextAction,
+              href: creatorJourneyNextHref,
+            }}
+            completedConditionCount={completedConditionCount}
+            conditionsHref={conditionsHref}
+            creatorJourneyNextHref={creatorJourneyNextHref}
+            displaySourceUniverseName={displaySourceUniverseName}
+            isPreviewMode={isPreviewMode}
+            launchHref={launchHref}
+            locale={locale}
+            nextMissingCondition={nextMissingCondition}
+            requiresSourceUniverse={requiresSourceUniverse}
+            sourceHref={sourceHref}
+            tiktokChannelHref={tiktokChannelHref}
+            unlock={unlock}
+          />
+        ) : (
+          <>
+            {creatorUnlockActionGuide}
 
-        <FanletterAgentRankJourneyRail
-          active="creator"
-          className="mt-4"
-          locale={locale}
-          starId={trackingSourceStarId}
-        />
+            <FanletterAgentRankJourneyRail
+              active="creator"
+              className="mt-4"
+              locale={locale}
+              starId={trackingSourceStarId}
+            />
+          </>
+        )}
 
+        {view !== "hub" ? (
         <section className="mt-6 grid w-full min-w-0 gap-4 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 py-1 text-sm font-semibold text-zinc-900">
@@ -3219,6 +3443,7 @@ export function FanletterCreatorUnlockPage({
             </div>
           </div>
         </section>
+        ) : null}
 
         {coverageAction ? (
           <FanletterAgentRankCoverageActionNotice
@@ -3228,7 +3453,7 @@ export function FanletterCreatorUnlockPage({
           />
         ) : null}
 
-        {isPreviewMode ? (
+        {isPreviewMode && view !== "hub" ? (
           <AccountConnectionNotice connectHref={connectHref} copy={copy} />
         ) : null}
 
@@ -3244,31 +3469,6 @@ export function FanletterCreatorUnlockPage({
           socialSourceStarId={socialSourceStarId}
           unlock={unlock}
         />
-
-        {view === "hub" ? (
-          <>
-            <CreatorNextActionStatusCard
-              action={creatorUnlockNextAction}
-              completedConditionCount={completedConditionCount}
-              isPreviewMode={isPreviewMode}
-              locale={locale}
-              nextMissingCondition={nextMissingCondition}
-              requiresSourceUniverse={requiresSourceUniverse}
-              sourceUniverseName={displaySourceUniverseName}
-              unlock={unlock}
-            />
-
-            <CreatorJourneyStepLinks
-              activeView={view}
-              conditionsHref={conditionsHref}
-              launchHref={launchHref}
-              locale={locale}
-              sourceHref={sourceHref}
-              tiktokChannelHref={tiktokChannelHref}
-              unlock={unlock}
-            />
-          </>
-        ) : null}
 
         {view !== "hub" ? (
           <>
