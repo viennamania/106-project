@@ -126,6 +126,34 @@ function extensionForContentType(contentType: string) {
 }
 
 /**
+ * A lookbook is a SET of shots, not one image. Each shot reuses the same star +
+ * garment but varies the framing/pose so a seller gets a ready-to-use set.
+ * Ordered by importance; the first N are used for an N-shot set.
+ */
+const SHOT_TYPES: { id: string; instruction: string }[] = [
+  {
+    id: "full-front",
+    instruction:
+      "Full-body front view, model standing and facing the camera, the entire outfit visible from head to toe.",
+  },
+  {
+    id: "three-quarter",
+    instruction:
+      "Three-quarter angle full-body view, body turned slightly with a natural, relaxed fashion pose.",
+  },
+  {
+    id: "waist-up-detail",
+    instruction:
+      "Waist-up shot focusing on the upper garment — show fabric texture, neckline and stitching detail in sharp focus.",
+  },
+  {
+    id: "sitting-lifestyle",
+    instruction:
+      "Seated lifestyle shot with a relaxed candid pose, the full outfit still clearly visible.",
+  },
+];
+
+/**
  * The garment-preserving fitting prompt — the heart of the lookbook module.
  *
  * The first reference image is the model identity (the AI star); every other
@@ -134,10 +162,12 @@ function extensionForContentType(contentType: string) {
 function createFittingPrompt({
   garmentCount,
   sceneBrief,
+  shotInstruction,
   starName,
 }: {
   garmentCount: number;
   sceneBrief: string;
+  shotInstruction: string;
   starName: string;
 }) {
   const plural = garmentCount > 1;
@@ -147,10 +177,11 @@ function createFittingPrompt({
 
   return [
     "Create one photorealistic Korean fashion e-commerce lookbook photo.",
-    "Identity source: use the FIRST input image only as the model's identity. Preserve the exact same face, facial structure, hairstyle, hair color, skin tone, and body proportions. The model is a single consistent fictional adult.",
+    "Identity source: use the FIRST input image only as the model's identity. Preserve the exact same face, facial structure, hairstyle, hair color, skin tone, and body proportions. The model is a single consistent fictional adult — keep the SAME model across every shot.",
     `Garment source: take the clothing item${plural ? "s" : ""} from the remaining input image${plural ? "s" : ""} and show ${plural ? "them" : "it"} worn by the model.`,
     "Reproduce the garment with high fidelity: keep the exact color, fabric texture, weave, pattern, print, graphics, logos, stitching, buttons, zippers, neckline, collar, sleeve length, hem length, silhouette, and fit. Do not redesign, recolor, restyle, add, or remove any garment detail.",
-    `Scene: ${sceneText}. Natural, flattering full-body or three-quarter pose with the complete outfit clearly visible. Commercial fashion photography quality, sharp focus on the garment, realistic lighting and shadows.`,
+    `Scene: ${sceneText}. Commercial fashion photography quality, sharp focus on the garment, realistic lighting and shadows.`,
+    `Shot: ${shotInstruction}`,
     starName ? `The model is the AI star "${starName}".` : "",
     "Single person only. Realistic human anatomy and proportions. No text overlays, no watermarks.",
   ]
@@ -295,38 +326,46 @@ export async function generateStarLookbook(
   const aspectRatio = input.aspectRatio ?? DEFAULT_ASPECT_RATIO;
   const model = resolveModel();
 
-  const prompt = createFittingPrompt({
-    garmentCount: garmentImageUrls.length,
-    sceneBrief,
-    starName,
-  });
+  const size = resolveOpenAiSize(aspectRatio);
+  const quality = resolveQuality();
+  const inputFidelity =
+    process.env.OPENAI_LOOKBOOK_INPUT_FIDELITY?.trim() || "high";
 
-  // First image = AI star identity, remaining = garments to preserve.
+  // First image = AI star identity, remaining = garments to preserve. Fetch the
+  // inputs once and reuse the blobs across every shot in the set.
   const inputImages = await Promise.all(
     [starAvatarUrl, ...garmentImageUrls].map((url, index) =>
       fetchInputImage(url, index),
     ),
   );
 
-  const form = new FormData();
-  form.append("model", model);
-  form.append("prompt", prompt);
-  form.append("size", resolveOpenAiSize(aspectRatio));
-  form.append("quality", resolveQuality());
-  form.append("n", String(numImages));
-  // Preserve the star's face + the garment's color/print/logo from the inputs.
-  form.append(
-    "input_fidelity",
-    process.env.OPENAI_LOOKBOOK_INPUT_FIDELITY?.trim() || "high",
-  );
+  // A lookbook is a SET: generate one image per shot type, in parallel, so the
+  // seller gets distinct framings (front / three-quarter / detail / lifestyle)
+  // of the SAME star wearing the SAME garment — not near-duplicate poses.
+  const shots = SHOT_TYPES.slice(0, numImages);
 
-  for (const image of inputImages) {
-    form.append("image[]", image.blob, image.filename);
-  }
+  async function generateShot(shotInstruction: string): Promise<string> {
+    const form = new FormData();
+    form.append("model", model);
+    form.append(
+      "prompt",
+      createFittingPrompt({
+        garmentCount: garmentImageUrls.length,
+        sceneBrief,
+        shotInstruction,
+        starName,
+      }),
+    );
+    form.append("size", size);
+    form.append("quality", quality);
+    form.append("n", "1");
+    // Preserve the star's face + the garment's color/print/logo from the inputs.
+    form.append("input_fidelity", inputFidelity);
 
-  let payload: OpenAiImageEditResponse | null;
+    for (const image of inputImages) {
+      form.append("image[]", image.blob, image.filename);
+    }
 
-  try {
     const response = await withTimeout(
       fetch(OPENAI_EDITS_ENDPOINT, {
         body: form,
@@ -337,7 +376,7 @@ export async function generateStarLookbook(
       "OpenAI lookbook generation",
     );
 
-    payload = (await response
+    const payload = (await response
       .json()
       .catch(() => null)) as OpenAiImageEditResponse | null;
 
@@ -347,26 +386,24 @@ export async function generateStarLookbook(
         model,
       );
     }
-  } catch (error) {
-    if (error instanceof Error) {
-      throw error;
+
+    const b64 = payload?.data?.[0]?.b64_json;
+
+    if (!b64) {
+      throw new Error("OpenAI returned no lookbook image.");
     }
 
-    throw new Error("OpenAI lookbook generation failed.");
+    return b64;
   }
 
-  const images = (payload?.data ?? [])
-    .map((item) => item.b64_json)
-    .filter((value): value is string => Boolean(value));
-
-  if (images.length === 0) {
-    throw new Error("OpenAI returned no lookbook images.");
-  }
+  const imageBase64List = await Promise.all(
+    shots.map((shot) => generateShot(shot.instruction)),
+  );
 
   const baseName = sanitizeBaseName(starName || "star-lookbook");
 
   return Promise.all(
-    images.map((imageBase64) =>
+    imageBase64List.map((imageBase64) =>
       uploadLookbookImage({ baseName, imageBase64, referralCode: input.referralCode }),
     ),
   );

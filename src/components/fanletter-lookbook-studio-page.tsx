@@ -54,6 +54,7 @@ type LookbookCopy = {
   scenePresetsLabel: string;
   aspectLabel: string;
   countLabel: string;
+  setHint: string;
   previewLabel: string;
   emptyTitle: string;
   emptyBody: string;
@@ -100,7 +101,8 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     scenePlaceholder: "예: 성수동 카페, 자연광, 전신샷",
     scenePresetsLabel: "빠른 배경",
     aspectLabel: "비율",
-    countLabel: "생성 장수",
+    countLabel: "룩북 컷 수",
+    setHint: "정면 · 3/4 · 디테일 · 착석 컷이 같은 모델·같은 옷으로 자동 구성됩니다.",
     previewLabel: "미리보기",
     emptyTitle: "여기에 룩북이 표시됩니다",
     emptyBody: "스타와 옷을 고른 뒤 룩북을 생성하세요.",
@@ -146,7 +148,8 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     scenePlaceholder: "e.g. Seongsu-dong cafe, natural light, full body",
     scenePresetsLabel: "Quick scenes",
     aspectLabel: "Aspect",
-    countLabel: "Images",
+    countLabel: "Lookbook shots",
+    setHint: "Front · 3/4 · detail · lifestyle shots, same model & garment.",
     previewLabel: "Preview",
     emptyTitle: "Your lookbook appears here",
     emptyBody: "Pick a star and garment, then generate.",
@@ -248,7 +251,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [sceneBrief, setSceneBrief] = useState("");
   const [aspectRatio, setAspectRatio] = useState<LookbookAspectRatio>("4:5");
   const [resolution] = useState<"1K" | "2K" | "4K">("1K");
-  const [numImages, setNumImages] = useState(1);
+  const [numImages, setNumImages] = useState(4);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [images, setImages] = useState<LookbookImage[]>([]);
@@ -884,6 +887,9 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
               </select>
             </div>
           </div>
+          <p className="text-[11px] leading-relaxed text-neutral-400">
+            {copy.setHint}
+          </p>
         </div>
 
         {/* Preview */}
