@@ -17,7 +17,15 @@ const TIKTOK_USER_INFO_ENDPOINT = "https://open.tiktokapis.com/v2/user/info/";
 
 type TikTokTokenResponse = {
   access_token?: string;
+  error?: string | {
+    code?: string;
+    log_id?: string;
+    message?: string;
+  };
+  error_description?: string;
   expires_in?: number;
+  log_id?: string;
+  message?: string;
   open_id?: string;
   refresh_expires_in?: number;
   refresh_token?: string;
@@ -52,6 +60,30 @@ export type FanletterTikTokOAuthLiveProfile = {
   raw: Record<string, unknown>;
   username: string | null;
 };
+
+export class FanletterTikTokOAuthProviderError extends Error {
+  code: string | null;
+  description: string | null;
+  logId: string | null;
+
+  constructor({
+    code,
+    description,
+    logId,
+    message,
+  }: {
+    code?: string | null;
+    description?: string | null;
+    logId?: string | null;
+    message: string;
+  }) {
+    super(message);
+    this.name = "FanletterTikTokOAuthProviderError";
+    this.code = code ?? null;
+    this.description = description ?? null;
+    this.logId = logId ?? null;
+  }
+}
 
 function getTokenEncryptionSecret() {
   return (
@@ -122,7 +154,30 @@ export async function exchangeFanletterTikTokOAuthCode({
     | null;
 
   if (!response.ok || !data?.access_token) {
-    throw new Error("TikTok token exchange failed.");
+    const providerError =
+      typeof data?.error === "string" ? data.error : data?.error?.code;
+    const providerMessage =
+      typeof data?.error === "object"
+        ? data.error.message
+        : data?.message ?? data?.error_description;
+    const logId =
+      (typeof data?.error === "object" ? data.error.log_id : null) ??
+      data?.log_id ??
+      null;
+
+    throw new FanletterTikTokOAuthProviderError({
+      code: providerError ?? null,
+      description: providerMessage ?? null,
+      logId,
+      message: [
+        "TikTok token exchange failed",
+        providerError,
+        providerMessage,
+        logId ? `log_id:${logId}` : null,
+      ]
+        .filter(Boolean)
+        .join(": "),
+    });
   }
 
   return data;

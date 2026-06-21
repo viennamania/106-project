@@ -585,9 +585,9 @@ function getTikTokOAuthReasonLabel(reason: string | null, locale: Locale) {
       ko: "서버의 TikTok 앱 인증 정보가 아직 준비되지 않았습니다.",
     },
     tiktok_oauth_failed: {
-      en: "TikTok authorization failed. Check target-user registration and retry.",
-      ja: "TikTok認証に失敗しました。テストユーザー登録を確認して再試行してください。",
-      ko: "TikTok 승인이 실패했습니다. 테스트 사용자 등록을 확인한 뒤 다시 시도하세요.",
+      en: "TikTok authorization failed. In Sandbox mode, first confirm that the currently logged-in TikTok username is listed as a Target User for this FanLetter app.",
+      ja: "TikTok認証に失敗しました。Sandboxモードでは、現在ログイン中のTikTokユーザー名がこのFanLetterアプリのTarget Userに登録されているか確認してください。",
+      ko: "TikTok 승인이 실패했습니다. Sandbox 모드에서는 현재 로그인한 TikTok username이 이 FanLetter 앱의 Target User에 등록되어 있는지 먼저 확인하세요.",
     },
     tiktok_profile_fetch_failed: {
       en: "TikTok profile could not be read after authorization. Check the approved scope and retry.",

@@ -10,6 +10,7 @@ import {
   exchangeFanletterTikTokOAuthCode,
   encryptFanletterTikTokToken,
   fetchFanletterTikTokOAuthProfile,
+  FanletterTikTokOAuthProviderError,
   getFanletterTikTokOAuthExpiresAt,
 } from "@/lib/fanletter-tiktok-oauth-live";
 import {
@@ -67,8 +68,20 @@ function getMemberDisplayName({
 }
 
 function getTikTokOAuthFailureReason(error: unknown) {
+  if (error instanceof FanletterTikTokOAuthProviderError) {
+    return error.code || "tiktok_token_exchange_failed";
+  }
+
   const message =
     error instanceof Error ? error.message.toLowerCase() : "";
+
+  if (message.includes("non_sandbox_target")) {
+    return "non_sandbox_target";
+  }
+
+  if (message.includes("unauthorized_client")) {
+    return "unauthorized_client";
+  }
 
   if (message.includes("client key") || message.includes("client secret")) {
     return "tiktok_client_config_missing";

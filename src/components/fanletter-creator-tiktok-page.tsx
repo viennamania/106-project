@@ -196,6 +196,11 @@ function getOAuthReasonLabel(reason: string | null, locale: Locale) {
       ja: "TikTokトークン交換に失敗しました。redirect URI、client key、Sandbox対象ユーザーを確認してください。",
       ko: "TikTok 토큰 교환이 실패했습니다. redirect URI, client key, Sandbox Target User를 확인하세요.",
     },
+    tiktok_oauth_failed: {
+      en: "TikTok authorization failed. In Sandbox mode, confirm that the currently logged-in TikTok username is registered as a Target User for this FanLetter app.",
+      ja: "TikTok認証に失敗しました。Sandboxモードでは、現在ログイン中のTikTokユーザー名がこのFanLetterアプリのTarget Userに登録されているか確認してください。",
+      ko: "TikTok 승인이 실패했습니다. Sandbox 모드에서는 현재 로그인한 TikTok username이 이 FanLetter 앱의 Target User에 등록되어 있는지 확인하세요.",
+    },
     unauthorized_client: {
       en: "TikTok rejected the client key. Check whether the request uses the correct Sandbox or Production app.",
       ja: "TikTokがclient keyを拒否しました。SandboxまたはProductionアプリが正しいか確認してください。",
