@@ -3110,6 +3110,36 @@ export function FanletterCreatorUnlockPage({
         : isCreatorSocialNextAction
           ? tiktokChannelHref
           : conditionsHref;
+  const focusedPageHeading =
+    view === "conditions"
+      ? {
+          body:
+            locale === "ko"
+              ? "Creator 권한 활성화에 필요한 조건과 부족한 항목만 확인합니다."
+              : "Review only the conditions required to activate Creator permission.",
+          title: locale === "ko" ? "권한 조건 확인" : "Permission conditions",
+        }
+      : view === "source"
+        ? {
+            body:
+              locale === "ko"
+                ? "새 AI 스타가 어느 AI 스타 유니버스의 성과로 시작되는지 선택합니다."
+                : "Choose which AI Star Universe performance powers the new AI Star.",
+            title: locale === "ko" ? "창업 출처 선택" : "Choose launch source",
+          }
+        : view === "launch"
+          ? {
+              body:
+                locale === "ko"
+                  ? "실제 결제 없이 10 USDT 생성 의도와 평판 기록 흐름을 미리 확인합니다."
+                  : "Preview the 10 USDT mock intent and Reputation Record flow without real payment.",
+              title:
+                locale === "ko" ? "AI 스타 생성 미리보기" : "AI Star launch preview",
+            }
+          : {
+              body: copy.heroBody,
+              title: copy.heroTitle,
+            };
   const creatorUnlockActionGuide = (
     <FanletterActionGuide
       className="mt-5"
@@ -3396,10 +3426,10 @@ export function FanletterCreatorUnlockPage({
               {copy.heroEyebrow}
             </div>
             <h1 className="mt-4 max-w-4xl text-[2.35rem] font-semibold leading-[1.02] tracking-normal text-[#12041f] [word-break:keep-all] sm:text-[4rem]">
-              {copy.heroTitle}
+              {focusedPageHeading.title}
             </h1>
             <p className="mt-4 hidden max-w-2xl text-base font-medium leading-7 text-black/62 sm:block sm:text-lg">
-              {copy.heroBody}
+              {focusedPageHeading.body}
             </p>
           </div>
 
