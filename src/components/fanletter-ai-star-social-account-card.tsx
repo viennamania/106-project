@@ -1230,6 +1230,72 @@ export function FanletterAIStarSocialAccountCard({
             </div>
           </div>
 
+          {account && canSyncTikTok ? (
+            <div className="mt-3 rounded-lg border border-zinc-950 bg-zinc-950 p-3 text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)]">
+              <div className="grid min-w-0 gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                <div className="min-w-0">
+                  <p className="text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white/58">
+                    {copy.nextAction}
+                  </p>
+                  <h3 className="mt-1 text-lg font-semibold leading-tight text-white">
+                    {syncSnapshot ? copy.syncResult : copy.syncApiTitle}
+                  </h3>
+                  <p className="mt-1 text-xs font-medium leading-5 text-white/62 [word-break:keep-all]">
+                    {syncSnapshot
+                      ? copy.reputationLedgerHint
+                      : copy.syncApiHelper}
+                  </p>
+                </div>
+                {syncSnapshot ? (
+                  <FanletterTrackedLink
+                    agentRank={{
+                      eventType: "content_engaged",
+                      intent: "creator_tiktok_sync_ledger_opened",
+                      source: "fanletter_agentrank",
+                      starId,
+                    }}
+                    className="inline-flex min-h-10 w-full max-w-full min-w-0 box-border items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold !text-zinc-950 transition hover:bg-zinc-100 sm:w-auto"
+                    eventName="content_open"
+                    href={reputationLedgerHref}
+                    metadata={{
+                      actorMemberId,
+                      actorMemberName,
+                      actorType: "creator_member",
+                      mockOnly: true,
+                      platform: "tiktok",
+                      socialApiCapability: syncSnapshot.capabilityId,
+                      starId,
+                      starName,
+                      targetType: "ai_star",
+                    }}
+                  >
+                    <Database className="size-4 shrink-0" />
+                    <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
+                      {copy.reputationLedger}
+                    </span>
+                  </FanletterTrackedLink>
+                ) : (
+                  <button
+                    className="inline-flex min-h-10 w-full max-w-full min-w-0 box-border items-center justify-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-zinc-950 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                    disabled={isSyncingTikTok}
+                    onClick={handleSyncTikTok}
+                    type="button"
+                  >
+                    <RefreshCw
+                      className={joinClasses(
+                        "size-4 shrink-0",
+                        isSyncingTikTok && "animate-spin",
+                      )}
+                    />
+                    <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">
+                      {isSyncingTikTok ? copy.syncApiSaving : copy.syncApiCta}
+                    </span>
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : null}
+
           <div className="mt-3 rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
             <div className="flex min-w-0 items-center justify-between gap-3">
               <p className="text-sm font-semibold text-zinc-950">
@@ -1591,22 +1657,24 @@ export function FanletterAIStarSocialAccountCard({
                   </div>
                 ) : null}
               </div>
-              <button
-                className="inline-flex min-h-10 w-full max-w-full min-w-0 box-border items-center justify-center gap-2 rounded-full border border-zinc-200 bg-zinc-950 px-4 text-sm font-semibold leading-tight text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                disabled={isSyncingTikTok}
-                onClick={handleSyncTikTok}
-                type="button"
-              >
-                <RefreshCw
-                  className={joinClasses(
-                    "size-4 shrink-0",
-                    isSyncingTikTok && "animate-spin",
-                  )}
-                />
-                <span className="min-w-0 truncate">
-                  {isSyncingTikTok ? copy.syncApiSaving : copy.syncApiCta}
-                </span>
-              </button>
+              {syncSnapshot ? (
+                <button
+                  className="inline-flex min-h-10 w-full max-w-full min-w-0 box-border items-center justify-center gap-2 rounded-full border border-zinc-200 bg-zinc-950 px-4 text-sm font-semibold leading-tight text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                  disabled={isSyncingTikTok}
+                  onClick={handleSyncTikTok}
+                  type="button"
+                >
+                  <RefreshCw
+                    className={joinClasses(
+                      "size-4 shrink-0",
+                      isSyncingTikTok && "animate-spin",
+                    )}
+                  />
+                  <span className="min-w-0 truncate">
+                    {isSyncingTikTok ? copy.syncApiSaving : copy.syncApiCta}
+                  </span>
+                </button>
+              ) : null}
             </div>
           ) : null}
 
