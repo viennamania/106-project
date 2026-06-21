@@ -40,6 +40,12 @@ type LookbookCopy = {
   needAvatar: string;
   needGarment: string;
   genericError: string;
+  uploadImage: string;
+  uploadStarImage: string;
+  uploading: string;
+  uploadError: string;
+  useMyStar: string;
+  noStar: string;
 };
 
 const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
@@ -67,6 +73,12 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     needAvatar: "AI 스타 이미지 URL을 입력하세요.",
     needGarment: "옷 사진 URL을 최소 1장 입력하세요.",
     genericError: "룩북 생성에 실패했습니다.",
+    uploadImage: "옷 사진 업로드",
+    uploadStarImage: "스타 이미지 업로드",
+    uploading: "업로드 중…",
+    uploadError: "이미지 업로드에 실패했습니다.",
+    useMyStar: "내 AI 스타 불러오기",
+    noStar: "등록된 AI 스타 이미지가 없습니다.",
   },
   en: {
     title: "AI Star Lookbook Studio",
@@ -94,6 +106,12 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     needAvatar: "Enter the AI star image URL.",
     needGarment: "Enter at least one garment image URL.",
     genericError: "Failed to generate the lookbook.",
+    uploadImage: "Upload garment photos",
+    uploadStarImage: "Upload star image",
+    uploading: "Uploading…",
+    uploadError: "Failed to upload the image.",
+    useMyStar: "Use my AI star",
+    noStar: "No AI star image found.",
   },
 };
 
@@ -127,6 +145,31 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [images, setImages] = useState<LookbookImage[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const uploadImage = useCallback(
+    async (file: File): Promise<string> => {
+      const formData = new FormData();
+      formData.set("email", email ?? "");
+      formData.set("walletAddress", accountAddress ?? "");
+      formData.set("file", file);
+
+      const response = await fetch("/api/content/posts/upload", {
+        body: formData,
+        method: "POST",
+      });
+      const data = (await response.json().catch(() => null)) as
+        | { url?: string; error?: string }
+        | null;
+
+      if (!response.ok || !data?.url) {
+        throw new Error(data?.error ?? copy.uploadError);
+      }
+
+      return data.url;
+    },
+    [accountAddress, copy.uploadError, email],
+  );
 
   const garmentImageUrls = useMemo(
     () =>
@@ -141,7 +184,109 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const canSubmit =
     Boolean(accountAddress) &&
     Boolean(referralCode) &&
-    !isSubmitting;
+    !isSubmitting &&
+    !isUploading;
+
+  const handleGarmentFiles = useCallback(
+    async (files: FileList | null) => {
+      if (!files || files.length === 0) {
+        return;
+      }
+
+      setError(null);
+      setIsUploading(true);
+
+      try {
+        const remaining = MAX_GARMENTS - garmentImageUrls.length;
+        const picked = Array.from(files).slice(0, Math.max(0, remaining));
+        const uploadedUrls: string[] = [];
+
+        for (const file of picked) {
+          uploadedUrls.push(await uploadImage(file));
+        }
+
+        if (uploadedUrls.length > 0) {
+          setGarmentText((previous) =>
+            [previous.trim(), ...uploadedUrls].filter(Boolean).join("\n"),
+          );
+        }
+      } catch (uploadFailure) {
+        setError(
+          uploadFailure instanceof Error
+            ? uploadFailure.message
+            : copy.uploadError,
+        );
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [copy.uploadError, garmentImageUrls.length, uploadImage],
+  );
+
+  const handleStarFile = useCallback(
+    async (file: File | null) => {
+      if (!file) {
+        return;
+      }
+
+      setError(null);
+      setIsUploading(true);
+
+      try {
+        setStarAvatarUrl(await uploadImage(file));
+      } catch (uploadFailure) {
+        setError(
+          uploadFailure instanceof Error
+            ? uploadFailure.message
+            : copy.uploadError,
+        );
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [copy.uploadError, uploadImage],
+  );
+
+  const handleUseMyStar = useCallback(async () => {
+    if (!accountAddress || !email) {
+      return;
+    }
+
+    setError(null);
+
+    try {
+      const response = await fetch(
+        `/api/content/profile?email=${encodeURIComponent(
+          email,
+        )}&walletAddress=${encodeURIComponent(accountAddress)}`,
+      );
+      const data = (await response.json().catch(() => null)) as {
+        profile?: {
+          avatarImageUrl?: string | null;
+          displayName?: string | null;
+          characterPersona?: { name?: string | null } | null;
+        };
+        error?: string;
+      } | null;
+
+      if (!response.ok || !data?.profile?.avatarImageUrl) {
+        setError(data?.error ?? copy.noStar);
+        return;
+      }
+
+      setStarAvatarUrl(data.profile.avatarImageUrl);
+      const resolvedName =
+        data.profile.characterPersona?.name ?? data.profile.displayName ?? "";
+
+      if (resolvedName) {
+        setStarName(resolvedName);
+      }
+    } catch (loadFailure) {
+      setError(
+        loadFailure instanceof Error ? loadFailure.message : copy.genericError,
+      );
+    }
+  }, [accountAddress, copy.genericError, copy.noStar, email]);
 
   const handleSubmit = useCallback(async () => {
     setError(null);
@@ -245,6 +390,29 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
             type="url"
             value={starAvatarUrl}
           />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button
+              className="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1.5 text-xs font-bold text-violet-700 disabled:opacity-40"
+              disabled={!accountAddress || !email}
+              onClick={handleUseMyStar}
+              type="button"
+            >
+              {copy.useMyStar}
+            </button>
+            <label className="cursor-pointer rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs font-bold text-neutral-600">
+              {copy.uploadStarImage}
+              <input
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                disabled={!accountAddress || isUploading}
+                onChange={(event) => {
+                  void handleStarFile(event.target.files?.[0] ?? null);
+                  event.target.value = "";
+                }}
+                type="file"
+              />
+            </label>
+          </div>
         </Field>
 
         <Field label={copy.starNameLabel}>
@@ -264,6 +432,36 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
             placeholder={"https://…/top.jpg\nhttps://…/skirt.jpg"}
             value={garmentText}
           />
+          <div className="mt-2 flex items-center gap-2">
+            <label className="cursor-pointer rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs font-bold text-neutral-600">
+              {copy.uploadImage}
+              <input
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                disabled={
+                  !accountAddress ||
+                  isUploading ||
+                  garmentImageUrls.length >= MAX_GARMENTS
+                }
+                multiple
+                onChange={(event) => {
+                  void handleGarmentFiles(event.target.files);
+                  event.target.value = "";
+                }}
+                type="file"
+              />
+            </label>
+            {isUploading ? (
+              <span className="flex items-center gap-1 text-xs font-semibold text-neutral-400">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                {copy.uploading}
+              </span>
+            ) : (
+              <span className="text-xs text-neutral-400">
+                {garmentImageUrls.length}/{MAX_GARMENTS}
+              </span>
+            )}
+          </div>
         </Field>
 
         <Field label={copy.sceneLabel}>
