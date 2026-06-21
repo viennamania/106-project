@@ -62,6 +62,11 @@ type CreatorUnlockGuideAction = ComponentProps<
   typeof FanletterActionGuide
 >["primaryAction"];
 type CreatorUnlockResolvedGuideAction = NonNullable<CreatorUnlockGuideAction>;
+export type FanletterCreatorUnlockView =
+  | "conditions"
+  | "hub"
+  | "launch"
+  | "source";
 
 function getCreatorJourneyReputationLabel(
   eventType: string,
@@ -2457,6 +2462,154 @@ function CreatorJourneyEventPath({
   );
 }
 
+function CreatorJourneyStepLinks({
+  activeView,
+  conditionsHref,
+  launchHref,
+  locale,
+  sourceHref,
+  tiktokChannelHref,
+  unlock,
+}: {
+  activeView: FanletterCreatorUnlockView;
+  conditionsHref: string;
+  launchHref: string;
+  locale: Locale;
+  sourceHref: string;
+  tiktokChannelHref: string;
+  unlock: CreatorUnlockData;
+}) {
+  const isKorean = locale === "ko";
+  const completedConditionCount = unlock.conditions.filter(
+    (condition) => condition.met,
+  ).length;
+  const items = [
+    {
+      body: isKorean
+        ? `${completedConditionCount}/${unlock.conditions.length} 조건 완료`
+        : `${completedConditionCount}/${unlock.conditions.length} conditions met`,
+      eventType: "creator_unlock_evaluated",
+      href: conditionsHref,
+      icon: BadgeCheck,
+      key: "conditions",
+      label: isKorean ? "조건 확인" : "Conditions",
+      view: "conditions" as const,
+    },
+    {
+      body: isKorean
+        ? "어느 AI 스타 성과로 창업할지 선택"
+        : "Choose which AI Star performance powers launch",
+      eventType: "source_universe_selected",
+      href: sourceHref,
+      icon: GitBranch,
+      key: "source",
+      label: isKorean ? "출처 선택" : "Source",
+      view: "source" as const,
+    },
+    {
+      body: isKorean
+        ? "AI 스타 공식 TikTok 채널 연결"
+        : "Connect the AI Star TikTok channel",
+      eventType: "creator_social_connected",
+      href: tiktokChannelHref,
+      icon: Bot,
+      key: "tiktok",
+      label: "TikTok",
+      view: null,
+    },
+    {
+      body: isKorean
+        ? "실제 결제 없이 10 USDT 의도만 기록"
+        : "Record a 10 USDT mock intent only",
+      eventType: "x402_mock_payment_intent",
+      href: launchHref,
+      icon: CircleDollarSign,
+      key: "launch",
+      label: isKorean ? "생성 미리보기" : "Launch preview",
+      view: "launch" as const,
+    },
+  ];
+
+  return (
+    <section className="mt-5 rounded-[1.1rem] border border-zinc-200 bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.045)] sm:p-5">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+            Creator Journey
+          </p>
+          <h2 className="mt-1 text-2xl font-semibold tracking-normal text-black">
+            {isKorean
+              ? "필요한 작업만 나눠서 진행"
+              : "Focused steps, one action at a time"}
+          </h2>
+        </div>
+        <p className="max-w-xl text-sm font-medium leading-6 text-zinc-600">
+          {isKorean
+            ? "각 화면은 하나의 행동과 하나의 평판 기록에 집중합니다."
+            : "Each page focuses on one action and one Reputation Record."}
+        </p>
+      </div>
+      <div className="mt-4 grid gap-2 md:grid-cols-4">
+        {items.map((item) => {
+          const Icon = item.icon;
+          const active = item.view === activeView;
+
+          return (
+            <Link
+              className={joinClasses(
+                "group flex min-h-32 min-w-0 flex-col justify-between rounded-lg border p-4 transition",
+                active
+                  ? "border-black bg-black text-white"
+                  : "border-zinc-200 bg-zinc-50 text-zinc-950 hover:border-zinc-300 hover:bg-white",
+              )}
+              href={item.href}
+              key={item.key}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <span
+                  className={joinClasses(
+                    "flex size-10 shrink-0 items-center justify-center rounded-lg",
+                    active ? "bg-white text-black" : "bg-white text-zinc-950",
+                  )}
+                >
+                  <Icon className="size-5" />
+                </span>
+                <ArrowRight
+                  className={joinClasses(
+                    "size-4 shrink-0 transition group-hover:translate-x-0.5",
+                    active ? "text-white" : "text-zinc-400",
+                  )}
+                />
+              </div>
+              <div className="mt-4 min-w-0">
+                <p className="break-words text-base font-semibold leading-tight [word-break:keep-all]">
+                  {item.label}
+                </p>
+                <p
+                  className={joinClasses(
+                    "mt-1 break-words text-xs font-medium leading-5 [word-break:keep-all]",
+                    active ? "text-white/70" : "text-zinc-600",
+                  )}
+                >
+                  {item.body}
+                </p>
+                <p
+                  className={joinClasses(
+                    "mt-3 break-all font-mono text-[0.62rem] font-semibold",
+                    active ? "text-white/55" : "text-zinc-400",
+                  )}
+                >
+                  {item.eventType}
+                </p>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 export function FanletterCreatorUnlockPage({
   creatorUnlock,
   coverageAction = null,
@@ -2464,6 +2617,7 @@ export function FanletterCreatorUnlockPage({
   isSignedIn = false,
   locale,
   memberPortfolio,
+  view = "hub",
 }: {
   creatorUnlock?: CreatorUnlockData | null;
   coverageAction?: AgentRankCoverageActionContext | null;
@@ -2471,6 +2625,7 @@ export function FanletterCreatorUnlockPage({
   isSignedIn?: boolean;
   locale: Locale;
   memberPortfolio?: MemberPortfolioData | null;
+  view?: FanletterCreatorUnlockView;
 }) {
   const v2Copy = getFanletterV2Copy(locale);
   const copy = getLaunchPageCopy(locale);
@@ -2547,6 +2702,13 @@ export function FanletterCreatorUnlockPage({
   const tiktokChannelHref = `/${locale}/fanletter/creator-unlock/tiktok?starId=${encodeURIComponent(
     socialSourceStarId,
   )}`;
+  const viewRouteStarId = encodeURIComponent(
+    socialSourceStarId ?? trackingSourceStarId ?? "minseo",
+  );
+  const creatorUnlockHubHref = `/${locale}/fanletter/creator-unlock?starId=${viewRouteStarId}`;
+  const conditionsHref = `/${locale}/fanletter/creator-unlock/conditions?starId=${viewRouteStarId}`;
+  const sourceHref = `/${locale}/fanletter/creator-unlock/source?starId=${viewRouteStarId}`;
+  const launchHref = `/${locale}/fanletter/creator-unlock/launch?starId=${viewRouteStarId}`;
   const creatorJourneyServerSocialAccount = useFanletterAIStarServerSocialAccount({
     platform: "tiktok",
     starId: socialSourceStarId,
@@ -2963,10 +3125,14 @@ export function FanletterCreatorUnlockPage({
         <div className="flex items-center justify-between gap-3">
           <Link
             className="inline-flex min-h-10 items-center gap-2 rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-50"
-            href={`/${locale}/fanletter#creator-unlock`}
+            href={view === "hub" ? `/${locale}/fanletter#creator-unlock` : creatorUnlockHubHref}
           >
             <ArrowLeft className="size-4" />
-            {copy.back}
+            {view === "hub"
+              ? copy.back
+              : locale === "ko"
+                ? "Creator Journey"
+                : "Creator Journey"}
           </Link>
           <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 text-sm font-semibold text-emerald-800">
             <CheckCircle2 className="size-4" />
@@ -3079,12 +3245,41 @@ export function FanletterCreatorUnlockPage({
           unlock={unlock}
         />
 
+        {view === "hub" ? (
+          <>
+            <CreatorNextActionStatusCard
+              action={creatorUnlockNextAction}
+              completedConditionCount={completedConditionCount}
+              isPreviewMode={isPreviewMode}
+              locale={locale}
+              nextMissingCondition={nextMissingCondition}
+              requiresSourceUniverse={requiresSourceUniverse}
+              sourceUniverseName={displaySourceUniverseName}
+              unlock={unlock}
+            />
+
+            <CreatorJourneyStepLinks
+              activeView={view}
+              conditionsHref={conditionsHref}
+              launchHref={launchHref}
+              locale={locale}
+              sourceHref={sourceHref}
+              tiktokChannelHref={tiktokChannelHref}
+              unlock={unlock}
+            />
+          </>
+        ) : null}
+
+        {view !== "hub" ? (
+          <>
+        {view === "source" ? (
         <CreatorFounderRelationshipGuide
           locale={locale}
           portfolio={portfolio}
           requiresSourceUniverse={requiresSourceUniverse}
           selectedSourceOption={selectedSourceOption}
         />
+        ) : null}
 
         <CreatorNextActionStatusCard
           action={creatorUnlockNextAction}
@@ -3097,12 +3292,15 @@ export function FanletterCreatorUnlockPage({
           unlock={unlock}
         />
 
+        {view === "source" ? (
         <SourceUniverseNetworkLinkCard
           copy={copy}
           locale={locale}
           option={requiresSourceUniverse ? null : selectedSourceOption}
         />
+        ) : null}
 
+        {view === "conditions" || view === "launch" ? (
         <CreatorJourneyEventPath
           hasMockLaunches={effectiveMockOwnedStars.length > 0}
           isPreviewMode={isPreviewMode}
@@ -3111,7 +3309,9 @@ export function FanletterCreatorUnlockPage({
           sourceUniverseName={displaySourceUniverseName}
           unlock={unlock}
         />
+        ) : null}
 
+        {view === "conditions" ? (
         <section
           className="mt-5 rounded-[1.1rem] border border-zinc-200 bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.045)] sm:p-5"
           id="tiktok-channel"
@@ -3164,20 +3364,26 @@ export function FanletterCreatorUnlockPage({
             </div>
           </div>
         </section>
+        ) : null}
 
+        {view === "conditions" ? (
         <FounderContributionPanel
           contribution={isPreviewMode ? null : founderContribution}
           copy={copy}
           locale={locale}
         />
+        ) : null}
 
+        {view === "conditions" ? (
         <MockFounderRewardSummary
           locale={locale}
           membershipCount={effectiveMembershipStarIds.length}
         />
+        ) : null}
 
         <section className="mt-8 grid w-full min-w-0 gap-4 xl:grid-cols-[0.9fr_1.1fr]">
           <div className="grid min-w-0 gap-4">
+            {view === "conditions" ? (
             <div id="creator-unlock-conditions">
               <CreatorUnlockCard
                 copy={v2Copy}
@@ -3201,6 +3407,8 @@ export function FanletterCreatorUnlockPage({
                 unlock={unlock}
               />
             </div>
+            ) : null}
+            {view === "source" ? (
             <div id="source-universe-picker">
               {requiresSourceUniverse ? (
                 <SourceUniverseEmptyState copy={copy} locale={locale} />
@@ -3215,6 +3423,8 @@ export function FanletterCreatorUnlockPage({
                 />
               )}
             </div>
+            ) : null}
+            {view === "launch" ? (
             <section
               className="w-full min-w-0 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5"
               id="mock-launch-panel"
@@ -3337,8 +3547,10 @@ export function FanletterCreatorUnlockPage({
                 />
               </div>
             </section>
+            ) : null}
           </div>
 
+          {view === "launch" ? (
           <div className="grid min-w-0 gap-4">
             <section className="rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-5">
               <div className="mb-4 flex items-center gap-3">
@@ -3378,8 +3590,10 @@ export function FanletterCreatorUnlockPage({
               locale={locale}
             />
           </div>
+          ) : null}
         </section>
 
+        {view === "source" ? (
         <section className="mt-4">
           <MemberPortfolio
             copy={v2Copy}
@@ -3387,6 +3601,9 @@ export function FanletterCreatorUnlockPage({
             portfolio={portfolio}
           />
         </section>
+        ) : null}
+          </>
+        ) : null}
       </div>
     </main>
   );
