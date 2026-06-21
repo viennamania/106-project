@@ -59,6 +59,7 @@ function getCopy(locale: Locale) {
       creatorPermissionTitle: "Creator / Owner 권한 필요",
       creatorOnly: "Creator / Owner 권한 필요",
       eventCreated: "평판 기록 생성됨",
+      eventPreview: "평판 기록 미리보기",
       apiCapabilityStatus: {
         app_review_required: "앱 리뷰 필요",
         connected_ready: "연결 후 가능",
@@ -214,6 +215,7 @@ function getCopy(locale: Locale) {
       creatorPermissionTitle: "Creator / Owner権限が必要",
       creatorOnly: "Creator / Owner権限が必要",
       eventCreated: "評判記録作成済み",
+      eventPreview: "評判記録プレビュー",
       apiCapabilityStatus: {
         app_review_required: "アプリ審査が必要",
         connected_ready: "接続後に利用可能",
@@ -369,6 +371,7 @@ function getCopy(locale: Locale) {
     creatorPermissionTitle: "Creator / Owner permission required",
     creatorOnly: "Creator / Owner permission required",
     eventCreated: "Reputation record created",
+    eventPreview: "Reputation record preview",
     apiCapabilityStatus: {
       app_review_required: "App review required",
       connected_ready: "Ready after connection",
@@ -555,6 +558,11 @@ function getTikTokOAuthReasonLabel(reason: string | null, locale: Locale) {
       en: "Connect your FanLetter account first, then retry TikTok authorization.",
       ja: "先にFanLetterアカウントを接続してからTikTok認証を再試行してください。",
       ko: "먼저 FanLetter 계정을 연결한 뒤 TikTok 승인을 다시 시도하세요.",
+    },
+    non_sandbox_target: {
+      en: "This TikTok account is not recognized as a Sandbox target user for the FanLetter app. Log in with a registered Sandbox username, or add this username in the TikTok Developer Portal and wait for propagation.",
+      ja: "このTikTokアカウントはFanLetterアプリのSandbox対象ユーザーとして認識されていません。登録済みSandboxユーザーでログインするか、このユーザー名をTikTok Developer Portalに追加して反映を待ってください。",
+      ko: "현재 TikTok 계정이 FanLetter 앱의 Sandbox Target User로 인식되지 않습니다. 등록된 Sandbox 사용자로 로그인하거나, 이 username을 TikTok Developer Portal에 추가한 뒤 반영을 기다려주세요.",
     },
     oauth_state_secret_missing: {
       en: "OAuth state signing is not configured on the server.",
@@ -1749,7 +1757,7 @@ export function FanletterAIStarSocialAccountCard({
                 <div className="flex items-start gap-2">
                   <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
                   <div className="min-w-0">
-                    <p className="font-semibold">{copy.eventCreated}</p>
+                    <p className="font-semibold">{copy.eventPreview}</p>
                     <p className="mt-1 text-xs font-semibold text-emerald-800/78">
                       creator_social_connected · target: ai_star · platform:
                       tiktok
@@ -1806,7 +1814,7 @@ export function FanletterAIStarSocialAccountCard({
                     "liveReady" in oauthPreview &&
                     oauthPreview.liveReady ? (
                       <a
-                        className="mt-3 inline-flex min-h-10 w-full max-w-full min-w-0 box-border items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold text-white transition hover:bg-zinc-800 sm:w-auto"
+                        className="mt-3 inline-flex min-h-10 w-full max-w-full min-w-0 box-border items-center justify-center gap-2 rounded-full bg-black px-4 text-sm font-semibold !text-white transition hover:bg-zinc-800 sm:w-auto"
                         href={liveOAuthStartHref}
                       >
                         <span className="min-w-0 whitespace-normal text-center [word-break:keep-all]">

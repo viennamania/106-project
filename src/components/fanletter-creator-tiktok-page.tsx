@@ -180,6 +180,33 @@ function StarPortrait({ star }: { star: MemberOwnedAIStar }) {
   );
 }
 
+function getOAuthReasonLabel(reason: string | null, locale: Locale) {
+  if (!reason) {
+    return null;
+  }
+
+  const labels: Record<string, Partial<Record<Locale, string>> & { en: string }> = {
+    non_sandbox_target: {
+      en: "This TikTok account is not a Sandbox target user for the FanLetter app. Use a registered Sandbox username or add this username in the TikTok Developer Portal.",
+      ja: "このTikTokアカウントはFanLetterアプリのSandbox対象ユーザーではありません。登録済みSandboxユーザーを使うか、このユーザー名をTikTok Developer Portalに追加してください。",
+      ko: "현재 TikTok 계정이 FanLetter 앱의 Sandbox Target User가 아닙니다. 등록된 Sandbox username으로 로그인하거나, 이 username을 TikTok Developer Portal에 추가해야 합니다.",
+    },
+    tiktok_token_exchange_failed: {
+      en: "TikTok token exchange failed. Check redirect URI, client key, and Sandbox target user.",
+      ja: "TikTokトークン交換に失敗しました。redirect URI、client key、Sandbox対象ユーザーを確認してください。",
+      ko: "TikTok 토큰 교환이 실패했습니다. redirect URI, client key, Sandbox Target User를 확인하세요.",
+    },
+    unauthorized_client: {
+      en: "TikTok rejected the client key. Check whether the request uses the correct Sandbox or Production app.",
+      ja: "TikTokがclient keyを拒否しました。SandboxまたはProductionアプリが正しいか確認してください。",
+      ko: "TikTok이 client key를 거부했습니다. Sandbox/Production 앱 설정이 맞는지 확인하세요.",
+    },
+  };
+  const label = labels[reason];
+
+  return label?.[locale] ?? label?.en ?? reason;
+}
+
 export function FanletterCreatorTikTokPage({
   isSignedIn,
   locale,
@@ -257,6 +284,10 @@ export function FanletterCreatorTikTokPage({
       ? connectedAccount.handle
       : copy.statusWaiting;
   const nextActionLabel = connectedAccount ? copy.recordReady : copy.mainCta;
+  const oauthReasonLabel = getOAuthReasonLabel(
+    oauthCallbackStatus?.reason ?? null,
+    locale,
+  );
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-white px-4 py-5 text-black sm:px-6 lg:px-8">
@@ -394,9 +425,9 @@ export function FanletterCreatorTikTokPage({
                   {oauthCallbackStatus.status === "connected"
                     ? copy.oauthSuccessBody
                     : copy.oauthFailedBody}
-                  {oauthCallbackStatus.reason ? (
+                  {oauthReasonLabel ? (
                     <span className="mt-1 block font-semibold">
-                      {oauthCallbackStatus.reason}
+                      {oauthReasonLabel}
                     </span>
                   ) : null}
                 </p>
