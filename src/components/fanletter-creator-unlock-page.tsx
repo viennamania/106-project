@@ -2629,6 +2629,7 @@ function CreatorJourneyProductHero({
   completedConditionCount,
   conditionsHref,
   creatorJourneyNextHref,
+  creatorJourneySocialConnected,
   displaySourceUniverseName,
   isPreviewMode,
   launchHref,
@@ -2643,6 +2644,7 @@ function CreatorJourneyProductHero({
   completedConditionCount: number;
   conditionsHref: string;
   creatorJourneyNextHref: string;
+  creatorJourneySocialConnected: boolean;
   displaySourceUniverseName: string;
   isPreviewMode: boolean;
   launchHref: string;
@@ -2687,6 +2689,54 @@ function CreatorJourneyProductHero({
         : isKorean
           ? "권한 활성화 진행 중"
           : "Permission in progress";
+  const mobileRoadmapItems = [
+    {
+      active: creatorJourneyNextHref === conditionsHref,
+      done: completedConditionCount >= unlock.conditions.length,
+      label: isKorean ? "조건" : "Check",
+      value: `${completedConditionCount}/${unlock.conditions.length}`,
+    },
+    {
+      active: creatorJourneyNextHref === sourceHref,
+      done: !requiresSourceUniverse,
+      label: isKorean ? "출처" : "Source",
+      value: requiresSourceUniverse
+        ? isKorean
+          ? "필요"
+          : "Needed"
+        : isKorean
+          ? "선택"
+          : "Set",
+    },
+    {
+      active: creatorJourneyNextHref === tiktokChannelHref,
+      done: creatorJourneySocialConnected,
+      label: "TikTok",
+      value: creatorJourneySocialConnected
+        ? isKorean
+          ? "완료"
+          : "Done"
+        : creatorJourneyNextHref === tiktokChannelHref
+          ? isKorean
+            ? "다음"
+            : "Next"
+          : isKorean
+            ? "대기"
+            : "Wait",
+    },
+    {
+      active: creatorJourneyNextHref === launchHref,
+      done: false,
+      label: isKorean ? "생성" : "Launch",
+      value: creatorJourneyNextHref === launchHref
+        ? isKorean
+          ? "다음"
+          : "Next"
+        : isKorean
+          ? "대기"
+          : "Wait",
+    },
+  ];
 
   return (
     <section className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
@@ -2780,17 +2830,69 @@ function CreatorJourneyProductHero({
           </div>
         </div>
 
-        <CreatorJourneyStepLinks
-          activeView="hub"
-          conditionsHref={conditionsHref}
-          creatorJourneyNextHref={creatorJourneyNextHref}
-          launchHref={launchHref}
-          locale={locale}
-          primaryActionHref={action.href}
-          sourceHref={sourceHref}
-          tiktokChannelHref={tiktokChannelHref}
-          unlock={unlock}
-        />
+        <div className="rounded-[1.1rem] border border-zinc-200 bg-white p-3 shadow-[0_12px_28px_rgba(15,23,42,0.045)] sm:hidden">
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              {isKorean ? "진행 경로" : "Path"}
+            </p>
+            <p className="text-xs font-semibold text-zinc-500">
+              {isKorean ? "메인 버튼으로 진행" : "Use main CTA"}
+            </p>
+          </div>
+          <div className="mt-3 grid grid-cols-4 gap-1.5">
+            {mobileRoadmapItems.map((item, index) => (
+              <div
+                className={joinClasses(
+                  "min-w-0 rounded-xl border px-2 py-2 text-center",
+                  item.active
+                    ? "border-black bg-black text-white"
+                    : item.done
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                      : "border-zinc-200 bg-zinc-50 text-zinc-600",
+                )}
+                key={item.label}
+              >
+                <span
+                  className={joinClasses(
+                    "mx-auto flex size-6 items-center justify-center rounded-full text-[0.68rem] font-semibold",
+                    item.active
+                      ? "bg-white text-black"
+                      : item.done
+                        ? "bg-emerald-100 text-emerald-900"
+                        : "bg-white text-zinc-500",
+                  )}
+                >
+                  {index + 1}
+                </span>
+                <p className="mt-1 truncate text-[0.68rem] font-semibold">
+                  {item.label}
+                </p>
+                <p
+                  className={joinClasses(
+                    "mt-0.5 truncate text-[0.58rem] font-semibold",
+                    item.active ? "text-white/64" : "text-current/60",
+                  )}
+                >
+                  {item.value}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="hidden sm:block">
+          <CreatorJourneyStepLinks
+            activeView="hub"
+            conditionsHref={conditionsHref}
+            creatorJourneyNextHref={creatorJourneyNextHref}
+            launchHref={launchHref}
+            locale={locale}
+            primaryActionHref={action.href}
+            sourceHref={sourceHref}
+            tiktokChannelHref={tiktokChannelHref}
+            unlock={unlock}
+          />
+        </div>
       </div>
     </section>
   );
@@ -3375,6 +3477,7 @@ export function FanletterCreatorUnlockPage({
             completedConditionCount={completedConditionCount}
             conditionsHref={conditionsHref}
             creatorJourneyNextHref={creatorJourneyNextHref}
+            creatorJourneySocialConnected={creatorJourneySocialConnected}
             displaySourceUniverseName={displaySourceUniverseName}
             isPreviewMode={isPreviewMode}
             launchHref={launchHref}
