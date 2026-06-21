@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, Loader2, Sparkles } from "lucide-react";
+import { Download, Loader2, Plus, Shirt, Sparkles, Upload, X } from "lucide-react";
 import {
   type ReactNode,
   useCallback,
@@ -15,7 +15,6 @@ import type { Locale } from "@/lib/i18n";
 import { computeLookbookPointCost } from "@/lib/star-lookbook-pricing";
 
 type LookbookAspectRatio = "auto" | "1:1" | "3:4" | "4:5" | "2:3" | "9:16";
-type LookbookResolution = "1K" | "2K" | "4K";
 
 type LookbookImage = {
   url: string;
@@ -27,113 +26,125 @@ type LookbookImage = {
 type LookbookCopy = {
   title: string;
   subtitle: string;
-  starAvatarLabel: string;
-  starAvatarHint: string;
-  starNameLabel: string;
-  starNamePlaceholder: string;
+  starLabel: string;
+  starHint: string;
+  useMyStar: string;
+  uploadStar: string;
+  starUrlLabel: string;
   garmentLabel: string;
   garmentHint: string;
+  uploadGarment: string;
+  dropHint: string;
+  garmentUrlLabel: string;
+  advanced: string;
+  starNameLabel: string;
+  starNamePlaceholder: string;
   sceneLabel: string;
   scenePlaceholder: string;
+  scenePresetsLabel: string;
   aspectLabel: string;
-  resolutionLabel: string;
   countLabel: string;
+  previewLabel: string;
+  emptyTitle: string;
+  emptyBody: string;
+  waiting: string;
   submit: string;
   submitting: string;
-  resultTitle: string;
   download: string;
+  remove: string;
   connectRequired: string;
   membersOnly: string;
   needAvatar: string;
   needGarment: string;
   genericError: string;
-  uploadImage: string;
-  uploadStarImage: string;
-  uploading: string;
   uploadError: string;
-  useMyStar: string;
   noStar: string;
   costLabel: string;
   balanceLabel: string;
   insufficientPoints: string;
-  scenePresetsLabel: string;
-  pickStar: string;
 };
 
 const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
   ko: {
     title: "AI 스타 룩북 스튜디오",
-    subtitle:
-      "옷 사진을 올리면 내 AI 스타가 그 옷을 입은 한국형 쇼핑몰 룩북을 만들어 드립니다.",
-    starAvatarLabel: "AI 스타 이미지 URL",
-    starAvatarHint: "모델로 쓸 AI 스타의 정면 이미지 URL (얼굴/체형 기준이 됩니다).",
+    subtitle: "옷 사진을 올리면 내 AI 스타가 입은 한국형 쇼핑몰 룩북을 만듭니다.",
+    starLabel: "AI 스타",
+    starHint: "모델로 쓸 AI 스타를 고르세요. 얼굴·체형 기준이 됩니다.",
+    useMyStar: "내 AI 스타 불러오기",
+    uploadStar: "이미지 업로드",
+    starUrlLabel: "AI 스타 이미지 URL",
+    garmentLabel: "옷 사진",
+    garmentHint: "재현할 상품/의류 사진. 색·프린트·로고가 그대로 보존됩니다.",
+    uploadGarment: "옷 사진 업로드",
+    dropHint: "드래그 또는 클릭해 업로드",
+    garmentUrlLabel: "옷 사진 URL (한 줄에 하나)",
+    advanced: "URL 직접 입력",
     starNameLabel: "스타 이름 (선택)",
     starNamePlaceholder: "예: 윤서",
-    garmentLabel: "옷 사진 URL (한 줄에 하나, 최대 4장)",
-    garmentHint: "재현할 상품/의류 사진. 색·프린트·로고가 그대로 보존됩니다.",
     sceneLabel: "배경/연출 (선택)",
     scenePlaceholder: "예: 성수동 카페, 자연광, 전신샷",
+    scenePresetsLabel: "빠른 배경",
     aspectLabel: "비율",
-    resolutionLabel: "해상도",
     countLabel: "생성 장수",
+    previewLabel: "미리보기",
+    emptyTitle: "여기에 룩북이 표시됩니다",
+    emptyBody: "스타와 옷을 고른 뒤 룩북을 생성하세요.",
+    waiting: "생성 대기",
     submit: "룩북 생성",
     submitting: "생성 중…",
-    resultTitle: "생성된 룩북",
-    download: "다운로드",
+    download: "저장",
+    remove: "삭제",
     connectRequired: "지갑을 연결하면 룩북을 생성할 수 있습니다.",
     membersOnly: "가입을 완료한 회원만 사용할 수 있습니다.",
-    needAvatar: "AI 스타 이미지 URL을 입력하세요.",
-    needGarment: "옷 사진 URL을 최소 1장 입력하세요.",
+    needAvatar: "AI 스타를 선택하거나 이미지를 올리세요.",
+    needGarment: "옷 사진을 최소 1장 올리세요.",
     genericError: "룩북 생성에 실패했습니다.",
-    uploadImage: "옷 사진 업로드",
-    uploadStarImage: "스타 이미지 업로드",
-    uploading: "업로드 중…",
     uploadError: "이미지 업로드에 실패했습니다.",
-    useMyStar: "내 AI 스타 불러오기",
     noStar: "등록된 AI 스타 이미지가 없습니다.",
     costLabel: "필요 포인트",
     balanceLabel: "보유 포인트",
     insufficientPoints: "포인트가 부족합니다.",
-    scenePresetsLabel: "빠른 배경",
-    pickStar: "스타 선택",
   },
   en: {
     title: "AI Star Lookbook Studio",
     subtitle:
-      "Upload a garment photo and your AI star wears it in a Korean fashion e-commerce lookbook.",
-    starAvatarLabel: "AI star image URL",
-    starAvatarHint:
-      "A front-facing image of the AI star used as the model (anchors face & body).",
+      "Upload a garment photo and your AI star wears it in a Korean fashion lookbook.",
+    starLabel: "AI star",
+    starHint: "Pick the AI star used as the model — it anchors face & body.",
+    useMyStar: "Load my AI star",
+    uploadStar: "Upload image",
+    starUrlLabel: "AI star image URL",
+    garmentLabel: "Garment photos",
+    garmentHint: "Product photos to reproduce. Color, print and logos are preserved.",
+    uploadGarment: "Upload garment",
+    dropHint: "Drag or click to upload",
+    garmentUrlLabel: "Garment image URLs (one per line)",
+    advanced: "Enter URL manually",
     starNameLabel: "Star name (optional)",
     starNamePlaceholder: "e.g. Yunseo",
-    garmentLabel: "Garment image URLs (one per line, up to 4)",
-    garmentHint:
-      "Product/clothing photos to reproduce. Color, print and logos are preserved.",
     sceneLabel: "Scene / styling (optional)",
     scenePlaceholder: "e.g. Seongsu-dong cafe, natural light, full body",
+    scenePresetsLabel: "Quick scenes",
     aspectLabel: "Aspect",
-    resolutionLabel: "Resolution",
     countLabel: "Images",
+    previewLabel: "Preview",
+    emptyTitle: "Your lookbook appears here",
+    emptyBody: "Pick a star and garment, then generate.",
+    waiting: "Waiting",
     submit: "Generate lookbook",
     submitting: "Generating…",
-    resultTitle: "Generated lookbook",
-    download: "Download",
+    download: "Save",
+    remove: "Remove",
     connectRequired: "Connect your wallet to generate a lookbook.",
     membersOnly: "Only completed members can use this studio.",
-    needAvatar: "Enter the AI star image URL.",
-    needGarment: "Enter at least one garment image URL.",
+    needAvatar: "Pick an AI star or upload an image.",
+    needGarment: "Add at least one garment photo.",
     genericError: "Failed to generate the lookbook.",
-    uploadImage: "Upload garment photos",
-    uploadStarImage: "Upload star image",
-    uploading: "Uploading…",
     uploadError: "Failed to upload the image.",
-    useMyStar: "Use my AI star",
     noStar: "No AI star image found.",
     costLabel: "Cost",
     balanceLabel: "Your points",
     insufficientPoints: "Not enough points.",
-    scenePresetsLabel: "Quick scenes",
-    pickStar: "Pick a star",
   },
 };
 
@@ -192,9 +203,11 @@ const ASPECT_OPTIONS: LookbookAspectRatio[] = [
   "1:1",
   "auto",
 ];
-const RESOLUTION_OPTIONS: LookbookResolution[] = ["1K", "2K", "4K"];
 const COUNT_OPTIONS = [1, 2, 3, 4];
 const MAX_GARMENTS = 4;
+
+const FIELD_INPUT =
+  "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-[#44f26e]";
 
 export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const copy = locale === "en" ? COPY.en : COPY.ko;
@@ -209,7 +222,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [garmentText, setGarmentText] = useState("");
   const [sceneBrief, setSceneBrief] = useState("");
   const [aspectRatio, setAspectRatio] = useState<LookbookAspectRatio>("4:5");
-  const [resolution, setResolution] = useState<LookbookResolution>("1K");
+  const [resolution] = useState<"1K" | "2K" | "4K">("1K");
   const [numImages, setNumImages] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -219,6 +232,8 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [starAvatars, setStarAvatars] = useState<{ url: string; label: string }[]>(
     [],
   );
+  const [showStarUrl, setShowStarUrl] = useState(false);
+  const [showGarmentUrl, setShowGarmentUrl] = useState(false);
 
   useEffect(() => {
     if (!accountAddress || !email) {
@@ -296,6 +311,8 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const canSubmit =
     Boolean(accountAddress) &&
     Boolean(referralCode) &&
+    Boolean(starAvatarUrl.trim()) &&
+    garmentImageUrls.length > 0 &&
     hasEnoughPoints &&
     !isSubmitting &&
     !isUploading;
@@ -336,6 +353,17 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     [copy.uploadError, garmentImageUrls.length, uploadImage],
   );
 
+  const removeGarment = useCallback((url: string) => {
+    setGarmentText((previous) =>
+      previous
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .filter((item) => item !== url)
+        .join("\n"),
+    );
+  }, []);
+
   const handleStarFile = useCallback(
     async (file: File | null) => {
       if (!file) {
@@ -346,7 +374,13 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
       setIsUploading(true);
 
       try {
-        setStarAvatarUrl(await uploadImage(file));
+        const url = await uploadImage(file);
+        setStarAvatarUrl(url);
+        setStarAvatars((previous) =>
+          previous.some((item) => item.url === url)
+            ? previous
+            : [...previous, { url, label: String(previous.length + 1) }],
+        );
       } catch (uploadFailure) {
         setError(
           uploadFailure instanceof Error
@@ -485,175 +519,226 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     starName,
   ]);
 
+  const gate = !accountAddress
+    ? copy.connectRequired
+    : !referralCode
+      ? copy.membersOnly
+      : null;
+
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8">
-      <header className="mb-6">
-        <div className="mb-2 flex items-center gap-2 text-violet-600">
-          <Sparkles className="h-5 w-5" />
-          <span className="text-xs font-extrabold uppercase tracking-wide">
-            FanLetter Studio
-          </span>
+    <div className="mx-auto w-full max-w-5xl px-4 py-8">
+      <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="mb-1.5 flex items-center gap-2 text-[#16702e]">
+            <Sparkles className="h-4 w-4" />
+            <span className="text-[11px] font-extrabold uppercase tracking-wider">
+              FanLetter Studio
+            </span>
+          </div>
+          <h1 className="text-2xl font-black tracking-tight text-neutral-900">
+            {copy.title}
+          </h1>
+          <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-neutral-500">
+            {copy.subtitle}
+          </p>
         </div>
-        <h1 className="text-2xl font-black tracking-tight text-neutral-900">
-          {copy.title}
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-neutral-500">
-          {copy.subtitle}
-        </p>
+        {spendablePoints !== null ? (
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-neutral-600">
+            <span className="h-2 w-2 rounded-full bg-[#44f26e]" />
+            {copy.balanceLabel} {spendablePoints.toLocaleString()}P
+          </span>
+        ) : null}
       </header>
 
-      {!accountAddress ? (
-        <p className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
-          {copy.connectRequired}
-        </p>
-      ) : !referralCode ? (
-        <p className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
-          {copy.membersOnly}
+      {gate ? (
+        <p className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
+          {gate}
         </p>
       ) : null}
 
-      <div className="space-y-5">
-        <Field label={copy.starAvatarLabel} hint={copy.starAvatarHint}>
-          <input
-            className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-violet-400"
-            inputMode="url"
-            onChange={(event) => setStarAvatarUrl(event.target.value)}
-            placeholder="https://…/star.png"
-            type="url"
-            value={starAvatarUrl}
-          />
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <button
-              className="rounded-lg border border-violet-200 bg-violet-50 px-2.5 py-1.5 text-xs font-bold text-violet-700 disabled:opacity-40"
-              disabled={!accountAddress || !email}
-              onClick={handleUseMyStar}
-              type="button"
-            >
-              {copy.useMyStar}
-            </button>
-            <label className="cursor-pointer rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs font-bold text-neutral-600">
-              {copy.uploadStarImage}
-              <input
-                accept="image/png,image/jpeg,image/webp"
-                className="hidden"
-                disabled={!accountAddress || isUploading}
-                onChange={(event) => {
-                  void handleStarFile(event.target.files?.[0] ?? null);
-                  event.target.value = "";
-                }}
-                type="file"
-              />
-            </label>
-          </div>
-          {starAvatars.length > 1 ? (
-            <div className="mt-3">
-              <span className="mb-1.5 block text-xs font-bold text-neutral-400">
-                {copy.pickStar}
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {starAvatars.map((avatar) => {
-                  const active = starAvatarUrl === avatar.url;
+      <div className="grid gap-5 lg:grid-cols-2">
+        {/* Controls */}
+        <div className="space-y-5 rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
+          {/* Star */}
+          <section>
+            <SectionLabel hint={copy.starHint}>{copy.starLabel}</SectionLabel>
+            <div className="flex flex-wrap items-center gap-2.5">
+              {starAvatars.map((avatar) => {
+                const active = starAvatarUrl === avatar.url;
 
-                  return (
-                    <button
-                      className={`overflow-hidden rounded-xl border-2 transition ${
-                        active ? "border-violet-500" : "border-transparent"
-                      }`}
-                      key={avatar.url}
-                      onClick={() => setStarAvatarUrl(avatar.url)}
-                      title={avatar.label}
-                      type="button"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        alt={`AI star ${avatar.label}`}
-                        className="h-16 w-16 object-cover"
-                        src={avatar.url}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
+                return (
+                  <button
+                    className={`h-14 w-14 overflow-hidden rounded-full transition ${
+                      active
+                        ? "ring-2 ring-[#44f26e] ring-offset-2"
+                        : "ring-1 ring-black/10 hover:ring-black/25"
+                    }`}
+                    key={avatar.url}
+                    onClick={() => setStarAvatarUrl(avatar.url)}
+                    type="button"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      alt={`AI star ${avatar.label}`}
+                      className="h-full w-full object-cover"
+                      src={avatar.url}
+                    />
+                  </button>
+                );
+              })}
+              <label className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-full border border-dashed border-black/20 text-neutral-400 transition hover:border-[#44f26e] hover:text-[#16702e]">
+                {isUploading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Plus className="h-5 w-5" />
+                )}
+                <input
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  disabled={!accountAddress || isUploading}
+                  onChange={(event) => {
+                    void handleStarFile(event.target.files?.[0] ?? null);
+                    event.target.value = "";
+                  }}
+                  type="file"
+                />
+              </label>
             </div>
-          ) : null}
-        </Field>
-
-        <Field label={copy.starNameLabel}>
-          <input
-            className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-violet-400"
-            onChange={(event) => setStarName(event.target.value)}
-            placeholder={copy.starNamePlaceholder}
-            type="text"
-            value={starName}
-          />
-        </Field>
-
-        <Field label={copy.garmentLabel} hint={copy.garmentHint}>
-          <textarea
-            className="h-24 w-full resize-y rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-violet-400"
-            onChange={(event) => setGarmentText(event.target.value)}
-            placeholder={"https://…/top.jpg\nhttps://…/skirt.jpg"}
-            value={garmentText}
-          />
-          <div className="mt-2 flex items-center gap-2">
-            <label className="cursor-pointer rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs font-bold text-neutral-600">
-              {copy.uploadImage}
+            <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs font-bold">
+              <button
+                className="text-[#16702e] disabled:opacity-40"
+                disabled={!accountAddress || !email}
+                onClick={handleUseMyStar}
+                type="button"
+              >
+                {copy.useMyStar}
+              </button>
+              <button
+                className="text-neutral-400 hover:text-neutral-600"
+                onClick={() => setShowStarUrl((value) => !value)}
+                type="button"
+              >
+                {copy.advanced}
+              </button>
+            </div>
+            {showStarUrl ? (
               <input
-                accept="image/png,image/jpeg,image/webp"
-                className="hidden"
-                disabled={
-                  !accountAddress ||
-                  isUploading ||
-                  garmentImageUrls.length >= MAX_GARMENTS
-                }
-                multiple
-                onChange={(event) => {
-                  void handleGarmentFiles(event.target.files);
-                  event.target.value = "";
-                }}
-                type="file"
+                className={`${FIELD_INPUT} mt-2`}
+                inputMode="url"
+                onChange={(event) => setStarAvatarUrl(event.target.value)}
+                placeholder="https://…/star.png"
+                type="url"
+                value={starAvatarUrl}
               />
-            </label>
-            {isUploading ? (
-              <span className="flex items-center gap-1 text-xs font-semibold text-neutral-400">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                {copy.uploading}
-              </span>
-            ) : (
-              <span className="text-xs text-neutral-400">
+            ) : null}
+          </section>
+
+          {/* Garment */}
+          <section>
+            <SectionLabel hint={copy.garmentHint}>{copy.garmentLabel}</SectionLabel>
+            <div className="flex flex-wrap gap-2.5">
+              {garmentImageUrls.map((url) => (
+                <div
+                  className="relative h-20 w-16 overflow-hidden rounded-xl border border-black/10 bg-neutral-50"
+                  key={url}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    alt="garment"
+                    className="h-full w-full object-cover"
+                    src={url}
+                  />
+                  <button
+                    aria-label={copy.remove}
+                    className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-neutral-600 shadow-sm"
+                    onClick={() => removeGarment(url)}
+                    type="button"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              {garmentImageUrls.length < MAX_GARMENTS ? (
+                <label className="flex h-20 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-black/20 text-neutral-400 transition hover:border-[#44f26e] hover:text-[#16702e]">
+                  {isUploading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <Upload className="h-5 w-5" />
+                  )}
+                  <span className="px-2 text-center text-[11px] font-bold">
+                    {copy.dropHint}
+                  </span>
+                  <input
+                    accept="image/png,image/jpeg,image/webp"
+                    className="hidden"
+                    disabled={!accountAddress || isUploading}
+                    multiple
+                    onChange={(event) => {
+                      void handleGarmentFiles(event.target.files);
+                      event.target.value = "";
+                    }}
+                    type="file"
+                  />
+                </label>
+              ) : null}
+            </div>
+            <div className="mt-2 flex items-center justify-between text-xs">
+              <button
+                className="font-bold text-neutral-400 hover:text-neutral-600"
+                onClick={() => setShowGarmentUrl((value) => !value)}
+                type="button"
+              >
+                {copy.advanced}
+              </button>
+              <span className="text-neutral-400">
                 {garmentImageUrls.length}/{MAX_GARMENTS}
               </span>
-            )}
-          </div>
-        </Field>
+            </div>
+            {showGarmentUrl ? (
+              <textarea
+                className={`${FIELD_INPUT} mt-2 h-20 resize-y`}
+                onChange={(event) => setGarmentText(event.target.value)}
+                placeholder={"https://…/top.jpg\nhttps://…/skirt.jpg"}
+                value={garmentText}
+              />
+            ) : null}
+          </section>
 
-        <Field label={copy.sceneLabel}>
-          <input
-            className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-violet-400"
-            onChange={(event) => setSceneBrief(event.target.value)}
-            placeholder={copy.scenePlaceholder}
-            type="text"
-            value={sceneBrief}
-          />
-          <div className="mt-2">
-            <span className="mb-1.5 block text-xs font-bold text-neutral-400">
-              {copy.scenePresetsLabel}
-            </span>
-            <div className="flex flex-wrap gap-1.5">
+          {/* Star name */}
+          <section>
+            <SectionLabel>{copy.starNameLabel}</SectionLabel>
+            <input
+              className={FIELD_INPUT}
+              onChange={(event) => setStarName(event.target.value)}
+              placeholder={copy.starNamePlaceholder}
+              type="text"
+              value={starName}
+            />
+          </section>
+
+          {/* Scene */}
+          <section>
+            <SectionLabel>{copy.sceneLabel}</SectionLabel>
+            <input
+              className={FIELD_INPUT}
+              onChange={(event) => setSceneBrief(event.target.value)}
+              placeholder={copy.scenePlaceholder}
+              type="text"
+              value={sceneBrief}
+            />
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
               {SCENE_PRESETS.map((preset) => {
                 const active = sceneBrief === preset.brief;
 
                 return (
                   <button
-                    className={`rounded-full border px-2.5 py-1 text-xs font-bold transition ${
+                    className={`rounded-full px-2.5 py-1 text-xs font-bold transition ${
                       active
-                        ? "border-violet-400 bg-violet-600 text-white"
-                        : "border-neutral-200 bg-white text-neutral-600"
+                        ? "bg-[#44f26e] text-[#07100b]"
+                        : "border border-black/10 bg-white text-neutral-600 hover:border-black/25"
                     }`}
                     key={preset.id}
-                    onClick={() =>
-                      setSceneBrief(active ? "" : preset.brief)
-                    }
+                    onClick={() => setSceneBrief(active ? "" : preset.brief)}
                     type="button"
                   >
                     {locale === "en" ? preset.en : preset.ko}
@@ -661,154 +746,158 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
                 );
               })}
             </div>
+          </section>
+
+          {/* Aspect + count */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <SectionLabel>{copy.aspectLabel}</SectionLabel>
+              <select
+                className={FIELD_INPUT}
+                onChange={(event) =>
+                  setAspectRatio(event.target.value as LookbookAspectRatio)
+                }
+                value={aspectRatio}
+              >
+                {ASPECT_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <SectionLabel>{copy.countLabel}</SectionLabel>
+              <select
+                className={FIELD_INPUT}
+                onChange={(event) => setNumImages(Number(event.target.value))}
+                value={numImages}
+              >
+                {COUNT_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-        </Field>
-
-        <div className="grid grid-cols-3 gap-3">
-          <Field label={copy.aspectLabel}>
-            <select
-              className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-violet-400"
-              onChange={(event) =>
-                setAspectRatio(event.target.value as LookbookAspectRatio)
-              }
-              value={aspectRatio}
-            >
-              {ASPECT_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label={copy.resolutionLabel}>
-            <select
-              className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-violet-400"
-              onChange={(event) =>
-                setResolution(event.target.value as LookbookResolution)
-              }
-              value={resolution}
-            >
-              {RESOLUTION_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label={copy.countLabel}>
-            <select
-              className="w-full rounded-xl border border-neutral-200 px-3 py-2.5 text-sm outline-none focus:border-violet-400"
-              onChange={(event) => setNumImages(Number(event.target.value))}
-              value={numImages}
-            >
-              {COUNT_OPTIONS.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </Field>
         </div>
 
-        <div className="flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2.5 text-xs font-bold text-neutral-600">
-          <span>
-            {copy.costLabel}: {cost.toLocaleString()}P
-          </span>
-          {spendablePoints !== null ? (
-            <span className={hasEnoughPoints ? "text-neutral-600" : "text-rose-600"}>
-              {copy.balanceLabel}: {spendablePoints.toLocaleString()}P
-            </span>
-          ) : null}
+        {/* Preview */}
+        <div className="lg:sticky lg:top-6 lg:self-start">
+          <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
+            <SectionLabel>{copy.previewLabel}</SectionLabel>
+            {isSubmitting ? (
+              <div className="grid grid-cols-2 gap-3">
+                {Array.from({ length: numImages }).map((_, index) => (
+                  <div
+                    className="flex aspect-[4/5] animate-pulse items-center justify-center rounded-xl bg-neutral-100"
+                    key={index}
+                  >
+                    <Loader2 className="h-5 w-5 animate-spin text-neutral-300" />
+                  </div>
+                ))}
+              </div>
+            ) : images.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3">
+                {images.map((image) => (
+                  <figure
+                    className="overflow-hidden rounded-xl border border-black/10 bg-neutral-50"
+                    key={image.pathname}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      alt="AI star lookbook"
+                      className="aspect-[4/5] w-full object-cover"
+                      src={image.url}
+                    />
+                    <figcaption className="p-2">
+                      <a
+                        className="flex items-center justify-center gap-1.5 rounded-lg bg-neutral-900 px-2 py-1.5 text-xs font-bold text-white"
+                        download
+                        href={image.url}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        {copy.download}
+                      </a>
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            ) : (
+              <div className="flex aspect-[4/5] max-h-80 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-black/15 text-center">
+                <Shirt className="h-8 w-8 text-neutral-300" />
+                <p className="text-sm font-bold text-neutral-500">
+                  {copy.emptyTitle}
+                </p>
+                <p className="px-6 text-xs text-neutral-400">{copy.emptyBody}</p>
+              </div>
+            )}
+          </div>
         </div>
+      </div>
 
+      {/* Generate bar */}
+      <div className="mt-5 space-y-3">
         {!hasEnoughPoints ? (
           <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-600">
             {copy.insufficientPoints}
           </p>
         ) : null}
-
         {error ? (
           <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-600">
             {error}
           </p>
         ) : null}
 
-        <button
-          className="flex w-full items-center justify-center gap-2 rounded-2xl bg-neutral-900 px-4 py-3.5 text-sm font-extrabold text-white transition disabled:cursor-not-allowed disabled:opacity-40"
-          disabled={!canSubmit}
-          onClick={handleSubmit}
-          type="button"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              {copy.submitting}
-            </>
-          ) : (
-            <>
-              <Sparkles className="h-4 w-4" />
-              {copy.submit}
-            </>
-          )}
-        </button>
-      </div>
-
-      {images.length > 0 ? (
-        <section className="mt-8">
-          <h2 className="mb-3 text-sm font-extrabold text-neutral-900">
-            {copy.resultTitle}
-          </h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {images.map((image) => (
-              <figure
-                key={image.pathname}
-                className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-50"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  alt="AI star lookbook"
-                  className="aspect-[4/5] w-full object-cover"
-                  src={image.url}
-                />
-                <figcaption className="p-2">
-                  <a
-                    className="flex items-center justify-center gap-1.5 rounded-lg bg-neutral-900 px-2 py-1.5 text-xs font-bold text-white"
-                    download
-                    href={image.url}
-                    rel="noreferrer"
-                    target="_blank"
-                  >
-                    <Download className="h-3.5 w-3.5" />
-                    {copy.download}
-                  </a>
-                </figcaption>
-              </figure>
-            ))}
+        <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
+          <div className="text-sm text-neutral-500">
+            {copy.costLabel}{" "}
+            <span className="font-bold text-neutral-900">
+              {cost.toLocaleString()}P
+            </span>
+            <span className="text-neutral-400"> · {numImages}장</span>
           </div>
-        </section>
-      ) : null}
+          <div className="flex-1" />
+          <button
+            className="flex items-center justify-center gap-2 rounded-2xl bg-neutral-900 px-7 py-3 text-sm font-extrabold text-white transition hover:bg-black disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={!canSubmit}
+            onClick={handleSubmit}
+            type="button"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {copy.submitting}
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                {copy.submit}
+              </>
+            )}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
-function Field({
+function SectionLabel({
   children,
   hint,
-  label,
 }: {
   children: ReactNode;
   hint?: string;
-  label: string;
 }) {
   return (
-    <label className="block">
-      <span className="mb-1.5 block text-xs font-bold text-neutral-700">
-        {label}
-      </span>
-      {children}
+    <div className="mb-2">
+      <span className="block text-xs font-bold text-neutral-700">{children}</span>
       {hint ? (
-        <span className="mt-1 block text-xs text-neutral-400">{hint}</span>
+        <span className="mt-0.5 block text-[11px] text-neutral-400">{hint}</span>
       ) : null}
-    </label>
+    </div>
   );
 }
