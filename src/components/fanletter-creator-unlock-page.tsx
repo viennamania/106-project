@@ -2185,7 +2185,6 @@ function CreatorNextActionStatusCard({
         condition: "다음 조건",
         current: "현재",
         event: "평판 기록 결과",
-        eventId: "기술 ID",
         source: "창업 출처",
         target: "목표",
         title: unlock.unlocked ? "권한 활성화 준비 완료" : "다음 조건부터 처리하세요",
@@ -2201,7 +2200,6 @@ function CreatorNextActionStatusCard({
         condition: "Next condition",
         current: "Current",
         event: "Reputation result",
-        eventId: "Technical ID",
         source: "Launch source",
         target: "Target",
         title: unlock.unlocked ? "Permission activation ready" : "Handle the next condition first",
@@ -2258,10 +2256,6 @@ function CreatorNextActionStatusCard({
             </div>
           ))}
         </div>
-
-        <p className="mt-2 break-all rounded-lg bg-zinc-50 px-3 py-2 font-mono text-[0.62rem] font-semibold leading-4 text-zinc-400">
-          {labels.eventId}: {eventType}
-        </p>
 
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {[
@@ -2607,11 +2601,11 @@ function CreatorJourneyStepLinks({
                 </p>
                 <p
                   className={joinClasses(
-                    "mt-2 break-all font-mono text-[0.62rem] font-semibold",
+                    "mt-2 break-words text-[0.68rem] font-semibold leading-4 [word-break:keep-all]",
                     active || primary ? "text-white/55" : "text-zinc-400",
                   )}
                 >
-                  {item.eventType}
+                  {getCreatorJourneyReputationLabel(item.eventType, locale)}
                 </p>
               </div>
               <div className="pt-1">
