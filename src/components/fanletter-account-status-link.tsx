@@ -128,7 +128,6 @@ function getToneClassName(
 function FanletterAccountStatusLinkFallback({
   className,
   accountConnectHref,
-  compactOnMobile = true,
   locale,
   referralCode,
   surface = "dark",
@@ -149,10 +148,7 @@ function FanletterAccountStatusLinkFallback({
       title={copy.disconnected}
     >
       <Mail className="size-4 shrink-0" />
-      <span className={compactOnMobile ? "hidden sm:inline" : "inline"}>
-        {copy.disconnected}
-      </span>
-      {compactOnMobile ? <span className="sm:hidden">{copy.disconnected}</span> : null}
+      <span className="min-w-0 truncate">{copy.disconnected}</span>
     </Link>
   );
 }
@@ -265,6 +261,8 @@ function FanletterAccountStatusLinkInner({
                 tone: "connected",
               };
   const Icon = view.Icon;
+  const shouldUseCompactLabels =
+    compactOnMobile && view.mobileLabel !== view.label;
 
   return (
     <Link
@@ -279,17 +277,14 @@ function FanletterAccountStatusLinkInner({
       <Icon
         className={joinClasses("size-4 shrink-0", view.loading && "animate-spin")}
       />
-      <span
-        className={joinClasses(
-          "min-w-0 truncate",
-          compactOnMobile ? "hidden sm:inline" : "inline",
-        )}
-      >
-        {view.label}
-      </span>
-      {compactOnMobile ? (
-        <span className="min-w-0 truncate sm:hidden">{view.mobileLabel}</span>
-      ) : null}
+      {shouldUseCompactLabels ? (
+        <>
+          <span className="hidden min-w-0 truncate sm:inline">{view.label}</span>
+          <span className="min-w-0 truncate sm:hidden">{view.mobileLabel}</span>
+        </>
+      ) : (
+        <span className="min-w-0 truncate">{view.label}</span>
+      )}
     </Link>
   );
 }

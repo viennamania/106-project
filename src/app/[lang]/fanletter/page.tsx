@@ -14,7 +14,10 @@ import {
   getFanletterFounderClubScoutShareLoop,
 } from "@/lib/fanletter-founder-club-service";
 import { getFanletterCreatorPageData } from "@/lib/fanletter-content-service";
-import { getFanletterLandingData } from "@/lib/fanletter-landing-service";
+import {
+  getFanletterLandingData,
+  type FanletterLandingData,
+} from "@/lib/fanletter-landing-service";
 import {
   buildFanletterOgImagePath,
   FANLETTER_OG_IMAGE_SIZE,
@@ -38,6 +41,7 @@ import {
 import { normalizeReferralCode } from "@/lib/member";
 import { readMemberServerSession } from "@/lib/member-server-session";
 import { normalizeShareId } from "@/lib/share-tracking";
+import { fanletterV2Mock } from "@/mock/fanletterV2";
 
 type FanletterHomeSearchParams = {
   coverageAction?: string | string[];
@@ -64,6 +68,36 @@ function getFanletterMeta(locale: Locale) {
       "AIAVpark helps creators grow AI character vlogs through fan requests, then expand fan-only content revenue into participation rewards and sharing models.",
     title: "AIAVpark | Fan-powered AI character growth platform",
   };
+}
+
+function getFanletterHomeFallbackLandingData(): FanletterLandingData {
+  return {
+    featuredPaidVideos: [],
+    featuredVideos: [],
+    hiddenNsfwCount: 0,
+    liveStats: {
+      activeCreatorCount: 0,
+      confirmedSalesCount: 0,
+      publishedContentCount: 0,
+      publicVideoCount: 0,
+      totalSalesUsdt: 0,
+    },
+    nsfwOptInEnabled: false,
+  };
+}
+
+async function safeLoadFanletterHomeData<T>(
+  label: string,
+  promise: Promise<T>,
+  fallback: T,
+): Promise<T> {
+  try {
+    return await promise;
+  } catch (error) {
+    console.error(`Failed to load FanLetter home ${label}`, error);
+
+    return fallback;
+  }
 }
 
 export async function generateMetadata({
@@ -160,24 +194,48 @@ export default async function FanletterRoutePage({
     founderClubCreatorUnlock,
     agentRankSnapshot,
   ] = await Promise.all([
-    getFanletterLandingData(locale, includeNsfw),
+    safeLoadFanletterHomeData(
+      "landing data",
+      getFanletterLandingData(locale, includeNsfw),
+      getFanletterHomeFallbackLandingData(),
+    ),
     shouldLoadShareContext && shareCreatorReferralCode
-      ? getFanletterCreatorPageData(locale, shareCreatorReferralCode, null)
+      ? safeLoadFanletterHomeData(
+          "share context",
+          getFanletterCreatorPageData(locale, shareCreatorReferralCode, null),
+          null,
+        )
       : Promise.resolve(null),
-    getFanletterFounderClubHomeStars({
-      selectedStarId: founderClubStarId,
-    }),
-    getFanletterFounderClubMemberPortfolio(memberSession?.email ?? null),
-    getFanletterFounderClubScoutShareLoop({
-      email: memberSession?.email ?? null,
-      locale,
-    }),
-    getFanletterFounderClubCreatorUnlock(memberSession?.email ?? null),
-    getFanletterAgentRankInvestorSnapshot({ limit: 80 }).catch((error) => {
-      console.error("Failed to load FanLetter AgentRank snapshot", error);
-
-      return null;
-    }),
+    safeLoadFanletterHomeData(
+      "AI Stars",
+      getFanletterFounderClubHomeStars({
+        selectedStarId: founderClubStarId,
+      }),
+      fanletterV2Mock.aiStars,
+    ),
+    safeLoadFanletterHomeData(
+      "member portfolio",
+      getFanletterFounderClubMemberPortfolio(memberSession?.email ?? null),
+      null,
+    ),
+    safeLoadFanletterHomeData(
+      "scout share loop",
+      getFanletterFounderClubScoutShareLoop({
+        email: memberSession?.email ?? null,
+        locale,
+      }),
+      null,
+    ),
+    safeLoadFanletterHomeData(
+      "creator unlock",
+      getFanletterFounderClubCreatorUnlock(memberSession?.email ?? null),
+      null,
+    ),
+    safeLoadFanletterHomeData(
+      "AgentRank snapshot",
+      getFanletterAgentRankInvestorSnapshot({ limit: 80 }),
+      null,
+    ),
   ]);
   const shareContextReferralCode =
     referralCode ?? shareCreatorData?.profile.referralCode ?? null;
