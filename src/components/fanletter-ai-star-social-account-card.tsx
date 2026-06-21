@@ -727,7 +727,7 @@ export function FanletterAIStarSocialAccountCard({
   const [isSyncingTikTok, setIsSyncingTikTok] = useState(false);
   const [isOauthPreviewLoading, setIsOauthPreviewLoading] = useState(false);
   const [oauthMode, setOauthMode] = useState<"production" | "sandbox">(
-    "production",
+    "sandbox",
   );
   const [oauthPreview, setOauthPreview] =
     useState<TikTokOAuthPreviewResponse | null>(null);
@@ -824,9 +824,10 @@ export function FanletterAIStarSocialAccountCard({
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    const requestedOAuthMode = params.get("oauthMode");
     const shouldUseSandbox =
       params.get("tiktokSandbox") === "1" ||
-      params.get("oauthMode") === "sandbox";
+      requestedOAuthMode !== "production";
     const callbackStatus = params.get("tiktok");
 
     setOauthMode(shouldUseSandbox ? "sandbox" : "production");
