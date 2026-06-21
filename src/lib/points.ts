@@ -16,6 +16,7 @@ export const pointLedgerSourceTypes = [
   "tier_upgrade",
   "nft_redemption",
   "discount_redemption",
+  "lookbook_generation",
   "bonus",
   "admin",
 ] as const;
