@@ -25,9 +25,12 @@ style-room이 구조적으로 따라올 수 없는 차별점.
 | `src/app/api/fanletter/lookbook/route.ts` | `POST /api/fanletter/lookbook` — 멤버 지갑 인증 후 서비스 호출 |
 | `src/components/fanletter-lookbook-studio-page.tsx` | 셀러 UI(client). `useActiveAccount`+`useMemberSession`으로 인증. 옷/스타 이미지 **파일 업로드**(기존 `/api/content/posts/upload` 재사용) + **"내 AI 스타 불러오기"**(`GET /api/content/profile`로 avatar/이름 프리필) + URL 직접 입력도 지원. 배경·비율·해상도·장수 입력 → API 호출 → 결과 갤러리(다운로드) |
 | `src/app/[lang]/(thirdweb)/fanletter/studio/lookbook/page.tsx` | 페이지 셸. `(thirdweb)` 그룹 하위(=`MemberSessionProvider`+지갑 사용 가능). 경로: `/{lang}/fanletter/studio/lookbook` |
+| `src/lib/star-lookbook-pricing.ts` | 공유 가격 모듈(서버·클라 공용, server-only 아님). `LOOKBOOK_POINT_COST_PER_IMAGE`(기본 50pt/장), `computeLookbookPointCost()`, `clampLookbookImageCount()` |
+| `src/lib/star-lookbook-billing.ts` | 포인트 과금(server-only). `chargeLookbookPoints`(트랜잭션 `$gte` 가드 차감 + 음수 ledger), `refundLookbookPoints`(rollback). `redeemRewardForMember` 패턴 미러링 |
 
-자립형(자체 fal 클라이언트·blob·env). Codex의 TikTok 코드와 0 충돌.
-파일 업로드는 신규 엔드포인트 없이 기존 업로드 라우트를 재사용함.
+**결제=포인트** (사용자 결정). 기존 포인트 원장 시스템에 통합: `pointLedger`에 `sourceType:"lookbook_generation"` 엔트리. `points.ts` 유니온에 해당 값 1개 추가(유일한 기존파일 수정).
+흐름: 라우트가 **과금(선차감) → 생성 → 실패 시 환불**. 잔액 부족 시 402.
+자립형 코어(자체 fal 클라이언트·blob·env). Codex의 TikTok 코드와 0 충돌(파일 업로드도 기존 업로드 라우트 재사용).
 
 ### API 계약
 ```jsonc
@@ -47,7 +50,7 @@ POST /api/fanletter/lookbook
 
 1. ~~셀러 UI~~ ✅ 완료 (`/{lang}/fanletter/studio/lookbook`).
 2. ~~파일 업로드 + 스타 선택~~ ✅ 완료 (옷/스타 파일 업로드 + "내 AI 스타 불러오기" 프리필). 후속 개선: 본인 AI 스타가 여러 명일 때 목록에서 골라 선택(현재는 대표 프로필 1개 프리필).
-3. **결제/GTM** — 셀러는 USDT 안 씀 → 원화/포인트 룩북 과금 모델 (현 최대 리스크). **사업 결정 필요** — 통화/과금단위/결제수단.
+3. ~~결제~~ ✅ 포인트 과금 완료(이미지 1장당 차감, 실패 시 환불). **남은 사업 결정: 장당 포인트 단가 확정**(현재 기본 50pt/장 = 플레이스홀더, `star-lookbook-pricing.ts`에서 수정). 포인트 적립/충전 동선(셀러가 포인트를 어떻게 얻는지)도 GTM 차원에서 정의 필요.
 4. **TikTok 유통 연동** — Codex의 AI 스타↔TikTok 연결 완료 후, 룩북 자동 게시.
 5. **품질 튜닝** — 원단/프린트/로고 보존 한계 시 해상도 상향·레퍼런스 다각도·후처리.
 6. **한국형 배경 프리셋** — sceneBrief 템플릿화 (성수/한남/스튜디오 등).

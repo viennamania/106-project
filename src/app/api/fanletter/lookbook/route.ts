@@ -1,5 +1,13 @@
+import { randomUUID } from "crypto";
+
 import { normalizeEmail } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import {
+  chargeLookbookPoints,
+  INSUFFICIENT_POINTS_ERROR,
+  refundLookbookPoints,
+} from "@/lib/star-lookbook-billing";
+import { clampLookbookImageCount } from "@/lib/star-lookbook-pricing";
 import {
   generateStarLookbook,
   type StarLookbookAspectRatio,
@@ -109,13 +117,41 @@ export async function POST(request: Request) {
     );
   }
 
+  const numImages = clampLookbookImageCount(
+    typeof body?.numImages === "number" ? body.numImages : undefined,
+  );
+  const sourceId = randomUUID();
+
+  // 1) Charge points up front (atomic guard-decrement).
+  let chargedPoints: number;
+  let summary: Awaited<ReturnType<typeof chargeLookbookPoints>>["summary"];
+
+  try {
+    const charge = await chargeLookbookPoints({
+      memberEmail: member.email,
+      numImages,
+      sourceId,
+    });
+    chargedPoints = charge.chargedPoints;
+    summary = charge.summary;
+  } catch (error) {
+    if (error instanceof Error && error.message === INSUFFICIENT_POINTS_ERROR) {
+      return jsonError("Not enough points to generate this lookbook.", 402);
+    }
+
+    return jsonError(
+      error instanceof Error ? error.message : "Failed to charge points.",
+      500,
+    );
+  }
+
+  // 2) Generate; refund the charge if generation fails.
   try {
     const images = await generateStarLookbook({
       aspectRatio: parseEnum(body?.aspectRatio, ASPECT_RATIOS),
       garmentImageUrls,
       memberEmail: member.email,
-      numImages:
-        typeof body?.numImages === "number" ? body.numImages : undefined,
+      numImages,
       referralCode: member.referralCode,
       resolution: parseEnum(body?.resolution, RESOLUTIONS),
       sceneBrief: body?.sceneBrief ?? null,
@@ -123,8 +159,14 @@ export async function POST(request: Request) {
       starName: body?.starName ?? null,
     });
 
-    return Response.json({ images });
+    return Response.json({ chargedPoints, images, summary });
   } catch (error) {
+    await refundLookbookPoints({
+      chargedPoints,
+      memberEmail: member.email,
+      sourceId,
+    });
+
     return jsonError(
       error instanceof Error
         ? error.message

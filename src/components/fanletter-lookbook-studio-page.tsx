@@ -1,11 +1,18 @@
 "use client";
 
 import { Download, Loader2, Sparkles } from "lucide-react";
-import { type ReactNode, useCallback, useMemo, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useActiveAccount } from "thirdweb/react";
 
 import { useMemberSession } from "@/components/member-session-provider";
 import type { Locale } from "@/lib/i18n";
+import { computeLookbookPointCost } from "@/lib/star-lookbook-pricing";
 
 type LookbookAspectRatio = "auto" | "1:1" | "3:4" | "4:5" | "2:3" | "9:16";
 type LookbookResolution = "1K" | "2K" | "4K";
@@ -46,6 +53,9 @@ type LookbookCopy = {
   uploadError: string;
   useMyStar: string;
   noStar: string;
+  costLabel: string;
+  balanceLabel: string;
+  insufficientPoints: string;
 };
 
 const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
@@ -79,6 +89,9 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     uploadError: "이미지 업로드에 실패했습니다.",
     useMyStar: "내 AI 스타 불러오기",
     noStar: "등록된 AI 스타 이미지가 없습니다.",
+    costLabel: "필요 포인트",
+    balanceLabel: "보유 포인트",
+    insufficientPoints: "포인트가 부족합니다.",
   },
   en: {
     title: "AI Star Lookbook Studio",
@@ -112,6 +125,9 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     uploadError: "Failed to upload the image.",
     useMyStar: "Use my AI star",
     noStar: "No AI star image found.",
+    costLabel: "Cost",
+    balanceLabel: "Your points",
+    insufficientPoints: "Not enough points.",
   },
 };
 
@@ -146,6 +162,43 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [error, setError] = useState<string | null>(null);
   const [images, setImages] = useState<LookbookImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [spendablePoints, setSpendablePoints] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!accountAddress || !email) {
+      setSpendablePoints(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const response = await fetch(
+          `/api/points/summary?email=${encodeURIComponent(
+            email,
+          )}&walletAddress=${encodeURIComponent(accountAddress)}`,
+        );
+        const data = (await response.json().catch(() => null)) as
+          | { summary?: { spendablePoints?: number } }
+          | null;
+
+        if (
+          !cancelled &&
+          response.ok &&
+          typeof data?.summary?.spendablePoints === "number"
+        ) {
+          setSpendablePoints(data.summary.spendablePoints);
+        }
+      } catch {
+        // Balance display is best-effort; the server enforces the charge.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accountAddress, email]);
 
   const uploadImage = useCallback(
     async (file: File): Promise<string> => {
@@ -181,9 +234,13 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     [garmentText],
   );
 
+  const cost = useMemo(() => computeLookbookPointCost(numImages), [numImages]);
+  const hasEnoughPoints = spendablePoints === null || spendablePoints >= cost;
+
   const canSubmit =
     Boolean(accountAddress) &&
     Boolean(referralCode) &&
+    hasEnoughPoints &&
     !isSubmitting &&
     !isUploading;
 
@@ -322,7 +379,11 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
       });
 
       const data = (await response.json().catch(() => null)) as
-        | { images?: LookbookImage[]; error?: string }
+        | {
+            images?: LookbookImage[];
+            error?: string;
+            summary?: { spendablePoints?: number };
+          }
         | null;
 
       if (!response.ok || !data?.images) {
@@ -331,6 +392,10 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
       }
 
       setImages(data.images);
+
+      if (typeof data.summary?.spendablePoints === "number") {
+        setSpendablePoints(data.summary.spendablePoints);
+      }
     } catch (submitError) {
       setError(
         submitError instanceof Error ? submitError.message : copy.genericError,
@@ -519,6 +584,23 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
             </select>
           </Field>
         </div>
+
+        <div className="flex items-center justify-between rounded-xl bg-neutral-50 px-3 py-2.5 text-xs font-bold text-neutral-600">
+          <span>
+            {copy.costLabel}: {cost.toLocaleString()}P
+          </span>
+          {spendablePoints !== null ? (
+            <span className={hasEnoughPoints ? "text-neutral-600" : "text-rose-600"}>
+              {copy.balanceLabel}: {spendablePoints.toLocaleString()}P
+            </span>
+          ) : null}
+        </div>
+
+        {!hasEnoughPoints ? (
+          <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-600">
+            {copy.insufficientPoints}
+          </p>
+        ) : null}
 
         {error ? (
           <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-600">
