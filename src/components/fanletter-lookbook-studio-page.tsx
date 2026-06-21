@@ -206,7 +206,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [garmentText, setGarmentText] = useState("");
   const [sceneBrief, setSceneBrief] = useState("");
   const [aspectRatio, setAspectRatio] = useState<LookbookAspectRatio>("4:5");
-  const [resolution, setResolution] = useState<LookbookResolution>("2K");
+  const [resolution, setResolution] = useState<LookbookResolution>("1K");
   const [numImages, setNumImages] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
