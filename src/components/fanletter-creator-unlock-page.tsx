@@ -3492,7 +3492,7 @@ export function FanletterCreatorUnlockPage({
           <>
             {creatorUnlockActionGuide}
 
-            <div className="mt-4">
+            <div className="mt-4 hidden sm:block">
               <CreatorJourneyStepLinks
                 activeView={view}
                 conditionsHref={conditionsHref}
