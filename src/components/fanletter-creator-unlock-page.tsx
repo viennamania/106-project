@@ -3121,7 +3121,7 @@ function CreatorJourneyProductHero({
       </div>
 
       <div className="grid gap-3">
-        <div className="rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.055)] sm:p-5">
+        <div className="hidden rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.055)] sm:block sm:p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.1em] text-zinc-500">
             {isKorean ? "현재 상태" : "Current state"}
           </p>
