@@ -106,18 +106,18 @@ function getScoutPageCopy(locale: Locale) {
       back: "FanLetter 홈",
       connected: "추천 링크 준비됨",
       connectFirst: "계정 연결 필요",
-      eventFlow: "평판 기록 흐름",
+      eventFlow: "평판 기록",
       heroBody: "AI 스타를 선택하고 추천 링크를 공유하세요. 참여와 보상은 같은 AI 스타 유니버스에 기록됩니다.",
       heroEyebrow: "스카우트 센터",
       heroTitle: "추천 링크를 공유하세요",
       liveData: "라이브 데이터",
-      mockData: "mock 미리보기",
+      mockData: "미리보기 데이터",
       pendingEvent: "참여 후 기록",
       nextAction: "다음 행동",
       noRole:
         "아직 이 AI 스타의 파운더 네트워크에 참여하지 않았습니다. 참여 후 추천 링크를 공유할 수 있습니다.",
       primaryConnect: "계정 연결하기",
-      primaryJoin: "Founder 참여 후 공유",
+      primaryJoin: "파운더 참여 후 공유",
       primaryShare: "추천 링크 공유하기",
       reputationEvent: "평판 기록",
       reputationEventValue: "추천 공유 기록",
@@ -127,17 +127,17 @@ function getScoutPageCopy(locale: Locale) {
       starSelector: "AI 스타 선택",
       starCandidate: "AI 스타",
       universe: "AI 스타 유니버스",
-      viewFounderClub: "Founder Club 보기",
+      viewFounderClub: "파운더 클럽 보기",
       viewUniverse: "AI 스타 유니버스 보기",
       metrics: {
         cp: "CP",
         invites: "성공 초대",
-        progress: "Creator 진행",
+        progress: "크리에이터 진행",
         scout: "스카우트 점수",
       },
       signpostSubtitle:
         "추천 링크 공유는 AI 스타 유니버스의 파운더 네트워크 성장과 평판 기록으로 이어집니다.",
-      steps: ["추천 링크 생성", "SNS 공유", "Founder 참여", "평판 기록"],
+      steps: ["추천 링크 생성", "SNS 공유", "파운더 참여", "평판 기록"],
     };
   }
 
