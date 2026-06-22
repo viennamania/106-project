@@ -214,6 +214,41 @@ export async function failSellerJob(
   }
 }
 
+export type SellerJobStats = {
+  queued: number;
+  processing: number;
+  doneLastHour: number;
+  failedLastHour: number;
+  oldestQueuedAgeSec: number | null;
+};
+
+/**
+ * Queue health snapshot for monitoring. A high `oldestQueuedAgeSec` with
+ * `processing: 0` means the worker is not draining (down / unauthorized).
+ */
+export async function getSellerJobStats(): Promise<SellerJobStats> {
+  const collection = await getJobsCollection();
+  const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+  const [queued, processing, doneLastHour, failedLastHour, oldest] =
+    await Promise.all([
+      collection.countDocuments({ status: "queued" }),
+      collection.countDocuments({ status: "processing" }),
+      collection.countDocuments({ status: "done", updatedAt: { $gte: hourAgo } }),
+      collection.countDocuments({
+        status: "failed",
+        updatedAt: { $gte: hourAgo },
+      }),
+      collection.find({ status: "queued" }).sort({ createdAt: 1 }).limit(1).toArray(),
+    ]);
+
+  const oldestQueuedAgeSec = oldest[0]
+    ? Math.round((Date.now() - oldest[0].createdAt.getTime()) / 1000)
+    : null;
+
+  return { doneLastHour, failedLastHour, oldestQueuedAgeSec, processing, queued };
+}
+
 /**
  * Cancel a job ONLY if it is still queued (the worker has not claimed it) and
  * refund the credits charged at enqueue. Returns true if it was canceled. Used

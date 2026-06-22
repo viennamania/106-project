@@ -114,8 +114,14 @@ returns 500 and jobs never drain (the client then falls back to sync).
 - **Worker logs**: `railway logs -s lookbook-worker` (logs `{processed, jobId, status}`
   per drained job; `[ERRO] status=500 SELLER_JOB_WORKER_TOKEN is not configured`
   means the Vercel token is missing/mismatched).
-- **Worker health check**: `curl -X POST <LOOKBOOK_PROCESS_URL> -H "Authorization: Bearer <token>"`
+- **Queue health (for uptime monitors)**: `GET /api/internal/seller-lookbook/health`
+  with `Authorization: Bearer <SELLER_JOB_WORKER_TOKEN>` →
+  `{ ok, stats: { queued, processing, doneLastHour, failedLastHour, oldestQueuedAgeSec } }`.
+  Alert when `oldestQueuedAgeSec` is high while `processing` is 0 — the worker is
+  not draining (down / token mismatch). Point an external monitor at this.
+- **Worker liveness probe**: `curl -X POST <LOOKBOOK_PROCESS_URL> -H "Authorization: Bearer <token>"`
   → `{"processed":0}` (queue empty + auth OK) / `{"processed":1,...}` (drained one).
+  Note this *claims* a job, so prefer the GET health endpoint for passive monitoring.
 - **Symptom: generations slow then succeed via "sync" / button sits "Queued…"**
   → worker is down or not authorized; jobs fall back to sync after ~27s. Check
   the worker is running and the token matches.
