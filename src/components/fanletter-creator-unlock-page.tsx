@@ -2888,6 +2888,203 @@ function CreatorJourneyContextGraphCard({
   );
 }
 
+function CreatorTikTokContextBridgeCard({
+  accountHandle,
+  isConnected,
+  ledgerHref,
+  locale,
+  tiktokChannelHref,
+}: {
+  accountHandle?: string | null;
+  isConnected: boolean;
+  ledgerHref: string;
+  locale: Locale;
+  tiktokChannelHref: string;
+}) {
+  const isKorean = locale === "ko";
+  const isJapanese = locale === "ja";
+  const labels = isKorean
+    ? {
+        asset: "축적 자산",
+        assetValue: "AI 스타 공식 TikTok 채널",
+        bridge: "채널 연결 -> 콘텐츠 동기화 -> 평판 기록",
+        graph: "그래프 강화",
+        graphValue: "AI 스타 -> TikTok -> AgentRank",
+        graphWaiting: "AI 스타 -> TikTok 연결 대기",
+        ledger: "평판 기록 보기",
+        moat: "복제 난이도",
+        moatValue: "서버 연결 기록 + 공식 채널 증거",
+        moatWaiting: "연결 후 서버 기록과 공식 채널 증거 생성",
+        primary: "콘텐츠 동기화 준비",
+        primaryWaiting: "TikTok 연결하기",
+        score: "Context Score",
+        subtitle:
+          "이제 TikTok 채널은 Creator Journey 조건을 넘어서 콘텐츠 성과를 AgentRank 평판 기록으로 만드는 입력원이 됩니다.",
+        subtitleWaiting:
+          "회원 개인 계정이 아니라 선택한 AI 스타의 공식 채널을 연결해야 콘텐츠 성과가 평판 기록으로 이어집니다.",
+        title: "TikTok 연결이 콘텐츠 Context로 확장됩니다",
+        titleWaiting: "TikTok 연결은 콘텐츠 Context의 시작점입니다",
+      }
+    : isJapanese
+      ? {
+          asset: "蓄積Asset",
+          assetValue: "AIスター公式TikTokチャンネル",
+          bridge: "Channel connection -> Content sync -> Reputation record",
+          graph: "Graph強化",
+          graphValue: "AI Star -> TikTok -> AgentRank",
+          graphWaiting: "AI Star -> TikTok connection waiting",
+          ledger: "評判記録を見る",
+          moat: "Context Moat",
+          moatValue: "Server connection record + official channel evidence",
+          moatWaiting:
+            "Server record and official channel evidence are created after connection",
+          primary: "コンテンツ同期を準備",
+          primaryWaiting: "TikTok接続",
+          score: "Context Score",
+          subtitle:
+            "TikTokチャンネルはCreator Journey条件を超えて、コンテンツ成果をAgentRank評判記録に変える入力元になります。",
+          subtitleWaiting:
+            "Connect the selected AI Star official channel, not a personal member account, so content performance can become reputation records.",
+          title: "TikTok connection expands into content context",
+          titleWaiting: "TikTok connection starts content context",
+        }
+      : {
+          asset: "Context asset",
+          assetValue: "AI Star official TikTok channel",
+          bridge: "Channel connection -> Content sync -> Reputation record",
+          graph: "Graph strength",
+          graphValue: "AI Star -> TikTok -> AgentRank",
+          graphWaiting: "AI Star -> TikTok connection pending",
+          ledger: "View records",
+          moat: "Context moat",
+          moatValue: "Server record + official channel evidence",
+          moatWaiting:
+            "Server record and official channel evidence are created after connection",
+          primary: "Prepare content sync",
+          primaryWaiting: "Connect TikTok",
+          score: "Context Score",
+          subtitle:
+            "The TikTok channel now becomes an input source for turning content performance into AgentRank Reputation Records.",
+          subtitleWaiting:
+            "Connect the selected AI Star's official channel, not a personal member account, so content performance can become reputation records.",
+          title: "TikTok connection expands into content context",
+          titleWaiting: "TikTok connection starts content context",
+        };
+  const proofItems = [
+    {
+      Icon: BadgeCheck,
+      label: labels.asset,
+      value: isConnected
+        ? accountHandle ?? labels.assetValue
+        : isKorean
+          ? "AI 스타 공식 채널 대기"
+          : isJapanese
+            ? "AI Star official channel pending"
+            : "AI Star official channel pending",
+    },
+    {
+      Icon: GitBranch,
+      label: labels.graph,
+      value: isConnected ? labels.graphValue : labels.graphWaiting,
+    },
+    {
+      Icon: Database,
+      label: labels.moat,
+      value: isConnected ? labels.moatValue : labels.moatWaiting,
+    },
+  ];
+  const score = isConnected ? 9 : 6;
+
+  return (
+    <section className="mt-4 overflow-hidden rounded-[1.1rem] border border-zinc-200 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.055)]">
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_16rem]">
+        <div className="min-w-0 p-4 sm:p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-emerald-700">
+              {isConnected ? (
+                <CheckCircle2 className="size-3.5" />
+              ) : (
+                <Bot className="size-3.5" />
+              )}
+              {isConnected
+                ? getCreatorJourneyReputationLabel(
+                    "creator_social_connected",
+                    locale,
+                  )
+                : isKorean
+                  ? "TikTok 연결 대기"
+                  : "TikTok connection pending"}
+            </span>
+            <span className="inline-flex min-h-7 items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 text-xs font-semibold text-zinc-600">
+              {labels.score} {score}/10
+            </span>
+          </div>
+          <h2 className="mt-3 text-2xl font-semibold tracking-normal text-zinc-950 [word-break:keep-all]">
+            {isConnected ? labels.title : labels.titleWaiting}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+            {isConnected ? labels.subtitle : labels.subtitleWaiting}
+          </p>
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-3">
+            {proofItems.map((item) => {
+              const Icon = item.Icon;
+
+              return (
+                <div
+                  className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 p-3"
+                  key={item.label}
+                >
+                  <span className="flex size-8 items-center justify-center rounded-lg bg-black text-white">
+                    <Icon className="size-4" />
+                  </span>
+                  <p className="mt-3 truncate text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+                    {item.label}
+                  </p>
+                  <p className="mt-1 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+                    {item.value}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex min-w-0 flex-col justify-between border-t border-zinc-200 bg-zinc-950 p-4 text-white lg:border-l lg:border-t-0 sm:p-5">
+          <div>
+            <p className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-white/46">
+              {isKorean ? "다음 Context" : "Next Context"}
+            </p>
+            <p className="mt-2 break-words text-lg font-semibold leading-tight [word-break:keep-all]">
+              {labels.bridge}
+            </p>
+          </div>
+          <div className="mt-5 grid gap-2">
+            <Link
+              className="inline-flex min-h-11 min-w-0 items-center justify-center gap-2 rounded-full bg-white px-4 text-center text-sm font-semibold text-black transition hover:bg-zinc-100"
+              href={tiktokChannelHref}
+            >
+              <span className="min-w-0 break-words [word-break:keep-all]">
+                {isConnected ? labels.primary : labels.primaryWaiting}
+              </span>
+              <ArrowRight className="size-4 shrink-0" />
+            </Link>
+            <Link
+              className="inline-flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-full border border-white/14 px-4 text-center text-xs font-semibold text-white/72 transition hover:border-white/30 hover:text-white"
+              href={ledgerHref}
+            >
+              <span className="min-w-0 break-words [word-break:keep-all]">
+                {labels.ledger}
+              </span>
+              <ArrowRight className="size-3.5 shrink-0" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CreatorJourneyStepLinks({
   activeView,
   conditionsHref,
@@ -2918,44 +3115,60 @@ function CreatorJourneyStepLinks({
       body: isKorean
         ? `${completedConditionCount}/${unlock.conditions.length} 조건 완료`
         : `${completedConditionCount}/${unlock.conditions.length} conditions met`,
+      contextAsset: isKorean
+        ? "권한 조건 Context"
+        : "Permission condition context",
       eventType: "creator_unlock_evaluated",
       href: conditionsHref,
       icon: BadgeCheck,
       key: "conditions",
       label: isKorean ? "조건 확인" : "Conditions",
+      routeLabel: isKorean ? "전용 페이지" : "Dedicated page",
       view: "conditions" as const,
     },
     {
       body: isKorean
         ? "어느 AI 스타 성과로 창업할지 선택"
         : "Choose which AI Star performance powers launch",
+      contextAsset: isKorean
+        ? "출처 AI 스타 Context"
+        : "Source AI Star context",
       eventType: "source_universe_selected",
       href: sourceHref,
       icon: GitBranch,
       key: "source",
       label: isKorean ? "출처 선택" : "Source",
+      routeLabel: isKorean ? "전용 페이지" : "Dedicated page",
       view: "source" as const,
     },
     {
       body: isKorean
         ? "AI 스타 공식 TikTok 채널 연결"
         : "Connect the AI Star TikTok channel",
+      contextAsset: isKorean
+        ? "공식 채널 Context"
+        : "Official channel context",
       eventType: "creator_social_connected",
       href: tiktokChannelHref,
       icon: Bot,
       key: "tiktok",
       label: "TikTok",
+      routeLabel: isKorean ? "전용 페이지" : "Dedicated page",
       view: null,
     },
     {
       body: isKorean
         ? "실제 결제 없이 10 USDT 의도만 기록"
         : "Record a 10 USDT mock intent only",
+      contextAsset: isKorean
+        ? "생성 의도 Context"
+        : "Launch intent context",
       eventType: "x402_mock_payment_intent",
       href: launchHref,
       icon: CircleDollarSign,
       key: "launch",
       label: isKorean ? "생성 미리보기" : "Launch preview",
+      routeLabel: isKorean ? "전용 페이지" : "Dedicated page",
       view: "launch" as const,
     },
   ];
@@ -2967,16 +3180,16 @@ function CreatorJourneyStepLinks({
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
             {isKorean ? "크리에이터 여정" : "Creator Journey"}
           </p>
-          <h2 className="mt-1 text-2xl font-semibold tracking-normal text-black">
+          <h2 className="mt-1 text-2xl font-semibold tracking-normal text-black [word-break:keep-all]">
             {isKorean
-              ? "다음 단계만 선명하게"
+              ? "전용 페이지로 한 단계씩 진행"
               : "Focused steps, one action at a time"}
           </h2>
         </div>
-        <p className="max-w-xl text-sm font-medium leading-6 text-zinc-600">
+        <p className="max-w-xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
           {isKorean
-            ? "완료한 단계와 지금 눌러야 할 버튼을 분리해서 보여줍니다."
-            : "Each page focuses on one action and one Reputation Record."}
+            ? "조건, 출처, TikTok, 생성은 각각 별도 화면에서 하나의 행동과 하나의 평판 기록만 처리합니다."
+            : "Each dedicated page handles one action and one Reputation Record."}
         </p>
       </div>
       <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
@@ -3034,9 +3247,23 @@ function CreatorJourneyStepLinks({
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="break-words text-base font-semibold leading-tight [word-break:keep-all]">
-                    {item.label}
-                  </p>
+                  <div className="min-w-0">
+                    <p className="break-words text-base font-semibold leading-tight [word-break:keep-all]">
+                      {item.label}
+                    </p>
+                    <p
+                      className={joinClasses(
+                        "mt-1 break-words text-[0.62rem] font-semibold leading-tight [word-break:keep-all]",
+                        highlighted
+                          ? "text-white/52"
+                          : done
+                            ? "text-emerald-800/62"
+                            : "text-zinc-500",
+                      )}
+                    >
+                      {item.routeLabel}
+                    </p>
+                  </div>
                   <span
                     className={joinClasses(
                       "shrink-0 rounded-full px-2 py-0.5 text-[0.62rem] font-semibold",
@@ -3073,6 +3300,18 @@ function CreatorJourneyStepLinks({
                   )}
                 >
                   {getCreatorJourneyReputationLabel(item.eventType, locale)}
+                </p>
+                <p
+                  className={joinClasses(
+                    "mt-1 break-words text-[0.62rem] font-semibold leading-4 [word-break:keep-all]",
+                    highlighted
+                      ? "text-white/42"
+                      : done
+                        ? "text-emerald-700/60"
+                        : "text-zinc-400",
+                  )}
+                >
+                  {item.contextAsset}
                 </p>
               </div>
               <div className="pt-1">
@@ -4022,44 +4261,13 @@ export function FanletterCreatorUnlockPage({
               sourceUniverseName={displaySourceUniverseName}
               unlock={unlock}
             />
-            {creatorJourneySocialConnected ? (
-              <section className="mt-4 rounded-[1.1rem] border border-emerald-200 bg-emerald-50 p-4 shadow-[0_14px_34px_rgba(15,23,42,0.05)] sm:p-5">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="min-w-0">
-                    <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-emerald-700">
-                      <CheckCircle2 className="size-4" />
-                      {locale === "ko" ? "TikTok 연결 결과" : "TikTok result"}
-                    </p>
-                    <h2 className="mt-2 text-2xl font-semibold tracking-normal text-emerald-950">
-                      {locale === "ko"
-                        ? "공식 채널 연결 완료"
-                        : "Official channel connected"}
-                    </h2>
-                    <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-emerald-800 [word-break:keep-all]">
-                      {locale === "ko"
-                        ? `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} 채널 연결이 크리에이터 권한 조건과 평판 기록에 반영되었습니다.`
-                        : `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} is reflected in Creator Journey conditions and the Reputation Record flow.`}
-                    </p>
-                  </div>
-                  <div className="grid shrink-0 gap-2 sm:w-56">
-                    <Link
-                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-emerald-950 px-4 text-sm font-semibold text-white transition hover:bg-emerald-900"
-                      href={creatorSocialLedgerHref}
-                    >
-                      {locale === "ko" ? "평판 기록 보기" : "View records"}
-                      <ArrowRight className="size-4" />
-                    </Link>
-                    <Link
-                      className="inline-flex min-h-10 items-center justify-center gap-2 rounded-full border border-emerald-200 bg-white px-4 text-xs font-semibold text-emerald-900"
-                      href={launchHref}
-                    >
-                      {locale === "ko" ? "생성 미리보기" : "Launch preview"}
-                      <ArrowRight className="size-3.5" />
-                    </Link>
-                  </div>
-                </div>
-              </section>
-            ) : null}
+            <CreatorTikTokContextBridgeCard
+              accountHandle={creatorJourneyEffectiveSocialAccount?.handle}
+              isConnected={creatorJourneySocialConnected}
+              ledgerHref={creatorSocialLedgerHref}
+              locale={locale}
+              tiktokChannelHref={tiktokChannelHref}
+            />
           </>
         ) : (
           <>

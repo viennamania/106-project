@@ -19,6 +19,7 @@ import { useFanletterAIStarServerSocialAccountState } from "@/components/fanlett
 import { shouldBypassFanletterImageOptimization } from "@/lib/fanletter-image";
 import type { Locale } from "@/lib/i18n";
 import {
+  getFanletterV2MockStar,
   type MemberOwnedAIStar,
   type MemberPortfolio as MemberPortfolioData,
 } from "@/mock/fanletterV2";
@@ -37,6 +38,55 @@ function getInitials(value: string) {
   }
 
   return (words[0] ?? value).slice(0, 2).toUpperCase();
+}
+
+function getFallbackStarName(starId: string) {
+  const readableId = starId
+    .replace(/^legacy-star-/i, "")
+    .replace(/[-_]+/g, " ")
+    .trim();
+
+  if (!readableId) {
+    return "AI Star";
+  }
+
+  return readableId
+    .split(/\s+/)
+    .map((token) => token.charAt(0).toUpperCase() + token.slice(1))
+    .join(" ");
+}
+
+function getSelectedStarFallback(starId: string | null | undefined) {
+  if (!starId) {
+    return null;
+  }
+
+  const mockStar = getFanletterV2MockStar(starId);
+
+  if (mockStar) {
+    const portraitImageUrl =
+      "portraitImageUrl" in mockStar &&
+      typeof mockStar.portraitImageUrl === "string"
+        ? mockStar.portraitImageUrl
+        : null;
+
+    return {
+      id: mockStar.id,
+      name: mockStar.name,
+      portraitImageUrl,
+      portraitInitials: mockStar.portraitInitials,
+      universeName: mockStar.universeName,
+    } satisfies MemberOwnedAIStar;
+  }
+
+  const fallbackName = getFallbackStarName(starId);
+
+  return {
+    id: starId,
+    name: fallbackName,
+    portraitInitials: getInitials(fallbackName),
+    universeName: `${fallbackName} Universe`,
+  } satisfies MemberOwnedAIStar;
 }
 
 function getCopy(locale: Locale) {
@@ -81,6 +131,9 @@ function getCopy(locale: Locale) {
       ledger: "평판 기록 보기",
       mainCta: "TikTok 연결하기",
       nextAction: "다음 행동",
+      nextRecordMetric: "다음 기록",
+      nextRecordPending: "content_engaged 대기",
+      nextRecordReady: "content_engaged",
       oauthFailed: "TikTok 승인 실패",
       oauthFailedBody:
         "승인 또는 토큰 교환이 완료되지 않았습니다. Sandbox 테스트 사용자, 요청 client key, redirect URI가 같은 TikTok 앱 기준인지 확인한 뒤 다시 시도하세요.",
@@ -145,6 +198,9 @@ function getCopy(locale: Locale) {
       ledger: "評判記録を見る",
       mainCta: "TikTok接続",
       nextAction: "次のアクション",
+      nextRecordMetric: "次の記録",
+      nextRecordPending: "content_engaged待ち",
+      nextRecordReady: "content_engaged",
       oauthFailed: "TikTok認証に失敗",
       oauthFailedBody:
         "認証またはトークン交換が完了していません。Sandboxテストユーザーとclient key設定を確認して再試行してください。",
@@ -208,6 +264,9 @@ function getCopy(locale: Locale) {
     ledger: "View Reputation Records",
     mainCta: "Connect TikTok",
     nextAction: "Next action",
+    nextRecordMetric: "Next record",
+    nextRecordPending: "content_engaged pending",
+    nextRecordReady: "content_engaged",
     oauthFailed: "TikTok authorization failed",
     oauthFailedBody:
       "Authorization or token exchange did not complete. Check Sandbox target user and client key settings, then retry.",
@@ -320,8 +379,10 @@ export function FanletterCreatorTikTokPage({
 }) {
   const copy = getCopy(locale);
   const ownedStars = memberPortfolio?.ownedStars ?? [];
+  const selectedStarFallback = getSelectedStarFallback(selectedStarId);
   const selectedStar =
     ownedStars.find((star) => star.id === selectedStarId) ??
+    selectedStarFallback ??
     ownedStars[0] ??
     null;
   const memberName = memberPortfolio?.memberName ?? "Creator";
@@ -389,6 +450,11 @@ export function FanletterCreatorTikTokPage({
       done: Boolean(connectedAccount),
       label: copy.contextMoatMetric,
       value: connectedAccount ? copy.contextMoatReady : copy.contextMoatPending,
+    },
+    {
+      done: Boolean(connectedAccount),
+      label: copy.nextRecordMetric,
+      value: connectedAccount ? copy.nextRecordReady : copy.nextRecordPending,
     },
   ];
   const oauthReasonLabel = getOAuthReasonLabel(
@@ -694,7 +760,7 @@ export function FanletterCreatorTikTokPage({
               );
             })}
           </div>
-          <div className="mt-3 grid gap-2 md:grid-cols-3">
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {contextProofItems.map((item) => (
               <div
                 className={joinClasses(

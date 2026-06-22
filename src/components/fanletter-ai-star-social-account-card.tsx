@@ -881,6 +881,68 @@ export function FanletterAIStarSocialAccountCard({
     type: "creator_social_connected",
   });
   const reputationLedgerHref = `/${locale}/fanletter/agentrank/events?${reputationLedgerParams.toString()}`;
+  const syncContextProofItems = [
+    {
+      label:
+        locale === "ko"
+          ? "축적 자산"
+          : locale === "ja"
+            ? "蓄積Asset"
+            : "Context asset",
+      value: syncSnapshot
+        ? copy.syncResultMetrics
+            .replace(
+              "{videos}",
+              new Intl.NumberFormat().format(syncSnapshot.totals.videos),
+            )
+            .replace(
+              "{views}",
+              new Intl.NumberFormat().format(syncSnapshot.totals.views),
+            )
+            .replace(
+              "{likes}",
+              new Intl.NumberFormat().format(syncSnapshot.totals.likes),
+            )
+        : locale === "ko"
+          ? "최근 영상/성과 대기"
+          : locale === "ja"
+            ? "最近の動画・成果待ち"
+            : "Recent video signals pending",
+    },
+    {
+      label:
+        locale === "ko"
+          ? "그래프 강화"
+          : locale === "ja"
+            ? "Graph強化"
+            : "Graph strength",
+      value:
+        locale === "ko"
+          ? "AI 스타 -> 콘텐츠 -> 팬 반응"
+          : "AI Star -> Content -> Audience",
+    },
+    {
+      label:
+        locale === "ko"
+          ? "다음 기록"
+          : locale === "ja"
+            ? "次の記録"
+            : "Next record",
+      value: "content_engaged",
+    },
+  ];
+  const syncContextPreviewTitle =
+    locale === "ko"
+      ? "콘텐츠 성과 Context"
+      : locale === "ja"
+        ? "コンテンツ成果Context"
+        : "Content performance context";
+  const syncContextPreviewBody =
+    locale === "ko"
+      ? "TikTok 연결 후 최근 영상과 팬 반응이 AI 스타의 평판 기록으로 전환됩니다."
+      : locale === "ja"
+        ? "TikTok接続後、最近の動画とファン反応がAIスターの評判記録に変換されます。"
+        : "After TikTok connection, recent videos and audience signals become AI Star Reputation Records.";
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1230,6 +1292,39 @@ export function FanletterAIStarSocialAccountCard({
             </div>
           </div>
 
+          {!canSyncTikTok ? (
+            <div className="mt-3 rounded-lg border border-zinc-200 bg-white p-3 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
+              <div className="flex min-w-0 items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-zinc-950">
+                    {syncContextPreviewTitle}
+                  </p>
+                  <p className="mt-1 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
+                    {syncContextPreviewBody}
+                  </p>
+                </div>
+                <span className="inline-flex min-h-7 shrink-0 items-center rounded-full bg-zinc-950 px-2.5 text-[0.68rem] font-semibold text-white">
+                  AgentRank
+                </span>
+              </div>
+              <div className="mt-3 grid min-w-0 gap-1.5 sm:grid-cols-3">
+                {syncContextProofItems.map((item) => (
+                  <div
+                    className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-2"
+                    key={item.label}
+                  >
+                    <p className="truncate text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                      {item.label}
+                    </p>
+                    <p className="mt-1 break-words text-xs font-semibold leading-4 text-zinc-950 [word-break:keep-all]">
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           {account && canSyncTikTok ? (
             <div className="mt-3 rounded-lg border border-zinc-950 bg-zinc-950 p-3 text-white shadow-[0_16px_34px_rgba(15,23,42,0.18)]">
               <div className="grid min-w-0 gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
@@ -1245,6 +1340,21 @@ export function FanletterAIStarSocialAccountCard({
                       ? copy.reputationLedgerHint
                       : copy.syncApiHelper}
                   </p>
+                  <div className="mt-3 grid min-w-0 gap-1.5 sm:grid-cols-3">
+                    {syncContextProofItems.map((item) => (
+                      <div
+                        className="min-w-0 rounded-lg border border-white/10 bg-white/8 px-2.5 py-2"
+                        key={item.label}
+                      >
+                        <p className="truncate text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-white/42">
+                          {item.label}
+                        </p>
+                        <p className="mt-1 break-words text-xs font-semibold leading-4 text-white [word-break:keep-all]">
+                          {item.value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 {syncSnapshot ? (
                   <FanletterTrackedLink
