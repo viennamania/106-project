@@ -440,7 +440,14 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
                 </div>
               ))}
               {garmentImageUrls.length < MAX_GARMENTS ? (
-                <label className="flex h-20 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-black/20 text-neutral-400 hover:border-[#44f26e] hover:text-[#16702e]">
+                <label
+                  className="flex h-20 flex-1 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-black/20 text-neutral-400 hover:border-[#44f26e] hover:text-[#16702e]"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    void handleGarmentFiles(e.dataTransfer.files);
+                  }}
+                >
                   {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
                   <span className="px-2 text-center text-[11px] font-bold">
                     {en ? "Drag or click to upload" : "드래그 또는 클릭해 업로드"}
@@ -633,10 +640,10 @@ function Field({
   label: string;
 }) {
   return (
-    <label className="block">
+    <div className="block">
       <span className="mb-1.5 block text-xs font-bold text-neutral-700">{label}</span>
       {hint ? <span className="mb-1.5 block text-[11px] text-neutral-400">{hint}</span> : null}
       {children}
-    </label>
+    </div>
   );
 }
