@@ -2097,6 +2097,33 @@ function EventContextEvidenceCard({
   });
   const sourceLabel = event.sourceId || event.source;
   const targetLabel = getEventTargetLabel(event);
+  const contextProofItems = [
+    {
+      label: isKo ? "축적 자산" : "Context asset",
+      value: `${formatNumber(contextEntryCount + 1, locale)}${
+        isKo ? "개 증거" : " evidence"
+      } · ${getAgentRankEventTypeLabel(event.type, locale)}`,
+    },
+    {
+      label: isKo ? "그래프 강화" : "Graph strength",
+      value: `${getActorLabel(event.actor)} -> ${targetLabel} · ${formatNumber(
+        relatedEventCount,
+        locale,
+      )}${isKo ? "개 연결" : " linked"}`,
+    },
+    {
+      label: isKo ? "복제 난이도" : "Context moat",
+      value: `${truncateEvidenceHash(audit.evidenceHash, 10, 6)} · ${
+        event.reputationSignals.oracleReady
+          ? isKo
+            ? "Oracle 준비"
+            : "Oracle-ready"
+          : isKo
+            ? "보강 필요"
+            : "Needs data"
+      }`,
+    },
+  ];
   const flowSteps = [
     {
       icon: Database,
@@ -2202,30 +2229,35 @@ function EventContextEvidenceCard({
         </div>
 
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
-          <div className="rounded-xl border border-zinc-200 bg-white p-3">
+          {contextProofItems.map((item) => (
+            <div
+              className="min-w-0 rounded-xl border border-zinc-200 bg-white p-3"
+              key={item.label}
+            >
+              <p className="truncate text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+                {item.label}
+              </p>
+              <p className="mt-1 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+                {item.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-3 rounded-xl border border-zinc-200 bg-white p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
               {isKo ? "평판 영향" : "Reputation impact"}
             </p>
-            <p className="mt-1 text-sm font-semibold text-zinc-950">
+            <p className="text-sm font-semibold text-zinc-950">
               {formatNumber(impactTotal, locale)}
             </p>
           </div>
-          <div className="rounded-xl border border-zinc-200 bg-white p-3">
-            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
-              {isKo ? "연결 증거" : "Linked evidence"}
-            </p>
-            <p className="mt-1 text-sm font-semibold text-zinc-950">
-              {formatNumber(relatedEventCount, locale)}
-            </p>
-          </div>
-          <div className="rounded-xl border border-zinc-200 bg-white p-3">
-            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
-              {isKo ? "Context Moat" : "Context moat"}
-            </p>
-            <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
-              {isKo ? "증거 해시/계보 연결" : "Evidence hash + lineage"}
-            </p>
-          </div>
+          <p className="mt-1 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
+            {isKo
+              ? "이 증거 묶음은 점수, 연결 기록, Oracle 준비 상태를 함께 남기는 Context 자산입니다."
+              : "This evidence bundle stores score impact, linked records, and Oracle readiness as a context asset."}
+          </p>
         </div>
       </div>
     </section>
