@@ -126,6 +126,33 @@ async function getGenerationsCollection() {
   return generationsPromise;
 }
 
+export type SellerGenerationPublic = {
+  generationId: string;
+  starId: string;
+  imageUrls: string[];
+  createdAt: string;
+};
+
+/** Recent lookbook generations for a workspace (the seller's "my lookbooks"). */
+export async function getSellerGenerations(
+  workspaceId: string,
+  limit = 24,
+): Promise<SellerGenerationPublic[]> {
+  const collection = await getGenerationsCollection();
+  const docs = await collection
+    .find({ workspaceId })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .toArray();
+
+  return docs.map((doc) => ({
+    createdAt: doc.createdAt.toISOString(),
+    generationId: doc.generationId,
+    imageUrls: doc.imageUrls,
+    starId: doc.starId,
+  }));
+}
+
 /**
  * Record provenance + the granted license for a generated lookbook. Best-effort:
  * the caller should not fail the response if this throws.

@@ -16,6 +16,12 @@ type LookbookImage = { url: string; pathname: string; contentType: string };
 type CreditPack = { id: string; credits: number; priceKrw: number; label: string };
 type Workspace = { workspaceId: string; workspaceKey: string };
 type SellerStar = { id: string; name: string; images: string[] };
+type SellerGeneration = {
+  generationId: string;
+  starId: string;
+  imageUrls: string[];
+  createdAt: string;
+};
 
 const STORAGE_KEY = "fanletter_seller_lookbook";
 const ASPECT_OPTIONS: AspectRatio[] = ["4:5", "3:4", "2:3", "9:16", "1:1", "auto"];
@@ -67,6 +73,31 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
   const [images, setImages] = useState<LookbookImage[]>([]);
   const [packs, setPacks] = useState<CreditPack[]>([]);
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
+  const [history, setHistory] = useState<SellerGeneration[]>([]);
+
+  const loadHistory = useCallback(async (ws: Workspace) => {
+    try {
+      const res = await fetch(
+        `/api/seller/lookbook/history?workspaceId=${encodeURIComponent(
+          ws.workspaceId,
+        )}&workspaceKey=${encodeURIComponent(ws.workspaceKey)}`,
+      );
+      const data = (await res.json().catch(() => null)) as
+        | { generations?: SellerGeneration[] }
+        | null;
+      if (res.ok && Array.isArray(data?.generations)) {
+        setHistory(data.generations);
+      }
+    } catch {
+      // best-effort
+    }
+  }, []);
+
+  useEffect(() => {
+    if (workspace) {
+      void loadHistory(workspace);
+    }
+  }, [workspace, loadHistory]);
 
   const garmentImageUrls = useMemo(
     () =>
@@ -281,6 +312,7 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
       }
       setImages(data.images);
       if (typeof data.creditBalance === "number") setCreditBalance(data.creditBalance);
+      void loadHistory(ws);
     } catch (e) {
       setError(e instanceof Error ? e.message : "생성 실패");
     } finally {
@@ -291,6 +323,7 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
     en,
     ensureWorkspace,
     garmentImageUrls,
+    loadHistory,
     numImages,
     sceneBrief,
     selectedImageIndex,
@@ -656,6 +689,43 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
                 {checkoutNotice}
               </p>
             ) : null}
+          </div>
+        ) : null}
+
+        {history.length > 0 ? (
+          <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
+            <span className="mb-3 block text-xs font-bold text-neutral-700">
+              {en ? "My lookbooks" : "내 룩북"}
+            </span>
+            <div className="space-y-4">
+              {history.map((gen) => (
+                <div key={gen.generationId}>
+                  <div className="mb-1.5 text-[11px] text-neutral-400">
+                    {new Date(gen.createdAt).toLocaleString()}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {gen.imageUrls.map((url, index) => (
+                      <a
+                        className="block h-24 w-[4.8rem] overflow-hidden rounded-lg border border-black/10 bg-neutral-50"
+                        download
+                        href={url}
+                        key={url}
+                        rel="noreferrer"
+                        target="_blank"
+                        title={en ? "Download" : "다운로드"}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          alt={`lookbook ${index + 1}`}
+                          className="h-full w-full object-cover"
+                          src={url}
+                        />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         ) : null}
       </div>
