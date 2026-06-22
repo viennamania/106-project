@@ -2698,6 +2698,196 @@ function CreatorJourneyEventPath({
   );
 }
 
+function CreatorJourneyContextGraphCard({
+  completedConditionCount,
+  creatorJourneySocialConnected,
+  hasMockLaunches,
+  isPreviewMode,
+  locale,
+  requiresSourceUniverse,
+  sourceUniverseName,
+  unlock,
+}: {
+  completedConditionCount: number;
+  creatorJourneySocialConnected: boolean;
+  hasMockLaunches: boolean;
+  isPreviewMode: boolean;
+  locale: Locale;
+  requiresSourceUniverse: boolean;
+  sourceUniverseName: string;
+  unlock: CreatorUnlockData;
+}) {
+  const isKorean = locale === "ko";
+  const isJapanese = locale === "ja";
+  const progressPercent =
+    unlock.conditions.length > 0
+      ? Math.round((completedConditionCount / unlock.conditions.length) * 100)
+      : 0;
+  const contextScore = Math.min(
+    10,
+    Math.max(
+      1,
+      Math.round(
+        3 +
+          (isPreviewMode ? 0 : 1) +
+          (requiresSourceUniverse ? 0 : 1.5) +
+          (progressPercent >= 80 ? 1.5 : progressPercent >= 50 ? 1 : 0.5) +
+          (creatorJourneySocialConnected ? 1.5 : 0) +
+          (unlock.unlocked ? 1 : 0) +
+          (hasMockLaunches ? 1 : 0),
+      ),
+    ),
+  );
+  const labels = isKorean
+    ? {
+        asset: "축적되는 Context 자산",
+        condition: "조건 평가",
+        graph: "Context Graph",
+        mockLaunch: "생성 미리보기",
+        moat:
+          "조건, 출처 AI 스타 유니버스, TikTok 채널, mock 생성 기록이 한 회원/AI 스타 관계에 누적됩니다.",
+        score: "Context Score",
+        source: "출처 AI 스타",
+        tiktok: "TikTok 채널",
+        title: "Creator Journey가 평판 Context를 만듭니다",
+      }
+    : isJapanese
+      ? {
+          asset: "蓄積されるContext Asset",
+          condition: "条件評価",
+          graph: "Context Graph",
+          mockLaunch: "作成プレビュー",
+          moat:
+            "条件、出所AIスターUniverse、TikTokチャンネル、mock作成記録が会員とAIスターの関係に蓄積されます。",
+          score: "Context Score",
+          source: "出所AIスター",
+          tiktok: "TikTokチャンネル",
+          title: "Creator Journey creates reputation context",
+        }
+      : {
+          asset: "Accumulated Context Asset",
+          condition: "Condition evaluation",
+          graph: "Context Graph",
+          mockLaunch: "Launch preview",
+          moat:
+            "Conditions, source AI Star Universe, TikTok channel, and mock launch records compound around one member and AI Star relationship.",
+          score: "Context Score",
+          source: "Source AI Star",
+          tiktok: "TikTok channel",
+          title: "Creator Journey creates reputation context",
+        };
+  const graphItems = [
+    {
+      Icon: BadgeCheck,
+      done: progressPercent >= 100,
+      label: labels.condition,
+      value: `${completedConditionCount}/${unlock.conditions.length} · ${progressPercent}%`,
+    },
+    {
+      Icon: GitBranch,
+      done: !requiresSourceUniverse,
+      label: labels.source,
+      value: sourceUniverseName,
+    },
+    {
+      Icon: Bot,
+      done: creatorJourneySocialConnected,
+      label: labels.tiktok,
+      value: creatorJourneySocialConnected
+        ? getCreatorJourneyReputationLabel("creator_social_connected", locale)
+        : isKorean
+          ? "연결 필요"
+          : isJapanese
+            ? "連携が必要"
+            : "Connection needed",
+    },
+    {
+      Icon: Sparkles,
+      done: hasMockLaunches,
+      label: labels.mockLaunch,
+      value: hasMockLaunches
+        ? getCreatorJourneyReputationLabel("ai_star_spawned", locale)
+        : isKorean
+          ? "대기"
+          : isJapanese
+            ? "待機中"
+            : "Pending",
+    },
+  ];
+
+  return (
+    <section className="mt-4 rounded-[1.15rem] border border-zinc-200 bg-white p-4 shadow-[0_14px_36px_rgba(15,23,42,0.055)] sm:p-5">
+      <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
+        <div className="rounded-xl border border-zinc-950 bg-zinc-950 p-4 text-white">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-white/52">
+            {labels.score}
+          </p>
+          <div className="mt-3 flex items-end gap-2">
+            <span className="text-5xl font-semibold tracking-tight">
+              {contextScore}
+            </span>
+            <span className="pb-2 text-sm font-semibold text-white/52">/10</span>
+          </div>
+          <p className="mt-3 text-sm font-semibold leading-5 text-white/64 [word-break:keep-all]">
+            {labels.moat}
+          </p>
+        </div>
+
+        <div className="min-w-0">
+          <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+            {labels.asset}
+          </p>
+          <h2 className="mt-1 text-2xl font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+            {labels.title}
+          </h2>
+          <div className="mt-4 grid gap-2 sm:grid-cols-4">
+            {graphItems.map((item) => {
+              const Icon = item.Icon;
+
+              return (
+                <div
+                  className={joinClasses(
+                    "min-w-0 rounded-xl border p-3",
+                    item.done
+                      ? "border-emerald-200 bg-emerald-50"
+                      : "border-zinc-200 bg-zinc-50",
+                  )}
+                  key={item.label}
+                >
+                  <span
+                    className={joinClasses(
+                      "flex size-8 items-center justify-center rounded-lg",
+                      item.done
+                        ? "bg-emerald-600 text-white"
+                        : "bg-white text-zinc-700 ring-1 ring-zinc-200",
+                    )}
+                  >
+                    {item.done ? (
+                      <CheckCircle2 className="size-4" />
+                    ) : (
+                      <Icon className="size-4" />
+                    )}
+                  </span>
+                  <p className="mt-3 truncate text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                    {item.label}
+                  </p>
+                  <p className="mt-1 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+                    {item.value}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-4 inline-flex max-w-full items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-xs font-semibold text-zinc-600">
+            <Database className="size-3.5 shrink-0" />
+            <span className="min-w-0 truncate">{labels.graph}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CreatorJourneyStepLinks({
   activeView,
   conditionsHref,
@@ -3820,6 +4010,16 @@ export function FanletterCreatorUnlockPage({
               requiresSourceUniverse={requiresSourceUniverse}
               sourceHref={sourceHref}
               tiktokChannelHref={tiktokChannelHref}
+              unlock={unlock}
+            />
+            <CreatorJourneyContextGraphCard
+              completedConditionCount={completedConditionCount}
+              creatorJourneySocialConnected={creatorJourneySocialConnected}
+              hasMockLaunches={effectiveMockOwnedStars.length > 0}
+              isPreviewMode={isPreviewMode}
+              locale={locale}
+              requiresSourceUniverse={requiresSourceUniverse}
+              sourceUniverseName={displaySourceUniverseName}
               unlock={unlock}
             />
             {creatorJourneySocialConnected ? (

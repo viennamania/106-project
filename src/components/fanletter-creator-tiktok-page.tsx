@@ -49,8 +49,16 @@ function getCopy(locale: Locale) {
       connectedEvent: "TikTok 채널 연결 기록",
       contextAssetBody:
         "TikTok 연결은 AI 스타의 공식 채널, 운영자 권한, 평판 기록을 하나의 검증 가능한 Context Asset으로 묶습니다.",
+      contextAssetMetric: "축적 자산",
+      contextAssetPending: "AI 스타 선택 대기",
       contextAssetTitle: "Context Asset",
       contextGraphPath: "회원 -> AI 스타 -> TikTok 채널 -> AgentRank",
+      contextGraphMetric: "그래프 강화",
+      contextGraphPending: "회원 -> AI 스타 준비",
+      contextGraphReady: "회원 -> AI 스타 -> TikTok",
+      contextMoatMetric: "복제 난이도",
+      contextMoatPending: "권한 확인 필요",
+      contextMoatReady: "공식 채널 + 운영자 권한 + 서버 기록",
       contextScoreLabel: "Context Score",
       contextSignals: [
         "운영자 권한",
@@ -105,8 +113,16 @@ function getCopy(locale: Locale) {
       connectedEvent: "creator_social_connected評判記録",
       contextAssetBody:
         "TikTok接続はAIスターの公式チャンネル、運営者権限、評判記録を検証可能なContext Assetとして結びます。",
+      contextAssetMetric: "蓄積Asset",
+      contextAssetPending: "AIスター選択待ち",
       contextAssetTitle: "Context Asset",
       contextGraphPath: "Member -> AI Star -> TikTok Channel -> AgentRank",
+      contextGraphMetric: "Graph強化",
+      contextGraphPending: "Member -> AI Star準備",
+      contextGraphReady: "Member -> AI Star -> TikTok",
+      contextMoatMetric: "Context Moat",
+      contextMoatPending: "権限確認が必要",
+      contextMoatReady: "公式チャンネル + 運営者権限 + サーバー記録",
       contextScoreLabel: "Context Score",
       contextSignals: [
         "運営者権限",
@@ -160,8 +176,16 @@ function getCopy(locale: Locale) {
     connectedEvent: "creator_social_connected Reputation Record",
     contextAssetBody:
       "TikTok connection binds the AI Star's official channel, operator permission, and reputation record into a verifiable Context Asset.",
+    contextAssetMetric: "Accumulated asset",
+    contextAssetPending: "AI Star selection pending",
     contextAssetTitle: "Context Asset",
     contextGraphPath: "Member -> AI Star -> TikTok Channel -> AgentRank",
+    contextGraphMetric: "Graph strength",
+    contextGraphPending: "Member -> AI Star ready",
+    contextGraphReady: "Member -> AI Star -> TikTok",
+    contextMoatMetric: "Context Moat",
+    contextMoatPending: "Permission check needed",
+    contextMoatReady: "Official channel + operator permission + server record",
     contextScoreLabel: "Context Score",
     contextSignals: [
       "Operator permission",
@@ -348,6 +372,25 @@ export function FanletterCreatorTikTokPage({
       : copy.statusWaiting;
   const nextActionLabel = connectedAccount ? copy.contentSyncReady : copy.mainCta;
   const contextScore = connectedAccount ? 9 : selectedStar ? (isSignedIn ? 7 : 5) : 4;
+  const contextProofItems = [
+    {
+      done: Boolean(connectedAccount),
+      label: copy.contextAssetMetric,
+      value: connectedAccount
+        ? "creator_social_connected"
+        : copy.contextAssetPending,
+    },
+    {
+      done: Boolean(selectedStar),
+      label: copy.contextGraphMetric,
+      value: connectedAccount ? copy.contextGraphReady : copy.contextGraphPending,
+    },
+    {
+      done: Boolean(connectedAccount),
+      label: copy.contextMoatMetric,
+      value: connectedAccount ? copy.contextMoatReady : copy.contextMoatPending,
+    },
+  ];
   const oauthReasonLabel = getOAuthReasonLabel(
     oauthCallbackStatus?.reason ?? null,
     locale,
@@ -599,59 +642,84 @@ export function FanletterCreatorTikTokPage({
         ) : null}
 
         <section className="mt-5 rounded-[1.15rem] border border-zinc-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.05)] sm:p-5">
-            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  {copy.contextAssetTitle}
-                </p>
-                <h2 className="mt-1 text-xl font-semibold tracking-normal text-black">
-                  {copy.contextGraphPath}
-                </h2>
-                <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
-                  {copy.contextAssetBody}
-                </p>
-              </div>
-              <span className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full bg-black px-3 text-xs font-semibold text-white">
-                {copy.contextScoreLabel} {contextScore}/10
-              </span>
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                {copy.contextAssetTitle}
+              </p>
+              <h2 className="mt-1 text-xl font-semibold tracking-normal text-black">
+                {copy.contextGraphPath}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+                {copy.contextAssetBody}
+              </p>
             </div>
+            <span className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full bg-black px-3 text-xs font-semibold text-white">
+              {copy.contextScoreLabel} {contextScore}/10
+            </span>
+          </div>
           <div className="mt-4 grid gap-2 sm:grid-cols-4">
             {copy.contextSignals.map((signal, index) => {
               const active =
-                  Boolean(selectedStar) &&
-                  (index === 0 ||
-                    (index === 1 && Boolean(connectedAccount)) ||
-                    (index === 2 && Boolean(connectedAccount)) ||
-                    (index === 3 && Boolean(connectedAccount)));
+                Boolean(selectedStar) &&
+                (index === 0 ||
+                  (index === 1 && Boolean(connectedAccount)) ||
+                  (index === 2 && Boolean(connectedAccount)) ||
+                  (index === 3 && Boolean(connectedAccount)));
 
-                return (
-                  <div
+              return (
+                <div
+                  className={joinClasses(
+                    "min-w-0 rounded-xl border p-3",
+                    active
+                      ? "border-zinc-900 bg-zinc-950 text-white"
+                      : "border-zinc-200 bg-zinc-50 text-zinc-500",
+                  )}
+                  key={signal}
+                >
+                  <span
                     className={joinClasses(
-                      "min-w-0 rounded-xl border p-3",
+                      "flex size-6 items-center justify-center rounded-full text-[0.68rem] font-semibold",
                       active
-                        ? "border-zinc-900 bg-zinc-950 text-white"
-                        : "border-zinc-200 bg-zinc-50 text-zinc-500",
+                        ? "bg-white text-black"
+                        : "bg-white text-zinc-500 ring-1 ring-zinc-200",
                     )}
-                    key={signal}
                   >
-                    <span
-                      className={joinClasses(
-                        "flex size-6 items-center justify-center rounded-full text-[0.68rem] font-semibold",
-                        active
-                          ? "bg-white text-black"
-                          : "bg-white text-zinc-500 ring-1 ring-zinc-200",
-                      )}
-                    >
-                      {index + 1}
-                    </span>
-                    <p className="mt-2 truncate text-sm font-semibold">
-                      {signal}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+                    {index + 1}
+                  </span>
+                  <p className="mt-2 truncate text-sm font-semibold">
+                    {signal}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-3 grid gap-2 md:grid-cols-3">
+            {contextProofItems.map((item) => (
+              <div
+                className={joinClasses(
+                  "min-w-0 rounded-xl border px-3 py-2.5",
+                  item.done
+                    ? "border-emerald-200 bg-emerald-50"
+                    : "border-zinc-200 bg-zinc-50",
+                )}
+                key={item.label}
+              >
+                <p
+                  className={joinClasses(
+                    "truncate text-[0.66rem] font-semibold uppercase tracking-[0.1em]",
+                    item.done ? "text-emerald-700" : "text-zinc-500",
+                  )}
+                >
+                  {item.label}
+                </p>
+                <p className="mt-1 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+                  {item.value}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
 
         {selectedStar ? (
           <section className="mt-5 grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">
