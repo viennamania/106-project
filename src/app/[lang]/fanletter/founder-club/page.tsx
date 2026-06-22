@@ -29,8 +29,8 @@ function getFounderClubMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "참여 중인 AI 스타 유니버스, 파운더 네트워크 추천 링크, CP와 평판 기록 흐름을 확인하세요.",
-      title: "내 FanLetter 포트폴리오 | FanLetter Founder Club",
+        "참여 중인 AI 스타 유니버스, 파운더 네트워크 추천 링크, CP와 평판 기록을 확인하세요.",
+      title: "내 FanLetter 포트폴리오 | FanLetter",
     };
   }
 

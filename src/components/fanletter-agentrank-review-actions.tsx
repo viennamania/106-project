@@ -82,10 +82,10 @@ function getActionCopy(locale: Locale) {
       },
       failed: "액션 생성 실패",
       nextAction: "다음 행동",
-      mock: "Mock receipt",
-      receipt: "Review Receipt mock",
+      mock: "미리보기 영수증",
+      receipt: "리뷰 영수증 미리보기",
       receiptBody:
-        "이 액션은 실제 운영 상태를 바꾸지 않고 AgentRank Review Ledger에 남길 mock receipt 구조를 미리 보여줍니다.",
+        "이 액션은 실제 운영 상태를 바꾸지 않고 AgentRank 리뷰 원장에 남길 영수증 구조를 미리 보여줍니다.",
       reviewEvent: "이벤트 추적",
       reviewEvidence: "증거 패킷 확인",
       saved: "액션 기록됨",
