@@ -74,6 +74,7 @@ function isActivePath(pathname: string, basePath: string, item: FanletterNavItem
     "channels",
     "connect",
     "content",
+    "discovery",
     "creator",
     "creator-unlock",
     "feed",
@@ -99,7 +100,11 @@ function isActivePath(pathname: string, basePath: string, item: FanletterNavItem
     segments[1] === "universe";
 
   if (item.key === "discover") {
-    return pathname === `${basePath}/characters` || isStarDetailPath;
+    return (
+      pathname === `${basePath}/discovery` ||
+      pathname === `${basePath}/characters` ||
+      isStarDetailPath
+    );
   }
 
   if (item.key === "founder") {
@@ -266,8 +271,8 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       label: copy.home,
     },
     {
-      activePaths: [`${basePath}/characters`],
-      href: buildHref(`${basePath}/characters`),
+      activePaths: [`${basePath}/discovery`, `${basePath}/characters`],
+      href: buildHref(`${basePath}/discovery`),
       icon: Bot,
       key: "discover",
       label: copy.discover,

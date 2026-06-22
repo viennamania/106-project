@@ -56,7 +56,7 @@ export function FanletterAgentRankJourneyRail({
   }> = [
     {
       Icon: Bot,
-      href: `/${locale}/fanletter/characters`,
+      href: `/${locale}/fanletter/discovery`,
       key: "discovery",
       label: isKorean ? "AI 스타 발견" : "Discovery",
     },
@@ -64,7 +64,7 @@ export function FanletterAgentRankJourneyRail({
       Icon: Crown,
       href: encodedStarId
         ? `/${locale}/fanletter/${encodedStarId}`
-        : `/${locale}/fanletter/characters`,
+        : `/${locale}/fanletter/discovery`,
       key: "founder",
       label: isKorean ? "Founder 참여" : "Founder",
     },

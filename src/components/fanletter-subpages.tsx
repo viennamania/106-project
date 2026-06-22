@@ -6041,14 +6041,14 @@ export function FanletterFeedPage({
   const discoveryCopy =
     locale === "ko"
       ? {
-          body: "처음 둘러볼 캐릭터를 최신 브이로그와 반응 신호 기준으로 추천합니다.",
-          eyebrow: "캐릭터 발견",
+          body: "처음 둘러볼 AI 스타를 최신 브이로그와 반응 신호 기준으로 추천합니다.",
+          eyebrow: "AI 스타 발견",
           title: copy.feed.suggestedCreators,
         }
       : {
           body:
-            "Start with characters suggested by their latest vlogs and reaction signals.",
-          eyebrow: "Character Discovery",
+            "Start with AI Stars suggested by their latest vlogs and reaction signals.",
+          eyebrow: "AI Star Discovery",
           title: copy.feed.suggestedCreators,
         };
   const feedHref = getFeedHref({ filters, locale, referralCode });
@@ -6064,7 +6064,7 @@ export function FanletterFeedPage({
     referralCode,
   );
   const charactersHref = buildPathWithReferral(
-    `/${locale}/fanletter/characters`,
+    `/${locale}/fanletter/discovery`,
     referralCode,
   );
   const startHref = buildPathWithReferral(
@@ -6093,7 +6093,7 @@ export function FanletterFeedPage({
     {
       href: charactersHref,
       id: "characters",
-      label: locale === "ko" ? "전체 캐릭터" : "All characters",
+      label: locale === "ko" ? "AI 스타 발견" : "AI Star Discovery",
       sectionId: null,
     },
     {

@@ -496,7 +496,7 @@ function getCoverageGapAction({
   });
   const starDetailHref = starId
     ? `/${locale}/fanletter/${encodeURIComponent(starId)}?${query}#referral-builder`
-    : `/${locale}/fanletter/characters?${query}`;
+    : `/${locale}/fanletter/discovery?${query}`;
   const creatorHref = `/${locale}/fanletter/creator-unlock?${query}`;
 
   if (kind === "missing_event") {

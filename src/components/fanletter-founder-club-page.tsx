@@ -718,7 +718,7 @@ export function FanletterFounderClubPage({
     ? "#owned-ai-stars"
     : hasFounderRoles
     ? "#referral-manager"
-    : `/${locale}/fanletter/characters`;
+    : `/${locale}/fanletter/discovery`;
   const creatorJourneyHref = `/${locale}/fanletter/creator-unlock`;
   const creatorViewHref = `/${locale}/fanletter/founder-club?view=creator&context=my-ai#owned-ai-stars`;
   const founderViewHref = `/${locale}/fanletter/founder-club?view=founder#joined-founder-networks`;

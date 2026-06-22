@@ -2384,7 +2384,7 @@ export function FanletterStarDetailPage({
           <div className="flex items-center justify-between gap-3">
             <Link
               className="inline-flex h-10 items-center gap-2 rounded-full border border-zinc-200 bg-white px-3 text-sm font-semibold text-zinc-900 shadow-[0_12px_28px_rgba(15,23,42,0.08)] transition hover:border-zinc-300 hover:bg-zinc-50"
-              href={`/${locale}/fanletter/characters`}
+              href={`/${locale}/fanletter/discovery`}
             >
               <ArrowLeft className="size-4" />
               {copy.actions.openDiscovery}
@@ -2740,7 +2740,7 @@ export function FanletterStarDetailPage({
             </div>
             <Link
               className="hidden h-10 items-center gap-2 rounded-full border border-black/10 bg-white px-4 text-sm font-semibold text-black transition hover:border-[#7c3aed]/40 hover:text-[#5b21b6] sm:inline-flex"
-              href={`/${locale}/fanletter/characters`}
+              href={`/${locale}/fanletter/discovery`}
             >
               {copy.actions.openDiscovery}
               <ArrowRight className="size-4" />

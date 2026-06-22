@@ -2503,7 +2503,7 @@ export function FanletterHomePage({
     referralCode,
   );
   const topGrowingStarsHref = buildPathWithReferral(
-    `/${locale}/fanletter/characters`,
+    `/${locale}/fanletter/discovery`,
     referralCode,
   );
   const founderClubHref = buildPathWithReferral(

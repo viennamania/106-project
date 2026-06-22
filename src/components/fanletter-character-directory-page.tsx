@@ -70,7 +70,7 @@ function getCopy(locale: Locale) {
         nsfw: {
           disabledBody:
             "목록은 유지하고 NSFW 팬 전용 커버만 블러 처리합니다. 켜면 커버를 선명하게 볼 수 있습니다.",
-          disabledTitle: "NSFW 캐릭터 커버 블러 처리",
+          disabledTitle: "NSFW AI 스타 커버 블러 처리",
           hiddenCountText: (count: string) =>
             `블러 처리된 NSFW 팬 전용 콘텐츠 ${count}개`,
         },
@@ -177,20 +177,20 @@ function formatDate(value: string | null, locale: Locale) {
 }
 
 function getCharactersHref({
-  locale,
   page,
   query,
   referralCode,
+  routePath,
   sort,
 }: {
-  locale: Locale;
   page?: number | null;
   query?: string | null;
   referralCode: string | null;
+  routePath: string;
   sort?: FanletterCharacterDirectorySort | null;
 }) {
   return setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/characters`, referralCode),
+    buildPathWithReferral(routePath, referralCode),
     {
       page: page && page > 1 ? String(page) : null,
       q: query,
@@ -203,10 +203,12 @@ function DirectoryHeader({
   copy,
   locale,
   referralCode,
+  routePath,
 }: {
   copy: CharacterDirectoryCopy;
   locale: Locale;
   referralCode: string | null;
+  routePath: string;
 }) {
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
   const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
@@ -229,8 +231,8 @@ function DirectoryHeader({
         <Link className="transition hover:text-white" href={homeHref}>
           {locale === "ko" ? "홈" : "Home"}
         </Link>
-        <Link className="text-white" href={getCharactersHref({ locale, referralCode })}>
-          {locale === "ko" ? "캐릭터" : "Characters"}
+        <Link className="text-white" href={getCharactersHref({ referralCode, routePath })}>
+          {locale === "ko" ? "발견" : "Discovery"}
         </Link>
         <Link className="transition hover:text-white" href={feedHref}>
           {copy.actions.feed}
@@ -289,18 +291,18 @@ function StatCard({
 function DirectoryControls({
   copy,
   data,
-  locale,
   referralCode,
+  routePath,
 }: {
   copy: CharacterDirectoryCopy;
   data: FanletterCharacterDirectoryPageData;
-  locale: Locale;
   referralCode: string | null;
+  routePath: string;
 }) {
   return (
     <div className="mb-5 rounded-lg border border-black/10 bg-white p-3 shadow-[0_14px_42px_rgba(8,18,12,0.06)] sm:p-4">
       <form
-        action={`/${locale}/fanletter/characters`}
+        action={routePath}
         className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"
         method="get"
       >
@@ -342,9 +344,9 @@ function DirectoryControls({
                   : "border-black/10 bg-[#f6f8f4] text-black/60 hover:border-black/24 hover:text-black",
               )}
               href={getCharactersHref({
-                locale,
                 query: data.filters.query,
                 referralCode,
+                routePath,
                 sort,
               })}
               key={sort}
@@ -356,7 +358,7 @@ function DirectoryControls({
         {data.filters.query ? (
           <Link
             className="inline-flex min-h-11 shrink-0 items-center rounded-full border border-black/10 bg-white px-3 py-2 text-xs font-semibold text-black/54 transition hover:border-black/24 hover:text-black"
-            href={getCharactersHref({ locale, referralCode })}
+            href={getCharactersHref({ referralCode, routePath })}
           >
             {copy.actions.clear}
           </Link>
@@ -551,10 +553,12 @@ function DirectoryPagination({
   data,
   locale,
   referralCode,
+  routePath,
 }: {
   data: FanletterCharacterDirectoryPageData;
   locale: Locale;
   referralCode: string | null;
+  routePath: string;
 }) {
   if (data.filters.pageCount <= 1) {
     return null;
@@ -564,7 +568,7 @@ function DirectoryPagination({
 
   return (
     <nav
-      aria-label={locale === "ko" ? "캐릭터 목록 페이지" : "Character pages"}
+      aria-label={locale === "ko" ? "AI 스타 발견 목록 페이지" : "AI Star discovery pages"}
       className="mt-8 flex flex-wrap justify-center gap-2"
     >
       {pages.map((page) => {
@@ -580,10 +584,10 @@ function DirectoryPagination({
                 : "border-black/10 bg-white text-black/58 hover:border-black/24 hover:text-black",
             )}
             href={getCharactersHref({
-              locale,
               page,
               query: data.filters.query,
               referralCode,
+              routePath,
               sort: data.filters.sort,
             })}
             key={page}
@@ -600,12 +604,15 @@ export function FanletterCharacterDirectoryPage({
   data,
   locale,
   referralCode,
+  routePath,
 }: {
   data: FanletterCharacterDirectoryPageData;
   locale: Locale;
   referralCode: string | null;
+  routePath?: string;
 }) {
   const copy = getCopy(locale);
+  const directoryRoutePath = routePath ?? `/${locale}/fanletter/characters`;
   const formattedHiddenCount = formatNumber(data.hiddenNsfwCount, locale);
   const shouldShowNsfwControl =
     data.hiddenNsfwCount > 0 || data.nsfwOptInEnabled;
@@ -646,7 +653,12 @@ export function FanletterCharacterDirectoryPage({
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#030504] pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
       <section className="border-b border-white/10">
-        <DirectoryHeader copy={copy} locale={locale} referralCode={referralCode} />
+        <DirectoryHeader
+          copy={copy}
+          locale={locale}
+          referralCode={referralCode}
+          routePath={directoryRoutePath}
+        />
         <div className="mx-auto grid max-w-7xl gap-8 px-4 pb-10 pt-8 sm:px-6 sm:pb-14 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-end lg:px-8">
           <div className="min-w-0">
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
@@ -725,8 +737,8 @@ export function FanletterCharacterDirectoryPage({
           <DirectoryControls
             copy={copy}
             data={data}
-            locale={locale}
             referralCode={referralCode}
+            routePath={directoryRoutePath}
           />
 
           {shouldShowNsfwControl ? (
@@ -766,7 +778,10 @@ export function FanletterCharacterDirectoryPage({
               </p>
               <Link
                 className="mt-5 inline-flex h-11 items-center justify-center rounded-full bg-black px-5 text-sm font-semibold !text-white"
-                href={getCharactersHref({ locale, referralCode })}
+                href={getCharactersHref({
+                  referralCode,
+                  routePath: directoryRoutePath,
+                })}
               >
                 {copy.actions.clear}
               </Link>
@@ -777,6 +792,7 @@ export function FanletterCharacterDirectoryPage({
             data={data}
             locale={locale}
             referralCode={referralCode}
+            routePath={directoryRoutePath}
           />
         </div>
       </section>

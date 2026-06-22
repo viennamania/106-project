@@ -138,7 +138,7 @@ function getPrimaryAction({
   if (portfolio.roles.length === 0) {
     return {
       event: "ai_star_discovered",
-      href: `/${locale}/fanletter/characters`,
+      href: `/${locale}/fanletter/discovery`,
       label: copy.primary.discover,
       next: copy.nextAction.discover,
       status: "discover" as const,
@@ -392,7 +392,7 @@ export function FanletterGrowthPage({
           <GrowthActionCard
             body={copy.discoverBody}
             cta={copy.discoverCta}
-            href={`/${locale}/fanletter/characters`}
+            href={`/${locale}/fanletter/discovery`}
             icon={<Bot className="size-5" />}
             title={copy.discover}
           />
