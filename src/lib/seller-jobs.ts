@@ -144,7 +144,14 @@ export async function enqueueSellerJob({
   };
 
   const collection = await getJobsCollection();
-  await collection.insertOne(doc);
+  try {
+    await collection.insertOne(doc);
+  } catch (error) {
+    // The charge already committed; if the job row can't be written there is
+    // nothing to refund it later, so refund here to avoid losing credits.
+    await refundSellerCredits({ amount: cost, sourceId, workspaceId });
+    throw error;
+  }
 
   return toPublic(doc);
 }
