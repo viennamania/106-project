@@ -1,4 +1,5 @@
 import {
+  cancelSellerJob,
   enqueueSellerJob,
   getSellerJob,
   INSUFFICIENT_SELLER_CREDITS_ERROR,
@@ -72,6 +73,30 @@ export async function GET(request: Request) {
   }
 
   return Response.json({ job });
+}
+
+// Cancel a still-queued job and refund (client fallback when the worker is
+// not draining the queue). No-op if the worker already claimed it.
+export async function DELETE(request: Request) {
+  const url = new URL(request.url);
+  const workspace = await authorizeSellerWorkspace({
+    workspaceId: url.searchParams.get("workspaceId"),
+    workspaceKey: url.searchParams.get("workspaceKey"),
+  });
+
+  if (!workspace) {
+    return jsonError("Workspace not found or unauthorized.", 401);
+  }
+
+  const jobId = url.searchParams.get("jobId");
+
+  if (!jobId) {
+    return jsonError("jobId is required.", 400);
+  }
+
+  const canceled = await cancelSellerJob(jobId, workspace.workspaceId);
+
+  return Response.json({ canceled });
 }
 
 export async function POST(request: Request) {
