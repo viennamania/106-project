@@ -41,6 +41,25 @@ function getCopy(locale: Locale) {
       back: "FanLetter 홈",
       connect: "TikTok 연결하기",
       connected: "TikTok 연결됨",
+      contextAssetBody:
+        "TikTok 연결은 채널 기능이 아니라 AI 스타 운영 증거를 쌓는 컨텍스트 자산입니다.",
+      contextAssetTitle: "Context Asset",
+      contextGraphPath: "회원 → AI 스타 → TikTok → 평판 기록",
+      contextScoreLabel: "Context Score",
+      contextSignals: [
+        {
+          detail: "누가 이 AI 스타를 운영하는지",
+          label: "운영자 신원",
+        },
+        {
+          detail: "어떤 채널이 이 AI 스타의 공식 채널인지",
+          label: "AI 스타 채널",
+        },
+        {
+          detail: "연결 행동이 AgentRank 증거로 남는지",
+          label: "평판 기록",
+        },
+      ],
       content: "콘텐츠",
       contentReady: "콘텐츠 준비",
       creator: "크리에이터 / 운영자",
@@ -55,6 +74,16 @@ function getCopy(locale: Locale) {
       founderNetworks: "참여 중인 파운더 네트워크",
       founderNetworksBody:
         "크리에이터/운영자로 운영하는 AI 스타와 별개로, 각 AI 스타 유니버스 안에서 내가 가진 파운더 역할입니다.",
+      queueAllConnected: "모든 운영 AI 스타가 TikTok 연결 준비를 마쳤습니다.",
+      queuePending: "TikTok 연결이 필요한 운영 AI 스타가 있습니다.",
+      queueTitle: "다음 행동 대기열",
+      relationCreator: "Creator / Owner",
+      relationCreatorBody: "AI 스타 콘텐츠와 TikTok 채널을 운영합니다.",
+      relationFounder: "Founder Network",
+      relationFounderBody: "AI 스타 유니버스 안에서 초대, CP, 역할로 참여합니다.",
+      relationTitle: "관계 구분",
+      reputationResult: "평판 기록 결과",
+      selectedAiStar: "선택 AI 스타",
       heroBody:
         "내 AI는 회원 개인 계정이 아니라 AI 스타별 운영 채널입니다. TikTok 연결, 콘텐츠 준비, 평판 기록을 한 화면에서 확인합니다.",
       heroEyebrow: "내 AI",
@@ -65,6 +94,8 @@ function getCopy(locale: Locale) {
       nextPending: "TikTok 연결 필요",
       operatedRelationCta: "운영 AI 관리",
       open: "AI 스타 보기",
+      overviewBody: "운영 AI, TikTok 연결, CP를 한 줄로 확인합니다.",
+      overviewTitle: "운영 요약",
       routeLabel: "FanLetter / 내 AI",
       source: "원천 AI 스타 유니버스",
       status: "상태",
@@ -86,6 +117,25 @@ function getCopy(locale: Locale) {
     back: "FanLetter Home",
     connect: "Connect TikTok",
     connected: "TikTok connected",
+    contextAssetBody:
+      "TikTok connection is not just a channel feature. It becomes a context asset proving AI Star operation.",
+    contextAssetTitle: "Context Asset",
+    contextGraphPath: "Member → AI Star → TikTok → Reputation record",
+    contextScoreLabel: "Context Score",
+    contextSignals: [
+      {
+        detail: "Who operates this AI Star",
+        label: "Operator identity",
+      },
+      {
+        detail: "Which channel is official for this AI Star",
+        label: "AI Star channel",
+      },
+      {
+        detail: "Whether the action becomes AgentRank evidence",
+        label: "Reputation record",
+      },
+    ],
     content: "Content",
     contentReady: "Content ready",
     creator: "Creator / Owner",
@@ -100,6 +150,17 @@ function getCopy(locale: Locale) {
     founderNetworks: "Joined Founder Networks",
     founderNetworksBody:
       "Separate from AI Stars you operate as Creator/Owner, these are your Founder roles inside each AI Star Universe.",
+    queueAllConnected: "All operated AI Stars are ready with TikTok connected.",
+    queuePending: "Some operated AI Stars still need TikTok connection.",
+    queueTitle: "Next Action Queue",
+    relationCreator: "Creator / Owner",
+    relationCreatorBody: "Operate AI Star content and TikTok channel.",
+    relationFounder: "Founder Network",
+    relationFounderBody:
+      "Participate with invite, CP, and role inside an AI Star Universe.",
+    relationTitle: "Relationship Split",
+    reputationResult: "Reputation result",
+    selectedAiStar: "Selected AI Star",
     heroBody:
       "My AI is not a personal member account. It is the AI Star-specific operating channel for TikTok, content readiness, and reputation records.",
     heroEyebrow: "My AI",
@@ -110,6 +171,8 @@ function getCopy(locale: Locale) {
     nextPending: "TikTok connection needed",
     operatedRelationCta: "Manage operated AI",
     open: "View AI Star",
+    overviewBody: "A compact readout of operated AI Stars, TikTok connection, and CP.",
+    overviewTitle: "Operating Summary",
     routeLabel: "FanLetter / My AI",
     source: "Source AI Star Universe",
     status: "Status",
@@ -241,6 +304,8 @@ export function FanletterMyAIPage({
   const connectedCount = ownedStars.filter((star) =>
     resolveSocialAccount(star.id),
   ).length;
+  const pendingTiktokCount = Math.max(ownedStars.length - connectedCount, 0);
+  const contextScore = primaryAccount ? 8 : 6;
   const currentLabel = primaryStar
     ? `${getStarName(primaryStar, primaryFallback)} · ${getUniverseName(
         primaryStar,
@@ -324,31 +389,147 @@ export function FanletterMyAIPage({
           title={primaryAccount ? copy.nextConnected : copy.nextPending}
         />
 
+        <section className="grid min-w-0 gap-2 rounded-[1.2rem] border border-zinc-200 bg-zinc-50 p-3 sm:grid-cols-[1.1fr_0.9fr] sm:p-4">
+          <div className="min-w-0 rounded-2xl border border-zinc-200 bg-white p-4">
+            <div className="flex min-w-0 items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                  {copy.queueTitle}
+                </p>
+                <h2 className="mt-1 truncate text-xl font-semibold text-zinc-950">
+                  {pendingTiktokCount > 0 ? copy.nextPending : copy.nextConnected}
+                </h2>
+                <p className="mt-2 text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+                  {pendingTiktokCount > 0
+                    ? copy.queuePending
+                    : copy.queueAllConnected}
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-black px-2.5 py-1 text-[0.65rem] font-semibold text-white">
+                {connectedCount}/{ownedStars.length}
+              </span>
+            </div>
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <div className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3">
+                <p className="text-[0.62rem] font-semibold text-zinc-500">
+                  {copy.selectedAiStar}
+                </p>
+                <p className="mt-1 truncate text-base font-semibold text-zinc-950">
+                  {primaryStarName ?? copy.emptyTitle}
+                </p>
+              </div>
+              <div className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3">
+                <p className="text-[0.62rem] font-semibold text-zinc-500">
+                  {copy.reputationResult}
+                </p>
+                <p className="mt-1 truncate text-base font-semibold text-zinc-950">
+                  {primaryAccount ? copy.eventConnected : copy.eventPending}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="min-w-0 rounded-2xl border border-zinc-200 bg-white p-4">
+            <p className="text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+              {copy.relationTitle}
+            </p>
+            <div className="mt-3 grid gap-2">
+              <div className="flex min-w-0 items-start gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-black text-white">
+                  <Bot className="size-4" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-zinc-950">
+                    {copy.relationCreator}
+                  </span>
+                  <span className="mt-0.5 block text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
+                    {copy.relationCreatorBody}
+                  </span>
+                </span>
+              </div>
+              <div className="flex min-w-0 items-start gap-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-zinc-950 ring-1 ring-zinc-200">
+                  <UsersRound className="size-4" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-semibold text-zinc-950">
+                    {copy.relationFounder}
+                  </span>
+                  <span className="mt-0.5 block text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
+                    {copy.relationFounderBody}
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="min-w-0 rounded-[1.15rem] border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.05)]">
+          <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-[0.64rem] font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                {copy.contextAssetTitle}
+              </p>
+              <h2 className="mt-1 text-xl font-semibold text-zinc-950">
+                {copy.contextGraphPath}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+                {copy.contextAssetBody}
+              </p>
+            </div>
+            <span className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full bg-black px-3 text-xs font-semibold text-white">
+              {copy.contextScoreLabel} {contextScore}/10
+            </span>
+          </div>
+
+          <div className="mt-4 grid min-w-0 gap-2 sm:grid-cols-3">
+            {copy.contextSignals.map((signal, index) => (
+              <div
+                className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 p-3"
+                key={signal.label}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-white text-[0.68rem] font-semibold text-zinc-950 ring-1 ring-zinc-200">
+                    {index + 1}
+                  </span>
+                  <p className="truncate text-sm font-semibold text-zinc-950">
+                    {signal.label}
+                  </p>
+                </div>
+                <p className="mt-2 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
+                  {signal.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="grid min-w-0 gap-2 sm:grid-cols-2">
           <Link
-            className="group min-w-0 rounded-[1.05rem] border border-zinc-950 bg-zinc-950 p-4 text-white shadow-[0_18px_44px_rgba(15,23,42,0.12)] transition hover:bg-black"
+            className="group min-w-0 rounded-[1.05rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_18px_44px_rgba(15,23,42,0.06)] transition hover:border-zinc-300"
             href={primaryStar ? primarySocialPermissionHref : `/${locale}/fanletter/creator-unlock`}
           >
             <div className="flex min-w-0 items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white/55">
+                <p className="inline-flex items-center gap-1.5 text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-zinc-500">
                   <Bot className="size-3.5" />
                   {copy.creator}
                 </p>
                 <h2 className="mt-1 truncate text-xl font-semibold">
                   {copy.heroTitle}
                 </h2>
-                <p className="mt-2 text-xs font-semibold leading-5 text-white/58 [word-break:keep-all]">
+                <p className="mt-2 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
                   {locale === "ko"
                     ? "AI 스타 콘텐츠, TikTok 채널, 생성 미리보기를 운영하는 권한입니다."
                     : "Permission to operate AI Star content, TikTok channels, and launch previews."}
                 </p>
               </div>
-              <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[0.65rem] font-semibold text-black">
+              <span className="shrink-0 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.65rem] font-semibold text-zinc-700">
                 {formatNumber(ownedStars.length, locale)}
               </span>
             </div>
-            <p className="mt-3 inline-flex min-h-9 max-w-full items-center gap-2 rounded-full bg-white px-3 text-xs font-semibold text-zinc-950">
+            <p className="mt-3 inline-flex min-h-9 max-w-full items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-900">
               <span className="min-w-0 truncate">{copy.operatedRelationCta}</span>
               <ArrowRight className="size-3.5 shrink-0 transition group-hover:translate-x-0.5" />
             </p>
@@ -426,18 +607,18 @@ export function FanletterMyAIPage({
           </section>
         ) : null}
 
-        <section className="min-w-0 overflow-hidden rounded-[1.4rem] border border-zinc-200 bg-zinc-950 p-4 text-white shadow-[0_24px_60px_rgba(15,23,42,0.16)] sm:p-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <section className="min-w-0 overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_18px_44px_rgba(15,23,42,0.05)] sm:p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/48">
+              <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
                 <Bot className="size-4" />
                 {copy.heroEyebrow}
               </p>
-              <h1 className="mt-2 break-words text-3xl font-semibold leading-tight tracking-normal sm:text-5xl">
-                {copy.heroTitle}
-              </h1>
-              <p className="mt-3 max-w-2xl text-sm font-medium leading-6 text-white/58 [word-break:keep-all]">
-                {copy.heroBody}
+              <h2 className="mt-1 break-words text-xl font-semibold leading-tight tracking-normal sm:text-2xl">
+                {copy.overviewTitle}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+                {copy.overviewBody}
               </p>
             </div>
             <div className="grid grid-cols-3 gap-2 sm:min-w-80">
@@ -456,13 +637,13 @@ export function FanletterMyAIPage({
                 },
               ].map((metric) => (
                 <div
-                  className="min-w-0 rounded-xl border border-white/10 bg-white/8 px-3 py-3"
+                  className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-3"
                   key={metric.label}
                 >
-                  <p className="truncate text-[0.62rem] font-semibold text-white/42">
+                  <p className="truncate text-[0.62rem] font-semibold text-zinc-500">
                     {metric.label}
                   </p>
-                  <p className="mt-1 truncate text-lg font-semibold text-white">
+                  <p className="mt-1 truncate text-lg font-semibold text-zinc-950">
                     {metric.value}
                   </p>
                 </div>
