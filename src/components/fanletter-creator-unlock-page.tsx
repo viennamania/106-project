@@ -2033,11 +2033,13 @@ function CreatorUnlockStateStrip({
     {
       detail: `${progressPercent}%`,
       label: labels.progress,
+      priority: false,
       tone: unlock.unlocked ? "emerald" : "violet",
       value: `${completedConditionCount}/${unlock.conditions.length}`,
     },
     {
       label: labels.source,
+      priority: false,
       tone: requiresSourceUniverse ? "amber" : "violet",
       value: requiresSourceUniverse
         ? labels.sourceMissing
@@ -2050,6 +2052,7 @@ function CreatorUnlockStateStrip({
         !isPreviewMode && !requiresSourceUniverse && nextMissingCondition
           ? labels.nextCondition
           : labels.action,
+      priority: true,
       tone: unlock.unlocked && !isPreviewMode && !requiresSourceUniverse
         ? "emerald"
         : "violet",
@@ -2071,24 +2074,32 @@ function CreatorUnlockStateStrip({
         {items.map((item) => (
           <div
             className={joinClasses(
-              "min-w-0 rounded-lg border bg-white px-3 py-3 shadow-[0_12px_28px_rgba(88,28,135,0.06)]",
-              item.tone === "emerald" && "border-emerald-200",
-              item.tone === "amber" && "border-amber-200",
-              item.tone === "violet" && "border-zinc-200",
+              "min-w-0 rounded-lg border px-3 py-3 shadow-[0_12px_28px_rgba(15,23,42,0.055)]",
+              item.priority && "border-black bg-black text-white",
+              !item.priority && "bg-white",
+              !item.priority && item.tone === "emerald" && "border-emerald-200",
+              !item.priority && item.tone === "amber" && "border-amber-200",
+              !item.priority && item.tone === "violet" && "border-zinc-200",
             )}
             key={item.label}
           >
             <p
               className={joinClasses(
                 "text-[0.66rem] font-semibold uppercase tracking-[0.08em]",
-                item.tone === "emerald" && "text-emerald-700",
-                item.tone === "amber" && "text-amber-700",
-                item.tone === "violet" && "text-zinc-700",
+                item.priority && "text-white/58",
+                !item.priority && item.tone === "emerald" && "text-emerald-700",
+                !item.priority && item.tone === "amber" && "text-amber-700",
+                !item.priority && item.tone === "violet" && "text-zinc-700",
               )}
             >
               {item.label}
             </p>
-            <p className="mt-1 break-words text-sm font-semibold leading-tight text-[#12041f] [word-break:keep-all]">
+            <p
+              className={joinClasses(
+                "mt-1 break-words text-sm font-semibold leading-tight [word-break:keep-all]",
+                item.priority ? "text-white" : "text-[#12041f]",
+              )}
+            >
               {item.value}
             </p>
             {"detail" in item && item.detail ? (
