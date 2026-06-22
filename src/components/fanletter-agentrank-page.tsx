@@ -114,7 +114,7 @@ function getAgentRankCopy(locale: Locale) {
         phase1Quality: "Phase 1 데이터 품질",
         schemaCoverage: "AgentRank 스키마 준비율",
         subtitle:
-          "FanLetter 행동이 AgentRank 평판 이벤트로 얼마나 안정적으로 쌓이는지 점검합니다.",
+          "FanLetter 행동이 AgentRank 평판 기록으로 얼마나 안정적으로 쌓이는지 점검합니다.",
         title: "AgentRank Event Quality",
       },
       dataLayer: "MiZi 데이터/검증 레이어",
@@ -122,7 +122,7 @@ function getAgentRankCopy(locale: Locale) {
       ers: "Economic Reputation Score",
       eventFactory: "Reputation Event Factory",
       eventFactoryBody:
-        "FanLetter의 발견, 참여, 초대, 창업, CP 보상이 AgentRank 이벤트 원천이 됩니다.",
+        "FanLetter의 발견, 참여, 초대, 창업, CP 보상이 AgentRank 기록의 원천이 됩니다.",
       eventTimeline: "최근 평판 기록",
       fanletter: "FanLetter",
       fanletterBody:
@@ -132,7 +132,7 @@ function getAgentRankCopy(locale: Locale) {
       googleProblem: "Google은 링크 그래프를 신뢰로 바꿨습니다.",
       googleTrustLine: "Google은 링크를 사용해 웹 신뢰를 측정했습니다.",
       heroBody:
-        "FanLetter는 최종 제품이 아니라 AgentRank의 Phase 1입니다. AI 스타와 파운더 네트워크에서 발생하는 경제적 행동을 평판 이벤트로 수집해 AgentRank로 확장합니다.",
+        "FanLetter는 최종 제품이 아니라 AgentRank의 Phase 1입니다. AI 스타와 파운더 네트워크에서 발생하는 경제적 행동을 평판 기록으로 수집해 AgentRank로 확장합니다.",
       heroTitle: "From PageRank to AgentRank",
       heroSubtitle: "AI Agent 경제를 위한 Trust Infrastructure",
       mizi: "MiZi",
@@ -148,10 +148,10 @@ function getAgentRankCopy(locale: Locale) {
       score: "AgentRank Score",
       scoreAggregator: "AgentRank Score Aggregator",
       scoreAggregatorBody:
-        "Reputation Event를 Founder Network, 경제 활동, Creator Journey, AI 스타 발견, Lineage Trust, 감사 품질 차원으로 집계합니다.",
+        "평판 기록을 파운더 네트워크, 경제 활동, 크리에이터 여정, AI 스타 발견, 리니지 신뢰, 감사 품질 차원으로 집계합니다.",
       scoreConfidence: "집계 신뢰도",
       scoreScopeCoverage: "커버리지 포함 점수",
-      scoreScopeMockExcluded: "Mock 이벤트 제외",
+      scoreScopeMockExcluded: "미리보기 이벤트 제외",
       scoreScopeOperational: "운영 점수",
       scoreCsv: "Score CSV",
       oraclePacket: "Oracle Packet",
@@ -185,7 +185,7 @@ function getAgentRankCopy(locale: Locale) {
       metrics: {
         audit: "감사 준비",
         cp: "CP 보상",
-        cpPool: "CP Pool",
+        cpPool: "CP 풀",
         events: "평판 기록",
         members: "멤버",
         network: "네트워크 연결",
@@ -514,30 +514,30 @@ function getCoverageGapAction({
       ai_star_spawned: {
         anchor: "mock-launch-panel",
         description: isKorean
-          ? "AI 스타 생성 미리보기에서 창업 출처와 mock 10 USDT 의도를 함께 기록합니다."
+          ? "AI 스타 생성 미리보기에서 창업 출처와 10 USDT 생성 의도를 함께 기록합니다."
           : "Use the AI Star launch preview to record source selection and mock 10 USDT intent.",
         trigger: isKorean ? "AI 스타 생성 미리보기" : "AI Star launch preview",
       },
       creator_social_connected: {
         anchor: "tiktok-channel",
         description: isKorean
-          ? "AI 스타별 TikTok 채널 연결을 mock으로 기록해 Creator Journey 신호를 채웁니다."
+          ? "AI 스타별 TikTok 채널 연결을 기록해 크리에이터 여정 신호를 채웁니다."
           : "Mock-connect the AI Star TikTok channel to fill the Creator Journey signal.",
         trigger: isKorean ? "TikTok 채널 연결" : "Connect TikTok channel",
       },
       creator_unlock_evaluated: {
         anchor: "creator-unlock-conditions",
         description: isKorean
-          ? "Creator 권한 활성화 조건 평가를 기록해 다음 창업 가능성을 보여줍니다."
+          ? "크리에이터 권한 활성화 조건 평가를 기록해 다음 창업 가능성을 보여줍니다."
           : "Record creator permission evaluation so the next launch path is visible.",
         trigger: isKorean ? "권한 조건 평가" : "Evaluate creator permissions",
       },
       creator_unlocked: {
         anchor: "creator-unlock-conditions",
         description: isKorean
-          ? "조건 충족 상태를 확인하고 Creator 권한 활성화 이벤트를 수집합니다."
+          ? "조건 충족 상태를 확인하고 크리에이터 권한 활성화 기록을 수집합니다."
           : "Confirm eligibility and collect the creator permission activation event.",
-        trigger: isKorean ? "Creator 권한 활성화" : "Activate creator permissions",
+        trigger: isKorean ? "크리에이터 권한 활성화" : "Activate creator permissions",
       },
       source_universe_selected: {
         anchor: "source-universe-picker",
@@ -549,9 +549,9 @@ function getCoverageGapAction({
       x402_mock_payment_intent: {
         anchor: "mock-launch-panel",
         description: isKorean
-          ? "실결제 없이 10 USDT 창업 의도와 CP Pool 생성 흐름을 mock으로 기록합니다."
+          ? "실결제 없이 10 USDT 창업 의도와 CP 풀 생성 흐름을 미리보기로 기록합니다."
           : "Record mock 10 USDT launch intent and CP Pool flow without real payment.",
-        trigger: isKorean ? "mock 결제 의도 기록" : "Record mock payment intent",
+        trigger: isKorean ? "미리보기 결제 의도 기록" : "Record mock payment intent",
       },
     };
     const creatorAction = creatorEventActions[eventType];
@@ -572,7 +572,7 @@ function getCoverageGapAction({
       return {
         coverageAction: action,
         description: isKorean
-          ? "AI 스타 상세에서 추천 링크를 공유하면 Founder Network와 Creator Journey가 동시에 갱신됩니다."
+          ? "AI 스타 상세에서 추천 링크를 공유하면 파운더 네트워크와 크리에이터 여정이 동시에 갱신됩니다."
           : "Share a referral link from the AI Star detail page to update Founder Network and Creator Journey signals.",
         eventType,
         href: starDetailHref,
@@ -632,13 +632,13 @@ function getCoverageGapAction({
     return {
       coverageAction: "x402_economy",
       description: isKorean
-        ? "실제 결제 전까지 mock 결제 의도와 CP Pool 생성 신호를 먼저 수집합니다."
+        ? "실제 결제 전까지 미리보기 결제 의도와 CP 풀 생성 신호를 먼저 수집합니다."
         : "Collect mock payment intent and CP Pool signals before real payment integration.",
       eventType: "x402_mock_payment_intent",
       href: `/${locale}/fanletter/creator-unlock?${x402Query}#mock-launch-panel`,
       key: gap,
       label: getCoverageGapLabel(gap, locale),
-      trigger: isKorean ? "mock 결제 의도" : "Mock payment intent",
+      trigger: isKorean ? "미리보기 결제 의도" : "Mock payment intent",
     };
   }
 
@@ -889,7 +889,7 @@ function AgentRankCoveragePanel({
           actionSubmit: "이 액션 실행",
           progress: "핵심 이벤트",
           subtitle:
-            "AI 스타 발견부터 Creator Journey와 x402 mock intent까지 Phase 1 평판 이벤트가 살아 있는지 먼저 확인합니다.",
+            "AI 스타 발견부터 크리에이터 여정과 x402 미리보기 의도까지 Phase 1 평판 기록이 살아 있는지 먼저 확인합니다.",
           title: "FanLetter Phase 1 이벤트 체인",
         }
       : {
@@ -2496,7 +2496,7 @@ function AgentRankMobileStatusCard({
           : "Improve event quality"
         : !scoreAggregate.readiness.x402Ready
           ? isKo
-            ? "x402 mock 이벤트 연결"
+            ? "x402 미리보기 이벤트 연결"
             : "Connect x402 mock events"
           : !scoreAggregate.readiness.a2aReady
             ? isKo
@@ -2584,7 +2584,7 @@ function AgentRankAudienceSplit({
       Icon: Users,
       badge: isKo ? "사용자 화면" : "User view",
       body: isKo
-        ? "AI 스타 발견, 파운더 참여, 추천 공유가 평판 이벤트를 만듭니다."
+        ? "AI 스타 발견, 파운더 참여, 추천 공유가 평판 기록을 만듭니다."
         : "Discovery, founder joins, and referral shares create reputation events.",
       metric: formatNumber(eventCount, locale),
       metricLabel: isKo ? "수집 이벤트" : "events collected",
