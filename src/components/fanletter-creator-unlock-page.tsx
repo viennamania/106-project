@@ -83,11 +83,11 @@ function getCreatorJourneyReputationLabel(
   }
 
   if (eventType === "creator_unlocked") {
-    return isKorean ? "Creator 권한 활성화 기록" : "Creator permission activated";
+    return isKorean ? "크리에이터 권한 활성화 기록" : "Creator permission activated";
   }
 
   if (eventType === "x402_mock_payment_intent") {
-    return isKorean ? "10 USDT 미리보기 의도 기록" : "10 USDT mock intent recorded";
+    return isKorean ? "10 USDT 생성 의도 기록" : "10 USDT mock intent recorded";
   }
 
   if (eventType === "ai_star_spawned") {
@@ -137,9 +137,9 @@ function getLaunchPageCopy(locale: Locale) {
       cost: "10 USDT 미리보기",
       draft: "준비 중",
       fieldsTitle: "새 AI 스타 생성 미리보기",
-      founderContribution: "Founder Contribution",
+      founderContribution: "파운더 기여도",
       founderContributionBody:
-        "내 파운더 활동이 어느 AI 스타 유니버스에서 AgentRank 신뢰로 쌓였는지 보여줍니다.",
+        "내 파운더 활동이 어느 AI 스타 유니버스에서 평판 신뢰로 쌓였는지 보여줍니다.",
       contributionScore: "기여 점수",
       contributionConfidence: "신뢰도",
       contributionEvents: "이벤트",
@@ -151,15 +151,15 @@ function getLaunchPageCopy(locale: Locale) {
       heroTitle: "크리에이터 권한 상태",
       loginCta: "계정 연결하고 내 데이터 보기",
       loginNoticeBody:
-        "지금 화면은 샘플 데이터입니다. 이메일 계정을 연결하면 내 Founder 역할, CP, 초대 성과, 생성 가능한 AI 스타가 실제 데이터로 바뀝니다.",
-      loginNoticeTitle: "내 Creator Unlock 상태를 보려면 계정 연결이 필요합니다",
+        "지금 화면은 샘플 데이터입니다. 이메일 계정을 연결하면 내 파운더 역할, CP, 초대 성과, 생성 가능한 AI 스타가 실제 데이터로 바뀝니다.",
+      loginNoticeTitle: "내 크리에이터 권한 상태를 보려면 계정 연결이 필요합니다",
       mockActivation: "미리보기 활성화",
       mockNotice:
         "실결제와 영구 저장은 아직 실행하지 않습니다. 이 화면은 생성 전 구조와 포트폴리오 반영 방식을 확인하는 미리보기입니다.",
       name: "AI 스타 이름",
       launchedBody:
-        "브라우저에 저장된 미리보기 AI 스타 draft가 포트폴리오에 반영되었습니다.",
-      launchedTitle: "미리보기 AI 스타 draft 생성됨",
+        "브라우저에 저장된 미리보기 AI 스타 초안이 포트폴리오에 반영되었습니다.",
+      launchedTitle: "미리보기 AI 스타 초안 생성됨",
       nextPortfolio: "생성 후 포트폴리오 반영",
       noSourceBody:
         "새 AI 스타는 기존 AI 스타 유니버스의 성과를 출처로 삼아야 합니다. 먼저 AI 스타를 발견해 파운더로 참여하거나, 내 AI 스타 유니버스를 만든 뒤 다시 진행하세요.",
@@ -173,15 +173,15 @@ function getLaunchPageCopy(locale: Locale) {
       sampleData: "샘플 데이터",
       sampleOwner: "샘플 멤버",
       rewardCp: "CP",
-      rewardCreator: "Creator 진행률",
+      rewardCreator: "크리에이터 진행률",
       rewardInfluence: "영향력",
-      rewardTitle: "Founder 참여 보상 반영",
+      rewardTitle: "파운더 참여 보상 반영",
       rewardBody:
-        "이 브라우저의 미리보기 Founder 참여 내역을 Creator Unlock 조건에 반영했습니다.",
+        "이 브라우저의 미리보기 파운더 참여 내역을 크리에이터 권한 조건에 반영했습니다.",
       sourceSelectBody:
-        "AI 스타 유니버스는 창업 출처이고, 내 역할은 그 안의 파운더 네트워크에서 가진 위치입니다. CP Pool은 선택한 AI 스타 유니버스의 상위 계층에 분배됩니다.",
+        "AI 스타 유니버스는 창업 출처이고, 내 역할은 그 안의 파운더 네트워크에서 가진 위치입니다. CP 풀은 선택한 AI 스타 유니버스의 상위 계층에 분배됩니다.",
       sourceSelectTitle: "창업 출처 AI 스타 유니버스 선택",
-      sourcePool: "CP Pool 분배 기준",
+      sourcePool: "CP 풀 분배 기준",
       source: "출처 AI 스타 유니버스",
       submit: "미리보기 생성 준비 완료",
       subtitle: "실제 결제 전",
@@ -402,10 +402,10 @@ function CreatorUnlockConditionsPanel({
       closeLabel={closeLabel}
       description={
         isKorean
-          ? "조건을 충족하면 Creator 권한이 활성화되고, 이후 미리보기 생성 행동은 AgentRank 평판 이벤트로 기록됩니다."
+          ? "조건을 충족하면 크리에이터 권한이 활성화되고, 이후 미리보기 생성 행동은 평판 기록으로 남습니다."
           : "When conditions are met, Creator permission is activated, and mock launch actions become AgentRank reputation events."
       }
-      eyebrow="Creator Journey"
+      eyebrow={isKorean ? "크리에이터 여정" : "Creator Journey"}
       onClose={onClose}
       open={open}
       title={isKorean ? "권한 활성화 조건" : "Activation conditions"}
@@ -1103,7 +1103,7 @@ function SourceUniverseNetworkLinkCard({
     ? {
         body: `새 AI 스타는 ${displayUniverseName} 안의 파운더 네트워크 성과를 출처로 기록됩니다.`,
         cta: "파운더 네트워크 보기",
-        event: "source_universe_selected",
+        event: "출처 선택 기록",
         role: "내 역할",
         score: "기여 점수",
         title: "출처 파운더 네트워크 확인",
@@ -1111,7 +1111,7 @@ function SourceUniverseNetworkLinkCard({
     : {
         body: `The new AI Star will be recorded from the Founder Network contribution inside ${displayUniverseName}.`,
         cta: "View Founder Network",
-        event: "source_universe_selected",
+        event: "Source selection record",
         role: "My role",
         score: "Contribution score",
         title: "Review source Founder Network",
@@ -1123,7 +1123,7 @@ function SourceUniverseNetworkLinkCard({
         <div className="min-w-0">
           <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
             <GitBranch className="size-4" />
-            Creator Journey
+            {isKorean ? "크리에이터 여정" : "Creator Journey"}
           </p>
           <h2 className="mt-2 text-xl font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
             {labels.title}
@@ -1568,7 +1568,9 @@ function MockLaunchSavedSummary({
             {copy.launchedBody}
           </p>
           <span className="mt-3 inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-zinc-700">
-            AI STAR draft {launches.length}
+            {locale === "ko"
+              ? `AI 스타 초안 ${launches.length}`
+              : `AI STAR draft ${launches.length}`}
           </span>
         </div>
       </div>
@@ -1624,12 +1626,12 @@ function MockLaunchEventReceiptCard({
       : "Selected AI Star Universe";
   const labels = isKorean
     ? {
-        amount: "10 USDT mock",
-        cpPool: "CP Pool 출처",
-        draft: "생성된 draft",
+        amount: "10 USDT 미리보기",
+        cpPool: "CP 풀 출처",
+        draft: "생성된 초안",
         event: hasLaunch ? "생성된 평판 기록" : "생성될 평판 기록",
         payment: "실제 결제 없음",
-        pendingName: "AI 스타 draft 생성 대기",
+        pendingName: "AI 스타 초안 생성 대기",
         source: "창업 출처",
         title: hasLaunch ? "미리보기 생성 결과" : "미리보기 생성 대기",
       }
@@ -1692,15 +1694,15 @@ function MockLaunchEventReceiptCard({
         </p>
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
           {[
-            "x402_mock_payment_intent",
-            "ai_star_spawned",
-            "cp_pool_generated",
-          ].map((eventName) => (
+            getCreatorJourneyReputationLabel("x402_mock_payment_intent", locale),
+            getCreatorJourneyReputationLabel("ai_star_spawned", locale),
+            isKorean ? "CP 풀 생성 기록" : "CP pool generated",
+          ].map((eventLabel) => (
             <span
-              className="min-w-0 rounded-full border border-zinc-200 bg-white px-3 py-2 text-center font-mono text-[0.66rem] font-semibold text-zinc-700"
-              key={eventName}
+              className="min-w-0 rounded-full border border-zinc-200 bg-white px-3 py-2 text-center text-[0.66rem] font-semibold leading-tight text-zinc-700 [word-break:keep-all]"
+              key={eventLabel}
             >
-              {eventName}
+              {eventLabel}
             </span>
           ))}
         </div>
@@ -1736,7 +1738,7 @@ function LaunchReadinessSignpost({
   const labels = isKorean
     ? {
         body:
-          "선택한 출처 AI 스타 유니버스, 10 USDT mock 의도, 생성될 평판 기록만 확인합니다.",
+          "선택한 출처 AI 스타 유니버스, 10 USDT 미리보기 의도, 생성될 평판 기록만 확인합니다.",
         cta: requiresSourceUniverse
           ? copy.noSourcePrimary
           : isPreviewMode
@@ -1745,7 +1747,7 @@ function LaunchReadinessSignpost({
         event: "생성될 평판 기록",
         result: "생성 결과",
         source: "출처",
-        stepMock: "10 USDT mock",
+        stepMock: "10 USDT 미리보기",
         stepRecord: "평판 기록",
         stepSource: "출처 선택",
         title: "생성 전 마지막 확인",
@@ -1782,7 +1784,7 @@ function LaunchReadinessSignpost({
     {
       Icon: BadgeCheck,
       label: labels.stepRecord,
-      value: "x402_mock_payment_intent",
+      value: getCreatorJourneyReputationLabel("x402_mock_payment_intent", locale),
     },
   ];
 
@@ -1887,7 +1889,10 @@ function LaunchReadinessSignpost({
             {[
               [labels.source, sourceUniverseName],
               [copy.category, launchPreview.category],
-              [labels.event, "ai_star_spawned"],
+              [
+                labels.event,
+                getCreatorJourneyReputationLabel("ai_star_spawned", locale),
+              ],
             ].map(([label, value]) => (
               <div
                 className="min-w-0 rounded-lg bg-white/[0.06] px-3 py-2"
@@ -2186,14 +2191,14 @@ function CreatorFounderRelationshipGuide({
         creatorBody: "콘텐츠, TikTok 채널, 스튜디오를 운영하는 AI 스타입니다.",
         creatorCount: `${formatNumber(portfolio.ownedStars.length, locale)}개 운영`,
         creatorEmpty: "운영 중인 AI 스타 없음",
-        creatorEyebrow: "Creator / Owner 관계",
+        creatorEyebrow: "크리에이터 / 운영자 관계",
         creatorTitle: "내가 운영하는 AI 스타",
         founderBody: "선택한 AI 스타 유니버스 안의 6단계 초대/역할/CP 기준입니다.",
         founderCount: `${formatNumber(portfolio.roles.length, locale)}개 참여`,
         founderEyebrow: "파운더 네트워크 관계",
         founderTitle: "창업 출처 역할",
         memberEyebrow: "현재 위치",
-        memberTitle: "내 Creator Journey 기준",
+        memberTitle: "내 크리에이터 여정 기준",
         source: "출처",
         status: "상태",
       }
@@ -2385,12 +2390,12 @@ function CreatorNextActionStatusCard({
   const labels = isKorean
     ? {
         body: requiresSourceUniverse
-          ? "먼저 AI 스타를 선택해 창업 출처를 만들어야 Creator Journey가 이어집니다."
+          ? "먼저 AI 스타를 선택해 창업 출처를 만들어야 크리에이터 여정이 이어집니다."
           : isPreviewMode
-            ? "계정을 연결하면 내 Founder 활동과 조건 진행률을 실데이터로 확인합니다."
+            ? "계정을 연결하면 내 파운더 활동과 조건 진행률을 실데이터로 확인합니다."
             : unlock.unlocked
-              ? "조건이 충족되었습니다. 미리보기 생성 행동은 x402 mock 이벤트로 기록됩니다."
-              : "부족한 조건을 채우면 Creator 권한 활성화 평가 이벤트가 갱신됩니다.",
+              ? "조건이 충족되었습니다. 미리보기 생성 행동은 평판 기록으로 남습니다."
+              : "부족한 조건을 채우면 크리에이터 권한 평가 기록이 갱신됩니다.",
         condition: "다음 조건",
         current: "현재",
         event: "평판 기록 결과",
@@ -2420,7 +2425,7 @@ function CreatorNextActionStatusCard({
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex h-7 items-center rounded-full border border-zinc-200 bg-zinc-50 px-2.5 text-[0.66rem] font-semibold uppercase tracking-[0.08em] text-zinc-600">
-            Creator Journey
+            {isKorean ? "크리에이터 여정" : "Creator Journey"}
           </span>
           <span className="inline-flex h-7 items-center rounded-full border border-zinc-200 bg-white px-2.5 text-xs font-semibold text-zinc-700">
             {completedConditionCount}/{unlock.conditions.length} · {progressPercent}%
@@ -2577,7 +2582,7 @@ function CreatorJourneyEventPath({
           : "next",
     },
     {
-      body: isKorean ? "새 AI 스타 draft 생성" : "Create AI Star draft",
+      body: isKorean ? "새 AI 스타 초안 생성" : "Create AI Star draft",
       eventType: "ai_star_spawned",
       icon: Sparkles,
       label: isKorean ? "AI 스타 생성" : "AI Star spawned",
@@ -2742,7 +2747,7 @@ function CreatorJourneyStepLinks({
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            Creator Journey
+            {isKorean ? "크리에이터 여정" : "Creator Journey"}
           </p>
           <h2 className="mt-1 text-2xl font-semibold tracking-normal text-black">
             {isKorean
@@ -2960,7 +2965,7 @@ function CreatorJourneyProductHero({
       <div className="rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)] sm:p-6">
         <div className="flex flex-wrap items-center gap-2">
           <span className="inline-flex min-h-8 items-center rounded-full bg-black px-3 text-xs font-semibold uppercase tracking-[0.08em] text-white">
-            Creator Journey
+            {isKorean ? "크리에이터 여정" : "Creator Journey"}
           </span>
           <span className="inline-flex min-h-8 items-center rounded-full border border-zinc-200 bg-zinc-50 px-3 text-xs font-semibold text-zinc-700">
             {statusLabel}
@@ -3414,16 +3419,16 @@ export function FanletterCreatorUnlockPage({
           : "Next action: review conditions";
   const creatorUnlockEventLabel = requiresSourceUniverse
     ? locale === "ko"
-      ? "AI Star Discovery 이벤트"
+      ? "AI 스타 발견 기록"
       : "AI Star Discovery event"
     : isCreatorSocialNextAction
       ? locale === "ko"
-        ? "TikTok 채널 연결 이벤트"
+        ? "TikTok 채널 연결 기록"
         : "TikTok channel connection event"
     : unlock.unlocked
-      ? "x402 Mock Payment Intent"
+      ? getCreatorJourneyReputationLabel("x402_mock_payment_intent", locale)
       : locale === "ko"
-        ? "Creator Unlock 평가 이벤트"
+        ? "크리에이터 권한 평가 기록"
         : "Creator Unlock evaluation event";
   const creatorSocialLedgerParams = new URLSearchParams({
     coverageAction: "creator_social_connected",
@@ -3476,7 +3481,7 @@ export function FanletterCreatorUnlockPage({
       ? {
           body:
             locale === "ko"
-              ? "Creator 권한 활성화에 필요한 조건과 부족한 항목만 확인합니다."
+              ? "크리에이터 권한 활성화에 필요한 조건과 부족한 항목만 확인합니다."
               : "Review only the conditions required to activate Creator permission.",
           title: locale === "ko" ? "권한 조건 확인" : "Permission conditions",
         }
@@ -3504,7 +3509,7 @@ export function FanletterCreatorUnlockPage({
   const creatorUnlockActionGuide = (
     <FanletterActionGuide
       className="mt-5"
-      currentLabel={locale === "ko" ? "Creator Journey" : "Creator Journey"}
+      currentLabel={locale === "ko" ? "크리에이터 여정" : "Creator Journey"}
       metrics={[
         {
           label: locale === "ko" ? "조건" : "Conditions",
@@ -3569,7 +3574,7 @@ export function FanletterCreatorUnlockPage({
       ]}
       subtitle={
         locale === "ko"
-          ? "새 AI 스타는 선택한 AI 스타 유니버스의 성과로 기록되고, 이후 CP Pool과 평판 기록으로 이어집니다."
+          ? "새 AI 스타는 선택한 AI 스타 유니버스의 성과로 기록되고, 이후 CP 풀과 평판 기록으로 이어집니다."
           : "A new AI Star records the selected AI Star Universe as its launch source, then feeds CP Pool and reputation records."
       }
       title={
@@ -3723,7 +3728,7 @@ export function FanletterCreatorUnlockPage({
               {view === "hub"
                 ? copy.back
                 : locale === "ko"
-                  ? "Creator Journey"
+                  ? "크리에이터 여정"
                   : "Creator Journey"}
             </span>
           </Link>
@@ -3769,7 +3774,7 @@ export function FanletterCreatorUnlockPage({
                     </h2>
                     <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-emerald-800 [word-break:keep-all]">
                       {locale === "ko"
-                        ? `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} 채널 연결이 Creator Journey 조건과 평판 기록 흐름에 반영되었습니다.`
+                        ? `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} 채널 연결이 크리에이터 권한 조건과 평판 기록 흐름에 반영되었습니다.`
                         : `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} is reflected in Creator Journey conditions and the Reputation Record flow.`}
                     </p>
                   </div>

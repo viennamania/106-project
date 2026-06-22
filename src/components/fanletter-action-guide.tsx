@@ -106,9 +106,9 @@ export function FanletterActionGuide({
   const guideCopy = isKorean
     ? {
         current: "현재 위치",
-        event: "평판 이벤트",
+        event: "평판 기록",
         next: "다음 행동",
-        signal: "평판 기록 신호",
+        signal: "기록될 결과",
         steps: "진행 흐름",
       }
     : {
