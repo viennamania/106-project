@@ -1407,6 +1407,179 @@ function FounderNetworkPositionPath({
   );
 }
 
+function getFounderNetworkContextScore({
+  agentRank,
+  universe,
+}: {
+  agentRank?: FounderUniverseAgentRankSnapshot | null;
+  universe: FanletterFounderUniverseExplorerData;
+}) {
+  const signals = [
+    universe.totals.edgeCount > 0,
+    universe.totals.activeReferralCodes > 0,
+    universe.spawnedStars.length > 0,
+    (agentRank?.ers.summary.eventCount ?? 0) > 0,
+    (agentRank?.ers.summary.cpTotal ?? 0) > 0,
+    (agentRank?.ers.summary.networkEdges ?? 0) > 0,
+  ].filter(Boolean).length;
+
+  return Math.min(10, 4 + signals);
+}
+
+function FounderNetworkContextGraphCard({
+  agentRank,
+  locale,
+  selectedNode,
+  selectedRoleLabel,
+  universe,
+}: {
+  agentRank?: FounderUniverseAgentRankSnapshot | null;
+  locale: Locale;
+  selectedNode: FanletterFounderUniverseExplorerNode | null;
+  selectedRoleLabel: string;
+  universe: FanletterFounderUniverseExplorerData;
+}) {
+  const isKorean = locale === "ko";
+  const starName = getUniverseStarName(universe.star);
+  const contextScore = getFounderNetworkContextScore({ agentRank, universe });
+  const eventCount = agentRank?.ers.summary.eventCount ?? 0;
+  const cpTotal = agentRank?.ers.summary.cpTotal ?? 0;
+  const agentRankScore =
+    agentRank?.scoreAggregate?.score ?? agentRank?.ers.score ?? 0;
+  const agentRankMax =
+    agentRank?.scoreAggregate?.maxScore ?? agentRank?.ers.maxScore ?? 1000;
+  const graphSteps = [
+    {
+      icon: Sparkles,
+      label: isKorean ? "AI 스타" : "AI Star",
+      value: starName,
+    },
+    {
+      icon: Network,
+      label: isKorean ? "파운더 네트워크" : "Founder Network",
+      value: selectedRoleLabel,
+    },
+    {
+      icon: GitBranch,
+      label: isKorean ? "관계 증거" : "Relationship evidence",
+      value: `${formatNumber(universe.totals.edgeCount, locale)} ${
+        isKorean ? "연결" : "edges"
+      }`,
+    },
+    {
+      icon: Gauge,
+      label: isKorean ? "CP 흐름" : "CP flow",
+      value: `${formatNumber(cpTotal, locale)} CP`,
+    },
+    {
+      icon: ShieldCheck,
+      label: isKorean ? "평판 기록" : "Reputation records",
+      value: `${formatNumber(eventCount, locale)}${isKorean ? "건" : ""}`,
+    },
+  ];
+
+  return (
+    <section className="min-w-0 overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white shadow-[0_14px_36px_rgba(15,23,42,0.055)]">
+      <div className="grid gap-4 p-3.5 sm:grid-cols-[minmax(0,1fr)_14rem] sm:p-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-600">
+              <CircleDot className="size-3.5" />
+              Context Asset
+            </span>
+            <span className="inline-flex items-center rounded-full bg-zinc-950 px-2.5 py-1 text-[0.68rem] font-semibold text-white">
+              {isKorean ? "복제 어려운 관계 데이터" : "Hard-to-copy graph"}
+            </span>
+          </div>
+          <h2 className="mt-3 text-xl font-semibold tracking-normal text-zinc-950 sm:text-2xl">
+            {isKorean
+              ? "초대와 역할이 평판 자산으로 쌓입니다"
+              : "Invites and roles become reputation assets"}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-500 [word-break:keep-all]">
+            {isKorean
+              ? "이 화면은 AI 스타 유니버스 안에서 누가 어떤 역할로 참여했고, 어떤 추천과 CP 흐름이 평판 기록으로 이어졌는지 보여줍니다."
+              : "This screen shows who joined this AI Star Universe, which role they hold, and how referrals and CP flow into reputation records."}
+          </p>
+        </div>
+
+        <div className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-950 p-3 text-white">
+          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white/58">
+            Context Score
+          </p>
+          <div className="mt-2 flex items-end gap-1">
+            <span className="text-3xl font-semibold">{contextScore}</span>
+            <span className="pb-1 text-sm font-semibold text-white/48">/10</span>
+          </div>
+          <p className="mt-2 text-xs font-semibold leading-5 text-white/60 [word-break:keep-all]">
+            {isKorean
+              ? "AI 스타, 멤버, 추천, CP, 평판 기록이 한 그래프로 연결됩니다."
+              : "AI Star, members, referrals, CP, and records are connected into one graph."}
+          </p>
+        </div>
+      </div>
+
+      <div className="border-t border-zinc-200 bg-zinc-50/70 p-3.5 sm:p-4">
+        <div className="grid min-w-0 gap-2 sm:grid-cols-5">
+          {graphSteps.map((step, index) => {
+            const Icon = step.icon;
+
+            return (
+              <div
+                className="min-w-0 rounded-xl border border-zinc-200 bg-white p-3"
+                key={step.label}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-white">
+                    <Icon className="size-4" />
+                  </span>
+                  {index < graphSteps.length - 1 ? (
+                    <ArrowRight className="hidden size-4 shrink-0 text-zinc-300 sm:block" />
+                  ) : null}
+                </div>
+                <p className="mt-3 truncate text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+                  {step.label}
+                </p>
+                <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+                  {step.value}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <div className="rounded-xl border border-zinc-200 bg-white p-3">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              {isKorean ? "보고 있는 멤버" : "Viewing member"}
+            </p>
+            <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+              {selectedNode?.label ?? starName}
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-white p-3">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              AgentRank
+            </p>
+            <p className="mt-1 text-sm font-semibold text-zinc-950">
+              {formatNumber(agentRankScore, locale)} /{" "}
+              {formatNumber(agentRankMax, locale)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-white p-3">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              {isKorean ? "Context Moat" : "Context moat"}
+            </p>
+            <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+              {isKorean ? "누적 관계/행동 증거" : "Accumulated evidence"}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FounderStarHero({
   creatorNode,
   locale,
@@ -3940,6 +4113,14 @@ export function FanletterFounderUniverseExplorer({
             selectedRoleLabel={selectedRoleLabel}
             star={displayUniverse.star}
             starName={starName}
+          />
+
+          <FounderNetworkContextGraphCard
+            agentRank={agentRank}
+            locale={locale}
+            selectedNode={selectedNode}
+            selectedRoleLabel={selectedRoleLabel}
+            universe={displayUniverse}
           />
 
           <FounderNetworkPositionPath
