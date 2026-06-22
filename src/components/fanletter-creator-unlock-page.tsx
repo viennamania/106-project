@@ -101,6 +101,19 @@ function getCreatorJourneyReputationLabel(
   return isKorean ? "권한 조건 평가 기록" : "Permission condition evaluated";
 }
 
+function getCreatorJourneyReputationSequence(locale: Locale) {
+  return [
+    "creator_unlock_evaluated",
+    "creator_social_connected",
+    "creator_unlocked",
+    "x402_mock_payment_intent",
+    "ai_star_spawned",
+  ].map((eventType) => ({
+    eventType,
+    label: getCreatorJourneyReputationLabel(eventType, locale),
+  }));
+}
+
 function joinClasses(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
@@ -460,25 +473,22 @@ function CreatorUnlockConditionsPanel({
 
         <section className="rounded-lg border border-zinc-200 bg-white p-3">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            AgentRank
+            {isKorean ? "평판 기록 흐름" : "Reputation record flow"}
           </p>
           <div className="mt-3 grid gap-2">
-            {[
-              "creator_unlock_evaluated",
-              "creator_social_connected",
-              "creator_unlocked",
-              "x402_mock_payment_intent",
-              "ai_star_spawned",
-            ].map((eventName, index) => (
+            {getCreatorJourneyReputationSequence(locale).map((event, index) => (
               <div
                 className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2"
-                key={eventName}
+                key={event.eventType}
               >
                 <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-black text-xs font-semibold text-white">
                   {index + 1}
                 </span>
-                <span className="min-w-0 truncate font-mono text-xs font-semibold text-zinc-700">
-                  {eventName}
+                <span
+                  className="min-w-0 truncate text-xs font-semibold text-zinc-700"
+                  title={event.eventType}
+                >
+                  {event.label}
                 </span>
               </div>
             ))}
@@ -3942,16 +3952,18 @@ export function FanletterCreatorUnlockPage({
         />
         ) : null}
 
-        <CreatorNextActionStatusCard
-          action={creatorUnlockNextAction}
-          completedConditionCount={completedConditionCount}
-          isPreviewMode={isPreviewMode}
-          locale={locale}
-          nextMissingCondition={nextMissingCondition}
-          requiresSourceUniverse={requiresSourceUniverse}
-          sourceUniverseName={displaySourceUniverseName}
-          unlock={unlock}
-        />
+        {view !== "conditions" ? (
+          <CreatorNextActionStatusCard
+            action={creatorUnlockNextAction}
+            completedConditionCount={completedConditionCount}
+            isPreviewMode={isPreviewMode}
+            locale={locale}
+            nextMissingCondition={nextMissingCondition}
+            requiresSourceUniverse={requiresSourceUniverse}
+            sourceUniverseName={displaySourceUniverseName}
+            unlock={unlock}
+          />
+        ) : null}
 
         {view === "source" ? (
         <SourceUniverseNetworkLinkCard
@@ -3961,7 +3973,7 @@ export function FanletterCreatorUnlockPage({
         />
         ) : null}
 
-        {view === "conditions" || view === "launch" ? (
+        {view === "launch" ? (
         <CreatorJourneyEventPath
           hasMockLaunches={effectiveMockOwnedStars.length > 0}
           isPreviewMode={isPreviewMode}
