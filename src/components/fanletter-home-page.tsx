@@ -1147,7 +1147,7 @@ function FanletterProductHomeDashboard({
       }
     : {
         connect: "Connect Account",
-        creator: "크리에이터 권한",
+        creator: "Creator Permission",
         creatorReady: "AI Star launch ready",
         discovery: "AI Star Discovery",
         founder: "Founder",
