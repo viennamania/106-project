@@ -48,6 +48,13 @@ function getCopy(locale: Locale) {
       backToLedger: "평판 기록",
       canonical: "Canonical JSON",
       coverageMockEvent: "커버리지 Mock 이벤트",
+      contextAsset: "Context Asset",
+      contextCreated: "생성된 Context",
+      contextGraph: "Context Graph",
+      contextMoat: "Context Moat",
+      contextMoatBody:
+        "원본 행동, 감사 해시, 연결 증거, 점수 영향을 한 패킷으로 묶어 동일한 AI 스타/멤버/추천 관계를 누적합니다.",
+      contextScore: "Context Score",
       downloadJson: "JSON 다운로드",
       evidence: "증거",
       evidenceRoot: "Evidence Root",
@@ -92,6 +99,9 @@ function getCopy(locale: Locale) {
       source: "Source",
       sourceId: "Source ID",
       trace: "검증 흐름",
+      normalizedEvent: "정규화 이벤트",
+      oraclePacket: "Oracle Packet",
+      rawAction: "원본 행동",
       verifierNote:
         "검증자는 Event Evidence Hash와 Linked Evidence를 canonical JSON으로 다시 해시해 Evidence Root를 재현할 수 있습니다.",
       x402Ready: "x402 준비",
@@ -104,6 +114,13 @@ function getCopy(locale: Locale) {
     backToLedger: "Reputation Records",
     canonical: "Canonical JSON",
     coverageMockEvent: "Coverage Mock Event",
+    contextAsset: "Context Asset",
+    contextCreated: "Created Context",
+    contextGraph: "Context Graph",
+    contextMoat: "Context Moat",
+    contextMoatBody:
+      "Raw action, audit hash, linked evidence, and score impact are bundled into one packet that compounds the same AI Star, member, and referral relationship.",
+    contextScore: "Context Score",
     downloadJson: "Download JSON",
     evidence: "Evidence",
     evidenceRoot: "Evidence Root",
@@ -148,6 +165,9 @@ function getCopy(locale: Locale) {
     source: "Source",
     sourceId: "Source ID",
     trace: "Verification Flow",
+    normalizedEvent: "Normalized Event",
+    oraclePacket: "Oracle Packet",
+    rawAction: "Raw Action",
     verifierNote:
       "A verifier can reproduce the Evidence Root by hashing the Event Evidence Hash and Linked Evidence from the canonical JSON payload.",
     x402Ready: "x402-ready",
@@ -233,6 +253,46 @@ function getEvidencePacketNextActionLabel(
   }
 
   return isKorean ? "Oracle 전달 패킷 검토" : "Review Oracle handoff packet";
+}
+
+function getEvidencePacketContextScore(packet: AgentRankEventEvidencePacket) {
+  const graph = packet.oracleManifest.graph;
+  const readiness = packet.oracleManifest.readiness;
+  let score = 4;
+
+  if (readiness.oracleReady) {
+    score += 1.25;
+  } else if (readiness.auditStatus === "audit_ready") {
+    score += 0.75;
+  }
+
+  if (graph.graphReady) {
+    score += 1;
+  }
+
+  if (graph.impactReady) {
+    score += 1;
+  }
+
+  if (packet.evidence.linkedEventCount >= 6) {
+    score += 1.25;
+  } else if (packet.evidence.linkedEventCount >= 2) {
+    score += 0.75;
+  } else if (packet.evidence.linkedEventCount > 0) {
+    score += 0.4;
+  }
+
+  if (graph.relatedStarScope.length > 0) {
+    score += 0.75;
+  }
+
+  if (readiness.qualityScore >= 90) {
+    score += 0.75;
+  } else if (readiness.qualityScore >= 75) {
+    score += 0.35;
+  }
+
+  return Math.max(1, Math.min(10, Math.round(score)));
 }
 
 function TraceStep({
@@ -592,6 +652,137 @@ function EvidencePacketSignpostSummary({
   );
 }
 
+function EvidencePacketContextAssetCard({
+  copy,
+  event,
+  locale,
+  packet,
+}: {
+  copy: ReturnType<typeof getCopy>;
+  event: AgentRankReputationEvent;
+  locale: Locale;
+  packet: AgentRankEventEvidencePacket;
+}) {
+  const contextScore = getEvidencePacketContextScore(packet);
+  const graph = packet.oracleManifest.graph;
+  const flowSteps = [
+    {
+      body: `${event.source} / ${truncateHash(event.sourceId, 12, 8)}`,
+      Icon: Database,
+      label: copy.rawAction,
+    },
+    {
+      body: `${getEventTypeLabel(event.type, locale)} · ${event.schemaVersion}`,
+      Icon: GitBranch,
+      label: copy.normalizedEvent,
+    },
+    {
+      body: truncateHash(packet.integrity.evidenceRoot, 14, 8),
+      Icon: Fingerprint,
+      label: copy.evidenceRoot,
+    },
+    {
+      body: `${packet.evidence.linkedEvents.length}/${packet.evidence.linkedEventCount}`,
+      Icon: Network,
+      label: copy.contextGraph,
+    },
+    {
+      body: packet.oracleManifest.readiness.oracleReady
+        ? copy.ready
+        : copy.notReady,
+      Icon: ShieldCheck,
+      label: copy.oraclePacket,
+    },
+  ];
+
+  return (
+    <section className="rounded-[1.15rem] border border-zinc-200 bg-white p-4 text-zinc-950 shadow-[0_18px_46px_rgba(15,23,42,0.055)] sm:p-5">
+      <div className="grid gap-4 lg:grid-cols-[18rem_1fr]">
+        <div className="rounded-[1rem] border border-zinc-950 bg-zinc-950 p-4 text-white">
+          <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-white/55">
+            <Sparkles className="size-4" />
+            {copy.contextAsset}
+          </p>
+          <div className="mt-4 flex items-end gap-2">
+            <span className="text-5xl font-semibold tracking-tight">
+              {contextScore}
+            </span>
+            <span className="pb-2 text-sm font-semibold text-white/55">/10</span>
+          </div>
+          <p className="mt-1 text-sm font-semibold text-white/70">
+            {copy.contextScore}
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-2 text-xs font-semibold">
+            <span className="rounded-lg bg-white/10 px-3 py-2 text-white/80">
+              {copy.quality}{" "}
+              {formatNumber(packet.oracleManifest.readiness.qualityScore, locale)}
+            </span>
+            <span className="rounded-lg bg-white/10 px-3 py-2 text-white/80">
+              {copy.linkedEvidence} {packet.evidence.linkedEventCount}
+            </span>
+          </div>
+        </div>
+
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+                {copy.contextCreated}
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold leading-tight text-zinc-950">
+                {locale === "ko"
+                  ? "원본 행동이 검증 가능한 평판 Context가 됩니다"
+                  : "A raw action becomes verifiable reputation context"}
+              </h2>
+            </div>
+            <span
+              className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${
+                graph.graphReady
+                  ? "bg-emerald-50 text-emerald-700"
+                  : "bg-zinc-100 text-zinc-600"
+              }`}
+            >
+              {copy.graphReady}: {graph.graphReady ? copy.ready : copy.notReady}
+            </span>
+          </div>
+
+          <div className="mt-4 grid gap-2 sm:grid-cols-5">
+            {flowSteps.map((step) => {
+              const Icon = step.Icon;
+
+              return (
+                <div
+                  className="min-w-0 rounded-lg border border-zinc-200 bg-zinc-50 p-3"
+                  key={step.label}
+                >
+                  <span className="inline-flex size-8 items-center justify-center rounded-lg bg-white text-zinc-900 shadow-sm">
+                    <Icon className="size-4" />
+                  </span>
+                  <p className="mt-2 text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
+                    {step.label}
+                  </p>
+                  <p className="mt-1 truncate text-xs font-semibold text-zinc-950">
+                    {step.body}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 rounded-lg border border-zinc-200 bg-white px-3 py-3">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
+              {copy.contextMoat}
+            </p>
+            <p className="mt-1 text-sm font-semibold leading-6 text-zinc-700 [word-break:keep-all]">
+              {copy.contextMoatBody}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function FanletterAgentRankEvidencePacketPage({
   coverageAction = null,
   event,
@@ -735,6 +926,12 @@ export function FanletterAgentRankEvidencePacketPage({
           event={event}
           locale={locale}
           nextActionLabel={nextActionLabel}
+          packet={packet}
+        />
+        <EvidencePacketContextAssetCard
+          copy={copy}
+          event={event}
+          locale={locale}
           packet={packet}
         />
         <FanletterAgentRankSocialConnectionEvidence
