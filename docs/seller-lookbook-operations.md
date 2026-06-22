@@ -61,7 +61,7 @@ Seller UI ──POST /api/seller/lookbook/job──▶ enqueue (charge credits, 
 | `OPENAI_API_KEY` | lookbook image generation (gpt-image-1 edits) |
 | `BLOB_READ_WRITE_TOKEN` | garment upload + generated image storage |
 | `SELLER_JOB_WORKER_TOKEN` | **must match the worker** — authorizes the process route |
-| `SELLER_TRIAL_WORKSPACES_PER_IP_PER_DAY` | optional, default `10` — trial-farming cap |
+| `SELLER_TRIAL_WORKSPACES_PER_IP_PER_DAY` | optional, default `50` — trial-farming cap (generous so legit use isn't blocked; tighten at paid launch) |
 | `OPENAI_LOOKBOOK_MODEL` | optional, default `gpt-image-1` |
 | `OPENAI_LOOKBOOK_INPUT_FIDELITY` | optional, default `high` |
 | `NEXT_PUBLIC_SELLER_VIDEO_ENABLED` | `1` to show the video button (needs FAL access; off by default) |
@@ -103,7 +103,7 @@ returns 500 and jobs never drain (the client then falls back to sync).
   `star-lookbook-pricing.ts`). Applies to `/api/seller/lookbook`,
   `/api/seller/lookbook/job`, and `/api/fanletter/lookbook`.
 - **Trial farming**: new workspaces are capped per client IP per 24h
-  (`SELLER_TRIAL_WORKSPACES_PER_IP_PER_DAY`, default 10; hashed IP). Over the cap
+  (`SELLER_TRIAL_WORKSPACES_PER_IP_PER_DAY`, default 50; hashed IP). Over the cap
   → 429. Best-effort cost control (uses `x-real-ip`); not a hard boundary — a
   determined attacker can rotate IPs. Tighten before scaling paid acquisition.
 - **Workspace auth**: unguessable `workspaceKey` (stored hashed), constant-time
