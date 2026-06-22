@@ -1,6 +1,133 @@
 import "server-only";
 
-import { getCreatorProfilesCollection } from "@/lib/mongodb";
+import type { Collection } from "mongodb";
+
+import {
+  getCreatorProfilesCollection,
+  getMembersCollection,
+  getMongoClient,
+} from "@/lib/mongodb";
+import { awardBonusPointsForMember } from "@/lib/points-service";
+
+/** Royalty points credited to a star owner per shot a seller generates with it. */
+export const LOOKBOOK_MODEL_ROYALTY_POINTS_PER_SHOT = 10;
+
+type SellerStarSettingsDocument = {
+  starId: string;
+  optIn: boolean;
+  updatedAt: Date;
+};
+
+let settingsPromise: Promise<Collection<SellerStarSettingsDocument>> | null =
+  null;
+
+function getDbName() {
+  const dbName = process.env.MONGODB_DB_NAME;
+
+  if (!dbName) {
+    throw new Error("MONGODB_DB_NAME is not configured.");
+  }
+
+  return dbName;
+}
+
+async function getStarSettingsCollection() {
+  if (!settingsPromise) {
+    settingsPromise = (async () => {
+      const client = await getMongoClient();
+      const collection = client
+        .db(getDbName())
+        .collection<SellerStarSettingsDocument>(
+          process.env.MONGODB_SELLER_STAR_SETTINGS_COLLECTION ??
+            "sellerStarSettings",
+        );
+      await collection.createIndex({ starId: 1 }, { unique: true });
+      return collection;
+    })();
+  }
+
+  return settingsPromise;
+}
+
+export async function getStarOptIn(starId: string): Promise<boolean> {
+  if (!starId?.trim()) {
+    return false;
+  }
+
+  const collection = await getStarSettingsCollection();
+  const doc = await collection.findOne({ starId: starId.trim() });
+
+  return doc?.optIn ?? false;
+}
+
+export async function setStarOptIn(
+  starId: string,
+  optIn: boolean,
+): Promise<void> {
+  if (!starId?.trim()) {
+    return;
+  }
+
+  const collection = await getStarSettingsCollection();
+  await collection.updateOne(
+    { starId: starId.trim() },
+    { $set: { optIn, updatedAt: new Date() } },
+    { upsert: true },
+  );
+}
+
+async function getOptedInStarIds(): Promise<Set<string>> {
+  const collection = await getStarSettingsCollection();
+  const docs = await collection
+    .find({ optIn: true })
+    .project<{ starId: string }>({ starId: 1 })
+    .toArray();
+
+  return new Set(docs.map((doc) => doc.starId));
+}
+
+async function getStarOwnerEmail(starId: string): Promise<string | null> {
+  const members = await getMembersCollection();
+  const member = await members.findOne(
+    { referralCode: starId.trim() },
+    { projection: { email: 1 } },
+  );
+
+  return member?.email ?? null;
+}
+
+/**
+ * Credit the star owner with model royalty points. Best-effort — never throws
+ * into the generation response.
+ */
+export async function awardStarModelRoyalty({
+  shots,
+  sourceId,
+  starId,
+}: {
+  shots: number;
+  sourceId: string;
+  starId: string;
+}): Promise<void> {
+  try {
+    const points = LOOKBOOK_MODEL_ROYALTY_POINTS_PER_SHOT * Math.max(1, shots);
+    const ownerEmail = await getStarOwnerEmail(starId);
+
+    if (!ownerEmail) {
+      return;
+    }
+
+    await awardBonusPointsForMember({
+      ledgerEntryId: `${ownerEmail}:lookbook_royalty:${sourceId}`,
+      memberEmail: ownerEmail,
+      memo: "lookbook model royalty",
+      points,
+      sourceId,
+    });
+  } catch {
+    // royalty is best-effort
+  }
+}
 
 /**
  * Public AI-star catalog for the seller lookbook product.
@@ -53,6 +180,8 @@ export async function getSellerStars(): Promise<SellerStar[]> {
     .limit(STAR_LIMIT)
     .toArray();
 
+  const optedIn = await getOptedInStarIds();
+
   return docs
     .map((doc) => ({
       id: doc.referralCode,
@@ -62,7 +191,10 @@ export async function getSellerStars(): Promise<SellerStar[]> {
         doc.displayName?.trim() ||
         doc.referralCode,
     }))
-    .filter((star) => Boolean(star.id) && star.images.length > 0);
+    .filter(
+      (star) =>
+        Boolean(star.id) && star.images.length > 0 && optedIn.has(star.id),
+    );
 }
 
 export async function resolveSellerStarImage(
@@ -70,6 +202,11 @@ export async function resolveSellerStarImage(
   imageIndex: number,
 ): Promise<string | null> {
   if (!starId?.trim()) {
+    return null;
+  }
+
+  // Only opted-in stars may be used as a model.
+  if (!(await getStarOptIn(starId))) {
     return null;
   }
 
