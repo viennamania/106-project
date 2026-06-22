@@ -221,7 +221,7 @@ const explorerCopy = {
     aiStar: "AI 스타",
     back: "뒤로",
     children: "하위",
-    cpPool: "CP Pool",
+    cpPool: "CP 풀",
     edge: "연결",
     empty: "조건에 맞는 멤버가 없습니다.",
     expansion: "AI 스타 유니버스 확장",
@@ -668,7 +668,7 @@ function FounderDashboardSidebar({
     {
       href: `/${locale}/fanletter/creator-unlock?starId=${encodedStarId}`,
       icon: Sparkles,
-      label: isKorean ? "Creator Journey" : "Creator Journey",
+      label: isKorean ? "크리에이터 여정" : "Creator Journey",
       meta: isKorean ? "권한 활성화로 이동" : "Open permissions",
     },
   ];
@@ -2004,7 +2004,7 @@ function FounderUniverseDashboardPanel({
     {
       icon: CircleDot,
       label: copy.cpPool,
-      sublabel: locale === "ko" ? "mock 보상 풀" : "mock pool",
+      sublabel: locale === "ko" ? "미리보기 보상 풀" : "mock pool",
       value: `${formatNumber(totalCpPool, locale)} CP`,
     },
     {
@@ -3584,7 +3584,7 @@ function UniverseExpansionMap({
           </div>
         </div>
         <span className="inline-flex h-9 items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-800">
-          CP Pool 1,000
+          {locale === "ko" ? "CP 풀" : "CP Pool"} 1,000
         </span>
       </div>
 

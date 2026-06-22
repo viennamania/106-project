@@ -19,13 +19,13 @@ function getCopy(locale: Locale) {
     return {
       aiStarBadge: "AI 스타",
       body:
-        "계정 연결 후 이 가입은 아래 AI 스타 유니버스의 Founder 참여로 저장됩니다. 실제 결제는 진행하지 않습니다.",
+        "계정 연결 후 이 가입은 아래 AI 스타 유니버스의 파운더 참여로 저장됩니다. 실제 결제는 진행하지 않습니다.",
       connectedBody:
-        "계정 연결이 확인되었습니다. Founder 참여를 확정하면 이 AI 스타 유니버스의 멤버십과 추천 코드가 저장됩니다.",
-      connectedTitle: "Founder 참여 확정 대기",
+        "계정 연결이 확인되었습니다. 파운더 참여를 확정하면 이 AI 스타 유니버스의 멤버십과 추천 코드가 저장됩니다.",
+      connectedTitle: "파운더 참여 확정 대기",
       completedBody:
-        "이미 이 AI 스타 유니버스의 Founder입니다. 내 추천 링크로 새 Founder를 초대하면 CP와 영향력이 누적됩니다.",
-      completedTitle: "Founder 가입 완료",
+        "이미 이 AI 스타 유니버스의 파운더입니다. 내 추천 링크로 새 파운더를 초대하면 CP와 영향력이 누적됩니다.",
+      completedTitle: "파운더 가입 완료",
       founderBadge: "파운더",
       founderClubLabel: "파운더 클럽 2.0",
       growth: "성장률",
@@ -41,7 +41,7 @@ function getCopy(locale: Locale) {
       universeCta: "AI 스타 유니버스 보기",
       rewards: {
         cp: "CP",
-        creatorProgress: "Creator 진행률",
+        creatorProgress: "크리에이터 진행률",
         influence: "영향력",
         title: "적립 보상",
       },
