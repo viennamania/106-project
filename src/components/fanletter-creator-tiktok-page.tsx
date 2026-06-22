@@ -313,7 +313,7 @@ export function FanletterCreatorTikTokPage({
     : connectedAccount
       ? connectedAccount.handle
       : copy.statusWaiting;
-  const nextActionLabel = connectedAccount ? copy.recordReady : copy.mainCta;
+  const nextActionLabel = connectedAccount ? copy.contentSyncReady : copy.mainCta;
   const oauthReasonLabel = getOAuthReasonLabel(
     oauthCallbackStatus?.reason ?? null,
     locale,
