@@ -71,6 +71,12 @@ async function safeFetchImage(
     await assertPublicHost(current);
 
     const response = await fetch(current, {
+      headers: {
+        // Some image CDNs block requests without a browser-like UA.
+        accept: "image/avif,image/webp,image/png,image/jpeg,*/*",
+        "user-agent":
+          "Mozilla/5.0 (compatible; FanletterLookbook/1.0; +https://www.net402.ai)",
+      },
       redirect: "manual",
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
