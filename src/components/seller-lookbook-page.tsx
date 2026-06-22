@@ -20,7 +20,10 @@ import {
 } from "react";
 
 import type { Locale } from "@/lib/i18n";
-import { LOOKBOOK_VIDEO_CREDITS } from "@/lib/star-lookbook-pricing";
+import {
+  isLookbookBlobUrl,
+  LOOKBOOK_VIDEO_CREDITS,
+} from "@/lib/star-lookbook-pricing";
 
 type AspectRatio = "4:5" | "3:4" | "2:3" | "9:16" | "1:1" | "auto";
 type LookbookImage = { url: string; pathname: string; contentType: string };
@@ -305,6 +308,62 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
         .join("\n"),
     );
   }, []);
+
+  // Pasted external image URLs can't be used directly (they don't preview and
+  // are blocked server-side as SSRF). Import them into our Blob store so they
+  // become first-class uploads. Triggered when the URL field loses focus.
+  const importExternalGarmentUrls = useCallback(async () => {
+    const lines = garmentText
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const external = lines.filter(
+      (url) => /^https?:\/\//i.test(url) && !isLookbookBlobUrl(url),
+    );
+    if (external.length === 0) return;
+
+    setError(null);
+    setIsUploading(true);
+    try {
+      const ws = await ensureWorkspace();
+      const replacements = new Map<string, string>();
+      for (const url of external) {
+        const res = await fetch("/api/seller/import-url", {
+          body: JSON.stringify({
+            url,
+            workspaceId: ws.workspaceId,
+            workspaceKey: ws.workspaceKey,
+          }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+        });
+        const data = (await res.json().catch(() => null)) as
+          | { url?: string; error?: string }
+          | null;
+        if (!res.ok || !data?.url) {
+          throw new Error(
+            data?.error ??
+              (en
+                ? "Couldn't fetch that image URL. Upload the file instead."
+                : "이 URL에서 이미지를 가져오지 못했습니다. 파일을 직접 업로드해 주세요."),
+          );
+        }
+        replacements.set(url, data.url);
+      }
+      setGarmentText((prev) =>
+        prev
+          .split("\n")
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .map((url) => replacements.get(url) ?? url)
+          .join("\n"),
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "이미지를 가져오지 못했습니다.");
+    } finally {
+      setIsUploading(false);
+    }
+  }, [en, ensureWorkspace, garmentText]);
 
   const refreshBalance = useCallback(async (ws: Workspace) => {
     try {
@@ -992,8 +1051,13 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
             </div>
             <textarea
               className={`${FIELD} mt-2 h-16 resize-y`}
+              onBlur={() => void importExternalGarmentUrls()}
               onChange={(e) => setGarmentText(e.target.value)}
-              placeholder={"https://…/top.jpg"}
+              placeholder={
+                en
+                  ? "or paste an image URL (auto-imported)"
+                  : "또는 이미지 URL 붙여넣기 (자동으로 가져옵니다)"
+              }
               value={garmentText}
             />
           </Field>
