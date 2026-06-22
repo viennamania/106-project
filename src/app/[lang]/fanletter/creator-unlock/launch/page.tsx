@@ -26,8 +26,8 @@ function getMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "실제 결제 없이 10 USDT mock intent와 새 AI 스타 생성 미리보기를 확인하는 화면입니다.",
-      title: "AI 스타 생성 미리보기 | FanLetter Creator Journey",
+        "실제 결제 없이 10 USDT 생성 의도와 새 AI 스타 생성 미리보기를 확인하는 화면입니다.",
+      title: "AI 스타 생성 미리보기 | FanLetter 크리에이터 여정",
     };
   }
 

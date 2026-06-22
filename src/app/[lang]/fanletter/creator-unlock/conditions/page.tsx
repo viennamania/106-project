@@ -26,8 +26,8 @@ function getMeta(locale: Locale) {
   if (locale === "ko") {
     return {
       description:
-        "Creator 권한 활성화 조건과 다음 행동을 확인하는 FanLetter Creator Journey 전용 화면입니다.",
-      title: "Creator 권한 조건 | FanLetter Creator Journey",
+        "크리에이터 권한 활성화 조건과 다음 행동을 확인하는 FanLetter 크리에이터 여정 전용 화면입니다.",
+      title: "크리에이터 권한 조건 | FanLetter 크리에이터 여정",
     };
   }
 

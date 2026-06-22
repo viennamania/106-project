@@ -43,17 +43,17 @@ function getCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       aiStarUniverse: "AI 스타 유니버스",
-      back: "Creator Journey",
+      back: "크리에이터 여정",
       connectAccount: "계정 연결하기",
-      continueJourney: "Creator Journey 계속",
-      connectedEvent: "creator_social_connected 평판 기록",
+      continueJourney: "크리에이터 여정 계속",
+      connectedEvent: "TikTok 채널 연결 기록",
       contentSyncReady: "콘텐츠 동기화 준비",
-      creatorOnly: "Creator / Owner 권한",
+      creatorOnly: "크리에이터 / 운영자 권한",
       emptyBody:
-        "TikTok 채널은 내가 운영하는 AI 스타에 연결됩니다. 먼저 Creator 권한 활성화 흐름에서 운영할 AI 스타를 준비하세요.",
-      emptyCta: "Creator Journey로 돌아가기",
+        "TikTok 채널은 내가 운영하는 AI 스타에 연결됩니다. 먼저 크리에이터 권한 활성화 흐름에서 운영할 AI 스타를 준비하세요.",
+      emptyCta: "크리에이터 여정으로 돌아가기",
       emptyTitle: "연결할 AI 스타가 없습니다",
-      eyebrow: "Creator Journey",
+      eyebrow: "크리에이터 여정",
       flowChannel: "채널 연결",
       flowEvent: "평판 기록",
       flowSync: "콘텐츠 동기화",
@@ -76,7 +76,7 @@ function getCopy(locale: Locale) {
         "이제 TikTok 채널 연결 기록을 확인하고, 새 AI 스타 생성 미리보기 또는 콘텐츠 동기화 준비로 이어갈 수 있습니다.",
       successNextTitle: "다음 단계",
       signInBody:
-        "TikTok 채널 연결은 로그인한 Creator/Owner 권한에서만 실행됩니다.",
+        "TikTok 채널 연결은 로그인한 크리에이터/운영자 권한에서만 실행됩니다.",
       signInTitle: "계정 연결 필요",
       starList: "연결 대상 AI 스타",
       status: "현재 상태",
