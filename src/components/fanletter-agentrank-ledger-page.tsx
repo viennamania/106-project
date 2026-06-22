@@ -840,6 +840,182 @@ function MetricTile({
   );
 }
 
+function getLedgerContextScore({
+  feed,
+  packetReadyEvents,
+}: {
+  feed: FanletterAgentRankReputationEventFeed;
+  packetReadyEvents: number;
+}) {
+  const totalEvents = feed.summary.totalEvents;
+  const signals = [
+    totalEvents > 0,
+    feed.summary.uniqueMembers > 0,
+    feed.summary.uniqueStars > 0,
+    feed.summary.networkEdges > 0,
+    feed.summary.cpTotal > 0,
+    feed.summary.oracleReadyEvents > 0,
+    packetReadyEvents > 0,
+    totalEvents > 0 && feed.summary.schemaReadyEvents >= totalEvents,
+  ].filter(Boolean).length;
+
+  return Math.max(1, Math.min(10, 2 + signals));
+}
+
+function AgentRankLedgerContextAssetCard({
+  auditReadyEvents,
+  feed,
+  filters,
+  locale,
+  packetReadyEvents,
+}: {
+  auditReadyEvents: number;
+  feed: FanletterAgentRankReputationEventFeed;
+  filters: FanletterAgentRankLedgerPageProps["filters"];
+  locale: Locale;
+  packetReadyEvents: number;
+}) {
+  const isKo = locale === "ko";
+  const contextScore = getLedgerContextScore({ feed, packetReadyEvents });
+  const totalEvents = Math.max(0, feed.summary.totalEvents);
+  const schemaPercent = formatPercent(feed.summary.schemaReadyEvents, totalEvents, locale);
+  const oraclePercent = formatPercent(feed.summary.oracleReadyEvents, totalEvents, locale);
+  const packetPercent = formatPercent(packetReadyEvents, totalEvents, locale);
+  const graphScope =
+    filters.starId ?? (isKo ? "전체 AI 스타" : "All AI Stars");
+  const flowSteps = [
+    {
+      icon: Sparkles,
+      label: isKo ? "행동" : "Action",
+      value: `${formatNumber(totalEvents, locale)}${
+        isKo ? "건" : " records"
+      }`,
+    },
+    {
+      icon: Database,
+      label: isKo ? "스키마" : "Schema",
+      value: schemaPercent,
+    },
+    {
+      icon: GitBranch,
+      label: isKo ? "관계" : "Graph",
+      value: `${formatNumber(feed.summary.networkEdges, locale)} ${
+        isKo ? "연결" : "edges"
+      }`,
+    },
+    {
+      icon: ShieldCheck,
+      label: isKo ? "오라클" : "Oracle",
+      value: oraclePercent,
+    },
+    {
+      icon: BadgeCheck,
+      label: isKo ? "패킷" : "Packet",
+      value: packetPercent,
+    },
+  ];
+
+  return (
+    <section className="min-w-0 overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+      <div className="grid gap-4 p-3.5 sm:grid-cols-[minmax(0,1fr)_14rem] sm:p-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-600">
+              <Database className="size-3.5" />
+              Context Ledger
+            </span>
+            <span className="inline-flex items-center rounded-full bg-zinc-950 px-2.5 py-1 text-[0.68rem] font-semibold text-white">
+              {isKo ? "AgentRank 원천 자산" : "AgentRank source asset"}
+            </span>
+          </div>
+          <h2 className="mt-3 text-xl font-semibold tracking-normal text-zinc-950 sm:text-2xl">
+            {isKo
+              ? "행동 기록이 검증 가능한 Context로 쌓입니다"
+              : "Action records compound into verifiable context"}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-500 [word-break:keep-all]">
+            {isKo
+              ? "이 원장은 AI 스타 발견, Founder 참여, TikTok 연결, CP 보상 같은 행동을 AgentRank가 평가할 수 있는 관계 증거로 정리합니다."
+              : "This ledger converts discovery, Founder joins, TikTok connections, and CP rewards into relationship evidence AgentRank can evaluate."}
+          </p>
+        </div>
+
+        <div className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-950 p-3 text-white">
+          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white/58">
+            Context Score
+          </p>
+          <div className="mt-2 flex items-end gap-1">
+            <span className="text-3xl font-semibold">{contextScore}</span>
+            <span className="pb-1 text-sm font-semibold text-white/48">/10</span>
+          </div>
+          <p className="mt-2 text-xs font-semibold leading-5 text-white/60 [word-break:keep-all]">
+            {isKo
+              ? "멤버, AI 스타, 관계, 보상, 검증 상태가 한 장부에 누적됩니다."
+              : "Members, AI Stars, relationships, rewards, and verification state accumulate in one ledger."}
+          </p>
+        </div>
+      </div>
+
+      <div className="border-t border-zinc-200 bg-zinc-50/70 p-3.5 sm:p-4">
+        <div className="grid min-w-0 gap-2 sm:grid-cols-5">
+          {flowSteps.map((step, index) => {
+            const Icon = step.icon;
+
+            return (
+              <div
+                className="min-w-0 rounded-xl border border-zinc-200 bg-white p-3"
+                key={step.label}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-white">
+                    <Icon className="size-4" />
+                  </span>
+                  {index < flowSteps.length - 1 ? (
+                    <ArrowRight className="hidden size-4 shrink-0 text-zinc-300 sm:block" />
+                  ) : null}
+                </div>
+                <p className="mt-3 truncate text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+                  {step.label}
+                </p>
+                <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+                  {step.value}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <div className="rounded-xl border border-zinc-200 bg-white p-3">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              {isKo ? "그래프 범위" : "Graph scope"}
+            </p>
+            <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+              {graphScope}
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-white p-3">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              {isKo ? "감사 준비" : "Audit-ready"}
+            </p>
+            <p className="mt-1 text-sm font-semibold text-zinc-950">
+              {formatNumber(auditReadyEvents, locale)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-white p-3">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              {isKo ? "Context Moat" : "Context moat"}
+            </p>
+            <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+              {isKo ? "누적 행동/관계 증거" : "Accumulated action graph"}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function FounderJourneyTimeline({
   feed,
   filters,
@@ -2176,6 +2352,13 @@ export function FanletterAgentRankLedgerPage({
               ? "다음 행동: 최근 평판 기록 확인"
               : "Next action: view the latest record"
           }
+        />
+        <AgentRankLedgerContextAssetCard
+          auditReadyEvents={auditReadyEvents}
+          feed={feed}
+          filters={filters}
+          locale={locale}
+          packetReadyEvents={packetReadyEvents}
         />
         {latestEvent ? (
           <section className="rounded-[1.05rem] border border-zinc-200 bg-zinc-950 p-4 text-white shadow-[0_18px_44px_rgba(15,23,42,0.12)] sm:hidden">

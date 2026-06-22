@@ -2048,6 +2048,190 @@ function EventDetailSignpostSummary({
   );
 }
 
+function getEventContextEvidenceScore({
+  audit,
+  contextEntryCount,
+  event,
+  relatedEventCount,
+}: {
+  audit: ReturnType<typeof getEventAudit>;
+  contextEntryCount: number;
+  event: AgentRankReputationEvent;
+  relatedEventCount: number;
+}) {
+  const signals = [
+    Boolean(event.sourceId),
+    Boolean(event.actor.id),
+    Boolean(event.object?.id || event.starId),
+    audit.qualityScore >= 80,
+    audit.status === "audit_ready",
+    event.reputationSignals.oracleReady,
+    contextEntryCount > 0,
+    relatedEventCount > 0,
+  ].filter(Boolean).length;
+
+  return Math.max(1, Math.min(10, 2 + signals));
+}
+
+function EventContextEvidenceCard({
+  audit,
+  contextEntryCount,
+  event,
+  impactTotal,
+  locale,
+  relatedEventCount,
+}: {
+  audit: ReturnType<typeof getEventAudit>;
+  contextEntryCount: number;
+  event: AgentRankReputationEvent;
+  impactTotal: number;
+  locale: Locale;
+  relatedEventCount: number;
+}) {
+  const isKo = locale === "ko";
+  const contextScore = getEventContextEvidenceScore({
+    audit,
+    contextEntryCount,
+    event,
+    relatedEventCount,
+  });
+  const sourceLabel = event.sourceId || event.source;
+  const targetLabel = getEventTargetLabel(event);
+  const flowSteps = [
+    {
+      icon: Database,
+      label: isKo ? "원본" : "Source",
+      value: sourceLabel,
+    },
+    {
+      icon: FileCheck2,
+      label: isKo ? "스키마" : "Schema",
+      value: event.schemaVersion,
+    },
+    {
+      icon: GitBranch,
+      label: isKo ? "그래프 엣지" : "Graph edge",
+      value: `${getActorLabel(event.actor)} -> ${targetLabel}`,
+    },
+    {
+      icon: Fingerprint,
+      label: isKo ? "증거 해시" : "Evidence hash",
+      value: truncateEvidenceHash(audit.evidenceHash, 10, 6),
+    },
+    {
+      icon: ShieldCheck,
+      label: isKo ? "Oracle" : "Oracle",
+      value: event.reputationSignals.oracleReady
+        ? isKo
+          ? "준비"
+          : "Ready"
+        : isKo
+          ? "보강"
+          : "Needs data",
+    },
+  ];
+
+  return (
+    <section className="min-w-0 overflow-hidden rounded-[1.15rem] border border-zinc-200 bg-white shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
+      <div className="grid gap-4 p-3.5 sm:grid-cols-[minmax(0,1fr)_14rem] sm:p-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-zinc-600">
+              <Fingerprint className="size-3.5" />
+              Context Evidence
+            </span>
+            <span className="inline-flex items-center rounded-full bg-zinc-950 px-2.5 py-1 text-[0.68rem] font-semibold text-white">
+              {isKo ? "복제 어려운 증거 패킷" : "Hard-to-copy packet"}
+            </span>
+          </div>
+          <h2 className="mt-3 text-xl font-semibold tracking-normal text-zinc-950 sm:text-2xl">
+            {isKo
+              ? "이 기록은 검증 가능한 증거로 AgentRank에 연결됩니다"
+              : "This record connects to AgentRank as verifiable evidence"}
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-500 [word-break:keep-all]">
+            {isKo
+              ? "원본 행동, 액터, 대상, 증거 해시, 관련 기록이 하나로 묶일 때 단순 로그가 아니라 Context 자산이 됩니다."
+              : "A source action, actor, target, evidence hash, and related records make this more than a log: it becomes a context asset."}
+          </p>
+        </div>
+
+        <div className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-950 p-3 text-white">
+          <p className="text-[0.66rem] font-semibold uppercase tracking-[0.12em] text-white/58">
+            Context Score
+          </p>
+          <div className="mt-2 flex items-end gap-1">
+            <span className="text-3xl font-semibold">{contextScore}</span>
+            <span className="pb-1 text-sm font-semibold text-white/48">/10</span>
+          </div>
+          <p className="mt-2 text-xs font-semibold leading-5 text-white/60 [word-break:keep-all]">
+            {isKo
+              ? "증거 품질, 연결 기록, Oracle 준비도가 높을수록 점수가 올라갑니다."
+              : "Evidence quality, linked records, and Oracle readiness raise the score."}
+          </p>
+        </div>
+      </div>
+
+      <div className="border-t border-zinc-200 bg-zinc-50/70 p-3.5 sm:p-4">
+        <div className="grid min-w-0 gap-2 sm:grid-cols-5">
+          {flowSteps.map((step, index) => {
+            const Icon = step.icon;
+
+            return (
+              <div
+                className="min-w-0 rounded-xl border border-zinc-200 bg-white p-3"
+                key={step.label}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-white">
+                    <Icon className="size-4" />
+                  </span>
+                  {index < flowSteps.length - 1 ? (
+                    <ArrowRight className="hidden size-4 shrink-0 text-zinc-300 sm:block" />
+                  ) : null}
+                </div>
+                <p className="mt-3 truncate text-[0.68rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+                  {step.label}
+                </p>
+                <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+                  {step.value}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <div className="rounded-xl border border-zinc-200 bg-white p-3">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              {isKo ? "평판 영향" : "Reputation impact"}
+            </p>
+            <p className="mt-1 text-sm font-semibold text-zinc-950">
+              {formatNumber(impactTotal, locale)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-white p-3">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              {isKo ? "연결 증거" : "Linked evidence"}
+            </p>
+            <p className="mt-1 text-sm font-semibold text-zinc-950">
+              {formatNumber(relatedEventCount, locale)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-white p-3">
+            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              {isKo ? "Context Moat" : "Context moat"}
+            </p>
+            <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
+              {isKo ? "증거 해시/계보 연결" : "Evidence hash + lineage"}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export function FanletterAgentRankEventDetailPage({
   coverageAction = null,
   event,
@@ -2289,6 +2473,14 @@ export function FanletterAgentRankEventDetailPage({
           copy={copy}
           event={event}
           locale={locale}
+        />
+        <EventContextEvidenceCard
+          audit={audit}
+          contextEntryCount={contextEntries.length}
+          event={event}
+          impactTotal={impactTotal}
+          locale={locale}
+          relatedEventCount={relatedEvents.length}
         />
         <FanletterAgentRankJourneyRail
           active="agentrank"
