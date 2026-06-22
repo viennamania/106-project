@@ -674,6 +674,32 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
     [en, ensureWorkspace],
   );
 
+  // Export the seller's whole lookbook catalog (single + batch results) as a
+  // CSV they can bulk-import into their shop. BOM so Excel reads Korean UTF-8.
+  const exportHistoryCsv = useCallback(() => {
+    if (history.length === 0) return;
+    const rows: string[][] = [["createdAt", "generationId", "starId", "imageUrl"]];
+    for (const gen of history) {
+      for (const url of gen.imageUrls) {
+        rows.push([gen.createdAt, gen.generationId, gen.starId, url]);
+      }
+    }
+    const csv = rows
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([`﻿${csv}`], {
+      type: "text/csv;charset=utf-8",
+    });
+    const href = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.download = `lookbooks-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.href = href;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(href);
+  }, [history]);
+
   const canSubmit =
     Boolean(selectedStarId) &&
     garmentImageUrls.length > 0 &&
@@ -1198,9 +1224,19 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
 
         {history.length > 0 ? (
           <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
-            <span className="mb-3 block text-xs font-bold text-neutral-700">
-              {en ? "My lookbooks" : "내 룩북"}
-            </span>
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-neutral-700">
+                {en ? "My lookbooks" : "내 룩북"}
+              </span>
+              <button
+                className="flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-2.5 py-1.5 text-[11px] font-bold text-neutral-600 transition hover:border-[#44f26e] hover:text-[#16702e]"
+                onClick={exportHistoryCsv}
+                type="button"
+              >
+                <Download className="h-3 w-3" />
+                {en ? "Export CSV" : "CSV 내보내기"}
+              </button>
+            </div>
             <div className="space-y-4">
               {history.map((gen) => (
                 <div key={gen.generationId}>
