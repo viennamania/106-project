@@ -2,12 +2,22 @@ import {
   authorizeSellerWorkspace,
   createSellerWorkspace,
   getSellerWorkspacePublic,
+  SELLER_TRIAL_RATE_LIMIT_ERROR,
 } from "@/lib/seller-workspace";
 
 export const runtime = "nodejs";
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
+}
+
+// Prefer x-real-ip (set by Vercel's proxy to the connecting client) over the
+// client-influenceable x-forwarded-for chain.
+function clientIp(request: Request): string | null {
+  const realIp = request.headers.get("x-real-ip")?.trim();
+  if (realIp) return realIp;
+  const xff = request.headers.get("x-forwarded-for");
+  return xff ? xff.split(",")[0]?.trim() || null : null;
 }
 
 type WorkspaceRequest = {
@@ -48,12 +58,32 @@ export async function POST(request: Request) {
     }
   }
 
-  const created = await createSellerWorkspace({ email: body?.email ?? null });
+  try {
+    const created = await createSellerWorkspace({
+      creatorIp: clientIp(request),
+      email: body?.email ?? null,
+    });
 
-  return Response.json(
-    { workspace: created.workspace, workspaceKey: created.workspaceKey },
-    { status: 201 },
-  );
+    return Response.json(
+      { workspace: created.workspace, workspaceKey: created.workspaceKey },
+      { status: 201 },
+    );
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === SELLER_TRIAL_RATE_LIMIT_ERROR
+    ) {
+      return jsonError(
+        "무료 체험 워크스페이스 생성 한도를 초과했습니다. 잠시 후 다시 시도하거나 크레딧을 충전해 주세요.",
+        429,
+      );
+    }
+
+    return jsonError(
+      error instanceof Error ? error.message : "워크스페이스 생성 실패",
+      500,
+    );
+  }
 }
 
 export async function GET(request: Request) {

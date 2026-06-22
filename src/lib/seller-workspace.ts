@@ -18,11 +18,21 @@ import { getMongoClient } from "@/lib/mongodb";
 export const SELLER_TRIAL_CREDITS = 8; // free trial: ~2 four-shot sets
 export const INSUFFICIENT_SELLER_CREDITS_ERROR = "INSUFFICIENT_SELLER_CREDITS";
 
+// Free trials grant real (paid) generation credits, so cap how many new
+// workspaces one client (IP) can spin up per day to limit trial farming.
+// Best-effort cost control, not a hard security boundary. Operator-tunable.
+export const SELLER_TRIAL_RATE_LIMIT_ERROR = "SELLER_TRIAL_RATE_LIMIT";
+function trialWorkspacesPerIpPerDay() {
+  const v = Number(process.env.SELLER_TRIAL_WORKSPACES_PER_IP_PER_DAY);
+  return Number.isFinite(v) && v > 0 ? Math.floor(v) : 10;
+}
+
 export type SellerWorkspaceDocument = {
   workspaceId: string;
   workspaceKeyHash: string;
   email: string;
   creditBalance: number;
+  creatorIpHash?: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -82,6 +92,7 @@ async function getWorkspacesCollection() {
           process.env.MONGODB_SELLER_WORKSPACES_COLLECTION ?? "sellerWorkspaces",
         );
       await collection.createIndex({ workspaceId: 1 }, { unique: true });
+      await collection.createIndex({ creatorIpHash: 1, createdAt: -1 });
       return collection;
     })();
   }
@@ -190,6 +201,10 @@ function hashKey(workspaceKey: string) {
   return createHash("sha256").update(workspaceKey).digest("hex");
 }
 
+function hashIp(ip: string) {
+  return createHash("sha256").update(`seller-ip:${ip}`).digest("hex");
+}
+
 function toPublic(doc: SellerWorkspaceDocument): SellerWorkspacePublic {
   return {
     creditBalance: doc.creditBalance,
@@ -204,18 +219,35 @@ function toPublic(doc: SellerWorkspaceDocument): SellerWorkspacePublic {
  * client stores it; we only persist its hash.
  */
 export async function createSellerWorkspace({
+  creatorIp,
   email,
 }: {
+  creatorIp?: string | null;
   email?: string | null;
 }): Promise<{ workspace: SellerWorkspacePublic; workspaceKey: string }> {
   const workspaces = await getWorkspacesCollection();
   const ledger = await getLedgerCollection();
   const now = new Date();
+  const creatorIpHash = creatorIp?.trim() ? hashIp(creatorIp.trim()) : null;
+
+  // Trial-farming guard: cap new workspaces per IP per rolling 24h.
+  if (creatorIpHash) {
+    const since = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const recent = await workspaces.countDocuments({
+      createdAt: { $gte: since },
+      creatorIpHash,
+    });
+    if (recent >= trialWorkspacesPerIpPerDay()) {
+      throw new Error(SELLER_TRIAL_RATE_LIMIT_ERROR);
+    }
+  }
+
   const workspaceId = randomUUID();
   const workspaceKey = randomBytes(24).toString("hex");
 
   const doc: SellerWorkspaceDocument = {
     createdAt: now,
+    creatorIpHash,
     creditBalance: SELLER_TRIAL_CREDITS,
     email: email ? normalizeEmail(email) : "",
     updatedAt: now,
