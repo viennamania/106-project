@@ -18,6 +18,9 @@ export const LOOKBOOK_MODEL_ROYALTY_POINTS_PER_SHOT = 10;
 type SellerStarSettingsDocument = {
   starId: string;
   optIn: boolean;
+  // Separate, stronger consent: allow seller lookbooks to be published to this
+  // star's feed (with seller/ad attribution). Defaults off.
+  allowFeedPublish?: boolean;
   updatedAt: Date;
 };
 
@@ -89,7 +92,44 @@ async function getOptedInStarIds(): Promise<Set<string>> {
   return new Set(docs.map((doc) => doc.starId));
 }
 
-async function getStarOwnerEmail(starId: string): Promise<string | null> {
+export async function getStarFeedPublishOptIn(starId: string): Promise<boolean> {
+  if (!starId?.trim()) {
+    return false;
+  }
+
+  const collection = await getStarSettingsCollection();
+  const doc = await collection.findOne({ starId: starId.trim() });
+
+  return doc?.allowFeedPublish ?? false;
+}
+
+export async function setStarFeedPublishOptIn(
+  starId: string,
+  allowFeedPublish: boolean,
+): Promise<void> {
+  if (!starId?.trim()) {
+    return;
+  }
+
+  const collection = await getStarSettingsCollection();
+  await collection.updateOne(
+    { starId: starId.trim() },
+    { $set: { allowFeedPublish, updatedAt: new Date() } },
+    { upsert: true },
+  );
+}
+
+async function getFeedPublishStarIds(): Promise<Set<string>> {
+  const collection = await getStarSettingsCollection();
+  const docs = await collection
+    .find({ allowFeedPublish: true })
+    .project<{ starId: string }>({ starId: 1 })
+    .toArray();
+
+  return new Set(docs.map((doc) => doc.starId));
+}
+
+export async function getStarOwnerEmail(starId: string): Promise<string | null> {
   const members = await getMembersCollection();
   const member = await members.findOne(
     { referralCode: starId.trim() },
@@ -164,7 +204,12 @@ export async function getStarRoyaltyTotal(starId: string): Promise<number> {
  * ever be an AI star.
  */
 
-export type SellerStar = { id: string; name: string; images: string[] };
+export type SellerStar = {
+  id: string;
+  name: string;
+  images: string[];
+  allowFeedPublish: boolean;
+};
 
 const STAR_LIMIT = 24;
 const IMAGES_PER_STAR = 6;
@@ -206,10 +251,14 @@ export async function getSellerStars(): Promise<SellerStar[]> {
     .limit(STAR_LIMIT)
     .toArray();
 
-  const optedIn = await getOptedInStarIds();
+  const [optedIn, feedPublish] = await Promise.all([
+    getOptedInStarIds(),
+    getFeedPublishStarIds(),
+  ]);
 
   return docs
     .map((doc) => ({
+      allowFeedPublish: feedPublish.has(doc.referralCode),
       id: doc.referralCode,
       images: buildImages(doc.avatarImageUrl, doc.avatarImageSet),
       name:

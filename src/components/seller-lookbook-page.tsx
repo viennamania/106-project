@@ -5,6 +5,7 @@ import {
   Download,
   Layers,
   Loader2,
+  Send,
   Shirt,
   Sparkles,
   Upload,
@@ -29,7 +30,12 @@ type AspectRatio = "4:5" | "3:4" | "2:3" | "9:16" | "1:1" | "auto";
 type LookbookImage = { url: string; pathname: string; contentType: string };
 type CreditPack = { id: string; credits: number; priceKrw: number; label: string };
 type Workspace = { workspaceId: string; workspaceKey: string };
-type SellerStar = { id: string; name: string; images: string[] };
+type SellerStar = {
+  id: string;
+  name: string;
+  images: string[];
+  allowFeedPublish?: boolean;
+};
 type SellerGeneration = {
   generationId: string;
   starId: string;
@@ -104,6 +110,8 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
   const [history, setHistory] = useState<SellerGeneration[]>([]);
   const [videos, setVideos] = useState<Record<string, string>>({});
   const [videoBusyUrl, setVideoBusyUrl] = useState<string | null>(null);
+  const [publishedImages, setPublishedImages] = useState<Set<string>>(new Set());
+  const [publishBusyUrl, setPublishBusyUrl] = useState<string | null>(null);
   const [batchProducts, setBatchProducts] = useState<string[]>([]);
   const [batchJobs, setBatchJobs] = useState<BatchJob[]>([]);
   const [isBatchUploading, setIsBatchUploading] = useState(false);
@@ -626,6 +634,44 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
       }
     },
     [en, ensureWorkspace, sceneBrief],
+  );
+
+  // Publish a result to the (opted-in) AI star's feed with seller/ad attribution.
+  const publishToFeed = useCallback(
+    async (imageUrl: string) => {
+      if (!selectedStarId) return;
+      setError(null);
+      setPublishBusyUrl(imageUrl);
+      try {
+        const ws = await ensureWorkspace();
+        const res = await fetch("/api/seller/lookbook/publish", {
+          body: JSON.stringify({
+            imageUrl,
+            starId: selectedStarId,
+            starName: selectedStar?.name ?? null,
+            workspaceId: ws.workspaceId,
+            workspaceKey: ws.workspaceKey,
+          }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+        });
+        const data = (await res.json().catch(() => null)) as
+          | { ok?: boolean; error?: string }
+          | null;
+        if (!res.ok || !data?.ok) {
+          setError(
+            data?.error ?? (en ? "Failed to publish." : "피드 게시에 실패했습니다."),
+          );
+          return;
+        }
+        setPublishedImages((prev) => new Set(prev).add(imageUrl));
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "피드 게시 실패");
+      } finally {
+        setPublishBusyUrl(null);
+      }
+    },
+    [en, ensureWorkspace, selectedStar?.name, selectedStarId],
   );
 
   const handleBatchFiles = useCallback(
@@ -1200,6 +1246,33 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
                           )}
                         </button>
                       )}
+                      {selectedStar?.allowFeedPublish ? (
+                        publishedImages.has(image.url) ? (
+                          <span className="mt-1 flex items-center justify-center gap-1.5 rounded-lg bg-[#44f26e]/15 px-2 py-1.5 text-xs font-bold text-[#16702e]">
+                            <Send className="h-3.5 w-3.5" />
+                            {en ? "Published to feed" : "피드에 게시됨"}
+                          </span>
+                        ) : (
+                          <button
+                            className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#16702e]/40 px-2 py-1.5 text-xs font-bold text-[#16702e] disabled:opacity-50"
+                            disabled={publishBusyUrl !== null}
+                            onClick={() => publishToFeed(image.url)}
+                            type="button"
+                          >
+                            {publishBusyUrl === image.url ? (
+                              <>
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                {en ? "Publishing…" : "게시 중…"}
+                              </>
+                            ) : (
+                              <>
+                                <Send className="h-3.5 w-3.5" />
+                                {en ? "Post to AI star feed" : "AI 스타 피드에 게시"}
+                              </>
+                            )}
+                          </button>
+                        )
+                      ) : null}
                     </figcaption>
                   </figure>
                 ))}

@@ -1,8 +1,10 @@
 import { normalizeEmail } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
+  getStarFeedPublishOptIn,
   getStarOptIn,
   getStarRoyaltyTotal,
+  setStarFeedPublishOptIn,
   setStarOptIn,
 } from "@/lib/seller-stars";
 
@@ -16,6 +18,7 @@ type OptInRequest = {
   email?: string | null;
   walletAddress?: string | null;
   optIn?: boolean | null;
+  allowFeedPublish?: boolean | null;
 };
 
 export async function GET(request: Request) {
@@ -36,6 +39,7 @@ export async function GET(request: Request) {
   }
 
   return Response.json({
+    allowFeedPublish: await getStarFeedPublishOptIn(referralCode),
     optIn: await getStarOptIn(referralCode),
     royaltyTotal: await getStarRoyaltyTotal(referralCode),
   });
@@ -65,8 +69,16 @@ export async function POST(request: Request) {
     return jsonError("Completed member required.", 403);
   }
 
-  const optIn = Boolean(body?.optIn);
-  await setStarOptIn(referralCode, optIn);
+  // Toggle only the fields present so the two consents are independent.
+  if (typeof body?.optIn === "boolean") {
+    await setStarOptIn(referralCode, body.optIn);
+  }
+  if (typeof body?.allowFeedPublish === "boolean") {
+    await setStarFeedPublishOptIn(referralCode, body.allowFeedPublish);
+  }
 
-  return Response.json({ optIn });
+  return Response.json({
+    allowFeedPublish: await getStarFeedPublishOptIn(referralCode),
+    optIn: await getStarOptIn(referralCode),
+  });
 }
