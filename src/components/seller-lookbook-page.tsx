@@ -324,14 +324,21 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
   }, []);
 
   type PolledJob = {
-    status: "queued" | "processing" | "done" | "failed";
+    status: "queued" | "processing" | "done" | "failed" | "canceled";
     error: string | null;
     result: { imageUrls?: string[] } | null;
   };
+  type PollOutcome =
+    | { kind: "final"; job: PolledJob }
+    | { kind: "stalled" }
+    | { kind: "timeout" };
 
-  // Poll the async job until the Railway worker finishes it (~5 min cap).
+  // Poll the async job. If it never reaches "processing" within ~27s the
+  // Railway worker is likely down/busy, so we report "stalled" and the caller
+  // falls back to the synchronous path. Otherwise poll to completion (~5 min).
   const pollJob = useCallback(
-    async (ws: Workspace, jobId: string): Promise<PolledJob | null> => {
+    async (ws: Workspace, jobId: string): Promise<PollOutcome> => {
+      let everProcessing = false;
       for (let i = 0; i < 100; i += 1) {
         await new Promise((resolve) => setTimeout(resolve, 3000));
         const res = await fetch(
@@ -346,21 +353,73 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
           | null;
         const job = data?.job;
         if (!job) continue;
-        if (job.status === "queued" || job.status === "processing") {
-          setJobStage(job.status);
+        if (job.status === "processing") {
+          everProcessing = true;
+          setJobStage("processing");
           continue;
         }
-        return job;
+        if (job.status === "queued") {
+          setJobStage("queued");
+          if (!everProcessing && i >= 8) return { kind: "stalled" };
+          continue;
+        }
+        return { job, kind: "final" };
       }
-      return null; // timed out — job may still finish and land in history
+      return { kind: "timeout" };
     },
     [],
   );
 
+  // Synchronous fallback (runs the generation on the request itself). Used when
+  // the Railway worker is not draining the queue, so the product keeps working
+  // even if the worker is down.
+  const runSyncFallback = useCallback(
+    async (ws: Workspace): Promise<boolean> => {
+      setJobStage("processing");
+      const res = await fetch("/api/seller/lookbook", {
+        body: JSON.stringify({
+          aspectRatio,
+          garmentImageUrls,
+          numImages,
+          sceneBrief: sceneBrief.trim() || null,
+          starId: selectedStarId,
+          starImageIndex: selectedImageIndex,
+          workspaceId: ws.workspaceId,
+          workspaceKey: ws.workspaceKey,
+        }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+      const data = (await res.json().catch(() => null)) as
+        | { images?: LookbookImage[]; error?: string; creditBalance?: number }
+        | null;
+      if (!res.ok || !data?.images) {
+        setError(data?.error ?? (en ? "Generation failed." : "생성에 실패했습니다."));
+        return false;
+      }
+      setImages(data.images);
+      if (typeof data.creditBalance === "number") {
+        setCreditBalance(data.creditBalance);
+      }
+      void loadHistory(ws);
+      return true;
+    },
+    [
+      aspectRatio,
+      en,
+      garmentImageUrls,
+      loadHistory,
+      numImages,
+      sceneBrief,
+      selectedImageIndex,
+      selectedStarId,
+    ],
+  );
+
   // Async path: enqueue a job (charges credits) and poll while the Railway
-  // worker runs the heavy generation off the user-facing request. The sync
-  // /api/seller/lookbook endpoint is kept as a fallback the operator can switch
-  // back to. Credits are auto-refunded if a job fails.
+  // worker runs the heavy generation off the request. If the worker is not
+  // draining, cancel+refund the queued job and fall back to the sync path so
+  // the product keeps working. Credits are auto-refunded if a job fails.
   const handleGenerate = useCallback(async () => {
     setError(null);
     if (!selectedStarId) {
@@ -398,12 +457,34 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
         setError(data?.error ?? (en ? "Generation failed." : "생성에 실패했습니다."));
         return;
       }
+      const jobId = data.job.jobId;
       if (typeof data.creditBalance === "number") {
         setCreditBalance(data.creditBalance);
       }
 
-      const finalJob = await pollJob(ws, data.job.jobId);
-      if (!finalJob) {
+      let outcome = await pollJob(ws, jobId);
+      while (outcome.kind === "stalled") {
+        // Worker not draining — cancel+refund if still queued, then fall back.
+        const cancelRes = await fetch(
+          `/api/seller/lookbook/job?workspaceId=${encodeURIComponent(
+            ws.workspaceId,
+          )}&workspaceKey=${encodeURIComponent(
+            ws.workspaceKey,
+          )}&jobId=${encodeURIComponent(jobId)}`,
+          { method: "DELETE" },
+        );
+        const cancelData = (await cancelRes.json().catch(() => null)) as
+          | { canceled?: boolean }
+          | null;
+        if (cancelData?.canceled) {
+          await runSyncFallback(ws);
+          return;
+        }
+        // The worker claimed it just now; resume polling to completion.
+        outcome = await pollJob(ws, jobId);
+      }
+
+      if (outcome.kind === "timeout") {
         setError(
           en
             ? "Still processing — check 'My lookbooks' in a moment."
@@ -411,14 +492,16 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
         );
         return;
       }
-      if (finalJob.status === "failed") {
+
+      const job = outcome.job;
+      if (job.status === "failed" || job.status === "canceled") {
         setError(
-          finalJob.error ?? (en ? "Generation failed." : "생성에 실패했습니다."),
+          job.error ?? (en ? "Generation failed." : "생성에 실패했습니다."),
         );
         await refreshBalance(ws); // credits were auto-refunded
         return;
       }
-      const urls = finalJob.result?.imageUrls ?? [];
+      const urls = job.result?.imageUrls ?? [];
       setImages(
         urls.map((url) => ({ contentType: "image/png", pathname: url, url })),
       );
@@ -438,6 +521,7 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
     numImages,
     pollJob,
     refreshBalance,
+    runSyncFallback,
     sceneBrief,
     selectedImageIndex,
     selectedStarId,

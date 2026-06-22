@@ -18,7 +18,12 @@ import {
  */
 
 export type SellerJobType = "image" | "video";
-export type SellerJobStatus = "queued" | "processing" | "done" | "failed";
+export type SellerJobStatus =
+  | "queued"
+  | "processing"
+  | "done"
+  | "failed"
+  | "canceled";
 
 export type SellerJobInput = {
   starId?: string | null;
@@ -207,6 +212,36 @@ export async function failSellerJob(
       workspaceId: job.workspaceId,
     });
   }
+}
+
+/**
+ * Cancel a job ONLY if it is still queued (the worker has not claimed it) and
+ * refund the credits charged at enqueue. Returns true if it was canceled. Used
+ * by the client to fall back to the synchronous path when the Railway worker
+ * is not draining the queue. Atomic, so it never races a worker claim.
+ */
+export async function cancelSellerJob(
+  jobId: string,
+  workspaceId: string,
+): Promise<boolean> {
+  const collection = await getJobsCollection();
+  const canceled = await collection.findOneAndUpdate(
+    { jobId, status: "queued", workspaceId },
+    { $set: { status: "canceled", updatedAt: new Date() } },
+    { returnDocument: "after" },
+  );
+
+  if (!canceled) return false;
+
+  if (canceled.chargedCredits > 0) {
+    await refundSellerCredits({
+      amount: canceled.chargedCredits,
+      sourceId: canceled.sourceId,
+      workspaceId: canceled.workspaceId,
+    });
+  }
+
+  return true;
 }
 
 export { INSUFFICIENT_SELLER_CREDITS_ERROR };
