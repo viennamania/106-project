@@ -43,8 +43,14 @@ function getCopy(locale: Locale) {
       connected: "TikTok 연결됨",
       contextAssetBody:
         "TikTok 연결은 채널 기능이 아니라 AI 스타 운영 증거를 쌓는 컨텍스트 자산입니다.",
+      contextAssetMetric: "축적 자산",
+      contextAssetPending: "연결 대기",
+      contextAssetReady: "AI 스타 운영 증거",
       contextAssetTitle: "Context Asset",
+      contextGraphMetric: "그래프 강화",
       contextGraphPath: "회원 → AI 스타 → TikTok → 평판 기록",
+      contextMoatMetric: "복제 난이도",
+      contextMoatValue: "운영 권한 + 공식 채널 + 서버 기록",
       contextScoreLabel: "Context Score",
       contextSignals: [
         {
@@ -119,8 +125,14 @@ function getCopy(locale: Locale) {
     connected: "TikTok connected",
     contextAssetBody:
       "TikTok connection is not just a channel feature. It becomes a context asset proving AI Star operation.",
+    contextAssetMetric: "Accumulated asset",
+    contextAssetPending: "Connection pending",
+    contextAssetReady: "AI Star operation proof",
     contextAssetTitle: "Context Asset",
+    contextGraphMetric: "Graph strength",
     contextGraphPath: "Member → AI Star → TikTok → Reputation record",
+    contextMoatMetric: "Context Moat",
+    contextMoatValue: "Operating permission + official channel + server record",
     contextScoreLabel: "Context Score",
     contextSignals: [
       {
@@ -305,7 +317,36 @@ export function FanletterMyAIPage({
     resolveSocialAccount(star.id),
   ).length;
   const pendingTiktokCount = Math.max(ownedStars.length - connectedCount, 0);
-  const contextScore = primaryAccount ? 8 : 6;
+  const contextScore =
+    ownedStars.length > 0
+      ? Math.min(
+          10,
+          5 + Math.round((connectedCount / Math.max(ownedStars.length, 1)) * 4),
+        )
+      : 3;
+  const contextProofItems = [
+    {
+      done: connectedCount > 0,
+      label: copy.contextAssetMetric,
+      value:
+        connectedCount > 0
+          ? `${formatNumber(connectedCount, locale)} ${copy.contextAssetReady}`
+          : copy.contextAssetPending,
+    },
+    {
+      done: ownedStars.length > 0,
+      label: copy.contextGraphMetric,
+      value: `${formatNumber(ownedStars.length, locale)} AI Star · ${formatNumber(
+        connectedCount,
+        locale,
+      )} TikTok`,
+    },
+    {
+      done: connectedCount > 0,
+      label: copy.contextMoatMetric,
+      value: copy.contextMoatValue,
+    },
+  ];
   const currentLabel = primaryStar
     ? `${getStarName(primaryStar, primaryFallback)} · ${getUniverseName(
         primaryStar,
@@ -499,6 +540,31 @@ export function FanletterMyAIPage({
                 </div>
                 <p className="mt-2 text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all]">
                   {signal.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 grid min-w-0 gap-2 md:grid-cols-3">
+            {contextProofItems.map((item) => (
+              <div
+                className={[
+                  "min-w-0 rounded-xl border px-3 py-2.5",
+                  item.done
+                    ? "border-emerald-200 bg-emerald-50"
+                    : "border-zinc-200 bg-zinc-50",
+                ].join(" ")}
+                key={item.label}
+              >
+                <p
+                  className={[
+                    "truncate text-[0.66rem] font-semibold uppercase tracking-[0.1em]",
+                    item.done ? "text-emerald-700" : "text-zinc-500",
+                  ].join(" ")}
+                >
+                  {item.label}
+                </p>
+                <p className="mt-1 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+                  {item.value}
                 </p>
               </div>
             ))}
