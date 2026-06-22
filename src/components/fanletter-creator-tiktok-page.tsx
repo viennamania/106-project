@@ -47,6 +47,17 @@ function getCopy(locale: Locale) {
       connectAccount: "계정 연결하기",
       continueJourney: "크리에이터 여정 계속",
       connectedEvent: "TikTok 채널 연결 기록",
+      contextAssetBody:
+        "TikTok 연결은 AI 스타의 공식 채널, 운영자 권한, 평판 기록을 하나의 검증 가능한 Context Asset으로 묶습니다.",
+      contextAssetTitle: "Context Asset",
+      contextGraphPath: "회원 -> AI 스타 -> TikTok 채널 -> AgentRank",
+      contextScoreLabel: "Context Score",
+      contextSignals: [
+        "운영자 권한",
+        "공식 채널 연결",
+        "평판 기록 생성",
+        "콘텐츠 동기화 준비",
+      ],
       contentSyncReady: "콘텐츠 동기화 준비",
       creatorOnly: "크리에이터 / 운영자 권한",
       emptyBody:
@@ -92,6 +103,17 @@ function getCopy(locale: Locale) {
       connectAccount: "アカウント接続",
       continueJourney: "Creator Journeyを続ける",
       connectedEvent: "creator_social_connected評判記録",
+      contextAssetBody:
+        "TikTok接続はAIスターの公式チャンネル、運営者権限、評判記録を検証可能なContext Assetとして結びます。",
+      contextAssetTitle: "Context Asset",
+      contextGraphPath: "Member -> AI Star -> TikTok Channel -> AgentRank",
+      contextScoreLabel: "Context Score",
+      contextSignals: [
+        "運営者権限",
+        "公式チャンネル接続",
+        "評判記録作成",
+        "コンテンツ同期準備",
+      ],
       contentSyncReady: "コンテンツ同期準備",
       creatorOnly: "Creator / Owner権限",
       emptyBody:
@@ -136,6 +158,17 @@ function getCopy(locale: Locale) {
     connectAccount: "Connect account",
     continueJourney: "Continue Creator Journey",
     connectedEvent: "creator_social_connected Reputation Record",
+    contextAssetBody:
+      "TikTok connection binds the AI Star's official channel, operator permission, and reputation record into a verifiable Context Asset.",
+    contextAssetTitle: "Context Asset",
+    contextGraphPath: "Member -> AI Star -> TikTok Channel -> AgentRank",
+    contextScoreLabel: "Context Score",
+    contextSignals: [
+      "Operator permission",
+      "Official channel link",
+      "Reputation record",
+      "Content sync readiness",
+    ],
     contentSyncReady: "Content sync ready",
     creatorOnly: "Creator / Owner permission",
     emptyBody:
@@ -314,6 +347,7 @@ export function FanletterCreatorTikTokPage({
       ? connectedAccount.handle
       : copy.statusWaiting;
   const nextActionLabel = connectedAccount ? copy.contentSyncReady : copy.mainCta;
+  const contextScore = connectedAccount ? 9 : selectedStar ? (isSignedIn ? 7 : 5) : 4;
   const oauthReasonLabel = getOAuthReasonLabel(
     oauthCallbackStatus?.reason ?? null,
     locale,
@@ -563,6 +597,61 @@ export function FanletterCreatorTikTokPage({
             </div>
           </section>
         ) : null}
+
+        <section className="mt-5 rounded-[1.15rem] border border-zinc-200 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.05)] sm:p-5">
+            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
+                  {copy.contextAssetTitle}
+                </p>
+                <h2 className="mt-1 text-xl font-semibold tracking-normal text-black">
+                  {copy.contextGraphPath}
+                </h2>
+                <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+                  {copy.contextAssetBody}
+                </p>
+              </div>
+              <span className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-full bg-black px-3 text-xs font-semibold text-white">
+                {copy.contextScoreLabel} {contextScore}/10
+              </span>
+            </div>
+          <div className="mt-4 grid gap-2 sm:grid-cols-4">
+            {copy.contextSignals.map((signal, index) => {
+              const active =
+                  Boolean(selectedStar) &&
+                  (index === 0 ||
+                    (index === 1 && Boolean(connectedAccount)) ||
+                    (index === 2 && Boolean(connectedAccount)) ||
+                    (index === 3 && Boolean(connectedAccount)));
+
+                return (
+                  <div
+                    className={joinClasses(
+                      "min-w-0 rounded-xl border p-3",
+                      active
+                        ? "border-zinc-900 bg-zinc-950 text-white"
+                        : "border-zinc-200 bg-zinc-50 text-zinc-500",
+                    )}
+                    key={signal}
+                  >
+                    <span
+                      className={joinClasses(
+                        "flex size-6 items-center justify-center rounded-full text-[0.68rem] font-semibold",
+                        active
+                          ? "bg-white text-black"
+                          : "bg-white text-zinc-500 ring-1 ring-zinc-200",
+                      )}
+                    >
+                      {index + 1}
+                    </span>
+                    <p className="mt-2 truncate text-sm font-semibold">
+                      {signal}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
 
         {selectedStar ? (
           <section className="mt-5 grid gap-4 lg:grid-cols-[0.82fr_1.18fr]">
