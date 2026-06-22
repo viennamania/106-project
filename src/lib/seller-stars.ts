@@ -6,8 +6,11 @@ import {
   getCreatorProfilesCollection,
   getMembersCollection,
   getMongoClient,
+  getPointLedgerCollection,
 } from "@/lib/mongodb";
 import { awardBonusPointsForMember } from "@/lib/points-service";
+
+const LOOKBOOK_ROYALTY_MEMO = "lookbook model royalty";
 
 /** Royalty points credited to a star owner per shot a seller generates with it. */
 export const LOOKBOOK_MODEL_ROYALTY_POINTS_PER_SHOT = 10;
@@ -120,12 +123,35 @@ export async function awardStarModelRoyalty({
     await awardBonusPointsForMember({
       ledgerEntryId: `${ownerEmail}:lookbook_royalty:${sourceId}`,
       memberEmail: ownerEmail,
-      memo: "lookbook model royalty",
+      memo: LOOKBOOK_ROYALTY_MEMO,
       points,
       sourceId,
     });
   } catch {
     // royalty is best-effort
+  }
+}
+
+/** Total model royalty points a star owner has earned from seller lookbooks. */
+export async function getStarRoyaltyTotal(starId: string): Promise<number> {
+  try {
+    const ownerEmail = await getStarOwnerEmail(starId);
+
+    if (!ownerEmail) {
+      return 0;
+    }
+
+    const ledger = await getPointLedgerCollection();
+    const rows = await ledger
+      .aggregate<{ total: number }>([
+        { $match: { memberEmail: ownerEmail, memo: LOOKBOOK_ROYALTY_MEMO } },
+        { $group: { _id: null, total: { $sum: "$delta" } } },
+      ])
+      .toArray();
+
+    return rows[0]?.total ?? 0;
+  } catch {
+    return 0;
   }
 }
 
