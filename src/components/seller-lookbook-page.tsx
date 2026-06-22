@@ -277,13 +277,17 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
 
   const handleGarmentFiles = useCallback(
     async (files: FileList | null) => {
-      if (!files || files.length === 0) return;
+      // Snapshot synchronously: the file <input> resets value="" right after
+      // calling us, which empties the FileList before this async code (which
+      // awaits ensureWorkspace first) reads it — silently dropping the upload.
+      const fileArray = files ? Array.from(files) : [];
+      if (fileArray.length === 0) return;
       setError(null);
       setIsUploading(true);
       try {
         const ws = await ensureWorkspace();
         const remaining = MAX_GARMENTS - garmentImageUrls.length;
-        const picked = Array.from(files).slice(0, Math.max(0, remaining));
+        const picked = fileArray.slice(0, Math.max(0, remaining));
         const urls: string[] = [];
         for (const file of picked) urls.push(await uploadImage(file, ws));
         if (urls.length > 0) {
@@ -626,13 +630,16 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
 
   const handleBatchFiles = useCallback(
     async (files: FileList | null) => {
-      if (!files || files.length === 0) return;
+      // Snapshot before any await — the <input> resets value="" right after,
+      // emptying the FileList (see handleGarmentFiles).
+      const fileArray = files ? Array.from(files) : [];
+      if (fileArray.length === 0) return;
       setError(null);
       setIsBatchUploading(true);
       try {
         const ws = await ensureWorkspace();
         const remaining = BATCH_MAX - batchProducts.length;
-        const picked = Array.from(files).slice(0, Math.max(0, remaining));
+        const picked = fileArray.slice(0, Math.max(0, remaining));
         const urls: string[] = [];
         for (const file of picked) urls.push(await uploadImage(file, ws));
         if (urls.length > 0) {
