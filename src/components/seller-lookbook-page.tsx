@@ -112,6 +112,8 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
   const [videoBusyUrl, setVideoBusyUrl] = useState<string | null>(null);
   const [publishedImages, setPublishedImages] = useState<Set<string>>(new Set());
   const [publishBusyUrl, setPublishBusyUrl] = useState<string | null>(null);
+  const [sellerProductUrl, setSellerProductUrl] = useState("");
+  const [sellerShopName, setSellerShopName] = useState("");
   const [batchProducts, setBatchProducts] = useState<string[]>([]);
   const [batchJobs, setBatchJobs] = useState<BatchJob[]>([]);
   const [isBatchUploading, setIsBatchUploading] = useState(false);
@@ -647,6 +649,8 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
         const res = await fetch("/api/seller/lookbook/publish", {
           body: JSON.stringify({
             imageUrl,
+            productUrl: sellerProductUrl.trim() || null,
+            shopName: sellerShopName.trim() || null,
             starId: selectedStarId,
             starName: selectedStar?.name ?? null,
             workspaceId: ws.workspaceId,
@@ -671,7 +675,14 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
         setPublishBusyUrl(null);
       }
     },
-    [en, ensureWorkspace, selectedStar?.name, selectedStarId],
+    [
+      en,
+      ensureWorkspace,
+      selectedStar?.name,
+      selectedStarId,
+      sellerProductUrl,
+      sellerShopName,
+    ],
   );
 
   const handleBatchFiles = useCallback(
@@ -1201,6 +1212,31 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
                         </span>
                       ))}
                     </div>
+                  </div>
+                ) : null}
+                {selectedStar?.allowFeedPublish ? (
+                  <div className="mb-3 rounded-xl border border-black/10 bg-neutral-50/60 p-2.5">
+                    <span className="mb-1.5 block text-[11px] font-bold text-neutral-400">
+                      {en ? "Shop link (for feed post)" : "상품 링크 (피드 게시용)"}
+                    </span>
+                    <input
+                      className={`${FIELD} mb-1.5`}
+                      onChange={(e) => setSellerProductUrl(e.target.value)}
+                      placeholder={
+                        en ? "Product page URL (optional)" : "상품 페이지 URL (선택)"
+                      }
+                      type="url"
+                      value={sellerProductUrl}
+                    />
+                    <input
+                      className={FIELD}
+                      onChange={(e) => setSellerShopName(e.target.value)}
+                      placeholder={
+                        en ? "Shop name (optional)" : "상점/브랜드명 (선택)"
+                      }
+                      type="text"
+                      value={sellerShopName}
+                    />
                   </div>
                 ) : null}
                 <div className="grid grid-cols-2 gap-3">

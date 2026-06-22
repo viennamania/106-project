@@ -15,10 +15,26 @@ type PublishRequest = {
   starId?: string | null;
   imageUrl?: string | null;
   starName?: string | null;
+  productUrl?: string | null;
+  shopName?: string | null;
 };
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
+}
+
+// The product URL goes into the public post body as a link, so only allow plain
+// http(s) URLs (no javascript:/data: etc.).
+function normalizeProductUrl(value: string | null | undefined): string | null {
+  const raw = value?.trim() ?? "";
+  if (!raw) return null;
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+    return raw.slice(0, 300);
+  } catch {
+    return null;
+  }
 }
 
 // Publish a seller's generated lookbook to the AI star's feed — authored by the
@@ -50,6 +66,15 @@ export async function POST(request: Request) {
     return jsonError("게시할 룩북 이미지가 올바르지 않습니다.", 400);
   }
 
+  const shopName = body?.shopName?.trim().slice(0, 60) || null;
+  let productUrl: string | null = null;
+  if (body?.productUrl?.trim()) {
+    productUrl = normalizeProductUrl(body.productUrl);
+    if (!productUrl) {
+      return jsonError("상품 링크는 올바른 http(s) 주소여야 합니다.", 400);
+    }
+  }
+
   // The star owner must have explicitly allowed seller feed publishing.
   if (!(await getStarFeedPublishOptIn(starId))) {
     return jsonError(
@@ -65,8 +90,11 @@ export async function POST(request: Request) {
 
   const name = body?.starName?.trim() || "AI 스타";
   const title = `[광고] ${name} 룩북`.slice(0, 100);
+  const linkLine = productUrl
+    ? `\n\n🛍 ${shopName ? `${shopName} ` : ""}상품 보기: ${productUrl}`
+    : "";
   const postBody =
-    `${name}이(가) 입은 셀러 상품 룩북입니다. 본 게시물은 셀러 협찬(광고)입니다.`.slice(
+    `${name}이(가) 입은 셀러 상품 룩북입니다. 본 게시물은 셀러 협찬(광고)입니다.${linkLine}`.slice(
       0,
       400,
     );
@@ -90,6 +118,8 @@ export async function POST(request: Request) {
       contentId: post.contentId,
       imageUrl,
       ownerEmail,
+      productUrl,
+      shopName,
       starId,
       workspaceId: workspace.workspaceId,
     });

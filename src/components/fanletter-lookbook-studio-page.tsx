@@ -271,7 +271,13 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [optInBusy, setOptInBusy] = useState(false);
   const [feedOptInBusy, setFeedOptInBusy] = useState(false);
   const [feedRequests, setFeedRequests] = useState<
-    { publicationId: string; contentId: string; imageUrl: string }[]
+    {
+      publicationId: string;
+      contentId: string;
+      imageUrl: string;
+      productUrl?: string | null;
+      shopName?: string | null;
+    }[]
   >([]);
   const [feedReqBusy, setFeedReqBusy] = useState<string | null>(null);
 
@@ -392,6 +398,8 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
                 publicationId: string;
                 contentId: string;
                 imageUrl: string;
+                productUrl?: string | null;
+                shopName?: string | null;
               }[];
             }
           | null;
@@ -931,7 +939,27 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
                   className="h-14 w-11 rounded-lg border border-black/10 object-cover"
                   src={req.imageUrl}
                 />
-                <div className="flex-1" />
+                <div className="min-w-0 flex-1">
+                  {req.shopName ? (
+                    <p className="truncate text-xs font-bold text-neutral-700">
+                      {req.shopName}
+                    </p>
+                  ) : null}
+                  {req.productUrl ? (
+                    <a
+                      className="block truncate text-[11px] text-[#16702e] underline"
+                      href={req.productUrl}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {req.productUrl}
+                    </a>
+                  ) : (
+                    <p className="text-[11px] text-neutral-400">
+                      {locale === "en" ? "No shop link" : "상품 링크 없음"}
+                    </p>
+                  )}
+                </div>
                 <button
                   className="rounded-lg bg-[#16702e] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
                   disabled={feedReqBusy !== null}

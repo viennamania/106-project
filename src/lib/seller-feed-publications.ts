@@ -21,6 +21,8 @@ type SellerFeedPublicationDocument = {
   ownerEmail: string;
   workspaceId: string;
   imageUrl: string;
+  productUrl: string | null;
+  shopName: string | null;
   status: SellerFeedPublicationStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -30,6 +32,8 @@ export type SellerFeedPublicationPublic = {
   publicationId: string;
   contentId: string;
   imageUrl: string;
+  productUrl: string | null;
+  shopName: string | null;
   status: SellerFeedPublicationStatus;
   createdAt: string;
 };
@@ -69,7 +73,9 @@ function toPublic(
     contentId: doc.contentId,
     createdAt: doc.createdAt.toISOString(),
     imageUrl: doc.imageUrl,
+    productUrl: doc.productUrl ?? null,
     publicationId: doc.publicationId,
+    shopName: doc.shopName ?? null,
     status: doc.status,
   };
 }
@@ -80,6 +86,8 @@ export async function recordSellerFeedPublication(input: {
   ownerEmail: string;
   workspaceId: string;
   imageUrl: string;
+  productUrl?: string | null;
+  shopName?: string | null;
 }): Promise<void> {
   const now = new Date();
   const collection = await getCollection();
@@ -88,7 +96,9 @@ export async function recordSellerFeedPublication(input: {
     createdAt: now,
     imageUrl: input.imageUrl,
     ownerEmail: input.ownerEmail,
+    productUrl: input.productUrl ?? null,
     publicationId: randomUUID(),
+    shopName: input.shopName ?? null,
     starId: input.starId,
     status: "pending",
     updatedAt: now,
