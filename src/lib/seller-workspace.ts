@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createHash, randomBytes, randomUUID } from "crypto";
+import { createHash, randomBytes, randomUUID, timingSafeEqual } from "crypto";
 import type { Collection } from "mongodb";
 
 import { getMongoClient } from "@/lib/mongodb";
@@ -251,7 +251,15 @@ export async function authorizeSellerWorkspace({
   const workspaces = await getWorkspacesCollection();
   const doc = await workspaces.findOne({ workspaceId: workspaceId.trim() });
 
-  if (!doc || doc.workspaceKeyHash !== hashKey(workspaceKey.trim())) {
+  if (!doc) {
+    return null;
+  }
+
+  // Constant-time compare of the SHA-256 hashes (both 32 bytes).
+  const expected = Buffer.from(doc.workspaceKeyHash, "hex");
+  const actual = Buffer.from(hashKey(workspaceKey.trim()), "hex");
+
+  if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
     return null;
   }
 
