@@ -1250,7 +1250,7 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
                         publishedImages.has(image.url) ? (
                           <span className="mt-1 flex items-center justify-center gap-1.5 rounded-lg bg-[#44f26e]/15 px-2 py-1.5 text-xs font-bold text-[#16702e]">
                             <Send className="h-3.5 w-3.5" />
-                            {en ? "Published to feed" : "피드에 게시됨"}
+                            {en ? "Pending approval" : "승인 대기"}
                           </span>
                         ) : (
                           <button
@@ -1262,12 +1262,14 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
                             {publishBusyUrl === image.url ? (
                               <>
                                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                {en ? "Publishing…" : "게시 중…"}
+                                {en ? "Requesting…" : "요청 중…"}
                               </>
                             ) : (
                               <>
                                 <Send className="h-3.5 w-3.5" />
-                                {en ? "Post to AI star feed" : "AI 스타 피드에 게시"}
+                                {en
+                                  ? "Request feed post"
+                                  : "AI 스타 피드에 게시 요청"}
                               </>
                             )}
                           </button>

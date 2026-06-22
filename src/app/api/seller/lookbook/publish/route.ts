@@ -1,4 +1,5 @@
 import { createContentPostForMember } from "@/lib/content-service";
+import { recordSellerFeedPublication } from "@/lib/seller-feed-publications";
 import {
   getStarFeedPublishOptIn,
   getStarOwnerEmail,
@@ -71,6 +72,8 @@ export async function POST(request: Request) {
     );
 
   try {
+    // Create as a DRAFT (held off the feed) and record a pending request — the
+    // star owner approves or rejects it before it can go live.
     const post = await createContentPostForMember({
       body: postBody,
       contentImageUrls: [imageUrl],
@@ -78,12 +81,24 @@ export async function POST(request: Request) {
       coverImageUrl: imageUrl,
       email: ownerEmail,
       priceType: "free",
-      status: "published",
+      status: "draft",
       summary: title,
       title,
     });
 
-    return Response.json({ contentId: post.contentId, ok: true });
+    await recordSellerFeedPublication({
+      contentId: post.contentId,
+      imageUrl,
+      ownerEmail,
+      starId,
+      workspaceId: workspace.workspaceId,
+    });
+
+    return Response.json({
+      contentId: post.contentId,
+      ok: true,
+      status: "pending",
+    });
   } catch (error) {
     return jsonError(
       error instanceof Error ? error.message : "피드 게시에 실패했습니다.",
