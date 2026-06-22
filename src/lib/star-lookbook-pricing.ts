@@ -12,6 +12,9 @@ export const LOOKBOOK_POINT_COST_PER_IMAGE = 50;
 export const LOOKBOOK_MIN_IMAGES = 1;
 export const LOOKBOOK_MAX_IMAGES = 4;
 
+/** A short lookbook video costs more than a still (seller credits). */
+export const LOOKBOOK_VIDEO_CREDITS = 8;
+
 export function clampLookbookImageCount(numImages: number | null | undefined) {
   if (typeof numImages !== "number" || !Number.isFinite(numImages)) {
     return LOOKBOOK_MIN_IMAGES;

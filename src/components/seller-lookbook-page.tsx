@@ -1,6 +1,15 @@
 "use client";
 
-import { Coins, Download, Loader2, Shirt, Sparkles, Upload, X } from "lucide-react";
+import {
+  Coins,
+  Download,
+  Loader2,
+  Shirt,
+  Sparkles,
+  Upload,
+  Video,
+  X,
+} from "lucide-react";
 import {
   type ReactNode,
   useCallback,
@@ -10,6 +19,7 @@ import {
 } from "react";
 
 import type { Locale } from "@/lib/i18n";
+import { LOOKBOOK_VIDEO_CREDITS } from "@/lib/star-lookbook-pricing";
 
 type AspectRatio = "4:5" | "3:4" | "2:3" | "9:16" | "1:1" | "auto";
 type LookbookImage = { url: string; pathname: string; contentType: string };
@@ -74,6 +84,8 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
   const [packs, setPacks] = useState<CreditPack[]>([]);
   const [checkoutNotice, setCheckoutNotice] = useState<string | null>(null);
   const [history, setHistory] = useState<SellerGeneration[]>([]);
+  const [videos, setVideos] = useState<Record<string, string>>({});
+  const [videoBusyUrl, setVideoBusyUrl] = useState<string | null>(null);
 
   const loadHistory = useCallback(async (ws: Workspace) => {
     try {
@@ -329,6 +341,43 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
     selectedImageIndex,
     selectedStarId,
   ]);
+
+  const makeVideo = useCallback(
+    async (imageUrl: string) => {
+      setError(null);
+      setVideoBusyUrl(imageUrl);
+      try {
+        const ws = await ensureWorkspace();
+        const res = await fetch("/api/seller/lookbook/video", {
+          body: JSON.stringify({
+            imageUrl,
+            sceneBrief: sceneBrief.trim() || null,
+            workspaceId: ws.workspaceId,
+            workspaceKey: ws.workspaceKey,
+          }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+        });
+        const data = (await res.json().catch(() => null)) as
+          | { video?: { url?: string }; error?: string; creditBalance?: number }
+          | null;
+        if (!res.ok || !data?.video?.url) {
+          setError(data?.error ?? (en ? "Video failed." : "영상 생성 실패"));
+          return;
+        }
+        const videoUrl = data.video.url;
+        setVideos((prev) => ({ ...prev, [imageUrl]: videoUrl }));
+        if (typeof data.creditBalance === "number") {
+          setCreditBalance(data.creditBalance);
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "영상 실패");
+      } finally {
+        setVideoBusyUrl(null);
+      }
+    },
+    [en, ensureWorkspace, sceneBrief],
+  );
 
   const buyCredits = useCallback(
     async (packId: string) => {
@@ -604,6 +653,39 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
                         <Download className="h-3.5 w-3.5" />
                         {en ? "Save" : "저장"}
                       </a>
+                      {videos[image.url] ? (
+                        <a
+                          className="mt-1 flex items-center justify-center gap-1.5 rounded-lg bg-[#16702e] px-2 py-1.5 text-xs font-bold text-white"
+                          download
+                          href={videos[image.url]}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          <Video className="h-3.5 w-3.5" />
+                          {en ? "Video" : "영상"}
+                        </a>
+                      ) : (
+                        <button
+                          className="mt-1 flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#16702e]/40 px-2 py-1.5 text-xs font-bold text-[#16702e] disabled:opacity-50"
+                          disabled={videoBusyUrl !== null}
+                          onClick={() => makeVideo(image.url)}
+                          type="button"
+                        >
+                          {videoBusyUrl === image.url ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              {en ? "Making…" : "생성 중…"}
+                            </>
+                          ) : (
+                            <>
+                              <Video className="h-3.5 w-3.5" />
+                              {en
+                                ? `Video · ${LOOKBOOK_VIDEO_CREDITS}cr`
+                                : `영상 · ${LOOKBOOK_VIDEO_CREDITS}크레딧`}
+                            </>
+                          )}
+                        </button>
+                      )}
                     </figcaption>
                   </figure>
                 ))}
