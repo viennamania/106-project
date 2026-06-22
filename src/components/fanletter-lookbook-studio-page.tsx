@@ -266,6 +266,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [published, setPublished] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [modelOptIn, setModelOptIn] = useState<boolean | null>(null);
+  const [royaltyTotal, setRoyaltyTotal] = useState<number | null>(null);
   const [optInBusy, setOptInBusy] = useState(false);
 
   useEffect(() => {
@@ -284,11 +285,14 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
           )}&walletAddress=${encodeURIComponent(accountAddress)}`,
         );
         const data = (await response.json().catch(() => null)) as
-          | { optIn?: boolean }
+          | { optIn?: boolean; royaltyTotal?: number }
           | null;
 
         if (!cancelled && response.ok && typeof data?.optIn === "boolean") {
           setModelOptIn(data.optIn);
+          if (typeof data.royaltyTotal === "number") {
+            setRoyaltyTotal(data.royaltyTotal);
+          }
         }
       } catch {
         // best-effort
@@ -737,6 +741,13 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
                 ? "Sellers can dress my star in their products. I earn royalty points per shot."
                 : "셀러가 내 스타에 옷을 입혀 룩북을 만들 수 있고, 사용될 때마다 로열티 포인트를 받습니다."}
             </p>
+            {royaltyTotal && royaltyTotal > 0 ? (
+              <p className="mt-1 text-xs font-bold text-[#16702e]">
+                {locale === "en"
+                  ? `Model royalties earned: ${royaltyTotal.toLocaleString()}P`
+                  : `지금까지 모델 수익: ${royaltyTotal.toLocaleString()}P`}
+              </p>
+            ) : null}
           </div>
           <button
             aria-pressed={Boolean(modelOptIn)}

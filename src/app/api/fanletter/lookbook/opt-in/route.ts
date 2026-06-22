@@ -1,6 +1,10 @@
 import { normalizeEmail } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
-import { getStarOptIn, setStarOptIn } from "@/lib/seller-stars";
+import {
+  getStarOptIn,
+  getStarRoyaltyTotal,
+  setStarOptIn,
+} from "@/lib/seller-stars";
 
 export const runtime = "nodejs";
 
@@ -31,7 +35,10 @@ export async function GET(request: Request) {
     return jsonError("Completed member required.", 403);
   }
 
-  return Response.json({ optIn: await getStarOptIn(referralCode) });
+  return Response.json({
+    optIn: await getStarOptIn(referralCode),
+    royaltyTotal: await getStarRoyaltyTotal(referralCode),
+  });
 }
 
 export async function POST(request: Request) {
