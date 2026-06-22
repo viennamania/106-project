@@ -682,7 +682,14 @@ function StarViewerRelationshipCard({
               : "계정 연결 필요",
         guidance:
           "크리에이터는 AI 스타를 운영하는 권한이고, 파운더는 이 AI 스타 유니버스 안에서 참여하는 역할입니다.",
+        contextAssetLabel: "생성 Context",
+        contextGraphLabel: "관계 그래프",
+        contextMoatFounder: "추천 코드 + 참여 역할",
+        contextMoatLabel: "복제 난이도",
+        contextMoatOwner: "운영 권한 + 공식 채널",
+        creatorGraph: "Creator → TikTok",
         founderJoinRecord: "파운더 참여 기록",
+        founderGraph: "Founder Network",
         nextActionLabel: "다음 행동",
         ownerNextAction: "TikTok 채널 관리",
         ownerStatus: "크리에이터 권한 활성화",
@@ -727,7 +734,14 @@ function StarViewerRelationshipCard({
               : "Connect account",
         guidance:
           "Creator is permission to operate the AI Star. Founder is your participation role inside this AI Star Universe.",
+        contextAssetLabel: "Created context",
+        contextGraphLabel: "Relationship graph",
+        contextMoatFounder: "Referral code + participation role",
+        contextMoatLabel: "Context Moat",
+        contextMoatOwner: "Operating permission + official channel",
+        creatorGraph: "Creator → TikTok",
         founderJoinRecord: "Founder join record",
+        founderGraph: "Founder Network",
         nextActionLabel: "Next action",
         ownerNextAction: "Manage TikTok channel",
         ownerStatus: "Creator permission active",
@@ -780,6 +794,34 @@ function StarViewerRelationshipCard({
       : relationshipAction.eventType === "referral_shared"
         ? labels.referralRecord
         : labels.founderJoinRecord;
+  const displayStarName = getDisplayStarName(star.name, copy);
+  const contextProofItems = [
+    {
+      done:
+        relationshipAction.eventType !== "creator_social_connected" ||
+        Boolean(social.account),
+      label: labels.contextAssetLabel,
+      value:
+        relationshipAction.eventType === "creator_social_connected" &&
+        !social.account
+          ? labels.tiktokRequired
+          : relationshipEventLabel,
+    },
+    {
+      done: true,
+      label: labels.contextGraphLabel,
+      value: `${displayStarName} · ${
+        ownedStar ? labels.creatorGraph : labels.founderGraph
+      }`,
+    },
+    {
+      done:
+        relationshipAction.eventType !== "creator_social_connected" ||
+        Boolean(social.account),
+      label: labels.contextMoatLabel,
+      value: ownedStar ? labels.contextMoatOwner : labels.contextMoatFounder,
+    },
+  ];
 
   return (
     <section className="mt-3 grid gap-2 rounded-[1.15rem] border border-zinc-200 bg-white p-3.5 shadow-[0_14px_36px_rgba(15,23,42,0.055)] sm:mt-4 sm:grid-cols-[0.78fr_1.22fr] sm:p-4">
@@ -799,7 +841,7 @@ function StarViewerRelationshipCard({
             {labels.title}
           </h2>
           <p className="mt-0.5 truncate text-xs font-semibold text-zinc-500">
-            {getDisplayStarName(star.name, copy)}
+            {displayStarName}
           </p>
           <p className="mt-2 hidden text-xs font-semibold leading-5 text-zinc-500 [word-break:keep-all] sm:block">
             {labels.guidance}
@@ -923,6 +965,31 @@ function StarViewerRelationshipCard({
               <ArrowRight className="size-4" />
             </StarActionLink>
           )}
+        </div>
+        <div className="mt-3 grid gap-2 md:grid-cols-3">
+          {contextProofItems.map((item) => (
+            <div
+              className={joinClasses(
+                "min-w-0 rounded-xl border px-3 py-2.5",
+                item.done
+                  ? "border-emerald-200 bg-emerald-50"
+                  : "border-zinc-200 bg-white",
+              )}
+              key={item.label}
+            >
+              <p
+                className={joinClasses(
+                  "truncate text-[0.62rem] font-semibold uppercase tracking-[0.1em]",
+                  item.done ? "text-emerald-700" : "text-zinc-500",
+                )}
+              >
+                {item.label}
+              </p>
+              <p className="mt-1 break-words text-xs font-semibold leading-5 text-zinc-950 [word-break:keep-all]">
+                {item.value}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
