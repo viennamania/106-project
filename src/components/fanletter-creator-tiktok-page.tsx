@@ -318,6 +318,17 @@ export function FanletterCreatorTikTokPage({
     oauthCallbackStatus?.reason ?? null,
     locale,
   );
+  const flowItems = connectedAccount
+    ? [
+        { active: false, done: true, label: copy.flowChannel },
+        { active: false, done: true, label: copy.flowEvent },
+        { active: true, done: false, label: copy.flowSync },
+      ]
+    : [
+        { active: true, done: false, label: copy.flowChannel },
+        { active: false, done: false, label: copy.flowEvent },
+        { active: false, done: false, label: copy.flowSync },
+      ];
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-white px-4 pb-28 pt-5 text-black sm:px-6 sm:pb-8 lg:px-8">
@@ -372,20 +383,41 @@ export function FanletterCreatorTikTokPage({
             </div>
 
             <div className="grid grid-cols-3 gap-2 rounded-2xl border border-zinc-200 bg-zinc-50 p-2">
-              {[
-                copy.flowChannel,
-                copy.flowEvent,
-                copy.flowSync,
-              ].map((label, index) => (
+              {flowItems.map((item, index) => (
                 <div
-                  className="rounded-xl bg-white px-2 py-3 text-center"
-                  key={label}
+                  className={joinClasses(
+                    "rounded-xl px-2 py-3 text-center transition",
+                    item.active
+                      ? "bg-black text-white shadow-[0_14px_28px_rgba(15,23,42,0.16)]"
+                      : item.done
+                        ? "bg-emerald-50 text-emerald-950"
+                        : "bg-white text-zinc-600",
+                  )}
+                  key={item.label}
                 >
-                  <div className="mx-auto flex size-8 items-center justify-center rounded-full bg-black text-xs font-semibold text-white">
-                    {index + 1}
+                  <div
+                    className={joinClasses(
+                      "mx-auto flex size-8 items-center justify-center rounded-full text-xs font-semibold",
+                      item.active
+                        ? "bg-white text-black"
+                        : item.done
+                          ? "bg-emerald-600 text-white"
+                          : "bg-zinc-100 text-zinc-500",
+                    )}
+                  >
+                    {item.done ? <CheckCircle2 className="size-4" /> : index + 1}
                   </div>
-                  <p className="mt-2 text-xs font-semibold leading-4 text-zinc-700">
-                    {label}
+                  <p
+                    className={joinClasses(
+                      "mt-2 text-xs font-semibold leading-4 [word-break:keep-all]",
+                      item.active
+                        ? "text-white"
+                        : item.done
+                          ? "text-emerald-900"
+                          : "text-zinc-600",
+                    )}
+                  >
+                    {item.label}
                   </p>
                 </div>
               ))}
