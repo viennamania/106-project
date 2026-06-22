@@ -37,6 +37,19 @@ type SellerCreditLedgerDocument = {
   createdAt: Date;
 };
 
+/** License granted to the seller for lookbooks they generate. See /lookbook/terms. */
+export const SELLER_LOOKBOOK_LICENSE = "seller-commercial-nonexclusive-v1";
+
+type SellerLookbookGenerationDocument = {
+  generationId: string;
+  workspaceId: string;
+  starId: string;
+  imageUrls: string[];
+  imageCount: number;
+  license: string;
+  createdAt: Date;
+};
+
 export type SellerWorkspacePublic = {
   workspaceId: string;
   email: string;
@@ -55,6 +68,9 @@ function getDbName() {
 
 let workspacesPromise: Promise<Collection<SellerWorkspaceDocument>> | null = null;
 let ledgerPromise: Promise<Collection<SellerCreditLedgerDocument>> | null = null;
+let generationsPromise: Promise<
+  Collection<SellerLookbookGenerationDocument>
+> | null = null;
 
 async function getWorkspacesCollection() {
   if (!workspacesPromise) {
@@ -90,6 +106,53 @@ async function getLedgerCollection() {
   }
 
   return ledgerPromise;
+}
+
+async function getGenerationsCollection() {
+  if (!generationsPromise) {
+    generationsPromise = (async () => {
+      const client = await getMongoClient();
+      const collection = client
+        .db(getDbName())
+        .collection<SellerLookbookGenerationDocument>(
+          process.env.MONGODB_SELLER_LOOKBOOK_GENERATIONS_COLLECTION ??
+            "sellerLookbookGenerations",
+        );
+      await collection.createIndex({ workspaceId: 1, createdAt: -1 });
+      return collection;
+    })();
+  }
+
+  return generationsPromise;
+}
+
+/**
+ * Record provenance + the granted license for a generated lookbook. Best-effort:
+ * the caller should not fail the response if this throws.
+ */
+export async function recordSellerLookbookGeneration({
+  imageUrls,
+  starId,
+  workspaceId,
+}: {
+  imageUrls: string[];
+  starId: string;
+  workspaceId: string;
+}): Promise<void> {
+  try {
+    const collection = await getGenerationsCollection();
+    await collection.insertOne({
+      createdAt: new Date(),
+      generationId: randomUUID(),
+      imageCount: imageUrls.length,
+      imageUrls,
+      license: SELLER_LOOKBOOK_LICENSE,
+      starId,
+      workspaceId,
+    });
+  } catch {
+    // provenance logging is best-effort
+  }
 }
 
 function normalizeEmail(email: string) {

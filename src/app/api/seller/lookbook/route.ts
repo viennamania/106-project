@@ -5,6 +5,7 @@ import {
   chargeSellerCredits,
   getSellerWorkspacePublic,
   INSUFFICIENT_SELLER_CREDITS_ERROR,
+  recordSellerLookbookGeneration,
   refundSellerCredits,
 } from "@/lib/seller-workspace";
 import { resolveSellerStarImage } from "@/lib/seller-stars";
@@ -141,6 +142,12 @@ export async function POST(request: Request) {
       sceneBrief: body?.sceneBrief ?? null,
       starAvatarUrl: modelImageUrl,
       starName: body?.modelName ?? null,
+    });
+
+    await recordSellerLookbookGeneration({
+      imageUrls: images.map((image) => image.url),
+      starId: body?.starId?.trim() ?? "",
+      workspaceId: workspace.workspaceId,
     });
 
     const updated = await getSellerWorkspacePublic(workspace.workspaceId);

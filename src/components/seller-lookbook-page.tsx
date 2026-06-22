@@ -54,6 +54,7 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
   const [email, setEmail] = useState("");
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
   const [stars, setStars] = useState<SellerStar[]>([]);
+  const [brokenStarIds, setBrokenStarIds] = useState<Set<string>>(new Set());
   const [selectedStarId, setSelectedStarId] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [garmentText, setGarmentText] = useState("");
@@ -77,6 +78,7 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
     [garmentText],
   );
   const cost = numImages;
+  const displayStars = stars.filter((star) => !brokenStarIds.has(star.id));
   const selectedStar = stars.find((star) => star.id === selectedStarId) ?? null;
 
   useEffect(() => {
@@ -136,6 +138,24 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
         // best-effort
       }
     })();
+  }, []);
+
+  useEffect(() => {
+    if (selectedStarId) return;
+    const first = stars.find((star) => !brokenStarIds.has(star.id));
+    if (first) {
+      setSelectedStarId(first.id);
+      setSelectedImageIndex(0);
+    }
+  }, [brokenStarIds, selectedStarId, stars]);
+
+  const markStarBroken = useCallback((id: string) => {
+    setBrokenStarIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+    setSelectedStarId((cur) => (cur === id ? null : cur));
   }, []);
 
   const ensureWorkspace = useCallback(async (): Promise<Workspace> => {
@@ -356,14 +376,14 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
                 : "모델은 항상 fanletter AI 스타입니다."
             }
           >
-            {stars.length === 0 ? (
+            {displayStars.length === 0 ? (
               <p className="text-xs text-neutral-400">
                 {en ? "Loading AI stars…" : "AI 스타 불러오는 중…"}
               </p>
             ) : (
               <>
                 <div className="flex flex-wrap gap-2.5">
-                  {stars.map((star) => {
+                  {displayStars.map((star) => {
                     const active = selectedStarId === star.id;
                     return (
                       <button
@@ -384,6 +404,7 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
                         <img
                           alt={star.name}
                           className="h-full w-full object-cover"
+                          onError={() => markStarBroken(star.id)}
                           src={star.images[0]}
                         />
                       </button>
@@ -596,6 +617,18 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
             )}
           </button>
         </div>
+
+        <p className="px-1 text-[11px] leading-relaxed text-neutral-400">
+          {en
+            ? "Lookbooks you generate are licensed to you for commercial use. The model is always a fanletter AI star. "
+            : "생성한 룩북은 회원님이 상업적으로 사용할 수 있습니다. 모델은 항상 fanletter AI 스타입니다. "}
+          <a
+            className="font-bold text-[#16702e] underline"
+            href={`/${locale}/lookbook/terms`}
+          >
+            {en ? "Terms & license" : "이용약관·라이선스"}
+          </a>
+        </p>
 
         {packs.length > 0 ? (
           <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
