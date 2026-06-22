@@ -17,6 +17,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -114,6 +115,14 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
   const [publishBusyUrl, setPublishBusyUrl] = useState<string | null>(null);
   const [sellerProductUrl, setSellerProductUrl] = useState("");
   const [sellerShopName, setSellerShopName] = useState("");
+  const creditPacksRef = useRef<HTMLDivElement>(null);
+
+  const scrollToPacks = useCallback(() => {
+    creditPacksRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "center",
+    });
+  }, []);
   const [batchProducts, setBatchProducts] = useState<string[]>([]);
   const [batchJobs, setBatchJobs] = useState<BatchJob[]>([]);
   const [isBatchUploading, setIsBatchUploading] = useState(false);
@@ -1332,11 +1341,37 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
         {error ? (
           <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm font-semibold text-rose-600">{error}</p>
         ) : null}
+        {creditBalance !== null && creditBalance < cost ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <p className="text-sm font-semibold text-amber-800">
+              {creditBalance <= 0
+                ? en
+                  ? "You've used all your free trial credits."
+                  : "무료 체험 크레딧을 모두 사용했어요."
+                : en
+                  ? `Not enough credits (have ${creditBalance}, need ${cost}).`
+                  : `크레딧이 부족해요 (보유 ${creditBalance} · 필요 ${cost}).`}
+            </p>
+            <button
+              className="flex shrink-0 items-center gap-1.5 rounded-xl bg-[#16702e] px-4 py-2 text-xs font-extrabold text-white transition hover:bg-[#0f5722]"
+              onClick={scrollToPacks}
+              type="button"
+            >
+              <Coins className="h-3.5 w-3.5" />
+              {en ? "Buy credits" : "크레딧 충전하기"}
+            </button>
+          </div>
+        ) : null}
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
           <div className="text-sm text-neutral-500">
             {en ? "Cost" : "필요 크레딧"}{" "}
             <span className="font-bold text-neutral-900">{cost}</span>
             <span className="text-neutral-400"> · {numImages}{en ? " shots" : "컷"}</span>
+            {creditBalance !== null ? (
+              <span className="text-neutral-400">
+                {" "}· {en ? "have" : "보유"} {creditBalance}
+              </span>
+            ) : null}
           </div>
           <div className="flex-1" />
           <button
@@ -1589,7 +1624,10 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
         </div>
 
         {packs.length > 0 ? (
-          <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
+          <div
+            className="scroll-mt-6 rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]"
+            ref={creditPacksRef}
+          >
             <span className="mb-3 block text-xs font-bold text-neutral-700">
               {en ? "Buy credits" : "크레딧 충전"}
             </span>
