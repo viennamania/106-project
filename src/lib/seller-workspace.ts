@@ -24,7 +24,10 @@ export const INSUFFICIENT_SELLER_CREDITS_ERROR = "INSUFFICIENT_SELLER_CREDITS";
 export const SELLER_TRIAL_RATE_LIMIT_ERROR = "SELLER_TRIAL_RATE_LIMIT";
 function trialWorkspacesPerIpPerDay() {
   const v = Number(process.env.SELLER_TRIAL_WORKSPACES_PER_IP_PER_DAY);
-  return Number.isFinite(v) && v > 0 ? Math.floor(v) : 10;
+  // Generous by default so normal use / testing is never blocked (a real user
+  // creates ~1 workspace and reuses it). Tighten via env when paid launch adds
+  // stronger anti-abuse. Keeps a guardrail against trivial scripted farming.
+  return Number.isFinite(v) && v > 0 ? Math.floor(v) : 50;
 }
 
 export type SellerWorkspaceDocument = {
