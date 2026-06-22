@@ -735,6 +735,55 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
         </span>
       </header>
 
+      <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        {[
+          {
+            desc: en
+              ? "Drag in your product photos — color, print and logos are kept."
+              : "상품 사진을 올리세요. 색·프린트·로고가 그대로 보존됩니다.",
+            icon: Upload,
+            step: "1",
+            title: en ? "Upload garments" : "옷 사진 업로드",
+          },
+          {
+            desc: en
+              ? "The model is always a consented fanletter AI star — no real people."
+              : "모델은 항상 동의된 fanletter AI 스타입니다. 실제 인물 아님.",
+            icon: Sparkles,
+            step: "2",
+            title: en ? "Pick an AI star" : "AI 스타·배경 선택",
+          },
+          {
+            desc: en
+              ? "Get a Korean shop lookbook set in about a minute, ready to download."
+              : "1분 안에 한국형 쇼핑몰 룩북 세트가 나옵니다. 바로 다운로드.",
+            icon: Download,
+            step: "3",
+            title: en ? "Generate & download" : "룩북 생성·다운로드",
+          },
+        ].map(({ desc, icon: Icon, step, title }) => (
+          <div
+            className="flex gap-3 rounded-2xl border border-black/10 bg-white/80 p-4 shadow-[0_18px_42px_rgba(8,18,12,0.05)]"
+            key={step}
+          >
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/15 text-[#16702e]">
+              <Icon className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-black text-[#16702e]">
+                  STEP {step}
+                </span>
+              </div>
+              <div className="text-sm font-extrabold text-neutral-900">{title}</div>
+              <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-500">
+                {desc}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="space-y-5 rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
           <Field
@@ -1191,6 +1240,62 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
               ))}
             </div>
           ) : null}
+        </div>
+
+        <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
+          <span className="mb-3 block text-xs font-bold text-neutral-700">
+            {en ? "FAQ" : "자주 묻는 질문"}
+          </span>
+          <div className="space-y-2">
+            {[
+              {
+                a: en
+                  ? "Yes — a worldwide, perpetual, non-exclusive commercial license to use them in your shop."
+                  : "네. 회원님 쇼핑몰에 쓸 수 있는 전세계·영구·비독점 상업 라이선스가 부여됩니다.",
+                q: en
+                  ? "Can I use the lookbooks for my store?"
+                  : "생성한 룩북을 제 쇼핑몰에 써도 되나요?",
+              },
+              {
+                a: en
+                  ? "Always a consented fanletter AI star — never a real person. You cannot upload your own model."
+                  : "항상 동의된 fanletter AI 스타입니다. 실제 인물이 아니며, 셀러가 임의 모델을 올릴 수 없습니다.",
+                q: en ? "Who is the model?" : "모델은 누구인가요?",
+              },
+              {
+                a: en
+                  ? "Yes — free trial credits to start, no sign-up or crypto wallet required. 1 credit per shot."
+                  : "네. 가입·지갑 없이 무료 체험 크레딧으로 바로 시작할 수 있습니다. 컷당 1크레딧.",
+                q: en ? "Can I try it for free?" : "무료로 써볼 수 있나요?",
+              },
+              {
+                a: en
+                  ? "The garment's color, print and logos are preserved; only the model and scene are AI-generated."
+                  : "옷의 색·프린트·로고는 보존하고, 모델과 배경만 AI로 생성합니다.",
+                q: en
+                  ? "Are my garment details preserved?"
+                  : "옷 디테일이 보존되나요?",
+              },
+            ].map((item) => (
+              <details
+                className="group rounded-xl border border-black/10 bg-white px-3.5 py-2.5"
+                key={item.q}
+              >
+                <summary className="cursor-pointer list-none text-sm font-bold text-neutral-800 marker:hidden">
+                  {item.q}
+                </summary>
+                <p className="mt-1.5 text-[12px] leading-relaxed text-neutral-500">
+                  {item.a}
+                </p>
+              </details>
+            ))}
+          </div>
+          <a
+            className="mt-3 inline-block text-[11px] font-bold text-[#16702e] underline"
+            href={`/${locale}/lookbook/terms`}
+          >
+            {en ? "Full terms & license" : "전체 이용약관·라이선스 보기"}
+          </a>
         </div>
 
         {packs.length > 0 ? (
