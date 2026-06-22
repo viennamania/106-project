@@ -2751,29 +2751,52 @@ function CreatorJourneyStepLinks({
           </p>
           <h2 className="mt-1 text-2xl font-semibold tracking-normal text-black">
             {isKorean
-              ? "필요한 작업만 나눠서 진행"
+              ? "다음 단계만 선명하게"
               : "Focused steps, one action at a time"}
           </h2>
         </div>
         <p className="max-w-xl text-sm font-medium leading-6 text-zinc-600">
           {isKorean
-            ? "각 화면은 하나의 행동과 하나의 평판 기록에 집중합니다."
+            ? "완료한 단계와 지금 눌러야 할 버튼을 분리해서 보여줍니다."
             : "Each page focuses on one action and one Reputation Record."}
         </p>
       </div>
       <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-        {items.map((item) => {
+        {items.map((item, index) => {
           const Icon = item.icon;
           const active = item.view === activeView;
           const next = item.href === creatorJourneyNextHref;
           const primary = item.href === primaryActionHref;
+          const nextIndex = items.findIndex(
+            (candidate) => candidate.href === creatorJourneyNextHref,
+          );
+          const done = nextIndex > -1 && index < nextIndex;
+          const waiting = nextIndex > -1 && index > nextIndex;
+          const highlighted = active || primary || next;
+          const statusCopy = done
+            ? isKorean
+              ? "완료"
+              : "Done"
+            : highlighted
+              ? isKorean
+                ? "다음"
+                : "Next"
+              : waiting
+                ? isKorean
+                  ? "대기"
+                  : "Wait"
+                : isKorean
+                  ? "확인"
+                  : "Review";
 
           return (
             <Link
               className={joinClasses(
                 "group flex min-w-0 items-start gap-3 rounded-lg border p-3 transition sm:p-4",
-                active || primary
+                highlighted
                   ? "border-black bg-black text-white"
+                  : done
+                    ? "border-emerald-200 bg-emerald-50 text-emerald-950"
                   : "border-zinc-200 bg-zinc-50 text-zinc-950 hover:border-zinc-300 hover:bg-white",
               )}
               href={item.href}
@@ -2782,7 +2805,11 @@ function CreatorJourneyStepLinks({
               <span
                 className={joinClasses(
                   "flex size-10 shrink-0 items-center justify-center rounded-lg",
-                  active || primary ? "bg-white text-black" : "bg-white text-zinc-950",
+                  highlighted
+                    ? "bg-white text-black"
+                    : done
+                      ? "bg-white text-emerald-800"
+                      : "bg-white text-zinc-950",
                 )}
               >
                 <Icon className="size-5" />
@@ -2792,23 +2819,27 @@ function CreatorJourneyStepLinks({
                   <p className="break-words text-base font-semibold leading-tight [word-break:keep-all]">
                     {item.label}
                   </p>
-                  {next ? (
-                    <span
-                      className={joinClasses(
-                        "shrink-0 rounded-full px-2 py-0.5 text-[0.62rem] font-semibold",
-                        active || primary
-                          ? "bg-white/15 text-white"
-                          : "bg-white text-zinc-700",
-                      )}
-                    >
-                      {isKorean ? "다음" : "Next"}
-                    </span>
-                  ) : null}
+                  <span
+                    className={joinClasses(
+                      "shrink-0 rounded-full px-2 py-0.5 text-[0.62rem] font-semibold",
+                      highlighted
+                        ? "bg-white/15 text-white"
+                        : done
+                          ? "bg-white text-emerald-800"
+                          : "bg-white text-zinc-600",
+                    )}
+                  >
+                    {statusCopy}
+                  </span>
                 </div>
                 <p
                   className={joinClasses(
                     "mt-1 break-words text-xs font-medium leading-5 [word-break:keep-all]",
-                    active || primary ? "text-white/70" : "text-zinc-600",
+                    highlighted
+                      ? "text-white/70"
+                      : done
+                        ? "text-emerald-800/72"
+                        : "text-zinc-600",
                   )}
                 >
                   {item.body}
@@ -2816,7 +2847,11 @@ function CreatorJourneyStepLinks({
                 <p
                   className={joinClasses(
                     "mt-2 break-words text-[0.68rem] font-semibold leading-4 [word-break:keep-all]",
-                    active || primary ? "text-white/55" : "text-zinc-400",
+                    highlighted
+                      ? "text-white/55"
+                      : done
+                        ? "text-emerald-700/70"
+                        : "text-zinc-400",
                   )}
                 >
                   {getCreatorJourneyReputationLabel(item.eventType, locale)}
@@ -2826,7 +2861,7 @@ function CreatorJourneyStepLinks({
                 <ArrowRight
                   className={joinClasses(
                     "size-4 shrink-0 transition group-hover:translate-x-0.5",
-                    active || primary ? "text-white" : "text-zinc-400",
+                    highlighted ? "text-white" : done ? "text-emerald-700" : "text-zinc-400",
                   )}
                 />
               </div>
