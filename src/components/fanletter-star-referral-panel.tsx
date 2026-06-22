@@ -174,19 +174,19 @@ function ReferralShareOutcomeCard({
   const labels = isKorean
     ? {
         cp: "CP 보상",
-        creator: "Creator 진행",
-        creatorCta: "Creator Journey",
+        creator: "크리에이터 진행",
+        creatorCta: "크리에이터 여정",
         event: "평판 기록",
         influence: "영향력",
         ledgerCta: "평판 기록 보기",
         nextBody:
-          "공유 기록은 추천 보상, Creator 진행률, 평판 기록으로 이어집니다.",
+          "공유 기록은 추천 보상, 크리에이터 진행률, 평판 기록으로 이어집니다.",
         nextTitle: "다음 행동",
         pendingBody:
           "링크를 복사하거나 SNS로 공유하면 추천 공유 기록이 생성됩니다.",
         pendingTitle: "공유 대기",
         readyBody:
-          "새 Founder가 이 링크로 참여하면 CP와 Creator 진행률이 이어집니다.",
+          "새 파운더가 이 링크로 참여하면 CP와 크리에이터 진행률이 이어집니다.",
         readyTitle: "추천 공유 기록 생성됨",
       }
     : {
@@ -438,19 +438,19 @@ export function FanletterStarReferralPanel({
     ? {
         close: "추천 공유 패널 닫기",
         flow: "공유 흐름",
-        joinClose: "Founder 참여 확인 패널 닫기",
-        joinConfirm: "Founder 참여 확정",
+        joinClose: "파운더 참여 확인 패널 닫기",
+        joinConfirm: "파운더 참여 확정",
         joinDescription:
-          "이 AI 스타 기준으로 Founder 참여를 기록하고 추천 링크를 준비합니다.",
+          "이 AI 스타 기준으로 파운더 참여를 기록하고 추천 링크를 준비합니다.",
         joinTitle:
           primaryActionVariant === "connect"
-            ? "Founder 참여 준비"
-            : "Founder 참여 확인",
+            ? "파운더 참여 준비"
+            : "파운더 참여 확인",
         open: "공유 옵션 열기",
         primaryActionHint:
-          "Founder 참여와 계정 연결은 상단의 메인 CTA에서 진행합니다.",
+          "파운더 참여와 계정 연결은 상단의 메인 CTA에서 진행합니다.",
         reward: "예상 보상",
-        signal: "기록될 평판 이벤트",
+        signal: "기록될 평판 기록",
         title: "추천 링크 공유",
       }
     : {
@@ -525,7 +525,7 @@ export function FanletterStarReferralPanel({
           <div className="flex items-center gap-2 text-sm font-semibold text-emerald-900">
             <CheckCircle2 className="size-4" />
             {isKoreanCopy(copy)
-              ? "Founder 참여 완료"
+              ? "파운더 참여 완료"
               : "Founder join complete"}
           </div>
           <p className="mt-2 hidden text-sm font-medium leading-5 text-emerald-900/72 sm:block">

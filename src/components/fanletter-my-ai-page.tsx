@@ -43,24 +43,24 @@ function getCopy(locale: Locale) {
       connected: "TikTok 연결됨",
       content: "콘텐츠",
       contentReady: "콘텐츠 준비",
-      creator: "Creator / Owner",
-      creatorStatus: "Creator 권한",
+      creator: "크리에이터 / 운영자",
+      creatorStatus: "크리에이터 권한",
       emptyBody:
-        "아직 운영 중인 AI 스타가 없습니다. Creator 권한 활성화 조건을 확인하고 새 AI 스타 생성을 준비하세요.",
-      emptyCta: "Creator 권한 활성화 보기",
+        "아직 운영 중인 AI 스타가 없습니다. 크리에이터 권한 활성화 조건을 확인하고 새 AI 스타 생성을 준비하세요.",
+      emptyCta: "크리에이터 권한 활성화 보기",
       emptyTitle: "운영 중인 AI 스타가 없습니다",
-      eventConnected: "creator_social_connected 평판 기록 생성",
+      eventConnected: "TikTok 채널 연결 기록 생성",
       eventPending: "TikTok 연결 시 평판 기록 생성",
       founderRelationCta: "참여 네트워크 보기",
       founderNetworks: "참여 중인 파운더 네트워크",
       founderNetworksBody:
-        "Creator/Owner로 운영하는 AI 스타와 별개로, 각 AI 스타 유니버스 안에서 내가 가진 Founder 역할입니다.",
+        "크리에이터/운영자로 운영하는 AI 스타와 별개로, 각 AI 스타 유니버스 안에서 내가 가진 파운더 역할입니다.",
       heroBody:
         "내 AI는 회원 개인 계정이 아니라 AI 스타별 운영 채널입니다. TikTok 연결, 콘텐츠 준비, 평판 기록을 한 화면에서 확인합니다.",
       heroEyebrow: "내 AI",
       heroTitle: "내가 운영하는 AI 스타",
       launch: "출시 의도",
-      mockLaunch: "mock 출시",
+      mockLaunch: "미리보기 출시",
       nextConnected: "AI 스타 유니버스 보기",
       nextPending: "TikTok 연결 필요",
       operatedRelationCta: "운영 AI 관리",
@@ -71,11 +71,11 @@ function getCopy(locale: Locale) {
       steps: ["운영 AI", "TikTok", "콘텐츠", "평판 기록"],
       tiktok: "TikTok",
       tiktokFocusBody:
-        "AI 스타별 TikTok 채널을 연결하면 Creator Journey 조건과 AgentRank 평판 기록이 함께 채워집니다.",
+        "AI 스타별 TikTok 채널을 연결하면 크리에이터 여정 조건과 평판 기록이 함께 채워집니다.",
       tiktokFocusReady:
         "모든 운영 AI 스타의 TikTok 연결이 준비되어 있습니다. 다음은 평판 기록 확인입니다.",
       tiktokFocusTitle: "TikTok 다음 행동",
-      tiktokTestSteps: ["handle 확인", "Mock 연결", "평판 기록 확인"],
+      tiktokTestSteps: ["채널 확인", "미리보기 연결", "평판 기록 확인"],
       viewReputation: "평판 기록 보기",
       viewUniverse: "AI 스타 유니버스 보기",
     };
@@ -390,7 +390,7 @@ export function FanletterMyAIPage({
             <div className="mb-3 flex min-w-0 flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
               <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">
-                  Creator Journey
+                  크리에이터 여정
                 </p>
                 <h2 className="mt-1 text-2xl font-semibold tracking-normal text-zinc-950">
                   {copy.tiktokFocusTitle}

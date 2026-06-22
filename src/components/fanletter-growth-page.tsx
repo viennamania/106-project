@@ -31,13 +31,13 @@ function getCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       back: "FanLetter 홈",
-      creator: "Creator Journey",
-      creatorBody: "조건을 확인하고 TikTok 채널 연결, mock 출시까지 이어갑니다.",
+      creator: "크리에이터 여정",
+      creatorBody: "조건을 확인하고 TikTok 채널 연결, 미리보기 출시까지 이어갑니다.",
       creatorCta: "권한 활성화 보기",
       creatorReady: "권한 활성화 준비",
       currentCondition: "지금 필요한 조건",
       discover: "AI 스타 발견",
-      discoverBody: "성장할 AI 스타를 먼저 선택하면 Founder 참여가 시작됩니다.",
+      discoverBody: "성장할 AI 스타를 먼저 선택하면 파운더 참여가 시작됩니다.",
       discoverCta: "AI 스타 발견하기",
       event: "평판 기록",
       eventBody: "참여, 추천, TikTok 연결, 출시 의도가 AgentRank 기록으로 쌓입니다.",
@@ -46,13 +46,13 @@ function getCopy(locale: Locale) {
       founderBody: "참여 중인 AI 스타 유니버스 안에서 추천 링크와 CP를 관리합니다.",
       founderCta: "참여 네트워크 보기",
       heroBody:
-        "성장은 Founder 참여, 추천 공유, Creator 권한 활성화, 평판 기록으로 이어지는 하나의 흐름입니다.",
+        "성장은 파운더 참여, 추천 공유, 크리에이터 권한 활성화, 평판 기록으로 이어지는 하나의 흐름입니다.",
       heroEyebrow: "성장 허브",
       heroTitle: "다음 행동을 선택하세요",
       metrics: {
         cp: "CP",
         creatorStars: "운영 AI 스타",
-        creatorProgress: "Creator 진행",
+        creatorProgress: "크리에이터 진행",
         founderNetworks: "참여 네트워크",
         invites: "성공 초대",
         scout: "스카우트 점수",
@@ -60,17 +60,17 @@ function getCopy(locale: Locale) {
       nextAction: {
         discover: "AI 스타 선택",
         founder: "추천 링크 공유",
-        creator: "Creator 권한 활성화",
+        creator: "크리에이터 권한 활성화",
       },
       primary: {
-        creator: "Creator 권한 활성화",
+        creator: "크리에이터 권한 활성화",
         discover: "AI 스타 발견하기",
         founder: "추천 링크 공유하기",
       },
       relationTitle: "내 성장 상태",
       result: "평판 결과",
       routeLabel: "FanLetter / 성장",
-      steps: ["발견", "Founder", "추천", "평판 기록", "Creator"],
+      steps: ["발견", "파운더", "추천", "평판 기록", "크리에이터"],
       tiktokNeeded: "TikTok 연결 필요",
     };
   }

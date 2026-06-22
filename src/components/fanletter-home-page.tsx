@@ -913,9 +913,9 @@ function FanletterAgentRankHomeCard({
   const isKo = locale === "ko";
   const copy = isKo
     ? {
-        body: "발견, 참여, 초대, CP 보상이 AgentRank 평판 이벤트로 쌓입니다.",
+        body: "발견, 참여, 초대, CP 보상이 평판 기록으로 쌓입니다.",
         cta: "AgentRank 보기",
-        events: "평판 이벤트",
+        events: "평판 기록",
         network: "네트워크",
         title: "Reputation Event Factory",
       }
@@ -1130,7 +1130,7 @@ function FanletterProductHomeDashboard({
         score: "스타 점수",
         shareCode: "추천 코드",
         subhead:
-          "오늘 할 일은 하나입니다. 성장 중인 AI 스타를 선택하면 파운더 참여와 평판 이벤트가 시작됩니다.",
+          "오늘 할 일은 하나입니다. 성장 중인 AI 스타를 선택하면 파운더 참여와 평판 기록이 시작됩니다.",
         starCardFlow: "상세에서 파운더 참여",
         swipeHint: "좌우로 밀어 더 보기",
         today: "오늘 할 일",
@@ -1147,7 +1147,7 @@ function FanletterProductHomeDashboard({
       }
     : {
         connect: "Connect Account",
-        creator: "Creator Unlock",
+        creator: "크리에이터 권한",
         creatorReady: "AI Star launch ready",
         discovery: "AI Star Discovery",
         founder: "Founder",
@@ -1283,7 +1283,7 @@ function FanletterProductHomeDashboard({
                     referralCode,
                   }}
                   reputationEventLabel={
-                    isKo ? "평판 이벤트 생성" : "Reputation Event"
+                    isKo ? "평판 기록 생성" : "Reputation Event"
                   }
                   secondaryActions={[]}
                   steps={[
@@ -2724,7 +2724,7 @@ export function FanletterHomePage({
   const founderClubCtaLabels =
     locale === "ko"
       ? {
-          creator: "권한 활성화",
+          creator: "크리에이터 권한",
           discover: "AI 스타 발견하기",
           founder: "파운더로 참여하기",
           genealogy: "AI 스타 계보",

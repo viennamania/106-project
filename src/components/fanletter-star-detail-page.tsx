@@ -340,10 +340,10 @@ function getPrimaryAction({
   if (viewerState === "member") {
     return {
       helper: isKorean
-        ? "계정은 연결되어 있습니다. 클릭하면 이 AI 스타 유니버스의 파운더 네트워크에 Founder로 저장하고 내 추천 링크를 생성합니다."
+        ? "계정은 연결되어 있습니다. 클릭하면 이 AI 스타 유니버스의 파운더 네트워크에 참여하고 내 추천 링크를 생성합니다."
         : "Your account is connected. Join this AI Star Universe Founder Network and create your referral link.",
       href: joinHref,
-      label: isKorean ? "Founder 참여하기" : "Join Founder",
+      label: isKorean ? "파운더 참여하기" : "Join Founder",
       status: isKorean ? "계정 연결됨" : "Account connected",
       variant: "join",
     };
@@ -355,7 +355,7 @@ function getPrimaryAction({
       : "Connect your account, then join this AI Star Founder Network and keep referral attribution.",
     href: connectHref,
     label: isKorean ? "계정 연결하고 참여" : "Connect and join",
-    status: isKorean ? "Founder 참여 전" : "Founder not joined",
+    status: isKorean ? "파운더 참여 전" : "Founder not joined",
     variant: "connect",
   };
 }
@@ -383,16 +383,16 @@ function StarActionLink({
   const isKorean = locale === "ko";
   const panelLabels = isKorean
     ? {
-        close: "Founder 참여 확인 패널 닫기",
-        confirm: action.variant === "connect" ? "계정 연결 계속" : "Founder 참여 확정",
-        events: "기록될 평판 이벤트",
+        close: "파운더 참여 확인 패널 닫기",
+        confirm: action.variant === "connect" ? "계정 연결 계속" : "파운더 참여 확정",
+        events: "기록될 평판 기록",
         location: "현재 위치",
         next: "다음 행동",
         steps:
           action.variant === "connect"
-            ? ["AI 스타 발견", "계정 연결", "Founder 참여", "평판 기록"]
-            : ["AI 스타 발견", "Founder 참여", "추천 링크", "평판 기록"],
-        title: "Founder 참여 확인",
+            ? ["AI 스타 발견", "계정 연결", "파운더 참여", "평판 기록"]
+            : ["AI 스타 발견", "파운더 참여", "추천 링크", "평판 기록"],
+        title: "파운더 참여 확인",
       }
     : {
         close: "Close Founder join confirmation panel",
@@ -655,7 +655,7 @@ function StarViewerRelationshipCard({
         creatorBody: ownedStar
           ? "콘텐츠, TikTok 채널, AI 스타 설정을 관리할 수 있습니다."
           : isAuthenticated
-            ? "이 AI 스타를 운영하는 Creator 권한은 없습니다."
+            ? "이 AI 스타를 운영하는 크리에이터 권한은 없습니다."
             : "계정 연결 후 이 AI 스타의 운영 권한을 확인합니다.",
         creatorCaption: "AI 스타 채널",
         creatorLabel: "AI 스타 운영 권한",
@@ -667,10 +667,10 @@ function StarViewerRelationshipCard({
         founderBody: founderRole
           ? "이 AI 스타 유니버스 안의 6단계 초대/CP 구조에 참여 중입니다."
           : isMockFounder
-            ? "이 브라우저에서 mock Founder 참여가 완료된 상태입니다."
+            ? "이 브라우저에서 파운더 참여 미리보기가 완료된 상태입니다."
             : isAuthenticated
               ? "아직 이 AI 스타의 파운더 네트워크에 참여하지 않았습니다."
-              : "계정 연결 후 Founder 참여를 진행할 수 있습니다.",
+              : "계정 연결 후 파운더 참여를 진행할 수 있습니다.",
         founderCaption: "회원 참여 역할",
         founderLabel: "파운더 네트워크 역할",
         founderStatus: founderRole
@@ -681,11 +681,11 @@ function StarViewerRelationshipCard({
               ? "참여 전"
               : "계정 연결 필요",
         guidance:
-          "Creator는 AI 스타를 운영하는 권한이고, Founder는 이 AI 스타 유니버스 안에서 참여하는 역할입니다.",
-        founderJoinRecord: "Founder 참여 기록",
+          "크리에이터는 AI 스타를 운영하는 권한이고, 파운더는 이 AI 스타 유니버스 안에서 참여하는 역할입니다.",
+        founderJoinRecord: "파운더 참여 기록",
         nextActionLabel: "다음 행동",
         ownerNextAction: "TikTok 채널 관리",
-        ownerStatus: "Creator 권한 활성화",
+        ownerStatus: "크리에이터 권한 활성화",
         referralRecord: "추천 공유 기록",
         recordLabel: "생성될 평판 기록",
         tiktokConnected: "TikTok 채널 연결됨",
@@ -1097,7 +1097,7 @@ function FounderJoinFlowHint({
           done: "완료",
           steps: [
             "계정 연결",
-            "Founder 참여",
+            "파운더 참여",
             "추천 링크 생성",
             "초대 보상 적립",
           ],
@@ -1197,8 +1197,8 @@ function FounderNextReputationPath({
     {
       event: "founder_joined",
       icon: Crown,
-      label: isKorean ? "Founder 참여 완료" : "Founder joined",
-      recordLabel: isKorean ? "Founder 참여 기록" : "Founder join record",
+      label: isKorean ? "파운더 참여 완료" : "Founder joined",
+      recordLabel: isKorean ? "파운더 참여 기록" : "Founder join record",
       state: "done",
     },
     {
@@ -1219,7 +1219,7 @@ function FounderNextReputationPath({
     {
       event: "creator_unlock_evaluated",
       icon: Bot,
-      label: isKorean ? "Creator Journey" : "Creator Journey",
+      label: isKorean ? "크리에이터 여정" : "Creator Journey",
       recordLabel: isKorean ? "권한 조건 점검" : "Permission condition review",
       state: "next",
     },
@@ -1352,7 +1352,7 @@ function FounderJoinResultCard({
         event: "생성된 평판 기록",
         network: "파운더 네트워크 보기",
         share: "추천 링크 공유하기",
-        title: "Founder 참여 완료",
+        title: "파운더 참여 완료",
       }
     : {
         body: "Your referral code is ready, with rewards and reputation records prepared.",
@@ -1505,8 +1505,8 @@ function StarAgentRankJoinSignal({
     ? {
         cta: "AgentRank 보기",
         edges: "네트워크",
-        events: "평판 이벤트",
-        join: "Founder 참여",
+        events: "평판 기록",
+        join: "파운더 참여",
         ledger: "이벤트 원장",
         referral: "추천 코드",
         reward: "CP 보상",
@@ -2197,7 +2197,7 @@ export function FanletterStarDetailPage({
             status: "done" as const,
           },
           {
-            label: isKorean ? "Founder 참여" : "Join",
+            label: isKorean ? "파운더 참여" : "Join",
             status: "done" as const,
           },
           {
@@ -2216,7 +2216,7 @@ export function FanletterStarDetailPage({
               status: "done" as const,
             },
             {
-              label: isKorean ? "Founder 참여" : "Join",
+              label: isKorean ? "파운더 참여" : "Join",
               status: "active" as const,
             },
             {
@@ -2238,7 +2238,7 @@ export function FanletterStarDetailPage({
               status: "active" as const,
             },
             {
-              label: isKorean ? "Founder 참여" : "Join",
+              label: isKorean ? "파운더 참여" : "Join",
               status: "next" as const,
             },
             {
@@ -2252,7 +2252,7 @@ export function FanletterStarDetailPage({
         ? "추천 공유 이벤트"
         : "Referral share event"
       : isKorean
-        ? "Founder 참여 이벤트"
+        ? "파운더 참여 기록"
         : "Founder join event";
   const viewerStateLabel =
     viewerState === "founder"
@@ -2278,7 +2278,7 @@ export function FanletterStarDetailPage({
       detail: primaryAction.status,
     },
     {
-      label: isKorean ? "평판 이벤트" : "Reputation event",
+      label: isKorean ? "평판 기록" : "Reputation event",
       value: primaryReputationEventLabel,
       detail: primaryReputationEventType,
       isStrong: true,
