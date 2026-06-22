@@ -473,7 +473,7 @@ function CreatorUnlockConditionsPanel({
 
         <section className="rounded-lg border border-zinc-200 bg-white p-3">
           <p className="text-xs font-semibold uppercase tracking-[0.12em] text-zinc-500">
-            {isKorean ? "평판 기록 흐름" : "Reputation record flow"}
+            {isKorean ? "평판 기록" : "Reputation record flow"}
           </p>
           <div className="mt-3 grid gap-2">
             {getCreatorJourneyReputationSequence(locale).map((event, index) => (
@@ -2894,7 +2894,7 @@ function CreatorJourneyProductHero({
   );
   const reputationLabel = getCreatorJourneyReputationLabel(eventType, locale);
   const heroSubtitle = isKorean
-    ? `${reputationLabel}으로 기록됩니다. 조건, 출처, TikTok, 생성 미리보기를 한 단계씩 진행하세요.`
+    ? `${reputationLabel}으로 저장됩니다. 조건, 출처, TikTok, 미리보기 생성 순서로 진행하세요.`
     : `This creates ${reputationLabel}. Move through conditions, source, TikTok, and launch preview one step at a time.`;
   const statusLabel = unlock.unlocked
     ? isKorean
@@ -3073,7 +3073,7 @@ function CreatorJourneyProductHero({
                 value: displaySourceUniverseName,
               },
               {
-                label: isKorean ? "평판 기록" : "Reputation",
+                label: isKorean ? "기록 결과" : "Reputation",
                 value: reputationLabel,
               },
             ].map((item) => (
@@ -3497,7 +3497,7 @@ export function FanletterCreatorUnlockPage({
           ? {
               body:
                 locale === "ko"
-                  ? "실제 결제 없이 10 USDT 생성 의도와 평판 기록 흐름을 미리 확인합니다."
+                  ? "실제 결제 없이 10 USDT 생성 의도와 평판 기록을 미리 확인합니다."
                   : "Preview the 10 USDT mock intent and Reputation Record flow without real payment.",
               title:
                 locale === "ko" ? "AI 스타 생성 미리보기" : "AI Star launch preview",
@@ -3574,7 +3574,7 @@ export function FanletterCreatorUnlockPage({
       ]}
       subtitle={
         locale === "ko"
-          ? "새 AI 스타는 선택한 AI 스타 유니버스의 성과로 기록되고, 이후 CP 풀과 평판 기록으로 이어집니다."
+          ? "선택한 AI 스타 유니버스가 창업 출처로 저장되고, 이후 CP 풀과 평판 기록으로 이어집니다."
           : "A new AI Star records the selected AI Star Universe as its launch source, then feeds CP Pool and reputation records."
       }
       title={
@@ -3774,7 +3774,7 @@ export function FanletterCreatorUnlockPage({
                     </h2>
                     <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-emerald-800 [word-break:keep-all]">
                       {locale === "ko"
-                        ? `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} 채널 연결이 크리에이터 권한 조건과 평판 기록 흐름에 반영되었습니다.`
+                        ? `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} 채널 연결이 크리에이터 권한 조건과 평판 기록에 반영되었습니다.`
                         : `${creatorJourneyEffectiveSocialAccount?.handle ?? "TikTok"} is reflected in Creator Journey conditions and the Reputation Record flow.`}
                     </p>
                   </div>
