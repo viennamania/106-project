@@ -3,6 +3,7 @@
 import {
   Coins,
   Download,
+  Layers,
   Loader2,
   Shirt,
   Sparkles,
@@ -32,11 +33,19 @@ type SellerGeneration = {
   imageUrls: string[];
   createdAt: string;
 };
+type BatchJobStatus = "queued" | "processing" | "done" | "failed" | "error";
+type BatchJob = {
+  productUrl: string;
+  jobId: string | null;
+  status: BatchJobStatus;
+  imageUrls: string[];
+};
 
 const STORAGE_KEY = "fanletter_seller_lookbook";
 const ASPECT_OPTIONS: AspectRatio[] = ["4:5", "3:4", "2:3", "9:16", "1:1", "auto"];
 const COUNT_OPTIONS = [1, 2, 3, 4];
 const MAX_GARMENTS = 4;
+const BATCH_MAX = 8;
 
 const SCENE_PRESETS = [
   { ko: "성수동 카페", en: "Seongsu cafe", brief: "a cozy Seongsu-dong cafe with warm window light, wooden interior, full body" },
@@ -91,6 +100,10 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
   const [history, setHistory] = useState<SellerGeneration[]>([]);
   const [videos, setVideos] = useState<Record<string, string>>({});
   const [videoBusyUrl, setVideoBusyUrl] = useState<string | null>(null);
+  const [batchProducts, setBatchProducts] = useState<string[]>([]);
+  const [batchJobs, setBatchJobs] = useState<BatchJob[]>([]);
+  const [isBatchUploading, setIsBatchUploading] = useState(false);
+  const [isBatchRunning, setIsBatchRunning] = useState(false);
 
   const loadHistory = useCallback(async (ws: Workspace) => {
     try {
@@ -467,6 +480,166 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
     [en, ensureWorkspace, sceneBrief],
   );
 
+  const handleBatchFiles = useCallback(
+    async (files: FileList | null) => {
+      if (!files || files.length === 0) return;
+      setError(null);
+      setIsBatchUploading(true);
+      try {
+        const ws = await ensureWorkspace();
+        const remaining = BATCH_MAX - batchProducts.length;
+        const picked = Array.from(files).slice(0, Math.max(0, remaining));
+        const urls: string[] = [];
+        for (const file of picked) urls.push(await uploadImage(file, ws));
+        if (urls.length > 0) {
+          setBatchProducts((prev) => [...prev, ...urls].slice(0, BATCH_MAX));
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "업로드 실패");
+      } finally {
+        setIsBatchUploading(false);
+      }
+    },
+    [batchProducts.length, ensureWorkspace, uploadImage],
+  );
+
+  const removeBatchProduct = useCallback((url: string) => {
+    setBatchProducts((prev) => prev.filter((u) => u !== url));
+  }, []);
+
+  // Batch: one job per product (1 hero cut each), enqueued together and polled
+  // in parallel while the Railway worker drains them. Jobs that outlast the
+  // poll window still finish server-side and appear in "My lookbooks".
+  const runBatch = useCallback(async () => {
+    setError(null);
+    if (!selectedStarId) {
+      setError(en ? "Pick an AI star." : "AI 스타를 선택하세요.");
+      return;
+    }
+    if (batchProducts.length === 0) {
+      setError(en ? "Add product photos." : "상품 사진을 올리세요.");
+      return;
+    }
+    setIsBatchRunning(true);
+    setBatchJobs(
+      batchProducts.map((url) => ({
+        imageUrls: [],
+        jobId: null,
+        productUrl: url,
+        status: "queued",
+      })),
+    );
+    try {
+      const ws = await ensureWorkspace();
+      const enqueued = await Promise.all(
+        batchProducts.map(async (url) => {
+          try {
+            const res = await fetch("/api/seller/lookbook/job", {
+              body: JSON.stringify({
+                aspectRatio,
+                garmentImageUrls: [url],
+                numImages: 1,
+                sceneBrief: sceneBrief.trim() || null,
+                starId: selectedStarId,
+                starImageIndex: selectedImageIndex,
+                type: "image",
+                workspaceId: ws.workspaceId,
+                workspaceKey: ws.workspaceKey,
+              }),
+              headers: { "Content-Type": "application/json" },
+              method: "POST",
+            });
+            const data = (await res.json().catch(() => null)) as
+              | { creditBalance?: number; job?: { jobId?: string } }
+              | null;
+            if (res.ok && typeof data?.creditBalance === "number") {
+              setCreditBalance(data.creditBalance);
+            }
+            return { jobId: data?.job?.jobId ?? null, url };
+          } catch {
+            return { jobId: null, url };
+          }
+        }),
+      );
+
+      setBatchJobs((prev) =>
+        prev.map((job) => {
+          const match = enqueued.find((e) => e.url === job.productUrl);
+          return match?.jobId
+            ? { ...job, jobId: match.jobId }
+            : { ...job, status: "error" };
+        }),
+      );
+
+      const pending = new Map(
+        enqueued
+          .filter((e): e is { jobId: string; url: string } => Boolean(e.jobId))
+          .map((e) => [e.jobId, e.url]),
+      );
+
+      for (let i = 0; i < 160 && pending.size > 0; i += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        await Promise.all(
+          [...pending.entries()].map(async ([jobId, url]) => {
+            const res = await fetch(
+              `/api/seller/lookbook/job?workspaceId=${encodeURIComponent(
+                ws.workspaceId,
+              )}&workspaceKey=${encodeURIComponent(
+                ws.workspaceKey,
+              )}&jobId=${encodeURIComponent(jobId)}`,
+            );
+            const data = (await res.json().catch(() => null)) as
+              | {
+                  job?: {
+                    status?: BatchJobStatus;
+                    result?: { imageUrls?: string[] } | null;
+                  };
+                }
+              | null;
+            const job = data?.job;
+            if (!job?.status) return;
+            if (job.status === "queued" || job.status === "processing") {
+              setBatchJobs((prev) =>
+                prev.map((b) =>
+                  b.productUrl === url ? { ...b, status: job.status! } : b,
+                ),
+              );
+              return;
+            }
+            pending.delete(jobId);
+            setBatchJobs((prev) =>
+              prev.map((b) =>
+                b.productUrl === url
+                  ? {
+                      ...b,
+                      imageUrls: job.result?.imageUrls ?? [],
+                      status: job.status!,
+                    }
+                  : b,
+              ),
+            );
+          }),
+        );
+      }
+      await refreshBalance(ws);
+      void loadHistory(ws);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "배치 생성 실패");
+    } finally {
+      setIsBatchRunning(false);
+    }
+  }, [
+    aspectRatio,
+    batchProducts,
+    en,
+    ensureWorkspace,
+    loadHistory,
+    refreshBalance,
+    sceneBrief,
+    selectedImageIndex,
+    selectedStarId,
+  ]);
+
   const buyCredits = useCallback(
     async (packId: string) => {
       setCheckoutNotice(null);
@@ -838,6 +1011,161 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
             {en ? "Terms & license" : "이용약관·라이선스"}
           </a>
         </p>
+
+        <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
+          <div className="mb-1 flex items-center gap-2">
+            <Layers className="h-4 w-4 text-[#16702e]" />
+            <span className="text-xs font-bold text-neutral-700">
+              {en ? "Batch — many products at once" : "여러 상품 일괄 생성 (배치)"}
+            </span>
+          </div>
+          <p className="mb-3 text-[11px] leading-relaxed text-neutral-400">
+            {en
+              ? "Upload several product photos and get one lookbook shot per product with the selected AI star. 1 credit each."
+              : "상품 사진을 여러 장 올리면 선택한 AI 스타로 상품마다 룩북 1컷씩 한 번에 생성됩니다. 상품당 1크레딧."}
+          </p>
+
+          <div className="flex flex-wrap gap-2.5">
+            {batchProducts.map((url) => (
+              <div
+                className="relative h-20 w-16 overflow-hidden rounded-xl border border-black/10 bg-neutral-50"
+                key={url}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img alt="product" className="h-full w-full object-cover" src={url} />
+                {!isBatchRunning ? (
+                  <button
+                    aria-label="remove"
+                    className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-neutral-600"
+                    onClick={() => removeBatchProduct(url)}
+                    type="button"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                ) : null}
+              </div>
+            ))}
+            {batchProducts.length < BATCH_MAX ? (
+              <label
+                className="flex h-20 w-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-black/20 text-neutral-400 hover:border-[#44f26e] hover:text-[#16702e]"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  void handleBatchFiles(e.dataTransfer.files);
+                }}
+              >
+                {isBatchUploading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Upload className="h-5 w-5" />
+                )}
+                <span className="px-1 text-center text-[10px] font-bold">
+                  {en ? "Add" : "추가"}
+                </span>
+                <input
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  disabled={isBatchUploading || isBatchRunning}
+                  multiple
+                  onChange={(e) => {
+                    void handleBatchFiles(e.target.files);
+                    e.target.value = "";
+                  }}
+                  type="file"
+                />
+              </label>
+            ) : null}
+          </div>
+
+          <button
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#16702e] px-7 py-3 text-sm font-extrabold text-white transition hover:bg-[#0f5722] disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={
+              !selectedStarId ||
+              batchProducts.length === 0 ||
+              isBatchRunning ||
+              isBatchUploading
+            }
+            onClick={runBatch}
+            type="button"
+          >
+            {isBatchRunning ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {en ? "Generating batch…" : "일괄 생성 중…"}
+              </>
+            ) : (
+              <>
+                <Layers className="h-4 w-4" />
+                {en
+                  ? `Generate ${batchProducts.length} products · ${batchProducts.length} credits`
+                  : `${batchProducts.length}개 상품 생성 · ${batchProducts.length}크레딧`}
+              </>
+            )}
+          </button>
+
+          {batchJobs.length > 0 ? (
+            <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
+              {batchJobs.map((job) => (
+                <div
+                  className="overflow-hidden rounded-xl border border-black/10 bg-neutral-50"
+                  key={job.productUrl}
+                >
+                  <div className="relative aspect-[4/5]">
+                    {job.status === "done" && job.imageUrls[0] ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          alt="lookbook"
+                          className="h-full w-full object-cover"
+                          src={job.imageUrls[0]}
+                        />
+                        <a
+                          className="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-neutral-900/85 text-white"
+                          download
+                          href={job.imageUrls[0]}
+                          rel="noreferrer"
+                          target="_blank"
+                          title={en ? "Save" : "저장"}
+                        >
+                          <Download className="h-3 w-3" />
+                        </a>
+                      </>
+                    ) : (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          alt="product"
+                          className="h-full w-full object-cover opacity-30"
+                          src={job.productUrl}
+                        />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-[10px] font-bold text-neutral-500">
+                          {job.status === "failed" || job.status === "error" ? (
+                            <span className="text-rose-500">
+                              {en ? "Failed" : "실패"}
+                            </span>
+                          ) : (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin text-neutral-400" />
+                              <span>
+                                {job.status === "processing"
+                                  ? en
+                                    ? "Making…"
+                                    : "생성 중…"
+                                  : en
+                                    ? "Queued…"
+                                    : "대기 중…"}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
 
         {packs.length > 0 ? (
           <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
