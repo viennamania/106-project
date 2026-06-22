@@ -2630,10 +2630,12 @@ function CreatorJourneyEventPath({
 
           return (
             <div
+              aria-current={isActive ? "step" : undefined}
               className={joinClasses(
-                "min-w-0 rounded-lg border p-3",
+                "min-w-0 rounded-lg border p-3 transition",
                 isDone && "border-emerald-200 bg-emerald-50",
-                isActive && "border-zinc-950 bg-zinc-50",
+                isActive &&
+                  "border-black bg-black text-white shadow-[0_18px_38px_rgba(15,23,42,0.18)]",
                 !isDone && !isActive && "border-zinc-200 bg-white",
               )}
               key={step.eventType}
@@ -2664,13 +2666,28 @@ function CreatorJourneyEventPath({
                   {isDone ? labels.done : isActive ? labels.active : labels.next}
                 </span>
               </div>
-              <p className="mt-3 break-words text-sm font-semibold leading-5 text-[#12041f] [word-break:keep-all]">
+              <p
+                className={joinClasses(
+                  "mt-3 break-words text-sm font-semibold leading-5 [word-break:keep-all]",
+                  isActive ? "text-white" : "text-[#12041f]",
+                )}
+              >
                 {step.label}
               </p>
-              <p className="mt-1 line-clamp-2 text-xs font-medium leading-5 text-zinc-500 [word-break:keep-all]">
+              <p
+                className={joinClasses(
+                  "mt-1 line-clamp-2 text-xs font-medium leading-5 [word-break:keep-all]",
+                  isActive ? "text-white/62" : "text-zinc-500",
+                )}
+              >
                 {step.body}
               </p>
-              <p className="mt-3 break-words text-[0.62rem] font-semibold leading-4 text-zinc-500">
+              <p
+                className={joinClasses(
+                  "mt-3 break-words text-[0.62rem] font-semibold leading-4",
+                  isActive ? "text-white/42" : "text-zinc-500",
+                )}
+              >
                 {getCreatorJourneyReputationLabel(step.eventType, locale)}
               </p>
             </div>
