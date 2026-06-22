@@ -156,6 +156,7 @@ export async function POST(request: Request) {
     const usedStarId = body?.starId?.trim() ?? "";
 
     await recordSellerLookbookGeneration({
+      garmentImageUrls,
       imageUrls: images.map((image) => image.url),
       starId: usedStarId,
       workspaceId: workspace.workspaceId,
