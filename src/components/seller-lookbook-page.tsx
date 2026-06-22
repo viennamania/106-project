@@ -83,6 +83,7 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
   const [numImages, setNumImages] = useState(4);
   const [isUploading, setIsUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [jobStage, setJobStage] = useState<"queued" | "processing" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [images, setImages] = useState<LookbookImage[]>([]);
   const [packs, setPacks] = useState<CreditPack[]>([]);
@@ -291,6 +292,62 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
     );
   }, []);
 
+  const refreshBalance = useCallback(async (ws: Workspace) => {
+    try {
+      const res = await fetch(
+        `/api/seller/workspace?workspaceId=${encodeURIComponent(
+          ws.workspaceId,
+        )}&workspaceKey=${encodeURIComponent(ws.workspaceKey)}`,
+      );
+      const data = (await res.json().catch(() => null)) as
+        | { workspace?: { creditBalance?: number } }
+        | null;
+      if (res.ok && typeof data?.workspace?.creditBalance === "number") {
+        setCreditBalance(data.workspace.creditBalance);
+      }
+    } catch {
+      // best-effort
+    }
+  }, []);
+
+  type PolledJob = {
+    status: "queued" | "processing" | "done" | "failed";
+    error: string | null;
+    result: { imageUrls?: string[] } | null;
+  };
+
+  // Poll the async job until the Railway worker finishes it (~5 min cap).
+  const pollJob = useCallback(
+    async (ws: Workspace, jobId: string): Promise<PolledJob | null> => {
+      for (let i = 0; i < 100; i += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        const res = await fetch(
+          `/api/seller/lookbook/job?workspaceId=${encodeURIComponent(
+            ws.workspaceId,
+          )}&workspaceKey=${encodeURIComponent(
+            ws.workspaceKey,
+          )}&jobId=${encodeURIComponent(jobId)}`,
+        );
+        const data = (await res.json().catch(() => null)) as
+          | { job?: PolledJob }
+          | null;
+        const job = data?.job;
+        if (!job) continue;
+        if (job.status === "queued" || job.status === "processing") {
+          setJobStage(job.status);
+          continue;
+        }
+        return job;
+      }
+      return null; // timed out — job may still finish and land in history
+    },
+    [],
+  );
+
+  // Async path: enqueue a job (charges credits) and poll while the Railway
+  // worker runs the heavy generation off the user-facing request. The sync
+  // /api/seller/lookbook endpoint is kept as a fallback the operator can switch
+  // back to. Credits are auto-refunded if a job fails.
   const handleGenerate = useCallback(async () => {
     setError(null);
     if (!selectedStarId) {
@@ -302,10 +359,11 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
       return;
     }
     setIsSubmitting(true);
+    setJobStage("queued");
     setImages([]);
     try {
       const ws = await ensureWorkspace();
-      const res = await fetch("/api/seller/lookbook", {
+      const res = await fetch("/api/seller/lookbook/job", {
         body: JSON.stringify({
           aspectRatio,
           garmentImageUrls,
@@ -313,6 +371,7 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
           sceneBrief: sceneBrief.trim() || null,
           starId: selectedStarId,
           starImageIndex: selectedImageIndex,
+          type: "image",
           workspaceId: ws.workspaceId,
           workspaceKey: ws.workspaceKey,
         }),
@@ -320,19 +379,42 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
         method: "POST",
       });
       const data = (await res.json().catch(() => null)) as
-        | { images?: LookbookImage[]; error?: string; creditBalance?: number }
+        | { creditBalance?: number; job?: { jobId?: string }; error?: string }
         | null;
-      if (!res.ok || !data?.images) {
+      if (!res.ok || !data?.job?.jobId) {
         setError(data?.error ?? (en ? "Generation failed." : "생성에 실패했습니다."));
         return;
       }
-      setImages(data.images);
-      if (typeof data.creditBalance === "number") setCreditBalance(data.creditBalance);
+      if (typeof data.creditBalance === "number") {
+        setCreditBalance(data.creditBalance);
+      }
+
+      const finalJob = await pollJob(ws, data.job.jobId);
+      if (!finalJob) {
+        setError(
+          en
+            ? "Still processing — check 'My lookbooks' in a moment."
+            : "생성이 지연되고 있습니다. 잠시 후 '내 룩북'에서 확인해 주세요.",
+        );
+        return;
+      }
+      if (finalJob.status === "failed") {
+        setError(
+          finalJob.error ?? (en ? "Generation failed." : "생성에 실패했습니다."),
+        );
+        await refreshBalance(ws); // credits were auto-refunded
+        return;
+      }
+      const urls = finalJob.result?.imageUrls ?? [];
+      setImages(
+        urls.map((url) => ({ contentType: "image/png", pathname: url, url })),
+      );
       void loadHistory(ws);
     } catch (e) {
       setError(e instanceof Error ? e.message : "생성 실패");
     } finally {
       setIsSubmitting(false);
+      setJobStage(null);
     }
   }, [
     aspectRatio,
@@ -341,6 +423,8 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
     garmentImageUrls,
     loadHistory,
     numImages,
+    pollJob,
+    refreshBalance,
     sceneBrief,
     selectedImageIndex,
     selectedStarId,
@@ -726,7 +810,13 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                {en ? "Generating…" : "생성 중…"}
+                {jobStage === "queued"
+                  ? en
+                    ? "Queued…"
+                    : "대기 중…"
+                  : en
+                    ? "Generating…"
+                    : "생성 중…"}
               </>
             ) : (
               <>
