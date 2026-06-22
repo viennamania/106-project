@@ -60,22 +60,22 @@ function getCopy(locale: Locale) {
   if (isKorean(locale)) {
     return {
       back: "FanLetter 홈",
-      creatorUnlock: "Creator 권한 활성화",
+      creatorUnlock: "크리에이터 권한 활성화",
       emptyShare:
         "이 AI 스타의 추천 링크는 파운더 상태 확인 후 생성됩니다.",
       heroBody:
         "내가 운영하는 AI 스타와 참여 중인 파운더 네트워크를 분리해서 확인하고 다음 행동을 선택하세요.",
-      heroEyebrow: "Founder Club",
+      heroEyebrow: "파운더 클럽",
       heroTitle: "내 FanLetter 포트폴리오",
       liveLabel: "라이브 데이터",
       mockLabel: "예시 데이터",
       mockLaunchBody:
-        "Creator Unlock에서 만든 mock AI 스타 draft가 이 브라우저 포트폴리오에 반영되었습니다.",
-      mockLaunchTitle: "Mock AI 스타 draft 반영됨",
+        "크리에이터 여정에서 만든 AI 스타 초안이 이 브라우저 포트폴리오에 반영되었습니다.",
+      mockLaunchTitle: "AI 스타 초안 반영됨",
       mockMembershipBody:
-        "이 브라우저에서 저장된 Founder 참여 내역입니다. 실제 결제/DB 반영 전까지 v2.0 흐름을 미리 확인합니다.",
+        "이 브라우저에서 저장된 파운더 참여 내역입니다. 실제 결제/DB 반영 전까지 v2.0 흐름을 미리 확인합니다.",
       mockMembershipCta: "유니버스 보기",
-      mockMembershipTitle: "Mock Founder 참여 반영됨",
+      mockMembershipTitle: "파운더 참여 미리보기 반영됨",
       myAiEntry: {
         body:
           "하단 내 AI에서 들어온 운영 화면입니다. TikTok, 콘텐츠, 평판 기록 상태를 먼저 확인하세요.",
@@ -125,13 +125,13 @@ function getCopy(locale: Locale) {
             ? "운영 AI 스타 보기"
             : hasRoles
               ? "추천 링크 공유하기"
-              : "Founder 참여할 AI 스타 선택",
-        secondaryCta: "Creator Journey 보기",
+              : "참여할 AI 스타 선택",
+        secondaryCta: "크리에이터 여정 보기",
       },
       viewTabs: {
-        creator: "Creator 관계",
+        creator: "운영 관계",
         creatorHint: "운영 AI 스타",
-        founder: "Founder 관계",
+        founder: "참여 관계",
         founderHint: "참여 네트워크",
         label: "관계 보기",
       },
@@ -485,7 +485,9 @@ function MockFounderMembershipSummary({
                   {referralCode}
                 </span>
                 <span className="mt-2 inline-flex rounded-full bg-emerald-50 px-2 py-1 text-[0.62rem] font-semibold text-emerald-800">
-                  CP +100 · Influence +5 · Creator +2%
+                  {locale === "ko"
+                    ? "CP +100 · 영향력 +5 · 크리에이터 +2%"
+                    : "CP +100 · Influence +5 · Creator +2%"}
                 </span>
               </span>
               <span className="inline-flex h-9 shrink-0 items-center gap-1 rounded-full bg-emerald-700 px-3 text-xs font-semibold text-white">
