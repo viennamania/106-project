@@ -883,6 +883,28 @@ function AgentRankLedgerContextAssetCard({
   const packetPercent = formatPercent(packetReadyEvents, totalEvents, locale);
   const graphScope =
     filters.starId ?? (isKo ? "전체 AI 스타" : "All AI Stars");
+  const contextProofItems = [
+    {
+      label: isKo ? "축적 자산" : "Context asset",
+      value: `${formatNumber(totalEvents, locale)}${
+        isKo ? "개 기록" : " records"
+      } · ${graphScope}`,
+    },
+    {
+      label: isKo ? "그래프 강화" : "Graph strength",
+      value: `${formatNumber(feed.summary.uniqueMembers, locale)} ${
+        isKo ? "멤버" : "members"
+      } · ${formatNumber(feed.summary.uniqueStars, locale)} AI Stars`,
+    },
+    {
+      label: isKo ? "복제 난이도" : "Context moat",
+      value: `${formatNumber(feed.summary.networkEdges, locale)} ${
+        isKo ? "관계" : "edges"
+      } · ${formatNumber(auditReadyEvents, locale)} ${
+        isKo ? "감사 준비" : "audit-ready"
+      }`,
+    },
+  ];
   const flowSteps = [
     {
       icon: Sparkles,
@@ -986,30 +1008,16 @@ function AgentRankLedgerContextAssetCard({
         </div>
 
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
-          <div className="rounded-xl border border-zinc-200 bg-white p-3">
-            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
-              {isKo ? "그래프 범위" : "Graph scope"}
-            </p>
-            <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
-              {graphScope}
-            </p>
-          </div>
-          <div className="rounded-xl border border-zinc-200 bg-white p-3">
-            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
-              {isKo ? "감사 준비" : "Audit-ready"}
-            </p>
-            <p className="mt-1 text-sm font-semibold text-zinc-950">
-              {formatNumber(auditReadyEvents, locale)}
-            </p>
-          </div>
-          <div className="rounded-xl border border-zinc-200 bg-white p-3">
-            <p className="text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
-              {isKo ? "Context Moat" : "Context moat"}
-            </p>
-            <p className="mt-1 truncate text-sm font-semibold text-zinc-950">
-              {isKo ? "누적 행동/관계 증거" : "Accumulated action graph"}
-            </p>
-          </div>
+          {contextProofItems.map((item) => (
+            <div className="min-w-0 rounded-xl border border-zinc-200 bg-white p-3" key={item.label}>
+              <p className="truncate text-[0.66rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+                {item.label}
+              </p>
+              <p className="mt-1 break-words text-sm font-semibold leading-tight text-zinc-950 [word-break:keep-all]">
+                {item.value}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -1712,6 +1720,27 @@ function EventCard({
     : copy.packetPartial;
   const nextActionLabel = getLedgerEventNextActionLabel(event, locale);
   const isOpsView = view === "ops";
+  const isKo = locale === "ko";
+  const eventContextProofItems = [
+    {
+      label: isKo ? "축적 자산" : "Context asset",
+      value: `${isCoverageMock ? copy.coverageMock : copy.productEvent} · ${getEventTypeLabel(
+        event.type,
+        locale,
+      )}`,
+    },
+    {
+      label: isKo ? "그래프 강화" : "Graph strength",
+      value: `${getActorLabel(event.actor)} → ${getObjectLabel(event)}`,
+    },
+    {
+      label: isKo ? "복제 난이도" : "Context moat",
+      value:
+        audit.status === "audit_ready"
+          ? `${copy.schemaReady} · ${getAuditStatusLabel(audit.status, locale)}`
+          : `${copy.needs} · ${nextActionLabel}`,
+    },
+  ];
 
   if (event.starId) {
     detailParams.set("starId", event.starId);
@@ -1781,6 +1810,22 @@ function EventCard({
             {event.context.source ?? event.source}
           </span>
         </div>
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-3">
+        {eventContextProofItems.map((item) => (
+          <div
+            className="min-w-0 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5"
+            key={item.label}
+          >
+            <p className="truncate text-[0.62rem] font-semibold uppercase tracking-[0.1em] text-zinc-500">
+              {item.label}
+            </p>
+            <p className="mt-1 break-words text-xs font-semibold leading-5 text-zinc-950 [word-break:keep-all]">
+              {item.value}
+            </p>
+          </div>
+        ))}
       </div>
 
       <div className="mt-4 grid gap-2 sm:hidden">
