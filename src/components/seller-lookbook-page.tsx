@@ -49,6 +49,10 @@ const SCENE_PRESETS = [
 const FIELD =
   "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-[#44f26e]";
 
+// Video requires a FAL_KEY with reference-to-video access + an accessible model.
+// Operator enables it via NEXT_PUBLIC_SELLER_VIDEO_ENABLED=1 once configured.
+const VIDEO_ENABLED = process.env.NEXT_PUBLIC_SELLER_VIDEO_ENABLED === "1";
+
 function readWorkspace(): Workspace | null {
   if (typeof window === "undefined") return null;
   try {
@@ -653,7 +657,7 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
                         <Download className="h-3.5 w-3.5" />
                         {en ? "Save" : "저장"}
                       </a>
-                      {videos[image.url] ? (
+                      {!VIDEO_ENABLED ? null : videos[image.url] ? (
                         <a
                           className="mt-1 flex items-center justify-center gap-1.5 rounded-lg bg-[#16702e] px-2 py-1.5 text-xs font-bold text-white"
                           download
