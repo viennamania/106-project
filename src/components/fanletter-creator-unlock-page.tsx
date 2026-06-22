@@ -2482,23 +2482,23 @@ function CreatorNextActionStatusCard({
           ))}
         </div>
 
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {[
-            { label: labels.current, value: currentValue },
-            { label: labels.target, value: targetValue },
-          ].map((item) => (
+        <div className="mt-3 rounded-lg border border-zinc-200 bg-white px-3 py-2.5">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 text-xs font-semibold text-zinc-500">
+            <span className="min-w-0 break-words [word-break:keep-all]">
+              {labels.current}:{" "}
+              <strong className="font-semibold text-zinc-950">{currentValue}</strong>
+            </span>
+            <span className="min-w-0 break-words [word-break:keep-all]">
+              {labels.target}:{" "}
+              <strong className="font-semibold text-zinc-950">{targetValue}</strong>
+            </span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-zinc-100">
             <div
-              className="min-w-0 rounded-lg border border-zinc-200 bg-white px-3 py-2"
-              key={item.label}
-            >
-              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.08em] text-zinc-500">
-                {item.label}
-              </p>
-              <p className="mt-1 break-words text-sm font-semibold text-zinc-950">
-                {item.value}
-              </p>
-            </div>
-          ))}
+              className="h-full rounded-full bg-black"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
         </div>
       </div>
 
