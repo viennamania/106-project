@@ -270,6 +270,10 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [royaltyTotal, setRoyaltyTotal] = useState<number | null>(null);
   const [optInBusy, setOptInBusy] = useState(false);
   const [feedOptInBusy, setFeedOptInBusy] = useState(false);
+  const [feedRequests, setFeedRequests] = useState<
+    { publicationId: string; contentId: string; imageUrl: string }[]
+  >([]);
+  const [feedReqBusy, setFeedReqBusy] = useState<string | null>(null);
 
   useEffect(() => {
     if (!accountAddress || !email) {
@@ -366,6 +370,74 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
       setFeedOptInBusy(false);
     }
   }, [accountAddress, email, feedPublishOptIn]);
+
+  useEffect(() => {
+    if (!accountAddress || !email || !feedPublishOptIn) {
+      setFeedRequests([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const response = await fetch(
+          `/api/fanletter/lookbook/feed-requests?email=${encodeURIComponent(
+            email,
+          )}&walletAddress=${encodeURIComponent(accountAddress)}`,
+        );
+        const data = (await response.json().catch(() => null)) as
+          | {
+              requests?: {
+                publicationId: string;
+                contentId: string;
+                imageUrl: string;
+              }[];
+            }
+          | null;
+        if (!cancelled && response.ok && Array.isArray(data?.requests)) {
+          setFeedRequests(data.requests);
+        }
+      } catch {
+        // best-effort
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accountAddress, email, feedPublishOptIn]);
+
+  const moderateFeedRequest = useCallback(
+    async (contentId: string, action: "approve" | "reject") => {
+      if (!accountAddress || !email) {
+        return;
+      }
+      setFeedReqBusy(contentId);
+      try {
+        const response = await fetch("/api/fanletter/lookbook/feed-requests", {
+          body: JSON.stringify({
+            action,
+            contentId,
+            email,
+            walletAddress: accountAddress,
+          }),
+          headers: { "Content-Type": "application/json" },
+          method: "POST",
+        });
+        if (response.ok) {
+          setFeedRequests((prev) =>
+            prev.filter((item) => item.contentId !== contentId),
+          );
+        }
+      } catch {
+        // best-effort
+      } finally {
+        setFeedReqBusy(null);
+      }
+    },
+    [accountAddress, email],
+  );
 
   useEffect(() => {
     if (!accountAddress || !email) {
@@ -831,6 +903,58 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
               }`}
             />
           </button>
+        </div>
+      ) : null}
+
+      {accountAddress &&
+      referralCode &&
+      feedPublishOptIn &&
+      feedRequests.length > 0 ? (
+        <div className="mb-5 rounded-2xl border border-black/10 bg-white/80 p-4 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
+          <p className="mb-1 text-sm font-extrabold text-neutral-900">
+            {locale === "en" ? "Seller feed requests" : "셀러 피드 게시 요청"}
+          </p>
+          <p className="mb-3 text-xs text-neutral-500">
+            {locale === "en"
+              ? "Approve to publish to your feed (labeled as ad), or reject."
+              : "승인하면 내 피드에 '[광고]' 표시로 게시되고, 거절하면 게시되지 않습니다."}
+          </p>
+          <div className="space-y-2">
+            {feedRequests.map((req) => (
+              <div
+                className="flex items-center gap-3 rounded-xl border border-black/10 bg-white p-2"
+                key={req.publicationId}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  alt="lookbook"
+                  className="h-14 w-11 rounded-lg border border-black/10 object-cover"
+                  src={req.imageUrl}
+                />
+                <div className="flex-1" />
+                <button
+                  className="rounded-lg bg-[#16702e] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-50"
+                  disabled={feedReqBusy !== null}
+                  onClick={() => moderateFeedRequest(req.contentId, "approve")}
+                  type="button"
+                >
+                  {feedReqBusy === req.contentId
+                    ? "…"
+                    : locale === "en"
+                      ? "Approve"
+                      : "승인"}
+                </button>
+                <button
+                  className="rounded-lg border border-black/15 px-3 py-1.5 text-xs font-bold text-neutral-600 disabled:opacity-50"
+                  disabled={feedReqBusy !== null}
+                  onClick={() => moderateFeedRequest(req.contentId, "reject")}
+                  type="button"
+                >
+                  {locale === "en" ? "Reject" : "거절"}
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
       ) : null}
 
