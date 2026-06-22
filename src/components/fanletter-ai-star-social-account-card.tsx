@@ -167,6 +167,9 @@ function getCopy(locale: Locale) {
         "현재는 미리보기 영상 목록으로 평판 기록 흐름을 확인합니다. 실제 TikTok video.list 권한 승인 후 같은 UI에 최근 영상을 표시합니다.",
       syncApiSaving: "동기화 중",
       syncApiTitle: "최근 TikTok 영상",
+      syncContextPacketBody:
+        "최근 영상 성과가 AI 스타 콘텐츠 Context로 저장되고 AgentRank 평판 기록으로 이어집니다.",
+      syncContextPacketTitle: "콘텐츠 Context 패킷",
       syncResult: "평판 기록 생성됨",
       syncResultMetrics: "영상 {videos}개 · 조회 {views} · 좋아요 {likes}",
       syncVideoComments: "댓글",
@@ -332,6 +335,9 @@ function getCopy(locale: Locale) {
         "現在はmock動画一覧で評判記録フローを確認します。TikTok video.list scope承認後は同じUIに最近の動画を表示します。",
       syncApiSaving: "同期中",
       syncApiTitle: "最近のTikTok動画",
+      syncContextPacketBody:
+        "最近の動画成果がAIスターのコンテンツContextとして保存され、AgentRank評判記録につながります。",
+      syncContextPacketTitle: "コンテンツContext Packet",
       syncResult: "評判記録作成済み",
       syncResultMetrics: "動画{videos}本 · 再生{views} · いいね{likes}",
       syncVideoComments: "コメント",
@@ -498,6 +504,9 @@ function getCopy(locale: Locale) {
       "This currently uses a mock video list to test the Reputation Record flow. After TikTok video.list scope approval, the same UI can show recent live videos.",
     syncApiSaving: "Syncing",
     syncApiTitle: "Recent TikTok Videos",
+    syncContextPacketBody:
+      "Recent video performance is stored as AI Star content context and becomes an AgentRank Reputation Record.",
+    syncContextPacketTitle: "Content Context Packet",
     syncResult: "Reputation Record Created",
     syncResultMetrics: "{videos} videos · {views} views · {likes} likes",
     syncVideoComments: "comments",
@@ -1672,28 +1681,57 @@ export function FanletterAIStarSocialAccountCard({
                   {copy.syncApiHelper}
                 </p>
                 {syncSnapshot ? (
-                  <p className="mt-2 text-xs font-semibold text-emerald-700">
-                    {copy.syncResult} ·{" "}
-                    {copy.syncResultMetrics
-                      .replace(
-                        "{videos}",
-                        new Intl.NumberFormat().format(
-                          syncSnapshot.totals.videos,
-                        ),
-                      )
-                      .replace(
-                        "{views}",
-                        new Intl.NumberFormat().format(
-                          syncSnapshot.totals.views,
-                        ),
-                      )
-                      .replace(
-                        "{likes}",
-                        new Intl.NumberFormat().format(
-                          syncSnapshot.totals.likes,
-                        ),
-                      )}
-                  </p>
+                  <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-emerald-950">
+                          {copy.syncContextPacketTitle}
+                        </p>
+                        <p className="mt-1 text-xs font-medium leading-5 text-emerald-800 [word-break:keep-all]">
+                          {copy.syncContextPacketBody}
+                        </p>
+                      </div>
+                      <span className="inline-flex min-h-7 shrink-0 items-center rounded-full bg-emerald-950 px-2.5 text-[0.68rem] font-semibold text-white">
+                        {copy.syncResult}
+                      </span>
+                    </div>
+                    <p className="mt-2 text-xs font-semibold text-emerald-700">
+                      {copy.syncResultMetrics
+                        .replace(
+                          "{videos}",
+                          new Intl.NumberFormat().format(
+                            syncSnapshot.totals.videos,
+                          ),
+                        )
+                        .replace(
+                          "{views}",
+                          new Intl.NumberFormat().format(
+                            syncSnapshot.totals.views,
+                          ),
+                        )
+                        .replace(
+                          "{likes}",
+                          new Intl.NumberFormat().format(
+                            syncSnapshot.totals.likes,
+                          ),
+                        )}
+                    </p>
+                    <div className="mt-3 grid min-w-0 gap-1.5 sm:grid-cols-3">
+                      {syncContextProofItems.map((item) => (
+                        <div
+                          className="min-w-0 rounded-lg border border-emerald-200 bg-white/70 px-2.5 py-2"
+                          key={item.label}
+                        >
+                          <p className="truncate text-[0.6rem] font-semibold uppercase tracking-[0.08em] text-emerald-700/64">
+                            {item.label}
+                          </p>
+                          <p className="mt-1 break-words text-xs font-semibold leading-4 text-emerald-950 [word-break:keep-all]">
+                            {item.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 ) : null}
                 {syncError ? (
                   <p className="mt-2 text-xs font-semibold text-rose-700">
