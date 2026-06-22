@@ -9,7 +9,10 @@ import {
   refundSellerCredits,
 } from "@/lib/seller-workspace";
 import { awardStarModelRoyalty, resolveSellerStarImage } from "@/lib/seller-stars";
-import { clampLookbookImageCount } from "@/lib/star-lookbook-pricing";
+import {
+  clampLookbookImageCount,
+  isLookbookBlobUrl,
+} from "@/lib/star-lookbook-pricing";
 import {
   generateStarLookbook,
   type StarLookbookAspectRatio,
@@ -101,6 +104,12 @@ export async function POST(request: Request) {
 
   if (garmentImageUrls.length === 0) {
     return jsonError("At least one garment image URL is required.", 400);
+  }
+
+  // Garment images are fetched server-side, so only allow our own Blob store
+  // (the upload route returns these) — prevents SSRF via arbitrary URLs.
+  if (!garmentImageUrls.every(isLookbookBlobUrl)) {
+    return jsonError("옷 이미지는 업로드한 이미지여야 합니다.", 400);
   }
 
   const numImages = clampLookbookImageCount(

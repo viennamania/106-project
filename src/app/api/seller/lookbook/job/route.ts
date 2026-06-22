@@ -7,6 +7,7 @@ import {
 } from "@/lib/seller-jobs";
 import {
   clampLookbookImageCount,
+  isLookbookBlobUrl,
   LOOKBOOK_VIDEO_CREDITS,
 } from "@/lib/star-lookbook-pricing";
 import {
@@ -15,8 +16,6 @@ import {
 } from "@/lib/seller-workspace";
 
 export const runtime = "nodejs";
-
-const BLOB_HOST = "t0gqytzvlsa2lapo.public.blob.vercel-storage.com";
 
 type JobRequest = {
   workspaceId?: string | null;
@@ -39,14 +38,6 @@ function toStringArray(value: unknown): string[] {
   return Array.isArray(value)
     ? value.filter((item): item is string => typeof item === "string")
     : [];
-}
-
-function isBlobUrl(value: string) {
-  try {
-    return new URL(value).hostname === BLOB_HOST;
-  } catch {
-    return false;
-  }
 }
 
 export async function GET(request: Request) {
@@ -123,7 +114,7 @@ export async function POST(request: Request) {
 
   if (type === "video") {
     const imageUrl = body?.imageUrl?.trim() ?? "";
-    if (!imageUrl || !isBlobUrl(imageUrl)) {
+    if (!imageUrl || !isLookbookBlobUrl(imageUrl)) {
       return jsonError("A generated lookbook image is required.", 400);
     }
     cost = LOOKBOOK_VIDEO_CREDITS;
@@ -139,6 +130,10 @@ export async function POST(request: Request) {
     }
     if (garmentImageUrls.length === 0) {
       return jsonError("At least one garment image is required.", 400);
+    }
+    // Garment images are fetched server-side — only allow our Blob store (SSRF).
+    if (!garmentImageUrls.every(isLookbookBlobUrl)) {
+      return jsonError("옷 이미지는 업로드한 이미지여야 합니다.", 400);
     }
 
     const numImages = clampLookbookImageCount(
