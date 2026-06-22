@@ -124,11 +124,11 @@ function getCopy(locale: Locale) {
         "서버 토큰 저장·갱신·폐기 준비",
       ],
       oauthReadinessChecking: "OAuth 상태 확인 중",
-      oauthReadinessBlocked: "실제 OAuth 대기 중",
+      oauthReadinessBlocked: "TikTok 승인 대기 중",
       oauthReadinessCriteriaUnit: "개 조건 대기",
       oauthReadinessNote:
         "준비 완료 상태에서는 TikTok 승인 버튼으로 실제 AI 스타 채널 연결을 테스트합니다.",
-      oauthReadinessPreview: "서버 OAuth start/callback route는 preview 상태로 준비됨",
+      oauthReadinessPreview: "서버 승인 시작/콜백 경로는 미리보기 상태로 준비됨",
       oauthReadinessReady: "TikTok 승인 테스트 가능",
       oauthReadinessTitle: "TikTok 실제 연결 테스트",
       oauthRequestClientKey: "요청 client key",
@@ -178,12 +178,12 @@ function getCopy(locale: Locale) {
         {
           detail: "TikTok 채널 연결 기록 생성",
           label: "계정 연결",
-          status: "실제 OAuth",
+          status: "실제 승인",
         },
         {
           detail: "성과 동기화 테스트 기록 생성",
           label: "성과 동기화",
-          status: "mock",
+          status: "미리보기",
         },
         {
           detail: "Content Posting API 게시물만 webhook/status 수신",

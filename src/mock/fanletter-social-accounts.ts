@@ -260,7 +260,7 @@ export function getFanletterAIStarSocialStatusLabel({
       ? "검증됨"
       : status === "pending"
         ? "검토 중"
-        : "mock 연결됨";
+        : "미리보기 연결됨";
   }
 
   if (locale === "ja") {

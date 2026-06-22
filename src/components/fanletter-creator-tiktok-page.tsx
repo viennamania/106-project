@@ -80,7 +80,7 @@ function getCopy(locale: Locale) {
       signInTitle: "계정 연결 필요",
       starList: "연결 대상 AI 스타",
       status: "현재 상태",
-      statusReady: "실제 OAuth 테스트 준비",
+      statusReady: "TikTok 승인 테스트 준비",
       statusWaiting: "TikTok 연결 필요",
     };
   }
