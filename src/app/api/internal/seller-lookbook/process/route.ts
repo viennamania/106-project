@@ -96,6 +96,7 @@ export async function POST(request: Request) {
       await completeSellerJob(job.jobId, { imageUrls });
 
       await recordSellerLookbookGeneration({
+        garmentImageUrls: job.input.garmentImageUrls ?? [],
         imageUrls,
         starId,
         workspaceId: job.workspaceId,

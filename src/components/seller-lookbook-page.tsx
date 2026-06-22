@@ -30,6 +30,7 @@ type SellerStar = { id: string; name: string; images: string[] };
 type SellerGeneration = {
   generationId: string;
   starId: string;
+  garmentImageUrls?: string[];
   imageUrls: string[];
   createdAt: string;
 };
@@ -1063,7 +1064,29 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
                 ))}
               </div>
             ) : images.length > 0 ? (
-              <div className="grid grid-cols-2 gap-3">
+              <>
+                {garmentImageUrls.length > 0 ? (
+                  <div className="mb-3 rounded-xl border border-black/10 bg-neutral-50/60 p-2.5">
+                    <span className="mb-1.5 block text-[11px] font-bold text-neutral-400">
+                      {en
+                        ? "Your garment (color/print/logo preserved)"
+                        : "원본 옷 (색·프린트·로고 보존)"}
+                    </span>
+                    <div className="flex flex-wrap gap-2">
+                      {garmentImageUrls.map((url) => (
+                        <span className="block" key={url}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            alt="garment"
+                            className="h-12 w-10 rounded-md border border-black/10 object-cover"
+                            src={url}
+                          />
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                <div className="grid grid-cols-2 gap-3">
                 {images.map((image) => (
                   <figure className="overflow-hidden rounded-xl border border-black/10 bg-neutral-50" key={image.pathname}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1109,7 +1132,8 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
                     </figcaption>
                   </figure>
                 ))}
-              </div>
+                </div>
+              </>
             ) : (
               <div className="flex aspect-[4/5] max-h-80 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-black/15 text-center">
                 <Shirt className="h-8 w-8 text-neutral-300" />
@@ -1432,6 +1456,23 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
                   <div className="mb-1.5 text-[11px] text-neutral-400">
                     {new Date(gen.createdAt).toLocaleString()}
                   </div>
+                  {gen.garmentImageUrls && gen.garmentImageUrls.length > 0 ? (
+                    <div className="mb-1.5 flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-neutral-400">
+                        {en ? "Garment" : "원본"}
+                      </span>
+                      {gen.garmentImageUrls.map((url) => (
+                        <span className="block" key={url}>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            alt="garment"
+                            className="h-10 w-8 rounded border border-black/10 object-cover"
+                            src={url}
+                          />
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
                   <div className="flex flex-wrap gap-2">
                     {gen.imageUrls.map((url, index) => (
                       <a

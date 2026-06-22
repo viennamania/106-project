@@ -54,6 +54,7 @@ type SellerLookbookGenerationDocument = {
   generationId: string;
   workspaceId: string;
   starId: string;
+  garmentImageUrls: string[];
   imageUrls: string[];
   imageCount: number;
   license: string;
@@ -140,6 +141,7 @@ async function getGenerationsCollection() {
 export type SellerGenerationPublic = {
   generationId: string;
   starId: string;
+  garmentImageUrls: string[];
   imageUrls: string[];
   createdAt: string;
 };
@@ -158,6 +160,7 @@ export async function getSellerGenerations(
 
   return docs.map((doc) => ({
     createdAt: doc.createdAt.toISOString(),
+    garmentImageUrls: doc.garmentImageUrls ?? [],
     generationId: doc.generationId,
     imageUrls: doc.imageUrls,
     starId: doc.starId,
@@ -169,10 +172,12 @@ export async function getSellerGenerations(
  * the caller should not fail the response if this throws.
  */
 export async function recordSellerLookbookGeneration({
+  garmentImageUrls,
   imageUrls,
   starId,
   workspaceId,
 }: {
+  garmentImageUrls?: string[];
   imageUrls: string[];
   starId: string;
   workspaceId: string;
@@ -181,6 +186,7 @@ export async function recordSellerLookbookGeneration({
     const collection = await getGenerationsCollection();
     await collection.insertOne({
       createdAt: new Date(),
+      garmentImageUrls: garmentImageUrls ?? [],
       generationId: randomUUID(),
       imageCount: imageUrls.length,
       imageUrls,
