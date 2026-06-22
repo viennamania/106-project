@@ -7,7 +7,10 @@ import {
   INSUFFICIENT_POINTS_ERROR,
   refundLookbookPoints,
 } from "@/lib/star-lookbook-billing";
-import { clampLookbookImageCount } from "@/lib/star-lookbook-pricing";
+import {
+  clampLookbookImageCount,
+  isLookbookBlobUrl,
+} from "@/lib/star-lookbook-pricing";
 import {
   generateStarLookbook,
   type StarLookbookAspectRatio,
@@ -94,12 +97,22 @@ export async function POST(request: Request) {
     return jsonError("starAvatarUrl is required.", 400);
   }
 
+  // starAvatarUrl + garment images are fetched server-side, so restrict them to
+  // our own Blob store (uploads/avatars live there) to prevent SSRF.
+  if (!isLookbookBlobUrl(starAvatarUrl)) {
+    return jsonError("starAvatarUrl must be an uploaded image.", 400);
+  }
+
   const garmentImageUrls = toStringArray(body?.garmentImageUrls)
     .map((url) => url.trim())
     .filter(Boolean);
 
   if (garmentImageUrls.length === 0) {
     return jsonError("At least one garment image URL is required.", 400);
+  }
+
+  if (!garmentImageUrls.every(isLookbookBlobUrl)) {
+    return jsonError("Garment images must be uploaded images.", 400);
   }
 
   const authorization = await validateMemberWalletOwner({ email, walletAddress });
