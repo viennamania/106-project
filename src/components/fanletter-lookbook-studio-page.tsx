@@ -265,6 +265,68 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [isPublishing, setIsPublishing] = useState(false);
   const [published, setPublished] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
+  const [modelOptIn, setModelOptIn] = useState<boolean | null>(null);
+  const [optInBusy, setOptInBusy] = useState(false);
+
+  useEffect(() => {
+    if (!accountAddress || !email) {
+      setModelOptIn(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const response = await fetch(
+          `/api/fanletter/lookbook/opt-in?email=${encodeURIComponent(
+            email,
+          )}&walletAddress=${encodeURIComponent(accountAddress)}`,
+        );
+        const data = (await response.json().catch(() => null)) as
+          | { optIn?: boolean }
+          | null;
+
+        if (!cancelled && response.ok && typeof data?.optIn === "boolean") {
+          setModelOptIn(data.optIn);
+        }
+      } catch {
+        // best-effort
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accountAddress, email]);
+
+  const toggleModelOptIn = useCallback(async () => {
+    if (!accountAddress || !email) {
+      return;
+    }
+
+    setOptInBusy(true);
+    const next = !(modelOptIn ?? false);
+
+    try {
+      const response = await fetch("/api/fanletter/lookbook/opt-in", {
+        body: JSON.stringify({ email, optIn: next, walletAddress: accountAddress }),
+        headers: { "Content-Type": "application/json" },
+        method: "POST",
+      });
+      const data = (await response.json().catch(() => null)) as
+        | { optIn?: boolean }
+        | null;
+
+      if (response.ok && typeof data?.optIn === "boolean") {
+        setModelOptIn(data.optIn);
+      }
+    } catch {
+      // best-effort
+    } finally {
+      setOptInBusy(false);
+    }
+  }, [accountAddress, email, modelOptIn]);
 
   useEffect(() => {
     if (!accountAddress || !email) {
@@ -660,6 +722,38 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
         <p className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
           {gate}
         </p>
+      ) : null}
+
+      {accountAddress && referralCode ? (
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3.5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
+          <div>
+            <p className="text-sm font-extrabold text-neutral-900">
+              {locale === "en"
+                ? "Offer my AI star as a seller model"
+                : "내 AI 스타를 셀러 룩북 모델로 제공"}
+            </p>
+            <p className="mt-0.5 text-xs text-neutral-500">
+              {locale === "en"
+                ? "Sellers can dress my star in their products. I earn royalty points per shot."
+                : "셀러가 내 스타에 옷을 입혀 룩북을 만들 수 있고, 사용될 때마다 로열티 포인트를 받습니다."}
+            </p>
+          </div>
+          <button
+            aria-pressed={Boolean(modelOptIn)}
+            className={`relative h-7 w-12 shrink-0 rounded-full transition disabled:opacity-50 ${
+              modelOptIn ? "bg-[#44f26e]" : "bg-neutral-300"
+            }`}
+            disabled={optInBusy || modelOptIn === null}
+            onClick={toggleModelOptIn}
+            type="button"
+          >
+            <span
+              className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all ${
+                modelOptIn ? "left-[1.375rem]" : "left-0.5"
+              }`}
+            />
+          </button>
+        </div>
       ) : null}
 
       <div className="grid gap-5 lg:grid-cols-2">

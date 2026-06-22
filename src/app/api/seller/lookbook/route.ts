@@ -8,7 +8,7 @@ import {
   recordSellerLookbookGeneration,
   refundSellerCredits,
 } from "@/lib/seller-workspace";
-import { resolveSellerStarImage } from "@/lib/seller-stars";
+import { awardStarModelRoyalty, resolveSellerStarImage } from "@/lib/seller-stars";
 import { clampLookbookImageCount } from "@/lib/star-lookbook-pricing";
 import {
   generateStarLookbook,
@@ -144,10 +144,19 @@ export async function POST(request: Request) {
       starName: body?.modelName ?? null,
     });
 
+    const usedStarId = body?.starId?.trim() ?? "";
+
     await recordSellerLookbookGeneration({
       imageUrls: images.map((image) => image.url),
-      starId: body?.starId?.trim() ?? "",
+      starId: usedStarId,
       workspaceId: workspace.workspaceId,
+    });
+
+    // Credit the AI star's owner with model royalty points.
+    await awardStarModelRoyalty({
+      shots: numImages,
+      sourceId,
+      starId: usedStarId,
     });
 
     const updated = await getSellerWorkspacePublic(workspace.workspaceId);
