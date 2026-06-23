@@ -1096,6 +1096,130 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
         </p>
       ) : null}
 
+      {!accountAddress ? (
+        <div className="mb-6 space-y-5">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {[
+              {
+                desc:
+                  locale === "en"
+                    ? "Drag in your product photos — color, print and logos are kept."
+                    : "상품 사진을 올리세요. 색·프린트·로고가 그대로 보존됩니다.",
+                icon: Upload,
+                step: "1",
+                title: locale === "en" ? "Upload garments" : "옷 사진 업로드",
+              },
+              {
+                desc:
+                  locale === "en"
+                    ? "The model is always a fanletter AI star — no real people."
+                    : "모델은 항상 fanletter AI 스타입니다. 실제 인물 아님.",
+                icon: Sparkles,
+                step: "2",
+                title: locale === "en" ? "Pick an AI star" : "AI 스타·배경 선택",
+              },
+              {
+                desc:
+                  locale === "en"
+                    ? "Get a Korean shop lookbook in about a minute, ready to download."
+                    : "1분 안에 한국형 쇼핑몰 룩북이 나옵니다. 바로 다운로드.",
+                icon: Download,
+                step: "3",
+                title:
+                  locale === "en" ? "Generate & download" : "룩북 생성·다운로드",
+              },
+            ].map(({ desc, icon: Icon, step, title }) => (
+              <div
+                className="flex gap-3 rounded-2xl border border-black/10 bg-white/80 p-4 shadow-[0_18px_42px_rgba(8,18,12,0.05)]"
+                key={step}
+              >
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#44f26e]/15 text-[#16702e]">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-black text-[#16702e]">
+                    STEP {step}
+                  </span>
+                  <div className="text-sm font-extrabold text-neutral-900">
+                    {title}
+                  </div>
+                  <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-500">
+                    {desc}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
+            <span className="mb-3 block text-xs font-bold text-neutral-700">
+              {locale === "en" ? "FAQ" : "자주 묻는 질문"}
+            </span>
+            <div className="space-y-2">
+              {[
+                {
+                  a:
+                    locale === "en"
+                      ? "Yes — a worldwide, perpetual, non-exclusive commercial license to use them in your shop."
+                      : "네. 회원님 쇼핑몰에 쓸 수 있는 전세계·영구·비독점 상업 라이선스가 부여됩니다.",
+                  q:
+                    locale === "en"
+                      ? "Can I use the lookbooks for my store?"
+                      : "생성한 룩북을 제 쇼핑몰에 써도 되나요?",
+                },
+                {
+                  a:
+                    locale === "en"
+                      ? "Always a fanletter AI star — never a real person. You cannot upload your own model."
+                      : "항상 fanletter AI 스타입니다. 실제 인물이 아니며, 임의 모델을 올릴 수 없습니다.",
+                  q: locale === "en" ? "Who is the model?" : "모델은 누구인가요?",
+                },
+                {
+                  a:
+                    locale === "en"
+                      ? "Connect your fanletter member wallet, then generate with points — 50P per shot."
+                      : "fanletter 멤버(지갑)로 연결한 뒤 포인트로 생성합니다. 컷당 50P.",
+                  q:
+                    locale === "en"
+                      ? "How do I start and what does it cost?"
+                      : "어떻게 시작하고 비용은 얼마인가요?",
+                },
+                {
+                  a:
+                    locale === "en"
+                      ? "The garment's color, print and logos are preserved; only the model and scene are AI-generated."
+                      : "옷의 색·프린트·로고는 보존하고, 모델과 배경만 AI로 생성합니다.",
+                  q:
+                    locale === "en"
+                      ? "Are my garment details preserved?"
+                      : "옷 디테일이 보존되나요?",
+                },
+              ].map((item) => (
+                <details
+                  className="group rounded-xl border border-black/10 bg-white px-3.5 py-2.5"
+                  key={item.q}
+                >
+                  <summary className="cursor-pointer list-none text-sm font-bold text-neutral-800 marker:hidden">
+                    {item.q}
+                  </summary>
+                  <p className="mt-1.5 text-[12px] leading-relaxed text-neutral-500">
+                    {item.a}
+                  </p>
+                </details>
+              ))}
+            </div>
+            <a
+              className="mt-3 inline-block text-[11px] font-bold text-[#16702e] underline"
+              href={`/${locale}/lookbook/terms`}
+            >
+              {locale === "en"
+                ? "Full terms & license"
+                : "전체 이용약관·라이선스 보기"}
+            </a>
+          </div>
+        </div>
+      ) : null}
+
       {accountAddress && referralCode ? (
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3.5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
           <div>
