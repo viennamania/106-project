@@ -55,7 +55,13 @@ async function getStarSettingsCollection() {
   return settingsPromise;
 }
 
-export async function getStarOptIn(starId: string): Promise<boolean> {
+/**
+ * Opt-OUT model: every public AI star is available to sellers as a model UNLESS
+ * its owner explicitly excluded it (optIn === false). Owners still earn royalty
+ * per shot. (Feed publishing stays opt-IN — a stronger consent — via
+ * allowFeedPublish.)
+ */
+export async function getStarSellerAvailable(starId: string): Promise<boolean> {
   if (!starId?.trim()) {
     return false;
   }
@@ -63,9 +69,11 @@ export async function getStarOptIn(starId: string): Promise<boolean> {
   const collection = await getStarSettingsCollection();
   const doc = await collection.findOne({ starId: starId.trim() });
 
-  return doc?.optIn ?? false;
+  return doc?.optIn !== false; // default available
 }
 
+// `optIn` here means "available as a seller model": true (or no setting) =
+// available, false = the owner excluded their star.
 export async function setStarOptIn(
   starId: string,
   optIn: boolean,
@@ -82,10 +90,10 @@ export async function setStarOptIn(
   );
 }
 
-async function getOptedInStarIds(): Promise<Set<string>> {
+async function getExcludedStarIds(): Promise<Set<string>> {
   const collection = await getStarSettingsCollection();
   const docs = await collection
-    .find({ optIn: true })
+    .find({ optIn: false })
     .project<{ starId: string }>({ starId: 1 })
     .toArray();
 
@@ -251,8 +259,8 @@ export async function getSellerStars(): Promise<SellerStar[]> {
     .limit(STAR_LIMIT)
     .toArray();
 
-  const [optedIn, feedPublish] = await Promise.all([
-    getOptedInStarIds(),
+  const [excluded, feedPublish] = await Promise.all([
+    getExcludedStarIds(),
     getFeedPublishStarIds(),
   ]);
 
@@ -268,7 +276,7 @@ export async function getSellerStars(): Promise<SellerStar[]> {
     }))
     .filter(
       (star) =>
-        Boolean(star.id) && star.images.length > 0 && optedIn.has(star.id),
+        Boolean(star.id) && star.images.length > 0 && !excluded.has(star.id),
     );
 }
 
@@ -280,8 +288,8 @@ export async function resolveSellerStarImage(
     return null;
   }
 
-  // Only opted-in stars may be used as a model.
-  if (!(await getStarOptIn(starId))) {
+  // Any public star may be used as a model unless the owner excluded it.
+  if (!(await getStarSellerAvailable(starId))) {
     return null;
   }
 
