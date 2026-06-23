@@ -1,14 +1,11 @@
-import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import Link from "next/link";
 
-import { getFanletterNewsCutsHomeHref } from "@/lib/fanletter-news-home-routing";
-import {
-  readFanletterReferralCode,
-} from "@/lib/fanletter-routing";
-import {
-  localeCookieName,
-  resolveLocale,
-} from "@/lib/i18n";
+export const metadata: Metadata = {
+  title: "1066friend+ | 새로운 소셜 패러다임",
+  description:
+    "참여가 가치와 평판 Context를 만드는 1066friend+ 랜딩 페이지입니다.",
+};
 
 function readSingleValue(value?: string | string[]) {
   return Array.isArray(value) ? value[0] : value;
@@ -17,23 +14,27 @@ function readSingleValue(value?: string | string[]) {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ pwa?: string | string[]; ref?: string | string[] }>;
+  searchParams: Promise<{ ref?: string | string[] }>;
 }) {
   const query = await searchParams;
-  const cookieStore = await cookies();
-  const headerStore = await headers();
-  const locale = resolveLocale({
-    acceptLanguage: headerStore.get("accept-language"),
-    requestedLocale: cookieStore.get(localeCookieName)?.value,
-  });
-  const pwaLaunch = readSingleValue(query.pwa) === "1";
-  const referralCode = readFanletterReferralCode(query.ref);
+  const referralCode = readSingleValue(query.ref);
+  const landingSrc = referralCode
+    ? `/landing/1066friend_landing_v14_ko.html?ref=${encodeURIComponent(referralCode)}`
+    : "/landing/1066friend_landing_v14_ko.html";
 
-  redirect(
-    getFanletterNewsCutsHomeHref({
-      locale,
-      pwaLaunch,
-      referralCode,
-    }),
+  return (
+    <main className="h-dvh overflow-hidden bg-white">
+      <iframe
+        className="block h-full w-full border-0"
+        src={landingSrc}
+        title="1066friend+ landing"
+      />
+      <Link
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-black focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
+        href="/ko/fanletter"
+      >
+        1066friend+ 시작하기
+      </Link>
+    </main>
   );
 }
