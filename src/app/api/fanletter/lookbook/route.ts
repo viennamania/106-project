@@ -3,6 +3,11 @@ import { randomUUID } from "crypto";
 import { normalizeEmail } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
+  awardStarModelRoyalty,
+  getStarOwnerEmail,
+  resolveSellerStarImage,
+} from "@/lib/seller-stars";
+import {
   chargeLookbookPoints,
   INSUFFICIENT_POINTS_ERROR,
   refundLookbookPoints,
@@ -34,6 +39,10 @@ type LookbookRequest = {
   email?: string | null;
   walletAddress?: string | null;
   starAvatarUrl?: string | null;
+  // Optional public AI star (opt-out catalog). When set, the model image is
+  // resolved server-side from the star and its owner earns royalty points.
+  starId?: string | null;
+  starImageIndex?: number | null;
   garmentImageUrls?: unknown;
   sceneBrief?: string | null;
   starName?: string | null;
@@ -91,16 +100,29 @@ export async function POST(request: Request) {
     return jsonError("walletAddress is required.", 400);
   }
 
-  const starAvatarUrl = body?.starAvatarUrl?.trim() ?? "";
+  // The model is either a public AI star (resolved server-side from starId) or
+  // the member's own uploaded star avatar.
+  const starId = body?.starId?.trim() ?? "";
+  let starAvatarUrl: string;
 
-  if (!starAvatarUrl) {
-    return jsonError("starAvatarUrl is required.", 400);
-  }
-
-  // starAvatarUrl + garment images are fetched server-side, so restrict them to
-  // our own Blob store (uploads/avatars live there) to prevent SSRF.
-  if (!isLookbookBlobUrl(starAvatarUrl)) {
-    return jsonError("starAvatarUrl must be an uploaded image.", 400);
+  if (starId) {
+    const resolved = await resolveSellerStarImage(
+      starId,
+      typeof body?.starImageIndex === "number" ? body.starImageIndex : 0,
+    );
+    if (!resolved) {
+      return jsonError("선택한 AI 스타를 사용할 수 없습니다.", 400);
+    }
+    starAvatarUrl = resolved;
+  } else {
+    starAvatarUrl = body?.starAvatarUrl?.trim() ?? "";
+    if (!starAvatarUrl) {
+      return jsonError("starAvatarUrl is required.", 400);
+    }
+    // Fetched server-side, so restrict to our own Blob store (prevents SSRF).
+    if (!isLookbookBlobUrl(starAvatarUrl)) {
+      return jsonError("starAvatarUrl must be an uploaded image.", 400);
+    }
   }
 
   const garmentImageUrls = toStringArray(body?.garmentImageUrls)
@@ -171,6 +193,14 @@ export async function POST(request: Request) {
       starAvatarUrl,
       starName: body?.starName ?? null,
     });
+
+    // Using someone else's public AI star earns its owner royalty points.
+    if (starId) {
+      const ownerEmail = await getStarOwnerEmail(starId);
+      if (ownerEmail && ownerEmail !== member.email) {
+        await awardStarModelRoyalty({ shots: numImages, sourceId, starId });
+      }
+    }
 
     return Response.json({ chargedPoints, images, summary });
   } catch (error) {
