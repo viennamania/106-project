@@ -19,13 +19,10 @@ import {
 
 import {
   FanletterDesktopHeroCardCarousel,
-  FanletterHeroBackgroundCarousel,
-  FanletterVlogPreviewCarousel,
 } from "@/components/fanletter-mobile-hero-carousel";
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
 import { FanletterAutoplayVideo } from "@/components/fanletter-autoplay-video";
 import { FanletterBrandMark } from "@/components/fanletter-brand-mark";
-import { FounderClubV2HomeSections } from "@/components/fanletter-founder-club-v2";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
@@ -1015,7 +1012,6 @@ function FanletterProductHomeDashboard({
   liveStats,
   locale,
   memberPortfolio,
-  previewVideos,
   referralCode,
   scoutShareLoop,
   scoutShareLoopHref,
@@ -1032,7 +1028,6 @@ function FanletterProductHomeDashboard({
   liveStats: FanletterLiveStats;
   locale: Locale;
   memberPortfolio?: MemberPortfolio | null;
-  previewVideos?: FanletterFeaturedVideo[] | null;
   referralCode: string | null;
   scoutShareLoop?: ScoutShareLoopData | null;
   scoutShareLoopHref: string;
@@ -1054,38 +1049,6 @@ function FanletterProductHomeDashboard({
       )
     : aiStarGenealogyHref;
   const topStars = starList.slice(0, 3);
-  const availablePreviewVideos = (previewVideos ?? []).filter(
-    (video) =>
-      video.contentMaturityRating !== "nsfw" &&
-      (video.videoUrl.trim() || video.coverImageUrl),
-  );
-  const seenPreviewAuthors = new Set<string>();
-  const uniqueAuthorPreviewVideos = availablePreviewVideos.filter((video) => {
-    const key =
-      video.authorReferralCode ??
-      video.authorAvatarImageUrl ??
-      video.authorName ??
-      video.contentId;
-
-    if (seenPreviewAuthors.has(key)) {
-      return false;
-    }
-
-    seenPreviewAuthors.add(key);
-    return true;
-  });
-  const previewVideoList =
-    uniqueAuthorPreviewVideos.length >= 3
-      ? uniqueAuthorPreviewVideos.slice(0, 3)
-      : [
-          ...uniqueAuthorPreviewVideos,
-          ...availablePreviewVideos.filter(
-            (video) =>
-              !uniqueAuthorPreviewVideos.some(
-                (uniqueVideo) => uniqueVideo.contentId === video.contentId,
-              ),
-          ),
-        ].slice(0, 3);
   const portfolioStats = [
     {
       label: isKo ? "스카우트 점수" : "Scout Score",
@@ -1141,9 +1104,6 @@ function FanletterProductHomeDashboard({
         resultDetail: "발견 신호가 평판 기록에 저장",
         unlocked: "활성화",
         universeMap: "AI 스타 유니버스 맵",
-        videoPreview: "브이로그 프리뷰",
-        videoSignal: "콘텐츠 반응",
-        watchPreview: "프리뷰 보기",
       }
     : {
         connect: "Connect Account",
@@ -1177,73 +1137,17 @@ function FanletterProductHomeDashboard({
         resultDetail: "Discovery signal is saved as a reputation record.",
         unlocked: "Unlocked",
         universeMap: "AI Star Universe Map",
-        videoPreview: "Vlog Preview",
-        videoSignal: "Content Signal",
-        watchPreview: "Watch Preview",
       };
-  const livePreviewSlides = previewVideoList
-    .filter((video) => video.videoUrl.trim())
-    .map((video) => ({
-      authorAvatarImageUrl: video.authorAvatarImageUrl,
-      authorName: video.authorName,
-      badgeLabel: productCopy.videoPreview,
-      coverImageUrl: video.coverImageUrl,
-      ctaLabel: productCopy.watchPreview,
-      href: buildPathWithReferral(
-        `/${locale}/fanletter/content/${video.contentId}`,
-        referralCode,
-      ),
-      signalLabel: isKo
-        ? `${formatMetric(video.social.commentCount, locale)} 댓글`
-        : `${formatMetric(video.social.commentCount, locale)} comments`,
-      title: video.title,
-      videoUrl: video.videoUrl,
-    }));
-  const previewSlideAuthorNames = new Set(
-    livePreviewSlides.map((slide) => slide.authorName),
-  );
-  const mockBackfillPreviewSlides = topStars
-    .filter((star) => !previewSlideAuthorNames.has(star.name))
-    .map((star, index) => {
-      const sourceVideo =
-        previewVideoList[index % Math.max(previewVideoList.length, 1)];
-
-      if (!sourceVideo?.videoUrl.trim()) {
-        return null;
-      }
-
-      return {
-        authorAvatarImageUrl:
-          star.portraitImageUrl ?? sourceVideo.authorAvatarImageUrl,
-        authorName: star.name,
-        badgeLabel: productCopy.videoPreview,
-        coverImageUrl: sourceVideo.coverImageUrl,
-        ctaLabel: productCopy.watchPreview,
-        href: `/${locale}/fanletter/${encodeURIComponent(star.id)}`,
-        signalLabel: isKo
-          ? `+${star.growthPercent}% 성장`
-          : `+${star.growthPercent}% growth`,
-        title: isKo
-          ? `${star.name} 브이로그 프리뷰`
-          : `${star.name} vlog preview`,
-        videoUrl: sourceVideo.videoUrl,
-      };
-    })
-    .filter((slide): slide is NonNullable<typeof slide> => Boolean(slide));
-  const previewSlides = [
-    ...livePreviewSlides,
-    ...mockBackfillPreviewSlides,
-  ].slice(0, 3);
   const aiStarPortraitClip = {
     clipPath: "polygon(25% 6%, 75% 6%, 100% 50%, 75% 94%, 25% 94%, 0 50%)",
   };
 
   return (
-    <section className="grid min-w-0 flex-1 content-start gap-4 overflow-x-hidden pb-7 pt-4 sm:gap-5 sm:py-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(22rem,0.92fr)] lg:items-start">
+    <section className="mx-auto grid w-full max-w-5xl min-w-0 flex-1 content-start gap-4 overflow-x-hidden pb-7 pt-4 sm:gap-5 sm:py-8">
       <div className="grid min-w-0 gap-4">
         <div>
           <div className="min-w-0 overflow-hidden rounded-[1.35rem] border border-zinc-200 bg-white p-3 shadow-[0_14px_42px_rgba(15,23,42,0.055)] sm:p-4">
-            <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,16rem)] lg:items-stretch">
+            <div className="grid min-w-0 gap-4">
               <div className="flex min-w-0 flex-col gap-4">
                 <div className="min-w-0">
                   <p className="inline-flex max-w-full rounded-full border border-zinc-200 bg-white px-3 py-1 text-[0.68rem] font-semibold text-zinc-700">
@@ -1304,15 +1208,11 @@ function FanletterProductHomeDashboard({
                   }
                 />
               </div>
-
-              {previewSlides.length > 0 ? (
-                <FanletterVlogPreviewCarousel slides={previewSlides} />
-              ) : null}
             </div>
           </div>
         </div>
 
-        <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_18rem]">
+        <div className="hidden min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_18rem]">
           <ScrollReveal className="min-w-0 max-w-full overflow-hidden" delay={140} y={16}>
             <div className="min-w-0 max-w-full overflow-hidden rounded-[1.25rem] border border-zinc-200 bg-white p-4 shadow-[0_12px_34px_rgba(15,23,42,0.045)]">
               <div className="flex items-center justify-between gap-3">
@@ -1490,7 +1390,7 @@ function FanletterProductHomeDashboard({
         </div>
       </div>
 
-      <div className="grid gap-4">
+      <div className="hidden gap-4">
         <ScrollReveal delay={120} y={16}>
           <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_18px_44px_rgba(15,23,42,0.06)]">
             <div className="flex items-center justify-between gap-3">
@@ -2486,18 +2386,6 @@ export function FanletterHomePage({
     `/${locale}/fanletter/purchases`,
     referralCode,
   );
-  const studioHref = buildPathWithReferral(
-    `/${locale}/fanletter/studio`,
-    referralCode,
-  );
-  const campaignsHref = buildPathWithReferral(
-    `/${locale}/fanletter/campaigns`,
-    referralCode,
-  );
-  const reportsHref = buildPathWithReferral(
-    `/${locale}/fanletter/reports`,
-    referralCode,
-  );
   const onboardingHref = buildPathWithReferral(
     `/${locale}/fanletter/onboarding`,
     referralCode,
@@ -2510,7 +2398,10 @@ export function FanletterHomePage({
     `/${locale}/fanletter/founder-club`,
     referralCode,
   );
-  const founderClubPageHref = founderClubHref;
+  const growthHref = buildPathWithReferral(
+    `/${locale}/fanletter/growth`,
+    referralCode,
+  );
   const creatorUnlockHref = buildPathWithReferral(
     `/${locale}/fanletter/creator-unlock`,
     referralCode,
@@ -2523,20 +2414,16 @@ export function FanletterHomePage({
     `/${locale}/fanletter/agentrank`,
     referralCode,
   );
-  const creatorPathHref = creatorUnlockHref;
   const scoutShareLoopHref = buildPathWithReferral(
     `/${locale}/fanletter/scout`,
     referralCode,
   );
+  const myAiHref = buildPathWithReferral(
+    `/${locale}/fanletter/my-ai`,
+    referralCode,
+  );
   const creatorHref = onboardingHref;
-  const connectHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/fanletter/connect`, referralCode),
-    { returnTo: onboardingHref },
-  );
   const nonNsfwFeaturedVideos = featuredVideos.filter(
-    (video) => video.contentMaturityRating !== "nsfw",
-  );
-  const nonNsfwFeaturedPaidVideos = featuredPaidVideos.filter(
     (video) => video.contentMaturityRating !== "nsfw",
   );
   const heroVideo = nonNsfwFeaturedVideos[0] ?? null;
@@ -2638,73 +2525,29 @@ export function FanletterHomePage({
     },
   ];
   const nicheVideos = nonNsfwFeaturedVideos.slice(0, 3);
-  const footerLabels =
+  const homeFooterLabels =
     locale === "ko"
       ? {
-          activate: "계정 상태",
-          aiContent: "AI 스타 발견",
-          campaignStudio: "캠페인 스튜디오",
-          creatorUnlock: "권한 활성화",
-          creatorGrowth: "팬 관계 성장",
-          creatorPath: "크리에이터 성장 경로",
           discovery: "AI 스타 발견",
-          existingFeatures: "기존 기능",
-          feed: "브이로그 피드",
-          founderClub: "파운더 클럽",
-          founderUniverse: "파운더 네트워크",
-          help: "도움말",
-          mobileFirst: "모바일 우선",
-          network: "네트워크",
-          noRealPayment: "실결제 전 미리보기",
-          operations: "운영 도구",
-          reports: "내 리포트",
-          scoutLoop: "스카우트 공유 루프",
-          studio: "브이로그 스튜디오",
-          trust: "신뢰",
-          usdtReady: "USDT 결제",
-          v2Loop: "파운더 클럽 2.0",
+          body:
+            "홈은 첫 행동을 고르는 곳입니다. 발견에서 시작하고, 성장 상태와 내 AI는 전용 화면에서 이어갑니다.",
+          growth: "성장 상태",
+          kicker: "다음 이동",
+          mockPayment: "실결제 없음",
+          myAi: "내 AI",
+          reputation: "행동은 평판 기록으로 저장",
+          title: "AI 스타 발견부터 시작하세요",
         }
       : {
-          activate: "Account status",
-          aiContent: "AI Star Discovery",
-          campaignStudio: "Campaign studio",
-          creatorUnlock: "Creator Unlock",
-          creatorGrowth: "Fan relationship growth",
-          creatorPath: "Creator Path",
           discovery: "AI Star Discovery",
-          existingFeatures: "Features",
-          feed: "Vlog feed",
-          founderClub: "Founder Club",
-          founderUniverse: "Founder Network",
-          help: "Help",
-          mobileFirst: "Mobile first",
-          network: "Network",
-          noRealPayment: "Mock before payment",
-          operations: "Operating tools",
-          reports: "My reports",
-          scoutLoop: "Scout Share Loop",
-          studio: "Vlog studio",
-          trust: "Trust",
-          usdtReady: "USDT ready",
-          v2Loop: "Founder Club 2.0",
-        };
-  const mobileFooterLabels =
-    locale === "ko"
-      ? {
-          activate: "계정",
-          creator: "크리에이터",
-          discovery: "발견",
-          founder: "파운더",
-          scout: "스카우트",
-          studio: "스튜디오",
-        }
-      : {
-          activate: "Account",
-          creator: "Creator",
-          discovery: "Discovery",
-          founder: "Founder",
-          scout: "Scout",
-          studio: "Studio",
+          body:
+            "Home is the action signpost. Start with discovery, then continue to Growth or My AI in dedicated screens.",
+          growth: "Growth",
+          kicker: "Next paths",
+          mockPayment: "No real payment",
+          myAi: "My AI",
+          reputation: "Actions become reputation records",
+          title: "Start with AI Star Discovery",
         };
   const mobileAnnouncementCta = locale === "ko" ? "2.0 보기" : "View 2.0";
   const mobileHeroCopy =
@@ -2881,6 +2724,7 @@ export function FanletterHomePage({
         sponsorSlug: shareContext.sponsorSlug,
       }
     : null;
+  const renderLegacyHomeSections = false;
 
   return (
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-white text-black">
@@ -2914,12 +2758,6 @@ export function FanletterHomePage({
             }}
           />
         ) : null}
-        <div className="hidden sm:block">
-          <FanletterHeroBackgroundCarousel
-            mobileLayout="immersive"
-            slides={heroBackgroundSlides}
-          />
-        </div>
         <div className="absolute inset-0 hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.52)_0%,rgba(255,255,255,0.72)_40%,rgba(255,255,255,0.94)_76%,#ffffff_100%)] sm:block lg:bg-[linear-gradient(90deg,rgba(255,255,255,0.97)_0%,rgba(255,255,255,0.92)_38%,rgba(255,255,255,0.56)_68%,rgba(250,250,250,0.8)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 hidden h-44 bg-[linear-gradient(180deg,rgba(255,255,255,0)_0%,#ffffff_100%)] lg:block" />
 
@@ -2945,35 +2783,23 @@ export function FanletterHomePage({
               aria-label={locale === "ko" ? "핵심 여정" : "Primary journey"}
               className="hidden items-center gap-1.5 rounded-full border border-zinc-200 bg-white/72 p-1 text-xs font-semibold text-black/62 md:flex lg:gap-2 lg:text-sm"
             >
-              <a
+              <Link
                 className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
                 href={topGrowingStarsHref}
               >
                 {copy.nav.features}
-              </a>
-              <a
-                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
-                href={founderClubHref}
-              >
-                {copy.nav.paid}
-              </a>
-              <a
-                className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
-                href={scoutShareLoopHref}
-              >
-                {locale === "ko" ? "스카우트" : "Scout"}
-              </a>
+              </Link>
               <Link
                 className="inline-flex min-h-8 items-center rounded-full px-3 transition hover:bg-zinc-100 hover:text-black"
-                href={creatorUnlockHref}
+                href={growthHref}
               >
-                {locale === "ko" ? "Creator" : "Creator"}
+                {locale === "ko" ? "성장" : "Growth"}
               </Link>
               <Link
                 className="inline-flex min-h-8 items-center rounded-full bg-black px-3 !text-white transition hover:bg-zinc-800"
-                href={agentRankHref}
+                href={myAiHref}
               >
-                AgentRank
+                {locale === "ko" ? "내 AI" : "My AI"}
               </Link>
             </nav>
 
@@ -3073,10 +2899,6 @@ export function FanletterHomePage({
             liveStats={liveStats}
             locale={locale}
             memberPortfolio={founderClubMemberPortfolio}
-            previewVideos={[
-              ...nonNsfwFeaturedVideos,
-              ...nonNsfwFeaturedPaidVideos,
-            ]}
             referralCode={referralCode}
             scoutShareLoop={founderClubScoutShareLoop}
             scoutShareLoopHref={scoutShareLoopHref}
@@ -3084,7 +2906,11 @@ export function FanletterHomePage({
             stars={founderClubStars}
             topGrowingStarsHref={topGrowingStarsHref}
           />
+        </div>
+      </section>
 
+      {renderLegacyHomeSections ? (
+        <>
           <div className="hidden flex-1 content-start gap-5 pb-8 pt-10 sm:content-center sm:gap-10 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(21rem,24rem)] lg:items-center lg:py-10 xl:grid-cols-[minmax(0,1.1fr)_minmax(23rem,26rem)]">
             <ScrollReveal className="max-w-[58rem]" delay={80} y={18}>
               <p className="inline-flex rounded-full border border-violet-200 bg-white/82 px-3 py-1 text-[0.68rem] font-semibold text-[#6d28d9] shadow-[0_10px_24px_rgba(88,28,135,0.08)] backdrop-blur-md sm:bg-transparent sm:px-0 sm:shadow-none sm:uppercase sm:tracking-[0.28em]">
@@ -3259,8 +3085,6 @@ export function FanletterHomePage({
               ))}
             </div>
           </div>
-        </div>
-      </section>
 
       <section className="hidden">
         <div className="mx-auto grid max-w-lg grid-cols-5 gap-2">
@@ -3293,17 +3117,7 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <FounderClubV2HomeSections
-        locale={locale}
-        creatorUnlock={founderClubCreatorUnlock}
-        memberPortfolio={founderClubMemberPortfolio}
-        referralCode={referralCode}
-        scoutShareLoop={founderClubScoutShareLoop}
-        selectedStarId={founderClubSelectedStarId}
-        stars={founderClubStars}
-      />
-
-      <section className="hidden border-b border-white/8 bg-[#07100b] px-4 py-12 text-white sm:block sm:px-6 sm:py-16 lg:px-8">
+      <section className="hidden border-b border-white/8 bg-[#07100b] px-4 py-12 text-white sm:px-6 sm:py-16 lg:px-8">
         <div className="mx-auto grid max-w-[92rem] gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-center">
           <ScrollReveal className="max-w-4xl">
             <p className="text-[0.72rem] font-semibold uppercase tracking-[0.24em] text-[#44f26e]">
@@ -3363,7 +3177,7 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <section className="hidden border-b border-white/8 bg-[#f6f8f4] px-4 py-14 text-black sm:block sm:px-6 sm:py-20 lg:px-8">
+      <section className="hidden border-b border-white/8 bg-[#f6f8f4] px-4 py-14 text-black sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <ScrollReveal className="max-w-3xl">
@@ -3509,7 +3323,7 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <section className="hidden border-b border-white/8 bg-black px-4 py-16 sm:block sm:px-6 sm:py-22 lg:px-8">
+      <section className="hidden border-b border-white/8 bg-black px-4 py-16 sm:px-6 sm:py-22 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
           <div className="grid gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
             <ScrollReveal>
@@ -3571,7 +3385,7 @@ export function FanletterHomePage({
       </section>
 
       <section
-        className="hidden border-b border-white/8 bg-[#050806] px-4 py-16 sm:block sm:px-6 sm:py-20 lg:px-8"
+        className="hidden border-b border-white/8 bg-[#050806] px-4 py-16 sm:px-6 sm:py-20 lg:px-8"
         id="features"
       >
         <div className="mx-auto max-w-[92rem]">
@@ -3636,7 +3450,7 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <div className="hidden sm:block">
+      <div className="hidden">
         <FanletterNsfwExampleSection
           copy={copy}
           hiddenNsfwCount={hiddenNsfwCount}
@@ -3664,7 +3478,7 @@ export function FanletterHomePage({
         />
       </div>
 
-      <section className="hidden border-b border-white/8 bg-[#f6f8f4] px-4 py-16 text-black sm:block sm:px-6 sm:py-20 lg:px-8">
+      <section className="hidden border-b border-white/8 bg-[#f6f8f4] px-4 py-16 text-black sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto max-w-[92rem]">
           <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
             <ScrollReveal>
@@ -3719,7 +3533,7 @@ export function FanletterHomePage({
       </section>
 
       <section
-        className="hidden bg-black px-4 py-16 sm:block sm:px-6 sm:py-24 lg:px-8"
+        className="hidden bg-black px-4 py-16 sm:px-6 sm:py-24 lg:px-8"
         id="creators"
       >
         <div className="mx-auto grid max-w-[92rem] gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center">
@@ -3785,7 +3599,7 @@ export function FanletterHomePage({
         </div>
       </section>
 
-      <section className="hidden border-y border-white/8 bg-[#2f3f2e] px-4 py-16 text-white sm:block sm:px-6 sm:py-20 lg:px-8">
+      <section className="hidden border-y border-white/8 bg-[#2f3f2e] px-4 py-16 text-white sm:px-6 sm:py-20 lg:px-8">
         <div className="mx-auto grid max-w-[92rem] gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-center">
           <ScrollReveal>
             <h2 className="max-w-4xl text-[2.7rem] font-semibold leading-[0.95] tracking-normal [word-break:keep-all] sm:text-[4.6rem]">
@@ -3877,7 +3691,7 @@ export function FanletterHomePage({
       </section>
 
       <section
-        className="hidden gap-10 bg-black px-4 py-16 sm:grid sm:px-6 sm:py-24 lg:grid-cols-[0.9fr_1.1fr] lg:px-8"
+        className="hidden gap-10 bg-black px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-[0.9fr_1.1fr] lg:px-8"
         id="faq"
       >
         <h2 className="text-[4rem] font-semibold leading-none tracking-normal text-white sm:text-[7rem]">
@@ -3902,167 +3716,51 @@ export function FanletterHomePage({
           ))}
         </div>
       </section>
+        </>
+      ) : null}
 
-      <footer className="bg-white px-4 pb-8 pt-10 text-black sm:px-6 sm:py-12 lg:px-8">
-        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1fr_1.4fr] md:gap-10">
-          <div>
-            <p className="max-w-lg text-[2.15rem] font-semibold leading-[1.02] tracking-normal [word-break:keep-all] sm:text-4xl sm:leading-[1]">
-              {copy.footer.title}
+      <footer className="border-t border-zinc-200 bg-white px-4 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-8 text-black sm:px-6 sm:pb-10 sm:pt-10 lg:px-8">
+        <div className="mx-auto grid max-w-5xl gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase text-zinc-500">
+              {homeFooterLabels.kicker}
             </p>
-            <div className="mt-6 grid grid-cols-2 gap-2 sm:mt-7 sm:flex sm:flex-wrap sm:gap-3">
-              <Link
-                className="inline-flex min-h-11 min-w-0 items-center justify-center rounded-lg bg-[#44f26e] px-3 py-2.5 text-center text-sm font-semibold leading-tight !text-black [word-break:keep-all] sm:px-5"
-                href={topGrowingStarsHref}
-              >
-                {footerLabels.discovery}
-              </Link>
-              <Link
-                className="inline-flex min-h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 py-2.5 text-center text-sm font-semibold leading-tight !text-black [word-break:keep-all] sm:px-5"
-                href={founderClubPageHref}
-              >
-                {footerLabels.founderClub}
-              </Link>
-              <Link
-                className="inline-flex min-h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 py-2.5 text-center text-sm font-semibold leading-tight !text-black [word-break:keep-all] sm:px-5"
-                href={scoutShareLoopHref}
-              >
-                {footerLabels.scoutLoop}
-              </Link>
-              <Link
-                className="inline-flex min-h-11 min-w-0 items-center justify-center rounded-lg border border-black/12 px-3 py-2.5 text-center text-sm font-semibold leading-tight !text-black [word-break:keep-all] sm:px-5"
-                href={creatorUnlockHref}
-              >
-                {footerLabels.creatorUnlock}
-              </Link>
+            <p className="mt-2 text-2xl font-semibold leading-tight tracking-normal text-zinc-950 [word-break:keep-all] sm:text-3xl">
+              {homeFooterLabels.title}
+            </p>
+            <p className="mt-2 max-w-2xl text-sm font-medium leading-6 text-zinc-600 [word-break:keep-all]">
+              {homeFooterLabels.body}
+            </p>
+            <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-zinc-600">
+              <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3">
+                <ShieldCheck className="size-3.5" />
+                {homeFooterLabels.reputation}
+              </span>
+              <span className="inline-flex min-h-8 items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3">
+                <BadgeDollarSign className="size-3.5" />
+                {homeFooterLabels.mockPayment}
+              </span>
             </div>
           </div>
-          <div className="sm:hidden">
-            <div className="grid grid-cols-2 gap-2 text-center text-[0.78rem] font-semibold text-black/70">
-              <Link
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2 py-2 text-center leading-tight [word-break:keep-all]"
-                href={topGrowingStarsHref}
-              >
-                {mobileFooterLabels.discovery}
-              </Link>
-              <Link
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2 py-2 text-center leading-tight [word-break:keep-all]"
-                href={founderClubPageHref}
-              >
-                {mobileFooterLabels.founder}
-              </Link>
-              <Link
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2 py-2 text-center leading-tight [word-break:keep-all]"
-                href={scoutShareLoopHref}
-              >
-                {mobileFooterLabels.scout}
-              </Link>
-              <Link
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2 py-2 text-center leading-tight [word-break:keep-all]"
-                href={creatorUnlockHref}
-              >
-                {mobileFooterLabels.creator}
-              </Link>
-              <Link
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2 py-2 text-center leading-tight [word-break:keep-all]"
-                href={studioHref}
-              >
-                {mobileFooterLabels.studio}
-              </Link>
-              <Link
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-black/10 bg-[#f6f8f4] px-2 py-2 text-center leading-tight [word-break:keep-all]"
-                href={connectHref}
-              >
-                {mobileFooterLabels.activate}
-              </Link>
-            </div>
-            <div className="mt-5 grid gap-2 text-sm font-semibold text-black/68">
-              <div className="flex min-h-10 items-center gap-2">
-                <ShieldCheck className="size-4 shrink-0" />
-                <span>{footerLabels.mobileFirst}</span>
-              </div>
-              <div className="flex min-h-10 items-center gap-2">
-                <BadgeDollarSign className="size-4 shrink-0" />
-                <span>{footerLabels.noRealPayment}</span>
-              </div>
-              <div className="flex min-h-10 items-center gap-2">
-                <ChartNoAxesCombined className="size-4 shrink-0" />
-                <span>{footerLabels.creatorGrowth}</span>
-              </div>
-            </div>
-          </div>
-          <div className="hidden grid-cols-2 gap-6 text-sm font-semibold text-black/62 sm:grid sm:grid-cols-4">
-            <div>
-              <p className="text-black">{footerLabels.v2Loop}</p>
-              <div className="mt-4 space-y-2">
-                <a className="flex min-h-9 items-center" href={topGrowingStarsHref}>
-                  {footerLabels.discovery}
-                </a>
-                <Link
-                  className="flex min-h-9 items-center"
-                  href={founderClubPageHref}
-                >
-                  {footerLabels.founderClub}
-                </Link>
-                <a className="flex min-h-9 items-center" href={scoutShareLoopHref}>
-                  {footerLabels.scoutLoop}
-                </a>
-                <a className="flex min-h-9 items-center" href={creatorUnlockHref}>
-                  {footerLabels.creatorUnlock}
-                </a>
-                <a className="flex min-h-9 items-center" href={creatorPathHref}>
-                  {footerLabels.creatorPath}
-                </a>
-              </div>
-            </div>
-            <div>
-              <p className="text-black">{footerLabels.operations}</p>
-              <div className="mt-4 space-y-2">
-                <Link className="flex min-h-9 items-center" href={studioHref}>
-                  {footerLabels.studio}
-                </Link>
-                <Link className="flex min-h-9 items-center" href={campaignsHref}>
-                  {footerLabels.campaignStudio}
-                </Link>
-                <Link className="flex min-h-9 items-center" href={feedHref}>
-                  {footerLabels.feed}
-                </Link>
-                <Link className="flex min-h-9 items-center" href={reportsHref}>
-                  {footerLabels.reports}
-                </Link>
-                <Link className="flex min-h-9 items-center" href={connectHref}>
-                  {footerLabels.activate}
-                </Link>
-              </div>
-            </div>
-            <div>
-              <p className="text-black">{copy.nav.features}</p>
-              <div className="mt-4 space-y-2">
-                <a className="flex min-h-9 items-center" href={topGrowingStarsHref}>
-                  {footerLabels.aiContent}
-                </a>
-                <a className="flex min-h-9 items-center" href="#features">
-                  {footerLabels.existingFeatures}
-                </a>
-                <a className="flex min-h-9 items-center" href="#faq">
-                  {footerLabels.help}
-                </a>
-              </div>
-            </div>
-            <div>
-              <p className="text-black">{footerLabels.trust}</p>
-              <div className="mt-4 flex items-center gap-2">
-                <ShieldCheck className="size-4" />
-                <span>{footerLabels.mobileFirst}</span>
-              </div>
-              <div className="mt-3 flex items-center gap-2">
-                <BadgeDollarSign className="size-4" />
-                <span>{footerLabels.noRealPayment}</span>
-              </div>
-              <div className="mt-3 flex items-center gap-2">
-                <ChartNoAxesCombined className="size-4" />
-                <span>{footerLabels.creatorGrowth}</span>
-              </div>
-            </div>
+          <div className="grid gap-2 sm:flex sm:justify-end">
+            <Link
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-black px-5 text-sm font-semibold !text-white transition hover:bg-zinc-800"
+              href={topGrowingStarsHref}
+            >
+              {homeFooterLabels.discovery}
+            </Link>
+            <Link
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold !text-zinc-900 transition hover:bg-zinc-50"
+              href={growthHref}
+            >
+              {homeFooterLabels.growth}
+            </Link>
+            <Link
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-5 text-sm font-semibold !text-zinc-900 transition hover:bg-zinc-50"
+              href={myAiHref}
+            >
+              {homeFooterLabels.myAi}
+            </Link>
           </div>
         </div>
       </footer>
