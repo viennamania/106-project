@@ -23,6 +23,7 @@ export function EmailLoginDialog({
   guideTitle,
   onClose,
   open,
+  serviceLabel,
   title,
   variant = "default",
 }: {
@@ -31,6 +32,7 @@ export function EmailLoginDialog({
   guideTitle?: string;
   onClose: () => void;
   open: boolean;
+  serviceLabel?: string;
   title: string;
   variant?: EmailLoginDialogVariant;
 }) {
@@ -222,7 +224,7 @@ export function EmailLoginDialog({
             isFanletter ? "text-[#44f26e]" : "text-slate-500"
           }`}
         >
-          {isFanletter ? "AIAVpark Account" : "AIAVpark"}
+          {serviceLabel ?? (isFanletter ? "AIAVpark Account" : "AIAVpark")}
         </p>
         <h2
           className={`mt-3 max-w-[17rem] text-2xl font-semibold tracking-normal sm:max-w-none ${

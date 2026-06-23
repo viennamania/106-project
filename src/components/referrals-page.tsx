@@ -126,6 +126,7 @@ export function ReferralsPage({
       limit: REFERRAL_SIGNUP_LIMIT,
     },
   );
+  const referralLoginTitle = getReferralLoginTitle(locale);
   const accountLabel = accountAddress
     ? `${accountAddress.slice(0, 6)}...${accountAddress.slice(-4)}`
     : null;
@@ -328,7 +329,8 @@ export function ReferralsPage({
           setIsLoginDialogOpen(false);
         }}
         open={isLoginDialogOpen}
-        title={dictionary.common.connectModalTitle}
+        serviceLabel="1066FRIEND+"
+        title={referralLoginTitle}
       />
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
@@ -784,6 +786,22 @@ function getReferralLink(referralCode: string, locale: Locale) {
   } catch {
     return path;
   }
+}
+
+function getReferralLoginTitle(locale: Locale) {
+  if (locale === "ko") {
+    return "이메일로 1066FRIEND+ 로그인";
+  }
+
+  if (locale === "ja") {
+    return "メールで1066FRIEND+にログイン";
+  }
+
+  if (locale === "zh") {
+    return "使用邮箱登录 1066FRIEND+";
+  }
+
+  return "Log in to 1066FRIEND+ with email";
 }
 
 function formatTemplate(

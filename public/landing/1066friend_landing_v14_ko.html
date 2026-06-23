@@ -457,6 +457,46 @@ section{padding:100px 24px}
   background:var(--grad);color:var(--white);
   margin-top:16px;letter-spacing:.5px;
 }
+.sns-feature-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:24px;
+  margin-top:56px;
+}
+.sns-feature-card{
+  display:flex;
+  gap:24px;
+  min-width:0;
+  padding:36px 32px;
+  background:var(--white);
+  border-radius:var(--radius);
+  border:1.5px solid var(--p5);
+}
+.sns-feature-icon{
+  flex-shrink:0;
+  font-size:40px;
+  line-height:1;
+}
+.sns-feature-copy{
+  min-width:0;
+  text-align:left;
+}
+.sns-feature-title{
+  font-family:'DM Serif Display',serif;
+  font-size:20px;
+  line-height:1.25;
+  color:var(--p1);
+  margin-bottom:10px;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
+.sns-feature-desc{
+  font-size:15px;
+  color:var(--text-mid);
+  line-height:1.65;
+  word-break:keep-all;
+  overflow-wrap:break-word;
+}
 
 /* -- SECTION 4 ───────────────────────── */
 .universe{
@@ -663,6 +703,9 @@ footer{
 @media(max-width:768px){
   nav{padding:14px 20px}
   .why-grid,.how-steps,.earn-grid,.trust-grid{grid-template-columns:1fr}
+  .sns-feature-grid{grid-template-columns:1fr;gap:16px;margin-top:36px}
+  .sns-feature-card{padding:24px 22px;gap:16px;align-items:flex-start}
+  .sns-feature-icon{font-size:34px}
   .how-arrow{display:none}
   .yours-options{flex-direction:column;align-items:center}
   footer{flex-direction:column;padding:40px 24px 28px}
@@ -989,12 +1032,12 @@ Itulah media sosial.</span><span class="t-th">การเสียเวลา�
 <span class="t-my">SNS ကိုကျော်လွန်ပြီး — <em>တွေ့ကြုံမှု ကွာခြားသည်</em></span>
 <span class="t-km">លើសពី SNS — <em>បទពិសោធន៍ខុសគ្នា</em></span>
 </h2>
-<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:24px;margin-top:56px;">
+<div class="sns-feature-grid">
 <!-- 1. Feed -->
-<div class="reveal rd1" style="display:flex;gap:24px;padding:36px 32px;background:var(--white);border-radius:var(--radius);border:1.5px solid var(--p5);">
-<div style="font-size:40px;flex-shrink:0;">🌐</div>
-<div>
-<div style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--p1);margin-bottom:10px;">
+<div class="sns-feature-card reveal rd1">
+<div class="sns-feature-icon">🌐</div>
+<div class="sns-feature-copy">
+<div class="sns-feature-title">
 
 <span class="t-en">Global Feed</span>
 <span class="t-ko">글로벌 피드</span>
@@ -1007,7 +1050,7 @@ Itulah media sosial.</span><span class="t-th">การเสียเวลา�
 <span class="t-my">ကမ္ဘာ့ Feed</span>
 <span class="t-km">Feed ពិភពលោក</span>
 </div>
-<p style="font-size:15px;color:var(--text-mid);line-height:1.65;">
+<p class="sns-feature-desc">
 
 <span class="t-en">Browse feeds from strangers around the world. Fully random connections with no algorithm.</span>
 <span class="t-ko">전 세계 낯선 사람들의 피드를 둘러보세요. 알고리즘 없는 완전 랜덤 연결.</span>
@@ -1023,10 +1066,10 @@ Itulah media sosial.</span><span class="t-th">การเสียเวลา�
 </div>
 </div>
 <!-- 2. AI Vlog -->
-<div class="reveal rd2" style="display:flex;gap:24px;padding:36px 32px;background:var(--white);border-radius:var(--radius);border:1.5px solid var(--p5);">
-<div style="font-size:40px;flex-shrink:0;">🎬</div>
-<div>
-<div style="font-family:'DM Serif Display',serif;font-size:20px;color:var(--p1);margin-bottom:10px;">
+<div class="sns-feature-card reveal rd2">
+<div class="sns-feature-icon">🎬</div>
+<div class="sns-feature-copy">
+<div class="sns-feature-title">
 
 <span class="t-en">AI Vlog</span>
 <span class="t-ko">AI 브이로그</span>
@@ -1039,7 +1082,7 @@ Itulah media sosial.</span><span class="t-th">การเสียเวลา�
 <span class="t-my">AI Vlog</span>
 <span class="t-km">AI Vlog</span>
 </div>
-<p style="font-size:15px;color:var(--text-mid);line-height:1.65;">
+<p class="sns-feature-desc">
 
 <span class="t-en">Type one line of text and your vlog is created. Anyone can be a creator without filming.</span>
 <span class="t-ko">한 줄의 텍스트를 입력하면 브이로그가 완성됩니다. 촬영 없이도 누구나 크리에이터가 될 수 있어요.</span>

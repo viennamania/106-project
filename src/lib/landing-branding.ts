@@ -244,10 +244,10 @@ export function isAllowedBrandingImageUrl(value: string) {
 }
 
 export function buildReferralLandingPath(
-  locale: Locale,
+  _locale: Locale,
   referralCode: string | null,
 ) {
-  return buildPathWithReferral(`/${locale}`, referralCode);
+  return buildPathWithReferral("/", referralCode);
 }
 
 export function buildReferralLandingUrl(
