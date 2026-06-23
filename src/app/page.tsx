@@ -31,9 +31,9 @@ export default async function Home({
       />
       <Link
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-black focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
-        href="/ko/fanletter"
+        href="/ko/referrals"
       >
-        1066friend+ 시작하기
+        1066friend+ 추천 네트워크 시작하기
       </Link>
     </main>
   );
