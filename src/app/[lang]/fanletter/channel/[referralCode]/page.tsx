@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
-import { FanletterCreatorPage } from "@/components/fanletter-subpages";
+import { FanletterAIStarChannelPage } from "@/components/fanletter-ai-star-channel-page";
 import {
   getFanletterCreatorPageData,
   type FanletterCreatorPageData,
@@ -194,7 +194,7 @@ export default async function LocalizedFanletterChannelPage({
   const queryReferralCode = readFanletterReferralCode(query.ref);
 
   return (
-    <FanletterCreatorPage
+    <FanletterAIStarChannelPage
       data={data}
       isAuthenticated={Boolean(memberSession?.email)}
       locale={locale}
