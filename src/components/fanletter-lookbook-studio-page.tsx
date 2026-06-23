@@ -258,6 +258,9 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [images, setImages] = useState<LookbookImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [spendablePoints, setSpendablePoints] = useState<number | null>(null);
+  const [freeTrialRemaining, setFreeTrialRemaining] = useState<number | null>(
+    null,
+  );
   const [starAvatars, setStarAvatars] = useState<{ url: string; label: string }[]>(
     [],
   );
@@ -544,7 +547,13 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     [garmentText],
   );
 
-  const cost = useMemo(() => computeLookbookPointCost(numImages), [numImages]);
+  const freeApplied =
+    freeTrialRemaining === null ? 0 : Math.min(freeTrialRemaining, numImages);
+  const paidImages = Math.max(0, numImages - freeApplied);
+  const cost = useMemo(
+    () => computeLookbookPointCost(paidImages),
+    [paidImages],
+  );
   const hasEnoughPoints = spendablePoints === null || spendablePoints >= cost;
 
   const canSubmit =
@@ -715,10 +724,13 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
         )}&walletAddress=${encodeURIComponent(accountAddress)}`,
       );
       const data = (await res.json().catch(() => null)) as
-        | { generations?: typeof history }
+        | { generations?: typeof history; freeTrial?: { remaining?: number } }
         | null;
       if (res.ok && Array.isArray(data?.generations)) {
         setHistory(data.generations);
+      }
+      if (res.ok && typeof data?.freeTrial?.remaining === "number") {
+        setFreeTrialRemaining(data.freeTrial.remaining);
       }
     } catch {
       // best-effort
@@ -1082,12 +1094,24 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
             {copy.subtitle}
           </p>
         </div>
-        {spendablePoints !== null ? (
-          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-neutral-600">
-            <span className="h-2 w-2 rounded-full bg-[#44f26e]" />
-            {copy.balanceLabel} {spendablePoints.toLocaleString()}P
-          </span>
-        ) : null}
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          {spendablePoints !== null ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-neutral-600">
+              <span className="h-2 w-2 rounded-full bg-[#44f26e]" />
+              {copy.balanceLabel} {spendablePoints.toLocaleString()}P
+            </span>
+          ) : null}
+          {accountAddress &&
+          freeTrialRemaining !== null &&
+          freeTrialRemaining > 0 ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[#44f26e]/40 bg-[#44f26e]/10 px-3 py-1.5 text-xs font-bold text-[#16702e]">
+              🎁{" "}
+              {locale === "en"
+                ? `${freeTrialRemaining} free shots left`
+                : `무료 체험 ${freeTrialRemaining}컷 남음`}
+            </span>
+          ) : null}
+        </div>
       </header>
 
       {gate ? (
@@ -1098,6 +1122,12 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
 
       {!accountAddress ? (
         <div className="mb-6 space-y-5">
+          <div className="rounded-2xl border border-[#44f26e]/40 bg-[#44f26e]/10 px-4 py-3 text-sm font-bold text-[#16702e]">
+            🎁{" "}
+            {locale === "en"
+              ? "New members: your first few lookbook shots are free."
+              : "신규 멤버는 첫 룩북 몇 컷을 무료로 만들 수 있어요."}
+          </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {[
               {
@@ -1177,8 +1207,8 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
                 {
                   a:
                     locale === "en"
-                      ? "Connect your fanletter member wallet, then generate with points — 50P per shot."
-                      : "fanletter 멤버(지갑)로 연결한 뒤 포인트로 생성합니다. 컷당 50P.",
+                      ? "Connect your fanletter member wallet — new members get free trial shots to start. After that, 50P per shot in points."
+                      : "fanletter 멤버(지갑)로 연결하면 신규 무료 체험 컷이 제공돼 바로 만들어볼 수 있습니다. 이후엔 포인트로 컷당 50P.",
                   q:
                     locale === "en"
                       ? "How do I start and what does it cost?"
@@ -1784,11 +1814,27 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
 
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-black/10 bg-white/80 px-4 py-3 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
           <div className="text-sm text-neutral-500">
-            {copy.costLabel}{" "}
-            <span className="font-bold text-neutral-900">
-              {cost.toLocaleString()}P
+            {freeApplied >= numImages ? (
+              <span className="font-bold text-[#16702e]">
+                {locale === "en" ? "Free" : "무료"}
+              </span>
+            ) : (
+              <>
+                {copy.costLabel}{" "}
+                <span className="font-bold text-neutral-900">
+                  {cost.toLocaleString()}P
+                </span>
+              </>
+            )}
+            <span className="text-neutral-400">
+              {" "}
+              · {numImages}장
+              {freeApplied > 0 && freeApplied < numImages
+                ? locale === "en"
+                  ? ` (${freeApplied} free)`
+                  : ` (무료 ${freeApplied}컷)`
+                : ""}
             </span>
-            <span className="text-neutral-400"> · {numImages}장</span>
           </div>
           <div className="flex-1" />
           <button

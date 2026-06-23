@@ -1,4 +1,5 @@
 import { getMemberLookbookGenerations } from "@/lib/member-lookbook-history";
+import { getFreeTrialStatus } from "@/lib/member-lookbook-trial";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 
 export const runtime = "nodejs";
@@ -19,11 +20,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    const generations = await getMemberLookbookGenerations(
-      authorization.member.email,
-    );
+    const [generations, freeTrial] = await Promise.all([
+      getMemberLookbookGenerations(authorization.member.email),
+      getFreeTrialStatus(authorization.member.email),
+    ]);
 
-    return Response.json({ generations });
+    return Response.json({ freeTrial, generations });
   } catch (error) {
     return jsonError(
       error instanceof Error
