@@ -2,7 +2,12 @@ import { randomUUID } from "crypto";
 
 import { normalizeEmail } from "@/lib/member";
 import { recordMemberLookbookGeneration } from "@/lib/member-lookbook-history";
+import {
+  consumeFreeTrialShots,
+  refundFreeTrialShots,
+} from "@/lib/member-lookbook-trial";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
+import { syncPointLedgerForMemberEmail } from "@/lib/points-service";
 import {
   awardStarModelRoyalty,
   getStarOwnerEmail,
@@ -158,19 +163,31 @@ export async function POST(request: Request) {
   );
   const sourceId = randomUUID();
 
-  // 1) Charge points up front (atomic guard-decrement).
-  let chargedPoints: number;
+  // Free trial: the first N shots per member are free — waives the point charge
+  // (without injecting spendable points). Only the remaining shots are charged.
+  const freeShots = await consumeFreeTrialShots(member.email, numImages);
+  const paidShots = numImages - freeShots;
+
+  // 1) Charge points up front (atomic guard-decrement) for the non-free shots.
+  let chargedPoints = 0;
   let summary: Awaited<ReturnType<typeof chargeLookbookPoints>>["summary"];
 
   try {
-    const charge = await chargeLookbookPoints({
-      memberEmail: member.email,
-      numImages,
-      sourceId,
-    });
-    chargedPoints = charge.chargedPoints;
-    summary = charge.summary;
+    if (paidShots > 0) {
+      const charge = await chargeLookbookPoints({
+        memberEmail: member.email,
+        numImages: paidShots,
+        sourceId,
+      });
+      chargedPoints = charge.chargedPoints;
+      summary = charge.summary;
+    } else {
+      summary = await syncPointLedgerForMemberEmail(member.email);
+    }
   } catch (error) {
+    // Bailing out — give back the trial shots we just consumed.
+    await refundFreeTrialShots(member.email, freeShots);
+
     if (error instanceof Error && error.message === INSUFFICIENT_POINTS_ERROR) {
       return jsonError("Not enough points to generate this lookbook.", 402);
     }
@@ -219,6 +236,7 @@ export async function POST(request: Request) {
       memberEmail: member.email,
       sourceId,
     });
+    await refundFreeTrialShots(member.email, freeShots);
 
     return jsonError(
       error instanceof Error
