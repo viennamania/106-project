@@ -260,6 +260,12 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   const [starAvatars, setStarAvatars] = useState<{ url: string; label: string }[]>(
     [],
   );
+  const [publicStars, setPublicStars] = useState<
+    { id: string; name: string; images: string[] }[]
+  >([]);
+  const [selectedPublicStarId, setSelectedPublicStarId] = useState<string | null>(
+    null,
+  );
   const [showStarUrl, setShowStarUrl] = useState(false);
   const [showGarmentUrl, setShowGarmentUrl] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -588,6 +594,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
       try {
         const url = await uploadImage(file);
         setStarAvatarUrl(url);
+        setSelectedPublicStarId(null);
         setStarAvatars((previous) =>
           previous.some((item) => item.url === url)
             ? previous
@@ -645,6 +652,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
         uniqueUrls.map((url, index) => ({ url, label: `${index + 1}` })),
       );
       setStarAvatarUrl(primaryUrl);
+      setSelectedPublicStarId(null);
       const resolvedName =
         data.profile.characterPersona?.name ?? data.profile.displayName ?? "";
 
@@ -657,6 +665,22 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
       );
     }
   }, [accountAddress, copy.genericError, copy.noStar, email]);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/seller/stars");
+        const data = (await res.json().catch(() => null)) as
+          | { stars?: { id: string; name: string; images: string[] }[] }
+          | null;
+        if (res.ok && Array.isArray(data?.stars)) {
+          setPublicStars(data.stars);
+        }
+      } catch {
+        // best-effort
+      }
+    })();
+  }, []);
 
   const handleSubmit = useCallback(async () => {
     setError(null);
@@ -686,6 +710,8 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
           resolution,
           sceneBrief: sceneBrief.trim() || null,
           starAvatarUrl: starAvatarUrl.trim(),
+          starId: selectedPublicStarId,
+          starImageIndex: 0,
           starName: starName.trim() || null,
           walletAddress: accountAddress,
         }),
@@ -729,6 +755,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     numImages,
     resolution,
     sceneBrief,
+    selectedPublicStarId,
     starAvatarUrl,
     starName,
   ]);
@@ -1004,7 +1031,10 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
                         : "ring-1 ring-black/10 hover:ring-black/25"
                     }`}
                     key={avatar.url}
-                    onClick={() => setStarAvatarUrl(avatar.url)}
+                    onClick={() => {
+                      setStarAvatarUrl(avatar.url);
+                      setSelectedPublicStarId(null);
+                    }}
                     type="button"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1055,11 +1085,60 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
               <input
                 className={`${FIELD_INPUT} mt-2`}
                 inputMode="url"
-                onChange={(event) => setStarAvatarUrl(event.target.value)}
+                onChange={(event) => {
+                  setStarAvatarUrl(event.target.value);
+                  setSelectedPublicStarId(null);
+                }}
                 placeholder="https://…/star.png"
                 type="url"
                 value={starAvatarUrl}
               />
+            ) : null}
+
+            {publicStars.length > 0 ? (
+              <div className="mt-3 border-t border-black/5 pt-3">
+                <p className="mb-2 text-xs font-bold text-neutral-500">
+                  {locale === "en"
+                    ? "Or pick a public AI star"
+                    : "또는 공개 AI 스타에서 선택"}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {publicStars.map((star) => {
+                    const active = selectedPublicStarId === star.id;
+                    return (
+                      <button
+                        className={`h-12 w-12 overflow-hidden rounded-full transition ${
+                          active
+                            ? "ring-2 ring-[#44f26e] ring-offset-2"
+                            : "ring-1 ring-black/10 hover:ring-black/25"
+                        }`}
+                        key={star.id}
+                        onClick={() => {
+                          setSelectedPublicStarId(star.id);
+                          setStarAvatarUrl(star.images[0] ?? "");
+                          setStarName(star.name);
+                        }}
+                        title={star.name}
+                        type="button"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          alt={star.name}
+                          className="h-full w-full object-cover"
+                          src={star.images[0]}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedPublicStarId ? (
+                  <p className="mt-1.5 text-[11px] text-neutral-400">
+                    {locale === "en"
+                      ? "Using a public star — the owner earns royalty points."
+                      : "공개 스타 사용 — 소유자가 포인트 로열티를 받습니다."}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
           </section>
 
