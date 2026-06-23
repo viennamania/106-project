@@ -558,7 +558,6 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
 
   const canSubmit =
     Boolean(accountAddress) &&
-    Boolean(referralCode) &&
     Boolean(starAvatarUrl.trim()) &&
     garmentImageUrls.length > 0 &&
     hasEnoughPoints &&
@@ -1071,11 +1070,9 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     starName,
   ]);
 
-  const gate = !accountAddress
-    ? copy.connectRequired
-    : !referralCode
-      ? copy.membersOnly
-      : null;
+  // Lite (pending_payment) members — connected but no referralCode yet — can use
+  // the free trial, so only the disconnected state gates the studio.
+  const gate = !accountAddress ? copy.connectRequired : null;
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-8">
@@ -1122,11 +1119,24 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
 
       {!accountAddress ? (
         <div className="mb-6 space-y-5">
-          <div className="rounded-2xl border border-[#44f26e]/40 bg-[#44f26e]/10 px-4 py-3 text-sm font-bold text-[#16702e]">
-            🎁{" "}
-            {locale === "en"
-              ? "New members: your first few lookbook shots are free."
-              : "신규 멤버는 첫 룩북 몇 컷을 무료로 만들 수 있어요."}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-[#44f26e]/40 bg-[#44f26e]/10 px-4 py-3.5">
+            <span className="text-sm font-bold text-[#16702e]">
+              🎁{" "}
+              {locale === "en"
+                ? "New members: your first few lookbook shots are free."
+                : "신규 멤버는 첫 룩북 몇 컷을 무료로 만들 수 있어요."}
+            </span>
+            <a
+              className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-neutral-900 px-5 py-2.5 text-sm font-extrabold text-white transition hover:bg-black"
+              href={`/${locale}/fanletter/onboarding?returnTo=${encodeURIComponent(
+                `/${locale}/fanletter/studio/lookbook`,
+              )}`}
+            >
+              <Sparkles className="h-4 w-4" />
+              {locale === "en"
+                ? "Connect & start free"
+                : "지갑 연결하고 무료로 시작"}
+            </a>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {[

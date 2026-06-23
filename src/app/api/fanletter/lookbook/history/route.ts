@@ -13,7 +13,11 @@ export async function GET(request: Request) {
   const email = url.searchParams.get("email");
   const walletAddress = url.searchParams.get("walletAddress");
 
-  const authorization = await validateMemberWalletOwner({ email, walletAddress });
+  const authorization = await validateMemberWalletOwner({
+    allowedStatuses: ["completed", "pending_payment"],
+    email,
+    walletAddress,
+  });
 
   if (authorization.error) {
     return authorization.error;
