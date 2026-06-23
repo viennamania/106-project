@@ -316,6 +316,18 @@ export async function getSellerWorkspacePublic(
   return doc ? toPublic(doc) : null;
 }
 
+/** Attach/update the workspace email (light "account" identity). */
+export async function updateSellerWorkspaceEmail(
+  workspaceId: string,
+  email: string,
+): Promise<void> {
+  const workspaces = await getWorkspacesCollection();
+  await workspaces.updateOne(
+    { workspaceId },
+    { $set: { email: normalizeEmail(email), updatedAt: new Date() } },
+  );
+}
+
 /** Atomic guard-decrement of credits + a spend ledger entry. */
 export async function chargeSellerCredits({
   amount,

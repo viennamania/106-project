@@ -9,6 +9,7 @@ import {
   Shirt,
   Sparkles,
   Upload,
+  User,
   Video,
   X,
 } from "lucide-react";
@@ -942,14 +943,29 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
               : "옷 사진만 올리면 1분 만에 한국형 쇼핑몰 룩북 세트가 나옵니다. 앱·크립토 없이 크레딧으로 바로."}
           </p>
         </div>
-        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-neutral-600">
-          <Coins className="h-3.5 w-3.5 text-[#16702e]" />
-          {creditBalance === null
-            ? en
-              ? "Free trial ready"
-              : "무료 체험"
-            : `${en ? "Credits" : "크레딧"} ${creditBalance.toLocaleString()}`}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-neutral-600">
+            <Coins className="h-3.5 w-3.5 text-[#16702e]" />
+            {creditBalance === null
+              ? en
+                ? "Free trial ready"
+                : "무료 체험"
+              : `${en ? "Credits" : "크레딧"} ${creditBalance.toLocaleString()}`}
+          </span>
+          <a
+            className="inline-flex items-center gap-1.5 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-neutral-600 transition hover:border-[#44f26e] hover:text-[#16702e]"
+            href={`/${locale}/lookbook/account`}
+          >
+            <User className="h-3.5 w-3.5" />
+            {workspace
+              ? en
+                ? "Account"
+                : "마이페이지"
+              : en
+                ? "Sign in"
+                : "로그인"}
+          </a>
+        </div>
       </header>
 
       <div className="mb-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -964,8 +980,8 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
           },
           {
             desc: en
-              ? "The model is always a consented fanletter AI star — no real people."
-              : "모델은 항상 동의된 fanletter AI 스타입니다. 실제 인물 아님.",
+              ? "The model is always a fanletter AI star — no real people."
+              : "모델은 항상 fanletter AI 스타입니다. 실제 인물 아님.",
             icon: Sparkles,
             step: "2",
             title: en ? "Pick an AI star" : "AI 스타·배경 선택",
@@ -1583,8 +1599,8 @@ export function SellerLookbookPage({ locale }: { locale: Locale }) {
               },
               {
                 a: en
-                  ? "Always a consented fanletter AI star — never a real person. You cannot upload your own model."
-                  : "항상 동의된 fanletter AI 스타입니다. 실제 인물이 아니며, 셀러가 임의 모델을 올릴 수 없습니다.",
+                  ? "Always a fanletter AI star — never a real person. You cannot upload your own model."
+                  : "항상 fanletter AI 스타입니다. 실제 인물이 아니며, 셀러가 임의 모델을 올릴 수 없습니다.",
                 q: en ? "Who is the model?" : "모델은 누구인가요?",
               },
               {

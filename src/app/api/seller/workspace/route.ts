@@ -3,6 +3,7 @@ import {
   createSellerWorkspace,
   getSellerWorkspacePublic,
   SELLER_TRIAL_RATE_LIMIT_ERROR,
+  updateSellerWorkspaceEmail,
 } from "@/lib/seller-workspace";
 
 export const runtime = "nodejs";
@@ -48,10 +49,15 @@ export async function POST(request: Request) {
     });
 
     if (existing) {
+      // Resuming with an email attaches/updates the workspace's account email.
+      const emailInput = body.email?.trim();
+      if (emailInput && emailInput !== existing.email) {
+        await updateSellerWorkspaceEmail(existing.workspaceId, emailInput);
+      }
       return Response.json({
         workspace: {
           creditBalance: existing.creditBalance,
-          email: existing.email,
+          email: emailInput || existing.email,
           workspaceId: existing.workspaceId,
         },
       });
