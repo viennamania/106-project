@@ -3,19 +3,13 @@ import Link from "next/link";
 import {
   ArrowRight,
   BadgeCheck,
-  Clapperboard,
-  Crown,
-  HeartHandshake,
   MessageCircleHeart,
   Search,
   ShieldAlert,
   Sparkles,
-  UsersRound,
 } from "lucide-react";
-import type { ReactNode } from "react";
 
 import { FanletterAccountStatusLink } from "@/components/fanletter-account-status-link";
-import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
 import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
@@ -52,9 +46,9 @@ function getCopy(locale: Locale) {
           title: "조건에 맞는 AI 스타가 없습니다.",
         },
         hero: {
-          body: "성장 중인 AI 스타를 고르고 파운더 참여 흐름으로 이어가세요.",
+          body: "브이로그와 팬 반응을 보고 하나를 선택하세요.",
           eyebrow: "AI 스타 발견",
-          title: "먼저 발견할 AI 스타를 선택하세요",
+          title: "성장 중인 AI 스타",
         },
         labels: {
           aiStarChannel: "AI 스타 채널",
@@ -69,11 +63,10 @@ function getCopy(locale: Locale) {
           totalCharacters: "활성 AI 스타",
         },
         nsfw: {
-          disabledBody:
-            "목록은 유지하고 NSFW 팬 전용 커버만 블러 처리합니다. 켜면 커버를 선명하게 볼 수 있습니다.",
+          disabledBody: "NSFW 커버는 기본 블러 처리됩니다.",
           disabledTitle: "NSFW AI 스타 커버 블러 처리",
           hiddenCountText: (count: string) =>
-            `블러 처리된 NSFW 팬 전용 콘텐츠 ${count}개`,
+            `블러 처리 ${count}개`,
         },
         sort: {
           "fan-only": "팬 전용 많은순",
@@ -114,9 +107,9 @@ function getCopy(locale: Locale) {
           title: "No AI Stars match this view.",
         },
         hero: {
-          body: "Pick a growing AI Star and continue into Founder participation.",
+          body: "Review vlogs and fan signals, then select one.",
           eyebrow: "AI Star Discovery",
-          title: "Choose the AI Star you will discover first",
+          title: "Growing AI Stars",
         },
         labels: {
           aiStarChannel: "AI Star channel",
@@ -131,10 +124,9 @@ function getCopy(locale: Locale) {
           totalCharacters: "Active AI Stars",
         },
         nsfw: {
-          disabledBody:
-            "The list stays visible while NSFW fan-only covers are blurred. Turn this on to show covers clearly.",
-          disabledTitle: "NSFW character covers blurred",
-          hiddenCountText: (count: string) => `${count} NSFW fan-only covers blurred`,
+          disabledBody: "NSFW covers are blurred by default.",
+          disabledTitle: "NSFW AI Star covers blurred",
+          hiddenCountText: (count: string) => `${count} blurred`,
         },
         sort: {
           "fan-only": "Most fan-only",
@@ -200,22 +192,15 @@ function getCharactersHref({
 }
 
 function DirectoryHeader({
-  copy,
   locale,
   referralCode,
   routePath,
 }: {
-  copy: CharacterDirectoryCopy;
   locale: Locale;
   referralCode: string | null;
   routePath: string;
 }) {
   const homeHref = buildPathWithReferral(`/${locale}/fanletter`, referralCode);
-  const feedHref = buildPathWithReferral(`/${locale}/fanletter/feed`, referralCode);
-  const startHref = buildPathWithReferral(
-    `/${locale}/fanletter/start`,
-    referralCode,
-  );
 
   return (
     <header className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
@@ -233,9 +218,6 @@ function DirectoryHeader({
         </Link>
         <Link className="text-white" href={getCharactersHref({ referralCode, routePath })}>
           {locale === "ko" ? "발견" : "Discovery"}
-        </Link>
-        <Link className="transition hover:text-white" href={feedHref}>
-          {copy.actions.feed}
         </Link>
       </nav>
       <div className="flex min-w-0 shrink-0 items-center gap-2">
@@ -255,36 +237,8 @@ function DirectoryHeader({
           locale={locale}
           referralCode={referralCode}
         />
-        <Link
-          className="hidden h-10 items-center justify-center rounded-full border border-white/16 px-4 text-sm font-semibold !text-white transition hover:border-white/36 lg:inline-flex"
-          href={startHref}
-        >
-          {copy.actions.start}
-        </Link>
       </div>
     </header>
-  );
-}
-
-function StatCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.055] p-3 backdrop-blur">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] text-white/52">
-          {label}
-        </p>
-        <span className="text-[#44f26e]">{icon}</span>
-      </div>
-      <p className="mt-3 text-2xl font-semibold leading-none text-white">{value}</p>
-    </div>
   );
 }
 
@@ -300,7 +254,7 @@ function DirectoryControls({
   routePath: string;
 }) {
   return (
-    <div className="mb-5 rounded-lg border border-black/10 bg-white p-3 shadow-[0_14px_42px_rgba(8,18,12,0.06)] sm:p-4">
+    <div className="mb-5 rounded-[1.25rem] border border-black/10 bg-white p-3 shadow-[0_14px_42px_rgba(8,18,12,0.05)] sm:p-4">
       <form
         action={routePath}
         className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]"
@@ -452,10 +406,6 @@ function CharacterCard({
       value: item.publicContentCount,
     },
     {
-      label: copy.labels.fanOnly,
-      value: item.fanOnlyContentCount,
-    },
-    {
       label: copy.labels.fanClub,
       value: item.fanClubMemberCount,
     },
@@ -469,7 +419,7 @@ function CharacterCard({
         source: "fanletter_home",
         starId: item.referralCode,
       }}
-      className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_48px_rgba(8,18,12,0.08)] transition hover:-translate-y-0.5 hover:border-[#16702e]/34 hover:shadow-[0_22px_58px_rgba(8,18,12,0.14)]"
+      className="group grid min-w-0 overflow-hidden rounded-[1.25rem] border border-black/10 bg-white shadow-[0_18px_48px_rgba(8,18,12,0.07)] transition hover:-translate-y-0.5 hover:border-[#16702e]/34 hover:shadow-[0_22px_58px_rgba(8,18,12,0.12)] sm:flex sm:flex-col"
       eventName="signup_cta_click"
       href={channelHref}
       metadata={{
@@ -486,7 +436,7 @@ function CharacterCard({
       />
       <div className="flex flex-1 flex-col p-4">
         <div className="flex items-start gap-3">
-          <span className="relative -mt-10 flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-[#44f26e] text-lg font-semibold text-black shadow-[0_14px_28px_rgba(0,0,0,0.18)]">
+          <span className="relative -mt-10 flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-[#44f26e] text-lg font-semibold text-black shadow-[0_14px_28px_rgba(0,0,0,0.18)] sm:-mt-10">
             {item.avatarImageUrl ? (
               <Image
                 alt={item.character.name}
@@ -512,13 +462,13 @@ function CharacterCard({
           </div>
         </div>
 
-        <p className="mt-4 line-clamp-3 min-h-[4.5rem] text-sm font-medium leading-6 text-black/62">
+        <p className="mt-4 line-clamp-2 text-sm font-medium leading-6 text-black/62 sm:min-h-[3rem]">
           {item.character.summary}
         </p>
 
         {item.character.traits.length > 0 ? (
-          <div className="mt-3 flex gap-1.5 overflow-hidden">
-            {item.character.traits.slice(0, 3).map((trait) => (
+          <div className="mt-3 hidden gap-1.5 overflow-hidden sm:flex">
+            {item.character.traits.slice(0, 2).map((trait) => (
               <span
                 className="truncate rounded-full border border-black/10 bg-[#f6f8f4] px-2.5 py-1 text-[0.64rem] font-semibold text-black/54"
                 key={trait}
@@ -529,7 +479,7 @@ function CharacterCard({
           </div>
         ) : null}
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="mt-4 grid grid-cols-2 gap-2">
           {stats.map((stat) => (
             <div className="rounded-lg bg-[#f6f8f4] p-2" key={stat.label}>
               <p className="text-lg font-semibold leading-none">
@@ -628,33 +578,18 @@ export function FanletterCharacterDirectoryPage({
   const formattedHiddenCount = formatNumber(data.hiddenNsfwCount, locale);
   const shouldShowNsfwControl =
     data.hiddenNsfwCount > 0 || data.nsfwOptInEnabled;
-  const primaryItem = data.items[0] ?? null;
-  const primaryStarHref = primaryItem
-    ? buildPathWithReferral(
-        `/${locale}/fanletter/channel/${primaryItem.referralCode}`,
-        referralCode ?? primaryItem.referralCode,
-      )
-    : "#ai-star-results";
-  const heroStats = [
+  const heroSignals = [
     {
-      icon: <UsersRound className="size-4" />,
-      label: copy.stats.totalCharacters,
-      value: formatNumber(data.stats.activeCharacterCount, locale),
+      label: copy.signpost.currentLabel,
+      value: copy.signpost.currentValue,
     },
     {
-      icon: <Clapperboard className="size-4" />,
-      label: copy.stats.publicVlogs,
-      value: formatNumber(data.stats.publicContentCount, locale),
+      label: copy.signpost.nextLabel,
+      value: copy.signpost.nextValue,
     },
     {
-      icon: <Crown className="size-4" />,
-      label: copy.stats.fanOnly,
-      value: formatNumber(data.stats.fanOnlyContentCount, locale),
-    },
-    {
-      icon: <HeartHandshake className="size-4" />,
-      label: copy.stats.fanClub,
-      value: formatNumber(data.stats.fanClubMemberCount, locale),
+      label: copy.signpost.eventLabel,
+      value: copy.signpost.eventValue,
     },
   ];
 
@@ -662,68 +597,44 @@ export function FanletterCharacterDirectoryPage({
     <main className="fanletter-v2-surface min-h-screen overflow-x-hidden bg-[#030504] pb-[calc(5.75rem+env(safe-area-inset-bottom))] text-white sm:pb-0">
       <section className="border-b border-white/10">
         <DirectoryHeader
-          copy={copy}
           locale={locale}
           referralCode={referralCode}
           routePath={directoryRoutePath}
         />
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 pb-10 pt-8 sm:px-6 sm:pb-14 sm:pt-16 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-end lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-5 px-4 pb-7 pt-7 sm:px-6 sm:pb-9 sm:pt-10 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-end lg:px-8">
           <div className="min-w-0">
-            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.28em] text-[#44f26e]">
+            <p className="text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-[#44f26e]">
               {copy.hero.eyebrow}
             </p>
-            <h1 className="mt-4 max-w-5xl text-[2rem] font-semibold leading-[1.08] tracking-normal text-white [word-break:keep-all] sm:text-[3rem] lg:text-[3.25rem]">
+            <h1 className="mt-3 max-w-4xl text-[2.15rem] font-semibold leading-[1.04] tracking-normal text-white [word-break:keep-all] sm:text-[3.1rem] lg:text-[3.5rem]">
               {copy.hero.title}
             </h1>
-            <p className="mt-5 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
+            <p className="mt-4 max-w-2xl text-base font-medium leading-7 text-white/68 [word-break:keep-all] sm:text-lg">
               {copy.hero.body}
             </p>
-            <FanletterActionGuide
-              className="mt-6 border-white/14 bg-white text-black shadow-[0_22px_60px_rgba(0,0,0,0.28)]"
-              currentLabel={copy.signpost.currentValue}
-              metrics={[
-                {
-                  label: copy.stats.totalCharacters,
-                  value: formatNumber(data.stats.activeCharacterCount, locale),
-                },
-                {
-                  label: copy.stats.publicVlogs,
-                  value: formatNumber(data.stats.publicContentCount, locale),
-                },
-              ]}
-              primaryAction={{
-                agentRank: {
-                  eventType: "ai_star_discovered",
-                  intent: "choose_ai_star_from_discovery",
-                  source: "fanletter_home",
-                  starId: primaryItem?.referralCode ?? null,
-                },
-                href: primaryStarHref,
-                label: copy.actions.pickStar,
-                metadata: {
-                  location: "fanletter_character_directory_signpost",
-                  starId: primaryItem?.referralCode ?? null,
-                },
-              }}
-              reputationEventLabel={copy.signpost.eventValue}
-              secondaryActions={[]}
-              steps={copy.signpost.flow.map((step, index) => ({
-                label: step,
-                status: index === 0 ? "active" : "next",
-              }))}
-              subtitle={copy.signpost.subtitle}
-              title={copy.signpost.nextValue}
-            />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            {heroStats.map((stat) => (
-              <StatCard
-                icon={stat.icon}
-                key={stat.label}
-                label={stat.label}
-                value={stat.value}
-              />
+          <div className="grid gap-2 rounded-[1.25rem] border border-white/10 bg-white/[0.055] p-3 shadow-[0_18px_52px_rgba(0,0,0,0.22)] backdrop-blur sm:grid-cols-3 lg:grid-cols-1">
+            <div className="rounded-2xl bg-[#44f26e] px-4 py-3 text-black sm:col-span-3 lg:col-span-1">
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.16em] opacity-70">
+                {copy.stats.totalCharacters}
+              </p>
+              <p className="mt-1 text-2xl font-semibold leading-none">
+                {formatNumber(data.stats.activeCharacterCount, locale)}
+              </p>
+            </div>
+            {heroSignals.map((signal) => (
+              <div
+                className="min-w-0 rounded-2xl border border-white/10 bg-black/22 px-4 py-3"
+                key={signal.label}
+              >
+                <p className="truncate text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-white/45">
+                  {signal.label}
+                </p>
+                <p className="mt-1 truncate text-sm font-semibold text-white">
+                  {signal.value}
+                </p>
+              </div>
             ))}
           </div>
         </div>
@@ -755,7 +666,7 @@ export function FanletterCharacterDirectoryPage({
           ) : null}
 
           {data.items.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {data.items.map((item) => (
                 <CharacterCard
                   copy={copy}
