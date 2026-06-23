@@ -257,7 +257,7 @@ export default async function FanletterRoutePage({
     referralCode ?? shareCreatorData?.profile.referralCode ?? null;
   const shareChannelHref = shareCreatorData
     ? buildPathWithReferral(
-        `/${locale}/fanletter/creator/${shareCreatorData.profile.referralCode}`,
+        `/${locale}/fanletter/channel/${shareCreatorData.profile.referralCode}`,
         shareContextReferralCode,
       )
     : null;

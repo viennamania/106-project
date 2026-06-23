@@ -18,6 +18,7 @@ import { FanletterAccountStatusLink } from "@/components/fanletter-account-statu
 import { FanletterActionGuide } from "@/components/fanletter-action-guide";
 import { FanletterGlobalLanguageSwitcher } from "@/components/fanletter-global-language-switcher";
 import { FanletterNsfwOptInControl } from "@/components/fanletter-nsfw-opt-in-control";
+import { FanletterTrackedLink } from "@/components/fanletter-tracked-link";
 import type {
   FanletterCharacterDirectoryItem,
   FanletterCharacterDirectoryPageData,
@@ -40,7 +41,7 @@ function getCopy(locale: Locale) {
         actions: {
           clear: "전체 AI 스타 보기",
           feed: "브이로그 피드",
-          open: "채널 보기",
+          open: "선택하기",
           search: "검색",
           pickStar: "AI 스타 선택하기",
           start: "내 AI 스타 만들기",
@@ -51,7 +52,7 @@ function getCopy(locale: Locale) {
           title: "조건에 맞는 AI 스타가 없습니다.",
         },
         hero: {
-          body: "브이로그와 팬 반응으로 성장 중인 AI 스타를 고르고 파운더 참여로 이어가세요.",
+          body: "성장 중인 AI 스타를 고르고 파운더 참여 흐름으로 이어가세요.",
           eyebrow: "AI 스타 발견",
           title: "먼저 발견할 AI 스타를 선택하세요",
         },
@@ -95,14 +96,14 @@ function getCopy(locale: Locale) {
           nextLabel: "다음 행동",
           nextValue: "스타 선택",
           subtitle:
-            "AI 스타를 선택하면 AI 스타 유니버스로 이동하고 Founder 참여 흐름이 시작됩니다.",
+            "AI 스타를 선택하면 채널과 AI 스타 유니버스를 확인한 뒤 Founder 참여로 이어집니다.",
         },
       }
     : {
         actions: {
           clear: "View all AI Stars",
           feed: "Vlog feed",
-          open: "View channel",
+          open: "Select",
           search: "Search",
           pickStar: "Choose an AI Star",
           start: "Start my AI Star",
@@ -113,8 +114,7 @@ function getCopy(locale: Locale) {
           title: "No AI Stars match this view.",
         },
         hero: {
-          body:
-            "Pick an AI Star growing through vlogs and fan reactions, then continue into Founder participation.",
+          body: "Pick a growing AI Star and continue into Founder participation.",
           eyebrow: "AI Star Discovery",
           title: "Choose the AI Star you will discover first",
         },
@@ -157,7 +157,7 @@ function getCopy(locale: Locale) {
           nextLabel: "Next action",
           nextValue: "Choose a star",
           subtitle:
-            "Choose an AI Star to enter its AI Star Universe and continue into Founder participation.",
+            "Choose an AI Star to review its channel and AI Star Universe before joining as a Founder.",
         },
       };
 }
@@ -442,7 +442,7 @@ function CharacterCard({
   referralCode: string | null;
 }) {
   const channelHref = buildPathWithReferral(
-    `/${locale}/fanletter/creator/${item.referralCode}`,
+    `/${locale}/fanletter/channel/${item.referralCode}`,
     referralCode ?? item.referralCode,
   );
   const latestDate = formatDate(item.latestPublishedAt, locale);
@@ -462,9 +462,21 @@ function CharacterCard({
   ];
 
   return (
-    <Link
+    <FanletterTrackedLink
+      agentRank={{
+        eventType: "ai_star_discovered",
+        intent: "select_ai_star_from_discovery_card",
+        source: "fanletter_home",
+        starId: item.referralCode,
+      }}
       className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-black/10 bg-white shadow-[0_18px_48px_rgba(8,18,12,0.08)] transition hover:-translate-y-0.5 hover:border-[#16702e]/34 hover:shadow-[0_22px_58px_rgba(8,18,12,0.14)]"
+      eventName="signup_cta_click"
       href={channelHref}
+      metadata={{
+        location: "fanletter_discovery_card",
+        starId: item.referralCode,
+      }}
+      referralCode={referralCode}
     >
       <CharacterVisual
         copy={copy}
@@ -545,7 +557,7 @@ function CharacterCard({
           </span>
         </div>
       </div>
-    </Link>
+    </FanletterTrackedLink>
   );
 }
 
@@ -616,14 +628,10 @@ export function FanletterCharacterDirectoryPage({
   const formattedHiddenCount = formatNumber(data.hiddenNsfwCount, locale);
   const shouldShowNsfwControl =
     data.hiddenNsfwCount > 0 || data.nsfwOptInEnabled;
-  const feedHref = buildPathWithReferral(
-    `/${locale}/fanletter/feed`,
-    referralCode,
-  );
   const primaryItem = data.items[0] ?? null;
   const primaryStarHref = primaryItem
     ? buildPathWithReferral(
-        `/${locale}/fanletter/creator/${primaryItem.referralCode}`,
+        `/${locale}/fanletter/channel/${primaryItem.referralCode}`,
         referralCode ?? primaryItem.referralCode,
       )
     : "#ai-star-results";
@@ -698,15 +706,7 @@ export function FanletterCharacterDirectoryPage({
                 },
               }}
               reputationEventLabel={copy.signpost.eventValue}
-              secondaryActions={[
-                {
-                  href: feedHref,
-                  label: copy.actions.feed,
-                  metadata: {
-                    location: "fanletter_character_directory_signpost",
-                  },
-                },
-              ]}
+              secondaryActions={[]}
               steps={copy.signpost.flow.map((step, index) => ({
                 label: step,
                 status: index === 0 ? "active" : "next",

@@ -2857,21 +2857,21 @@ export function FanletterHomePage({
   const shareContextLabels =
     locale === "ko"
       ? {
-          body: "방금 본 캐릭터 채널로 돌아가거나, 같은 방식으로 나만의 AI 캐릭터 채널을 시작할 수 있습니다.",
-          channel: "이 캐릭터 채널 보기",
+          body: "방금 본 AI 스타 채널로 돌아가거나, 같은 방식으로 나만의 AI 스타를 시작할 수 있습니다.",
+          channel: "AI 스타 채널 보기",
           eyebrow: `${shareContext?.sponsorName ?? "SNS"} 공유에서 이어짐`,
           rewardDisclosure:
             "이 공유 흐름으로 가입을 완료하면 공유 페이지를 만든 회원에게 AIAVpark 보상이 적립될 수 있습니다.",
-          start: "나도 AI 캐릭터 만들기",
+          start: "나도 AI 스타 만들기",
           title: (name: string) => `${name} 공유 페이지에서 오셨나요?`,
         }
       : {
-          body: "Return to the character channel you just saw, or start your own AI character channel with the same AIAVpark flow.",
-          channel: "View this character",
+          body: "Return to the AI Star channel you just saw, or start your own AI Star with the same AIAVpark flow.",
+          channel: "View AI Star channel",
           eyebrow: `Continued from ${shareContext?.sponsorName ?? "SNS"} share`,
           rewardDisclosure:
             "Completing signup through this shared flow may award an AIAVpark reward to the member who created the share page.",
-          start: "Create my AI character",
+          start: "Create my AI Star",
           title: (name: string) => `Coming from ${name}'s share page?`,
         };
   const shareContextTrackingMetadata = shareContext

@@ -610,21 +610,24 @@ function getReturnTarget(path: string, locale: Locale): FanletterConnectReturnTa
         };
   }
 
-  if (pathname.includes("/fanletter/creator/")) {
+  if (
+    pathname.includes("/fanletter/channel/") ||
+    pathname.includes("/fanletter/creator/")
+  ) {
     return locale === "ko"
       ? {
-          backLabel: "캐릭터 채널로 돌아가기",
-          body: "연결을 취소하거나 확인만 하려면 캐릭터 채널로 돌아갈 수 있습니다.",
-          cta: "캐릭터 채널로 돌아가기",
+          backLabel: "AI 스타 채널로 돌아가기",
+          body: "연결을 취소하거나 확인만 하려면 AI 스타 채널로 돌아갈 수 있습니다.",
+          cta: "AI 스타 채널로 돌아가기",
           kind: "creator",
-          label: "캐릭터 채널",
+          label: "AI 스타 채널",
         }
       : {
-          backLabel: "Back to character channel",
-          body: "If you only need to confirm or cancel connection, you can return to the character channel.",
-          cta: "Back to character channel",
+          backLabel: "Back to AI Star channel",
+          body: "If you only need to confirm or cancel connection, you can return to the AI Star channel.",
+          cta: "Back to AI Star channel",
           kind: "creator",
-          label: "character channel",
+          label: "AI Star channel",
         };
   }
 

@@ -114,6 +114,7 @@ const reservedFanletterSegments = new Set([
   "agentrank",
   "ai-star-genealogy",
   "campaigns",
+  "channel",
   "characters",
   "connect",
   "content",
@@ -186,6 +187,7 @@ function inferSource(
   if (
     route.includes("/fanletter/content") ||
     route.includes("/fanletter/share") ||
+    route.includes("/fanletter/channel/") ||
     route.includes("/fanletter/creator/")
   ) {
     return "fanletter_content";

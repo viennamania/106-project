@@ -70,6 +70,7 @@ function isActivePath(pathname: string, basePath: string, item: FanletterNavItem
     "agentrank",
     "ai-star-genealogy",
     "campaigns",
+    "channel",
     "characters",
     "channels",
     "connect",
@@ -152,12 +153,19 @@ function resolveFanletterNavActive({
 
 function readCreatorReferralCodeFromPathname(pathname: string, basePath: string) {
   const creatorPrefix = `${basePath}/creator/`;
+  const channelPrefix = `${basePath}/channel/`;
 
-  if (!pathname.startsWith(creatorPrefix)) {
+  const matchedPrefix = pathname.startsWith(creatorPrefix)
+    ? creatorPrefix
+    : pathname.startsWith(channelPrefix)
+      ? channelPrefix
+      : null;
+
+  if (!matchedPrefix) {
     return null;
   }
 
-  const [segment] = pathname.slice(creatorPrefix.length).split("/");
+  const [segment] = pathname.slice(matchedPrefix.length).split("/");
 
   try {
     return normalizeReferralCode(decodeURIComponent(segment));
@@ -271,7 +279,11 @@ export function FanletterMobileBottomNav({ locale }: { locale: Locale }) {
       label: copy.home,
     },
     {
-      activePaths: [`${basePath}/discovery`, `${basePath}/characters`],
+      activePaths: [
+        `${basePath}/discovery`,
+        `${basePath}/characters`,
+        `${basePath}/channel`,
+      ],
       href: buildHref(`${basePath}/discovery`),
       icon: Bot,
       key: "discover",
