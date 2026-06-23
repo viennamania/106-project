@@ -233,6 +233,7 @@ const ASPECT_OPTIONS: LookbookAspectRatio[] = [
 ];
 const COUNT_OPTIONS = [1, 2, 3, 4];
 const MAX_GARMENTS = 4;
+const BATCH_MAX = 8;
 
 const FIELD_INPUT =
   "w-full rounded-xl border border-black/10 bg-white px-3 py-2.5 text-sm text-neutral-900 outline-none transition focus:border-[#44f26e]";
@@ -268,6 +269,16 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   );
   const [showStarUrl, setShowStarUrl] = useState(false);
   const [showGarmentUrl, setShowGarmentUrl] = useState(false);
+  const [batchProducts, setBatchProducts] = useState<string[]>([]);
+  const [batchJobs, setBatchJobs] = useState<
+    {
+      productUrl: string;
+      status: "pending" | "generating" | "done" | "failed";
+      imageUrl: string | null;
+    }[]
+  >([]);
+  const [isBatchRunning, setIsBatchRunning] = useState(false);
+  const [isBatchUploading, setIsBatchUploading] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [published, setPublished] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
@@ -753,6 +764,146 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     email,
     garmentImageUrls,
     numImages,
+    resolution,
+    sceneBrief,
+    selectedPublicStarId,
+    starAvatarUrl,
+    starName,
+  ]);
+
+  const handleBatchFiles = useCallback(
+    async (files: FileList | null) => {
+      // Snapshot before the <input> resets value="" (empties the FileList).
+      const fileArray = files ? Array.from(files) : [];
+      if (fileArray.length === 0) return;
+      setError(null);
+      setIsBatchUploading(true);
+      try {
+        const remaining = BATCH_MAX - batchProducts.length;
+        const picked = fileArray.slice(0, Math.max(0, remaining));
+        const urls: string[] = [];
+        for (const file of picked) urls.push(await uploadImage(file));
+        if (urls.length > 0) {
+          setBatchProducts((prev) => [...prev, ...urls].slice(0, BATCH_MAX));
+        }
+      } catch (uploadFailure) {
+        setError(
+          uploadFailure instanceof Error
+            ? uploadFailure.message
+            : copy.uploadError,
+        );
+      } finally {
+        setIsBatchUploading(false);
+      }
+    },
+    [batchProducts.length, copy.uploadError, uploadImage],
+  );
+
+  const removeBatchProduct = useCallback((url: string) => {
+    setBatchProducts((prev) => prev.filter((item) => item !== url));
+  }, []);
+
+  // Batch: one lookbook (1 cut) per product, generated sequentially with the
+  // selected star — each charges points via the member route.
+  const runBatch = useCallback(async () => {
+    setError(null);
+    if (!accountAddress || !email || !starAvatarUrl.trim()) {
+      setError(copy.needAvatar);
+      return;
+    }
+    if (batchProducts.length === 0) {
+      setError(locale === "en" ? "Add product photos." : "상품 사진을 올리세요.");
+      return;
+    }
+    setIsBatchRunning(true);
+    setBatchJobs(
+      batchProducts.map((url) => ({
+        imageUrl: null,
+        productUrl: url,
+        status: "pending",
+      })),
+    );
+    try {
+      for (const productUrl of batchProducts) {
+        setBatchJobs((prev) =>
+          prev.map((job) =>
+            job.productUrl === productUrl
+              ? { ...job, status: "generating" }
+              : job,
+          ),
+        );
+        try {
+          const res = await fetch("/api/fanletter/lookbook", {
+            body: JSON.stringify({
+              aspectRatio,
+              email,
+              garmentImageUrls: [productUrl],
+              numImages: 1,
+              resolution,
+              sceneBrief: sceneBrief.trim() || null,
+              starAvatarUrl: starAvatarUrl.trim(),
+              starId: selectedPublicStarId,
+              starImageIndex: 0,
+              starName: starName.trim() || null,
+              walletAddress: accountAddress,
+            }),
+            headers: { "Content-Type": "application/json" },
+            method: "POST",
+          });
+          const data = (await res.json().catch(() => null)) as
+            | {
+                images?: LookbookImage[];
+                summary?: { spendablePoints?: number };
+              }
+            | null;
+          if (!res.ok || !data?.images?.[0]) {
+            setBatchJobs((prev) =>
+              prev.map((job) =>
+                job.productUrl === productUrl
+                  ? { ...job, status: "failed" }
+                  : job,
+              ),
+            );
+            if (res.status === 402) {
+              setError(
+                locale === "en"
+                  ? "Not enough points."
+                  : "포인트가 부족합니다.",
+              );
+              break;
+            }
+            continue;
+          }
+          if (typeof data.summary?.spendablePoints === "number") {
+            setSpendablePoints(data.summary.spendablePoints);
+          }
+          setBatchJobs((prev) =>
+            prev.map((job) =>
+              job.productUrl === productUrl
+                ? { ...job, imageUrl: data.images![0].url, status: "done" }
+                : job,
+            ),
+          );
+        } catch {
+          setBatchJobs((prev) =>
+            prev.map((job) =>
+              job.productUrl === productUrl
+                ? { ...job, status: "failed" }
+                : job,
+            ),
+          );
+        }
+      }
+    } finally {
+      setIsBatchRunning(false);
+    }
+  }, [
+    accountAddress,
+    aspectRatio,
+    batchProducts,
+    copy.needAvatar,
+    email,
+    locale,
     resolution,
     sceneBrief,
     selectedPublicStarId,
@@ -1459,6 +1610,161 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
               </>
             )}
           </button>
+        </div>
+
+        <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
+          <div className="mb-1 flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-[#16702e]" />
+            <span className="text-xs font-bold text-neutral-700">
+              {locale === "en"
+                ? "Batch — many products at once"
+                : "여러 상품 일괄 생성 (배치)"}
+            </span>
+          </div>
+          <p className="mb-3 text-[11px] leading-relaxed text-neutral-400">
+            {locale === "en"
+              ? "Upload several product photos; each gets one lookbook with the selected star (1 cut each, points)."
+              : "상품 사진을 여러 장 올리면 선택한 스타로 상품마다 룩북 1컷씩 순차 생성됩니다. 컷당 포인트."}
+          </p>
+          <div className="flex flex-wrap gap-2.5">
+            {batchProducts.map((url) => (
+              <div
+                className="relative h-20 w-16 overflow-hidden rounded-xl border border-black/10 bg-neutral-50"
+                key={url}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img alt="product" className="h-full w-full object-cover" src={url} />
+                {!isBatchRunning ? (
+                  <button
+                    aria-label="remove"
+                    className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white/90 text-neutral-600"
+                    onClick={() => removeBatchProduct(url)}
+                    type="button"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                ) : null}
+              </div>
+            ))}
+            {batchProducts.length < BATCH_MAX ? (
+              <label
+                className="flex h-20 w-16 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-black/20 text-neutral-400 hover:border-[#44f26e] hover:text-[#16702e]"
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  void handleBatchFiles(event.dataTransfer.files);
+                }}
+              >
+                {isBatchUploading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Upload className="h-5 w-5" />
+                )}
+                <span className="px-1 text-center text-[10px] font-bold">
+                  {locale === "en" ? "Add" : "추가"}
+                </span>
+                <input
+                  accept="image/png,image/jpeg,image/webp"
+                  className="hidden"
+                  disabled={!accountAddress || isBatchUploading || isBatchRunning}
+                  multiple
+                  onChange={(event) => {
+                    void handleBatchFiles(event.target.files);
+                    event.target.value = "";
+                  }}
+                  type="file"
+                />
+              </label>
+            ) : null}
+          </div>
+          <button
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#16702e] px-7 py-3 text-sm font-extrabold text-white transition hover:bg-[#0f5722] disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={
+              !accountAddress ||
+              !starAvatarUrl.trim() ||
+              batchProducts.length === 0 ||
+              isBatchRunning ||
+              isBatchUploading
+            }
+            onClick={runBatch}
+            type="button"
+          >
+            {isBatchRunning ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                {locale === "en" ? "Generating batch…" : "일괄 생성 중…"}
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                {locale === "en"
+                  ? `Generate ${batchProducts.length} products`
+                  : `${batchProducts.length}개 상품 생성`}
+              </>
+            )}
+          </button>
+          {batchJobs.length > 0 ? (
+            <div className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
+              {batchJobs.map((job) => (
+                <div
+                  className="overflow-hidden rounded-xl border border-black/10 bg-neutral-50"
+                  key={job.productUrl}
+                >
+                  <div className="relative aspect-[4/5]">
+                    {job.status === "done" && job.imageUrl ? (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          alt="lookbook"
+                          className="h-full w-full object-cover"
+                          src={job.imageUrl}
+                        />
+                        <a
+                          className="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-neutral-900/85 text-white"
+                          download
+                          href={job.imageUrl}
+                          rel="noreferrer"
+                          target="_blank"
+                          title={copy.download}
+                        >
+                          <Download className="h-3 w-3" />
+                        </a>
+                      </>
+                    ) : (
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          alt="product"
+                          className="h-full w-full object-cover opacity-30"
+                          src={job.productUrl}
+                        />
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-[10px] font-bold text-neutral-500">
+                          {job.status === "failed" ? (
+                            <span className="text-rose-500">
+                              {locale === "en" ? "Failed" : "실패"}
+                            </span>
+                          ) : (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin text-neutral-400" />
+                              <span>
+                                {job.status === "generating"
+                                  ? locale === "en"
+                                    ? "Making…"
+                                    : "생성 중…"
+                                  : locale === "en"
+                                    ? "Queued…"
+                                    : "대기 중…"}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
