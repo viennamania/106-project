@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 
 import { normalizeEmail } from "@/lib/member";
+import { recordMemberLookbookGeneration } from "@/lib/member-lookbook-history";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
   awardStarModelRoyalty,
@@ -201,6 +202,15 @@ export async function POST(request: Request) {
         await awardStarModelRoyalty({ shots: numImages, sourceId, starId });
       }
     }
+
+    // Best-effort history for the studio's "my lookbooks" + CSV export.
+    await recordMemberLookbookGeneration({
+      garmentImageUrls,
+      imageUrls: images.map((image) => image.url),
+      memberEmail: member.email,
+      starId: starId || null,
+      starName: body?.starName ?? null,
+    });
 
     return Response.json({ chargedPoints, images, summary });
   } catch (error) {
