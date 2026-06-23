@@ -10,6 +10,7 @@ import {
   LogOut,
   Mail,
   ShieldCheck,
+  Wallet,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -320,12 +321,32 @@ export function SellerAccountPage({ locale }: { locale: Locale }) {
       ) : (
         <div className="space-y-4">
           <a
+            className="flex items-center justify-between gap-3 rounded-2xl border border-[#16702e]/30 bg-[#44f26e]/10 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)] transition hover:border-[#16702e]/50"
+            href={`/${locale}/fanletter/onboarding?returnTo=${encodeURIComponent(
+              `/${locale}/lookbook`,
+            )}`}
+          >
+            <div>
+              <p className="flex items-center gap-1.5 text-sm font-extrabold text-neutral-900">
+                <Wallet className="h-4 w-4 text-[#16702e]" />
+                {en ? "Sign in with fanletter account" : "fanletter 회원으로 로그인"}
+              </p>
+              <p className="mt-0.5 text-xs text-neutral-600">
+                {en
+                  ? "One account across fanletter — sign up or log in, then come back to the studio."
+                  : "fanletter 통합 계정으로 가입·로그인 후 스튜디오로 돌아옵니다."}
+              </p>
+            </div>
+            <ArrowRight className="h-4 w-4 text-[#16702e]" />
+          </a>
+
+          <a
             className="flex items-center justify-between gap-3 rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)] transition hover:border-[#44f26e]"
             href={`/${locale}/lookbook`}
           >
             <div>
               <p className="text-sm font-extrabold text-neutral-900">
-                {en ? "Start free" : "무료로 시작하기"}
+                {en ? "Or start free as guest" : "또는 게스트로 무료 시작"}
               </p>
               <p className="mt-0.5 text-xs text-neutral-500">
                 {en
