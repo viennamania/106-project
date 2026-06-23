@@ -279,6 +279,16 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
   >([]);
   const [isBatchRunning, setIsBatchRunning] = useState(false);
   const [isBatchUploading, setIsBatchUploading] = useState(false);
+  const [history, setHistory] = useState<
+    {
+      generationId: string;
+      starId: string | null;
+      starName: string | null;
+      garmentImageUrls: string[];
+      imageUrls: string[];
+      createdAt: string;
+    }[]
+  >([]);
   const [isPublishing, setIsPublishing] = useState(false);
   const [published, setPublished] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
@@ -693,6 +703,32 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     })();
   }, []);
 
+  const loadHistory = useCallback(async () => {
+    if (!accountAddress || !email) {
+      setHistory([]);
+      return;
+    }
+    try {
+      const res = await fetch(
+        `/api/fanletter/lookbook/history?email=${encodeURIComponent(
+          email,
+        )}&walletAddress=${encodeURIComponent(accountAddress)}`,
+      );
+      const data = (await res.json().catch(() => null)) as
+        | { generations?: typeof history }
+        | null;
+      if (res.ok && Array.isArray(data?.generations)) {
+        setHistory(data.generations);
+      }
+    } catch {
+      // best-effort
+    }
+  }, [accountAddress, email]);
+
+  useEffect(() => {
+    void loadHistory();
+  }, [loadHistory]);
+
   const handleSubmit = useCallback(async () => {
     setError(null);
 
@@ -748,6 +784,8 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
       if (typeof data.summary?.spendablePoints === "number") {
         setSpendablePoints(data.summary.spendablePoints);
       }
+
+      void loadHistory();
     } catch (submitError) {
       setError(
         submitError instanceof Error ? submitError.message : copy.genericError,
@@ -763,6 +801,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     copy.needGarment,
     email,
     garmentImageUrls,
+    loadHistory,
     numImages,
     resolution,
     sceneBrief,
@@ -896,6 +935,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
       }
     } finally {
       setIsBatchRunning(false);
+      void loadHistory();
     }
   }, [
     accountAddress,
@@ -903,6 +943,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     batchProducts,
     copy.needAvatar,
     email,
+    loadHistory,
     locale,
     resolution,
     sceneBrief,
@@ -910,6 +951,40 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     starAvatarUrl,
     starName,
   ]);
+
+  // Export the member's whole lookbook catalog (single + batch) as a CSV they
+  // can bulk-import into a shop. BOM so Excel reads Korean UTF-8.
+  const exportHistoryCsv = useCallback(() => {
+    if (history.length === 0) return;
+    const rows: string[][] = [
+      ["createdAt", "generationId", "starId", "starName", "imageUrl"],
+    ];
+    for (const gen of history) {
+      for (const url of gen.imageUrls) {
+        rows.push([
+          gen.createdAt,
+          gen.generationId,
+          gen.starId ?? "",
+          gen.starName ?? "",
+          url,
+        ]);
+      }
+    }
+    const csv = rows
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([`﻿${csv}`], {
+      type: "text/csv;charset=utf-8",
+    });
+    const href = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.download = `lookbooks-${new Date().toISOString().slice(0, 10)}.csv`;
+    anchor.href = href;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(href);
+  }, [history]);
 
   const handlePublish = useCallback(async () => {
     if (images.length === 0 || !accountAddress || !email) {
@@ -1766,6 +1841,49 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
             </div>
           ) : null}
         </div>
+
+        {history.length > 0 ? (
+          <div className="rounded-2xl border border-black/10 bg-white/80 p-5 shadow-[0_18px_42px_rgba(8,18,12,0.05)]">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <span className="text-xs font-bold text-neutral-700">
+                {locale === "en" ? "My lookbooks" : "내 룩북"}
+              </span>
+              <button
+                className="flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-neutral-700 transition hover:border-black/25"
+                onClick={exportHistoryCsv}
+                type="button"
+              >
+                <Download className="h-3.5 w-3.5" />
+                {locale === "en" ? "Export CSV" : "CSV 내보내기"}
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
+              {history.flatMap((gen) =>
+                gen.imageUrls.map((url) => (
+                  <a
+                    className="group relative block overflow-hidden rounded-xl border border-black/10 bg-neutral-50"
+                    download
+                    href={url}
+                    key={`${gen.generationId}-${url}`}
+                    rel="noreferrer"
+                    target="_blank"
+                    title={gen.starName ?? undefined}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      alt="lookbook"
+                      className="aspect-[4/5] w-full object-cover"
+                      src={url}
+                    />
+                    <span className="absolute bottom-1 right-1 flex h-6 w-6 items-center justify-center rounded-full bg-neutral-900/80 text-white opacity-0 transition group-hover:opacity-100">
+                      <Download className="h-3 w-3" />
+                    </span>
+                  </a>
+                )),
+              )}
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
