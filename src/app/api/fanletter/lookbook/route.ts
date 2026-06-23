@@ -1,4 +1,4 @@
-import { randomUUID } from "crypto";
+import { createHash, randomUUID } from "crypto";
 
 import { normalizeEmail } from "@/lib/member";
 import { recordMemberLookbookGeneration } from "@/lib/member-lookbook-history";
@@ -143,7 +143,14 @@ export async function POST(request: Request) {
     return jsonError("Garment images must be uploaded images.", 400);
   }
 
-  const authorization = await validateMemberWalletOwner({ email, walletAddress });
+  const authorization = await validateMemberWalletOwner({
+    email,
+    walletAddress,
+    // Lite (pending_payment) members can use the studio's free trial without a
+    // USDT membership. Paid shots still require points, so once the free trial
+    // is used up the charge fails (402) and the UI nudges them to join.
+    allowedStatuses: ["completed", "pending_payment"],
+  });
 
   if (authorization.error) {
     return authorization.error;
@@ -151,12 +158,18 @@ export async function POST(request: Request) {
 
   const member = authorization.member;
 
-  if (!member?.referralCode) {
-    return jsonError(
-      "The lookbook studio is only available to completed members.",
-      403,
-    );
+  if (!member) {
+    return jsonError("Member not found.", 404);
   }
+
+  // Storage namespace: completed members use their referralCode; lite members
+  // (no referralCode yet) get a stable derived key from their email.
+  const lookbookNamespace =
+    member.referralCode ??
+    `lite-${createHash("sha256")
+      .update(member.email)
+      .digest("hex")
+      .slice(0, 16)}`;
 
   const numImages = clampLookbookImageCount(
     typeof body?.numImages === "number" ? body.numImages : undefined,
@@ -205,7 +218,7 @@ export async function POST(request: Request) {
       garmentImageUrls,
       memberEmail: member.email,
       numImages,
-      referralCode: member.referralCode,
+      referralCode: lookbookNamespace,
       resolution: parseEnum(body?.resolution, RESOLUTIONS),
       sceneBrief: body?.sceneBrief ?? null,
       starAvatarUrl,
