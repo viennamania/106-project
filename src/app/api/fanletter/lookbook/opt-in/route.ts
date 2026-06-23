@@ -2,8 +2,8 @@ import { normalizeEmail } from "@/lib/member";
 import { validateMemberWalletOwner } from "@/lib/member-owner";
 import {
   getStarFeedPublishOptIn,
-  getStarOptIn,
   getStarRoyaltyTotal,
+  getStarSellerAvailable,
   setStarFeedPublishOptIn,
   setStarOptIn,
 } from "@/lib/seller-stars";
@@ -40,7 +40,7 @@ export async function GET(request: Request) {
 
   return Response.json({
     allowFeedPublish: await getStarFeedPublishOptIn(referralCode),
-    optIn: await getStarOptIn(referralCode),
+    optIn: await getStarSellerAvailable(referralCode),
     royaltyTotal: await getStarRoyaltyTotal(referralCode),
   });
 }
@@ -79,6 +79,6 @@ export async function POST(request: Request) {
 
   return Response.json({
     allowFeedPublish: await getStarFeedPublishOptIn(referralCode),
-    optIn: await getStarOptIn(referralCode),
+    optIn: await getStarSellerAvailable(referralCode),
   });
 }

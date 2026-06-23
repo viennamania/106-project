@@ -853,8 +853,8 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
             </p>
             <p className="mt-0.5 text-xs text-neutral-500">
               {locale === "en"
-                ? "Sellers can dress my star in their products. I earn royalty points per shot."
-                : "셀러가 내 스타에 옷을 입혀 룩북을 만들 수 있고, 사용될 때마다 로열티 포인트를 받습니다."}
+                ? "Sellers can dress my star in their products; I earn royalty points per shot. On by default — turn off to opt out."
+                : "셀러가 내 스타에 옷을 입혀 룩북을 만들 수 있고, 사용될 때마다 로열티 포인트를 받습니다. 기본 제공이며, 끄면 제외됩니다."}
             </p>
             {royaltyTotal && royaltyTotal > 0 ? (
               <p className="mt-1 text-xs font-bold text-[#16702e]">
