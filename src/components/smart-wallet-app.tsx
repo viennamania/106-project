@@ -252,20 +252,21 @@ function getActivationHubCopy(locale: Locale) {
       assetDescription: "USDT, BNB, 지갑 보안 상태를 확인합니다.",
       assetLabel: "지갑 / 자산",
       connected: "지갑 연결됨",
-      contextAsset: "쌓이는 Context",
+      contextAsset: "가입부터 보상까지 연결",
       contextDescription:
-        "가입, 추천 코드, 지갑, 포인트, 하위 회원 상태가 하나의 서비스 그래프로 연결됩니다.",
-      contextLabel: "Context Graph",
-      contextScore: "Context Score 8/10",
-      graphTitle: "서비스 그래프",
+        "추천 코드로 들어온 가입, 포인트, 지갑 상태를 한 흐름에서 확인합니다.",
+      contextLabel: "서비스 흐름",
+      contextScore: "추천 흐름",
+      graphTitle: "진행 흐름",
       description:
-        "가입 완료, 내 추천 코드, 포인트, 지갑, 하위 회원 관리를 여기에서 시작합니다.",
+        "가입 상태를 확인하고, 내 추천 코드와 포인트 관리를 바로 시작하세요.",
       disconnected: "연결 필요",
       feedDescription: "가입과 보상 활동의 최신 흐름을 확인합니다.",
       feedLabel: "활동 피드",
       hubLabel: "1066FRIEND+",
       membershipDescription: "이메일 로그인, 지갑 연결, 서비스 이용료 확인을 완료합니다.",
       membershipLabel: "회원 활성화",
+      nextStepTitle: "필요한 것만 먼저",
       networkDescription: "내 코드로 가입한 회원과 6단계 네트워크를 관리합니다.",
       networkLabel: "추천 회원 관리",
       notReady: "설정 필요",
@@ -280,7 +281,8 @@ function getActivationHubCopy(locale: Locale) {
       secondaryLabel: "운영 도구",
       shareDescription: "내 추천 랜딩과 공유 링크를 정리합니다.",
       shareLabel: "추천 코드 / 랜딩",
-      title: "서비스 시작 허브",
+      statusTitle: "내 서비스 상태",
+      title: "1066FRIEND+ 시작하기",
       walletDescription: "서비스 이용의 기준 지갑입니다.",
       walletLabel: "내 지갑",
     };
@@ -291,14 +293,14 @@ function getActivationHubCopy(locale: Locale) {
     assetDescription: "Review USDT, BNB, and wallet security status.",
     assetLabel: "Wallet / Assets",
     connected: "Wallet connected",
-    contextAsset: "Context asset",
+    contextAsset: "Signup to rewards",
     contextDescription:
-      "Signup, referral code, wallet, points, and downline status connect into one service graph.",
-    contextLabel: "Context Graph",
-    contextScore: "Context Score 8/10",
-    graphTitle: "Service graph",
+      "Track signup, referral code, points, and wallet status in one simple flow.",
+    contextLabel: "Service flow",
+    contextScore: "Referral flow",
+    graphTitle: "Progress flow",
     description:
-      "Start member activation, referral code, points, wallet, and downline management here.",
+      "Check your signup status, then start managing your referral code and points.",
     disconnected: "Connection required",
     feedDescription: "Review the latest signup and reward activity.",
     feedLabel: "Activity feed",
@@ -306,6 +308,7 @@ function getActivationHubCopy(locale: Locale) {
     membershipDescription:
       "Complete email login, wallet connection, and service fee confirmation.",
     membershipLabel: "Member activation",
+    nextStepTitle: "Start with these",
     networkDescription: "Manage members who joined with your code and the 6-level network.",
     networkLabel: "Referral members",
     notReady: "Setup required",
@@ -320,7 +323,8 @@ function getActivationHubCopy(locale: Locale) {
     secondaryLabel: "Operations",
     shareDescription: "Manage your referral landing page and share link.",
     shareLabel: "Referral code / landing",
-    title: "Service Start Hub",
+    statusTitle: "My service status",
+    title: "Start 1066FRIEND+",
     walletDescription: "The wallet that anchors service usage.",
     walletLabel: "My wallet",
   };
@@ -2520,28 +2524,6 @@ function ActivationServiceHub({
           ? copy.pending
           : copy.disconnected;
   const walletStatus = isConnected ? copy.connected : copy.disconnected;
-  const serviceGraphSteps = [
-    {
-      detail: membershipStatus,
-      icon: <ShieldCheck className="size-4" />,
-      title: copy.membershipLabel,
-    },
-    {
-      detail: walletStatus,
-      icon: <WalletMinimal className="size-4" />,
-      title: copy.walletLabel,
-    },
-    {
-      detail: referralCode,
-      icon: <Share2 className="size-4" />,
-      title: copy.shareLabel,
-    },
-    {
-      detail: `${numberFormatter.format(totalPoints)}P`,
-      icon: <Sparkles className="size-4" />,
-      title: copy.pointsLabel,
-    },
-  ];
   const primaryLabel = !hasThirdwebClientId
     ? copy.primaryUnavailable
     : isSignupCompleted
@@ -2549,200 +2531,168 @@ function ActivationServiceHub({
       : isConnected
         ? copy.primaryPending
         : copy.primaryDisconnected;
+  const statusItems = [
+    { label: copy.membershipLabel, value: membershipStatus },
+    { label: copy.walletLabel, value: walletStatus },
+    { label: copy.shareLabel, value: referralCode },
+  ];
+  const actionItems = [
+    {
+      description: copy.networkDescription,
+      href: activateNetworkHref,
+      metric: numberFormatter.format(totalReferrals),
+      title: copy.networkLabel,
+    },
+    {
+      description: copy.pointsDescription,
+      href: rewardsHref,
+      metric: `${numberFormatter.format(totalPoints)}P`,
+      title: copy.pointsLabel,
+    },
+    {
+      description: assetManagementLocked ? copy.walletDescription : copy.assetDescription,
+      href: assetManagementHref,
+      metric: assetManagementLocked ? copy.disconnected : copy.connected,
+      title: copy.assetLabel,
+    },
+  ];
+
+  const primaryAction = isSignupCompleted ? (
+    <Link
+      className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold !text-white shadow-[0_16px_38px_rgba(0,0,0,0.18)] transition hover:bg-zinc-800 sm:w-auto"
+      href={activateNetworkHref}
+    >
+      <span>{primaryLabel}</span>
+      <ArrowUpRight className="size-4" />
+    </Link>
+  ) : isConnected ? (
+    <a
+      className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold !text-white shadow-[0_16px_38px_rgba(0,0,0,0.18)] transition hover:bg-zinc-800 sm:w-auto"
+      href="#signup-payment"
+    >
+      <span>{primaryLabel}</span>
+      <ArrowUpRight className="size-4" />
+    </a>
+  ) : (
+    <button
+      className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-black px-5 text-sm font-semibold text-white shadow-[0_16px_38px_rgba(0,0,0,0.18)] transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+      disabled={!hasThirdwebClientId}
+      onClick={onConnect}
+      type="button"
+    >
+      <span>{primaryLabel}</span>
+      <ArrowUpRight className="size-4" />
+    </button>
+  );
 
   return (
     <LandingReveal delay={20} variant="hero">
-      <section className="relative overflow-hidden rounded-[30px] border border-[#ead7b5] bg-[linear-gradient(135deg,#fffaf0_0%,#fff7e5_42%,#fffdf8_100%)] p-4 shadow-[0_28px_80px_rgba(35,24,10,0.10)] sm:rounded-[36px] sm:p-6">
-        <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(232,24,90,0.13),transparent_66%)] blur-3xl" />
-        <div className="pointer-events-none absolute -left-24 bottom-0 h-64 w-64 rounded-full bg-[radial-gradient(circle,rgba(245,195,77,0.2),transparent_68%)] blur-3xl" />
-
-        <div className="relative grid gap-4 lg:grid-cols-[1.02fr_0.98fr]">
-          <div className="rounded-[26px] bg-[linear-gradient(145deg,#06070a_0%,#111827_54%,#18120a_100%)] p-4 text-white shadow-[0_28px_80px_rgba(15,23,42,0.24)] sm:p-5">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-white/70">
-                {copy.hubLabel}
-              </span>
-              <span className="inline-flex items-center rounded-full border border-[#f5c34d]/35 bg-[#f5c34d]/15 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-[#ffe7a3]">
-                {copy.contextLabel}
-              </span>
-            </div>
-
-            <div className="mt-6 space-y-3">
-              <h2 className="max-w-xl text-[2.05rem] font-semibold leading-[0.98] tracking-[-0.04em] text-white sm:text-[3rem]">
-                {copy.title}
-              </h2>
-              <p className="max-w-lg text-[0.98rem] leading-7 text-white/70">
-                {copy.description}
-              </p>
-            </div>
-
-            <div className="mt-5 grid gap-2.5 md:grid-cols-3">
-              <div className="rounded-[20px] border border-white/10 bg-white/8 p-3">
-                <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-white/42">
-                  {copy.membershipLabel}
-                </p>
-                <p className="mt-2 text-sm font-semibold text-white">
+      <section className="relative overflow-hidden rounded-[28px] border border-zinc-200 bg-white p-4 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:rounded-[34px] sm:p-6">
+        <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-stretch">
+          <div className="flex min-h-[360px] flex-col justify-between rounded-[26px] bg-zinc-950 p-5 text-white sm:p-6">
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center rounded-full border border-white/15 bg-white/8 px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-white/70">
+                  {copy.hubLabel}
+                </span>
+                <span className="inline-flex items-center rounded-full bg-emerald-400/12 px-3 py-1.5 text-[0.7rem] font-semibold text-emerald-200">
                   {membershipStatus}
-                </p>
+                </span>
               </div>
-              <div className="rounded-[20px] border border-white/10 bg-white/8 p-3">
-                <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-white/42">
-                  {copy.walletLabel}
+
+              <div className="mt-9 max-w-xl space-y-4">
+                <p className="text-sm font-semibold text-white/54">
+                  {copy.statusTitle}
                 </p>
-                <p className="mt-2 text-sm font-semibold text-white">
-                  {walletStatus}
-                </p>
-              </div>
-              <div className="rounded-[20px] border border-white/10 bg-white/8 p-3">
-                <p className="text-[0.64rem] font-semibold uppercase tracking-[0.18em] text-white/42">
-                  {copy.shareLabel}
-                </p>
-                <p className="mt-2 break-all font-mono text-sm font-semibold text-white">
-                  {referralCode}
+                <h2 className="text-[2.35rem] font-semibold leading-[0.96] tracking-[-0.05em] text-white sm:text-[3.35rem]">
+                  {copy.title}
+                </h2>
+                <p className="max-w-md text-[0.98rem] leading-7 text-white/64">
+                  {copy.description}
                 </p>
               </div>
             </div>
 
-            <div className="mt-5">
-              {isSignupCompleted ? (
-                <Link
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold !text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] transition hover:bg-[#fff8df] sm:w-auto"
-                  href={activateNetworkHref}
-                >
-                  <span>{primaryLabel}</span>
-                  <ArrowUpRight className="size-4" />
-                </Link>
-              ) : isConnected ? (
-                <a
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold !text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] transition hover:bg-[#fff8df] sm:w-auto"
-                  href="#signup-payment"
-                >
-                  <span>{primaryLabel}</span>
-                  <ArrowUpRight className="size-4" />
-                </a>
-              ) : (
-                <button
-                  className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-slate-950 shadow-[0_20px_45px_rgba(255,255,255,0.16)] transition hover:bg-[#fff8df] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
-                  disabled={!hasThirdwebClientId}
-                  onClick={onConnect}
-                  type="button"
-                >
-                  <span>{primaryLabel}</span>
-                  <ArrowUpRight className="size-4" />
-                </button>
-              )}
+            <div className="mt-8 space-y-4">
+              {primaryAction}
+              <div className="grid gap-2 sm:grid-cols-3">
+                {statusItems.map((item) => (
+                  <div
+                    className="min-w-0 rounded-[18px] border border-white/10 bg-white/[0.06] px-3 py-3"
+                    key={item.label}
+                  >
+                    <p className="text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-white/38">
+                      {item.label}
+                    </p>
+                    <p className="mt-1 truncate text-sm font-semibold text-white">
+                      {item.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="grid gap-3">
-            <div className="rounded-[24px] border border-[#ead7b5] bg-white/88 p-4 shadow-[0_20px_55px_rgba(35,24,10,0.07)]">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#8d7142]">
-                    {copy.actionTitle}
+          <div className="grid gap-3 content-start">
+            <div className="rounded-[24px] border border-zinc-200 bg-zinc-50 p-4 sm:p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[0.72rem] font-semibold uppercase tracking-[0.2em] text-zinc-500">
+                    {copy.contextLabel}
                   </p>
-                  <p className="mt-2 text-xl font-semibold tracking-tight text-slate-950">
-                    {primaryLabel}
-                  </p>
+                  <h3 className="mt-2 text-xl font-semibold tracking-tight text-zinc-950">
+                    {copy.contextAsset}
+                  </h3>
                 </div>
-                <div className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
-                  <ShieldCheck className="size-4" />
-                </div>
+                <span className="rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-semibold text-zinc-700">
+                  {copy.contextScore}
+                </span>
               </div>
-              <p className="mt-3 text-sm leading-6 text-slate-600">
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-600">
                 {copy.contextDescription}
               </p>
             </div>
 
-            <div className="rounded-[24px] border border-slate-900/10 bg-white/92 p-4 shadow-[0_20px_55px_rgba(35,24,10,0.06)]">
+            <div className="rounded-[24px] border border-zinc-200 bg-white p-4 sm:p-5">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  {copy.graphTitle}
-                </p>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
-                  {copy.contextScore}
-                </span>
+                <h3 className="text-lg font-semibold tracking-tight text-zinc-950">
+                  {copy.nextStepTitle}
+                </h3>
+                <Link
+                  className="hidden h-9 items-center justify-center rounded-full border border-zinc-200 bg-white px-3 text-xs font-semibold text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50 sm:inline-flex"
+                  href={networkFeedHref}
+                >
+                  {copy.feedLabel}
+                </Link>
               </div>
-              <div className="mt-4 grid gap-2 md:grid-cols-4">
-                {serviceGraphSteps.map((step, index) => (
-                  <div
-                    className="relative min-w-0 rounded-[20px] border border-slate-200 bg-slate-50/70 p-3"
-                    key={`${step.title}-${index}`}
-                  >
-                    {index > 0 ? (
-                      <span className="absolute -left-2 top-1/2 hidden h-px w-4 bg-slate-300 md:block" />
-                    ) : null}
-                    <div className="flex items-start gap-2.5">
-                      <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
-                        {step.icon}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-950">
-                          {step.title}
-                        </p>
-                        <p className="mt-1 truncate text-xs font-medium text-slate-500">
-                          {step.detail}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+
+              <div className="mt-4 grid gap-2.5">
+                {actionItems.map((item, index) => (
+                  <ServiceHubCard
+                    description={item.description}
+                    href={item.href}
+                    index={index + 1}
+                    key={item.title}
+                    metric={item.metric}
+                    title={item.title}
+                  />
                 ))}
               </div>
             </div>
 
             <div className="grid gap-2.5 sm:grid-cols-2">
-              <ServiceHubCard
-                description={copy.networkDescription}
-                href={activateNetworkHref}
-                icon={<Users className="size-4" />}
-                metric={numberFormatter.format(totalReferrals)}
-                title={copy.networkLabel}
-              />
-              <ServiceHubCard
-                description={copy.pointsDescription}
-                href={rewardsHref}
-                icon={<Sparkles className="size-4" />}
-                metric={`${numberFormatter.format(totalPoints)}P`}
-                title={copy.pointsLabel}
-              />
-              <ServiceHubCard
-                description={copy.assetDescription}
-                href={assetManagementHref}
-                icon={<Vault className="size-4" />}
-                metric={assetManagementLocked ? copy.disconnected : copy.connected}
-                title={copy.assetLabel}
-              />
-              <ServiceHubCard
-                description={copy.shareDescription}
+              <Link
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
                 href={brandingStudioHref}
-                icon={<Share2 className="size-4" />}
-                metric={copy.contextAsset}
-                title={copy.shareLabel}
-              />
-            </div>
-
-            <div className="flex flex-col gap-2 rounded-[24px] border border-slate-200 bg-white/72 p-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  {copy.secondaryLabel}
-                </p>
-                <p className="mt-1 text-sm text-slate-600">{copy.contextScore}</p>
-              </div>
-              <div className="grid gap-2 sm:flex sm:items-center">
-                <Link
-                  className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                  href={networkFeedHref}
-                >
-                  <Rss className="size-4" />
-                  {copy.feedLabel}
-                </Link>
-                <Link
-                  className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                  href={activatePageHref}
-                >
-                  {copy.membershipLabel}
-                </Link>
-              </div>
+              >
+                {copy.shareLabel}
+              </Link>
+              <Link
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 text-sm font-semibold text-zinc-900 transition hover:border-zinc-300 hover:bg-zinc-50"
+                href={activatePageHref}
+              >
+                {copy.membershipLabel}
+              </Link>
             </div>
           </div>
         </div>
@@ -2754,36 +2704,38 @@ function ActivationServiceHub({
 function ServiceHubCard({
   description,
   href,
-  icon,
+  index,
   metric,
   title,
 }: {
   description: string;
   href: string;
-  icon: ReactNode;
+  index: number;
   metric: string;
   title: string;
 }) {
   return (
     <Link
-      className="group min-w-0 rounded-[22px] border border-[#ead7b5] bg-white/86 p-3.5 shadow-[0_16px_40px_rgba(35,24,10,0.06)] transition hover:-translate-y-0.5 hover:border-[#d9bd8a] hover:bg-white hover:shadow-[0_20px_50px_rgba(35,24,10,0.10)]"
+      className="group flex min-w-0 items-center gap-3 rounded-[20px] border border-zinc-200 bg-white p-3.5 transition hover:border-zinc-300 hover:bg-zinc-50"
       href={href}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[#111827] text-white transition group-hover:bg-black">
-          {icon}
-        </div>
-        <ArrowUpRight className="size-4 shrink-0 text-slate-400 transition group-hover:text-slate-900" />
-      </div>
-      <p className="mt-3 text-base font-semibold tracking-tight text-slate-950">
-        {title}
-      </p>
-      <p className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#8d7142]">
-        {metric}
-      </p>
-      <p className="mt-2 line-clamp-2 text-sm leading-5 text-slate-600">
-        {description}
-      </p>
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-sm font-semibold text-white">
+        {index}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="flex items-center justify-between gap-3">
+          <span className="truncate text-base font-semibold tracking-tight text-zinc-950">
+            {title}
+          </span>
+          <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-600">
+            {metric}
+          </span>
+        </span>
+        <span className="mt-1 line-clamp-1 block text-sm text-zinc-500">
+          {description}
+        </span>
+      </span>
+      <ArrowUpRight className="size-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-950" />
     </Link>
   );
 }
