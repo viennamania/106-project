@@ -138,6 +138,18 @@ function getDisplayName(item: ContentFeedItemRecord) {
   return item.authorProfile?.displayName?.trim() || item.authorEmail;
 }
 
+function getFeedActorDisplayName(item: ContentFeedItemRecord) {
+  return item.reporterProfile?.displayName?.trim() || getDisplayName(item);
+}
+
+function getFeedActorAvatarImageUrl(item: ContentFeedItemRecord) {
+  if (item.reporterProfile) {
+    return item.reporterProfile.avatarImageUrl;
+  }
+
+  return item.authorProfile?.avatarImageUrl ?? null;
+}
+
 function getAvatarFallback(name: string) {
   return name.trim().slice(0, 1).toUpperCase() || "U";
 }
@@ -1516,7 +1528,8 @@ function SocialFeedPost({
   const router = useRouter();
   const previewImageUrl = resolveFeedPreviewImage(item);
   const previewVideoUrl = resolveFeedPreviewVideo(item);
-  const displayName = getDisplayName(item);
+  const displayName = getFeedActorDisplayName(item);
+  const avatarImageUrl = getFeedActorAvatarImageUrl(item);
   const isPaidContent = item.priceType === "paid";
   const accessLabel = isPaidContent
     ? locale === "ko"
@@ -1538,6 +1551,7 @@ function SocialFeedPost({
     contentMediaCount > 0 &&
     !item.canAccess;
   const metaItems = [
+    item.reporterProfile ? (locale === "ko" ? "리포트 작성자" : "Reporter") : null,
     priceLabel ? `${accessLabel} · ${priceLabel}` : accessLabel,
     ...(showNetworkLevel && item.networkLevel
       ? [`${levelLabel} ${item.networkLevel}`]
@@ -2248,7 +2262,7 @@ function SocialFeedPost({
     <article className="relative border-b border-slate-200 bg-white">
       <div className="flex items-center gap-3 px-3 py-3">
         <Avatar
-          imageUrl={item.authorProfile?.avatarImageUrl ?? null}
+          imageUrl={avatarImageUrl}
           label={displayName}
         />
         <div className="min-w-0 flex-1">

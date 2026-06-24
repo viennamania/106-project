@@ -39,6 +39,7 @@ import {
   type ContentDetailResponse,
   type ContentEntitlementDocument,
   type ContentFeedItemRecord,
+  type ContentFeedReporterProfileRecord,
   type ContentFeedResponse,
   type ContentFeedView,
   type ContentOrderCreateRequest,
@@ -1447,6 +1448,110 @@ function getPublishedContentLocaleFilter(locale: Locale): Filter<ContentPostDocu
     : { locale: contentLocale };
 }
 
+async function getFeedReporterProfilesForPosts(posts: ContentPostDocument[]) {
+  const contentIds = [
+    ...new Set(posts.map((post) => post.contentId.trim()).filter(Boolean)),
+  ];
+
+  if (contentIds.length === 0) {
+    return new Map<string, ContentFeedReporterProfileRecord>();
+  }
+
+  const reports = await (await getFanletterNewsReportsCollection())
+    .find({
+      contentId: { $in: contentIds },
+      status: "published",
+    })
+    .sort({ updatedAt: -1, createdAt: -1 })
+    .toArray();
+  const reportsByContentId = new Map<string, FanletterNewsReportDocument[]>();
+
+  for (const report of reports) {
+    const existingReports = reportsByContentId.get(report.contentId) ?? [];
+    existingReports.push(report);
+    reportsByContentId.set(report.contentId, existingReports);
+  }
+
+  if (reportsByContentId.size === 0) {
+    return new Map<string, ContentFeedReporterProfileRecord>();
+  }
+
+  const reporterReferralCodes = [
+    ...new Set(
+      reports
+        .map((report) => normalizeReferralCode(report.reporterReferralCode))
+        .filter((code): code is string => Boolean(code)),
+    ),
+  ];
+  const reporterMembers = reporterReferralCodes.length
+    ? await (await getMembersCollection())
+        .find({
+          referralCode: { $in: reporterReferralCodes },
+        })
+        .toArray()
+    : [];
+  const memberByReferralCode = new Map<
+    string,
+    (typeof reporterMembers)[number]
+  >();
+
+  for (const member of reporterMembers) {
+    const referralCode = normalizeReferralCode(member.referralCode);
+
+    if (referralCode) {
+      memberByReferralCode.set(referralCode, member);
+    }
+  }
+
+  const reporterProfileByContentId =
+    new Map<string, ContentFeedReporterProfileRecord>();
+
+  for (const post of posts) {
+    const reportsForPost = reportsByContentId.get(post.contentId) ?? [];
+
+    if (reportsForPost.length === 0) {
+      continue;
+    }
+
+    const exclusiveReporterReferralCode = normalizeReferralCode(
+      post.exclusiveNewsReporterReferralCode,
+    );
+    const report =
+      (exclusiveReporterReferralCode
+        ? reportsForPost.find(
+            (item) =>
+              normalizeReferralCode(item.reporterReferralCode) ===
+              exclusiveReporterReferralCode,
+          )
+        : null) ?? reportsForPost[0];
+    const reporterReferralCode = normalizeReferralCode(
+      report.reporterReferralCode,
+    );
+    const reporterMember = reporterReferralCode
+      ? memberByReferralCode.get(reporterReferralCode)
+      : null;
+    const publicProfile = serializeMemberPublicProfile(
+      reporterMember?.publicProfile,
+    );
+    const displayName =
+      publicProfile?.displayName ||
+      report.reporterName.trim() ||
+      reporterReferralCode ||
+      reporterMember?.email.split("@")[0] ||
+      "Member";
+
+    reporterProfileByContentId.set(post.contentId, {
+      avatarImageUrl: publicProfile?.avatarImageUrl ?? null,
+      displayName,
+      email: reporterMember?.email ?? null,
+      referralCode: reporterReferralCode,
+      reportId: report.reportId,
+    });
+  }
+
+  return reporterProfileByContentId;
+}
+
 async function buildFeedItemsFromPosts({
   ancestors,
   posts,
@@ -1481,6 +1586,7 @@ async function buildFeedItemsFromPosts({
     posts.map((post) => post.contentId),
     viewerEmail,
   );
+  const reporterProfileByContentId = await getFeedReporterProfilesForPosts(posts);
   const purchasedContentIds = await getPurchasedContentIdsForViewer(
     posts
       .filter((post) => post.priceType === "paid")
@@ -1504,6 +1610,7 @@ async function buildFeedItemsFromPosts({
         purchasedContentIds.has(post.contentId),
       content: post,
       networkLevel: levelByReferralCode.get(post.authorReferralCode) ?? null,
+      reporterProfile: reporterProfileByContentId.get(post.contentId) ?? null,
       social: socialByContentId.get(post.contentId),
     });
   });
@@ -1964,12 +2071,14 @@ function buildFeedItem({
   canAccess,
   content,
   networkLevel,
+  reporterProfile,
   social,
 }: {
   authorProfile: CreatorProfileRecord | null;
   canAccess?: boolean;
   content: ContentPostDocument;
   networkLevel: number | null;
+  reporterProfile?: ContentFeedReporterProfileRecord | null;
   social?: ContentSocialSummaryRecord;
 }): ContentFeedItemRecord {
   const resolvedCanAccess = canAccess ?? content.priceType === "free";
@@ -1983,6 +2092,7 @@ function buildFeedItem({
     contentVideoUrls: resolvedCanAccess ? serializedContent.contentVideoUrls : [],
     networkLevel,
     previewAssets: [],
+    reporterProfile: reporterProfile ?? null,
     social: social ?? createEmptyContentSocialSummary(),
   };
 }

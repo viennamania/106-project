@@ -784,6 +784,14 @@ export type ContentCommentRecord = {
   memberEmail: string;
 };
 
+export type ContentFeedReporterProfileRecord = {
+  avatarImageUrl: string | null;
+  displayName: string;
+  email: string | null;
+  referralCode: string | null;
+  reportId: string | null;
+};
+
 export type FanletterFanRequestRecord = {
   body: string;
   characterName: string;
@@ -912,6 +920,7 @@ export type ContentFeedItemRecord = ContentPostRecord & {
   canAccess: boolean;
   networkLevel: number | null;
   previewAssets: ContentAssetRecord[];
+  reporterProfile: ContentFeedReporterProfileRecord | null;
   social: ContentSocialSummaryRecord;
 };
 

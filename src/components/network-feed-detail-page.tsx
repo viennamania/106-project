@@ -165,6 +165,18 @@ function getDisplayName(item: ContentFeedItemRecord) {
   return item.authorProfile?.displayName?.trim() || item.authorEmail;
 }
 
+function getFeedActorDisplayName(item: ContentFeedItemRecord) {
+  return item.reporterProfile?.displayName?.trim() || getDisplayName(item);
+}
+
+function getFeedActorAvatarImageUrl(item: ContentFeedItemRecord) {
+  if (item.reporterProfile) {
+    return item.reporterProfile.avatarImageUrl;
+  }
+
+  return item.authorProfile?.avatarImageUrl ?? null;
+}
+
 function getAvatarFallback(name: string) {
   return name.trim().slice(0, 1).toUpperCase() || "U";
 }
@@ -1649,7 +1661,8 @@ function NetworkFeedDetailSlide({
 }) {
   const imageUrl = resolveFeedPreviewImage(item);
   const videoUrl = getReadableContentVideos(item, detailState)[0] ?? null;
-  const displayName = getDisplayName(item);
+  const displayName = getFeedActorDisplayName(item);
+  const avatarImageUrl = getFeedActorAvatarImageUrl(item);
   const avatarFallback = getAvatarFallback(displayName);
   const bodyPreview = truncateText(getReadableBodyText(item, detailState), 260);
   const contentImageCount = getReadableContentImageCount(item, detailState);
@@ -1834,12 +1847,12 @@ function NetworkFeedDetailSlide({
       <div className="relative z-10 w-full px-4 pb-[calc(env(safe-area-inset-bottom)+1.1rem)] pt-28">
         <div className="max-w-[calc(100%-4rem)] pb-2">
           <div className="flex min-w-0 items-center gap-2">
-            {item.authorProfile?.avatarImageUrl ? (
+            {avatarImageUrl ? (
               <Image
                 alt=""
                 className="size-9 rounded-full border border-white/30 object-cover"
                 height={36}
-                src={item.authorProfile.avatarImageUrl}
+                src={avatarImageUrl}
                 width={36}
               />
             ) : (
@@ -1850,7 +1863,17 @@ function NetworkFeedDetailSlide({
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-white">{displayName}</p>
               <p className="truncate text-[0.68rem] font-medium text-white/62">
-                {[accessLabel, dateLabel].filter(Boolean).join(" · ")}
+                {[
+                  item.reporterProfile
+                    ? locale === "ko"
+                      ? "리포트 작성자"
+                      : "Reporter"
+                    : null,
+                  accessLabel,
+                  dateLabel,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </p>
             </div>
           </div>
@@ -2274,7 +2297,8 @@ function NetworkFeedBodySheet({
   locale: Locale;
   onClose: () => void;
 }) {
-  const displayName = getDisplayName(item);
+  const displayName = getFeedActorDisplayName(item);
+  const avatarImageUrl = getFeedActorAvatarImageUrl(item);
   const avatarFallback = getAvatarFallback(displayName);
   const bodyText = getReadableBodyText(item, detailState);
   const actionLabel = getFullContentActionLabel(item, detailState, locale);
@@ -2333,12 +2357,12 @@ function NetworkFeedBodySheet({
 
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4">
           <div className="flex min-w-0 items-center gap-2.5">
-            {item.authorProfile?.avatarImageUrl ? (
+            {avatarImageUrl ? (
               <Image
                 alt=""
                 className="size-10 rounded-full border border-slate-200 object-cover"
                 height={40}
-                src={item.authorProfile.avatarImageUrl}
+                src={avatarImageUrl}
                 width={40}
               />
             ) : (
@@ -2351,7 +2375,17 @@ function NetworkFeedBodySheet({
                 {displayName}
               </p>
               <p className="truncate text-xs font-medium text-slate-500">
-                {[accessLabel, dateLabel].filter(Boolean).join(" · ")}
+                {[
+                  item.reporterProfile
+                    ? locale === "ko"
+                      ? "리포트 작성자"
+                      : "Reporter"
+                    : null,
+                  accessLabel,
+                  dateLabel,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
               </p>
             </div>
           </div>
