@@ -83,12 +83,13 @@ type FeedState = {
   status: "idle" | "loading" | "ready" | "error";
 };
 
-type FeedCreatorSummary = {
+type FeedActorSummary = {
   avatarImageUrl: string | null;
   closestLevel: number | null;
   contentCount: number;
   displayName: string;
   intro: string | null;
+  kind: "creator" | "reporter";
   key: string;
 };
 
@@ -118,7 +119,7 @@ type InitialPublicFeed = {
 
 type PaidProofTier = "new" | "proven" | "hot";
 
-const FEED_RESTORE_VERSION = 8;
+const FEED_RESTORE_VERSION = 9;
 const FEED_RESTORE_TTL_MS = 1000 * 60 * 20;
 const POST_IMAGE_SIZES = "(max-width: 640px) 100vw, 470px";
 
@@ -140,6 +141,19 @@ function getDisplayName(item: ContentFeedItemRecord) {
 
 function getFeedActorDisplayName(item: ContentFeedItemRecord) {
   return item.reporterProfile?.displayName?.trim() || getDisplayName(item);
+}
+
+function getFeedActorKey(item: ContentFeedItemRecord) {
+  if (item.reporterProfile) {
+    return `reporter:${
+      item.reporterProfile.email ??
+      item.reporterProfile.referralCode ??
+      item.reporterProfile.reportId ??
+      item.contentId
+    }`;
+  }
+
+  return `author:${item.authorEmail}`;
 }
 
 function getFeedActorAvatarImageUrl(item: ContentFeedItemRecord) {
@@ -431,29 +445,35 @@ export function NetworkFeedPage({
     return state.items.filter((item) => {
       return (
         !effectiveSelectedCreatorKey ||
-        item.authorEmail === effectiveSelectedCreatorKey
+        getFeedActorKey(item) === effectiveSelectedCreatorKey
       );
     });
   }, [effectiveSelectedCreatorKey, state.items]);
 
-  const creatorSummaries = useMemo<FeedCreatorSummary[]>(() => {
-    const map = new Map<string, FeedCreatorSummary>();
+  const creatorSummaries = useMemo<FeedActorSummary[]>(() => {
+    const map = new Map<string, FeedActorSummary>();
 
     for (const item of state.items) {
-      const current = map.get(item.authorEmail);
-      const displayName = getDisplayName(item);
-      const intro = item.authorProfile?.intro?.trim() || null;
-      const avatarImageUrl = item.authorProfile?.avatarImageUrl ?? null;
+      const actorKey = getFeedActorKey(item);
+      const current = map.get(actorKey);
+      const displayName = getFeedActorDisplayName(item);
+      const intro = item.reporterProfile
+        ? locale === "ko"
+          ? "리포트 작성자"
+          : "Reporter"
+        : item.authorProfile?.intro?.trim() || null;
+      const avatarImageUrl = getFeedActorAvatarImageUrl(item);
       const level = item.networkLevel ?? null;
 
       if (!current) {
-        map.set(item.authorEmail, {
+        map.set(actorKey, {
           avatarImageUrl,
           closestLevel: level,
           contentCount: 1,
           displayName,
           intro,
-          key: item.authorEmail,
+          kind: item.reporterProfile ? "reporter" : "creator",
+          key: actorKey,
         });
         continue;
       }
@@ -485,7 +505,7 @@ export function NetworkFeedPage({
         return right.contentCount - left.contentCount;
       })
       .slice(0, 12);
-  }, [state.items]);
+  }, [locale, state.items]);
   const visibleCreatorSummaries = isPublicReferralFeed ? [] : creatorSummaries;
   const publicFeedCreatorLabel =
     isPublicReferralFeed && state.items[0] ? getDisplayName(state.items[0]) : null;
@@ -1451,7 +1471,7 @@ function CreatorStoryButton({
   onSelect,
 }: {
   active: boolean;
-  creator: FeedCreatorSummary;
+  creator: FeedActorSummary;
   onSelect: () => void;
 }) {
   return (
@@ -1464,7 +1484,9 @@ function CreatorStoryButton({
         className={`rounded-full p-[2px] ${
           active
             ? "bg-slate-950"
-            : "bg-[linear-gradient(135deg,#f97316,#ec4899,#8b5cf6)]"
+            : creator.kind === "reporter"
+              ? "bg-slate-200"
+              : "bg-[linear-gradient(135deg,#f97316,#ec4899,#8b5cf6)]"
         }`}
       >
         <span className="flex size-16 items-center justify-center overflow-hidden rounded-full border-2 border-white bg-slate-100 text-sm font-semibold text-slate-700">
