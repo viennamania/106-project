@@ -27,8 +27,6 @@ import { EmailLoginDialog } from "@/components/email-login-dialog";
 import { useMemberSession } from "@/components/member-session-provider";
 import {
   buildPathWithReferral,
-  buildReferralLandingPath,
-  setLandingHomeLanguageContext,
   setLandingLanguageContext,
 } from "@/lib/landing-branding";
 import type { Dictionary, Locale } from "@/lib/i18n";
@@ -125,10 +123,6 @@ export function RewardsPage({
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [historyPage, setHistoryPage] = useState(1);
-  const homeHref = setLandingHomeLanguageContext(
-    buildReferralLandingPath(locale, referralCode),
-    landingLanguage,
-  );
   const activateHref =
     returnTo ??
     setLandingLanguageContext(
@@ -774,20 +768,6 @@ export function RewardsPage({
                   <p className="text-sm leading-6 text-slate-600">
                     {dictionary.rewardsPage.catalog.previewNote}
                   </p>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  <Link
-                    className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                    href={referralsHref}
-                  >
-                    {dictionary.rewardsPage.actions.openReferrals}
-                  </Link>
-                  <Link
-                    className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
-                    href={homeHref}
-                  >
-                    {dictionary.rewardsPage.actions.backHome}
-                  </Link>
                 </div>
               </div>
 
