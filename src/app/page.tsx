@@ -45,6 +45,24 @@ function normalizeLandingLanguage(value?: string | string[]): LandingLanguage {
   return "ko";
 }
 
+function buildActivationHref({
+  activationLocale,
+  landingLanguage,
+  referralCode,
+}: {
+  activationLocale: string;
+  landingLanguage: LandingLanguage;
+  referralCode?: string;
+}) {
+  const params = new URLSearchParams({ landingLang: landingLanguage });
+
+  if (referralCode) {
+    params.set("ref", referralCode);
+  }
+
+  return `/${activationLocale}/activate?${params.toString()}`;
+}
+
 export default async function Home({
   searchParams,
 }: {
@@ -59,6 +77,11 @@ export default async function Home({
   const landingLanguage = normalizeLandingLanguage(query.lang ?? query.locale);
   const activationLocale = activationLocaleByLandingLanguage[landingLanguage];
   const iframeParams = new URLSearchParams({ lang: landingLanguage });
+  const activationHref = buildActivationHref({
+    activationLocale,
+    landingLanguage,
+    referralCode,
+  });
 
   if (referralCode) {
     iframeParams.set("ref", referralCode);
@@ -75,7 +98,7 @@ export default async function Home({
       />
       <Link
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-black focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white"
-        href={`/${activationLocale}/activate`}
+        href={activationHref}
       >
         1066friend+ 서비스 시작하기
       </Link>

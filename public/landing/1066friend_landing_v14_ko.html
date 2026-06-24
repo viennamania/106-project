@@ -1369,6 +1369,10 @@ function getSelectedLocale(){
   };
   return supportedLocales[locale] || "ko";
 }
+function getSelectedLandingLanguage(){
+  const match = document.body.className.match(/(?:^|\s)lang-([a-z-]+)/);
+  return match ? match[1] : "ko";
+}
 function normalizeLandingLanguage(value){
   const candidate = String(value || "").trim().toLowerCase();
   const landingLanguages = {
@@ -1396,6 +1400,7 @@ function goStart(path){
   const params = new URLSearchParams(window.location.search);
   const ref = params.get('ref');
   const url = new URL(buildLocalizedPath(path), window.location.origin);
+  url.searchParams.set('landingLang', getSelectedLandingLanguage());
   if(ref) url.searchParams.set('ref', ref);
   window.top.location.href = url.toString();
 }
