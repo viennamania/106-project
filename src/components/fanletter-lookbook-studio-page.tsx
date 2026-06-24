@@ -110,7 +110,7 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     submitting: "생성 중…",
     download: "저장",
     remove: "삭제",
-    connectRequired: "지갑을 연결하면 룩북을 생성할 수 있습니다.",
+    connectRequired: "이메일로 로그인하면 룩북을 생성할 수 있습니다.",
     membersOnly: "가입을 완료한 회원만 사용할 수 있습니다.",
     needAvatar: "AI 스타를 선택하거나 이미지를 올리세요.",
     needGarment: "옷 사진을 최소 1장 올리세요.",
@@ -157,7 +157,7 @@ const COPY: { ko: LookbookCopy; en: LookbookCopy } = {
     submitting: "Generating…",
     download: "Save",
     remove: "Remove",
-    connectRequired: "Connect your wallet to generate a lookbook.",
+    connectRequired: "Sign in with email to generate a lookbook.",
     membersOnly: "Only completed members can use this studio.",
     needAvatar: "Pick an AI star or upload an image.",
     needGarment: "Add at least one garment photo.",
@@ -1050,9 +1050,7 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
               )}`}
             >
               <Sparkles className="h-4 w-4" />
-              {locale === "en"
-                ? "Connect & start free"
-                : "지갑 연결하고 무료로 시작"}
+              {locale === "en" ? "Start free with email" : "이메일로 무료 시작"}
             </a>
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -1134,8 +1132,8 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
                 {
                   a:
                     locale === "en"
-                      ? "Connect your fanletter member wallet — new members get free trial shots to start. After that, 50P per shot in points."
-                      : "fanletter 멤버(지갑)로 연결하면 신규 무료 체험 컷이 제공돼 바로 만들어볼 수 있습니다. 이후엔 포인트로 컷당 50P.",
+                      ? "Just sign in with your email — new members get free trial shots to start. After that, 50P per shot in points."
+                      : "이메일로 로그인만 하면 신규 무료 체험 컷이 제공돼 바로 만들어볼 수 있습니다. 이후엔 포인트로 컷당 50P.",
                   q:
                     locale === "en"
                       ? "How do I start and what does it cost?"
