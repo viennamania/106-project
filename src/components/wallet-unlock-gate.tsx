@@ -27,12 +27,14 @@ function useCurrentReturnTo(fallback: string | null | undefined) {
 
 export function useWalletUnlockGate({
   email,
+  landingLanguage = null,
   locale,
   referralCode = null,
   returnTo = null,
   walletAddress,
 }: {
   email?: string | null;
+  landingLanguage?: string | null;
   locale: Locale;
   referralCode?: string | null;
   returnTo?: string | null;
@@ -98,6 +100,7 @@ export function useWalletUnlockGate({
     copy,
     isUnlocked,
     unlockHref: buildWalletUnlockHref({
+      landingLanguage,
       locale,
       referralCode,
       returnTo: effectiveReturnTo,

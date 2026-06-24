@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { AssetManagementPage } from "@/components/asset-management-page";
 import { getAssetManagementCopy } from "@/lib/asset-management-copy";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
+import { normalizeLandingLanguageContext } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
 import {
   buildServiceMetadata,
@@ -49,6 +50,7 @@ export default async function LocalizedAssetManagementPage({
 }: {
   params: Promise<{ lang: string }>;
   searchParams: Promise<{
+    landingLang?: string | string[];
     ref?: string | string[];
     returnTo?: string | string[];
   }>;
@@ -65,11 +67,13 @@ export default async function LocalizedAssetManagementPage({
   const referralCode = normalizeReferralCode(
     Array.isArray(query.ref) ? query.ref[0] : query.ref,
   );
+  const landingLanguage = normalizeLandingLanguageContext(query.landingLang);
   const returnTo = normalizeReturnToPath(query.returnTo, locale);
 
   return (
     <AssetManagementPage
       dictionary={dictionary}
+      landingLanguage={landingLanguage}
       locale={locale}
       referralCode={referralCode}
       returnTo={returnTo}

@@ -61,6 +61,8 @@ import {
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
+  setLandingHomeLanguageContext,
+  setLandingLanguageContext,
   setPathSearchParams,
   type LandingPageBranding,
 } from "@/lib/landing-branding";
@@ -342,12 +344,14 @@ export function SmartWalletApp({
   dictionary,
   incomingReferralBranding,
   incomingReferralState,
+  landingLanguage = null,
   locale,
   projectWallet,
 }: {
   dictionary: Dictionary;
   incomingReferralBranding: LandingPageBranding | null;
   incomingReferralState: IncomingReferralState | null;
+  landingLanguage?: string | null;
   locale: Locale;
   projectWallet: string | null;
 }) {
@@ -443,56 +447,72 @@ export function SmartWalletApp({
         : memberSponsorBrandingCode === memberSponsorReferralCode
           ? memberSponsorBranding
           : null;
-  const homeHref = buildReferralLandingPath(locale, preferredReferralCode);
-  const notificationsPageHref = buildPathWithReferral(
-    `/${locale}/notifications`,
-    preferredReferralCode,
+  const homeHref = setLandingHomeLanguageContext(
+    buildReferralLandingPath(locale, preferredReferralCode),
+    landingLanguage,
+  );
+  const notificationsPageHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/notifications`, preferredReferralCode),
+    landingLanguage,
   );
   const activationSeparationCopy = getActivationSeparationCopy(locale);
   const serviceConnectModalTitle = getServiceConnectModalTitle(locale);
   const serviceHubLabel = getServiceHubLabel(locale);
-  const activatePageHref = buildPathWithReferral(
-    `/${locale}/activate`,
-    preferredReferralCode,
+  const activatePageHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/activate`, preferredReferralCode),
+    landingLanguage,
   );
   const signupWalletUnlock = useWalletUnlockGate({
     email: memberSync.email ?? memberSync.member?.email,
+    landingLanguage,
     locale,
     referralCode: preferredReferralCode,
     returnTo: activatePageHref,
     walletAddress: accountAddress,
   });
   const brandingStudioHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/branding-studio`, preferredReferralCode),
+    setLandingLanguageContext(
+      buildPathWithReferral(`/${locale}/branding-studio`, preferredReferralCode),
+      landingLanguage,
+    ),
     {
       returnTo: activatePageHref,
     },
   );
   const creatorStudioHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/creator/studio`, preferredReferralCode),
+    setLandingLanguageContext(
+      buildPathWithReferral(`/${locale}/creator/studio`, preferredReferralCode),
+      landingLanguage,
+    ),
     {
       returnTo: activatePageHref,
     },
   );
   const networkFeedHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/network-feed`, preferredReferralCode),
+    setLandingLanguageContext(
+      buildPathWithReferral(`/${locale}/network-feed`, preferredReferralCode),
+      landingLanguage,
+    ),
     {
       returnTo: activatePageHref,
     },
   );
   const rewardsHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/rewards`, preferredReferralCode),
+    setLandingLanguageContext(
+      buildPathWithReferral(`/${locale}/rewards`, preferredReferralCode),
+      landingLanguage,
+    ),
     {
       returnTo: activatePageHref,
     },
   );
-  const announcementsPageHref = buildPathWithReferral(
-    `/${locale}/announcements`,
-    preferredReferralCode,
+  const announcementsPageHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/announcements`, preferredReferralCode),
+    landingLanguage,
   );
-  const activateNetworkHref = buildPathWithReferral(
-    `/${locale}/activate/network`,
-    preferredReferralCode,
+  const activateNetworkHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/activate/network`, preferredReferralCode),
+    landingLanguage,
   );
   const assetPageHref = setPathSearchParams(
     buildPathWithReferral(`/${locale}/activate/assets`, preferredReferralCode),
@@ -502,6 +522,7 @@ export function SmartWalletApp({
   );
   const assetWalletUnlock = useWalletUnlockGate({
     email: memberSync.email ?? memberSync.member?.email,
+    landingLanguage,
     locale,
     referralCode: preferredReferralCode,
     returnTo: assetPageHref,

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ReferralsPage } from "@/components/referrals-page";
 import { getDictionary, hasLocale } from "@/lib/i18n";
+import { normalizeLandingLanguageContext } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
 import {
   buildServiceMetadata,
@@ -30,7 +31,7 @@ export default async function LocalizedReferralsPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ ref?: string | string[] }>;
+  searchParams: Promise<{ landingLang?: string | string[]; ref?: string | string[] }>;
 }) {
   const { lang } = await params;
   const query = await searchParams;
@@ -43,10 +44,12 @@ export default async function LocalizedReferralsPage({
   const referralCode = normalizeReferralCode(
     Array.isArray(query.ref) ? query.ref[0] : query.ref,
   );
+  const landingLanguage = normalizeLandingLanguageContext(query.landingLang);
 
   return (
     <ReferralsPage
       dictionary={dictionary}
+      landingLanguage={landingLanguage}
       locale={lang}
       referralCode={referralCode}
     />

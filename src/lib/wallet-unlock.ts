@@ -1,5 +1,9 @@
 import type { Locale } from "@/lib/i18n";
-import { buildPathWithReferral, setPathSearchParams } from "@/lib/landing-branding";
+import {
+  buildPathWithReferral,
+  setLandingLanguageContext,
+  setPathSearchParams,
+} from "@/lib/landing-branding";
 
 export const WALLET_UNLOCK_PIN_LENGTH = 6;
 export const WALLET_UNLOCK_SESSION_MS = 15 * 60 * 1000;
@@ -27,16 +31,21 @@ export function normalizeWalletUnlockReturnTo(
 }
 
 export function buildWalletUnlockHref({
+  landingLanguage = null,
   locale,
   referralCode,
   returnTo,
 }: {
+  landingLanguage?: string | null;
   locale: Locale;
   referralCode?: string | null;
   returnTo?: string | null;
 }) {
   return setPathSearchParams(
-    buildPathWithReferral(`/${locale}/wallet/unlock`, referralCode ?? null),
+    setLandingLanguageContext(
+      buildPathWithReferral(`/${locale}/wallet/unlock`, referralCode ?? null),
+      landingLanguage,
+    ),
     {
       returnTo: returnTo ?? `/${locale}/activate/assets`,
     },

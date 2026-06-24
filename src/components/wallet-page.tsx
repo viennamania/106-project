@@ -47,6 +47,8 @@ import {
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
+  setLandingHomeLanguageContext,
+  setLandingLanguageContext,
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import {
@@ -153,12 +155,14 @@ function getLoadErrorMessage(error: unknown, fallbackMessage: string) {
 
 export function WalletPage({
   dictionary,
+  landingLanguage = null,
   locale,
   referralCode = null,
   returnTo = null,
   service = "default",
 }: {
   dictionary: Dictionary;
+  landingLanguage?: string | null;
   locale: Locale;
   referralCode?: string | null;
   returnTo?: string | null;
@@ -225,7 +229,10 @@ export function WalletPage({
     ? buildPathWithReferral(`/${locale}/fanletter/news`, referralCode)
     : isFanletterService
       ? buildPathWithReferral(`/${locale}/fanletter`, referralCode)
-      : buildReferralLandingPath(locale, referralCode);
+      : setLandingHomeLanguageContext(
+          buildReferralLandingPath(locale, referralCode),
+          landingLanguage,
+        );
   const backHref = returnTo ?? homeHref;
   const walletPath = isNewsService
     ? `/${locale}/fanletter/news/wallet/manage`
@@ -238,18 +245,25 @@ export function WalletPage({
       ? `/${locale}/fanletter/wallet/bnb`
       : `/${locale}/wallet/bnb`;
   const currentWalletHref = setPathSearchParams(
-    buildPathWithReferral(walletPath, referralCode),
+    setLandingLanguageContext(
+      buildPathWithReferral(walletPath, referralCode),
+      landingLanguage,
+    ),
     { returnTo },
   );
   const walletUnlock = useWalletUnlockGate({
     email: currentEmail,
+    landingLanguage,
     locale,
     referralCode,
     returnTo: currentWalletHref,
     walletAddress: accountAddress,
   });
   const bnbWalletHref = setPathSearchParams(
-    buildPathWithReferral(bnbWalletPath, referralCode),
+    setLandingLanguageContext(
+      buildPathWithReferral(bnbWalletPath, referralCode),
+      landingLanguage,
+    ),
     { returnTo: currentWalletHref },
   );
   const sendProgress =

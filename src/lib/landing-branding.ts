@@ -228,6 +228,55 @@ export function setPathSearchParams(
   return `${pathname}${nextSearch ? `?${nextSearch}` : ""}${hashFragment ? `#${hashFragment}` : ""}`;
 }
 
+const supportedLandingLanguageContexts = new Set([
+  "ko",
+  "en",
+  "ja",
+  "zh",
+  "vi",
+  "vn",
+  "id",
+  "km",
+]);
+
+export function normalizeLandingLanguageContext(
+  value: string | string[] | null | undefined,
+) {
+  const candidate = (Array.isArray(value) ? value[0] : value)
+    ?.trim()
+    .toLowerCase();
+
+  if (!candidate) {
+    return null;
+  }
+
+  if (candidate === "zh-cn") {
+    return "zh";
+  }
+
+  return supportedLandingLanguageContexts.has(candidate) ? candidate : null;
+}
+
+export function setLandingLanguageContext(
+  path: string,
+  landingLanguage: string | null | undefined,
+) {
+  const normalized = normalizeLandingLanguageContext(landingLanguage);
+  return setPathSearchParams(path, {
+    landingLang: normalized,
+  });
+}
+
+export function setLandingHomeLanguageContext(
+  path: string,
+  landingLanguage: string | null | undefined,
+) {
+  const normalized = normalizeLandingLanguageContext(landingLanguage);
+  return setPathSearchParams(path, {
+    lang: normalized,
+  });
+}
+
 export function buildPathWithReferral(path: string, referralCode: string | null) {
   return setPathSearchParams(path, {
     ref: normalizeReferralQueryCode(referralCode),

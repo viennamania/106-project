@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { SmartWalletApp } from "@/components/smart-wallet-app";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
+import { normalizeLandingLanguageContext } from "@/lib/landing-branding";
 import { getReferralLandingExperience } from "@/lib/landing-branding-service";
 import { getIncomingReferralState } from "@/lib/member-service";
 import { normalizeReferralCode } from "@/lib/member";
@@ -32,7 +33,7 @@ export default async function LocalizedActivatePage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ ref?: string | string[] }>;
+  searchParams: Promise<{ landingLang?: string | string[]; ref?: string | string[] }>;
 }) {
   const { lang } = await params;
   const query = await searchParams;
@@ -44,6 +45,7 @@ export default async function LocalizedActivatePage({
   const locale = lang as Locale;
   const dictionary = getDictionary(locale);
   const referralInput = Array.isArray(query.ref) ? query.ref[0] : query.ref;
+  const landingLanguage = normalizeLandingLanguageContext(query.landingLang);
   const incomingReferralCode = normalizeReferralCode(referralInput);
   const incomingReferralState =
     await getIncomingReferralState(incomingReferralCode);
@@ -57,6 +59,7 @@ export default async function LocalizedActivatePage({
       incomingReferralBranding={incomingReferralBranding}
       dictionary={dictionary}
       incomingReferralState={incomingReferralState}
+      landingLanguage={landingLanguage}
       locale={locale}
       projectWallet={process.env.PROJECT_WALLET?.trim() ?? null}
     />

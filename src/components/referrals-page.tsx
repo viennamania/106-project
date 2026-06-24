@@ -35,6 +35,8 @@ import { ReferralRewardsPanel } from "@/components/referral-rewards-panel";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
+  setLandingHomeLanguageContext,
+  setLandingLanguageContext,
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import { getContentCopy } from "@/lib/content-copy";
@@ -72,10 +74,12 @@ type ReferralsState = {
 
 export function ReferralsPage({
   dictionary,
+  landingLanguage = null,
   locale,
   referralCode = null,
 }: {
   dictionary: Dictionary;
+  landingLanguage?: string | null;
   locale: Locale;
   referralCode?: string | null;
 }) {
@@ -104,37 +108,55 @@ export function ReferralsPage({
   });
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isLogoutDialogOpen, setIsLogoutDialogOpen] = useState(false);
-  const homeHref = buildReferralLandingPath(locale, referralCode);
-  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
-  const currentReferralsHref = buildPathWithReferral(
-    `/${locale}/referrals`,
-    referralCode,
+  const homeHref = setLandingHomeLanguageContext(
+    buildReferralLandingPath(locale, referralCode),
+    landingLanguage,
+  );
+  const activateHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/activate`, referralCode),
+    landingLanguage,
+  );
+  const currentReferralsHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/referrals`, referralCode),
+    landingLanguage,
   );
   const brandingStudioHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/branding-studio`, referralCode),
+    setLandingLanguageContext(
+      buildPathWithReferral(`/${locale}/branding-studio`, referralCode),
+      landingLanguage,
+    ),
     {
       returnTo: currentReferralsHref,
     },
   );
-  const creatorStudioHref = buildPathWithReferral(
-    `/${locale}/creator/studio`,
-    referralCode,
+  const creatorStudioHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/creator/studio`, referralCode),
+    landingLanguage,
   );
-  const networkFeedHref = buildPathWithReferral(
-    `/${locale}/network-feed`,
-    referralCode,
+  const networkFeedHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/network-feed`, referralCode),
+    landingLanguage,
   );
-  const rewardsHref = buildPathWithReferral(`/${locale}/rewards`, referralCode);
+  const rewardsHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/rewards`, referralCode),
+    landingLanguage,
+  );
   const walletHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/wallet`, referralCode),
+    setLandingLanguageContext(
+      buildPathWithReferral(`/${locale}/wallet`, referralCode),
+      landingLanguage,
+    ),
     {
       returnTo: currentReferralsHref,
     },
   );
-  const bnbWalletHref = buildPathWithReferral(`/${locale}/wallet/bnb`, referralCode);
-  const memberManagementHref = buildPathWithReferral(
-    `/${locale}/activate/network`,
-    referralCode,
+  const bnbWalletHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/wallet/bnb`, referralCode),
+    landingLanguage,
+  );
+  const memberManagementHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/activate/network`, referralCode),
+    landingLanguage,
   );
   const hubCopy = getReferralHubCopy(locale);
   const referralLink = state.member?.referralCode

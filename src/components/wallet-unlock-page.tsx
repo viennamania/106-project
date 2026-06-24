@@ -13,7 +13,10 @@ import {
 
 import { EmailLoginDialog } from "@/components/email-login-dialog";
 import type { Dictionary, Locale } from "@/lib/i18n";
-import { buildReferralLandingPath } from "@/lib/landing-branding";
+import {
+  buildReferralLandingPath,
+  setLandingHomeLanguageContext,
+} from "@/lib/landing-branding";
 import {
   getServiceConnectModalTitle,
   SERVICE_BRAND_NAME,
@@ -43,11 +46,13 @@ const digits = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "delete"];
 
 export function WalletUnlockPage({
   dictionary,
+  landingLanguage = null,
   locale,
   referralCode = null,
   returnTo,
 }: {
   dictionary: Dictionary;
+  landingLanguage?: string | null;
   locale: Locale;
   referralCode?: string | null;
   returnTo: string;
@@ -59,7 +64,10 @@ export function WalletUnlockPage({
   const connectionStatus = useActiveWalletConnectionStatus();
   const accountAddress = account?.address ?? null;
   const copy = getWalletUnlockCopy(locale);
-  const fallbackHref = buildReferralLandingPath(locale, referralCode);
+  const fallbackHref = setLandingHomeLanguageContext(
+    buildReferralLandingPath(locale, referralCode),
+    landingLanguage,
+  );
   const [email, setEmail] = useState<string | null>(null);
   const [mode, setMode] = useState<WalletUnlockMode>("checking");
   const [pin, setPin] = useState("");

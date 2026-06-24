@@ -27,6 +27,8 @@ import { useMemberSession } from "@/components/member-session-provider";
 import {
   buildPathWithReferral,
   buildReferralLandingPath,
+  setLandingHomeLanguageContext,
+  setLandingLanguageContext,
 } from "@/lib/landing-branding";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import type { MemberRecord } from "@/lib/member";
@@ -80,11 +82,13 @@ const HISTORY_PAGE_SIZE = 8;
 
 export function RewardsPage({
   dictionary,
+  landingLanguage = null,
   locale,
   referralCode = null,
   returnTo = null,
 }: {
   dictionary: Dictionary;
+  landingLanguage?: string | null;
   locale: Locale;
   referralCode?: string | null;
   returnTo?: string | null;
@@ -119,13 +123,23 @@ export function RewardsPage({
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionNotice, setActionNotice] = useState<string | null>(null);
   const [historyPage, setHistoryPage] = useState(1);
-  const homeHref = buildReferralLandingPath(locale, referralCode);
+  const homeHref = setLandingHomeLanguageContext(
+    buildReferralLandingPath(locale, referralCode),
+    landingLanguage,
+  );
   const activateHref =
-    returnTo ?? buildPathWithReferral(`/${locale}/activate`, referralCode);
-  const referralsHref = buildPathWithReferral(`/${locale}/referrals`, referralCode);
-  const silverClaimHref = buildPathWithReferral(
-    `/${locale}/rewards/silver-claim`,
-    referralCode,
+    returnTo ??
+    setLandingLanguageContext(
+      buildPathWithReferral(`/${locale}/activate`, referralCode),
+      landingLanguage,
+    );
+  const referralsHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/referrals`, referralCode),
+    landingLanguage,
+  );
+  const silverClaimHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/rewards/silver-claim`, referralCode),
+    landingLanguage,
   );
   const {
     isDisconnected,

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { RewardsPage } from "@/components/rewards-page";
 import { getDictionary, hasLocale, type Locale } from "@/lib/i18n";
+import { normalizeLandingLanguageContext } from "@/lib/landing-branding";
 import { normalizeReferralCode } from "@/lib/member";
 import {
   buildServiceMetadata,
@@ -47,7 +48,11 @@ export default async function LocalizedRewardsPage({
   searchParams,
 }: {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ ref?: string | string[]; returnTo?: string | string[] }>;
+  searchParams: Promise<{
+    landingLang?: string | string[];
+    ref?: string | string[];
+    returnTo?: string | string[];
+  }>;
 }) {
   const { lang } = await params;
   const query = await searchParams;
@@ -61,11 +66,13 @@ export default async function LocalizedRewardsPage({
   const referralCode = normalizeReferralCode(
     Array.isArray(query.ref) ? query.ref[0] : query.ref,
   );
+  const landingLanguage = normalizeLandingLanguageContext(query.landingLang);
   const returnTo = normalizeReturnToPath(query.returnTo, locale);
 
   return (
     <RewardsPage
       dictionary={dictionary}
+      landingLanguage={landingLanguage}
       locale={locale}
       referralCode={referralCode}
       returnTo={returnTo}

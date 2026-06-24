@@ -31,6 +31,8 @@ import {
   buildReferralLandingPath,
   LANDING_BRANDING_LIMITS,
   landingBrandThemeKeys,
+  setLandingHomeLanguageContext,
+  setLandingLanguageContext,
   toLandingPageBranding,
   type LandingBrandThemeKey,
   type LandingBrandingRecord,
@@ -92,11 +94,13 @@ const emptyState: StudioState = {
 
 export function BrandingStudioPage({
   dictionary,
+  landingLanguage = null,
   locale,
   referralCode = null,
   returnTo = null,
 }: {
   dictionary: Dictionary;
+  landingLanguage?: string | null;
   locale: Locale;
   referralCode?: string | null;
   returnTo?: string | null;
@@ -127,9 +131,18 @@ export function BrandingStudioPage({
   const [isUploading, setIsUploading] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
-  const homeHref = buildReferralLandingPath(locale, referralCode);
-  const referralsHref = buildPathWithReferral(`/${locale}/referrals`, referralCode);
+  const activateHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/activate`, referralCode),
+    landingLanguage,
+  );
+  const homeHref = setLandingHomeLanguageContext(
+    buildReferralLandingPath(locale, referralCode),
+    landingLanguage,
+  );
+  const referralsHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/referrals`, referralCode),
+    landingLanguage,
+  );
   const backHref = returnTo ?? referralsHref;
   const referralSharePath = state.member?.referralCode
     ? buildPathWithReferral(`/${locale}/referral/bridge`, state.member.referralCode)

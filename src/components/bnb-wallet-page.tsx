@@ -26,6 +26,7 @@ import {
 } from "@/components/wallet-unlock-gate";
 import {
   buildReferralLandingPath,
+  setLandingHomeLanguageContext,
 } from "@/lib/landing-branding";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import {
@@ -66,11 +67,13 @@ type BnbNotice = {
 
 export function BnbWalletPage({
   dictionary,
+  landingLanguage = null,
   locale,
   referralCode = null,
   returnTo = null,
 }: {
   dictionary: Dictionary;
+  landingLanguage?: string | null;
   locale: Locale;
   referralCode?: string | null;
   returnTo?: string | null;
@@ -222,9 +225,13 @@ export function BnbWalletPage({
     accountAddress,
     status,
   });
-  const homeHref = buildReferralLandingPath(locale, referralCode);
+  const homeHref = setLandingHomeLanguageContext(
+    buildReferralLandingPath(locale, referralCode),
+    landingLanguage,
+  );
   const backHref = returnTo ?? homeHref;
   const walletUnlock = useWalletUnlockGate({
+    landingLanguage,
     locale,
     referralCode,
     walletAddress: accountAddress,

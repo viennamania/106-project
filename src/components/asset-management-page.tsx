@@ -30,6 +30,7 @@ import {
 import { getAssetManagementCopy } from "@/lib/asset-management-copy";
 import {
   buildPathWithReferral,
+  setLandingLanguageContext,
   setPathSearchParams,
 } from "@/lib/landing-branding";
 import type { Dictionary, Locale } from "@/lib/i18n";
@@ -70,11 +71,13 @@ type HistoryState = {
 
 export function AssetManagementPage({
   dictionary,
+  landingLanguage = null,
   locale,
   referralCode = null,
   returnTo = null,
 }: {
   dictionary: Dictionary;
+  landingLanguage?: string | null;
   locale: Locale;
   referralCode?: string | null;
   returnTo?: string | null;
@@ -91,14 +94,21 @@ export function AssetManagementPage({
     status,
   });
   const assetPageHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/activate/assets`, referralCode),
+    setLandingLanguageContext(
+      buildPathWithReferral(`/${locale}/activate/assets`, referralCode),
+      landingLanguage,
+    ),
     {
       returnTo,
     },
   );
-  const activateHref = buildPathWithReferral(`/${locale}/activate`, referralCode);
+  const activateHref = setLandingLanguageContext(
+    buildPathWithReferral(`/${locale}/activate`, referralCode),
+    landingLanguage,
+  );
   const backHref = returnTo ?? activateHref;
   const walletUnlock = useWalletUnlockGate({
+    landingLanguage,
     locale,
     referralCode,
     returnTo: assetPageHref,
@@ -151,13 +161,19 @@ export function AssetManagementPage({
   );
 
   const usdtManagementHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/wallet`, referralCode),
+    setLandingLanguageContext(
+      buildPathWithReferral(`/${locale}/wallet`, referralCode),
+      landingLanguage,
+    ),
     {
       returnTo: assetPageHref,
     },
   );
   const bnbManagementHref = setPathSearchParams(
-    buildPathWithReferral(`/${locale}/wallet/bnb`, referralCode),
+    setLandingLanguageContext(
+      buildPathWithReferral(`/${locale}/wallet/bnb`, referralCode),
+      landingLanguage,
+    ),
     {
       returnTo: assetPageHref,
     },
