@@ -328,7 +328,8 @@ export function AssetManagementPage({
   const isRefreshing = isUsdtFetching || isBnbFetching || isMarketFetching;
 
   return (
-    <div className="friend-service-surface relative isolate overflow-hidden">
+    <div className="friend-service-surface relative isolate overflow-hidden bg-[#f7f4ee]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[linear-gradient(180deg,rgba(255,255,255,0.9),rgba(255,255,255,0))]" />
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
@@ -340,7 +341,7 @@ export function AssetManagementPage({
       />
 
       <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-4 px-4 pb-28 pt-4 sm:gap-5 sm:px-6 sm:pb-8 sm:pt-6 lg:px-8">
-        <header className="glass-card flex flex-col gap-3 rounded-[24px] px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
+        <header className="relative flex flex-col gap-3 rounded-[26px] border border-zinc-200 bg-white px-4 py-3 shadow-[0_18px_55px_rgba(24,24,27,0.07)] sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
           <div className="flex min-w-0 items-start gap-3">
             <Link
               className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 sm:size-12 sm:rounded-2xl"
@@ -349,7 +350,7 @@ export function AssetManagementPage({
               <ArrowLeft className="size-4 sm:size-5" />
             </Link>
             <div className="min-w-0 space-y-1">
-              <p className="friend-service-kicker text-[0.62rem] sm:text-xs">
+              <p className="text-[0.62rem] font-semibold uppercase tracking-[0.22em] text-zinc-500 sm:text-xs">
                 {SERVICE_BRAND_NAME}
               </p>
               <h1 className="truncate text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
@@ -392,8 +393,8 @@ export function AssetManagementPage({
           <MessageCard>{copy.loading}</MessageCard>
         ) : isDisconnected ? (
           <LandingReveal variant="soft">
-            <section className="glass-card rounded-[24px] p-4 sm:p-6">
-              <div className="space-y-4 rounded-[20px] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+            <section className="rounded-[28px] border border-zinc-200 bg-white p-5 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:p-6">
+              <div className="space-y-4">
                 <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
                   <WalletMinimal className="size-5" />
                 </div>
@@ -427,7 +428,7 @@ export function AssetManagementPage({
         ) : (
           <>
             <LandingReveal variant="hero">
-              <section className="overflow-hidden rounded-[24px] border border-slate-900 bg-[linear-gradient(145deg,#07111f_0%,#111827_54%,#0f766e_100%)] p-5 text-white shadow-[0_26px_70px_rgba(15,23,42,0.24)] sm:p-6">
+              <section className="overflow-hidden rounded-[28px] border border-zinc-900 bg-zinc-950 p-5 text-white shadow-[0_26px_70px_rgba(24,24,27,0.22)] sm:p-6">
                 <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 space-y-3">
                     <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/82">
@@ -505,7 +506,7 @@ export function AssetManagementPage({
                   eyebrow={copy.labels.account}
                   title={copy.labels.walletAddress}
                 />
-                <section className="rounded-[24px] border border-white/80 bg-white/92 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.07)] sm:p-5">
+                <section className="rounded-[26px] border border-zinc-200 bg-white p-4 shadow-[0_18px_45px_rgba(24,24,27,0.06)] sm:p-5">
                   <div className="flex items-start gap-3">
                     <div className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl bg-slate-950 text-white">
                       <ShieldCheck className="size-5" />
@@ -543,7 +544,7 @@ export function AssetManagementPage({
             </section>
 
             <section className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-              <section className="rounded-[24px] border border-white/80 bg-white/92 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.07)] sm:p-5">
+              <section className="rounded-[26px] border border-zinc-200 bg-white p-4 shadow-[0_18px_45px_rgba(24,24,27,0.06)] sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="eyebrow">{copy.labels.recentActivity}</p>
@@ -576,7 +577,7 @@ export function AssetManagementPage({
                 </div>
               </section>
 
-              <section className="rounded-[24px] border border-slate-200 bg-slate-950 p-4 text-white shadow-[0_24px_65px_rgba(15,23,42,0.18)] sm:p-5">
+              <section className="rounded-[26px] border border-zinc-900 bg-zinc-950 p-4 text-white shadow-[0_24px_65px_rgba(24,24,27,0.18)] sm:p-5">
                 <div className="flex items-start gap-3">
                   <div className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl border border-white/12 bg-white/10">
                     <ShieldCheck className="size-5" />
@@ -646,7 +647,7 @@ function AssetRow({
 }) {
   return (
     <Link
-      className="group block rounded-[24px] border border-white/80 bg-white/92 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.07)] transition hover:border-slate-200 hover:bg-white sm:p-5"
+      className="group block rounded-[26px] border border-zinc-200 bg-white p-4 shadow-[0_18px_45px_rgba(24,24,27,0.06)] transition hover:border-zinc-300 hover:bg-white sm:p-5"
       href={actionHref}
     >
       <div className="flex items-start justify-between gap-3">
@@ -708,7 +709,7 @@ function AssetUnlockRequiredPanel({
 }) {
   return (
     <LandingReveal variant="soft">
-      <section className="relative overflow-hidden rounded-[28px] border border-slate-900 bg-[linear-gradient(145deg,#07111f_0%,#111827_54%,#12372f_100%)] p-5 text-white shadow-[0_28px_80px_rgba(15,23,42,0.24)] sm:p-6">
+      <section className="relative overflow-hidden rounded-[28px] border border-zinc-900 bg-zinc-950 p-5 text-white shadow-[0_28px_80px_rgba(24,24,27,0.24)] sm:p-6">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.45),transparent)]" />
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
           <div className="flex justify-center lg:justify-start">

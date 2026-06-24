@@ -14,6 +14,7 @@ import {
   RefreshCcw,
   Sparkles,
   Ticket,
+  WalletMinimal,
 } from "lucide-react";
 import {
   useActiveAccount,
@@ -470,8 +471,8 @@ export function RewardsPage({
   }
 
   return (
-    <div className="friend-service-surface relative isolate overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(214,166,66,0.16),transparent_24%),radial-gradient(circle_at_88%_10%,rgba(15,23,42,0.10),transparent_20%),radial-gradient(circle_at_50%_100%,rgba(245,195,77,0.12),transparent_24%)]" />
+    <div className="friend-service-surface relative isolate overflow-hidden bg-[#f7f4ee]">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(255,255,255,0))]" />
       <EmailLoginDialog
         dictionary={dictionary}
         onClose={() => {
@@ -483,7 +484,7 @@ export function RewardsPage({
       />
 
       <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <header className="glass-card flex flex-col gap-4 rounded-[28px] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <header className="relative flex flex-col gap-3 overflow-hidden rounded-[26px] border border-zinc-200 bg-white px-5 py-4 shadow-[0_18px_55px_rgba(24,24,27,0.07)] sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-start gap-3">
             <Link
               className="inline-flex size-12 shrink-0 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
@@ -492,13 +493,17 @@ export function RewardsPage({
               <ArrowLeft className="size-5" />
             </Link>
             <div className="space-y-1">
-              <p className="friend-service-kicker">{SERVICE_BRAND_NAME}</p>
+              <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-zinc-500">
+                {SERVICE_BRAND_NAME}
+              </p>
               <div>
                 <h1 className="text-lg font-semibold tracking-tight text-slate-950">
                   {dictionary.rewardsPage.title}
                 </h1>
                 <p className="hidden text-sm text-slate-600 sm:block">
-                  {dictionary.rewardsPage.description}
+                  {locale === "ko"
+                    ? "내 추천 활동으로 쌓인 포인트와 사용 가능한 보상을 확인합니다."
+                    : dictionary.rewardsPage.description}
                 </p>
               </div>
             </div>
@@ -531,23 +536,27 @@ export function RewardsPage({
         ) : isConnectionResolving ? (
           <MessageCard>{dictionary.rewardsPage.loading}</MessageCard>
         ) : isDisconnected ? (
-          <section className="glass-card rounded-[30px] p-5 sm:p-6">
-            <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.08)]">
-              <div className="space-y-3">
-                <p className="text-sm leading-6 text-slate-600">
-                  {dictionary.rewardsPage.disconnected}
-                </p>
-                <button
-                  className="inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
-                  onClick={() => {
-                    setIsLoginDialogOpen(true);
-                  }}
-                  type="button"
-                >
-                  {dictionary.common.connectWallet}
-                </button>
-              </div>
+          <section className="rounded-[28px] border border-zinc-200 bg-white p-5 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:p-6">
+            <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-slate-950 text-white">
+              <WalletMinimal className="size-5" />
             </div>
+            <div className="mt-4 max-w-xl space-y-2">
+              <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                {dictionary.rewardsPage.title}
+              </h2>
+              <p className="text-sm leading-6 text-slate-600">
+                {dictionary.rewardsPage.disconnected}
+              </p>
+            </div>
+            <button
+              className="mt-5 inline-flex h-11 w-full items-center justify-center rounded-full bg-slate-950 px-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 sm:w-auto"
+              onClick={() => {
+                setIsLoginDialogOpen(true);
+              }}
+              type="button"
+            >
+              {dictionary.common.connectWallet}
+            </button>
           </section>
         ) : state.status === "error" && !canBrowseRewards ? (
           <MessageCard tone="error">
@@ -556,8 +565,8 @@ export function RewardsPage({
         ) : (
           <>
             <section className="grid gap-5 lg:grid-cols-[1.08fr_0.92fr]">
-              <section className="relative overflow-hidden rounded-[32px] border border-slate-900/90 bg-[linear-gradient(135deg,#0f172a_0%,#312e81_48%,#0f766e_100%)] p-5 text-white shadow-[0_28px_80px_rgba(15,23,42,0.28)] sm:p-6">
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(236,72,153,0.16),transparent_30%)]" />
+              <section className="relative overflow-hidden rounded-[30px] border border-zinc-900 bg-zinc-950 p-5 text-white shadow-[0_28px_80px_rgba(24,24,27,0.24)] sm:p-6">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.55),transparent)]" />
                 <div className="relative">
                   <div className="flex flex-wrap items-center gap-2">
                     <InfoBadge className="border-white/14 bg-white/10 text-white/85">
@@ -633,7 +642,7 @@ export function RewardsPage({
                 </div>
               </section>
 
-              <section className="glass-card rounded-[30px] p-5 sm:p-6">
+              <section className="rounded-[30px] border border-zinc-200 bg-white p-5 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:p-6">
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
                     <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
@@ -754,7 +763,7 @@ export function RewardsPage({
               />
             </section>
 
-            <section className="glass-card rounded-[30px] p-5 sm:p-6">
+            <section className="rounded-[30px] border border-zinc-200 bg-white p-5 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-1">
                   <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
@@ -826,7 +835,7 @@ export function RewardsPage({
             </section>
 
             <section className="grid min-w-0 gap-5 lg:grid-cols-[1.02fr_0.98fr]">
-              <section className="glass-card min-w-0 rounded-[30px] p-5 sm:p-6">
+              <section className="min-w-0 rounded-[30px] border border-zinc-200 bg-white p-5 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:p-6">
                 <div className="space-y-1">
                   <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
                   <h2 className="text-xl font-semibold tracking-tight text-slate-950">
@@ -853,7 +862,7 @@ export function RewardsPage({
                 </div>
               </section>
 
-              <section className="glass-card min-w-0 rounded-[30px] p-5 sm:p-6">
+              <section className="min-w-0 rounded-[30px] border border-zinc-200 bg-white p-5 shadow-[0_22px_70px_rgba(24,24,27,0.08)] sm:p-6">
                 <div className="space-y-1">
                   <p className="eyebrow">{dictionary.rewardsPage.eyebrow}</p>
                   <h2 className="text-xl font-semibold tracking-tight text-slate-950">
@@ -911,7 +920,7 @@ function MetricStatCard({
   value: string;
 }) {
   return (
-    <div className="glass-card rounded-[26px] border border-white/70 px-4 py-4">
+    <div className="rounded-[26px] border border-zinc-200 bg-white px-4 py-4 shadow-[0_14px_34px_rgba(24,24,27,0.05)]">
       <p className="text-xs uppercase tracking-[0.22em] text-slate-500">{label}</p>
       <p className="mt-2 text-base font-semibold text-slate-950">{value}</p>
     </div>
