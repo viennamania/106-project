@@ -26,6 +26,12 @@ export const rewardCatalogIds = [
   "vip-pass",
   "service-credit",
 ] as const;
+export const repeatableRewardCatalogIds = ["silver-card"] as const;
+export const nonRepeatableRewardCatalogIds = [
+  "gold-card",
+  "vip-pass",
+  "service-credit",
+] as const;
 export const rewardTypes = [
   "tier_upgrade",
   "nft_claim",
@@ -306,4 +312,10 @@ export function serializeRewardRedemption(
 
 export function isRewardCatalogId(value: string): value is RewardCatalogId {
   return rewardCatalogIds.includes(value as RewardCatalogId);
+}
+
+export function isRepeatableRewardCatalogId(value: RewardCatalogId) {
+  return repeatableRewardCatalogIds.includes(
+    value as (typeof repeatableRewardCatalogIds)[number],
+  );
 }

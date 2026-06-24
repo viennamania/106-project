@@ -15,6 +15,7 @@ import {
   POINT_HISTORY_LIMIT,
   REWARD_CATALOG,
   REWARD_REDEMPTION_HISTORY_LIMIT,
+  isRepeatableRewardCatalogId,
   serializePointLedger,
   serializeRewardRedemption,
   type PointBalanceDocument,
@@ -520,16 +521,18 @@ export async function redeemRewardForMember(
 
   try {
     await session.withTransaction(async () => {
-      const existingRedemption = await redemptionsCollection.findOne(
-        {
-          memberEmail: member.email,
-          rewardId,
-        },
-        { session },
-      );
+      if (!isRepeatableRewardCatalogId(rewardId)) {
+        const existingRedemption = await redemptionsCollection.findOne(
+          {
+            memberEmail: member.email,
+            rewardId,
+          },
+          { session },
+        );
 
-      if (existingRedemption) {
-        throw new Error("Reward has already been redeemed for this member.");
+        if (existingRedemption) {
+          throw new Error("Reward has already been redeemed for this member.");
+        }
       }
 
       const balanceUpdate = await balancesCollection.updateOne(

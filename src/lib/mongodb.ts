@@ -19,6 +19,7 @@ import type {
   PointLedgerDocument,
   RewardRedemptionDocument,
 } from "@/lib/points";
+import { nonRepeatableRewardCatalogIds } from "@/lib/points";
 import type { SilverRewardClaimDocument } from "@/lib/silver-reward-claim";
 import type {
   AppNotificationDocument,
@@ -601,10 +602,35 @@ export async function getRewardRedemptionsCollection() {
       const collection = client
         .db(dbName)
         .collection<RewardRedemptionDocument>(collectionName);
+      const indexes = await collection.indexes();
+      const legacyMemberRewardUniqueIndex = indexes.find((index) => {
+        const key = index.key ?? {};
+
+        return (
+          index.unique === true &&
+          key.memberEmail === 1 &&
+          key.rewardId === 1 &&
+          Object.keys(key).length === 2 &&
+          !index.partialFilterExpression
+        );
+      });
+
+      if (legacyMemberRewardUniqueIndex?.name) {
+        await collection.dropIndex(legacyMemberRewardUniqueIndex.name);
+      }
 
       await Promise.all([
         collection.createIndex({ redemptionId: 1 }, { unique: true }),
-        collection.createIndex({ memberEmail: 1, rewardId: 1 }, { unique: true }),
+        collection.createIndex(
+          { memberEmail: 1, rewardId: 1 },
+          {
+            name: "member_reward_non_repeatable_unique",
+            partialFilterExpression: {
+              rewardId: { $in: [...nonRepeatableRewardCatalogIds] },
+            },
+            unique: true,
+          },
+        ),
         collection.createIndex({ memberEmail: 1, createdAt: -1 }),
         collection.createIndex({ status: 1, updatedAt: -1 }),
       ]);

@@ -1449,7 +1449,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       catalog: {
         previewNote:
-          "사용 가능한 리워드는 여기서 바로 교환됩니다. 한 번 교환한 항목은 계정 기준으로 잠기고, 상태는 사용 이력에서 계속 추적됩니다.",
+          "사용 가능한 리워드는 여기서 바로 교환됩니다. Silver 멤버 카드는 포인트가 있으면 반복 교환할 수 있고, 다른 리워드는 계정 기준 1회로 관리됩니다.",
         previewBadge: "live",
         eligible: "도달 가능",
         needMorePoints: "{points}P 더 필요",
@@ -2328,7 +2328,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       catalog: {
         previewNote:
-          "Available rewards can be claimed here directly. Once a reward is redeemed, it stays locked to the current member account and remains visible in redemption history.",
+          "Available rewards can be redeemed here directly. Silver Member Cards can be redeemed repeatedly when points are available; other rewards remain limited to once per account.",
         previewBadge: "live",
         eligible: "Eligible",
         needMorePoints: "{points}P more needed",
@@ -3213,7 +3213,7 @@ const dictionaries: Record<BuiltInLocale, Dictionary> = {
       },
       catalog: {
         previewNote:
-          "利用可能なリワードはここで直接交換されます。一度交換した項目は会員アカウントに紐づき、使用履歴で継続して追跡できます。",
+          "利用可能なリワードはここで直接交換されます。Silver メンバーカードはポイントがあれば繰り返し交換でき、その他のリワードはアカウントごとに1回で管理されます。",
         previewBadge: "live",
         eligible: "到達可能",
         needMorePoints: "あと {points}P 必要",

@@ -41,6 +41,7 @@ import {
 import { getThirdwebUserEmail, useThirdwebConnectionState } from "@/lib/thirdweb-client";
 import {
   createEmptyPointsSummary,
+  isRepeatableRewardCatalogId,
   type PointLedgerRecord,
   type PointTier,
   type PointsSummaryRecord,
@@ -973,6 +974,7 @@ function RewardCatalogCard({
   const rewardTypeLabel = getRewardTypeLabel(reward.rewardType, dictionary);
   const rewardTitle = getRewardTitle(reward.rewardId, dictionary);
   const rewardDescription = getRewardDescription(reward.rewardId, dictionary);
+  const isRepeatableReward = isRepeatableRewardCatalogId(reward.rewardId);
   const isEligible = spendablePoints >= reward.costPoints;
   const hasRedemption = Boolean(redemption);
   const isCompletedReward = redemption?.status === "completed";
@@ -983,14 +985,26 @@ function RewardCatalogCard({
   const isCompletedSilverClaim =
     isSilverReward && silverClaim?.status === "completed";
   const isLocked = !hasRedemption && !isEligible;
-  const StateIcon = isCompletedReward
-    ? CheckCircle2
-    : hasRedemption
-      ? RefreshCcw
-      : isEligible
-        ? Sparkles
-        : LockKeyhole;
-  const statusLabel = isSilverReward
+  const repeatableRewardStatusLabel =
+    isRepeatableReward && hasRedemption
+      ? isEligible
+        ? dictionary.rewardsPage.catalog.eligible
+        : formatTemplate(dictionary.rewardsPage.catalog.needMorePoints, {
+            points: formatNumber(reward.costPoints - spendablePoints, locale),
+          })
+      : null;
+  const StateIcon = repeatableRewardStatusLabel
+    ? isEligible
+      ? Sparkles
+      : LockKeyhole
+    : isCompletedReward
+      ? CheckCircle2
+      : hasRedemption
+        ? RefreshCcw
+        : isEligible
+          ? Sparkles
+          : LockKeyhole;
+  const statusLabel = repeatableRewardStatusLabel ?? (isSilverReward
     ? silverClaim
       ? getSilverClaimStatusLabel(silverClaim.status, dictionary)
       : dictionary.rewardsPage.silverClaim.statuses.available
@@ -1000,21 +1014,50 @@ function RewardCatalogCard({
         ? dictionary.rewardsPage.catalog.eligible
         : formatTemplate(dictionary.rewardsPage.catalog.needMorePoints, {
             points: formatNumber(reward.costPoints - spendablePoints, locale),
-          });
-  const actionLabel = isSilverReward
-    ? silverClaim?.status === "completed"
-      ? dictionary.rewardsPage.silverClaim.statuses.completed
-      : silverClaim?.status === "pending"
-        ? dictionary.rewardsPage.silverClaim.statuses.pending
-        : dictionary.rewardsPage.silverClaim.actions.open
-    : redemption
-      ? getRedemptionStatusLabel(redemption.status, dictionary)
-      : isRedeeming
-        ? dictionary.rewardsPage.actions.redeeming
-        : dictionary.rewardsPage.actions.redeem;
-  const isActionDisabled = isSilverReward
-    ? silverClaim?.status === "completed" || silverClaim?.status === "pending"
-    : !canRedeem || !isEligible || Boolean(redemption) || isRedeeming;
+          }));
+  const repeatableRewardCanRedeem =
+    isRepeatableReward &&
+    canRedeem &&
+    isEligible &&
+    !isRedeeming &&
+    !isProcessingReward;
+  const shouldOpenSilverClaim =
+    isSilverReward &&
+    !repeatableRewardCanRedeem &&
+    silverClaim?.status !== "completed" &&
+    silverClaim?.status !== "pending";
+  let actionLabel = isRedeeming
+    ? dictionary.rewardsPage.actions.redeeming
+    : dictionary.rewardsPage.actions.redeem;
+
+  if (shouldOpenSilverClaim) {
+    actionLabel = dictionary.rewardsPage.silverClaim.actions.open;
+  } else if (isRepeatableReward) {
+    actionLabel = isRedeeming
+      ? dictionary.rewardsPage.actions.redeeming
+      : dictionary.rewardsPage.actions.redeem;
+  } else if (isSilverReward) {
+    actionLabel =
+      silverClaim?.status === "completed"
+        ? dictionary.rewardsPage.silverClaim.statuses.completed
+        : silverClaim?.status === "pending"
+          ? dictionary.rewardsPage.silverClaim.statuses.pending
+          : dictionary.rewardsPage.silverClaim.actions.open;
+  } else if (redemption) {
+    actionLabel = getRedemptionStatusLabel(redemption.status, dictionary);
+  }
+
+  let isActionDisabled =
+    !canRedeem || !isEligible || Boolean(redemption) || isRedeeming;
+
+  if (shouldOpenSilverClaim) {
+    isActionDisabled = false;
+  } else if (isRepeatableReward) {
+    isActionDisabled = !canRedeem || !isEligible || isRedeeming || isProcessingReward;
+  } else if (isSilverReward) {
+    isActionDisabled =
+      silverClaim?.status === "completed" || silverClaim?.status === "pending";
+  }
   const Icon =
     reward.rewardType === "tier_upgrade"
       ? Crown
@@ -1059,8 +1102,14 @@ function RewardCatalogCard({
     isCompletedSilverClaim && silverClaim.txHash
       ? `${BSC_EXPLORER}/tx/${silverClaim.txHash}`
       : null;
-  const highlightCopy = isCompletedReward
-    ? isSilverReward && silverClaim?.status !== "completed"
+  const highlightCopy = isRepeatableReward && hasRedemption
+    ? isEligible
+      ? dictionary.rewardsPage.catalog.eligible
+      : formatTemplate(dictionary.rewardsPage.catalog.needMorePoints, {
+          points: formatNumber(reward.costPoints - spendablePoints, locale),
+        })
+    : isCompletedReward
+      ? isSilverReward && silverClaim?.status !== "completed"
       ? dictionary.rewardsPage.silverClaim.actions.open
       : dictionary.rewardsPage.redemptionStatus.completed
     : hasRedemption
@@ -1241,7 +1290,7 @@ function RewardCatalogCard({
           ) : null}
         </div>
         <div className="mt-auto pt-6">
-          {isSilverReward && !isActionDisabled ? (
+          {shouldOpenSilverClaim ? (
             <Link
               className={cn(
                 "inline-flex h-11 w-full items-center justify-center rounded-full px-4 text-sm font-medium transition",
