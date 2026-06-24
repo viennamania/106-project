@@ -617,9 +617,11 @@ function buildStarEvents({
       );
     }
 
+    const isMemberSignupStar = star.source === "member_signup";
+
     if (
       isIncludedType("ai_star_spawned", includeTypes) &&
-      (star.createdByUnlock || star.spawnedFromStarId)
+      (star.createdByUnlock || star.spawnedFromStarId || isMemberSignupStar)
     ) {
       events.push(
         buildEvent({
@@ -627,6 +629,7 @@ function buildStarEvents({
             ? buildMemberActor(star.ownerEmail, "creator")
             : { id: "fanletter", label: "FanLetter", type: "platform" },
           context: {
+            createdFromMemberSignup: isMemberSignupStar,
             launchCostUsdt: star.launchCostUsdt ?? null,
             source: star.source,
             spawnedFromStarId: star.spawnedFromStarId ?? null,
@@ -709,15 +712,20 @@ function buildMembershipEvents({
       );
     }
 
-    if (
-      isIncludedType("creator_unlocked", includeTypes) &&
+    const isCreatorActivation =
       membership.role === "creator" &&
-      membership.source === "creator_unlock"
-    ) {
+      (membership.source === "creator_unlock" ||
+        membership.source === "member_signup");
+
+    if (isIncludedType("creator_unlocked", includeTypes) && isCreatorActivation) {
       events.push(
         buildEvent({
           actor: buildMemberActor(membership.memberEmail, "creator"),
           context: {
+            activationPath:
+              membership.source === "member_signup"
+                ? "member_activation"
+                : "creator_journey",
             creatorProgressPercent: membership.creatorProgressPercent,
             influenceScore: membership.influenceScore,
             source: membership.source,

@@ -457,6 +457,15 @@ section{padding:100px 24px}
   background:var(--grad);color:var(--white);
   margin-top:16px;letter-spacing:.5px;
 }
+.earn-badge[href]{
+  cursor:pointer;
+  text-decoration:none;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.earn-badge[href]:hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 24px rgba(194,24,91,.18);
+}
 .sns-feature-grid{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
@@ -986,11 +995,11 @@ Itulah media sosial.</span><span class="t-th">การเสียเวลา�
 <span class="t-id">Gunakan poin untuk membeli konten dari pengguna di seluruh dunia. Poin berputar dalam ekosistem.</span>
 <span class="t-zh">用积分享受全球内容。</span><span class="t-ja">ポイントで世界中のコンテンツを楽しもう。</span><span class="t-ms">Nikmati kandungan global dengan mata anda.</span><span class="t-th">สนุกกับคอนเทนต์ทั่วโลกด้วยแต้มของคุณ</span><span class="t-my">point ဖြင့် ကမ္ဘာ့ content များကို ခံစားနိုင်သည်</span><span class="t-km">រីករាយជាមួយ content ពិភពលោកដោយពិន្ទុរបស់អ្នក</span><span class="t-en">Use points to buy content from users worldwide. Points circulate within the ecosystem.</span><span class="t-ko">포인트로 전 세계 사용자의 콘텐츠를 구매하세요. 포인트는 생태계 안에서 순환합니다.</span>
 </p>
-<span class="earn-badge">
+<a class="earn-badge" href="/ko/network-feed" onclick="event.preventDefault(); goStart('/network-feed');">
 <span class="t-vn">Dùng điểm</span>
 <span class="t-id">Pakai poin</span>
 <span class="t-zh">使用积分</span><span class="t-ja">ポイント使用</span><span class="t-ms">Guna mata</span><span class="t-th">ใช้แต้ม</span><span class="t-my">point သုံးပါ</span><span class="t-km">ប្រើពិន្ទុ</span><span class="t-en">Use points</span><span class="t-ko">포인트 사용</span>
-</span>
+</a>
 </div>
 <div class="earn-card reveal rd3">
 <span class="earn-icon">🎬</span>

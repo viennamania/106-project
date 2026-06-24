@@ -45,6 +45,8 @@ export type MemberRecord = {
   fanletterStarReferralSourceMemberEmail: string | null;
   fanletterStarReferralSourceMemberReferralCode: string | null;
   fanletterStarReferralStarId: string | null;
+  fanletterStarterStarId: string | null;
+  fanletterStarterUniverseEnsuredAt: string | null;
   lastConnectedAt: string;
   lastWalletAddress: string;
   locale: string;
@@ -328,6 +330,9 @@ export function serializeMember(member: MemberDocument): MemberRecord {
     fanletterStarReferralSourceMemberReferralCode:
       member.fanletterStarReferralSourceMemberReferralCode ?? null,
     fanletterStarReferralStarId: member.fanletterStarReferralStarId ?? null,
+    fanletterStarterStarId: member.fanletterStarterStarId ?? null,
+    fanletterStarterUniverseEnsuredAt:
+      member.fanletterStarterUniverseEnsuredAt?.toISOString() ?? null,
     lastConnectedAt: member.lastConnectedAt.toISOString(),
     lastWalletAddress: member.lastWalletAddress,
     locale: member.locale,

@@ -271,12 +271,15 @@ function getActivationHubCopy(locale: Locale) {
   if (locale === "ko") {
     return {
       actionTitle: "오늘 할 일",
+      aiStarIpLabel: "AI 스타 IP",
+      aiStarIpPending: "생성 확인 중",
+      aiStarIpReady: "Creator 등록",
       assetDescription: "USDT, BNB, 지갑 보안 상태를 확인합니다.",
       assetLabel: "지갑 / 자산",
       connected: "지갑 연결됨",
       contextAsset: "가입부터 보상까지 연결",
       contextDescription:
-        "추천 코드로 들어온 가입, 포인트, 지갑 상태를 한 흐름에서 확인합니다.",
+        "추천 코드로 들어온 가입, 포인트, 지갑 상태와 AI 스타 IP 생성 흐름을 한 번에 확인합니다.",
       contextLabel: "서비스 흐름",
       contextScore: "추천 흐름",
       graphTitle: "진행 흐름",
@@ -312,12 +315,15 @@ function getActivationHubCopy(locale: Locale) {
 
   return {
     actionTitle: "Next action",
+    aiStarIpLabel: "AI Star IP",
+    aiStarIpPending: "Provisioning",
+    aiStarIpReady: "Creator linked",
     assetDescription: "Review USDT, BNB, and wallet security status.",
     assetLabel: "Wallet / Assets",
     connected: "Wallet connected",
     contextAsset: "Signup to rewards",
     contextDescription:
-      "Track signup, referral code, points, and wallet status in one simple flow.",
+      "Track signup, referral code, points, wallet status, and AI Star IP provisioning in one simple flow.",
     contextLabel: "Service flow",
     contextScore: "Referral flow",
     graphTitle: "Progress flow",
@@ -2606,6 +2612,9 @@ function ActivationServiceHub({
           ? copy.pending
           : copy.disconnected;
   const walletStatus = isConnected ? copy.connected : copy.disconnected;
+  const aiStarIpStatus = member?.fanletterStarterStarId
+    ? copy.aiStarIpReady
+    : copy.aiStarIpPending;
   const primaryLabel = !hasThirdwebClientId
     ? copy.primaryUnavailable
     : isSignupCompleted
@@ -2617,6 +2626,9 @@ function ActivationServiceHub({
     { label: copy.membershipLabel, value: membershipStatus },
     { label: copy.walletLabel, value: walletStatus },
     { label: copy.shareLabel, value: referralCode },
+    ...(isSignupCompleted
+      ? [{ label: copy.aiStarIpLabel, value: aiStarIpStatus }]
+      : []),
   ];
   const actionItems = [
     {
@@ -2697,7 +2709,7 @@ function ActivationServiceHub({
 
             <div className="mt-8 space-y-4">
               {primaryAction}
-              <div className="grid gap-2 sm:grid-cols-3">
+              <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                 {statusItems.map((item) => (
                   <div
                     className="min-w-0 rounded-[18px] border border-white/10 bg-white/[0.06] px-3 py-3"
