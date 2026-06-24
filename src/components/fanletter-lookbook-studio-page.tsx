@@ -267,7 +267,6 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
     null,
   );
   const [selectedStarImageIndex, setSelectedStarImageIndex] = useState(0);
-  const [showGarmentUrl, setShowGarmentUrl] = useState(false);
   const [batchProducts, setBatchProducts] = useState<string[]>([]);
   const [batchJobs, setBatchJobs] = useState<
     {
@@ -1466,26 +1465,11 @@ export function FanletterLookbookStudioPage({ locale }: { locale: Locale }) {
                 </label>
               ) : null}
             </div>
-            <div className="mt-2 flex items-center justify-between text-xs">
-              <button
-                className="font-bold text-neutral-400 hover:text-neutral-600"
-                onClick={() => setShowGarmentUrl((value) => !value)}
-                type="button"
-              >
-                {copy.advanced}
-              </button>
+            <div className="mt-2 flex items-center justify-end text-xs">
               <span className="text-neutral-400">
                 {garmentImageUrls.length}/{MAX_GARMENTS}
               </span>
             </div>
-            {showGarmentUrl ? (
-              <textarea
-                className={`${FIELD_INPUT} mt-2 h-20 resize-y`}
-                onChange={(event) => setGarmentText(event.target.value)}
-                placeholder={"https://…/top.jpg\nhttps://…/skirt.jpg"}
-                value={garmentText}
-              />
-            ) : null}
           </section>
 
           {/* Star name */}
