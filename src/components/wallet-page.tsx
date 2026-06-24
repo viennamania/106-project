@@ -153,6 +153,76 @@ function getLoadErrorMessage(error: unknown, fallbackMessage: string) {
   return error instanceof Error ? error.message : fallbackMessage;
 }
 
+function parseSendAmountUnits(value: string) {
+  const normalizedValue = value.trim();
+
+  if (!normalizedValue || !/^\d+(\.\d+)?$/u.test(normalizedValue)) {
+    return null;
+  }
+
+  try {
+    const amountInUnits = toUnits(normalizedValue, MEMBER_SIGNUP_USDT_DECIMALS);
+
+    return amountInUnits > BigInt(0) ? amountInUnits : null;
+  } catch {
+    return null;
+  }
+}
+
+function getWalletSendReadinessCopy(locale: Locale) {
+  if (locale === "ko") {
+    return {
+      amountRequired: "보낼 금액을 입력하면 전송을 시작할 수 있습니다.",
+      invalidMemberWallet:
+        "선택한 회원의 지갑 주소가 올바르지 않습니다. 외부 지갑 모드로 직접 주소를 입력해 주세요.",
+      preparing:
+        "전송 준비 상태를 확인하고 있습니다. 받는 지갑, 금액, 내 지갑 연결 상태가 모두 준비되면 버튼이 활성화됩니다.",
+      sponsorGas:
+        "전송 승인 중 BSC 네트워크 또는 가스 후원 설정에서 문제가 발생했습니다. 잠시 후 다시 시도하거나 관리자에게 문의하세요.",
+    };
+  }
+
+  if (locale === "ja") {
+    return {
+      amountRequired: "送金金額を入力すると送信を開始できます。",
+      invalidMemberWallet:
+        "選択したメンバーのウォレットアドレスが正しくありません。外部ウォレットモードで直接入力してください。",
+      preparing:
+        "送金準備を確認しています。受取ウォレット、金額、接続状態が揃うとボタンが有効になります。",
+      sponsorGas:
+        "承認中にBSCネットワークまたはガススポンサー設定で問題が発生しました。しばらくしてから再試行してください。",
+    };
+  }
+
+  return {
+    amountRequired: "Enter an amount to start the transfer.",
+    invalidMemberWallet:
+      "The selected member wallet address is invalid. Enter the address directly in external wallet mode.",
+    preparing:
+      "Checking transfer readiness. The button becomes available when recipient, amount, and wallet connection are ready.",
+    sponsorGas:
+      "The transfer approval failed because of BSC network or gas sponsorship settings. Try again shortly or contact support.",
+  };
+}
+
+function getWalletSendErrorMessage(error: unknown, locale: Locale) {
+  const fallbackMessage =
+    error instanceof Error ? error.message : "Failed to send USDT.";
+  const normalizedMessage = fallbackMessage.toLowerCase();
+  const copy = getWalletSendReadinessCopy(locale);
+
+  if (
+    normalizedMessage.includes("paymaster") ||
+    normalizedMessage.includes("sponsor") ||
+    normalizedMessage.includes("gas") ||
+    normalizedMessage.includes("insufficient funds")
+  ) {
+    return `${copy.sponsorGas}\n${fallbackMessage}`;
+  }
+
+  return fallbackMessage;
+}
+
 export function WalletPage({
   dictionary,
   landingLanguage = null,
@@ -770,6 +840,61 @@ export function WalletPage({
     accountAddress && normalizedActiveRecipientAddress
       ? normalizeAddress(accountAddress) === normalizedActiveRecipientAddress
       : false;
+  const sendReadinessCopy = getWalletSendReadinessCopy(locale);
+  const trimmedSendAmount = sendAmount.trim();
+  const parsedSendAmountUnits = parseSendAmountUnits(trimmedSendAmount);
+  const hasEnteredSendAmount = trimmedSendAmount.length > 0;
+  const hasInvalidSendAmount =
+    hasEnteredSendAmount && parsedSendAmountUnits === null;
+  const hasInsufficientSendBalance =
+    parsedSendAmountUnits !== null &&
+    typeof balance?.value === "bigint" &&
+    parsedSendAmountUnits > balance.value;
+  const hasInvalidMemberRecipientAddress =
+    sendRecipientMode === "member" &&
+    selectedRecipient !== null &&
+    !isAddress(selectedRecipient.walletAddress);
+  const sendBlockReason = (() => {
+    if (isSendTransactionBusy) {
+      return null;
+    }
+
+    if (!accountAddress) {
+      return dictionary.walletPage.disconnected;
+    }
+
+    if (!activeRecipientAddress) {
+      return dictionary.walletPage.errors.selectRecipient;
+    }
+
+    if (hasInvalidMemberRecipientAddress) {
+      return sendReadinessCopy.invalidMemberWallet;
+    }
+
+    if (showExternalRecipientAddressError) {
+      return dictionary.walletPage.errors.invalidRecipientAddress;
+    }
+
+    if (!hasEnteredSendAmount) {
+      return sendReadinessCopy.amountRequired;
+    }
+
+    if (hasInvalidSendAmount) {
+      return dictionary.walletPage.errors.invalidAmount;
+    }
+
+    if (isSelfTransfer) {
+      return dictionary.walletPage.errors.selfTransfer;
+    }
+
+    if (hasInsufficientSendBalance) {
+      return dictionary.walletPage.errors.insufficientBalance;
+    }
+
+    return null;
+  })();
+  const canSubmitTransfer =
+    !isSendTransactionBusy && !sendBlockReason && Boolean(activeRecipientAddress);
 
   return (
     <div
@@ -1284,6 +1409,11 @@ export function WalletPage({
                                 </InfoBadge>
                               ) : null}
                             </div>
+                            {hasInvalidMemberRecipientAddress ? (
+                              <div className="mt-3 rounded-[18px] border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-6 text-amber-950">
+                                {sendReadinessCopy.invalidMemberWallet}
+                              </div>
+                            ) : null}
                           </div>
                         ) : searchState.status === "loading" ? (
                           <MessageCard>{dictionary.walletPage.loading}</MessageCard>
@@ -1437,13 +1567,7 @@ export function WalletPage({
                       <>
                         <TransactionButton
                           className="wallet-send-transaction-button inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-4 text-sm font-semibold !text-white shadow-[0_16px_34px_rgba(15,23,42,0.16)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:!text-white disabled:opacity-100 disabled:shadow-none disabled:hover:bg-slate-800"
-                          disabled={
-                            isSendTransactionBusy ||
-                            !accountAddress ||
-                            !activeRecipientAddress ||
-                            !sendAmount.trim() ||
-                            isSelfTransfer
-                          }
+                          disabled={!canSubmitTransfer}
                           onError={(error) => {
                             if (sendStatusResetTimeoutRef.current !== null) {
                               window.clearTimeout(sendStatusResetTimeoutRef.current);
@@ -1451,7 +1575,7 @@ export function WalletPage({
                             }
                             setSendTransactionStatus("idle");
                             setNotice({
-                              text: error.message,
+                              text: getWalletSendErrorMessage(error, locale),
                               tone: "error",
                             });
                           }}
@@ -1549,6 +1673,15 @@ export function WalletPage({
                               );
                             }
 
+                            if (
+                              sendRecipientMode === "member" &&
+                              !isAddress(recipientAddress)
+                            ) {
+                              throw new Error(
+                                sendReadinessCopy.invalidMemberWallet,
+                              );
+                            }
+
                             const normalizedAmount = sendAmount.trim();
 
                             if (!normalizedAmount || !/^\d+(\.\d+)?$/u.test(normalizedAmount)) {
@@ -1608,6 +1741,14 @@ export function WalletPage({
                             </span>
                           )}
                         </TransactionButton>
+                        {!sendProgress && sendBlockReason ? (
+                          <div
+                            aria-live="polite"
+                            className="mt-3 rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-950 shadow-[0_14px_34px_rgba(245,158,11,0.08)]"
+                          >
+                            {sendBlockReason}
+                          </div>
+                        ) : null}
                         {sendProgress ? (
                           <div
                             aria-live="polite"
