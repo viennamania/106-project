@@ -196,14 +196,14 @@ function getActivationSeparationCopy(locale: Locale) {
         "회원 정보에는 가입과 지갑 활성화 상태만 표시합니다. 배치, 하위 회원, 포인트 보상은 성장 리워드 영역에서 따로 확인합니다.",
       memberPanelTitle: "회원 활성화 상태",
       separationDescription:
-        "브이로거 자격은 콘텐츠 제작 준비 기준으로 보고, 모집 중심 보상은 별도 성장 프로그램으로 운영합니다.",
+        "가입 상태, 콘텐츠 준비, 추천 보상을 각각 따로 관리해 현재 상태와 다음 행동을 분명하게 보여줍니다.",
       separationLabel: "운영 원칙",
       separationPoints: [
         "가입/지갑 활성화",
         "콘텐츠 제작 자격",
         "추천 성장 리워드",
       ],
-      separationTitle: "자격과 보상을 분리합니다",
+      separationTitle: "활성화 상태를 분리해 관리합니다",
     };
   }
 
@@ -232,14 +232,14 @@ function getActivationSeparationCopy(locale: Locale) {
       "Member information shows signup and wallet activation only. Placement, downline members, and point rewards are handled in the growth area.",
     memberPanelTitle: "Member activation status",
     separationDescription:
-      "Vlogger eligibility is based on content readiness, while recruitment-style rewards are managed as a separate growth program.",
+      "Signup status, content readiness, and referral rewards are tracked separately so the current state and next action stay clear.",
     separationLabel: "Operating rule",
     separationPoints: [
       "Signup and wallet activation",
       "Content creator qualification",
       "Referral growth rewards",
     ],
-    separationTitle: "Separate qualification from rewards",
+    separationTitle: "Activation status is managed separately",
   };
 }
 
@@ -2894,15 +2894,15 @@ function ActivationSeparationCard({
             <ShieldCheck className="size-3.5" />
             {copy.separationLabel}
           </div>
-          <p className="mt-3 text-lg font-semibold tracking-tight text-slate-950 sm:text-xl">
+          <p className="mt-3 break-keep text-lg font-semibold tracking-tight text-slate-950 [word-break:keep-all] sm:text-xl">
             {copy.separationTitle}
           </p>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+          <p className="mt-2 max-w-2xl break-keep text-sm leading-6 text-slate-600 [word-break:keep-all]">
             {copy.separationDescription}
           </p>
         </div>
 
-        <div className="grid gap-2 sm:grid-cols-3 lg:w-[430px] lg:shrink-0">
+        <div className="grid gap-2 md:grid-cols-3 lg:w-[430px] lg:shrink-0">
           {copy.separationPoints.map((point, index) => {
             const Icon =
               index === 0 ? WalletMinimal : index === 1 ? Sparkles : Users;
@@ -2914,7 +2914,7 @@ function ActivationSeparationCard({
               >
                 <div className="flex items-center gap-2 text-slate-950">
                   <Icon className="size-4 text-emerald-700" />
-                  <span className="text-[0.8rem] font-semibold leading-5">
+                  <span className="break-keep text-[0.8rem] font-semibold leading-5 [word-break:keep-all]">
                     {point}
                   </span>
                 </div>

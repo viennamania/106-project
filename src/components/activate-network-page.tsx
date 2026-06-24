@@ -101,17 +101,17 @@ function getServiceManagementCopy(locale: Locale) {
     return {
       activeValue: "정상",
       description:
-        "선택 회원의 서비스 사용을 중단하거나 다시 해제합니다. 필요하면 하위 완료 회원까지 함께 적용할 수 있습니다.",
-      releaseAction: "서비스 해제",
-      releaseNoticeMember: "선택 회원의 서비스 중단이 해제되었습니다.",
+        "운영자 권한으로 회원의 서비스 이용 상태를 조정합니다. 일반 회원 화면에는 노출되지 않으며, 변경 전 대상과 범위를 확인해야 합니다.",
+      releaseAction: "서비스 재개",
+      releaseNoticeMember: "선택 회원의 서비스가 재개되었습니다.",
       releaseNoticeSubtree:
-        "선택 회원과 하위 완료 회원 전체의 서비스 중단이 해제되었습니다.",
+        "선택 회원과 하위 완료 회원 전체의 서비스가 재개되었습니다.",
       scopeLabel: "적용 범위",
-      scopeMember: "회원만",
-      scopeSubtree: "회원 + 하위 전체",
+      scopeMember: "선택 회원만",
+      scopeSubtree: "선택 회원 + 하위 회원",
       statusLabel: "서비스 상태",
       submitPending: "적용 중...",
-      suspendAction: "서비스 중단",
+      suspendAction: "서비스 일시 정지",
       suspendedAtLabel: "중단 시각",
       suspendedByLabel: "중단 처리 관리자",
       suspendedScopeLabel: "중단 적용 범위",
@@ -119,24 +119,24 @@ function getServiceManagementCopy(locale: Locale) {
       suspendNoticeMember: "선택 회원 서비스가 중단되었습니다.",
       suspendNoticeSubtree:
         "선택 회원과 하위 완료 회원 전체의 서비스가 중단되었습니다.",
-      title: "서비스 관리",
+      title: "운영자 전용 서비스 상태",
     };
   }
 
   return {
     activeValue: "Active",
     description:
-      "Suspend this member's service access or release it again. You can apply the change to this member only or to the full completed downline.",
-    releaseAction: "Release service block",
-    releaseNoticeMember: "Service access was restored for the selected member.",
+      "Adjust service access with operator permission. This control is not shown to regular members, and the target and scope must be reviewed before applying a change.",
+    releaseAction: "Resume service",
+    releaseNoticeMember: "Service access was resumed for the selected member.",
     releaseNoticeSubtree:
-      "Service access was restored for the selected member and the completed downline.",
+      "Service access was resumed for the selected member and the completed downline.",
     scopeLabel: "Apply scope",
-    scopeMember: "Member only",
-    scopeSubtree: "Member + downline",
+    scopeMember: "Selected member only",
+    scopeSubtree: "Selected member + downline",
     statusLabel: "Service status",
     submitPending: "Applying...",
-    suspendAction: "Suspend service",
+    suspendAction: "Pause service",
     suspendedAtLabel: "Suspended at",
     suspendedByLabel: "Suspended by",
     suspendedScopeLabel: "Applied scope",
@@ -144,7 +144,7 @@ function getServiceManagementCopy(locale: Locale) {
     suspendNoticeMember: "Service access was suspended for the selected member.",
     suspendNoticeSubtree:
       "Service access was suspended for the selected member and the completed downline.",
-    title: "Service controls",
+    title: "Operator-only service status",
   };
 }
 
@@ -1771,9 +1771,118 @@ function ManagedReferralNetworkExplorer({
   totalReferrals: number;
 }) {
   const [path, setPath] = useState<ManagedReferralTreeNodeRecord[]>([]);
+  const [showFullTree, setShowFullTree] = useState(false);
   const focusedNode = path[path.length - 1] ?? null;
   const currentNodes = focusedNode ? focusedNode.children : referrals;
   const currentLevel = focusedNode ? focusedNode.depth + 1 : 1;
+  const hasNestedReferrals = totalReferrals > referrals.length;
+  const treeModeCopy =
+    locale === "ko"
+      ? {
+          collapse: "1단계만 보기",
+          description:
+            "2단계 이상 하위 회원이 있으면 전체 트리를 펼쳐 추천 관계를 한 번에 확인할 수 있습니다.",
+          expand: "전체 하위 트리 보기",
+          title: "추천 네트워크 표시 방식",
+        }
+      : {
+          collapse: "Show level 1 only",
+          description:
+            "When deeper downline members exist, expand the full tree to review the referral relationship at once.",
+          expand: "Show full downline tree",
+          title: "Referral network view",
+        };
+
+  const renderNestedMembers = (
+    nodes: ManagedReferralTreeNodeRecord[],
+    level = 1,
+  ): ReactNode => {
+    if (nodes.length === 0) {
+      return null;
+    }
+
+    return (
+      <div
+        className={cn(
+          "space-y-3",
+          level > 1 &&
+            "mt-3 ml-3 border-l border-slate-200 pl-3 sm:ml-5 sm:pl-4",
+        )}
+      >
+        {nodes.map((member) => {
+          const theme = getReferralLevelTheme(member.depth);
+
+          return (
+            <article
+              className="rounded-[22px] border border-white/80 bg-white/90 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.06)]"
+              key={`tree:${member.email}:${member.lastWalletAddress}`}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div
+                    className={cn(
+                      "inline-flex items-center rounded-full border px-3 py-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.18em]",
+                      theme.compactCardClassName,
+                    )}
+                  >
+                    {dictionary.activateNetworkPage.labels.level} {member.depth}
+                  </div>
+                  <p className="mt-2.5 break-all text-base font-semibold tracking-tight text-slate-950">
+                    {member.email}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-500">
+                    {dictionary.activateNetworkPage.labels.directChildren}{" "}
+                    {formatInteger(member.directReferralCount, locale)} ·{" "}
+                    {dictionary.activateNetworkPage.labels.descendants}{" "}
+                    {formatInteger(member.totalReferralCount, locale)}
+                  </p>
+                </div>
+
+                {member.membershipCardTier !== "none" ? (
+                  <MembershipCardBadge
+                    dictionary={dictionary}
+                    membershipCardTier={member.membershipCardTier}
+                  />
+                ) : null}
+              </div>
+
+              <div className="mt-3 flex flex-wrap justify-end gap-2">
+                <button
+                  className="inline-flex h-10 items-center justify-center rounded-full border border-slate-200 bg-white px-4 text-sm font-medium text-slate-900 transition hover:border-slate-300 hover:bg-slate-50"
+                  onClick={() => {
+                    onSelectMember(member.email);
+                  }}
+                  type="button"
+                >
+                  {dictionary.activateNetworkPage.labels.currentMember}
+                </button>
+                {member.children.length > 0 ? (
+                  <button
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-medium text-white transition hover:bg-slate-800"
+                    onClick={() => {
+                      setShowFullTree(false);
+                      setPath([...path, member]);
+                      onSelectMember(member.email);
+                    }}
+                    type="button"
+                  >
+                    {dictionary.referralsPage.actions.viewChildren}
+                    <span className="rounded-full bg-white/14 px-2 py-1 text-xs text-white">
+                      {formatInteger(member.directReferralCount, locale)}
+                    </span>
+                  </button>
+                ) : null}
+              </div>
+
+              {member.children.length > 0
+                ? renderNestedMembers(member.children, level + 1)
+                : null}
+            </article>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -1844,6 +1953,31 @@ function ManagedReferralNetworkExplorer({
         </div>
       ) : null}
 
+      {hasNestedReferrals ? (
+        <div className="rounded-[24px] border border-slate-200 bg-white/88 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.05)]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-950">
+                {treeModeCopy.title}
+              </p>
+              <p className="mt-1 break-keep text-sm leading-6 text-slate-600 [word-break:keep-all]">
+                {treeModeCopy.description}
+              </p>
+            </div>
+            <button
+              className="inline-flex h-11 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-slate-800"
+              onClick={() => {
+                setShowFullTree((current) => !current);
+                setPath([]);
+              }}
+              type="button"
+            >
+              {showFullTree ? treeModeCopy.collapse : treeModeCopy.expand}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {path.length > 0 ? (
         <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -1880,7 +2014,9 @@ function ManagedReferralNetworkExplorer({
         </div>
       ) : null}
 
-      {currentNodes.length === 0 ? (
+      {showFullTree ? (
+        renderNestedMembers(referrals)
+      ) : currentNodes.length === 0 ? (
         <MessageCard>{dictionary.activateNetworkPage.empty}</MessageCard>
       ) : (
         <div className="grid gap-3 lg:grid-cols-2">
